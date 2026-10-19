@@ -1,0 +1,42 @@
+# The assets of the group key_items/factory_key, each named key_items/factory_key/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "8953ad28e8425e5e671f6c5f2ce057a14c57d0ea"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "15fccc71aec3182363bcca3c574bd20ebbe84ca2"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "key_item"
+
+[text]
+type = "txt"
+sha1 = "be1176ab71740a5ffa0d0a033e30fbd2761cfbb6"
+
+[catalog]
+type = "txt"
+sha1 = "ed28f89f8733be5636ccfb212ffdb84c9c6b11d4"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "c077c6bc1bfe41c3c26fa78ecf6e9ecc1027c051"

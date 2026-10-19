@@ -38,6 +38,11 @@ chunk = "sounds"
 [[file.contents]]
 chunk = "package"
 
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "preview_text", descriptor = "descriptor" }
+shape = "weapon"
+
 [model]
 type = "model"
 slots = ["body"]
@@ -62,6 +67,10 @@ rig = "characters/aya/rig"
 type = "binding"
 model = "weapons/tonfa_baton/model"
 textures = { body = "weapons/tonfa_baton/texture.default" }
+
+[catalog]
+type = "txt"
+sha1 = "532767b7271d9186cc903dbb0948d9edda47be31"
 
 [package]
 type = "pe2pkg"
@@ -111,6 +120,13 @@ package_name = "tonfa_baton"
 required = true
 sha1 = "039a1abc47fa6a2e89fee65c8d0e6d9b4c997781"
 
+[preview]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
 [texture]
 type = "texture"
 bpp = 4
@@ -133,6 +149,10 @@ rig = "characters/aya/rig"
 [battle_end]
 type = "clip"
 rig = "characters/aya/rig"
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "5128d0749449058a745123aae6b1d1298c63fa57"
 
 [aim_forward]
 type = "clip"
@@ -161,6 +181,26 @@ rig = "characters/aya/rig"
 [combo_strike]
 type = "clip"
 rig = "characters/aya/rig"
+
+[preview_file]
+type = "file"
+
+[[preview_file.contents]]
+chunk = "preview_palette"
+palettes = [{ texture = "preview", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "0f68d093a11a1b55a5b8dd4707c450600cdee528"
+
+[[preview_file.contents]]
+chunk = "preview_image"
+pages = [{ texture = "preview", region = "engine/vram/preview_picture" }]
+sha1 = "f88b40f644be9ead0a9a8f4bf06c3eceebbbdde5"
+
+[[preview_file.contents]]
+chunk = "preview_text"
+
+[preview_text]
+type = "txt"
+sha1 = "49ffac903582efe35a9f91b8894014316a499451"
 
 [combo_contact]
 type = "sound"

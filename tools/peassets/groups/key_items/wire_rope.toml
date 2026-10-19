@@ -1,0 +1,42 @@
+# The assets of the group key_items/wire_rope, each named key_items/wire_rope/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "8b4cb862266d6ea17ec2031bb7524b2910423de1"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "5e27a39120f8317c48063e9d00194047886b79bb"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "key_item"
+
+[text]
+type = "txt"
+sha1 = "4742c6e5d8c0ad42b1c4a191ddd12062fd6981c1"
+
+[catalog]
+type = "txt"
+sha1 = "375a3e2d128103e5feda89bf7f5cd1d225964563"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "cb4e328de3ca3039059a7cf8fb1cd62a278bde1c"

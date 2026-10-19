@@ -16,7 +16,7 @@
 /// `spawnArg1.value` carries the packed stock-profile/category selector.
 /// The task creates and owns its UI tree, retaining the root in spawnArg2.
 /// Gameplay queues this exported recipe by saved stage/area; the parking
-/// overlay, shop panels and catalogue resources must remain loaded until exit.
+/// overlay, shop panels and catalog resources must remain loaded until exit.
 extern TaskDesc gMistParkingShopSessionTaskDesc;
 
 /// Number of retained placement-variant slots, including absent slots.

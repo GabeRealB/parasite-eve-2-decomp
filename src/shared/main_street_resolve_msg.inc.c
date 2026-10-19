@@ -4,7 +4,7 @@
 ///
 /// Requires live saved inventory after an executing masterkey door start request.
 /// Clears those two possession bits, then identifies the Bronco Masterkey in
-/// the catalogue. The caller has already checked masterkey possession; its
+/// the catalog. The caller has already checked masterkey possession; its
 /// collection bit stays intact. Applies even if the event task failed to spawn.
 static inline void _mainStreetRecordMasterkeyUse(void)
 {

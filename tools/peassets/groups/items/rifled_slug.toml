@@ -1,0 +1,42 @@
+# The assets of the group items/rifled_slug, each named items/rifled_slug/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "4877802617f1e6cc36fedc616c1a214687164793"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "bdc21aa742f2f3fd4c80f904eea17e5c0cb3580e"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "ammunition"
+
+[text]
+type = "txt"
+sha1 = "c083a3a0366abc459f5b7db93aec5c0eec7b9279"
+
+[catalog]
+type = "txt"
+sha1 = "22e2549bb0a1294454fe1799a526933b1f949302"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "21578f459830adbec5df461aaf13102a9521a89c"

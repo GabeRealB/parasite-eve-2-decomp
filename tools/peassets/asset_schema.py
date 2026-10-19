@@ -101,8 +101,18 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     "texture": {"payload": (), "stored": ("bpp", "width", "height", "variants")},
     # A file lists its chunks in order, and what each image and palette chunk uploads where (texture/).
     "file": {"payload": (), "stored": ("contents",)},
-    # A rectangle of VRAM in halfwords that pages and palettes are placed in by name (texture/declaration.py).
-    "vram_region": {"payload": (), "stored": ("at", "size")},
+    # A rectangle of VRAM in halfwords that pages and palettes are placed in by name, `within` another region where
+    # it is part of it (texture/declaration.py).
+    "vram_region": {"payload": (), "stored": ("within", "at", "size")},
+    # Data of a declared shape (tools/peassets/shape/): its `shape`, and in `outputs` the stored asset each of the
+    # shape's outputs is. Its instance, `<group>/<local name>.toml`, is decoded from them and encodes back exactly.
+    "shaped": {"payload": (), "stored": ("shape", "outputs", "include")},
+    # A row of gameplay's item descriptor table (`ItemDesc`), and the tables themselves: outputs of the item shapes
+    # and their catalog (tools/peassets/shape/item.toml), located in gameplay by address.
+    "item_descriptor": {"payload": (), "stored": ()},
+    "item_descriptor_table": {"payload": (), "stored": ()},
+    # Bytes an object stores that nothing reads, kept as stored: the item catalog object's junk last byte.
+    "junk": {"payload": (), "stored": ()},
     # `package_name` is the overlay's name - its overlays.toml key, its symbol map, its decoded copy in pe2pkg/ -
     # where the asset's own name differs from it (a package filed in a room's group is `<room>_package`).
     # `embedded` lists the EMBEDDED_ASSETS located inside the package, by address: a package is a container, as a
@@ -172,7 +182,7 @@ EMBEDDED_FIELDS = ("source", "vram", "offset", "address", "size", "ext", "type",
                    "group")
 # Types with no bytes of their own: declared by hand, carried over unchanged by dump_asset_db.py.
 DECLARED_TYPES = frozenset({"binding", "texture", "file", "vram_region", "rig", "clip", "animation_schema",
-                            "animation_bank", "sound_bank", "sound"})
+                            "animation_bank", "sound_bank", "sound", "shaped"})
 
 # Embedded types the code reaches by their address in memory - a model through pointers in the code, an image or a
 # CLUT through its upload record - so a placement of one states its `address`.
@@ -563,10 +573,44 @@ def asset_dir(key: str, rec: dict[str, Any] | None = None, *, type_dir: str | No
     return group_of(key, rec) or type_dir
 
 
+def canonical_names(assets: dict[str, dict[str, Any]]) -> dict[str, str]:
+    """Stored bytes' SHA-1 -> the name their raw file is kept under.
+
+    Raw bytes are stored once per content; the names are the places that hold them. Several assets may share one
+    content - a placeholder preview file holding another item's picture - and each keeps its own name, record and
+    decoded form; the raw file is named for one of them: the asset outside the groups if there is one (at most one
+    may be), else the first name in sorted order. A sound is known by its body inside banks, as a raw sample may be,
+    so it has no raw file of its own and is not in it."""
+    names: dict[str, list[str]] = {}
+    for aid, rec in assets.items():
+        sha1 = rec.get("sha1")
+        if isinstance(sha1, str) and rec.get("type") != "sound":
+            names.setdefault(sha1, []).append(aid)
+    return {sha1: min(group, key=lambda n: ("group" in assets[n], n)) for sha1, group in names.items()}
+
+
+_CANONICAL: dict[int, tuple[dict, dict[str, str]]] = {}
+
+
+def stored_name(key: str, rec: dict[str, Any] | None, tables: tuple[dict, dict] | None = None) -> str:
+    """The name an asset's raw file is kept under: its own, or that of the asset whose bytes it shares."""
+    assets = (tables if tables is not None else load())[0]
+    rec = assets.get(key, rec) if rec is None or "sha1" not in rec else rec
+    sha1 = (rec or {}).get("sha1")
+    if not isinstance(sha1, str) or (rec or {}).get("type") == "sound":
+        return key
+    cached = _CANONICAL.get(id(assets))
+    if cached is None or cached[0] is not assets or sha1 not in cached[1]:
+        cached = (assets, canonical_names(assets))
+        _CANONICAL[id(assets)] = cached
+    return cached[1].get(sha1, key)
+
+
 def raw_rel(key: str, rec: dict[str, Any] | None = None, *, type_dir: str | None = None, ext: str | None = None,
             tables: tuple[dict, dict] | None = None) -> str | None:
     """Where an asset's stored bytes are, `raw/<type>/<name><ext>`: never under a group. None for a sample,
-    which is stored only inside its banks."""
+    which is stored only inside its banks. An asset sharing its bytes with others answers the one raw file they are
+    kept in (`stored_name`)."""
     if rec is None:
         rec = record_of(key, type_dir, tables)
     if rec is not None:
@@ -574,6 +618,7 @@ def raw_rel(key: str, rec: dict[str, Any] | None = None, *, type_dir: str | None
             return None
         ext = stored_ext(rec)
         type_dir = type_dir_of(rec)
+        key = stored_name(key, rec, tables)
     if ext is None or type_dir is None:
         raise KeyError(f"{key} is not in the asset table, and no type was given for it")
     return f"{RAW_ROOT}/{type_dir}/{key}{ext}"
@@ -898,6 +943,9 @@ def validate(assets: dict, embedded: dict) -> list[str]:
             problems += texture_declaration.check_file(key, rec, assets)
         if kind == "vram_region":
             problems += texture_declaration.check_region(key, rec, assets)
+        if kind == "shaped":
+            import shape
+            problems += shape.check_asset(key, rec, assets, shape.declarations())
         if kind == "font_atlas" and assets.get(rec.get("generated_by"), {}).get("type") != "cap":
             problems.append(f"{key}: generated_by must name a dialogue (a cap)")
         variants = rec.get("variants")

@@ -74,7 +74,7 @@ enum {
     SHELTER_R47_CONSOLE_ROW_WATCHERS      = 4,
 };
 
-/// Sprite ids in the console's composite sprite catalogue.
+/// Sprite ids in the console's composite sprite catalog.
 enum {
     SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE = 3,
     SHELTER_R47_CONSOLE_MARKER_SPRITE      = 20,
@@ -329,7 +329,7 @@ static inline void _shelterR47InitDrawModeSprite(SpriteDrawModePacket* packet, u
 /// Requires `status` in 0..9 and live `ShelterR47ConsoleWork`. Coordinates are
 /// read from `work` in display-centred pixels before reloading the task's work
 /// and publishing its status. Statuses select sprites 3..12 in the room's
-/// catalogue. Requires the textures, frame arena and OT of
+/// catalog. Requires the textures, frame arena and OT of
 /// `shelterR47ConsoleDrawSprite`; this does not advance the status reveal.
 static inline void _shelterR47ConsoleDrawStatus(Task* task, ShelterR47ConsoleWork* work, s16 status)
 {
@@ -1369,7 +1369,7 @@ static inline s16 _shelterR47MapTerminalIsAreaMarkerVisible(s32 stage, s32 area)
 ///
 /// Borrows initialized terminal work with page 0..4 and its terminated marker
 /// table. Brightness is four times the open-frame count, plus 48 per visible
-/// marker, narrowed to a byte each time. B1 also tests Micro Device catalogue
+/// marker, narrowed to a byte each time. B1 also tests Micro Device catalog
 /// ID 0x12D outside timed viewing; that ID's progression role is unproven.
 /// Opening Neo Ark during the tour marks it complete and starts CAP slot 19.
 /// Requires current textures, OT entries 10/11 and sufficient packet storage.

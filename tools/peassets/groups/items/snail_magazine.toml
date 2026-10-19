@@ -1,0 +1,42 @@
+# The assets of the group items/snail_magazine, each named items/snail_magazine/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "f4489cd3d8351a243685bc32d11e8c3059ecb76c"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "d3b0befaabef9ee43169c8cb3de091c2e7809195"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "effect_item"
+
+[text]
+type = "txt"
+sha1 = "e340c6072c8e70a875be60af2842ebdd640f8598"
+
+[catalog]
+type = "txt"
+sha1 = "7a8010b2dff35ca16d3ea7ea40d97705d9c53c0e"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "379c6cb0d9464cfb5923c6e45ebf1f1ff71d6532"

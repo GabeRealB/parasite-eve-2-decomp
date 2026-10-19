@@ -307,10 +307,10 @@ extern WorldCollisionGrid gMistParkingCollisionGrid;
 /// capacity. The panel uses it for both the number and its meter, through closure.
 extern s32 gShopRefillDisplayQuantityFixed;
 
-/// Borrowed weapon-supply catalogue row currently displayed by the refill panel.
+/// Borrowed weapon-supply catalog row currently displayed by the refill panel.
 ///
 /// NULL until the first carried supply is selected. Retained while the panel
-/// closes; gameplay and its catalogue must remain loaded throughout the session.
+/// closes; gameplay and its catalog must remain loaded throughout the session.
 extern const EquipmentWeaponSupply* gShopRefillSupply;
 
 /// Unproven-origin word read by the departure and shop choice continuations.

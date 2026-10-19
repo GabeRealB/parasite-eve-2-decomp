@@ -17,7 +17,7 @@ enum { EQUIPMENT_WEAPON_SUPPLY_COUNT = 8 };
 /// Built-in rechargeable supply for one weapon.
 ///
 /// `gEquipmentWeaponSupplies` has one row per weapon that keeps this charge in
-/// `EquipmentWeaponLoad`. The catalogue names the supplies Battery or Fuel.
+/// `EquipmentWeaponLoad`. The catalog names the supplies Battery or Fuel.
 /// Shops refill the load `supplyLoad` selects up to that load's capacity.
 /// Clearing removable ammunition leaves the supply loaded. `supplyItemId` is
 /// the item id stored in the load and drawn while the shop charges it.
@@ -44,7 +44,7 @@ typedef struct {
 } EquipmentWeaponLoadOptions;
 STATIC_ASSERT_SIZEOF(EquipmentWeaponLoadOptions, 0x4);
 
-/// Catalogue of load options for every weapon item id 0x80..0x9F.
+/// Catalog of load options for every weapon item id 0x80..0x9F.
 ///
 /// `gEquipmentWeaponPrimaryLoadOptions` is the primary load and `gEquipmentWeaponSecondaryLoadOptions` the secondary,
 /// indexed by item id minus `EQUIPMENT_WEAPON_ITEM_FIRST`. Each row is that
@@ -103,7 +103,7 @@ STATIC_ASSERT_SIZEOF(PlayerModeBaseStats, 0x8);
 
 /// Low-nibble item subtypes used by inventory icons and ammunition labels.
 ///
-/// The subtype's meaning depends on the catalogue category: medicine uses 1,
+/// The subtype's meaning depends on the catalog category: medicine uses 1,
 /// while ammunition uses the caliber or load kind below.
 enum {
     ITEM_SUBTYPE_MASK     = 0x0F,
@@ -122,7 +122,7 @@ enum {
     ITEM_FLAG_NO_ATTACHMENT = 0x04  // Cannot occupy an armor attachment slot.
 };
 
-/// Catalogue properties and identified/unidentified text for an inventory item.
+/// Catalog properties and identified/unidentified text for an inventory item.
 ///
 /// `gItemDescriptors` and `gItemKeyDescriptors` use this same row layout. The high
 /// nibble of `classification` groups entries (0 other, 1 armor, 2 weapon,
@@ -133,7 +133,7 @@ enum {
 /// name makes the item identified from the start.
 typedef struct {
     u16       price;          // Purchase price in BP; replay-bonus credit is half.
-    u8        classification; // Packed catalogue category and subtype.
+    u8        classification; // Packed catalog category and subtype.
     u8        flags;          // ITEM_FLAG_* restrictions; the role of 0x08 is unproven.
     const u8* textFields;     // Six delimited text fields, owned by the gameplay image.
 } ItemDesc;

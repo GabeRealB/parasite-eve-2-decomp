@@ -71,7 +71,7 @@ static void _shelterB1ArmoryRoomIdleState(Task* task);
 /// storage alive through panel closure. Only one refill panel may use it.
 #define SHOP_REFILL_DISPLAY_QUANTITY gShopRefillDisplayQuantityFixed
 
-/// Binds the refill panel's borrowed catalogue selection to this room's pointer storage.
+/// Binds the refill panel's borrowed catalog selection to this room's pointer storage.
 ///
 /// Expands to the writable `const EquipmentWeaponSupply*` defined in
 /// `shelter_b1_armory_2.c` and declared in the private header. Keep this binding
@@ -296,7 +296,7 @@ static void _shelterB1ArmoryShopSceneTask(Task* task)
 
 /// Handles card use at the armory reader, including refusal captions.
 ///
-/// Handles `ROOM_MESSAGE_USE_KEY_ITEM` with an integer catalogue `itemId`.
+/// Handles `ROOM_MESSAGE_USE_KEY_ITEM` with an integer catalog `itemId`.
 /// A hit cardkey trigger accepts Armory Cardkey, Bowman's Card or Yoshida's
 /// Card and requests a result task on the default list. Only Armory Cardkey
 /// unlocks the reader; any of the three selects the already-open caption after

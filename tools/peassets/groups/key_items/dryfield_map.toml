@@ -1,0 +1,42 @@
+# The assets of the group key_items/dryfield_map, each named key_items/dryfield_map/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "ef39bcd4c71d4a1236aa4fa2b0cf969814241cea"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "0e37a0d190551290bfc834d1fed1755947c9768f"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "key_item"
+
+[text]
+type = "txt"
+sha1 = "a6f2b28a4ac48add42cdbb512be27680bbf3babc"
+
+[catalog]
+type = "txt"
+sha1 = "02ae8d7a3c5c0a5772215c2e56ceb4097ed1821d"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "ff29723f6506f9a849abc44fd26f67e18347136e"

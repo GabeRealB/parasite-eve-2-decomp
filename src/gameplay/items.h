@@ -22,7 +22,7 @@ extern EquipmentWeaponLoadOptionsTable gEquipmentWeaponSecondaryLoadOptions;
 /// Built-in rechargeable weapon supplies, in the shop's cycling order.
 ///
 /// Each row identifies a weapon, its permanent Battery/Fuel item and its primary
-/// or secondary load. Initialization fills these loads to catalogue capacity;
+/// or secondary load. Initialization fills these loads to catalog capacity;
 /// removable-load clearing preserves them. Row pointers borrow gameplay data.
 extern EquipmentWeaponSupply gEquipmentWeaponSupplies[EQUIPMENT_WEAPON_SUPPLY_COUNT];
 
@@ -30,7 +30,7 @@ extern EquipmentWeaponSupply gEquipmentWeaponSupplies[EQUIPMENT_WEAPON_SUPPLY_CO
 ///
 /// Zero selection means primary; every nonzero selection means secondary.
 /// Weapon ids outside 0x80..0x9F, absent weapons or items outside that load's
-/// catalogue choices return -1. The carried range must fit its readable table.
+/// catalog choices return -1. The carried range must fit its readable table.
 /// Stock is the first stack's signed quantity minus carried weapon loads, plus
 /// this selected load's quantity when it already uses the consumable.
 /// Negative requests use capacity; positive requests clamp to capacity and stock.
@@ -269,7 +269,7 @@ void playerCaptureSaveState(void);
 /// Inventory rows and saved loads remain intact.
 void equipmentSyncPrimaryAttackSelector(void);
 
-/// Returns whether an item uses its identified catalogue text and icon.
+/// Returns whether an item uses its identified catalog text and icon.
 ///
 /// `itemId` must be nonnegative. Ids below 0x180 consult the live save's flag;
 /// larger ids return true. Items with no unidentified text start identified,
@@ -312,7 +312,7 @@ void inventoryUpdateIceBag(void);
 /// Initializes saved items, weapon loads and starting supplies for a new playthrough.
 ///
 /// Called on the first stage visit with live save/player state, loaded item
-/// catalogues and writable container ranges 1..6 and 8. Clears all saved row ids
+/// catalogs and writable container ranges 1..6 and 8. Clears all saved row ids
 /// and quantities, identification storage and collection flags, initializes all
 /// weapon loads/supplies, and selects twenty saved rows as carried inventory.
 /// Resets only the first twelve energy levels and enables the first at level 1.
@@ -324,7 +324,7 @@ void inventoryUpdateIceBag(void);
 /// shooting-gallery starts additionally apply the training loadout and equip
 /// M93R. Returned grant rows must exist: attachment writes do not check failure.
 /// Identification scans raw ids 0..383 through three terminated text fields;
-/// ordinary ids 192..255 retain the physical alias into the key catalogue,
+/// ordinary ids 192..255 retain the physical alias into the key catalog,
 /// whose containing declaration remains unproven. Frees no inventory storage.
 void inventoryInitializeNewGame(void);
 
@@ -462,33 +462,33 @@ s32 inventoryGrantBattleRewards(const InventoryItemRange* rewardRange);
 /// Borrows placement/stack tables without retaining a pointer or changing them.
 s32 itemPickupPublishPlacedObject(s32 flagIndex);
 
-/// Catalogue-order keys for ordinary item ids 0..0x47, indexed directly by id.
+/// Catalog-order keys for ordinary item ids 0..0x47, indexed directly by id.
 ///
 /// Zero entries use numerical fallback (id + 0x100); the consumers handle id
 /// zero separately as an empty row. Ids 0x48..0x5F pass their category tests
 /// but exceed this table and must not be supplied. The last stored key is 255.
 extern const u8 gInventoryOrdinarySortKeys[72];
 
-/// Catalogue-order keys for armor ids 0x60..0x6E, indexed by id minus 0x60.
+/// Catalog-order keys for armor ids 0x60..0x6E, indexed by id minus 0x60.
 ///
 /// Zero uses numerical fallback. Ids 0x6F..0x7F pass the consumers' category
 /// tests but exceed this table and must not be supplied. The last key is 255.
 extern const u8 gInventoryArmorSortKeys[15];
 
-/// Catalogue-order keys for weapon ids 0x80..0x9F, indexed by id minus 0x80.
+/// Catalog-order keys for weapon ids 0x80..0x9F, indexed by id minus 0x80.
 ///
 /// Zero uses numerical fallback. The final stored byte at index 32 is 255;
 /// it is outside the live weapon index domain and its purpose is unproven.
 extern const u8 gInventoryWeaponSortKeys[33];
 
-/// Catalogue-order keys for consumable ids 0xA0..0xBF, indexed by id minus 0xA0.
+/// Catalog-order keys for consumable ids 0xA0..0xBF, indexed by id minus 0xA0.
 ///
 /// Zero selects numerical fallback order (id + 0x100). The final stored byte
 /// at index 32 is 255 and is outside both sort consumers' index domain;
 /// its purpose is unproven. Storage remains in the overlay's data section.
 extern const u8 gInventoryConsumableSortKeys[INVENTORY_CONSUMABLE_ITEM_COUNT + 1];
 
-/// Sorts the selected range by catalogue order, placing free rows last.
+/// Sorts the selected range by catalog order, placing free rows last.
 ///
 /// Exchanges complete rows as each lower key is encountered. Equal keys are
 /// not exchanged directly, but the sort is not stable. Attachment positions
@@ -535,7 +535,7 @@ enum { INVENTORY_ADD_FULL_STACK = -2 };
 /// Adds item units to the selected range and returns the affected row, or NULL.
 ///
 /// Consumable ids 0xA0..0xBF share the first matching stack, clamped to its
-/// catalogue capacity; otherwise the first free row is initialized. Any
+/// catalog capacity; otherwise the first free row is initialized. Any
 /// negative quantity requests one pack, except `INVENTORY_ADD_FULL_STACK`,
 /// which requests a full stack. Other one-byte item ids always occupy a new
 /// row with quantity one. `itemId` must be 1..0xFF and the range must fit its

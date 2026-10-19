@@ -219,7 +219,7 @@ enum {
     MAP_DRYFIELD_FULL_MARKER_WATER_HOLE_UNDERPASS          = 0x1CE,
 };
 
-/// Catalogue item IDs awarded by the night-stage battle lists; zero uses INVENTORY_ITEM_NONE.
+/// Catalog item IDs awarded by the night-stage battle lists; zero uses INVENTORY_ITEM_NONE.
 enum {
     MAP_DRYFIELD_FULL_REWARD_RECOVERY_2       = 0x02,
     MAP_DRYFIELD_FULL_REWARD_RECOVERY_3       = 0x03,

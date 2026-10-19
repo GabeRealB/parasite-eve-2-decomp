@@ -4,7 +4,7 @@ This decomp still has many address-based placeholders (`func_800xxxxx`, `D_800xx
 `field_XX`). Prefer descriptive names as soon as a symbol’s role is clear.
 
 **A field's role is recorded at its declaration**, in the header that owns the
-type. There is no separate catalogue: a second copy of a field's meaning only
+type. There is no separate catalog: a second copy of a field's meaning only
 goes stale, and a stale one is worse than none because it reads as established.
 
 ## Scheme

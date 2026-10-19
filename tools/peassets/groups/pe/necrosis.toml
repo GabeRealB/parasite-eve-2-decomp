@@ -1,0 +1,194 @@
+# The assets of the group pe/necrosis, each named pe/necrosis/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[level1_item]
+type = "shaped"
+shape = "parasite_energy"
+
+[level1_item.outputs]
+catalog = "level1_catalog"
+info = "level1_shop_text"
+menu = "level1_menu_text"
+descriptor = "level1_descriptor"
+
+[level2_item]
+type = "shaped"
+shape = "parasite_energy"
+
+[level2_item.outputs]
+catalog = "level2_catalog"
+info = "level2_shop_text"
+menu = "level2_menu_text"
+descriptor = "level2_descriptor"
+
+[level3_item]
+type = "shaped"
+shape = "parasite_energy"
+
+[level3_item.outputs]
+catalog = "level3_catalog"
+info = "level3_shop_text"
+menu = "level3_menu_text"
+descriptor = "level3_descriptor"
+
+[shop_picture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[level1_catalog]
+type = "txt"
+sha1 = "419f742ee725fca2fd48aefbe159fe5c5cb40276"
+
+[level2_catalog]
+type = "txt"
+sha1 = "a8b8da88e8f9f87d52690a761ab6f9d301da32db"
+
+[level3_catalog]
+type = "txt"
+sha1 = "a2e7d8de0e74c4510222573bf252b40d87a7b9c1"
+
+[level1_menu_file]
+type = "file"
+
+[[level1_menu_file.contents]]
+chunk = "level1_menu_palette"
+palettes = [{ texture = "level1_menu_picture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "78ec9a535acd9d8fe496d192ab7dbb1efca37bf7"
+
+[[level1_menu_file.contents]]
+chunk = "level1_menu_image"
+pages = [
+    { texture = "level1_menu_picture", region = "engine/vram/energy_picture", upload = "engine/vram/preview_picture" },
+]
+sha1 = "607717d6080eb7587375e5efac3267eed40977fa"
+
+[[level1_menu_file.contents]]
+chunk = "level1_menu_text"
+
+[level1_menu_text]
+type = "txt"
+sha1 = "5f8665d49e0b262024a1416cdada686ae28c5a2d"
+
+[level1_shop_file]
+type = "file"
+
+[[level1_shop_file.contents]]
+chunk = "shop_palette"
+palettes = [{ texture = "shop_picture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "f2d7984a8b09b0553103e119f47acdd31fe8ad66"
+
+[[level1_shop_file.contents]]
+chunk = "shop_image"
+pages = [{ texture = "shop_picture", region = "engine/vram/preview_picture" }]
+sha1 = "64ee15c941e9c4435fafc05f1ab66ab1ebc0d003"
+
+[[level1_shop_file.contents]]
+chunk = "level1_shop_text"
+
+[level1_shop_text]
+type = "txt"
+sha1 = "07dccab57eb8203714a2b70b9827b7cfe70897ef"
+
+[level2_menu_file]
+type = "file"
+
+[[level2_menu_file.contents]]
+chunk = "level2_menu_palette"
+palettes = [{ texture = "level2_menu_picture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "a251622e2a9eeed62eca8edb261b2a5925c2a6b2"
+
+[[level2_menu_file.contents]]
+chunk = "level2_menu_image"
+pages = [
+    { texture = "level2_menu_picture", region = "engine/vram/energy_picture", upload = "engine/vram/preview_picture" },
+]
+sha1 = "b3a0769fe2042bae8e260bf23797d409ce624064"
+
+[[level2_menu_file.contents]]
+chunk = "level2_menu_text"
+
+[level2_menu_text]
+type = "txt"
+sha1 = "7e7b15cb1c2af85cf8abbabf424d778840e82f1f"
+
+[level2_shop_file]
+type = "file"
+contents = [
+    { chunk = "shop_palette", sha1 = "f2d7984a8b09b0553103e119f47acdd31fe8ad66" },
+    { chunk = "shop_image", sha1 = "64ee15c941e9c4435fafc05f1ab66ab1ebc0d003" },
+    { chunk = "level2_shop_text" },
+]
+
+[level2_shop_text]
+type = "txt"
+sha1 = "07dccab57eb8203714a2b70b9827b7cfe70897ef"
+
+[level3_menu_file]
+type = "file"
+
+[[level3_menu_file.contents]]
+chunk = "level3_menu_palette"
+palettes = [{ texture = "level3_menu_picture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "9ef565721dfa75d5d0dcd5f78686649fc756e54a"
+
+[[level3_menu_file.contents]]
+chunk = "level3_menu_image"
+pages = [
+    { texture = "level3_menu_picture", region = "engine/vram/energy_picture", upload = "engine/vram/preview_picture" },
+]
+sha1 = "faaa12ae2a23fb2eca7e0c4dbb8e4e7c1f08dea1"
+
+[[level3_menu_file.contents]]
+chunk = "level3_menu_text"
+
+[level3_menu_text]
+type = "txt"
+sha1 = "874ca1b9331185ca9900c1769277fea8b76ee360"
+
+[level3_shop_file]
+type = "file"
+contents = [
+    { chunk = "shop_palette", sha1 = "f2d7984a8b09b0553103e119f47acdd31fe8ad66" },
+    { chunk = "shop_image", sha1 = "64ee15c941e9c4435fafc05f1ab66ab1ebc0d003" },
+    { chunk = "level3_shop_text" },
+]
+
+[level3_shop_text]
+type = "txt"
+sha1 = "07dccab57eb8203714a2b70b9827b7cfe70897ef"
+
+[level1_descriptor]
+type = "item_descriptor"
+sha1 = "2f967037658301da9628d90ca2a6bf0819ce3f01"
+
+[level2_descriptor]
+type = "item_descriptor"
+sha1 = "98f730677d4526945f39aaf8a6b90721223123c8"
+
+[level3_descriptor]
+type = "item_descriptor"
+sha1 = "8c3fd263e0808870206b9ca1befcfeab646acffd"
+
+[level1_menu_picture]
+type = "texture"
+bpp = 8
+height = 64
+variants = ["default"]
+width = 80
+
+[level2_menu_picture]
+type = "texture"
+bpp = 8
+height = 64
+variants = ["default"]
+width = 80
+
+[level3_menu_picture]
+type = "texture"
+bpp = 8
+height = 64
+variants = ["default"]
+width = 80

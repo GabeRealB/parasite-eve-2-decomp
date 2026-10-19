@@ -1,0 +1,42 @@
+# The assets of the group key_items/bag_of_water, each named key_items/bag_of_water/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "da2e7aec0d795f569a8ac1535c9aadcfc24b3c17"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "6d02557702cc2abc2bd78b4e8a84418b4a5d5216"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "key_item"
+
+[text]
+type = "txt"
+sha1 = "23e59a04948ed15ac1ffe0ddea8fff65a458a64b"
+
+[catalog]
+type = "txt"
+sha1 = "b76bea28ee71979d19d0cb6c68df8f7d68891282"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "cc4412eca6d8821ebd0fb51961b1155f79d4eec1"

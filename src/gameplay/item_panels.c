@@ -294,7 +294,7 @@ enum {
 /// Recipe for the obtained-item notice shown after a pickup is accepted.
 ///
 /// Bounds are screen-centered pixels; the handler fits them to two text rows.
-/// Content holds the catalogue id in its low 16 bits; bit 16 allows timeout only.
+/// Content holds the catalog id in its low 16 bits; bit 16 allows timeout only.
 static const UiObjectDesc _gItemPickupObtainedNoticeDesc __attribute__((section(".data"))) = {
     .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
     .bounds          = { -80, -40, 160, 80 },
@@ -616,7 +616,7 @@ const UiObjectDesc gItemMenuPeCommandPanelDesc __attribute__((section(".data")))
     .contentCallback = itemMenuPeCommandTask,
 };
 
-/// Carried weapon and mounted add-on catalogue ids in the M4A1 scan table.
+/// Carried weapon and mounted add-on catalog ids in the M4A1 scan table.
 enum {
     ITEM_MENU_M4A1_VARIANT_BASE_ITEM        = 0x8F,
     ITEM_MENU_M4A1_VARIANT_ONE_HOLDER_ITEM  = 0x93,
@@ -1513,7 +1513,7 @@ static inline void _itemPickupRequestPreview(s32 itemId)
 
 /// Shows the published pickup's equipment-scale preview after its resources are ready.
 ///
-/// spawnArg2 borrows the live task-owned UiObject; the published catalogue id
+/// spawnArg2 borrows the live task-owned UiObject; the published catalog id
 /// must remain stable. State 0 resets the shared request slots and queues menu
 /// profile 0. Waiting ends when a scene payload is available or the CD queue
 /// is idle. Until then only the recessed preview frame is drawn. The loaded
@@ -1753,7 +1753,7 @@ static void _itemPickupInventoryFullTask(Task* task)
 
 /// Shows the obtained item's name until timeout or permitted acknowledgment.
 ///
-/// spawnArg2 is the live UiObject. spawnArg1's low 16 bits hold a valid catalogue
+/// spawnArg2 is the live UiObject. spawnArg1's low 16 bits hold a valid catalog
 /// item id; bit 16 disables Confirm/Cancel acknowledgment. The countdown advances
 /// every update, including while opening, and reports CANCEL only while active.
 static void _itemPickupObtainedNoticeTask(Task* task)
@@ -1834,7 +1834,7 @@ UiObject* itemMenuSpawnYesNoMenuDefaultNo(UiObject* parent)
 /// Draws a visible item row's name and icon with optional status and P.E. marks.
 ///
 /// Borrows object for this draw, using `itemMenuDrawItemRow`'s panel-relative
-/// pixels and catalogue/GPU-storage contract. colorRgb is packed 24-bit RGB.
+/// pixels and catalog/GPU-storage contract. colorRgb is packed 24-bit RGB.
 /// Attachment state 0 omits status; 1 enables E/L, and 2 also allows A.
 /// Only ordinary P.E. item ids 15..50 draw a level. Hidden panels draw nothing.
 static inline void _itemMenuDrawItemRowContents(const UiObject* object, s32 x, s32 y, s32 itemId, s32 colorRgb, s32 attachmentState)

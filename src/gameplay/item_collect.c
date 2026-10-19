@@ -27,10 +27,10 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-/// Terminator of the ordered collected-item catalogue, distinct from INVENTORY_ITEM_NONE.
+/// Terminator of the ordered collected-item catalog, distinct from INVENTORY_ITEM_NONE.
 enum { INVENTORY_COLLECTED_LIST_END = 0xFFFF };
 
-/// Catalogue identification flags stored in the live save.
+/// Catalog identification flags stored in the live save.
 enum {
     ITEM_IDENTIFICATION_ID_LIMIT      = 0x180,
     ITEM_IDENTIFICATION_BITS_PER_WORD = 32
@@ -234,12 +234,12 @@ static inline void _areaApplyObjectPlacement(Enemy* enemy, const AreaObjectPlace
     root->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Display order of forty collection catalogue IDs, followed by INVENTORY_COLLECTED_LIST_END.
+/// Display order of forty collection catalog IDs, followed by INVENTORY_COLLECTED_LIST_END.
 ///
 /// Each ID's low seven bits select its live saved collection bit. Enumeration
 /// skips unset bits and returns the caller's zero-based collected position in
 /// this order. The sentinel is not an item, and adjacent retained bytes are
-/// outside the catalogue. The IDs and their order remain unchanged.
+/// outside the catalog. The IDs and their order remain unchanged.
 static u16 _gInventoryCollectedItemOrder[41] = {
     297,
     296,
@@ -602,7 +602,7 @@ s32 equipmentHasCarriedWeaponSupply(void)
 /// Resets all saved weapon loads, then fills each built-in supply to capacity.
 ///
 /// Removable primaries start empty; only the M4A1 grenade secondary is reloadable.
-/// Every other secondary starts unavailable until the supply catalogue is applied.
+/// Every other secondary starts unavailable until the supply catalog is applied.
 static void _equipmentInitializeWeaponLoads(void)
 {
     enum { EQUIPMENT_ITEM_M4A1_GRENADE = 0x9A };
@@ -696,7 +696,7 @@ static void _itemInitializeIdentification(void)
     s32             fieldsRemaining;
 
     save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    // Reset the full stored array before reusing the index for catalogue ids.
+    // Reset the full stored array before reusing the index for catalog ids.
     for (itemId = ARRAY_SIZE(save->state.itemSeenBits) - 1; itemId >= 0; itemId--) {
         save->state.itemSeenBits[itemId] = 0;
     }

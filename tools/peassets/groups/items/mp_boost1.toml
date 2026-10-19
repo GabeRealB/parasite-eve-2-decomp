@@ -1,0 +1,42 @@
+# The assets of the group items/mp_boost1, each named items/mp_boost1/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "517a7d1a71a4353554c2b95e371006d70241ed10"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "d79764094b667fc3711af84a6a47a2500d50ed34"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "effect_item"
+
+[text]
+type = "txt"
+sha1 = "2d4be5e119465e24c2aad0af66ee09add7692366"
+
+[catalog]
+type = "txt"
+sha1 = "1ec0789ff07d73229ff12873b917ed3648a655f8"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "972388ce3baf9db7945f188020f2ea40b69b4b09"

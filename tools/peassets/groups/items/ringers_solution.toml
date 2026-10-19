@@ -1,0 +1,42 @@
+# The assets of the group items/ringers_solution, each named items/ringers_solution/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "dd94846353c63c60081e7e9b4a77f839ab5ea753"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "601f82035eccfc6345f084797d22cefb2e16fbd9"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "effect_item"
+
+[text]
+type = "txt"
+sha1 = "c3ed8140596250db7c1e0d700e02790e4b81dc9d"
+
+[catalog]
+type = "txt"
+sha1 = "060d60d426dadcc85c0be557f8399ce84a7636f8"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "28ab9520820ef6894e464aea471235cbe5ddf38d"

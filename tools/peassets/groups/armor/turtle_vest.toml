@@ -1,0 +1,42 @@
+# The assets of the group armor/turtle_vest, each named armor/turtle_vest/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "picture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "1e3e5279f83c88118c5308d664f20a26968f0cc2"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "picture", region = "engine/vram/preview_picture" }]
+sha1 = "3e7851f9adac45836f409fbff6e40a487d068b36"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "armor"
+
+[text]
+type = "txt"
+sha1 = "751f351d2df87708567cfb96d0f57bef4a17e99c"
+
+[catalog]
+type = "txt"
+sha1 = "8ff9d4c98c3226279f0046bb75a53fcbf75ef44d"
+
+[picture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "ec237b50d70f33f84db414091fa4b6f53fab4617"

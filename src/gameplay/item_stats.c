@@ -39,7 +39,7 @@ typedef struct {
     u16 depth;  // third GTE lane; always 0, so scaling leaves it 0
 } _ItemMenuPreviewSize;
 
-/// Item-information layout, colors, catalogue ranges and task phases.
+/// Item-information layout, colors, catalog ranges and task phases.
 enum {
     ITEM_MENU_PANEL_TEXT_COLOR             = 0x606060,
     ITEM_MENU_INFO_BONUS_COLOR             = 0x808008,
@@ -78,7 +78,7 @@ enum {
     ITEM_MENU_PREVIEW_SHOP_SCALE_12       = 0xAA0
 };
 
-/// Additional catalogue ids used by the information panel's identification policy.
+/// Additional catalog ids used by the information panel's identification policy.
 enum {
     ITEM_MENU_INFO_ITEM_PIERCE_MEMO      = 0x125,
     ITEM_MENU_INFO_ITEM_AERIS_MAGAZINE   = 0x127,
@@ -164,7 +164,7 @@ WeaponAttackRow gWeaponAttackRows[47] = {
 
 /// Draws an item's name, icon and ordinary P.E. level without an equipment mark.
 ///
-/// Uses `itemMenuDrawItemRow`'s panel-relative pixels and catalogue/GPU contract.
+/// Uses `itemMenuDrawItemRow`'s panel-relative pixels and catalog/GPU contract.
 /// Borrows object and fills the caller's writable text request for this draw;
 /// hidden panels leave the request untouched. colorRgb is packed 24-bit RGB.
 static inline void _itemMenuDrawUnmarkedItemRowIntoRequest(const UiObject* object, TextDrawReq* request, s32 x, s32 y, s32 colorRgb,
@@ -191,8 +191,8 @@ static inline void _itemMenuDrawUnmarkedItemRowIntoRequest(const UiObject* objec
 
 /// Counts rows for the item-information description list in the loaded text chunk.
 ///
-/// `itemId` is the low 16-bit catalogue/packed id. Below `ITEM_TEXT_KEY_ID_FIRST`,
-/// at least two rows are reserved for the identified catalogue descriptions.
+/// `itemId` is the low 16-bit catalog/packed id. Below `ITEM_TEXT_KEY_ID_FIRST`,
+/// at least two rows are reserved for the identified catalog descriptions.
 /// Skips up to five encoded header line breaks, then counts literal LF bytes until
 /// NUL or \\Z/\\z. CR and \\n/\\N add no rows; a final fragment without LF adds none.
 /// Borrows `fsGetChunkPayload` only for this call: the correct chunk must be

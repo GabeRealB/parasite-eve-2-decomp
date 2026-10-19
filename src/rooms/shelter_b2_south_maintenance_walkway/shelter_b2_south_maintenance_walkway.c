@@ -413,7 +413,7 @@ WorldCollisionTrigger gShelterB2SouthMaintenanceWalkwayActionTriggers[2] = {
 /// Placement/resource keys used by the walkway's encounter variants.
 ///
 /// Each key selects a recipe in that variant's resource list; file numbers
-/// remain independent catalogue selections even where they equal the key.
+/// remain independent catalog selections even where they equal the key.
 enum {
     SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_WATCHER            = 21,
     SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_ROOK_GOLEM         = 23,

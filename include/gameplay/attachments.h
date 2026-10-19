@@ -21,7 +21,7 @@ s32 attachmentIsTrainingMode(void);
 /// in the 55-row table. Attachment attack keys select the same valid row with
 /// their low seven bits. Rows supply EXP/MP costs, cast timing and hit/healing
 /// parameters; the byte view addresses the same unsigned halfword columns.
-/// The catalogue remains live with gameplay and owns no overlay pointers.
+/// The catalog remains live with gameplay and owns no overlay pointers.
 extern AttachmentLevelTable gAttachmentLevelTable;
 
 /// Separate learned spell levels used by M.I.S.T. shooting-gallery training.

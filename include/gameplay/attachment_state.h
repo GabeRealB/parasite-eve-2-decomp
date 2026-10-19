@@ -6,7 +6,7 @@
 /// Wheel spells in slots 0..11, excluding the six item-ability slots.
 #define ATTACHMENT_SPELL_COUNT 0xC
 
-/// Ability slots in the parameter catalogues: twelve wheel spells and six item abilities.
+/// Ability slots in the parameter catalogs: twelve wheel spells and six item abilities.
 #define ATTACHMENT_ABILITY_COUNT 18
 
 /// Parameter rows per ability, and the maximum learned spell level.

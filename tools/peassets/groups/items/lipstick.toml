@@ -1,0 +1,42 @@
+# The assets of the group items/lipstick, each named items/lipstick/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "dcf7d7dd78f0d4bf86100886cfdf7fd6319f8da2"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "63f3cdc093c3b63961e59f63d97eaded2a50daa1"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "effect_item"
+
+[text]
+type = "txt"
+sha1 = "9da1fad8bee052a49d9b2d4668938d1791264cb5"
+
+[catalog]
+type = "txt"
+sha1 = "166ac940e0709308245cedbf6ae14d19a3e2f006"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "449a4f5ce061815a287c2907c9f2448b4104f101"

@@ -1,0 +1,42 @@
+# The assets of the group key_items/red_key, each named key_items/red_key/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "778590acf89f3c15e84276f35461c03d57019b4d"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "eba65da9a443b0b6b8d53d102d032c65940c2bfe"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "key_item"
+
+[text]
+type = "txt"
+sha1 = "6d94cec80390ad872e4f13fed32d5d851225a13e"
+
+[catalog]
+type = "txt"
+sha1 = "7393cfe869f890d64de1a9509a07c52a4a97f7aa"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "68d9405aa9476e1c8c2943faebec7afbdf4988cd"

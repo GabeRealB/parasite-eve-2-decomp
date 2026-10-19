@@ -1,0 +1,42 @@
+# The assets of the group key_items/nmc_photo, each named key_items/nmc_photo/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "e79ce86116d63351320d6abffca2fd9ea6084ae8"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "4c55b016ade8bf64bae48e4a0e170c3fd0552147"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "key_item"
+
+[text]
+type = "txt"
+sha1 = "493d453e89b0d3f1954a7a2a17eba54458af26ae"
+
+[catalog]
+type = "txt"
+sha1 = "0f8faf6da2807f6e109e7c9efeb87fd3ff1203ff"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "76b59191912f615313d8c22130a66b8d52559e55"

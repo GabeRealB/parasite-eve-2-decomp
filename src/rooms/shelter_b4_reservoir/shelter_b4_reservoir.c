@@ -1088,7 +1088,7 @@ static AreaResource _gShelterB4ReservoirAreaVariant1Resources[2] = {
 /// Variant-2 resources: Mad Chaser, Creeping Stranger and Skull Stalker recipes.
 ///
 /// Entry IDs 44, 72 and 73 select these recipes; the placements use only 44/72,
-/// and the retained ID-73 file request has no catalogued file. The fourth record ends the list.
+/// and the retained ID-73 file request has no cataloged file. The fourth record ends the list.
 /// The room and referenced actor packages must remain live through their consumers.
 static AreaResource _gShelterB4ReservoirAreaVariant2Resources[4] = {
     { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_04400_MAD_CHASER_TASK_ORDINARY, { 0, 0 }, gActor04400MadChaserTaskDescs },

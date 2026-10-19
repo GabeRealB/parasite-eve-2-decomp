@@ -58,7 +58,7 @@ enum {
     ITEM_MENU_DETAIL_ARMOR                      = 2
 };
 
-/// Returns 1 for armor catalogue ids 0x60..0x7F, otherwise 0.
+/// Returns 1 for armor catalog ids 0x60..0x7F, otherwise 0.
 static inline s32 _itemIsArmorItem(u8 itemId)
 {
     return (u32)(itemId - ITEM_MENU_ARMOR_ITEM_FIRST) < ITEM_MENU_EQUIPMENT_ITEM_COUNT_U;
@@ -66,7 +66,7 @@ static inline s32 _itemIsArmorItem(u8 itemId)
 
 /// Publishes a changed selection in one preview profile and requests its load.
 ///
-/// `itemId` is a catalogue id and `profile` is 0..2, a display-load profile.
+/// `itemId` is a catalog id and `profile` is 0..2, a display-load profile.
 /// Both must be stable and side-effect-free, and must not name previewSlot or
 /// profileIndex. Only the first three requested ids are written; slots 3/4
 /// survive. An unchanged id makes no stores or request. Publication precedes

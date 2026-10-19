@@ -4,7 +4,7 @@
 ///
 /// The owner task's work holds the list's borrowed `s16` item ids. The row
 /// range must be nonnegative and fit that storage; each id must satisfy
-/// `_replayBonusItemBp`'s catalogue bounds. Starting at zero computes the full
+/// `_replayBonusItemBp`'s catalog bounds. Starting at zero computes the full
 /// clear total; scrolling backward progressively reveals the displayed total.
 /// Caps at eight decimal digits without changing the player's balance.
 static inline s32 _replayBonusSumTotalBp(const UiList* list, const UiObject* object)

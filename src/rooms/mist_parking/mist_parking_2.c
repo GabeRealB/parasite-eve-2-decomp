@@ -236,7 +236,7 @@ enum {
     MIST_PARKING_ARRIVAL_AMBIENT_CHANNEL = 100
 };
 
-/// Catalogue ids and quantities awarded for the five shooting-gallery courses.
+/// Catalog ids and quantities awarded for the five shooting-gallery courses.
 enum {
     MIST_PARKING_COURSE_PRIZE_9MM_HYDRA        = 0xA1,
     MIST_PARKING_COURSE_PRIZE_RINGERS_SOLUTION = 0x3D,
@@ -1582,7 +1582,7 @@ static EvsCommand _gMistParkingJodieShopDeclineScript[8] = {
 ///
 /// Courses 0..3 use these words for storage grants. Course 4's Shoulder Holster
 /// is retained here but granted separately after checking its ownership limit.
-/// Signed-word catalogue ids stay in the authored data section.
+/// Signed-word catalog ids stay in the authored data section.
 static const s32 _gMistParkingCoursePrizeItemIds[5] SECTION(".data") = {
     MIST_PARKING_COURSE_PRIZE_9MM_HYDRA,
     MIST_PARKING_COURSE_PRIZE_RINGERS_SOLUTION,

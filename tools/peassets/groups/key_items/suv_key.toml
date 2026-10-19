@@ -1,0 +1,42 @@
+# The assets of the group key_items/suv_key, each named key_items/suv_key/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "d238dd6f5fa68d7d89b8e85c4102f2ef09652886"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "7e572b59b16a16f299ae18c280f5432a9070873e"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "key_item"
+
+[text]
+type = "txt"
+sha1 = "cb696be3def1798229ee29d2c2056c8950c96398"
+
+[catalog]
+type = "txt"
+sha1 = "ba01d4ce5616debea550c7152f04fe2a5e8d2cef"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "53f5ba46448747a9390e04d78eb480cee3541f71"

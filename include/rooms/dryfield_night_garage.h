@@ -24,7 +24,7 @@ extern TaskDesc gDryfieldNightGarageMovieTasks[2];
 /// Gameplay queues this recipe by the saved stage/area. Spawn argument 1 is
 /// the packed stock-profile/category selector; argument 2 is unused on entry
 /// and then holds the owned UI root. The callback owns the UI tree and stage
-/// primitive buffer until closure. Keep the garage and catalogue resources
+/// primitive buffer until closure. Keep the garage and catalog resources
 /// loaded through the session and its display-mode exit.
 extern TaskDesc gDryfieldNightGarageShopSessionTaskDesc;
 

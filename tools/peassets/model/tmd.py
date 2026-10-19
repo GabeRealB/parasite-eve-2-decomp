@@ -323,10 +323,10 @@ def declared_records(repo_root: Path) -> dict[str, tuple[int, list[int]]]:
 _MODEL_NAMES: dict[str, str] | None = None
 
 
-def catalogue_name(data: bytes, load: int, source: int) -> str | None:
+def catalog_name(data: bytes, load: int, source: int) -> str | None:
     """The asset manifest's name for the model whose `TmdSource` record is at `source`.
 
-    Keyed by SHA-1, like every other catalogued asset, so the name is the same in every package that carries
+    Keyed by SHA-1, like every other cataloged asset, so the name is the same in every package that carries
     the model: a model a group declares is known by its whole bytes (arrays, stream and record), the others
     still by their stream.
     """
@@ -344,7 +344,7 @@ def catalogue_name(data: bytes, load: int, source: int) -> str | None:
 
 
 def model_name(stream: bytes) -> str | None:
-    """Catalogued name for a model stream, keyed by its SHA-1.
+    """Cataloged name for a model stream, keyed by its SHA-1.
 
     Meshes are ordinary `ASSETS` entries (type "tmd", or "model" once declared), so this is the same
     content-addressed lookup every other asset gets rather than a side table.

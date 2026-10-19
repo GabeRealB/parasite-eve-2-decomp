@@ -25,7 +25,7 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-/// Catalogue domains and comparison graphics used by the equipment choices.
+/// Catalog domains and comparison graphics used by the equipment choices.
 enum {
     ITEM_MENU_ARMOR_ITEM_FIRST                  = 0x60,
     ITEM_MENU_EQUIPMENT_ITEM_COUNT              = 0x20,
@@ -79,7 +79,7 @@ static inline const u16* _itemMenuGetWeaponStats(s32 weaponItemId)
 
 /// Borrows one consumable's base damage for display as ammunition power.
 ///
-/// Ids 0xA0..0xBF select the attack catalogue; ITEM_MENU_CONSUMABLE_POWER_NONE
+/// Ids 0xA0..0xBF select the attack catalog; ITEM_MENU_CONSUMABLE_POWER_NONE
 /// selects its zero row. Only this halfword may be read through the returned
 /// pointer; subsequent attack fields are not additional display statistics.
 /// The pointer belongs to the gameplay image and is not retained by the drawer.
@@ -254,7 +254,7 @@ void itemMenuDrawEquipmentStats(const UiObject* object, s32 itemId, s32 displayM
         return;
     }
 
-    // Compare catalogue display values; only lower weapon weight is favorable.
+    // Compare catalog display values; only lower weapon weight is favorable.
     statX     = columnX;
     statY     = firstStatY;
     statIndex = 0;
@@ -526,7 +526,7 @@ void itemMenuEquipmentDetailTask(Task* task)
 /// Draws an item's name, Parasite Energy level and icon without an equipment mark.
 ///
 /// x/y are signed pixel offsets from the content origin, with y at the label's
-/// baseline. PE item ids 15..50 show levels 1..3. Uses the current catalogue
+/// baseline. PE item ids 15..50 show levels 1..3. Uses the current catalog
 /// name and default icon at the panel's OT layer plus one. A hidden panel draws
 /// nothing. Borrows the live object and loaded menu/font resources; drawing
 /// requires writable GPU storage and retains no input pointer.
@@ -961,7 +961,7 @@ void itemMenuBuildConsumableChoiceList(UiList* list, s32 weaponItemId)
     loadSelection = gItemMenuWeaponLoadSelection;
     weaponLoad    = equipmentGetWeaponLoad(weaponItemId);
     rowCount      = 0;
-    // Keep catalogue order, including separate occurrences in the two loads.
+    // Keep catalog order, including separate occurrences in the two loads.
     if (loadSelection != EQUIPMENT_CLEAR_LOAD_SECONDARY) {
         for (choiceIndex = 0; choiceIndex < ARRAY_SIZE(gEquipmentWeaponPrimaryLoadOptions.rows[0].acceptedItemIds); choiceIndex++) {
             consumableItemId = gEquipmentWeaponPrimaryLoadOptions.rows[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST].acceptedItemIds[choiceIndex];

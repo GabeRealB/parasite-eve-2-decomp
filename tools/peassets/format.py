@@ -617,24 +617,21 @@ def expected_clean_payload_size(chunk_size: int, sector_len: int) -> int:
 def ensure_clean_payload(
     payload: bytes, *, sector_len: int, chunk_size: int | None = None
 ) -> bytes:
-    """Return sector-pad-free payload, stripping legacy naive extracts if needed."""
+    """Return the payload without sector pad.
+
+    The store holds clean payloads (``unpack_chunk_payload``). Where the chunk's
+    ``chunk_size`` is known, a payload exactly as long as the older naive extract
+    (``chunk_size - 0x10``, pad included) is stripped: a clean payload is never
+    that long. Without it nothing is stripped - a payload's length alone cannot
+    tell the two forms apart (a clean 0x7F0 + n * 0x800 bytes looks naive).
+    """
     sector_len = validate_sector_len(sector_len)
-    if sector_len >= SECTOR_SIZE:
+    if sector_len >= SECTOR_SIZE or chunk_size is None:
         return payload
-    if chunk_size is not None:
-        clean_len = expected_clean_payload_size(chunk_size, sector_len)
-        naive_len = chunk_size - FILE_CHUNK_HEADER_SIZE
-        if len(payload) == clean_len:
-            return payload
-        if len(payload) == naive_len:
-            return strip_naive_payload_padding(payload, sector_len)
-    # Heuristic: if longer than a clean single-sector body and looks naive.
-    if len(payload) > (sector_len - FILE_CHUNK_HEADER_SIZE):
-        # Only strip when payload length matches a naive multi-sector size.
-        # naive = 0x7F0 + (n-1)*0x800  for some n
-        first = SECTOR_SIZE - FILE_CHUNK_HEADER_SIZE
-        if len(payload) >= first and (len(payload) - first) % SECTOR_SIZE == 0:
-            return strip_naive_payload_padding(payload, sector_len)
+    clean_len = expected_clean_payload_size(chunk_size, sector_len)
+    naive_len = chunk_size - FILE_CHUNK_HEADER_SIZE
+    if len(payload) == naive_len and len(payload) != clean_len:
+        return strip_naive_payload_padding(payload, sector_len)
     return payload
 
 

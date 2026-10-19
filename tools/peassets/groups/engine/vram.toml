@@ -6,6 +6,17 @@ type = "vram_region"
 at = [448, 0]
 size = [64, 64]
 
+[preview_sheet]
+type = "vram_region"
+at = [960, 0]
+size = [64, 128]
+
+[energy_picture]
+type = "vram_region"
+at = [0, 0]
+size = [40, 64]
+within = "engine/vram/preview_picture"
+
 [weapon_palette]
 type = "vram_region"
 at = [0, 243]
@@ -15,6 +26,17 @@ size = [320, 1]
 type = "vram_region"
 at = [384, 256]
 size = [128, 256]
+
+[preview_palette]
+type = "vram_region"
+at = [0, 255]
+size = [256, 1]
+
+[preview_picture]
+type = "vram_region"
+at = [0, 0]
+size = [64, 96]
+within = "engine/vram/preview_sheet"
 
 [character_palette]
 type = "vram_region"

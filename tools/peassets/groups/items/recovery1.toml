@@ -1,0 +1,42 @@
+# The assets of the group items/recovery1, each named items/recovery1/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "5fb588fa069c4265d3f5933168933b1e71ff2603"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "0387502c5bc12c983c8bacdfd7a9832135a1a1be"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "effect_item"
+
+[text]
+type = "txt"
+sha1 = "8c4d311efc2244e7a0ac48de95ab27012d34112e"
+
+[catalog]
+type = "txt"
+sha1 = "8fe234c30d62d817f616af482a1b7276861ae742"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "0376a408aa2c42fa7c0ae24f83e7f2810126417f"

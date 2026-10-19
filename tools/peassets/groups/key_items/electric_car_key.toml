@@ -1,0 +1,42 @@
+# The assets of the group key_items/electric_car_key, each named key_items/electric_car_key/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "66b61ce0d0fc403b113ce5fb8435cf74333355f3"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "3f9b97e21c29267f5538f644943ee8a2e0d5ed72"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "key_item"
+
+[text]
+type = "txt"
+sha1 = "f9754b3f1236a4e8d74dcf54129fc6ad28224bd8"
+
+[catalog]
+type = "txt"
+sha1 = "c0e2371ae1919b205235c73f7ce423208facf4a5"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "253c4827d9e55d2d96dc436b973f23119e2f5ac1"

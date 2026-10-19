@@ -1,0 +1,194 @@
+# The assets of the group pe/pyrokinesis, each named pe/pyrokinesis/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[level1_item]
+type = "shaped"
+shape = "parasite_energy"
+
+[level1_item.outputs]
+catalog = "level1_catalog"
+info = "level1_shop_text"
+menu = "level1_menu_text"
+descriptor = "level1_descriptor"
+
+[level2_item]
+type = "shaped"
+shape = "parasite_energy"
+
+[level2_item.outputs]
+catalog = "level2_catalog"
+info = "level2_shop_text"
+menu = "level2_menu_text"
+descriptor = "level2_descriptor"
+
+[level3_item]
+type = "shaped"
+shape = "parasite_energy"
+
+[level3_item.outputs]
+catalog = "level3_catalog"
+info = "level3_shop_text"
+menu = "level3_menu_text"
+descriptor = "level3_descriptor"
+
+[shop_picture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[level1_catalog]
+type = "txt"
+sha1 = "800b9bc043f61b572ef1734e855da2e70ccef5af"
+
+[level2_catalog]
+type = "txt"
+sha1 = "debf3071e8bd0a2833bc33c34589e3a7875f45c9"
+
+[level3_catalog]
+type = "txt"
+sha1 = "d155013f2d87e43951b24d4e96cde54285b410e8"
+
+[level1_menu_file]
+type = "file"
+
+[[level1_menu_file.contents]]
+chunk = "level1_menu_palette"
+palettes = [{ texture = "level1_menu_picture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "78ec9a535acd9d8fe496d192ab7dbb1efca37bf7"
+
+[[level1_menu_file.contents]]
+chunk = "level1_menu_image"
+pages = [
+    { texture = "level1_menu_picture", region = "engine/vram/energy_picture", upload = "engine/vram/preview_picture" },
+]
+sha1 = "607717d6080eb7587375e5efac3267eed40977fa"
+
+[[level1_menu_file.contents]]
+chunk = "level1_menu_text"
+
+[level1_menu_text]
+type = "txt"
+sha1 = "3ce122c339ae4b718fb7de07fdec408dcedd64d5"
+
+[level1_shop_file]
+type = "file"
+
+[[level1_shop_file.contents]]
+chunk = "shop_palette"
+palettes = [{ texture = "shop_picture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "e697d8041111dcfdc503647f64601bc64bb26827"
+
+[[level1_shop_file.contents]]
+chunk = "shop_image"
+pages = [{ texture = "shop_picture", region = "engine/vram/preview_picture" }]
+sha1 = "5048614aa21e758acf427596a8dc3245446c9d2e"
+
+[[level1_shop_file.contents]]
+chunk = "level1_shop_text"
+
+[level1_shop_text]
+type = "txt"
+sha1 = "699c2ac48502b998631e04903fdcfab44b6ce346"
+
+[level2_menu_file]
+type = "file"
+
+[[level2_menu_file.contents]]
+chunk = "level2_menu_palette"
+palettes = [{ texture = "level2_menu_picture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "a251622e2a9eeed62eca8edb261b2a5925c2a6b2"
+
+[[level2_menu_file.contents]]
+chunk = "level2_menu_image"
+pages = [
+    { texture = "level2_menu_picture", region = "engine/vram/energy_picture", upload = "engine/vram/preview_picture" },
+]
+sha1 = "b3a0769fe2042bae8e260bf23797d409ce624064"
+
+[[level2_menu_file.contents]]
+chunk = "level2_menu_text"
+
+[level2_menu_text]
+type = "txt"
+sha1 = "b608f7e0e1d168ab73fceaafe45548ba8a53ee64"
+
+[level2_shop_file]
+type = "file"
+contents = [
+    { chunk = "shop_palette", sha1 = "e697d8041111dcfdc503647f64601bc64bb26827" },
+    { chunk = "shop_image", sha1 = "5048614aa21e758acf427596a8dc3245446c9d2e" },
+    { chunk = "level2_shop_text" },
+]
+
+[level2_shop_text]
+type = "txt"
+sha1 = "ba3e7053f027d49918c563436834995edc80fd3f"
+
+[level3_menu_file]
+type = "file"
+
+[[level3_menu_file.contents]]
+chunk = "level3_menu_palette"
+palettes = [{ texture = "level3_menu_picture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "9ef565721dfa75d5d0dcd5f78686649fc756e54a"
+
+[[level3_menu_file.contents]]
+chunk = "level3_menu_image"
+pages = [
+    { texture = "level3_menu_picture", region = "engine/vram/energy_picture", upload = "engine/vram/preview_picture" },
+]
+sha1 = "faaa12ae2a23fb2eca7e0c4dbb8e4e7c1f08dea1"
+
+[[level3_menu_file.contents]]
+chunk = "level3_menu_text"
+
+[level3_menu_text]
+type = "txt"
+sha1 = "b653c94c567a081e14a725f3a54138ac568ead4c"
+
+[level3_shop_file]
+type = "file"
+contents = [
+    { chunk = "shop_palette", sha1 = "e697d8041111dcfdc503647f64601bc64bb26827" },
+    { chunk = "shop_image", sha1 = "5048614aa21e758acf427596a8dc3245446c9d2e" },
+    { chunk = "level3_shop_text" },
+]
+
+[level3_shop_text]
+type = "txt"
+sha1 = "ba3e7053f027d49918c563436834995edc80fd3f"
+
+[level1_descriptor]
+type = "item_descriptor"
+sha1 = "835a9c4a6dca4e0349ecefb4e1e9f008410d153b"
+
+[level2_descriptor]
+type = "item_descriptor"
+sha1 = "85c6276babac7f0c252ab6d7f77878965ef5a61c"
+
+[level3_descriptor]
+type = "item_descriptor"
+sha1 = "6ae097bf6f429578bf06cda931ab34fa3b1ad2a8"
+
+[level1_menu_picture]
+type = "texture"
+bpp = 8
+height = 64
+variants = ["default"]
+width = 80
+
+[level2_menu_picture]
+type = "texture"
+bpp = 8
+height = 64
+variants = ["default"]
+width = 80
+
+[level3_menu_picture]
+type = "texture"
+bpp = 8
+height = 64
+variants = ["default"]
+width = 80

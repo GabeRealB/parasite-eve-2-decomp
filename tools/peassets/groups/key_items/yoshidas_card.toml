@@ -1,0 +1,42 @@
+# The assets of the group key_items/yoshidas_card, each named key_items/yoshidas_card/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "ac241fd92661ca5bf6402485322c500eb3b629cc"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "b75e7f575f80ab1c1e8d43723b6edd6b3baf3596"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "key_item"
+
+[text]
+type = "txt"
+sha1 = "ef5fbb585527530e1930b4224591d356d40b7138"
+
+[catalog]
+type = "txt"
+sha1 = "86a1c3068d3c5c7ee13aea81ccd2bb31c7aad7a4"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "f51d5fa6f8d671b0933f95fda6f94286f6a5df75"

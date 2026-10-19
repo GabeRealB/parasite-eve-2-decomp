@@ -111,7 +111,7 @@ def include_names(models: list[dict], read) -> dict[tuple[str, int], str]:
     rows = []
     for m in models:
         data = read(m["package"])
-        base = tmd.catalogue_name(data, m["load"], m["source"])
+        base = tmd.catalog_name(data, m["load"], m["source"])
         if base is None:
             raise SystemExit(f"{m['package']}: model at 0x{m['source']:X} is not in the asset manifest; "
                              "run tools/peassets/dump_asset_db.py")

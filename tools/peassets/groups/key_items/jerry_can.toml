@@ -1,0 +1,42 @@
+# The assets of the group key_items/jerry_can, each named key_items/jerry_can/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "9543a9f1ab26d1cf37378282304c757b444d5da4"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "a0bac88ab30aac67724b5f032bc3c7acb6f8eee8"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "key_item"
+
+[text]
+type = "txt"
+sha1 = "3e8a676443d13e37a2f66f45155b2cca96ca929f"
+
+[catalog]
+type = "txt"
+sha1 = "bbd40e4fb4fdbf090eb36fcd2b08458dd7a98154"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "5ec715798a91c3bdce6160a196c7a816ff6c5813"

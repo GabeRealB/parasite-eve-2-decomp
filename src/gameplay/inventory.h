@@ -25,7 +25,7 @@ extern InventoryItemRow gInventoryBattleRewardRows[5];
 ///
 /// Each bit is independent. The specifications panel walks bits 0 through 12
 /// and draws at most two names. Bits 10 and 11 are part of that walk, have
-/// no name, and are unset in the catalogue.
+/// no name, and are unset in the catalog.
 enum {
     ARMOR_FEATURE_MOTION_DETECTOR    = 0x0001,
     ARMOR_FEATURE_RESIST_POISON      = 0x0002,
@@ -56,7 +56,7 @@ typedef struct {
     u8  hpBonus;             // Added to max HP while this armor is equipped.
     u8  baseAttachmentSlots; // Base attachment slots, before the save's level bonus.
     u8  mpBonus;             // Added to max MP while this armor is equipped.
-    u8  field_7;             // Role unproven. Every catalogue row stores 0.
+    u8  field_7;             // Role unproven. Every catalog row stores 0.
 } ArmorStats;
 STATIC_ASSERT_SIZEOF(ArmorStats, 0x8);
 

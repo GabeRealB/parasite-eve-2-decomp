@@ -1,0 +1,42 @@
+# The assets of the group key_items/manual, each named key_items/manual/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "33812d7778aa6e0a791e771c759bc8de0383f8ce"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "782d56a781a7454b0ebb849ac91758b5f9767d37"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "key_item"
+
+[text]
+type = "txt"
+sha1 = "b3133d623e62b8fe7b1f0aeb96dc2c8488f5fd1e"
+
+[catalog]
+type = "txt"
+sha1 = "8cff32634120935e60a53a408785b2e5490a1bb6"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "af7cb372e3cd1d31427a21a2e63747fb12d4b697"

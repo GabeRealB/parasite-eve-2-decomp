@@ -33,7 +33,7 @@ const GameDebugReplayRecord* gGameDebugReplayCursor;
 #include "gameplay/damage.h"
 #include "gameplay/room_effects.h"
 
-/// Unhandled hit-effect kinds retained by this catalogue; both currently spawn nothing.
+/// Unhandled hit-effect kinds retained by this catalog; both currently spawn nothing.
 enum { ATTACHMENT_LEVEL_NO_HIT_EFFECT          = 0,
        ATTACHMENT_LEVEL_ENERGY_BALL_HIT_EFFECT = 14 };
 

@@ -245,7 +245,7 @@ static void _replayBonusBuildItemList(UiList* list, UiObject* object)
         REPLAY_BONUS_COLLECTION_ID_LIMIT = 0x200,
         REPLAY_BONUS_LIST_VISIBLE_ROWS   = 9,
     };
-    /// Writes whether a catalogue id earns Complete Bonus item credit (0 no, 1 yes).
+    /// Writes whether a catalog id earns Complete Bonus item credit (0 no, 1 yes).
     ///
     /// Searches the first `REPLAY_BONUS_ITEM_WHITELIST_COUNT` entries of the
     /// package's read-only `gReplayBonusItemWhitelist`, excluding both trailer
@@ -343,8 +343,8 @@ static const u8 _gReplayBonusTotalBpHeading[] = "TOTAL BP";
 ///
 /// Counts all three full purchase prices in each of the thirteen tiers,
 /// including repeated item ids, and rounds the total up to a multiple of
-/// 100000 BP. Requires the shop and gameplay item catalogues to remain loaded;
-/// tier item ids must index the ordinary catalogue. The caller checks that
+/// 100000 BP. Requires the shop and gameplay item catalogs to remain loaded;
+/// tier item ids must index the ordinary catalog. The caller checks that
 /// every tier is unlocked. Returns 0..2600000 BP without changing the save,
 /// unlocks or currency; preparing the cleared save applies the award later.
 static inline s32 _replayBonusComputeExtraBonusBp(void)

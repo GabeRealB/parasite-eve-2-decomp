@@ -44,6 +44,11 @@ chunk = "package"
 type = "clip"
 rig = "characters/aya/rig"
 
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "preview_text", descriptor = "descriptor" }
+shape = "weapon"
+
 [model]
 type = "model"
 slots = ["body"]
@@ -68,6 +73,10 @@ sha1 = "95244fbccdeae828072403971fa419843e57586b"
 type = "binding"
 model = "weapons/m4a1_javelin/model"
 textures = { body = "weapons/m4a1_javelin/texture.default" }
+
+[catalog]
+type = "txt"
+sha1 = "f99221e7545ebb508a753c4131629fe124464675"
 
 [package]
 type = "pe2pkg"
@@ -116,6 +125,13 @@ package_name = "m4a1_javelin"
 required = true
 sha1 = "02c4ebcce5f28939a9a3ec884aa1e7e1d40adb77"
 
+[preview]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
 [texture]
 type = "texture"
 bpp = 4
@@ -140,6 +156,30 @@ type = "sound"
 mode = "low"
 sha1 = "ae0629250ad78d75a05c7de52f9bcc7826d3a63f"
 
+[descriptor]
+type = "item_descriptor"
+sha1 = "cbd6cc44e913e6b83f1705243b4e077d35ec68ce"
+
 [aim_backward]
 type = "clip"
 rig = "characters/aya/rig"
+
+[preview_file]
+type = "file"
+
+[[preview_file.contents]]
+chunk = "preview_palette"
+palettes = [{ texture = "preview", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "3cf4daa284d08f35f2fc056fae15164ac6d41068"
+
+[[preview_file.contents]]
+chunk = "preview_image"
+pages = [{ texture = "preview", region = "engine/vram/preview_picture" }]
+sha1 = "6aaea3d845225c7a3197b0e5767a500d1938d3d9"
+
+[[preview_file.contents]]
+chunk = "preview_text"
+
+[preview_text]
+type = "txt"
+sha1 = "e946d2fc6a81ed15adfed2f87ae5649d73b3f029"

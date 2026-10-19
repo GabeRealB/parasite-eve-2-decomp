@@ -1,0 +1,42 @@
+# The assets of the group items/flare, each named items/flare/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "75f43942ad6f2bdf194451b221fecfda15b49bfe"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "dfbd6b9d217eb73b04fd5fa84e0df7c001db61ca"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "effect_item"
+
+[text]
+type = "txt"
+sha1 = "9f42a609a39c674db785b2519c3a7e015822f5db"
+
+[catalog]
+type = "txt"
+sha1 = "58ee1b88b0046e4696e2815d3ad0d75201aa3b9d"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "1f0b98a19546ae8e5760a625781bf27f0c2b7bd4"

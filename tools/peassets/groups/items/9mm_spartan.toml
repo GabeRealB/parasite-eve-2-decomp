@@ -1,0 +1,42 @@
+# The assets of the group items/9mm_spartan, each named items/9mm_spartan/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "737a6d768c63682d960c90a03fb7733a33853660"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "71ecfcb7272feca95f8476d868aec54395f69965"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "ammunition"
+
+[text]
+type = "txt"
+sha1 = "116fa42da6fc1ba302ce5bf96d8717d3d33039bc"
+
+[catalog]
+type = "txt"
+sha1 = "c97808eb5fbab72c22a9fdf5f411221efa241633"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "57286f06e911230ca244b299c40c7ec43b0c3ace"

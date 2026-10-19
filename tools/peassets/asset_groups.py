@@ -11,7 +11,8 @@ TOML has no null and only string keys: an empty slot of a bundle's `resources` i
 `glyphs` are numbers written as keys; both are given back as the tools expect them.
 
 A file of a group lists its chunks, and the textures its image and palette chunks upload, by local name too, or by
-path for another group's chunk (`asset` in place of `chunk`). An image or palette chunk has no table of its own: its
+path for another group's chunk (`asset` in place of `chunk`). A shaped asset names its outputs the same way: a local
+name, or `{ asset = <path> }` for another group's or an ungrouped asset. An image or palette chunk has no table of its own: its
 entry states the sha1 of its stored bytes, and `merge` adds the record it implies (texture/declaration.py); a chunk
 several files hold is declared by each, and the declarations agree.
 
@@ -56,6 +57,8 @@ def records(root: Path):
                                     **{part: [{**p, "texture": full(p["texture"])} for p in entry[part]]
                                        for part in ("pages", "palettes") if part in entry}}
                                    for entry in rec["contents"]]
+            if rec.get("type") == "shaped":     # its own group's outputs by local name, another's by path
+                rec["outputs"] = {k: v["asset"] if isinstance(v, dict) else full(v) for k, v in rec["outputs"].items()}
             yield full(local), {**rec, "group": group}
 
 

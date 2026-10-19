@@ -1,0 +1,42 @@
+# The assets of the group items/gps, each named items/gps/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "1027709f284bb8ecb434c0e8670e7aba59fc11a9"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "ae36e0748d916533bc30d1b7e2474dd17046052f"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "effect_item"
+
+[text]
+type = "txt"
+sha1 = "6aeb927227cdae2236ae98203b1953ec89f97c9c"
+
+[catalog]
+type = "txt"
+sha1 = "ad4d510ee0bb7381212518ada8010c4505777d22"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "a90c7670c668bbb56474b023be0b9a8cb24946b0"

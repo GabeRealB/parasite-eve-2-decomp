@@ -20,7 +20,7 @@
 
 /// Special row ids in stock lists; the terminator is never offered as a row.
 enum {
-    SHOP_ROW_RECHARGE_SERVICE = 0xFFFE, // Batteries/Fuel service, outside the item catalogue.
+    SHOP_ROW_RECHARGE_SERVICE = 0xFFFE, // Batteries/Fuel service, outside the item catalog.
     SHOP_ROW_END              = 0xFFFF  // End of the readable stock list.
 };
 
@@ -45,7 +45,7 @@ enum {
 #endif
 
 #ifndef SHOP_REFILL_SUPPLY
-/// Selects the borrowed weapon supply catalogue row displayed by the refill panel.
+/// Selects the borrowed weapon supply catalog row displayed by the refill panel.
 ///
 /// Expand to a single identifier naming a writable `const EquipmentWeaponSupply*`
 /// object. Repeated assignments and reads must select the same storage without
@@ -56,7 +56,7 @@ enum {
 /// selection initializes the pointer before drawing, with no `NULL` check. Each
 /// subsequent selection replaces it; exhaustion retains the last row so drawing
 /// continues through panel closure. Keep the pointer storage and gameplay
-/// catalogue alive until closure finishes; the panel never copies or frees a row.
+/// catalog alive until closure finishes; the panel never copies or frees a row.
 /// Pair the storage with `SHOP_REFILL_DISPLAY_QUANTITY` in the same carrier and
 /// allow only one refill panel to use that pair at a time.
 ///

@@ -1,0 +1,42 @@
+# The assets of the group armor/aya_special, each named armor/aya_special/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "picture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "5a29eaab55ee26ac7721205641e6054a3dfd19a7"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "picture", region = "engine/vram/preview_picture" }]
+sha1 = "79598617248751f714ffe3081a132460d86cff05"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "armor"
+
+[text]
+type = "txt"
+sha1 = "206c68f67bf64fa8445c9aa5211eff1b2e756c76"
+
+[catalog]
+type = "txt"
+sha1 = "ff467f9f8c43812a6b215e3d6182d6020b10940b"
+
+[picture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "8dff75adb87badf46c9dcaf6b33c6586da8bb594"

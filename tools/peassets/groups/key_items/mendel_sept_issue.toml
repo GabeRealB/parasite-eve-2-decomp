@@ -1,0 +1,42 @@
+# The assets of the group key_items/mendel_sept_issue, each named key_items/mendel_sept_issue/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "52362733efa621b72d79c0918b95eaf7e4523f18"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "a817fa4e5e7ca5bbdd72f3d5c4f52727d25c721f"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "key_item"
+
+[text]
+type = "txt"
+sha1 = "ba9e6974a9a995776e64ef4eabd86602bf9bad4c"
+
+[catalog]
+type = "txt"
+sha1 = "922701a7d84646bf493c0e32ba0b30f4d4cc270a"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "31ad988cccf9cee1052b49b08b3fd7b39b01e7bf"

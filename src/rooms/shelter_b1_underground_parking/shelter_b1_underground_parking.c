@@ -1895,10 +1895,10 @@ WorldCollisionSurfaceProperties* gShelterB1UndergroundParkingSurfacePropertiesBy
 /// capacity. The panel uses it for both the number and its meter, through closure.
 static s32 _gShopRefillDisplayQuantityFixed = 0;
 
-/// Borrowed weapon-supply catalogue row currently displayed by the refill panel.
+/// Borrowed weapon-supply catalog row currently displayed by the refill panel.
 ///
 /// NULL until the first carried supply is selected. Retained while the panel
-/// closes; gameplay and its catalogue must remain loaded throughout the session.
+/// closes; gameplay and its catalog must remain loaded throughout the session.
 static const EquipmentWeaponSupply* _gShopRefillSupply = NULL;
 
 /// Borrowed selector-panel child handle, valid from successful spawn through exit polling.

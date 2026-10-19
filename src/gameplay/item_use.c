@@ -59,7 +59,7 @@ static const u8 _gItemMenuAttachmentsLabel[];
 /* After Armor/Attachments from itemMenuArmorAttachmentPanelTask so overlay .rodata stays packed. */
 static const char _gItemMenuWeaponLabel[];
 
-// Catalogue items handled by the attachment-use panel.
+// Catalog items handled by the attachment-use panel.
 enum {
     INVENTORY_ITEM_RECOVERY1        = 1,
     INVENTORY_ITEM_RECOVERY2        = 2,
@@ -417,7 +417,7 @@ static s32 _itemUseAttachedItem(InventoryItemRow* attachedRow)
 ///
 /// Weapons always qualify. Medicines test missing HP/MP, active wards or
 /// Berserker resistance; the disposable defense items and Protein Capsule
-/// always qualify. Empty rows, armor and unhandled catalogue ids return 1.
+/// always qualify. Empty rows, armor and unhandled catalog ids return 1.
 /// For consumable ids 0xA0..0xBF, attachedRow must be readable and supply that
 /// item's total quantity, including loaded units. Other ids permit NULL.
 /// The live carried range must fit its readable table and the weapon selector

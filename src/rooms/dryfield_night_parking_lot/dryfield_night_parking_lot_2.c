@@ -157,7 +157,7 @@ static u16 _gDryfieldNightParkingLotAmbientEffectGates[8] = {
 /// World-space centres and endpoints shared by the parking lot's light glows.
 ///
 /// XYZ are signed game-coordinate units. Logical views select overlapping
-/// ranges of this catalogue: 0..3 and 6..8 are flare centres, and 4..5 are
+/// ranges of this catalog: 0..3 and 6..8 are flare centres, and 4..5 are
 /// capsule endpoints. All nine entries are used across logical views 2..6.
 static SVECTOR _gDryfieldNightParkingLotGlowPoints[9] = {
     { -7290, -2310, -110, 0 },

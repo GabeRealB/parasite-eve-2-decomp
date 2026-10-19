@@ -56872,7 +56872,7 @@ grep `include/` as well as `src/`. Porting the twin took one attempt against a
 92.98% m2c baseline.
 
 Corollary: the scratch-struct docs in `include/gameplay/3CD8.h` and
-`include/gameplay/3FB8.h` are a catalogue of `SCRATCH_STACK_CURSOR_SLOT` layouts
+`include/gameplay/3FB8.h` are a catalog of `SCRATCH_STACK_CURSOR_SLOT` layouts
 (`EffectCentreScratch`, `EffectShapeScratch`, `EffectBillboardScratch`, …;
 a record only one function uses, such as `_EffectPixelSparkScratch`, is private
 to its source file instead). Any overlay function whose prologue is `lw` from

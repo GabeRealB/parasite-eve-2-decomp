@@ -25,6 +25,11 @@ chunk = "sounds"
 [[file.contents]]
 chunk = "package"
 
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "preview_text", descriptor = "descriptor" }
+shape = "weapon"
+
 [shot]
 type = "sound"
 mode = "high"
@@ -45,6 +50,10 @@ sha1 = "3cf64172e7764f4e13bb4e5c8d18e1687d4ced8c"
 type = "binding"
 model = "weapons/p08/model"
 textures = { body = "weapons/p08/texture.default" }
+
+[catalog]
+type = "txt"
+sha1 = "99d4c579e0cef32afdfb9fb8314d1ed713285ad8"
 
 [package]
 type = "pe2pkg"
@@ -92,12 +101,23 @@ package_name = "p08"
 required = true
 sha1 = "9a4cfdcbd95eccc4376628265d7ecdd50381ed94"
 
+[preview]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
 [texture]
 type = "texture"
 bpp = 4
 height = 64
 variants = ["default"]
 width = 256
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "60bec7073766343aea8b092a6794b489237b1699"
 
 [snail_file]
 type = "file"
@@ -108,10 +128,39 @@ contents = [
     { chunk = "snail_package" },
 ]
 
+[snail_item]
+type = "shaped"
+outputs = { catalog = "snail_catalog", info = "snail_preview_text", descriptor = "snail_descriptor" }
+shape = "weapon"
+
+[preview_file]
+type = "file"
+
+[[preview_file.contents]]
+chunk = "preview_palette"
+palettes = [{ texture = "preview", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "2238f3267cc894f812e840a3db5e1ced4268fb71"
+
+[[preview_file.contents]]
+chunk = "preview_image"
+pages = [{ texture = "preview", region = "engine/vram/preview_picture" }]
+sha1 = "cf32411ef1eafa061e92846a4df3211eb2ac265f"
+
+[[preview_file.contents]]
+chunk = "preview_text"
+
+[preview_text]
+type = "txt"
+sha1 = "bb7e17e4ee2e3c4a26f003401c670e516974a146"
+
 [snail_sounds]
 type = "sound_bank"
 samples = ["weapons/pistol/click", "weapons/pistol/reload_start", "weapons/pistol/reload_load", "weapons/p08/shot"]
 sha1 = "99b10f19a44d992b1c1ad33946c252cca4794d80"
+
+[snail_catalog]
+type = "txt"
+sha1 = "b4ec38d4d818487df5f6aae52e125e1d7b93bbf2"
 
 [snail_package]
 type = "pe2pkg"
@@ -158,3 +207,34 @@ embedded = [
 package_name = "p08_snail"
 required = true
 sha1 = "088f58a3e979060e9ce3e5fcab9a10a17393688f"
+
+[snail_preview]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[snail_descriptor]
+type = "item_descriptor"
+sha1 = "17f12b25538868d3e66eb6b2714f01700c671eff"
+
+[snail_preview_file]
+type = "file"
+
+[[snail_preview_file.contents]]
+chunk = "snail_preview_palette"
+palettes = [{ texture = "snail_preview", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "2942c1e2bc3ec07114fc630faf04642952c76ff6"
+
+[[snail_preview_file.contents]]
+chunk = "snail_preview_image"
+pages = [{ texture = "snail_preview", region = "engine/vram/preview_picture" }]
+sha1 = "4254a5977e0ccb2ee2db90f95a95f02f397d8b18"
+
+[[snail_preview_file.contents]]
+chunk = "snail_preview_text"
+
+[snail_preview_text]
+type = "txt"
+sha1 = "84aebb45e1378b8e54dd0530e3920a89f3707141"

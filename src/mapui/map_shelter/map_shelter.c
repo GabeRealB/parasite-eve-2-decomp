@@ -480,11 +480,11 @@ enum {
     MAP_SHELTER_OBJECT_STATE_UNREAD_BIT_8 = 0x100,
 };
 
-/// Catalogue kinds and room-specific prop/UI kinds in the object lists.
+/// Catalog kinds and room-specific prop/UI kinds in the object lists.
 ///
-/// Banks 0 and 1 publish catalogue ids, bank 2 selects scripted models, bank 7
+/// Banks 0 and 1 publish catalog ids, bank 2 selects scripted models, bank 7
 /// selects an item-box inventory and bank 8 selects save-point UI. The breeding
-/// room model uses kind 0x129, whose catalogue entry is empty; its identity is
+/// room model uses kind 0x129, whose catalog entry is empty; its identity is
 /// unproven beyond the model hidden when its object state is 2.
 enum {
     MAP_SHELTER_KIND_STIM                                = 0x4,
@@ -2200,7 +2200,7 @@ static AreaObjectPlace _gMapShelterR48ObjectPlaces[3] = {
     { .flagIndex = AREA_OBJECT_PLACE_END },
 };
 
-/// Catalogue item IDs awarded by these battle lists, one pack per nonzero slot.
+/// Catalog item IDs awarded by these battle lists, one pack per nonzero slot.
 enum {
     MAP_SHELTER_REWARD_RECOVERY_2      = 0x2,
     MAP_SHELTER_REWARD_RECOVERY_3      = 0x3,

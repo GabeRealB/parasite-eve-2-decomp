@@ -199,7 +199,7 @@ typedef enum {
 
 static void _menuMapDrawAreaShape(UiObject* mapObject, const TmdSource* areaModel, _MenuMapAreaShapeFill fillMode, s32 scaleQ12);
 
-/// Bit fields of the packed PE menu id; higher catalogue bits do not select a row.
+/// Bit fields of the packed PE menu id; higher catalog bits do not select a row.
 enum {
     ATTACHMENT_MENU_ELEMENT_MASK  = 0x30,
     ATTACHMENT_MENU_ELEMENT_SHIFT = 4,

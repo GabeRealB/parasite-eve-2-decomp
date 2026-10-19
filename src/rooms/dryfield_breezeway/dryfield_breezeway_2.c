@@ -1220,7 +1220,7 @@ static void _dryfieldBreezewayPlaceKeyItemModelAtLineTip(Task* task, s16 tipX, s
 
 /// Answers a key-item-use query by latching whether the bottlecap magnet was offered.
 ///
-/// `itemId` is the collected-item catalogue id; the other payload and message id
+/// `itemId` is the collected-item catalog id; the other payload and message id
 /// are unused. Returns the item menu's used-notice reply for the magnet and the
 /// refused reply otherwise, without consuming inventory. The initialized event
 /// work holds the answer until the item-prompt state checks it.

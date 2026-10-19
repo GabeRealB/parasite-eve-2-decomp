@@ -1,0 +1,42 @@
+# The assets of the group key_items/parthenon_key, each named key_items/parthenon_key/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "4a36b3eabdc584f0d63095bd05a6805d16e15ed8"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "f4b00f06e5225d13f2e1dadab61f386818ac0956"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "key_item"
+
+[text]
+type = "txt"
+sha1 = "f1f7bb5d247e76ead40887dd35cdfa9980d09969"
+
+[catalog]
+type = "txt"
+sha1 = "55bc9beadeab97d6c734d21e62b57d0aedcfd9c0"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "56d91a5fc3a8309f926d7c297f7ee68c68f17992"

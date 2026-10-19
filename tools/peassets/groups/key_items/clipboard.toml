@@ -1,0 +1,42 @@
+# The assets of the group key_items/clipboard, each named key_items/clipboard/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "0d6a85a4df6814327681940eca25c1c5cdf3f49a"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "deeaf0fd660357ce144c93389a4845c1f06d1ed1"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "key_item"
+
+[text]
+type = "txt"
+sha1 = "19572b0f705fbeaee10c48336900dfb8305574f9"
+
+[catalog]
+type = "txt"
+sha1 = "8dd01a75df70f3ed62918fe764ae54c561764b48"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "ba57c2a1496706d384d6292505926884c5376d60"

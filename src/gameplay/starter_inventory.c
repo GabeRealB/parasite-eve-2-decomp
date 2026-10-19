@@ -13,7 +13,7 @@
 #include "main/task_types.h"
 #include "main/wipsys.h"
 
-/// Catalogue ids, attachment positions and container indices used by the field-loadout reset.
+/// Catalog ids, attachment positions and container indices used by the field-loadout reset.
 enum {
     INVENTORY_STARTER_ITEM_RECOVERY_2          = 0x02,
     INVENTORY_STARTER_ITEM_BELT_POUCH          = 0x0D,

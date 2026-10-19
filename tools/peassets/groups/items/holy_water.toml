@@ -1,0 +1,42 @@
+# The assets of the group items/holy_water, each named items/holy_water/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "8471240365e4e6eef8e201ff3dee322301f57dd6"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "66f6e9078d3fe8ab9fc516d801e3ee7751de070f"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "effect_item"
+
+[text]
+type = "txt"
+sha1 = "7ea1bd1aa4f3a8e99a7d4bd6fb40a5af81f60d98"
+
+[catalog]
+type = "txt"
+sha1 = "14cecb3fd966c2222f29e187d9cf7ca412c35d41"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "b01b70314ef30b3565702897f3a9d07f2eb05e41"

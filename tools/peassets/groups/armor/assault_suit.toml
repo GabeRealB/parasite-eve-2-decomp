@@ -1,0 +1,42 @@
+# The assets of the group armor/assault_suit, each named armor/assault_suit/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "picture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "0bc07136b39cf5cc7a3fb1b455858c8802296964"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "picture", region = "engine/vram/preview_picture" }]
+sha1 = "12d28d5149fc4d2a0b79bfff036e4f76a063f4a9"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "armor"
+
+[text]
+type = "txt"
+sha1 = "abf69c0ca591d1f91bb42bc938083a655c265cb2"
+
+[catalog]
+type = "txt"
+sha1 = "cc6ece489048d328abd0ed26c14b08e6983654c1"
+
+[picture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "7540330dcdabc6843d0143779d2ccdf6bb58554a"

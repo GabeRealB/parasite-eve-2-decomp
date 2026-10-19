@@ -1,0 +1,24 @@
+# The assets of the group inventory, each named inventory/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[junk]
+type = "junk"
+sha1 = "fa138ae356d35c8d77083c406a5be73745643aae"
+
+[catalog]
+type = "shaped"
+include = true
+outputs = { items = "descriptors", key_items = "key_descriptors", empty = "empty_text", junk = "junk" }
+shape = "item_catalog"
+
+[empty_text]
+type = "txt"
+sha1 = "bbcf1fbd30f4ba4ad6c27d05f5d30f7e3fc252b8"
+
+[descriptors]
+type = "item_descriptor_table"
+sha1 = "d8d74e5976002d1843785232f02bfa0bf52bc718"
+
+[key_descriptors]
+type = "item_descriptor_table"
+sha1 = "dbe03475958793ba07746146ac2b5bc6b76b1099"

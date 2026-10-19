@@ -7,7 +7,7 @@
 ///
 /// Spawn at index 0 with zero arguments after credits restore the normal
 /// display. The controller loads the award UI, then borrows each panel until
-/// closing it. Keep the replay package, gameplay item catalogue and live save
+/// closing it. Keep the replay package, gameplay item catalog and live save
 /// available through the sequence; only one controller may use the totals.
 extern TaskDesc gReplayBonusAwardScreenTaskDescriptor;
 

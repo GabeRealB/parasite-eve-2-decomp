@@ -46,6 +46,11 @@ chunk = "package"
 type = "clip"
 rig = "characters/aya/rig"
 
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "preview_text", descriptor = "descriptor" }
+shape = "weapon"
+
 [shot]
 type = "sound"
 sha1 = "cfb35d1268a2d722cba222a297e66f58e0f16c3a"
@@ -71,6 +76,10 @@ samples = [
     "weapons/hypervelocity/unused_7",
 ]
 sha1 = "b22bd71959b0cac63ae52e22cca0083dcd6918f0"
+
+[catalog]
+type = "txt"
+sha1 = "9fe3905900bfad0e31f3a0f0eb41ebe3d1b6d10e"
 
 [package]
 type = "pe2pkg"
@@ -123,6 +132,13 @@ package_name = "hypervelocity"
 required = true
 sha1 = "0871ef7800c9fc6df526cf45dcb6f5d773c9a76c"
 
+[preview]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
 [texture]
 type = "texture"
 bpp = 4
@@ -150,6 +166,10 @@ rig = "characters/aya/rig"
 [discharge]
 type = "sound"
 sha1 = "7dc2ba4721f67903c2cae91e13ced0f4313cf284"
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "650bdcd20c6c1ad62fe1802d2cc4587c0846865d"
 
 [root_model]
 type = "model"
@@ -185,6 +205,26 @@ rig = "characters/aya/rig"
 type = "sound"
 mode = "low"
 sha1 = "3f4bb2f8893e93960c18aab1931ecbae185af383"
+
+[preview_file]
+type = "file"
+
+[[preview_file.contents]]
+chunk = "preview_palette"
+palettes = [{ texture = "preview", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "d7cfe727e0e8cb6faf4d9a77d061fd7b8536361e"
+
+[[preview_file.contents]]
+chunk = "preview_image"
+pages = [{ texture = "preview", region = "engine/vram/preview_picture" }]
+sha1 = "08a52f4144860acf344335a4ad874600d76c9718"
+
+[[preview_file.contents]]
+chunk = "preview_text"
+
+[preview_text]
+type = "txt"
+sha1 = "c1b4f6ba3803f227c9c22f86fb70dc95443ec58b"
 
 [root_binding]
 type = "binding"

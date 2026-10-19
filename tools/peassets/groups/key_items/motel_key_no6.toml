@@ -1,0 +1,42 @@
+# The assets of the group key_items/motel_key_no6, each named key_items/motel_key_no6/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "9dee04aa582e56bf0706765144f481480e11283d"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "bad83a367d176ae73047ace48db3b77d14327b9c"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "key_item"
+
+[text]
+type = "txt"
+sha1 = "dee71cca3c2e94e425993a8999a281b8db9e27e6"
+
+[catalog]
+type = "txt"
+sha1 = "00ee80a204219153c4ded2645f7ccab4b251d1db"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "c702a5e64cf036009b9d1eae9a59fb5aa8bba85d"

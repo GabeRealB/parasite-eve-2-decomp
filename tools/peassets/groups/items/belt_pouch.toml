@@ -1,0 +1,42 @@
+# The assets of the group items/belt_pouch, each named items/belt_pouch/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "396466604ab22df0dafb4fedf29be6fd764bc67d"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "0e9f8a3b2fe06f519824bd82e1a2f46fce4aaa42"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "effect_item"
+
+[text]
+type = "txt"
+sha1 = "400511bcd86645e363b927adf0248efd75ad7fe4"
+
+[catalog]
+type = "txt"
+sha1 = "aa8e59ba659bfd4081719b277663e90586e110c0"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "5d4e7da86ea33544009ee49bcdb2b7faa14183ad"

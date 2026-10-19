@@ -1,0 +1,42 @@
+# The assets of the group key_items/micro_device_12d, each named key_items/micro_device_12d/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "6592f23abb8d6b3d5969b6b6bf715d3b249e00cb"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "848c4c659c5655515a9ec1f1867b80356c10b937"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "key_item"
+
+[text]
+type = "txt"
+sha1 = "c9e4479cc08fc79e74e0a8a680e4256067e1e556"
+
+[catalog]
+type = "txt"
+sha1 = "c11a9baff6e8649cf2f677cf080f41c4f308ed85"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "28a43d926fcfa9f7cc58fc2d373a2d0a65fc87cd"

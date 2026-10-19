@@ -215,7 +215,7 @@ enum {
     MAP_DRYFIELD_ICON_FIXED_PICTURE     = 0,
 };
 
-/// Catalogue item IDs awarded by the daytime battle lists, one pack per slot.
+/// Catalog item IDs awarded by the daytime battle lists, one pack per slot.
 enum {
     MAP_DRYFIELD_REWARD_RECOVERY2       = 2,
     MAP_DRYFIELD_REWARD_RECOVERY3       = 3,

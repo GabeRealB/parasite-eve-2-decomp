@@ -1,0 +1,42 @@
+# The assets of the group armor/chicken_plate, each named armor/chicken_plate/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "picture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "845ef09840d644ae258006e648a2c90f071e0baa"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "picture", region = "engine/vram/preview_picture" }]
+sha1 = "e8cd43fece6a96f9b81c2c90f841e5920b26d9c0"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "armor"
+
+[text]
+type = "txt"
+sha1 = "d97e61636e59d38284ebe2bef46a97259b2f7ccd"
+
+[catalog]
+type = "txt"
+sha1 = "bffe261ab95e6b5c2fd0f6ab44adc554ea94a575"
+
+[picture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "5b2dc8f8164452b4f42f268b05e98ceec714436a"

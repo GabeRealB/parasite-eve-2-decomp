@@ -1,0 +1,42 @@
+# The assets of the group items/44_magnum, each named items/44_magnum/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "bf4551e775a708614a4c81fee29460ffd260943e"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "3193f6301ff7f3603a92f65ffc20374f566b1b1a"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "ammunition"
+
+[text]
+type = "txt"
+sha1 = "d651613a295d9809c1f634ff81145250aa095f27"
+
+[catalog]
+type = "txt"
+sha1 = "5040dd4e1f622b2c0da78b4eeb8715878a6c1efb"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "1086f1b895cdbd88abf296e8b2b6f00384d0bf0b"

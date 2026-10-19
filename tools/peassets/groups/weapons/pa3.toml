@@ -37,6 +37,11 @@ chunk = "package"
 type = "clip"
 rig = "characters/aya/rig"
 
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "preview_text", descriptor = "descriptor" }
+shape = "weapon"
+
 [model]
 type = "model"
 slots = ["body"]
@@ -51,6 +56,10 @@ rig = "characters/aya/rig"
 type = "binding"
 model = "weapons/pa3/model"
 textures = { body = "weapons/pa3/texture.default" }
+
+[catalog]
+type = "txt"
+sha1 = "b816d1af31403e00798037bb6b37e15384215e98"
 
 [package]
 type = "pe2pkg"
@@ -98,6 +107,13 @@ package_name = "pa3"
 required = true
 sha1 = "17910be3a76d064fb44cc3f73da7a94b8639752c"
 
+[preview]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
 [texture]
 type = "texture"
 bpp = 4
@@ -117,19 +133,33 @@ rig = "characters/aya/rig"
 type = "clip"
 rig = "characters/aya/rig"
 
-[rifled_slug_sounds]
-type = "sound_bank"
-samples = [
-    "weapons/shotgun/click",
-    "weapons/shotgun/rifled_slug_pump",
-    "weapons/shotgun/reload_load",
-    "weapons/shotgun/rifled_slug_shot",
-]
-sha1 = "2d76616d6d12cd5a165def3a42476ed12838c501"
+[descriptor]
+type = "item_descriptor"
+sha1 = "f4bb212258d4f140f5777ca1f468870e429d168d"
 
 [aim_backward]
 type = "clip"
 rig = "characters/aya/rig"
+
+[preview_file]
+type = "file"
+
+[[preview_file.contents]]
+chunk = "preview_palette"
+palettes = [{ texture = "preview", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "287c76ab4db7cff666e5de95f98cf5fce3b9df74"
+
+[[preview_file.contents]]
+chunk = "preview_image"
+pages = [{ texture = "preview", region = "engine/vram/preview_picture" }]
+sha1 = "f09d3e25efab3fceb5476b256e64c9a719493f0f"
+
+[[preview_file.contents]]
+chunk = "preview_text"
+
+[preview_text]
+type = "txt"
+sha1 = "c716005fa2bca911b11a07bfc2d2abe608d7861a"
 
 [firefly_sounds]
 type = "sound_bank"
@@ -151,3 +181,13 @@ samples = [
     "weapons/shotgun/buckshot_shot",
 ]
 sha1 = "5b47355c025f8da3c24398066464bdafdee755f5"
+
+[rifled_slug_sounds]
+type = "sound_bank"
+samples = [
+    "weapons/shotgun/click",
+    "weapons/shotgun/rifled_slug_pump",
+    "weapons/shotgun/reload_load",
+    "weapons/shotgun/rifled_slug_shot",
+]
+sha1 = "2d76616d6d12cd5a165def3a42476ed12838c501"

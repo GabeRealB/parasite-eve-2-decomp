@@ -1,0 +1,42 @@
+# The assets of the group key_items/armory_cardkey, each named key_items/armory_cardkey/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "397c6eb99eabd89031f8be9bce09807b0fd28212"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "a3f57e40b7769409b618c7a0fcc178488ee90a48"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "key_item"
+
+[text]
+type = "txt"
+sha1 = "e090757a8e850c76992c57a760826d516880287e"
+
+[catalog]
+type = "txt"
+sha1 = "2b6ec9c8c4a205a9d57bbabb2f7282d2a6300a39"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "5e4ec2a8c47b5f2306cc9a0a5d6727f53f305021"

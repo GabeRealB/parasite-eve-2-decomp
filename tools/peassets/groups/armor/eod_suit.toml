@@ -1,0 +1,42 @@
+# The assets of the group armor/eod_suit, each named armor/eod_suit/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "picture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "c044f4f010a4ec7bf3df1c72f405ae94cd67ea59"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "picture", region = "engine/vram/preview_picture" }]
+sha1 = "933d7a64016162755485aae7cca69c15abaf674f"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "armor"
+
+[text]
+type = "txt"
+sha1 = "8b3a32649fdf9125a16e62ea69f7fc3b9901e033"
+
+[catalog]
+type = "txt"
+sha1 = "8204178c02c97b7ec04ee514d16dd054f65214b5"
+
+[picture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "dde9108c9708e45916d74e9a32ad608396208a4e"

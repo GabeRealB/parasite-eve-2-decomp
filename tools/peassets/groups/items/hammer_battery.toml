@@ -1,0 +1,42 @@
+# The assets of the group items/hammer_battery, each named items/hammer_battery/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "29bae6e3d76e75da44c1f73f325796b287df1496"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "5e600c54adc571b571d23423c30ef2db0da02a14"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "ammunition"
+
+[text]
+type = "txt"
+sha1 = "07dccab57eb8203714a2b70b9827b7cfe70897ef"
+
+[catalog]
+type = "txt"
+sha1 = "c2accf8a9794706b2617b362209f5762f6979233"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "59e068ce94253af0db06594372e327c1f6100efc"

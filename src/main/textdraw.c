@@ -249,7 +249,7 @@ TaskDesc* gTaskDescBanks[TASK_DESCRIPTOR_BANK_COUNT] = {
 /// `glyphTable` is `TEXT_GLYPH_TABLE_MEDIUM`. Drawing also selects it for an
 /// `\sM` command, in either letter's case, and adds `TEXT_GLYPH_V_BIAS_MEDIUM`
 /// to each record's texture V. The initializer is the embedded `font_glyphs0`
-/// catalogue blob. Bytes below space are not records in this face.
+/// catalog blob. Bytes below space are not records in this face.
 static _FontGlyph _gFontGlyphsMedium[FONT_GLYPH_MEDIUM_COUNT] = {
 #include "assets/font_glyphs0.inc"
 };
@@ -262,7 +262,7 @@ static _FontGlyph _gFontGlyphsMedium[FONT_GLYPH_MEDIUM_COUNT] = {
 /// `TEXT_GLYPH_TABLE_LARGE_ALTERNATE`; any other selector takes this face too.
 /// Drawing also selects it for an `\sL` command, in either letter's case, and
 /// adds `TEXT_GLYPH_V_BIAS_LARGE` to each record's texture V. The initializer
-/// is the embedded `font_glyphs1` catalogue blob. Bytes below space are not
+/// is the embedded `font_glyphs1` catalog blob. Bytes below space are not
 /// records in this face.
 static _FontGlyph _gFontGlyphsLarge[FONT_GLYPH_LARGE_COUNT] = {
 #include "assets/font_glyphs1.inc"
@@ -274,7 +274,7 @@ static _FontGlyph _gFontGlyphsLarge[FONT_GLYPH_LARGE_COUNT] = {
 /// `glyphTable` is `TEXT_GLYPH_TABLE_SMALL`. Drawing also selects it for an
 /// `\sS` command, in either letter's case, and adds `TEXT_GLYPH_V_BIAS_SMALL`
 /// to each record's texture V. The initializer is the embedded `font_glyphs2`
-/// catalogue blob. Bytes outside 0x20..0x7A are not records in this face.
+/// catalog blob. Bytes outside 0x20..0x7A are not records in this face.
 static _FontGlyph _gFontGlyphsSmall[FONT_GLYPH_SMALL_COUNT] = {
 #include "assets/font_glyphs2.inc"
 };

@@ -9,15 +9,6 @@ sha1 = "d1818b0bf0a545959f8ce92d1fdb1128c579ec8f"
 type = "sound"
 sha1 = "4493b63fe832564b40127460379805deecba9421"
 
-[rifled_slug_pump]
-type = "sound"
-sha1 = "ef5fd71e886cb914a2fd5a07cf6de2b9a8a75413"
-
-[rifled_slug_shot]
-type = "sound"
-mode = "high"
-sha1 = "f4a8f98b7db72cb75b986aef839733123eec84e5"
-
 [reload_load]
 type = "sound"
 mode = "high"
@@ -37,3 +28,12 @@ sha1 = "06f555b2f66b36ccf810d11f215abee223358da5"
 type = "sound"
 mode = "high"
 sha1 = "c6c7b541cf1a63c7ec4c40b6a04bff196028027f"
+
+[rifled_slug_pump]
+type = "sound"
+sha1 = "ef5fd71e886cb914a2fd5a07cf6de2b9a8a75413"
+
+[rifled_slug_shot]
+type = "sound"
+mode = "high"
+sha1 = "f4a8f98b7db72cb75b986aef839733123eec84e5"

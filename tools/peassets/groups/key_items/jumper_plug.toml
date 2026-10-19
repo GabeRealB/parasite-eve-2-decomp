@@ -1,0 +1,42 @@
+# The assets of the group key_items/jumper_plug, each named key_items/jumper_plug/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "17fd202fce7b1a86388d9d48fe52c5dd662cea94"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "5333aa87d8794e3c8df6c6f406a5e6eca27439d8"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "key_item"
+
+[text]
+type = "txt"
+sha1 = "3e50ae5caaa4b5189138f6fb0ce16f7723812fb1"
+
+[catalog]
+type = "txt"
+sha1 = "870d590076f84d92f147a40f83c23f2777ab2364"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "8de159c6480717bdf1f517ff9a2546911219712c"

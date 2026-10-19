@@ -36,6 +36,11 @@ pages = [{ texture = "texture", region = "engine/vram/weapon_sheet" }]
 [[file.contents]]
 chunk = "package"
 
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "preview_text", descriptor = "descriptor" }
+shape = "weapon"
+
 [shot]
 type = "clip"
 rig = "characters/aya/rig"
@@ -64,6 +69,10 @@ rig = "characters/aya/rig"
 type = "binding"
 model = "weapons/gunblade/model"
 textures = { body = "weapons/gunblade/texture.default" }
+
+[catalog]
+type = "txt"
+sha1 = "504f87215fcdf5b0a3134c3a54429424912be597"
 
 [contact]
 type = "sound"
@@ -116,6 +125,13 @@ package_name = "gunblade"
 required = true
 sha1 = "29ed85418ea0ac5718113f3ede4788a90d975244"
 
+[preview]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
 [texture]
 type = "texture"
 bpp = 4
@@ -135,6 +151,10 @@ rig = "characters/aya/rig"
 type = "clip"
 rig = "characters/aya/rig"
 
+[descriptor]
+type = "item_descriptor"
+sha1 = "380cc0eb7f14b242e91e477a61e1f7e7daa4f799"
+
 [spin_slash]
 type = "clip"
 rig = "characters/aya/rig"
@@ -142,11 +162,6 @@ rig = "characters/aya/rig"
 [aim_forward]
 type = "clip"
 rig = "characters/aya/rig"
-
-[rifled_slug_shot]
-type = "sound"
-mode = "high"
-sha1 = "9883c3a5c1dbfcd04a071c025a0cc48086504c69"
 
 [reload_load]
 type = "sound"
@@ -161,16 +176,25 @@ type = "sound"
 mode = "high"
 sha1 = "6bc8256d2c69d2fce6d58a92c35a89114f9b348c"
 
-[rifled_slug_sounds]
-type = "sound_bank"
-samples = [
-    "weapons/gunblade/click",
-    "weapons/gunblade/reload_load",
-    "weapons/gunblade/rifled_slug_shot",
-    "weapons/gunblade/slash",
-    "weapons/gunblade/contact",
-]
-sha1 = "f0b011683aa00d9feb587dd669c0450579e6a55a"
+[preview_file]
+type = "file"
+
+[[preview_file.contents]]
+chunk = "preview_palette"
+palettes = [{ texture = "preview", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "b937b6e77425448b0dd548506f6854c2df907d8b"
+
+[[preview_file.contents]]
+chunk = "preview_image"
+pages = [{ texture = "preview", region = "engine/vram/preview_picture" }]
+sha1 = "8f42917669b42272bbd4f95e00f9e1fc9c3acb38"
+
+[[preview_file.contents]]
+chunk = "preview_text"
+
+[preview_text]
+type = "txt"
+sha1 = "be373c056a1a65aedc7178235332bb92514cf2e6"
 
 [buckshot_shot]
 type = "sound"
@@ -204,3 +228,19 @@ samples = [
     "weapons/gunblade/contact",
 ]
 sha1 = "34151cbf62c7645bad73ce7854b05bc1dda31b8c"
+
+[rifled_slug_shot]
+type = "sound"
+mode = "high"
+sha1 = "9883c3a5c1dbfcd04a071c025a0cc48086504c69"
+
+[rifled_slug_sounds]
+type = "sound_bank"
+samples = [
+    "weapons/gunblade/click",
+    "weapons/gunblade/reload_load",
+    "weapons/gunblade/rifled_slug_shot",
+    "weapons/gunblade/slash",
+    "weapons/gunblade/contact",
+]
+sha1 = "f0b011683aa00d9feb587dd669c0450579e6a55a"

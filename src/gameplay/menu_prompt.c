@@ -132,7 +132,7 @@ u8 gItemMenuReleasePeHelpText[] = "Release Parasite Energy.";
 ///
 /// `objectArg` is a live UiObject pointer and `payloadArg` a TaskSpawnArg value.
 /// Words above 0xFFFF select encoded text; 0x300..0x3FF select P.E. descriptions
-/// and costs, with the catalogue bounds required by `itemMenuDrawTaskPrompt`.
+/// and costs, with the catalog bounds required by `itemMenuDrawTaskPrompt`.
 /// Other words draw nothing. Text is borrowed until the prompt is replaced;
 /// its two outlined lines use normal text colour at panel-relative (2,15) and
 /// (2,30) pixels. Hidden panels still scan the text. Requires loaded menu/font
@@ -878,7 +878,7 @@ void itemMenuArmorSummaryTask(Task* task)
     columnWidth = (object->panel.contentRight.signedValue - rowX) / 2;
     uiDrawTitle(&(object)->panel, (const char*)gItemMenuArmorTitle);
 
-    // Convert the one-based equipment selector to the armour catalogue id.
+    // Convert the one-based equipment selector to the armour catalog id.
     if (itemId > PLAYER_STATUS_EQUIPMENT_NONE) {
         itemId    += ITEM_MENU_ARMOR_ITEM_FIRST - 1;
         colorRgb   = ITEM_MENU_STAT_TEXT_COLOR;
@@ -1291,7 +1291,7 @@ static inline InventoryItemRow* _inventoryFindNthReorderableRow(const InventoryI
 
 /// Selects an item's description suffix and requests its normal menu preview.
 ///
-/// `itemId` must satisfy `itemGetText`'s catalogue bounds, or be
+/// `itemId` must satisfy `itemGetText`'s catalog bounds, or be
 /// `INVENTORY_ITEM_NONE` for empty text and a preview request for id zero. The
 /// live save's identification state selects the text form; the borrowed suffix
 /// includes both description lines and must remain loaded while displayed.

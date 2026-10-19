@@ -83,7 +83,7 @@ static const u16 _gShopStandardDefaultItemsStock[];
 /// storage alive through panel closure. Only one refill panel may use it.
 #define SHOP_REFILL_DISPLAY_QUANTITY gShopRefillDisplayQuantityFixed
 
-/// Binds the refill panel's borrowed catalogue selection to this room's pointer storage.
+/// Binds the refill panel's borrowed catalog selection to this room's pointer storage.
 ///
 /// Expands to the writable `const EquipmentWeaponSupply*` defined in
 /// `dryfield_night_trailer_coach_2.c` and declared in the private header. Keep this

@@ -1,0 +1,42 @@
+# The assets of the group items/m9, each named items/m9/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "4ed3bc009b2c735787a21bc22a6c33eea2cecf07"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "80c79ce0ab69eb331b2907d589427fce68f996de"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "effect_item"
+
+[text]
+type = "txt"
+sha1 = "ad4d4122d79570df8ead621d915b0d92338506ac"
+
+[catalog]
+type = "txt"
+sha1 = "083d0c4427564f1e53d1f3592f636a903669a8ea"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "e14e513cb93a00f9ba029aadba81dbfcd4aa35b3"

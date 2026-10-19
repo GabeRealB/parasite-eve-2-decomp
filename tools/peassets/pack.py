@@ -174,7 +174,30 @@ def path_under_raw_type_store(
     if chunk_type == FileChunkType.RoomPkg:
         # pe2pkg/ holds a package under its overlay name; raw/ under the asset's (`package_name`).
         stem = asset_schema.package_asset(stem)
+    # Several assets may hold one content, stored once under one of their names (asset_schema.stored_name).
+    assets, _embedded = asset_schema.load()
+    if stem in assets:
+        stem = asset_schema.stored_name(stem, assets[stem])
     return (assets_dir / "raw" / type_dir / f"{stem}{ext}").resolve()
+
+
+def shaped_output_text(assets_dir: Path, path_str: str) -> bytes | None:
+    """A text a shaped asset is written to, encoded from its instance (tools/peassets/shape/): the instance is its
+    decoded form, so the text has no file of its own. None for any other content."""
+    import asset_schema
+    import shape
+    found = asset_schema.manifest_asset(Path(path_str).as_posix())
+    if found is None:
+        return None
+    name = found[0]
+    assets, _embedded = asset_schema.load()
+    owners = [(k, out) for k, r in assets.items() if r.get("type") == "shaped"
+              for out, target in r["outputs"].items() if target == name]
+    owners.sort(key=lambda o: o[0].rsplit("/", 1)[0] != (assets.get(name) or {}).get("group"))   # its group's first
+    if not owners:
+        return None
+    key, output = owners[0]
+    return shape.encode(key, assets, _embedded, assets_dir)[output]
 
 
 def AssetStore_type_dir(chunk_type: FileChunkType) -> str:
@@ -573,7 +596,10 @@ def build_file_blob_from_contents(
             "sector_len": sector_len,
             "load_addr": load_addr,
         }
-        if "path" in content:
+        shaped = shaped_output_text(assets_dir, content["path"]) if "path" in content else None
+        if shaped is not None:
+            payload_path, on_disc_blob = None, False
+        elif "path" in content:
             payload_path, on_disc_blob = resolve_content_path(
                 assets_dir,
                 content["path"],
@@ -596,7 +622,9 @@ def build_file_blob_from_contents(
                         f"missing content payload: {payload_path}"
                     )
         # PNG is not the on-disc payload; prepare_on_disc_payload encodes it.
-        if payload_path.suffix.lower() == ".png":
+        if shaped is not None:
+            file_bytes = shaped
+        elif payload_path.suffix.lower() == ".png":
             file_bytes = b""
         else:
             file_bytes = payload_path.read_bytes()

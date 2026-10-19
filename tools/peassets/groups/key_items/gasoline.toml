@@ -1,0 +1,42 @@
+# The assets of the group key_items/gasoline, each named key_items/gasoline/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "b5e6f22ecdc2fffa8ee77b2f2028ea7b3acc242e"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "973f0a5eaa0844ccbd88e326774850f2a8a2a15f"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "key_item"
+
+[text]
+type = "txt"
+sha1 = "3bd60a5b1fbfd36cec1ca64967cf3cc958843081"
+
+[catalog]
+type = "txt"
+sha1 = "55368f023346906b510e3f20d61a339d7f15ffc0"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "7018cc789b4f8c088327ca8dc36ca7769ef60cfe"

@@ -182,7 +182,7 @@ static void _mapAkropolisDrawKeyItemRow(UiList* list, UiObject* object);
 static void _mapAkropolisKeyItemPanelTask(Task* task);
 static void _mapAkropolisKeyItemMenuTask(Task* task);
 
-/// Catalogue row count, task priority and panel spacing of the briefing menu.
+/// Catalog row count, task priority and panel spacing of the briefing menu.
 enum {
     MAP_AKROPOLIS_BRIEFING_ITEM_COUNT        = 4,
     MAP_AKROPOLIS_KEY_ITEM_TASK_PRIORITY     = 192,
@@ -631,10 +631,10 @@ enum {
     MAP_AKROPOLIS_STATE_REPLENISHABLE = 3,
 };
 
-/// Catalogue kinds and room-prop recipes in this stage's object tables.
+/// Catalog kinds and room-prop recipes in this stage's object tables.
 ///
-/// The low-bank values are item catalogue IDs. The additional landing-pad
-/// pickup kind selects an empty catalogue slot and has no placement here.
+/// The low-bank values are item catalog IDs. The additional landing-pad
+/// pickup kind selects an empty catalog slot and has no placement here.
 enum {
     MAP_AKROPOLIS_KIND_RECOVERY_1                    = 0x1,
     MAP_AKROPOLIS_KIND_RECOVERY_2                    = 0x2,
@@ -918,9 +918,9 @@ TaskDesc gMapAkropolisRoomTaskDescriptors[21] = {
 /// retained requests preserve it, independently of the list's selected row.
 static s32 _gMapAkropolisDryfieldMapOpened = 0;
 
-/// Collection catalogue IDs shown and granted by the MIST briefing menu.
+/// Collection catalog IDs shown and granted by the MIST briefing menu.
 ///
-/// Row indices 0..3 select signed-word IDs; names come from the item catalogue.
+/// Row indices 0..3 select signed-word IDs; names come from the item catalog.
 static s32 _gMapAkropolisBriefingItemIds[MAP_AKROPOLIS_BRIEFING_ITEM_COUNT] = {
     INVENTORY_COLLECTION_ID_MIST_SEARCH_WARRANT,
     INVENTORY_COLLECTION_ID_NMC_PHOTO,
@@ -1858,7 +1858,7 @@ static AreaObjectPlace _gMapAkropolisMistParkingObjectPlaces[10] = {
     { .flagIndex = AREA_OBJECT_PLACE_END },
 };
 
-/// Additional item catalogue IDs selected by the Acropolis battle reward lists.
+/// Additional item catalog IDs selected by the Acropolis battle reward lists.
 enum {
     MAP_AKROPOLIS_REWARD_ITEM_MP_BOOST_1   = 6,
     MAP_AKROPOLIS_REWARD_ITEM_MD_PLAYER    = 14,

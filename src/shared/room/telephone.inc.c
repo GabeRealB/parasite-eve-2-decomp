@@ -24,7 +24,7 @@
 #include "main/ui.h"
 #include "main/ui_types.h"
 
-/// Units and catalogue limits of the telephone statistics panels.
+/// Units and catalog limits of the telephone statistics panels.
 enum {
     TELEPHONE_PERCENT_WHOLE             = 10000,
     TELEPHONE_PERCENT_FRACTIONAL_DIGITS = 2,
@@ -540,7 +540,7 @@ static void _telephoneBuildWeaponUsageList(UiList* list, const UiObject* object)
         }
     }
 
-    // Stable descending insertion sort keeps catalogue order for equal counts.
+    // Stable descending insertion sort keeps catalog order for equal counts.
     if (rowCount >= 2) {
         for (index = 1; index < rowCount; index++) {
             insertionUses = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts[work->itemIds[index] - EQUIPMENT_WEAPON_ITEM_FIRST];
@@ -628,7 +628,7 @@ static void _telephoneBuildPeUsageList(UiList* list, const UiObject* object)
         }
     }
 
-    // Stable descending insertion sort keeps catalogue order for equal counts.
+    // Stable descending insertion sort keeps catalog order for equal counts.
     if (rowCount >= 2) {
         for (index = 1; index < rowCount; index++) {
             abilityIndex  = (work->itemIds[index] - TELEPHONE_PE_ITEM_FIRST) / ATTACHMENT_LEVEL_COUNT;

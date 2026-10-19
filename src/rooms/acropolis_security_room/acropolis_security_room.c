@@ -1434,7 +1434,7 @@ static s32 _acropolisSecurityRoomResolveTransition(Task* task, s32 messageId, co
 
 /// Forwards a selected key item to the live power-supply panel.
 ///
-/// Receives `ROOM_MESSAGE_USE_KEY_ITEM`; `itemId` is a collection catalogue id
+/// Receives `ROOM_MESSAGE_USE_KEY_ITEM`; `itemId` is a collection catalog id
 /// and the second payload is unused by the panel. Returns its item-menu reply
 /// unchanged, or `ROOM_KEY_ITEM_USE_REFUSED` while the panel is absent.
 static s32 _acropolisSecurityRoomForwardKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedPayload)
@@ -2474,7 +2474,7 @@ static void _acropolisSecurityRoomShowReleasedLocks(s32 releasedLocks)
 
 /// Latches a selected key for the power-supply panel's confirmed lock.
 ///
-/// Receives `ROOM_MESSAGE_USE_KEY_ITEM` with a collection catalogue `itemId`
+/// Receives `ROOM_MESSAGE_USE_KEY_ITEM` with a collection catalog `itemId`
 /// and unused second payload. Red, blue and Parthenon keys request the menu
 /// used notice; other items clear the latch and are refused. Acceptance does
 /// not consume the item: the later lock handler checks and consumes its own key.

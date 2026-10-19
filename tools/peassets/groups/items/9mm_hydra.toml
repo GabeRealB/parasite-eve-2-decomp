@@ -1,0 +1,42 @@
+# The assets of the group items/9mm_hydra, each named items/9mm_hydra/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "5db61acfa34267effbaf2835fbf244b1a821f0a8"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "db7f1d2ab20c3c3951e03225980ae72e482b8cf3"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "ammunition"
+
+[text]
+type = "txt"
+sha1 = "116fa42da6fc1ba302ce5bf96d8717d3d33039bc"
+
+[catalog]
+type = "txt"
+sha1 = "c1da2f6a82537d6b8c99b5143e577fe380c71749"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "4e9df3274abc6029db38b8f89ff76844f4772f88"

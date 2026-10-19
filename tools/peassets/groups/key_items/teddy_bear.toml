@@ -1,0 +1,42 @@
+# The assets of the group key_items/teddy_bear, each named key_items/teddy_bear/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "9092f22005f78ae3997230c9e91d8a7a4885a312"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "b3962ea123135b9384eef4b35d06b366c107cd09"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "key_item"
+
+[text]
+type = "txt"
+sha1 = "2e0e265a0328774f5d4f4fa40bf82c5295fff16f"
+
+[catalog]
+type = "txt"
+sha1 = "fe9bb464bd9e6d530fd6d2b5d8ffef7e0617462c"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "5587e9550b817fa914b975930e92690020ccafad"

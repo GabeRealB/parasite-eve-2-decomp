@@ -1,0 +1,15 @@
+# The assets of the group key_items/soldier_rescue_bonus, each named key_items/soldier_rescue_bonus/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", descriptor = "descriptor" }
+shape = "key_item"
+
+[catalog]
+type = "txt"
+sha1 = "08ec03c5755b021c3470a43298aeb3d505cf95f2"
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "06c90bbb9c625aff9e394bbae3a1f7ec406b3087"

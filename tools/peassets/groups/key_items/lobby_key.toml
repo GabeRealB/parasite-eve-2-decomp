@@ -1,0 +1,42 @@
+# The assets of the group key_items/lobby_key, each named key_items/lobby_key/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "e1eedb3bdefc1196e26a5f2e26c2f6e7ad88bf60"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "d01c2f440f5f888370a7fbc44014c72370048773"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "key_item"
+
+[text]
+type = "txt"
+sha1 = "056f8034cdf61685ebe4fdcf8730b18287b6ff98"
+
+[catalog]
+type = "txt"
+sha1 = "30a68aabfff44789fdd79dd0782466fbeb5e8878"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "8d90b3c73e4809372d808b72644aea9628eafec0"

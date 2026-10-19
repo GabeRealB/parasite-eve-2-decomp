@@ -19,7 +19,7 @@ extern PlayerModeBaseStats gEquipmentModeBaseStats[4];
 
 /// Installs and fully charges every built-in weapon supply in the live save.
 ///
-/// Initializes the catalogue's primary or secondary load, including weapons
+/// Initializes the catalog's primary or secondary load, including weapons
 /// the player does not carry. Other loads and inventory quantities stay intact.
 void equipmentInitializeWeaponSupplies(void);
 
@@ -77,7 +77,7 @@ s32 inventoryIsItemLimitReached(s32 itemId);
 /// Recomputes maximum MP from learned spells, armor, mode and permanent bonus.
 ///
 /// The first twelve saved spell levels must be 0..3, the save mode 0..3 and
-/// armor selector 0..32. Each learned level contributes its catalogue MP bonus.
+/// armor selector 0..32. Each learned level contributes its catalog MP bonus.
 /// The sum narrows to signed 16 bits before the maximum is capped at 250;
 /// current MP is reduced only when above that maximum.
 void equipmentRecalculateMaxMp(void);
@@ -102,7 +102,7 @@ enum {
 /// Adds item units to a range and borrows the affected writable row, or NULL.
 ///
 /// Consumables (0xA0..0xBF) share the first matching stack, capped at its
-/// catalogue capacity. Other ids allocate a free row with quantity one.
+/// catalog capacity. Other ids allocate a free row with quantity one.
 /// Negative quantities request one pack, except `INVENTORY_GIVE_FULL_STACK`,
 /// which requests maximum capacity. `itemId` must be 1..0xFF and the range
 /// must fit its writable table. The descriptor is not modified. Sorting,
@@ -189,7 +189,7 @@ s32 areaGetCurrentObjectState(s32 objectId);
 /// 128-bit set, which also records item-related events.
 s32 inventoryHasCollectedBit(s32 collectionId);
 
-/// Catalogue ids used as live-save collection bits for items and rescue bonuses.
+/// Catalog ids used as live-save collection bits for items and rescue bonuses.
 ///
 /// The collection APIs keep each id's low seven bits.
 enum {
@@ -260,7 +260,7 @@ s32 inventoryMeltIceBagIfExpired(void);
 /// are borrowed and left unchanged.
 s32 inventoryGetItemQuantity(const InventoryItemRange* range, s32 itemId);
 
-/// Sets or clears an item's persistent catalogue identification flag.
+/// Sets or clears an item's persistent catalog identification flag.
 ///
 /// `itemId` must be nonnegative; ids >= 0x180 are ignored. Zero `identified`
 /// clears the flag and any nonzero value sets it. Identification controls the
@@ -279,12 +279,12 @@ enum { EQUIPMENT_WEAPON_SUPPLY_NOT_FOUND = -1 };
 
 /// Finds the next built-in supply whose weapon is in the live carried range.
 ///
-/// Starts at `firstSupplyIndex` inclusively. Returns a catalogue index 0..7,
+/// Starts at `firstSupplyIndex` inclusively. Returns a catalog index 0..7,
 /// or `EQUIPMENT_WEAPON_SUPPLY_NOT_FOUND` for an invalid start or no match.
 /// The carried range must fit its readable table; neither it nor loads change.
 s32 equipmentFindNextCarriedWeaponSupply(s32 firstSupplyIndex);
 
-/// Borrows one read-only row of the built-in weapon-supply catalogue.
+/// Borrows one read-only row of the built-in weapon-supply catalog.
 ///
 /// `supplyIndex` must be 0..7; there is no bounds check. The row remains valid
 /// while gameplay is loaded and names the weapon, supply item and load to refill.
@@ -292,7 +292,7 @@ const EquipmentWeaponSupply* equipmentGetWeaponSupply(s32 supplyIndex);
 
 /// Returns 1 if the carried range holds a weapon with a built-in supply, else 0.
 ///
-/// Tests weapon quantity across the eight catalogue entries, independently of
+/// Tests weapon quantity across the eight catalog entries, independently of
 /// equipped selection or remaining supply charge. The carried range must fit
 /// its readable backing table; neither its rows nor weapon loads are changed.
 s32 equipmentHasCarriedWeaponSupply(void);
@@ -304,7 +304,7 @@ s32 equipmentHasCarriedWeaponSupply(void);
 /// is capped at 250. Current HP is reduced only when it exceeds the new maximum.
 void equipmentRecalculateMaxHp(void);
 
-/// Returns a catalogue order key, an id-based fallback or the empty-row key.
+/// Returns a catalog order key, an id-based fallback or the empty-row key.
 ///
 /// Remapped row ids use their category table; a zero remap or other id falls
 /// back to `itemId + 0x100`. Id zero returns 0x1000. Remap inputs must be
@@ -328,7 +328,7 @@ void inventoryResetIceBagTimer(void);
 
 /// Returns the maximum rounds or supply units in one weapon load.
 ///
-/// Weapon item ids 0x80..0x9F index the catalogue; other ids return zero.
+/// Weapon item ids 0x80..0x9F index the catalog; other ids return zero.
 /// Zero `loadSelection` selects primary and every nonzero value secondary.
 /// The result is a capacity, independently of possession or remaining charge.
 s32 equipmentGetWeaponLoadCapacity(s32 weaponItemId, s32 loadSelection);
@@ -367,7 +367,7 @@ void inventoryResetCarriedRange(void);
 /// that callback owns teardown and may release the enemy, task and model.
 void areaObjectModelTask(Task* task);
 
-/// Number of ordinary catalogue rows, including unused entries.
+/// Number of ordinary catalog rows, including unused entries.
 enum { ITEM_DESCRIPTOR_COUNT = 0xC0 };
 
 /// Purchase prices, classifications, restrictions and text for ordinary item ids.
@@ -379,7 +379,7 @@ enum { ITEM_DESCRIPTOR_COUNT = 0xC0 };
 /// readable while gameplay is loaded; key items use `gItemKeyDescriptors`.
 extern ItemDesc gItemDescriptors[ITEM_DESCRIPTOR_COUNT];
 
-/// Number of key-item catalogue rows, including unused entries.
+/// Number of key-item catalog rows, including unused entries.
 enum { ITEM_KEY_DESCRIPTOR_COUNT = 0x80 };
 
 /// Prices, key-item classifications, restrictions and six-field text for ids 0x100..0x17F.
@@ -411,12 +411,12 @@ extern InventoryConsumableStack gInventoryConsumableStacks[INVENTORY_CONSUMABLE_
 /// rows. A missing stack or other row item needs one free row. Ids >= 0x100
 /// return 1 after scanning the rows, without testing collection-bit possession.
 /// Row-item ids must be 1..0xBF; reserved ids 0xC0..0xFF are not rejected and
-/// would index beyond the 32-row consumable catalogue if a matching row exists.
+/// would index beyond the 32-row consumable catalog if a matching row exists.
 /// The range must fit readable backing storage. Neither input is changed or
 /// retained. This is a capacity query; it does not reserve space or add items.
 s32 inventoryCanAddItem(const InventoryItemRange* range, s32 itemId);
 
-/// Catalogue field indices and raw id dispatch boundaries for `itemGetText`.
+/// Catalog field indices and raw id dispatch boundaries for `itemGetText`.
 enum {
     ITEM_TEXT_NAME               = 0,
     ITEM_TEXT_DESCRIPTION_FIRST  = 1,
@@ -434,7 +434,7 @@ enum {
 /// nonzero always selects identified text. Fields are separated by NUL, newline
 /// or a backslash followed by n/N. The suffix is not copied or terminated anew.
 ///
-/// Declared catalogue ids are 0..0xBF and 0x100..0x17F; raw id dispatch performs
+/// Declared catalog ids are 0..0xBF and 0x100..0x17F; raw id dispatch performs
 /// no bounds check. Packed ids 0x300..0x4FF use element/energy/level bits to select
 /// an identified ordinary entry. Enemy ids 0x500..0x53E use `gNmcNamesEnemyNameTable` and
 /// ignore the field/form arguments; the enemy-name overlay must be loaded.

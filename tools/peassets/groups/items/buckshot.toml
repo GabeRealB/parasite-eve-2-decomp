@@ -1,0 +1,42 @@
+# The assets of the group items/buckshot, each named items/buckshot/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "bb72c9e7ec6a5ebf90f82778ceb44983f931f0bc"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "ec0f5488e8824d552a6c48bdc10e823849f48ebc"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "ammunition"
+
+[text]
+type = "txt"
+sha1 = "c083a3a0366abc459f5b7db93aec5c0eec7b9279"
+
+[catalog]
+type = "txt"
+sha1 = "f20323fb0ccc44233a68113d15cae27018191666"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "90e85b40bb8ed4e2e8a391285d4834410e1e4ccd"

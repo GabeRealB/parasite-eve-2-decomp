@@ -9,7 +9,7 @@ directory like any other asset. There is no separate output tree for them.
 Entry points:
 
 ``collect``
-    Slice the catalogued regions out of a binary. ``extract.py`` calls this and
+    Slice the cataloged regions out of a binary. ``extract.py`` calls this and
     feeds the bytes to ``store.put_embedded``.
     ``collect_bytes`` also accepts packages decoded in memory, before their
     inflated files have been materialized.
@@ -17,9 +17,9 @@ Entry points:
     Decode one stored ``.mcsave`` into its type-store form (meta + images).
     Called from the materialize dispatch, alongside the image/BS/SPK decoders.
 
-``scan_for_save_headers`` stays as a discovery aid: it is how the catalogue
+``scan_for_save_headers`` stays as a discovery aid: it is how the catalog
 entry was found, and re-running it after a version change will find the block
-again if it moved. It is not used by extraction, which trusts the catalogue.
+again if it moved. It is not used by extraction, which trusts the catalog.
 """
 
 from __future__ import annotations
@@ -49,7 +49,7 @@ SAVE_ICON_DIM = 16
 
 @dataclass
 class Embedded:
-    """One catalogued region sliced out of a binary."""
+    """One cataloged region sliced out of a binary."""
 
     asset_id: str
     source: str
@@ -86,7 +86,7 @@ def load_base(data: bytes) -> int | None:
 
 
 def collect(path: Path, *, base: int | None = None) -> list[Embedded]:
-    """Slice every catalogued asset out of one binary."""
+    """Slice every cataloged asset out of one binary."""
     if not path.is_file():
         logging.debug("embedded assets: %s not present, skipping", path)
         return []
@@ -100,7 +100,7 @@ def collect(path: Path, *, base: int | None = None) -> list[Embedded]:
 def collect_bytes(
     data: bytes, source: str, *, base: int | None = None
 ) -> list[Embedded]:
-    """Slice catalogued assets from an executable or a decoded package."""
+    """Slice cataloged assets from an executable or a decoded package."""
     entries = embedded_for_source(source)
     if not entries:
         return []
@@ -202,12 +202,12 @@ def materialize_save_header_asset(raw_path: Path, dest_dir: Path) -> None:
 
 
 def scan_for_save_headers(data: bytes) -> Iterator[tuple[int, dict]]:
-    """Find PS1 save-header blocks by signature (catalogue discovery aid).
+    """Find PS1 save-header blocks by signature (catalog discovery aid).
 
     Strict on purpose - ``"SC"`` alone is two common bytes, so a hit also needs
     an icon flag of 0x11-0x13, a plausible block count, and a title that decodes
     as Shift-JIS. Across main.exe and both split overlays this matches exactly
-    the one catalogued block and nothing else.
+    the one cataloged block and nothing else.
     """
     for off in range(0, max(0, len(data) - SAVE_HEADER_SIZE) + 1):
         if data[off : off + 2] != b"SC":

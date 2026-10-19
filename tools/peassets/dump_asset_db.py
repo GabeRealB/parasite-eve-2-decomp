@@ -60,6 +60,9 @@ RAW_TYPE_DIRS = (
     "bs",
     "spk",
     "txt",
+    "item_descriptor",          # a descriptor row and the tables, outputs of the item shapes (shape/item.toml)
+    "item_descriptor_table",
+    "junk",
 )
 
 
@@ -297,11 +300,12 @@ def _old_folder_name(
 
 
 def collect_assets(assets_root: Path, old_assets: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
-    by_sha1_old = {
-        rec["sha1"]: (aid, rec)
-        for aid, rec in old_assets.items()
-        if isinstance(rec, dict) and rec.get("sha1")
-    }
+    # Several assets may hold one content (asset_schema.canonical_names), each keeping its own name and record;
+    # a sound is known by its body in banks, not by a raw file.
+    by_sha1_old: dict[str, list[tuple[str, dict[str, Any]]]] = {}
+    for aid, rec in old_assets.items():
+        if isinstance(rec, dict) and rec.get("sha1") and rec.get("type") != "sound":
+            by_sha1_old.setdefault(rec["sha1"], []).append((aid, rec))
     used_ids: set[str] = set()
     out: dict[str, dict[str, Any]] = {}
 
@@ -317,41 +321,42 @@ def collect_assets(assets_root: Path, old_assets: dict[str, dict[str, Any]]) -> 
         for path in files:
             digest = _sha1_file(path)
             stem = asset_schema.raw_key(path.relative_to(d).as_posix())
-            prev = by_sha1_old.get(digest)
-            if prev is not None:
-                aid, old_rec = prev
-            else:
-                aid = stem
-                old_rec = {}
-            if aid in used_ids:
-                n = 2
-                base = aid
-                while f"{base}_{n}" in used_ids:
-                    n += 1
-                aid = f"{base}_{n}"
-            used_ids.add(aid)
-            # A type set by hand over the same stored form (a glyph atlas is a pe2img) is kept.
-            kind = old_rec.get("type")
-            if kind is None or asset_schema.EXT_BY_TYPE.get(kind) != asset_schema.EXT_BY_TYPE.get(type_dir):
-                kind = type_dir
-            rec: dict[str, Any] = {
-                "sha1": digest,
-                "type": kind,
-            }
-            # Preserve extra fields (bpp, required, notes, …).
-            for k, v in old_rec.items():
-                if k in ("sha1", "type"):
-                    continue
-                rec[k] = v
-            if aid in REQUIRED_OVERLAY_STEMS:
-                rec["required"] = True
-            if type_dir == "pe2img":
-                rec["bpp"] = _pe2img_bpp_field(path, rec.get("bpp"))
-                rec.update(_pe2img_geometry(path))
-            elif type_dir == "pe2clut":
-                rec.update(_pe2clut_geometry(path))
-            out[aid] = rec
+            for aid, old_rec in by_sha1_old.get(digest) or [(stem, {})]:
+                _collect_one(out, used_ids, path, type_dir, digest, aid, old_rec)
     return out
+
+
+def _collect_one(out: dict[str, dict[str, Any]], used_ids: set[str], path: Path, type_dir: str, digest: str,
+                 aid: str, old_rec: dict[str, Any]) -> None:
+    """One asset holding a raw file's bytes, its fields carried over from its old record."""
+    if aid in used_ids:
+        n = 2
+        base = aid
+        while f"{base}_{n}" in used_ids:
+            n += 1
+        aid = f"{base}_{n}"
+    used_ids.add(aid)
+    # A type set by hand over the same stored form (a glyph atlas is a pe2img) is kept.
+    kind = old_rec.get("type")
+    if kind is None or asset_schema.EXT_BY_TYPE.get(kind) != asset_schema.EXT_BY_TYPE.get(type_dir):
+        kind = type_dir
+    rec: dict[str, Any] = {
+        "sha1": digest,
+        "type": kind,
+    }
+    # Preserve extra fields (bpp, required, notes, …).
+    for k, v in old_rec.items():
+        if k in ("sha1", "type"):
+            continue
+        rec[k] = v
+    if aid in REQUIRED_OVERLAY_STEMS:
+        rec["required"] = True
+    if type_dir == "pe2img":
+        rec["bpp"] = _pe2img_bpp_field(path, rec.get("bpp"))
+        rec.update(_pe2img_geometry(path))
+    elif type_dir == "pe2clut":
+        rec.update(_pe2clut_geometry(path))
+    out[aid] = rec
 
 
 def _keyed(by_id: dict[int, dict[str, Any]]) -> dict[str, dict[str, Any]]:
@@ -817,6 +822,8 @@ def write_groups(assets: dict[str, dict[str, Any]]) -> None:
                                for p in rec["embedded"]]
         if aid in texture_chunks:
             continue                    # declared, with its sha1, in its file's entry
+        if rec.get("type") == "shaped":
+            rec["outputs"] = {k: local(v) if v.startswith(group + "/") else {"asset": v} for k, v in rec["outputs"].items()}
         if rec.get("type") == "file":
             rec["contents"] = [{**({"chunk": local(e["chunk"])} if e["chunk"].startswith(group + "/") else {"asset": e["chunk"]}),
                                 **{k: v for k, v in e.items() if k != "chunk"},

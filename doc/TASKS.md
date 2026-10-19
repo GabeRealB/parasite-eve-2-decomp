@@ -21,7 +21,7 @@ Naming: [`NAMING.md`](../NAMING.md) (`task` functions / `TaskDesc`).
 | UI stack descs | `src/main/ui.c` (`uiSpawnObject`) |
 
 **Coverage.** The scheduler is fully described. Bank 0 (system) and bank 9 (FX)
-can be catalogued. Banks 6–7 and most overlay-local tables are still an index
+can be cataloged. Banks 6–7 and most overlay-local tables are still an index
 of function pointers, not a cast list.
 
 ---

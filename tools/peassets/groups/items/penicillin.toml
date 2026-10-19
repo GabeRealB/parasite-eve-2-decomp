@@ -1,0 +1,42 @@
+# The assets of the group items/penicillin, each named items/penicillin/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "fc0bd7257924a222eb32576decfb69d90902822d"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "2ec1bb7ea6f366679d2e6442cdddb6ec21db7021"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "effect_item"
+
+[text]
+type = "txt"
+sha1 = "fbc2be9babd2b01418a911642a36d694b9e4b1ff"
+
+[catalog]
+type = "txt"
+sha1 = "c28913876ece6b6fb15d97f6353d975384dfa7e8"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "3c06716e3b3e04ee2e5b11f3db1a01d65adefce9"

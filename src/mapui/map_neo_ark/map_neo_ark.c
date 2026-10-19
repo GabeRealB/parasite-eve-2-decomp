@@ -112,9 +112,9 @@ static AreaObjectPlace _gMapNeoArkTentObjectPlaces[4];
 static AreaObjectPlace _gMapNeoArkSubmarineGalleryObjectPlaces[2];
 static AreaObjectPlace _gMapNeoArkSubstationObjectPlaces[2];
 
-/// Catalogue and UI kinds stored by this stage's saved-object lists.
+/// Catalog and UI kinds stored by this stage's saved-object lists.
 ///
-/// Banks 0/1 are catalogue IDs; banks 7/8 select item-box and save-point UI.
+/// Banks 0/1 are catalog IDs; banks 7/8 select item-box and save-point UI.
 enum {
     MAP_NEO_ARK_KIND_MP_BOOST_2               = 0x7,
     MAP_NEO_ARK_KIND_LIPSTICK                 = 0xB,
@@ -426,7 +426,7 @@ enum {
     MAP_NEO_ARK_ALT_BRIDGE_SHAPE_INDEX = MAP_NEO_ARK_AREA_ID_LIMIT + 2,
 };
 
-/// Shared endpoint flag IDs not yet declared in the public game-flag catalogue.
+/// Shared endpoint flag IDs not yet declared in the public game-flag catalog.
 enum {
     MAP_NEO_ARK_MARKER_FLAG_GARDEN_WARP_3             = 0x1B5,
     MAP_NEO_ARK_MARKER_FLAG_EVE_ACCESS_TUNNEL_SHELTER = 0x1AF,
@@ -436,7 +436,7 @@ enum {
 /// Execution priority of this stage's area-default room tasks.
 enum { MAP_NEO_ARK_ROOM_TASK_PRIORITY = 32 };
 
-/// Catalogue IDs used only by this stage's battle-reward lists.
+/// Catalog IDs used only by this stage's battle-reward lists.
 enum {
     MAP_NEO_ARK_REWARD_RECOVERY_1      = 1,
     MAP_NEO_ARK_REWARD_RECOVERY_2      = 2,

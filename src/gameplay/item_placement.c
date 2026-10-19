@@ -19,9 +19,9 @@
 #include "main/session.h"
 #include "main/task_types.h"
 
-/// Catalogue and UI kinds used by Dryfield's shared placed-object lists.
+/// Catalog and UI kinds used by Dryfield's shared placed-object lists.
 ///
-/// Banks 0 and 1 are catalogue ids, bank 7 selects item-box UI, and bank 8
+/// Banks 0 and 1 are catalog ids, bank 7 selects item-box UI, and bank 8
 /// selects save-point UI. Key-item kinds reuse the collection-id constants.
 enum {
     AREA_DRYFIELD_KIND_RECOVERY_1               = 0x1,

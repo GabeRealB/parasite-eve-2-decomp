@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Writes tools/peassets/image_palettes.tsv: the class rules read out of the draw code, applied to each image that
-meets the rule's own test against the catalogue (positions, counts), plus the hand-read lines of image_palettes_manual.tsv beside
+meets the rule's own test against the catalog (positions, counts), plus the hand-read lines of image_palettes_manual.tsv beside
 this script. Run from the repository root with venv/bin/python3. Names, numbers and citations only."""
 import re, sys
 from collections import defaultdict
@@ -128,7 +128,7 @@ out = ["# Which palette an image is drawn with, where that is read out of draw c
        "# room's sprite table (those are computed: tools/peassets/asset_map.py). One line per way an image is read.",
        "# image\tcolumn\tdepth\tpalette (empty: direct colour)\trow\tpalette index\tuser\tevidence",
        "# Written by tools/peassets/gen_image_palettes.py for the rules that cover a family (item previews,",
-       "# caption glyph pages); the lines after them were read one by one. asset_map.py checks every line against the catalogue."]
+       "# caption glyph pages); the lines after them were read one by one. asset_map.py checks every line against the catalog."]
 out += ["\t".join(str(c) for c in line) for line in lines]
 out += [l for l in body.splitlines() if l.strip()]
 (ROOT / "tools/peassets/image_palettes.tsv").write_text("\n".join(out) + "\n", encoding="utf-8")

@@ -281,7 +281,7 @@ void itemMenuDrawTaskPrompt(UiObject* object, const Task* task)
     };
     TaskSpawnArg promptPayload;
 
-    // Small payloads are catalogue selectors; larger words encode borrowed text addresses.
+    // Small payloads are catalog selectors; larger words encode borrowed text addresses.
     promptPayload = task->spawnArg1;
     if (promptPayload.value != 0) {
         if (promptPayload.unsignedValue > ITEM_MENU_PROMPT_INLINE_VALUE_MAX) {

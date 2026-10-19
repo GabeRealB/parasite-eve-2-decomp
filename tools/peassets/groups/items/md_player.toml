@@ -1,0 +1,42 @@
+# The assets of the group items/md_player, each named items/md_player/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "add2d3d6019f831df317a156b4df2993acbd125b"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "7aa636e729760264d961417a03290347462a3004"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "effect_item"
+
+[text]
+type = "txt"
+sha1 = "7da3b655a6fb5e809b3c653ae2ebd0d4cf30718c"
+
+[catalog]
+type = "txt"
+sha1 = "db792c1122170b1f90c33d384bec11df6e070596"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "0efed8220ff18b085f46da7499946b2af51eec1b"

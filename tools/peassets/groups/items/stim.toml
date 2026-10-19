@@ -1,0 +1,42 @@
+# The assets of the group items/stim, each named items/stim/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "a0156158b6f2d93286b8d14902d7b1ff9e1ebcf4"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "4ff3f2fd8e9d3245666948facb79c18b7d536f3d"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "effect_item"
+
+[text]
+type = "txt"
+sha1 = "02772afebf6c1934a81410d9180064d18b04d479"
+
+[catalog]
+type = "txt"
+sha1 = "7feb2c9b9708cb5c6b15ab8dd153c72d84481ad1"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "c1357c569a727ffe545683be3df5a5f032409bf3"

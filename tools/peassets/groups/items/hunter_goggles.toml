@@ -1,0 +1,42 @@
+# The assets of the group items/hunter_goggles, each named items/hunter_goggles/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "636d81f62ef364957a9bad89a0933b83b1d88ac2"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "1544acf74527d71d6ef868f6e21c31c38dd1b61d"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "effect_item"
+
+[text]
+type = "txt"
+sha1 = "15c5cd271199d95333223c922023ea736818b70b"
+
+[catalog]
+type = "txt"
+sha1 = "530e0c74b2064e3f1c5b563735f87fe61b4f30d3"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "6d7bf0c47dc50a8e271b9f417c4e3528ec14ac55"

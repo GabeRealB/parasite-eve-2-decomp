@@ -33,6 +33,11 @@ chunk = "package"
 type = "clip"
 rig = "characters/aya/rig"
 
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "preview_text", descriptor = "descriptor" }
+shape = "weapon"
+
 [click]
 type = "sound"
 sha1 = "a9910f2cf84ab60aaaab27f6610967bd184d0b86"
@@ -55,6 +60,10 @@ rig = "characters/aya/rig"
 type = "binding"
 model = "weapons/grenade_pistol/model"
 textures = { body = "weapons/grenade_pistol/texture.default" }
+
+[catalog]
+type = "txt"
+sha1 = "a9e735f0ce83df7c78d172e81c8df2983247d821"
 
 [package]
 type = "pe2pkg"
@@ -103,12 +112,23 @@ package_name = "grenade_pistol"
 required = true
 sha1 = "9ac6f94bab87b2807a2fff3a4cd0166a4642b1e8"
 
+[preview]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
 [texture]
 type = "texture"
 bpp = 4
 height = 64
 variants = ["default"]
 width = 256
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "f1f87a8fea1b501537df3b71182c50ccd4bb8e91"
 
 [reload_load]
 type = "sound"
@@ -125,6 +145,26 @@ samples = [
     "weapons/grenade_pistol/riot_detonation",
 ]
 sha1 = "2227cdaab977ec155eb56c758d730165bed5e648"
+
+[preview_file]
+type = "file"
+
+[[preview_file.contents]]
+chunk = "preview_palette"
+palettes = [{ texture = "preview", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "e54f877df04ffdb63b389a7db9dce43168cd9325"
+
+[[preview_file.contents]]
+chunk = "preview_image"
+pages = [{ texture = "preview", region = "engine/vram/preview_picture" }]
+sha1 = "a0943422f2beb439c01cfb11448e9b346a2fe983"
+
+[[preview_file.contents]]
+chunk = "preview_text"
+
+[preview_text]
+type = "txt"
+sha1 = "7e2526fc3a4f874627f21f04cecddbb847e4a9d1"
 
 [reload_start]
 type = "sound"

@@ -23,6 +23,11 @@ pages = [{ texture = "texture", region = "engine/vram/weapon_sheet" }]
 [[file.contents]]
 chunk = "package"
 
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "preview_text", descriptor = "descriptor" }
+shape = "weapon"
+
 [model]
 type = "model"
 slots = ["body"]
@@ -37,6 +42,10 @@ rig = "characters/aya/rig"
 type = "binding"
 model = "weapons/m4a1_grenade/model"
 textures = { body = "weapons/m4a1_grenade/texture.default" }
+
+[catalog]
+type = "txt"
+sha1 = "08fca39908e8bb94e63cb5bd2d15afae5e49522f"
 
 [package]
 type = "pe2pkg"
@@ -87,12 +96,23 @@ package_name = "m4a1_grenade"
 required = true
 sha1 = "55e6b08f028f166f10f6b1dee2b6ce2dd05a7dbe"
 
+[preview]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
 [texture]
 type = "texture"
 bpp = 4
 height = 64
 variants = ["default"]
 width = 256
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "784cc31839a9202d8b9f5dc26c4649484c71f92b"
 
 [rifle_shot]
 type = "sound"
@@ -116,6 +136,26 @@ sha1 = "afb50861835e33bea6b060d868a815f8b3fa9495"
 [launch_sound]
 type = "sound"
 sha1 = "0cea49bafc26efeec0dbab1877d6d991a84f30ce"
+
+[preview_file]
+type = "file"
+
+[[preview_file.contents]]
+chunk = "preview_palette"
+palettes = [{ texture = "preview", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "4bae1be66efcecf5e300dd3ed173017d4d987e59"
+
+[[preview_file.contents]]
+chunk = "preview_image"
+pages = [{ texture = "preview", region = "engine/vram/preview_picture" }]
+sha1 = "609e417fabfd8fd2156168a9d02c44e03e7560a5"
+
+[[preview_file.contents]]
+chunk = "preview_text"
+
+[preview_text]
+type = "txt"
+sha1 = "19e38774df2ea45d3bdb68c478cbcb6aca5b1846"
 
 [grenade_model]
 type = "model"

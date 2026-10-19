@@ -1,0 +1,42 @@
+# The assets of the group items/medicine_wheel, each named items/medicine_wheel/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "702c219a6ec9571d4ff0b6ebc48a3deaacf453f9"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "8cf8b3f8b211efc67b2827e8e879bb9fde445b12"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "effect_item"
+
+[text]
+type = "txt"
+sha1 = "7ea1bd1aa4f3a8e99a7d4bd6fb40a5af81f60d98"
+
+[catalog]
+type = "txt"
+sha1 = "1dfa73ce20f16eab3e4cce666defdc51a80950b9"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "990e0b011d4921101846fda68826ac9753a67ad4"

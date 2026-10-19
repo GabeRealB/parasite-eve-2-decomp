@@ -36,6 +36,11 @@ chunk = "package"
 type = "clip"
 rig = "characters/aya/rig"
 
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "preview_text", descriptor = "descriptor" }
+shape = "weapon"
+
 [shot]
 type = "sound"
 mode = "high"
@@ -65,6 +70,10 @@ sha1 = "4736f405876381c0343a6876fc0fd431a88c1af6"
 type = "binding"
 model = "weapons/mongoose/model"
 textures = { body = "weapons/mongoose/texture.default" }
+
+[catalog]
+type = "txt"
+sha1 = "c151f003c4c3787052dae633c6f2bcca97a8dd18"
 
 [package]
 type = "pe2pkg"
@@ -112,12 +121,43 @@ package_name = "mongoose"
 required = true
 sha1 = "a6619fa870c5e545235fa1b8174757e06e85c4df"
 
+[preview]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
 [texture]
 type = "texture"
 bpp = 4
 height = 64
 variants = ["default"]
 width = 256
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "ff70e74589323cbb5b89a3a711577f7ed6a81c47"
+
+[preview_file]
+type = "file"
+
+[[preview_file.contents]]
+chunk = "preview_palette"
+palettes = [{ texture = "preview", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "1e9ba489914cc95a57eae2372833b946c45b56a0"
+
+[[preview_file.contents]]
+chunk = "preview_image"
+pages = [{ texture = "preview", region = "engine/vram/preview_picture" }]
+sha1 = "6930b73d49c83fa8d4bc5c56fb0c613c0653386c"
+
+[[preview_file.contents]]
+chunk = "preview_text"
+
+[preview_text]
+type = "txt"
+sha1 = "a46bf0e4309d3c1678de59ca6763657361a9147f"
 
 [reload_start]
 type = "sound"

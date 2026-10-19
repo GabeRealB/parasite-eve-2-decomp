@@ -33,6 +33,11 @@ chunk = "package"
 type = "clip"
 rig = "characters/aya/rig"
 
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "preview_text", descriptor = "descriptor" }
+shape = "weapon"
+
 [pump]
 type = "sound"
 sha1 = "55eecb63aab89f7297b4932c8c14deb4c0cb2ba5"
@@ -56,6 +61,10 @@ rig = "characters/aya/rig"
 type = "binding"
 model = "weapons/sp12/model"
 textures = { body = "weapons/sp12/texture.default" }
+
+[catalog]
+type = "txt"
+sha1 = "a3e7a663679b6e90d0761073b837ac64c3473dcf"
 
 [package]
 type = "pe2pkg"
@@ -103,6 +112,13 @@ package_name = "sp12"
 required = true
 sha1 = "e5711a4f37f25896281c118f279055baf49282d0"
 
+[preview]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
 [texture]
 type = "texture"
 bpp = 4
@@ -110,23 +126,38 @@ height = 64
 variants = ["default"]
 width = 256
 
-[rifled_slug_pump]
-type = "sound"
-sha1 = "e27ab188f3779c67f5d72d549fa7270237d8cad0"
+[descriptor]
+type = "item_descriptor"
+sha1 = "a30eae5a0af45691cebbfe43b468190ad9df088f"
 
 [reload_load]
 type = "sound"
 sha1 = "e5180506e6dd4693c77202e0b09900f2f790dcf9"
 
-[rifled_slug_sounds]
-type = "sound_bank"
-samples = ["weapons/sp12/click", "weapons/sp12/rifled_slug_pump", "weapons/sp12/reload_load", "weapons/shotgun/rifled_slug_shot"]
-sha1 = "1ad0309fbfa4427bade3ca265815af9dd4c2981e"
-
 [firefly_shot]
 type = "sound"
 mode = "high"
 sha1 = "6b25434fa285e451d8f2529b84b96ae430493d17"
+
+[preview_file]
+type = "file"
+
+[[preview_file.contents]]
+chunk = "preview_palette"
+palettes = [{ texture = "preview", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "a8b51c4069cf8319ca4b498daf77707abeadeff7"
+
+[[preview_file.contents]]
+chunk = "preview_image"
+pages = [{ texture = "preview", region = "engine/vram/preview_picture" }]
+sha1 = "89d8bee67d04c57f54c7ab8009255e8a1581fa35"
+
+[[preview_file.contents]]
+chunk = "preview_text"
+
+[preview_text]
+type = "txt"
+sha1 = "62a786d13404cf211d4c2bdc9faede03a65aebb9"
 
 [firefly_sounds]
 type = "sound_bank"
@@ -143,6 +174,20 @@ sha1 = "1d54a7a3709f38127a8e5a8015284a6cc96295b8"
 type = "sound_bank"
 samples = ["weapons/sp12/click", "weapons/sp12/pump", "weapons/sp12/reload_load", "weapons/shotgun/buckshot_shot"]
 sha1 = "892747a6dcd4d65273d8124eec5dc83e6ebc1a16"
+
+[rifled_slug_pump]
+type = "sound"
+sha1 = "e27ab188f3779c67f5d72d549fa7270237d8cad0"
+
+[rifled_slug_sounds]
+type = "sound_bank"
+samples = [
+    "weapons/sp12/click",
+    "weapons/sp12/rifled_slug_pump",
+    "weapons/sp12/reload_load",
+    "weapons/shotgun/rifled_slug_shot",
+]
+sha1 = "1ad0309fbfa4427bade3ca265815af9dd4c2981e"
 
 [firefly_reload_load]
 type = "sound"

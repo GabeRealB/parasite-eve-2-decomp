@@ -275,15 +275,15 @@ void inventorySortItems(const InventoryItemRange* range, s32 unused)
     s32               itemId;
     s32               rowCount;
 
-    /// Computes catalogue order, with unmapped ids ordered numerically and empty rows last.
+    /// Computes catalog order, with unmapped ids ordered numerically and empty rows last.
     ///
     /// `id` must be a side-effect-free scalar and `key` a distinct scalar lvalue.
     /// Reads `id` repeatedly and writes only `key`; its class index is local.
-    /// Uses this function's `INVENTORY_SORT_*` constants and the four catalogue
+    /// Uses this function's `INVENTORY_SORT_*` constants and the four catalog
     /// key tables. Arguments must not use the internal name `classIndex`.
     /// Row ids 0..0x47, 0x60..0x6E and 0x80..0xFF are safe; 0x48..0x5F and
     /// 0x6F..0x7F pass category tests but exceed the ordinary/armor tables.
-    /// A zero catalogue key falls back to id + 0x100; id zero receives 0x1000.
+    /// A zero catalog key falls back to id + 0x100; id zero receives 0x1000.
     /// This binding is available only within this function.
 #define INVENTORY_GET_SORT_KEY(id, key)                                     \
     do {                                                                    \
@@ -329,7 +329,7 @@ void inventorySortItems(const InventoryItemRange* range, s32 unused)
             table = _inventoryGetRangeTable(range);
 
             candidateIndex = placedIndex + 1;
-            // Exchange complete rows whenever a lower catalogue key is found.
+            // Exchange complete rows whenever a lower catalog key is found.
             candidateRow  = table + range->firstRow;
             candidateRow += placedIndex + 1;
             if (candidateIndex < range->rowCount) {
@@ -357,13 +357,13 @@ void inventorySortItems(const InventoryItemRange* range, s32 unused)
 
 /// Returns 1 if a requested addition fits an existing stack or has a free row.
 ///
-/// Quantity counts item units; every negative value requests one catalogue pack,
+/// Quantity counts item units; every negative value requests one catalog pack,
 /// including `INVENTORY_GIVE_FULL_STACK`. The first matching stack must fit the entire
 /// addition. A new stack only needs a free row: its eventual capacity clamp is
 /// not checked here. Other row items need a free row regardless of quantity.
 /// Ids >= 0x100 return 1 after the occupied-row scan, without testing possession.
 /// Row-item ids must be 1..0xBF; 0xC0..0xFF are not bounds-checked and cannot
-/// index the 32-row consumable catalogue safely. The range must fit readable
+/// index the 32-row consumable catalog safely. The range must fit readable
 /// backing storage. Neither the descriptor nor its rows are changed or retained.
 static s32 _inventoryCanAddItemQuantity(const InventoryItemRange* range, s32 itemId, s32 quantity)
 {
@@ -380,7 +380,7 @@ static s32 _inventoryCanAddItemQuantity(const InventoryItemRange* range, s32 ite
     const InventoryItemRow*         stackRow;
     s32                             stackRowCount;
     s32                             stackFirstRow;
-    const InventoryConsumableStack* stackCatalogue;
+    const InventoryConsumableStack* stackCatalog;
     s32                             consumableIndex;
     const InventoryConsumableStack* stackLimits;
     s32                             rowCapacity;
@@ -420,9 +420,9 @@ static s32 _inventoryCanAddItemQuantity(const InventoryItemRange* range, s32 ite
         rangeIndex    = 0;
         stackRowCount = range->rowCount;
         if (stackRowCount != 0) {
-            stackCatalogue  = gInventoryConsumableStacks;
+            stackCatalog    = gInventoryConsumableStacks;
             consumableIndex = itemId - INVENTORY_CONSUMABLE_ITEM_FIRST;
-            stackLimits     = &stackCatalogue[consumableIndex];
+            stackLimits     = &stackCatalog[consumableIndex];
             stackRow        = INVENTORY_ROW_AT(stackTable, stackFirstRow);
             do {
                 if (stackRow->itemId == itemId) {
@@ -464,7 +464,7 @@ s32 inventoryCanAddItem(const InventoryItemRange* range, s32 itemId)
     const InventoryItemRow*         stackRow;
     s32                             stackRowCount;
     s32                             stackFirstRow;
-    const InventoryConsumableStack* stackCatalogue;
+    const InventoryConsumableStack* stackCatalog;
     s32                             consumableIndex;
     const InventoryConsumableStack* stackLimits;
     s32                             rowCapacity;
@@ -501,9 +501,9 @@ s32 inventoryCanAddItem(const InventoryItemRange* range, s32 itemId)
         rangeIndex    = 0;
         stackRowCount = range->rowCount;
         if (stackRowCount != 0) {
-            stackCatalogue  = gInventoryConsumableStacks;
+            stackCatalog    = gInventoryConsumableStacks;
             consumableIndex = itemId - INVENTORY_CONSUMABLE_ITEM_FIRST;
-            stackLimits     = &stackCatalogue[consumableIndex];
+            stackLimits     = &stackCatalog[consumableIndex];
             stackRow        = INVENTORY_ROW_AT(stackTable, stackFirstRow);
             do {
                 if (stackRow->itemId == itemId) {
@@ -663,7 +663,7 @@ InventoryItemRow* inventoryAddItem(const InventoryItemRange* range, s32 itemId, 
 
 /// Returns whether an item uses its identified name and description.
 ///
-/// `itemId` is a nonnegative catalogue id. Ids below 0x180 use the live save's
+/// `itemId` is a nonnegative catalog id. Ids below 0x180 use the live save's
 /// persistent identification flag; larger ids always return true. Items without
 /// unidentified text start identified, and examination or use can identify others.
 static inline bool _itemIsIdentified(s32 itemId)
@@ -728,7 +728,7 @@ const u8* itemGetText(s32 itemId, s32 fieldIndex, s32 forceIdentified)
         if (forceIdentified == 0) {
             forceIdentified = _itemIsIdentified(itemId);
         }
-        // The parser reads signed bytes, even though catalogue text uses u8 storage.
+        // The parser reads signed bytes, even though catalog text uses u8 storage.
         text = (const s8*)descriptor->textFields;
         if (fieldIndex >= ITEM_TEXT_FIELDS_PER_FORM) {
             fieldIndex = ITEM_TEXT_NAME;

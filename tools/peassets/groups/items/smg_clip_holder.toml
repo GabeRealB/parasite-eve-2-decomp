@@ -1,0 +1,42 @@
+# The assets of the group items/smg_clip_holder, each named items/smg_clip_holder/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "29c9665fde9709f876722a64e3e61dc47f3623a6"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "72a0e168f1c7f0f2bc00c8fd965f18eed6437f76"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "effect_item"
+
+[text]
+type = "txt"
+sha1 = "ce00638ef5f0a322a9a43b61e432de8cc92fa8a3"
+
+[catalog]
+type = "txt"
+sha1 = "d9eff1f63c3bcef69a924bb646743884cc99192c"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "55553c541091716d07714e1ad5ebedf75fe5836b"

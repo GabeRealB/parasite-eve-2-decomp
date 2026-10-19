@@ -1,0 +1,42 @@
+# The assets of the group key_items/bronco_masterkey, each named key_items/bronco_masterkey/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "b0ad369ad68cd7ec92384974f79c29c5948df4df"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "eb63e6f1b4af7570c2c73d2f9cdf24ad6660d8ff"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "key_item"
+
+[text]
+type = "txt"
+sha1 = "f5a90772bbb1c260c4eb50a186f2c09f76ac9681"
+
+[catalog]
+type = "txt"
+sha1 = "b5111ebd6a6b502caa12700acb3d1d1b02d0e41e"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "2ae05a95b8b4cab54986fd886d94d59d9f8626a6"

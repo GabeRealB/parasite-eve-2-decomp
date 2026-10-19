@@ -1,0 +1,42 @@
+# The assets of the group armor/leather_jacket, each named armor/leather_jacket/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "picture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "1e39543b68dbff2b7f47a78d4289fd71e8bfd0a2"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "picture", region = "engine/vram/preview_picture" }]
+sha1 = "3b9eb18e052a763afa0cc2014c7e8657ce141402"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "armor"
+
+[text]
+type = "txt"
+sha1 = "81ebe7655f4b3b2198e8a530ace4fac0a1e40811"
+
+[catalog]
+type = "txt"
+sha1 = "2fcf5fc9d24dadb093076bf7010bf5d67c756da2"
+
+[picture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "ab0cddae0c4a988ed56c5dfb88d6a6ba7e737e3a"

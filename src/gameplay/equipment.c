@@ -76,7 +76,7 @@ static inline void _equipmentRecalculateMaxHp(PlayerStatus* status, const Player
     }
 }
 
-/// Returns catalogue capacity for one weapon load, independent of possession.
+/// Returns catalog capacity for one weapon load, independent of possession.
 ///
 /// Ids outside 0x80..0x9F return zero; zero selection is primary, nonzero secondary.
 /// This is the inline form of `equipmentGetWeaponLoadCapacity`.

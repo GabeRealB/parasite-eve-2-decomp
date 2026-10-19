@@ -30,6 +30,11 @@ chunk = "sounds"
 [[file.contents]]
 chunk = "package"
 
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "preview_text", descriptor = "descriptor" }
+shape = "weapon"
+
 [shot]
 type = "sound"
 mode = "high"
@@ -54,6 +59,10 @@ sha1 = "12d8f1be31afa4341eb7e07530efd96f3ad9a8a6"
 type = "binding"
 model = "weapons/m950/model"
 textures = { body = "weapons/m950/texture.default" }
+
+[catalog]
+type = "txt"
+sha1 = "8813785a6f975c46dd2073011edaec51ff639980"
 
 [package]
 type = "pe2pkg"
@@ -101,6 +110,13 @@ package_name = "m950"
 required = true
 sha1 = "cb39cefb7725d1ad3f3a78829bab7b9330066422"
 
+[preview]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
 [texture]
 type = "texture"
 bpp = 4
@@ -108,9 +124,33 @@ height = 64
 variants = ["default"]
 width = 256
 
+[descriptor]
+type = "item_descriptor"
+sha1 = "b538cc66726508a962eb5de01af1b7aba16f8f46"
+
 [reload_load]
 type = "sound"
 sha1 = "ad7e22801df99f8327764a0c66d1f14eebea7077"
+
+[preview_file]
+type = "file"
+
+[[preview_file.contents]]
+chunk = "preview_palette"
+palettes = [{ texture = "preview", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "d44e0e9508717c1438e111efcdd6524a7ea791a5"
+
+[[preview_file.contents]]
+chunk = "preview_image"
+pages = [{ texture = "preview", region = "engine/vram/preview_picture" }]
+sha1 = "587ccc69acd31494b3bd98d326c86deffaebd549"
+
+[[preview_file.contents]]
+chunk = "preview_text"
+
+[preview_text]
+type = "txt"
+sha1 = "b03bac6906cda2573e132697bb5d54af02ee246e"
 
 [reload_start]
 type = "sound"

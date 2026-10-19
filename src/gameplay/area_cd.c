@@ -64,7 +64,7 @@ static const u16 _gLoadingAreaFileGroupBases[AREA_RESOURCE_FILE_GROUP_BASE_2 + 1
 ///
 /// Borrows matching live placement/resource cursors; fileIdLow is the nonzero
 /// low base-100 component. The resource's file-group selector is 0..8 and its
-/// nonnegative file number must resolve to a catalogued global file.
+/// nonnegative file number must resolve to a cataloged global file.
 /// The group/hundreds components narrow to bytes. X offsets count 64-word
 /// VRAM columns; Y offsets count CLUT rows. Enqueue copies key bytes 3/2/0
 /// and all four argument bytes synchronously, retaining no stack addresses;
@@ -150,7 +150,7 @@ u16 loadingPollAreaPlacementFiles(void)
 /// Queues an area's global-library base file with its image relocation offsets.
 ///
 /// `resource` is borrowed for this call; its file-group selector must be 0..8
-/// and its nonnegative file number must name a catalogued file. The base file's
+/// and its nonnegative file number must name a cataloged file. The base file's
 /// low index is zero. Offsets retain their low signed byte: X counts 64-word
 /// VRAM pages and CLUT Y counts rows. `cdCmdEnqueue` copies the request before
 /// returning; its ring-capacity contract applies and its slot result is ignored.

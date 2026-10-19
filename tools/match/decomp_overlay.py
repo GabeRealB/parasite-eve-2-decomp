@@ -418,9 +418,9 @@ def _sibling_functions(c_file: Path, func_name: str, limit: int = 4) -> list[str
 def _struct_field_hits(needles: Iterable[str], limit_lines: int = 36) -> str:
     """Declarations from the headers for the names a function mentions.
 
-    This used to read a hand-written catalogue of field roles. The headers now
+    This used to read a hand-written catalog of field roles. The headers now
     carry that information, derived from the code and kept current by the naming
-    pass, while the catalogue could only go stale - it was still describing a
+    pass, while the catalog could only go stale - it was still describing a
     field as a "byte count" after the real meaning had been established and
     written down. One source beats two, and a second copy of a field's meaning
     is something for a reader to anchor on when it is wrong.

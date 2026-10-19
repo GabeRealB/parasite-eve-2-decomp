@@ -37,7 +37,7 @@ enum {
 /// fields are zero. The loader uses `fileGroupIndex` and `fileNumber` to select a
 /// global-library file: group = base + fileNumber / 100, hundreds = fileNumber
 /// % 100, and the low component is zero for a base file or the placement's
-/// `fileIdLow` for an additional file. Live file numbers must name catalogued files.
+/// `fileIdLow` for an additional file. Live file numbers must name cataloged files.
 ///
 /// The table and its task descriptors borrow loaded-overlay storage. Keep them
 /// valid during loading, spawning and model-flag updates. Spawnable entries

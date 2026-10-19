@@ -31,6 +31,11 @@ chunk = "sounds"
 [[file.contents]]
 chunk = "package"
 
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "preview_text", descriptor = "descriptor" }
+shape = "weapon"
+
 [shot]
 type = "sound"
 sha1 = "4976dec1a90fb721ef7a3e803c705568682cece0"
@@ -65,6 +70,10 @@ type = "binding"
 model = "weapons/mp5a5/model"
 textures = { body = "weapons/mp5a5/texture.default" }
 
+[catalog]
+type = "txt"
+sha1 = "2eeb289ba8bcd74e10359719595a5343c3d53bb7"
+
 [p1_file]
 type = "file"
 contents = [
@@ -74,6 +83,11 @@ contents = [
     { chunk = "p1_package" },
 ]
 
+[p1_item]
+type = "shaped"
+outputs = { catalog = "p1_catalog", info = "p1_preview_text", descriptor = "p1_descriptor" }
+shape = "weapon"
+
 [p2_file]
 type = "file"
 contents = [
@@ -82,6 +96,11 @@ contents = [
     { chunk = "p2_sounds" },
     { chunk = "p2_package" },
 ]
+
+[p2_item]
+type = "shaped"
+outputs = { catalog = "p2_catalog", info = "p2_preview_text", descriptor = "p2_descriptor" }
+shape = "weapon"
 
 [package]
 type = "pe2pkg"
@@ -128,6 +147,13 @@ package_name = "mp5a5"
 required = true
 sha1 = "42898dc7e1487d39f16be5a9c14ac905ee284c07"
 
+[preview]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
 [texture]
 type = "texture"
 bpp = 4
@@ -156,6 +182,14 @@ samples = [
     "weapons/p229/secondary_shot",
 ]
 sha1 = "048ac1218b76ec79499a473a22c887cbfadf9152"
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "1a3a1d5214ee50c15d10030c2100398d8a48a5ea"
+
+[p1_catalog]
+type = "txt"
+sha1 = "f312f608064357d9f3bea06b19e0592fb5bbf11d"
 
 [p1_package]
 type = "pe2pkg"
@@ -202,6 +236,17 @@ package_name = "mp5a5_p1"
 required = true
 sha1 = "f1420a79b03b4f7a6c2491920dee202f905c6495"
 
+[p1_preview]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[p2_catalog]
+type = "txt"
+sha1 = "41ac903a129f1fd455a54528e33103c8a5622708"
+
 [p2_package]
 type = "pe2pkg"
 embedded = [
@@ -247,10 +292,85 @@ package_name = "mp5a5_p2"
 required = true
 sha1 = "21a98c8e6721bf391984592701b84713899b618b"
 
+[p2_preview]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
 [reload_load]
 type = "sound"
 sha1 = "afe017188f99a16d682b05e5e5b39b3a1b177f46"
 
+[preview_file]
+type = "file"
+
+[[preview_file.contents]]
+chunk = "preview_palette"
+palettes = [{ texture = "preview", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "e2cdb9c6ada091f04751581346ab7bed5b3c1452"
+
+[[preview_file.contents]]
+chunk = "preview_image"
+pages = [{ texture = "preview", region = "engine/vram/preview_picture" }]
+sha1 = "5cba59db5dd6b1c802de243c41b747717178b2c6"
+
+[[preview_file.contents]]
+chunk = "preview_text"
+
+[preview_text]
+type = "txt"
+sha1 = "ed64812a7356b7e77cce6ebc8a508417facbb111"
+
 [reload_start]
 type = "sound"
 sha1 = "a90e32f2358b317901cfdb02c078b6d380717eee"
+
+[p1_descriptor]
+type = "item_descriptor"
+sha1 = "31e1c32db13865e6a3c574cc15fbddfc3755e092"
+
+[p2_descriptor]
+type = "item_descriptor"
+sha1 = "6e291c38e7c7fd93507127550ebebb8829dce0a0"
+
+[p1_preview_file]
+type = "file"
+
+[[p1_preview_file.contents]]
+chunk = "p1_preview_palette"
+palettes = [{ texture = "p1_preview", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "b2e3485ce854db47c17353d4a176595d4b6a5da6"
+
+[[p1_preview_file.contents]]
+chunk = "p1_preview_image"
+pages = [{ texture = "p1_preview", region = "engine/vram/preview_picture" }]
+sha1 = "63b0e7c09412cce18f6deb159e091d8be4681e06"
+
+[[p1_preview_file.contents]]
+chunk = "p1_preview_text"
+
+[p1_preview_text]
+type = "txt"
+sha1 = "d3a0d7a58a71c80b5dc626cd4924482d90327255"
+
+[p2_preview_file]
+type = "file"
+
+[[p2_preview_file.contents]]
+chunk = "p2_preview_palette"
+palettes = [{ texture = "p2_preview", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "d9d20fea3f0d2ba4883f6294e1d27d5526e29598"
+
+[[p2_preview_file.contents]]
+chunk = "p2_preview_image"
+pages = [{ texture = "p2_preview", region = "engine/vram/preview_picture" }]
+sha1 = "1de61a16f9d3e66a8486cfb372e383ab9455dff8"
+
+[[p2_preview_file.contents]]
+chunk = "p2_preview_text"
+
+[p2_preview_text]
+type = "txt"
+sha1 = "182e72f802f4f5a0c4f0a8b48d149d0ee2b8ea24"

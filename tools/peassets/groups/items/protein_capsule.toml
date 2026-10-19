@@ -1,0 +1,42 @@
+# The assets of the group items/protein_capsule, each named items/protein_capsule/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "2e6520c451d934637d3d1b0bbbf7a6a0a75ba26b"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "6b78d0c63f72409b83942ea1f088a8fc992aadac"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "effect_item"
+
+[text]
+type = "txt"
+sha1 = "ae65e82f3e8b530d639081d6189539bef50924c8"
+
+[catalog]
+type = "txt"
+sha1 = "551e294b89465decef0386472c92573c977b60c2"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "acaf4997e40ed1888df1736523f7c6ba3bd9266d"

@@ -13,7 +13,7 @@
 /// of the variant-indexed equipped model. Keep actor_800100 loaded while reading.
 extern s16 gActor800100WeaponIdsByResourceVariant[6];
 
-/// Initial weapon-attack catalogue rows for saved companion resource variants 0..4.
+/// Initial weapon-attack catalog rows for saved companion resource variants 0..4.
 ///
 /// Variants 1/3 use 9mm Spartan row 3, variant 4 uses 5.56mm row 16, and
 /// variants 0/2 and the inactive sixth entry use empty row 0. These form the

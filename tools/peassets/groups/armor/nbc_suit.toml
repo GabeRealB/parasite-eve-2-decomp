@@ -1,0 +1,42 @@
+# The assets of the group armor/nbc_suit, each named armor/nbc_suit/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "picture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "167d9180fc5b78be4ffe90b682f569cf70d24cf1"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "picture", region = "engine/vram/preview_picture" }]
+sha1 = "7556a47ad056051fc76102e08e3ecc5c168ddc24"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "armor"
+
+[text]
+type = "txt"
+sha1 = "430a247842fd23fdebb9b12836b1fdb2f5b5a42d"
+
+[catalog]
+type = "txt"
+sha1 = "c6e4b7c73a2be9729014b2e261ee8d042c784037"
+
+[picture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "90aadae7c388a4277c172e4cf14a33a12289ca6a"

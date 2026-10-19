@@ -1,0 +1,42 @@
+# The assets of the group key_items/pierces_memo, each named key_items/pierces_memo/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "1b6e30cc53190115084b6c67612f155da6e7f08a"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "1787f229d27ac172a78dde0f542a3bf852088bcc"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "key_item"
+
+[text]
+type = "txt"
+sha1 = "8ce28d53863476b727e3265bbff89a1e87efc75b"
+
+[catalog]
+type = "txt"
+sha1 = "49b9c2092815cd01d81387e5e3f3858cf880c61d"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "5f86ffb7d626cf968faf3402ae04ea0894dc410a"

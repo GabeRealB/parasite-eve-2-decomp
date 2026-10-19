@@ -26,6 +26,15 @@ chunk = "sounds"
 [[file.contents]]
 chunk = "package"
 
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "preview_text", descriptor = "descriptor" }
+shape = "weapon"
+
+[flame]
+type = "sound"
+sha1 = "dedcb50f2b5a37cc67b4c91f83579ebb207fc92a"
+
 [model]
 type = "model"
 slots = ["body"]
@@ -47,6 +56,10 @@ sha1 = "ad5cfc82f2c90e3b8afc53a6a9cb0045aa031e31"
 type = "binding"
 model = "weapons/m4a1_pyke/model"
 textures = { body = "weapons/m4a1_pyke/texture.default" }
+
+[catalog]
+type = "txt"
+sha1 = "f67e860d234d50962a62bb0d43e521febc2c4963"
 
 [package]
 type = "pe2pkg"
@@ -96,6 +109,13 @@ package_name = "m4a1_pyke"
 required = true
 sha1 = "5edf9582b9dac33a26a41560fa9defbbfd48ae61"
 
+[preview]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
 [texture]
 type = "texture"
 bpp = 4
@@ -103,19 +123,39 @@ height = 64
 variants = ["default"]
 width = 256
 
-[flame]
-type = "sound"
-sha1 = "dedcb50f2b5a37cc67b4c91f83579ebb207fc92a"
-
 [flame_end]
 type = "clip"
 rig = "characters/aya/rig"
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "01b7798b5a882847cc9a4b834ad045b0ce64b119"
+
+[flame_start]
+type = "clip"
+rig = "characters/aya/rig"
+
+[preview_file]
+type = "file"
+
+[[preview_file.contents]]
+chunk = "preview_palette"
+palettes = [{ texture = "preview", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "873e749be3a1d53de3e51f6185769749b8b83ea1"
+
+[[preview_file.contents]]
+chunk = "preview_image"
+pages = [{ texture = "preview", region = "engine/vram/preview_picture" }]
+sha1 = "b6fb10e9078b6b86f5051052986ce6de2b5301e1"
+
+[[preview_file.contents]]
+chunk = "preview_text"
+
+[preview_text]
+type = "txt"
+sha1 = "b5b8a2d22ee585b26a2f883eb7108d07129f061c"
 
 [flame_ignition]
 type = "sound"
 mode = "high"
 sha1 = "9a74940e6cddbda3fa04c65f192c6db7e260f9ff"
-
-[flame_start]
-type = "clip"
-rig = "characters/aya/rig"

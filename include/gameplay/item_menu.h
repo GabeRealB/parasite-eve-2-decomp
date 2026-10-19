@@ -73,7 +73,7 @@ void itemPickupActionPromptTask(Task* task);
 /// large, left-aligned outlined lines, 15 pixels apart, using the panel's normal
 /// text color. A packed P.E. id in 0x300..0x3FF instead draws its description
 /// and encoded level's casting cost (omitted at level 0). Those ids must satisfy
-/// the ability catalogue and cost-table bounds; other small values draw nothing.
+/// the ability catalog and cost-table bounds; other small values draw nothing.
 /// Text starts two pixels right of contentLeft and 15 pixels below contentTop;
 /// hidden panels skip text drawing, but the line scanner still reads the source.
 /// Requires a live object/task and loaded menu/font resources with writable
@@ -108,7 +108,7 @@ void itemPickupTask(Task* task);
 ///
 /// x/y are pixels at the icon's bottom-left relative to the panel content
 /// origin; the name starts at x + 17, y - 6. itemId must satisfy `itemGetText`
-/// and the item-icon catalogue contract. Ordinary P.E. items 15..50 also show
+/// and the item-icon catalog contract. Ordinary P.E. items 15..50 also show
 /// level 1..3. attachmentState 0 omits the E/L/A mark, 1 allows E/L, and 2
 /// also allows A. Hidden panels draw nothing. Requires menu/text textures and
 /// writable GPU primitive and ordering-table storage.
@@ -210,7 +210,7 @@ void itemMenuDrawPreview(const UiObject* object, s32 left, s32 top, s32 flags);
 
 /// Sets the shared prompt to an item's first description, or Empty for item id 0.
 ///
-/// Nonzero ids must satisfy `itemGetText`'s catalogue contract; identification
+/// Nonzero ids must satisfy `itemGetText`'s catalog contract; identification
 /// selects the description form. The prompt borrows the returned text, so its
 /// defining image must remain loaded until the prompt is replaced or closed.
 /// Does nothing if no prompt panel is registered.

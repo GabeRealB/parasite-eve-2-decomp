@@ -2,7 +2,10 @@
 
 A VRAM region is a rectangle of VRAM in halfwords (`at`, `size`): a page or a palette is placed by naming its region,
 plus an `offset` in it where the region is larger than what is placed there. Pages and palettes share one coordinate
-space, so one type serves both.
+space, so one type serves both. A region `within` another is part of it, `at` relative to the other's corner: the
+item previews upload 128 rows (engine/vram/preview_sheet) of which the menu draws the top 96 (preview_picture).
+An image chunk stores the rows of its page's outermost region from the page down; the texture is the part it
+occupies, and the rest is zero.
 
 A file declares its image and palette chunks itself (the sha1 of the stored bytes and what each uploads where), so
 they have no tables of their own in a group file. `chunk_records` turns those entries back into the `pe2img` and
@@ -24,11 +27,34 @@ VRAM_W, VRAM_H = 1024, 512
 NAME = re.compile(r"[a-z0-9_]+")
 
 
+def region_chain(name: str, assets: dict[str, dict[str, Any]]) -> list[str]:
+    """A region and the regions it is within, innermost first."""
+    chain = [name]
+    while "within" in assets[chain[-1]]:
+        chain.append(assets[chain[-1]]["within"])
+    return chain
+
+
+def region_at(name: str, assets: dict[str, dict[str, Any]]) -> list[int]:
+    """Where a region starts in VRAM: its `at`, plus the corners of the regions it is within."""
+    chain = region_chain(name, assets)
+    return [sum(assets[r]["at"][0] for r in chain), sum(assets[r]["at"][1] for r in chain)]
+
+
 def place_at(item: dict[str, Any], assets: dict[str, dict[str, Any]]) -> list[int]:
     """Where a placed page or palette starts in VRAM: its region's corner plus its `offset` in the region."""
-    region = assets[item["region"]]
+    x, y = region_at(item["region"], assets)
     dx, dy = item.get("offset", (0, 0))
-    return [region["at"][0] + dx, region["at"][1] + dy]
+    return [x + dx, y + dy]
+
+
+def stored_rows(page: dict[str, Any], assets: dict[str, dict[str, Any]]) -> int:
+    """The rows an image chunk stores of a page: those of the region it uploads, from the page down - its outermost
+    region's, or the one the page names as its `upload` (a PE menu picture uploads just the picture, not the item
+    preview's whole sheet). The texture is the part of them it occupies; the rows below it are zero, as the texels
+    right of its width are."""
+    upload = page.get("upload") or region_chain(page["region"], assets)[-1]
+    return region_at(upload, assets)[1] + assets[upload]["size"][1] - place_at(page, assets)[1]
 
 
 def item_size(item: dict[str, Any], assets: dict[str, dict[str, Any]], palette: bool) -> tuple[int, int]:
@@ -40,16 +66,28 @@ def item_size(item: dict[str, Any], assets: dict[str, dict[str, Any]], palette: 
 
 
 def check_region(key: str, rec: dict[str, Any], assets: dict[str, dict[str, Any]]) -> list[str]:
-    """A VRAM region is a rectangle in halfwords inside VRAM, overlapping no other region."""
+    """A VRAM region is a rectangle in halfwords inside VRAM, or inside the region it is `within`, overlapping no
+    other region of the same parent."""
     at, size = rec.get("at"), rec.get("size")
     if not (isinstance(at, list) and isinstance(size, list) and len(at) == 2 and len(size) == 2
             and all(isinstance(v, int) for v in at + size) and size[0] > 0 and size[1] > 0):
         return [f"{key}: a region states at = [x, y] and size = [w, h]"]
+    parent = rec.get("within")
+    if parent is not None:
+        seen = {key}
+        while parent is not None:
+            if assets.get(parent, {}).get("type") != "vram_region" or parent in seen:
+                return [f"{key}: within must name another vram_region, and regions must not nest in a circle"]
+            seen.add(parent)
+            parent = assets[parent].get("within")
+        parent = rec["within"]
+    bound = assets[parent]["size"] if parent is not None else [VRAM_W, VRAM_H]
     problems = []
-    if at[0] < 0 or at[1] < 0 or at[0] + size[0] > VRAM_W or at[1] + size[1] > VRAM_H:
-        problems.append(f"{key}: does not fit in VRAM")
+    if at[0] < 0 or at[1] < 0 or at[0] + size[0] > bound[0] or at[1] + size[1] > bound[1]:
+        problems.append(f"{key}: does not fit in {parent or 'VRAM'}")
     for other, o in assets.items():
-        if other <= key or o.get("type") != "vram_region" or not isinstance(o.get("at"), list):
+        if (other <= key or o.get("type") != "vram_region" or not isinstance(o.get("at"), list)
+                or o.get("within") != parent):
             continue
         if (at[0] < o["at"][0] + o["size"][0] and o["at"][0] < at[0] + size[0]
                 and at[1] < o["at"][1] + o["size"][1] and o["at"][1] < at[1] + size[1]):
@@ -80,7 +118,8 @@ def chunk_records(rec: dict[str, Any], assets: dict[str, dict[str, Any]]) -> dic
             out[e["chunk"]] = {"sha1": e["sha1"], "type": "pe2img", "group": rec["group"],
                                "bpp": bpps[0] if len(bpps) == 1 else bpps,
                                "x": xs[0] if contiguous else xs, "y": place_at(pages[0], assets)[1],
-                               "w": COLUMN * len(pages) if contiguous else COLUMN, "h": max(t["height"] for t in texs)}
+                               "w": COLUMN * len(pages) if contiguous else COLUMN,
+                               "h": max(stored_rows(p, assets) for p in pages)}
         elif "palettes" in e:
             spans = [(*place_at(p, assets), PALETTE_ENTRIES[assets[p["texture"]]["bpp"]]) for p in e["palettes"]]
             x0, y0 = min(x for x, _y, _n in spans), min(y for _x, y, _n in spans)
@@ -149,6 +188,8 @@ def check_file(key: str, rec: dict[str, Any], assets: dict[str, dict[str, Any]])
                 problems.append(f"{key}: page {page['texture']} states truncated only as true")
             if not placed_in_region(page, False):
                 continue
+            if "upload" in page and page["upload"] not in region_chain(page["region"], assets):
+                problems.append(f"{key}: page {page['texture']} uploads {page['upload']!r}, not its region or one it is within")
             x, y = place_at(page, assets)
             place(f"page {page['texture']}", x, y, *item_size(page, assets, False))
         for pal in entry.get("palettes", ()):

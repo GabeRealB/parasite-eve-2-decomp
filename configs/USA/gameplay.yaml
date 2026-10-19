@@ -89,7 +89,8 @@ segments:
       - [0x1BC, .rodata, scene_runtime] # jtbls from streamReadSceneImageSector and cdCmdHandleSceneAudio, then its strings and state tables
       - [0x268, .rodata, equipment] # jtbl from inventoryIsItemLimitReached, then gItemMenuPouchNoticeLabel
       - [0x4CC, .rodata, item_menu] # jtbls: _itemMenuHandleTransferChildResult + strings/tables + _itemMenuHandlePaneChildResult
-      - [0x668, .rodata, item_inventory]
+      - [0x668, .rodata, item_catalog] # every item's catalog text
+      - [0x3628, .rodata, item_inventory]
       - [0x364C, .rodata, attachment_menu]
       - [0x3670, .rodata, pickup_dispatch]
       - [0x3684, pad] # end of pickup dispatcher before the menu TU
@@ -194,7 +195,7 @@ segments:
       - [0x79D80, .data, item_move_check]
       - [0x79E88, pad, item_move_callbacks_pad]
       - [0x79E8C, .data, item_menu]
-      - [0x7A038, .data, item_inventory]
+      - [0x7A038, .data, item_catalog] # gItemDescriptors, gItemKeyDescriptors
       - [0x7AA38, .data, item_publish]
       - [0x7AC38, pad] # end of the 32 stack-limit rows
       - [0x7AC4C, .data, menu_root]

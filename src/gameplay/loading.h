@@ -51,7 +51,7 @@ extern u16 gLoadingAreaResourcePass;
 /// must run serially, with the same live saved destination and loaded layout.
 /// The layout lookup must succeed: its placements are read before the NULL
 /// test. Missing tables complete immediately. Live nonzero entry IDs must
-/// match a resource with file-group selector 0..8 and a catalogued file number.
+/// match a resource with file-group selector 0..8 and a cataloged file number.
 /// Both tables must retain their `AREA_PLACEMENT_END` records through loading.
 /// Requests borrow stack bytes only until enqueue returns. Texture offsets
 /// retain their signed bytes: X counts 64-word VRAM columns, CLUT Y counts rows.
@@ -65,7 +65,7 @@ u16 loadingPollAreaPlacementFiles(void);
 /// The layout lookup must succeed: its resources are read before the NULL
 /// test. A NULL resource table completes immediately; a live resource table
 /// requires a placement table, both ended by `AREA_PLACEMENT_END`.
-/// File-group selectors are 0..8 and file numbers must name catalogued files.
+/// File-group selectors are 0..8 and file numbers must name cataloged files.
 /// Base-60 resources load only if an entry has a placement with fileIdLow=0;
 /// other groups load even without one. The first such placement supplies signed
 /// texture offsets, or zero offsets when absent. Enqueue copies each request;

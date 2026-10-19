@@ -1816,7 +1816,7 @@ enum {
 
 /// Variant 1's actor_503500 boss and tentacle resources, followed by the end record.
 ///
-/// Entry 45 requests uncatalogued base file 604500; its tentacle spawn recipe
+/// Entry 45 requests uncataloged base file 604500; its tentacle spawn recipe
 /// still comes from actor_503500, independently of that empty file request.
 static AreaResource _gShelterR48Variant1Resources[3] = {
     { SHELTER_R48_RESOURCE_ACTOR_503500, SHELTER_R48_RESOURCE_ACTOR_503500, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, gActor503500EnemyTaskDescs },
@@ -1826,7 +1826,7 @@ static AreaResource _gShelterR48Variant1Resources[3] = {
 
 /// Variant 2's separate boss and tentacle resource list, identical to variant 1.
 ///
-/// Retains the same uncatalogued tentacle file request and live actor_503500 recipe.
+/// Retains the same uncataloged tentacle file request and live actor_503500 recipe.
 static AreaResource _gShelterR48Variant2Resources[3] = {
     { SHELTER_R48_RESOURCE_ACTOR_503500, SHELTER_R48_RESOURCE_ACTOR_503500, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, gActor503500EnemyTaskDescs },
     { SHELTER_R48_RESOURCE_TENTACLE, SHELTER_R48_RESOURCE_TENTACLE, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &gActor503500TentacleTaskDesc },

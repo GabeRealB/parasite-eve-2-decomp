@@ -1901,7 +1901,8 @@ _gItemDouglasLetterTextFields = 0x80096CE8; // size:0x5A defined:True
 _gItemJumperPlugKey12CTextFields = 0x80096D44; // size:0x55 defined:True
 _gItemMicroDeviceIdentifiedTextFields = 0x80096D9C; // size:0x53 defined:True
 _gItemPierceRescueBonusTextFields = 0x80096DF0; // size:0x1A defined:True
-_gItemSoldierRescueBonusTextFields = 0x80096E0C; // size:0x1C defined:True
+_gItemSoldierRescueBonusTextFields = 0x80096E0C; // size:0x1B defined:True
+_gItemCatalogJunk = 0x80096E27; // size:0x1
 D_80096E28 = 0x80096E28; // size:0x10 defined:True
 D_80096E38 = 0x80096E38; // size:0x12 defined:True
 

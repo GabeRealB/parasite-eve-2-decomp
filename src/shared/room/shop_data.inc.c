@@ -19,7 +19,7 @@ static void _shopDrawCategoryRow(UiList* list, UiObject* object);
 
 static void _shopDrawItemRow(UiList* list, UiObject* object);
 
-/// Item catalogue keys used by these base stock lists.
+/// Item catalog keys used by these base stock lists.
 ///
 /// Stock rows keep their unsigned halfword representation; service and end
 /// rows use the separate `SHOP_ROW_*` values.
@@ -339,7 +339,7 @@ static u16 _gShopStandardShelterWeaponsStock[12] = {
 ///
 /// 9 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
 /// while the room image remains loaded.
-/// `SHOP_ROW_RECHARGE_SERVICE` is a service row, outside the item catalogue.
+/// `SHOP_ROW_RECHARGE_SERVICE` is a service row, outside the item catalog.
 static u16 _gShopStandardShelterAmmunitionStock[10] = {
     SHOP_STOCK_ITEM_9MM_SPARTAN,
     SHOP_STOCK_ITEM_44_MAGNUM,
@@ -407,7 +407,7 @@ static u16 _gShopStandardShelterAlternateWeaponsStock[14] = {
 ///
 /// 6 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
 /// while the room image remains loaded.
-/// `SHOP_ROW_RECHARGE_SERVICE` is a service row, outside the item catalogue.
+/// `SHOP_ROW_RECHARGE_SERVICE` is a service row, outside the item catalog.
 /// The stored word after the terminator is outside the offered list.
 static u16 _gShopStandardShelterAlternateAmmunitionStock[8] = {
     SHOP_STOCK_ITEM_9MM_SPARTAN,
@@ -479,7 +479,7 @@ static u16 _gShopStandardShelterEventWeaponsStock[14] = {
 ///
 /// 9 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
 /// while the room image remains loaded.
-/// `SHOP_ROW_RECHARGE_SERVICE` is a service row, outside the item catalogue.
+/// `SHOP_ROW_RECHARGE_SERVICE` is a service row, outside the item catalog.
 static u16 _gShopStandardShelterEventAmmunitionStock[10] = {
     SHOP_STOCK_ITEM_9MM_SPARTAN,
     SHOP_STOCK_ITEM_44_MAGNUM,
@@ -549,7 +549,7 @@ static u16 _gShopStandardShelterAlternateEventWeaponsStock[16] = {
 ///
 /// 6 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
 /// while the room image remains loaded.
-/// `SHOP_ROW_RECHARGE_SERVICE` is a service row, outside the item catalogue.
+/// `SHOP_ROW_RECHARGE_SERVICE` is a service row, outside the item catalog.
 /// The stored word after the terminator is outside the offered list.
 static u16 _gShopStandardShelterAlternateEventAmmunitionStock[8] = {
     SHOP_STOCK_ITEM_9MM_SPARTAN,
@@ -995,7 +995,7 @@ static const u16 _gShopRestrictedShelterAlternateEventItemsStock[6] SECTION(".da
     SHOP_ROW_END,
 };
 
-/// Additional catalogue ids in the replay tier ladder.
+/// Additional catalog ids in the replay tier ladder.
 enum {
     SHOP_REPLAY_ITEM_MONK_ROBE         = 109,
     SHOP_REPLAY_ITEM_MD_PLAYER         = 14,
@@ -1013,7 +1013,7 @@ enum {
     SHOP_REPLAY_TIER_FINAL_EXP_CEILING = 0x7FFFFFFF
 };
 
-/// Thirteen replay-unlock tiers, each contributing three catalogue item ids.
+/// Thirteen replay-unlock tiers, each contributing three catalog item ids.
 ///
 /// Save bit n selects row n. Normal/replay mode adds every unlocked row's
 /// items to the matching category; demo scene 1 unlocks all rows. EXP ceilings
@@ -1256,7 +1256,7 @@ static void _shopRefillWeaponSupplyTask(Task* task);
 /// Requires at least one carried rechargeable weapon. The active item-list
 /// child receives a zero payload and scans all carried supplies, committing
 /// each full load before animating its display. The callback borrows the
-/// carrier's refill storage and gameplay catalogue through closure. Bounds are
+/// carrier's refill storage and gameplay catalog through closure. Bounds are
 /// screen-centered pixels; spawning copies the recipe, so only callback code
 /// and borrowed state must stay loaded until the panel ends.
 static const UiObjectDesc _gShopWeaponSupplyRefillDescriptor SECTION(".data") = {
@@ -1289,7 +1289,7 @@ enum { SHOP_PURCHASE_QUANTITY_PANEL_STYLE = 3 };
 
 /// Bodyless panel recipe for choosing and buying ammunition packs.
 ///
-/// The caller supplies an affordable catalogue item id and its purchase prompt
+/// The caller supplies an affordable catalog item id and its purchase prompt
 /// as parent. The content task starts at one pack, caps selection by BP and
 /// carried capacity, and grants the chosen packs on confirmation. Bounds are
 /// initial screen-centered pixels; the task fits three text rows and the caller

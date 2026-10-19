@@ -1,0 +1,42 @@
+# The assets of the group armor/monk_robe, each named armor/monk_robe/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "picture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "05199d5d78699cb95c851f3090e8fa7a334a1614"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "picture", region = "engine/vram/preview_picture" }]
+sha1 = "f9b1c8b1eadcf803da550236b90e3372ac65af8f"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "armor"
+
+[text]
+type = "txt"
+sha1 = "dfeb00f7d9a472f1208fbe1382944a09e45c4d17"
+
+[catalog]
+type = "txt"
+sha1 = "661b0d523e31381620f304fb2f70e0d7c643ed59"
+
+[picture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "ba7234babe19b84fa1856739700f943f461eefb1"

@@ -26,6 +26,11 @@ chunk = "sounds"
 [[file.contents]]
 chunk = "package"
 
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "preview_text", descriptor = "descriptor" }
+shape = "weapon"
+
 [model]
 type = "model"
 slots = ["body"]
@@ -51,6 +56,10 @@ rig = "characters/aya/rig"
 type = "binding"
 model = "weapons/m4a1_bayonet/model"
 textures = { body = "weapons/m4a1_bayonet/texture.default" }
+
+[catalog]
+type = "txt"
+sha1 = "80607bd80e6ab908d49b2e1a07e02568a2d79eb2"
 
 [contact]
 type = "sound"
@@ -104,12 +113,43 @@ package_name = "m4a1_bayonet"
 required = true
 sha1 = "84992355f1cdbe37f1dc391b40624c7e7d9a959f"
 
+[preview]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
 [texture]
 type = "texture"
 bpp = 4
 height = 64
 variants = ["default"]
 width = 256
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "627d551520c2645b1748fe3e623face118944c7d"
+
+[preview_file]
+type = "file"
+
+[[preview_file.contents]]
+chunk = "preview_palette"
+palettes = [{ texture = "preview", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "9527cb2804844854b502ad783ca80e251ffa80f1"
+
+[[preview_file.contents]]
+chunk = "preview_image"
+pages = [{ texture = "preview", region = "engine/vram/preview_picture" }]
+sha1 = "41bf75d181c65bd4746695336c3ff551ebc43a0f"
+
+[[preview_file.contents]]
+chunk = "preview_text"
+
+[preview_text]
+type = "txt"
+sha1 = "551544fd8d3a80508c27ce11a366664c5122d146"
 
 [thrust_sound]
 type = "sound"

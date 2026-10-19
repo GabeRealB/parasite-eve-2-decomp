@@ -1,0 +1,42 @@
+# The assets of the group key_items/oak_board, each named key_items/oak_board/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "ac45f5d931cdddcb50f3e4f8075d998ceaeb09fc"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "05c7ab5f6d2cf5571de3833017214eb4d4b55b55"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "key_item"
+
+[text]
+type = "txt"
+sha1 = "25d20410c68c1d7a8b6c0d74518ea5d6bdea8b44"
+
+[catalog]
+type = "txt"
+sha1 = "27bfd602445205884e3cec04559e82bbbe21f7c3"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "03ab37c8a38eceb6c8caf11880623e1c487e2004"

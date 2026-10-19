@@ -53,7 +53,7 @@ enum {
     AREA_OBJECT_STATE_WORD_SHIFT = 4
 };
 
-/// Catalogue ids tested for armour attachment effects in this translation unit.
+/// Catalog ids tested for armour attachment effects in this translation unit.
 enum {
     INVENTORY_ITEM_LIPSTICK       = 0x0B,
     INVENTORY_ITEM_MD_PLAYER      = 0x0E,
@@ -229,7 +229,7 @@ static inline void _itemMenuDrawPrefixedItemName(const UiObject* object, s32 x, 
 /// Fits the two-line pouch success notice and centers it above the screen midpoint.
 ///
 /// Borrows a live UI object with writable panel bounds; armorItemId selects
-/// the item name under `itemGetText`'s catalogue contract. Sizes are in pixels.
+/// the item name under `itemGetText`'s catalog contract. Sizes are in pixels.
 static inline void _itemMenuSizePouchNotice(UiObject* object, s32 armorItemId)
 {
     s32 contentWidth;

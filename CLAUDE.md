@@ -136,8 +136,11 @@ each commit's attempt count.
 **Recover data in a TU that contains code.** Place `.rodata`, `.data` and
 `.bss` definitions as late as possible, normally in the first TU that uses them
 (including references through other tables). Do not introduce data-only C files
-to preserve a disconnected run. Existing `_work` files are provisional layout
-workarounds, not a pattern to extend. With hand-written configs,
+to preserve a disconnected run. A data-only TU is right only where the bytes
+show the original object's boundaries - `src/gameplay/item_catalog.c`, whose
+sections begin exactly where its neighbour's did and whose `.rodata` ends in a
+junk byte that differs in every release. Existing `_work` files are
+provisional layout workarounds, not a pattern to extend. With hand-written configs,
 `auto_link_sections: []` lets explicit dotted subsegments place each source
 object's sections independently of where its code first appears. A source
 object still contributes each of its sections only once; disconnected runs
@@ -682,8 +685,24 @@ choice is not only C versus assembly: data that can exist in several versions,
 such as text in several translations, may be better produced by a build step
 from an extracted source than hard-coded in C.
 
-**Not assets, so eligible for C:** program tables such as the item and balance
-tables (`gItemDescriptors`, `gAttachmentLevelTable`), function-pointer dispatch tables
+**The item catalog is decided: an asset.** Each item's and key item's name
+and description fields (`_gItem<Item>TextFields`) belong to the item's group
+as `catalog`, a `txt` located in `gameplay.pe2pkg` by address. So are the
+descriptor tables, `gItemDescriptors` and `gItemKeyDescriptors`: each item's
+price, classification and flags are fields of its instance, and
+`inventory/catalog` lists the items by id and writes, as one include
+(`assets/inventory/catalog.inc`, `gen_shape_inc.py`), every catalog text and
+both tables, which `src/gameplay/item_catalog.c` includes whole. See
+`doc/ASSET_FORMATS.md` 7.7.
+
+**Structured data is a shaped asset.** A shape (`tools/peassets/shape/`)
+declares fields and the stored places they are written to, with a codec that
+round-trips them exactly; the group's instance (`<group>/<name>.toml`) is the
+edited form. Give data with structure a shape rather than a text format of its
+own; the item family is the worked example.
+
+**Not assets, so eligible for C:** program tables such as the balance
+tables (`gAttachmentLevelTable`), function-pointer dispatch tables
 (`_gStageModeControllerStates`, `_gMcLoadDialogStates`, `gItemMenuCaptionStates`), index
 tables such as `gWorldCollisionFaceEdges`, constants, UI strings and zero-initialised
 state. Declaring one in C means placing it in the unit that owns it, at the
@@ -699,7 +718,7 @@ asset sits inside a unit whose data is in C, the unit defines it itself: mark
 its `EMBEDDED_ASSETS` record `"include": True`, and the build turns the
 extracted file into `build/include/assets/<id>.inc` (`tools/buildsteps/gen_asset_inc.py`),
 which the definition includes as its initializer (`_gFontGlyphsMedium` in
-`src/main/textdraw.c`). For **inspection**, catalogue it by address in
+`src/main/textdraw.c`). For **inspection**, catalog it by address in
 `asset_db.EMBEDDED_ASSETS` and it flows through the normal extract pipeline
 into `raw/{type}/` and the type directory, like any on-disc asset. See
 `doc/ASSET_FORMATS.md` 7.7.

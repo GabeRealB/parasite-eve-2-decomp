@@ -1,0 +1,42 @@
+# The assets of the group key_items/bottlecap_magnet, each named key_items/bottlecap_magnet/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "ba1f3a1be81ccd71330f967db8296cbd599bfa76"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "9bb1cfdfb629ef6707147b5cc853e54732766a5e"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "key_item"
+
+[text]
+type = "txt"
+sha1 = "bd566d507bf26963ee78500d67c8b473260046ef"
+
+[catalog]
+type = "txt"
+sha1 = "91980785c073a21b8608de7746998ca532c3368d"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "31b4c7d37f2d6f14115bab08e639f7ef3be644e1"

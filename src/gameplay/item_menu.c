@@ -70,7 +70,7 @@ enum {
     ITEM_MENU_PANE_VISIBLE_ROWS          = 10
 };
 
-/// Catalogue boundaries and the Acropolis container's M93R transfer restriction.
+/// Catalog boundaries and the Acropolis container's M93R transfer restriction.
 enum {
     ITEM_MENU_ITEM_RECOVERY_FIRST            = 1,
     ITEM_MENU_ITEM_RECOVERY_COUNT            = 3,
@@ -353,10 +353,10 @@ static const TaskMessageEntry _gItemPickupLidMessages[2] __attribute__((section(
 
 /// Returns whether the transfer context forbids moving or swapping this item.
 ///
-/// itemId must index the live ordinary-item catalogue. Only battle-field mode
+/// itemId must index the live ordinary-item catalog. Only battle-field mode
 /// enforces ITEM_FLAG_NO_DISCARD; other mode values leave that flag unrestricted.
 /// The current Acropolis container kind 0x703 independently retains the M93R.
-/// Returns 0 or 1 and borrows the catalogue, save and context without changing them.
+/// Returns 0 or 1 and borrows the catalog, save and context without changing them.
 static inline s32 _itemMenuCheckTransferRestriction(s32 itemId, s32 battleFieldMode)
 {
     s32 restricted;
@@ -1751,7 +1751,7 @@ static void _uiVisitChildObjects(const UiObject* object, UiObjectTaskFunc visitC
 
 /// Tests whether the current transfer context forbids moving or swapping an item.
 ///
-/// itemId must index the ordinary item catalogue. battleFieldMode == 1 enforces
+/// itemId must index the ordinary item catalog. battleFieldMode == 1 enforces
 /// NO_DISCARD; other values do not. Independently, the Acropolis container kind
 /// 0x703 keeps the M93R in place. Returns 0 or 1 without changing inventory.
 static s32 _itemMenuIsTransferRestricted(s32 itemId, s32 battleFieldMode)

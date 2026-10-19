@@ -190,10 +190,10 @@ typedef struct {
 } ReplayBonusTotals;
 STATIC_ASSERT_SIZEOF(ReplayBonusTotals, 0x18);
 
-/// Number of eligible catalogue ids, excluding the two stored trailer halfwords.
+/// Number of eligible catalog ids, excluding the two stored trailer halfwords.
 enum { REPLAY_BONUS_ITEM_WHITELIST_COUNT = 78 };
 
-/// Catalogue ids eligible for the Complete Bonus item-credit list.
+/// Catalog ids eligible for the Complete Bonus item-credit list.
 ///
 /// The first 78 entries are searched by count: 70 ordinary item ids and eight
 /// collection ids. A 0xFFFF terminator and an unused zero follow them. Saved
@@ -305,7 +305,7 @@ extern UiList gReplayBonusCompleteBonusList;
 
 /// Returns an item's replay-clear BP credit: half its unsigned purchase price, rounded down.
 ///
-/// Requires the gameplay catalogue to remain loaded. Declared catalogue ids
+/// Requires the gameplay catalog to remain loaded. Declared catalog ids
 /// are 0..0xBF and 0x100..0x17F; no bounds check is performed. The Complete
 /// Bonus list supplies only its whitelisted ordinary and collection ids.
 /// The result is 0..32767 BP and neither prices nor inventory are changed.
@@ -417,7 +417,7 @@ void replayBonusDecodePictureTask(Task* task);
 ///
 /// Starts at state zero with a live UI object in `task->spawnArg2.pointer`.
 /// Allocates 300 signed-halfword item ids on the primary heap; task teardown
-/// releases them. Keeps the live save, gameplay catalogue and replay package
+/// releases them. Keeps the live save, gameplay catalog and replay package
 /// loaded, with only one Complete Bonus panel using the shared list/totals.
 /// Navigation requires at most 127 emitted rows; legal-save limits remain
 /// unproven. Holds the last rows for 60 callbacks, scrolls toward the first,

@@ -1,0 +1,42 @@
+# The assets of the group items/airburst, each named items/airburst/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "3b5875ebe867325dbdd8e34df4e44084a6f80445"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "5bbb652e0056a44b1e77eaf88a12d3c948730578"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "ammunition"
+
+[text]
+type = "txt"
+sha1 = "3c5e6083f1b4be579481b13295b01de7b0db8ddc"
+
+[catalog]
+type = "txt"
+sha1 = "43f91eca9223d94175efafc5ae0b71e4bff86752"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "b764bf141029b64d78cc0b0de43aca42bafedc64"

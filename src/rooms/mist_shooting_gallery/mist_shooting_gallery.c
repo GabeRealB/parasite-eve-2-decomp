@@ -250,7 +250,7 @@ enum {
     MIST_SHOOTING_GALLERY_WEAPON_COUNT         = 10,
 };
 
-/// Weapon-picker catalogue in offer order, with no terminator.
+/// Weapon-picker catalog in offer order, with no terminator.
 ///
 /// Signed halfwords hold inventory item IDs. Entries without saved ownership
 /// are skipped; M4A1 and MP5A5 ownership includes their upgraded variants.
@@ -1006,7 +1006,7 @@ static void _mistShootingGalleryWeaponRow(UiList* list, UiObject* object)
     u8*                               equippedWeapon;
     InventoryItemRange*               carriedInventory;
 
-    // Map the displayed row through the owned entries of the weapon catalogue.
+    // Map the displayed row through the owned entries of the weapon catalog.
     weaponItemId     = 0;
     ownedRowsToSkip  = list->currentItemIndex;
     weaponTableIndex = 0;

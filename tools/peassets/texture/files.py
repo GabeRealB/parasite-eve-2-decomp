@@ -11,7 +11,7 @@ import asset_schema
 
 from .chunks import (SECTOR, encode_image, encode_palette, image_content, image_pages, page_texels,
                      palette_block, palette_content, texels_words)
-from .declaration import PALETTE_ENTRIES, place_at
+from .declaration import COLUMN, PALETTE_ENTRIES, place_at, stored_rows
 from .png import read_variant, write_variant
 
 
@@ -63,6 +63,9 @@ def decode_file(name: str, assets: dict, assets_root: Path) -> list[Path]:
                 raise SystemExit(f"{name}: {e['chunk']} has a page at ({x}, {y}), the file places it at "
                                  f"{place_at(page, assets)}")
             tex = assets[page["texture"]]
+            if any(words[COLUMN * 2 * tex["height"]:]):
+                raise SystemExit(f"{name}: {e['chunk']} stores rows below its texture's {tex['height']} that are "
+                                 "not zero")
             texels = page_texels(words, tex["bpp"], tex["width"], tex["height"])
             for variant in tex["variants"]:
                 path = variant_path(assets_root, assets, page["texture"], variant)
@@ -93,8 +96,9 @@ def encode_file(name: str, assets: dict, assets_root: Path) -> dict[str, bytes]:
                 if any(t != texels[0] for t in texels[1:]):
                     raise ValueError(f"{page['texture']}: its variants' indices differ")
                 words = texels_words(texels[0], tex["bpp"], tex["width"], tex["height"])
-                pages.append((*place_at(page, assets), words))
-                heights.add(tex["height"])
+                rows = stored_rows(page, assets)        # the region's rows below the texture are zero
+                pages.append((*place_at(page, assets), words + bytes(COLUMN * 2 * (rows - tex["height"]))))
+                heights.add(rows)
             if len(heights) != 1:
                 raise ValueError(f"{chunk}: the pages of one chunk have one height, not {sorted(heights)}")
             out[chunk] = encode_image(pages, heights.pop(), e.get("slots"), e.get("sector_len", SECTOR),

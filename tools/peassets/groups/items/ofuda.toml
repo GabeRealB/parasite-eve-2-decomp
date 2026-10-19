@@ -1,0 +1,42 @@
+# The assets of the group items/ofuda, each named items/ofuda/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "8a6885ed62f5f64517bf4381edd6bc8259c2aa61"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "aa3886c3f746670cb5131030016d491f6483d930"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "effect_item"
+
+[text]
+type = "txt"
+sha1 = "7ea1bd1aa4f3a8e99a7d4bd6fb40a5af81f60d98"
+
+[catalog]
+type = "txt"
+sha1 = "c86badd6aaa73cc9843058123e9371d671335d58"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "6ddffb8f2a3cb6c3fce0690b4f620c623069c9c9"

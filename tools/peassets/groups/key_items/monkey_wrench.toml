@@ -1,0 +1,42 @@
+# The assets of the group key_items/monkey_wrench, each named key_items/monkey_wrench/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "3342cf794464f98dae053b95e5837f76df1286d7"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "a5f00d2d44fc8037331a998d4cc30d6eee67c3e6"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "key_item"
+
+[text]
+type = "txt"
+sha1 = "9cdf2e12ef1f75f7410ef21437fc7805d9e2118d"
+
+[catalog]
+type = "txt"
+sha1 = "0bf1179d9ed994fb4f5e8c99e1c90f7305a34075"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "29621a278a9312c52d690a51b787462e0150c5fb"

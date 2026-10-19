@@ -1,0 +1,42 @@
+# The assets of the group key_items/bowmans_card, each named key_items/bowmans_card/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "28d0d98b44692b07d758163e8bb7865c8fc0630e"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "de88e67c891b98ae3e535ca66ce9a1850bf7b519"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "key_item"
+
+[text]
+type = "txt"
+sha1 = "2ed7cd7206c8f700655632304ae8fe576c9e5d51"
+
+[catalog]
+type = "txt"
+sha1 = "7e7d9461fe915c4438373291d97a1245dfbf7739"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "d6ae56cdf89379a56a548e7825e0914302e9ea35"

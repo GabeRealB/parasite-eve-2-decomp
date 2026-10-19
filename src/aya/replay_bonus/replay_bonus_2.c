@@ -176,7 +176,7 @@ static void _replayBonusAdvanceAwardScreen(Task* task)
 ///
 /// Starts at the first inclusive EXP ceiling, adds saved mode (0..3), caps at
 /// the last tier and searches cyclically past unlocked tiers. Reads the live
-/// save and catalogue without changing their unlocks. An EXP value beyond
+/// save and catalog without changing their unlocks. An EXP value beyond
 /// every ceiling retains the initial tier zero before the mode boost.
 static s32 _replayBonusSelectShopTier(void)
 {
@@ -240,7 +240,7 @@ static s16 _replayBonusGetListItemId(const UiList* unusedList, const UiObject* o
 /// Sums from the first visible item through the list's end and caps at eight
 /// decimal digits. The owner's live work is a borrowed `s16` item-id array;
 /// the row range must fit it and each id must meet `_replayBonusItemBp`'s
-/// catalogue bounds. Neither inventory nor the BP balance is changed.
+/// catalog bounds. Neither inventory nor the BP balance is changed.
 static s32 _replayBonusGetListTotalBp(const UiList* list, const UiObject* object)
 {
     return _replayBonusSumTotalBp(list, object);
@@ -248,7 +248,7 @@ static s32 _replayBonusGetListTotalBp(const UiList* list, const UiObject* object
 
 /// Draws a Complete Bonus item's name and half-price BP credit, identifying it.
 ///
-/// Requires a live list and UI object and a whitelisted catalogue id. Row
+/// Requires a live list and UI object and a whitelisted catalog id. Row
 /// coordinates are panel-relative pixels: the name uses the left X, and the
 /// BP text is right-aligned at its mirrored X. Identification persists in
 /// the live save; drawing does not consume the item or grant BP.
@@ -280,9 +280,9 @@ static void _replayBonusDrawCurrentItemRow(UiList* list, UiObject* object)
 
 /// Totals full purchase prices of every shop-tier entry, rounded up to 100000 BP.
 ///
-/// Counts all three items of every tier, including any repeated catalogue id.
-/// Requires the gameplay item catalogue to remain loaded; grants no currency.
-static s32 _replayBonusGetShopCatalogueBp(void)
+/// Counts all three items of every tier, including any repeated catalog id.
+/// Requires the gameplay item catalog to remain loaded; grants no currency.
+static s32 _replayBonusGetShopCatalogBp(void)
 {
     enum { REPLAY_BONUS_SHOP_BP_ROUNDING_UNIT = 100000 };
     const ShopTier* tier;
@@ -373,7 +373,7 @@ static void _replayBonusRestartAfterAwards(Task* task)
 /// balances, three unlocked items (or extra BP), save prompt, quit warning
 /// and final notice. State 10 delays the restart until the countdown is
 /// negative. Dispatch requires state 0..10 and performs no bounds check.
-/// Requires the replay package, gameplay catalogue and live save to remain live, with
+/// Requires the replay package, gameplay catalog and live save to remain live, with
 /// one award sequence using the shared totals. Panel tasks own their UI objects;
 /// the controller requests their closing before replacing its borrowed pointer.
 static void _replayBonusAwardScreenTask(Task* task)
@@ -1189,10 +1189,10 @@ static const TaskDesc _gReplayBonusPictureDecoderTaskDescriptor SECTION(".data")
     .data     = { .model = NULL },
 };
 
-/// Catalogue ids stored in this package's item whitelist and shop ladder.
+/// Catalog ids stored in this package's item whitelist and shop ladder.
 ///
-/// Ordinary ids index the gameplay catalogue; collection ids index its key
-/// catalogue. Their stored representations remain unsigned/signed halfwords.
+/// Ordinary ids index the gameplay catalog; collection ids index its key
+/// catalog. Their stored representations remain unsigned/signed halfwords.
 enum {
     REPLAY_BONUS_ITEM_RECOVERY_1         = 0x1,
     REPLAY_BONUS_ITEM_RECOVERY_2         = 0x2,

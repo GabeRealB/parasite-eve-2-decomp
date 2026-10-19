@@ -226,10 +226,11 @@ GEN_MODEL_SOURCE = TOOLS_DIR / "buildsteps" / "gen_model_source.py"
 GEN_ANIMATION_SOURCE = TOOLS_DIR / "buildsteps" / "gen_animation_source.py"
 GEN_ANIMATION_INC = TOOLS_DIR / "buildsteps" / "gen_animation_inc.py"
 GEN_COLLISION_INC = TOOLS_DIR / "buildsteps" / "gen_collision_inc.py"
+GEN_SHAPE_INC = TOOLS_DIR / "buildsteps" / "gen_shape_inc.py"
 
 
 def asset_includes(version: str) -> list[tuple[Path, Path, int | str]]:
-    """(extracted file, generated initializer) for every catalogued embedded
+    """(extracted file, generated initializer) for every cataloged embedded
     asset marked `include`: an asset a unit defines in its own C data, whose
     bytes come from the user's extraction rather than from git."""
     import importlib.util
@@ -254,6 +255,25 @@ def asset_includes(version: str) -> list[tuple[Path, Path, int | str]]:
                      {True: 1, "u8": 1, "u16": 2, "u32": 4, "TmdBone": "TmdBone"}[rec["include"]])
             out.append((raw, BUILD_DIR / "include" / "assets" / f"{aid}.inc", width))
     return out
+
+
+def shape_includes(version: str) -> list[tuple[str, Path, Path]]:
+    """(shaped asset, its instance, generated include) for every shaped asset with `include = true`: its codec
+    writes C (`c_source`) that a source includes whole, `assets/<name>.inc` (gen_shape_inc.py)."""
+    data, schema = asset_tables()
+    out = []
+    for key, rec in data.ASSETS.items():
+        if rec.get("type") == "shaped" and rec.get("include"):
+            instance = ASSETS_DIR / version / schema.asset_dir(key, rec) / f"{schema.file_name(key)}.toml"
+            out.append((key, instance, BUILD_DIR / "include" / "assets" / f"{key}.inc"))
+    return out
+
+
+def shape_instances(version: str) -> set[str]:
+    """Every shaped asset's instance (tools/peassets/shape/)."""
+    data, schema = asset_tables()
+    return {str(ASSETS_DIR / version / schema.asset_dir(k, r) / f"{schema.file_name(k)}.toml")
+            for k, r in data.ASSETS.items() if r.get("type") == "shaped"}
 
 
 _ASSET_TABLES: list = []
@@ -1143,6 +1163,11 @@ def ninja_build(
         command=f"{PYTHON} {GEN_ASSET_INC} $in $out $width",
     )
     ninja_rules_file.rule(
+        "shape-inc",
+        description="shape-inc $name",
+        command=f"{PYTHON} {GEN_SHAPE_INC} $name $out --assets {ASSETS_DIR / 'USA'}",
+    )
+    ninja_rules_file.rule(
         "model-inc",
         description="model-inc $in $source",
         command=f"{PYTHON} {GEN_MODEL_INC} $in $load $source {BUILD_DIR / 'include' / 'assets'} $name",
@@ -1195,6 +1220,19 @@ def ninja_build(
                 implicit=[str(GEN_ASSET_INC)] + ([str(GEN_MODEL_INC)] if width == "TmdBone" else []),
                 variables={"width": quote(str(width))},
             )
+        ASSET_INC_OUTPUTS.append(str(inc))
+    peassets = TOOLS_DIR / "peassets"
+    shape_deps = [str(GEN_SHAPE_INC), str(peassets / "asset_data.py"), str(peassets / "asset_schema.py"),
+                  *sorted(str(p) for p in (peassets / "shape").glob("*.py")),
+                  *sorted(str(p) for p in (peassets / "shape").glob("*.toml")),
+                  *sorted(str(p) for p in (peassets / "groups").rglob("*.toml"))]
+    shaped = shape_includes(version)
+    # The catalog's C is assembled from the items' instances, so an include reads every instance.
+    instances = sorted({str(instance) for _name, instance, _inc in shaped} | shape_instances(version))
+    for name, instance, inc in shaped:
+        for writer in asset_writers:
+            writer.build(outputs=str(inc), rule="shape-inc", inputs=str(instance), implicit=shape_deps + instances,
+                         variables={"name": name})
         ASSET_INC_OUTPUTS.append(str(inc))
     for raw, outputs, load, source, name in model_includes(version):
         for writer in asset_writers:

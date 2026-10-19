@@ -1,0 +1,42 @@
+# The assets of the group armor/psysuit, each named armor/psysuit/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "picture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "d36f593e2f764918a780be8f353e6e0bc23c1810"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "picture", region = "engine/vram/preview_picture" }]
+sha1 = "43534b8a9e70ca81d88566a241efa41b1c6c9313"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "armor"
+
+[text]
+type = "txt"
+sha1 = "86919262022e03ee82187b604188f06ead5ab0c4"
+
+[catalog]
+type = "txt"
+sha1 = "6fea483064d116ab94f556034b6997874e38d0c8"
+
+[picture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "a62765558ea7c8ed011342a7e2a96421715dee39"

@@ -288,13 +288,13 @@ extern const u8 gItemMenuPeCastingCostLabel[];
 /// ATP-loss parameter label in the P.E. specifications panel.
 extern const u8 gItemMenuPeAtpLossLabel[];
 
-/// Start of the prompt slice and full extent of the item-menu message catalogue.
+/// Start of the prompt slice and full extent of the item-menu message catalog.
 enum {
     ITEM_MENU_NOTICE_PROMPT_FIRST = 16,
     ITEM_MENU_NOTICE_TEXT_COUNT   = 33
 };
 
-/// Complete item-menu message catalogue, indexed by notice id 0..32.
+/// Complete item-menu message catalog, indexed by notice id 0..32.
 ///
 /// Entries are borrowed terminated byte strings with gameplay-overlay lifetime.
 /// The prompt slice starts at id 16; its first entry asks to discard.
@@ -423,7 +423,7 @@ void itemMenuOpenInfoOnTriangle(UiObject* parentObject);
 
 /// Draws an item row with a recessed icon slot, including an empty slot for id 0.
 ///
-/// Uses `itemMenuDrawItemRow`'s coordinates, catalogue and drawing contract.
+/// Uses `itemMenuDrawItemRow`'s coordinates, catalog and drawing contract.
 /// The 14-pixel icon frame is drawn even when the panel is hidden; an empty
 /// slot uses a dark fill, while a populated slot has an unfilled frame.
 void itemMenuDrawItemSlotRow(const UiObject* object, s32 x, s32 y, s32 itemId, s32 colorRgb, s32 attachmentState);
@@ -514,7 +514,7 @@ void itemMenuInventoryCountTask(Task* task);
 /// zero checks inventory capacity and asks Yes/No or shows the full warning.
 /// CONFIRM closes that child and activates the root; CANCEL propagates its
 /// result and answer. Ordinary ids passed to the capacity predicate must obey
-/// `inventoryCanAddItem`'s catalogue contract.
+/// `inventoryCanAddItem`'s catalog contract.
 void itemPickupPanelTask(Task* task);
 
 /// Opens a Yes/No child menu with Yes selected, transferring input from parent.
@@ -658,7 +658,7 @@ void itemMenuReloadNoticeTask(Task* task);
 
 /// Displays a timed Attach notice naming the item supplied in the task argument.
 ///
-/// `spawnArg1.value` is a catalogue item id and `spawnArg2.pointer` the live
+/// `spawnArg1.value` is a catalog item id and `spawnArg2.pointer` the live
 /// task-owned UiObject; state starts at zero. Sizes the panel and plays the
 /// equipment sound once the panel opens. The 188-tick counter also advances
 /// while opening or inactive. An active panel yields DISMISS on timeout or
@@ -681,7 +681,7 @@ void itemMenuEquipNoticeTask(Task* task);
 
 /// Draws two identified PE description lines and the learned level's casting-cost bar.
 ///
-/// `abilityId` is a packed PE catalogue id in 0x300..0x3FF. Its low two bits
+/// `abilityId` is a packed PE catalog id in 0x300..0x3FF. Its low two bits
 /// select the level; zero still draws the description but omits the cost.
 /// Borrows the live object's panel and queues text and bar primitives this frame.
 void itemMenuDrawAbilityDescription(UiObject* object, s32 abilityId);
@@ -709,7 +709,7 @@ void itemMenuApplyChildDialogResults(UiObject* object, Task* ownerTask);
 /// Writes only the list's item count and visible-row count. `unusedObject` is ignored.
 void itemMenuSizeUnequippedArmorList(UiList* list, const UiObject* unusedObject);
 
-/// Fits and horizontally centers a two-line Equipped notice for a catalogue item.
+/// Fits and horizontally centers a two-line Equipped notice for a catalog item.
 ///
 /// `itemId` must satisfy `itemGetText`'s name lookup contract. Requires initialized
 /// panel bounds and content coordinates under `uiSetPanelContentSize`'s contract.
@@ -762,7 +762,7 @@ void itemMenuWeaponSummaryTask(Task* task);
 /// Draws one scrolling item-information description row.
 ///
 /// The owner's low spawn halfword is the item id. Rows 0/1 of ordinary items
-/// use identified catalogue descriptions; remaining rows, and all key-item
+/// use identified catalog descriptions; remaining rows, and all key-item
 /// rows, read the loaded text chunk from line 5 onward. The caller must keep
 /// that chunk ready and readable through the selected line. Row indices are
 /// nonnegative; the initial two-row test retains signed-byte narrowing.
@@ -1996,7 +1996,7 @@ void itemMenuDrawConsumableChoiceRow(UiList* list, UiObject* object);
 /// carried range must fit its table.
 /// Reload mode 0 searches both loads and adds back this weapon's current
 /// quantity; mode 1 searches primary and mode 2 secondary using only unloaded
-/// stock. Keeps positive quantities in catalogue order without deduplication.
+/// stock. Keeps positive quantities in catalog order without deduplication.
 /// Single-load modes append item id 0 (Remove Ammo) only after a positive
 /// choice. Both-load mode writes at most six ids; a single load writes at most
 /// three ids plus the command. Sets itemCount and visibleRowCount, narrowing

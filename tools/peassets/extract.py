@@ -34,6 +34,7 @@ from asset_db import (  # noqa: E402
     embedded_for_source,
     lookup,
     lookup_image_bpps,
+    get_asset,
     tree_chunk_asset,
     validate_asset_db,
 )
@@ -400,8 +401,11 @@ class AssetStore:
           stage0/…/trailer.bin        # pack sidecars only
           stages.json                 # pack manifest (the decoded paths)
 
-    Dedup is by SHA-1 of the **raw** clean payload. Inflated assets are
-    produced once per unique raw file via :meth:`materialize_inflated`.
+    Dedup is by SHA-1 of the **raw** clean payload, and only there: the raw
+    file is named for one of the assets holding it
+    (``asset_schema.canonical_names``), while each place keeps the asset table's
+    name for it (``tree_chunk_asset``) and is decoded under that name by
+    :meth:`materialize_inflated`, once per name.
     The in-memory :attr:`map` feeds ``stages.json`` during extract; it is not
     written to disk.
     """
@@ -417,8 +421,11 @@ class AssetStore:
         self._used_names: dict[str, set[str]] = {}
         # raw_rel → first canonical key that produced this file
         self._first_canonical: dict[str, str] = {}
-        # unique raw entries to inflate: raw_rel → (type_dir, stem, ext)
+        # unique raw entries: raw_rel → (type_dir, stem, ext)
         self._unique_raw: dict[str, tuple[str, str, str]] = {}
+        # every asset name to decode → its raw_rel: a raw file's own name and each place holding the same bytes
+        # under a name of its own (a placeholder file's copy of another item's picture)
+        self._names: dict[str, str] = {}
         # canonical chunk path → map entry
         self.map: dict[str, dict] = {}
 
@@ -528,15 +535,21 @@ class AssetStore:
 
         digest = hashlib.sha1(data).hexdigest()
         by_hash = self._by_hash.setdefault(type_dir, {})
+        # The asset table names the place; a name it gives other bytes (another release) is not this asset's.
+        place = tree_chunk_asset(stage, file_id, chunk_idx, folder_id)
+        if place is not None and (get_asset(place) or {}).get("sha1") != digest:
+            place = None
 
         if digest in by_hash:
             raw_rel = by_hash[digest]
             raw_path = self.assets_root / raw_rel
             stem = self._unique_raw[raw_rel][1]
+            name = place or stem
+            self._names.setdefault(name, raw_rel)
             first = self._first_canonical.get(raw_rel)
             self.map[canonical] = self._map_entry(
                 type_dir=type_dir,
-                stem=stem,
+                stem=name,
                 ext=ext,
                 raw_rel=raw_rel,
                 digest=digest,
@@ -561,9 +574,12 @@ class AssetStore:
         by_hash[digest] = raw_rel
         self._first_canonical[raw_rel] = canonical
         self._unique_raw[raw_rel] = (type_dir, stem, ext)
+        self._names.setdefault(stem, raw_rel)
+        name = place or stem
+        self._names.setdefault(name, raw_rel)
         self.map[canonical] = self._map_entry(
             type_dir=type_dir,
-            stem=stem,
+            stem=name,
             ext=ext,
             raw_rel=raw_rel,
             digest=digest,
@@ -597,6 +613,7 @@ class AssetStore:
         by_hash[digest] = raw_rel
         self._first_canonical[raw_rel] = canonical
         self._unique_raw[raw_rel] = (type_dir, stem, ext)
+        self._names.setdefault(stem, raw_rel)
         return raw_path, stem, True
 
     def put_embedded(
@@ -605,7 +622,7 @@ class AssetStore:
         """Store an asset carved out of a binary by address.
 
         Same raw/{type} store and SHA-1 dedup as :meth:`put_raw`; the stem is
-        the catalogue id rather than a chunk-derived name, since these have no
+        the catalog id rather than a chunk-derived name, since these have no
         chunk coordinates to fall back on.
         """
         ext = ext if ext.startswith(".") else f".{ext}"
@@ -617,9 +634,10 @@ class AssetStore:
             raw_rel = by_hash[digest]
             raw_path = self.assets_root / raw_rel
             stem = self._unique_raw[raw_rel][1]
+            self._names.setdefault(asset_id, raw_rel)       # its own name: the bytes are stored once
             self.map[canonical] = self._map_entry(
                 type_dir=type_dir,
-                stem=stem,
+                stem=asset_id,
                 ext=ext,
                 raw_rel=raw_rel,
                 digest=digest,
@@ -629,10 +647,12 @@ class AssetStore:
             return raw_path, stem, False
 
         used = self._used_names.setdefault(type_dir, set())
-        stem = asset_id
+        # The raw file is named for the asset the table keeps those bytes under (the others share it).
+        preferred = asset_id_for_sha1(digest) or asset_id
+        stem = preferred
         n = 2
         while stem in used:
-            stem = f"{asset_id}_{n}"
+            stem = f"{preferred}_{n}"
             n += 1
         used.add(stem)
 
@@ -644,9 +664,11 @@ class AssetStore:
         by_hash[digest] = raw_rel
         self._first_canonical[raw_rel] = canonical
         self._unique_raw[raw_rel] = (type_dir, stem, ext)
+        self._names.setdefault(stem, raw_rel)
+        self._names.setdefault(asset_id, raw_rel)
         entry = self._map_entry(
             type_dir=type_dir,
-            stem=stem,
+            stem=asset_id,
             ext=ext,
             raw_rel=raw_rel,
             digest=digest,
@@ -690,11 +712,15 @@ class AssetStore:
         from asset_data import ASSETS
 
         texture_chunks = texture_declaration.texture_chunks(ASSETS)
+        # A shaped asset's instance is the decoded form of the outputs its group owns; a shared plain text it names
+        # (one the Parasite Energies' files hold too) is still decoded where it is.
+        shaped_outputs = {out for rec in ASSETS.values() if rec.get("type") == "shaped"
+                          for out in rec["outputs"].values() if (ASSETS.get(out) or {}).get("group")}
         work: list[dict] = []
-        for raw_rel, (type_dir, stem, ext) in sorted(
-            self._unique_raw.items(), key=lambda kv: asset_name_key(kv[0])
-        ):
-            if ext in RAW_ONLY_EXTS or stem in texture_chunks or (ASSETS.get(stem) or {}).get("type") == "sound_bank":
+        for stem, raw_rel in sorted(self._names.items(), key=lambda kv: asset_name_key(kv[0])):
+            type_dir, _raw_stem, ext = self._unique_raw[raw_rel]
+            if (ext in RAW_ONLY_EXTS or stem in texture_chunks or stem in shaped_outputs
+                    or (ASSETS.get(stem) or {}).get("type") == "sound_bank"):
                 continue                    # decoded by decode_declared
             if only_pe2pkg_stems is not None:
                 if type_dir != "pe2pkg" or stem not in only_pe2pkg_stems:
@@ -731,7 +757,7 @@ class AssetStore:
             )
 
         results = run_jobs(
-            _materialize_one_job, work, jobs=jobs, label_key="raw_rel"
+            _materialize_one_job, work, jobs=jobs, label_key="out_rel"
         )
         count = 0
         for r in results:
@@ -750,9 +776,9 @@ class AssetStore:
                     logging.debug("%s", r["traceback"])
             # Apply path fallback patches from worker (decode → raw copy)
             override = r.get("path_override")
-            if override and raw_rel:
-                for ent in self.map.values():
-                    if ent.get("raw_path") == raw_rel:
+            if override and r.get("out_rel"):
+                for ent in self.map.values():             # the places decoded under this name
+                    if ent.get("path") == r["out_rel"]:
                         ent["path"] = override
         return count
 
@@ -888,6 +914,7 @@ def _materialize_one_job(job: dict) -> dict:
         return {
             "ok": True,
             "raw_rel": raw_rel,
+            "out_rel": out_rel,
             "log": log,
             "path_override": path_override,
         }
@@ -1183,9 +1210,9 @@ def write_pack_manifests(args, output_path: Path, store: "AssetStore", rom_root)
 
 
 def store_embedded_assets(output_path: Path, store: "AssetStore", *, skip: bool) -> int:
-    """Carve catalogued assets out of the binaries and into the normal store.
+    """Carve cataloged assets out of the binaries and into the normal store.
 
-    Runs before materialization in every extraction mode. Decode catalogued
+    Runs before materialization in every extraction mode. Decode cataloged
     packages from this extraction's raw store, using their CDF load addresses;
     neither inflated packages nor stages.json exist yet on a fresh extraction.
     A raw-only run also collects these assets without writing inflated files.
@@ -1200,7 +1227,7 @@ def store_embedded_assets(output_path: Path, store: "AssetStore", *, skip: bool)
         return 0
 
     # Several CDF entries may share a package. Visit each raw file once and
-    # only decode packages with catalogued embedded assets.
+    # only decode packages with cataloged embedded assets.
     packages = {
         entry["raw_path"]: parse_load_addr(
             entry["load_addr"], chunk_type=FileChunkType.RoomPkg
@@ -1427,8 +1454,8 @@ def main():
 def decode_declared(assets_root: Path) -> None:
     """Decode what the asset table fully declares: each file's textures, as indexed PNGs (texture/), each
     rig (derived from its models), each model with its slots and bindings, and each clip, as USD (model/,
-    animation/), and each sound bank as SFZ and its own text with its sounds as WAVs (sound/). The rest stays raw
-    until it is declared."""
+    animation/), each sound bank as SFZ and its own text with its sounds as WAVs (sound/), and each shaped asset
+    as its instance (shape/). The rest stays raw until it is declared."""
     from animation import declared as clips
     from model import declared
     from asset_data import ASSETS, EMBEDDED_ASSETS
@@ -1444,6 +1471,9 @@ def decode_declared(assets_root: Path) -> None:
     for name in clips.declared(ASSETS):
         clips.decode(name, ASSETS, EMBEDDED_ASSETS, assets_root)
     sounds.decode_all(ASSETS, assets_root)
+    import shape
+    for name in shape.shaped_assets(ASSETS):
+        shape.decode(name, ASSETS, EMBEDDED_ASSETS, assets_root)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,140 @@
+# The item shapes: what an item is, as its group declares it, and the two stored texts it is written to.
+#
+# An item's instance (`<group>/item.toml`) is decoded from, and encodes exactly back to:
+#   catalog  its name and description fields in gameplay's catalog (`_gItem<Item>TextFields`,
+#              src/gameplay/item_inventory.c): six lines, the identified name and two description lines, then
+#              the same three for the item before it is identified (itemGetText).
+#   info       the information panel of its preview file (itemMenuInfoTask, src/gameplay/item_stats.c): CRLF
+#              lines up to `\Z`, five header rows drawn 15 pixels apart, then the rows of a scrolling list.
+#   descriptor its row of gameplay's descriptor table (`ItemDesc`, include/gameplay/inventory.h): price,
+#              classification (the shape's `category` in the high nibble, the low by shape: an ammunition's
+#              `caliber`, an effect item's `medicine`, a weapon's `weapon_class`), flags, and the
+#              address of its catalog text, which follows from the catalog output (the shared empty text for
+#              an item without one).
+#
+# A shape states its `category`, the high nibble of its rows' classification. The catalog (`item_catalog`)
+# assembles the descriptor tables from the items it lists by id.
+#
+# A field states `type` (text, lines, bool, int, enum, record, list), `doc`, and where it has one `default`; an
+# instance leaves a field out where it has its default. `lines` may state `max`, `enum` its `values`, `record` and
+# `list` the fields of a `record` or the shape of each element (`of`).
+
+[item]
+doc = "Anything the inventory lists: its name and descriptions, identified and not, its price and restrictions."
+outputs = ["catalog", "info", "descriptor"]       # info is its preview file's text; an item without one has none
+
+[item.fields]
+name = { type = "text", default = "", doc = "Its name in every list and panel." }
+description = { type = "lines", max = 2, default = [], doc = "The two description lines under its name." }
+unidentified = { type = "record", of = "item_form", default = {}, doc = "Name and description before it is identified (empty: shown as the identified ones are)." }
+price = { type = "int", default = 0, doc = "Purchase price in BP; a replay bonus credits half." }
+no_discard = { type = "bool", default = false, doc = "Cannot be discarded, nor transferred in the battle-loot menu (ITEM_FLAG_NO_DISCARD)." }
+no_attachment = { type = "bool", default = false, doc = "Cannot occupy an armor attachment slot (ITEM_FLAG_NO_ATTACHMENT)." }
+flag_02 = { type = "bool", default = false, doc = "Flag 0x02. Set only by the Japanese release, which never reads it (neither does any code of the US or European release, which clear it everywhere). It marks the ordinary items one can hold as items of their own - every recovery, attachment and tool item, 12 of the 14 armors, the 16 base weapons, the 12 real rounds - and is clear on the Parasite Energies, on the weapon forms that are not items of their own (M4A1 +1/+2 and attachment forms, MP5A5 +1/+2), on the built-in supplies and the rounds nothing gives (44 Poison, Paralizer, Flashbomb), and on three pieces of starting gear (Tonfa Baton, Leather Jacket, Assault Suit; the M93R, 9mm P.B. and GPS keep it). Perhaps the mark of a cut Japanese feature listing or trading items; unproven." }
+flag_08 = { type = "bool", default = false, doc = "Flag 0x08. No code reads it, in the US, European or Japanese release; set on every Parasite Energy, most armor, half the weapons and a few items and rounds, which no use found accounts for (not shop stock: Recovery1 is sold without it, Recovery2 with it)." }
+blank_row = { type = "bool", default = false, doc = "Its descriptor row is the table's empty one, classification 0 whatever the shape's category: an unused id that still has a preview file." }
+rows = { type = "int", default = 5, doc = "Rows of the panel's header the text holds; fewer only in a text that ends inside it." }
+final_newline = { type = "bool", default = true, doc = "Whether the panel's text ends in a line break after its \\Z." }
+
+[item_form]
+doc = "A name and its description lines."
+
+[item_form.fields]
+name = { type = "text", default = "" }
+description = { type = "lines", max = 2, default = [] }
+
+[effect_item]
+base = "item"
+category = 0
+doc = "An item used or attached for its effects (ids 0x01..0x5F): the panel's header is its effect sheet."
+
+[effect_item.fields]
+medicine = { type = "bool", default = false, doc = "A recovery item, the classification's low nibble 1 (ITEM_SUBTYPE_MEDICINE): the medicine icon and palette." }
+effects = { type = "list", of = "effect_group", default = [], doc = "The sheet, top down." }
+body = { type = "lines", default = [""], doc = "The rows of the list below the sheet." }
+first_heading_resets_font = { type = "bool", default = true, doc = "Whether the sheet's first heading switches back to the medium font after itself (all but three sheets)." }
+
+[effect_group]
+doc = "Effects under their heading: USE, ATTACHMENT, or both headings stacked over effects they share."
+
+[effect_group.fields]
+when = { type = "list", of = "enum:use,attachment", doc = "The headings, in order." }
+lines = { type = "list", of = "effect", doc = "Its effects." }
+
+[effect]
+doc = "One effect: an action in white, its value in green, its unit in white (\"RECOVER 50 HP\")."
+
+[effect.fields]
+action = { type = "text", default = "", doc = "RECOVER, CURE, RESIST, INFLICT, INDUCE, ADD ... or a whole line (\"MOTION DETECTOR\")." }
+value = { type = "text", default = "", doc = "Its amount or target (\"50\", \"FULL\", \"SILENCE\", \"+30\")." }
+unit = { type = "text", default = "", doc = "What the amount counts (\"HP\", \"MP\")." }
+
+[armor]
+base = "item"
+category = 1
+doc = "Armor (ids 0x60..0x7F): the panel's list names its special features."
+
+[armor.fields]
+features = { type = "lines", default = [], doc = "Its special features, a line each (\"Resist PARALYSIS.\", \"Quick Fire.\")." }
+list_offset = { type = "int", default = 4, doc = "Blank rows of the list above them." }
+
+[parasite_energy]
+base = "item"
+category = 0
+doc = "One level of a Parasite Energy (ids 0x0F..0x32, three levels to an energy), as the PE shop sells it and the PE menu describes it."
+outputs = ["catalog", "info", "menu", "descriptor"]
+
+[parasite_energy.fields]
+menu_text = { type = "lines", default = [], doc = "Its description in the PE menu (the PE menu preview file's text, after four blank rows)." }
+info_rows = { type = "int", default = 8, doc = "Blank rows of its shop-row panel text, which holds nothing else." }
+
+[ammunition]
+base = "item"
+category = 3
+doc = "Rounds, batteries and fuel a weapon loads (ids 0xA0..0xBF): the panel's list names the weapons that load it."
+
+[ammunition.fields]
+caliber = { type = "enum", values = ["none", "9mm", "40_magnum", "44_magnum", "40mm", "12_gauge", "5_56mm", "battery", "fuel"], default = "none", doc = "Its caliber or load, the classification's low nibble (ITEM_AMMO_*): the icon's palette, and the CALIBER or GAUGE line of its panel (gItemMenuCaliberTexts). 40_magnum has a label but no round." }
+loaded_by = { type = "lines", default = [], doc = "The weapons that load it, by name, in the list's order." }
+column_gaps = { type = "list", of = "int", default = [], doc = "Spaces between the two names of each two-name row, where a row differs from the column rule (9mm P.B.'s second row has one fewer)." }
+list_offset = { type = "int", default = 4, doc = "Blank rows of the list above them." }
+
+[key_item]
+base = "item"
+category = 4
+doc = "A key item (ids 0x100..): the panel's list is its long description."
+
+[key_item.fields]
+text = { type = "lines", default = [], doc = "The long description, a row per line." }
+
+[weapon]
+base = "item"
+category = 2
+doc = "A weapon (ids 0x80..0x9F, its weapon index + 0x7F): the panel's header is its stat sheet, its list the rounds and modes it fires."
+
+[weapon.fields]
+weapon_class = { type = "int", default = 0, doc = "The classification's low nibble. No code reads it, in any release; its values group the weapons by kind: 1 M93R, P08, P229; 2 M950, Mongoose; 3 MP5A5, M249; 4 Grenade Pistol, MM1, Hypervelocity; 5 PA3, SP12, AS12; 6 the M4A1 family; 7 Tonfa Baton; 0 Gunblade." }
+stats = { type = "list", of = "stat", default = [], doc = "The sheet's rows: CALIBER or GAUGE, CAPACITY, WEIGHT, RANGE, RATE; a row with no label is blank (the Tonfa Baton's first two)." }
+fires = { type = "lines", default = [], doc = "The list's lines: the rounds it loads and how it fires them." }
+list_offset = { type = "int", default = 4, doc = "Blank rows of the list above them." }
+
+[stat]
+doc = "One row of a weapon's sheet: its label in small type, its value at x = 72 (\\B9)."
+
+[stat.fields]
+label = { type = "text", default = "", doc = "CALIBER, GAUGE, CAPACITY, WEIGHT, RANGE or RATE; none for a blank row." }
+value = { type = "text", default = "", doc = "As shown, markup included (\"32rounds\", \"90\\Cwrounds\")." }
+
+[item_catalog]
+doc = "Every item by id: gameplay's descriptor tables, gItemDescriptors (ids 0x00..0xBF) and gItemKeyDescriptors (0x100..0x17F), and the empty catalog text of the rows without an item. The build writes the tables and every item's catalog text from it, as one include (c_source)."
+outputs = ["items", "key_items", "empty", "junk"]
+reads_instances = true
+
+[item_catalog.fields]
+items = { type = "table", default = {}, doc = "Ids 0x01..0x0E and 0x33..0x5F, items used or attached: id (\"0x01\") to its item. An id not listed is an empty row." }
+parasite_energy = { type = "table", default = {}, doc = "Ids 0x0F..0x32, the Parasite Energies' rows, three levels each." }
+armor = { type = "table", default = {}, doc = "Ids 0x60..0x7F." }
+weapons = { type = "table", default = {}, doc = "Ids 0x80..0x9F, a weapon's index + 0x7F." }
+ammunition = { type = "table", default = {}, doc = "Ids 0xA0..0xBF." }
+junk = { type = "list", of = "int", default = [], doc = "The last bytes of the catalog object's .rodata, after its last text: junk, a different value in every release (0x97 US, 0xDF Europe, 0xA6 Japan) where every other alignment gap is zero, as a converter writing the object from an uncleared buffer would leave." }
+key_items = { type = "table", default = {}, doc = "Ids 0x100..0x17F, gItemKeyDescriptors. In any section an id whose item had no group could hold its row inline, { price, classification, flags, text }, the text by its symbol; none does." }

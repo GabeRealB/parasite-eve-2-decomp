@@ -1,0 +1,42 @@
+# The assets of the group items/javelin, each named items/javelin/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "6fb5c5512e702c77c7557874cd94eda1b9577f2e"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "74fed375dbd1431fcc31509d91861d134d7df804"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "effect_item"
+
+[text]
+type = "txt"
+sha1 = "ad4d4122d79570df8ead621d915b0d92338506ac"
+
+[catalog]
+type = "txt"
+sha1 = "667e2df4a05f3400e0860fa3fdceb9a047a2d69a"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "03fcc5b7568cddad9251c54361ca3209adda46c4"

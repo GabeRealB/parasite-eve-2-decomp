@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""List source experiments from the same compiler algorithm catalogue as diagnosis."""
+"""List source experiments from the same compiler algorithm catalog as diagnosis."""
 import argparse
 from dataclasses import replace
 import json

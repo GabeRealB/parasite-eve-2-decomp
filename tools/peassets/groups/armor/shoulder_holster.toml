@@ -1,0 +1,42 @@
+# The assets of the group armor/shoulder_holster, each named armor/shoulder_holster/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "picture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "66b3635cf709d125bf175487436c1d681b9ed48b"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "picture", region = "engine/vram/preview_picture" }]
+sha1 = "44de01694d2a8fd3a9e9ef01a9aceb77f4212447"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "armor"
+
+[text]
+type = "txt"
+sha1 = "db4b5e54ea71c399a8f022b8e7fc5e8373ad7c2f"
+
+[catalog]
+type = "txt"
+sha1 = "9ca04d1085893235194867e0b5e50992d81f0562"
+
+[picture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "8def6eb7885cf9047813fd5465c445078e24db43"

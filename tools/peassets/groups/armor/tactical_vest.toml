@@ -1,0 +1,42 @@
+# The assets of the group armor/tactical_vest, each named armor/tactical_vest/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "picture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "ef2a0be1d4ae9cd3751835d4dbe798f9b38bb24a"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "picture", region = "engine/vram/preview_picture" }]
+sha1 = "89c075c384d735f92df0eb5c5651d4b10ca6a76e"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "armor"
+
+[text]
+type = "txt"
+sha1 = "bbfb38f7714fd7f56da3832e41bda5e2831cf175"
+
+[catalog]
+type = "txt"
+sha1 = "9a36f140b5413310eea7803abe1f76ae12bd8167"
+
+[picture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "166274b216031b5c47fb6cb7f12119c7eb422582"

@@ -409,7 +409,7 @@ void itemMenuAttachmentItemPickerTask(Task* task)
     }
 }
 
-/// Returns the one-based P.E. preview file index for a packed catalogue id.
+/// Returns the one-based P.E. preview file index for a packed catalog id.
 ///
 /// The caller supplies ids 0x300..0x4FF. Bits 4..5 select the element,
 /// bits 2..3 the energy slot, and bits 0..1 the learned level. Higher bits

@@ -48,7 +48,7 @@ enum {
     SHOP_CATEGORY_COUNT                = 4
 };
 
-/// Catalogue groups and individual accessories used to partition unlocked stock.
+/// Catalog groups and individual accessories used to partition unlocked stock.
 enum {
     SHOP_PE_ITEM_FIRST             = 0xF,
     SHOP_PE_ABILITY_COUNT          = 12,
@@ -113,7 +113,7 @@ STATIC_ASSERT_SIZEOF(_ShopItemListWork, 0xA4);
 
 static void _shopDrawItemRow(UiList* list, UiObject* object);
 
-/// Borrows a consumable's pack quantity and per-stack capacity from the catalogue.
+/// Borrows a consumable's pack quantity and per-stack capacity from the catalog.
 ///
 /// `consumableItemId` must be 0xA0..0xBF; no bounds check is performed.
 /// Both quantities count item units. The read-only row remains valid while
@@ -332,10 +332,10 @@ static const u16* _shopSelectStockList(s32 stockSelector)
 /// Borrows the owner's live item-list work and the current row in 0..itemCount-1;
 /// current stock/unlock combinations offer at most 33 of its 64 row slots.
 /// An active row publishes its row id for purchase. Recharge is unavailable
-/// without carried weapon supply; catalogue items are dimmed at their ownership
+/// without carried weapon supply; catalog items are dimmed at their ownership
 /// limit. Confirm opens the appropriate purchase panel; Triangle opens details.
-/// Requires loaded item text/catalogue and frame GPU storage. Dialog tasks own
-/// their storage; allocation failure leaves catalogue-row input active.
+/// Requires loaded item text/catalog and frame GPU storage. Dialog tasks own
+/// their storage; allocation failure leaves catalog-row input active.
 static void _shopDrawItemRow(UiList* list, UiObject* object)
 {
     enum {
@@ -393,7 +393,7 @@ static void _shopDrawItemRow(UiList* list, UiObject* object)
     }
 
     // No current stock, tier or PE unlock produces 0xFFFC; its role is unproven.
-    // Retain the dormant purchase path, including its out-of-catalogue payload.
+    // Retain the dormant purchase path, including its out-of-catalog payload.
     if (rowId == 0xFFFC) {
         panelControl = object->panel.control.word;
         if (((panelControl >> SHOP_ROW_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (panelControl == USER_INTERFACE_PANEL_ACTIVE)) {
@@ -456,12 +456,12 @@ static void _shopDrawItemRow(UiList* list, UiObject* object)
 /// Appends an offered row or upgrades the first lower PE level of its ability.
 ///
 /// `list` must be the list in the owning task's `_ShopItemListWork`; `rowId`
-/// is a catalogue id or `SHOP_ROW_RECHARGE_SERVICE`. Exact duplicates return
+/// is a catalog id or `SHOP_ROW_RECHARGE_SERVICE`. Exact duplicates return
 /// immediately. A higher PE level replaces the first lower level, but a lower
 /// level arriving after a higher one can append a second row of that ability.
 /// M.I.S.T. excludes the MP5A5 variants, Grenade Pistol and Tactical Vest only
 /// while scanning an existing row, so an empty list bypasses that exclusion.
-/// Newly appended catalogue items are identified. The stock builder proves
+/// Newly appended catalog items are identified. The stock builder proves
 /// at most 33 rows; callers must leave space in the 64-row allocation.
 static void _shopAppendItemRow(UiList* list, UiObject* object, s32 rowId)
 {
@@ -496,7 +496,7 @@ static void _shopAppendItemRow(UiList* list, UiObject* object, s32 rowId)
     list->itemCount++;
 }
 
-/// Sorts offered row ids by ascending inventory catalogue key.
+/// Sorts offered row ids by ascending inventory catalog key.
 ///
 /// Borrows the work's writable row ids and read-only list metadata; itemCount
 /// must be in 0..`ARRAY_SIZE(work->rowIds)`. Empty and singleton lists need no
@@ -1184,7 +1184,7 @@ static void _shopItemPreviewTask(Task* task)
 ///
 /// `spawnArg1` is an affordable item id from a validated purchase row;
 /// `spawnArg2.pointer` borrows this task's UI object. `extraState.value` holds
-/// the selected pack count, starting at one. The catalogue price must be
+/// the selected pack count, starting at one. The catalog price must be
 /// positive. Consumable capacity limits packs
 /// with upward rounding, allowing the last pack's inventory clamp; other items
 /// use free carried rows. BP affordability further caps the count. Active

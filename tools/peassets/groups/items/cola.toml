@@ -1,0 +1,42 @@
+# The assets of the group items/cola, each named items/cola/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "e3074b0b71f506dee748bb54999864cee7080b17"
+
+[[file.contents]]
+chunk = "image"
+pages = [{ texture = "texture", region = "engine/vram/preview_picture" }]
+sha1 = "c55e071a8b13dfba8d156699ad78dc9f5e5e2206"
+
+[[file.contents]]
+chunk = "text"
+
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "text", descriptor = "descriptor" }
+shape = "effect_item"
+
+[text]
+type = "txt"
+sha1 = "384d4bb16ac4e6c313a5ec959ad40996cfc52f24"
+
+[catalog]
+type = "txt"
+sha1 = "1fd538e404c7b162cf4463c41e2173153afeca96"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "b802484975e09dc0872a85e75c1642492d33868e"

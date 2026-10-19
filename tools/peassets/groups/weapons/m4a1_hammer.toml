@@ -26,6 +26,11 @@ chunk = "sounds"
 [[file.contents]]
 chunk = "package"
 
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "preview_text", descriptor = "descriptor" }
+shape = "weapon"
+
 [model]
 type = "model"
 slots = ["body"]
@@ -46,6 +51,10 @@ sha1 = "f48a2254b6d2639d5c048528f729bf6eeb61035b"
 type = "binding"
 model = "weapons/m4a1_hammer/model"
 textures = { body = "weapons/m4a1_hammer/texture.default" }
+
+[catalog]
+type = "txt"
+sha1 = "dc3790d15c873740427e400f7ffa9675119f1864"
 
 [package]
 type = "pe2pkg"
@@ -94,6 +103,13 @@ package_name = "m4a1_hammer"
 required = true
 sha1 = "f8dd7cec7813029d73970a9aac0b3ee2e696e973"
 
+[preview]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
 [texture]
 type = "texture"
 bpp = 4
@@ -104,6 +120,30 @@ width = 256
 [discharge]
 type = "clip"
 rig = "characters/aya/rig"
+
+[descriptor]
+type = "item_descriptor"
+sha1 = "22104d232821e22ffe8790c570dbaff4887d82e9"
+
+[preview_file]
+type = "file"
+
+[[preview_file.contents]]
+chunk = "preview_palette"
+palettes = [{ texture = "preview", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "8531057094e1e843da85414a6b9d59d4d9ca82c4"
+
+[[preview_file.contents]]
+chunk = "preview_image"
+pages = [{ texture = "preview", region = "engine/vram/preview_picture" }]
+sha1 = "0eea66c0faa0c6e2e98ea2d38f052d9a87c9adad"
+
+[[preview_file.contents]]
+chunk = "preview_text"
+
+[preview_text]
+type = "txt"
+sha1 = "4f06b71048452d259e7999ba2f602e91ff168ed6"
 
 [discharge_sound]
 type = "sound"

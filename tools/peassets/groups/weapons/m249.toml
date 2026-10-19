@@ -40,6 +40,11 @@ chunk = "package"
 type = "clip"
 rig = "characters/aya/rig"
 
+[item]
+type = "shaped"
+outputs = { catalog = "catalog", info = "preview_text", descriptor = "descriptor" }
+shape = "weapon"
+
 [shot]
 type = "sound"
 sha1 = "ba9f20dc729f82768e92f13a6541c02d4fbbf49e"
@@ -63,6 +68,10 @@ sha1 = "69db28d3f6f3779e5bf12ff6bede0698adbfb473"
 type = "binding"
 model = "weapons/m249/model"
 textures = { body = "weapons/m249/texture.default" }
+
+[catalog]
+type = "txt"
+sha1 = "98a79dcae6236b417b35b736d040987633164c5d"
 
 [package]
 type = "pe2pkg"
@@ -110,6 +119,13 @@ package_name = "m249"
 required = true
 sha1 = "c788e1e43559479fffb7f6baa850fde9b0389855"
 
+[preview]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128
+
 [texture]
 type = "texture"
 bpp = 4
@@ -129,9 +145,33 @@ rig = "characters/aya/rig"
 type = "clip"
 rig = "characters/aya/rig"
 
+[descriptor]
+type = "item_descriptor"
+sha1 = "6a19766d49ceeb56f4fd62cf94cd668fca70910e"
+
 [aim_backward]
 type = "clip"
 rig = "characters/aya/rig"
+
+[preview_file]
+type = "file"
+
+[[preview_file.contents]]
+chunk = "preview_palette"
+palettes = [{ texture = "preview", variant = "default", region = "engine/vram/preview_palette" }]
+sha1 = "06722861dd90795bd90e1f183b22a8fb5f365807"
+
+[[preview_file.contents]]
+chunk = "preview_image"
+pages = [{ texture = "preview", region = "engine/vram/preview_picture" }]
+sha1 = "a535d06cb3090389ade20ff71535aaeebd1bb0e4"
+
+[[preview_file.contents]]
+chunk = "preview_text"
+
+[preview_text]
+type = "txt"
+sha1 = "98dae0485315b86039633a9f667f0dbe7c23907a"
 
 [reload_start]
 type = "sound"

@@ -19,7 +19,7 @@ assets of their own:
     ]
 
 A page or palette is placed by naming a VRAM region (a `vram_region`: a rectangle of VRAM, groups/engine/vram.toml),
-plus an `offset` in it where the region is larger than what is placed. An image chunk's entry may also state `slots`, where its page table has room for more pages than it holds, a page
+plus an `offset` in it where the region is larger than what is placed; a region may be `within` another, as part of it. An image chunk's entry may also state `slots`, where its page table has room for more pages than it holds, a page
 `truncated = true`, where its last strip stores one byte less, and any chunk its `sector_len`, where the file gives
 it less than the whole 0x800-byte sector (chunks.py says what each means).
 
