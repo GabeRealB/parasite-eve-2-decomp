@@ -1571,6 +1571,59 @@ read row by row, with `names` or numbered, or named `[x, y, w, h]`
 rectangles in the texture's texels. They are layout only; the bytes and the
 PNGs do not change.
 
+A font is a `font` record: one face of a texture and the glyph table in an
+executable that lays it out. It names the `texture`, the embedded `table`, its
+record `layout` (`font_glyph`, the 12-byte `_FontGlyph`, or `glyph_cell`, the
+4-byte `TextGlyphCell`), the code of its first record (`first`), the rows the
+face is shifted by on the page (`v`, the code's `TEXT_GLYPH_V_BIAS_*`), the
+pixels kerning tightens a pair by (`kerning`, 1 for the small face), its text
+`encoding` and the `family` and `style` it is named by. The UI font is the
+faces `ui/font/small`, `medium` and `large`; the load-screen caption font is
+`ui/caption_font/face`. The texture's cells come from its fonts: each record
+is the cell `<face>_<code>`, one of no size none.
+
+A font is decoded to UFO 3 (`ui/font/medium.ufo`), which encodes back to the
+table's exact bytes and is what the build's include is generated from
+(`tools/buildsteps/gen_font_inc.py`). Each record is a glyph named for its
+character in the font's encoding (`text_encoding.py`: Windows-1252 with the
+controller's buttons at 0x7B-0x7E for the UI font; an index per glyph for the
+caption font), its code and cell in the glyph's lib. What UFO states natively
+is the source of the rest: the advance width is the pen's advance
+(`xOffset + widthMinusOne + advanceExtraX`), the image's offset
+`(xOffset, -yOffset)` places the glyph where the code draws it, and the
+kerning groups are the classes (`public.kern1.*` by right class,
+`public.kern2.*` by left), with `kerning.plist` the pairs they tighten. The
+images are the glyphs' cells cut from the texture's first variant, there to
+show the face in a font editor; they are never read back, as the texture's
+PNGs are the pixels. `python3 tools/peassets/font decode|check` writes the
+UFOs and compares their bytes with the tables.
+
+The small face draws lowercase as small caps: its `a`-`z` records point at
+its capitals. Seventeen records point at fragments of other glyphs or empty
+space - small `" # ' + - : ; < > @ _`, medium `$ * ; < > @` - leftovers for
+characters no text uses; their glyphs keep them. Every release has the same
+small face and caption table, and Europe the same medium and large; Japan's
+medium and large are 91 records (0x20-0x7A), the Western releases adding the
+133 accented and symbol records after them, real glyphs for `#` and `%`
+(strays in Japan) and parenthesis aliases for `[` and `]`. The texture check
+verifies every cell lies inside its texture. The extraction writes the cells
+of a texture outside any atlas to `<texture>.cells.toml` where they are
+stated by hand; a font's texture has none, its cells being in the UFO's
+glyphs.
+
+The dialogue's font has no page: each dialogue packs the glyphs it uses into
+an atlas of its own (`font_atlas`, doc/CAP_FORMAT.md §9), so its two `font`
+records state `layout = "images"` and their UFOs (`dialogue/font.ufo`,
+`dialogue/speakers.ufo`) are the pixels too, read back by the CAP encoder.
+
+The page stays the pixel source because it is a drawn sheet the cells were
+measured onto, not glyphs packed by a tool: around them it is index 5, the
+transparent padding, but for zero rows between the faces (33-37, 126-127),
+and 63 texels of strokes run up to two pixels past a cell, which the game
+never draws. A glyph whose cell cuts strokes off says so in its UFO note
+(`font/declared.py`, `clipped`): large `3 8 y Œ œ`, medium `3 8 C G &`,
+small `?`.
+
 The extraction writes each atlas's layout beside its sprites' PNGs
 (`ui/sheet/atlas.toml`: each sprite's texture, position, depth, size,
 variants and cells), so the decoded folder describes its page; the asset table's

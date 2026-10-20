@@ -592,7 +592,7 @@ def validate_asset_db() -> None:
         _check_asset_name(aid, key=f"ASSETS[{aid!r}]")
         if not isinstance(rec, dict):
             raise ValueError(f"ASSETS[{aid!r}] must be a dict")
-        if rec.get("type") in ("binding", "texture", "file", "atlas", "vram_region", "rig", "clip", "animation_schema",
+        if rec.get("type") in ("binding", "texture", "file", "atlas", "font", "vram_region", "rig", "clip", "animation_schema",
                                "animation_bank", "shaped"):     # declared, no hash of its own (asset_schema.DECLARED_TYPES)
             continue
         sha1 = rec.get("sha1")

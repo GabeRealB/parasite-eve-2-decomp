@@ -716,6 +716,10 @@ class AssetStore:
         # (one the Parasite Energies' files hold too) is still decoded where it is.
         shaped_outputs = {out for rec in ASSETS.values() if rec.get("type") == "shaped"
                           for out in rec["outputs"].values() if (ASSETS.get(out) or {}).get("group")}
+        # A font's glyph table is decoded as its UFO, and a palette a texture takes as `palettes_from` as the
+        # texture's variants; neither keeps a copy of its bytes beside them.
+        shaped_outputs |= {rec["table"] for rec in ASSETS.values() if rec.get("type") == "font" and "table" in rec}
+        shaped_outputs |= {rec["palettes_from"] for rec in ASSETS.values() if "palettes_from" in rec}
         work: list[dict] = []
         for stem, raw_rel in sorted(self._names.items(), key=lambda kv: asset_name_key(kv[0])):
             type_dir, _raw_stem, ext = self._unique_raw[raw_rel]
@@ -1447,13 +1451,22 @@ def main():
     decode_declared(output_path)
 
     write_pack_manifests(args, output_path, store, rom_root)
+    decode_dialogues()
 
     logging.info("All done!")
 
 
+def decode_dialogues() -> None:
+    """Each dialogue's named form and the dialogue font (cap_decode.py), from the dialogues and their atlases. After
+    the pack manifests: a dialogue with no atlas of its own is looked for in its folder, which stages.json names."""
+    import cap_decode
+    written, failed = cap_decode.decode_all()
+    logging.info("Dialogues: %d decoded, %d with no atlas on the disc to decode against", written, failed)
+
+
 def decode_declared(assets_root: Path) -> None:
     """Decode what the asset table fully declares: each file's textures, as indexed PNGs, and each atlas's layout
-    (texture/), each
+    (texture/), each font as UFO (font/), each
     rig (derived from its models), each model with its slots and bindings, and each clip, as USD (model/,
     animation/), each sound bank as SFZ and its own text with its sounds as WAVs (sound/), and each shaped asset
     as its instance (shape/). The rest stays raw until it is declared."""
@@ -1467,6 +1480,9 @@ def decode_declared(assets_root: Path) -> None:
         files.decode_file(name, ASSETS, assets_root)
     for name in files.declared_atlases(ASSETS):
         files.decode_atlas(name, ASSETS, assets_root)
+    from font import declared as fonts
+    for name in fonts.declared(ASSETS):                 # after the textures, whose PNGs its images are cut from
+        fonts.decode(name, ASSETS, EMBEDDED_ASSETS, assets_root)
     for name in declared.rigs(ASSETS):               # before the models and clips that reference them
         declared.decode_rig(name, ASSETS, EMBEDDED_ASSETS, assets_root)
     for name in declared.declared(ASSETS):

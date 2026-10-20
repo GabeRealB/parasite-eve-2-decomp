@@ -1,6 +1,15 @@
 # The assets of the group ui/caption_font, each named ui/caption_font/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
+[face]
+type = "font"
+encoding = "caption"
+family = "Parasite Eve II Caption"
+layout = "glyph_cell"
+style = "Regular"
+table = "ui/caption_font/glyphs"
+texture = "ui/caption_font/texture"
+
 [file]
 type = "file"
 

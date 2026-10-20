@@ -87,12 +87,34 @@ def bundle_of(name: str) -> str:
 
 def atlas_of(name: str) -> Path | None:
     """The decoded image of a dialogue's glyph atlas: the font_atlas the asset table says it generates."""
+    found = _atlas_page(name)
+    return found[0] if found else None
+
+
+def atlas_column(name: str) -> int:
+    """Which page of its atlas image a dialogue's is: one image can hold the pages of several dialogues side by side
+    (the shooting gallery's, uploaded at (704, 0) and (768, 0)), `generated_by` naming them in page order."""
+    found = _atlas_page(name)
+    return found[1] if found else 0
+
+
+def _atlas_page(name: str) -> tuple[Path, int] | None:
     import asset_data
     import asset_schema
     for key, rec in asset_data.ASSETS.items():
-        if rec.get("type") == "font_atlas" and rec.get("generated_by") == name:
-            return ASSETS / asset_schema.decoded_rel(key, rec)
+        by = rec.get("generated_by")
+        if rec.get("type") == "font_atlas" and name in (by if isinstance(by, list) else [by]):
+            return ASSETS / asset_schema.decoded_rel(key, rec), (by.index(name) if isinstance(by, list) else 0)
     return None
+
+
+ATLAS_PAGE = 256                                  # texels: one 4-bit texture page, a dialogue's atlas
+
+
+def open_atlas(path: Path, column: int = 0) -> Image.Image:
+    """A dialogue's atlas page, as 4-bit values on a grey ramp: its column of the image."""
+    img = Image.open(path).convert("L")
+    return img.crop((column * ATLAS_PAGE, 0, (column + 1) * ATLAS_PAGE, img.height)) if column or img.width > ATLAS_PAGE else img
 
 
 def cap_bytes(name: str) -> bytes:
@@ -181,15 +203,16 @@ class Payload:
     that came out as the same character ("duplicate")."""
 
     def __init__(self, cap: bytes, folder: dict, table: dict[str, list[str]], chosen: dict[int, str] | None = None,
-                 atlas: Path | None = None):
+                 atlas: Path | None = None, column: int = 0):
         self.cap, self.table = cap, table
         self.glyphs = struct.unpack_from("<I", cap, 8)[0]
         self.streams = streams(cap)
         used = sorted({c & 0x3FF for _, _, codes in self.streams for c in codes if c < 0x8000})
         best = None
         # The table names a dialogue's atlas; one it does not is looked for among the folder's 4-bit images.
+        self.column = column
         for path in [atlas] if atlas else atlases(folder):
-            img = Image.open(path).convert("L")
+            img = open_atlas(path, column if atlas else 0)
             hashes = {i: glyph_hash(img, self.cell(i)) for i in used}
             known = sum(1 for h in hashes.values() if h in table)
             if best is None or known > best[0]:
@@ -214,8 +237,29 @@ class Payload:
                     raise SystemExit(f"glyph override for cell {i}: {chosen[i]!r} is not one of {names}")
                 self.chars[i] = chosen[i]
             else:
-                self.chars[i] = self._guess(i, names)
-                self.notes.append({"cell": i, "kind": "ambiguous", "candidates": names, "guessed": self.chars[i]})
+                self.chars[i] = None                    # guessed once every settled cell is known (its neighbors)
+                self.notes.append({"cell": i, "kind": "ambiguous", "candidates": names, "guessed": None})
+        for note in self.notes:
+            if note["kind"] == "ambiguous":
+                note["guessed"] = self.chars[note["cell"]] = self._guess(note["cell"], note["candidates"])
+        # Cells sharing a picture several characters share are those characters, one each: a dialogue gives each
+        # character its own cell. Unsettled ones take what the settled ones leave, the cell whose uses read most as
+        # a capital (I against l: _capital_votes) taking it.
+        by_hash: dict[str, list[int]] = {}
+        for i, h in self.hashes.items():
+            if h and len(table.get(h) or []) > 1:
+                by_hash.setdefault(h, []).append(i)
+        for h, cells in by_hash.items():
+            if len(cells) < 2:
+                continue
+            left = [n for n in table[h] if n not in {self.chars[i] for i in cells if i in chosen}]
+            free = sorted((i for i in cells if i not in chosen),
+                          key=lambda i: -(self._capital_votes(i) if set(table[h]) == {"I", "l"} else self._starts_words(i)))
+            for i, char in zip(free, sorted(left, key=lambda n: not n.isupper())):
+                self.chars[i] = char
+                for note in self.notes:
+                    if note["cell"] == i and note["kind"] == "ambiguous":
+                        note["guessed"] = char
         seen: dict[str, int] = {}
         for i in sorted(self.chars):
             char = self.chars[i]
@@ -227,7 +271,48 @@ class Payload:
     def cell(self, index: int) -> tuple[int, int, int, int]:
         return struct.unpack_from("<4B", self.cap, self.glyphs + 4 * index)
 
+    def _starts_words(self, cell: int) -> float:
+        """The share of a cell's uses that begin a word (after a space or a line's start)."""
+        uses = starts = 0
+        for _, _, codes in self.streams:
+            for n, code in enumerate(codes):
+                if code < 0x8000 and code & 0x3FF == cell:
+                    uses += 1
+                    before = codes[n - 1] if n else None
+                    starts += before is None or before >= 0x8000 or self.hashes.get(before & 0x3FF) in (None, "space")
+        return starts / uses if uses else 0.0
+
+    def _neighbors(self, cell: int):
+        """(character before, character after) of each use of a cell; None at a word's edge."""
+        for _, _, codes in self.streams:
+            for n, code in enumerate(codes):
+                if code < 0x8000 and code & 0x3FF == cell:
+                    def char(k):
+                        if not 0 <= k < len(codes) or codes[k] >= 0x8000:
+                            return None
+                        c = self.chars.get(codes[k] & 0x3FF)
+                        return None if c is None or c == " " else c
+                    yield char(n - 1), char(n + 1)
+
+    def _capital_votes(self, cell: int) -> int:
+        """How strongly a cell's uses read as a capital I rather than a lowercase l: a lowercase letter before it
+        makes it l, capitals beside it I, standing alone or before an apostrophe I; at a word's start, a vowel after
+        it makes it l (lever, lock), a consonant I (In, It, Ice)."""
+        votes = 0
+        for before, after in self._neighbors(cell):
+            if before is not None and before.isalpha():
+                votes += 3 if before.isupper() and (after is None or not after.isalpha() or after.isupper()) else -3
+            elif after is None or after == "'":
+                votes += 3
+            elif after.isalpha() and after.isupper():
+                votes += 3
+            elif after.isalpha():
+                votes += -1 if after.lower() in "aeiouy" else 1
+        return votes
+
     def _guess(self, cell: int, names: list[str]) -> str:
+        if set(names) == {"I", "l"}:
+            return "I" if self._capital_votes(cell) > 0 else "l"
         """Without an override: an upper-case candidate when every use of the cell begins a word."""
         upper = [n for n in names if n.isupper()]
         if upper:
@@ -264,7 +349,8 @@ class Payload:
 def payloads(key: str) -> list[tuple[str, Payload]]:
     """(name, payload) of a dialogue, or of every dialogue in a bundle."""
     table = glyph_table()
-    return [(name, Payload(cap_bytes(name), folder_of(name), table, overrides(name), atlas_of(name))) for name in dialogues(key)]
+    return [(name, Payload(cap_bytes(name), folder_of(name), table, overrides(name), atlas_of(name), atlas_column(name)))
+            for name in dialogues(key)]
 
 
 def main(argv: list[str]) -> int:

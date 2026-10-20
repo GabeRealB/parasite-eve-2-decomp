@@ -1,6 +1,41 @@
 # The assets of the group ui/font, each named ui/font/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
+[large]
+type = "font"
+encoding = "ui"
+family = "Parasite Eve II UI"
+first = 32
+kerning = 2
+layout = "font_glyph"
+style = "Large"
+table = "ui/font/large_glyphs"
+texture = "ui/font/texture"
+v = 128
+
+[small]
+type = "font"
+encoding = "ui"
+family = "Parasite Eve II UI"
+first = 32
+kerning = 1
+layout = "font_glyph"
+style = "Small"
+table = "ui/font/small_glyphs"
+texture = "ui/font/texture"
+
+[medium]
+type = "font"
+encoding = "ui"
+family = "Parasite Eve II UI"
+first = 32
+kerning = 2
+layout = "font_glyph"
+style = "Medium"
+table = "ui/font/medium_glyphs"
+texture = "ui/font/texture"
+v = 38
+
 [texture]
 type = "texture"
 bpp = 4

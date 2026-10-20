@@ -845,7 +845,7 @@ bs_980	View backgrounds of mine_mesa (10 of 11 files): walked views 2, 4, 5 and 
 bs_982	No reached use found: background of mine_mesa view 3, an ordinary camera with 39 sprites and its own palette that none of the nine checked paths selects.	
 bs_991..bs_1015	View backgrounds 1-25 of mine_cavern over three room indices (later ones swap views 2/3, 5/25 and 23/24): walked views plus intro, second-stage and closing script cuts.	
 burner_body	15-part body of the Burner boss (actor_403100), spawned at room entry in variant 2; it runs the balcony scene, the fight and the defeat, in which it rises and burns away.	
-caption_glyphs	Glyph cell rectangles (font metrics embedded in main) that mist_r18's intro script uses to lay out the date-and-place caption in view 2; the pixels are the room's own image.	
+ui/caption_font/glyphs	Glyph cell rectangles (font metrics embedded in main) that mist_r18's intro script uses to lay out the date-and-place caption in view 2; the pixels are the room's own image.	
 caterpillar_maggot_body	8-part body shared by the Maggot and Caterpillar enemies in Akropolis, Neo Ark and Shelter rooms; hidden until the room releases scripted entrances, and squashed and burned on death.	
 caterpillar_maggot_burst_head	One-part model flung by gameplay's burst-body-part effect in place of the hidden body when a Maggot or Caterpillar dies from a burst hit.	Named 'burst head', but the code calls this model the husk and flings it as the replacement for the whole hidden body, not as a head.
 creeping_stranger_body	7-part body of the Creeping Stranger enemy placed in Shelter B2/B4 rooms; once headless it is squashed and burned away, or hidden at once after a shattering hit.	
@@ -3039,7 +3039,7 @@ shelter_b1_access_tunnel_dialogue_0_atlas	4-bit glyph atlas of the shelter B1 ac
 pe2img_1045	8-bit sheet of the 22 depth-sorted room sprites (occluders) of mapped view 2 of the shelter B1 access tunnel.	
 pe2img_1046	Three-page 8-bit sheet of the 74 depth-sorted room sprites (occluders) of mapped view 3 of the shelter B1 access tunnel.	
 pe2img_1047	Two-page 8-bit sheet of the 31 depth-sorted room sprites (occluders) of mapped view 4 of the shelter B1 access tunnel.	
-pe2img_1048	4-bit glyph atlas of the shelter B1 underground parking's default dialogue, drawn by gameplay's captions from page (384,0).	
+shelter_b1_underground_parking_dialogue_0_atlas	4-bit glyph atlas of the shelter B1 underground parking's default dialogue, drawn by gameplay's captions from page (384,0).	
 shelter_b1_underground_parking_dialogue_2_atlas	4-bit glyph atlas of the shelter B1 underground parking's alternate dialogue file, drawn from page (768,0) by several room commands.	
 items/smg_clip_holder/image	8-bit preview picture of the SMG Clip Holder item, shown by gameplay's item menu when that item is the selected row.	
 pe2img_1050	8-bit sheet of the 13 depth-sorted room sprites (occluders) shared by mapped views 3, 7 and 11 of the shelter B1 underground parking.	
@@ -3606,7 +3606,7 @@ pe2img_248	Two-page 8-bit texture of Gary Douglas: his body and head-and-hat mod
 pe2img_249	Two-page 8-bit texture of Kyle Madigan: his body and hand models as scene actor in many rooms and as the companion (kyle_80010x files).	
 weapons/m4a1_hammer/image	4-bit texture of the M4A1 Hammer weapon model, loaded with the equipped weapon's resources and drawn whenever the model is.	
 pe2img_250	Two-page 8-bit texture of Aya Brea's body as worn by her doubles and scene walkers, by the pod-bottom boss (eve_body) and its double, and by the type-3 companion.	
-pe2img_251	4-bit glyph atlas of the dialogue file of actor_136300's first-visit captioned scene in the Dryfield night garage.	
+dryfield_night_garage_dialogue_1_atlas	4-bit glyph atlas of the dialogue file of actor_136300's first-visit captioned scene in the Dryfield night garage.	
 pe2img_252	8-bit texture of the two area-object models in the mine forked tunnel (weathered metal panels and a spoked wheel); the copies in files 140400 and 640400 have no use found.	
 pe2img_253	Two-page 8-bit texture of the Aya Brea double's body in the shelter B1 pod access tunnel entry scene; its eye and mouth patches are overwritten by embedded images on a caption message.	
 pe2img_254	8-bit texture of which a 64x16 corner is read by the flight model of actor_141000 in the shelter B1 pod access tunnel entry scene.	
@@ -3621,9 +3621,9 @@ pe2img_261	Two-page 8-bit texture of the woman's body (anmc_woman_cafeteria_body
 pe2img_262	Two-page 8-bit texture of the Sea Diver's body (actor_206100) in the Neo Ark submarine gallery.	
 pe2img_263	Two-page 8-bit texture of Eric Baldwin's body, his three-part model and right hand (actor_213000).	
 pe2img_264	Two-page 8-bit texture of Jodie Bouquet's body (jodie_bouquet_body_1) in the MIST parking room.	
-pe2img_265	4-bit caption glyph page at (832,0) carried by actor_260400 and used for the conversations in the shelter 1F heliport variant 2.	
+shelter_1f_heliport_dialogue_1_atlas	4-bit caption glyph page at (832,0) carried by actor_260400 and used for the conversations in the shelter 1F heliport variant 2.	
 pe2img_266	Two-page 8-bit texture of Jodie Bouquet's second body (jodie_bouquet_body_2) in actor_260500.	
-pe2img_267	4-bit caption glyph page at (832,0) carried by actor_260500 and used for the conversations in the shelter 1F heliport variant 1.	
+shelter_1f_heliport_dialogue_2_atlas	4-bit caption glyph page at (832,0) carried by actor_260500 and used for the conversations in the shelter 1F heliport variant 1.	
 pe2img_268	Two-page 8-bit texture of both police officer 1 models in the Acropolis plaza variant 1 (actor_310100).	
 pe2img_269	Two-page 8-bit texture of both police officer 2 models in the Acropolis plaza variant 1 (actor_310100).	
 weapons/m4a1_grenade/image	4-bit texture of the M4A1 Grenade weapon model; the grenade projectile's faces name a rectangle outside this image, which is still open.	
@@ -3850,7 +3850,7 @@ pe2img_469	8-bit sheet (two pages) of the occluder sprites of mist_parking's map
 weapons/m4a1/p2_preview_image	Item preview picture of weapon 0x94, the M4A1 with two attachments, drawn in gameplay's item menu panels when that weapon is selected.	
 pe2img_470	8-bit sheet (two pages) of the occluder sprites of mist_parking's mapped view 19, which is logical view 6 in room indices 1 and 2.	
 mist_shooting_gallery_dialogue_0_atlas	4-bit caption glyph atlas of mist_shooting_gallery's default dialogue file (slot 18), drawn by gameplay's caption code.	
-pe2img_472	Two 4-bit caption glyph pages of mist_shooting_gallery: one for the examine-trigger captions (slot 21), one for actor_215100's conversation captions with Pierce.	
+mist_shooting_gallery_dialogue_3_atlas	Two 4-bit caption glyph pages of mist_shooting_gallery: one for the examine-trigger captions (slot 21), one for actor_215100's conversation captions with Pierce.	
 mist_shooting_gallery_dialogue_2_atlas	4-bit glyph sheet of the shooting gallery's course captions (slot 20), bound by the room and drawn by actor_215100's caption drawer as additive glyphs over an outline.	
 pe2img_474	8-bit sheet of the 13 occluder sprites of mist_shooting_gallery's mapped view 4.	
 pe2img_475	8-bit sheet of the 32 occluder sprites of mist_shooting_gallery's mapped view 5.	
@@ -4218,7 +4218,7 @@ key_items/gasoline/image	Item preview picture of key item 0x118, the Gasoline, d
 pe2img_800	8-bit sheet of the 50 occluder sprites of dryfield_night_motel_lobby's mapped view 2.	
 pe2img_801	8-bit sheet of the 52 occluder sprites of dryfield_night_motel_lobby's mapped view 3.	
 pe2img_802	8-bit sheet of the 71 occluder sprites of dryfield_night_motel_lobby's mapped view 4.	
-pe2img_803	4-bit caption glyph atlas of the early-chapter telephone or cutscene dialogue in the night motel lobby, night motel room 6 and night trailer coach, used at page (896,0).	
+dryfield_night_motel_lobby_dialogue_1_atlas	4-bit caption glyph atlas of the early-chapter telephone or cutscene dialogue in the night motel lobby, night motel room 6 and night trailer coach, used at page (896,0).	
 dryfield_night_motel_lobby_dialogue_2_atlas	4-bit caption glyph atlas of telephone-cutscene dialogue at page (960,0), used by the late-chapter Dryfield night scenes and by telephone scenes in mine_refuge and Shelter rooms.	
 pe2img_805	4-bit digit cells of the cash register's seven-slot display, drawn by dryfield_night_motel_lobby's register task in view 6.	
 pe2img_806	Two-page dryfield_night_saloon_g_r sheet: 4-bit light flare cells for the room's glow task, and an 8-bit page texturing the model Kyle (actor_135600) holds.	
@@ -5290,3 +5290,10 @@ ui/sheet/panel/background	The interior of every framed UI panel (_uiDrawPanelBac
 ui/sheet/menu/arrow_up	The up arrow of the stat comparisons (u 0x30): a rise in the weapon comparison (weapon_stats.c), a fall in the ability parameter bar (_itemMenuDrawAbilityParameterBar); tinted better or worse by the caller.	
 ui/sheet/menu/arrow_down	The down arrow of the stat comparisons (u 0xA0), drawn one pixel higher: a fall in the weapon comparison, a rise in the ability parameter bar; tinted better or worse by the caller.	
 ui/sheet/menu/arrow_none	The stat comparisons' unchanged case (u 0x78): an 8x8 the code draws that holds no texels, so nothing shows.	
+ui/caption_font/glyphs	gTextCaptionGlyphCells (src/main/caption_draw.c): the 70 cells of the caption font, indexed by the glyph-script byte (0x00-0x19 A-Z, 0x1A-0x33 a-z, then digits and punctuation); the caption font texture's cells come from it, and mist_r18 lays its own caption picture out with it too.	
+ui/font/small	The UI font's small face (TEXT_GLYPH_TABLE_SMALL, \sS): 0x20-0x7A, lowercase drawn as small caps; pairs tighten by one pixel. Its ? is drawn clipped; the glyph's UFO note says where.	
+ui/font/medium	The UI font's medium face (TEXT_GLYPH_TABLE_MEDIUM, \sM), 38 rows down the page: 0x20-0xFF, Windows-1252 with the buttons at 0x7B-0x7E. Its 3, 8, C, G and & are drawn clipped, strokes running past their cells; the glyphs' UFO notes say where.	
+ui/font/large	The UI font's large face (every other glyphTable, \sL), 128 rows down the page: 0x20-0xFF, Windows-1252 with the buttons at 0x7B-0x7E. Its 3, 8, y, Œ and œ are drawn clipped, strokes running past their cells; the glyphs' UFO notes say where.	
+ui/caption_font/face	The load-screen caption font, laid out by gTextCaptionGlyphCells: glyph-script indices A-Z, a-z, 1-9, 0, then : ; ' , . ? ! and the space.	
+dialogue/font	The dialogue (CAP) font, a glyph per character: every picture the decodable dialogues show, from which each dialogue's atlas is packed (cap_font.py). Proportional: a glyph advances by its width and stands on the baseline.	
+dialogue/speakers	The speaker name plates of the dialogue boxes, a glyph per plate with the speaker numbers it stands for; ??? stands for every speaker not yet introduced, and speaker 21 has a wide ??? as well.	

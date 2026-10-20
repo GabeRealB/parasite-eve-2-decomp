@@ -25,7 +25,7 @@ static s32 _primDrawTimedDimTile(const RECT* rect, const u8* phase, s16* framesL
 static void _primDrawTile(const PrimDrawParams* draw);
 
 TextGlyphCell gTextCaptionGlyphCells[TEXT_CAPTION_GLYPH_CELL_COUNT] = {
-#include "assets/caption_glyphs.inc"
+#include "assets/ui/caption_font/glyphs.inc"
 };
 STATIC_ASSERT_SIZEOF(gTextCaptionGlyphCells, 0x118);
 

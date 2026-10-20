@@ -25,7 +25,7 @@ zero bytes and false flags are left out. A record's text is written as
 characters (cap_font.py's markup), its speaker by name. Offsets, counts, the
 command index, terminators, the magic and the cell table are not kept: the
 encoder lays them out again, numbers the cells from the text, packs the atlas
-from the shared font (assets/USA/capfont/). `decode` writes nothing unless
+from the dialogue font (assets/USA/dialogue/font.ufo, speakers.ufo). `decode` writes nothing unless
 that rebuild equals the stored dialogue and its extracted atlas exactly. The only flags the layout cannot imply are
 `trailing_empty_text` (an unused empty stream after the last record, in about
 half the retail payloads).
@@ -64,6 +64,16 @@ def plate_table() -> dict[str, str]:
         if line and not line.startswith("#"):
             key, name = line.split("\t")[:2]
             out[key] = name
+    return out
+
+
+def plate_numbers() -> dict[str, list[int]]:
+    """Each plate's speaker numbers, as the plate table states them: fixed, whatever order dialogues decode in."""
+    out = {}
+    for line in PLATES.read_text(encoding="utf-8").splitlines():
+        if line and not line.startswith("#"):
+            fields = line.split("\t")
+            out[fields[1]] = [int(n) for n in fields[2].split(",")] if len(fields) > 2 and fields[2] else []
     return out
 
 
@@ -171,10 +181,12 @@ def recipient_value(name: str) -> int:
 
 
 def speaker_name(number: int, font: cap_font.Font) -> str | int:
-    token = font.speaker(number)
+    """A speaker number by its plate: the plate the dialogue shows for it (`font.chosen`, two plates can stand for
+    one number), `<plate>#<number>` where the plate stands for several numbers."""
+    token = getattr(font, "chosen", {}).get(number) or font.speaker(number)
     if token is None:
         return number
-    return token if font.index["speakers"][token]["numbers"] == [number] else f"{token}#{number}"
+    return token if plate_numbers().get(token, [number]) == [number] else f"{token}#{number}"
 
 
 def speaker_number(name: str | int, font: cap_font.Font) -> int:
@@ -182,7 +194,11 @@ def speaker_number(name: str | int, font: cap_font.Font) -> int:
         return name
     if "#" in name:
         return int(name.rsplit("#", 1)[1])
-    return font.index["speakers"][name]["numbers"][0]
+    return (plate_numbers().get(name) or font.index["speakers"][name]["numbers"])[0]
+
+
+def speaker_token(name: str | int) -> str | None:
+    return None if isinstance(name, int) else name.rsplit("#", 1)[0] if "#" in name else name
 
 
 # What each opcode reads (CapCommand, include/gameplay/cap.h). Bytes an opcode does not read are left over from
@@ -367,12 +383,16 @@ def from_named(cap: dict, font: cap_font.Font) -> dict:
         slots.append({"kind": "record", "fields": [0] * 8, "text": None})
     if cap.get("trailing_empty_text"):
         texts.append("")
+    speakers = {speaker_number(r["speaker"], font): speaker_token(r["speaker"])
+                for command in cap["commands"] if command for r in command["records"]
+                if r.get("speaker") is not None and speaker_token(r["speaker"])}
     return {"magic": "CAP2", "field_4": 8, "sequence_count": sum(s["kind"] == "record" for s in slots), "slot_size": SLOT,
-            "slots": slots, "slot_tail": "", "index": index, "trailing": "", "texts": texts}
+            "slots": slots, "slot_tail": "", "index": index, "trailing": "", "texts": texts, "speakers": speakers,
+            "atlas": cap.get("atlas", {})}
 
 
 def payload_plate(payload: "cap_text.Payload", index: int) -> str | None:
-    img = Image.open(payload.atlas).convert("L") if payload.atlas else None
+    img = cap_text.open_atlas(payload.atlas, payload.column) if payload.atlas else None
     return cap_text.glyph_hash(img, payload.cell(index)) if img else None
 
 
@@ -444,7 +464,11 @@ def build(cap: dict, font: cap_font.Font) -> tuple[bytes, Image.Image]:
 
     Glyph cells are numbered from 25 as the text first uses each character; a
     speaker's cell is its number. The atlas places them in that first-use order,
-    a speaker after the glyphs of the first line shown with it."""
+    a speaker after the glyphs of the first line shown with it. What the rule does
+    not imply is in `atlas`: `placed`, cells the atlas holds somewhere else; `cast`,
+    the cells of speakers no record shows ([x, y, w, h] as stored: the tool laid out
+    a plate for every speaker of a cast its own way, CAP_FORMAT.md §12); and
+    `drawn`, those of them whose plate is on the atlas, by plate."""
     titles = first_titles(cap)
     cells: dict[int, tuple[str, str]] = {}
     glyph_cell: dict[str, int] = {}
@@ -468,52 +492,113 @@ def build(cap: dict, font: cap_font.Font) -> tuple[bytes, Image.Image]:
             codes.append(cell | palette << cap_font.PALETTE_SHIFT | delay << cap_font.DELAY_SHIFT)
         texts.append({"codes": codes})
         number = titles.get(n)
-        speaker = font.speaker(number) if number is not None else None
+        speaker = (cap.get("speakers", {}).get(number) or font.speaker(number)) if number is not None else None
         if speaker is not None and number not in cells:
             cells[number] = ("speakers", speaker)
             order.append(("speakers", speaker))
-    placed = {(kind, token): (x, y) for kind, token, x, y in cap_font.layout(order, font)}
-    table = [[0, 0, 0, 0] for _ in range(max(cells) + 1 if cells else 0)]
+    extra = cap.get("atlas", {})
+    moved = {int(k): tuple(v) for k, v in extra.get("placed", {}).items()}
+    ruled = {(kind, token): (x, y) for kind, token, x, y in cap_font.layout(order, font)}
+    # By cell number: one plate can stand for two speakers of a dialogue, each with a cell of its own.
+    at = {number: moved.get(number, ruled[item]) for number, item in cells.items()}
+    cast = {int(k): v for k, v in extra.get("cast", {}).items()}
+    table = [[0, 0, 0, 0] for _ in range(max(max([*cells, *cast]) + 1 if cells or cast else 0, extra.get("cells", 0)))]
     for number, (kind, token) in cells.items():
-        x, y = placed[(kind, token)]
-        table[number] = [x, y, *font.size(kind, token)]
-    script = {k: v for k, v in cap.items() if k != "texts"}
+        table[number] = [*at[number], *font.size(kind, token)]
+    for number, rect in cast.items():
+        table[number] = list(rect)
+    script = {k: v for k, v in cap.items() if k not in ("texts", "speakers", "atlas")}
     payload = encode_payload({**script, "cells": table, "texts": texts})
-    return payload, cap_font.draw_atlas([(k, t, *placed[(k, t)]) for k, t in order], font)
+    first = {}
+    for number, item in sorted(cells.items(), key=lambda kv: order.index(kv[1])):
+        first.setdefault(item, number)
+    items = [(k, t, *at[first[(k, t)]]) for k, t in order]
+    items += [(kind, token, *at[number]) for number, (kind, token) in cells.items() if first[(kind, token)] != number]
+    drawn = [("speakers", token, *cast[int(number)][:2]) for number, token in extra.get("drawn", {}).items()]
+    return payload, cap_font.draw_atlas(items + drawn, font)
 
 
+
+
+def own_atlas(name: str, payload: "cap_text.Payload") -> bool:
+    """Whether the atlas a payload was read against is the one the dialogue generates (its font_atlas)."""
+    mine = cap_text.atlas_of(name)
+    return mine is not None and payload.atlas is not None and Path(payload.atlas).resolve() == mine.resolve()
+
+
+def build_cells(cap: dict, font: cap_font.Font) -> tuple[bytes, Image.Image, list[list[int]]]:
+    """`build`, with the cell table it lays out."""
+    payload, atlas = build(cap, font)
+    return payload, atlas, parse(payload)["cells"]
 
 
 def decode(name: str, payload: "cap_text.Payload", font: cap_font.Font, warnings: dict) -> dict:
     """One dialogue asset in its named form; nothing is returned unless that form rebuilds it and its atlas."""
     plates = plate_table()
-    atlas = Image.open(payload.atlas).convert("L")
+    parsed_cells = parse(payload.cap)
+    draws = any(c < 0x8000 for t in parsed_cells["texts"] for c in t["codes"]) or any(
+        s["kind"] == "record" and s["ref"] != END_REF and is_title(s["fields"]) for s in parsed_cells["slots"])
+    if not draws:                                   # it draws no glyph and no plate: it has no atlas
+        payload.atlas, payload.column = None, 0
+        atlas = Image.new("L", (cap_font.ATLAS_SIZE, cap_font.ATLAS_SIZE), 0)
+    elif payload.atlas is None:
+        raise SystemExit(f"{name}: no glyph atlas: the asset table names none it generates, and its folder holds no "
+                         "4-bit image (CAP_FORMAT.md §12); not written")
+    else:
+        atlas = cap_text.open_atlas(payload.atlas, payload.column)
+    if payload.atlas is not None and not own_atlas(name, payload) and any(n["kind"] == "unseen" for n in payload.notes):
+        raise SystemExit(f"{name}: no glyph atlas: the asset table names none it generates, and no image of its folder "
+                         "holds its glyphs (CAP_FORMAT.md §12); not written")
     parsed = to_references(parse(payload.cap))
     # The font: every nonempty cell, by the character or speaker it shows. A picture no table
     # names yet is kept under a placeholder and reported, so the decode still rebuilds.
     for note in payload.notes:
         warnings.setdefault(f"cell {note['cell']}", []).append({k: v for k, v in note.items() if k != "cell"})
-    token_of = {}
-    for number, cell in enumerate(parsed["cells"]):
+    token_of, cells = {}, parsed["cells"]
+    shown = {s["fields"][0] - 1 for s in parsed["slots"] if s["kind"] == "record" and s.get("text") is not None
+             and is_title(s["fields"])}
+    font.chosen, cast, drawn = {}, {}, {}
+    for number, cell in enumerate(cells):
         if not cell[2] or not cell[3]:
             continue
         if number < cap_font.FIRST_GLYPH_CELL:
             speaker = plates.get(cap_text.glyph_hash(atlas, cell))
+            if number not in shown:     # a speaker of the cast no record shows: its cell, and its plate if drawn
+                cast[str(number)] = list(cell)
+                if speaker is not None:
+                    font.add("speakers", speaker, cap_font.crop(atlas, cell), number)
+                    drawn[str(number)] = speaker
+                continue
             if speaker is None:
                 speaker = f"unseen speaker {number}"
                 warnings.setdefault(f"cell {number}", []).append({"kind": "unseen speaker", "hash": cap_text.glyph_hash(atlas, cell)})
             font.add("speakers", speaker, cap_font.crop(atlas, cell), number)
+            font.chosen[number] = speaker
         else:
             token_of[number] = payload.chars.get(number) or f"unseen {name} {number}"
             font.add("glyphs", token_of[number], cap_font.crop(atlas, cell))
     parsed["texts"] = [cap_font.to_markup(t["codes"], token_of) for t in parsed["texts"]]
+    parsed["speakers"] = dict(font.chosen)
+    parsed["atlas"] = {k: v for k, v in (("cast", cast), ("drawn", drawn)) if v}
+    # Where the atlas holds a cell somewhere else than the rule puts it, say where.
+    _payload, _atlas, ruled = build_cells({**parsed, "atlas": {}}, font)
+    moved = {str(n): cells[n][:2] for n in range(len(cells)) if n < len(ruled) and n >= 0 and ruled[n] != cells[n]
+             and str(n) not in cast and any(cells[n])}
+    if moved:
+        parsed["atlas"]["placed"] = moved
+    if len(cells) > len(ruled):                  # a table longer than its cells need, empty at its end
+        parsed["atlas"]["cells"] = len(cells)
     del parsed["cells"]
     rebuilt, rebuilt_atlas = build(parsed, font)
     if rebuilt != payload.cap:
         raise SystemExit(f"{name}: the decode does not rebuild the dialogue; not written")
-    if rebuilt_atlas.tobytes() != atlas.tobytes():
+    # A dialogue drawing on another's atlas (it generates none of its own) is checked on its cells' pixels, which
+    # the font compares as they are added; only its own atlas has to rebuild whole.
+    if payload.atlas is not None and own_atlas(name, payload) and rebuilt_atlas.tobytes() != atlas.tobytes():
         raise SystemExit(f"{name}: the decode does not rebuild the atlas {payload.atlas.name}; not written")
     named = to_named(parsed, font)
+    if parsed["atlas"]:
+        named["atlas"] = parsed["atlas"]
     if build(from_named(named, font), font)[0] != payload.cap:
         raise SystemExit(f"{name}: the named fields do not rebuild the dialogue; not written")
     return named
@@ -528,14 +613,18 @@ def decoded_dir(name: str) -> Path:
 
 def encode(path: Path) -> int:
     """Rebuild a decoded dialogue and its atlas, and compare them with the extracted ones."""
-    name = path.name.removesuffix(".json")  # a decode is named after its dialogue
+    # A decode is named after its dialogue: in cap/ by the dialogue's name, in a group's directory by its local name.
+    stem = path.name.removesuffix(".json")
+    group = path.resolve().parent.relative_to(cap_text.ASSETS.resolve()).as_posix()
+    name = stem if group == "cap" else f"{group}/{stem}"
     named = json.loads(path.read_text(encoding="utf-8"))
     payload, atlas = build(from_named(named, cap_font.Font()), cap_font.Font())
     same = payload == cap_text.cap_bytes(name)
     stored = cap_text.atlas_of(name)
-    if stored is None:
-        raise SystemExit(f"{name}: no font_atlas in the asset table is generated by it")
-    same_atlas = atlas.tobytes() == Image.open(stored).convert("L").tobytes()
+    if stored is None:          # it draws on another dialogue's atlas, or draws nothing: only the dialogue rebuilds
+        print(f"{name}: dialogue {'rebuilt' if same else 'DIFFERS'}, no atlas of its own")
+        return 0 if same else 1
+    same_atlas = atlas.tobytes() == cap_text.open_atlas(stored, cap_text.atlas_column(name)).tobytes()
     print(f"{name}: dialogue {'rebuilt' if same else 'DIFFERS'}, atlas {stored.stem} {'rebuilt' if same_atlas else 'DIFFERS'}")
     return 0 if same and same_atlas else 1
 
@@ -560,37 +649,59 @@ def main(argv: list[str]) -> int:
         print("decodable" if complete(deps) else "not decodable yet")
         return 0 if complete(deps) else 2
     if action == "decode":
-        status = 0
-        for name, payload in cap_text.payloads(target):
-            font, warnings = cap_font.Font(), {}
-            where = decoded_dir(name)
-            where.mkdir(parents=True, exist_ok=True)
-            report = where / f"{name}.warnings.json"
-            try:
-                named = decode(name, payload, font, warnings)
-            except SystemExit as failure:
-                print(failure)
-                status = 1
-                named = None
-            if warnings:  # what recognition could not settle; it also explains most failed rebuilds
-                report.write_text(json.dumps(warnings, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
-                for where, notes in warnings.items():
-                    for what in notes:
-                        guess = f" ({' or '.join(map(repr, what['candidates']))}, guessed {what['guessed']!r})" if what["kind"] == "ambiguous" else ""
-                        print(f"warning: {name} {where}: {what['kind']}{guess}")
-            elif report.exists():
-                report.unlink()
-            if named is None:
-                continue
-            font.save()
-            out = where / f"{name}.json"
-            out.write_text(json.dumps(named, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
-            print(f"wrote {out.relative_to(cap_text.ROOT)}")
-        return status
+        return decode_dialogues(cap_text.payloads(target))
     if action == "encode":
         return encode(Path(target))
     print(__doc__)
     return 1
+
+
+def decode_all() -> tuple[int, int]:
+    """Decode every dialogue the asset table holds (the extraction's step): (written, not written)."""
+    import asset_data
+    names = sorted(k for k, r in asset_data.ASSETS.items() if r.get("type") == "cap")
+    table = cap_text.glyph_table()
+    payloads = [(n, cap_text.Payload(cap_text.cap_bytes(n), cap_text.folder_of(n), table, cap_text.overrides(n),
+                                     cap_text.atlas_of(n), cap_text.atlas_column(n))) for n in names]
+    failed = decode_dialogues(payloads, quiet=True)
+    return len(names) - failed, failed
+
+
+def decode_dialogues(payloads, quiet: bool = False) -> int:
+    """Decode each (name, payload), writing its named form and adding its pictures to the font; how many failed."""
+    status = 0
+    font = cap_font.Font()
+    for name, payload in payloads:
+        warnings = {}
+        where = decoded_dir(name)
+        where.mkdir(parents=True, exist_ok=True)
+        local = name.rsplit("/", 1)[-1]          # a grouped dialogue is named by its group's path
+        report = where / f"{local}.warnings.json"
+        kept = font.snapshot()
+        try:
+            named = decode(name, payload, font, warnings)
+        except SystemExit as failure:
+            print(failure)
+            status += 1
+            named = None
+            font.restore(kept)                      # a failed decode adds nothing to the font
+        if warnings:  # what recognition could not settle; it also explains most failed rebuilds
+            report.write_text(json.dumps(warnings, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+            for cell, notes in warnings.items():
+                for what in notes:
+                    guess = f" ({' or '.join(map(repr, what['candidates']))}, guessed {what['guessed']!r})" if what["kind"] == "ambiguous" else ""
+                    if not quiet:
+                        print(f"warning: {name} {cell}: {what['kind']}{guess}")
+        elif report.exists():
+            report.unlink()
+        if named is None:
+            continue
+        out = where / f"{local}.json"
+        out.write_text(json.dumps(named, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+        if not quiet:
+            print(f"wrote {out.relative_to(cap_text.ROOT)}")
+    font.save()
+    return status
 
 
 if __name__ == "__main__":

@@ -227,6 +227,7 @@ GEN_ANIMATION_SOURCE = TOOLS_DIR / "buildsteps" / "gen_animation_source.py"
 GEN_ANIMATION_INC = TOOLS_DIR / "buildsteps" / "gen_animation_inc.py"
 GEN_COLLISION_INC = TOOLS_DIR / "buildsteps" / "gen_collision_inc.py"
 GEN_SHAPE_INC = TOOLS_DIR / "buildsteps" / "gen_shape_inc.py"
+GEN_FONT_INC = TOOLS_DIR / "buildsteps" / "gen_font_inc.py"
 
 
 def asset_includes(version: str) -> list[tuple[Path, Path, int | str]]:
@@ -244,8 +245,9 @@ def asset_includes(version: str) -> list[tuple[Path, Path, int | str]]:
     schema = importlib.util.module_from_spec(schema_spec)
     schema_spec.loader.exec_module(schema)
     out = []
+    font_tables = {r["table"] for r in mod.ASSETS.values() if r.get("type") == "font" and "table" in r}   # font_includes
     for aid, rec in mod.EMBEDDED_ASSETS.items():
-        if rec.get("include"):
+        if rec.get("include") and aid not in font_tables:
             # The store files a raw asset by extension; the extension follows from the type.
             ext = schema.stored_ext(rec)
             raw = ASSETS_DIR / version / "raw" / schema.type_dir_for_ext(ext) / f"{aid}{ext}"
@@ -254,6 +256,19 @@ def asset_includes(version: str) -> list[tuple[Path, Path, int | str]]:
             width = (rec["layout"] if rec["include"] == "layout" else
                      {True: 1, "u8": 1, "u16": 2, "u32": 4, "TmdBone": "TmdBone"}[rec["include"]])
             out.append((raw, BUILD_DIR / "include" / "assets" / f"{aid}.inc", width))
+    return out
+
+
+def font_includes(version: str) -> list[tuple[str, list[Path], Path]]:
+    """(font, the files of its UFO, generated include) for every font whose glyph table a unit includes: the
+    table's initializer is encoded from the font's UFO, `assets/<table>.inc` (gen_font_inc.py)."""
+    data, schema = asset_tables()
+    out = []
+    for key, rec in data.ASSETS.items():
+        if rec.get("type") == "font" and "table" in rec and data.EMBEDDED_ASSETS.get(rec["table"], {}).get("include"):
+            ufo = ASSETS_DIR / version / schema.asset_dir(key, rec) / f"{schema.file_name(key)}.ufo"
+            files = sorted(p for p in ufo.rglob("*") if p.is_file() and p.suffix != ".png")
+            out.append((key, files, BUILD_DIR / "include" / "assets" / f"{rec['table']}.inc"))
     return out
 
 
@@ -1168,6 +1183,11 @@ def ninja_build(
         command=f"{PYTHON} {GEN_SHAPE_INC} $name $out --assets {ASSETS_DIR / 'USA'}",
     )
     ninja_rules_file.rule(
+        "font-inc",
+        description="font-inc $name",
+        command=f"{PYTHON} {GEN_FONT_INC} $name $out --assets {ASSETS_DIR / 'USA'}",
+    )
+    ninja_rules_file.rule(
         "model-inc",
         description="model-inc $in $source",
         command=f"{PYTHON} {GEN_MODEL_INC} $in $load $source {BUILD_DIR / 'include' / 'assets'} $name",
@@ -1232,6 +1252,14 @@ def ninja_build(
     for name, instance, inc in shaped:
         for writer in asset_writers:
             writer.build(outputs=str(inc), rule="shape-inc", inputs=str(instance), implicit=shape_deps + instances,
+                         variables={"name": name})
+        ASSET_INC_OUTPUTS.append(str(inc))
+    font_deps = [str(GEN_FONT_INC), str(peassets / "asset_data.py"), str(peassets / "asset_schema.py"),
+                 str(peassets / "text_encoding.py"), *sorted(str(p) for p in (peassets / "font").glob("*.py")),
+                 *sorted(str(p) for p in (peassets / "groups").rglob("*.toml"))]
+    for name, files, inc in font_includes(version):
+        for writer in asset_writers:
+            writer.build(outputs=str(inc), rule="font-inc", inputs=[str(f) for f in files], implicit=font_deps,
                          variables={"name": name})
         ASSET_INC_OUTPUTS.append(str(inc))
     for raw, outputs, load, source, name in model_includes(version):

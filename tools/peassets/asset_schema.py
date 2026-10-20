@@ -104,6 +104,10 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     # The layout of a texture page packed with several textures (the UI sheet): `sprites`, each a texture at a texel
     # `at` of its own depth. A file's page names it as its `atlas` (texture/declaration.py).
     "atlas": {"payload": (), "stored": ("sprites",)},
+    # One face of a texture and the glyph table in an executable that lays it out; decoded to `<name>.ufo`, which
+    # encodes back to the table (font/declared.py), and the texture's cells come from it.
+    "font": {"payload": (), "stored": ("texture", "table", "layout", "first", "v", "kerning", "encoding", "family",
+                                       "style", "em")},
     # A rectangle of VRAM in halfwords that pages and palettes are placed in by name, `within` another region where
     # it is part of it (texture/declaration.py).
     "vram_region": {"payload": (), "stored": ("within", "shares", "at", "size")},
@@ -173,7 +177,8 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     "animation_bank": {"payload": (), "stored": ("schema", "base", "clips", "symbol")},
     # A dialogue's glyph atlas: an on-disc image chunk, stored and decoded as a pe2img, but not drawn by anyone - the
     # tool that built the dialogue laid it out from its text and the font (doc/CAP_FORMAT.md §9). `generated_by` names
-    # that dialogue; the dialogue and the shared font (tools/peassets/cap_font.py) rebuild it.
+    # that dialogue, or one per page where the image holds several pages side by side (the shooting gallery's two);
+    # the dialogue and the shared font (tools/peassets/cap_font.py) rebuild it.
     "font_atlas": {"payload": ("x", "y", "w", "h"), "stored": ("bpp", "generated_by")},
     "demo": {"payload": (), "stored": ()},
 }
@@ -184,7 +189,7 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
 EMBEDDED_FIELDS = ("source", "vram", "offset", "address", "size", "ext", "type", "include", "layout", "deps", "notes",
                    "group")
 # Types with no bytes of their own: declared by hand, carried over unchanged by dump_asset_db.py.
-DECLARED_TYPES = frozenset({"binding", "texture", "file", "atlas", "vram_region", "rig", "clip", "animation_schema",
+DECLARED_TYPES = frozenset({"binding", "texture", "file", "atlas", "font", "vram_region", "rig", "clip", "animation_schema",
                             "animation_bank", "sound_bank", "sound", "shaped"})
 
 # Embedded types the code reaches by their address in memory - a model through pointers in the code, an image or a
@@ -946,13 +951,18 @@ def validate(assets: dict, embedded: dict) -> list[str]:
             problems += texture_declaration.check_file(key, rec, assets)
         if kind == "atlas":
             problems += texture_declaration.check_atlas(key, rec, assets)
+        if kind == "font":
+            import text_encoding
+            problems += texture_declaration.check_font(key, rec, assets, embedded, frozenset(text_encoding.ENCODINGS))
         if kind == "vram_region":
             problems += texture_declaration.check_region(key, rec, assets)
         if kind == "shaped":
             import shape
             problems += shape.check_asset(key, rec, assets, shape.declarations())
-        if kind == "font_atlas" and assets.get(rec.get("generated_by"), {}).get("type") != "cap":
-            problems.append(f"{key}: generated_by must name a dialogue (a cap)")
+        if kind == "font_atlas":
+            by = rec.get("generated_by")
+            if not all(assets.get(d, {}).get("type") == "cap" for d in (by if isinstance(by, list) else [by])):
+                problems.append(f"{key}: generated_by names a dialogue (a cap), or one per page in page order")
         variants = rec.get("variants")
         if variants is None or kind == "texture":       # a texture's variants are its palettes (texture/)
             continue

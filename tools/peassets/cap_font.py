@@ -5,9 +5,8 @@ CAP text has no character encoding (doc/CAP_FORMAT.md §3, §9). A payload's cod
 name cells of its own atlas, laid out from the text, so the decoded form keeps
 the text as characters and the pictures in a shared font directory:
 
-    assets/USA/capfont/index.json          token -> image and size
-    assets/USA/capfont/glyphs/lower_e.png  one image per character
-    assets/USA/capfont/speakers/AYA.png    one image per speaker plate
+    assets/USA/dialogue/font.ufo        a glyph per character, its image the picture
+    assets/USA/dialogue/speakers.ufo    a glyph per speaker plate
 
 Images are written by the decoder for the bundles it decodes, as 4-bit values on
 a grey ramp (value * 17, as the extracted atlases are); a picture already in
@@ -29,8 +28,10 @@ from pathlib import Path
 from PIL import Image
 
 import cap_text
+from font import declared as ufo_lib
+from font import ufo
 
-FONT = cap_text.ASSETS / "capfont"
+FONT_ASSET, SPEAKERS_ASSET = "dialogue/font", "dialogue/speakers"     # the two UFO fonts (Font)
 FIRST_GLYPH_CELL = 25
 ATLAS_SIZE = 256
 ROW_HEIGHT = 14
@@ -79,33 +80,72 @@ def save_values(values: Image.Image, path: Path) -> None:
 
 
 def load_values(path: Path) -> Image.Image:
-    return Image.open(path).convert("P").copy()
+    """A picture's indices, as a "P" image (its PNG's own palette is only for showing it)."""
+    img = Image.open(path)
+    out = Image.new("P", img.size)
+    out.frombytes(img.convert("P").tobytes() if img.mode == "P" else img.convert("L").tobytes())
+    return out
 
 
 class Font:
-    """The font directory: tokens, their images, and new images as a decode finds them."""
+    """The dialogue font: two UFO 3 fonts, `dialogue/font` (a glyph per character) and `dialogue/speakers` (a glyph
+    per speaker plate), whose images are the pictures, 4-bit indices read back by index. A decode adds the pictures
+    it finds; `save` writes both fonts.
 
-    def __init__(self, root: Path = FONT):
-        self.root = root
-        index = root / "index.json"
-        self.index = json.loads(index.read_text(encoding="utf-8")) if index.exists() else {"glyphs": {}, "speakers": {}}
+    `index` is {kind: {token: {"image", "w", "h", "numbers"}}} for the tools that read it, kinds "glyphs" and
+    "speakers"; a token is a character, or a speaker plate's name."""
+
+    KINDS = {"glyphs": FONT_ASSET, "speakers": SPEAKERS_ASSET}
+
+    def __init__(self, root: Path | None = None):
+        self.root = root or cap_text.ASSETS
+        self.index: dict[str, dict] = {"glyphs": {}, "speakers": {}}
+        self.pictures: dict[tuple[str, str], Image.Image] = {}
+        for kind in self.KINDS:
+            path = self.ufo_path(kind)
+            if not path.exists():
+                continue
+            for glyph in ufo.read(path)["glyphs"]:
+                lib = glyph["lib"]
+                token = lib.get(f"{ufo_lib.LIB}.token", glyph["name"])
+                values = load_values(path / "images" / glyph["image"]["file"]) if glyph.get("image") else Image.new("P", (0, 0))
+                self.pictures[kind, token] = values
+                self.index[kind][token] = {"image": glyph["name"], "w": values.width, "h": values.height,
+                                           **({"numbers": lib[f"{ufo_lib.LIB}.numbers"]} if f"{ufo_lib.LIB}.numbers" in lib else {})}
+
+    def ufo_path(self, kind: str) -> Path:
+        import asset_data
+        import asset_schema
+        name = self.KINDS[kind]
+        return self.root / asset_schema.asset_dir(name, asset_data.ASSETS[name]) / f"{asset_schema.file_name(name)}.ufo"
 
     def add(self, kind: str, token: str, values: Image.Image, number: int | None = None) -> None:
         table = self.index[kind]
-        name = f"{kind}/{file_name(token)}.png"
         if token in table:
-            known = load_values(self.root / table[token]["image"])
+            known = self.pictures[kind, token]
             if known.size != values.size or known.tobytes() != values.tobytes():
-                raise SystemExit(f"capfont: {kind[:-1]} {token!r} has a different picture here than in {table[token]['image']}")
+                raise SystemExit(f"dialogue font: {kind[:-1]} {token!r} has a different picture here")
         else:
-            save_values(values, self.root / name)
-            table[token] = {"image": name, "w": values.width, "h": values.height}
+            picture = Image.new("P", values.size)
+            picture.frombytes(values.tobytes())
+            self.pictures[kind, token] = picture
+            table[token] = {"image": glyph_name(kind, token), "w": values.width, "h": values.height}
         # A plate can stand for several speaker numbers: "???" is every speaker not yet introduced.
         if number is not None and number not in table[token].setdefault("numbers", []):
             table[token]["numbers"] = sorted(table[token]["numbers"] + [number])
 
+    def snapshot(self):
+        import copy
+        return copy.deepcopy(self.index), dict(self.pictures)
+
+    def restore(self, kept) -> None:
+        self.index, self.pictures = kept
+
     def values(self, kind: str, token: str) -> Image.Image:
-        return load_values(self.root / self.index[kind][token]["image"])
+        """A picture as indices on a grey ramp, the atlas's values."""
+        out = self.pictures[kind, token].copy()
+        out.putpalette([level * 17 for level in range(16) for _ in range(3)])
+        return out
 
     def size(self, kind: str, token: str) -> tuple[int, int]:
         entry = self.index[kind][token]
@@ -118,11 +158,67 @@ class Font:
         return found[0] if found else None
 
     def save(self) -> None:
-        self.root.mkdir(parents=True, exist_ok=True)
-        for table in self.index.values():
-            for token in sorted(table):
-                table[token] = table.pop(token)
-        (self.root / "index.json").write_text(json.dumps(self.index, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+        for kind in self.KINDS:
+            colors = text_palette(self.root, kind)
+            tokens = sorted(self.index[kind], key=lambda t: (len(t) > 1, t))
+            names = [glyph_name(kind, t) for t in tokens]
+            files = ufo.glyph_file_names(names)
+            glyphs, images = [], {}
+            for token, name in zip(tokens, names):
+                picture = self.pictures[kind, token]
+                image = None
+                if picture.width and picture.height:
+                    image = {"file": files[name].removesuffix(".glif") + ".png", "x": 0, "y": 0}
+                    images[image["file"]] = png_bytes(picture, colors)
+                lib = {f"{ufo_lib.LIB}.token": token}
+                if self.index[kind][token].get("numbers"):
+                    lib[f"{ufo_lib.LIB}.numbers"] = self.index[kind][token]["numbers"]
+                glyphs.append({"name": name, "advance": picture.width, "image": image, "lib": lib,
+                               "unicode": ord(token) if kind == "glyphs" and len(token) == 1 else None})
+            import asset_data
+            rec = asset_data.ASSETS[self.KINDS[kind]]
+            ufo.write(self.ufo_path(kind), {
+                "info": {"familyName": rec["family"], "styleName": rec["style"], "unitsPerEm": ROW_HEIGHT,
+                         "versionMajor": 1, "versionMinor": 0},
+                "lib": {"public.glyphOrder": names,
+                        f"{ufo_lib.LIB}.face": {"pixels": "the images: 4-bit indices, read back by index (0 is clear)"}},
+                "groups": {}, "kerning": {}, "glyphs": glyphs, "images": images})
+
+
+def glyph_name(kind: str, token: str) -> str:
+    """A glyph's name: a character's as font tools name it, a plate's from its speaker's name."""
+    if kind == "glyphs" and len(token) == 1:
+        return ufo_lib.glyph_name(ord(token), token)
+    return file_name(token) if kind == "speakers" else "pe2." + file_name(token)
+
+
+PALETTES = {"glyphs": (256, 245), "speakers": (304, 246)}     # captions.c: the first text palette, the plates'
+
+
+def text_palette(root: Path, kind: str = "glyphs") -> list[int]:
+    """The colors a kind's images are written in (PALETTES, dialogue/palette), else a grey ramp."""
+    try:
+        import asset_data
+        import asset_schema
+        from texture.chunks import palette_block
+        x, y, w, _h, colors = palette_block((root / asset_schema.raw_rel("dialogue/palette", asset_data.ASSETS["dialogue/palette"])).read_bytes())
+        px, py = PALETTES[kind]
+        row = (py - y) * w + (px - x)
+        return colors[row:row + 16]
+    except (OSError, KeyError, ImportError):
+        return [0x8000 | (v << 10) | (v << 5) | v for v in (i * 31 // 15 for i in range(16))]
+
+
+def png_bytes(picture: Image.Image, colors: list[int]) -> bytes:
+    import io
+    from texture.color import color_to_rgba
+    rgba = [color_to_rgba(c) for c in colors]
+    out = Image.new("P", picture.size)
+    out.putpalette([v for p in rgba for v in p[:3]], rawmode="RGB")
+    out.frombytes(picture.tobytes())
+    data = io.BytesIO()
+    out.save(data, format="PNG", transparency=bytes(p[3] for p in rgba), bits=4)
+    return data.getvalue()
 
 
 # ---- markup ----------------------------------------------------------------------------------------------

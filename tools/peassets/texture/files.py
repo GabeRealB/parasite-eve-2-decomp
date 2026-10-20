@@ -112,6 +112,57 @@ def named_palette_path(assets_root: Path, assets: dict, chunk: str, name: str) -
     return assets_root / asset_schema.asset_dir(chunk, assets[chunk]) / f"{name}.palette.png"
 
 
+def texture_cells(texture: str, assets: dict, assets_root: Path) -> dict[str, list[int]]:
+    """A texture's cells as {name: [x, y, w, h]}: stated, or read from the glyph tables that address it."""
+    from .declaration import cell_rects
+    tex = assets[texture]
+    if "cells" in tex:
+        return cell_rects(tex["cells"], tex["width"], tex["height"])
+    out = {}
+    import asset_data
+    from .declaration import font_cells
+    for font in fonts_of(texture, assets):
+        rec = asset_data.EMBEDDED_ASSETS[assets[font]["table"]]
+        out.update(font_cells(font, assets[font], (assets_root / asset_schema.raw_rel(assets[font]["table"], rec)).read_bytes()))
+    return out
+
+
+def fonts_of(texture: str, assets: dict) -> list[str]:
+    """The fonts whose faces a texture holds, in their tables' order on the page (by `v`)."""
+    return sorted((k for k, r in assets.items() if r.get("type") == "font" and r.get("texture") == texture and "texture" in r),
+                  key=lambda k: (assets[k].get("v", 0), k))
+
+
+def cell_problems(texture: str, assets: dict, assets_root: Path) -> list[str]:
+    tex = assets[texture]
+    return [f"{texture}: cell {n} [{', '.join(map(str, r))}] is not inside its {tex['width']}x{tex['height']}"
+            for n, r in texture_cells(texture, assets, assets_root).items()
+            if r[0] + r[2] > tex["width"] or r[1] + r[3] > tex["height"]]
+
+
+def cells_path(assets_root: Path, assets: dict, texture: str) -> Path:
+    return assets_root / asset_schema.asset_dir(texture, assets[texture]) / f"{asset_schema.file_name(texture)}.cells.toml"
+
+
+def decode_cells(texture: str, assets: dict, assets_root: Path) -> Path:
+    """Write the cells of a texture outside any atlas, beside its PNGs: one line each, [x, y, w, h] in its texels.
+    A font's texture has none of its own: each glyph's cell is in its UFO."""
+    lines = [f"# {texture}: its cells, [x, y, w, h] in its texels. Written by the extraction from the asset table",
+             "# and the glyph tables it names (tools/peassets/texture/files.py).", "", "[cells]"]
+    for n, r in texture_cells(texture, assets, assets_root).items():
+        hint = ""
+        font = next((f for f in fonts_of(texture, assets) if n.startswith(f.rsplit("/", 1)[-1] + "_")), None)
+        if font is not None:
+            import text_encoding
+            char = text_encoding.ENCODINGS[assets[font]["encoding"]].get(int(n.rsplit("_", 1)[1], 16))
+            hint = f"  # {char}" if char and char.strip() else ""
+        lines.append(f"{n} = [{', '.join(map(str, r))}]{hint}")
+    path = cells_path(assets_root, assets, texture)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path
+
+
 def declared_atlases(assets: dict) -> list[str]:
     return sorted(k for k, r in assets.items() if r.get("type") == "atlas")
 
@@ -136,9 +187,8 @@ def decode_atlas(name: str, assets: dict, assets_root: Path) -> Path:
                   "variants = [" + ", ".join(f'"{v}"' for v in tex["variants"]) + "]"]
         if tex.get("no_palette"):
             lines.append("no_palette = true")
-        if "cells" in tex:
-            from .declaration import cell_rects
-            rects = cell_rects(tex["cells"], tex["width"], tex["height"])
+        if "cells" in tex or fonts_of(texture, assets):
+            rects = texture_cells(texture, assets, assets_root)
             lines.append("cells = { " + ", ".join(f"{n if n.isidentifier() else repr(n).replace(chr(39), chr(34))} = [{', '.join(map(str, r))}]"
                                                    for n, r in rects.items()) + " }")
     path = atlas_path(assets_root, assets, name)
@@ -196,6 +246,10 @@ def decode_file(name: str, assets: dict, assets_root: Path) -> list[Path]:
                     write_variant(path, texels, tex, from_exe.get(variant) or palettes.get((texture, variant))
                                   or (gray_ramp(tex["bpp"]) if tex.get("no_palette") else None))
                     written.append(path)
+    for e in contents:
+        for page in e.get("pages", ()):
+            if "texture" in page and "cells" in assets[page["texture"]]:   # a font's are in its UFO's glyphs
+                written.append(decode_cells(page["texture"], assets, assets_root))
     return written
 
 
@@ -283,6 +337,8 @@ def check_file(name: str, assets: dict, assets_root: Path) -> list[str]:
         if stated != extracted:
             problems.append(f"{e['chunk']}: sector_len {stated:#x}, the disc's is {extracted:#x}")
     textures = {t for e in assets[name]["contents"] for p in e.get("pages", ()) for t in page_textures(p, assets)}
+    for texture in sorted(textures):
+        problems += cell_problems(texture, assets, assets_root)
     for texture in sorted(t for t in textures if "palettes_from" in assets[t]):
         stored = embedded_palettes(texture, assets, assets_root)
         for v in assets[texture]["variants"]:

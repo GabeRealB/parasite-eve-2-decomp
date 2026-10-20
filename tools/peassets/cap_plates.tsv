@@ -1,7 +1,28 @@
 # CAP speaker name plates: a hash of a plate cell's 4-bit pixels (cap_text.glyph_hash) and the name it shows.
 # Added as rooms are worked through; seeded from the Akropolis square (rooms/akropolis/square/bundle). ??? marks an unidentified speaker.
-# hash	name
-373e7032e6bfd797	AYA
-85203c517465a826	PIERCE
-8034dea2aa3f0a9b	BALDWIN
-6a525998034b76b2	???
+# hash	name	speaker numbers it stands for (a record's speaker byte less one)
+373e7032e6bfd797	AYA	0
+85203c517465a826	PIERCE	3
+8034dea2aa3f0a9b	BALDWIN	8
+6a525998034b76b2	???	10,21
+41f1b925b478f625	KYLE	1
+777711f4a52b3162	RUPERT	5
+3ce66dc3e6c20c18	DOUGLAS	9
+ab5c7628efb5baed	K.MADIGAN	12
+47a0cacdfa2a75ad	MALE VOICE	23
+ddfcf50de5b1138d	JODIE	2
+34b3c3a88e3499d5	PRESIDENT	15
+908bd79207b4032c	STAFF	19
+ead7a4466250168d	No.9	6
+66fa21adca06aa90	SWAT OFFICER	4
+d7d42ce50252c175	EVE	7
+a7def1d20870f74e	2ND LIEUTENANT	17
+664c863e375da56a	SERGEANT	18
+64f512db5193b099	WARNING	22
+41d3f0d89606de19	??? (wide)	21
+3e535212499eb878	POLICE OFFICER	13
+1283464422296698	POLICE SGT.	14
+0b5981f22c4a79ad	TELEGRAPHIST	20
+cba2ff903cc4b0e9	CREATURE	11
+5edfb95cf9e0b184	PRIVATE	16
+216fc5df6cadc77b	ENGINEER	24

@@ -169,7 +169,8 @@ a second call only republishes.
 | Stored | a 4-bit image chunk, extracted like a `pe2img` |
 | Asset | `<dialogue>_atlas`, `generated_by: <dialogue>` |
 | Where | the room's disc file (room dialogue) or a view's file (cutscene) |
-| Texture page | (384, 0); the room cutscene task sets `capTPageX`/`Y`, or (960, 0) when `capTPageX` is 0 |
+| Texture page | (384, 0); the room cutscene task sets `capTPageX`/`Y`, or (960, 0) when `capTPageX` is 0. Some atlases are uploaded elsewhere: (384, 256) for an actor's caption (`dryfield_night_garage_dialogue_1`), (832, 0) for the heliport's two, and the shooting gallery's two side by side in one image at (704, 0) and (768, 0), the room choosing the page by command range (`generated_by` lists them in page order) |
+| Without one | a dialogue drawing no glyph and no plate has none; one generating none draws on its folder's (another dialogue's), checked on its cells' pixels |
 
 Layout rule: walking the text streams in order, each new cell is placed when
 first used, a speaker plate after the glyphs of the first line showing it;
@@ -190,11 +191,12 @@ Over the 166 distinct dialogues (213 in bundles). Each makes a field derivable.
 | unread `tally_count`: 1 in counter, flag and room commands, 0 in plain | most |
 | unread scene `message_to` without `0x08`: 1 | 2089 of 2111 |
 | glyph cells numbered by first use | all |
-| atlas follows the layout rule | 108 of 151 assigned |
+| atlas follows the layout rule, the cell table holds nothing else | 105 of 162 decoded |
+| a cast speaker's cell (a speaker no record shows) has its plate's size | 627 of 637 (the rest: numbers no dialogue shows) |
 
 ## 11. Decoded form
 
-`cap_decode.py decode <dialogue|bundle>` → `assets/USA/cap/<dialogue>.json`;
+`cap_decode.py decode <dialogue|bundle>` (and the extraction, for all) → `assets/USA/cap/<dialogue>.json`;
 `encode` rebuilds the dialogue and its atlas. Nothing is written unless both
 rebuild exactly.
 
@@ -215,11 +217,26 @@ rebuild exactly.
 | `text` | characters; markup `{view N [logical] [hide]}`, `{choice confirm\|silent\|cursor K}`, `{icon N}`, `{spacer}`, `{palette N}`, `{delay N}`, `{glyph name}`, `{code XXXX}` |
 | `speaker` | plate name; `name#N` when the plate stands for several numbers |
 | `trailing_empty_text` | the extra empty stream (§1) |
+| `atlas` | what the layout rule does not imply: `placed`, cells the atlas holds somewhere else than the rule puts them (`{cell: [x, y]}`; 349 cells in 18 dialogues); `cast`, the cells of speakers no record shows, `[x, y, w, h]` as stored (715 in 41 dialogues; none is drawn); `drawn`, those whose plate is on the atlas; `cells`, a table longer than its cells need (4) |
 
-Pictures go to the shared font, `assets/USA/capfont/` (`index.json`; one image
-per character and per speaker plate). First recognition: `cap_glyphs.tsv`,
-`cap_plates.tsv` (hashes, no pixels); characters drawn alike share a line, and
-the dialogue's `glyphs` field in `asset_data.py` (`{cell: "I"}`) chooses.
+Pictures go to the dialogue font, two UFO 3 fonts (`dialogue/font` and
+`dialogue/speakers`, `font` records of `layout = "images"`): a glyph per
+character, named and mapped to it, and a glyph per speaker plate, named for the
+speaker with its numbers in its lib. A glyph's image is its picture, 4-bit
+indices read back by index (0 is clear), written in the first text palette
+(256, 245) or the plates' (304, 246); it advances by its width and stands on the
+baseline, as `captions.c` draws it. The extraction decodes every dialogue after
+writing stages.json (`extract.decode_dialogues`), so the font holds every
+picture the decodable dialogues show: 83 glyphs, 25 plates. First recognition: `cap_glyphs.tsv`,
+`cap_plates.tsv` (hashes, no pixels; a plate's speaker numbers in its third
+column, so names do not depend on decode order); characters drawn alike share a
+line, and the dialogue's `glyphs` field in `asset_data.py` (`{cell: "I"}`)
+chooses. Without one, `I` against `l` is read from the cell's uses: a lowercase
+letter before it makes it `l`, capitals beside it, standing alone or before an
+apostrophe `I`; at a word's start a vowel after it `l` (lever), a consonant `I`
+(It, Ice). Two cells of one dialogue sharing the picture are one of each. Every
+glyph and plate of the 162 decodable dialogues is in the tables (81 glyphs, 25
+plates).
 `<dialogue>.warnings.json`: per cell, an unsettled ambiguity (with the guess),
 an unseen glyph or plate, or two cells with one character.
 
@@ -230,4 +247,5 @@ an unseen glyph or plate, or two cells with one character.
 | `field_4` | always 8; role unknown |
 | flag `0x01` | no reader |
 | flag `0x10` (`CAP_SEQUENCE_TITLE_BANK`) | on 96 lines, 92 without a speaker; passed to both caption renderers, ignored by both |
-| atlas layout | 39 atlases hold plates no record shows; 19 deviate from the rule; 15 dialogues have no atlas assigned |
+| atlas layout | the cast: a cell table lays out a plate for every speaker of some cast, at positions on its glyphs and on each other, not where the atlas was drawn - the layout that placed them is not known, so `cast` keeps them as stored; 18 atlases place cells off the rule (`placed`) |
+| atlases not on the disc | `acropolis_security_room_dialogue_0`, `dryfield_r04_dialogue_0`, `mist_r21_dialogue_0`, `shelter_b1_armory_dialogue_0` draw glyphs from a page no image on the disc holds, at any position, in any page of a multi-page image |

@@ -13,7 +13,8 @@ and an 8-bit portrait among 4-bit sprites), and its page stores zero outside the
 the file says where it is uploaded and places the sprites' palettes. A texture whose palettes an executable uploads names that embedded palette as `palettes_from`, its
 variants in order (the UI font's fill and outlines, ui/font/glyph_palettes in main); one nothing is found to draw
 states `no_palette` and is written with a gray ramp. A texture's `cells` name the parts its code samples one at a
-time (animation frames, icons): a `grid` of [w, h] read row by row, with `names` or numbered, or named [x, y, w, h]. A palette chunk may also place colors no known texture is drawn
+time (animation frames, icons): a `grid` of [w, h] read row by row, with `names` or numbered, or named [x, y, w, h].
+A font's texture takes its cells from its fonts instead (`font` records, font/), each glyph's record one cell. A palette chunk may also place colors no known texture is drawn
 with, by `name` and `entries` (a palette only dead code selects). A palette chunk stores the rectangle its palettes span, or the whole region its
 entry names as `upload` (the title's palette chunk clears six rows and fills one), zero where no palette is placed.
 
@@ -232,6 +233,61 @@ def check_cells(cells: Any, width: int, height: int) -> list[str]:
                   and rect[0] + rect[2] <= width and rect[1] + rect[3] <= height):
             problems.append(f"cell {name} is [x, y, w, h] inside the texture")
     return problems
+
+
+# The glyph tables a texture's cells can come from: record size and how a record reads as (u, v, w, h).
+GLYPH_LAYOUTS = {
+    "font_glyph": (12, lambda r: (r[0], r[1], r[2] + 1, r[3] + 1)),   # _FontGlyph (textdraw.c): sizes stored less one
+    "glyph_cell": (4, lambda r: (r[0], r[1], r[2], r[3])),            # TextGlyphCell (text.h): zero height draws nothing
+}
+
+
+def check_font(key: str, rec: dict[str, Any], assets: dict[str, dict[str, Any]],
+               embedded: dict[str, dict[str, Any]], encodings: frozenset[str]) -> list[str]:
+    """A font is one face of a texture: the glyph `table` an executable lays it out with (an embedded asset), its
+    record `layout`, the code of its first record (`first`), the rows its face is shifted by on the page (`v`, the
+    code's bias), the pixels pairs of glyphs tighten by (`kerning`), its text `encoding`, and the `family` and
+    `style` its UFO is named by. A font of `layout = "images"` is its glyphs' images (the dialogue's, written by the
+    CAP decoder, cap_font.py) and states only its names."""
+    problems = []
+    if rec.get("layout") == "images":           # its glyphs' images are the font (the dialogue's): nothing else
+        if not (isinstance(rec.get("family"), str) and isinstance(rec.get("style"), str)):
+            problems.append(f"{key}: names its family and style")
+        return problems
+    if assets.get(rec.get("texture"), {}).get("type") != "texture":
+        problems.append(f"{key}: texture {rec.get('texture')!r} is not a texture")
+    elif "cells" in assets[rec["texture"]]:
+        problems.append(f"{key}: {rec['texture']} states cells of its own; a font's texture takes its cells from its fonts")
+    if rec.get("table") not in embedded:
+        problems.append(f"{key}: table {rec.get('table')!r} is not an embedded asset")
+    if rec.get("layout") not in GLYPH_LAYOUTS:
+        problems.append(f"{key}: layout is one of {', '.join(GLYPH_LAYOUTS)}")
+    if not all(isinstance(rec.get(k, 0), int) for k in ("first", "v", "kerning", "em")):
+        problems.append(f"{key}: first, v, kerning and em are integers")
+    if rec.get("encoding") not in encodings:
+        problems.append(f"{key}: encoding is one of {', '.join(sorted(encodings))}")
+    if not (isinstance(rec.get("family"), str) and isinstance(rec.get("style"), str)):
+        problems.append(f"{key}: names its family and style")
+    return problems
+
+
+def font_cells(name: str, rec: dict[str, Any], data: bytes) -> dict[str, list[int]]:
+    """The cells a font gives its texture, named `<font's local name>_<code>`."""
+    return glyph_cells({**rec, "prefix": name.rsplit("/", 1)[-1]}, data)
+
+
+def glyph_cells(src: dict[str, Any], data: bytes) -> dict[str, list[int]]:
+    """The cells one glyph table gives its texture: `<prefix>_<code>` -> [x, y, w, h], V shifted by `v` modulo 256
+    as the sprite's byte stores it; a record of no width or height is no cell."""
+    size, read = GLYPH_LAYOUTS[src["layout"]]
+    if len(data) % size:
+        raise ValueError(f"{src['table']}: {len(data)} bytes are not whole {size}-byte records")
+    out = {}
+    for i in range(len(data) // size):
+        u, v, w, h = read(data[i * size:i * size + 4])
+        if w and h:
+            out[f"{src['prefix']}_{src.get('first', 0) + i:02x}"] = [u, (v + src.get("v", 0)) & 0xFF, w, h]
+    return out
 
 
 def check_texture(key: str, rec: dict[str, Any]) -> list[str]:
