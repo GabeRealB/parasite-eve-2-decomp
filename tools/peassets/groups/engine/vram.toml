@@ -16,7 +16,7 @@ type = "vram_region"
 at = [0, 240]
 size = [256, 3]
 
-[caption_font]
+[screen_sheet]
 type = "vram_region"
 at = [960, 0]
 shares = ["engine/vram/preview_sheet"]

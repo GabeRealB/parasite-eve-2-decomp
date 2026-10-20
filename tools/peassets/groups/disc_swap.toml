@@ -1,0 +1,10 @@
+# The assets of the group disc_swap, each named disc_swap/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[messages]
+type = "texture"
+bpp = 4
+cells = { disc_1 = [0, 0, 159, 16], disc_2 = [0, 16, 159, 16], wrong_disc = [0, 32, 104, 16] }
+height = 48
+variants = ["default"]
+width = 256

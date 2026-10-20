@@ -1,0 +1,24 @@
+# The assets of the group disc_swap/disc_2, each named disc_swap/disc_2/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+asset = "disc_swap/palette"
+sha1 = "1253ac0ed427ecd898c3e8ba265874d95883de09"
+upload = "engine/vram/screen_palettes"
+palettes = [{ texture = "disc_swap/messages", variant = "default", region = "engine/vram/screen_palettes" }]
+
+[[file.contents]]
+asset = "disc_swap/image"
+slots = 3
+sha1 = "6edd3c662675e79012f33dea6c1a385a897e2a5f"
+pages = [{ texture = "disc_swap/messages", region = "engine/vram/screen_sheet" }]
+
+[[file.contents]]
+chunk = "background"
+
+[background]
+type = "bs"
+sha1 = "56db8f2487e47b186e5789fa487fd73b1326c323"

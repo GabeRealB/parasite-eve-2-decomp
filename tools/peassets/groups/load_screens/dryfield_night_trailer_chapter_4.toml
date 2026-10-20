@@ -1,0 +1,14 @@
+# The assets of the group load_screens/dryfield_night_trailer_chapter_4, each named load_screens/dryfield_night_trailer_chapter_4/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+contents = [
+    { asset = "ui/caption_font/image", sha1 = "b74465538751adb80ee4804069306f129585106c" },
+    { asset = "ui/caption_font/palette", sha1 = "e523af5c11086379eac181adbaf5a69ca234abcd" },
+    { chunk = "background" },
+]
+
+[background]
+type = "bs"
+sha1 = "d843b3447336a42ffa7e631c21ffbb4a12c4eac6"

@@ -1,0 +1,10 @@
+# The assets of the group game_modes/scavenger, each named game_modes/scavenger/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+contents = [{ chunk = "splash" }]
+
+[splash]
+type = "bs"
+sha1 = "186bf7105e3c97fc006a295c7f5e497e06962b5c"

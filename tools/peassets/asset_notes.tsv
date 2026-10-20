@@ -459,8 +459,8 @@ brute_mossback_burst_arm	One-part arm thrown twice as a flying body part from th
 brute_mossback_burst_head	One-part head thrown once as a flying body part, between the two arms, when a Mossback dies by bursting.	
 brute_mossback_burst_leg	No reached use found: the Mossback's burst leg model is defined in every build but named nowhere; the burst death spawns only arm, head, arm.	
 title/background	Title screen background picture, loaded by the title overlay after the intro movie and shown as image strips until a menu entry is confirmed or the attract demo starts.	
-bs_1	Load-screen picture for a destination of Dryfield, Motel Room 6, shown under the Dryfield boot caption; which save or event lands on it is open.	
-bs_10	Load-screen picture for Dryfield night destinations in story chapter 3 (or any other than 4 and 5), shown under the Dryfield boot caption; which save or event lands on it is open.	
+load_screens/dryfield_motel_room_6/background	Load-screen picture for a destination of Dryfield, Motel Room 6, shown under the Dryfield boot caption; which save or event lands on it is open.	
+load_screens/dryfield_night_other_chapter_3/background	Load-screen picture for Dryfield night destinations in story chapter 3 (or any other than 4 and 5), shown under the Dryfield boot caption; which save or event lands on it is open.	
 bs_1016..bs_1021	View backgrounds 1-6 of mine_tunnel_entrance: views 2, 3, 4 and 6 are walked via warps and boundary triggers, view 1 is the unselected plan view.	
 bs_1020	No reached use found: background of mine_tunnel_entrance view 5, a prepared view with a camera and lamp flare that nothing selects.	
 bs_1022	No reached use found: background of mine_tunnel view 1, the plan view, which nothing selects in the shipped game.	
@@ -483,7 +483,7 @@ bs_1074..bs_1081	View backgrounds 1-8 of shelter_b1_storeroom: views 2-7 form a 
 bs_1082..bs_1086	View backgrounds 1-5 of shelter_b1_north_maintenance_walkway; views 2-5 are walked, view 1 is the unselected plan view.	
 bs_1087	No reached use found: background of shelter_b1_north_maintenance_walkway view file 6, a real view with a camera and no sprites that nothing selects.	
 bs_1088..bs_1100	View backgrounds 1-13 of shelter_b1_armory: play views 2-8, view 9 for the locked card reader caption, and further caption-selected views; view 1 is the plan view.	
-bs_11	Load-screen picture for Dryfield night destinations in story chapter 4, shown under the Dryfield-return boot caption; which save or event lands on it is open.	
+load_screens/dryfield_night_other_chapter_4/background	Load-screen picture for Dryfield night destinations in story chapter 4, shown under the Dryfield-return boot caption; which save or event lands on it is open.	
 bs_1101..bs_1111	View backgrounds 1-11 of shelter_b1_sleeping_quarters; views 2-10 are walked via boundary triggers and warps, views 1 and 11 are selected by nothing.	
 bs_1112	Background of shelter_b1_main_corridor view 2, the arrival view from the elevator hall, with a pair of white beams drawn over it.	
 bs_1113	Background of shelter_b1_main_corridor view 3, reached by boundary triggers from views 2 and 4, with a pair of white beams drawn over it.	
@@ -516,7 +516,7 @@ bs_1196	Background of shelter_b1_golem_freezer_1 view 3, reached by a boundary t
 bs_1197	No reached use found: background of shelter_b1_golem_freezer_1 view 4; the ambient task has a case for it but no selector was found.	
 bs_1198	Background of shelter_b1_golem_freezer_1 view 5, the arrival view of the room's only warp endpoint, also reached by a boundary trigger from view 2.	
 bs_1199	Background of shelter_b1_golem_freezer_1 view 6, selected by the first scene step of caption commands 3 and 4: the conversation with Pierce (variant 21 only).	
-bs_12	Load-screen picture for the Mine/Shelter stage with destination Mine Refuge (chapter 4 or any other than 5), shown under the Mine boot caption; what lands on it is open.	
+load_screens/mine_refuge_chapter_4/background	Load-screen picture for the Mine/Shelter stage with destination Mine Refuge (chapter 4 or any other than 5), shown under the Mine boot caption; what lands on it is open.	
 bs_120	No reached use found: background of acropolis_security_room view 15, which has a camera but no sprites and is selected by none of the nine checked paths.	
 bs_1200	Background of shelter_b1_golem_freezer_1 view 7, selected by a scene step in the middle of caption command 4, the second meeting (variant 21 only).	
 bs_1201..bs_1214	View backgrounds of shelter_b2_pod_bottom (views 1-14, plus bs_55 for views 15 and 16): walking views 2-10, and views 11, 12 and 14 for the entry script and command 2.	
@@ -543,7 +543,7 @@ bs_1273..bs_1277	View backgrounds 1-5 of shelter_b2_south_maintenance_walkway; v
 bs_1278..bs_1284	View backgrounds 1-7 of shelter_b2_operating_room; views 2-7 are reached by three warps and ten boundary triggers, view 1 is the unselected plan view.	
 bs_1285..bs_1292	View backgrounds 1-8 of shelter_b2_north_maintenance_walkway: views 2-5 are walked, and view 4 is also set by actor_341300's entry scene.	
 bs_1293..bs_1306	View backgrounds of shelter_b2_laboratory (views 1-14, plus bs_1232 for view 15): walking views 2-8 and 15, scene-step views 9, 12 and 14, and a terminal view.	
-bs_13	Load-screen picture for the Mine/Shelter stage with destination B1 Sterilization Room, shown under the Shelter dwelling boot caption; which save or event lands on it is open.	
+load_screens/shelter_sterilization_chapter_4/background	Load-screen picture for the Mine/Shelter stage with destination B1 Sterilization Room, shown under the Shelter dwelling boot caption; which save or event lands on it is open.	
 bs_1307	No reached use found: background of shelter_b2_breeding_room view 1, the plan view, with no selector in the shipped game.	
 bs_1307..bs_1316	View backgrounds 1-10 of shelter_b2_breeding_room: views 2-9 via two warps and fourteen boundary triggers, view 10 selected by caption text.	
 bs_1316	Background of shelter_b2_breeding_room view 10, a close-up shown while caption command 4 of slot 10 is on screen.	
@@ -574,7 +574,7 @@ bs_1358	No reached use found: background of shelter_1f_heliport_s4 view 5 (wall 
 bs_1359..bs_1374	View backgrounds of shelter_b3_dumping_hole (33 of its 36 chunks): arrival and caption scene views, the Glutton fight's views in room 1 and boundary-walked views in room 2.	
 bs_1375	No reached use found: backgrounds of shelter_b3_dumping_hole views 17, 20 and 22, which have cameras and glow cases but are selected by none of the nine checked paths.	
 bs_1395..bs_1434	View backgrounds 1-40 of shelter_b3_garbage_incinerator across seven room indices with five view maps: walked views 2-9, 14 and 15, the rest scene views chosen by captions and scripts.	
-bs_14	Load-screen picture for the Mine/Shelter stage with destination B3 Incinerator Control Room, shown under the Shelter waste boot caption; which save or event lands on it is open.	
+load_screens/shelter_incinerator_chapter_4/background	Load-screen picture for the Mine/Shelter stage with destination B3 Incinerator Control Room, shown under the Shelter waste boot caption; which save or event lands on it is open.	
 bs_143	No reached use found: background of acropolis_fountain view 17, the initial view of warp entries 3 and 4, for which no arriving warp path was found.	
 bs_1435..bs_1442	View backgrounds 1-8 of shelter_b3_incinerator_control_room: play views 3-5, and views 6 and 7 for the arrival scene's caption steps.	
 bs_1436	No reached use found: background of shelter_b3_incinerator_control_room view 2, whose camera is identical to view 3's and which nothing selects.	
@@ -586,7 +586,7 @@ bs_1473..bs_1481	View backgrounds of shelter_b4_reservoir (views 1-9, plus bs_14
 bs_1482	View backgrounds of shelter_b4_water_supply (bs_1482, bs_1472 and bs_1483..bs_1491 for views 1-11); views 2-11 are walked, view 1 is the unselected plan view.	
 bs_149..bs_160	View backgrounds of acropolis_forked_road (12 files): room index 1 uses files 1-10, indices 2 and 3 swap in files 5 and 8; files 11 and 12 have no view in any index.	
 bs_1492..bs_1507	View backgrounds of shelter_r48 (18 view files, 16 chunks): a ring of walked views 2-9 around the arena, and scene views chosen by the boss's scripts and captions.	
-bs_15	Load-screen picture for Dryfield night with destination Motel Lobby in story chapter 4, shown under the Dryfield-return boot caption; which save or event lands on it is open.	
+load_screens/dryfield_night_lobby_chapter_4/background	Load-screen picture for Dryfield night with destination Motel Lobby in story chapter 4, shown under the Dryfield-return boot caption; which save or event lands on it is open.	
 bs_1504	No reached use found: backgrounds of shelter_r48 views 13 and 16, selected by none of the nine checked paths.	
 bs_1508	No reached use found: plan-view (view 1) background of neo_ark_r26, a chunk shared with shelter_r49's file 1; no selector in the shipped game.	
 bs_1508..bs_1510	View backgrounds 1-3 of shelter_r49: view 2 on arrival and scene step 1 of CAP command 1, view 3 from scene step 3 to the end; view 1 is the unselected plan view.	
@@ -609,7 +609,7 @@ bs_1572..bs_1577	View backgrounds 1-6 of neo_ark_north_promenade; views 2-6 are 
 bs_1578..bs_1583	View backgrounds 1-6 of neo_ark_forest_zone: views 2-5 are walked, view 3 is also set by the ambush script and CAP command 1, view 6 is a scene-only view.	
 bs_1584..bs_1593	View backgrounds 1-10 of neo_ark_submarine_tunnel: playable views 2-5, view 6 for caption command 1's scene and views 7-10 for further scene steps.	
 bs_1594..bs_1599	View backgrounds of neo_ark_pavilion (7 files, 6 chunks); the altar switch state picks a room index whose view map swaps which files show for the two playable views.	
-bs_16	Load-screen picture for Dryfield night with destination Trailer Coach in story chapter 4, shown under the Dryfield-return boot caption; which save or event lands on it is open.	
+load_screens/dryfield_night_trailer_chapter_4/background	Load-screen picture for Dryfield night with destination Trailer Coach in story chapter 4, shown under the Dryfield-return boot caption; which save or event lands on it is open.	
 bs_1600	No reached use found: background of neo_ark_island view 1, the straight-down plan view, with no selector in the shipped game.	
 bs_1601	Background of neo_ark_island view 2, the arrival view from the pavilion, also reached by the 3->2 boundary trigger.	
 bs_1602	Background of neo_ark_island view 3, reached by boundary triggers from views 2 and 4.	
@@ -652,7 +652,7 @@ bs_1692	No reached use found: background of shelter_b6_corridor view 1, the plan
 bs_1692..bs_1696	View backgrounds 1-5 of shelter_b6_corridor, decoded in the RGB16 mask-bit MDEC mode: views 2-4 are walked, view 5 is shown only by the battle-end scene.	
 bs_1697	No reached use found: background of shelter_b6_training_room view 1, the straight-down plan view, with no selector in the shipped game.	
 bs_1697..bs_1704	View backgrounds 1-8 of shelter_b6_training_room: views 2-5 are walked, views 6-8 are shown only by CAP command 4's defeat scene.	
-bs_17	Load-screen picture for the Mine/Shelter stage with destination B2 Laboratory (chapter 4 or other than 5 and 6), under the Shelter laboratory boot caption; what lands on it is open.	
+load_screens/shelter_laboratory_chapter_4/background	Load-screen picture for the Mine/Shelter stage with destination B2 Laboratory (chapter 4 or other than 5 and 6), under the Shelter laboratory boot caption; what lands on it is open.	
 bs_1705	Background of neo_ark_r26 view 2, shown from room entry (reload from the Bulwark's departure) and CAP scene step 1 until scene step 11.	
 bs_1706	Background of neo_ark_r26 view 3, shown from CAP scene step 11 until scene step 19.	
 bs_1707	Background of neo_ark_r26 view 4, shown from CAP scene step 19 to the end of the scene, where actors are drawn almost black before the reload to the tent.	
@@ -669,69 +669,68 @@ bs_1743	Background of neo_ark_r31 view 3 (a floor of metal plates overgrown with
 bs_1744	Background of neo_ark_pyramid view 2, shown from arrival at warp endpoint 1 (from the woodland path) until the 2->3 boundary.	
 bs_1749	No reached use found: background of neo_ark_pyramid file 7 (logical view 7 in both room indices), a camera of its own that nothing selects.	
 bs_1751..bs_1758	View backgrounds 1-8 of neo_ark_substation; views 2-8 are a boundary chain between the Garden and Power Plant 2 arrivals, view 1 is the unselected plan view.	
-bs_18	Load-screen picture for Mine/Shelter destinations without their own case (chapter 4 or other than 5), shown under the Shelter pod boot caption; what lands on it is open.	
+load_screens/shelter_pod_chapter_4/background	Load-screen picture for Mine/Shelter destinations without their own case (chapter 4 or other than 5), shown under the Shelter pod boot caption; what lands on it is open.	
 bs_180	No reached use found: background of acropolis_promenade view 12, a steep downward camera selected by none of the nine checked paths.	
 bs_182..bs_197	View backgrounds 1-16 of acropolis_sanctuary: play views 2-8, views 9-13, 15 and 16 shown by caption command 1 in the arrival scene, view 14 set by the cutscene task.	
-bs_19	Load-screen picture for the Mine/Shelter stage with destination Mine Refuge in story chapter 5, shown under the Mine boot caption; what lands on it is open.	
+load_screens/mine_refuge_chapter_5/background	Load-screen picture for the Mine/Shelter stage with destination Mine Refuge in story chapter 5, shown under the Mine boot caption; what lands on it is open.	
 bs_198..bs_204	View backgrounds 1-7 of acropolis_roof_garden: walked views 2-5, view 6 shown only by CAP command 1's arrival scene; view 1 is the plan view.	
-bs_2	Load-screen picture for the Acropolis stage with destination Acropolis Square, shown under the Akropolis boot caption; which save or event lands on it is open.	
-bs_20	Load-screen picture for the Mine/Shelter stage with destination B1 Sterilization Room in story chapter 5, under the Shelter dwelling boot caption; what lands on it is open.	
+load_screens/acropolis_square/background	Load-screen picture for the Acropolis stage with destination Acropolis Square, shown under the Akropolis boot caption; which save or event lands on it is open.	
+load_screens/shelter_sterilization_chapter_5/background	Load-screen picture for the Mine/Shelter stage with destination B1 Sterilization Room in story chapter 5, under the Shelter dwelling boot caption; what lands on it is open.	
 bs_205..bs_214	View backgrounds 1-10 of acropolis_bridge; room 2, set when the keypad movie finishes, maps the same walked views onto files 5, 3 and 4 instead of 2, 6 and 7.	
-bs_21	Load-screen picture for the Mine/Shelter stage with destination B3 Incinerator Control Room in story chapter 5, under the Shelter waste boot caption; what lands on it is open.	
+load_screens/shelter_incinerator_chapter_5/background	Load-screen picture for the Mine/Shelter stage with destination B3 Incinerator Control Room in story chapter 5, under the Shelter waste boot caption; what lands on it is open.	
 bs_215..bs_224	View backgrounds 1-10 of acropolis_fire_escape: views 2-6 are walked between the bridge and landing-pad warps, view 7 is selected by caption text.	
-bs_22	Load-screen picture for Dryfield night with destination Motel Lobby in story chapter 5, shown under the Dryfield-return boot caption; what lands on it is open.	
+load_screens/dryfield_night_lobby_chapter_5/background	Load-screen picture for Dryfield night with destination Motel Lobby in story chapter 5, shown under the Dryfield-return boot caption; what lands on it is open.	
 bs_225..bs_247	View backgrounds of acropolis_helicopter_landing_pad (27 view files): the walked ring 2-10 around the pad, plus intro, ending, lift-ride and departure scene views.	
-bs_23	Load-screen picture for Dryfield night with destination Trailer Coach in story chapter 5, shown under the Dryfield-return boot caption; what lands on it is open.	
+load_screens/dryfield_night_trailer_chapter_5/background	Load-screen picture for Dryfield night with destination Trailer Coach in story chapter 5, shown under the Dryfield-return boot caption; what lands on it is open.	
 bs_235	No reached use found: background of the helicopter landing pad's view 11, the initial view of warp entry 1 (the pad top), for which no arriving warp was found.	
 bs_236	No reached use found: backgrounds of the helicopter landing pad's views 12, 13, 14 and 26, selected by none of the nine checked paths.	
-bs_24	Load-screen picture for the Mine/Shelter stage with destination B2 Laboratory in story chapter 5, shown under the Shelter laboratory boot caption; what lands on it is open.	
+load_screens/shelter_laboratory_chapter_5/background	Load-screen picture for the Mine/Shelter stage with destination B2 Laboratory in story chapter 5, shown under the Shelter laboratory boot caption; what lands on it is open.	
 bs_249..bs_253	View backgrounds 1-5 of acropolis_west_elevator_hall: view 5 is the lift bay shown on arrival, views 2-4 are walked; view 1 is the unselected plan view.	
-bs_25	Load-screen picture for Mine/Shelter destinations without their own case in story chapter 5, shown under the Shelter pod boot caption; what lands on it is open.	
+load_screens/shelter_pod_chapter_5/background	Load-screen picture for Mine/Shelter destinations without their own case in story chapter 5, shown under the Shelter pod boot caption; what lands on it is open.	
 bs_254	No reached use found: background of mist_r18 view 1, the straight-down plan view, with no selector in the shipped game.	
 bs_254..bs_261	View backgrounds of mist_r18 (views 1-7 and 10): arrival view 2, views selected by script SET_VIEW (2-5, 10) and by caption scene steps (4-7).	
-bs_26	Load-screen picture for the Shelter/Neo Ark stage with destination B6 Nursery, shown under the Shelter experiment boot caption; which save or event lands on it is open.	
+load_screens/shelter_nursery/background	Load-screen picture for the Shelter/Neo Ark stage with destination B6 Nursery, shown under the Shelter experiment boot caption; which save or event lands on it is open.	
 bs_262..bs_281	View backgrounds 1-20 of mist_parking across four room indices (two swap views 5/18, 6/19, 8/20): walked views 2-8, a cutscene view and CAP scene views 10-17.	
-bs_27	Load-screen picture for the Mine/Shelter stage with destination B1 Underground Parking in story chapter 5, under the Shelter dwelling boot caption; what lands on it is open.	
-bs_28	Load-screen picture for other Dryfield night destinations in story chapter 5, shown under the Dryfield-return boot caption; what lands on it is open.	
+load_screens/shelter_parking_chapter_5/background	Load-screen picture for the Mine/Shelter stage with destination B1 Underground Parking in story chapter 5, under the Shelter dwelling boot caption; what lands on it is open.	
+load_screens/dryfield_night_other_chapter_5/background	Load-screen picture for other Dryfield night destinations in story chapter 5, shown under the Dryfield-return boot caption; what lands on it is open.	
 bs_282..bs_299	View backgrounds 1-18 of mist_shooting_gallery: views 2-13 and 18 are walked via 28 boundary triggers and seven warps, view 14 by a warp entry and actor_215100.	
-bs_29	Load-screen picture for the Shelter/Neo Ark stage with destination Neo Ark Shrine or any area without its own case, under the Shelter heliport boot caption; what lands on it is open.	
-bs_3	Load-screen picture for Acropolis destinations without their own case, shown under the Akropolis boot caption; which save or event lands on it is open.	
-bs_30	Load-screen picture for the Mine/Shelter stage with destination B1 Sterilization Room in story chapter 6, under the Shelter dwelling boot caption; what lands on it is open.	
+load_screens/shelter_heliport/background	Load-screen picture for the Shelter/Neo Ark stage with destination Neo Ark Shrine or any area without its own case, under the Shelter heliport boot caption; what lands on it is open.	
+load_screens/acropolis_other/background	Load-screen picture for Acropolis destinations without their own case, shown under the Akropolis boot caption; which save or event lands on it is open.	
+load_screens/shelter_sterilization_chapter_6/background	Load-screen picture for the Mine/Shelter stage with destination B1 Sterilization Room in story chapter 6, under the Shelter dwelling boot caption; what lands on it is open.	
 bs_300	No reached use found: flat grey placeholder picture stored as files 1 and 2 of dryfield_r04 (a room with no entry route) and file 1 of mist_r21 (which has no view tables).	
 bs_301	No reached use found: untextured test render of a corridor (flat-shaded boxes, one blue and one red panel), file 2 of mist_r21, which has no view tables.	
 bs_302	View backgrounds of dryfield_night_gas_station (21 view files) across four rooms with their own view maps, so walked views 2-4 change look between first night and later.	
 bs_302..bs_315	View backgrounds 1-14 of dryfield_gas_station: walked views 2-6, view 8 for the telephone cutscene, arrival-scene views, and views 7, 13, 14 selected by caption text.	
-bs_31	Load-screen picture for the Mine/Shelter stage with destination B2 Laboratory in story chapter 6, shown under the Shelter laboratory boot caption; what lands on it is open.	
+load_screens/shelter_laboratory_chapter_6/background	Load-screen picture for the Mine/Shelter stage with destination B2 Laboratory in story chapter 6, shown under the Shelter laboratory boot caption; what lands on it is open.	
 bs_316..bs_328	View backgrounds 1-13 of dryfield_main_street: walked views via boundary triggers and seven warps, first-visit script views 10-13, and view 8 (the smoke view) by caption text.	
-bs_32	Load-screen picture for the Mine/Shelter stage with destination B1 Underground Parking in story chapter 6, under the Shelter dwelling boot caption; what lands on it is open.	
+load_screens/shelter_parking_chapter_6/background	Load-screen picture for the Mine/Shelter stage with destination B1 Underground Parking in story chapter 6, under the Shelter dwelling boot caption; what lands on it is open.	
 bs_329	No reached use found: plan-view (view 1) background shared by dryfield_general_store and dryfield_night_general_store, never selected in the shipped game.	
-bs_33	Load-screen picture for Dryfield destinations without their own case, shown under the Dryfield boot caption; which save or event lands on it is open.	
+load_screens/dryfield_other/background	Load-screen picture for Dryfield destinations without their own case, shown under the Dryfield boot caption; which save or event lands on it is open.	
 bs_330..bs_342	View backgrounds of dryfield_general_store (views 2-14 and 16): walked views 2-14, view 3 also set by the encounter script, view 16 a still for the 'go through?' prompt.	
-bs_34	Load-screen picture for the Mine/Shelter stage with destination B1 Underground Parking (chapter 4 or other than 5 and 6), under the Shelter dwelling boot caption; what lands on it is open.	
+load_screens/shelter_parking_chapter_4/background	Load-screen picture for the Mine/Shelter stage with destination B1 Underground Parking (chapter 4 or other than 5 and 6), under the Shelter dwelling boot caption; what lands on it is open.	
 bs_343	No reached use found: background of dryfield_general_store view 15, an ordinary camera with no sprites that none of the nine checked paths selects.	
 bs_345..bs_349	View backgrounds 1-5 of dryfield_back_street; views 2-5 are walked via boundary triggers and four warps, view 1 is the unselected plan view.	
-bs_35	Full-screen splash for the Replay game mode, loaded by the shooting gallery's actor_215100 introduction before the gallery movie when the game has been cleared.	
-bs_35..bs_38	Full-screen splashes of the four run modes (Replay, Bounty, Scavenger, Nightmare), one shown by mist_shooting_gallery before the gallery movie on a cleared save.	
+game_modes/replay/splash	The Replay mode screen of a cleared game's new run: shown by mist_shooting_gallery (_mistShootingGalleryModeSplashTask) for save gameMode 0, fading in, held 151 frames or until Start, fading out.	
 bs_350..bs_352	View backgrounds 1-3 of dryfield_souvenir_shop; views 2 and 3 are walked, view 1 is the unselected plan view.	
 bs_353	No reached use found: plan-view (view 1) background shared by dryfield_warehouse and dryfield_night_warehouse, with no selector in the shipped game.	
 bs_354..bs_356	Backgrounds of dryfield_warehouse files 2-4: view 2 always, and views 3 and 4 as the room looks before the Monkey Wrench event (room index 1).	
 bs_357	Background of dryfield_warehouse view 5, a close-up shown by the caption text of CAP command 4 on the second and third reading at an action trigger.	
 bs_358..bs_359	Backgrounds of dryfield_warehouse files 6 and 7, the alternates of views 3 and 4 used after the Monkey Wrench event (room index 2).	
-bs_36	Full-screen splash for the Bounty game mode, loaded by the shooting gallery's actor_215100 introduction before the gallery movie when the game has been cleared.	
+game_modes/bounty/splash	The Bounty mode screen of a cleared game's new run (save gameMode 1), shown by mist_shooting_gallery as the Replay one.	
 bs_360..bs_361	No reached use found: backgrounds of dryfield_warehouse files 8 and 9, alternates of views 4 and 3 for room index 3, which no code was found to select.	
 bs_362..bs_367	View backgrounds 1-6 of dryfield_r08: view 2 on arrival and views 3-6 by the successive steps of CAP command 1; view 1 is the unselected plan view.	
 bs_368..bs_388	View backgrounds 1-21 of dryfield_dilapidated_house: walked views 2-6, views 7-13 for the introduction scene and 14-21 for the closing scene.	
-bs_37	Full-screen splash for the Scavenger game mode, loaded by the shooting gallery's actor_215100 introduction before the gallery movie when the game has been cleared.	
-bs_38	Full-screen splash for the Nightmare game mode, loaded by the shooting gallery's actor_215100 introduction before the gallery movie when the game has been cleared.	
+game_modes/scavenger/splash	The Scavenger mode screen of a cleared game's new run (save gameMode 2), shown by mist_shooting_gallery as the Replay one.	
+game_modes/nightmare/splash	The Nightmare mode screen of a cleared game's new run (save gameMode 3), shown by mist_shooting_gallery as the Replay one.	
 bs_389	No reached use found: plan-view (view 1) background shared by dryfield_motel_room_1 and its night room, never selected in the shipped game.	
-bs_39	Background of the disc-change prompt shown by the options overlay when the stage being entered is on disc 1 and another disc is in the drive.	
+disc_swap/disc_1/background	Background of the disc-change prompt for disc 1 (file 20160): main's loadUiPollDiskSwap loads it when the stage to enter is on disc 1 and the other disc is in the drive - in the loading session before a stage (gameplay load_screen.c) or when a save's location is restored (gameflow.c).	
 bs_390	No reached use found: backgrounds of dryfield_motel_room_1 view files 2 and 3 (logical views 9 and 8), for which no selector was found.	
 bs_395	Background of dryfield_motel_room_1 view 7, a low close camera shown only during the opening encounter's caption scene (scene step 6 of command 5).	
 bs_397	Reached view backgrounds of dryfield_motel_room_1 (files 9, 8, 4, 5, 6 = logical views 2-6): walked via boundary triggers, the warp and the opening scene's cuts.	
 bs_398	View backgrounds of dryfield_night_motel_room_2 (bs_398 and bs_749..bs_753 for views 1-6); views 2-6 are walked, view 1 is the unselected plan view.	
 bs_398..bs_403	View backgrounds 1-6 of dryfield_motel_room_2; views 2-6 are walked via eight boundary triggers from the arrival view 2, view 1 is the unselected plan view.	
-bs_4	Load-screen picture for the Acropolis stage with destination MIST Parking in story chapter 0, shown under the MIST arrival boot caption; what lands on it is open.	
-bs_40	Background of the disc-change prompt shown by the options overlay when the stage being entered is on disc 2 and another disc is in the drive.	
+load_screens/mist_arrival/background	Load-screen picture for the Acropolis stage with destination MIST Parking in story chapter 0, shown under the MIST arrival boot caption; what lands on it is open.	
+disc_swap/disc_2/background	Background of the disc-change prompt for disc 2 (file 20161), loaded as the disc 1 one when the stage to enter is on disc 2.	
 bs_404	View backgrounds of dryfield_night_motel_room_3 (11 files): only views 6-11 are reached, by the arrival in view 9 and boundary triggers; views 2-5 have no selector.	
 bs_404..bs_411	View backgrounds 1-8 of dryfield_motel_room_3; views 2-8 are walked via boundary triggers from the arrival view 2, view 1 is the unselected plan view.	
 bs_405	No reached use found: backgrounds of dryfield_night_motel_room_3 views 2-5; the only trigger naming them needs view 2 current, and nothing sets view 2.	
@@ -754,7 +753,7 @@ bs_456	No reached use found: backgrounds of dryfield_water_tower views 2, 10, 15
 bs_476..bs_483	View backgrounds of dryfield_water_tank (10 files, including bs_468 and bs_484): walked views 2 and 3, view 4 by warp and script, views 8 and 10 by caption text.	
 bs_485..bs_490	View backgrounds 1-6 of dryfield_breezeway: walked views 2-4, view 5 by caption text of CAP command 1, view 6 only in the key-item event.	
 bs_491..bs_509	View backgrounds 1-19 of dryfield_factory; room index 2, after the barrier is cleared, swaps files 13-17 in for views 2, 3, 4, 6, 7; panel and barrier views are separate.	
-bs_5	Load-screen picture for the Acropolis stage with destination MIST Parking when the story chapter is not 0, under the MIST departure boot caption; what lands on it is open.	
+load_screens/mist_departure/background	Load-screen picture for the Acropolis stage with destination MIST Parking when the story chapter is not 0, under the MIST departure boot caption; what lands on it is open.	
 bs_510..bs_524	View backgrounds 1-15 of dryfield_garage: walked views 2-6 and 15, and views 7-14 shown by the scene steps of caption command 1.	
 bs_523	No reached use in the night garage: the day garage's view-14 background, also stored in dryfield_night_garage's file 99, which has no loader there.	
 bs_525..bs_531	View backgrounds 1-7 of dryfield_driveway: walked views 2-5, view 6 by caption text; room index 2 swaps in file 7 as the after-rope version of view 4.	
@@ -780,7 +779,7 @@ bs_578..bs_582	View backgrounds of dryfield_motel_room_6 (views 1-5 and 7-12): w
 bs_583	No reached use found: background of dryfield_motel_room_6 view 6, which has a camera but no sprites and no selector.	
 bs_590..bs_596	View backgrounds 1-7 of dryfield_motel_loft; views 2-7 are walked via twelve boundary triggers, view 1 is the unselected plan view.	
 bs_597..bs_606	View backgrounds of dryfield_water_hole (19 chunks) over four room indices: lit against dark versions by the underpass switch, with walked logical views 2-8.	
-bs_6	Load-screen picture for Dryfield with destination Main Street (or Gas Station with the normal caption selector), under the Dryfield boot caption; what lands on it is open.	
+load_screens/dryfield_main_street/background	Load-screen picture for Dryfield with destination Main Street (or Gas Station with the normal caption selector), under the Dryfield boot caption; what lands on it is open.	
 bs_616..bs_625	View backgrounds of dryfield_night_cellar (10 of 11 files): room 1 uses files 1-6, room 2 shows the same five walked views from files 7-11; view 6 is the P08 spot.	
 bs_616..bs_626	View backgrounds 1-11 of dryfield_cellar over two room indices: walked views 2-5, view 6 (the P08 spot) by caption text, and files 7-11 as the second room's versions.	
 bs_626	No reached use found: background of file 11 in the day and night Dryfield cellars, the dark-cellar counterpart of the close-up view, which nothing selects.	
@@ -791,7 +790,7 @@ bs_652	No reached use found by night: background of the underpass's close camera
 bs_659	No reached use found: background of dryfield_night_gas_station view 8, for which none of the nine checked paths gives a selector.	
 bs_672..bs_695	View backgrounds 1-24 of dryfield_night_main_street over three room variants whose view maps show the same shots in another state; walked views plus a caption-selected view 8.	
 bs_696..bs_708	View backgrounds of dryfield_night_general_store (views 2-14, plus bs_344 for view 16): walked views 2-14 and the underpass 'go through?' prompt still.	
-bs_7	Load-screen picture for Dryfield with destination Trailer Coach, shown under the Dryfield boot caption; which save or event lands on it is open.	
+load_screens/dryfield_trailer_coach/background	Load-screen picture for Dryfield with destination Trailer Coach, shown under the Dryfield boot caption; which save or event lands on it is open.	
 bs_709	No reached use found: background of dryfield_night_general_store view 15, an ordinary camera with no sprites that none of the nine checked paths selects.	
 bs_710..bs_714	View backgrounds 1-5 of dryfield_night_back_street; views 2-5 are walked via boundary triggers and four warps, view 1 is the unselected plan view.	
 bs_715..bs_717	View backgrounds 1-3 of dryfield_night_souvenir_shop; views 2 and 3 are walked, view 1 is the unselected plan view.	
@@ -806,7 +805,7 @@ bs_763	Backgrounds of dryfield_night_motel_room_4 views 2-6 (bs_763..bs_767), al
 bs_784	No reached use found: background of dryfield_night_toilet view 9, an ordinary camera with no sprites that none of the nine checked paths selects.	
 bs_785..bs_791	View backgrounds 1-7 of dryfield_night_motel_lobby: walked views 2-4, view 5 forced by the telephone cutscene, view 6 set by the cash register task.	
 bs_792..bs_804	View backgrounds 1-13 of dryfield_night_saloon_g_r: walked views 2-7, view 9 for the entry scene, views 10 and 11 for the talk and follow-up scripts.	
-bs_8	Load-screen picture for Dryfield night with destination Motel Lobby (chapter 3 or other than 4 and 5), under the Dryfield boot caption; what lands on it is open.	
+load_screens/dryfield_night_lobby_chapter_3/background	Load-screen picture for Dryfield night with destination Motel Lobby (chapter 3 or other than 4 and 5), under the Dryfield boot caption; what lands on it is open.	
 bs_807..bs_814	View backgrounds of dryfield_night_water_tower (views 1-8 and 10): views 2-8 and 10 are walked via boundary triggers and four warps, view 1 is the plan view.	
 bs_815	No reached use found: background of dryfield_night_water_tower view 9; a caption scene step names it but nothing starts that command in the night room.	
 bs_817..bs_822	View backgrounds of dryfield_night_water_tank (6 files; session views 6-10 all show file 6): walked views 2 and 3, view 4 by warp and script, view 5 by a CAP scene step.	
@@ -833,7 +832,7 @@ bs_889	Backgrounds of dryfield_night_motel_room_5 files 2-6: the walked views 2-
 bs_894	Backgrounds of dryfield_night_motel_room_5 files 7-11: the same five walked framings with other pictures in room index 2, after the night balcony scene.	
 bs_899	No reached use found: background of dryfield_night_motel_balcony view 1, the straight-down plan view, with no selector in the shipped game.	
 bs_899..bs_921	View backgrounds of dryfield_night_motel_balcony (39 files) over three rooms with their own view maps: walked views 2-6 plus the many scene views of actor_335800's scripts.	
-bs_9	Load-screen picture for Dryfield night with destination Trailer Coach (chapter 3 or other than 4 and 5), under the Dryfield boot caption; what lands on it is open.	
+load_screens/dryfield_night_trailer_chapter_3/background	Load-screen picture for Dryfield night with destination Trailer Coach (chapter 3 or other than 4 and 5), under the Dryfield boot caption; what lands on it is open.	
 bs_91	No reached use found: backgrounds of acropolis_cafeteria views 10 and 13, ordinary cameras with no sprites that none of the nine checked paths selects.	
 bs_911	No reached use found: backgrounds of dryfield_night_motel_balcony logical views 13-16, 27, 28, 30 and 38, for which no selector was found.	
 bs_937..bs_948	View backgrounds 1-12 of dryfield_night_motel_room_6: walked views 2-5, 7, 8, view 12 by the cutscene record of room command 22, view 9 by a caption text code.	
@@ -2935,7 +2934,7 @@ weapons/m4a1_javelin/preview_palette	256-colour palette of the M4A1 Javelin prev
 weapons/mp5a5/preview_palette	256-colour palette of the MP5A5 preview picture (weapons/mp5a5/preview_image) shown by gameplay's item menu when that weapon is the selected row.	
 weapons/mp5a5/p1_preview_palette	256-colour palette of the MP5A5(+1) preview picture (weapons/mp5a5/p1_preview_image) shown by gameplay's item menu when that weapon is the selected row.	
 weapons/mp5a5/p2_preview_palette	256-colour palette of the MP5A5(+2) preview picture (weapons/mp5a5/p2_preview_image) shown by gameplay's item menu when that weapon is the selected row.	
-pe2clut_56	15-colour palette of the disc-change prompt text (pe2img_58) drawn by main's disk-swap message; its other five rows are black.	
+disc_swap/palette	The prompt text's palette, row 255 of the six-row block its chunk uploads (the other five rows black).	
 key_items/parthenon_key/palette	256-colour palette of the Parthenon Key preview picture (key_items/parthenon_key/image) shown in the key-item list of the in-game menu.	
 key_items/micro_device/palette	256-colour palette of the Micro Device preview picture (key_items/micro_device/image), shown in the key-item list for both key items 0x102 and 0x12D.	
 key_items/red_key/palette	256-colour palette of the Red Key preview picture (key_items/red_key/image) shown in the key-item list of the in-game menu.	
@@ -3969,7 +3968,7 @@ pe2img_576	8-bit sheet of the 71 occluder sprites of dryfield_motel_lobby's mapp
 dryfield_saloon_g_r_dialogue_0_atlas	4-bit caption glyph atlas of the saloon's dialogue, shared by dryfield_saloon_g_r and dryfield_night_saloon_g_r.	
 pe2img_578	8-bit sheet of the 17 occluder sprites of dryfield_saloon_g_r's mapped view 2.	
 pe2img_579	8-bit sheet of the 14 occluder sprites of dryfield_saloon_g_r's mapped view 3.	
-pe2img_58	Disc-change prompt text (two 159x16 lines such as 'Change to DISC 1'), drawn as a semi-transparent sprite by main's load UI while it waits for the other disc.	
+disc_swap/image	The prompt text sheet (disc_swap/messages) both prompt files carry, uploaded to (960, 0).	
 pe2img_580	8-bit sheet (two pages) of the 56 occluder sprites of dryfield_saloon_g_r's mapped view 4.	
 pe2img_581	8-bit sheet (two pages) of the 52 occluder sprites of dryfield_saloon_g_r's mapped view 5.	
 pe2img_582	8-bit sheet (two pages) of the 91 occluder sprites of dryfield_saloon_g_r's mapped view 6.	
@@ -5297,3 +5296,4 @@ ui/font/large	The UI font's large face (every other glyphTable, \sL), 128 rows d
 ui/caption_font/face	The load-screen caption font, laid out by gTextCaptionGlyphCells: glyph-script indices A-Z, a-z, 1-9, 0, then : ; ' , . ? ! and the space.	
 dialogue/font	The dialogue (CAP) font, a glyph per character: every picture the decodable dialogues show, from which each dialogue's atlas is packed (cap_font.py). Proportional: a glyph advances by its width and stands on the baseline.	
 dialogue/speakers	The speaker name plates of the dialogue boxes, a glyph per plate with the speaker numbers it stands for; ??? stands for every speaker not yet introduced, and speaker 21 has a wide ??? as well.	
+disc_swap/messages	The disc-change prompt's three messages, one 16-row line each on a black sheet: Change to DISC 1, Change to DISC 2 and Wrong DISC, drawn as a semi-transparent 4-bit sprite by _loadUiDrawDiskSwapMessage (cells disc_1, disc_2, wrong_disc).	

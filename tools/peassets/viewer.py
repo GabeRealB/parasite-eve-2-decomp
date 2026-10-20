@@ -519,7 +519,7 @@ def build_image_canon_index(
     """Map image stem / filename / path → canonical chunk keys.
 
     Canonical form matches :data:`asset_db.TREE` / :data:`asset_db.ASSETS`
-    (``stage0/file2/2``, ``stage1/101/file0/1``).
+    (``stage0/title_screen/2``, ``stage1/101/file0/1``).
     """
     index: dict[str, list[str]] = {}
     if not stages:

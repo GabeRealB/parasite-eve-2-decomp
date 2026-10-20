@@ -1,0 +1,10 @@
+# The assets of the group game_modes/nightmare, each named game_modes/nightmare/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+contents = [{ chunk = "splash" }]
+
+[splash]
+type = "bs"
+sha1 = "475c7d16f2275ee013977f101c0374d1f2b3f927"

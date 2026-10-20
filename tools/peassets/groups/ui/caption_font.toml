@@ -17,7 +17,7 @@ type = "file"
 chunk = "image"
 slots = 3
 sha1 = "b74465538751adb80ee4804069306f129585106c"
-pages = [{ texture = "texture", region = "engine/vram/caption_font" }]
+pages = [{ texture = "texture", region = "engine/vram/screen_sheet" }]
 
 [[file.contents]]
 chunk = "palette"

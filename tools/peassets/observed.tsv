@@ -721,9 +721,9 @@ aya_10400	main memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0x80115770
 aya_10400	main memory	trace-20261012-152043	session 1	1	mist_r18	1	2		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
 aya_10500	main memory	trace-20261012-145054	session 1						0x80115770-0x8011d1b7	0/file10500	6	0	0		
 aya_10500	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x80115770-0x8011d1b7	0/file10500	6	0	0		overwritten by aya_10200 of 0/aya_10200 at event 8478
-title/background	main memory	trace-20261012-145054	session 1						0x801d7000-0x801dcfef	0/file2	0	0	0		
-title/background	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x801d7000-0x801dcfef	0/file2	0	0	0		overwritten by bs_296 of 1/mist_shooting_gallery/file15 at event 708
-title/background	main memory	trace-20261012-152043	session 1						0x801d7000-0x801dcfef	0/file2	0	0	0		overwritten by bs_2 of 0/file5 at event 57
+title/background	main memory	trace-20261012-145054	session 1						0x801d7000-0x801dcfef	0/title_screen	0	0	0		
+title/background	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x801d7000-0x801dcfef	0/title_screen	0	0	0		overwritten by bs_296 of 1/mist_shooting_gallery/file15 at event 708
+title/background	main memory	trace-20261012-152043	session 1						0x801d7000-0x801dcfef	0/title_screen	0	0	0		overwritten by load_screens/acropolis_square/background of 0/load_screen_acropolis_square at event 57
 bs_102	main memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1	3	0x801d7000-0x801de7ef	1/acropolis_cafeteria/file21	0	0	0		overwritten by bs_95 of 1/acropolis_cafeteria/file14 at event 3134
 bs_102	main memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1	3	0x801d7000-0x801de7ef	1/acropolis_cafeteria/file21	0	0	0		overwritten by bs_95 of 1/acropolis_cafeteria/file14 at event 3222
 bs_102	main memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1	3	0x801d7000-0x801de7ef	1/acropolis_cafeteria/file21	0	0	0		overwritten by bs_97 of 1/acropolis_cafeteria/file16 at event 3059
@@ -952,9 +952,9 @@ bs_199	main memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1	2	0
 bs_199	main memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	2	2	0x801d7000-0x801dcfef	1/acropolis_roof_garden/file2	0	0	0		
 bs_199	main memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	3	2	0x801d7000-0x801dcfef	1/acropolis_roof_garden/file2	0	0	0		overwritten by bs_188 of 1/acropolis_sanctuary/file7 at event 14183
 bs_199	main memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	3	2	0x801d7000-0x801dcfef	1/acropolis_roof_garden/file2	0	0	0		overwritten by bs_188 of 1/acropolis_sanctuary/file7 at event 24514
-bs_2	main memory	trace-20261012-152043	session 1						0x801d7000-0x801dd7ef	0/file5	0	0	0		
-bs_2	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		0x801d7000-0x801dd7ef	0/file5	0	0	0		
-bs_2	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0x801d7000-0x801dd7ef	0/file5	0	0	0		overwritten by rooms/akropolis/square/view6_background of 1/akropolis_square/file6 at event 124
+load_screens/acropolis_square/background	main memory	trace-20261012-152043	session 1						0x801d7000-0x801dd7ef	0/load_screen_acropolis_square	0	0	0		
+load_screens/acropolis_square/background	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		0x801d7000-0x801dd7ef	0/load_screen_acropolis_square	0	0	0		
+load_screens/acropolis_square/background	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0x801d7000-0x801dd7ef	0/load_screen_acropolis_square	0	0	0		overwritten by rooms/akropolis/square/view6_background of 1/akropolis_square/file6 at event 124
 bs_200	main memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1	3	0x801d7000-0x801de7ef	1/acropolis_roof_garden/file3	0	0	0		overwritten by bs_199 of 1/acropolis_roof_garden/file2 at event 14120
 bs_200	main memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1	3	0x801d7000-0x801de7ef	1/acropolis_roof_garden/file3	0	0	0		overwritten by bs_201 of 1/acropolis_roof_garden/file4 at event 13268
 bs_200	main memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1	3	0x801d7000-0x801de7ef	1/acropolis_roof_garden/file3	0	0	0		overwritten by bs_201 of 1/acropolis_roof_garden/file4 at event 13664
@@ -3169,7 +3169,7 @@ mist_parking_view18	main memory	trace-20261012-152043	session 1	1	mist_parking	3
 mist_parking_view18	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1	5	0,255,256,6	bundle:mist_parking_view18	0	0	0		overwritten by mist_parking_view18 of bundle:mist_parking_view18 at event 12356
 mist_parking_view18	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1	5	0,255,256,6	bundle:mist_parking_view18	0	0	0		overwritten by mist_parking_view18 of bundle:mist_parking_view18 at event 12671
 mist_parking_view18	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1	5	0,255,256,6	bundle:mist_parking_view18	0	0	0		overwritten by mist_parking_view19 of bundle:mist_parking_view19 at event 12428
-mist_parking_view18	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1	5	0,255,256,6	bundle:mist_parking_view18	0	0	0		overwritten by ui/caption_font/palette of 0/file3 at event 12723
+mist_parking_view18	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1	5	0,255,256,6	bundle:mist_parking_view18	0	0	0		overwritten by ui/caption_font/palette of 0/load_screen_detailed_caption at event 12723
 mist_parking_view19	main memory	trace-20261012-145054	session 1	1	acropolis_plaza	1	1		0x801969d0-0x80196cdd	1/mist_parking/file0	0	0	0	palette	overwritten by acropolis_plaza of 1/acropolis_plaza/file0 at event 12751
 mist_parking_view19	main memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x801969d0-0x80196cdd	1/mist_parking/file0	0	0	0	palette	
 mist_parking_view19	main memory	trace-20261012-145054	session 1	1	mist_parking	2	1		0x801969d0-0x80196cdd	1/mist_parking/file0	0	0	0	palette	
@@ -4584,8 +4584,8 @@ pe2clut_184	video memory	trace-20261012-152043	session 1	1	acropolis_east_elevat
 pe2clut_184	video memory	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1		0,255,256,6	0/mappic_s1_02	0	0	0		overwritten by pe2clut_183 of 0/file30101 at event 26724
 pe2clut_184	video memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1		0,255,256,6	0/mappic_s1_02	0	0	0		overwritten by pe2clut_183 of 0/file30101 at event 40987
 pe2clut_185	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0,255,256,6	0/file30103	0	0	0		overwritten by mist_shooting_gallery_view8 of bundle:mist_shooting_gallery_view8 at event 8243
-title/chrome_palette	video memory	trace-20261012-145054	session 1						0,255,256,6	0/file2	0	0	0		overwritten by ui/caption_font/palette of 0/file3 at event 131
-title/chrome_palette	video memory	trace-20261012-152043	session 1						0,255,256,6	0/file2	0	0	0		overwritten by ui/caption_font/palette of 0/file5 at event 57
+title/chrome_palette	video memory	trace-20261012-145054	session 1						0,255,256,6	0/title_screen	0	0	0		overwritten by ui/caption_font/palette of 0/load_screen_detailed_caption at event 131
+title/chrome_palette	video memory	trace-20261012-152043	session 1						0,255,256,6	0/title_screen	0	0	0		overwritten by ui/caption_font/palette of 0/load_screen_acropolis_square at event 57
 pe2clut_202	video memory	trace-20261012-152043	session 1	1	acropolis_bridge	1	1		0,249,256,2	0/file200700	2	4	0		
 pe2clut_202	video memory	trace-20261012-152043	session 1	1	acropolis_bridge	1	2		0,249,256,2	0/file200700	2	4	0		
 pe2clut_202	video memory	trace-20261012-152043	session 1	1	acropolis_bridge	2	1		0,249,256,2	0/file200700	2	4	0		
@@ -5133,14 +5133,14 @@ pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	4		
 pe2clut_29	video memory	trace-20261012-152043	session 1	1	mist_parking	1	2		0,245,256,2	0/aya_10400	6	0	0		
 pe2clut_29	video memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0,245,256,2	0/aya_10400	6	0	0		overwritten by pe2clut_4 of 0/aya_10200 at event 41585
 pe2clut_29	video memory	trace-20261012-152043	session 1	1	mist_r18	1	2		0,245,256,2	0/aya_10400	6	0	0		
-ui/caption_font/palette	video memory	trace-20261012-145054	session 1						0,255,256,6	0/file3	0	0	0		
-ui/caption_font/palette	video memory	trace-20261012-145054	session 1	1	acropolis_plaza	1	1		0,255,256,6	0/file3	0	0	0		
-ui/caption_font/palette	video memory	trace-20261012-145054	session 1	1	acropolis_west_elevator_hall	1	1		0,255,256,6	0/file3	0	0	0		overwritten by acropolis_west_elevator_hall_view5 of bundle:acropolis_west_elevator_hall_view5 at event 18059
-ui/caption_font/palette	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0,255,256,6	0/file3	0	0	0		
-ui/caption_font/palette	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0,255,256,6	0/file3	0	0	0		overwritten by mist_shooting_gallery_view15 of bundle:mist_shooting_gallery_view15 at event 710
-ui/caption_font/palette	video memory	trace-20261012-152043	session 1						0,255,256,6	0/file5	0	0	0		
-ui/caption_font/palette	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		0,255,256,6	0/file5	0	0	0		
-ui/caption_font/palette	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0,255,256,6	0/file5	0	0	0		overwritten by rooms/akropolis/square/view6_palette of bundle:rooms/akropolis/square/view6_palette at event 126
+ui/caption_font/palette	video memory	trace-20261012-145054	session 1						0,255,256,6	0/load_screen_detailed_caption	0	0	0		
+ui/caption_font/palette	video memory	trace-20261012-145054	session 1	1	acropolis_plaza	1	1		0,255,256,6	0/load_screen_detailed_caption	0	0	0		
+ui/caption_font/palette	video memory	trace-20261012-145054	session 1	1	acropolis_west_elevator_hall	1	1		0,255,256,6	0/load_screen_detailed_caption	0	0	0		overwritten by acropolis_west_elevator_hall_view5 of bundle:acropolis_west_elevator_hall_view5 at event 18059
+ui/caption_font/palette	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0,255,256,6	0/load_screen_detailed_caption	0	0	0		
+ui/caption_font/palette	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0,255,256,6	0/load_screen_detailed_caption	0	0	0		overwritten by mist_shooting_gallery_view15 of bundle:mist_shooting_gallery_view15 at event 710
+ui/caption_font/palette	video memory	trace-20261012-152043	session 1						0,255,256,6	0/load_screen_acropolis_square	0	0	0		
+ui/caption_font/palette	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		0,255,256,6	0/load_screen_acropolis_square	0	0	0		
+ui/caption_font/palette	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0,255,256,6	0/load_screen_acropolis_square	0	0	0		overwritten by rooms/akropolis/square/view6_palette of bundle:rooms/akropolis/square/view6_palette at event 126
 pe2clut_305	video memory	trace-20261012-145054	session 1						0,254,256,1	0/file900001	0	0	0		
 pe2clut_305	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0,254,256,1	0/file900001	0	0	0		overwritten by items/9mm_pb/palette of 0/file20401 at event 8195
 pe2clut_305	video memory	trace-20261012-152043	session 1						0,254,256,1	0/file900001	0	0	0		
@@ -6358,8 +6358,8 @@ pe2img_190	video memory	trace-20261012-152043	session 1	1	acropolis_east_elevato
 pe2img_190	video memory	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1		896,0,128,256	0/mappic_s1_02	0	0	0		overwritten by pe2img_189 of 0/file30101 at event 26724
 pe2img_190	video memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1		896,0,128,256	0/mappic_s1_02	0	0	0		overwritten by pe2img_189 of 0/file30101 at event 40987
 pe2img_191	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		896,0,128,256	0/file30103	0	0	0		overwritten by items/9mm_pb/image of 0/file20401 at event 8195
-title/chrome_image	video memory	trace-20261012-145054	session 1						768,256,128,96	0/file2	0	0	0	its last 160 rows are blank filler, not counted as part of it	overwritten by pe2img_4 of 0/file10500 at event 135
-title/chrome_image	video memory	trace-20261012-152043	session 1						768,256,128,96	0/file2	0	0	0	its last 160 rows are blank filler, not counted as part of it	overwritten by pe2img_31 of 0/aya_10400 at event 61
+title/chrome_image	video memory	trace-20261012-145054	session 1						768,256,128,96	0/title_screen	0	0	0	its last 160 rows are blank filler, not counted as part of it	overwritten by pe2img_4 of 0/file10500 at event 135
+title/chrome_image	video memory	trace-20261012-152043	session 1						768,256,128,96	0/title_screen	0	0	0	its last 160 rows are blank filler, not counted as part of it	overwritten by pe2img_31 of 0/aya_10400 at event 61
 pe2img_209	video memory	trace-20261012-152043	session 1	1	acropolis_bridge	1	1		512,256,128,256	0/file200700	2	4	0		
 pe2img_209	video memory	trace-20261012-152043	session 1	1	acropolis_bridge	1	2		512,256,128,256	0/file200700	2	4	0		
 pe2img_209	video memory	trace-20261012-152043	session 1	1	acropolis_bridge	2	1		512,256,128,256	0/file200700	2	4	0		
@@ -6770,13 +6770,13 @@ pe2img_278	video memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	3	
 pe2img_278	video memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	4		384,256,128,256	0/file401800	0	2	0		
 pe2img_278	video memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	4		384,256,128,256	0/file401800	0	2	0		overwritten by pe2img_278 of 0/file401800 at event 19566
 pe2img_278	video memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	4		384,256,128,256	0/file401800	0	2	0		overwritten by pe2img_270 of 0/file311900 at event 19920
-ui/caption_font/image	video memory	trace-20261012-145054	session 1						960,0,64,160	0/file3	0	0	0	its last 96 rows are blank filler, not counted as part of it	
-ui/caption_font/image	video memory	trace-20261012-145054	session 1	1	acropolis_plaza	1	1		960,0,64,160	0/file3	0	0	0	its last 96 rows are blank filler, not counted as part of it	overwritten by a movie's workspace backup at event 12783
-ui/caption_font/image	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		960,0,64,160	0/file3	0	0	0	its last 96 rows are blank filler, not counted as part of it	
-ui/caption_font/image	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		960,0,64,160	0/file3	0	0	0	its last 96 rows are blank filler, not counted as part of it	overwritten by pe2img_483 of 1/mist_shooting_gallery/file15 at event 708
-ui/caption_font/image	video memory	trace-20261012-152043	session 1						960,0,64,160	0/file5	0	0	0	its last 96 rows are blank filler, not counted as part of it	
-ui/caption_font/image	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		960,0,64,160	0/file5	0	0	0	its last 96 rows are blank filler, not counted as part of it	
-ui/caption_font/image	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		960,0,64,160	0/file5	0	0	0	its last 96 rows are blank filler, not counted as part of it	overwritten by rooms/akropolis/square/view6_image of 1/akropolis_square/file6 at event 124
+ui/caption_font/image	video memory	trace-20261012-145054	session 1						960,0,64,160	0/load_screen_detailed_caption	0	0	0	its last 96 rows are blank filler, not counted as part of it	
+ui/caption_font/image	video memory	trace-20261012-145054	session 1	1	acropolis_plaza	1	1		960,0,64,160	0/load_screen_detailed_caption	0	0	0	its last 96 rows are blank filler, not counted as part of it	overwritten by a movie's workspace backup at event 12783
+ui/caption_font/image	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		960,0,64,160	0/load_screen_detailed_caption	0	0	0	its last 96 rows are blank filler, not counted as part of it	
+ui/caption_font/image	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		960,0,64,160	0/load_screen_detailed_caption	0	0	0	its last 96 rows are blank filler, not counted as part of it	overwritten by pe2img_483 of 1/mist_shooting_gallery/file15 at event 708
+ui/caption_font/image	video memory	trace-20261012-152043	session 1						960,0,64,160	0/load_screen_acropolis_square	0	0	0	its last 96 rows are blank filler, not counted as part of it	
+ui/caption_font/image	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		960,0,64,160	0/load_screen_acropolis_square	0	0	0	its last 96 rows are blank filler, not counted as part of it	
+ui/caption_font/image	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		960,0,64,160	0/load_screen_acropolis_square	0	0	0	its last 96 rows are blank filler, not counted as part of it	overwritten by rooms/akropolis/square/view6_image of 1/akropolis_square/file6 at event 124
 weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_bridge	1	1		448,0,64,64	0/mp5a5	0	0	0		
 weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_bridge	1	2		448,0,64,64	0/mp5a5	0	0	0		
 weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_bridge	2	1		448,0,64,64	0/mp5a5	0	0	0		

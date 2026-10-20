@@ -1,0 +1,14 @@
+# The assets of the group load_screens/mine_refuge_chapter_5, each named load_screens/mine_refuge_chapter_5/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+contents = [
+    { asset = "ui/caption_font/image", sha1 = "b74465538751adb80ee4804069306f129585106c" },
+    { asset = "ui/caption_font/palette", sha1 = "e523af5c11086379eac181adbaf5a69ca234abcd" },
+    { chunk = "background" },
+]
+
+[background]
+type = "bs"
+sha1 = "2de2a83a8f9edfdc2423d8830e535b5466b31926"
