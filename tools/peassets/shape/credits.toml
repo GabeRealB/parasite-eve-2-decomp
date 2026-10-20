@@ -1,0 +1,52 @@
+# The credits shape: the ending's STF document (`EndingStfFile`, src/aya/ending/ending_private.h) - how the credits
+# scroll, the layout columns rows hang from, and the rows themselves as text in the credits fonts.
+#
+# The document's glyph table is the three credits faces' (`font` records ending/font_serif, font_sans,
+# font_display, each a 60-glyph slice of it, decoded to UFO): the codec writes it from them, and a row's glyph
+# indices from its text and those faces.
+
+[credits]
+doc = "The ending's staff credits: scroll timing, eight layout columns, and the rows that scroll past."
+outputs = ["document"]
+
+[credits.fields]
+field_4 = { type = "int", default = 8, doc = "The header word after the magic; nothing reads it." }
+scroll_speed = { type = "int", default = 0, doc = "Pixels scrolled per frame, 8.8 fixed point." }
+start_hold = { type = "int", default = 0, doc = "Wait before the scroll starts, in units of 6 frames." }
+end_hold = { type = "int", default = 0, doc = "Wait on the last rows once the scroll stops, in units of 6 frames." }
+palette_colors = { type = "lines", default = [], doc = "The eight colors the font's palettes ramp up to, as RRGGBB, by palette: the converter's sources, which nothing reads." }
+columns = { type = "list", of = "credits_column", default = [], doc = "The layout columns a row's center, left and right commands name, by number." }
+glyph_slots = { type = "int", default = 256, doc = "Records of the glyph table; those past the faces' are zero." }
+rows = { type = "list", of = "credits_row", default = [], doc = "The rows, top to bottom." }
+sprites = { type = "list", of = "credits_sprite", default = [], doc = "The sprite table a row's sprite command names by number. The retail table is all zero, so the SQUARE and SQUARTZ logos are never drawn." }
+
+[credits_column]
+doc = "Anchors of a layout column, in pixels from the left of the 640-pixel credits screen."
+
+[credits_column.fields]
+center = { type = "int", default = 0 }
+left = { type = "int", default = 0 }
+right = { type = "int", default = 0 }
+field_6 = { type = "int", default = 0, doc = "Never read." }
+
+[credits_row]
+doc = "One row: how far below the previous row its bottom edge is, and what it draws."
+
+[credits_row.fields]
+gap = { type = "int", default = 22, doc = "Pixels from the previous row's bottom (the first row's from the top)." }
+text = { type = "text", default = "", doc = "Characters in the credits fonts, in the serif unless a face is named, with {sans}, {display}, {serif}, {palette <color>}, {center N}, {left N}, {right N}, {picture N}, {sprite N} and {op N A} for any other command." }
+
+[credits_sprite]
+doc = "One image a row can place (`EndingStfSprite`)."
+
+[credits_sprite.fields]
+tpage_x = { type = "int", default = 0 }
+tpage_y = { type = "int", default = 0 }
+clut_x = { type = "int", default = 0 }
+clut_y = { type = "int", default = 0 }
+u = { type = "int", default = 0 }
+v = { type = "int", default = 0 }
+pixel_mode = { type = "int", default = 0 }
+field_b = { type = "int", default = 0, doc = "The byte before the width; never read." }
+width = { type = "int", default = 0 }
+height = { type = "int", default = 0 }

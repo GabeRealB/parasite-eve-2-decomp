@@ -47,8 +47,8 @@ Hold in all 172 retail bundles; together they make every directory field derivab
 |---|---|---|---|---|
 | 2 | — | `pe2clut` | `<room>_view<slot+1>` (view palette), else `<room>_slot<slot>` | view change: slot *mapped view − 1* (`view_image.c`, `cd_loading.c`); `actor_560800`: slots 35, 36 |
 | 3 | `"CAP2"` | `cap` ([`CAP_FORMAT.md`](CAP_FORMAT.md)) | `<room>_dialogue_<i>`, *i* = ordinal among kind-3 slots | `capSelectLoadedFile` (*i*-th kind-3 slot) |
-| 3 | `"STF1"` | `stf` | `<bundle>_credits` | `_replayBonusSelectCreditsResource` (*i*-th kind-3 slot) |
-| 3 | `u16` `0x3800` at `+2` | `bs` | `<bundle>_picture_<slot>` | `replay_bonus.c`, by slot |
+| 3 | `"STF1"` | `stf` | `<bundle>_credits` | `_endingSelectCreditsResource` (*i*-th kind-3 slot) |
+| 3 | `u16` `0x3800` at `+2` | `bs` | `<bundle>_picture_<slot>` | `ending.c`, by slot |
 | 3 | only resource, loaded to `0x80161E20` | `demo` | bundle name less `_bundle` | `titleRestoreAttractDemoState` |
 
 Resources are deduplicated by bytes: one already an asset keeps that asset's name.
@@ -75,7 +75,7 @@ Byte for byte a `.pe2clut` chunk. Rows 245..255 are shifted by `gFsImageHeaderYS
 | Asset type | Format |
 |---|---|
 | `cap` | [`CAP_FORMAT.md`](CAP_FORMAT.md) |
-| `stf` | `ReplayBonusStfFile` (`src/aya/replay_bonus/replay_bonus_private.h`): magic, `field_4`, offsets of params, glyphs, line table, sprites; relocated in place |
+| `stf` | `EndingStfFile` (`src/aya/ending/ending_private.h`): magic, `field_4`, offsets of params, glyphs, line table, sprites; relocated in place |
 | `bs` | BS v2 MDEC bitstream; size and VRAM position from the overlay's picture record |
 | `demo` | `0xD4C`-byte game state (live save, player status, five stage banks, flag nibble bank), then pad input as (buttons, duration) `u16` pairs |
 
@@ -100,5 +100,5 @@ Rebuild: the record, the resources' stored bytes and the load address (`stages.j
 | Bundles | Where | Resources |
 |---|---|---|
 | 168, `<room>_bundle` | room folders | 934 palettes (872 distinct), 213 dialogues (166 distinct) |
-| `replay_bonus_bundle` | disc file 21000 | credits (slot 0), 18 pictures (slots 1..19; 15 empty) |
+| `ending_bundle` | disc file 21000 | credits (slot 0), 18 pictures (slots 1..19; 15 empty) |
 | `attract_demo_1_bundle`..`3` | stage-zero files 801000, 801100, 801200 | one demo each |

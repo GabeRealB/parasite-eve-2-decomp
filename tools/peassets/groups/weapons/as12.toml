@@ -151,6 +151,7 @@ samples = [
     "weapons/shotgun/firefly_shot",
     "weapons/shotgun/firefly_impact",
 ]
+sounds = { click = 1, reload_start = 2, reload_load = 3, firefly_impact = 4, shot = 5 }
 sha1 = "0cda03fcf15c6c0998282dcfea1d230fe45e9fd8"
 
 [buckshot_sounds]
@@ -161,6 +162,7 @@ samples = [
     "weapons/shotgun/reload_load",
     "weapons/shotgun/buckshot_shot",
 ]
+sounds = { click = 1, reload_start = 2, reload_load = 3, shot = 5 }
 sha1 = "8e404e597d8971c4ff50a043635efcddc185596d"
 
 [rifled_slug_sounds]
@@ -171,4 +173,5 @@ samples = [
     "weapons/shotgun/reload_load",
     "weapons/shotgun/rifled_slug_shot",
 ]
+sounds = { click = 1, reload_start = 2, reload_load = 3, shot = 5 }
 sha1 = "0cd8e4a2a874f67baf57c4b68ec70f955c09091d"

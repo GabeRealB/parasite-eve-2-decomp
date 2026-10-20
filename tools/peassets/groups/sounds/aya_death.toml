@@ -1,0 +1,32 @@
+# The assets of the group sounds/aya_death, each named sounds/aya_death/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank_1]
+type = "sound_bank"
+samples = ["sounds/aya_death/voice_1"]
+sounds = { death = 1 }
+sha1 = "42ef1abf840f780cb9d4aff652a1f58dccbfa773"
+
+[bank_2]
+type = "sound_bank"
+samples = ["sounds/aya_death/voice_2"]
+sounds = { death = 1 }
+sha1 = "0637139dcd4e36a73c6b48e58e3aef07249802de"
+
+[bank_3]
+type = "sound_bank"
+samples = ["sounds/aya_death/voice_3"]
+sounds = { death = 1 }
+sha1 = "37c555d75892e86cc2c005f674f0b30a899dfad6"
+
+[voice_1]
+type = "sound"
+sha1 = "c6a7c4d3a2cb639a13c85887502ba574699d13f5"
+
+[voice_2]
+type = "sound"
+sha1 = "e95c33c195eb508377175b8186b2d294e837fbd6"
+
+[voice_3]
+type = "sound"
+sha1 = "29c5196e0c2e5d095b538f838703da27b8effb37"

@@ -66,6 +66,7 @@ rig = "characters/aya/rig"
 [sounds]
 type = "sound_bank"
 samples = ["weapons/m4a1/click", "weapons/m4a1/reload_load", "weapons/m4a1/shot"]
+sounds = { click = 1, reload_start = 2, reload_load = 3, shot = 4 }
 sha1 = "e9ac90a17967a45ceecc42e152646ff4e27baeb8"
 
 [binding]
@@ -180,11 +181,13 @@ rig = "characters/aya/rig"
 [p1_sounds]
 type = "sound_bank"
 samples = ["weapons/m4a1/click", "weapons/m4a1/reload_load", "weapons/m4a1/shot"]
+sounds = { click = 1, reload_start = 2, reload_load = 3, shot = 4 }
 sha1 = "1ea010c7959c6a60cc6730c64df9d0a1ea44a7f3"
 
 [p2_sounds]
 type = "sound_bank"
 samples = ["weapons/m4a1/click", "weapons/m4a1/reload_load", "weapons/m4a1/shot"]
+sounds = { click = 1, reload_start = 2, reload_load = 3, shot = 4 }
 sha1 = "b2092ac84ccdf214505fcf79b504776da324373c"
 
 [descriptor]

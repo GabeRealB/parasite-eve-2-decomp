@@ -1158,11 +1158,20 @@ sha1 = "6307ddb049b24f1f320226769d5a19a662fd376b"
 
 - `samples` names the sound at each position of the pool, in pool order: unreferenced samples included, `None`
   where the pool holds bytes that are not a sample (only `spk_217`, a slot its tool reserved and filled with its own
-  memory). A sound states the sha1 of its stored body, and `mode` where normal mode does not reproduce it.
+  memory). A sound states the sha1 of its stored body, and `mode` where normal mode does not reproduce it. The
+  record's `sounds` names the bank's slots, the sound ids the game plays (`{ shot = 4 }`): a sample is a recording
+  and a slot a sound made from it, so one sample can stand under several slots at different pitches (329 of the
+  1244 samples the scripts play are played at more than one; 141 only by different slots, such as a footstep bank's
+  walk and run steps a semitone apart). The `.sfx` shows each name on its slot line (`slot 0x04 = 3 shot`).
 - Decoded (`decode_declared`) to `<dir>/<name>.sfz` - programs as SFZ `<group>`s, layers as `<region>`s, what a
   sampler plays plus the exact values as `psx_*` opcodes - and `<dir>/<name>.sfx` - the bank id, the effect scripts
   as indented text (`entry`, `voice`, `loop`, `wait`, `end`, `adsr`, `envelope`, `slot`) and any raw pool bytes - and
-  each sound as `<dir>/<name>.wav`: 16-bit mono at 44 100 Hz (the SPU's unity pitch), its loop a `smpl` loop.
+  each sound as `<dir>/<name>.wav`: 16-bit mono, its loop a `smpl` loop, at the rate the game plays it. A bank
+  stores no recording rate - the SPU plays a sample at 44 100 Hz on the layer's root key - so the decoder picks the
+  octave of 44 100 Hz nearest the median pitch every bank's script voices play the sample at (`sound/pitch.py`:
+  22 050 Hz for 987 of the 1244 samples the scripts play, 11 025 Hz for 192, 44 100 Hz for 46). The region's
+  `pitch_keycenter` moves by the same octaves, so a sampler plays it as the game does; the stored root key is
+  `psx_root_key`, and a region without it takes the root key from `pitch_keycenter` and its WAV's rate.
 - Sony's encoder (ENCVAG `EncVag`, identical to AIFF2VAG 3.2 and 3.3; `sound/adpcm.py`) turns each WAV back into
   the stored body in its mode. Decoding finds such input: with Y = clamped input + quantization error, the
   encoder's arithmetic gives the decoder's recursion, so each input lies in an interval fixed by the codes and the

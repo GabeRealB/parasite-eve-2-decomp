@@ -144,6 +144,7 @@ samples = [
     "weapons/grenade_pistol/launch",
     "weapons/grenade_pistol/riot_detonation",
 ]
+sounds = { click = 1, reload_start = 2, reload_load = 3, launch = 4, detonation = 5 }
 sha1 = "2227cdaab977ec155eb56c758d730165bed5e648"
 
 [preview_file]
@@ -185,6 +186,7 @@ samples = [
     "weapons/grenade_pistol/launch",
     "weapons/grenade_pistol/airburst_detonation",
 ]
+sounds = { click = 1, reload_start = 2, reload_load = 3, launch = 4, detonation = 5 }
 sha1 = "498ceb21791ff8228d317c0e20cbea7b5a7d9b0a"
 
 [grenade_binding]
@@ -210,6 +212,7 @@ samples = [
     "weapons/grenade_pistol/launch",
     "weapons/grenade_pistol/fragmentation_detonation",
 ]
+sounds = { click = 1, reload_start = 2, reload_load = 3, launch = 4, detonation = 5 }
 sha1 = "4f4fdd02541faf919d6bafdeeab6797123921419"
 
 [fragmentation_detonation]

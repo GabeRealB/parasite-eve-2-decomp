@@ -106,8 +106,8 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     "atlas": {"payload": (), "stored": ("sprites",)},
     # One face of a texture and the glyph table in an executable that lays it out; decoded to `<name>.ufo`, which
     # encodes back to the table (font/declared.py), and the texture's cells come from it.
-    "font": {"payload": (), "stored": ("texture", "table", "layout", "first", "v", "kerning", "encoding", "family",
-                                       "style", "em")},
+    "font": {"payload": (), "stored": ("texture", "textures", "table", "start", "count", "layout", "first", "v",
+                                       "kerning", "encoding", "family", "style", "em")},
     # A rectangle of VRAM in halfwords that pages and palettes are placed in by name, `within` another region where
     # it is part of it (texture/declaration.py).
     "vram_region": {"payload": (), "stored": ("within", "shares", "at", "size")},
@@ -133,7 +133,7 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     # A bank declared in full, in place of its `spk` record (the same name and sha1): `samples` names the `sound` at
     # each position of its pool, in pool order (None where the pool holds bytes that are not a sample). Decoded to
     # `<name>.sfz` and `<name>.sfx`, and built back from them (sound/declared.py).
-    "sound_bank": {"payload": ("samples",), "stored": ()},
+    "sound_bank": {"payload": ("samples",), "stored": ("sounds",)},
     # A sound of a declared bank, known by the SHA-1 of its stored body; decoded to a WAV that Sony's encoder turns
     # back into that body in `mode` (ENCVAG's conversion mode: `high`, `low` or `4bit`, stated only where normal
     # mode cannot reproduce the body; absent, `normal`).
@@ -891,6 +891,13 @@ def validate(assets: dict, embedded: dict) -> list[str]:
                 problems.append(f"{key}: x, y and bpp do not describe the same columns")
         if "deps" in rec:
             check_deps(key, kind, rec["deps"], key)
+        if kind == "sound_bank" and "sounds" in rec:     # {name: slot}; that the slot is filled is checked on decoding
+            names = rec["sounds"]
+            if not (isinstance(names, dict) and all(isinstance(n, str) and n.isidentifier() and n == n.lower()
+                                                    and isinstance(s, int) and 0 <= s < 256 for n, s in names.items())):
+                problems.append(f"{key}: sounds maps lower-case names to slots 0..255")
+            elif len(set(names.values())) != len(names):
+                problems.append(f"{key}: sounds names a slot twice")
         if kind == "binding":
             model = assets.get(rec.get("model"), {})
             if model.get("type") != "model":

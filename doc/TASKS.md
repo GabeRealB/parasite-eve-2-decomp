@@ -452,7 +452,7 @@ These are real actors too; they just skip `gTaskDescBanks`.
 | `_gDisplayMenuTaskDesc` | `menuRootTask` — gameplay menu root queued by resident display-mode requests |
 | `_gStageTransitionState->taskDesc` | Per-stage desc table; `_stageSpawnModeTask` spawns index 0 |
 | `D_80725C54` | External debug-address descriptor view, from `taskDebugLaunchCallback`; backing storage unproven |
-| `gLoadingRestartPresentationTaskDesc`, `gCapPlaybackTaskDescriptors`, `D_80115D9C`, `D_80119218`, `gReplayBonusCreditsTaskDescriptors`, `gEffectPlayerBodyHitTaskDescriptors`, `D_80183824`, … | Gameplay / save-slot / enemy tables (`sceneStartRoomTasks` selects room startup tasks from the live save's stage/area) |
+| `gLoadingRestartPresentationTaskDesc`, `gCapPlaybackTaskDescriptors`, `D_80115D9C`, `D_80119218`, `gEndingCreditsTaskDescriptors`, `gEffectPlayerBodyHitTaskDescriptors`, `D_80183824`, … | Gameplay / save-slot / enemy tables (`sceneStartRoomTasks` selects room startup tasks from the live save's stage/area) |
 | Stack `TaskDesc` | `uiSpawnObject` copies `UiObjectDesc.taskFlags`, `taskPriority` and `taskDataValue`; task callback dispatches the panel, which keeps `contentCallback` |
 
 `taskGetDesc(bank, index)` borrows `gTaskDescBanks[bank][index]` without copying

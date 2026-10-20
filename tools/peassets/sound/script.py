@@ -9,7 +9,9 @@ tool reserved and filled with its own memory.
 
 The chunks follow in image order, numbered from 0. An entry lists its controls, then its commands indented, a loop's
 body one level deeper; an ADSR override and a pitch envelope are chunks of their own, which a voice names by number.
-Fields at their default are left out. Slots map sound ids to entries (`slot 0x04 = 3`; an unlisted slot is empty).
+Fields at their default are left out. Slots map sound ids to entries (`slot 0x04 = 3`; an unlisted slot is empty),
+followed by the slot's name where its bank's record names it (`slot 0x04 = 3 shot`; the record's `sounds` is where
+names are kept, so reading ignores them).
 
     bank 0x2002
     slots 5
@@ -43,11 +45,13 @@ def _fields(pairs) -> str:
     return " ".join(f"{k}={v}" for k, v in pairs)
 
 
-def write(chunks: list[dict], slots: list, title: str, bank_id: int, raw: dict[int, bytes] | None = None) -> str:
+def write(chunks: list[dict], slots: list, title: str, bank_id: int, raw: dict[int, bytes] | None = None,
+          names: dict[int, str] | None = None) -> str:
     out = [f"# {title}", f"bank 0x{bank_id:04X}"]
     out += [f"raw {i} {b.hex()}" for i, b in sorted((raw or {}).items())]
     out.append(f"slots {len(slots)}")
-    out += [f"slot 0x{n:02X} = {s}" for n, s in enumerate(slots) if s is not None]
+    out += [f"slot 0x{n:02X} = {s}" + (f" {names[n]}" if n in (names or {}) else "")
+            for n, s in enumerate(slots) if s is not None]
     for i, ch in enumerate(chunks):
         if ch["kind"] == "entry":
             c = ch["controls"]

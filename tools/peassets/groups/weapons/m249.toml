@@ -62,6 +62,7 @@ rig = "characters/aya/rig"
 [sounds]
 type = "sound_bank"
 samples = ["weapons/m93r/click", "weapons/m249/reload_start", "weapons/m4a1/reload_load", "weapons/m249/shot"]
+sounds = { click = 1, reload_start = 2, reload_load = 3, shot = 4 }
 sha1 = "69db28d3f6f3779e5bf12ff6bede0698adbfb473"
 
 [binding]

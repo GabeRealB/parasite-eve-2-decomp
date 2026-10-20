@@ -4600,13 +4600,13 @@ Write the two stores as literals and let GCC cross-jump them:
 if (completedSave.state.gameMode >= 2) {
     saveData->state.replayRank = 2;
 } else if (saveData->state.replayRank <= 0) {
-    if (gReplayBonusTotals.totalExp > 0x10D88) {
+    if (gEndingTotals.totalExp > 0x10D88) {
         saveData->state.replayRank = 1;
     }
 }
 ```
 
-`replayBonusPrepareClearedSave` is the example. The same function also needs `SOFT_BARRIER()` after five stack `lw`s of saved fields and before `saveData->state.saveCount = 0xFF`: without it the constant store lifts above the loads (`li v0, 0xFF; sb` first, then the `lw`s).
+`endingPrepareClearedSave` is the example. The same function also needs `SOFT_BARRIER()` after five stack `lw`s of saved fields and before `saveData->state.saveCount = 0xFF`: without it the constant store lifts above the loads (`li v0, 0xFF; sb` first, then the `lw`s).
 
 ## sched1 hoists a carried phi to the block head, which moves the cross-jump merge point
 
@@ -5102,10 +5102,10 @@ reload's home. The same body exists at 0x474 in `actor_110300` and 0x4B4 in
 
 ## `SCHED_BARRIER` after an inlined helper's `jal` so its post-call `lui` / `move` survive a larger block
 
-A matched sibling (`_replayBonusGetUnlockedShopItem`) does
+A matched sibling (`_endingGetUnlockedShopItem`) does
 
 ```
-jal   replayBonusGetTotalExp
+jal   endingGetTotalExp
 move  s0, a1
 lui   v1, %hi(table)
 addiu a1, v1, %lo(table)
@@ -5123,9 +5123,9 @@ with `SCHED_BARRIER()` after the call, then assign the table pointer *before*
 copying the result into `spend`:
 
 ```c
-tmp = replayBonusGetTotalExp();
+tmp = endingGetTotalExp();
 SCHED_BARRIER();
-p     = gReplayBonusShopTierLadder;
+p     = gEndingShopTierLadder;
 spend = tmp;
 ```
 
@@ -5143,14 +5143,14 @@ temp             = task->spawnArg1.value;
 task->extraState.value = temp;
 SCHED_BARRIER();
 col = temp;
-tmp = replayBonusGetTotalExp();
+tmp = endingGetTotalExp();
 ```
 
 Split the column index across the two inlined copies (`col` / `col2`) so the
 `UiObject*` (live across every call) outranks it for `$s1`. The first item
 fetch is `item = 0; if (result >= 0) item = table[result].items[col]` (`bltz`);
 the second is `if (result < 0) item2 = 0; else item2 = …` (`bgez` with `lui`
-in the delay). `replayBonusUnlockedItemPanelTask` is the example.
+in the delay). `endingUnlockedItemPanelTask` is the example.
 
 ## Join the increment half of a shared `state += 1` tail without `goto`
 
@@ -5188,7 +5188,7 @@ task->state += 1;
 return;
 ```
 
-`_replayBonusCreditsTask` case 10 is the example.
+`_endingCreditsTask` case 10 is the example.
 
 ## Two identical calls, not a pointer temp, for if/else string args
 
@@ -5205,14 +5205,14 @@ tail, coalesces `high`+`lo_sum` into `$a1` in each arm, and the independent
 
 ```c
 if (task->spawnArg1.value == 0) {
-    uiDrawPanelLabel(&object->panel, _gReplayBonusBalanceTitle);
+    uiDrawPanelLabel(&object->panel, _gEndingBalanceTitle);
 } else {
-    uiDrawPanelLabel(&object->panel, _gReplayBonusNextReplayBonusTitle);
+    uiDrawPanelLabel(&object->panel, _gEndingNextEndingTitle);
 }
 ```
 
 A ternary argument and a `UiPanel *panel` hoist both kept the `$v0` form.
-`replayBonusBalancePanelTask` is the example.
+`endingBalancePanelTask` is the example.
 
 The same split applies when the shared tail argument is an integer. A
 `s16 next` set to 7 in the `== 4` arm and 9 in the else, then one call,
@@ -5340,7 +5340,7 @@ case 1:
 GCC still cross-jumps the two calls into one `jal` (shared tail after
 case 1). The two `t = index` / `taskKill(index)` copies fill the `bnez` /
 `beqz` delays as `move a0, s0`, and the merged `jal` keeps a `nop`.
-`_replayBonusStartCreditsPictureTask` was the example; its current calls use
+`_endingStartCreditsPictureTask` was the example; its current calls use
 `task` directly and compile to the same instructions. A function-scope
 `register Task *t asm("a0")` pin is the wrong fix: it reserves `$a0`
 through the spawn call as well.
@@ -5412,7 +5412,7 @@ rect.y = vram_y;
 LoadImage(&rect, (u_long*)(buf + ((flip << 5) * (s16)h)));
 ```
 
-`_replayBonusUploadPictureStrip` is the example (MDEC strip callback). Pair with
+`_endingUploadPictureStrip` is the example (MDEC strip callback). Pair with
 `next = (g = (u16)g + 1); next = (s16)next;` so the unsigned increment's
 `sh` is before `bgez` and the xor-store of the flip flag can fill that delay;
 a separate `g = next;` after the xor assignment lengthens `g`'s address live
@@ -5444,7 +5444,7 @@ if (item < 0x100) {
 price = *(u16*)(off + table);
 ```
 
-`_replayBonusDrawCurrentItemRow` is the example. Pair with `SOFT_TOUCH_REG(idx)`
+`_endingDrawCurrentItemRow` is the example. Pair with `SOFT_TOUCH_REG(idx)`
 as the first statement of the `< 0x100` arm so `idx = item` fills the `beqz`
 delay (`move s1, s0`) rather than sitting before `DrawItemLabel`.
 
@@ -5483,7 +5483,7 @@ if (slot->kind == resourceKind) {
 ```
 
 Index the table (`slot = &arr[i]`) rather than a walking pointer so the
-store's `%hi` is hoisted before the array address. `_replayBonusSelectCreditsResource`
+store's `%hi` is hoisted before the array address. `_endingSelectCreditsResource`
 is the example.
 
 ## Write `prim->r0` first so a reused RGB constant loads next to `setcode`
@@ -46602,7 +46602,7 @@ if ((s16)remaining < 0) { ... }
 Note the load stays `lhu` even though `killCountdown` is declared `s16`:
 assigning it into a `u16` local means only the low half is live, so GCC drops
 the sign-extending load and re-extends at the comparison instead. Reading the
-field into an `s16` local flips it back to `lh`. `_replayBonusRestartAfterAwards`.
+field into an `s16` local flips it back to `lh`. `_endingRestartAfterAwards`.
 
 Where the local has to stay `s16` - the value is both compared and assigned
 back, as a task's underflowing countdown - cast the read instead and keep the
@@ -63879,7 +63879,7 @@ return 0;
 ```
 
 Indexing `table[i]` also inverts the branch and swaps the pointer/`i`
-registers. `_replayBonusIsListedItem` is the example.
+registers. `_endingIsListedItem` is the example.
 
 ## `li t0, N` before a loop `div` reused by `addu p, p, t0` is two spilled constants, not one local
 
@@ -64328,7 +64328,7 @@ the two stores, `li v1, 1` for the busy flag, and the earlier case to
 Sharing `next` through `goto advance_inc` / `state = next + 1` makes it a
 global allocno. local-alloc then gives `$v0` to the same-block `li 1` and the
 `%hi(D_busy)`, so `next` lands in `$a0`, the `lw` hoists above the `lui`, and
-the leftover is `regs` plus one insert/delete. `replayBonusDecodePictureTask` is
+the leftover is `regs` plus one insert/delete. `endingDecodePictureTask` is
 the example.
 
 Keep `next` in the later case only so it competes in local-alloc and wins `$v0`
@@ -65367,7 +65367,7 @@ nothing was dropped.
 
 ## A volatile scalar member store can order memory while allowing an independent `lui`
 
-`replayBonusCompleteBonusPanelTask` reached 99.881% with only `reorder=1`: the
+`endingCompleteBonusPanelTask` reached 99.881% with only `reorder=1`: the
 `D_80072177` address high half came after the EXP store instead of before it.
 A `SCHED_BARRIER` or `TOUCH_REG_MEM(exp)` held the high half back too: patched
 GCC 2.8.1 `sched.c`, `sched_analyze_2`, treats volatile asm as using and
@@ -65384,7 +65384,7 @@ switch (D_80072177) { /* multipliers use exp */ }
 ```
 
 This emits `lw a0` / `sw v0` / `lui v0` / `sw a0` / `lb v1`. Casting the
-entire aggregate to `volatile ReplayBonusTotals*` instead lost the match:
+entire aggregate to `volatile EndingTotals*` instead lost the match:
 the `.sched2` dump put `lb` and its following `li` before the EXP store.
 Keep the scalar view when this exact memory ordering is needed; volatile
 aggregate access is not interchangeable in this compiler.
@@ -67240,7 +67240,7 @@ been casting the qualifier away to match; the declaration was the artefact.
 
 ## Replay Bonus: control the reload's insertion point with a direct field store
 
-In `_replayBonusDrawCreditsRow`, correcting the first schedule's draw constant
+In `_endingDrawCreditsRow`, correcting the first schedule's draw constant
 and x advance still failed after reload: the stack-y load acquired true
 dependencies on every preceding dimension/UV field store. Moving the direct
 `imageSprite->y0 = bottomY - heightValue` store before those stores put the reload earlier; sched2
@@ -67274,7 +67274,7 @@ The next session matched Replay Bonus by giving the existing flags read its
 own byte local before computing the page:
 
 ```c
-drawPixelMode = _gReplayBonusCreditsSprites[imageIndex].pixelMode;
+drawPixelMode = _gEndingCreditsSprites[imageIndex].pixelMode;
 texturePageColumn = (u32)(texturePageX & 0x3FF) >> 6;
 drawPage->code[0] = ((drawPixelMode & 3) << 7) | otherPageBits;
 ```
@@ -81071,7 +81071,7 @@ It is the plain `count = 0;` of a `for`-loop preamble — `s32 count; s32 i;` th
 `count = 0;` and `i = 0` in the `for`. GCC 2.8.1 materialises the second zero as
 a *copy from the register already known to hold 0* rather than a second
 `addu $a3, $zero, $zero`, so the copy says nothing about the source. The matched
-sibling `_replayBonusSelectCreditsResource` (aya) really does write `slotIndex = dataResourcesSeen;` and
+sibling `_endingSelectCreditsResource` (aya) really does write `slotIndex = dataResourcesSeen;` and
 compiles to a byte-identical preamble, which is what makes this a trap: the
 `~`-related shape search will offer both, and the wrong reading costs a
 rebuild.
@@ -100915,7 +100915,7 @@ state = tmp + 1;            /* addiu $v0,$v0,1 — not folded */
 
 The asm's output ties to `tmp`'s register, so no instruction is emitted for it.
 `src/rooms/lib/room_util01.c` (`decimals = len; SOFT_TOUCH_REG(decimals);
-decimals += 1;`) and `replayBonusCompleteBonusPanelTask` are the same idiom, already
+decimals += 1;`) and `endingCompleteBonusPanelTask` are the same idiom, already
 matched; this makes three. Keep the m2c block order when porting, not just the
 expressions: an `if/else if` chain that reads naturally (`if (state > 0) ... else
 if (state == 0) ...`) lays the `== 0` body out *after* the other one and misses
@@ -143260,7 +143260,7 @@ because its `lbu` of the width is scheduled into it. That gave 100% with no pins
 shows one surviving duplicate of a loop tail next to constants that stay
 unhoisted, write the tail into each arm.
 
-## `lhu` then `sra`, and a `move` copy used only in the `else` arm: an inlined lookup helper called with an expression (replayBonusCompleteBonusPanelTask, 2026-09-26)
+## `lhu` then `sra`, and a `move` copy used only in the `else` arm: an inlined lookup helper called with an expression (endingCompleteBonusPanelTask, 2026-09-26)
 
 The replay-bonus BP total sums `price >> 1` over item ids, taking the price
 from `gItemDescriptors[id]` below 0x100 and from the high table otherwise. The
@@ -143279,7 +143279,7 @@ branch's delay slot, with only the `else` arm reading `a0`.
   Passing an already-loaded local gives the parameter no copy at all.
 
 The whole sum, `+ gPlayerStatus.bp` through a `cfg` local and the 99999999
-clamp, is also the out-of-line `_replayBonusGetListTotalBp`; inlined twice
+clamp, is also the out-of-line `_endingGetListTotalBp`; inlined twice
 here, it needed no pins.
 ## Pins on a scratch frame stood for references that only exist until reload (Actor00700_Fn00334, 2026-09-26)
 
@@ -144588,7 +144588,7 @@ the value and reloads with `lhu`.
 at 100.000% against a target storing b, g, r from the same register; the full
 build failed on those two bytes. Byte-compare the overlay against its package
 when the build fails on a function the scratch calls matched.
-## `lhu`, then `sra` in the call's delay slot with no loop around it: `x >>= 1` on the variable both arms set (_replayBonusDrawCurrentItemRow, 2026-09-26)
+## `lhu`, then `sra` in the call's delay slot with no loop around it: `x >>= 1` on the variable both arms set (_endingDrawCurrentItemRow, 2026-09-26)
 
 An if/else sets `price` from a `u16` field in each arm and the halved value is
 passed straight to a call. `f(price >> 1)` gives `srl`: combine folds the shift
@@ -145235,7 +145235,7 @@ instead. Likewise `packedLuminance = (packedLuminance >> 3) & M;
 packedLuminance = M - packedLuminance;` as two statements adds refs to
 `packedLuminance` and changes its global rank relative to its neighbours.
 
-## `p = gPtr++` adds a copy that `p = gPtr; gPtr = p + 1;` does not (_replayBonusRelocateCreditsFile, 2026-09-26)
+## `p = gPtr++` adds a copy that `p = gPtr; gPtr = p + 1;` does not (_endingRelocateCreditsFile, 2026-09-26)
 
 A loop walking a global cursor (`rec = gLines; gLines = rec + 1; rec->x += base;`)
 loads the global straight into the register `rec` lives in. Written as a
@@ -148441,7 +148441,7 @@ register to `count` and everything shifts. What keeps it in the loop:
   not a second instance: `columnCount = 2` at the top of the function is a
   `REG_EQUIV` pseudo that gets no register and reload rematerialises it.
 
-### Unresolved, with the mechanism measured: the two barriers of _replayBonusDrawCreditsRow (2026-10-05)
+### Unresolved, with the mechanism measured: the two barriers of _endingDrawCreditsRow (2026-10-05)
 
 Removing both `SOFT_USE_REG` lines leaves 13 differing instructions, all one
 swap: `heightValue` and `textureV` exchange `$t4`/`$t5` in the glyph loop and the sprite loop.
@@ -148453,7 +148453,7 @@ Removing either one alone is worse, because they compensate each other:
   `SOFT_USE_REG(textureV)` stretches `textureV` to the end of the glyph body (20 / 183 =
   0.437).
 - The `textureV` barrier's two extra insns also decide `clutId` (5 refs / 110) against
-  the hoisted `%hi(_gReplayBonusCreditsBrightness)` (19 / 836): 10/110 and 76/836 are
+  the hoisted `%hi(_gEndingCreditsBrightness)` (19 / 836): 10/110 and 76/836 are
   both 0.0909, and the lower pseudo (`clutId`) wins the tie and `$fp`. With both
   barriers gone `clutId` is at 109 and wins outright.
 
@@ -149489,7 +149489,7 @@ attempts; left as it was.
   is `break` when the jump's own condition (`remaining == 0`) makes that test
   false; jump threading removes the second test (`_mineMesaSpawnEnemyWaveState`).
 - **`(mask & (1 << idx)) == 0` is folded to `((mask >> idx) & 1) == 0`** (`srav;
-  andi`), so the `tierBit = 1` local in `_replayBonusResolveShopTier` stays; a
+  andi`), so the `tierBit = 1` local in `_endingResolveShopTier` stays; a
   `static inline` returning `1 << tier` keeps the `sllv` but emits the mask load
   one insn early. Its two `do { L: ...; goto L; } while (0)` scans are plain
   `for` loops with `break`; the second needs `tiersChecked = 0;` written before the clamp
@@ -150480,7 +150480,7 @@ attempts; left as it was.
   `_worldCollisionCopyContactPoint(endpoints, contact)`; six gotos went with it. So a
   `goto` out of a `for (;;)` whose hit block repeats elsewhere is worth one try
   as "inline for the block, `break` for the jump". A block-scoped local in the
-  loop body has the same effect (`_replayBonusBuildItemList`, below).
+  loop body has the same effect (`_endingBuildItemList`, below).
 - **`i = 0; if ((u32)sector < (u32)len) { do { ...; goto after; } while (i < len); }`
   was `for (i = 0; i < len; i++) { ...; break; }`** (`fsLoadFile`, five
   scans). The odd entry test comparing `sector` is cse's doing: `sltu` takes a
@@ -150528,7 +150528,7 @@ attempts; left as it was.
     gives the same RTL.
   - `step = CD_COMMAND_SCENE_AUDIO_WAIT_OPEN; goto audioOpened;` in `cdCmdHandleSceneAudio`: an inline for state 6's
     body called from both states is not merged at all (39 insns longer).
-  - `_replayBonusBuildItemList`'s two `found = 1; L: if (*p != id) { j++; p++;
+  - `_endingBuildItemList`'s two `found = 1; L: if (*p != id) { j++; p++;
     if (j >= N) found = 0; else goto L; }` scans. `for (;;)` with `if/else
     break` is rotated (the `found = 0; break;` is the first unconditional exit
     jump). With a block-local `u16 listed = *p;` at the top of the body both
@@ -152600,7 +152600,7 @@ constant means it will sink; ask for a block boundary between it and the call
 before asking for a second set. A load that stays behind a store it does not
 depend on, in the same place, is the same boundary.
 
-### Two barriers that stood for two references: a chained load through a variable that is set again (_replayBonusDrawCreditsRow, 2026-10-07)
+### Two barriers that stood for two references: a chained load through a variable that is set again (_endingDrawCreditsRow, 2026-10-07)
 
 **Was.** `SOFT_USE_REG(textureV);` in the glyph loop and `SOFT_USE_REG2(pieceWidth, heightValue);`
 in the sprite loop, each sitting inside a hand-expanded `addPrim` (`glyphOt` /
@@ -152608,14 +152608,14 @@ in the sprite loop, each sitting inside a hand-expanded `addPrim` (`glyphOt` /
 Without both, `heightValue` and `textureV` exchange `$t4`/`$t5` (24 differing lines).
 
 **The two sites are two separate constraints** (the 2026-10-05 entry "the two
-barriers of _replayBonusDrawCreditsRow" has the numbers but treated them as
+barriers of _endingDrawCreditsRow" has the numbers but treated them as
 one):
 
 - A. `heightValue` (pseudo 99) has to be allocated before `textureV` (95). Barrier-free both
   have 17 weighted references; `textureV` lives 135 insns (5037), `heightValue` 157 (4331).
   The sprite-loop barrier alone fixes this: 20 / 158 = 5063.
 - B. `clutId` (5 refs / 109) has to stay ahead of the hoisted
-  `%hi(_gReplayBonusCreditsBrightness)` (19 / 832) for `$fp`: 917 against 913. This
+  `%hi(_gEndingCreditsBrightness)` (19 / 832) for `$fp`: 917 against 913. This
   is true with no barrier at all. The sprite-loop barrier breaks it (its insn
   costs `clutId` 1 and the `%hi` 2: 909.09 against 911), and the glyph-loop
   barrier existed only to repair that (two more insns for the `%hi`, 836: a
@@ -152633,8 +152633,8 @@ more references with nothing added: phantom ones.
 **Fix (fitted).** In the sprite's load run:
 
 ```c
-textureV = heightValue = _gReplayBonusCreditsSprites[imageIndex].v;
-heightValue = _gReplayBonusCreditsSprites[imageIndex].height;
+textureV = heightValue = _gEndingCreditsSprites[imageIndex].v;
+heightValue = _gEndingCreditsSprites[imageIndex].height;
 ```
 
 Flow counts `heightValue`'s set and the copy's use (2 + 2 at that depth); combine
@@ -152647,7 +152647,7 @@ from `SI` and cse's copy swap wants equal modes - not checked in the dumps). The
 `drawWidth`, gives the right order too but moves one `lbu` (the merged load sits
 where the copy was).
 
-With the barriers gone both links are the plain `addPrim(gGpuCurrentOt + REPLAY_BONUS_CREDITS_TEXT_OT_INDEX,
+With the barriers gone both links are the plain `addPrim(gGpuCurrentOt + ENDING_CREDITS_TEXT_OT_INDEX,
 glyphQuad)`; the "redundant `getaddr(ot) & 0xFFFFFF`" of the 2026-09-09 entry was
 only needed beside the barrier. Fitted constructs 2 barriers + 2 hand-expanded
 links -> 1 chained assignment. That `heightValue` carried `v` first is read off the

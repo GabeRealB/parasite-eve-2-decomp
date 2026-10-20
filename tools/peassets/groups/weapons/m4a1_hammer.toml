@@ -45,6 +45,7 @@ samples = [
     "weapons/m4a1_attachment/shot",
     "weapons/m4a1_hammer/discharge_sound",
 ]
+sounds = { click = 1, reload_load = 3, shot = 4, discharge = 5 }
 sha1 = "f48a2254b6d2639d5c048528f729bf6eeb61035b"
 
 [binding]

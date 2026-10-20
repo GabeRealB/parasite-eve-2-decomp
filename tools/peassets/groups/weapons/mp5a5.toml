@@ -63,6 +63,7 @@ samples = [
     "weapons/mp5a5/shot",
     "weapons/p229/secondary_shot",
 ]
+sounds = { click = 1, reload_start = 2, reload_load = 3, shot = 4, secondary_shot = 5 }
 sha1 = "2bfe7f7d4906291fbf8903c2d1bc3fbd89961f91"
 
 [binding]
@@ -170,6 +171,7 @@ samples = [
     "weapons/mp5a5/shot",
     "weapons/p229/secondary_shot",
 ]
+sounds = { click = 1, reload_start = 2, reload_load = 3, shot = 4, secondary_shot = 5 }
 sha1 = "2cb8cd86f1616c619c07206f67707dee7ed808ed"
 
 [p2_sounds]
@@ -181,6 +183,7 @@ samples = [
     "weapons/mp5a5/shot",
     "weapons/p229/secondary_shot",
 ]
+sounds = { click = 1, reload_start = 2, reload_load = 3, shot = 4, secondary_shot = 5 }
 sha1 = "048ac1218b76ec79499a473a22c887cbfadf9152"
 
 [descriptor]

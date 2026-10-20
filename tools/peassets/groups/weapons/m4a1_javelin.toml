@@ -67,6 +67,7 @@ samples = [
     "weapons/m4a1_attachment/shot",
     "weapons/m4a1_javelin/beam_sound",
 ]
+sounds = { click = 1, reload_load = 3, shot = 4, beam = 5 }
 sha1 = "95244fbccdeae828072403971fa419843e57586b"
 
 [binding]

@@ -3,7 +3,7 @@ ofuda	Battle item effect package: its code and models are the Flare's.	Named 'of
 flare	Battle item effect package: its code and models are the Pepper Spray's.	Named 'flare' but the item it serves is the Pepper Spray.
 pepper_spray	Battle item effect package: its code and models are the Combat Light's.	Named 'pepper_spray' but the item it serves is the Combat Light.
 game_over/package	The Game Over screen's package.	Filed in the 'aya' family, but it is the Game Over screen, not a costume.
-replay_bonus	The staff credits and the end-of-game award screens.	Named 'replay_bonus'; the code shows credits and awards.
+ending/package	The staff credits and the end-of-game award screens.	Named 'ending'; the code shows credits and awards.
 actor_142600	Clip data for the incinerator cutscene, always resident in the incinerator control room.	Filed as an actor; it holds no actor code, only cutscene clip data.
 0/file40168	Sequence file 40168: Neo Ark's default battle music (scene-music entry 0), started by main's countdown request at a battle start in any stage-5 room that sets no other entry.	
 0/file40169	Sequence file 40169: battle music of Neo Ark scene-music entry 10, selected by the Shelter B6 training room and its enemy actor_105100 and started at the battle start.	
@@ -1259,7 +1259,7 @@ weapons/p229/model	One-part P229 pistol model spawned by gameplay as the player'
 weapons/pa3/bank	Aya's animation bank while the PA3 shotgun is equipped: ready and shot-and-pump clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips; a few filler slots are unused.	
 weapons/pa3/model	One-part PA3 shotgun model spawned by gameplay as the player's held weapon; its coord parents the shotgun muzzle flash and the reload effects.	
 pawn_golem_body	19-part body of the Pawn GOLEM, with beam sword (actors 102000/202000/302000) or grenade launcher (105600/205600), kept as a persistent corpse; also a scene walker in the nursery and night r08.	
-replay_bonus_bundle	Ending bundle loaded for the replay_bonus credits: slot 0 is the STF credits document (417 rows of glyph, palette, column and picture commands) and slots 1-19 are MDEC bitstreams of the credits pictures.	
+ending/bundle	Ending bundle loaded for the ending credits: slot 0 is the STF credits document (417 rows of glyph, palette, column and picture commands) and slots 1-19 are MDEC bitstreams of the credits pictures.	
 acropolis_hallway_bundle	Resource bundle of acropolis_hallway holding one used slot, the room's dialogue file, with no view palettes; loaded for the whole stay.	
 shelter_b1_storeroom_bundle	Resource bundle of shelter_b1_storeroom: view palettes in slots 1-6 and the room's dialogue file in slot 8, loaded for the whole stay.	
 shelter_b1_storeroom_view2	Palette rows of view 2 of shelter_b1_storeroom, uploaded on each change to that view; row 255 is read by all its sprites (pe2img_993).	
@@ -3531,10 +3531,10 @@ pe/antibody/level1_menu_image	8-bit preview picture of the Parasite Energy Apobi
 pe/antibody/level2_menu_image	8-bit preview picture of the Parasite Energy Apobiosis level 2, shown in the Parasite Energy menu; the one stored chunk serves seven preview files.	
 pe/antibody/level3_menu_image	8-bit preview picture of the Parasite Energy Apobiosis level 3, shown in the Parasite Energy menu; the one stored chunk serves seven preview files.	
 game_over/image	4-bit GAME OVER logo, loaded with the restart resources after game over and drawn each frame by game_over's Game Over task.	
-pe2img_185	Image of the replay-bonus file that is zero except two 16-colour palette rows, read as the CLUTs of the two credits logo sprites.	
-pe2img_186	4-bit page of the two logo sprites drawn at two rows of the credits roll by replay_bonus.	
-pe2img_187	4-bit first font page of the credits roll drawn by replay_bonus, one quad per glyph; its last two texel rows hold the glyph palettes.	
-pe2img_188	4-bit second font page of the credits roll, of which replay_bonus draws a single glyph cell in the whole document.	
+ending/logo_palettes	Image of the replay-bonus file that is zero except two 16-colour palette rows, read as the CLUTs of the two credits logo sprites.	
+ending/logo_image	4-bit page of the two logo sprites drawn at two rows of the credits roll by ending.	
+ending/font_image_0	4-bit first font page of the credits roll drawn by ending, one quad per glyph; its last two texel rows hold the glyph palettes.	
+ending/font_image_1	4-bit second font page of the credits roll, of which ending draws a single glyph cell in the whole document.	
 pe2img_189	Stage 1 map-menu page 0 image: map picture, hatch pattern and cursor/icon strip, shown when the player is in an area with no map page (Acropolis plaza, mist_r18).	
 weapons/as12/image	4-bit texture of the AS12 weapon model, loaded with the equipped weapon's resources and drawn whenever the model is.	
 pe2img_190	Stage 1 map-menu page 2 image (the Acropolis helicopter landing pad's page): map picture sampled under the area shape, hatch pattern, player cursor and icon strip.	
@@ -4907,7 +4907,6 @@ spk_406	Footstep bank of shelter_r48: player walk, scripted-jump and run step so
 spk_407	Shelter R48 room sound bank: the player's knock-back sound when an arm of actor_503500 hits, and two samples voiced by spk_142's yellow flash attack scripts across banks.	
 spk_408	Shelter R49 room sound bank: the three event-script sounds of the room's entry script (carried by actor_143900), one started together with the area music.	
 spk_409	Footstep bank of shelter_1f_parking_garage: walk, scripted-jump and run step sounds on the class-1 floor face.	
-spk_41	Player death sound bank (id 0x7001, file 20930): loaded on demand and played at the player by actor_402200, actor_403900, actor_510900 and actor_521100 when their grab or lethal attack kills.	
 spk_410	Shelter 1F parking garage room sound bank: the airlock door's leaving and arrival sounds, the vehicle bay arrival sound and the departure sound of the trip down to the underground parking.	
 spk_411	Footstep bank of shelter_1f_vehicular_airlock: walk, scripted-jump and run step sounds started on the player's animation cues.	
 spk_412	Shelter 1F vehicular airlock room sound bank: door sounds of endpoints 1 and 2, the first-time airlock and Bulwark departure event sounds and the arrival sound from the Bulwark.	
@@ -5028,7 +5027,7 @@ spk_96	Pawn GOLEM sound set 1 (bank 0x4014, file 102001): step cues, sword swing
 spk_97	Pawn GOLEM sound set 2 (bank 0x4014, file 102002): step cues, sword swing and fall sounds, loaded at spawn in the Neo Ark shrine and south promenade and in three Shelter rooms.	
 spk_98	Pawn GOLEM sound set 3 (bank 0x4014): same step, swing and fall cue layout as the other sets, but no reached use found - no room that places a golem has table value 3.	
 spk_99	Pawn GOLEM sound set 4 (bank 0x4014, file 102004): step cues, sword swing and fall sounds, loaded at spawn in Dryfield back street, mine mesa and the Neo Ark forest zone.	
-stage0_id1	456-second audio stream (stage 0, stream 1, sub-id 11) played by replay_bonus's credits task, cancelled by Start and finished at the end of the credits.	
+stage0_id1	456-second audio stream (stage 0, stream 1, sub-id 11) played by ending's credits task, cancelled by Start and finished at the end of the credits.	
 stalker_burst_arm_left	One-part arm model spawned hidden under the Stalker's body part 10 and swung out during the left-arm strike (actor_400500, 405800); actor_400600 uses two copies as both live arm blades.	named 'burst arm' but never used as a death chunk: it is the live strike arm shown during the attack, and in actor_400600 the same mesh serves as both the left and the right arm.
 stalker_burst_arm_right	One-part arm model spawned hidden under the Stalker's body part 7 and swung out during the right-arm (ceiling) strike in actor_400500 and actor_405800, then hidden again.	named 'burst arm' but never used as a death chunk: it is the extended arm drawn during the right-arm strike.
 stalker_burst_foot_right	Stalker death chunk: the fourth body chunk actor_400600 throws from body part 10 when killed by a blast; actor_405800 defines it but nothing references it there.	named 'foot right' but thrown from body part 10, the part the left arm hangs from; the code does not say what the mesh depicts and the part does not agree with the name.
@@ -5363,3 +5362,9 @@ engine/vram/tall_preview	The 160 rows at (960, 0) the tallest NMC roster preview
 game_over/logo	The GAME OVER logo, 120x24, drawn each frame by game_over's _gameOverDrawLogo from (960, 0) with the palette at (0, 255).	
 engine/vram/dialogue_palettes	The dialogue palette block at (256, 243), 64x6: the text colors on row 245, the speaker plate on 246; it shares row 243 with the weapon palette row (engine/vram/weapon_palette), which reaches x 319.	
 engine/vram/glyph_palette_block	The 64x3 palettes at (256, 240) the game-over and ending files restore (ui/font/glyph_palette_block).	
+sounds/aya_death/bank_1	Aya's death sound, first variant (bank 0x7001, file 20930, display resource 9/30): loaded when Aya dies with deathVariant 1 and played as script 0x70010001 once the game-over hold counts down (hud_sprites.c); also the bank actor_402200, actor_403900, actor_510900 and actor_521100 load and play when their grab or lethal attack kills.	
+sounds/aya_death/bank_2	Aya's death sound, second variant (bank 0x7002, file 20931, display resource 9/31): loaded when Aya dies with deathVariant 2 and played as script 0x70020001.	
+sounds/aya_death/bank_3	Aya's death sound, a third variant (bank 0x7003, file 20932) that nothing loads: deathVariant is only ever 1 or 2.	
+sounds/kyle_death/bank_1	Kyle's death sound, first variant (bank 0x7032, file 20933, display resource 9/33): loaded when Kyle, as companion, reaches 0 HP with deathVariant 1 and played as script 0x70320001.	
+sounds/kyle_death/bank_2	Kyle's death sound, second variant (bank 0x7033, file 20934, display resource 9/34): loaded with deathVariant 2 and played as script 0x70330001.	
+sounds/kyle_death/bank_3	Kyle's death sound, a third variant (bank 0x7034, file 20935) that nothing loads: deathVariant is only ever 1 or 2.	

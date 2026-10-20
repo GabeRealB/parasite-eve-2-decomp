@@ -75,6 +75,7 @@ samples = [
     "weapons/hypervelocity/charge_loop",
     "weapons/hypervelocity/unused_7",
 ]
+sounds = { click = 1, second_stage = 2, charge_start = 3, charge_cancel = 4, charge_loop = 5, discharge = 6, shot = 7 }
 sha1 = "b22bd71959b0cac63ae52e22cca0083dcd6918f0"
 
 [catalog]

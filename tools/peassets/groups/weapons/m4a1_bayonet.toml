@@ -46,6 +46,7 @@ samples = [
     "weapons/m4a1_bayonet/contact",
     "weapons/m4a1_bayonet/thrust_sound",
 ]
+sounds = { click = 1, reload_load = 3, shot = 4, contact = 5, thrust = 6 }
 sha1 = "b240e517607e5f0c4758592fce0623da979826f5"
 
 [thrust]

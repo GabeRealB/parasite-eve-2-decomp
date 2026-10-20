@@ -492,13 +492,13 @@ objects = [
   { unit = "game_over/game_over", rodata = "0x4", text = "0x1C", data = "0x62C" },
 ]
 
-[aya.overlays.replay_bonus]
+[aya.overlays.ending]
 label = "Complete Bonus / GET ITEM / BONUS BP"
 id = 45
 objects = [
   { kind = "packageId" },
-  { unit = "replay_bonus/replay_bonus", rodata = "0x4", text = "0x150" },
-  { unit = "replay_bonus/replay_bonus_2", rodata = "0x74", text = "0x1A24", data = "0x37FC" },
+  { unit = "ending/ending", rodata = "0x4", text = "0x150" },
+  { unit = "ending/ending_2", rodata = "0x74", text = "0x1A24", data = "0x37FC" },
 ]
 
 

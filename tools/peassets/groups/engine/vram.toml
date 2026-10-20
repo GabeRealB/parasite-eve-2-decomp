@@ -16,6 +16,12 @@ type = "vram_region"
 at = [0, 240]
 size = [256, 3]
 
+[credits_font]
+type = "vram_region"
+at = [896, 256]
+shares = ["engine/vram/ui_sheet"]
+size = [64, 256]
+
 [screen_sheet]
 type = "vram_region"
 at = [960, 0]
@@ -37,6 +43,11 @@ size = [128, 256]
 type = "vram_region"
 at = [448, 0]
 size = [64, 64]
+
+[credits_logos]
+type = "vram_region"
+at = [896, 0]
+size = [64, 256]
 
 [preview_sheet]
 type = "vram_region"
@@ -91,3 +102,8 @@ size = [64, 6]
 type = "vram_region"
 at = [256, 240]
 size = [64, 3]
+
+[credits_logo_palettes]
+type = "vram_region"
+at = [320, 256]
+size = [64, 256]

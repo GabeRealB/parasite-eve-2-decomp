@@ -1,5 +1,5 @@
 {
-  "function": "_replayBonusDrawCreditsRow",
+  "function": "_endingDrawCreditsRow",
   "scope": "Controlled compiler diagnostics; no exact-match claim",
   "sources": {
     "base.c": {
@@ -148,7 +148,7 @@
       "manifest": {
         "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
         "input_sha256": "80589c0f25b73aeb8b4396806a0d0d867a1e1cd9d76e34f7ebcb47b8dd2bbbaf",
-        "input_origin": "/home/gabriel/parasite-eve-2-decomp/nonmatchings/_replayBonusDrawCreditsRow-compiler-residue/base_1.i",
+        "input_origin": "/home/gabriel/parasite-eve-2-decomp/nonmatchings/_endingDrawCreditsRow-compiler-residue/base_1.i",
         "flags": [
           "-O2",
           "-mips1",
@@ -487,7 +487,7 @@
       "manifest": {
         "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
         "input_sha256": "7e15fbc6bb9bf8a4dc2252f06f378ca68ec5db3b150ce95dc0145735b33ee146",
-        "input_origin": "/home/gabriel/parasite-eve-2-decomp/nonmatchings/_replayBonusDrawCreditsRow-compiler-residue/base_2.i",
+        "input_origin": "/home/gabriel/parasite-eve-2-decomp/nonmatchings/_endingDrawCreditsRow-compiler-residue/base_2.i",
         "flags": [
           "-O2",
           "-mips1",
@@ -729,7 +729,7 @@
     "wrapper": {
       "returncode": 33,
       "object_created": false,
-      "source": "tools/giveups/_replayBonusDrawCreditsRow/sessions/694e31a0545e4cca87e61ca5ce86e097/5f7b7d483e7ac2c30aac/base_perm_04d26e42d330443f.c"
+      "source": "tools/giveups/_endingDrawCreditsRow/sessions/694e31a0545e4cca87e61ca5ce86e097/5f7b7d483e7ac2c30aac/base_perm_04d26e42d330443f.c"
     }
   },
   "experiments": [
@@ -1009,7 +1009,7 @@
         "permute.sh": "db7fad3f7002fadc55c1a33d6c54879b5d4dfa8b64c3b244b58c3062814843bd"
       },
       "source_review": "rejected: changed coordinate value",
-      "canonical_diff": "--- base_perm_d77387b09d574a17_parent.c\n\n+++ base_perm_d77387b09d574a17.c\n\n@@ -104,7 +104,7 @@\n\n           p->y0 = y0;\n           p->x1 = x1;\n+          y0 = ((u32) gh) >> 7;\n           p->y1 = y0;\n           p->x3 = x1;\n-          y0 = ((u32) gh) >> 7;\n           p->b0 = _gReplayBonusCreditsBrightness;\n           p->clut = (((tpageId / 4) + 0x1FE) << 6) | ((tpageId & 3) | 0x38);\n"
+      "canonical_diff": "--- base_perm_d77387b09d574a17_parent.c\n\n+++ base_perm_d77387b09d574a17.c\n\n@@ -104,7 +104,7 @@\n\n           p->y0 = y0;\n           p->x1 = x1;\n+          y0 = ((u32) gh) >> 7;\n           p->y1 = y0;\n           p->x3 = x1;\n-          y0 = ((u32) gh) >> 7;\n           p->b0 = _gEndingCreditsBrightness;\n           p->clut = (((tpageId / 4) + 0x1FE) << 6) | ((tpageId & 3) | 0x38);\n"
     },
     "c639c18862a54b77": {
       "seed": "base_1.c",
@@ -1043,7 +1043,7 @@
         "permute.sh": "db7fad3f7002fadc55c1a33d6c54879b5d4dfa8b64c3b244b58c3062814843bd"
       },
       "source_review": "accepted: clut motion is valid, unsigned cast has no effect",
-      "canonical_diff": "--- base_perm_c639c18862a54b77_parent.c\n\n+++ base_perm_c639c18862a54b77.c\n\n@@ -91,6 +91,6 @@\n\n           p->y1 = y0;\n           p->x3 = x1;\n+          p->clut = (((tpageId / 4) + 0x1FE) << 6) | ((tpageId & 3) | 0x38);\n           y0 = ((u32) gh) >> 7;\n-          p->clut = (((tpageId / 4) + 0x1FE) << 6) | ((tpageId & 3) | 0x38);\n           p->tpage = 0x1E;\n           if (y0)\n@@ -219,5 +219,5 @@\n\n           ((P_TAG *) sprt)->code = (u_char) 0x64;\n           sprt->r0 = _gReplayBonusCreditsBrightness;\n-          sprt->x0 = x - 0x140;\n+          sprt->x0 = ((unsigned long) x) - 0x140;\n           sprt->g0 = _gReplayBonusCreditsBrightness;\n           sprt->b0 = _gReplayBonusCreditsBrightness;\n"
+      "canonical_diff": "--- base_perm_c639c18862a54b77_parent.c\n\n+++ base_perm_c639c18862a54b77.c\n\n@@ -91,6 +91,6 @@\n\n           p->y1 = y0;\n           p->x3 = x1;\n+          p->clut = (((tpageId / 4) + 0x1FE) << 6) | ((tpageId & 3) | 0x38);\n           y0 = ((u32) gh) >> 7;\n-          p->clut = (((tpageId / 4) + 0x1FE) << 6) | ((tpageId & 3) | 0x38);\n           p->tpage = 0x1E;\n           if (y0)\n@@ -219,5 +219,5 @@\n\n           ((P_TAG *) sprt)->code = (u_char) 0x64;\n           sprt->r0 = _gEndingCreditsBrightness;\n-          sprt->x0 = x - 0x140;\n+          sprt->x0 = ((unsigned long) x) - 0x140;\n           sprt->g0 = _gEndingCreditsBrightness;\n           sprt->b0 = _gEndingCreditsBrightness;\n"
     },
     "e3cedf7f5b3f4228": {
       "seed": "seed_3a65d3983da6069ebbe2.c",
@@ -1077,7 +1077,7 @@
         "permute.sh": "db7fad3f7002fadc55c1a33d6c54879b5d4dfa8b64c3b244b58c3062814843bd"
       },
       "source_review": "rejected: truncated GPU command",
-      "canonical_diff": "--- base_perm_e3cedf7f5b3f4228_parent.c\n\n+++ base_perm_e3cedf7f5b3f4228.c\n\n@@ -93,5 +93,5 @@\n\n           p->y2 = (u16) y;\n           p->r0 = _gReplayBonusCreditsBrightness;\n-          p->y3 = (u16) y;\n+          (*p).y3 = (u16) y;\n           p->g0 = _gReplayBonusCreditsBrightness;\n           asm(\"\");\n@@ -250,5 +250,5 @@\n\n           ((P_TAG *) dr)->len = (u_char) 1;\n           page = ((u32) (tpageX & 0x3FF)) >> 6;\n-          dr->code[0] = (((((((ReplayBonusStfSpr *) ((idx * (sizeof(ReplayBonusStfSpr))) + ((s32) _gReplayBonusCreditsSprites)))->flags & 3) << 7) | ((s16) (((s32) ((((ReplayBonusStfSpr *) ((idx * (sizeof(ReplayBonusStfSpr))) + ((s32) _gReplayBonusCreditsSprites)))->tpageBits & 0x100) << 16)) >> 20))) | page) | (((s16) (((ReplayBonusStfSpr *) ((idx * (sizeof(ReplayBonusStfSpr))) + ((s32) _gReplayBonusCreditsSprites)))->tpageBits & 0x200)) * 4)) | new_var4;\n+          dr->code[0] = (((((((ReplayBonusStfSpr *) ((idx * (sizeof(ReplayBonusStfSpr))) + ((s32) _gReplayBonusCreditsSprites)))->flags & 3) << 7) | ((s16) (((s32) ((((ReplayBonusStfSpr *) ((idx * (sizeof(ReplayBonusStfSpr))) + ((s32) _gReplayBonusCreditsSprites)))->tpageBits & 0x100) << 16)) >> 20))) | page) | (((s16) (((ReplayBonusStfSpr *) ((idx * (sizeof(ReplayBonusStfSpr))) + ((s32) _gReplayBonusCreditsSprites)))->tpageBits & 0x200)) * 4)) | ((unsigned short) new_var4);\n           tpageX += 0x100 >> shift;\n           new_var3 = dr;\n"
+      "canonical_diff": "--- base_perm_e3cedf7f5b3f4228_parent.c\n\n+++ base_perm_e3cedf7f5b3f4228.c\n\n@@ -93,5 +93,5 @@\n\n           p->y2 = (u16) y;\n           p->r0 = _gEndingCreditsBrightness;\n-          p->y3 = (u16) y;\n+          (*p).y3 = (u16) y;\n           p->g0 = _gEndingCreditsBrightness;\n           asm(\"\");\n@@ -250,5 +250,5 @@\n\n           ((P_TAG *) dr)->len = (u_char) 1;\n           page = ((u32) (tpageX & 0x3FF)) >> 6;\n-          dr->code[0] = (((((((EndingStfSpr *) ((idx * (sizeof(EndingStfSpr))) + ((s32) _gEndingCreditsSprites)))->flags & 3) << 7) | ((s16) (((s32) ((((EndingStfSpr *) ((idx * (sizeof(EndingStfSpr))) + ((s32) _gEndingCreditsSprites)))->tpageBits & 0x100) << 16)) >> 20))) | page) | (((s16) (((EndingStfSpr *) ((idx * (sizeof(EndingStfSpr))) + ((s32) _gEndingCreditsSprites)))->tpageBits & 0x200)) * 4)) | new_var4;\n+          dr->code[0] = (((((((EndingStfSpr *) ((idx * (sizeof(EndingStfSpr))) + ((s32) _gEndingCreditsSprites)))->flags & 3) << 7) | ((s16) (((s32) ((((EndingStfSpr *) ((idx * (sizeof(EndingStfSpr))) + ((s32) _gEndingCreditsSprites)))->tpageBits & 0x100) << 16)) >> 20))) | page) | (((s16) (((EndingStfSpr *) ((idx * (sizeof(EndingStfSpr))) + ((s32) _gEndingCreditsSprites)))->tpageBits & 0x200)) * 4)) | ((unsigned short) new_var4);\n           tpageX += 0x100 >> shift;\n           new_var3 = dr;\n"
     }
   },
   "block_boundary": {

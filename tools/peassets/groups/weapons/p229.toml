@@ -54,6 +54,7 @@ samples = [
     "weapons/p229/shot",
     "weapons/p229/secondary_shot",
 ]
+sounds = { click = 1, reload_start = 2, reload_load = 3, shot = 4, secondary_shot = 5 }
 sha1 = "ee007826db66fe3c25e7bda77931eaa14ea4b691"
 
 [binding]

@@ -229,8 +229,8 @@ The tracer records the actual intervals, removing that ambiguity.
 
 ## Replay: a reversible allocator threshold experiment
 
-Function: `_replayBonusDrawCreditsRow`. Inputs are from
-`tools/giveups/_replayBonusDrawCreditsRow/sessions/1b6f7aef07844a02b7ca6d3bf6402bca/e18ee77eabc4be99270e/`.
+Function: `_endingDrawCreditsRow`. Inputs are from
+`tools/giveups/_endingDrawCreditsRow/sessions/1b6f7aef07844a02b7ca6d3bf6402bca/e18ee77eabc4be99270e/`.
 
 CLUT id (`clutId`) r98 is allocno 16 and has five references over 110 instructions. Its
 calculated priority is 909. Brightness's high address is allocno 27; its pseudo

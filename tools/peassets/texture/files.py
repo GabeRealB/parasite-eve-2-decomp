@@ -73,6 +73,36 @@ def put_sprite(words: bytes, own: bytes, sprite: dict, assets: dict) -> bytes:
     return _words(rows)
 
 
+def page_of(palette: dict, entry: dict, assets: dict) -> int:
+    """Which page of an image chunk a palette it stores lies in."""
+    x, y = place_at(palette, assets)
+    for k, page in enumerate(entry["pages"]):
+        px, py = place_at(page, assets)
+        w, h = COLUMN, stored_rows(page, assets)       # the rows the chunk stores of the page
+        if px <= x < px + w and py <= y < py + h:
+            return k
+    raise ValueError(f"{entry['chunk']}: palette at ({x}, {y}) lies in none of its pages")
+
+
+def take_palette(words: bytes, palette: dict, page: dict, assets: dict) -> tuple[list[int], bytes]:
+    """(a palette's colors, the page's words with them cleared): an image chunk stores the palette as halfwords."""
+    import struct
+    x, y = place_at(palette, assets)
+    px, py = place_at(page, assets)
+    n = palette.get("entries") or PALETTE_ENTRIES[assets[palette["texture"]]["bpp"]]
+    at = (y - py) * ROW + 2 * (x - px)
+    colors = list(struct.unpack_from(f"<{n}H", words, at))
+    return colors, words[:at] + bytes(2 * n) + words[at + 2 * n:]
+
+
+def put_palette(words: bytes, colors: list[int], palette: dict, page: dict, assets: dict) -> bytes:
+    import struct
+    x, y = place_at(palette, assets)
+    px, py = place_at(page, assets)
+    at = (y - py) * ROW + 2 * (x - px)
+    return words[:at] + struct.pack(f"<{len(colors)}H", *colors) + words[at + 2 * len(colors):]
+
+
 def stray(words: bytes) -> str | None:
     """Where an atlas stores texels no sprite holds: their bounding box in halfwords, or None."""
     rows = _rows(words)
@@ -120,17 +150,22 @@ def texture_cells(texture: str, assets: dict, assets_root: Path) -> dict[str, li
     if "cells" in tex:
         return cell_rects(tex["cells"], tex["width"], tex["height"])
     out = {}
-    import asset_data
-    from .declaration import font_cells
+    from font import declared as fonts
     for font in fonts_of(texture, assets):
-        rec = asset_data.EMBEDDED_ASSETS[assets[font]["table"]]
-        out.update(font_cells(font, assets[font], (assets_root / asset_schema.raw_rel(assets[font]["table"], rec)).read_bytes()))
+        rec = assets[font]
+        page = fonts.textures(rec).index(texture)
+        prefix = font.rsplit("/", 1)[-1]
+        for r in fonts.records(rec, fonts.table_bytes(font, assets, assets_root)):
+            x, y, w, h = r["cell"]
+            if w and h and r.get("page", 0) == page:
+                out[f"{prefix}_{r['code']:02x}"] = [x, (y + rec.get("v", 0)) & 0xFF, w, h]
     return out
 
 
 def fonts_of(texture: str, assets: dict) -> list[str]:
     """The fonts whose faces a texture holds, in their tables' order on the page (by `v`)."""
-    return sorted((k for k, r in assets.items() if r.get("type") == "font" and r.get("texture") == texture and "texture" in r),
+    return sorted((k for k, r in assets.items() if r.get("type") == "font" and r.get("layout") != "images"
+                   and texture in (r.get("textures") or [r.get("texture")])),
                   key=lambda k: (assets[k].get("v", 0), k))
 
 
@@ -201,8 +236,21 @@ def decode_atlas(name: str, assets: dict, assets_root: Path) -> Path:
 def decode_file(name: str, assets: dict, assets_root: Path) -> list[Path]:
     """Write the variants of every texture the file uploads."""
     contents = assets[name]["contents"]
+    # Every palette first: a palette chunk's, or one an image chunk stores in its page (the credits font's), which
+    # a texture on another page can be drawn with.
     blocks = [palette_block(chunk_path(assets_root, assets, e["chunk"]).read_bytes())
-              for e in contents if "palettes" in e]
+              for e in contents if "palettes" in e and "pages" not in e]
+    stored: dict[str, list] = {}                # an image chunk's pages, its palettes taken out
+    for e in contents:
+        if "pages" in e:
+            _height, pages = image_pages(chunk_path(assets_root, assets, e["chunk"]).read_bytes(),
+                                         e.get("sector_len", SECTOR))
+            pages = [list(pg) for pg in pages]
+            for p in e.get("palettes", ()):
+                k = page_of(p, e, assets)
+                colors, pages[k][2] = take_palette(pages[k][2], p, e["pages"][k], assets)
+                blocks.append((*place_at(p, assets), len(colors), 1, colors))
+            stored[e["chunk"]] = pages
     palettes: dict[tuple[str, str], list[int]] = {}
     written = []
     for e in contents:
@@ -219,9 +267,7 @@ def decode_file(name: str, assets: dict, assets_root: Path) -> list[Path]:
     for e in contents:
         if "pages" not in e:
             continue
-        _height, pages = image_pages(chunk_path(assets_root, assets, e["chunk"]).read_bytes(),
-                                     e.get("sector_len", SECTOR))
-        for page, (x, y, words) in zip(e["pages"], pages):
+        for page, (x, y, words) in zip(e["pages"], stored[e["chunk"]]):
             if [x, y] != place_at(page, assets):
                 raise SystemExit(f"{name}: {e['chunk']} has a page at ({x}, {y}), the file places it at "
                                  f"{place_at(page, assets)}")
@@ -232,8 +278,8 @@ def decode_file(name: str, assets: dict, assets_root: Path) -> list[Path]:
             if "texture" in page:
                 placed.append((page["texture"], words))
             elif stray(words):
-                raise SystemExit(f"{name}: {e['chunk']} stores texels outside the sprites of {page['atlas']}, "
-                                 f"{stray(words)}")
+                raise SystemExit(f"{name}: {e['chunk']} stores texels outside "
+                                 f"{'the sprites of ' + page['atlas'] if 'atlas' in page else 'its palettes'}, {stray(words)}")
             for texture, own in placed:
                 tex = assets[texture]
                 if any(own[COLUMN * 2 * tex["height"]:]):
@@ -264,6 +310,12 @@ def encode_file(name: str, assets: dict, assets_root: Path) -> dict[str, bytes]:
             read[texture, v] = read_variant(variant_path(assets_root, assets, texture, v), assets[texture])
         return read[texture, v]
 
+    def palette_colors(p: dict, chunk: str) -> list[int]:
+        if "texture" in p:
+            return variant(p["texture"], p["variant"])[1]
+        return read_variant(named_palette_path(assets_root, assets, chunk, p["name"]),
+                            {"width": p["entries"], "height": 1, "bpp": 4 if p["entries"] == 16 else 8})[1]
+
     out = {}
     for e in assets[name]["contents"]:
         chunk = e["chunk"]
@@ -285,6 +337,9 @@ def encode_file(name: str, assets: dict, assets_root: Path) -> dict[str, bytes]:
                     words = bytes(ROW * rows)
                 for sprite in page_sprites(page, assets):
                     words = put_sprite(words, texture_words(sprite["texture"]), sprite, assets)
+                for p in e.get("palettes", ()):          # palettes the chunk stores in this page
+                    if page_of(p, e, assets) == len(pages):
+                        words = put_palette(words, palette_colors(p, chunk), p, page, assets)
                 pages.append((*place_at(page, assets), words))
                 heights.add(rows)
             if len(heights) != 1:
@@ -295,11 +350,7 @@ def encode_file(name: str, assets: dict, assets_root: Path) -> dict[str, bytes]:
             block = assets[chunk]                 # the rectangle its palettes span (declaration.chunk_records)
             colors = [0] * (block["w"] * block["h"])
             for p in e["palettes"]:
-                if "texture" in p:
-                    _t, c = variant(p["texture"], p["variant"])
-                else:
-                    _t, c = read_variant(named_palette_path(assets_root, assets, chunk, p["name"]),
-                                         {"width": p["entries"], "height": 1, "bpp": 4 if p["entries"] == 16 else 8})
+                c = palette_colors(p, chunk)
                 px, py = place_at(p, assets)
                 at = (py - block["y"]) * block["w"] + px - block["x"]
                 colors[at:at + len(c)] = c

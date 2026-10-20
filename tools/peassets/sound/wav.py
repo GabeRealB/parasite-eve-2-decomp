@@ -1,7 +1,10 @@
-"""A sample as a WAV file: 16-bit mono PCM at 44100 Hz (the SPU's unity pitch), its loop in a standard `smpl` chunk.
+"""A sample as a WAV file: 16-bit mono PCM at the rate the game plays it at (sound/pitch.py; 44100 Hz, the SPU's
+unity pitch, unless stated), its loop in a standard `smpl` chunk.
 
-    write(path, pcm, loop_start=None)       loop_start: the sample index the loop returns to; the loop runs to the end
+    write(path, pcm, loop_start=None, rate=44100)   loop_start: the sample index the loop returns to; the loop runs
+                                                    to the end
     pcm, loop_start = read(path)
+    rate_of(path)
 
 A loop is one `smpl` loop (forward, from `loop_start` to the last sample, played forever). Any other chunk is
 ignored on reading; a file that is not 16-bit mono PCM is refused.
@@ -16,13 +19,13 @@ import numpy as np
 RATE = 44100
 
 
-def write(path: Path, pcm, loop_start: int | None = None) -> None:
+def write(path: Path, pcm, loop_start: int | None = None, rate: int = RATE) -> None:
     pcm = np.asarray(pcm, dtype="<i2")
     data = pcm.tobytes()
-    chunks = struct.pack("<4sIHHIIHH", b"fmt ", 16, 1, 1, RATE, RATE * 2, 2, 16)
+    chunks = struct.pack("<4sIHHIIHH", b"fmt ", 16, 1, 1, rate, rate * 2, 2, 16)
     chunks += b"data" + struct.pack("<I", len(data)) + data + (b"\0" if len(data) & 1 else b"")
     if loop_start is not None:
-        period = round(1e9 / RATE)
+        period = round(1e9 / rate)
         smpl = struct.pack("<IIIIIIIII", 0, 0, period, 60, 0, 0, 0, 1, 0)
         smpl += struct.pack("<IIIIII", 0, 0, loop_start, len(pcm) - 1, 0, 0)
         chunks += b"smpl" + struct.pack("<I", len(smpl)) + smpl
@@ -50,3 +53,14 @@ def read(path: Path):
     if tag != 1 or channels != 1 or bits != 16:
         raise ValueError(f"{path}: not 16-bit mono PCM (format {tag}, {channels} channels, {bits} bits)")
     return np.frombuffer(pcm, dtype="<i2").astype(np.int64), loop
+
+
+def rate_of(path: Path) -> int:
+    b = Path(path).read_bytes()
+    at = 12
+    while at + 8 <= len(b):
+        tag, size = b[at:at + 4], struct.unpack_from("<I", b, at + 4)[0]
+        if tag == b"fmt ":
+            return struct.unpack_from("<I", b, at + 12)[0]
+        at += 8 + size + (size & 1)
+    raise ValueError(f"{path}: no fmt chunk")

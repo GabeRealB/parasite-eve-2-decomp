@@ -1,4 +1,4 @@
-#include "replay_bonus_private.h"
+#include "ending_private.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
@@ -30,25 +30,25 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-static const u8 _gReplayBonusBpLabel[3];
+static const u8 _gEndingBpLabel[3];
 
 /// Hold duration in nominal 60-Hz ticks and the replay panels' text colour.
 enum {
-    REPLAY_BONUS_PANEL_HOLD_TICKS = 188,
-    REPLAY_BONUS_PANEL_TEXT_COLOR = 0x606060,
+    ENDING_PANEL_HOLD_TICKS = 188,
+    ENDING_PANEL_TEXT_COLOR = 0x606060,
 };
 
-static void       _replayBonusUploadPictureStrip(void);
-static inline s32 _replayBonusUpgradeCost(s32 abilitySlot, s32 previousLevel);
-static void       _replayBonusBuildItemList(UiList* list, UiObject* object);
-static inline s32 _replayBonusShopTier(void);
-static inline s32 _replayBonusShopItem(s32 itemColumn);
+static void       _endingUploadPictureStrip(void);
+static inline s32 _endingUpgradeCost(s32 abilitySlot, s32 previousLevel);
+static void       _endingBuildItemList(UiList* list, UiObject* object);
+static inline s32 _endingShopTier(void);
+static inline s32 _endingShopItem(s32 itemColumn);
 
 /// Uploads the completed 16-bit credits-picture strip and advances its buffer.
-static void _replayBonusUploadPictureStrip(void)
+static void _endingUploadPictureStrip(void)
 {
-    enum { REPLAY_BONUS_STRIP_PIXEL_BYTES_SHIFT = 5,
-           REPLAY_BONUS_STRIP_WIDTH_SHIFT       = 4 };
+    enum { ENDING_STRIP_PIXEL_BYTES_SHIFT = 5,
+           ENDING_STRIP_WIDTH_SHIFT       = 4 };
     RECT rect;
     s32  imageWidth;
     s32  nextStrip;
@@ -56,22 +56,22 @@ static void _replayBonusUploadPictureStrip(void)
     s32  stripXOffset;
 
     rect.w       = FILE_SYSTEM_IMAGE_STRIP_WIDTH;
-    stripIndex   = gReplayBonusPictureStripsUploaded;
+    stripIndex   = gEndingPictureStripsUploaded;
     stripXOffset = stripIndex * FILE_SYSTEM_IMAGE_STRIP_WIDTH;
-    rect.x       = gReplayBonusPictureVramX + stripXOffset;
-    rect.h       = gReplayBonusPictureHeight;
-    rect.y       = gReplayBonusPictureVramY;
-    LoadImage(&rect, gReplayBonusPictureStripPixels + (((gReplayBonusPictureStripBufferIndex << REPLAY_BONUS_STRIP_PIXEL_BYTES_SHIFT) * gReplayBonusPictureHeight) / sizeof(*gReplayBonusPictureStripPixels)));
+    rect.x       = gEndingPictureVramX + stripXOffset;
+    rect.h       = gEndingPictureHeight;
+    rect.y       = gEndingPictureVramY;
+    LoadImage(&rect, gEndingPictureStripPixels + (((gEndingPictureStripBufferIndex << ENDING_STRIP_PIXEL_BYTES_SHIFT) * gEndingPictureHeight) / sizeof(*gEndingPictureStripPixels)));
     // The callback releases the strip before the task queues the other buffer.
-    imageWidth                          = gReplayBonusPictureWidth;
-    gReplayBonusPictureStripPending     = REPLAY_BONUS_PICTURE_STRIP_UPLOADED;
-    gReplayBonusPictureStripBufferIndex = gReplayBonusPictureStripBufferIndex ^ 1;
-    nextStrip                           = (gReplayBonusPictureStripsUploaded = (u16)gReplayBonusPictureStripsUploaded + 1);
-    nextStrip                           = (s16)nextStrip;
+    imageWidth                     = gEndingPictureWidth;
+    gEndingPictureStripPending     = ENDING_PICTURE_STRIP_UPLOADED;
+    gEndingPictureStripBufferIndex = gEndingPictureStripBufferIndex ^ 1;
+    nextStrip                      = (gEndingPictureStripsUploaded = (u16)gEndingPictureStripsUploaded + 1);
+    nextStrip                      = (s16)nextStrip;
     if (imageWidth < 0) {
         imageWidth += FILE_SYSTEM_IMAGE_STRIP_WIDTH - 1;
     }
-    if (nextStrip == (imageWidth >> REPLAY_BONUS_STRIP_WIDTH_SHIFT) - 1) {
+    if (nextStrip == (imageWidth >> ENDING_STRIP_WIDTH_SHIFT) - 1) {
         DecDCToutCallback(NULL);
     }
 }
@@ -82,108 +82,108 @@ static void _replayBonusUploadPictureStrip(void)
 /// output buffer for two 16-pixel columns. Height must be positive and fit a
 /// signed halfword; output size is eight 32-bit words per row. Installs the strip-upload completion
 /// callback, resets the strip index, marks output pending and advances the task.
-static inline void _replayBonusStartPictureDecode(Task* task)
+static inline void _endingStartPictureDecode(Task* task)
 {
-    enum { REPLAY_BONUS_STRIP_WORDS_PER_ROW = FILE_SYSTEM_IMAGE_STRIP_WIDTH / 2 };
+    enum { ENDING_STRIP_WORDS_PER_ROW = FILE_SYSTEM_IMAGE_STRIP_WIDTH / 2 };
     s32 decodeState;
 
-    DecDCToutCallback(_replayBonusUploadPictureStrip);
-    DecDCTin(gReplayBonusPictureDctBitstream, MDEC_IMAGE_MODE_RGB16_MASK_BIT);
-    DecDCTout(gReplayBonusPictureStripPixels, gReplayBonusPictureHeight * REPLAY_BONUS_STRIP_WORDS_PER_ROW);
-    gReplayBonusPictureStripsUploaded = 0;
-    decodeState                       = task->state;
-    gReplayBonusPictureStripPending   = REPLAY_BONUS_PICTURE_STRIP_PENDING;
-    task->state                       = decodeState + 1;
+    DecDCToutCallback(_endingUploadPictureStrip);
+    DecDCTin(gEndingPictureDctBitstream, MDEC_IMAGE_MODE_RGB16_MASK_BIT);
+    DecDCTout(gEndingPictureStripPixels, gEndingPictureHeight * ENDING_STRIP_WORDS_PER_ROW);
+    gEndingPictureStripsUploaded = 0;
+    decodeState                  = task->state;
+    gEndingPictureStripPending   = ENDING_PICTURE_STRIP_PENDING;
+    task->state                  = decodeState + 1;
 }
 
-void replayBonusDecodePictureTask(Task* task)
+void endingDecodePictureTask(Task* task)
 {
     enum {
-        REPLAY_BONUS_DECODE_INITIALIZE        = 0,
-        REPLAY_BONUS_DECODE_VLC               = 1,
-        REPLAY_BONUS_DECODE_START_MDEC        = 2,
-        REPLAY_BONUS_DECODE_STRIPS            = 3,
-        REPLAY_BONUS_STRIP_WIDTH_SHIFT        = 4,
-        REPLAY_BONUS_STRIP_PIXEL_BYTES_SHIFT  = 5,
-        REPLAY_BONUS_DOUBLE_STRIP_BYTES_SHIFT = 6,
-        REPLAY_BONUS_STRIP_WORDS_PER_ROW      = FILE_SYSTEM_IMAGE_STRIP_WIDTH / 2,
-        REPLAY_BONUS_PICTURE_PIXEL_BYTES      = sizeof(u16),
+        ENDING_DECODE_INITIALIZE        = 0,
+        ENDING_DECODE_VLC               = 1,
+        ENDING_DECODE_START_MDEC        = 2,
+        ENDING_DECODE_STRIPS            = 3,
+        ENDING_STRIP_WIDTH_SHIFT        = 4,
+        ENDING_STRIP_PIXEL_BYTES_SHIFT  = 5,
+        ENDING_DOUBLE_STRIP_BYTES_SHIFT = 6,
+        ENDING_STRIP_WORDS_PER_ROW      = FILE_SYSTEM_IMAGE_STRIP_WIDTH / 2,
+        ENDING_PICTURE_PIXEL_BYTES      = sizeof(u16),
     };
-    ReplayBonusPictureDecode* picture;
-    s32                       decodeState;
-    s32                       vlcImageWidth;
-    s32                       decodedWordCount;
-    s32                       outputImageWidth;
-    s32                       completedStrips;
-    u16                       pictureWidth;
-    u16                       vramX;
-    u16                       pictureHeight;
-    u16                       vramY;
-    u_long*                   decodedBitstream;
-    u_long*                   bitstream;
+    EndingPictureDecode* picture;
+    s32                  decodeState;
+    s32                  vlcImageWidth;
+    s32                  decodedWordCount;
+    s32                  outputImageWidth;
+    s32                  completedStrips;
+    u16                  pictureWidth;
+    u16                  vramX;
+    u16                  pictureHeight;
+    u16                  vramY;
+    u_long*              decodedBitstream;
+    u_long*              bitstream;
 
     decodeState = task->state;
     picture     = task->spawnArg2.pointer;
     switch (decodeState) {
-        case REPLAY_BONUS_DECODE_INITIALIZE:
+        case ENDING_DECODE_INITIALIZE:
             // Expand VLC in slices, then feed one picture to MDEC.
-            gReplayBonusPictureStripBufferIndex = 0;
-            pictureWidth                        = picture->width;
-            vramX                               = picture->vramX;
-            gReplayBonusPictureWidth            = pictureWidth;
-            pictureHeight                       = picture->height;
-            gReplayBonusPictureHeight           = pictureHeight;
-            gReplayBonusPictureVramX            = vramX;
-            vramY                               = picture->vramY;
-            gReplayBonusPictureVramY            = vramY;
+            gEndingPictureStripBufferIndex = 0;
+            pictureWidth                   = picture->width;
+            vramX                          = picture->vramX;
+            gEndingPictureWidth            = pictureWidth;
+            pictureHeight                  = picture->height;
+            gEndingPictureHeight           = pictureHeight;
+            gEndingPictureVramX            = vramX;
+            vramY                          = picture->vramY;
+            gEndingPictureVramY            = vramY;
             DecDCTReset(0);
-            gReplayBonusPictureStripPixels  = memMalloc(gReplayBonusPictureHeight << REPLAY_BONUS_DOUBLE_STRIP_BYTES_SHIFT, true);
-            decodedBitstream                = memMalloc(gReplayBonusPictureWidth * gReplayBonusPictureHeight * REPLAY_BONUS_PICTURE_PIXEL_BYTES, true);
-            bitstream                       = gFsResourceSlots[picture->resourceIndex].data;
-            gReplayBonusPictureDctBitstream = decodedBitstream;
-            decodedWordCount                = DecDCTBufSize(bitstream);
-            vlcImageWidth                   = gReplayBonusPictureWidth;
+            gEndingPictureStripPixels  = memMalloc(gEndingPictureHeight << ENDING_DOUBLE_STRIP_BYTES_SHIFT, true);
+            decodedBitstream           = memMalloc(gEndingPictureWidth * gEndingPictureHeight * ENDING_PICTURE_PIXEL_BYTES, true);
+            bitstream                  = gFsResourceSlots[picture->resourceIndex].data;
+            gEndingPictureDctBitstream = decodedBitstream;
+            decodedWordCount           = DecDCTBufSize(bitstream);
+            vlcImageWidth              = gEndingPictureWidth;
             if (vlcImageWidth < 0) {
                 vlcImageWidth += FILE_SYSTEM_IMAGE_STRIP_WIDTH - 1;
             }
-            DecDCTvlcSize2((decodedWordCount / (vlcImageWidth >> REPLAY_BONUS_STRIP_WIDTH_SHIFT)) + 2);
-            if ((DecDCTvlc2(gFsResourceSlots[picture->resourceIndex].data, gReplayBonusPictureDctBitstream, picture->vlcTable) << 0x10) == 0) {
-                task->state = REPLAY_BONUS_DECODE_START_MDEC;
+            DecDCTvlcSize2((decodedWordCount / (vlcImageWidth >> ENDING_STRIP_WIDTH_SHIFT)) + 2);
+            if ((DecDCTvlc2(gFsResourceSlots[picture->resourceIndex].data, gEndingPictureDctBitstream, picture->vlcTable) << 0x10) == 0) {
+                task->state = ENDING_DECODE_START_MDEC;
                 return;
             }
             task->state = task->state + 1;
             return;
-        case REPLAY_BONUS_DECODE_VLC:
+        case ENDING_DECODE_VLC:
             if (DecDCTvlc2(NULL, NULL, picture->vlcTable) != 0) {
                 return;
             }
             task->state = task->state + 1;
-        case REPLAY_BONUS_DECODE_START_MDEC:
-            _replayBonusStartPictureDecode(task);
+        case ENDING_DECODE_START_MDEC:
+            _endingStartPictureDecode(task);
             return;
-        case REPLAY_BONUS_DECODE_STRIPS:
+        case ENDING_DECODE_STRIPS:
             // Convert the alternating strip's byte offset to 32-bit word elements.
-            if (gReplayBonusPictureStripPending == REPLAY_BONUS_PICTURE_STRIP_UPLOADED) {
-                outputImageWidth = gReplayBonusPictureWidth;
-                completedStrips  = gReplayBonusPictureStripsUploaded;
+            if (gEndingPictureStripPending == ENDING_PICTURE_STRIP_UPLOADED) {
+                outputImageWidth = gEndingPictureWidth;
+                completedStrips  = gEndingPictureStripsUploaded;
                 if (outputImageWidth < 0) {
                     outputImageWidth += FILE_SYSTEM_IMAGE_STRIP_WIDTH - 1;
                 }
                 // The retained stop count leaves the final 16-pixel column untouched.
-                if (completedStrips == (outputImageWidth >> REPLAY_BONUS_STRIP_WIDTH_SHIFT) - 1) {
-                    memFreeFromHeap(gReplayBonusPictureStripPixels, true);
-                    memFreeFromHeap(gReplayBonusPictureDctBitstream, true);
+                if (completedStrips == (outputImageWidth >> ENDING_STRIP_WIDTH_SHIFT) - 1) {
+                    memFreeFromHeap(gEndingPictureStripPixels, true);
+                    memFreeFromHeap(gEndingPictureDctBitstream, true);
                     taskRequestKill(task, 0);
                     return;
                 }
-                DecDCTout(gReplayBonusPictureStripPixels + (((gReplayBonusPictureStripBufferIndex << REPLAY_BONUS_STRIP_PIXEL_BYTES_SHIFT) * gReplayBonusPictureHeight) / sizeof(*gReplayBonusPictureStripPixels)), gReplayBonusPictureHeight * REPLAY_BONUS_STRIP_WORDS_PER_ROW);
-                gReplayBonusPictureStripPending = REPLAY_BONUS_PICTURE_STRIP_PENDING;
+                DecDCTout(gEndingPictureStripPixels + (((gEndingPictureStripBufferIndex << ENDING_STRIP_PIXEL_BYTES_SHIFT) * gEndingPictureHeight) / sizeof(*gEndingPictureStripPixels)), gEndingPictureHeight * ENDING_STRIP_WORDS_PER_ROW);
+                gEndingPictureStripPending = ENDING_PICTURE_STRIP_PENDING;
             }
             break;
     }
 }
 
-u16* replayBonusCreatePictureVlcTable(void)
+u16* endingCreatePictureVlcTable(void)
 {
     u16* table = memMalloc(sizeof(DECDCTTAB), true);
 
@@ -196,7 +196,7 @@ u16* replayBonusCreatePictureVlcTable(void)
 /// `abilitySlot` is 0..11 and `previousLevel` is 0..2. Positive game modes
 /// pay 4/5 of the base cost; a cleared normal game pays 2/5. Each level
 /// rounds down separately, using the completed run's mode and clear count.
-static inline s32 _replayBonusUpgradeCost(s32 abilitySlot, s32 previousLevel)
+static inline s32 _endingUpgradeCost(s32 abilitySlot, s32 previousLevel)
 {
     s32 expCost = gAttachmentLevelTable.rows[abilitySlot * ATTACHMENT_LEVEL_COUNT + previousLevel + 1].column.expCost;
 
@@ -208,7 +208,7 @@ static inline s32 _replayBonusUpgradeCost(s32 abilitySlot, s32 previousLevel)
     return expCost;
 }
 
-s32 replayBonusGetTotalExp(void)
+s32 endingGetTotalExp(void)
 {
     const u8* learnedLevels;
     s32       totalExp;
@@ -222,7 +222,7 @@ s32 replayBonusGetTotalExp(void)
     do {
         if (*learnedLevels != 0) {
             for (previousLevel = 0; previousLevel < *learnedLevels; ++previousLevel) {
-                upgradeExpCost = _replayBonusUpgradeCost(abilitySlot, previousLevel);
+                upgradeExpCost = _endingUpgradeCost(abilitySlot, previousLevel);
                 totalExp      += upgradeExpCost;
             }
         }
@@ -239,38 +239,38 @@ s32 replayBonusGetTotalExp(void)
 /// fitting its 300-element allocation. Navigation still requires at most 127
 /// emitted rows for the signed-byte UI indices; legal-run limits are unproven.
 /// Starts the list on its last nine rows, clamping an empty or short list to 0.
-static void _replayBonusBuildItemList(UiList* list, UiObject* object)
+static void _endingBuildItemList(UiList* list, UiObject* object)
 {
     enum {
-        REPLAY_BONUS_COLLECTION_ID_LIMIT = 0x200,
-        REPLAY_BONUS_LIST_VISIBLE_ROWS   = 9,
+        ENDING_COLLECTION_ID_LIMIT = 0x200,
+        ENDING_LIST_VISIBLE_ROWS   = 9,
     };
     /// Writes whether a catalog id earns Complete Bonus item credit (0 no, 1 yes).
     ///
-    /// Searches the first `REPLAY_BONUS_ITEM_WHITELIST_COUNT` entries of the
-    /// package's read-only `gReplayBonusItemWhitelist`, excluding both trailer
+    /// Searches the first `ENDING_ITEM_WHITELIST_COUNT` entries of the
+    /// package's read-only `gEndingItemWhitelist`, excluding both trailer
     /// halfwords. `itemId` is a stable s32 expression, read up to 78 times;
     /// `isWhitelisted` is an independent writable s32 lvalue. Neither argument
     /// may refer to the block's `whitelistItem`, `whitelistIndex` or `whitelistId`.
-#define REPLAY_BONUS_TEST_ITEM_WHITELIST(itemId, isWhitelisted)        \
-    {                                                                  \
-        const u16* whitelistItem;                                      \
-        s32        whitelistIndex;                                     \
-        (isWhitelisted) = 1;                                           \
-        whitelistItem   = gReplayBonusItemWhitelist;                   \
-        whitelistIndex  = 0;                                           \
-        for (;;) {                                                     \
-            u16 whitelistId = *whitelistItem;                          \
-            if (whitelistId == (itemId)) {                             \
-                break;                                                 \
-            }                                                          \
-            whitelistIndex += 1;                                       \
-            whitelistItem  += 1;                                       \
-            if (whitelistIndex >= REPLAY_BONUS_ITEM_WHITELIST_COUNT) { \
-                (isWhitelisted) = 0;                                   \
-                break;                                                 \
-            }                                                          \
-        }                                                              \
+#define ENDING_TEST_ITEM_WHITELIST(itemId, isWhitelisted)        \
+    {                                                            \
+        const u16* whitelistItem;                                \
+        s32        whitelistIndex;                               \
+        (isWhitelisted) = 1;                                     \
+        whitelistItem   = gEndingItemWhitelist;                  \
+        whitelistIndex  = 0;                                     \
+        for (;;) {                                               \
+            u16 whitelistId = *whitelistItem;                    \
+            if (whitelistId == (itemId)) {                       \
+                break;                                           \
+            }                                                    \
+            whitelistIndex += 1;                                 \
+            whitelistItem  += 1;                                 \
+            if (whitelistIndex >= ENDING_ITEM_WHITELIST_COUNT) { \
+                (isWhitelisted) = 0;                             \
+                break;                                           \
+            }                                                    \
+        }                                                        \
     }
 
     const InventoryItemRow* savedRow;
@@ -294,7 +294,7 @@ static void _replayBonusBuildItemList(UiList* list, UiObject* object)
             consumableIndex -= INVENTORY_CONSUMABLE_ITEM_FIRST;
             if ((u8)consumableIndex >= (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) {
                 itemId = savedRow->itemId;
-                REPLAY_BONUS_TEST_ITEM_WHITELIST(itemId, listed);
+                ENDING_TEST_ITEM_WHITELIST(itemId, listed);
                 if (listed != 0) {
                     itemCount  += 1;
                     *nextItemId = savedRow->itemId;
@@ -310,34 +310,34 @@ static void _replayBonusBuildItemList(UiList* list, UiObject* object)
     itemIndex = INVENTORY_COLLECTION_ID_PARTHENON_KEY;
     do {
         if (inventoryHasCollectedBit(itemIndex) != 0) {
-            REPLAY_BONUS_TEST_ITEM_WHITELIST(itemIndex, listed);
+            ENDING_TEST_ITEM_WHITELIST(itemIndex, listed);
             if (listed != 0) {
                 itemIds[itemCount] = itemIndex;
                 itemCount         += 1;
             }
         }
         itemIndex += 1;
-    } while (itemIndex < REPLAY_BONUS_COLLECTION_ID_LIMIT);
+    } while (itemIndex < ENDING_COLLECTION_ID_LIMIT);
 
-    list->visibleRowCount.unsignedValue       = REPLAY_BONUS_LIST_VISIBLE_ROWS;
+    list->visibleRowCount.unsignedValue       = ENDING_LIST_VISIBLE_ROWS;
     list->itemCount                           = itemCount;
     list->firstVisibleItemIndex.unsignedValue = list->itemCount - list->visibleRowCount.unsignedValue;
     if (list->firstVisibleItemIndex.signedValue < 0) {
         list->firstVisibleItemIndex.unsignedValue = 0;
     }
     list->selectedItemIndex = list->firstVisibleItemIndex.signedValue;
-#undef REPLAY_BONUS_TEST_ITEM_WHITELIST
+#undef ENDING_TEST_ITEM_WHITELIST
 }
 /// Title of the completed run's item-credit panel.
-static const char _gReplayBonusCompleteBonusTitle[] = "Complete Bonus";
+static const char _gEndingCompleteBonusTitle[] = "Complete Bonus";
 /// Heading of the acquired-item column in the Complete Bonus list.
-static const u8 _gReplayBonusGetItemHeading[] = "GET ITEM";
+static const u8 _gEndingGetItemHeading[] = "GET ITEM";
 /// Heading of each item's half-price BP credit in the Complete Bonus list.
-static const u8 _gReplayBonusBonusBpHeading[] = "BONUS BP";
+static const u8 _gEndingBonusBpHeading[] = "BONUS BP";
 /// Heading of the BP balance plus the revealed items' credits.
-static const u8 _gReplayBonusTotalBpHeading[] = "TOTAL BP";
+static const u8 _gEndingTotalBpHeading[] = "TOTAL BP";
 
-#include "replay_bonus_total_bp.inc.c"
+#include "ending_total_bp.inc.c"
 
 /// Computes the BP award that replaces a shop-tier unlock.
 ///
@@ -347,16 +347,16 @@ static const u8 _gReplayBonusTotalBpHeading[] = "TOTAL BP";
 /// tier item ids must index the ordinary catalog. The caller checks that
 /// every tier is unlocked. Returns 0..2600000 BP without changing the save,
 /// unlocks or currency; preparing the cleared save applies the award later.
-static inline s32 _replayBonusComputeExtraBonusBp(void)
+static inline s32 _endingComputeExtraBonusBp(void)
 {
-    enum { REPLAY_BONUS_SHOP_BP_ROUNDING_UNIT = 100000 };
+    enum { ENDING_SHOP_BP_ROUNDING_UNIT = 100000 };
     const ShopTier* shopRow;
     s32             totalBp;
     s32             itemColumn;
     s32             shopRowIndex;
 
     totalBp      = 0;
-    shopRow      = gReplayBonusShopTierLadder;
+    shopRow      = gEndingShopTierLadder;
     shopRowIndex = 0;
     do {
         itemColumn = 0;
@@ -366,28 +366,28 @@ static inline s32 _replayBonusComputeExtraBonusBp(void)
         } while (itemColumn < ARRAY_SIZE(shopRow->items));
         shopRowIndex++;
         shopRow++;
-    } while (shopRowIndex < ARRAY_SIZE(gReplayBonusShopTierLadder));
-    totalBp += REPLAY_BONUS_SHOP_BP_ROUNDING_UNIT - 1;
-    totalBp  = totalBp / REPLAY_BONUS_SHOP_BP_ROUNDING_UNIT;
-    totalBp *= REPLAY_BONUS_SHOP_BP_ROUNDING_UNIT;
+    } while (shopRowIndex < ARRAY_SIZE(gEndingShopTierLadder));
+    totalBp += ENDING_SHOP_BP_ROUNDING_UNIT - 1;
+    totalBp  = totalBp / ENDING_SHOP_BP_ROUNDING_UNIT;
+    totalBp *= ENDING_SHOP_BP_ROUNDING_UNIT;
     return totalBp;
 }
 
-void replayBonusCompleteBonusPanelTask(Task* task)
+void endingCompleteBonusPanelTask(Task* task)
 {
     enum {
-        REPLAY_BONUS_COMPLETE_INITIALIZE    = 0,
-        REPLAY_BONUS_COMPLETE_INITIAL_HOLD  = 1,
-        REPLAY_BONUS_COMPLETE_SCROLL        = 2,
-        REPLAY_BONUS_COMPLETE_ITEM_CAPACITY = 300,
-        REPLAY_BONUS_COMPLETE_INITIAL_TICKS = 60,
-        REPLAY_BONUS_COMPLETE_TOP_INSET     = 15,
-        REPLAY_BONUS_COMPLETE_TOTAL_HEIGHT  = 19,
-        REPLAY_BONUS_COMPLETE_EXTRA_HEIGHT  = REPLAY_BONUS_COMPLETE_TOP_INSET + REPLAY_BONUS_COMPLETE_TOTAL_HEIGHT,
-        REPLAY_BONUS_MAX_STARTING_BALANCE   = 9999999,
-        REPLAY_BONUS_MODE_BOUNTY            = 1,
-        REPLAY_BONUS_MODE_SCAVENGER         = 2,
-        REPLAY_BONUS_MODE_NIGHTMARE         = 3,
+        ENDING_COMPLETE_INITIALIZE    = 0,
+        ENDING_COMPLETE_INITIAL_HOLD  = 1,
+        ENDING_COMPLETE_SCROLL        = 2,
+        ENDING_COMPLETE_ITEM_CAPACITY = 300,
+        ENDING_COMPLETE_INITIAL_TICKS = 60,
+        ENDING_COMPLETE_TOP_INSET     = 15,
+        ENDING_COMPLETE_TOTAL_HEIGHT  = 19,
+        ENDING_COMPLETE_EXTRA_HEIGHT  = ENDING_COMPLETE_TOP_INSET + ENDING_COMPLETE_TOTAL_HEIGHT,
+        ENDING_MAX_STARTING_BALANCE   = 9999999,
+        ENDING_MODE_BOUNTY            = 1,
+        ENDING_MODE_SCAVENGER         = 2,
+        ENDING_MODE_NIGHTMARE         = 3,
     };
     /// Draws a small outlined Complete Bonus column heading or total label.
     ///
@@ -398,19 +398,19 @@ void replayBonusCompleteBonusPanelTask(Task* task)
     /// `packedRgb` packs RGB in its low 24 bits; alignment selects TEXT_ALIGNMENT_*.
     /// Drawing borrows the encoded caption and request, advances the pen and
     /// initializes V bias. Arguments must not refer to the local `panelOtIndex`.
-#define REPLAY_BONUS_DRAW_COMPLETE_HEADING(request, object, xOffset, textY, yBias, packedRgb, alignmentValue, caption) \
-    {                                                                                                                  \
-        s32 panelOtIndex;                                                                                              \
-        (request).x          = (object)->panel.contentOriginX.unsignedValue + (xOffset);                               \
-        (request).y          = (object)->panel.contentOriginY.unsignedValue - (yBias);                                 \
-        (request).y         += (textY);                                                                                \
-        panelOtIndex         = (object)->panel.otIndex.signedValue;                                                    \
-        (request).colorRgb   = (packedRgb);                                                                            \
-        (request).glyphTable = TEXT_GLYPH_TABLE_SMALL;                                                                 \
-        (request).alignment  = (alignmentValue);                                                                       \
-        (request).drawMode   = TEXT_DRAW_OUTLINED;                                                                     \
-        (request).otIndex    = panelOtIndex + 1;                                                                       \
-        textDrawString(&(request), (caption));                                                                         \
+#define ENDING_DRAW_COMPLETE_HEADING(request, object, xOffset, textY, yBias, packedRgb, alignmentValue, caption) \
+    {                                                                                                            \
+        s32 panelOtIndex;                                                                                        \
+        (request).x          = (object)->panel.contentOriginX.unsignedValue + (xOffset);                         \
+        (request).y          = (object)->panel.contentOriginY.unsignedValue - (yBias);                           \
+        (request).y         += (textY);                                                                          \
+        panelOtIndex         = (object)->panel.otIndex.signedValue;                                              \
+        (request).colorRgb   = (packedRgb);                                                                      \
+        (request).glyphTable = TEXT_GLYPH_TABLE_SMALL;                                                           \
+        (request).alignment  = (alignmentValue);                                                                 \
+        (request).drawMode   = TEXT_DRAW_OUTLINED;                                                               \
+        (request).otIndex    = panelOtIndex + 1;                                                                 \
+        textDrawString(&(request), (caption));                                                                   \
     }
 
     u8                  bpText[0x20];
@@ -420,7 +420,7 @@ void replayBonusCompleteBonusPanelTask(Task* task)
     UiObject*           object;
     UiList*             list;
     const PlayerStatus* playerStatus;
-    ReplayBonusTotals*  totals;
+    EndingTotals*       totals;
     s16*                itemIds;
     s32                 panelControl;
     s32                 panelState;
@@ -437,14 +437,14 @@ void replayBonusCompleteBonusPanelTask(Task* task)
     s32                 totalBp;
     u8                  firstVisibleItemIndex;
 
-    list           = &gReplayBonusCompleteBonusList;
+    list           = &gEndingCompleteBonusList;
     object         = task->spawnArg2.pointer;
     object->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&object->panel, _gReplayBonusCompleteBonusTitle);
-    if (task->state == REPLAY_BONUS_COMPLETE_INITIALIZE) {
+    uiDrawPanelLabel(&object->panel, _gEndingCompleteBonusTitle);
+    if (task->state == ENDING_COMPLETE_INITIALIZE) {
         // Build the owned row storage and compute the awards before scrolling.
         playerStatus = &gPlayerStatus;
-        itemIds      = memMalloc(REPLAY_BONUS_COMPLETE_ITEM_CAPACITY * sizeof(*itemIds), false);
+        itemIds      = memMalloc(ENDING_COMPLETE_ITEM_CAPACITY * sizeof(*itemIds), false);
         task->work   = itemIds;
         if (itemIds == NULL) {
             object->result = USER_INTERFACE_RESULT_CONFIRM;
@@ -452,72 +452,72 @@ void replayBonusCompleteBonusPanelTask(Task* task)
         }
         itemMenuClearPreviewItems();
         gItemMenuInfoPanel = NULL;
-        _replayBonusBuildItemList(list, object);
+        _endingBuildItemList(list, object);
         uiFitPanelToList(list, &object->panel);
         list->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-        list->topInset                            = REPLAY_BONUS_COMPLETE_TOP_INSET;
-        object->panel.bounds.unsignedRect.h       = object->panel.bounds.unsignedRect.h + REPLAY_BONUS_COMPLETE_EXTRA_HEIGHT;
-        task->killCountdown                       = REPLAY_BONUS_COMPLETE_INITIAL_TICKS;
+        list->topInset                            = ENDING_COMPLETE_TOP_INSET;
+        object->panel.bounds.unsignedRect.h       = object->panel.bounds.unsignedRect.h + ENDING_COMPLETE_EXTRA_HEIGHT;
+        task->killCountdown                       = ENDING_COMPLETE_INITIAL_TICKS;
         task->state                               = task->state + 1;
         list->firstVisibleItemIndex.unsignedValue = 0;
-        totalBp                                   = _replayBonusSumTotalBp(list, object);
-        totals                                    = &gReplayBonusTotals;
+        totalBp                                   = _endingSumTotalBp(list, object);
+        totals                                    = &gEndingTotals;
         totals->totalBp                           = totalBp;
         totals->nextBp                            = totalBp;
         list->firstVisibleItemIndex.unsignedValue = list->itemCount - list->visibleRowCount.unsignedValue;
-        earnedExp                                 = replayBonusGetTotalExp();
+        earnedExp                                 = endingGetTotalExp();
         balanceExp                                = playerStatus->exp;
-        gReplayBonusTotals.totalExp               = earnedExp;
+        gEndingTotals.totalExp                    = earnedExp;
         totals->nextExp                           = balanceExp;
         // Only the unspent EXP balance carries forward, scaled by the run mode.
         switch (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode) {
-            case REPLAY_BONUS_MODE_NIGHTMARE:
+            case ENDING_MODE_NIGHTMARE:
                 totals->nextExp = balanceExp * 10;
                 totals->nextBp  = totals->nextBp * 10;
                 break;
-            case REPLAY_BONUS_MODE_SCAVENGER:
+            case ENDING_MODE_SCAVENGER:
                 totals->nextExp = balanceExp * 5;
                 totals->nextBp  = totals->nextBp * 5;
                 break;
-            case REPLAY_BONUS_MODE_BOUNTY:
+            case ENDING_MODE_BOUNTY:
                 totals->nextExp = balanceExp * 3;
                 totals->nextBp  = totals->nextBp * 3;
                 break;
         }
-        if (gReplayBonusTotals.nextBp > REPLAY_BONUS_MAX_STARTING_BALANCE) {
-            gReplayBonusTotals.nextBp = REPLAY_BONUS_MAX_STARTING_BALANCE;
+        if (gEndingTotals.nextBp > ENDING_MAX_STARTING_BALANCE) {
+            gEndingTotals.nextBp = ENDING_MAX_STARTING_BALANCE;
         }
-        if (gReplayBonusTotals.nextExp > REPLAY_BONUS_MAX_STARTING_BALANCE) {
-            gReplayBonusTotals.nextExp = REPLAY_BONUS_MAX_STARTING_BALANCE;
+        if (gEndingTotals.nextExp > ENDING_MAX_STARTING_BALANCE) {
+            gEndingTotals.nextExp = ENDING_MAX_STARTING_BALANCE;
         }
         // Choose the next locked tier; a fully unlocked shop grants BP instead.
-        selectedTier                = _replayBonusResolveShopTier();
-        gReplayBonusTotals.shopTier = selectedTier;
+        selectedTier           = _endingResolveShopTier();
+        gEndingTotals.shopTier = selectedTier;
         if (selectedTier < 0) {
-            gReplayBonusTotals.extraBonusBp = _replayBonusComputeExtraBonusBp();
+            gEndingTotals.extraBonusBp = _endingComputeExtraBonusBp();
         } else {
-            gReplayBonusTotals.extraBonusBp = 0;
+            gEndingTotals.extraBonusBp = 0;
         }
     }
 
     // Suppress manual navigation and reserve the total line outside the list.
     panelControl                               = object->panel.control.word;
     object->panel.control.word                 = USER_INTERFACE_PANEL_INACTIVE;
-    object->panel.contentBottom.unsignedValue -= REPLAY_BONUS_COMPLETE_TOTAL_HEIGHT;
+    object->panel.contentBottom.unsignedValue -= ENDING_COMPLETE_TOTAL_HEIGHT;
     uiUpdateList(list, &object->panel);
     object->panel.control.word                 = panelControl;
-    object->panel.contentBottom.unsignedValue += REPLAY_BONUS_COMPLETE_TOTAL_HEIGHT;
+    object->panel.contentBottom.unsignedValue += ENDING_COMPLETE_TOTAL_HEIGHT;
 
     // Reveal item credit by scrolling backward, with a hold at each end.
     panelState = task->state;
-    if (panelState == REPLAY_BONUS_COMPLETE_INITIAL_HOLD) {
+    if (panelState == ENDING_COMPLETE_INITIAL_HOLD) {
         holdTicksLeft       = (u16)task->killCountdown - 1;
         task->killCountdown = holdTicksLeft;
         if ((s16)holdTicksLeft <= 0) {
             task->killCountdown = 0;
             task->state         = task->state + 1;
         }
-    } else if (panelState == REPLAY_BONUS_COMPLETE_SCROLL) {
+    } else if (panelState == ENDING_COMPLETE_SCROLL) {
         itemCount = list->itemCount;
         if (list->visibleRowCount.signedValue < itemCount) {
             if (list->scrollPixelsRemaining <= 0) {
@@ -525,7 +525,7 @@ void replayBonusCompleteBonusPanelTask(Task* task)
                 list->firstVisibleItemIndex.unsignedValue = firstVisibleItemIndex;
                 if ((s8)firstVisibleItemIndex < 0) {
                     list->firstVisibleItemIndex.unsignedValue = 0;
-                    task->killCountdown                       = REPLAY_BONUS_PANEL_HOLD_TICKS;
+                    task->killCountdown                       = ENDING_PANEL_HOLD_TICKS;
                     task->state                               = task->state + 1;
                 } else {
                     sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
@@ -536,7 +536,7 @@ void replayBonusCompleteBonusPanelTask(Task* task)
             }
             list->scrollPixelsRemaining = (u16)list->scrollPixelsRemaining - 1;
         } else {
-            task->killCountdown = REPLAY_BONUS_PANEL_HOLD_TICKS;
+            task->killCountdown = ENDING_PANEL_HOLD_TICKS;
             task->state         = task->state + 1;
         }
     } else {
@@ -551,40 +551,40 @@ void replayBonusCompleteBonusPanelTask(Task* task)
     textY     = object->panel.contentTop.signedValue + 0xC;
     leftInset = object->panel.contentLeft.signedValue + 2;
     uiDrawHorizontalSeparator(&object->panel, leftInset, object->panel.contentRight.signedValue - 2, textY);
-    textColor = REPLAY_BONUS_PANEL_TEXT_COLOR;
+    textColor = ENDING_PANEL_TEXT_COLOR;
 
-    REPLAY_BONUS_DRAW_COMPLETE_HEADING(itemHeading, object, leftInset, textY, 4, textColor, TEXT_ALIGNMENT_LEFT, _gReplayBonusGetItemHeading);
+    ENDING_DRAW_COMPLETE_HEADING(itemHeading, object, leftInset, textY, 4, textColor, TEXT_ALIGNMENT_LEFT, _gEndingGetItemHeading);
 
-    REPLAY_BONUS_DRAW_COMPLETE_HEADING(bonusHeading, object, -leftInset, textY, 4, textColor, TEXT_ALIGNMENT_RIGHT, _gReplayBonusBonusBpHeading);
+    ENDING_DRAW_COMPLETE_HEADING(bonusHeading, object, -leftInset, textY, 4, textColor, TEXT_ALIGNMENT_RIGHT, _gEndingBonusBpHeading);
 
     contentBottom = object->panel.contentBottom.signedValue;
     textY         = contentBottom - 1;
     uiDrawHorizontalSeparator(&object->panel, object->panel.contentLeft.signedValue + 2, object->panel.contentRight.signedValue - 2, contentBottom - 0x10);
 
-    REPLAY_BONUS_DRAW_COMPLETE_HEADING(totalHeading, object, 0x70 + leftInset, textY, 6, textColor, TEXT_ALIGNMENT_RIGHT, _gReplayBonusTotalBpHeading);
+    ENDING_DRAW_COMPLETE_HEADING(totalHeading, object, 0x70 + leftInset, textY, 6, textColor, TEXT_ALIGNMENT_RIGHT, _gEndingTotalBpHeading);
 
-    displayedTotalBp = _replayBonusSumTotalBp(list, object);
-    textDrawUiLine(object, -leftInset, textY, textItoaUnsigned(bpText, (u32)displayedTotalBp), REPLAY_BONUS_PANEL_TEXT_COLOR, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    displayedTotalBp = _endingSumTotalBp(list, object);
+    textDrawUiLine(object, -leftInset, textY, textItoaUnsigned(bpText, (u32)displayedTotalBp), ENDING_PANEL_TEXT_COLOR, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
     if ((object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask | gPadMenuButtonMask) != 0)) {
         object->result = USER_INTERFACE_RESULT_CONFIRM;
     }
-#undef REPLAY_BONUS_DRAW_COMPLETE_HEADING
+#undef ENDING_DRAW_COMPLETE_HEADING
 }
 
 /// Title of the completed run's EXP/BP balance panel.
-static const char _gReplayBonusBalanceTitle[] = "Balance";
+static const char _gEndingBalanceTitle[] = "Balance";
 /// Title of the base EXP/BP awards for the next replay, before extra BP.
-static const char _gReplayBonusNextReplayBonusTitle[] = "NEXT REPLAY BONUS";
+static const char _gEndingNextEndingTitle[] = "NEXT REPLAY BONUS";
 /// EXP row label shared by the current-balance and next-replay panels.
-static const u8 _gReplayBonusExpLabel[] = "EXP";
+static const u8 _gEndingExpLabel[] = "EXP";
 
-void replayBonusBalancePanelTask(Task* task)
+void endingBalancePanelTask(Task* task)
 {
     enum {
-        REPLAY_BONUS_BALANCE_CURRENT    = 0,
-        REPLAY_BONUS_BALANCE_NEXT       = 1,
-        REPLAY_BONUS_BALANCE_INITIALIZE = 0,
-        REPLAY_BONUS_BALANCE_HOLD       = 1,
+        ENDING_BALANCE_CURRENT    = 0,
+        ENDING_BALANCE_NEXT       = 1,
+        ENDING_BALANCE_INITIALIZE = 0,
+        ENDING_BALANCE_HOLD       = 1,
     };
 
     /// Draws a left-aligned small outlined EXP/BP label on either balance panel.
@@ -595,18 +595,18 @@ void replayBonusBalancePanelTask(Task* task)
     /// RGB in its low 24 bits. Fill and outline use panel OT entries +1/+2.
     /// Drawing borrows the encoded caption and request, advances the pen and
     /// initializes V bias. Arguments must not refer to the local `panelOtIndex`.
-#define REPLAY_BONUS_DRAW_BALANCE_LABEL(request, object, xOffset, yOffset, packedRgb, caption) \
-    {                                                                                          \
-        s32 panelOtIndex;                                                                      \
-        (request).x          = (object)->panel.contentOriginX.unsignedValue + (xOffset);       \
-        (request).y          = (object)->panel.contentOriginY.unsignedValue + (yOffset);       \
-        panelOtIndex         = (object)->panel.otIndex.signedValue;                            \
-        (request).colorRgb   = (packedRgb);                                                    \
-        (request).glyphTable = TEXT_GLYPH_TABLE_SMALL;                                         \
-        (request).alignment  = TEXT_ALIGNMENT_LEFT;                                            \
-        (request).drawMode   = TEXT_DRAW_OUTLINED;                                             \
-        (request).otIndex    = panelOtIndex + 1;                                               \
-        textDrawString(&(request), (caption));                                                 \
+#define ENDING_DRAW_BALANCE_LABEL(request, object, xOffset, yOffset, packedRgb, caption) \
+    {                                                                                    \
+        s32 panelOtIndex;                                                                \
+        (request).x          = (object)->panel.contentOriginX.unsignedValue + (xOffset); \
+        (request).y          = (object)->panel.contentOriginY.unsignedValue + (yOffset); \
+        panelOtIndex         = (object)->panel.otIndex.signedValue;                      \
+        (request).colorRgb   = (packedRgb);                                              \
+        (request).glyphTable = TEXT_GLYPH_TABLE_SMALL;                                   \
+        (request).alignment  = TEXT_ALIGNMENT_LEFT;                                      \
+        (request).drawMode   = TEXT_DRAW_OUTLINED;                                       \
+        (request).otIndex    = panelOtIndex + 1;                                         \
+        textDrawString(&(request), (caption));                                           \
     }
 
     u8                  numberText[0x20];
@@ -625,38 +625,38 @@ void replayBonusBalancePanelTask(Task* task)
 
     playerStatus = &gPlayerStatus;
     object       = task->spawnArg2.pointer;
-    if (task->state == REPLAY_BONUS_BALANCE_INITIALIZE) {
-        task->killCountdown = REPLAY_BONUS_PANEL_HOLD_TICKS;
+    if (task->state == ENDING_BALANCE_INITIALIZE) {
+        task->killCountdown = ENDING_PANEL_HOLD_TICKS;
         task->state         = task->state + 1;
     }
     object->result = USER_INTERFACE_RESULT_NONE;
-    if (task->spawnArg1.value == REPLAY_BONUS_BALANCE_CURRENT) {
-        uiDrawPanelLabel(&(object)->panel, _gReplayBonusBalanceTitle);
+    if (task->spawnArg1.value == ENDING_BALANCE_CURRENT) {
+        uiDrawPanelLabel(&(object)->panel, _gEndingBalanceTitle);
     } else {
-        uiDrawPanelLabel(&(object)->panel, _gReplayBonusNextReplayBonusTitle);
+        uiDrawPanelLabel(&(object)->panel, _gEndingNextEndingTitle);
     }
-    textColor = REPLAY_BONUS_PANEL_TEXT_COLOR;
+    textColor = ENDING_PANEL_TEXT_COLOR;
     leftInset = object->panel.contentLeft.signedValue + 2;
-    REPLAY_BONUS_DRAW_BALANCE_LABEL(expLabel, object, leftInset, -8, textColor, _gReplayBonusExpLabel);
+    ENDING_DRAW_BALANCE_LABEL(expLabel, object, leftInset, -8, textColor, _gEndingExpLabel);
     balance = playerStatus->exp;
-    if (task->spawnArg1.value == REPLAY_BONUS_BALANCE_NEXT) {
-        balance = gReplayBonusTotals.nextExp;
+    if (task->spawnArg1.value == ENDING_BALANCE_NEXT) {
+        balance = gEndingTotals.nextExp;
     }
     rightInset = -leftInset;
     textDrawUiLine(object, rightInset, -2, textItoaSigned(numberText, balance), textColor, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
-    REPLAY_BONUS_DRAW_BALANCE_LABEL(bpLabel, object, leftInset, 0xB, textColor, _gReplayBonusBpLabel);
-    balance = gReplayBonusTotals.totalBp;
-    if (task->spawnArg1.value == REPLAY_BONUS_BALANCE_NEXT) {
-        balance = gReplayBonusTotals.nextBp;
+    ENDING_DRAW_BALANCE_LABEL(bpLabel, object, leftInset, 0xB, textColor, _gEndingBpLabel);
+    balance = gEndingTotals.totalBp;
+    if (task->spawnArg1.value == ENDING_BALANCE_NEXT) {
+        balance = gEndingTotals.nextBp;
     }
     textDrawUiLine(object, rightInset, 0x11, textItoaSigned(numberText, balance), textColor, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
     // The current-balance hold opens the next-balance panel as a child.
-    if (task->state == REPLAY_BONUS_BALANCE_HOLD) {
+    if (task->state == ENDING_BALANCE_HOLD) {
         holdTicksLeft       = (u16)task->killCountdown - 1;
         task->killCountdown = holdTicksLeft;
         if ((holdTicksLeft << 0x10) <= 0) {
-            if (task->spawnArg1.value == REPLAY_BONUS_BALANCE_CURRENT) {
-                uiSpawnObject(&gReplayBonusNextReplayBonusPanelDescriptor, REPLAY_BONUS_BALANCE_NEXT, 1, 1, object);
+            if (task->spawnArg1.value == ENDING_BALANCE_CURRENT) {
+                uiSpawnObject(&gEndingNextEndingPanelDescriptor, ENDING_BALANCE_NEXT, 1, 1, object);
                 object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 task->state                = task->state + 1;
             } else {
@@ -677,17 +677,17 @@ void replayBonusBalancePanelTask(Task* task)
             object->result = childResult;
         }
     }
-#undef REPLAY_BONUS_DRAW_BALANCE_LABEL
+#undef ENDING_DRAW_BALANCE_LABEL
 }
 
 /// BP row label shared by both balance panels and the extra-award panel.
-static const u8 _gReplayBonusBpLabel[3] = "BP";
+static const u8 _gEndingBpLabel[3] = "BP";
 
-void replayBonusQuitWarningTask(Task* task)
+void endingQuitWarningTask(Task* task)
 {
     enum {
-        REPLAY_BONUS_QUIT_SIZE_PANEL = 0,
-        REPLAY_BONUS_QUIT_OPEN_MENU  = 1,
+        ENDING_QUIT_SIZE_PANEL = 0,
+        ENDING_QUIT_OPEN_MENU  = 1,
     };
     UiObject* object;
     UiObject* yesNoMenu;
@@ -700,12 +700,12 @@ void replayBonusQuitWarningTask(Task* task)
     object         = task->spawnArg2.pointer;
     object->result = USER_INTERFACE_RESULT_NONE;
     uiDrawTitle(&(object)->panel, "WARNING");
-    if (task->state == REPLAY_BONUS_QUIT_SIZE_PANEL) {
+    if (task->state == ENDING_QUIT_SIZE_PANEL) {
         object->resultValue = USER_INTERFACE_LIST_COMMAND_NO;
-        uiSizePanelForText(&(object)->panel, gReplayBonusQuitWarningWidthText, 0, 0);
+        uiSizePanelForText(&(object)->panel, gEndingQuitWarningWidthText, 0, 0);
         uiSetPanelContentSize(&(object)->panel, 0, uiGetTextRowsHeight(3) + 4);
         task->state = task->state + 1;
-    } else if (task->state == REPLAY_BONUS_QUIT_OPEN_MENU) {
+    } else if (task->state == ENDING_QUIT_OPEN_MENU) {
         yesNoMenu = itemMenuSpawnYesNoMenuDefaultNo(object);
         if (yesNoMenu != NULL) {
             yesNoMenu->owner->spawnArg1.value      |= ITEM_MENU_DIALOG_SYSTEM_CURSOR_SOUND;
@@ -713,8 +713,8 @@ void replayBonusQuitWarningTask(Task* task)
             task->state                             = task->state + 1;
         }
     }
-    textColor = REPLAY_BONUS_PANEL_TEXT_COLOR;
-    textDrawUiLines(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, gReplayBonusQuitWarningText, textColor, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textColor = ENDING_PANEL_TEXT_COLOR;
+    textDrawUiLines(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, gEndingQuitWarningText, textColor, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     // The controller needs the Yes/No command even when the child cancels.
     childTask = task->firstChild;
     if (childTask != NULL) {
@@ -733,7 +733,7 @@ void replayBonusQuitWarningTask(Task* task)
 /// Begins at the first inclusive EXP ceiling, adds the mode (0..3) and caps
 /// at the top tier, then wraps past unlocked tiers. Returns -1 if all thirteen
 /// tiers are unlocked. Reads the completed run without modifying its unlocks.
-static inline s32 _replayBonusShopTier(void)
+static inline s32 _endingShopTier(void)
 {
     const ShopTier*   tierRow;
     u32               totalExp;
@@ -743,8 +743,8 @@ static inline s32 _replayBonusShopTier(void)
     s32               unlockedTiers;
     s32               tierBit;
 
-    totalExp  = replayBonusGetTotalExp();
-    tierRow   = gReplayBonusShopTierLadder;
+    totalExp  = endingGetTotalExp();
+    tierRow   = gEndingShopTierLadder;
     tierIndex = 0;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers == SHOP_TIER_ALL_MASK) {
         return -1;
@@ -780,20 +780,20 @@ static inline s32 _replayBonusShopTier(void)
 /// Item id in column `itemColumn` (0..2) of the tier unlocked by this clear.
 ///
 /// Returns `INVENTORY_ITEM_NONE` when every tier is already unlocked.
-static inline s32 _replayBonusShopItem(s32 itemColumn)
+static inline s32 _endingShopItem(s32 itemColumn)
 {
     s32 tierIndex;
 
-    tierIndex = _replayBonusShopTier();
+    tierIndex = _endingShopTier();
     if (tierIndex < 0) {
         return INVENTORY_ITEM_NONE;
     }
-    return gReplayBonusShopTierLadder[tierIndex].items[itemColumn];
+    return gEndingShopTierLadder[tierIndex].items[itemColumn];
 }
 
-void replayBonusUnlockedItemPanelTask(Task* task)
+void endingUnlockedItemPanelTask(Task* task)
 {
-    enum { REPLAY_BONUS_ITEM_CONFIRMED_HOLD_TICKS = 0x7FFF };
+    enum { ENDING_ITEM_CONFIRMED_HOLD_TICKS = 0x7FFF };
     s32       holdTicksLeft;
     s32       frameTicks;
     UiObject* object;
@@ -801,15 +801,15 @@ void replayBonusUnlockedItemPanelTask(Task* task)
     object         = task->spawnArg2.pointer;
     object->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == 0) {
-        if (gReplayBonusTotals.shopTier < 0) {
+        if (gEndingTotals.shopTier < 0) {
             object->result = USER_INTERFACE_RESULT_CONFIRM;
             return;
         }
         // The information task takes over the state and first spawn argument.
         task->extraState.value = task->spawnArg1.value;
-        task->killCountdown    = REPLAY_BONUS_PANEL_HOLD_TICKS;
-        itemMenuSetPreviewItem(_replayBonusShopItem(task->extraState.value), CD_COMMAND_DISPLAY_LOAD_MENU);
-        task->spawnArg1.value = _replayBonusShopItem(task->extraState.value) + ITEM_MENU_INFO_NEXT_REPLAY;
+        task->killCountdown    = ENDING_PANEL_HOLD_TICKS;
+        itemMenuSetPreviewItem(_endingShopItem(task->extraState.value), CD_COMMAND_DISPLAY_LOAD_MENU);
+        task->spawnArg1.value = _endingShopItem(task->extraState.value) + ITEM_MENU_INFO_NEXT_REPLAY;
     }
     itemMenuInfoTask(task);
     frameTicks          = gDisplayState.frameTicks;
@@ -817,11 +817,11 @@ void replayBonusUnlockedItemPanelTask(Task* task)
     task->killCountdown = holdTicksLeft;
     if ((holdTicksLeft << 0x10) <= 0) {
         object->result      = USER_INTERFACE_RESULT_CONFIRM;
-        task->killCountdown = REPLAY_BONUS_ITEM_CONFIRMED_HOLD_TICKS;
+        task->killCountdown = ENDING_ITEM_CONFIRMED_HOLD_TICKS;
     }
 }
 
-void replayBonusExtraBpPanelTask(Task* task)
+void endingExtraBpPanelTask(Task* task)
 {
     u8          numberText[0x20];
     TextDrawReq bpLabel;
@@ -833,13 +833,13 @@ void replayBonusExtraBpPanelTask(Task* task)
     s32         otIndex;
 
     object       = task->spawnArg2.pointer;
-    extraBonusBp = gReplayBonusTotals.extraBonusBp;
+    extraBonusBp = gEndingTotals.extraBonusBp;
     uiDrawPanelLabel(&(object)->panel, "EXTRA BONUS\0\0\0\0");
     if (task->state == 0) {
-        task->killCountdown = REPLAY_BONUS_PANEL_HOLD_TICKS;
+        task->killCountdown = ENDING_PANEL_HOLD_TICKS;
         task->state         = task->state + 1;
     }
-    textColor          = REPLAY_BONUS_PANEL_TEXT_COLOR;
+    textColor          = ENDING_PANEL_TEXT_COLOR;
     leftInset          = object->panel.contentLeft.signedValue + 2;
     bpLabel.x          = object->panel.contentOriginX.unsignedValue + leftInset;
     bpLabel.y          = object->panel.contentOriginY.unsignedValue;
@@ -849,7 +849,7 @@ void replayBonusExtraBpPanelTask(Task* task)
     bpLabel.alignment  = TEXT_ALIGNMENT_LEFT;
     bpLabel.drawMode   = TEXT_DRAW_OUTLINED;
     bpLabel.otIndex    = otIndex + 1;
-    textDrawString(&bpLabel, _gReplayBonusBpLabel);
+    textDrawString(&bpLabel, _gEndingBpLabel);
     textDrawUiLine(object, -leftInset, 6, textItoaSigned(numberText, extraBonusBp), textColor, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
     holdTicksLeft       = (u16)task->killCountdown - 1;
     task->killCountdown = holdTicksLeft;
@@ -866,33 +866,33 @@ void replayBonusExtraBpPanelTask(Task* task)
 /// saved level byte (0..3), which must remain live and not overlap the live stock.
 /// Raises its two-bit field in the live save without changing other slots or
 /// the upper eight bits. The live save already contains the prior shop stock.
-static inline void _replayBonusRetainShopAbilityLevel(s32 abilitySlot, const u8* learnedLevel)
+static inline void _endingRetainShopAbilityLevel(s32 abilitySlot, const u8* learnedLevel)
 {
     enum {
-        REPLAY_BONUS_SHOP_STOCK_LEVEL_BITS = 2,
-        REPLAY_BONUS_SHOP_STOCK_LEVEL_MASK = 3,
+        ENDING_SHOP_STOCK_LEVEL_BITS = 2,
+        ENDING_SHOP_STOCK_LEVEL_MASK = 3,
     };
     s32 stockLevelShift;
 
-    stockLevelShift = abilitySlot * REPLAY_BONUS_SHOP_STOCK_LEVEL_BITS;
-    if ((s32)((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopStock >> stockLevelShift) & REPLAY_BONUS_SHOP_STOCK_LEVEL_MASK) < *learnedLevel) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopStock &= ~(REPLAY_BONUS_SHOP_STOCK_LEVEL_MASK << stockLevelShift);
+    stockLevelShift = abilitySlot * ENDING_SHOP_STOCK_LEVEL_BITS;
+    if ((s32)((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopStock >> stockLevelShift) & ENDING_SHOP_STOCK_LEVEL_MASK) < *learnedLevel) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopStock &= ~(ENDING_SHOP_STOCK_LEVEL_MASK << stockLevelShift);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopStock |= *learnedLevel << stockLevelShift;
     }
 }
 
-void replayBonusPrepareClearedSave(void)
+void endingPrepareClearedSave(void)
 {
     enum {
-        MEMORY_CARD_SAVE_COUNT_NEW             = 0xFF,
-        MEMORY_CARD_SAVE_POINT_OPENING         = 15,
-        REPLAY_BONUS_MAX_CLEAR_COUNT           = 99,
-        REPLAY_BONUS_MAX_STARTING_BALANCE      = 9999999,
-        REPLAY_BONUS_FIRST_RANK_EXP_CEILING    = 69000,
-        REPLAY_BONUS_HIGH_RANK_MIN_GAME_MODE   = 2,
-        REPLAY_BONUS_RANK_FIRST                = 1,
-        REPLAY_BONUS_RANK_HIGH                 = 2,
-        REPLAY_BONUS_CARRIED_ABILITY_USE_COUNT = 18,
+        MEMORY_CARD_SAVE_COUNT_NEW       = 0xFF,
+        MEMORY_CARD_SAVE_POINT_OPENING   = 15,
+        ENDING_MAX_CLEAR_COUNT           = 99,
+        ENDING_MAX_STARTING_BALANCE      = 9999999,
+        ENDING_FIRST_RANK_EXP_CEILING    = 69000,
+        ENDING_HIGH_RANK_MIN_GAME_MODE   = 2,
+        ENDING_RANK_FIRST                = 1,
+        ENDING_RANK_HIGH                 = 2,
+        ENDING_CARRIED_ABILITY_USE_COUNT = 18,
     };
     McSaveData    completedSave;
     McSaveData*   newSave;
@@ -927,7 +927,7 @@ void replayBonusPrepareClearedSave(void)
     do {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[historyIndex] = completedSave.state.attachUseCounts[historyIndex];
         historyIndex                                                          += 1;
-    } while (historyIndex < REPLAY_BONUS_CARRIED_ABILITY_USE_COUNT);
+    } while (historyIndex < ENDING_CARRIED_ABILITY_USE_COUNT);
     historyIndex = 0;
     do {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts[historyIndex] = completedSave.state.weaponUseCounts[historyIndex];
@@ -942,42 +942,42 @@ void replayBonusPrepareClearedSave(void)
     saveData->state.shopStock  = completedSave.state.shopStock;
     saveData->state.replayRank = completedSave.state.replayRank;
     saveData->state.clearCount++;
-    if (saveData->state.clearCount >= REPLAY_BONUS_MAX_CLEAR_COUNT + 1) {
-        saveData->state.clearCount = REPLAY_BONUS_MAX_CLEAR_COUNT;
+    if (saveData->state.clearCount >= ENDING_MAX_CLEAR_COUNT + 1) {
+        saveData->state.clearCount = ENDING_MAX_CLEAR_COUNT;
     }
-    if (saveData->state.maxExp < gReplayBonusTotals.totalExp) {
-        saveData->state.maxExp = gReplayBonusTotals.totalExp;
+    if (saveData->state.maxExp < gEndingTotals.totalExp) {
+        saveData->state.maxExp = gEndingTotals.totalExp;
     }
-    if (saveData->state.maxBp < gReplayBonusTotals.totalBp) {
-        saveData->state.maxBp = gReplayBonusTotals.totalBp;
+    if (saveData->state.maxBp < gEndingTotals.totalBp) {
+        saveData->state.maxBp = gEndingTotals.totalBp;
     }
     // Apply the replay awards to both resident and saved currency.
-    nextBp = gReplayBonusTotals.nextBp + gReplayBonusTotals.extraBonusBp;
-    if (nextBp > REPLAY_BONUS_MAX_STARTING_BALANCE) {
-        nextBp = REPLAY_BONUS_MAX_STARTING_BALANCE;
+    nextBp = gEndingTotals.nextBp + gEndingTotals.extraBonusBp;
+    if (nextBp > ENDING_MAX_STARTING_BALANCE) {
+        nextBp = ENDING_MAX_STARTING_BALANCE;
     }
     playerStatus->bp          = nextBp;
     saveData->state.savePoint = MEMORY_CARD_SAVE_POINT_OPENING;
-    nextExp                   = gReplayBonusTotals.nextExp;
+    nextExp                   = gEndingTotals.nextExp;
     playerStatus->exp         = nextExp;
     saveData->state.playerExp = nextExp;
     saveData->state.playerBp  = playerStatus->bp;
-    if (completedSave.state.gameMode >= REPLAY_BONUS_HIGH_RANK_MIN_GAME_MODE) {
-        saveData->state.replayRank = REPLAY_BONUS_RANK_HIGH;
+    if (completedSave.state.gameMode >= ENDING_HIGH_RANK_MIN_GAME_MODE) {
+        saveData->state.replayRank = ENDING_RANK_HIGH;
     } else if (saveData->state.replayRank <= 0) {
-        if (gReplayBonusTotals.totalExp > REPLAY_BONUS_FIRST_RANK_EXP_CEILING) {
-            saveData->state.replayRank = REPLAY_BONUS_RANK_FIRST;
+        if (gEndingTotals.totalExp > ENDING_FIRST_RANK_EXP_CEILING) {
+            saveData->state.replayRank = ENDING_RANK_FIRST;
         }
     }
     // Shop ability stock retains the highest level learned on any clear.
     learnedLevel = completedSave.state.attachLevels;
     abilitySlot  = 0;
     do {
-        _replayBonusRetainShopAbilityLevel(abilitySlot, learnedLevel);
+        _endingRetainShopAbilityLevel(abilitySlot, learnedLevel);
         abilitySlot  += 1;
         learnedLevel += 1;
     } while (abilitySlot < ATTACHMENT_SPELL_COUNT);
-    if (gReplayBonusTotals.shopTier >= 0) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers |= 1 << gReplayBonusTotals.shopTier;
+    if (gEndingTotals.shopTier >= 0) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers |= 1 << gEndingTotals.shopTier;
     }
 }

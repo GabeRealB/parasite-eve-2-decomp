@@ -10,7 +10,9 @@ An image chunk stores the rows of its page's outermost region from the page down
 occupies, and the rest is zero. A page holds one texture or one `atlas`: an atlas record lists its `sprites`,
 textures each at a texel `at` of its own depth, packed into one page (the resident UI sheet: cursor, gauges, icons,
 and an 8-bit portrait among 4-bit sprites), and its page stores zero outside them. The atlas is the image's layout;
-the file says where it is uploaded and places the sprites' palettes. A texture whose palettes an executable uploads names that embedded palette as `palettes_from`, its
+the file says where it is uploaded and places the sprites' palettes. An image chunk may store palettes in its pages
+too, placed by its entry's `palettes` (the credits font's eight, the last two rows of its page), and a page may hold
+nothing else (the credits logos' palette image). A texture whose palettes an executable uploads names that embedded palette as `palettes_from`, its
 variants in order (the UI font's fill and outlines, ui/font/glyph_palettes in main); one nothing is found to draw
 states `no_palette` and is written with a gray ramp. A texture's `cells` name the parts its code samples one at a
 time (animation frames, icons): a `grid` of [w, h] read row by row, with `names` or numbered, or named [x, y, w, h].
@@ -178,7 +180,7 @@ def chunk_records(rec: dict[str, Any], assets: dict[str, dict[str, Any]]) -> dic
     for e in rec.get("contents", ()):
         if "pages" in e:
             pages = e["pages"]
-            texs = [assets[page_textures(p, assets)[0]] for p in pages]
+            texs = [assets[page_textures(p, assets)[0]] if page_textures(p, assets) else {"bpp": 16} for p in pages]
             xs = [place_at(p, assets)[0] for p in pages]
             contiguous = all(b - a == COLUMN for a, b in zip(xs, xs[1:]))
             bpps = [t["bpp"] for t in texs]
@@ -239,6 +241,7 @@ def check_cells(cells: Any, width: int, height: int) -> list[str]:
 GLYPH_LAYOUTS = {
     "font_glyph": (12, lambda r: (r[0], r[1], r[2] + 1, r[3] + 1)),   # _FontGlyph (textdraw.c): sizes stored less one
     "glyph_cell": (4, lambda r: (r[0], r[1], r[2], r[3])),            # TextGlyphCell (text.h): zero height draws nothing
+    "stf_glyph": (4, lambda r: (r[0], r[1], r[2], r[3] & 0x7F)),      # EndingStfGlyph (ending): page in bit 7
 }
 
 
@@ -254,12 +257,15 @@ def check_font(key: str, rec: dict[str, Any], assets: dict[str, dict[str, Any]],
         if not (isinstance(rec.get("family"), str) and isinstance(rec.get("style"), str)):
             problems.append(f"{key}: names its family and style")
         return problems
-    if assets.get(rec.get("texture"), {}).get("type") != "texture":
-        problems.append(f"{key}: texture {rec.get('texture')!r} is not a texture")
-    elif "cells" in assets[rec["texture"]]:
-        problems.append(f"{key}: {rec['texture']} states cells of its own; a font's texture takes its cells from its fonts")
-    if rec.get("table") not in embedded:
-        problems.append(f"{key}: table {rec.get('table')!r} is not an embedded asset")
+    for texture in rec.get("textures") or [rec.get("texture")]:
+        if assets.get(texture, {}).get("type") != "texture":
+            problems.append(f"{key}: texture {texture!r} is not a texture")
+        elif "cells" in assets[texture]:
+            problems.append(f"{key}: {texture} states cells of its own; a font's texture takes its cells from its fonts")
+    if rec.get("table") not in embedded and assets.get(rec.get("table"), {}).get("type") != "stf":
+        problems.append(f"{key}: table {rec.get('table')!r} is not an embedded asset or a credits document")
+    if assets.get(rec.get("table"), {}).get("type") == "stf" and not isinstance(rec.get("count"), int):
+        problems.append(f"{key}: a credits document's face states its `count` of glyphs (and `start`)")
     if rec.get("layout") not in GLYPH_LAYOUTS:
         problems.append(f"{key}: layout is one of {', '.join(GLYPH_LAYOUTS)}")
     if not all(isinstance(rec.get(k, 0), int) for k in ("first", "v", "kerning", "em")):
@@ -316,10 +322,14 @@ def check_file(key: str, rec: dict[str, Any], assets: dict[str, dict[str, Any]])
     """A file's contents name its chunks, and place each texture page and palette inside VRAM without overlap."""
     problems, rects = [], []
 
-    def place(what: str, x: int, y: int, w: int, h: int) -> None:
+    def place(what: str, x: int, y: int, w: int, h: int, inside: str | None = None) -> None:
         if x < 0 or y < 0 or x + w > VRAM_W or y + h > VRAM_H:
             problems.append(f"{key}: {what} at ({x}, {y}) does not fit in VRAM")
         for other, (ox, oy, ow, oh) in rects:
+            if inside and other.startswith("page") and other.endswith(inside):
+                continue                        # a palette its image chunk stores in this page
+            if inside and other.startswith("page ") and (x, y) >= (ox, oy) and x + w <= ox + ow and y + h <= oy + oh:
+                continue
             if (x, y, w, h) == (ox, oy, ow, oh) and what.startswith("palette") and other.startswith("palette"):
                 continue                        # one palette several textures are drawn with (the title chrome's pages)
             if x < ox + ow and ox < x + w and y < oy + oh and oy < y + h:
@@ -350,10 +360,19 @@ def check_file(key: str, rec: dict[str, Any], assets: dict[str, dict[str, Any]])
         if "slots" in entry and not (isinstance(entry["slots"], int) and entry["slots"] > len(entry.get("pages", ()))):
             problems.append(f"{key}: {entry['chunk']} states slots only when its table has more than its pages")
         for page in entry.get("pages", ()):
-            if ("texture" in page) == ("atlas" in page):
-                problems.append(f"{key}: a page of {entry['chunk']} holds one texture or one atlas")
+            if "texture" in page and "atlas" in page or not ("texture" in page or "atlas" in page or entry.get("palettes")):
+                problems.append(f"{key}: a page of {entry['chunk']} holds one texture or one atlas, or only the "
+                                "palettes its chunk stores")
                 continue
             atlas = "atlas" in page
+            if "texture" not in page and not atlas:      # palettes only (the credits logos')
+                if assets.get(page.get("region"), {}).get("type") != "vram_region":
+                    problems.append(f"{key}: a page of {entry['chunk']} must name a vram_region as its region")
+                    continue
+                size = (COLUMN, stored_rows(page, assets))
+                x, y = place_at(page, assets)
+                place(f"page of {entry['chunk']}", x, y, *size)
+                continue
             if atlas:
                 if assets.get(page["atlas"], {}).get("type") != "atlas":
                     problems.append(f"{key}: page {page['atlas']!r} is not an atlas")
@@ -373,7 +392,7 @@ def check_file(key: str, rec: dict[str, Any], assets: dict[str, dict[str, Any]])
                 if not placed_in_region(page, False):
                     continue
                 size = item_size(page, assets, False)
-            name = page_name(page)
+            name = page_name(page) or entry["chunk"]
             if "truncated" in page and page["truncated"] is not True:
                 problems.append(f"{key}: page {name} states truncated only as true")
             if "upload" in page and page["upload"] not in region_chain(page["region"], assets):
@@ -388,7 +407,7 @@ def check_file(key: str, rec: dict[str, Any], assets: dict[str, dict[str, Any]])
                     problems.append(f"{key}: a palette without a texture states its name and entries (16 or 256)")
                 elif placed_in_region({**pal, "texture": pal["name"]}, True):
                     x, y = place_at(pal, assets)
-                    place(f"palette {pal['name']}", x, y, pal["entries"], 1)
+                    place(f"palette {pal['name']}", x, y, pal["entries"], 1, "pages" in entry and entry["chunk"])
                 continue
             tex = assets.get(pal.get("texture"), {})
             if tex.get("type") != "texture" or pal.get("variant") not in tex.get("variants", ()):
@@ -400,7 +419,8 @@ def check_file(key: str, rec: dict[str, Any], assets: dict[str, dict[str, Any]])
             if not placed_in_region(pal, True):
                 continue
             x, y = place_at(pal, assets)
-            place(f"palette {pal['texture']}.{pal['variant']}", x, y, *item_size(pal, assets, True))
+            place(f"palette {pal['texture']}.{pal['variant']}", x, y, *item_size(pal, assets, True),
+                  "pages" in entry and entry["chunk"])
     # Each texture the file uploads pages of has its palettes uploaded with it. A chunk the file names that another
     # file declares (a variant's file holding its weapon's image and palette) uploads what that declaration says.
     def declared(chunk: str, part: str) -> list[dict[str, Any]]:

@@ -17,6 +17,9 @@ source of the record's other fields:
                                           nonzero advanceY and the two unread bytes in the lib.
     glyph_cell (TextGlyphCell, text.h)    advance width = the cell's width, the pen's advance; the image hangs from
                                           the pen, its top at the baseline.
+    stf_glyph (EndingStfGlyph, ending)    advance width = the cell's width; the image stands on the row's bottom; the
+                                          page bit picks the font's texture (lib: page). The table is a slice of a
+                                          credits document's glyph table (`start`, `count`).
 
 The images are the glyphs' cells cut from the texture's first variant, written to show the face in a font editor.
 They are never read back: the texture's PNGs are the pixels, and the lib says so. The page's art is slightly larger
@@ -35,7 +38,13 @@ from . import ufo
 
 LIB = "org.pe2decomp"
 CLASS_NAMES = {1: "positive", 255: "negative"}
-RECORD = {"font_glyph": 12, "glyph_cell": 4}
+RECORD = {"font_glyph": 12, "glyph_cell": 4, "stf_glyph": 4}
+
+
+def textures(font: dict) -> list[str]:
+    """The textures a font's glyphs are on: its `texture`, or its `textures`, one per page a cell's page bit picks
+    (the credits font's two)."""
+    return font.get("textures") or [font["texture"]]
 
 
 def declared(assets: dict) -> list[str]:
@@ -49,9 +58,17 @@ def ufo_path(name: str, assets: dict, root: Path) -> Path:
 
 
 def table_bytes(name: str, assets: dict, root: Path) -> bytes:
+    """A font's records: its table, embedded in an executable, or a slice (`start`, `count`) of the glyph table of
+    a credits document (an `stf`, its header naming the table's offset)."""
     import asset_data
-    table = assets[name]["table"]
-    return (root / asset_schema.raw_rel(table, asset_data.EMBEDDED_ASSETS[table])).read_bytes()
+    font = assets[name]
+    table = font["table"]
+    rec = asset_data.EMBEDDED_ASSETS.get(table) or assets[table]
+    data = (root / asset_schema.raw_rel(table, rec)).read_bytes()
+    if rec.get("type") == "stf":
+        at = struct.unpack_from("<i", data, 12)[0] + RECORD[font["layout"]] * font.get("start", 0)
+        return data[at:at + RECORD[font["layout"]] * font["count"]]
+    return data
 
 
 def glyph_name(code: int, char: str | None) -> str:
@@ -81,6 +98,9 @@ def records(font: dict, data: bytes) -> list[dict]:
         code = font.get("first", 0) + i
         if font["layout"] == "glyph_cell":
             out.append({"code": code, "cell": list(r)})
+            continue
+        if font["layout"] == "stf_glyph":               # EndingStfGlyph: height in bits 0-6, the page in bit 7
+            out.append({"code": code, "cell": [r[0], r[1], r[2], r[3] & 0x7F], "page": r[3] >> 7})
             continue
         u, v, wm1, hm1, xo, yo, adx, ady, left, right = struct.unpack_from("<4B4b2B", r)
         out.append({"code": code, "cell": [u, v, wm1 + 1, hm1 + 1], "x_offset": xo, "y_offset": yo,
@@ -174,28 +194,42 @@ def decode(name: str, assets: dict, embedded: dict, root: Path) -> Path:
     from texture.files import variant_path
     from texture.png import read_variant
     font = assets[name]
-    tex = assets[font["texture"]]
-    texels, colors = read_variant(variant_path(root, assets, font["texture"], tex["variants"][0]), tex)
-    page = [texels[y * tex["width"]:(y + 1) * tex["width"]] for y in range(tex["height"])]
-    page += [[0] * tex["width"]] * (256 - tex["height"])
+    pages = []                                       # each texture's texels by row, and its first variant's colors
+    for texture in textures(font):
+        tex = assets[texture]
+        texels, colors = read_variant(variant_path(root, assets, texture, tex["variants"][0]), tex)
+        rows = [texels[y * tex["width"]:(y + 1) * tex["width"]] for y in range(tex["height"])]
+        pages.append((rows + [[0] * tex["width"]] * (256 - tex["height"]), colors))
+    page, colors = pages[0]
     encoding = text_encoding.ENCODINGS[font["encoding"]]
     shift = font.get("v", 0)
     glyphs, images, groups = [], {}, {}
     files = ufo.glyph_file_names([glyph_name(r["code"], encoding.get(r["code"]))
                                   for r in records(font, table_bytes(name, assets, root))])
     recs = records(font, table_bytes(name, assets, root))
-    def page_cells(face: str) -> list[list[int]]:
+    def page_cells(face: str, texture: str) -> list[tuple[int, list[int]]]:
+        """(record index, cell on the page) of a face's glyphs on one of its textures."""
         f = assets[face]
-        return [[r["cell"][0], (r["cell"][1] + f.get("v", 0)) & 0xFF, r["cell"][2], r["cell"][3]]
-                for r in records(f, table_bytes(face, assets, root))]
+        n = textures(f).index(texture)
+        return [(k, [r["cell"][0], (r["cell"][1] + f.get("v", 0)) & 0xFF, r["cell"][2], r["cell"][3]])
+                for k, r in enumerate(records(f, table_bytes(face, assets, root))) if r.get("page", 0) == n]
     from texture.files import fonts_of
-    cut = clipped(page, page_cells(name), [c for f in fonts_of(font["texture"], assets) if f != name for c in page_cells(f)])
+    cut = {}                                         # each page's clipped strokes, by record index
+    for texture, (texels_of, _colors) in zip(textures(font), pages):
+        mine = page_cells(name, texture)
+        others = [c for f in fonts_of(texture, assets) if f != name for _k, c in page_cells(f, texture)]
+        for local, strokes in clipped(texels_of, [c for _k, c in mine], others).items():
+            cut[mine[local][0]] = strokes
     for k, rec in enumerate(recs):
         gname = glyph_name(rec["code"], encoding.get(rec["code"]))
         x, y, w, h = rec["cell"]
         lib = {f"{LIB}.code": rec["code"], f"{LIB}.cell": rec["cell"]}
         if font["layout"] == "glyph_cell":
             advance, offset = w, (0, -h)
+        elif font["layout"] == "stf_glyph":             # the pen advances by the width; the cell stands on the row's bottom
+            advance, offset = w, (0, 0)
+            if rec["page"]:
+                lib[f"{LIB}.page"] = rec["page"]
         else:
             advance, offset = rec["x_offset"] + w - 1 + rec["advance_extra"], (rec["x_offset"], -rec["y_offset"])
             if rec["advance_y"]:
@@ -208,7 +242,8 @@ def decode(name: str, assets: dict, embedded: dict, root: Path) -> Path:
         image = None
         if w and h:
             image = {"file": files[gname].removesuffix(".glif") + ".png", "x": offset[0], "y": offset[1]}
-            images[image["file"]] = _cell_png(page, colors, [x, y + shift, w, h])
+            texels_of, colors_of = pages[rec.get("page", 0)]
+            images[image["file"]] = _cell_png(texels_of, colors_of, [x, y + shift, w, h])
         note = clip_note(cut[k], [x, (y + shift) & 0xFF, w, h]) if k in cut else None
         glyphs.append({"name": gname, "advance": advance, "unicode": ord(c) if (c := encoding.get(rec["code"])) else None,
                        "image": image, "note": note, "lib": lib})
@@ -222,7 +257,7 @@ def decode(name: str, assets: dict, embedded: dict, root: Path) -> Path:
         "info": {"familyName": font["family"], "styleName": font["style"], "unitsPerEm": font.get("em", 16),
                  "versionMajor": 1, "versionMinor": 0},
         "lib": {"public.glyphOrder": [g["name"] for g in glyphs],
-                f"{LIB}.face": {"texture": font["texture"], "table": font["table"], "layout": font["layout"],
+                f"{LIB}.face": {"textures": textures(font), "table": font["table"], "layout": font["layout"],
                                 "first": font.get("first", 0), "v": shift,
                                 "pixels": "the texture's PNGs; images/ are cut from them and never read back"}},
         "groups": groups, "kerning": kerning, "glyphs": glyphs, "images": images})
@@ -248,10 +283,10 @@ def encode(name: str, assets: dict, root: Path) -> bytes:
     for code in range(first, first + count):
         g = by_code[code]
         x, y, w, h = g["lib"][f"{LIB}.cell"]
-        if font["layout"] == "glyph_cell":
+        if font["layout"] in ("glyph_cell", "stf_glyph"):
             if g["advance"] != w:
                 raise ValueError(f"{name}: {g['name']} advances {g['advance']}, its cell is {w} wide")
-            out += bytes([x, y, w, h])
+            out += bytes([x, y, w, h | g["lib"].get(f"{LIB}.page", 0) << 7 if font["layout"] == "stf_glyph" else h])
             continue
         xo, yo = (g["image"]["x"], -g["image"]["y"]) if g["image"] else (0, 0)
         out += struct.pack("<4B4b2B", x, y, w - 1, h - 1, xo, yo, g["advance"] - xo - (w - 1),

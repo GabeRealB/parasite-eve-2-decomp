@@ -133,6 +133,16 @@ samples = [
 ]
 sha1 = "afb50861835e33bea6b060d868a815f8b3fa9495"
 
+[riot_sounds.sounds]
+click = 1
+reload_load = 3
+shot = 4
+grenade_reload_second = 5
+launch = 6
+explosion = 7
+grenade_reload_first = 8
+grenade_reload_loaded = 9
+
 [launch_sound]
 type = "sound"
 sha1 = "0cea49bafc26efeec0dbab1877d6d991a84f30ce"
@@ -185,6 +195,16 @@ samples = [
 ]
 sha1 = "5862845aded58a43f2db44d9947cbe6fe249644c"
 
+[airburst_sounds.sounds]
+click = 1
+reload_load = 3
+shot = 4
+grenade_reload_second = 5
+launch = 6
+explosion = 7
+grenade_reload_first = 8
+grenade_reload_loaded = 9
+
 [grenade_binding]
 type = "binding"
 model = "weapons/m4a1_grenade/grenade_model"
@@ -208,6 +228,16 @@ samples = [
     "weapons/m4a1_grenade/grenade_reload_loaded",
 ]
 sha1 = "1919131e841976a6a56b1155e49b3b9d0fd774dc"
+
+[fragmentation_sounds.sounds]
+click = 1
+reload_load = 3
+shot = 4
+grenade_reload_second = 5
+launch = 6
+explosion = 7
+grenade_reload_first = 8
+grenade_reload_loaded = 9
 
 [grenade_reload_first]
 type = "sound"

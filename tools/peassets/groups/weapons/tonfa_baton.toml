@@ -57,6 +57,7 @@ samples = [
     "weapons/tonfa_baton/first_contact",
     "weapons/tonfa_baton/combo_contact",
 ]
+sounds = { first_swing = 1, combo_swing = 2, first_contact = 3, combo_contact = 4 }
 sha1 = "819dfbeed617480acda84a500f2d1af402e638f7"
 
 [strike]

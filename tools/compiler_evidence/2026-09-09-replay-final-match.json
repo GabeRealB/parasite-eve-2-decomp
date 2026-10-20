@@ -1,5 +1,5 @@
 {
-  "function": "_replayBonusDrawCreditsRow",
+  "function": "_endingDrawCreditsRow",
   "status": "exact match integrated and full project verified",
   "session": {
     "id": "7c204b1ab9a7478a86a2b4963091ddad",
@@ -208,9 +208,9 @@
   },
   "integration": {
     "scratch_source": "base_6.c",
-    "source": "src/aya/replay_bonus/replay_bonus_2.c",
+    "source": "src/aya/ending/ending_2.c",
     "source_sha256": "b25026a8e6cf347a2e6883ab027b227b1cd56f944d3c244d2360193987ecb739",
-    "header": "include/aya/replay_bonus.h",
+    "header": "include/aya/ending.h",
     "header_sha256": "b50f7750e275b35fe103d1614beab3bd51a9f3b4b481686be8dc28dac1dbb9f0",
     "changes": "Shared STF command/glyph/sprite/alignment types, actual header alignment fields, typed row command pointer and public prototype, corresponding loader/caller casts. Reused CVECTOR for brightness view and removed scratch declarations.",
     "lookup_constraint": "Ordinary typed indexing changes the initial pointer/index coalescing and scores10. Commuting typed addition or splitting pointer assignment does not undo canonicalization. The initial index-first address sum uses sizeof the declared sprite struct; all sprite fields use typed accesses.",
@@ -247,5 +247,5 @@
     "PERMUTER_EVIDENCE/manual/final-match/base_6.i.sched2",
     "PERMUTER_EVIDENCE/manual/final-match/full-build.log"
   ],
-  "archive": "tools/permuter_findings/_replayBonusDrawCreditsRow/sessions/7c204b1ab9a7478a86a2b4963091ddad/41c820d94ae2f21fc02f"
+  "archive": "tools/permuter_findings/_endingDrawCreditsRow/sessions/7c204b1ab9a7478a86a2b4963091ddad/41c820d94ae2f21fc02f"
 }

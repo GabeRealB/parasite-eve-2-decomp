@@ -64,6 +64,7 @@ samples = [
     "weapons/mongoose/reload_start",
     "weapons/mongoose/shot",
 ]
+sounds = { click = 1, reload_start = 2, reload_load = 3, shot = 4 }
 sha1 = "4736f405876381c0343a6876fc0fd431a88c1af6"
 
 [binding]

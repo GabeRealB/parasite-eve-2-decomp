@@ -161,6 +161,7 @@ samples = [
     "weapons/mm1/launch",
     "weapons/mm1/riot_detonation",
 ]
+sounds = { click = 1, reload_load = 3, launch = 4, detonation = 5 }
 sha1 = "73dbe2679a9cb78670dbfc08227bb0f94228c46d"
 
 [aim_backward]
@@ -207,6 +208,7 @@ samples = [
     "weapons/mm1/airburst_detonation",
     "weapons/mm1/airburst_detonation_2",
 ]
+sounds = { click = 1, reload_load = 3, launch = 4, detonation = 5 }
 sha1 = "993bb36f3a1d472b08ce0092cd1da1fbb1b10245"
 
 [grenade_binding]
@@ -232,6 +234,7 @@ samples = [
     "weapons/mm1/launch",
     "weapons/mm1/fragmentation_detonation",
 ]
+sounds = { click = 1, reload_load = 3, launch = 4, detonation = 5 }
 sha1 = "c81395f810446ed0a41d0a68f0ef134fd4e1b33e"
 
 [airburst_detonation_2]

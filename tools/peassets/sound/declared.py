@@ -6,7 +6,9 @@ sample of its pool (asset_schema.SCHEMA).
     blob = build(name, assets, root)  the bank's bytes from those files
 
 A bank's `samples` names the sound at each position of its pool, in pool order (None where the pool holds raw bytes,
-which its .sfx keeps). A sound states the SHA-1 of its stored body, and its `mode` where normal mode does not
+which its .sfx keeps), and its `sounds` names its slots - the sound ids the game plays, `{name = slot}` - each a
+slot the bank fills. A sample is a recording; a slot is a sound made from it, so one sample can stand under several
+slots at different pitches (a footstep bank's walk and run steps). A sound states the SHA-1 of its stored body, and its `mode` where normal mode does not
 reproduce that body (adpcm.decode); decoding checks both, so a declaration that no longer fits its bytes stops the
 extraction.
 """
@@ -19,7 +21,7 @@ from pathlib import Path
 import asset_schema
 from parallel_util import run_jobs
 
-from . import adpcm, bank, codec, wav
+from . import adpcm, bank, codec, pitch, wav
 
 
 def declared(assets: dict) -> list[str]:
@@ -71,23 +73,34 @@ def _decode_job(job: dict) -> dict:
         if mode != job["mode"]:
             return {"ok": False, "name": job["name"], "error": f"declares mode {job['mode']}; its body needs {mode}"}
         dest = Path(job["dest"]); dest.parent.mkdir(parents=True, exist_ok=True)
-        wav.write(dest, pcm, None if loop is None else 28 * loop)
+        wav.write(dest, pcm, None if loop is None else 28 * loop, pitch.rate(job["octave"]))
         return {"ok": True, "name": job["name"]}
     except Exception as ex:  # noqa: BLE001 - reported per sound
         return {"ok": False, "name": job["name"], "error": str(ex)}
 
 
+def all_octaves(assets: dict, root: Path) -> dict[str, int]:
+    """Each sample body's octave (sound/pitch.py), from how every bank on the disc plays it."""
+    return pitch.octaves_of((root / asset_schema.raw_rel(k, r)).read_bytes() for k, r in sorted(assets.items())
+                            if r.get("type") in ("spk", "sound_bank") and "sha1" in r)
+
+
 def decode_all(assets: dict, root: Path, jobs: int | None = None) -> None:
     work: dict[str, dict] = {}
+    octaves = all_octaves(assets, root) if declared(assets) else {}
     for name in declared(assets):
         blob, pool = _pool(name, assets, root)
-        for item, sound in zip(pool, assets[name]["samples"]):
-            if sound is not None and sound not in work:
+        mine = {}
+        for i, (item, sound) in enumerate(zip(pool, assets[name]["samples"])):
+            if sound is None:
+                continue
+            mine[i] = octaves.get(assets[sound]["sha1"], 0)
+            if sound not in work:
                 work[sound] = {"name": sound, "body": item["sample"], "mode": assets[sound].get("mode", "normal"),
-                               "dest": str(sound_path(sound, assets, root))}
+                               "dest": str(sound_path(sound, assets, root)), "octave": mine[i]}
         sfz, sfx = bank_paths(name, assets, root)
         sfz.parent.mkdir(parents=True, exist_ok=True)
-        bank.write(blob, sfz, sfx, _sample_files(name, assets, root), name)
+        bank.write(blob, sfz, sfx, _sample_files(name, assets, root), name, mine, assets[name].get("sounds"))
     failed = [r for r in run_jobs(_decode_job, sorted(work.values(), key=lambda j: -len(j["body"])), jobs=jobs,
                                   label_key="name") if not r.get("ok")]
     if failed:
@@ -108,4 +121,6 @@ def build(name: str, assets: dict, root: Path) -> bytes:
         loops.append(None if loop is None else loop // 28)
     bodies = iter(adpcm.encode(sounds, modes, loops))
     sfz, sfx = bank_paths(name, assets, root)
-    return bank.build(sfz, sfx, _sample_files(name, assets, root), [None if s is None else next(bodies) for s in samples])
+    octaves = {i: pitch.octave(wav.rate_of(sound_path(s, assets, root))) for i, s in enumerate(samples) if s is not None}
+    return bank.build(sfz, sfx, _sample_files(name, assets, root), [None if s is None else next(bodies) for s in samples],
+                      octaves)

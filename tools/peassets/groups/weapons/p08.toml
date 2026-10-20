@@ -44,6 +44,7 @@ sha1 = "426ed2d54650570f70cd9ed36a7f5db6f629812c"
 [sounds]
 type = "sound_bank"
 samples = ["weapons/pistol/click", "weapons/pistol/reload_start", "weapons/pistol/reload_load", "weapons/p08/shot"]
+sounds = { click = 1, reload_start = 2, reload_load = 3, shot = 4 }
 sha1 = "3cf64172e7764f4e13bb4e5c8d18e1687d4ced8c"
 
 [binding]
@@ -156,6 +157,7 @@ sha1 = "bb7e17e4ee2e3c4a26f003401c670e516974a146"
 [snail_sounds]
 type = "sound_bank"
 samples = ["weapons/pistol/click", "weapons/pistol/reload_start", "weapons/pistol/reload_load", "weapons/p08/shot"]
+sounds = { click = 1, reload_start = 2, reload_load = 3, shot = 4 }
 sha1 = "99b10f19a44d992b1c1ad33946c252cca4794d80"
 
 [snail_catalog]

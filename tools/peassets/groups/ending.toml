@@ -1,0 +1,240 @@
+# The assets of the group ending, each named ending/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+asset = "ui/font/glyph_palette_block"
+sha1 = "a9ff54fadbd523350fe31a02275fc125319f2b3b"
+
+[[file.contents]]
+asset = "dialogue/translucent_palette"
+sha1 = "539d0ac30144dc835199a3df25e068d49f0f14fa"
+
+[[file.contents]]
+chunk = "logo_palettes"
+sha1 = "c62b672729e9a792cc3a6d0cc06ceddb29013ebc"
+pages = [{ region = "engine/vram/credits_logo_palettes" }]
+palettes = [
+    { texture = "logos", variant = "square", region = "engine/vram/credits_logo_palettes", offset = [0, 224] },
+    { texture = "logos", variant = "squartz", region = "engine/vram/credits_logo_palettes", offset = [0, 225] },
+]
+
+[[file.contents]]
+chunk = "logo_image"
+slots = 3
+sha1 = "16d4d2546356c78da5c6832d7a7c4f8c683865ba"
+pages = [{ texture = "logos", region = "engine/vram/credits_logos" }]
+
+[[file.contents]]
+chunk = "font_image_0"
+sha1 = "a65bdf427cb8c8b12e8d9c9234c0f45b8859729f"
+pages = [{ texture = "credits_font_0", region = "engine/vram/credits_font" }]
+palettes = [
+    { texture = "credits_font_0", variant = "gray", region = "engine/vram/credits_font", offset = [0, 254] },
+    { texture = "credits_font_0", variant = "violet", region = "engine/vram/credits_font", offset = [16, 254] },
+    { texture = "credits_font_0", variant = "red", region = "engine/vram/credits_font", offset = [32, 254] },
+    { texture = "credits_font_0", variant = "magenta", region = "engine/vram/credits_font", offset = [48, 254] },
+    { texture = "credits_font_0", variant = "blue", region = "engine/vram/credits_font", offset = [0, 255] },
+    { texture = "credits_font_0", variant = "aqua", region = "engine/vram/credits_font", offset = [16, 255] },
+    { texture = "credits_font_0", variant = "yellow", region = "engine/vram/credits_font", offset = [32, 255] },
+    { texture = "credits_font_0", variant = "light_gray", region = "engine/vram/credits_font", offset = [48, 255] },
+    { texture = "credits_font_1", variant = "gray", region = "engine/vram/credits_font", offset = [0, 254] },
+    { texture = "credits_font_1", variant = "violet", region = "engine/vram/credits_font", offset = [16, 254] },
+    { texture = "credits_font_1", variant = "red", region = "engine/vram/credits_font", offset = [32, 254] },
+    { texture = "credits_font_1", variant = "magenta", region = "engine/vram/credits_font", offset = [48, 254] },
+    { texture = "credits_font_1", variant = "blue", region = "engine/vram/credits_font", offset = [0, 255] },
+    { texture = "credits_font_1", variant = "aqua", region = "engine/vram/credits_font", offset = [16, 255] },
+    { texture = "credits_font_1", variant = "yellow", region = "engine/vram/credits_font", offset = [32, 255] },
+    { texture = "credits_font_1", variant = "light_gray", region = "engine/vram/credits_font", offset = [48, 255] },
+]
+
+[[file.contents]]
+chunk = "font_image_1"
+slots = 3
+sha1 = "9ad6d87c5d858efd44c1b73c0f3a7906e01ac20e"
+pages = [{ texture = "credits_font_1", region = "engine/vram/screen_sheet" }]
+palettes = [
+    { name = "unread_gray", entries = 16, region = "engine/vram/screen_sheet", offset = [0, 254] },
+    { name = "unread_violet", entries = 16, region = "engine/vram/screen_sheet", offset = [16, 254] },
+    { name = "unread_red", entries = 16, region = "engine/vram/screen_sheet", offset = [32, 254] },
+    { name = "unread_magenta", entries = 16, region = "engine/vram/screen_sheet", offset = [48, 254] },
+    { name = "unread_blue", entries = 16, region = "engine/vram/screen_sheet", offset = [0, 255] },
+    { name = "unread_aqua", entries = 16, region = "engine/vram/screen_sheet", offset = [16, 255] },
+    { name = "unread_yellow", entries = 16, region = "engine/vram/screen_sheet", offset = [32, 255] },
+    { name = "unread_light_gray", entries = 16, region = "engine/vram/screen_sheet", offset = [48, 255] },
+]
+
+[[file.contents]]
+chunk = "package"
+
+[[file.contents]]
+chunk = "bundle"
+
+[logos]
+type = "texture"
+bpp = 4
+cells = { square = [5, 1, 243, 38], squartz = [2, 46, 226, 29] }
+height = 256
+variants = ["square", "squartz"]
+width = 256
+
+[bundle]
+type = "pe2bundle"
+resources = [
+    "ending/credits",
+    "ending/picture_0",
+    "ending/picture_1",
+    "ending/picture_2",
+    "ending/picture_3",
+    "ending/picture_4",
+    "ending/picture_5",
+    "ending/picture_6",
+    "ending/picture_7",
+    "ending/picture_8",
+    "ending/picture_9",
+    "ending/picture_10",
+    "ending/picture_11",
+    "ending/picture_12",
+    "ending/picture_13",
+    "",
+    "ending/picture_15",
+    "ending/picture_16",
+    "ending/picture_17",
+    "ending/picture_18",
+]
+sha1 = "3a35e337263ac5c5c8bdbe88ed154f714b9f3fc3"
+
+[credits]
+type = "stf"
+sha1 = "1efe98544ca37a6df383f98e7f586eea8baa6440"
+
+[package]
+type = "pe2pkg"
+package_name = "ending"
+required = true
+sha1 = "1ffef5e0a9ff31c7a2968265363072ce975fcd7d"
+
+[font_sans]
+type = "font"
+count = 60
+encoding = "credits"
+family = "Parasite Eve II Credits"
+layout = "stf_glyph"
+start = 60
+style = "Sans"
+table = "ending/credits"
+textures = ["ending/credits_font_0", "ending/credits_font_1"]
+
+[picture_0]
+type = "bs"
+sha1 = "a9a8f6ac007ce8c5a21b83d0ba4de3c8e9dec0bb"
+
+[picture_1]
+type = "bs"
+sha1 = "7e9968d2baf29e237f4b62d1a1c7eb45d1aa7675"
+
+[picture_2]
+type = "bs"
+sha1 = "58238802c0c1635506fb7a26fa907c8704500ee9"
+
+[picture_3]
+type = "bs"
+sha1 = "c2a8082160135f816c953c45170a58138d2e060a"
+
+[picture_4]
+type = "bs"
+sha1 = "3dfa4d10e01ae8a080e97abf3fd0764741bb9505"
+
+[picture_5]
+type = "bs"
+sha1 = "1387e434850cf3f2bf3afee6a1ee961a1fb88806"
+
+[picture_6]
+type = "bs"
+sha1 = "de57643836ff775cc133271a8d3ccd82bfe886a8"
+
+[picture_7]
+type = "bs"
+sha1 = "8931a0f8dae537af920b2712831a2bcb12806407"
+
+[picture_8]
+type = "bs"
+sha1 = "fa17d7da7cf38942843e456209254098d2b02623"
+
+[picture_9]
+type = "bs"
+sha1 = "2c1a9a396252a9058f135812ff8a4bb78146b05d"
+
+[font_serif]
+type = "font"
+count = 60
+encoding = "credits"
+family = "Parasite Eve II Credits"
+layout = "stf_glyph"
+style = "Serif"
+table = "ending/credits"
+textures = ["ending/credits_font_0", "ending/credits_font_1"]
+
+[picture_10]
+type = "bs"
+sha1 = "65e5df7c0e9f7a7830eeb41dbdc56979b1e83a22"
+
+[picture_11]
+type = "bs"
+sha1 = "a57ba4e8a9bca1e2386915647dacb1e8a336dbd0"
+
+[picture_12]
+type = "bs"
+sha1 = "ff03f6a75765f5a48072deb6d9f65329e45200b7"
+
+[picture_13]
+type = "bs"
+sha1 = "67a5e2591fd3073273d955ffa84b1b3b4f50e308"
+
+[picture_15]
+type = "bs"
+sha1 = "93f271c9d5c9a59f58762dd90f28af4145f462d2"
+
+[picture_16]
+type = "bs"
+sha1 = "a074146c549ef3eed5d5c397ab943190d471e65b"
+
+[picture_17]
+type = "bs"
+sha1 = "7bb101d9190d02d3be0514df8e451f47d4fff27e"
+
+[picture_18]
+type = "bs"
+sha1 = "a345faa037b669b5a89e8ed68d8cfaf4dfc600af"
+
+[credits_text]
+type = "shaped"
+outputs = { document = "credits" }
+shape = "credits"
+
+[font_display]
+type = "font"
+count = 60
+encoding = "credits"
+family = "Parasite Eve II Credits"
+layout = "stf_glyph"
+start = 120
+style = "Display"
+table = "ending/credits"
+textures = ["ending/credits_font_0", "ending/credits_font_1"]
+
+[credits_font_0]
+type = "texture"
+bpp = 4
+height = 256
+variants = ["gray", "violet", "red", "magenta", "blue", "aqua", "yellow", "light_gray"]
+width = 256
+
+[credits_font_1]
+type = "texture"
+bpp = 4
+height = 256
+variants = ["gray", "violet", "red", "magenta", "blue", "aqua", "yellow", "light_gray"]
+width = 256

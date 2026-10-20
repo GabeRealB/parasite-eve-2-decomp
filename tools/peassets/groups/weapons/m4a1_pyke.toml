@@ -50,6 +50,7 @@ samples = [
     "weapons/m4a1_pyke/flame",
     "weapons/m4a1_pyke/flame_ignition",
 ]
+sounds = { click = 1, reload_load = 3, shot = 4, flame = 5 }
 sha1 = "ad5cfc82f2c90e3b8afc53a6a9cb0045aa031e31"
 
 [binding]

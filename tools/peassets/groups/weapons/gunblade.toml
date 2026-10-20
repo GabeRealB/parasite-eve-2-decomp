@@ -216,6 +216,7 @@ samples = [
     "weapons/gunblade/slash",
     "weapons/gunblade/contact",
 ]
+sounds = { click = 1, reload_load = 3, firefly_impact = 4, shot = 5, slash = 6, contact = 7, charged_slash = 8 }
 sha1 = "f233a55c55cf2fc89855ab20ecd6f0646299d023"
 
 [buckshot_sounds]
@@ -227,6 +228,7 @@ samples = [
     "weapons/gunblade/slash",
     "weapons/gunblade/contact",
 ]
+sounds = { click = 1, reload_load = 3, shot = 5, slash = 6, contact = 7, charged_slash = 8 }
 sha1 = "34151cbf62c7645bad73ce7854b05bc1dda31b8c"
 
 [rifled_slug_shot]
@@ -243,4 +245,5 @@ samples = [
     "weapons/gunblade/slash",
     "weapons/gunblade/contact",
 ]
+sounds = { click = 1, reload_load = 3, shot = 5, slash = 6, contact = 7, charged_slash = 8 }
 sha1 = "f0b011683aa00d9feb587dd669c0450579e6a55a"
