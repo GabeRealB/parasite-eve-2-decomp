@@ -102,9 +102,11 @@ def resolve(binding: dict, model_slots: list[str], assets: dict) -> dict:
     for rec in assets.values():
         for entry in rec.get("contents", ()) if rec.get("type") == "file" else ():
             for page in entry.get("pages", ()):
-                homes[page["texture"]] = place_at(page, assets)
+                if "texture" in page:               # an atlas's sprites are no model's textures
+                    homes[page["texture"]] = place_at(page, assets)
             for pal in entry.get("palettes", ()):
-                homes[f"{pal['texture']}.{pal['variant']}"] = place_at(pal, assets)
+                if "texture" in pal:
+                    homes[f"{pal['texture']}.{pal['variant']}"] = place_at(pal, assets)
     out = {}
     for slot in model_slots:
         name = binding.get("textures", {}).get(slot)

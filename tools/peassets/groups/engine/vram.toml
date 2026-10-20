@@ -1,6 +1,32 @@
 # The assets of the group engine/vram, each named engine/vram/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
+[ui_font]
+type = "vram_region"
+at = [960, 256]
+size = [64, 256]
+
+[ui_sheet]
+type = "vram_region"
+at = [896, 256]
+size = [64, 256]
+
+[ui_palettes]
+type = "vram_region"
+at = [0, 240]
+size = [256, 3]
+
+[caption_font]
+type = "vram_region"
+at = [960, 0]
+shares = ["engine/vram/preview_sheet"]
+size = [64, 256]
+
+[title_chrome]
+type = "vram_region"
+at = [768, 256]
+size = [128, 256]
+
 [weapon_sheet]
 type = "vram_region"
 at = [448, 0]
@@ -37,6 +63,12 @@ type = "vram_region"
 at = [0, 0]
 size = [64, 96]
 within = "engine/vram/preview_sheet"
+
+[screen_palettes]
+type = "vram_region"
+at = [0, 255]
+shares = ["engine/vram/preview_palette"]
+size = [256, 6]
 
 [character_palette]
 type = "vram_region"

@@ -1,0 +1,58 @@
+# The assets of the group ui/sheet/radar, each named ui/sheet/radar/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[disc]
+type = "texture"
+bpp = 4
+height = 64
+variants = ["default"]
+width = 64
+
+[range_ahead]
+type = "texture"
+bpp = 4
+height = 40
+variants = ["default"]
+width = 40
+
+[marker_enemy]
+type = "texture"
+bpp = 4
+height = 8
+variants = ["default"]
+width = 8
+
+[range_around]
+type = "texture"
+bpp = 4
+height = 40
+variants = ["default"]
+width = 40
+
+[marker_player]
+type = "texture"
+bpp = 4
+height = 8
+variants = ["default"]
+width = 8
+
+[marker_targeted]
+type = "texture"
+bpp = 4
+height = 8
+variants = ["default"]
+width = 8
+
+[motion_detector]
+type = "texture"
+bpp = 4
+height = 40
+variants = ["default"]
+width = 40
+
+[range_projectile]
+type = "texture"
+bpp = 4
+height = 40
+variants = ["default"]
+width = 40

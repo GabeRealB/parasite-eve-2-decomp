@@ -251,7 +251,7 @@ TaskDesc* gTaskDescBanks[TASK_DESCRIPTOR_BANK_COUNT] = {
 /// to each record's texture V. The initializer is the embedded `font_glyphs0`
 /// catalog blob. Bytes below space are not records in this face.
 static _FontGlyph _gFontGlyphsMedium[FONT_GLYPH_MEDIUM_COUNT] = {
-#include "assets/font_glyphs0.inc"
+#include "assets/ui/font/medium_glyphs.inc"
 };
 
 /// Large UI-font glyph metrics, one record per character byte from ' ' through 0xFF.
@@ -265,7 +265,7 @@ static _FontGlyph _gFontGlyphsMedium[FONT_GLYPH_MEDIUM_COUNT] = {
 /// is the embedded `font_glyphs1` catalog blob. Bytes below space are not
 /// records in this face.
 static _FontGlyph _gFontGlyphsLarge[FONT_GLYPH_LARGE_COUNT] = {
-#include "assets/font_glyphs1.inc"
+#include "assets/ui/font/large_glyphs.inc"
 };
 
 /// Small UI-font glyph metrics, one record per character byte from ' ' through 0x7A.
@@ -276,7 +276,7 @@ static _FontGlyph _gFontGlyphsLarge[FONT_GLYPH_LARGE_COUNT] = {
 /// to each record's texture V. The initializer is the embedded `font_glyphs2`
 /// catalog blob. Bytes outside 0x20..0x7A are not records in this face.
 static _FontGlyph _gFontGlyphsSmall[FONT_GLYPH_SMALL_COUNT] = {
-#include "assets/font_glyphs2.inc"
+#include "assets/ui/font/small_glyphs.inc"
 };
 
 /// Ordering-table tag seed and task priority of the resident vibration panel.

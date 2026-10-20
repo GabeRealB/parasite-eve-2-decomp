@@ -458,7 +458,7 @@ brute_mossback_body	21-part body of the Mossback enemy (normal and large builds)
 brute_mossback_burst_arm	One-part arm thrown twice as a flying body part from the right upper arm when a Mossback dies by bursting.	
 brute_mossback_burst_head	One-part head thrown once as a flying body part, between the two arms, when a Mossback dies by bursting.	
 brute_mossback_burst_leg	No reached use found: the Mossback's burst leg model is defined in every build but named nowhere; the burst death spawns only arm, head, arm.	
-bs_0	Title screen background picture, loaded by the title overlay after the intro movie and shown as image strips until a menu entry is confirmed or the attract demo starts.	
+title/background	Title screen background picture, loaded by the title overlay after the intro movie and shown as image strips until a menu entry is confirmed or the attract demo starts.	
 bs_1	Load-screen picture for a destination of Dryfield, Motel Room 6, shown under the Dryfield boot caption; which save or event lands on it is open.	
 bs_10	Load-screen picture for Dryfield night destinations in story chapter 3 (or any other than 4 and 5), shown under the Dryfield boot caption; which save or event lands on it is open.	
 bs_1016..bs_1021	View backgrounds 1-6 of mine_tunnel_entrance: views 2, 3, 4 and 6 are walked via warps and boundary triggers, view 1 is the unselected plan view.	
@@ -2564,8 +2564,8 @@ acropolis_security_room_view5	256-colour palette (row 255) of the monitor-frame 
 acropolis_security_room_view5	256-colour palette (row 255) of the monitor-frame sprites of Acropolis security room view 13 (pe2img_348), uploaded on each change to that view.	
 acropolis_security_room_view16	256-colour palette (row 255) of the 84 sprites of Acropolis security room view 16 (pe2img_350), uploaded on each change to that view.	
 acropolis_security_room_dialogue_0	Acropolis security room's caption file: examine texts, the power-supply panel's left and right lock messages and the security monitor's camera captions; commands 5-9, 11 unused.	
-pe2clut_0	Boot-loaded resident palette block at (256,243): rows 2 and 3 colour gameplay's dialogue glyphs, highlighted choice line and speaker-title sprite; row 0 is rewritten by main's text palettes.	
-pe2clut_1	Boot-loaded resident interface palettes at (0,240): panel frames and fills, cursors, gauges, radar, status, P.E. and item icons, the player portrait and the point-and-click cursor.	
+dialogue/palette	Dialogue palettes, boot-loaded to (256, 243): row 245 the four glyph colors and the highlighted choice, row 246 the speaker plate, for the dialogue font page at (384, 0), not yet declared; row 247 is stored but nothing draws with it, and row 243 is rewritten by textUploadPalettes (text_clut0), which nothing draws with either.	
+ui/sheet/palette	Boot-loaded interface palettes at (0, 240): rows 240 and 242 the atlas sprites' 16-color palettes, row 241 the portrait's 256 colors; (16, 240) is selected only by _itemMenuDrawRowSprite, which nothing calls (row_inactive).	
 weapons/unused_86/palette	No reached use found: 16-colour weapon palette row of file weapons/unused_86/package, loaded only if the equipped weapon were 7 (item 0x86), which no code path sets.	
 items/mp_boost1/palette	256-colour palette of the menu preview picture of item 0x06 (MP Boost1, items/mp_boost1/image), uploaded when a menu row or panel showing that item is selected.	
 items/mp_boost2/palette	256-colour palette of the menu preview picture of item 0x07 (MP Boost2, items/mp_boost2/image), uploaded when a menu row or panel showing that item is selected.	
@@ -2676,7 +2676,7 @@ pe2clut_196	Map-menu palette of stage 5 pages 0 and 1 (the Neo Ark areas): row 2
 pe2clut_197	Map-menu palette of stage 5 page 2 (Eve elevator and the shelter B6 rooms): row 256 for the map picture, row 255 for the cover pattern, row 257 for marker sprites.	
 pe2clut_198	Map-menu palette of stage 5 page 3 (the shelter 1F rooms): row 256 for the map picture, row 255 for the cover pattern, row 257 for the cursor and icon sprites.	
 pe2clut_199	Two 256-colour palette rows of the Stinger enemy (body, drain model and burst fragments), loaded per room with a row offset; also read by actor_341300's scene quads in the B2 north walkway.	
-pe2clut_2	256-colour palette at (0,255) of the title screen's chrome sprites; its other five rows are black and unread.	
+title/chrome_palette	256-colour palette at (0,255) of the title screen's chrome sprites; its other five rows are black and unread.	
 weapons/m249/palette	16-colour palette row (0,243) of the M249 weapon model: all 61 faces of weapons/m249/model name it, loaded with the weapon's image.	
 pe2clut_200	Two 256-colour palette rows of the diver enemy body and its six blast-death chunk models, placed at a per-room row offset.	
 pe2clut_201	Palette of the gray stalker enemy: its first 256-colour row colours the body, arm models and death chunks; the second row is uploaded but read by nothing.	
@@ -2786,7 +2786,7 @@ pe2clut_295	Two 256-colour palette rows, one per page, of the second ANMC woman'
 pe2clut_296	Two 256-colour palette rows of the second walker's body in actor_143900, placed in shelter R36 at row offset +4.	
 pe2clut_297	Palette of Flint: its first 256-colour row colours flint_body, as the placed dog in the night garage and as the companion; the second row has no reader.	
 pe2clut_299	256-colour palette (row 263) of both texture pages of the prop model of actor_341700; its second row has no reader.	
-pe2clut_3	Palette of the load-screen caption glyphs: 16 colours at row 260 read by main's text drawer for the boot captions; its upload blacks rows 255-259.	
+ui/caption_font/palette	Palette chunk of the load-screen caption font: six 16-color palettes on row 260, of which the captions use (0, 260); its upload clears rows 255-259.	
 weapons/p08/snail_preview_palette	256-colour palette of the menu preview picture of weapon 0x80, the P08 with snail magazine (weapons/p08/snail_preview_image), also shown in the weapon-choice panel.	
 pe2clut_300	Two 256-colour palette rows of Kyle Madigan's body and hands in the first phase of the B1 pod service gantry scene, before a bundle palette replaces them.	
 pe2clut_301	Six-row palette loaded for the B1 pod service gantry scene: its first row colours the chains, falling copies and carrier models; rows 1-5 have no reader.	
@@ -2983,8 +2983,8 @@ items/recovery2/palette	256-colour palette of the Recovery2 item preview picture
 items/recovery3/palette	256-colour palette of the Recovery3 item preview picture (items/recovery3/image) shown by gameplay's item menu when that item is the selected row.	
 items/stim/palette	256-colour palette of the Stim item preview picture (items/stim/image) shown by gameplay's item menu when that item is the selected row.	
 items/cola/palette	256-colour palette of the Cola item preview picture (items/cola/image) shown by gameplay's item menu when that item is the selected row.	
-pe2img_0	Resident 4-bit font sheet loaded at boot to (960,256): the medium, large and small glyph faces main's text drawer uses for all HUD, menu, options, title and replay-bonus text.	
-pe2img_1	Resident 4-bit interface sheet loaded at boot to (896,256): panel tiles and frames, cursors, separators, HUD gauges, radar, item and P.E. icons, button glyphs and the point-and-click cursor.	
+ui/font/image	Resident 4-bit font sheet loaded at boot to (960,256): the medium, large and small glyph faces main's text drawer uses for all HUD, menu, options, title and replay-bonus text.	
+ui/sheet/image	Resident interface atlas loaded at boot to (896, 256): 51 sprites (ui/sheet/atlas), 4-bit but for the 8-bit portrait, each declared with the palettes its draw code selects from rows 240-242.	
 weapons/unused_85/image	4-bit texture of the weapon model in the unused weapon package 0x85; not reached, since nothing grants that item.	
 items/stim/image	8-bit preview picture of the Stim item, shown by gameplay's item menu when that item is the selected row.	
 pe2img_1000	8-bit sheet of the 38 depth-sorted room sprites (occluders) of mapped view 3 of the shelter B1 north maintenance walkway, including a background patch toggled by a game flag.	
@@ -3548,7 +3548,7 @@ pe2img_196	Stage 4 map-menu page 2 image: the mine map (mesa, tunnel entrance, t
 pe2img_197	Stage 4 map-menu page 3 image: the shelter B1 map with 16 area shapes, hatch pattern and player cursor.	
 pe2img_198	Stage 4 map-menu page 4 image: the shelter B2 map with 11 area shapes, hatch pattern and player cursor.	
 pe2img_199	Stage 4 map-menu page 5 image: the shelter B3 map (dumping hole, garbage incinerator, control room, elevator hall) with four area shapes and player cursor.	
-pe2img_2	8-bit title screen chrome: 256x16 rows for the PRESS START BUTTON prompt, the copyright line, the cursor bar and the New Game, Continue and Option labels.	
+title/chrome_image	8-bit title screen chrome: 256x16 rows for the PRESS START BUTTON prompt, the copyright line, the cursor bar and the New Game, Continue and Option labels.	
 weapons/m4a1/image	4-bit texture of the M4A1 weapon model, shared by the weapons/m4a1/package, weapons/m4a1/p1_package and weapons/m4a1/p2_package packages and drawn whenever the weapon model is.	
 pe2img_200	Stage 4 map-menu page 6 image: the shelter B4 map (lower and upper sewer, reservoir, water supply) with four area shapes, in the base variant selected by a game flag.	
 pe2img_201	Stage 4 map-menu page 6 image, alternate variant (file id page 6 + 1): the same shelter B4 map and four area shapes, selected by a game flag.	
@@ -3658,7 +3658,7 @@ pe2img_296	8-bit texture of the eight chains, the falling chain copy and the car
 pe2img_297	4-bit texture of the weapon model and grenade shell of the companion Kyle variant 2 (file 800102), stored in the companion-weapon cell.	
 pe2img_298	4-bit texture of the weapon model of the companion Kyle variant 3 (file 800103), stored in the companion-weapon cell.	
 pe2img_299	4-bit texture of the weapon model of the companion Kyle variant 4 (file 800104), stored in the companion-weapon cell.	
-pe2img_3	4-bit load-screen caption font: the glyphs main draws for the date and place lines on every load screen; its Japanese glyph rows are not addressed by the US table.	
+ui/caption_font/image	4-bit load-screen caption font: the glyphs main draws for the date and place lines on every load screen; its Japanese glyph rows are not addressed by the US table.	
 weapons/mp5a5/image	4-bit texture of the MP5A5 weapon model, shared by the weapons/mp5a5/package, weapons/mp5a5/p1_package and weapons/mp5a5/p2_package packages and drawn whenever the weapon model is.	
 pe2img_300	8-bit 'Parasite Eve II' logo drawn by gameplay's HUD as a panel during the attract demo, carried in the stage map files.	
 pe2img_301	8-bit soft shadow of the 'Parasite Eve II' logo, drawn subtractively under it by gameplay's HUD during the attract demo.	
@@ -4552,7 +4552,19 @@ soldier_b_rifle	One-part rifle model carried by Soldier B, spawned as a child of
 soldier_c_body	20-part body model of Soldier C, a non-lockable placed actor with no AI in shelter_1f_tent's variant 1 (actor_460200), visible throughout.	
 weapons/sp12/bank	SP12 weapon animation bank: player clips for the ready pose, idle, walk and the other locomotion and attack states, played by gameplay and the weapon code while the SP12 is equipped.	
 weapons/sp12/model	One-part model of the SP12 shotgun, spawned by gameplay as the player's held weapon and parent of the muzzle flash; the companion path is open.	
-spk_0	Common sound bank (id 0), loaded with gameplay: menu and system interface sounds, bullet impact, player-struck sounds requested by many actors, PE charge cues, shop and telephone menu sounds.	
+sounds/common/bank	Common sound bank (id 0), loaded with gameplay: menu and system interface sounds, bullet impact, player-struck sounds requested by many actors, PE charge cues, shop and telephone menu sounds.	
+sounds/common/corpse_burn	Looped fire, entry 0x0D: a burning corpse (actors 07000, 503500, player_actor), stopped by the scene scripts and muted at the battle result.	
+sounds/common/tone_low	Short looped low tone, a synthesized waveform: the second voice of the menu open and menu cursor entries (0x01, 0x02) and of several confirm chimes.	Named for its sound; no code names it.
+sounds/common/tone_bright	Looped bright tone, a synthesized waveform: the voice most interface entries are built from - menu cursor, confirm, cancel, close, the system cursor and confirm (0x15, 0x16) and the caption and prompt blips (0x10..0x3A).	Named for its sound; no code names it.
+sounds/common/weapon_equip	Entry 0x0A: a weapon equipped or a part attached.	
+sounds/common/tone_sharp	Short looped sharp tone, a synthesized waveform: the trailing voice of the confirm, cancel and close entries (0x03..0x05) and of the caption blips.	Named for its sound; no code names it.
+sounds/common/player_struck	Entry 0x06: the player struck by an enemy.	
+sounds/common/area_exit	Entry 0x0B: played as the area-leave task starts.	
+sounds/common/player_grabbed	Entry 0x07: the player taken hold of (actor_403100).	
+sounds/common/noise_burst	A short burst of noise, entry 0x00 and 0x08 of this bank, which nothing found requests; also carried by eight room and actor banks (spk_227, spk_245, spk_291, spk_299, spk_309, spk_313, spk_377, spk_408).	Named for its sound; its use is unknown.
+sounds/common/bullet_impact	Entry 0x17: a shot's impact, played at the impact point.	
+sounds/common/antibody_aura_hit	Entry 0x0E: the Antibody aura reacting to the player losing HP.	
+sounds/common/ammo_load	Entry 0x3C: rounds loaded at the reload prompt.	
 weapons/p08/snail_sounds	Weapon sound bank of the P08 with snail magazine (p08_snail): fire sound per round and two reload cues, loaded with the weapon file; entry 0 has no use found.	
 weapons/m4a1/p1_sounds	Weapon sound bank of the M4A1 with one attachment (weapons/m4a1/p1_package): fire sound per round and the reload cue; one entry has no use found.	
 spk_100	Character sound bank 0x15 of the Watcher enemy (actor_102100 and copies): aim, lock, hit and death lines, requested according to the weapon digits of placements in Shelter B1 and Neo Ark rooms.	
@@ -5253,3 +5265,28 @@ zebra_stalker_body	18-part Zebra Stalker enemy body (actor_400600), spawned cloa
 zebra_stalker_burst_foot_left	Chunk mesh defined in actor_400600 but with no use found: it is not one of the four chunks the Zebra Stalker throws on a blast death.	
 zebra_stalker_burst_hand_right	Chunk mesh defined in actor_400600 but with no use found: it is not one of the four chunks the Zebra Stalker throws on a blast death.	
 zebra_stalker_burst_head	First of the four death chunks actor_400600 throws when a Zebra Stalker is killed by a blast, spawned by EFFECT_BODY_CHUNK at body part 4.	
+ui/font/texture	Resident UI font, the medium, large and small faces (glyph metrics ui/font/*_glyphs); drawn with main's fill and outline palettes at (976, 511).	
+ui/caption_font/texture	Load-screen caption font, drawn with (0, 260) only (caption_draw.c, bootload.c's streams).	x16..x80 are the other five palettes its file stores on row 260; no draw with this font uses them (mist_r18 uses (16, 260) with a room font of the same cells).
+ui/sheet/atlas	The resident interface sheet's layout: 51 sprites in the subgroups panel, buttons, menu, icons, hud, radar and unused.	
+ui/sheet/menu/portrait	Aya's portrait in the player-summary panel (itemMenuPlayerSummaryTask), 8-bit among the 4-bit sprites, drawn with row 241 as one 256-color palette. The quad samples 50x63 texels, two columns past the picture.	
+ui/sheet/menu/player_name	"AYA BREA", the player-summary panel's heading (itemMenuPlayerSummaryTask).	
+ui/sheet/icons/pe_fallback	The packed P.E. icon for ids from 0x340 (itemMenuDrawItemIcon): a 16x16 the code samples that holds no texels.	
+ui/sheet/icons/pe_fire	P.E. icons of the fire energies; the code reaches a fourth column (packed ids), which is blank in every row.	
+ui/sheet/icons/blade	Item-category icon cell 5, a blade, between the other-item and medicine icons; no category selects it.	
+ui/sheet/icons/status	Status-ailment icons (hudDrawStatusBlock), one per flag bit.	unknown_20 is flag 0x20, whose ailment is not identified.
+ui/sheet/panel/frame	Panel frame (_uiDrawPanelFrame) and separators, one row: four corners, four edges, then junction pieces (tee, cross) nothing draws, then the two separators.	
+ui/sheet/unused/noise_tile	Second 32x32 noise tile beside the panel background; the background's texture window wraps at 32, so nothing samples it.	
+ui/sheet/unused/frame_alternate	Art in the interface atlas that no draw in main, gameplay or any overlay samples (searched by CLUT, page and UV); declared with no palette, named for its look.	
+ui/sheet/unused/slanted_bar	Art in the interface atlas that no draw in main, gameplay or any overlay samples (searched by CLUT, page and UV); declared with no palette, named for its look.	
+ui/sheet/unused/triangle	Art in the interface atlas that no draw in main, gameplay or any overlay samples (searched by CLUT, page and UV); declared with no palette, named for its look.	
+ui/sheet/unused/ep_label	Art in the interface atlas that no draw in main, gameplay or any overlay samples (searched by CLUT, page and UV); declared with no palette, named for its look.	
+ui/sheet/unused/tile_black	Art in the interface atlas that no draw in main, gameplay or any overlay samples (searched by CLUT, page and UV); declared with no palette, named for its look.	
+ui/sheet/unused/arrow_box	Art in the interface atlas that no draw in main, gameplay or any overlay samples (searched by CLUT, page and UV); declared with no palette, named for its look.	
+ui/sheet/unused/tile_gray	Art in the interface atlas that no draw in main, gameplay or any overlay samples (searched by CLUT, page and UV); declared with no palette, named for its look.	
+ui/sheet/unused/tile_dark	Art in the interface atlas that no draw in main, gameplay or any overlay samples (searched by CLUT, page and UV); declared with no palette, named for its look.	
+ui/sheet/unused/tile_light	Art in the interface atlas that no draw in main, gameplay or any overlay samples (searched by CLUT, page and UV); declared with no palette, named for its look.	
+ui/sheet/radar/range_ahead	Radar range shape for HUD_RADAR_RANGE_AHEAD (hudDrawRadar): the area one radius ahead of the player, hence an oval.	
+ui/sheet/panel/background	The interior of every framed UI panel (_uiDrawPanelBackground): one 32x32 tile repeated by a texture window and shaded by vertex colors. default is the green of every menu panel; pulse is the red warning background of the pulsing style (style 4), used only by the HUD status block while an ailment is active and by the weapon prompt when it is empty.	
+ui/sheet/menu/arrow_up	The up arrow of the stat comparisons (u 0x30): a rise in the weapon comparison (weapon_stats.c), a fall in the ability parameter bar (_itemMenuDrawAbilityParameterBar); tinted better or worse by the caller.	
+ui/sheet/menu/arrow_down	The down arrow of the stat comparisons (u 0xA0), drawn one pixel higher: a fall in the weapon comparison, a rise in the ability parameter bar; tinted better or worse by the caller.	
+ui/sheet/menu/arrow_none	The stat comparisons' unchanged case (u 0x78): an 8x8 the code draws that holds no texels, so nothing shows.	

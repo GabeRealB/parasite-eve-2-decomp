@@ -1,0 +1,60 @@
+# The assets of the group title, each named title/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+contents = [
+    { asset = "sounds/common/bank" },
+    { asset = "ui/font/image", sha1 = "be2e0e8b8369be9d2a7889b0335a6ee579de630c" },
+    { asset = "dialogue/palette" },
+    { asset = "ui/sheet/image", sha1 = "6891a8c4f5a876ab13c617bfa06851b3cdbbda4c" },
+    { asset = "ui/sheet/palette", sha1 = "17188003fce13afabb38fed0a1d85b1e82622596" },
+    { chunk = "package" },
+]
+
+[package]
+type = "pe2pkg"
+package_name = "title"
+required = true
+sha1 = "597783ea6686fa5308be5be17aebe58c311a0ee0"
+
+[background]
+type = "bs"
+sha1 = "51e3bfec6e0392baacaf9e9e9d3cf8054db030db"
+
+[chrome_left]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[screen_file]
+type = "file"
+
+[[screen_file.contents]]
+chunk = "background"
+
+[[screen_file.contents]]
+chunk = "chrome_palette"
+upload = "engine/vram/screen_palettes"
+sha1 = "2d38102565e03e543c68396df95ab9a35247be24"
+palettes = [
+    { texture = "chrome_left", variant = "default", region = "engine/vram/screen_palettes" },
+    { texture = "chrome_right", variant = "default", region = "engine/vram/screen_palettes" },
+]
+
+[[screen_file.contents]]
+chunk = "chrome_image"
+sha1 = "265dfbebeafa8446495f04515607ea05ffaa30f6"
+pages = [
+    { texture = "chrome_left", region = "engine/vram/title_chrome" },
+    { texture = "chrome_right", region = "engine/vram/title_chrome", offset = [64, 0] },
+]
+
+[chrome_right]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128

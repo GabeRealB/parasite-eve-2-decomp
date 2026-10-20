@@ -1,0 +1,31 @@
+# The assets of the group ui/caption_font, each named ui/caption_font/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "image"
+slots = 3
+sha1 = "b74465538751adb80ee4804069306f129585106c"
+pages = [{ texture = "texture", region = "engine/vram/caption_font" }]
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "e523af5c11086379eac181adbaf5a69ca234abcd"
+upload = "engine/vram/screen_palettes"
+palettes = [
+    { texture = "texture", variant = "default", region = "engine/vram/screen_palettes", offset = [0, 5] },
+    { texture = "texture", variant = "x16", region = "engine/vram/screen_palettes", offset = [16, 5] },
+    { texture = "texture", variant = "x32", region = "engine/vram/screen_palettes", offset = [32, 5] },
+    { texture = "texture", variant = "x48", region = "engine/vram/screen_palettes", offset = [48, 5] },
+    { texture = "texture", variant = "x64", region = "engine/vram/screen_palettes", offset = [64, 5] },
+    { texture = "texture", variant = "x80", region = "engine/vram/screen_palettes", offset = [80, 5] },
+]
+
+[texture]
+type = "texture"
+bpp = 4
+height = 256
+variants = ["default", "x16", "x32", "x48", "x64", "x80"]
+width = 256

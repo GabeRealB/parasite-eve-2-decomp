@@ -609,12 +609,15 @@ def collect_samples(assets_root: Path, old: dict[str, dict[str, Any]], assets: d
 
     Names are preserved across regeneration by SHA-1, as for models: a new
     sample is named after the first bank holding it, `<bank>_sample_<slot>`, and
-    keeps whatever name it is given afterwards.
+    keeps whatever name it is given afterwards. A sample a declared bank holds is
+    its `sound`, and a raw bank carrying it names that sound.
     """
     import spk_codec
 
     raw = assets_root / "raw" / "spk"
     known = {rec["sha1"]: aid for aid, rec in old.items() if rec.get("type") == "sample"}
+    # A declared sound is the sample's name wherever it sits, in a raw bank too (the common bank's noise burst).
+    sounds = {rec["sha1"]: aid for aid, rec in old.items() if rec.get("type") == "sound"}
     # A declared bank (`sound_bank`) lists its own sounds; its samples are not the raw bank's.
     declared = {rec["sha1"] for rec in old.values() if rec.get("type") == "sound_bank"}
     by_file = {rec["sha1"]: aid for aid, rec in assets.items() if rec.get("type") == "spk" and rec["sha1"] not in declared}
@@ -629,7 +632,7 @@ def collect_samples(assets_root: Path, old: dict[str, dict[str, Any]], assets: d
         slots = []
         for slot, stream in enumerate(spk_codec.sample_streams(path.read_bytes())):
             digest = hashlib.sha1(stream).hexdigest()
-            aid = named.get(digest)
+            aid = named.get(digest) or sounds.get(digest)
             if aid is None:
                 aid = known.get(digest) or f"{bank}_sample_{slot:02d}"
                 named[digest] = aid
@@ -822,13 +825,21 @@ def write_groups(assets: dict[str, dict[str, Any]]) -> None:
                                for p in rec["embedded"]]
         if aid in texture_chunks:
             continue                    # declared, with its sha1, in its file's entry
+        if rec.get("type") == "atlas":
+            rec["sprites"] = [{**sp, "texture": local(sp["texture"]) if sp["texture"].startswith(group + "/")
+                               and "/" not in local(sp["texture"]) else sp["texture"]} for sp in rec["sprites"]]
         if rec.get("type") == "shaped":
             rec["outputs"] = {k: local(v) if v.startswith(group + "/") else {"asset": v} for k, v in rec["outputs"].items()}
         if rec.get("type") == "file":
-            rec["contents"] = [{**({"chunk": local(e["chunk"])} if e["chunk"].startswith(group + "/") else {"asset": e["chunk"]}),
+            # Its own group's chunks and textures by local name, another group's by path.
+            mine = lambda name: local(name) if name.startswith(group + "/") and "/" not in local(name) else name
+
+            def placed(p: dict) -> dict:
+                return {**p, **{k: mine(p[k]) for k in ("texture", "atlas") if k in p}}
+            rec["contents"] = [{**({"chunk": local(e["chunk"])} if mine(e["chunk"]) != e["chunk"] else {"asset": e["chunk"]}),
                                 **{k: v for k, v in e.items() if k != "chunk"},
                                 **({"sha1": assets[e["chunk"]]["sha1"]} if e["chunk"] in texture_chunks else {}),
-                                **{part: [{**p, "texture": local(p["texture"])} for p in e[part]]
+                                **{part: [placed(p) for p in e[part]]
                                    for part in ("pages", "palettes") if part in e}} for e in rec["contents"]]
         groups.setdefault(group, {})[local(aid)] = rec
     written = set()

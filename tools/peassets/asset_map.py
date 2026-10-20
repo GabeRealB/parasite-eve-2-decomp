@@ -459,12 +459,14 @@ def declared_pairs(assets: dict):
     for name, rec in sorted(assets.items()):
         if rec.get("type") != "file":
             continue
-        pages = [(e["chunk"], n, p) for e in rec["contents"] for n, p in enumerate(e.get("pages", ()))]
+        # An atlas's sprites are textures of its page (the UI sheet's), each drawn with its own palettes.
+        pages = [(e["chunk"], n, placed) for e in rec["contents"] for n, p in enumerate(e.get("pages", ()))
+                 for placed in ([p] if "texture" in p else assets[p["atlas"]]["sprites"])]
         palettes = [(e["chunk"], p) for e in rec["contents"] for p in e.get("palettes", ())]
         for image, column, page in pages:
             texture = assets[page["texture"]]
             for variant in texture["variants"]:
-                found = [(chunk, p) for chunk, p in palettes if p["texture"] == page["texture"] and p["variant"] == variant]
+                found = [(chunk, p) for chunk, p in palettes if p.get("texture") == page["texture"] and p.get("variant") == variant]
                 if not found:
                     continue
                 chunk, palette = found[0]

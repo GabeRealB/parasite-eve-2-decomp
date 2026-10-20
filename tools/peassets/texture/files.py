@@ -11,7 +11,7 @@ import asset_schema
 
 from .chunks import (SECTOR, encode_image, encode_palette, image_content, image_pages, page_texels,
                      palette_block, palette_content, texels_words)
-from .declaration import COLUMN, PALETTE_ENTRIES, place_at, stored_rows
+from .declaration import COLUMN, PALETTE_ENTRIES, page_sprites, page_textures, place_at, sprite_bits, stored_rows
 from .png import read_variant, write_variant
 
 
@@ -42,17 +42,129 @@ def palette_at(blocks, at, n) -> list[int]:
     raise SystemExit(f"no palette chunk of the file holds {n} colors at {at}")
 
 
+ROW = COLUMN * 2                                 # bytes of one page row
+
+
+def _rows(words: bytes) -> list[int]:
+    """A page's rows as integers, texels packed from the low bit."""
+    return [int.from_bytes(words[y * ROW:(y + 1) * ROW], "little") for y in range(len(words) // ROW)]
+
+
+def _words(rows: list[int]) -> bytes:
+    return b"".join(r.to_bytes(ROW, "little") for r in rows)
+
+
+def cut_sprite(words: bytes, sprite: dict, assets: dict) -> tuple[bytes, bytes]:
+    """(the page's words with the sprite's rectangle zero, the sprite's own words as a page of its rows)."""
+    bx, bw, sy, sh = sprite_bits(sprite, assets)
+    rows, mask = _rows(words), ((1 << bw) - 1) << bx
+    own = [(rows[sy + y] & mask) >> bx for y in range(sh)]
+    for y in range(sh):
+        rows[sy + y] &= ~mask
+    return _words(rows), _words(own)
+
+
+def put_sprite(words: bytes, own: bytes, sprite: dict, assets: dict) -> bytes:
+    """The page's words with the sprite's words written into its rectangle."""
+    bx, bw, sy, sh = sprite_bits(sprite, assets)
+    rows, mine, mask = _rows(words), _rows(own), (1 << bw) - 1
+    for y in range(sh):
+        rows[sy + y] = rows[sy + y] & ~(mask << bx) | (mine[y] & mask) << bx
+    return _words(rows)
+
+
+def stray(words: bytes) -> str | None:
+    """Where an atlas stores texels no sprite holds: their bounding box in halfwords, or None."""
+    rows = _rows(words)
+    used = [y for y, r in enumerate(rows) if r]
+    if not used:
+        return None
+    bits = 0
+    for r in rows:
+        bits |= r
+    x0, x1 = (bits & -bits).bit_length() - 1, bits.bit_length() - 1
+    return f"halfwords {x0 // 16}..{x1 // 16}, rows {used[0]}..{used[-1]}"
+
+
+def embedded_palettes(texture: str, assets: dict, assets_root: Path) -> dict[str, list[int]]:
+    """A texture's variants that an executable uploads: its `palettes_from` palette, cut into them in order."""
+    import struct
+
+    import asset_data
+    source = assets[texture]["palettes_from"]
+    data = (assets_root / asset_schema.raw_rel(source, asset_data.EMBEDDED_ASSETS[source])).read_bytes()
+    colors = list(struct.unpack(f"<{len(data) // 2}H", data))
+    n = PALETTE_ENTRIES[assets[texture]["bpp"]]
+    variants = assets[texture]["variants"]
+    if len(colors) != n * len(variants):
+        raise SystemExit(f"{texture}: {source} holds {len(colors)} colors, {len(variants)} variants need {n * len(variants)}")
+    return {v: colors[i * n:(i + 1) * n] for i, v in enumerate(variants)}
+
+
+def gray_ramp(bpp: int) -> list[int]:
+    """The palette a texture with no known palette is written with: index i as an even gray, opaque."""
+    n = PALETTE_ENTRIES[bpp]
+    return [0x8000 | (v << 10) | (v << 5) | v for v in (i * 31 // (n - 1) for i in range(n))]
+
+
+def named_palette_path(assets_root: Path, assets: dict, chunk: str, name: str) -> Path:
+    """A named palette's PNG (one row of its colors), beside its chunk's group's other files."""
+    return assets_root / asset_schema.asset_dir(chunk, assets[chunk]) / f"{name}.palette.png"
+
+
+def declared_atlases(assets: dict) -> list[str]:
+    return sorted(k for k, r in assets.items() if r.get("type") == "atlas")
+
+
+def atlas_path(assets_root: Path, assets: dict, name: str) -> Path:
+    """An atlas's layout, beside its sprites' PNGs: `<local name>.toml`."""
+    return assets_root / asset_schema.asset_dir(name, assets[name]) / f"{asset_schema.file_name(name)}.toml"
+
+
+def decode_atlas(name: str, assets: dict, assets_root: Path) -> Path:
+    """Write an atlas's layout: each sprite's texture (by local name in the atlas's group, else by path), its texel
+    position at its own depth, its depth and size, its variants, which are its PNGs, and its cells as rectangles. The asset table states the
+    layout (the atlas record); this is its form beside the textures, read by nothing that builds the chunk."""
+    group = assets[name].get("group", "")
+    lines = [f"# {name}: the layout of one texture page packed with several textures, each at a texel position of",
+             "# its own depth. Written by the extraction from the asset table (tools/peassets/texture/files.py)."]
+    for sprite in assets[name]["sprites"]:
+        texture, tex = sprite["texture"], assets[sprite["texture"]]
+        local = texture[len(group) + 1:] if texture.startswith(group + "/") else texture
+        lines += ["", "[[sprites]]", f'texture = "{local}"', f"at = [{sprite.get('at', [0, 0])[0]}, {sprite.get('at', [0, 0])[1]}]",
+                  f"bpp = {tex['bpp']}", f"size = [{tex['width']}, {tex['height']}]",
+                  "variants = [" + ", ".join(f'"{v}"' for v in tex["variants"]) + "]"]
+        if tex.get("no_palette"):
+            lines.append("no_palette = true")
+        if "cells" in tex:
+            from .declaration import cell_rects
+            rects = cell_rects(tex["cells"], tex["width"], tex["height"])
+            lines.append("cells = { " + ", ".join(f"{n if n.isidentifier() else repr(n).replace(chr(39), chr(34))} = [{', '.join(map(str, r))}]"
+                                                   for n, r in rects.items()) + " }")
+    path = atlas_path(assets_root, assets, name)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path
+
+
 def decode_file(name: str, assets: dict, assets_root: Path) -> list[Path]:
     """Write the variants of every texture the file uploads."""
     contents = assets[name]["contents"]
     blocks = [palette_block(chunk_path(assets_root, assets, e["chunk"]).read_bytes())
               for e in contents if "palettes" in e]
     palettes: dict[tuple[str, str], list[int]] = {}
+    written = []
     for e in contents:
         for p in e.get("palettes", ()):
+            if "texture" not in p:
+                path = named_palette_path(assets_root, assets, e["chunk"], p["name"])
+                path.parent.mkdir(parents=True, exist_ok=True)
+                write_variant(path, list(range(p["entries"])), {"width": p["entries"], "height": 1,
+                              "bpp": 4 if p["entries"] == 16 else 8}, palette_at(blocks, place_at(p, assets), p["entries"]))
+                written.append(path)
+                continue
             n = PALETTE_ENTRIES[assets[p["texture"]]["bpp"]]
             palettes[p["texture"], p["variant"]] = palette_at(blocks, place_at(p, assets), n)
-    written = []
     for e in contents:
         if "pages" not in e:
             continue
@@ -62,16 +174,28 @@ def decode_file(name: str, assets: dict, assets_root: Path) -> list[Path]:
             if [x, y] != place_at(page, assets):
                 raise SystemExit(f"{name}: {e['chunk']} has a page at ({x}, {y}), the file places it at "
                                  f"{place_at(page, assets)}")
-            tex = assets[page["texture"]]
-            if any(words[COLUMN * 2 * tex["height"]:]):
-                raise SystemExit(f"{name}: {e['chunk']} stores rows below its texture's {tex['height']} that are "
-                                 "not zero")
-            texels = page_texels(words, tex["bpp"], tex["width"], tex["height"])
-            for variant in tex["variants"]:
-                path = variant_path(assets_root, assets, page["texture"], variant)
-                path.parent.mkdir(parents=True, exist_ok=True)
-                write_variant(path, texels, tex, palettes.get((page["texture"], variant)))
-                written.append(path)
+            placed = []
+            for sprite in page_sprites(page, assets):
+                words, own = cut_sprite(words, sprite, assets)
+                placed.append((sprite["texture"], own))
+            if "texture" in page:
+                placed.append((page["texture"], words))
+            elif stray(words):
+                raise SystemExit(f"{name}: {e['chunk']} stores texels outside the sprites of {page['atlas']}, "
+                                 f"{stray(words)}")
+            for texture, own in placed:
+                tex = assets[texture]
+                if any(own[COLUMN * 2 * tex["height"]:]):
+                    raise SystemExit(f"{name}: {e['chunk']} stores rows below its texture's {tex['height']} that are "
+                                     "not zero")
+                texels = page_texels(own, tex["bpp"], tex["width"], tex["height"])
+                from_exe = embedded_palettes(texture, assets, assets_root) if "palettes_from" in tex else {}
+                for variant in tex["variants"]:
+                    path = variant_path(assets_root, assets, texture, variant)
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    write_variant(path, texels, tex, from_exe.get(variant) or palettes.get((texture, variant))
+                                  or (gray_ramp(tex["bpp"]) if tex.get("no_palette") else None))
+                    written.append(path)
     return written
 
 
@@ -90,14 +214,23 @@ def encode_file(name: str, assets: dict, assets_root: Path) -> dict[str, bytes]:
         chunk = e["chunk"]
         if "pages" in e:
             pages, heights = [], set()
-            for page in e["pages"]:
-                tex = assets[page["texture"]]
-                texels = [variant(page["texture"], v)[0] for v in tex["variants"]]
+            def texture_words(texture: str) -> bytes:
+                tex = assets[texture]
+                texels = [variant(texture, v)[0] for v in tex["variants"]]
                 if any(t != texels[0] for t in texels[1:]):
-                    raise ValueError(f"{page['texture']}: its variants' indices differ")
-                words = texels_words(texels[0], tex["bpp"], tex["width"], tex["height"])
+                    raise ValueError(f"{texture}: its variants' indices differ")
+                return texels_words(texels[0], tex["bpp"], tex["width"], tex["height"])
+
+            for page in e["pages"]:
                 rows = stored_rows(page, assets)        # the region's rows below the texture are zero
-                pages.append((*place_at(page, assets), words + bytes(COLUMN * 2 * (rows - tex["height"]))))
+                if "texture" in page:
+                    words = texture_words(page["texture"])
+                    words += bytes(ROW * (rows - assets[page["texture"]]["height"]))
+                else:
+                    words = bytes(ROW * rows)
+                for sprite in page_sprites(page, assets):
+                    words = put_sprite(words, texture_words(sprite["texture"]), sprite, assets)
+                pages.append((*place_at(page, assets), words))
                 heights.add(rows)
             if len(heights) != 1:
                 raise ValueError(f"{chunk}: the pages of one chunk have one height, not {sorted(heights)}")
@@ -107,7 +240,11 @@ def encode_file(name: str, assets: dict, assets_root: Path) -> dict[str, bytes]:
             block = assets[chunk]                 # the rectangle its palettes span (declaration.chunk_records)
             colors = [0] * (block["w"] * block["h"])
             for p in e["palettes"]:
-                _t, c = variant(p["texture"], p["variant"])
+                if "texture" in p:
+                    _t, c = variant(p["texture"], p["variant"])
+                else:
+                    _t, c = read_variant(named_palette_path(assets_root, assets, chunk, p["name"]),
+                                         {"width": p["entries"], "height": 1, "bpp": 4 if p["entries"] == 16 else 8})
                 px, py = place_at(p, assets)
                 at = (py - block["y"]) * block["w"] + px - block["x"]
                 colors[at:at + len(c)] = c
@@ -145,6 +282,13 @@ def check_file(name: str, assets: dict, assets_root: Path) -> list[str]:
         stated, extracted = e.get("sector_len", SECTOR), disc.get(e["chunk"], SECTOR)
         if stated != extracted:
             problems.append(f"{e['chunk']}: sector_len {stated:#x}, the disc's is {extracted:#x}")
+    textures = {t for e in assets[name]["contents"] for p in e.get("pages", ()) for t in page_textures(p, assets)}
+    for texture in sorted(t for t in textures if "palettes_from" in assets[t]):
+        stored = embedded_palettes(texture, assets, assets_root)
+        for v in assets[texture]["variants"]:
+            _texels, colors = read_variant(variant_path(assets_root, assets, texture, v), assets[texture])
+            if colors != stored[v]:
+                problems.append(f"{texture}.{v}: its palette differs from {assets[texture]['palettes_from']}'s")
     for chunk, data in encode_file(name, assets, assets_root).items():
         stored = chunk_path(assets_root, assets, chunk).read_bytes()
         if assets[chunk]["type"] == "pe2img":

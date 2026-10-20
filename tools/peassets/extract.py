@@ -1452,7 +1452,8 @@ def main():
 
 
 def decode_declared(assets_root: Path) -> None:
-    """Decode what the asset table fully declares: each file's textures, as indexed PNGs (texture/), each
+    """Decode what the asset table fully declares: each file's textures, as indexed PNGs, and each atlas's layout
+    (texture/), each
     rig (derived from its models), each model with its slots and bindings, and each clip, as USD (model/,
     animation/), each sound bank as SFZ and its own text with its sounds as WAVs (sound/), and each shaped asset
     as its instance (shape/). The rest stays raw until it is declared."""
@@ -1464,6 +1465,8 @@ def decode_declared(assets_root: Path) -> None:
 
     for name in files.declared_files(ASSETS):
         files.decode_file(name, ASSETS, assets_root)
+    for name in files.declared_atlases(ASSETS):
+        files.decode_atlas(name, ASSETS, assets_root)
     for name in declared.rigs(ASSETS):               # before the models and clips that reference them
         declared.decode_rig(name, ASSETS, EMBEDDED_ASSETS, assets_root)
     for name in declared.declared(ASSETS):

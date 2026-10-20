@@ -84,7 +84,7 @@ static GpuImageUpload _gTextFontPaletteUploadList[2] = {
 /// at (976,511) yields CLUTs 0x7FFD, 0x7FFE and 0x7FFF. Fill indices 0..10
 /// are transparent, including the font texture's cell-padding index 5.
 static u_long _gTextGlyphPaletteWords[] = {
-#include "assets/text_clut1.inc"
+#include "assets/ui/font/glyph_palettes.inc"
 };
 STATIC_ASSERT_SIZEOF(_gTextGlyphPaletteWords, 24 * sizeof(u_long));
 

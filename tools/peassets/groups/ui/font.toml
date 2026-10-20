@@ -1,0 +1,10 @@
+# The assets of the group ui/font, each named ui/font/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[texture]
+type = "texture"
+bpp = 4
+height = 256
+palettes_from = "ui/font/glyph_palettes"
+variants = ["fill", "translucent_outline", "opaque_outline"]
+width = 256

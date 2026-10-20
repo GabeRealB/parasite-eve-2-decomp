@@ -1,6 +1,6 @@
 """python3 tools/peassets/texture decode|encode|check [--assets assets/USA] [--only FILE] [--out DIR]
 
-decode   write each declared file's textures, every variant as a PNG
+decode   write each declared file's textures, every variant as a PNG, and each atlas's layout as TOML
 encode   encode each declared file's image and palette chunks from those PNGs into --out
 check    encode them and compare with the stored chunks before LZSS
 """
@@ -15,7 +15,8 @@ if __package__ in (None, ""):                   # run as a directory: the packag
     sys.path[0] = str(PEASSETS)
     __package__ = "texture"
 
-from texture.files import check_file, declared_files, decode_file, encode_file  # noqa: E402
+from texture.files import (check_file, declared_atlases, declared_files, decode_atlas, decode_file,  # noqa: E402
+                           encode_file)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -45,6 +46,10 @@ def main(argv: list[str] | None = None) -> int:
             problems = check_file(name, asset_data.ASSETS, args.assets)
             print(f"{name}: " + ("chunks rebuild from the textures" if not problems else "; ".join(problems)))
             failed += bool(problems)
+    if args.command == "decode":
+        for name in declared_atlases(asset_data.ASSETS):
+            if not args.only or name == args.only:
+                print(decode_atlas(name, asset_data.ASSETS, args.assets).relative_to(args.assets))
     return 1 if failed else 0
 
 

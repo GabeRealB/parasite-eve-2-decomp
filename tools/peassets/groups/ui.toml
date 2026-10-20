@@ -1,0 +1,356 @@
+# The assets of the group ui, each named ui/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+asset = "ui/font/image"
+sha1 = "be2e0e8b8369be9d2a7889b0335a6ee579de630c"
+pages = [{ texture = "ui/font/texture", region = "engine/vram/ui_font" }]
+
+[[file.contents]]
+asset = "dialogue/palette"
+
+[[file.contents]]
+asset = "ui/sheet/image"
+sha1 = "6891a8c4f5a876ab13c617bfa06851b3cdbbda4c"
+pages = [{ region = "engine/vram/ui_sheet", atlas = "ui/sheet/atlas" }]
+
+[[file.contents]]
+asset = "ui/sheet/palette"
+sha1 = "17188003fce13afabb38fed0a1d85b1e82622596"
+
+[[file.contents.palettes]]
+texture = "ui/sheet/buttons/face"
+variant = "default"
+region = "engine/vram/ui_palettes"
+
+[[file.contents.palettes]]
+texture = "ui/sheet/buttons/shoulder"
+variant = "default"
+region = "engine/vram/ui_palettes"
+
+[[file.contents.palettes]]
+name = "row_inactive"
+entries = 16
+region = "engine/vram/ui_palettes"
+offset = [16, 0]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/menu/pe_level"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [32, 0]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/menu/player_name"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [32, 0]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/panel/frame"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [48, 0]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/icons/pe_fire"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [64, 0]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/icons/pe_wind"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [80, 0]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/icons/pe_water"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [96, 0]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/icons/pe_earth"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [112, 0]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/icons/status"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [128, 0]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/menu/arrow_down"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [144, 0]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/menu/arrow_none"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [144, 0]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/menu/arrow_up"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [144, 0]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/panel/cursor"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [160, 0]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/hud/gauge"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [176, 0]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/radar/disc"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [192, 0]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/radar/motion_detector"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [192, 0]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/radar/marker_enemy"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [208, 0]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/radar/marker_player"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [208, 0]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/radar/marker_targeted"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [208, 0]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/panel/background"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [240, 0]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/menu/portrait"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [0, 1]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/icons/weapon"
+variant = "battery"
+region = "engine/vram/ui_palettes"
+offset = [0, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/hud/lock_on"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [16, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/radar/range_around"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [32, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/radar/range_ahead"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [32, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/radar/range_projectile"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [32, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/icons/armor"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [48, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/icons/other_item"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [48, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/panel/background"
+variant = "pulse"
+region = "engine/vram/ui_palettes"
+offset = [64, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/menu/caption_earth"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [80, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/menu/caption_fire"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [80, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/menu/caption_water"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [96, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/menu/caption_wind"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [96, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/hud/action_cursor"
+variant = "hotspot"
+region = "engine/vram/ui_palettes"
+offset = [112, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/hud/action_cursor"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [128, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/icons/ammunition"
+variant = "ammo_40mm"
+region = "engine/vram/ui_palettes"
+offset = [144, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/icons/weapon"
+variant = "ammo_40mm"
+region = "engine/vram/ui_palettes"
+offset = [144, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/icons/ammunition"
+variant = "ammo_5_56mm"
+region = "engine/vram/ui_palettes"
+offset = [160, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/icons/empty"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [160, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/icons/other_item"
+variant = "ammo_5_56mm"
+region = "engine/vram/ui_palettes"
+offset = [160, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/icons/weapon"
+variant = "ammo_5_56mm"
+region = "engine/vram/ui_palettes"
+offset = [160, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/icons/ammunition"
+variant = "ammo_12_gauge"
+region = "engine/vram/ui_palettes"
+offset = [176, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/icons/pe_fallback"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [176, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/icons/weapon"
+variant = "ammo_12_gauge"
+region = "engine/vram/ui_palettes"
+offset = [176, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/icons/ammunition"
+variant = "ammo_44_magnum"
+region = "engine/vram/ui_palettes"
+offset = [192, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/icons/weapon"
+variant = "ammo_44_magnum"
+region = "engine/vram/ui_palettes"
+offset = [192, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/icons/ammunition"
+variant = "ammo_9mm"
+region = "engine/vram/ui_palettes"
+offset = [208, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/icons/other_item"
+variant = "ammo_9mm"
+region = "engine/vram/ui_palettes"
+offset = [208, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/icons/weapon"
+variant = "ammo_9mm"
+region = "engine/vram/ui_palettes"
+offset = [208, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/icons/ammunition"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [224, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/icons/unidentified"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [224, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/icons/weapon"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [224, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/icons/key_item"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [240, 2]
+
+[[file.contents.palettes]]
+texture = "ui/sheet/icons/medicine"
+variant = "default"
+region = "engine/vram/ui_palettes"
+offset = [240, 2]

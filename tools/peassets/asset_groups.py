@@ -51,12 +51,20 @@ def records(root: Path):
                 rec["embedded"] = [{**{k: v for k, v in place.items() if k != "asset"},
                                     "name": place["asset"] if "asset" in place else full(place["name"])}
                                    if isinstance(place, dict) else place for place in rec["embedded"]]
-            if rec.get("type") == "file":       # a file names its own group's chunks and textures, by local name
+            if rec.get("type") == "file":       # its own group's chunks and textures by local name, another's by path
+                def texture(name: str) -> str:
+                    return name if "/" in name else full(name)
+
+                def placed(p: dict) -> dict:
+                    return {**p, **{k: texture(p[k]) for k in ("texture", "atlas") if k in p}}
                 rec["contents"] = [{**{k: v for k, v in entry.items() if k != "asset"},
                                     "chunk": entry["asset"] if "asset" in entry else full(entry["chunk"]),
-                                    **{part: [{**p, "texture": full(p["texture"])} for p in entry[part]]
+                                    **{part: [placed(p) for p in entry[part]]
                                        for part in ("pages", "palettes") if part in entry}}
                                    for entry in rec["contents"]]
+            if rec.get("type") == "atlas":      # its own group's textures by local name, another's by path
+                rec["sprites"] = [{**sp, "texture": sp["texture"] if "/" in sp["texture"] else full(sp["texture"])}
+                                  for sp in rec["sprites"]]
             if rec.get("type") == "shaped":     # its own group's outputs by local name, another's by path
                 rec["outputs"] = {k: v["asset"] if isinstance(v, dict) else full(v) for k, v in rec["outputs"].items()}
             yield full(local), {**rec, "group": group}

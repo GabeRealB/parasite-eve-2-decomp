@@ -19,7 +19,10 @@ assets of their own:
     ]
 
 A page or palette is placed by naming a VRAM region (a `vram_region`: a rectangle of VRAM, groups/engine/vram.toml),
-plus an `offset` in it where the region is larger than what is placed; a region may be `within` another, as part of it. An image chunk's entry may also state `slots`, where its page table has room for more pages than it holds, a page
+plus an `offset` in it where the region is larger than what is placed; a region may be `within` another, as part of it. A page holds one texture or one `atlas`, a record listing its `sprites`,
+textures each at a texel `at` of its own depth (the UI sheet); a texture whose palettes an executable uploads names
+that embedded palette as `palettes_from` (the UI font's). A file may name another group's chunks (`asset`) and
+textures by path. An image chunk's entry may also state `slots`, where its page table has room for more pages than it holds, a page
 `truncated = true`, where its last strip stores one byte less, and any chunk its `sector_len`, where the file gives
 it less than the whole 0x800-byte sector (chunks.py says what each means).
 

@@ -359,7 +359,6 @@ BPP is **not stored** on disc. Extract and the viewer default to `guess_bpp()`
 (one depth, or one per column record):
 
 ```python
-ASSETS["pe2img_2"]["bpp"] = 8
 ASSETS["pe2img_455"]["bpp"] = [4, 8]  # font column + 8-bit bitmap column
 ```
 
@@ -370,9 +369,8 @@ image keeps is its `bpp` in the asset table.
 When a neighbouring `.pe2clut` exists (`N±1` by chunk index), the PNG exporter
 applies it for 4/8 bpp (see §7.4 for multi-row selection). Examples:
 
-- `stage0/title/1.pe2img` (`pe2img_0`) → 4 bpp font page at `(960, 256)`
-- `stage0/file2/2.pe2img` + `1.pe2clut` → title chrome (`pe2img_2` is 8 bpp,
-  two columns at x=768; clut at `(0, 255)`)
+- the title chrome (`title/chrome_image`, 8 bpp, two columns at x=768,
+  palette at `(0, 255)`), now declared by `title/screen_file`
 - `stage0/file30500/1.pe2img` + `0.pe2clut` → NEO ARK map (needs CLUT **row 1**,
   not row 0 — row 0 is a green monochrome palette)
 
@@ -475,25 +473,29 @@ the highest-scoring row recovers the real map.
 ### 7.5 Title STAGE0 occupancy
 
 HED file order (`stages.json` TREE names): **gameplay** (file 0), **title**
-(file 1), **file2** (still + chrome). Boot brings in the title overlay from
-file 1; `_titleInitializeScreenTask` then queues the category-2 display resource 20100 with
-`cdCmdEnqueueDisplayResource(1, 0, CD_COMMAND_DISPLAY_LOAD_MENU)` and calls
-`textUploadPalettes`. Chrome/still are file 2.
+(file 1), **title_screen** (file 2, still + chrome), and **ui** (file 20162,
+the two UI textures alone). Boot brings in the title overlay from file 1;
+`_titleInitializeScreenTask` then queues the category-2 display resource 20100
+with `cdCmdEnqueueDisplayResource(1, 0, CD_COMMAND_DISPLAY_LOAD_MENU)` and
+calls `textUploadPalettes`.
 
-| Path | Payload | VRAM (halfwords) | BPP |
+| Chunk | Asset | VRAM (halfwords) | Declared as |
 |---|---|---|---|
-| `title/1.pe2img` (`pe2img_0`) | UI font page | `(960, 256)` 64×256 | **4** |
-| `title/2.pe2clut` (`pe2clut_0`) | Font TIM clut | `(256, 243)` 64×6 | — |
-| `title/3.pe2img` (`pe2img_1`) | Extra title sheet | `(896, 256)` 64×256 | **8** |
-| `title/4.pe2clut` (`pe2clut_1`) | Img1 clut | `(0, 240)` 256×3 | — |
-| `title/title.pe2pkg` | Title overlay | RAM `0x80093800` | — |
-| `file2/0.bs` (`bs_0`) | Title still | draw band 320×240 | 16-bit BS v2 |
-| `file2/1.pe2clut` (`pe2clut_2`) | Chrome clut | `(0, 255)` 256×6 | — |
-| `file2/2.pe2img` (`pe2img_2`) | Menu chrome | `(768, 256)` 128×256 | **8** (two columns) |
+| `title/sounds` | `sounds/common/bank` | SPU | `sound_bank`, its sounds named by entry |
+| `title/font_image` | `ui/font/image` | `(960, 256)` 64×256 | `ui/font/texture`, 4 bpp; its palettes are main's `ui/font/glyph_palettes` (`palettes_from`) |
+| `title/dialogue_palette` | `dialogue/palette` | `(256, 243)` 64×6 | raw: the dialogue's glyph and plate colors, for the dialogue font page at `(384, 0)`, not yet declared |
+| `title/sheet_image` | `ui/sheet/image` | `(896, 256)` 64×256 | an atlas of 51 sprites, `ui/sheet/atlas` |
+| `title/sheet_palette` | `ui/sheet/palette` | `(0, 240)` 256×3 | rows 240 and 242: the sprites' palettes; row 241: the portrait's |
+| `title/package` | `title/package` | RAM `0x80093800` | the title overlay |
+| `title_screen/background` | `title/background` | draw band 320×240 | `bs` |
+| `title_screen/chrome_palette` | `title/chrome_palette` | `(0, 255)` 256×6 | uploads six rows, fills row 0 |
+| `title_screen/chrome_image` | `title/chrome_image` | `(768, 256)` 128×256 | `title/chrome_left`, `chrome_right`, 8 bpp |
 
-`pe2clut_0` **row 0 is all zero**. `textUploadPalettes` installs resident colors
-at `(256, 243)` and the glyph-fill/outline palettes at `(0x3D0, 0x1FF)`.
-The UI glyph drawers select the latter row's fill palette, `0x7FFD`. See §7.6.
+The UI font is never drawn from the block stored after it: its glyphs use
+the fill and two outline palettes `textUploadPalettes` writes at
+`(976, 511)`. `textUploadPalettes` also writes row 243 of the dialogue block
+(`text_clut0`), which nothing draws with; row 247 holds colors nothing draws
+with either. See §7.6.
 
 Chrome clut `(0, 255)` `h=6` sits on the last draw-band line and the 32-line
 CLUT gutter (`y=240…271`). Do not `isbg` a 256-high env at `y=240`.
@@ -1274,9 +1276,9 @@ outside git, in `local/asset_journal.sqlite` (`tools/peassets/asset_journal.py`)
 
 ```text
 ASSETS["gameplay"] = {sha1, type: pe2pkg, required: True}
-ASSETS["pe2img_2"] = {sha1, type: pe2img, bpp: [8, 8], x: 768, y: 256, w: 128, h: 256}
+ASSETS["pe2img_455"] = {sha1, type: pe2img, bpp: [4, 8], x: [...], y: ..., w: 64, h: 256}
 
-TREE[0]["files"]["gameplay"] = {id: 0, chunks: {"spk_0": "spk_0", "package": "gameplay"}}
+TREE[0]["files"]["gameplay"] = {id: 0, chunks: {"sounds": "sounds/common/bank", "package": "gameplay"}}
 TREE[2]["folders"]["dryfield_garage"]["files"]["file0"]["chunks"]["package"] = "dryfield_garage"
 ```
 
@@ -1391,8 +1393,8 @@ Example:
   "stage0": {
     "files": {
       "gameplay": {
-        "0.spk": {
-          "path": "spk/spk_0/meta.json",
+        "sounds.spk": {
+          "path": "sounds/common/bank.sfz",
           "type": "music"
         },
         "gameplay.pe2pkg": {
@@ -1520,7 +1522,10 @@ are `<variant>_package`, `<variant>_file` and `<variant>_sounds`, and its
 clips are generated to `<group>/<variant>_clips.inc`.
 
 A file names its chunks by local name, or another group's by path (`asset =
-"weapons/m4a1/palette"` in place of `chunk`). A chunk several files hold is
+"weapons/m4a1/palette"` in place of `chunk`). In the extraction a chunk is
+emitted under the name the TREE gives it in its file (`asset_db.chunk_stem`),
+which is unique there: file 1 holds the UI font's and the UI sheet's `image`,
+as its `font_image` and `sheet_image`. A chunk several files hold is
 declared by each of them where it uploads for that file's own texture (the
 Bayonet's file declares the M4A1's palette again, for the Bayonet's texture),
 and the declarations agree; a file that only carries another group's chunks
@@ -1530,7 +1535,9 @@ chunk it names.
 
 A region may be `within` another, as part of it: its `at` is then relative to
 the other's corner, it must fit inside it, and only regions of the same parent
-must not overlap. An image chunk stores the rows of its page's outermost
+must not overlap - unless one `shares` the other: the same VRAM used at other
+times (`engine/vram/screen_palettes`, the six rows a full-screen file uploads,
+shares the row the item previews' palettes use). An image chunk stores the rows of its page's outermost
 region, from the page down; the texture is the part of them it occupies, the
 rest zero, as the texels right of its width are (`declaration.stored_rows`).
 The item previews upload 128 rows (`engine/vram/preview_sheet`), of which the
@@ -1539,7 +1546,46 @@ are placed in `preview_picture`, so their textures are 128×96. A page whose
 chunk uploads less than its outermost region names the region it does upload,
 `upload`: the PE menu pictures store just the 96 rows of `preview_picture`,
 and are 80×64 within them (`energy_picture`, of which the PE panels' small
-mode samples the top 60).
+mode samples the top 60). A palette entry may name its `upload` too: the
+chunk then stores that region's whole rectangle, zero where no palette is
+placed - the title chrome's palette chunk clears six rows and fills one.
+
+A page holds one texture or one `atlas`. An atlas is the layout of a page
+packed with several textures: its record lists `sprites`, each a texture at
+a texel `at` of its own depth, inside one page and overlapping no other.
+
+```toml
+# groups/ui/sheet.toml
+[atlas]
+type = "atlas"
+sprites = [{ texture = "cursor", at = [0xE8, 0x30] }, { texture = "portrait", at = [0, 0x80] }, ...]
+
+# groups/ui.toml: the file uploads it and places the sprites' palettes
+pages = [{ atlas = "ui/sheet/atlas", region = "engine/vram/ui_sheet" }]
+```
+
+A texture's `cells` name the parts its code samples one at a time - the
+cursor's six frames, the lock-on reticle's eight, each status icon, each
+P.E. icon, the frame's corners, edges and separators: a `grid` of [w, h]
+read row by row, with `names` or numbered, or named `[x, y, w, h]`
+rectangles in the texture's texels. They are layout only; the bytes and the
+PNGs do not change.
+
+The extraction writes each atlas's layout beside its sprites' PNGs
+(`ui/sheet/atlas.toml`: each sprite's texture, position, depth, size,
+variants and cells), so the decoded folder describes its page; the asset table's
+record is what the tools read.
+
+The resident UI sheet is one: 51 sprites in subgroups (`ui/sheet/panel`, `buttons`, `menu`, `icons`, `hud`, `radar`, `unused`) - cursor, frame,
+gauges, radar, icons, captions, 4-bit, and the 8-bit portrait at `(0, 128)` -
+each with the palettes its draw code selects. An atlas's page stores zero
+outside its sprites, so decoding fails on texels no sprite holds; art nothing
+draws is a sprite that states `no_palette` (written with a gray ramp), and
+colors only dead code selects are a palette entry with a `name` and its
+`entries` instead of a texture. A texture whose palettes an executable uploads names that embedded
+palette as `palettes_from`, one variant per palette in order: the UI font's
+`fill`, `translucent_outline` and `opaque_outline` are main's
+`ui/font/glyph_palettes`, and the check compares each variant's PNG palette with those bytes.
 
 ```text
 weapons/m4a1/texture.png                a declared texture (its image and palette chunks)

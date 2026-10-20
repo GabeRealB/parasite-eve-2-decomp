@@ -1,0 +1,82 @@
+# The assets of the group ui/sheet/unused, each named ui/sheet/unused/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[ep_label]
+type = "texture"
+bpp = 4
+height = 8
+no_palette = true
+variants = ["default"]
+width = 24
+
+[triangle]
+type = "texture"
+bpp = 4
+height = 8
+no_palette = true
+variants = ["default"]
+width = 8
+
+[arrow_box]
+type = "texture"
+bpp = 4
+height = 16
+no_palette = true
+variants = ["default"]
+width = 8
+
+[tile_dark]
+type = "texture"
+bpp = 4
+height = 24
+no_palette = true
+variants = ["default"]
+width = 24
+
+[tile_gray]
+type = "texture"
+bpp = 4
+height = 24
+no_palette = true
+variants = ["default"]
+width = 24
+
+[noise_tile]
+type = "texture"
+bpp = 4
+height = 32
+no_palette = true
+variants = ["default"]
+width = 32
+
+[tile_black]
+type = "texture"
+bpp = 4
+height = 18
+no_palette = true
+variants = ["default"]
+width = 18
+
+[tile_light]
+type = "texture"
+bpp = 4
+height = 24
+no_palette = true
+variants = ["default"]
+width = 24
+
+[slanted_bar]
+type = "texture"
+bpp = 4
+height = 8
+no_palette = true
+variants = ["default"]
+width = 16
+
+[frame_alternate]
+type = "texture"
+bpp = 4
+height = 16
+no_palette = true
+variants = ["default"]
+width = 40

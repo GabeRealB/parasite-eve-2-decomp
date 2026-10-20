@@ -430,7 +430,11 @@ def reverse_chunk_idx(
     node = _tree_file(stage, file_id, folder_id)
     if node is None:
         return None
-    for idx, (_name, aid) in enumerate(file_chunks(node)):
+    chunks = file_chunks(node)
+    for idx, (name, _aid) in enumerate(chunks):            # by the chunk's own name in its file
+        if name == stem:
+            return idx
+    for idx, (_name, aid) in enumerate(chunks):
         if aid == stem or aid.rsplit("/", 1)[-1] == stem:      # a grouped asset's chunk by its local name
             return idx
     return None
@@ -454,8 +458,12 @@ def chunk_stem(
     chunk_idx: int,
     folder_id: int | None = None,
 ) -> str:
-    """On-disk chunk basename without extension (default: decimal index): the asset's name, a grouped asset's
-    local name."""
+    """On-disk chunk basename without extension (default: decimal index): the name the TREE gives the chunk in its
+    file, which is unique there - two groups' assets of one local name can sit in one file (`ui/font/image` and
+    `ui/sheet/image`) - else the asset's name, a grouped asset's local name."""
+    name = tree_chunk_name(stage, file_id, chunk_idx, folder_id)
+    if name and not _is_generated_id(name):
+        return _check_component(name, key=chunk_key(stage, file_id, chunk_idx, folder_id))
     aid = tree_chunk_asset(stage, file_id, chunk_idx, folder_id)
     if aid and not _is_generated_id(aid):
         return _check_component(aid.rsplit("/", 1)[-1], key=chunk_key(stage, file_id, chunk_idx, folder_id))
@@ -584,7 +592,7 @@ def validate_asset_db() -> None:
         _check_asset_name(aid, key=f"ASSETS[{aid!r}]")
         if not isinstance(rec, dict):
             raise ValueError(f"ASSETS[{aid!r}] must be a dict")
-        if rec.get("type") in ("binding", "texture", "file", "vram_region", "rig", "clip", "animation_schema",
+        if rec.get("type") in ("binding", "texture", "file", "atlas", "vram_region", "rig", "clip", "animation_schema",
                                "animation_bank", "shaped"):     # declared, no hash of its own (asset_schema.DECLARED_TYPES)
             continue
         sha1 = rec.get("sha1")

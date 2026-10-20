@@ -1,0 +1,36 @@
+# The assets of the group ui/sheet/panel, each named ui/sheet/panel/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[frame]
+type = "texture"
+bpp = 4
+height = 8
+variants = ["default"]
+width = 120
+
+[frame.cells]
+top_left = [0, 0, 8, 8]
+top = [8, 0, 8, 8]
+top_right = [16, 0, 8, 8]
+left = [24, 0, 8, 7]
+right = [32, 0, 8, 7]
+bottom_left = [40, 0, 8, 8]
+bottom = [48, 0, 8, 8]
+bottom_right = [56, 0, 8, 8]
+separator_horizontal = [104, 0, 8, 8]
+separator_vertical = [112, 0, 8, 8]
+
+[cursor]
+type = "texture"
+bpp = 4
+cells = { grid = [8, 8] }
+height = 16
+variants = ["default"]
+width = 24
+
+[background]
+type = "texture"
+bpp = 4
+height = 32
+variants = ["default", "pulse"]
+width = 32

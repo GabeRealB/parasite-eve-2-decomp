@@ -12,7 +12,7 @@ Example ``stages.json`` (see ``doc/ASSET_FORMATS.md`` §11 for the full schema):
       "stage0": {
         "files": {
           "gameplay": {
-            "0.spk": { "path": "spk/spk_0/meta.json", "type": "music" },
+            "sounds.spk": { "path": "sounds/common/bank.sfz", "type": "music" },
             "gameplay.pe2pkg": {
               "path": "pe2pkg/gameplay.pe2pkg",
               "type": "room_pkg",
@@ -149,7 +149,7 @@ def path_under_raw_type_store(
 
     ``pe2pkg/gameplay.pe2pkg`` → ``raw/pe2pkg/gameplay.pe2pkg``
     ``pe2img/foo.png`` → ``raw/pe2img/foo.pe2img``
-    ``spk/spk_0/meta.json`` → ``raw/spk/spk_0.spk``
+    ``spk/spk_95/meta.json`` → ``raw/spk/spk_95.spk``
 
     Only the asset's name is read from the path and the type comes from the
     chunk. Under a group the name is the path (``weapons/m4a1/foo.png`` is

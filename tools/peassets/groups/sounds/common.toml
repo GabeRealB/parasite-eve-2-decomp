@@ -1,0 +1,71 @@
+# The assets of the group sounds/common, each named sounds/common/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "sound_bank"
+samples = [
+    "sounds/common/corpse_burn",
+    "sounds/common/tone_low",
+    "sounds/common/tone_bright",
+    "sounds/common/weapon_equip",
+    "sounds/common/tone_sharp",
+    "sounds/common/player_struck",
+    "sounds/common/area_exit",
+    "sounds/common/player_grabbed",
+    "sounds/common/noise_burst",
+    "sounds/common/bullet_impact",
+    "sounds/common/antibody_aura_hit",
+    "sounds/common/ammo_load",
+]
+sha1 = "f98a41d2b03d70718b1644b14304527108a22e69"
+
+[tone_low]
+type = "sound"
+mode = "high"
+sha1 = "f6f4418e653124a99f5cfd6e7e05a45217c25ff0"
+
+[ammo_load]
+type = "sound"
+sha1 = "3c20e8a2a55c40bf40f4240bfca7f5f78bd0f75f"
+
+[area_exit]
+type = "sound"
+sha1 = "141f18ad248e09c1c24f3f2bbe7b97c78e406efa"
+
+[tone_sharp]
+type = "sound"
+sha1 = "62b6a4e17f736841fcc11ca9f81f1d6288943581"
+
+[corpse_burn]
+type = "sound"
+sha1 = "0bc21bb76180a65c7816767c07e443dec7daaa14"
+
+[noise_burst]
+type = "sound"
+sha1 = "3e21934fbdf41d6515a9c2bbe1affe5207423caf"
+
+[tone_bright]
+type = "sound"
+mode = "high"
+sha1 = "ff584f81575a94537ea2f7419a1bfc59811ce545"
+
+[weapon_equip]
+type = "sound"
+sha1 = "50c3d892090763185afbb7e3a90eb3f5ac50e11e"
+
+[bullet_impact]
+type = "sound"
+sha1 = "c3b53e29c3e5d678462ec770cdc2873fbcef3dbc"
+
+[player_struck]
+type = "sound"
+mode = "high"
+sha1 = "aa6269d1dfce6cca336e9ee9cc2213e87db3c81a"
+
+[player_grabbed]
+type = "sound"
+sha1 = "b957300b2f0915af6bfd23a6ca9123ca85552375"
+
+[antibody_aura_hit]
+type = "sound"
+sha1 = "d3ac6722d3312d80d344da4507da10221b93a8d2"

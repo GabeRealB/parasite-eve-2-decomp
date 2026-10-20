@@ -1,0 +1,72 @@
+# The assets of the group ui/sheet/menu, each named ui/sheet/menu/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[arrow_up]
+type = "texture"
+bpp = 4
+height = 8
+variants = ["default"]
+width = 8
+
+[pe_level]
+type = "texture"
+bpp = 4
+height = 8
+variants = ["default"]
+width = 8
+
+[portrait]
+type = "texture"
+bpp = 8
+height = 64
+variants = ["default"]
+width = 48
+
+[arrow_down]
+type = "texture"
+bpp = 4
+height = 8
+variants = ["default"]
+width = 8
+
+[arrow_none]
+type = "texture"
+bpp = 4
+height = 8
+variants = ["default"]
+width = 8
+
+[player_name]
+type = "texture"
+bpp = 4
+height = 8
+variants = ["default"]
+width = 64
+
+[caption_fire]
+type = "texture"
+bpp = 4
+height = 8
+variants = ["default"]
+width = 24
+
+[caption_wind]
+type = "texture"
+bpp = 4
+height = 8
+variants = ["default"]
+width = 32
+
+[caption_earth]
+type = "texture"
+bpp = 4
+height = 8
+variants = ["default"]
+width = 32
+
+[caption_water]
+type = "texture"
+bpp = 4
+height = 8
+variants = ["default"]
+width = 32

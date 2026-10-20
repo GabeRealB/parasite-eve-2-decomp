@@ -1,0 +1,25 @@
+# The assets of the group ui/sheet/hud, each named ui/sheet/hud/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[gauge]
+type = "texture"
+bpp = 4
+cells = { grid = [8, 8], names = ["left", "middle", "right"] }
+height = 8
+variants = ["default"]
+width = 24
+
+[lock_on]
+type = "texture"
+bpp = 4
+cells = { grid = [32, 32] }
+height = 64
+variants = ["default"]
+width = 128
+
+[action_cursor]
+type = "texture"
+bpp = 4
+height = 24
+variants = ["default", "hotspot"]
+width = 16

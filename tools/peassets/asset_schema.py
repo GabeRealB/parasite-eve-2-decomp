@@ -98,12 +98,15 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     "binding": {"payload": (), "stored": ("model", "textures", "override")},
     # A texture is one page of pixels in one or more variants, each an indexed PNG (texture/); `bpp`,
     # `width` (texels) and `height` are what the game expects, against which a supplied PNG is checked.
-    "texture": {"payload": (), "stored": ("bpp", "width", "height", "variants")},
+    "texture": {"payload": (), "stored": ("bpp", "width", "height", "variants", "palettes_from", "no_palette", "cells")},
     # A file lists its chunks in order, and what each image and palette chunk uploads where (texture/).
     "file": {"payload": (), "stored": ("contents",)},
+    # The layout of a texture page packed with several textures (the UI sheet): `sprites`, each a texture at a texel
+    # `at` of its own depth. A file's page names it as its `atlas` (texture/declaration.py).
+    "atlas": {"payload": (), "stored": ("sprites",)},
     # A rectangle of VRAM in halfwords that pages and palettes are placed in by name, `within` another region where
     # it is part of it (texture/declaration.py).
-    "vram_region": {"payload": (), "stored": ("within", "at", "size")},
+    "vram_region": {"payload": (), "stored": ("within", "shares", "at", "size")},
     # Data of a declared shape (tools/peassets/shape/): its `shape`, and in `outputs` the stored asset each of the
     # shape's outputs is. Its instance, `<group>/<local name>.toml`, is decoded from them and encodes back exactly.
     "shaped": {"payload": (), "stored": ("shape", "outputs", "include")},
@@ -181,7 +184,7 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
 EMBEDDED_FIELDS = ("source", "vram", "offset", "address", "size", "ext", "type", "include", "layout", "deps", "notes",
                    "group")
 # Types with no bytes of their own: declared by hand, carried over unchanged by dump_asset_db.py.
-DECLARED_TYPES = frozenset({"binding", "texture", "file", "vram_region", "rig", "clip", "animation_schema",
+DECLARED_TYPES = frozenset({"binding", "texture", "file", "atlas", "vram_region", "rig", "clip", "animation_schema",
                             "animation_bank", "sound_bank", "sound", "shaped"})
 
 # Embedded types the code reaches by their address in memory - a model through pointers in the code, an image or a
@@ -374,7 +377,7 @@ def parents_of(key: str, assets: dict, tree: dict) -> list[str]:
     stated = assets.get(key, {}).get("parent")
     if stated:
         return [stated] if isinstance(stated, str) else list(stated)
-    if key in ("title", "gameplay"):
+    if package_name(key, assets.get(key)) in ("title", "gameplay"):   # the title package is filed as title/package
         return [ROOT_OVERLAY]
     for stage, body in tree.items():
         if not stage:
@@ -941,6 +944,8 @@ def validate(assets: dict, embedded: dict) -> list[str]:
             problems += texture_declaration.check_texture(key, rec)
         if kind == "file":
             problems += texture_declaration.check_file(key, rec, assets)
+        if kind == "atlas":
+            problems += texture_declaration.check_atlas(key, rec, assets)
         if kind == "vram_region":
             problems += texture_declaration.check_region(key, rec, assets)
         if kind == "shaped":
