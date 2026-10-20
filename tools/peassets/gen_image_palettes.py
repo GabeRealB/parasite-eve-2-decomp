@@ -21,9 +21,13 @@ EV_A = ("src/gameplay/item_stats.c:72-75, :1085-1120 itemMenuDrawPreview (POLY_F
         "tools/peassets/asset_residency.py moved() (src/main/fs.c:473-490, :1770-1776)")
 PROFILES = {"MENU": ((-8, -3, "RELOCATE"), 0x87, 0x80, 0x3F40), "RELOCATED_PREVIEW": ((0, -2, "RELOCATE"), 0x8F, 0x80, 0x3F80),
             "PREVIEW": ((0, -2, ""), 0x8F, 0, 0x3F40)}
+from texture.declaration import texture_chunks
+declared = texture_chunks(assets)       # a declared file states its pairing itself (asset_map.declared_pairs)
 for stage, folder, fkey, node in asset_schema.tree_files(tree):
     fid = int(node.get("id") or 0)
     if stage != 0 or folder is not None or not (20100 <= fid < 20800):
+        continue
+    if any(c in declared for c in (node.get("chunks") or {}).values()):
         continue
     chunks = list((node.get("chunks") or {}).values())
     images = [c for c in chunks if assets[c]["type"] in asset_schema.IMAGE_TYPES]

@@ -90,6 +90,10 @@ const D = /*DATA*/;
 // Where an asset's decoded files are: under its group if the extraction filed it there (D.dirs, from the asset table's
 // groups by tools/peassets/asset_schema.py), else under its type's directory.
 const at = (key, type) => `${D.pictures}/${(D.dirs || {})[key] || type}`;
+// A declared texture is shown as the extraction decoded it, its texture's PNG (tools/peassets/texture/), which is
+// what `texture check` encodes back to the stored chunks; any other image is composed from its words and palette.
+const declaredPicture = (key, bpp, clut, row, pal, col) => { const png = (D.texturePictures || {})[[key, bpp, clut, row, pal, col].join("|")];
+  if (!png || !D.pictures) return null; const img = h("img", { src: `${D.pictures}/${png}`, alt: png, class: "pix" }); img.addEventListener("load", () => zoom(img)); return img; };
 const $ = id => document.getElementById(id);
 const h = (tag, props, ...kids) => { const e = document.createElement(tag); for (const k in (props || {})) { if (k === "class") e.className = props[k]; else if (k.startsWith("on")) e.addEventListener(k.slice(2), props[k]); else if (k === "text") e.textContent = props[k]; else e.setAttribute(k, props[k]); } for (const kid of kids.flat()) if (kid != null && kid !== false) e.append(kid); return e; };
 const link = (kind, name, text) => h("a", { class: "lnk", href: "#" + kind + "." + name, text: text || name });
@@ -375,8 +379,11 @@ function drawNav() {
       return node; };
     if (q) { const hits = D.files.map((n, i) => [n, i]).filter(([n, i]) => n.toLowerCase().includes(q) || (D.chunks[i] || []).some(c => c[1].toLowerCase().includes(q))); box.append(capped(hits, 400, part => h("div", {}, part.map(([n, i]) => flink(i, n))))); return; }
     const stages = new Map(); D.files.forEach((n, i) => { const p = n.split("/"), st = stages.get(p[0]) || stages.set(p[0], new Map()).get(p[0]), dir = p.length > 2 ? p[1] : ""; (st.get(dir) || st.set(dir, []).get(dir)).push(i); });
+    // Folders and files in disc order, by their ids; a file without one (a bundle's or a stream's) by name after them.
+    const byId = (a, b) => { const x = D.fileIds[a], y = D.fileIds[b]; return x == null || y == null ? (x == null) - (y == null) || natural(a, b) : x - y; };
+    const folderId = (st, dir) => { const id = (D.folderIds || {})[st + "/" + dir]; return id == null ? Infinity : id; };
     for (const [st, dirs] of [...stages].sort((a, b) => a[0] - b[0])) { const total = [...dirs.values()].reduce((a, l) => a + l.length, 0), inner = h("div", {});
-      for (const [dir, list] of [...dirs].sort()) { list.sort(natural); if (!dir) inner.append(capped(list, 300, part => h("div", {}, part.map(i => flink(i, fileBase(i)))))); else inner.append(h("details", {}, h("summary", {}, h("a", { href: "#d." + st + "/" + dir, class: current === "d." + st + "/" + dir ? "cur" : "", onclick: e => { e.preventDefault(); location.hash = "d." + st + "/" + dir; } }, dir), h("span", { class: "dim", text: ` (${list.length})` })), h("div", {}, list.map(i => flink(i, fileBase(i)))))); }
+      for (const [dir, list] of [...dirs].sort((a, b) => folderId(st, a[0]) - folderId(st, b[0]) || a[0].localeCompare(b[0]))) { list.sort(byId); if (!dir) inner.append(capped(list, 300, part => h("div", {}, part.map(i => flink(i, fileBase(i)))))); else inner.append(h("details", {}, h("summary", {}, h("a", { href: "#d." + st + "/" + dir, class: current === "d." + st + "/" + dir ? "cur" : "", onclick: e => { e.preventDefault(); location.hash = "d." + st + "/" + dir; } }, dir), h("span", { class: "dim", text: ` (${list.length})` })), h("div", {}, list.map(i => flink(i, fileBase(i)))))); }
       box.append(h("details", st === "1" ? { open: "" } : {}, h("summary", { class: "dim", text: `stage ${st} (${total} files)` }), inner)); }
     return; }
   if (navMode === "o") {
@@ -478,7 +485,7 @@ function chunkTables(fileIndexes) {
     return h("section", {}, h("h3", {}, D.files[f], " ", nameInput("file:" + D.files[f])), h("p", { class: "dim" }, by.length ? ["loaded by ", by.slice(0, 8).map((o, i) => [i ? ", " : "", link("o", o)]), by.length > 8 ? ` and ${by.length - 8} more` : ""] : "no load of it is in the graph"),
       chunks.length ? h("div", { class: "scrollx" }, h("table", { class: "wide" }, h("tr", {}, ["", "#", "Chunk", "Kind", "What the uses show it is", "New name", "Group"].map(t => h("th", { text: t }))), chunks.map(([n, key]) => { const a = D.assets[key], pkg = a && a[0] === "pe2pkg"; return h("tr", {}, h("td", {}, a && !pkg ? tick(key) : null), h("td", { text: n }), h("td", {}, a || D.overlays[key] ? link(pkg ? "o" : "a", key) : key, qmark(key)), h("td", { class: "dim", text: a ? (TYPE[a[0]] || a[0]).replace(/s$/, "") : "" }), h("td", { text: D.notes[key] ? D.notes[key][0] : "" }), h("td", {}, nameInput(key)), h("td", {}, a && !pkg ? groupInput(key) : null)); }))) : h("p", { class: "dim", text: "no chunk of it is cataloged" })); });
 }
-const filesUnder = path => D.files.map((n, i) => [n, i]).filter(([n]) => n === path || n.startsWith(path + "/")).map(([, i]) => i).sort(natural);
+const filesUnder = path => D.files.map((n, i) => [n, i]).filter(([n]) => n === path || n.startsWith(path + "/")).map(([, i]) => i).sort((a, b) => { const x = D.fileIds[a], y = D.fileIds[b]; return x == null || y == null ? natural(a, b) : x - y; });
 function showFiles(path) {
   const box = $("subject"), list = /^\d+$/.test(path) && D.files[+path] ? [+path] : filesUnder(path), title = list.length === 1 ? D.files[list[0]] : path, parts = title.split("/");
   if (!list.length) { box.replaceChildren(h("p", { text: `No disc file under ${path}.` })); return; }
@@ -613,7 +620,7 @@ async function showAsset(key) {
   if (type === "pe2img" || type === "image") { const pairs = D.pairs[key] || []; await Promise.all([need(key), ...pairs.filter(p => p[1]).map(p => need(p[1]))]); if (mine !== turn) return;
     const bpps = [].concat(attrs.bpp || 8);
     sections.push(sec(`As used (${pairs.length})`, pairs.length ? "Each way something is known to read this image: a column of it, at a depth, through a palette row. Under each picture is who reads it so, and how that is known: a model's faces, a room view's sprite table, constants in the source, or a draw call that was read. The other columns are faded." : "Nothing is known to read this image - no model's faces, no view's sprite table, no draw call on record - so there is no palette to show it with.",
-      h("div", { class: "shots" }, pairs.map(([bpp, clut, row, pal, col, users, how]) => h("div", { class: "shot" }, renderImage(key, bpp, clut, row, pal, col), h("div", {}, `column ${col} · ${bpp}-bit · `, clut ? [link("a", clut), ` row ${row}` + (pal ? `, palette ${pal}` : "")] : "direct colour"), h("div", { class: "dim", text: users.join(", ") }), (how || []).map(t => h("div", { class: "dim", text: "known from " + t })))))));
+      h("div", { class: "shots" }, pairs.map(([bpp, clut, row, pal, col, users, how]) => h("div", { class: "shot" }, declaredPicture(key, bpp, clut, row, pal, col) || renderImage(key, bpp, clut, row, pal, col), h("div", {}, `column ${col} · ${bpp}-bit · `, clut ? [link("a", clut), ` row ${row}` + (pal ? `, palette ${pal}` : "")] : "direct colour"), h("div", { class: "dim", text: users.join(", ") }), (how || []).map(t => h("div", { class: "dim", text: "known from " + t })))))));
     sections.push(sec("Without a palette", "The indices as grey, at the depth the manifest records.", h("div", { class: "shots" }, h("div", { class: "shot" }, renderImage(key, bpps[0], null, 0, 0, null), h("div", { text: `${bpps.join(", ")}-bit` })))));
   } else if (type === "pe2clut" || type === "clut") { await need(key); if (mine !== turn) return;
     const used = Object.entries(D.pairs).flatMap(([img, list]) => list.filter(p => p[1] === key).map(p => [img, p]));

@@ -471,7 +471,12 @@ def write_pixels(db: sqlite3.Connection, folder: Path) -> int:
         source = raw / ("pe2clut" if kind == "clut" else "pe2img") / f"{asset}.{'pe2clut' if kind == 'clut' else 'pe2img'}"
         if code:
             source = raw / ("clut" if kind == "clut" else "img") / f"{asset}.{'clut' if kind == 'clut' else 'img'}"
-        target = folder / f"{asset}.js"
+        try:                                    # a name sharing its bytes is stored under another (raw_rel)
+            source = raw.parent / asset_schema.raw_rel(asset)
+        except KeyError:
+            pass
+        target = folder / f"{asset}.js"         # a grouped asset's name is a path
+        target.parent.mkdir(parents=True, exist_ok=True)
         if not source.is_file() or (target.is_file() and target.stat().st_mtime >= source.stat().st_mtime):
             continue
         try:
