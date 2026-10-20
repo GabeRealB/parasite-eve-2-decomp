@@ -1,0 +1,25 @@
+# The assets of the group enemies/bat, each named enemies/bat/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "e1396c6870c7e46c3d5a0bdc2d8bb01a137020c6"
+palettes = [{ texture = "preview", variant = "default", region = "engine/vram/preview_palette" }]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "d353cad6399289136b36f775a85b5e9c5fcfc443"
+pages = [{ texture = "preview", region = "engine/vram/preview_sheet" }]
+
+[[file.contents]]
+asset = "txt_82"
+
+[preview]
+type = "texture"
+bpp = 8
+height = 128
+variants = ["default"]
+width = 128

@@ -1,0 +1,25 @@
+# The assets of the group enemies/black_beetle, each named enemies/black_beetle/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "d5288673a2a55f4ebe0bdb8bcb864d83e6d6a0c6"
+palettes = [{ texture = "preview", variant = "default", region = "engine/vram/preview_palette" }]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "cbc6eea0ec7233d6738325acaf729ac0894080f7"
+pages = [{ texture = "preview", region = "engine/vram/preview_picture", upload = "engine/vram/preview_picture" }]
+
+[[file.contents]]
+asset = "txt_82"
+
+[preview]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128

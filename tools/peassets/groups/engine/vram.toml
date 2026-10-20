@@ -22,6 +22,12 @@ at = [960, 0]
 shares = ["engine/vram/preview_sheet"]
 size = [64, 256]
 
+[tall_preview]
+type = "vram_region"
+at = [960, 0]
+shares = ["engine/vram/preview_sheet", "engine/vram/screen_sheet"]
+size = [64, 160]
+
 [title_chrome]
 type = "vram_region"
 at = [768, 256]

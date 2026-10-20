@@ -1,0 +1,25 @@
+# The assets of the group enemies/bass, each named enemies/bass/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "9dc778cfeabccf1aa0c87f35d0eae8b4dcaadbf1"
+palettes = [{ texture = "preview", variant = "default", region = "engine/vram/preview_palette" }]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "e883f32ba4cecc3c0c45758ac9cd124c44ee5528"
+pages = [{ texture = "preview", region = "engine/vram/preview_sheet" }]
+
+[[file.contents]]
+asset = "txt_82"
+
+[preview]
+type = "texture"
+bpp = 8
+height = 128
+variants = ["default"]
+width = 128
