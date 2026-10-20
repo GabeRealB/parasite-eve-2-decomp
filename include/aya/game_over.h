@@ -1,13 +1,13 @@
-#ifndef INCLUDE_AYA_AYA_20900_H
-#define INCLUDE_AYA_AYA_20900_H
+#ifndef INCLUDE_AYA_GAME_OVER_H
+#define INCLUDE_AYA_GAME_OVER_H
 
 #include "main/task_types.h"
 
 /// Indices of the package's bodyless presentation tasks.
 enum {
-    AYA_20900_TASK_GAME_OVER = 0,
-    AYA_20900_TASK_RED_FLASH = 3,
-    AYA_20900_TASK_COUNT     = 4,
+    GAME_OVER_TASK_SCREEN    = 0,
+    GAME_OVER_TASK_RED_FLASH = 3,
+    GAME_OVER_TASK_COUNT     = 4,
 };
 
 /// Task recipes for the Game Over screen and the red-image/white-flash effect.
@@ -18,6 +18,6 @@ enum {
 /// flash requires the resident image strips to be selected for display.
 /// Gameplay spawns slot 0 and polls its exit request to finish restart UI.
 /// The creation path of slot 3 is unproven.
-extern TaskDesc gAya20900TaskDescriptors[AYA_20900_TASK_COUNT];
+extern TaskDesc gGameOverTaskDescriptors[GAME_OVER_TASK_COUNT];
 
-#endif // INCLUDE_AYA_AYA_20900_H
+#endif // INCLUDE_AYA_GAME_OVER_H

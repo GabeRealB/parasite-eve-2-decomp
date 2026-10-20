@@ -80,3 +80,14 @@ size = [256, 6]
 type = "vram_region"
 at = [0, 245]
 size = [256, 2]
+
+[dialogue_palettes]
+type = "vram_region"
+at = [256, 243]
+shares = ["engine/vram/weapon_palette"]
+size = [64, 6]
+
+[glyph_palette_block]
+type = "vram_region"
+at = [256, 240]
+size = [64, 3]

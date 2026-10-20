@@ -2,7 +2,7 @@
 ofuda	Battle item effect package: its code and models are the Flare's.	Named 'ofuda' but the item it serves is the Flare; the three battle-item packages are each one off.
 flare	Battle item effect package: its code and models are the Pepper Spray's.	Named 'flare' but the item it serves is the Pepper Spray.
 pepper_spray	Battle item effect package: its code and models are the Combat Light's.	Named 'pepper_spray' but the item it serves is the Combat Light.
-aya_20900	The Game Over screen's package.	Filed in the 'aya' family, but it is the Game Over screen, not a costume.
+game_over/package	The Game Over screen's package.	Filed in the 'aya' family, but it is the Game Over screen, not a costume.
 replay_bonus	The staff credits and the end-of-game award screens.	Named 'replay_bonus'; the code shows credits and awards.
 actor_142600	Clip data for the incinerator cutscene, always resident in the incinerator control room.	Filed as an actor; it holds no actor code, only cutscene clip data.
 0/file40168	Sequence file 40168: Neo Ark's default battle music (scene-music entry 0), started by main's countdown request at a battle start in any stage-5 room that sets no other entry.	
@@ -2654,9 +2654,9 @@ pe/antibody/level1_menu_palette	256-colour palette of the Parasite Energy menu p
 pe/antibody/level2_menu_palette	256-colour palette of the Parasite Energy menu preview picture shared by the level-2 Apobiosis, Metabolism, Healing, Lifedrain, Antibody and Energyshot rows and one more (pe/antibody/level2_menu_image).	
 pe/antibody/level3_menu_palette	256-colour palette of the Parasite Energy menu preview picture shared by the level-3 Apobiosis, Metabolism, Healing, Lifedrain, Antibody and Energyshot rows and one more (pe/antibody/level3_menu_image).	
 weapons/as12/palette	16-colour palette row (0,243) of the AS12 weapon model: all 43 textured faces of weapons/as12/model name it, loaded with the weapon's image.	
-pe2clut_180	64x3 palette block at (256,240) loaded with the game-over and ending files; no reader found there, and whether the Blizzard Chaser's flare trail in the mine cavern sees it is open.	
-pe2clut_181	64x6 palette block loaded over the resident text and caption palettes at (256,243) by the game-over and ending files; no reader of it found on those screens (open).	
-pe2clut_182	Game-over file's palette at (0,255): its first 16 colours (white then a green-to-blue ramp) colour the GAME OVER logo quad; the rest is zero and unread.	
+ui/font/glyph_palette_block	Palette block at (256, 240), 64x3, restored by the game-over and ending files: its first palette is the UI font's fill palette (ui/font/glyph_palettes), at the place main's unread upload list _gTextGlyphPaletteUploadList puts the glyph palettes, and two others are what gameplay draws with - (256, 240) model_lighting's environment seed, (272, 241) actor_403000's flare trail. Neither screen draws with it.	
+dialogue/translucent_palette	The dialogue palette block (256, 243) with the semi-transparency bit set on every color, the same RGB as dialogue/palette, and a three-color palette on row 243: restored by the game-over and ending files over the resident one. Neither screen is seen drawing with it.	
+game_over/palette	Game-over file's palette at (0,255): its first 16 colours (white then a green-to-blue ramp) colour the GAME OVER logo quad; the rest is zero and unread.	
 pe2clut_183	Map-menu palette of stage 1 pages 0 and 1 (Acropolis): row 256 colours the map picture, row 255 the unvisited-area cover pattern, row 257 the cursor, icon and arrow sprites.	
 pe2clut_184	Map-menu palette of stage 1 page 2 (Acropolis helicopter landing pad): row 256 for the map picture, row 255 for the cover pattern, row 257 for cursor, icon and arrow sprites.	
 pe2clut_185	Map-menu palette of stage 1 page 3 (MIST parking and shooting gallery): row 256 for the map picture and row 257 for the cursor, icon and arrow sprites; the page draws no area shape.	
@@ -3530,7 +3530,7 @@ pe/plasma/level3_menu_image	8-bit preview picture of the Parasite Energy Plasma 
 pe/antibody/level1_menu_image	8-bit preview picture of the Parasite Energy Apobiosis level 1, shown in the Parasite Energy menu; the one stored chunk serves seven preview files.	
 pe/antibody/level2_menu_image	8-bit preview picture of the Parasite Energy Apobiosis level 2, shown in the Parasite Energy menu; the one stored chunk serves seven preview files.	
 pe/antibody/level3_menu_image	8-bit preview picture of the Parasite Energy Apobiosis level 3, shown in the Parasite Energy menu; the one stored chunk serves seven preview files.	
-pe2img_184	4-bit GAME OVER logo, loaded with the restart resources after game over and drawn each frame by aya_20900's Game Over task.	
+game_over/image	4-bit GAME OVER logo, loaded with the restart resources after game over and drawn each frame by game_over's Game Over task.	
 pe2img_185	Image of the replay-bonus file that is zero except two 16-colour palette rows, read as the CLUTs of the two credits logo sprites.	
 pe2img_186	4-bit page of the two logo sprites drawn at two rows of the credits roll by replay_bonus.	
 pe2img_187	4-bit first font page of the credits roll drawn by replay_bonus, one quad per glyph; its last two texel rows hold the glyph palettes.	
@@ -5360,3 +5360,6 @@ enemies/clear_brahman_d/file	NMC roster entry 0x53c, クリアブラフマンＤ
 enemies/sabotender/file	NMC roster entry 0x53d, サボテンダー (sabotender) in the development roster nmc_names (src/debug/nmc_names/nmc_names.c): its preview file 20661 carries the moth's placeholder picture (enemies/moth) and the blank text txt_82. Nothing produces an id from 0x500, so neither is shown.	A development name; rename where an actor shows the final one.
 enemies/chocobo/file	NMC roster entry 0x53e, チョコボ (chocobo) in the development roster nmc_names (src/debug/nmc_names/nmc_names.c): its preview file 20662 carries the moth's placeholder picture (enemies/moth) and the blank text txt_82. Nothing produces an id from 0x500, so neither is shown.	A development name; rename where an actor shows the final one.
 engine/vram/tall_preview	The 160 rows at (960, 0) the tallest NMC roster previews upload (scorpion, chicken man A): the converter stores a picture's rows rounded up to whole 32-row strips, plus one.	
+game_over/logo	The GAME OVER logo, 120x24, drawn each frame by game_over's _gameOverDrawLogo from (960, 0) with the palette at (0, 255).	
+engine/vram/dialogue_palettes	The dialogue palette block at (256, 243), 64x6: the text colors on row 245, the speaker plate on 246; it shares row 243 with the weapon palette row (engine/vram/weapon_palette), which reaches x 319.	
+engine/vram/glyph_palette_block	The 64x3 palettes at (256, 240) the game-over and ending files restore (ui/font/glyph_palette_block).	

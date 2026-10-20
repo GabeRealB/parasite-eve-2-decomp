@@ -1,0 +1,57 @@
+# The assets of the group game_over, each named game_over/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+asset = "ui/font/glyph_palette_block"
+sha1 = "a9ff54fadbd523350fe31a02275fc125319f2b3b"
+upload = "engine/vram/glyph_palette_block"
+palettes = [
+    { name = "environment_seed", entries = 16, region = "engine/vram/glyph_palette_block" },
+    { name = "unread_272_240", entries = 16, region = "engine/vram/glyph_palette_block", offset = [16, 0] },
+    { name = "flare_trail", entries = 16, region = "engine/vram/glyph_palette_block", offset = [16, 1] },
+]
+
+[[file.contents]]
+asset = "dialogue/translucent_palette"
+sha1 = "539d0ac30144dc835199a3df25e068d49f0f14fa"
+upload = "engine/vram/dialogue_palettes"
+palettes = [
+    { name = "row_243", entries = 16, region = "engine/vram/dialogue_palettes" },
+    { name = "text_0", entries = 16, region = "engine/vram/dialogue_palettes", offset = [0, 2] },
+    { name = "text_1", entries = 16, region = "engine/vram/dialogue_palettes", offset = [16, 2] },
+    { name = "text_2", entries = 16, region = "engine/vram/dialogue_palettes", offset = [32, 2] },
+    { name = "text_3", entries = 16, region = "engine/vram/dialogue_palettes", offset = [48, 2] },
+    { name = "plate", entries = 16, region = "engine/vram/dialogue_palettes", offset = [48, 3] },
+    { name = "unread", entries = 16, region = "engine/vram/dialogue_palettes", offset = [0, 4] },
+]
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "f9e10679e062dacfd539842a894a8914d3b7d8c1"
+upload = "engine/vram/screen_palettes"
+palettes = [{ texture = "logo", variant = "default", region = "engine/vram/screen_palettes" }]
+
+[[file.contents]]
+chunk = "image"
+slots = 3
+sha1 = "dd52dfd3d66618b4e2da0f3550f4bea1bd87f584"
+pages = [{ texture = "logo", region = "engine/vram/screen_sheet" }]
+
+[[file.contents]]
+chunk = "package"
+
+[logo]
+type = "texture"
+bpp = 4
+height = 24
+variants = ["default"]
+width = 120
+
+[package]
+type = "pe2pkg"
+package_name = "game_over"
+required = true
+sha1 = "06c58795be3ddfee342e12a62e6e423a7ab13f52"

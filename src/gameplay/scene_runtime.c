@@ -53,7 +53,7 @@
 
 #include "actors/actor_361100.h"
 
-#include "aya/aya_20900.h"
+#include "aya/game_over.h"
 #include "aya/replay_bonus.h"
 
 #include "mapui/map_akropolis.h"
@@ -1456,7 +1456,7 @@ static void _loadingAwaitRestartResources(Task* task)
             taskSpawnFromTable(gReplayBonusCreditsTaskDescriptors, REPLAY_BONUS_CREDITS_CONTROLLER_TASK_INDEX, 0, 0);
             taskKill(task);
         } else {
-            task->spawnArg2.pointer = taskSpawnFromTable(gAya20900TaskDescriptors, AYA_20900_TASK_GAME_OVER, 0, 0);
+            task->spawnArg2.pointer = taskSpawnFromTable(gGameOverTaskDescriptors, GAME_OVER_TASK_SCREEN, 0, 0);
             sndEvtRequestMidiStart(LOADING_RESTART_MIDI_SEQUENCE, 0);
         }
         task->state++;

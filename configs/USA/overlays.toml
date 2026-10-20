@@ -408,7 +408,7 @@ objects = [
 # ======== aya (6 entries) ========
 
 [aya]
-description = "Aya costume / bonus overlay"
+description = "The player's character slot: Aya's costume models, and the game-over and ending screens that load into it when she is not loaded"
 imports = "configs/USA/sym/aya.imports.txt"
 load_addr = 0x80115770
 global_vram_start = 0x80010000
@@ -484,12 +484,12 @@ objects = [
   { unit = "aya_10500/aya_10500", data = "0x4" },
 ]
 
-[aya.overlays.aya_20900]
+[aya.overlays.game_over]
 label = "1.6 KB, 3 functions; role unknown"
 id = 43
 objects = [
   { kind = "packageId" },
-  { unit = "aya_20900/aya_20900", rodata = "0x4", text = "0x1C", data = "0x62C" },
+  { unit = "game_over/game_over", rodata = "0x4", text = "0x1C", data = "0x62C" },
 ]
 
 [aya.overlays.replay_bonus]

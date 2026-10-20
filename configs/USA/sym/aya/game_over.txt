@@ -1,0 +1,6 @@
+// Overlay-local symbols for game_over (file 20900).
+_gameOverDrawLogo = 0x80115948; // type:func
+_gameOverStep = 0x80115a14; // type:func
+_gameOverTask = 0x80115cfc; // type:func
+_gameOverRedFlashTask = 0x8011578c; // type:func
+gGameOverTaskDescriptors = 0x80115d9c;

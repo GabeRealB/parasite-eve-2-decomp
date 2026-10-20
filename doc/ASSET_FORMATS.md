@@ -1634,8 +1634,11 @@ gauges, radar, icons, captions, 4-bit, and the 8-bit portrait at `(0, 128)` -
 each with the palettes its draw code selects. An atlas's page stores zero
 outside its sprites, so decoding fails on texels no sprite holds; art nothing
 draws is a sprite that states `no_palette` (written with a gray ramp), and
-colors only dead code selects are a palette entry with a `name` and its
-`entries` instead of a texture. A texture whose palettes an executable uploads names that embedded
+colors no declared texture is drawn with are a palette entry with a `name` and
+its `entries` instead of a texture, written as `<chunk>.<name>.png`: the
+dialogue's text and plate palettes (`dialogue/palette`, and the translucent
+copy the game-over and ending files restore), the palettes gameplay draws with
+at (256, 240), and the one only dead code selects (`ui/sheet/palette.row_inactive`). A texture whose palettes an executable uploads names that embedded
 palette as `palettes_from`, one variant per palette in order: the UI font's
 `fill`, `translucent_outline` and `opaque_outline` are main's
 `ui/font/glyph_palettes`, and the check compares each variant's PNG palette with those bytes.

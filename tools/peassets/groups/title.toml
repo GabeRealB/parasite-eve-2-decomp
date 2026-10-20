@@ -6,7 +6,7 @@ type = "file"
 contents = [
     { asset = "sounds/common/bank" },
     { asset = "ui/font/image", sha1 = "be2e0e8b8369be9d2a7889b0335a6ee579de630c" },
-    { asset = "dialogue/palette" },
+    { asset = "dialogue/palette", sha1 = "b770378551c0f0deda9e65172e056a817539c14f" },
     { asset = "ui/sheet/image", sha1 = "6891a8c4f5a876ab13c617bfa06851b3cdbbda4c" },
     { asset = "ui/sheet/palette", sha1 = "17188003fce13afabb38fed0a1d85b1e82622596" },
     { chunk = "package" },

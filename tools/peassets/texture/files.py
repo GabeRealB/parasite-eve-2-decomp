@@ -108,8 +108,9 @@ def gray_ramp(bpp: int) -> list[int]:
 
 
 def named_palette_path(assets_root: Path, assets: dict, chunk: str, name: str) -> Path:
-    """A named palette's PNG (one row of its colors), beside its chunk's group's other files."""
-    return assets_root / asset_schema.asset_dir(chunk, assets[chunk]) / f"{name}.palette.png"
+    """A named palette's PNG (one row of its colors), beside its chunk's group's other files: `<chunk>.<name>.png`,
+    as two chunks of a group can each name a palette alike (the dialogue's plain and translucent blocks)."""
+    return assets_root / asset_schema.asset_dir(chunk, assets[chunk]) / f"{asset_schema.file_name(chunk)}.{name}.png"
 
 
 def texture_cells(texture: str, assets: dict, assets_root: Path) -> dict[str, list[int]]:

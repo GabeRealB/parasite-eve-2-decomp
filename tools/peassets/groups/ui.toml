@@ -11,6 +11,16 @@ pages = [{ texture = "ui/font/texture", region = "engine/vram/ui_font" }]
 
 [[file.contents]]
 asset = "dialogue/palette"
+sha1 = "b770378551c0f0deda9e65172e056a817539c14f"
+upload = "engine/vram/dialogue_palettes"
+palettes = [
+    { name = "text_0", entries = 16, region = "engine/vram/dialogue_palettes", offset = [0, 2] },
+    { name = "text_1", entries = 16, region = "engine/vram/dialogue_palettes", offset = [16, 2] },
+    { name = "text_2", entries = 16, region = "engine/vram/dialogue_palettes", offset = [32, 2] },
+    { name = "text_3", entries = 16, region = "engine/vram/dialogue_palettes", offset = [48, 2] },
+    { name = "plate", entries = 16, region = "engine/vram/dialogue_palettes", offset = [48, 3] },
+    { name = "unread", entries = 16, region = "engine/vram/dialogue_palettes", offset = [0, 4] },
+]
 
 [[file.contents]]
 asset = "ui/sheet/image"

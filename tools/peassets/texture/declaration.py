@@ -15,7 +15,7 @@ variants in order (the UI font's fill and outlines, ui/font/glyph_palettes in ma
 states `no_palette` and is written with a gray ramp. A texture's `cells` name the parts its code samples one at a
 time (animation frames, icons): a `grid` of [w, h] read row by row, with `names` or numbered, or named [x, y, w, h].
 A font's texture takes its cells from its fonts instead (`font` records, font/), each glyph's record one cell. A palette chunk may also place colors no known texture is drawn
-with, by `name` and `entries` (a palette only dead code selects). A palette chunk stores the rectangle its palettes span, or the whole region its
+with, by `name` and `entries` (the dialogue's text palettes, one only dead code selects). A palette chunk stores the rectangle its palettes span, or the whole region its
 entry names as `upload` (the title's palette chunk clears six rows and fills one), zero where no palette is placed.
 
 A file declares its image and palette chunks itself (the sha1 of the stored bytes and what each uploads where), so
