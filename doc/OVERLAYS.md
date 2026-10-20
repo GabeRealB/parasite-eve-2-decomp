@@ -456,13 +456,12 @@ The call profiles agree with the spell descriptions: the offensive spells drive
 the smallest packages in the family.
 
 `50146` / `50149` / `50152` keep the stride-3 spacing at slots 15, 16 and 17,
-which lines up with the items after the four passive “Attach this and see what
-happens” ornaments. Only two of those, Flare and Pepper Spray, are “Use to …”
-items, so there is one package more than the usable items account for. The names
-`ofuda` / `flare` / `pepper_spray` are assigned by position and by what the code
-draws — rings and fade quads with no motion, a spawned moving object, and a
-Gouraud cone with additive blending (`gpuSetPrimitiveBlendMode`) that suits a gas spray — and are
-marked `ambiguous` in the manifest.
+the battle items' attachment indices. `item_use.c` turns item 0x3A (Flare) and
+0x3B (Pepper Spray) into attachments 15 and 16 and item 0x41 (Combat Light) into
+17, so the packages are `flare`, `pepper_spray` and `combat_light`. What they
+draw agrees: discs and glow bands with a screen flash, a shower of sprite sparks
+thrown from the player, and a point light with an additive cone. The Ofuda
+(0x39) is a passive charm and has no effect package.
 
 ### 5.8 Menus sitting above the stack
 
@@ -697,9 +696,6 @@ names must be unique within a container — so those extra ids keep their defaul
 - Full `TmdSource` / bone-matrix stride for Aya (first `MATRIX` is identity;
   later bones are not a plain `0x20` `MATRIX` array).
 - Whether room TMD specks are world props, inventory pickups, or noise.
-- Which effect the three `501xx` tail packages are (§5.7): the stride puts them
-  at slots 15-17, but only two of the items there are usable, so one of
-  `ofuda` / `flare` / `pepper_spray` is misassigned or is not an item at all.
 - Friendly names for actor suffixes (`300`, `400`, `700`, …) — not yet
   matched to in-game character ids, though `20600` (§5.9) now supplies the
   roster to match them *against*.

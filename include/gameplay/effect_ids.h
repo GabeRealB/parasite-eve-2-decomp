@@ -930,7 +930,7 @@ enum {
     EFFECT_GLUTTON_RAIN_BLOB = EFFECT_ID(EFFECT_TASK_BANK, 0x19B),
     /// Flare PE spark: flies away from the player at a random heading drawing an eight-
     /// frame sprite; sprayed by the Flare effect task.
-    EFFECT_FLARE_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x19E),
+    EFFECT_PEPPER_SPRAY_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x19E),
     /// Growth-room mist puff: an animated sprite drifting horizontally while fading in
     /// and out over 10 frames; spawned in increasing numbers and heights at points
     /// around the room as its counter rises.

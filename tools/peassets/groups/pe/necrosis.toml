@@ -1,6 +1,25 @@
 # The assets of the group pe/necrosis, each named pe/necrosis/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
+[cast_1]
+type = "sound"
+mode = "high"
+sha1 = "832a327c95f57ff433e53a189699edcf44ccf4fe"
+
+[cast_2]
+type = "sound"
+sha1 = "d7eedab3c037068d0ca9f950722d27f01b9046ab"
+
+[cast_3]
+type = "sound"
+sha1 = "3c3e11031b825dcd990a27d5e9bff99f462939a9"
+
+[package]
+type = "pe2pkg"
+package_name = "necrosis"
+required = true
+sha1 = "8ab1e708e3a3017113be87ba1d25ff14cd436f2c"
+
 [level1_item]
 type = "shaped"
 shape = "parasite_energy"
@@ -37,6 +56,24 @@ bpp = 8
 height = 96
 variants = ["default"]
 width = 128
+
+[level1_sounds]
+type = "sound_bank"
+samples = ["pe/necrosis/cast_1"]
+sounds = { cast = 1 }
+sha1 = "88483a4b68a5440598c12b4f316e1baac7f352f2"
+
+[level2_sounds]
+type = "sound_bank"
+samples = ["pe/necrosis/cast_2", "pe/necrosis/cast_3"]
+sounds = { cast = 1 }
+sha1 = "e58f98969e2b302fe59b9eb42997bd91edba9312"
+
+[level3_sounds]
+type = "sound_bank"
+samples = ["pe/necrosis/cast_1"]
+sounds = { cast = 1 }
+sha1 = "89cbf04cd68324045489345f50051d0534713cff"
 
 [level1_catalog]
 type = "txt"

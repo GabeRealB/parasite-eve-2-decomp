@@ -1,6 +1,34 @@
 # The assets of the group pe/healing, each named pe/healing/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
+[cast_1]
+type = "sound"
+mode = "high"
+sha1 = "b97c04f0f9f37dc92e32ebf689e6e124356352fd"
+
+[cast_2]
+type = "sound"
+sha1 = "7bff5b95817534d1c567e37bdc422275b547861a"
+
+[cast_3]
+type = "sound"
+mode = "low"
+sha1 = "3d764b12d1ce818b4ab6d117c04f95ad21fde048"
+
+[cast_4]
+type = "sound"
+sha1 = "af2ce4f2226a8afe13494d36690cb366027abf79"
+
+[cast_5]
+type = "sound"
+sha1 = "5eace65bb8af0e96dd75cb66f3d77e8c743757fe"
+
+[package]
+type = "pe2pkg"
+package_name = "healing"
+required = true
+sha1 = "051573dd62587d0b99b0a279e586bfc6f70955c4"
+
 [level1_item]
 type = "shaped"
 shape = "parasite_energy"
@@ -37,6 +65,24 @@ bpp = 8
 height = 96
 variants = ["default"]
 width = 128
+
+[level1_sounds]
+type = "sound_bank"
+samples = ["pe/healing/cast_1"]
+sounds = { cast = 1 }
+sha1 = "d89af3bf4bebbea2f8d48b805c9a0889e5563619"
+
+[level2_sounds]
+type = "sound_bank"
+samples = ["pe/healing/cast_2", "pe/healing/cast_3", "pe/healing/cast_4"]
+sounds = { cast = 1 }
+sha1 = "6dccdf9d1a3f5d55b91bf800426160b1e69dd437"
+
+[level3_sounds]
+type = "sound_bank"
+samples = ["pe/healing/cast_5", "pe/healing/cast_3", "pe/healing/cast_4"]
+sounds = { cast = 1 }
+sha1 = "51eb110d5a837ac8eea75540a357f12280504a31"
 
 [level1_catalog]
 type = "txt"

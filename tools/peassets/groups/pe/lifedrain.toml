@@ -1,6 +1,21 @@
 # The assets of the group pe/lifedrain, each named pe/lifedrain/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
+[empty_1]
+type = "sound"
+sha1 = "f9e30a9dca24621dd2359073da04493d15dd9463"
+
+[empty_2]
+type = "sound"
+mode = "high"
+sha1 = "b57a1fa149c6806e0ffa64dcd5b968a793062491"
+
+[package]
+type = "pe2pkg"
+package_name = "lifedrain"
+required = true
+sha1 = "ca8113dfcfa8a46d14c9cc4a2c56994c185cb985"
+
 [level1_item]
 type = "shaped"
 shape = "parasite_energy"
@@ -37,6 +52,24 @@ bpp = 8
 height = 96
 variants = ["default"]
 width = 128
+
+[level1_sounds]
+type = "sound_bank"
+samples = ["pe/lifedrain/empty_1", "pe/lifedrain/empty_2", "pe/metabolism/cast_2"]
+sounds = { empty = 1, collected = 2 }
+sha1 = "183428ff72e7146cdba4f1053b73e3687ad7de8e"
+
+[level2_sounds]
+type = "sound_bank"
+samples = ["pe/lifedrain/empty_1", "pe/lifedrain/empty_2", "pe/metabolism/cast_2"]
+sounds = { empty = 1, collected = 2 }
+sha1 = "2926acaacd9e8f99ac52a5667fc1cd86723e7f34"
+
+[level3_sounds]
+type = "sound_bank"
+samples = ["pe/lifedrain/empty_1", "pe/lifedrain/empty_2", "pe/metabolism/cast_2"]
+sounds = { empty = 1, collected = 2 }
+sha1 = "50e72047af560d227e33369b1243352f09b413b1"
 
 [level1_catalog]
 type = "txt"

@@ -7,315 +7,156 @@
 #include <psyq/libgs.h>
 
 #include "gte.h"
-#include "common.h"
 #include "types.h"
 
+#include "gameplay/display.h"
+#include "gameplay/actor_render.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
-#include "gameplay/display.h"
 #include "gameplay/effects.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
 #include "gameplay/world_coords.h"
 
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/random.h"
+#include "main/gfx.h"
+#include "main/gfx_types.h"
 #include "main/scratch.h"
+#include "main/session.h"
 #include "main/sound.h"
+#include "main/task.h"
 #include "main/task_types.h"
-
-#include "overlay.h"
-
-static void _pepperSprayDrawOriginBillboard(GfxCoord* sprayCoord, s16 radiusScale, s16 rotation);
-static void _pepperSprayDrawConeQuad(GfxCoord* sprayCoord, s16 azimuth, s16 brightness);
-
-/// Angle units and fixed-point trigonometric scale used by the spray drawers.
-enum {
-    PEPPER_SPRAY_ANGLE_TURN         = 0x1000,
-    PEPPER_SPRAY_QUARTER_TURN       = 0x400,
-    PEPPER_SPRAY_QUARTER_TURN_SHIFT = 10,
-    PEPPER_SPRAY_TRIG_FRACTION_BITS = 12
-};
-
-/// Retained Pepper Spray quad azimuths, in 4096 angle units per turn.
-///
-/// Startup seeds all six entries in quadrant `i & 3` with random offsets
-/// 0..1023. Each drawn frame uses every entry throughout the fade. This is
-/// shared package storage: starting another spray replaces the angles.
-static s16 _gPepperSprayConeAzimuths[6] = { 0 };
+#include "main/tmd_types.h"
+#include "../../shared/effects/sprite_quad.h"
 
 void pepperSprayEffectTask(Task* task)
 {
     enum {
-        PEPPER_SPRAY_STATE_START          = 0,
-        PEPPER_SPRAY_STATE_FADE           = 1,
-        PEPPER_SPRAY_LIFETIME_FRAMES      = 9,
-        PEPPER_SPRAY_INITIAL_BRIGHTNESS   = 0xE0,
-        PEPPER_SPRAY_INITIAL_RADIUS_SCALE = 0xA00,
-        PEPPER_SPRAY_RADIUS_JITTER_MASK   = 0x3FF,
-        PEPPER_SPRAY_QUADRANT_MASK        = 3,
-        PEPPER_SPRAY_FADE_FRACTION_BITS   = 4,
-        PEPPER_SPRAY_LIGHT_INNER_RADIUS   = 4000,
-        PEPPER_SPRAY_LIGHT_OUTER_RADIUS   = 4800,
-        PEPPER_SPRAY_LIGHT_FRAMES         = 6,
-        PEPPER_SPRAY_LIGHT_RADIUS_STEP    = 400
+        PEPPER_SPRAY_CAST_STATE_INITIALIZE       = 0,
+        PEPPER_SPRAY_CAST_STATE_EMITTING         = 1,
+        PEPPER_SPRAY_CAST_EMISSION_END_AGE       = 20,
+        PEPPER_SPRAY_CAST_APPLY_STATS_AGE        = 8,
+        PEPPER_SPRAY_CAST_RELEASE_AGE            = 36,
+        PEPPER_SPRAY_CAST_SPARK_SIZE_BASE        = 0x680,
+        PEPPER_SPRAY_CAST_SPARK_SIZE_JITTER_MASK = 0x1FF,
     };
-    EffectWork*                    effectWork;
-    GfxCoord*                      sprayCoord;
-    WorldCoordTransientPointLight* lightSlot;
-    WorldCoordPointLight*          pointLight;
-    s32                            coneIndex;
-    s32                            frameAge;
-    s32                            originZ;
-    s32                            initialRadiusScale;
-    s32                            billboardRotation;
-    s32                            audioPan;
-    u8                             screenTint[3];
+    EffectWork*      work;
+    GfxCoord*        coord;
+    AttachmentState* attachment;
+    s32              pan;
+    s16              age;
+    EffectWork*      spawned;
+    s32              sizeRng;
 
-    lightSlot  = gWorldCoordTransientPointLights;
-    pointLight = &lightSlot->light;
-    effectWork = task->spawnArg2.pointer;
-    sprayCoord = task->extra.coordBody->coord;
-    if ((gAttachmentState.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING)) {
+    attachment = &gAttachmentState;
+    work       = task->spawnArg2.pointer;
+    coord      = task->extra.coordBody->coord;
+    if ((attachment->effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING)) {
         sndEvtRequestScriptStop(SOUND_PEPPER_SPRAY_USE, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-        effectKillTask(effectWork, task);
+        effectKillTask(work, task);
         return;
     }
-    frameAge        = (u16)effectWork->age + 1;
-    effectWork->age = frameAge;
-    switch (task->state) {
-        case PEPPER_SPRAY_STATE_START:
-            // Preserve the interleaved light writes and random draws.
-            pointLight->head.transform.coord.coord.t[0]        = sprayCoord->coord.t[0];
-            gRandomLcgState                                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            initialRadiusScale                                 = ((gRandomLcgState >> 16) & PEPPER_SPRAY_RADIUS_JITTER_MASK) + PEPPER_SPRAY_INITIAL_RADIUS_SCALE;
-            pointLight->head.transform.coord.coord.t[1]        = sprayCoord->coord.t[1];
-            gRandomLcgState                                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            billboardRotation                                  = (gRandomLcgState >> 16) & (PEPPER_SPRAY_ANGLE_TURN - 1);
-            originZ                                            = sprayCoord->coord.t[2];
-            lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-            pointLight->head.color.r                           = ONE;
-            pointLight->head.color.g                           = ONE;
-            pointLight->head.color.b                           = ONE;
-            pointLight->inner                                  = PEPPER_SPRAY_LIGHT_INNER_RADIUS;
-            pointLight->outer                                  = PEPPER_SPRAY_LIGHT_OUTER_RADIUS;
-            lightSlot->framesLeft                              = PEPPER_SPRAY_LIGHT_FRAMES;
-            pointLight->head.transform.coord.coord.t[2]        = originZ;
-            effectWork->period                                 = PEPPER_SPRAY_INITIAL_BRIGHTNESS;
-            effectWork->scale                                  = initialRadiusScale;
-            effectWork->angle                                  = billboardRotation;
-            task->state                                        = PEPPER_SPRAY_STATE_FADE;
-            for (coneIndex = 0; coneIndex < ARRAY_SIZE(_gPepperSprayConeAzimuths); coneIndex++) {
-                gRandomLcgState                      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                _gPepperSprayConeAzimuths[coneIndex] = ((coneIndex & PEPPER_SPRAY_QUADRANT_MASK) << PEPPER_SPRAY_QUARTER_TURN_SHIFT) + ((gRandomLcgState >> 16) & (PEPPER_SPRAY_QUARTER_TURN - 1));
-            }
-            gAttachmentState.flags |= ATTACHMENT_FLAG_APPLY_STATS;
-            audioPan                = (s8)worldCoordGetOriginAudioPan(sprayCoord);
-            sndEvtRequestScriptStart(SOUND_PEPPER_SPRAY_USE, audioPan, (s8)worldCoordGetOriginAudioDepth(sprayCoord));
-            break;
-        case PEPPER_SPRAY_STATE_FADE:
-            // Scale is the billboard radius numerator; period is brightness.
-            effectWork->scale  = effectWork->scale - frameAge * (effectWork->scale >> PEPPER_SPRAY_FADE_FRACTION_BITS);
-            effectWork->period = effectWork->period - effectWork->age * (effectWork->period >> PEPPER_SPRAY_FADE_FRACTION_BITS);
-            break;
+    work->age = work->age + 1;
+    if (task->state == PEPPER_SPRAY_CAST_STATE_INITIALIZE) {
+        pan = (s8)worldCoordGetOriginAudioPan(coord);
+        sndEvtRequestScriptStart(SOUND_PEPPER_SPRAY_USE, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+        task->state = PEPPER_SPRAY_CAST_STATE_EMITTING;
     }
-    _pepperSprayDrawOriginBillboard(sprayCoord, effectWork->scale, effectWork->angle);
-    screenTint[0] = screenTint[1] = screenTint[2] = effectWork->period;
-    effectDrawScreenTint(screenTint, GPU_BLEND_ADD);
-    for (coneIndex = 0; coneIndex < ARRAY_SIZE(_gPepperSprayConeAzimuths); coneIndex++) {
-        _pepperSprayDrawConeQuad(sprayCoord, _gPepperSprayConeAzimuths[coneIndex], effectWork->period);
-    }
-    if (pointLight->inner >= PEPPER_SPRAY_LIGHT_RADIUS_STEP + 1) {
-        pointLight->inner -= PEPPER_SPRAY_LIGHT_RADIUS_STEP;
-    }
-    if (effectWork->age >= PEPPER_SPRAY_LIFETIME_FRAMES) {
-        effectKillTask(effectWork, task);
-    }
-}
-
-/// Draws a rotated, depth-scaled textured billboard at the spray origin.
-///
-/// `sprayCoord->workm` must be composed. `radiusScale` is the nonnegative size
-/// numerator: each corner offset has magnitude `radiusScale * 55 / (SZ3 / 4 + 1)`
-/// pixels. `rotation` uses 0x1000 units per turn. Projection errors discard the
-/// primitive; successful draws use additive blending and the texture's own
-/// colour. Borrows 0x1C scratch bytes until return and consumes one FT4 packet
-/// from the primitive cursor even on rejection; changes GTE state.
-static void _pepperSprayDrawOriginBillboard(GfxCoord* sprayCoord, s16 radiusScale, s16 rotation)
-{
-    enum {
-        PEPPER_SPRAY_BILLBOARD_TPAGE            = 0x29,
-        PEPPER_SPRAY_BILLBOARD_CLUT             = 0x428B,
-        PEPPER_SPRAY_BILLBOARD_TEXTURE_U        = 0x70,
-        PEPPER_SPRAY_BILLBOARD_TEXTURE_V        = 0xC8,
-        PEPPER_SPRAY_BILLBOARD_TEXTURE_SPAN     = 0x37,
-        PEPPER_SPRAY_BILLBOARD_RAW_TEXTURE      = 1,
-        PEPPER_SPRAY_BILLBOARD_SEMI_TRANSPARENT = 2
-    };
-    EffectBillboardScratch* scratchHead;
-    EffectBillboardScratch* block;
-    s32*                    depthOutput;
-    POLY_FT4*               billboard;
-    s32                     cornerAngle;
-
-    // Narrow the composed origin to the GTE's signed 16-bit vertex encoding.
-    scratchHead                                  = SCRATCH_STACK_CURSOR(EffectBillboardScratch);
-    block                                        = scratchHead - 1;
-    depthOutput                                  = &block->depth;
-    block->worldPoint.vx                         = (u16)sprayCoord->workm.t[0];
-    block->worldPoint.vy                         = (u16)sprayCoord->workm.t[1];
-    block->worldPoint.vz                         = (u16)sprayCoord->workm.t[2];
-    SCRATCH_STACK_CURSOR(EffectBillboardScratch) = block;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
-    gte_rtps();
-    billboard      = gGpuPrimCursor;
-    gGpuPrimCursor = billboard + 1;
-    setPolyFT4(billboard);
-    gte_stsxy(&block->screenX);
-    gte_stflg(&block->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(depthOutput);
-        block->depth++;
-        billboard->tpage = PEPPER_SPRAY_BILLBOARD_TPAGE;
-        billboard->clut  = PEPPER_SPRAY_BILLBOARD_CLUT;
-        setUV4(billboard,
-               PEPPER_SPRAY_BILLBOARD_TEXTURE_U, PEPPER_SPRAY_BILLBOARD_TEXTURE_V,
-               PEPPER_SPRAY_BILLBOARD_TEXTURE_U + PEPPER_SPRAY_BILLBOARD_TEXTURE_SPAN, PEPPER_SPRAY_BILLBOARD_TEXTURE_V,
-               PEPPER_SPRAY_BILLBOARD_TEXTURE_U, PEPPER_SPRAY_BILLBOARD_TEXTURE_V + PEPPER_SPRAY_BILLBOARD_TEXTURE_SPAN,
-               PEPPER_SPRAY_BILLBOARD_TEXTURE_U + PEPPER_SPRAY_BILLBOARD_TEXTURE_SPAN, PEPPER_SPRAY_BILLBOARD_TEXTURE_V + PEPPER_SPRAY_BILLBOARD_TEXTURE_SPAN);
-        billboard->code     |= PEPPER_SPRAY_BILLBOARD_RAW_TEXTURE | PEPPER_SPRAY_BILLBOARD_SEMI_TRANSPARENT;
-        cornerAngle          = rotation;
-        block->cornerOffsetX = (((radiusScale * PEPPER_SPRAY_BILLBOARD_TEXTURE_SPAN) / block->depth) * rsin(cornerAngle)) >> PEPPER_SPRAY_TRIG_FRACTION_BITS;
-        block->cornerOffsetY = (((radiusScale * PEPPER_SPRAY_BILLBOARD_TEXTURE_SPAN) / block->depth) * rcos(cornerAngle)) >> PEPPER_SPRAY_TRIG_FRACTION_BITS;
-        billboard->x0        = block->screenX + (u16)block->cornerOffsetX;
-        billboard->x3        = block->screenX - (u16)block->cornerOffsetX;
-        billboard->y0        = block->screenY - (u16)block->cornerOffsetY;
-        billboard->y3        = block->screenY + (u16)block->cornerOffsetY;
-        cornerAngle          = cornerAngle + PEPPER_SPRAY_QUARTER_TURN;
-        block->cornerOffsetX = (((radiusScale * PEPPER_SPRAY_BILLBOARD_TEXTURE_SPAN) / block->depth) * rsin(cornerAngle)) >> PEPPER_SPRAY_TRIG_FRACTION_BITS;
-        block->cornerOffsetY = (((radiusScale * PEPPER_SPRAY_BILLBOARD_TEXTURE_SPAN) / block->depth) * rcos(cornerAngle)) >> PEPPER_SPRAY_TRIG_FRACTION_BITS;
-        billboard->x1        = block->screenX + (u16)block->cornerOffsetX;
-        billboard->x2        = block->screenX - (u16)block->cornerOffsetX;
-        billboard->y1        = block->screenY - (u16)block->cornerOffsetY;
-        billboard->y2        = block->screenY + (u16)block->cornerOffsetY;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                billboard);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(EffectBillboardScratch);
-}
-
-/// Rotates one reserved spray-cone corner in place into the composed view frame.
-///
-/// `scratchHead` is the cursor immediately above the live reserved quad block,
-/// and cornerIndex is 0..3. Borrows a word-aligned matrix and SVECTOR storage;
-/// the GTE loads eight vector bytes and stores only the signed XYZ halfwords.
-/// Replaces the GTE rotation matrix; the caller adds translation afterwards.
-static inline void _pepperSprayRotateConeCorner(const MATRIX* localToView, OverlayFlaggedQuadScratch* scratchHead, s32 cornerIndex)
-{
-    gte_SetRotMatrix(localToView);
-    gte_ldv0(&scratchHead[-1].corners[cornerIndex]);
-    gte_rtv0();
-    gte_stsv(&scratchHead[-1].corners[cornerIndex]);
-}
-
-/// Draws one additive Gouraud quad of the spray cone at a retained azimuth.
-///
-/// `sprayCoord->workm` must be composed; `azimuth` uses 0x1000 units per turn
-/// and `brightness` is 0..224 for this task. Three local corners lie on radius
-/// 256 at azimuth offsets -0xC0, 0 and +0xC0. The fourth lies at radius 2048
-/// and local Z -512. Only the middle base corner is lit, with half brightness
-/// in red/green and full brightness in blue. Projection errors discard the
-/// quad. Reserves 0x28 scratch bytes and one G4 packet; changes GTE state and
-/// retains no scratch pointers.
-static void _pepperSprayDrawConeQuad(GfxCoord* sprayCoord, s16 azimuth, s16 brightness)
-{
-    enum {
-        PEPPER_SPRAY_CONE_TIP_Z             = -512,
-        PEPPER_SPRAY_CONE_HALF_ANGLE        = 0xC0,
-        PEPPER_SPRAY_CONE_BASE_RADIUS_SHIFT = 4,
-        PEPPER_SPRAY_CONE_TIP_RADIUS_SHIFT  = 1
-    };
-    OverlayFlaggedQuadScratch* scratchHead;
-    OverlayFlaggedQuadScratch* block;
-    s32*                       depthOutput;
-    POLY_G4*                   coneQuad;
-    MATRIX*                    localToView;
-    s32                        cornerAzimuth;
-    s32                        firstCornerAzimuth;
-    s32                        tipZ;
-
-    tipZ                                            = PEPPER_SPRAY_CONE_TIP_Z;
-    scratchHead                                     = SCRATCH_STACK_CURSOR(OverlayFlaggedQuadScratch);
-    block                                           = scratchHead - 1;
-    SCRATCH_STACK_CURSOR(OverlayFlaggedQuadScratch) = block;
-    depthOutput                                     = &block->otz;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    cornerAzimuth = azimuth;
-
-    // Rotate local corners into view space, then wrap each translation to 16 bits.
-    firstCornerAzimuth   = cornerAzimuth - PEPPER_SPRAY_CONE_HALF_ANGLE;
-    block->corners[0].vx = (u32)rsin(firstCornerAzimuth) >> PEPPER_SPRAY_CONE_BASE_RADIUS_SHIFT;
-    block->corners[0].vy = (u32)rcos(firstCornerAzimuth) >> PEPPER_SPRAY_CONE_BASE_RADIUS_SHIFT;
-    block->corners[0].vz = 0;
-    localToView          = &sprayCoord->workm;
-    _pepperSprayRotateConeCorner(localToView, scratchHead, 0);
-    block->corners[0].vx = (u16)block->corners[0].vx + (u16)sprayCoord->workm.t[0];
-    block->corners[0].vy = (u16)block->corners[0].vy + (u16)sprayCoord->workm.t[1];
-    block->corners[0].vz = (u16)block->corners[0].vz + (u16)sprayCoord->workm.t[2];
-
-    block->corners[1].vx = (u32)rsin(cornerAzimuth) >> PEPPER_SPRAY_CONE_TIP_RADIUS_SHIFT;
-    block->corners[1].vy = (u32)rcos(cornerAzimuth) >> PEPPER_SPRAY_CONE_TIP_RADIUS_SHIFT;
-    block->corners[1].vz = tipZ;
-    _pepperSprayRotateConeCorner(localToView, scratchHead, 1);
-    block->corners[1].vx = (u16)block->corners[1].vx + (u16)sprayCoord->workm.t[0];
-    block->corners[1].vy = (u16)block->corners[1].vy + (u16)sprayCoord->workm.t[1];
-    block->corners[1].vz = (u16)block->corners[1].vz + (u16)sprayCoord->workm.t[2];
-
-    block->corners[2].vx = (u32)rsin(cornerAzimuth) >> PEPPER_SPRAY_CONE_BASE_RADIUS_SHIFT;
-    block->corners[2].vy = (u32)rcos(cornerAzimuth) >> PEPPER_SPRAY_CONE_BASE_RADIUS_SHIFT;
-    block->corners[2].vz = 0;
-    _pepperSprayRotateConeCorner(localToView, scratchHead, 2);
-    block->corners[2].vx = (u16)block->corners[2].vx + (u16)sprayCoord->workm.t[0];
-    cornerAzimuth        = cornerAzimuth + PEPPER_SPRAY_CONE_HALF_ANGLE;
-    block->corners[2].vy = (u16)block->corners[2].vy + (u16)sprayCoord->workm.t[1];
-    block->corners[2].vz = (u16)block->corners[2].vz + (u16)sprayCoord->workm.t[2];
-
-    block->corners[3].vx = (u32)rsin(cornerAzimuth) >> PEPPER_SPRAY_CONE_BASE_RADIUS_SHIFT;
-    block->corners[3].vy = (u32)rcos(cornerAzimuth) >> PEPPER_SPRAY_CONE_BASE_RADIUS_SHIFT;
-    block->corners[3].vz = 0;
-    _pepperSprayRotateConeCorner(localToView, scratchHead, 3);
-    block->corners[3].vx = (u16)block->corners[3].vx + (u16)sprayCoord->workm.t[0];
-    block->corners[3].vy = (u16)block->corners[3].vy + (u16)sprayCoord->workm.t[1];
-    block->corners[3].vz = (u16)block->corners[3].vz + (u16)sprayCoord->workm.t[2];
-
-    // Reject errors from either the single-corner or three-corner projection.
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&scratchHead[-1].corners[0]);
-    gte_rtps();
-    coneQuad       = gGpuPrimCursor;
-    gGpuPrimCursor = coneQuad + 1;
-    setPolyG4(coneQuad);
-    gte_stsxy(&coneQuad->x0);
-    gte_stflg(&scratchHead[-1].flag);
-    if (block->flag >= 0) {
-        gte_ldv3(&scratchHead[-1].corners[1], &scratchHead[-1].corners[2], &scratchHead[-1].corners[3]);
-        gte_rtpt();
-        gte_stsxy3(&coneQuad->x1, &coneQuad->x2, &coneQuad->x3);
-        gte_stflg(&scratchHead[-1].flag);
-        if (block->flag >= 0) {
-            gte_stszotz(depthOutput);
-            scratchHead[-1].otz++;
-            setRGB0(coneQuad, 0, 0, 0);
-            setRGB1(coneQuad, 0, 0, 0);
-            setRGB2(coneQuad, brightness >> 1, brightness >> 1, brightness);
-            setRGB3(coneQuad, 0, 0, 0);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratchHead[-1].otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    coneQuad);
-            gpuSetPrimitiveBlendMode(coneQuad, GPU_BLEND_ADD, scratchHead[-1].otz);
+    age = work->age;
+    if (age < PEPPER_SPRAY_CAST_EMISSION_END_AGE) {
+        if (age == PEPPER_SPRAY_CAST_APPLY_STATS_AGE) {
+            attachment->flags |= ATTACHMENT_FLAG_APPLY_STATS;
         }
+        sizeRng         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = sizeRng;
+        spawned         = effectSpawn(EFFECT_PEPPER_SPRAY_SPARK, coord, (((u32)sizeRng >> 16) & PEPPER_SPRAY_CAST_SPARK_SIZE_JITTER_MASK) + PEPPER_SPRAY_CAST_SPARK_SIZE_BASE, 0);
+        if (spawned != NULL) {
+            taskReparent(task, spawned->task);
+        }
+        return;
     }
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayFlaggedQuadScratch);
+    // Normal completion lets the cue finish; only cancellation stops it explicitly.
+    if (age == PEPPER_SPRAY_CAST_RELEASE_AGE) {
+        effectKillTask(work, task);
+    }
 }
+
+void pepperSpraySparkTask(Task* task)
+{
+    enum {
+        PEPPER_SPRAY_SPARK_STATE_INITIALIZE    = 0,
+        PEPPER_SPRAY_SPARK_STATE_FLYING        = 1,
+        PEPPER_SPRAY_SPARK_SIZE_MASK           = 0xFFF,
+        PEPPER_SPRAY_SPARK_ANGLE_TURN          = 0x1000,
+        PEPPER_SPRAY_SPARK_SIZE_TO_SPEED_SHIFT = 5,
+        PEPPER_SPRAY_SPARK_TRIG_FRACTION_BITS  = 12,
+        PEPPER_SPRAY_SPARK_FORWARD_SPEED       = 0x100,
+        PEPPER_SPRAY_SPARK_TEXTURE_FRAME_COUNT = 8
+    };
+    EffectWork*     work;
+    GfxCoord*       sparkCoord;
+    const GfxCoord* playerCoord;
+    u32             directionRng;
+    s32             verticalProduct;
+
+    work       = task->spawnArg2.pointer;
+    sparkCoord = task->extra.coordBody->coord;
+    work->age  = work->age + 1;
+    if (task->state == PEPPER_SPRAY_SPARK_STATE_INITIALIZE) {
+        // Keep the spawn translation and orient the spark in the player's local frame.
+        playerCoord = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
+        gfxCopyRotationWords(&sparkCoord->coord, &playerCoord->coord);
+        sparkCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(sparkCoord);
+
+        // Reuse the effect parameters for sprite size, bearing and transverse speed.
+        directionRng    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->period    = task->spawnArg1.value & PEPPER_SPRAY_SPARK_SIZE_MASK;
+        work->scale     = (directionRng >> 16) & (PEPPER_SPRAY_SPARK_ANGLE_TURN - 1);
+        gRandomLcgState = directionRng;
+        work->angle     = work->period >> PEPPER_SPRAY_SPARK_SIZE_TO_SPEED_SHIFT;
+        work->move.vx   = (rsin(work->scale) * work->angle) >> PEPPER_SPRAY_SPARK_TRIG_FRACTION_BITS;
+        verticalProduct = rcos(work->scale) * work->angle;
+        work->move.vz   = PEPPER_SPRAY_SPARK_FORWARD_SPEED;
+        work->move.vy   = verticalProduct >> PEPPER_SPRAY_SPARK_TRIG_FRACTION_BITS;
+        gte_SetRotMatrix(&playerCoord->coord);
+        gte_ldv0(&work->move);
+        gte_rtv0();
+        gte_stsv(&work->move);
+        task->state = PEPPER_SPRAY_SPARK_STATE_FLYING;
+    }
+
+    // Move even on initialization; refresh the cached translation before drawing.
+    sparkCoord->coord.t[0]  += work->move.vx;
+    sparkCoord->coord.t[1]  += work->move.vy;
+    sparkCoord->coord.t[2]  += work->move.vz;
+    sparkCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(sparkCoord);
+    if (!(work->age & 1)) {
+        work->index = work->index + 1;
+    }
+    if (work->index < PEPPER_SPRAY_SPARK_TEXTURE_FRAME_COUNT) {
+        spriteQuadDraw(sparkCoord, work->index, work->period, work->scale);
+        return;
+    }
+    effectKillTask(work, task);
+}
+
+/// Spark palette: VRAM X=272 words, Y=268 scanlines.
+#define SPRITE_QUAD_CLUT getClut(272, 268)
+/// Texel width and horizontal stride of each of the spark's eight texture frames.
+#define SPRITE_QUAD_CELL_WIDTH 32
+/// Inclusive top texel row of the spark strip, relative to its texture page.
+///
+/// Signed integer constant for the next drawer inclusion; see `sprite_quad.h`.
+#define SPRITE_QUAD_TOP_V 0x18
+/// Inclusive bottom texel row of the spark strip's square cells, relative to its texture page.
+#define SPRITE_QUAD_BOTTOM_V (SPRITE_QUAD_TOP_V + SPRITE_QUAD_CELL_WIDTH - 1)
+/// Perspective-sizing multiplier for the Pepper Spray spark.
+///
+/// Uses the cell's inclusive 31-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
+#define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
+#include "../../shared/effects/sprite_quad_draw.inc.c"

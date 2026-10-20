@@ -1,6 +1,38 @@
 # The assets of the group pe/apobiosis, each named pe/apobiosis/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
+[cast_1]
+type = "sound"
+sha1 = "b891d4fecda9d55ace5f17ecab648799fb0b22ca"
+
+[cast_2]
+type = "sound"
+mode = "high"
+sha1 = "5a19cf9953a5844eb75d8ec9e3be226d1d29e11e"
+
+[cast_3]
+type = "sound"
+mode = "high"
+sha1 = "7ff1520b9097a2c3dc8b6048f33abc3529006953"
+
+[cast_4]
+type = "sound"
+sha1 = "6776dac881f116d610e741b0f8ca2128715f862a"
+
+[cast_5]
+type = "sound"
+sha1 = "88dc37cefc853f2610b2d6b1d487fda05c0a9b49"
+
+[cast_6]
+type = "sound"
+sha1 = "cb9dec0f27845a539ba14f06fae64cb551580b92"
+
+[package]
+type = "pe2pkg"
+package_name = "apobiosis"
+required = true
+sha1 = "a004867a25fb41bf9a15a5d7dcccc266044467b0"
+
 [level1_item]
 type = "shaped"
 shape = "parasite_energy"
@@ -37,6 +69,24 @@ bpp = 8
 height = 96
 variants = ["default"]
 width = 128
+
+[level1_sounds]
+type = "sound_bank"
+samples = ["pe/apobiosis/cast_1", "pe/apobiosis/cast_3", "pe/apobiosis/cast_2"]
+sounds = { cast = 1 }
+sha1 = "2447eed75b11fa8f3d64b193a0c1c54d65f3be73"
+
+[level2_sounds]
+type = "sound_bank"
+samples = ["pe/apobiosis/cast_1", "pe/apobiosis/cast_3", "pe/apobiosis/cast_2"]
+sounds = { cast = 1 }
+sha1 = "8d01c227271c7b17df09022bfde11386ea80aefc"
+
+[level3_sounds]
+type = "sound_bank"
+samples = ["pe/apobiosis/cast_6", "pe/apobiosis/cast_5", "pe/apobiosis/cast_4"]
+sounds = { cast = 1 }
+sha1 = "a8a1ee2256b6e9000d3fdefa22d784c5d01c5acc"
 
 [level1_catalog]
 type = "txt"

@@ -710,12 +710,12 @@ enum {
     /// Whole PE effect bank type (14): stopped before a new PE bank is loaded and at
     /// stage init.
     SOUND_BANK_TYPE_PE_ALL = (s32)0xE0000000,
-    /// Ofuda effect sound, played as it starts and stopped if cancelled.
-    SOUND_OFUDA_USE = (s32)0xE03D0001,
-    /// Flare effect sound, played on the first frame and stopped if cancelled.
-    SOUND_FLARE_USE = (s32)0xE03E0001,
-    /// Pepper spray effect sound, played on start and stopped if cancelled.
-    SOUND_PEPPER_SPRAY_USE = (s32)0xE03F0001,
+    /// Flare effect sound, played as it starts and stopped if cancelled.
+    SOUND_FLARE_USE = (s32)0xE03D0001,
+    /// Pepper Spray effect sound, played on the first frame and stopped if cancelled.
+    SOUND_PEPPER_SPRAY_USE = (s32)0xE03E0001,
+    /// Combat Light effect sound, played on start and stopped if cancelled.
+    SOUND_COMBAT_LIGHT_USE = (s32)0xE03F0001,
 };
 
 #endif // MAIN_SOUND_IDS_H

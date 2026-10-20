@@ -5583,23 +5583,23 @@ objects = [
   { unit = "energyball/energyball", rodata = "0x4", text = "0x18", data = "0x224C", bss = "0x2270" },
 ]
 
-[pe.overlays.ofuda]
-id = 60
-objects = [
-  { kind = "packageId" },
-  { unit = "ofuda/ofuda", rodata = "0x4", text = "0x4" },
-]
-
 [pe.overlays.flare]
-id = 61
+id = 60
 objects = [
   { kind = "packageId" },
   { unit = "flare/flare", rodata = "0x4", text = "0x4" },
 ]
 
 [pe.overlays.pepper_spray]
+id = 61
+objects = [
+  { kind = "packageId" },
+  { unit = "pepper_spray/pepper_spray", rodata = "0x4", text = "0x4" },
+]
+
+[pe.overlays.combat_light]
 id = 62
 objects = [
   { kind = "packageId" },
-  { unit = "pepper_spray/pepper_spray", rodata = "0x4", text = "0x4", data = "0xC6C" },
+  { unit = "combat_light/combat_light", rodata = "0x4", text = "0x4", data = "0xC6C" },
 ]

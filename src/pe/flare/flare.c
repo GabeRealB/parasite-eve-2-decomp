@@ -1,162 +1,111 @@
 #include "pe/flare.h"
 
-#include <psyq/sys/types.h>
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/inline_c.h>
-#include <psyq/libgs.h>
-
-#include "gte.h"
-#include "types.h"
-
 #include "gameplay/display.h"
-#include "gameplay/actor_render.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/effects.h"
 #include "gameplay/room_effects.h"
-#include "gameplay/scene.h"
 #include "gameplay/world_coords.h"
 
 #include "main/coord.h"
-#include "main/display.h"
-#include "main/display_types.h"
-#include "main/random.h"
-#include "main/gfx.h"
-#include "main/gfx_types.h"
-#include "main/scratch.h"
-#include "main/session.h"
 #include "main/sound.h"
-#include "main/task.h"
-#include "main/task_types.h"
-#include "main/tmd_types.h"
-#include "../../shared/effects/sprite_quad.h"
 
 void flareEffectTask(Task* task)
 {
     enum {
-        FLARE_CAST_STATE_INITIALIZE       = 0,
-        FLARE_CAST_STATE_EMITTING         = 1,
-        FLARE_CAST_EMISSION_END_AGE       = 20,
-        FLARE_CAST_APPLY_STATS_AGE        = 8,
-        FLARE_CAST_RELEASE_AGE            = 36,
-        FLARE_CAST_SPARK_SIZE_BASE        = 0x680,
-        FLARE_CAST_SPARK_SIZE_JITTER_MASK = 0x1FF,
+        FLARE_STATE_INITIALIZE       = 0,
+        FLARE_STATE_GROW             = 1,
+        FLARE_STATE_FADE             = 2,
+        FLARE_GROWTH_FRAMES          = 30,
+        FLARE_BRIGHTNESS_MAX         = 255,
+        FLARE_INITIAL_DISC_RADIUS    = 0x100,
+        FLARE_INNER_BAND_BASE_RADIUS = 0x800,
+        FLARE_INNER_BAND_WIDTH       = 0x100,
+        FLARE_OUTER_BAND_BASE_RADIUS = 0xC00,
+        FLARE_OUTER_BAND_WIDTH       = 0xC0,
+        FLARE_FADE_BRIGHTNESS_STEP   = 8,
+        FLARE_FADE_RADIUS_STEP       = 0x30
     };
+    /// Draws the two concentric Flare discs and writes their pink RGB modulation.
+    ///
+    /// Borrows a composed GfxCoord and read-only EffectWork. Scale supplies
+    /// red, with green one quarter and blue one half; writes all three u8
+    /// output channels for the caller's bands or screen tint. Angle is the
+    /// disc radius in coordinate units; doubling narrows to s16. Arguments
+    /// must be stable, side-effect-free pointers and are read repeatedly.
+    /// Uses the current scratch stack, frame arena and ordering table, with
+    /// no captured caller identifiers.
+    /// Invoke inside a braced caller block.
+#define FLARE_DRAW_GLOW_DISCS(centreCoord, effectWork, rgbOutput)                           \
+    {                                                                                       \
+        (rgbOutput)[0] = (effectWork)->scale;                                               \
+        (rgbOutput)[1] = (effectWork)->scale >> 2;                                          \
+        (rgbOutput)[2] = (effectWork)->scale >> 1;                                          \
+        effectDrawGouraudDisc((centreCoord), (effectWork)->angle, (rgbOutput));             \
+        effectDrawGouraudDisc((centreCoord), (s16)((effectWork)->angle << 1), (rgbOutput)); \
+    }
     EffectWork*      work;
-    GfxCoord*        coord;
+    const GfxCoord*  effectCoord;
     AttachmentState* attachment;
-    s32              pan;
-    s16              age;
-    EffectWork*      spawned;
-    s32              sizeRng;
+    s32              soundPan;
+    s8               soundDepth;
+    u8               glowRgb[3];
 
-    attachment = &gAttachmentState;
-    work       = task->spawnArg2.pointer;
-    coord      = task->extra.coordBody->coord;
+    attachment  = &gAttachmentState;
+    work        = task->spawnArg2.pointer;
+    effectCoord = task->extra.coordBody->coord;
+    // A held attachment or any non-running PE control ends both sound and drawing.
     if ((attachment->effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING)) {
         sndEvtRequestScriptStop(SOUND_FLARE_USE, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         effectKillTask(work, task);
         return;
     }
-    work->age = work->age + 1;
-    if (task->state == FLARE_CAST_STATE_INITIALIZE) {
-        pan = (s8)worldCoordGetOriginAudioPan(coord);
-        sndEvtRequestScriptStart(SOUND_FLARE_USE, pan, (s8)worldCoordGetOriginAudioDepth(coord));
-        task->state = FLARE_CAST_STATE_EMITTING;
+
+    work->age++;
+    switch (task->state) {
+        case FLARE_STATE_INITIALIZE:
+            task->spawnArg1.value = FLARE_GROWTH_FRAMES;
+            work->scale           = 0;
+            work->angle           = FLARE_INITIAL_DISC_RADIUS;
+            work->step            = (FLARE_BRIGHTNESS_MAX + 1) / task->spawnArg1.value;
+            task->state           = FLARE_STATE_GROW;
+            // Normalize both spatial sound arguments to signed bytes before queuing.
+            soundPan   = (s8)worldCoordGetOriginAudioPan(effectCoord);
+            soundDepth = worldCoordGetOriginAudioDepth(effectCoord);
+            sndEvtRequestScriptStart(SOUND_FLARE_USE, soundPan, soundDepth);
+            return;
+        case FLARE_STATE_GROW:
+            // Brighten the discs while the two surrounding glow bands contract.
+            work->scale += work->step;
+            work->angle += work->step << 3;
+            task->spawnArg1.value--;
+            FLARE_DRAW_GLOW_DISCS(effectCoord, work, glowRgb);
+            effectDrawOuterGlowBand(effectCoord, (s16)((task->spawnArg1.value << 4) + FLARE_INNER_BAND_BASE_RADIUS), FLARE_INNER_BAND_WIDTH, glowRgb);
+            glowRgb[0] >>= 1;
+            glowRgb[1] >>= 1;
+            glowRgb[2] >>= 1;
+            effectDrawOuterGlowBand(effectCoord, (s16)((task->spawnArg1.value << 5) + FLARE_OUTER_BAND_BASE_RADIUS), FLARE_OUTER_BAND_WIDTH, glowRgb);
+            if (task->spawnArg1.value == 0) {
+                // Request the gameplay result after the final growth draw.
+                work->scale        = FLARE_BRIGHTNESS_MAX;
+                task->state        = FLARE_STATE_FADE;
+                work->period       = 0x600; // Retained phase value; this task never reads it.
+                work->step         = 0;
+                attachment->flags |= ATTACHMENT_FLAG_APPLY_STATS;
+            }
+            return;
+        case FLARE_STATE_FADE:
+            if (work->scale >= FLARE_FADE_BRIGHTNESS_STEP + 1) {
+                // Both screen passes use the brightness from before this update's decay.
+                FLARE_DRAW_GLOW_DISCS(effectCoord, work, glowRgb);
+                work->scale -= FLARE_FADE_BRIGHTNESS_STEP;
+                work->angle -= FLARE_FADE_RADIUS_STEP;
+                effectDrawScreenTint(glowRgb, GPU_BLEND_ADD);
+                effectDrawScreenTint(glowRgb, GPU_BLEND_ADD);
+                return;
+            }
+            effectKillTask(work, task);
+            return;
     }
-    age = work->age;
-    if (age < FLARE_CAST_EMISSION_END_AGE) {
-        if (age == FLARE_CAST_APPLY_STATS_AGE) {
-            attachment->flags |= ATTACHMENT_FLAG_APPLY_STATS;
-        }
-        sizeRng         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        gRandomLcgState = sizeRng;
-        spawned         = effectSpawn(EFFECT_FLARE_SPARK, coord, (((u32)sizeRng >> 16) & FLARE_CAST_SPARK_SIZE_JITTER_MASK) + FLARE_CAST_SPARK_SIZE_BASE, 0);
-        if (spawned != NULL) {
-            taskReparent(task, spawned->task);
-        }
-        return;
-    }
-    // Normal completion lets the cue finish; only cancellation stops it explicitly.
-    if (age == FLARE_CAST_RELEASE_AGE) {
-        effectKillTask(work, task);
-    }
+#undef FLARE_DRAW_GLOW_DISCS
 }
-
-void flareSparkTask(Task* task)
-{
-    enum {
-        FLARE_SPARK_STATE_INITIALIZE    = 0,
-        FLARE_SPARK_STATE_FLYING        = 1,
-        FLARE_SPARK_SIZE_MASK           = 0xFFF,
-        FLARE_SPARK_ANGLE_TURN          = 0x1000,
-        FLARE_SPARK_SIZE_TO_SPEED_SHIFT = 5,
-        FLARE_SPARK_TRIG_FRACTION_BITS  = 12,
-        FLARE_SPARK_FORWARD_SPEED       = 0x100,
-        FLARE_SPARK_TEXTURE_FRAME_COUNT = 8
-    };
-    EffectWork*     work;
-    GfxCoord*       sparkCoord;
-    const GfxCoord* playerCoord;
-    u32             directionRng;
-    s32             verticalProduct;
-
-    work       = task->spawnArg2.pointer;
-    sparkCoord = task->extra.coordBody->coord;
-    work->age  = work->age + 1;
-    if (task->state == FLARE_SPARK_STATE_INITIALIZE) {
-        // Keep the spawn translation and orient the spark in the player's local frame.
-        playerCoord = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
-        gfxCopyRotationWords(&sparkCoord->coord, &playerCoord->coord);
-        sparkCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(sparkCoord);
-
-        // Reuse the effect parameters for sprite size, bearing and transverse speed.
-        directionRng    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->period    = task->spawnArg1.value & FLARE_SPARK_SIZE_MASK;
-        work->scale     = (directionRng >> 16) & (FLARE_SPARK_ANGLE_TURN - 1);
-        gRandomLcgState = directionRng;
-        work->angle     = work->period >> FLARE_SPARK_SIZE_TO_SPEED_SHIFT;
-        work->move.vx   = (rsin(work->scale) * work->angle) >> FLARE_SPARK_TRIG_FRACTION_BITS;
-        verticalProduct = rcos(work->scale) * work->angle;
-        work->move.vz   = FLARE_SPARK_FORWARD_SPEED;
-        work->move.vy   = verticalProduct >> FLARE_SPARK_TRIG_FRACTION_BITS;
-        gte_SetRotMatrix(&playerCoord->coord);
-        gte_ldv0(&work->move);
-        gte_rtv0();
-        gte_stsv(&work->move);
-        task->state = FLARE_SPARK_STATE_FLYING;
-    }
-
-    // Move even on initialization; refresh the cached translation before drawing.
-    sparkCoord->coord.t[0]  += work->move.vx;
-    sparkCoord->coord.t[1]  += work->move.vy;
-    sparkCoord->coord.t[2]  += work->move.vz;
-    sparkCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(sparkCoord);
-    if (!(work->age & 1)) {
-        work->index = work->index + 1;
-    }
-    if (work->index < FLARE_SPARK_TEXTURE_FRAME_COUNT) {
-        spriteQuadDraw(sparkCoord, work->index, work->period, work->scale);
-        return;
-    }
-    effectKillTask(work, task);
-}
-
-/// Spark palette: VRAM X=272 words, Y=268 scanlines.
-#define SPRITE_QUAD_CLUT getClut(272, 268)
-/// Texel width and horizontal stride of each of the spark's eight texture frames.
-#define SPRITE_QUAD_CELL_WIDTH 32
-/// Inclusive top texel row of the spark strip, relative to its texture page.
-///
-/// Signed integer constant for the next drawer inclusion; see `sprite_quad.h`.
-#define SPRITE_QUAD_TOP_V 0x18
-/// Inclusive bottom texel row of the spark strip's square cells, relative to its texture page.
-#define SPRITE_QUAD_BOTTOM_V (SPRITE_QUAD_TOP_V + SPRITE_QUAD_CELL_WIDTH - 1)
-/// Perspective-sizing multiplier for the flare spark.
-///
-/// Uses the cell's inclusive 31-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
-#define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
-#include "../../shared/effects/sprite_quad_draw.inc.c"

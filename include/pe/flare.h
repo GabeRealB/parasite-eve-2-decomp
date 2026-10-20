@@ -3,33 +3,23 @@
 
 #include "main/task_types.h"
 
-/// Advances and draws one spark from the Flare Parasite Energy effect.
+/// Runs the Flare's expanding pink glow, delayed gameplay result and fading screen flash.
 ///
-/// Requires a live coordinate-body task and the zero-initialized, counted
-/// `EffectWork` allocated by `effectSpawn` in `spawnArg2.pointer`.
-/// `spawnArg1.value` supplies a perspective-size numerator in its low 12 bits;
-/// the Flare emitter supplies 1664..2175. Initialization preserves the spawn
-/// translation and borrows the live player's root rotation to orient a constant
-/// velocity: forward speed 256 coordinate units per update and transverse speed
-/// size / 32, with a random bearing in 4096 units per turn. The same bearing
-/// rotates the camera-facing sprite.
+/// Bank 6, slot 0x198 requires a live coordinate-body task and one counted,
+/// zero-initialized `EffectWork` owned through `Task::spawnArg2.pointer`.
+/// Start at state 0; `spawnArg1.value` becomes the remaining growth updates.
+/// The Flare overlay and the room-effect controller must remain live while
+/// the callback runs. Its coordinate's view-space cache must be composed;
+/// drawing requires the current scratch stack, primitive arena and ordering table.
 ///
-/// Motion starts on the first update. Texture cells 0..7 advance every second
-/// update; the sixteenth update releases the counted work and retires the task.
-/// The Flare overlay must remain loaded while this callback can run.
-void flareSparkTask(Task* task);
-
-/// Runs the Flare item's sound cue and shower of child sparks.
-///
-/// Requires a counted coordinate-body effect with cleared, owned `EffectWork`
-/// in `spawnArg2.pointer`. Ages 1..19 each attempt one spark with random size
-/// 1664..2175, and age 8 requests attachment stat application. Each successful
-/// spark becomes a child of this task. Age 36 retires the task; the normal
-/// completion path leaves the sound script playing out.
-///
-/// A held attachment or any nonzero PE effect control stops the cue and
-/// retires the task immediately. Its coordinate chain, player and Flare overlay
-/// must remain live until teardown.
+/// After initialization, 30 updates grow the discs and contract two glow bands,
+/// then request attachment-stat application. Subsequent updates shrink and dim
+/// the discs while drawing two additive screen tints. `EffectWork::scale` is
+/// byte brightness, `angle` is the radial drawers' signed sizing input and
+/// `step` is the growth increment; `age` counts callback updates.
+/// A held attachment or non-running PE control stops the sound and releases
+/// immediately. Normal completion releases the counted work and task after
+/// the brightness drops below 9. Do not use either after release.
 void flareEffectTask(Task* task);
 
 #endif // INCLUDE_PE_FLARE_H

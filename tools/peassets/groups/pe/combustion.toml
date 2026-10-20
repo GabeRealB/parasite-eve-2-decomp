@@ -1,6 +1,31 @@
 # The assets of the group pe/combustion, each named pe/combustion/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
+[package]
+type = "pe2pkg"
+package_name = "combustion"
+required = true
+sha1 = "cc464b5d816857e49e5177238bf69b0b56483d78"
+
+[ignition_1]
+type = "sound"
+mode = "high"
+sha1 = "2f4de092098bb87766288d6c0c993939a9ffd89c"
+
+[ignition_2]
+type = "sound"
+sha1 = "0b85ea306735ec8808980ccab3423e42d08b7909"
+
+[ignition_3]
+type = "sound"
+mode = "low"
+sha1 = "cac6abf76bef2dc871a939a90e81e21a387ee861"
+
+[ignition_4]
+type = "sound"
+mode = "high"
+sha1 = "84d65dd36f967da194082b242574da29d7c41474"
+
 [level1_item]
 type = "shaped"
 shape = "parasite_energy"
@@ -37,6 +62,24 @@ bpp = 8
 height = 96
 variants = ["default"]
 width = 128
+
+[level1_sounds]
+type = "sound_bank"
+samples = ["pe/combustion/ignition_1", "pe/combustion/ignition_2"]
+sounds = { ignition = 2 }
+sha1 = "918e8348f4824975a3c0145f85fd3b6ed9f0c6ff"
+
+[level2_sounds]
+type = "sound_bank"
+samples = ["pe/combustion/ignition_3", "pe/combustion/ignition_4"]
+sounds = { ignition = 2 }
+sha1 = "25c3f1272ed299740781dbb51e052f24cce0c66e"
+
+[level3_sounds]
+type = "sound_bank"
+samples = ["pe/combustion/ignition_3", "pe/combustion/ignition_4"]
+sounds = { ignition = 2 }
+sha1 = "cffae3f2147b46644cd6d0eabb63a4754223832d"
 
 [level1_catalog]
 type = "txt"

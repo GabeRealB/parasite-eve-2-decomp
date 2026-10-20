@@ -5591,7 +5591,7 @@ cross-jump. Do not reach for a barrier here.
 
 ## `SOFT_TOUCH_REG` the stack-arg pointer after `COPY_REG_EC` so `addiu a3` does not steal an RGB load-delay
 
-Ofuda / healing force an independent call arg (`span = 0xC0; TOUCH_REG(span)`)
+Flare / healing force an independent call arg (`span = 0xC0; TOUCH_REG(span)`)
 immediately after `COPY_REG_EC(c, coord)`, which emits `move a0, s0` then
 `li a2, 0xC0` and leaves the RGB-half's `srl` to fill `lbu 0x11`'s delay.
 `plasmaCastTask` has no constant span on that path: the 4th arg is
@@ -5785,7 +5785,7 @@ mem->field_26 = (u16)mem->field_26 + (copy << 3);
 `+&r` / `"r"` overlap is forbidden, so reload emits `move` and frees the
 source register for the following load. `COPY_REG` / `TOUCH_REG` / `USE_REG`
 do not: empty `"=r"(dst) : "r"(src)` does not copy, and `+r` without `&`
-still coalesces. `func_ofuda_8012EF34` is the example.
+still coalesces. `func_flare_8012EF34` is the example.
 
 The same `COPY_REG_EC` is also how to emit `move a0, s1` *before* a
 `SOFT_COMPILER_BARRIER()` that is holding a later byte load in place (unsigned
@@ -5832,7 +5832,7 @@ ang         = ang & 0xFFF;
 ```
 
 This is a CFG fence, not a wrapper around `TOUCH_REG` / `SCHED_BARRIER`.
-`flareSparkTask` is the example.
+`pepperSpraySparkTask` is the example.
 
 ## `SCHED_BARRIER` then `TOUCH_REG` on first-call `$a0`/`$a3` copies
 
@@ -31989,7 +31989,7 @@ move   v0, s3
 
 Which of the two orders a given function wants is decided by how much else is
 ready to schedule there, so try both before reaching for a pin -
-`func_flare_8012F304` needed the store last where the otherwise identical
+`func_pepper_spray_8012F304` needed the store last where the otherwise identical
 `effectDrawSpinningBillboard` wants it before the `vz` store. Note that a
 `register SVECTOR* v asm("v0")` pin *does* produce the `move`, but only lands
 it correctly when declared between the two `gte_Set*Matrix` calls, and any
@@ -62341,7 +62341,7 @@ locals cost no instructions.
 
 ## Back-to-back writes to the same global lose the first store unless a pointer store separates them
 
-`pepperSprayEffectTask` draws twice from the LCG before it uses either
+`combatLightEffectTask` draws twice from the LCG before it uses either
 value:
 
 ```c
@@ -62916,7 +62916,7 @@ prim offsets `0x7` / `0xE` / `0x16` are the code byte, CLUT and tpage.
 
 ## A reloaded `prim->code` byte means the `setPolyFT4` is far from the `setSemiTrans`
 
-`_pepperSprayDrawOriginBillboard` sets up a `POLY_FT4` in two places: the tag length
+`_combatLightDrawOriginBillboard` sets up a `POLY_FT4` in two places: the tag length
 and code are written before the `gte_stflg` test, and the semi-transparent /
 raw-texture bits are only set inside the `if`, after the UVs. The object dump
 shows that split directly:
@@ -62930,7 +62930,7 @@ ori   v0,v0,0x3
 sb    v0,7(s3)
 ```
 
-The matched sibling `func_flare_8012F304` has `setPolyFT4` / `setSemiTrans` /
+The matched sibling `func_pepper_spray_8012F304` has `setPolyFT4` / `setSemiTrans` /
 `setShadeTex` adjacent and compiles to a *single* `li 0x2F; sb`: GCC 2.8.1
 constant-folds `0x2C | 2 | 1` through the three `setcode` read-modify-writes
 when nothing intervenes, and emits one store. So the shape of the `code` byte
@@ -63357,7 +63357,7 @@ back across the calls and push the variable to a callee-saved register.
 
 ## Two locals pinned to the same hard register reproduce a reused-register anti-dependence
 
-**Problem.** The scratch-block prologue that `func_flare_8012F304` matches with
+**Problem.** The scratch-block prologue that `func_pepper_spray_8012F304` matches with
 
 ```c
 ((FlareQuadScratch*)(head - 0x1C))->vec.vx = *(u16*)&arg0->workm.t[0];
@@ -144124,7 +144124,7 @@ had spelled as `setcode(p, 0x2D)`. When a sibling in the same file builds its
 prims with these macros, write the new one the same way before reaching for
 anything else (`uiDrawVerticalSeparator`).
 
-## `lhu` then `sll 17; sra 16` is `(s16)(field << 1)`, not a `(u16)` cast (ofudaEffectTask, 2026-09-26)
+## `lhu` then `sll 17; sra 16` is `(s16)(field << 1)`, not a `(u16)` cast (flareEffectTask, 2026-09-26)
 
 Doubling an `s16` field into an `s16` argument loads it with `lhu` in the ROM.
 `(s16)(f * 2)` keeps the `lh`; `(s16)(f << 1)` lets combine see that the shift

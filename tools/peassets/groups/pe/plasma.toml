@@ -1,6 +1,30 @@
 # The assets of the group pe/plasma, each named pe/plasma/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
+[cast_1]
+type = "sound"
+sha1 = "c0c0e4e4328d76d8e7e99b945452013ee9aa450f"
+
+[cast_2]
+type = "sound"
+sha1 = "120be1591cf2d0edf6fb9705ea0b1c227e204070"
+
+[cast_3]
+type = "sound"
+mode = "low"
+sha1 = "83e0f6290dbb6dbf37e6f69b3017b672fa6bcc2d"
+
+[cast_4]
+type = "sound"
+mode = "low"
+sha1 = "16fd0fc3efbb59906cbf12d92a0537a58d2e8054"
+
+[package]
+type = "pe2pkg"
+package_name = "plasma"
+required = true
+sha1 = "ff0336504cd31f9a3cc768e4d2308cb2382a990c"
+
 [level1_item]
 type = "shaped"
 shape = "parasite_energy"
@@ -37,6 +61,24 @@ bpp = 8
 height = 96
 variants = ["default"]
 width = 128
+
+[level1_sounds]
+type = "sound_bank"
+samples = ["pe/plasma/cast_1", "pe/plasma/cast_2"]
+sounds = { cast = 1 }
+sha1 = "f8f9936497ac27b770b2265024f62f2ebd3c6fe3"
+
+[level2_sounds]
+type = "sound_bank"
+samples = ["pe/plasma/cast_4", "pe/plasma/cast_3"]
+sounds = { cast = 1 }
+sha1 = "4ebb0f47c9d6cff91b4fcd1ba9d2518bad1ee895"
+
+[level3_sounds]
+type = "sound_bank"
+samples = ["pe/plasma/cast_4", "pe/plasma/cast_3"]
+sounds = { cast = 1 }
+sha1 = "aaf2bc6a5b9732429ac8a6016bf1e9ba308b8881"
 
 [level1_catalog]
 type = "txt"

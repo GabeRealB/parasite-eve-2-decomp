@@ -1,6 +1,36 @@
 # The assets of the group pe/antibody, each named pe/antibody/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
+[cast_1]
+type = "sound"
+sha1 = "d9e425acbd7654c1d3be17c8db47ec8dda537a44"
+
+[cast_2]
+type = "sound"
+mode = "high"
+sha1 = "26f0dd5cdc5e09316f219db1cac468777556dd70"
+
+[cast_3]
+type = "sound"
+mode = "high"
+sha1 = "b414cb5d37de684c931ef76af39feca02ef891e2"
+
+[cast_4]
+type = "sound"
+mode = "low"
+sha1 = "ba0d04b93e60422d6c3ac051eb56985333ac0fae"
+
+[cast_5]
+type = "sound"
+mode = "low"
+sha1 = "9e0ee7c64801247db35326ac148d7803f620538e"
+
+[package]
+type = "pe2pkg"
+package_name = "antibody"
+required = true
+sha1 = "dbc60279b3bb43536fe5f3f540a451f6ab8c4273"
+
 [level1_item]
 type = "shaped"
 shape = "parasite_energy"
@@ -37,6 +67,24 @@ bpp = 8
 height = 96
 variants = ["default"]
 width = 128
+
+[level1_sounds]
+type = "sound_bank"
+samples = ["pe/antibody/cast_1", "pe/antibody/cast_3", "pe/antibody/cast_2"]
+sounds = { cast = 1 }
+sha1 = "1b145ba6656a2fa2088d2bbc06ee3e6c2c465668"
+
+[level2_sounds]
+type = "sound_bank"
+samples = ["pe/antibody/cast_1", "pe/antibody/cast_3", "pe/antibody/cast_4"]
+sounds = { cast = 1 }
+sha1 = "2810c0f152ad08405bb18cc988c8801b3f17cedf"
+
+[level3_sounds]
+type = "sound_bank"
+samples = ["pe/antibody/cast_1", "pe/antibody/cast_3", "pe/antibody/cast_5"]
+sounds = { cast = 1 }
+sha1 = "3788af57c0730df3351aabcf2d70a9e7a83d037b"
 
 [level1_catalog]
 type = "txt"

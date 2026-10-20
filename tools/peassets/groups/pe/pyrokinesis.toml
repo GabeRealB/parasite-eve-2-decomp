@@ -1,6 +1,34 @@
 # The assets of the group pe/pyrokinesis, each named pe/pyrokinesis/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
+[cast_1]
+type = "sound"
+sha1 = "2dd8533236da66dd625842521494eda5640331a4"
+
+[cast_2]
+type = "sound"
+sha1 = "fdf8a4de47e0da6e44794109d4bac7c138186f2a"
+
+[cast_3]
+type = "sound"
+mode = "high"
+sha1 = "9f69c3c476f5a3c0ca5b4931938c30c9bc53b2ea"
+
+[cast_4]
+type = "sound"
+mode = "high"
+sha1 = "f1abf8955654822d9e2d6da1d790708aa4174208"
+
+[cast_5]
+type = "sound"
+sha1 = "769b74d35ef11c2c2224e110ad7be194276e9066"
+
+[package]
+type = "pe2pkg"
+package_name = "pyrokinesis"
+required = true
+sha1 = "a74327b69e3c2e964a76f9e810afb43c23ed765d"
+
 [level1_item]
 type = "shaped"
 shape = "parasite_energy"
@@ -37,6 +65,24 @@ bpp = 8
 height = 96
 variants = ["default"]
 width = 128
+
+[level1_sounds]
+type = "sound_bank"
+samples = ["pe/pyrokinesis/cast_1", "pe/pyrokinesis/cast_2"]
+sounds = { cast = 2 }
+sha1 = "0cc1b2ad53f75b798574a95e79c561682955b312"
+
+[level2_sounds]
+type = "sound_bank"
+samples = ["pe/pyrokinesis/cast_3"]
+sounds = { cast = 2 }
+sha1 = "b720dbfc84bf0d7b83cde7385eece372dd89b293"
+
+[level3_sounds]
+type = "sound_bank"
+samples = ["pe/pyrokinesis/cast_4", "pe/pyrokinesis/cast_5"]
+sounds = { cast_first = 2, cast_second = 3, cast_third = 4 }
+sha1 = "22a42a36cf334819c2e78a63d1daf9863dd4a782"
 
 [level1_catalog]
 type = "txt"

@@ -190,7 +190,7 @@ gameplay	optional	event: ending	21000	0	0	CD_COMMAND_LOAD_DEFAULT	src/gameplay/s
 #   on the current view file, only when gCdCmdViewSeekPending is set; it positions the drive and loads nothing.
 # _sndLoadTryEnqueuePeFile (scene_runtime.c:1299) queues a group-5 file with CD_COMMAND_LOAD_SEEK_ONLY and has no caller under src/.
 # _attachmentEnqueueBattleSoundLoad (hud_sprites.c:1274) has no caller; attachmentSoundLoadStub (hud_sprites.c:1255) loads nothing, so the item-use paths for
-#   indices 46, 49, 52 (item_use.c:365, 372) queue no file from gameplay: 50146 (ofuda), 50149 (flare), 50152 (pepper_spray) and 50100 have no loader in src/gameplay.
+#   indices 46, 49, 52 (item_use.c:365, 372) queue no file from gameplay: 50146 (flare), 50149 (pepper_spray), 50152 (combat_light) and 50100 have no loader in src/gameplay.
 # itemMenuEnqueuePreviewLoad re-queues saved requests through _cdCmdEnqueueEntry (menu_armor.c:544); those are copies of requests already listed, not new files.
 # loadingUploadCachedViewImage / loadingRestoreViewImageAndEnqueueResources upload a view image retained in gFsResourceSlots with fsUploadImageChunk, without a file load.
 # --- Gameplay loaders called from other packages (their lines belong to those loaders)

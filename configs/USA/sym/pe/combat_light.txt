@@ -1,0 +1,5 @@
+
+combatLightEffectTask = 0x8012EF34; // type:func
+_combatLightDrawOriginBillboard = 0x8012f21c; // type:func
+_combatLightDrawConeQuad = 0x8012f634; // type:func
+_gCombatLightConeAzimuths = 0x8012fb9c;

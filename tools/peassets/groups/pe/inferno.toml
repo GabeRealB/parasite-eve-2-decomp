@@ -1,6 +1,31 @@
 # The assets of the group pe/inferno, each named pe/inferno/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
+[cast_1]
+type = "sound"
+mode = "low"
+sha1 = "d6688a553041ad5962aeda5f6e4264455e562f34"
+
+[cast_2]
+type = "sound"
+sha1 = "8b1cb5e1eb6be0781f46f11f27b90a9203894994"
+
+[cast_3]
+type = "sound"
+mode = "high"
+sha1 = "d1087fd91fc993d55022efadbf8fdcb4c6cdf301"
+
+[cast_4]
+type = "sound"
+mode = "high"
+sha1 = "a3a6f88b4ef3f9ba7a3be59e72c633ca4b9faf32"
+
+[package]
+type = "pe2pkg"
+package_name = "inferno"
+required = true
+sha1 = "0b3a6684bb6e60e5f2994ae8a9390bcf6c4c8964"
+
 [level1_item]
 type = "shaped"
 shape = "parasite_energy"
@@ -37,6 +62,24 @@ bpp = 8
 height = 96
 variants = ["default"]
 width = 128
+
+[level1_sounds]
+type = "sound_bank"
+samples = ["pe/inferno/cast_1", "pe/inferno/cast_2"]
+sounds = { cast = 1 }
+sha1 = "7ec050201f4d1ce0ca6a9f65b2d4cff94878986d"
+
+[level2_sounds]
+type = "sound_bank"
+samples = ["pe/inferno/cast_1", "pe/inferno/cast_2"]
+sounds = { cast = 1 }
+sha1 = "632d88928aed182c7b821786a97a75c00315ae8a"
+
+[level3_sounds]
+type = "sound_bank"
+samples = ["pe/inferno/cast_3", "pe/inferno/cast_4"]
+sounds = { cast = 1 }
+sha1 = "00c8f130738b876a5901ed1a20c909f2a209fb88"
 
 [level1_catalog]
 type = "txt"

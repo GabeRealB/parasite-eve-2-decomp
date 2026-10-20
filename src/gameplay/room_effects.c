@@ -43,6 +43,8 @@
 
 #include "pe/apobiosis.h"
 
+#include "pe/combat_light.h"
+
 #include "pe/combustion.h"
 
 #include "pe/energyball.h"
@@ -60,8 +62,6 @@
 #include "pe/metabolism.h"
 
 #include "pe/necrosis.h"
-
-#include "pe/ofuda.h"
 
 #include "pe/pepper_spray.h"
 
@@ -940,14 +940,14 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, neoArkSubmarineGalleryWaterDriftTaskU16, { NULL } },                                // 0x194
     { { { TASK_BODY_COORD, 0x70 } }, shelterR48PinkRingFlashTask, { NULL } },                                            // 0x195
     { { { TASK_BODY_COORD, 0x70 } }, shelterB3GarbageIncineratorEffectSpriteDriftTaskAimed, { NULL } },                  // 0x196
-    { { { TASK_BODY_COORD, 0x70 } }, pepperSprayEffectTask, { NULL } },                                                  // 0x197
-    { { { TASK_BODY_COORD, 0x70 } }, ofudaEffectTask, { NULL } },                                                        // 0x198
+    { { { TASK_BODY_COORD, 0x70 } }, combatLightEffectTask, { NULL } },                                                  // 0x197
+    { { { TASK_BODY_COORD, 0x70 } }, flareEffectTask, { NULL } },                                                        // 0x198
     { { { TASK_BODY_COORD, 0x70 } }, shelterB3DumpingHoleEffectSpriteDriftTaskAimed, { NULL } },                         // 0x199
     { { { TASK_BODY_COORD, 0x70 } }, shelterB3DumpingHoleGluttonRainParticleTask, { NULL } },                            // 0x19A
     { { { TASK_BODY_COORD, 0x70 } }, shelterB3DumpingHoleGluttonRainBlobTask, { NULL } },                                // 0x19B
     { { { TASK_BODY_COORD, 0x70 } }, shelterB3GarbageIncineratorEffectSpriteDebrisTask, { NULL } },                      // 0x19C
-    { { { TASK_BODY_COORD, 0x70 } }, flareEffectTask, { NULL } },                                                        // 0x19D
-    { { { TASK_BODY_COORD, 0x70 } }, flareSparkTask, { NULL } },                                                         // 0x19E
+    { { { TASK_BODY_COORD, 0x70 } }, pepperSprayEffectTask, { NULL } },                                                  // 0x19D
+    { { { TASK_BODY_COORD, 0x70 } }, pepperSpraySparkTask, { NULL } },                                                   // 0x19E
     { { { TASK_BODY_COORD, 0x70 } }, mistShootingGalleryDrawLightGlowsTask, { NULL } },                                  // 0x19F
     { { { TASK_BODY_COORD, 0x70 } }, combustionCastTask, { NULL } },                                                     // 0x1A0
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6GrowthRoomMistTask, { NULL } },                                            // 0x1A1

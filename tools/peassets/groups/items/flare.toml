@@ -26,9 +26,31 @@ shape = "effect_item"
 type = "txt"
 sha1 = "9f42a609a39c674db785b2519c3a7e015822f5db"
 
+[use_1]
+type = "sound"
+mode = "low"
+sha1 = "2f54ad8fbd1cd1505b576455f8e0064c762a1bb8"
+
+[use_2]
+type = "sound"
+mode = "low"
+sha1 = "c65e9d02ced5fe9cece076bb26758bcdb4dbbb33"
+
+[sounds]
+type = "sound_bank"
+samples = ["items/flare/use_2", "items/flare/use_1"]
+sounds = { use = 1 }
+sha1 = "6e01cab1454a37210f6f753ecbc743d7a837de3a"
+
 [catalog]
 type = "txt"
 sha1 = "58ee1b88b0046e4696e2815d3ad0d75201aa3b9d"
+
+[package]
+type = "pe2pkg"
+package_name = "flare"
+required = true
+sha1 = "a8579b08123ab14835dd2bbae1334d256a53c2bb"
 
 [texture]
 type = "texture"

@@ -1,3 +1,0 @@
-// Overlay-local symbols for ofuda.
-gOfudaId = 0x8012EF30;
-ofudaEffectTask = 0x8012EF34; // type:func

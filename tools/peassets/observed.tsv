@@ -10095,114 +10095,114 @@ weapons/m93r/shot	played	trace-20261012-152043	session 1	1	acropolis_patio	1	1		
 weapons/m93r/shot	played	trace-20261012-152043	session 1	1	acropolis_patio	3	2			0/m93r	0	0	0	weapons/m93r/sounds entry 0x04	
 weapons/m93r/shot	played	trace-20261012-152043	session 1	1	acropolis_patio	3	3			0/m93r	0	0	0	weapons/m93r/sounds entry 0x04	
 weapons/m93r/shot	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x04	
-spk_47	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1			0/file50101	0	0	0	entry 0x02	
-spk_47	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/file50101	0	0	0	entry 0x02	
-spk_47	played	trace-20261012-152043	session 1	1	acropolis_patio	3	4			0/file50101	0	0	0	entry 0x02	
-spk_47	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1		0x6f810-0x72d0f	0/file50101	0	0	0	bank 0xe00b descriptor 8	freed by sndBankAllocTables at event 3089
-spk_47	sound memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1		0x6f810-0x72d0f	0/file50101	0	0	0	bank 0xe00b descriptor 8	freed by sndBankAllocTables at event 40915
-spk_47	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	3	4		0x6f810-0x72d0f	0/file50101	0	0	0	bank 0xe00b descriptor 8	freed by sndBankAllocTables at event 18218
-spk_47_sample_00	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1			0/file50101	0	0	0	spk_47 entry 0x02	
-spk_47_sample_00	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/file50101	0	0	0	spk_47 entry 0x02	
-spk_47_sample_00	played	trace-20261012-152043	session 1	1	acropolis_patio	3	4			0/file50101	0	0	0	spk_47 entry 0x02	
-spk_47_sample_01	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1			0/file50101	0	0	0	spk_47 entry 0x02	
-spk_47_sample_01	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/file50101	0	0	0	spk_47 entry 0x02	
-spk_47_sample_01	played	trace-20261012-152043	session 1	1	acropolis_patio	3	4			0/file50101	0	0	0	spk_47 entry 0x02	
-spk_56	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/file50110	0	0	0	entry 0x01	
-spk_56	sound memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1		0x6f810-0x733cf	0/file50110	0	0	0	bank 0xe015 descriptor 8	freed by sndBankAllocTables at event 31055
-spk_56_sample_00	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/file50110	0	0	0	spk_56 entry 0x01	
-spk_68	sound memory	trace-20261012-145054	session 1						0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-145054	session 1	1	acropolis_plaza	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-145054	session 1	1	akropolis_square	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-145054	session 1	1	akropolis_square	7	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-145054	session 1	1	acropolis_west_elevator_hall	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-145054	session 1	1	mist_parking	2	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1						0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_bridge	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_bridge	1	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_bridge	2	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_bridge	2	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	4		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	freed by sndBankAllocTables at event 2595
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	4		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_east_elevator_hall	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_east_elevator_hall	1	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	4		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_fountain	2	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_fountain	2	4		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	4		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	freed by sndBankAllocTables at event 30416
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_observatory	2	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_observatory	2	4		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	1	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	1	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	1	4		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	2	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	3	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	3	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	3	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	3	4		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	3	4		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	freed by sndBankAllocTables at event 18137
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	freed by sndBankAllocTables at event 12130
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	120	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	96	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	4		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	akropolis_square	1	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	akropolis_square	1	4		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	mist_parking	1	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	mist_parking	3	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	mist_parking	3	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_68	sound memory	trace-20261012-152043	session 1	1	mist_r18	1	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
-spk_77	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/file50131	0	0	0	entry 0x01	
-spk_77	sound memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1		0x6f810-0x7354f	0/file50131	0	0	0	bank 0xe02a descriptor 8	freed by sndBankAllocTables at event 35726
-spk_77_sample_00	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/file50131	0	0	0	spk_77 entry 0x01	
-spk_77_sample_02	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/file50131	0	0	0	spk_77 entry 0x01	
-spk_77_sample_03	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/file50131	0	0	0	spk_77 entry 0x01	
-spk_84	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/file50149	0	0	0	entry 0x01	
-spk_84	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	1		0x6f810-0x7330f	0/file50149	0	0	0	bank 0xe03e descriptor 8	freed by sndBankAllocTables at event 12267
-spk_84_sample_00	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/file50149	0	0	0	spk_84 entry 0x01	
+pe/pyrokinesis/level1_sounds	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1			0/file50101	0	0	0	entry 0x02	
+pe/pyrokinesis/level1_sounds	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/file50101	0	0	0	entry 0x02	
+pe/pyrokinesis/level1_sounds	played	trace-20261012-152043	session 1	1	acropolis_patio	3	4			0/file50101	0	0	0	entry 0x02	
+pe/pyrokinesis/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1		0x6f810-0x72d0f	0/file50101	0	0	0	bank 0xe00b descriptor 8	freed by sndBankAllocTables at event 3089
+pe/pyrokinesis/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1		0x6f810-0x72d0f	0/file50101	0	0	0	bank 0xe00b descriptor 8	freed by sndBankAllocTables at event 40915
+pe/pyrokinesis/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	3	4		0x6f810-0x72d0f	0/file50101	0	0	0	bank 0xe00b descriptor 8	freed by sndBankAllocTables at event 18218
+spk_47_sample_00	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1			0/file50101	0	0	0	pe/pyrokinesis/level1_sounds entry 0x02	
+spk_47_sample_00	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/file50101	0	0	0	pe/pyrokinesis/level1_sounds entry 0x02	
+spk_47_sample_00	played	trace-20261012-152043	session 1	1	acropolis_patio	3	4			0/file50101	0	0	0	pe/pyrokinesis/level1_sounds entry 0x02	
+spk_47_sample_01	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1			0/file50101	0	0	0	pe/pyrokinesis/level1_sounds entry 0x02	
+spk_47_sample_01	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/file50101	0	0	0	pe/pyrokinesis/level1_sounds entry 0x02	
+spk_47_sample_01	played	trace-20261012-152043	session 1	1	acropolis_patio	3	4			0/file50101	0	0	0	pe/pyrokinesis/level1_sounds entry 0x02	
+pe/necrosis/level1_sounds	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/file50110	0	0	0	entry 0x01	
+pe/necrosis/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1		0x6f810-0x733cf	0/file50110	0	0	0	bank 0xe015 descriptor 8	freed by sndBankAllocTables at event 31055
+spk_56_sample_00	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/file50110	0	0	0	pe/necrosis/level1_sounds entry 0x01	
+pe/healing/level1_sounds	sound memory	trace-20261012-145054	session 1						0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-145054	session 1	1	acropolis_plaza	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-145054	session 1	1	akropolis_square	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-145054	session 1	1	akropolis_square	7	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-145054	session 1	1	acropolis_west_elevator_hall	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-145054	session 1	1	mist_parking	2	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1						0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_bridge	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_bridge	1	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_bridge	2	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_bridge	2	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	4		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	freed by sndBankAllocTables at event 2595
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	4		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_east_elevator_hall	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_east_elevator_hall	1	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	4		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_fountain	2	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_fountain	2	4		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	4		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	freed by sndBankAllocTables at event 30416
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_observatory	2	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_observatory	2	4		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	1	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	1	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	1	4		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	2	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	3	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	3	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	3	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	3	4		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	3	4		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	freed by sndBankAllocTables at event 18137
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	freed by sndBankAllocTables at event 12130
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	120	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	96	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	4		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	akropolis_square	1	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	akropolis_square	1	4		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	mist_parking	1	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	mist_parking	3	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	mist_parking	3	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/healing/level1_sounds	sound memory	trace-20261012-152043	session 1	1	mist_r18	1	2		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+pe/energyshot/level1_sounds	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/file50131	0	0	0	entry 0x01	
+pe/energyshot/level1_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1		0x6f810-0x7354f	0/file50131	0	0	0	bank 0xe02a descriptor 8	freed by sndBankAllocTables at event 35726
+spk_77_sample_00	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/file50131	0	0	0	pe/energyshot/level1_sounds entry 0x01	
+spk_77_sample_02	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/file50131	0	0	0	pe/energyshot/level1_sounds entry 0x01	
+spk_77_sample_03	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/file50131	0	0	0	pe/energyshot/level1_sounds entry 0x01	
+items/pepper_spray/sounds	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/file50149	0	0	0	entry 0x01	
+items/pepper_spray/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	1		0x6f810-0x7330f	0/file50149	0	0	0	bank 0xe03e descriptor 8	freed by sndBankAllocTables at event 12267
+spk_84_sample_00	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/file50149	0	0	0	items/pepper_spray/sounds entry 0x01	
 spk_89	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3			0/file300700	2	4	0	entry 0x01	
 spk_89	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3			0/file300700	2	4	0	entry 0x02	
 spk_89	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3			0/file300700	2	4	0	entry 0x05	

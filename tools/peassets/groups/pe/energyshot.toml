@@ -1,6 +1,42 @@
 # The assets of the group pe/energyshot, each named pe/energyshot/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
+[cast_1]
+type = "sound"
+mode = "high"
+sha1 = "f858168b5e2bd5651a8b27e274446ad1d7060077"
+
+[cast_2]
+type = "sound"
+mode = "high"
+sha1 = "4d11806c85bc23cffa803d1b9fe5f52678606f1e"
+
+[cast_3]
+type = "sound"
+mode = "high"
+sha1 = "a4b804f3eb4dc000911a00aa78a07b7364139936"
+
+[cast_4]
+type = "sound"
+mode = "high"
+sha1 = "e5487a499241e210709ed3d162393021e151d545"
+
+[cast_5]
+type = "sound"
+mode = "low"
+sha1 = "dce78c8673e32a9c5b28dff9dfbea9edc5813dff"
+
+[cast_6]
+type = "sound"
+mode = "low"
+sha1 = "c4fb9095e006f27371d03f63067070109e33a92f"
+
+[package]
+type = "pe2pkg"
+package_name = "energyshot"
+required = true
+sha1 = "32fd4993c32a57fcb446740a2d29c7832bc77eea"
+
 [level1_item]
 type = "shaped"
 shape = "parasite_energy"
@@ -37,6 +73,24 @@ bpp = 8
 height = 96
 variants = ["default"]
 width = 128
+
+[level1_sounds]
+type = "sound_bank"
+samples = ["pe/energyshot/cast_1", "pe/energyshot/cast_4", "pe/energyshot/cast_2", "pe/energyshot/cast_3"]
+sounds = { cast = 1 }
+sha1 = "f86662f15c63fbabc1298ebdffeabf9f5a3d4822"
+
+[level2_sounds]
+type = "sound_bank"
+samples = ["pe/energyshot/cast_5", "pe/energyshot/cast_4", "pe/energyshot/cast_2", "pe/energyshot/cast_3"]
+sounds = { cast = 1 }
+sha1 = "ba32b53fa1ce05191ac8b6d314c3ee6e8310d1f5"
+
+[level3_sounds]
+type = "sound_bank"
+samples = ["pe/energyshot/cast_6", "pe/energyshot/cast_4", "pe/energyshot/cast_2", "pe/energyshot/cast_3"]
+sounds = { cast = 1 }
+sha1 = "5346245a2cf28b02aa41f3729b62f7a2ec4e2458"
 
 [level1_catalog]
 type = "txt"

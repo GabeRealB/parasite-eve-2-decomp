@@ -1,6 +1,11 @@
 # The assets of the group items/pepper_spray, each named items/pepper_spray/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
+[use]
+type = "sound"
+mode = "low"
+sha1 = "65fd464452bdad2f7759cce04930889ddd5ebf5f"
+
 [file]
 type = "file"
 
@@ -26,9 +31,21 @@ shape = "effect_item"
 type = "txt"
 sha1 = "7eafe2577a5b8bdecb725d2d049b2d0e6c6b9f27"
 
+[sounds]
+type = "sound_bank"
+samples = ["items/pepper_spray/use"]
+sounds = { use = 1 }
+sha1 = "1b974fb356def3046f0e081c7c20e97e052cc6ec"
+
 [catalog]
 type = "txt"
 sha1 = "5e22ad8d0584fb779da0561b2348f85fd6520d01"
+
+[package]
+type = "pe2pkg"
+package_name = "pepper_spray"
+required = true
+sha1 = "b87a490a7cd76ad205b84691b9a418ac3f96168d"
 
 [texture]
 type = "texture"

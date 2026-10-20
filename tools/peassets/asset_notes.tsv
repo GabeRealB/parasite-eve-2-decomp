@@ -1,7 +1,4 @@
 # key	what the uses show it is	name question (empty when the name agrees)
-ofuda	Battle item effect package: its code and models are the Flare's.	Named 'ofuda' but the item it serves is the Flare; the three battle-item packages are each one off.
-flare	Battle item effect package: its code and models are the Pepper Spray's.	Named 'flare' but the item it serves is the Pepper Spray.
-pepper_spray	Battle item effect package: its code and models are the Combat Light's.	Named 'pepper_spray' but the item it serves is the Combat Light.
 game_over/package	The Game Over screen's package.	Filed in the 'aya' family, but it is the Game Over screen, not a costume.
 ending/package	The staff credits and the end-of-game award screens.	Named 'ending'; the code shows credits and awards.
 actor_142600	Clip data for the incinerator cutscene, always resident in the incinerator control room.	Filed as an actor; it holds no actor code, only cutscene clip data.
@@ -4967,51 +4964,48 @@ spk_466	Footstep bank of the Neo Ark submarine gallery: player walk/run steps on
 spk_467	Neo Ark submarine gallery area bank: the departure-to-island/arrival sound and the Sea Diver's (actor_206100) attack loop, entrance, surfacing and dive-splash sounds.	
 spk_468	Footstep bank of the Neo Ark pyramid: player steps on surface class 3 and stair-climb steps (class 4 from the stair triggers); the class-4 run entries have no reached use.	
 spk_469	Neo Ark pyramid area bank: warp door sounds, the rotation puzzle's turn/stop/done sounds, and the maggot caterpillar's ambush-drop sound (actor_102600/202600).	
-spk_47	Pyrokinesis level-1 sound bank, loaded with the spell package (file50101) when the cast is armed in battle: ignition roar of the cast, plus a blast-hit sound whose callers are open.	
+pe/pyrokinesis/level1_sounds	Pyrokinesis level-1 sound bank, loaded with the spell package (file50101) when the cast is armed in battle: ignition roar of the cast, plus a blast-hit sound whose callers are open.	
 spk_470	Footstep bank of the Neo Ark substation: player walk/run steps on surface classes 3 and 4 and the stair-climb step of class 2; plain class-2 walk/run entries are open.	
 spk_471	Neo Ark substation area bank: door sounds of the warp to and from the Garden and the positional ambience loop played while power plant 2 is not yet cleared.	
-spk_48	Pyrokinesis level-2 sound bank (file50102, single sample): the cast's ignition roar, plus a blast-hit sound whose callers are open.	
-spk_49	Pyrokinesis level-3 sound bank (file50103): ignition roars of the three bursts of the level-3 volley, plus a blast-hit sound whose callers are open.	
+pe/pyrokinesis/level2_sounds	Pyrokinesis level-2 sound bank (file50102, single sample): the cast's ignition roar, plus a blast-hit sound whose callers are open.	
+pe/pyrokinesis/level3_sounds	Pyrokinesis level-3 sound bank (file50103): ignition roars of the three bursts of the level-3 volley, plus a blast-hit sound whose callers are open.	
 weapons/p229/sounds	P229 weapon sound bank (weapon bank 5), loaded with the equipped weapon: silenced primary shot, flashlight-flash secondary fire, empty-chamber click and the two reload sounds.	
-spk_50	Combustion level-1 sound bank, loaded with the spell package (file50104) when the cast is armed in battle: the flame emitter's ignition whoosh; entries 0 and 1 have no requester.	
-spk_51	Combustion level-2 sound bank (file50105): ignition whoosh started by each flame emitter on its first frame; entries 0 and 1 have no requester.	
-spk_52	Combustion level-3 sound bank (file50106): ignition whoosh started by each flame emitter on its first frame; entries 0 and 1 have no requester.	
-spk_53	Inferno level-1 sound bank, loaded with the spell package (file50107) when the cast is armed in battle: the cast sound on the cast task's first frame.	
-spk_54	Inferno level-2 sound bank (file50108): the cast sound started once per cast by infernoCastTask.	
-spk_55	Inferno level-3 sound bank (file50109): the cast sound started once per cast by infernoCastTask.	
-spk_56	Necrosis level-1 sound bank (file50110, single sample), loaded when the cast is armed in battle: the launch sound of the cloud.	
-spk_57	Necrosis level-2 sound bank (file50111): the cloud's launch sound, started once per cast by necrosisCastTask.	
-spk_58	Necrosis level-3 sound bank (file50112): the cloud's launch sound, started once per cast by necrosisCastTask.	
-spk_59	Plasma level-1 sound bank, loaded with the spell package (file50113) after Plasma is armed: the cast sound started once per cast by plasmaCastTask.	
+pe/combustion/level1_sounds	Combustion level-1 sound bank, loaded with the spell package (file50104) when the cast is armed in battle: the flame emitter's ignition whoosh; entries 0 and 1 have no requester.	
+pe/combustion/level2_sounds	Combustion level-2 sound bank (file50105): ignition whoosh started by each flame emitter on its first frame; entries 0 and 1 have no requester.	
+pe/combustion/level3_sounds	Combustion level-3 sound bank (file50106): ignition whoosh started by each flame emitter on its first frame; entries 0 and 1 have no requester.	
+pe/inferno/level1_sounds	Inferno level-1 sound bank, loaded with the spell package (file50107) when the cast is armed in battle: the cast sound on the cast task's first frame.	
+pe/inferno/level2_sounds	Inferno level-2 sound bank (file50108): the cast sound started once per cast by infernoCastTask.	
+pe/inferno/level3_sounds	Inferno level-3 sound bank (file50109): the cast sound started once per cast by infernoCastTask.	
+pe/necrosis/level1_sounds	Necrosis level-1 sound bank (file50110, single sample), loaded when the cast is armed in battle: the launch sound of the cloud.	
+pe/necrosis/level2_sounds	Necrosis level-2 sound bank (file50111): the cloud's launch sound, started once per cast by necrosisCastTask.	
+pe/necrosis/level3_sounds	Necrosis level-3 sound bank (file50112): the cloud's launch sound, started once per cast by necrosisCastTask.	
+pe/plasma/level1_sounds	Plasma level-1 sound bank, loaded with the spell package (file50113) after Plasma is armed: the cast sound started once per cast by plasmaCastTask.	
 weapons/mongoose/sounds	Mongoose revolver sound bank (weapon bank 9), loaded with the equipped weapon: the shot, empty-chamber click, the delayed reload sound with casings and the load-complete click.	
-spk_60	Plasma level-2 sound bank (file50114): the cast sound started once per cast by plasmaCastTask.	
-spk_61	Plasma level-3 sound bank (file50115): the cast sound started once per cast by plasmaCastTask.	
-spk_62	Apobiosis level-1 sound bank, loaded with the spell package (file50116) when the cast is armed in battle: the discharge sound on the cast's first frame.	
-spk_63	Apobiosis level-2 sound bank (file50117): the discharge sound started once per cast by apobiosisCastTask.	
-spk_64	Apobiosis level-3 sound bank (file50118): the discharge sound started once per cast by apobiosisCastTask.	
-spk_65	Metabolism level-1 sound bank, loaded with the spell package (file50119) when the cast is armed in battle: the cast sound played at the player.	
-spk_66	Metabolism level-2 sound bank (file50120): the cast sound started once per cast by metabolismCastTask at the player.	
-spk_67	Metabolism level-3 sound bank (file50121): the cast sound started once per cast by metabolismCastTask at the player.	
-spk_68	Healing level-1 sound bank (file50122): the aura's cast sound; besides the armed-cast load it is the standing PE file outside battle and is reloaded after each battle.	
-spk_69	Healing level-2 sound bank (file50123): the aura's cast sound; kept as the standing PE file outside battle and restored by the battle-result task.	
+pe/plasma/level2_sounds	Plasma level-2 sound bank (file50114): the cast sound started once per cast by plasmaCastTask.	
+pe/plasma/level3_sounds	Plasma level-3 sound bank (file50115): the cast sound started once per cast by plasmaCastTask.	
+pe/apobiosis/level1_sounds	Apobiosis level-1 sound bank, loaded with the spell package (file50116) when the cast is armed in battle: the discharge sound on the cast's first frame.	
+pe/apobiosis/level2_sounds	Apobiosis level-2 sound bank (file50117): the discharge sound started once per cast by apobiosisCastTask.	
+pe/apobiosis/level3_sounds	Apobiosis level-3 sound bank (file50118): the discharge sound started once per cast by apobiosisCastTask.	
+pe/metabolism/level1_sounds	Metabolism level-1 sound bank, loaded with the spell package (file50119) when the cast is armed in battle: the cast sound played at the player.	
+pe/metabolism/level2_sounds	Metabolism level-2 sound bank (file50120): the cast sound started once per cast by metabolismCastTask at the player.	
+pe/metabolism/level3_sounds	Metabolism level-3 sound bank (file50121): the cast sound started once per cast by metabolismCastTask at the player.	
+pe/healing/level1_sounds	Healing level-1 sound bank (file50122): the aura's cast sound; besides the armed-cast load it is the standing PE file outside battle and is reloaded after each battle.	
+pe/healing/level2_sounds	Healing level-2 sound bank (file50123): the aura's cast sound; kept as the standing PE file outside battle and restored by the battle-result task.	
 weapons/m4a1/sounds	M4A1 weapon sound bank (weapon bank 16), loaded with the equipped weapon: per-round fire sound, empty-chamber click and the reload cue sound played twice; entries 0 and 2 have no requester.	
-spk_70	Healing level-3 sound bank (file50124): the aura's cast sound; kept as the standing PE file outside battle and restored by the battle-result task.	
-spk_71	Life Drain level-1 sound bank, loaded with the spell package (file50125) when the cast is armed: one cue for a drain that caught nothing and one for a drain that hit, chosen on frame 3.	
-spk_72	Life Drain level-2 sound bank (file50126): the miss cue or the hit cue of the cast, chosen on its third running frame by lifedrainCastTask.	
-spk_73	Life Drain level-3 sound bank (file50127): the miss cue or the hit cue of the cast, chosen on its third running frame by lifedrainCastTask.	
-spk_74	Antibody level-1 sound bank, loaded with the spell package (file50128) when the cast is armed in battle: the cast sound on the cast's first frame.	
-spk_75	Antibody level-2 sound bank (file50129): the cast sound started once per cast by antibodyCastTask.	
-spk_76	Antibody level-3 sound bank (file50130): the cast sound started once per cast by antibodyCastTask.	
-spk_77	Energy Shot level-1 sound bank, loaded with the spell package (file50131) when the cast is armed in battle: the cast sound on the cast's first frame.	
-spk_78	Energy Shot level-2 sound bank (file50132): the cast sound started once per cast by energyshotCastTask.	
-spk_79	Energy Shot level-3 sound bank (file50133): the cast sound started once per cast by energyshotCastTask.	
+pe/healing/level3_sounds	Healing level-3 sound bank (file50124): the aura's cast sound; kept as the standing PE file outside battle and restored by the battle-result task.	
+pe/lifedrain/level1_sounds	Life Drain level-1 sound bank, loaded with the spell package (file50125) when the cast is armed: one cue for a drain that caught nothing and one for a drain that hit, chosen on frame 3.	
+pe/lifedrain/level2_sounds	Life Drain level-2 sound bank (file50126): the miss cue or the hit cue of the cast, chosen on its third running frame by lifedrainCastTask.	
+pe/lifedrain/level3_sounds	Life Drain level-3 sound bank (file50127): the miss cue or the hit cue of the cast, chosen on its third running frame by lifedrainCastTask.	
+pe/antibody/level1_sounds	Antibody level-1 sound bank, loaded with the spell package (file50128) when the cast is armed in battle: the cast sound on the cast's first frame.	
+pe/antibody/level2_sounds	Antibody level-2 sound bank (file50129): the cast sound started once per cast by antibodyCastTask.	
+pe/antibody/level3_sounds	Antibody level-3 sound bank (file50130): the cast sound started once per cast by antibodyCastTask.	
+pe/energyshot/level1_sounds	Energy Shot level-1 sound bank, loaded with the spell package (file50131) when the cast is armed in battle: the cast sound on the cast's first frame.	
+pe/energyshot/level2_sounds	Energy Shot level-2 sound bank (file50132): the cast sound started once per cast by energyshotCastTask.	
+pe/energyshot/level3_sounds	Energy Shot level-3 sound bank (file50133): the cast sound started once per cast by energyshotCastTask.	
 weapons/m249/sounds	M249 weapon sound bank (weapon bank 17), loaded with the equipped weapon: per-round shot, empty-chamber click and the two reload cue sounds.	
-spk_80	Energy Ball level-1 sound bank (file50134): the sustained balls-out sound started and stopped by the cast task, and the impact burst when a ball touches an enemy body.	
-spk_81	Energy Ball level-2 sound bank (file50135): the sustained balls-out sound of the cast and the impact burst of a ball hitting an enemy body.	
-spk_82	Energy Ball level-3 sound bank (file50136): the sustained balls-out sound of the cast and the impact burst of a ball hitting an enemy body.	
-spk_83	Sound bank of the ofuda item package (file50146, attachment index 15), loaded when the item gameplay calls Flare (0x3A) is used in battle: the effect's burst sound, cut if the effect is cancelled.	
-spk_84	Sound bank of the flare package (file50149, attachment index 16), loaded when item 0x3B (called Pepper Spray in item_use) is armed in battle: the effect task's use sound, single sample.	
-spk_85	Sound bank of the pepper_spray package (file50152, attachment index 17), loaded after the item is armed: the effect task's use sound from the bank's only sample, stopped on cancel.	
+pe/energyball/level1_sounds	Energy Ball level-1 sound bank (file50134): the sustained balls-out sound started and stopped by the cast task, and the impact burst when a ball touches an enemy body.	
+pe/energyball/level2_sounds	Energy Ball level-2 sound bank (file50135): the sustained balls-out sound of the cast and the impact burst of a ball hitting an enemy body.	
+pe/energyball/level3_sounds	Energy Ball level-3 sound bank (file50136): the sustained balls-out sound of the cast and the impact burst of a ball hitting an enemy body.	
 spk_86	Voice and effect bank (id 0x4003) of the actor_100300/200300 enemy: movement cues, flinch, hit and death voices, body fall, fireball charge and launch, drain strike and heal/recharge chime.	
 spk_87	Diver creature bank (id 0x4004) of the Bog Diver actors 100400/200400: swim, crawl, surface, dive, neck release, hurt voice, shot and discharge; the Sea Diver (actor_206100) uses its hurt and discharge entries.	
 spk_88	Bank (id 0x4005) of the ceiling-crawling ambush enemy actor_400500: arm-plant steps, drop and fall landings, posture change, arm strike and two grab sounds; the copy in file 100500 has no use found.	
@@ -5368,3 +5362,9 @@ sounds/aya_death/bank_3	Aya's death sound, a third variant (bank 0x7003, file 20
 sounds/kyle_death/bank_1	Kyle's death sound, first variant (bank 0x7032, file 20933, display resource 9/33): loaded when Kyle, as companion, reaches 0 HP with deathVariant 1 and played as script 0x70320001.	
 sounds/kyle_death/bank_2	Kyle's death sound, second variant (bank 0x7033, file 20934, display resource 9/34): loaded with deathVariant 2 and played as script 0x70330001.	
 sounds/kyle_death/bank_3	Kyle's death sound, a third variant (bank 0x7034, file 20935) that nothing loads: deathVariant is only ever 1 or 2.	
+items/flare/package	The Flare's battle effect (attachment 15, file 50146): two concentric pink discs that brighten while two glow bands contract, then a fading screen flash; item 0x3A loads it (item_use.c).	
+items/pepper_spray/package	The Pepper Spray's battle effect (attachment 16, file 50149): an emitter that throws a shower of sprite sparks from the player; item 0x3B loads it.	
+items/combat_light/package	The Combat Light's battle effect (attachment 17, file 50152): a point light, a bright billboard at the origin and an additive cone of six quads, nine frames with a screen tint; item 0x41 loads it.	
+items/flare/sounds	Sound bank of the Flare's effect (bank 0xE03D, file 50146): the burst sound, slot 1 (SOUND_FLARE_USE), cut if the effect is cancelled.	
+items/pepper_spray/sounds	Sound bank of the Pepper Spray's effect (bank 0xE03E, file 50149): the use sound, slot 1 (SOUND_PEPPER_SPRAY_USE), single sample.	
+items/combat_light/sounds	Sound bank of the Combat Light's effect (bank 0xE03F, file 50152): the use sound, slot 1 (SOUND_COMBAT_LIGHT_USE), stopped on cancel.	

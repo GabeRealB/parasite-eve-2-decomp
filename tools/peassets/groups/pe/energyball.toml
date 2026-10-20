@@ -1,6 +1,31 @@
 # The assets of the group pe/energyball, each named pe/energyball/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
+[loop_1]
+type = "sound"
+sha1 = "00e3458ce4da8cb8693f32d324569d3546e8f798"
+
+[loop_2]
+type = "sound"
+mode = "high"
+sha1 = "38907bf834ad9868165fe3ebdce7d50a36c14f98"
+
+[package]
+type = "pe2pkg"
+package_name = "energyball"
+required = true
+sha1 = "9070c875af873f2a65a2d11a45c68bb4bbc19c28"
+
+[impact_1]
+type = "sound"
+mode = "high"
+sha1 = "ead8f91b32b6b6c6271a43e522b30b144a1c9ee0"
+
+[impact_2]
+type = "sound"
+mode = "high"
+sha1 = "f1459ee02a2ce0dc4a5836597abdb047c9e625ab"
+
 [level1_item]
 type = "shaped"
 shape = "parasite_energy"
@@ -37,6 +62,24 @@ bpp = 8
 height = 96
 variants = ["default"]
 width = 128
+
+[level1_sounds]
+type = "sound_bank"
+samples = ["pe/energyball/impact_2", "pe/energyball/loop_2", "pe/energyball/loop_1", "pe/energyball/impact_1"]
+sounds = { impact = 1, loop = 2 }
+sha1 = "a7c8fa63a4b23b6ef82f26477f8ab2cdaf55724c"
+
+[level2_sounds]
+type = "sound_bank"
+samples = ["pe/energyball/impact_2", "pe/energyball/loop_2", "pe/energyball/loop_1", "pe/energyball/impact_1"]
+sounds = { impact = 1, loop = 2 }
+sha1 = "3884e2fbb8dab1e249cf663e5c8799a835395293"
+
+[level3_sounds]
+type = "sound_bank"
+samples = ["pe/energyball/impact_2", "pe/energyball/loop_2", "pe/energyball/loop_1", "pe/energyball/impact_1"]
+sounds = { impact = 1, loop = 2 }
+sha1 = "9c9a95943fa883c095251b9ac279d183af0bdac3"
 
 [level1_catalog]
 type = "txt"

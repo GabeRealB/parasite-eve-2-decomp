@@ -1,6 +1,36 @@
 # The assets of the group pe/metabolism, each named pe/metabolism/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
+[cast_1]
+type = "sound"
+sha1 = "187a7609dfe3ef406eeac31b9eedb54caef40c16"
+
+[cast_2]
+type = "sound"
+mode = "high"
+sha1 = "796dff62ccfbca57637019915f279821e35f03f0"
+
+[cast_3]
+type = "sound"
+mode = "low"
+sha1 = "73283374e7901ea7ec495cfa046549cc7daaa9f7"
+
+[cast_4]
+type = "sound"
+mode = "high"
+sha1 = "896de348c871afe2bb1a8d5fcfb66e46bd7c2c5d"
+
+[cast_5]
+type = "sound"
+mode = "high"
+sha1 = "a6a7367bc152f1700b2e630e9de815eef9e83b73"
+
+[package]
+type = "pe2pkg"
+package_name = "metabolism"
+required = true
+sha1 = "8f407d94065fd29560e022a6826fe1fb25c8a3b2"
+
 [level1_item]
 type = "shaped"
 shape = "parasite_energy"
@@ -37,6 +67,24 @@ bpp = 8
 height = 96
 variants = ["default"]
 width = 128
+
+[level1_sounds]
+type = "sound_bank"
+samples = ["pe/metabolism/cast_2", "pe/metabolism/cast_1"]
+sounds = { cast = 1 }
+sha1 = "d8fb661128a63432c3143877a055b7f26caf53a7"
+
+[level2_sounds]
+type = "sound_bank"
+samples = ["pe/metabolism/cast_2", "pe/metabolism/cast_3"]
+sounds = { cast = 1 }
+sha1 = "a6269e1d2820ba3ce550cbe7e3e852a2bedd299a"
+
+[level3_sounds]
+type = "sound_bank"
+samples = ["pe/metabolism/cast_4", "pe/metabolism/cast_5"]
+sounds = { cast = 1 }
+sha1 = "bbe4795a555be781d0f407edb3bc650814ff127f"
 
 [level1_catalog]
 type = "txt"
