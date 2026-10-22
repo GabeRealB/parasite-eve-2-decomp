@@ -1,21 +1,78 @@
 # The assets of the group enemies/bat, each named enemies/bat/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
+[fly]
+type = "clip"
+rig = "enemies/bat/rig"
+
+[rig]
+type = "rig"
+joints = ["root", "body", "right_wing", "right_wing_tip", "left_wing", "left_wing_tip"]
+
+[bank]
+type = "animation_bank"
+schema = "enemies/bat/schema"
+symbol = "_gActor03700AnimationSets"
+
+[bank.clips]
+fly = "enemies/bat/fly"
+perch_drop = "enemies/bat/perch_drop"
+perch_back = "enemies/bat/perch_back"
+takeoff_drop = "enemies/bat/takeoff_drop"
+takeoff_back = "enemies/bat/takeoff_back"
+
+[bite]
+type = "sound"
+sha1 = "511f69686238638fa707676eea497e7697d1f220"
+
+[body]
+type = "model"
+rig = "enemies/bat/rig"
+slots = ["body"]
+symbol = "_gBatBody"
+sha1 = "7fe55e46c320bd701d82d3a5627b728267801857"
+
+[dash]
+type = "sound"
+sha1 = "733ebdbba1dfdab5a373a1e86e019596e922020d"
+
 [file]
 type = "file"
 
 [[file.contents]]
-chunk = "palette"
+chunk = "preview_palette"
 sha1 = "e1396c6870c7e46c3d5a0bdc2d8bb01a137020c6"
 palettes = [{ texture = "preview", variant = "default", region = "engine/vram/preview_palette" }]
 
 [[file.contents]]
-chunk = "image"
+chunk = "preview_image"
 sha1 = "d353cad6399289136b36f775a85b5e9c5fcfc443"
 pages = [{ texture = "preview", region = "engine/vram/preview_sheet" }]
 
 [[file.contents]]
 asset = "txt_82"
+
+[hurt]
+type = "sound"
+sha1 = "7e14e9711eb0c10a5b46001092523341bd4241b3"
+
+[alert]
+type = "sound"
+sha1 = "9e7083f848c8e3d88145106c9878b0afdac01ff1"
+
+[flight]
+type = "sound"
+sha1 = "60e060c8ffc724ce945aa085ddd79701f69496fc"
+
+[schema]
+type = "animation_schema"
+slots = ["", "fly", "perch_drop", "perch_back", "takeoff_drop", "takeoff_back"]
+
+[sounds]
+type = "sound_bank"
+samples = ["enemies/bat/alert", "enemies/bat/dash", "enemies/bat/hurt", "enemies/bat/bite", "enemies/bat/flight"]
+sounds = { alert = 1, dash = 2, hurt = 3, bite = 4, flight = 5 }
+sha1 = "d3ccdcd44bd912348f495a9519b9c116aadd66f4"
 
 [preview]
 type = "texture"
@@ -23,3 +80,137 @@ bpp = 8
 height = 128
 variants = ["default"]
 width = 128
+
+[texture]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[package_1]
+type = "pe2pkg"
+embedded = [
+    { name = "body", offset = 0x03638, size = 0xBEC, address = 0x80135458 },
+    { name = "burst_wing_right", offset = 0x04224, size = 0x1FC, address = 0x80136044 },
+    { name = "burst_wing_left", offset = 0x04420, size = 0x204, address = 0x80136240 },
+    { name = "fly", offset = 0x04624, size = 0x1C8, address = 0x80136444 },
+    { name = "perch_drop", offset = 0x047EC, size = 0x2FC, address = 0x8013660C },
+    { name = "perch_back", offset = 0x04AE8, size = 0x198, address = 0x80136908 },
+    { name = "takeoff_drop", offset = 0x04C80, size = 0x7F0, address = 0x80136AA0 },
+    { name = "takeoff_back", offset = 0x05470, size = 0x8A0, address = 0x80137290 },
+    { name = "player_grabbed", offset = 0x05D10, size = 0xE64, address = 0x80137B30 },
+    { name = "player_release", offset = 0x06B74, size = 0x1394, address = 0x80138994 },
+    { name = "bank", offset = 0x080E4, size = 0x18, address = 0x80139F04 },
+    { name = "player_hold_bank", offset = 0x080FC, size = 0xC, address = 0x80139F1C },
+]
+package_name = "actor_103700"
+required = true
+sha1 = "b579d5076495c314c1e9571ef4a6ff5b3b392537"
+
+[package_2]
+type = "pe2pkg"
+embedded = [
+    { name = "fly", offset = 0x04624, size = 0x1C8, address = 0x8014E444 },
+    { name = "perch_drop", offset = 0x047EC, size = 0x2FC, address = 0x8014E60C },
+    { name = "perch_back", offset = 0x04AE8, size = 0x198, address = 0x8014E908 },
+    { name = "takeoff_drop", offset = 0x04C80, size = 0x7F0, address = 0x8014EAA0 },
+    { name = "takeoff_back", offset = 0x05470, size = 0x8A0, address = 0x8014F290 },
+    { name = "player_grabbed", offset = 0x05D10, size = 0xE64, address = 0x8014FB30 },
+    { name = "player_release", offset = 0x06B74, size = 0x1394, address = 0x80150994 },
+    { name = "bank", offset = 0x080E4, size = 0x18, address = 0x80151F04 },
+    { name = "player_hold_bank", offset = 0x080FC, size = 0xC, address = 0x80151F1C },
+]
+package_name = "actor_203700"
+required = true
+sha1 = "64af940de994fb2b21743d16349d3296d19fadb0"
+
+[package_3]
+type = "pe2pkg"
+package_name = "actor_303700"
+required = true
+sha1 = "be44da07fedf34bb49b3895992f76d5650d01810"
+
+[perch_back]
+type = "clip"
+rig = "enemies/bat/rig"
+
+[perch_drop]
+type = "clip"
+rig = "enemies/bat/rig"
+
+[body_binding]
+type = "binding"
+model = "enemies/bat/body"
+textures = { body = "enemies/bat/texture.default" }
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+chunk = "sounds"
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "bd8e9ef3d60f7c5b15c9d5874bfdd9ce04b138f0"
+palettes = [
+    { texture = "texture", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { name = "unread_row_2", entries = 256, region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "8f587def2a0108a90874c0c6c908b4834b3df90c"
+pages = [{ texture = "texture", region = "engine/vram/actor_sheet", offset = [0, 0] }]
+slots = 6
+
+[[package_file.contents]]
+chunk = "package_1"
+
+[takeoff_back]
+type = "clip"
+rig = "enemies/bat/rig"
+
+[takeoff_drop]
+type = "clip"
+rig = "enemies/bat/rig"
+
+[player_grabbed]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_release]
+type = "clip"
+rig = "characters/aya/rig"
+
+[burst_wing_left]
+type = "model"
+slots = ["body"]
+symbol = "_gBatBurstWingLeft"
+sha1 = "f360f25520cad520133a58f554282585724b448e"
+
+[burst_wing_right]
+type = "model"
+slots = ["body"]
+symbol = "_gBatBurstWingRight"
+sha1 = "f8dfcc13faf406cdf65c2a26eb1f7c979fde0af4"
+
+[player_hold_bank]
+type = "animation_bank"
+clips = { player_grabbed = "enemies/bat/player_grabbed", player_release = "enemies/bat/player_release" }
+schema = "enemies/bat/player_hold_schema"
+symbol = "_gActor03700PlayerHoldAnimationSets"
+
+[player_hold_schema]
+type = "animation_schema"
+slots = ["", "player_grabbed", "player_release"]
+
+[burst_wing_left_binding]
+type = "binding"
+model = "enemies/bat/burst_wing_left"
+textures = { body = "enemies/bat/texture.default" }
+
+[burst_wing_right_binding]
+type = "binding"
+model = "enemies/bat/burst_wing_right"
+textures = { body = "enemies/bat/texture.default" }

@@ -591,11 +591,11 @@ static s16 _gActor510900SlashContinuationThresholds[4] = {
 enum { ACTOR_510900_TASK_PRIORITY = 96 };
 
 TaskDesc gActor510900TaskDescriptors[7] = {
-    { { { TASK_BODY_TMD, ACTOR_510900_TASK_PRIORITY } }, _actor510900BodyTask, { .model = &gActor510900No9GolemAkropolisBody } },
-    { { { TASK_BODY_TMD, ACTOR_510900_TASK_PRIORITY } }, _actor510900PropTask, { .model = &gActor510900No9GolemAkropolisProp } },
-    { { { TASK_BODY_TMD, ACTOR_510900_TASK_PRIORITY } }, _actor510900WeaponTask, { .model = &gActor510900Model0FE60 } },
-    { { { TASK_BODY_TMD, ACTOR_510900_TASK_PRIORITY } }, _actor510900ChestModelTask, { .model = &gActor510900Model10468 } },
-    { { { TASK_BODY_TMD, ACTOR_510900_TASK_PRIORITY } }, _actor510900GrenadeTask, { .model = &gActor510900GolemGrenade } },
+    { { { TASK_BODY_TMD, ACTOR_510900_TASK_PRIORITY } }, _actor510900BodyTask, { .model = &gGolemNo9BodyAkropolis } },
+    { { { TASK_BODY_TMD, ACTOR_510900_TASK_PRIORITY } }, _actor510900PropTask, { .model = &gGolemNo9AkropolisProp } },
+    { { { TASK_BODY_TMD, ACTOR_510900_TASK_PRIORITY } }, _actor510900WeaponTask, { .model = &gGolemNo9AkropolisSword } },
+    { { { TASK_BODY_TMD, ACTOR_510900_TASK_PRIORITY } }, _actor510900ChestModelTask, { .model = &gGolemNo9AkropolisChestPiece } },
+    { { { TASK_BODY_TMD, ACTOR_510900_TASK_PRIORITY } }, _actor510900GrenadeTask, { .model = &gGolemGrenade } },
     { { { TASK_BODY_TMD, ACTOR_510900_TASK_PRIORITY } }, _actor510900HelipadLightTask, { .model = &gActor510900Model10C8C } },
     { { { TASK_BODY_COORD, ACTOR_510900_TASK_PRIORITY } }, _actor510900BlastSourceTask, { .value = 0 } },
 };

@@ -1,0 +1,189 @@
+# The assets of the group rooms/shelter/b6_growth_room, each named rooms/shelter/b6_growth_room/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[player_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b6_growth_room/player_schema"
+symbol = "_gActor450900PlayerAnimationSets"
+
+[player_bank.clips]
+shooting_1 = "characters/aya/shooting_1"
+shooting_2 = "characters/aya/shooting_2"
+this_way_reply = "characters/aya/this_way_reply"
+hurry_up = "characters/aya/hurry_up"
+response = "rooms/shelter/b6_growth_room/player_response"
+slot_5 = "characters/aya/converse"
+entry = "rooms/shelter/b6_growth_room/player_entry"
+choice_start = "rooms/shelter/b6_growth_room/player_choice_start"
+choice_middle = "characters/aya/turn_pale"
+choice_end = "characters/aya/its_nothing"
+
+[eve_distress]
+type = "pe2pkg"
+package_name = "actor_450900"
+required = true
+sha1 = "6e607afc8ba34c8f8ed1685178df7a2ed0205e44"
+
+[[eve_distress.embedded]]
+asset = "rooms/shelter/b6_nursery/companion_distress"
+offset = 0x00A84
+size = 0x524
+address = 0x801328A4
+
+[[eve_distress.embedded]]
+asset = "rooms/shelter/b6_nursery/companion_conversation_reaction"
+offset = 0x00FA8
+size = 0x358
+address = 0x80132DC8
+
+[[eve_distress.embedded]]
+asset = "rooms/shelter/b6_nursery/companion_hurry_up"
+offset = 0x01300
+size = 0x494
+address = 0x80133120
+
+[[eve_distress.embedded]]
+name = "companion_anim_03"
+offset = 0x01794
+size = 0x1C8
+address = 0x801335B4
+
+[[eve_distress.embedded]]
+name = "companion_post_choice"
+offset = 0x0195C
+size = 0x21C
+address = 0x8013377C
+
+[[eve_distress.embedded]]
+name = "companion_conversation"
+offset = 0x01B78
+size = 0x1B4
+address = 0x80133998
+
+[[eve_distress.embedded]]
+asset = "characters/aya/shooting_1"
+offset = 0x01D2C
+size = 0x3E8
+address = 0x80133B4C
+
+[[eve_distress.embedded]]
+asset = "characters/aya/shooting_2"
+offset = 0x02114
+size = 0x33C
+address = 0x80133F34
+
+[[eve_distress.embedded]]
+asset = "characters/aya/this_way_reply"
+offset = 0x02450
+size = 0x1C8
+address = 0x80134270
+
+[[eve_distress.embedded]]
+asset = "characters/aya/hurry_up"
+offset = 0x02618
+size = 0x440
+address = 0x80134438
+
+[[eve_distress.embedded]]
+name = "player_response"
+offset = 0x02A58
+size = 0x6C4
+address = 0x80134878
+
+[[eve_distress.embedded]]
+name = "player_entry"
+offset = 0x0311C
+size = 0x244
+address = 0x80134F3C
+
+[[eve_distress.embedded]]
+name = "player_choice_start"
+offset = 0x03360
+size = 0x400
+address = 0x80135180
+
+[[eve_distress.embedded]]
+asset = "characters/aya/turn_pale"
+offset = 0x03760
+size = 0x1FC
+address = 0x80135580
+
+[[eve_distress.embedded]]
+asset = "characters/aya/its_nothing"
+offset = 0x0395C
+size = 0x33C
+address = 0x8013577C
+
+[[eve_distress.embedded]]
+asset = "characters/aya/converse"
+offset = 0x03C98
+size = 0x3B8
+address = 0x80135AB8
+
+[[eve_distress.embedded]]
+name = "player_bank"
+offset = 0x040A0
+size = 0x28
+address = 0x80135EC0
+
+[[eve_distress.embedded]]
+name = "companion_bank"
+offset = 0x040C8
+size = 0x18
+address = 0x80135EE8
+
+[player_entry]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_schema]
+type = "animation_schema"
+slots = [
+    "shooting_1",
+    "shooting_2",
+    "this_way_reply",
+    "hurry_up",
+    "response",
+    "slot_5",
+    "entry",
+    "choice_start",
+    "choice_middle",
+    "choice_end",
+]
+
+[companion_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b6_growth_room/companion_schema"
+symbol = "_gActor450900CompanionAnimationSets"
+
+[companion_bank.clips]
+distress = "rooms/shelter/b6_nursery/companion_distress"
+conversation_reaction = "rooms/shelter/b6_nursery/companion_conversation_reaction"
+hurry_up = "rooms/shelter/b6_nursery/companion_hurry_up"
+slot_3 = "rooms/shelter/b6_growth_room/companion_anim_03"
+post_choice = "rooms/shelter/b6_growth_room/companion_post_choice"
+conversation = "rooms/shelter/b6_growth_room/companion_conversation"
+
+[player_response]
+type = "clip"
+rig = "characters/aya/rig"
+
+[companion_schema]
+type = "animation_schema"
+slots = ["distress", "conversation_reaction", "hurry_up", "slot_3", "post_choice", "conversation"]
+
+[companion_anim_03]
+type = "clip"
+rig = "characters/eve/rig"
+
+[player_choice_start]
+type = "clip"
+rig = "characters/aya/rig"
+
+[companion_post_choice]
+type = "clip"
+rig = "characters/eve/rig"
+
+[companion_conversation]
+type = "clip"
+rig = "characters/eve/rig"

@@ -1,0 +1,68 @@
+# The assets of the group rooms/dryfield/general_store, each named rooms/dryfield/general_store/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+schema = "rooms/dryfield/general_store/schema"
+symbol = "_gActor223600AnimationSets"
+
+[bank.clips]
+slot_1 = "enemies/suckler/bone/hang"
+walk = "enemies/suckler/bone/walk"
+slot_3 = "enemies/suckler/bone/run"
+slot_4 = "enemies/suckler/bone/settle"
+slot_5 = "enemies/suckler/bone/sleep"
+slot_6 = "enemies/suckler/bone/rouse"
+slot_7 = "enemies/suckler/bone/anim_07"
+slot_8 = "enemies/suckler/bone/anim_08"
+slot_10 = "enemies/suckler/bone/burst"
+slot_11 = "enemies/suckler/blood/anim_09"
+slot_12 = "enemies/suckler/blood/lunge"
+slot_13 = "enemies/suckler/blood/latch_release"
+fall = "enemies/suckler/blood/leap_down"
+land = "enemies/suckler/blood/land"
+
+[schema]
+type = "animation_schema"
+slots = [
+    "",
+    "slot_1",
+    "walk",
+    "slot_3",
+    "slot_4",
+    "slot_5",
+    "slot_6",
+    "slot_7",
+    "slot_8",
+    "",
+    "slot_10",
+    "slot_11",
+    "slot_12",
+    "slot_13",
+    "fall",
+    "land",
+]
+
+[blood_suckler]
+type = "pe2pkg"
+embedded = [
+    { asset = "enemies/suckler/bone/hang", offset = 0x04864, size = 0x164, address = 0x8014E684 },
+    { asset = "enemies/suckler/bone/walk", offset = 0x049C8, size = 0x2C4, address = 0x8014E7E8 },
+    { asset = "enemies/suckler/bone/run", offset = 0x04C8C, size = 0x2A4, address = 0x8014EAAC },
+    { asset = "enemies/suckler/bone/settle", offset = 0x04F30, size = 0x1E0, address = 0x8014ED50 },
+    { asset = "enemies/suckler/bone/sleep", offset = 0x05110, size = 0x138, address = 0x8014EF30 },
+    { asset = "enemies/suckler/bone/rouse", offset = 0x05248, size = 0x1A0, address = 0x8014F068 },
+    { asset = "enemies/suckler/bone/anim_07", offset = 0x053E8, size = 0x214, address = 0x8014F208 },
+    { asset = "enemies/suckler/bone/anim_08", offset = 0x055FC, size = 0x410, address = 0x8014F41C },
+    { asset = "enemies/suckler/bone/anim_09", offset = 0x05A0C, size = 0x2C0, address = 0x8014F82C },
+    { asset = "enemies/suckler/bone/burst", offset = 0x05CCC, size = 0x1D8, address = 0x8014FAEC },
+    { asset = "enemies/suckler/blood/anim_09", offset = 0x05EA4, size = 0x37C, address = 0x8014FCC4 },
+    { asset = "enemies/suckler/blood/lunge", offset = 0x06220, size = 0x3B0, address = 0x80150040 },
+    { asset = "enemies/suckler/blood/latch_release", offset = 0x065D0, size = 0x23C, address = 0x801503F0 },
+    { asset = "enemies/suckler/blood/leap_down", offset = 0x0680C, size = 0x244, address = 0x8015062C },
+    { asset = "enemies/suckler/blood/land", offset = 0x06A50, size = 0x150, address = 0x80150870 },
+    { name = "bank", offset = 0x06BA0, size = 0x68, address = 0x801509C0 },
+]
+package_name = "actor_223600"
+required = true
+sha1 = "9d6129913fbc524aa55371d739e1a0c4fc9d2fc6"

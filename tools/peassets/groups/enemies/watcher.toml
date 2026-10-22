@@ -1,0 +1,131 @@
+# The assets of the group enemies/watcher, each named enemies/watcher/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[aim]
+type = "sound"
+sha1 = "b5e32f8c990fdce5580cb448dd11e7817eba09ce"
+
+[body]
+type = "model"
+slots = ["body"]
+symbol = "_gWatcherBody"
+sha1 = "2f4230cc6a8fdf70010696be0e234896510b4cff"
+
+[hurt]
+type = "sound"
+sha1 = "6476c2b5191ad1d586638acc50d8f7d7281729fe"
+
+[move]
+type = "sound"
+sha1 = "168ddcfb7e7f99437a5a47ab4c028683ecb544a3"
+
+[death]
+type = "sound"
+sha1 = "d26b02d03bd7e96075d7de7216a9731d6347f1a7"
+
+[sounds]
+type = "sound_bank"
+samples = [
+    "enemies/watcher/aim",
+    "enemies/watcher/lock_on",
+    "enemies/watcher/beam_red",
+    "enemies/watcher/beam_blue",
+    "enemies/watcher/beam_red_heavy",
+    "enemies/watcher/move",
+    "enemies/watcher/move_stop",
+    "enemies/watcher/hurt",
+    "enemies/watcher/death",
+    "enemies/watcher/gunshot",
+]
+sha1 = "7a96ca346b61610d8894aa310b59b97cd1de79ce"
+
+[sounds.sounds]
+aim = 1
+lock_on = 2
+beam_red = 3
+beam_red_heavy = 4
+beam_blue = 5
+beam_yellow = 6
+move = 7
+move_stop = 8
+hurt = 9
+death = 10
+gunshot = 11
+
+[gunshot]
+type = "sound"
+sha1 = "5f8052c4296d80e96e7fcb5eaee3057995a5503b"
+
+[lock_on]
+type = "sound"
+sha1 = "2da7d6476a750d3488699af7e27acfa4ca50225d"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[beam_red]
+type = "sound"
+sha1 = "693f24113cf69227f8ef1dee4d7ffda67faaa46b"
+
+[beam_blue]
+type = "sound"
+sha1 = "7c1319c268e74695055c8318efed78563670fc33"
+
+[move_stop]
+type = "sound"
+sha1 = "15aceb57dd343d2386ba8341a1b4cd228632af18"
+
+[package_1]
+type = "pe2pkg"
+embedded = [{ name = "body", offset = 0x036BC, size = 0x6A8, address = 0x801354DC }]
+package_name = "actor_102100"
+required = true
+sha1 = "ddcba06ee783c5e52c64741577cc0fb6dd1fc4a5"
+
+[package_2]
+type = "pe2pkg"
+package_name = "actor_202100"
+required = true
+sha1 = "50471ccf4882c14e0ba280ab64373de4a951682a"
+
+[package_3]
+type = "pe2pkg"
+package_name = "actor_302100"
+required = true
+sha1 = "62a230ee09ff705d2d0a05bd500c6aa85e32ed9b"
+
+[body_binding]
+type = "binding"
+model = "enemies/watcher/body"
+textures = { body = "enemies/watcher/texture.default" }
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+chunk = "sounds"
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "5a5eb02dcda169ac3d1e9015d64697808eecd3fc"
+palettes = [
+    { texture = "texture", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { name = "unread_row_2", entries = 256, region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "93d7f4da0ea28e7f230f4b2adb8b491da5e1e966"
+pages = [{ texture = "texture", region = "engine/vram/actor_sheet", offset = [0, 0] }]
+slots = 6
+
+[[package_file.contents]]
+chunk = "package_1"
+
+[beam_red_heavy]
+type = "sound"
+sha1 = "3936b35b627336659460290d316f644ccb8dcdd0"

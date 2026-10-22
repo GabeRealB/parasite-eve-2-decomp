@@ -1,0 +1,506 @@
+# The assets of the group enemies/scavenger, each named enemies/scavenger/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = ["root", "body", "jaw", "right_ear", "left_ear", "right_thigh", "right_shin", "left_thigh", "left_shin"]
+
+[body]
+type = "model"
+rig = "enemies/scavenger/rig"
+slots = ["body"]
+symbol = "_gScavengerBody"
+sha1 = "09b9bc7bb0ba375ba07a5cbbe03778aca0579583"
+
+[grab]
+type = "sound"
+sha1 = "83696db8c8187a3646a42e3386b4b57cbe0d1f74"
+
+[hurt]
+type = "sound"
+sha1 = "bbb860e3184c878ac6a2b1c6345c46b37509437e"
+
+[rest]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[thud]
+type = "sound"
+sha1 = "bc79e0852cfb95087d04a1182819d4aa3edaa739"
+
+[turn]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[wake]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[death]
+type = "sound"
+sha1 = "909bc14dba3f5f70c6c51ba31e9238847c716613"
+
+[lunge]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[posed]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[settle]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[sounds]
+type = "sound_bank"
+samples = [
+    "enemies/scavenger/stomp_a",
+    "enemies/scavenger/stomp_b",
+    "enemies/scavenger/thud",
+    "enemies/scavenger/growl_a",
+    "enemies/scavenger/growl_b",
+    "enemies/scavenger/growl_c",
+    "enemies/scavenger/hurt",
+    "enemies/scavenger/death",
+    "enemies/scavenger/release",
+    "enemies/scavenger/grab",
+]
+sha1 = "7043d339d7288c970ebf50e803f344795ebc52d1"
+
+[sounds.sounds]
+stomp_a = 1
+stomp_b = 2
+footstep_a = 3
+footstep_b = 4
+thud = 5
+growl_a = 6
+growl_b = 7
+growl_c = 8
+hurt = 9
+death = 10
+release = 11
+release_thud = 12
+grab = 13
+roar = 14
+
+[zigzag]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[advance]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[buildup]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[growl_a]
+type = "sound"
+sha1 = "0defeec2104fd7bee791e6eefb0ce6a83968f5e9"
+
+[growl_b]
+type = "sound"
+sha1 = "a8de59729af018ba00ae56689c57db0f076f41bf"
+
+[growl_c]
+type = "sound"
+sha1 = "9c55047063600fd3a544bf598d0cf0aabd4e581a"
+
+[release]
+type = "sound"
+mode = "high"
+sha1 = "234774ade9350931051ec0019a922f9e4f36b0cd"
+
+[stagger]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[stomp_a]
+type = "sound"
+sha1 = "9176d108e7862ea7642ae4da817b48cef184d29e"
+
+[stomp_b]
+type = "sound"
+sha1 = "d17be1ea355cd87a935aca2a8dc998597b972aaf"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[hit_wake]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[roam_hop]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[body_bank]
+type = "animation_bank"
+schema = "enemies/scavenger/body_schema"
+symbol = "_gActor01600BodyAnimationSets"
+
+[body_bank.clips]
+rest = "enemies/scavenger/rest"
+wake = "enemies/scavenger/wake"
+roam_idle = "enemies/scavenger/roam_idle"
+roam_hop = "enemies/scavenger/roam_hop"
+advance = "enemies/scavenger/advance"
+zigzag = "enemies/scavenger/zigzag"
+turn = "enemies/scavenger/turn"
+turn_wrapped = "enemies/scavenger/turn_wrapped"
+settle = "enemies/scavenger/settle"
+hit_wake = "enemies/scavenger/hit_wake"
+thrown_forward = "enemies/scavenger/thrown_forward"
+slot_12 = "enemies/scavenger/body_anim_12"
+slot_13 = "enemies/scavenger/body_anim_13"
+stagger = "enemies/scavenger/stagger"
+slot_15 = "enemies/scavenger/body_anim_15"
+slot_16 = "enemies/scavenger/body_anim_16"
+posed = "enemies/scavenger/posed"
+slot_18 = "enemies/scavenger/body_anim_18"
+buildup = "enemies/scavenger/buildup"
+slot_20 = "enemies/scavenger/body_anim_20"
+rise_forward = "enemies/scavenger/rise_forward"
+rise_back = "enemies/scavenger/rise_back"
+roam_repeat = "enemies/scavenger/roam_repeat"
+roam_land = "enemies/scavenger/roam_land"
+look_around = "enemies/scavenger/look_around"
+lunge = "enemies/scavenger/lunge"
+lunge_land = "enemies/scavenger/lunge_land"
+grab_approach = "enemies/scavenger/grab_approach"
+grab_hold = "enemies/scavenger/grab_hold"
+grab_release = "enemies/scavenger/grab_release"
+
+[burst_ear]
+type = "model"
+slots = ["body"]
+symbol = "_gScavengerBurstEar"
+sha1 = "08be81894519a849f2d3af98502013d29be3d10e"
+
+[burst_leg]
+type = "model"
+slots = ["body"]
+symbol = "_gScavengerBurstLeg"
+sha1 = "3b18a8635f10ead94695f6d9d034fe15e0653b5e"
+
+[grab_hold]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[package_1]
+type = "pe2pkg"
+embedded = [
+    { name = "body", offset = 0x07114, size = 0x1E84, address = 0x80138F34 },
+    { name = "burst_head", offset = 0x08F98, size = 0x7C8, address = 0x8013ADB8 },
+    { name = "burst_leg", offset = 0x09760, size = 0x5C0, address = 0x8013B580 },
+    { name = "burst_ear", offset = 0x09D20, size = 0x1E4, address = 0x8013BB40 },
+    { name = "rest", offset = 0x09F64, size = 0x26C, address = 0x8013BD84 },
+    { name = "wake", offset = 0x0A1D0, size = 0x318, address = 0x8013BFF0 },
+    { name = "roam_idle", offset = 0x0A4E8, size = 0x150, address = 0x8013C308 },
+    { name = "roam_hop", offset = 0x0A638, size = 0x410, address = 0x8013C458 },
+    { name = "advance", offset = 0x0AA48, size = 0x238, address = 0x8013C868 },
+    { name = "zigzag", offset = 0x0AC80, size = 0x3E4, address = 0x8013CAA0 },
+    { name = "turn", offset = 0x0B064, size = 0x3A0, address = 0x8013CE84 },
+    { name = "turn_wrapped", offset = 0x0B404, size = 0x3E8, address = 0x8013D224 },
+    { name = "settle", offset = 0x0B7EC, size = 0x6BC, address = 0x8013D60C },
+    { name = "hit_wake", offset = 0x0BEA8, size = 0x4F0, address = 0x8013DCC8 },
+    { name = "thrown_forward", offset = 0x0C398, size = 0x368, address = 0x8013E1B8 },
+    { name = "body_anim_12", offset = 0x0C700, size = 0x1C0, address = 0x8013E520 },
+    { name = "body_anim_13", offset = 0x0C8C0, size = 0x180, address = 0x8013E6E0 },
+    { name = "stagger", offset = 0x0CA40, size = 0x2F8, address = 0x8013E860 },
+    { name = "body_anim_15", offset = 0x0CD38, size = 0x2A0, address = 0x8013EB58 },
+    { name = "body_anim_16", offset = 0x0CFD8, size = 0x13C, address = 0x8013EDF8 },
+    { name = "posed", offset = 0x0D114, size = 0x498, address = 0x8013EF34 },
+    { name = "body_anim_18", offset = 0x0D5AC, size = 0x230, address = 0x8013F3CC },
+    { name = "buildup", offset = 0x0D7DC, size = 0x4F0, address = 0x8013F5FC },
+    { name = "body_anim_20", offset = 0x0DCCC, size = 0x4C4, address = 0x8013FAEC },
+    { name = "rise_forward", offset = 0x0E190, size = 0x460, address = 0x8013FFB0 },
+    { name = "rise_back", offset = 0x0E5F0, size = 0x498, address = 0x80140410 },
+    { name = "roam_repeat", offset = 0x0EA88, size = 0x3F8, address = 0x801408A8 },
+    { name = "roam_land", offset = 0x0EE80, size = 0x17C, address = 0x80140CA0 },
+    { name = "look_around", offset = 0x0EFFC, size = 0x3C0, address = 0x80140E1C },
+    { name = "lunge", offset = 0x0F3BC, size = 0x77C, address = 0x801411DC },
+    { name = "lunge_land", offset = 0x0FB38, size = 0x3C4, address = 0x80141958 },
+    { name = "grab_approach", offset = 0x0FEFC, size = 0x240, address = 0x80141D1C },
+    { name = "grab_hold", offset = 0x1013C, size = 0x5A8, address = 0x80141F5C },
+    { name = "grab_release", offset = 0x106E4, size = 0x4B0, address = 0x80142504 },
+    { name = "companion_grab_hold", offset = 0x10B94, size = 0xCB4, address = 0x801429B4 },
+    { name = "player_grab_hold", offset = 0x11848, size = 0x854, address = 0x80143668 },
+    { name = "player_grab_release", offset = 0x1209C, size = 0x708, address = 0x80143EBC },
+    { name = "grab_target_bank", offset = 0x127C8, size = 0x10, address = 0x801445E8 },
+    { name = "body_bank", offset = 0x127EC, size = 0x7C, address = 0x8014460C },
+]
+package_name = "actor_101600"
+required = true
+sha1 = "ea653b77eb62a4d0b7ea993c22f9fb37c54f196e"
+
+[package_2]
+type = "pe2pkg"
+embedded = [
+    { name = "rest", offset = 0x09F64, size = 0x26C, address = 0x80153D84 },
+    { name = "wake", offset = 0x0A1D0, size = 0x318, address = 0x80153FF0 },
+    { name = "roam_idle", offset = 0x0A4E8, size = 0x150, address = 0x80154308 },
+    { name = "roam_hop", offset = 0x0A638, size = 0x410, address = 0x80154458 },
+    { name = "advance", offset = 0x0AA48, size = 0x238, address = 0x80154868 },
+    { name = "zigzag", offset = 0x0AC80, size = 0x3E4, address = 0x80154AA0 },
+    { name = "turn", offset = 0x0B064, size = 0x3A0, address = 0x80154E84 },
+    { name = "turn_wrapped", offset = 0x0B404, size = 0x3E8, address = 0x80155224 },
+    { name = "settle", offset = 0x0B7EC, size = 0x6BC, address = 0x8015560C },
+    { name = "hit_wake", offset = 0x0BEA8, size = 0x4F0, address = 0x80155CC8 },
+    { name = "thrown_forward", offset = 0x0C398, size = 0x368, address = 0x801561B8 },
+    { name = "body_anim_12", offset = 0x0C700, size = 0x1C0, address = 0x80156520 },
+    { name = "body_anim_13", offset = 0x0C8C0, size = 0x180, address = 0x801566E0 },
+    { name = "stagger", offset = 0x0CA40, size = 0x2F8, address = 0x80156860 },
+    { name = "body_anim_15", offset = 0x0CD38, size = 0x2A0, address = 0x80156B58 },
+    { name = "body_anim_16", offset = 0x0CFD8, size = 0x13C, address = 0x80156DF8 },
+    { name = "posed", offset = 0x0D114, size = 0x498, address = 0x80156F34 },
+    { name = "body_anim_18", offset = 0x0D5AC, size = 0x230, address = 0x801573CC },
+    { name = "buildup", offset = 0x0D7DC, size = 0x4F0, address = 0x801575FC },
+    { name = "body_anim_20", offset = 0x0DCCC, size = 0x4C4, address = 0x80157AEC },
+    { name = "rise_forward", offset = 0x0E190, size = 0x460, address = 0x80157FB0 },
+    { name = "rise_back", offset = 0x0E5F0, size = 0x498, address = 0x80158410 },
+    { name = "roam_repeat", offset = 0x0EA88, size = 0x3F8, address = 0x801588A8 },
+    { name = "roam_land", offset = 0x0EE80, size = 0x17C, address = 0x80158CA0 },
+    { name = "look_around", offset = 0x0EFFC, size = 0x3C0, address = 0x80158E1C },
+    { name = "lunge", offset = 0x0F3BC, size = 0x77C, address = 0x801591DC },
+    { name = "lunge_land", offset = 0x0FB38, size = 0x3C4, address = 0x80159958 },
+    { name = "grab_approach", offset = 0x0FEFC, size = 0x240, address = 0x80159D1C },
+    { name = "grab_hold", offset = 0x1013C, size = 0x5A8, address = 0x80159F5C },
+    { name = "grab_release", offset = 0x106E4, size = 0x4B0, address = 0x8015A504 },
+    { name = "companion_grab_hold", offset = 0x10B94, size = 0xCB4, address = 0x8015A9B4 },
+    { name = "player_grab_hold", offset = 0x11848, size = 0x854, address = 0x8015B668 },
+    { name = "player_grab_release", offset = 0x1209C, size = 0x708, address = 0x8015BEBC },
+    { name = "grab_target_bank", offset = 0x127C8, size = 0x10, address = 0x8015C5E8 },
+    { name = "body_bank", offset = 0x127EC, size = 0x7C, address = 0x8015C60C },
+]
+package_name = "actor_201600"
+required = true
+sha1 = "f946fc3938cfe0f49020c3dc2786bbab621aeaf5"
+
+[package_3]
+type = "pe2pkg"
+embedded = [
+    { name = "rest", offset = 0x09F64, size = 0x26C, address = 0x8016BD84 },
+    { name = "wake", offset = 0x0A1D0, size = 0x318, address = 0x8016BFF0 },
+    { name = "roam_idle", offset = 0x0A4E8, size = 0x150, address = 0x8016C308 },
+    { name = "roam_hop", offset = 0x0A638, size = 0x410, address = 0x8016C458 },
+    { name = "advance", offset = 0x0AA48, size = 0x238, address = 0x8016C868 },
+    { name = "zigzag", offset = 0x0AC80, size = 0x3E4, address = 0x8016CAA0 },
+    { name = "turn", offset = 0x0B064, size = 0x3A0, address = 0x8016CE84 },
+    { name = "turn_wrapped", offset = 0x0B404, size = 0x3E8, address = 0x8016D224 },
+    { name = "settle", offset = 0x0B7EC, size = 0x6BC, address = 0x8016D60C },
+    { name = "hit_wake", offset = 0x0BEA8, size = 0x4F0, address = 0x8016DCC8 },
+    { name = "thrown_forward", offset = 0x0C398, size = 0x368, address = 0x8016E1B8 },
+    { name = "body_anim_12", offset = 0x0C700, size = 0x1C0, address = 0x8016E520 },
+    { name = "body_anim_13", offset = 0x0C8C0, size = 0x180, address = 0x8016E6E0 },
+    { name = "stagger", offset = 0x0CA40, size = 0x2F8, address = 0x8016E860 },
+    { name = "body_anim_15", offset = 0x0CD38, size = 0x2A0, address = 0x8016EB58 },
+    { name = "body_anim_16", offset = 0x0CFD8, size = 0x13C, address = 0x8016EDF8 },
+    { name = "posed", offset = 0x0D114, size = 0x498, address = 0x8016EF34 },
+    { name = "body_anim_18", offset = 0x0D5AC, size = 0x230, address = 0x8016F3CC },
+    { name = "buildup", offset = 0x0D7DC, size = 0x4F0, address = 0x8016F5FC },
+    { name = "body_anim_20", offset = 0x0DCCC, size = 0x4C4, address = 0x8016FAEC },
+    { name = "rise_forward", offset = 0x0E190, size = 0x460, address = 0x8016FFB0 },
+    { name = "rise_back", offset = 0x0E5F0, size = 0x498, address = 0x80170410 },
+    { name = "roam_repeat", offset = 0x0EA88, size = 0x3F8, address = 0x801708A8 },
+    { name = "roam_land", offset = 0x0EE80, size = 0x17C, address = 0x80170CA0 },
+    { name = "look_around", offset = 0x0EFFC, size = 0x3C0, address = 0x80170E1C },
+    { name = "lunge", offset = 0x0F3BC, size = 0x77C, address = 0x801711DC },
+    { name = "lunge_land", offset = 0x0FB38, size = 0x3C4, address = 0x80171958 },
+    { name = "grab_approach", offset = 0x0FEFC, size = 0x240, address = 0x80171D1C },
+    { name = "grab_hold", offset = 0x1013C, size = 0x5A8, address = 0x80171F5C },
+    { name = "grab_release", offset = 0x106E4, size = 0x4B0, address = 0x80172504 },
+    { name = "companion_grab_hold", offset = 0x10B94, size = 0xCB4, address = 0x801729B4 },
+    { name = "player_grab_hold", offset = 0x11848, size = 0x854, address = 0x80173668 },
+    { name = "player_grab_release", offset = 0x1209C, size = 0x708, address = 0x80173EBC },
+    { name = "grab_target_bank", offset = 0x127C8, size = 0x10, address = 0x801745E8 },
+    { name = "body_bank", offset = 0x127EC, size = 0x7C, address = 0x8017460C },
+]
+package_name = "actor_301600"
+required = true
+sha1 = "adbade677a03d1461a32441d233303c1aa855bd7"
+
+[rise_back]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[roam_idle]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[roam_land]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[burst_head]
+type = "model"
+slots = ["body"]
+symbol = "_gScavengerBurstHead"
+sha1 = "f93a1ddeac76013606c0344a434ec26b67014614"
+
+[lunge_land]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[body_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "rest",
+    "wake",
+    "roam_idle",
+    "roam_hop",
+    "advance",
+    "zigzag",
+    "turn",
+    "turn_wrapped",
+    "settle",
+    "hit_wake",
+    "thrown_forward",
+    "slot_12",
+    "slot_13",
+    "stagger",
+    "slot_15",
+    "slot_16",
+    "posed",
+    "slot_18",
+    "buildup",
+    "slot_20",
+    "rise_forward",
+    "rise_back",
+    "roam_repeat",
+    "roam_land",
+    "look_around",
+    "lunge",
+    "lunge_land",
+    "grab_approach",
+    "grab_hold",
+    "grab_release",
+]
+
+[look_around]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[roam_repeat]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[body_anim_12]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[body_anim_13]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[body_anim_15]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[body_anim_16]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[body_anim_18]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[body_anim_20]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[body_binding]
+type = "binding"
+model = "enemies/scavenger/body"
+textures = { body = "enemies/scavenger/texture.default" }
+
+[grab_release]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+chunk = "sounds"
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "90b4f12eb5003da40c1ffbae46fc1dd251bea82f"
+palettes = [
+    { texture = "texture", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { name = "unread_row_2", entries = 256, region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "36c2d1f058a8013ec5235a598a7c5c724f35f19e"
+pages = [{ texture = "texture", region = "engine/vram/actor_sheet", offset = [0, 0] }]
+slots = 6
+
+[[package_file.contents]]
+chunk = "package_1"
+
+[rise_forward]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[turn_wrapped]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[grab_approach]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[thrown_forward]
+type = "clip"
+rig = "enemies/scavenger/rig"
+
+[grab_target_bank]
+type = "animation_bank"
+schema = "enemies/scavenger/grab_target_schema"
+symbol = "_gActor01600GrabTargetAnimationSets"
+
+[grab_target_bank.clips]
+companion_grab_hold = "enemies/scavenger/companion_grab_hold"
+player_grab_hold = "enemies/scavenger/player_grab_hold"
+player_grab_release = "enemies/scavenger/player_grab_release"
+
+[player_grab_hold]
+type = "clip"
+rig = "characters/aya/rig"
+
+[burst_ear_binding]
+type = "binding"
+model = "enemies/scavenger/burst_ear"
+textures = { body = "enemies/scavenger/texture.default" }
+
+[burst_leg_binding]
+type = "binding"
+model = "enemies/scavenger/burst_leg"
+textures = { body = "enemies/scavenger/texture.default" }
+
+[burst_head_binding]
+type = "binding"
+model = "enemies/scavenger/burst_head"
+textures = { body = "enemies/scavenger/texture.default" }
+
+[grab_target_schema]
+type = "animation_schema"
+slots = ["", "companion_grab_hold", "player_grab_hold", "player_grab_release"]
+
+[companion_grab_hold]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[player_grab_release]
+type = "clip"
+rig = "characters/aya/rig"

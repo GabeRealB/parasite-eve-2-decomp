@@ -319,7 +319,7 @@ enum {
 /// Spawning borrows the room recipes, paired map placements and loaded actor
 /// descriptors; retain those overlays through spawning and model-flag updates.
 static AreaResource _gDryfieldNightR08Variant1Resources[3] = {
-    { .entryId = DRYFIELD_NIGHT_R08_RESOURCE_AYA_WALKER, .fileNumber = DRYFIELD_NIGHT_R08_FILE_AYA_WALKER, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_50, .taskIndex = 0, .taskTable = &gActor535700AyaWalkerTaskDesc },
+    { .entryId = DRYFIELD_NIGHT_R08_RESOURCE_AYA_WALKER, .fileNumber = DRYFIELD_NIGHT_R08_FILE_AYA_WALKER, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_50, .taskIndex = 0, .taskTable = &gActor535700EveWalkerTaskDesc },
     { .entryId = DRYFIELD_NIGHT_R08_RESOURCE_PAWN_GOLEM, .fileNumber = DRYFIELD_NIGHT_R08_FILE_PAWN_GOLEM, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_50, .taskIndex = PAIR_WALK_TASK_BODY, .taskTable = gActor535700PawnGolemTasks },
     { .entryId = AREA_PLACEMENT_END },
 };

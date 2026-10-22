@@ -1,0 +1,213 @@
+# The assets of the group rooms/shelter/b3_dumping_hole, each named rooms/shelter/b3_dumping_hole/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[gluttons]
+type = "pe2pkg"
+embedded = [
+    { asset = "enemies/glutton/body", offset = 0x0FE70, size = 0x24E4, address = 0x80141C90 },
+    { asset = "enemies/glutton/actor_403200_model_12884", offset = 0x12354, size = 0xDA8, address = 0x80144174 },
+    { asset = "enemies/glutton/actor_403200_model_13774", offset = 0x130FC, size = 0x1184, address = 0x80144F1C },
+    { asset = "enemies/glutton/leg_left", offset = 0x14280, size = 0x17BC, address = 0x801460A0 },
+    { asset = "enemies/glutton/leg_right", offset = 0x15A3C, size = 0x17BC, address = 0x8014785C },
+    { asset = "enemies/glutton/limb", offset = 0x171F8, size = 0x1390, address = 0x80149018 },
+    { name = "actor_403200_model_186D8", offset = 0x18588, size = 0x4D4, address = 0x8014A3A8 },
+    { asset = "enemies/glutton/actor_403200_model_18BE4", offset = 0x18A5C, size = 0x460, address = 0x8014A87C },
+    { asset = "enemies/glutton/spinner", offset = 0x18EBC, size = 0x8D0, address = 0x8014ACDC },
+    { asset = "enemies/glutton/glob", offset = 0x1978C, size = 0xC24, address = 0x8014B5AC },
+    { asset = "enemies/glutton/chunk", offset = 0x1A3B0, size = 0x1E9C, address = 0x8014C1D0 },
+    "actor_403200_model_1C474",
+    "glutton_prop",
+    "actor_403200_model_1CDA4",
+    "actor_403200_model_1CFA0",
+    "actor_403200_model_1D26C",
+    "actor_403200_model_1D3E8",
+    "actor_403200_model_1D524",
+    "actor_403200_model_1D754",
+    "actor_403200_animation_1D8CC",
+    "actor_403200_animation_2CA74",
+]
+package_name = "actor_403200"
+parent = "shelter_b3_dumping_hole"
+required = true
+sha1 = "3b9671cd69c1ddefd7e1af17da8d9446c30e8f05"
+
+[mad_chaser]
+type = "pe2pkg"
+embedded = [
+    { asset = "enemies/chaser/mad/idle", offset = 0x0FA7C, size = 0x254, address = 0x8017189C },
+    { asset = "enemies/chaser/mad/mad_chaser_anim_anim_02", offset = 0x0FCD0, size = 0x1A4, address = 0x80171AF0 },
+    { asset = "enemies/chaser/mad/sidestep_left", offset = 0x0FE74, size = 0x4D4, address = 0x80171C94 },
+    { asset = "enemies/chaser/mad/sidestep_right", offset = 0x10348, size = 0x584, address = 0x80172168 },
+    { asset = "enemies/chaser/mad/collapse_low", offset = 0x108CC, size = 0x100, address = 0x801726EC },
+    { asset = "enemies/chaser/mad/collapse_upright", offset = 0x109CC, size = 0x100, address = 0x801727EC },
+    { asset = "enemies/chaser/mad/walk", offset = 0x10ACC, size = 0x430, address = 0x801728EC },
+    { asset = "enemies/chaser/mad/leap", offset = 0x10EFC, size = 0x4A4, address = 0x80172D1C },
+    { asset = "enemies/chaser/mad/alert_cry", offset = 0x113A0, size = 0x558, address = 0x801731C0 },
+    { asset = "enemies/chaser/mad/mad_chaser_anim_anim_10", offset = 0x118F8, size = 0x2B4, address = 0x80173718 },
+    { asset = "enemies/chaser/mad/recoil_light", offset = 0x11BAC, size = 0x294, address = 0x801739CC },
+    { asset = "enemies/chaser/mad/recoil_heavy", offset = 0x11E40, size = 0x2B0, address = 0x80173C60 },
+    { asset = "enemies/chaser/mad/turn_around", offset = 0x120F0, size = 0x214, address = 0x80173F10 },
+    { asset = "enemies/chaser/mad/look_around", offset = 0x12304, size = 0x120, address = 0x80174124 },
+    { asset = "enemies/chaser/mad/rise", offset = 0x12424, size = 0x13C, address = 0x80174244 },
+    { asset = "enemies/chaser/mad/rebound", offset = 0x12560, size = 0x1FC, address = 0x80174380 },
+    { asset = "enemies/chaser/mad/recoil_low", offset = 0x1275C, size = 0x43C, address = 0x8017457C },
+    { asset = "enemies/chaser/mad/leap_land", offset = 0x12B98, size = 0x18C, address = 0x801749B8 },
+    { asset = "enemies/chaser/mad/rebound_land", offset = 0x12D24, size = 0x1A8, address = 0x80174B44 },
+    { name = "mad_chaser_bank", offset = 0x12ECC, size = 0x54, address = 0x80174CEC },
+    "actor_341700_model_13558",
+    "actor_341700_motion_142DC",
+]
+package_name = "actor_341700"
+required = true
+sha1 = "20d39f5d598c44290c8352c5a86a56d5f2e139d8"
+
+[blaze_scene]
+type = "pe2pkg"
+embedded = [
+    { asset = "characters/aya/stand", offset = 0x01714, size = 0x304, address = 0x80163534 },
+    { asset = "enemies/golem/no_9/player_event_58", offset = 0x01A18, size = 0xA3C, address = 0x80163838 },
+    { asset = "enemies/golem/no_9/player_event_59", offset = 0x02454, size = 0x668, address = 0x80164274 },
+    { name = "player_burn_bank", offset = 0x02AE0, size = 0x10, address = 0x80164900 },
+]
+package_name = "actor_342100"
+required = true
+sha1 = "cc8dfc0851c1032f6879f4788eb672e52d5c11a2"
+
+[gluttons_file]
+type = "file"
+
+[[gluttons_file.contents]]
+asset = "enemies/glutton/sounds"
+
+[[gluttons_file.contents]]
+asset = "enemies/glutton/image"
+sha1 = "43fa8e4cdc34bc1863994a1286c1c9a5bf55709d"
+pages = [
+    { texture = "enemies/glutton/texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "enemies/glutton/texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+    { texture = "enemies/glutton/texture_page_3", region = "engine/vram/actor_sheet", offset = [128, 0] },
+    { texture = "enemies/glutton/texture_page_4", region = "engine/vram/actor_sheet", offset = [192, 0] },
+    { texture = "enemies/glutton/texture_page_5", region = "engine/vram/actor_sheet", offset = [256, 0] },
+]
+slots = 6
+
+[[gluttons_file.contents]]
+asset = "enemies/glutton/palette"
+sha1 = "8cbaa7c1176c953ce0013e253ff370a5069fdeec"
+
+[[gluttons_file.contents.palettes]]
+texture = "enemies/glutton/texture_page_1"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0, 0]
+
+[[gluttons_file.contents.palettes]]
+texture = "enemies/glutton/texture_page_2"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0, 1]
+
+[[gluttons_file.contents]]
+asset = "enemies/glutton/palette_2"
+sha1 = "f18363c53f250a4bf541b187cf08b7ca9626f6ad"
+
+[[gluttons_file.contents.palettes]]
+texture = "enemies/glutton/texture_page_3"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0, 2]
+
+[[gluttons_file.contents]]
+asset = "enemies/glutton/palette_3"
+sha1 = "39753c62696296216b393793a3ed0bebdd088d8c"
+
+[[gluttons_file.contents.palettes]]
+texture = "enemies/glutton/texture_page_4"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0, 3]
+
+[[gluttons_file.contents.palettes]]
+texture = "enemies/glutton/texture_page_5"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0, 4]
+
+[[gluttons_file.contents]]
+chunk = "gluttons"
+
+[mad_chaser_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b3_dumping_hole/mad_chaser_schema"
+symbol = "_gMadChaserAnimBank"
+
+[mad_chaser_bank.clips]
+idle = "enemies/chaser/mad/idle"
+slot_2 = "enemies/chaser/mad/mad_chaser_anim_anim_02"
+sidestep_left = "enemies/chaser/mad/sidestep_left"
+sidestep_right = "enemies/chaser/mad/sidestep_right"
+collapse_low = "enemies/chaser/mad/collapse_low"
+collapse_upright = "enemies/chaser/mad/collapse_upright"
+walk = "enemies/chaser/mad/walk"
+leap = "enemies/chaser/mad/leap"
+alert_cry = "enemies/chaser/mad/alert_cry"
+slot_10 = "enemies/chaser/mad/mad_chaser_anim_anim_10"
+recoil_light = "enemies/chaser/mad/recoil_light"
+recoil_heavy = "enemies/chaser/mad/recoil_heavy"
+turn_around = "enemies/chaser/mad/turn_around"
+look_around = "enemies/chaser/mad/look_around"
+rise = "enemies/chaser/mad/rise"
+rebound = "enemies/chaser/mad/rebound"
+recoil_low = "enemies/chaser/mad/recoil_low"
+leap_land = "enemies/chaser/mad/leap_land"
+rebound_land = "enemies/chaser/mad/rebound_land"
+
+[player_burn_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b3_dumping_hole/player_burn_schema"
+symbol = "_gActor342100BlazeAnimationSets"
+
+[player_burn_bank.clips]
+stand = "characters/aya/stand"
+catch_fire = "enemies/golem/no_9/player_event_59"
+burn_to_death = "enemies/golem/no_9/player_event_58"
+
+[mad_chaser_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "idle",
+    "slot_2",
+    "sidestep_left",
+    "sidestep_right",
+    "collapse_low",
+    "collapse_upright",
+    "walk",
+    "leap",
+    "alert_cry",
+    "slot_10",
+    "recoil_light",
+    "recoil_heavy",
+    "turn_around",
+    "look_around",
+    "rise",
+    "rebound",
+    "recoil_low",
+    "leap_land",
+    "rebound_land",
+]
+
+[player_burn_schema]
+type = "animation_schema"
+slots = ["stand", "catch_fire", "burn_to_death"]
+
+[actor_403200_model_186D8]
+type = "model"
+slots = ["gluttons_texture_page_2"]
+symbol = "_gShelterB3DumpingHoleActor403200Model186D8"
+sha1 = "5f6b59353b3492a7961ac2fef1a0f4dac7c8fa4c"
+
+[actor_403200_model_186D8_binding]
+type = "binding"
+model = "rooms/shelter/b3_dumping_hole/actor_403200_model_186D8"
+textures = { gluttons_texture_page_2 = "enemies/glutton/texture_page_2.default" }

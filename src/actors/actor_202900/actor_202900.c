@@ -70,143 +70,21 @@ static void _actor202900ResetAnim(void);
 static void _actor202900BlendAnim(void);
 static u8   _actor202900LatchSoundCue(void);
 
-static TmdSource _gActor202900AnmcWomanCafeteriaBody;
-static TmdSource _gActor202900Model0BC44;
+static TmdSource _gAnmcWoman2Body;
+static TmdSource _gAnmcWoman2Glasses;
 static void      _actor202900BodyTask(Task* task);
 static void      _actor202900CarriedModelTask(Task* task);
 
 static s32 _actor202900PlayAnimation(Task* unusedTask, s32 messageId,
                                      const AnimationPlayRequest* request, s32 unusedArgument);
 
-static AnimationPackedPose _gActor202900Animation06098Bank1[158] = {
-#include "assets/actor_202900_animation_06098_bank1.inc"
-};
+#include "assets/rooms/akropolis/cafeteria/anmc_woman_clips_1.inc"
 
-static AnimationPackedRotation _gActor202900Animation06098Bank4[2161] = {
-#include "assets/actor_202900_animation_06098_bank4.inc"
-};
+#include "assets/characters/anmc_woman_2/body.inc"
 
-static AnimationRecord _gActor202900Animation06098Records[3118] = {
-#include "assets/actor_202900_animation_06098_records.inc"
-};
+#include "assets/characters/anmc_woman_2/glasses.inc"
 
-static u16 _gActor202900Animation06098Indices[20] = {
-#include "assets/actor_202900_animation_06098_indices.inc"
-};
-
-AnimationSet gActor202900Animation06098 = {
-    _gActor202900Animation06098Records,
-    _gActor202900Animation06098Indices,
-    { NULL, _gActor202900Animation06098Bank1, NULL, NULL, _gActor202900Animation06098Bank4, NULL, NULL, NULL },
-};
-
-static TmdBone _gActor202900AnmcWomanCafeteriaBodySkeleton[19] = {
-#include "assets/anmc_woman_cafeteria_body_skeleton.inc"
-};
-
-static u32 _gActor202900AnmcWomanCafeteriaBodyPartVerts[19] = {
-#include "assets/anmc_woman_cafeteria_body_partVerts.inc"
-};
-
-static SVECTOR _gActor202900AnmcWomanCafeteriaBodyVerts[377] = {
-#include "assets/anmc_woman_cafeteria_body_verts.inc"
-};
-
-static SVECTOR _gActor202900AnmcWomanCafeteriaBodyNormals[406] = {
-#include "assets/anmc_woman_cafeteria_body_normals.inc"
-};
-
-static u32 _gActor202900AnmcWomanCafeteriaBodyStream[4054] = {
-#include "assets/anmc_woman_cafeteria_body_stream.inc"
-};
-
-static TmdSource _gActor202900AnmcWomanCafeteriaBody = {
-    0,
-    22188,
-    6568,
-    19,
-    _gActor202900AnmcWomanCafeteriaBodyPartVerts,
-    _gActor202900AnmcWomanCafeteriaBodyVerts,
-    _gActor202900AnmcWomanCafeteriaBodyNormals,
-    _gActor202900AnmcWomanCafeteriaBodySkeleton,
-    _gActor202900AnmcWomanCafeteriaBodyStream,
-};
-
-static TmdBone _gActor202900Model0BC44Skeleton[1] = {
-#include "assets/actor_202900_model_0BC44_skeleton.inc"
-};
-
-static u32 _gActor202900Model0BC44PartVerts[1] = {
-#include "assets/actor_202900_model_0BC44_partVerts.inc"
-};
-
-static SVECTOR _gActor202900Model0BC44Verts[6] = {
-#include "assets/actor_202900_model_0BC44_verts.inc"
-};
-
-static SVECTOR _gActor202900Model0BC44Normals[8] = {
-#include "assets/actor_202900_model_0BC44_normals.inc"
-};
-
-static u32 _gActor202900Model0BC44Stream[57] = {
-#include "assets/actor_202900_model_0BC44_stream.inc"
-};
-
-static TmdSource _gActor202900Model0BC44 = {
-    0,
-    320,
-    0,
-    1,
-    _gActor202900Model0BC44PartVerts,
-    _gActor202900Model0BC44Verts,
-    _gActor202900Model0BC44Normals,
-    _gActor202900Model0BC44Skeleton,
-    _gActor202900Model0BC44Stream,
-};
-
-static AnimationPackedPose _gActor202900Animation0CDB4Bank1[25] = {
-#include "assets/actor_202900_animation_0CDB4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor202900Animation0CDB4Bank4[427] = {
-#include "assets/actor_202900_animation_0CDB4_bank4.inc"
-};
-
-static AnimationRecord _gActor202900Animation0CDB4Records[538] = {
-#include "assets/actor_202900_animation_0CDB4_records.inc"
-};
-
-static u16 _gActor202900Animation0CDB4Indices[20] = {
-#include "assets/actor_202900_animation_0CDB4_indices.inc"
-};
-
-static AnimationSet _gActor202900Animation0CDB4 = {
-    _gActor202900Animation0CDB4Records,
-    _gActor202900Animation0CDB4Indices,
-    { NULL, _gActor202900Animation0CDB4Bank1, NULL, NULL, _gActor202900Animation0CDB4Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor202900Animation0CFC4Bank1[2] = {
-#include "assets/actor_202900_animation_0CFC4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor202900Animation0CFC4Bank4[33] = {
-#include "assets/actor_202900_animation_0CFC4_bank4.inc"
-};
-
-static AnimationRecord _gActor202900Animation0CFC4Records[73] = {
-#include "assets/actor_202900_animation_0CFC4_records.inc"
-};
-
-static u16 _gActor202900Animation0CFC4Indices[20] = {
-#include "assets/actor_202900_animation_0CFC4_indices.inc"
-};
-
-static AnimationSet _gActor202900Animation0CFC4 = {
-    _gActor202900Animation0CFC4Records,
-    _gActor202900Animation0CFC4Indices,
-    { NULL, _gActor202900Animation0CFC4Bank1, NULL, NULL, _gActor202900Animation0CFC4Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/akropolis/cafeteria/anmc_woman_clips_2.inc"
 
 /// Cafeteria woman's animation and paired-model visibility messages with an end sentinel.
 ///
@@ -225,13 +103,13 @@ TaskDesc gActor202900WomanTaskDescriptors[2] = {
     {
         .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_202900_WOMAN_TASK_PRIORITY } },
         .callback = _actor202900BodyTask,
-        .data     = { .model = &_gActor202900AnmcWomanCafeteriaBody },
+        .data     = { .model = &_gAnmcWoman2Body },
     },
     // 1: carried model.
     {
         .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_202900_WOMAN_TASK_PRIORITY } },
         .callback = _actor202900CarriedModelTask,
-        .data     = { .model = &_gActor202900Model0BC44 },
+        .data     = { .model = &_gAnmcWoman2Glasses },
     },
 };
 
@@ -241,14 +119,7 @@ TaskDesc gActor202900WomanTaskDescriptors[2] = {
 /// the sound cue. Direct-slot initialization maps request 0 to 1 and negatives
 /// to their magnitude, which must still select a loaded entry. The rig borrows
 /// this table and its clips while the overlay is loaded.
-static AnimationSet* _gActor202900WomanAnimationSets[6] = {
-    NULL,
-    &_gActor202900Animation0CDB4,
-    NULL,
-    NULL,
-    &_gActor202900Animation0CFC4,
-    NULL,
-};
+#include "assets/rooms/akropolis/cafeteria/woman_bank.inc"
 
 /// Borrowed singleton work of the cafeteria woman's body and animation messages.
 ///

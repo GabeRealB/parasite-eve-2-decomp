@@ -1,0 +1,25 @@
+# The assets of the group enemies/chicken/man_a, each named enemies/chicken/man_a/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "preview_palette"
+sha1 = "f423f18d36913260d020ccfa0e6dd57cddc857e2"
+palettes = [{ texture = "preview", variant = "default", region = "engine/vram/preview_palette" }]
+
+[[file.contents]]
+chunk = "preview_image"
+sha1 = "c80be47d0a1d32f5ed6a8abbf496266c3908555c"
+pages = [{ texture = "preview", region = "engine/vram/tall_preview" }]
+
+[[file.contents]]
+asset = "txt_82"
+
+[preview]
+type = "texture"
+bpp = 8
+height = 160
+variants = ["default"]
+width = 128

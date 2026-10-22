@@ -1,0 +1,193 @@
+# The assets of the group enemies/suckler/bone, each named enemies/suckler/bone/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[run]
+type = "clip"
+rig = "enemies/suckler/rig"
+
+[bank]
+type = "animation_bank"
+schema = "enemies/suckler/bone/schema"
+symbol = "_gActor01200AnimationSets"
+
+[bank.clips]
+hang = "enemies/suckler/bone/hang"
+walk = "enemies/suckler/bone/walk"
+run = "enemies/suckler/bone/run"
+settle = "enemies/suckler/bone/settle"
+sleep = "enemies/suckler/bone/sleep"
+rouse = "enemies/suckler/bone/rouse"
+slot_7 = "enemies/suckler/bone/anim_07"
+slot_8 = "enemies/suckler/bone/anim_08"
+slot_9 = "enemies/suckler/bone/anim_09"
+burst = "enemies/suckler/bone/burst"
+
+[body]
+type = "model"
+rig = "enemies/suckler/rig"
+slots = ["body"]
+symbol = "_gSucklerBoneBody"
+sha1 = "61c0165d5c3ea96c0c5b1be4152cdd42f2d21955"
+
+[hang]
+type = "clip"
+rig = "enemies/suckler/rig"
+
+[idle]
+type = "sound"
+sha1 = "563903b7a146621f41a6e803ebc6d28ff61f7aad"
+
+[walk]
+type = "clip"
+rig = "enemies/suckler/rig"
+
+[burst]
+type = "clip"
+rig = "enemies/suckler/rig"
+
+[rouse]
+type = "clip"
+rig = "enemies/suckler/rig"
+
+[sleep]
+type = "clip"
+rig = "enemies/suckler/rig"
+
+[schema]
+type = "animation_schema"
+slots = ["", "hang", "walk", "run", "settle", "sleep", "rouse", "slot_7", "slot_8", "slot_9", "burst"]
+
+[settle]
+type = "clip"
+rig = "enemies/suckler/rig"
+
+[sounds]
+type = "sound_bank"
+samples = [
+    "enemies/suckler/bone/unused_1",
+    "enemies/suckler/burst",
+    "enemies/suckler/step",
+    "enemies/suckler/burst_2",
+    "enemies/suckler/bone/unused_2",
+    "enemies/suckler/bone/unused_3",
+    "enemies/suckler/bone/idle",
+]
+sounds = { step = 1, burst = 4, idle = 5 }
+sha1 = "c7e538d5b2f24a4b0bbec95fe00a28e6eed01145"
+
+[anim_07]
+type = "clip"
+rig = "enemies/suckler/rig"
+
+[anim_08]
+type = "clip"
+rig = "enemies/suckler/rig"
+
+[anim_09]
+type = "clip"
+rig = "enemies/suckler/rig"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[unused_1]
+type = "sound"
+sha1 = "d65c09a74df2834ff557dac7519939103ae30105"
+
+[unused_2]
+type = "sound"
+sha1 = "cc7ff36de567dab240c1131a0a2e8a1b8f6b2741"
+
+[unused_3]
+type = "sound"
+sha1 = "7024e96ad8e0591cafc94d815d999dfff001a735"
+
+[package_1]
+type = "pe2pkg"
+embedded = [
+    { name = "body", offset = 0x0405C, size = 0x18FC, address = 0x80135E7C },
+    { name = "hang", offset = 0x05958, size = 0x164, address = 0x80137778 },
+    { name = "walk", offset = 0x05ABC, size = 0x2C4, address = 0x801378DC },
+    { name = "run", offset = 0x05D80, size = 0x2A4, address = 0x80137BA0 },
+    { name = "settle", offset = 0x06024, size = 0x1E0, address = 0x80137E44 },
+    { name = "sleep", offset = 0x06204, size = 0x138, address = 0x80138024 },
+    { name = "rouse", offset = 0x0633C, size = 0x1A0, address = 0x8013815C },
+    { name = "anim_07", offset = 0x064DC, size = 0x214, address = 0x801382FC },
+    { name = "anim_08", offset = 0x066F0, size = 0x410, address = 0x80138510 },
+    { name = "anim_09", offset = 0x06B00, size = 0x2C0, address = 0x80138920 },
+    { name = "burst", offset = 0x06DC0, size = 0x1D8, address = 0x80138BE0 },
+    { name = "bank", offset = 0x06F98, size = 0x4C, address = 0x80138DB8 },
+]
+package_name = "actor_101200"
+required = true
+sha1 = "8c512e7b19fadcdfc55e178ff41756c22f595b60"
+
+[package_2]
+type = "pe2pkg"
+embedded = [
+    { name = "hang", offset = 0x05958, size = 0x164, address = 0x8014F778 },
+    { name = "walk", offset = 0x05ABC, size = 0x2C4, address = 0x8014F8DC },
+    { name = "run", offset = 0x05D80, size = 0x2A4, address = 0x8014FBA0 },
+    { name = "settle", offset = 0x06024, size = 0x1E0, address = 0x8014FE44 },
+    { name = "sleep", offset = 0x06204, size = 0x138, address = 0x80150024 },
+    { name = "rouse", offset = 0x0633C, size = 0x1A0, address = 0x8015015C },
+    { name = "anim_07", offset = 0x064DC, size = 0x214, address = 0x801502FC },
+    { name = "anim_08", offset = 0x066F0, size = 0x410, address = 0x80150510 },
+    { name = "anim_09", offset = 0x06B00, size = 0x2C0, address = 0x80150920 },
+    { name = "burst", offset = 0x06DC0, size = 0x1D8, address = 0x80150BE0 },
+    { name = "bank", offset = 0x06F98, size = 0x4C, address = 0x80150DB8 },
+]
+package_name = "actor_201200"
+required = true
+sha1 = "87d4f78007afed1dc9c4607d71f64cbc52bdab78"
+
+[package_3]
+type = "pe2pkg"
+embedded = [
+    { name = "hang", offset = 0x05958, size = 0x164, address = 0x80167778 },
+    { name = "walk", offset = 0x05ABC, size = 0x2C4, address = 0x801678DC },
+    { name = "run", offset = 0x05D80, size = 0x2A4, address = 0x80167BA0 },
+    { name = "settle", offset = 0x06024, size = 0x1E0, address = 0x80167E44 },
+    { name = "sleep", offset = 0x06204, size = 0x138, address = 0x80168024 },
+    { name = "rouse", offset = 0x0633C, size = 0x1A0, address = 0x8016815C },
+    { name = "anim_07", offset = 0x064DC, size = 0x214, address = 0x801682FC },
+    { name = "anim_08", offset = 0x066F0, size = 0x410, address = 0x80168510 },
+    { name = "anim_09", offset = 0x06B00, size = 0x2C0, address = 0x80168920 },
+    { name = "burst", offset = 0x06DC0, size = 0x1D8, address = 0x80168BE0 },
+    { name = "bank", offset = 0x06F98, size = 0x4C, address = 0x80168DB8 },
+]
+package_name = "actor_301200"
+required = true
+sha1 = "bc64e7ebfa3c8168d14a7f451e60e44868296235"
+
+[body_binding]
+type = "binding"
+model = "enemies/suckler/bone/body"
+textures = { body = "enemies/suckler/bone/texture.default" }
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+chunk = "sounds"
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "a266eb18ebc85eeb477fda2106711c6e27c31462"
+pages = [{ texture = "texture", region = "engine/vram/actor_sheet", offset = [0, 0] }]
+slots = 6
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "1ca0bfb1705227271c3b7c37670f238de109a363"
+palettes = [
+    { texture = "texture", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { name = "unread_row_2", entries = 256, region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_file.contents]]
+chunk = "package_1"

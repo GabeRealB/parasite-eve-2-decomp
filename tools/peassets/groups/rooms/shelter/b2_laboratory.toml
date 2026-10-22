@@ -1,0 +1,86 @@
+# The assets of the group rooms/shelter/b2_laboratory, each named rooms/shelter/b2_laboratory/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[console]
+type = "pe2pkg"
+embedded = [
+    { name = "player_at_terminal", offset = 0x027E4, size = 0x264, address = 0x80134604 },
+    { name = "player_type_at_terminal", offset = 0x02A48, size = 0x2AC, address = 0x80134868 },
+    { name = "player_shocked_at_terminal", offset = 0x02CF4, size = 0x21C, address = 0x80134B14 },
+    { name = "player_stop_typing", offset = 0x02F10, size = 0x1A8, address = 0x80134D30 },
+    { name = "player_results_cue_16", offset = 0x030B8, size = 0x1B8, address = 0x80134ED8 },
+    { name = "player_terminal_bank", offset = 0x032B4, size = 0x14, address = 0x801350D4 },
+]
+package_name = "actor_143000"
+required = true
+sha1 = "2bee4e729352a85bc081acf1473a268088e61563"
+
+[console_file]
+type = "file"
+
+[[console_file.contents]]
+chunk = "console_palette"
+sha1 = "7aca82df89a72821b15e0d1e76366ab8a7fd004f"
+palettes = [
+    { name = "status_line", entries = 16, region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { name = "key_highlight", entries = 16, region = "engine/vram/actor_palettes", offset = [16, 0] },
+    { name = "unread_2", entries = 16, region = "engine/vram/actor_palettes", offset = [32, 0] },
+    { name = "accepted_banner", entries = 16, region = "engine/vram/actor_palettes", offset = [48, 0] },
+    { name = "rejected_banner", entries = 16, region = "engine/vram/actor_palettes", offset = [64, 0] },
+    { name = "entry_mask", entries = 16, region = "engine/vram/actor_palettes", offset = [80, 0] },
+    { name = "caret", entries = 16, region = "engine/vram/actor_palettes", offset = [96, 0] },
+    { name = "dog", entries = 16, region = "engine/vram/actor_palettes", offset = [112, 0] },
+    { name = "unread_8", entries = 16, region = "engine/vram/actor_palettes", offset = [128, 0] },
+    { name = "unread_9", entries = 16, region = "engine/vram/actor_palettes", offset = [144, 0] },
+    { name = "unread_10", entries = 16, region = "engine/vram/actor_palettes", offset = [160, 0] },
+    { name = "unread_11", entries = 16, region = "engine/vram/actor_palettes", offset = [176, 0] },
+    { name = "unread_12", entries = 16, region = "engine/vram/actor_palettes", offset = [192, 0] },
+    { name = "unread_13", entries = 16, region = "engine/vram/actor_palettes", offset = [208, 0] },
+    { name = "unread_14", entries = 16, region = "engine/vram/actor_palettes", offset = [224, 0] },
+    { name = "unread_15", entries = 16, region = "engine/vram/actor_palettes", offset = [240, 0] },
+    { name = "unread_row_2", entries = 256, region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[console_file.contents]]
+chunk = "console"
+
+[player_at_terminal]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gShelterB2LaboratoryPlayerAtTerminalClip"
+
+[player_stop_typing]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gShelterB2LaboratoryPlayerStopTypingClip"
+
+[player_terminal_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b2_laboratory/player_terminal_schema"
+symbol = "_gActor143000PlayerSceneSets"
+
+[player_terminal_bank.clips]
+at_terminal = "rooms/shelter/b2_laboratory/player_at_terminal"
+type_at_terminal = "rooms/shelter/b2_laboratory/player_type_at_terminal"
+shocked_at_terminal = "rooms/shelter/b2_laboratory/player_shocked_at_terminal"
+stop_typing = "rooms/shelter/b2_laboratory/player_stop_typing"
+results_cue_16 = "rooms/shelter/b2_laboratory/player_results_cue_16"
+
+[player_results_cue_16]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gShelterB2LaboratoryPlayerResultsCue16Clip"
+
+[player_terminal_schema]
+type = "animation_schema"
+slots = ["at_terminal", "type_at_terminal", "shocked_at_terminal", "stop_typing", "results_cue_16"]
+
+[player_type_at_terminal]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gShelterB2LaboratoryPlayerTypeAtTerminalClip"
+
+[player_shocked_at_terminal]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gShelterB2LaboratoryPlayerShockedAtTerminalClip"

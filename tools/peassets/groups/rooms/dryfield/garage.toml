@@ -1,0 +1,246 @@
+# The assets of the group rooms/dryfield/garage, each named rooms/dryfield/garage/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[gary]
+type = "pe2pkg"
+embedded = [
+    { asset = "characters/gary/body", offset = 0x02178, size = 0x5A90, address = 0x80133F98 },
+    { asset = "characters/gary/head_hat", offset = 0x07C08, size = 0x4D8, address = 0x80139A28 },
+    { asset = "characters/gary/shotgun", offset = 0x080E0, size = 0x5F4, address = 0x80139F00 },
+    { name = "gary_advance_aiming", offset = 0x086D4, size = 0x3C0, address = 0x8013A4F4 },
+    { name = "gary_garage_cue_12", offset = 0x08A94, size = 0x1E8, address = 0x8013A8B4 },
+    { name = "gary_ask_mist", offset = 0x08C7C, size = 0x1C4, address = 0x8013AA9C },
+    { name = "gary_long_story", offset = 0x08E40, size = 0x240, address = 0x8013AC60 },
+    { name = "gary_time_for_rounds", offset = 0x09080, size = 0x234, address = 0x8013AEA0 },
+    { name = "gary_stand", offset = 0x092B4, size = 0x250, address = 0x8013B0D4 },
+    { name = "gary_garage_cue_27", offset = 0x09504, size = 0x294, address = 0x8013B324 },
+    { name = "gary_garage_cue_35", offset = 0x09798, size = 0x3C4, address = 0x8013B5B8 },
+    { name = "gary_offer_motel", offset = 0x09B5C, size = 0x3F0, address = 0x8013B97C },
+    { name = "gary_say_name", offset = 0x09F4C, size = 0x254, address = 0x8013BD6C },
+    { name = "gary_garage_cue_22", offset = 0x0A1A0, size = 0x440, address = 0x8013BFC0 },
+    { name = "gary_aim_shotgun", offset = 0x0A5E0, size = 0x29C, address = 0x8013C400 },
+    { name = "gary_introduce_himself", offset = 0x0A87C, size = 0x250, address = 0x8013C69C },
+    { name = "gary_garage_cue_14", offset = 0x0AACC, size = 0x208, address = 0x8013C8EC },
+    { name = "extra_anim", offset = 0x0ACD4, size = 0x638, address = 0x8013CAF4 },
+    { asset = "characters/pierce/joke", offset = 0x0B30C, size = 0x558, address = 0x8013D12C },
+    { asset = "characters/pierce/anim_30", offset = 0x0B864, size = 0x394, address = 0x8013D684 },
+    { asset = "characters/aya/stand", offset = 0x0BBF8, size = 0x304, address = 0x8013DA18 },
+    { name = "player_garage_entry_1", offset = 0x0BEFC, size = 0x280, address = 0x8013DD1C },
+    { name = "player_garage_entry_2", offset = 0x0C17C, size = 0x3A4, address = 0x8013DF9C },
+    { name = "player_dont_shoot", offset = 0x0C520, size = 0x2C4, address = 0x8013E340 },
+    { name = "player_anim_04", offset = 0x0C7E4, size = 0x18C, address = 0x8013E604 },
+    { name = "player_show_badge", offset = 0x0C970, size = 0x28C, address = 0x8013E790 },
+    { name = "player_answer_just_me", offset = 0x0CBFC, size = 0x2AC, address = 0x8013EA1C },
+    { name = "player_ask_what_happened", offset = 0x0CEA8, size = 0x21C, address = 0x8013ECC8 },
+    { name = "player_garage_cue_21", offset = 0x0D0C4, size = 0x390, address = 0x8013EEE4 },
+    { name = "player_garage_cue_28", offset = 0x0D454, size = 0x248, address = 0x8013F274 },
+    { name = "player_stand_guarded", offset = 0x0D69C, size = 0x328, address = 0x8013F4BC },
+    { name = "player_ask_to_show_badge", offset = 0x0D9C4, size = 0x1F8, address = 0x8013F7E4 },
+    { asset = "characters/aya/call_out", offset = 0x0DBBC, size = 0x1F8, address = 0x8013F9DC },
+    { asset = "characters/aya/call_out_end", offset = 0x0DDB4, size = 0x354, address = 0x8013FBD4 },
+    { asset = "characters/aya/insist", offset = 0x0E108, size = 0x1F8, address = 0x8013FF28 },
+    { asset = "characters/aya/reply", offset = 0x0E300, size = 0x428, address = 0x80140120 },
+    { asset = "characters/aya/introduce_herself", offset = 0x0E728, size = 0x384, address = 0x80140548 },
+    { name = "player_bank", offset = 0x0EAAC, size = 0x44, address = 0x801408CC },
+    { name = "gary_bank", offset = 0x0EAF0, size = 0x4C, address = 0x80140910 },
+]
+package_name = "actor_120300"
+required = true
+sha1 = "df6c52dc09ee236d9e8f76155327f57f5d80c8d5"
+
+[gary_bank]
+type = "animation_bank"
+schema = "rooms/dryfield/garage/gary_schema"
+symbol = "_gActor120300BodyAnimationSets"
+
+[gary_bank.clips]
+advance_aiming = "rooms/dryfield/garage/gary_advance_aiming"
+garage_cue_12 = "rooms/dryfield/garage/gary_garage_cue_12"
+ask_mist = "rooms/dryfield/garage/gary_ask_mist"
+long_story = "rooms/dryfield/garage/gary_long_story"
+time_for_rounds = "rooms/dryfield/garage/gary_time_for_rounds"
+stand = "rooms/dryfield/garage/gary_stand"
+garage_cue_27 = "rooms/dryfield/garage/gary_garage_cue_27"
+garage_cue_35 = "rooms/dryfield/garage/gary_garage_cue_35"
+offer_motel = "rooms/dryfield/garage/gary_offer_motel"
+say_name = "rooms/dryfield/garage/gary_say_name"
+garage_cue_22 = "rooms/dryfield/garage/gary_garage_cue_22"
+aim_shotgun = "rooms/dryfield/garage/gary_aim_shotgun"
+name_sounds_familiar = "characters/pierce/joke"
+garage_cue_34 = "characters/pierce/anim_30"
+introduce_himself = "rooms/dryfield/garage/gary_introduce_himself"
+garage_cue_14 = "rooms/dryfield/garage/gary_garage_cue_14"
+
+[extra_anim]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_stand]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "advance_aiming",
+    "",
+    "",
+    "garage_cue_12",
+    "ask_mist",
+    "long_story",
+    "time_for_rounds",
+    "stand",
+    "garage_cue_27",
+    "garage_cue_35",
+    "offer_motel",
+    "say_name",
+    "garage_cue_22",
+    "aim_shotgun",
+    "name_sounds_familiar",
+    "garage_cue_34",
+    "introduce_himself",
+    "garage_cue_14",
+]
+
+[player_bank]
+type = "animation_bank"
+schema = "rooms/dryfield/garage/player_schema"
+symbol = "_gActor120300PlayerAnimationSets"
+
+[player_bank.clips]
+stand = "characters/aya/stand"
+garage_entry_1 = "rooms/dryfield/garage/player_garage_entry_1"
+garage_entry_2 = "rooms/dryfield/garage/player_garage_entry_2"
+dont_shoot = "rooms/dryfield/garage/player_dont_shoot"
+slot_4 = "rooms/dryfield/garage/player_anim_04"
+show_badge = "rooms/dryfield/garage/player_show_badge"
+answer_just_me = "rooms/dryfield/garage/player_answer_just_me"
+ask_what_happened = "rooms/dryfield/garage/player_ask_what_happened"
+garage_cue_21 = "rooms/dryfield/garage/player_garage_cue_21"
+garage_cue_28 = "rooms/dryfield/garage/player_garage_cue_28"
+stand_guarded = "rooms/dryfield/garage/player_stand_guarded"
+call_out = "characters/aya/call_out"
+call_out_end = "characters/aya/call_out_end"
+insist = "characters/aya/insist"
+reply = "characters/aya/reply"
+introduce_herself = "characters/aya/introduce_herself"
+ask_to_show_badge = "rooms/dryfield/garage/player_ask_to_show_badge"
+
+[gary_ask_mist]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_say_name]
+type = "clip"
+rig = "characters/gary/rig"
+
+[player_schema]
+type = "animation_schema"
+slots = [
+    "stand",
+    "garage_entry_1",
+    "garage_entry_2",
+    "dont_shoot",
+    "slot_4",
+    "show_badge",
+    "answer_just_me",
+    "ask_what_happened",
+    "garage_cue_21",
+    "garage_cue_28",
+    "stand_guarded",
+    "call_out",
+    "call_out_end",
+    "insist",
+    "reply",
+    "introduce_herself",
+    "ask_to_show_badge",
+]
+
+[player_anim_04]
+type = "clip"
+rig = "characters/aya/rig"
+
+[gary_long_story]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_aim_shotgun]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_offer_motel]
+type = "clip"
+rig = "characters/gary/rig"
+
+[player_dont_shoot]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_show_badge]
+type = "clip"
+rig = "characters/aya/rig"
+
+[gary_garage_cue_12]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_garage_cue_14]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_garage_cue_22]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_garage_cue_27]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_garage_cue_35]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_advance_aiming]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_time_for_rounds]
+type = "clip"
+rig = "characters/gary/rig"
+
+[player_garage_cue_21]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_garage_cue_28]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_stand_guarded]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_answer_just_me]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_garage_entry_1]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_garage_entry_2]
+type = "clip"
+rig = "characters/aya/rig"
+
+[gary_introduce_himself]
+type = "clip"
+rig = "characters/gary/rig"
+
+[player_ask_to_show_badge]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_ask_what_happened]
+type = "clip"
+rig = "characters/aya/rig"

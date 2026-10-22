@@ -341,7 +341,7 @@ static s32  _actor110600SetModelDraw(Task* task, s32 messageId, s32 drawMode, s3
 static s32  _actor110600IsPresent(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
 static void _actor110600IgnoreMessage2015(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
 
-static TmdSource _gActor110600StrangerBody;
+static TmdSource _gAkropolisCafeteriaBossStrangerBody;
 static void      _actor110600Task(Task* task);
 
 /// Player hit-presentation selector packed into this actor's swing contacts.
@@ -412,37 +412,7 @@ static u16 D_actor_110600_80138F34[18] = {
     0,
 };
 
-static TmdBone _gActor110600StrangerBodySkeleton[19] = {
-#include "assets/stranger_body_skeleton.inc"
-};
-
-static u32 _gActor110600StrangerBodyPartVerts[19] = {
-#include "assets/stranger_body_partVerts.inc"
-};
-
-static SVECTOR _gActor110600StrangerBodyVerts[311] = {
-#include "assets/stranger_body_verts.inc"
-};
-
-static SVECTOR _gActor110600StrangerBodyNormals[309] = {
-#include "assets/stranger_body_normals.inc"
-};
-
-static u32 _gActor110600StrangerBodyStream[4027] = {
-#include "assets/stranger_body_stream.inc"
-};
-
-static TmdSource _gActor110600StrangerBody = {
-    0,
-    20180,
-    7860,
-    19,
-    _gActor110600StrangerBodyPartVerts,
-    _gActor110600StrangerBodyVerts,
-    _gActor110600StrangerBodyNormals,
-    _gActor110600StrangerBodySkeleton,
-    _gActor110600StrangerBodyStream,
-};
+#include "assets/rooms/akropolis/cafeteria/boss_stranger_body.inc"
 
 static AnimationPackedPose _gActor110600Animation0D63CBank1[29] = {
 #include "assets/actor_110600_animation_0D63C_bank1.inc"
@@ -977,13 +947,13 @@ static AnimationSet* _gActor110600AnimationSets[] = {
     &_gActor110600Animation142A4,
     &_gActor110600Animation14500,
     NULL,
-    &gActor210600Animation11F5C,
-    &gActor210600Animation12244,
-    &gActor210600Animation12B30,
-    &gActor210600Animation1310C,
+    &gAkropolisCafeteriaBossStrangerCollapseClip,
+    &gStrangerLesserIdleClip,
+    &gAkropolisCafeteriaBossStrangerFollowUp3Clip,
+    &gAkropolisCafeteriaExtraAnim6Clip,
     &_gActor110600Animation14054,
     &_gActor110600Animation12994,
-    &gActor210600Animation134C8,
+    &gAkropolisCafeteriaExtraAnim7Clip,
     NULL,
     NULL,
     NULL,
@@ -1046,10 +1016,10 @@ static u16 D_actor_110600_80148660[8] = {
 };
 
 enum { ACTOR_110600_TASK_PRIORITY = 96 };
-TaskDesc gActor110600TaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_110600_TASK_PRIORITY } }, _actor110600Task, { .model = &_gActor110600StrangerBody } };
+TaskDesc gActor110600TaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_110600_TASK_PRIORITY } }, _actor110600Task, { .model = &_gAkropolisCafeteriaBossStrangerBody } };
 
 /// Unreferenced copy of the actor's task recipe; no recovered resource selects it.
-static TaskDesc _gActor110600UnusedTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_110600_TASK_PRIORITY } }, _actor110600Task, { .model = &_gActor110600StrangerBody } };
+static TaskDesc _gActor110600UnusedTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_110600_TASK_PRIORITY } }, _actor110600Task, { .model = &_gAkropolisCafeteriaBossStrangerBody } };
 
 /// Overlay-wide shudder step: reset on entry, 0..4 jolt the root, 5 resumes CHASE.
 static s16 _gActor110600ShudderStep;
@@ -1240,24 +1210,24 @@ static s32 _actor110600ApplyCommand(Task* task, s32 messageId, const ActorComman
                 return 1;
             case ACTOR_110600_CAFETERIA_COMMAND_PLAY_SLOT1:
                 work->animId                                                 = ACTOR_110600_ANIM_SCRIPTED_SLOT1;
-                _gActor110600AnimationSets[ACTOR_110600_ANIM_SCRIPTED_SLOT1] = &gActor210600Animation11F5C;
+                _gActor110600AnimationSets[ACTOR_110600_ANIM_SCRIPTED_SLOT1] = &gAkropolisCafeteriaBossStrangerCollapseClip;
                 break;
             case ACTOR_110600_CAFETERIA_COMMAND_PLAY_SLOT2:
                 work->animId                                                 = ACTOR_110600_ANIM_SCRIPTED_SLOT2;
-                _gActor110600AnimationSets[ACTOR_110600_ANIM_SCRIPTED_SLOT2] = &gActor210600Animation11F5C;
+                _gActor110600AnimationSets[ACTOR_110600_ANIM_SCRIPTED_SLOT2] = &gAkropolisCafeteriaBossStrangerCollapseClip;
                 break;
             case ACTOR_110600_CAFETERIA_COMMAND_PLAY_SLOT0:
                 work->animId                                                 = ACTOR_110600_ANIM_SCRIPTED_SLOT0;
-                _gActor110600AnimationSets[ACTOR_110600_ANIM_SCRIPTED_SLOT0] = &gActor210600Animation12B30;
+                _gActor110600AnimationSets[ACTOR_110600_ANIM_SCRIPTED_SLOT0] = &gAkropolisCafeteriaBossStrangerFollowUp3Clip;
                 break;
             case ACTOR_110600_CAFETERIA_COMMAND_PLAY_SLOT1_ALT:
                 work->animId                                                 = ACTOR_110600_ANIM_SCRIPTED_SLOT1;
-                _gActor110600AnimationSets[ACTOR_110600_ANIM_SCRIPTED_SLOT1] = &gActor210600Animation134C8;
+                _gActor110600AnimationSets[ACTOR_110600_ANIM_SCRIPTED_SLOT1] = &gAkropolisCafeteriaExtraAnim7Clip;
                 break;
             case ACTOR_110600_CAFETERIA_COMMAND_PLAY_SLOT3:
             case ACTOR_110600_CAFETERIA_COMMAND_PLAY_SLOT3_ALIAS:
                 work->animId                                                 = ACTOR_110600_ANIM_SCRIPTED_SLOT3;
-                _gActor110600AnimationSets[ACTOR_110600_ANIM_SCRIPTED_SLOT3] = &gActor210600Animation12244;
+                _gActor110600AnimationSets[ACTOR_110600_ANIM_SCRIPTED_SLOT3] = &gStrangerLesserIdleClip;
                 break;
             case ACTOR_110600_CAFETERIA_COMMAND_DEATH_BURN:
                 work->state     = ACTOR_110600_STATE_DEATH_BURN;

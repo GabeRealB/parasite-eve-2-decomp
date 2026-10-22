@@ -1,0 +1,36 @@
+# The assets of the group attract_demos, each named attract_demos/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[logo]
+type = "pe2img"
+bpp = 8
+h = 96
+w = 64
+x = 448
+y = 128
+sha1 = "59dbecbbaf78cd51923c1fcda12ffbb320b37d8f"
+
+[logo_shadow]
+type = "pe2img"
+bpp = 8
+h = 96
+w = 64
+x = 448
+y = 192
+sha1 = "89c230210f51336227c7dda196122f2b7568f82e"
+
+[logo_palette]
+type = "pe2clut"
+h = 1
+w = 256
+x = 0
+y = 254
+sha1 = "23c34d03a5ba4a96596c44b861b41976d047c303"
+
+[logo_shadow_palette]
+type = "pe2clut"
+h = 1
+w = 256
+x = 0
+y = 253
+sha1 = "d928951f722195183e5d08208f4a430f7a587a70"

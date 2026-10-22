@@ -139,131 +139,15 @@ STATIC_ASSERT_SIZEOF(_Actor312200Work, 0x984);
 static void _actor312200Hide(Task* task);
 static void _actor312200PlayAnimation(Task* task);
 
-static TmdSource _gActor312200SwatMember1Body;
+static TmdSource _gSwatMember1Body;
 static s32       _actor312200SetModelDraw(Task* task, s32 messageId, s32 mode, s32 unusedArg);
 static s32       _actor312200Place(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArg);
 static s32       _actor312200ApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
 static void      _actor312200Task(Task* task);
 
-static TmdBone _gActor312200SwatMember1BodySkeleton[19] = {
-#include "assets/swat_member_1_body_skeleton.inc"
-};
+#include "assets/characters/swat_member_1/body.inc"
 
-static u32 _gActor312200SwatMember1BodyPartVerts[19] = {
-#include "assets/swat_member_1_body_partVerts.inc"
-};
-
-static SVECTOR _gActor312200SwatMember1BodyVerts[296] = {
-#include "assets/swat_member_1_body_verts.inc"
-};
-
-static SVECTOR _gActor312200SwatMember1BodyNormals[294] = {
-#include "assets/swat_member_1_body_normals.inc"
-};
-
-static u32 _gActor312200SwatMember1BodyStream[3276] = {
-#include "assets/swat_member_1_body_stream.inc"
-};
-
-static TmdSource _gActor312200SwatMember1Body = {
-    0,
-    17428,
-    5584,
-    19,
-    _gActor312200SwatMember1BodyPartVerts,
-    _gActor312200SwatMember1BodyVerts,
-    _gActor312200SwatMember1BodyNormals,
-    _gActor312200SwatMember1BodySkeleton,
-    _gActor312200SwatMember1BodyStream,
-};
-
-static AnimationPackedPose _gActor312200Animation07368Bank1[21] = {
-#include "assets/actor_312200_animation_07368_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor312200Animation07368Bank4[408] = {
-#include "assets/actor_312200_animation_07368_bank4.inc"
-};
-
-static AnimationRecord _gActor312200Animation07368Records[550] = {
-#include "assets/actor_312200_animation_07368_records.inc"
-};
-
-static u16 _gActor312200Animation07368Indices[20] = {
-#include "assets/actor_312200_animation_07368_indices.inc"
-};
-
-static AnimationSet _gActor312200Animation07368 = {
-    _gActor312200Animation07368Records,
-    _gActor312200Animation07368Indices,
-    { NULL, _gActor312200Animation07368Bank1, NULL, NULL, _gActor312200Animation07368Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor312200Animation0773CBank1[3] = {
-#include "assets/actor_312200_animation_0773C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor312200Animation0773CBank4[70] = {
-#include "assets/actor_312200_animation_0773C_bank4.inc"
-};
-
-static AnimationRecord _gActor312200Animation0773CRecords[146] = {
-#include "assets/actor_312200_animation_0773C_records.inc"
-};
-
-static u16 _gActor312200Animation0773CIndices[20] = {
-#include "assets/actor_312200_animation_0773C_indices.inc"
-};
-
-static AnimationSet _gActor312200Animation0773C = {
-    _gActor312200Animation0773CRecords,
-    _gActor312200Animation0773CIndices,
-    { NULL, _gActor312200Animation0773CBank1, NULL, NULL, _gActor312200Animation0773CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor312200Animation07D78Bank1[4] = {
-#include "assets/actor_312200_animation_07D78_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor312200Animation07D78Bank4[157] = {
-#include "assets/actor_312200_animation_07D78_bank4.inc"
-};
-
-static AnimationRecord _gActor312200Animation07D78Records[210] = {
-#include "assets/actor_312200_animation_07D78_records.inc"
-};
-
-static u16 _gActor312200Animation07D78Indices[20] = {
-#include "assets/actor_312200_animation_07D78_indices.inc"
-};
-
-static AnimationSet _gActor312200Animation07D78 = {
-    _gActor312200Animation07D78Records,
-    _gActor312200Animation07D78Indices,
-    { NULL, _gActor312200Animation07D78Bank1, NULL, NULL, _gActor312200Animation07D78Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor312200Animation080E0Bank1[3] = {
-#include "assets/actor_312200_animation_080E0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor312200Animation080E0Bank4[57] = {
-#include "assets/actor_312200_animation_080E0_bank4.inc"
-};
-
-static AnimationRecord _gActor312200Animation080E0Records[132] = {
-#include "assets/actor_312200_animation_080E0_records.inc"
-};
-
-static u16 _gActor312200Animation080E0Indices[20] = {
-#include "assets/actor_312200_animation_080E0_indices.inc"
-};
-
-static AnimationSet _gActor312200Animation080E0 = {
-    _gActor312200Animation080E0Records,
-    _gActor312200Animation080E0Indices,
-    { NULL, _gActor312200Animation080E0Bank1, NULL, NULL, _gActor312200Animation080E0Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/akropolis/patio/swat_member_clips.inc"
 
 /// Whole-frame blend durations indexed by previous and requested animation.
 ///
@@ -276,14 +160,7 @@ static s8 _gActor312200AnimationBlendFrames[5][5] = { 0 };
 ///
 /// Requests select IDs 1..4; entries 0 and 5 are null slots, not terminators.
 /// The rig borrows this word-aligned table and its sets until teardown.
-static AnimationSet* _gActor312200AnimationSets[6] = {
-    NULL,
-    &_gActor312200Animation07368,
-    &_gActor312200Animation0773C,
-    &_gActor312200Animation07D78,
-    &_gActor312200Animation080E0,
-    NULL,
-};
+#include "assets/rooms/akropolis/patio/swat_bank.inc"
 
 /// Message map for the scripted SWAT member's drawing, commands and placement.
 ///
@@ -297,7 +174,7 @@ static const TaskMessageEntry _gActor312200Messages[4] __attribute__((section(".
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc gActor312200SwatMember1TaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor312200Task, { .model = &_gActor312200SwatMember1Body } };
+TaskDesc gActor312200SwatMember1TaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor312200Task, { .model = &_gSwatMember1Body } };
 
 SVECTOR ActorContact_ScratchPosition;
 

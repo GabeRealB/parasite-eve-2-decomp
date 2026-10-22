@@ -1,0 +1,231 @@
+# The assets of the group characters/rupert, each named characters/rupert/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = [
+    "joint_0",
+    "joint_1",
+    "joint_2",
+    "joint_3",
+    "joint_4",
+    "joint_5",
+    "joint_6",
+    "joint_7",
+    "joint_8",
+    "joint_9",
+    "joint_10",
+    "joint_11",
+    "joint_12",
+    "joint_13",
+    "joint_14",
+    "joint_15",
+    "joint_16",
+    "joint_17",
+    "joint_18",
+    "joint_19",
+]
+
+[body]
+type = "model"
+rig = "characters/rupert/rig"
+slots = ["bloodied_texture_page_2", "bloodied_texture_page_1"]
+symbol = "_gRupertBody"
+sha1 = "007029c2ad350d2739c8cad0292ad6941fab88ac"
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "53b42eed79ee377d528b0ef902efac03eb1b9702"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "8f26a21c4a35a786f31a30f96502f5b9022aa7c1"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[file.contents]]
+chunk = "mongoose_palette"
+sha1 = "8f6157892c27b8ef032406255fd0db63ca76498a"
+palettes = [{ texture = "mongoose_texture", variant = "default", region = "engine/vram/held_weapon_palette" }]
+
+[[file.contents]]
+chunk = "mongoose_image"
+sha1 = "ad4daeeed4b3a4d7b93d1a9ccfeb840d4b050a04"
+pages = [{ texture = "mongoose_texture", region = "engine/vram/held_weapon_sheet" }]
+
+[[file.contents]]
+asset = "rooms/akropolis/cafeteria/rupert"
+
+[walk]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[body_2]
+type = "model"
+rig = "characters/rupert/rig"
+slots = ["bloodied_texture_page_2", "bloodied_texture_page_1"]
+symbol = "_gRupertBody2"
+sha1 = "bcc423b38e2d1d117aa87d8912e2bfc4889030ee"
+
+[mongoose]
+type = "model"
+slots = ["mongoose_texture"]
+symbol = "_gRupertMongoose"
+sha1 = "9eb0eaecd1eb094c96d9b7a89ce17633afb3aee9"
+
+[hurt_body]
+type = "model"
+rig = "characters/rupert/rig"
+slots = ["hurt_texture_page_1", "hurt_texture_page_2"]
+symbol = "_gRupertHurtBody"
+sha1 = "2bdc2fb0d8a261bade5f1d9510f294ad459b4794"
+
+[hurt_file]
+type = "file"
+
+[[hurt_file.contents]]
+chunk = "hurt_palette"
+sha1 = "eb1fa3378993d003b53559608e6c73ebaac55445"
+palettes = [
+    { texture = "hurt_texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "hurt_texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[hurt_file.contents]]
+chunk = "hurt_image"
+sha1 = "cdc7cc114ef7ebb4a51413577fd08bfbcda260e0"
+pages = [
+    { texture = "hurt_texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "hurt_texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[hurt_file.contents]]
+asset = "rooms/mist/r18/rupert"
+
+[body_binding]
+type = "binding"
+model = "characters/rupert/body"
+
+[body_binding.textures]
+bloodied_texture_page_2 = "characters/rupert/bloodied_texture_page_2.default"
+bloodied_texture_page_1 = "characters/rupert/bloodied_texture_page_1.default"
+
+[bloodied_file]
+type = "file"
+
+[[bloodied_file.contents]]
+chunk = "bloodied_palette"
+sha1 = "f204981b9e88c3f37270d0f3c97480bada0e97a4"
+
+[[bloodied_file.contents.palettes]]
+texture = "bloodied_texture_page_1"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0, 0]
+
+[[bloodied_file.contents.palettes]]
+texture = "bloodied_texture_page_2"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0, 1]
+
+[[bloodied_file.contents]]
+chunk = "bloodied_image"
+sha1 = "fce42cdf1e6d9352880eedc51205251b10684fb1"
+pages = [
+    { texture = "bloodied_texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "bloodied_texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[hurt_mongoose]
+type = "model"
+slots = ["mongoose_texture"]
+symbol = "_gRupertHurtMongoose"
+sha1 = "72178a18fb3b2e1a51c3bd261395d27607dadb8d"
+
+[body_2_binding]
+type = "binding"
+model = "characters/rupert/body_2"
+
+[body_2_binding.textures]
+bloodied_texture_page_2 = "characters/rupert/bloodied_texture_page_2.default"
+bloodied_texture_page_1 = "characters/rupert/bloodied_texture_page_1.default"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[mongoose_binding]
+type = "binding"
+model = "characters/rupert/mongoose"
+textures = { mongoose_texture = "characters/rupert/mongoose_texture.default" }
+
+[mongoose_texture]
+type = "texture"
+bpp = 4
+height = 64
+variants = ["default"]
+width = 256
+
+[hurt_body_binding]
+type = "binding"
+model = "characters/rupert/hurt_body"
+
+[hurt_body_binding.textures]
+hurt_texture_page_1 = "characters/rupert/hurt_texture_page_1.default"
+hurt_texture_page_2 = "characters/rupert/hurt_texture_page_2.default"
+
+[hurt_texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[hurt_texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[hurt_mongoose_binding]
+type = "binding"
+model = "characters/rupert/hurt_mongoose"
+textures = { mongoose_texture = "characters/rupert/mongoose_texture.default" }
+
+[bloodied_texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[bloodied_texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128

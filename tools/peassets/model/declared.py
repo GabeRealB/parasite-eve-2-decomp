@@ -1,6 +1,6 @@
 """The models the asset table declares, decoded to USD.
 
-A model is declared when its record names its texture `slots` (a grouped package places it whole: arrays, stream
+A model is declared when its record names its texture `slots`, none for an untextured one (a grouped package places it whole: arrays, stream
 and record); the other models are `tmd` records and stay raw. Each declared model is read from its package through
 its placement, decoded (codec.py), checked to re-encode to the same bytes, and written to its asset directory as
 `<name>.usda`. Each binding of it is resolved - every slot's texture variant must be where the model's faces look,
@@ -30,7 +30,7 @@ TEXELS_PER_HALFWORD = {4: 4, 8: 2, 16: 1}
 
 
 def declared(assets: dict) -> list[str]:
-    return sorted(k for k, r in assets.items() if r.get("type") == "model" and r.get("slots"))
+    return sorted(k for k, r in assets.items() if r.get("type") == "model" and "slots" in r)
 
 
 def rigs(assets: dict) -> list[str]:

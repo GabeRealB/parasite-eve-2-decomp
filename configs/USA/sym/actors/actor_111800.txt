@@ -1,11 +1,11 @@
 // Overlay-local symbols for actor_111800.
 gActor111800GrinningStrangerTaskDesc = 0x8013A468; // size:0xC defined:True
-_gActor111800GrinningStrangerBodySkeleton = 0x801329C4; // size:0x2AC defined:True
-_gActor111800GrinningStrangerBodyPartVerts = 0x80132C70; // size:0x4C defined:True
-_gActor111800GrinningStrangerBodyVerts = 0x80132CBC; // size:0x990 defined:True
-_gActor111800GrinningStrangerBodyNormals = 0x8013364C; // size:0xB68 defined:True
-_gActor111800GrinningStrangerBodyStream = 0x801341B4; // size:0x3E50 defined:True
-_gActor111800GrinningStrangerBody = 0x80138004; // size:0x24 defined:True
+_gStrangerGrinningBodySkeleton = 0x801329C4; // size:0x2AC defined:True
+_gStrangerGrinningBodyPartVerts = 0x80132C70; // size:0x4C defined:True
+_gStrangerGrinningBodyVerts = 0x80132CBC; // size:0x990 defined:True
+_gStrangerGrinningBodyNormals = 0x8013364C; // size:0xB68 defined:True
+_gStrangerGrinningBodyStream = 0x801341B4; // size:0x3E50 defined:True
+_gStrangerGrinningBody = 0x80138004; // size:0x24 defined:True
 _gActor111800Animation065FCBank1 = 0x80138028; // size:0x30 defined:True
 _gActor111800Animation065FCBank4 = 0x80138058; // size:0x114 defined:True
 _gActor111800Animation065FCRecords = 0x8013816C; // size:0x288 defined:True

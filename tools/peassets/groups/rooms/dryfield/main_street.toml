@@ -1,0 +1,154 @@
+# The assets of the group rooms/dryfield/main_street, each named rooms/dryfield/main_street/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[desert_chaser_1]
+type = "pe2pkg"
+package_name = "actor_123000"
+required = true
+sha1 = "3ad2b091611867fd7fff4507f1a1ca282dc50f59"
+
+[desert_chaser_3]
+type = "pe2pkg"
+package_name = "actor_323000"
+required = true
+sha1 = "b1e442429aea5568f6828f49217f59c3be2bd0f7"
+
+[[desert_chaser_3.embedded]]
+asset = "enemies/chaser/desert/body"
+offset = 0x02F64
+size = 0x4B10
+address = 0x80164D84
+
+[[desert_chaser_3.embedded]]
+asset = "enemies/chaser/desert/walk"
+offset = 0x07A74
+size = 0x538
+address = 0x80169894
+
+[[desert_chaser_3.embedded]]
+asset = "enemies/chaser/desert/idle"
+offset = 0x07FAC
+size = 0x2BC
+address = 0x80169DCC
+
+[[desert_chaser_3.embedded]]
+asset = "enemies/chaser/desert/windup"
+offset = 0x08268
+size = 0x634
+address = 0x8016A088
+
+[[desert_chaser_3.embedded]]
+asset = "enemies/chaser/desert/lunge"
+offset = 0x0889C
+size = 0x5D8
+address = 0x8016A6BC
+
+[[desert_chaser_3.embedded]]
+asset = "enemies/chaser/desert/lunge_end"
+offset = 0x08E74
+size = 0x434
+address = 0x8016AC94
+
+[[desert_chaser_3.embedded]]
+asset = "enemies/chaser/desert/throw"
+offset = 0x092A8
+size = 0x6D8
+address = 0x8016B0C8
+
+[[desert_chaser_3.embedded]]
+asset = "enemies/chaser/desert/leap_back"
+offset = 0x09980
+size = 0x600
+address = 0x8016B7A0
+
+[[desert_chaser_3.embedded]]
+asset = "enemies/chaser/desert/steer"
+offset = 0x09F80
+size = 0x25C
+address = 0x8016BDA0
+
+[[desert_chaser_3.embedded]]
+asset = "enemies/chaser/desert/resume_pursuit"
+offset = 0x0A1DC
+size = 0x624
+address = 0x8016BFFC
+
+[[desert_chaser_3.embedded]]
+asset = "enemies/chaser/desert/flinch_light"
+offset = 0x0A800
+size = 0x450
+address = 0x8016C620
+
+[[desert_chaser_3.embedded]]
+asset = "enemies/chaser/desert/knock_down"
+offset = 0x0AC50
+size = 0x5E4
+address = 0x8016CA70
+
+[[desert_chaser_3.embedded]]
+asset = "enemies/chaser/desert/anim_11"
+offset = 0x0B234
+size = 0x17C
+address = 0x8016D054
+
+[[desert_chaser_3.embedded]]
+asset = "enemies/chaser/desert/rise"
+offset = 0x0B3B0
+size = 0x6A4
+address = 0x8016D1D0
+
+[[desert_chaser_3.embedded]]
+asset = "enemies/stinger/puppet/player_knockback_front"
+offset = 0x0BA54
+size = 0x848
+address = 0x8016D874
+
+[[desert_chaser_3.embedded]]
+asset = "enemies/stinger/puppet/player_knockback_back"
+offset = 0x0C29C
+size = 0x79C
+address = 0x8016E0BC
+
+[[desert_chaser_3.embedded]]
+asset = "enemies/stinger/puppet/player_knockback_recover_front"
+offset = 0x0CA38
+size = 0x80C
+address = 0x8016E858
+
+[[desert_chaser_3.embedded]]
+asset = "enemies/stinger/puppet/player_knockback_recover_back"
+offset = 0x0D244
+size = 0x814
+address = 0x8016F064
+
+[[desert_chaser_3.embedded]]
+asset = "characters/aya/hit_head"
+offset = 0x0DA58
+size = 0x2B4
+address = 0x8016F878
+
+[[desert_chaser_3.embedded]]
+asset = "characters/aya/hit_body"
+offset = 0x0DD0C
+size = 0x320
+address = 0x8016FB2C
+
+[[desert_chaser_3.embedded]]
+name = "chaser_first_visit_scene_1"
+offset = 0x0E02C
+size = 0xF10
+address = 0x8016FE4C
+
+[[desert_chaser_3.embedded]]
+name = "chaser_first_visit_scene_2"
+offset = 0x0EF3C
+size = 0x2334
+address = 0x80170D5C
+
+[chaser_first_visit_scene_1]
+type = "clip"
+rig = "enemies/chaser/desert/rig"
+
+[chaser_first_visit_scene_2]
+type = "clip"
+rig = "enemies/chaser/desert/rig"

@@ -1,0 +1,78 @@
+# The assets of the group characters/swat_member_1, each named characters/swat_member_1/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = [
+    "joint_0",
+    "joint_1",
+    "joint_2",
+    "joint_3",
+    "joint_4",
+    "joint_5",
+    "joint_6",
+    "joint_7",
+    "joint_8",
+    "joint_9",
+    "joint_10",
+    "joint_11",
+    "joint_12",
+    "joint_13",
+    "joint_14",
+    "joint_15",
+    "joint_16",
+    "joint_17",
+    "joint_18",
+]
+
+[body]
+type = "model"
+rig = "characters/swat_member_1/rig"
+slots = ["page_2", "page_1"]
+symbol = "_gSwatMember1Body"
+sha1 = "f3915981bfeccc1d44a1b37a002a1fd741cc81f2"
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "2bd9873cebf853700b9ef8dc0ba75264a4a872bb"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "eb7fef9c65554d09d4175fe5c9edef7b44c09f82"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[file.contents]]
+asset = "rooms/akropolis/patio/swat_member"
+
+[body_binding]
+type = "binding"
+model = "characters/swat_member_1/body"
+
+[body_binding.textures]
+page_2 = "characters/swat_member_1/texture_page_2.default"
+page_1 = "characters/swat_member_1/texture_page_1.default"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128

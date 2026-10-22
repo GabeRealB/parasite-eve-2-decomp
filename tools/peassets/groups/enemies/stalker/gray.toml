@@ -1,0 +1,300 @@
+# The assets of the group enemies/stalker/gray, each named enemies/stalker/gray/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+schema = "enemies/stalker/gray/schema"
+symbol = "_gActor400500AnimationSets"
+
+[bank.clips]
+idle = "enemies/stalker/idle"
+walk = "enemies/stalker/walk"
+slot_3 = "enemies/stalker/anim_03"
+crawl_on_back = "enemies/stalker/crawl_on_back"
+grab = "enemies/stalker/gray/grab"
+grab_miss = "enemies/stalker/gray/grab_miss"
+strike_left = "enemies/stalker/strike_left"
+strike_right = "enemies/stalker/strike_right"
+recoil_light = "enemies/stalker/recoil_light"
+recoil_heavy = "enemies/stalker/recoil_heavy"
+recoil_light_on_back = "enemies/stalker/recoil_light_on_back"
+recoil_heavy_on_back = "enemies/stalker/recoil_heavy_on_back"
+slot_13 = "enemies/stalker/anim_13"
+slot_14 = "enemies/stalker/anim_14"
+stun = "enemies/stalker/stun"
+recover = "enemies/stalker/recover"
+stun_on_back = "enemies/stalker/stun_on_back"
+recover_on_back = "enemies/stalker/recover_on_back"
+fall_landing = "enemies/stalker/fall_landing"
+rest_on_back = "enemies/stalker/rest_on_back"
+leap = "enemies/stalker/leap"
+right_itself = "enemies/stalker/right_itself"
+turn_yaw_down = "enemies/stalker/gray/turn_yaw_down"
+turn_yaw_up = "enemies/stalker/gray/turn_yaw_up"
+landing = "enemies/stalker/landing"
+knockdown = "enemies/stalker/knockdown"
+knockdown_on_back = "enemies/stalker/knockdown_on_back"
+slot_28 = "enemies/stalker/anim_28"
+slot_29 = "enemies/stalker/anim_29"
+fall_landing_death = "enemies/stalker/fall_landing_death"
+slot_31 = "enemies/stalker/anim_31"
+drop = "enemies/stalker/drop"
+
+[body]
+type = "model"
+rig = "enemies/stalker/rig"
+slots = ["body"]
+symbol = "_gStalkerGrayBody"
+sha1 = "8df5a324d43958e623e02ccee6c8e3528fdfbdfe"
+
+[grab]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[schema]
+type = "animation_schema"
+slots = [
+    "",
+    "idle",
+    "walk",
+    "slot_3",
+    "crawl_on_back",
+    "grab",
+    "grab_miss",
+    "strike_left",
+    "strike_right",
+    "recoil_light",
+    "recoil_heavy",
+    "recoil_light_on_back",
+    "recoil_heavy_on_back",
+    "slot_13",
+    "slot_14",
+    "stun",
+    "recover",
+    "stun_on_back",
+    "recover_on_back",
+    "fall_landing",
+    "rest_on_back",
+    "leap",
+    "right_itself",
+    "turn_yaw_down",
+    "turn_yaw_up",
+    "landing",
+    "knockdown",
+    "knockdown_on_back",
+    "slot_28",
+    "slot_29",
+    "fall_landing_death",
+    "slot_31",
+    "drop",
+]
+
+[sounds]
+type = "sound_bank"
+samples = [
+    "enemies/stalker/gray/screech",
+    "enemies/stalker/land",
+    "enemies/stalker/land_2",
+    "enemies/stalker/footstep_1",
+    "enemies/stalker/footstep_2",
+    "enemies/stalker/strike",
+    "enemies/stalker/gray/grab_hit",
+    "enemies/stalker/gray/grab_release",
+]
+sha1 = "ba7c73dbf237b3f547f35a4a5ce074fb3f1bc26e"
+
+[sounds.sounds]
+footstep_1 = 1
+footstep_2 = 2
+land = 3
+screech = 4
+strike = 5
+fall_land = 6
+grab_hit = 7
+grab_release = 8
+
+[screech]
+type = "sound"
+mode = "high"
+sha1 = "ac36085628563de83886e9594583c721c3c50b9e"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[grab_hit]
+type = "sound"
+sha1 = "9d0ea97661c0cd8de43fe2e06cfe9257e3cf0cc9"
+
+[grab_miss]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[package_1]
+type = "pe2pkg"
+package_name = "actor_100500"
+required = true
+sha1 = "993e9a2f0a1090031cba86556788aad159620807"
+
+[package_4]
+type = "pe2pkg"
+embedded = [
+    { name = "body", offset = 0x0C218, size = 0x4C0C, address = 0x8013E038 },
+    { name = "burst_arm_right", offset = 0x10E24, size = 0x250, address = 0x80142C44 },
+    { name = "burst_arm_left", offset = 0x11074, size = 0x278, address = 0x80142E94 },
+    { name = "burst_head", offset = 0x112EC, size = 0x854, address = 0x8014310C },
+    { name = "burst_leg_right", offset = 0x11B40, size = 0x604, address = 0x80143960 },
+    { name = "burst_leg_left", offset = 0x12144, size = 0x6E4, address = 0x80143F64 },
+    { asset = "enemies/stalker/idle", offset = 0x12828, size = 0xCF0, address = 0x80144648 },
+    { asset = "enemies/stalker/walk", offset = 0x13518, size = 0x738, address = 0x80145338 },
+    { asset = "enemies/stalker/anim_03", offset = 0x13C50, size = 0x6E4, address = 0x80145A70 },
+    { asset = "enemies/stalker/crawl_on_back", offset = 0x14334, size = 0x898, address = 0x80146154 },
+    { name = "grab", offset = 0x14BCC, size = 0xEBC, address = 0x801469EC },
+    { name = "grab_miss", offset = 0x15A88, size = 0xE80, address = 0x801478A8 },
+    { asset = "enemies/stalker/strike_left", offset = 0x16908, size = 0x8C0, address = 0x80148728 },
+    { asset = "enemies/stalker/strike_right", offset = 0x171C8, size = 0x978, address = 0x80148FE8 },
+    { asset = "enemies/stalker/recoil_light", offset = 0x17B40, size = 0x4D4, address = 0x80149960 },
+    { asset = "enemies/stalker/recoil_heavy", offset = 0x18014, size = 0xBE0, address = 0x80149E34 },
+    { asset = "enemies/stalker/recoil_light_on_back", offset = 0x18BF4, size = 0x558, address = 0x8014AA14 },
+    { asset = "enemies/stalker/recoil_heavy_on_back", offset = 0x1914C, size = 0x9C0, address = 0x8014AF6C },
+    { asset = "enemies/stalker/anim_13", offset = 0x19B0C, size = 0x42C, address = 0x8014B92C },
+    { asset = "enemies/stalker/anim_14", offset = 0x19F38, size = 0x56C, address = 0x8014BD58 },
+    { asset = "enemies/stalker/stun", offset = 0x1A4A4, size = 0x9B8, address = 0x8014C2C4 },
+    { asset = "enemies/stalker/recover", offset = 0x1AE5C, size = 0x56C, address = 0x8014CC7C },
+    { asset = "enemies/stalker/stun_on_back", offset = 0x1B3C8, size = 0xD8C, address = 0x8014D1E8 },
+    { asset = "enemies/stalker/recover_on_back", offset = 0x1C154, size = 0x690, address = 0x8014DF74 },
+    { asset = "enemies/stalker/fall_landing", offset = 0x1C7E4, size = 0x388, address = 0x8014E604 },
+    { asset = "enemies/stalker/rest_on_back", offset = 0x1CB6C, size = 0x5A0, address = 0x8014E98C },
+    { asset = "enemies/stalker/leap", offset = 0x1D10C, size = 0x47C, address = 0x8014EF2C },
+    { asset = "enemies/stalker/right_itself", offset = 0x1D588, size = 0xB6C, address = 0x8014F3A8 },
+    { name = "turn_yaw_down", offset = 0x1E0F4, size = 0x64C, address = 0x8014FF14 },
+    { name = "turn_yaw_up", offset = 0x1E740, size = 0x58C, address = 0x80150560 },
+    { asset = "enemies/stalker/landing", offset = 0x1ECCC, size = 0x36C, address = 0x80150AEC },
+    { asset = "enemies/stalker/knockdown", offset = 0x1F038, size = 0x500, address = 0x80150E58 },
+    { asset = "enemies/stalker/knockdown_on_back", offset = 0x1F538, size = 0x5FC, address = 0x80151358 },
+    { asset = "enemies/stalker/anim_28", offset = 0x1FB34, size = 0x1C4, address = 0x80151954 },
+    { asset = "enemies/stalker/anim_29", offset = 0x1FCF8, size = 0x1C4, address = 0x80151B18 },
+    { asset = "enemies/stalker/fall_landing_death", offset = 0x1FEBC, size = 0x1C4, address = 0x80151CDC },
+    { asset = "enemies/stalker/anim_31", offset = 0x20080, size = 0x1C4, address = 0x80151EA0 },
+    { asset = "enemies/stalker/drop", offset = 0x20244, size = 0x4A8, address = 0x80152064 },
+    { asset = "enemies/stalker/player_grabbed", offset = 0x206EC, size = 0xD58, address = 0x8015250C },
+    { asset = "enemies/stalker/player_released", offset = 0x21444, size = 0x848, address = 0x80153264 },
+    { asset = "enemies/stalker/player_grab_death", offset = 0x21C8C, size = 0x1D8, address = 0x80153AAC },
+    { name = "player_bank", offset = 0x21E90, size = 0x10, address = 0x80153CB0 },
+    { name = "bank", offset = 0x21EA0, size = 0x88, address = 0x80153CC0 },
+]
+package_name = "actor_400500"
+required = true
+sha1 = "24b3cf0ceeecc3a4741ed466721c4e94c1e394ee"
+
+[burst_head]
+type = "model"
+slots = ["body"]
+symbol = "_gStalkerGrayBurstHead"
+sha1 = "dfac6ce59b49236949a5250ccb7ab480169cacc4"
+
+[player_bank]
+type = "animation_bank"
+schema = "enemies/stalker/gray/player_schema"
+symbol = "_gActor400500PlayerAnimationSets"
+
+[player_bank.clips]
+player_grabbed = "enemies/stalker/player_grabbed"
+player_released = "enemies/stalker/player_released"
+player_grab_death = "enemies/stalker/player_grab_death"
+
+[turn_yaw_up]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[body_binding]
+type = "binding"
+model = "enemies/stalker/gray/body"
+textures = { body = "enemies/stalker/gray/texture.default" }
+
+[grab_release]
+type = "sound"
+sha1 = "4c650d6bfea2c172fa3cfa5fc4f0beee0e576d1d"
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+chunk = "sounds"
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "f0b3b0600b959d4c6026d89118cc8507563d09b0"
+pages = [{ texture = "texture", region = "engine/vram/actor_sheet", offset = [0, 0] }]
+slots = 6
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "72bbc17f0c68af1b8748595316ceeac9e0c809d8"
+palettes = [
+    { texture = "texture", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { name = "unread_row_2", entries = 256, region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_file.contents]]
+chunk = "package_1"
+
+[player_schema]
+type = "animation_schema"
+slots = ["", "player_grabbed", "player_released", "player_grab_death"]
+
+[turn_yaw_down]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[burst_arm_left]
+type = "model"
+slots = ["body"]
+symbol = "_gStalkerGrayBurstArmLeft"
+sha1 = "1e715762c2ff1dc31afbc3bbe9ae6bd1e4151bd8"
+
+[burst_leg_left]
+type = "model"
+slots = ["body"]
+symbol = "_gStalkerGrayBurstLegLeft"
+sha1 = "3fa4441f7bb806329470e7b95ac6b18b83f07821"
+
+[burst_arm_right]
+type = "model"
+slots = ["body"]
+symbol = "_gStalkerGrayBurstArmRight"
+sha1 = "b6ea93595e0c6dcbe4ec78e42211001fc7ae0a11"
+
+[burst_leg_right]
+type = "model"
+slots = ["body"]
+symbol = "_gStalkerGrayBurstLegRight"
+sha1 = "2fd63f70fd307d2edbf771694d02febdf3b14c73"
+
+[burst_head_binding]
+type = "binding"
+model = "enemies/stalker/gray/burst_head"
+textures = { body = "enemies/stalker/gray/texture.default" }
+
+[burst_arm_left_binding]
+type = "binding"
+model = "enemies/stalker/gray/burst_arm_left"
+textures = { body = "enemies/stalker/gray/texture.default" }
+
+[burst_leg_left_binding]
+type = "binding"
+model = "enemies/stalker/gray/burst_leg_left"
+textures = { body = "enemies/stalker/gray/texture.default" }
+
+[burst_arm_right_binding]
+type = "binding"
+model = "enemies/stalker/gray/burst_arm_right"
+textures = { body = "enemies/stalker/gray/texture.default" }
+
+[burst_leg_right_binding]
+type = "binding"
+model = "enemies/stalker/gray/burst_leg_right"
+textures = { body = "enemies/stalker/gray/texture.default" }

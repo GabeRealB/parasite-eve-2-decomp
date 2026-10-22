@@ -1,0 +1,133 @@
+# The assets of the group rooms/neo_ark/garden, each named rooms/neo_ark/garden/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[eve]
+type = "pe2pkg"
+embedded = [
+    { name = "player_shade_eyes", offset = 0x00CB4, size = 0x24C, address = 0x80132AD4 },
+    { name = "player_step_toward_eve", offset = 0x00F00, size = 0x3C8, address = 0x80132D20 },
+    { name = "player_reach_after_eve", offset = 0x012C8, size = 0x278, address = 0x801330E8 },
+    { name = "player_scene_bank", offset = 0x0154C, size = 0xC, address = 0x8013336C },
+    { asset = "characters/eve/idle", offset = 0x07474, size = 0x214, address = 0x80139294 },
+    { asset = "characters/eve/walk_slow", offset = 0x07688, size = 0x3F8, address = 0x801394A8 },
+    { asset = "characters/eve/eve_walk", offset = 0x07A80, size = 0xBE4, address = 0x801398A0 },
+    { name = "footstep_walk_anim_01", offset = 0x08664, size = 0x268, address = 0x8013A484 },
+    { asset = "characters/eve/walk_backward", offset = 0x088CC, size = 0x408, address = 0x8013A6EC },
+    { asset = "characters/eve/turn", offset = 0x08CD4, size = 0x40C, address = 0x8013AAF4 },
+    { name = "footstep_walk_anim_04", offset = 0x090E0, size = 0x310, address = 0x8013AF00 },
+    { name = "footstep_walk_anim_05", offset = 0x093F0, size = 0x258, address = 0x8013B210 },
+    { name = "footstep_walk_anim_06", offset = 0x09648, size = 0x290, address = 0x8013B468 },
+    { name = "footstep_walk_anim_07", offset = 0x098D8, size = 0x3E8, address = 0x8013B6F8 },
+    { name = "footstep_walk_anim_08", offset = 0x09CC0, size = 0x2B0, address = 0x8013BAE0 },
+    { asset = "characters/eve/walk_stop", offset = 0x09F70, size = 0x1BC, address = 0x8013BD90 },
+    { asset = "characters/eve/swing_arms", offset = 0x0A12C, size = 0x3E8, address = 0x8013BF4C },
+    { asset = "characters/eve/clutch_head_and_run", offset = 0x0A514, size = 0x9B0, address = 0x8013C334 },
+    { name = "footstep_walk_anim_19", offset = 0x0AEC4, size = 0x37C, address = 0x8013CCE4 },
+    { asset = "characters/eve/lie_unconscious", offset = 0x0B240, size = 0x24C, address = 0x8013D060 },
+    { name = "eve_walker_bank", offset = 0x0B4CC, size = 0x8C, address = 0x8013D2EC },
+]
+package_name = "actor_151000"
+required = true
+sha1 = "2406adb1ff60d5766092b446b3c6a70521cd8d4e"
+
+[eve_walker_bank]
+type = "animation_bank"
+schema = "rooms/neo_ark/garden/eve_walker_schema"
+symbol = "_gFootstepWalkAnimationSets"
+
+[eve_walker_bank.clips]
+slot_1 = "rooms/neo_ark/garden/footstep_walk_anim_01"
+walk_backward = "characters/eve/walk_backward"
+turn = "characters/eve/turn"
+slot_4 = "rooms/neo_ark/garden/footstep_walk_anim_04"
+slot_5 = "rooms/neo_ark/garden/footstep_walk_anim_05"
+slot_6 = "rooms/neo_ark/garden/footstep_walk_anim_06"
+slot_7 = "rooms/neo_ark/garden/footstep_walk_anim_07"
+slot_8 = "rooms/neo_ark/garden/footstep_walk_anim_08"
+slot_10 = "characters/eve/walk_stop"
+idle = "characters/eve/idle"
+walk = "characters/eve/walk_slow"
+run = "characters/eve/eve_walk"
+swing_arms = "characters/eve/swing_arms"
+clutch_head_and_run = "characters/eve/clutch_head_and_run"
+lie_unconscious = "characters/eve/lie_unconscious"
+slot_19 = "rooms/neo_ark/garden/footstep_walk_anim_19"
+
+[eve_walker_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "slot_1",
+    "walk_backward",
+    "turn",
+    "slot_4",
+    "slot_5",
+    "slot_6",
+    "slot_7",
+    "slot_8",
+    "",
+    "slot_10",
+    "",
+    "",
+    "idle",
+    "walk",
+    "run",
+    "swing_arms",
+    "clutch_head_and_run",
+    "lie_unconscious",
+    "slot_19",
+]
+
+[player_scene_bank]
+type = "animation_bank"
+schema = "rooms/neo_ark/garden/player_scene_schema"
+symbol = "_gActor151000PlayerAnimationBankExtension"
+
+[player_scene_bank.clips]
+shade_eyes = "rooms/neo_ark/garden/player_shade_eyes"
+step_toward_eve = "rooms/neo_ark/garden/player_step_toward_eve"
+reach_after_eve = "rooms/neo_ark/garden/player_reach_after_eve"
+
+[player_shade_eyes]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_scene_schema]
+type = "animation_schema"
+slots = ["shade_eyes", "step_toward_eve", "reach_after_eve"]
+
+[footstep_walk_anim_01]
+type = "clip"
+rig = "characters/eve/rig"
+
+[footstep_walk_anim_04]
+type = "clip"
+rig = "characters/eve/rig"
+
+[footstep_walk_anim_05]
+type = "clip"
+rig = "characters/eve/rig"
+
+[footstep_walk_anim_06]
+type = "clip"
+rig = "characters/eve/rig"
+
+[footstep_walk_anim_07]
+type = "clip"
+rig = "characters/eve/rig"
+
+[footstep_walk_anim_08]
+type = "clip"
+rig = "characters/eve/rig"
+
+[footstep_walk_anim_19]
+type = "clip"
+rig = "characters/eve/rig"
+
+[player_reach_after_eve]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_step_toward_eve]
+type = "clip"
+rig = "characters/aya/rig"

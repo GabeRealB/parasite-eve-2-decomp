@@ -27,7 +27,7 @@ extern EnemyParams gActor342400MadChaserEnemyParams;
 /// primitive-buffer half; there is no pre-transformed packet region. Instances
 /// borrow the writable geometry and resolved stream for this overlay's lifetime
 /// and inherit texture placement from the body after spawning.
-extern TmdSource gMadChaserBurstHead;
+extern TmdSource gChaserMadBurstHead;
 
 /// Selects this overlay's detached-head source for Mad Chaser burst effects.
 ///
@@ -35,7 +35,7 @@ extern TmdSource gMadChaserBurstHead;
 /// by chunks spawned in the behavior unit. Include before `mad_chaser.h` to
 /// suppress its TU-local default, and retain through `mad_chaser_spawn_gibs.inc.c`.
 /// The source, geometry and writable stream must outlive every borrowing model.
-#define MAD_CHASER_BURST_HEAD_SOURCE (gMadChaserBurstHead)
+#define MAD_CHASER_BURST_HEAD_SOURCE (gChaserMadBurstHead)
 
 /// Detached Mad Chaser arm thrown from body part 8 during a burst death.
 ///
@@ -43,7 +43,7 @@ extern TmdSource gMadChaserBurstHead;
 /// primitive-buffer half; there is no pre-transformed packet region. Instances
 /// borrow the writable geometry and resolved stream for this overlay's lifetime
 /// and inherit texture placement from the body after spawning.
-extern TmdSource gMadChaserBurstArm;
+extern TmdSource gChaserMadBurstArm;
 
 /// Selects this overlay's detached-arm source for Mad Chaser burst effects.
 ///
@@ -51,7 +51,7 @@ extern TmdSource gMadChaserBurstArm;
 /// chunks spawned in the behavior unit. Include before `mad_chaser.h` to
 /// suppress its TU-local default, and retain through `mad_chaser_spawn_gibs.inc.c`.
 /// The source, geometry and stream must outlive every borrowing chunk model.
-#define MAD_CHASER_BURST_ARM_SOURCE (gMadChaserBurstArm)
+#define MAD_CHASER_BURST_ARM_SOURCE (gChaserMadBurstArm)
 
 /// Detached Mad Chaser tail thrown from body part 2 during a burst death.
 ///
@@ -59,7 +59,7 @@ extern TmdSource gMadChaserBurstArm;
 /// primitive-buffer half; there is no pre-transformed packet region. Instances
 /// borrow the writable geometry and resolved stream for this overlay's lifetime
 /// and inherit texture placement from the body after spawning.
-extern TmdSource gMadChaserBurstTail;
+extern TmdSource gChaserMadBurstTail;
 
 /// Selects this overlay's detached-tail source for Mad Chaser burst effects.
 ///
@@ -67,9 +67,9 @@ extern TmdSource gMadChaserBurstTail;
 /// by chunks spawned in the behavior unit. Include before `mad_chaser.h` to
 /// suppress its TU-local default, and retain through `mad_chaser_spawn_gibs.inc.c`.
 /// The source, geometry and writable stream must outlive every borrowing model.
-#define MAD_CHASER_BURST_TAIL_SOURCE (gMadChaserBurstTail)
+#define MAD_CHASER_BURST_TAIL_SOURCE (gChaserMadBurstTail)
 
-extern TmdSource gActor342400MadChaserBody;
+extern TmdSource gChaserMadBody;
 
 /// Next sequential placement index assigned to an incinerator encounter enemy.
 ///

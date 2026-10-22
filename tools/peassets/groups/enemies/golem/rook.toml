@@ -1,0 +1,105 @@
+# The assets of the group enemies/golem/rook, each named enemies/golem/rook/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[body]
+type = "model"
+rig = "enemies/golem/rig"
+slots = ["page_2", "page_1"]
+symbol = "_gGolemRookBody"
+sha1 = "f0647e6daf2d2bc2604dba085784057f604e77ae"
+
+[shield]
+type = "model"
+slots = ["page_3"]
+symbol = "_gGolemRookShield"
+sha1 = "98ec7ee947448d3caac360022898c8e9ac07e664"
+
+[body_binding]
+type = "binding"
+model = "enemies/golem/rook/body"
+
+[body_binding.textures]
+page_2 = "enemies/golem/rook/texture_page_2.default"
+page_1 = "enemies/golem/rook/texture_page_1.default"
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "ded0a140f19a63360285cc120672783458b2a5fb"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_file.contents]]
+asset = "enemies/golem/weapons_palette"
+sha1 = "e686ea27e93433b96e36c9b6f81986045bf1c4a5"
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "c11006938812c87bbfaaee1a746701dbc129b15a"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+    { texture = "texture_page_3", region = "engine/vram/actor_sheet", offset = [128, 0] },
+]
+slots = 6
+
+[[package_file.contents]]
+asset = "enemies/golem/rook/beam_sword/package_1"
+
+[scream_charge]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[shield_binding]
+type = "binding"
+model = "enemies/golem/rook/shield"
+textures = { page_3 = "enemies/golem/rook/texture_page_3.default" }
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_3]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[footstep_a_set_1]
+type = "sound"
+sha1 = "884c3e3eaca22e9167af26969aac9563097d57e9"
+
+[footstep_a_set_2]
+type = "sound"
+sha1 = "f71d019d17786dc525ebb838e819b236646a0a34"
+
+[footstep_a_set_3]
+type = "sound"
+sha1 = "ea8f12368f92edc8a5d16a63bc28997a04e10162"
+
+[footstep_b_set_1]
+type = "sound"
+sha1 = "307f4a1f02eb2f5641dae465146e88bd59308339"
+
+[footstep_b_set_2]
+type = "sound"
+sha1 = "f3f1e76779c6120b8e5d9264a8bf62b3887946d2"
+
+[footstep_b_set_3]
+type = "sound"
+sha1 = "6d3cd50e061b7930a0d8b1ea29aa612d140c5ded"

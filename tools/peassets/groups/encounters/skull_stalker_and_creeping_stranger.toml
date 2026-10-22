@@ -1,0 +1,276 @@
+# The assets of the group encounters/skull_stalker_and_creeping_stranger, each named encounters/skull_stalker_and_creeping_stranger/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[pop]
+type = "sound"
+sha1 = "7d2863dd6baabe0808f10b54c5650548bf12e850"
+
+[package_1]
+type = "pe2pkg"
+package_name = "actor_107200"
+required = true
+sha1 = "cfcd6416220980b15efafa2e25daaae461110b4a"
+
+[package_2]
+type = "pe2pkg"
+embedded = [
+    { asset = "rooms/akropolis/forked_road/skull_stalker_idle", offset = 0x046CC, size = 0x64, address = 0x8014E4EC },
+    { asset = "rooms/akropolis/forked_road/skull_stalker_alert", offset = 0x04730, size = 0x254, address = 0x8014E550 },
+    { name = "skull_stalker_bank", offset = 0x04990, size = 0xC, address = 0x8014E7B0 },
+    { name = "creeping_stranger_body", offset = 0x049C4, size = 0x2244, address = 0x8014E7E4 },
+    { name = "creeping_stranger_burst_leg", offset = 0x06C08, size = 0x1C8, address = 0x80150A28 },
+    { name = "creeping_stranger_burst_arm", offset = 0x06DD0, size = 0x4A8, address = 0x80150BF0 },
+    { name = "creeping_stranger_burst_head", offset = 0x07278, size = 0x784, address = 0x80151098 },
+    { name = "creeping_stranger_idle", offset = 0x079FC, size = 0x224, address = 0x8015181C },
+    { name = "creeping_stranger_crawl", offset = 0x07C20, size = 0x33C, address = 0x80151A40 },
+    { name = "creeping_stranger_turn_yaw_up", offset = 0x07F5C, size = 0x314, address = 0x80151D7C },
+    { name = "creeping_stranger_turn_yaw_down", offset = 0x08270, size = 0x2F8, address = 0x80152090 },
+    { name = "creeping_stranger_recoil", offset = 0x08568, size = 0x658, address = 0x80152388 },
+    { name = "creeping_stranger_side_attack_yaw_up", offset = 0x08BC0, size = 0x480, address = 0x801529E0 },
+    { name = "creeping_stranger_side_attack_yaw_down", offset = 0x09040, size = 0x3D4, address = 0x80152E60 },
+    { name = "creeping_stranger_front_attack", offset = 0x09414, size = 0x318, address = 0x80153234 },
+    { name = "creeping_stranger_fidget", offset = 0x0972C, size = 0x2F0, address = 0x8015354C },
+    { name = "creeping_stranger_cry", offset = 0x09A1C, size = 0x314, address = 0x8015383C },
+    { name = "creeping_stranger_death", offset = 0x09D30, size = 0x2DC, address = 0x80153B50 },
+    { name = "creeping_stranger_anim_12", offset = 0x0A00C, size = 0x9C, address = 0x80153E2C },
+    { name = "creeping_stranger_bank", offset = 0x0A0B4, size = 0x34, address = 0x80153ED4 },
+]
+package_name = "actor_207200"
+required = true
+sha1 = "5126cccfb0accc7fcf11a030a4768daac2dba189"
+
+[package_3]
+type = "pe2pkg"
+package_name = "actor_307200"
+required = true
+sha1 = "874af7c037ce9219db2d4b71bf1093f81c33673b"
+
+[attack_hit]
+type = "sound"
+sha1 = "34ee05b432c425c25932a8b4e76f41d77b31af1b"
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+chunk = "creeping_stranger_sounds"
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "e38155b119b7aad70d96339be2f981f2019ed2df"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "be60a73f4f6afa512d41164b0fad6b96bcb73fbb"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[package_file.contents]]
+chunk = "package_1"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[skull_stalker_bank]
+type = "animation_bank"
+schema = "encounters/skull_stalker_and_creeping_stranger/skull_stalker_schema"
+symbol = "_gSkullStalkerAnimSets"
+
+[skull_stalker_bank.clips]
+idle = "rooms/akropolis/forked_road/skull_stalker_idle"
+alert = "rooms/akropolis/forked_road/skull_stalker_alert"
+
+[skull_stalker_schema]
+type = "animation_schema"
+slots = ["", "idle", "alert"]
+
+[creeping_stranger_cry]
+type = "clip"
+rig = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_rig"
+
+[creeping_stranger_rig]
+type = "rig"
+joints = ["root", "body", "joint_2", "head", "joint_4", "upper_arm", "forearm"]
+
+[creeping_stranger_bank]
+type = "animation_bank"
+schema = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_schema"
+symbol = "_gActor207200CreepingStrangerAnimationSets"
+
+[creeping_stranger_bank.clips]
+idle = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_idle"
+crawl = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_crawl"
+turn_yaw_up = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_turn_yaw_up"
+turn_yaw_down = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_turn_yaw_down"
+recoil = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_recoil"
+side_attack_yaw_up = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_side_attack_yaw_up"
+side_attack_yaw_down = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_side_attack_yaw_down"
+front_attack = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_front_attack"
+fidget = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_fidget"
+cry = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_cry"
+death = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_death"
+slot_12 = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_anim_12"
+
+[creeping_stranger_body]
+type = "model"
+rig = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_rig"
+slots = ["page_1"]
+symbol = "_gSkullStalkerAndCreepingStrangerCreepingStrangerBody"
+sha1 = "51c33fe329975d1194755ff8457bbd1e4d866cdf"
+
+[creeping_stranger_hurt]
+type = "sound"
+sha1 = "4d0010aa81114e9daade84c2eea36b761d804fd2"
+
+[creeping_stranger_idle]
+type = "clip"
+rig = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_rig"
+
+[creeping_stranger_crawl]
+type = "clip"
+rig = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_rig"
+
+[creeping_stranger_death]
+type = "clip"
+rig = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_rig"
+
+[creeping_stranger_fidget]
+type = "clip"
+rig = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_rig"
+
+[creeping_stranger_recoil]
+type = "clip"
+rig = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_rig"
+
+[creeping_stranger_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "idle",
+    "crawl",
+    "turn_yaw_up",
+    "turn_yaw_down",
+    "recoil",
+    "side_attack_yaw_up",
+    "side_attack_yaw_down",
+    "front_attack",
+    "fidget",
+    "cry",
+    "death",
+    "slot_12",
+]
+
+[creeping_stranger_sounds]
+type = "sound_bank"
+samples = [
+    "encounters/skull_stalker_and_creeping_stranger/attack_hit",
+    "encounters/skull_stalker_and_creeping_stranger/pop",
+    "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_hurt",
+    "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_strike",
+    "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_head_loss",
+    "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_fidget_sound",
+    "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_fidget_2_sound",
+    "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_cry_sound",
+]
+sounds = { hurt = 1, strike = 2, head_loss = 3, fidget = 4, attack_hit = 5, cry = 6, pop = 9 }
+sha1 = "4773d5f243cf2300f5c741e17f3ef199240a966a"
+
+[creeping_stranger_strike]
+type = "sound"
+sha1 = "f91ce6abc36bd1247f2bd34018bfd97dbfb50e5c"
+
+[creeping_stranger_anim_12]
+type = "clip"
+rig = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_rig"
+
+[creeping_stranger_burst_arm]
+type = "model"
+slots = ["page_1"]
+symbol = "_gSkullStalkerAndCreepingStrangerCreepingStrangerBurstArm"
+sha1 = "a30df44a8cda76c45ab110e54bd7bcbe84256b20"
+
+[creeping_stranger_burst_leg]
+type = "model"
+slots = ["page_1"]
+symbol = "_gSkullStalkerAndCreepingStrangerCreepingStrangerBurstLeg"
+sha1 = "f056d963351bf7742e4ae9c37aa1887057342179"
+
+[creeping_stranger_cry_sound]
+type = "sound"
+sha1 = "e1602d7595e43217894e24968c9acd3f70e61d79"
+
+[creeping_stranger_head_loss]
+type = "sound"
+sha1 = "07db33afd1df1bb01cbc1f18cac757f246a8eccc"
+
+[creeping_stranger_burst_head]
+type = "model"
+slots = ["page_1"]
+symbol = "_gSkullStalkerAndCreepingStrangerCreepingStrangerBurstHead"
+sha1 = "bffb2d35866a290c29a9db0ddf7521922156cf2e"
+
+[creeping_stranger_turn_yaw_up]
+type = "clip"
+rig = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_rig"
+
+[creeping_stranger_body_binding]
+type = "binding"
+model = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_body"
+textures = { page_1 = "encounters/skull_stalker_and_creeping_stranger/texture_page_1.default" }
+
+[creeping_stranger_fidget_sound]
+type = "sound"
+sha1 = "71d576174380cfc503157a2b96221277dffafbc0"
+
+[creeping_stranger_front_attack]
+type = "clip"
+rig = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_rig"
+
+[creeping_stranger_turn_yaw_down]
+type = "clip"
+rig = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_rig"
+
+[creeping_stranger_fidget_2_sound]
+type = "sound"
+sha1 = "0befc527ad6db76f3970353c39eb41a83f212535"
+
+[creeping_stranger_burst_arm_binding]
+type = "binding"
+model = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_burst_arm"
+textures = { page_1 = "encounters/skull_stalker_and_creeping_stranger/texture_page_1.default" }
+
+[creeping_stranger_burst_leg_binding]
+type = "binding"
+model = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_burst_leg"
+textures = { page_1 = "encounters/skull_stalker_and_creeping_stranger/texture_page_1.default" }
+
+[creeping_stranger_burst_head_binding]
+type = "binding"
+model = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_burst_head"
+textures = { page_1 = "encounters/skull_stalker_and_creeping_stranger/texture_page_1.default" }
+
+[creeping_stranger_side_attack_yaw_up]
+type = "clip"
+rig = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_rig"
+
+[creeping_stranger_side_attack_yaw_down]
+type = "clip"
+rig = "encounters/skull_stalker_and_creeping_stranger/creeping_stranger_rig"

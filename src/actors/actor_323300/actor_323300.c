@@ -160,156 +160,27 @@ static const TaskFuncTable3 _gActor323300WomanTaskStates = { {
 
 static s32 _actor323300WomanApplyCommand(Task* task, s32 messageId, const ActorCommand* command, const ActorTransform* placement);
 
-static TmdSource _gActor323300AnmcWoman1Body;
-static TmdSource _gActor323300LesserStrangerBody;
+static TmdSource _gAnmcWoman1Body;
+static TmdSource _gStrangerLesserBody;
 static void      _actor323300WomanTask(Task* task);
 static void      _actor323300StrangerTask(Task* task);
 
-static AnimationSet _gActor323300Animation11FC4;
-static AnimationSet _gActor323300Animation123E0;
-static AnimationSet _gActor323300Animation12C18;
+static AnimationSet _gDryfieldToiletStrangerTransformClip;
+static AnimationSet _gAkropolisPatioBodyAnim01Clip;
+static AnimationSet _gStrangerOddAlertClip;
 
-static TmdBone _gActor323300AnmcWoman1BodySkeleton[19] = {
-#include "assets/anmc_woman_1_body_skeleton.inc"
-};
+#include "assets/characters/anmc_woman_1/body.inc"
 
-static u32 _gActor323300AnmcWoman1BodyPartVerts[19] = {
-#include "assets/anmc_woman_1_body_partVerts.inc"
-};
+#include "assets/enemies/stranger/lesser/body.inc"
 
-static SVECTOR _gActor323300AnmcWoman1BodyVerts[325] = {
-#include "assets/anmc_woman_1_body_verts.inc"
-};
-
-static SVECTOR _gActor323300AnmcWoman1BodyNormals[384] = {
-#include "assets/anmc_woman_1_body_normals.inc"
-};
-
-static u32 _gActor323300AnmcWoman1BodyStream[4109] = {
-#include "assets/anmc_woman_1_body_stream.inc"
-};
-
-static TmdSource _gActor323300AnmcWoman1Body = {
-    0,
-    21132,
-    7444,
-    19,
-    _gActor323300AnmcWoman1BodyPartVerts,
-    _gActor323300AnmcWoman1BodyVerts,
-    _gActor323300AnmcWoman1BodyNormals,
-    _gActor323300AnmcWoman1BodySkeleton,
-    _gActor323300AnmcWoman1BodyStream,
-};
-
-static TmdBone _gActor323300LesserStrangerBodySkeleton[19] = {
-#include "assets/lesser_stranger_body_skeleton.inc"
-};
-
-static u32 _gActor323300LesserStrangerBodyPartVerts[19] = {
-#include "assets/lesser_stranger_body_partVerts.inc"
-};
-
-static SVECTOR _gActor323300LesserStrangerBodyVerts[325] = {
-#include "assets/lesser_stranger_body_verts.inc"
-};
-
-static SVECTOR _gActor323300LesserStrangerBodyNormals[1604] = {
-#include "assets/lesser_stranger_body_normals.inc"
-};
-
-static u32 _gActor323300LesserStrangerBodyStream[4170] = {
-#include "assets/lesser_stranger_body_stream.inc"
-};
-
-static TmdSource _gActor323300LesserStrangerBody = {
-    0,
-    42312,
-    15928,
-    19,
-    _gActor323300LesserStrangerBodyPartVerts,
-    _gActor323300LesserStrangerBodyVerts,
-    _gActor323300LesserStrangerBodyNormals,
-    _gActor323300LesserStrangerBodySkeleton,
-    _gActor323300LesserStrangerBodyStream,
-};
-
-static AnimationPackedPose _gActor323300Animation0FFC4Bank1[18] = {
-#include "assets/actor_323300_animation_0FFC4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor323300Animation0FFC4Bank4[274] = {
-#include "assets/actor_323300_animation_0FFC4_bank4.inc"
-};
-
-static AnimationRecord _gActor323300Animation0FFC4Records[379] = {
-#include "assets/actor_323300_animation_0FFC4_records.inc"
-};
-
-static u16 _gActor323300Animation0FFC4Indices[20] = {
-#include "assets/actor_323300_animation_0FFC4_indices.inc"
-};
-
-static AnimationSet _gActor323300Animation0FFC4 = {
-    _gActor323300Animation0FFC4Records,
-    _gActor323300Animation0FFC4Indices,
-    { NULL, _gActor323300Animation0FFC4Bank1, NULL, NULL, _gActor323300Animation0FFC4Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor323300Animation102C8Bank1[6] = {
-#include "assets/actor_323300_animation_102C8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor323300Animation102C8Bank4[46] = {
-#include "assets/actor_323300_animation_102C8_bank4.inc"
-};
-
-static AnimationRecord _gActor323300Animation102C8Records[109] = {
-#include "assets/actor_323300_animation_102C8_records.inc"
-};
-
-static u16 _gActor323300Animation102C8Indices[20] = {
-#include "assets/actor_323300_animation_102C8_indices.inc"
-};
-
-static AnimationSet _gActor323300Animation102C8 = {
-    _gActor323300Animation102C8Records,
-    _gActor323300Animation102C8Indices,
-    { NULL, _gActor323300Animation102C8Bank1, NULL, NULL, _gActor323300Animation102C8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor323300Animation10700Bank1[5] = {
-#include "assets/actor_323300_animation_10700_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor323300Animation10700Bank4[92] = {
-#include "assets/actor_323300_animation_10700_bank4.inc"
-};
-
-static AnimationRecord _gActor323300Animation10700Records[143] = {
-#include "assets/actor_323300_animation_10700_records.inc"
-};
-
-static u16 _gActor323300Animation10700Indices[20] = {
-#include "assets/actor_323300_animation_10700_indices.inc"
-};
-
-static AnimationSet _gActor323300Animation10700 = {
-    _gActor323300Animation10700Records,
-    _gActor323300Animation10700Indices,
-    { NULL, _gActor323300Animation10700Bank1, NULL, NULL, _gActor323300Animation10700Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/dryfield/toilet/anmc_woman_clips_1.inc"
 
 /// The woman's bank-0 animation sets: clip 0 absent, clips 1..3 loaded.
 ///
 /// The transformation's Stranger task has its own separate clip table.
 /// `AnimationPlayRequest::animationId` indexes this inner table after bank
 /// selection; playback borrows the table and sets while the package is loaded.
-static AnimationSet* _gActor323300WomanAnimSets[4] = {
-    NULL,
-    &_gActor323300Animation0FFC4,
-    &_gActor323300Animation10700,
-    &_gActor323300Animation102C8,
-};
+#include "assets/rooms/dryfield/toilet/woman_bank.inc"
 
 /// Carrier-local banks for nineteen-part playback: only bank 0, clips 1..3.
 ///
@@ -326,13 +197,13 @@ TaskDesc gActor323300WomanStrangerTaskDescriptors[2] = {
     {
         .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_323300_ENCOUNTER_TASK_PRIORITY } },
         .callback = _actor323300WomanTask,
-        .data     = { .model = &_gActor323300AnmcWoman1Body },
+        .data     = { .model = &_gAnmcWoman1Body },
     },
     // 1: lesser stranger.
     {
         .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_323300_ENCOUNTER_TASK_PRIORITY } },
         .callback = _actor323300StrangerTask,
-        .data     = { .model = &_gActor323300LesserStrangerBody },
+        .data     = { .model = &_gStrangerLesserBody },
     },
 };
 
@@ -395,82 +266,13 @@ enum { ACTOR_323300_WOMAN_TURN_COMPLETE_ANIMATION = 3 };
 /// its existing clip bank and ignores the world-collision word.
 static AnimationPlayRequest _gActor323300WomanTurnCompleteAnimationRequest = { { .index = 0 }, ACTOR_323300_WOMAN_TURN_COMPLETE_ANIMATION, ANIMATION_BLEND_INTERPOLATE, ACTOR_323300_WOMAN_TURN_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE };
 
-static AnimationPackedPose _gActor323300Animation11FC4Bank1[58] = {
-#include "assets/actor_323300_animation_11FC4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor323300Animation11FC4Bank4[324] = {
-#include "assets/actor_323300_animation_11FC4_bank4.inc"
-};
-
-static AnimationRecord _gActor323300Animation11FC4Records[1025] = {
-#include "assets/actor_323300_animation_11FC4_records.inc"
-};
-
-static u16 _gActor323300Animation11FC4Indices[20] = {
-#include "assets/actor_323300_animation_11FC4_indices.inc"
-};
-
-static AnimationSet _gActor323300Animation11FC4 = {
-    _gActor323300Animation11FC4Records,
-    _gActor323300Animation11FC4Indices,
-    { NULL, _gActor323300Animation11FC4Bank1, NULL, NULL, _gActor323300Animation11FC4Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor323300Animation123E0Bank1[4] = {
-#include "assets/actor_323300_animation_123E0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor323300Animation123E0Bank4[69] = {
-#include "assets/actor_323300_animation_123E0_bank4.inc"
-};
-
-static AnimationRecord _gActor323300Animation123E0Records[162] = {
-#include "assets/actor_323300_animation_123E0_records.inc"
-};
-
-static u16 _gActor323300Animation123E0Indices[20] = {
-#include "assets/actor_323300_animation_123E0_indices.inc"
-};
-
-static AnimationSet _gActor323300Animation123E0 = {
-    _gActor323300Animation123E0Records,
-    _gActor323300Animation123E0Indices,
-    { NULL, _gActor323300Animation123E0Bank1, NULL, NULL, _gActor323300Animation123E0Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor323300Animation12C18Bank1[16] = {
-#include "assets/actor_323300_animation_12C18_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor323300Animation12C18Bank4[199] = {
-#include "assets/actor_323300_animation_12C18_bank4.inc"
-};
-
-static AnimationRecord _gActor323300Animation12C18Records[259] = {
-#include "assets/actor_323300_animation_12C18_records.inc"
-};
-
-static u16 _gActor323300Animation12C18Indices[20] = {
-#include "assets/actor_323300_animation_12C18_indices.inc"
-};
-
-static AnimationSet _gActor323300Animation12C18 = {
-    _gActor323300Animation12C18Records,
-    _gActor323300Animation12C18Indices,
-    { NULL, _gActor323300Animation12C18Bank1, NULL, NULL, _gActor323300Animation12C18Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/dryfield/toilet/anmc_woman_clips_2.inc"
 
 /// Lesser Stranger animation sets in bank 0: loaded clips 1..3, NULL at 0.
 ///
 /// The transformation starts with clip 1; clips 2/3 are stored but have no established caller.
 /// The animation bank borrows these descriptors for the model's lifetime.
-static AnimationSet* _gActor323300StrangerAnimationSets[4] = {
-    NULL,
-    &_gActor323300Animation11FC4,
-    &_gActor323300Animation123E0,
-    &_gActor323300Animation12C18,
-};
+#include "assets/rooms/dryfield/toilet/stranger_bank.inc"
 
 /// Lesser Stranger animation banks; the only valid bank index is zero.
 ///

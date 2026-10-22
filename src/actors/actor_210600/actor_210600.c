@@ -92,110 +92,18 @@ static SVECTOR ActorContact_ScratchPosition;
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
-static TmdSource _gActor210600GrinningStrangerBody;
+static TmdSource _gStrangerGrinningBody;
 static s32       _actor210600SetModelDraw(Task* task, s32 unusedMessageId, s32 drawMode, s32 unusedArg);
 static s32       _actor210600ApplyCommand(Task* task, s32 unusedMessageId, const ActorCommand* message, s32 unusedArg);
 static void      _actor210600Task(Task* task);
 
 #include "../../shared/actor/actor_contacts.h"
 
-static AnimationPackedPose _gActor210600Animation07EF4Bank1[112] = {
-#include "assets/actor_210600_animation_07EF4_bank1.inc"
-};
+#include "assets/rooms/akropolis/cafeteria/stranger_clips_1.inc"
 
-static AnimationPackedRotation _gActor210600Animation07EF4Bank4[1614] = {
-#include "assets/actor_210600_animation_07EF4_bank4.inc"
-};
+#include "assets/enemies/stranger/grinning/body.inc"
 
-static AnimationRecord _gActor210600Animation07EF4Records[3027] = {
-#include "assets/actor_210600_animation_07EF4_records.inc"
-};
-
-static u16 _gActor210600Animation07EF4Indices[20] = {
-#include "assets/actor_210600_animation_07EF4_indices.inc"
-};
-
-AnimationSet gActor210600Animation07EF4 = {
-    _gActor210600Animation07EF4Records,
-    _gActor210600Animation07EF4Indices,
-    { NULL, _gActor210600Animation07EF4Bank1, NULL, NULL, _gActor210600Animation07EF4Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor210600Animation0A050Bank1[106] = {
-#include "assets/actor_210600_animation_0A050_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor210600Animation0A050Bank4[687] = {
-#include "assets/actor_210600_animation_0A050_bank4.inc"
-};
-
-static AnimationRecord _gActor210600Animation0A050Records[1110] = {
-#include "assets/actor_210600_animation_0A050_records.inc"
-};
-
-static u16 _gActor210600Animation0A050Indices[20] = {
-#include "assets/actor_210600_animation_0A050_indices.inc"
-};
-
-AnimationSet gActor210600Animation0A050 = {
-    _gActor210600Animation0A050Records,
-    _gActor210600Animation0A050Indices,
-    { NULL, _gActor210600Animation0A050Bank1, NULL, NULL, _gActor210600Animation0A050Bank4, NULL, NULL, NULL },
-};
-
-static TmdBone _gActor210600GrinningStrangerBodySkeleton[19] = {
-#include "assets/grinning_stranger_body_skeleton.inc"
-};
-
-static u32 _gActor210600GrinningStrangerBodyPartVerts[19] = {
-#include "assets/grinning_stranger_body_partVerts.inc"
-};
-
-static SVECTOR _gActor210600GrinningStrangerBodyVerts[306] = {
-#include "assets/grinning_stranger_body_verts.inc"
-};
-
-static SVECTOR _gActor210600GrinningStrangerBodyNormals[365] = {
-#include "assets/grinning_stranger_body_normals.inc"
-};
-
-static u32 _gActor210600GrinningStrangerBodyStream[3988] = {
-#include "assets/grinning_stranger_body_stream.inc"
-};
-
-static TmdSource _gActor210600GrinningStrangerBody = {
-    0,
-    20032,
-    7672,
-    19,
-    _gActor210600GrinningStrangerBodyPartVerts,
-    _gActor210600GrinningStrangerBodyVerts,
-    _gActor210600GrinningStrangerBodyNormals,
-    _gActor210600GrinningStrangerBodySkeleton,
-    _gActor210600GrinningStrangerBodyStream,
-};
-
-static AnimationPackedPose _gActor210600Animation10650Bank1[31] = {
-#include "assets/actor_210600_animation_10650_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor210600Animation10650Bank4[374] = {
-#include "assets/actor_210600_animation_10650_bank4.inc"
-};
-
-static AnimationRecord _gActor210600Animation10650Records[512] = {
-#include "assets/actor_210600_animation_10650_records.inc"
-};
-
-static u16 _gActor210600Animation10650Indices[20] = {
-#include "assets/actor_210600_animation_10650_indices.inc"
-};
-
-static AnimationSet _gActor210600Animation10650 = {
-    _gActor210600Animation10650Records,
-    _gActor210600Animation10650Indices,
-    { NULL, _gActor210600Animation10650Bank1, NULL, NULL, _gActor210600Animation10650Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/akropolis/cafeteria/stranger_clips_2.inc"
 
 /// Transition blend durations in normal-rate frames, indexed [previous clip][requested clip].
 ///
@@ -207,14 +115,7 @@ static s8 _gActor210600AnimationBlendFrames[5][5] = { 0 };
 ///
 /// Slots 0 and 2..5 are empty. The body rig borrows this six-pointer table
 /// and its clip data for the task lifetime; the package must stay loaded.
-static AnimationSet* _gActor210600GrinningStrangerAnimationSets[6] = {
-    NULL,
-    &_gActor210600Animation10650,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-};
+#include "assets/rooms/akropolis/cafeteria/grinning_stranger_bank.inc"
 
 /// Grinning Stranger draw, placement and room-command message handlers.
 ///
@@ -233,118 +134,10 @@ enum { ACTOR_210600_STRANGER_TASK_PRIORITY = 96 };
 TaskDesc gActor210600GrinningStrangerTaskDesc = {
     .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_210600_STRANGER_TASK_PRIORITY } },
     .callback = _actor210600Task,
-    .data     = { .model = &_gActor210600GrinningStrangerBody },
+    .data     = { .model = &_gStrangerGrinningBody },
 };
 
-static AnimationPackedPose _gActor210600Animation11F5CBank1[37] = {
-#include "assets/actor_210600_animation_11F5C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor210600Animation11F5CBank4[461] = {
-#include "assets/actor_210600_animation_11F5C_bank4.inc"
-};
-
-static AnimationRecord _gActor210600Animation11F5CRecords[987] = {
-#include "assets/actor_210600_animation_11F5C_records.inc"
-};
-
-static u16 _gActor210600Animation11F5CIndices[20] = {
-#include "assets/actor_210600_animation_11F5C_indices.inc"
-};
-
-AnimationSet gActor210600Animation11F5C = {
-    _gActor210600Animation11F5CRecords,
-    _gActor210600Animation11F5CIndices,
-    { NULL, _gActor210600Animation11F5CBank1, NULL, NULL, _gActor210600Animation11F5CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor210600Animation12244Bank1[5] = {
-#include "assets/actor_210600_animation_12244_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor210600Animation12244Bank4[52] = {
-#include "assets/actor_210600_animation_12244_bank4.inc"
-};
-
-static AnimationRecord _gActor210600Animation12244Records[99] = {
-#include "assets/actor_210600_animation_12244_records.inc"
-};
-
-static u16 _gActor210600Animation12244Indices[20] = {
-#include "assets/actor_210600_animation_12244_indices.inc"
-};
-
-AnimationSet gActor210600Animation12244 = {
-    _gActor210600Animation12244Records,
-    _gActor210600Animation12244Indices,
-    { NULL, _gActor210600Animation12244Bank1, NULL, NULL, _gActor210600Animation12244Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor210600Animation12B30Bank1[16] = {
-#include "assets/actor_210600_animation_12B30_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor210600Animation12B30Bank4[221] = {
-#include "assets/actor_210600_animation_12B30_bank4.inc"
-};
-
-static AnimationRecord _gActor210600Animation12B30Records[282] = {
-#include "assets/actor_210600_animation_12B30_records.inc"
-};
-
-static u16 _gActor210600Animation12B30Indices[20] = {
-#include "assets/actor_210600_animation_12B30_indices.inc"
-};
-
-AnimationSet gActor210600Animation12B30 = {
-    _gActor210600Animation12B30Records,
-    _gActor210600Animation12B30Indices,
-    { NULL, _gActor210600Animation12B30Bank1, NULL, NULL, _gActor210600Animation12B30Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor210600Animation1310CBank1[8] = {
-#include "assets/actor_210600_animation_1310C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor210600Animation1310CBank4[150] = {
-#include "assets/actor_210600_animation_1310C_bank4.inc"
-};
-
-static AnimationRecord _gActor210600Animation1310CRecords[181] = {
-#include "assets/actor_210600_animation_1310C_records.inc"
-};
-
-static u16 _gActor210600Animation1310CIndices[20] = {
-#include "assets/actor_210600_animation_1310C_indices.inc"
-};
-
-AnimationSet gActor210600Animation1310C = {
-    _gActor210600Animation1310CRecords,
-    _gActor210600Animation1310CIndices,
-    { NULL, _gActor210600Animation1310CBank1, NULL, NULL, _gActor210600Animation1310CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor210600Animation134C8Bank1[7] = {
-#include "assets/actor_210600_animation_134C8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor210600Animation134C8Bank4[72] = {
-#include "assets/actor_210600_animation_134C8_bank4.inc"
-};
-
-static AnimationRecord _gActor210600Animation134C8Records[126] = {
-#include "assets/actor_210600_animation_134C8_records.inc"
-};
-
-static u16 _gActor210600Animation134C8Indices[20] = {
-#include "assets/actor_210600_animation_134C8_indices.inc"
-};
-
-AnimationSet gActor210600Animation134C8 = {
-    _gActor210600Animation134C8Records,
-    _gActor210600Animation134C8Indices,
-    { NULL, _gActor210600Animation134C8Bank1, NULL, NULL, _gActor210600Animation134C8Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/akropolis/cafeteria/stranger_clips_3.inc"
 
 static SVECTOR ActorContact_ScratchPosition;
 

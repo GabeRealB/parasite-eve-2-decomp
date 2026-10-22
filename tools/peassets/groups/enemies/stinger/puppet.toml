@@ -1,0 +1,185 @@
+# The assets of the group enemies/stinger/puppet, each named enemies/stinger/puppet/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+schema = "enemies/stinger/puppet/schema"
+symbol = "_gActor105100AnimationSets"
+
+[bank.clips]
+idle = "enemies/stinger/idle"
+raise_shield = "enemies/stinger/turn"
+charge = "enemies/stinger/charge"
+release = "enemies/stinger/release"
+recover = "enemies/stinger/recover"
+stagger = "enemies/stinger/stagger"
+death = "enemies/stinger/puppet/death"
+stunned = "enemies/stinger/stunned"
+stun_recover = "enemies/stinger/stun_recover"
+charge_end = "enemies/stinger/puppet/charge_end"
+
+[beam]
+type = "sound"
+sha1 = "016a0a9bfa9e8b766cc61c51406823ad3edb0ffb"
+
+[fall]
+type = "sound"
+sha1 = "f7244095dc7fc91f4b7369912efecba2a6faac20"
+
+[heal]
+type = "sound"
+mode = "high"
+sha1 = "6355b97f52c7f9cb5a85fc9c6b5b9e4063ae876b"
+
+[ring]
+type = "sound"
+sha1 = "23083fb0dfd27cf95282c32a057a7607d760dad2"
+
+[step]
+type = "sound"
+sha1 = "1d875771ef42bff991d859037a42bdaee2575224"
+
+[burst]
+type = "sound"
+sha1 = "52939347fe6dd0f550cbe1ac5b7c4150b9c34434"
+
+[death]
+type = "clip"
+rig = "enemies/stinger/rig"
+
+[charge]
+type = "sound"
+sha1 = "334ec66ec2a477a699844c4feab9d153697be067"
+
+[schema]
+type = "animation_schema"
+slots = [
+    "",
+    "idle",
+    "raise_shield",
+    "charge",
+    "release",
+    "recover",
+    "stagger",
+    "death",
+    "stunned",
+    "stun_recover",
+    "charge_end",
+]
+
+[sounds]
+type = "sound_bank"
+samples = [
+    "enemies/stinger/puppet/beam",
+    "enemies/stinger/puppet/fireball",
+    "enemies/stinger/puppet/summon",
+    "enemies/stinger/puppet/burst",
+    "enemies/brahman/yellow_build",
+    "enemies/stinger/puppet/charge",
+    "enemies/stinger/puppet/heal",
+    "enemies/stinger/puppet/step",
+    "enemies/stinger/puppet/step_2",
+    "enemies/stinger/puppet/fall",
+    "enemies/stinger/puppet/ring",
+    "enemies/stinger/puppet/strike",
+]
+sha1 = "326ffbb8dac2183b62c558bfd2393ce341b051c0"
+
+[sounds.sounds]
+step = 1
+step_2 = 2
+fall = 3
+summon = 4
+fireball = 5
+burst = 6
+ring = 7
+beam = 8
+charge = 9
+charge_warning = 10
+strike = 11
+heal = 12
+shield_hit = 13
+death = 14
+
+[step_2]
+type = "sound"
+sha1 = "7b00b825f4954264e4f175bb5a03ac6ec53d604e"
+
+[strike]
+type = "sound"
+sha1 = "808ac6a845a24812136bd466764842593f65dbd4"
+
+[summon]
+type = "sound"
+mode = "high"
+sha1 = "f3789e2a258fa38d646cf838101540880aeae141"
+
+[package]
+type = "pe2pkg"
+embedded = [
+    { asset = "enemies/stinger/idle", offset = 0x093A0, size = 0x814, address = 0x8013B1C0 },
+    { asset = "enemies/stinger/turn", offset = 0x09BB4, size = 0x780, address = 0x8013B9D4 },
+    { asset = "enemies/stinger/charge", offset = 0x0A334, size = 0xCD0, address = 0x8013C154 },
+    { asset = "enemies/stinger/release", offset = 0x0B004, size = 0x4B0, address = 0x8013CE24 },
+    { asset = "enemies/stinger/recover", offset = 0x0B4B4, size = 0x43C, address = 0x8013D2D4 },
+    { asset = "enemies/stinger/stagger", offset = 0x0B8F0, size = 0x710, address = 0x8013D710 },
+    { asset = "enemies/stinger/stunned", offset = 0x0C000, size = 0x564, address = 0x8013DE20 },
+    { asset = "enemies/stinger/stun_recover", offset = 0x0C564, size = 0x2A8, address = 0x8013E384 },
+    { name = "charge_end", offset = 0x0C80C, size = 0x418, address = 0x8013E62C },
+    { name = "death", offset = 0x0CC24, size = 0x938, address = 0x8013EA44 },
+    { name = "player_knockback_front", offset = 0x0D55C, size = 0x848, address = 0x8013F37C },
+    { name = "player_knockback_back", offset = 0x0DDA4, size = 0x79C, address = 0x8013FBC4 },
+    { name = "player_knockback_recover_front", offset = 0x0E540, size = 0x80C, address = 0x80140360 },
+    { name = "player_knockback_recover_back", offset = 0x0ED4C, size = 0x814, address = 0x80140B6C },
+    { name = "bank", offset = 0x0F668, size = 0x2C, address = 0x80141488 },
+    { name = "player_bank", offset = 0x0F694, size = 0x14, address = 0x801414B4 },
+]
+package_name = "actor_105100"
+required = true
+sha1 = "4aca522fcffe5a02d2a0ce4b9ed73cd1b6b4dc22"
+
+[fireball]
+type = "sound"
+mode = "high"
+sha1 = "ffa48585caea32fc2259e6a056100829a4b630e0"
+
+[charge_end]
+type = "clip"
+rig = "enemies/stinger/rig"
+
+[player_bank]
+type = "animation_bank"
+schema = "enemies/stinger/puppet/player_schema"
+symbol = "_gActor105100PlayerAnimationSets"
+
+[player_bank.clips]
+player_knockback_front = "enemies/stinger/puppet/player_knockback_front"
+player_knockback_back = "enemies/stinger/puppet/player_knockback_back"
+player_knockback_recover_front = "enemies/stinger/puppet/player_knockback_recover_front"
+player_knockback_recover_back = "enemies/stinger/puppet/player_knockback_recover_back"
+
+[player_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "player_knockback_front",
+    "player_knockback_back",
+    "player_knockback_recover_front",
+    "player_knockback_recover_back",
+]
+
+[player_knockback_back]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_knockback_front]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_knockback_recover_back]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_knockback_recover_front]
+type = "clip"
+rig = "characters/aya/rig"

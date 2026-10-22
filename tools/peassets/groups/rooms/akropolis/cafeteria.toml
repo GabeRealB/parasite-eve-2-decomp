@@ -1,0 +1,263 @@
+# The assets of the group rooms/akropolis/cafeteria, each named rooms/akropolis/cafeteria/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rupert]
+type = "pe2pkg"
+embedded = [
+    { name = "player_cafeteria_follow_up_start", offset = 0x00ED8, size = 0x3C2C, address = 0x80162CF8 },
+    { asset = "characters/rupert/mongoose", offset = 0x0A9FC, size = 0x558, address = 0x8016C81C },
+    { name = "rupert_shoot", offset = 0x0AF54, size = 0x3784, address = 0x8016CD74 },
+    { name = "rupert_arrive", offset = 0x0E6D8, size = 0x4D4, address = 0x801704F8 },
+    { name = "rupert_reload", offset = 0x0EBAC, size = 0x6AE4, address = 0x801709CC },
+    { name = "rupert_depart", offset = 0x15690, size = 0x217C, address = 0x801774B0 },
+    { name = "rupert_bank", offset = 0x1780C, size = 0x14, address = 0x8017962C },
+]
+package_name = "actor_310600"
+required = true
+sha1 = "6dc5ccea0c7b5f38c42bd34dbdcacadb368602c5"
+
+[stranger]
+type = "pe2pkg"
+embedded = [
+    { name = "player_cafeteria_rupert_talk", offset = 0x03108, size = 0x4E14, address = 0x8014CF28 },
+    { name = "player_cafeteria_follow_up_end", offset = 0x07F1C, size = 0x215C, address = 0x80151D3C },
+    { name = "grinning_stranger_appear", offset = 0x0F6DC, size = 0xF9C, address = 0x801594FC },
+    { name = "grinning_stranger_bank", offset = 0x10694, size = 0x18, address = 0x8015A4B4 },
+    { name = "boss_stranger_collapse", offset = 0x106D8, size = 0x18AC, address = 0x8015A4F8 },
+    { asset = "enemies/stranger/lesser/idle", offset = 0x11F84, size = 0x2E8, address = 0x8015BDA4 },
+    { name = "boss_stranger_follow_up_3", offset = 0x1226C, size = 0x8EC, address = 0x8015C08C },
+    { name = "extra_anim_6", offset = 0x12B58, size = 0x5DC, address = 0x8015C978 },
+    { name = "extra_anim_7", offset = 0x13134, size = 0x3BC, address = 0x8015CF54 },
+]
+package_name = "actor_210600"
+required = true
+sha1 = "367774e983c09e4c9e372851335e0290d5505211"
+
+[anmc_woman]
+type = "pe2pkg"
+embedded = [
+    { name = "player_cafeteria_opening", offset = 0x0068C, size = 0x5A34, address = 0x8014A4AC },
+    { asset = "characters/anmc_woman_2/body", offset = 0x060C0, size = 0x5AEC, address = 0x8014FEE0 },
+    { asset = "characters/anmc_woman_2/glasses", offset = 0x0BBAC, size = 0x1A0, address = 0x801559CC },
+    { name = "woman_opening", offset = 0x0BD4C, size = 0x1090, address = 0x80155B6C },
+    { name = "woman_idle", offset = 0x0CDDC, size = 0x210, address = 0x80156BFC },
+    { name = "woman_bank", offset = 0x0D01C, size = 0x18, address = 0x80156E3C },
+]
+package_name = "actor_202900"
+required = true
+sha1 = "50d3502915840cf76757c4f7abed9cc944321754"
+
+[woman_bank]
+type = "animation_bank"
+clips = { opening = "rooms/akropolis/cafeteria/woman_opening", idle = "rooms/akropolis/cafeteria/woman_idle" }
+schema = "rooms/akropolis/cafeteria/woman_schema"
+symbol = "_gActor202900WomanAnimationSets"
+
+[woman_idle]
+type = "clip"
+rig = "characters/anmc_woman_2/rig"
+
+[rupert_bank]
+type = "animation_bank"
+schema = "rooms/akropolis/cafeteria/rupert_schema"
+symbol = "_gActor310600BodyAnimationSets"
+
+[rupert_bank.clips]
+shoot = "rooms/akropolis/cafeteria/rupert_shoot"
+arrive = "rooms/akropolis/cafeteria/rupert_arrive"
+reload = "rooms/akropolis/cafeteria/rupert_reload"
+depart = "rooms/akropolis/cafeteria/rupert_depart"
+
+[extra_anim_6]
+type = "clip"
+rig = "enemies/stranger/rig"
+symbol = "gAkropolisCafeteriaExtraAnim6Clip"
+
+[extra_anim_7]
+type = "clip"
+rig = "enemies/stranger/rig"
+symbol = "gAkropolisCafeteriaExtraAnim7Clip"
+
+[rupert_shoot]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[woman_schema]
+type = "animation_schema"
+slots = ["", "opening", "", "", "idle"]
+
+[boss_stranger]
+type = "pe2pkg"
+embedded = [
+    { name = "boss_stranger_body", offset = 0x07138, size = 0x5568, address = 0x80138F58 },
+    "actor_110600_animation_0C6A0",
+]
+package_name = "actor_110600"
+required = true
+sha1 = "74f1ae3aafbb1b7d92790dc2afab1a15becb8a25"
+
+[rupert_arrive]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[rupert_depart]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[rupert_reload]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[rupert_schema]
+type = "animation_schema"
+slots = ["", "shoot", "arrive", "reload", "depart"]
+
+[woman_opening]
+type = "clip"
+rig = "characters/anmc_woman_2/rig"
+
+[boss_stranger_body]
+type = "model"
+rig = "enemies/stranger/rig"
+slots = ["boss_stranger_texture_page_1", "boss_stranger_texture_page_2"]
+symbol = "_gAkropolisCafeteriaBossStrangerBody"
+sha1 = "e0e984d6715592f802f1d02c62328d0c2da855ba"
+
+[boss_stranger_file]
+type = "file"
+
+[[boss_stranger_file.contents]]
+chunk = "boss_stranger_sounds"
+
+[[boss_stranger_file.contents]]
+chunk = "boss_stranger_image"
+sha1 = "20fda9324b6ebb7d72e4c01dc0e375545dfab8ec"
+pages = [
+    { texture = "boss_stranger_texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "boss_stranger_texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[boss_stranger_file.contents]]
+chunk = "boss_stranger_palette"
+sha1 = "1b687438c0cbb5dac66a3bc06049cb81fbf152b8"
+
+[[boss_stranger_file.contents.palettes]]
+texture = "boss_stranger_texture_page_1"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0, 0]
+
+[[boss_stranger_file.contents.palettes]]
+texture = "boss_stranger_texture_page_2"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0, 1]
+
+[[boss_stranger_file.contents]]
+chunk = "boss_stranger"
+
+[boss_stranger_hurt]
+type = "sound"
+sha1 = "34198f1b34ed2a631f97d6462d3295f8e71d0939"
+
+[boss_stranger_alert]
+type = "sound"
+sha1 = "d2a97ab93570e8da7e7e6f3446c757fc883ec3ce"
+
+[boss_stranger_sounds]
+type = "sound_bank"
+samples = [
+    "enemies/stranger/horned/walk_step_a",
+    "enemies/stranger/horned/walk_step_b",
+    "rooms/akropolis/cafeteria/boss_stranger_walk_step_a",
+    "rooms/akropolis/cafeteria/boss_stranger_walk_step_b",
+    "encounters/skull_stalker_and_creeping_stranger/attack_hit",
+    "rooms/akropolis/cafeteria/boss_stranger_hurt",
+    "rooms/akropolis/cafeteria/boss_stranger_alert",
+]
+sha1 = "c87a9c7ca4573862fbd753c6fe8e382bf94476df"
+
+[boss_stranger_sounds.sounds]
+walk_step_a = 1
+walk_step_b = 2
+run_step_a = 3
+run_step_b = 4
+alert = 6
+hurt = 7
+strike = 12
+attack_hit = 13
+
+[boss_stranger_collapse]
+type = "clip"
+rig = "enemies/stranger/rig"
+symbol = "gAkropolisCafeteriaBossStrangerCollapseClip"
+
+[grinning_stranger_bank]
+type = "animation_bank"
+clips = { appear = "rooms/akropolis/cafeteria/grinning_stranger_appear" }
+schema = "rooms/akropolis/cafeteria/grinning_stranger_schema"
+symbol = "_gActor210600GrinningStrangerAnimationSets"
+
+[grinning_stranger_appear]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[grinning_stranger_schema]
+type = "animation_schema"
+slots = ["", "appear"]
+
+[player_cafeteria_opening]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisCafeteriaPlayerCafeteriaOpeningClip"
+
+[boss_stranger_follow_up_3]
+type = "clip"
+rig = "enemies/stranger/rig"
+symbol = "gAkropolisCafeteriaBossStrangerFollowUp3Clip"
+
+[boss_stranger_walk_step_a]
+type = "sound"
+sha1 = "856dbbf094db9e628d08cdd4702d9ce6a3edbf01"
+
+[boss_stranger_walk_step_b]
+type = "sound"
+sha1 = "8cee6bf15f7d107b918ffa28b721ccf070545cd9"
+
+[boss_stranger_body_binding]
+type = "binding"
+model = "rooms/akropolis/cafeteria/boss_stranger_body"
+
+[boss_stranger_body_binding.textures]
+boss_stranger_texture_page_1 = "rooms/akropolis/cafeteria/boss_stranger_texture_page_1.default"
+boss_stranger_texture_page_2 = "rooms/akropolis/cafeteria/boss_stranger_texture_page_2.default"
+
+[boss_stranger_texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[boss_stranger_texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[player_cafeteria_rupert_talk]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisCafeteriaPlayerCafeteriaRupertTalkClip"
+
+[player_cafeteria_follow_up_end]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisCafeteriaPlayerCafeteriaFollowUpEndClip"
+
+[player_cafeteria_follow_up_start]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisCafeteriaPlayerCafeteriaFollowUpStartClip"

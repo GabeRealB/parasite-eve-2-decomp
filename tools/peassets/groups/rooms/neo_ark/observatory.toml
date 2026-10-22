@@ -1,0 +1,238 @@
+# The assets of the group rooms/neo_ark/observatory, each named rooms/neo_ark/observatory/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[kyle]
+type = "pe2pkg"
+embedded = [
+    { name = "kyle_walk_forward", offset = 0x00A9C, size = 0x1008, address = 0x801328BC },
+    { name = "kyle_collapse", offset = 0x01AA4, size = 0x1350, address = 0x801338C4 },
+    { name = "kyle_lie_raise_head", offset = 0x02DF4, size = 0x3DC, address = 0x80134C14 },
+    { name = "kyle_lie_head_raised", offset = 0x031D0, size = 0x234, address = 0x80134FF0 },
+    { name = "kyle_sit_wince", offset = 0x03404, size = 0x43C, address = 0x80135224 },
+    { name = "kyle_sit", offset = 0x03840, size = 0x1A0, address = 0x80135660 },
+    { asset = "characters/soldier_a/dont_worry_end", offset = 0x039E0, size = 0x278, address = 0x80135800 },
+    { asset = "characters/soldier_a/hiya_flint", offset = 0x03C58, size = 0x1D4, address = 0x80135A78 },
+    { name = "companion_scene_player_anim_00", offset = 0x03E2C, size = 0x364, address = 0x80135C4C },
+    { asset = "characters/aya/kneel_talk_start", offset = 0x04190, size = 0x288, address = 0x80135FB0 },
+    { asset = "characters/aya/kneel_talk_gesture", offset = 0x04418, size = 0x4A0, address = 0x80136238 },
+    { asset = "characters/aya/kneel_talk", offset = 0x048B8, size = 0x520, address = 0x801366D8 },
+    { asset = "characters/aya/kneel_take_key", offset = 0x04DD8, size = 0x2D8, address = 0x80136BF8 },
+    { asset = "characters/aya/kneel_talk_start_2", offset = 0x050B0, size = 0x2C8, address = 0x80136ED0 },
+    { name = "player_kneel_settle", offset = 0x05378, size = 0x520, address = 0x80137198 },
+    { asset = "characters/aya/get_up", offset = 0x05898, size = 0x3A8, address = 0x801376B8 },
+    { name = "companion_scene_player_bank", offset = 0x05C64, size = 0x20, address = 0x80137A84 },
+    { name = "companion_bank", offset = 0x05DB8, size = 0x20, address = 0x80137BD8 },
+    { name = "player_walk_forward", offset = 0x07338, size = 0x134C, address = 0x80139158 },
+    { name = "player_stop", offset = 0x08684, size = 0x52C, address = 0x8013A4A4 },
+    { name = "player_listen", offset = 0x08BB0, size = 0x30C, address = 0x8013A9D0 },
+    { name = "player_raise_hand_to_face", offset = 0x08EBC, size = 0xFDC, address = 0x8013ACDC },
+    { name = "player_lower_hand", offset = 0x09E98, size = 0x9B4, address = 0x8013BCB8 },
+    { name = "solo_scene_player_bank", offset = 0x0A84C, size = 0x14, address = 0x8013C66C },
+    { asset = "characters/aya/see_flint", offset = 0x0ADEC, size = 0x3CC, address = 0x8013CC0C },
+    { name = "player_step_and_look_around", offset = 0x0B1B8, size = 0x24E8, address = 0x8013CFD8 },
+    { asset = "characters/aya/reason_start", offset = 0x0D6A0, size = 0x368, address = 0x8013F4C0 },
+    { asset = "characters/aya/realize", offset = 0x0DA08, size = 0x318, address = 0x8013F828 },
+    { name = "room_variant_scene_player_bank", offset = 0x0DD2C, size = 0x10, address = 0x8013FB4C },
+]
+package_name = "actor_450200"
+required = true
+sha1 = "72fb3718fa751209e2b0433bc88d6a1a336a20cb"
+
+[kyle_sit]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_file]
+type = "file"
+
+[[kyle_file.contents]]
+chunk = "dome_backdrops_palette"
+sha1 = "cac9208d1c160fb92fdf62189c232f0bec0f8a8f"
+palettes = [
+    { texture = "dome_backdrop_page_1", variant = "outgoing", region = "engine/vram/actor_palettes" },
+    { texture = "dome_backdrop_page_2", variant = "outgoing", region = "engine/vram/actor_palettes" },
+    { texture = "dome_backdrop_page_3", variant = "outgoing", region = "engine/vram/actor_palettes" },
+    { texture = "dome_backdrop_page_3", variant = "incoming", region = "engine/vram/actor_palettes", offset = [0, 1] },
+    { texture = "dome_backdrop_page_4", variant = "incoming", region = "engine/vram/actor_palettes", offset = [0, 1] },
+    { texture = "dome_backdrop_page_5", variant = "incoming", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[kyle_file.contents]]
+chunk = "dome_backdrops"
+sha1 = "adf6d618668261d0258b86a7f8eb675ac6b6a24a"
+pages = [
+    { texture = "dome_backdrop_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "dome_backdrop_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+    { texture = "dome_backdrop_page_3", region = "engine/vram/actor_sheet", offset = [128, 0] },
+    { texture = "dome_backdrop_page_4", region = "engine/vram/actor_sheet", offset = [192, 0] },
+    { texture = "dome_backdrop_page_5", region = "engine/vram/actor_sheet", offset = [256, 0] },
+]
+slots = 6
+
+[[kyle_file.contents]]
+chunk = "kyle"
+
+[player_stop]
+type = "clip"
+rig = "characters/aya/rig"
+
+[kyle_collapse]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[player_listen]
+type = "clip"
+rig = "characters/aya/rig"
+
+[companion_bank]
+type = "animation_bank"
+schema = "rooms/neo_ark/observatory/companion_schema"
+symbol = "_gActor450200CompanionAnimationSets"
+
+[companion_bank.clips]
+walk_forward = "rooms/neo_ark/observatory/kyle_walk_forward"
+collapse = "rooms/neo_ark/observatory/kyle_collapse"
+lie_raise_head = "rooms/neo_ark/observatory/kyle_lie_raise_head"
+lie_head_raised = "rooms/neo_ark/observatory/kyle_lie_head_raised"
+sit_wince = "rooms/neo_ark/observatory/kyle_sit_wince"
+sit = "rooms/neo_ark/observatory/kyle_sit"
+sit_rest = "characters/soldier_a/dont_worry_end"
+sit_talk = "characters/soldier_a/hiya_flint"
+
+[kyle_sit_wince]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[companion_schema]
+type = "animation_schema"
+slots = ["walk_forward", "collapse", "lie_raise_head", "lie_head_raised", "sit_wince", "sit", "sit_rest", "sit_talk"]
+
+[kyle_walk_forward]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[player_lower_hand]
+type = "clip"
+rig = "characters/aya/rig"
+
+[kyle_lie_raise_head]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[player_kneel_settle]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_walk_forward]
+type = "clip"
+rig = "characters/aya/rig"
+
+[dome_backdrop_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["outgoing"]
+width = 128
+
+[dome_backdrop_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["outgoing"]
+width = 128
+
+[dome_backdrop_page_3]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["outgoing", "incoming"]
+width = 128
+
+[dome_backdrop_page_4]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["incoming"]
+width = 128
+
+[dome_backdrop_page_5]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["incoming"]
+width = 128
+
+[kyle_lie_head_raised]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[solo_scene_player_bank]
+type = "animation_bank"
+schema = "rooms/neo_ark/observatory/solo_scene_player_schema"
+symbol = "_gActor450200SoloScenePlayerAnimationSets"
+
+[solo_scene_player_bank.clips]
+walk_forward = "rooms/neo_ark/observatory/player_walk_forward"
+stop = "rooms/neo_ark/observatory/player_stop"
+listen = "rooms/neo_ark/observatory/player_listen"
+raise_hand_to_face = "rooms/neo_ark/observatory/player_raise_hand_to_face"
+lower_hand = "rooms/neo_ark/observatory/player_lower_hand"
+
+[solo_scene_player_schema]
+type = "animation_schema"
+slots = ["walk_forward", "stop", "listen", "raise_hand_to_face", "lower_hand"]
+
+[player_raise_hand_to_face]
+type = "clip"
+rig = "characters/aya/rig"
+
+[companion_scene_player_bank]
+type = "animation_bank"
+schema = "rooms/neo_ark/observatory/companion_scene_player_schema"
+symbol = "_gActor450200CompanionScenePlayerAnimationSets"
+
+[companion_scene_player_bank.clips]
+slot_0 = "rooms/neo_ark/observatory/companion_scene_player_anim_00"
+kneel_gesture = "characters/aya/kneel_talk_start"
+kneel = "characters/aya/kneel_talk_gesture"
+kneel_settle = "characters/aya/kneel_talk"
+kneel_settled = "characters/aya/kneel_take_key"
+kneel_rise = "characters/aya/kneel_talk_start_2"
+kneel_settle_2 = "rooms/neo_ark/observatory/player_kneel_settle"
+stand_up = "characters/aya/get_up"
+
+[player_step_and_look_around]
+type = "clip"
+rig = "characters/aya/rig"
+
+[companion_scene_player_schema]
+type = "animation_schema"
+slots = [
+    "slot_0",
+    "kneel_gesture",
+    "kneel",
+    "kneel_settle",
+    "kneel_settled",
+    "kneel_rise",
+    "kneel_settle_2",
+    "stand_up",
+]
+
+[companion_scene_player_anim_00]
+type = "clip"
+rig = "characters/aya/rig"
+
+[room_variant_scene_player_bank]
+type = "animation_bank"
+schema = "rooms/neo_ark/observatory/room_variant_scene_player_schema"
+symbol = "_gActor450200RoomVariantScenePlayerAnimationSets"
+
+[room_variant_scene_player_bank.clips]
+shift_weight = "characters/aya/see_flint"
+step_and_look_around = "rooms/neo_ark/observatory/player_step_and_look_around"
+raise_hand_to_face = "characters/aya/reason_start"
+lower_hand = "characters/aya/realize"
+
+[room_variant_scene_player_schema]
+type = "animation_schema"
+slots = ["shift_weight", "step_and_look_around", "raise_hand_to_face", "lower_hand"]

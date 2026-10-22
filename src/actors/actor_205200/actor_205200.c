@@ -348,37 +348,7 @@ static TaskMessageEntry _gActor205200ControllerMessages[2] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-static TmdBone _gActor205200EveBreaMaskedBodySkeleton[19] = {
-#include "assets/eve_brea_masked_body_skeleton.inc"
-};
-
-static u32 _gActor205200EveBreaMaskedBodyPartVerts[19] = {
-#include "assets/eve_brea_masked_body_partVerts.inc"
-};
-
-static SVECTOR _gActor205200EveBreaMaskedBodyVerts[312] = {
-#include "assets/eve_brea_masked_body_verts.inc"
-};
-
-static SVECTOR _gActor205200EveBreaMaskedBodyNormals[338] = {
-#include "assets/eve_brea_masked_body_normals.inc"
-};
-
-static u32 _gActor205200EveBreaMaskedBodyStream[3463] = {
-#include "assets/eve_brea_masked_body_stream.inc"
-};
-
-TmdSource gActor205200EveBreaMaskedBody = {
-    0,
-    18392,
-    6232,
-    19,
-    _gActor205200EveBreaMaskedBodyPartVerts,
-    _gActor205200EveBreaMaskedBodyVerts,
-    _gActor205200EveBreaMaskedBodyNormals,
-    _gActor205200EveBreaMaskedBodySkeleton,
-    _gActor205200EveBreaMaskedBodyStream,
-};
+#include "assets/characters/eve/masked_body.inc"
 
 static void _actor205200SpawnController(Enemy* enemy, Task* task);
 static void _actor205200TickController(Enemy* enemy, Task* task);

@@ -1,8 +1,8 @@
 // Overlay-local symbols for kyle_800101 (file 800101).
-gKyle800101KyleMadiganGun = 0x8016DC60; // Kyle Madigan's gun model for companion resource variant 1
-gKyle800101KyleMadiganHandRightSecondPair = 0x8016CED8; // model named by a task descriptor
-gKyle800101KyleMadiganHandLeft = 0x8016D81C; // model named by a task descriptor
-gKyle800101KyleMadiganBody = 0x8016C594; // model named by a task descriptor
-gKyle800101KyleMadiganHandRight = 0x8016C9E8; // model named by a task descriptor
-gKyle800101KyleMadiganHandLeftFirstPair = 0x8016D32C; // Kyle Madigan left hand, attachment pair 0
+gKyleP229 = 0x8016DC60; // Kyle Madigan's gun model for companion resource variant 1
+gKyleHandRight3 = 0x8016CED8; // model named by a task descriptor
+gKyleHandLeft = 0x8016D81C; // model named by a task descriptor
+gKyleBody = 0x8016C594; // model named by a task descriptor
+gKyleHandRight = 0x8016C9E8; // model named by a task descriptor
+gKyleHandLeft2 = 0x8016D32C; // Kyle Madigan left hand, attachment pair 0
 gKyle800101KyleMadiganAnimationBank = 0x801756d0;

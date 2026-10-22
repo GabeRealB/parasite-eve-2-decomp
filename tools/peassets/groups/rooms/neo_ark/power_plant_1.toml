@@ -1,0 +1,124 @@
+# The assets of the group rooms/neo_ark/power_plant_1, each named rooms/neo_ark/power_plant_1/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[generator_hit]
+type = "clip"
+rig = "rooms/neo_ark/power_plant_1/proto_generator_rig"
+
+[generator_bank]
+type = "animation_bank"
+schema = "rooms/neo_ark/power_plant_1/generator_schema"
+symbol = "_gGeneratorAnimSets"
+
+[generator_bank.clips]
+idle = "rooms/neo_ark/power_plant_1/generator_idle"
+hit = "rooms/neo_ark/power_plant_1/generator_hit"
+death = "rooms/neo_ark/power_plant_1/generator_death"
+
+[generator_idle]
+type = "clip"
+rig = "rooms/neo_ark/power_plant_1/proto_generator_rig"
+
+[generator_death]
+type = "clip"
+rig = "rooms/neo_ark/power_plant_1/proto_generator_rig"
+
+[proto_generator]
+type = "pe2pkg"
+embedded = [
+    { name = "proto_generator_body", offset = 0x01C30, size = 0x8A40, address = 0x80133A50 },
+    { name = "generator_idle", offset = 0x0A670, size = 0x178, address = 0x8013C490 },
+    { name = "generator_hit", offset = 0x0A7E8, size = 0x440, address = 0x8013C608 },
+    { name = "generator_death", offset = 0x0AC28, size = 0x3E8, address = 0x8013CA48 },
+    { name = "generator_bank", offset = 0x0B098, size = 0x10, address = 0x8013CEB8 },
+]
+package_name = "actor_105400"
+required = true
+sha1 = "99c3f52d32bf80d3e3b6b26bec67a9b5cdfd60d8"
+
+[generator_schema]
+type = "animation_schema"
+slots = ["", "idle", "hit", "death"]
+
+[proto_generator_rig]
+type = "rig"
+joints = ["joint_0", "joint_1", "joint_2", "joint_3", "joint_4", "joint_5", "joint_6", "joint_7", "joint_8", "joint_9"]
+
+[proto_generator_body]
+type = "model"
+rig = "rooms/neo_ark/power_plant_1/proto_generator_rig"
+slots = ["proto_generator_texture_page_1", "proto_generator_texture_page_2", "proto_generator_texture_page_3"]
+symbol = "_gNeoArkPowerPlant1ProtoGeneratorBody"
+sha1 = "09ecee1d2299a6200b0e6c5b2f8774f7d51b9b7e"
+
+[proto_generator_file]
+type = "file"
+
+[[proto_generator_file.contents]]
+chunk = "proto_generator_palette"
+sha1 = "02ea6b8e02f6b92c3673aec33f447a1ae0150b47"
+
+[[proto_generator_file.contents.palettes]]
+texture = "proto_generator_texture_page_1"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0, 0]
+
+[[proto_generator_file.contents.palettes]]
+texture = "proto_generator_texture_page_2"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0, 1]
+
+[[proto_generator_file.contents]]
+chunk = "proto_generator_palette_2"
+sha1 = "35dbf000e5591e763f254119bae6bc938618719f"
+
+[[proto_generator_file.contents.palettes]]
+texture = "proto_generator_texture_page_3"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0, 2]
+
+[[proto_generator_file.contents]]
+chunk = "proto_generator_image"
+sha1 = "0c5b898d1b74253b0d9e663cfe1f2d83ecb9765c"
+pages = [
+    { texture = "proto_generator_texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "proto_generator_texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+    { texture = "proto_generator_texture_page_3", region = "engine/vram/actor_sheet", offset = [128, 0] },
+]
+slots = 6
+
+[[proto_generator_file.contents]]
+chunk = "proto_generator"
+
+[proto_generator_body_binding]
+type = "binding"
+model = "rooms/neo_ark/power_plant_1/proto_generator_body"
+
+[proto_generator_body_binding.textures]
+proto_generator_texture_page_1 = "rooms/neo_ark/power_plant_1/proto_generator_texture_page_1.default"
+proto_generator_texture_page_2 = "rooms/neo_ark/power_plant_1/proto_generator_texture_page_2.default"
+proto_generator_texture_page_3 = "rooms/neo_ark/power_plant_1/proto_generator_texture_page_3.default"
+
+[proto_generator_texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[proto_generator_texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[proto_generator_texture_page_3]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128

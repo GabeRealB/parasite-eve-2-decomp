@@ -147,15 +147,15 @@ extern EnemyParams gActor510900EnemyParams;
 /// loaded for every animation context borrowing its sets.
 extern AnimationSet* gActor510900BodyAnimationSets[34];
 
-extern TmdSource gActor510900No9GolemAkropolisBody;
+extern TmdSource gGolemNo9BodyAkropolis;
 
-extern TmdSource gActor510900Model0FE60;
+extern TmdSource gGolemNo9AkropolisSword;
 
-extern TmdSource gActor510900No9GolemAkropolisProp;
+extern TmdSource gGolemNo9AkropolisProp;
 
-extern TmdSource gActor510900Model10468;
+extern TmdSource gGolemNo9AkropolisChestPiece;
 
-extern TmdSource gActor510900GolemGrenade;
+extern TmdSource gGolemGrenade;
 
 extern TmdSource gActor510900Model10C8C;
 

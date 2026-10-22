@@ -165,194 +165,20 @@ static const EnemyTaskFuncTable3 _gActor205200BodyTaskStates = {
     },
 };
 
-static AnimationSet _gActor205200Animation08B50;
-static AnimationSet _gActor205200Animation0943C;
-static AnimationSet _gActor205200Animation09C1C;
-static AnimationSet _gActor205200Animation0A964;
-static AnimationSet _gActor205200Animation0B1AC;
-static AnimationSet _gActor205200Animation0B948;
-static AnimationSet _gActor205200Animation0C154;
-static AnimationSet _gActor205200Animation0C968;
+static AnimationSet _gEveHelmetHealClip;
+static AnimationSet _gEveHelmetHitReactionClip;
+static AnimationSet _gEveHelmetIdleClip;
+static AnimationSet _gEveHelmetFidgetClip;
+static AnimationSet _gStingerPuppetPlayerKnockbackFrontClip;
+static AnimationSet _gStingerPuppetPlayerKnockbackBackClip;
+static AnimationSet _gStingerPuppetPlayerKnockbackRecoverFrontClip;
+static AnimationSet _gStingerPuppetPlayerKnockbackRecoverBackClip;
 
 static s32  _actor205200SetModelDrawMsg(Task* task, s32 messageId, s32 drawEnabled, s32 unusedSecondArg);
 static s32  _actor205200ApplyCommandMsg(Task* task, s32 messageId, const ActorCommand* request, s32 unusedSecondArg);
 static void _actor205200BodyTask(Task* task);
 
-static AnimationPackedPose _gActor205200Animation08B50Bank1[29] = {
-#include "assets/actor_205200_animation_08B50_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor205200Animation08B50Bank4[472] = {
-#include "assets/actor_205200_animation_08B50_bank4.inc"
-};
-
-static AnimationRecord _gActor205200Animation08B50Records[543] = {
-#include "assets/actor_205200_animation_08B50_records.inc"
-};
-
-static u16 _gActor205200Animation08B50Indices[20] = {
-#include "assets/actor_205200_animation_08B50_indices.inc"
-};
-
-static AnimationSet _gActor205200Animation08B50 = {
-    _gActor205200Animation08B50Records,
-    _gActor205200Animation08B50Indices,
-    { NULL, _gActor205200Animation08B50Bank1, NULL, NULL, _gActor205200Animation08B50Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor205200Animation0943CBank1[16] = {
-#include "assets/actor_205200_animation_0943C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor205200Animation0943CBank4[223] = {
-#include "assets/actor_205200_animation_0943C_bank4.inc"
-};
-
-static AnimationRecord _gActor205200Animation0943CRecords[280] = {
-#include "assets/actor_205200_animation_0943C_records.inc"
-};
-
-static u16 _gActor205200Animation0943CIndices[20] = {
-#include "assets/actor_205200_animation_0943C_indices.inc"
-};
-
-static AnimationSet _gActor205200Animation0943C = {
-    _gActor205200Animation0943CRecords,
-    _gActor205200Animation0943CIndices,
-    { NULL, _gActor205200Animation0943CBank1, NULL, NULL, _gActor205200Animation0943CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor205200Animation09C1CBank1[11] = {
-#include "assets/actor_205200_animation_09C1C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor205200Animation09C1CBank4[167] = {
-#include "assets/actor_205200_animation_09C1C_bank4.inc"
-};
-
-static AnimationRecord _gActor205200Animation09C1CRecords[284] = {
-#include "assets/actor_205200_animation_09C1C_records.inc"
-};
-
-static u16 _gActor205200Animation09C1CIndices[20] = {
-#include "assets/actor_205200_animation_09C1C_indices.inc"
-};
-
-static AnimationSet _gActor205200Animation09C1C = {
-    _gActor205200Animation09C1CRecords,
-    _gActor205200Animation09C1CIndices,
-    { NULL, _gActor205200Animation09C1CBank1, NULL, NULL, _gActor205200Animation09C1CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor205200Animation0A964Bank1[23] = {
-#include "assets/actor_205200_animation_0A964_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor205200Animation0A964Bank4[347] = {
-#include "assets/actor_205200_animation_0A964_bank4.inc"
-};
-
-static AnimationRecord _gActor205200Animation0A964Records[414] = {
-#include "assets/actor_205200_animation_0A964_records.inc"
-};
-
-static u16 _gActor205200Animation0A964Indices[20] = {
-#include "assets/actor_205200_animation_0A964_indices.inc"
-};
-
-static AnimationSet _gActor205200Animation0A964 = {
-    _gActor205200Animation0A964Records,
-    _gActor205200Animation0A964Indices,
-    { NULL, _gActor205200Animation0A964Bank1, NULL, NULL, _gActor205200Animation0A964Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor205200Animation0B1ACBank1[21] = {
-#include "assets/actor_205200_animation_0B1AC_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor205200Animation0B1ACBank4[193] = {
-#include "assets/actor_205200_animation_0B1AC_bank4.inc"
-};
-
-static AnimationRecord _gActor205200Animation0B1ACRecords[254] = {
-#include "assets/actor_205200_animation_0B1AC_records.inc"
-};
-
-static u16 _gActor205200Animation0B1ACIndices[20] = {
-#include "assets/actor_205200_animation_0B1AC_indices.inc"
-};
-
-static AnimationSet _gActor205200Animation0B1AC = {
-    _gActor205200Animation0B1ACRecords,
-    _gActor205200Animation0B1ACIndices,
-    { NULL, _gActor205200Animation0B1ACBank1, NULL, NULL, _gActor205200Animation0B1ACBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor205200Animation0B948Bank1[20] = {
-#include "assets/actor_205200_animation_0B948_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor205200Animation0B948Bank4[172] = {
-#include "assets/actor_205200_animation_0B948_bank4.inc"
-};
-
-static AnimationRecord _gActor205200Animation0B948Records[235] = {
-#include "assets/actor_205200_animation_0B948_records.inc"
-};
-
-static u16 _gActor205200Animation0B948Indices[20] = {
-#include "assets/actor_205200_animation_0B948_indices.inc"
-};
-
-static AnimationSet _gActor205200Animation0B948 = {
-    _gActor205200Animation0B948Records,
-    _gActor205200Animation0B948Indices,
-    { NULL, _gActor205200Animation0B948Bank1, NULL, NULL, _gActor205200Animation0B948Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor205200Animation0C154Bank1[15] = {
-#include "assets/actor_205200_animation_0C154_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor205200Animation0C154Bank4[206] = {
-#include "assets/actor_205200_animation_0C154_bank4.inc"
-};
-
-static AnimationRecord _gActor205200Animation0C154Records[244] = {
-#include "assets/actor_205200_animation_0C154_records.inc"
-};
-
-static u16 _gActor205200Animation0C154Indices[20] = {
-#include "assets/actor_205200_animation_0C154_indices.inc"
-};
-
-static AnimationSet _gActor205200Animation0C154 = {
-    _gActor205200Animation0C154Records,
-    _gActor205200Animation0C154Indices,
-    { NULL, _gActor205200Animation0C154Bank1, NULL, NULL, _gActor205200Animation0C154Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor205200Animation0C968Bank1[14] = {
-#include "assets/actor_205200_animation_0C968_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor205200Animation0C968Bank4[207] = {
-#include "assets/actor_205200_animation_0C968_bank4.inc"
-};
-
-static AnimationRecord _gActor205200Animation0C968Records[248] = {
-#include "assets/actor_205200_animation_0C968_records.inc"
-};
-
-static u16 _gActor205200Animation0C968Indices[20] = {
-#include "assets/actor_205200_animation_0C968_indices.inc"
-};
-
-static AnimationSet _gActor205200Animation0C968 = {
-    _gActor205200Animation0C968Records,
-    _gActor205200Animation0C968Indices,
-    { NULL, _gActor205200Animation0C968Bank1, NULL, NULL, _gActor205200Animation0C968Bank4, NULL, NULL, NULL },
-};
+#include "assets/enemies/eve_helmet/clips.inc"
 
 /// Touch-sphere radii by `ACTOR_205200_ROOM_*` (0..1), in game-coordinate units.
 static s16 _gActor205200BodyTouchRadii[2] = {
@@ -366,7 +192,7 @@ static SVECTOR _gActor205200BodyTouchCenters[2] = {
     { 0, -700, 0, 0 },
 };
 
-TaskDesc gActor205200BodyTaskDesc = { { { TASK_BODY_TMD, ACTOR_205200_ENEMY_TASK_PRIORITY } }, _actor205200BodyTask, { .model = &gActor205200EveBreaMaskedBody } };
+TaskDesc gActor205200BodyTaskDesc = { { { TASK_BODY_TMD, ACTOR_205200_ENEMY_TASK_PRIORITY } }, _actor205200BodyTask, { .model = &gEveMaskedBody } };
 
 /// Stationary-body messages for model drawing and command-triggered teardown.
 ///
@@ -382,26 +208,13 @@ static TaskMessageEntry _gActor205200BodyMessages[3] = {
 ///
 /// The nineteen-part rig borrows this table and drives tracks 1..18. Slots zero
 /// and four are NULL and must never be requested for a track reset or seek.
-static AnimationSet* _gActor205200BodyAnimationSets[6] = {
-    [0]                              = NULL,
-    [ACTOR_205200_ANIM_IDLE]         = &_gActor205200Animation09C1C,
-    [ACTOR_205200_ANIM_HEAL]         = &_gActor205200Animation08B50,
-    [ACTOR_205200_ANIM_HIT_REACTION] = &_gActor205200Animation0943C,
-    [4]                              = NULL,
-    [ACTOR_205200_ANIM_FIDGET]       = &_gActor205200Animation0A964,
-};
+#include "assets/enemies/eve_helmet/body_bank.inc"
 
 /// Player knockback clips: 1/2 initial front/behind, 3/4 recovery front/behind.
 ///
 /// Slot zero is NULL. The player retains this table through scripted playback;
 /// keep this actor package loaded until knockback recovery finishes.
-static AnimationSet* _gActor205200PlayerKnockbackAnimationSets[5] = {
-    NULL,
-    &_gActor205200Animation0B1AC, // 1: initial front
-    &_gActor205200Animation0B948, // 2: initial behind
-    &_gActor205200Animation0C154, // 3: recovery front
-    &_gActor205200Animation0C968, // 4: recovery behind
-};
+#include "assets/enemies/eve_helmet/player_knockback_bank.inc"
 
 ScreenWaveCtx* gScreenWaveContext = NULL;
 

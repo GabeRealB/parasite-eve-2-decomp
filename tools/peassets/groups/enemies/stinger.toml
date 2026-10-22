@@ -1,0 +1,110 @@
+# The assets of the group enemies/stinger, each named enemies/stinger/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = [
+    "root",
+    "pelvis",
+    "waist",
+    "chest",
+    "right_shoulder",
+    "right_upper_arm",
+    "right_forearm",
+    "right_hand",
+    "head",
+    "left_shoulder",
+    "left_upper_arm",
+    "left_forearm",
+    "left_hand",
+    "left_thigh",
+    "left_shin",
+    "left_foot",
+    "right_thigh",
+    "right_shin",
+    "right_foot",
+]
+
+[body]
+type = "model"
+rig = "enemies/stinger/rig"
+slots = ["page_2", "page_1"]
+symbol = "_gStingerBody"
+sha1 = "5244ae216f0de6881c1578c6096a6b511e5af7de"
+
+[idle]
+type = "clip"
+rig = "enemies/stinger/rig"
+
+[turn]
+type = "clip"
+rig = "enemies/stinger/rig"
+
+[charge]
+type = "clip"
+rig = "enemies/stinger/rig"
+
+[recover]
+type = "clip"
+rig = "enemies/stinger/rig"
+
+[release]
+type = "clip"
+rig = "enemies/stinger/rig"
+
+[stagger]
+type = "clip"
+rig = "enemies/stinger/rig"
+
+[stunned]
+type = "clip"
+rig = "enemies/stinger/rig"
+
+[body_binding]
+type = "binding"
+model = "enemies/stinger/body"
+textures = { page_2 = "enemies/stinger/texture_page_2.default", page_1 = "enemies/stinger/texture_page_1.default" }
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+asset = "enemies/stinger/brain/sounds"
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "08d4b12e9582ba84d25a8c07cfbdd88870828a8c"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "1caf054fb2971fea6f9f896a6b667a2654c8d722"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[package_file.contents]]
+asset = "enemies/stinger/brain/package_1"
+
+[stun_recover]
+type = "clip"
+rig = "enemies/stinger/rig"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128

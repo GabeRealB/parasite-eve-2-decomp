@@ -345,8 +345,8 @@ static AnimationPlayRequest _gAcropolisHelicopterLandingPadRupertClip3Request = 
 /// actor_511000. That resource package must remain loaded through playback.
 static AnimationSet* _gAcropolisHelicopterLandingPadDeparturePlayerAnimationSets[3] = {
     NULL,
-    &gActor511000Animation04CC8,
-    &gActor511000Animation07ADC,
+    &gAkropolisHelicopterLandingPadPlayerHelipadReportEscapeClip,
+    &gAkropolisHelicopterLandingPadPlayerHelipadDetonatorTalkClip,
 };
 
 /// Installs the departure player's three-word animation-bank extension.

@@ -3,9 +3,9 @@
 
 A declared model (asset type `model`) is built from its USD and its binding, never from the package: the model is
 encoded (tools/peassets/model/declared.py), cut by the layout the encoder writes - skeleton, part vertex counts,
-vertices, normals, stream, record - and written as one include. The record is named by the overlay's symbol map at
-its record's `symbol`; its arrays take that name as their prefix. Everything in the record is derived from the
-model.
+vertices, normals, stream, record - and written as one include. The record is named by the model's `symbol`, static
+when the name starts with an underscore (the project's TU-local names: every source carrying the model defines its own
+copy); its arrays take that name as their prefix. Everything in the record is derived from the model.
 
     gen_model_source.py NAME OUTPUT [--assets assets/USA]
 
@@ -57,7 +57,10 @@ def source(name: str, assets_root: Path) -> str:
     sym = assets[name].get("symbol")
     if not sym:
         raise SystemExit(f"{name}: a model built into C names its record (`symbol`)")
-    skeleton, counts, verts, normals, stream = (f"_{sym}{part}" for part in
+    # A record named with a leading underscore is the project's TU-local name: it is defined static, so each
+    # source carrying the model defines its own copy. Its arrays are always the record's file-local helpers.
+    storage = "static " if sym.startswith("_") else ""
+    skeleton, counts, verts, normals, stream = (f"_{sym.lstrip('_')}{part}" for part in
                                                 ("Skeleton", "PartVerts", "Verts", "Normals", "Stream"))
     stream_words = struct.unpack_from(f"<{(record - m['_at']['stream']) // 4}I", blob, m["_at"]["stream"])
     binding = declared.binding_of(name, assets)
@@ -74,7 +77,7 @@ def source(name: str, assets_root: Path) -> str:
 {count_table}{array(f"static SVECTOR {verts}", len(m["verts"]), svectors(m["verts"]))}
 {array(f"static SVECTOR {normals}", len(m["normals"]), svectors(m["normals"]))}
 {array(f"static u32 {stream}", len(stream_words), words(stream_words), "First model creation resolves the commands' draw-handler slots in place.")}
-TmdSource {sym} = {{
+{storage}TmdSource {sym} = {{
     .handlersResolved    = {m['flag']},
     .bufferHalfBytes     = {m['bufferHalfBytes']},
     .preXformRegionBytes = {m['preXformRegionBytes']},

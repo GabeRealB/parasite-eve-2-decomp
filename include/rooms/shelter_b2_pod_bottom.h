@@ -23,7 +23,7 @@ extern TmdSource gShelterB2PodBottomModel0AE48;
 /// Placement variants for the pod-bottom area, indexed directly by variant 0..10.
 ///
 /// Variant 1 supplies the entry scene and variant 2 the immediate boss fight.
-/// Both place the boss, tentacle and Aya Brea scene actor; slots 0 and 3..10
+/// Both place the boss, tentacle and Eve scene actor; slots 0 and 3..10
 /// contain no placements or resources. The loader borrows the resource lists,
 /// and spawned actors retain placement pointers until teardown. Keep this room
 /// and the referenced actor overlays loaded while their records are in use.

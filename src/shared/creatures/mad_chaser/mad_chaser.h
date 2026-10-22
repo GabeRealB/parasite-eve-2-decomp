@@ -47,7 +47,7 @@
 /// `mad_chaser_spawn_gibs.inc.c`. The default selects the TU-local source in
 /// `actor_04400` and `actor_341700`; `actor_342400_private.h` supplies the
 /// source shared by that overlay's data and behavior translation units.
-#define MAD_CHASER_BURST_HEAD_SOURCE (_gMadChaserBurstHead)
+#define MAD_CHASER_BURST_HEAD_SOURCE (gChaserMadBurstHead)
 #endif
 
 /// Body-coordinate index whose placement the detached-head effect snapshots.
@@ -75,7 +75,7 @@ enum {
 /// `mad_chaser_spawn_gibs.inc.c`. The default selects the TU-local source in
 /// `actor_04400` and `actor_341700`; `actor_342400_private.h` supplies the
 /// source shared by that overlay's data and behavior translation units.
-#define MAD_CHASER_BURST_ARM_SOURCE (_gMadChaserBurstArm)
+#define MAD_CHASER_BURST_ARM_SOURCE (gChaserMadBurstArm)
 #endif
 
 /// Body-coordinate index whose placement the detached-arm effect snapshots.
@@ -94,7 +94,7 @@ enum { MAD_CHASER_BURST_ARM_BODY_PART = 8 };
 /// `mad_chaser_spawn_gibs.inc.c`. The default selects the TU-local source in
 /// `actor_04400` and `actor_341700`; `actor_342400_private.h` supplies the
 /// source shared by that overlay's data and behavior translation units.
-#define MAD_CHASER_BURST_TAIL_SOURCE (_gMadChaserBurstTail)
+#define MAD_CHASER_BURST_TAIL_SOURCE (gChaserMadBurstTail)
 #endif
 
 /// Body-coordinate index whose placement the detached-tail effect snapshots.

@@ -161,198 +161,26 @@ enum { ACTOR_310600_WALK_VELOCITY_ONE = 0x10000 };
 /// Rotate through the root's rotation before integrating into its translation.
 static const VECTOR _gActor310600WalkLocalVelocity = { 0, 0, 32 * ACTOR_310600_WALK_VELOCITY_ONE, 0 };
 
-static TmdSource _gActor310600RupertBroderickBody1;
-static TmdSource _gActor310600RupertBroderickMongoose;
+static TmdSource _gRupertBody;
+static TmdSource _gRupertMongoose;
 static void      _actor310600MongooseTask(Task* task);
 static void      _actor310600BodyTask(Task* task);
 
 static s32 _actor310600WalkTo(Task* task, s32 messageId, const ActorTransform* target, s32 unusedArg);
 
-static AnimationPackedPose _gActor310600Animation04ADCBank1[102] = {
-#include "assets/actor_310600_animation_04ADC_bank1.inc"
-};
+#include "assets/rooms/akropolis/cafeteria/rupert_clips_1.inc"
 
-static AnimationPackedRotation _gActor310600Animation04ADCBank4[1555] = {
-#include "assets/actor_310600_animation_04ADC_bank4.inc"
-};
+#include "assets/characters/rupert/body.inc"
 
-static AnimationRecord _gActor310600Animation04ADCRecords[1970] = {
-#include "assets/actor_310600_animation_04ADC_records.inc"
-};
+#include "assets/characters/rupert/mongoose.inc"
 
-static u16 _gActor310600Animation04ADCIndices[20] = {
-#include "assets/actor_310600_animation_04ADC_indices.inc"
-};
-
-AnimationSet gActor310600Animation04ADC = {
-    _gActor310600Animation04ADCRecords,
-    _gActor310600Animation04ADCIndices,
-    { NULL, _gActor310600Animation04ADCBank1, NULL, NULL, _gActor310600Animation04ADCBank4, NULL, NULL, NULL },
-};
-
-static TmdBone _gActor310600RupertBroderickBody1Skeleton[20] = {
-#include "assets/rupert_broderick_body_1_skeleton.inc"
-};
-
-static u32 _gActor310600RupertBroderickBody1PartVerts[20] = {
-#include "assets/rupert_broderick_body_1_partVerts.inc"
-};
-
-static SVECTOR _gActor310600RupertBroderickBody1Verts[386] = {
-#include "assets/rupert_broderick_body_1_verts.inc"
-};
-
-static SVECTOR _gActor310600RupertBroderickBody1Normals[385] = {
-#include "assets/rupert_broderick_body_1_normals.inc"
-};
-
-static u32 _gActor310600RupertBroderickBody1Stream[4327] = {
-#include "assets/rupert_broderick_body_1_stream.inc"
-};
-
-static TmdSource _gActor310600RupertBroderickBody1 = {
-    0,
-    23980,
-    6012,
-    20,
-    _gActor310600RupertBroderickBody1PartVerts,
-    _gActor310600RupertBroderickBody1Verts,
-    _gActor310600RupertBroderickBody1Normals,
-    _gActor310600RupertBroderickBody1Skeleton,
-    _gActor310600RupertBroderickBody1Stream,
-};
-
-static TmdBone _gActor310600RupertBroderickMongooseSkeleton[1] = {
-#include "assets/rupert_broderick_mongoose_skeleton.inc"
-};
-
-static u32 _gActor310600RupertBroderickMongoosePartVerts[1] = {
-#include "assets/rupert_broderick_mongoose_partVerts.inc"
-};
-
-static SVECTOR _gActor310600RupertBroderickMongooseVerts[28] = {
-#include "assets/rupert_broderick_mongoose_verts.inc"
-};
-
-static SVECTOR _gActor310600RupertBroderickMongooseNormals[28] = {
-#include "assets/rupert_broderick_mongoose_normals.inc"
-};
-
-static u32 _gActor310600RupertBroderickMongooseStream[211] = {
-#include "assets/rupert_broderick_mongoose_stream.inc"
-};
-
-static TmdSource _gActor310600RupertBroderickMongoose = {
-    0,
-    1464,
-    0,
-    1,
-    _gActor310600RupertBroderickMongoosePartVerts,
-    _gActor310600RupertBroderickMongooseVerts,
-    _gActor310600RupertBroderickMongooseNormals,
-    _gActor310600RupertBroderickMongooseSkeleton,
-    _gActor310600RupertBroderickMongooseStream,
-};
-
-static AnimationPackedPose _gActor310600Animation0E6B0Bank1[73] = {
-#include "assets/actor_310600_animation_0E6B0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor310600Animation0E6B0Bank4[1085] = {
-#include "assets/actor_310600_animation_0E6B0_bank4.inc"
-};
-
-static AnimationRecord _gActor310600Animation0E6B0Records[2229] = {
-#include "assets/actor_310600_animation_0E6B0_records.inc"
-};
-
-static u16 _gActor310600Animation0E6B0Indices[20] = {
-#include "assets/actor_310600_animation_0E6B0_indices.inc"
-};
-
-static AnimationSet _gActor310600Animation0E6B0 = {
-    _gActor310600Animation0E6B0Records,
-    _gActor310600Animation0E6B0Indices,
-    { NULL, _gActor310600Animation0E6B0Bank1, NULL, NULL, _gActor310600Animation0E6B0Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor310600Animation0EB84Bank1[8] = {
-#include "assets/actor_310600_animation_0EB84_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor310600Animation0EB84Bank4[115] = {
-#include "assets/actor_310600_animation_0EB84_bank4.inc"
-};
-
-static AnimationRecord _gActor310600Animation0EB84Records[150] = {
-#include "assets/actor_310600_animation_0EB84_records.inc"
-};
-
-static u16 _gActor310600Animation0EB84Indices[20] = {
-#include "assets/actor_310600_animation_0EB84_indices.inc"
-};
-
-static AnimationSet _gActor310600Animation0EB84 = {
-    _gActor310600Animation0EB84Records,
-    _gActor310600Animation0EB84Indices,
-    { NULL, _gActor310600Animation0EB84Bank1, NULL, NULL, _gActor310600Animation0EB84Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor310600Animation15668Bank1[127] = {
-#include "assets/actor_310600_animation_15668_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor310600Animation15668Bank4[2329] = {
-#include "assets/actor_310600_animation_15668_bank4.inc"
-};
-
-static AnimationRecord _gActor310600Animation15668Records[4111] = {
-#include "assets/actor_310600_animation_15668_records.inc"
-};
-
-static u16 _gActor310600Animation15668Indices[20] = {
-#include "assets/actor_310600_animation_15668_indices.inc"
-};
-
-static AnimationSet _gActor310600Animation15668 = {
-    _gActor310600Animation15668Records,
-    _gActor310600Animation15668Indices,
-    { NULL, _gActor310600Animation15668Bank1, NULL, NULL, _gActor310600Animation15668Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor310600Animation177E4Bank1[68] = {
-#include "assets/actor_310600_animation_177E4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor310600Animation177E4Bank4[781] = {
-#include "assets/actor_310600_animation_177E4_bank4.inc"
-};
-
-static AnimationRecord _gActor310600Animation177E4Records[1138] = {
-#include "assets/actor_310600_animation_177E4_records.inc"
-};
-
-static u16 _gActor310600Animation177E4Indices[20] = {
-#include "assets/actor_310600_animation_177E4_indices.inc"
-};
-
-static AnimationSet _gActor310600Animation177E4 = {
-    _gActor310600Animation177E4Records,
-    _gActor310600Animation177E4Indices,
-    { NULL, _gActor310600Animation177E4Bank1, NULL, NULL, _gActor310600Animation177E4Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/akropolis/cafeteria/rupert_clips_2.inc"
 
 /// Rupert's bank-0 clips: 1 shooting, 2 uncued, 3 reload, 4 uncued; 0 is NULL.
 ///
 /// Playback borrows this table and the loaded set data. Only clips 1..4 are
 /// usable; the retained walk's clips 12/13 are absent and must not be selected.
-static AnimationSet* _gActor310600BodyAnimationSets[5] = {
-    NULL,
-    &_gActor310600Animation0E6B0,
-    &_gActor310600Animation0EB84,
-    &_gActor310600Animation15668,
-    &_gActor310600Animation177E4,
-};
+#include "assets/rooms/akropolis/cafeteria/rupert_bank.inc"
 
 /// Rupert's sole body animation bank, selected by bank index 0.
 ///
@@ -453,8 +281,8 @@ static ActorCommand _gActor310600StrangerFollowupCommand __attribute__((aligned(
 enum { ACTOR_310600_TASK_PRIORITY = 192 };
 
 TaskDesc gActor310600RupertBroderickTasks[2] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_310600_TASK_PRIORITY } }, _actor310600BodyTask, { .model = &_gActor310600RupertBroderickBody1 } },
-    { { { TASK_BODY_TMD, ACTOR_310600_TASK_PRIORITY } }, _actor310600MongooseTask, { .model = &_gActor310600RupertBroderickMongoose } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_310600_TASK_PRIORITY } }, _actor310600BodyTask, { .model = &_gRupertBody } },
+    { { { TASK_BODY_TMD, ACTOR_310600_TASK_PRIORITY } }, _actor310600MongooseTask, { .model = &_gRupertMongoose } },
 };
 
 /// Rupert body messages: animation request, Euler placement, draw mode and retained walk.

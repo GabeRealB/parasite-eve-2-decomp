@@ -1,0 +1,598 @@
+# The assets of the group enemies/stranger/odd, each named enemies/stranger/odd/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[run]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[bank]
+type = "animation_bank"
+schema = "enemies/stranger/odd/schema"
+symbol = "_gOddStrangerAnimSets"
+
+[bank.clips]
+walk = "enemies/stranger/odd/walk"
+run = "enemies/stranger/odd/run"
+grab_reach = "enemies/stranger/odd/grab_reach"
+grab_pull = "enemies/stranger/odd/grab_pull"
+grab_strike = "enemies/stranger/odd/grab_strike"
+grab_release = "enemies/stranger/odd/grab_release"
+rise_back = "enemies/stranger/odd/rise_back"
+alert = "enemies/stranger/odd/alert"
+fall_back = "enemies/stranger/odd/fall_back"
+down_back = "enemies/stranger/down_back"
+down_front = "enemies/stranger/odd/down_front"
+flinch = "enemies/stranger/odd/flinch"
+dormant = "enemies/stranger/odd/dormant"
+dormant_fidget = "enemies/stranger/odd/dormant_fidget"
+back_off = "enemies/stranger/odd/back_off"
+slide = "enemies/stranger/odd/slide"
+ambush = "enemies/stranger/odd/ambush"
+sidestep_negative = "enemies/stranger/odd/sidestep_negative"
+sidestep_positive = "enemies/stranger/odd/sidestep_positive"
+rise_front = "enemies/stranger/odd/rise_front"
+status_back = "enemies/stranger/down_back"
+status_front = "enemies/stranger/odd/down_front"
+refall_front = "enemies/stranger/odd/refall_front"
+burst_collapse = "enemies/stranger/burst_collapse"
+
+[body]
+type = "model"
+rig = "enemies/stranger/rig"
+slots = ["4_page_1", "4_page_2"]
+symbol = "_gStrangerOddBody"
+sha1 = "e45467f0ae35e08ab310f6ca2096eadfbfe2cd70"
+
+[walk]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[alert]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[b_run]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[slide]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[ambush]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[b_bank]
+type = "animation_bank"
+schema = "enemies/stranger/odd/b_schema"
+symbol = "_gOddStrangerAnimSets"
+
+[b_bank.clips]
+slot_2 = "enemies/stranger/odd/b_walk"
+slot_3 = "enemies/stranger/odd/b_run"
+slot_4 = "enemies/stranger/odd/grab_reach"
+slot_5 = "enemies/stranger/odd/grab_pull"
+slot_6 = "enemies/stranger/odd/grab_strike"
+slot_7 = "enemies/stranger/odd/grab_release"
+slot_8 = "enemies/stranger/odd/b_rise_back"
+slot_9 = "enemies/stranger/odd/alert"
+slot_10 = "enemies/stranger/odd/fall_back"
+slot_11 = "enemies/stranger/down_back"
+slot_12 = "enemies/stranger/odd/down_front"
+slot_13 = "enemies/stranger/odd/flinch"
+slot_14 = "enemies/stranger/odd/dormant"
+slot_15 = "enemies/stranger/odd/dormant_fidget"
+slot_17 = "enemies/stranger/odd/back_off"
+slot_18 = "enemies/stranger/odd/slide"
+slot_19 = "enemies/stranger/odd/ambush"
+slot_20 = "enemies/stranger/odd/sidestep_negative"
+slot_21 = "enemies/stranger/odd/sidestep_positive"
+slot_22 = "enemies/stranger/odd/rise_front"
+slot_23 = "enemies/stranger/down_back"
+slot_24 = "enemies/stranger/odd/down_front"
+slot_25 = "enemies/stranger/odd/refall_front"
+slot_26 = "enemies/stranger/burst_collapse"
+
+[b_walk]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[flinch]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[schema]
+type = "animation_schema"
+slots = [
+    "",
+    "",
+    "walk",
+    "run",
+    "grab_reach",
+    "grab_pull",
+    "grab_strike",
+    "grab_release",
+    "rise_back",
+    "alert",
+    "fall_back",
+    "down_back",
+    "down_front",
+    "flinch",
+    "dormant",
+    "dormant_fidget",
+    "",
+    "back_off",
+    "slide",
+    "ambush",
+    "sidestep_negative",
+    "sidestep_positive",
+    "rise_front",
+    "status_back",
+    "status_front",
+    "refall_front",
+    "burst_collapse",
+]
+
+[dormant]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[b_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "",
+    "slot_2",
+    "slot_3",
+    "slot_4",
+    "slot_5",
+    "slot_6",
+    "slot_7",
+    "slot_8",
+    "slot_9",
+    "slot_10",
+    "slot_11",
+    "slot_12",
+    "slot_13",
+    "slot_14",
+    "slot_15",
+    "",
+    "slot_17",
+    "slot_18",
+    "slot_19",
+    "slot_20",
+    "slot_21",
+    "slot_22",
+    "slot_23",
+    "slot_24",
+    "slot_25",
+    "slot_26",
+]
+
+[back_off]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[burst_arm]
+type = "model"
+slots = ["4_page_2", "4_page_1"]
+symbol = "_gStrangerOddBurstArm"
+sha1 = "b118dea86f0f83e6eefc96f5a4e238345fde65ce"
+
+[burst_leg]
+type = "model"
+slots = ["4_page_1", "4_page_2"]
+symbol = "_gStrangerOddBurstLeg"
+sha1 = "c1aa3d16d108cc698d620c25110426b9cd988b72"
+
+[fall_back]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[grab_pull]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[package_2]
+type = "pe2pkg"
+package_name = "actor_201800"
+required = true
+sha1 = "feb6145a2522cbc5640224a2abd0354ce845c347"
+
+[package_3]
+type = "pe2pkg"
+package_name = "actor_301800"
+required = true
+sha1 = "ffc9c2486078d46939f8aa0fa157e678087d86a8"
+
+[package_4]
+type = "pe2pkg"
+embedded = [
+    { name = "body", offset = 0x0C904, size = 0x5218, address = 0x8013E724 },
+    { name = "burst_arm", offset = 0x11B1C, size = 0x584, address = 0x8014393C },
+    { name = "burst_leg", offset = 0x120A0, size = 0x598, address = 0x80143EC0 },
+    { name = "burst_head", offset = 0x12638, size = 0xAF0, address = 0x80144458 },
+    { name = "b_walk", offset = 0x13128, size = 0xB24, address = 0x80144F48 },
+    { name = "b_run", offset = 0x13C4C, size = 0xA84, address = 0x80145A6C },
+    { name = "slide", offset = 0x146D0, size = 0xA70, address = 0x801464F0 },
+    { name = "flinch", offset = 0x15140, size = 0x5E0, address = 0x80146F60 },
+    { name = "down_front", offset = 0x15720, size = 0x5E4, address = 0x80147540 },
+    { name = "dormant_fidget", offset = 0x15D04, size = 0xA54, address = 0x80147B24 },
+    { name = "b_rise_back", offset = 0x16758, size = 0xD44, address = 0x80148578 },
+    { name = "rise_front", offset = 0x1749C, size = 0x870, address = 0x801492BC },
+    { name = "refall_front", offset = 0x17D0C, size = 0x390, address = 0x80149B2C },
+    { name = "alert", offset = 0x1809C, size = 0x838, address = 0x80149EBC },
+    { name = "back_off", offset = 0x188D4, size = 0x550, address = 0x8014A6F4 },
+    { name = "dormant", offset = 0x18E24, size = 0xF18, address = 0x8014AC44 },
+    { name = "fall_back", offset = 0x19D3C, size = 0x3A4, address = 0x8014BB5C },
+    { asset = "enemies/stranger/down_back", offset = 0x1A0E0, size = 0x3B4, address = 0x8014BF00 },
+    { asset = "enemies/stranger/burst_collapse", offset = 0x1A494, size = 0x384, address = 0x8014C2B4 },
+    { name = "ambush", offset = 0x1A818, size = 0x6F4, address = 0x8014C638 },
+    { name = "sidestep_negative", offset = 0x1AF0C, size = 0x864, address = 0x8014CD2C },
+    { name = "sidestep_positive", offset = 0x1B770, size = 0x878, address = 0x8014D590 },
+    { name = "grab_pull", offset = 0x1BFE8, size = 0x650, address = 0x8014DE08 },
+    { name = "grab_strike", offset = 0x1C638, size = 0x9D4, address = 0x8014E458 },
+    { name = "grab_release", offset = 0x1D00C, size = 0xE78, address = 0x8014EE2C },
+    { name = "grab_reach", offset = 0x1DE84, size = 0xF10, address = 0x8014FCA4 },
+    { name = "player_grab_hold", offset = 0x1ED94, size = 0x688, address = 0x80150BB4 },
+    { name = "player_grab_strike", offset = 0x1F41C, size = 0x9F8, address = 0x8015123C },
+    { name = "player_grab_release", offset = 0x1FE14, size = 0x960, address = 0x80151C34 },
+    { name = "walk", offset = 0x20774, size = 0x994, address = 0x80152594 },
+    { name = "run", offset = 0x21108, size = 0x9D8, address = 0x80152F28 },
+    { name = "rise_back", offset = 0x21AE0, size = 0x9F0, address = 0x80153900 },
+    { name = "scripted_dormant", offset = 0x224D0, size = 0xE5C, address = 0x801542F0 },
+    { name = "bank", offset = 0x23B18, size = 0xB8, address = 0x80155938 },
+    { name = "alternate_player_grab_bank", offset = 0x23BD0, size = 0x8, address = 0x801559F0 },
+    { name = "player_grab_bank_2", offset = 0x23BD8, size = 0x14, address = 0x801559F8 },
+]
+package_name = "actor_401800"
+required = true
+sha1 = "5890aeeaef2d11c0ae8948a5bdf297acb8c22f2e"
+
+[rise_back]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[burst_head]
+type = "model"
+slots = ["4_page_1"]
+symbol = "_gStrangerOddBurstHead"
+sha1 = "bb5ff49c0381e8e9ebd79ea02a17663568ab95fe"
+
+[down_front]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[grab_reach]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[rise_front]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[b_burst_leg]
+type = "model"
+slots = ["b_1_page_1", "b_1_page_2_row_1"]
+symbol = "_gStrangerOddBBurstLeg"
+sha1 = "87fbbeb2bc3b7e0109d88c4e6db019653511b86a"
+
+[b_rise_back]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[grab_strike]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[package_b_1]
+type = "pe2pkg"
+package_name = "actor_101000"
+required = true
+sha1 = "b875cc2bc5d52828715bd07c3c3a41545999a63f"
+
+[package_b_2]
+type = "pe2pkg"
+package_name = "actor_201000"
+required = true
+sha1 = "fbf933b58f0644e8eb34de8a0ce8852877c9288b"
+
+[package_b_3]
+type = "pe2pkg"
+package_name = "actor_301000"
+required = true
+sha1 = "aad025de37e89ea86eb935d833da7e06be2b4ed2"
+
+[package_b_4]
+type = "pe2pkg"
+embedded = [
+    { name = "b_burst_leg", offset = 0x120B8, size = 0x97C, address = 0x80143ED8 },
+    { name = "b_burst_head", offset = 0x12A34, size = 0x116C, address = 0x80144854 },
+    { name = "b_burst_torso", offset = 0x13BA0, size = 0x7F4, address = 0x801459C0 },
+    { name = "b_walk", offset = 0x14394, size = 0xB24, address = 0x801461B4 },
+    { name = "b_run", offset = 0x14EB8, size = 0xA84, address = 0x80146CD8 },
+    { name = "slide", offset = 0x1593C, size = 0xA70, address = 0x8014775C },
+    { name = "flinch", offset = 0x163AC, size = 0x5E0, address = 0x801481CC },
+    { name = "down_front", offset = 0x1698C, size = 0x5E4, address = 0x801487AC },
+    { name = "dormant_fidget", offset = 0x16F70, size = 0xA54, address = 0x80148D90 },
+    { name = "b_rise_back", offset = 0x179C4, size = 0xD44, address = 0x801497E4 },
+    { name = "rise_front", offset = 0x18708, size = 0x870, address = 0x8014A528 },
+    { name = "refall_front", offset = 0x18F78, size = 0x390, address = 0x8014AD98 },
+    { name = "alert", offset = 0x19308, size = 0x838, address = 0x8014B128 },
+    { name = "back_off", offset = 0x19B40, size = 0x550, address = 0x8014B960 },
+    { name = "dormant", offset = 0x1A090, size = 0xF18, address = 0x8014BEB0 },
+    { name = "fall_back", offset = 0x1AFA8, size = 0x3A4, address = 0x8014CDC8 },
+    { asset = "enemies/stranger/down_back", offset = 0x1B34C, size = 0x3B4, address = 0x8014D16C },
+    { asset = "enemies/stranger/burst_collapse", offset = 0x1B700, size = 0x384, address = 0x8014D520 },
+    { name = "ambush", offset = 0x1BA84, size = 0x6F4, address = 0x8014D8A4 },
+    { name = "sidestep_negative", offset = 0x1C178, size = 0x864, address = 0x8014DF98 },
+    { name = "sidestep_positive", offset = 0x1C9DC, size = 0x878, address = 0x8014E7FC },
+    { name = "grab_pull", offset = 0x1D254, size = 0x650, address = 0x8014F074 },
+    { name = "grab_strike", offset = 0x1D8A4, size = 0x9D4, address = 0x8014F6C4 },
+    { name = "grab_release", offset = 0x1E278, size = 0xE78, address = 0x80150098 },
+    { name = "grab_reach", offset = 0x1F0F0, size = 0xF10, address = 0x80150F10 },
+    { name = "player_grab_hold", offset = 0x20000, size = 0x688, address = 0x80151E20 },
+    { name = "player_grab_strike", offset = 0x20688, size = 0x9F8, address = 0x801524A8 },
+    { name = "player_grab_release", offset = 0x21080, size = 0x960, address = 0x80152EA0 },
+    { name = "scripted_dormant", offset = 0x219E0, size = 0xE5C, address = 0x80153800 },
+    { name = "b_bank", offset = 0x23028, size = 0xB8, address = 0x80154E48 },
+    { name = "player_grab_bank", offset = 0x230E0, size = 0x1C, address = 0x80154F00 },
+]
+package_name = "actor_401000"
+required = true
+sha1 = "cc6b40d227a82d1e02f95d4b77dde324a407df33"
+
+[b_burst_head]
+type = "model"
+slots = ["b_1_page_1"]
+symbol = "_gStrangerOddBBurstHead"
+sha1 = "3063c840badbbcc7f4626b1b4df4d7709763fe49"
+
+[body_binding]
+type = "binding"
+model = "enemies/stranger/odd/body"
+
+[body_binding.textures]
+4_page_1 = "enemies/stranger/odd/texture_4_page_1.default"
+4_page_2 = "enemies/stranger/odd/texture_4_page_2.default"
+
+[grab_release]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[refall_front]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[b_burst_torso]
+type = "model"
+slots = ["b_1_page_2_row_0"]
+symbol = "_gStrangerOddBBurstTorso"
+sha1 = "d3fbac832f288ca61182b5e465cbdb711a836f90"
+
+[dormant_fidget]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[package_2_file]
+type = "file"
+
+[[package_2_file.contents]]
+asset = "enemies/stranger/sounds"
+
+[[package_2_file.contents]]
+chunk = "image_2"
+sha1 = "d9cac39e687af20cfbb9686c10cad9748590f93e"
+pages = [
+    { texture = "texture_2_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_2_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[package_2_file.contents]]
+chunk = "palette_2"
+sha1 = "934a7fa2c1238cfcc9d1de043489517da1b5342e"
+palettes = [
+    { texture = "texture_2_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_2_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_2_file.contents]]
+asset = "rooms/akropolis/square/grinning_stranger"
+
+[package_4_file]
+type = "file"
+
+[[package_4_file.contents]]
+asset = "enemies/stranger/sounds"
+
+[[package_4_file.contents]]
+chunk = "image_4"
+sha1 = "99a3b24594b5df76caf843667092cbfc09063ec8"
+pages = [
+    { texture = "texture_4_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_4_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[package_4_file.contents]]
+chunk = "palette_4"
+sha1 = "a238f0c149b53f3aac2dd044c72c4f17b9e24f78"
+palettes = [
+    { texture = "texture_4_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_4_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_4_file.contents]]
+chunk = "package_4"
+
+[package_b_1_file]
+type = "file"
+
+[[package_b_1_file.contents]]
+asset = "enemies/stranger/sounds"
+
+[[package_b_1_file.contents]]
+chunk = "image_b_1"
+sha1 = "df80e66ff9cd19441469dbeb450f5229fd6b4be9"
+pages = [
+    { texture = "texture_b_1_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_b_1_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[package_b_1_file.contents]]
+chunk = "palette_b_1"
+sha1 = "7bb032df3ac96d82e3ef0046e963099fa4092512"
+palettes = [
+    { texture = "texture_b_1_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_b_1_page_2", variant = "row_0", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_b_1_page_2", variant = "row_1", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_b_1_file.contents]]
+chunk = "package_b_1"
+
+[player_grab_bank]
+type = "animation_bank"
+schema = "enemies/stranger/odd/player_grab_schema"
+symbol = "_gActor401000PlayerGrabAnimSets"
+
+[player_grab_bank.clips]
+player_grab_hold = "enemies/stranger/odd/player_grab_hold"
+player_grab_strike = "enemies/stranger/odd/player_grab_strike"
+player_grab_release = "enemies/stranger/odd/player_grab_release"
+
+[player_grab_hold]
+type = "clip"
+rig = "characters/aya/rig"
+
+[scripted_dormant]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[texture_2_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_2_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_4_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_4_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[burst_arm_binding]
+type = "binding"
+model = "enemies/stranger/odd/burst_arm"
+
+[burst_arm_binding.textures]
+4_page_2 = "enemies/stranger/odd/texture_4_page_2.default"
+4_page_1 = "enemies/stranger/odd/texture_4_page_1.default"
+
+[burst_leg_binding]
+type = "binding"
+model = "enemies/stranger/odd/burst_leg"
+
+[burst_leg_binding.textures]
+4_page_1 = "enemies/stranger/odd/texture_4_page_1.default"
+4_page_2 = "enemies/stranger/odd/texture_4_page_2.default"
+
+[sidestep_negative]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[sidestep_positive]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[burst_head_binding]
+type = "binding"
+model = "enemies/stranger/odd/burst_head"
+textures = { 4_page_1 = "enemies/stranger/odd/texture_4_page_1.default" }
+
+[player_grab_bank_2]
+type = "animation_bank"
+schema = "enemies/stranger/odd/player_grab_schema_2"
+symbol = "_gActor401800PlayerGrabAnimationSets"
+
+[player_grab_bank_2.clips]
+player_grab_hold = "enemies/stranger/odd/player_grab_hold"
+player_grab_strike = "enemies/stranger/odd/player_grab_strike"
+player_grab_release = "enemies/stranger/odd/player_grab_release"
+
+[player_grab_schema]
+type = "animation_schema"
+slots = ["", "", "", "player_grab_hold", "player_grab_strike", "player_grab_release"]
+
+[player_grab_strike]
+type = "clip"
+rig = "characters/aya/rig"
+
+[texture_b_1_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_b_1_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["row_0", "row_1"]
+width = 128
+
+[b_burst_leg_binding]
+type = "binding"
+model = "enemies/stranger/odd/b_burst_leg"
+
+[b_burst_leg_binding.textures]
+b_1_page_1 = "enemies/stranger/odd/texture_b_1_page_1.default"
+b_1_page_2_row_1 = "enemies/stranger/odd/texture_b_1_page_2.row_1"
+
+[player_grab_release]
+type = "clip"
+rig = "characters/aya/rig"
+
+[b_burst_head_binding]
+type = "binding"
+model = "enemies/stranger/odd/b_burst_head"
+textures = { b_1_page_1 = "enemies/stranger/odd/texture_b_1_page_1.default" }
+
+[player_grab_schema_2]
+type = "animation_schema"
+slots = ["", "player_grab_hold", "player_grab_strike", "player_grab_release"]
+
+[b_burst_torso_binding]
+type = "binding"
+model = "enemies/stranger/odd/b_burst_torso"
+textures = { b_1_page_2_row_0 = "enemies/stranger/odd/texture_b_1_page_2.row_0" }
+
+[alternate_player_grab_bank]
+type = "animation_bank"
+clips = {  }
+schema = "enemies/stranger/odd/alternate_player_grab_schema"
+symbol = "_gActor401800AlternatePlayerGrabAnimationSets"
+
+[alternate_player_grab_schema]
+type = "animation_schema"
+slots = []

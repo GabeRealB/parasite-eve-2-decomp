@@ -1,0 +1,107 @@
+# The assets of the group rooms/akropolis/patio, each named rooms/akropolis/patio/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[swat_bank]
+type = "animation_bank"
+schema = "rooms/akropolis/patio/swat_schema"
+symbol = "_gActor312200AnimationSets"
+
+[swat_bank.clips]
+dormant = "rooms/akropolis/patio/swat_dormant"
+warn = "rooms/akropolis/patio/swat_warn"
+slump = "rooms/akropolis/patio/swat_slump"
+rest = "rooms/akropolis/patio/swat_rest"
+
+[swat_rest]
+type = "clip"
+rig = "characters/swat_member_1/rig"
+
+[swat_warn]
+type = "clip"
+rig = "characters/swat_member_1/rig"
+
+[swat_slump]
+type = "clip"
+rig = "characters/swat_member_1/rig"
+
+[swat_member]
+type = "pe2pkg"
+embedded = [
+    { asset = "characters/swat_member_1/body", offset = 0x01A90, size = 0x48BC, address = 0x801638B0 },
+    { name = "swat_dormant", offset = 0x0634C, size = 0x1044, address = 0x8016816C },
+    { name = "swat_warn", offset = 0x07390, size = 0x3D4, address = 0x801691B0 },
+    { name = "swat_slump", offset = 0x07764, size = 0x63C, address = 0x80169584 },
+    { name = "swat_rest", offset = 0x07DA0, size = 0x368, address = 0x80169BC0 },
+    { name = "swat_bank", offset = 0x08124, size = 0x18, address = 0x80169F44 },
+]
+package_name = "actor_312200"
+required = true
+sha1 = "274783de5c0be610bc1e70593693de58b74ea6fb"
+
+[swat_schema]
+type = "animation_schema"
+slots = ["", "dormant", "warn", "slump", "rest"]
+
+[body_anim_01]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[body_anim_04]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[swat_dormant]
+type = "clip"
+rig = "characters/swat_member_1/rig"
+
+[stranger_bank]
+type = "animation_bank"
+schema = "rooms/akropolis/patio/stranger_schema"
+symbol = "_gActor317000BodyAnimSets"
+
+[stranger_bank.clips]
+slot_1 = "rooms/akropolis/patio/body_anim_01"
+leap = "enemies/stranger/odd/b_walk"
+slot_3 = "enemies/stranger/odd/b_run"
+slot_4 = "rooms/akropolis/patio/body_anim_04"
+wait_1 = "rooms/akropolis/patio/stranger_wait_1"
+wait_2 = "rooms/akropolis/patio/stranger_wait_2"
+leap_start = "rooms/akropolis/patio/stranger_leap_start"
+land = "rooms/akropolis/patio/stranger_land"
+
+[stranger_land]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[stranger_schema]
+type = "animation_schema"
+slots = ["", "slot_1", "leap", "slot_3", "slot_4", "wait_1", "wait_2", "leap_start", "land"]
+
+[stranger_wait_1]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[stranger_wait_2]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[leaping_strangers]
+type = "pe2pkg"
+embedded = [
+    { name = "body_anim_01", offset = 0x065A8, size = 0x41C, address = 0x801683C8 },
+    { asset = "enemies/stranger/odd/b_walk", offset = 0x069C4, size = 0xB24, address = 0x801687E4 },
+    { asset = "enemies/stranger/odd/b_run", offset = 0x074E8, size = 0xA84, address = 0x80169308 },
+    { name = "body_anim_04", offset = 0x07F6C, size = 0xFC4, address = 0x80169D8C },
+    { name = "stranger_wait_1", offset = 0x08F30, size = 0x1028, address = 0x8016AD50 },
+    { name = "stranger_wait_2", offset = 0x09F58, size = 0x408, address = 0x8016BD78 },
+    { name = "stranger_leap_start", offset = 0x0A360, size = 0x654, address = 0x8016C180 },
+    { name = "stranger_land", offset = 0x0A9B4, size = 0x748, address = 0x8016C7D4 },
+    { name = "stranger_bank", offset = 0x0B0FC, size = 0x24, address = 0x8016CF1C },
+]
+package_name = "actor_317000"
+required = true
+sha1 = "1622e6d8e0ef76461aa05280b2f39570008a5802"
+
+[stranger_leap_start]
+type = "clip"
+rig = "enemies/stranger/rig"

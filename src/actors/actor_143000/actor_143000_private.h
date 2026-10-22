@@ -42,15 +42,15 @@ typedef struct {
 } Actor143000CaptureArgs;
 STATIC_ASSERT_SIZEOF(Actor143000CaptureArgs, 0x10);
 
-extern AnimationSet gActor143000Animation02A20;
+extern AnimationSet gShelterB2LaboratoryPlayerAtTerminalClip;
 
-extern AnimationSet gActor143000Animation02CCC;
+extern AnimationSet gShelterB2LaboratoryPlayerTypeAtTerminalClip;
 
-extern AnimationSet gActor143000Animation02EE8;
+extern AnimationSet gShelterB2LaboratoryPlayerShockedAtTerminalClip;
 
-extern AnimationSet gActor143000Animation03090;
+extern AnimationSet gShelterB2LaboratoryPlayerStopTypingClip;
 
-extern AnimationSet gActor143000Animation03248;
+extern AnimationSet gShelterB2LaboratoryPlayerResultsCue16Clip;
 
 /// Keypad draw calls since overlay load; bit 4 controls its insertion-caret blink.
 extern s32 gActor143000KeypadCaretDrawCalls;

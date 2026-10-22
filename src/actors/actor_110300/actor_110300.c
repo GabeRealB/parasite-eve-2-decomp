@@ -51,184 +51,16 @@ static Task* _gActorMsgHelperTask;
 
 static void _actor110300UpdateViewFigure(Enemy* unusedEnemy, Task* task);
 
-static TmdSource _gActor110300SwatMember2Body;
-static TmdSource _gActor110300Model05E6C;
+static TmdSource _gSwatMember2Body;
+static TmdSource _gSwatMember2SubmachineGun;
 static void      _actor110300ViewFigureTask(Task* task);
 static void      _actor110300AttachModelTask(Task* task);
 
-static TmdBone _gActor110300SwatMember2BodySkeleton[20] = {
-#include "assets/swat_member_2_body_skeleton.inc"
-};
+#include "assets/characters/swat_member_2/body.inc"
 
-static u32 _gActor110300SwatMember2BodyPartVerts[20] = {
-#include "assets/swat_member_2_body_partVerts.inc"
-};
+#include "assets/characters/swat_member_2/submachine_gun.inc"
 
-static SVECTOR _gActor110300SwatMember2BodyVerts[360] = {
-#include "assets/swat_member_2_body_verts.inc"
-};
-
-static SVECTOR _gActor110300SwatMember2BodyNormals[358] = {
-#include "assets/swat_member_2_body_normals.inc"
-};
-
-static u32 _gActor110300SwatMember2BodyStream[3973] = {
-#include "assets/swat_member_2_body_stream.inc"
-};
-
-static TmdSource _gActor110300SwatMember2Body = {
-    0,
-    21176,
-    6792,
-    20,
-    _gActor110300SwatMember2BodyPartVerts,
-    _gActor110300SwatMember2BodyVerts,
-    _gActor110300SwatMember2BodyNormals,
-    _gActor110300SwatMember2BodySkeleton,
-    _gActor110300SwatMember2BodyStream,
-};
-
-static TmdBone _gActor110300Model05E6CSkeleton[1] = {
-#include "assets/actor_110300_model_05E6C_skeleton.inc"
-};
-
-static u32 _gActor110300Model05E6CPartVerts[1] = {
-#include "assets/actor_110300_model_05E6C_partVerts.inc"
-};
-
-static SVECTOR _gActor110300Model05E6CVerts[22] = {
-#include "assets/actor_110300_model_05E6C_verts.inc"
-};
-
-static SVECTOR _gActor110300Model05E6CNormals[20] = {
-#include "assets/actor_110300_model_05E6C_normals.inc"
-};
-
-static u32 _gActor110300Model05E6CStream[155] = {
-#include "assets/actor_110300_model_05E6C_stream.inc"
-};
-
-static TmdSource _gActor110300Model05E6C = {
-    0,
-    1056,
-    0,
-    1,
-    _gActor110300Model05E6CPartVerts,
-    _gActor110300Model05E6CVerts,
-    _gActor110300Model05E6CNormals,
-    _gActor110300Model05E6CSkeleton,
-    _gActor110300Model05E6CStream,
-};
-
-static AnimationPackedPose _gActor110300Animation0639CBank1[5] = {
-#include "assets/actor_110300_animation_0639C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor110300Animation0639CBank4[37] = {
-#include "assets/actor_110300_animation_0639C_bank4.inc"
-};
-
-static AnimationRecord _gActor110300Animation0639CRecords[106] = {
-#include "assets/actor_110300_animation_0639C_records.inc"
-};
-
-static u16 _gActor110300Animation0639CIndices[20] = {
-#include "assets/actor_110300_animation_0639C_indices.inc"
-};
-
-static AnimationSet _gActor110300Animation0639C = {
-    _gActor110300Animation0639CRecords,
-    _gActor110300Animation0639CIndices,
-    { NULL, _gActor110300Animation0639CBank1, NULL, NULL, _gActor110300Animation0639CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor110300Animation078F8Bank1[22] = {
-#include "assets/actor_110300_animation_078F8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor110300Animation078F8Bank4[406] = {
-#include "assets/actor_110300_animation_078F8_bank4.inc"
-};
-
-static AnimationRecord _gActor110300Animation078F8Records[875] = {
-#include "assets/actor_110300_animation_078F8_records.inc"
-};
-
-static u16 _gActor110300Animation078F8Indices[20] = {
-#include "assets/actor_110300_animation_078F8_indices.inc"
-};
-
-static AnimationSet _gActor110300Animation078F8 = {
-    _gActor110300Animation078F8Records,
-    _gActor110300Animation078F8Indices,
-    { NULL, _gActor110300Animation078F8Bank1, NULL, NULL, _gActor110300Animation078F8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor110300Animation07D58Bank1[7] = {
-#include "assets/actor_110300_animation_07D58_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor110300Animation07D58Bank4[96] = {
-#include "assets/actor_110300_animation_07D58_bank4.inc"
-};
-
-static AnimationRecord _gActor110300Animation07D58Records[143] = {
-#include "assets/actor_110300_animation_07D58_records.inc"
-};
-
-static u16 _gActor110300Animation07D58Indices[20] = {
-#include "assets/actor_110300_animation_07D58_indices.inc"
-};
-
-static AnimationSet _gActor110300Animation07D58 = {
-    _gActor110300Animation07D58Records,
-    _gActor110300Animation07D58Indices,
-    { NULL, _gActor110300Animation07D58Bank1, NULL, NULL, _gActor110300Animation07D58Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor110300Animation07FE4Bank1[4] = {
-#include "assets/actor_110300_animation_07FE4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor110300Animation07FE4Bank4[39] = {
-#include "assets/actor_110300_animation_07FE4_bank4.inc"
-};
-
-static AnimationRecord _gActor110300Animation07FE4Records[92] = {
-#include "assets/actor_110300_animation_07FE4_records.inc"
-};
-
-static u16 _gActor110300Animation07FE4Indices[20] = {
-#include "assets/actor_110300_animation_07FE4_indices.inc"
-};
-
-static AnimationSet _gActor110300Animation07FE4 = {
-    _gActor110300Animation07FE4Records,
-    _gActor110300Animation07FE4Indices,
-    { NULL, _gActor110300Animation07FE4Bank1, NULL, NULL, _gActor110300Animation07FE4Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor110300Animation0820CBank1[3] = {
-#include "assets/actor_110300_animation_0820C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor110300Animation0820CBank4[36] = {
-#include "assets/actor_110300_animation_0820C_bank4.inc"
-};
-
-static AnimationRecord _gActor110300Animation0820CRecords[73] = {
-#include "assets/actor_110300_animation_0820C_records.inc"
-};
-
-static u16 _gActor110300Animation0820CIndices[20] = {
-#include "assets/actor_110300_animation_0820C_indices.inc"
-};
-
-static AnimationSet _gActor110300Animation0820C = {
-    _gActor110300Animation0820CRecords,
-    _gActor110300Animation0820CIndices,
-    { NULL, _gActor110300Animation0820CBank1, NULL, NULL, _gActor110300Animation0820CBank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/akropolis/east_elevator_hall/swat_member_clips.inc"
 
 /// Animation-request and paired model-visibility messages for the view figure.
 ///
@@ -242,8 +74,8 @@ static TaskMessageEntry _gViewFigureMessages[3] = {
 };
 
 TaskDesc gActor110300ViewFigureTasks[VIEW_FIGURE_TASK_COUNT] = {
-    { { { TASK_BODY_TMD, VIEW_FIGURE_TASK_PRIORITY } }, _actor110300ViewFigureTask, { .model = &_gActor110300SwatMember2Body } },
-    { { { TASK_BODY_TMD, VIEW_FIGURE_TASK_PRIORITY } }, _actor110300AttachModelTask, { .model = &_gActor110300Model05E6C } },
+    { { { TASK_BODY_TMD, VIEW_FIGURE_TASK_PRIORITY } }, _actor110300ViewFigureTask, { .model = &_gSwatMember2Body } },
+    { { { TASK_BODY_TMD, VIEW_FIGURE_TASK_PRIORITY } }, _actor110300AttachModelTask, { .model = &_gSwatMember2SubmachineGun } },
 };
 
 /// Body animation-set bank for this carrier's camera-parented scripted figure.
@@ -252,15 +84,7 @@ TaskDesc gActor110300ViewFigureTasks[VIEW_FIGURE_TASK_COUNT] = {
 /// body slots 1..19. The context borrows this bank and its animation streams for
 /// the body task lifetime. Message requests must select a loaded clip even though
 /// the handler's signed upper-bound check also admits zero and negative IDs.
-static AnimationSet* _gViewFigureAnimSets[7] = {
-    NULL,
-    &_gActor110300Animation0639C,
-    &_gActor110300Animation078F8,
-    &_gActor110300Animation07D58,
-    &_gActor110300Animation07FE4,
-    &_gActor110300Animation0820C,
-    NULL,
-};
+#include "assets/rooms/akropolis/east_elevator_hall/swat_bank.inc"
 
 /// Selects the published view-figure body task for the shared fragments.
 ///

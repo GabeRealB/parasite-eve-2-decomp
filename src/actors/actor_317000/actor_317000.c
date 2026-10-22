@@ -121,235 +121,21 @@ enum { ACTOR_317000_VELOCITY_ONE = 0x10000 };
 /// into parent-coordinate velocity before gravity starts. The fourth word is unused.
 static const VECTOR _gActor317000LeapLaunchVelocity = { 0, -(128 * ACTOR_317000_VELOCITY_ONE), 64 * ACTOR_317000_VELOCITY_ONE, 0 };
 
-static TmdSource _gActor317000GrinningStrangerBody;
+static TmdSource _gStrangerGrinningBody;
 static s32       _actor317000BeginLeap(Task* task, s32 messageId, const ActorTransform* launchPlacement, const ActorMotionWalkAnim* animationRequest);
 static s32       _actor317000ApplyCommand(Task* task, s32 messageId, const ActorCommand* commandRequest, s32 unusedArg);
 static void      _actor317000Task(Task* task);
 
-static TmdBone _gActor317000GrinningStrangerBodySkeleton[19] = {
-#include "assets/grinning_stranger_body_skeleton.inc"
-};
+#include "assets/enemies/stranger/grinning/body.inc"
 
-static u32 _gActor317000GrinningStrangerBodyPartVerts[19] = {
-#include "assets/grinning_stranger_body_partVerts.inc"
-};
-
-static SVECTOR _gActor317000GrinningStrangerBodyVerts[306] = {
-#include "assets/grinning_stranger_body_verts.inc"
-};
-
-static SVECTOR _gActor317000GrinningStrangerBodyNormals[365] = {
-#include "assets/grinning_stranger_body_normals.inc"
-};
-
-static u32 _gActor317000GrinningStrangerBodyStream[3988] = {
-#include "assets/grinning_stranger_body_stream.inc"
-};
-
-static TmdSource _gActor317000GrinningStrangerBody = {
-    0,
-    20032,
-    7672,
-    19,
-    _gActor317000GrinningStrangerBodyPartVerts,
-    _gActor317000GrinningStrangerBodyVerts,
-    _gActor317000GrinningStrangerBodyNormals,
-    _gActor317000GrinningStrangerBodySkeleton,
-    _gActor317000GrinningStrangerBodyStream,
-};
-
-static AnimationPackedPose _gActor317000Animation0699CBank1[4] = {
-#include "assets/actor_317000_animation_0699C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor317000Animation0699CBank4[69] = {
-#include "assets/actor_317000_animation_0699C_bank4.inc"
-};
-
-static AnimationRecord _gActor317000Animation0699CRecords[162] = {
-#include "assets/actor_317000_animation_0699C_records.inc"
-};
-
-static u16 _gActor317000Animation0699CIndices[20] = {
-#include "assets/actor_317000_animation_0699C_indices.inc"
-};
-
-static AnimationSet _gActor317000Animation0699C = {
-    _gActor317000Animation0699CRecords,
-    _gActor317000Animation0699CIndices,
-    { NULL, _gActor317000Animation0699CBank1, NULL, NULL, _gActor317000Animation0699CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor317000Animation074C0Bank1[28] = {
-#include "assets/actor_317000_animation_074C0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor317000Animation074C0Bank4[247] = {
-#include "assets/actor_317000_animation_074C0_bank4.inc"
-};
-
-static AnimationRecord _gActor317000Animation074C0Records[362] = {
-#include "assets/actor_317000_animation_074C0_records.inc"
-};
-
-static u16 _gActor317000Animation074C0Indices[20] = {
-#include "assets/actor_317000_animation_074C0_indices.inc"
-};
-
-static AnimationSet _gActor317000Animation074C0 = {
-    _gActor317000Animation074C0Records,
-    _gActor317000Animation074C0Indices,
-    { NULL, _gActor317000Animation074C0Bank1, NULL, NULL, _gActor317000Animation074C0Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor317000Animation07F44Bank1[32] = {
-#include "assets/actor_317000_animation_07F44_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor317000Animation07F44Bank4[223] = {
-#include "assets/actor_317000_animation_07F44_bank4.inc"
-};
-
-static AnimationRecord _gActor317000Animation07F44Records[334] = {
-#include "assets/actor_317000_animation_07F44_records.inc"
-};
-
-static u16 _gActor317000Animation07F44Indices[20] = {
-#include "assets/actor_317000_animation_07F44_indices.inc"
-};
-
-static AnimationSet _gActor317000Animation07F44 = {
-    _gActor317000Animation07F44Records,
-    _gActor317000Animation07F44Indices,
-    { NULL, _gActor317000Animation07F44Bank1, NULL, NULL, _gActor317000Animation07F44Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor317000Animation08F08Bank1[29] = {
-#include "assets/actor_317000_animation_08F08_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor317000Animation08F08Bank4[374] = {
-#include "assets/actor_317000_animation_08F08_bank4.inc"
-};
-
-static AnimationRecord _gActor317000Animation08F08Records[528] = {
-#include "assets/actor_317000_animation_08F08_records.inc"
-};
-
-static u16 _gActor317000Animation08F08Indices[20] = {
-#include "assets/actor_317000_animation_08F08_indices.inc"
-};
-
-static AnimationSet _gActor317000Animation08F08 = {
-    _gActor317000Animation08F08Records,
-    _gActor317000Animation08F08Indices,
-    { NULL, _gActor317000Animation08F08Bank1, NULL, NULL, _gActor317000Animation08F08Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor317000Animation09F30Bank1[27] = {
-#include "assets/actor_317000_animation_09F30_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor317000Animation09F30Bank4[406] = {
-#include "assets/actor_317000_animation_09F30_bank4.inc"
-};
-
-static AnimationRecord _gActor317000Animation09F30Records[527] = {
-#include "assets/actor_317000_animation_09F30_records.inc"
-};
-
-static u16 _gActor317000Animation09F30Indices[20] = {
-#include "assets/actor_317000_animation_09F30_indices.inc"
-};
-
-static AnimationSet _gActor317000Animation09F30 = {
-    _gActor317000Animation09F30Records,
-    _gActor317000Animation09F30Indices,
-    { NULL, _gActor317000Animation09F30Bank1, NULL, NULL, _gActor317000Animation09F30Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor317000Animation0A338Bank1[6] = {
-#include "assets/actor_317000_animation_0A338_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor317000Animation0A338Bank4[70] = {
-#include "assets/actor_317000_animation_0A338_bank4.inc"
-};
-
-static AnimationRecord _gActor317000Animation0A338Records[150] = {
-#include "assets/actor_317000_animation_0A338_records.inc"
-};
-
-static u16 _gActor317000Animation0A338Indices[20] = {
-#include "assets/actor_317000_animation_0A338_indices.inc"
-};
-
-static AnimationSet _gActor317000Animation0A338 = {
-    _gActor317000Animation0A338Records,
-    _gActor317000Animation0A338Indices,
-    { NULL, _gActor317000Animation0A338Bank1, NULL, NULL, _gActor317000Animation0A338Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor317000Animation0A98CBank1[18] = {
-#include "assets/actor_317000_animation_0A98C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor317000Animation0A98CBank4[146] = {
-#include "assets/actor_317000_animation_0A98C_bank4.inc"
-};
-
-static AnimationRecord _gActor317000Animation0A98CRecords[185] = {
-#include "assets/actor_317000_animation_0A98C_records.inc"
-};
-
-static u16 _gActor317000Animation0A98CIndices[20] = {
-#include "assets/actor_317000_animation_0A98C_indices.inc"
-};
-
-static AnimationSet _gActor317000Animation0A98C = {
-    _gActor317000Animation0A98CRecords,
-    _gActor317000Animation0A98CIndices,
-    { NULL, _gActor317000Animation0A98CBank1, NULL, NULL, _gActor317000Animation0A98CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor317000Animation0B0D4Bank1[13] = {
-#include "assets/actor_317000_animation_0B0D4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor317000Animation0B0D4Bank4[180] = {
-#include "assets/actor_317000_animation_0B0D4_bank4.inc"
-};
-
-static AnimationRecord _gActor317000Animation0B0D4Records[227] = {
-#include "assets/actor_317000_animation_0B0D4_records.inc"
-};
-
-static u16 _gActor317000Animation0B0D4Indices[20] = {
-#include "assets/actor_317000_animation_0B0D4_indices.inc"
-};
-
-static AnimationSet _gActor317000Animation0B0D4 = {
-    _gActor317000Animation0B0D4Records,
-    _gActor317000Animation0B0D4Indices,
-    { NULL, _gActor317000Animation0B0D4Bank1, NULL, NULL, _gActor317000Animation0B0D4Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/akropolis/patio/leaping_strangers_clips.inc"
 
 /// Grinning Stranger body animation sets for bank 0: clip 0 absent, clips 1..8 loaded.
 ///
 /// `AnimationPlayRequest::animationId` selects a clip; `source.index` selects
 /// the outer bank. Playback borrows this table and its sets while the package
 /// is loaded, including the launch and landing clips of a leap.
-static AnimationSet* _gActor317000BodyAnimSets[9] = {
-    NULL,
-    &_gActor317000Animation0699C,
-    &_gActor317000Animation074C0,
-    &_gActor317000Animation07F44,
-    &_gActor317000Animation08F08,
-    &_gActor317000Animation09F30,
-    &_gActor317000Animation0A338,
-    &_gActor317000Animation0A98C,
-    &_gActor317000Animation0B0D4,
-};
+#include "assets/rooms/akropolis/patio/stranger_bank.inc"
 
 /// Carrier-local banks for nineteen-part playback: only bank 0, clips 1..8.
 ///
@@ -359,7 +145,7 @@ static AnimationSet** const _gActorMotionAnimBanks19[1] SECTION(".data") = {
     _gActor317000BodyAnimSets,
 };
 
-TaskDesc gActor317000GrinningStrangerTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor317000Task, { .model = &_gActor317000GrinningStrangerBody } };
+TaskDesc gActor317000GrinningStrangerTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor317000Task, { .model = &_gStrangerGrinningBody } };
 
 /// Message map for the script-controlled Grinning Stranger and its leap sequence.
 ///

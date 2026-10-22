@@ -62,7 +62,7 @@ _gShelterB2PodBottomFightPlacements = 0x80187638; // size:0x40 defined:True
 gShelterB2PodBottomAreaVariants = 0x80187678; // size:0x58 defined:True
 gActor403600TaskTable = 0x80160514; // absolute:True owner=actor_403600
 gActor361100TentacleTaskDesc = 0x8016BAE4; // absolute:True owner=actor_361100
-gActor361100AyaBreaTaskDesc = 0x80171BAC; // absolute:True owner=actor_361100
+gActor361100EveTaskDesc = 0x80171BAC; // absolute:True owner=actor_361100
 _gShelterB2PodBottomModel0A2A0Skeleton = 0x801876D0; // size:0x24 defined:True
 _gShelterB2PodBottomModel0A2A0PartVerts = 0x801876F4; // size:0x4 defined:True
 _gShelterB2PodBottomModel0A2A0Verts = 0x801876F8; // size:0x80 defined:True

@@ -7,12 +7,12 @@
 
 #include "main/task_types.h"
 
-/// Pod-bottom entry scene that presents the tentacle and Aya's body before combat.
+/// Pod-bottom entry scene that presents the tentacle and Eve's body before combat.
 ///
 /// Shelter pod-bottom placement variant 1 starts this 96-instruction stream
 /// with `gActor361100PodSceneSkipScript` and `EVENT_SCRIPT_HUD_HIDE_RESTORE`.
 /// Requires initialized player, CAP and scene tasks, with boss, tentacle and
-/// Aya-body actors at placements 0, 1 and 2. actor_361100 and actor_403600,
+/// Eve-body actors at placements 0, 1 and 2. actor_361100 and actor_403600,
 /// their animation data and the selected CAP/scene resources must stay loaded
 /// through playback and actor teardown. Installs player-bank clips 47..56,
 /// waits for CAP cues, then releases scripted control and starts the boss fight.
@@ -44,12 +44,12 @@ extern TaskDesc gActor361100StreamWaterTaskDesc;
 /// borrows this package's model and animation data until teardown.
 extern TaskDesc gActor361100TentacleTaskDesc;
 
-/// Spawn recipe of Aya's nineteen-part scripted body, room resource 132.
+/// Spawn recipe of Eve's nineteen-part scripted body, room resource 132.
 ///
 /// Runs at priority 192 with a TMD body and deferred primitive-buffer allocation.
 /// The scene supplies a live Enemy in spawnArg2; the task owns its rig/work and
 /// borrows this package's model and animation data until teardown.
-extern TaskDesc gActor361100AyaBreaTaskDesc;
+extern TaskDesc gActor361100EveTaskDesc;
 
 /// Clears the retained scene head-aim task handle before starting the pod event.
 ///

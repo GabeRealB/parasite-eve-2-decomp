@@ -1,0 +1,128 @@
+# The assets of the group rooms/dryfield/night_saloon_g_r, each named rooms/dryfield/night_saloon_g_r/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[kyle]
+type = "pe2pkg"
+embedded = [
+    { asset = "characters/kyle/hand_left", offset = 0x064EC, size = 0x4F0, address = 0x8013830C },
+    "actor_135600_model_06AC4",
+    { asset = "characters/pierce/rest", offset = 0x06CEC, size = 0x27C, address = 0x80138B0C },
+    { name = "kyle_sit_at_bar", offset = 0x06F68, size = 0x2B4, address = 0x80138D88 },
+    { name = "kyle_offer_drink", offset = 0x0721C, size = 0x394, address = 0x8013903C },
+    { name = "kyle_finally_progress", offset = 0x075B0, size = 0x224, address = 0x801393D0 },
+    { name = "kyle_get_down_to_business", offset = 0x077D4, size = 0x35C, address = 0x801395F4 },
+    { name = "kyle_protest", offset = 0x07B30, size = 0x2DC, address = 0x80139950 },
+    { name = "kyle_talk_start", offset = 0x07E0C, size = 0x1CC, address = 0x80139C2C },
+    { name = "kyle_talk_end", offset = 0x07FD8, size = 0x1CC, address = 0x80139DF8 },
+    { name = "kyle_madigan_anim_09", offset = 0x081A4, size = 0x1E8, address = 0x80139FC4 },
+    { name = "kyle_rejected", offset = 0x0838C, size = 0x2E0, address = 0x8013A1AC },
+    { name = "kyle_talk", offset = 0x0866C, size = 0x3A0, address = 0x8013A48C },
+    { name = "kyle_listen", offset = 0x08A0C, size = 0x21C, address = 0x8013A82C },
+    { name = "kyle_hear_about_car", offset = 0x08C28, size = 0x1F4, address = 0x8013AA48 },
+    { name = "kyle_caught_off_guard", offset = 0x08E1C, size = 0x204, address = 0x8013AC3C },
+    { name = "kyle_greet", offset = 0x09020, size = 0x220, address = 0x8013AE40 },
+    { name = "kyle_bank", offset = 0x09260, size = 0x40, address = 0x8013B080 },
+]
+package_name = "actor_135600"
+parent = "dryfield_night_saloon_g_r"
+required = true
+sha1 = "d659df1c38a070629f987811813def04b167c4fe"
+
+[kyle_bank]
+type = "animation_bank"
+schema = "rooms/dryfield/night_saloon_g_r/kyle_schema"
+symbol = "_gActor135600KyleMadiganAnimationBank"
+
+[kyle_bank.clips]
+slot_1 = "characters/pierce/rest"
+sit_at_bar = "rooms/dryfield/night_saloon_g_r/kyle_sit_at_bar"
+offer_drink = "rooms/dryfield/night_saloon_g_r/kyle_offer_drink"
+finally_progress = "rooms/dryfield/night_saloon_g_r/kyle_finally_progress"
+get_down_to_business = "rooms/dryfield/night_saloon_g_r/kyle_get_down_to_business"
+protest = "rooms/dryfield/night_saloon_g_r/kyle_protest"
+talk_start = "rooms/dryfield/night_saloon_g_r/kyle_talk_start"
+talk_end = "rooms/dryfield/night_saloon_g_r/kyle_talk_end"
+slot_9 = "rooms/dryfield/night_saloon_g_r/kyle_madigan_anim_09"
+rejected = "rooms/dryfield/night_saloon_g_r/kyle_rejected"
+talk = "rooms/dryfield/night_saloon_g_r/kyle_talk"
+listen = "rooms/dryfield/night_saloon_g_r/kyle_listen"
+hear_about_car = "rooms/dryfield/night_saloon_g_r/kyle_hear_about_car"
+caught_off_guard = "rooms/dryfield/night_saloon_g_r/kyle_caught_off_guard"
+greet = "rooms/dryfield/night_saloon_g_r/kyle_greet"
+
+[kyle_talk]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_greet]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_listen]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "slot_1",
+    "sit_at_bar",
+    "offer_drink",
+    "finally_progress",
+    "get_down_to_business",
+    "protest",
+    "talk_start",
+    "talk_end",
+    "slot_9",
+    "rejected",
+    "talk",
+    "listen",
+    "hear_about_car",
+    "caught_off_guard",
+    "greet",
+]
+
+[kyle_protest]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_rejected]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_talk_end]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_sit_at_bar]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_talk_start]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_offer_drink]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_hear_about_car]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_madigan_anim_09]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_caught_off_guard]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_finally_progress]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_get_down_to_business]
+type = "clip"
+rig = "characters/kyle/rig"

@@ -1,0 +1,298 @@
+# The assets of the group encounters/sucklerceph_and_slouch, each named encounters/sucklerceph_and_slouch/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[spit]
+type = "sound"
+sha1 = "a092c7abcbe33be78bad455a53022069536fbe5a"
+
+[death]
+type = "sound"
+sha1 = "ed4f56fde7a2725c62dc98333ee91a85cac8b2dd"
+
+[fidget]
+type = "sound"
+sha1 = "8a7c52c6a69c135674ae110695b3949259ba906e"
+
+[sounds]
+type = "sound_bank"
+samples = [
+    "encounters/sucklerceph_and_slouch/fidget",
+    "encounters/sucklerceph_and_slouch/strike",
+    "encounters/sucklerceph_and_slouch/spit",
+    "encounters/sucklerceph_and_slouch/spit_impact",
+    "encounters/sucklerceph_and_slouch/spit_impact_2",
+    "encounters/skull_stalker_and_creeping_stranger/pop",
+    "encounters/sucklerceph_and_slouch/sucklerceph_hurt",
+    "encounters/sucklerceph_and_slouch/slouch_hurt",
+    "encounters/sucklerceph_and_slouch/death",
+]
+sounds = { strike = 1, spit = 2, hurt = 4, death = 5, fidget = 6, spit_impact = 7, hurt_alt = 10, burst = 11 }
+sha1 = "c7fe1bc99e60d03e2d9721d800b933a2dfc122bf"
+
+[strike]
+type = "sound"
+sha1 = "52e8e63bd4f8424548a0c70a49809b3f354232f2"
+
+[package_1]
+type = "pe2pkg"
+embedded = [
+    { asset = "rooms/akropolis/forked_road/sucklerceph_idle", offset = 0x079EC, size = 0x358, address = 0x8013980C },
+    { asset = "rooms/akropolis/forked_road/sucklerceph_crawl", offset = 0x07D44, size = 0x148, address = 0x80139B64 },
+    { asset = "rooms/akropolis/forked_road/sucklerceph_anim_03", offset = 0x07E8C, size = 0x1A4, address = 0x80139CAC },
+    { name = "sucklerceph_bank", offset = 0x08058, size = 0x10, address = 0x80139E78 },
+    { name = "slouch_body", offset = 0x08090, size = 0x265C, address = 0x80139EB0 },
+    { name = "slouch_burst_leg", offset = 0x0A6EC, size = 0x478, address = 0x8013C50C },
+    { name = "slouch_burst_arm", offset = 0x0AB64, size = 0x654, address = 0x8013C984 },
+    { name = "slouch_poison", offset = 0x0B1B8, size = 0x59C, address = 0x8013CFD8 },
+    { name = "slouch_idle", offset = 0x0B754, size = 0x13C, address = 0x8013D574 },
+    { name = "slouch_fidget", offset = 0x0B890, size = 0x48C, address = 0x8013D6B0 },
+    { name = "slouch_spit", offset = 0x0BD1C, size = 0x224, address = 0x8013DB3C },
+    { name = "slouch_strike", offset = 0x0BF40, size = 0x350, address = 0x8013DD60 },
+    { name = "slouch_status_flinch", offset = 0x0C290, size = 0x16C, address = 0x8013E0B0 },
+    { name = "slouch_flinch", offset = 0x0C3FC, size = 0x6C4, address = 0x8013E21C },
+    { name = "slouch_recoil", offset = 0x0CAC0, size = 0x7D8, address = 0x8013E8E0 },
+    { name = "slouch_anim_08", offset = 0x0D298, size = 0xD4, address = 0x8013F0B8 },
+    { name = "slouch_watch", offset = 0x0D36C, size = 0x114, address = 0x8013F18C },
+    { name = "slouch_anim_10", offset = 0x0D480, size = 0x150, address = 0x8013F2A0 },
+    { name = "slouch_anim_11", offset = 0x0D5D0, size = 0xD4, address = 0x8013F3F0 },
+    { name = "slouch_death", offset = 0x0D6A4, size = 0xD8, address = 0x8013F4C4 },
+    { name = "slouch_bank", offset = 0x0D77C, size = 0x34, address = 0x8013F59C },
+]
+package_name = "actor_107000"
+required = true
+sha1 = "733d0fc72a5ecc669376d513a1276f387ff7b7a0"
+
+[package_2]
+type = "pe2pkg"
+embedded = [
+    { asset = "rooms/akropolis/forked_road/sucklerceph_idle", offset = 0x079EC, size = 0x358, address = 0x8015180C },
+    { asset = "rooms/akropolis/forked_road/sucklerceph_crawl", offset = 0x07D44, size = 0x148, address = 0x80151B64 },
+    { asset = "rooms/akropolis/forked_road/sucklerceph_anim_03", offset = 0x07E8C, size = 0x1A4, address = 0x80151CAC },
+    { name = "sucklerceph_bank", offset = 0x08058, size = 0x10, address = 0x80151E78 },
+    { name = "slouch_idle", offset = 0x0B754, size = 0x13C, address = 0x80155574 },
+    { name = "slouch_fidget", offset = 0x0B890, size = 0x48C, address = 0x801556B0 },
+    { name = "slouch_spit", offset = 0x0BD1C, size = 0x224, address = 0x80155B3C },
+    { name = "slouch_strike", offset = 0x0BF40, size = 0x350, address = 0x80155D60 },
+    { name = "slouch_status_flinch", offset = 0x0C290, size = 0x16C, address = 0x801560B0 },
+    { name = "slouch_flinch", offset = 0x0C3FC, size = 0x6C4, address = 0x8015621C },
+    { name = "slouch_recoil", offset = 0x0CAC0, size = 0x7D8, address = 0x801568E0 },
+    { name = "slouch_anim_08", offset = 0x0D298, size = 0xD4, address = 0x801570B8 },
+    { name = "slouch_watch", offset = 0x0D36C, size = 0x114, address = 0x8015718C },
+    { name = "slouch_anim_10", offset = 0x0D480, size = 0x150, address = 0x801572A0 },
+    { name = "slouch_anim_11", offset = 0x0D5D0, size = 0xD4, address = 0x801573F0 },
+    { name = "slouch_death", offset = 0x0D6A4, size = 0xD8, address = 0x801574C4 },
+    { name = "slouch_bank", offset = 0x0D77C, size = 0x34, address = 0x8015759C },
+]
+package_name = "actor_207000"
+required = true
+sha1 = "044e36dcc0f3ec89e18c89867c5cce97b6129db8"
+
+[package_3]
+type = "pe2pkg"
+package_name = "actor_307000"
+required = true
+sha1 = "4172ee79724b7f9ab0157699968da3931d8e888b"
+
+[slouch_rig]
+type = "rig"
+joints = ["root", "body", "joint_2", "left_arm", "joint_4", "right_upper_arm", "right_forearm"]
+
+[slouch_bank]
+type = "animation_bank"
+schema = "encounters/sucklerceph_and_slouch/slouch_schema"
+symbol = "_gActor07000SlouchAnimSets"
+
+[slouch_bank.clips]
+idle = "encounters/sucklerceph_and_slouch/slouch_idle"
+fidget = "encounters/sucklerceph_and_slouch/slouch_fidget"
+spit = "encounters/sucklerceph_and_slouch/slouch_spit"
+strike = "encounters/sucklerceph_and_slouch/slouch_strike"
+status_flinch = "encounters/sucklerceph_and_slouch/slouch_status_flinch"
+flinch = "encounters/sucklerceph_and_slouch/slouch_flinch"
+recoil = "encounters/sucklerceph_and_slouch/slouch_recoil"
+slot_8 = "encounters/sucklerceph_and_slouch/slouch_anim_08"
+watch = "encounters/sucklerceph_and_slouch/slouch_watch"
+slot_10 = "encounters/sucklerceph_and_slouch/slouch_anim_10"
+slot_11 = "encounters/sucklerceph_and_slouch/slouch_anim_11"
+death = "encounters/sucklerceph_and_slouch/slouch_death"
+
+[slouch_body]
+type = "model"
+rig = "encounters/sucklerceph_and_slouch/slouch_rig"
+slots = ["page_1"]
+symbol = "_gSucklercephAndSlouchSlouchBody"
+sha1 = "7054403717642975ec33068fb5df85266b8427c3"
+
+[slouch_hurt]
+type = "sound"
+sha1 = "b4006dbc8b061de35211ad0570b00c7d2e2a648a"
+
+[slouch_idle]
+type = "clip"
+rig = "encounters/sucklerceph_and_slouch/slouch_rig"
+
+[slouch_spit]
+type = "clip"
+rig = "encounters/sucklerceph_and_slouch/slouch_rig"
+
+[spit_impact]
+type = "sound"
+sha1 = "8980b2efec98279225bf35623075f200fb7e2e82"
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+chunk = "sounds"
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "50b8eff0cc658a7a33a2745cbc6f2c0adb45d208"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "3c0e4847f13b41d027b6748c84ba916b5dd6b3ac"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[package_file.contents]]
+chunk = "package_1"
+
+[slouch_death]
+type = "clip"
+rig = "encounters/sucklerceph_and_slouch/slouch_rig"
+
+[slouch_watch]
+type = "clip"
+rig = "encounters/sucklerceph_and_slouch/slouch_rig"
+
+[slouch_fidget]
+type = "clip"
+rig = "encounters/sucklerceph_and_slouch/slouch_rig"
+
+[slouch_flinch]
+type = "clip"
+rig = "encounters/sucklerceph_and_slouch/slouch_rig"
+
+[slouch_poison]
+type = "model"
+slots = ["page_1"]
+symbol = "_gSucklercephAndSlouchSlouchPoison"
+sha1 = "e77b9d21c3f2d431e1daa758676dfd45e81882ac"
+
+[slouch_recoil]
+type = "clip"
+rig = "encounters/sucklerceph_and_slouch/slouch_rig"
+
+[slouch_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "idle",
+    "fidget",
+    "spit",
+    "strike",
+    "status_flinch",
+    "flinch",
+    "recoil",
+    "slot_8",
+    "watch",
+    "slot_10",
+    "slot_11",
+    "death",
+]
+
+[slouch_strike]
+type = "clip"
+rig = "encounters/sucklerceph_and_slouch/slouch_rig"
+
+[spit_impact_2]
+type = "sound"
+sha1 = "5ae74d9caa74ee8ff978d23f39cdf7671d96a498"
+
+[slouch_anim_08]
+type = "clip"
+rig = "encounters/sucklerceph_and_slouch/slouch_rig"
+
+[slouch_anim_10]
+type = "clip"
+rig = "encounters/sucklerceph_and_slouch/slouch_rig"
+
+[slouch_anim_11]
+type = "clip"
+rig = "encounters/sucklerceph_and_slouch/slouch_rig"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[slouch_burst_arm]
+type = "model"
+slots = ["page_1"]
+symbol = "_gSucklercephAndSlouchSlouchBurstArm"
+sha1 = "1a9dca9b7f9b7e5eb7c43c3256c249a98fa29e78"
+
+[slouch_burst_leg]
+type = "model"
+slots = ["page_1"]
+symbol = "_gSucklercephAndSlouchSlouchBurstLeg"
+sha1 = "ab9c62005ecdbeefc7344c7692bb8d2ecdaea8e0"
+
+[sucklerceph_bank]
+type = "animation_bank"
+schema = "encounters/sucklerceph_and_slouch/sucklerceph_schema"
+symbol = "_gSucklercephAnimSets"
+
+[sucklerceph_bank.clips]
+idle = "rooms/akropolis/forked_road/sucklerceph_idle"
+crawl = "rooms/akropolis/forked_road/sucklerceph_crawl"
+slot_3 = "rooms/akropolis/forked_road/sucklerceph_anim_03"
+
+[sucklerceph_hurt]
+type = "sound"
+sha1 = "e17c37d4e988bbfb86bffce67592fc907dc76558"
+
+[sucklerceph_schema]
+type = "animation_schema"
+slots = ["", "idle", "crawl", "slot_3"]
+
+[slouch_body_binding]
+type = "binding"
+model = "encounters/sucklerceph_and_slouch/slouch_body"
+textures = { page_1 = "encounters/sucklerceph_and_slouch/texture_page_1.default" }
+
+[slouch_status_flinch]
+type = "clip"
+rig = "encounters/sucklerceph_and_slouch/slouch_rig"
+
+[slouch_poison_binding]
+type = "binding"
+model = "encounters/sucklerceph_and_slouch/slouch_poison"
+textures = { page_1 = "encounters/sucklerceph_and_slouch/texture_page_1.default" }
+
+[slouch_burst_arm_binding]
+type = "binding"
+model = "encounters/sucklerceph_and_slouch/slouch_burst_arm"
+textures = { page_1 = "encounters/sucklerceph_and_slouch/texture_page_1.default" }
+
+[slouch_burst_leg_binding]
+type = "binding"
+model = "encounters/sucklerceph_and_slouch/slouch_burst_leg"
+textures = { page_1 = "encounters/sucklerceph_and_slouch/texture_page_1.default" }

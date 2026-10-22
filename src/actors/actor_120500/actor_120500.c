@@ -115,130 +115,14 @@ static void _actor120500PostBodyRequest(s16 requestId);
 static void _actor120500PostScreenRequest(s16 requestId);
 static void _actor120500SkipScene(void);
 
-static TmdSource _gActor120500KyleMadiganBody;
+extern TmdSource gKyleBody;
 static void      _actor120500MovieTask(Task* task);
 static void      _actor120500SceneTask(Task* task);
 static void      _actor120500SetModelDraw(Task* task, s32 unusedMessageId, s32 drawMode, s32 unusedArg);
 
-static TmdBone _gActor120500KyleMadiganBodySkeleton[20] = {
-#include "assets/kyle_madigan_body_skeleton.inc"
-};
+#include "assets/characters/kyle/body.inc"
 
-static u32 _gActor120500KyleMadiganBodyPartVerts[20] = {
-#include "assets/kyle_madigan_body_partVerts.inc"
-};
-
-static SVECTOR _gActor120500KyleMadiganBodyVerts[300] = {
-#include "assets/kyle_madigan_body_verts.inc"
-};
-
-static SVECTOR _gActor120500KyleMadiganBodyNormals[298] = {
-#include "assets/kyle_madigan_body_normals.inc"
-};
-
-static u32 _gActor120500KyleMadiganBodyStream[3412] = {
-#include "assets/kyle_madigan_body_stream.inc"
-};
-
-static TmdSource _gActor120500KyleMadiganBody = {
-    0,
-    18224,
-    5696,
-    20,
-    _gActor120500KyleMadiganBodyPartVerts,
-    _gActor120500KyleMadiganBodyVerts,
-    _gActor120500KyleMadiganBodyNormals,
-    _gActor120500KyleMadiganBodySkeleton,
-    _gActor120500KyleMadiganBodyStream,
-};
-
-static AnimationPackedPose _gActor120500Animation05BC8Bank1[2] = {
-#include "assets/actor_120500_animation_05BC8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor120500Animation05BC8Bank4[47] = {
-#include "assets/actor_120500_animation_05BC8_bank4.inc"
-};
-
-static AnimationRecord _gActor120500Animation05BC8Records[167] = {
-#include "assets/actor_120500_animation_05BC8_records.inc"
-};
-
-static u16 _gActor120500Animation05BC8Indices[20] = {
-#include "assets/actor_120500_animation_05BC8_indices.inc"
-};
-
-static AnimationSet _gActor120500Animation05BC8 = {
-    _gActor120500Animation05BC8Records,
-    _gActor120500Animation05BC8Indices,
-    { NULL, _gActor120500Animation05BC8Bank1, NULL, NULL, _gActor120500Animation05BC8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor120500Animation05ECCBank1[6] = {
-#include "assets/actor_120500_animation_05ECC_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor120500Animation05ECCBank4[46] = {
-#include "assets/actor_120500_animation_05ECC_bank4.inc"
-};
-
-static AnimationRecord _gActor120500Animation05ECCRecords[109] = {
-#include "assets/actor_120500_animation_05ECC_records.inc"
-};
-
-static u16 _gActor120500Animation05ECCIndices[20] = {
-#include "assets/actor_120500_animation_05ECC_indices.inc"
-};
-
-static AnimationSet _gActor120500Animation05ECC = {
-    _gActor120500Animation05ECCRecords,
-    _gActor120500Animation05ECCIndices,
-    { NULL, _gActor120500Animation05ECCBank1, NULL, NULL, _gActor120500Animation05ECCBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor120500Animation0607CBank1[2] = {
-#include "assets/actor_120500_animation_0607C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor120500Animation0607CBank4[6] = {
-#include "assets/actor_120500_animation_0607C_bank4.inc"
-};
-
-static AnimationRecord _gActor120500Animation0607CRecords[76] = {
-#include "assets/actor_120500_animation_0607C_records.inc"
-};
-
-static u16 _gActor120500Animation0607CIndices[20] = {
-#include "assets/actor_120500_animation_0607C_indices.inc"
-};
-
-static AnimationSet _gActor120500Animation0607C = {
-    _gActor120500Animation0607CRecords,
-    _gActor120500Animation0607CIndices,
-    { NULL, _gActor120500Animation0607CBank1, NULL, NULL, _gActor120500Animation0607CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor120500Animation06234Bank1[2] = {
-#include "assets/actor_120500_animation_06234_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor120500Animation06234Bank4[8] = {
-#include "assets/actor_120500_animation_06234_bank4.inc"
-};
-
-static AnimationRecord _gActor120500Animation06234Records[76] = {
-#include "assets/actor_120500_animation_06234_records.inc"
-};
-
-static u16 _gActor120500Animation06234Indices[20] = {
-#include "assets/actor_120500_animation_06234_indices.inc"
-};
-
-static AnimationSet _gActor120500Animation06234 = {
-    _gActor120500Animation06234Records,
-    _gActor120500Animation06234Indices,
-    { NULL, _gActor120500Animation06234Bank1, NULL, NULL, _gActor120500Animation06234Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/dryfield/motel_room_6/kyle_clips.inc"
 
 /// Player choreography clips for the motel room 6 movie scene, indexed 0..2.
 ///
@@ -246,20 +130,13 @@ static AnimationSet _gActor120500Animation06234 = {
 /// finishes the scene or restores its skipped result. Install requests lend
 /// this table to the player until its weapon bank is restored. Keep this
 /// actor package loaded through that playback; there is no NULL terminator.
-static AnimationSet* _gActor120500PlayerSceneAnimationSets[3] = {
-    &_gActor120500Animation05ECC,
-    &_gActor120500Animation0607C,
-    &_gActor120500Animation06234,
-};
+#include "assets/rooms/dryfield/motel_room_6/player_scene_bank.inc"
 
 /// Motel scene Kyle Madigan body clips: 0 unused, 1 the view-parented body pose.
 ///
 /// Body contexts borrow this table and its clip for the model's lifetime;
 /// all nineteen non-root tracks start on clip 1.
-static AnimationSet* _gActor120500KyleMadiganAnimationSets[2] = {
-    NULL,
-    &_gActor120500Animation05BC8,
-};
+#include "assets/rooms/dryfield/motel_room_6/kyle_bank.inc"
 
 /// Player placement held during the motel scene's first animation, before the movie.
 ///
@@ -369,7 +246,7 @@ static TaskDesc _gActor120500MovieFadeTaskDescriptors[3] = {
 
 TaskDesc gActor120500EmptyPlacementTaskDesc[2] = {
     { { { TASK_BODY_NONE, ACTOR_120500_SCENE_TASK_PRIORITY } }, taskKill, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_120500_SCENE_TASK_PRIORITY } }, _actor120500SceneTask, { .model = &_gActor120500KyleMadiganBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_120500_SCENE_TASK_PRIORITY } }, _actor120500SceneTask, { .model = &gKyleBody } },
 };
 
 /// Borrowed Kyle Madigan body task for the motel-room movie's request channels.

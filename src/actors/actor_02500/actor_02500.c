@@ -237,9 +237,9 @@ typedef struct {
     s16 z;
 } _Actor02500DustDirection;
 
-static TmdSource _gActor02500ScorpionBurstHead;
-static TmdSource _gActor02500ScorpionBurstPincer2;
-static TmdSource _gActor02500ScorpionBurstPincer1;
+static TmdSource _gScorpionBurstHead;
+static TmdSource _gScorpionBurstPincer2;
+static TmdSource _gScorpionBurstPincer1;
 
 static void _actor02500Spawn(Enemy* enemy, Task* actor);
 static void _actor02500Die(Enemy* enemy, Task* actor);
@@ -270,321 +270,27 @@ static const EnemyTaskFuncTable3 _gActor02500TaskStates = {
     },
 };
 
-static AnimationSet _gActor02500Actor102500Animation04C64;
-static AnimationSet _gActor02500Actor102500Animation04E3C;
-static AnimationSet _gActor02500Actor102500Animation04FF0;
-static AnimationSet _gActor02500Actor102500Animation0534C;
-static AnimationSet _gActor02500Actor102500Animation05520;
-static AnimationSet _gActor02500Actor102500Animation057D4;
-static AnimationSet _gActor02500Actor102500Animation05998;
-static AnimationSet _gActor02500Actor102500Animation05B08;
-static TmdSource    _gActor02500ScorpionBody;
+static AnimationSet _gScorpionIdleClip;
+static AnimationSet _gScorpionWalkClip;
+static AnimationSet _gScorpionRunClip;
+static AnimationSet _gScorpionStingClip;
+static AnimationSet _gScorpionFlinchClip;
+static AnimationSet _gScorpionDeathClip;
+static AnimationSet _gScorpionEmergeClip;
+static AnimationSet _gScorpionBuildupClip;
+static TmdSource    _gScorpionBody;
 static void         _actor02500Task(Task* actor);
 static void         _actor02500CorpsePoisonTask(Task* task);
 
-static TmdBone _gActor02500ScorpionBodySkeleton[5] = {
-#include "assets/scorpion_body_skeleton.inc"
-};
+#include "assets/enemies/scorpion/body.inc"
 
-static u32 _gActor02500ScorpionBodyPartVerts[5] = {
-#include "assets/scorpion_body_partVerts.inc"
-};
+#include "assets/enemies/scorpion/burst_head.inc"
 
-static SVECTOR _gActor02500ScorpionBodyVerts[93] = {
-#include "assets/scorpion_body_verts.inc"
-};
+#include "assets/enemies/scorpion/burst_pincer_2.inc"
 
-static SVECTOR _gActor02500ScorpionBodyNormals[93] = {
-#include "assets/scorpion_body_normals.inc"
-};
+#include "assets/enemies/scorpion/burst_pincer_1.inc"
 
-static u32 _gActor02500ScorpionBodyStream[989] = {
-#include "assets/scorpion_body_stream.inc"
-};
-
-static TmdSource _gActor02500ScorpionBody = {
-    0,
-    5684,
-    1152,
-    5,
-    _gActor02500ScorpionBodyPartVerts,
-    _gActor02500ScorpionBodyVerts,
-    _gActor02500ScorpionBodyNormals,
-    _gActor02500ScorpionBodySkeleton,
-    _gActor02500ScorpionBodyStream,
-};
-
-static TmdBone _gActor02500ScorpionBurstHeadSkeleton[1] = {
-#include "assets/scorpion_burst_head_skeleton.inc"
-};
-
-static u32 _gActor02500ScorpionBurstHeadPartVerts[1] = {
-#include "assets/scorpion_burst_head_partVerts.inc"
-};
-
-static SVECTOR _gActor02500ScorpionBurstHeadVerts[22] = {
-#include "assets/scorpion_burst_head_verts.inc"
-};
-
-static SVECTOR _gActor02500ScorpionBurstHeadNormals[22] = {
-#include "assets/scorpion_burst_head_normals.inc"
-};
-
-static u32 _gActor02500ScorpionBurstHeadStream[223] = {
-#include "assets/scorpion_burst_head_stream.inc"
-};
-
-static TmdSource _gActor02500ScorpionBurstHead = {
-    0,
-    1292,
-    0,
-    1,
-    _gActor02500ScorpionBurstHeadPartVerts,
-    _gActor02500ScorpionBurstHeadVerts,
-    _gActor02500ScorpionBurstHeadNormals,
-    _gActor02500ScorpionBurstHeadSkeleton,
-    _gActor02500ScorpionBurstHeadStream,
-};
-
-static TmdBone _gActor02500ScorpionBurstPincer2Skeleton[1] = {
-#include "assets/scorpion_burst_pincer_2_skeleton.inc"
-};
-
-static u32 _gActor02500ScorpionBurstPincer2PartVerts[1] = {
-#include "assets/scorpion_burst_pincer_2_partVerts.inc"
-};
-
-static SVECTOR _gActor02500ScorpionBurstPincer2Verts[15] = {
-#include "assets/scorpion_burst_pincer_2_verts.inc"
-};
-
-static SVECTOR _gActor02500ScorpionBurstPincer2Normals[15] = {
-#include "assets/scorpion_burst_pincer_2_normals.inc"
-};
-
-static u32 _gActor02500ScorpionBurstPincer2Stream[130] = {
-#include "assets/scorpion_burst_pincer_2_stream.inc"
-};
-
-static TmdSource _gActor02500ScorpionBurstPincer2 = {
-    0,
-    844,
-    0,
-    1,
-    _gActor02500ScorpionBurstPincer2PartVerts,
-    _gActor02500ScorpionBurstPincer2Verts,
-    _gActor02500ScorpionBurstPincer2Normals,
-    _gActor02500ScorpionBurstPincer2Skeleton,
-    _gActor02500ScorpionBurstPincer2Stream,
-};
-
-static TmdBone _gActor02500ScorpionBurstPincer1Skeleton[1] = {
-#include "assets/scorpion_burst_pincer_1_skeleton.inc"
-};
-
-static u32 _gActor02500ScorpionBurstPincer1PartVerts[1] = {
-#include "assets/scorpion_burst_pincer_1_partVerts.inc"
-};
-
-static SVECTOR _gActor02500ScorpionBurstPincer1Verts[15] = {
-#include "assets/scorpion_burst_pincer_1_verts.inc"
-};
-
-static SVECTOR _gActor02500ScorpionBurstPincer1Normals[15] = {
-#include "assets/scorpion_burst_pincer_1_normals.inc"
-};
-
-static u32 _gActor02500ScorpionBurstPincer1Stream[130] = {
-#include "assets/scorpion_burst_pincer_1_stream.inc"
-};
-
-static TmdSource _gActor02500ScorpionBurstPincer1 = {
-    0,
-    844,
-    0,
-    1,
-    _gActor02500ScorpionBurstPincer1PartVerts,
-    _gActor02500ScorpionBurstPincer1Verts,
-    _gActor02500ScorpionBurstPincer1Normals,
-    _gActor02500ScorpionBurstPincer1Skeleton,
-    _gActor02500ScorpionBurstPincer1Stream,
-};
-
-static AnimationPackedPose _gActor02500Actor102500Animation04C64Bank1[8] = {
-#include "assets/actor_102500_animation_04C64_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor02500Actor102500Animation04C64Bank4[21] = {
-#include "assets/actor_102500_animation_04C64_bank4.inc"
-};
-
-static AnimationRecord _gActor02500Actor102500Animation04C64Records[44] = {
-#include "assets/actor_102500_animation_04C64_records.inc"
-};
-
-static u16 _gActor02500Actor102500Animation04C64Indices[6] = {
-#include "assets/actor_102500_animation_04C64_indices.inc"
-};
-
-static AnimationSet _gActor02500Actor102500Animation04C64 = {
-    _gActor02500Actor102500Animation04C64Records,
-    _gActor02500Actor102500Animation04C64Indices,
-    { NULL, _gActor02500Actor102500Animation04C64Bank1, NULL, NULL, _gActor02500Actor102500Animation04C64Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor02500Actor102500Animation04E3CBank1[10] = {
-#include "assets/actor_102500_animation_04E3C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor02500Actor102500Animation04E3CBank4[27] = {
-#include "assets/actor_102500_animation_04E3C_bank4.inc"
-};
-
-static AnimationRecord _gActor02500Actor102500Animation04E3CRecords[48] = {
-#include "assets/actor_102500_animation_04E3C_records.inc"
-};
-
-static u16 _gActor02500Actor102500Animation04E3CIndices[6] = {
-#include "assets/actor_102500_animation_04E3C_indices.inc"
-};
-
-static AnimationSet _gActor02500Actor102500Animation04E3C = {
-    _gActor02500Actor102500Animation04E3CRecords,
-    _gActor02500Actor102500Animation04E3CIndices,
-    { NULL, _gActor02500Actor102500Animation04E3CBank1, NULL, NULL, _gActor02500Actor102500Animation04E3CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor02500Actor102500Animation04FF0Bank1[7] = {
-#include "assets/actor_102500_animation_04FF0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor02500Actor102500Animation04FF0Bank4[27] = {
-#include "assets/actor_102500_animation_04FF0_bank4.inc"
-};
-
-static AnimationRecord _gActor02500Actor102500Animation04FF0Records[48] = {
-#include "assets/actor_102500_animation_04FF0_records.inc"
-};
-
-static u16 _gActor02500Actor102500Animation04FF0Indices[6] = {
-#include "assets/actor_102500_animation_04FF0_indices.inc"
-};
-
-static AnimationSet _gActor02500Actor102500Animation04FF0 = {
-    _gActor02500Actor102500Animation04FF0Records,
-    _gActor02500Actor102500Animation04FF0Indices,
-    { NULL, _gActor02500Actor102500Animation04FF0Bank1, NULL, NULL, _gActor02500Actor102500Animation04FF0Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor02500Actor102500Animation0534CBank1[20] = {
-#include "assets/actor_102500_animation_0534C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor02500Actor102500Animation0534CBank4[55] = {
-#include "assets/actor_102500_animation_0534C_bank4.inc"
-};
-
-static AnimationRecord _gActor02500Actor102500Animation0534CRecords[87] = {
-#include "assets/actor_102500_animation_0534C_records.inc"
-};
-
-static u16 _gActor02500Actor102500Animation0534CIndices[6] = {
-#include "assets/actor_102500_animation_0534C_indices.inc"
-};
-
-static AnimationSet _gActor02500Actor102500Animation0534C = {
-    _gActor02500Actor102500Animation0534CRecords,
-    _gActor02500Actor102500Animation0534CIndices,
-    { NULL, _gActor02500Actor102500Animation0534CBank1, NULL, NULL, _gActor02500Actor102500Animation0534CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor02500Actor102500Animation05520Bank1[10] = {
-#include "assets/actor_102500_animation_05520_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor02500Actor102500Animation05520Bank4[27] = {
-#include "assets/actor_102500_animation_05520_bank4.inc"
-};
-
-static AnimationRecord _gActor02500Actor102500Animation05520Records[47] = {
-#include "assets/actor_102500_animation_05520_records.inc"
-};
-
-static u16 _gActor02500Actor102500Animation05520Indices[6] = {
-#include "assets/actor_102500_animation_05520_indices.inc"
-};
-
-static AnimationSet _gActor02500Actor102500Animation05520 = {
-    _gActor02500Actor102500Animation05520Records,
-    _gActor02500Actor102500Animation05520Indices,
-    { NULL, _gActor02500Actor102500Animation05520Bank1, NULL, NULL, _gActor02500Actor102500Animation05520Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor02500Actor102500Animation057D4Bank1[16] = {
-#include "assets/actor_102500_animation_057D4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor02500Actor102500Animation057D4Bank4[45] = {
-#include "assets/actor_102500_animation_057D4_bank4.inc"
-};
-
-static AnimationRecord _gActor02500Actor102500Animation057D4Records[67] = {
-#include "assets/actor_102500_animation_057D4_records.inc"
-};
-
-static u16 _gActor02500Actor102500Animation057D4Indices[6] = {
-#include "assets/actor_102500_animation_057D4_indices.inc"
-};
-
-static AnimationSet _gActor02500Actor102500Animation057D4 = {
-    _gActor02500Actor102500Animation057D4Records,
-    _gActor02500Actor102500Animation057D4Indices,
-    { NULL, _gActor02500Actor102500Animation057D4Bank1, NULL, NULL, _gActor02500Actor102500Animation057D4Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor02500Actor102500Animation05998Bank1[10] = {
-#include "assets/actor_102500_animation_05998_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor02500Actor102500Animation05998Bank4[27] = {
-#include "assets/actor_102500_animation_05998_bank4.inc"
-};
-
-static AnimationRecord _gActor02500Actor102500Animation05998Records[43] = {
-#include "assets/actor_102500_animation_05998_records.inc"
-};
-
-static u16 _gActor02500Actor102500Animation05998Indices[6] = {
-#include "assets/actor_102500_animation_05998_indices.inc"
-};
-
-static AnimationSet _gActor02500Actor102500Animation05998 = {
-    _gActor02500Actor102500Animation05998Records,
-    _gActor02500Actor102500Animation05998Indices,
-    { NULL, _gActor02500Actor102500Animation05998Bank1, NULL, NULL, _gActor02500Actor102500Animation05998Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor02500Actor102500Animation05B08Bank1[7] = {
-#include "assets/actor_102500_animation_05B08_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor02500Actor102500Animation05B08Bank4[18] = {
-#include "assets/actor_102500_animation_05B08_bank4.inc"
-};
-
-static AnimationRecord _gActor02500Actor102500Animation05B08Records[40] = {
-#include "assets/actor_102500_animation_05B08_records.inc"
-};
-
-static u16 _gActor02500Actor102500Animation05B08Indices[6] = {
-#include "assets/actor_102500_animation_05B08_indices.inc"
-};
-
-static AnimationSet _gActor02500Actor102500Animation05B08 = {
-    _gActor02500Actor102500Animation05B08Records,
-    _gActor02500Actor102500Animation05B08Indices,
-    { NULL, _gActor02500Actor102500Animation05B08Bank1, NULL, NULL, _gActor02500Actor102500Animation05B08Bank4, NULL, NULL, NULL },
-};
+#include "assets/enemies/scorpion/package_1_clips.inc"
 
 /// Scorpion sting and corpse-poison damage, both with the poison player reaction.
 ///
@@ -672,7 +378,7 @@ static s16 _gActor02500ChaseSpeeds[8] = {
 };
 
 TaskDesc gActor02500Tasks[2] = {
-    { { { TASK_BODY_TMD, 96 } }, _actor02500Task, { .model = &_gActor02500ScorpionBody } },
+    { { { TASK_BODY_TMD, 96 } }, _actor02500Task, { .model = &_gScorpionBody } },
     { { { TASK_BODY_COORD, 96 } }, _actor02500CorpsePoisonTask, { .value = 0 } },
 };
 
@@ -680,20 +386,7 @@ TaskDesc gActor02500Tasks[2] = {
 ///
 /// All twelve entries belong to the bank; 0, 2, 5 and 9 are NULL.
 /// The rig borrows the bank and its sets for the enemy task's lifetime.
-static AnimationSet* _gActor02500AnimationSets[ACTOR_02500_ANIM_BUILDUP + 1] = {
-    NULL,
-    &_gActor02500Actor102500Animation04C64,
-    NULL,
-    &_gActor02500Actor102500Animation04E3C,
-    &_gActor02500Actor102500Animation04FF0,
-    NULL,
-    &_gActor02500Actor102500Animation0534C,
-    &_gActor02500Actor102500Animation05520,
-    &_gActor02500Actor102500Animation057D4,
-    NULL,
-    &_gActor02500Actor102500Animation05998,
-    &_gActor02500Actor102500Animation05B08,
-};
+#include "assets/enemies/scorpion/bank.inc"
 
 /// Scorpion clip blend durations in whole normal-rate animation frames.
 ///
@@ -1613,13 +1306,13 @@ static void _actor02500SpawnBurstFragments(Task* actor)
     }
 
     // Each descriptor payload is consumed by the following model allocation.
-    gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gActor02500ScorpionBurstHead;
+    gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gScorpionBurstHead;
     headEffect                                                   = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &actor->extra.tmd->coords[ACTOR_02500_BURST_ANCHOR_COORD], ACTOR_02500_BURST_EFFECT_ARGUMENT, NULL);
     ACTOR_02500_APPLY_FRAGMENT_TEXTURE(headEffect, actor, location, viewId);
-    gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gActor02500ScorpionBurstPincer2;
+    gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gScorpionBurstPincer2;
     pincer2Effect                                                = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &actor->extra.tmd->coords[ACTOR_02500_BURST_ANCHOR_COORD], ACTOR_02500_BURST_EFFECT_ARGUMENT, NULL);
     ACTOR_02500_APPLY_FRAGMENT_TEXTURE(pincer2Effect, actor, location, viewId);
-    gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gActor02500ScorpionBurstPincer1;
+    gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gScorpionBurstPincer1;
     pincer1Effect                                                = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &actor->extra.tmd->coords[ACTOR_02500_BURST_ANCHOR_COORD], ACTOR_02500_BURST_EFFECT_ARGUMENT, NULL);
     ACTOR_02500_APPLY_FRAGMENT_TEXTURE(pincer1Effect, actor, location, viewId);
 

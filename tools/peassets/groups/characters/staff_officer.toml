@@ -1,0 +1,137 @@
+# The assets of the group characters/staff_officer, each named characters/staff_officer/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = [
+    "joint_0",
+    "joint_1",
+    "joint_2",
+    "joint_3",
+    "joint_4",
+    "joint_5",
+    "joint_6",
+    "joint_7",
+    "joint_8",
+    "joint_9",
+    "joint_10",
+    "joint_11",
+    "joint_12",
+    "joint_13",
+    "joint_14",
+    "joint_15",
+    "joint_16",
+    "joint_17",
+    "joint_18",
+    "joint_19",
+]
+
+[bank]
+type = "animation_bank"
+schema = "characters/staff_officer/schema"
+symbol = "_gActor143900SecondScriptedWalkerAnimationSets"
+
+[bank.clips]
+slot_1 = "characters/staff_officer/anim_01"
+stand_idle = "characters/staff_officer/stand_idle"
+slot_3 = "characters/staff_officer/anim_03"
+slot_4 = "characters/staff_officer/anim_04"
+pose = "characters/staff_officer/pose"
+slot_6 = "characters/staff_officer/anim_06"
+slot_7 = "characters/staff_officer/anim_07"
+slot_8 = "characters/staff_officer/anim_08"
+slot_9 = "characters/staff_officer/anim_09"
+slot_10 = "characters/staff_officer/anim_10"
+
+[body]
+type = "model"
+rig = "characters/staff_officer/rig"
+slots = ["page_1", "page_2"]
+symbol = "_gStaffOfficerBody"
+sha1 = "e4fe41d01130b013355d47be74c8723762bd34b7"
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "b0bf2f158dc679670f33b8344d873ad2ca001dfe"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "1e702ec2398ad46455841056d103e39a70c2808b"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[pose]
+type = "clip"
+rig = "characters/staff_officer/rig"
+
+[schema]
+type = "animation_schema"
+slots = ["", "slot_1", "stand_idle", "slot_3", "slot_4", "pose", "slot_6", "slot_7", "slot_8", "slot_9", "slot_10"]
+
+[anim_01]
+type = "clip"
+rig = "characters/staff_officer/rig"
+
+[anim_03]
+type = "clip"
+rig = "characters/staff_officer/rig"
+
+[anim_04]
+type = "clip"
+rig = "characters/staff_officer/rig"
+
+[anim_06]
+type = "clip"
+rig = "characters/staff_officer/rig"
+
+[anim_07]
+type = "clip"
+rig = "characters/staff_officer/rig"
+
+[anim_08]
+type = "clip"
+rig = "characters/staff_officer/rig"
+
+[anim_09]
+type = "clip"
+rig = "characters/staff_officer/rig"
+
+[anim_10]
+type = "clip"
+rig = "characters/staff_officer/rig"
+
+[stand_idle]
+type = "clip"
+rig = "characters/staff_officer/rig"
+
+[body_binding]
+type = "binding"
+model = "characters/staff_officer/body"
+
+[body_binding.textures]
+page_1 = "characters/staff_officer/texture_page_1.default"
+page_2 = "characters/staff_officer/texture_page_2.default"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128

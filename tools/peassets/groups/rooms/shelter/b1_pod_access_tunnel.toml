@@ -1,0 +1,88 @@
+# The assets of the group rooms/shelter/b1_pod_access_tunnel, each named rooms/shelter/b1_pod_access_tunnel/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[eve]
+type = "pe2pkg"
+embedded = [
+    "actor_141000_model_0230C",
+    "rooms/shelter/b1_pod_access_tunnel/flame_rotation_track",
+    "rooms/shelter/b1_pod_access_tunnel/flame_position_track",
+    { asset = "characters/eve/idle", offset = 0x082B4, size = 0x214, address = 0x8013A0D4 },
+    { asset = "characters/eve/walk_slow", offset = 0x084C8, size = 0x3F8, address = 0x8013A2E8 },
+    { asset = "characters/eve/eve_walk", offset = 0x088C0, size = 0xBE4, address = 0x8013A6E0 },
+    { asset = "characters/eve/walk_stop", offset = 0x094A4, size = 0x1BC, address = 0x8013B2C4 },
+    { name = "eve_entry_scene_4a", offset = 0x09660, size = 0x1C8, address = 0x8013B480 },
+    { name = "eve_entry_scene_4b", offset = 0x09828, size = 0x288, address = 0x8013B648 },
+    { name = "eve_cast_flame", offset = 0x09AB0, size = 0x788, address = 0x8013B8D0 },
+    { name = "eve_entry_scene_10", offset = 0x0A238, size = 0x238, address = 0x8013C058 },
+    { name = "eve_entry_scene_11", offset = 0x0A470, size = 0x1B4, address = 0x8013C290 },
+    { name = "eve_entry_scene_12", offset = 0x0A624, size = 0x250, address = 0x8013C444 },
+    { name = "eve_bank", offset = 0x0B92C, size = 0x2C, address = 0x8013D74C },
+]
+package_name = "actor_141000"
+required = true
+sha1 = "2a2ab7f95a62766eb06a49260e7864c5b16b4432"
+
+[eve_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b1_pod_access_tunnel/eve_schema"
+symbol = "_gActor141000EveAnimationSets"
+
+[eve_bank.clips]
+idle = "characters/eve/idle"
+walk = "characters/eve/eve_walk"
+walk_stop = "characters/eve/walk_stop"
+entry_scene_4a = "rooms/shelter/b1_pod_access_tunnel/eve_entry_scene_4a"
+entry_scene_4b = "rooms/shelter/b1_pod_access_tunnel/eve_entry_scene_4b"
+cast_flame = "rooms/shelter/b1_pod_access_tunnel/eve_cast_flame"
+entry_scene_10 = "rooms/shelter/b1_pod_access_tunnel/eve_entry_scene_10"
+entry_scene_11 = "rooms/shelter/b1_pod_access_tunnel/eve_entry_scene_11"
+entry_scene_12 = "rooms/shelter/b1_pod_access_tunnel/eve_entry_scene_12"
+walk_slow = "characters/eve/walk_slow"
+
+[eve_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "idle",
+    "walk",
+    "walk_stop",
+    "entry_scene_4a",
+    "entry_scene_4b",
+    "cast_flame",
+    "entry_scene_10",
+    "entry_scene_11",
+    "entry_scene_12",
+    "walk_slow",
+]
+
+[flame_texture]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[eve_cast_flame]
+type = "clip"
+rig = "characters/eve/rig"
+
+[eve_entry_scene_10]
+type = "clip"
+rig = "characters/eve/rig"
+
+[eve_entry_scene_11]
+type = "clip"
+rig = "characters/eve/rig"
+
+[eve_entry_scene_12]
+type = "clip"
+rig = "characters/eve/rig"
+
+[eve_entry_scene_4a]
+type = "clip"
+rig = "characters/eve/rig"
+
+[eve_entry_scene_4b]
+type = "clip"
+rig = "characters/eve/rig"

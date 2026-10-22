@@ -1,0 +1,281 @@
+# The assets of the group enemies/suckler/mind, each named enemies/suckler/mind/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = ["root", "body", "head", "right_arm", "left_arm", "right_wing", "left_wing"]
+
+[bank]
+type = "animation_bank"
+schema = "enemies/suckler/mind/schema"
+symbol = "_gActor01500AnimSets"
+
+[bank.clips]
+perch_wall = "enemies/suckler/mind/perch_wall"
+perch_ceiling = "enemies/suckler/mind/perch_ceiling"
+alert_wall = "enemies/suckler/mind/alert_wall"
+alert_ceiling = "enemies/suckler/mind/alert_ceiling"
+hover = "enemies/suckler/mind/hover"
+fly_forward = "enemies/suckler/mind/fly_forward"
+take_off_wall = "enemies/suckler/mind/take_off_wall"
+take_off_ceiling = "enemies/suckler/mind/take_off_ceiling"
+rest_wall = "enemies/suckler/mind/rest_wall"
+dive = "enemies/suckler/mind/dive"
+flinch_wall = "enemies/suckler/mind/flinch_wall"
+flinch_ceiling = "enemies/suckler/mind/flinch_ceiling"
+flinch_air = "enemies/suckler/mind/flinch_air"
+grounded = "enemies/suckler/mind/grounded"
+
+[body]
+type = "model"
+rig = "enemies/suckler/mind/rig"
+slots = ["body"]
+symbol = "_gSucklerMindBody"
+sha1 = "3fe3fd08314a1ac5f82cc37ff31533414b56e183"
+
+[dive]
+type = "clip"
+rig = "enemies/suckler/mind/rig"
+
+[hurt]
+type = "sound"
+sha1 = "8bb78ea0cb42d68621295ba950a4e31800b34d60"
+
+[alert]
+type = "sound"
+sha1 = "24d4cd4849d074c3accf143b720af70fd04bfc44"
+
+[hover]
+type = "clip"
+rig = "enemies/suckler/mind/rig"
+
+[schema]
+type = "animation_schema"
+slots = [
+    "",
+    "perch_wall",
+    "perch_ceiling",
+    "alert_wall",
+    "alert_ceiling",
+    "hover",
+    "fly_forward",
+    "take_off_wall",
+    "take_off_ceiling",
+    "rest_wall",
+    "dive",
+    "flinch_wall",
+    "flinch_ceiling",
+    "flinch_air",
+    "grounded",
+]
+
+[sounds]
+type = "sound_bank"
+samples = ["enemies/suckler/mind/take_off", "enemies/suckler/mind/alert", "enemies/suckler/mind/hurt"]
+sounds = { alert = 1, take_off = 2, flight = 3, hurt = 4 }
+sha1 = "082d416f32f4a70c34d26a789e3d0477d114df5a"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[grounded]
+type = "clip"
+rig = "enemies/suckler/mind/rig"
+
+[take_off]
+type = "sound"
+sha1 = "672f7f643b7060e60303f61ec2400c270e3cc8cf"
+
+[package_1]
+type = "pe2pkg"
+embedded = [
+    { name = "body", offset = 0x02D28, size = 0x1588, address = 0x80134B48 },
+    { name = "burst_head", offset = 0x042B0, size = 0x300, address = 0x801360D0 },
+    { name = "burst_wing", offset = 0x045B0, size = 0x144, address = 0x801363D0 },
+    { name = "burst_stinger", offset = 0x046F4, size = 0x1EC, address = 0x80136514 },
+    { name = "burst_tail", offset = 0x048E0, size = 0x1D8, address = 0x80136700 },
+    { name = "perch_wall", offset = 0x04AB8, size = 0x350, address = 0x801368D8 },
+    { name = "perch_ceiling", offset = 0x04E08, size = 0x350, address = 0x80136C28 },
+    { name = "alert_wall", offset = 0x05158, size = 0x1530, address = 0x80136F78 },
+    { name = "alert_ceiling", offset = 0x06688, size = 0x1530, address = 0x801384A8 },
+    { name = "hover", offset = 0x07BB8, size = 0xEC, address = 0x801399D8 },
+    { name = "fly_forward", offset = 0x07CA4, size = 0xEC, address = 0x80139AC4 },
+    { name = "take_off_wall", offset = 0x07D90, size = 0xADC, address = 0x80139BB0 },
+    { name = "take_off_ceiling", offset = 0x0886C, size = 0xAB0, address = 0x8013A68C },
+    { name = "rest_wall", offset = 0x0931C, size = 0x35C, address = 0x8013B13C },
+    { name = "dive", offset = 0x09678, size = 0xB8, address = 0x8013B498 },
+    { name = "flinch_wall", offset = 0x09730, size = 0x1B8, address = 0x8013B550 },
+    { name = "flinch_ceiling", offset = 0x098E8, size = 0x1B8, address = 0x8013B708 },
+    { name = "flinch_air", offset = 0x09AA0, size = 0x148, address = 0x8013B8C0 },
+    { name = "grounded", offset = 0x09BE8, size = 0x3CC, address = 0x8013BA08 },
+    { name = "bank", offset = 0x0A014, size = 0x3C, address = 0x8013BE34 },
+]
+package_name = "actor_101500"
+required = true
+sha1 = "a84e21ee6968cb4d51ea61e1941aab55cf105738"
+
+[package_2]
+type = "pe2pkg"
+embedded = [
+    { name = "perch_wall", offset = 0x04AB8, size = 0x350, address = 0x8014E8D8 },
+    { name = "perch_ceiling", offset = 0x04E08, size = 0x350, address = 0x8014EC28 },
+    { name = "alert_wall", offset = 0x05158, size = 0x1530, address = 0x8014EF78 },
+    { name = "alert_ceiling", offset = 0x06688, size = 0x1530, address = 0x801504A8 },
+    { name = "hover", offset = 0x07BB8, size = 0xEC, address = 0x801519D8 },
+    { name = "fly_forward", offset = 0x07CA4, size = 0xEC, address = 0x80151AC4 },
+    { name = "take_off_wall", offset = 0x07D90, size = 0xADC, address = 0x80151BB0 },
+    { name = "take_off_ceiling", offset = 0x0886C, size = 0xAB0, address = 0x8015268C },
+    { name = "rest_wall", offset = 0x0931C, size = 0x35C, address = 0x8015313C },
+    { name = "dive", offset = 0x09678, size = 0xB8, address = 0x80153498 },
+    { name = "flinch_wall", offset = 0x09730, size = 0x1B8, address = 0x80153550 },
+    { name = "flinch_ceiling", offset = 0x098E8, size = 0x1B8, address = 0x80153708 },
+    { name = "flinch_air", offset = 0x09AA0, size = 0x148, address = 0x801538C0 },
+    { name = "grounded", offset = 0x09BE8, size = 0x3CC, address = 0x80153A08 },
+    { name = "bank", offset = 0x0A014, size = 0x3C, address = 0x80153E34 },
+]
+package_name = "actor_201500"
+required = true
+sha1 = "ae47d8c4bf062b0a9179ad1aebe6e462b226cdc3"
+
+[package_3]
+type = "pe2pkg"
+embedded = [
+    { name = "perch_wall", offset = 0x04AB8, size = 0x350, address = 0x801668D8 },
+    { name = "perch_ceiling", offset = 0x04E08, size = 0x350, address = 0x80166C28 },
+    { name = "alert_wall", offset = 0x05158, size = 0x1530, address = 0x80166F78 },
+    { name = "alert_ceiling", offset = 0x06688, size = 0x1530, address = 0x801684A8 },
+    { name = "hover", offset = 0x07BB8, size = 0xEC, address = 0x801699D8 },
+    { name = "fly_forward", offset = 0x07CA4, size = 0xEC, address = 0x80169AC4 },
+    { name = "take_off_wall", offset = 0x07D90, size = 0xADC, address = 0x80169BB0 },
+    { name = "take_off_ceiling", offset = 0x0886C, size = 0xAB0, address = 0x8016A68C },
+    { name = "rest_wall", offset = 0x0931C, size = 0x35C, address = 0x8016B13C },
+    { name = "dive", offset = 0x09678, size = 0xB8, address = 0x8016B498 },
+    { name = "flinch_wall", offset = 0x09730, size = 0x1B8, address = 0x8016B550 },
+    { name = "flinch_ceiling", offset = 0x098E8, size = 0x1B8, address = 0x8016B708 },
+    { name = "flinch_air", offset = 0x09AA0, size = 0x148, address = 0x8016B8C0 },
+    { name = "grounded", offset = 0x09BE8, size = 0x3CC, address = 0x8016BA08 },
+    { name = "bank", offset = 0x0A014, size = 0x3C, address = 0x8016BE34 },
+]
+package_name = "actor_301500"
+required = true
+sha1 = "3fcf69ffcc15d724a16fb5c97c7514ee6eeba42d"
+
+[rest_wall]
+type = "clip"
+rig = "enemies/suckler/mind/rig"
+
+[alert_wall]
+type = "clip"
+rig = "enemies/suckler/mind/rig"
+
+[burst_head]
+type = "model"
+slots = ["body"]
+symbol = "_gSucklerMindBurstHead"
+sha1 = "5dd67e07a429a4a1c59659cc5fc64256cc4667df"
+
+[burst_tail]
+type = "model"
+slots = ["body"]
+symbol = "_gSucklerMindBurstTail"
+sha1 = "249605b24ae40788e6b73ede992f3fe876b71108"
+
+[burst_wing]
+type = "model"
+slots = ["body"]
+symbol = "_gSucklerMindBurstWing"
+sha1 = "acac13a21ed43a4e4c1a6244c446223989da9393"
+
+[flinch_air]
+type = "clip"
+rig = "enemies/suckler/mind/rig"
+
+[perch_wall]
+type = "clip"
+rig = "enemies/suckler/mind/rig"
+
+[flinch_wall]
+type = "clip"
+rig = "enemies/suckler/mind/rig"
+
+[fly_forward]
+type = "clip"
+rig = "enemies/suckler/mind/rig"
+
+[body_binding]
+type = "binding"
+model = "enemies/suckler/mind/body"
+textures = { body = "enemies/suckler/mind/texture.default" }
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+chunk = "sounds"
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "77d22ff86f4c3605827849ccdb4ade56164a8f7b"
+palettes = [
+    { texture = "texture", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { name = "unread_row_2", entries = 256, region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "ab5c0f94f0625a9eec65da6f76baa1a0a97ca267"
+pages = [{ texture = "texture", region = "engine/vram/actor_sheet", offset = [0, 0] }]
+slots = 6
+
+[[package_file.contents]]
+chunk = "package_1"
+
+[alert_ceiling]
+type = "clip"
+rig = "enemies/suckler/mind/rig"
+
+[burst_stinger]
+type = "model"
+slots = ["body"]
+symbol = "_gSucklerMindBurstStinger"
+sha1 = "67b3faec25fec217629d6c46815bf0bbf718ed23"
+
+[perch_ceiling]
+type = "clip"
+rig = "enemies/suckler/mind/rig"
+
+[take_off_wall]
+type = "clip"
+rig = "enemies/suckler/mind/rig"
+
+[flinch_ceiling]
+type = "clip"
+rig = "enemies/suckler/mind/rig"
+
+[take_off_ceiling]
+type = "clip"
+rig = "enemies/suckler/mind/rig"
+
+[burst_head_binding]
+type = "binding"
+model = "enemies/suckler/mind/burst_head"
+textures = { body = "enemies/suckler/mind/texture.default" }
+
+[burst_tail_binding]
+type = "binding"
+model = "enemies/suckler/mind/burst_tail"
+textures = { body = "enemies/suckler/mind/texture.default" }
+
+[burst_wing_binding]
+type = "binding"
+model = "enemies/suckler/mind/burst_wing"
+textures = { body = "enemies/suckler/mind/texture.default" }
+
+[burst_stinger_binding]
+type = "binding"
+model = "enemies/suckler/mind/burst_stinger"
+textures = { body = "enemies/suckler/mind/texture.default" }

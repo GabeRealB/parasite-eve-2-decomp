@@ -335,11 +335,11 @@ typedef struct {
 } _Actor02100Work;
 STATIC_ASSERT_SIZEOF(_Actor02100Work, 0x19C);
 
-static TmdBone _gActor02100WatcherBodySkeleton[3];
-static u32     _gActor02100WatcherBodyPartVerts[3];
-static SVECTOR _gActor02100WatcherBodyVerts[40];
-static SVECTOR _gActor02100WatcherBodyNormals[32];
-static u32     _gActor02100WatcherBodyStream[243];
+static TmdBone _gWatcherBodySkeleton[3];
+static u32     _gWatcherBodyPartVerts[3];
+static SVECTOR _gWatcherBodyVerts[40];
+static SVECTOR _gWatcherBodyNormals[32];
+static u32     _gWatcherBodyStream[243];
 
 static void _actor02100Task(Task* task);
 static void _actor02100Tick(Enemy* enemy, Task* task);
@@ -360,37 +360,7 @@ static const EnemyTaskFuncTable3 _gActor02100TaskPhases = { {
     _actor02100DestroyState,
 } };
 
-static TmdBone _gActor02100WatcherBodySkeleton[3] = {
-#include "assets/watcher_body_skeleton.inc"
-};
-
-static u32 _gActor02100WatcherBodyPartVerts[3] = {
-#include "assets/watcher_body_partVerts.inc"
-};
-
-static SVECTOR _gActor02100WatcherBodyVerts[40] = {
-#include "assets/watcher_body_verts.inc"
-};
-
-static SVECTOR _gActor02100WatcherBodyNormals[32] = {
-#include "assets/watcher_body_normals.inc"
-};
-
-static u32 _gActor02100WatcherBodyStream[243] = {
-#include "assets/watcher_body_stream.inc"
-};
-
-static TmdSource _gActor02100WatcherBody = {
-    0,
-    0x6A8,
-    0,
-    3,
-    _gActor02100WatcherBodyPartVerts,
-    _gActor02100WatcherBodyVerts,
-    _gActor02100WatcherBodyNormals,
-    _gActor02100WatcherBodySkeleton,
-    _gActor02100WatcherBodyStream,
-};
+#include "assets/enemies/watcher/body.inc"
 
 /// Player-contact attacks indexed by the Watcher's weapon variant, 0..4.
 ///
@@ -441,7 +411,7 @@ static _Actor02100BeamEdges _gActor02100BeamEdges[ACTOR_02100_WEAPON_COUNT][ACTO
 /// A received hit bypasses the ordinary player range test.
 static s16 _gActor02100SightRanges[8] = { 3000, 3500, 4000, 4500, 5000, 6000, 7000, 8000 };
 
-TaskDesc gActor02100WatcherTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor02100Task, { .model = &_gActor02100WatcherBody } };
+TaskDesc gActor02100WatcherTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor02100Task, { .model = &_gWatcherBody } };
 
 /// Corner indices for the two fading edge quads of each beam segment.
 ///

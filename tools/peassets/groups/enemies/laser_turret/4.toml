@@ -1,0 +1,10 @@
+# The assets of the group enemies/laser_turret/4, each named enemies/laser_turret/4/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+contents = [
+    { asset = "enemies/moth/preview_palette", sha1 = "65e9784cafe3f1873b915a880cb1979b39621a83" },
+    { asset = "enemies/moth/preview_image", sha1 = "161ac20e76eb8f36b46a091126eaafe3a329e23e" },
+    { asset = "txt_82" },
+]

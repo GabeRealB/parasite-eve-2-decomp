@@ -102,48 +102,18 @@ enum {
     ACTOR_800300_MESSAGE_END_SCRIPTED_ALIAS_1024   = 1024,
 };
 
-static AnimationSet _gActor800300Animation07E3C;
-static AnimationSet _gActor800300Animation08218;
-static AnimationSet _gActor800300Animation08618;
-static AnimationSet _gActor800300Animation09194;
-static AnimationSet _gActor800300Animation09478;
-static AnimationSet _gActor800300Animation0981C;
-static AnimationSet _gActor800300Animation09D10;
-static AnimationSet _gActor800300Animation0A4D4;
-static AnimationSet _gActor800300Animation0A9F8;
-static AnimationSet _gActor800300Animation0AD50;
+static AnimationSet _gEveIdleClip;
+static AnimationSet _gEveWalkClip;
+static AnimationSet _gEveCompanionAnim03Clip;
+static AnimationSet _gEveRunClip;
+static AnimationSet _gEveTurnLeftClip;
+static AnimationSet _gEveTurnRightClip;
+static AnimationSet _gEveIdleVariationClip;
+static AnimationSet _gAyaDeathClip;
+static AnimationSet _gShelterB6NurseryCompanionDistressClip;
+static AnimationSet _gShelterB6NurseryCompanionConversationReactionClip;
 
-static TmdBone _gActor800300Model02CF4Skeleton[19] = {
-#include "assets/actor_800300_model_02CF4_skeleton.inc"
-};
-
-static u32 _gActor800300Model02CF4PartVerts[19] = {
-#include "assets/actor_800300_model_02CF4_partVerts.inc"
-};
-
-static SVECTOR _gActor800300Model02CF4Verts[365] = {
-#include "assets/actor_800300_model_02CF4_verts.inc"
-};
-
-static SVECTOR _gActor800300Model02CF4Normals[386] = {
-#include "assets/actor_800300_model_02CF4_normals.inc"
-};
-
-static u32 _gActor800300Model02CF4Stream[3923] = {
-#include "assets/actor_800300_model_02CF4_stream.inc"
-};
-
-TmdSource gActor800300Model02CF4 = {
-    0,
-    21760,
-    5992,
-    19,
-    _gActor800300Model02CF4PartVerts,
-    _gActor800300Model02CF4Verts,
-    _gActor800300Model02CF4Normals,
-    _gActor800300Model02CF4Skeleton,
-    _gActor800300Model02CF4Stream,
-};
+#include "assets/characters/eve/companion_body.inc"
 
 /// Synchronous messages of the noncombatant companion, with installed IDs 1000..1025.
 ///
@@ -219,7 +189,7 @@ static GpuImageUpload** _gActor800300MouthTextureSequences[2] = {
 /// or 250 packed u_long words. Texture-A sequences share this frame; storage
 /// stays live and unchanged until queued GPU transfers finish.
 static u_long _gActor800300TextureAFirstFramePixels[250] = {
-#include "assets/actor_121300_image_09DC8.inc"
+#include "assets/characters/eve/eyes_open.inc"
 };
 
 /// Open-eye upload followed by its nonzero-operation terminator.
@@ -237,7 +207,7 @@ static GpuImageUpload _gActor800300EyesOpenUploads[2] = {
 /// Borrowed by its upload list; keep loaded and unchanged until queued GPU
 /// transfers finish. Closing, opening and blink sequences share this frame.
 static u_long _gActor800300EyesHalfClosedPixels[ACTOR_800300_EYE_PATCH_TRANSFER_WORDS] = {
-#include "assets/actor_121300_image_0A1B0.inc"
+#include "assets/characters/eve/eyes_half_closed.inc"
 };
 
 /// Half-closed-eye upload followed by its nonzero-operation terminator.
@@ -255,7 +225,7 @@ static GpuImageUpload _gActor800300EyesHalfClosedUploads[2] = {
 /// Borrowed by its upload list; keep loaded and unchanged until queued GPU
 /// transfers finish. Closing, opening and blink sequences share this frame.
 static u_long _gActor800300EyesClosedPixels[ACTOR_800300_EYE_PATCH_TRANSFER_WORDS] = {
-#include "assets/actor_121300_image_0A598.inc"
+#include "assets/characters/eve/eyes_closed.inc"
 };
 
 /// Closed-eye upload followed by its nonzero-operation terminator.
@@ -273,7 +243,7 @@ static GpuImageUpload _gActor800300EyesClosedUploads[2] = {
 /// Borrowed by its upload list; keep loaded and unchanged until queued GPU
 /// transfers finish.
 static u_long _gActor800300MouthClosedPixels[ACTOR_800300_MOUTH_PATCH_TRANSFER_WORDS] = {
-#include "assets/actor_121300_image_0A980.inc"
+#include "assets/characters/eve/mouth_closed.inc"
 };
 
 /// Closed-mouth upload followed by its nonzero-operation terminator.
@@ -291,7 +261,7 @@ static GpuImageUpload _gActor800300MouthClosedUploads[2] = {
 /// Borrowed by its upload list; keep loaded and unchanged until queued GPU
 /// transfers finish.
 static u_long _gActor800300MouthOpenPixels[ACTOR_800300_MOUTH_PATCH_TRANSFER_WORDS] = {
-#include "assets/actor_121300_image_0ABB0.inc"
+#include "assets/characters/eve/mouth_open.inc"
 };
 
 /// Open-mouth upload followed by its nonzero-operation terminator.
@@ -366,307 +336,9 @@ static GpuImageUpload* _gActor800300MouthOpenFrames[2] = {
     NULL,
 };
 
-static AnimationPackedPose _gActor800300Animation07E3CBank1[2] = {
-#include "assets/actor_800300_animation_07E3C_bank1.inc"
-};
+#include "assets/characters/eve/companion_clips.inc"
 
-static AnimationPackedRotation _gActor800300Animation07E3CBank4[23] = {
-#include "assets/actor_800300_animation_07E3C_bank4.inc"
-};
-
-static AnimationRecord _gActor800300Animation07E3CRecords[84] = {
-#include "assets/actor_800300_animation_07E3C_records.inc"
-};
-
-static u16 _gActor800300Animation07E3CIndices[20] = {
-#include "assets/actor_800300_animation_07E3C_indices.inc"
-};
-
-static AnimationSet _gActor800300Animation07E3C = {
-    _gActor800300Animation07E3CRecords,
-    _gActor800300Animation07E3CIndices,
-    { NULL, _gActor800300Animation07E3CBank1, NULL, NULL, _gActor800300Animation07E3CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor800300Animation08218Bank1[6] = {
-#include "assets/actor_800300_animation_08218_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor800300Animation08218Bank4[73] = {
-#include "assets/actor_800300_animation_08218_bank4.inc"
-};
-
-static AnimationRecord _gActor800300Animation08218Records[136] = {
-#include "assets/actor_800300_animation_08218_records.inc"
-};
-
-static u16 _gActor800300Animation08218Indices[20] = {
-#include "assets/actor_800300_animation_08218_indices.inc"
-};
-
-static AnimationSet _gActor800300Animation08218 = {
-    _gActor800300Animation08218Records,
-    _gActor800300Animation08218Indices,
-    { NULL, _gActor800300Animation08218Bank1, NULL, NULL, _gActor800300Animation08218Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor800300Animation08618Bank1[5] = {
-#include "assets/actor_800300_animation_08618_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor800300Animation08618Bank4[76] = {
-#include "assets/actor_800300_animation_08618_bank4.inc"
-};
-
-static AnimationRecord _gActor800300Animation08618Records[145] = {
-#include "assets/actor_800300_animation_08618_records.inc"
-};
-
-static u16 _gActor800300Animation08618Indices[20] = {
-#include "assets/actor_800300_animation_08618_indices.inc"
-};
-
-static AnimationSet _gActor800300Animation08618 = {
-    _gActor800300Animation08618Records,
-    _gActor800300Animation08618Indices,
-    { NULL, _gActor800300Animation08618Bank1, NULL, NULL, _gActor800300Animation08618Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor800300Animation09194Bank1[14] = {
-#include "assets/actor_800300_animation_09194_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor800300Animation09194Bank4[301] = {
-#include "assets/actor_800300_animation_09194_bank4.inc"
-};
-
-static AnimationRecord _gActor800300Animation09194Records[372] = {
-#include "assets/actor_800300_animation_09194_records.inc"
-};
-
-static u16 _gActor800300Animation09194Indices[20] = {
-#include "assets/actor_800300_animation_09194_indices.inc"
-};
-
-static AnimationSet _gActor800300Animation09194 = {
-    _gActor800300Animation09194Records,
-    _gActor800300Animation09194Indices,
-    { NULL, _gActor800300Animation09194Bank1, NULL, NULL, _gActor800300Animation09194Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor800300Animation09478Bank1[2] = {
-#include "assets/actor_800300_animation_09478_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor800300Animation09478Bank4[58] = {
-#include "assets/actor_800300_animation_09478_bank4.inc"
-};
-
-static AnimationRecord _gActor800300Animation09478Records[101] = {
-#include "assets/actor_800300_animation_09478_records.inc"
-};
-
-static u16 _gActor800300Animation09478Indices[20] = {
-#include "assets/actor_800300_animation_09478_indices.inc"
-};
-
-static AnimationSet _gActor800300Animation09478 = {
-    _gActor800300Animation09478Records,
-    _gActor800300Animation09478Indices,
-    { NULL, _gActor800300Animation09478Bank1, NULL, NULL, _gActor800300Animation09478Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor800300Animation0981CBank1[2] = {
-#include "assets/actor_800300_animation_0981C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor800300Animation0981CBank4[83] = {
-#include "assets/actor_800300_animation_0981C_bank4.inc"
-};
-
-static AnimationRecord _gActor800300Animation0981CRecords[124] = {
-#include "assets/actor_800300_animation_0981C_records.inc"
-};
-
-static u16 _gActor800300Animation0981CIndices[20] = {
-#include "assets/actor_800300_animation_0981C_indices.inc"
-};
-
-static AnimationSet _gActor800300Animation0981C = {
-    _gActor800300Animation0981CRecords,
-    _gActor800300Animation0981CIndices,
-    { NULL, _gActor800300Animation0981CBank1, NULL, NULL, _gActor800300Animation0981CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor800300Animation09D10Bank1[4] = {
-#include "assets/actor_800300_animation_09D10_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor800300Animation09D10Bank4[76] = {
-#include "assets/actor_800300_animation_09D10_bank4.inc"
-};
-
-static AnimationRecord _gActor800300Animation09D10Records[209] = {
-#include "assets/actor_800300_animation_09D10_records.inc"
-};
-
-static u16 _gActor800300Animation09D10Indices[20] = {
-#include "assets/actor_800300_animation_09D10_indices.inc"
-};
-
-static AnimationSet _gActor800300Animation09D10 = {
-    _gActor800300Animation09D10Records,
-    _gActor800300Animation09D10Indices,
-    { NULL, _gActor800300Animation09D10Bank1, NULL, NULL, _gActor800300Animation09D10Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor800300Animation0A4D4Bank1[18] = {
-#include "assets/actor_800300_animation_0A4D4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor800300Animation0A4D4Bank4[184] = {
-#include "assets/actor_800300_animation_0A4D4_bank4.inc"
-};
-
-static AnimationRecord _gActor800300Animation0A4D4Records[239] = {
-#include "assets/actor_800300_animation_0A4D4_records.inc"
-};
-
-static u16 _gActor800300Animation0A4D4Indices[20] = {
-#include "assets/actor_800300_animation_0A4D4_indices.inc"
-};
-
-static AnimationSet _gActor800300Animation0A4D4 = {
-    _gActor800300Animation0A4D4Records,
-    _gActor800300Animation0A4D4Indices,
-    { NULL, _gActor800300Animation0A4D4Bank1, NULL, NULL, _gActor800300Animation0A4D4Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor800300Animation0A9F8Bank1[5] = {
-#include "assets/actor_800300_animation_0A9F8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor800300Animation0A9F8Bank4[101] = {
-#include "assets/actor_800300_animation_0A9F8_bank4.inc"
-};
-
-static AnimationRecord _gActor800300Animation0A9F8Records[193] = {
-#include "assets/actor_800300_animation_0A9F8_records.inc"
-};
-
-static u16 _gActor800300Animation0A9F8Indices[20] = {
-#include "assets/actor_800300_animation_0A9F8_indices.inc"
-};
-
-static AnimationSet _gActor800300Animation0A9F8 = {
-    _gActor800300Animation0A9F8Records,
-    _gActor800300Animation0A9F8Indices,
-    { NULL, _gActor800300Animation0A9F8Bank1, NULL, NULL, _gActor800300Animation0A9F8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor800300Animation0AD50Bank1[4] = {
-#include "assets/actor_800300_animation_0AD50_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor800300Animation0AD50Bank4[41] = {
-#include "assets/actor_800300_animation_0AD50_bank4.inc"
-};
-
-static AnimationRecord _gActor800300Animation0AD50Records[141] = {
-#include "assets/actor_800300_animation_0AD50_records.inc"
-};
-
-static u16 _gActor800300Animation0AD50Indices[20] = {
-#include "assets/actor_800300_animation_0AD50_indices.inc"
-};
-
-static AnimationSet _gActor800300Animation0AD50 = {
-    _gActor800300Animation0AD50Records,
-    _gActor800300Animation0AD50Indices,
-    { NULL, _gActor800300Animation0AD50Bank1, NULL, NULL, _gActor800300Animation0AD50Bank4, NULL, NULL, NULL },
-};
-
-AnimationSet* gActor800300CompanionAnimationBank[ANIMATION_BANK_SET_CAPACITY] = {
-    NULL,
-    &_gActor800300Animation07E3C,
-    &_gActor800300Animation08218,
-    &_gActor800300Animation08618,
-    &_gActor800300Animation09194,
-    &_gActor800300Animation09478,
-    &_gActor800300Animation0981C,
-    &_gActor800300Animation07E3C,
-    &_gActor800300Animation07E3C,
-    &_gActor800300Animation07E3C,
-    &_gActor800300Animation07E3C,
-    &_gActor800300Animation07E3C,
-    &_gActor800300Animation07E3C,
-    &_gActor800300Animation07E3C,
-    &_gActor800300Animation07E3C,
-    &_gActor800300Animation07E3C,
-    &_gActor800300Animation0A9F8,
-    &_gActor800300Animation0AD50,
-    &_gActor800300Animation0A4D4,
-    &_gActor800300Animation07E3C,
-    &_gActor800300Animation07E3C,
-    &_gActor800300Animation07E3C,
-    &_gActor800300Animation07E3C,
-    &_gActor800300Animation09D10,
-    &_gActor800300Animation07E3C,
-    &_gActor800300Animation07E3C,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    &_gActor800300Animation07E3C,
-    &_gActor800300Animation07E3C,
-    &_gActor800300Animation07E3C,
-    &_gActor800300Animation07E3C,
-    &_gActor800300Animation07E3C,
-    &_gActor800300Animation07E3C,
-    &_gActor800300Animation07E3C,
-    &_gActor800300Animation07E3C,
-    &_gActor800300Animation07E3C,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-};
+#include "assets/characters/eve/companion_bank.inc"
 
 /// Stages a Q12 movement or pushback heading for all three motion contexts.
 ///

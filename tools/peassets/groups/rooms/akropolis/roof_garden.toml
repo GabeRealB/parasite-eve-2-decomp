@@ -1,0 +1,54 @@
+# The assets of the group rooms/akropolis/roof_garden, each named rooms/akropolis/roof_garden/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[swat_bank]
+type = "animation_bank"
+schema = "rooms/akropolis/roof_garden/swat_schema"
+symbol = "_gViewFigureAnimSets"
+
+[swat_bank.clips]
+radio_call_1 = "rooms/akropolis/roof_garden/swat_radio_call_1"
+radio_call_2 = "rooms/akropolis/roof_garden/swat_radio_call_2"
+radio_call_3 = "rooms/akropolis/roof_garden/swat_radio_call_3"
+radio_call_4 = "rooms/akropolis/roof_garden/swat_radio_call_4"
+radio_call_5 = "rooms/akropolis/roof_garden/swat_radio_call_5"
+
+[swat_member]
+type = "pe2pkg"
+embedded = [
+    "actor_110800_model_060A0",
+    { name = "swat_radio_call_1", offset = 0x0624C, size = 0x4CC, address = 0x8013806C },
+    { name = "swat_radio_call_2", offset = 0x06718, size = 0x3AC, address = 0x80138538 },
+    { name = "swat_radio_call_3", offset = 0x06AC4, size = 0x5B4, address = 0x801388E4 },
+    { name = "swat_radio_call_4", offset = 0x07078, size = 0x6BC, address = 0x80138E98 },
+    { name = "swat_radio_call_5", offset = 0x07734, size = 0x970, address = 0x80139554 },
+    { name = "swat_bank", offset = 0x080D4, size = 0x1C, address = 0x80139EF4 },
+]
+package_name = "actor_110800"
+parent = "acropolis_roof_garden"
+required = true
+sha1 = "9af3abc89cf5e9fef33ffd375426c6fa19634630"
+
+[swat_schema]
+type = "animation_schema"
+slots = ["", "radio_call_1", "radio_call_2", "radio_call_3", "radio_call_4", "radio_call_5"]
+
+[swat_radio_call_1]
+type = "clip"
+rig = "characters/swat_member_2/rig"
+
+[swat_radio_call_2]
+type = "clip"
+rig = "characters/swat_member_2/rig"
+
+[swat_radio_call_3]
+type = "clip"
+rig = "characters/swat_member_2/rig"
+
+[swat_radio_call_4]
+type = "clip"
+rig = "characters/swat_member_2/rig"
+
+[swat_radio_call_5]
+type = "clip"
+rig = "characters/swat_member_2/rig"

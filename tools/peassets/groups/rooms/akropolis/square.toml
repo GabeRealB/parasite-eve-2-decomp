@@ -227,6 +227,13 @@ sha1 = "b65a98fdbc62e4f9445592ea0d2046ee2a181f3d"
 type = "bs"
 sha1 = "334608feb4e2818b0ddc84405181a536d37247d0"
 
+[grinning_stranger]
+type = "pe2pkg"
+embedded = ["actor_111800_animation_06208"]
+package_name = "actor_111800"
+required = true
+sha1 = "d97bb6dbf0ebb661e14214507cac320193b923c2"
+
 [view10_background]
 type = "bs"
 sha1 = "54d01913c16d951fd02dbab1fe576e98a6a41fc0"

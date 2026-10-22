@@ -21,7 +21,7 @@ static void _oddStrangerDormantScripted(Task* task)
     enemy = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
         model                                                     = task->extra.tmd;
-        _gOddStrangerAnimSets[ODD_STRANGER_ANIM_DORMANT_SCRIPTED] = &_gOddStrangerScriptedDormantAnimSet;
+        _gOddStrangerAnimSets[ODD_STRANGER_ANIM_DORMANT_SCRIPTED] = &_gStrangerOddScriptedDormantClip;
         work->animId                                              = ODD_STRANGER_ANIM_DORMANT_SCRIPTED;
         work->animRequest                                         = ODD_STRANGER_ANIM_REQUEST_RESET;
         model->flags                                              = 0;

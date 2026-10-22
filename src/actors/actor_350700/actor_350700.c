@@ -122,10 +122,10 @@ enum { ACTOR_350700_KYLE_WALK_VELOCITY_ONE = 0x10000 };
 /// translation. The fourth VECTOR word is zero and is not part of the motion.
 static const VECTOR _gActor350700KyleMadiganForwardWalkVelocity = { 0, 0, 32 * ACTOR_350700_KYLE_WALK_VELOCITY_ONE, 0 };
 
-static TmdSource _gActor350700KyleMadiganBody;
-static TmdSource _gActor350700KyleMadiganHandRight;
-static TmdSource _gActor350700KyleMadiganHandLeft;
-static TmdSource _gActor350700KyleMadiganGun;
+extern TmdSource gKyleBody;
+extern TmdSource gKyleHandRight;
+extern TmdSource gKyleHandLeft;
+extern TmdSource gKyleP229;
 static s32       _actorMsgPlaceEuler(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);
 static s32       _actor350700KyleMadiganWalkerSetDrawModeMsg(Task* task, s32 msgId, s32 mode, s32 unusedArg);
 static s32       _actor350700KyleMadiganWalkerIgnoreCommandMsg(Task* task, s32 msgId, s32 unusedFirstArg, s32 unusedArg);
@@ -135,138 +135,16 @@ static void      _actor350700KyleMadiganWalkerTask(Task* task);
 static s32  _actor350700ReverseWalkCommandMsg(Task* task, s32 msgId, const ActorCommand* command, s32 unusedArg);
 static void _actor350700ReverseWalkTask(Task* task);
 
-static TmdBone _gActor350700EveBreaMaskedBodySkeleton[19] = {
-#include "assets/eve_brea_masked_body_skeleton.inc"
-};
+#include "assets/characters/eve/masked_body.inc"
 
-static u32 _gActor350700EveBreaMaskedBodyPartVerts[19] = {
-#include "assets/eve_brea_masked_body_partVerts.inc"
-};
-
-static SVECTOR _gActor350700EveBreaMaskedBodyVerts[312] = {
-#include "assets/eve_brea_masked_body_verts.inc"
-};
-
-static SVECTOR _gActor350700EveBreaMaskedBodyNormals[338] = {
-#include "assets/eve_brea_masked_body_normals.inc"
-};
-
-static u32 _gActor350700EveBreaMaskedBodyStream[3463] = {
-#include "assets/eve_brea_masked_body_stream.inc"
-};
-
-static TmdSource _gActor350700EveBreaMaskedBody = {
-    0,
-    18392,
-    6232,
-    19,
-    _gActor350700EveBreaMaskedBodyPartVerts,
-    _gActor350700EveBreaMaskedBodyVerts,
-    _gActor350700EveBreaMaskedBodyNormals,
-    _gActor350700EveBreaMaskedBodySkeleton,
-    _gActor350700EveBreaMaskedBodyStream,
-};
-
-static AnimationPackedPose _gActor350700Animation06AB8Bank1[2] = {
-#include "assets/actor_350700_animation_06AB8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor350700Animation06AB8Bank4[23] = {
-#include "assets/actor_350700_animation_06AB8_bank4.inc"
-};
-
-static AnimationRecord _gActor350700Animation06AB8Records[84] = {
-#include "assets/actor_350700_animation_06AB8_records.inc"
-};
-
-static u16 _gActor350700Animation06AB8Indices[20] = {
-#include "assets/actor_350700_animation_06AB8_indices.inc"
-};
-
-static AnimationSet _gActor350700Animation06AB8 = {
-    _gActor350700Animation06AB8Records,
-    _gActor350700Animation06AB8Indices,
-    { NULL, _gActor350700Animation06AB8Bank1, NULL, NULL, _gActor350700Animation06AB8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor350700Animation0769CBank1[22] = {
-#include "assets/actor_350700_animation_0769C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor350700Animation0769CBank4[298] = {
-#include "assets/actor_350700_animation_0769C_bank4.inc"
-};
-
-static AnimationRecord _gActor350700Animation0769CRecords[377] = {
-#include "assets/actor_350700_animation_0769C_records.inc"
-};
-
-static u16 _gActor350700Animation0769CIndices[20] = {
-#include "assets/actor_350700_animation_0769C_indices.inc"
-};
-
-static AnimationSet _gActor350700Animation0769C = {
-    _gActor350700Animation0769CRecords,
-    _gActor350700Animation0769CIndices,
-    { NULL, _gActor350700Animation0769CBank1, NULL, NULL, _gActor350700Animation0769CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor350700Animation07AA4Bank1[5] = {
-#include "assets/actor_350700_animation_07AA4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor350700Animation07AA4Bank4[76] = {
-#include "assets/actor_350700_animation_07AA4_bank4.inc"
-};
-
-static AnimationRecord _gActor350700Animation07AA4Records[147] = {
-#include "assets/actor_350700_animation_07AA4_records.inc"
-};
-
-static u16 _gActor350700Animation07AA4Indices[20] = {
-#include "assets/actor_350700_animation_07AA4_indices.inc"
-};
-
-static AnimationSet _gActor350700Animation07AA4 = {
-    _gActor350700Animation07AA4Records,
-    _gActor350700Animation07AA4Indices,
-    { NULL, _gActor350700Animation07AA4Bank1, NULL, NULL, _gActor350700Animation07AA4Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor350700Animation07EB0Bank1[5] = {
-#include "assets/actor_350700_animation_07EB0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor350700Animation07EB0Bank4[89] = {
-#include "assets/actor_350700_animation_07EB0_bank4.inc"
-};
-
-static AnimationRecord _gActor350700Animation07EB0Records[135] = {
-#include "assets/actor_350700_animation_07EB0_records.inc"
-};
-
-static u16 _gActor350700Animation07EB0Indices[20] = {
-#include "assets/actor_350700_animation_07EB0_indices.inc"
-};
-
-static AnimationSet _gActor350700Animation07EB0 = {
-    _gActor350700Animation07EB0Records,
-    _gActor350700Animation07EB0Indices,
-    { NULL, _gActor350700Animation07EB0Bank1, NULL, NULL, _gActor350700Animation07EB0Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/shelter/b6_training_room/eve_and_kyle_clips_1.inc"
 
 /// Masked Eve's bank-0 body animation sets: clip 0 absent, clips 1..4 loaded.
 ///
 /// These are the nineteen-part reversing walker's clips; its other body uses
 /// a separate bank. `AnimationPlayRequest::animationId` selects a clip after
 /// outer-bank selection. Playback borrows this table and its sets while loaded.
-static AnimationSet* _gActor350700BodyAnimSets[5] = {
-    NULL,
-    &_gActor350700Animation06AB8,
-    &_gActor350700Animation0769C,
-    &_gActor350700Animation07AA4,
-    &_gActor350700Animation07EB0,
-};
+#include "assets/rooms/shelter/b6_training_room/eve_bank.inc"
 
 /// Carrier-local banks for nineteen-part playback: only bank 0, clips 1..4.
 ///
@@ -276,7 +154,7 @@ static AnimationSet** const _gActorMotionAnimBanks19[1] SECTION(".data") = {
     _gActor350700BodyAnimSets,
 };
 
-TaskDesc gActor350700MaskedEveReverseWalkTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor350700ReverseWalkTask, { .model = &_gActor350700EveBreaMaskedBody } };
+TaskDesc gActor350700MaskedEveReverseWalkTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor350700ReverseWalkTask, { .model = &gEveMaskedBody } };
 
 /// Terminated message table of this carrier's nineteen-part reversing walker.
 ///
@@ -292,256 +170,21 @@ static TaskMessageEntry _gReverseWalkMessages[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-static TmdBone _gActor350700KyleMadiganBodySkeleton[20] = {
-#include "assets/kyle_madigan_body_skeleton.inc"
-};
+#include "assets/characters/kyle/body.inc"
 
-static u32 _gActor350700KyleMadiganBodyPartVerts[20] = {
-#include "assets/kyle_madigan_body_partVerts.inc"
-};
+#include "assets/characters/kyle/hand_right.inc"
 
-static SVECTOR _gActor350700KyleMadiganBodyVerts[300] = {
-#include "assets/kyle_madigan_body_verts.inc"
-};
+#include "assets/characters/kyle/hand_left.inc"
 
-static SVECTOR _gActor350700KyleMadiganBodyNormals[298] = {
-#include "assets/kyle_madigan_body_normals.inc"
-};
+#include "assets/characters/kyle/p229.inc"
 
-static u32 _gActor350700KyleMadiganBodyStream[3412] = {
-#include "assets/kyle_madigan_body_stream.inc"
-};
-
-static TmdSource _gActor350700KyleMadiganBody = {
-    0,
-    18224,
-    5696,
-    20,
-    _gActor350700KyleMadiganBodyPartVerts,
-    _gActor350700KyleMadiganBodyVerts,
-    _gActor350700KyleMadiganBodyNormals,
-    _gActor350700KyleMadiganBodySkeleton,
-    _gActor350700KyleMadiganBodyStream,
-};
-
-static TmdBone _gActor350700KyleMadiganHandRightSkeleton[1] = {
-#include "assets/kyle_madigan_hand_right_skeleton.inc"
-};
-
-static u32 _gActor350700KyleMadiganHandRightPartVerts[1] = {
-#include "assets/kyle_madigan_hand_right_partVerts.inc"
-};
-
-static SVECTOR _gActor350700KyleMadiganHandRightVerts[23] = {
-#include "assets/kyle_madigan_hand_right_verts.inc"
-};
-
-static SVECTOR _gActor350700KyleMadiganHandRightNormals[23] = {
-#include "assets/kyle_madigan_hand_right_normals.inc"
-};
-
-static u32 _gActor350700KyleMadiganHandRightStream[166] = {
-#include "assets/kyle_madigan_hand_right_stream.inc"
-};
-
-static TmdSource _gActor350700KyleMadiganHandRight = {
-    0,
-    1148,
-    0,
-    1,
-    _gActor350700KyleMadiganHandRightPartVerts,
-    _gActor350700KyleMadiganHandRightVerts,
-    _gActor350700KyleMadiganHandRightNormals,
-    _gActor350700KyleMadiganHandRightSkeleton,
-    _gActor350700KyleMadiganHandRightStream,
-};
-
-static TmdBone _gActor350700KyleMadiganHandLeftSkeleton[1] = {
-#include "assets/kyle_madigan_hand_left_skeleton.inc"
-};
-
-static u32 _gActor350700KyleMadiganHandLeftPartVerts[1] = {
-#include "assets/kyle_madigan_hand_left_partVerts.inc"
-};
-
-static SVECTOR _gActor350700KyleMadiganHandLeftVerts[27] = {
-#include "assets/kyle_madigan_hand_left_verts.inc"
-};
-
-static SVECTOR _gActor350700KyleMadiganHandLeftNormals[27] = {
-#include "assets/kyle_madigan_hand_left_normals.inc"
-};
-
-static u32 _gActor350700KyleMadiganHandLeftStream[189] = {
-#include "assets/kyle_madigan_hand_left_stream.inc"
-};
-
-static TmdSource _gActor350700KyleMadiganHandLeft = {
-    0,
-    1328,
-    0,
-    1,
-    _gActor350700KyleMadiganHandLeftPartVerts,
-    _gActor350700KyleMadiganHandLeftVerts,
-    _gActor350700KyleMadiganHandLeftNormals,
-    _gActor350700KyleMadiganHandLeftSkeleton,
-    _gActor350700KyleMadiganHandLeftStream,
-};
-
-static TmdBone _gActor350700KyleMadiganGunSkeleton[1] = {
-#include "assets/kyle_madigan_gun_skeleton.inc"
-};
-
-static u32 _gActor350700KyleMadiganGunPartVerts[1] = {
-#include "assets/kyle_madigan_gun_partVerts.inc"
-};
-
-static SVECTOR _gActor350700KyleMadiganGunVerts[22] = {
-#include "assets/kyle_madigan_gun_verts.inc"
-};
-
-static SVECTOR _gActor350700KyleMadiganGunNormals[24] = {
-#include "assets/kyle_madigan_gun_normals.inc"
-};
-
-static u32 _gActor350700KyleMadiganGunStream[162] = {
-#include "assets/kyle_madigan_gun_stream.inc"
-};
-
-static TmdSource _gActor350700KyleMadiganGun = {
-    0,
-    1108,
-    0,
-    1,
-    _gActor350700KyleMadiganGunPartVerts,
-    _gActor350700KyleMadiganGunVerts,
-    _gActor350700KyleMadiganGunNormals,
-    _gActor350700KyleMadiganGunSkeleton,
-    _gActor350700KyleMadiganGunStream,
-};
-
-static AnimationPackedPose _gActor350700Animation0DA4CBank1[2] = {
-#include "assets/actor_350700_animation_0DA4C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor350700Animation0DA4CBank4[32] = {
-#include "assets/actor_350700_animation_0DA4C_bank4.inc"
-};
-
-static AnimationRecord _gActor350700Animation0DA4CRecords[101] = {
-#include "assets/actor_350700_animation_0DA4C_records.inc"
-};
-
-static u16 _gActor350700Animation0DA4CIndices[20] = {
-#include "assets/actor_350700_animation_0DA4C_indices.inc"
-};
-
-static AnimationSet _gActor350700Animation0DA4C = {
-    _gActor350700Animation0DA4CRecords,
-    _gActor350700Animation0DA4CIndices,
-    { NULL, _gActor350700Animation0DA4CBank1, NULL, NULL, _gActor350700Animation0DA4CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor350700Animation0DD04Bank1[3] = {
-#include "assets/actor_350700_animation_0DD04_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor350700Animation0DD04Bank4[29] = {
-#include "assets/actor_350700_animation_0DD04_bank4.inc"
-};
-
-static AnimationRecord _gActor350700Animation0DD04Records[116] = {
-#include "assets/actor_350700_animation_0DD04_records.inc"
-};
-
-static u16 _gActor350700Animation0DD04Indices[20] = {
-#include "assets/actor_350700_animation_0DD04_indices.inc"
-};
-
-static AnimationSet _gActor350700Animation0DD04 = {
-    _gActor350700Animation0DD04Records,
-    _gActor350700Animation0DD04Indices,
-    { NULL, _gActor350700Animation0DD04Bank1, NULL, NULL, _gActor350700Animation0DD04Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor350700Animation0E08CBank1[3] = {
-#include "assets/actor_350700_animation_0E08C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor350700Animation0E08CBank4[55] = {
-#include "assets/actor_350700_animation_0E08C_bank4.inc"
-};
-
-static AnimationRecord _gActor350700Animation0E08CRecords[142] = {
-#include "assets/actor_350700_animation_0E08C_records.inc"
-};
-
-static u16 _gActor350700Animation0E08CIndices[20] = {
-#include "assets/actor_350700_animation_0E08C_indices.inc"
-};
-
-static AnimationSet _gActor350700Animation0E08C = {
-    _gActor350700Animation0E08CRecords,
-    _gActor350700Animation0E08CIndices,
-    { NULL, _gActor350700Animation0E08CBank1, NULL, NULL, _gActor350700Animation0E08CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor350700Animation0E284Bank1[2] = {
-#include "assets/actor_350700_animation_0E284_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor350700Animation0E284Bank4[33] = {
-#include "assets/actor_350700_animation_0E284_bank4.inc"
-};
-
-static AnimationRecord _gActor350700Animation0E284Records[67] = {
-#include "assets/actor_350700_animation_0E284_records.inc"
-};
-
-static u16 _gActor350700Animation0E284Indices[20] = {
-#include "assets/actor_350700_animation_0E284_indices.inc"
-};
-
-static AnimationSet _gActor350700Animation0E284 = {
-    _gActor350700Animation0E284Records,
-    _gActor350700Animation0E284Indices,
-    { NULL, _gActor350700Animation0E284Bank1, NULL, NULL, _gActor350700Animation0E284Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor350700Animation0EA78Bank1[20] = {
-#include "assets/actor_350700_animation_0EA78_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor350700Animation0EA78Bank4[164] = {
-#include "assets/actor_350700_animation_0EA78_bank4.inc"
-};
-
-static AnimationRecord _gActor350700Animation0EA78Records[265] = {
-#include "assets/actor_350700_animation_0EA78_records.inc"
-};
-
-static u16 _gActor350700Animation0EA78Indices[20] = {
-#include "assets/actor_350700_animation_0EA78_indices.inc"
-};
-
-static AnimationSet _gActor350700Animation0EA78 = {
-    _gActor350700Animation0EA78Records,
-    _gActor350700Animation0EA78Indices,
-    { NULL, _gActor350700Animation0EA78Bank1, NULL, NULL, _gActor350700Animation0EA78Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/shelter/b6_training_room/eve_and_kyle_clips_2.inc"
 
 /// Kyle Madigan's bank-0 clip table for his twenty-part body rig.
 ///
 /// Clip IDs 1..5 borrow loaded sets; entry 0 is NULL and cannot be played.
 /// The table and animation resources must remain loaded while the rig uses them.
-static AnimationSet* _gActor350700KyleMadiganAnimationBank[6] = {
-    NULL,
-    &_gActor350700Animation0DA4C,
-    &_gActor350700Animation0DD04,
-    &_gActor350700Animation0E08C,
-    &_gActor350700Animation0E284,
-    &_gActor350700Animation0EA78,
-};
+#include "assets/rooms/shelter/b6_training_room/kyle_bank.inc"
 
 /// Actor-motion bank selection for Kyle's twenty-part body (only source.index 0).
 ///
@@ -558,25 +201,25 @@ TaskDesc gActor350700KyleMadiganTaskDescriptors[4] = {
     {
         .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_350700_KYLE_TASK_PRIORITY } },
         .callback = _actor350700KyleMadiganWalkerTask,
-        .data     = { .model = &_gActor350700KyleMadiganBody },
+        .data     = { .model = &gKyleBody },
     },
     // 1: left hand.
     {
         .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_350700_KYLE_TASK_PRIORITY } },
         .callback = _actor350700KyleMadiganAttachmentTask,
-        .data     = { .model = &_gActor350700KyleMadiganHandLeft },
+        .data     = { .model = &gKyleHandLeft },
     },
     // 2: right hand.
     {
         .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_350700_KYLE_TASK_PRIORITY } },
         .callback = _actor350700KyleMadiganAttachmentTask,
-        .data     = { .model = &_gActor350700KyleMadiganHandRight },
+        .data     = { .model = &gKyleHandRight },
     },
     // 3: held gun.
     {
         .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_350700_KYLE_TASK_PRIORITY } },
         .callback = _actor350700KyleMadiganAttachmentTask,
-        .data     = { .model = &_gActor350700KyleMadiganGun },
+        .data     = { .model = &gKyleP229 },
     },
 };
 

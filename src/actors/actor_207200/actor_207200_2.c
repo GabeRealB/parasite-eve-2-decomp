@@ -183,9 +183,9 @@ STATIC_ASSERT_SIZEOF(_Actor207200ContactScratch, 0x48);
 
 /// The records closing three of the overlay's model streams, handed to the
 /// spawned effect as its model through `gTaskBank8Descs[TASK_BANK8_BURST_MODEL_PART_SLOT].data.model`.
-static TmdSource _gActor207200CreepingStrangerBurstLeg;
-static TmdSource _gActor207200CreepingStrangerBurstArm;
-static TmdSource _gActor207200CreepingStrangerBurstHead;
+static TmdSource _gSkullStalkerAndCreepingStrangerCreepingStrangerBurstLeg;
+static TmdSource _gSkullStalkerAndCreepingStrangerCreepingStrangerBurstArm;
+static TmdSource _gSkullStalkerAndCreepingStrangerCreepingStrangerBurstHead;
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
@@ -261,420 +261,24 @@ static void _actor207200CreepingStrangerTask(Task* task);
 /// table and this writable record must remain loaded until enemy teardown.
 static EnemyParams _gActor207200CreepingStrangerParams = { gActor207200CreepingStrangerAttacks, 250, 15, 48, 1, 50, 10, 0, 0 };
 
-static TmdBone _gActor207200CreepingStrangerBodySkeleton[7] = {
-#include "assets/creeping_stranger_body_skeleton.inc"
-};
+#include "assets/encounters/skull_stalker_and_creeping_stranger/creeping_stranger_body.inc"
 
-static u32 _gActor207200CreepingStrangerBodyPartVerts[7] = {
-#include "assets/creeping_stranger_body_partVerts.inc"
-};
+#include "assets/encounters/skull_stalker_and_creeping_stranger/creeping_stranger_burst_leg.inc"
 
-static SVECTOR _gActor207200CreepingStrangerBodyVerts[125] = {
-#include "assets/creeping_stranger_body_verts.inc"
-};
+#include "assets/encounters/skull_stalker_and_creeping_stranger/creeping_stranger_burst_arm.inc"
 
-static SVECTOR _gActor207200CreepingStrangerBodyNormals[136] = {
-#include "assets/creeping_stranger_body_normals.inc"
-};
+#include "assets/encounters/skull_stalker_and_creeping_stranger/creeping_stranger_burst_head.inc"
 
-static u32 _gActor207200CreepingStrangerBodyStream[1592] = {
-#include "assets/creeping_stranger_body_stream.inc"
-};
+#include "assets/encounters/skull_stalker_and_creeping_stranger/package_2_clips_2.inc"
 
-static TmdSource _gActor207200CreepingStrangerBody = {
-    0,
-    8356,
-    2504,
-    7,
-    _gActor207200CreepingStrangerBodyPartVerts,
-    _gActor207200CreepingStrangerBodyVerts,
-    _gActor207200CreepingStrangerBodyNormals,
-    _gActor207200CreepingStrangerBodySkeleton,
-    _gActor207200CreepingStrangerBodyStream,
-};
-
-static TmdBone _gActor207200CreepingStrangerBurstLegSkeleton[1] = {
-#include "assets/creeping_stranger_burst_leg_skeleton.inc"
-};
-
-static u32 _gActor207200CreepingStrangerBurstLegPartVerts[1] = {
-#include "assets/creeping_stranger_burst_leg_partVerts.inc"
-};
-
-static SVECTOR _gActor207200CreepingStrangerBurstLegVerts[8] = {
-#include "assets/creeping_stranger_burst_leg_verts.inc"
-};
-
-static SVECTOR _gActor207200CreepingStrangerBurstLegNormals[9] = {
-#include "assets/creeping_stranger_burst_leg_normals.inc"
-};
-
-static u32 _gActor207200CreepingStrangerBurstLegStream[61] = {
-#include "assets/creeping_stranger_burst_leg_stream.inc"
-};
-
-static TmdSource _gActor207200CreepingStrangerBurstLeg = {
-    0,
-    368,
-    0,
-    1,
-    _gActor207200CreepingStrangerBurstLegPartVerts,
-    _gActor207200CreepingStrangerBurstLegVerts,
-    _gActor207200CreepingStrangerBurstLegNormals,
-    _gActor207200CreepingStrangerBurstLegSkeleton,
-    _gActor207200CreepingStrangerBurstLegStream,
-};
-
-static TmdBone _gActor207200CreepingStrangerBurstArmSkeleton[1] = {
-#include "assets/creeping_stranger_burst_arm_skeleton.inc"
-};
-
-static u32 _gActor207200CreepingStrangerBurstArmPartVerts[1] = {
-#include "assets/creeping_stranger_burst_arm_partVerts.inc"
-};
-
-static SVECTOR _gActor207200CreepingStrangerBurstArmVerts[20] = {
-#include "assets/creeping_stranger_burst_arm_verts.inc"
-};
-
-static SVECTOR _gActor207200CreepingStrangerBurstArmNormals[22] = {
-#include "assets/creeping_stranger_burst_arm_normals.inc"
-};
-
-static u32 _gActor207200CreepingStrangerBurstArmStream[195] = {
-#include "assets/creeping_stranger_burst_arm_stream.inc"
-};
-
-static TmdSource _gActor207200CreepingStrangerBurstArm = {
-    0,
-    1272,
-    0,
-    1,
-    _gActor207200CreepingStrangerBurstArmPartVerts,
-    _gActor207200CreepingStrangerBurstArmVerts,
-    _gActor207200CreepingStrangerBurstArmNormals,
-    _gActor207200CreepingStrangerBurstArmSkeleton,
-    _gActor207200CreepingStrangerBurstArmStream,
-};
-
-static TmdBone _gActor207200CreepingStrangerBurstHeadSkeleton[1] = {
-#include "assets/creeping_stranger_burst_head_skeleton.inc"
-};
-
-static u32 _gActor207200CreepingStrangerBurstHeadPartVerts[1] = {
-#include "assets/creeping_stranger_burst_head_partVerts.inc"
-};
-
-static SVECTOR _gActor207200CreepingStrangerBurstHeadVerts[33] = {
-#include "assets/creeping_stranger_burst_head_verts.inc"
-};
-
-static SVECTOR _gActor207200CreepingStrangerBurstHeadNormals[40] = {
-#include "assets/creeping_stranger_burst_head_normals.inc"
-};
-
-static u32 _gActor207200CreepingStrangerBurstHeadStream[316] = {
-#include "assets/creeping_stranger_burst_head_stream.inc"
-};
-
-static TmdSource _gActor207200CreepingStrangerBurstHead = {
-    0,
-    2116,
-    0,
-    1,
-    _gActor207200CreepingStrangerBurstHeadPartVerts,
-    _gActor207200CreepingStrangerBurstHeadVerts,
-    _gActor207200CreepingStrangerBurstHeadNormals,
-    _gActor207200CreepingStrangerBurstHeadSkeleton,
-    _gActor207200CreepingStrangerBurstHeadStream,
-};
-
-static AnimationPackedPose _gActor207200Animation07BF8Bank1[8] = {
-#include "assets/actor_207200_animation_07BF8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor207200Animation07BF8Bank4[27] = {
-#include "assets/actor_207200_animation_07BF8_bank4.inc"
-};
-
-static AnimationRecord _gActor207200Animation07BF8Records[72] = {
-#include "assets/actor_207200_animation_07BF8_records.inc"
-};
-
-static u16 _gActor207200Animation07BF8Indices[8] = {
-#include "assets/actor_207200_animation_07BF8_indices.inc"
-};
-
-static AnimationSet _gActor207200Animation07BF8 = {
-    _gActor207200Animation07BF8Records,
-    _gActor207200Animation07BF8Indices,
-    { NULL, _gActor207200Animation07BF8Bank1, NULL, NULL, _gActor207200Animation07BF8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor207200Animation07F34Bank1[16] = {
-#include "assets/actor_207200_animation_07F34_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor207200Animation07F34Bank4[55] = {
-#include "assets/actor_207200_animation_07F34_bank4.inc"
-};
-
-static AnimationRecord _gActor207200Animation07F34Records[90] = {
-#include "assets/actor_207200_animation_07F34_records.inc"
-};
-
-static u16 _gActor207200Animation07F34Indices[8] = {
-#include "assets/actor_207200_animation_07F34_indices.inc"
-};
-
-static AnimationSet _gActor207200Animation07F34 = {
-    _gActor207200Animation07F34Records,
-    _gActor207200Animation07F34Indices,
-    { NULL, _gActor207200Animation07F34Bank1, NULL, NULL, _gActor207200Animation07F34Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor207200Animation08248Bank1[14] = {
-#include "assets/actor_207200_animation_08248_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor207200Animation08248Bank4[55] = {
-#include "assets/actor_207200_animation_08248_bank4.inc"
-};
-
-static AnimationRecord _gActor207200Animation08248Records[86] = {
-#include "assets/actor_207200_animation_08248_records.inc"
-};
-
-static u16 _gActor207200Animation08248Indices[8] = {
-#include "assets/actor_207200_animation_08248_indices.inc"
-};
-
-static AnimationSet _gActor207200Animation08248 = {
-    _gActor207200Animation08248Records,
-    _gActor207200Animation08248Indices,
-    { NULL, _gActor207200Animation08248Bank1, NULL, NULL, _gActor207200Animation08248Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor207200Animation08540Bank1[14] = {
-#include "assets/actor_207200_animation_08540_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor207200Animation08540Bank4[51] = {
-#include "assets/actor_207200_animation_08540_bank4.inc"
-};
-
-static AnimationRecord _gActor207200Animation08540Records[83] = {
-#include "assets/actor_207200_animation_08540_records.inc"
-};
-
-static u16 _gActor207200Animation08540Indices[8] = {
-#include "assets/actor_207200_animation_08540_indices.inc"
-};
-
-static AnimationSet _gActor207200Animation08540 = {
-    _gActor207200Animation08540Records,
-    _gActor207200Animation08540Indices,
-    { NULL, _gActor207200Animation08540Bank1, NULL, NULL, _gActor207200Animation08540Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor207200Animation08B98Bank1[31] = {
-#include "assets/actor_207200_animation_08B98_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor207200Animation08B98Bank4[121] = {
-#include "assets/actor_207200_animation_08B98_bank4.inc"
-};
-
-static AnimationRecord _gActor207200Animation08B98Records[178] = {
-#include "assets/actor_207200_animation_08B98_records.inc"
-};
-
-static u16 _gActor207200Animation08B98Indices[8] = {
-#include "assets/actor_207200_animation_08B98_indices.inc"
-};
-
-static AnimationSet _gActor207200Animation08B98 = {
-    _gActor207200Animation08B98Records,
-    _gActor207200Animation08B98Indices,
-    { NULL, _gActor207200Animation08B98Bank1, NULL, NULL, _gActor207200Animation08B98Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor207200Animation09018Bank1[21] = {
-#include "assets/actor_207200_animation_09018_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor207200Animation09018Bank4[90] = {
-#include "assets/actor_207200_animation_09018_bank4.inc"
-};
-
-static AnimationRecord _gActor207200Animation09018Records[121] = {
-#include "assets/actor_207200_animation_09018_records.inc"
-};
-
-static u16 _gActor207200Animation09018Indices[8] = {
-#include "assets/actor_207200_animation_09018_indices.inc"
-};
-
-static AnimationSet _gActor207200Animation09018 = {
-    _gActor207200Animation09018Records,
-    _gActor207200Animation09018Indices,
-    { NULL, _gActor207200Animation09018Bank1, NULL, NULL, _gActor207200Animation09018Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor207200Animation093ECBank1[19] = {
-#include "assets/actor_207200_animation_093EC_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor207200Animation093ECBank4[72] = {
-#include "assets/actor_207200_animation_093EC_bank4.inc"
-};
-
-static AnimationRecord _gActor207200Animation093ECRecords[102] = {
-#include "assets/actor_207200_animation_093EC_records.inc"
-};
-
-static u16 _gActor207200Animation093ECIndices[8] = {
-#include "assets/actor_207200_animation_093EC_indices.inc"
-};
-
-static AnimationSet _gActor207200Animation093EC = {
-    _gActor207200Animation093ECRecords,
-    _gActor207200Animation093ECIndices,
-    { NULL, _gActor207200Animation093ECBank1, NULL, NULL, _gActor207200Animation093ECBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor207200Animation09704Bank1[14] = {
-#include "assets/actor_207200_animation_09704_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor207200Animation09704Bank4[59] = {
-#include "assets/actor_207200_animation_09704_bank4.inc"
-};
-
-static AnimationRecord _gActor207200Animation09704Records[83] = {
-#include "assets/actor_207200_animation_09704_records.inc"
-};
-
-static u16 _gActor207200Animation09704Indices[8] = {
-#include "assets/actor_207200_animation_09704_indices.inc"
-};
-
-static AnimationSet _gActor207200Animation09704 = {
-    _gActor207200Animation09704Records,
-    _gActor207200Animation09704Indices,
-    { NULL, _gActor207200Animation09704Bank1, NULL, NULL, _gActor207200Animation09704Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor207200Animation099F4Bank1[14] = {
-#include "assets/actor_207200_animation_099F4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor207200Animation099F4Bank4[54] = {
-#include "assets/actor_207200_animation_099F4_bank4.inc"
-};
-
-static AnimationRecord _gActor207200Animation099F4Records[78] = {
-#include "assets/actor_207200_animation_099F4_records.inc"
-};
-
-static u16 _gActor207200Animation099F4Indices[8] = {
-#include "assets/actor_207200_animation_099F4_indices.inc"
-};
-
-static AnimationSet _gActor207200Animation099F4 = {
-    _gActor207200Animation099F4Records,
-    _gActor207200Animation099F4Indices,
-    { NULL, _gActor207200Animation099F4Bank1, NULL, NULL, _gActor207200Animation099F4Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor207200Animation09D08Bank1[13] = {
-#include "assets/actor_207200_animation_09D08_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor207200Animation09D08Bank4[59] = {
-#include "assets/actor_207200_animation_09D08_bank4.inc"
-};
-
-static AnimationRecord _gActor207200Animation09D08Records[85] = {
-#include "assets/actor_207200_animation_09D08_records.inc"
-};
-
-static u16 _gActor207200Animation09D08Indices[8] = {
-#include "assets/actor_207200_animation_09D08_indices.inc"
-};
-
-static AnimationSet _gActor207200Animation09D08 = {
-    _gActor207200Animation09D08Records,
-    _gActor207200Animation09D08Indices,
-    { NULL, _gActor207200Animation09D08Bank1, NULL, NULL, _gActor207200Animation09D08Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor207200Animation09FE4Bank1[15] = {
-#include "assets/actor_207200_animation_09FE4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor207200Animation09FE4Bank4[48] = {
-#include "assets/actor_207200_animation_09FE4_bank4.inc"
-};
-
-static AnimationRecord _gActor207200Animation09FE4Records[76] = {
-#include "assets/actor_207200_animation_09FE4_records.inc"
-};
-
-static u16 _gActor207200Animation09FE4Indices[8] = {
-#include "assets/actor_207200_animation_09FE4_indices.inc"
-};
-
-static AnimationSet _gActor207200Animation09FE4 = {
-    _gActor207200Animation09FE4Records,
-    _gActor207200Animation09FE4Indices,
-    { NULL, _gActor207200Animation09FE4Bank1, NULL, NULL, _gActor207200Animation09FE4Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor207200Animation0A080Bank1[2] = {
-#include "assets/actor_207200_animation_0A080_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor207200Animation0A080Bank4[5] = {
-#include "assets/actor_207200_animation_0A080_bank4.inc"
-};
-
-static AnimationRecord _gActor207200Animation0A080Records[14] = {
-#include "assets/actor_207200_animation_0A080_records.inc"
-};
-
-static u16 _gActor207200Animation0A080Indices[8] = {
-#include "assets/actor_207200_animation_0A080_indices.inc"
-};
-
-static AnimationSet _gActor207200Animation0A080 = {
-    _gActor207200Animation0A080Records,
-    _gActor207200Animation0A080Indices,
-    { NULL, _gActor207200Animation0A080Bank1, NULL, NULL, _gActor207200Animation0A080Bank4, NULL, NULL, NULL },
-};
-
-TaskDesc gActor207200CreepingStrangerTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor207200CreepingStrangerTask, { .model = &_gActor207200CreepingStrangerBody } };
+TaskDesc gActor207200CreepingStrangerTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor207200CreepingStrangerTask, { .model = &_gSkullStalkerAndCreepingStrangerCreepingStrangerBody } };
 
 /// Creeping Stranger body clips indexed by `ACTOR_207200_ANIM_*`.
 ///
 /// Slot 0 is empty and behavior selects clips 1..11. The thirteenth pointer
 /// is retained without a recovered selector. Live rigs borrow the table and
 /// all clip data for their lifetime, so this package must remain loaded.
-static AnimationSet* _gActor207200CreepingStrangerAnimationSets[13] = {
-    NULL,
-    &_gActor207200Animation07BF8,
-    &_gActor207200Animation07F34,
-    &_gActor207200Animation08248,
-    &_gActor207200Animation08540,
-    &_gActor207200Animation08B98,
-    &_gActor207200Animation09018,
-    &_gActor207200Animation093EC,
-    &_gActor207200Animation09704,
-    &_gActor207200Animation099F4,
-    &_gActor207200Animation09D08,
-    &_gActor207200Animation09FE4,
-    &_gActor207200Animation0A080,
-};
+#include "assets/encounters/skull_stalker_and_creeping_stranger/creeping_stranger_bank.inc"
 
 /// Zero local XYZ offset for damage-hit effects at the Creeping Stranger's head part.
 ///
@@ -1695,7 +1299,7 @@ static void _actor207200CreepingStrangerBurstHead(Task* task)
 
     effectSpawn(EFFECT_CRITICAL_HIT, task->extra.tmd->coords, 0, NULL);
     worldTargetAddReadoutAmount(&enemy->node, enemy->hp - 1, 0);
-    gTaskBank8Descs[TASK_BANK8_BURST_MODEL_PART_SLOT].data.model = &_gActor207200CreepingStrangerBurstHead;
+    gTaskBank8Descs[TASK_BANK8_BURST_MODEL_PART_SLOT].data.model = &_gSkullStalkerAndCreepingStrangerCreepingStrangerBurstHead;
     burstEffect                                                  = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, task->extra.tmd->coords + ACTOR_207200_CREEPING_STRANGER_HEAD_PART, 0, NULL);
     if (burstEffect != NULL) {
         _actor207200CreepingStrangerCopyBurstTextures(burstEffect->task, task);
@@ -1752,13 +1356,13 @@ static void _actor207200CreepingStrangerBurstRandomPart(Task* task)
     switch (partRoll) {
         case 0:
         case 1:
-            ACTOR_207200_CREEPING_STRANGER_SPAWN_BURST_PART(&_gActor207200CreepingStrangerBurstHead, ACTOR_207200_CREEPING_STRANGER_HEAD_PART, task, burstEffect);
+            ACTOR_207200_CREEPING_STRANGER_SPAWN_BURST_PART(&_gSkullStalkerAndCreepingStrangerCreepingStrangerBurstHead, ACTOR_207200_CREEPING_STRANGER_HEAD_PART, task, burstEffect);
             break;
         case 2:
-            ACTOR_207200_CREEPING_STRANGER_SPAWN_BURST_PART(&_gActor207200CreepingStrangerBurstArm, ACTOR_207200_CREEPING_STRANGER_ARM_PART, task, burstEffect);
+            ACTOR_207200_CREEPING_STRANGER_SPAWN_BURST_PART(&_gSkullStalkerAndCreepingStrangerCreepingStrangerBurstArm, ACTOR_207200_CREEPING_STRANGER_ARM_PART, task, burstEffect);
             break;
         case 3:
-            ACTOR_207200_CREEPING_STRANGER_SPAWN_BURST_PART(&_gActor207200CreepingStrangerBurstLeg, ACTOR_207200_CREEPING_STRANGER_LEG_PART, task, burstEffect);
+            ACTOR_207200_CREEPING_STRANGER_SPAWN_BURST_PART(&_gSkullStalkerAndCreepingStrangerCreepingStrangerBurstLeg, ACTOR_207200_CREEPING_STRANGER_LEG_PART, task, burstEffect);
             break;
     }
     effectSpawn(EFFECT_030, task->extra.tmd->coords + ACTOR_207200_CREEPING_STRANGER_HEAD_PART, ACTOR_207200_CREEPING_STRANGER_BURST_PARTICLE_SPEED, NULL);

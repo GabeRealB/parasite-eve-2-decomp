@@ -1,0 +1,64 @@
+# The assets of the group rooms/shelter/b6_training_room, each named rooms/shelter/b6_training_room/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[eve_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b6_training_room/eve_schema"
+symbol = "_gActor350700BodyAnimSets"
+
+[eve_bank.clips]
+idle = "characters/eve/idle"
+walk = "characters/eve/eve_walk"
+walk_backward = "characters/eve/walk_backward"
+arrival = "characters/eve/turn"
+
+[kyle_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b6_training_room/kyle_schema"
+symbol = "_gActor350700KyleMadiganAnimationBank"
+
+[kyle_bank.clips]
+idle = "characters/pierce/rest"
+stand = "characters/soldier_b/stride_walk_anim_anim_08"
+pilot_line = "rooms/shelter/b6_training_room/kyle_pilot_line"
+mission_line = "rooms/shelter/b6_training_room/kyle_mission_line"
+mission_line_end = "rooms/shelter/b6_training_room/kyle_mission_line_end"
+
+[eve_schema]
+type = "animation_schema"
+slots = ["", "idle", "walk", "walk_backward", "arrival"]
+
+[kyle_schema]
+type = "animation_schema"
+slots = ["", "idle", "stand", "pilot_line", "mission_line", "mission_line_end"]
+
+[eve_and_kyle]
+type = "pe2pkg"
+embedded = [
+    { asset = "characters/eve/idle", offset = 0x068CC, size = 0x214, address = 0x801686EC },
+    { asset = "characters/eve/eve_walk", offset = 0x06AE0, size = 0xBE4, address = 0x80168900 },
+    { asset = "characters/eve/walk_backward", offset = 0x076C4, size = 0x408, address = 0x801694E4 },
+    { asset = "characters/eve/turn", offset = 0x07ACC, size = 0x40C, address = 0x801698EC },
+    { name = "eve_bank", offset = 0x07ED8, size = 0x14, address = 0x80169CF8 },
+    { asset = "characters/pierce/rest", offset = 0x0D7F8, size = 0x27C, address = 0x8016F618 },
+    { asset = "characters/soldier_b/stride_walk_anim_anim_08", offset = 0x0DA74, size = 0x2B8, address = 0x8016F894 },
+    { name = "kyle_pilot_line", offset = 0x0DD2C, size = 0x388, address = 0x8016FB4C },
+    { name = "kyle_mission_line", offset = 0x0E0B4, size = 0x1F8, address = 0x8016FED4 },
+    { name = "kyle_mission_line_end", offset = 0x0E2AC, size = 0x7F4, address = 0x801700CC },
+    { name = "kyle_bank", offset = 0x0EAA0, size = 0x18, address = 0x801708C0 },
+]
+package_name = "actor_350700"
+required = true
+sha1 = "50fa4b8a1887d8922c9737b795041c67c3f67c79"
+
+[kyle_pilot_line]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_mission_line]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_mission_line_end]
+type = "clip"
+rig = "characters/kyle/rig"

@@ -159,14 +159,14 @@ static void _actor450200StartBackdropCrossFade(s32 command);
 static void _actor450200SetLightBeamIntensity(s32 intensity);
 static void _actor450200SetRoomVariant(u8 roomVariant);
 
-static AnimationSet _gActor450200Animation01A7C;
-static AnimationSet _gActor450200Animation02DCC;
-static AnimationSet _gActor450200Animation031A8;
-static AnimationSet _gActor450200Animation033DC;
-static AnimationSet _gActor450200Animation03818;
-static AnimationSet _gActor450200Animation039B8;
-static AnimationSet _gActor450200Animation03C30;
-static AnimationSet _gActor450200Animation03E04;
+static AnimationSet _gNeoArkObservatoryKyleWalkForwardClip;
+static AnimationSet _gNeoArkObservatoryKyleCollapseClip;
+static AnimationSet _gNeoArkObservatoryKyleLieRaiseHeadClip;
+static AnimationSet _gNeoArkObservatoryKyleLieHeadRaisedClip;
+static AnimationSet _gNeoArkObservatoryKyleSitWinceClip;
+static AnimationSet _gNeoArkObservatoryKyleSitClip;
+static AnimationSet _gSoldierADontWorryEndClip;
+static AnimationSet _gSoldierAHiyaFlintClip;
 static void         _actor450200ControlCompanionPuffs(s32 command);
 static void         _actor450200CancelRoomEffects(void);
 static void         _actor450200SetHeadAimEnabled(s32 enabled);
@@ -176,357 +176,7 @@ static void         _actor450200BackdropCrossFadeTask(Task* task);
 static void _actor450200CompanionPuffTask(Task* task);
 static void _actor450200HeadAimTask(Task* task);
 
-static AnimationPackedPose _gActor450200Animation01A7CBank1[62] = {
-#include "assets/actor_450200_animation_01A7C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450200Animation01A7CBank4[225] = {
-#include "assets/actor_450200_animation_01A7C_bank4.inc"
-};
-
-static AnimationRecord _gActor450200Animation01A7CRecords[595] = {
-#include "assets/actor_450200_animation_01A7C_records.inc"
-};
-
-static u16 _gActor450200Animation01A7CIndices[20] = {
-#include "assets/actor_450200_animation_01A7C_indices.inc"
-};
-
-static AnimationSet _gActor450200Animation01A7C = {
-    _gActor450200Animation01A7CRecords,
-    _gActor450200Animation01A7CIndices,
-    { NULL, _gActor450200Animation01A7CBank1, NULL, NULL, _gActor450200Animation01A7CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450200Animation02DCCBank1[43] = {
-#include "assets/actor_450200_animation_02DCC_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450200Animation02DCCBank4[468] = {
-#include "assets/actor_450200_animation_02DCC_bank4.inc"
-};
-
-static AnimationRecord _gActor450200Animation02DCCRecords[619] = {
-#include "assets/actor_450200_animation_02DCC_records.inc"
-};
-
-static u16 _gActor450200Animation02DCCIndices[20] = {
-#include "assets/actor_450200_animation_02DCC_indices.inc"
-};
-
-static AnimationSet _gActor450200Animation02DCC = {
-    _gActor450200Animation02DCCRecords,
-    _gActor450200Animation02DCCIndices,
-    { NULL, _gActor450200Animation02DCCBank1, NULL, NULL, _gActor450200Animation02DCCBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450200Animation031A8Bank1[2] = {
-#include "assets/actor_450200_animation_031A8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450200Animation031A8Bank4[91] = {
-#include "assets/actor_450200_animation_031A8_bank4.inc"
-};
-
-static AnimationRecord _gActor450200Animation031A8Records[130] = {
-#include "assets/actor_450200_animation_031A8_records.inc"
-};
-
-static u16 _gActor450200Animation031A8Indices[20] = {
-#include "assets/actor_450200_animation_031A8_indices.inc"
-};
-
-static AnimationSet _gActor450200Animation031A8 = {
-    _gActor450200Animation031A8Records,
-    _gActor450200Animation031A8Indices,
-    { NULL, _gActor450200Animation031A8Bank1, NULL, NULL, _gActor450200Animation031A8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450200Animation033DCBank1[2] = {
-#include "assets/actor_450200_animation_033DC_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450200Animation033DCBank4[33] = {
-#include "assets/actor_450200_animation_033DC_bank4.inc"
-};
-
-static AnimationRecord _gActor450200Animation033DCRecords[82] = {
-#include "assets/actor_450200_animation_033DC_records.inc"
-};
-
-static u16 _gActor450200Animation033DCIndices[20] = {
-#include "assets/actor_450200_animation_033DC_indices.inc"
-};
-
-static AnimationSet _gActor450200Animation033DC = {
-    _gActor450200Animation033DCRecords,
-    _gActor450200Animation033DCIndices,
-    { NULL, _gActor450200Animation033DCBank1, NULL, NULL, _gActor450200Animation033DCBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450200Animation03818Bank1[2] = {
-#include "assets/actor_450200_animation_03818_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450200Animation03818Bank4[104] = {
-#include "assets/actor_450200_animation_03818_bank4.inc"
-};
-
-static AnimationRecord _gActor450200Animation03818Records[141] = {
-#include "assets/actor_450200_animation_03818_records.inc"
-};
-
-static u16 _gActor450200Animation03818Indices[20] = {
-#include "assets/actor_450200_animation_03818_indices.inc"
-};
-
-static AnimationSet _gActor450200Animation03818 = {
-    _gActor450200Animation03818Records,
-    _gActor450200Animation03818Indices,
-    { NULL, _gActor450200Animation03818Bank1, NULL, NULL, _gActor450200Animation03818Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450200Animation039B8Bank1[2] = {
-#include "assets/actor_450200_animation_039B8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450200Animation039B8Bank4[18] = {
-#include "assets/actor_450200_animation_039B8_bank4.inc"
-};
-
-static AnimationRecord _gActor450200Animation039B8Records[60] = {
-#include "assets/actor_450200_animation_039B8_records.inc"
-};
-
-static u16 _gActor450200Animation039B8Indices[20] = {
-#include "assets/actor_450200_animation_039B8_indices.inc"
-};
-
-static AnimationSet _gActor450200Animation039B8 = {
-    _gActor450200Animation039B8Records,
-    _gActor450200Animation039B8Indices,
-    { NULL, _gActor450200Animation039B8Bank1, NULL, NULL, _gActor450200Animation039B8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450200Animation03C30Bank1[2] = {
-#include "assets/actor_450200_animation_03C30_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450200Animation03C30Bank4[28] = {
-#include "assets/actor_450200_animation_03C30_bank4.inc"
-};
-
-static AnimationRecord _gActor450200Animation03C30Records[104] = {
-#include "assets/actor_450200_animation_03C30_records.inc"
-};
-
-static u16 _gActor450200Animation03C30Indices[20] = {
-#include "assets/actor_450200_animation_03C30_indices.inc"
-};
-
-static AnimationSet _gActor450200Animation03C30 = {
-    _gActor450200Animation03C30Records,
-    _gActor450200Animation03C30Indices,
-    { NULL, _gActor450200Animation03C30Bank1, NULL, NULL, _gActor450200Animation03C30Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450200Animation03E04Bank1[2] = {
-#include "assets/actor_450200_animation_03E04_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450200Animation03E04Bank4[23] = {
-#include "assets/actor_450200_animation_03E04_bank4.inc"
-};
-
-static AnimationRecord _gActor450200Animation03E04Records[68] = {
-#include "assets/actor_450200_animation_03E04_records.inc"
-};
-
-static u16 _gActor450200Animation03E04Indices[20] = {
-#include "assets/actor_450200_animation_03E04_indices.inc"
-};
-
-static AnimationSet _gActor450200Animation03E04 = {
-    _gActor450200Animation03E04Records,
-    _gActor450200Animation03E04Indices,
-    { NULL, _gActor450200Animation03E04Bank1, NULL, NULL, _gActor450200Animation03E04Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450200Animation04168Bank1[8] = {
-#include "assets/actor_450200_animation_04168_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450200Animation04168Bank4[68] = {
-#include "assets/actor_450200_animation_04168_bank4.inc"
-};
-
-static AnimationRecord _gActor450200Animation04168Records[105] = {
-#include "assets/actor_450200_animation_04168_records.inc"
-};
-
-static u16 _gActor450200Animation04168Indices[20] = {
-#include "assets/actor_450200_animation_04168_indices.inc"
-};
-
-static AnimationSet _gActor450200Animation04168 = {
-    _gActor450200Animation04168Records,
-    _gActor450200Animation04168Indices,
-    { NULL, _gActor450200Animation04168Bank1, NULL, NULL, _gActor450200Animation04168Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450200Animation043F0Bank1[2] = {
-#include "assets/actor_450200_animation_043F0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450200Animation043F0Bank4[51] = {
-#include "assets/actor_450200_animation_043F0_bank4.inc"
-};
-
-static AnimationRecord _gActor450200Animation043F0Records[85] = {
-#include "assets/actor_450200_animation_043F0_records.inc"
-};
-
-static u16 _gActor450200Animation043F0Indices[20] = {
-#include "assets/actor_450200_animation_043F0_indices.inc"
-};
-
-static AnimationSet _gActor450200Animation043F0 = {
-    _gActor450200Animation043F0Records,
-    _gActor450200Animation043F0Indices,
-    { NULL, _gActor450200Animation043F0Bank1, NULL, NULL, _gActor450200Animation043F0Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450200Animation04890Bank1[10] = {
-#include "assets/actor_450200_animation_04890_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450200Animation04890Bank4[96] = {
-#include "assets/actor_450200_animation_04890_bank4.inc"
-};
-
-static AnimationRecord _gActor450200Animation04890Records[150] = {
-#include "assets/actor_450200_animation_04890_records.inc"
-};
-
-static u16 _gActor450200Animation04890Indices[20] = {
-#include "assets/actor_450200_animation_04890_indices.inc"
-};
-
-static AnimationSet _gActor450200Animation04890 = {
-    _gActor450200Animation04890Records,
-    _gActor450200Animation04890Indices,
-    { NULL, _gActor450200Animation04890Bank1, NULL, NULL, _gActor450200Animation04890Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450200Animation04DB0Bank1[6] = {
-#include "assets/actor_450200_animation_04DB0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450200Animation04DB0Bank4[124] = {
-#include "assets/actor_450200_animation_04DB0_bank4.inc"
-};
-
-static AnimationRecord _gActor450200Animation04DB0Records[166] = {
-#include "assets/actor_450200_animation_04DB0_records.inc"
-};
-
-static u16 _gActor450200Animation04DB0Indices[20] = {
-#include "assets/actor_450200_animation_04DB0_indices.inc"
-};
-
-static AnimationSet _gActor450200Animation04DB0 = {
-    _gActor450200Animation04DB0Records,
-    _gActor450200Animation04DB0Indices,
-    { NULL, _gActor450200Animation04DB0Bank1, NULL, NULL, _gActor450200Animation04DB0Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450200Animation05088Bank1[2] = {
-#include "assets/actor_450200_animation_05088_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450200Animation05088Bank4[43] = {
-#include "assets/actor_450200_animation_05088_bank4.inc"
-};
-
-static AnimationRecord _gActor450200Animation05088Records[113] = {
-#include "assets/actor_450200_animation_05088_records.inc"
-};
-
-static u16 _gActor450200Animation05088Indices[20] = {
-#include "assets/actor_450200_animation_05088_indices.inc"
-};
-
-static AnimationSet _gActor450200Animation05088 = {
-    _gActor450200Animation05088Records,
-    _gActor450200Animation05088Indices,
-    { NULL, _gActor450200Animation05088Bank1, NULL, NULL, _gActor450200Animation05088Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450200Animation05350Bank1[3] = {
-#include "assets/actor_450200_animation_05350_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450200Animation05350Bank4[57] = {
-#include "assets/actor_450200_animation_05350_bank4.inc"
-};
-
-static AnimationRecord _gActor450200Animation05350Records[92] = {
-#include "assets/actor_450200_animation_05350_records.inc"
-};
-
-static u16 _gActor450200Animation05350Indices[20] = {
-#include "assets/actor_450200_animation_05350_indices.inc"
-};
-
-static AnimationSet _gActor450200Animation05350 = {
-    _gActor450200Animation05350Records,
-    _gActor450200Animation05350Indices,
-    { NULL, _gActor450200Animation05350Bank1, NULL, NULL, _gActor450200Animation05350Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450200Animation05870Bank1[6] = {
-#include "assets/actor_450200_animation_05870_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450200Animation05870Bank4[124] = {
-#include "assets/actor_450200_animation_05870_bank4.inc"
-};
-
-static AnimationRecord _gActor450200Animation05870Records[166] = {
-#include "assets/actor_450200_animation_05870_records.inc"
-};
-
-static u16 _gActor450200Animation05870Indices[20] = {
-#include "assets/actor_450200_animation_05870_indices.inc"
-};
-
-static AnimationSet _gActor450200Animation05870 = {
-    _gActor450200Animation05870Records,
-    _gActor450200Animation05870Indices,
-    { NULL, _gActor450200Animation05870Bank1, NULL, NULL, _gActor450200Animation05870Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450200Animation05C18Bank1[7] = {
-#include "assets/actor_450200_animation_05C18_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450200Animation05C18Bank4[81] = {
-#include "assets/actor_450200_animation_05C18_bank4.inc"
-};
-
-static AnimationRecord _gActor450200Animation05C18Records[112] = {
-#include "assets/actor_450200_animation_05C18_records.inc"
-};
-
-static u16 _gActor450200Animation05C18Indices[20] = {
-#include "assets/actor_450200_animation_05C18_indices.inc"
-};
-
-static AnimationSet _gActor450200Animation05C18 = {
-    _gActor450200Animation05C18Records,
-    _gActor450200Animation05C18Indices,
-    { NULL, _gActor450200Animation05C18Bank1, NULL, NULL, _gActor450200Animation05C18Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/neo_ark/observatory/kyle_clips_1.inc"
 
 TaskDesc gActor450200SceneTaskDescs[3] = {
     { { { TASK_BODY_NONE, ACTOR_450200_SCENE_STOP_PRIORITY } }, taskKill, { .value = 0 } },
@@ -540,7 +190,7 @@ TaskDesc gActor450200SceneTaskDescs[3] = {
 /// blend request and 17 words of the unused clip-47 reset requests. Those words are
 /// never selected for playback. Keep the adjacent records in their stored order
 /// and the actor package loaded while the player's bank borrows these clips.
-static AnimationSet* _gActor450200CompanionScenePlayerAnimationSets[ACTOR_450200_COMPANION_SCENE_PLAYER_CLIP_COUNT] = { &_gActor450200Animation04168, &_gActor450200Animation043F0, &_gActor450200Animation04890, &_gActor450200Animation04DB0, &_gActor450200Animation05088, &_gActor450200Animation05350, &_gActor450200Animation05870, &_gActor450200Animation05C18 };
+#include "assets/rooms/neo_ark/observatory/companion_scene_player_bank.inc"
 
 /// Installs the companion scene's eight player clips and their adjacent raw words.
 ///
@@ -607,7 +257,7 @@ static AnimationPlayRequest _gActor450200CompanionScenePlayerAnimation52Request 
 /// complete play requests for ids 47-50 and two words of the id-51 request.
 /// Those extra words are never selected for playback. Keep the records in their
 /// stored order and this package loaded while the companion borrows the clips.
-static AnimationSet* _gActor450200CompanionAnimationSets[ACTOR_450200_COMPANION_CLIP_COUNT] = { &_gActor450200Animation01A7C, &_gActor450200Animation02DCC, &_gActor450200Animation031A8, &_gActor450200Animation033DC, &_gActor450200Animation03818, &_gActor450200Animation039B8, &_gActor450200Animation03C30, &_gActor450200Animation03E04 };
+#include "assets/rooms/neo_ark/observatory/companion_bank.inc"
 
 /// Installs eight observatory companion clips and the 24 raw words following their table.
 ///
@@ -1047,115 +697,7 @@ static EvsCommand _gActor450200CompanionRoomEntryScript[] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-static AnimationPackedPose _gActor450200Animation0865CBank1[61] = {
-#include "assets/actor_450200_animation_0865C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450200Animation0865CBank4[363] = {
-#include "assets/actor_450200_animation_0865C_bank4.inc"
-};
-
-static AnimationRecord _gActor450200Animation0865CRecords[669] = {
-#include "assets/actor_450200_animation_0865C_records.inc"
-};
-
-static u16 _gActor450200Animation0865CIndices[20] = {
-#include "assets/actor_450200_animation_0865C_indices.inc"
-};
-
-static AnimationSet _gActor450200Animation0865C = {
-    _gActor450200Animation0865CRecords,
-    _gActor450200Animation0865CIndices,
-    { NULL, _gActor450200Animation0865CBank1, NULL, NULL, _gActor450200Animation0865CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450200Animation08B88Bank1[12] = {
-#include "assets/actor_450200_animation_08B88_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450200Animation08B88Bank4[116] = {
-#include "assets/actor_450200_animation_08B88_bank4.inc"
-};
-
-static AnimationRecord _gActor450200Animation08B88Records[159] = {
-#include "assets/actor_450200_animation_08B88_records.inc"
-};
-
-static u16 _gActor450200Animation08B88Indices[20] = {
-#include "assets/actor_450200_animation_08B88_indices.inc"
-};
-
-static AnimationSet _gActor450200Animation08B88 = {
-    _gActor450200Animation08B88Records,
-    _gActor450200Animation08B88Indices,
-    { NULL, _gActor450200Animation08B88Bank1, NULL, NULL, _gActor450200Animation08B88Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450200Animation08E94Bank1[2] = {
-#include "assets/actor_450200_animation_08E94_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450200Animation08E94Bank4[46] = {
-#include "assets/actor_450200_animation_08E94_bank4.inc"
-};
-
-static AnimationRecord _gActor450200Animation08E94Records[123] = {
-#include "assets/actor_450200_animation_08E94_records.inc"
-};
-
-static u16 _gActor450200Animation08E94Indices[20] = {
-#include "assets/actor_450200_animation_08E94_indices.inc"
-};
-
-static AnimationSet _gActor450200Animation08E94 = {
-    _gActor450200Animation08E94Records,
-    _gActor450200Animation08E94Indices,
-    { NULL, _gActor450200Animation08E94Bank1, NULL, NULL, _gActor450200Animation08E94Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450200Animation09E70Bank1[34] = {
-#include "assets/actor_450200_animation_09E70_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450200Animation09E70Bank4[398] = {
-#include "assets/actor_450200_animation_09E70_bank4.inc"
-};
-
-static AnimationRecord _gActor450200Animation09E70Records[495] = {
-#include "assets/actor_450200_animation_09E70_records.inc"
-};
-
-static u16 _gActor450200Animation09E70Indices[20] = {
-#include "assets/actor_450200_animation_09E70_indices.inc"
-};
-
-static AnimationSet _gActor450200Animation09E70 = {
-    _gActor450200Animation09E70Records,
-    _gActor450200Animation09E70Indices,
-    { NULL, _gActor450200Animation09E70Bank1, NULL, NULL, _gActor450200Animation09E70Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450200Animation0A824Bank1[21] = {
-#include "assets/actor_450200_animation_0A824_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450200Animation0A824Bank4[243] = {
-#include "assets/actor_450200_animation_0A824_bank4.inc"
-};
-
-static AnimationRecord _gActor450200Animation0A824Records[295] = {
-#include "assets/actor_450200_animation_0A824_records.inc"
-};
-
-static u16 _gActor450200Animation0A824Indices[20] = {
-#include "assets/actor_450200_animation_0A824_indices.inc"
-};
-
-static AnimationSet _gActor450200Animation0A824 = {
-    _gActor450200Animation0A824Records,
-    _gActor450200Animation0A824Indices,
-    { NULL, _gActor450200Animation0A824Bank1, NULL, NULL, _gActor450200Animation0A824Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/neo_ark/observatory/kyle_clips_2.inc"
 
 /// Player clips installed at bank ids 47-51 for the observatory's solo scene.
 ///
@@ -1163,7 +705,7 @@ static AnimationSet _gActor450200Animation0A824 = {
 /// and two words of the sixth request. Those 27 non-clip words are never
 /// selected for playback. Keep the adjacent records in stored order and the
 /// actor package loaded while the player borrows these clips.
-static AnimationSet* _gActor450200SoloScenePlayerAnimationSets[ACTOR_450200_SOLO_SCENE_PLAYER_CLIP_COUNT] = { &_gActor450200Animation0865C, &_gActor450200Animation08B88, &_gActor450200Animation08E94, &_gActor450200Animation09E70, &_gActor450200Animation0A824 };
+#include "assets/rooms/neo_ark/observatory/solo_scene_player_bank.inc"
 
 /// Resets the player to native pose 1 at both solo-scene endings, disabling collision.
 ///
@@ -1275,93 +817,7 @@ EvsCommand gActor450200SoloSceneSkipScript[12] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-static AnimationPackedPose _gActor450200Animation0B190Bank1[6] = {
-#include "assets/actor_450200_animation_0B190_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450200Animation0B190Bank4[64] = {
-#include "assets/actor_450200_animation_0B190_bank4.inc"
-};
-
-static AnimationRecord _gActor450200Animation0B190Records[141] = {
-#include "assets/actor_450200_animation_0B190_records.inc"
-};
-
-static u16 _gActor450200Animation0B190Indices[20] = {
-#include "assets/actor_450200_animation_0B190_indices.inc"
-};
-
-static AnimationSet _gActor450200Animation0B190 = {
-    _gActor450200Animation0B190Records,
-    _gActor450200Animation0B190Indices,
-    { NULL, _gActor450200Animation0B190Bank1, NULL, NULL, _gActor450200Animation0B190Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450200Animation0D678Bank1[84] = {
-#include "assets/actor_450200_animation_0D678_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450200Animation0D678Bank4[907] = {
-#include "assets/actor_450200_animation_0D678_bank4.inc"
-};
-
-static AnimationRecord _gActor450200Animation0D678Records[1183] = {
-#include "assets/actor_450200_animation_0D678_records.inc"
-};
-
-static u16 _gActor450200Animation0D678Indices[20] = {
-#include "assets/actor_450200_animation_0D678_indices.inc"
-};
-
-static AnimationSet _gActor450200Animation0D678 = {
-    _gActor450200Animation0D678Records,
-    _gActor450200Animation0D678Indices,
-    { NULL, _gActor450200Animation0D678Bank1, NULL, NULL, _gActor450200Animation0D678Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450200Animation0D9E0Bank1[5] = {
-#include "assets/actor_450200_animation_0D9E0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450200Animation0D9E0Bank4[74] = {
-#include "assets/actor_450200_animation_0D9E0_bank4.inc"
-};
-
-static AnimationRecord _gActor450200Animation0D9E0Records[109] = {
-#include "assets/actor_450200_animation_0D9E0_records.inc"
-};
-
-static u16 _gActor450200Animation0D9E0Indices[20] = {
-#include "assets/actor_450200_animation_0D9E0_indices.inc"
-};
-
-static AnimationSet _gActor450200Animation0D9E0 = {
-    _gActor450200Animation0D9E0Records,
-    _gActor450200Animation0D9E0Indices,
-    { NULL, _gActor450200Animation0D9E0Bank1, NULL, NULL, _gActor450200Animation0D9E0Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450200Animation0DCF8Bank1[5] = {
-#include "assets/actor_450200_animation_0DCF8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450200Animation0DCF8Bank4[66] = {
-#include "assets/actor_450200_animation_0DCF8_bank4.inc"
-};
-
-static AnimationRecord _gActor450200Animation0DCF8Records[97] = {
-#include "assets/actor_450200_animation_0DCF8_records.inc"
-};
-
-static u16 _gActor450200Animation0DCF8Indices[20] = {
-#include "assets/actor_450200_animation_0DCF8_indices.inc"
-};
-
-static AnimationSet _gActor450200Animation0DCF8 = {
-    _gActor450200Animation0DCF8Records,
-    _gActor450200Animation0DCF8Indices,
-    { NULL, _gActor450200Animation0DCF8Bank1, NULL, NULL, _gActor450200Animation0DCF8Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/neo_ark/observatory/kyle_clips_3.inc"
 
 /// Bodyless priority-32 task that cross-fades the observatory backdrop palettes.
 ///
@@ -1376,7 +832,7 @@ static TaskDesc _gActor450200BackdropCrossFadeTaskDesc = { { { TASK_BODY_NONE, A
 /// selected for playback. Keep the adjacent records in stored order and the
 /// package loaded while playback borrows these clips. Both scene endings select
 /// room variant 2 after the backdrop changes.
-static AnimationSet* _gActor450200RoomVariantScenePlayerAnimationSets[ACTOR_450200_ROOM_VARIANT_PLAYER_CLIP_COUNT] = { &_gActor450200Animation0B190, &_gActor450200Animation0D678, &_gActor450200Animation0D9E0, &_gActor450200Animation0DCF8 };
+#include "assets/rooms/neo_ark/observatory/room_variant_scene_player_bank.inc"
 
 /// Resets the player to native pose 1 when the room-variant scene is skipped.
 ///

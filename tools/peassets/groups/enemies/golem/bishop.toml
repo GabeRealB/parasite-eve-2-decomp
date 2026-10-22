@@ -1,0 +1,142 @@
+# The assets of the group enemies/golem/bishop, each named enemies/golem/bishop/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+schema = "enemies/golem/bishop/schema"
+symbol = "_gGolemKnightBishopAnimSets"
+
+[bank.clips]
+grab_start = "enemies/golem/grab_start"
+grab_hold = "enemies/golem/grab_hold"
+grab_kill = "enemies/golem/grab_kill"
+idle = "enemies/golem/idle"
+strike = "enemies/golem/strike"
+advance = "enemies/golem/advance"
+charge = "enemies/golem/charge"
+stagger = "enemies/golem/stagger"
+heavy_flinch_front = "enemies/golem/heavy_flinch_front"
+heavy_flinch_behind = "enemies/golem/heavy_flinch_behind"
+recover = "enemies/golem/recover"
+grab_release = "enemies/golem/grab_release"
+fall_behind = "enemies/golem/fall_behind"
+downed_hit_behind = "enemies/golem/downed_hit_behind"
+writhe_behind = "enemies/golem/writhe_behind"
+lie_behind = "enemies/golem/lie_behind"
+fall_front = "enemies/golem/fall_front"
+downed_hit_front = "enemies/golem/downed_hit_front"
+writhe_front = "enemies/golem/writhe_front"
+lie_front = "enemies/golem/lie_front"
+grab_early_release = "enemies/golem/grab_early_release"
+
+[file]
+type = "file"
+contents = [
+    { asset = "enemies/moth/preview_palette", sha1 = "65e9784cafe3f1873b915a880cb1979b39621a83" },
+    { asset = "enemies/moth/preview_image", sha1 = "161ac20e76eb8f36b46a091126eaafe3a329e23e" },
+    { asset = "txt_82" },
+]
+
+[schema]
+type = "animation_schema"
+slots = [
+    "",
+    "grab_start",
+    "grab_hold",
+    "grab_kill",
+    "idle",
+    "strike",
+    "advance",
+    "charge",
+    "stagger",
+    "heavy_flinch_front",
+    "heavy_flinch_behind",
+    "recover",
+    "grab_release",
+    "fall_behind",
+    "downed_hit_behind",
+    "writhe_behind",
+    "lie_behind",
+    "fall_front",
+    "downed_hit_front",
+    "writhe_front",
+    "lie_front",
+    "grab_early_release",
+]
+
+[package]
+type = "pe2pkg"
+embedded = [
+    { asset = "enemies/golem/grab_start", offset = 0x0BDDC, size = 0x698, address = 0x8013DBFC },
+    { asset = "enemies/golem/grab_hold", offset = 0x0C474, size = 0x4B8, address = 0x8013E294 },
+    { asset = "enemies/golem/grab_kill", offset = 0x0C92C, size = 0x80C, address = 0x8013E74C },
+    { asset = "enemies/golem/idle", offset = 0x0D138, size = 0xC38, address = 0x8013EF58 },
+    { asset = "enemies/golem/strike", offset = 0x0DD70, size = 0x10B4, address = 0x8013FB90 },
+    { asset = "enemies/golem/advance", offset = 0x0EE24, size = 0xBAC, address = 0x80140C44 },
+    { asset = "enemies/golem/charge", offset = 0x0F9D0, size = 0x4078, address = 0x801417F0 },
+    { asset = "enemies/golem/stagger", offset = 0x13A48, size = 0x524, address = 0x80145868 },
+    { asset = "enemies/golem/heavy_flinch_front", offset = 0x13F6C, size = 0xA48, address = 0x80145D8C },
+    { asset = "enemies/golem/heavy_flinch_behind", offset = 0x149B4, size = 0xCF0, address = 0x801467D4 },
+    { asset = "enemies/golem/recover", offset = 0x156A4, size = 0x193C, address = 0x801474C4 },
+    { asset = "enemies/golem/grab_release", offset = 0x16FE0, size = 0xE10, address = 0x80148E00 },
+    { asset = "enemies/golem/fall_behind", offset = 0x17DF0, size = 0x1078, address = 0x80149C10 },
+    { asset = "enemies/golem/downed_hit_behind", offset = 0x18E68, size = 0x4D4, address = 0x8014AC88 },
+    { asset = "enemies/golem/writhe_behind", offset = 0x1933C, size = 0x310, address = 0x8014B15C },
+    { asset = "enemies/golem/lie_behind", offset = 0x1964C, size = 0x1DC, address = 0x8014B46C },
+    { asset = "enemies/golem/fall_front", offset = 0x19828, size = 0xF48, address = 0x8014B648 },
+    { asset = "enemies/golem/downed_hit_front", offset = 0x1A770, size = 0x594, address = 0x8014C590 },
+    { asset = "enemies/golem/writhe_front", offset = 0x1AD04, size = 0x2C8, address = 0x8014CB24 },
+    { asset = "enemies/golem/lie_front", offset = 0x1AFCC, size = 0x1DC, address = 0x8014CDEC },
+    { asset = "enemies/golem/grab_early_release", offset = 0x1B1A8, size = 0x3628, address = 0x8014CFC8 },
+    { asset = "enemies/golem/player_grab_start", offset = 0x1E7D0, size = 0x13D0, address = 0x801505F0 },
+    { asset = "enemies/golem/player_grab_hold", offset = 0x1FBA0, size = 0x594, address = 0x801519C0 },
+    { asset = "enemies/golem/player_grab_kill", offset = 0x20134, size = 0xA60, address = 0x80151F54 },
+    { asset = "enemies/golem/player_grab_release", offset = 0x20B94, size = 0x123C, address = 0x801529B4 },
+    { name = "player_grab_bank", offset = 0x22294, size = 0x14, address = 0x801540B4 },
+    { name = "bank", offset = 0x222CC, size = 0x58, address = 0x801540EC },
+]
+package_name = "actor_403900"
+required = true
+sha1 = "81b2286621f1254a6967b592e04aad32f7a97f1a"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "3f85058469abee319a45892d98a675b08a3dd185"
+palettes = [
+    { texture = "texture", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { name = "unread_row_2", entries = 256, region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "23dd0e8b469473a22840b83298e1d28cf34c5a94"
+pages = [{ texture = "texture", region = "engine/vram/actor_sheet", offset = [0, 0] }]
+slots = 6
+
+[[package_file.contents]]
+chunk = "package"
+
+[player_grab_bank]
+type = "animation_bank"
+schema = "enemies/golem/bishop/player_grab_schema"
+symbol = "_gGolemKnightBishopPlayerGrabAnimSets"
+
+[player_grab_bank.clips]
+player_grab_start = "enemies/golem/player_grab_start"
+player_grab_hold = "enemies/golem/player_grab_hold"
+player_grab_kill = "enemies/golem/player_grab_kill"
+player_grab_release = "enemies/golem/player_grab_release"
+
+[player_grab_schema]
+type = "animation_schema"
+slots = ["", "player_grab_start", "player_grab_hold", "player_grab_kill", "player_grab_release"]

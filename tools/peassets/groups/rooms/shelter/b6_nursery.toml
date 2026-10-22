@@ -1,0 +1,427 @@
+# The assets of the group rooms/shelter/b6_nursery, each named rooms/shelter/b6_nursery/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[kyle]
+type = "pe2pkg"
+embedded = [
+    { name = "player_shush", offset = 0x01990, size = 0x1B8, address = 0x801337B0 },
+    { name = "player_her_name_is_eve", offset = 0x01B48, size = 0x2DC, address = 0x80133968 },
+    { name = "player_pure_innocent", offset = 0x01E24, size = 0x274, address = 0x80133C44 },
+    { name = "player_raised_her", offset = 0x02098, size = 0x268, address = 0x80133EB8 },
+    { name = "nursery_player_anim_04", offset = 0x02300, size = 0x260, address = 0x80134120 },
+    { name = "player_fear", offset = 0x02560, size = 0x308, address = 0x80134380 },
+    { name = "player_silence", offset = 0x02868, size = 0x1C4, address = 0x80134688 },
+    { name = "player_how_did_you_know", offset = 0x02A2C, size = 0x22C, address = 0x8013484C },
+    { name = "player_phone_ring_1", offset = 0x02C58, size = 0x1B4, address = 0x80134A78 },
+    { name = "player_phone_ring_2", offset = 0x02E0C, size = 0x564, address = 0x80134C2C },
+    { name = "player_cut_off", offset = 0x03370, size = 0x254, address = 0x80135190 },
+    { asset = "characters/aya/converse", offset = 0x035C4, size = 0x3B8, address = 0x801353E4 },
+    { asset = "characters/aya/shooting_1", offset = 0x0397C, size = 0x3E8, address = 0x8013579C },
+    { asset = "characters/aya/shooting_2", offset = 0x03D64, size = 0x33C, address = 0x80135B84 },
+    { asset = "characters/aya/this_way_reply", offset = 0x040A0, size = 0x1C8, address = 0x80135EC0 },
+    { asset = "characters/aya/hurry_up", offset = 0x04268, size = 0x440, address = 0x80136088 },
+    { name = "companion_shush", offset = 0x046A8, size = 0x238, address = 0x801364C8 },
+    { name = "companion_fear_1", offset = 0x048E0, size = 0x36C, address = 0x80136700 },
+    { name = "companion_fear_2", offset = 0x04C4C, size = 0x224, address = 0x80136A6C },
+    { name = "companion_phone_ring_2", offset = 0x04E70, size = 0x190, address = 0x80136C90 },
+    { name = "companion_phone_ring_3", offset = 0x05000, size = 0xCDC, address = 0x80136E20 },
+    { name = "companion_nursery_idle", offset = 0x05CDC, size = 0x228, address = 0x80137AFC },
+    { name = "companion_scream", offset = 0x05F04, size = 0x2F4, address = 0x80137D24 },
+    { name = "companion_phone_ring_1", offset = 0x061F8, size = 0x218, address = 0x80138018 },
+    { name = "companion_distress", offset = 0x06410, size = 0x524, address = 0x80138230 },
+    { name = "companion_conversation_reaction", offset = 0x06934, size = 0x358, address = 0x80138754 },
+    { name = "companion_hurry_up", offset = 0x06C8C, size = 0x494, address = 0x80138AAC },
+    { asset = "characters/aya/see_flint", offset = 0x07120, size = 0x3CC, address = 0x80138F40 },
+    { name = "player_bank", offset = 0x074F0, size = 0x44, address = 0x80139310 },
+    { name = "companion_bank", offset = 0x0769C, size = 0x2C, address = 0x801394BC },
+    { asset = "characters/kyle/alternate_body", offset = 0x09E44, size = 0x49C4, address = 0x8013BC64 },
+    { name = "kyle_idle", offset = 0x1334C, size = 0x240, address = 0x8014516C },
+    { name = "kyle_madigan_anim_02", offset = 0x1358C, size = 0x30C, address = 0x801453AC },
+    { name = "kyle_talk", offset = 0x13898, size = 0x2B8, address = 0x801456B8 },
+    { name = "kyle_how_could_they", offset = 0x13B50, size = 0x2EC, address = 0x80145970 },
+    { name = "kyle_cute_girl", offset = 0x13E3C, size = 0x21C, address = 0x80145C5C },
+    { name = "kyle_wait_i_bet", offset = 0x14058, size = 0x2D4, address = 0x80145E78 },
+    { name = "kyle_akropolis_hello", offset = 0x1432C, size = 0x240, address = 0x8014614C },
+    { name = "kyle_madigan_anim_08", offset = 0x1456C, size = 0x248, address = 0x8014638C },
+    { name = "kyle_phone_shout", offset = 0x147B4, size = 0x2E4, address = 0x801465D4 },
+    { name = "kyle_phone_shout_end", offset = 0x14A98, size = 0x228, address = 0x801468B8 },
+    { asset = "characters/soldier_b/stride_walk_anim_anim_09", offset = 0x14CC0, size = 0x2F4, address = 0x80146AE0 },
+    { asset = "characters/soldier_b/stride_walk_anim_anim_10", offset = 0x14FB4, size = 0x1F0, address = 0x80146DD4 },
+    { asset = "characters/pierce/story_17", offset = 0x151A4, size = 0x318, address = 0x80146FC4 },
+    { name = "kyle_so_young", offset = 0x154BC, size = 0x35C, address = 0x801472DC },
+    { name = "kyle_they_failed", offset = 0x15818, size = 0x288, address = 0x80147638 },
+    { name = "kyle_phone_ring", offset = 0x15AA0, size = 0x1A0, address = 0x801478C0 },
+    { name = "kyle_not_dangerous", offset = 0x15C40, size = 0x1E8, address = 0x80147A60 },
+    { name = "kyle_basic_emotions", offset = 0x15E28, size = 0x1DC, address = 0x80147C48 },
+    { name = "kyle_too_loud", offset = 0x16004, size = 0x344, address = 0x80147E24 },
+    { name = "kyle_this_way", offset = 0x16348, size = 0x338, address = 0x80148168 },
+    { name = "kyle_escape", offset = 0x16680, size = 0x1A0, address = 0x801484A0 },
+    { name = "kyle_second_body_1", offset = 0x16820, size = 0x1C0, address = 0x80148640 },
+    { name = "kyle_second_body_2", offset = 0x169E0, size = 0x25C, address = 0x80148800 },
+    { name = "kyle_fire", offset = 0x16C3C, size = 0x294, address = 0x80148A5C },
+    { name = "kyle_aim", offset = 0x16ED0, size = 0x1D8, address = 0x80148CF0 },
+    { asset = "characters/kyle/madigan_anim_27", offset = 0x170A8, size = 0x408, address = 0x80148EC8 },
+    { asset = "characters/kyle/madigan_anim_28", offset = 0x174B0, size = 0x278, address = 0x801492D0 },
+    { asset = "characters/kyle/madigan_anim_29", offset = 0x17728, size = 0x1F4, address = 0x80149548 },
+    { asset = "characters/kyle/madigan_anim_30", offset = 0x1791C, size = 0x4DC, address = 0x8014973C },
+    { asset = "characters/soldier_b/stride_walk_anim_anim_08", offset = 0x1873C, size = 0x2B8, address = 0x8014A55C },
+    { name = "kyle_bank", offset = 0x18EA4, size = 0x7C, address = 0x8014ACC4 },
+    { asset = "enemies/golem/idle", offset = 0x1E76C, size = 0xC38, address = 0x8015058C },
+    { asset = "enemies/golem/no_9/body_anim_02", offset = 0x1F3A4, size = 0x768, address = 0x801511C4 },
+    { asset = "enemies/golem/no_9/stance_enter", offset = 0x1FB0C, size = 0xBF0, address = 0x8015192C },
+    { asset = "enemies/golem/walk", offset = 0x206FC, size = 0x968, address = 0x8015251C },
+    { name = "pawn_golem_second_entry", offset = 0x21064, size = 0xB28, address = 0x80152E84 },
+    { name = "pawn_golem_bank", offset = 0x21BD4, size = 0x18, address = 0x801539F4 },
+]
+package_name = "actor_450800"
+required = true
+sha1 = "a68b5fc4a11e47f85aa55fd1d6829c1e0ee35783"
+
+[kyle_aim]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b6_nursery/kyle_schema"
+symbol = "_gActor450800KyleMadiganAnimationSets"
+
+[kyle_bank.clips]
+idle = "rooms/shelter/b6_nursery/kyle_idle"
+slot_2 = "rooms/shelter/b6_nursery/kyle_madigan_anim_02"
+talk = "rooms/shelter/b6_nursery/kyle_talk"
+how_could_they = "rooms/shelter/b6_nursery/kyle_how_could_they"
+cute_girl = "rooms/shelter/b6_nursery/kyle_cute_girl"
+wait_i_bet = "rooms/shelter/b6_nursery/kyle_wait_i_bet"
+akropolis_hello = "rooms/shelter/b6_nursery/kyle_akropolis_hello"
+slot_8 = "rooms/shelter/b6_nursery/kyle_madigan_anim_08"
+phone_shout = "rooms/shelter/b6_nursery/kyle_phone_shout"
+phone_shout_end = "rooms/shelter/b6_nursery/kyle_phone_shout_end"
+speak = "characters/soldier_b/stride_walk_anim_anim_09"
+speak_end = "characters/soldier_b/stride_walk_anim_anim_10"
+arrival_idle = "characters/pierce/story_17"
+so_young = "rooms/shelter/b6_nursery/kyle_so_young"
+they_failed = "rooms/shelter/b6_nursery/kyle_they_failed"
+phone_ring = "rooms/shelter/b6_nursery/kyle_phone_ring"
+not_dangerous = "rooms/shelter/b6_nursery/kyle_not_dangerous"
+basic_emotions = "rooms/shelter/b6_nursery/kyle_basic_emotions"
+too_loud = "rooms/shelter/b6_nursery/kyle_too_loud"
+stand = "characters/soldier_b/stride_walk_anim_anim_08"
+this_way = "rooms/shelter/b6_nursery/kyle_this_way"
+escape = "rooms/shelter/b6_nursery/kyle_escape"
+second_body_1 = "rooms/shelter/b6_nursery/kyle_second_body_1"
+second_body_2 = "rooms/shelter/b6_nursery/kyle_second_body_2"
+fire = "rooms/shelter/b6_nursery/kyle_fire"
+aim = "rooms/shelter/b6_nursery/kyle_aim"
+slot_27 = "characters/kyle/madigan_anim_27"
+slot_28 = "characters/kyle/madigan_anim_28"
+slot_29 = "characters/kyle/madigan_anim_29"
+slot_30 = "characters/kyle/madigan_anim_30"
+
+[kyle_fire]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_idle]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_talk]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_escape]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "idle",
+    "slot_2",
+    "talk",
+    "how_could_they",
+    "cute_girl",
+    "wait_i_bet",
+    "akropolis_hello",
+    "slot_8",
+    "phone_shout",
+    "phone_shout_end",
+    "speak",
+    "speak_end",
+    "arrival_idle",
+    "so_young",
+    "they_failed",
+    "phone_ring",
+    "not_dangerous",
+    "basic_emotions",
+    "too_loud",
+    "stand",
+    "this_way",
+    "escape",
+    "second_body_1",
+    "second_body_2",
+    "fire",
+    "aim",
+    "slot_27",
+    "slot_28",
+    "slot_29",
+    "slot_30",
+]
+
+[player_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b6_nursery/player_schema"
+symbol = "_gActor450800NurseryPlayerAnimationSets"
+
+[player_bank.clips]
+shush = "rooms/shelter/b6_nursery/player_shush"
+her_name_is_eve = "rooms/shelter/b6_nursery/player_her_name_is_eve"
+pure_innocent = "rooms/shelter/b6_nursery/player_pure_innocent"
+raised_her = "rooms/shelter/b6_nursery/player_raised_her"
+slot_4 = "rooms/shelter/b6_nursery/nursery_player_anim_04"
+fear = "rooms/shelter/b6_nursery/player_fear"
+silence = "rooms/shelter/b6_nursery/player_silence"
+how_did_you_know = "rooms/shelter/b6_nursery/player_how_did_you_know"
+phone_ring_1 = "rooms/shelter/b6_nursery/player_phone_ring_1"
+phone_ring_2 = "rooms/shelter/b6_nursery/player_phone_ring_2"
+cut_off = "rooms/shelter/b6_nursery/player_cut_off"
+call_reply = "characters/aya/converse"
+shooting_1 = "characters/aya/shooting_1"
+shooting_2 = "characters/aya/shooting_2"
+this_way_reply = "characters/aya/this_way_reply"
+hurry_up = "characters/aya/hurry_up"
+shooting_start = "characters/aya/see_flint"
+
+[player_fear]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_shush]
+type = "clip"
+rig = "characters/aya/rig"
+
+[kyle_so_young]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_this_way]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_too_loud]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[player_schema]
+type = "animation_schema"
+slots = [
+    "shush",
+    "her_name_is_eve",
+    "pure_innocent",
+    "raised_her",
+    "slot_4",
+    "fear",
+    "silence",
+    "how_did_you_know",
+    "phone_ring_1",
+    "phone_ring_2",
+    "cut_off",
+    "call_reply",
+    "shooting_1",
+    "shooting_2",
+    "this_way_reply",
+    "hurry_up",
+    "shooting_start",
+]
+
+[companion_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b6_nursery/companion_schema"
+symbol = "_gActor450800NurseryCompanionAnimationSets"
+
+[companion_bank.clips]
+shush = "rooms/shelter/b6_nursery/companion_shush"
+fear_1 = "rooms/shelter/b6_nursery/companion_fear_1"
+fear_2 = "rooms/shelter/b6_nursery/companion_fear_2"
+phone_ring_2 = "rooms/shelter/b6_nursery/companion_phone_ring_2"
+phone_ring_3 = "rooms/shelter/b6_nursery/companion_phone_ring_3"
+nursery_idle = "rooms/shelter/b6_nursery/companion_nursery_idle"
+scream = "rooms/shelter/b6_nursery/companion_scream"
+phone_ring_1 = "rooms/shelter/b6_nursery/companion_phone_ring_1"
+distress = "rooms/shelter/b6_nursery/companion_distress"
+conversation_reaction = "rooms/shelter/b6_nursery/companion_conversation_reaction"
+hurry_up = "rooms/shelter/b6_nursery/companion_hurry_up"
+
+[kyle_cute_girl]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[player_cut_off]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_silence]
+type = "clip"
+rig = "characters/aya/rig"
+
+[companion_shush]
+type = "clip"
+rig = "characters/eve/rig"
+
+[kyle_phone_ring]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_wait_i_bet]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[pawn_golem_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b6_nursery/pawn_golem_schema"
+symbol = "_gPairWalkAnimationSets"
+
+[pawn_golem_bank.clips]
+idle = "enemies/golem/idle"
+slot_2 = "enemies/golem/no_9/body_anim_02"
+stance_enter = "enemies/golem/no_9/stance_enter"
+walk = "enemies/golem/walk"
+second_entry = "rooms/shelter/b6_nursery/pawn_golem_second_entry"
+
+[companion_fear_1]
+type = "clip"
+rig = "characters/eve/rig"
+
+[companion_fear_2]
+type = "clip"
+rig = "characters/eve/rig"
+
+[companion_schema]
+type = "animation_schema"
+slots = [
+    "shush",
+    "fear_1",
+    "fear_2",
+    "phone_ring_2",
+    "phone_ring_3",
+    "nursery_idle",
+    "scream",
+    "phone_ring_1",
+    "distress",
+    "conversation_reaction",
+    "hurry_up",
+]
+
+[companion_scream]
+type = "clip"
+rig = "characters/eve/rig"
+
+[kyle_phone_shout]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_they_failed]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[pawn_golem_schema]
+type = "animation_schema"
+slots = ["", "idle", "slot_2", "stance_enter", "walk", "second_entry"]
+
+[player_raised_her]
+type = "clip"
+rig = "characters/aya/rig"
+
+[companion_distress]
+type = "clip"
+rig = "characters/eve/rig"
+
+[companion_hurry_up]
+type = "clip"
+rig = "characters/eve/rig"
+
+[kyle_not_dangerous]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_second_body_1]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_second_body_2]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_basic_emotions]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_how_could_they]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[player_phone_ring_1]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_phone_ring_2]
+type = "clip"
+rig = "characters/aya/rig"
+
+[kyle_akropolis_hello]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_madigan_anim_02]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_madigan_anim_08]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_phone_shout_end]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[player_pure_innocent]
+type = "clip"
+rig = "characters/aya/rig"
+
+[companion_nursery_idle]
+type = "clip"
+rig = "characters/eve/rig"
+
+[companion_phone_ring_1]
+type = "clip"
+rig = "characters/eve/rig"
+
+[companion_phone_ring_2]
+type = "clip"
+rig = "characters/eve/rig"
+
+[companion_phone_ring_3]
+type = "clip"
+rig = "characters/eve/rig"
+
+[nursery_player_anim_04]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_her_name_is_eve]
+type = "clip"
+rig = "characters/aya/rig"
+
+[pawn_golem_second_entry]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[player_how_did_you_know]
+type = "clip"
+rig = "characters/aya/rig"
+
+[companion_conversation_reaction]
+type = "clip"
+rig = "characters/eve/rig"

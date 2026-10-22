@@ -50,7 +50,7 @@
 #include "../../shared/screen/screen_wave.h"
 #include "../../shared/actor/actor_messages.h"
 
-/// Scene step of Aya's double, stored in `_Actor121300AyaBreaWork::step`.
+/// Scene step of Eve, stored in `_Actor121300EveWork::step`.
 ///
 /// The event script selects one at each of its cues and the double's tick
 /// carries it out every frame. A step that has to happen only once puts
@@ -73,7 +73,7 @@ enum {
 };
 
 /// Progress of the lamp shattering, stored in
-/// `_Actor121300AyaBreaWork::shatterState`.
+/// `_Actor121300EveWork::shatterState`.
 enum {
     ACTOR_121300_SHATTER_START   = 0, // Enable the debris and clear the lamp count and timer
     ACTOR_121300_SHATTER_RUNNING = 1, // Put out one lamp every `ACTOR_121300_SHATTER_INTERVAL` ticks
@@ -86,7 +86,7 @@ enum {
     ACTOR_121300_LAMP_END = -1,
 };
 
-/// Work block of Aya Brea's double, the body model this package animates over
+/// Work block of Eve, the body model this package animates over
 /// the streamed scene, and the state of that scene.
 ///
 /// The task's setup allocates it zeroed and keeps it at `Task::work` for the
@@ -117,8 +117,8 @@ typedef struct {
     s16            spritePointsDropped; // Points at the end of the upper drift-sprite row no longer spawned at
     s16            spriteDropFrames;    // Ticks of `ACTOR_121300_STEP_SPRITES_DWINDLE` since a point was last dropped
     s16            texturePageOffset;   // Texture relocation for image uploads, in 64-word VRAM columns
-} _Actor121300AyaBreaWork;
-STATIC_ASSERT_SIZEOF(_Actor121300AyaBreaWork, 0x4B0);
+} _Actor121300EveWork;
+STATIC_ASSERT_SIZEOF(_Actor121300EveWork, 0x4B0);
 
 /// One of the room's overhead lamps, in the order the scene shatters them.
 ///
@@ -178,7 +178,7 @@ enum { ACTOR_121300_MESSAGE_SET_TEXTURE_SEQUENCE = 2016 };
 
 static s32 _actor121300SetTextureSequence(Task* task, s32 unusedMessageId, s32 textureSequence, s32 unusedArg);
 
-static TmdSource _gActor121300AyaBreaBody;
+static TmdSource _gEveBody;
 static TmdSource _gActor121300Model07E84;
 static TmdSource _gActor121300Model080F0;
 static TmdSource _gActor121300Model0834C;
@@ -188,7 +188,7 @@ static void      _actor121300FadeInTask(Task* task);
 static void      _actor121300LampDebrisTask(Task* task);
 static void      _actor121300SpawnLampDebrisTask(Task* task);
 static void      _actor121300UploadTexturesTask(Task* task);
-static void      _actor121300AyaDoubleSceneTask(Task* task);
+static void      _actor121300EveSceneTask(Task* task);
 static void      _actor121300FadeOutTask(Task* task);
 static void      _actor121300BlackoutTask(Task* task);
 static void      _actor121300SelectSceneStep(s16 step);
@@ -221,37 +221,7 @@ enum {
     ACTOR_121300_SKIP_CANCEL_WAIT_FRAMES     = 5, // Updates before releasing scene control
 };
 
-static TmdBone _gActor121300AyaBreaBodySkeleton[19] = {
-#include "assets/aya_brea_body_skeleton.inc"
-};
-
-static u32 _gActor121300AyaBreaBodyPartVerts[19] = {
-#include "assets/aya_brea_body_partVerts.inc"
-};
-
-static SVECTOR _gActor121300AyaBreaBodyVerts[365] = {
-#include "assets/aya_brea_body_verts.inc"
-};
-
-static SVECTOR _gActor121300AyaBreaBodyNormals[385] = {
-#include "assets/aya_brea_body_normals.inc"
-};
-
-static u32 _gActor121300AyaBreaBodyStream[3923] = {
-#include "assets/aya_brea_body_stream.inc"
-};
-
-static TmdSource _gActor121300AyaBreaBody = {
-    0,
-    21760,
-    5992,
-    19,
-    _gActor121300AyaBreaBodyPartVerts,
-    _gActor121300AyaBreaBodyVerts,
-    _gActor121300AyaBreaBodyNormals,
-    _gActor121300AyaBreaBodySkeleton,
-    _gActor121300AyaBreaBodyStream,
-};
+#include "assets/characters/eve/body.inc"
 
 static TmdBone _gActor121300Model07E84Skeleton[1] = {
 #include "assets/actor_121300_model_07E84_skeleton.inc"
@@ -413,71 +383,7 @@ static TmdSource _gActor121300Model08768 = {
     _gActor121300Model08768Stream,
 };
 
-static AnimationPackedPose _gActor121300Animation089E8Bank1[2] = {
-#include "assets/actor_121300_animation_089E8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor121300Animation089E8Bank4[17] = {
-#include "assets/actor_121300_animation_089E8_bank4.inc"
-};
-
-static AnimationRecord _gActor121300Animation089E8Records[57] = {
-#include "assets/actor_121300_animation_089E8_records.inc"
-};
-
-static u16 _gActor121300Animation089E8Indices[20] = {
-#include "assets/actor_121300_animation_089E8_indices.inc"
-};
-
-static AnimationSet _gActor121300Animation089E8 = {
-    _gActor121300Animation089E8Records,
-    _gActor121300Animation089E8Indices,
-    { NULL, _gActor121300Animation089E8Bank1, NULL, NULL, _gActor121300Animation089E8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor121300Animation08C8CBank1[2] = {
-#include "assets/actor_121300_animation_08C8C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor121300Animation08C8CBank4[36] = {
-#include "assets/actor_121300_animation_08C8C_bank4.inc"
-};
-
-static AnimationRecord _gActor121300Animation08C8CRecords[107] = {
-#include "assets/actor_121300_animation_08C8C_records.inc"
-};
-
-static u16 _gActor121300Animation08C8CIndices[20] = {
-#include "assets/actor_121300_animation_08C8C_indices.inc"
-};
-
-static AnimationSet _gActor121300Animation08C8C = {
-    _gActor121300Animation08C8CRecords,
-    _gActor121300Animation08C8CIndices,
-    { NULL, _gActor121300Animation08C8CBank1, NULL, NULL, _gActor121300Animation08C8CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor121300Animation09D84Bank1[29] = {
-#include "assets/actor_121300_animation_09D84_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor121300Animation09D84Bank4[439] = {
-#include "assets/actor_121300_animation_09D84_bank4.inc"
-};
-
-static AnimationRecord _gActor121300Animation09D84Records[540] = {
-#include "assets/actor_121300_animation_09D84_records.inc"
-};
-
-static u16 _gActor121300Animation09D84Indices[20] = {
-#include "assets/actor_121300_animation_09D84_indices.inc"
-};
-
-static AnimationSet _gActor121300Animation09D84 = {
-    _gActor121300Animation09D84Records,
-    _gActor121300Animation09D84Indices,
-    { NULL, _gActor121300Animation09D84Bank1, NULL, NULL, _gActor121300Animation09D84Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/dryfield/r08/eve_clips.inc"
 
 /// Spawn recipe for the scene's per-frame screen distortion, followed by a table end.
 ///
@@ -501,7 +407,7 @@ static s32 _gScreenWaveAmplitude = 256;
 /// restores it after the half-closed patch. Uploaded at base VRAM (384, 320),
 /// relocated by the double's 64-word texture-page offset.
 static u_long _gActor121300EyesOpenPixels[250] = {
-#include "assets/actor_121300_image_09DC8.inc"
+#include "assets/characters/eve/eyes_open.inc"
 };
 
 /// Half-closed-eye patch between the double's open and closed eye states.
@@ -510,7 +416,7 @@ static u_long _gActor121300EyesOpenPixels[250] = {
 /// (384, 320) on the first update of both closing and reopening sequences.
 /// The double's texture-page offset relocates X in 64-word columns.
 static u_long _gActor121300EyesHalfClosedPixels[250] = {
-#include "assets/actor_121300_image_0A1B0.inc"
+#include "assets/characters/eve/eyes_half_closed.inc"
 };
 
 /// Closed-eye patch completing the double's blink-closing sequence.
@@ -519,7 +425,7 @@ static u_long _gActor121300EyesHalfClosedPixels[250] = {
 /// (384, 320) on sequence 1's second update. The double's texture-page offset
 /// relocates X in 64-word columns.
 static u_long _gActor121300EyesClosedPixels[250] = {
-#include "assets/actor_121300_image_0A598.inc"
+#include "assets/characters/eve/eyes_closed.inc"
 };
 
 /// Closed-mouth patch installed by the double's initial texture sequence.
@@ -527,7 +433,7 @@ static u_long _gActor121300EyesClosedPixels[250] = {
 /// Packed as 140 32-bit transfer words (28 by 20 8-bit texels), uploaded at base VRAM
 /// (396, 416), with X relocated by the double's 64-word texture-page offset.
 static u_long _gActor121300MouthClosedPixels[140] = {
-#include "assets/actor_121300_image_0A980.inc"
+#include "assets/characters/eve/mouth_closed.inc"
 };
 
 /// Open-mouth patch selected by the double's texture sequences 4 and 5.
@@ -535,7 +441,7 @@ static u_long _gActor121300MouthClosedPixels[140] = {
 /// Packed as 140 32-bit transfer words (28 by 20 8-bit texels), uploaded at base VRAM
 /// (396, 416), with X relocated by the double's 64-word texture-page offset.
 static u_long _gActor121300MouthOpenPixels[140] = {
-#include "assets/actor_121300_image_0ABB0.inc"
+#include "assets/characters/eve/mouth_open.inc"
 };
 
 /// Scene update counter whose low two bits gate drift sprites every fourth update.
@@ -554,7 +460,7 @@ static s16 _gActor121300DebrisSpeedPercent = ACTOR_121300_DEBRIS_FULL_SPEED_PERC
 ///
 /// The animation context retains this table and its sets for the double's life.
 /// Set 1 holds its mark; sets 2 and 3 are selected by scene cues.
-static AnimationSet* _gActor121300AnimationSets[4] = { NULL, &_gActor121300Animation089E8, &_gActor121300Animation08C8C, &_gActor121300Animation09D84 };
+#include "assets/rooms/dryfield/r08/eve_bank.inc"
 
 /// Follow-up animation set for each double set once all driven tracks settle.
 ///
@@ -677,7 +583,7 @@ static SVECTOR _gActor121300UpperRowPoints[7] = {
 /// this overlay loaded throughout playback; the absent second qualifier is zero.
 static EvsSceneKey _gActor121300SceneKey = { .group = 2, .streamId = 13, .subId = 11 };
 
-/// CAP-cued lamp-shattering scene with Aya's model double over streamed images.
+/// CAP-cued lamp-shattering scene with Eve over streamed images.
 ///
 /// Borrows the initialized double, room resources and selected stream through
 /// completion. Starts CAP command 1, drives animation, blink textures, lamp
@@ -754,7 +660,7 @@ static EvsCommand _gActor121300SceneSkipScript[7] = {
 };
 
 TaskDesc gActor121300SceneTasks[11] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_121300_SCENE_TASK_PRIORITY } }, _actor121300AyaDoubleSceneTask, { .model = &_gActor121300AyaBreaBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_121300_SCENE_TASK_PRIORITY } }, _actor121300EveSceneTask, { .model = &_gEveBody } },
     { { { TASK_BODY_NONE, ACTOR_121300_SCENE_TASK_PRIORITY } }, _actor121300FadeInTask, { .value = 0 } },
     { { { TASK_BODY_NONE, ACTOR_121300_SCENE_TASK_PRIORITY } }, _actor121300FadeOutTask, { .value = 0 } },
     { { { TASK_BODY_NONE, ACTOR_121300_SCENE_TASK_PRIORITY } }, _actor121300SpawnLampDebrisTask, { .value = 0 } },
@@ -773,7 +679,7 @@ TaskDesc gActor121300SceneTasks[11] = {
 /// this storage; the context must stay live through its final drawing tick.
 static ScreenWaveCtx* _gScreenWaveContext = NULL;
 
-/// Borrowed singleton task of Aya's scene double, published after work allocation.
+/// Borrowed singleton task of Eve, published after work allocation.
 ///
 /// Step, draw and skip callbacks require successful initialization and a live
 /// task/work block. Teardown does not clear this pointer; stop callbacks before
@@ -879,17 +785,17 @@ static void _actor121300FadeInTask(Task* task)
 
 /// Ticks the double's driven animation slots and starts a configured follow-up set.
 ///
-/// Requires live `_Actor121300AyaBreaWork` and an animation-set index in 1..3.
+/// Requires live `_Actor121300EveWork` and an animation-set index in 1..3.
 /// Slots 1..18 are driven; slot 0 is left alone. Returns 1 when all driven slots
 /// are settled, including when a nonnegative follow-up table entry starts a
 /// ten-frame blend at frame 0; returns 0 while any slot is unsettled.
 static s32 _actor121300TickAnimations(Task* task)
 {
-    _Actor121300AyaBreaWork* work;
-    _Actor121300AyaBreaWork* blendWork;
-    u16                      slotIndex;
-    u16                      allSettled;
-    u16                      nextAnimSet;
+    _Actor121300EveWork* work;
+    _Actor121300EveWork* blendWork;
+    u16                  slotIndex;
+    u16                  allSettled;
+    u16                  nextAnimSet;
 
     work = task->work;
     for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
@@ -1211,10 +1117,10 @@ static inline void _actor121300UploadTexture(Task* task, s32 baseXWords, s16 row
                                              s16 widthWords, s16 heightRows, u_long* imageData)
 {
     enum { ACTOR_121300_TEXTURE_PAGE_WIDTH_WORDS = 64 };
-    RECT                     uploadRect;
-    s32                      relocatedXWords;
-    Task*                    parentTask;
-    _Actor121300AyaBreaWork* parentWork;
+    RECT                 uploadRect;
+    s32                  relocatedXWords;
+    Task*                parentTask;
+    _Actor121300EveWork* parentWork;
 
     parentTask      = task->spawnArg2.pointer;
     parentWork      = parentTask->work;
@@ -1347,13 +1253,13 @@ static void _actor121300SpawnRingSprites(Task* unusedTask, s16 raised)
 static void _actor121300SpawnUpperRowSprites(Task* task, s16 dwindle)
 {
     enum { ACTOR_121300_SPRITE_DROP_INTERVAL = 20 };
-    SVECTOR                  spawnPosition;
-    _Actor121300AyaBreaWork* work;
-    s16                      pointIndex;
-    u32                      randomSeed;
-    s32                      spriteArg;
-    SVECTOR*                 points;
-    s32                      jitteredX;
+    SVECTOR              spawnPosition;
+    _Actor121300EveWork* work;
+    s16                  pointIndex;
+    u32                  randomSeed;
+    s32                  spriteArg;
+    SVECTOR*             points;
+    s32                  jitteredX;
 
     work = task->work;
     if (dwindle != 0) {
@@ -1394,7 +1300,7 @@ static void _actor121300ShatterLamps(Task* task)
         ACTOR_121300_LAMP_AFTER_SPRITELESS_INDEX = 7,
         ACTOR_121300_LAMP_DEBRIS_SPAWNER_INDEX   = 3,
     };
-    _Actor121300AyaBreaWork* work = task->work;
+    _Actor121300EveWork* work = task->work;
 
     switch (work->shatterState) {
         case ACTOR_121300_SHATTER_START:
@@ -1438,8 +1344,8 @@ static void _actor121300ShatterLamps(Task* task)
 /// as the active set, then seeks slots 1..18 to frame 0. Slot 0 is untouched.
 static inline void _actor121300BlendAnimationSet(Task* task, s32 animSet)
 {
-    _Actor121300AyaBreaWork* work;
-    u16                      slotIndex;
+    _Actor121300EveWork* work;
+    u16                  slotIndex;
 
     work = task->work;
     // The existing statement macro keeps the set store ahead of loop setup.
@@ -1468,8 +1374,8 @@ static inline void _actor121300RestartMarkTracks(Task* task)
         ACTOR_121300_MARK_CLIP = 1,
     };
 
-    _Actor121300AyaBreaWork* work;
-    s32                      slotIndex;
+    _Actor121300EveWork* work;
+    s32                  slotIndex;
 
     work          = task->work;
     work->animSet = ACTOR_121300_MARK_CLIP;
@@ -1497,8 +1403,8 @@ static void _actor121300RunSceneStep(Task* task)
         ACTOR_121300_PULSE_HELD        = 1,
     };
 
-    _Actor121300AyaBreaWork* work;
-    CdCmdQueue*              cdQueue;
+    _Actor121300EveWork* work;
+    CdCmdQueue*          cdQueue;
 
     work    = task->work;
     cdQueue = &gCdCmdQueue;
@@ -1589,7 +1495,7 @@ static void _actor121300RunSceneStep(Task* task)
     }
 }
 
-/// Initializes Aya’s scene double, clip playback and streamed-texture offset.
+/// Initializes Eve, clip playback and streamed-texture offset.
 ///
 /// Allocates zeroed task-owned work and publishes the double task; allocation
 /// failure kills the task. Parents the root to the view and lends work matrices
@@ -1604,18 +1510,18 @@ static void _actor121300InitBody(Task* task)
 
     enum { TEXTURE_RESOURCE_ENTRY_ID = 0x84 };
 
-    _Actor121300AyaBreaWork* work;
-    _Actor121300AyaBreaWork* allocatedWork;
-    _Actor121300AyaBreaWork* slotsWork;
-    TmdObject*               tmd;
-    GfxCoord*                coord;
-    AreaPlacement*           place;
-    s32                      slotIndex;
-    u8                       entryId;
+    _Actor121300EveWork* work;
+    _Actor121300EveWork* allocatedWork;
+    _Actor121300EveWork* slotsWork;
+    TmdObject*           tmd;
+    GfxCoord*            coord;
+    AreaPlacement*       place;
+    s32                  slotIndex;
+    u8                   entryId;
 
     tmd           = task->extra.tmd;
     coord         = tmd->coords;
-    allocatedWork = memMalloc(sizeof(_Actor121300AyaBreaWork), false);
+    allocatedWork = memMalloc(sizeof(_Actor121300EveWork), false);
     task->work    = allocatedWork;
     if (allocatedWork == NULL) {
         taskKill(task);
@@ -1654,7 +1560,7 @@ static void _actor121300InitBody(Task* task)
     task->msgTable = _gActor121300DoubleMessages;
 }
 
-/// Runs Aya's double, the lamp-shattering scene and the final night-room reload.
+/// Runs Eve, the lamp-shattering scene and the final night-room reload.
 ///
 /// Start at state 0 with the body and scene resources loaded. Setup waits for
 /// the attachment wheel and display transition, then runs the scene step on
@@ -1666,7 +1572,7 @@ static void _actor121300InitBody(Task* task)
 /// Weapon reset requires saved character 1 and weapon 0..32 for the loaded
 /// player-bank table. The retained alternate +34 selector's reachability is
 /// unproven.
-static void _actor121300AyaDoubleSceneTask(Task* task)
+static void _actor121300EveSceneTask(Task* task)
 {
     enum {
         ACTOR_121300_SCENE_INITIALIZE          = 0,
@@ -1849,7 +1755,7 @@ static s32 _actor121300SetTextureSequence(Task* task, s32 unusedMessageId, s32 t
 /// `ACTOR_121300_STEP_*` value, stored as its unsigned low halfword.
 static void _actor121300SelectSceneStep(s16 step)
 {
-    _Actor121300AyaBreaWork* work = _gActor121300DoubleTask->work;
+    _Actor121300EveWork* work = _gActor121300DoubleTask->work;
 
     work->step      = step;
     work->stepState = 0;
@@ -1870,7 +1776,7 @@ static void _actor121300RestoreStreamImageMode(void)
 /// releases no work or model storage.
 static void _actor121300SkipScene(void)
 {
-    _Actor121300AyaBreaWork* work = _gActor121300DoubleTask->work;
+    _Actor121300EveWork* work = _gActor121300DoubleTask->work;
 
     _gActor121300DebrisEnabled = 0;
     work->wave.state           = SCREEN_WAVE_RAMP_FINISHED;

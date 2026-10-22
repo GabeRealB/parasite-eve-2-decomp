@@ -1,0 +1,233 @@
+# The assets of the group enemies/diver/bog, each named enemies/diver/bog/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+schema = "enemies/diver/bog/schema"
+symbol = "_gActor00400AnimationBank"
+
+[bank.clips]
+surface = "enemies/diver/surface"
+stranded_idle = "enemies/diver/bog/stranded_idle"
+swim = "enemies/diver/swim"
+crawl = "enemies/diver/bog/crawl"
+surface_swim = "enemies/diver/surface_swim"
+slot_6 = "enemies/diver/bog/anim_06"
+discharge = "enemies/diver/discharge"
+slot_8 = "enemies/diver/anim_08"
+stranded_discharge = "enemies/diver/bog/stranded_discharge"
+swim_recoil_light = "enemies/diver/swim_recoil_light"
+swim_recoil_heavy = "enemies/diver/swim_recoil_heavy"
+stranded_recoil_light = "enemies/diver/bog/stranded_recoil_light"
+stranded_recoil_heavy = "enemies/diver/bog/stranded_recoil_heavy"
+swim_stunned = "enemies/diver/swim_stunned"
+stranded_stunned = "enemies/diver/bog/stranded_stunned"
+swim_stunned_loop = "enemies/diver/swim_stunned_loop"
+stranded_stunned_loop = "enemies/diver/bog/stranded_stunned_loop"
+swim_stunned_hit = "enemies/diver/swim_stunned_hit"
+wounded_ground_flinch = "enemies/diver/bog/wounded_ground_flinch"
+
+[crawl]
+type = "clip"
+rig = "enemies/diver/rig"
+
+[schema]
+type = "animation_schema"
+slots = [
+    "",
+    "surface",
+    "stranded_idle",
+    "swim",
+    "crawl",
+    "surface_swim",
+    "slot_6",
+    "discharge",
+    "slot_8",
+    "stranded_discharge",
+    "swim_recoil_light",
+    "swim_recoil_heavy",
+    "stranded_recoil_light",
+    "stranded_recoil_heavy",
+    "swim_stunned",
+    "stranded_stunned",
+    "swim_stunned_loop",
+    "stranded_stunned_loop",
+    "swim_stunned_hit",
+    "wounded_ground_flinch",
+]
+
+[anim_06]
+type = "clip"
+rig = "enemies/diver/rig"
+
+[package_1]
+type = "pe2pkg"
+embedded = [
+    { asset = "enemies/diver/body", offset = 0x0AB0C, size = 0x326C, address = 0x8013C92C },
+    { asset = "enemies/diver/burst_head", offset = 0x0DD78, size = 0x864, address = 0x8013FB98 },
+    { asset = "enemies/diver/burst_arm_right", offset = 0x0E5DC, size = 0x3B8, address = 0x801403FC },
+    { asset = "enemies/diver/burst_arm_left_1", offset = 0x0E994, size = 0x3B8, address = 0x801407B4 },
+    { asset = "enemies/diver/burst_leg_right", offset = 0x0ED4C, size = 0x534, address = 0x80140B6C },
+    { asset = "enemies/diver/burst_arm_left_2", offset = 0x0F280, size = 0x534, address = 0x801410A0 },
+    { asset = "enemies/diver/energy_ball", offset = 0x0F7B4, size = 0x60C, address = 0x801415D4 },
+    { asset = "enemies/diver/surface", offset = 0x0FDD8, size = 0x598, address = 0x80141BF8 },
+    { name = "stranded_idle", offset = 0x10370, size = 0x2AC, address = 0x80142190 },
+    { asset = "enemies/diver/swim", offset = 0x1061C, size = 0x388, address = 0x8014243C },
+    { name = "crawl", offset = 0x109A4, size = 0x6D8, address = 0x801427C4 },
+    { asset = "enemies/diver/surface_swim", offset = 0x1107C, size = 0x8C4, address = 0x80142E9C },
+    { name = "anim_06", offset = 0x11940, size = 0x34C, address = 0x80143760 },
+    { asset = "enemies/diver/discharge", offset = 0x11C8C, size = 0x708, address = 0x80143AAC },
+    { asset = "enemies/diver/anim_08", offset = 0x12394, size = 0x8E4, address = 0x801441B4 },
+    { name = "stranded_discharge", offset = 0x12C78, size = 0x660, address = 0x80144A98 },
+    { asset = "enemies/diver/swim_recoil_light", offset = 0x132D8, size = 0x438, address = 0x801450F8 },
+    { asset = "enemies/diver/swim_recoil_heavy", offset = 0x13710, size = 0x540, address = 0x80145530 },
+    { name = "stranded_recoil_light", offset = 0x13C50, size = 0x388, address = 0x80145A70 },
+    { name = "stranded_recoil_heavy", offset = 0x13FD8, size = 0x658, address = 0x80145DF8 },
+    { asset = "enemies/diver/swim_stunned", offset = 0x14630, size = 0x600, address = 0x80146450 },
+    { name = "stranded_stunned", offset = 0x14C30, size = 0x448, address = 0x80146A50 },
+    { asset = "enemies/diver/swim_stunned_loop", offset = 0x15078, size = 0x2F0, address = 0x80146E98 },
+    { name = "stranded_stunned_loop", offset = 0x15368, size = 0x2E4, address = 0x80147188 },
+    { asset = "enemies/diver/swim_stunned_hit", offset = 0x1564C, size = 0x510, address = 0x8014746C },
+    { name = "wounded_ground_flinch", offset = 0x15B5C, size = 0x3C4, address = 0x8014797C },
+    { name = "bank", offset = 0x1604C, size = 0x50, address = 0x80147E6C },
+]
+package_name = "actor_100400"
+required = true
+sha1 = "c235c99e43639faf9e77340709e36dc8c0a82d50"
+
+[package_2]
+type = "pe2pkg"
+embedded = [
+    { asset = "enemies/diver/surface", offset = 0x0FDD8, size = 0x598, address = 0x80159BF8 },
+    { name = "stranded_idle", offset = 0x10370, size = 0x2AC, address = 0x8015A190 },
+    { asset = "enemies/diver/swim", offset = 0x1061C, size = 0x388, address = 0x8015A43C },
+    { name = "crawl", offset = 0x109A4, size = 0x6D8, address = 0x8015A7C4 },
+    { asset = "enemies/diver/surface_swim", offset = 0x1107C, size = 0x8C4, address = 0x8015AE9C },
+    { name = "anim_06", offset = 0x11940, size = 0x34C, address = 0x8015B760 },
+    { asset = "enemies/diver/discharge", offset = 0x11C8C, size = 0x708, address = 0x8015BAAC },
+    { asset = "enemies/diver/anim_08", offset = 0x12394, size = 0x8E4, address = 0x8015C1B4 },
+    { name = "stranded_discharge", offset = 0x12C78, size = 0x660, address = 0x8015CA98 },
+    { asset = "enemies/diver/swim_recoil_light", offset = 0x132D8, size = 0x438, address = 0x8015D0F8 },
+    { asset = "enemies/diver/swim_recoil_heavy", offset = 0x13710, size = 0x540, address = 0x8015D530 },
+    { name = "stranded_recoil_light", offset = 0x13C50, size = 0x388, address = 0x8015DA70 },
+    { name = "stranded_recoil_heavy", offset = 0x13FD8, size = 0x658, address = 0x8015DDF8 },
+    { asset = "enemies/diver/swim_stunned", offset = 0x14630, size = 0x600, address = 0x8015E450 },
+    { name = "stranded_stunned", offset = 0x14C30, size = 0x448, address = 0x8015EA50 },
+    { asset = "enemies/diver/swim_stunned_loop", offset = 0x15078, size = 0x2F0, address = 0x8015EE98 },
+    { name = "stranded_stunned_loop", offset = 0x15368, size = 0x2E4, address = 0x8015F188 },
+    { asset = "enemies/diver/swim_stunned_hit", offset = 0x1564C, size = 0x510, address = 0x8015F46C },
+    { name = "wounded_ground_flinch", offset = 0x15B5C, size = 0x3C4, address = 0x8015F97C },
+    { name = "bank", offset = 0x1604C, size = 0x50, address = 0x8015FE6C },
+]
+package_name = "actor_200400"
+required = true
+sha1 = "b719a3265605cd843578b514238aeda35656c9c0"
+
+[package_3]
+type = "pe2pkg"
+package_name = "actor_300400"
+required = true
+sha1 = "5b86d43aa03019ffe8b6801e824d069126f4ddb9"
+
+[body_binding]
+type = "binding"
+model = "enemies/diver/body"
+textures = { page_2 = "enemies/diver/bog/texture_page_2.default", page_1 = "enemies/diver/bog/texture_page_1.default" }
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+asset = "enemies/diver/sounds"
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "8d469690f741c924f8da63c5c4c9b63f9c9f8164"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "8f97aac9128ea5cd3985e21425e69b396eaafe97"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_file.contents]]
+chunk = "package_1"
+
+[stranded_idle]
+type = "clip"
+rig = "enemies/diver/rig"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[stranded_stunned]
+type = "clip"
+rig = "enemies/diver/rig"
+
+[burst_head_binding]
+type = "binding"
+model = "enemies/diver/burst_head"
+textures = { page_2 = "enemies/diver/bog/texture_page_2.default" }
+
+[stranded_discharge]
+type = "clip"
+rig = "enemies/diver/rig"
+
+[energy_ball_binding]
+type = "binding"
+model = "enemies/diver/energy_ball"
+textures = { page_2 = "enemies/diver/bog/texture_page_2.default" }
+
+[stranded_recoil_heavy]
+type = "clip"
+rig = "enemies/diver/rig"
+
+[stranded_recoil_light]
+type = "clip"
+rig = "enemies/diver/rig"
+
+[stranded_stunned_loop]
+type = "clip"
+rig = "enemies/diver/rig"
+
+[wounded_ground_flinch]
+type = "clip"
+rig = "enemies/diver/rig"
+
+[burst_arm_right_binding]
+type = "binding"
+model = "enemies/diver/burst_arm_right"
+textures = { page_1 = "enemies/diver/bog/texture_page_1.default", page_2 = "enemies/diver/bog/texture_page_2.default" }
+
+[burst_leg_right_binding]
+type = "binding"
+model = "enemies/diver/burst_leg_right"
+textures = { page_1 = "enemies/diver/bog/texture_page_1.default", page_2 = "enemies/diver/bog/texture_page_2.default" }
+
+[burst_arm_left_1_binding]
+type = "binding"
+model = "enemies/diver/burst_arm_left_1"
+textures = { page_1 = "enemies/diver/bog/texture_page_1.default", page_2 = "enemies/diver/bog/texture_page_2.default" }
+
+[burst_arm_left_2_binding]
+type = "binding"
+model = "enemies/diver/burst_arm_left_2"
+textures = { page_1 = "enemies/diver/bog/texture_page_1.default", page_2 = "enemies/diver/bog/texture_page_2.default" }

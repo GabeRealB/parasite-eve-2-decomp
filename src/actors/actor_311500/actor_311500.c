@@ -121,87 +121,15 @@ typedef struct {
 } _Actor311500Work;
 STATIC_ASSERT_SIZEOF(_Actor311500Work, 0x4D8);
 
-static AnimationSet _gActor311500Animation07188;
-static AnimationSet _gActor311500Animation07470;
-static TmdSource    _gActor311500StrangerBody;
+static AnimationSet _gStrangerDownBackClip;
+extern AnimationSet gStrangerLesserIdleClip;
+static TmdSource    _gAkropolisCafeteriaBossStrangerBody;
 static void         _actor311500Task(Task* actorTask);
 static s32          _actor311500IsPresentMessage(Task* actorTask, s32 messageId, s32 unusedArg, u32* presenceResult);
 
-static TmdBone _gActor311500StrangerBodySkeleton[19] = {
-#include "assets/stranger_body_skeleton.inc"
-};
+#include "assets/rooms/akropolis/cafeteria/boss_stranger_body.inc"
 
-static u32 _gActor311500StrangerBodyPartVerts[19] = {
-#include "assets/stranger_body_partVerts.inc"
-};
-
-static SVECTOR _gActor311500StrangerBodyVerts[311] = {
-#include "assets/stranger_body_verts.inc"
-};
-
-static SVECTOR _gActor311500StrangerBodyNormals[309] = {
-#include "assets/stranger_body_normals.inc"
-};
-
-static u32 _gActor311500StrangerBodyStream[4027] = {
-#include "assets/stranger_body_stream.inc"
-};
-
-static TmdSource _gActor311500StrangerBody = {
-    0,
-    20180,
-    7860,
-    19,
-    _gActor311500StrangerBodyPartVerts,
-    _gActor311500StrangerBodyVerts,
-    _gActor311500StrangerBodyNormals,
-    _gActor311500StrangerBodySkeleton,
-    _gActor311500StrangerBodyStream,
-};
-
-static AnimationPackedPose _gActor311500Animation07188Bank1[6] = {
-#include "assets/actor_311500_animation_07188_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor311500Animation07188Bank4[81] = {
-#include "assets/actor_311500_animation_07188_bank4.inc"
-};
-
-static AnimationRecord _gActor311500Animation07188Records[118] = {
-#include "assets/actor_311500_animation_07188_records.inc"
-};
-
-static u16 _gActor311500Animation07188Indices[20] = {
-#include "assets/actor_311500_animation_07188_indices.inc"
-};
-
-static AnimationSet _gActor311500Animation07188 = {
-    _gActor311500Animation07188Records,
-    _gActor311500Animation07188Indices,
-    { NULL, _gActor311500Animation07188Bank1, NULL, NULL, _gActor311500Animation07188Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor311500Animation07470Bank1[5] = {
-#include "assets/actor_311500_animation_07470_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor311500Animation07470Bank4[52] = {
-#include "assets/actor_311500_animation_07470_bank4.inc"
-};
-
-static AnimationRecord _gActor311500Animation07470Records[99] = {
-#include "assets/actor_311500_animation_07470_records.inc"
-};
-
-static u16 _gActor311500Animation07470Indices[20] = {
-#include "assets/actor_311500_animation_07470_indices.inc"
-};
-
-static AnimationSet _gActor311500Animation07470 = {
-    _gActor311500Animation07470Records,
-    _gActor311500Animation07470Indices,
-    { NULL, _gActor311500Animation07470Bank1, NULL, NULL, _gActor311500Animation07470Bank4, NULL, NULL, NULL },
-};
+#include "assets/enemies/stranger/lesser/clips.inc"
 
 enum { ACTOR_311500_PLAYER_REACTION_SPARK_AND_PUFFS = 7 };
 
@@ -257,10 +185,7 @@ static u16 D_actor_311500_801692D0[18] = {
 ///
 /// Slot 0 is the idle clip and slot 1 the hit reaction. Live rigs borrow this
 /// table and both sets until task teardown; no null terminator is required.
-static AnimationSet* _gActor311500StrangerAnimationSets[2] = {
-    [ACTOR_311500_ANIMATION_IDLE] = &_gActor311500Animation07470,
-    [ACTOR_311500_ANIMATION_HIT]  = &_gActor311500Animation07188,
-};
+#include "assets/enemies/stranger/lesser/bank.inc"
 
 /// Barrier patch's single Q12 +Z normal, copied into the fire-escape grid.
 ///
@@ -301,7 +226,7 @@ enum { ACTOR_311500_STRANGER_TASK_PRIORITY = 192 };
 TaskDesc gActor311500StrangerTaskDesc = {
     .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_311500_STRANGER_TASK_PRIORITY } },
     .callback = _actor311500Task,
-    .data     = { .model = &_gActor311500StrangerBody },
+    .data     = { .model = &_gAkropolisCafeteriaBossStrangerBody },
 };
 
 static void        _actor311500Init(Task* actorTask);

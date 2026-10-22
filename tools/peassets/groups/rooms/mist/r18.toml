@@ -1,0 +1,182 @@
+# The assets of the group rooms/mist/r18, each named rooms/mist/r18/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[eric]
+type = "pe2pkg"
+embedded = [
+    { asset = "characters/eric/body", offset = 0x00C2C, size = 0x5BA8, address = 0x8014AA4C },
+    { asset = "characters/eric/arm_right", offset = 0x067D4, size = 0x634, address = 0x801505F4 },
+    { asset = "characters/eric/hand_right", offset = 0x06E08, size = 0x384, address = 0x80150C28 },
+    "actor_213000_model_072AC",
+    "actor_213000_prop",
+    { name = "eric_rest", offset = 0x07650, size = 0xA58, address = 0x80151470 },
+    { name = "eric_well_actually", offset = 0x080A8, size = 0x8CC, address = 0x80151EC8 },
+    { name = "eric_show_article", offset = 0x08974, size = 0x1490, address = 0x80152794 },
+    { name = "eric_explain_autopsies", offset = 0x09E04, size = 0x1300, address = 0x80153C24 },
+    { name = "eric_explain_nmcs", offset = 0x0B104, size = 0x990, address = 0x80154F24 },
+    { name = "eric_hand_folder", offset = 0x0BA94, size = 0xD5C, address = 0x801558B4 },
+    { name = "eric_departure_1", offset = 0x0C7F0, size = 0x420, address = 0x80156610 },
+    { name = "eric_assign_clean_up", offset = 0x0CC10, size = 0x7BC, address = 0x80156A30 },
+    { name = "eric_dismiss", offset = 0x0D3CC, size = 0x380, address = 0x801571EC },
+    { name = "eric_reminder", offset = 0x0D74C, size = 0x844, address = 0x8015756C },
+    { name = "eric_bank", offset = 0x0DF90, size = 0x2C, address = 0x80157DB0 },
+]
+package_name = "actor_213000"
+parent = "mist_r18"
+required = true
+sha1 = "ea8273b7341dd67f06108625be31c177a12ec40d"
+
+[rupert]
+type = "pe2pkg"
+embedded = [
+    { asset = "characters/rupert/hurt_body", offset = 0x00714, size = 0x53D0, address = 0x80132534 },
+    { name = "rupert_rest", offset = 0x05AE4, size = 0x2D8, address = 0x80137904 },
+    { name = "rupert_briefing_1", offset = 0x05DBC, size = 0x460, address = 0x80137BDC },
+    { name = "rupert_briefing_2", offset = 0x0621C, size = 0x388, address = 0x8013803C },
+    { name = "rupert_cut_the_crap", offset = 0x065A4, size = 0x794, address = 0x801383C4 },
+    { name = "rupert_ask_about_akropolis", offset = 0x06D38, size = 0x698, address = 0x80138B58 },
+    { name = "rupert_yes_sir", offset = 0x073D0, size = 0x510, address = 0x801391F0 },
+    { name = "rupert_dismissed", offset = 0x078E0, size = 0x5B4, address = 0x80139700 },
+    { name = "rupert_reminder", offset = 0x07E94, size = 0x278, address = 0x80139CB4 },
+    "characters/rupert/hurt_eyes_open",
+    "characters/rupert/hurt_eyes_half_open",
+    "characters/rupert/hurt_eyes_closed",
+    { name = "rupert_bank", offset = 0x08D6C, size = 0x24, address = 0x8013AB8C },
+]
+package_name = "actor_113000"
+required = true
+sha1 = "7da2ff08b25be9f5b909f550f8e9c9287e0e87cc"
+
+[eric_bank]
+type = "animation_bank"
+schema = "rooms/mist/r18/eric_schema"
+symbol = "_gActor213000EricBaldwinAnimationSets"
+
+[eric_bank.clips]
+rest = "rooms/mist/r18/eric_rest"
+well_actually = "rooms/mist/r18/eric_well_actually"
+show_article = "rooms/mist/r18/eric_show_article"
+explain_autopsies = "rooms/mist/r18/eric_explain_autopsies"
+explain_nmcs = "rooms/mist/r18/eric_explain_nmcs"
+hand_folder = "rooms/mist/r18/eric_hand_folder"
+departure_1 = "rooms/mist/r18/eric_departure_1"
+assign_clean_up = "rooms/mist/r18/eric_assign_clean_up"
+dismiss = "rooms/mist/r18/eric_dismiss"
+reminder = "rooms/mist/r18/eric_reminder"
+
+[eric_rest]
+type = "clip"
+rig = "characters/eric/rig"
+
+[eric_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "rest",
+    "well_actually",
+    "show_article",
+    "explain_autopsies",
+    "explain_nmcs",
+    "hand_folder",
+    "departure_1",
+    "assign_clean_up",
+    "dismiss",
+    "reminder",
+]
+
+[rupert_bank]
+type = "animation_bank"
+schema = "rooms/mist/r18/rupert_schema"
+symbol = "_gActor113000AnimationSets"
+
+[rupert_bank.clips]
+rest = "rooms/mist/r18/rupert_rest"
+briefing_1 = "rooms/mist/r18/rupert_briefing_1"
+briefing_2 = "rooms/mist/r18/rupert_briefing_2"
+cut_the_crap = "rooms/mist/r18/rupert_cut_the_crap"
+ask_about_akropolis = "rooms/mist/r18/rupert_ask_about_akropolis"
+yes_sir = "rooms/mist/r18/rupert_yes_sir"
+dismissed = "rooms/mist/r18/rupert_dismissed"
+reminder = "rooms/mist/r18/rupert_reminder"
+
+[rupert_rest]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[eric_dismiss]
+type = "clip"
+rig = "characters/eric/rig"
+
+[eric_reminder]
+type = "clip"
+rig = "characters/eric/rig"
+
+[rupert_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "rest",
+    "briefing_1",
+    "briefing_2",
+    "cut_the_crap",
+    "ask_about_akropolis",
+    "yes_sir",
+    "dismissed",
+    "reminder",
+]
+
+[rupert_yes_sir]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[rupert_reminder]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[eric_departure_1]
+type = "clip"
+rig = "characters/eric/rig"
+
+[eric_hand_folder]
+type = "clip"
+rig = "characters/eric/rig"
+
+[rupert_dismissed]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[eric_explain_nmcs]
+type = "clip"
+rig = "characters/eric/rig"
+
+[eric_show_article]
+type = "clip"
+rig = "characters/eric/rig"
+
+[rupert_briefing_1]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[rupert_briefing_2]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[eric_well_actually]
+type = "clip"
+rig = "characters/eric/rig"
+
+[rupert_cut_the_crap]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[eric_assign_clean_up]
+type = "clip"
+rig = "characters/eric/rig"
+
+[eric_explain_autopsies]
+type = "clip"
+rig = "characters/eric/rig"
+
+[rupert_ask_about_akropolis]
+type = "clip"
+rig = "characters/rupert/rig"

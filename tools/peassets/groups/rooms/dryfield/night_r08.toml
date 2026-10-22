@@ -1,0 +1,210 @@
+# The assets of the group rooms/dryfield/night_r08, each named rooms/dryfield/night_r08/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[eve_bank]
+type = "animation_bank"
+schema = "rooms/dryfield/night_r08/eve_schema"
+symbol = "_gFootstepWalkAnimationSets"
+
+[eve_bank.clips]
+startup = "rooms/neo_ark/garden/footstep_walk_anim_01"
+walk = "characters/eve/walk_backward"
+turn = "characters/eve/turn"
+slot_4 = "rooms/neo_ark/garden/footstep_walk_anim_04"
+slot_5 = "rooms/neo_ark/garden/footstep_walk_anim_05"
+slot_6 = "rooms/neo_ark/garden/footstep_walk_anim_06"
+slot_7 = "rooms/neo_ark/garden/footstep_walk_anim_07"
+slot_8 = "rooms/neo_ark/garden/footstep_walk_anim_08"
+slot_10 = "characters/eve/walk_stop"
+idle = "characters/eve/idle"
+walk_2 = "characters/eve/walk_slow"
+walk_3 = "characters/eve/eve_walk"
+slot_16 = "characters/eve/swing_arms"
+slot_17 = "characters/eve/clutch_head_and_run"
+slot_18 = "characters/eve/lie_unconscious"
+slot_19 = "rooms/neo_ark/garden/footstep_walk_anim_19"
+
+[eve_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "startup",
+    "walk",
+    "turn",
+    "slot_4",
+    "slot_5",
+    "slot_6",
+    "slot_7",
+    "slot_8",
+    "",
+    "slot_10",
+    "",
+    "",
+    "idle",
+    "walk_2",
+    "walk_3",
+    "slot_16",
+    "slot_17",
+    "slot_18",
+    "slot_19",
+]
+
+[golem_bank]
+type = "animation_bank"
+schema = "rooms/dryfield/night_r08/golem_schema"
+symbol = "_gPairWalkAnimationSets"
+
+[golem_bank.clips]
+idle = "enemies/golem/idle"
+slot_2 = "enemies/golem/no_9/body_anim_02"
+stance_enter = "enemies/golem/no_9/stance_enter"
+walk = "enemies/golem/walk"
+slot_5 = "rooms/shelter/b6_nursery/pawn_golem_second_entry"
+
+[golem_schema]
+type = "animation_schema"
+slots = ["", "idle", "slot_2", "stance_enter", "walk", "slot_5"]
+
+[eve_and_golems]
+type = "pe2pkg"
+package_name = "actor_535700"
+required = true
+sha1 = "351ad8475af2546095432fb2b8d256f20502ada3"
+
+[[eve_and_golems.embedded]]
+asset = "characters/eve/idle"
+offset = 0x07C70
+size = 0x214
+address = 0x80139A90
+
+[[eve_and_golems.embedded]]
+asset = "characters/eve/walk_slow"
+offset = 0x07E84
+size = 0x3F8
+address = 0x80139CA4
+
+[[eve_and_golems.embedded]]
+asset = "characters/eve/eve_walk"
+offset = 0x0827C
+size = 0xBE4
+address = 0x8013A09C
+
+[[eve_and_golems.embedded]]
+asset = "rooms/neo_ark/garden/footstep_walk_anim_01"
+offset = 0x08E60
+size = 0x268
+address = 0x8013AC80
+
+[[eve_and_golems.embedded]]
+asset = "characters/eve/walk_backward"
+offset = 0x090C8
+size = 0x408
+address = 0x8013AEE8
+
+[[eve_and_golems.embedded]]
+asset = "characters/eve/turn"
+offset = 0x094D0
+size = 0x40C
+address = 0x8013B2F0
+
+[[eve_and_golems.embedded]]
+asset = "rooms/neo_ark/garden/footstep_walk_anim_04"
+offset = 0x098DC
+size = 0x310
+address = 0x8013B6FC
+
+[[eve_and_golems.embedded]]
+asset = "rooms/neo_ark/garden/footstep_walk_anim_05"
+offset = 0x09BEC
+size = 0x258
+address = 0x8013BA0C
+
+[[eve_and_golems.embedded]]
+asset = "rooms/neo_ark/garden/footstep_walk_anim_06"
+offset = 0x09E44
+size = 0x290
+address = 0x8013BC64
+
+[[eve_and_golems.embedded]]
+asset = "rooms/neo_ark/garden/footstep_walk_anim_07"
+offset = 0x0A0D4
+size = 0x3E8
+address = 0x8013BEF4
+
+[[eve_and_golems.embedded]]
+asset = "rooms/neo_ark/garden/footstep_walk_anim_08"
+offset = 0x0A4BC
+size = 0x2B0
+address = 0x8013C2DC
+
+[[eve_and_golems.embedded]]
+asset = "characters/eve/walk_stop"
+offset = 0x0A76C
+size = 0x1BC
+address = 0x8013C58C
+
+[[eve_and_golems.embedded]]
+asset = "characters/eve/swing_arms"
+offset = 0x0A928
+size = 0x3E8
+address = 0x8013C748
+
+[[eve_and_golems.embedded]]
+asset = "characters/eve/clutch_head_and_run"
+offset = 0x0AD10
+size = 0x9B0
+address = 0x8013CB30
+
+[[eve_and_golems.embedded]]
+asset = "rooms/neo_ark/garden/footstep_walk_anim_19"
+offset = 0x0B6C0
+size = 0x37C
+address = 0x8013D4E0
+
+[[eve_and_golems.embedded]]
+asset = "characters/eve/lie_unconscious"
+offset = 0x0BA3C
+size = 0x24C
+address = 0x8013D85C
+
+[[eve_and_golems.embedded]]
+name = "eve_bank"
+offset = 0x0BCC8
+size = 0x8C
+address = 0x8013DAE8
+
+[[eve_and_golems.embedded]]
+asset = "enemies/golem/idle"
+offset = 0x115A0
+size = 0xC38
+address = 0x801433C0
+
+[[eve_and_golems.embedded]]
+asset = "enemies/golem/no_9/body_anim_02"
+offset = 0x121D8
+size = 0x768
+address = 0x80143FF8
+
+[[eve_and_golems.embedded]]
+asset = "enemies/golem/no_9/stance_enter"
+offset = 0x12940
+size = 0xBF0
+address = 0x80144760
+
+[[eve_and_golems.embedded]]
+asset = "enemies/golem/walk"
+offset = 0x13530
+size = 0x968
+address = 0x80145350
+
+[[eve_and_golems.embedded]]
+asset = "rooms/shelter/b6_nursery/pawn_golem_second_entry"
+offset = 0x13E98
+size = 0xB28
+address = 0x80145CB8
+
+[[eve_and_golems.embedded]]
+name = "golem_bank"
+offset = 0x14A08
+size = 0x18
+address = 0x80146828

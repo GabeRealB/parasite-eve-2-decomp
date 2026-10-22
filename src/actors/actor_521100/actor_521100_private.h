@@ -121,95 +121,95 @@ typedef struct {
 } Actor521100ThrowSpan;
 STATIC_ASSERT_SIZEOF(Actor521100ThrowSpan, 4);
 
-extern AnimationSet gActor521100Animation10EAC;
+extern AnimationSet gGolemIdleClip;
 
-extern AnimationSet gActor521100Animation11614;
+extern AnimationSet gGolemNo9BodyAnim02Clip;
 
-extern AnimationSet gActor521100Animation12204;
+extern AnimationSet gGolemNo9StanceEnterClip;
 
-extern AnimationSet gActor521100Animation1271C;
+extern AnimationSet gGolemNo9StanceHoldClip;
 
-extern AnimationSet gActor521100Animation13454;
+extern AnimationSet gGolemSwingRecoverClip;
 
-extern AnimationSet gActor521100Animation13B8C;
+extern AnimationSet gGolemSwordSwingClip;
 
-extern AnimationSet gActor521100Animation143F0;
+extern AnimationSet gGolemNo9BodyAnim09Clip;
 
-extern AnimationSet gActor521100Animation14918;
+extern AnimationSet gGolemNo9GrabSeizeClip;
 
-extern AnimationSet gActor521100Animation14C38;
+extern AnimationSet gGolemNo9GrabHoldClip;
 
-extern AnimationSet gActor521100Animation15168;
+extern AnimationSet gGolemNo9CounterDeathClip;
 
-extern AnimationSet gActor521100Animation152F8;
+extern AnimationSet gGolemNo9GuardStartClip;
 
-extern AnimationSet gActor521100Animation15904;
+extern AnimationSet gGolemScreamReleaseClip;
 
-extern AnimationSet gActor521100Animation15E28;
+extern AnimationSet gGolemStaggerClip;
 
-extern AnimationSet gActor521100Animation16628;
+extern AnimationSet gGolemNo9FlinchClip;
 
-extern AnimationSet gActor521100Animation16F90;
+extern AnimationSet gGolemWalkClip;
 
-extern AnimationSet gActor521100Animation18B20;
+extern AnimationSet gGolemNo9ThrowClip;
 
-extern AnimationSet gActor521100Animation1A8E4;
+extern AnimationSet gGolemNo9LongSlashClip;
 
-extern AnimationSet gActor521100Animation1B8F8;
+extern AnimationSet gGolemNo9SlashClip;
 
-extern AnimationSet gActor521100Animation1C104;
+extern AnimationSet gGolemGrabKillClip;
 
-extern AnimationSet gActor521100Animation1C58C;
+extern AnimationSet gGolemNo9SpawnClip;
 
-extern AnimationSet gActor521100Animation20880;
+extern AnimationSet gGolemNo9Event22Clip;
 
-extern AnimationSet gActor521100Animation20F94;
+extern AnimationSet gGolemNo9Event23Clip;
 
-extern AnimationSet gActor521100Animation2177C;
+extern AnimationSet gGolemNo9Event24Clip;
 
-extern AnimationSet gActor521100Animation220B8;
+extern AnimationSet gGolemNo9Event25Clip;
 
-extern AnimationSet gActor521100Animation229A0;
+extern AnimationSet gGolemNo9Event26Clip;
 
-extern AnimationSet gActor521100Animation2318C;
+extern AnimationSet gGolemNo9Event27Clip;
 
-extern AnimationSet gActor521100Animation239C0;
+extern AnimationSet gGolemNo9Event28Clip;
 
-extern AnimationSet gActor521100Animation24F5C;
+extern AnimationSet gGolemNo9Event29Clip;
 
-extern AnimationSet gActor521100Animation25ACC;
+extern AnimationSet gGolemNo9Event30Clip;
 
-extern AnimationSet gActor521100Animation26024;
+extern AnimationSet gGolemNo9Event31Clip;
 
-extern AnimationSet gActor521100Animation26E3C;
+extern AnimationSet gGolemNo9Event32Clip;
 
-extern AnimationSet gActor521100Animation26FCC;
+extern AnimationSet gGolemNo9Event33Clip;
 
-extern AnimationSet gActor521100Animation271A8;
+extern AnimationSet gGolemNo9Event34Clip;
 
-extern AnimationSet gActor521100Animation27A78;
+extern AnimationSet gGolemNo9Event35Clip;
 
-extern AnimationSet gActor521100Animation27DB0;
+extern AnimationSet gGolemNo9PlayerSeizeFrontClip;
 
-extern AnimationSet gActor521100Animation28380;
+extern AnimationSet gGolemNo9PlayerHoldFrontClip;
 
-extern AnimationSet gActor521100Animation28DD8;
+extern AnimationSet gGolemNo9PlayerCounterFinishClip;
 
-extern AnimationSet gActor521100Animation291F8;
+extern AnimationSet gGolemNo9PlayerCounterClip;
 
-extern AnimationSet gActor521100Animation29534;
+extern AnimationSet gGolemNo9PlayerSeizeBackClip;
 
-extern AnimationSet gActor521100Animation29A88;
+extern AnimationSet gGolemNo9PlayerHoldBackClip;
 
-extern AnimationSet gActor521100Animation2A998;
+extern AnimationSet gGolemNo9PlayerThrowFrontClip;
 
-extern AnimationSet gActor521100Animation2B89C;
+extern AnimationSet gGolemNo9PlayerThrowBackClip;
 
-extern AnimationSet gActor521100Animation2C378;
+extern AnimationSet gGolemNo9PlayerReleasedClip;
 
-extern AnimationSet gActor521100Animation2CCA8;
+extern AnimationSet gGolemNo9PlayerKillFrontClip;
 
-extern AnimationSet gActor521100Animation2D708;
+extern AnimationSet gGolemPlayerGrabKillClip;
 
 /// GOLEM body clips indexed by the rig's animation ID, with empty entries 0 and 12.
 ///

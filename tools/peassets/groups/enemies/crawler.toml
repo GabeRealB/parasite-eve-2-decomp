@@ -1,0 +1,120 @@
+# The assets of the group enemies/crawler, each named enemies/crawler/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = ["root", "body", "front_segment_1", "front_segment_2", "head", "rear_segment_1", "rear_segment_2", "tail"]
+
+[body]
+type = "model"
+rig = "enemies/crawler/rig"
+slots = ["body"]
+symbol = "_gCrawlerBody"
+sha1 = "d02065cf544fe34a3ac2f82bcfe365ddd3e02e44"
+
+[burn]
+type = "sound"
+sha1 = "e6bb570121bc2257cc0e798b8491c85f6bd65d50"
+
+[drop]
+type = "clip"
+rig = "enemies/crawler/rig"
+
+[hang]
+type = "clip"
+rig = "enemies/crawler/rig"
+
+[hurt]
+type = "clip"
+rig = "enemies/crawler/rig"
+
+[husk]
+type = "model"
+slots = ["body"]
+symbol = "_gCrawlerHusk"
+sha1 = "c65784bf962e61ddaefcfb4dbae2d86a212bff01"
+
+[idle]
+type = "clip"
+rig = "enemies/crawler/rig"
+
+[land]
+type = "clip"
+rig = "enemies/crawler/rig"
+
+[stun]
+type = "clip"
+rig = "enemies/crawler/rig"
+
+[wake]
+type = "clip"
+rig = "enemies/crawler/rig"
+
+[crawl]
+type = "clip"
+rig = "enemies/crawler/rig"
+
+[spray]
+type = "clip"
+rig = "enemies/crawler/rig"
+
+[get_up]
+type = "clip"
+rig = "enemies/crawler/rig"
+
+[pounce]
+type = "clip"
+rig = "enemies/crawler/rig"
+
+[sounds]
+type = "sound_bank"
+samples = [
+    "enemies/crawler/crawl_sound",
+    "enemies/crawler/land_sound",
+    "enemies/crawler/spray_sound",
+    "enemies/crawler/hurt_sound",
+    "enemies/crawler/burn",
+]
+sounds = { crawl = 1, land = 2, spray = 3, hurt = 4, burn = 5 }
+sha1 = "e7c74e2ebbe8d5c8b65353689f6c8bedff379d61"
+
+[dormant]
+type = "clip"
+rig = "enemies/crawler/rig"
+
+[rebound]
+type = "clip"
+rig = "enemies/crawler/rig"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[hurt_sound]
+type = "sound"
+sha1 = "aa5236646c5facb3ccf7edc644e6aacdb9cf6312"
+
+[land_sound]
+type = "sound"
+sha1 = "8c76d321fd64066e9937c58d1398081f5c05eb9c"
+
+[crawl_sound]
+type = "sound"
+sha1 = "bb43b250d4400ccbb4418408202016790acdf7c5"
+
+[spray_sound]
+type = "sound"
+sha1 = "f2c50b11bc65ac9b7b632dd8b2b5f60a9b099d78"
+
+[body_binding]
+type = "binding"
+model = "enemies/crawler/body"
+textures = { body = "enemies/crawler/texture.default" }
+
+[husk_binding]
+type = "binding"
+model = "enemies/crawler/husk"
+textures = { body = "enemies/crawler/texture.default" }

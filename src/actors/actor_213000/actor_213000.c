@@ -58,9 +58,9 @@ static void _actor213000AttachThreeRootModel(Task* childTask);
 static void _actor213000UpdateBody(Task* actorTask);
 static void _actor213000InitBodyLighting(Task* actorTask);
 
-static TmdSource _gActor213000EricBaldwinBody;
-static TmdSource _gActor213000Model06A10;
-static TmdSource _gActor213000EricBaldwinHandRight;
+static TmdSource _gEricBody;
+static TmdSource _gEricArmRight;
+static TmdSource _gEricHandRight;
 static TmdSource _gActor213000Model072AC;
 static TmdSource _gActor213000Prop;
 static s32       _actor213000PlayAnimation(Task* actorTask, s32 messageId, const AnimationPlayRequest* request, s32 unusedSecondArg);
@@ -74,101 +74,11 @@ static void      _actor213000BodyTask(Task* actorTask);
 /// Body part whose world translation supplies the lighting sample.
 enum { ACTOR_213000_LIGHTING_PART = 1 };
 
-static TmdBone _gActor213000EricBaldwinBodySkeleton[20] = {
-#include "assets/eric_baldwin_body_skeleton.inc"
-};
+#include "assets/characters/eric/body.inc"
 
-static u32 _gActor213000EricBaldwinBodyPartVerts[20] = {
-#include "assets/eric_baldwin_body_partVerts.inc"
-};
+#include "assets/characters/eric/arm_right.inc"
 
-static SVECTOR _gActor213000EricBaldwinBodyVerts[338] = {
-#include "assets/eric_baldwin_body_verts.inc"
-};
-
-static SVECTOR _gActor213000EricBaldwinBodyNormals[413] = {
-#include "assets/eric_baldwin_body_normals.inc"
-};
-
-static u32 _gActor213000EricBaldwinBodyStream[4155] = {
-#include "assets/eric_baldwin_body_stream.inc"
-};
-
-static TmdSource _gActor213000EricBaldwinBody = {
-    0,
-    20860,
-    8300,
-    20,
-    _gActor213000EricBaldwinBodyPartVerts,
-    _gActor213000EricBaldwinBodyVerts,
-    _gActor213000EricBaldwinBodyNormals,
-    _gActor213000EricBaldwinBodySkeleton,
-    _gActor213000EricBaldwinBodyStream,
-};
-
-static TmdBone _gActor213000Model06A10Skeleton[3] = {
-#include "assets/actor_213000_model_06A10_skeleton.inc"
-};
-
-static u32 _gActor213000Model06A10PartVerts[3] = {
-#include "assets/actor_213000_model_06A10_partVerts.inc"
-};
-
-static SVECTOR _gActor213000Model06A10Verts[28] = {
-#include "assets/actor_213000_model_06A10_verts.inc"
-};
-
-static SVECTOR _gActor213000Model06A10Normals[28] = {
-#include "assets/actor_213000_model_06A10_normals.inc"
-};
-
-static u32 _gActor213000Model06A10Stream[246] = {
-#include "assets/actor_213000_model_06A10_stream.inc"
-};
-
-static TmdSource _gActor213000Model06A10 = {
-    0,
-    1312,
-    312,
-    3,
-    _gActor213000Model06A10PartVerts,
-    _gActor213000Model06A10Verts,
-    _gActor213000Model06A10Normals,
-    _gActor213000Model06A10Skeleton,
-    _gActor213000Model06A10Stream,
-};
-
-static TmdBone _gActor213000EricBaldwinHandRightSkeleton[1] = {
-#include "assets/eric_baldwin_hand_right_skeleton.inc"
-};
-
-static u32 _gActor213000EricBaldwinHandRightPartVerts[1] = {
-#include "assets/eric_baldwin_hand_right_partVerts.inc"
-};
-
-static SVECTOR _gActor213000EricBaldwinHandRightVerts[19] = {
-#include "assets/eric_baldwin_hand_right_verts.inc"
-};
-
-static SVECTOR _gActor213000EricBaldwinHandRightNormals[19] = {
-#include "assets/eric_baldwin_hand_right_normals.inc"
-};
-
-static u32 _gActor213000EricBaldwinHandRightStream[130] = {
-#include "assets/eric_baldwin_hand_right_stream.inc"
-};
-
-static TmdSource _gActor213000EricBaldwinHandRight = {
-    0,
-    876,
-    0,
-    1,
-    _gActor213000EricBaldwinHandRightPartVerts,
-    _gActor213000EricBaldwinHandRightVerts,
-    _gActor213000EricBaldwinHandRightNormals,
-    _gActor213000EricBaldwinHandRightSkeleton,
-    _gActor213000EricBaldwinHandRightStream,
-};
+#include "assets/characters/eric/hand_right.inc"
 
 static TmdBone _gActor213000Model072ACSkeleton[1] = {
 #include "assets/actor_213000_model_072AC_skeleton.inc"
@@ -230,244 +140,14 @@ static TmdSource _gActor213000Prop = {
     _gActor213000PropStream,
 };
 
-static AnimationPackedPose _gActor213000Animation08080Bank1[11] = {
-#include "assets/actor_213000_animation_08080_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor213000Animation08080Bank4[277] = {
-#include "assets/actor_213000_animation_08080_bank4.inc"
-};
-
-static AnimationRecord _gActor213000Animation08080Records[332] = {
-#include "assets/actor_213000_animation_08080_records.inc"
-};
-
-static u16 _gActor213000Animation08080Indices[20] = {
-#include "assets/actor_213000_animation_08080_indices.inc"
-};
-
-static AnimationSet _gActor213000Animation08080 = {
-    _gActor213000Animation08080Records,
-    _gActor213000Animation08080Indices,
-    { NULL, _gActor213000Animation08080Bank1, NULL, NULL, _gActor213000Animation08080Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor213000Animation0894CBank1[2] = {
-#include "assets/actor_213000_animation_0894C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor213000Animation0894CBank4[242] = {
-#include "assets/actor_213000_animation_0894C_bank4.inc"
-};
-
-static AnimationRecord _gActor213000Animation0894CRecords[295] = {
-#include "assets/actor_213000_animation_0894C_records.inc"
-};
-
-static u16 _gActor213000Animation0894CIndices[20] = {
-#include "assets/actor_213000_animation_0894C_indices.inc"
-};
-
-static AnimationSet _gActor213000Animation0894C = {
-    _gActor213000Animation0894CRecords,
-    _gActor213000Animation0894CIndices,
-    { NULL, _gActor213000Animation0894CBank1, NULL, NULL, _gActor213000Animation0894CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor213000Animation09DDCBank1[2] = {
-#include "assets/actor_213000_animation_09DDC_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor213000Animation09DDCBank4[570] = {
-#include "assets/actor_213000_animation_09DDC_bank4.inc"
-};
-
-static AnimationRecord _gActor213000Animation09DDCRecords[720] = {
-#include "assets/actor_213000_animation_09DDC_records.inc"
-};
-
-static u16 _gActor213000Animation09DDCIndices[20] = {
-#include "assets/actor_213000_animation_09DDC_indices.inc"
-};
-
-static AnimationSet _gActor213000Animation09DDC = {
-    _gActor213000Animation09DDCRecords,
-    _gActor213000Animation09DDCIndices,
-    { NULL, _gActor213000Animation09DDCBank1, NULL, NULL, _gActor213000Animation09DDCBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor213000Animation0B0DCBank1[2] = {
-#include "assets/actor_213000_animation_0B0DC_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor213000Animation0B0DCBank4[555] = {
-#include "assets/actor_213000_animation_0B0DC_bank4.inc"
-};
-
-static AnimationRecord _gActor213000Animation0B0DCRecords[635] = {
-#include "assets/actor_213000_animation_0B0DC_records.inc"
-};
-
-static u16 _gActor213000Animation0B0DCIndices[20] = {
-#include "assets/actor_213000_animation_0B0DC_indices.inc"
-};
-
-static AnimationSet _gActor213000Animation0B0DC = {
-    _gActor213000Animation0B0DCRecords,
-    _gActor213000Animation0B0DCIndices,
-    { NULL, _gActor213000Animation0B0DCBank1, NULL, NULL, _gActor213000Animation0B0DCBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor213000Animation0BA6CBank1[2] = {
-#include "assets/actor_213000_animation_0BA6C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor213000Animation0BA6CBank4[255] = {
-#include "assets/actor_213000_animation_0BA6C_bank4.inc"
-};
-
-static AnimationRecord _gActor213000Animation0BA6CRecords[331] = {
-#include "assets/actor_213000_animation_0BA6C_records.inc"
-};
-
-static u16 _gActor213000Animation0BA6CIndices[20] = {
-#include "assets/actor_213000_animation_0BA6C_indices.inc"
-};
-
-static AnimationSet _gActor213000Animation0BA6C = {
-    _gActor213000Animation0BA6CRecords,
-    _gActor213000Animation0BA6CIndices,
-    { NULL, _gActor213000Animation0BA6CBank1, NULL, NULL, _gActor213000Animation0BA6CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor213000Animation0C7C8Bank1[2] = {
-#include "assets/actor_213000_animation_0C7C8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor213000Animation0C7C8Bank4[383] = {
-#include "assets/actor_213000_animation_0C7C8_bank4.inc"
-};
-
-static AnimationRecord _gActor213000Animation0C7C8Records[446] = {
-#include "assets/actor_213000_animation_0C7C8_records.inc"
-};
-
-static u16 _gActor213000Animation0C7C8Indices[20] = {
-#include "assets/actor_213000_animation_0C7C8_indices.inc"
-};
-
-static AnimationSet _gActor213000Animation0C7C8 = {
-    _gActor213000Animation0C7C8Records,
-    _gActor213000Animation0C7C8Indices,
-    { NULL, _gActor213000Animation0C7C8Bank1, NULL, NULL, _gActor213000Animation0C7C8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor213000Animation0CBE8Bank1[3] = {
-#include "assets/actor_213000_animation_0CBE8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor213000Animation0CBE8Bank4[96] = {
-#include "assets/actor_213000_animation_0CBE8_bank4.inc"
-};
-
-static AnimationRecord _gActor213000Animation0CBE8Records[139] = {
-#include "assets/actor_213000_animation_0CBE8_records.inc"
-};
-
-static u16 _gActor213000Animation0CBE8Indices[20] = {
-#include "assets/actor_213000_animation_0CBE8_indices.inc"
-};
-
-static AnimationSet _gActor213000Animation0CBE8 = {
-    _gActor213000Animation0CBE8Records,
-    _gActor213000Animation0CBE8Indices,
-    { NULL, _gActor213000Animation0CBE8Bank1, NULL, NULL, _gActor213000Animation0CBE8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor213000Animation0D3A4Bank1[3] = {
-#include "assets/actor_213000_animation_0D3A4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor213000Animation0D3A4Bank4[213] = {
-#include "assets/actor_213000_animation_0D3A4_bank4.inc"
-};
-
-static AnimationRecord _gActor213000Animation0D3A4Records[253] = {
-#include "assets/actor_213000_animation_0D3A4_records.inc"
-};
-
-static u16 _gActor213000Animation0D3A4Indices[20] = {
-#include "assets/actor_213000_animation_0D3A4_indices.inc"
-};
-
-static AnimationSet _gActor213000Animation0D3A4 = {
-    _gActor213000Animation0D3A4Records,
-    _gActor213000Animation0D3A4Indices,
-    { NULL, _gActor213000Animation0D3A4Bank1, NULL, NULL, _gActor213000Animation0D3A4Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor213000Animation0D724Bank1[2] = {
-#include "assets/actor_213000_animation_0D724_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor213000Animation0D724Bank4[79] = {
-#include "assets/actor_213000_animation_0D724_bank4.inc"
-};
-
-static AnimationRecord _gActor213000Animation0D724Records[119] = {
-#include "assets/actor_213000_animation_0D724_records.inc"
-};
-
-static u16 _gActor213000Animation0D724Indices[20] = {
-#include "assets/actor_213000_animation_0D724_indices.inc"
-};
-
-static AnimationSet _gActor213000Animation0D724 = {
-    _gActor213000Animation0D724Records,
-    _gActor213000Animation0D724Indices,
-    { NULL, _gActor213000Animation0D724Bank1, NULL, NULL, _gActor213000Animation0D724Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor213000Animation0DF68Bank1[2] = {
-#include "assets/actor_213000_animation_0DF68_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor213000Animation0DF68Bank4[222] = {
-#include "assets/actor_213000_animation_0DF68_bank4.inc"
-};
-
-static AnimationRecord _gActor213000Animation0DF68Records[281] = {
-#include "assets/actor_213000_animation_0DF68_records.inc"
-};
-
-static u16 _gActor213000Animation0DF68Indices[20] = {
-#include "assets/actor_213000_animation_0DF68_indices.inc"
-};
-
-static AnimationSet _gActor213000Animation0DF68 = {
-    _gActor213000Animation0DF68Records,
-    _gActor213000Animation0DF68Indices,
-    { NULL, _gActor213000Animation0DF68Bank1, NULL, NULL, _gActor213000Animation0DF68Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/mist/r18/eric_clips.inc"
 
 /// Eric Baldwin's bank-0 clip sets, with loaded clips at indices 1..10.
 ///
 /// Slot 0 is NULL. Requests select bank 0 through the separate bank collection
 /// and then select a clip here by animationId. The rig borrows the table and
 /// its sets; the package must stay loaded throughout scripted playback.
-static AnimationSet* _gActor213000EricBaldwinAnimationSets[11] = {
-    NULL,
-    &_gActor213000Animation08080,
-    &_gActor213000Animation0894C,
-    &_gActor213000Animation09DDC,
-    &_gActor213000Animation0B0DC,
-    &_gActor213000Animation0BA6C,
-    &_gActor213000Animation0C7C8,
-    &_gActor213000Animation0CBE8,
-    &_gActor213000Animation0D3A4,
-    &_gActor213000Animation0D724,
-    &_gActor213000Animation0DF68,
-};
+#include "assets/rooms/mist/r18/eric_bank.inc"
 
 /// Eric Baldwin's animation-bank directory, selected by a playback request's source index.
 ///
@@ -485,7 +165,7 @@ TaskDesc gActor213000EricBaldwinTaskDescriptors[5] = {
     {
         .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_213000_ERIC_TASK_PRIORITY } },
         .callback = _actor213000BodyTask,
-        .data     = { .model = &_gActor213000EricBaldwinBody },
+        .data     = { .model = &_gEricBody },
     },
     // 1: first held model.
     {
@@ -503,13 +183,13 @@ TaskDesc gActor213000EricBaldwinTaskDescriptors[5] = {
     {
         .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_213000_ERIC_TASK_PRIORITY } },
         .callback = _actor213000ThreeRootModelTask,
-        .data     = { .model = &_gActor213000Model06A10 },
+        .data     = { .model = &_gEricArmRight },
     },
     // 4: right hand.
     {
         .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_213000_ERIC_TASK_PRIORITY } },
         .callback = _actor213000RightHandTask,
-        .data     = { .model = &_gActor213000EricBaldwinHandRight },
+        .data     = { .model = &_gEricHandRight },
     },
 };
 

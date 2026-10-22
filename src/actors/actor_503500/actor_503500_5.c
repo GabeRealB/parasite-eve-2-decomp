@@ -156,7 +156,7 @@ enum {
     ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_STEP_SQUASH, // Rebuilds the root rotation squashed every frame and fires the cues
 };
 
-/// Work block of the actor drawn with `_gActor503500Actor361100Model06038`,
+/// Work block of the actor drawn with `_gBrahmanTentacle`,
 /// the nineteen-part model this package shares with actor_361100.
 ///
 /// The task's spawn state allocates it zeroed and keeps it at `Task::work`
@@ -232,18 +232,18 @@ static const TaskFuncTable3 _gActor503500PinkFlashAttackStateHandlers = {
     },
 };
 
-static AnimationSet _gActor503500Animation444F4;
-static AnimationSet _gActor503500Animation446CC;
-static TmdSource    _gActor503500Actor361100Model06038;
+static AnimationSet _gBrahmanTentacleMoveClip;
+static AnimationSet _gBrahmanTentacleCollapseClip;
+static TmdSource    _gBrahmanTentacle;
 static s32          _actorMsgPlaceEuler(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);
 static s32          _actor503500SetTentacleDrawMode(Task* task, s32 msgId, s32 mode, s32 unusedArg);
 static s32          _actor503500ApplyTentacleCommand(Task* task, s32 msgId, const ActorCommand* command, s32 unusedArg);
 static void         _actor503500TentacleTask(Task* task);
 
-static AnimationSet _gActor503500Animation3DE60;
-static AnimationSet _gActor503500Animation3E5FC;
-static AnimationSet _gActor503500Animation3EE08;
-static AnimationSet _gActor503500Animation3F61C;
+static AnimationSet _gStingerPuppetPlayerKnockbackFrontClip;
+static AnimationSet _gStingerPuppetPlayerKnockbackBackClip;
+static AnimationSet _gStingerPuppetPlayerKnockbackRecoverFrontClip;
+static AnimationSet _gStingerPuppetPlayerKnockbackRecoverBackClip;
 
 const TaskMessageEntry gActor503500BossMessageHandlers[] SECTION(".data") = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, actor503500HandlePlayAnimation },
@@ -260,37 +260,10 @@ enum {
 };
 
 /// Boss source 0: clip ids 1..19, with id 0 reserved as NULL.
-static AnimationSet* _gActor503500BossAnimationSets0[ACTOR_503500_BOSS_SOURCE_0_SET_COUNT] = {
-    NULL,
-    &gActor503500Animation2DB14,
-    &gActor503500Animation2E4DC,
-    &gActor503500Animation2EF88,
-    &gActor503500Animation2FC70,
-    &gActor503500Animation306E0,
-    &gActor503500Animation30F1C,
-    &gActor503500Animation31788,
-    &gActor503500Animation31D8C,
-    &gActor503500Animation32E24,
-    &gActor503500Animation333DC,
-    &gActor503500Animation33C14,
-    &gActor503500Animation33EBC,
-    &gActor503500Animation341D8,
-    &gActor503500Animation350C8,
-    &gActor503500Animation35390,
-    &gActor503500Animation356DC,
-    &gActor503500Animation2DB14,
-    &gActor503500Animation2DB14,
-    &gActor503500Animation38AE0,
-};
+#include "assets/enemies/brahman/boss_bank.inc"
 
 /// Boss source 1: clip ids 1..4, with id 0 reserved as NULL.
-static AnimationSet* _gActor503500BossAnimationSets1[ACTOR_503500_BOSS_SOURCE_1_SET_COUNT] = {
-    NULL,
-    &gActor503500Animation38AE0,
-    &gActor503500Animation3A190,
-    &gActor503500Animation350C8,
-    &gActor503500Animation3C968,
-};
+#include "assets/enemies/brahman/boss_scene_bank.inc"
 
 AnimationSet** gActor503500BossAnimationSources[ACTOR_503500_BOSS_ANIMATION_SOURCE_COUNT] = {
     _gActor503500BossAnimationSets0,
@@ -974,93 +947,7 @@ SVECTOR gActor503500LungingChainDeathSmokeOffsets[3] = {
     { 400, 0, 0, 0 },
 };
 
-static AnimationPackedPose _gActor503500Animation3DE60Bank1[21] = {
-#include "assets/actor_503500_animation_3DE60_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor503500Animation3DE60Bank4[193] = {
-#include "assets/actor_503500_animation_3DE60_bank4.inc"
-};
-
-static AnimationRecord _gActor503500Animation3DE60Records[254] = {
-#include "assets/actor_503500_animation_3DE60_records.inc"
-};
-
-static u16 _gActor503500Animation3DE60Indices[20] = {
-#include "assets/actor_503500_animation_3DE60_indices.inc"
-};
-
-static AnimationSet _gActor503500Animation3DE60 = {
-    _gActor503500Animation3DE60Records,
-    _gActor503500Animation3DE60Indices,
-    { NULL, _gActor503500Animation3DE60Bank1, NULL, NULL, _gActor503500Animation3DE60Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor503500Animation3E5FCBank1[20] = {
-#include "assets/actor_503500_animation_3E5FC_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor503500Animation3E5FCBank4[172] = {
-#include "assets/actor_503500_animation_3E5FC_bank4.inc"
-};
-
-static AnimationRecord _gActor503500Animation3E5FCRecords[235] = {
-#include "assets/actor_503500_animation_3E5FC_records.inc"
-};
-
-static u16 _gActor503500Animation3E5FCIndices[20] = {
-#include "assets/actor_503500_animation_3E5FC_indices.inc"
-};
-
-static AnimationSet _gActor503500Animation3E5FC = {
-    _gActor503500Animation3E5FCRecords,
-    _gActor503500Animation3E5FCIndices,
-    { NULL, _gActor503500Animation3E5FCBank1, NULL, NULL, _gActor503500Animation3E5FCBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor503500Animation3EE08Bank1[15] = {
-#include "assets/actor_503500_animation_3EE08_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor503500Animation3EE08Bank4[206] = {
-#include "assets/actor_503500_animation_3EE08_bank4.inc"
-};
-
-static AnimationRecord _gActor503500Animation3EE08Records[244] = {
-#include "assets/actor_503500_animation_3EE08_records.inc"
-};
-
-static u16 _gActor503500Animation3EE08Indices[20] = {
-#include "assets/actor_503500_animation_3EE08_indices.inc"
-};
-
-static AnimationSet _gActor503500Animation3EE08 = {
-    _gActor503500Animation3EE08Records,
-    _gActor503500Animation3EE08Indices,
-    { NULL, _gActor503500Animation3EE08Bank1, NULL, NULL, _gActor503500Animation3EE08Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor503500Animation3F61CBank1[14] = {
-#include "assets/actor_503500_animation_3F61C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor503500Animation3F61CBank4[207] = {
-#include "assets/actor_503500_animation_3F61C_bank4.inc"
-};
-
-static AnimationRecord _gActor503500Animation3F61CRecords[248] = {
-#include "assets/actor_503500_animation_3F61C_records.inc"
-};
-
-static u16 _gActor503500Animation3F61CIndices[20] = {
-#include "assets/actor_503500_animation_3F61C_indices.inc"
-};
-
-static AnimationSet _gActor503500Animation3F61C = {
-    _gActor503500Animation3F61CRecords,
-    _gActor503500Animation3F61CIndices,
-    { NULL, _gActor503500Animation3F61CBank1, NULL, NULL, _gActor503500Animation3F61CBank4, NULL, NULL, NULL },
-};
+#include "assets/enemies/brahman/clips_3.inc"
 
 s32 gActor503500ArmParentParts[ACTOR_503500_SIDE_COUNT] = {
     ACTOR_503500_BOSS_ARM_MOUNT_PART_SIDE_0,
@@ -1142,14 +1029,7 @@ const s8 gActor503500ArmDestroyingAttachmentRows[56] __attribute__((section(".da
     ACTOR_503500_ARM_ATTACHMENT_NORMAL,
 };
 
-AnimationSet* gActor503500PlayerKnockbackAnimationSets[ACTOR_503500_KNOCKBACK_SET_COUNT] = {
-    NULL,
-    &_gActor503500Animation3DE60,
-    &_gActor503500Animation3E5FC,
-    &_gActor503500Animation3EE08,
-    &_gActor503500Animation3F61C,
-    NULL,
-};
+#include "assets/enemies/brahman/player_knockback_bank.inc"
 
 enum {
     ACTOR_503500_KNOCKBACK_FALL_SET_0     = 1,
@@ -1235,90 +1115,14 @@ static SVECTOR _gActor503500OrangeFlashAttackBodyOffset = { 0 };
 /// Orange-flash capsule end 0 in attack-root local game units; end 1 is the origin.
 static SVECTOR _gActor503500OrangeFlashAttackFarEnd = { 0, 500, 6000, 0 };
 
-static TmdBone _gActor503500Actor361100Model06038Skeleton[19] = {
-#include "assets/actor_361100_model_06038_skeleton.inc"
-};
+#include "assets/enemies/brahman/tentacle.inc"
 
-static u32 _gActor503500Actor361100Model06038PartVerts[19] = {
-#include "assets/actor_361100_model_06038_partVerts.inc"
-};
-
-static SVECTOR _gActor503500Actor361100Model06038Verts[258] = {
-#include "assets/actor_361100_model_06038_verts.inc"
-};
-
-static SVECTOR _gActor503500Actor361100Model06038Normals[270] = {
-#include "assets/actor_361100_model_06038_normals.inc"
-};
-
-static u32 _gActor503500Actor361100Model06038Stream[3353] = {
-#include "assets/actor_361100_model_06038_stream.inc"
-};
-
-static TmdSource _gActor503500Actor361100Model06038 = {
-    0,
-    15104,
-    9712,
-    19,
-    _gActor503500Actor361100Model06038PartVerts,
-    _gActor503500Actor361100Model06038Verts,
-    _gActor503500Actor361100Model06038Normals,
-    _gActor503500Actor361100Model06038Skeleton,
-    _gActor503500Actor361100Model06038Stream,
-};
-
-static AnimationPackedPose _gActor503500Animation444F4Bank1[15] = {
-#include "assets/actor_503500_animation_444F4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor503500Animation444F4Bank4[49] = {
-#include "assets/actor_503500_animation_444F4_bank4.inc"
-};
-
-static AnimationRecord _gActor503500Animation444F4Records[226] = {
-#include "assets/actor_503500_animation_444F4_records.inc"
-};
-
-static u16 _gActor503500Animation444F4Indices[20] = {
-#include "assets/actor_503500_animation_444F4_indices.inc"
-};
-
-static AnimationSet _gActor503500Animation444F4 = {
-    _gActor503500Animation444F4Records,
-    _gActor503500Animation444F4Indices,
-    { NULL, _gActor503500Animation444F4Bank1, NULL, NULL, _gActor503500Animation444F4Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor503500Animation446CCBank1[6] = {
-#include "assets/actor_503500_animation_446CC_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor503500Animation446CCBank4[18] = {
-#include "assets/actor_503500_animation_446CC_bank4.inc"
-};
-
-static AnimationRecord _gActor503500Animation446CCRecords[62] = {
-#include "assets/actor_503500_animation_446CC_records.inc"
-};
-
-static u16 _gActor503500Animation446CCIndices[20] = {
-#include "assets/actor_503500_animation_446CC_indices.inc"
-};
-
-static AnimationSet _gActor503500Animation446CC = {
-    _gActor503500Animation446CCRecords,
-    _gActor503500Animation446CCIndices,
-    { NULL, _gActor503500Animation446CCBank1, NULL, NULL, _gActor503500Animation446CCBank4, NULL, NULL, NULL },
-};
+#include "assets/enemies/brahman/clips_4.inc"
 
 /// Scripted tentacle clips 1 and 2 for its nineteen-part rig; id 0 is NULL.
 ///
 /// The motion handler borrows this table through bank 0 for the model's lifetime.
-static AnimationSet* _gActor503500TentacleAnimationSets[ACTOR_503500_TENTACLE_SET_COUNT] = {
-    NULL,
-    &_gActor503500Animation444F4,
-    &_gActor503500Animation446CC,
-};
+#include "assets/enemies/brahman/tentacle_bank.inc"
 
 /// Carrier-local banks for nineteen-part playback: only bank 0, clips 1..2.
 ///
@@ -1330,7 +1134,7 @@ static AnimationSet** const _gActorMotionAnimBanks19[1] SECTION(".data") = {
 
 enum { ACTOR_503500_TENTACLE_TASK_PRIORITY = 192 };
 
-TaskDesc gActor503500TentacleTaskDesc = { { { TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER, ACTOR_503500_TENTACLE_TASK_PRIORITY } }, _actor503500TentacleTask, { .model = &_gActor503500Actor361100Model06038 } };
+TaskDesc gActor503500TentacleTaskDesc = { { { TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER, ACTOR_503500_TENTACLE_TASK_PRIORITY } }, _actor503500TentacleTask, { .model = &_gBrahmanTentacle } };
 
 /// Scripted tentacle messages for animation, placement, model draw mode and commands.
 ///

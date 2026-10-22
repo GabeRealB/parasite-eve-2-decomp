@@ -1,0 +1,336 @@
+# The assets of the group enemies/chaser/mad, each named enemies/chaser/mad/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = ["root", "body", "tail", "spine_1", "spine_2", "spine_3", "head", "upper_arm", "forearm"]
+
+[bank]
+type = "animation_bank"
+schema = "enemies/chaser/mad/schema"
+symbol = "_gMadChaserAnimBank"
+
+[bank.clips]
+idle = "enemies/chaser/mad/idle"
+slot_2 = "enemies/chaser/mad/mad_chaser_anim_anim_02"
+sidestep_left = "enemies/chaser/mad/sidestep_left"
+sidestep_right = "enemies/chaser/mad/sidestep_right"
+collapse_low = "enemies/chaser/mad/collapse_low"
+collapse_upright = "enemies/chaser/mad/collapse_upright"
+walk = "enemies/chaser/mad/walk"
+leap = "enemies/chaser/mad/leap"
+alert_cry = "enemies/chaser/mad/alert_cry"
+slot_10 = "enemies/chaser/mad/mad_chaser_anim_anim_10"
+recoil_light = "enemies/chaser/mad/recoil_light"
+recoil_heavy = "enemies/chaser/mad/recoil_heavy"
+turn_around = "enemies/chaser/mad/turn_around"
+look_around = "enemies/chaser/mad/look_around"
+rise = "enemies/chaser/mad/rise"
+rebound = "enemies/chaser/mad/rebound"
+recoil_low = "enemies/chaser/mad/recoil_low"
+leap_land = "enemies/chaser/mad/leap_land"
+rebound_land = "enemies/chaser/mad/rebound_land"
+
+[body]
+type = "model"
+rig = "enemies/chaser/mad/rig"
+slots = ["page_1", "page_2"]
+symbol = "gChaserMadBody"
+sha1 = "19d07ab155abcfadf468f074e549c14ff2065444"
+
+[idle]
+type = "clip"
+rig = "enemies/chaser/mad/rig"
+
+[land]
+type = "sound"
+sha1 = "9590e4ce897a78c1295d887648a0f7b58eaf8f28"
+
+[leap]
+type = "clip"
+rig = "enemies/chaser/mad/rig"
+
+[rise]
+type = "clip"
+rig = "enemies/chaser/mad/rig"
+
+[walk]
+type = "clip"
+rig = "enemies/chaser/mad/rig"
+
+[growl]
+type = "sound"
+sha1 = "64819002a2651ffab1fe1a0ecad746bf1e7071df"
+
+[schema]
+type = "animation_schema"
+slots = [
+    "",
+    "idle",
+    "slot_2",
+    "sidestep_left",
+    "sidestep_right",
+    "collapse_low",
+    "collapse_upright",
+    "walk",
+    "leap",
+    "alert_cry",
+    "slot_10",
+    "recoil_light",
+    "recoil_heavy",
+    "turn_around",
+    "look_around",
+    "rise",
+    "rebound",
+    "recoil_low",
+    "leap_land",
+    "rebound_land",
+]
+
+[shriek]
+type = "sound"
+sha1 = "e3ed0b596e6f1eef1d4e2b4aec0af3491dcd0669"
+
+[rebound]
+type = "clip"
+rig = "enemies/chaser/mad/rig"
+
+[sounds_1]
+type = "sound_bank"
+samples = [
+    "enemies/chaser/mad/land",
+    "enemies/chaser/mad/growl",
+    "enemies/chaser/mad/alert_cry_sound",
+    "enemies/chaser/mad/alert_cry_2",
+    "enemies/chaser/mad/shriek",
+    "enemies/chaser/mad/unused_1",
+]
+sounds = { growl = 1, alert_cry = 2, shriek = 3, land = 4, leap = 5, drop_land = 8, hop = 9 }
+sha1 = "cf0ee84227412c157e4bd9157971686eb715e7b1"
+
+[sounds_2]
+type = "sound_bank"
+samples = [
+    "enemies/chaser/mad/land",
+    "enemies/chaser/mad/growl",
+    "enemies/chaser/mad/alert_cry_sound",
+    "enemies/chaser/mad/alert_cry_3",
+]
+sounds = { growl = 1, alert_cry = 2, land = 4, drop_land = 8, hop = 9 }
+sha1 = "2effa6c7774ccfe2b1d19a3587bb3244fe44c10e"
+
+[sounds_3]
+type = "sound_bank"
+samples = [
+    "enemies/chaser/mad/land",
+    "enemies/chaser/mad/growl",
+    "enemies/chaser/mad/alert_cry_sound",
+    "enemies/chaser/mad/alert_cry_3",
+    "enemies/chaser/mad/drop_land",
+]
+sounds = { growl = 1, alert_cry = 2, land = 4, drop_land = 8, hop = 9 }
+sha1 = "71614b6331f583536bc65172375dd690c2457bc9"
+
+[unused_1]
+type = "sound"
+sha1 = "f51ff927fe4301df4992737d19465443a3fe5432"
+
+[alert_cry]
+type = "clip"
+rig = "enemies/chaser/mad/rig"
+
+[burst_arm]
+type = "model"
+slots = ["page_2", "page_1"]
+symbol = "gChaserMadBurstArm"
+sha1 = "0f3b94983f55e002e4c5bb60dc03b4d3dbd2dba8"
+
+[drop_land]
+type = "sound"
+sha1 = "9ffae04fa48166f45fb0028bb382c3aa72ebef46"
+
+[leap_land]
+type = "clip"
+rig = "enemies/chaser/mad/rig"
+
+[package_1]
+type = "pe2pkg"
+embedded = [
+    { name = "burst_head", offset = 0x08E14, size = 0xB0C, address = 0x8013AC34 },
+    { name = "burst_arm", offset = 0x09920, size = 0x6A4, address = 0x8013B740 },
+    { name = "burst_tail", offset = 0x09FC4, size = 0x570, address = 0x8013BDE4 },
+    { name = "body", offset = 0x0A534, size = 0x2DE0, address = 0x8013C354 },
+    { name = "idle", offset = 0x0D328, size = 0x254, address = 0x8013F148 },
+    { name = "mad_chaser_anim_anim_02", offset = 0x0D57C, size = 0x1A4, address = 0x8013F39C },
+    { name = "sidestep_left", offset = 0x0D720, size = 0x4D4, address = 0x8013F540 },
+    { name = "sidestep_right", offset = 0x0DBF4, size = 0x584, address = 0x8013FA14 },
+    { name = "collapse_low", offset = 0x0E178, size = 0x100, address = 0x8013FF98 },
+    { name = "collapse_upright", offset = 0x0E278, size = 0x100, address = 0x80140098 },
+    { name = "walk", offset = 0x0E378, size = 0x430, address = 0x80140198 },
+    { name = "leap", offset = 0x0E7A8, size = 0x4A4, address = 0x801405C8 },
+    { name = "alert_cry", offset = 0x0EC4C, size = 0x558, address = 0x80140A6C },
+    { name = "mad_chaser_anim_anim_10", offset = 0x0F1A4, size = 0x2B4, address = 0x80140FC4 },
+    { name = "recoil_light", offset = 0x0F458, size = 0x294, address = 0x80141278 },
+    { name = "recoil_heavy", offset = 0x0F6EC, size = 0x2B0, address = 0x8014150C },
+    { name = "turn_around", offset = 0x0F99C, size = 0x214, address = 0x801417BC },
+    { name = "look_around", offset = 0x0FBB0, size = 0x120, address = 0x801419D0 },
+    { name = "rise", offset = 0x0FCD0, size = 0x13C, address = 0x80141AF0 },
+    { name = "rebound", offset = 0x0FE0C, size = 0x1FC, address = 0x80141C2C },
+    { name = "recoil_low", offset = 0x10008, size = 0x43C, address = 0x80141E28 },
+    { name = "leap_land", offset = 0x10444, size = 0x18C, address = 0x80142264 },
+    { name = "rebound_land", offset = 0x105D0, size = 0x1A8, address = 0x801423F0 },
+    { name = "bank", offset = 0x10778, size = 0x54, address = 0x80142598 },
+]
+package_name = "actor_104400"
+required = true
+sha1 = "b310035189d5df26a3ea33c01988bc5c45d3bb6e"
+
+[package_2]
+type = "pe2pkg"
+package_name = "actor_204400"
+required = true
+sha1 = "5c1736fc9e52ceeb538afcd3eb78cac094b67851"
+
+[package_3]
+type = "pe2pkg"
+package_name = "actor_304400"
+required = true
+sha1 = "3752eeecc3b957abba592ecbc2435ddbc1bbecc8"
+
+[burst_head]
+type = "model"
+slots = ["page_2", "page_1"]
+symbol = "gChaserMadBurstHead"
+sha1 = "0eb83149a57a965199fdef936f91617911484ffa"
+
+[burst_tail]
+type = "model"
+slots = ["page_1"]
+symbol = "gChaserMadBurstTail"
+sha1 = "10164fc6e524e8c074885ecf36736fbc75605b06"
+
+[recoil_low]
+type = "clip"
+rig = "enemies/chaser/mad/rig"
+
+[alert_cry_2]
+type = "sound"
+sha1 = "3d5f56d2df6a3837dabc2d506564efae807ec3d8"
+
+[alert_cry_3]
+type = "sound"
+sha1 = "733155f955982c5a6c42bdee52f6242a24eff752"
+
+[look_around]
+type = "clip"
+rig = "enemies/chaser/mad/rig"
+
+[turn_around]
+type = "clip"
+rig = "enemies/chaser/mad/rig"
+
+[body_binding]
+type = "binding"
+model = "enemies/chaser/mad/body"
+
+[body_binding.textures]
+page_1 = "enemies/chaser/mad/texture_page_1.default"
+page_2 = "enemies/chaser/mad/texture_page_2.default"
+
+[collapse_low]
+type = "clip"
+rig = "enemies/chaser/mad/rig"
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "58f4707f5bb89d7906ed936280f4ed33790f7d9d"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "348a207608986d6ac5c3c98dc5e2bfacce652128"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_file.contents]]
+chunk = "package_1"
+
+[rebound_land]
+type = "clip"
+rig = "enemies/chaser/mad/rig"
+
+[recoil_heavy]
+type = "clip"
+rig = "enemies/chaser/mad/rig"
+
+[recoil_light]
+type = "clip"
+rig = "enemies/chaser/mad/rig"
+
+[sidestep_left]
+type = "clip"
+rig = "enemies/chaser/mad/rig"
+
+[sidestep_right]
+type = "clip"
+rig = "enemies/chaser/mad/rig"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[alert_cry_sound]
+type = "sound"
+sha1 = "b99fd169604290de3b628ca007489b5f8a7d327c"
+
+[collapse_upright]
+type = "clip"
+rig = "enemies/chaser/mad/rig"
+
+[burst_arm_binding]
+type = "binding"
+model = "enemies/chaser/mad/burst_arm"
+
+[burst_arm_binding.textures]
+page_2 = "enemies/chaser/mad/texture_page_2.default"
+page_1 = "enemies/chaser/mad/texture_page_1.default"
+
+[burst_head_binding]
+type = "binding"
+model = "enemies/chaser/mad/burst_head"
+
+[burst_head_binding.textures]
+page_2 = "enemies/chaser/mad/texture_page_2.default"
+page_1 = "enemies/chaser/mad/texture_page_1.default"
+
+[burst_tail_binding]
+type = "binding"
+model = "enemies/chaser/mad/burst_tail"
+textures = { page_1 = "enemies/chaser/mad/texture_page_1.default" }
+
+[mad_chaser_anim_anim_02]
+type = "clip"
+rig = "enemies/chaser/mad/rig"
+
+[mad_chaser_anim_anim_10]
+type = "clip"
+rig = "enemies/chaser/mad/rig"

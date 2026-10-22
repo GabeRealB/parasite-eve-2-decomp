@@ -20,7 +20,7 @@
 
 #include "../../shared/creatures/rat/rat.h"
 
-extern TmdSource gActor300700RatBody;
+extern TmdSource gRatAndMothRatBody;
 
 /// Bite attack shared by the rat parameters and the briefly enabled attack sphere.
 ///

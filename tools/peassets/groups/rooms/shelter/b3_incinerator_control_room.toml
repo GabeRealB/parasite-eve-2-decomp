@@ -1,0 +1,140 @@
+# The assets of the group rooms/shelter/b3_incinerator_control_room, each named rooms/shelter/b3_incinerator_control_room/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[player_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b3_incinerator_control_room/player_schema"
+symbol = "_gActor142600PlayerAnimationSets"
+
+[player_bank.clips]
+slot_0 = "rooms/shelter/b3_incinerator_control_room/player_anim_00"
+thank_kyle = "rooms/shelter/b3_incinerator_control_room/player_thank_kyle"
+and_you_survived = "rooms/shelter/b3_incinerator_control_room/player_and_you_survived"
+hesitate = "rooms/shelter/b3_incinerator_control_room/player_hesitate"
+slot_4 = "characters/aya/talk_start"
+slot_5 = "characters/aya/talk"
+slot_6 = "characters/aya/talk_end"
+kyle_youre_alive = "characters/aya/ask_if_hurt"
+flustered = "rooms/shelter/b3_incinerator_control_room/player_flustered"
+not_so_fragrant = "rooms/shelter/b3_incinerator_control_room/player_not_so_fragrant"
+smile_1 = "characters/aya/reason_start"
+smile_2 = "characters/aya/reason"
+slot_12 = "characters/aya/realize"
+
+[arrival_scene]
+type = "pe2pkg"
+embedded = [
+    { name = "companion_pretty_smile", offset = 0x00004, size = 0x248, address = 0x80131E24 },
+    { name = "companion_talk_start", offset = 0x0024C, size = 0x240, address = 0x8013206C },
+    { name = "companion_went_tumbling", offset = 0x0048C, size = 0x240, address = 0x801322AC },
+    { name = "companion_talk", offset = 0x006CC, size = 0x250, address = 0x801324EC },
+    { name = "companion_landed_on_dog", offset = 0x0091C, size = 0x444, address = 0x8013273C },
+    { name = "companion_came_to", offset = 0x00D60, size = 0x3AC, address = 0x80132B80 },
+    { name = "companion_quip", offset = 0x0110C, size = 0x2F0, address = 0x80132F2C },
+    { name = "player_anim_00", offset = 0x013FC, size = 0x2F4, address = 0x8013321C },
+    { name = "player_thank_kyle", offset = 0x016F0, size = 0x1BC, address = 0x80133510 },
+    { name = "player_and_you_survived", offset = 0x018AC, size = 0x514, address = 0x801336CC },
+    { name = "player_hesitate", offset = 0x01DC0, size = 0x268, address = 0x80133BE0 },
+    { name = "player_not_so_fragrant", offset = 0x02028, size = 0x468, address = 0x80133E48 },
+    { asset = "characters/aya/ask_if_hurt", offset = 0x02490, size = 0x304, address = 0x801342B0 },
+    { asset = "characters/aya/talk_start", offset = 0x02794, size = 0x3D4, address = 0x801345B4 },
+    { asset = "characters/aya/talk", offset = 0x02B68, size = 0x3F0, address = 0x80134988 },
+    { asset = "characters/aya/talk_end", offset = 0x02F58, size = 0x36C, address = 0x80134D78 },
+    { name = "player_flustered", offset = 0x032C4, size = 0x4E8, address = 0x801350E4 },
+    { asset = "characters/aya/reason_start", offset = 0x037AC, size = 0x368, address = 0x801355CC },
+    { asset = "characters/aya/reason", offset = 0x03B14, size = 0x1D8, address = 0x80135934 },
+    { asset = "characters/aya/realize", offset = 0x03CEC, size = 0x318, address = 0x80135B0C },
+    { name = "companion_bank", offset = 0x04010, size = 0x1C, address = 0x80135E30 },
+    { name = "player_bank", offset = 0x040CC, size = 0x34, address = 0x80135EEC },
+]
+package_name = "actor_142600"
+required = true
+sha1 = "222457bea83c83cd343841e03d5dbcc170e56850"
+
+[player_schema]
+type = "animation_schema"
+slots = [
+    "slot_0",
+    "thank_kyle",
+    "and_you_survived",
+    "hesitate",
+    "slot_4",
+    "slot_5",
+    "slot_6",
+    "kyle_youre_alive",
+    "flustered",
+    "not_so_fragrant",
+    "smile_1",
+    "smile_2",
+    "slot_12",
+]
+
+[companion_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b3_incinerator_control_room/companion_schema"
+symbol = "_gActor142600CompanionAnimationSets"
+
+[companion_bank.clips]
+pretty_smile = "rooms/shelter/b3_incinerator_control_room/companion_pretty_smile"
+talk_start = "rooms/shelter/b3_incinerator_control_room/companion_talk_start"
+went_tumbling = "rooms/shelter/b3_incinerator_control_room/companion_went_tumbling"
+talk = "rooms/shelter/b3_incinerator_control_room/companion_talk"
+landed_on_dog = "rooms/shelter/b3_incinerator_control_room/companion_landed_on_dog"
+came_to = "rooms/shelter/b3_incinerator_control_room/companion_came_to"
+quip = "rooms/shelter/b3_incinerator_control_room/companion_quip"
+
+[companion_quip]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[companion_talk]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[player_anim_00]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_hesitate]
+type = "clip"
+rig = "characters/aya/rig"
+
+[companion_schema]
+type = "animation_schema"
+slots = ["pretty_smile", "talk_start", "went_tumbling", "talk", "landed_on_dog", "came_to", "quip"]
+
+[player_flustered]
+type = "clip"
+rig = "characters/aya/rig"
+
+[companion_came_to]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[player_thank_kyle]
+type = "clip"
+rig = "characters/aya/rig"
+
+[companion_talk_start]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[companion_pretty_smile]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[player_not_so_fragrant]
+type = "clip"
+rig = "characters/aya/rig"
+
+[companion_landed_on_dog]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[companion_went_tumbling]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[player_and_you_survived]
+type = "clip"
+rig = "characters/aya/rig"

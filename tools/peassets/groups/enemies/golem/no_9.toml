@@ -1,0 +1,893 @@
+# The assets of the group enemies/golem/no_9, each named enemies/golem/no_9/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = [
+    "root",
+    "pelvis",
+    "waist",
+    "chest",
+    "head",
+    "right_shoulder",
+    "right_upper_arm",
+    "right_forearm",
+    "right_hand",
+    "left_shoulder",
+    "left_upper_arm",
+    "left_forearm",
+    "left_hand",
+    "right_thigh",
+    "right_shin",
+    "right_foot",
+    "left_thigh",
+    "left_shin",
+    "left_foot",
+]
+
+[fire]
+type = "sound"
+sha1 = "2042e2a5ad7839363d5791d158940b204f9d4211"
+
+[hurt]
+type = "sound"
+sha1 = "e6e9bac925ee324ed04b0b4479442e7f1acee68b"
+
+[guard]
+type = "sound"
+sha1 = "1f7a72b15ecf64ccf34255494d90b1916d061e81"
+
+[radio]
+type = "model"
+slots = ["page_2"]
+symbol = "_gGolemNo9Radio"
+sha1 = "6cf6d802e709ebee08fbe8b5bb6c1f386e6fac2e"
+
+[slash]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9SlashClip"
+
+[spawn]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9SpawnClip"
+
+[throw]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9ThrowClip"
+
+[flinch]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9FlinchClip"
+
+[windup]
+type = "sound"
+sha1 = "ba89cd71661440803e0ba73501a813f536b17ac1"
+
+[stagger]
+type = "sound"
+sha1 = "a34fdcd451de1abb5d7838179c09cc98d02c611c"
+
+[event_22]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9Event22Clip"
+
+[event_23]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9Event23Clip"
+
+[event_24]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9Event24Clip"
+
+[event_25]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9Event25Clip"
+
+[event_26]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9Event26Clip"
+
+[event_27]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9Event27Clip"
+
+[event_28]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9Event28Clip"
+
+[event_29]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9Event29Clip"
+
+[event_30]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9Event30Clip"
+
+[event_31]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9Event31Clip"
+
+[event_32]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9Event32Clip"
+
+[event_33]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9Event33Clip"
+
+[event_34]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9Event34Clip"
+
+[event_35]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9Event35Clip"
+
+[gunblade]
+type = "model"
+slots = ["dryfield_page_2"]
+symbol = "_gGolemNo9Gunblade"
+sha1 = "8c553fc2330e61ed93e9ceda63edab6bfd77229d"
+
+[unused_1]
+type = "sound"
+sha1 = "330ffd6f80ac557ef22a7d4bb545046770c49fa0"
+
+[body_bank]
+type = "animation_bank"
+schema = "enemies/golem/no_9/body_schema"
+symbol = "gActor521100BodyAnimationSets"
+
+[body_bank.clips]
+idle = "enemies/golem/idle"
+slot_2 = "enemies/golem/no_9/body_anim_02"
+stance_enter = "enemies/golem/no_9/stance_enter"
+stance_hold = "enemies/golem/no_9/stance_hold"
+slash = "enemies/golem/no_9/slash"
+long_slash = "enemies/golem/no_9/long_slash"
+stance_recover = "enemies/golem/swing_recover"
+stance_swing = "enemies/golem/sword_swing"
+slot_9 = "enemies/golem/no_9/body_anim_09"
+grab_seize = "enemies/golem/no_9/grab_seize"
+grab_hold = "enemies/golem/no_9/grab_hold"
+counter_death = "enemies/golem/no_9/counter_death"
+guard_start = "enemies/golem/no_9/guard_start"
+guard_end = "enemies/golem/scream_release"
+stagger = "enemies/golem/stagger"
+flinch = "enemies/golem/no_9/flinch"
+walk = "enemies/golem/walk"
+throw = "enemies/golem/no_9/throw"
+kill_player = "enemies/golem/grab_kill"
+spawn = "enemies/golem/no_9/spawn"
+event_22 = "enemies/golem/no_9/event_22"
+event_23 = "enemies/golem/no_9/event_23"
+event_24 = "enemies/golem/no_9/event_24"
+event_25 = "enemies/golem/no_9/event_25"
+event_26 = "enemies/golem/no_9/event_26"
+event_27 = "enemies/golem/no_9/event_27"
+event_28 = "enemies/golem/no_9/event_28"
+event_29 = "enemies/golem/no_9/event_29"
+event_30 = "enemies/golem/no_9/event_30"
+event_31 = "enemies/golem/no_9/event_31"
+event_32 = "enemies/golem/no_9/event_32"
+event_33 = "enemies/golem/no_9/event_33"
+event_34 = "enemies/golem/no_9/event_34"
+event_35 = "enemies/golem/no_9/event_35"
+
+[grab_hold]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9GrabHoldClip"
+
+[dash_start]
+type = "sound"
+sha1 = "125c21a1e27cfbed362a977e8f67bbf0dd68c57e"
+
+[flame_loop]
+type = "sound"
+sha1 = "686f413ed66db8625399032b8aee806e77d2023d"
+
+[grab_seize]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9GrabSeizeClip"
+
+[long_slash]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9LongSlashClip"
+
+[spark_loop]
+type = "sound"
+sha1 = "a45cfc89bd75caa3ba2674ea1a826297a5d1bc54"
+
+[body_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "idle",
+    "slot_2",
+    "stance_enter",
+    "stance_hold",
+    "slash",
+    "long_slash",
+    "stance_recover",
+    "stance_swing",
+    "slot_9",
+    "grab_seize",
+    "grab_hold",
+    "",
+    "counter_death",
+    "guard_start",
+    "guard_end",
+    "stagger",
+    "flinch",
+    "walk",
+    "throw",
+    "kill_player",
+    "spawn",
+    "event_22",
+    "event_23",
+    "event_24",
+    "event_25",
+    "event_26",
+    "event_27",
+    "event_28",
+    "event_29",
+    "event_30",
+    "event_31",
+    "event_32",
+    "event_33",
+    "event_34",
+    "event_35",
+]
+
+[guard_start]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9GuardStartClip"
+
+[hurt_recoil]
+type = "sound"
+sha1 = "863e3c2f8b4b9f13bfd626fbd53db9edc0cfbe55"
+
+[slash_sound]
+type = "sound"
+sha1 = "454f6909ff5632748c83ddfd1d7ddcaf77784e7a"
+
+[stagger_alt]
+type = "sound"
+sha1 = "eb6fa5483ff9a803f53db43bfc2047e587e6d04a"
+
+[stance_hold]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9StanceHoldClip"
+
+[throw_sound]
+type = "sound"
+sha1 = "b0b1a7ffaee0f1320f471866e914a1bef6eb9bbf"
+
+[body_anim_02]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9BodyAnim02Clip"
+
+[body_anim_09]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9BodyAnim09Clip"
+
+[flame_strike]
+type = "sound"
+sha1 = "8c3435a3f9ec27c218cac4d044b4fe293f8d3cc9"
+
+[flinch_sound]
+type = "sound"
+sha1 = "a93b69aae041445cec7fbff97a8876d830679797"
+
+[stance_enter]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9StanceEnterClip"
+
+[stance_swing]
+type = "sound"
+sha1 = "24ee5613ba685dbcdee9e52b896b8a464ff79024"
+
+[body_dryfield]
+type = "model"
+rig = "enemies/golem/no_9/rig"
+slots = ["dryfield_page_3", "dryfield_page_2", "dryfield_page_1"]
+symbol = "_gGolemNo9BodyDryfield"
+sha1 = "ceef24f814bd623977bfb5a5b821833ac8c752fa"
+
+[counter_death]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9CounterDeathClip"
+
+[grenade_throw]
+type = "sound"
+mode = "high"
+sha1 = "36ea986442e0955160505cd9ad221fb915c75413"
+
+[lethal_strike]
+type = "sound"
+sha1 = "009e737d64301f70e689fa15690d666b68fbf595"
+
+[radio_binding]
+type = "binding"
+model = "enemies/golem/no_9/radio"
+textures = { page_2 = "characters/eve/texture_page_2.default" }
+
+[shotgun_react]
+type = "sound"
+sha1 = "25d31bf208b36277b586ad6f4e1782dd7f5539f0"
+
+[slash_recover]
+type = "sound"
+sha1 = "7b25f6721d9c76d684334bfaed35199a996302e1"
+
+[akropolis_prop]
+type = "model"
+slots = ["akropolis_page_3"]
+symbol = "gGolemNo9AkropolisProp"
+sha1 = "e4b5b3ff05bcfcba9080ddf49bff50796b29d6de"
+
+[body_akropolis]
+type = "model"
+rig = "enemies/golem/no_9/rig"
+slots = ["akropolis_page_2", "akropolis_page_1"]
+symbol = "gGolemNo9BodyAkropolis"
+sha1 = "cbaf53e8b57c2b1c832f6b41db39b9ec73abb073"
+
+[player_counter]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gGolemNo9PlayerCounterClip"
+
+[akropolis_sword]
+type = "model"
+slots = ["akropolis_page_3"]
+symbol = "gGolemNo9AkropolisSword"
+sha1 = "af463a86a66925a2fd0daaf4936ce86971f3837b"
+
+[anmc_woman_bank]
+type = "animation_bank"
+schema = "enemies/golem/no_9/anmc_woman_schema"
+symbol = "_gActor521100AnmcWomanAnimationSets"
+
+[anmc_woman_bank.clips]
+walk = "enemies/golem/no_9/anmc_woman_walk"
+slot_2 = "enemies/golem/no_9/anmc_woman_anim_02"
+slot_3 = "enemies/golem/no_9/anmc_woman_anim_03"
+slot_4 = "enemies/golem/no_9/anmc_woman_anim_04"
+slot_5 = "enemies/golem/no_9/anmc_woman_walk"
+slot_6 = "enemies/golem/no_9/anmc_woman_walk"
+slot_7 = "enemies/golem/no_9/anmc_woman_walk"
+slot_8 = "enemies/golem/no_9/anmc_woman_walk"
+slot_9 = "enemies/golem/no_9/anmc_woman_walk"
+slot_10 = "enemies/golem/no_9/anmc_woman_anim_10"
+
+[anmc_woman_walk]
+type = "clip"
+rig = "characters/anmc_woman_3/rig"
+
+[player_event_48]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gGolemNo9PlayerEvent48Clip"
+
+[player_event_51]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gGolemNo9PlayerEvent51Clip"
+
+[player_event_53]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gGolemNo9PlayerEvent53Clip"
+
+[player_event_55]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gGolemNo9PlayerEvent55Clip"
+
+[player_event_57]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gGolemNo9PlayerEvent57Clip"
+
+[player_event_58]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gGolemNo9PlayerEvent58Clip"
+
+[player_event_59]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gGolemNo9PlayerEvent59Clip"
+
+[player_event_60]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gGolemNo9PlayerEvent60Clip"
+
+[player_event_61]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gGolemNo9PlayerEvent61Clip"
+
+[player_released]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gGolemNo9PlayerReleasedClip"
+
+[sounds_dryfield]
+type = "sound_bank"
+samples = [
+    "enemies/golem/no_9/dryfield_footstep_a",
+    "enemies/golem/no_9/dryfield_footstep_b",
+    "enemies/golem/no_9/guard",
+    "enemies/golem/no_9/stagger",
+    "enemies/golem/no_9/stagger_alt",
+    "enemies/golem/no_9/flinch_sound",
+    "enemies/golem/no_9/stance_hold_sound",
+    "enemies/golem/no_9/slash_sound",
+    "enemies/golem/no_9/stance_swing",
+    "enemies/golem/no_9/counter_death_sound",
+    "enemies/golem/no_9/unused_1",
+    "pe/pyrokinesis/cast_1",
+    "pe/pyrokinesis/cast_2",
+    "enemies/golem/no_9/throw_sound",
+]
+sha1 = "aecb974c3df802a4ca16d90d970e24ae05d0710c"
+
+[sounds_dryfield.sounds]
+footstep_a = 1
+footstep_b = 2
+guard = 3
+stagger = 4
+stagger_alt = 5
+flinch = 6
+stance_hold = 7
+slash = 8
+stance_swing = 9
+counter_death = 12
+counter_blast = 14
+throw = 15
+
+[grab_player_bank]
+type = "animation_bank"
+schema = "enemies/golem/no_9/grab_player_schema"
+symbol = "gActor521100GrabPlayerAnimationSets"
+
+[grab_player_bank.clips]
+player_seize_front = "enemies/golem/no_9/player_seize_front"
+player_hold_front = "enemies/golem/no_9/player_hold_front"
+player_counter_finish = "enemies/golem/no_9/player_counter_finish"
+player_counter = "enemies/golem/no_9/player_counter"
+player_seize_back = "enemies/golem/no_9/player_seize_back"
+player_hold_back = "enemies/golem/no_9/player_hold_back"
+player_throw_front = "enemies/golem/no_9/player_throw_front"
+player_throw_back = "enemies/golem/no_9/player_throw_back"
+player_released = "enemies/golem/no_9/player_released"
+player_kill_front = "enemies/golem/no_9/player_kill_front"
+player_kill_back = "enemies/golem/player_grab_kill"
+
+[gunblade_binding]
+type = "binding"
+model = "enemies/golem/no_9/gunblade"
+textures = { dryfield_page_2 = "enemies/golem/no_9/texture_dryfield_page_2.default" }
+
+[package_dryfield]
+type = "pe2pkg"
+embedded = [
+    { name = "player_event_51", offset = 0x04E90, size = 0x60C, address = 0x80136CB0 },
+    { name = "player_event_53", offset = 0x0549C, size = 0x550, address = 0x801372BC },
+    { name = "player_event_55", offset = 0x059EC, size = 0x5D4, address = 0x8013780C },
+    { name = "player_event_57", offset = 0x05FC0, size = 0x2A4, address = 0x80137DE0 },
+    { name = "player_event_48", offset = 0x06264, size = 0xF2C, address = 0x80138084 },
+    { name = "player_event_58", offset = 0x07190, size = 0xA3C, address = 0x80138FB0 },
+    { name = "player_event_59", offset = 0x07BCC, size = 0x668, address = 0x801399EC },
+    { name = "player_event_60", offset = 0x08234, size = 0xE24, address = 0x8013A054 },
+    { name = "player_event_61", offset = 0x09058, size = 0x190, address = 0x8013AE78 },
+    { name = "gunblade", offset = 0x0FA98, size = 0x804, address = 0x801418B8 },
+    { asset = "enemies/golem/idle", offset = 0x1029C, size = 0xC38, address = 0x801420BC },
+    { name = "body_anim_02", offset = 0x10ED4, size = 0x768, address = 0x80142CF4 },
+    { name = "stance_enter", offset = 0x1163C, size = 0xBF0, address = 0x8014345C },
+    { name = "stance_hold", offset = 0x1222C, size = 0x518, address = 0x8014404C },
+    { asset = "enemies/golem/swing_recover", offset = 0x12744, size = 0xD38, address = 0x80144564 },
+    { asset = "enemies/golem/sword_swing", offset = 0x1347C, size = 0x738, address = 0x8014529C },
+    { name = "body_anim_09", offset = 0x13BB4, size = 0x864, address = 0x801459D4 },
+    { name = "grab_seize", offset = 0x14418, size = 0x528, address = 0x80146238 },
+    { name = "grab_hold", offset = 0x14940, size = 0x320, address = 0x80146760 },
+    { name = "counter_death", offset = 0x14C60, size = 0x530, address = 0x80146A80 },
+    { name = "guard_start", offset = 0x15190, size = 0x190, address = 0x80146FB0 },
+    { asset = "enemies/golem/scream_release", offset = 0x15320, size = 0x60C, address = 0x80147140 },
+    { asset = "enemies/golem/stagger", offset = 0x1592C, size = 0x524, address = 0x8014774C },
+    { name = "flinch", offset = 0x15E50, size = 0x800, address = 0x80147C70 },
+    { asset = "enemies/golem/walk", offset = 0x16650, size = 0x968, address = 0x80148470 },
+    { name = "throw", offset = 0x16FB8, size = 0x1B90, address = 0x80148DD8 },
+    { name = "long_slash", offset = 0x18B48, size = 0x1DC4, address = 0x8014A968 },
+    { name = "slash", offset = 0x1A90C, size = 0x1014, address = 0x8014C72C },
+    { asset = "enemies/golem/grab_kill", offset = 0x1B920, size = 0x80C, address = 0x8014D740 },
+    { name = "spawn", offset = 0x1C12C, size = 0x488, address = 0x8014DF4C },
+    { name = "event_22", offset = 0x1C5B4, size = 0x42F4, address = 0x8014E3D4 },
+    { name = "event_23", offset = 0x208A8, size = 0x714, address = 0x801526C8 },
+    { name = "event_24", offset = 0x20FBC, size = 0x7E8, address = 0x80152DDC },
+    { name = "event_25", offset = 0x217A4, size = 0x93C, address = 0x801535C4 },
+    { name = "event_26", offset = 0x220E0, size = 0x8E8, address = 0x80153F00 },
+    { name = "event_27", offset = 0x229C8, size = 0x7EC, address = 0x801547E8 },
+    { name = "event_28", offset = 0x231B4, size = 0x834, address = 0x80154FD4 },
+    { name = "event_29", offset = 0x239E8, size = 0x159C, address = 0x80155808 },
+    { name = "event_30", offset = 0x24F84, size = 0xB70, address = 0x80156DA4 },
+    { name = "event_31", offset = 0x25AF4, size = 0x558, address = 0x80157914 },
+    { name = "event_32", offset = 0x2604C, size = 0xE18, address = 0x80157E6C },
+    { name = "event_33", offset = 0x26E64, size = 0x190, address = 0x80158C84 },
+    { name = "event_34", offset = 0x26FF4, size = 0x1DC, address = 0x80158E14 },
+    { name = "event_35", offset = 0x271D0, size = 0x8D0, address = 0x80158FF0 },
+    { name = "player_seize_front", offset = 0x27AA0, size = 0x338, address = 0x801598C0 },
+    { name = "player_hold_front", offset = 0x27DD8, size = 0x5D0, address = 0x80159BF8 },
+    { name = "player_counter_finish", offset = 0x283A8, size = 0xA58, address = 0x8015A1C8 },
+    { name = "player_counter", offset = 0x28E00, size = 0x420, address = 0x8015AC20 },
+    { name = "player_seize_back", offset = 0x29220, size = 0x33C, address = 0x8015B040 },
+    { name = "player_hold_back", offset = 0x2955C, size = 0x554, address = 0x8015B37C },
+    { name = "player_throw_front", offset = 0x29AB0, size = 0xF10, address = 0x8015B8D0 },
+    { name = "player_throw_back", offset = 0x2A9C0, size = 0xF04, address = 0x8015C7E0 },
+    { name = "player_released", offset = 0x2B8C4, size = 0xADC, address = 0x8015D6E4 },
+    { name = "player_kill_front", offset = 0x2C3A0, size = 0x930, address = 0x8015E1C0 },
+    { asset = "enemies/golem/player_grab_kill", offset = 0x2CCD0, size = 0xA60, address = 0x8015EAF0 },
+    { name = "body_bank", offset = 0x2D91C, size = 0x90, address = 0x8015F73C },
+    { name = "grab_player_bank", offset = 0x2D9AC, size = 0x38, address = 0x8015F7CC },
+    { asset = "characters/anmc_woman_3/body", offset = 0x2DAB4, size = 0x560C, address = 0x8015F8D4 },
+    { name = "anmc_woman_walk", offset = 0x330C0, size = 0x3D9C, address = 0x80164EE0 },
+    { name = "anmc_woman_anim_02", offset = 0x36E5C, size = 0x4A4, address = 0x80168C7C },
+    { name = "anmc_woman_anim_03", offset = 0x37300, size = 0x458, address = 0x80169120 },
+    { name = "anmc_woman_anim_04", offset = 0x37758, size = 0xC04, address = 0x80169578 },
+    { name = "anmc_woman_anim_10", offset = 0x3835C, size = 0x1DC, address = 0x8016A17C },
+    { name = "anmc_woman_bank", offset = 0x38580, size = 0x2C, address = 0x8016A3A0 },
+]
+package_name = "actor_521100"
+required = true
+sha1 = "c1773d19d5a810f19acc620f85428805863bf7f8"
+
+[player_hold_back]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gGolemNo9PlayerHoldBackClip"
+
+[sounds_akropolis]
+type = "sound_bank"
+samples = [
+    "enemies/golem/no_9/akropolis_footstep_a",
+    "enemies/golem/no_9/akropolis_footstep_b",
+    "enemies/golem/no_9/shotgun_react",
+    "enemies/golem/no_9/hurt",
+    "enemies/golem/no_9/hurt_recoil",
+    "enemies/golem/no_9/windup",
+    "enemies/golem/no_9/spark_loop",
+    "enemies/golem/no_9/slash_recover",
+    "enemies/golem/no_9/flame_strike",
+    "enemies/golem/no_9/flame_loop",
+    "enemies/golem/no_9/fire",
+    "enemies/golem/no_9/dash_start",
+    "enemies/golem/no_9/lethal_strike",
+    "enemies/golem/no_9/grenade_throw",
+]
+sha1 = "ac041ca687e3f889ef86a959f8095810fb9cf24a"
+
+[sounds_akropolis.sounds]
+footstep_a = 1
+footstep_b = 2
+shotgun_react = 3
+hurt = 4
+hurt_recoil = 5
+windup = 6
+flame_strike = 7
+backstep = 8
+spark_loop = 9
+slash_recover = 10
+slash = 11
+dash_strike = 12
+flame_loop = 13
+fire = 14
+dash_start = 15
+lethal_strike = 16
+event_flame_loop = 17
+grenade_throw = 18
+
+[anmc_woman_schema]
+type = "animation_schema"
+slots = ["", "walk", "slot_2", "slot_3", "slot_4", "slot_5", "slot_6", "slot_7", "slot_8", "slot_9", "slot_10"]
+
+[package_akropolis]
+type = "pe2pkg"
+embedded = [
+    { name = "akropolis_sword", offset = 0x0FD68, size = 0x2A4, address = 0x80141B88 },
+    { name = "akropolis_prop", offset = 0x1000C, size = 0x31C, address = 0x80141E2C },
+    { name = "akropolis_chest_piece", offset = 0x10328, size = 0x35C, address = 0x80142148 },
+    "actor_510900_model_10C8C",
+    "actor_510900_animation_11340",
+]
+package_name = "actor_510900"
+parent = "acropolis_helicopter_landing_pad"
+required = true
+sha1 = "91bc20bb98fc6653a2729859fef0014c3366bfa1"
+
+[player_hold_front]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gGolemNo9PlayerHoldFrontClip"
+
+[player_kill_front]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gGolemNo9PlayerKillFrontClip"
+
+[player_seize_back]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gGolemNo9PlayerSeizeBackClip"
+
+[player_throw_back]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gGolemNo9PlayerThrowBackClip"
+
+[stance_hold_sound]
+type = "sound"
+sha1 = "9b936ab41365011d169e6353d9a35b4c3599ae7e"
+
+[anmc_woman_anim_02]
+type = "clip"
+rig = "characters/anmc_woman_3/rig"
+
+[anmc_woman_anim_03]
+type = "clip"
+rig = "characters/anmc_woman_3/rig"
+
+[anmc_woman_anim_04]
+type = "clip"
+rig = "characters/anmc_woman_3/rig"
+
+[anmc_woman_anim_10]
+type = "clip"
+rig = "characters/anmc_woman_3/rig"
+
+[grab_player_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "",
+    "player_seize_front",
+    "player_hold_front",
+    "player_counter_finish",
+    "player_counter",
+    "player_seize_back",
+    "player_hold_back",
+    "",
+    "player_throw_front",
+    "player_throw_back",
+    "player_released",
+    "player_kill_front",
+    "player_kill_back",
+]
+
+[player_seize_front]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gGolemNo9PlayerSeizeFrontClip"
+
+[player_throw_front]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gGolemNo9PlayerThrowFrontClip"
+
+[counter_death_sound]
+type = "sound"
+sha1 = "0b7d754e8700fecb846bf7a1755ce3446598d1a9"
+
+[dryfield_footstep_a]
+type = "sound"
+sha1 = "914620e18efd1a51b3c32b53db597e95192ddcc7"
+
+[dryfield_footstep_b]
+type = "sound"
+sha1 = "e74a707cfeb2f7abacc773c3f682febe60c2082f"
+
+[akropolis_footstep_a]
+type = "sound"
+sha1 = "511dd2cdf16ff3735ca8f737969896cff304cefd"
+
+[akropolis_footstep_b]
+type = "sound"
+sha1 = "83f76e3533ef9f42debffb44f747576259a221ae"
+
+[akropolis_chest_piece]
+type = "model"
+slots = ["akropolis_page_3"]
+symbol = "gGolemNo9AkropolisChestPiece"
+sha1 = "7a7cea66f8b8bcb78ca3526b63a9ce4a19384ad3"
+
+[body_dryfield_binding]
+type = "binding"
+model = "enemies/golem/no_9/body_dryfield"
+
+[body_dryfield_binding.textures]
+dryfield_page_3 = "enemies/golem/no_9/texture_dryfield_page_3.default"
+dryfield_page_2 = "enemies/golem/no_9/texture_dryfield_page_2.default"
+dryfield_page_1 = "enemies/golem/no_9/texture_dryfield_page_1.default"
+
+[package_dryfield_file]
+type = "file"
+
+[[package_dryfield_file.contents]]
+chunk = "palette_dryfield"
+sha1 = "6807da259f0902b8c8c91c65ca8d47b530d7a6ea"
+
+[[package_dryfield_file.contents.palettes]]
+texture = "texture_dryfield_page_1"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0, 0]
+
+[[package_dryfield_file.contents.palettes]]
+texture = "texture_dryfield_page_2"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0, 1]
+
+[[package_dryfield_file.contents]]
+chunk = "palette_dryfield_2"
+sha1 = "e4e29496800573db7db990426c4145198368e756"
+
+[[package_dryfield_file.contents.palettes]]
+texture = "texture_dryfield_page_3"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0, 2]
+
+[[package_dryfield_file.contents]]
+chunk = "image_dryfield"
+sha1 = "1e8ccf9275d5dae9c7bbab09c60a6b06acee1e98"
+pages = [
+    { texture = "texture_dryfield_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_dryfield_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+    { texture = "texture_dryfield_page_3", region = "engine/vram/actor_sheet", offset = [128, 0] },
+]
+slots = 6
+
+[[package_dryfield_file.contents]]
+asset = "rooms/shelter/b1_control_room/no_9"
+
+[player_counter_finish]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gGolemNo9PlayerCounterFinishClip"
+
+[akropolis_prop_binding]
+type = "binding"
+model = "enemies/golem/no_9/akropolis_prop"
+textures = { akropolis_page_3 = "enemies/golem/no_9/texture_akropolis_page_3.default" }
+
+[body_akropolis_binding]
+type = "binding"
+model = "enemies/golem/no_9/body_akropolis"
+
+[body_akropolis_binding.textures]
+akropolis_page_2 = "enemies/golem/no_9/texture_akropolis_page_2.default"
+akropolis_page_1 = "enemies/golem/no_9/texture_akropolis_page_1.default"
+
+[package_akropolis_file]
+type = "file"
+
+[[package_akropolis_file.contents]]
+chunk = "palette_akropolis"
+sha1 = "cf9959f2952722bf78513b1393525cbec4f57018"
+
+[[package_akropolis_file.contents.palettes]]
+texture = "texture_akropolis_page_1"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0, 0]
+
+[[package_akropolis_file.contents.palettes]]
+texture = "texture_akropolis_page_2"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0, 1]
+
+[[package_akropolis_file.contents]]
+chunk = "palette_akropolis_2"
+sha1 = "2af25ad0cce4b9b82f813b5f13fd6f8067607e0b"
+
+[[package_akropolis_file.contents.palettes]]
+texture = "texture_akropolis_page_3"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0, 2]
+
+[[package_akropolis_file.contents]]
+chunk = "image_akropolis"
+sha1 = "cac88a65c67965fbf6c3b79113936088db6d3d53"
+pages = [
+    { texture = "texture_akropolis_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_akropolis_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+    { texture = "texture_akropolis_page_3", region = "engine/vram/actor_sheet", offset = [128, 0] },
+]
+slots = 6
+
+[[package_akropolis_file.contents]]
+asset = "rooms/akropolis/sanctuary/no_9"
+
+[akropolis_sword_binding]
+type = "binding"
+model = "enemies/golem/no_9/akropolis_sword"
+textures = { akropolis_page_3 = "enemies/golem/no_9/texture_akropolis_page_3.default" }
+
+[texture_dryfield_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_dryfield_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_dryfield_page_3]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_akropolis_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_akropolis_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_akropolis_page_3]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[akropolis_chest_piece_binding]
+type = "binding"
+model = "enemies/golem/no_9/akropolis_chest_piece"
+textures = { akropolis_page_3 = "enemies/golem/no_9/texture_akropolis_page_3.default" }

@@ -1,0 +1,255 @@
+# The assets of the group characters/president, each named characters/president/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = [
+    "joint_0",
+    "joint_1",
+    "joint_2",
+    "joint_3",
+    "joint_4",
+    "joint_5",
+    "joint_6",
+    "joint_7",
+    "joint_8",
+    "joint_9",
+    "joint_10",
+    "joint_11",
+    "joint_12",
+    "joint_13",
+    "joint_14",
+    "joint_15",
+    "joint_16",
+    "joint_17",
+    "joint_18",
+    "joint_19",
+]
+
+[bank]
+type = "animation_bank"
+schema = "characters/president/schema"
+symbol = "_gActor143900ScriptedWalkerAnimationSets"
+
+[bank.clips]
+stand_idle = "characters/president/stand_idle"
+slot_2 = "characters/president/scripted_walker_anim_02"
+slot_3 = "characters/president/scripted_walker_anim_03"
+slot_4 = "characters/president/scripted_walker_anim_04"
+slot_5 = "characters/president/scripted_walker_anim_05"
+slot_6 = "characters/president/scripted_walker_anim_06"
+slot_7 = "characters/president/scripted_walker_anim_07"
+slot_8 = "characters/president/scripted_walker_anim_08"
+seated_pose = "characters/president/seated_pose"
+slot_10 = "characters/president/scripted_walker_anim_10"
+slot_11 = "characters/president/scripted_walker_anim_11"
+slot_12 = "characters/president/scripted_walker_anim_12"
+stand_up = "characters/president/stand_up"
+slot_14 = "characters/president/scripted_walker_anim_14"
+slot_15 = "characters/president/scripted_walker_anim_15"
+turn_around_walk = "characters/president/turn_around_walk"
+slot_17 = "characters/president/scripted_walker_anim_17"
+slot_18 = "characters/president/scripted_walker_anim_18"
+slot_19 = "characters/president/scripted_walker_anim_19"
+
+[body]
+type = "model"
+rig = "characters/president/rig"
+slots = ["page_1", "page_2"]
+symbol = "_gPresidentBody"
+sha1 = "e4affc8e3b5e3fcd53fc33978fb1faa40722399e"
+
+[schema]
+type = "animation_schema"
+slots = [
+    "",
+    "stand_idle",
+    "slot_2",
+    "slot_3",
+    "slot_4",
+    "slot_5",
+    "slot_6",
+    "slot_7",
+    "slot_8",
+    "seated_pose",
+    "slot_10",
+    "slot_11",
+    "slot_12",
+    "stand_up",
+    "slot_14",
+    "slot_15",
+    "turn_around_walk",
+    "slot_17",
+    "slot_18",
+    "slot_19",
+]
+
+[stand_up]
+type = "clip"
+rig = "characters/president/rig"
+
+[extra_anim]
+type = "clip"
+rig = "characters/president/rig"
+
+[stand_idle]
+type = "clip"
+rig = "characters/president/rig"
+
+[seated_pose]
+type = "clip"
+rig = "characters/president/rig"
+
+[body_binding]
+type = "binding"
+model = "characters/president/body"
+
+[body_binding.textures]
+page_1 = "characters/president/texture_page_1.default"
+page_2 = "characters/president/texture_page_2.default"
+
+[office_scenes]
+type = "pe2pkg"
+embedded = [
+    { name = "body", offset = 0x01B60, size = 0x5EA4, address = 0x80133980 },
+    { name = "stand_idle", offset = 0x07A04, size = 0x294, address = 0x80139824 },
+    { name = "scripted_walker_anim_02", offset = 0x07C98, size = 0x39C, address = 0x80139AB8 },
+    { name = "scripted_walker_anim_03", offset = 0x08034, size = 0x38C, address = 0x80139E54 },
+    { name = "scripted_walker_anim_04", offset = 0x083C0, size = 0x40C, address = 0x8013A1E0 },
+    { name = "scripted_walker_anim_05", offset = 0x087CC, size = 0x994, address = 0x8013A5EC },
+    { name = "scripted_walker_anim_06", offset = 0x09160, size = 0x22C, address = 0x8013AF80 },
+    { name = "scripted_walker_anim_07", offset = 0x0938C, size = 0x650, address = 0x8013B1AC },
+    { name = "scripted_walker_anim_08", offset = 0x099DC, size = 0x68C, address = 0x8013B7FC },
+    { name = "scripted_walker_anim_17", offset = 0x0A068, size = 0x1DC, address = 0x8013BE88 },
+    { name = "scripted_walker_anim_18", offset = 0x0A244, size = 0x51C, address = 0x8013C064 },
+    { name = "seated_pose", offset = 0x0A760, size = 0x198, address = 0x8013C580 },
+    { name = "scripted_walker_anim_10", offset = 0x0A8F8, size = 0x29C, address = 0x8013C718 },
+    { name = "scripted_walker_anim_11", offset = 0x0AB94, size = 0x748, address = 0x8013C9B4 },
+    { name = "scripted_walker_anim_12", offset = 0x0B2DC, size = 0x1EC, address = 0x8013D0FC },
+    { name = "stand_up", offset = 0x0B4C8, size = 0x784, address = 0x8013D2E8 },
+    { name = "scripted_walker_anim_14", offset = 0x0BC4C, size = 0xAF4, address = 0x8013DA6C },
+    { name = "scripted_walker_anim_15", offset = 0x0C740, size = 0xAAC, address = 0x8013E560 },
+    { name = "turn_around_walk", offset = 0x0D1EC, size = 0x1BBC, address = 0x8013F00C },
+    { name = "scripted_walker_anim_19", offset = 0x0EDA8, size = 0x408, address = 0x80140BC8 },
+    { name = "extra_anim", offset = 0x0F1B0, size = 0x3E8, address = 0x80140FD0 },
+    { name = "bank", offset = 0x0F5D8, size = 0x50, address = 0x801413F8 },
+    { asset = "characters/staff_officer/body", offset = 0x0F628, size = 0x5B1C, address = 0x80141448 },
+    { asset = "characters/staff_officer/anim_09", offset = 0x15144, size = 0x214, address = 0x80146F64 },
+    { asset = "characters/staff_officer/anim_10", offset = 0x15358, size = 0x4A4, address = 0x80147178 },
+    { asset = "characters/staff_officer/anim_01", offset = 0x157FC, size = 0x348, address = 0x8014761C },
+    { asset = "characters/staff_officer/stand_idle", offset = 0x15B44, size = 0x2D0, address = 0x80147964 },
+    { asset = "characters/staff_officer/anim_03", offset = 0x15E14, size = 0x4E8, address = 0x80147C34 },
+    { asset = "characters/staff_officer/anim_04", offset = 0x162FC, size = 0x290, address = 0x8014811C },
+    { asset = "characters/staff_officer/pose", offset = 0x1658C, size = 0x148, address = 0x801483AC },
+    { asset = "characters/staff_officer/anim_06", offset = 0x166D4, size = 0x240, address = 0x801484F4 },
+    { asset = "characters/staff_officer/anim_07", offset = 0x16914, size = 0x524, address = 0x80148734 },
+    { asset = "characters/staff_officer/anim_08", offset = 0x16E38, size = 0x470, address = 0x80148C58 },
+    "actor_143900_model_173A8",
+    "actor_143900_model_17688",
+    { asset = "characters/staff_officer/bank", offset = 0x17868, size = 0x30, address = 0x80149688 },
+]
+package_name = "actor_143900"
+parent = ["neo_ark_r26", "shelter_r36"]
+required = true
+sha1 = "1962e2f2f78442496337104a9e6ccdbae294ddb6"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[turn_around_walk]
+type = "clip"
+rig = "characters/president/rig"
+
+[office_scenes_file]
+type = "file"
+
+[[office_scenes_file.contents]]
+chunk = "palette"
+sha1 = "8039a156dff3b552a6d730faee32c3771a529ae7"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[office_scenes_file.contents]]
+chunk = "image"
+sha1 = "a688ff49a0fda56833c901b642db9b495d559020"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[office_scenes_file.contents]]
+chunk = "office_scenes"
+
+[scripted_walker_anim_02]
+type = "clip"
+rig = "characters/president/rig"
+
+[scripted_walker_anim_03]
+type = "clip"
+rig = "characters/president/rig"
+
+[scripted_walker_anim_04]
+type = "clip"
+rig = "characters/president/rig"
+
+[scripted_walker_anim_05]
+type = "clip"
+rig = "characters/president/rig"
+
+[scripted_walker_anim_06]
+type = "clip"
+rig = "characters/president/rig"
+
+[scripted_walker_anim_07]
+type = "clip"
+rig = "characters/president/rig"
+
+[scripted_walker_anim_08]
+type = "clip"
+rig = "characters/president/rig"
+
+[scripted_walker_anim_10]
+type = "clip"
+rig = "characters/president/rig"
+
+[scripted_walker_anim_11]
+type = "clip"
+rig = "characters/president/rig"
+
+[scripted_walker_anim_12]
+type = "clip"
+rig = "characters/president/rig"
+
+[scripted_walker_anim_14]
+type = "clip"
+rig = "characters/president/rig"
+
+[scripted_walker_anim_15]
+type = "clip"
+rig = "characters/president/rig"
+
+[scripted_walker_anim_17]
+type = "clip"
+rig = "characters/president/rig"
+
+[scripted_walker_anim_18]
+type = "clip"
+rig = "characters/president/rig"
+
+[scripted_walker_anim_19]
+type = "clip"
+rig = "characters/president/rig"

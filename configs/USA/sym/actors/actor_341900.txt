@@ -4,12 +4,12 @@
 actor444000GluttonSetShakeLevel = 0x80143490; // type:func absolute:True owner=actor_444000
 gActor444000GluttonImpactPadCommands = 0x80144A74; // absolute:True owner=actor_444000
 gActor444000GluttonImpactPadSegments = 0x80144A7C; // absolute:True owner=actor_444000
-gActor444000Actor403200Model10824 = 0x80146F68; // absolute:True owner=actor_444000
-gActor444000Actor403200Model12884 = 0x80147D10; // absolute:True owner=actor_444000
-gActor444000Actor403200Model13774 = 0x80148E94; // absolute:True owner=actor_444000
-gActor444000GluttonLegLeft = 0x8014A650; // absolute:True owner=actor_444000
-gActor444000GluttonLegRight = 0x8014BE0C; // absolute:True owner=actor_444000
-gActor444000Actor403200Model18BE4 = 0x8014D5FC; // absolute:True owner=actor_444000
+gGluttonBody = 0x80146F68; // absolute:True owner=actor_444000
+gGluttonActor403200Model12884 = 0x80147D10; // absolute:True owner=actor_444000
+gGluttonActor403200Model13774 = 0x80148E94; // absolute:True owner=actor_444000
+gGluttonLegLeft = 0x8014A650; // absolute:True owner=actor_444000
+gGluttonLegRight = 0x8014BE0C; // absolute:True owner=actor_444000
+gGluttonActor403200Model18BE4 = 0x8014D5FC; // absolute:True owner=actor_444000
 gActor444000Model1DC9C = 0x8014FE00; // absolute:True owner=actor_444000
 gActor444000Model1E14C = 0x80150170; // absolute:True owner=actor_444000
 _gActor341900GluttonPartAttachments = 0x80163A98; // size:0x30 defined:True

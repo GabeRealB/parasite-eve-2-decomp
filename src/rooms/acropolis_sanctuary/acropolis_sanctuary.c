@@ -431,14 +431,14 @@ static AnimationPlayRequest _gAcropolisSanctuaryPlayerWeaponClip1Request = {
 /// followed by the room's weapon-restoration set. This table supplies nine
 /// pointer words; the room and Rupert resources must outlive playback.
 static AnimationSet* _gAcropolisSanctuaryPlayerSceneAnimationSets[9] = {
-    &gActor210700Animation01E2C,
-    &gActor210700Animation027F8,
-    &gActor210700Animation02B54,
-    &gActor210700Animation02E0C,
-    &gActor210700Animation0318C,
-    &gActor210700Animation03424,
-    &gActor210700Animation03BD0,
-    &gActor210700Animation067E8,
+    &gAkropolisSanctuaryPlayerSanctuaryArrival7Clip,
+    &gAkropolisSanctuaryPlayerSanctuaryArrival11Clip,
+    &gAkropolisSanctuaryPlayerSanctuaryTalkClip,
+    &gAkropolisSanctuaryPlayerSanctuaryTalkEndClip,
+    &gAkropolisSanctuaryPlayerSanctuaryReplyClip,
+    &gAkropolisSanctuaryPlayerSanctuaryListenClip,
+    &gAkropolisSanctuaryPlayerSanctuaryArrival26Clip,
+    &gAkropolisSanctuaryPlayerSanctuaryArrival27Clip,
     &_gAcropolisSanctuaryAnimation03234,
 };
 

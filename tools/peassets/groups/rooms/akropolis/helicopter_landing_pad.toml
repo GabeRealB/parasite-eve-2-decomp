@@ -1,0 +1,94 @@
+# The assets of the group rooms/akropolis/helicopter_landing_pad, each named rooms/akropolis/helicopter_landing_pad/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[no_9_bank]
+type = "animation_bank"
+schema = "rooms/akropolis/helicopter_landing_pad/no_9_schema"
+symbol = "_gActor511000No9GolemAnimationSets"
+
+[no_9_bank.clips]
+standoff = "rooms/akropolis/helicopter_landing_pad/no_9_standoff"
+times_up = "rooms/akropolis/helicopter_landing_pad/no_9_times_up"
+leap_away = "rooms/akropolis/helicopter_landing_pad/no_9_leap_away"
+
+[no_9_schema]
+type = "animation_schema"
+slots = ["", "standoff", "times_up", "leap_away"]
+
+[rupert_bank]
+type = "animation_bank"
+schema = "rooms/akropolis/helicopter_landing_pad/rupert_schema"
+symbol = "_gActor511000RupertAnimationSets"
+
+[rupert_bank.clips]
+shoot = "rooms/akropolis/helicopter_landing_pad/rupert_shoot"
+arrive = "rooms/akropolis/helicopter_landing_pad/rupert_arrive"
+detonator_talk = "rooms/akropolis/helicopter_landing_pad/rupert_detonator_talk"
+
+[rupert_shoot]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[no_9_standoff]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[no_9_times_up]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[rupert_arrive]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[rupert_schema]
+type = "animation_schema"
+slots = ["", "shoot", "arrive", "detonator_talk"]
+
+[no_9_leap_away]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[helicopter_departure]
+type = "pe2pkg"
+embedded = [
+    { name = "player_helipad_report_escape", offset = 0x02350, size = 0x29A0, address = 0x80134170 },
+    { name = "player_helipad_detonator_talk", offset = 0x04CF0, size = 0x2E14, address = 0x80136B10 },
+    "actor_511000_helicopter_base",
+    "actor_511000_prop_2",
+    "actor_511000_prop_3",
+    "actor_511000_model_0A41C",
+    { asset = "characters/rupert/body_2", offset = 0x0A860, size = 0x5EF8, address = 0x8013C680 },
+    "actor_511000_prop_1",
+    { name = "rupert_shoot", offset = 0x10E94, size = 0x3B0, address = 0x80142CB4 },
+    { name = "rupert_arrive", offset = 0x11244, size = 0x1EB8, address = 0x80143064 },
+    { name = "rupert_detonator_talk", offset = 0x130FC, size = 0x1A58, address = 0x80144F1C },
+    { name = "rupert_bank", offset = 0x154B4, size = 0x10, address = 0x801472D4 },
+    "rooms/akropolis/helicopter_landing_pad/helicopter_rotation_track",
+    "rooms/akropolis/helicopter_landing_pad/helicopter_translation_track",
+    "rooms/akropolis/helicopter_landing_pad/searchlight_rotation_track",
+    "rooms/akropolis/helicopter_landing_pad/helicopter_palette_lit",
+    "rooms/akropolis/helicopter_landing_pad/helicopter_palette_dark",
+    { name = "no_9_standoff", offset = 0x1D228, size = 0x36EC, address = 0x8014F048 },
+    { name = "no_9_times_up", offset = 0x20914, size = 0x15D0, address = 0x80152734 },
+    { name = "no_9_leap_away", offset = 0x21EE4, size = 0x136C, address = 0x80153D04 },
+    { name = "no_9_bank", offset = 0x232A0, size = 0x10, address = 0x801550C0 },
+]
+package_name = "actor_511000"
+parent = "acropolis_helicopter_landing_pad"
+required = true
+sha1 = "e742256cbd375eff51b21ed26f4631946ba06139"
+
+[rupert_detonator_talk]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[player_helipad_report_escape]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisHelicopterLandingPadPlayerHelipadReportEscapeClip"
+
+[player_helipad_detonator_talk]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisHelicopterLandingPadPlayerHelipadDetonatorTalkClip"

@@ -1,0 +1,41 @@
+# The assets of the group characters/anmc_woman_3, each named characters/anmc_woman_3/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = [
+    "root",
+    "pelvis",
+    "waist",
+    "chest",
+    "head",
+    "right_shoulder",
+    "right_upper_arm",
+    "right_forearm",
+    "right_hand",
+    "left_shoulder",
+    "left_upper_arm",
+    "left_forearm",
+    "left_hand",
+    "right_thigh",
+    "right_shin",
+    "right_foot",
+    "left_thigh",
+    "left_shin",
+    "left_foot",
+]
+
+[body]
+type = "model"
+rig = "characters/anmc_woman_3/rig"
+slots = ["dryfield_page_2", "dryfield_page_1"]
+symbol = "_gAnmcWoman3Body"
+sha1 = "823b75a2977d575bbcc4bb218e7dc1aff6281318"
+
+[body_binding]
+type = "binding"
+model = "characters/anmc_woman_3/body"
+
+[body_binding.textures]
+dryfield_page_2 = "enemies/golem/no_9/texture_dryfield_page_2.default"
+dryfield_page_1 = "enemies/golem/no_9/texture_dryfield_page_1.default"

@@ -1,0 +1,126 @@
+# The assets of the group characters/gary, each named characters/gary/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = [
+    "joint_0",
+    "joint_1",
+    "joint_2",
+    "joint_3",
+    "joint_4",
+    "joint_5",
+    "joint_6",
+    "joint_7",
+    "joint_8",
+    "joint_9",
+    "joint_10",
+    "joint_11",
+    "joint_12",
+    "joint_13",
+    "joint_14",
+    "joint_15",
+    "joint_16",
+    "joint_17",
+    "joint_18",
+    "joint_19",
+]
+
+[body]
+type = "model"
+rig = "characters/gary/rig"
+slots = ["page_2", "page_1"]
+symbol = "_gGaryBody"
+sha1 = "b9a7e2ee66c948790fffe6fed631fed701753601"
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "shotgun_palette"
+sha1 = "007900c7447f49e1e37889eebfad46fc875ab172"
+palettes = [{ texture = "shotgun_texture", variant = "default", region = "engine/vram/held_weapon_palette" }]
+
+[[file.contents]]
+chunk = "shotgun_image"
+sha1 = "999260d17d71c6ed7fe81cce6121e5bff9638981"
+pages = [{ texture = "shotgun_texture", region = "engine/vram/held_weapon_sheet" }]
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "9dffbaa92f14ba4b77442cfb23ac73cf8488d9c8"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "eb4ee0c6746af7178ac3899fe658788d7bcdd316"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[file.contents]]
+asset = "rooms/dryfield/garage/gary"
+
+[shotgun]
+type = "model"
+slots = ["shotgun_texture"]
+symbol = "_gGaryShotgun"
+sha1 = "2c9739f347cbe5915b0be5ca1a014ff580d165f4"
+
+[head_hat]
+type = "model"
+slots = ["page_1"]
+symbol = "_gGaryHeadHat"
+sha1 = "3bf7133f615abedbf5382d38fd815978073d1e65"
+
+[shotgun_2]
+type = "model"
+slots = ["shotgun_texture"]
+symbol = "_gGaryShotgun2"
+sha1 = "49c9ba6ea13546d5e8f21e1bce7a87b7c74662a7"
+
+[body_binding]
+type = "binding"
+model = "characters/gary/body"
+textures = { page_2 = "characters/gary/texture_page_2.default", page_1 = "characters/gary/texture_page_1.default" }
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[shotgun_binding]
+type = "binding"
+model = "characters/gary/shotgun"
+textures = { shotgun_texture = "characters/gary/shotgun_texture.default" }
+
+[shotgun_texture]
+type = "texture"
+bpp = 4
+height = 64
+variants = ["default"]
+width = 256
+
+[head_hat_binding]
+type = "binding"
+model = "characters/gary/head_hat"
+textures = { page_1 = "characters/gary/texture_page_1.default" }
+
+[shotgun_2_binding]
+type = "binding"
+model = "characters/gary/shotgun_2"
+textures = { shotgun_texture = "characters/gary/shotgun_texture.default" }

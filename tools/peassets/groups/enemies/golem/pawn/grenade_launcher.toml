@@ -1,0 +1,296 @@
+# The assets of the group enemies/golem/pawn/grenade_launcher, each named enemies/golem/pawn/grenade_launcher/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+schema = "enemies/golem/pawn/grenade_launcher/schema"
+symbol = "_gGolemPawnRookAnimSets"
+
+[bank.clips]
+idle = "enemies/golem/idle"
+walk = "enemies/golem/walk"
+turn = "enemies/golem/turn"
+listen = "enemies/golem/listen"
+burst_start = "enemies/golem/pawn/grenade_launcher/burst_start"
+fire = "enemies/golem/fire"
+burst_cancel = "enemies/golem/burst_cancel"
+reload = "enemies/golem/pawn/grenade_launcher/reload"
+launcher_strike = "enemies/golem/launcher_strike"
+stagger = "enemies/golem/stagger"
+recoil_front = "enemies/golem/recoil_front"
+recoil_behind = "enemies/golem/recoil_behind"
+buildup = "enemies/golem/buildup"
+scream_recover = "enemies/golem/scream_recover"
+fall_behind = "enemies/golem/fall_behind"
+downed_hit_behind = "enemies/golem/downed_hit_behind"
+writhe_behind = "enemies/golem/writhe_behind"
+lie_behind = "enemies/golem/lie_behind"
+fall_front = "enemies/golem/fall_front"
+downed_hit_front = "enemies/golem/downed_hit_front"
+writhe_front = "enemies/golem/writhe_front"
+lie_front = "enemies/golem/lie_front"
+back_away = "enemies/golem/pawn/grenade_launcher/back_away"
+
+[file]
+type = "file"
+contents = [
+    { asset = "enemies/moth/preview_palette", sha1 = "65e9784cafe3f1873b915a880cb1979b39621a83" },
+    { asset = "enemies/moth/preview_image", sha1 = "161ac20e76eb8f36b46a091126eaafe3a329e23e" },
+    { asset = "txt_82" },
+]
+
+[reload]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[schema]
+type = "animation_schema"
+slots = [
+    "",
+    "idle",
+    "walk",
+    "turn",
+    "listen",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "burst_start",
+    "fire",
+    "burst_cancel",
+    "reload",
+    "launcher_strike",
+    "stagger",
+    "recoil_front",
+    "recoil_behind",
+    "buildup",
+    "scream_recover",
+    "fall_behind",
+    "downed_hit_behind",
+    "writhe_behind",
+    "lie_behind",
+    "fall_front",
+    "downed_hit_front",
+    "writhe_front",
+    "lie_front",
+    "back_away",
+]
+
+[back_away]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[package_1]
+type = "pe2pkg"
+embedded = [
+    { asset = "enemies/golem/grenade_launcher", offset = 0x0A044, size = 0x44C, address = 0x8013BE64 },
+    { asset = "enemies/golem/grenade", offset = 0x0A490, size = 0x32C, address = 0x8013C2B0 },
+    { asset = "enemies/golem/idle", offset = 0x0A7BC, size = 0xC38, address = 0x8013C5DC },
+    { asset = "enemies/golem/walk", offset = 0x0B3F4, size = 0x968, address = 0x8013D214 },
+    { asset = "enemies/golem/turn", offset = 0x0BD5C, size = 0x628, address = 0x8013DB7C },
+    { asset = "enemies/golem/listen", offset = 0x0C384, size = 0x800, address = 0x8013E1A4 },
+    { name = "burst_start", offset = 0x0CB84, size = 0x5B0, address = 0x8013E9A4 },
+    { asset = "enemies/golem/fire", offset = 0x0D134, size = 0x4E4, address = 0x8013EF54 },
+    { asset = "enemies/golem/burst_cancel", offset = 0x0D618, size = 0x460, address = 0x8013F438 },
+    { name = "reload", offset = 0x0DA78, size = 0xFD8, address = 0x8013F898 },
+    { asset = "enemies/golem/launcher_strike", offset = 0x0EA50, size = 0xF58, address = 0x80140870 },
+    { asset = "enemies/golem/stagger", offset = 0x0F9A8, size = 0x524, address = 0x801417C8 },
+    { asset = "enemies/golem/recoil_front", offset = 0x0FECC, size = 0xA10, address = 0x80141CEC },
+    { asset = "enemies/golem/recoil_behind", offset = 0x108DC, size = 0xAA8, address = 0x801426FC },
+    { asset = "enemies/golem/buildup", offset = 0x11384, size = 0x5E0, address = 0x801431A4 },
+    { asset = "enemies/golem/scream_recover", offset = 0x11964, size = 0xCF4, address = 0x80143784 },
+    { asset = "enemies/golem/fall_behind", offset = 0x12658, size = 0x1078, address = 0x80144478 },
+    { asset = "enemies/golem/downed_hit_behind", offset = 0x136D0, size = 0x4D4, address = 0x801454F0 },
+    { asset = "enemies/golem/writhe_behind", offset = 0x13BA4, size = 0x310, address = 0x801459C4 },
+    { asset = "enemies/golem/lie_behind", offset = 0x13EB4, size = 0x1DC, address = 0x80145CD4 },
+    { asset = "enemies/golem/fall_front", offset = 0x14090, size = 0xF48, address = 0x80145EB0 },
+    { asset = "enemies/golem/downed_hit_front", offset = 0x14FD8, size = 0x594, address = 0x80146DF8 },
+    { asset = "enemies/golem/writhe_front", offset = 0x1556C, size = 0x2C8, address = 0x8014738C },
+    { asset = "enemies/golem/lie_front", offset = 0x15834, size = 0x1DC, address = 0x80147654 },
+    { name = "back_away", offset = 0x15A10, size = 0x7AC, address = 0x80147830 },
+    { name = "bank", offset = 0x164C4, size = 0x7C, address = 0x801482E4 },
+]
+package_name = "actor_105600"
+required = true
+sha1 = "d98286d0214017e24e53d88676e73d173864d436"
+
+[package_2]
+type = "pe2pkg"
+embedded = [
+    { asset = "enemies/golem/idle", offset = 0x0A7BC, size = 0xC38, address = 0x801545DC },
+    { asset = "enemies/golem/walk", offset = 0x0B3F4, size = 0x968, address = 0x80155214 },
+    { asset = "enemies/golem/turn", offset = 0x0BD5C, size = 0x628, address = 0x80155B7C },
+    { asset = "enemies/golem/listen", offset = 0x0C384, size = 0x800, address = 0x801561A4 },
+    { name = "burst_start", offset = 0x0CB84, size = 0x5B0, address = 0x801569A4 },
+    { asset = "enemies/golem/fire", offset = 0x0D134, size = 0x4E4, address = 0x80156F54 },
+    { asset = "enemies/golem/burst_cancel", offset = 0x0D618, size = 0x460, address = 0x80157438 },
+    { name = "reload", offset = 0x0DA78, size = 0xFD8, address = 0x80157898 },
+    { asset = "enemies/golem/launcher_strike", offset = 0x0EA50, size = 0xF58, address = 0x80158870 },
+    { asset = "enemies/golem/stagger", offset = 0x0F9A8, size = 0x524, address = 0x801597C8 },
+    { asset = "enemies/golem/recoil_front", offset = 0x0FECC, size = 0xA10, address = 0x80159CEC },
+    { asset = "enemies/golem/recoil_behind", offset = 0x108DC, size = 0xAA8, address = 0x8015A6FC },
+    { asset = "enemies/golem/buildup", offset = 0x11384, size = 0x5E0, address = 0x8015B1A4 },
+    { asset = "enemies/golem/scream_recover", offset = 0x11964, size = 0xCF4, address = 0x8015B784 },
+    { asset = "enemies/golem/fall_behind", offset = 0x12658, size = 0x1078, address = 0x8015C478 },
+    { asset = "enemies/golem/downed_hit_behind", offset = 0x136D0, size = 0x4D4, address = 0x8015D4F0 },
+    { asset = "enemies/golem/writhe_behind", offset = 0x13BA4, size = 0x310, address = 0x8015D9C4 },
+    { asset = "enemies/golem/lie_behind", offset = 0x13EB4, size = 0x1DC, address = 0x8015DCD4 },
+    { asset = "enemies/golem/fall_front", offset = 0x14090, size = 0xF48, address = 0x8015DEB0 },
+    { asset = "enemies/golem/downed_hit_front", offset = 0x14FD8, size = 0x594, address = 0x8015EDF8 },
+    { asset = "enemies/golem/writhe_front", offset = 0x1556C, size = 0x2C8, address = 0x8015F38C },
+    { asset = "enemies/golem/lie_front", offset = 0x15834, size = 0x1DC, address = 0x8015F654 },
+    { name = "back_away", offset = 0x15A10, size = 0x7AC, address = 0x8015F830 },
+    { name = "bank", offset = 0x164C4, size = 0x7C, address = 0x801602E4 },
+]
+package_name = "actor_205600"
+required = true
+sha1 = "11e34d754c3004c5f29bf3f06baccddc759845a4"
+
+[package_3]
+type = "pe2pkg"
+package_name = "actor_305600"
+required = true
+sha1 = "daf9b0a79635431581f6e367f5690cbca181f6ca"
+
+[burst_start]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[sounds_set_1]
+type = "sound_bank"
+samples = [
+    "enemies/golem/footstep_a_set_1",
+    "enemies/golem/footstep_b_set_1",
+    "enemies/golem/pawn/grenade_launcher/fall_impact_set_1",
+    "enemies/golem/fall_start_set_1",
+    "enemies/golem/grenade_launch",
+    "enemies/golem/grenade_impact",
+    "enemies/golem/scream",
+]
+sha1 = "18afd4d4c745153197a27633b1669f76a5b1bc5e"
+
+[sounds_set_1.sounds]
+footstep_a_set_1 = 1
+footstep_b_set_1 = 2
+footstep_a_set_2 = 3
+footstep_b_set_2 = 4
+footstep_a_set_3 = 5
+footstep_b_set_3 = 6
+grenade_launch = 7
+grenade_impact = 8
+fall_impact_set_1 = 9
+fall_impact_set_2 = 10
+fall_impact_set_3 = 11
+footstep_a_set_4 = 12
+footstep_b_set_4 = 13
+fall_impact_set_4 = 14
+fall_start_set_1 = 15
+fall_start_set_2 = 16
+fall_start_set_3 = 17
+fall_start_set_4 = 18
+
+[sounds_set_2]
+type = "sound_bank"
+samples = [
+    "enemies/golem/footstep_a_set_2",
+    "enemies/golem/footstep_b_set_2",
+    "enemies/golem/grenade_launch_2",
+    "enemies/golem/grenade_impact_2",
+    "enemies/golem/fall_impact_set_2",
+    "enemies/golem/fall_start_set_2",
+    "enemies/golem/scream",
+]
+sha1 = "40c1486d621dfeba57c558d1bbc6c7d9996259c9"
+
+[sounds_set_2.sounds]
+footstep_a_set_1 = 1
+footstep_b_set_1 = 2
+footstep_a_set_2 = 3
+footstep_b_set_2 = 4
+footstep_a_set_3 = 5
+footstep_b_set_3 = 6
+grenade_launch = 7
+grenade_impact = 8
+fall_impact_set_1 = 9
+fall_impact_set_2 = 10
+fall_impact_set_3 = 11
+footstep_a_set_4 = 12
+footstep_b_set_4 = 13
+fall_impact_set_4 = 14
+fall_start_set_1 = 15
+fall_start_set_2 = 16
+fall_start_set_3 = 17
+fall_start_set_4 = 18
+
+[sounds_set_3]
+type = "sound_bank"
+samples = [
+    "enemies/golem/footstep_a_set_3",
+    "enemies/golem/footstep_b_set_3",
+    "enemies/golem/grenade_launch_2",
+    "enemies/golem/grenade_impact_2",
+    "enemies/golem/fall_impact_set_3",
+    "enemies/golem/fall_start_set_3",
+    "enemies/golem/scream",
+]
+sha1 = "019dc5ca96ae84291d6f3b214cbc053f09d5b836"
+
+[sounds_set_3.sounds]
+footstep_a_set_1 = 1
+footstep_b_set_1 = 2
+footstep_a_set_2 = 3
+footstep_b_set_2 = 4
+footstep_a_set_3 = 5
+footstep_b_set_3 = 6
+grenade_launch = 7
+grenade_impact = 8
+fall_impact_set_1 = 9
+fall_impact_set_2 = 10
+fall_impact_set_3 = 11
+footstep_a_set_4 = 12
+footstep_b_set_4 = 13
+fall_impact_set_4 = 14
+fall_start_set_1 = 15
+fall_start_set_2 = 16
+fall_start_set_3 = 17
+fall_start_set_4 = 18
+
+[sounds_set_4]
+type = "sound_bank"
+samples = [
+    "enemies/golem/pawn/footstep_a_set_4",
+    "enemies/golem/pawn/footstep_b_set_4",
+    "enemies/golem/fall_impact_set_4",
+    "enemies/golem/fall_start_set_4",
+    "enemies/golem/grenade_launch",
+    "enemies/golem/grenade_impact",
+    "enemies/golem/scream",
+]
+sha1 = "83414b474daa21a646ac2fdd79fa048c83281487"
+
+[sounds_set_4.sounds]
+footstep_a_set_1 = 1
+footstep_b_set_1 = 2
+footstep_a_set_2 = 3
+footstep_b_set_2 = 4
+footstep_a_set_3 = 5
+footstep_b_set_3 = 6
+grenade_launch = 7
+grenade_impact = 8
+fall_impact_set_1 = 9
+fall_impact_set_2 = 10
+fall_impact_set_3 = 11
+footstep_a_set_4 = 12
+footstep_b_set_4 = 13
+fall_impact_set_4 = 14
+fall_start_set_1 = 15
+fall_start_set_2 = 16
+fall_start_set_3 = 17
+fall_start_set_4 = 18
+
+[fall_impact_set_1]
+type = "sound"
+sha1 = "bfb82416533ab5d133857ddb368ee0203aa14188"

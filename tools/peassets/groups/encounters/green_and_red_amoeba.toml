@@ -1,0 +1,91 @@
+# The assets of the group encounters/green_and_red_amoeba, each named encounters/green_and_red_amoeba/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[body]
+type = "model"
+slots = ["body"]
+symbol = "_gGreenAndRedAmoebaBody"
+sha1 = "0f74a3a6657b0dcb9f94bb65eaf1c5362bded295"
+
+[hurt]
+type = "sound"
+sha1 = "d5f9e99c18616cb75e33f55613991df2d52fb2cc"
+
+[idle]
+type = "sound"
+sha1 = "45266729c0ffd29df5426d5512d64ff81c5ca0b7"
+
+[idle_2]
+type = "sound"
+sha1 = "50e4055cba879101957bc2f866231d27334cead2"
+
+[sounds]
+type = "sound_bank"
+samples = [
+    "encounters/green_and_red_amoeba/idle",
+    "encounters/green_and_red_amoeba/idle_2",
+    "encounters/green_and_red_amoeba/strike",
+    "encounters/green_and_red_amoeba/hurt",
+    "pe/pyrokinesis/cast_1",
+    "pe/pyrokinesis/cast_2",
+]
+sounds = { idle = 1, strike = 2, hurt = 3, cast = 4 }
+sha1 = "88a21d79c3cc1aba86c3312b507b91ae41b217bf"
+
+[strike]
+type = "sound"
+sha1 = "9587257f2f83bd8ce1cc3c7f4b31fad231744330"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[package_1]
+type = "pe2pkg"
+embedded = [{ name = "body", offset = 0x03448, size = 0x115C, address = 0x80135268 }]
+package_name = "actor_102400"
+required = true
+sha1 = "776093f52c7f70c1241551fb4445df2c4b2431b6"
+
+[package_2]
+type = "pe2pkg"
+package_name = "actor_202400"
+required = true
+sha1 = "76fd06c026594209f88abd6d64675e0d2e42759d"
+
+[package_3]
+type = "pe2pkg"
+package_name = "actor_302400"
+required = true
+sha1 = "8d287cdddff355af6917efedc94b763ba4342b5e"
+
+[body_binding]
+type = "binding"
+model = "encounters/green_and_red_amoeba/body"
+textures = { body = "encounters/green_and_red_amoeba/texture.default" }
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+chunk = "sounds"
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "b22d25ea63b0221035d826c1226e6578d7eb9a75"
+palettes = [
+    { texture = "texture", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { name = "unread_row_2", entries = 256, region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "b71bcfbc1990a00ded45d14d5609043ba00655ef"
+pages = [{ texture = "texture", region = "engine/vram/actor_sheet", offset = [0, 0] }]
+slots = 6
+
+[[package_file.contents]]
+chunk = "package_1"

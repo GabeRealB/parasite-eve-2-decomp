@@ -1,0 +1,107 @@
+# The assets of the group characters/swat_member_2, each named characters/swat_member_2/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = [
+    "joint_0",
+    "joint_1",
+    "joint_2",
+    "joint_3",
+    "joint_4",
+    "joint_5",
+    "joint_6",
+    "joint_7",
+    "joint_8",
+    "joint_9",
+    "joint_10",
+    "joint_11",
+    "joint_12",
+    "joint_13",
+    "joint_14",
+    "joint_15",
+    "joint_16",
+    "joint_17",
+    "joint_18",
+    "joint_19",
+]
+
+[body]
+type = "model"
+rig = "characters/swat_member_2/rig"
+slots = ["page_2", "page_1"]
+symbol = "_gSwatMember2Body"
+sha1 = "e4cad068afbc5cb4f96173098090c88f713a3a9f"
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "653bd7035a58488800c3d28b6772f05e3dfeb3b1"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "f02a8cb489907c0a2f324658227082f7164eef0e"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[file.contents]]
+chunk = "submachine_gun_palette"
+sha1 = "99c20dbca8efd89ba35e47156d6a26f1b6485372"
+palettes = [{ texture = "submachine_gun_texture", variant = "default", region = "engine/vram/held_weapon_palette" }]
+
+[[file.contents]]
+chunk = "submachine_gun_image"
+sha1 = "444f69024feff08db58a48916ca62819d993b4e1"
+pages = [{ texture = "submachine_gun_texture", region = "engine/vram/held_weapon_sheet" }]
+
+[[file.contents]]
+asset = "rooms/akropolis/east_elevator_hall/swat_member"
+
+[body_binding]
+type = "binding"
+model = "characters/swat_member_2/body"
+
+[body_binding.textures]
+page_2 = "characters/swat_member_2/texture_page_2.default"
+page_1 = "characters/swat_member_2/texture_page_1.default"
+
+[submachine_gun]
+type = "model"
+slots = ["submachine_gun_texture"]
+symbol = "_gSwatMember2SubmachineGun"
+sha1 = "c75d8f637b6e2f2e419f9f9767f795dfd98c6332"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[submachine_gun_binding]
+type = "binding"
+model = "characters/swat_member_2/submachine_gun"
+textures = { submachine_gun_texture = "characters/swat_member_2/submachine_gun_texture.default" }
+
+[submachine_gun_texture]
+type = "texture"
+bpp = 4
+height = 64
+variants = ["default"]
+width = 256

@@ -874,7 +874,7 @@ static const AnimationPlayRequest _gDryfieldTrailerCoachPlayerClip63ResetRequest
 /// their alignment bytes and the first topic-choice pointer. This is retained
 /// original behavior; those extra words are not playable animation sets.
 /// Both overlays must remain loaded while the installed clip pointers are used.
-static AnimationSet* const _gDryfieldTrailerCoachPlayerAnimationExtensionSets[17] SECTION(".data") = { &gActor420700Animation01C5C, &gActor420700Animation01EBC, &gActor420700Animation02328, &gActor420700Animation02F18, &gActor420700Animation0316C, &gActor420700Animation03404, &gActor420700Animation035D4, &gActor420700Animation03DD8, NULL, NULL, NULL, &gActor420700Animation00DE0, &gActor420700Animation013A8, &gActor420700Animation0164C, &gActor420700Animation01878, &_gDryfieldTrailerCoachAnimation07994, &_gDryfieldTrailerCoachAnimation07668 };
+static AnimationSet* const _gDryfieldTrailerCoachPlayerAnimationExtensionSets[17] SECTION(".data") = { &gDryfieldTrailerCoachPlayerEvent47Clip, &gDryfieldTrailerCoachPlayerEvent48Clip, &gDryfieldTrailerCoachPlayerEvent49Clip, &gDryfieldTrailerCoachPlayerEvent50Clip, &gDryfieldTrailerCoachPlayerConversationClip, &gDryfieldTrailerCoachPlayerEvent52Clip, &gDryfieldTrailerCoachPlayerEvent53Clip, &gDryfieldTrailerCoachPlayerEvent54Clip, NULL, NULL, NULL, &gDryfieldTrailerCoachPlayerEvent58Clip, &gDryfieldTrailerCoachPlayerEvent59Clip, &gDryfieldTrailerCoachPlayerEvent60Clip, &gDryfieldTrailerCoachPlayerEvent61Clip, &_gDryfieldTrailerCoachAnimation07994, &_gDryfieldTrailerCoachAnimation07668 };
 
 /// Copies 32 source words into the equipped player's extension slots starting at 47.
 ///

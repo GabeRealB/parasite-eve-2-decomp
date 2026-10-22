@@ -1,0 +1,341 @@
+# The assets of the group rooms/mist/shooting_gallery, each named rooms/mist/shooting_gallery/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[pierce]
+type = "pe2pkg"
+embedded = [
+    { name = "player_gallery_accept", offset = 0x03228, size = 0x2E4, address = 0x8014D048 },
+    { name = "player_gallery_idle", offset = 0x0350C, size = 0x270, address = 0x8014D32C },
+    { name = "player_gallery_intro_6", offset = 0x0377C, size = 0x258, address = 0x8014D59C },
+    { name = "player_gallery_intro_9", offset = 0x039D4, size = 0x19C, address = 0x8014D7F4 },
+    { name = "player_gallery_excuse", offset = 0x03B70, size = 0x250, address = 0x8014D990 },
+    { name = "player_gallery_decline", offset = 0x03DC0, size = 0x258, address = 0x8014DBE0 },
+    { asset = "characters/aya/stand", offset = 0x04018, size = 0x304, address = 0x8014DE38 },
+    { name = "player_gallery_bank", offset = 0x04340, size = 0x2C, address = 0x8014E160 },
+    { asset = "characters/aya/converse", offset = 0x053A8, size = 0x3B8, address = 0x8014F1C8 },
+    { asset = "characters/aya/talk_start", offset = 0x05760, size = 0x3D4, address = 0x8014F580 },
+    { asset = "characters/aya/talk", offset = 0x05B34, size = 0x3F0, address = 0x8014F954 },
+    { asset = "characters/aya/talk_end", offset = 0x05F24, size = 0x36C, address = 0x8014FD44 },
+    { asset = "characters/aya/maya_was_my_sister", offset = 0x06290, size = 0x44C, address = 0x801500B0 },
+    { asset = "characters/aya/say_kyle", offset = 0x066DC, size = 0x328, address = 0x801504FC },
+    { asset = "characters/aya/explain_start", offset = 0x06A04, size = 0x580, address = 0x80150824 },
+    { asset = "characters/aya/explain", offset = 0x06F84, size = 0x3E0, address = 0x80150DA4 },
+    { name = "player_story_idle", offset = 0x07364, size = 0x278, address = 0x80151184 },
+    { name = "player_story_ask_hal", offset = 0x075DC, size = 0x1E0, address = 0x801513FC },
+    { name = "player_story_talk", offset = 0x077BC, size = 0x1CC, address = 0x801515DC },
+    { name = "player_story_ask_nmcs", offset = 0x07988, size = 0x4C8, address = 0x801517A8 },
+    { name = "player_story_im_going", offset = 0x07E50, size = 0x1D4, address = 0x80151C70 },
+    { name = "player_story_boast", offset = 0x08024, size = 0x404, address = 0x80151E44 },
+    { name = "player_story_17", offset = 0x08428, size = 0x388, address = 0x80152248 },
+    { name = "player_story_24", offset = 0x087B0, size = 0x458, address = 0x801525D0 },
+    { name = "player_story_talk_2", offset = 0x08C08, size = 0x2DC, address = 0x80152A28 },
+    { name = "player_story_listen", offset = 0x08EE4, size = 0x1A8, address = 0x80152D04 },
+    { name = "player_conversation_bank", offset = 0x0908C, size = 0x50, address = 0x80152EAC },
+    { name = "pierce_phone_listen", offset = 0x10BE4, size = 0x22C, address = 0x8015AA04 },
+    { name = "pierce_phone_talk", offset = 0x10E10, size = 0x3B8, address = 0x8015AC30 },
+    { name = "pierce_quip", offset = 0x111C8, size = 0x1C4, address = 0x8015AFE8 },
+    { name = "pierce_tease", offset = 0x1138C, size = 0x290, address = 0x8015B1AC },
+    { name = "pierce_warn", offset = 0x1161C, size = 0x440, address = 0x8015B43C },
+    { name = "pierce_story_3", offset = 0x11A5C, size = 0x1DC, address = 0x8015B87C },
+    { name = "pierce_story_4", offset = 0x11C38, size = 0x214, address = 0x8015BA58 },
+    { name = "pierce_talk", offset = 0x11E4C, size = 0x50C, address = 0x8015BC6C },
+    { name = "pierce_talk_end", offset = 0x12358, size = 0x3F0, address = 0x8015C178 },
+    { name = "pierce_correct_himself", offset = 0x12748, size = 0x39C, address = 0x8015C568 },
+    { name = "pierce_correct_himself_end", offset = 0x12AE4, size = 0x2A8, address = 0x8015C904 },
+    { asset = "characters/soldier_b/stride_walk_anim_anim_08", offset = 0x12D8C, size = 0x2B8, address = 0x8015CBAC },
+    { asset = "characters/soldier_b/stride_walk_anim_anim_09", offset = 0x13044, size = 0x2F4, address = 0x8015CE64 },
+    { asset = "characters/soldier_b/stride_walk_anim_anim_10", offset = 0x13338, size = 0x1F0, address = 0x8015D158 },
+    { asset = "characters/pierce/story_17", offset = 0x13528, size = 0x318, address = 0x8015D348 },
+    { name = "pierce_gallery_idle", offset = 0x13840, size = 0x238, address = 0x8015D660 },
+    { name = "pierce_gallery_ask", offset = 0x13A78, size = 0x234, address = 0x8015D898 },
+    { name = "pierce_gallery_talk", offset = 0x13CAC, size = 0x260, address = 0x8015DACC },
+    { name = "pierce_gallery_tease", offset = 0x13F0C, size = 0x2BC, address = 0x8015DD2C },
+    { name = "pierce_gallery_react", offset = 0x141C8, size = 0x1C8, address = 0x8015DFE8 },
+    { name = "pierce_level_prompt", offset = 0x14390, size = 0x228, address = 0x8015E1B0 },
+    { name = "pierce_level_reply", offset = 0x145B8, size = 0x1C8, address = 0x8015E3D8 },
+    { name = "pierce_bank", offset = 0x147C8, size = 0x64, address = 0x8015E5E8 },
+]
+package_name = "actor_215100"
+required = true
+sha1 = "fc0d6b8a1a0678e4a2b988b10995b7bf502a9563"
+
+[pierce_bank]
+type = "animation_bank"
+schema = "rooms/mist/shooting_gallery/pierce_schema"
+symbol = "_gActor215100PierceAnimationSets"
+
+[pierce_bank.clips]
+phone_listen = "rooms/mist/shooting_gallery/pierce_phone_listen"
+phone_talk = "rooms/mist/shooting_gallery/pierce_phone_talk"
+quip = "rooms/mist/shooting_gallery/pierce_quip"
+tease = "rooms/mist/shooting_gallery/pierce_tease"
+warn = "rooms/mist/shooting_gallery/pierce_warn"
+story_3 = "rooms/mist/shooting_gallery/pierce_story_3"
+story_4 = "rooms/mist/shooting_gallery/pierce_story_4"
+talk = "rooms/mist/shooting_gallery/pierce_talk"
+talk_end = "rooms/mist/shooting_gallery/pierce_talk_end"
+correct_himself = "rooms/mist/shooting_gallery/pierce_correct_himself"
+correct_himself_end = "rooms/mist/shooting_gallery/pierce_correct_himself_end"
+rest = "characters/soldier_b/stride_walk_anim_anim_08"
+short_talk = "characters/soldier_b/stride_walk_anim_anim_09"
+short_talk_end = "characters/soldier_b/stride_walk_anim_anim_10"
+story_17 = "characters/pierce/story_17"
+gallery_idle = "rooms/mist/shooting_gallery/pierce_gallery_idle"
+gallery_ask = "rooms/mist/shooting_gallery/pierce_gallery_ask"
+gallery_talk = "rooms/mist/shooting_gallery/pierce_gallery_talk"
+gallery_tease = "rooms/mist/shooting_gallery/pierce_gallery_tease"
+gallery_react = "rooms/mist/shooting_gallery/pierce_gallery_react"
+level_prompt = "rooms/mist/shooting_gallery/pierce_level_prompt"
+level_reply = "rooms/mist/shooting_gallery/pierce_level_reply"
+
+[pierce_quip]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_talk]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_warn]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_tease]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "phone_listen",
+    "phone_talk",
+    "quip",
+    "tease",
+    "warn",
+    "story_3",
+    "story_4",
+    "talk",
+    "talk_end",
+    "correct_himself",
+    "correct_himself_end",
+    "rest",
+    "short_talk",
+    "short_talk_end",
+    "story_17",
+    "",
+    "",
+    "gallery_idle",
+    "gallery_ask",
+    "gallery_talk",
+    "gallery_tease",
+    "gallery_react",
+    "level_prompt",
+    "level_reply",
+]
+
+[pierce_story_3]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_story_4]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_talk_end]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[player_story_17]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_story_24]
+type = "clip"
+rig = "characters/aya/rig"
+
+[pierce_phone_talk]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[player_story_idle]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_story_talk]
+type = "clip"
+rig = "characters/aya/rig"
+
+[pierce_gallery_ask]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_level_reply]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[player_story_boast]
+type = "clip"
+rig = "characters/aya/rig"
+
+[pierce_gallery_idle]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_gallery_talk]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_level_prompt]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_phone_listen]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[player_gallery_bank]
+type = "animation_bank"
+schema = "rooms/mist/shooting_gallery/player_gallery_schema"
+symbol = "_gActor215100GalleryPlayerAnimationSets"
+
+[player_gallery_bank.clips]
+gallery_accept = "rooms/mist/shooting_gallery/player_gallery_accept"
+gallery_idle = "rooms/mist/shooting_gallery/player_gallery_idle"
+gallery_intro_6 = "rooms/mist/shooting_gallery/player_gallery_intro_6"
+gallery_intro_9 = "rooms/mist/shooting_gallery/player_gallery_intro_9"
+gallery_excuse = "rooms/mist/shooting_gallery/player_gallery_excuse"
+gallery_decline = "rooms/mist/shooting_gallery/player_gallery_decline"
+slot_10 = "characters/aya/stand"
+
+[player_gallery_idle]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistShootingGalleryPlayerGalleryIdleClip"
+
+[player_story_listen]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_story_talk_2]
+type = "clip"
+rig = "characters/aya/rig"
+
+[pierce_gallery_react]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_gallery_tease]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[player_story_ask_hal]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_gallery_accept]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistShootingGalleryPlayerGalleryAcceptClip"
+
+[player_gallery_excuse]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistShootingGalleryPlayerGalleryExcuseClip"
+
+[player_gallery_schema]
+type = "animation_schema"
+slots = [
+    "gallery_accept",
+    "gallery_idle",
+    "gallery_intro_6",
+    "gallery_intro_9",
+    "gallery_excuse",
+    "gallery_decline",
+    "",
+    "",
+    "",
+    "",
+    "slot_10",
+]
+
+[player_story_ask_nmcs]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_story_im_going]
+type = "clip"
+rig = "characters/aya/rig"
+
+[pierce_correct_himself]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[player_gallery_decline]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistShootingGalleryPlayerGalleryDeclineClip"
+
+[player_gallery_intro_6]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistShootingGalleryPlayerGalleryIntro6Clip"
+
+[player_gallery_intro_9]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistShootingGalleryPlayerGalleryIntro9Clip"
+
+[player_conversation_bank]
+type = "animation_bank"
+schema = "rooms/mist/shooting_gallery/player_conversation_schema"
+symbol = "_gActor215100ConversationPlayerAnimationSets"
+
+[player_conversation_bank.clips]
+story_idle = "rooms/mist/shooting_gallery/player_story_idle"
+story_ask_hal = "rooms/mist/shooting_gallery/player_story_ask_hal"
+story_talk = "rooms/mist/shooting_gallery/player_story_talk"
+story_ask_nmcs = "rooms/mist/shooting_gallery/player_story_ask_nmcs"
+story_im_going = "rooms/mist/shooting_gallery/player_story_im_going"
+story_boast = "rooms/mist/shooting_gallery/player_story_boast"
+story_17 = "rooms/mist/shooting_gallery/player_story_17"
+story_24 = "rooms/mist/shooting_gallery/player_story_24"
+story_talk_2 = "rooms/mist/shooting_gallery/player_story_talk_2"
+story_listen = "rooms/mist/shooting_gallery/player_story_listen"
+slot_12 = "characters/aya/converse"
+slot_13 = "characters/aya/talk_start"
+slot_14 = "characters/aya/talk"
+slot_15 = "characters/aya/talk_end"
+slot_16 = "characters/aya/maya_was_my_sister"
+slot_17 = "characters/aya/say_kyle"
+slot_18 = "characters/aya/explain_start"
+slot_19 = "characters/aya/explain"
+
+[pierce_correct_himself_end]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[player_conversation_schema]
+type = "animation_schema"
+slots = [
+    "story_idle",
+    "story_ask_hal",
+    "story_talk",
+    "story_ask_nmcs",
+    "story_im_going",
+    "story_boast",
+    "story_17",
+    "story_24",
+    "story_talk_2",
+    "story_listen",
+    "",
+    "",
+    "slot_12",
+    "slot_13",
+    "slot_14",
+    "slot_15",
+    "slot_16",
+    "slot_17",
+    "slot_18",
+    "slot_19",
+]

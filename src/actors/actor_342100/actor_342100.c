@@ -148,71 +148,7 @@ static void _actor342100BlazeFireEmitterTask(Task* task);
 static void _actor342100SpawnBlazeFireEmitters(void);
 static void _actor342100EncounterBlazeControllerTask(Task* task);
 
-static AnimationPackedPose _gActor342100Animation019F0Bank1[6] = {
-#include "assets/actor_342100_animation_019F0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor342100Animation019F0Bank4[46] = {
-#include "assets/actor_342100_animation_019F0_bank4.inc"
-};
-
-static AnimationRecord _gActor342100Animation019F0Records[109] = {
-#include "assets/actor_342100_animation_019F0_records.inc"
-};
-
-static u16 _gActor342100Animation019F0Indices[20] = {
-#include "assets/actor_342100_animation_019F0_indices.inc"
-};
-
-static AnimationSet _gActor342100Animation019F0 = {
-    _gActor342100Animation019F0Records,
-    _gActor342100Animation019F0Indices,
-    { NULL, _gActor342100Animation019F0Bank1, NULL, NULL, _gActor342100Animation019F0Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor342100Animation0242CBank1[16] = {
-#include "assets/actor_342100_animation_0242C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor342100Animation0242CBank4[246] = {
-#include "assets/actor_342100_animation_0242C_bank4.inc"
-};
-
-static AnimationRecord _gActor342100Animation0242CRecords[341] = {
-#include "assets/actor_342100_animation_0242C_records.inc"
-};
-
-static u16 _gActor342100Animation0242CIndices[20] = {
-#include "assets/actor_342100_animation_0242C_indices.inc"
-};
-
-static AnimationSet _gActor342100Animation0242C = {
-    _gActor342100Animation0242CRecords,
-    _gActor342100Animation0242CIndices,
-    { NULL, _gActor342100Animation0242CBank1, NULL, NULL, _gActor342100Animation0242CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor342100Animation02A94Bank1[14] = {
-#include "assets/actor_342100_animation_02A94_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor342100Animation02A94Bank4[148] = {
-#include "assets/actor_342100_animation_02A94_bank4.inc"
-};
-
-static AnimationRecord _gActor342100Animation02A94Records[200] = {
-#include "assets/actor_342100_animation_02A94_records.inc"
-};
-
-static u16 _gActor342100Animation02A94Indices[20] = {
-#include "assets/actor_342100_animation_02A94_indices.inc"
-};
-
-static AnimationSet _gActor342100Animation02A94 = {
-    _gActor342100Animation02A94Records,
-    _gActor342100Animation02A94Indices,
-    { NULL, _gActor342100Animation02A94Bank1, NULL, NULL, _gActor342100Animation02A94Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/shelter/b3_dumping_hole/blaze_scene_clips.inc"
 
 enum { ACTOR_342100_HEAT_HAZE_TASK_PRIORITY = 192 };
 
@@ -247,12 +183,7 @@ static TaskMessageEntry _gBlazeFadeMessages[1] = {
 /// Copied into player bank extension slots 47..49, excluding the terminator.
 /// Clip selectors 0..2 refer to these sets relative to the extension base.
 /// The bank borrows the loaded descriptors and clip data through scene playback.
-static AnimationSet* _gActor342100BlazeAnimationSets[4] = {
-    &_gActor342100Animation019F0,
-    &_gActor342100Animation02A94,
-    &_gActor342100Animation0242C,
-    NULL,
-};
+#include "assets/rooms/shelter/b3_dumping_hole/player_burn_bank.inc"
 
 enum { ACTOR_342100_BLAZE_NO_SUCCESSOR = -1 };
 

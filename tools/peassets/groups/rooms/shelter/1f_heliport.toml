@@ -1,0 +1,434 @@
+# The assets of the group rooms/shelter/1f_heliport, each named rooms/shelter/1f_heliport/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[jodie]
+type = "pe2pkg"
+embedded = [
+    { name = "player_jodie_opening_1", offset = 0x00C08, size = 0x444, address = 0x8014AA28 },
+    { name = "player_jodie_opening_3", offset = 0x0104C, size = 0x2F0, address = 0x8014AE6C },
+    { name = "player_jodie_opening_4", offset = 0x0133C, size = 0x6FC, address = 0x8014B15C },
+    { name = "player_jodie_opening_2", offset = 0x01A38, size = 0x29C, address = 0x8014B858 },
+    { asset = "characters/aya/converse", offset = 0x01CD4, size = 0x3B8, address = 0x8014BAF4 },
+    { asset = "characters/aya/introduce_herself", offset = 0x0208C, size = 0x384, address = 0x8014BEAC },
+    { asset = "characters/aya/stand", offset = 0x02410, size = 0x304, address = 0x8014C230 },
+    { asset = "characters/aya/on_my_way", offset = 0x02714, size = 0x32C, address = 0x8014C534 },
+    { name = "jodie_scene_player_bank", offset = 0x02CD4, size = 0x28, address = 0x8014CAF4 },
+    { name = "jodie_opening_1", offset = 0x03F78, size = 0x3A8, address = 0x8014DD98 },
+    { name = "jodie_walk", offset = 0x04320, size = 0x544, address = 0x8014E140 },
+    { name = "jodie_turn", offset = 0x04864, size = 0x288, address = 0x8014E684 },
+    { name = "jodie_rest", offset = 0x04AEC, size = 0x254, address = 0x8014E90C },
+    { name = "jodie_opening_2", offset = 0x04D40, size = 0x1C0, address = 0x8014EB60 },
+    { name = "jodie_talk_start", offset = 0x04F00, size = 0x35C, address = 0x8014ED20 },
+    { name = "jodie_talk_continue", offset = 0x0525C, size = 0x1CC, address = 0x8014F07C },
+    { name = "jodie_opening_3", offset = 0x05428, size = 0x3B0, address = 0x8014F248 },
+    { name = "jodie_opening_4", offset = 0x057D8, size = 0x224, address = 0x8014F5F8 },
+    { name = "jodie_opening_5", offset = 0x059FC, size = 0x3E4, address = 0x8014F81C },
+    { name = "jodie_opening_6", offset = 0x05DE0, size = 0x300, address = 0x8014FC00 },
+    { name = "jodie_opening_7", offset = 0x060E0, size = 0x3BC, address = 0x8014FF00 },
+    { name = "jodie_idle", offset = 0x0649C, size = 0x1CC, address = 0x801502BC },
+    { name = "jodie_second_walk_start", offset = 0x06668, size = 0x238, address = 0x80150488 },
+    { name = "jodie_second_walk", offset = 0x068A0, size = 0x278, address = 0x801506C0 },
+    { name = "jodie_opening_8", offset = 0x06B18, size = 0x300, address = 0x80150938 },
+    { name = "jodie_second_talk", offset = 0x06E18, size = 0x328, address = 0x80150C38 },
+    { name = "jodie_third_talk", offset = 0x07140, size = 0x580, address = 0x80150F60 },
+    { name = "jodie_fourth_talk_1", offset = 0x076C0, size = 0x1D8, address = 0x801514E0 },
+    { name = "jodie_fourth_talk_2", offset = 0x07898, size = 0x2CC, address = 0x801516B8 },
+    { name = "jodie_fourth_talk_3", offset = 0x07B64, size = 0x1E0, address = 0x80151984 },
+    { name = "jodie_repeat_talk", offset = 0x07D44, size = 0x2AC, address = 0x80151B64 },
+    { name = "jodie_opening_9", offset = 0x07FF0, size = 0x21C, address = 0x80151E10 },
+    { name = "jodie_anim_24", offset = 0x0820C, size = 0x300, address = 0x8015202C },
+    { name = "player_rupert_mongoose_copy", offset = 0x0850C, size = 0x304, address = 0x8015232C },
+    { asset = "characters/aya/explain_start", offset = 0x08810, size = 0x580, address = 0x80152630 },
+    { asset = "characters/aya/explain", offset = 0x08D90, size = 0x3E0, address = 0x80152BB0 },
+    { asset = "characters/aya/reason_start", offset = 0x09170, size = 0x368, address = 0x80152F90 },
+    { asset = "characters/aya/realize", offset = 0x094D8, size = 0x318, address = 0x801532F8 },
+    { asset = "characters/aya/talk_start", offset = 0x097F0, size = 0x3D4, address = 0x80153610 },
+    { asset = "characters/aya/talk", offset = 0x09BC4, size = 0x3F0, address = 0x801539E4 },
+    { asset = "characters/aya/talk_end", offset = 0x09FB4, size = 0x36C, address = 0x80153DD4 },
+    { asset = "characters/jodie/body_2", offset = 0x0A320, size = 0x5C3C, address = 0x80154140 },
+    { name = "jodie_bank", offset = 0x0FF9C, size = 0x90, address = 0x80159DBC },
+]
+package_name = "actor_260500"
+required = true
+sha1 = "1d3c8da4068dbc1912c446afe2e0d5a1517840bd"
+
+[rupert]
+type = "pe2pkg"
+embedded = [
+    { name = "player_rupert_mongoose", offset = 0x00E68, size = 0x21C, address = 0x8014AC88 },
+    { asset = "characters/aya/let_her_go", offset = 0x01084, size = 0x2A4, address = 0x8014AEA4 },
+    { name = "player_rupert_opening_talk", offset = 0x01328, size = 0x4AC, address = 0x8014B148 },
+    { asset = "characters/aya/converse", offset = 0x017D4, size = 0x3B8, address = 0x8014B5F4 },
+    { name = "player_rupert_fourth_talk", offset = 0x01B8C, size = 0x4E8, address = 0x8014B9AC },
+    { asset = "characters/aya/stand", offset = 0x02074, size = 0x304, address = 0x8014BE94 },
+    { asset = "characters/aya/on_my_way", offset = 0x02378, size = 0x32C, address = 0x8014C198 },
+    { name = "rupert_scene_player_bank", offset = 0x02848, size = 0x28, address = 0x8014C668 },
+    { name = "rupert_rest", offset = 0x038C8, size = 0x284, address = 0x8014D6E8 },
+    { name = "rupert_opening_1", offset = 0x03B4C, size = 0x1A8, address = 0x8014D96C },
+    { name = "rupert_show_mongoose", offset = 0x03CF4, size = 0x210, address = 0x8014DB14 },
+    { name = "rupert_opening_3", offset = 0x03F04, size = 0x1C0, address = 0x8014DD24 },
+    { name = "rupert_talk_start", offset = 0x040C4, size = 0x2B0, address = 0x8014DEE4 },
+    { name = "rupert_talk_continue", offset = 0x04374, size = 0x1A8, address = 0x8014E194 },
+    { name = "rupert_opening_4", offset = 0x0451C, size = 0x2FC, address = 0x8014E33C },
+    { name = "rupert_opening_5", offset = 0x04818, size = 0x298, address = 0x8014E638 },
+    { name = "rupert_third_talk", offset = 0x04AB0, size = 0x28C, address = 0x8014E8D0 },
+    { name = "rupert_fourth_talk", offset = 0x04D3C, size = 0x380, address = 0x8014EB5C },
+    { name = "rupert_repeat_talk", offset = 0x050BC, size = 0x1D8, address = 0x8014EEDC },
+    { name = "rupert_opening_2", offset = 0x05294, size = 0x208, address = 0x8014F0B4 },
+    { asset = "characters/rupert/hurt_mongoose", offset = 0x0549C, size = 0x558, address = 0x8014F2BC },
+    { name = "rupert_bank", offset = 0x0AE10, size = 0x40, address = 0x80154C30 },
+]
+package_name = "actor_260400"
+parent = "shelter_1f_heliport"
+required = true
+sha1 = "5d1f3499f4afc20d75d020cebf205f7f2b6084f2"
+
+[jodie_bank]
+type = "animation_bank"
+schema = "rooms/shelter/1f_heliport/jodie_schema"
+symbol = "_gActor260500AnimationSets"
+
+[jodie_bank.clips]
+opening_1 = "rooms/shelter/1f_heliport/jodie_opening_1"
+walk = "rooms/shelter/1f_heliport/jodie_walk"
+turn = "rooms/shelter/1f_heliport/jodie_turn"
+rest = "rooms/shelter/1f_heliport/jodie_rest"
+opening_2 = "rooms/shelter/1f_heliport/jodie_opening_2"
+talk_start = "rooms/shelter/1f_heliport/jodie_talk_start"
+talk_continue = "rooms/shelter/1f_heliport/jodie_talk_continue"
+opening_3 = "rooms/shelter/1f_heliport/jodie_opening_3"
+opening_4 = "rooms/shelter/1f_heliport/jodie_opening_4"
+opening_5 = "rooms/shelter/1f_heliport/jodie_opening_5"
+opening_6 = "rooms/shelter/1f_heliport/jodie_opening_6"
+opening_7 = "rooms/shelter/1f_heliport/jodie_opening_7"
+idle = "rooms/shelter/1f_heliport/jodie_idle"
+second_walk_start = "rooms/shelter/1f_heliport/jodie_second_walk_start"
+second_walk = "rooms/shelter/1f_heliport/jodie_second_walk"
+opening_8 = "rooms/shelter/1f_heliport/jodie_opening_8"
+second_talk = "rooms/shelter/1f_heliport/jodie_second_talk"
+third_talk = "rooms/shelter/1f_heliport/jodie_third_talk"
+fourth_talk_1 = "rooms/shelter/1f_heliport/jodie_fourth_talk_1"
+fourth_talk_2 = "rooms/shelter/1f_heliport/jodie_fourth_talk_2"
+fourth_talk_3 = "rooms/shelter/1f_heliport/jodie_fourth_talk_3"
+repeat_talk = "rooms/shelter/1f_heliport/jodie_repeat_talk"
+opening_9 = "rooms/shelter/1f_heliport/jodie_opening_9"
+anim_24 = "rooms/shelter/1f_heliport/jodie_anim_24"
+player_rupert_mongoose_copy = "rooms/shelter/1f_heliport/player_rupert_mongoose_copy"
+slot_27 = "characters/aya/explain_start"
+slot_28 = "characters/aya/explain"
+slot_29 = "characters/aya/reason_start"
+slot_30 = "characters/aya/realize"
+slot_31 = "characters/aya/talk_start"
+slot_32 = "characters/aya/talk"
+slot_33 = "characters/aya/talk_end"
+
+[jodie_idle]
+type = "clip"
+rig = "characters/jodie/rig"
+
+[jodie_rest]
+type = "clip"
+rig = "characters/jodie/rig"
+
+[jodie_turn]
+type = "clip"
+rig = "characters/jodie/rig"
+
+[jodie_walk]
+type = "clip"
+rig = "characters/jodie/rig"
+
+[rupert_bank]
+type = "animation_bank"
+schema = "rooms/shelter/1f_heliport/rupert_schema"
+symbol = "_gActor260400WalkerAnimationSets"
+
+[rupert_bank.clips]
+rest = "rooms/shelter/1f_heliport/rupert_rest"
+opening_1 = "rooms/shelter/1f_heliport/rupert_opening_1"
+show_mongoose = "rooms/shelter/1f_heliport/rupert_show_mongoose"
+opening_3 = "rooms/shelter/1f_heliport/rupert_opening_3"
+talk_start = "rooms/shelter/1f_heliport/rupert_talk_start"
+talk_continue = "rooms/shelter/1f_heliport/rupert_talk_continue"
+opening_4 = "rooms/shelter/1f_heliport/rupert_opening_4"
+opening_5 = "rooms/shelter/1f_heliport/rupert_opening_5"
+third_talk = "rooms/shelter/1f_heliport/rupert_third_talk"
+fourth_talk = "rooms/shelter/1f_heliport/rupert_fourth_talk"
+repeat_talk = "rooms/shelter/1f_heliport/rupert_repeat_talk"
+opening_2 = "rooms/shelter/1f_heliport/rupert_opening_2"
+
+[rupert_rest]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[jodie_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "opening_1",
+    "walk",
+    "turn",
+    "rest",
+    "opening_2",
+    "talk_start",
+    "talk_continue",
+    "opening_3",
+    "opening_4",
+    "opening_5",
+    "opening_6",
+    "opening_7",
+    "idle",
+    "second_walk_start",
+    "second_walk",
+    "opening_8",
+    "second_talk",
+    "third_talk",
+    "fourth_talk_1",
+    "fourth_talk_2",
+    "fourth_talk_3",
+    "repeat_talk",
+    "opening_9",
+    "anim_24",
+    "",
+    "player_rupert_mongoose_copy",
+    "slot_27",
+    "slot_28",
+    "slot_29",
+    "slot_30",
+    "slot_31",
+    "slot_32",
+    "slot_33",
+]
+
+[jodie_anim_24]
+type = "clip"
+rig = "characters/jodie/rig"
+
+[rupert_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "rest",
+    "opening_1",
+    "show_mongoose",
+    "opening_3",
+    "talk_start",
+    "talk_continue",
+    "opening_4",
+    "opening_5",
+    "third_talk",
+    "fourth_talk",
+    "repeat_talk",
+    "opening_2",
+]
+
+[jodie_opening_1]
+type = "clip"
+rig = "characters/jodie/rig"
+
+[jodie_opening_2]
+type = "clip"
+rig = "characters/jodie/rig"
+
+[jodie_opening_3]
+type = "clip"
+rig = "characters/jodie/rig"
+
+[jodie_opening_4]
+type = "clip"
+rig = "characters/jodie/rig"
+
+[jodie_opening_5]
+type = "clip"
+rig = "characters/jodie/rig"
+
+[jodie_opening_6]
+type = "clip"
+rig = "characters/jodie/rig"
+
+[jodie_opening_7]
+type = "clip"
+rig = "characters/jodie/rig"
+
+[jodie_opening_8]
+type = "clip"
+rig = "characters/jodie/rig"
+
+[jodie_opening_9]
+type = "clip"
+rig = "characters/jodie/rig"
+
+[jodie_talk_start]
+type = "clip"
+rig = "characters/jodie/rig"
+
+[jodie_third_talk]
+type = "clip"
+rig = "characters/jodie/rig"
+
+[rupert_opening_1]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[rupert_opening_2]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[rupert_opening_3]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[rupert_opening_4]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[rupert_opening_5]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[jodie_repeat_talk]
+type = "clip"
+rig = "characters/jodie/rig"
+
+[jodie_second_talk]
+type = "clip"
+rig = "characters/jodie/rig"
+
+[jodie_second_walk]
+type = "clip"
+rig = "characters/jodie/rig"
+
+[rupert_talk_start]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[rupert_third_talk]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[rupert_fourth_talk]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[rupert_repeat_talk]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[jodie_fourth_talk_1]
+type = "clip"
+rig = "characters/jodie/rig"
+
+[jodie_fourth_talk_2]
+type = "clip"
+rig = "characters/jodie/rig"
+
+[jodie_fourth_talk_3]
+type = "clip"
+rig = "characters/jodie/rig"
+
+[jodie_talk_continue]
+type = "clip"
+rig = "characters/jodie/rig"
+
+[rupert_show_mongoose]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[rupert_talk_continue]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[player_jodie_opening_1]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_jodie_opening_2]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_jodie_opening_3]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_jodie_opening_4]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_rupert_mongoose]
+type = "clip"
+rig = "characters/aya/rig"
+
+[jodie_scene_player_bank]
+type = "animation_bank"
+schema = "rooms/shelter/1f_heliport/jodie_scene_player_schema"
+symbol = "_gActor260500PlayerAnimationExtensionSets"
+
+[jodie_scene_player_bank.clips]
+jodie_opening_1 = "rooms/shelter/1f_heliport/player_jodie_opening_1"
+jodie_opening_3 = "rooms/shelter/1f_heliport/player_jodie_opening_3"
+jodie_opening_4 = "rooms/shelter/1f_heliport/player_jodie_opening_4"
+jodie_opening_2 = "rooms/shelter/1f_heliport/player_jodie_opening_2"
+slot_6 = "characters/aya/converse"
+slot_7 = "characters/aya/introduce_herself"
+slot_8 = "characters/aya/stand"
+slot_9 = "characters/aya/on_my_way"
+
+[jodie_second_walk_start]
+type = "clip"
+rig = "characters/jodie/rig"
+
+[rupert_scene_player_bank]
+type = "animation_bank"
+schema = "rooms/shelter/1f_heliport/rupert_scene_player_schema"
+symbol = "_gActor260400PlayerAnimationSets"
+
+[rupert_scene_player_bank.clips]
+rupert_mongoose = "rooms/shelter/1f_heliport/player_rupert_mongoose"
+slot_1 = "characters/aya/let_her_go"
+rupert_opening_talk = "rooms/shelter/1f_heliport/player_rupert_opening_talk"
+slot_6 = "characters/aya/converse"
+rupert_fourth_talk = "rooms/shelter/1f_heliport/player_rupert_fourth_talk"
+slot_8 = "characters/aya/stand"
+slot_9 = "characters/aya/on_my_way"
+
+[jodie_scene_player_schema]
+type = "animation_schema"
+slots = [
+    "jodie_opening_1",
+    "jodie_opening_3",
+    "jodie_opening_4",
+    "jodie_opening_2",
+    "",
+    "",
+    "slot_6",
+    "slot_7",
+    "slot_8",
+    "slot_9",
+]
+
+[player_rupert_fourth_talk]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_rupert_opening_talk]
+type = "clip"
+rig = "characters/aya/rig"
+
+[rupert_scene_player_schema]
+type = "animation_schema"
+slots = [
+    "rupert_mongoose",
+    "slot_1",
+    "rupert_opening_talk",
+    "",
+    "",
+    "",
+    "slot_6",
+    "rupert_fourth_talk",
+    "slot_8",
+    "slot_9",
+]
+
+[player_rupert_mongoose_copy]
+type = "clip"
+rig = "characters/aya/rig"

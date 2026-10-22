@@ -352,14 +352,14 @@ extern TaskDesc gActor105400GeneratorTasks[GENERATOR_TASK_DESC_COUNT];
 
 /// Garden variant-2 spawn recipe for the sound-enabled nineteen-part scene walker.
 ///
-/// Creates a TMD body from the Aya Brea model at priority 192 with automatic
+/// Creates a TMD body from the Eve model at priority 192 with automatic
 /// primitive buffers. Spawn at index 0 through the enemy spawner: argument 2
 /// must be its live `Enemy`. The task owns its model and work and publishes
 /// singleton message state. Keep actor_151000 code, model and clip data loaded
 /// until teardown; singleton messages must stop when that task is released.
 extern TaskDesc gActor151000WalkerTaskDesc;
 
-/// Spawn recipes for Aya's Dryfield lamp-shattering scene and its children.
+/// Spawn recipes for Eve's Dryfield lamp-shattering scene and its children.
 ///
 /// Indices 0..10 are the double, fade in, fade out, debris spawner, five debris
 /// models, blackout and texture uploader. There is no terminal descriptor.
@@ -388,22 +388,22 @@ extern TaskDesc gActor105300GeneratorTasks[GENERATOR_TASK_DESC_COUNT];
 /// loaded until every task using these callbacks and model data has ended.
 extern TaskDesc gActor141000FlightTasks[3];
 
-/// Scripted nineteen-part Aya Brea walker with manual model-buffer recovery.
+/// Scripted nineteen-part Eve walker with manual model-buffer recovery.
 ///
 /// Creates a TMD body at priority 192, initially skipping automatic primitive
 /// buffer allocation. Area placement supplies the task-owned `Enemy` in spawn
 /// argument 2. Initialization installs animation, placement, visibility, walk,
 /// pace and facial-texture messages. Keep actor_141000 loaded until teardown.
-extern TaskDesc gActor141000AyaBreaWalkerTaskDesc;
+extern TaskDesc gActor141000EveWalkerTaskDesc;
 
-/// Scene Aya's nineteen-part TMD walker with optional footstep sounds.
+/// Scene Eve's nineteen-part TMD walker with optional footstep sounds.
 ///
 /// Spawn at index zero through the enemy spawner with a live owning `Enemy`
 /// in argument 2. Priority 192 uses automatic model primitive buffers. The
 /// task owns its model and work and publishes singleton message state.
 /// Keep actor_535700's code, model and clips loaded until task teardown;
 /// singleton messages require that original task and work to remain live.
-extern TaskDesc gActor535700AyaWalkerTaskDesc;
+extern TaskDesc gActor535700EveWalkerTaskDesc;
 
 /// Twenty-part model task for the sterilization room's placed scene actor.
 ///
@@ -446,7 +446,7 @@ extern TaskDesc gActor420700GaryDouglasTaskDescriptors[3];
 /// Slot export of `gActor07000SlouchTaskDescs` from actor_107000, with the same descriptor contract.
 extern TaskDesc gActor107000SlouchTaskDescs[3];
 
-/// Quiet scene-walker spawn descriptor using the Aya Brea body at priority 192.
+/// Quiet scene-walker spawn descriptor using the Eve body at priority 192.
 ///
 /// Creates a TMD task with automatic primitive buffers and singleton message
 /// handlers. Keep the actor_451100 code, geometry and clip data loaded.

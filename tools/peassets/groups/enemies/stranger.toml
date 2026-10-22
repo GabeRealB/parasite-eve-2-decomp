@@ -1,0 +1,104 @@
+# The assets of the group enemies/stranger, each named enemies/stranger/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = [
+    "root",
+    "pelvis",
+    "chest",
+    "lower_neck",
+    "upper_neck",
+    "head",
+    "jaw",
+    "right_upper_arm",
+    "right_forearm",
+    "left_upper_arm",
+    "left_forearm",
+    "right_thigh",
+    "right_shin",
+    "right_metatarsus",
+    "right_foot",
+    "left_thigh",
+    "left_shin",
+    "left_metatarsus",
+    "left_foot",
+]
+
+[fall]
+type = "sound"
+sha1 = "17f7b11b98f745d97250e884f523a55957755434"
+
+[hurt]
+type = "sound"
+sha1 = "83b7f26f2d77faf5a988076a2eb49bb218d6be05"
+
+[land]
+type = "sound"
+sha1 = "545380ef2cf4da60cea038377f3840612823192d"
+
+[leap]
+type = "sound"
+sha1 = "4d20394918ded34c678aa95d524a0defdbc17a55"
+
+[alert]
+type = "sound"
+sha1 = "9e4f23fe3a6e33f3ba22324e3d873aed590eae19"
+
+[death]
+type = "sound"
+sha1 = "b22bed8cbed2ad0ed24e062944c8861abe9cf134"
+
+[sounds]
+type = "sound_bank"
+samples = [
+    "enemies/stranger/horned/walk_step_a",
+    "enemies/stranger/horned/walk_step_b",
+    "enemies/stranger/run_step_a",
+    "enemies/stranger/run_step_b",
+    "enemies/stranger/fall",
+    "enemies/stranger/leap",
+    "encounters/skull_stalker_and_creeping_stranger/attack_hit",
+    "enemies/stranger/land",
+    "enemies/stranger/alert",
+    "enemies/stranger/hurt",
+    "enemies/stranger/death",
+]
+sha1 = "53ba408c0ce2e54d53d06de1af5f7a90856e81fd"
+
+[sounds.sounds]
+walk_step_a = 1
+walk_step_b = 2
+run_step_a = 3
+run_step_b = 4
+fall = 5
+alert = 6
+hurt = 7
+death = 8
+land = 11
+strike = 12
+attack_hit = 13
+sidestep_a = 16
+sidestep_b = 17
+
+[down_back]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[burst_hand]
+type = "model"
+slots = ["page_1", "page_2"]
+symbol = "_gStrangerBurstHand"
+sha1 = "bc12ce2a454e2eae375b792da3b4aeb9eba35a33"
+
+[run_step_a]
+type = "sound"
+sha1 = "8ad89b9dd93e861a3df2029d2b1737fb90afa992"
+
+[run_step_b]
+type = "sound"
+sha1 = "96fa5f3914367e222ab901700bf72dc175d44f42"
+
+[burst_collapse]
+type = "clip"
+rig = "enemies/stranger/rig"

@@ -6,9 +6,9 @@
 #include "main/task_types.h"
 
 // Native animation sets referenced by room script banks.
-extern AnimationSet gActor511000Animation04CC8;
+extern AnimationSet gAkropolisHelicopterLandingPadPlayerHelipadReportEscapeClip;
 
-extern AnimationSet gActor511000Animation07ADC;
+extern AnimationSet gAkropolisHelicopterLandingPadPlayerHelipadDetonatorTalkClip;
 
 /// Helicopter TMD recipes: 0 hull, 1 main rotor, 2 tail rotor, 3 searchlight.
 ///

@@ -1,0 +1,486 @@
+# The assets of the group enemies/stalker/zebra, each named enemies/stalker/zebra/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = [
+    "root",
+    "pelvis",
+    "abdomen",
+    "chest",
+    "head",
+    "jaw",
+    "right_upper_arm",
+    "right_forearm",
+    "right_hand",
+    "left_upper_arm",
+    "left_forearm",
+    "left_hand",
+    "left_thigh",
+    "left_shin",
+    "left_foot",
+    "right_thigh",
+    "right_shin",
+    "right_foot",
+]
+
+[bite]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[body]
+type = "model"
+rig = "enemies/stalker/zebra/rig"
+slots = ["page_1", "page_2"]
+symbol = "_gStalkerZebraBody"
+sha1 = "33cbfdd58bd9734d0da3dde379cb306a4ba64030"
+
+[drop]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[idle]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[leap]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[stun]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[walk]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[landing]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[package]
+type = "pe2pkg"
+embedded = [
+    { name = "body", offset = 0x0ADF8, size = 0x4DA0, address = 0x8013CC18 },
+    { name = "burst_head", offset = 0x0FB98, size = 0x878, address = 0x801419B8 },
+    { asset = "enemies/stalker/burst_torso", offset = 0x10410, size = 0xD54, address = 0x80142230 },
+    { asset = "enemies/stalker/burst_chunk", offset = 0x11164, size = 0x6A4, address = 0x80142F84 },
+    { asset = "enemies/stalker/burst_hand_left", offset = 0x11808, size = 0x520, address = 0x80143628 },
+    { name = "burst_hand_right", offset = 0x11D28, size = 0x538, address = 0x80143B48 },
+    { name = "burst_foot_left", offset = 0x12260, size = 0x49C, address = 0x80144080 },
+    { asset = "enemies/stalker/burst_foot_right", offset = 0x126FC, size = 0x49C, address = 0x8014451C },
+    { name = "burst_arm_right", offset = 0x12B98, size = 0x278, address = 0x801449B8 },
+    { name = "burst_arm_left", offset = 0x12E10, size = 0x278, address = 0x80144C30 },
+    { name = "idle", offset = 0x130A0, size = 0x65C, address = 0x80144EC0 },
+    { name = "walk", offset = 0x136FC, size = 0x6CC, address = 0x8014551C },
+    { name = "body_anim_03", offset = 0x13DC8, size = 0x470, address = 0x80145BE8 },
+    { name = "crawl_on_back", offset = 0x14238, size = 0x770, address = 0x80146058 },
+    { name = "bite", offset = 0x149A8, size = 0x864, address = 0x801467C8 },
+    { name = "bite_release", offset = 0x1520C, size = 0x770, address = 0x8014702C },
+    { name = "strike_left", offset = 0x1597C, size = 0x7C4, address = 0x8014779C },
+    { name = "strike_right", offset = 0x16140, size = 0x890, address = 0x80147F60 },
+    { name = "recoil_light", offset = 0x169D0, size = 0x494, address = 0x801487F0 },
+    { name = "recoil_heavy", offset = 0x16E64, size = 0x9E4, address = 0x80148C84 },
+    { name = "recoil_light_on_back", offset = 0x17848, size = 0x530, address = 0x80149668 },
+    { name = "recoil_heavy_on_back", offset = 0x17D78, size = 0x834, address = 0x80149B98 },
+    { name = "body_anim_13", offset = 0x185AC, size = 0x3A8, address = 0x8014A3CC },
+    { name = "body_anim_14", offset = 0x18954, size = 0x448, address = 0x8014A774 },
+    { name = "stun", offset = 0x18D9C, size = 0x834, address = 0x8014ABBC },
+    { name = "recover", offset = 0x195D0, size = 0x438, address = 0x8014B3F0 },
+    { name = "stun_on_back", offset = 0x19A08, size = 0xBF8, address = 0x8014B828 },
+    { name = "recover_on_back", offset = 0x1A600, size = 0x610, address = 0x8014C420 },
+    { name = "fall_landing", offset = 0x1AC10, size = 0x384, address = 0x8014CA30 },
+    { name = "rest_on_back", offset = 0x1AF94, size = 0x508, address = 0x8014CDB4 },
+    { name = "leap", offset = 0x1B49C, size = 0x428, address = 0x8014D2BC },
+    { name = "right_itself", offset = 0x1B8C4, size = 0xA64, address = 0x8014D6E4 },
+    { name = "landing", offset = 0x1C328, size = 0x354, address = 0x8014E148 },
+    { name = "knockdown", offset = 0x1C67C, size = 0x4EC, address = 0x8014E49C },
+    { name = "knockdown_on_back", offset = 0x1CB68, size = 0x5A4, address = 0x8014E988 },
+    { name = "body_anim_28", offset = 0x1D10C, size = 0x1C4, address = 0x8014EF2C },
+    { name = "body_anim_29", offset = 0x1D2D0, size = 0x1C4, address = 0x8014F0F0 },
+    { name = "fall_landing_death", offset = 0x1D494, size = 0x1C4, address = 0x8014F2B4 },
+    { name = "body_anim_31", offset = 0x1D658, size = 0x1C4, address = 0x8014F478 },
+    { name = "drop", offset = 0x1D81C, size = 0x47C, address = 0x8014F63C },
+    { name = "body_anim_33", offset = 0x1DC98, size = 0x7F8, address = 0x8014FAB8 },
+    { name = "ledge_drop", offset = 0x1E490, size = 0x880, address = 0x801502B0 },
+    { name = "player_bitten", offset = 0x1ED10, size = 0x804, address = 0x80150B30 },
+    { name = "player_bite_release", offset = 0x1F514, size = 0x714, address = 0x80151334 },
+    { name = "player_hold_bank", offset = 0x1FC28, size = 0xC, address = 0x80151A48 },
+    { name = "body_bank", offset = 0x1FC34, size = 0x8C, address = 0x80151A54 },
+]
+package_name = "actor_400600"
+required = true
+sha1 = "ec6a5e410254164db3c703c0b59034656471f3fc"
+
+[recover]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[screech]
+type = "sound"
+sha1 = "16e45eb3357f7ecaa13e6a53f06f631253270a69"
+
+[sounds_1]
+type = "sound_bank"
+samples = [
+    "enemies/stalker/zebra/screech",
+    "enemies/stalker/land",
+    "enemies/stalker/land_2",
+    "enemies/stalker/footstep_1",
+    "enemies/stalker/footstep_2",
+    "enemies/stalker/strike",
+    "enemies/stalker/bite",
+]
+sounds = { footstep_1 = 1, footstep_2 = 2, land = 3, screech = 4, strike = 5, fall_land = 6, bite = 9 }
+sha1 = "8563c45972ab21932ecfb5501088340958bbeb1a"
+
+[sounds_2]
+type = "sound_bank"
+samples = [
+    "enemies/stalker/zebra/screech",
+    "enemies/stalker/footstep_1",
+    "enemies/stalker/strike",
+    "enemies/stalker/bite",
+    "enemies/stalker/zebra/water_step_1",
+    "enemies/stalker/zebra/water_land",
+]
+sha1 = "10d99270ee47be5c514c388c90536441bdce5b41"
+
+[sounds_2.sounds]
+water_step_1 = 1
+water_step_2 = 2
+land = 3
+screech = 4
+strike = 5
+fall_land = 6
+bite = 9
+footstep_1 = 10
+footstep_2 = 11
+
+[body_bank]
+type = "animation_bank"
+schema = "enemies/stalker/zebra/body_schema"
+symbol = "_gActor400600BodyAnimationSets"
+
+[body_bank.clips]
+idle = "enemies/stalker/zebra/idle"
+walk = "enemies/stalker/zebra/walk"
+slot_3 = "enemies/stalker/zebra/body_anim_03"
+crawl_on_back = "enemies/stalker/zebra/crawl_on_back"
+bite = "enemies/stalker/zebra/bite"
+bite_release = "enemies/stalker/zebra/bite_release"
+strike_left = "enemies/stalker/zebra/strike_left"
+strike_right = "enemies/stalker/zebra/strike_right"
+recoil_light = "enemies/stalker/zebra/recoil_light"
+recoil_heavy = "enemies/stalker/zebra/recoil_heavy"
+recoil_light_on_back = "enemies/stalker/zebra/recoil_light_on_back"
+recoil_heavy_on_back = "enemies/stalker/zebra/recoil_heavy_on_back"
+slot_13 = "enemies/stalker/zebra/body_anim_13"
+slot_14 = "enemies/stalker/zebra/body_anim_14"
+stun = "enemies/stalker/zebra/stun"
+recover = "enemies/stalker/zebra/recover"
+stun_on_back = "enemies/stalker/zebra/stun_on_back"
+recover_on_back = "enemies/stalker/zebra/recover_on_back"
+fall_landing = "enemies/stalker/zebra/fall_landing"
+rest_on_back = "enemies/stalker/zebra/rest_on_back"
+leap = "enemies/stalker/zebra/leap"
+right_itself = "enemies/stalker/zebra/right_itself"
+landing = "enemies/stalker/zebra/landing"
+knockdown = "enemies/stalker/zebra/knockdown"
+knockdown_on_back = "enemies/stalker/zebra/knockdown_on_back"
+slot_28 = "enemies/stalker/zebra/body_anim_28"
+slot_29 = "enemies/stalker/zebra/body_anim_29"
+fall_landing_death = "enemies/stalker/zebra/fall_landing_death"
+slot_31 = "enemies/stalker/zebra/body_anim_31"
+drop = "enemies/stalker/zebra/drop"
+slot_33 = "enemies/stalker/zebra/body_anim_33"
+ledge_drop = "enemies/stalker/zebra/ledge_drop"
+
+[knockdown]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[burst_head]
+type = "model"
+slots = ["page_2", "page_1"]
+symbol = "_gStalkerZebraBurstHead"
+sha1 = "64bcc02ca01ed8ce6437afd10015765aee289013"
+
+[ledge_drop]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[water_land]
+type = "sound"
+sha1 = "3a6cfcb793f2845e0e207cc70dcf1c529dddd1a4"
+
+[body_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "idle",
+    "walk",
+    "slot_3",
+    "crawl_on_back",
+    "bite",
+    "bite_release",
+    "strike_left",
+    "strike_right",
+    "recoil_light",
+    "recoil_heavy",
+    "recoil_light_on_back",
+    "recoil_heavy_on_back",
+    "slot_13",
+    "slot_14",
+    "stun",
+    "recover",
+    "stun_on_back",
+    "recover_on_back",
+    "fall_landing",
+    "rest_on_back",
+    "leap",
+    "right_itself",
+    "",
+    "",
+    "landing",
+    "knockdown",
+    "knockdown_on_back",
+    "slot_28",
+    "slot_29",
+    "fall_landing_death",
+    "slot_31",
+    "drop",
+    "slot_33",
+    "ledge_drop",
+]
+
+[strike_left]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[bite_release]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[body_anim_03]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[body_anim_13]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[body_anim_14]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[body_anim_28]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[body_anim_29]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[body_anim_31]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[body_anim_33]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[body_binding]
+type = "binding"
+model = "enemies/stalker/zebra/body"
+
+[body_binding.textures]
+page_1 = "enemies/stalker/zebra/texture_page_1.default"
+page_2 = "enemies/stalker/zebra/texture_page_2.default"
+
+[fall_landing]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "02e9f978db1472ee2783d434dcbd1a516298b3a2"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "5a5c95e2ed6e16c5125f9a79c10858322bbc59fa"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_file.contents]]
+chunk = "package"
+
+[recoil_heavy]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[recoil_light]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[rest_on_back]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[right_itself]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[strike_right]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[stun_on_back]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[water_step_1]
+type = "sound"
+sha1 = "0980708a4d6384e44f3b8e82ef339be079e381ab"
+
+[crawl_on_back]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[player_bitten]
+type = "clip"
+rig = "characters/aya/rig"
+
+[burst_arm_left]
+type = "model"
+slots = ["page_1"]
+symbol = "_gStalkerZebraBurstArmLeft"
+sha1 = "745d1bad8667436a67e1a3e2a9fe9b74114ebca7"
+
+[effect_binding]
+type = "binding"
+model = "enemies/stalker/burst_chunk"
+textures = { page_1 = "enemies/stalker/zebra/texture_page_1.default" }
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[burst_arm_right]
+type = "model"
+slots = ["page_1"]
+symbol = "_gStalkerZebraBurstArmRight"
+sha1 = "4302ce53dbabb253fdce13d0b3616d0606331e7b"
+
+[burst_foot_left]
+type = "model"
+slots = ["page_1"]
+symbol = "_gStalkerZebraBurstFootLeft"
+sha1 = "a7cdf628d0ccdc9f9da14fb1a8426bcddd888aea"
+
+[recover_on_back]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[burst_hand_right]
+type = "model"
+slots = ["page_1"]
+symbol = "_gStalkerZebraBurstHandRight"
+sha1 = "36b2a5cd25532d00d271877757208577c1c1d268"
+
+[player_hold_bank]
+type = "animation_bank"
+schema = "enemies/stalker/zebra/player_hold_schema"
+symbol = "_gActor400600PlayerHoldAnimationSets"
+
+[player_hold_bank.clips]
+player_bitten = "enemies/stalker/zebra/player_bitten"
+player_bite_release = "enemies/stalker/zebra/player_bite_release"
+
+[knockdown_on_back]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[burst_head_binding]
+type = "binding"
+model = "enemies/stalker/zebra/burst_head"
+
+[burst_head_binding.textures]
+page_2 = "enemies/stalker/zebra/texture_page_2.default"
+page_1 = "enemies/stalker/zebra/texture_page_1.default"
+
+[fall_landing_death]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[player_hold_schema]
+type = "animation_schema"
+slots = ["", "player_bitten", "player_bite_release"]
+
+[burst_torso_binding]
+type = "binding"
+model = "enemies/stalker/burst_torso"
+textures = { page_1 = "enemies/stalker/zebra/texture_page_1.default" }
+
+[player_bite_release]
+type = "clip"
+rig = "characters/aya/rig"
+
+[recoil_heavy_on_back]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[recoil_light_on_back]
+type = "clip"
+rig = "enemies/stalker/zebra/rig"
+
+[burst_arm_left_binding]
+type = "binding"
+model = "enemies/stalker/zebra/burst_arm_left"
+textures = { page_1 = "enemies/stalker/zebra/texture_page_1.default" }
+
+[burst_arm_right_binding]
+type = "binding"
+model = "enemies/stalker/zebra/burst_arm_right"
+textures = { page_1 = "enemies/stalker/zebra/texture_page_1.default" }
+
+[burst_foot_left_binding]
+type = "binding"
+model = "enemies/stalker/zebra/burst_foot_left"
+textures = { page_1 = "enemies/stalker/zebra/texture_page_1.default" }
+
+[burst_hand_left_binding]
+type = "binding"
+model = "enemies/stalker/burst_hand_left"
+textures = { page_1 = "enemies/stalker/zebra/texture_page_1.default" }
+
+[burst_foot_right_binding]
+type = "binding"
+model = "enemies/stalker/burst_foot_right"
+textures = { page_1 = "enemies/stalker/zebra/texture_page_1.default" }
+
+[burst_hand_right_binding]
+type = "binding"
+model = "enemies/stalker/zebra/burst_hand_right"
+textures = { page_1 = "enemies/stalker/zebra/texture_page_1.default" }

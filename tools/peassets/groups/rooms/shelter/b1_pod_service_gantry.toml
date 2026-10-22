@@ -1,0 +1,203 @@
+# The assets of the group rooms/shelter/b1_pod_service_gantry, each named rooms/shelter/b1_pod_service_gantry/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[kyle]
+type = "pe2pkg"
+embedded = [
+    { asset = "characters/kyle/p229", offset = 0x075BC, size = 0x444, address = 0x801393DC },
+    { name = "player_gantry_scene_3", offset = 0x082A8, size = 0xEB8, address = 0x8013A0C8 },
+    { name = "player_gantry_scene_5a", offset = 0x09160, size = 0xC04, address = 0x8013AF80 },
+    { name = "player_gantry_scene_5b", offset = 0x09D64, size = 0x620, address = 0x8013BB84 },
+    { name = "player_gantry_scene_5c", offset = 0x0A384, size = 0x494, address = 0x8013C1A4 },
+    { name = "player_gantry_scene_5d", offset = 0x0A818, size = 0x1B8, address = 0x8013C638 },
+    { name = "player_gantry_scene_start", offset = 0x0A9D0, size = 0x1D8, address = 0x8013C7F0 },
+    { name = "player_gantry_scene_6", offset = 0x0ABA8, size = 0xE8C, address = 0x8013C9C8 },
+    { asset = "characters/aya/stand", offset = 0x0BA34, size = 0x304, address = 0x8013D854 },
+    { name = "player_gantry_scene_7", offset = 0x0BD38, size = 0x318, address = 0x8013DB58 },
+    { name = "player_gantry_scene_9", offset = 0x0C050, size = 0x74C, address = 0x8013DE70 },
+    { asset = "characters/aya/let_her_go", offset = 0x0C79C, size = 0x2A4, address = 0x8013E5BC },
+    { name = "kyle_gantry_scene_appear", offset = 0x0CA40, size = 0x3DC, address = 0x8013E860 },
+    { name = "kyle_gantry_scene_17", offset = 0x0CE1C, size = 0x540, address = 0x8013EC3C },
+    { name = "player_bank", offset = 0x0D378, size = 0x2C, address = 0x8013F198 },
+    { name = "kyle_bank", offset = 0x0D3A4, size = 0x8, address = 0x8013F1C4 },
+]
+package_name = "actor_160900"
+parent = "shelter_b1_pod_service_gantry"
+required = true
+sha1 = "e498845e0fc75739435505faf2a8994a7d48725e"
+
+[no_9]
+type = "pe2pkg"
+embedded = [
+    "actor_560800_animation_1E4F0",
+    "actor_560800_model_40064",
+    "actor_560800_model_40E78",
+    "actor_560800_model_41AC4",
+    "actor_560800_animation_41F4C",
+]
+package_name = "actor_560800"
+required = true
+sha1 = "3c337cad88448e074551f7f36d496783aebcf4eb"
+
+[cue_1]
+type = "sound"
+sha1 = "d63b010706873f7df81a2a5e6d5768ecf1c1a3e2"
+
+[cue_9]
+type = "sound"
+sha1 = "41ed0aa01809417039ccbf2752a76c99073cb382"
+
+[cue_12]
+type = "sound"
+mode = "high"
+sha1 = "fc32867015ca29132927918d2e9b59637336fd0d"
+
+[cue_13]
+type = "sound"
+sha1 = "9d6c2578e383751af3bfb7aa51604f1d58648f6a"
+
+[cue_14]
+type = "sound"
+sha1 = "4165bcc104183014ef5ffb74bf0ae6295822f2f0"
+
+[cue_18]
+type = "sound"
+sha1 = "95731c10a6ef9feb4bddf85e258a2bc62f16aac4"
+
+[cue_1_2]
+type = "sound"
+sha1 = "7ebf39092b2aec731f9dabfbe62d5c149df00030"
+
+[cue_14_2]
+type = "sound"
+mode = "high"
+sha1 = "c59ac97099b7093ecc43fe4ede9c3639bcd9746a"
+
+[cue_18_2]
+type = "sound"
+sha1 = "4c00fd0ed516a19a38d832a7251ff92b437dbabc"
+
+[kyle_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b1_pod_service_gantry/kyle_schema"
+symbol = "_gActor160900KyleAnimationSets"
+
+[kyle_bank.clips]
+gantry_scene_appear = "rooms/shelter/b1_pod_service_gantry/kyle_gantry_scene_appear"
+gantry_scene_17 = "rooms/shelter/b1_pod_service_gantry/kyle_gantry_scene_17"
+
+[kyle_schema]
+type = "animation_schema"
+slots = ["gantry_scene_appear", "gantry_scene_17"]
+
+[no_9_sounds]
+type = "sound_bank"
+samples = [
+    "rooms/shelter/b1_pod_service_gantry/cue_13",
+    "rooms/shelter/b1_pod_service_gantry/cue_18",
+    "rooms/shelter/b1_pod_service_gantry/cue_18_2",
+    "rooms/shelter/b1_pod_service_gantry/cue_12",
+    "rooms/shelter/b1_pod_service_gantry/cue_9",
+    "rooms/shelter/b1_pod_service_gantry/cue_14",
+    "rooms/shelter/b1_pod_service_gantry/cue_14_2",
+    "rooms/shelter/b1_pod_service_gantry/cue_1",
+    "rooms/shelter/b1_pod_service_gantry/cue_1_2",
+]
+sha1 = "d8eff1ed461bb6adc81ba71ea74d4917d60f217a"
+
+[no_9_sounds.sounds]
+cue_1 = 1
+cue_3 = 3
+cue_4 = 4
+cue_5 = 5
+cue_6 = 6
+cue_7 = 7
+cue_8 = 8
+cue_9 = 9
+cue_10 = 10
+cue_11 = 11
+cue_12 = 12
+cue_13 = 13
+cue_14 = 14
+cue_15 = 15
+cue_16 = 16
+cue_17 = 17
+cue_18 = 18
+
+[player_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b1_pod_service_gantry/player_schema"
+symbol = "_gActor160900PlayerAnimationSets"
+
+[player_bank.clips]
+slot_0 = "characters/aya/stand"
+gantry_scene_3 = "rooms/shelter/b1_pod_service_gantry/player_gantry_scene_3"
+gantry_scene_5a = "rooms/shelter/b1_pod_service_gantry/player_gantry_scene_5a"
+gantry_scene_5b = "rooms/shelter/b1_pod_service_gantry/player_gantry_scene_5b"
+gantry_scene_5c = "rooms/shelter/b1_pod_service_gantry/player_gantry_scene_5c"
+gantry_scene_5d = "rooms/shelter/b1_pod_service_gantry/player_gantry_scene_5d"
+gantry_scene_6 = "rooms/shelter/b1_pod_service_gantry/player_gantry_scene_6"
+let_her_go = "characters/aya/let_her_go"
+gantry_scene_9 = "rooms/shelter/b1_pod_service_gantry/player_gantry_scene_9"
+gantry_scene_7 = "rooms/shelter/b1_pod_service_gantry/player_gantry_scene_7"
+gantry_scene_start = "rooms/shelter/b1_pod_service_gantry/player_gantry_scene_start"
+
+[player_schema]
+type = "animation_schema"
+slots = [
+    "slot_0",
+    "gantry_scene_3",
+    "gantry_scene_5a",
+    "gantry_scene_5b",
+    "gantry_scene_5c",
+    "gantry_scene_5d",
+    "gantry_scene_6",
+    "let_her_go",
+    "gantry_scene_9",
+    "gantry_scene_7",
+    "gantry_scene_start",
+]
+
+[kyle_gantry_scene_17]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[player_gantry_scene_3]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_gantry_scene_6]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_gantry_scene_7]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_gantry_scene_9]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_gantry_scene_5a]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_gantry_scene_5b]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_gantry_scene_5c]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_gantry_scene_5d]
+type = "clip"
+rig = "characters/aya/rig"
+
+[kyle_gantry_scene_appear]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[player_gantry_scene_start]
+type = "clip"
+rig = "characters/aya/rig"

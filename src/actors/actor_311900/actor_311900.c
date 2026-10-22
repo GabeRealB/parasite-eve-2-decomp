@@ -97,145 +97,35 @@ static void _actor311900InitSwatLighting(Task* task);
 static void _actor311900TickPaletteGreying(Task* task, s32 clutRowOffset, s16 firstPaletteRow);
 static void _actor311900UpdateAnimation(Task* task);
 
-static TmdSource _gActor311900RupertBroderickBody1;
-static TmdSource _gActor311900SwatMember2Body;
+static TmdSource _gRupertBody;
+static TmdSource _gSwatMember2Body;
 static void      _actor311900RupertTask(Task* task);
 static void      _actor311900SwatTask(Task* task);
 
-static TmdBone _gActor311900RupertBroderickBody1Skeleton[20] = {
-#include "assets/rupert_broderick_body_1_skeleton.inc"
-};
+#include "assets/characters/rupert/body.inc"
 
-static u32 _gActor311900RupertBroderickBody1PartVerts[20] = {
-#include "assets/rupert_broderick_body_1_partVerts.inc"
-};
+#include "assets/characters/swat_member_2/body.inc"
 
-static SVECTOR _gActor311900RupertBroderickBody1Verts[386] = {
-#include "assets/rupert_broderick_body_1_verts.inc"
-};
-
-static SVECTOR _gActor311900RupertBroderickBody1Normals[385] = {
-#include "assets/rupert_broderick_body_1_normals.inc"
-};
-
-static u32 _gActor311900RupertBroderickBody1Stream[4327] = {
-#include "assets/rupert_broderick_body_1_stream.inc"
-};
-
-static TmdSource _gActor311900RupertBroderickBody1 = {
-    0,
-    23980,
-    6012,
-    20,
-    _gActor311900RupertBroderickBody1PartVerts,
-    _gActor311900RupertBroderickBody1Verts,
-    _gActor311900RupertBroderickBody1Normals,
-    _gActor311900RupertBroderickBody1Skeleton,
-    _gActor311900RupertBroderickBody1Stream,
-};
-
-static TmdBone _gActor311900SwatMember2BodySkeleton[20] = {
-#include "assets/swat_member_2_body_skeleton.inc"
-};
-
-static u32 _gActor311900SwatMember2BodyPartVerts[20] = {
-#include "assets/swat_member_2_body_partVerts.inc"
-};
-
-static SVECTOR _gActor311900SwatMember2BodyVerts[360] = {
-#include "assets/swat_member_2_body_verts.inc"
-};
-
-static SVECTOR _gActor311900SwatMember2BodyNormals[358] = {
-#include "assets/swat_member_2_body_normals.inc"
-};
-
-static u32 _gActor311900SwatMember2BodyStream[3973] = {
-#include "assets/swat_member_2_body_stream.inc"
-};
-
-static TmdSource _gActor311900SwatMember2Body = {
-    0,
-    21176,
-    6792,
-    20,
-    _gActor311900SwatMember2BodyPartVerts,
-    _gActor311900SwatMember2BodyVerts,
-    _gActor311900SwatMember2BodyNormals,
-    _gActor311900SwatMember2BodySkeleton,
-    _gActor311900SwatMember2BodyStream,
-};
-
-static AnimationPackedPose _gActor311900Animation0C9A8Bank1[11] = {
-#include "assets/actor_311900_animation_0C9A8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor311900Animation0C9A8Bank4[201] = {
-#include "assets/actor_311900_animation_0C9A8_bank4.inc"
-};
-
-static AnimationRecord _gActor311900Animation0C9A8Records[290] = {
-#include "assets/actor_311900_animation_0C9A8_records.inc"
-};
-
-static u16 _gActor311900Animation0C9A8Indices[20] = {
-#include "assets/actor_311900_animation_0C9A8_indices.inc"
-};
-
-static AnimationSet _gActor311900Animation0C9A8 = {
-    _gActor311900Animation0C9A8Records,
-    _gActor311900Animation0C9A8Indices,
-    { NULL, _gActor311900Animation0C9A8Bank1, NULL, NULL, _gActor311900Animation0C9A8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor311900Animation0CDA0Bank1[6] = {
-#include "assets/actor_311900_animation_0CDA0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor311900Animation0CDA0Bank4[75] = {
-#include "assets/actor_311900_animation_0CDA0_bank4.inc"
-};
-
-static AnimationRecord _gActor311900Animation0CDA0Records[141] = {
-#include "assets/actor_311900_animation_0CDA0_records.inc"
-};
-
-static u16 _gActor311900Animation0CDA0Indices[20] = {
-#include "assets/actor_311900_animation_0CDA0_indices.inc"
-};
-
-static AnimationSet _gActor311900Animation0CDA0 = {
-    _gActor311900Animation0CDA0Records,
-    _gActor311900Animation0CDA0Indices,
-    { NULL, _gActor311900Animation0CDA0Bank1, NULL, NULL, _gActor311900Animation0CDA0Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/akropolis/security_room/security_monitors_clips.inc"
 
 /// Rupert's animation-set table for the security-monitor scene.
 ///
 /// Only index 1 is playable; indices 0 and 2 are null slots, not terminators.
 /// The rig borrows this word-aligned table and its loaded set until teardown.
-static AnimationSet* _gActor311900RupertAnimationSets[3] = {
-    NULL,
-    &_gActor311900Animation0C9A8,
-    NULL,
-};
+#include "assets/rooms/akropolis/security_room/rupert_bank.inc"
 
 /// The SWAT figure's animation-set table for the security-monitor scene.
 ///
 /// Only index 1 is playable; indices 0 and 2 are null slots, not terminators.
 /// The rig borrows this word-aligned table and its loaded set until teardown.
-static AnimationSet* _gActor311900SwatAnimationSets[3] = {
-    NULL,
-    &_gActor311900Animation0CDA0,
-    NULL,
-};
+#include "assets/rooms/akropolis/security_room/swat_bank.inc"
 
 enum { ACTOR_311900_SWAT_TASK_PRIORITY = 96 };
 
 TaskDesc gActor311900SwatTaskDesc = {
     .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_311900_SWAT_TASK_PRIORITY } },
     .callback = _actor311900SwatTask,
-    .data     = { .model = &_gActor311900SwatMember2Body },
+    .data     = { .model = &_gSwatMember2Body },
 };
 
 enum { ACTOR_311900_RUPERT_TASK_PRIORITY = 96 };
@@ -243,7 +133,7 @@ enum { ACTOR_311900_RUPERT_TASK_PRIORITY = 96 };
 TaskDesc gActor311900RupertTaskDesc = {
     .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_311900_RUPERT_TASK_PRIORITY } },
     .callback = _actor311900RupertTask,
-    .data     = { .model = &_gActor311900RupertBroderickBody1 },
+    .data     = { .model = &_gRupertBody },
 };
 
 /// Palette read-back and greying workspace shared by this package's two figures.

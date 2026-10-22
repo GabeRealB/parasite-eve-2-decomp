@@ -1,0 +1,20 @@
+# The assets of the group rooms/dryfield/motel_room_1, each named rooms/dryfield/motel_room_1/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bone_suckler]
+type = "pe2pkg"
+embedded = [
+    { asset = "enemies/suckler/bone/hang", offset = 0x03CF4, size = 0x164, address = 0x80135B14 },
+    { asset = "enemies/suckler/bone/walk", offset = 0x03E58, size = 0x2C4, address = 0x80135C78 },
+    { asset = "enemies/suckler/bone/run", offset = 0x0411C, size = 0x2A4, address = 0x80135F3C },
+    { asset = "enemies/suckler/bone/settle", offset = 0x043C0, size = 0x1E0, address = 0x801361E0 },
+    { asset = "enemies/suckler/bone/sleep", offset = 0x045A0, size = 0x138, address = 0x801363C0 },
+    { asset = "enemies/suckler/bone/rouse", offset = 0x046D8, size = 0x1A0, address = 0x801364F8 },
+    { asset = "enemies/suckler/bone/anim_07", offset = 0x04878, size = 0x214, address = 0x80136698 },
+    { asset = "enemies/suckler/bone/anim_08", offset = 0x04A8C, size = 0x410, address = 0x801368AC },
+    { asset = "enemies/suckler/bone/anim_09", offset = 0x04E9C, size = 0x2C0, address = 0x80136CBC },
+    { asset = "enemies/suckler/bone/burst", offset = 0x0515C, size = 0x1D8, address = 0x80136F7C },
+]
+package_name = "actor_123200"
+required = true
+sha1 = "7dbf3f8d5a7346e1cbbd57953b315585d0ae15d5"

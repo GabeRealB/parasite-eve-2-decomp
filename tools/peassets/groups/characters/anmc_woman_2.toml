@@ -1,0 +1,89 @@
+# The assets of the group characters/anmc_woman_2, each named characters/anmc_woman_2/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = [
+    "root",
+    "pelvis",
+    "waist",
+    "chest",
+    "head",
+    "right_shoulder",
+    "right_upper_arm",
+    "right_forearm",
+    "right_hand",
+    "left_shoulder",
+    "left_upper_arm",
+    "left_forearm",
+    "left_hand",
+    "right_thigh",
+    "right_shin",
+    "right_foot",
+    "left_thigh",
+    "left_shin",
+    "left_foot",
+]
+
+[body]
+type = "model"
+rig = "characters/anmc_woman_2/rig"
+slots = ["page_1", "page_2"]
+symbol = "_gAnmcWoman2Body"
+sha1 = "729e465039aeb1c63d18bf751c85f4bed154a953"
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "3b0a5b7a3969b6310c375e6f7875635a416bde5b"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "60f87980634d3cec0f47c58482503e040d0aa2e9"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[file.contents]]
+asset = "rooms/akropolis/cafeteria/anmc_woman"
+
+[glasses]
+type = "model"
+slots = ["page_2"]
+symbol = "_gAnmcWoman2Glasses"
+sha1 = "a5f9aeaa0cd382a6519d0f30691bdb2ed5a918eb"
+
+[body_binding]
+type = "binding"
+model = "characters/anmc_woman_2/body"
+
+[body_binding.textures]
+page_1 = "characters/anmc_woman_2/texture_page_1.default"
+page_2 = "characters/anmc_woman_2/texture_page_2.default"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[glasses_binding]
+type = "binding"
+model = "characters/anmc_woman_2/glasses"
+textures = { page_2 = "characters/anmc_woman_2/texture_page_2.default" }

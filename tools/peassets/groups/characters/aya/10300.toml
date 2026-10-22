@@ -1,0 +1,36 @@
+# The assets of the group characters/aya/10300, each named characters/aya/10300/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "6046c8d1c5ebec9dc1af88d159055ee633ad76e4"
+palettes = [
+    { texture = "page_0", variant = "default", region = "engine/vram/character_palette" },
+    { texture = "page_1", variant = "default", region = "engine/vram/character_palette", offset = [0, 1] },
+]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "ead1d3128ff64d1d4cadc3723a3ffa90fe95add2"
+pages = [
+    { texture = "page_0", region = "engine/vram/character_sheet" },
+    { texture = "page_1", region = "engine/vram/character_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[page_0]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128

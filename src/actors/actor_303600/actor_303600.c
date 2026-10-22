@@ -398,11 +398,11 @@ static TmdSource _gActor303600Model0814C = {
 };
 
 const Actor303600RotSample gActor303600SceneFigureRotationSamples[ACTOR_303600_ROT_SAMPLE_COUNT] SECTION(".data") = {
-#include "assets/actor_303600_motion_085E8.inc"
+#include "assets/rooms/shelter/b2_pod_bottom/ending_figure_rotation_track.inc"
 };
 
 const Actor303600ViewKey gActor303600SceneCameraKeys[ACTOR_303600_VIEW_KEY_COUNT] SECTION(".data") = {
-#include "assets/actor_303600_path_090D8.inc"
+#include "assets/rooms/shelter/b2_pod_bottom/ending_camera_track.inc"
 };
 
 enum { ACTOR_303600_SHAFT_TASK_PRIORITY = 192 };

@@ -1,0 +1,226 @@
+# The assets of the group enemies/glutton, each named enemies/glutton/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[body]
+type = "model"
+slots = ["gluttons_texture_page_2", "gluttons_texture_page_3", "gluttons_texture_page_5", "gluttons_texture_page_4"]
+symbol = "gGluttonBody"
+sha1 = "df994c711966fb56db3cacf97f0835c0e2826185"
+
+[glob]
+type = "model"
+slots = ["gluttons_texture_page_1"]
+symbol = "_gGluttonGlob"
+sha1 = "41ea6acdcb4c92a84ce6c4262cb54ce40faa6354"
+
+[grab]
+type = "sound"
+sha1 = "c40f33482278bf347a32c5182077bf683ceec55b"
+
+[limb]
+type = "model"
+slots = ["gluttons_texture_page_1"]
+symbol = "_gGluttonLimb"
+sha1 = "ef7b3107e4e8307e72dc7ff24ebb7be7c13fff8c"
+
+[spit]
+type = "sound"
+sha1 = "e1b7ac3cb56bf97326512cc0d38607bcba95fac9"
+
+[step]
+type = "sound"
+sha1 = "4075d3b98ceba748b1f83625f87b1b749c54d8e0"
+
+[chunk]
+type = "model"
+slots = ["gluttons_texture_page_1"]
+symbol = "_gGluttonChunk"
+sha1 = "dd217e87ed310b5c05f80512faf3edab146477a0"
+
+[inhale]
+type = "sound"
+sha1 = "d7f6590d449d26dc5c818855df71ff2d241c7651"
+
+[sounds]
+type = "sound_bank"
+samples = [
+    "enemies/glutton/scene_cue",
+    "enemies/glutton/inhale",
+    "enemies/glutton/spit",
+    "enemies/glutton/chunk_land",
+    "enemies/glutton/chunk_land_2",
+    "enemies/glutton/step",
+    "enemies/glutton/grab",
+    "enemies/glutton/death_2",
+]
+sha1 = "a6bc1216f04cb96c302a192ccf2638db8accb3d3"
+
+[sounds.sounds]
+step = 1
+scene_cue = 2
+death_2 = 3
+cry = 4
+inhale = 10
+spit = 11
+chunk_land = 12
+spew = 13
+blast = 16
+grab = 17
+death_1 = 19
+death_3 = 20
+death_4 = 21
+spew_start = 22
+roar = 23
+swing = 24
+slam = 25
+slam_2 = 26
+limb_thud = 27
+glob = 28
+
+[death_2]
+type = "sound"
+sha1 = "9325c4a3c83b477905fff4296bedfb7ed3647f1f"
+
+[spinner]
+type = "model"
+slots = []
+symbol = "_gGluttonSpinner"
+sha1 = "f1358a7b3c522ee1e1c55b36bddc02be26ea9440"
+
+[leg_left]
+type = "model"
+slots = ["gluttons_texture_page_3"]
+symbol = "gGluttonLegLeft"
+sha1 = "1d16cd66aec0f649dc8ad1b74455af3546099f45"
+
+[leg_right]
+type = "model"
+slots = ["gluttons_texture_page_3"]
+symbol = "gGluttonLegRight"
+sha1 = "a3c9b7e95413f75b0b9454d631bf801ecdf00708"
+
+[scene_cue]
+type = "sound"
+sha1 = "58c74cdbab891c88333b13db508af3a1c1e204fc"
+
+[chunk_land]
+type = "sound"
+sha1 = "e0025ddd33e6882c1c8fb98fd36e63f78be3989e"
+
+[body_binding]
+type = "binding"
+model = "enemies/glutton/body"
+
+[body_binding.textures]
+gluttons_texture_page_2 = "enemies/glutton/texture_page_2.default"
+gluttons_texture_page_3 = "enemies/glutton/texture_page_3.default"
+gluttons_texture_page_5 = "enemies/glutton/texture_page_5.default"
+gluttons_texture_page_4 = "enemies/glutton/texture_page_4.default"
+
+[chunk_land_2]
+type = "sound"
+sha1 = "2bb78e45ea161076273ef2b7a34542a3fbc779a6"
+
+[glob_binding]
+type = "binding"
+model = "enemies/glutton/glob"
+textures = { gluttons_texture_page_1 = "enemies/glutton/texture_page_1.default" }
+
+[limb_binding]
+type = "binding"
+model = "enemies/glutton/limb"
+textures = { gluttons_texture_page_1 = "enemies/glutton/texture_page_1.default" }
+
+[chunk_binding]
+type = "binding"
+model = "enemies/glutton/chunk"
+textures = { gluttons_texture_page_1 = "enemies/glutton/texture_page_1.default" }
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_3]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_4]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_5]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[spinner_binding]
+type = "binding"
+model = "enemies/glutton/spinner"
+textures = {  }
+
+[leg_left_binding]
+type = "binding"
+model = "enemies/glutton/leg_left"
+textures = { gluttons_texture_page_3 = "enemies/glutton/texture_page_3.default" }
+
+[leg_right_binding]
+type = "binding"
+model = "enemies/glutton/leg_right"
+textures = { gluttons_texture_page_3 = "enemies/glutton/texture_page_3.default" }
+
+[actor_403200_model_12884]
+type = "model"
+slots = ["gluttons_texture_page_1", "gluttons_texture_page_4"]
+symbol = "gGluttonActor403200Model12884"
+sha1 = "6bd4e9a5f005ddeac74f106fc9c5d92c6086556a"
+
+[actor_403200_model_13774]
+type = "model"
+slots = ["gluttons_texture_page_1", "gluttons_texture_page_4"]
+symbol = "gGluttonActor403200Model13774"
+sha1 = "36f59139151e3212698254f01ba49e01d83d3142"
+
+[actor_403200_model_18BE4]
+type = "model"
+slots = ["gluttons_texture_page_4"]
+symbol = "gGluttonActor403200Model18BE4"
+sha1 = "7c2da1eb1e302ffd3c39c113c5aec6f04e5fec82"
+
+[actor_403200_model_12884_binding]
+type = "binding"
+model = "enemies/glutton/actor_403200_model_12884"
+
+[actor_403200_model_12884_binding.textures]
+gluttons_texture_page_1 = "enemies/glutton/texture_page_1.default"
+gluttons_texture_page_4 = "enemies/glutton/texture_page_4.default"
+
+[actor_403200_model_13774_binding]
+type = "binding"
+model = "enemies/glutton/actor_403200_model_13774"
+
+[actor_403200_model_13774_binding.textures]
+gluttons_texture_page_1 = "enemies/glutton/texture_page_1.default"
+gluttons_texture_page_4 = "enemies/glutton/texture_page_4.default"
+
+[actor_403200_model_18BE4_binding]
+type = "binding"
+model = "enemies/glutton/actor_403200_model_18BE4"
+textures = { gluttons_texture_page_4 = "enemies/glutton/texture_page_4.default" }

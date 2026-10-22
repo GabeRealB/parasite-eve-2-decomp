@@ -1,0 +1,152 @@
+# The assets of the group enemies/diver, each named enemies/diver/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[cry]
+type = "sound"
+sha1 = "cd1ee92f5a13cbad66184d80ab18053199938f60"
+
+[rig]
+type = "rig"
+joints = [
+    "root",
+    "trunk",
+    "lower_neck",
+    "upper_neck",
+    "head",
+    "joint_5",
+    "joint_6",
+    "joint_7",
+    "joint_8",
+    "right_upper_arm",
+    "right_forearm",
+    "right_hand",
+    "left_upper_arm",
+    "left_forearm",
+    "left_hand",
+]
+
+[body]
+type = "model"
+rig = "enemies/diver/rig"
+slots = ["page_2", "page_1"]
+symbol = "_gDiverBody"
+sha1 = "f80d687aab340105876a1e7fff45583604e18582"
+
+[hurt]
+type = "sound"
+sha1 = "83427ef080d1033323d7d83bb703444e7befe242"
+
+[shot]
+type = "sound"
+sha1 = "f791519d6c6f0b8e3467713e870df03d22e93e2a"
+
+[step]
+type = "sound"
+sha1 = "4e345dd32c82cd456f9a1935b7e343b32c98fed9"
+
+[swim]
+type = "clip"
+rig = "enemies/diver/rig"
+
+[sounds]
+type = "sound_bank"
+samples = [
+    "enemies/diver/swim_sound",
+    "enemies/diver/step",
+    "enemies/diver/neck_extend",
+    "enemies/diver/shot",
+    "enemies/diver/discharge_sound",
+    "enemies/diver/cry",
+    "enemies/diver/unused_1",
+    "enemies/diver/hurt",
+]
+sounds = { swim = 1, step = 2, step_2 = 3, cry = 4, hurt = 6, neck_extend = 7, splash = 8, shot = 10, discharge = 11 }
+sha1 = "ab5ccabe77d6a614bbc9b29563b3367f889bc1c3"
+
+[anim_08]
+type = "clip"
+rig = "enemies/diver/rig"
+
+[surface]
+type = "clip"
+rig = "enemies/diver/rig"
+
+[unused_1]
+type = "sound"
+sha1 = "bed5aeca2aaf7d45d3ffeefa631fcfcd53282578"
+
+[discharge]
+type = "clip"
+rig = "enemies/diver/rig"
+
+[burst_head]
+type = "model"
+slots = ["page_2"]
+symbol = "_gDiverBurstHead"
+sha1 = "36fa46618765edd1e23abd3ef19fbfd8ed8974fb"
+
+[swim_sound]
+type = "sound"
+sha1 = "e0023cbdeb86675a73ea0ab8806ebb0a8d5bb01c"
+
+[energy_ball]
+type = "model"
+slots = ["page_2"]
+symbol = "_gDiverEnergyBall"
+sha1 = "816fa7691879b8339f2b344e11c7c5fca144c071"
+
+[neck_extend]
+type = "sound"
+sha1 = "1f8a03562e50cd29d1b9c42ef50adc3f8fc7d2f8"
+
+[surface_swim]
+type = "clip"
+rig = "enemies/diver/rig"
+
+[swim_stunned]
+type = "clip"
+rig = "enemies/diver/rig"
+
+[burst_arm_right]
+type = "model"
+slots = ["page_1", "page_2"]
+symbol = "_gDiverBurstArmRight"
+sha1 = "46ef1079e764e85a3280f08c75367c7546d6d3bd"
+
+[burst_leg_right]
+type = "model"
+slots = ["page_1", "page_2"]
+symbol = "_gDiverBurstLegRight"
+sha1 = "7f3d391b8f09975e28dd9956bfe16d9d1ca39e9f"
+
+[discharge_sound]
+type = "sound"
+sha1 = "43f56b534f397e9f694ca4bc1486cf202aaa48b2"
+
+[burst_arm_left_1]
+type = "model"
+slots = ["page_1", "page_2"]
+symbol = "_gDiverBurstArmLeft1"
+sha1 = "304f0267879fd47db49055a7ba00907502528cf6"
+
+[burst_arm_left_2]
+type = "model"
+slots = ["page_1", "page_2"]
+symbol = "_gDiverBurstArmLeft2"
+sha1 = "b9c81c91490239223e480403228b5d57ed195c4c"
+
+[swim_stunned_hit]
+type = "clip"
+rig = "enemies/diver/rig"
+
+[swim_recoil_heavy]
+type = "clip"
+rig = "enemies/diver/rig"
+
+[swim_recoil_light]
+type = "clip"
+rig = "enemies/diver/rig"
+
+[swim_stunned_loop]
+type = "clip"
+rig = "enemies/diver/rig"

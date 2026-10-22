@@ -1,8 +1,8 @@
 // Overlay-local symbols for kyle_800103 (file 800103).
-gKyle800103KyleMadiganBody = 0x8016C594; // model named by a task descriptor
-gKyle800103KyleMadiganHandRight = 0x8016C9E8; // model named by a task descriptor
-gKyle800103KyleMadiganHandRightSecondPair = 0x8016CED8; // model named by a task descriptor
-gKyle800103KyleMadiganM950 = 0x8016DE3C; // Kyle Madigan's M950, companion resource variant 3
-gKyle800103KyleMadiganHandLeftFirstPair = 0x8016D32C; // Kyle Madigan left hand, attachment pair 0
-gKyle800103KyleMadiganHandLeft = 0x8016D81C; // model named by a task descriptor
+gKyleBody = 0x8016C594; // model named by a task descriptor
+gKyleHandRight = 0x8016C9E8; // model named by a task descriptor
+gKyleHandRight3 = 0x8016CED8; // model named by a task descriptor
+gKyleM950 = 0x8016DE3C; // Kyle Madigan's M950, companion resource variant 3
+gKyleHandLeft2 = 0x8016D32C; // Kyle Madigan left hand, attachment pair 0
+gKyleHandLeft = 0x8016D81C; // model named by a task descriptor
 gKyle800103KyleMadiganAnimationBank = 0x8017567c;

@@ -1,0 +1,331 @@
+# The assets of the group rooms/shelter/b1_golem_freezer_1, each named rooms/shelter/b1_golem_freezer_1/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[pierce]
+type = "pe2pkg"
+embedded = [
+    { name = "player_meeting_idle", offset = 0x00A5C, size = 0x25C, address = 0x8013287C },
+    { name = "player_call_pierce", offset = 0x00CB8, size = 0x230, address = 0x80132AD8 },
+    { name = "player_tell_shelter", offset = 0x00EE8, size = 0x2C4, address = 0x80132D08 },
+    { name = "player_first_meeting_6", offset = 0x011AC, size = 0x1D8, address = 0x80132FCC },
+    { name = "player_first_meeting_7", offset = 0x01384, size = 0x1D4, address = 0x801331A4 },
+    { name = "player_meeting_idle_2", offset = 0x01558, size = 0x270, address = 0x80133378 },
+    { name = "player_reassure", offset = 0x017C8, size = 0x2AC, address = 0x801335E8 },
+    { name = "player_first_meeting_10", offset = 0x01A74, size = 0x1CC, address = 0x80133894 },
+    { name = "player_tease_pierce", offset = 0x01C40, size = 0x23C, address = 0x80133A60 },
+    { name = "player_second_meeting_4", offset = 0x01E7C, size = 0x1D0, address = 0x80133C9C },
+    { name = "player_second_meeting_4_end", offset = 0x0204C, size = 0x260, address = 0x80133E6C },
+    { name = "player_second_meeting_9", offset = 0x022AC, size = 0x1D0, address = 0x801340CC },
+    { name = "player_second_meeting_12", offset = 0x0247C, size = 0x2C0, address = 0x8013429C },
+    { name = "player_second_meeting_15_end", offset = 0x0273C, size = 0x298, address = 0x8013455C },
+    { name = "player_tell_story", offset = 0x029D4, size = 0x228, address = 0x801347F4 },
+    { name = "player_second_meeting_15", offset = 0x02BFC, size = 0x1A8, address = 0x80134A1C },
+    { name = "player_say_okay", offset = 0x02DA4, size = 0x1BC, address = 0x80134BC4 },
+    { name = "player_second_meeting_22", offset = 0x02F60, size = 0x1BC, address = 0x80134D80 },
+    { name = "player_say_topside", offset = 0x0311C, size = 0x2AC, address = 0x80134F3C },
+    { name = "player_meeting_bank", offset = 0x033C8, size = 0x5C, address = 0x801351E8 },
+    { name = "pierce_unconscious", offset = 0x0AAFC, size = 0x248, address = 0x8013C91C },
+    { name = "pierce_come_to", offset = 0x0AD44, size = 0x2D0, address = 0x8013CB64 },
+    { name = "pierce_remember", offset = 0x0B014, size = 0x1118, address = 0x8013CE34 },
+    { name = "pierce_explain_capture", offset = 0x0C12C, size = 0x2F0, address = 0x8013DF4C },
+    { name = "pierce_first_meeting_9", offset = 0x0C41C, size = 0x1DC, address = 0x8013E23C },
+    { name = "pierce_rest", offset = 0x0C5F8, size = 0x288, address = 0x8013E418 },
+    { name = "pierce_reassure", offset = 0x0C880, size = 0x234, address = 0x8013E6A0 },
+    { name = "pierce_first_meeting_11", offset = 0x0CAB4, size = 0x1E4, address = 0x8013E8D4 },
+    { name = "pierce_second_meeting_1", offset = 0x0CC98, size = 0x6A0, address = 0x8013EAB8 },
+    { name = "pierce_second_meeting_2", offset = 0x0D338, size = 0x328, address = 0x8013F158 },
+    { name = "pierce_talk", offset = 0x0D660, size = 0x348, address = 0x8013F480 },
+    { name = "pierce_second_meeting_5", offset = 0x0D9A8, size = 0x298, address = 0x8013F7C8 },
+    { name = "pierce_thank_aya", offset = 0x0DC40, size = 0x320, address = 0x8013FA60 },
+    { name = "pierce_second_meeting_7", offset = 0x0DF60, size = 0x2A0, address = 0x8013FD80 },
+    { name = "pierce_second_meeting_8", offset = 0x0E200, size = 0x30C, address = 0x80140020 },
+    { name = "pierce_second_meeting_10", offset = 0x0E50C, size = 0x3D8, address = 0x8014032C },
+    { name = "pierce_second_meeting_12", offset = 0x0E8E4, size = 0x1B8, address = 0x80140704 },
+    { name = "pierce_talk_end", offset = 0x0EA9C, size = 0x1E4, address = 0x801408BC },
+    { name = "pierce_urge_on", offset = 0x0EC80, size = 0x2DC, address = 0x80140AA0 },
+    { name = "pierce_urge_on_end", offset = 0x0EF5C, size = 0x1E4, address = 0x80140D7C },
+    { name = "pierce_see_you_topside", offset = 0x0F140, size = 0x2B8, address = 0x80140F60 },
+    { name = "pierce_shiver", offset = 0x0F3F8, size = 0x28C, address = 0x80141218 },
+    { name = "pierce_look_around", offset = 0x0F684, size = 0x1D4, address = 0x801414A4 },
+    { name = "pierce_bank", offset = 0x0F8A0, size = 0x64, address = 0x801416C0 },
+]
+package_name = "actor_160700"
+required = true
+sha1 = "e340936ec09e279a7edcb1e4ee1ba6cd25e04355"
+
+[pierce_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b1_golem_freezer_1/pierce_schema"
+symbol = "_gActor160700PierceAnimationSets"
+
+[pierce_bank.clips]
+unconscious = "rooms/shelter/b1_golem_freezer_1/pierce_unconscious"
+come_to = "rooms/shelter/b1_golem_freezer_1/pierce_come_to"
+remember = "rooms/shelter/b1_golem_freezer_1/pierce_remember"
+explain_capture = "rooms/shelter/b1_golem_freezer_1/pierce_explain_capture"
+first_meeting_9 = "rooms/shelter/b1_golem_freezer_1/pierce_first_meeting_9"
+rest = "rooms/shelter/b1_golem_freezer_1/pierce_rest"
+reassure = "rooms/shelter/b1_golem_freezer_1/pierce_reassure"
+first_meeting_11 = "rooms/shelter/b1_golem_freezer_1/pierce_first_meeting_11"
+second_meeting_1 = "rooms/shelter/b1_golem_freezer_1/pierce_second_meeting_1"
+second_meeting_2 = "rooms/shelter/b1_golem_freezer_1/pierce_second_meeting_2"
+talk = "rooms/shelter/b1_golem_freezer_1/pierce_talk"
+second_meeting_5 = "rooms/shelter/b1_golem_freezer_1/pierce_second_meeting_5"
+thank_aya = "rooms/shelter/b1_golem_freezer_1/pierce_thank_aya"
+second_meeting_7 = "rooms/shelter/b1_golem_freezer_1/pierce_second_meeting_7"
+second_meeting_8 = "rooms/shelter/b1_golem_freezer_1/pierce_second_meeting_8"
+second_meeting_10 = "rooms/shelter/b1_golem_freezer_1/pierce_second_meeting_10"
+second_meeting_12 = "rooms/shelter/b1_golem_freezer_1/pierce_second_meeting_12"
+talk_end = "rooms/shelter/b1_golem_freezer_1/pierce_talk_end"
+urge_on = "rooms/shelter/b1_golem_freezer_1/pierce_urge_on"
+urge_on_end = "rooms/shelter/b1_golem_freezer_1/pierce_urge_on_end"
+see_you_topside = "rooms/shelter/b1_golem_freezer_1/pierce_see_you_topside"
+shiver = "rooms/shelter/b1_golem_freezer_1/pierce_shiver"
+look_around = "rooms/shelter/b1_golem_freezer_1/pierce_look_around"
+
+[pierce_rest]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_talk]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "unconscious",
+    "come_to",
+    "remember",
+    "explain_capture",
+    "first_meeting_9",
+    "rest",
+    "reassure",
+    "first_meeting_11",
+    "second_meeting_1",
+    "second_meeting_2",
+    "talk",
+    "second_meeting_5",
+    "thank_aya",
+    "second_meeting_7",
+    "second_meeting_8",
+    "second_meeting_10",
+    "second_meeting_12",
+    "talk_end",
+    "urge_on",
+    "urge_on_end",
+    "see_you_topside",
+    "shiver",
+    "look_around",
+]
+
+[pierce_shiver]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_come_to]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_urge_on]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_reassure]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_remember]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_talk_end]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[player_reassure]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_say_okay]
+type = "clip"
+rig = "characters/aya/rig"
+
+[pierce_thank_aya]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[player_tell_story]
+type = "clip"
+rig = "characters/aya/rig"
+
+[pierce_look_around]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_unconscious]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_urge_on_end]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[player_call_pierce]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_say_topside]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_meeting_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b1_golem_freezer_1/player_meeting_schema"
+symbol = "_gActor160700PlayerMeetingSets"
+
+[player_meeting_bank.clips]
+meeting_idle = "rooms/shelter/b1_golem_freezer_1/player_meeting_idle"
+call_pierce = "rooms/shelter/b1_golem_freezer_1/player_call_pierce"
+tell_shelter = "rooms/shelter/b1_golem_freezer_1/player_tell_shelter"
+first_meeting_6 = "rooms/shelter/b1_golem_freezer_1/player_first_meeting_6"
+first_meeting_7 = "rooms/shelter/b1_golem_freezer_1/player_first_meeting_7"
+meeting_idle_2 = "rooms/shelter/b1_golem_freezer_1/player_meeting_idle_2"
+reassure = "rooms/shelter/b1_golem_freezer_1/player_reassure"
+first_meeting_10 = "rooms/shelter/b1_golem_freezer_1/player_first_meeting_10"
+tease_pierce = "rooms/shelter/b1_golem_freezer_1/player_tease_pierce"
+second_meeting_4 = "rooms/shelter/b1_golem_freezer_1/player_second_meeting_4"
+second_meeting_4_end = "rooms/shelter/b1_golem_freezer_1/player_second_meeting_4_end"
+second_meeting_9 = "rooms/shelter/b1_golem_freezer_1/player_second_meeting_9"
+second_meeting_12 = "rooms/shelter/b1_golem_freezer_1/player_second_meeting_12"
+second_meeting_15_end = "rooms/shelter/b1_golem_freezer_1/player_second_meeting_15_end"
+tell_story = "rooms/shelter/b1_golem_freezer_1/player_tell_story"
+second_meeting_15 = "rooms/shelter/b1_golem_freezer_1/player_second_meeting_15"
+say_okay = "rooms/shelter/b1_golem_freezer_1/player_say_okay"
+second_meeting_22 = "rooms/shelter/b1_golem_freezer_1/player_second_meeting_22"
+say_topside = "rooms/shelter/b1_golem_freezer_1/player_say_topside"
+
+[player_meeting_idle]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_tease_pierce]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_tell_shelter]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_meeting_idle_2]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_meeting_schema]
+type = "animation_schema"
+slots = [
+    "meeting_idle",
+    "call_pierce",
+    "tell_shelter",
+    "first_meeting_6",
+    "first_meeting_7",
+    "meeting_idle_2",
+    "reassure",
+    "first_meeting_10",
+    "tease_pierce",
+    "second_meeting_4",
+    "second_meeting_4_end",
+    "second_meeting_9",
+    "second_meeting_12",
+    "second_meeting_15_end",
+    "tell_story",
+    "second_meeting_15",
+    "say_okay",
+    "second_meeting_22",
+    "say_topside",
+]
+
+[pierce_explain_capture]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_first_meeting_9]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_see_you_topside]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[player_first_meeting_6]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_first_meeting_7]
+type = "clip"
+rig = "characters/aya/rig"
+
+[pierce_first_meeting_11]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_second_meeting_1]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_second_meeting_2]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_second_meeting_5]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_second_meeting_7]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_second_meeting_8]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[player_first_meeting_10]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_second_meeting_4]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_second_meeting_9]
+type = "clip"
+rig = "characters/aya/rig"
+
+[pierce_second_meeting_10]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_second_meeting_12]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[player_second_meeting_12]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_second_meeting_15]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_second_meeting_22]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_second_meeting_4_end]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_second_meeting_15_end]
+type = "clip"
+rig = "characters/aya/rig"

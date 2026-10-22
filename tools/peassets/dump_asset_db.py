@@ -554,6 +554,15 @@ def collect_models(
     out: dict[str, dict[str, Any]] = {}
     placed: dict[str, dict[str, Any]] = {}
     seen: set[str] = set()
+    # The stream of a declared model is that model wherever else it appears (a relocated copy of its package):
+    # placed once, by its declaring package, so the other copies are not meshes of their own.
+    for pkg in sorted(pkg_dir.glob("*.pe2pkg")):
+        if pkg.stem in records and any(p == pkg.stem for p, _o in declared):
+            base, sources = records[pkg.stem]
+            data = pkg.read_bytes()
+            for src in (tmd.read_source(data, base, o) for o in sources):
+                if (pkg.stem, src["head"]) in declared:
+                    seen.add(hashlib.sha1(data[src["stream_offset"]:src["end"]]).hexdigest())
     for pkg in sorted(pkg_dir.glob("*.pe2pkg")):
         if pkg.stem not in records:
             continue

@@ -1,0 +1,182 @@
+# The assets of the group rooms/shelter/b1_sterilization_room, each named rooms/shelter/b1_sterilization_room/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[soldier]
+type = "pe2pkg"
+embedded = [
+    { name = "player_opening_arrival", offset = 0x00954, size = 0x1C8, address = 0x80132774 },
+    { name = "player_be_careful", offset = 0x00B1C, size = 0x1CC, address = 0x8013293C },
+    { name = "player_stay_with_him", offset = 0x00CE8, size = 0x1C8, address = 0x80132B08 },
+    { name = "player_flint_departure_4", offset = 0x00EB0, size = 0x268, address = 0x80132CD0 },
+    { name = "player_departure_1", offset = 0x01118, size = 0x278, address = 0x80132F38 },
+    { name = "player_talk_start", offset = 0x01390, size = 0x19C, address = 0x801331B0 },
+    { name = "player_talk", offset = 0x0152C, size = 0x2A8, address = 0x8013334C },
+    { name = "player_talk_end", offset = 0x017D4, size = 0x19C, address = 0x801335F4 },
+    { name = "player_conversation_arrival", offset = 0x01970, size = 0x5D4, address = 0x80133790 },
+    { name = "player_sterilization_17", offset = 0x01F44, size = 0x818, address = 0x80133D64 },
+    { asset = "characters/aya/stand", offset = 0x0275C, size = 0x304, address = 0x8013457C },
+    { asset = "characters/flint/react_truck_fixed", offset = 0x02A60, size = 0x1A8, address = 0x80134880 },
+    { asset = "characters/flint/react_key_handover", offset = 0x02C08, size = 0x1C0, address = 0x80134A28 },
+    { name = "companion_bark", offset = 0x02DC8, size = 0x218, address = 0x80134BE8 },
+    { name = "player_extension_bank", offset = 0x02FE0, size = 0x3C, address = 0x80134E00 },
+    { name = "companion_extension_bank", offset = 0x0324C, size = 0xC, address = 0x8013506C },
+    { asset = "characters/soldier_a/body", offset = 0x045B8, size = 0x56E8, address = 0x801363D8 },
+    { asset = "characters/soldier_a/idle", offset = 0x09CA0, size = 0x258, address = 0x8013BAC0 },
+    { asset = "characters/soldier_a/sterilization_2", offset = 0x09EF8, size = 0x298, address = 0x8013BD18 },
+    { asset = "characters/soldier_a/whos_there", offset = 0x0A190, size = 0x348, address = 0x8013BFB0 },
+    { asset = "characters/soldier_a/get_out", offset = 0x0A4D8, size = 0x338, address = 0x8013C2F8 },
+    { asset = "characters/soldier_a/you_sure", offset = 0x0A810, size = 0x218, address = 0x8013C630 },
+    { asset = "characters/soldier_a/dont_worry", offset = 0x0AA28, size = 0x494, address = 0x8013C848 },
+    { asset = "characters/soldier_a/dont_worry_end", offset = 0x0AEBC, size = 0x278, address = 0x8013CCDC },
+    { asset = "characters/soldier_a/not_that_way", offset = 0x0B134, size = 0x254, address = 0x8013CF54 },
+    { asset = "characters/soldier_a/hiya_flint", offset = 0x0B388, size = 0x1D4, address = 0x8013D1A8 },
+    { asset = "characters/soldier_a/rest", offset = 0x0B55C, size = 0x1A0, address = 0x8013D37C },
+    { asset = "characters/soldier_a/sterilization_13", offset = 0x0B6FC, size = 0x1DC, address = 0x8013D51C },
+    { asset = "characters/soldier_a/sterilization_13_end", offset = 0x0B8D8, size = 0x228, address = 0x8013D6F8 },
+    { asset = "characters/soldier_a/anim_13", offset = 0x0BB00, size = 0x22C, address = 0x8013D920 },
+    { asset = "characters/soldier_a/anim_14", offset = 0x0BD2C, size = 0x268, address = 0x8013DB4C },
+    { asset = "characters/soldier_a/anim_15", offset = 0x0BF94, size = 0x1BC, address = 0x8013DDB4 },
+    { name = "soldier_a_bank", offset = 0x0C18C, size = 0x40, address = 0x8013DFAC },
+]
+package_name = "actor_160600"
+required = true
+sha1 = "a3e49b05be856aad90a56ed83f01a9c91c3a0710"
+
+[player_talk]
+type = "clip"
+rig = "characters/aya/rig"
+
+[companion_bark]
+type = "clip"
+rig = "characters/flint/rig"
+
+[soldier_a_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b1_sterilization_room/soldier_a_schema"
+symbol = "_gPacedWalkAnimBank"
+
+[soldier_a_bank.clips]
+idle = "characters/soldier_a/idle"
+sterilization_2 = "characters/soldier_a/sterilization_2"
+whos_there = "characters/soldier_a/whos_there"
+get_out = "characters/soldier_a/get_out"
+you_sure = "characters/soldier_a/you_sure"
+dont_worry = "characters/soldier_a/dont_worry"
+dont_worry_end = "characters/soldier_a/dont_worry_end"
+not_that_way = "characters/soldier_a/not_that_way"
+hiya_flint = "characters/soldier_a/hiya_flint"
+rest = "characters/soldier_a/rest"
+sterilization_13 = "characters/soldier_a/sterilization_13"
+sterilization_13_end = "characters/soldier_a/sterilization_13_end"
+anim_13 = "characters/soldier_a/anim_13"
+anim_14 = "characters/soldier_a/anim_14"
+anim_15 = "characters/soldier_a/anim_15"
+
+[player_talk_end]
+type = "clip"
+rig = "characters/aya/rig"
+
+[soldier_a_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "idle",
+    "sterilization_2",
+    "whos_there",
+    "get_out",
+    "you_sure",
+    "dont_worry",
+    "dont_worry_end",
+    "not_that_way",
+    "hiya_flint",
+    "rest",
+    "sterilization_13",
+    "sterilization_13_end",
+    "anim_13",
+    "anim_14",
+    "anim_15",
+]
+
+[player_be_careful]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_talk_start]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_departure_1]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_stay_with_him]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_extension_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b1_sterilization_room/player_extension_schema"
+symbol = "_gActor160600PlayerExtensionSets"
+
+[player_extension_bank.clips]
+opening_arrival = "rooms/shelter/b1_sterilization_room/player_opening_arrival"
+be_careful = "rooms/shelter/b1_sterilization_room/player_be_careful"
+stay_with_him = "rooms/shelter/b1_sterilization_room/player_stay_with_him"
+flint_departure_4 = "rooms/shelter/b1_sterilization_room/player_flint_departure_4"
+departure_1 = "rooms/shelter/b1_sterilization_room/player_departure_1"
+talk_start = "rooms/shelter/b1_sterilization_room/player_talk_start"
+talk = "rooms/shelter/b1_sterilization_room/player_talk"
+talk_end = "rooms/shelter/b1_sterilization_room/player_talk_end"
+conversation_arrival = "rooms/shelter/b1_sterilization_room/player_conversation_arrival"
+sterilization_17 = "rooms/shelter/b1_sterilization_room/player_sterilization_17"
+slot_14 = "characters/aya/stand"
+
+[player_opening_arrival]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_extension_schema]
+type = "animation_schema"
+slots = [
+    "opening_arrival",
+    "be_careful",
+    "stay_with_him",
+    "flint_departure_4",
+    "departure_1",
+    "",
+    "",
+    "",
+    "",
+    "talk_start",
+    "talk",
+    "talk_end",
+    "conversation_arrival",
+    "sterilization_17",
+    "slot_14",
+]
+
+[player_sterilization_17]
+type = "clip"
+rig = "characters/aya/rig"
+
+[companion_extension_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b1_sterilization_room/companion_extension_schema"
+symbol = "_gActor160600CompanionExtensionSets"
+
+[companion_extension_bank.clips]
+slot_0 = "characters/flint/react_truck_fixed"
+slot_1 = "characters/flint/react_key_handover"
+bark = "rooms/shelter/b1_sterilization_room/companion_bark"
+
+[player_flint_departure_4]
+type = "clip"
+rig = "characters/aya/rig"
+
+[companion_extension_schema]
+type = "animation_schema"
+slots = ["slot_0", "slot_1", "bark"]
+
+[player_conversation_arrival]
+type = "clip"
+rig = "characters/aya/rig"

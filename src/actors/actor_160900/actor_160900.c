@@ -163,10 +163,10 @@ enum {
     ACTOR_160900_CUE_NONE          = 0,
 };
 
-static TmdSource _gActor160900KyleMadiganBody;
-static TmdSource _gActor160900KyleMadiganGun;
-static TmdSource _gActor160900KyleMadiganLeft;
-static TmdSource _gActor160900KyleMadiganHandRight;
+extern TmdSource gKyleBody;
+extern TmdSource gKyleP229;
+extern TmdSource gKyleHandLeft2;
+extern TmdSource gKyleHandRight;
 static void      _actor160900KyleAttachmentTask(Task* task);
 static void      _actor160900KyleBodyTask(Task* task);
 static void      _actor160900DrawLightQuadTask(Task* task);
@@ -232,419 +232,15 @@ enum {
     ACTOR_160900_CAP_COMMAND_SLOT   = 1,
 };
 
-static TmdBone _gActor160900KyleMadiganBodySkeleton[20] = {
-#include "assets/kyle_madigan_body_skeleton.inc"
-};
+#include "assets/characters/kyle/body.inc"
 
-static u32 _gActor160900KyleMadiganBodyPartVerts[20] = {
-#include "assets/kyle_madigan_body_partVerts.inc"
-};
+#include "assets/characters/kyle/p229.inc"
 
-static SVECTOR _gActor160900KyleMadiganBodyVerts[300] = {
-#include "assets/kyle_madigan_body_verts.inc"
-};
+#include "assets/characters/kyle/hand_left_2.inc"
 
-static SVECTOR _gActor160900KyleMadiganBodyNormals[298] = {
-#include "assets/kyle_madigan_body_normals.inc"
-};
+#include "assets/characters/kyle/hand_right.inc"
 
-static u32 _gActor160900KyleMadiganBodyStream[3412] = {
-#include "assets/kyle_madigan_body_stream.inc"
-};
-
-static TmdSource _gActor160900KyleMadiganBody = {
-    0,
-    18224,
-    5696,
-    20,
-    _gActor160900KyleMadiganBodyPartVerts,
-    _gActor160900KyleMadiganBodyVerts,
-    _gActor160900KyleMadiganBodyNormals,
-    _gActor160900KyleMadiganBodySkeleton,
-    _gActor160900KyleMadiganBodyStream,
-};
-
-static TmdBone _gActor160900KyleMadiganGunSkeleton[1] = {
-#include "assets/kyle_madigan_gun_skeleton.inc"
-};
-
-static u32 _gActor160900KyleMadiganGunPartVerts[1] = {
-#include "assets/kyle_madigan_gun_partVerts.inc"
-};
-
-static SVECTOR _gActor160900KyleMadiganGunVerts[22] = {
-#include "assets/kyle_madigan_gun_verts.inc"
-};
-
-static SVECTOR _gActor160900KyleMadiganGunNormals[24] = {
-#include "assets/kyle_madigan_gun_normals.inc"
-};
-
-static u32 _gActor160900KyleMadiganGunStream[162] = {
-#include "assets/kyle_madigan_gun_stream.inc"
-};
-
-static TmdSource _gActor160900KyleMadiganGun = {
-    0,
-    1108,
-    0,
-    1,
-    _gActor160900KyleMadiganGunPartVerts,
-    _gActor160900KyleMadiganGunVerts,
-    _gActor160900KyleMadiganGunNormals,
-    _gActor160900KyleMadiganGunSkeleton,
-    _gActor160900KyleMadiganGunStream,
-};
-
-static TmdBone _gActor160900KyleMadiganLeftSkeleton[1] = {
-#include "assets/kyle_madigan_left_skeleton.inc"
-};
-
-static u32 _gActor160900KyleMadiganLeftPartVerts[1] = {
-#include "assets/kyle_madigan_left_partVerts.inc"
-};
-
-static SVECTOR _gActor160900KyleMadiganLeftVerts[23] = {
-#include "assets/kyle_madigan_left_verts.inc"
-};
-
-static SVECTOR _gActor160900KyleMadiganLeftNormals[23] = {
-#include "assets/kyle_madigan_left_normals.inc"
-};
-
-static u32 _gActor160900KyleMadiganLeftStream[166] = {
-#include "assets/kyle_madigan_left_stream.inc"
-};
-
-static TmdSource _gActor160900KyleMadiganLeft = {
-    0,
-    1148,
-    0,
-    1,
-    _gActor160900KyleMadiganLeftPartVerts,
-    _gActor160900KyleMadiganLeftVerts,
-    _gActor160900KyleMadiganLeftNormals,
-    _gActor160900KyleMadiganLeftSkeleton,
-    _gActor160900KyleMadiganLeftStream,
-};
-
-static TmdBone _gActor160900KyleMadiganHandRightSkeleton[1] = {
-#include "assets/kyle_madigan_hand_right_skeleton.inc"
-};
-
-static u32 _gActor160900KyleMadiganHandRightPartVerts[1] = {
-#include "assets/kyle_madigan_hand_right_partVerts.inc"
-};
-
-static SVECTOR _gActor160900KyleMadiganHandRightVerts[23] = {
-#include "assets/kyle_madigan_hand_right_verts.inc"
-};
-
-static SVECTOR _gActor160900KyleMadiganHandRightNormals[23] = {
-#include "assets/kyle_madigan_hand_right_normals.inc"
-};
-
-static u32 _gActor160900KyleMadiganHandRightStream[166] = {
-#include "assets/kyle_madigan_hand_right_stream.inc"
-};
-
-static TmdSource _gActor160900KyleMadiganHandRight = {
-    0,
-    1148,
-    0,
-    1,
-    _gActor160900KyleMadiganHandRightPartVerts,
-    _gActor160900KyleMadiganHandRightVerts,
-    _gActor160900KyleMadiganHandRightNormals,
-    _gActor160900KyleMadiganHandRightSkeleton,
-    _gActor160900KyleMadiganHandRightStream,
-};
-
-static AnimationPackedPose _gActor160900Animation09138Bank1[39] = {
-#include "assets/actor_160900_animation_09138_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor160900Animation09138Bank4[364] = {
-#include "assets/actor_160900_animation_09138_bank4.inc"
-};
-
-static AnimationRecord _gActor160900Animation09138Records[441] = {
-#include "assets/actor_160900_animation_09138_records.inc"
-};
-
-static u16 _gActor160900Animation09138Indices[20] = {
-#include "assets/actor_160900_animation_09138_indices.inc"
-};
-
-static AnimationSet _gActor160900Animation09138 = {
-    _gActor160900Animation09138Records,
-    _gActor160900Animation09138Indices,
-    { NULL, _gActor160900Animation09138Bank1, NULL, NULL, _gActor160900Animation09138Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor160900Animation09D3CBank1[60] = {
-#include "assets/actor_160900_animation_09D3C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor160900Animation09D3CBank4[241] = {
-#include "assets/actor_160900_animation_09D3C_bank4.inc"
-};
-
-static AnimationRecord _gActor160900Animation09D3CRecords[328] = {
-#include "assets/actor_160900_animation_09D3C_records.inc"
-};
-
-static u16 _gActor160900Animation09D3CIndices[20] = {
-#include "assets/actor_160900_animation_09D3C_indices.inc"
-};
-
-static AnimationSet _gActor160900Animation09D3C = {
-    _gActor160900Animation09D3CRecords,
-    _gActor160900Animation09D3CIndices,
-    { NULL, _gActor160900Animation09D3CBank1, NULL, NULL, _gActor160900Animation09D3CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor160900Animation0A35CBank1[18] = {
-#include "assets/actor_160900_animation_0A35C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor160900Animation0A35CBank4[86] = {
-#include "assets/actor_160900_animation_0A35C_bank4.inc"
-};
-
-static AnimationRecord _gActor160900Animation0A35CRecords[232] = {
-#include "assets/actor_160900_animation_0A35C_records.inc"
-};
-
-static u16 _gActor160900Animation0A35CIndices[20] = {
-#include "assets/actor_160900_animation_0A35C_indices.inc"
-};
-
-static AnimationSet _gActor160900Animation0A35C = {
-    _gActor160900Animation0A35CRecords,
-    _gActor160900Animation0A35CIndices,
-    { NULL, _gActor160900Animation0A35CBank1, NULL, NULL, _gActor160900Animation0A35CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor160900Animation0A7F0Bank1[10] = {
-#include "assets/actor_160900_animation_0A7F0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor160900Animation0A7F0Bank4[71] = {
-#include "assets/actor_160900_animation_0A7F0_bank4.inc"
-};
-
-static AnimationRecord _gActor160900Animation0A7F0Records[172] = {
-#include "assets/actor_160900_animation_0A7F0_records.inc"
-};
-
-static u16 _gActor160900Animation0A7F0Indices[20] = {
-#include "assets/actor_160900_animation_0A7F0_indices.inc"
-};
-
-static AnimationSet _gActor160900Animation0A7F0 = {
-    _gActor160900Animation0A7F0Records,
-    _gActor160900Animation0A7F0Indices,
-    { NULL, _gActor160900Animation0A7F0Bank1, NULL, NULL, _gActor160900Animation0A7F0Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor160900Animation0A9A8Bank1[3] = {
-#include "assets/actor_160900_animation_0A9A8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor160900Animation0A9A8Bank4[24] = {
-#include "assets/actor_160900_animation_0A9A8_bank4.inc"
-};
-
-static AnimationRecord _gActor160900Animation0A9A8Records[57] = {
-#include "assets/actor_160900_animation_0A9A8_records.inc"
-};
-
-static u16 _gActor160900Animation0A9A8Indices[20] = {
-#include "assets/actor_160900_animation_0A9A8_indices.inc"
-};
-
-static AnimationSet _gActor160900Animation0A9A8 = {
-    _gActor160900Animation0A9A8Records,
-    _gActor160900Animation0A9A8Indices,
-    { NULL, _gActor160900Animation0A9A8Bank1, NULL, NULL, _gActor160900Animation0A9A8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor160900Animation0AB80Bank1[2] = {
-#include "assets/actor_160900_animation_0AB80_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor160900Animation0AB80Bank4[16] = {
-#include "assets/actor_160900_animation_0AB80_bank4.inc"
-};
-
-static AnimationRecord _gActor160900Animation0AB80Records[76] = {
-#include "assets/actor_160900_animation_0AB80_records.inc"
-};
-
-static u16 _gActor160900Animation0AB80Indices[20] = {
-#include "assets/actor_160900_animation_0AB80_indices.inc"
-};
-
-static AnimationSet _gActor160900Animation0AB80 = {
-    _gActor160900Animation0AB80Records,
-    _gActor160900Animation0AB80Indices,
-    { NULL, _gActor160900Animation0AB80Bank1, NULL, NULL, _gActor160900Animation0AB80Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor160900Animation0BA0CBank1[37] = {
-#include "assets/actor_160900_animation_0BA0C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor160900Animation0BA0CBank4[358] = {
-#include "assets/actor_160900_animation_0BA0C_bank4.inc"
-};
-
-static AnimationRecord _gActor160900Animation0BA0CRecords[442] = {
-#include "assets/actor_160900_animation_0BA0C_records.inc"
-};
-
-static u16 _gActor160900Animation0BA0CIndices[20] = {
-#include "assets/actor_160900_animation_0BA0C_indices.inc"
-};
-
-static AnimationSet _gActor160900Animation0BA0C = {
-    _gActor160900Animation0BA0CRecords,
-    _gActor160900Animation0BA0CIndices,
-    { NULL, _gActor160900Animation0BA0CBank1, NULL, NULL, _gActor160900Animation0BA0CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor160900Animation0BD10Bank1[6] = {
-#include "assets/actor_160900_animation_0BD10_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor160900Animation0BD10Bank4[46] = {
-#include "assets/actor_160900_animation_0BD10_bank4.inc"
-};
-
-static AnimationRecord _gActor160900Animation0BD10Records[109] = {
-#include "assets/actor_160900_animation_0BD10_records.inc"
-};
-
-static u16 _gActor160900Animation0BD10Indices[20] = {
-#include "assets/actor_160900_animation_0BD10_indices.inc"
-};
-
-static AnimationSet _gActor160900Animation0BD10 = {
-    _gActor160900Animation0BD10Records,
-    _gActor160900Animation0BD10Indices,
-    { NULL, _gActor160900Animation0BD10Bank1, NULL, NULL, _gActor160900Animation0BD10Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor160900Animation0C028Bank1[7] = {
-#include "assets/actor_160900_animation_0C028_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor160900Animation0C028Bank4[54] = {
-#include "assets/actor_160900_animation_0C028_bank4.inc"
-};
-
-static AnimationRecord _gActor160900Animation0C028Records[103] = {
-#include "assets/actor_160900_animation_0C028_records.inc"
-};
-
-static u16 _gActor160900Animation0C028Indices[20] = {
-#include "assets/actor_160900_animation_0C028_indices.inc"
-};
-
-static AnimationSet _gActor160900Animation0C028 = {
-    _gActor160900Animation0C028Records,
-    _gActor160900Animation0C028Indices,
-    { NULL, _gActor160900Animation0C028Bank1, NULL, NULL, _gActor160900Animation0C028Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor160900Animation0C774Bank1[6] = {
-#include "assets/actor_160900_animation_0C774_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor160900Animation0C774Bank4[187] = {
-#include "assets/actor_160900_animation_0C774_bank4.inc"
-};
-
-static AnimationRecord _gActor160900Animation0C774Records[242] = {
-#include "assets/actor_160900_animation_0C774_records.inc"
-};
-
-static u16 _gActor160900Animation0C774Indices[20] = {
-#include "assets/actor_160900_animation_0C774_indices.inc"
-};
-
-static AnimationSet _gActor160900Animation0C774 = {
-    _gActor160900Animation0C774Records,
-    _gActor160900Animation0C774Indices,
-    { NULL, _gActor160900Animation0C774Bank1, NULL, NULL, _gActor160900Animation0C774Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor160900Animation0CA18Bank1[2] = {
-#include "assets/actor_160900_animation_0CA18_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor160900Animation0CA18Bank4[49] = {
-#include "assets/actor_160900_animation_0CA18_bank4.inc"
-};
-
-static AnimationRecord _gActor160900Animation0CA18Records[94] = {
-#include "assets/actor_160900_animation_0CA18_records.inc"
-};
-
-static u16 _gActor160900Animation0CA18Indices[20] = {
-#include "assets/actor_160900_animation_0CA18_indices.inc"
-};
-
-static AnimationSet _gActor160900Animation0CA18 = {
-    _gActor160900Animation0CA18Records,
-    _gActor160900Animation0CA18Indices,
-    { NULL, _gActor160900Animation0CA18Bank1, NULL, NULL, _gActor160900Animation0CA18Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor160900Animation0CDF4Bank1[4] = {
-#include "assets/actor_160900_animation_0CDF4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor160900Animation0CDF4Bank4[56] = {
-#include "assets/actor_160900_animation_0CDF4_bank4.inc"
-};
-
-static AnimationRecord _gActor160900Animation0CDF4Records[159] = {
-#include "assets/actor_160900_animation_0CDF4_records.inc"
-};
-
-static u16 _gActor160900Animation0CDF4Indices[20] = {
-#include "assets/actor_160900_animation_0CDF4_indices.inc"
-};
-
-static AnimationSet _gActor160900Animation0CDF4 = {
-    _gActor160900Animation0CDF4Records,
-    _gActor160900Animation0CDF4Indices,
-    { NULL, _gActor160900Animation0CDF4Bank1, NULL, NULL, _gActor160900Animation0CDF4Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor160900Animation0D334Bank1[9] = {
-#include "assets/actor_160900_animation_0D334_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor160900Animation0D334Bank4[124] = {
-#include "assets/actor_160900_animation_0D334_bank4.inc"
-};
-
-static AnimationRecord _gActor160900Animation0D334Records[165] = {
-#include "assets/actor_160900_animation_0D334_records.inc"
-};
-
-static u16 _gActor160900Animation0D334Indices[20] = {
-#include "assets/actor_160900_animation_0D334_indices.inc"
-};
-
-static AnimationSet _gActor160900Animation0D334 = {
-    _gActor160900Animation0D334Records,
-    _gActor160900Animation0D334Indices,
-    { NULL, _gActor160900Animation0D334Bank1, NULL, NULL, _gActor160900Animation0D334Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/shelter/b1_pod_service_gantry/kyle_clips.inc"
 
 /// Screen-wave spawn recipe at index 0, followed by a descriptor terminator.
 ///
@@ -666,28 +262,13 @@ static s32 _gScreenWaveAmplitude = 256;
 /// Playback borrows these loaded sets and their twenty-part track data.
 /// `_gActor160900PlayerAnimationChain` uses the same indices; the equipped
 /// weapon's animation bank replaces them when Aya walks away.
-static AnimationSet* _gActor160900PlayerAnimationSets[11] = {
-    &_gActor160900Animation0BD10,
-    &_gActor160900Animation09138,
-    &_gActor160900Animation09D3C,
-    &_gActor160900Animation0A35C,
-    &_gActor160900Animation0A7F0,
-    &_gActor160900Animation0A9A8,
-    &_gActor160900Animation0BA0C,
-    &_gActor160900Animation0CA18,
-    &_gActor160900Animation0C774,
-    &_gActor160900Animation0C028,
-    &_gActor160900Animation0AB80,
-};
+#include "assets/rooms/shelter/b1_pod_service_gantry/player_bank.inc"
 
 /// Kyle's body clips 0 and 1, borrowed by its twenty-part animation rig.
 ///
 /// Clip zero starts on initialization; the reveal sequence requests clip one.
 /// The table and both sets must remain loaded through body playback.
-static AnimationSet* _gActor160900KyleAnimationSets[2] = {
-    &_gActor160900Animation0CDF4,
-    &_gActor160900Animation0D334,
-};
+#include "assets/rooms/shelter/b1_pod_service_gantry/kyle_bank.inc"
 
 /// Successors of Aya's clips 0..10, each selected after playback finishes.
 ///
@@ -968,10 +549,10 @@ TaskDesc gActor160900TaskDescriptors[8] = {
     { { { TASK_BODY_NONE, 192 } }, _actor160900CutsceneTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _actor160900FadeInTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _actor160900FadeOutTask, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor160900KyleBodyTask, { .model = &_gActor160900KyleMadiganBody } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor160900KyleAttachmentTask, { .model = &_gActor160900KyleMadiganGun } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor160900KyleAttachmentTask, { .model = &_gActor160900KyleMadiganLeft } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor160900KyleAttachmentTask, { .model = &_gActor160900KyleMadiganHandRight } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor160900KyleBodyTask, { .model = &gKyleBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor160900KyleAttachmentTask, { .model = &gKyleP229 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor160900KyleAttachmentTask, { .model = &gKyleHandLeft2 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor160900KyleAttachmentTask, { .model = &gKyleHandRight } },
     { { { TASK_BODY_COORD, 192 } }, _actor160900DrawLightQuadTask, { .value = 0 } },
 };
 

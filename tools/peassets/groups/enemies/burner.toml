@@ -1,0 +1,425 @@
+# The assets of the group enemies/burner, each named enemies/burner/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = [
+    "root",
+    "lower_trunk",
+    "middle_trunk",
+    "head",
+    "jaw",
+    "upper_arm",
+    "forearm",
+    "hand",
+    "claw",
+    "joint_9",
+    "joint_10",
+    "joint_11",
+    "joint_12",
+    "joint_13",
+    "joint_14",
+]
+
+[bank]
+type = "animation_bank"
+schema = "enemies/burner/schema"
+symbol = "_gActor403100AnimationSets"
+
+[bank.clips]
+walk = "enemies/burner/walk"
+arm_swing = "enemies/burner/arm_swing"
+impact = "enemies/burner/impact"
+arm_attack = "enemies/burner/arm_attack"
+arm_recovery = "enemies/burner/arm_recovery"
+slot_6 = "enemies/burner/anim_06"
+flame_breath = "enemies/burner/flame_breath"
+grab = "enemies/burner/grab"
+grab_reach = "enemies/burner/grab_reach"
+stagger = "enemies/burner/stagger"
+held_lift = "enemies/burner/held_lift"
+squeeze = "enemies/burner/squeeze"
+squeeze_hit = "enemies/burner/squeeze_hit"
+throw = "enemies/burner/throw"
+slot_15 = "enemies/burner/anim_15"
+low_health_scene = "enemies/burner/low_health_scene"
+defeat = "enemies/burner/defeat"
+slot_18 = "enemies/burner/anim_18"
+scene_turn = "enemies/burner/scene_turn"
+flame_retreat = "enemies/burner/flame_retreat"
+retreat_recovery = "enemies/burner/retreat_recovery"
+retreat_walk = "enemies/burner/retreat_walk"
+slot_23 = "enemies/burner/anim_23"
+departure = "enemies/burner/departure"
+
+[body]
+type = "model"
+rig = "enemies/burner/rig"
+slots = ["page_2", "page_3", "page_1", "page_4"]
+symbol = "_gBurnerBody"
+sha1 = "3e41398e896535eb1f2962faa20a60b13c0fb1b5"
+
+[grab]
+type = "clip"
+rig = "enemies/burner/rig"
+
+[hurt]
+type = "sound"
+sha1 = "3f989234e929be7f7a00190bffa61a4c5bad3ea3"
+
+[roar]
+type = "sound"
+sha1 = "4271e6bf99be778d8c4198eb9ba828b916043629"
+
+[step]
+type = "sound"
+sha1 = "ab793a0211aaa31cda34607c48b93b337c4b28f1"
+
+[walk]
+type = "clip"
+rig = "enemies/burner/rig"
+
+[flame]
+type = "sound"
+sha1 = "fcf4c7344cbf4f19869505f1bc499e7b015e830a"
+
+[throw]
+type = "clip"
+rig = "enemies/burner/rig"
+
+[defeat]
+type = "clip"
+rig = "enemies/burner/rig"
+
+[impact]
+type = "clip"
+rig = "enemies/burner/rig"
+
+[schema]
+type = "animation_schema"
+slots = [
+    "",
+    "walk",
+    "arm_swing",
+    "impact",
+    "arm_attack",
+    "arm_recovery",
+    "slot_6",
+    "flame_breath",
+    "grab",
+    "grab_reach",
+    "stagger",
+    "held_lift",
+    "squeeze",
+    "squeeze_hit",
+    "throw",
+    "slot_15",
+    "low_health_scene",
+    "defeat",
+    "slot_18",
+    "scene_turn",
+    "flame_retreat",
+    "retreat_recovery",
+    "retreat_walk",
+    "slot_23",
+    "departure",
+]
+
+[sounds]
+type = "sound_bank"
+samples = [
+    "enemies/burner/flame",
+    "enemies/burner/roar",
+    "enemies/burner/step",
+    "enemies/burner/arm_impact",
+    "enemies/burner/throw_recover",
+    "enemies/burner/drag_reach",
+    "enemies/burner/hurt",
+    "enemies/burner/defeat_cry",
+    "enemies/burner/throw_impact",
+]
+sha1 = "fb879eea19f84d36f04b49c23e9ba45ddd5e2268"
+
+[sounds.sounds]
+step = 1
+roar = 2
+arm_impact = 3
+flame = 4
+roar_2 = 5
+throw_impact = 6
+throw_recover = 7
+drag_reach = 8
+hurt = 9
+scene_cry = 11
+squeeze = 12
+held_growl = 13
+held_slam = 14
+throw = 15
+
+[anim_06]
+type = "clip"
+rig = "enemies/burner/rig"
+
+[anim_15]
+type = "clip"
+rig = "enemies/burner/rig"
+
+[anim_18]
+type = "clip"
+rig = "enemies/burner/rig"
+
+[anim_23]
+type = "clip"
+rig = "enemies/burner/rig"
+
+[package]
+type = "pe2pkg"
+embedded = [
+    { name = "body", offset = 0x0D9A4, size = 0x7E50, address = 0x8013F7C4 },
+    { name = "walk", offset = 0x1581C, size = 0x3BC, address = 0x8014763C },
+    { name = "arm_swing", offset = 0x15BD8, size = 0x81C, address = 0x801479F8 },
+    { name = "impact", offset = 0x163F4, size = 0x6B4, address = 0x80148214 },
+    { name = "arm_attack", offset = 0x16AA8, size = 0x7D8, address = 0x801488C8 },
+    { name = "arm_recovery", offset = 0x17280, size = 0x32C, address = 0x801490A0 },
+    { name = "anim_06", offset = 0x175AC, size = 0x10C, address = 0x801493CC },
+    { name = "flame_breath", offset = 0x176B8, size = 0xA48, address = 0x801494D8 },
+    { name = "grab", offset = 0x18100, size = 0x9B0, address = 0x80149F20 },
+    { name = "grab_reach", offset = 0x18AB0, size = 0xD50, address = 0x8014A8D0 },
+    { name = "stagger", offset = 0x19800, size = 0x4B8, address = 0x8014B620 },
+    { name = "held_lift", offset = 0x19CB8, size = 0x2F8, address = 0x8014BAD8 },
+    { name = "squeeze", offset = 0x19FB0, size = 0x1B0, address = 0x8014BDD0 },
+    { name = "squeeze_hit", offset = 0x1A160, size = 0x1E0, address = 0x8014BF80 },
+    { name = "throw", offset = 0x1A340, size = 0x4A8, address = 0x8014C160 },
+    { name = "anim_15", offset = 0x1A7E8, size = 0x20C, address = 0x8014C608 },
+    { name = "player_held", offset = 0x1A9F4, size = 0x580, address = 0x8014C814 },
+    { name = "player_thrown", offset = 0x1AF74, size = 0xC28, address = 0x8014CD94 },
+    { name = "player_dragged", offset = 0x1BB9C, size = 0x138, address = 0x8014D9BC },
+    { name = "player_held_death", offset = 0x1BCD4, size = 0x594, address = 0x8014DAF4 },
+    { name = "player_arm_hit", offset = 0x1C268, size = 0xBB0, address = 0x8014E088 },
+    { name = "player_thrown_death", offset = 0x1CE18, size = 0xAFC, address = 0x8014EC38 },
+    { name = "low_health_scene", offset = 0x1D914, size = 0xD14, address = 0x8014F734 },
+    { name = "scene_turn", offset = 0x1E628, size = 0x1478, address = 0x80150448 },
+    { name = "defeat", offset = 0x1FAA0, size = 0x58C, address = 0x801518C0 },
+    { name = "anim_18", offset = 0x2002C, size = 0x148, address = 0x80151E4C },
+    { name = "flame_retreat", offset = 0x20174, size = 0x4D8, address = 0x80151F94 },
+    { name = "retreat_recovery", offset = 0x2064C, size = 0x4B0, address = 0x8015246C },
+    { name = "retreat_walk", offset = 0x20AFC, size = 0x4D0, address = 0x8015291C },
+    { name = "anim_23", offset = 0x20FCC, size = 0x488, address = 0x80152DEC },
+    { name = "departure", offset = 0x21454, size = 0x500, address = 0x80153274 },
+    "actor_403100_image_21954",
+    { name = "player_bank", offset = 0x238EC, size = 0x20, address = 0x8015570C },
+    { name = "bank", offset = 0x2390C, size = 0x68, address = 0x8015572C },
+]
+package_name = "actor_403100"
+required = true
+sha1 = "da858de1f8bb77f25ad4b2dd33ef01758999e1df"
+
+[squeeze]
+type = "clip"
+rig = "enemies/burner/rig"
+
+[stagger]
+type = "clip"
+rig = "enemies/burner/rig"
+
+[arm_swing]
+type = "clip"
+rig = "enemies/burner/rig"
+
+[departure]
+type = "clip"
+rig = "enemies/burner/rig"
+
+[held_lift]
+type = "clip"
+rig = "enemies/burner/rig"
+
+[arm_attack]
+type = "clip"
+rig = "enemies/burner/rig"
+
+[arm_impact]
+type = "sound"
+sha1 = "55061f514ff55316d360ca38506a126649238917"
+
+[defeat_cry]
+type = "sound"
+mode = "high"
+sha1 = "86fff91d2becc27248533a25a88a7730063edec3"
+
+[drag_reach]
+type = "sound"
+sha1 = "3adfc08506f0906290892bc20c4f3e2fa555309e"
+
+[grab_reach]
+type = "clip"
+rig = "enemies/burner/rig"
+
+[scene_turn]
+type = "clip"
+rig = "enemies/burner/rig"
+
+[player_bank]
+type = "animation_bank"
+schema = "enemies/burner/player_schema"
+symbol = "_gActor403100PlayerAnimationSets"
+
+[player_bank.clips]
+player_held = "enemies/burner/player_held"
+player_thrown = "enemies/burner/player_thrown"
+player_dragged = "enemies/burner/player_dragged"
+player_arm_hit = "enemies/burner/player_arm_hit"
+player_held_death = "enemies/burner/player_held_death"
+player_thrown_death = "enemies/burner/player_thrown_death"
+
+[player_held]
+type = "clip"
+rig = "characters/aya/rig"
+
+[squeeze_hit]
+type = "clip"
+rig = "enemies/burner/rig"
+
+[arm_recovery]
+type = "clip"
+rig = "enemies/burner/rig"
+
+[body_binding]
+type = "binding"
+model = "enemies/burner/body"
+
+[body_binding.textures]
+page_2 = "enemies/burner/texture_page_2.default"
+page_3 = "enemies/burner/texture_page_3.default"
+page_1 = "enemies/burner/texture_page_1.default"
+page_4 = "enemies/burner/texture_page_4.default"
+
+[flame_breath]
+type = "clip"
+rig = "enemies/burner/rig"
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+chunk = "sounds"
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "652c1741c31eb0bb2671d95b96220c1836409803"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+    { texture = "texture_page_3", region = "engine/vram/actor_sheet", offset = [128, 0] },
+    { texture = "texture_page_4", region = "engine/vram/actor_sheet", offset = [192, 0] },
+]
+slots = 6
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "69430b3709ead59e85cf0f577d79e08fb46d5247"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_file.contents]]
+chunk = "palette_2"
+sha1 = "da468b81a5e93d57d32d46529d44375a0b0b4095"
+palettes = [{ texture = "texture_page_3", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 2] }]
+
+[[package_file.contents]]
+chunk = "palette_3"
+sha1 = "e5b2c852b15912133c906b6007b77cb1e390b831"
+palettes = [
+    { texture = "texture_page_4", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 3] },
+    { name = "unread_row_2", entries = 256, region = "engine/vram/actor_palettes", offset = [0, 4] },
+]
+
+[[package_file.contents]]
+chunk = "package"
+
+[retreat_walk]
+type = "clip"
+rig = "enemies/burner/rig"
+
+[throw_impact]
+type = "sound"
+sha1 = "4d5356724449bc8128cff2902f1b23130a480e17"
+
+[flame_retreat]
+type = "clip"
+rig = "enemies/burner/rig"
+
+[player_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "player_held",
+    "player_thrown",
+    "player_dragged",
+    "",
+    "player_arm_hit",
+    "player_held_death",
+    "player_thrown_death",
+]
+
+[player_thrown]
+type = "clip"
+rig = "characters/aya/rig"
+
+[throw_recover]
+type = "sound"
+sha1 = "19f04f5e43cfb3d0b37b1bd0192fa443c2e7699a"
+
+[player_arm_hit]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_dragged]
+type = "clip"
+rig = "characters/aya/rig"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_3]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_4]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[low_health_scene]
+type = "clip"
+rig = "enemies/burner/rig"
+
+[retreat_recovery]
+type = "clip"
+rig = "enemies/burner/rig"
+
+[player_held_death]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_thrown_death]
+type = "clip"
+rig = "characters/aya/rig"

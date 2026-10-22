@@ -51,22 +51,22 @@ static s32 _gActor450900PlayerResponseCount;
 /// it. Script callbacks require any non-NULL handle to still name a live task.
 static Task* _gActor450900HeadAimTask;
 
-static AnimationSet _gActor450900Animation00F80;
-static AnimationSet _gActor450900Animation012D8;
-static AnimationSet _gActor450900Animation0176C;
-static AnimationSet _gActor450900Animation01934;
-static AnimationSet _gActor450900Animation01B50;
-static AnimationSet _gActor450900Animation01D04;
-static AnimationSet _gActor450900Animation020EC;
-static AnimationSet _gActor450900Animation02428;
-static AnimationSet _gActor450900Animation025F0;
-static AnimationSet _gActor450900Animation02A30;
-static AnimationSet _gActor450900Animation030F4;
-static AnimationSet _gActor450900Animation03338;
-static AnimationSet _gActor450900Animation03738;
-static AnimationSet _gActor450900Animation03934;
-static AnimationSet _gActor450900Animation03C70;
-static AnimationSet _gActor450900Animation04028;
+static AnimationSet _gShelterB6NurseryCompanionDistressClip;
+static AnimationSet _gShelterB6NurseryCompanionConversationReactionClip;
+static AnimationSet _gShelterB6NurseryCompanionHurryUpClip;
+static AnimationSet _gShelterB6GrowthRoomCompanionAnim03Clip;
+static AnimationSet _gShelterB6GrowthRoomCompanionPostChoiceClip;
+static AnimationSet _gShelterB6GrowthRoomCompanionConversationClip;
+static AnimationSet _gAyaShooting1Clip;
+static AnimationSet _gAyaShooting2Clip;
+static AnimationSet _gAyaThisWayReplyClip;
+static AnimationSet _gAyaHurryUpClip;
+static AnimationSet _gShelterB6GrowthRoomPlayerResponseClip;
+static AnimationSet _gShelterB6GrowthRoomPlayerEntryClip;
+static AnimationSet _gShelterB6GrowthRoomPlayerChoiceStartClip;
+static AnimationSet _gAyaTurnPaleClip;
+static AnimationSet _gAyaItsNothingClip;
+static AnimationSet _gAyaConverseClip;
 
 // Request templates resolve their initial bank selector before playback. Extended
 // clip ids index the tables installed at ANIMATION_BANK_BASE_SET_COUNT.
@@ -132,357 +132,7 @@ static void _actor450900SetActorControl(u8 actorControl);
 static void _actor450900PlayCompanionVoice(s32 voiceSelector);
 static void _actor450900PreparePlayerFacingCompanion(void);
 
-static AnimationPackedPose _gActor450900Animation00F80Bank1[5] = {
-#include "assets/actor_450900_animation_00F80_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450900Animation00F80Bank4[101] = {
-#include "assets/actor_450900_animation_00F80_bank4.inc"
-};
-
-static AnimationRecord _gActor450900Animation00F80Records[193] = {
-#include "assets/actor_450900_animation_00F80_records.inc"
-};
-
-static u16 _gActor450900Animation00F80Indices[20] = {
-#include "assets/actor_450900_animation_00F80_indices.inc"
-};
-
-static AnimationSet _gActor450900Animation00F80 = {
-    _gActor450900Animation00F80Records,
-    _gActor450900Animation00F80Indices,
-    { NULL, _gActor450900Animation00F80Bank1, NULL, NULL, _gActor450900Animation00F80Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450900Animation012D8Bank1[4] = {
-#include "assets/actor_450900_animation_012D8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450900Animation012D8Bank4[41] = {
-#include "assets/actor_450900_animation_012D8_bank4.inc"
-};
-
-static AnimationRecord _gActor450900Animation012D8Records[141] = {
-#include "assets/actor_450900_animation_012D8_records.inc"
-};
-
-static u16 _gActor450900Animation012D8Indices[20] = {
-#include "assets/actor_450900_animation_012D8_indices.inc"
-};
-
-static AnimationSet _gActor450900Animation012D8 = {
-    _gActor450900Animation012D8Records,
-    _gActor450900Animation012D8Indices,
-    { NULL, _gActor450900Animation012D8Bank1, NULL, NULL, _gActor450900Animation012D8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450900Animation0176CBank1[8] = {
-#include "assets/actor_450900_animation_0176C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450900Animation0176CBank4[90] = {
-#include "assets/actor_450900_animation_0176C_bank4.inc"
-};
-
-static AnimationRecord _gActor450900Animation0176CRecords[159] = {
-#include "assets/actor_450900_animation_0176C_records.inc"
-};
-
-static u16 _gActor450900Animation0176CIndices[20] = {
-#include "assets/actor_450900_animation_0176C_indices.inc"
-};
-
-static AnimationSet _gActor450900Animation0176C = {
-    _gActor450900Animation0176CRecords,
-    _gActor450900Animation0176CIndices,
-    { NULL, _gActor450900Animation0176CBank1, NULL, NULL, _gActor450900Animation0176CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450900Animation01934Bank1[2] = {
-#include "assets/actor_450900_animation_01934_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450900Animation01934Bank4[21] = {
-#include "assets/actor_450900_animation_01934_bank4.inc"
-};
-
-static AnimationRecord _gActor450900Animation01934Records[67] = {
-#include "assets/actor_450900_animation_01934_records.inc"
-};
-
-static u16 _gActor450900Animation01934Indices[20] = {
-#include "assets/actor_450900_animation_01934_indices.inc"
-};
-
-static AnimationSet _gActor450900Animation01934 = {
-    _gActor450900Animation01934Records,
-    _gActor450900Animation01934Indices,
-    { NULL, _gActor450900Animation01934Bank1, NULL, NULL, _gActor450900Animation01934Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450900Animation01B50Bank1[2] = {
-#include "assets/actor_450900_animation_01B50_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450900Animation01B50Bank4[28] = {
-#include "assets/actor_450900_animation_01B50_bank4.inc"
-};
-
-static AnimationRecord _gActor450900Animation01B50Records[81] = {
-#include "assets/actor_450900_animation_01B50_records.inc"
-};
-
-static u16 _gActor450900Animation01B50Indices[20] = {
-#include "assets/actor_450900_animation_01B50_indices.inc"
-};
-
-static AnimationSet _gActor450900Animation01B50 = {
-    _gActor450900Animation01B50Records,
-    _gActor450900Animation01B50Indices,
-    { NULL, _gActor450900Animation01B50Bank1, NULL, NULL, _gActor450900Animation01B50Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450900Animation01D04Bank1[2] = {
-#include "assets/actor_450900_animation_01D04_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450900Animation01D04Bank4[21] = {
-#include "assets/actor_450900_animation_01D04_bank4.inc"
-};
-
-static AnimationRecord _gActor450900Animation01D04Records[62] = {
-#include "assets/actor_450900_animation_01D04_records.inc"
-};
-
-static u16 _gActor450900Animation01D04Indices[20] = {
-#include "assets/actor_450900_animation_01D04_indices.inc"
-};
-
-static AnimationSet _gActor450900Animation01D04 = {
-    _gActor450900Animation01D04Records,
-    _gActor450900Animation01D04Indices,
-    { NULL, _gActor450900Animation01D04Bank1, NULL, NULL, _gActor450900Animation01D04Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450900Animation020ECBank1[5] = {
-#include "assets/actor_450900_animation_020EC_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450900Animation020ECBank4[67] = {
-#include "assets/actor_450900_animation_020EC_bank4.inc"
-};
-
-static AnimationRecord _gActor450900Animation020ECRecords[148] = {
-#include "assets/actor_450900_animation_020EC_records.inc"
-};
-
-static u16 _gActor450900Animation020ECIndices[20] = {
-#include "assets/actor_450900_animation_020EC_indices.inc"
-};
-
-static AnimationSet _gActor450900Animation020EC = {
-    _gActor450900Animation020ECRecords,
-    _gActor450900Animation020ECIndices,
-    { NULL, _gActor450900Animation020ECBank1, NULL, NULL, _gActor450900Animation020ECBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450900Animation02428Bank1[3] = {
-#include "assets/actor_450900_animation_02428_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450900Animation02428Bank4[53] = {
-#include "assets/actor_450900_animation_02428_bank4.inc"
-};
-
-static AnimationRecord _gActor450900Animation02428Records[125] = {
-#include "assets/actor_450900_animation_02428_records.inc"
-};
-
-static u16 _gActor450900Animation02428Indices[20] = {
-#include "assets/actor_450900_animation_02428_indices.inc"
-};
-
-static AnimationSet _gActor450900Animation02428 = {
-    _gActor450900Animation02428Records,
-    _gActor450900Animation02428Indices,
-    { NULL, _gActor450900Animation02428Bank1, NULL, NULL, _gActor450900Animation02428Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450900Animation025F0Bank1[2] = {
-#include "assets/actor_450900_animation_025F0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450900Animation025F0Bank4[23] = {
-#include "assets/actor_450900_animation_025F0_bank4.inc"
-};
-
-static AnimationRecord _gActor450900Animation025F0Records[65] = {
-#include "assets/actor_450900_animation_025F0_records.inc"
-};
-
-static u16 _gActor450900Animation025F0Indices[20] = {
-#include "assets/actor_450900_animation_025F0_indices.inc"
-};
-
-static AnimationSet _gActor450900Animation025F0 = {
-    _gActor450900Animation025F0Records,
-    _gActor450900Animation025F0Indices,
-    { NULL, _gActor450900Animation025F0Bank1, NULL, NULL, _gActor450900Animation025F0Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450900Animation02A30Bank1[6] = {
-#include "assets/actor_450900_animation_02A30_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450900Animation02A30Bank4[89] = {
-#include "assets/actor_450900_animation_02A30_bank4.inc"
-};
-
-static AnimationRecord _gActor450900Animation02A30Records[145] = {
-#include "assets/actor_450900_animation_02A30_records.inc"
-};
-
-static u16 _gActor450900Animation02A30Indices[20] = {
-#include "assets/actor_450900_animation_02A30_indices.inc"
-};
-
-static AnimationSet _gActor450900Animation02A30 = {
-    _gActor450900Animation02A30Records,
-    _gActor450900Animation02A30Indices,
-    { NULL, _gActor450900Animation02A30Bank1, NULL, NULL, _gActor450900Animation02A30Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450900Animation030F4Bank1[4] = {
-#include "assets/actor_450900_animation_030F4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450900Animation030F4Bank4[151] = {
-#include "assets/actor_450900_animation_030F4_bank4.inc"
-};
-
-static AnimationRecord _gActor450900Animation030F4Records[250] = {
-#include "assets/actor_450900_animation_030F4_records.inc"
-};
-
-static u16 _gActor450900Animation030F4Indices[20] = {
-#include "assets/actor_450900_animation_030F4_indices.inc"
-};
-
-static AnimationSet _gActor450900Animation030F4 = {
-    _gActor450900Animation030F4Records,
-    _gActor450900Animation030F4Indices,
-    { NULL, _gActor450900Animation030F4Bank1, NULL, NULL, _gActor450900Animation030F4Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450900Animation03338Bank1[3] = {
-#include "assets/actor_450900_animation_03338_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450900Animation03338Bank4[28] = {
-#include "assets/actor_450900_animation_03338_bank4.inc"
-};
-
-static AnimationRecord _gActor450900Animation03338Records[88] = {
-#include "assets/actor_450900_animation_03338_records.inc"
-};
-
-static u16 _gActor450900Animation03338Indices[20] = {
-#include "assets/actor_450900_animation_03338_indices.inc"
-};
-
-static AnimationSet _gActor450900Animation03338 = {
-    _gActor450900Animation03338Records,
-    _gActor450900Animation03338Indices,
-    { NULL, _gActor450900Animation03338Bank1, NULL, NULL, _gActor450900Animation03338Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450900Animation03738Bank1[10] = {
-#include "assets/actor_450900_animation_03738_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450900Animation03738Bank4[85] = {
-#include "assets/actor_450900_animation_03738_bank4.inc"
-};
-
-static AnimationRecord _gActor450900Animation03738Records[121] = {
-#include "assets/actor_450900_animation_03738_records.inc"
-};
-
-static u16 _gActor450900Animation03738Indices[20] = {
-#include "assets/actor_450900_animation_03738_indices.inc"
-};
-
-static AnimationSet _gActor450900Animation03738 = {
-    _gActor450900Animation03738Records,
-    _gActor450900Animation03738Indices,
-    { NULL, _gActor450900Animation03738Bank1, NULL, NULL, _gActor450900Animation03738Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450900Animation03934Bank1[4] = {
-#include "assets/actor_450900_animation_03934_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450900Animation03934Bank4[17] = {
-#include "assets/actor_450900_animation_03934_bank4.inc"
-};
-
-static AnimationRecord _gActor450900Animation03934Records[78] = {
-#include "assets/actor_450900_animation_03934_records.inc"
-};
-
-static u16 _gActor450900Animation03934Indices[20] = {
-#include "assets/actor_450900_animation_03934_indices.inc"
-};
-
-static AnimationSet _gActor450900Animation03934 = {
-    _gActor450900Animation03934Records,
-    _gActor450900Animation03934Indices,
-    { NULL, _gActor450900Animation03934Bank1, NULL, NULL, _gActor450900Animation03934Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450900Animation03C70Bank1[8] = {
-#include "assets/actor_450900_animation_03C70_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450900Animation03C70Bank4[65] = {
-#include "assets/actor_450900_animation_03C70_bank4.inc"
-};
-
-static AnimationRecord _gActor450900Animation03C70Records[98] = {
-#include "assets/actor_450900_animation_03C70_records.inc"
-};
-
-static u16 _gActor450900Animation03C70Indices[20] = {
-#include "assets/actor_450900_animation_03C70_indices.inc"
-};
-
-static AnimationSet _gActor450900Animation03C70 = {
-    _gActor450900Animation03C70Records,
-    _gActor450900Animation03C70Indices,
-    { NULL, _gActor450900Animation03C70Bank1, NULL, NULL, _gActor450900Animation03C70Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor450900Animation04028Bank1[3] = {
-#include "assets/actor_450900_animation_04028_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor450900Animation04028Bank4[81] = {
-#include "assets/actor_450900_animation_04028_bank4.inc"
-};
-
-static AnimationRecord _gActor450900Animation04028Records[128] = {
-#include "assets/actor_450900_animation_04028_records.inc"
-};
-
-static u16 _gActor450900Animation04028Indices[20] = {
-#include "assets/actor_450900_animation_04028_indices.inc"
-};
-
-static AnimationSet _gActor450900Animation04028 = {
-    _gActor450900Animation04028Records,
-    _gActor450900Animation04028Indices,
-    { NULL, _gActor450900Animation04028Bank1, NULL, NULL, _gActor450900Animation04028Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/shelter/b6_growth_room/eve_distress_clips.inc"
 
 /// Records whether this distress task has reached an eligible distress update.
 ///
@@ -511,7 +161,7 @@ TaskDesc gActor450900Tasks[ACTOR_450900_TASK_COUNT] = {
 /// from the adjacent companion table, copy requests and play requests. Keep
 /// those objects in data order. Only the first ten copied words are clips;
 /// playback borrows their data until the installed animations are finished.
-static AnimationSet* _gActor450900PlayerAnimationSets[] = { &_gActor450900Animation020EC, &_gActor450900Animation02428, &_gActor450900Animation025F0, &_gActor450900Animation02A30, &_gActor450900Animation030F4, &_gActor450900Animation04028, &_gActor450900Animation03338, &_gActor450900Animation03738, &_gActor450900Animation03934, &_gActor450900Animation03C70 };
+#include "assets/rooms/shelter/b6_growth_room/player_bank.inc"
 
 /// Six playable companion clips installed at bank indices 47..52.
 ///
@@ -519,7 +169,7 @@ static AnimationSet* _gActor450900PlayerAnimationSets[] = { &_gActor450900Animat
 /// from the adjacent copy and play requests. Keep those objects in data order.
 /// Only the first six copied words are clips; playback borrows their data until
 /// the installed animations are finished.
-static AnimationSet* _gActor450900CompanionAnimationSets[] = { &_gActor450900Animation00F80, &_gActor450900Animation012D8, &_gActor450900Animation0176C, &_gActor450900Animation01934, &_gActor450900Animation01B50, &_gActor450900Animation01D04 };
+#include "assets/rooms/shelter/b6_growth_room/companion_bank.inc"
 
 /// Installs the companion's six clips and adjacent words into its 32-word bank extension.
 static AnimationBankCopyRequest _gActor450900CompanionAnimationBankCopy = { _gActor450900CompanionAnimationSets, ANIMATION_BANK_EXTENSION_CAPACITY };

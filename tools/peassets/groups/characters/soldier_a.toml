@@ -1,0 +1,139 @@
+# The assets of the group characters/soldier_a, each named characters/soldier_a/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = [
+    "joint_0",
+    "joint_1",
+    "joint_2",
+    "joint_3",
+    "joint_4",
+    "joint_5",
+    "joint_6",
+    "joint_7",
+    "joint_8",
+    "joint_9",
+    "joint_10",
+    "joint_11",
+    "joint_12",
+    "joint_13",
+    "joint_14",
+    "joint_15",
+    "joint_16",
+    "joint_17",
+    "joint_18",
+    "joint_19",
+]
+
+[body]
+type = "model"
+rig = "characters/soldier_a/rig"
+slots = ["page_2", "page_1"]
+symbol = "_gSoldierABody"
+sha1 = "129cde190c2978e8c32005a1ea2e2c8c0cc45984"
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "f610e227cdce58ee8d4bed087353614e2ae370b5"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "74a07401484a33561b46704550eb442753558ae2"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[file.contents]]
+asset = "rooms/shelter/b1_sterilization_room/soldier"
+
+[idle]
+type = "clip"
+rig = "characters/soldier_a/rig"
+
+[rest]
+type = "clip"
+rig = "characters/soldier_a/rig"
+
+[anim_13]
+type = "clip"
+rig = "characters/soldier_a/rig"
+
+[anim_14]
+type = "clip"
+rig = "characters/soldier_a/rig"
+
+[anim_15]
+type = "clip"
+rig = "characters/soldier_a/rig"
+
+[get_out]
+type = "clip"
+rig = "characters/soldier_a/rig"
+
+[you_sure]
+type = "clip"
+rig = "characters/soldier_a/rig"
+
+[dont_worry]
+type = "clip"
+rig = "characters/soldier_a/rig"
+
+[hiya_flint]
+type = "clip"
+rig = "characters/soldier_a/rig"
+
+[whos_there]
+type = "clip"
+rig = "characters/soldier_a/rig"
+
+[body_binding]
+type = "binding"
+model = "characters/soldier_a/body"
+
+[body_binding.textures]
+page_2 = "characters/soldier_a/texture_page_2.default"
+page_1 = "characters/soldier_a/texture_page_1.default"
+
+[not_that_way]
+type = "clip"
+rig = "characters/soldier_a/rig"
+
+[dont_worry_end]
+type = "clip"
+rig = "characters/soldier_a/rig"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[sterilization_2]
+type = "clip"
+rig = "characters/soldier_a/rig"
+
+[sterilization_13]
+type = "clip"
+rig = "characters/soldier_a/rig"
+
+[sterilization_13_end]
+type = "clip"
+rig = "characters/soldier_a/rig"

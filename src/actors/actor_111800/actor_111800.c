@@ -81,40 +81,10 @@ typedef struct {
 } _Actor111800Work;
 STATIC_ASSERT_SIZEOF(_Actor111800Work, 0x498);
 
-static TmdSource _gActor111800GrinningStrangerBody;
+static TmdSource _gStrangerGrinningBody;
 static void      _actor111800GrinningStrangerTask(Task* task);
 
-static TmdBone _gActor111800GrinningStrangerBodySkeleton[19] = {
-#include "assets/grinning_stranger_body_skeleton.inc"
-};
-
-static u32 _gActor111800GrinningStrangerBodyPartVerts[19] = {
-#include "assets/grinning_stranger_body_partVerts.inc"
-};
-
-static SVECTOR _gActor111800GrinningStrangerBodyVerts[306] = {
-#include "assets/grinning_stranger_body_verts.inc"
-};
-
-static SVECTOR _gActor111800GrinningStrangerBodyNormals[365] = {
-#include "assets/grinning_stranger_body_normals.inc"
-};
-
-static u32 _gActor111800GrinningStrangerBodyStream[3988] = {
-#include "assets/grinning_stranger_body_stream.inc"
-};
-
-static TmdSource _gActor111800GrinningStrangerBody = {
-    0,
-    20032,
-    7672,
-    19,
-    _gActor111800GrinningStrangerBodyPartVerts,
-    _gActor111800GrinningStrangerBodyVerts,
-    _gActor111800GrinningStrangerBodyNormals,
-    _gActor111800GrinningStrangerBodySkeleton,
-    _gActor111800GrinningStrangerBodyStream,
-};
+#include "assets/enemies/stranger/grinning/body.inc"
 
 static AnimationPackedPose _gActor111800Animation065FCBank1[4] = {
 #include "assets/actor_111800_animation_065FC_bank1.inc"
@@ -247,7 +217,7 @@ enum { ACTOR_111800_STRANGER_TASK_PRIORITY = 192 };
 TaskDesc gActor111800GrinningStrangerTaskDesc = {
     .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_111800_STRANGER_TASK_PRIORITY } },
     .callback = _actor111800GrinningStrangerTask,
-    .data     = { .model = &_gActor111800GrinningStrangerBody },
+    .data     = { .model = &_gStrangerGrinningBody },
 };
 
 static inline void _actor111800TickAnim(Task* task);

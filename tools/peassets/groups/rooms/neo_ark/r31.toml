@@ -1,0 +1,123 @@
+# The assets of the group rooms/neo_ark/r31, each named rooms/neo_ark/r31/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[kyle_sit]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_and_eve]
+type = "pe2pkg"
+embedded = [
+    { name = "player_lie_unconscious", offset = 0x01E14, size = 0x280, address = 0x80133C34 },
+    { name = "scene_player_bank", offset = 0x0215C, size = 0x4, address = 0x80133F7C },
+    { asset = "characters/kyle/hand_right_2", offset = 0x07254, size = 0x3C8, address = 0x80139074 },
+    { asset = "characters/kyle/hand_left_3", offset = 0x0761C, size = 0x4F0, address = 0x8013943C },
+    { name = "kyle_sit", offset = 0x07B0C, size = 0x250, address = 0x8013992C },
+    { name = "kyle_sit_nod", offset = 0x07D5C, size = 0x224, address = 0x80139B7C },
+    { name = "kyle_sit_turn_head", offset = 0x07F80, size = 0x1B8, address = 0x80139DA0 },
+    { name = "kyle_walker_bank", offset = 0x08190, size = 0x18, address = 0x80139FB0 },
+    { asset = "characters/eve/idle", offset = 0x0D980, size = 0x214, address = 0x8013F7A0 },
+    { asset = "characters/eve/walk_slow", offset = 0x0DB94, size = 0x3F8, address = 0x8013F9B4 },
+    { asset = "characters/eve/eve_walk", offset = 0x0DF8C, size = 0xBE4, address = 0x8013FDAC },
+    { asset = "rooms/neo_ark/garden/footstep_walk_anim_01", offset = 0x0EB70, size = 0x268, address = 0x80140990 },
+    { asset = "characters/eve/walk_backward", offset = 0x0EDD8, size = 0x408, address = 0x80140BF8 },
+    { asset = "characters/eve/turn", offset = 0x0F1E0, size = 0x40C, address = 0x80141000 },
+    { asset = "rooms/neo_ark/garden/footstep_walk_anim_04", offset = 0x0F5EC, size = 0x310, address = 0x8014140C },
+    { asset = "rooms/neo_ark/garden/footstep_walk_anim_05", offset = 0x0F8FC, size = 0x258, address = 0x8014171C },
+    { asset = "rooms/neo_ark/garden/footstep_walk_anim_06", offset = 0x0FB54, size = 0x290, address = 0x80141974 },
+    { asset = "rooms/neo_ark/garden/footstep_walk_anim_07", offset = 0x0FDE4, size = 0x3E8, address = 0x80141C04 },
+    { asset = "rooms/neo_ark/garden/footstep_walk_anim_08", offset = 0x101CC, size = 0x2B0, address = 0x80141FEC },
+    { asset = "characters/eve/walk_stop", offset = 0x1047C, size = 0x1BC, address = 0x8014229C },
+    { asset = "characters/eve/swing_arms", offset = 0x10638, size = 0x3E8, address = 0x80142458 },
+    { asset = "characters/eve/clutch_head_and_run", offset = 0x10A20, size = 0x9B0, address = 0x80142840 },
+    { asset = "rooms/neo_ark/garden/footstep_walk_anim_19", offset = 0x113D0, size = 0x37C, address = 0x801431F0 },
+    { asset = "characters/eve/lie_unconscious", offset = 0x1174C, size = 0x24C, address = 0x8014356C },
+    { name = "eve_walker_bank", offset = 0x119D8, size = 0x8C, address = 0x801437F8 },
+]
+package_name = "actor_461800"
+required = true
+sha1 = "b1f51ffc69693b98a9f28bb998d09579785eb001"
+
+[kyle_sit_nod]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[eve_walker_bank]
+type = "animation_bank"
+schema = "rooms/neo_ark/r31/eve_walker_schema"
+symbol = "_gFootstepWalkAnimationSets"
+
+[eve_walker_bank.clips]
+slot_1 = "rooms/neo_ark/garden/footstep_walk_anim_01"
+walk_backward = "characters/eve/walk_backward"
+turn = "characters/eve/turn"
+slot_4 = "rooms/neo_ark/garden/footstep_walk_anim_04"
+slot_5 = "rooms/neo_ark/garden/footstep_walk_anim_05"
+slot_6 = "rooms/neo_ark/garden/footstep_walk_anim_06"
+slot_7 = "rooms/neo_ark/garden/footstep_walk_anim_07"
+slot_8 = "rooms/neo_ark/garden/footstep_walk_anim_08"
+slot_10 = "characters/eve/walk_stop"
+idle = "characters/eve/idle"
+walk = "characters/eve/walk_slow"
+run = "characters/eve/eve_walk"
+swing_arms = "characters/eve/swing_arms"
+clutch_head_and_run = "characters/eve/clutch_head_and_run"
+lie_unconscious = "characters/eve/lie_unconscious"
+slot_19 = "rooms/neo_ark/garden/footstep_walk_anim_19"
+
+[kyle_walker_bank]
+type = "animation_bank"
+schema = "rooms/neo_ark/r31/kyle_walker_schema"
+symbol = "_gActor461800ScriptedWalkerAnimationSets"
+
+[kyle_walker_bank.clips]
+sit = "rooms/neo_ark/r31/kyle_sit"
+sit_nod = "rooms/neo_ark/r31/kyle_sit_nod"
+sit_turn_head = "rooms/neo_ark/r31/kyle_sit_turn_head"
+
+[eve_walker_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "slot_1",
+    "walk_backward",
+    "turn",
+    "slot_4",
+    "slot_5",
+    "slot_6",
+    "slot_7",
+    "slot_8",
+    "",
+    "slot_10",
+    "",
+    "",
+    "idle",
+    "walk",
+    "run",
+    "swing_arms",
+    "clutch_head_and_run",
+    "lie_unconscious",
+    "slot_19",
+]
+
+[scene_player_bank]
+type = "animation_bank"
+clips = { lie_unconscious = "rooms/neo_ark/r31/player_lie_unconscious" }
+schema = "rooms/neo_ark/r31/scene_player_schema"
+symbol = "_gActor461800ScenePlayerAnimationSets"
+
+[kyle_sit_turn_head]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_walker_schema]
+type = "animation_schema"
+slots = ["", "sit", "sit_nod", "sit_turn_head"]
+
+[scene_player_schema]
+type = "animation_schema"
+slots = ["lie_unconscious"]
+
+[player_lie_unconscious]
+type = "clip"
+rig = "characters/aya/rig"

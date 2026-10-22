@@ -1,0 +1,400 @@
+# The assets of the group characters/flint, each named characters/flint/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = [
+    "joint_0",
+    "joint_1",
+    "joint_2",
+    "joint_3",
+    "joint_4",
+    "joint_5",
+    "joint_6",
+    "joint_7",
+    "joint_8",
+    "joint_9",
+    "joint_10",
+    "joint_11",
+    "joint_12",
+    "joint_13",
+    "joint_14",
+    "joint_15",
+    "joint_16",
+    "joint_17",
+    "joint_18",
+]
+
+[run]
+type = "clip"
+rig = "characters/flint/rig"
+
+[bark]
+type = "clip"
+rig = "characters/flint/rig"
+
+[body]
+type = "model"
+rig = "characters/flint/rig"
+slots = ["body"]
+symbol = "gFlintBody"
+sha1 = "d6cc44207e3541465838610266645c47ea75a9f4"
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "bbf598b5647bbd31c65b8989b7b3f4670edee8e0"
+palettes = [
+    { texture = "texture", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { name = "unread_row_2", entries = 256, region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "9e1cdd705d3ff9ebad301c211b732060e1b08508"
+pages = [{ texture = "texture", region = "engine/vram/actor_sheet", offset = [0, 0] }]
+slots = 6
+
+[hurt]
+type = "sound"
+sha1 = "823a4746c62573a614a29bbadb0e0334a5142059"
+
+[walk]
+type = "clip"
+rig = "characters/flint/rig"
+
+[stand]
+type = "clip"
+rig = "characters/flint/rig"
+
+[get_up]
+type = "clip"
+rig = "characters/flint/rig"
+
+[hurt_2]
+type = "sound"
+sha1 = "eeef649454ac98bdc87eca49936196cfa867bd0a"
+
+[sounds]
+type = "sound_bank"
+samples = [
+    "characters/flint/footstep_a_set_1",
+    "characters/flint/footstep_a_set_2",
+    "characters/flint/footstep_a_set_3",
+    "characters/flint/bark_sound",
+    "characters/flint/hurt",
+    "characters/flint/hurt_2",
+    "characters/flint/unused_1",
+]
+sha1 = "43d29a721cf38b4bd02f7f1530cd87bf7f334468"
+
+[sounds.sounds]
+footstep_a_set_1 = 1
+footstep_b_set_1 = 2
+footstep_a_set_2 = 3
+footstep_b_set_2 = 4
+footstep_a_set_3 = 5
+footstep_b_set_3 = 6
+footstep_a_set_4 = 7
+footstep_b_set_4 = 8
+bark = 9
+hurt = 10
+
+[texture]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[hit_body]
+type = "clip"
+rig = "characters/flint/rig"
+
+[hit_head]
+type = "clip"
+rig = "characters/flint/rig"
+
+[lie_down]
+type = "clip"
+rig = "characters/flint/rig"
+
+[unused_1]
+type = "sound"
+sha1 = "eee15e50911ada5859647046ded474159d9000a0"
+
+[companion]
+type = "pe2pkg"
+package_name = "actor_800200"
+required = true
+sha1 = "591ed1240b7fcb73da078f4678dad5059138cae9"
+
+[[companion.embedded]]
+name = "stand"
+offset = 0x08338
+size = 0x334
+address = 0x8016A158
+
+[[companion.embedded]]
+name = "walk"
+offset = 0x0866C
+size = 0x67C
+address = 0x8016A48C
+
+[[companion.embedded]]
+name = "run"
+offset = 0x08CE8
+size = 0x844
+address = 0x8016AB08
+
+[[companion.embedded]]
+name = "lie_down"
+offset = 0x0952C
+size = 0x5B4
+address = 0x8016B34C
+
+[[companion.embedded]]
+name = "lie_resting"
+offset = 0x09AE0
+size = 0x290
+address = 0x8016B900
+
+[[companion.embedded]]
+name = "get_up"
+offset = 0x09D70
+size = 0x37C
+address = 0x8016BB90
+
+[[companion.embedded]]
+name = "companion_anim_34"
+offset = 0x0A0EC
+size = 0x290
+address = 0x8016BF0C
+
+[[companion.embedded]]
+name = "companion_anim_35"
+offset = 0x0A37C
+size = 0x3E0
+address = 0x8016C19C
+
+[[companion.embedded]]
+name = "hit_head"
+offset = 0x0A75C
+size = 0x4F0
+address = 0x8016C57C
+
+[[companion.embedded]]
+name = "hit_body"
+offset = 0x0AC4C
+size = 0x45C
+address = 0x8016CA6C
+
+[[companion.embedded]]
+name = "bark_at_player"
+offset = 0x0B0A8
+size = 0x2A8
+address = 0x8016CEC8
+
+[[companion.embedded]]
+name = "bark_at_target"
+offset = 0x0B350
+size = 0x5E4
+address = 0x8016D170
+
+[[companion.embedded]]
+name = "turn_right"
+offset = 0x0B934
+size = 0x618
+address = 0x8016D754
+
+[[companion.embedded]]
+name = "turn_left"
+offset = 0x0BF4C
+size = 0x60C
+address = 0x8016DD6C
+
+[[companion.embedded]]
+name = "route_action"
+offset = 0x0C558
+size = 0x740
+address = 0x8016E378
+
+[[companion.embedded]]
+asset = "rooms/dryfield/night_main_street/companion_anim_05"
+offset = 0x0CC98
+size = 0x190
+address = 0x8016EAB8
+
+[[companion.embedded]]
+name = "react_truck_fixed"
+offset = 0x0CE28
+size = 0x1A8
+address = 0x8016EC48
+
+[[companion.embedded]]
+name = "react_key_handover"
+offset = 0x0CFD0
+size = 0x1C0
+address = 0x8016EDF0
+
+[[companion.embedded]]
+name = "bark"
+offset = 0x0D190
+size = 0x258
+address = 0x8016EFB0
+
+[[companion.embedded]]
+name = "companion_bank"
+offset = 0x0D3E8
+size = 0x13C
+address = 0x8016F208
+
+[turn_left]
+type = "clip"
+rig = "characters/flint/rig"
+
+[bark_sound]
+type = "sound"
+sha1 = "8dbf12f1862f3fe2b8b39b87a41e4eda8d412f6c"
+
+[turn_right]
+type = "clip"
+rig = "characters/flint/rig"
+
+[lie_resting]
+type = "clip"
+rig = "characters/flint/rig"
+
+[body_binding]
+type = "binding"
+model = "characters/flint/body"
+textures = { body = "characters/flint/texture.default" }
+
+[route_action]
+type = "clip"
+rig = "characters/flint/rig"
+
+[bark_at_player]
+type = "clip"
+rig = "characters/flint/rig"
+
+[bark_at_target]
+type = "clip"
+rig = "characters/flint/rig"
+
+[companion_bank]
+type = "animation_bank"
+schema = "characters/flint/companion_schema"
+symbol = "gActor800200CompanionAnimationBank"
+
+[companion_bank.clips]
+idle = "characters/flint/stand"
+walk = "characters/flint/walk"
+slot_3 = "characters/flint/walk"
+run = "characters/flint/run"
+turn_left = "characters/flint/turn_left"
+turn_right = "characters/flint/turn_right"
+rest = "characters/flint/lie_down"
+rest_exit = "characters/flint/get_up"
+rest_hold = "characters/flint/lie_resting"
+bark_at_player = "characters/flint/bark_at_player"
+bark_at_enemy = "characters/flint/bark_at_target"
+slot_12 = "characters/flint/stand"
+slot_13 = "characters/flint/stand"
+route = "characters/flint/route_action"
+slot_15 = "characters/flint/stand"
+hit_head = "characters/flint/hit_head"
+hit_body = "characters/flint/hit_body"
+death = "rooms/dryfield/night_main_street/companion_anim_05"
+unarmed_walk = "characters/flint/walk"
+slot_20 = "characters/flint/stand"
+slot_21 = "characters/flint/stand"
+slot_22 = "characters/flint/stand"
+slot_23 = "characters/flint/stand"
+slot_24 = "characters/flint/stand"
+slot_25 = "characters/flint/stand"
+slot_32 = "characters/flint/stand"
+slot_33 = "characters/flint/stand"
+slot_34 = "characters/flint/companion_anim_34"
+slot_35 = "characters/flint/companion_anim_35"
+slot_36 = "characters/flint/react_truck_fixed"
+slot_37 = "characters/flint/react_key_handover"
+slot_38 = "characters/flint/bark"
+slot_39 = "characters/flint/stand"
+slot_40 = "characters/flint/stand"
+
+[companion_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "idle",
+    "walk",
+    "slot_3",
+    "run",
+    "turn_left",
+    "turn_right",
+    "rest",
+    "rest_exit",
+    "rest_hold",
+    "bark_at_player",
+    "bark_at_enemy",
+    "slot_12",
+    "slot_13",
+    "route",
+    "slot_15",
+    "hit_head",
+    "hit_body",
+    "death",
+    "unarmed_walk",
+    "slot_20",
+    "slot_21",
+    "slot_22",
+    "slot_23",
+    "slot_24",
+    "slot_25",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "slot_32",
+    "slot_33",
+    "slot_34",
+    "slot_35",
+    "slot_36",
+    "slot_37",
+    "slot_38",
+    "slot_39",
+    "slot_40",
+]
+
+[footstep_a_set_1]
+type = "sound"
+sha1 = "57a0cd757006b27a8bb1e5271c0f7eb8132bb61b"
+
+[footstep_a_set_2]
+type = "sound"
+sha1 = "5b765ac40106112ce0300848d482403a85412b67"
+
+[footstep_a_set_3]
+type = "sound"
+sha1 = "324a148c84c817bb80cbe15ac6fbc72f766fda93"
+
+[companion_anim_34]
+type = "clip"
+rig = "characters/flint/rig"
+
+[companion_anim_35]
+type = "clip"
+rig = "characters/flint/rig"
+
+[react_truck_fixed]
+type = "clip"
+rig = "characters/flint/rig"
+
+[react_key_handover]
+type = "clip"
+rig = "characters/flint/rig"

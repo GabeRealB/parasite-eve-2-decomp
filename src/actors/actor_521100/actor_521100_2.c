@@ -150,61 +150,9 @@ static s32  _actor521100AnmcWomanWalkTo(Task* task, s32 messageId, const ActorTr
 static void _actor521100AnmcWomanEffectTask(Task* task);
 static void _actor521100AnmcWomanTask(Task* task);
 
-AnimationSet* gActor521100BodyAnimationSets[36] = {
-    NULL,
-    &gActor521100Animation10EAC,
-    &gActor521100Animation11614,
-    &gActor521100Animation12204,
-    &gActor521100Animation1271C,
-    &gActor521100Animation1B8F8,
-    &gActor521100Animation1A8E4,
-    &gActor521100Animation13454,
-    &gActor521100Animation13B8C,
-    &gActor521100Animation143F0,
-    &gActor521100Animation14918,
-    &gActor521100Animation14C38,
-    NULL,
-    &gActor521100Animation15168,
-    &gActor521100Animation152F8,
-    &gActor521100Animation15904,
-    &gActor521100Animation15E28,
-    &gActor521100Animation16628,
-    &gActor521100Animation16F90,
-    &gActor521100Animation18B20,
-    &gActor521100Animation1C104,
-    &gActor521100Animation1C58C,
-    &gActor521100Animation20880,
-    &gActor521100Animation20F94,
-    &gActor521100Animation2177C,
-    &gActor521100Animation220B8,
-    &gActor521100Animation229A0,
-    &gActor521100Animation2318C,
-    &gActor521100Animation239C0,
-    &gActor521100Animation24F5C,
-    &gActor521100Animation25ACC,
-    &gActor521100Animation26024,
-    &gActor521100Animation26E3C,
-    &gActor521100Animation26FCC,
-    &gActor521100Animation271A8,
-    &gActor521100Animation27A78,
-};
+#include "assets/enemies/golem/no_9/body_bank.inc"
 
-AnimationSet* gActor521100GrabPlayerAnimationSets[14] = {
-    NULL,
-    NULL,
-    &gActor521100Animation27DB0,
-    &gActor521100Animation28380,
-    &gActor521100Animation28DD8,
-    &gActor521100Animation291F8,
-    &gActor521100Animation29534,
-    &gActor521100Animation29A88,
-    NULL,
-    &gActor521100Animation2A998,
-    &gActor521100Animation2B89C,
-    &gActor521100Animation2C378,
-    &gActor521100Animation2CCA8,
-    &gActor521100Animation2D708,
-};
+#include "assets/enemies/golem/no_9/grab_player_bank.inc"
 
 EffectSpawnArg gActor521100GrabKillEffectArg = { NULL, 300, 1 };
 
@@ -227,147 +175,9 @@ s16 gActor521100EventFireIntervals[4] = {
     28,
 };
 
-static TmdBone _gActor521100AnmcWoman2BodySkeleton[19] = {
-#include "assets/anmc_woman_2_body_skeleton.inc"
-};
+#include "assets/characters/anmc_woman_3/body.inc"
 
-static u32 _gActor521100AnmcWoman2BodyPartVerts[19] = {
-#include "assets/anmc_woman_2_body_partVerts.inc"
-};
-
-static SVECTOR _gActor521100AnmcWoman2BodyVerts[344] = {
-#include "assets/anmc_woman_2_body_verts.inc"
-};
-
-static SVECTOR _gActor521100AnmcWoman2BodyNormals[337] = {
-#include "assets/anmc_woman_2_body_normals.inc"
-};
-
-static u32 _gActor521100AnmcWoman2BodyStream[3946] = {
-#include "assets/anmc_woman_2_body_stream.inc"
-};
-
-static TmdSource _gActor521100AnmcWoman2Body = {
-    0,
-    21340,
-    6264,
-    19,
-    _gActor521100AnmcWoman2BodyPartVerts,
-    _gActor521100AnmcWoman2BodyVerts,
-    _gActor521100AnmcWoman2BodyNormals,
-    _gActor521100AnmcWoman2BodySkeleton,
-    _gActor521100AnmcWoman2BodyStream,
-};
-
-static AnimationPackedPose _gActor521100Animation36E34Bank1[136] = {
-#include "assets/actor_521100_animation_36E34_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor521100Animation36E34Bank4[1154] = {
-#include "assets/actor_521100_animation_36E34_bank4.inc"
-};
-
-static AnimationRecord _gActor521100Animation36E34Records[2361] = {
-#include "assets/actor_521100_animation_36E34_records.inc"
-};
-
-static u16 _gActor521100Animation36E34Indices[20] = {
-#include "assets/actor_521100_animation_36E34_indices.inc"
-};
-
-static AnimationSet _gActor521100Animation36E34 = {
-    _gActor521100Animation36E34Records,
-    _gActor521100Animation36E34Indices,
-    { NULL, _gActor521100Animation36E34Bank1, NULL, NULL, _gActor521100Animation36E34Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor521100Animation372D8Bank1[8] = {
-#include "assets/actor_521100_animation_372D8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor521100Animation372D8Bank4[109] = {
-#include "assets/actor_521100_animation_372D8_bank4.inc"
-};
-
-static AnimationRecord _gActor521100Animation372D8Records[144] = {
-#include "assets/actor_521100_animation_372D8_records.inc"
-};
-
-static u16 _gActor521100Animation372D8Indices[20] = {
-#include "assets/actor_521100_animation_372D8_indices.inc"
-};
-
-static AnimationSet _gActor521100Animation372D8 = {
-    _gActor521100Animation372D8Records,
-    _gActor521100Animation372D8Indices,
-    { NULL, _gActor521100Animation372D8Bank1, NULL, NULL, _gActor521100Animation372D8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor521100Animation37730Bank1[6] = {
-#include "assets/actor_521100_animation_37730_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor521100Animation37730Bank4[69] = {
-#include "assets/actor_521100_animation_37730_bank4.inc"
-};
-
-static AnimationRecord _gActor521100Animation37730Records[171] = {
-#include "assets/actor_521100_animation_37730_records.inc"
-};
-
-static u16 _gActor521100Animation37730Indices[20] = {
-#include "assets/actor_521100_animation_37730_indices.inc"
-};
-
-static AnimationSet _gActor521100Animation37730 = {
-    _gActor521100Animation37730Records,
-    _gActor521100Animation37730Indices,
-    { NULL, _gActor521100Animation37730Bank1, NULL, NULL, _gActor521100Animation37730Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor521100Animation38334Bank1[21] = {
-#include "assets/actor_521100_animation_38334_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor521100Animation38334Bank4[294] = {
-#include "assets/actor_521100_animation_38334_bank4.inc"
-};
-
-static AnimationRecord _gActor521100Animation38334Records[392] = {
-#include "assets/actor_521100_animation_38334_records.inc"
-};
-
-static u16 _gActor521100Animation38334Indices[20] = {
-#include "assets/actor_521100_animation_38334_indices.inc"
-};
-
-static AnimationSet _gActor521100Animation38334 = {
-    _gActor521100Animation38334Records,
-    _gActor521100Animation38334Indices,
-    { NULL, _gActor521100Animation38334Bank1, NULL, NULL, _gActor521100Animation38334Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor521100Animation38510Bank1[2] = {
-#include "assets/actor_521100_animation_38510_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor521100Animation38510Bank4[17] = {
-#include "assets/actor_521100_animation_38510_bank4.inc"
-};
-
-static AnimationRecord _gActor521100Animation38510Records[76] = {
-#include "assets/actor_521100_animation_38510_records.inc"
-};
-
-static u16 _gActor521100Animation38510Indices[20] = {
-#include "assets/actor_521100_animation_38510_indices.inc"
-};
-
-static AnimationSet _gActor521100Animation38510 = {
-    _gActor521100Animation38510Records,
-    _gActor521100Animation38510Indices,
-    { NULL, _gActor521100Animation38510Bank1, NULL, NULL, _gActor521100Animation38510Bank4, NULL, NULL, NULL },
-};
+#include "assets/enemies/golem/no_9/package_dryfield_clips_3.inc"
 
 /// Synchronous messages accepted by the scripted ANMC woman, followed by an end marker.
 ///
@@ -384,7 +194,7 @@ static TaskMessageEntry _gActor521100AnmcWomanMessages[6] = {
 };
 
 TaskDesc gActor521100AnmcWomanTaskDescs[2] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor521100AnmcWomanTask, { .model = &_gActor521100AnmcWoman2Body } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor521100AnmcWomanTask, { .model = &_gAnmcWoman3Body } },
     { { { TASK_BODY_NONE, 192 } }, _actor521100AnmcWomanEffectTask, { .value = 0 } },
 };
 
@@ -392,19 +202,7 @@ TaskDesc gActor521100AnmcWomanTaskDescs[2] = {
 ///
 /// Request numbers 0..9 select IDs 1..10; IDs 1 and 5..9 share the walk clip.
 /// The nineteen-part rig borrows the table and clips for its playback lifetime.
-static AnimationSet* _gActor521100AnmcWomanAnimationSets[11] = {
-    NULL,
-    &_gActor521100Animation36E34,
-    &_gActor521100Animation372D8,
-    &_gActor521100Animation37730,
-    &_gActor521100Animation38334,
-    &_gActor521100Animation36E34,
-    &_gActor521100Animation36E34,
-    &_gActor521100Animation36E34,
-    &_gActor521100Animation36E34,
-    &_gActor521100Animation36E34,
-    &_gActor521100Animation38510,
-};
+#include "assets/enemies/golem/no_9/anmc_woman_bank.inc"
 
 /// Mutable argument for periodic splatter at the ANMC woman or the player.
 ///

@@ -1,0 +1,257 @@
+# The assets of the group rooms/dryfield/night_garage, each named rooms/dryfield/night_garage/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[gary_bank]
+type = "animation_bank"
+schema = "rooms/dryfield/night_garage/gary_schema"
+symbol = "_gActor135400GaryDouglasAnimationBank"
+
+[gary_bank.clips]
+idle_before_refuel = "rooms/dryfield/night_garage/gary_idle_before_refuel"
+pour_gasoline = "rooms/dryfield/night_garage/gary_pour_gasoline"
+finish_refueling = "rooms/dryfield/night_garage/gary_finish_refueling"
+idle_after_refuel = "rooms/dryfield/night_garage/gary_idle_after_refuel"
+
+[flint_bank]
+type = "animation_bank"
+schema = "rooms/dryfield/night_garage/flint_schema"
+symbol = "_gActor135400FlintAnimationSets"
+
+[flint_bank.clips]
+lie_resting = "characters/flint/lie_resting"
+get_up = "characters/flint/get_up"
+stand = "characters/flint/stand"
+route_action = "characters/flint/route_action"
+stand_2 = "characters/flint/stand"
+lie_down = "characters/flint/lie_down"
+
+[flint_scene]
+type = "pe2pkg"
+embedded = [
+    { asset = "characters/pierce/rest", offset = 0x00CC0, size = 0x27C, address = 0x80132AE0 },
+    { asset = "characters/kyle/talk_start", offset = 0x00F3C, size = 0x1D8, address = 0x80132D5C },
+    { asset = "characters/kyle/talk", offset = 0x01114, size = 0x41C, address = 0x80132F34 },
+    { asset = "characters/kyle/talk_end", offset = 0x01530, size = 0x1BC, address = 0x80133350 },
+    { asset = "characters/kyle/explain_virus_start", offset = 0x016EC, size = 0x1E8, address = 0x8013350C },
+    { asset = "characters/kyle/explain_virus", offset = 0x018D4, size = 0x2BC, address = 0x801336F4 },
+    { asset = "characters/kyle/kyle_idle", offset = 0x01B90, size = 0x1E0, address = 0x801339B0 },
+    { name = "companion_lets_go", offset = 0x01D70, size = 0x458, address = 0x80133B90 },
+    { asset = "characters/kyle/leave_driving_to_me", offset = 0x021C8, size = 0x618, address = 0x80133FE8 },
+    { asset = "characters/pierce/anim_12", offset = 0x027E0, size = 0x9AC, address = 0x80134600 },
+    { asset = "characters/pierce/explain_analysis", offset = 0x0318C, size = 0x348, address = 0x80134FAC },
+    { asset = "characters/pierce/parking_arrival_12", offset = 0x034D4, size = 0x23C, address = 0x801352F4 },
+    { asset = "characters/pierce/anim_21", offset = 0x03710, size = 0x310, address = 0x80135530 },
+    { name = "companion_shrug", offset = 0x03A20, size = 0x67C, address = 0x80135840 },
+    { asset = "characters/kyle/mention_monsters", offset = 0x0409C, size = 0x5E4, address = 0x80135EBC },
+    { asset = "characters/aya/stand", offset = 0x04680, size = 0x304, address = 0x801364A0 },
+    { name = "player_anim_01", offset = 0x04984, size = 0x204, address = 0x801367A4 },
+    { name = "player_anim_02", offset = 0x04B88, size = 0x2E0, address = 0x801369A8 },
+    { asset = "characters/aya/call_out", offset = 0x04E68, size = 0x1F8, address = 0x80136C88 },
+    { asset = "characters/aya/call_out_end", offset = 0x05060, size = 0x354, address = 0x80136E80 },
+    { asset = "characters/aya/insist", offset = 0x053B4, size = 0x1F8, address = 0x801371D4 },
+    { asset = "characters/aya/anim_06", offset = 0x055AC, size = 0x1C4, address = 0x801373CC },
+    { asset = "characters/aya/anim_07", offset = 0x05770, size = 0x2C0, address = 0x80137590 },
+    { asset = "characters/aya/anim_08", offset = 0x05A30, size = 0x1C4, address = 0x80137850 },
+    { asset = "characters/aya/converse", offset = 0x05BF4, size = 0x3B8, address = 0x80137A14 },
+    { asset = "characters/aya/on_my_way", offset = 0x05FAC, size = 0x32C, address = 0x80137DCC },
+    { name = "player_ask_what_does", offset = 0x062D8, size = 0x2B8, address = 0x801380F8 },
+    { name = "player_ask_what_does_end", offset = 0x06590, size = 0x190, address = 0x801383B0 },
+    { name = "player_listen_retroviruses", offset = 0x06720, size = 0x2C0, address = 0x80138540 },
+    { asset = "characters/aya/talk_start", offset = 0x069E0, size = 0x3D4, address = 0x80138800 },
+    { asset = "characters/aya/talk", offset = 0x06DB4, size = 0x3F0, address = 0x80138BD4 },
+    { asset = "characters/aya/talk_end", offset = 0x071A4, size = 0x36C, address = 0x80138FC4 },
+    { asset = "characters/aya/shocked", offset = 0x07510, size = 0x6FC, address = 0x80139330 },
+    { asset = "characters/aya/before_agreeing", offset = 0x07C0C, size = 0x278, address = 0x80139A2C },
+    { asset = "characters/aya/ask_why", offset = 0x07E84, size = 0x454, address = 0x80139CA4 },
+    { asset = "characters/aya/ask_why_end", offset = 0x082D8, size = 0x294, address = 0x8013A0F8 },
+    { asset = "characters/aya/reason_start", offset = 0x0856C, size = 0x368, address = 0x8013A38C },
+    { asset = "characters/aya/reason", offset = 0x088D4, size = 0x1D8, address = 0x8013A6F4 },
+    { asset = "characters/aya/realize", offset = 0x08AAC, size = 0x318, address = 0x8013A8CC },
+    { asset = "characters/aya/turn_pale", offset = 0x08DC4, size = 0x1FC, address = 0x8013ABE4 },
+    { asset = "characters/aya/its_nothing", offset = 0x08FC0, size = 0x33C, address = 0x8013ADE0 },
+    { name = "companion_bank", offset = 0x09320, size = 0x3C, address = 0x8013B140 },
+    { name = "player_bank", offset = 0x09488, size = 0x68, address = 0x8013B2A8 },
+]
+package_name = "actor_136300"
+required = true
+sha1 = "4b5c8125656b7f15118974f45bc9302067ef34ad"
+
+[gary_schema]
+type = "animation_schema"
+slots = ["", "idle_before_refuel", "pour_gasoline", "finish_refueling", "idle_after_refuel"]
+
+[player_bank]
+type = "animation_bank"
+schema = "rooms/dryfield/night_garage/player_schema"
+symbol = "_gActor136300PlayerAnimationSets"
+
+[player_bank.clips]
+stand = "characters/aya/stand"
+slot_1 = "rooms/dryfield/night_garage/player_anim_01"
+slot_2 = "rooms/dryfield/night_garage/player_anim_02"
+call_out = "characters/aya/call_out"
+call_out_end = "characters/aya/call_out_end"
+insist = "characters/aya/insist"
+slot_6 = "characters/aya/anim_06"
+slot_7 = "characters/aya/anim_07"
+slot_8 = "characters/aya/anim_08"
+converse = "characters/aya/converse"
+on_my_way = "characters/aya/on_my_way"
+ask_what_does = "rooms/dryfield/night_garage/player_ask_what_does"
+ask_what_does_end = "rooms/dryfield/night_garage/player_ask_what_does_end"
+listen_retroviruses = "rooms/dryfield/night_garage/player_listen_retroviruses"
+talk_start = "characters/aya/talk_start"
+talk = "characters/aya/talk"
+talk_end = "characters/aya/talk_end"
+shocked = "characters/aya/shocked"
+before_agreeing = "characters/aya/before_agreeing"
+ask_why = "characters/aya/ask_why"
+ask_why_end = "characters/aya/ask_why_end"
+reason_start = "characters/aya/reason_start"
+reason = "characters/aya/reason"
+realize = "characters/aya/realize"
+turn_pale = "characters/aya/turn_pale"
+its_nothing = "characters/aya/its_nothing"
+
+[flint_schema]
+type = "animation_schema"
+slots = ["", "lie_resting", "get_up", "stand", "route_action", "stand_2", "lie_down"]
+
+[player_schema]
+type = "animation_schema"
+slots = [
+    "stand",
+    "slot_1",
+    "slot_2",
+    "call_out",
+    "call_out_end",
+    "insist",
+    "slot_6",
+    "slot_7",
+    "slot_8",
+    "converse",
+    "on_my_way",
+    "ask_what_does",
+    "ask_what_does_end",
+    "listen_retroviruses",
+    "talk_start",
+    "talk",
+    "talk_end",
+    "shocked",
+    "before_agreeing",
+    "ask_why",
+    "ask_why_end",
+    "reason_start",
+    "reason",
+    "realize",
+    "turn_pale",
+    "its_nothing",
+]
+
+[companion_bank]
+type = "animation_bank"
+schema = "rooms/dryfield/night_garage/companion_schema"
+symbol = "_gActor136300CompanionAnimationSets"
+
+[companion_bank.clips]
+slot_0 = "characters/pierce/rest"
+talk_start = "characters/kyle/talk_start"
+talk = "characters/kyle/talk"
+talk_end = "characters/kyle/talk_end"
+explain_virus_start = "characters/kyle/explain_virus_start"
+explain_virus = "characters/kyle/explain_virus"
+idle = "characters/kyle/kyle_idle"
+lets_go = "rooms/dryfield/night_garage/companion_lets_go"
+leave_driving_to_me = "characters/kyle/leave_driving_to_me"
+apologize = "characters/pierce/anim_12"
+listen_to_this_start = "characters/pierce/explain_analysis"
+listen_to_this = "characters/pierce/parking_arrival_12"
+hear_parasites = "characters/pierce/anim_21"
+shrug = "rooms/dryfield/night_garage/companion_shrug"
+mention_monsters = "characters/kyle/mention_monsters"
+
+[gary_and_flint]
+type = "pe2pkg"
+embedded = [
+    "actor_135400_model_071AC",
+    { name = "gary_idle_before_refuel", offset = 0x07378, size = 0x218, address = 0x80139198 },
+    { name = "gary_pour_gasoline", offset = 0x07590, size = 0x250, address = 0x801393B0 },
+    { name = "gary_finish_refueling", offset = 0x077E0, size = 0xCF8, address = 0x80139600 },
+    { name = "gary_idle_after_refuel", offset = 0x084D8, size = 0x19C, address = 0x8013A2F8 },
+    { name = "gary_bank", offset = 0x08674, size = 0x14, address = 0x8013A494 },
+    { asset = "characters/flint/body", offset = 0x086D8, size = 0x3D7C, address = 0x8013A4F8 },
+    { asset = "characters/flint/lie_resting", offset = 0x0C454, size = 0x290, address = 0x8013E274 },
+    { asset = "characters/flint/stand", offset = 0x0C6E4, size = 0x334, address = 0x8013E504 },
+    { asset = "characters/flint/lie_down", offset = 0x0CA18, size = 0x5B4, address = 0x8013E838 },
+    { asset = "characters/flint/get_up", offset = 0x0CFCC, size = 0x37C, address = 0x8013EDEC },
+    { asset = "characters/flint/route_action", offset = 0x0D348, size = 0x740, address = 0x8013F168 },
+    { name = "flint_bank", offset = 0x0DA88, size = 0x1C, address = 0x8013F8A8 },
+]
+package_name = "actor_135400"
+parent = "dryfield_night_garage"
+required = true
+sha1 = "04d15712eb0f326158fe9f9ed0391fe6eb2afc6d"
+
+[player_anim_01]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_anim_02]
+type = "clip"
+rig = "characters/aya/rig"
+
+[companion_shrug]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[companion_schema]
+type = "animation_schema"
+slots = [
+    "slot_0",
+    "talk_start",
+    "talk",
+    "talk_end",
+    "explain_virus_start",
+    "explain_virus",
+    "idle",
+    "lets_go",
+    "leave_driving_to_me",
+    "apologize",
+    "listen_to_this_start",
+    "listen_to_this",
+    "hear_parasites",
+    "shrug",
+    "mention_monsters",
+]
+
+[companion_lets_go]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[gary_pour_gasoline]
+type = "clip"
+rig = "characters/gary/rig"
+
+[player_ask_what_does]
+type = "clip"
+rig = "characters/aya/rig"
+
+[gary_finish_refueling]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_idle_after_refuel]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_idle_before_refuel]
+type = "clip"
+rig = "characters/gary/rig"
+
+[player_ask_what_does_end]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_listen_retroviruses]
+type = "clip"
+rig = "characters/aya/rig"

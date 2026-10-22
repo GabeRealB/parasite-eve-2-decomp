@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Generate the C definitions of a package's declared clips, or of a declared animation bank.
 
-    gen_animation_source.py clips PACKAGE OUTPUT [--assets assets/USA]   every clip PACKAGE places, in its order
+    gen_animation_source.py clips PACKAGE[:K] OUTPUT [--assets assets/USA]   every clip PACKAGE places, in its order,
+                                                                           or its K-th run of back-to-back clips
     gen_animation_source.py bank NAME OUTPUT [--assets assets/USA]       the bank NAME, as its `symbol`
 
 A clip is encoded from its USD at its placement's address (tools/peassets/animation/declared.py) and cut by the
@@ -45,6 +46,20 @@ def placed_clips(package: str) -> list[str]:
             if isinstance(p, dict) and asset_data.ASSETS[p["name"]]["type"] == "clip"]
 
 
+def clip_runs(rec: dict, assets: dict) -> list[list[str]]:
+    """A package's placed clips in runs: each run back to back in the package, the next run after other data (an
+    actor's clips for its body, then its player clips elsewhere in its data). Each run is one include, at its place."""
+    runs: list[list[str]] = []
+    end = None
+    for p in sorted((p for p in rec.get("embedded", ()) if isinstance(p, dict) and assets[p["name"]]["type"] == "clip"),
+                    key=lambda p: p["offset"]):
+        if end != p["offset"]:
+            runs.append([])
+        runs[-1].append(p["name"])
+        end = p["offset"] + p["size"]
+    return runs
+
+
 def array(declaration: str, count: int, rows: list[str]) -> str:
     return f"{declaration}[{count}] = {{\n" + "\n".join(rows) + "\n};\n"
 
@@ -58,31 +73,38 @@ def clip_source(name: str, assets_root: Path) -> str:
     records_at, starts_at = words[0] - address, words[1] - address
     banks = {kind: words[2 + kind] - address for kind in range(8) if words[2 + kind]}
     ends = sorted(list(banks.values()) + [records_at])
-    sym = ident(name)
+    # A clip other units of its overlay refer to states its global `symbol`; the others are the unit's own.
+    sym = assets[name].get("symbol") or ident(name)
+    storage = "static " if sym.startswith("_") else ""
+    arrays = "_" + sym.lstrip("_")
     out = [f"/* {name} */"]
     for kind, offset in sorted(banks.items(), key=lambda kv: kv[1]):
         end = ends[ends.index(offset) + 1]
         if kind == codec.TRANSLATION:
             rows = [f"    {{ {', '.join(map(str, v))} }}," for v in struct.iter_unpack("<6h", blob[offset:end])]
-            out.append(array(f"static AnimationPackedPose {sym}Bank{kind}", len(rows), rows))
+            out.append(array(f"static AnimationPackedPose {arrays}Bank{kind}", len(rows), rows))
         else:
             rows = [f"    {{ {', '.join(str(a // codec.ANGLE_STEP) for a in codec._unpack_rotation(w))} }},"
                     for w, in struct.iter_unpack("<I", blob[offset:end])]
-            out.append(array(f"static AnimationPackedRotation {sym}Bank{kind}", len(rows), rows))
+            out.append(array(f"static AnimationPackedRotation {arrays}Bank{kind}", len(rows), rows))
     records = [f"    {{ {p}, {d}, 0x{f:02X} }}," for p, d, f in struct.iter_unpack("<HBB", blob[records_at:starts_at])]
-    out.append(array(f"static AnimationRecord {sym}Records", len(records), records))
+    out.append(array(f"static AnimationRecord {arrays}Records", len(records), records))
     starts = struct.unpack_from(f"<{(at - starts_at) // 2}H", blob, starts_at)
-    out.append(array(f"static u16 {sym}TrackStarts", len(starts),
+    out.append(array(f"static u16 {arrays}TrackStarts", len(starts),
                      ["    " + ", ".join(map(str, starts[i:i + 8])) + "," for i in range(0, len(starts), 8)]))
-    pose_banks = ", ".join(f"[{kind}] = {sym}Bank{kind}" for kind in sorted(banks))
-    out.append(f"static AnimationSet {sym} = {{\n    .records           = {sym}Records,\n"
-               f"    .trackStartIndices = {sym}TrackStarts,\n    .poseBanks         = {{ {pose_banks} }},\n}};\n")
+    pose_banks = ", ".join(f"[{kind}] = {arrays}Bank{kind}" for kind in sorted(banks))
+    out.append(f"{storage}AnimationSet {sym} = {{\n    .records           = {arrays}Records,\n"
+               f"    .trackStartIndices = {arrays}TrackStarts,\n    .poseBanks         = {{ {pose_banks} }},\n}};\n")
     return "\n".join(out)
 
 
 def clips_source(package: str, assets_root: Path) -> str:
-    names = placed_clips(package)
-    return HEADER.format(what=f"the clips {package} places") + "\n" + "\n".join(clip_source(n, assets_root) for n in names)
+    """The clips a package places (`PACKAGE`), or one run of them (`PACKAGE:K`, the K-th from 1)."""
+    package, _, run = package.partition(":")
+    runs = clip_runs(package_record(package), asset_data.ASSETS)
+    names = runs[int(run) - 1] if run else [n for r in runs for n in r]
+    what = f"the clips {package} places" + (f", run {run} of {len(runs)}" if run else "")
+    return HEADER.format(what=what) + "\n" + "\n".join(clip_source(n, assets_root) for n in names)
 
 
 def bank_source(name: str) -> str:
@@ -90,10 +112,11 @@ def bank_source(name: str) -> str:
     assets = asset_data.ASSETS
     bank = assets[name]
     slots = declared.bank_slots(name, assets)
-    entries = [f"    [{i}] = &{ident(clip)}," for i, clip in enumerate(slots) if clip]
+    entries = [f"    [{i}] = &{assets[clip].get('symbol') or ident(clip)}," for i, clip in enumerate(slots) if clip]
     head = HEADER.format(what=f"the bank {name}, slots of {declared.bank_schema(name, assets)}")
     count = declared.bank_words(name, asset_data.EMBEDDED_ASSETS)
-    return f"{head}\nAnimationSet* {bank['symbol']}[{count}] = {{\n" + "\n".join(entries) + "\n};\n"
+    storage = "static " if bank["symbol"].startswith("_") else ""      # the project's TU-local names
+    return f"{head}\n{storage}AnimationSet* {bank['symbol']}[{count}] = {{\n" + "\n".join(entries) + "\n};\n"
 
 
 def schema_source(name: str) -> str:

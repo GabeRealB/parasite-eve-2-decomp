@@ -43,7 +43,7 @@
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-static TmdSource _gActor207200SkullStalkerBody;
+static TmdSource _gAkropolisForkedRoadSkullStalkerBody;
 
 /// Skull Stalker's single zero-power, ordinary-reaction parameter row.
 ///
@@ -69,94 +69,18 @@ static EnemyParams _gSkullStalkerParams = {
     .damageOverTimeTicks  = 99,
 };
 
-static TmdBone _gActor207200SkullStalkerBodySkeleton[3] = {
-#include "assets/skull_stalker_body_skeleton.inc"
-};
+#include "assets/rooms/akropolis/forked_road/skull_stalker_body.inc"
 
-static u32 _gActor207200SkullStalkerBodyPartVerts[3] = {
-#include "assets/skull_stalker_body_partVerts.inc"
-};
-
-static SVECTOR _gActor207200SkullStalkerBodyVerts[37] = {
-#include "assets/skull_stalker_body_verts.inc"
-};
-
-static SVECTOR _gActor207200SkullStalkerBodyNormals[47] = {
-#include "assets/skull_stalker_body_normals.inc"
-};
-
-static u32 _gActor207200SkullStalkerBodyStream[377] = {
-#include "assets/skull_stalker_body_stream.inc"
-};
-
-static TmdSource _gActor207200SkullStalkerBody = {
-    0,
-    2184,
-    332,
-    3,
-    _gActor207200SkullStalkerBodyPartVerts,
-    _gActor207200SkullStalkerBodyVerts,
-    _gActor207200SkullStalkerBodyNormals,
-    _gActor207200SkullStalkerBodySkeleton,
-    _gActor207200SkullStalkerBodyStream,
-};
-
-static AnimationPackedPose _gActor207200Animation04708Bank1[2] = {
-#include "assets/actor_207200_animation_04708_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor207200Animation04708Bank4[1] = {
-#include "assets/actor_207200_animation_04708_bank4.inc"
-};
-
-static AnimationRecord _gActor207200Animation04708Records[6] = {
-#include "assets/actor_207200_animation_04708_records.inc"
-};
-
-static u16 _gActor207200Animation04708Indices[4] = {
-#include "assets/actor_207200_animation_04708_indices.inc"
-};
-
-static AnimationSet _gActor207200Animation04708 = {
-    _gActor207200Animation04708Records,
-    _gActor207200Animation04708Indices,
-    { NULL, _gActor207200Animation04708Bank1, NULL, NULL, _gActor207200Animation04708Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor207200Animation0495CBank1[24] = {
-#include "assets/actor_207200_animation_0495C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor207200Animation0495CBank4[10] = {
-#include "assets/actor_207200_animation_0495C_bank4.inc"
-};
-
-static AnimationRecord _gActor207200Animation0495CRecords[55] = {
-#include "assets/actor_207200_animation_0495C_records.inc"
-};
-
-static u16 _gActor207200Animation0495CIndices[4] = {
-#include "assets/actor_207200_animation_0495C_indices.inc"
-};
-
-static AnimationSet _gActor207200Animation0495C = {
-    _gActor207200Animation0495CRecords,
-    _gActor207200Animation0495CIndices,
-    { NULL, _gActor207200Animation0495CBank1, NULL, NULL, _gActor207200Animation0495CBank4, NULL, NULL, NULL },
-};
+#include "assets/encounters/skull_stalker_and_creeping_stranger/package_2_clips_1.inc"
 
 enum { ACTOR_207200_TASK_PRIORITY = 96 };
 
-TaskDesc gActor207200SkullStalkerTaskDesc = { { { TASK_BODY_TMD, ACTOR_207200_TASK_PRIORITY } }, _skullStalkerTask, { .model = &_gActor207200SkullStalkerBody } };
+TaskDesc gActor207200SkullStalkerTaskDesc = { { { TASK_BODY_TMD, ACTOR_207200_TASK_PRIORITY } }, _skullStalkerTask, { .model = &_gAkropolisForkedRoadSkullStalkerBody } };
 
 /// Skull Stalker animation sets: 0 empty, 1 idle, 2 alert.
 ///
 /// Contexts borrow this table and its sets for the model's lifetime.
-static AnimationSet* _gSkullStalkerAnimSets[3] = {
-    NULL,
-    &_gActor207200Animation04708,
-    &_gActor207200Animation0495C,
-};
+#include "assets/encounters/skull_stalker_and_creeping_stranger/skull_stalker_bank.inc"
 
 /// Both death particles' offset in signed game-coordinate units relative to the model root.
 static SVECTOR _gSkullStalkerDeathParticleOffset = { 0, -100, 0, 0 };

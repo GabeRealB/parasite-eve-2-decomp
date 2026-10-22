@@ -1,0 +1,48 @@
+# The assets of the group rooms/dryfield/motel_room_6, each named rooms/dryfield/motel_room_6/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[kyle]
+type = "pe2pkg"
+embedded = [
+    { name = "kyle_on_water_tower", offset = 0x05830, size = 0x3C0, address = 0x80137650 },
+    { asset = "characters/aya/stand", offset = 0x05BF0, size = 0x304, address = 0x80137A10 },
+    { name = "player_notice_someone", offset = 0x05EF4, size = 0x1B0, address = 0x80137D14 },
+    { asset = "characters/aya/idle", offset = 0x060A4, size = 0x1B8, address = 0x80137EC4 },
+    { name = "player_scene_bank", offset = 0x0625C, size = 0xC, address = 0x8013807C },
+    { name = "kyle_bank", offset = 0x06268, size = 0x8, address = 0x80138088 },
+]
+package_name = "actor_120500"
+required = true
+sha1 = "922d8ee533a3716fee63a6d2771c02aad10dc167"
+
+[kyle_bank]
+type = "animation_bank"
+clips = { on_water_tower = "rooms/dryfield/motel_room_6/kyle_on_water_tower" }
+schema = "rooms/dryfield/motel_room_6/kyle_schema"
+symbol = "_gActor120500KyleMadiganAnimationSets"
+
+[kyle_schema]
+type = "animation_schema"
+slots = ["", "on_water_tower"]
+
+[player_scene_bank]
+type = "animation_bank"
+schema = "rooms/dryfield/motel_room_6/player_scene_schema"
+symbol = "_gActor120500PlayerSceneAnimationSets"
+
+[player_scene_bank.clips]
+stand = "characters/aya/stand"
+notice_someone = "rooms/dryfield/motel_room_6/player_notice_someone"
+finish_scene = "characters/aya/idle"
+
+[kyle_on_water_tower]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[player_scene_schema]
+type = "animation_schema"
+slots = ["stand", "notice_someone", "finish_scene"]
+
+[player_notice_someone]
+type = "clip"
+rig = "characters/aya/rig"

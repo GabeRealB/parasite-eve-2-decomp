@@ -11,6 +11,12 @@ type = "vram_region"
 at = [896, 256]
 size = [64, 256]
 
+[actor_sheet]
+type = "vram_region"
+at = [384, 256]
+shares = ["engine/vram/character_sheet", "engine/vram/title_chrome"]
+size = [448, 256]
+
 [ui_palettes]
 type = "vram_region"
 at = [0, 240]
@@ -21,6 +27,11 @@ type = "vram_region"
 at = [896, 256]
 shares = ["engine/vram/ui_sheet"]
 size = [64, 256]
+
+[effect_sheet]
+type = "vram_region"
+at = [704, 0]
+size = [192, 256]
 
 [screen_sheet]
 type = "vram_region"
@@ -54,6 +65,12 @@ type = "vram_region"
 at = [960, 0]
 size = [64, 128]
 
+[actor_palettes]
+type = "vram_region"
+at = [0, 245]
+shares = ["engine/vram/character_palette"]
+size = [256, 8]
+
 [energy_picture]
 type = "vram_region"
 at = [0, 0]
@@ -69,6 +86,11 @@ size = [320, 1]
 type = "vram_region"
 at = [384, 256]
 size = [128, 256]
+
+[effect_palettes]
+type = "vram_region"
+at = [0, 262]
+size = [256, 3]
 
 [preview_palette]
 type = "vram_region"
@@ -98,10 +120,20 @@ at = [256, 243]
 shares = ["engine/vram/weapon_palette"]
 size = [64, 6]
 
+[held_weapon_sheet]
+type = "vram_region"
+at = [448, 64]
+size = [64, 64]
+
 [glyph_palette_block]
 type = "vram_region"
 at = [256, 240]
 size = [64, 3]
+
+[held_weapon_palette]
+type = "vram_region"
+at = [0, 244]
+size = [16, 1]
 
 [credits_logo_palettes]
 type = "vram_region"

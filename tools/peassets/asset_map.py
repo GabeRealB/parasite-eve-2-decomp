@@ -461,7 +461,7 @@ def declared_pairs(assets: dict):
             continue
         # An atlas's sprites are textures of its page (the UI sheet's), each drawn with its own palettes.
         pages = [(e["chunk"], n, placed) for e in rec["contents"] for n, p in enumerate(e.get("pages", ()))
-                 for placed in ([p] if "texture" in p else assets[p["atlas"]]["sprites"])]
+                 for placed in ([p] if "texture" in p else assets[p["atlas"]]["sprites"] if "atlas" in p else [])]
         palettes = [(e["chunk"], p) for e in rec["contents"] for p in e.get("palettes", ())]
         for image, column, page in pages:
             texture = assets[page["texture"]]

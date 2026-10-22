@@ -149,8 +149,8 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_Actor03700EntryScratch, 0x18);
 
 /* The two model streams the death effect picks between, in this overlay's data. */
-static TmdSource _gActor03700BatBurstWingRight;
-static TmdSource _gActor03700BatBurstWingLeft;
+static TmdSource _gBatBurstWingRight;
+static TmdSource _gBatBurstWingLeft;
 
 /// Task states used by this actor's three-entry enemy dispatcher.
 enum {
@@ -253,255 +253,13 @@ static void _actor03700Task(Task* task);
 
 static s32 _actor03700ReleaseHoldMsg(Task* task, s32 messageId, s32 unusedArg1, s32 unusedArg2);
 
-static TmdBone _gActor03700BatBodySkeleton[6] = {
-#include "assets/bat_body_skeleton.inc"
-};
+#include "assets/enemies/bat/body.inc"
 
-static u32 _gActor03700BatBodyPartVerts[6] = {
-#include "assets/bat_body_partVerts.inc"
-};
+#include "assets/enemies/bat/burst_wing_right.inc"
 
-static SVECTOR _gActor03700BatBodyVerts[74] = {
-#include "assets/bat_body_verts.inc"
-};
+#include "assets/enemies/bat/burst_wing_left.inc"
 
-static SVECTOR _gActor03700BatBodyNormals[61] = {
-#include "assets/bat_body_normals.inc"
-};
-
-static u32 _gActor03700BatBodyStream[424] = {
-#include "assets/bat_body_stream.inc"
-};
-
-static TmdSource _gActor03700BatBody = {
-    0,
-    2184,
-    480,
-    6,
-    _gActor03700BatBodyPartVerts,
-    _gActor03700BatBodyVerts,
-    _gActor03700BatBodyNormals,
-    _gActor03700BatBodySkeleton,
-    _gActor03700BatBodyStream,
-};
-
-static TmdBone _gActor03700BatBurstWingRightSkeleton[1] = {
-#include "assets/bat_burst_wing_right_skeleton.inc"
-};
-
-static u32 _gActor03700BatBurstWingRightPartVerts[1] = {
-#include "assets/bat_burst_wing_right_partVerts.inc"
-};
-
-static SVECTOR _gActor03700BatBurstWingRightVerts[16] = {
-#include "assets/bat_burst_wing_right_verts.inc"
-};
-
-static SVECTOR _gActor03700BatBurstWingRightNormals[11] = {
-#include "assets/bat_burst_wing_right_normals.inc"
-};
-
-static u32 _gActor03700BatBurstWingRightStream[54] = {
-#include "assets/bat_burst_wing_right_stream.inc"
-};
-
-static TmdSource _gActor03700BatBurstWingRight = {
-    0,
-    320,
-    0,
-    1,
-    _gActor03700BatBurstWingRightPartVerts,
-    _gActor03700BatBurstWingRightVerts,
-    _gActor03700BatBurstWingRightNormals,
-    _gActor03700BatBurstWingRightSkeleton,
-    _gActor03700BatBurstWingRightStream,
-};
-
-static TmdBone _gActor03700BatBurstWingLeftSkeleton[1] = {
-#include "assets/bat_burst_wing_left_skeleton.inc"
-};
-
-static u32 _gActor03700BatBurstWingLeftPartVerts[1] = {
-#include "assets/bat_burst_wing_left_partVerts.inc"
-};
-
-static SVECTOR _gActor03700BatBurstWingLeftVerts[16] = {
-#include "assets/bat_burst_wing_left_verts.inc"
-};
-
-static SVECTOR _gActor03700BatBurstWingLeftNormals[12] = {
-#include "assets/bat_burst_wing_left_normals.inc"
-};
-
-static u32 _gActor03700BatBurstWingLeftStream[54] = {
-#include "assets/bat_burst_wing_left_stream.inc"
-};
-
-static TmdSource _gActor03700BatBurstWingLeft = {
-    0,
-    320,
-    0,
-    1,
-    _gActor03700BatBurstWingLeftPartVerts,
-    _gActor03700BatBurstWingLeftVerts,
-    _gActor03700BatBurstWingLeftNormals,
-    _gActor03700BatBurstWingLeftSkeleton,
-    _gActor03700BatBurstWingLeftStream,
-};
-
-static AnimationPackedPose _gActor03700Actor103700Animation047C4Bank1[8] = {
-#include "assets/actor_103700_animation_047C4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor03700Actor103700Animation047C4Bank4[28] = {
-#include "assets/actor_103700_animation_047C4_bank4.inc"
-};
-
-static AnimationRecord _gActor03700Actor103700Animation047C4Records[49] = {
-#include "assets/actor_103700_animation_047C4_records.inc"
-};
-
-static u16 _gActor03700Actor103700Animation047C4Indices[6] = {
-#include "assets/actor_103700_animation_047C4_indices.inc"
-};
-
-static AnimationSet _gActor03700Actor103700Animation047C4 = {
-    _gActor03700Actor103700Animation047C4Records,
-    _gActor03700Actor103700Animation047C4Indices,
-    { NULL, _gActor03700Actor103700Animation047C4Bank1, NULL, NULL, _gActor03700Actor103700Animation047C4Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor03700Actor103700Animation04AC0Bank1[19] = {
-#include "assets/actor_103700_animation_04AC0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor03700Actor103700Animation04AC0Bank4[18] = {
-#include "assets/actor_103700_animation_04AC0_bank4.inc"
-};
-
-static AnimationRecord _gActor03700Actor103700Animation04AC0Records[103] = {
-#include "assets/actor_103700_animation_04AC0_records.inc"
-};
-
-static u16 _gActor03700Actor103700Animation04AC0Indices[6] = {
-#include "assets/actor_103700_animation_04AC0_indices.inc"
-};
-
-static AnimationSet _gActor03700Actor103700Animation04AC0 = {
-    _gActor03700Actor103700Animation04AC0Records,
-    _gActor03700Actor103700Animation04AC0Indices,
-    { NULL, _gActor03700Actor103700Animation04AC0Bank1, NULL, NULL, _gActor03700Actor103700Animation04AC0Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor03700Actor103700Animation04C58Bank1[7] = {
-#include "assets/actor_103700_animation_04C58_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor03700Actor103700Animation04C58Bank4[24] = {
-#include "assets/actor_103700_animation_04C58_bank4.inc"
-};
-
-static AnimationRecord _gActor03700Actor103700Animation04C58Records[44] = {
-#include "assets/actor_103700_animation_04C58_records.inc"
-};
-
-static u16 _gActor03700Actor103700Animation04C58Indices[6] = {
-#include "assets/actor_103700_animation_04C58_indices.inc"
-};
-
-static AnimationSet _gActor03700Actor103700Animation04C58 = {
-    _gActor03700Actor103700Animation04C58Records,
-    _gActor03700Actor103700Animation04C58Indices,
-    { NULL, _gActor03700Actor103700Animation04C58Bank1, NULL, NULL, _gActor03700Actor103700Animation04C58Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor03700Actor103700Animation05448Bank1[49] = {
-#include "assets/actor_103700_animation_05448_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor03700Actor103700Animation05448Bank4[126] = {
-#include "assets/actor_103700_animation_05448_bank4.inc"
-};
-
-static AnimationRecord _gActor03700Actor103700Animation05448Records[222] = {
-#include "assets/actor_103700_animation_05448_records.inc"
-};
-
-static u16 _gActor03700Actor103700Animation05448Indices[6] = {
-#include "assets/actor_103700_animation_05448_indices.inc"
-};
-
-static AnimationSet _gActor03700Actor103700Animation05448 = {
-    _gActor03700Actor103700Animation05448Records,
-    _gActor03700Actor103700Animation05448Indices,
-    { NULL, _gActor03700Actor103700Animation05448Bank1, NULL, NULL, _gActor03700Actor103700Animation05448Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor03700Actor103700Animation05CE8Bank1[61] = {
-#include "assets/actor_103700_animation_05CE8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor03700Actor103700Animation05CE8Bank4[132] = {
-#include "assets/actor_103700_animation_05CE8_bank4.inc"
-};
-
-static AnimationRecord _gActor03700Actor103700Animation05CE8Records[224] = {
-#include "assets/actor_103700_animation_05CE8_records.inc"
-};
-
-static u16 _gActor03700Actor103700Animation05CE8Indices[6] = {
-#include "assets/actor_103700_animation_05CE8_indices.inc"
-};
-
-static AnimationSet _gActor03700Actor103700Animation05CE8 = {
-    _gActor03700Actor103700Animation05CE8Records,
-    _gActor03700Actor103700Animation05CE8Indices,
-    { NULL, _gActor03700Actor103700Animation05CE8Bank1, NULL, NULL, _gActor03700Actor103700Animation05CE8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor03700Actor103700Animation06B4CBank1[31] = {
-#include "assets/actor_103700_animation_06B4C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor03700Actor103700Animation06B4CBank4[344] = {
-#include "assets/actor_103700_animation_06B4C_bank4.inc"
-};
-
-static AnimationRecord _gActor03700Actor103700Animation06B4CRecords[464] = {
-#include "assets/actor_103700_animation_06B4C_records.inc"
-};
-
-static u16 _gActor03700Actor103700Animation06B4CIndices[20] = {
-#include "assets/actor_103700_animation_06B4C_indices.inc"
-};
-
-static AnimationSet _gActor03700Actor103700Animation06B4C = {
-    _gActor03700Actor103700Animation06B4CRecords,
-    _gActor03700Actor103700Animation06B4CIndices,
-    { NULL, _gActor03700Actor103700Animation06B4CBank1, NULL, NULL, _gActor03700Actor103700Animation06B4CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor03700Actor103700Animation07EE0Bank1[36] = {
-#include "assets/actor_103700_animation_07EE0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor03700Actor103700Animation07EE0Bank4[522] = {
-#include "assets/actor_103700_animation_07EE0_bank4.inc"
-};
-
-static AnimationRecord _gActor03700Actor103700Animation07EE0Records[603] = {
-#include "assets/actor_103700_animation_07EE0_records.inc"
-};
-
-static u16 _gActor03700Actor103700Animation07EE0Indices[20] = {
-#include "assets/actor_103700_animation_07EE0_indices.inc"
-};
-
-static AnimationSet _gActor03700Actor103700Animation07EE0 = {
-    _gActor03700Actor103700Animation07EE0Records,
-    _gActor03700Actor103700Animation07EE0Indices,
-    { NULL, _gActor03700Actor103700Animation07EE0Bank1, NULL, NULL, _gActor03700Actor103700Animation07EE0Bank4, NULL, NULL, NULL },
-};
+#include "assets/enemies/bat/package_1_clips.inc"
 
 /// Distinct, status-free player hit presentation selected by a bat strike.
 enum { ACTOR_03700_HELD_PLAYER_HIT_REACTION = 7 };
@@ -613,7 +371,7 @@ static s16 _gActor03700TurnRates[8] = {
     48,
 };
 
-TaskDesc gActor03700BatTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor03700Task, { .model = &_gActor03700BatBody } };
+TaskDesc gActor03700BatTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor03700Task, { .model = &_gBatBody } };
 
 /// Signed per-tick Y displacements for the Bat's vertical flight bob, in root units.
 ///
@@ -777,24 +535,13 @@ static s16 _gActor03700AttachmentHitResponses[56] = {
 ///
 /// Entry 0 is NULL. The rig borrows the six-entry bank and its sets for
 /// the enemy task's lifetime; player hold clips use a separate bank.
-static AnimationSet* _gActor03700AnimationSets[ACTOR_03700_ANIM_TAKEOFF_BACK + 1] = {
-    NULL,
-    &_gActor03700Actor103700Animation047C4,
-    &_gActor03700Actor103700Animation04AC0,
-    &_gActor03700Actor103700Animation04C58,
-    &_gActor03700Actor103700Animation05448,
-    &_gActor03700Actor103700Animation05CE8,
-};
+#include "assets/enemies/bat/bank.inc"
 
 /// Player animation bank for the bat's grab and release.
 ///
 /// Index 0 is NULL, 1 is the held-player clip and 2 is the release clip.
 /// Player playback borrows the bank and its sets until release completes.
-static AnimationSet* _gActor03700PlayerHoldAnimationSets[3] = {
-    NULL,
-    &_gActor03700Actor103700Animation06B4C,
-    &_gActor03700Actor103700Animation07EE0,
-};
+#include "assets/enemies/bat/player_hold_bank.inc"
 
 /// Bat message dispatch: release the player's hold, then the end marker.
 ///
@@ -1919,9 +1666,9 @@ static inline void _actor03700SpawnRemains(Task* task)
 
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     if ((gRandomLcgState >> 16) & 1) {
-        gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gActor03700BatBurstWingRight;
+        gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gBatBurstWingRight;
     } else {
-        gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gActor03700BatBurstWingLeft;
+        gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gBatBurstWingLeft;
     }
     remains = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &task->extra.tmd->coords[4], ACTOR_03700_REMAINS_PUFF_SIZE, NULL);
     if (remains == NULL) {

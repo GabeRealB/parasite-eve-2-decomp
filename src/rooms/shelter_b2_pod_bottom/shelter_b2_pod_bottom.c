@@ -1176,23 +1176,23 @@ enum {
     SHELTER_B2_POD_BOTTOM_VARIANT_FIGHT       = 2,
     SHELTER_B2_POD_BOTTOM_RESOURCE_BOSS       = 36,
     SHELTER_B2_POD_BOTTOM_RESOURCE_TENTACLE   = 45,
-    SHELTER_B2_POD_BOTTOM_RESOURCE_AYA_BREA   = 132,
+    SHELTER_B2_POD_BOTTOM_RESOURCE_EVE        = 132,
 };
 
 /// Resource recipes for placement variant 1's entry scene.
 ///
-/// Entry IDs match its boss, tentacle and Aya Brea placements. Each selects
+/// Entry IDs match its boss, tentacle and Eve placements. Each selects
 /// descriptor zero; file-group selectors and decimal file numbers identify
 /// their loaded actor packages. AREA_PLACEMENT_END terminates the list, which
 /// remains borrowed with its descriptor pointers during loading and spawning.
 static AreaResource _gShelterB2PodBottomEntrySceneResources[4] = {
     { .entryId = SHELTER_B2_POD_BOTTOM_RESOURCE_BOSS, .fileNumber = 36, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = gActor403600TaskTable },
     { .entryId = SHELTER_B2_POD_BOTTOM_RESOURCE_TENTACLE, .fileNumber = 611, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_30, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor361100TentacleTaskDesc },
-    { .entryId = SHELTER_B2_POD_BOTTOM_RESOURCE_AYA_BREA, .fileNumber = 611, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_60, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor361100AyaBreaTaskDesc },
+    { .entryId = SHELTER_B2_POD_BOTTOM_RESOURCE_EVE, .fileNumber = 611, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_60, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor361100EveTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-/// Boss, tentacle and Aya Brea placements for variant 1's entry scene.
+/// Boss, tentacle and Eve placements for variant 1's entry scene.
 ///
 /// The boss starts at (8000, -3000, 6400), yaw -1024; the scene actors start
 /// at the origin with texture-page/CLUT-row offsets (1, 4) and (-1, 2).
@@ -1202,24 +1202,24 @@ static AreaResource _gShelterB2PodBottomEntrySceneResources[4] = {
 static AreaPlacement _gShelterB2PodBottomEntryScenePlacements[4] = {
     { SHELTER_B2_POD_BOTTOM_RESOURCE_BOSS, 0, 0, 8000, -3000, 6400, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0, 0, 0 },
     { SHELTER_B2_POD_BOTTOM_RESOURCE_TENTACLE, 0, 0, 0, 0, 0, 0, 0, 1, 4, 0 },
-    { SHELTER_B2_POD_BOTTOM_RESOURCE_AYA_BREA, 0, 0, 0, 0, 0, 0, 0, -1, 2, 0 },
+    { SHELTER_B2_POD_BOTTOM_RESOURCE_EVE, 0, 0, 0, 0, 0, 0, 0, -1, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 /// Resource recipes for placement variant 2's immediate boss fight.
 ///
-/// Loads the same boss, tentacle and Aya Brea recipes as the entry scene into
+/// Loads the same boss, tentacle and Eve recipes as the entry scene into
 /// a separately stored list. Entry IDs match its placements, descriptor indices
 /// are zero and AREA_PLACEMENT_END terminates the table. Borrowed list and
 /// descriptor storage must remain loaded during loading and spawning.
 static AreaResource _gShelterB2PodBottomFightResources[4] = {
     { .entryId = SHELTER_B2_POD_BOTTOM_RESOURCE_BOSS, .fileNumber = 36, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = gActor403600TaskTable },
     { .entryId = SHELTER_B2_POD_BOTTOM_RESOURCE_TENTACLE, .fileNumber = 611, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_30, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor361100TentacleTaskDesc },
-    { .entryId = SHELTER_B2_POD_BOTTOM_RESOURCE_AYA_BREA, .fileNumber = 611, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_60, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor361100AyaBreaTaskDesc },
+    { .entryId = SHELTER_B2_POD_BOTTOM_RESOURCE_EVE, .fileNumber = 611, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_60, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor361100EveTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-/// Boss, tentacle and Aya Brea placements for variant 2's immediate boss fight.
+/// Boss, tentacle and Eve placements for variant 2's immediate boss fight.
 ///
 /// The boss starts at (8000, -3000, 6400), yaw -1024; the other actors start
 /// at the origin with texture-page/CLUT-row offsets (1, 4) and (-1, 2).
@@ -1229,7 +1229,7 @@ static AreaResource _gShelterB2PodBottomFightResources[4] = {
 static AreaPlacement _gShelterB2PodBottomFightPlacements[4] = {
     { SHELTER_B2_POD_BOTTOM_RESOURCE_BOSS, 0, 0, 8000, -3000, 6400, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0, 0, 0 },
     { SHELTER_B2_POD_BOTTOM_RESOURCE_TENTACLE, 0, 0, 0, 0, 0, 0, 0, 1, 4, 0 },
-    { SHELTER_B2_POD_BOTTOM_RESOURCE_AYA_BREA, 0, 0, 0, 0, 0, 0, 0, -1, 2, 0 },
+    { SHELTER_B2_POD_BOTTOM_RESOURCE_EVE, 0, 0, 0, 0, 0, 0, 0, -1, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 

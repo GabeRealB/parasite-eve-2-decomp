@@ -1,0 +1,295 @@
+# The assets of the group enemies/suckler/blood, each named enemies/suckler/blood/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+schema = "enemies/suckler/blood/schema"
+symbol = "_gActor04000AnimationSets"
+
+[bank.clips]
+hang = "enemies/suckler/bone/hang"
+walk = "enemies/suckler/bone/walk"
+run = "enemies/suckler/bone/run"
+settle = "enemies/suckler/bone/settle"
+sleep = "enemies/suckler/bone/sleep"
+rouse = "enemies/suckler/bone/rouse"
+slot_7 = "enemies/suckler/bone/anim_07"
+slot_8 = "enemies/suckler/bone/anim_08"
+slot_9 = "enemies/suckler/blood/anim_09"
+burst = "enemies/suckler/bone/burst"
+leap_down = "enemies/suckler/blood/leap_down"
+land = "enemies/suckler/blood/land"
+lunge = "enemies/suckler/blood/lunge"
+latch_release = "enemies/suckler/blood/latch_release"
+lunge_recover = "enemies/suckler/blood/lunge_recover"
+pause = "enemies/suckler/blood/pause"
+tumble = "enemies/suckler/blood/tumble"
+
+[body]
+type = "model"
+rig = "enemies/suckler/rig"
+slots = ["body"]
+symbol = "_gSucklerBloodBody"
+sha1 = "88a6c4e77e87d48db82bf1d3e0c54cda3633b866"
+
+[file]
+type = "file"
+contents = [
+    { asset = "enemies/moth/preview_palette", sha1 = "65e9784cafe3f1873b915a880cb1979b39621a83" },
+    { asset = "enemies/moth/preview_image", sha1 = "161ac20e76eb8f36b46a091126eaafe3a329e23e" },
+    { asset = "txt_82" },
+]
+
+[hurt]
+type = "sound"
+sha1 = "ad1e8a46322c25a597973a00dced10e10ed3d967"
+
+[land]
+type = "clip"
+rig = "enemies/suckler/rig"
+
+[lunge]
+type = "clip"
+rig = "enemies/suckler/rig"
+
+[pause]
+type = "clip"
+rig = "enemies/suckler/rig"
+
+[schema]
+type = "animation_schema"
+slots = [
+    "",
+    "hang",
+    "walk",
+    "run",
+    "settle",
+    "sleep",
+    "rouse",
+    "slot_7",
+    "slot_8",
+    "slot_9",
+    "burst",
+    "leap_down",
+    "land",
+    "lunge",
+    "latch_release",
+    "lunge_recover",
+    "pause",
+    "tumble",
+]
+
+[sounds]
+type = "sound_bank"
+samples = [
+    "enemies/suckler/burst",
+    "enemies/suckler/step",
+    "enemies/suckler/burst_2",
+    "enemies/suckler/blood/unused_1",
+    "enemies/suckler/blood/unused_2",
+    "enemies/suckler/blood/hurt",
+]
+sounds = { step = 1, hurt = 3, burst = 4 }
+sha1 = "520e872aa8d66788849a0124d9e788728fdb6cfd"
+
+[tumble]
+type = "clip"
+rig = "enemies/suckler/rig"
+
+[anim_09]
+type = "clip"
+rig = "enemies/suckler/rig"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[unused_1]
+type = "sound"
+sha1 = "e95584deba9adeb5f97c139780ca3a292c6417a9"
+
+[unused_2]
+type = "sound"
+sha1 = "9a355620dba638728f7c0636daa3e736611728af"
+
+[leap_down]
+type = "clip"
+rig = "enemies/suckler/rig"
+
+[package_1]
+type = "pe2pkg"
+embedded = [
+    { name = "body", offset = 0x070AC, size = 0x1690, address = 0x80138ECC },
+    { asset = "enemies/suckler/bone/hang", offset = 0x0873C, size = 0x164, address = 0x8013A55C },
+    { asset = "enemies/suckler/bone/walk", offset = 0x088A0, size = 0x2C4, address = 0x8013A6C0 },
+    { asset = "enemies/suckler/bone/run", offset = 0x08B64, size = 0x2A4, address = 0x8013A984 },
+    { asset = "enemies/suckler/bone/settle", offset = 0x08E08, size = 0x1E0, address = 0x8013AC28 },
+    { asset = "enemies/suckler/bone/sleep", offset = 0x08FE8, size = 0x138, address = 0x8013AE08 },
+    { asset = "enemies/suckler/bone/rouse", offset = 0x09120, size = 0x1A0, address = 0x8013AF40 },
+    { asset = "enemies/suckler/bone/anim_07", offset = 0x092C0, size = 0x214, address = 0x8013B0E0 },
+    { asset = "enemies/suckler/bone/anim_08", offset = 0x094D4, size = 0x410, address = 0x8013B2F4 },
+    { asset = "enemies/suckler/bone/burst", offset = 0x098E4, size = 0x1D8, address = 0x8013B704 },
+    { name = "player_latched_left", offset = 0x09ABC, size = 0x7CC, address = 0x8013B8DC },
+    { name = "player_released_left", offset = 0x0A288, size = 0x4BC, address = 0x8013C0A8 },
+    { name = "player_latched_right", offset = 0x0A744, size = 0x7B0, address = 0x8013C564 },
+    { name = "player_released_right", offset = 0x0AEF4, size = 0x4A8, address = 0x8013CD14 },
+    { name = "anim_09", offset = 0x0B39C, size = 0x37C, address = 0x8013D1BC },
+    { name = "lunge", offset = 0x0B718, size = 0x3B0, address = 0x8013D538 },
+    { name = "latch_release", offset = 0x0BAC8, size = 0x23C, address = 0x8013D8E8 },
+    { name = "leap_down", offset = 0x0BD04, size = 0x244, address = 0x8013DB24 },
+    { name = "land", offset = 0x0BF48, size = 0x150, address = 0x8013DD68 },
+    { name = "lunge_recover", offset = 0x0C098, size = 0x150, address = 0x8013DEB8 },
+    { name = "pause", offset = 0x0C1E8, size = 0x12C, address = 0x8013E008 },
+    { name = "tumble", offset = 0x0C314, size = 0x1B0, address = 0x8013E134 },
+    { name = "bank", offset = 0x0C4C4, size = 0x4C, address = 0x8013E2E4 },
+    { name = "player_left_latch_bank", offset = 0x0C510, size = 0x10, address = 0x8013E330 },
+    { name = "player_right_latch_bank", offset = 0x0C520, size = 0x10, address = 0x8013E340 },
+]
+package_name = "actor_104000"
+required = true
+sha1 = "7f8954da5b594573b930e9fbb1eb4724d9fb5cb8"
+
+[package_2]
+type = "pe2pkg"
+embedded = [
+    { asset = "enemies/suckler/bone/hang", offset = 0x0873C, size = 0x164, address = 0x8015255C },
+    { asset = "enemies/suckler/bone/walk", offset = 0x088A0, size = 0x2C4, address = 0x801526C0 },
+    { asset = "enemies/suckler/bone/run", offset = 0x08B64, size = 0x2A4, address = 0x80152984 },
+    { asset = "enemies/suckler/bone/settle", offset = 0x08E08, size = 0x1E0, address = 0x80152C28 },
+    { asset = "enemies/suckler/bone/sleep", offset = 0x08FE8, size = 0x138, address = 0x80152E08 },
+    { asset = "enemies/suckler/bone/rouse", offset = 0x09120, size = 0x1A0, address = 0x80152F40 },
+    { asset = "enemies/suckler/bone/anim_07", offset = 0x092C0, size = 0x214, address = 0x801530E0 },
+    { asset = "enemies/suckler/bone/anim_08", offset = 0x094D4, size = 0x410, address = 0x801532F4 },
+    { asset = "enemies/suckler/bone/burst", offset = 0x098E4, size = 0x1D8, address = 0x80153704 },
+    { name = "player_latched_left", offset = 0x09ABC, size = 0x7CC, address = 0x801538DC },
+    { name = "player_released_left", offset = 0x0A288, size = 0x4BC, address = 0x801540A8 },
+    { name = "player_latched_right", offset = 0x0A744, size = 0x7B0, address = 0x80154564 },
+    { name = "player_released_right", offset = 0x0AEF4, size = 0x4A8, address = 0x80154D14 },
+    { name = "anim_09", offset = 0x0B39C, size = 0x37C, address = 0x801551BC },
+    { name = "lunge", offset = 0x0B718, size = 0x3B0, address = 0x80155538 },
+    { name = "latch_release", offset = 0x0BAC8, size = 0x23C, address = 0x801558E8 },
+    { name = "leap_down", offset = 0x0BD04, size = 0x244, address = 0x80155B24 },
+    { name = "land", offset = 0x0BF48, size = 0x150, address = 0x80155D68 },
+    { name = "lunge_recover", offset = 0x0C098, size = 0x150, address = 0x80155EB8 },
+    { name = "pause", offset = 0x0C1E8, size = 0x12C, address = 0x80156008 },
+    { name = "tumble", offset = 0x0C314, size = 0x1B0, address = 0x80156134 },
+    { name = "bank", offset = 0x0C4C4, size = 0x4C, address = 0x801562E4 },
+    { name = "player_left_latch_bank", offset = 0x0C510, size = 0x10, address = 0x80156330 },
+    { name = "player_right_latch_bank", offset = 0x0C520, size = 0x10, address = 0x80156340 },
+]
+package_name = "actor_204000"
+required = true
+sha1 = "888d5b579556ee33b995fe995bc24ef558e7bc7b"
+
+[package_3]
+type = "pe2pkg"
+embedded = [
+    { asset = "enemies/suckler/bone/hang", offset = 0x0873C, size = 0x164, address = 0x8016A55C },
+    { asset = "enemies/suckler/bone/walk", offset = 0x088A0, size = 0x2C4, address = 0x8016A6C0 },
+    { asset = "enemies/suckler/bone/run", offset = 0x08B64, size = 0x2A4, address = 0x8016A984 },
+    { asset = "enemies/suckler/bone/settle", offset = 0x08E08, size = 0x1E0, address = 0x8016AC28 },
+    { asset = "enemies/suckler/bone/sleep", offset = 0x08FE8, size = 0x138, address = 0x8016AE08 },
+    { asset = "enemies/suckler/bone/rouse", offset = 0x09120, size = 0x1A0, address = 0x8016AF40 },
+    { asset = "enemies/suckler/bone/anim_07", offset = 0x092C0, size = 0x214, address = 0x8016B0E0 },
+    { asset = "enemies/suckler/bone/anim_08", offset = 0x094D4, size = 0x410, address = 0x8016B2F4 },
+    { asset = "enemies/suckler/bone/burst", offset = 0x098E4, size = 0x1D8, address = 0x8016B704 },
+    { name = "player_latched_left", offset = 0x09ABC, size = 0x7CC, address = 0x8016B8DC },
+    { name = "player_released_left", offset = 0x0A288, size = 0x4BC, address = 0x8016C0A8 },
+    { name = "player_latched_right", offset = 0x0A744, size = 0x7B0, address = 0x8016C564 },
+    { name = "player_released_right", offset = 0x0AEF4, size = 0x4A8, address = 0x8016CD14 },
+    { name = "anim_09", offset = 0x0B39C, size = 0x37C, address = 0x8016D1BC },
+    { name = "lunge", offset = 0x0B718, size = 0x3B0, address = 0x8016D538 },
+    { name = "latch_release", offset = 0x0BAC8, size = 0x23C, address = 0x8016D8E8 },
+    { name = "leap_down", offset = 0x0BD04, size = 0x244, address = 0x8016DB24 },
+    { name = "land", offset = 0x0BF48, size = 0x150, address = 0x8016DD68 },
+    { name = "lunge_recover", offset = 0x0C098, size = 0x150, address = 0x8016DEB8 },
+    { name = "pause", offset = 0x0C1E8, size = 0x12C, address = 0x8016E008 },
+    { name = "tumble", offset = 0x0C314, size = 0x1B0, address = 0x8016E134 },
+    { name = "bank", offset = 0x0C4C4, size = 0x4C, address = 0x8016E2E4 },
+    { name = "player_left_latch_bank", offset = 0x0C510, size = 0x10, address = 0x8016E330 },
+    { name = "player_right_latch_bank", offset = 0x0C520, size = 0x10, address = 0x8016E340 },
+]
+package_name = "actor_304000"
+required = true
+sha1 = "77e53c7436498ac9d0d1fd14108f77d8d3b925f5"
+
+[body_binding]
+type = "binding"
+model = "enemies/suckler/blood/body"
+textures = { body = "enemies/suckler/blood/texture.default" }
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+chunk = "sounds"
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "bb930db912821ff1ed889d1e1f2fa8e462f9a27f"
+pages = [{ texture = "texture", region = "engine/vram/actor_sheet", offset = [0, 0] }]
+slots = 6
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "d193fc2d2ad8965982dc2b12f91de74694968249"
+palettes = [
+    { texture = "texture", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { name = "unread_row_2", entries = 256, region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_file.contents]]
+chunk = "package_1"
+
+[latch_release]
+type = "clip"
+rig = "enemies/suckler/rig"
+
+[lunge_recover]
+type = "clip"
+rig = "enemies/suckler/rig"
+
+[player_latched_left]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_latched_right]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_released_left]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_released_right]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_left_latch_bank]
+type = "animation_bank"
+schema = "enemies/suckler/blood/player_left_latch_schema"
+symbol = "_gActor04000PlayerLeftLatchAnimationSets"
+
+[player_left_latch_bank.clips]
+player_latched_left = "enemies/suckler/blood/player_latched_left"
+player_released_left = "enemies/suckler/blood/player_released_left"
+
+[player_right_latch_bank]
+type = "animation_bank"
+schema = "enemies/suckler/blood/player_right_latch_schema"
+symbol = "_gActor04000PlayerRightLatchAnimationSets"
+
+[player_right_latch_bank.clips]
+player_latched_right = "enemies/suckler/blood/player_latched_right"
+player_released_right = "enemies/suckler/blood/player_released_right"
+
+[player_left_latch_schema]
+type = "animation_schema"
+slots = ["", "player_latched_left", "player_released_left"]
+
+[player_right_latch_schema]
+type = "animation_schema"
+slots = ["", "player_latched_right", "player_released_right"]

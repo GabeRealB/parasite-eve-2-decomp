@@ -93,7 +93,7 @@ static TaskDesc _gActor143000CaptureStripTaskDesc = { { { TASK_BODY_NONE, 32 } }
 /// The bank copy reads 32 entries from here, past these five into the play
 /// requests that follow; those words land in extension ids 52..78 and are never
 /// played.
-static AnimationSet* _gActor143000PlayerSceneSets[ACTOR_143000_PLAYER_SCENE_SET_COUNT] = { &gActor143000Animation02A20, &gActor143000Animation02CCC, &gActor143000Animation02EE8, &gActor143000Animation03090, &gActor143000Animation03248 };
+static AnimationSet* _gActor143000PlayerSceneSets[ACTOR_143000_PLAYER_SCENE_SET_COUNT] = { &gShelterB2LaboratoryPlayerAtTerminalClip, &gShelterB2LaboratoryPlayerTypeAtTerminalClip, &gShelterB2LaboratoryPlayerShockedAtTerminalClip, &gShelterB2LaboratoryPlayerStopTypingClip, &gShelterB2LaboratoryPlayerResultsCue16Clip };
 
 /// Clip 1 reset used on exit, logout and scene skip. Disables world collision.
 static AnimationPlayRequest _gActor143000PlayerBaseRequest = { { .index = 1 }, ACTOR_143000_PLAYER_BASE_CLIP, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };

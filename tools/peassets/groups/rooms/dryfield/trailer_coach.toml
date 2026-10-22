@@ -1,0 +1,225 @@
+# The assets of the group rooms/dryfield/trailer_coach, each named rooms/dryfield/trailer_coach/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[gary]
+type = "pe2pkg"
+embedded = [
+    { name = "player_event_58", offset = 0x00A74, size = 0x394, address = 0x80132894 },
+    { name = "player_event_59", offset = 0x00E08, size = 0x5C8, address = 0x80132C28 },
+    { name = "player_event_60", offset = 0x013D0, size = 0x2A4, address = 0x801331F0 },
+    { name = "player_event_61", offset = 0x01674, size = 0x22C, address = 0x80133494 },
+    { name = "player_event_47", offset = 0x018A0, size = 0x3E4, address = 0x801336C0 },
+    { name = "player_event_48", offset = 0x01C84, size = 0x260, address = 0x80133AA4 },
+    { name = "player_event_49", offset = 0x01EE4, size = 0x46C, address = 0x80133D04 },
+    { name = "player_event_50", offset = 0x02350, size = 0xBF0, address = 0x80134170 },
+    { name = "player_conversation", offset = 0x02F40, size = 0x254, address = 0x80134D60 },
+    { name = "player_event_52", offset = 0x03194, size = 0x298, address = 0x80134FB4 },
+    { name = "player_event_53", offset = 0x0342C, size = 0x1D0, address = 0x8013524C },
+    { name = "player_event_54", offset = 0x035FC, size = 0x804, address = 0x8013541C },
+    { asset = "characters/gary/shotgun_2", offset = 0x09D68, size = 0x4C4, address = 0x8013BB88 },
+    { name = "gary_anim_01", offset = 0x0A22C, size = 0x260, address = 0x8013C04C },
+    { name = "gary_anim_02", offset = 0x0A48C, size = 0x1AC, address = 0x8013C2AC },
+    { name = "gary_anim_03", offset = 0x0A638, size = 0x1AC, address = 0x8013C458 },
+    { name = "gary_anim_04", offset = 0x0A7E4, size = 0x1B0, address = 0x8013C604 },
+    { name = "gary_idle", offset = 0x0A994, size = 0x3F8, address = 0x8013C7B4 },
+    { name = "gary_anim_06", offset = 0x0AD8C, size = 0x1B8, address = 0x8013CBAC },
+    { name = "gary_anim_07", offset = 0x0AF44, size = 0x1CC, address = 0x8013CD64 },
+    { name = "gary_anim_08", offset = 0x0B110, size = 0x2C8, address = 0x8013CF30 },
+    { name = "gary_anim_09", offset = 0x0B3D8, size = 0x1CC, address = 0x8013D1F8 },
+    { name = "gary_anim_10", offset = 0x0B5A4, size = 0x260, address = 0x8013D3C4 },
+    { asset = "rooms/dryfield/night_main_street/body_anim_07", offset = 0x0B804, size = 0x1F4, address = 0x8013D624 },
+    { asset = "rooms/dryfield/night_main_street/body_anim_08", offset = 0x0B9F8, size = 0x294, address = 0x8013D818 },
+    { asset = "rooms/dryfield/night_main_street/body_anim_09", offset = 0x0BC8C, size = 0x1F4, address = 0x8013DAAC },
+    { name = "gary_anim_14", offset = 0x0BE80, size = 0x2F8, address = 0x8013DCA0 },
+    { name = "gary_anim_15", offset = 0x0C178, size = 0x380, address = 0x8013DF98 },
+    { name = "gary_anim_16", offset = 0x0C4F8, size = 0x294, address = 0x8013E318 },
+    { name = "gary_anim_17", offset = 0x0C78C, size = 0x268, address = 0x8013E5AC },
+    { name = "gary_anim_18", offset = 0x0C9F4, size = 0x23C, address = 0x8013E814 },
+    { name = "gary_anim_19", offset = 0x0CC30, size = 0x304, address = 0x8013EA50 },
+    { name = "gary_anim_20", offset = 0x0CF34, size = 0x1F4, address = 0x8013ED54 },
+    { name = "gary_bank", offset = 0x0D16C, size = 0x54, address = 0x8013EF8C },
+]
+package_name = "actor_420700"
+required = true
+sha1 = "8d5c22080c316e108ad933c886d64c7bd800077f"
+
+[gary_bank]
+type = "animation_bank"
+schema = "rooms/dryfield/trailer_coach/gary_schema"
+symbol = "_gActor420700AnimationSets"
+
+[gary_bank.clips]
+slot_1 = "rooms/dryfield/trailer_coach/gary_anim_01"
+slot_2 = "rooms/dryfield/trailer_coach/gary_anim_02"
+slot_3 = "rooms/dryfield/trailer_coach/gary_anim_03"
+slot_4 = "rooms/dryfield/trailer_coach/gary_anim_04"
+idle = "rooms/dryfield/trailer_coach/gary_idle"
+slot_6 = "rooms/dryfield/trailer_coach/gary_anim_06"
+slot_7 = "rooms/dryfield/trailer_coach/gary_anim_07"
+slot_8 = "rooms/dryfield/trailer_coach/gary_anim_08"
+slot_9 = "rooms/dryfield/trailer_coach/gary_anim_09"
+slot_10 = "rooms/dryfield/trailer_coach/gary_anim_10"
+slot_11 = "rooms/dryfield/night_main_street/body_anim_07"
+slot_12 = "rooms/dryfield/night_main_street/body_anim_08"
+slot_13 = "rooms/dryfield/night_main_street/body_anim_09"
+slot_14 = "rooms/dryfield/trailer_coach/gary_anim_14"
+slot_15 = "rooms/dryfield/trailer_coach/gary_anim_15"
+slot_16 = "rooms/dryfield/trailer_coach/gary_anim_16"
+slot_17 = "rooms/dryfield/trailer_coach/gary_anim_17"
+slot_18 = "rooms/dryfield/trailer_coach/gary_anim_18"
+slot_19 = "rooms/dryfield/trailer_coach/gary_anim_19"
+slot_20 = "rooms/dryfield/trailer_coach/gary_anim_20"
+
+[gary_idle]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "slot_1",
+    "slot_2",
+    "slot_3",
+    "slot_4",
+    "idle",
+    "slot_6",
+    "slot_7",
+    "slot_8",
+    "slot_9",
+    "slot_10",
+    "slot_11",
+    "slot_12",
+    "slot_13",
+    "slot_14",
+    "slot_15",
+    "slot_16",
+    "slot_17",
+    "slot_18",
+    "slot_19",
+    "slot_20",
+]
+
+[gary_anim_01]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_anim_02]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_anim_03]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_anim_04]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_anim_06]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_anim_07]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_anim_08]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_anim_09]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_anim_10]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_anim_14]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_anim_15]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_anim_16]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_anim_17]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_anim_18]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_anim_19]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_anim_20]
+type = "clip"
+rig = "characters/gary/rig"
+
+[player_event_47]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gDryfieldTrailerCoachPlayerEvent47Clip"
+
+[player_event_48]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gDryfieldTrailerCoachPlayerEvent48Clip"
+
+[player_event_49]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gDryfieldTrailerCoachPlayerEvent49Clip"
+
+[player_event_50]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gDryfieldTrailerCoachPlayerEvent50Clip"
+
+[player_event_52]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gDryfieldTrailerCoachPlayerEvent52Clip"
+
+[player_event_53]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gDryfieldTrailerCoachPlayerEvent53Clip"
+
+[player_event_54]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gDryfieldTrailerCoachPlayerEvent54Clip"
+
+[player_event_58]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gDryfieldTrailerCoachPlayerEvent58Clip"
+
+[player_event_59]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gDryfieldTrailerCoachPlayerEvent59Clip"
+
+[player_event_60]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gDryfieldTrailerCoachPlayerEvent60Clip"
+
+[player_event_61]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gDryfieldTrailerCoachPlayerEvent61Clip"
+
+[player_conversation]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gDryfieldTrailerCoachPlayerConversationClip"

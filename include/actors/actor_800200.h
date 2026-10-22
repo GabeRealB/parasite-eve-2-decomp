@@ -6,7 +6,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern TmdSource gActor800200FlintBody;
+extern TmdSource gFlintBody;
 
 /// Flint's native companion clip bank, selected by gameplay's bank index 6.
 ///

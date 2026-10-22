@@ -153,7 +153,7 @@ MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
 static void _actor123200Hide(Enemy* enemy, Task* task);
 
-static TmdSource _gActor123200BoneSucklerBody;
+static TmdSource _gSucklerBoneBody;
 static void      _actor123200Task(Task* task);
 
 static s32 _actor123200SetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg);
@@ -177,257 +177,9 @@ static DamageAttack _gActor123200Attacks[1] = {
 /// Spawn overrides the instance's hit points to zero and installs no collision bodies.
 static EnemyParams _gActor123200EnemyParams = { _gActor123200Attacks, 1, 6, 20, 3, 100, 0, 100, 0 };
 
-static TmdBone _gActor123200BoneSucklerBodySkeleton[6] = {
-#include "assets/bone_suckler_body_skeleton.inc"
-};
+#include "assets/enemies/suckler/bone/body.inc"
 
-static u32 _gActor123200BoneSucklerBodyPartVerts[6] = {
-#include "assets/bone_suckler_body_partVerts.inc"
-};
-
-static SVECTOR _gActor123200BoneSucklerBodyVerts[102] = {
-#include "assets/bone_suckler_body_verts.inc"
-};
-
-static SVECTOR _gActor123200BoneSucklerBodyNormals[139] = {
-#include "assets/bone_suckler_body_normals.inc"
-};
-
-static u32 _gActor123200BoneSucklerBodyStream[1048] = {
-#include "assets/bone_suckler_body_stream.inc"
-};
-
-static TmdSource _gActor123200BoneSucklerBody = {
-    0,
-    5984,
-    1264,
-    6,
-    _gActor123200BoneSucklerBodyPartVerts,
-    _gActor123200BoneSucklerBodyVerts,
-    _gActor123200BoneSucklerBodyNormals,
-    _gActor123200BoneSucklerBodySkeleton,
-    _gActor123200BoneSucklerBodyStream,
-};
-
-static AnimationPackedPose _gActor123200Animation03E30Bank1[4] = {
-#include "assets/actor_123200_animation_03E30_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor123200Animation03E30Bank4[21] = {
-#include "assets/actor_123200_animation_03E30_bank4.inc"
-};
-
-static AnimationRecord _gActor123200Animation03E30Records[43] = {
-#include "assets/actor_123200_animation_03E30_records.inc"
-};
-
-static u16 _gActor123200Animation03E30Indices[6] = {
-#include "assets/actor_123200_animation_03E30_indices.inc"
-};
-
-static AnimationSet _gActor123200Animation03E30 = {
-    _gActor123200Animation03E30Records,
-    _gActor123200Animation03E30Indices,
-    { NULL, _gActor123200Animation03E30Bank1, NULL, NULL, _gActor123200Animation03E30Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor123200Animation040F4Bank1[19] = {
-#include "assets/actor_123200_animation_040F4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor123200Animation040F4Bank4[36] = {
-#include "assets/actor_123200_animation_040F4_bank4.inc"
-};
-
-static AnimationRecord _gActor123200Animation040F4Records[71] = {
-#include "assets/actor_123200_animation_040F4_records.inc"
-};
-
-static u16 _gActor123200Animation040F4Indices[6] = {
-#include "assets/actor_123200_animation_040F4_indices.inc"
-};
-
-static AnimationSet _gActor123200Animation040F4 = {
-    _gActor123200Animation040F4Records,
-    _gActor123200Animation040F4Indices,
-    { NULL, _gActor123200Animation040F4Bank1, NULL, NULL, _gActor123200Animation040F4Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor123200Animation04398Bank1[20] = {
-#include "assets/actor_123200_animation_04398_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor123200Animation04398Bank4[31] = {
-#include "assets/actor_123200_animation_04398_bank4.inc"
-};
-
-static AnimationRecord _gActor123200Animation04398Records[65] = {
-#include "assets/actor_123200_animation_04398_records.inc"
-};
-
-static u16 _gActor123200Animation04398Indices[6] = {
-#include "assets/actor_123200_animation_04398_indices.inc"
-};
-
-static AnimationSet _gActor123200Animation04398 = {
-    _gActor123200Animation04398Records,
-    _gActor123200Animation04398Indices,
-    { NULL, _gActor123200Animation04398Bank1, NULL, NULL, _gActor123200Animation04398Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor123200Animation04578Bank1[6] = {
-#include "assets/actor_123200_animation_04578_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor123200Animation04578Bank4[38] = {
-#include "assets/actor_123200_animation_04578_bank4.inc"
-};
-
-static AnimationRecord _gActor123200Animation04578Records[51] = {
-#include "assets/actor_123200_animation_04578_records.inc"
-};
-
-static u16 _gActor123200Animation04578Indices[6] = {
-#include "assets/actor_123200_animation_04578_indices.inc"
-};
-
-static AnimationSet _gActor123200Animation04578 = {
-    _gActor123200Animation04578Records,
-    _gActor123200Animation04578Indices,
-    { NULL, _gActor123200Animation04578Bank1, NULL, NULL, _gActor123200Animation04578Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor123200Animation046B0Bank1[4] = {
-#include "assets/actor_123200_animation_046B0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor123200Animation046B0Bank4[13] = {
-#include "assets/actor_123200_animation_046B0_bank4.inc"
-};
-
-static AnimationRecord _gActor123200Animation046B0Records[40] = {
-#include "assets/actor_123200_animation_046B0_records.inc"
-};
-
-static u16 _gActor123200Animation046B0Indices[6] = {
-#include "assets/actor_123200_animation_046B0_indices.inc"
-};
-
-static AnimationSet _gActor123200Animation046B0 = {
-    _gActor123200Animation046B0Records,
-    _gActor123200Animation046B0Indices,
-    { NULL, _gActor123200Animation046B0Bank1, NULL, NULL, _gActor123200Animation046B0Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor123200Animation04850Bank1[7] = {
-#include "assets/actor_123200_animation_04850_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor123200Animation04850Bank4[28] = {
-#include "assets/actor_123200_animation_04850_bank4.inc"
-};
-
-static AnimationRecord _gActor123200Animation04850Records[42] = {
-#include "assets/actor_123200_animation_04850_records.inc"
-};
-
-static u16 _gActor123200Animation04850Indices[6] = {
-#include "assets/actor_123200_animation_04850_indices.inc"
-};
-
-static AnimationSet _gActor123200Animation04850 = {
-    _gActor123200Animation04850Records,
-    _gActor123200Animation04850Indices,
-    { NULL, _gActor123200Animation04850Bank1, NULL, NULL, _gActor123200Animation04850Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor123200Animation04A64Bank1[6] = {
-#include "assets/actor_123200_animation_04A64_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor123200Animation04A64Bank4[42] = {
-#include "assets/actor_123200_animation_04A64_bank4.inc"
-};
-
-static AnimationRecord _gActor123200Animation04A64Records[60] = {
-#include "assets/actor_123200_animation_04A64_records.inc"
-};
-
-static u16 _gActor123200Animation04A64Indices[6] = {
-#include "assets/actor_123200_animation_04A64_indices.inc"
-};
-
-static AnimationSet _gActor123200Animation04A64 = {
-    _gActor123200Animation04A64Records,
-    _gActor123200Animation04A64Indices,
-    { NULL, _gActor123200Animation04A64Bank1, NULL, NULL, _gActor123200Animation04A64Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor123200Animation04E74Bank1[17] = {
-#include "assets/actor_123200_animation_04E74_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor123200Animation04E74Bank4[85] = {
-#include "assets/actor_123200_animation_04E74_bank4.inc"
-};
-
-static AnimationRecord _gActor123200Animation04E74Records[111] = {
-#include "assets/actor_123200_animation_04E74_records.inc"
-};
-
-static u16 _gActor123200Animation04E74Indices[6] = {
-#include "assets/actor_123200_animation_04E74_indices.inc"
-};
-
-static AnimationSet _gActor123200Animation04E74 = {
-    _gActor123200Animation04E74Records,
-    _gActor123200Animation04E74Indices,
-    { NULL, _gActor123200Animation04E74Bank1, NULL, NULL, _gActor123200Animation04E74Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor123200Animation05134Bank1[12] = {
-#include "assets/actor_123200_animation_05134_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor123200Animation05134Bank4[52] = {
-#include "assets/actor_123200_animation_05134_bank4.inc"
-};
-
-static AnimationRecord _gActor123200Animation05134Records[75] = {
-#include "assets/actor_123200_animation_05134_records.inc"
-};
-
-static u16 _gActor123200Animation05134Indices[6] = {
-#include "assets/actor_123200_animation_05134_indices.inc"
-};
-
-static AnimationSet _gActor123200Animation05134 = {
-    _gActor123200Animation05134Records,
-    _gActor123200Animation05134Indices,
-    { NULL, _gActor123200Animation05134Bank1, NULL, NULL, _gActor123200Animation05134Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor123200Animation0530CBank1[5] = {
-#include "assets/actor_123200_animation_0530C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor123200Animation0530CBank4[19] = {
-#include "assets/actor_123200_animation_0530C_bank4.inc"
-};
-
-static AnimationRecord _gActor123200Animation0530CRecords[71] = {
-#include "assets/actor_123200_animation_0530C_records.inc"
-};
-
-static u16 _gActor123200Animation0530CIndices[6] = {
-#include "assets/actor_123200_animation_0530C_indices.inc"
-};
-
-static AnimationSet _gActor123200Animation0530C = {
-    _gActor123200Animation0530CRecords,
-    _gActor123200Animation0530CIndices,
-    { NULL, _gActor123200Animation0530CBank1, NULL, NULL, _gActor123200Animation0530CBank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/dryfield/motel_room_1/bone_suckler_clips.inc"
 
 /// Borrowed clip resource of the staged motel-room Bone Suckler.
 ///
@@ -436,16 +188,16 @@ static AnimationSet _gActor123200Animation0530C = {
 static _Actor123200AnimationResource _gActor123200AnimationResource = {
     {
         NULL,
-        &_gActor123200Animation03E30,
-        &_gActor123200Animation040F4,
-        &_gActor123200Animation04398,
-        &_gActor123200Animation04578,
-        &_gActor123200Animation046B0,
-        &_gActor123200Animation04850,
-        &_gActor123200Animation04A64,
-        &_gActor123200Animation04E74,
-        &_gActor123200Animation05134,
-        &_gActor123200Animation0530C,
+        &_gSucklerBoneHangClip,
+        &_gSucklerBoneWalkClip,
+        &_gSucklerBoneRunClip,
+        &_gSucklerBoneSettleClip,
+        &_gSucklerBoneSleepClip,
+        &_gSucklerBoneRouseClip,
+        &_gSucklerBoneAnim07Clip,
+        &_gSucklerBoneAnim08Clip,
+        &_gSucklerBoneAnim09Clip,
+        &_gSucklerBoneBurstClip,
     },
     {
         0,
@@ -609,7 +361,7 @@ static TaskMessageEntry _gActor123200Messages[4] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc gActor123200BoneSucklerTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor123200Task, { .model = &_gActor123200BoneSucklerBody } };
+TaskDesc gActor123200BoneSucklerTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor123200Task, { .model = &_gSucklerBoneBody } };
 
 static SVECTOR ActorContact_ScratchPosition;
 

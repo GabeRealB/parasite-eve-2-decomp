@@ -109,7 +109,7 @@ enum {
 /// Fixed radius and compensated height of the hit sphere, in coordinate units.
 enum { ACTOR_02400_BODY_RADIUS = 200 };
 
-/// Work block of the main body, the enemy drawn with `_gActor02400AmoebaBody`.
+/// Work block of the main body, the enemy drawn with `_gGreenAndRedAmoebaBody`.
 ///
 /// The spawn handler allocates it zeroed and keeps it at `Task::work` for the
 /// task's life; the model object borrows `color` and `light` for as long.
@@ -258,41 +258,11 @@ static void _actor02400UpdateColor(Task* task);
 static void _actor02400DrawShadow(Task* task);
 static void _actor02400ApplyDeathScale(Task* task);
 
-static TmdSource _gActor02400AmoebaBody;
+static TmdSource _gGreenAndRedAmoebaBody;
 static void      _actor02400BodyTask(Task* task);
 static void      _actor02400FireballTask(Task* task);
 
-static TmdBone _gActor02400AmoebaBodySkeleton[4] = {
-#include "assets/amoeba_body_skeleton.inc"
-};
-
-static u32 _gActor02400AmoebaBodyPartVerts[4] = {
-#include "assets/amoeba_body_partVerts.inc"
-};
-
-static SVECTOR _gActor02400AmoebaBodyVerts[87] = {
-#include "assets/amoeba_body_verts.inc"
-};
-
-static SVECTOR _gActor02400AmoebaBodyNormals[58] = {
-#include "assets/amoeba_body_normals.inc"
-};
-
-static u32 _gActor02400AmoebaBodyStream[772] = {
-#include "assets/amoeba_body_stream.inc"
-};
-
-static TmdSource _gActor02400AmoebaBody = {
-    0,
-    4168,
-    1040,
-    4,
-    _gActor02400AmoebaBodyPartVerts,
-    _gActor02400AmoebaBodyVerts,
-    _gActor02400AmoebaBodyNormals,
-    _gActor02400AmoebaBodySkeleton,
-    _gActor02400AmoebaBodyStream,
-};
+#include "assets/encounters/green_and_red_amoeba/body.inc"
 
 /// Arm-touch and fireball attacks, with two consecutive rows per placement variant.
 ///
@@ -407,7 +377,7 @@ static s16 _gActor02400HitEffectSuppressed[16] = {
 };
 
 TaskDesc gActor02400Tasks[2] = {
-    { { { TASK_BODY_TMD, 96 } }, _actor02400BodyTask, { .model = &_gActor02400AmoebaBody } },
+    { { { TASK_BODY_TMD, 96 } }, _actor02400BodyTask, { .model = &_gGreenAndRedAmoebaBody } },
     { { { TASK_BODY_COORD, 96 } }, _actor02400FireballTask, { .value = 0 } },
 };
 

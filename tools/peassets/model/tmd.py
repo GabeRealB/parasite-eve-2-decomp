@@ -340,7 +340,36 @@ def catalog_name(data: bytes, load: int, source: int) -> str | None:
                         if rec.get("type") in ("model", "tmd") and rec.get("sha1")}
     src = read_source(data, load, source)
     whole = _MODEL_NAMES.get(hashlib.sha1(data[src["head"]:source + TMD_SOURCE_SIZE]).hexdigest())
-    return whole or _MODEL_NAMES.get(hashlib.sha1(data[src["stream_offset"]:src["end"]]).hexdigest())
+    stream = hashlib.sha1(data[src["stream_offset"]:src["end"]]).hexdigest()
+    return whole or _MODEL_NAMES.get(stream) or _declared_streams().get(stream)
+
+
+_DECLARED_STREAMS: dict[str, str] | None = None
+
+
+def _declared_streams() -> dict[str, str]:
+    """A declared model's stream SHA-1 -> its name: the stream of a relocated copy of its package (whose pointer
+    words, and so whole bytes, differ) is that model, placed once by its declaring package."""
+    global _DECLARED_STREAMS
+    if _DECLARED_STREAMS is None:
+        try:
+            from ..asset_data import ASSETS, EMBEDDED_ASSETS
+        except ImportError:
+            from asset_data import ASSETS, EMBEDDED_ASSETS
+        packages = Path(__file__).resolve().parents[3] / "assets" / "USA" / "pe2pkg"
+        _DECLARED_STREAMS = {}
+        for aid, rec in ASSETS.items():
+            place = EMBEDDED_ASSETS.get(aid)
+            if rec.get("type") != "model" or not place or "offset" not in place:
+                continue
+            path = packages / place["source"]
+            if not path.is_file():
+                continue
+            data = path.read_bytes()
+            off, size = place["offset"], place["size"]
+            src = read_source(data, place["address"] - off, off + size - TMD_SOURCE_SIZE)
+            _DECLARED_STREAMS.setdefault(hashlib.sha1(data[src["stream_offset"]:src["end"]]).hexdigest(), aid)
+    return _DECLARED_STREAMS
 
 
 def model_name(stream: bytes) -> str | None:

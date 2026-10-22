@@ -1,0 +1,796 @@
+# The assets of the group enemies/chaser/desert, each named enemies/chaser/desert/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = [
+    "root",
+    "torso",
+    "neck_1",
+    "neck_2",
+    "neck_3",
+    "head",
+    "foreleg_upper_left",
+    "foreleg_lower_left",
+    "foreleg_upper_right",
+    "foreleg_lower_right",
+    "waist",
+    "hips",
+    "hind_thigh_left",
+    "hind_shin_left",
+    "hind_foot_left",
+    "hind_thigh_right",
+    "hind_shin_right",
+    "hind_foot_right",
+]
+
+[bank]
+type = "animation_bank"
+schema = "enemies/chaser/desert/schema"
+symbol = "_gActor00100AnimationSets"
+
+[bank.clips]
+walk = "enemies/chaser/desert/walk"
+idle = "enemies/chaser/desert/idle"
+windup = "enemies/chaser/desert/windup"
+lunge = "enemies/chaser/desert/lunge"
+lunge_end = "enemies/chaser/desert/lunge_end"
+throw = "enemies/chaser/desert/throw"
+leap_back = "enemies/chaser/desert/leap_back"
+steer = "enemies/chaser/desert/steer"
+resume_pursuit = "enemies/chaser/desert/resume_pursuit"
+flinch_light = "enemies/chaser/desert/flinch_light"
+knock_down = "enemies/chaser/desert/knock_down"
+slot_11 = "enemies/chaser/desert/anim_11"
+rise = "enemies/chaser/desert/rise"
+leap = "enemies/chaser/desert/leap"
+fall = "enemies/chaser/desert/fall"
+flinch = "enemies/chaser/desert/flinch"
+stagger = "enemies/chaser/desert/stagger"
+turn_right = "enemies/chaser/desert/turn_right"
+turn_left = "enemies/chaser/desert/turn_left"
+death = "enemies/chaser/desert/death"
+hit_downed = "enemies/chaser/desert/hit_downed"
+stunned = "enemies/chaser/desert/knock_down"
+
+[body]
+type = "model"
+rig = "enemies/chaser/desert/rig"
+slots = ["page_1", "page_2"]
+symbol = "_gChaserDesertBody"
+sha1 = "ba3e309f0bfacb16a0579638c5b84438c89b22cd"
+
+[fall]
+type = "clip"
+rig = "enemies/chaser/desert/rig"
+
+[file]
+type = "file"
+contents = [
+    { asset = "enemies/moth/preview_palette", sha1 = "65e9784cafe3f1873b915a880cb1979b39621a83" },
+    { asset = "enemies/moth/preview_image", sha1 = "161ac20e76eb8f36b46a091126eaafe3a329e23e" },
+    { asset = "txt_82" },
+]
+
+[hurt]
+type = "sound"
+sha1 = "811c035b86bb1ebbb9da2c96d266fe3ba4ff2c65"
+
+[idle]
+type = "clip"
+rig = "enemies/chaser/desert/rig"
+
+[leap]
+type = "clip"
+rig = "enemies/chaser/desert/rig"
+
+[rise]
+type = "clip"
+rig = "enemies/chaser/desert/rig"
+
+[walk]
+type = "clip"
+rig = "enemies/chaser/desert/rig"
+
+[death]
+type = "clip"
+rig = "enemies/chaser/desert/rig"
+
+[lunge]
+type = "clip"
+rig = "enemies/chaser/desert/rig"
+
+[steer]
+type = "clip"
+rig = "enemies/chaser/desert/rig"
+
+[throw]
+type = "clip"
+rig = "enemies/chaser/desert/rig"
+
+[flinch]
+type = "clip"
+rig = "enemies/chaser/desert/rig"
+
+[pounce]
+type = "sound"
+sha1 = "620b8a74e6e83ef851aac0791fac89ad63e3e8a2"
+
+[schema]
+type = "animation_schema"
+slots = [
+    "walk",
+    "idle",
+    "windup",
+    "lunge",
+    "lunge_end",
+    "throw",
+    "leap_back",
+    "steer",
+    "resume_pursuit",
+    "flinch_light",
+    "knock_down",
+    "slot_11",
+    "rise",
+    "leap",
+    "fall",
+    "flinch",
+    "stagger",
+    "turn_right",
+    "turn_left",
+    "death",
+    "hit_downed",
+    "stunned",
+]
+
+[sounds]
+type = "sound_bank"
+samples = [
+    "enemies/chaser/desert/footstep_1",
+    "enemies/chaser/desert/footstep_2",
+    "enemies/chaser/desert/body_fall",
+    "enemies/chaser/desert/body_fall_2",
+    "enemies/chaser/desert/lunge_cry",
+    "enemies/chaser/desert/hurt",
+    "enemies/chaser/desert/pounce",
+    "enemies/chaser/desert/hurt_heavy",
+]
+sha1 = "fee79d5d0d93f4b219fa09e622831a3dbe2a0e11"
+
+[sounds.sounds]
+footstep_1 = 1
+footstep_2 = 2
+pounce = 3
+land = 4
+body_fall = 5
+lunge_cry = 6
+hurt = 7
+hurt_heavy = 8
+wall_crash = 9
+throw = 10
+scene_land = 13
+scene_land_2 = 14
+leap_land = 15
+leap = 16
+land_rear = 17
+distant_cry = 18
+
+[windup]
+type = "clip"
+rig = "enemies/chaser/desert/rig"
+
+[anim_11]
+type = "clip"
+rig = "enemies/chaser/desert/rig"
+
+[package]
+type = "pe2pkg"
+package_name = "actor_400100"
+required = true
+sha1 = "47e24b9d17d2a3213569e26bbe0ab1579727693a"
+
+[[package.embedded]]
+name = "burst_leg_right"
+offset = 0x108E4
+size = 0x4A0
+address = 0x80142704
+
+[[package.embedded]]
+name = "burst_leg_left"
+offset = 0x10D84
+size = 0x4D4
+address = 0x80142BA4
+
+[[package.embedded]]
+name = "burst_head"
+offset = 0x11258
+size = 0xD5C
+address = 0x80143078
+
+[[package.embedded]]
+name = "burst_torso"
+offset = 0x11FB4
+size = 0x4E0
+address = 0x80143DD4
+
+[[package.embedded]]
+name = "walk"
+offset = 0x12494
+size = 0x538
+address = 0x801442B4
+
+[[package.embedded]]
+name = "idle"
+offset = 0x129CC
+size = 0x2BC
+address = 0x801447EC
+
+[[package.embedded]]
+name = "windup"
+offset = 0x12C88
+size = 0x634
+address = 0x80144AA8
+
+[[package.embedded]]
+name = "lunge"
+offset = 0x132BC
+size = 0x5D8
+address = 0x801450DC
+
+[[package.embedded]]
+name = "lunge_end"
+offset = 0x13894
+size = 0x434
+address = 0x801456B4
+
+[[package.embedded]]
+name = "throw"
+offset = 0x13CC8
+size = 0x6D8
+address = 0x80145AE8
+
+[[package.embedded]]
+name = "leap_back"
+offset = 0x143A0
+size = 0x600
+address = 0x801461C0
+
+[[package.embedded]]
+name = "steer"
+offset = 0x149A0
+size = 0x25C
+address = 0x801467C0
+
+[[package.embedded]]
+name = "resume_pursuit"
+offset = 0x14BFC
+size = 0x624
+address = 0x80146A1C
+
+[[package.embedded]]
+name = "flinch_light"
+offset = 0x15220
+size = 0x450
+address = 0x80147040
+
+[[package.embedded]]
+name = "knock_down"
+offset = 0x15670
+size = 0x5E4
+address = 0x80147490
+
+[[package.embedded]]
+name = "anim_11"
+offset = 0x15C54
+size = 0x17C
+address = 0x80147A74
+
+[[package.embedded]]
+name = "rise"
+offset = 0x15DD0
+size = 0x6A4
+address = 0x80147BF0
+
+[[package.embedded]]
+name = "leap"
+offset = 0x16474
+size = 0xA18
+address = 0x80148294
+
+[[package.embedded]]
+name = "fall"
+offset = 0x16E8C
+size = 0x420
+address = 0x80148CAC
+
+[[package.embedded]]
+name = "flinch"
+offset = 0x172AC
+size = 0x2C4
+address = 0x801490CC
+
+[[package.embedded]]
+name = "stagger"
+offset = 0x17570
+size = 0x504
+address = 0x80149390
+
+[[package.embedded]]
+name = "turn_right"
+offset = 0x17A74
+size = 0x580
+address = 0x80149894
+
+[[package.embedded]]
+name = "turn_left"
+offset = 0x17FF4
+size = 0x5B0
+address = 0x80149E14
+
+[[package.embedded]]
+name = "death"
+offset = 0x185A4
+size = 0x6C0
+address = 0x8014A3C4
+
+[[package.embedded]]
+name = "hit_downed"
+offset = 0x18C64
+size = 0x494
+address = 0x8014AA84
+
+[[package.embedded]]
+asset = "enemies/stinger/puppet/player_knockback_front"
+offset = 0x190F8
+size = 0x848
+address = 0x8014AF18
+
+[[package.embedded]]
+asset = "enemies/stinger/puppet/player_knockback_back"
+offset = 0x19940
+size = 0x79C
+address = 0x8014B760
+
+[[package.embedded]]
+asset = "enemies/stinger/puppet/player_knockback_recover_front"
+offset = 0x1A0DC
+size = 0x80C
+address = 0x8014BEFC
+
+[[package.embedded]]
+asset = "enemies/stinger/puppet/player_knockback_recover_back"
+offset = 0x1A8E8
+size = 0x814
+address = 0x8014C708
+
+[[package.embedded]]
+name = "player_knocked_back_front"
+offset = 0x1B0FC
+size = 0x2B4
+address = 0x8014CF1C
+
+[[package.embedded]]
+name = "player_knocked_back_rear"
+offset = 0x1B3B0
+size = 0x320
+address = 0x8014D1D0
+
+[[package.embedded]]
+name = "bank"
+offset = 0x1B944
+size = 0x68
+address = 0x8014D764
+
+[[package.embedded]]
+name = "player_front_catch_bank"
+offset = 0x1B9AC
+size = 0x24
+address = 0x8014D7CC
+
+[[package.embedded]]
+name = "player_rear_catch_bank"
+offset = 0x1B9D0
+size = 0x24
+address = 0x8014D7F0
+
+[stagger]
+type = "clip"
+rig = "enemies/chaser/desert/rig"
+
+[body_fall]
+type = "sound"
+sha1 = "aea3e18949170c3469b70baa274b8a1603d26640"
+
+[leap_back]
+type = "clip"
+rig = "enemies/chaser/desert/rig"
+
+[lunge_cry]
+type = "sound"
+sha1 = "0b4d73eff7f5ccf6b788816b6ddc30e8e2cd088b"
+
+[lunge_end]
+type = "clip"
+rig = "enemies/chaser/desert/rig"
+
+[turn_left]
+type = "clip"
+rig = "enemies/chaser/desert/rig"
+
+[burst_head]
+type = "model"
+slots = ["page_1", "page_2"]
+symbol = "_gChaserDesertBurstHead"
+sha1 = "b3676f8b3e7864c2b049e9283f9ec1c97c007cd8"
+
+[footstep_1]
+type = "sound"
+sha1 = "24c02a4d2e405b0642d596c81ccaf54a9bb398a3"
+
+[footstep_2]
+type = "sound"
+sha1 = "5af8114699b7332001f6920f194e96a0a384cd9e"
+
+[hit_downed]
+type = "clip"
+rig = "enemies/chaser/desert/rig"
+
+[hurt_heavy]
+type = "sound"
+sha1 = "916ad407da7a7e5f7a10130bac1f986d45ccb822"
+
+[knock_down]
+type = "clip"
+rig = "enemies/chaser/desert/rig"
+
+[turn_right]
+type = "clip"
+rig = "enemies/chaser/desert/rig"
+
+[body_fall_2]
+type = "sound"
+sha1 = "e601166738851214e3f9a039f1f3eb3d8567e332"
+
+[burst_torso]
+type = "model"
+slots = ["page_2", "page_1"]
+symbol = "_gChaserDesertBurstTorso"
+sha1 = "4bcdbd257f99976435a83c099ce1f22816e68b8a"
+
+[body_binding]
+type = "binding"
+model = "enemies/chaser/desert/body"
+
+[body_binding.textures]
+page_1 = "enemies/chaser/desert/texture_page_1.default"
+page_2 = "enemies/chaser/desert/texture_page_2.default"
+
+[flinch_light]
+type = "clip"
+rig = "enemies/chaser/desert/rig"
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+chunk = "garage_sounds"
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "b68f73fdef812a2f3268505f93b689901fff2044"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "b18de4cdfab1a7a701688fe7735a7471e2e64e3b"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_file.contents]]
+asset = "actor_107500"
+
+[garage_sounds]
+type = "sound_bank"
+samples = [
+    "enemies/chaser/desert/garage_footstep_1",
+    "enemies/chaser/desert/garage_footstep_2",
+    "enemies/chaser/desert/body_fall",
+    "enemies/chaser/desert/body_fall_2",
+    "enemies/chaser/desert/lunge_cry",
+    "enemies/chaser/desert/hurt",
+    "enemies/chaser/desert/pounce",
+    "enemies/chaser/desert/hurt_heavy",
+]
+sha1 = "b8a2c2009f1c54fab966f4e87bf9f02f0e4613c5"
+
+[garage_sounds.sounds]
+footstep_1 = 1
+footstep_2 = 2
+pounce = 3
+land = 4
+body_fall = 5
+lunge_cry = 6
+hurt = 7
+hurt_heavy = 8
+wall_crash = 9
+throw = 10
+
+[burst_leg_left]
+type = "model"
+slots = ["page_2", "page_1"]
+symbol = "_gChaserDesertBurstLegLeft"
+sha1 = "3b0c0f7c31f4be74fdde67cd8fefbc771b76239e"
+
+[garage_package]
+type = "pe2pkg"
+package_name = "actor_407500"
+required = true
+sha1 = "edd0ba4554786ec5fc3e1e00863660fff455d800"
+
+[[garage_package.embedded]]
+name = "walk"
+offset = 0x12494
+size = 0x538
+address = 0x801442B4
+
+[[garage_package.embedded]]
+name = "idle"
+offset = 0x129CC
+size = 0x2BC
+address = 0x801447EC
+
+[[garage_package.embedded]]
+name = "windup"
+offset = 0x12C88
+size = 0x634
+address = 0x80144AA8
+
+[[garage_package.embedded]]
+name = "lunge"
+offset = 0x132BC
+size = 0x5D8
+address = 0x801450DC
+
+[[garage_package.embedded]]
+name = "lunge_end"
+offset = 0x13894
+size = 0x434
+address = 0x801456B4
+
+[[garage_package.embedded]]
+name = "throw"
+offset = 0x13CC8
+size = 0x6D8
+address = 0x80145AE8
+
+[[garage_package.embedded]]
+name = "leap_back"
+offset = 0x143A0
+size = 0x600
+address = 0x801461C0
+
+[[garage_package.embedded]]
+name = "steer"
+offset = 0x149A0
+size = 0x25C
+address = 0x801467C0
+
+[[garage_package.embedded]]
+name = "resume_pursuit"
+offset = 0x14BFC
+size = 0x624
+address = 0x80146A1C
+
+[[garage_package.embedded]]
+name = "flinch_light"
+offset = 0x15220
+size = 0x450
+address = 0x80147040
+
+[[garage_package.embedded]]
+name = "knock_down"
+offset = 0x15670
+size = 0x5E4
+address = 0x80147490
+
+[[garage_package.embedded]]
+name = "anim_11"
+offset = 0x15C54
+size = 0x17C
+address = 0x80147A74
+
+[[garage_package.embedded]]
+name = "rise"
+offset = 0x15DD0
+size = 0x6A4
+address = 0x80147BF0
+
+[[garage_package.embedded]]
+name = "leap"
+offset = 0x16474
+size = 0xA18
+address = 0x80148294
+
+[[garage_package.embedded]]
+name = "fall"
+offset = 0x16E8C
+size = 0x420
+address = 0x80148CAC
+
+[[garage_package.embedded]]
+name = "flinch"
+offset = 0x172AC
+size = 0x2C4
+address = 0x801490CC
+
+[[garage_package.embedded]]
+name = "stagger"
+offset = 0x17570
+size = 0x504
+address = 0x80149390
+
+[[garage_package.embedded]]
+name = "turn_right"
+offset = 0x17A74
+size = 0x580
+address = 0x80149894
+
+[[garage_package.embedded]]
+name = "turn_left"
+offset = 0x17FF4
+size = 0x5B0
+address = 0x80149E14
+
+[[garage_package.embedded]]
+name = "death"
+offset = 0x185A4
+size = 0x6C0
+address = 0x8014A3C4
+
+[[garage_package.embedded]]
+name = "hit_downed"
+offset = 0x18C64
+size = 0x494
+address = 0x8014AA84
+
+[[garage_package.embedded]]
+asset = "enemies/stinger/puppet/player_knockback_front"
+offset = 0x190F8
+size = 0x848
+address = 0x8014AF18
+
+[[garage_package.embedded]]
+asset = "enemies/stinger/puppet/player_knockback_back"
+offset = 0x19940
+size = 0x79C
+address = 0x8014B760
+
+[[garage_package.embedded]]
+asset = "enemies/stinger/puppet/player_knockback_recover_front"
+offset = 0x1A0DC
+size = 0x80C
+address = 0x8014BEFC
+
+[[garage_package.embedded]]
+asset = "enemies/stinger/puppet/player_knockback_recover_back"
+offset = 0x1A8E8
+size = 0x814
+address = 0x8014C708
+
+[[garage_package.embedded]]
+asset = "characters/aya/hit_head"
+offset = 0x1B0FC
+size = 0x2B4
+address = 0x8014CF1C
+
+[[garage_package.embedded]]
+asset = "characters/aya/hit_body"
+offset = 0x1B3B0
+size = 0x320
+address = 0x8014D1D0
+
+[resume_pursuit]
+type = "clip"
+rig = "enemies/chaser/desert/rig"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[burst_leg_right]
+type = "model"
+slots = ["page_1", "page_2"]
+symbol = "_gChaserDesertBurstLegRight"
+sha1 = "24aec21ac96ab1a6c77204285722036c4d597eb6"
+
+[garage_footstep_1]
+type = "sound"
+sha1 = "04658af6da7dc05b85a1fb7cc50e5dc6f29c3d79"
+
+[garage_footstep_2]
+type = "sound"
+sha1 = "7aa4d8a3009ecf9b7ffaae46007473c8c54eb3d5"
+
+[burst_head_binding]
+type = "binding"
+model = "enemies/chaser/desert/burst_head"
+
+[burst_head_binding.textures]
+page_1 = "enemies/chaser/desert/texture_page_1.default"
+page_2 = "enemies/chaser/desert/texture_page_2.default"
+
+[burst_torso_binding]
+type = "binding"
+model = "enemies/chaser/desert/burst_torso"
+
+[burst_torso_binding.textures]
+page_2 = "enemies/chaser/desert/texture_page_2.default"
+page_1 = "enemies/chaser/desert/texture_page_1.default"
+
+[burst_leg_left_binding]
+type = "binding"
+model = "enemies/chaser/desert/burst_leg_left"
+
+[burst_leg_left_binding.textures]
+page_2 = "enemies/chaser/desert/texture_page_2.default"
+page_1 = "enemies/chaser/desert/texture_page_1.default"
+
+[player_rear_catch_bank]
+type = "animation_bank"
+schema = "enemies/chaser/desert/player_rear_catch_schema"
+symbol = "_gDesertChaserRearCatchPlayerAnimSets"
+
+[player_rear_catch_bank.clips]
+player_thrown = "enemies/stinger/puppet/player_knockback_back"
+player_caught = "enemies/stinger/puppet/player_knockback_recover_back"
+player_knocked_back = "enemies/chaser/desert/player_knocked_back_rear"
+
+[burst_leg_right_binding]
+type = "binding"
+model = "enemies/chaser/desert/burst_leg_right"
+
+[burst_leg_right_binding.textures]
+page_1 = "enemies/chaser/desert/texture_page_1.default"
+page_2 = "enemies/chaser/desert/texture_page_2.default"
+
+[player_front_catch_bank]
+type = "animation_bank"
+schema = "enemies/chaser/desert/player_front_catch_schema"
+symbol = "_gDesertChaserFrontCatchPlayerAnimSets"
+
+[player_front_catch_bank.clips]
+player_thrown = "enemies/stinger/puppet/player_knockback_front"
+player_caught = "enemies/stinger/puppet/player_knockback_recover_front"
+player_knocked_back = "enemies/chaser/desert/player_knocked_back_front"
+
+[player_knocked_back_rear]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_rear_catch_schema]
+type = "animation_schema"
+slots = ["", "player_thrown", "player_caught", "player_knocked_back"]
+
+[player_front_catch_schema]
+type = "animation_schema"
+slots = ["", "player_thrown", "player_caught", "player_knocked_back"]
+
+[player_knocked_back_front]
+type = "clip"
+rig = "characters/aya/rig"

@@ -1,0 +1,272 @@
+# The assets of the group characters/soldier_b, each named characters/soldier_b/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = [
+    "joint_0",
+    "joint_1",
+    "joint_2",
+    "joint_3",
+    "joint_4",
+    "joint_5",
+    "joint_6",
+    "joint_7",
+    "joint_8",
+    "joint_9",
+    "joint_10",
+    "joint_11",
+    "joint_12",
+    "joint_13",
+    "joint_14",
+    "joint_15",
+    "joint_16",
+    "joint_17",
+    "joint_18",
+    "joint_19",
+]
+
+[body]
+type = "model"
+rig = "characters/soldier_b/rig"
+slots = ["page_2", "page_1"]
+symbol = "_gSoldierBBody"
+sha1 = "086c4cab8bc2bdaaa24e65f01f16b11163f616ea"
+
+[shop]
+type = "pe2pkg"
+embedded = [
+    { name = "player_talk_47", offset = 0x00EB4, size = 0x244, address = 0x80132CD4 },
+    { name = "player_talk_48", offset = 0x010F8, size = 0x1CC, address = 0x80132F18 },
+    { asset = "characters/aya/reply", offset = 0x012C4, size = 0x428, address = 0x801330E4 },
+    { asset = "characters/aya/introduce_herself", offset = 0x016EC, size = 0x384, address = 0x8013350C },
+    { asset = "characters/aya/on_my_way", offset = 0x01A70, size = 0x32C, address = 0x80133890 },
+    { asset = "characters/aya/converse", offset = 0x01D9C, size = 0x3B8, address = 0x80133BBC },
+    { name = "player_talk_bank", offset = 0x02170, size = 0x18, address = 0x80133F90 },
+    { name = "player_crouch", offset = 0x03FC8, size = 0x364, address = 0x80135DE8 },
+    { name = "player_crouched_idle", offset = 0x0432C, size = 0x214, address = 0x8013614C },
+    { name = "player_stand_up", offset = 0x04540, size = 0x2E0, address = 0x80136360 },
+    { name = "request_scene_player_anim_03", offset = 0x04820, size = 0x290, address = 0x80136640 },
+    { name = "request_scene_player_anim_04", offset = 0x04AB0, size = 0x1D8, address = 0x801368D0 },
+    { name = "request_scene_player_anim_05", offset = 0x04C88, size = 0x234, address = 0x80136AA8 },
+    { name = "player_request_scene_bank", offset = 0x04F40, size = 0x1C, address = 0x80136D60 },
+    { name = "rifle", offset = 0x05F50, size = 0xA44, address = 0x80137D70 },
+    { name = "body", offset = 0x06994, size = 0x5730, address = 0x801387B4 },
+    { asset = "characters/pierce/rest", offset = 0x0C0C4, size = 0x27C, address = 0x8013DEE4 },
+    { asset = "characters/pierce/anim_04", offset = 0x0C340, size = 0x574, address = 0x8013E160 },
+    { name = "armed_idle", offset = 0x0C8B4, size = 0x290, address = 0x8013E6D4 },
+    { asset = "characters/pierce/walk", offset = 0x0CB44, size = 0x794, address = 0x8013E964 },
+    { asset = "characters/pierce/departure_reply", offset = 0x0D2D8, size = 0x294, address = 0x8013F0F8 },
+    { name = "stride_walk_anim_anim_05", offset = 0x0D56C, size = 0x2F0, address = 0x8013F38C },
+    { name = "stride_walk_anim_anim_06", offset = 0x0D85C, size = 0x1B4, address = 0x8013F67C },
+    { name = "stride_walk_anim_anim_07", offset = 0x0DA10, size = 0x1B4, address = 0x8013F830 },
+    { name = "stride_walk_anim_anim_08", offset = 0x0DBC4, size = 0x2B8, address = 0x8013F9E4 },
+    { name = "stride_walk_anim_anim_09", offset = 0x0DE7C, size = 0x2F4, address = 0x8013FC9C },
+    { name = "stride_walk_anim_anim_10", offset = 0x0E170, size = 0x1F0, address = 0x8013FF90 },
+    { name = "stride_walk_bank", offset = 0x0E3A8, size = 0x30, address = 0x801401C8 },
+]
+package_name = "actor_161500"
+required = true
+sha1 = "5c9a8f91a98919eb1fa79af9e0a7ee2e35b9e597"
+
+[rifle]
+type = "model"
+slots = ["rifle_texture"]
+symbol = "_gSoldierBRifle"
+sha1 = "ff37144b0f7ec692dfc3f890569db95b98f71c41"
+
+[shop_file]
+type = "file"
+
+[[shop_file.contents]]
+chunk = "palette"
+sha1 = "af9896ed481a9cdb5e82a6b082fde34dd46d1db5"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[shop_file.contents]]
+chunk = "image"
+sha1 = "dc3bb5578c72c89a656c10e98cc049da68bd7eae"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[shop_file.contents]]
+chunk = "rifle_palette"
+sha1 = "48c12f2ec99d6eed559b3050c5c33d71df2cde9c"
+palettes = [{ texture = "rifle_texture", variant = "default", region = "engine/vram/held_weapon_palette" }]
+
+[[shop_file.contents]]
+chunk = "rifle_image"
+sha1 = "4e2200fe11dd9c50fc28fb05451c8fe2cd15c89c"
+pages = [{ texture = "rifle_texture", region = "engine/vram/held_weapon_sheet" }]
+
+[[shop_file.contents]]
+chunk = "shop"
+
+[armed_idle]
+type = "clip"
+rig = "characters/soldier_b/rig"
+
+[body_binding]
+type = "binding"
+model = "characters/soldier_b/body"
+
+[body_binding.textures]
+page_2 = "characters/soldier_b/texture_page_2.default"
+page_1 = "characters/soldier_b/texture_page_1.default"
+
+[player_crouch]
+type = "clip"
+rig = "characters/aya/rig"
+
+[rifle_binding]
+type = "binding"
+model = "characters/soldier_b/rifle"
+textures = { rifle_texture = "characters/soldier_b/rifle_texture.default" }
+
+[rifle_texture]
+type = "texture"
+bpp = 4
+height = 64
+variants = ["default"]
+width = 256
+
+[player_talk_47]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_talk_48]
+type = "clip"
+rig = "characters/aya/rig"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[player_stand_up]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_talk_bank]
+type = "animation_bank"
+schema = "characters/soldier_b/player_talk_schema"
+symbol = "_gActor161500TalkPlayerAnimationSets"
+
+[player_talk_bank.clips]
+talk_47 = "characters/soldier_b/player_talk_47"
+talk_48 = "characters/soldier_b/player_talk_48"
+slot_2 = "characters/aya/reply"
+slot_3 = "characters/aya/introduce_herself"
+slot_4 = "characters/aya/on_my_way"
+slot_5 = "characters/aya/converse"
+
+[stride_walk_bank]
+type = "animation_bank"
+schema = "characters/soldier_b/stride_walk_schema"
+symbol = "_gStrideWalkAnimBank"
+
+[stride_walk_bank.clips]
+unarmed_idle = "characters/pierce/rest"
+armed_idle = "characters/soldier_b/armed_idle"
+slot_3 = "characters/pierce/anim_04"
+walk = "characters/pierce/walk"
+slot_5 = "characters/soldier_b/stride_walk_anim_anim_05"
+slot_6 = "characters/soldier_b/stride_walk_anim_anim_06"
+slot_7 = "characters/soldier_b/stride_walk_anim_anim_07"
+slot_8 = "characters/soldier_b/stride_walk_anim_anim_08"
+slot_9 = "characters/soldier_b/stride_walk_anim_anim_09"
+slot_10 = "characters/soldier_b/stride_walk_anim_anim_10"
+slot_11 = "characters/pierce/departure_reply"
+
+[player_talk_schema]
+type = "animation_schema"
+slots = ["talk_47", "talk_48", "slot_2", "slot_3", "slot_4", "slot_5"]
+
+[stride_walk_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "unarmed_idle",
+    "armed_idle",
+    "slot_3",
+    "walk",
+    "slot_5",
+    "slot_6",
+    "slot_7",
+    "slot_8",
+    "slot_9",
+    "slot_10",
+    "slot_11",
+]
+
+[player_crouched_idle]
+type = "clip"
+rig = "characters/aya/rig"
+
+[stride_walk_anim_anim_05]
+type = "clip"
+rig = "characters/soldier_b/rig"
+
+[stride_walk_anim_anim_06]
+type = "clip"
+rig = "characters/soldier_b/rig"
+
+[stride_walk_anim_anim_07]
+type = "clip"
+rig = "characters/soldier_b/rig"
+
+[stride_walk_anim_anim_08]
+type = "clip"
+rig = "characters/soldier_b/rig"
+
+[stride_walk_anim_anim_09]
+type = "clip"
+rig = "characters/soldier_b/rig"
+
+[stride_walk_anim_anim_10]
+type = "clip"
+rig = "characters/soldier_b/rig"
+
+[player_request_scene_bank]
+type = "animation_bank"
+schema = "characters/soldier_b/player_request_scene_schema"
+symbol = "_gActor161500RequestScenePlayerAnimationSets"
+
+[player_request_scene_bank.clips]
+crouch = "characters/soldier_b/player_crouch"
+crouched_idle = "characters/soldier_b/player_crouched_idle"
+stand_up = "characters/soldier_b/player_stand_up"
+slot_3 = "characters/soldier_b/request_scene_player_anim_03"
+slot_4 = "characters/soldier_b/request_scene_player_anim_04"
+slot_5 = "characters/soldier_b/request_scene_player_anim_05"
+
+[player_request_scene_schema]
+type = "animation_schema"
+slots = ["crouch", "crouched_idle", "stand_up", "slot_3", "slot_4", "slot_5"]
+
+[request_scene_player_anim_03]
+type = "clip"
+rig = "characters/aya/rig"
+
+[request_scene_player_anim_04]
+type = "clip"
+rig = "characters/aya/rig"
+
+[request_scene_player_anim_05]
+type = "clip"
+rig = "characters/aya/rig"

@@ -1,0 +1,316 @@
+# The assets of the group rooms/dryfield/water_tower, each named rooms/dryfield/water_tower/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+schema = "rooms/dryfield/water_tower/schema"
+symbol = "_gActor421600AnimationSets"
+
+[bank.clips]
+walk = "enemies/chaser/desert/walk"
+idle = "enemies/chaser/desert/idle"
+windup = "enemies/chaser/desert/windup"
+lunge = "enemies/chaser/desert/lunge"
+lunge_end = "enemies/chaser/desert/lunge_end"
+throw = "enemies/chaser/desert/throw"
+leap_back = "enemies/chaser/desert/leap_back"
+steer = "enemies/chaser/desert/steer"
+resume_pursuit = "enemies/chaser/desert/resume_pursuit"
+flinch_light = "enemies/chaser/desert/flinch_light"
+knock_down = "enemies/chaser/desert/knock_down"
+slot_11 = "enemies/chaser/desert/anim_11"
+rise = "enemies/chaser/desert/rise"
+desert_chaser_intro_first_opening = "rooms/dryfield/water_tower/desert_chaser_intro_first_opening"
+desert_chaser_intro_second_opening = "rooms/dryfield/water_tower/desert_chaser_intro_second_opening"
+desert_chaser_intro_first_closing = "rooms/dryfield/water_tower/desert_chaser_intro_first_closing"
+desert_chaser_intro_first_closing_end = "rooms/dryfield/water_tower/desert_chaser_intro_first_closing_end"
+desert_chaser_arena_entry = "rooms/dryfield/water_tower/desert_chaser_arena_entry"
+flinch = "enemies/chaser/desert/flinch"
+stagger = "enemies/chaser/desert/stagger"
+turn_right = "enemies/chaser/desert/turn_right"
+turn_left = "enemies/chaser/desert/turn_left"
+death = "enemies/chaser/desert/death"
+hit_downed = "enemies/chaser/desert/hit_downed"
+stunned = "enemies/chaser/desert/knock_down"
+
+[schema]
+type = "animation_schema"
+slots = [
+    "walk",
+    "idle",
+    "windup",
+    "lunge",
+    "lunge_end",
+    "throw",
+    "leap_back",
+    "steer",
+    "resume_pursuit",
+    "flinch_light",
+    "knock_down",
+    "slot_11",
+    "rise",
+    "desert_chaser_intro_first_opening",
+    "desert_chaser_intro_second_opening",
+    "desert_chaser_intro_first_closing",
+    "desert_chaser_intro_first_closing_end",
+    "desert_chaser_arena_entry",
+    "flinch",
+    "stagger",
+    "turn_right",
+    "turn_left",
+    "death",
+    "hit_downed",
+    "stunned",
+]
+
+[desert_chaser]
+type = "pe2pkg"
+package_name = "actor_421600"
+required = true
+sha1 = "9662e8ead1de4a287dd4976c18116d3c41f1a99c"
+
+[[desert_chaser.embedded]]
+asset = "enemies/chaser/desert/walk"
+offset = 0x13808
+size = 0x538
+address = 0x80145628
+
+[[desert_chaser.embedded]]
+asset = "enemies/chaser/desert/idle"
+offset = 0x13D40
+size = 0x2BC
+address = 0x80145B60
+
+[[desert_chaser.embedded]]
+asset = "enemies/chaser/desert/windup"
+offset = 0x13FFC
+size = 0x634
+address = 0x80145E1C
+
+[[desert_chaser.embedded]]
+asset = "enemies/chaser/desert/lunge"
+offset = 0x14630
+size = 0x5D8
+address = 0x80146450
+
+[[desert_chaser.embedded]]
+asset = "enemies/chaser/desert/lunge_end"
+offset = 0x14C08
+size = 0x434
+address = 0x80146A28
+
+[[desert_chaser.embedded]]
+asset = "enemies/chaser/desert/throw"
+offset = 0x1503C
+size = 0x6D8
+address = 0x80146E5C
+
+[[desert_chaser.embedded]]
+asset = "enemies/chaser/desert/leap_back"
+offset = 0x15714
+size = 0x600
+address = 0x80147534
+
+[[desert_chaser.embedded]]
+asset = "enemies/chaser/desert/steer"
+offset = 0x15D14
+size = 0x25C
+address = 0x80147B34
+
+[[desert_chaser.embedded]]
+asset = "enemies/chaser/desert/resume_pursuit"
+offset = 0x15F70
+size = 0x624
+address = 0x80147D90
+
+[[desert_chaser.embedded]]
+asset = "enemies/chaser/desert/flinch_light"
+offset = 0x16594
+size = 0x450
+address = 0x801483B4
+
+[[desert_chaser.embedded]]
+asset = "enemies/chaser/desert/knock_down"
+offset = 0x169E4
+size = 0x5E4
+address = 0x80148804
+
+[[desert_chaser.embedded]]
+asset = "enemies/chaser/desert/anim_11"
+offset = 0x16FC8
+size = 0x17C
+address = 0x80148DE8
+
+[[desert_chaser.embedded]]
+asset = "enemies/chaser/desert/rise"
+offset = 0x17144
+size = 0x6A4
+address = 0x80148F64
+
+[[desert_chaser.embedded]]
+asset = "enemies/chaser/desert/flinch"
+offset = 0x177E8
+size = 0x2C4
+address = 0x80149608
+
+[[desert_chaser.embedded]]
+asset = "enemies/chaser/desert/stagger"
+offset = 0x17AAC
+size = 0x504
+address = 0x801498CC
+
+[[desert_chaser.embedded]]
+asset = "enemies/chaser/desert/turn_right"
+offset = 0x17FB0
+size = 0x580
+address = 0x80149DD0
+
+[[desert_chaser.embedded]]
+asset = "enemies/chaser/desert/turn_left"
+offset = 0x18530
+size = 0x5B0
+address = 0x8014A350
+
+[[desert_chaser.embedded]]
+asset = "enemies/chaser/desert/death"
+offset = 0x18AE0
+size = 0x6C0
+address = 0x8014A900
+
+[[desert_chaser.embedded]]
+asset = "enemies/chaser/desert/hit_downed"
+offset = 0x191A0
+size = 0x494
+address = 0x8014AFC0
+
+[[desert_chaser.embedded]]
+asset = "enemies/stinger/puppet/player_knockback_front"
+offset = 0x19634
+size = 0x848
+address = 0x8014B454
+
+[[desert_chaser.embedded]]
+asset = "enemies/stinger/puppet/player_knockback_back"
+offset = 0x19E7C
+size = 0x79C
+address = 0x8014BC9C
+
+[[desert_chaser.embedded]]
+asset = "enemies/stinger/puppet/player_knockback_recover_front"
+offset = 0x1A618
+size = 0x80C
+address = 0x8014C438
+
+[[desert_chaser.embedded]]
+asset = "enemies/stinger/puppet/player_knockback_recover_back"
+offset = 0x1AE24
+size = 0x814
+address = 0x8014CC44
+
+[[desert_chaser.embedded]]
+asset = "enemies/chaser/desert/player_knocked_back_front"
+offset = 0x1B638
+size = 0x2B4
+address = 0x8014D458
+
+[[desert_chaser.embedded]]
+asset = "enemies/chaser/desert/player_knocked_back_rear"
+offset = 0x1B8EC
+size = 0x320
+address = 0x8014D70C
+
+[[desert_chaser.embedded]]
+name = "desert_chaser_intro_first_opening"
+offset = 0x1BC0C
+size = 0x4B8
+address = 0x8014DA2C
+
+[[desert_chaser.embedded]]
+name = "desert_chaser_intro_second_opening"
+offset = 0x1C0C4
+size = 0x604
+address = 0x8014DEE4
+
+[[desert_chaser.embedded]]
+name = "desert_chaser_intro_first_closing"
+offset = 0x1C6C8
+size = 0x790
+address = 0x8014E4E8
+
+[[desert_chaser.embedded]]
+name = "desert_chaser_intro_first_closing_end"
+offset = 0x1CE58
+size = 0x200
+address = 0x8014EC78
+
+[[desert_chaser.embedded]]
+name = "desert_chaser_arena_entry"
+offset = 0x1D058
+size = 0x1F3C
+address = 0x8014EE78
+
+[[desert_chaser.embedded]]
+name = "bank"
+offset = 0x1F208
+size = 0x68
+address = 0x80151028
+
+[[desert_chaser.embedded]]
+name = "desert_chaser_player_front_catch_bank"
+offset = 0x1F270
+size = 0x14
+address = 0x80151090
+
+[[desert_chaser.embedded]]
+name = "desert_chaser_player_rear_catch_bank"
+offset = 0x1F284
+size = 0x14
+address = 0x801510A4
+
+[desert_chaser_arena_entry]
+type = "clip"
+rig = "enemies/chaser/desert/rig"
+
+[desert_chaser_intro_first_closing]
+type = "clip"
+rig = "enemies/chaser/desert/rig"
+
+[desert_chaser_intro_first_opening]
+type = "clip"
+rig = "enemies/chaser/desert/rig"
+
+[desert_chaser_intro_second_opening]
+type = "clip"
+rig = "enemies/chaser/desert/rig"
+
+[desert_chaser_player_rear_catch_bank]
+type = "animation_bank"
+schema = "rooms/dryfield/water_tower/desert_chaser_player_rear_catch_schema"
+symbol = "_gDesertChaserRearCatchPlayerAnimSets"
+
+[desert_chaser_player_rear_catch_bank.clips]
+player_thrown = "enemies/stinger/puppet/player_knockback_back"
+player_caught = "enemies/stinger/puppet/player_knockback_recover_back"
+player_knocked_back = "enemies/chaser/desert/player_knocked_back_rear"
+
+[desert_chaser_intro_first_closing_end]
+type = "clip"
+rig = "enemies/chaser/desert/rig"
+
+[desert_chaser_player_front_catch_bank]
+type = "animation_bank"
+schema = "rooms/dryfield/water_tower/desert_chaser_player_front_catch_schema"
+symbol = "_gDesertChaserFrontCatchPlayerAnimSets"
+
+[desert_chaser_player_front_catch_bank.clips]
+player_thrown = "enemies/stinger/puppet/player_knockback_front"
+player_caught = "enemies/stinger/puppet/player_knockback_recover_front"
+player_knocked_back = "enemies/chaser/desert/player_knocked_back_front"
+
+[desert_chaser_player_rear_catch_schema]
+type = "animation_schema"
+slots = ["", "player_thrown", "player_caught", "player_knocked_back"]
+
+[desert_chaser_player_front_catch_schema]
+type = "animation_schema"
+slots = ["", "player_thrown", "player_caught", "player_knocked_back"]

@@ -70,17 +70,17 @@ extern AnimationSet gActor444000Animation2EA80;
 
 extern AnimationSet gActor444000Animation2EE14;
 
-extern TmdSource gActor444000Actor403200Model10824;
+extern TmdSource gGluttonBody;
 
-extern TmdSource gActor444000Actor403200Model12884;
+extern TmdSource gGluttonActor403200Model12884;
 
-extern TmdSource gActor444000Actor403200Model13774;
+extern TmdSource gGluttonActor403200Model13774;
 
-extern TmdSource gActor444000GluttonLegLeft;
+extern TmdSource gGluttonLegLeft;
 
-extern TmdSource gActor444000GluttonLegRight;
+extern TmdSource gGluttonLegRight;
 
-extern TmdSource gActor444000Actor403200Model18BE4;
+extern TmdSource gGluttonActor403200Model18BE4;
 
 extern TmdSource gActor444000Model1C814;
 

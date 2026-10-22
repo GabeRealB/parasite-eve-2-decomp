@@ -1,0 +1,30 @@
+# The assets of the group rooms/shelter/b6_corridor, each named rooms/shelter/b6_corridor/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[eve]
+type = "pe2pkg"
+embedded = [
+    { asset = "characters/eve/idle", offset = 0x05A60, size = 0x214, address = 0x80167880 },
+    { asset = "characters/eve/eve_walk", offset = 0x05C74, size = 0xBE4, address = 0x80167A94 },
+    { asset = "characters/eve/walk_backward", offset = 0x06858, size = 0x408, address = 0x80168678 },
+    { asset = "characters/eve/turn", offset = 0x06C60, size = 0x40C, address = 0x80168A80 },
+    { name = "eve_bank", offset = 0x0706C, size = 0x14, address = 0x80168E8C },
+]
+package_name = "actor_350500"
+required = true
+sha1 = "b998a0d9fcc5ab8a224ddba4da0b4198c8c4961d"
+
+[eve_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b6_corridor/eve_schema"
+symbol = "_gActor350500BodyAnimSets"
+
+[eve_bank.clips]
+idle = "characters/eve/idle"
+walk = "characters/eve/eve_walk"
+walk_backward = "characters/eve/walk_backward"
+arrival = "characters/eve/turn"
+
+[eve_schema]
+type = "animation_schema"
+slots = ["", "idle", "walk", "walk_backward", "arrival"]

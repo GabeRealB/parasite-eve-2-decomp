@@ -1,0 +1,161 @@
+# The assets of the group rooms/akropolis/sanctuary, each named rooms/akropolis/sanctuary/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[no_9]
+type = "pe2pkg"
+embedded = [
+    { asset = "enemies/golem/no_9/body_akropolis", offset = 0x00300, size = 0x56CC, address = 0x80132120 },
+    { name = "no_9_attack_rupert", offset = 0x059CC, size = 0x3C0, address = 0x801377EC },
+    { name = "no_9_arrival_3", offset = 0x05D8C, size = 0x918, address = 0x80137BAC },
+    { name = "no_9_arrival_4", offset = 0x066A4, size = 0x1B90, address = 0x801384C4 },
+    { name = "no_9_flee", offset = 0x08234, size = 0x508, address = 0x8013A054 },
+    { name = "no9_golem_anim_05", offset = 0x0873C, size = 0x1A38, address = 0x8013A55C },
+    { name = "no_9_bank", offset = 0x0A1A0, size = 0x18, address = 0x8013BFC0 },
+]
+package_name = "actor_110700"
+required = true
+sha1 = "0e9e9b3f5609545a85e397e98152df642939551e"
+
+[rupert]
+type = "pe2pkg"
+embedded = [
+    { name = "player_sanctuary_arrival_7", offset = 0x00750, size = 0x1704, address = 0x8014A570 },
+    { name = "player_sanctuary_arrival_11", offset = 0x01E54, size = 0x9CC, address = 0x8014BC74 },
+    { name = "player_sanctuary_talk", offset = 0x02820, size = 0x35C, address = 0x8014C640 },
+    { name = "player_sanctuary_talk_end", offset = 0x02B7C, size = 0x2B8, address = 0x8014C99C },
+    { name = "player_sanctuary_reply", offset = 0x02E34, size = 0x380, address = 0x8014CC54 },
+    { name = "player_sanctuary_listen", offset = 0x031B4, size = 0x298, address = 0x8014CFD4 },
+    { name = "player_sanctuary_arrival_26", offset = 0x0344C, size = 0x7AC, address = 0x8014D26C },
+    { name = "player_sanctuary_arrival_27", offset = 0x03BF8, size = 0x2C18, address = 0x8014DA18 },
+    { asset = "characters/rupert/body", offset = 0x06810, size = 0x5EF8, address = 0x80150630 },
+    { name = "rupert_ambushed", offset = 0x0C708, size = 0x540, address = 0x80156528 },
+    { name = "rupert_arrival_3", offset = 0x0CC48, size = 0x3C0, address = 0x80156A68 },
+    { name = "rupert_hurt_idle", offset = 0x0D008, size = 0x260, address = 0x80156E28 },
+    { name = "rupert_arrival_11", offset = 0x0D268, size = 0x4EC, address = 0x80157088 },
+    { name = "rupert_talk", offset = 0x0D754, size = 0x450, address = 0x80157574 },
+    { name = "rupert_talk_end", offset = 0x0DBA4, size = 0x288, address = 0x801579C4 },
+    "characters/rupert/eyes_open",
+    "characters/rupert/eyes_half_open",
+    "characters/rupert/eyes_closed",
+    { name = "rupert_bank", offset = 0x0E78C, size = 0x1C, address = 0x801585AC },
+]
+package_name = "actor_210700"
+required = true
+sha1 = "672c188bf5dd3c02d031ea77ad11c6cacddd23e4"
+
+[no_9_bank]
+type = "animation_bank"
+schema = "rooms/akropolis/sanctuary/no_9_schema"
+symbol = "_gActor110700No9GolemAnimationSets"
+
+[no_9_bank.clips]
+attack_rupert = "rooms/akropolis/sanctuary/no_9_attack_rupert"
+arrival_3 = "rooms/akropolis/sanctuary/no_9_arrival_3"
+arrival_4 = "rooms/akropolis/sanctuary/no_9_arrival_4"
+flee = "rooms/akropolis/sanctuary/no_9_flee"
+slot_5 = "rooms/akropolis/sanctuary/no9_golem_anim_05"
+
+[no_9_flee]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[no_9_schema]
+type = "animation_schema"
+slots = ["", "attack_rupert", "arrival_3", "arrival_4", "flee", "slot_5"]
+
+[rupert_bank]
+type = "animation_bank"
+schema = "rooms/akropolis/sanctuary/rupert_schema"
+symbol = "_gActor210700AnimationSets"
+
+[rupert_bank.clips]
+ambushed = "rooms/akropolis/sanctuary/rupert_ambushed"
+arrival_3 = "rooms/akropolis/sanctuary/rupert_arrival_3"
+hurt_idle = "rooms/akropolis/sanctuary/rupert_hurt_idle"
+arrival_11 = "rooms/akropolis/sanctuary/rupert_arrival_11"
+talk = "rooms/akropolis/sanctuary/rupert_talk"
+talk_end = "rooms/akropolis/sanctuary/rupert_talk_end"
+
+[rupert_talk]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[rupert_schema]
+type = "animation_schema"
+slots = ["", "ambushed", "arrival_3", "hurt_idle", "arrival_11", "talk", "talk_end"]
+
+[no_9_arrival_3]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[no_9_arrival_4]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[rupert_ambushed]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[rupert_talk_end]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[rupert_arrival_3]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[rupert_hurt_idle]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[no9_golem_anim_05]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[rupert_arrival_11]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[no_9_attack_rupert]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[player_sanctuary_talk]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisSanctuaryPlayerSanctuaryTalkClip"
+
+[player_sanctuary_reply]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisSanctuaryPlayerSanctuaryReplyClip"
+
+[player_sanctuary_listen]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisSanctuaryPlayerSanctuaryListenClip"
+
+[player_sanctuary_talk_end]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisSanctuaryPlayerSanctuaryTalkEndClip"
+
+[player_sanctuary_arrival_7]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisSanctuaryPlayerSanctuaryArrival7Clip"
+
+[player_sanctuary_arrival_11]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisSanctuaryPlayerSanctuaryArrival11Clip"
+
+[player_sanctuary_arrival_26]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisSanctuaryPlayerSanctuaryArrival26Clip"
+
+[player_sanctuary_arrival_27]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisSanctuaryPlayerSanctuaryArrival27Clip"

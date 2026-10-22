@@ -1,0 +1,170 @@
+# The assets of the group rooms/dryfield/night_main_street, each named rooms/dryfield/night_main_street/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[gary]
+type = "pe2pkg"
+embedded = [
+    { name = "gary_rest", offset = 0x091D0, size = 0x26C, address = 0x8013AFF0 },
+    { name = "gary_truck_fixed", offset = 0x0943C, size = 0x340, address = 0x8013B25C },
+    { name = "gary_hand_over_key", offset = 0x0977C, size = 0x2E8, address = 0x8013B59C },
+    { name = "gary_talk", offset = 0x09A64, size = 0x2BC, address = 0x8013B884 },
+    { name = "gary_talk_end", offset = 0x09D20, size = 0x1B4, address = 0x8013BB40 },
+    { name = "body_anim_12", offset = 0x09ED4, size = 0x254, address = 0x8013BCF4 },
+    { name = "gary_mourn_flint", offset = 0x0A128, size = 0x210, address = 0x8013BF48 },
+    { name = "gary_truck_done", offset = 0x0A338, size = 0x294, address = 0x8013C158 },
+    { name = "gary_hand_over_key_mourning", offset = 0x0A5CC, size = 0x310, address = 0x8013C3EC },
+    { name = "body_anim_07", offset = 0x0A8DC, size = 0x1F4, address = 0x8013C6FC },
+    { name = "body_anim_08", offset = 0x0AAD0, size = 0x294, address = 0x8013C8F0 },
+    { name = "body_anim_09", offset = 0x0AD64, size = 0x1F4, address = 0x8013CB84 },
+    { asset = "characters/aya/stand", offset = 0x0AF58, size = 0x304, address = 0x8013CD78 },
+    { name = "player_take_key", offset = 0x0B25C, size = 0x35C, address = 0x8013D07C },
+    { name = "player_offer_condolences", offset = 0x0B5B8, size = 0x25C, address = 0x8013D3D8 },
+    { asset = "characters/aya/talk_start", offset = 0x0B814, size = 0x3D4, address = 0x8013D634 },
+    { asset = "characters/aya/talk", offset = 0x0BBE8, size = 0x3F0, address = 0x8013DA08 },
+    { asset = "characters/aya/talk_end", offset = 0x0BFD8, size = 0x36C, address = 0x8013DDF8 },
+    { asset = "characters/aya/ask_if_hurt", offset = 0x0C344, size = 0x304, address = 0x8013E164 },
+    { asset = "characters/flint/stand", offset = 0x0C648, size = 0x334, address = 0x8013E468 },
+    { asset = "characters/flint/lie_resting", offset = 0x0C97C, size = 0x290, address = 0x8013E79C },
+    { name = "companion_anim_05", offset = 0x0CC0C, size = 0x190, address = 0x8013EA2C },
+    { asset = "characters/flint/react_truck_fixed", offset = 0x0CD9C, size = 0x1A8, address = 0x8013EBBC },
+    { asset = "characters/flint/react_key_handover", offset = 0x0CF44, size = 0x1C0, address = 0x8013ED64 },
+    { asset = "characters/flint/bark", offset = 0x0D104, size = 0x258, address = 0x8013EF24 },
+    { name = "player_scene_bank", offset = 0x0D360, size = 0x20, address = 0x8013F180 },
+    { name = "gary_bank", offset = 0x0D380, size = 0x34, address = 0x8013F1A0 },
+    { name = "flint_bank", offset = 0x0D3B4, size = 0x18, address = 0x8013F1D4 },
+]
+package_name = "actor_136100"
+required = true
+sha1 = "7fd67529f241bf7389753d080ddc017d9fb4eb49"
+
+[gary_bank]
+type = "animation_bank"
+schema = "rooms/dryfield/night_main_street/gary_schema"
+symbol = "_gActor136100BodyAnimationSets"
+
+[gary_bank.clips]
+rest = "rooms/dryfield/night_main_street/gary_rest"
+truck_fixed = "rooms/dryfield/night_main_street/gary_truck_fixed"
+mourn_flint = "rooms/dryfield/night_main_street/gary_mourn_flint"
+truck_done = "rooms/dryfield/night_main_street/gary_truck_done"
+hand_over_key = "rooms/dryfield/night_main_street/gary_hand_over_key"
+hand_over_key_mourning = "rooms/dryfield/night_main_street/gary_hand_over_key_mourning"
+slot_7 = "rooms/dryfield/night_main_street/body_anim_07"
+slot_8 = "rooms/dryfield/night_main_street/body_anim_08"
+slot_9 = "rooms/dryfield/night_main_street/body_anim_09"
+talk = "rooms/dryfield/night_main_street/gary_talk"
+talk_end = "rooms/dryfield/night_main_street/gary_talk_end"
+slot_12 = "rooms/dryfield/night_main_street/body_anim_12"
+
+[gary_rest]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_talk]
+type = "clip"
+rig = "characters/gary/rig"
+
+[flint_bank]
+type = "animation_bank"
+schema = "rooms/dryfield/night_main_street/flint_schema"
+symbol = "_gActor136100CompanionAnimationSets"
+
+[flint_bank.clips]
+stand = "characters/flint/stand"
+lie_resting = "characters/flint/lie_resting"
+bark = "characters/flint/bark"
+react_truck_fixed = "characters/flint/react_truck_fixed"
+react_key_handover = "characters/flint/react_key_handover"
+slot_5 = "rooms/dryfield/night_main_street/companion_anim_05"
+
+[gary_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "rest",
+    "truck_fixed",
+    "mourn_flint",
+    "truck_done",
+    "hand_over_key",
+    "hand_over_key_mourning",
+    "slot_7",
+    "slot_8",
+    "slot_9",
+    "talk",
+    "talk_end",
+    "slot_12",
+]
+
+[body_anim_07]
+type = "clip"
+rig = "characters/gary/rig"
+
+[body_anim_08]
+type = "clip"
+rig = "characters/gary/rig"
+
+[body_anim_09]
+type = "clip"
+rig = "characters/gary/rig"
+
+[body_anim_12]
+type = "clip"
+rig = "characters/gary/rig"
+
+[flint_schema]
+type = "animation_schema"
+slots = ["stand", "lie_resting", "bark", "react_truck_fixed", "react_key_handover", "slot_5"]
+
+[gary_talk_end]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_truck_done]
+type = "clip"
+rig = "characters/gary/rig"
+
+[player_take_key]
+type = "clip"
+rig = "characters/aya/rig"
+
+[gary_mourn_flint]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_truck_fixed]
+type = "clip"
+rig = "characters/gary/rig"
+
+[companion_anim_05]
+type = "clip"
+rig = "characters/flint/rig"
+
+[player_scene_bank]
+type = "animation_bank"
+schema = "rooms/dryfield/night_main_street/player_scene_schema"
+symbol = "_gActor136100PlayerSceneAnimationSets"
+
+[player_scene_bank.clips]
+stand = "characters/aya/stand"
+take_key = "rooms/dryfield/night_main_street/player_take_key"
+offer_condolences = "rooms/dryfield/night_main_street/player_offer_condolences"
+talk_start = "characters/aya/talk_start"
+talk = "characters/aya/talk"
+talk_end = "characters/aya/talk_end"
+ask_if_hurt = "characters/aya/ask_if_hurt"
+
+[gary_hand_over_key]
+type = "clip"
+rig = "characters/gary/rig"
+
+[player_scene_schema]
+type = "animation_schema"
+slots = ["stand", "take_key", "offer_condolences", "talk_start", "talk", "talk_end", "ask_if_hurt"]
+
+[player_offer_condolences]
+type = "clip"
+rig = "characters/aya/rig"
+
+[gary_hand_over_key_mourning]
+type = "clip"
+rig = "characters/gary/rig"

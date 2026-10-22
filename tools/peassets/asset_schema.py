@@ -165,7 +165,7 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     # SkelAnimation in its group's directory and encoded from it; the rig gives the joint paths and the rest pose the
     # decoded file shows. Placed (with its address: it holds pointers) by every package that carries it; a clip
     # several packages carry belongs to a shared group (characters/aya).
-    "clip": {"payload": (), "stored": ("rig",)},
+    "clip": {"payload": (), "stored": ("rig", "symbol")},
     # The slots a table of clips is indexed by, as the code indexes it: `slots` names each index ("" where none is
     # used). The player's schema serves every weapon and companion.
     "animation_schema": {"payload": (), "stored": ("slots",)},
@@ -513,7 +513,7 @@ def record_of(key: str, type_dir: str | None = None, tables: tuple[dict, dict] |
 def decoded_model(rec: dict[str, Any] | None) -> bool:
     """A model that declares its texture `slots` (model/ decodes it), or a clip (animation/): unlike the other
     models and animations, a decoded form outside raw/."""
-    return bool(rec) and (rec.get("type") == "model" and bool(rec.get("slots")) or rec.get("type") == "clip")
+    return bool(rec) and (rec.get("type") == "model" and "slots" in rec or rec.get("type") == "clip")
 
 
 def file_name(key: str) -> str:

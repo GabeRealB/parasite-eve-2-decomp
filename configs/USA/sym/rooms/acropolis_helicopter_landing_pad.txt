@@ -86,8 +86,8 @@ _gAcropolisHelicopterLandingPadModel0547CVerts = 0x801823EC; // size:0x5F8 defin
 _gAcropolisHelicopterLandingPadModel0547CNormals = 0x801829E4; // size:0x58 defined:True
 _gAcropolisHelicopterLandingPadModel0547CStream = 0x80182A3C; // size:0xCB0 defined:True
 gAcropolisHelicopterLandingPadModel0547C = 0x801836EC; // size:0x24 defined:True
-gActor511000Animation04CC8 = 0x80136AE8; // absolute:True owner=actor_511000
-gActor511000Animation07ADC = 0x801398FC; // absolute:True owner=actor_511000
+gAkropolisHelicopterLandingPadPlayerHelipadReportEscapeClip = 0x80136AE8; // absolute:True owner=actor_511000
+gAkropolisHelicopterLandingPadPlayerHelipadDetonatorTalkClip = 0x801398FC; // absolute:True owner=actor_511000
 gAcropolisHelicopterLandingPadLiftRaiseRequest = 0x80184E28; // size:0x14 defined:True
 gAcropolisHelicopterLandingPadLiftPlayerAnimationRequest = 0x80184E3C; // size:0x14 defined:True
 gAcropolisHelicopterLandingPadPostEncounterPlayerPlacement = 0x80184E50; // size:0x18 defined:True

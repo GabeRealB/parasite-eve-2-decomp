@@ -320,7 +320,7 @@ def declared_model_placements() -> dict[tuple[str, int], tuple[str, str, str]]:
     data, schema = asset_tables()
     out = {}
     for name, rec in data.ASSETS.items():
-        if rec.get("type") == "model" and rec.get("slots"):
+        if rec.get("type") == "model" and "slots" in rec:      # an untextured model declares none
             for package, offset in asset_placements(name):
                 out[(package, offset)] = (
                     name, schema.asset_dir(name, rec, tables=(data.ASSETS, data.EMBEDDED_ASSETS)), include_path(name, rec))
@@ -385,6 +385,12 @@ def model_includes(version: str) -> list[tuple[Path, list[Path], int, int, str]]
         if package not in cache:
             cache[package] = raw_of(package).read_bytes()
         return cache[package]
+    # Another copy of a declared model (a relocated package, another source carrying it) is that model: its source
+    # includes the model's generated definition, not these arrays.
+    from tools.peassets.model.tmd import catalog_name
+    data, _schema = asset_tables()
+    models = [m for m in models if data.ASSETS.get(catalog_name(read(m["package"]), m["load"], m["source"]) or "",
+                                                   {}).get("type") != "model"]
     # The include set is named by the asset manifest, so a model carried by
     # several packages is one set of files under one name.
     names = include_names(models, read)
@@ -414,11 +420,17 @@ def declared_animation_sources(version: str) -> tuple[list, list]:
             placed = [p["name"] for p in rec.get("embedded", ()) if isinstance(p, dict)
                       and data.ASSETS[p["name"]]["type"] == "clip"]
             if placed:
-                usd = [ASSETS_DIR / version / schema.asset_dir(n, data.ASSETS[n], tables=tables) / f"{schema.file_name(n)}.usda"
-                       for n in placed]
+                from tools.buildsteps.gen_animation_source import clip_runs
+                runs = clip_runs(rec, data.ASSETS)
                 local = key.rsplit("/", 1)[-1]
-                inc = "clips.inc" if local == "package" else f"{local.removesuffix('_package')}_clips.inc"
-                clips.append((rec.get("package_name", key), usd, BUILD_DIR / "include" / "assets" / rec["group"] / inc))
+                stem = "clips" if local == "package" else f"{local.removesuffix('_package')}_clips"
+                # One include per run of back-to-back clips: `clips.inc`, or `clips_1.inc`, `clips_2.inc`, ...
+                for k, run in enumerate(runs, 1):
+                    usd = [ASSETS_DIR / version / schema.asset_dir(n, data.ASSETS[n], tables=tables) / f"{schema.file_name(n)}.usda"
+                           for n in run]
+                    name = rec.get("package_name", key) + (f":{k}" if len(runs) > 1 else "")
+                    inc = f"{stem}.inc" if len(runs) == 1 else f"{stem}_{k}.inc"
+                    clips.append((name, usd, BUILD_DIR / "include" / "assets" / rec["group"] / inc))
         elif rec.get("type") == "animation_bank" and key in data.EMBEDDED_ASSETS:      # a layer is not a table
             banks.append((key, BUILD_DIR / "include" / "assets" / include_path(key, rec)))
     return clips, banks
@@ -430,7 +442,7 @@ def animation_includes(version: str) -> list[tuple[Path, list[Path], int, int]]:
     from tools.buildsteps.gen_overlay_configs import declared_animations
 
     manifest = tomllib.loads((CONFIG_DIR / version / "overlays.toml").read_text())
-    declared = {package for package, _usd, _inc in declared_animation_sources(version)[0]}
+    declared = {package.partition(":")[0] for package, _usd, _inc in declared_animation_sources(version)[0]}
     out = []
     for resource in declared_animations(manifest):
         if not resource["in_c"] or resource["package"] in declared:

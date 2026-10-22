@@ -1,0 +1,25 @@
+# The assets of the group enemies/amoeba/red, each named enemies/amoeba/red/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "preview_palette"
+sha1 = "be5557553c018a8f24c128897a78b71b38f164f6"
+palettes = [{ texture = "preview", variant = "default", region = "engine/vram/preview_palette" }]
+
+[[file.contents]]
+chunk = "preview_image"
+sha1 = "be2b1ca23c541204f39070b5fc8129ad2a7d9f57"
+pages = [{ texture = "preview", region = "engine/vram/preview_picture", upload = "engine/vram/preview_picture" }]
+
+[[file.contents]]
+asset = "txt_82"
+
+[preview]
+type = "texture"
+bpp = 8
+height = 96
+variants = ["default"]
+width = 128

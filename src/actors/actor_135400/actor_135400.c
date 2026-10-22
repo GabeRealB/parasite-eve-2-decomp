@@ -182,7 +182,7 @@ static const _Actor135400GaryDouglasPlaces _gActor135400GaryDouglasSpawnPlacemen
     { { 4700, 0, 5000, 0 }, { 0, -1024, 0, 0 } },
 };
 
-static TmdSource _gActor135400FlintBody;
+extern TmdSource gFlintBody;
 static s32       _actorMsgPlaceEuler(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);
 static void      _actor135400FlintTask(Task* task);
 
@@ -191,69 +191,9 @@ static void _actor135400GaryDouglasHeadTask(Task* task);
 static void _actor135400GaryDouglasCarriedTask(Task* task);
 static void _actor135400GaryDouglasTask(Task* task);
 
-static TmdBone _gActor135400GaryDouglasBodySkeleton[20] = {
-#include "assets/gary_douglas_body_skeleton.inc"
-};
+#include "assets/characters/gary/body.inc"
 
-static u32 _gActor135400GaryDouglasBodyPartVerts[20] = {
-#include "assets/gary_douglas_body_partVerts.inc"
-};
-
-static SVECTOR _gActor135400GaryDouglasBodyVerts[364] = {
-#include "assets/gary_douglas_body_verts.inc"
-};
-
-static SVECTOR _gActor135400GaryDouglasBodyNormals[354] = {
-#include "assets/gary_douglas_body_normals.inc"
-};
-
-static u32 _gActor135400GaryDouglasBodyStream[4151] = {
-#include "assets/gary_douglas_body_stream.inc"
-};
-
-static TmdSource _gActor135400GaryDouglasBody = {
-    0,
-    22008,
-    6952,
-    20,
-    _gActor135400GaryDouglasBodyPartVerts,
-    _gActor135400GaryDouglasBodyVerts,
-    _gActor135400GaryDouglasBodyNormals,
-    _gActor135400GaryDouglasBodySkeleton,
-    _gActor135400GaryDouglasBodyStream,
-};
-
-static TmdBone _gActor135400GaryDouglasHeadHatSkeleton[1] = {
-#include "assets/gary_douglas_head_hat_skeleton.inc"
-};
-
-static u32 _gActor135400GaryDouglasHeadHatPartVerts[1] = {
-#include "assets/gary_douglas_head_hat_partVerts.inc"
-};
-
-static SVECTOR _gActor135400GaryDouglasHeadHatVerts[21] = {
-#include "assets/gary_douglas_head_hat_verts.inc"
-};
-
-static SVECTOR _gActor135400GaryDouglasHeadHatNormals[21] = {
-#include "assets/gary_douglas_head_hat_normals.inc"
-};
-
-static u32 _gActor135400GaryDouglasHeadHatStream[207] = {
-#include "assets/gary_douglas_head_hat_stream.inc"
-};
-
-static TmdSource _gActor135400GaryDouglasHeadHat = {
-    0,
-    1352,
-    0,
-    1,
-    _gActor135400GaryDouglasHeadHatPartVerts,
-    _gActor135400GaryDouglasHeadHatVerts,
-    _gActor135400GaryDouglasHeadHatNormals,
-    _gActor135400GaryDouglasHeadHatSkeleton,
-    _gActor135400GaryDouglasHeadHatStream,
-};
+#include "assets/characters/gary/head_hat.inc"
 
 static TmdBone _gActor135400Model071ACSkeleton[1] = {
 #include "assets/actor_135400_model_071AC_skeleton.inc"
@@ -283,105 +223,13 @@ static TmdSource _gActor135400Model071AC = {
     _gActor135400Model071ACStream,
 };
 
-static AnimationPackedPose _gActor135400Animation07568Bank1[3] = {
-#include "assets/actor_135400_animation_07568_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor135400Animation07568Bank4[18] = {
-#include "assets/actor_135400_animation_07568_bank4.inc"
-};
-
-static AnimationRecord _gActor135400Animation07568Records[87] = {
-#include "assets/actor_135400_animation_07568_records.inc"
-};
-
-static u16 _gActor135400Animation07568Indices[20] = {
-#include "assets/actor_135400_animation_07568_indices.inc"
-};
-
-static AnimationSet _gActor135400Animation07568 = {
-    _gActor135400Animation07568Records,
-    _gActor135400Animation07568Indices,
-    { NULL, _gActor135400Animation07568Bank1, NULL, NULL, _gActor135400Animation07568Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor135400Animation077B8Bank1[3] = {
-#include "assets/actor_135400_animation_077B8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor135400Animation077B8Bank4[25] = {
-#include "assets/actor_135400_animation_077B8_bank4.inc"
-};
-
-static AnimationRecord _gActor135400Animation077B8Records[94] = {
-#include "assets/actor_135400_animation_077B8_records.inc"
-};
-
-static u16 _gActor135400Animation077B8Indices[20] = {
-#include "assets/actor_135400_animation_077B8_indices.inc"
-};
-
-static AnimationSet _gActor135400Animation077B8 = {
-    _gActor135400Animation077B8Records,
-    _gActor135400Animation077B8Indices,
-    { NULL, _gActor135400Animation077B8Bank1, NULL, NULL, _gActor135400Animation077B8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor135400Animation084B0Bank1[31] = {
-#include "assets/actor_135400_animation_084B0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor135400Animation084B0Bank4[309] = {
-#include "assets/actor_135400_animation_084B0_bank4.inc"
-};
-
-static AnimationRecord _gActor135400Animation084B0Records[408] = {
-#include "assets/actor_135400_animation_084B0_records.inc"
-};
-
-static u16 _gActor135400Animation084B0Indices[20] = {
-#include "assets/actor_135400_animation_084B0_indices.inc"
-};
-
-static AnimationSet _gActor135400Animation084B0 = {
-    _gActor135400Animation084B0Records,
-    _gActor135400Animation084B0Indices,
-    { NULL, _gActor135400Animation084B0Bank1, NULL, NULL, _gActor135400Animation084B0Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor135400Animation0864CBank1[2] = {
-#include "assets/actor_135400_animation_0864C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor135400Animation0864CBank4[17] = {
-#include "assets/actor_135400_animation_0864C_bank4.inc"
-};
-
-static AnimationRecord _gActor135400Animation0864CRecords[60] = {
-#include "assets/actor_135400_animation_0864C_records.inc"
-};
-
-static u16 _gActor135400Animation0864CIndices[20] = {
-#include "assets/actor_135400_animation_0864C_indices.inc"
-};
-
-static AnimationSet _gActor135400Animation0864C = {
-    _gActor135400Animation0864CRecords,
-    _gActor135400Animation0864CIndices,
-    { NULL, _gActor135400Animation0864CBank1, NULL, NULL, _gActor135400Animation0864CBank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/dryfield/night_garage/gary_and_flint_clips_1.inc"
 
 /// Gary Douglas's bank-0 clip table for his twenty-part body rig.
 ///
 /// Clip IDs 1..4 borrow loaded sets; entry 0 is NULL and cannot be played.
 /// The table and animation resources must remain loaded while the rig uses them.
-static AnimationSet* _gActor135400GaryDouglasAnimationBank[5] = {
-    NULL,
-    &_gActor135400Animation07568,
-    &_gActor135400Animation077B8,
-    &_gActor135400Animation084B0,
-    &_gActor135400Animation0864C,
-};
+#include "assets/rooms/dryfield/night_garage/gary_bank.inc"
 
 /// Actor-motion bank selection for Douglas's twenty-part body (only source.index 0).
 ///
@@ -392,8 +240,8 @@ static AnimationSet** _gActorMotionAnimBanks[1] = {
 };
 
 TaskDesc gActor135400GaryDouglasTasks[3] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor135400GaryDouglasTask, { .model = &_gActor135400GaryDouglasBody } },
-    { { { TASK_BODY_TMD, 192 } }, _actor135400GaryDouglasHeadTask, { .model = &_gActor135400GaryDouglasHeadHat } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor135400GaryDouglasTask, { .model = &_gGaryBody } },
+    { { { TASK_BODY_TMD, 192 } }, _actor135400GaryDouglasHeadTask, { .model = &_gGaryHeadHat } },
     { { { TASK_BODY_TMD, 192 } }, _actor135400GaryDouglasCarriedTask, { .model = &_gActor135400Model071AC } },
 };
 
@@ -411,161 +259,15 @@ static const TaskMessageEntry _gActor135400GaryDouglasMessages[5] SECTION(".data
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-static TmdBone _gActor135400FlintBodySkeleton[19] = {
-#include "assets/flint_body_skeleton.inc"
-};
+#include "assets/characters/flint/body.inc"
 
-static u32 _gActor135400FlintBodyPartVerts[19] = {
-#include "assets/flint_body_partVerts.inc"
-};
-
-static SVECTOR _gActor135400FlintBodyVerts[238] = {
-#include "assets/flint_body_verts.inc"
-};
-
-static SVECTOR _gActor135400FlintBodyNormals[238] = {
-#include "assets/flint_body_normals.inc"
-};
-
-static u32 _gActor135400FlintBodyStream[2784] = {
-#include "assets/flint_body_stream.inc"
-};
-
-static TmdSource _gActor135400FlintBody = {
-    0,
-    13636,
-    6016,
-    19,
-    _gActor135400FlintBodyPartVerts,
-    _gActor135400FlintBodyVerts,
-    _gActor135400FlintBodyNormals,
-    _gActor135400FlintBodySkeleton,
-    _gActor135400FlintBodyStream,
-};
-
-static AnimationPackedPose _gActor135400Animation0C6BCBank1[2] = {
-#include "assets/actor_135400_animation_0C6BC_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor135400Animation0C6BCBank4[36] = {
-#include "assets/actor_135400_animation_0C6BC_bank4.inc"
-};
-
-static AnimationRecord _gActor135400Animation0C6BCRecords[102] = {
-#include "assets/actor_135400_animation_0C6BC_records.inc"
-};
-
-static u16 _gActor135400Animation0C6BCIndices[20] = {
-#include "assets/actor_135400_animation_0C6BC_indices.inc"
-};
-
-static AnimationSet _gActor135400Animation0C6BC = {
-    _gActor135400Animation0C6BCRecords,
-    _gActor135400Animation0C6BCIndices,
-    { NULL, _gActor135400Animation0C6BCBank1, NULL, NULL, _gActor135400Animation0C6BCBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor135400Animation0C9F0Bank1[5] = {
-#include "assets/actor_135400_animation_0C9F0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor135400Animation0C9F0Bank4[46] = {
-#include "assets/actor_135400_animation_0C9F0_bank4.inc"
-};
-
-static AnimationRecord _gActor135400Animation0C9F0Records[124] = {
-#include "assets/actor_135400_animation_0C9F0_records.inc"
-};
-
-static u16 _gActor135400Animation0C9F0Indices[20] = {
-#include "assets/actor_135400_animation_0C9F0_indices.inc"
-};
-
-static AnimationSet _gActor135400Animation0C9F0 = {
-    _gActor135400Animation0C9F0Records,
-    _gActor135400Animation0C9F0Indices,
-    { NULL, _gActor135400Animation0C9F0Bank1, NULL, NULL, _gActor135400Animation0C9F0Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor135400Animation0CFA4Bank1[11] = {
-#include "assets/actor_135400_animation_0CFA4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor135400Animation0CFA4Bank4[134] = {
-#include "assets/actor_135400_animation_0CFA4_bank4.inc"
-};
-
-static AnimationRecord _gActor135400Animation0CFA4Records[178] = {
-#include "assets/actor_135400_animation_0CFA4_records.inc"
-};
-
-static u16 _gActor135400Animation0CFA4Indices[20] = {
-#include "assets/actor_135400_animation_0CFA4_indices.inc"
-};
-
-static AnimationSet _gActor135400Animation0CFA4 = {
-    _gActor135400Animation0CFA4Records,
-    _gActor135400Animation0CFA4Indices,
-    { NULL, _gActor135400Animation0CFA4Bank1, NULL, NULL, _gActor135400Animation0CFA4Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor135400Animation0D320Bank1[6] = {
-#include "assets/actor_135400_animation_0D320_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor135400Animation0D320Bank4[74] = {
-#include "assets/actor_135400_animation_0D320_bank4.inc"
-};
-
-static AnimationRecord _gActor135400Animation0D320Records[111] = {
-#include "assets/actor_135400_animation_0D320_records.inc"
-};
-
-static u16 _gActor135400Animation0D320Indices[20] = {
-#include "assets/actor_135400_animation_0D320_indices.inc"
-};
-
-static AnimationSet _gActor135400Animation0D320 = {
-    _gActor135400Animation0D320Records,
-    _gActor135400Animation0D320Indices,
-    { NULL, _gActor135400Animation0D320Bank1, NULL, NULL, _gActor135400Animation0D320Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor135400Animation0DA60Bank1[8] = {
-#include "assets/actor_135400_animation_0DA60_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor135400Animation0DA60Bank4[158] = {
-#include "assets/actor_135400_animation_0DA60_bank4.inc"
-};
-
-static AnimationRecord _gActor135400Animation0DA60Records[262] = {
-#include "assets/actor_135400_animation_0DA60_records.inc"
-};
-
-static u16 _gActor135400Animation0DA60Indices[20] = {
-#include "assets/actor_135400_animation_0DA60_indices.inc"
-};
-
-static AnimationSet _gActor135400Animation0DA60 = {
-    _gActor135400Animation0DA60Records,
-    _gActor135400Animation0DA60Indices,
-    { NULL, _gActor135400Animation0DA60Bank1, NULL, NULL, _gActor135400Animation0DA60Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/dryfield/night_garage/gary_and_flint_clips_2.inc"
 
 /// Flint's bank-0 animation sets: clips 1..6, with NULL at index 0.
 ///
 /// Clips 3 and 5 borrow the same set. The autonomous cycle and message
 /// requests select these IDs; playback borrows package data until teardown.
-static AnimationSet* _gActor135400FlintAnimationSets[7] = {
-    NULL,
-    &_gActor135400Animation0C6BC,
-    &_gActor135400Animation0D320,
-    &_gActor135400Animation0C9F0,
-    &_gActor135400Animation0DA60,
-    &_gActor135400Animation0C9F0,
-    &_gActor135400Animation0CFA4,
-};
+#include "assets/rooms/dryfield/night_garage/flint_bank.inc"
 
 /// Flint's hold durations in frames, indexed by the autonomous cycle cursor.
 ///
@@ -596,7 +298,7 @@ enum { ACTOR_135400_FLINT_TASK_PRIORITY = 192 };
 TaskDesc gActor135400FlintTaskDesc = {
     .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_135400_FLINT_TASK_PRIORITY } },
     .callback = _actor135400FlintTask,
-    .data     = { .model = &_gActor135400FlintBody },
+    .data     = { .model = &gFlintBody },
 };
 
 /// Flint's message map for animation playback, Euler placement and drawing.

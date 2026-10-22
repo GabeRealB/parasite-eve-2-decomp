@@ -1,0 +1,108 @@
+# The assets of the group enemies/diver/sea, each named enemies/diver/sea/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+schema = "enemies/diver/sea/schema"
+symbol = "_gActor206100SeaDiverAnimationSets"
+
+[bank.clips]
+surface = "enemies/diver/surface"
+swim = "enemies/diver/swim"
+surface_swim = "enemies/diver/surface_swim"
+discharge = "enemies/diver/discharge"
+slot_8 = "enemies/diver/anim_08"
+swim_recoil_light = "enemies/diver/swim_recoil_light"
+swim_recoil_heavy = "enemies/diver/swim_recoil_heavy"
+swim_stunned = "enemies/diver/swim_stunned"
+swim_stunned_loop = "enemies/diver/swim_stunned_loop"
+swim_stunned_hit = "enemies/diver/swim_stunned_hit"
+
+[file]
+type = "file"
+contents = [
+    { asset = "enemies/moth/preview_palette", sha1 = "65e9784cafe3f1873b915a880cb1979b39621a83" },
+    { asset = "enemies/moth/preview_image", sha1 = "161ac20e76eb8f36b46a091126eaafe3a329e23e" },
+    { asset = "txt_82" },
+]
+
+[schema]
+type = "animation_schema"
+slots = [
+    "",
+    "surface",
+    "",
+    "swim",
+    "",
+    "surface_swim",
+    "",
+    "discharge",
+    "slot_8",
+    "",
+    "swim_recoil_light",
+    "swim_recoil_heavy",
+    "",
+    "",
+    "swim_stunned",
+    "swim_stunned_loop",
+    "swim_stunned_hit",
+]
+
+[package]
+type = "pe2pkg"
+embedded = [
+    { asset = "enemies/diver/surface", offset = 0x0B388, size = 0x598, address = 0x801551A8 },
+    { asset = "enemies/diver/swim", offset = 0x0B920, size = 0x388, address = 0x80155740 },
+    { asset = "enemies/diver/surface_swim", offset = 0x0BCA8, size = 0x8C4, address = 0x80155AC8 },
+    { asset = "enemies/diver/discharge", offset = 0x0C56C, size = 0x708, address = 0x8015638C },
+    { asset = "enemies/diver/anim_08", offset = 0x0CC74, size = 0x8E4, address = 0x80156A94 },
+    { asset = "enemies/diver/swim_recoil_light", offset = 0x0D558, size = 0x438, address = 0x80157378 },
+    { asset = "enemies/diver/swim_recoil_heavy", offset = 0x0D990, size = 0x540, address = 0x801577B0 },
+    { asset = "enemies/diver/swim_stunned", offset = 0x0DED0, size = 0x600, address = 0x80157CF0 },
+    { asset = "enemies/diver/swim_stunned_loop", offset = 0x0E4D0, size = 0x2F0, address = 0x801582F0 },
+    { asset = "enemies/diver/swim_stunned_hit", offset = 0x0E7C0, size = 0x510, address = 0x801585E0 },
+    { name = "bank", offset = 0x0ED04, size = 0x44, address = 0x80158B24 },
+]
+package_name = "actor_206100"
+required = true
+sha1 = "a5caff9f75bf60af942ace0f7a4b762036b930cc"
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+asset = "enemies/diver/sounds"
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "c7ad22fc615a05f42e7b731ecd09383b6d0ee138"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "a70602054418ac955bfd352add51ce56c72e1707"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_file.contents]]
+chunk = "package"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128

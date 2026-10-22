@@ -1,0 +1,254 @@
+# The assets of the group enemies/stalker/ivory, each named enemies/stalker/ivory/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bite]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[body]
+type = "model"
+rig = "enemies/stalker/rig"
+slots = ["body"]
+symbol = "_gStalkerIvoryBody"
+sha1 = "0b051816cad7d833502e23453e0872ac6607ab84"
+
+[sounds]
+type = "sound_bank"
+samples = [
+    "enemies/stalker/ivory/screech",
+    "enemies/stalker/land",
+    "enemies/stalker/land_2",
+    "enemies/stalker/footstep_1",
+    "enemies/stalker/footstep_2",
+    "enemies/stalker/strike",
+    "enemies/stalker/bite",
+]
+sounds = { footstep_1 = 1, footstep_2 = 2, land = 3, screech = 4, strike = 5, fall_land = 6 }
+sha1 = "b21e8010990eb0e9d5112b5b42eba7eaa8ccd6ad"
+
+[package]
+type = "pe2pkg"
+embedded = [
+    { name = "body", offset = 0x083F4, size = 0x4C0C, address = 0x8013A214 },
+    { name = "burst_arm_right", offset = 0x0D000, size = 0x250, address = 0x8013EE20 },
+    { name = "burst_arm_left", offset = 0x0D250, size = 0x278, address = 0x8013F070 },
+    { name = "burst_head", offset = 0x0D4C8, size = 0x854, address = 0x8013F2E8 },
+    { asset = "enemies/stalker/idle", offset = 0x0FAEC, size = 0xCF0, address = 0x8014190C },
+    { asset = "enemies/stalker/walk", offset = 0x107DC, size = 0x738, address = 0x801425FC },
+    { asset = "enemies/stalker/anim_03", offset = 0x10F14, size = 0x6E4, address = 0x80142D34 },
+    { asset = "enemies/stalker/crawl_on_back", offset = 0x115F8, size = 0x898, address = 0x80143418 },
+    { asset = "enemies/stalker/strike_left", offset = 0x11E90, size = 0x8C0, address = 0x80143CB0 },
+    { asset = "enemies/stalker/strike_right", offset = 0x12750, size = 0x978, address = 0x80144570 },
+    { asset = "enemies/stalker/recoil_light", offset = 0x130C8, size = 0x4D4, address = 0x80144EE8 },
+    { asset = "enemies/stalker/recoil_heavy", offset = 0x1359C, size = 0xBE0, address = 0x801453BC },
+    { asset = "enemies/stalker/recoil_light_on_back", offset = 0x1417C, size = 0x558, address = 0x80145F9C },
+    { asset = "enemies/stalker/recoil_heavy_on_back", offset = 0x146D4, size = 0x9C0, address = 0x801464F4 },
+    { asset = "enemies/stalker/anim_13", offset = 0x15094, size = 0x42C, address = 0x80146EB4 },
+    { asset = "enemies/stalker/anim_14", offset = 0x154C0, size = 0x56C, address = 0x801472E0 },
+    { asset = "enemies/stalker/stun", offset = 0x15A2C, size = 0x9B8, address = 0x8014784C },
+    { asset = "enemies/stalker/recover", offset = 0x163E4, size = 0x56C, address = 0x80148204 },
+    { asset = "enemies/stalker/stun_on_back", offset = 0x16950, size = 0xD8C, address = 0x80148770 },
+    { asset = "enemies/stalker/recover_on_back", offset = 0x176DC, size = 0x690, address = 0x801494FC },
+    { asset = "enemies/stalker/fall_landing", offset = 0x17D6C, size = 0x388, address = 0x80149B8C },
+    { asset = "enemies/stalker/rest_on_back", offset = 0x180F4, size = 0x5A0, address = 0x80149F14 },
+    { asset = "enemies/stalker/leap", offset = 0x18694, size = 0x47C, address = 0x8014A4B4 },
+    { asset = "enemies/stalker/right_itself", offset = 0x18B10, size = 0xB6C, address = 0x8014A930 },
+    { asset = "enemies/stalker/landing", offset = 0x1967C, size = 0x36C, address = 0x8014B49C },
+    { asset = "enemies/stalker/knockdown", offset = 0x199E8, size = 0x500, address = 0x8014B808 },
+    { asset = "enemies/stalker/knockdown_on_back", offset = 0x19EE8, size = 0x5FC, address = 0x8014BD08 },
+    { asset = "enemies/stalker/anim_28", offset = 0x1A4E4, size = 0x1C4, address = 0x8014C304 },
+    { asset = "enemies/stalker/anim_29", offset = 0x1A6A8, size = 0x1C4, address = 0x8014C4C8 },
+    { asset = "enemies/stalker/fall_landing_death", offset = 0x1A86C, size = 0x1C4, address = 0x8014C68C },
+    { asset = "enemies/stalker/anim_31", offset = 0x1AA30, size = 0x1C4, address = 0x8014C850 },
+    { asset = "enemies/stalker/drop", offset = 0x1ABF4, size = 0x4A8, address = 0x8014CA14 },
+    { name = "bite", offset = 0x1B09C, size = 0x11D4, address = 0x8014CEBC },
+    { name = "bite_release", offset = 0x1C270, size = 0x89C, address = 0x8014E090 },
+    { asset = "enemies/stalker/player_grabbed", offset = 0x1CB0C, size = 0xD58, address = 0x8014E92C },
+    { asset = "enemies/stalker/player_released", offset = 0x1D864, size = 0x848, address = 0x8014F684 },
+    { asset = "enemies/stalker/player_grab_death", offset = 0x1E0AC, size = 0x1D8, address = 0x8014FECC },
+    { name = "player_bitten", offset = 0x1E284, size = 0xB98, address = 0x801500A4 },
+    { name = "player_bite_release", offset = 0x1EE1C, size = 0x7BC, address = 0x80150C3C },
+    { name = "player_hold_bank", offset = 0x1F5D8, size = 0x18, address = 0x801513F8 },
+    { name = "body_bank", offset = 0x1F5F0, size = 0x8C, address = 0x80151410 },
+]
+package_name = "actor_405800"
+required = true
+sha1 = "c6ab5317c4ba54aa52eadadafe982983567e5175"
+
+[screech]
+type = "sound"
+mode = "high"
+sha1 = "6303691ee9100b839cee9cc71925ac05593e0435"
+
+[texture]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[body_bank]
+type = "animation_bank"
+schema = "enemies/stalker/ivory/body_schema"
+symbol = "_gActor405800BodyAnimationSets"
+
+[body_bank.clips]
+idle = "enemies/stalker/idle"
+walk = "enemies/stalker/walk"
+slot_3 = "enemies/stalker/anim_03"
+crawl_on_back = "enemies/stalker/crawl_on_back"
+strike_left = "enemies/stalker/strike_left"
+strike_right = "enemies/stalker/strike_right"
+recoil_light = "enemies/stalker/recoil_light"
+recoil_heavy = "enemies/stalker/recoil_heavy"
+recoil_light_on_back = "enemies/stalker/recoil_light_on_back"
+recoil_heavy_on_back = "enemies/stalker/recoil_heavy_on_back"
+slot_13 = "enemies/stalker/anim_13"
+slot_14 = "enemies/stalker/anim_14"
+stun = "enemies/stalker/stun"
+recover = "enemies/stalker/recover"
+stun_on_back = "enemies/stalker/stun_on_back"
+recover_on_back = "enemies/stalker/recover_on_back"
+fall_landing = "enemies/stalker/fall_landing"
+rest_on_back = "enemies/stalker/rest_on_back"
+leap = "enemies/stalker/leap"
+right_itself = "enemies/stalker/right_itself"
+landing = "enemies/stalker/landing"
+knockdown = "enemies/stalker/knockdown"
+knockdown_on_back = "enemies/stalker/knockdown_on_back"
+slot_28 = "enemies/stalker/anim_28"
+slot_29 = "enemies/stalker/anim_29"
+fall_landing_death = "enemies/stalker/fall_landing_death"
+slot_31 = "enemies/stalker/anim_31"
+drop = "enemies/stalker/drop"
+bite = "enemies/stalker/ivory/bite"
+bite_release = "enemies/stalker/ivory/bite_release"
+
+[burst_head]
+type = "model"
+slots = ["body"]
+symbol = "_gStalkerIvoryBurstHead"
+sha1 = "f23d509a685fab3cbff83af512d59b44032e605c"
+
+[body_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "idle",
+    "walk",
+    "slot_3",
+    "crawl_on_back",
+    "",
+    "",
+    "strike_left",
+    "strike_right",
+    "recoil_light",
+    "recoil_heavy",
+    "recoil_light_on_back",
+    "recoil_heavy_on_back",
+    "slot_13",
+    "slot_14",
+    "stun",
+    "recover",
+    "stun_on_back",
+    "recover_on_back",
+    "fall_landing",
+    "rest_on_back",
+    "leap",
+    "right_itself",
+    "",
+    "",
+    "landing",
+    "knockdown",
+    "knockdown_on_back",
+    "slot_28",
+    "slot_29",
+    "fall_landing_death",
+    "slot_31",
+    "drop",
+    "bite",
+    "bite_release",
+]
+
+[bite_release]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[body_binding]
+type = "binding"
+model = "enemies/stalker/ivory/body"
+textures = { body = "enemies/stalker/ivory/texture.default" }
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+chunk = "sounds"
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "03a3016792feacf963039f0dd5e04e52604576a9"
+pages = [{ texture = "texture", region = "engine/vram/actor_sheet", offset = [0, 0] }]
+slots = 6
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "656d585224dd4c650d5f62a7b7109efd463fab8b"
+palettes = [
+    { texture = "texture", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { name = "unread_row_2", entries = 256, region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_file.contents]]
+chunk = "package"
+
+[player_bitten]
+type = "clip"
+rig = "characters/aya/rig"
+
+[burst_arm_left]
+type = "model"
+slots = ["body"]
+symbol = "_gStalkerIvoryBurstArmLeft"
+sha1 = "812455a74173b9c167c43385bdc903079291b0e0"
+
+[burst_arm_right]
+type = "model"
+slots = ["body"]
+symbol = "_gStalkerIvoryBurstArmRight"
+sha1 = "f42e38c10c40a7ac931f96838dd06662fe31d7a6"
+
+[player_hold_bank]
+type = "animation_bank"
+schema = "enemies/stalker/ivory/player_hold_schema"
+symbol = "_gActor405800PlayerHoldAnimationSets"
+
+[player_hold_bank.clips]
+player_grabbed = "enemies/stalker/player_grabbed"
+player_released = "enemies/stalker/player_released"
+player_grab_death = "enemies/stalker/player_grab_death"
+player_bitten = "enemies/stalker/ivory/player_bitten"
+player_bite_release = "enemies/stalker/ivory/player_bite_release"
+
+[burst_head_binding]
+type = "binding"
+model = "enemies/stalker/ivory/burst_head"
+textures = { body = "enemies/stalker/ivory/texture.default" }
+
+[player_hold_schema]
+type = "animation_schema"
+slots = ["", "player_grabbed", "player_released", "player_grab_death", "player_bitten", "player_bite_release"]
+
+[player_bite_release]
+type = "clip"
+rig = "characters/aya/rig"
+
+[burst_arm_left_binding]
+type = "binding"
+model = "enemies/stalker/ivory/burst_arm_left"
+textures = { body = "enemies/stalker/ivory/texture.default" }
+
+[burst_arm_right_binding]
+type = "binding"
+model = "enemies/stalker/ivory/burst_arm_right"
+textures = { body = "enemies/stalker/ivory/texture.default" }

@@ -245,7 +245,7 @@ typedef struct {
 } _Actor356100TransformStorage;
 STATIC_ASSERT_SIZEOF(_Actor356100TransformStorage, 32);
 
-static TmdSource _gActor356100HornedStrangerBody;
+static TmdSource _gStrangerHornedBody;
 static s32       _actor356100IgnoreAnimationMessage(Task* task, s32 messageId, s32 unusedPayload, s32 unusedResponse);
 static s32       _actor356100ApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unused);
 static void      _actor356100Task(Task* task);
@@ -294,81 +294,9 @@ static ActorHornedStrangerVariant _gActor356100Variants[3] = {
     { 0, 500, 7, 0 },
 };
 
-static TmdBone _gActor356100HornedStrangerBodySkeleton[21] = {
-#include "assets/horned_stranger_body_skeleton.inc"
-};
+#include "assets/enemies/stranger/horned/body.inc"
 
-static u32 _gActor356100HornedStrangerBodyPartVerts[21] = {
-#include "assets/horned_stranger_body_partVerts.inc"
-};
-
-static SVECTOR _gActor356100HornedStrangerBodyVerts[293] = {
-#include "assets/horned_stranger_body_verts.inc"
-};
-
-static SVECTOR _gActor356100HornedStrangerBodyNormals[363] = {
-#include "assets/horned_stranger_body_normals.inc"
-};
-
-static u32 _gActor356100HornedStrangerBodyStream[3776] = {
-#include "assets/horned_stranger_body_stream.inc"
-};
-
-static TmdSource _gActor356100HornedStrangerBody = {
-    0,
-    18488,
-    7600,
-    21,
-    _gActor356100HornedStrangerBodyPartVerts,
-    _gActor356100HornedStrangerBodyVerts,
-    _gActor356100HornedStrangerBodyNormals,
-    _gActor356100HornedStrangerBodySkeleton,
-    _gActor356100HornedStrangerBodyStream,
-};
-
-static AnimationPackedPose _gActor356100Animation0FE9CBank1[75] = {
-#include "assets/actor_356100_animation_0FE9C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor356100Animation0FE9CBank4[657] = {
-#include "assets/actor_356100_animation_0FE9C_bank4.inc"
-};
-
-static AnimationRecord _gActor356100Animation0FE9CRecords[1164] = {
-#include "assets/actor_356100_animation_0FE9C_records.inc"
-};
-
-static u16 _gActor356100Animation0FE9CIndices[22] = {
-#include "assets/actor_356100_animation_0FE9C_indices.inc"
-};
-
-static AnimationSet _gActor356100Animation0FE9C = {
-    _gActor356100Animation0FE9CRecords,
-    _gActor356100Animation0FE9CIndices,
-    { NULL, _gActor356100Animation0FE9CBank1, NULL, NULL, _gActor356100Animation0FE9CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor356100Animation10A84Bank1[28] = {
-#include "assets/actor_356100_animation_10A84_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor356100Animation10A84Bank4[263] = {
-#include "assets/actor_356100_animation_10A84_bank4.inc"
-};
-
-static AnimationRecord _gActor356100Animation10A84Records[394] = {
-#include "assets/actor_356100_animation_10A84_records.inc"
-};
-
-static u16 _gActor356100Animation10A84Indices[22] = {
-#include "assets/actor_356100_animation_10A84_indices.inc"
-};
-
-static AnimationSet _gActor356100Animation10A84 = {
-    _gActor356100Animation10A84Records,
-    _gActor356100Animation10A84Indices,
-    { NULL, _gActor356100Animation10A84Bank1, NULL, NULL, _gActor356100Animation10A84Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/neo_ark/forest_zone/horned_stranger_clips.inc"
 
 /// Whole normal-rate blend frames indexed by previous and requested clip IDs.
 ///
@@ -427,10 +355,7 @@ static s8 _gActor356100AnimationBlendFrames[45][45] = {
 /// The 46-entry bank contains the initial/scripted-death set at index 1 and
 /// the walk set at index 2; all other entries are NULL. Only populated entries
 /// may be played. The bank and its sets remain live for the overlay's lifetime.
-static AnimationSet* _gActor356100AnimationSets[46] = {
-    [ACTOR_356100_ANIM_INITIAL] = &_gActor356100Animation0FE9C,
-    [ACTOR_356100_ANIM_WALK]    = &_gActor356100Animation10A84,
-};
+#include "assets/rooms/neo_ark/forest_zone/horned_stranger_bank.inc"
 
 /// Unbound zero-filled animation-set storage; its intended role is unproven.
 ///
@@ -438,7 +363,7 @@ static AnimationSet* _gActor356100AnimationSets[46] = {
 /// borrows this table, and no recovered room loader fills it. The 46-slot
 /// extent follows the neighboring tables' boundary rather than a full-span
 /// access, so the allocation is retained without assigning a playback role.
-static AnimationSet* D_actor_356100_80173170[46] = { NULL };
+#include "assets/rooms/neo_ark/forest_zone/d_actor_356100_80173170_bank.inc"
 
 /// Character-selected player animation bank for Horned Stranger grabs.
 ///
@@ -446,15 +371,7 @@ static AnimationSet* D_actor_356100_80173170[46] = { NULL };
 /// Hold, strike and release use relative indices 1, 2 and 3. All seven slots
 /// are NULL in this package and have no recovered writer; playback is valid
 /// only if the selected slots have been populated.
-static AnimationSet* _gActor356100PlayerGrabAnimationSets[7] = {
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-};
+#include "assets/rooms/neo_ark/forest_zone/horned_stranger_player_grab_bank.inc"
 
 enum { ACTOR_356100_PLAYER_GRAB_HOLD_ANIMATION = 1 };
 
@@ -494,7 +411,7 @@ static TaskMessageEntry _gActor356100Messages[7] = {
 /// value; its further purpose is unproven.
 static u16 _gActor356100CircleStepTotal = 0;
 
-TaskDesc gActor356100HornedStrangerTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor356100Task, { .model = &_gActor356100HornedStrangerBody } };
+TaskDesc gActor356100HornedStrangerTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor356100Task, { .model = &_gStrangerHornedBody } };
 
 static SVECTOR ActorContact_ScratchPosition = { 0 };
 

@@ -147,10 +147,10 @@ static s32 _actor310100PlayOfficerOrPlayerAnimation(Task* task, s32 messageId, c
 static s32 _actor310100PlaceOfficerModel(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedSecondArg);
 static s32 _actor310100StopOfficerController(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
-static TmdSource _gActor310100PoliceOfficer1Body;
-static TmdSource _gActor310100PoliceOfficer1CulledBody;
-static TmdSource _gActor310100PoliceOfficer2Body;
-static TmdSource _gActor310100PoliceOfficer2CulledBody;
+static TmdSource _gPoliceOfficer1Body;
+static TmdSource _gPoliceOfficer1CulledBody;
+static TmdSource _gPoliceOfficer2Body;
+static TmdSource _gPoliceOfficer2CulledBody;
 static void      _actor310100SwapOfficerBodyModelTask(Task* task);
 static void      _actor310100SwapOfficerCulledBodyModelTask(Task* task);
 static void      _actor310100Officer1ControllerTask(Task* task);
@@ -160,133 +160,13 @@ static void      _actor310100Officer2BodyTask(Task* task);
 static void      _actor310100Officer1CulledBodyTask(Task* task);
 static void      _actor310100Officer2CulledBodyTask(Task* task);
 
-static TmdBone _gActor310100PoliceOfficer1BodySkeleton[19] = {
-#include "assets/police_officer_1_body_skeleton.inc"
-};
+#include "assets/characters/police_officer_1/body.inc"
 
-static u32 _gActor310100PoliceOfficer1BodyPartVerts[19] = {
-#include "assets/police_officer_1_body_partVerts.inc"
-};
+#include "assets/characters/police_officer_1/culled_body.inc"
 
-static SVECTOR _gActor310100PoliceOfficer1BodyVerts[351] = {
-#include "assets/police_officer_1_body_verts.inc"
-};
+#include "assets/characters/police_officer_2/body.inc"
 
-static SVECTOR _gActor310100PoliceOfficer1BodyNormals[426] = {
-#include "assets/police_officer_1_body_normals.inc"
-};
-
-static u32 _gActor310100PoliceOfficer1BodyStream[3905] = {
-#include "assets/police_officer_1_body_stream.inc"
-};
-
-static TmdSource _gActor310100PoliceOfficer1Body = {
-    0,
-    21260,
-    5896,
-    19,
-    _gActor310100PoliceOfficer1BodyPartVerts,
-    _gActor310100PoliceOfficer1BodyVerts,
-    _gActor310100PoliceOfficer1BodyNormals,
-    _gActor310100PoliceOfficer1BodySkeleton,
-    _gActor310100PoliceOfficer1BodyStream,
-};
-
-static TmdBone _gActor310100PoliceOfficer1CulledBodySkeleton[19] = {
-#include "assets/police_officer_1_culled_body_skeleton.inc"
-};
-
-static u32 _gActor310100PoliceOfficer1CulledBodyPartVerts[19] = {
-#include "assets/police_officer_1_culled_body_partVerts.inc"
-};
-
-static SVECTOR _gActor310100PoliceOfficer1CulledBodyVerts[333] = {
-#include "assets/police_officer_1_culled_body_verts.inc"
-};
-
-static SVECTOR _gActor310100PoliceOfficer1CulledBodyNormals[361] = {
-#include "assets/police_officer_1_culled_body_normals.inc"
-};
-
-static u32 _gActor310100PoliceOfficer1CulledBodyStream[3056] = {
-#include "assets/police_officer_1_culled_body_stream.inc"
-};
-
-static TmdSource _gActor310100PoliceOfficer1CulledBody = {
-    0,
-    16368,
-    4548,
-    19,
-    _gActor310100PoliceOfficer1CulledBodyPartVerts,
-    _gActor310100PoliceOfficer1CulledBodyVerts,
-    _gActor310100PoliceOfficer1CulledBodyNormals,
-    _gActor310100PoliceOfficer1CulledBodySkeleton,
-    _gActor310100PoliceOfficer1CulledBodyStream,
-};
-
-static TmdBone _gActor310100PoliceOfficer2BodySkeleton[19] = {
-#include "assets/police_officer_2_body_skeleton.inc"
-};
-
-static u32 _gActor310100PoliceOfficer2BodyPartVerts[19] = {
-#include "assets/police_officer_2_body_partVerts.inc"
-};
-
-static SVECTOR _gActor310100PoliceOfficer2BodyVerts[361] = {
-#include "assets/police_officer_2_body_verts.inc"
-};
-
-static SVECTOR _gActor310100PoliceOfficer2BodyNormals[434] = {
-#include "assets/police_officer_2_body_normals.inc"
-};
-
-static u32 _gActor310100PoliceOfficer2BodyStream[4108] = {
-#include "assets/police_officer_2_body_stream.inc"
-};
-
-static TmdSource _gActor310100PoliceOfficer2Body = {
-    0,
-    21848,
-    6880,
-    19,
-    _gActor310100PoliceOfficer2BodyPartVerts,
-    _gActor310100PoliceOfficer2BodyVerts,
-    _gActor310100PoliceOfficer2BodyNormals,
-    _gActor310100PoliceOfficer2BodySkeleton,
-    _gActor310100PoliceOfficer2BodyStream,
-};
-
-static TmdBone _gActor310100PoliceOfficer2CulledBodySkeleton[19] = {
-#include "assets/police_officer_2_culled_body_skeleton.inc"
-};
-
-static u32 _gActor310100PoliceOfficer2CulledBodyPartVerts[19] = {
-#include "assets/police_officer_2_culled_body_partVerts.inc"
-};
-
-static SVECTOR _gActor310100PoliceOfficer2CulledBodyVerts[321] = {
-#include "assets/police_officer_2_culled_body_verts.inc"
-};
-
-static SVECTOR _gActor310100PoliceOfficer2CulledBodyNormals[389] = {
-#include "assets/police_officer_2_culled_body_normals.inc"
-};
-
-static u32 _gActor310100PoliceOfficer2CulledBodyStream[3052] = {
-#include "assets/police_officer_2_culled_body_stream.inc"
-};
-
-static TmdSource _gActor310100PoliceOfficer2CulledBody = {
-    0,
-    16228,
-    4760,
-    19,
-    _gActor310100PoliceOfficer2CulledBodyPartVerts,
-    _gActor310100PoliceOfficer2CulledBodyVerts,
-    _gActor310100PoliceOfficer2CulledBodyNormals,
-    _gActor310100PoliceOfficer2CulledBodySkeleton,
-    _gActor310100PoliceOfficer2CulledBodyStream,
-};
+#include "assets/characters/police_officer_2/culled_body.inc"
 
 static AnimationPackedPose _gActor310100Animation15FF8Bank1[21] = {
 #include "assets/actor_310100_animation_15FF8_bank1.inc"
@@ -714,13 +594,13 @@ TaskDesc gActor310100Officer1TaskDescriptors[3] = {
     {
         .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_310100_OFFICER_TASK_PRIORITY } },
         .callback = _actor310100Officer1BodyTask,
-        .data     = { .model = &_gActor310100PoliceOfficer1Body },
+        .data     = { .model = &_gPoliceOfficer1Body },
     },
     // 2: culled body.
     {
         .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_310100_OFFICER_TASK_PRIORITY } },
         .callback = _actor310100Officer1CulledBodyTask,
-        .data     = { .model = &_gActor310100PoliceOfficer1CulledBody },
+        .data     = { .model = &_gPoliceOfficer1CulledBody },
     },
 };
 
@@ -735,13 +615,13 @@ TaskDesc gActor310100Officer2TaskDescriptors[3] = {
     {
         .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_310100_OFFICER_TASK_PRIORITY } },
         .callback = _actor310100Officer2BodyTask,
-        .data     = { .model = &_gActor310100PoliceOfficer2Body },
+        .data     = { .model = &_gPoliceOfficer2Body },
     },
     // 2: culled body.
     {
         .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_310100_OFFICER_TASK_PRIORITY } },
         .callback = _actor310100Officer2CulledBodyTask,
-        .data     = { .model = &_gActor310100PoliceOfficer2CulledBody },
+        .data     = { .model = &_gPoliceOfficer2CulledBody },
     },
 };
 

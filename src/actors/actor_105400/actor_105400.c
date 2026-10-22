@@ -82,10 +82,10 @@ static void _generatorUpdateColor(Task* task);
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-static AnimationSet _gActor105400Animation0A7C0;
-static AnimationSet _gActor105400Animation0AC00;
-static AnimationSet _gActor105400Animation0AFE8;
-static TmdSource    _gActor105400ProtoGeneratorBody;
+static AnimationSet _gNeoArkPowerPlant1GeneratorIdleClip;
+static AnimationSet _gNeoArkPowerPlant1GeneratorHitClip;
+static AnimationSet _gNeoArkPowerPlant1GeneratorDeathClip;
+static TmdSource    _gNeoArkPowerPlant1ProtoGeneratorBody;
 
 /// Body message handlers for script release commands and combat presence.
 ///
@@ -141,103 +141,9 @@ static SVECTOR _gGeneratorHitEffectOffsets[2] = {
     [GENERATOR_PROTO] = { 0, -1000, 1600, 0 },
 };
 
-static TmdBone _gActor105400ProtoGeneratorBodySkeleton[10] = {
-#include "assets/proto_generator_body_skeleton.inc"
-};
+#include "assets/rooms/neo_ark/power_plant_1/proto_generator_body.inc"
 
-static u32 _gActor105400ProtoGeneratorBodyPartVerts[10] = {
-#include "assets/proto_generator_body_partVerts.inc"
-};
-
-static SVECTOR _gActor105400ProtoGeneratorBodyVerts[603] = {
-#include "assets/proto_generator_body_verts.inc"
-};
-
-static SVECTOR _gActor105400ProtoGeneratorBodyNormals[641] = {
-#include "assets/proto_generator_body_normals.inc"
-};
-
-static u32 _gActor105400ProtoGeneratorBodyStream[6251] = {
-#include "assets/proto_generator_body_stream.inc"
-};
-
-static TmdSource _gActor105400ProtoGeneratorBody = {
-    0,
-    37128,
-    7312,
-    10,
-    _gActor105400ProtoGeneratorBodyPartVerts,
-    _gActor105400ProtoGeneratorBodyVerts,
-    _gActor105400ProtoGeneratorBodyNormals,
-    _gActor105400ProtoGeneratorBodySkeleton,
-    _gActor105400ProtoGeneratorBodyStream,
-};
-
-static AnimationPackedPose _gActor105400Animation0A7C0Bank1[4] = {
-#include "assets/actor_105400_animation_0A7C0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor105400Animation0A7C0Bank4[9] = {
-#include "assets/actor_105400_animation_0A7C0_bank4.inc"
-};
-
-static AnimationRecord _gActor105400Animation0A7C0Records[58] = {
-#include "assets/actor_105400_animation_0A7C0_records.inc"
-};
-
-static u16 _gActor105400Animation0A7C0Indices[10] = {
-#include "assets/actor_105400_animation_0A7C0_indices.inc"
-};
-
-static AnimationSet _gActor105400Animation0A7C0 = {
-    _gActor105400Animation0A7C0Records,
-    _gActor105400Animation0A7C0Indices,
-    { NULL, _gActor105400Animation0A7C0Bank1, NULL, NULL, _gActor105400Animation0A7C0Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor105400Animation0AC00Bank1[11] = {
-#include "assets/actor_105400_animation_0AC00_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor105400Animation0AC00Bank4[90] = {
-#include "assets/actor_105400_animation_0AC00_bank4.inc"
-};
-
-static AnimationRecord _gActor105400Animation0AC00Records[134] = {
-#include "assets/actor_105400_animation_0AC00_records.inc"
-};
-
-static u16 _gActor105400Animation0AC00Indices[10] = {
-#include "assets/actor_105400_animation_0AC00_indices.inc"
-};
-
-static AnimationSet _gActor105400Animation0AC00 = {
-    _gActor105400Animation0AC00Records,
-    _gActor105400Animation0AC00Indices,
-    { NULL, _gActor105400Animation0AC00Bank1, NULL, NULL, _gActor105400Animation0AC00Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor105400Animation0AFE8Bank1[8] = {
-#include "assets/actor_105400_animation_0AFE8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor105400Animation0AFE8Bank4[85] = {
-#include "assets/actor_105400_animation_0AFE8_bank4.inc"
-};
-
-static AnimationRecord _gActor105400Animation0AFE8Records[126] = {
-#include "assets/actor_105400_animation_0AFE8_records.inc"
-};
-
-static u16 _gActor105400Animation0AFE8Indices[10] = {
-#include "assets/actor_105400_animation_0AFE8_indices.inc"
-};
-
-static AnimationSet _gActor105400Animation0AFE8 = {
-    _gActor105400Animation0AFE8Records,
-    _gActor105400Animation0AFE8Indices,
-    { NULL, _gActor105400Animation0AFE8Bank1, NULL, NULL, _gActor105400Animation0AFE8Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/neo_ark/power_plant_1/proto_generator_clips.inc"
 
 /// Body starting HP and battle rewards for the Proto Generator.
 ///
@@ -331,7 +237,7 @@ static GeneratorPulseFrame _gGeneratorHitPulse[4] = {
 };
 
 TaskDesc GENERATOR_TASK_TABLE[GENERATOR_TASK_DESC_COUNT] = {
-    [GENERATOR_BODY_TASK_INDEX]         = { { { TASK_BODY_TMD, GENERATOR_TASK_PRIORITY } }, _generatorTask, { .model = &_gActor105400ProtoGeneratorBody } },
+    [GENERATOR_BODY_TASK_INDEX]         = { { { TASK_BODY_TMD, GENERATOR_TASK_PRIORITY } }, _generatorTask, { .model = &_gNeoArkPowerPlant1ProtoGeneratorBody } },
     [GENERATOR_LIFE_SUPPORT_TASK_INDEX] = { { { TASK_BODY_COORD, GENERATOR_TASK_PRIORITY } }, _generatorLifeSupportTask, { .value = 0 } },
 };
 
@@ -339,12 +245,7 @@ TaskDesc GENERATOR_TASK_TABLE[GENERATOR_TASK_DESC_COUNT] = {
 ///
 /// Borrowed by the task's animation context; idle, hit and death drive model
 /// slots 1..9 for the lifetime of this overlay.
-static AnimationSet* _gGeneratorAnimSets[4] = {
-    [0]                    = NULL,
-    [GENERATOR_ANIM_IDLE]  = &_gActor105400Animation0A7C0,
-    [GENERATOR_ANIM_HIT]   = &_gActor105400Animation0AC00,
-    [GENERATOR_ANIM_DEATH] = &_gActor105400Animation0AFE8,
-};
+#include "assets/rooms/neo_ark/power_plant_1/generator_bank.inc"
 
 #include "../../shared/creatures/generator/generator.inc.c"
 

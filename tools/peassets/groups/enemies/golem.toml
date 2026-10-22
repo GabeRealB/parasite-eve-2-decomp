@@ -1,0 +1,299 @@
+# The assets of the group enemies/golem, each named enemies/golem/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = [
+    "root",
+    "pelvis",
+    "waist",
+    "chest",
+    "head",
+    "right_shoulder",
+    "right_upper_arm",
+    "right_forearm",
+    "right_hand",
+    "left_shoulder",
+    "left_upper_arm",
+    "left_forearm",
+    "left_hand",
+    "right_thigh",
+    "right_shin",
+    "right_foot",
+    "left_thigh",
+    "left_shin",
+    "left_foot",
+]
+
+[body]
+type = "model"
+rig = "enemies/golem/rig"
+slots = ["body"]
+symbol = "_gGolemBody"
+sha1 = "f21487013f2ee9ca6eb4d2d9de8c6b6d8cb0230e"
+
+[fire]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[idle]
+type = "clip"
+rig = "enemies/golem/rig"
+symbol = "gGolemIdleClip"
+
+[turn]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[walk]
+type = "clip"
+rig = "enemies/golem/rig"
+symbol = "gGolemWalkClip"
+
+[charge]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[listen]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[scream]
+type = "sound"
+sha1 = "112cc479d7aff9da02f6227cb81ee1379f263247"
+
+[strike]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[advance]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[buildup]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[grenade]
+type = "model"
+slots = ["page_3"]
+symbol = "gGolemGrenade"
+sha1 = "8e91d0e4eb0226a72fdc4118c6f5c868cad1f5ca"
+
+[recover]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[stagger]
+type = "clip"
+rig = "enemies/golem/rig"
+symbol = "gGolemStaggerClip"
+
+[grab_hold]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[grab_kill]
+type = "clip"
+rig = "enemies/golem/rig"
+symbol = "gGolemGrabKillClip"
+
+[lie_front]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[beam_sword]
+type = "model"
+slots = ["page_3"]
+symbol = "_gGolemBeamSword"
+sha1 = "a49d6ecea069389a5f8db938d1cc828419d5899c"
+
+[fall_front]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[grab_start]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[lie_behind]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[fall_behind]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[sword_swing]
+type = "clip"
+rig = "enemies/golem/rig"
+symbol = "gGolemSwordSwingClip"
+
+[burst_cancel]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[grab_release]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[recoil_front]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[writhe_front]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[recoil_behind]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[swing_recover]
+type = "clip"
+rig = "enemies/golem/rig"
+symbol = "gGolemSwingRecoverClip"
+
+[writhe_behind]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[grenade_impact]
+type = "sound"
+sha1 = "2da2c3826de06d6b896e6b4b696aa8b83942e906"
+
+[grenade_launch]
+type = "sound"
+sha1 = "7fbe1cd1d631700002dcb8eb9b0db8147299b0b7"
+
+[scream_recover]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[scream_release]
+type = "clip"
+rig = "enemies/golem/rig"
+symbol = "gGolemScreamReleaseClip"
+
+[launcher_strike]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[downed_hit_front]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[fall_start_set_1]
+type = "sound"
+sha1 = "578f85cdadac6e9f13223840d9930e037c75904f"
+
+[fall_start_set_2]
+type = "sound"
+sha1 = "ee360a247bf897aab36355797f6bae947add412c"
+
+[fall_start_set_3]
+type = "sound"
+sha1 = "613915d9a5ac892f2a73f50a7d9d556fb7763d4f"
+
+[fall_start_set_4]
+type = "sound"
+sha1 = "54686994c3f3fb869ed83569577a33c5fc904552"
+
+[footstep_a_set_1]
+type = "sound"
+sha1 = "3c52a900a314b263e19e79f63924a8e396a99de3"
+
+[footstep_a_set_2]
+type = "sound"
+sha1 = "0af32eef35c5420b3e86e4b92ba4fdeff764f90d"
+
+[footstep_a_set_3]
+type = "sound"
+sha1 = "945a1f064dc562147eea0840e78d5e131bf730ca"
+
+[footstep_a_set_4]
+type = "sound"
+sha1 = "cd4494f4ade8d4ea94d0334e23ed736864ba089d"
+
+[footstep_b_set_1]
+type = "sound"
+sha1 = "a0ecbeda3a30b6707a07c29d4f5dce58cdfc0523"
+
+[footstep_b_set_2]
+type = "sound"
+sha1 = "93d518ee1ef6a7b87a2658bba5c561caef83e639"
+
+[footstep_b_set_3]
+type = "sound"
+sha1 = "d0884bb536f88d8593cae9739702e5c6dd10c455"
+
+[footstep_b_set_4]
+type = "sound"
+sha1 = "cfbd04a5a36bad1d922641e3f5bd8ba6a02bed9f"
+
+[grenade_impact_2]
+type = "sound"
+sha1 = "1c73d8dc45fd2ac057edf118c87946494b365895"
+
+[grenade_launch_2]
+type = "sound"
+sha1 = "913252eb1d5f3443881a89d7f8152c215f65baf7"
+
+[grenade_launcher]
+type = "model"
+slots = ["page_3"]
+symbol = "_gGolemGrenadeLauncher"
+sha1 = "3b32529b410859cadc7e74c55d2000c96518b615"
+
+[player_grab_hold]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_grab_kill]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gGolemPlayerGrabKillClip"
+
+[downed_hit_behind]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[fall_impact_set_1]
+type = "sound"
+sha1 = "620949dca344229295c8aedd4d5cee10c73d888e"
+
+[fall_impact_set_2]
+type = "sound"
+sha1 = "0fc1e65fcc0c0fcc4738610e8dbca56d7bc32c29"
+
+[fall_impact_set_3]
+type = "sound"
+sha1 = "1c3a0e71653cea524591364e20607c2a1291e4b1"
+
+[fall_impact_set_4]
+type = "sound"
+sha1 = "42a9413064c7cf9a4546908bec437c068eee1382"
+
+[player_grab_start]
+type = "clip"
+rig = "characters/aya/rig"
+
+[sword_swing_sound]
+type = "sound"
+sha1 = "2c577145889aca3a80cac4a62b97a08bc11e1138"
+
+[grab_early_release]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[heavy_flinch_front]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[heavy_flinch_behind]
+type = "clip"
+rig = "enemies/golem/rig"
+
+[player_grab_release]
+type = "clip"
+rig = "characters/aya/rig"

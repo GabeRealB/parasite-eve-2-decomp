@@ -1,0 +1,943 @@
+# The assets of the group rooms/shelter/r47, each named rooms/shelter/r47/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[pierce]
+type = "pe2pkg"
+package_name = "actor_443500"
+required = true
+sha1 = "89e3d22bf68bc8c1dfaa5ac13c58ad1dc3695918"
+
+[[pierce.embedded]]
+asset = "characters/aya/stand"
+offset = 0x00DF4
+size = 0x304
+address = 0x80132C14
+
+[[pierce.embedded]]
+name = "player_console_entry"
+offset = 0x010F8
+size = 0x162C
+address = 0x80132F18
+
+[[pierce.embedded]]
+name = "player_ask"
+offset = 0x02724
+size = 0xB20
+address = 0x80134544
+
+[[pierce.embedded]]
+name = "player_ask_about_barrier"
+offset = 0x03244
+size = 0xB18
+address = 0x80135064
+
+[[pierce.embedded]]
+name = "player_map_listen"
+offset = 0x03D5C
+size = 0x220
+address = 0x80135B7C
+
+[[pierce.embedded]]
+name = "player_day_before_yesterday"
+offset = 0x03F7C
+size = 0xAA4
+address = 0x80135D9C
+
+[[pierce.embedded]]
+name = "terminal_followup_player_anim_07"
+offset = 0x04A20
+size = 0x250
+address = 0x80136840
+
+[[pierce.embedded]]
+name = "player_take_implant"
+offset = 0x04C70
+size = 0x42C
+address = 0x80136A90
+
+[[pierce.embedded]]
+name = "player_implant_taken"
+offset = 0x0509C
+size = 0x4FC
+address = 0x80136EBC
+
+[[pierce.embedded]]
+name = "player_that_means"
+offset = 0x05598
+size = 0xAC4
+address = 0x801373B8
+
+[[pierce.embedded]]
+name = "player_map_followup_start"
+offset = 0x0605C
+size = 0x288
+address = 0x80137E7C
+
+[[pierce.embedded]]
+name = "player_i_see"
+offset = 0x062E4
+size = 0x31C
+address = 0x80138104
+
+[[pierce.embedded]]
+name = "player_decide_to_go"
+offset = 0x06600
+size = 0x1144
+address = 0x80138420
+
+[[pierce.embedded]]
+name = "player_but_you"
+offset = 0x07744
+size = 0xCCC
+address = 0x80139564
+
+[[pierce.embedded]]
+name = "player_listen_to_pierce"
+offset = 0x08410
+size = 0x2D4
+address = 0x8013A230
+
+[[pierce.embedded]]
+name = "player_protest"
+offset = 0x086E4
+size = 0x74C
+address = 0x8013A504
+
+[[pierce.embedded]]
+name = "player_what"
+offset = 0x08E30
+size = 0x548
+address = 0x8013AC50
+
+[[pierce.embedded]]
+name = "player_set_off"
+offset = 0x09378
+size = 0x6B0
+address = 0x8013B198
+
+[[pierce.embedded]]
+name = "player_call_pierce"
+offset = 0x09A28
+size = 0xAE4
+address = 0x8013B848
+
+[[pierce.embedded]]
+name = "player_told_you_to_rest"
+offset = 0x0A50C
+size = 0x7BC
+address = 0x8013C32C
+
+[[pierce.embedded]]
+name = "player_hear_apology"
+offset = 0x0ACC8
+size = 0x318
+address = 0x8013CAE8
+
+[[pierce.embedded]]
+name = "player_not_even_a_gun"
+offset = 0x0AFE0
+size = 0xCBC
+address = 0x8013CE00
+
+[[pierce.embedded]]
+name = "player_hear_retort"
+offset = 0x0BC9C
+size = 0x24C
+address = 0x8013DABC
+
+[[pierce.embedded]]
+name = "player_tour_opening_10"
+offset = 0x0BEE8
+size = 0x71C
+address = 0x8013DD08
+
+[[pierce.embedded]]
+asset = "characters/aya/shocked"
+offset = 0x0C604
+size = 0x6FC
+address = 0x8013E424
+
+[[pierce.embedded]]
+asset = "characters/aya/ask_why"
+offset = 0x0CD00
+size = 0x454
+address = 0x8013EB20
+
+[[pierce.embedded]]
+asset = "characters/aya/ask_why_end"
+offset = 0x0D154
+size = 0x294
+address = 0x8013EF74
+
+[[pierce.embedded]]
+name = "player_look_at_map"
+offset = 0x0D3E8
+size = 0x7A0
+address = 0x8013F208
+
+[[pierce.embedded]]
+asset = "characters/aya/talk_start"
+offset = 0x0DB88
+size = 0x3D4
+address = 0x8013F9A8
+
+[[pierce.embedded]]
+asset = "characters/aya/talk"
+offset = 0x0DF5C
+size = 0x3F0
+address = 0x8013FD7C
+
+[[pierce.embedded]]
+asset = "characters/aya/talk_end"
+offset = 0x0E34C
+size = 0x36C
+address = 0x8014016C
+
+[[pierce.embedded]]
+asset = "characters/aya/explain_start"
+offset = 0x0E6B8
+size = 0x580
+address = 0x801404D8
+
+[[pierce.embedded]]
+asset = "characters/aya/explain"
+offset = 0x0EC38
+size = 0x3E0
+address = 0x80140A58
+
+[[pierce.embedded]]
+name = "tour_opening_player_bank"
+offset = 0x0F024
+size = 0x2C
+address = 0x80140E44
+
+[[pierce.embedded]]
+name = "terminal_followup_player_bank"
+offset = 0x0F164
+size = 0x64
+address = 0x80140F84
+
+[[pierce.embedded]]
+asset = "characters/pierce/rest"
+offset = 0x17B7C
+size = 0x27C
+address = 0x8014999C
+
+[[pierce.embedded]]
+name = "pierce_tour_start"
+offset = 0x17DF8
+size = 0x538
+address = 0x80149C18
+
+[[pierce.embedded]]
+name = "pierce_startled"
+offset = 0x18330
+size = 0x60C
+address = 0x8014A150
+
+[[pierce.embedded]]
+name = "pierce_whoa"
+offset = 0x1893C
+size = 0xEB8
+address = 0x8014A75C
+
+[[pierce.embedded]]
+name = "pierce_agent_brea"
+offset = 0x197F4
+size = 0x9B4
+address = 0x8014B614
+
+[[pierce.embedded]]
+name = "pierce_take_a_look_at_this"
+offset = 0x1A1A8
+size = 0x8B0
+address = 0x8014BFC8
+
+[[pierce.embedded]]
+name = "pierce_tour_opening_14"
+offset = 0x1AA58
+size = 0x1040
+address = 0x8014C878
+
+[[pierce.embedded]]
+asset = "characters/pierce/anim_12"
+offset = 0x1BA98
+size = 0x9AC
+address = 0x8014D8B8
+
+[[pierce.embedded]]
+asset = "characters/pierce/anim_04"
+offset = 0x1C444
+size = 0x574
+address = 0x8014E264
+
+[[pierce.embedded]]
+asset = "characters/pierce/ask_upset"
+offset = 0x1C9B8
+size = 0x644
+address = 0x8014E7D8
+
+[[pierce.embedded]]
+asset = "characters/pierce/greet"
+offset = 0x1CFFC
+size = 0x3C0
+address = 0x8014EE1C
+
+[[pierce.embedded]]
+asset = "characters/pierce/implant_talk"
+offset = 0x1D3BC
+size = 0x3C4
+address = 0x8014F1DC
+
+[[pierce.embedded]]
+asset = "rooms/dryfield/night_garage/companion_shrug"
+offset = 0x1D780
+size = 0x67C
+address = 0x8014F5A0
+
+[[pierce.embedded]]
+name = "pierce_console_rest"
+offset = 0x1DDFC
+size = 0x888
+address = 0x8014FC1C
+
+[[pierce.embedded]]
+name = "pierce_explain_neo_ark"
+offset = 0x1E684
+size = 0x18DC
+address = 0x801504A4
+
+[[pierce.embedded]]
+name = "pierce_map_rest"
+offset = 0x1FF60
+size = 0x2A8
+address = 0x80151D80
+
+[[pierce.embedded]]
+name = "pierce_map_followup_1"
+offset = 0x20208
+size = 0x310
+address = 0x80152028
+
+[[pierce.embedded]]
+name = "pierce_map_listen"
+offset = 0x20518
+size = 0x22C
+address = 0x80152338
+
+[[pierce.embedded]]
+name = "pierce_map_talk_start"
+offset = 0x20744
+size = 0x598
+address = 0x80152564
+
+[[pierce.embedded]]
+name = "pierce_map_talk"
+offset = 0x20CDC
+size = 0x2F4
+address = 0x80152AFC
+
+[[pierce.embedded]]
+name = "pierce_hand_implant"
+offset = 0x20FD0
+size = 0x790
+address = 0x80152DF0
+
+[[pierce.embedded]]
+name = "pierce_hand_implant_end"
+offset = 0x21760
+size = 0x714
+address = 0x80153580
+
+[[pierce.embedded]]
+name = "pierce_map_settle"
+offset = 0x21E74
+size = 0x2D4
+address = 0x80153C94
+
+[[pierce.embedded]]
+name = "pierce_dont_worry"
+offset = 0x22148
+size = 0x8FC
+address = 0x80153F68
+
+[[pierce.embedded]]
+name = "pierce_map_explain"
+offset = 0x22A44
+size = 0x578
+address = 0x80154864
+
+[[pierce.embedded]]
+name = "pierce_get_moving"
+offset = 0x22FBC
+size = 0x880
+address = 0x80154DDC
+
+[[pierce.embedded]]
+name = "pierce_show_map"
+offset = 0x2383C
+size = 0xD30
+address = 0x8015565C
+
+[[pierce.embedded]]
+name = "pierce_idle_at_console"
+offset = 0x2456C
+size = 0x6D8
+address = 0x8015638C
+
+[[pierce.embedded]]
+name = "pierce_power_plant_news"
+offset = 0x24C44
+size = 0x618
+address = 0x80156A64
+
+[[pierce.embedded]]
+name = "pierce_power_plant_news_end"
+offset = 0x2525C
+size = 0x4CC
+address = 0x8015707C
+
+[[pierce.embedded]]
+asset = "characters/pierce/anim_35"
+offset = 0x25728
+size = 0x638
+address = 0x80157548
+
+[[pierce.embedded]]
+asset = "rooms/shelter/b2_elevator/companion_animation_bank_extension_anim_05"
+offset = 0x25D60
+size = 0x364
+address = 0x80157B80
+
+[[pierce.embedded]]
+asset = "characters/kyle/talk_start"
+offset = 0x260C4
+size = 0x1D8
+address = 0x80157EE4
+
+[[pierce.embedded]]
+asset = "characters/kyle/talk"
+offset = 0x2629C
+size = 0x41C
+address = 0x801580BC
+
+[[pierce.embedded]]
+asset = "characters/kyle/talk_end"
+offset = 0x266B8
+size = 0x1BC
+address = 0x801584D8
+
+[[pierce.embedded]]
+name = "pierce_bank"
+offset = 0x26874
+size = 0x90
+address = 0x80158694
+
+[player_ask]
+type = "clip"
+rig = "characters/aya/rig"
+
+[pierce_bank]
+type = "animation_bank"
+schema = "rooms/shelter/r47/pierce_schema"
+symbol = "_gActor443500PierceAnimationSets"
+
+[pierce_bank.clips]
+stand = "characters/pierce/rest"
+tour_start = "rooms/shelter/r47/pierce_tour_start"
+startled = "rooms/shelter/r47/pierce_startled"
+whoa = "rooms/shelter/r47/pierce_whoa"
+agent_brea = "rooms/shelter/r47/pierce_agent_brea"
+take_a_look_at_this = "rooms/shelter/r47/pierce_take_a_look_at_this"
+tour_opening_14 = "rooms/shelter/r47/pierce_tour_opening_14"
+retort = "characters/pierce/anim_12"
+talk = "characters/pierce/anim_04"
+apologize = "characters/pierce/ask_upset"
+dont_scare_me = "characters/pierce/greet"
+tour_opening_6 = "characters/pierce/implant_talk"
+shrug = "rooms/dryfield/night_garage/companion_shrug"
+console_rest = "rooms/shelter/r47/pierce_console_rest"
+explain_neo_ark = "rooms/shelter/r47/pierce_explain_neo_ark"
+map_rest = "rooms/shelter/r47/pierce_map_rest"
+map_followup_1 = "rooms/shelter/r47/pierce_map_followup_1"
+map_listen = "rooms/shelter/r47/pierce_map_listen"
+map_talk_start = "rooms/shelter/r47/pierce_map_talk_start"
+map_talk = "rooms/shelter/r47/pierce_map_talk"
+hand_implant = "rooms/shelter/r47/pierce_hand_implant"
+hand_implant_end = "rooms/shelter/r47/pierce_hand_implant_end"
+map_settle = "rooms/shelter/r47/pierce_map_settle"
+dont_worry = "rooms/shelter/r47/pierce_dont_worry"
+map_explain = "rooms/shelter/r47/pierce_map_explain"
+get_moving = "rooms/shelter/r47/pierce_get_moving"
+show_map = "rooms/shelter/r47/pierce_show_map"
+idle_at_console = "rooms/shelter/r47/pierce_idle_at_console"
+power_plant_news = "rooms/shelter/r47/pierce_power_plant_news"
+power_plant_news_end = "rooms/shelter/r47/pierce_power_plant_news_end"
+who_is_kyle = "characters/pierce/anim_35"
+ah_whatever = "rooms/shelter/b2_elevator/companion_animation_bank_extension_anim_05"
+explain_1 = "characters/kyle/talk_start"
+explain_2 = "characters/kyle/talk"
+explain_3 = "characters/kyle/talk_end"
+
+[pierce_whoa]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[player_what]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_agree]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_i_see]
+type = "clip"
+rig = "characters/aya/rig"
+
+[companion_nod]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[pierce_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "stand",
+    "tour_start",
+    "startled",
+    "whoa",
+    "agent_brea",
+    "take_a_look_at_this",
+    "tour_opening_14",
+    "retort",
+    "talk",
+    "apologize",
+    "dont_scare_me",
+    "tour_opening_6",
+    "shrug",
+    "console_rest",
+    "explain_neo_ark",
+    "map_rest",
+    "map_followup_1",
+    "map_listen",
+    "map_talk_start",
+    "map_talk",
+    "hand_implant",
+    "hand_implant_end",
+    "map_settle",
+    "dont_worry",
+    "map_explain",
+    "get_moving",
+    "show_map",
+    "idle_at_console",
+    "power_plant_news",
+    "power_plant_news_end",
+    "who_is_kyle",
+    "ah_whatever",
+    "explain_1",
+    "explain_2",
+    "explain_3",
+]
+
+[player_but_you]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_protest]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_set_off]
+type = "clip"
+rig = "characters/aya/rig"
+
+[pierce_map_rest]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_map_talk]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_show_map]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_startled]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[player_you_mean]
+type = "clip"
+rig = "characters/aya/rig"
+
+[companion_listen]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[companion_cockpit]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[companion_get_him]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[entry_player_bank]
+type = "animation_bank"
+schema = "rooms/shelter/r47/entry_player_schema"
+symbol = "_gActor143400EntryPlayerAnimationSets"
+
+[entry_player_bank.clips]
+stand = "characters/aya/stand"
+entry_rest = "rooms/shelter/r47/player_entry_rest"
+kyle_entry_2 = "rooms/shelter/r47/player_kyle_entry_2"
+kyle_entry_3 = "rooms/shelter/r47/player_kyle_entry_3"
+kyle_entry_4 = "rooms/shelter/r47/player_kyle_entry_4"
+you_mean = "rooms/shelter/r47/player_you_mean"
+virus_will_spread = "rooms/shelter/r47/player_virus_will_spread"
+agree = "rooms/shelter/r47/player_agree"
+feel_mitochondria = "rooms/shelter/r47/player_feel_mitochondria"
+entry_listen = "rooms/shelter/r47/player_entry_listen"
+
+[pierce_agent_brea]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_dont_worry]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_get_moving]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_map_listen]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_map_settle]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_tour_start]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[player_entry_rest]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_map_listen]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_that_means]
+type = "clip"
+rig = "characters/aya/rig"
+
+[pierce_map_explain]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[player_call_pierce]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_hear_retort]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_look_at_map]
+type = "clip"
+rig = "characters/aya/rig"
+
+[entry_player_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "stand",
+    "entry_rest",
+    "kyle_entry_2",
+    "kyle_entry_3",
+    "kyle_entry_4",
+    "you_mean",
+    "virus_will_spread",
+    "agree",
+    "feel_mitochondria",
+    "entry_listen",
+]
+
+[pierce_console_rest]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_hand_implant]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[player_decide_to_go]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_entry_listen]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_hear_apology]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_kyle_entry_2]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_kyle_entry_3]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_kyle_entry_4]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_take_implant]
+type = "clip"
+rig = "characters/aya/rig"
+
+[entry_companion_bank]
+type = "animation_bank"
+schema = "rooms/shelter/r47/entry_companion_schema"
+symbol = "_gActor143400EntryCompanionAnimationSets"
+
+[entry_companion_bank.clips]
+stand = "characters/pierce/rest"
+listen = "rooms/shelter/r47/companion_listen"
+nod = "rooms/shelter/r47/companion_nod"
+no_firearms = "rooms/shelter/r47/companion_no_firearms"
+cockpit = "rooms/shelter/r47/companion_cockpit"
+waiting_for_pilot = "rooms/shelter/r47/companion_waiting_for_pilot"
+pilot_hiding = "rooms/shelter/r47/companion_pilot_hiding"
+get_him = "rooms/shelter/r47/companion_get_him"
+
+[player_console_entry]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_implant_taken]
+type = "clip"
+rig = "characters/aya/rig"
+
+[companion_entry_scene]
+type = "pe2pkg"
+embedded = [
+    { asset = "characters/aya/stand", offset = 0x0007C, size = 0x304, address = 0x80131E9C },
+    { name = "player_entry_rest", offset = 0x00380, size = 0x24C, address = 0x801321A0 },
+    { name = "player_kyle_entry_2", offset = 0x005CC, size = 0x374, address = 0x801323EC },
+    { name = "player_kyle_entry_3", offset = 0x00940, size = 0x1AC, address = 0x80132760 },
+    { name = "player_kyle_entry_4", offset = 0x00AEC, size = 0x218, address = 0x8013290C },
+    { name = "player_you_mean", offset = 0x00D04, size = 0x1CC, address = 0x80132B24 },
+    { name = "player_virus_will_spread", offset = 0x00ED0, size = 0x318, address = 0x80132CF0 },
+    { name = "player_agree", offset = 0x011E8, size = 0x200, address = 0x80133008 },
+    { name = "player_feel_mitochondria", offset = 0x013E8, size = 0x1E4, address = 0x80133208 },
+    { name = "player_entry_listen", offset = 0x015CC, size = 0x24C, address = 0x801333EC },
+    { asset = "characters/pierce/rest", offset = 0x01818, size = 0x27C, address = 0x80133638 },
+    { name = "companion_listen", offset = 0x01A94, size = 0x2AC, address = 0x801338B4 },
+    { name = "companion_nod", offset = 0x01D40, size = 0x1D8, address = 0x80133B60 },
+    { name = "companion_no_firearms", offset = 0x01F18, size = 0x304, address = 0x80133D38 },
+    { name = "companion_cockpit", offset = 0x0221C, size = 0x3D8, address = 0x8013403C },
+    { name = "companion_waiting_for_pilot", offset = 0x025F4, size = 0x2A4, address = 0x80134414 },
+    { name = "companion_pilot_hiding", offset = 0x02898, size = 0x368, address = 0x801346B8 },
+    { name = "companion_get_him", offset = 0x02C00, size = 0x44C, address = 0x80134A20 },
+    { name = "entry_player_bank", offset = 0x0304C, size = 0x2C, address = 0x80134E6C },
+    { name = "entry_companion_bank", offset = 0x0318C, size = 0x24, address = 0x80134FAC },
+]
+package_name = "actor_143400"
+required = true
+sha1 = "52537d4eab8e2d698d897bd6d164dbec29e2d18f"
+
+[companion_no_firearms]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[pierce_map_followup_1]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_map_talk_start]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[player_not_even_a_gun]
+type = "clip"
+rig = "characters/aya/rig"
+
+[companion_pilot_hiding]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[entry_companion_schema]
+type = "animation_schema"
+slots = ["", "stand", "listen", "nod", "no_firearms", "cockpit", "waiting_for_pilot", "pilot_hiding", "get_him"]
+
+[pierce_explain_neo_ark]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_idle_at_console]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_tour_opening_14]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[player_tour_opening_10]
+type = "clip"
+rig = "characters/aya/rig"
+
+[pierce_hand_implant_end]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_power_plant_news]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[player_listen_to_pierce]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_told_you_to_rest]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_ask_about_barrier]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_feel_mitochondria]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_virus_will_spread]
+type = "clip"
+rig = "characters/aya/rig"
+
+[tour_opening_player_bank]
+type = "animation_bank"
+schema = "rooms/shelter/r47/tour_opening_player_schema"
+symbol = "_gActor443500TourOpeningPlayerAnimationSets"
+
+[tour_opening_player_bank.clips]
+stand = "characters/aya/stand"
+call_pierce = "rooms/shelter/r47/player_call_pierce"
+told_you_to_rest = "rooms/shelter/r47/player_told_you_to_rest"
+hear_apology = "rooms/shelter/r47/player_hear_apology"
+not_even_a_gun = "rooms/shelter/r47/player_not_even_a_gun"
+hear_retort = "rooms/shelter/r47/player_hear_retort"
+tour_opening_10 = "rooms/shelter/r47/player_tour_opening_10"
+scold_pierce = "characters/aya/shocked"
+ask_how_he_knew = "characters/aya/ask_why"
+ask_how_he_knew_end = "characters/aya/ask_why_end"
+
+[player_map_followup_start]
+type = "clip"
+rig = "characters/aya/rig"
+
+[pierce_take_a_look_at_this]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[tour_opening_player_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "stand",
+    "call_pierce",
+    "told_you_to_rest",
+    "hear_apology",
+    "not_even_a_gun",
+    "hear_retort",
+    "tour_opening_10",
+    "scold_pierce",
+    "ask_how_he_knew",
+    "ask_how_he_knew_end",
+]
+
+[companion_waiting_for_pilot]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[pierce_power_plant_news_end]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[player_day_before_yesterday]
+type = "clip"
+rig = "characters/aya/rig"
+
+[terminal_followup_player_bank]
+type = "animation_bank"
+schema = "rooms/shelter/r47/terminal_followup_player_schema"
+symbol = "_gActor443500TerminalFollowupPlayerAnimationSets"
+
+[terminal_followup_player_bank.clips]
+stand = "characters/aya/stand"
+console_entry = "rooms/shelter/r47/player_console_entry"
+ask = "rooms/shelter/r47/player_ask"
+ask_about_barrier = "rooms/shelter/r47/player_ask_about_barrier"
+map_listen = "rooms/shelter/r47/player_map_listen"
+day_before_yesterday = "rooms/shelter/r47/player_day_before_yesterday"
+slot_7 = "rooms/shelter/r47/terminal_followup_player_anim_07"
+take_implant = "rooms/shelter/r47/player_take_implant"
+implant_taken = "rooms/shelter/r47/player_implant_taken"
+that_means = "rooms/shelter/r47/player_that_means"
+map_followup_start = "rooms/shelter/r47/player_map_followup_start"
+i_see = "rooms/shelter/r47/player_i_see"
+decide_to_go = "rooms/shelter/r47/player_decide_to_go"
+but_you = "rooms/shelter/r47/player_but_you"
+listen_to_pierce = "rooms/shelter/r47/player_listen_to_pierce"
+protest = "rooms/shelter/r47/player_protest"
+what = "rooms/shelter/r47/player_what"
+set_off = "rooms/shelter/r47/player_set_off"
+why_would_anyone = "characters/aya/talk_start"
+why_would_anyone_end = "characters/aya/talk"
+slot_21 = "characters/aya/talk_end"
+i_understand = "characters/aya/explain_start"
+i_understand_end = "characters/aya/explain"
+look_at_map = "rooms/shelter/r47/player_look_at_map"
+
+[terminal_followup_player_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "stand",
+    "console_entry",
+    "ask",
+    "ask_about_barrier",
+    "map_listen",
+    "day_before_yesterday",
+    "slot_7",
+    "take_implant",
+    "implant_taken",
+    "that_means",
+    "map_followup_start",
+    "i_see",
+    "decide_to_go",
+    "but_you",
+    "listen_to_pierce",
+    "protest",
+    "what",
+    "set_off",
+    "why_would_anyone",
+    "why_would_anyone_end",
+    "slot_21",
+    "i_understand",
+    "i_understand_end",
+    "look_at_map",
+]
+
+[terminal_followup_player_anim_07]
+type = "clip"
+rig = "characters/aya/rig"

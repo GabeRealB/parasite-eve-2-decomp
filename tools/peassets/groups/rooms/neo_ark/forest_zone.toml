@@ -1,0 +1,57 @@
+# The assets of the group rooms/neo_ark/forest_zone, each named rooms/neo_ark/forest_zone/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[horned_stranger]
+type = "pe2pkg"
+embedded = [
+    { asset = "enemies/stranger/horned/body", offset = 0x08B8C, size = 0x52EC, address = 0x8016A9AC },
+    { name = "horned_stranger_scripted_death", offset = 0x0DE78, size = 0x204C, address = 0x8016FC98 },
+    { name = "horned_stranger_walk", offset = 0x0FEC4, size = 0xBE8, address = 0x80171CE4 },
+    { name = "horned_stranger_bank", offset = 0x11298, size = 0xB8, address = 0x801730B8 },
+    { name = "d_actor_356100_80173170_bank", offset = 0x11350, size = 0xB8, address = 0x80173170 },
+    { name = "horned_stranger_player_grab_bank", offset = 0x11408, size = 0x1C, address = 0x80173228 },
+]
+package_name = "actor_356100"
+required = true
+sha1 = "987e45c08559b090fceef05d2d8776d86e5fd4fc"
+
+[horned_stranger_bank]
+type = "animation_bank"
+schema = "rooms/neo_ark/forest_zone/horned_stranger_schema"
+symbol = "_gActor356100AnimationSets"
+
+[horned_stranger_bank.clips]
+scripted_death = "rooms/neo_ark/forest_zone/horned_stranger_scripted_death"
+walk = "rooms/neo_ark/forest_zone/horned_stranger_walk"
+
+[horned_stranger_walk]
+type = "clip"
+rig = "enemies/stranger/horned/rig"
+
+[horned_stranger_schema]
+type = "animation_schema"
+slots = ["", "scripted_death", "walk"]
+
+[d_actor_356100_80173170_bank]
+type = "animation_bank"
+clips = {  }
+schema = "rooms/neo_ark/forest_zone/d_actor_356100_80173170_schema"
+symbol = "D_actor_356100_80173170"
+
+[d_actor_356100_80173170_schema]
+type = "animation_schema"
+slots = []
+
+[horned_stranger_scripted_death]
+type = "clip"
+rig = "enemies/stranger/horned/rig"
+
+[horned_stranger_player_grab_bank]
+type = "animation_bank"
+clips = {  }
+schema = "rooms/neo_ark/forest_zone/horned_stranger_player_grab_schema"
+symbol = "_gActor356100PlayerGrabAnimationSets"
+
+[horned_stranger_player_grab_schema]
+type = "animation_schema"
+slots = []

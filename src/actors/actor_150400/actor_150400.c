@@ -56,8 +56,8 @@ static void _actorRenderWalkerFrame(Enemy* unusedEnemy, Task* task);
 static void _actor150400DestroyPairWalker(Task* task);
 static void _actorRenderDrawWalkerGroundShadow(Task* task);
 
-static TmdSource _gActor150400No9GolemDryfieldBody;
-static TmdSource _gActor150400GolemBeamSword;
+static TmdSource _gGolemNo9BodyDryfield;
+static TmdSource _gGolemBeamSword;
 static void      _actor150400PairWalkerTask(Task* task);
 
 static s32 _actor150400IgnorePairWalkCommand(Task* unusedTask, s32 messageId, const ActorCommand* unusedCommand, s32 unusedArgument);
@@ -238,157 +238,11 @@ EvsCommand gActor150400FreezerSceneSkipScript[14] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-static TmdBone _gActor150400No9GolemDryfieldBodySkeleton[19] = {
-#include "assets/no9_golem_dryfield_body_skeleton.inc"
-};
+#include "assets/enemies/golem/no_9/body_dryfield.inc"
 
-static u32 _gActor150400No9GolemDryfieldBodyPartVerts[19] = {
-#include "assets/no9_golem_dryfield_body_partVerts.inc"
-};
+#include "assets/rooms/shelter/b1_control_room/no_9_clips.inc"
 
-static SVECTOR _gActor150400No9GolemDryfieldBodyVerts[432] = {
-#include "assets/no9_golem_dryfield_body_verts.inc"
-};
-
-static SVECTOR _gActor150400No9GolemDryfieldBodyNormals[444] = {
-#include "assets/no9_golem_dryfield_body_normals.inc"
-};
-
-static u32 _gActor150400No9GolemDryfieldBodyStream[4749] = {
-#include "assets/no9_golem_dryfield_body_stream.inc"
-};
-
-static TmdSource _gActor150400No9GolemDryfieldBody = {
-    0,
-    26564,
-    6624,
-    19,
-    _gActor150400No9GolemDryfieldBodyPartVerts,
-    _gActor150400No9GolemDryfieldBodyVerts,
-    _gActor150400No9GolemDryfieldBodyNormals,
-    _gActor150400No9GolemDryfieldBodySkeleton,
-    _gActor150400No9GolemDryfieldBodyStream,
-};
-
-static AnimationPackedPose _gActor150400Animation08878Bank1[21] = {
-#include "assets/actor_150400_animation_08878_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor150400Animation08878Bank4[317] = {
-#include "assets/actor_150400_animation_08878_bank4.inc"
-};
-
-static AnimationRecord _gActor150400Animation08878Records[382] = {
-#include "assets/actor_150400_animation_08878_records.inc"
-};
-
-static u16 _gActor150400Animation08878Indices[20] = {
-#include "assets/actor_150400_animation_08878_indices.inc"
-};
-
-static AnimationSet _gActor150400Animation08878 = {
-    _gActor150400Animation08878Records,
-    _gActor150400Animation08878Indices,
-    { NULL, _gActor150400Animation08878Bank1, NULL, NULL, _gActor150400Animation08878Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor150400Animation08FE0Bank1[12] = {
-#include "assets/actor_150400_animation_08FE0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor150400Animation08FE0Bank4[187] = {
-#include "assets/actor_150400_animation_08FE0_bank4.inc"
-};
-
-static AnimationRecord _gActor150400Animation08FE0Records[231] = {
-#include "assets/actor_150400_animation_08FE0_records.inc"
-};
-
-static u16 _gActor150400Animation08FE0Indices[20] = {
-#include "assets/actor_150400_animation_08FE0_indices.inc"
-};
-
-static AnimationSet _gActor150400Animation08FE0 = {
-    _gActor150400Animation08FE0Records,
-    _gActor150400Animation08FE0Indices,
-    { NULL, _gActor150400Animation08FE0Bank1, NULL, NULL, _gActor150400Animation08FE0Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor150400Animation09BD0Bank1[20] = {
-#include "assets/actor_150400_animation_09BD0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor150400Animation09BD0Bank4[321] = {
-#include "assets/actor_150400_animation_09BD0_bank4.inc"
-};
-
-static AnimationRecord _gActor150400Animation09BD0Records[363] = {
-#include "assets/actor_150400_animation_09BD0_records.inc"
-};
-
-static u16 _gActor150400Animation09BD0Indices[20] = {
-#include "assets/actor_150400_animation_09BD0_indices.inc"
-};
-
-static AnimationSet _gActor150400Animation09BD0 = {
-    _gActor150400Animation09BD0Records,
-    _gActor150400Animation09BD0Indices,
-    { NULL, _gActor150400Animation09BD0Bank1, NULL, NULL, _gActor150400Animation09BD0Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor150400Animation0A538Bank1[16] = {
-#include "assets/actor_150400_animation_0A538_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor150400Animation0A538Bank4[237] = {
-#include "assets/actor_150400_animation_0A538_bank4.inc"
-};
-
-static AnimationRecord _gActor150400Animation0A538Records[297] = {
-#include "assets/actor_150400_animation_0A538_records.inc"
-};
-
-static u16 _gActor150400Animation0A538Indices[20] = {
-#include "assets/actor_150400_animation_0A538_indices.inc"
-};
-
-static AnimationSet _gActor150400Animation0A538 = {
-    _gActor150400Animation0A538Records,
-    _gActor150400Animation0A538Indices,
-    { NULL, _gActor150400Animation0A538Bank1, NULL, NULL, _gActor150400Animation0A538Bank4, NULL, NULL, NULL },
-};
-
-static TmdBone _gActor150400GolemBeamSwordSkeleton[1] = {
-#include "assets/golem_beam_sword_skeleton.inc"
-};
-
-static u32 _gActor150400GolemBeamSwordPartVerts[1] = {
-#include "assets/golem_beam_sword_partVerts.inc"
-};
-
-static SVECTOR _gActor150400GolemBeamSwordVerts[29] = {
-#include "assets/golem_beam_sword_verts.inc"
-};
-
-static SVECTOR _gActor150400GolemBeamSwordNormals[24] = {
-#include "assets/golem_beam_sword_normals.inc"
-};
-
-static u32 _gActor150400GolemBeamSwordStream[212] = {
-#include "assets/golem_beam_sword_stream.inc"
-};
-
-static TmdSource _gActor150400GolemBeamSword = {
-    0,
-    1436,
-    0,
-    1,
-    _gActor150400GolemBeamSwordPartVerts,
-    _gActor150400GolemBeamSwordVerts,
-    _gActor150400GolemBeamSwordNormals,
-    _gActor150400GolemBeamSwordSkeleton,
-    _gActor150400GolemBeamSwordStream,
-};
+#include "assets/enemies/golem/beam_sword.inc"
 
 /// No. 9's animation, visibility, placement, ignored-command and walk messages.
 ///
@@ -412,13 +266,13 @@ TaskDesc gActor150400No9GolemTaskDescriptors[2] = {
     {
         .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_150400_GOLEM_TASK_PRIORITY } },
         .callback = _actor150400PairWalkerTask,
-        .data     = { .model = &_gActor150400No9GolemDryfieldBody },
+        .data     = { .model = &_gGolemNo9BodyDryfield },
     },
     // 1: beam sword.
     {
         .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_150400_GOLEM_TASK_PRIORITY } },
         .callback = _pairWalkSubModelTask,
-        .data     = { .model = &_gActor150400GolemBeamSword },
+        .data     = { .model = &_gGolemBeamSword },
     },
 };
 
@@ -427,14 +281,7 @@ TaskDesc gActor150400No9GolemTaskDescriptors[2] = {
 /// Entries 0 and 5 are unplayable NULL holes. Idle uses 1 and walking uses 4;
 /// message requests may also select 2 or 3. Playback borrows the sets and tracks
 /// while this overlay is loaded. The table is six native PS1 pointer words.
-static AnimationSet* _gActor150400No9AnimationSets[6] = {
-    NULL,
-    &_gActor150400Animation08878,
-    &_gActor150400Animation08FE0,
-    &_gActor150400Animation09BD0,
-    &_gActor150400Animation0A538,
-    NULL,
-};
+#include "assets/rooms/shelter/b1_control_room/no_9_bank.inc"
 
 /// Retained first sliding-model task of the freezer scene, placed at Z = -4460.
 ///

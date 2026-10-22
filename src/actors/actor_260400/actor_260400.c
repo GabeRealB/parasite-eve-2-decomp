@@ -84,8 +84,8 @@ static s16 _gScriptedWalkMode;
 static void _actorRenderWalkerFrame(Enemy* unusedEnemy, Task* task);
 static void _actor260400ExitScriptedWalker(Task* task);
 
-static TmdSource _gActor260400RupertBroderickHurtMongoose;
-static TmdSource _gActor260400RupertBroderickHurtBody;
+static TmdSource _gRupertHurtMongoose;
+static TmdSource _gRupertHurtBody;
 static void      _actor260400ScriptedWalkerTask(Task* task);
 static void      _actor260400MongooseTask(Task* task);
 
@@ -95,167 +95,15 @@ static s32 _actor260400ApplyScriptedWalkerCommand(Task* unusedTask, s32 messageI
 
 static void _actor260400SelectConversationCaptions(s32 useConversationFile);
 
-static AnimationSet _gActor260400Animation0105C;
-static AnimationSet _gActor260400Animation01300;
-static AnimationSet _gActor260400Animation017AC;
-static AnimationSet _gActor260400Animation01B64;
-static AnimationSet _gActor260400Animation0204C;
-static AnimationSet _gActor260400Animation02350;
-static AnimationSet _gActor260400Animation0267C;
+static AnimationSet _gShelter1fHeliportPlayerRupertMongooseClip;
+static AnimationSet _gAyaLetHerGoClip;
+static AnimationSet _gShelter1fHeliportPlayerRupertOpeningTalkClip;
+static AnimationSet _gAyaConverseClip;
+static AnimationSet _gShelter1fHeliportPlayerRupertFourthTalkClip;
+extern AnimationSet gAyaStandClip;
+static AnimationSet _gAyaOnMyWayClip;
 
-static AnimationPackedPose _gActor260400Animation0105CBank1[2] = {
-#include "assets/actor_260400_animation_0105C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor260400Animation0105CBank4[37] = {
-#include "assets/actor_260400_animation_0105C_bank4.inc"
-};
-
-static AnimationRecord _gActor260400Animation0105CRecords[72] = {
-#include "assets/actor_260400_animation_0105C_records.inc"
-};
-
-static u16 _gActor260400Animation0105CIndices[20] = {
-#include "assets/actor_260400_animation_0105C_indices.inc"
-};
-
-static AnimationSet _gActor260400Animation0105C = {
-    _gActor260400Animation0105CRecords,
-    _gActor260400Animation0105CIndices,
-    { NULL, _gActor260400Animation0105CBank1, NULL, NULL, _gActor260400Animation0105CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor260400Animation01300Bank1[2] = {
-#include "assets/actor_260400_animation_01300_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor260400Animation01300Bank4[49] = {
-#include "assets/actor_260400_animation_01300_bank4.inc"
-};
-
-static AnimationRecord _gActor260400Animation01300Records[94] = {
-#include "assets/actor_260400_animation_01300_records.inc"
-};
-
-static u16 _gActor260400Animation01300Indices[20] = {
-#include "assets/actor_260400_animation_01300_indices.inc"
-};
-
-static AnimationSet _gActor260400Animation01300 = {
-    _gActor260400Animation01300Records,
-    _gActor260400Animation01300Indices,
-    { NULL, _gActor260400Animation01300Bank1, NULL, NULL, _gActor260400Animation01300Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor260400Animation017ACBank1[4] = {
-#include "assets/actor_260400_animation_017AC_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor260400Animation017ACBank4[81] = {
-#include "assets/actor_260400_animation_017AC_bank4.inc"
-};
-
-static AnimationRecord _gActor260400Animation017ACRecords[186] = {
-#include "assets/actor_260400_animation_017AC_records.inc"
-};
-
-static u16 _gActor260400Animation017ACIndices[20] = {
-#include "assets/actor_260400_animation_017AC_indices.inc"
-};
-
-static AnimationSet _gActor260400Animation017AC = {
-    _gActor260400Animation017ACRecords,
-    _gActor260400Animation017ACIndices,
-    { NULL, _gActor260400Animation017ACBank1, NULL, NULL, _gActor260400Animation017ACBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor260400Animation01B64Bank1[3] = {
-#include "assets/actor_260400_animation_01B64_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor260400Animation01B64Bank4[81] = {
-#include "assets/actor_260400_animation_01B64_bank4.inc"
-};
-
-static AnimationRecord _gActor260400Animation01B64Records[128] = {
-#include "assets/actor_260400_animation_01B64_records.inc"
-};
-
-static u16 _gActor260400Animation01B64Indices[20] = {
-#include "assets/actor_260400_animation_01B64_indices.inc"
-};
-
-static AnimationSet _gActor260400Animation01B64 = {
-    _gActor260400Animation01B64Records,
-    _gActor260400Animation01B64Indices,
-    { NULL, _gActor260400Animation01B64Bank1, NULL, NULL, _gActor260400Animation01B64Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor260400Animation0204CBank1[8] = {
-#include "assets/actor_260400_animation_0204C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor260400Animation0204CBank4[109] = {
-#include "assets/actor_260400_animation_0204C_bank4.inc"
-};
-
-static AnimationRecord _gActor260400Animation0204CRecords[161] = {
-#include "assets/actor_260400_animation_0204C_records.inc"
-};
-
-static u16 _gActor260400Animation0204CIndices[20] = {
-#include "assets/actor_260400_animation_0204C_indices.inc"
-};
-
-static AnimationSet _gActor260400Animation0204C = {
-    _gActor260400Animation0204CRecords,
-    _gActor260400Animation0204CIndices,
-    { NULL, _gActor260400Animation0204CBank1, NULL, NULL, _gActor260400Animation0204CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor260400Animation02350Bank1[6] = {
-#include "assets/actor_260400_animation_02350_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor260400Animation02350Bank4[46] = {
-#include "assets/actor_260400_animation_02350_bank4.inc"
-};
-
-static AnimationRecord _gActor260400Animation02350Records[109] = {
-#include "assets/actor_260400_animation_02350_records.inc"
-};
-
-static u16 _gActor260400Animation02350Indices[20] = {
-#include "assets/actor_260400_animation_02350_indices.inc"
-};
-
-static AnimationSet _gActor260400Animation02350 = {
-    _gActor260400Animation02350Records,
-    _gActor260400Animation02350Indices,
-    { NULL, _gActor260400Animation02350Bank1, NULL, NULL, _gActor260400Animation02350Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor260400Animation0267CBank1[7] = {
-#include "assets/actor_260400_animation_0267C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor260400Animation0267CBank4[56] = {
-#include "assets/actor_260400_animation_0267C_bank4.inc"
-};
-
-static AnimationRecord _gActor260400Animation0267CRecords[106] = {
-#include "assets/actor_260400_animation_0267C_records.inc"
-};
-
-static u16 _gActor260400Animation0267CIndices[20] = {
-#include "assets/actor_260400_animation_0267C_indices.inc"
-};
-
-static AnimationSet _gActor260400Animation0267C = {
-    _gActor260400Animation0267CRecords,
-    _gActor260400Animation0267CIndices,
-    { NULL, _gActor260400Animation0267CBank1, NULL, NULL, _gActor260400Animation0267CBank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/shelter/1f_heliport/rupert_clips_1.inc"
 
 /// Player-pose transition duration in whole normal-rate animation frames.
 enum { ACTOR_260400_PLAYER_BLEND_FRAMES = 8 };
@@ -520,7 +368,7 @@ static AnimationPlayRequest _gActor260400PlayerClip56AnimationRequest = {
 /// The descriptors and clip data are borrowed until player playback ends.
 /// `_gActor260400PlayerAnimationBankCopyRequest` reads 32 words starting here,
 /// including the adjacent payload records; preserve their order and storage.
-static AnimationSet* _gActor260400PlayerAnimationSets[] = { &_gActor260400Animation0105C, &_gActor260400Animation01300, &_gActor260400Animation017AC, NULL, NULL, NULL, &_gActor260400Animation01B64, &_gActor260400Animation0204C, &_gActor260400Animation02350, &_gActor260400Animation0267C };
+#include "assets/rooms/shelter/1f_heliport/rupert_scene_player_bank.inc"
 
 /// Installs the conversation clips and adjacent words in the player's bank extension.
 ///
@@ -878,333 +726,11 @@ static EvsCommand _gActor260400HeliportRepeatConversationScript[9] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-static AnimationPackedPose _gActor260400Animation03B24Bank1[3] = {
-#include "assets/actor_260400_animation_03B24_bank1.inc"
-};
+#include "assets/rooms/shelter/1f_heliport/rupert_clips_2.inc"
 
-static AnimationPackedRotation _gActor260400Animation03B24Bank4[26] = {
-#include "assets/actor_260400_animation_03B24_bank4.inc"
-};
+#include "assets/characters/rupert/hurt_mongoose.inc"
 
-static AnimationRecord _gActor260400Animation03B24Records[106] = {
-#include "assets/actor_260400_animation_03B24_records.inc"
-};
-
-static u16 _gActor260400Animation03B24Indices[20] = {
-#include "assets/actor_260400_animation_03B24_indices.inc"
-};
-
-static AnimationSet _gActor260400Animation03B24 = {
-    _gActor260400Animation03B24Records,
-    _gActor260400Animation03B24Indices,
-    { NULL, _gActor260400Animation03B24Bank1, NULL, NULL, _gActor260400Animation03B24Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor260400Animation03CCCBank1[2] = {
-#include "assets/actor_260400_animation_03CCC_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor260400Animation03CCCBank4[16] = {
-#include "assets/actor_260400_animation_03CCC_bank4.inc"
-};
-
-static AnimationRecord _gActor260400Animation03CCCRecords[64] = {
-#include "assets/actor_260400_animation_03CCC_records.inc"
-};
-
-static u16 _gActor260400Animation03CCCIndices[20] = {
-#include "assets/actor_260400_animation_03CCC_indices.inc"
-};
-
-static AnimationSet _gActor260400Animation03CCC = {
-    _gActor260400Animation03CCCRecords,
-    _gActor260400Animation03CCCIndices,
-    { NULL, _gActor260400Animation03CCCBank1, NULL, NULL, _gActor260400Animation03CCCBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor260400Animation03EDCBank1[4] = {
-#include "assets/actor_260400_animation_03EDC_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor260400Animation03EDCBank4[32] = {
-#include "assets/actor_260400_animation_03EDC_bank4.inc"
-};
-
-static AnimationRecord _gActor260400Animation03EDCRecords[68] = {
-#include "assets/actor_260400_animation_03EDC_records.inc"
-};
-
-static u16 _gActor260400Animation03EDCIndices[20] = {
-#include "assets/actor_260400_animation_03EDC_indices.inc"
-};
-
-static AnimationSet _gActor260400Animation03EDC = {
-    _gActor260400Animation03EDCRecords,
-    _gActor260400Animation03EDCIndices,
-    { NULL, _gActor260400Animation03EDCBank1, NULL, NULL, _gActor260400Animation03EDCBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor260400Animation0409CBank1[2] = {
-#include "assets/actor_260400_animation_0409C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor260400Animation0409CBank4[18] = {
-#include "assets/actor_260400_animation_0409C_bank4.inc"
-};
-
-static AnimationRecord _gActor260400Animation0409CRecords[68] = {
-#include "assets/actor_260400_animation_0409C_records.inc"
-};
-
-static u16 _gActor260400Animation0409CIndices[20] = {
-#include "assets/actor_260400_animation_0409C_indices.inc"
-};
-
-static AnimationSet _gActor260400Animation0409C = {
-    _gActor260400Animation0409CRecords,
-    _gActor260400Animation0409CIndices,
-    { NULL, _gActor260400Animation0409CBank1, NULL, NULL, _gActor260400Animation0409CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor260400Animation0434CBank1[2] = {
-#include "assets/actor_260400_animation_0434C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor260400Animation0434CBank4[33] = {
-#include "assets/actor_260400_animation_0434C_bank4.inc"
-};
-
-static AnimationRecord _gActor260400Animation0434CRecords[113] = {
-#include "assets/actor_260400_animation_0434C_records.inc"
-};
-
-static u16 _gActor260400Animation0434CIndices[20] = {
-#include "assets/actor_260400_animation_0434C_indices.inc"
-};
-
-static AnimationSet _gActor260400Animation0434C = {
-    _gActor260400Animation0434CRecords,
-    _gActor260400Animation0434CIndices,
-    { NULL, _gActor260400Animation0434CBank1, NULL, NULL, _gActor260400Animation0434CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor260400Animation044F4Bank1[2] = {
-#include "assets/actor_260400_animation_044F4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor260400Animation044F4Bank4[20] = {
-#include "assets/actor_260400_animation_044F4_bank4.inc"
-};
-
-static AnimationRecord _gActor260400Animation044F4Records[60] = {
-#include "assets/actor_260400_animation_044F4_records.inc"
-};
-
-static u16 _gActor260400Animation044F4Indices[20] = {
-#include "assets/actor_260400_animation_044F4_indices.inc"
-};
-
-static AnimationSet _gActor260400Animation044F4 = {
-    _gActor260400Animation044F4Records,
-    _gActor260400Animation044F4Indices,
-    { NULL, _gActor260400Animation044F4Bank1, NULL, NULL, _gActor260400Animation044F4Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor260400Animation047F0Bank1[4] = {
-#include "assets/actor_260400_animation_047F0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor260400Animation047F0Bank4[54] = {
-#include "assets/actor_260400_animation_047F0_bank4.inc"
-};
-
-static AnimationRecord _gActor260400Animation047F0Records[105] = {
-#include "assets/actor_260400_animation_047F0_records.inc"
-};
-
-static u16 _gActor260400Animation047F0Indices[20] = {
-#include "assets/actor_260400_animation_047F0_indices.inc"
-};
-
-static AnimationSet _gActor260400Animation047F0 = {
-    _gActor260400Animation047F0Records,
-    _gActor260400Animation047F0Indices,
-    { NULL, _gActor260400Animation047F0Bank1, NULL, NULL, _gActor260400Animation047F0Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor260400Animation04A88Bank1[4] = {
-#include "assets/actor_260400_animation_04A88_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor260400Animation04A88Bank4[28] = {
-#include "assets/actor_260400_animation_04A88_bank4.inc"
-};
-
-static AnimationRecord _gActor260400Animation04A88Records[106] = {
-#include "assets/actor_260400_animation_04A88_records.inc"
-};
-
-static u16 _gActor260400Animation04A88Indices[20] = {
-#include "assets/actor_260400_animation_04A88_indices.inc"
-};
-
-static AnimationSet _gActor260400Animation04A88 = {
-    _gActor260400Animation04A88Records,
-    _gActor260400Animation04A88Indices,
-    { NULL, _gActor260400Animation04A88Bank1, NULL, NULL, _gActor260400Animation04A88Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor260400Animation04D14Bank1[4] = {
-#include "assets/actor_260400_animation_04D14_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor260400Animation04D14Bank4[34] = {
-#include "assets/actor_260400_animation_04D14_bank4.inc"
-};
-
-static AnimationRecord _gActor260400Animation04D14Records[97] = {
-#include "assets/actor_260400_animation_04D14_records.inc"
-};
-
-static u16 _gActor260400Animation04D14Indices[20] = {
-#include "assets/actor_260400_animation_04D14_indices.inc"
-};
-
-static AnimationSet _gActor260400Animation04D14 = {
-    _gActor260400Animation04D14Records,
-    _gActor260400Animation04D14Indices,
-    { NULL, _gActor260400Animation04D14Bank1, NULL, NULL, _gActor260400Animation04D14Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor260400Animation05094Bank1[3] = {
-#include "assets/actor_260400_animation_05094_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor260400Animation05094Bank4[66] = {
-#include "assets/actor_260400_animation_05094_bank4.inc"
-};
-
-static AnimationRecord _gActor260400Animation05094Records[129] = {
-#include "assets/actor_260400_animation_05094_records.inc"
-};
-
-static u16 _gActor260400Animation05094Indices[20] = {
-#include "assets/actor_260400_animation_05094_indices.inc"
-};
-
-static AnimationSet _gActor260400Animation05094 = {
-    _gActor260400Animation05094Records,
-    _gActor260400Animation05094Indices,
-    { NULL, _gActor260400Animation05094Bank1, NULL, NULL, _gActor260400Animation05094Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor260400Animation0526CBank1[3] = {
-#include "assets/actor_260400_animation_0526C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor260400Animation0526CBank4[19] = {
-#include "assets/actor_260400_animation_0526C_bank4.inc"
-};
-
-static AnimationRecord _gActor260400Animation0526CRecords[70] = {
-#include "assets/actor_260400_animation_0526C_records.inc"
-};
-
-static u16 _gActor260400Animation0526CIndices[20] = {
-#include "assets/actor_260400_animation_0526C_indices.inc"
-};
-
-static AnimationSet _gActor260400Animation0526C = {
-    _gActor260400Animation0526CRecords,
-    _gActor260400Animation0526CIndices,
-    { NULL, _gActor260400Animation0526CBank1, NULL, NULL, _gActor260400Animation0526CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor260400Animation05474Bank1[2] = {
-#include "assets/actor_260400_animation_05474_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor260400Animation05474Bank4[26] = {
-#include "assets/actor_260400_animation_05474_bank4.inc"
-};
-
-static AnimationRecord _gActor260400Animation05474Records[78] = {
-#include "assets/actor_260400_animation_05474_records.inc"
-};
-
-static u16 _gActor260400Animation05474Indices[20] = {
-#include "assets/actor_260400_animation_05474_indices.inc"
-};
-
-static AnimationSet _gActor260400Animation05474 = {
-    _gActor260400Animation05474Records,
-    _gActor260400Animation05474Indices,
-    { NULL, _gActor260400Animation05474Bank1, NULL, NULL, _gActor260400Animation05474Bank4, NULL, NULL, NULL },
-};
-
-static TmdBone _gActor260400RupertBroderickHurtMongooseSkeleton[1] = {
-#include "assets/rupert_broderick_hurt_mongoose_skeleton.inc"
-};
-
-static u32 _gActor260400RupertBroderickHurtMongoosePartVerts[1] = {
-#include "assets/rupert_broderick_hurt_mongoose_partVerts.inc"
-};
-
-static SVECTOR _gActor260400RupertBroderickHurtMongooseVerts[28] = {
-#include "assets/rupert_broderick_hurt_mongoose_verts.inc"
-};
-
-static SVECTOR _gActor260400RupertBroderickHurtMongooseNormals[28] = {
-#include "assets/rupert_broderick_hurt_mongoose_normals.inc"
-};
-
-static u32 _gActor260400RupertBroderickHurtMongooseStream[211] = {
-#include "assets/rupert_broderick_hurt_mongoose_stream.inc"
-};
-
-static TmdSource _gActor260400RupertBroderickHurtMongoose = {
-    0,
-    1464,
-    0,
-    1,
-    _gActor260400RupertBroderickHurtMongoosePartVerts,
-    _gActor260400RupertBroderickHurtMongooseVerts,
-    _gActor260400RupertBroderickHurtMongooseNormals,
-    _gActor260400RupertBroderickHurtMongooseSkeleton,
-    _gActor260400RupertBroderickHurtMongooseStream,
-};
-
-static TmdBone _gActor260400RupertBroderickHurtBodySkeleton[20] = {
-#include "assets/rupert_broderick_hurt_body_skeleton.inc"
-};
-
-static u32 _gActor260400RupertBroderickHurtBodyPartVerts[20] = {
-#include "assets/rupert_broderick_hurt_body_partVerts.inc"
-};
-
-static SVECTOR _gActor260400RupertBroderickHurtBodyVerts[343] = {
-#include "assets/rupert_broderick_hurt_body_verts.inc"
-};
-
-static SVECTOR _gActor260400RupertBroderickHurtBodyNormals[334] = {
-#include "assets/rupert_broderick_hurt_body_normals.inc"
-};
-
-static u32 _gActor260400RupertBroderickHurtBodyStream[3801] = {
-#include "assets/rupert_broderick_hurt_body_stream.inc"
-};
-
-static TmdSource _gActor260400RupertBroderickHurtBody = {
-    0,
-    20988,
-    5348,
-    20,
-    _gActor260400RupertBroderickHurtBodyPartVerts,
-    _gActor260400RupertBroderickHurtBodyVerts,
-    _gActor260400RupertBroderickHurtBodyNormals,
-    _gActor260400RupertBroderickHurtBodySkeleton,
-    _gActor260400RupertBroderickHurtBodyStream,
-};
+#include "assets/characters/rupert/hurt_body.inc"
 
 /// Latched duration of the next child-part blend, in whole normal-rate frames.
 ///
@@ -1231,12 +757,12 @@ TaskDesc gActor260400RupertBroderickTasks[2] = {
     {
         .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_260400_TASK_PRIORITY } },
         .callback = _actor260400ScriptedWalkerTask,
-        .data     = { .model = &_gActor260400RupertBroderickHurtBody },
+        .data     = { .model = &_gRupertHurtBody },
     },
     {
         .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_260400_TASK_PRIORITY } },
         .callback = _actor260400MongooseTask,
-        .data     = { .model = &_gActor260400RupertBroderickHurtMongoose },
+        .data     = { .model = &_gRupertHurtMongoose },
     },
 };
 
@@ -1246,24 +772,7 @@ TaskDesc gActor260400RupertBroderickTasks[2] = {
 /// walker borrows the bank and its sets for its task's lifetime. Its signed
 /// request limit checks the full capacity, without excluding negative keys
 /// or NULL holes; callers must choose a loaded clip.
-static AnimationSet* _gActor260400WalkerAnimationSets[16] = {
-    NULL,
-    &_gActor260400Animation03B24,
-    &_gActor260400Animation03CCC,
-    &_gActor260400Animation03EDC,
-    &_gActor260400Animation0409C,
-    &_gActor260400Animation0434C,
-    &_gActor260400Animation044F4,
-    &_gActor260400Animation047F0,
-    &_gActor260400Animation04A88,
-    &_gActor260400Animation04D14,
-    &_gActor260400Animation05094,
-    &_gActor260400Animation0526C,
-    &_gActor260400Animation05474,
-    NULL,
-    NULL,
-    NULL,
-};
+#include "assets/rooms/shelter/1f_heliport/rupert_bank.inc"
 
 static void _actor260400SpawnScriptedWalker(Enemy* enemy, Task* task);
 

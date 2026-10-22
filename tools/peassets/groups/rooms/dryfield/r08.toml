@@ -1,0 +1,52 @@
+# The assets of the group rooms/dryfield/r08, each named rooms/dryfield/r08/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[eve]
+type = "pe2pkg"
+embedded = [
+    { asset = "characters/eve/body", offset = 0x025AC, size = 0x57D8, address = 0x801343CC },
+    "actor_121300_model_07E84",
+    "actor_121300_model_080F0",
+    "actor_121300_model_0834C",
+    "actor_121300_model_08580",
+    "actor_121300_model_08768",
+    { name = "eve_stand_on_mark", offset = 0x08880, size = 0x190, address = 0x8013A6A0 },
+    { name = "eve_before_shatter", offset = 0x08A10, size = 0x2A4, address = 0x8013A830 },
+    { name = "eve_after_shatter", offset = 0x08CB4, size = 0x10F8, address = 0x8013AAD4 },
+    "characters/eve/eyes_open",
+    "characters/eve/eyes_half_closed",
+    "characters/eve/eyes_closed",
+    "characters/eve/mouth_closed",
+    "characters/eve/mouth_open",
+    { name = "eve_bank", offset = 0x0ADE8, size = 0x10, address = 0x8013CC08 },
+]
+package_name = "actor_121300"
+parent = "dryfield_r08"
+required = true
+sha1 = "2fe55fb91af6523d4da6151c0a11b2a11847c783"
+
+[eve_bank]
+type = "animation_bank"
+schema = "rooms/dryfield/r08/eve_schema"
+symbol = "_gActor121300AnimationSets"
+
+[eve_bank.clips]
+stand_on_mark = "rooms/dryfield/r08/eve_stand_on_mark"
+before_shatter = "rooms/dryfield/r08/eve_before_shatter"
+after_shatter = "rooms/dryfield/r08/eve_after_shatter"
+
+[eve_schema]
+type = "animation_schema"
+slots = ["", "stand_on_mark", "before_shatter", "after_shatter"]
+
+[eve_after_shatter]
+type = "clip"
+rig = "characters/eve/rig"
+
+[eve_stand_on_mark]
+type = "clip"
+rig = "characters/eve/rig"
+
+[eve_before_shatter]
+type = "clip"
+rig = "characters/eve/rig"

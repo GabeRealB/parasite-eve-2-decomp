@@ -1,0 +1,164 @@
+# The assets of the group enemies/crawler/maggot, each named enemies/crawler/maggot/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+schema = "enemies/crawler/maggot/schema"
+symbol = "_gMaggotCaterpillarAnimSets"
+
+[bank.clips]
+idle = "enemies/crawler/idle"
+crawl = "enemies/crawler/crawl"
+spray = "enemies/crawler/spray"
+pounce = "enemies/crawler/pounce"
+rebound = "enemies/crawler/rebound"
+hang = "enemies/crawler/hang"
+drop = "enemies/crawler/drop"
+land = "enemies/crawler/land"
+get_up = "enemies/crawler/get_up"
+hurt = "enemies/crawler/hurt"
+dormant = "enemies/crawler/dormant"
+wake = "enemies/crawler/wake"
+stun = "enemies/crawler/stun"
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "preview_palette"
+sha1 = "1e64322148f9832202d99bff4e724a06c8f4d278"
+palettes = [{ texture = "preview", variant = "default", region = "engine/vram/preview_palette" }]
+
+[[file.contents]]
+chunk = "preview_image"
+sha1 = "46b2863c44c813815e8a1b4e92de5555160a7e0a"
+pages = [{ texture = "preview", region = "engine/vram/preview_sheet" }]
+
+[[file.contents]]
+asset = "txt_82"
+
+[schema]
+type = "animation_schema"
+slots = [
+    "",
+    "idle",
+    "crawl",
+    "spray",
+    "pounce",
+    "rebound",
+    "hang",
+    "drop",
+    "",
+    "land",
+    "get_up",
+    "hurt",
+    "dormant",
+    "wake",
+    "stun",
+]
+
+[preview]
+type = "texture"
+bpp = 8
+height = 128
+variants = ["default"]
+width = 128
+
+[package_1]
+type = "pe2pkg"
+embedded = [
+    { asset = "enemies/crawler/body", offset = 0x03FDC, size = 0x17B4, address = 0x80135DFC },
+    { asset = "enemies/crawler/husk", offset = 0x05790, size = 0x7A4, address = 0x801375B0 },
+    { asset = "enemies/crawler/idle", offset = 0x05F34, size = 0x28C, address = 0x80137D54 },
+    { asset = "enemies/crawler/crawl", offset = 0x061C0, size = 0x2B4, address = 0x80137FE0 },
+    { asset = "enemies/crawler/spray", offset = 0x06474, size = 0x484, address = 0x80138294 },
+    { asset = "enemies/crawler/pounce", offset = 0x068F8, size = 0x544, address = 0x80138718 },
+    { asset = "enemies/crawler/rebound", offset = 0x06E3C, size = 0x6C8, address = 0x80138C5C },
+    { asset = "enemies/crawler/hang", offset = 0x07504, size = 0x2C8, address = 0x80139324 },
+    { asset = "enemies/crawler/drop", offset = 0x077CC, size = 0x190, address = 0x801395EC },
+    { asset = "enemies/crawler/land", offset = 0x0795C, size = 0x214, address = 0x8013977C },
+    { asset = "enemies/crawler/get_up", offset = 0x07B70, size = 0x340, address = 0x80139990 },
+    { asset = "enemies/crawler/hurt", offset = 0x07EB0, size = 0x2B8, address = 0x80139CD0 },
+    { asset = "enemies/crawler/dormant", offset = 0x08168, size = 0x2AC, address = 0x80139F88 },
+    { asset = "enemies/crawler/wake", offset = 0x08414, size = 0x38C, address = 0x8013A234 },
+    { asset = "enemies/crawler/stun", offset = 0x087A0, size = 0x1B0, address = 0x8013A5C0 },
+    { name = "bank", offset = 0x08ACC, size = 0x3C, address = 0x8013A8EC },
+]
+package_name = "actor_102600"
+required = true
+sha1 = "500b6cb123acf985110012852212cf862611169c"
+
+[package_2]
+type = "pe2pkg"
+embedded = [
+    { asset = "enemies/crawler/idle", offset = 0x05F34, size = 0x28C, address = 0x8014FD54 },
+    { asset = "enemies/crawler/crawl", offset = 0x061C0, size = 0x2B4, address = 0x8014FFE0 },
+    { asset = "enemies/crawler/spray", offset = 0x06474, size = 0x484, address = 0x80150294 },
+    { asset = "enemies/crawler/pounce", offset = 0x068F8, size = 0x544, address = 0x80150718 },
+    { asset = "enemies/crawler/rebound", offset = 0x06E3C, size = 0x6C8, address = 0x80150C5C },
+    { asset = "enemies/crawler/hang", offset = 0x07504, size = 0x2C8, address = 0x80151324 },
+    { asset = "enemies/crawler/drop", offset = 0x077CC, size = 0x190, address = 0x801515EC },
+    { asset = "enemies/crawler/land", offset = 0x0795C, size = 0x214, address = 0x8015177C },
+    { asset = "enemies/crawler/get_up", offset = 0x07B70, size = 0x340, address = 0x80151990 },
+    { asset = "enemies/crawler/hurt", offset = 0x07EB0, size = 0x2B8, address = 0x80151CD0 },
+    { asset = "enemies/crawler/dormant", offset = 0x08168, size = 0x2AC, address = 0x80151F88 },
+    { asset = "enemies/crawler/wake", offset = 0x08414, size = 0x38C, address = 0x80152234 },
+    { asset = "enemies/crawler/stun", offset = 0x087A0, size = 0x1B0, address = 0x801525C0 },
+    { name = "bank", offset = 0x08ACC, size = 0x3C, address = 0x801528EC },
+]
+package_name = "actor_202600"
+required = true
+sha1 = "7b728cbc9b3a15e07418c57c6a0d7283979c7035"
+
+[package_3]
+type = "pe2pkg"
+embedded = [
+    { asset = "enemies/crawler/idle", offset = 0x05F34, size = 0x28C, address = 0x80167D54 },
+    { asset = "enemies/crawler/crawl", offset = 0x061C0, size = 0x2B4, address = 0x80167FE0 },
+    { asset = "enemies/crawler/spray", offset = 0x06474, size = 0x484, address = 0x80168294 },
+    { asset = "enemies/crawler/pounce", offset = 0x068F8, size = 0x544, address = 0x80168718 },
+    { asset = "enemies/crawler/rebound", offset = 0x06E3C, size = 0x6C8, address = 0x80168C5C },
+    { asset = "enemies/crawler/hang", offset = 0x07504, size = 0x2C8, address = 0x80169324 },
+    { asset = "enemies/crawler/drop", offset = 0x077CC, size = 0x190, address = 0x801695EC },
+    { asset = "enemies/crawler/land", offset = 0x0795C, size = 0x214, address = 0x8016977C },
+    { asset = "enemies/crawler/get_up", offset = 0x07B70, size = 0x340, address = 0x80169990 },
+    { asset = "enemies/crawler/hurt", offset = 0x07EB0, size = 0x2B8, address = 0x80169CD0 },
+    { asset = "enemies/crawler/dormant", offset = 0x08168, size = 0x2AC, address = 0x80169F88 },
+    { asset = "enemies/crawler/wake", offset = 0x08414, size = 0x38C, address = 0x8016A234 },
+    { asset = "enemies/crawler/stun", offset = 0x087A0, size = 0x1B0, address = 0x8016A5C0 },
+    { name = "bank", offset = 0x08ACC, size = 0x3C, address = 0x8016A8EC },
+]
+package_name = "actor_302600"
+required = true
+sha1 = "1035047d0d3d436fa06df8581d2e2ab5ed8d4edb"
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+asset = "enemies/crawler/sounds"
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "58c356d989ddd4c5ef6d03f7df979ba425f8d0cd"
+
+[[package_file.contents.palettes]]
+texture = "enemies/crawler/texture"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0, 0]
+
+[[package_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/actor_palettes"
+offset = [0, 1]
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "788e398e271d8faa31772d774219331477452ac9"
+pages = [{ texture = "enemies/crawler/texture", region = "engine/vram/actor_sheet", offset = [0, 0] }]
+slots = 6
+
+[[package_file.contents]]
+chunk = "package_1"

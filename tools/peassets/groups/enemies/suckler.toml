@@ -1,0 +1,18 @@
+# The assets of the group enemies/suckler, each named enemies/suckler/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = ["root", "body", "head", "joint_3", "right_arm", "left_arm"]
+
+[step]
+type = "sound"
+sha1 = "87146edc6ac101f4f6267e9153287c89339f83b0"
+
+[burst]
+type = "sound"
+sha1 = "2b0fd68c7c62af379ba643ccdbcef72ab1c584d2"
+
+[burst_2]
+type = "sound"
+sha1 = "4ff8a3a4cd7335dc43abe3d148868da70992f3b4"

@@ -1,0 +1,86 @@
+# The assets of the group rooms/dryfield/night_motel_balcony, each named rooms/dryfield/night_motel_balcony/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[gary_bank]
+type = "animation_bank"
+schema = "rooms/dryfield/night_motel_balcony/gary_schema"
+symbol = "_gActor335800GaryDouglasAnimationBank"
+
+[gary_bank.clips]
+slot_1 = "characters/pierce/rest"
+fire_shotgun = "rooms/dryfield/night_motel_balcony/gary_fire_shotgun"
+burner_entry_2 = "rooms/dryfield/night_motel_balcony/gary_burner_entry_2"
+burner_entry_3 = "rooms/dryfield/night_motel_balcony/gary_burner_entry_3"
+
+[flint_bank]
+type = "animation_bank"
+clips = { bark_at_target = "characters/flint/bark_at_target" }
+schema = "rooms/dryfield/night_motel_balcony/flint_schema"
+symbol = "_gActor335800FlintAnimationBank"
+
+[gary_schema]
+type = "animation_schema"
+slots = ["", "slot_1", "fire_shotgun", "burner_entry_2", "burner_entry_3"]
+
+[flint_schema]
+type = "animation_schema"
+slots = ["", "bark_at_target"]
+
+[gary_and_flint]
+type = "pe2pkg"
+embedded = [
+    { asset = "characters/aya/stand", offset = 0x02280, size = 0x304, address = 0x801640A0 },
+    { name = "player_balcony_entry", offset = 0x02584, size = 0x61C, address = 0x801643A4 },
+    { name = "player_scene_animation_extension_anim_03", offset = 0x02BA0, size = 0x214, address = 0x801649C0 },
+    { name = "player_burner_scene_end", offset = 0x02DB4, size = 0x20C, address = 0x80164BD4 },
+    { name = "player_scene_bank", offset = 0x02FF0, size = 0x14, address = 0x80164E10 },
+    { asset = "characters/pierce/rest", offset = 0x0A8C4, size = 0x27C, address = 0x8016C6E4 },
+    { name = "gary_fire_shotgun", offset = 0x0AB40, size = 0xA84, address = 0x8016C960 },
+    { name = "gary_burner_entry_2", offset = 0x0B5C4, size = 0x14AC, address = 0x8016D3E4 },
+    { name = "gary_burner_entry_3", offset = 0x0CA70, size = 0x234, address = 0x8016E890 },
+    { name = "gary_bank", offset = 0x0CCA4, size = 0x14, address = 0x8016EAC4 },
+    { asset = "characters/flint/bark_at_target", offset = 0x10A8C, size = 0x5E4, address = 0x801728AC },
+    { name = "flint_bank", offset = 0x11070, size = 0x8, address = 0x80172E90 },
+]
+package_name = "actor_335800"
+required = true
+sha1 = "14053f362b70c6879a2b4816a62d0160e0152045"
+
+[gary_fire_shotgun]
+type = "clip"
+rig = "characters/gary/rig"
+
+[player_scene_bank]
+type = "animation_bank"
+schema = "rooms/dryfield/night_motel_balcony/player_scene_schema"
+symbol = "_gActor335800PlayerSceneAnimationExtension"
+
+[player_scene_bank.clips]
+stand = "characters/aya/stand"
+balcony_entry = "rooms/dryfield/night_motel_balcony/player_balcony_entry"
+slot_3 = "rooms/dryfield/night_motel_balcony/player_scene_animation_extension_anim_03"
+burner_scene_end = "rooms/dryfield/night_motel_balcony/player_burner_scene_end"
+
+[gary_burner_entry_2]
+type = "clip"
+rig = "characters/gary/rig"
+
+[gary_burner_entry_3]
+type = "clip"
+rig = "characters/gary/rig"
+
+[player_scene_schema]
+type = "animation_schema"
+slots = ["", "stand", "balcony_entry", "slot_3", "burner_scene_end"]
+
+[player_balcony_entry]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_burner_scene_end]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_scene_animation_extension_anim_03]
+type = "clip"
+rig = "characters/aya/rig"

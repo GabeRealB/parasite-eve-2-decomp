@@ -1,0 +1,48 @@
+# The assets of the group rooms/shelter/b2_north_maintenance_walkway, each named rooms/shelter/b2_north_maintenance_walkway/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[stinger_scene]
+type = "pe2pkg"
+embedded = [
+    { asset = "characters/aya/stand", offset = 0x01CD0, size = 0x304, address = 0x80163AF0 },
+    { name = "player_hit_by_stinger", offset = 0x01FD4, size = 0x864, address = 0x80163DF4 },
+    { name = "player_stinger_cue_5", offset = 0x02838, size = 0x4D0, address = 0x80164658 },
+    { name = "player_hear_stinger_speak", offset = 0x02D08, size = 0x270, address = 0x80164B28 },
+    { name = "player_turn_to_stinger", offset = 0x02F78, size = 0x470, address = 0x80164D98 },
+    { name = "player_stinger_scene_bank", offset = 0x0340C, size = 0x18, address = 0x8016522C },
+]
+package_name = "actor_341300"
+required = true
+sha1 = "0ce416174526498485da7345071f1c75c1bab08d"
+
+[player_stinger_cue_5]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_hit_by_stinger]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_turn_to_stinger]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_hear_stinger_speak]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_stinger_scene_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b2_north_maintenance_walkway/player_stinger_scene_schema"
+symbol = "_gActor341300PlayerAnimationExtensionSets"
+
+[player_stinger_scene_bank.clips]
+stand = "characters/aya/stand"
+hit_by_stinger = "rooms/shelter/b2_north_maintenance_walkway/player_hit_by_stinger"
+stinger_cue_5 = "rooms/shelter/b2_north_maintenance_walkway/player_stinger_cue_5"
+hear_stinger_speak = "rooms/shelter/b2_north_maintenance_walkway/player_hear_stinger_speak"
+turn_to_stinger = "rooms/shelter/b2_north_maintenance_walkway/player_turn_to_stinger"
+
+[player_stinger_scene_schema]
+type = "animation_schema"
+slots = ["", "stand", "hit_by_stinger", "stinger_cue_5", "hear_stinger_speak", "turn_to_stinger"]

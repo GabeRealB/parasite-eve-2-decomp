@@ -66,7 +66,68 @@ slot_35 = "characters/aya/examine_exit"
 type = "clip"
 rig = "characters/aya/rig"
 
+[talk]
+type = "clip"
+rig = "characters/aya/rig"
+
 [death]
+type = "clip"
+rig = "characters/aya/rig"
+
+[reply]
+type = "clip"
+rig = "characters/aya/rig"
+
+[stand]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAyaStandClip"
+
+[get_up]
+type = "clip"
+rig = "characters/aya/rig"
+
+[insist]
+type = "clip"
+rig = "characters/aya/rig"
+
+[reason]
+type = "clip"
+rig = "characters/aya/rig"
+
+[anim_06]
+type = "clip"
+rig = "characters/aya/rig"
+
+[anim_07]
+type = "clip"
+rig = "characters/aya/rig"
+
+[anim_08]
+type = "clip"
+rig = "characters/aya/rig"
+
+[ask_why]
+type = "clip"
+rig = "characters/aya/rig"
+
+[explain]
+type = "clip"
+rig = "characters/aya/rig"
+
+[realize]
+type = "clip"
+rig = "characters/aya/rig"
+
+[shocked]
+type = "clip"
+rig = "characters/aya/rig"
+
+[call_out]
+type = "clip"
+rig = "characters/aya/rig"
+
+[converse]
 type = "clip"
 rig = "characters/aya/rig"
 
@@ -78,7 +139,27 @@ rig = "characters/aya/rig"
 type = "clip"
 rig = "characters/aya/rig"
 
+[hurry_up]
+type = "clip"
+rig = "characters/aya/rig"
+
 [item_use]
+type = "clip"
+rig = "characters/aya/rig"
+
+[say_kyle]
+type = "clip"
+rig = "characters/aya/rig"
+
+[talk_end]
+type = "clip"
+rig = "characters/aya/rig"
+
+[on_my_way]
+type = "clip"
+rig = "characters/aya/rig"
+
+[see_flint]
 type = "clip"
 rig = "characters/aya/rig"
 
@@ -86,11 +167,83 @@ rig = "characters/aya/rig"
 type = "clip"
 rig = "characters/aya/rig"
 
+[turn_pale]
+type = "clip"
+rig = "characters/aya/rig"
+
+[you_too_1]
+type = "clip"
+rig = "characters/aya/rig"
+
+[you_too_2]
+type = "clip"
+rig = "characters/aya/rig"
+
+[kneel_talk]
+type = "clip"
+rig = "characters/aya/rig"
+
+[let_her_go]
+type = "clip"
+rig = "characters/aya/rig"
+
+[shooting_1]
+type = "clip"
+rig = "characters/aya/rig"
+
+[shooting_2]
+type = "clip"
+rig = "characters/aya/rig"
+
+[talk_start]
+type = "clip"
+rig = "characters/aya/rig"
+
 [turn_right]
 type = "clip"
 rig = "characters/aya/rig"
 
+[ask_if_hurt]
+type = "clip"
+rig = "characters/aya/rig"
+
+[ask_why_end]
+type = "clip"
+rig = "characters/aya/rig"
+
+[casual_file]
+type = "file"
+
+[[casual_file.contents]]
+chunk = "casual_palette"
+sha1 = "0d1ee4c40459adc1999cc662f1711448762b7603"
+palettes = [
+    { texture = "casual_page_0", variant = "default", region = "engine/vram/character_palette" },
+    { texture = "casual_page_1", variant = "default", region = "engine/vram/character_palette", offset = [0, 1] },
+]
+
+[[casual_file.contents]]
+chunk = "casual_image"
+sha1 = "27dbbb718218617a6b55a834fed308774a4ce38b"
+pages = [
+    { texture = "casual_page_0", region = "engine/vram/character_sheet" },
+    { texture = "casual_page_1", region = "engine/vram/character_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[its_nothing]
+type = "clip"
+rig = "characters/aya/rig"
+
+[call_out_end]
+type = "clip"
+rig = "characters/aya/rig"
+
 [examine_exit]
+type = "clip"
+rig = "characters/aya/rig"
+
+[reason_start]
 type = "clip"
 rig = "characters/aya/rig"
 
@@ -102,11 +255,45 @@ rig = "characters/aya/rig"
 type = "clip"
 rig = "characters/aya/rig"
 
+[casual_page_0]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[casual_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
 [examine_enter]
 type = "clip"
 rig = "characters/aya/rig"
 
+[explain_start]
+type = "clip"
+rig = "characters/aya/rig"
+
 [stair_descent]
+type = "clip"
+rig = "characters/aya/rig"
+
+[kneel_take_key]
+type = "clip"
+rig = "characters/aya/rig"
+
+[this_way_reply]
+type = "clip"
+rig = "characters/aya/rig"
+
+[before_agreeing]
+type = "clip"
+rig = "characters/aya/rig"
+
+[brace_for_fight]
 type = "clip"
 rig = "characters/aya/rig"
 
@@ -119,6 +306,26 @@ type = "clip"
 rig = "characters/aya/rig"
 
 [high_health_idle]
+type = "clip"
+rig = "characters/aya/rig"
+
+[kneel_talk_start]
+type = "clip"
+rig = "characters/aya/rig"
+
+[introduce_herself]
+type = "clip"
+rig = "characters/aya/rig"
+
+[kneel_talk_gesture]
+type = "clip"
+rig = "characters/aya/rig"
+
+[kneel_talk_start_2]
+type = "clip"
+rig = "characters/aya/rig"
+
+[maya_was_my_sister]
 type = "clip"
 rig = "characters/aya/rig"
 

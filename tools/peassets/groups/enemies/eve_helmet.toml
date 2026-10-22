@@ -1,0 +1,158 @@
+# The assets of the group enemies/eve_helmet, each named enemies/eve_helmet/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[hum]
+type = "sound"
+sha1 = "f832f8032e8d8a4959d715276c8527389a62bfdc"
+
+[heal]
+type = "clip"
+rig = "characters/eve/rig"
+
+[idle]
+type = "clip"
+rig = "characters/eve/rig"
+
+[pulse]
+type = "sound"
+sha1 = "55efa31bb8ead6f28e677ab220093d7cc8fac139"
+
+[spark]
+type = "sound"
+sha1 = "34d74261542f7189a5503a0c49287846ca57246f"
+
+[fidget]
+type = "clip"
+rig = "characters/eve/rig"
+
+[sounds]
+type = "sound_bank"
+samples = [
+    "enemies/eve_helmet/hum",
+    "enemies/eve_helmet/pulse",
+    "enemies/eve_helmet/part_hit",
+    "enemies/eve_helmet/explosion",
+    "enemies/eve_helmet/spark",
+]
+sounds = { hum = 1, pulse = 2, part_hit = 3, explosion = 4, spark = 5 }
+sha1 = "dd77ff59171b16b99f9c24cbb192e3e1cc422dac"
+
+[package]
+type = "pe2pkg"
+package_name = "actor_205200"
+required = true
+sha1 = "93c20be0bad55a99a28e52da7e382644b13f41f7"
+
+[[package.embedded]]
+asset = "characters/eve/masked_body"
+offset = 0x02C68
+size = 0x4D88
+address = 0x8014CA88
+
+[[package.embedded]]
+name = "heal"
+offset = 0x079F0
+size = 0x1188
+address = 0x80151810
+
+[[package.embedded]]
+name = "hit_reaction"
+offset = 0x08B78
+size = 0x8EC
+address = 0x80152998
+
+[[package.embedded]]
+name = "idle"
+offset = 0x09464
+size = 0x7E0
+address = 0x80153284
+
+[[package.embedded]]
+name = "fidget"
+offset = 0x09C44
+size = 0xD48
+address = 0x80153A64
+
+[[package.embedded]]
+asset = "enemies/stinger/puppet/player_knockback_front"
+offset = 0x0A98C
+size = 0x848
+address = 0x801547AC
+
+[[package.embedded]]
+asset = "enemies/stinger/puppet/player_knockback_back"
+offset = 0x0B1D4
+size = 0x79C
+address = 0x80154FF4
+
+[[package.embedded]]
+asset = "enemies/stinger/puppet/player_knockback_recover_front"
+offset = 0x0B970
+size = 0x80C
+address = 0x80155790
+
+[[package.embedded]]
+asset = "enemies/stinger/puppet/player_knockback_recover_back"
+offset = 0x0C17C
+size = 0x814
+address = 0x80155F9C
+
+[[package.embedded]]
+name = "body_bank"
+offset = 0x0C9C8
+size = 0x18
+address = 0x801567E8
+
+[[package.embedded]]
+name = "player_knockback_bank"
+offset = 0x0C9E0
+size = 0x14
+address = 0x80156800
+
+[part_hit]
+type = "sound"
+sha1 = "d0709de37b98cd28c9c54307b0b84537217cde81"
+
+[body_bank]
+type = "animation_bank"
+schema = "enemies/eve_helmet/body_schema"
+symbol = "_gActor205200BodyAnimationSets"
+
+[body_bank.clips]
+idle = "enemies/eve_helmet/idle"
+heal = "enemies/eve_helmet/heal"
+hit_reaction = "enemies/eve_helmet/hit_reaction"
+fidget = "enemies/eve_helmet/fidget"
+
+[explosion]
+type = "sound"
+sha1 = "9ec40ca5cfaa54e8e61c87440e8e2703201fd955"
+
+[body_schema]
+type = "animation_schema"
+slots = ["", "idle", "heal", "hit_reaction", "", "fidget"]
+
+[hit_reaction]
+type = "clip"
+rig = "characters/eve/rig"
+
+[player_knockback_bank]
+type = "animation_bank"
+schema = "enemies/eve_helmet/player_knockback_schema"
+symbol = "_gActor205200PlayerKnockbackAnimationSets"
+
+[player_knockback_bank.clips]
+player_knockback_front = "enemies/stinger/puppet/player_knockback_front"
+player_knockback_back = "enemies/stinger/puppet/player_knockback_back"
+player_knockback_recover_front = "enemies/stinger/puppet/player_knockback_recover_front"
+player_knockback_recover_back = "enemies/stinger/puppet/player_knockback_recover_back"
+
+[player_knockback_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "player_knockback_front",
+    "player_knockback_back",
+    "player_knockback_recover_front",
+    "player_knockback_recover_back",
+]

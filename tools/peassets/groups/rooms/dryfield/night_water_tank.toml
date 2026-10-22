@@ -1,0 +1,236 @@
+# The assets of the group rooms/dryfield/night_water_tank, each named rooms/dryfield/night_water_tank/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[pierce]
+type = "pe2pkg"
+embedded = [
+    { name = "player_call_pierce", offset = 0x00D9C, size = 0x5BC, address = 0x80132BBC },
+    { name = "player_see_pierce_stir", offset = 0x01358, size = 0x398, address = 0x80133178 },
+    { name = "player_see_pierce_slump", offset = 0x016F0, size = 0x768, address = 0x80133510 },
+    { name = "player_cry_no", offset = 0x01E58, size = 0x378, address = 0x80133C78 },
+    { name = "player_relieved", offset = 0x021D0, size = 0x73C, address = 0x80133FF0 },
+    { asset = "characters/aya/kneel_talk_start", offset = 0x0290C, size = 0x288, address = 0x8013472C },
+    { asset = "characters/aya/kneel_talk_gesture", offset = 0x02B94, size = 0x4A0, address = 0x801349B4 },
+    { asset = "characters/aya/kneel_talk", offset = 0x03034, size = 0x520, address = 0x80134E54 },
+    { asset = "characters/aya/kneel_take_key", offset = 0x03554, size = 0x2D8, address = 0x80135374 },
+    { asset = "characters/aya/kneel_talk_start_2", offset = 0x0382C, size = 0x2C8, address = 0x8013564C },
+    { name = "player_kneel_talk_2", offset = 0x03AF4, size = 0x520, address = 0x80135914 },
+    { asset = "characters/aya/get_up", offset = 0x04014, size = 0x3A8, address = 0x80135E34 },
+    { name = "player_take_key_start", offset = 0x043BC, size = 0x3C4, address = 0x801361DC },
+    { name = "player_take_key_end", offset = 0x04780, size = 0x298, address = 0x801365A0 },
+    { name = "player_look_at_key", offset = 0x04A18, size = 0x28C, address = 0x80136838 },
+    { name = "player_give_ice_bag", offset = 0x04CA4, size = 0x6D8, address = 0x80136AC4 },
+    { name = "player_give_ice_bag_end", offset = 0x0537C, size = 0x338, address = 0x8013719C },
+    { asset = "characters/aya/converse", offset = 0x056B4, size = 0x3B8, address = 0x801374D4 },
+    { name = "player_scene_bank", offset = 0x05A78, size = 0x48, address = 0x80137898 },
+    { asset = "characters/pierce/body_2", offset = 0x06D50, size = 0x621C, address = 0x80138B70 },
+    { name = "pierce_stir", offset = 0x0D168, size = 0x38C, address = 0x8013EF88 },
+    { name = "pierce_slump", offset = 0x0D4F4, size = 0x6B4, address = 0x8013F314 },
+    { name = "pierce_say_im_fine", offset = 0x0DBA8, size = 0x688, address = 0x8013F9C8 },
+    { name = "pierce_talk", offset = 0x0E230, size = 0x3C0, address = 0x80140050 },
+    { name = "pierce_listen", offset = 0x0E5F0, size = 0x20C, address = 0x80140410 },
+    { name = "pierce_give_key_start", offset = 0x0E7FC, size = 0x2B0, address = 0x8014061C },
+    { name = "pierce_give_key", offset = 0x0EAAC, size = 0x240, address = 0x801408CC },
+    { name = "pierce_give_key_end", offset = 0x0ECEC, size = 0x4C8, address = 0x80140B0C },
+    { name = "pierce_explain_key", offset = 0x0F1B4, size = 0x288, address = 0x80140FD4 },
+    { name = "pierce_pass_out", offset = 0x0F43C, size = 0x474, address = 0x8014125C },
+    { name = "pierce_lie_unconscious", offset = 0x0F8B0, size = 0x19C, address = 0x801416D0 },
+    { name = "pierce_wait_for_ice_bag", offset = 0x0FA4C, size = 0x2A0, address = 0x8014186C },
+    { name = "pierce_protest", offset = 0x0FCEC, size = 0x20C, address = 0x80141B0C },
+    { asset = "characters/pierce/rest", offset = 0x0FEF8, size = 0x27C, address = 0x80141D18 },
+    { asset = "characters/pierce/departure_reply", offset = 0x10174, size = 0x294, address = 0x80141F94 },
+    { asset = "characters/pierce/anim_04", offset = 0x10408, size = 0x574, address = 0x80142228 },
+    { name = "pierce_bank", offset = 0x109C0, size = 0x44, address = 0x801427E0 },
+]
+package_name = "actor_146300"
+required = true
+sha1 = "e5c497863dda098f0bc58b01c78cb86808aed7f0"
+
+[pierce_bank]
+type = "animation_bank"
+schema = "rooms/dryfield/night_water_tank/pierce_schema"
+symbol = "_gActor146300FigureAnimationSets"
+
+[pierce_bank.clips]
+stir = "rooms/dryfield/night_water_tank/pierce_stir"
+slump = "rooms/dryfield/night_water_tank/pierce_slump"
+say_im_fine = "rooms/dryfield/night_water_tank/pierce_say_im_fine"
+talk = "rooms/dryfield/night_water_tank/pierce_talk"
+listen = "rooms/dryfield/night_water_tank/pierce_listen"
+give_key_start = "rooms/dryfield/night_water_tank/pierce_give_key_start"
+give_key = "rooms/dryfield/night_water_tank/pierce_give_key"
+give_key_end = "rooms/dryfield/night_water_tank/pierce_give_key_end"
+explain_key = "rooms/dryfield/night_water_tank/pierce_explain_key"
+pass_out = "rooms/dryfield/night_water_tank/pierce_pass_out"
+lie_unconscious = "rooms/dryfield/night_water_tank/pierce_lie_unconscious"
+wait_for_ice_bag = "rooms/dryfield/night_water_tank/pierce_wait_for_ice_bag"
+protest = "rooms/dryfield/night_water_tank/pierce_protest"
+rest = "characters/pierce/rest"
+thank = "characters/pierce/departure_reply"
+talk_recovered = "characters/pierce/anim_04"
+
+[pierce_stir]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_talk]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_slump]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_listen]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "stir",
+    "slump",
+    "say_im_fine",
+    "talk",
+    "listen",
+    "give_key_start",
+    "give_key",
+    "give_key_end",
+    "explain_key",
+    "pass_out",
+    "lie_unconscious",
+    "wait_for_ice_bag",
+    "protest",
+    "rest",
+    "thank",
+    "talk_recovered",
+]
+
+[player_cry_no]
+type = "clip"
+rig = "characters/aya/rig"
+
+[pierce_protest]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_give_key]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_pass_out]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[player_relieved]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_scene_bank]
+type = "animation_bank"
+schema = "rooms/dryfield/night_water_tank/player_scene_schema"
+symbol = "_gActor146300PlayerBankExtension"
+
+[player_scene_bank.clips]
+call_pierce = "rooms/dryfield/night_water_tank/player_call_pierce"
+see_pierce_stir = "rooms/dryfield/night_water_tank/player_see_pierce_stir"
+see_pierce_slump = "rooms/dryfield/night_water_tank/player_see_pierce_slump"
+cry_no = "rooms/dryfield/night_water_tank/player_cry_no"
+relieved = "rooms/dryfield/night_water_tank/player_relieved"
+kneel_talk_start = "characters/aya/kneel_talk_start"
+kneel_talk_gesture = "characters/aya/kneel_talk_gesture"
+kneel_talk = "characters/aya/kneel_talk"
+kneel_take_key = "characters/aya/kneel_take_key"
+kneel_talk_start_2 = "characters/aya/kneel_talk_start_2"
+kneel_talk_2 = "rooms/dryfield/night_water_tank/player_kneel_talk_2"
+get_up = "characters/aya/get_up"
+take_key_start = "rooms/dryfield/night_water_tank/player_take_key_start"
+take_key_end = "rooms/dryfield/night_water_tank/player_take_key_end"
+look_at_key = "rooms/dryfield/night_water_tank/player_look_at_key"
+give_ice_bag = "rooms/dryfield/night_water_tank/player_give_ice_bag"
+give_ice_bag_end = "rooms/dryfield/night_water_tank/player_give_ice_bag_end"
+converse = "characters/aya/converse"
+
+[pierce_explain_key]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_say_im_fine]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[player_call_pierce]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_look_at_key]
+type = "clip"
+rig = "characters/aya/rig"
+
+[pierce_give_key_end]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[player_give_ice_bag]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_kneel_talk_2]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_scene_schema]
+type = "animation_schema"
+slots = [
+    "call_pierce",
+    "see_pierce_stir",
+    "see_pierce_slump",
+    "cry_no",
+    "relieved",
+    "kneel_talk_start",
+    "kneel_talk_gesture",
+    "kneel_talk",
+    "kneel_take_key",
+    "kneel_talk_start_2",
+    "kneel_talk_2",
+    "get_up",
+    "take_key_start",
+    "take_key_end",
+    "look_at_key",
+    "give_ice_bag",
+    "give_ice_bag_end",
+    "converse",
+]
+
+[player_take_key_end]
+type = "clip"
+rig = "characters/aya/rig"
+
+[pierce_give_key_start]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[player_take_key_start]
+type = "clip"
+rig = "characters/aya/rig"
+
+[pierce_lie_unconscious]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[player_see_pierce_stir]
+type = "clip"
+rig = "characters/aya/rig"
+
+[pierce_wait_for_ice_bag]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[player_give_ice_bag_end]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_see_pierce_slump]
+type = "clip"
+rig = "characters/aya/rig"

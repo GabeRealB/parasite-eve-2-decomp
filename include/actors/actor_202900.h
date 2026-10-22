@@ -4,6 +4,6 @@
 #include "gameplay/animation.h"
 
 // Native animation sets referenced by room script banks.
-extern AnimationSet gActor202900Animation06098;
+extern AnimationSet gAkropolisCafeteriaPlayerCafeteriaOpeningClip;
 
 #endif // INCLUDE_ACTORS_ACTOR_202900_H

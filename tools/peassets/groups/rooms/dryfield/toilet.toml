@@ -1,0 +1,60 @@
+# The assets of the group rooms/dryfield/toilet, each named rooms/dryfield/toilet/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[anmc_woman]
+type = "pe2pkg"
+embedded = [
+    { asset = "characters/anmc_woman_1/body", offset = 0x01A8C, size = 0x5978, address = 0x801638AC },
+    { asset = "enemies/stranger/lesser/body", offset = 0x07404, size = 0x808C, address = 0x80169224 },
+    { name = "woman_idle_in_stall", offset = 0x0F490, size = 0xB5C, address = 0x801712B0 },
+    { asset = "characters/aya/stand", offset = 0x0FFEC, size = 0x304, address = 0x80171E0C },
+    { name = "woman_turn", offset = 0x102F0, size = 0x438, address = 0x80172110 },
+    { name = "woman_bank", offset = 0x10728, size = 0x10, address = 0x80172548 },
+    { name = "stranger_transform", offset = 0x107D0, size = 0x181C, address = 0x801725F0 },
+    { asset = "rooms/akropolis/patio/body_anim_01", offset = 0x11FEC, size = 0x41C, address = 0x80173E0C },
+    { asset = "enemies/stranger/odd/alert", offset = 0x12408, size = 0x838, address = 0x80174228 },
+    { name = "stranger_bank", offset = 0x12C40, size = 0x10, address = 0x80174A60 },
+]
+package_name = "actor_323300"
+required = true
+sha1 = "542581dde72b405dd2a660213e9802089d84cc19"
+
+[woman_bank]
+type = "animation_bank"
+schema = "rooms/dryfield/toilet/woman_schema"
+symbol = "_gActor323300WomanAnimSets"
+
+[woman_bank.clips]
+idle_in_stall = "rooms/dryfield/toilet/woman_idle_in_stall"
+turn = "rooms/dryfield/toilet/woman_turn"
+turn_complete = "characters/aya/stand"
+
+[woman_turn]
+type = "clip"
+rig = "characters/anmc_woman_1/rig"
+
+[woman_schema]
+type = "animation_schema"
+slots = ["", "idle_in_stall", "turn", "turn_complete"]
+
+[stranger_bank]
+type = "animation_bank"
+schema = "rooms/dryfield/toilet/stranger_schema"
+symbol = "_gActor323300StrangerAnimationSets"
+
+[stranger_bank.clips]
+transform = "rooms/dryfield/toilet/stranger_transform"
+slot_2 = "rooms/akropolis/patio/body_anim_01"
+alert = "enemies/stranger/odd/alert"
+
+[stranger_schema]
+type = "animation_schema"
+slots = ["", "transform", "slot_2", "alert"]
+
+[stranger_transform]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[woman_idle_in_stall]
+type = "clip"
+rig = "characters/anmc_woman_1/rig"

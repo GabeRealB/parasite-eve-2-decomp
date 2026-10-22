@@ -5,12 +5,12 @@
 type = "file"
 
 [[file.contents]]
-chunk = "palette"
+chunk = "preview_palette"
 sha1 = "d937aa2371da36a5c77088e8dbecb254f1aa61ec"
 palettes = [{ texture = "preview", variant = "default", region = "engine/vram/preview_palette" }]
 
 [[file.contents]]
-chunk = "image"
+chunk = "preview_image"
 sha1 = "f526c643dbaf8175713733c2a4b2c5dfe183dce8"
 pages = [{ texture = "preview", region = "engine/vram/preview_picture", upload = "engine/vram/preview_picture" }]
 

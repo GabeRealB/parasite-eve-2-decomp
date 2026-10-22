@@ -191,133 +191,13 @@ static s16 _gActor342400EncounterSpotChoices[6][4] = {
     { 9, 15, 9, 15 },
 };
 
-static TmdBone _gMadChaserBurstHeadSkeleton[] = {
-#include "assets/mad_chaser_burst_head_skeleton.inc"
-};
+#include "assets/enemies/chaser/mad/burst_head.inc"
 
-static u32 _gMadChaserBurstHeadPartVerts[] = {
-#include "assets/mad_chaser_burst_head_partVerts.inc"
-};
+#include "assets/enemies/chaser/mad/burst_arm.inc"
 
-static SVECTOR _gMadChaserBurstHeadVerts[] = {
-#include "assets/mad_chaser_burst_head_verts.inc"
-};
+#include "assets/enemies/chaser/mad/burst_tail.inc"
 
-static SVECTOR _gMadChaserBurstHeadNormals[] = {
-#include "assets/mad_chaser_burst_head_normals.inc"
-};
-
-static u32 _gMadChaserBurstHeadStream[] = {
-#include "assets/mad_chaser_burst_head_stream.inc"
-};
-
-TmdSource gMadChaserBurstHead = {
-    .handlersResolved    = MAD_CHASER_BURST_HEAD_HANDLERS_UNRESOLVED,
-    .bufferHalfBytes     = MAD_CHASER_BURST_HEAD_TRIANGLE_COUNT * sizeof(POLY_GT3) + MAD_CHASER_BURST_HEAD_QUAD_COUNT * sizeof(POLY_GT4),
-    .preXformRegionBytes = 0,
-    .partCount           = ARRAY_SIZE(_gMadChaserBurstHeadSkeleton),
-    .partVertexCounts    = _gMadChaserBurstHeadPartVerts,
-    .verts               = _gMadChaserBurstHeadVerts,
-    .normals             = _gMadChaserBurstHeadNormals,
-    .skeleton            = _gMadChaserBurstHeadSkeleton,
-    .stream              = _gMadChaserBurstHeadStream,
-};
-
-static TmdBone _gMadChaserBurstArmSkeleton[1] = {
-#include "assets/mad_chaser_burst_arm_skeleton.inc"
-};
-
-static u32 _gMadChaserBurstArmPartVerts[1] = {
-#include "assets/mad_chaser_burst_arm_partVerts.inc"
-};
-
-static SVECTOR _gMadChaserBurstArmVerts[28] = {
-#include "assets/mad_chaser_burst_arm_verts.inc"
-};
-
-static SVECTOR _gMadChaserBurstArmNormals[37] = {
-#include "assets/mad_chaser_burst_arm_normals.inc"
-};
-
-static u32 _gMadChaserBurstArmStream[276] = {
-#include "assets/mad_chaser_burst_arm_stream.inc"
-};
-
-TmdSource gMadChaserBurstArm = {
-    0,
-    34 * sizeof(POLY_GT3) + 9 * sizeof(POLY_GT4),
-    0,
-    ARRAY_SIZE(_gMadChaserBurstArmSkeleton),
-    _gMadChaserBurstArmPartVerts,
-    _gMadChaserBurstArmVerts,
-    _gMadChaserBurstArmNormals,
-    _gMadChaserBurstArmSkeleton,
-    _gMadChaserBurstArmStream,
-};
-
-static TmdBone _gMadChaserBurstTailSkeleton[] = {
-#include "assets/mad_chaser_burst_tail_skeleton.inc"
-};
-
-static u32 _gMadChaserBurstTailPartVerts[] = {
-#include "assets/mad_chaser_burst_tail_partVerts.inc"
-};
-
-static SVECTOR _gMadChaserBurstTailVerts[] = {
-#include "assets/mad_chaser_burst_tail_verts.inc"
-};
-
-static SVECTOR _gMadChaserBurstTailNormals[] = {
-#include "assets/mad_chaser_burst_tail_normals.inc"
-};
-
-static u32 _gMadChaserBurstTailStream[] = {
-#include "assets/mad_chaser_burst_tail_stream.inc"
-};
-
-TmdSource gMadChaserBurstTail = {
-    .handlersResolved    = MAD_CHASER_BURST_TAIL_HANDLERS_UNRESOLVED,
-    .bufferHalfBytes     = MAD_CHASER_BURST_TAIL_TRIANGLE_COUNT * sizeof(POLY_GT3) + MAD_CHASER_BURST_TAIL_QUAD_COUNT * sizeof(POLY_GT4),
-    .preXformRegionBytes = 0,
-    .partCount           = ARRAY_SIZE(_gMadChaserBurstTailSkeleton),
-    .partVertexCounts    = _gMadChaserBurstTailPartVerts,
-    .verts               = _gMadChaserBurstTailVerts,
-    .normals             = _gMadChaserBurstTailNormals,
-    .skeleton            = _gMadChaserBurstTailSkeleton,
-    .stream              = _gMadChaserBurstTailStream,
-};
-
-static TmdBone _gActor342400MadChaserBodySkeleton[9] = {
-#include "assets/mad_chaser_body_skeleton.inc"
-};
-
-static u32 _gActor342400MadChaserBodyPartVerts[9] = {
-#include "assets/mad_chaser_body_partVerts.inc"
-};
-
-static SVECTOR _gActor342400MadChaserBodyVerts[160] = {
-#include "assets/mad_chaser_body_verts.inc"
-};
-
-static SVECTOR _gActor342400MadChaserBodyNormals[206] = {
-#include "assets/mad_chaser_body_normals.inc"
-};
-
-static u32 _gActor342400MadChaserBodyStream[2105] = {
-#include "assets/mad_chaser_body_stream.inc"
-};
-
-TmdSource gActor342400MadChaserBody = {
-    0,
-    11212,
-    3088,
-    9,
-    _gActor342400MadChaserBodyPartVerts,
-    _gActor342400MadChaserBodyVerts,
-    _gActor342400MadChaserBodyNormals,
-    _gActor342400MadChaserBodySkeleton,
-    _gActor342400MadChaserBodyStream,
-};
+#include "assets/enemies/chaser/mad/body.inc"
 
 enum { MAD_CHASER_ATTACK_REACTION_NORMAL = 0 };
 

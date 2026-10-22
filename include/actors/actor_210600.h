@@ -4,18 +4,18 @@
 #include "gameplay/animation.h"
 
 // Native animation sets referenced by room script banks.
-extern AnimationSet gActor210600Animation07EF4;
+extern AnimationSet gAkropolisCafeteriaPlayerCafeteriaRupertTalkClip;
 
-extern AnimationSet gActor210600Animation0A050;
+extern AnimationSet gAkropolisCafeteriaPlayerCafeteriaFollowUpEndClip;
 
-extern AnimationSet gActor210600Animation11F5C;
+extern AnimationSet gAkropolisCafeteriaBossStrangerCollapseClip;
 
-extern AnimationSet gActor210600Animation12244;
+extern AnimationSet gStrangerLesserIdleClip;
 
-extern AnimationSet gActor210600Animation12B30;
+extern AnimationSet gAkropolisCafeteriaBossStrangerFollowUp3Clip;
 
-extern AnimationSet gActor210600Animation134C8;
+extern AnimationSet gAkropolisCafeteriaExtraAnim7Clip;
 
-extern AnimationSet gActor210600Animation1310C;
+extern AnimationSet gAkropolisCafeteriaExtraAnim6Clip;
 
 #endif // INCLUDE_ACTORS_ACTOR_210600_H

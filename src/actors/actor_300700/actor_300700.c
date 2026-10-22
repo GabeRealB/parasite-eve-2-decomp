@@ -59,59 +59,9 @@ static void _mothTask(Task* task);
 static void _mothSquash(Task* task);
 static void _mothUpdateColor(Task* task);
 
-static TmdBone _gActor300700MothBodySkeleton[4] = {
-#include "assets/moth_body_skeleton.inc"
-};
+#include "assets/encounters/rat_and_moth/moth_body.inc"
 
-static u32 _gActor300700MothBodyPartVerts[4] = {
-#include "assets/moth_body_partVerts.inc"
-};
-
-static SVECTOR _gActor300700MothBodyVerts[26] = {
-#include "assets/moth_body_verts.inc"
-};
-
-static SVECTOR _gActor300700MothBodyNormals[20] = {
-#include "assets/moth_body_normals.inc"
-};
-
-static u32 _gActor300700MothBodyStream[265] = {
-#include "assets/moth_body_stream.inc"
-};
-
-static TmdSource _gActor300700MothBody = {
-    0,
-    1488,
-    208,
-    4,
-    _gActor300700MothBodyPartVerts,
-    _gActor300700MothBodyVerts,
-    _gActor300700MothBodyNormals,
-    _gActor300700MothBodySkeleton,
-    _gActor300700MothBodyStream,
-};
-
-static AnimationPackedPose _gActor300700Animation03D1CBank1[2] = {
-#include "assets/actor_300700_animation_03D1C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor300700Animation03D1CBank4[1] = {
-#include "assets/actor_300700_animation_03D1C_bank4.inc"
-};
-
-static AnimationRecord _gActor300700Animation03D1CRecords[12] = {
-#include "assets/actor_300700_animation_03D1C_records.inc"
-};
-
-static u16 _gActor300700Animation03D1CIndices[4] = {
-#include "assets/actor_300700_animation_03D1C_indices.inc"
-};
-
-static AnimationSet _gActor300700Animation03D1C = {
-    _gActor300700Animation03D1CRecords,
-    _gActor300700Animation03D1CIndices,
-    { NULL, _gActor300700Animation03D1CBank1, NULL, NULL, _gActor300700Animation03D1CBank4, NULL, NULL, NULL },
-};
+#include "assets/encounters/rat_and_moth/package_3_clips_1.inc"
 
 /// Attack delivered by the moth's death sphere: base power 5 and darkness reaction.
 static DamageAttack _gMothAttack = { .power = 5, .reaction = MOTH_BURST_REACTION_DARKNESS };
@@ -144,16 +94,13 @@ static u16 _gMothPursuitSpeeds[MOTH_PLACEMENT_ROW_COUNT] = {
     36,
 };
 
-TaskDesc gActor300700MothTaskDesc = { { { TASK_BODY_TMD, 96 } }, _mothTask, { .model = &_gActor300700MothBody } };
+TaskDesc gActor300700MothTaskDesc = { { { TASK_BODY_TMD, 96 } }, _mothTask, { .model = &_gRatAndMothMothBody } };
 
 /// Moth rest-pose sets: entry 0 empty, entry 1 seeds articulated slots 1..3.
 ///
 /// The rig borrows this table while its package is loaded. Wing motion is
 /// procedural; the rest-pose clip is never ticked after spawn.
-static AnimationSet* _gMothAnimSets[MOTH_ANIM_SET_COUNT] = {
-    NULL,
-    [MOTH_ANIM_REST_POSE] = &_gActor300700Animation03D1C,
-};
+#include "assets/encounters/rat_and_moth/moth_bank.inc"
 
 /// Texture origins of the eight 32-texel-square cells in the moth death burst.
 ///
@@ -170,37 +117,7 @@ static ActorSpriteUv _gMothBurstUvs[MOTH_BURST_CELL_COUNT] = {
     { 96, 0, 224, 0 },
 };
 
-static TmdBone _gActor300700RatBodySkeleton[7] = {
-#include "assets/rat_body_skeleton.inc"
-};
-
-static u32 _gActor300700RatBodyPartVerts[7] = {
-#include "assets/rat_body_partVerts.inc"
-};
-
-static SVECTOR _gActor300700RatBodyVerts[78] = {
-#include "assets/rat_body_verts.inc"
-};
-
-static SVECTOR _gActor300700RatBodyNormals[113] = {
-#include "assets/rat_body_normals.inc"
-};
-
-static u32 _gActor300700RatBodyStream[1101] = {
-#include "assets/rat_body_stream.inc"
-};
-
-TmdSource gActor300700RatBody = {
-    0,
-    5164,
-    2392,
-    7,
-    _gActor300700RatBodyPartVerts,
-    _gActor300700RatBodyVerts,
-    _gActor300700RatBodyNormals,
-    _gActor300700RatBodySkeleton,
-    _gActor300700RatBodyStream,
-};
+#include "assets/encounters/rat_and_moth/rat_body.inc"
 
 #include "../../shared/creatures/moth/moth.inc.c"
 /// Task-state callbacks: 0 spawn, 1 living update, 2 death; copied before dispatch.

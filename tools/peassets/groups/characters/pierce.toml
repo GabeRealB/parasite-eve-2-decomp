@@ -1,0 +1,210 @@
+# The assets of the group characters/pierce, each named characters/pierce/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = [
+    "joint_0",
+    "joint_1",
+    "joint_2",
+    "joint_3",
+    "joint_4",
+    "joint_5",
+    "joint_6",
+    "joint_7",
+    "joint_8",
+    "joint_9",
+    "joint_10",
+    "joint_11",
+    "joint_12",
+    "joint_13",
+    "joint_14",
+    "joint_15",
+    "joint_16",
+    "joint_17",
+    "joint_18",
+    "joint_19",
+]
+
+[body]
+type = "model"
+rig = "characters/pierce/rig"
+slots = ["page_2", "page_1"]
+symbol = "_gPierceBody"
+sha1 = "7c14187bb68fa20c7e67fc9d635a95059a951565"
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "image"
+sha1 = "dac3100ce5a24613f1805b83c3e6c56c3e88bae8"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "efef11c905491164179c00ab6937a586729d3c4e"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[file.contents]]
+asset = "actor_109300"
+
+[joke]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[rest]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[walk]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[greet]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[body_2]
+type = "model"
+rig = "characters/pierce/rig"
+slots = ["2_page_2", "2_page_1"]
+symbol = "_gPierceBody2"
+sha1 = "6fafa8a3c5ed13a2723973cf1e0c7f5b7385429b"
+
+[file_2]
+type = "file"
+
+[[file_2.contents]]
+chunk = "palette_2"
+sha1 = "d43eb50d94fd2d8d9969bdc4c410984ccd9d0238"
+palettes = [
+    { texture = "texture_2_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_2_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[file_2.contents]]
+chunk = "image_2"
+sha1 = "c4175c67a267f8387d0f9a6fd96a7ec72878e12b"
+pages = [
+    { texture = "texture_2_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_2_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[file_2.contents]]
+asset = "rooms/dryfield/night_water_tank/pierce"
+
+[anim_04]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[anim_12]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[anim_21]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[anim_30]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[anim_35]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[glasses]
+type = "model"
+slots = ["page_2"]
+symbol = "_gPierceGlasses"
+sha1 = "88d218fe62a3239bacef997394a630959e01506c"
+
+[id_badge]
+type = "model"
+slots = ["page_2"]
+symbol = "_gPierceIdBadge"
+sha1 = "05a2e3e8110a604b9df5079d575ea8c0eab94ae4"
+
+[story_17]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[ask_upset]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[body_binding]
+type = "binding"
+model = "characters/pierce/body"
+textures = { page_2 = "characters/pierce/texture_page_2.default", page_1 = "characters/pierce/texture_page_1.default" }
+
+[implant_talk]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[body_2_binding]
+type = "binding"
+model = "characters/pierce/body_2"
+
+[body_2_binding.textures]
+2_page_2 = "characters/pierce/texture_2_page_2.default"
+2_page_1 = "characters/pierce/texture_2_page_1.default"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[departure_reply]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[glasses_binding]
+type = "binding"
+model = "characters/pierce/glasses"
+textures = { page_2 = "characters/pierce/texture_page_2.default" }
+
+[explain_analysis]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[id_badge_binding]
+type = "binding"
+model = "characters/pierce/id_badge"
+textures = { page_2 = "characters/pierce/texture_page_2.default" }
+
+[texture_2_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_2_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[parking_arrival_12]
+type = "clip"
+rig = "characters/pierce/rig"

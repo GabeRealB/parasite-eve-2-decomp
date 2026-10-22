@@ -131,12 +131,16 @@
 /// for either to act.
 #define ODD_STRANGER_DEATH_PLAYER_RESUME_MODE PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET
 
+/// The burst debris models the shared walking death spawns as parts 9 and 3: this build's own.
+#define ODD_STRANGER_BURST_PART_3_MODEL _gStrangerOddBBurstHead
+#define ODD_STRANGER_BURST_PART_9_MODEL _gStrangerBurstHand
+
 /// Borrowed model source for walking death's second debris spawn, at state tick 5.
 ///
 /// A `TmdSource*` published into the burst descriptor before spawning at part 1.
 /// Each carrier must declare its selected model before expanding this binding,
 /// and keep the source loaded through the debris task's lifetime.
-#define ODD_STRANGER_WALK_DEATH_SECOND_DEBRIS_MODEL (&_gActor401000BurstPart1Model)
+#define ODD_STRANGER_WALK_DEATH_SECOND_DEBRIS_MODEL (&_gStrangerOddBBurstTorso)
 #elif ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401800
 #define ODD_STRANGER_HAS_EFFECT_OFFSET              0
 #define ODD_STRANGER_WALK_FIRST_SOUND_CUE           0x10
@@ -156,7 +160,10 @@
 #define ODD_STRANGER_DOWN_JITTER_MASK               7
 #define ODD_STRANGER_KNOCKDOWN_DAMAGE_THRESHOLD     0x38
 #define ODD_STRANGER_DEATH_PLAYER_RESUME_MODE       PLAYER_ACTOR_END_SCRIPTED_DEFAULT
-#define ODD_STRANGER_WALK_DEATH_SECOND_DEBRIS_MODEL (&_gOddStrangerBurstPart9Model)
+/// The burst debris models the shared walking death spawns as parts 9 and 3: this build's own.
+#define ODD_STRANGER_BURST_PART_3_MODEL             _gStrangerOddBurstHead
+#define ODD_STRANGER_BURST_PART_9_MODEL             _gStrangerOddBurstArm
+#define ODD_STRANGER_WALK_DEATH_SECOND_DEBRIS_MODEL (&ODD_STRANGER_BURST_PART_9_MODEL)
 #else
 #error "ODD_STRANGER_BUILD must be ODD_STRANGER_BUILD_401000 or ODD_STRANGER_BUILD_401800"
 #endif

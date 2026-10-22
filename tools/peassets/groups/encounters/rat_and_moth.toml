@@ -1,0 +1,297 @@
+# The assets of the group encounters/rat_and_moth, each named encounters/rat_and_moth/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[sounds]
+type = "sound_bank"
+samples = [
+    "encounters/rat_and_moth/rat_idle_sound",
+    "encounters/rat_and_moth/rat_hurt_sound",
+    "encounters/rat_and_moth/rat_alert",
+    "encounters/rat_and_moth/rat_recover",
+    "encounters/rat_and_moth/moth_death",
+    "encounters/rat_and_moth/moth_flutter",
+]
+sounds = { idle = 1, hurt = 2, alert = 3, recover = 4, death = 5, moth_death = 6, moth_flutter = 8 }
+sha1 = "40d2063663c9b0bf7560806697dd513de42322df"
+
+[rat_rig]
+type = "rig"
+joints = ["root", "body", "hind_legs", "hind_feet", "chest", "head", "front_legs"]
+
+[rat_run]
+type = "clip"
+rig = "encounters/rat_and_moth/rat_rig"
+
+[moth_rig]
+type = "rig"
+joints = ["root", "body", "left_wing", "right_wing"]
+
+[rat_bank]
+type = "animation_bank"
+schema = "encounters/rat_and_moth/rat_schema"
+symbol = "_gRatAnimSets"
+
+[rat_bank.clips]
+idle = "encounters/rat_and_moth/rat_idle"
+run = "encounters/rat_and_moth/rat_run"
+back_off = "encounters/rat_and_moth/rat_back_off"
+bite = "encounters/rat_and_moth/rat_bite"
+hurt = "encounters/rat_and_moth/rat_hurt"
+collapse = "encounters/rat_and_moth/rat_collapse"
+walk = "encounters/rat_and_moth/rat_walk"
+buildup_hold = "encounters/rat_and_moth/rat_buildup_hold"
+stagger_recover = "encounters/rat_and_moth/rat_stagger_recover"
+stagger = "encounters/rat_and_moth/rat_stagger"
+
+[rat_bite]
+type = "clip"
+rig = "encounters/rat_and_moth/rat_rig"
+
+[rat_body]
+type = "model"
+rig = "encounters/rat_and_moth/rat_rig"
+slots = ["page_1"]
+symbol = "gRatAndMothRatBody"
+sha1 = "8d2834e807a5d4fcd5d3f3b53677bc78fa6574ac"
+
+[rat_hurt]
+type = "clip"
+rig = "encounters/rat_and_moth/rat_rig"
+
+[rat_idle]
+type = "clip"
+rig = "encounters/rat_and_moth/rat_rig"
+
+[rat_walk]
+type = "clip"
+rig = "encounters/rat_and_moth/rat_rig"
+
+[moth_bank]
+type = "animation_bank"
+clips = { rest_pose = "encounters/rat_and_moth/moth_rest_pose" }
+schema = "encounters/rat_and_moth/moth_schema"
+symbol = "_gMothAnimSets"
+
+[moth_body]
+type = "model"
+rig = "encounters/rat_and_moth/moth_rig"
+slots = ["page_1"]
+symbol = "_gRatAndMothMothBody"
+sha1 = "43f917a2adc7ac90f2a77c24640eb7256252a591"
+
+[package_1]
+type = "pe2pkg"
+embedded = [
+    { name = "rat_body", offset = 0x03670, size = 0x1868, address = 0x80135490 },
+    { name = "rat_idle", offset = 0x04ED8, size = 0x510, address = 0x80136CF8 },
+    { name = "rat_run", offset = 0x053E8, size = 0x2BC, address = 0x80137208 },
+    { name = "rat_back_off", offset = 0x056A4, size = 0x490, address = 0x801374C4 },
+    { name = "rat_bite", offset = 0x05B34, size = 0x340, address = 0x80137954 },
+    { name = "rat_hurt", offset = 0x05E74, size = 0x240, address = 0x80137C94 },
+    { name = "rat_collapse", offset = 0x060B4, size = 0x27C, address = 0x80137ED4 },
+    { name = "rat_walk", offset = 0x06330, size = 0x340, address = 0x80138150 },
+    { name = "rat_buildup_hold", offset = 0x06670, size = 0x194, address = 0x80138490 },
+    { name = "rat_stagger_recover", offset = 0x06804, size = 0x294, address = 0x80138624 },
+    { name = "rat_stagger", offset = 0x06A98, size = 0x344, address = 0x801388B8 },
+    { name = "rat_bank", offset = 0x06E6C, size = 0x2C, address = 0x80138C8C },
+    { name = "moth_body", offset = 0x06EB0, size = 0x658, address = 0x80138CD0 },
+    { name = "moth_rest_pose", offset = 0x07508, size = 0x7C, address = 0x80139328 },
+    { name = "moth_bank", offset = 0x075B4, size = 0x8, address = 0x801393D4 },
+]
+package_name = "actor_100700"
+required = true
+sha1 = "52acdedb3c93a9ba077407129b988957473f19d6"
+
+[package_2]
+type = "pe2pkg"
+embedded = [
+    { name = "rat_idle", offset = 0x04ED8, size = 0x510, address = 0x8014ECF8 },
+    { name = "rat_run", offset = 0x053E8, size = 0x2BC, address = 0x8014F208 },
+    { name = "rat_back_off", offset = 0x056A4, size = 0x490, address = 0x8014F4C4 },
+    { name = "rat_bite", offset = 0x05B34, size = 0x340, address = 0x8014F954 },
+    { name = "rat_hurt", offset = 0x05E74, size = 0x240, address = 0x8014FC94 },
+    { name = "rat_collapse", offset = 0x060B4, size = 0x27C, address = 0x8014FED4 },
+    { name = "rat_walk", offset = 0x06330, size = 0x340, address = 0x80150150 },
+    { name = "rat_buildup_hold", offset = 0x06670, size = 0x194, address = 0x80150490 },
+    { name = "rat_stagger_recover", offset = 0x06804, size = 0x294, address = 0x80150624 },
+    { name = "rat_stagger", offset = 0x06A98, size = 0x344, address = 0x801508B8 },
+    { name = "rat_bank", offset = 0x06E6C, size = 0x2C, address = 0x80150C8C },
+    { name = "moth_rest_pose", offset = 0x07508, size = 0x7C, address = 0x80151328 },
+    { name = "moth_bank", offset = 0x075B4, size = 0x8, address = 0x801513D4 },
+]
+package_name = "actor_200700"
+required = true
+sha1 = "6e801162769bc06ad795ef2fb8ded79a05b59677"
+
+[package_3]
+type = "pe2pkg"
+embedded = [
+    { name = "moth_rest_pose", offset = 0x03CC8, size = 0x7C, address = 0x80165AE8 },
+    { name = "moth_bank", offset = 0x03D74, size = 0x8, address = 0x80165B94 },
+    { name = "rat_idle", offset = 0x05604, size = 0x510, address = 0x80167424 },
+    { name = "rat_run", offset = 0x05B14, size = 0x2BC, address = 0x80167934 },
+    { name = "rat_back_off", offset = 0x05DD0, size = 0x490, address = 0x80167BF0 },
+    { name = "rat_bite", offset = 0x06260, size = 0x340, address = 0x80168080 },
+    { name = "rat_hurt", offset = 0x065A0, size = 0x240, address = 0x801683C0 },
+    { name = "rat_collapse", offset = 0x067E0, size = 0x27C, address = 0x80168600 },
+    { name = "rat_walk", offset = 0x06A5C, size = 0x340, address = 0x8016887C },
+    { name = "rat_buildup_hold", offset = 0x06D9C, size = 0x194, address = 0x80168BBC },
+    { name = "rat_stagger_recover", offset = 0x06F30, size = 0x294, address = 0x80168D50 },
+    { name = "rat_stagger", offset = 0x071C4, size = 0x344, address = 0x80168FE4 },
+    { name = "rat_bank_2", offset = 0x07598, size = 0x2C, address = 0x801693B8 },
+]
+package_name = "actor_300700"
+required = true
+sha1 = "35df38b05476b011a540ef69c959aeecf787f279"
+
+[rat_alert]
+type = "sound"
+sha1 = "15379a2e201ba3dd279a7cc73a35a5fce4aaaeef"
+
+[moth_death]
+type = "sound"
+sha1 = "51d36ad25e64027dbeaa099145cd049ff064c055"
+
+[rat_bank_2]
+type = "animation_bank"
+schema = "encounters/rat_and_moth/rat_schema_2"
+symbol = "gRatAnimSets"
+
+[rat_bank_2.clips]
+idle = "encounters/rat_and_moth/rat_idle"
+run = "encounters/rat_and_moth/rat_run"
+back_off = "encounters/rat_and_moth/rat_back_off"
+bite = "encounters/rat_and_moth/rat_bite"
+hurt = "encounters/rat_and_moth/rat_hurt"
+collapse = "encounters/rat_and_moth/rat_collapse"
+walk = "encounters/rat_and_moth/rat_walk"
+buildup_hold = "encounters/rat_and_moth/rat_buildup_hold"
+stagger_recover = "encounters/rat_and_moth/rat_stagger_recover"
+stagger = "encounters/rat_and_moth/rat_stagger"
+
+[rat_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "idle",
+    "run",
+    "back_off",
+    "bite",
+    "hurt",
+    "collapse",
+    "walk",
+    "buildup_hold",
+    "stagger_recover",
+    "stagger",
+]
+
+[moth_schema]
+type = "animation_schema"
+slots = ["", "rest_pose"]
+
+[rat_recover]
+type = "sound"
+mode = "high"
+sha1 = "50571b235008fc5169aeaa36c79d71879e5d8b1c"
+
+[rat_stagger]
+type = "clip"
+rig = "encounters/rat_and_moth/rat_rig"
+
+[moth_flutter]
+type = "sound"
+sha1 = "5b04ac05f3e381fd96b5de8bbbfbfedd93ff7e4d"
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+chunk = "sounds"
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "469560ea3f8c2c4e40cbec65ea6e5359d6dfe45a"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "491d4b82cf59ac5fefc926ceea813c070847998a"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[package_file.contents]]
+chunk = "package_1"
+
+[rat_back_off]
+type = "clip"
+rig = "encounters/rat_and_moth/rat_rig"
+
+[rat_collapse]
+type = "clip"
+rig = "encounters/rat_and_moth/rat_rig"
+
+[rat_schema_2]
+type = "animation_schema"
+slots = [
+    "",
+    "idle",
+    "run",
+    "back_off",
+    "bite",
+    "hurt",
+    "collapse",
+    "walk",
+    "buildup_hold",
+    "stagger_recover",
+    "stagger",
+]
+
+[moth_rest_pose]
+type = "clip"
+rig = "encounters/rat_and_moth/moth_rig"
+
+[rat_hurt_sound]
+type = "sound"
+sha1 = "ff4eda11f9b8d6aa0a88fd41941bae293359ce9e"
+
+[rat_idle_sound]
+type = "sound"
+sha1 = "4f4642988bc34819ca187390733f01f167e01ad4"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[rat_body_binding]
+type = "binding"
+model = "encounters/rat_and_moth/rat_body"
+textures = { page_1 = "encounters/rat_and_moth/texture_page_1.default" }
+
+[rat_buildup_hold]
+type = "clip"
+rig = "encounters/rat_and_moth/rat_rig"
+
+[moth_body_binding]
+type = "binding"
+model = "encounters/rat_and_moth/moth_body"
+textures = { page_1 = "encounters/rat_and_moth/texture_page_1.default" }
+
+[rat_stagger_recover]
+type = "clip"
+rig = "encounters/rat_and_moth/rat_rig"

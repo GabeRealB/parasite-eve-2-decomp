@@ -1,0 +1,732 @@
+# The assets of the group enemies/brahman, each named enemies/brahman/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = [
+    "root",
+    "pelvis",
+    "waist",
+    "chest",
+    "left_shoulder",
+    "left_upper_arm",
+    "left_forearm",
+    "left_hand",
+    "head",
+    "joint_9",
+    "right_shoulder",
+    "right_upper_arm",
+    "right_forearm",
+    "right_hand",
+    "joint_14",
+    "joint_15",
+    "tail",
+    "joint_17",
+    "joint_18",
+    "joint_19",
+]
+
+[idle]
+type = "clip"
+rig = "enemies/brahman/rig"
+symbol = "gBrahmanIdleClip"
+
+[death]
+type = "sound"
+sha1 = "279462d2be9ecf38a3fca30e4bdb0b2755d1719b"
+
+[torso]
+type = "model"
+rig = "enemies/brahman/rig"
+slots = ["page_1", "page_2", "page_5", "page_3"]
+symbol = "_gBrahmanTorso"
+sha1 = "82628c7be87e5fe08af39498e9cb26b425580917"
+
+[recoil]
+type = "clip"
+rig = "enemies/brahman/rig"
+symbol = "gBrahmanRecoilClip"
+
+[sounds]
+type = "sound_bank"
+samples = [
+    "enemies/brahman/part_death",
+    "enemies/brahman/part_death_2",
+    "enemies/brahman/death",
+    "enemies/brahman/arm_strike",
+    "enemies/brahman/pink_sweep",
+    "enemies/brahman/pink_sweep_2",
+    "enemies/brahman/orange_strike",
+    "enemies/brahman/orange_charge",
+    "enemies/brahman/orb_shot",
+    "enemies/brahman/orange_charge_2",
+    "enemies/brahman/pink_charge",
+    "enemies/brahman/yellow_build",
+]
+sha1 = "eaa5564901594ff94a10649d1d163b711dba6670"
+
+[sounds.sounds]
+part_death = 4
+orb_shot = 5
+projectile = 7
+large_orb = 8
+arm_strike = 9
+pink_charge = 10
+pink_sweep = 11
+yellow_charge = 12
+yellow_strike = 13
+orange_charge = 14
+orange_strike = 15
+death = 16
+transform = 18
+orange_charge_scene = 19
+yellow_build = 20
+
+[intro_1]
+type = "clip"
+rig = "enemies/brahman/rig"
+symbol = "gBrahmanIntro1Clip"
+
+[intro_2]
+type = "clip"
+rig = "enemies/brahman/rig"
+symbol = "gBrahmanIntro2Clip"
+
+[package]
+type = "pe2pkg"
+embedded = [
+    "actor_503500_model_14DA0",
+    "actor_503500_model_15820",
+    "actor_503500_motion_15F70",
+    "actor_503500_motion_16510",
+    { asset = "characters/aya/stand", offset = 0x16AB0, size = 0x304, address = 0x801488D0 },
+    { name = "player_intro_1", offset = 0x16DB4, size = 0x18C, address = 0x80148BD4 },
+    { name = "player_intro_4", offset = 0x16F40, size = 0x984, address = 0x80148D60 },
+    { name = "player_intro_6", offset = 0x178C4, size = 0x950, address = 0x801496E4 },
+    { name = "player_intro_5", offset = 0x18214, size = 0x188, address = 0x8014A034 },
+    { name = "player_intro_2", offset = 0x1839C, size = 0x4AC, address = 0x8014A1BC },
+    { name = "player_defeat_2", offset = 0x18848, size = 0x2F0, address = 0x8014A668 },
+    { name = "player_defeat_3", offset = 0x18B38, size = 0x4BC, address = 0x8014A958 },
+    { name = "player_defeat_4", offset = 0x18FF4, size = 0x388, address = 0x8014AE14 },
+    { asset = "characters/aya/brace_for_fight", offset = 0x1937C, size = 0x250, address = 0x8014B19C },
+    { name = "player_intro_3", offset = 0x195CC, size = 0x56C, address = 0x8014B3EC },
+    { name = "player_scene_bank", offset = 0x19B7C, size = 0x30, address = 0x8014B99C },
+    { name = "torso", offset = 0x1B4F8, size = 0x7330, address = 0x8014D318 },
+    { name = "pink_flash_emitter", offset = 0x22828, size = 0x614, address = 0x80154648 },
+    { name = "large_chain_left", offset = 0x22E3C, size = 0x1720, address = 0x80154C5C },
+    { name = "large_chain_right", offset = 0x2455C, size = 0x1720, address = 0x8015637C },
+    { name = "lunging_chain_right_2", offset = 0x25C7C, size = 0xFC0, address = 0x80157A9C },
+    { name = "lunging_chain_right_1", offset = 0x26C3C, size = 0xFD0, address = 0x80158A5C },
+    { name = "lunging_chain_left_2", offset = 0x27C0C, size = 0xFD0, address = 0x80159A2C },
+    { name = "lunging_chain_left_1", offset = 0x28BDC, size = 0xFC0, address = 0x8015A9FC },
+    { name = "arm_right", offset = 0x29B9C, size = 0x1DC0, address = 0x8015B9BC },
+    { name = "arm_left", offset = 0x2B95C, size = 0x1CA4, address = 0x8015D77C },
+    { name = "idle", offset = 0x2D600, size = 0x53C, address = 0x8015F420 },
+    { name = "left_arm_strike", offset = 0x2DB3C, size = 0x9C8, address = 0x8015F95C },
+    { name = "right_arm_strike", offset = 0x2E504, size = 0xAAC, address = 0x80160324 },
+    { name = "orange_flash_windup", offset = 0x2EFB0, size = 0xCE8, address = 0x80160DD0 },
+    { name = "orange_flash_charge", offset = 0x2FC98, size = 0xA70, address = 0x80161AB8 },
+    { name = "orange_flash_strike", offset = 0x30708, size = 0x83C, address = 0x80162528 },
+    { name = "orange_flash_recover", offset = 0x30F44, size = 0x86C, address = 0x80162D64 },
+    { name = "orange_flash_finish", offset = 0x317B0, size = 0x604, address = 0x801635D0 },
+    { name = "large_orb_attack", offset = 0x31DB4, size = 0x1098, address = 0x80163BD4 },
+    { name = "chain_base_attack", offset = 0x32E4C, size = 0x5B8, address = 0x80164C6C },
+    { name = "small_orb_attack", offset = 0x33404, size = 0x838, address = 0x80165224 },
+    { name = "yellow_flash_attack", offset = 0x33C3C, size = 0x2A8, address = 0x80165A5C },
+    { name = "yellow_flash_recover", offset = 0x33EE4, size = 0x31C, address = 0x80165D04 },
+    { name = "recoil", offset = 0x34200, size = 0xEF0, address = 0x80166020 },
+    { name = "pink_flash_attack", offset = 0x350F0, size = 0x2C8, address = 0x80166F10 },
+    { name = "pink_flash_recover", offset = 0x353B8, size = 0x34C, address = 0x801671D8 },
+    { name = "phase_transition", offset = 0x35704, size = 0x3404, address = 0x80167524 },
+    { name = "intro_1", offset = 0x38B08, size = 0x16B0, address = 0x8016A928 },
+    { name = "intro_2", offset = 0x3A1B8, size = 0x27D8, address = 0x8016BFD8 },
+    { name = "boss_bank", offset = 0x3CC34, size = 0x50, address = 0x8016EA54 },
+    { name = "boss_scene_bank", offset = 0x3CC84, size = 0x14, address = 0x8016EAA4 },
+    { asset = "enemies/stinger/puppet/player_knockback_front", offset = 0x3D640, size = 0x848, address = 0x8016F460 },
+    { asset = "enemies/stinger/puppet/player_knockback_back", offset = 0x3DE88, size = 0x79C, address = 0x8016FCA8 },
+    { asset = "enemies/stinger/puppet/player_knockback_recover_front", offset = 0x3E624, size = 0x80C, address = 0x80170444 },
+    { asset = "enemies/stinger/puppet/player_knockback_recover_back", offset = 0x3EE30, size = 0x814, address = 0x80170C50 },
+    { name = "player_knockback_bank", offset = 0x3F6A8, size = 0x18, address = 0x801714C8 },
+    { name = "tentacle_move", offset = 0x43FCC, size = 0x550, address = 0x80175DEC },
+    { name = "tentacle_collapse", offset = 0x4451C, size = 0x1D8, address = 0x8017633C },
+    { name = "tentacle_bank", offset = 0x446F4, size = 0xC, address = 0x80176514 },
+]
+package_name = "actor_503500"
+parent = "shelter_r48"
+required = true
+sha1 = "b34b01d098585173eb6911fad60eb326d8d8def6"
+
+[arm_left]
+type = "model"
+slots = ["2", "page_2"]
+symbol = "_gBrahmanArmLeft"
+sha1 = "0b8cd185318099a94141625f23806f5880583e04"
+
+[orb_shot]
+type = "sound"
+sha1 = "d1ee0ac8cb6284c43d928c20d0e8d1ec049915ba"
+
+[tentacle]
+type = "model"
+rig = "enemies/brahman/tentacle_rig"
+slots = ["tentacle_texture"]
+symbol = "_gBrahmanTentacle"
+sha1 = "380e485a813c1fb0996e2ef77e5ced71a8da1c08"
+
+[arm_right]
+type = "model"
+slots = ["page_6", "page_2"]
+symbol = "_gBrahmanArmRight"
+sha1 = "0e7dbcc7ac6de6b48f6b626b8204ad768397c8a5"
+
+[boss_bank]
+type = "animation_bank"
+schema = "enemies/brahman/boss_schema"
+symbol = "_gActor503500BossAnimationSets0"
+
+[boss_bank.clips]
+idle = "enemies/brahman/idle"
+left_arm_strike = "enemies/brahman/left_arm_strike"
+right_arm_strike = "enemies/brahman/right_arm_strike"
+orange_flash_windup = "enemies/brahman/orange_flash_windup"
+orange_flash_charge = "enemies/brahman/orange_flash_charge"
+orange_flash_strike = "enemies/brahman/orange_flash_strike"
+orange_flash_recover = "enemies/brahman/orange_flash_recover"
+orange_flash_finish = "enemies/brahman/orange_flash_finish"
+large_orb_attack = "enemies/brahman/large_orb_attack"
+chain_base_attack = "enemies/brahman/chain_base_attack"
+small_orb_attack = "enemies/brahman/small_orb_attack"
+yellow_flash_attack = "enemies/brahman/yellow_flash_attack"
+yellow_flash_recover = "enemies/brahman/yellow_flash_recover"
+recoil = "enemies/brahman/recoil"
+pink_flash_attack = "enemies/brahman/pink_flash_attack"
+pink_flash_recover = "enemies/brahman/pink_flash_recover"
+chain_shoot = "enemies/brahman/idle"
+chain_lunge = "enemies/brahman/idle"
+phase_transition = "enemies/brahman/phase_transition"
+
+[texture_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[arm_strike]
+type = "sound"
+sha1 = "5f388bc074bcb6b43067ba09adcada74370e74f6"
+
+[part_death]
+type = "sound"
+sha1 = "910f7e339b2f87e62a5b7c2c313a9513d6b61b85"
+
+[pink_sweep]
+type = "sound"
+mode = "high"
+sha1 = "28c02e650665c07bacc2f7c72a9f6fcf275d17fe"
+
+[boss_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "idle",
+    "left_arm_strike",
+    "right_arm_strike",
+    "orange_flash_windup",
+    "orange_flash_charge",
+    "orange_flash_strike",
+    "orange_flash_recover",
+    "orange_flash_finish",
+    "large_orb_attack",
+    "chain_base_attack",
+    "small_orb_attack",
+    "yellow_flash_attack",
+    "yellow_flash_recover",
+    "recoil",
+    "pink_flash_attack",
+    "pink_flash_recover",
+    "chain_shoot",
+    "chain_lunge",
+    "phase_transition",
+]
+
+[pink_charge]
+type = "sound"
+sha1 = "cf02b004dda00d66dbf5cbd7c12e51da23972f76"
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+chunk = "sounds"
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "0c9359adefd01a71482e7f176cd9213bf800789b"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_file.contents]]
+chunk = "palette_2"
+sha1 = "2406240e63a12dcd49de6c9dcf50fb505173594e"
+palettes = [{ texture = "texture_page_3", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 2] }]
+
+[[package_file.contents]]
+chunk = "palette_3"
+sha1 = "50203b1ab519e0e1c91fa722ae09bcdf6c8ba58f"
+palettes = [
+    { texture = "texture_page_4", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 3] },
+    { texture = "texture_page_5", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 4] },
+]
+
+[[package_file.contents]]
+chunk = "palette_4"
+sha1 = "4a14c2508e7af9298f86b5dfb67b8fe535f11ea2"
+palettes = [
+    { texture = "texture_page_6", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 5] },
+    { texture = "texture_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 6] },
+    { name = "unread_row_3", entries = 256, region = "engine/vram/actor_palettes", offset = [0, 7] },
+]
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "8fc631fd4929ce84f4e46fb99633bb3d2eefe1d1"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+    { texture = "texture_page_3", region = "engine/vram/actor_sheet", offset = [128, 0] },
+    { texture = "texture_page_4", region = "engine/vram/actor_sheet", offset = [192, 0] },
+    { texture = "texture_page_5", region = "engine/vram/actor_sheet", offset = [256, 0] },
+    { texture = "texture_page_6", region = "engine/vram/actor_sheet", offset = [320, 0] },
+]
+
+[[package_file.contents]]
+chunk = "image_2"
+sha1 = "5cf7bec18828c2d4678c53cef3b669f0c8ebeaf1"
+pages = [{ texture = "texture_2", region = "engine/vram/actor_sheet", offset = [384, 0] }]
+slots = 2
+
+[[package_file.contents]]
+chunk = "package"
+
+[part_death_2]
+type = "sound"
+sha1 = "4ccbc64aea5f5c21690329cb48c3ae6213f3a210"
+
+[pink_sweep_2]
+type = "sound"
+sha1 = "ddd39f56297803e4c58f26d35753b2da3554c5f1"
+
+[tentacle_rig]
+type = "rig"
+joints = [
+    "joint_0",
+    "joint_1",
+    "joint_2",
+    "joint_3",
+    "joint_4",
+    "joint_5",
+    "joint_6",
+    "joint_7",
+    "joint_8",
+    "joint_9",
+    "joint_10",
+    "joint_11",
+    "joint_12",
+    "joint_13",
+    "joint_14",
+    "joint_15",
+    "joint_16",
+    "joint_17",
+    "joint_18",
+]
+
+[yellow_build]
+type = "sound"
+sha1 = "c6b4ef498be2a9c7357af2bc891d39b0045c6683"
+
+[orange_charge]
+type = "sound"
+sha1 = "50a746c2f40041e02f9618f5d6c82928be92e11b"
+
+[orange_strike]
+type = "sound"
+mode = "high"
+sha1 = "cefbc08b38d18ed8ea16d299398aa2acca827fdf"
+
+[tentacle_bank]
+type = "animation_bank"
+clips = { move = "enemies/brahman/tentacle_move", collapse = "enemies/brahman/tentacle_collapse" }
+schema = "enemies/brahman/tentacle_schema"
+symbol = "_gActor503500TentacleAnimationSets"
+
+[tentacle_file]
+type = "file"
+
+[[tentacle_file.contents]]
+chunk = "tentacle_palette"
+sha1 = "7665c6a4bd5cdc50daff0ad90f6bf9bfd339f3e0"
+palettes = [
+    { texture = "tentacle_texture", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { name = "unread_row_2", entries = 256, region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[tentacle_file.contents]]
+chunk = "tentacle_image"
+sha1 = "fcb78eb48dff096162870899f2d07fc1ab238759"
+pages = [{ texture = "tentacle_texture", region = "engine/vram/actor_sheet", offset = [0, 0] }]
+slots = 6
+
+[[tentacle_file.contents]]
+asset = "actor_104500"
+
+[tentacle_move]
+type = "clip"
+rig = "enemies/brahman/tentacle_rig"
+
+[torso_binding]
+type = "binding"
+model = "enemies/brahman/torso"
+
+[torso_binding.textures]
+page_1 = "enemies/brahman/texture_page_1.default"
+page_2 = "enemies/brahman/texture_page_2.default"
+page_5 = "enemies/brahman/texture_page_5.default"
+page_3 = "enemies/brahman/texture_page_3.default"
+
+[player_intro_1]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_intro_2]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_intro_3]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_intro_4]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_intro_5]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_intro_6]
+type = "clip"
+rig = "characters/aya/rig"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_3]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_4]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_5]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_6]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[boss_scene_bank]
+type = "animation_bank"
+schema = "enemies/brahman/boss_scene_schema"
+symbol = "_gActor503500BossAnimationSets1"
+
+[boss_scene_bank.clips]
+phase_transition = "enemies/brahman/phase_transition"
+intro_1 = "enemies/brahman/intro_1"
+recoil = "enemies/brahman/recoil"
+intro_2 = "enemies/brahman/intro_2"
+
+[left_arm_strike]
+type = "clip"
+rig = "enemies/brahman/rig"
+symbol = "gBrahmanLeftArmStrikeClip"
+
+[orange_charge_2]
+type = "sound"
+sha1 = "840fa28b1d474a79f3af96073cf624ceabd87002"
+
+[player_defeat_2]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_defeat_3]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_defeat_4]
+type = "clip"
+rig = "characters/aya/rig"
+
+[tentacle_schema]
+type = "animation_schema"
+slots = ["", "move", "collapse"]
+
+[arm_left_binding]
+type = "binding"
+model = "enemies/brahman/arm_left"
+textures = { 2 = "enemies/brahman/texture_2.default", page_2 = "enemies/brahman/texture_page_2.default" }
+
+[large_chain_left]
+type = "model"
+slots = ["page_4"]
+symbol = "_gBrahmanLargeChainLeft"
+sha1 = "aeaf87c1f2007efa8a464658b5db29566e82b90e"
+
+[large_orb_attack]
+type = "clip"
+rig = "enemies/brahman/rig"
+symbol = "gBrahmanLargeOrbAttackClip"
+
+[phase_transition]
+type = "clip"
+rig = "enemies/brahman/rig"
+symbol = "gBrahmanPhaseTransitionClip"
+
+[right_arm_strike]
+type = "clip"
+rig = "enemies/brahman/rig"
+symbol = "gBrahmanRightArmStrikeClip"
+
+[small_orb_attack]
+type = "clip"
+rig = "enemies/brahman/rig"
+symbol = "gBrahmanSmallOrbAttackClip"
+
+[tentacle_binding]
+type = "binding"
+model = "enemies/brahman/tentacle"
+textures = { tentacle_texture = "enemies/brahman/tentacle_texture.default" }
+
+[tentacle_texture]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[arm_right_binding]
+type = "binding"
+model = "enemies/brahman/arm_right"
+textures = { page_6 = "enemies/brahman/texture_page_6.default", page_2 = "enemies/brahman/texture_page_2.default" }
+
+[boss_scene_schema]
+type = "animation_schema"
+slots = ["", "phase_transition", "intro_1", "recoil", "intro_2"]
+
+[chain_base_attack]
+type = "clip"
+rig = "enemies/brahman/rig"
+symbol = "gBrahmanChainBaseAttackClip"
+
+[large_chain_right]
+type = "model"
+slots = ["page_4"]
+symbol = "_gBrahmanLargeChainRight"
+sha1 = "a6b8b320b07d91c4eb570dab6a4eff33b4993394"
+
+[pink_flash_attack]
+type = "clip"
+rig = "enemies/brahman/rig"
+symbol = "gBrahmanPinkFlashAttackClip"
+
+[player_scene_bank]
+type = "animation_bank"
+schema = "enemies/brahman/player_scene_schema"
+symbol = "_gActor503500PlayerSceneAnimationSets"
+
+[player_scene_bank.clips]
+player_scene_start = "characters/aya/stand"
+player_intro_1 = "enemies/brahman/player_intro_1"
+player_intro_4 = "enemies/brahman/player_intro_4"
+player_intro_6 = "enemies/brahman/player_intro_6"
+player_intro_5 = "enemies/brahman/player_intro_5"
+player_defeat_2 = "enemies/brahman/player_defeat_2"
+player_defeat_3 = "enemies/brahman/player_defeat_3"
+player_defeat_4 = "enemies/brahman/player_defeat_4"
+player_defeat_1 = "characters/aya/brace_for_fight"
+player_intro_3 = "enemies/brahman/player_intro_3"
+player_intro_2 = "enemies/brahman/player_intro_2"
+
+[tentacle_collapse]
+type = "clip"
+rig = "enemies/brahman/tentacle_rig"
+
+[pink_flash_emitter]
+type = "model"
+slots = ["page_2"]
+symbol = "_gBrahmanPinkFlashEmitter"
+sha1 = "77fc044efcf0e31781ae039656bf699761573c6f"
+
+[pink_flash_recover]
+type = "clip"
+rig = "enemies/brahman/rig"
+symbol = "gBrahmanPinkFlashRecoverClip"
+
+[orange_flash_charge]
+type = "clip"
+rig = "enemies/brahman/rig"
+symbol = "gBrahmanOrangeFlashChargeClip"
+
+[orange_flash_finish]
+type = "clip"
+rig = "enemies/brahman/rig"
+symbol = "gBrahmanOrangeFlashFinishClip"
+
+[orange_flash_strike]
+type = "clip"
+rig = "enemies/brahman/rig"
+symbol = "gBrahmanOrangeFlashStrikeClip"
+
+[orange_flash_windup]
+type = "clip"
+rig = "enemies/brahman/rig"
+symbol = "gBrahmanOrangeFlashWindupClip"
+
+[player_scene_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "player_scene_start",
+    "player_intro_1",
+    "player_intro_4",
+    "player_intro_6",
+    "player_intro_5",
+    "player_defeat_2",
+    "player_defeat_3",
+    "player_defeat_4",
+    "player_defeat_1",
+    "player_intro_3",
+    "player_intro_2",
+]
+
+[yellow_flash_attack]
+type = "clip"
+rig = "enemies/brahman/rig"
+symbol = "gBrahmanYellowFlashAttackClip"
+
+[lunging_chain_left_1]
+type = "model"
+slots = ["page_4"]
+symbol = "_gBrahmanLungingChainLeft1"
+sha1 = "e3b423c4e82525a16f44cb48a453aa866a7731bb"
+
+[lunging_chain_left_2]
+type = "model"
+slots = ["page_4"]
+symbol = "_gBrahmanLungingChainLeft2"
+sha1 = "dcf1a7772601cde591a64758bbd083b1cd4501cd"
+
+[orange_flash_recover]
+type = "clip"
+rig = "enemies/brahman/rig"
+symbol = "gBrahmanOrangeFlashRecoverClip"
+
+[yellow_flash_recover]
+type = "clip"
+rig = "enemies/brahman/rig"
+symbol = "gBrahmanYellowFlashRecoverClip"
+
+[lunging_chain_right_1]
+type = "model"
+slots = ["page_4"]
+symbol = "_gBrahmanLungingChainRight1"
+sha1 = "9f110cc7567075bb870c17c30303e9422801278f"
+
+[lunging_chain_right_2]
+type = "model"
+slots = ["page_4"]
+symbol = "_gBrahmanLungingChainRight2"
+sha1 = "5d890baa7bd7dbf1c36285811562d163ebfce7b1"
+
+[player_knockback_bank]
+type = "animation_bank"
+schema = "enemies/brahman/player_knockback_schema"
+symbol = "gActor503500PlayerKnockbackAnimationSets"
+
+[player_knockback_bank.clips]
+player_knockback_front = "enemies/stinger/puppet/player_knockback_front"
+player_knockback_back = "enemies/stinger/puppet/player_knockback_back"
+player_knockback_recover_front = "enemies/stinger/puppet/player_knockback_recover_front"
+player_knockback_recover_back = "enemies/stinger/puppet/player_knockback_recover_back"
+
+[player_knockback_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "player_knockback_front",
+    "player_knockback_back",
+    "player_knockback_recover_front",
+    "player_knockback_recover_back",
+]
+
+[large_chain_left_binding]
+type = "binding"
+model = "enemies/brahman/large_chain_left"
+textures = { page_4 = "enemies/brahman/texture_page_4.default" }
+
+[large_chain_right_binding]
+type = "binding"
+model = "enemies/brahman/large_chain_right"
+textures = { page_4 = "enemies/brahman/texture_page_4.default" }
+
+[pink_flash_emitter_binding]
+type = "binding"
+model = "enemies/brahman/pink_flash_emitter"
+textures = { page_2 = "enemies/brahman/texture_page_2.default" }
+
+[lunging_chain_left_1_binding]
+type = "binding"
+model = "enemies/brahman/lunging_chain_left_1"
+textures = { page_4 = "enemies/brahman/texture_page_4.default" }
+
+[lunging_chain_left_2_binding]
+type = "binding"
+model = "enemies/brahman/lunging_chain_left_2"
+textures = { page_4 = "enemies/brahman/texture_page_4.default" }
+
+[lunging_chain_right_1_binding]
+type = "binding"
+model = "enemies/brahman/lunging_chain_right_1"
+textures = { page_4 = "enemies/brahman/texture_page_4.default" }
+
+[lunging_chain_right_2_binding]
+type = "binding"
+model = "enemies/brahman/lunging_chain_right_2"
+textures = { page_4 = "enemies/brahman/texture_page_4.default" }

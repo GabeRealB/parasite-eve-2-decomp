@@ -180,10 +180,10 @@ STATIC_ASSERT_SIZEOF(_Actor421600PatrolRouteRow, 32);
 
 /// The records closing four of the overlay's model streams, which the
 /// death-tick frames point `gEffectBurstTaskDescriptors[5].data.model` at before each `effectSpawn`.
-static TmdSource _gActor421600DesertChaserBurstLegRight;
-static TmdSource _gActor421600DesertChaserBurstLegLeft;
-static TmdSource _gActor421600DesertChaserBurstHead;
-static TmdSource _gActor421600DesertChaserBurstTorso;
+static TmdSource _gChaserDesertBurstLegRight;
+static TmdSource _gChaserDesertBurstLegLeft;
+static TmdSource _gChaserDesertBurstHead;
+static TmdSource _gChaserDesertBurstTorso;
 
 /// Global effect-model callback slot the spawn helpers read; a one-element
 /// array so the store is absolute (see actor 401300's header for the same
@@ -199,13 +199,13 @@ static void _actor421600LungeRecoveryState(Task* task);
 static void _actor421600ResumePursuitState(Task* task);
 static void _actor421600RiseState(Task* task);
 
-static AnimationSet _gActor421600Animation19E54;
-static AnimationSet _gActor421600Animation1A5F0;
-static AnimationSet _gActor421600Animation1ADFC;
-static AnimationSet _gActor421600Animation1B610;
-static AnimationSet _gActor421600Animation1B8C4;
-static AnimationSet _gActor421600Animation1BBE4;
-static TmdSource    _gActor421600DesertChaserBody;
+static AnimationSet _gStingerPuppetPlayerKnockbackFrontClip;
+static AnimationSet _gStingerPuppetPlayerKnockbackBackClip;
+static AnimationSet _gStingerPuppetPlayerKnockbackRecoverFrontClip;
+static AnimationSet _gStingerPuppetPlayerKnockbackRecoverBackClip;
+static AnimationSet _gChaserDesertPlayerKnockedBackFrontClip;
+static AnimationSet _gChaserDesertPlayerKnockedBackRearClip;
+static TmdSource    _gChaserDesertBody;
 static s32          _actor421600ApplyCommand(Task* task, s32 messageId, const ActorCommand* request, s32 unusedExtra);
 static s32          _actor421600IsPresent(Task* task, s32 messageId, s32 unusedArg, s32 unusedExtra);
 static s32          _actor421600OnRoomEvent(Task* task, s32 messageId, s32 unusedArg, s32 unusedExtra);
@@ -262,825 +262,17 @@ static DesertChaserVariant _gActor421600VariantTunings[4] = {
     { 60, 60, 10, 150 },
 };
 
-static TmdBone _gActor421600DesertChaserBodySkeleton[18] = {
-#include "assets/desert_chaser_body_skeleton.inc"
-};
+#include "assets/enemies/chaser/desert/body.inc"
 
-static u32 _gActor421600DesertChaserBodyPartVerts[18] = {
-#include "assets/desert_chaser_body_partVerts.inc"
-};
+#include "assets/enemies/chaser/desert/burst_leg_right.inc"
 
-static SVECTOR _gActor421600DesertChaserBodyVerts[266] = {
-#include "assets/desert_chaser_body_verts.inc"
-};
+#include "assets/enemies/chaser/desert/burst_leg_left.inc"
 
-static SVECTOR _gActor421600DesertChaserBodyNormals[324] = {
-#include "assets/desert_chaser_body_normals.inc"
-};
+#include "assets/enemies/chaser/desert/burst_head.inc"
 
-static u32 _gActor421600DesertChaserBodyStream[3435] = {
-#include "assets/desert_chaser_body_stream.inc"
-};
+#include "assets/enemies/chaser/desert/burst_torso.inc"
 
-static TmdSource _gActor421600DesertChaserBody = {
-    0,
-    17616,
-    5944,
-    18,
-    _gActor421600DesertChaserBodyPartVerts,
-    _gActor421600DesertChaserBodyVerts,
-    _gActor421600DesertChaserBodyNormals,
-    _gActor421600DesertChaserBodySkeleton,
-    _gActor421600DesertChaserBodyStream,
-};
-
-static TmdBone _gActor421600DesertChaserBurstLegRightSkeleton[1] = {
-#include "assets/desert_chaser_burst_leg_right_skeleton.inc"
-};
-
-static u32 _gActor421600DesertChaserBurstLegRightPartVerts[1] = {
-#include "assets/desert_chaser_burst_leg_right_partVerts.inc"
-};
-
-static SVECTOR _gActor421600DesertChaserBurstLegRightVerts[21] = {
-#include "assets/desert_chaser_burst_leg_right_verts.inc"
-};
-
-static SVECTOR _gActor421600DesertChaserBurstLegRightNormals[1] = {
-#include "assets/desert_chaser_burst_leg_right_normals.inc"
-};
-
-static u32 _gActor421600DesertChaserBurstLegRightStream[233] = {
-#include "assets/desert_chaser_burst_leg_right_stream.inc"
-};
-
-static TmdSource _gActor421600DesertChaserBurstLegRight = {
-    0,
-    1536,
-    0,
-    1,
-    _gActor421600DesertChaserBurstLegRightPartVerts,
-    _gActor421600DesertChaserBurstLegRightVerts,
-    _gActor421600DesertChaserBurstLegRightNormals,
-    _gActor421600DesertChaserBurstLegRightSkeleton,
-    _gActor421600DesertChaserBurstLegRightStream,
-};
-
-static TmdBone _gActor421600DesertChaserBurstLegLeftSkeleton[1] = {
-#include "assets/desert_chaser_burst_leg_left_skeleton.inc"
-};
-
-static u32 _gActor421600DesertChaserBurstLegLeftPartVerts[1] = {
-#include "assets/desert_chaser_burst_leg_left_partVerts.inc"
-};
-
-static SVECTOR _gActor421600DesertChaserBurstLegLeftVerts[23] = {
-#include "assets/desert_chaser_burst_leg_left_verts.inc"
-};
-
-static SVECTOR _gActor421600DesertChaserBurstLegLeftNormals[1] = {
-#include "assets/desert_chaser_burst_leg_left_normals.inc"
-};
-
-static u32 _gActor421600DesertChaserBurstLegLeftStream[242] = {
-#include "assets/desert_chaser_burst_leg_left_stream.inc"
-};
-
-static TmdSource _gActor421600DesertChaserBurstLegLeft = {
-    0,
-    1612,
-    0,
-    1,
-    _gActor421600DesertChaserBurstLegLeftPartVerts,
-    _gActor421600DesertChaserBurstLegLeftVerts,
-    _gActor421600DesertChaserBurstLegLeftNormals,
-    _gActor421600DesertChaserBurstLegLeftSkeleton,
-    _gActor421600DesertChaserBurstLegLeftStream,
-};
-
-static TmdBone _gActor421600DesertChaserBurstHeadSkeleton[1] = {
-#include "assets/desert_chaser_burst_head_skeleton.inc"
-};
-
-static u32 _gActor421600DesertChaserBurstHeadPartVerts[1] = {
-#include "assets/desert_chaser_burst_head_partVerts.inc"
-};
-
-static SVECTOR _gActor421600DesertChaserBurstHeadVerts[59] = {
-#include "assets/desert_chaser_burst_head_verts.inc"
-};
-
-static SVECTOR _gActor421600DesertChaserBurstHeadNormals[81] = {
-#include "assets/desert_chaser_burst_head_normals.inc"
-};
-
-static u32 _gActor421600DesertChaserBurstHeadStream[556] = {
-#include "assets/desert_chaser_burst_head_stream.inc"
-};
-
-static TmdSource _gActor421600DesertChaserBurstHead = {
-    0,
-    3812,
-    0,
-    1,
-    _gActor421600DesertChaserBurstHeadPartVerts,
-    _gActor421600DesertChaserBurstHeadVerts,
-    _gActor421600DesertChaserBurstHeadNormals,
-    _gActor421600DesertChaserBurstHeadSkeleton,
-    _gActor421600DesertChaserBurstHeadStream,
-};
-
-static TmdBone _gActor421600DesertChaserBurstTorsoSkeleton[1] = {
-#include "assets/desert_chaser_burst_torso_skeleton.inc"
-};
-
-static u32 _gActor421600DesertChaserBurstTorsoPartVerts[1] = {
-#include "assets/desert_chaser_burst_torso_partVerts.inc"
-};
-
-static SVECTOR _gActor421600DesertChaserBurstTorsoVerts[19] = {
-#include "assets/desert_chaser_burst_torso_verts.inc"
-};
-
-static SVECTOR _gActor421600DesertChaserBurstTorsoNormals[31] = {
-#include "assets/desert_chaser_burst_torso_normals.inc"
-};
-
-static u32 _gActor421600DesertChaserBurstTorsoStream[193] = {
-#include "assets/desert_chaser_burst_torso_stream.inc"
-};
-
-static TmdSource _gActor421600DesertChaserBurstTorso = {
-    0,
-    1248,
-    0,
-    1,
-    _gActor421600DesertChaserBurstTorsoPartVerts,
-    _gActor421600DesertChaserBurstTorsoVerts,
-    _gActor421600DesertChaserBurstTorsoNormals,
-    _gActor421600DesertChaserBurstTorsoSkeleton,
-    _gActor421600DesertChaserBurstTorsoStream,
-};
-
-static AnimationPackedPose _gActor421600Animation13D18Bank1[10] = {
-#include "assets/actor_421600_animation_13D18_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation13D18Bank4[110] = {
-#include "assets/actor_421600_animation_13D18_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation13D18Records[175] = {
-#include "assets/actor_421600_animation_13D18_records.inc"
-};
-
-static u16 _gActor421600Animation13D18Indices[18] = {
-#include "assets/actor_421600_animation_13D18_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation13D18 = {
-    _gActor421600Animation13D18Records,
-    _gActor421600Animation13D18Indices,
-    { NULL, _gActor421600Animation13D18Bank1, NULL, NULL, _gActor421600Animation13D18Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor421600Animation13FD4Bank1[5] = {
-#include "assets/actor_421600_animation_13FD4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation13FD4Bank4[29] = {
-#include "assets/actor_421600_animation_13FD4_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation13FD4Records[112] = {
-#include "assets/actor_421600_animation_13FD4_records.inc"
-};
-
-static u16 _gActor421600Animation13FD4Indices[18] = {
-#include "assets/actor_421600_animation_13FD4_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation13FD4 = {
-    _gActor421600Animation13FD4Records,
-    _gActor421600Animation13FD4Indices,
-    { NULL, _gActor421600Animation13FD4Bank1, NULL, NULL, _gActor421600Animation13FD4Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor421600Animation14608Bank1[13] = {
-#include "assets/actor_421600_animation_14608_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation14608Bank4[129] = {
-#include "assets/actor_421600_animation_14608_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation14608Records[210] = {
-#include "assets/actor_421600_animation_14608_records.inc"
-};
-
-static u16 _gActor421600Animation14608Indices[18] = {
-#include "assets/actor_421600_animation_14608_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation14608 = {
-    _gActor421600Animation14608Records,
-    _gActor421600Animation14608Indices,
-    { NULL, _gActor421600Animation14608Bank1, NULL, NULL, _gActor421600Animation14608Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor421600Animation14BE0Bank1[11] = {
-#include "assets/actor_421600_animation_14BE0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation14BE0Bank4[131] = {
-#include "assets/actor_421600_animation_14BE0_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation14BE0Records[191] = {
-#include "assets/actor_421600_animation_14BE0_records.inc"
-};
-
-static u16 _gActor421600Animation14BE0Indices[18] = {
-#include "assets/actor_421600_animation_14BE0_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation14BE0 = {
-    _gActor421600Animation14BE0Records,
-    _gActor421600Animation14BE0Indices,
-    { NULL, _gActor421600Animation14BE0Bank1, NULL, NULL, _gActor421600Animation14BE0Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor421600Animation15014Bank1[9] = {
-#include "assets/actor_421600_animation_15014_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation15014Bank4[83] = {
-#include "assets/actor_421600_animation_15014_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation15014Records[140] = {
-#include "assets/actor_421600_animation_15014_records.inc"
-};
-
-static u16 _gActor421600Animation15014Indices[18] = {
-#include "assets/actor_421600_animation_15014_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation15014 = {
-    _gActor421600Animation15014Records,
-    _gActor421600Animation15014Indices,
-    { NULL, _gActor421600Animation15014Bank1, NULL, NULL, _gActor421600Animation15014Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor421600Animation156ECBank1[19] = {
-#include "assets/actor_421600_animation_156EC_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation156ECBank4[138] = {
-#include "assets/actor_421600_animation_156EC_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation156ECRecords[224] = {
-#include "assets/actor_421600_animation_156EC_records.inc"
-};
-
-static u16 _gActor421600Animation156ECIndices[18] = {
-#include "assets/actor_421600_animation_156EC_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation156EC = {
-    _gActor421600Animation156ECRecords,
-    _gActor421600Animation156ECIndices,
-    { NULL, _gActor421600Animation156ECBank1, NULL, NULL, _gActor421600Animation156ECBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor421600Animation15CECBank1[14] = {
-#include "assets/actor_421600_animation_15CEC_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation15CECBank4[99] = {
-#include "assets/actor_421600_animation_15CEC_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation15CECRecords[224] = {
-#include "assets/actor_421600_animation_15CEC_records.inc"
-};
-
-static u16 _gActor421600Animation15CECIndices[18] = {
-#include "assets/actor_421600_animation_15CEC_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation15CEC = {
-    _gActor421600Animation15CECRecords,
-    _gActor421600Animation15CECIndices,
-    { NULL, _gActor421600Animation15CECBank1, NULL, NULL, _gActor421600Animation15CECBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor421600Animation15F48Bank1[4] = {
-#include "assets/actor_421600_animation_15F48_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation15F48Bank4[34] = {
-#include "assets/actor_421600_animation_15F48_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation15F48Records[86] = {
-#include "assets/actor_421600_animation_15F48_records.inc"
-};
-
-static u16 _gActor421600Animation15F48Indices[18] = {
-#include "assets/actor_421600_animation_15F48_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation15F48 = {
-    _gActor421600Animation15F48Records,
-    _gActor421600Animation15F48Indices,
-    { NULL, _gActor421600Animation15F48Bank1, NULL, NULL, _gActor421600Animation15F48Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor421600Animation1656CBank1[12] = {
-#include "assets/actor_421600_animation_1656C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation1656CBank4[147] = {
-#include "assets/actor_421600_animation_1656C_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation1656CRecords[191] = {
-#include "assets/actor_421600_animation_1656C_records.inc"
-};
-
-static u16 _gActor421600Animation1656CIndices[18] = {
-#include "assets/actor_421600_animation_1656C_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation1656C = {
-    _gActor421600Animation1656CRecords,
-    _gActor421600Animation1656CIndices,
-    { NULL, _gActor421600Animation1656CBank1, NULL, NULL, _gActor421600Animation1656CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor421600Animation169BCBank1[9] = {
-#include "assets/actor_421600_animation_169BC_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation169BCBank4[73] = {
-#include "assets/actor_421600_animation_169BC_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation169BCRecords[157] = {
-#include "assets/actor_421600_animation_169BC_records.inc"
-};
-
-static u16 _gActor421600Animation169BCIndices[18] = {
-#include "assets/actor_421600_animation_169BC_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation169BC = {
-    _gActor421600Animation169BCRecords,
-    _gActor421600Animation169BCIndices,
-    { NULL, _gActor421600Animation169BCBank1, NULL, NULL, _gActor421600Animation169BCBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor421600Animation16FA0Bank1[12] = {
-#include "assets/actor_421600_animation_16FA0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation16FA0Bank4[126] = {
-#include "assets/actor_421600_animation_16FA0_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation16FA0Records[196] = {
-#include "assets/actor_421600_animation_16FA0_records.inc"
-};
-
-static u16 _gActor421600Animation16FA0Indices[18] = {
-#include "assets/actor_421600_animation_16FA0_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation16FA0 = {
-    _gActor421600Animation16FA0Records,
-    _gActor421600Animation16FA0Indices,
-    { NULL, _gActor421600Animation16FA0Bank1, NULL, NULL, _gActor421600Animation16FA0Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor421600Animation1711CBank1[2] = {
-#include "assets/actor_421600_animation_1711C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation1711CBank4[16] = {
-#include "assets/actor_421600_animation_1711C_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation1711CRecords[54] = {
-#include "assets/actor_421600_animation_1711C_records.inc"
-};
-
-static u16 _gActor421600Animation1711CIndices[18] = {
-#include "assets/actor_421600_animation_1711C_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation1711C = {
-    _gActor421600Animation1711CRecords,
-    _gActor421600Animation1711CIndices,
-    { NULL, _gActor421600Animation1711CBank1, NULL, NULL, _gActor421600Animation1711CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor421600Animation177C0Bank1[13] = {
-#include "assets/actor_421600_animation_177C0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation177C0Bank4[158] = {
-#include "assets/actor_421600_animation_177C0_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation177C0Records[209] = {
-#include "assets/actor_421600_animation_177C0_records.inc"
-};
-
-static u16 _gActor421600Animation177C0Indices[18] = {
-#include "assets/actor_421600_animation_177C0_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation177C0 = {
-    _gActor421600Animation177C0Records,
-    _gActor421600Animation177C0Indices,
-    { NULL, _gActor421600Animation177C0Bank1, NULL, NULL, _gActor421600Animation177C0Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor421600Animation17A84Bank1[4] = {
-#include "assets/actor_421600_animation_17A84_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation17A84Bank4[45] = {
-#include "assets/actor_421600_animation_17A84_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation17A84Records[101] = {
-#include "assets/actor_421600_animation_17A84_records.inc"
-};
-
-static u16 _gActor421600Animation17A84Indices[18] = {
-#include "assets/actor_421600_animation_17A84_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation17A84 = {
-    _gActor421600Animation17A84Records,
-    _gActor421600Animation17A84Indices,
-    { NULL, _gActor421600Animation17A84Bank1, NULL, NULL, _gActor421600Animation17A84Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor421600Animation17F88Bank1[9] = {
-#include "assets/actor_421600_animation_17F88_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation17F88Bank4[123] = {
-#include "assets/actor_421600_animation_17F88_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation17F88Records[152] = {
-#include "assets/actor_421600_animation_17F88_records.inc"
-};
-
-static u16 _gActor421600Animation17F88Indices[18] = {
-#include "assets/actor_421600_animation_17F88_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation17F88 = {
-    _gActor421600Animation17F88Records,
-    _gActor421600Animation17F88Indices,
-    { NULL, _gActor421600Animation17F88Bank1, NULL, NULL, _gActor421600Animation17F88Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor421600Animation18508Bank1[13] = {
-#include "assets/actor_421600_animation_18508_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation18508Bank4[113] = {
-#include "assets/actor_421600_animation_18508_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation18508Records[181] = {
-#include "assets/actor_421600_animation_18508_records.inc"
-};
-
-static u16 _gActor421600Animation18508Indices[18] = {
-#include "assets/actor_421600_animation_18508_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation18508 = {
-    _gActor421600Animation18508Records,
-    _gActor421600Animation18508Indices,
-    { NULL, _gActor421600Animation18508Bank1, NULL, NULL, _gActor421600Animation18508Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor421600Animation18AB8Bank1[14] = {
-#include "assets/actor_421600_animation_18AB8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation18AB8Bank4[116] = {
-#include "assets/actor_421600_animation_18AB8_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation18AB8Records[187] = {
-#include "assets/actor_421600_animation_18AB8_records.inc"
-};
-
-static u16 _gActor421600Animation18AB8Indices[18] = {
-#include "assets/actor_421600_animation_18AB8_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation18AB8 = {
-    _gActor421600Animation18AB8Records,
-    _gActor421600Animation18AB8Indices,
-    { NULL, _gActor421600Animation18AB8Bank1, NULL, NULL, _gActor421600Animation18AB8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor421600Animation19178Bank1[13] = {
-#include "assets/actor_421600_animation_19178_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation19178Bank4[160] = {
-#include "assets/actor_421600_animation_19178_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation19178Records[214] = {
-#include "assets/actor_421600_animation_19178_records.inc"
-};
-
-static u16 _gActor421600Animation19178Indices[18] = {
-#include "assets/actor_421600_animation_19178_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation19178 = {
-    _gActor421600Animation19178Records,
-    _gActor421600Animation19178Indices,
-    { NULL, _gActor421600Animation19178Bank1, NULL, NULL, _gActor421600Animation19178Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor421600Animation1960CBank1[8] = {
-#include "assets/actor_421600_animation_1960C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation1960CBank4[100] = {
-#include "assets/actor_421600_animation_1960C_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation1960CRecords[150] = {
-#include "assets/actor_421600_animation_1960C_records.inc"
-};
-
-static u16 _gActor421600Animation1960CIndices[18] = {
-#include "assets/actor_421600_animation_1960C_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation1960C = {
-    _gActor421600Animation1960CRecords,
-    _gActor421600Animation1960CIndices,
-    { NULL, _gActor421600Animation1960CBank1, NULL, NULL, _gActor421600Animation1960CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor421600Animation19E54Bank1[21] = {
-#include "assets/actor_421600_animation_19E54_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation19E54Bank4[193] = {
-#include "assets/actor_421600_animation_19E54_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation19E54Records[254] = {
-#include "assets/actor_421600_animation_19E54_records.inc"
-};
-
-static u16 _gActor421600Animation19E54Indices[20] = {
-#include "assets/actor_421600_animation_19E54_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation19E54 = {
-    _gActor421600Animation19E54Records,
-    _gActor421600Animation19E54Indices,
-    { NULL, _gActor421600Animation19E54Bank1, NULL, NULL, _gActor421600Animation19E54Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor421600Animation1A5F0Bank1[20] = {
-#include "assets/actor_421600_animation_1A5F0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation1A5F0Bank4[172] = {
-#include "assets/actor_421600_animation_1A5F0_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation1A5F0Records[235] = {
-#include "assets/actor_421600_animation_1A5F0_records.inc"
-};
-
-static u16 _gActor421600Animation1A5F0Indices[20] = {
-#include "assets/actor_421600_animation_1A5F0_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation1A5F0 = {
-    _gActor421600Animation1A5F0Records,
-    _gActor421600Animation1A5F0Indices,
-    { NULL, _gActor421600Animation1A5F0Bank1, NULL, NULL, _gActor421600Animation1A5F0Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor421600Animation1ADFCBank1[15] = {
-#include "assets/actor_421600_animation_1ADFC_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation1ADFCBank4[206] = {
-#include "assets/actor_421600_animation_1ADFC_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation1ADFCRecords[244] = {
-#include "assets/actor_421600_animation_1ADFC_records.inc"
-};
-
-static u16 _gActor421600Animation1ADFCIndices[20] = {
-#include "assets/actor_421600_animation_1ADFC_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation1ADFC = {
-    _gActor421600Animation1ADFCRecords,
-    _gActor421600Animation1ADFCIndices,
-    { NULL, _gActor421600Animation1ADFCBank1, NULL, NULL, _gActor421600Animation1ADFCBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor421600Animation1B610Bank1[14] = {
-#include "assets/actor_421600_animation_1B610_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation1B610Bank4[207] = {
-#include "assets/actor_421600_animation_1B610_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation1B610Records[248] = {
-#include "assets/actor_421600_animation_1B610_records.inc"
-};
-
-static u16 _gActor421600Animation1B610Indices[20] = {
-#include "assets/actor_421600_animation_1B610_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation1B610 = {
-    _gActor421600Animation1B610Records,
-    _gActor421600Animation1B610Indices,
-    { NULL, _gActor421600Animation1B610Bank1, NULL, NULL, _gActor421600Animation1B610Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor421600Animation1B8C4Bank1[5] = {
-#include "assets/actor_421600_animation_1B8C4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation1B8C4Bank4[55] = {
-#include "assets/actor_421600_animation_1B8C4_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation1B8C4Records[83] = {
-#include "assets/actor_421600_animation_1B8C4_records.inc"
-};
-
-static u16 _gActor421600Animation1B8C4Indices[20] = {
-#include "assets/actor_421600_animation_1B8C4_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation1B8C4 = {
-    _gActor421600Animation1B8C4Records,
-    _gActor421600Animation1B8C4Indices,
-    { NULL, _gActor421600Animation1B8C4Bank1, NULL, NULL, _gActor421600Animation1B8C4Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor421600Animation1BBE4Bank1[6] = {
-#include "assets/actor_421600_animation_1BBE4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation1BBE4Bank4[66] = {
-#include "assets/actor_421600_animation_1BBE4_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation1BBE4Records[96] = {
-#include "assets/actor_421600_animation_1BBE4_records.inc"
-};
-
-static u16 _gActor421600Animation1BBE4Indices[20] = {
-#include "assets/actor_421600_animation_1BBE4_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation1BBE4 = {
-    _gActor421600Animation1BBE4Records,
-    _gActor421600Animation1BBE4Indices,
-    { NULL, _gActor421600Animation1BBE4Bank1, NULL, NULL, _gActor421600Animation1BBE4Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor421600Animation1C09CBank1[9] = {
-#include "assets/actor_421600_animation_1C09C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation1C09CBank4[68] = {
-#include "assets/actor_421600_animation_1C09C_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation1C09CRecords[188] = {
-#include "assets/actor_421600_animation_1C09C_records.inc"
-};
-
-static u16 _gActor421600Animation1C09CIndices[18] = {
-#include "assets/actor_421600_animation_1C09C_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation1C09C = {
-    _gActor421600Animation1C09CRecords,
-    _gActor421600Animation1C09CIndices,
-    { NULL, _gActor421600Animation1C09CBank1, NULL, NULL, _gActor421600Animation1C09CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor421600Animation1C6A0Bank1[11] = {
-#include "assets/actor_421600_animation_1C6A0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation1C6A0Bank4[138] = {
-#include "assets/actor_421600_animation_1C6A0_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation1C6A0Records[195] = {
-#include "assets/actor_421600_animation_1C6A0_records.inc"
-};
-
-static u16 _gActor421600Animation1C6A0Indices[18] = {
-#include "assets/actor_421600_animation_1C6A0_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation1C6A0 = {
-    _gActor421600Animation1C6A0Records,
-    _gActor421600Animation1C6A0Indices,
-    { NULL, _gActor421600Animation1C6A0Bank1, NULL, NULL, _gActor421600Animation1C6A0Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor421600Animation1CE30Bank1[13] = {
-#include "assets/actor_421600_animation_1CE30_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation1CE30Bank4[185] = {
-#include "assets/actor_421600_animation_1CE30_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation1CE30Records[241] = {
-#include "assets/actor_421600_animation_1CE30_records.inc"
-};
-
-static u16 _gActor421600Animation1CE30Indices[18] = {
-#include "assets/actor_421600_animation_1CE30_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation1CE30 = {
-    _gActor421600Animation1CE30Records,
-    _gActor421600Animation1CE30Indices,
-    { NULL, _gActor421600Animation1CE30Bank1, NULL, NULL, _gActor421600Animation1CE30Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor421600Animation1D030Bank1[2] = {
-#include "assets/actor_421600_animation_1D030_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation1D030Bank4[24] = {
-#include "assets/actor_421600_animation_1D030_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation1D030Records[79] = {
-#include "assets/actor_421600_animation_1D030_records.inc"
-};
-
-static u16 _gActor421600Animation1D030Indices[18] = {
-#include "assets/actor_421600_animation_1D030_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation1D030 = {
-    _gActor421600Animation1D030Records,
-    _gActor421600Animation1D030Indices,
-    { NULL, _gActor421600Animation1D030Bank1, NULL, NULL, _gActor421600Animation1D030Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor421600Animation1EF6CBank1[84] = {
-#include "assets/actor_421600_animation_1EF6C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor421600Animation1EF6CBank4[736] = {
-#include "assets/actor_421600_animation_1EF6C_bank4.inc"
-};
-
-static AnimationRecord _gActor421600Animation1EF6CRecords[992] = {
-#include "assets/actor_421600_animation_1EF6C_records.inc"
-};
-
-static u16 _gActor421600Animation1EF6CIndices[18] = {
-#include "assets/actor_421600_animation_1EF6C_indices.inc"
-};
-
-static AnimationSet _gActor421600Animation1EF6C = {
-    _gActor421600Animation1EF6CRecords,
-    _gActor421600Animation1EF6CIndices,
-    { NULL, _gActor421600Animation1EF6CBank1, NULL, NULL, _gActor421600Animation1EF6CBank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/dryfield/water_tower/desert_chaser_clips.inc"
 
 /// Whole normal-rate blend frames indexed by previous and requested clip IDs.
 ///
@@ -1120,34 +312,7 @@ static s8 _gDesertChaserClipBlendFrames[25][25] = {
 /// Entries 0..24 are native AnimationSet pointers; entry 24 repeats entry 10.
 /// Entry 25 is a stored NULL, not a playable clip. The descriptors and packed
 /// streams must remain loaded while either rig or blend context uses the directory.
-static AnimationSet* _gActor421600AnimationSets[26] = {
-    &_gActor421600Animation13D18,
-    &_gActor421600Animation13FD4,
-    &_gActor421600Animation14608,
-    &_gActor421600Animation14BE0,
-    &_gActor421600Animation15014,
-    &_gActor421600Animation156EC,
-    &_gActor421600Animation15CEC,
-    &_gActor421600Animation15F48,
-    &_gActor421600Animation1656C,
-    &_gActor421600Animation169BC,
-    &_gActor421600Animation16FA0,
-    &_gActor421600Animation1711C,
-    &_gActor421600Animation177C0,
-    &_gActor421600Animation1C09C,
-    &_gActor421600Animation1C6A0,
-    &_gActor421600Animation1CE30,
-    &_gActor421600Animation1D030,
-    &_gActor421600Animation1EF6C,
-    &_gActor421600Animation17A84,
-    &_gActor421600Animation17F88,
-    &_gActor421600Animation18508,
-    &_gActor421600Animation18AB8,
-    &_gActor421600Animation19178,
-    &_gActor421600Animation1960C,
-    &_gActor421600Animation16FA0,
-    NULL,
-};
+#include "assets/rooms/dryfield/water_tower/bank.inc"
 
 /// Player animation-set bank for a player facing the Desert Chaser.
 ///
@@ -1159,7 +324,7 @@ static AnimationSet* _gActor421600AnimationSets[26] = {
 /// This carrier stores five pointers. The retained release write at index 5
 /// overlaps the rear bank's unused slot 0.
 /// Keep the stored extent and adjacency; rear-release reachability is unproven.
-static AnimationSet* _gDesertChaserFrontCatchPlayerAnimSets[5] = { NULL, &_gActor421600Animation19E54, &_gActor421600Animation1ADFC, &_gActor421600Animation1B8C4, NULL };
+#include "assets/rooms/dryfield/water_tower/desert_chaser_player_front_catch_bank.inc"
 
 /// Player animation-set bank for a player caught from behind by the Desert Chaser.
 ///
@@ -1171,7 +336,7 @@ static AnimationSet* _gDesertChaserFrontCatchPlayerAnimSets[5] = { NULL, &_gActo
 /// This carrier stores five pointers. The retained release write at index 5
 /// overlaps `_gDesertChaserHitAnchors[0].anchor.x/y`.
 /// Keep the stored extent and adjacency; rear-release reachability is unproven.
-static AnimationSet* _gDesertChaserRearCatchPlayerAnimSets[5] = { NULL, &_gActor421600Animation1A5F0, &_gActor421600Animation1B610, &_gActor421600Animation1BBE4, NULL };
+#include "assets/rooms/dryfield/water_tower/desert_chaser_player_rear_catch_bank.inc"
 
 /// Part-local hit-effect positions and model coordinate selectors for the Water Tower chaser.
 ///
@@ -1281,7 +446,7 @@ static _Actor421600PatrolRouteRow _gActor421600PatrolRoutes[4] = {
     { { { 0x1F7BC, 1553 }, { 0x1FBDC, 1606 } }, { { 0x10459, 0xF66F }, { 0x106C9, 0xFB85 } } },
 };
 
-TaskDesc gActor421600DesertChaserTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _desertChaserTask, { .model = &_gActor421600DesertChaserBody } };
+TaskDesc gActor421600DesertChaserTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _desertChaserTask, { .model = &_gChaserDesertBody } };
 
 SVECTOR ActorContact_ScratchPosition;
 
@@ -3916,24 +3081,24 @@ static void _actor421600BurstDeathState(Task* task)
     }
     // Select each detached model before spawning and applying this enemy's texture placement.
     if (work->stateTimer == ACTOR421600_BURST_RIGHT_LEG_TICK) {
-        gEffectBurstTaskDescriptors[5].data.model = &_gActor421600DesertChaserBurstLegRight;
+        gEffectBurstTaskDescriptors[5].data.model = &_gChaserDesertBurstLegRight;
         spawnOffset.vz                            = ACTOR421600_BURST_OFFSET_DISTANCE;
         spawnOffset.vy                            = 0;
         spawnOffset.vx                            = 0;
         _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + 9, ACTOR421600_BURST_PART_ARGUMENT, &spawnOffset), enemy);
     }
     if (work->stateTimer == ACTOR421600_BURST_LEFT_LEG_TICK) {
-        gEffectBurstTaskDescriptors[5].data.model = &_gActor421600DesertChaserBurstLegLeft;
+        gEffectBurstTaskDescriptors[5].data.model = &_gChaserDesertBurstLegLeft;
         spawnOffset.vy                            = 0;
         spawnOffset.vx                            = 0;
         _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + 12, ACTOR421600_BURST_PART_ARGUMENT, &spawnOffset), enemy);
     }
     if (work->stateTimer == ACTOR421600_BURST_TORSO_TICK) {
-        gEffectBurstTaskDescriptors[5].data.model = &_gActor421600DesertChaserBurstTorso;
+        gEffectBurstTaskDescriptors[5].data.model = &_gChaserDesertBurstTorso;
         _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + 1, ACTOR421600_BURST_PART_ARGUMENT, NULL), enemy);
     }
     if (work->stateTimer == ACTOR421600_BURST_HEAD_TICK) {
-        gEffectBurstTaskDescriptors[5].data.model = &_gActor421600DesertChaserBurstHead;
+        gEffectBurstTaskDescriptors[5].data.model = &_gChaserDesertBurstHead;
         _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + 3, ACTOR421600_BURST_PART_ARGUMENT, NULL), enemy);
     }
     if (work->stateTimer == ACTOR421600_BURST_RESPAWN_TICK) {

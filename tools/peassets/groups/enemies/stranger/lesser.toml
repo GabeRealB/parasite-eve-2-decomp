@@ -1,0 +1,83 @@
+# The assets of the group enemies/stranger/lesser, each named enemies/stranger/lesser/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+clips = { idle = "enemies/stranger/lesser/idle", hit = "enemies/stranger/down_back" }
+schema = "enemies/stranger/lesser/schema"
+symbol = "_gActor311500StrangerAnimationSets"
+
+[body]
+type = "model"
+rig = "enemies/stranger/rig"
+slots = ["page_1", "page_2"]
+symbol = "_gStrangerLesserBody"
+sha1 = "e8723bd04a41b738b987dde0439ac85b6db752fe"
+
+[idle]
+type = "clip"
+rig = "enemies/stranger/rig"
+symbol = "gStrangerLesserIdleClip"
+
+[schema]
+type = "animation_schema"
+slots = ["idle", "hit"]
+
+[package]
+type = "pe2pkg"
+embedded = [
+    { asset = "enemies/stranger/down_back", offset = 0x06DFC, size = 0x3B4, address = 0x80168C1C },
+    { name = "idle", offset = 0x071B0, size = 0x2E8, address = 0x80168FD0 },
+    { name = "bank", offset = 0x074D4, size = 0x8, address = 0x801692F4 },
+]
+package_name = "actor_311500"
+required = true
+sha1 = "b6b94075f3abcdbfd2f57b4977e4230c27622dd0"
+
+[body_binding]
+type = "binding"
+model = "enemies/stranger/lesser/body"
+
+[body_binding.textures]
+page_1 = "enemies/stranger/lesser/texture_page_1.default"
+page_2 = "enemies/stranger/lesser/texture_page_2.default"
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+asset = "enemies/stranger/sounds"
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "ccf80335ac038783f8cea5057060cc41c92fdcd3"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "a8b8567607cf175ca07752caab3cef8ae61d72c6"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_file.contents]]
+chunk = "package"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128

@@ -1,21 +1,117 @@
 # The assets of the group enemies/scorpion, each named enemies/scorpion/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
+[rig]
+type = "rig"
+joints = ["root", "body", "legs", "tail_base", "tail"]
+
+[run]
+type = "clip"
+rig = "enemies/scorpion/rig"
+
+[bank]
+type = "animation_bank"
+schema = "enemies/scorpion/schema"
+symbol = "_gActor02500AnimationSets"
+
+[bank.clips]
+idle = "enemies/scorpion/idle"
+walk = "enemies/scorpion/walk"
+run = "enemies/scorpion/run"
+sting = "enemies/scorpion/sting"
+flinch = "enemies/scorpion/flinch"
+death = "enemies/scorpion/death"
+emerge = "enemies/scorpion/emerge"
+buildup = "enemies/scorpion/buildup"
+
+[body]
+type = "model"
+rig = "enemies/scorpion/rig"
+slots = ["body"]
+symbol = "_gScorpionBody"
+sha1 = "d9bc4703b7e9e852af15a2eeb58d50d3fbd62af9"
+
 [file]
 type = "file"
 
 [[file.contents]]
-chunk = "palette"
+chunk = "preview_palette"
 sha1 = "16bf04eafc2aaf6bbc93d598d9a754bb554999b8"
 palettes = [{ texture = "preview", variant = "default", region = "engine/vram/preview_palette" }]
 
 [[file.contents]]
-chunk = "image"
+chunk = "preview_image"
 sha1 = "9e744ab3f5bd1f12fd31c9fad6b737ecc0bf3331"
 pages = [{ texture = "preview", region = "engine/vram/tall_preview" }]
 
 [[file.contents]]
 asset = "txt_82"
+
+[hurt]
+type = "sound"
+sha1 = "eaa937d2d053d6c738e58820b8f533347defdd30"
+
+[idle]
+type = "clip"
+rig = "enemies/scorpion/rig"
+
+[walk]
+type = "clip"
+rig = "enemies/scorpion/rig"
+
+[death]
+type = "clip"
+rig = "enemies/scorpion/rig"
+
+[sting]
+type = "clip"
+rig = "enemies/scorpion/rig"
+
+[emerge]
+type = "clip"
+rig = "enemies/scorpion/rig"
+
+[flinch]
+type = "clip"
+rig = "enemies/scorpion/rig"
+
+[poison]
+type = "sound"
+sha1 = "0cae47139514d9486befaa8fe8d040b5b64e6753"
+
+[schema]
+type = "animation_schema"
+slots = ["", "idle", "", "walk", "run", "", "sting", "flinch", "death", "", "emerge", "buildup"]
+
+[sounds]
+type = "sound_bank"
+samples = [
+    "enemies/scorpion/hurt",
+    "enemies/scorpion/sting_sound",
+    "enemies/scorpion/footstep_a",
+    "enemies/scorpion/footstep_b",
+    "enemies/scorpion/emerge_sound",
+    "enemies/scorpion/sting_hit",
+    "enemies/scorpion/idle_sound",
+    "enemies/scorpion/death_sound",
+    "enemies/scorpion/poison",
+]
+sha1 = "eded5bbfab113c13824c85b2a0e19e47d40966fb"
+
+[sounds.sounds]
+footstep_a = 1
+footstep_b = 2
+emerge = 3
+sting = 5
+sting_hit = 6
+poison = 7
+idle = 8
+hurt = 9
+death = 10
+
+[buildup]
+type = "clip"
+rig = "enemies/scorpion/rig"
 
 [preview]
 type = "texture"
@@ -23,3 +119,154 @@ bpp = 8
 height = 160
 variants = ["default"]
 width = 128
+
+[texture]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[package_1]
+type = "pe2pkg"
+embedded = [
+    { name = "body", offset = 0x02914, size = 0x1630, address = 0x80134734 },
+    { name = "burst_head", offset = 0x03F44, size = 0x528, address = 0x80135D64 },
+    { name = "burst_pincer_2", offset = 0x0446C, size = 0x344, address = 0x8013628C },
+    { name = "burst_pincer_1", offset = 0x047B0, size = 0x344, address = 0x801365D0 },
+    { name = "idle", offset = 0x04AF4, size = 0x198, address = 0x80136914 },
+    { name = "walk", offset = 0x04C8C, size = 0x1D8, address = 0x80136AAC },
+    { name = "run", offset = 0x04E64, size = 0x1B4, address = 0x80136C84 },
+    { name = "sting", offset = 0x05018, size = 0x35C, address = 0x80136E38 },
+    { name = "flinch", offset = 0x05374, size = 0x1D4, address = 0x80137194 },
+    { name = "death", offset = 0x05548, size = 0x2B4, address = 0x80137368 },
+    { name = "emerge", offset = 0x057FC, size = 0x1C4, address = 0x8013761C },
+    { name = "buildup", offset = 0x059C0, size = 0x170, address = 0x801377E0 },
+    { name = "bank", offset = 0x05BA0, size = 0x30, address = 0x801379C0 },
+]
+package_name = "actor_102500"
+required = true
+sha1 = "ef573b42d32dbbe7deac16398b00d2eb27d89804"
+
+[package_2]
+type = "pe2pkg"
+embedded = [
+    { name = "idle", offset = 0x04AF4, size = 0x198, address = 0x8014E914 },
+    { name = "walk", offset = 0x04C8C, size = 0x1D8, address = 0x8014EAAC },
+    { name = "run", offset = 0x04E64, size = 0x1B4, address = 0x8014EC84 },
+    { name = "sting", offset = 0x05018, size = 0x35C, address = 0x8014EE38 },
+    { name = "flinch", offset = 0x05374, size = 0x1D4, address = 0x8014F194 },
+    { name = "death", offset = 0x05548, size = 0x2B4, address = 0x8014F368 },
+    { name = "emerge", offset = 0x057FC, size = 0x1C4, address = 0x8014F61C },
+    { name = "buildup", offset = 0x059C0, size = 0x170, address = 0x8014F7E0 },
+    { name = "bank", offset = 0x05BA0, size = 0x30, address = 0x8014F9C0 },
+]
+package_name = "actor_202500"
+required = true
+sha1 = "07886da9163703e24dfedd45f2873c677ac93a5d"
+
+[package_3]
+type = "pe2pkg"
+embedded = [
+    { name = "idle", offset = 0x04AF4, size = 0x198, address = 0x80166914 },
+    { name = "walk", offset = 0x04C8C, size = 0x1D8, address = 0x80166AAC },
+    { name = "run", offset = 0x04E64, size = 0x1B4, address = 0x80166C84 },
+    { name = "sting", offset = 0x05018, size = 0x35C, address = 0x80166E38 },
+    { name = "flinch", offset = 0x05374, size = 0x1D4, address = 0x80167194 },
+    { name = "death", offset = 0x05548, size = 0x2B4, address = 0x80167368 },
+    { name = "emerge", offset = 0x057FC, size = 0x1C4, address = 0x8016761C },
+    { name = "buildup", offset = 0x059C0, size = 0x170, address = 0x801677E0 },
+    { name = "bank", offset = 0x05BA0, size = 0x30, address = 0x801679C0 },
+]
+package_name = "actor_302500"
+required = true
+sha1 = "dc2ae3da01eb82396d7c2cde77b96fb05c9e68f0"
+
+[sting_hit]
+type = "sound"
+sha1 = "63a2b0f5ed63cad5f217d9b7f25c8bd6a785f368"
+
+[burst_head]
+type = "model"
+slots = ["body"]
+symbol = "_gScorpionBurstHead"
+sha1 = "c45784d55e78166417a68ca34307fa6d6f4a69df"
+
+[footstep_a]
+type = "sound"
+sha1 = "5eb94d81557df77b5dba46df2b070c84ee9ef4ac"
+
+[footstep_b]
+type = "sound"
+sha1 = "62b796c93287252e1b2c0c5cd14e01858f9770f8"
+
+[idle_sound]
+type = "sound"
+sha1 = "60d1b7a2003306b84e3fa540998b7454e726a6d0"
+
+[death_sound]
+type = "sound"
+sha1 = "18af816e636a3899b5a6e95321e88a809bee96e3"
+
+[sting_sound]
+type = "sound"
+sha1 = "a0e67ab1d6620272971f6995db36c14d180b5b07"
+
+[body_binding]
+type = "binding"
+model = "enemies/scorpion/body"
+textures = { body = "enemies/scorpion/texture.default" }
+
+[emerge_sound]
+type = "sound"
+sha1 = "4fb0df0a7b2e58fbdbf2bc0dcf433baaba7a45d4"
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+chunk = "sounds"
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "ea63ddeefafdd98381734adb91da4bc3303f9246"
+palettes = [
+    { texture = "texture", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { name = "unread_row_2", entries = 256, region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "8928dbe34948fdbb797c85c9c067ff4fb1acbbf5"
+pages = [{ texture = "texture", region = "engine/vram/actor_sheet", offset = [0, 0] }]
+slots = 6
+
+[[package_file.contents]]
+chunk = "package_1"
+
+[burst_pincer_1]
+type = "model"
+slots = ["body"]
+symbol = "_gScorpionBurstPincer1"
+sha1 = "cff89e53bf3939c2ef971d65d36e57b8c029f3ed"
+
+[burst_pincer_2]
+type = "model"
+slots = ["body"]
+symbol = "_gScorpionBurstPincer2"
+sha1 = "7d37472dbce6b329a5c7a9212e52b5399445c4e2"
+
+[burst_head_binding]
+type = "binding"
+model = "enemies/scorpion/burst_head"
+textures = { body = "enemies/scorpion/texture.default" }
+
+[burst_pincer_1_binding]
+type = "binding"
+model = "enemies/scorpion/burst_pincer_1"
+textures = { body = "enemies/scorpion/texture.default" }
+
+[burst_pincer_2_binding]
+type = "binding"
+model = "enemies/scorpion/burst_pincer_2"
+textures = { body = "enemies/scorpion/texture.default" }

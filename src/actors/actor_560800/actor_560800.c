@@ -441,14 +441,14 @@ static AnimationSet _gActor560800Animation3B78C;
 static AnimationSet _gActor560800Animation3BF2C;
 static AnimationSet _gActor560800Animation3C070;
 static AnimationSet _gActor560800Animation3CBE0;
-static TmdSource    _gActor560800EveBreaMaskedBody;
-static TmdSource    _gActor560800AyaBreaBody;
-static TmdSource    _gActor560800KyleMadiganBody;
-static TmdSource    _gActor560800No9GolemDryfieldBody;
-static TmdSource    _gActor560800KyleMadiganLeft;
-static TmdSource    _gActor560800KyleMadiganHandRight;
-static TmdSource    _gActor560800No9GolemDryfieldGunblade;
-static TmdSource    _gActor560800KyleMadiganGun;
+extern TmdSource    gEveMaskedBody;
+static TmdSource    _gEveBody;
+extern TmdSource    gKyleBody;
+static TmdSource    _gGolemNo9BodyDryfield;
+extern TmdSource    gKyleHandLeft2;
+extern TmdSource    gKyleHandRight;
+static TmdSource    _gGolemNo9Gunblade;
+extern TmdSource    gKyleP229;
 static void         _actor560800EveBodyTask(Task* task);
 static void         _actor560800CastAttachmentTask(Task* task);
 static void         _actor560800KyleBodyTask(Task* task);
@@ -490,261 +490,21 @@ static void         _actor560800DiscardTask(Task* task);
 static void _actor560800MovieTask(Task* task);
 static void _actor560800StartMovieTask(Task* task);
 
-static TmdBone _gActor560800EveBreaMaskedBodySkeleton[19] = {
-#include "assets/eve_brea_masked_body_skeleton.inc"
-};
+#include "assets/characters/eve/masked_body.inc"
 
-static u32 _gActor560800EveBreaMaskedBodyPartVerts[19] = {
-#include "assets/eve_brea_masked_body_partVerts.inc"
-};
+#include "assets/characters/eve/body.inc"
 
-static SVECTOR _gActor560800EveBreaMaskedBodyVerts[312] = {
-#include "assets/eve_brea_masked_body_verts.inc"
-};
+#include "assets/characters/kyle/body.inc"
 
-static SVECTOR _gActor560800EveBreaMaskedBodyNormals[338] = {
-#include "assets/eve_brea_masked_body_normals.inc"
-};
+#include "assets/enemies/golem/no_9/body_dryfield.inc"
 
-static u32 _gActor560800EveBreaMaskedBodyStream[3463] = {
-#include "assets/eve_brea_masked_body_stream.inc"
-};
+#include "assets/characters/kyle/hand_left_2.inc"
 
-static TmdSource _gActor560800EveBreaMaskedBody = {
-    0,
-    18392,
-    6232,
-    19,
-    _gActor560800EveBreaMaskedBodyPartVerts,
-    _gActor560800EveBreaMaskedBodyVerts,
-    _gActor560800EveBreaMaskedBodyNormals,
-    _gActor560800EveBreaMaskedBodySkeleton,
-    _gActor560800EveBreaMaskedBodyStream,
-};
+#include "assets/characters/kyle/hand_right.inc"
 
-static TmdBone _gActor560800AyaBreaBodySkeleton[19] = {
-#include "assets/aya_brea_body_skeleton.inc"
-};
+#include "assets/enemies/golem/no_9/gunblade.inc"
 
-static u32 _gActor560800AyaBreaBodyPartVerts[19] = {
-#include "assets/aya_brea_body_partVerts.inc"
-};
-
-static SVECTOR _gActor560800AyaBreaBodyVerts[365] = {
-#include "assets/aya_brea_body_verts.inc"
-};
-
-static SVECTOR _gActor560800AyaBreaBodyNormals[385] = {
-#include "assets/aya_brea_body_normals.inc"
-};
-
-static u32 _gActor560800AyaBreaBodyStream[3923] = {
-#include "assets/aya_brea_body_stream.inc"
-};
-
-static TmdSource _gActor560800AyaBreaBody = {
-    0,
-    21760,
-    5992,
-    19,
-    _gActor560800AyaBreaBodyPartVerts,
-    _gActor560800AyaBreaBodyVerts,
-    _gActor560800AyaBreaBodyNormals,
-    _gActor560800AyaBreaBodySkeleton,
-    _gActor560800AyaBreaBodyStream,
-};
-
-static TmdBone _gActor560800KyleMadiganBodySkeleton[20] = {
-#include "assets/kyle_madigan_body_skeleton.inc"
-};
-
-static u32 _gActor560800KyleMadiganBodyPartVerts[20] = {
-#include "assets/kyle_madigan_body_partVerts.inc"
-};
-
-static SVECTOR _gActor560800KyleMadiganBodyVerts[300] = {
-#include "assets/kyle_madigan_body_verts.inc"
-};
-
-static SVECTOR _gActor560800KyleMadiganBodyNormals[298] = {
-#include "assets/kyle_madigan_body_normals.inc"
-};
-
-static u32 _gActor560800KyleMadiganBodyStream[3412] = {
-#include "assets/kyle_madigan_body_stream.inc"
-};
-
-static TmdSource _gActor560800KyleMadiganBody = {
-    0,
-    18224,
-    5696,
-    20,
-    _gActor560800KyleMadiganBodyPartVerts,
-    _gActor560800KyleMadiganBodyVerts,
-    _gActor560800KyleMadiganBodyNormals,
-    _gActor560800KyleMadiganBodySkeleton,
-    _gActor560800KyleMadiganBodyStream,
-};
-
-static TmdBone _gActor560800No9GolemDryfieldBodySkeleton[19] = {
-#include "assets/no9_golem_dryfield_body_skeleton.inc"
-};
-
-static u32 _gActor560800No9GolemDryfieldBodyPartVerts[19] = {
-#include "assets/no9_golem_dryfield_body_partVerts.inc"
-};
-
-static SVECTOR _gActor560800No9GolemDryfieldBodyVerts[432] = {
-#include "assets/no9_golem_dryfield_body_verts.inc"
-};
-
-static SVECTOR _gActor560800No9GolemDryfieldBodyNormals[444] = {
-#include "assets/no9_golem_dryfield_body_normals.inc"
-};
-
-static u32 _gActor560800No9GolemDryfieldBodyStream[4749] = {
-#include "assets/no9_golem_dryfield_body_stream.inc"
-};
-
-static TmdSource _gActor560800No9GolemDryfieldBody = {
-    0,
-    26564,
-    6624,
-    19,
-    _gActor560800No9GolemDryfieldBodyPartVerts,
-    _gActor560800No9GolemDryfieldBodyVerts,
-    _gActor560800No9GolemDryfieldBodyNormals,
-    _gActor560800No9GolemDryfieldBodySkeleton,
-    _gActor560800No9GolemDryfieldBodyStream,
-};
-
-static TmdBone _gActor560800KyleMadiganLeftSkeleton[1] = {
-#include "assets/kyle_madigan_left_skeleton.inc"
-};
-
-static u32 _gActor560800KyleMadiganLeftPartVerts[1] = {
-#include "assets/kyle_madigan_left_partVerts.inc"
-};
-
-static SVECTOR _gActor560800KyleMadiganLeftVerts[23] = {
-#include "assets/kyle_madigan_left_verts.inc"
-};
-
-static SVECTOR _gActor560800KyleMadiganLeftNormals[23] = {
-#include "assets/kyle_madigan_left_normals.inc"
-};
-
-static u32 _gActor560800KyleMadiganLeftStream[166] = {
-#include "assets/kyle_madigan_left_stream.inc"
-};
-
-static TmdSource _gActor560800KyleMadiganLeft = {
-    0,
-    1148,
-    0,
-    1,
-    _gActor560800KyleMadiganLeftPartVerts,
-    _gActor560800KyleMadiganLeftVerts,
-    _gActor560800KyleMadiganLeftNormals,
-    _gActor560800KyleMadiganLeftSkeleton,
-    _gActor560800KyleMadiganLeftStream,
-};
-
-static TmdBone _gActor560800KyleMadiganHandRightSkeleton[1] = {
-#include "assets/kyle_madigan_hand_right_skeleton.inc"
-};
-
-static u32 _gActor560800KyleMadiganHandRightPartVerts[1] = {
-#include "assets/kyle_madigan_hand_right_partVerts.inc"
-};
-
-static SVECTOR _gActor560800KyleMadiganHandRightVerts[23] = {
-#include "assets/kyle_madigan_hand_right_verts.inc"
-};
-
-static SVECTOR _gActor560800KyleMadiganHandRightNormals[23] = {
-#include "assets/kyle_madigan_hand_right_normals.inc"
-};
-
-static u32 _gActor560800KyleMadiganHandRightStream[166] = {
-#include "assets/kyle_madigan_hand_right_stream.inc"
-};
-
-static TmdSource _gActor560800KyleMadiganHandRight = {
-    0,
-    1148,
-    0,
-    1,
-    _gActor560800KyleMadiganHandRightPartVerts,
-    _gActor560800KyleMadiganHandRightVerts,
-    _gActor560800KyleMadiganHandRightNormals,
-    _gActor560800KyleMadiganHandRightSkeleton,
-    _gActor560800KyleMadiganHandRightStream,
-};
-
-static TmdBone _gActor560800No9GolemDryfieldGunbladeSkeleton[1] = {
-#include "assets/no9_golem_dryfield_gunblade_skeleton.inc"
-};
-
-static u32 _gActor560800No9GolemDryfieldGunbladePartVerts[1] = {
-#include "assets/no9_golem_dryfield_gunblade_partVerts.inc"
-};
-
-static SVECTOR _gActor560800No9GolemDryfieldGunbladeVerts[43] = {
-#include "assets/no9_golem_dryfield_gunblade_verts.inc"
-};
-
-static SVECTOR _gActor560800No9GolemDryfieldGunbladeNormals[41] = {
-#include "assets/no9_golem_dryfield_gunblade_normals.inc"
-};
-
-static u32 _gActor560800No9GolemDryfieldGunbladeStream[326] = {
-#include "assets/no9_golem_dryfield_gunblade_stream.inc"
-};
-
-static TmdSource _gActor560800No9GolemDryfieldGunblade = {
-    0,
-    2300,
-    0,
-    1,
-    _gActor560800No9GolemDryfieldGunbladePartVerts,
-    _gActor560800No9GolemDryfieldGunbladeVerts,
-    _gActor560800No9GolemDryfieldGunbladeNormals,
-    _gActor560800No9GolemDryfieldGunbladeSkeleton,
-    _gActor560800No9GolemDryfieldGunbladeStream,
-};
-
-static TmdBone _gActor560800KyleMadiganGunSkeleton[1] = {
-#include "assets/kyle_madigan_gun_skeleton.inc"
-};
-
-static u32 _gActor560800KyleMadiganGunPartVerts[1] = {
-#include "assets/kyle_madigan_gun_partVerts.inc"
-};
-
-static SVECTOR _gActor560800KyleMadiganGunVerts[22] = {
-#include "assets/kyle_madigan_gun_verts.inc"
-};
-
-static SVECTOR _gActor560800KyleMadiganGunNormals[24] = {
-#include "assets/kyle_madigan_gun_normals.inc"
-};
-
-static u32 _gActor560800KyleMadiganGunStream[162] = {
-#include "assets/kyle_madigan_gun_stream.inc"
-};
-
-static TmdSource _gActor560800KyleMadiganGun = {
-    0,
-    1108,
-    0,
-    1,
-    _gActor560800KyleMadiganGunPartVerts,
-    _gActor560800KyleMadiganGunVerts,
-    _gActor560800KyleMadiganGunNormals,
-    _gActor560800KyleMadiganGunSkeleton,
-    _gActor560800KyleMadiganGunStream,
-};
+#include "assets/characters/kyle/p229.inc"
 
 static AnimationPackedPose _gActor560800Animation1EE00Bank1[20] = {
 #include "assets/actor_560800_animation_1EE00_bank1.inc"
@@ -4032,14 +3792,14 @@ TaskDesc gActor560800CutsceneTaskDescriptors[14] = {
     { { { TASK_BODY_NONE, ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800DiscardTask, { .value = 0 } },
     { { { TASK_BODY_NONE, ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800FadeInTask, { .value = 0 } },
     { { { TASK_BODY_NONE, ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800FadeOutTask, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800EveBodyTask, { .model = &_gActor560800EveBreaMaskedBody } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800KyleBodyTask, { .model = &_gActor560800KyleMadiganBody } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800No9BodyTask, { .model = &_gActor560800No9GolemDryfieldBody } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800CastAttachmentTask, { .model = &_gActor560800KyleMadiganLeft } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800CastAttachmentTask, { .model = &_gActor560800KyleMadiganHandRight } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800CastAttachmentTask, { .model = &_gActor560800KyleMadiganGun } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800CastAttachmentTask, { .model = &_gActor560800No9GolemDryfieldGunblade } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800EveBodyTask, { .model = &_gActor560800AyaBreaBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800EveBodyTask, { .model = &gEveMaskedBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800KyleBodyTask, { .model = &gKyleBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800No9BodyTask, { .model = &_gGolemNo9BodyDryfield } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800CastAttachmentTask, { .model = &gKyleHandLeft2 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800CastAttachmentTask, { .model = &gKyleHandRight } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800CastAttachmentTask, { .model = &gKyleP229 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800CastAttachmentTask, { .model = &_gGolemNo9Gunblade } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800EveBodyTask, { .model = &_gEveBody } },
     { { { TASK_BODY_NONE, ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800ReplaceEveBodyTask, { .value = 0 } },
     { { { TASK_BODY_NONE, ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800AwaitScenePlaybackTask, { .value = 0 } },
 };

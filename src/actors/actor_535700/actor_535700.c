@@ -71,14 +71,14 @@ static void _actorRenderWalkerFrameSecond(Enemy* unusedEnemy, Task* task);
 static void _actorRenderDrawWalkerGroundShadow(Task* task);
 static void _actorRenderDrawSecondWalkerGroundShadow(Task* task);
 
-static TmdSource _gActor535700AyaBreaBody;
+static TmdSource _gEveBody;
 static void      _actor535700FootstepWalkerTask(Task* walkerTask);
 
 static s32 _actor535700SetWalkerModelDraw(Task* unusedTask, s32 messageId, s32 flags, s32 unusedArgument);
 static s32 _actor535700ApplyWalkerCommand(Task* unusedTask, s32 messageId, const ActorCommand* command, s32 unusedArgument);
 
-static TmdSource _gActor535700PawnGolemBody;
-static TmdSource _gActor535700GolemBeamSword;
+static TmdSource _gGolemPawnBody;
+static TmdSource _gGolemBeamSword;
 static s32       _actor535700IgnorePairWalkerCommand(Task* unusedTask, s32 messageId, s32 unusedArgument, s32 unusedSecondArgument);
 static void      _actor535700PairWalkerTask(Task* task);
 
@@ -96,16 +96,16 @@ enum {
 /// Native scene clip keys without an established action name.
 enum {
     ACTOR_535700_PLAYER_WEAPON_CLIP_1 = 1,
-    ACTOR_535700_AYA_CLIP_1           = 1,
-    ACTOR_535700_AYA_CLIP_5           = 5,
-    ACTOR_535700_AYA_CLIP_6           = 6,
-    ACTOR_535700_AYA_CLIP_7           = 7,
-    ACTOR_535700_AYA_CLIP_8           = 8,
-    ACTOR_535700_AYA_CLIP_10          = 10
+    ACTOR_535700_EVE_CLIP_1           = 1,
+    ACTOR_535700_EVE_CLIP_5           = 5,
+    ACTOR_535700_EVE_CLIP_6           = 6,
+    ACTOR_535700_EVE_CLIP_7           = 7,
+    ACTOR_535700_EVE_CLIP_8           = 8,
+    ACTOR_535700_EVE_CLIP_10          = 10
 };
 
-/// The scene Aya command that schedules turning while her turn clip plays.
-enum { ACTOR_535700_SCENE_AYA_COMMAND_TURN = 0 };
+/// The scene Eve command that schedules turning while her turn clip plays.
+enum { ACTOR_535700_SCENE_EVE_COMMAND_TURN = 0 };
 
 /// Singleton spawn recipe for the scene's bodyless opaque-black cover task.
 ///
@@ -117,7 +117,7 @@ static TaskDesc _gActor535700BlackoutTaskDesc = {
     .data     = { .value = 0 }
 };
 
-/// Restarts the real player's equipped-weapon clip 1 while scene Aya is shown.
+/// Restarts the real player's equipped-weapon clip 1 while scene Eve is shown.
 ///
 /// The event interpreter copies this request and replaces its bank selector.
 /// Playback resets without blending and removes world-grid participation.
@@ -129,46 +129,46 @@ static AnimationPlayRequest _gActor535700PlayerWeaponClip1Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
 };
 
-/// Schedules twenty heading updates for scene Aya while her turn clip plays.
+/// Schedules twenty heading updates for scene Eve while her turn clip plays.
 ///
 /// The stage/area tags identify Dryfield night room 8; this receiver ignores
 /// those tags. Dispatch consumes the command synchronously without retaining it.
-static ActorCommand _gActor535700AyaTurnCommand = {
+static ActorCommand _gActor535700EveTurnCommand = {
     .context = { .loc = { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_R08 } },
-    .command = ACTOR_535700_SCENE_AYA_COMMAND_TURN
+    .command = ACTOR_535700_SCENE_EVE_COMMAND_TURN
 };
 
-enum { ACTOR_535700_AYA_CLIP_0 = 0 };
+enum { ACTOR_535700_EVE_CLIP_0 = 0 };
 
-/// Unplayed bank-0 clip-0 reset preset at the start of the scene-Aya request run.
+/// Unplayed bank-0 clip-0 reset preset at the start of the scene-Eve request run.
 ///
-/// The receiver is inferred from neighboring requests; Aya's bank entry 0 is
+/// The receiver is inferred from neighboring requests; Eve's bank entry 0 is
 /// NULL. No dispatch establishes a use for this retained preset.
-static AnimationPlayRequest _gActor535700UnusedAyaClip0Request = {
+static AnimationPlayRequest _gActor535700UnusedEveClip0Request = {
     .source               = { .index = 0 },
-    .animationId          = ACTOR_535700_AYA_CLIP_0,
+    .animationId          = ACTOR_535700_EVE_CLIP_0,
     .blend                = ANIMATION_BLEND_RESET,
     .blendFrames          = 0,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Blends scene Aya back to her native startup clip 1.
+/// Blends scene Eve back to her native startup clip 1.
 ///
 /// The transition takes eight normal-rate frames. The scene walker ignores
 /// the source selector and collision word and consumes the request synchronously.
-static AnimationPlayRequest _gActor535700AyaClip1BlendRequest = {
+static AnimationPlayRequest _gActor535700EveClip1BlendRequest = {
     .source               = { .index = 0 },
-    .animationId          = ACTOR_535700_AYA_CLIP_1,
+    .animationId          = ACTOR_535700_EVE_CLIP_1,
     .blend                = ANIMATION_BLEND_INTERPOLATE,
     .blendFrames          = ACTOR_535700_SCENE_BLEND_FRAMES,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
 };
 
-/// Restarts scene Aya's walk clip 2 for the backward approaches.
+/// Restarts scene Eve's walk clip 2 for the backward approaches.
 ///
 /// Travel mode is selected separately by the walk-target message.
 /// The scene walker ignores the source selector and collision word.
-static AnimationPlayRequest _gActor535700AyaWalk2Request = {
+static AnimationPlayRequest _gActor535700EveWalk2Request = {
     .source               = { .index = 0 },
     .animationId          = FOOTSTEP_WALK_ANIM_WALK_2,
     .blend                = ANIMATION_BLEND_RESET,
@@ -176,11 +176,11 @@ static AnimationPlayRequest _gActor535700AyaWalk2Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
 };
 
-/// Blends scene Aya into the clip that permits her scripted turn.
+/// Blends scene Eve into the clip that permits her scripted turn.
 ///
 /// The eight-frame transition selects the clip; the separate turn command
 /// schedules the heading updates. Source and collision words are ignored.
-static AnimationPlayRequest _gActor535700AyaTurnBlendRequest = {
+static AnimationPlayRequest _gActor535700EveTurnBlendRequest = {
     .source               = { .index = 0 },
     .animationId          = FOOTSTEP_WALK_ANIM_TURN,
     .blend                = ANIMATION_BLEND_INTERPOLATE,
@@ -188,85 +188,85 @@ static AnimationPlayRequest _gActor535700AyaTurnBlendRequest = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
 };
 
-enum { ACTOR_535700_AYA_CLIP_4 = 4 };
+enum { ACTOR_535700_EVE_CLIP_4 = 4 };
 
-/// Unplayed bank-0 clip-4 reset preset within the scene-Aya request run.
+/// Unplayed bank-0 clip-4 reset preset within the scene-Eve request run.
 ///
 /// The receiver is inferred from neighboring requests. No dispatch establishes
 /// the clip's action; source and collision words retain their stored zeros.
-static AnimationPlayRequest _gActor535700UnusedAyaClip4Request = {
+static AnimationPlayRequest _gActor535700UnusedEveClip4Request = {
     .source               = { .index = 0 },
-    .animationId          = ACTOR_535700_AYA_CLIP_4,
+    .animationId          = ACTOR_535700_EVE_CLIP_4,
     .blend                = ANIMATION_BLEND_RESET,
     .blendFrames          = 0,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Restarts scene Aya's native clip 5 after her final offset placement.
+/// Restarts scene Eve's native clip 5 after her final offset placement.
 ///
 /// Consumed synchronously by the scene walker; source and collision words
 /// are ignored. No visual action is established for this clip.
-static AnimationPlayRequest _gActor535700AyaClip5Request = {
+static AnimationPlayRequest _gActor535700EveClip5Request = {
     .source               = { .index = 0 },
-    .animationId          = ACTOR_535700_AYA_CLIP_5,
+    .animationId          = ACTOR_535700_EVE_CLIP_5,
     .blend                = ANIMATION_BLEND_RESET,
     .blendFrames          = 0,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
 };
 
-/// Blends scene Aya into native clip 6 before the closing fade.
+/// Blends scene Eve into native clip 6 before the closing fade.
 ///
 /// The transition takes eight normal-rate frames; source and collision
 /// words are ignored. No visual action is established for this clip.
-static AnimationPlayRequest _gActor535700AyaClip6BlendRequest = {
+static AnimationPlayRequest _gActor535700EveClip6BlendRequest = {
     .source               = { .index = 0 },
-    .animationId          = ACTOR_535700_AYA_CLIP_6,
+    .animationId          = ACTOR_535700_EVE_CLIP_6,
     .blend                = ANIMATION_BLEND_INTERPOLATE,
     .blendFrames          = ACTOR_535700_SCENE_BLEND_FRAMES,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
 };
 
-/// Restarts scene Aya's native clip 7 at the final centre placement.
+/// Restarts scene Eve's native clip 7 at the final centre placement.
 ///
 /// Consumed synchronously by the scene walker; source and collision words
 /// are ignored. No visual action is established for this clip.
-static AnimationPlayRequest _gActor535700AyaClip7Request = {
+static AnimationPlayRequest _gActor535700EveClip7Request = {
     .source               = { .index = 0 },
-    .animationId          = ACTOR_535700_AYA_CLIP_7,
+    .animationId          = ACTOR_535700_EVE_CLIP_7,
     .blend                = ANIMATION_BLEND_RESET,
     .blendFrames          = 0,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
 };
 
-/// Restarts scene Aya's native clip 8 after the scene's sixty-frame wait.
+/// Restarts scene Eve's native clip 8 after the scene's sixty-frame wait.
 ///
 /// Consumed synchronously by the scene walker; source and collision words
 /// are ignored. No visual action is established for this clip.
-static AnimationPlayRequest _gActor535700AyaClip8Request = {
+static AnimationPlayRequest _gActor535700EveClip8Request = {
     .source               = { .index = 0 },
-    .animationId          = ACTOR_535700_AYA_CLIP_8,
+    .animationId          = ACTOR_535700_EVE_CLIP_8,
     .blend                = ANIMATION_BLEND_RESET,
     .blendFrames          = 0,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
 };
 
-/// Restarts scene Aya's native clip 10 at two caption cues during her approach.
+/// Restarts scene Eve's native clip 10 at two caption cues during her approach.
 ///
 /// Consumed synchronously by the scene walker; source and collision words
 /// are ignored. No visual action is established for this clip.
-static AnimationPlayRequest _gActor535700AyaClip10Request = {
+static AnimationPlayRequest _gActor535700EveClip10Request = {
     .source               = { .index = 0 },
-    .animationId          = ACTOR_535700_AYA_CLIP_10,
+    .animationId          = ACTOR_535700_EVE_CLIP_10,
     .blend                = ANIMATION_BLEND_RESET,
     .blendFrames          = 0,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
 };
 
-/// Restarts scene Aya's travel-end idle clip at the approach caption cues.
+/// Restarts scene Eve's travel-end idle clip at the approach caption cues.
 ///
 /// The scene walker consumes the request synchronously and ignores
 /// the source selector and collision word.
-static AnimationPlayRequest _gActor535700AyaIdleRequest = {
+static AnimationPlayRequest _gActor535700EveIdleRequest = {
     .source               = { .index = 0 },
     .animationId          = FOOTSTEP_WALK_ANIM_IDLE,
     .blend                = ANIMATION_BLEND_RESET,
@@ -274,11 +274,11 @@ static AnimationPlayRequest _gActor535700AyaIdleRequest = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
 };
 
-/// Restarts scene Aya's walk clip 14 for her slow forward approach.
+/// Restarts scene Eve's walk clip 14 for her slow forward approach.
 ///
 /// The following walk-target message independently selects slow-forward
 /// travel. The source selector and collision word are ignored.
-static AnimationPlayRequest _gActor535700AyaWalk14Request = {
+static AnimationPlayRequest _gActor535700EveWalk14Request = {
     .source               = { .index = 0 },
     .animationId          = FOOTSTEP_WALK_ANIM_WALK_14,
     .blend                = ANIMATION_BLEND_RESET,
@@ -286,11 +286,11 @@ static AnimationPlayRequest _gActor535700AyaWalk14Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
 };
 
-/// Restarts scene Aya's walk clip 15 for her forward approach.
+/// Restarts scene Eve's walk clip 15 for her forward approach.
 ///
 /// The following walk-target message independently selects forward travel.
 /// The source selector and collision word are ignored.
-static AnimationPlayRequest _gActor535700AyaWalk15Request = {
+static AnimationPlayRequest _gActor535700EveWalk15Request = {
     .source               = { .index = 0 },
     .animationId          = FOOTSTEP_WALK_ANIM_WALK_15,
     .blend                = ANIMATION_BLEND_RESET,
@@ -358,7 +358,7 @@ static AnimationPlayRequest _gActor535700PawnGolemWalkRequest = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
 };
 
-/// Offstage placement of the real player while the scene uses its own Aya model.
+/// Offstage placement of the real player while the scene uses its own Eve model.
 ///
 /// XYZ is in the player root parent frame; all Euler angles are zero.
 /// The player placement message consumes the complete transform synchronously.
@@ -367,74 +367,74 @@ static ActorTransform _gActor535700PlayerOffstagePlacement = {
     .rot = { 0, 0, 0, 0 }
 };
 
-/// Opening placement of scene Aya before her first forward approach.
+/// Opening placement of scene Eve before her first forward approach.
 ///
 /// XYZ uses the model root parent frame, and yaw is zero.
 /// The placement handler consumes XYZ and yaw without retaining the record.
-static ActorTransform _gActor535700AyaEntrancePlacement = {
+static ActorTransform _gActor535700EveEntrancePlacement = {
     .pos = { 50, 0, -14280, 0 },
     .rot = { 0, 0, 0, 0 }
 };
 
-/// Slow-forward destination and subsequent snapped placement of scene Aya.
+/// Slow-forward destination and subsequent snapped placement of scene Eve.
 ///
 /// The walk message borrows the position member and ignores Y; the later
 /// placement applies XYZ and zero yaw. Both use the model root parent frame.
-static ActorTransform _gActor535700AyaApproachTransform = {
+static ActorTransform _gActor535700EveApproachTransform = {
     .pos = { 50, 0, -11460, 0 },
     .rot = { 0, 0, 0, 0 }
 };
 
-/// Scene Aya's approach placement with her heading turned for the next caption cue.
+/// Scene Eve's approach placement with her heading turned for the next caption cue.
 ///
 /// XYZ uses the model root parent frame; yaw is in 1/4096 turns.
 /// The placement handler consumes XYZ and yaw without retaining the record.
-static ActorTransform _gActor535700AyaTurnedApproachPlacement = {
+static ActorTransform _gActor535700EveTurnedApproachPlacement = {
     .pos = { 50, 0, -11460, 0 },
     .rot = { 0, -398, 0, 0 }
 };
 
-/// Scene Aya's half-turn placement before her backward walk.
+/// Scene Eve's half-turn placement before her backward walk.
 ///
 /// XYZ uses the model root parent frame; yaw is in 1/4096 turns.
 /// The placement handler consumes XYZ and yaw without retaining the record.
-static ActorTransform _gActor535700AyaBackwardWalkPlacement = {
+static ActorTransform _gActor535700EveBackwardWalkPlacement = {
     .pos = { 0, 0, -11720, 0 },
     .rot = { 0, -ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0 }
 };
 
-/// Destination shared by scene Aya's two backward walks.
+/// Destination shared by scene Eve's two backward walks.
 ///
 /// The walk message borrows the position member in the model root parent
 /// frame. Only X/Z is read; Y and the stored rotation are unused.
-static ActorTransform _gActor535700AyaBackwardWalkTarget = {
+static ActorTransform _gActor535700EveBackwardWalkTarget = {
     .pos = { 0, 0, -10000, 0 },
     .rot = { 0, 0, 0, 0 }
 };
 
-/// Scene Aya's forward-walk destination after her scheduled turn.
+/// Scene Eve's forward-walk destination after her scheduled turn.
 ///
 /// The walk message borrows the position member in the model root parent
 /// frame. Only X/Z is read; Y and the stored rotation are unused.
-static ActorTransform _gActor535700AyaForwardWalkTarget = {
+static ActorTransform _gActor535700EveForwardWalkTarget = {
     .pos = { -1300, 0, -10000, 0 },
     .rot = { 0, 0, 0, 0 }
 };
 
-/// Scene Aya's centre placement before native clips 7 and 8.
+/// Scene Eve's centre placement before native clips 7 and 8.
 ///
 /// XYZ uses the model root parent frame; yaw is a negative half-turn.
 /// The placement handler consumes XYZ and yaw without retaining the record.
-static ActorTransform _gActor535700AyaFinalCenterPlacement = {
+static ActorTransform _gActor535700EveFinalCenterPlacement = {
     .pos = { 0, 0, -10000, 0 },
     .rot = { 0, -ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0 }
 };
 
-/// Scene Aya's offset placement before native clip 5 and the closing cues.
+/// Scene Eve's offset placement before native clip 5 and the closing cues.
 ///
 /// XYZ uses the model root parent frame; yaw is in 1/4096 turns.
 /// The placement handler consumes XYZ and yaw without retaining the record.
-static ActorTransform _gActor535700AyaFinalOffsetPlacement = {
+static ActorTransform _gActor535700EveFinalOffsetPlacement = {
     .pos = { -300, 0, -10300, 0 },
     .rot = { 0, -1991, 0, 0 }
 };
@@ -539,7 +539,7 @@ static ActorTransform _gActor535700PawnGolemRearWalkTarget = {
     .rot = { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 }
 };
 
-/// Scene/audio stream key for the Aya and three Pawn GOLEM sequence.
+/// Scene/audio stream key for the Eve and three Pawn GOLEM sequence.
 ///
 /// Group 3, stream 57, qualifier 11 select the loaded scene stream; this is
 /// a stream key rather than a stage/area location. Playback borrows the record.
@@ -565,28 +565,28 @@ EvsCommand gActor535700PawnGolemEncounterScript[99] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor535700AyaEntrancePlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor535700EveEntrancePlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700AyaWalk14Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .pointer = &_gActor535700AyaApproachTransform.pos } }, { .value = FOOTSTEP_WALK_MODE_SLOW_FORWARD } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700EveWalk14Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .pointer = &_gActor535700EveApproachTransform.pos } }, { .value = FOOTSTEP_WALK_MODE_SLOW_FORWARD } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700AyaIdleRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor535700AyaApproachTransform } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700EveIdleRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor535700EveApproachTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700AyaClip10Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700EveClip10Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700AyaIdleRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700EveIdleRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor535700AyaTurnedApproachPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700AyaClip10Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor535700EveTurnedApproachPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700EveClip10Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700AyaClip1BlendRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700EveClip1BlendRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor535700PawnGolemEntrancePlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = 1 }, { .value = 0 } },
@@ -596,18 +596,18 @@ EvsCommand gActor535700PawnGolemEncounterScript[99] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700PawnGolemWalkBlendRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gActor535700PawnGolemEntranceWalkTarget } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor535700AyaBackwardWalkPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700AyaWalk2Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .pointer = &_gActor535700AyaBackwardWalkTarget.pos } }, { .value = FOOTSTEP_WALK_MODE_BACKWARD } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor535700EveBackwardWalkPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700EveWalk2Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .pointer = &_gActor535700EveBackwardWalkTarget.pos } }, { .value = FOOTSTEP_WALK_MODE_BACKWARD } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700AyaTurnBlendRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor535700AyaTurnCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700EveTurnBlendRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor535700EveTurnCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700AyaWalk15Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .pointer = &_gActor535700AyaForwardWalkTarget.pos } }, { .value = FOOTSTEP_WALK_MODE_FORWARD } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700EveWalk15Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .pointer = &_gActor535700EveForwardWalkTarget.pos } }, { .value = FOOTSTEP_WALK_MODE_FORWARD } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700AyaWalk2Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .pointer = &_gActor535700AyaBackwardWalkTarget.pos } }, { .value = FOOTSTEP_WALK_MODE_BACKWARD } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700EveWalk2Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .pointer = &_gActor535700EveBackwardWalkTarget.pos } }, { .value = FOOTSTEP_WALK_MODE_BACKWARD } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor535700PawnGolemLeftPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700PawnGolemWalkRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gActor535700PawnGolemLeftWalkTarget } }, { .value = 0 } },
@@ -627,17 +627,17 @@ EvsCommand gActor535700PawnGolemEncounterScript[99] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor535700PawnGolemRearPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700PawnGolemWalkRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gActor535700PawnGolemRearWalkTarget } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor535700AyaFinalCenterPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700AyaClip7Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor535700EveFinalCenterPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700EveClip7Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700AyaClip8Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700EveClip8Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor535700AyaFinalOffsetPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700AyaClip5Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor535700EveFinalOffsetPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700EveClip5Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700AyaClip6BlendRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700EveClip6BlendRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 1 }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -664,389 +664,9 @@ EvsCommand gActor535700PawnGolemEncounterSkipScript[9] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-static TmdBone _gActor535700AyaBreaBodySkeleton[19] = {
-#include "assets/aya_brea_body_skeleton.inc"
-};
+#include "assets/characters/eve/body.inc"
 
-static u32 _gActor535700AyaBreaBodyPartVerts[19] = {
-#include "assets/aya_brea_body_partVerts.inc"
-};
-
-static SVECTOR _gActor535700AyaBreaBodyVerts[365] = {
-#include "assets/aya_brea_body_verts.inc"
-};
-
-static SVECTOR _gActor535700AyaBreaBodyNormals[385] = {
-#include "assets/aya_brea_body_normals.inc"
-};
-
-static u32 _gActor535700AyaBreaBodyStream[3923] = {
-#include "assets/aya_brea_body_stream.inc"
-};
-
-static TmdSource _gActor535700AyaBreaBody = {
-    0,
-    21760,
-    5992,
-    19,
-    _gActor535700AyaBreaBodyPartVerts,
-    _gActor535700AyaBreaBodyVerts,
-    _gActor535700AyaBreaBodyNormals,
-    _gActor535700AyaBreaBodySkeleton,
-    _gActor535700AyaBreaBodyStream,
-};
-
-static AnimationPackedPose _gActor535700Animation07E5CBank1[2] = {
-#include "assets/actor_535700_animation_07E5C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor535700Animation07E5CBank4[23] = {
-#include "assets/actor_535700_animation_07E5C_bank4.inc"
-};
-
-static AnimationRecord _gActor535700Animation07E5CRecords[84] = {
-#include "assets/actor_535700_animation_07E5C_records.inc"
-};
-
-static u16 _gActor535700Animation07E5CIndices[20] = {
-#include "assets/actor_535700_animation_07E5C_indices.inc"
-};
-
-static AnimationSet _gActor535700Animation07E5C = {
-    _gActor535700Animation07E5CRecords,
-    _gActor535700Animation07E5CIndices,
-    { NULL, _gActor535700Animation07E5CBank1, NULL, NULL, _gActor535700Animation07E5CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor535700Animation08254Bank1[7] = {
-#include "assets/actor_535700_animation_08254_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor535700Animation08254Bank4[75] = {
-#include "assets/actor_535700_animation_08254_bank4.inc"
-};
-
-static AnimationRecord _gActor535700Animation08254Records[138] = {
-#include "assets/actor_535700_animation_08254_records.inc"
-};
-
-static u16 _gActor535700Animation08254Indices[20] = {
-#include "assets/actor_535700_animation_08254_indices.inc"
-};
-
-static AnimationSet _gActor535700Animation08254 = {
-    _gActor535700Animation08254Records,
-    _gActor535700Animation08254Indices,
-    { NULL, _gActor535700Animation08254Bank1, NULL, NULL, _gActor535700Animation08254Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor535700Animation08E38Bank1[22] = {
-#include "assets/actor_535700_animation_08E38_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor535700Animation08E38Bank4[298] = {
-#include "assets/actor_535700_animation_08E38_bank4.inc"
-};
-
-static AnimationRecord _gActor535700Animation08E38Records[377] = {
-#include "assets/actor_535700_animation_08E38_records.inc"
-};
-
-static u16 _gActor535700Animation08E38Indices[20] = {
-#include "assets/actor_535700_animation_08E38_indices.inc"
-};
-
-static AnimationSet _gActor535700Animation08E38 = {
-    _gActor535700Animation08E38Records,
-    _gActor535700Animation08E38Indices,
-    { NULL, _gActor535700Animation08E38Bank1, NULL, NULL, _gActor535700Animation08E38Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor535700Animation090A0Bank1[4] = {
-#include "assets/actor_535700_animation_090A0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor535700Animation090A0Bank4[48] = {
-#include "assets/actor_535700_animation_090A0_bank4.inc"
-};
-
-static AnimationRecord _gActor535700Animation090A0Records[74] = {
-#include "assets/actor_535700_animation_090A0_records.inc"
-};
-
-static u16 _gActor535700Animation090A0Indices[20] = {
-#include "assets/actor_535700_animation_090A0_indices.inc"
-};
-
-static AnimationSet _gActor535700Animation090A0 = {
-    _gActor535700Animation090A0Records,
-    _gActor535700Animation090A0Indices,
-    { NULL, _gActor535700Animation090A0Bank1, NULL, NULL, _gActor535700Animation090A0Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor535700Animation094A8Bank1[5] = {
-#include "assets/actor_535700_animation_094A8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor535700Animation094A8Bank4[76] = {
-#include "assets/actor_535700_animation_094A8_bank4.inc"
-};
-
-static AnimationRecord _gActor535700Animation094A8Records[147] = {
-#include "assets/actor_535700_animation_094A8_records.inc"
-};
-
-static u16 _gActor535700Animation094A8Indices[20] = {
-#include "assets/actor_535700_animation_094A8_indices.inc"
-};
-
-static AnimationSet _gActor535700Animation094A8 = {
-    _gActor535700Animation094A8Records,
-    _gActor535700Animation094A8Indices,
-    { NULL, _gActor535700Animation094A8Bank1, NULL, NULL, _gActor535700Animation094A8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor535700Animation098B4Bank1[5] = {
-#include "assets/actor_535700_animation_098B4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor535700Animation098B4Bank4[89] = {
-#include "assets/actor_535700_animation_098B4_bank4.inc"
-};
-
-static AnimationRecord _gActor535700Animation098B4Records[135] = {
-#include "assets/actor_535700_animation_098B4_records.inc"
-};
-
-static u16 _gActor535700Animation098B4Indices[20] = {
-#include "assets/actor_535700_animation_098B4_indices.inc"
-};
-
-static AnimationSet _gActor535700Animation098B4 = {
-    _gActor535700Animation098B4Records,
-    _gActor535700Animation098B4Indices,
-    { NULL, _gActor535700Animation098B4Bank1, NULL, NULL, _gActor535700Animation098B4Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor535700Animation09BC4Bank1[4] = {
-#include "assets/actor_535700_animation_09BC4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor535700Animation09BC4Bank4[59] = {
-#include "assets/actor_535700_animation_09BC4_bank4.inc"
-};
-
-static AnimationRecord _gActor535700Animation09BC4Records[105] = {
-#include "assets/actor_535700_animation_09BC4_records.inc"
-};
-
-static u16 _gActor535700Animation09BC4Indices[20] = {
-#include "assets/actor_535700_animation_09BC4_indices.inc"
-};
-
-static AnimationSet _gActor535700Animation09BC4 = {
-    _gActor535700Animation09BC4Records,
-    _gActor535700Animation09BC4Indices,
-    { NULL, _gActor535700Animation09BC4Bank1, NULL, NULL, _gActor535700Animation09BC4Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor535700Animation09E1CBank1[2] = {
-#include "assets/actor_535700_animation_09E1C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor535700Animation09E1CBank4[30] = {
-#include "assets/actor_535700_animation_09E1C_bank4.inc"
-};
-
-static AnimationRecord _gActor535700Animation09E1CRecords[94] = {
-#include "assets/actor_535700_animation_09E1C_records.inc"
-};
-
-static u16 _gActor535700Animation09E1CIndices[20] = {
-#include "assets/actor_535700_animation_09E1C_indices.inc"
-};
-
-static AnimationSet _gActor535700Animation09E1C = {
-    _gActor535700Animation09E1CRecords,
-    _gActor535700Animation09E1CIndices,
-    { NULL, _gActor535700Animation09E1CBank1, NULL, NULL, _gActor535700Animation09E1CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor535700Animation0A0ACBank1[2] = {
-#include "assets/actor_535700_animation_0A0AC_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor535700Animation0A0ACBank4[48] = {
-#include "assets/actor_535700_animation_0A0AC_bank4.inc"
-};
-
-static AnimationRecord _gActor535700Animation0A0ACRecords[90] = {
-#include "assets/actor_535700_animation_0A0AC_records.inc"
-};
-
-static u16 _gActor535700Animation0A0ACIndices[20] = {
-#include "assets/actor_535700_animation_0A0AC_indices.inc"
-};
-
-static AnimationSet _gActor535700Animation0A0AC = {
-    _gActor535700Animation0A0ACRecords,
-    _gActor535700Animation0A0ACIndices,
-    { NULL, _gActor535700Animation0A0ACBank1, NULL, NULL, _gActor535700Animation0A0ACBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor535700Animation0A494Bank1[5] = {
-#include "assets/actor_535700_animation_0A494_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor535700Animation0A494Bank4[59] = {
-#include "assets/actor_535700_animation_0A494_bank4.inc"
-};
-
-static AnimationRecord _gActor535700Animation0A494Records[156] = {
-#include "assets/actor_535700_animation_0A494_records.inc"
-};
-
-static u16 _gActor535700Animation0A494Indices[20] = {
-#include "assets/actor_535700_animation_0A494_indices.inc"
-};
-
-static AnimationSet _gActor535700Animation0A494 = {
-    _gActor535700Animation0A494Records,
-    _gActor535700Animation0A494Indices,
-    { NULL, _gActor535700Animation0A494Bank1, NULL, NULL, _gActor535700Animation0A494Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor535700Animation0A744Bank1[3] = {
-#include "assets/actor_535700_animation_0A744_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor535700Animation0A744Bank4[29] = {
-#include "assets/actor_535700_animation_0A744_bank4.inc"
-};
-
-static AnimationRecord _gActor535700Animation0A744Records[114] = {
-#include "assets/actor_535700_animation_0A744_records.inc"
-};
-
-static u16 _gActor535700Animation0A744Indices[20] = {
-#include "assets/actor_535700_animation_0A744_indices.inc"
-};
-
-static AnimationSet _gActor535700Animation0A744 = {
-    _gActor535700Animation0A744Records,
-    _gActor535700Animation0A744Indices,
-    { NULL, _gActor535700Animation0A744Bank1, NULL, NULL, _gActor535700Animation0A744Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor535700Animation0A900Bank1[2] = {
-#include "assets/actor_535700_animation_0A900_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor535700Animation0A900Bank4[20] = {
-#include "assets/actor_535700_animation_0A900_bank4.inc"
-};
-
-static AnimationRecord _gActor535700Animation0A900Records[65] = {
-#include "assets/actor_535700_animation_0A900_records.inc"
-};
-
-static u16 _gActor535700Animation0A900Indices[20] = {
-#include "assets/actor_535700_animation_0A900_indices.inc"
-};
-
-static AnimationSet _gActor535700Animation0A900 = {
-    _gActor535700Animation0A900Records,
-    _gActor535700Animation0A900Indices,
-    { NULL, _gActor535700Animation0A900Bank1, NULL, NULL, _gActor535700Animation0A900Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor535700Animation0ACE8Bank1[3] = {
-#include "assets/actor_535700_animation_0ACE8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor535700Animation0ACE8Bank4[65] = {
-#include "assets/actor_535700_animation_0ACE8_bank4.inc"
-};
-
-static AnimationRecord _gActor535700Animation0ACE8Records[156] = {
-#include "assets/actor_535700_animation_0ACE8_records.inc"
-};
-
-static u16 _gActor535700Animation0ACE8Indices[20] = {
-#include "assets/actor_535700_animation_0ACE8_indices.inc"
-};
-
-static AnimationSet _gActor535700Animation0ACE8 = {
-    _gActor535700Animation0ACE8Records,
-    _gActor535700Animation0ACE8Indices,
-    { NULL, _gActor535700Animation0ACE8Bank1, NULL, NULL, _gActor535700Animation0ACE8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor535700Animation0B698Bank1[18] = {
-#include "assets/actor_535700_animation_0B698_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor535700Animation0B698Bank4[232] = {
-#include "assets/actor_535700_animation_0B698_bank4.inc"
-};
-
-static AnimationRecord _gActor535700Animation0B698Records[314] = {
-#include "assets/actor_535700_animation_0B698_records.inc"
-};
-
-static u16 _gActor535700Animation0B698Indices[20] = {
-#include "assets/actor_535700_animation_0B698_indices.inc"
-};
-
-static AnimationSet _gActor535700Animation0B698 = {
-    _gActor535700Animation0B698Records,
-    _gActor535700Animation0B698Indices,
-    { NULL, _gActor535700Animation0B698Bank1, NULL, NULL, _gActor535700Animation0B698Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor535700Animation0BA14Bank1[4] = {
-#include "assets/actor_535700_animation_0BA14_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor535700Animation0BA14Bank4[68] = {
-#include "assets/actor_535700_animation_0BA14_bank4.inc"
-};
-
-static AnimationRecord _gActor535700Animation0BA14Records[123] = {
-#include "assets/actor_535700_animation_0BA14_records.inc"
-};
-
-static u16 _gActor535700Animation0BA14Indices[20] = {
-#include "assets/actor_535700_animation_0BA14_indices.inc"
-};
-
-static AnimationSet _gActor535700Animation0BA14 = {
-    _gActor535700Animation0BA14Records,
-    _gActor535700Animation0BA14Indices,
-    { NULL, _gActor535700Animation0BA14Bank1, NULL, NULL, _gActor535700Animation0BA14Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor535700Animation0BC60Bank1[2] = {
-#include "assets/actor_535700_animation_0BC60_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor535700Animation0BC60Bank4[27] = {
-#include "assets/actor_535700_animation_0BC60_bank4.inc"
-};
-
-static AnimationRecord _gActor535700Animation0BC60Records[94] = {
-#include "assets/actor_535700_animation_0BC60_records.inc"
-};
-
-static u16 _gActor535700Animation0BC60Indices[20] = {
-#include "assets/actor_535700_animation_0BC60_indices.inc"
-};
-
-static AnimationSet _gActor535700Animation0BC60 = {
-    _gActor535700Animation0BC60Records,
-    _gActor535700Animation0BC60Indices,
-    { NULL, _gActor535700Animation0BC60Bank1, NULL, NULL, _gActor535700Animation0BC60Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/dryfield/night_r08/eve_and_golems_clips_1.inc"
 
 /// Duration of the next animation blend, in whole normal-rate frames.
 ///
@@ -1071,10 +691,10 @@ static TaskMessageEntry _gFootstepWalkMessageTable[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc gActor535700AyaWalkerTaskDesc = {
+TaskDesc gActor535700EveWalkerTaskDesc = {
     .header   = { .fields = { TASK_BODY_TMD, ACTOR_535700_SCENE_TASK_PRIORITY } },
     .callback = _actor535700FootstepWalkerTask,
-    .data     = { .model = &_gActor535700AyaBreaBody }
+    .data     = { .model = &_gEveBody }
 };
 
 /// Native clip-index table borrowed by the sound walker's animation context.
@@ -1083,217 +703,13 @@ TaskDesc gActor535700AyaWalkerTaskDesc = {
 /// play handler's exclusive bound of 35 does not validate loaded entries.
 /// Each selected set must provide tracks 1..18, and both this table and its
 /// clip data must remain loaded throughout playback.
-static AnimationSet* _gFootstepWalkAnimationSets[35] = {
-    NULL,
-    &_gActor535700Animation090A0,
-    &_gActor535700Animation094A8,
-    &_gActor535700Animation098B4,
-    &_gActor535700Animation09BC4,
-    &_gActor535700Animation09E1C,
-    &_gActor535700Animation0A0AC,
-    &_gActor535700Animation0A494,
-    &_gActor535700Animation0A744,
-    NULL,
-    &_gActor535700Animation0A900,
-    NULL,
-    NULL,
-    &_gActor535700Animation07E5C,
-    &_gActor535700Animation08254,
-    &_gActor535700Animation08E38,
-    &_gActor535700Animation0ACE8,
-    &_gActor535700Animation0B698,
-    &_gActor535700Animation0BC60,
-    &_gActor535700Animation0BA14,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-};
+#include "assets/rooms/dryfield/night_r08/eve_bank.inc"
 
-static TmdBone _gActor535700PawnGolemBodySkeleton[19] = {
-#include "assets/pawn_golem_body_skeleton.inc"
-};
+#include "assets/enemies/golem/pawn/body.inc"
 
-static u32 _gActor535700PawnGolemBodyPartVerts[19] = {
-#include "assets/pawn_golem_body_partVerts.inc"
-};
+#include "assets/enemies/golem/beam_sword.inc"
 
-static SVECTOR _gActor535700PawnGolemBodyVerts[339] = {
-#include "assets/pawn_golem_body_verts.inc"
-};
-
-static SVECTOR _gActor535700PawnGolemBodyNormals[346] = {
-#include "assets/pawn_golem_body_normals.inc"
-};
-
-static u32 _gActor535700PawnGolemBodyStream[3745] = {
-#include "assets/pawn_golem_body_stream.inc"
-};
-
-static TmdSource _gActor535700PawnGolemBody = {
-    0,
-    20476,
-    5672,
-    19,
-    _gActor535700PawnGolemBodyPartVerts,
-    _gActor535700PawnGolemBodyVerts,
-    _gActor535700PawnGolemBodyNormals,
-    _gActor535700PawnGolemBodySkeleton,
-    _gActor535700PawnGolemBodyStream,
-};
-
-static TmdBone _gActor535700GolemBeamSwordSkeleton[1] = {
-#include "assets/golem_beam_sword_skeleton.inc"
-};
-
-static u32 _gActor535700GolemBeamSwordPartVerts[1] = {
-#include "assets/golem_beam_sword_partVerts.inc"
-};
-
-static SVECTOR _gActor535700GolemBeamSwordVerts[29] = {
-#include "assets/golem_beam_sword_verts.inc"
-};
-
-static SVECTOR _gActor535700GolemBeamSwordNormals[24] = {
-#include "assets/golem_beam_sword_normals.inc"
-};
-
-static u32 _gActor535700GolemBeamSwordStream[212] = {
-#include "assets/golem_beam_sword_stream.inc"
-};
-
-static TmdSource _gActor535700GolemBeamSword = {
-    0,
-    1436,
-    0,
-    1,
-    _gActor535700GolemBeamSwordPartVerts,
-    _gActor535700GolemBeamSwordVerts,
-    _gActor535700GolemBeamSwordNormals,
-    _gActor535700GolemBeamSwordSkeleton,
-    _gActor535700GolemBeamSwordStream,
-};
-
-static AnimationPackedPose _gActor535700Animation121B0Bank1[21] = {
-#include "assets/actor_535700_animation_121B0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor535700Animation121B0Bank4[317] = {
-#include "assets/actor_535700_animation_121B0_bank4.inc"
-};
-
-static AnimationRecord _gActor535700Animation121B0Records[382] = {
-#include "assets/actor_535700_animation_121B0_records.inc"
-};
-
-static u16 _gActor535700Animation121B0Indices[20] = {
-#include "assets/actor_535700_animation_121B0_indices.inc"
-};
-
-static AnimationSet _gActor535700Animation121B0 = {
-    _gActor535700Animation121B0Records,
-    _gActor535700Animation121B0Indices,
-    { NULL, _gActor535700Animation121B0Bank1, NULL, NULL, _gActor535700Animation121B0Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor535700Animation12918Bank1[12] = {
-#include "assets/actor_535700_animation_12918_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor535700Animation12918Bank4[187] = {
-#include "assets/actor_535700_animation_12918_bank4.inc"
-};
-
-static AnimationRecord _gActor535700Animation12918Records[231] = {
-#include "assets/actor_535700_animation_12918_records.inc"
-};
-
-static u16 _gActor535700Animation12918Indices[20] = {
-#include "assets/actor_535700_animation_12918_indices.inc"
-};
-
-static AnimationSet _gActor535700Animation12918 = {
-    _gActor535700Animation12918Records,
-    _gActor535700Animation12918Indices,
-    { NULL, _gActor535700Animation12918Bank1, NULL, NULL, _gActor535700Animation12918Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor535700Animation13508Bank1[20] = {
-#include "assets/actor_535700_animation_13508_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor535700Animation13508Bank4[321] = {
-#include "assets/actor_535700_animation_13508_bank4.inc"
-};
-
-static AnimationRecord _gActor535700Animation13508Records[363] = {
-#include "assets/actor_535700_animation_13508_records.inc"
-};
-
-static u16 _gActor535700Animation13508Indices[20] = {
-#include "assets/actor_535700_animation_13508_indices.inc"
-};
-
-static AnimationSet _gActor535700Animation13508 = {
-    _gActor535700Animation13508Records,
-    _gActor535700Animation13508Indices,
-    { NULL, _gActor535700Animation13508Bank1, NULL, NULL, _gActor535700Animation13508Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor535700Animation13E70Bank1[16] = {
-#include "assets/actor_535700_animation_13E70_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor535700Animation13E70Bank4[237] = {
-#include "assets/actor_535700_animation_13E70_bank4.inc"
-};
-
-static AnimationRecord _gActor535700Animation13E70Records[297] = {
-#include "assets/actor_535700_animation_13E70_records.inc"
-};
-
-static u16 _gActor535700Animation13E70Indices[20] = {
-#include "assets/actor_535700_animation_13E70_indices.inc"
-};
-
-static AnimationSet _gActor535700Animation13E70 = {
-    _gActor535700Animation13E70Records,
-    _gActor535700Animation13E70Indices,
-    { NULL, _gActor535700Animation13E70Bank1, NULL, NULL, _gActor535700Animation13E70Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor535700Animation14998Bank1[26] = {
-#include "assets/actor_535700_animation_14998_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor535700Animation14998Bank4[224] = {
-#include "assets/actor_535700_animation_14998_bank4.inc"
-};
-
-static AnimationRecord _gActor535700Animation14998Records[392] = {
-#include "assets/actor_535700_animation_14998_records.inc"
-};
-
-static u16 _gActor535700Animation14998Indices[20] = {
-#include "assets/actor_535700_animation_14998_indices.inc"
-};
-
-static AnimationSet _gActor535700Animation14998 = {
-    _gActor535700Animation14998Records,
-    _gActor535700Animation14998Indices,
-    { NULL, _gActor535700Animation14998Bank1, NULL, NULL, _gActor535700Animation14998Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/dryfield/night_r08/eve_and_golems_clips_2.inc"
 
 /// Message handlers borrowed by this carrier's pair-walker tasks.
 ///
@@ -1310,8 +726,8 @@ static TaskMessageEntry _gPairWalkMessages[6] = {
 };
 
 TaskDesc gActor535700PawnGolemTasks[PAIR_WALK_TASK_COUNT] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), PAIR_WALK_TASK_PRIORITY } }, _actor535700PairWalkerTask, { .model = &_gActor535700PawnGolemBody } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), PAIR_WALK_TASK_PRIORITY } }, _pairWalkSubModelTask, { .model = &_gActor535700GolemBeamSword } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), PAIR_WALK_TASK_PRIORITY } }, _actor535700PairWalkerTask, { .model = &_gGolemPawnBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), PAIR_WALK_TASK_PRIORITY } }, _pairWalkSubModelTask, { .model = &_gGolemBeamSword } },
 };
 
 /// Six-entry clip bank borrowed by this carrier's pair-walker animation context.
@@ -1319,14 +735,7 @@ TaskDesc gActor535700PawnGolemTasks[PAIR_WALK_TASK_COUNT] = {
 /// Entry 0 is unplayable; entries 1..5 are loaded clips. Entry 1 is the
 /// default pose and entry 4 drives travel. The table and clip data must remain
 /// loaded for the walker's lifetime; the table holds pointers, not packed bytes.
-static AnimationSet* _gPairWalkAnimationSets[6] = {
-    NULL,
-    &_gActor535700Animation121B0,
-    &_gActor535700Animation12918,
-    &_gActor535700Animation13508,
-    &_gActor535700Animation13E70,
-    &_gActor535700Animation14998,
-};
+#include "assets/rooms/dryfield/night_r08/golem_bank.inc"
 
 /// Signed cover updates remaining, shared by every live scene blackout task.
 ///

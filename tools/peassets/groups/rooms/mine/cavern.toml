@@ -1,0 +1,675 @@
+# The assets of the group rooms/mine/cavern, each named rooms/mine/cavern/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+schema = "rooms/mine/cavern/schema"
+symbol = "_gActor403000AnimationSets"
+
+[bank.clips]
+slot_0 = "rooms/mine/cavern/anim_00"
+blizzard_chaser_prowl = "rooms/mine/cavern/blizzard_chaser_prowl"
+blizzard_chaser_walk = "rooms/mine/cavern/blizzard_chaser_walk"
+slot_3 = "rooms/mine/cavern/anim_03"
+blizzard_chaser_stand = "rooms/mine/cavern/blizzard_chaser_stand"
+slot_5 = "rooms/mine/cavern/anim_05"
+slot_6 = "rooms/mine/cavern/anim_06"
+blizzard_chaser_lunge = "rooms/mine/cavern/blizzard_chaser_lunge"
+blizzard_chaser_drop = "rooms/mine/cavern/blizzard_chaser_drop"
+blizzard_chaser_turn = "rooms/mine/cavern/blizzard_chaser_turn"
+slot_10 = "rooms/mine/cavern/anim_10"
+blizzard_chaser_grab_rush = "rooms/mine/cavern/blizzard_chaser_grab_rush"
+slot_12 = "rooms/mine/cavern/anim_12"
+blizzard_chaser_flinch = "rooms/mine/cavern/blizzard_chaser_flinch"
+blizzard_chaser_knockdown = "rooms/mine/cavern/blizzard_chaser_knockdown"
+blizzard_chaser_down = "rooms/mine/cavern/blizzard_chaser_down"
+blizzard_chaser_get_up = "rooms/mine/cavern/blizzard_chaser_get_up"
+blizzard_chaser_lunge_catch = "rooms/mine/cavern/blizzard_chaser_lunge_catch"
+slot_24 = "rooms/mine/cavern/anim_24"
+slot_25 = "rooms/mine/cavern/anim_25"
+slot_26 = "rooms/mine/cavern/anim_26"
+slot_27 = "rooms/mine/cavern/anim_27"
+blizzard_chaser_burn = "rooms/mine/cavern/blizzard_chaser_burn"
+slot_29 = "rooms/mine/cavern/anim_29"
+
+[hurt]
+type = "sound"
+sha1 = "0cdba0f88e81c1595b0cd6ef048ee9cca895cf4e"
+
+[death]
+type = "sound"
+sha1 = "419184c495a2aa1227635e741786f44a637f5f31"
+
+[schema]
+type = "animation_schema"
+slots = [
+    "slot_0",
+    "blizzard_chaser_prowl",
+    "blizzard_chaser_walk",
+    "slot_3",
+    "blizzard_chaser_stand",
+    "slot_5",
+    "slot_6",
+    "blizzard_chaser_lunge",
+    "blizzard_chaser_drop",
+    "blizzard_chaser_turn",
+    "slot_10",
+    "blizzard_chaser_grab_rush",
+    "slot_12",
+    "blizzard_chaser_flinch",
+    "blizzard_chaser_knockdown",
+    "blizzard_chaser_down",
+    "blizzard_chaser_get_up",
+    "blizzard_chaser_lunge_catch",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "slot_24",
+    "slot_25",
+    "slot_26",
+    "slot_27",
+    "blizzard_chaser_burn",
+    "slot_29",
+]
+
+[anim_00]
+type = "clip"
+rig = "rooms/mine/cavern/blizzard_chaser_rig"
+
+[anim_03]
+type = "clip"
+rig = "rooms/mine/cavern/blizzard_chaser_rig"
+
+[anim_05]
+type = "clip"
+rig = "rooms/mine/cavern/blizzard_chaser_rig"
+
+[anim_06]
+type = "clip"
+rig = "rooms/mine/cavern/blizzard_chaser_rig"
+
+[anim_10]
+type = "clip"
+rig = "rooms/mine/cavern/blizzard_chaser_rig"
+
+[anim_12]
+type = "clip"
+rig = "rooms/mine/cavern/blizzard_chaser_rig"
+
+[anim_24]
+type = "clip"
+rig = "rooms/mine/cavern/blizzard_chaser_rig"
+
+[anim_25]
+type = "clip"
+rig = "rooms/mine/cavern/blizzard_chaser_rig"
+
+[anim_26]
+type = "clip"
+rig = "rooms/mine/cavern/blizzard_chaser_rig"
+
+[anim_27]
+type = "clip"
+rig = "rooms/mine/cavern/blizzard_chaser_rig"
+
+[anim_29]
+type = "clip"
+rig = "rooms/mine/cavern/blizzard_chaser_rig"
+
+[unused_1]
+type = "sound"
+sha1 = "192548aaeeccd345912e036b0064360d2216cfc8"
+
+[ambush_cry]
+type = "sound"
+sha1 = "215defe838707c039d0b79bbb3ea14d20c3acfbf"
+
+[footstep_1]
+type = "sound"
+sha1 = "0af22129f31234121b951b17520a3e6b324d2a7c"
+
+[footstep_2]
+type = "sound"
+sha1 = "60f3f8be504f05b5735c0f527624f3709020715c"
+
+[grab_rush_1]
+type = "sound"
+sha1 = "e6788c58a875b679dcbb417562cabdc14bfac262"
+
+[grab_rush_2]
+type = "sound"
+sha1 = "509db2f92dd91ea15ded32e17643e7e8642ea133"
+
+[grab_rush_3]
+type = "sound"
+sha1 = "0edd87383c6d835bd9abad286a351aef16307036"
+
+[walk_step_1]
+type = "sound"
+sha1 = "0e68f649d425c6921113273bae7577fb92d5ebf0"
+
+[walk_step_2]
+type = "sound"
+sha1 = "6c3dad9f3406cae2ffba92009db26261c27f464b"
+
+[catch_impact]
+type = "sound"
+sha1 = "24bd18310b2798e4b244e0a4fed2c697c99e7242"
+
+[grab_rush_2_2]
+type = "sound"
+sha1 = "924fcca6601f1a54b9e59bd0d9b59cd9a66a5e20"
+
+[grab_rush_3_2]
+type = "sound"
+sha1 = "0ec9718fac9032a3cad1fc6876266b9a5e2d444c"
+
+[walk_step_1_2]
+type = "sound"
+sha1 = "4243ddc023a4d686b2c72d3280dc56068d0145b8"
+
+[blizzard_chasers]
+type = "pe2pkg"
+package_name = "actor_403000"
+required = true
+sha1 = "e6a7be05ae43fba2ca9e0470bd1e478a4fd7a24b"
+
+[[blizzard_chasers.embedded]]
+name = "blizzard_chaser_body"
+offset = 0x0BC00
+size = 0x7928
+address = 0x8013DA20
+
+[[blizzard_chasers.embedded]]
+name = "anim_00"
+offset = 0x13528
+size = 0x4B8
+address = 0x80145348
+
+[[blizzard_chasers.embedded]]
+name = "blizzard_chaser_prowl"
+offset = 0x139E0
+size = 0x10FC
+address = 0x80145800
+
+[[blizzard_chasers.embedded]]
+name = "blizzard_chaser_walk"
+offset = 0x14ADC
+size = 0xA74
+address = 0x801468FC
+
+[[blizzard_chasers.embedded]]
+name = "anim_03"
+offset = 0x15550
+size = 0xB54
+address = 0x80147370
+
+[[blizzard_chasers.embedded]]
+name = "blizzard_chaser_stand"
+offset = 0x160A4
+size = 0x9A0
+address = 0x80147EC4
+
+[[blizzard_chasers.embedded]]
+name = "anim_05"
+offset = 0x16A44
+size = 0x61C
+address = 0x80148864
+
+[[blizzard_chasers.embedded]]
+name = "anim_06"
+offset = 0x17060
+size = 0x65C
+address = 0x80148E80
+
+[[blizzard_chasers.embedded]]
+name = "blizzard_chaser_lunge"
+offset = 0x176BC
+size = 0x1320
+address = 0x801494DC
+
+[[blizzard_chasers.embedded]]
+name = "blizzard_chaser_drop"
+offset = 0x189DC
+size = 0xFD0
+address = 0x8014A7FC
+
+[[blizzard_chasers.embedded]]
+name = "blizzard_chaser_turn"
+offset = 0x199AC
+size = 0xD18
+address = 0x8014B7CC
+
+[[blizzard_chasers.embedded]]
+name = "anim_10"
+offset = 0x1A6C4
+size = 0x964
+address = 0x8014C4E4
+
+[[blizzard_chasers.embedded]]
+name = "blizzard_chaser_grab_rush"
+offset = 0x1B028
+size = 0xABC
+address = 0x8014CE48
+
+[[blizzard_chasers.embedded]]
+name = "anim_12"
+offset = 0x1BAE4
+size = 0xBE0
+address = 0x8014D904
+
+[[blizzard_chasers.embedded]]
+name = "blizzard_chaser_flinch"
+offset = 0x1C6C4
+size = 0x7C8
+address = 0x8014E4E4
+
+[[blizzard_chasers.embedded]]
+name = "blizzard_chaser_knockdown"
+offset = 0x1CE8C
+size = 0xB84
+address = 0x8014ECAC
+
+[[blizzard_chasers.embedded]]
+name = "blizzard_chaser_down"
+offset = 0x1DA10
+size = 0x670
+address = 0x8014F830
+
+[[blizzard_chasers.embedded]]
+name = "blizzard_chaser_get_up"
+offset = 0x1E080
+size = 0xA6C
+address = 0x8014FEA0
+
+[[blizzard_chasers.embedded]]
+name = "blizzard_chaser_lunge_catch"
+offset = 0x1EAEC
+size = 0x1C50
+address = 0x8015090C
+
+[[blizzard_chasers.embedded]]
+name = "player_lunge_catch"
+offset = 0x2073C
+size = 0x1308
+address = 0x8015255C
+
+[[blizzard_chasers.embedded]]
+name = "player_lunge_release"
+offset = 0x21A44
+size = 0xAE4
+address = 0x80153864
+
+[[blizzard_chasers.embedded]]
+name = "player_drop_catch"
+offset = 0x22528
+size = 0x4E8
+address = 0x80154348
+
+[[blizzard_chasers.embedded]]
+asset = "enemies/stinger/puppet/player_knockback_front"
+offset = 0x22A10
+size = 0x848
+address = 0x80154830
+
+[[blizzard_chasers.embedded]]
+asset = "enemies/stinger/puppet/player_knockback_back"
+offset = 0x23258
+size = 0x79C
+address = 0x80155078
+
+[[blizzard_chasers.embedded]]
+asset = "enemies/stinger/puppet/player_knockback_recover_front"
+offset = 0x239F4
+size = 0x80C
+address = 0x80155814
+
+[[blizzard_chasers.embedded]]
+asset = "enemies/stinger/puppet/player_knockback_recover_back"
+offset = 0x24200
+size = 0x814
+address = 0x80156020
+
+[[blizzard_chasers.embedded]]
+name = "anim_24"
+offset = 0x24A14
+size = 0x1E4
+address = 0x80156834
+
+[[blizzard_chasers.embedded]]
+name = "anim_25"
+offset = 0x24BF8
+size = 0x4F4
+address = 0x80156A18
+
+[[blizzard_chasers.embedded]]
+name = "anim_26"
+offset = 0x250EC
+size = 0x3C0
+address = 0x80156F0C
+
+[[blizzard_chasers.embedded]]
+name = "anim_27"
+offset = 0x254AC
+size = 0x6A0
+address = 0x801572CC
+
+[[blizzard_chasers.embedded]]
+name = "anim_29"
+offset = 0x25B4C
+size = 0x810
+address = 0x8015796C
+
+[[blizzard_chasers.embedded]]
+name = "blizzard_chaser_burn"
+offset = 0x2635C
+size = 0x1E8
+address = 0x8015817C
+
+[[blizzard_chasers.embedded]]
+name = "bank"
+offset = 0x26D30
+size = 0xB8
+address = 0x80158B50
+
+[[blizzard_chasers.embedded]]
+name = "player_catch_bank"
+offset = 0x26DE8
+size = 0x20
+address = 0x80158C08
+
+[[blizzard_chasers.embedded]]
+name = "player_rear_grab_bank"
+offset = 0x26E08
+size = 0x20
+address = 0x80158C28
+
+[player_catch_bank]
+type = "animation_bank"
+schema = "rooms/mine/cavern/player_catch_schema"
+symbol = "_gActor403000PlayerCatchAnimationSets"
+
+[player_catch_bank.clips]
+player_lunge_catch = "rooms/mine/cavern/player_lunge_catch"
+player_lunge_release = "rooms/mine/cavern/player_lunge_release"
+player_grab_catch = "enemies/stinger/puppet/player_knockback_front"
+player_grab_release = "enemies/stinger/puppet/player_knockback_recover_front"
+player_drop_catch = "rooms/mine/cavern/player_drop_catch"
+player_drop_release = "enemies/stinger/puppet/player_knockback_recover_back"
+
+[player_drop_catch]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_lunge_catch]
+type = "clip"
+rig = "characters/aya/rig"
+
+[blizzard_chaser_rig]
+type = "rig"
+joints = [
+    "root",
+    "torso",
+    "neck_1",
+    "neck_2",
+    "neck_3",
+    "head",
+    "joint_6",
+    "joint_7",
+    "foreleg_upper_right",
+    "foreleg_lower_right",
+    "forefoot_right",
+    "foreleg_upper_left",
+    "foreleg_lower_left",
+    "forefoot_left",
+    "waist",
+    "hips",
+    "hind_leg_upper_left",
+    "hind_leg_middle_left",
+    "hind_leg_lower_left",
+    "hind_leg_upper_right",
+    "hind_leg_middle_right",
+    "hind_leg_lower_right",
+    "joint_22",
+    "joint_23",
+]
+
+[player_catch_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "player_lunge_catch",
+    "player_lunge_release",
+    "player_grab_catch",
+    "player_grab_release",
+    "player_drop_catch",
+    "player_drop_release",
+]
+
+[blizzard_chaser_body]
+type = "model"
+rig = "rooms/mine/cavern/blizzard_chaser_rig"
+slots = ["blizzard_chasers_texture_page_2", "blizzard_chasers_texture_page_1"]
+symbol = "_gMineCavernBlizzardChaserBody"
+sha1 = "19e20a9603f98091bf2c14286185abda40eda972"
+
+[blizzard_chaser_burn]
+type = "clip"
+rig = "rooms/mine/cavern/blizzard_chaser_rig"
+
+[blizzard_chaser_down]
+type = "clip"
+rig = "rooms/mine/cavern/blizzard_chaser_rig"
+
+[blizzard_chaser_drop]
+type = "clip"
+rig = "rooms/mine/cavern/blizzard_chaser_rig"
+
+[blizzard_chaser_turn]
+type = "clip"
+rig = "rooms/mine/cavern/blizzard_chaser_rig"
+
+[blizzard_chaser_walk]
+type = "clip"
+rig = "rooms/mine/cavern/blizzard_chaser_rig"
+
+[player_lunge_release]
+type = "clip"
+rig = "characters/aya/rig"
+
+[blizzard_chaser_lunge]
+type = "clip"
+rig = "rooms/mine/cavern/blizzard_chaser_rig"
+
+[blizzard_chaser_prowl]
+type = "clip"
+rig = "rooms/mine/cavern/blizzard_chaser_rig"
+
+[blizzard_chaser_stand]
+type = "clip"
+rig = "rooms/mine/cavern/blizzard_chaser_rig"
+
+[blizzard_chasers_file]
+type = "file"
+
+[[blizzard_chasers_file.contents]]
+chunk = "blizzard_chasers_sounds"
+
+[[blizzard_chasers_file.contents]]
+chunk = "blizzard_chasers_image"
+sha1 = "a30efed5547eba03ea0fd813752ba44f792b0b0f"
+pages = [
+    { texture = "blizzard_chasers_texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "blizzard_chasers_texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+    { texture = "blizzard_chasers_texture_page_3", region = "engine/vram/actor_sheet", offset = [128, 0] },
+    { texture = "blizzard_chasers_texture_page_4", region = "engine/vram/actor_sheet", offset = [192, 0] },
+]
+slots = 6
+
+[[blizzard_chasers_file.contents]]
+chunk = "blizzard_chasers_palette"
+sha1 = "7ef71aa347549761a9f6138464d014f1debedfb3"
+
+[[blizzard_chasers_file.contents.palettes]]
+texture = "blizzard_chasers_texture_page_1"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0, 0]
+
+[[blizzard_chasers_file.contents.palettes]]
+texture = "blizzard_chasers_texture_page_2"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0, 1]
+
+[[blizzard_chasers_file.contents]]
+chunk = "blizzard_chasers_palette_2"
+sha1 = "f987843645954df64d154a3bdc73622f66bed619"
+
+[[blizzard_chasers_file.contents.palettes]]
+texture = "blizzard_chasers_texture_page_3"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0, 2]
+
+[[blizzard_chasers_file.contents]]
+chunk = "blizzard_chasers_palette_3"
+sha1 = "64351ccfb599ad0ec108c825a77a07da67dc0143"
+
+[[blizzard_chasers_file.contents.palettes]]
+texture = "blizzard_chasers_texture_page_4"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0, 3]
+
+[[blizzard_chasers_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/actor_palettes"
+offset = [0, 4]
+
+[[blizzard_chasers_file.contents]]
+chunk = "blizzard_chasers"
+
+[player_rear_grab_bank]
+type = "animation_bank"
+schema = "rooms/mine/cavern/player_rear_grab_schema"
+symbol = "_gActor403000PlayerRearGrabAnimationSets"
+
+[player_rear_grab_bank.clips]
+player_lunge_catch = "rooms/mine/cavern/player_lunge_catch"
+player_lunge_release = "rooms/mine/cavern/player_lunge_release"
+player_grab_catch = "enemies/stinger/puppet/player_knockback_back"
+player_grab_release = "enemies/stinger/puppet/player_knockback_recover_back"
+player_drop_catch = "rooms/mine/cavern/player_drop_catch"
+player_drop_release = "enemies/stinger/puppet/player_knockback_recover_back"
+
+[blizzard_chaser_flinch]
+type = "clip"
+rig = "rooms/mine/cavern/blizzard_chaser_rig"
+
+[blizzard_chaser_get_up]
+type = "clip"
+rig = "rooms/mine/cavern/blizzard_chaser_rig"
+
+[blizzard_chasers_sounds]
+type = "sound_bank"
+samples = [
+    "rooms/mine/cavern/footstep_1",
+    "rooms/mine/cavern/footstep_2",
+    "rooms/mine/cavern/walk_step_1",
+    "rooms/mine/cavern/walk_step_2",
+    "rooms/mine/cavern/unused_1",
+    "rooms/mine/cavern/grab_rush_1",
+    "rooms/mine/cavern/grab_rush_3",
+    "rooms/mine/cavern/catch_impact",
+    "rooms/mine/cavern/grab_rush_3_2",
+    "rooms/mine/cavern/hurt",
+    "rooms/mine/cavern/walk_step_1_2",
+    "rooms/mine/cavern/grab_rush_2",
+    "rooms/mine/cavern/ambush_cry",
+    "rooms/mine/cavern/death",
+    "rooms/mine/cavern/grab_rush_2_2",
+]
+sha1 = "888a6ad970ed97278991fcd0531bf57fa09a76cb"
+
+[blizzard_chasers_sounds.sounds]
+footstep_1 = 1
+footstep_2 = 2
+walk_step_1 = 3
+walk_step_2 = 4
+hurt = 5
+grab_rush_2 = 7
+grab_rush_3 = 8
+lunge = 9
+catch_impact = 10
+lunge_catch = 11
+grab_rush_1 = 12
+drop = 13
+body_fall = 14
+ambush_cry = 16
+death = 17
+death_alt = 18
+
+[player_rear_grab_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "player_lunge_catch",
+    "player_lunge_release",
+    "player_grab_catch",
+    "player_grab_release",
+    "player_drop_catch",
+    "player_drop_release",
+]
+
+[blizzard_chaser_grab_rush]
+type = "clip"
+rig = "rooms/mine/cavern/blizzard_chaser_rig"
+
+[blizzard_chaser_knockdown]
+type = "clip"
+rig = "rooms/mine/cavern/blizzard_chaser_rig"
+
+[blizzard_chaser_lunge_catch]
+type = "clip"
+rig = "rooms/mine/cavern/blizzard_chaser_rig"
+
+[blizzard_chaser_body_binding]
+type = "binding"
+model = "rooms/mine/cavern/blizzard_chaser_body"
+
+[blizzard_chaser_body_binding.textures]
+blizzard_chasers_texture_page_2 = "rooms/mine/cavern/blizzard_chasers_texture_page_2.default"
+blizzard_chasers_texture_page_1 = "rooms/mine/cavern/blizzard_chasers_texture_page_1.default"
+
+[blizzard_chasers_texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[blizzard_chasers_texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[blizzard_chasers_texture_page_3]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[blizzard_chasers_texture_page_4]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128

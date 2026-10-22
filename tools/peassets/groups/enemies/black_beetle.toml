@@ -1,21 +1,115 @@
 # The assets of the group enemies/black_beetle, each named enemies/black_beetle/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
+[rig]
+type = "rig"
+joints = ["root", "thorax", "head", "abdomen", "left_legs", "right_legs"]
+
+[bank]
+type = "animation_bank"
+schema = "enemies/black_beetle/schema"
+symbol = "_gActor03800AnimationSets"
+
+[bank.clips]
+idle = "enemies/black_beetle/idle"
+walk = "enemies/black_beetle/walk"
+knocked_over = "enemies/black_beetle/knocked_over"
+get_up = "enemies/black_beetle/get_up"
+death_overturned = "enemies/black_beetle/death_overturned"
+flinch_overturned = "enemies/black_beetle/flinch_overturned"
+flinch_perched = "enemies/black_beetle/flinch_perched"
+land = "enemies/black_beetle/land"
+charge = "enemies/black_beetle/charge"
+leap = "enemies/black_beetle/leap"
+flinch = "enemies/black_beetle/flinch"
+
+[body]
+type = "model"
+rig = "enemies/black_beetle/rig"
+slots = ["body"]
+symbol = "_gBlackBeetleBody"
+sha1 = "d18ca9e2674959396728a961425a1e92c01b9af2"
+
 [file]
 type = "file"
 
 [[file.contents]]
-chunk = "palette"
+chunk = "preview_palette"
 sha1 = "d5288673a2a55f4ebe0bdb8bcb864d83e6d6a0c6"
 palettes = [{ texture = "preview", variant = "default", region = "engine/vram/preview_palette" }]
 
 [[file.contents]]
-chunk = "image"
+chunk = "preview_image"
 sha1 = "cbc6eea0ec7233d6738325acaf729ac0894080f7"
 pages = [{ texture = "preview", region = "engine/vram/preview_picture", upload = "engine/vram/preview_picture" }]
 
 [[file.contents]]
 asset = "txt_82"
+
+[hurt]
+type = "sound"
+sha1 = "493497c7c00b358dbc7431ebde3f65f401c010fc"
+
+[idle]
+type = "clip"
+rig = "enemies/black_beetle/rig"
+
+[land]
+type = "clip"
+rig = "enemies/black_beetle/rig"
+
+[leap]
+type = "clip"
+rig = "enemies/black_beetle/rig"
+
+[walk]
+type = "clip"
+rig = "enemies/black_beetle/rig"
+
+[death]
+type = "sound"
+sha1 = "83f71e2f104b63519d8ab2ebed131a3f27759801"
+
+[charge]
+type = "clip"
+rig = "enemies/black_beetle/rig"
+
+[flinch]
+type = "clip"
+rig = "enemies/black_beetle/rig"
+
+[get_up]
+type = "clip"
+rig = "enemies/black_beetle/rig"
+
+[schema]
+type = "animation_schema"
+slots = [
+    "",
+    "idle",
+    "walk",
+    "knocked_over",
+    "get_up",
+    "death_overturned",
+    "flinch_overturned",
+    "flinch_perched",
+    "land",
+    "charge",
+    "leap",
+    "flinch",
+]
+
+[sounds]
+type = "sound_bank"
+samples = [
+    "enemies/black_beetle/footstep",
+    "enemies/black_beetle/unused_1",
+    "enemies/black_beetle/land_sound",
+    "enemies/black_beetle/hurt",
+    "enemies/black_beetle/death",
+]
+sounds = { footstep = 1, land = 2, hurt = 3, death = 4 }
+sha1 = "23b2042a60708ccb7da6a8c90ab6d27ec77f1ce5"
 
 [preview]
 type = "texture"
@@ -23,3 +117,173 @@ bpp = 8
 height = 96
 variants = ["default"]
 width = 128
+
+[texture]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[footstep]
+type = "sound"
+sha1 = "c82b057cb008f077e9504355888cfcd2378400f3"
+
+[unused_1]
+type = "sound"
+sha1 = "784d6eddd11c7e62fd1b836e8b7cf97bf91c21f7"
+
+[package_1]
+type = "pe2pkg"
+embedded = [
+    { name = "body", offset = 0x038D0, size = 0xAF4, address = 0x801356F0 },
+    { name = "burst_fragment_1", offset = 0x043C4, size = 0x1FC, address = 0x801361E4 },
+    { name = "burst_fragment_2", offset = 0x045C0, size = 0x104, address = 0x801363E0 },
+    { name = "burst_fragment_3", offset = 0x046C4, size = 0x104, address = 0x801364E4 },
+    { name = "burst_fragment_4", offset = 0x047C8, size = 0xC4, address = 0x801365E8 },
+    { name = "burst_fragment_5", offset = 0x0488C, size = 0xC4, address = 0x801366AC },
+    { name = "idle", offset = 0x04950, size = 0x1FC, address = 0x80136770 },
+    { name = "walk", offset = 0x04B4C, size = 0x1FC, address = 0x8013696C },
+    { name = "knocked_over", offset = 0x04D48, size = 0x2C0, address = 0x80136B68 },
+    { name = "get_up", offset = 0x05008, size = 0x554, address = 0x80136E28 },
+    { name = "death_overturned", offset = 0x0555C, size = 0xBC, address = 0x8013737C },
+    { name = "flinch_overturned", offset = 0x05618, size = 0x144, address = 0x80137438 },
+    { name = "flinch_perched", offset = 0x0575C, size = 0xF0, address = 0x8013757C },
+    { name = "land", offset = 0x0584C, size = 0x164, address = 0x8013766C },
+    { name = "charge", offset = 0x059B0, size = 0x1FC, address = 0x801377D0 },
+    { name = "leap", offset = 0x05BAC, size = 0x290, address = 0x801379CC },
+    { name = "flinch", offset = 0x05E3C, size = 0x104, address = 0x80137C5C },
+    { name = "bank", offset = 0x05F60, size = 0x30, address = 0x80137D80 },
+]
+package_name = "actor_103800"
+required = true
+sha1 = "66c3122ec9e930a624e41dea6e65c74f26ecea70"
+
+[package_2]
+type = "pe2pkg"
+embedded = [
+    { name = "idle", offset = 0x04950, size = 0x1FC, address = 0x8014E770 },
+    { name = "walk", offset = 0x04B4C, size = 0x1FC, address = 0x8014E96C },
+    { name = "knocked_over", offset = 0x04D48, size = 0x2C0, address = 0x8014EB68 },
+    { name = "get_up", offset = 0x05008, size = 0x554, address = 0x8014EE28 },
+    { name = "death_overturned", offset = 0x0555C, size = 0xBC, address = 0x8014F37C },
+    { name = "flinch_overturned", offset = 0x05618, size = 0x144, address = 0x8014F438 },
+    { name = "flinch_perched", offset = 0x0575C, size = 0xF0, address = 0x8014F57C },
+    { name = "land", offset = 0x0584C, size = 0x164, address = 0x8014F66C },
+    { name = "charge", offset = 0x059B0, size = 0x1FC, address = 0x8014F7D0 },
+    { name = "leap", offset = 0x05BAC, size = 0x290, address = 0x8014F9CC },
+    { name = "flinch", offset = 0x05E3C, size = 0x104, address = 0x8014FC5C },
+    { name = "bank", offset = 0x05F60, size = 0x30, address = 0x8014FD80 },
+]
+package_name = "actor_203800"
+required = true
+sha1 = "4085db6d67156c52ceadb8f579a1a1f3da8518ec"
+
+[package_3]
+type = "pe2pkg"
+package_name = "actor_303800"
+required = true
+sha1 = "a3009980263a745807cd3b902c5cd239c04105ab"
+
+[land_sound]
+type = "sound"
+sha1 = "bfec82c37ad33defb43b86cd18b4a258d894b393"
+
+[body_binding]
+type = "binding"
+model = "enemies/black_beetle/body"
+textures = { body = "enemies/black_beetle/texture.default" }
+
+[knocked_over]
+type = "clip"
+rig = "enemies/black_beetle/rig"
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+chunk = "sounds"
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "4230a6af3f81868fb0447839b5ab3c2e87f1b7c6"
+palettes = [
+    { texture = "texture", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { name = "unread_row_2", entries = 256, region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "5448c02fea766933ddc0fd0336d73ca31c30c7f9"
+pages = [{ texture = "texture", region = "engine/vram/actor_sheet", offset = [0, 0] }]
+slots = 6
+
+[[package_file.contents]]
+chunk = "package_1"
+
+[flinch_perched]
+type = "clip"
+rig = "enemies/black_beetle/rig"
+
+[burst_fragment_1]
+type = "model"
+slots = ["body"]
+symbol = "_gBlackBeetleBurstFragment1"
+sha1 = "9fc558698611a6c43cf2b57fd077d2a3ce0be094"
+
+[burst_fragment_2]
+type = "model"
+slots = ["body"]
+symbol = "_gBlackBeetleBurstFragment2"
+sha1 = "4e32952f7d6d1141e9e6334cb74ec40a1e536012"
+
+[burst_fragment_3]
+type = "model"
+slots = ["body"]
+symbol = "_gBlackBeetleBurstFragment3"
+sha1 = "088a3287b59a557327ca7fdd1706689dc94b424f"
+
+[burst_fragment_4]
+type = "model"
+slots = ["body"]
+symbol = "_gBlackBeetleBurstFragment4"
+sha1 = "db826850213a7ba53ecf0e71a952b42f9c66e092"
+
+[burst_fragment_5]
+type = "model"
+slots = ["body"]
+symbol = "_gBlackBeetleBurstFragment5"
+sha1 = "eb2cbb0febffffabbca7e64e876d935b93306942"
+
+[death_overturned]
+type = "clip"
+rig = "enemies/black_beetle/rig"
+
+[flinch_overturned]
+type = "clip"
+rig = "enemies/black_beetle/rig"
+
+[burst_fragment_1_binding]
+type = "binding"
+model = "enemies/black_beetle/burst_fragment_1"
+textures = { body = "enemies/black_beetle/texture.default" }
+
+[burst_fragment_2_binding]
+type = "binding"
+model = "enemies/black_beetle/burst_fragment_2"
+textures = { body = "enemies/black_beetle/texture.default" }
+
+[burst_fragment_3_binding]
+type = "binding"
+model = "enemies/black_beetle/burst_fragment_3"
+textures = { body = "enemies/black_beetle/texture.default" }
+
+[burst_fragment_4_binding]
+type = "binding"
+model = "enemies/black_beetle/burst_fragment_4"
+textures = { body = "enemies/black_beetle/texture.default" }
+
+[burst_fragment_5_binding]
+type = "binding"
+model = "enemies/black_beetle/burst_fragment_5"
+textures = { body = "enemies/black_beetle/texture.default" }

@@ -1,0 +1,346 @@
+# The assets of the group rooms/shelter/1f_tent, each named rooms/shelter/1f_tent/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[soldiers]
+type = "pe2pkg"
+embedded = [
+    { name = "player_arrival_stand", offset = 0x02074, size = 0x268, address = 0x80133E94 },
+    { name = "player_arrival_1", offset = 0x022DC, size = 0x26C, address = 0x801340FC },
+    { name = "player_arrival_2", offset = 0x02548, size = 0x1A0, address = 0x80134368 },
+    { name = "player_arrival_3", offset = 0x026E8, size = 0x320, address = 0x80134508 },
+    { name = "player_arrival_4", offset = 0x02A08, size = 0x1AC, address = 0x80134828 },
+    { name = "player_arrival_5", offset = 0x02BB4, size = 0x254, address = 0x801349D4 },
+    { name = "player_arrival_6", offset = 0x02E08, size = 0x240, address = 0x80134C28 },
+    { name = "player_arrival_7", offset = 0x03048, size = 0x1B0, address = 0x80134E68 },
+    { name = "player_arrival_8", offset = 0x031F8, size = 0x1E8, address = 0x80135018 },
+    { name = "player_arrival_9", offset = 0x033E0, size = 0x1CC, address = 0x80135200 },
+    { name = "player_arrival_10", offset = 0x035AC, size = 0x670, address = 0x801353CC },
+    { asset = "characters/aya/converse", offset = 0x03C1C, size = 0x3B8, address = 0x80135A3C },
+    { name = "player_extension_bank", offset = 0x04010, size = 0x3C, address = 0x80135E30 },
+    { asset = "characters/soldier_a/idle", offset = 0x0B980, size = 0x258, address = 0x8013D7A0 },
+    { asset = "characters/soldier_a/sterilization_2", offset = 0x0BBD8, size = 0x298, address = 0x8013D9F8 },
+    { asset = "characters/soldier_a/whos_there", offset = 0x0BE70, size = 0x348, address = 0x8013DC90 },
+    { asset = "characters/soldier_a/get_out", offset = 0x0C1B8, size = 0x338, address = 0x8013DFD8 },
+    { asset = "characters/soldier_a/you_sure", offset = 0x0C4F0, size = 0x218, address = 0x8013E310 },
+    { asset = "characters/soldier_a/dont_worry", offset = 0x0C708, size = 0x494, address = 0x8013E528 },
+    { asset = "characters/soldier_a/dont_worry_end", offset = 0x0CB9C, size = 0x278, address = 0x8013E9BC },
+    { asset = "characters/soldier_a/not_that_way", offset = 0x0CE14, size = 0x254, address = 0x8013EC34 },
+    { asset = "characters/soldier_a/hiya_flint", offset = 0x0D068, size = 0x1D4, address = 0x8013EE88 },
+    { asset = "characters/soldier_a/rest", offset = 0x0D23C, size = 0x1A0, address = 0x8013F05C },
+    { asset = "characters/soldier_a/sterilization_13", offset = 0x0D3DC, size = 0x1DC, address = 0x8013F1FC },
+    { asset = "characters/soldier_a/sterilization_13_end", offset = 0x0D5B8, size = 0x228, address = 0x8013F3D8 },
+    { asset = "characters/soldier_a/anim_13", offset = 0x0D7E0, size = 0x22C, address = 0x8013F600 },
+    { asset = "characters/soldier_a/anim_14", offset = 0x0DA0C, size = 0x268, address = 0x8013F82C },
+    { asset = "characters/soldier_a/anim_15", offset = 0x0DC74, size = 0x1BC, address = 0x8013FA94 },
+    { name = "soldier_a_bank", offset = 0x0DE6C, size = 0x40, address = 0x8013FC8C },
+    { asset = "characters/pierce/rest", offset = 0x1402C, size = 0x27C, address = 0x80145E4C },
+    { asset = "characters/pierce/anim_04", offset = 0x142A8, size = 0x574, address = 0x801460C8 },
+    { asset = "characters/soldier_b/armed_idle", offset = 0x1481C, size = 0x290, address = 0x8014663C },
+    { asset = "characters/pierce/walk", offset = 0x14AAC, size = 0x794, address = 0x801468CC },
+    { asset = "characters/pierce/departure_reply", offset = 0x15240, size = 0x294, address = 0x80147060 },
+    { asset = "characters/soldier_b/stride_walk_anim_anim_05", offset = 0x154D4, size = 0x2F0, address = 0x801472F4 },
+    { asset = "characters/soldier_b/stride_walk_anim_anim_06", offset = 0x157C4, size = 0x1B4, address = 0x801475E4 },
+    { asset = "characters/soldier_b/stride_walk_anim_anim_07", offset = 0x15978, size = 0x1B4, address = 0x80147798 },
+    { asset = "characters/soldier_b/stride_walk_anim_anim_08", offset = 0x15B2C, size = 0x2B8, address = 0x8014794C },
+    { asset = "characters/soldier_b/stride_walk_anim_anim_09", offset = 0x15DE4, size = 0x2F4, address = 0x80147C04 },
+    { asset = "characters/soldier_b/stride_walk_anim_anim_10", offset = 0x160D8, size = 0x1F0, address = 0x80147EF8 },
+    { name = "soldier_b_bank", offset = 0x16310, size = 0x30, address = 0x80148130 },
+    { asset = "characters/soldier_c/body", offset = 0x16340, size = 0x5A58, address = 0x80148160 },
+    { name = "soldier_c_walk_idle", offset = 0x1BD98, size = 0x2C8, address = 0x8014DBB8 },
+    { name = "soldier_c_idle", offset = 0x1C060, size = 0x2CC, address = 0x8014DE80 },
+    { name = "soldier_c_talk_1", offset = 0x1C32C, size = 0x34C, address = 0x8014E14C },
+    { name = "soldier_c_talk_1_end", offset = 0x1C678, size = 0x1DC, address = 0x8014E498 },
+    { name = "soldier_c_talk_2", offset = 0x1C854, size = 0x52C, address = 0x8014E674 },
+    { name = "soldier_c_talk_2_end", offset = 0x1CD80, size = 0x1E8, address = 0x8014EBA0 },
+    { name = "soldier_c_arrival_1", offset = 0x1CF68, size = 0x3C0, address = 0x8014ED88 },
+    { name = "soldier_c_arrival_3", offset = 0x1D328, size = 0x1D8, address = 0x8014F148 },
+    { name = "soldier_c_arrival_4", offset = 0x1D500, size = 0x3FC, address = 0x8014F320 },
+    { name = "soldier_c_arrival_5", offset = 0x1D8FC, size = 0x1EC, address = 0x8014F71C },
+    { name = "soldier_c_arrival_6", offset = 0x1DAE8, size = 0x360, address = 0x8014F908 },
+    { name = "soldier_c_arrival_7", offset = 0x1DE48, size = 0xC04, address = 0x8014FC68 },
+    { name = "soldier_c_arrival_2", offset = 0x1EA4C, size = 0x240, address = 0x8015086C },
+    { name = "soldier_c_arrival_8", offset = 0x1EC8C, size = 0x1F8, address = 0x80150AAC },
+    { name = "soldier_c_arrival_9", offset = 0x1EE84, size = 0x2FC, address = 0x80150CA4 },
+    { name = "soldier_c_arrival_10", offset = 0x1F180, size = 0x320, address = 0x80150FA0 },
+    { name = "soldier_c_arrival_11", offset = 0x1F4A0, size = 0x23C, address = 0x801512C0 },
+    { name = "soldier_c_bank", offset = 0x1F718, size = 0x48, address = 0x80151538 },
+]
+package_name = "actor_460200"
+required = true
+sha1 = "8838ef3251773789a3e0a766fb1448322650865a"
+
+[soldier_a_bank]
+type = "animation_bank"
+schema = "rooms/shelter/1f_tent/soldier_a_schema"
+symbol = "_gPacedWalkAnimBank"
+
+[soldier_a_bank.clips]
+idle = "characters/soldier_a/idle"
+sterilization_2 = "characters/soldier_a/sterilization_2"
+whos_there = "characters/soldier_a/whos_there"
+get_out = "characters/soldier_a/get_out"
+you_sure = "characters/soldier_a/you_sure"
+dont_worry = "characters/soldier_a/dont_worry"
+dont_worry_end = "characters/soldier_a/dont_worry_end"
+not_that_way = "characters/soldier_a/not_that_way"
+hiya_flint = "characters/soldier_a/hiya_flint"
+rest = "characters/soldier_a/rest"
+sterilization_13 = "characters/soldier_a/sterilization_13"
+sterilization_13_end = "characters/soldier_a/sterilization_13_end"
+anim_13 = "characters/soldier_a/anim_13"
+anim_14 = "characters/soldier_a/anim_14"
+anim_15 = "characters/soldier_a/anim_15"
+
+[soldier_b_bank]
+type = "animation_bank"
+schema = "rooms/shelter/1f_tent/soldier_b_schema"
+symbol = "_gStrideWalkAnimBank"
+
+[soldier_b_bank.clips]
+slot_1 = "characters/pierce/rest"
+slot_2 = "characters/soldier_b/armed_idle"
+slot_3 = "characters/pierce/anim_04"
+slot_4 = "characters/pierce/walk"
+slot_5 = "characters/soldier_b/stride_walk_anim_anim_05"
+slot_6 = "characters/soldier_b/stride_walk_anim_anim_06"
+slot_7 = "characters/soldier_b/stride_walk_anim_anim_07"
+slot_8 = "characters/soldier_b/stride_walk_anim_anim_08"
+slot_9 = "characters/soldier_b/stride_walk_anim_anim_09"
+slot_10 = "characters/soldier_b/stride_walk_anim_anim_10"
+slot_11 = "characters/pierce/departure_reply"
+
+[soldier_c_bank]
+type = "animation_bank"
+schema = "rooms/shelter/1f_tent/soldier_c_schema"
+symbol = "_gActor460200SoldierCAnimationSets"
+
+[soldier_c_bank.clips]
+walk_idle = "rooms/shelter/1f_tent/soldier_c_walk_idle"
+idle = "rooms/shelter/1f_tent/soldier_c_idle"
+talk_1 = "rooms/shelter/1f_tent/soldier_c_talk_1"
+talk_1_end = "rooms/shelter/1f_tent/soldier_c_talk_1_end"
+talk_2 = "rooms/shelter/1f_tent/soldier_c_talk_2"
+talk_2_end = "rooms/shelter/1f_tent/soldier_c_talk_2_end"
+arrival_1 = "rooms/shelter/1f_tent/soldier_c_arrival_1"
+arrival_3 = "rooms/shelter/1f_tent/soldier_c_arrival_3"
+arrival_4 = "rooms/shelter/1f_tent/soldier_c_arrival_4"
+arrival_5 = "rooms/shelter/1f_tent/soldier_c_arrival_5"
+arrival_6 = "rooms/shelter/1f_tent/soldier_c_arrival_6"
+arrival_7 = "rooms/shelter/1f_tent/soldier_c_arrival_7"
+arrival_2 = "rooms/shelter/1f_tent/soldier_c_arrival_2"
+arrival_8 = "rooms/shelter/1f_tent/soldier_c_arrival_8"
+arrival_9 = "rooms/shelter/1f_tent/soldier_c_arrival_9"
+arrival_10 = "rooms/shelter/1f_tent/soldier_c_arrival_10"
+arrival_11 = "rooms/shelter/1f_tent/soldier_c_arrival_11"
+
+[soldier_c_idle]
+type = "clip"
+rig = "characters/soldier_c/rig"
+
+[player_arrival_1]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_arrival_2]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_arrival_3]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_arrival_4]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_arrival_5]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_arrival_6]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_arrival_7]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_arrival_8]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_arrival_9]
+type = "clip"
+rig = "characters/aya/rig"
+
+[soldier_a_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "idle",
+    "sterilization_2",
+    "whos_there",
+    "get_out",
+    "you_sure",
+    "dont_worry",
+    "dont_worry_end",
+    "not_that_way",
+    "hiya_flint",
+    "rest",
+    "sterilization_13",
+    "sterilization_13_end",
+    "anim_13",
+    "anim_14",
+    "anim_15",
+]
+
+[soldier_b_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "slot_1",
+    "slot_2",
+    "slot_3",
+    "slot_4",
+    "slot_5",
+    "slot_6",
+    "slot_7",
+    "slot_8",
+    "slot_9",
+    "slot_10",
+    "slot_11",
+]
+
+[soldier_c_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "walk_idle",
+    "idle",
+    "talk_1",
+    "talk_1_end",
+    "talk_2",
+    "talk_2_end",
+    "arrival_1",
+    "arrival_3",
+    "arrival_4",
+    "arrival_5",
+    "arrival_6",
+    "arrival_7",
+    "arrival_2",
+    "arrival_8",
+    "arrival_9",
+    "arrival_10",
+    "arrival_11",
+]
+
+[soldier_c_talk_1]
+type = "clip"
+rig = "characters/soldier_c/rig"
+
+[soldier_c_talk_2]
+type = "clip"
+rig = "characters/soldier_c/rig"
+
+[player_arrival_10]
+type = "clip"
+rig = "characters/aya/rig"
+
+[soldier_c_arrival_1]
+type = "clip"
+rig = "characters/soldier_c/rig"
+
+[soldier_c_arrival_2]
+type = "clip"
+rig = "characters/soldier_c/rig"
+
+[soldier_c_arrival_3]
+type = "clip"
+rig = "characters/soldier_c/rig"
+
+[soldier_c_arrival_4]
+type = "clip"
+rig = "characters/soldier_c/rig"
+
+[soldier_c_arrival_5]
+type = "clip"
+rig = "characters/soldier_c/rig"
+
+[soldier_c_arrival_6]
+type = "clip"
+rig = "characters/soldier_c/rig"
+
+[soldier_c_arrival_7]
+type = "clip"
+rig = "characters/soldier_c/rig"
+
+[soldier_c_arrival_8]
+type = "clip"
+rig = "characters/soldier_c/rig"
+
+[soldier_c_arrival_9]
+type = "clip"
+rig = "characters/soldier_c/rig"
+
+[soldier_c_walk_idle]
+type = "clip"
+rig = "characters/soldier_c/rig"
+
+[player_arrival_stand]
+type = "clip"
+rig = "characters/aya/rig"
+
+[soldier_c_arrival_10]
+type = "clip"
+rig = "characters/soldier_c/rig"
+
+[soldier_c_arrival_11]
+type = "clip"
+rig = "characters/soldier_c/rig"
+
+[soldier_c_talk_1_end]
+type = "clip"
+rig = "characters/soldier_c/rig"
+
+[soldier_c_talk_2_end]
+type = "clip"
+rig = "characters/soldier_c/rig"
+
+[player_extension_bank]
+type = "animation_bank"
+schema = "rooms/shelter/1f_tent/player_extension_schema"
+symbol = "_gActor460200PlayerExtensionSets"
+
+[player_extension_bank.clips]
+arrival_stand = "rooms/shelter/1f_tent/player_arrival_stand"
+arrival_1 = "rooms/shelter/1f_tent/player_arrival_1"
+arrival_2 = "rooms/shelter/1f_tent/player_arrival_2"
+arrival_3 = "rooms/shelter/1f_tent/player_arrival_3"
+arrival_4 = "rooms/shelter/1f_tent/player_arrival_4"
+arrival_5 = "rooms/shelter/1f_tent/player_arrival_5"
+arrival_6 = "rooms/shelter/1f_tent/player_arrival_6"
+arrival_7 = "rooms/shelter/1f_tent/player_arrival_7"
+arrival_8 = "rooms/shelter/1f_tent/player_arrival_8"
+arrival_9 = "rooms/shelter/1f_tent/player_arrival_9"
+arrival_10 = "rooms/shelter/1f_tent/player_arrival_10"
+slot_14 = "characters/aya/converse"
+
+[player_extension_schema]
+type = "animation_schema"
+slots = [
+    "arrival_stand",
+    "arrival_1",
+    "arrival_2",
+    "arrival_3",
+    "arrival_4",
+    "arrival_5",
+    "arrival_6",
+    "arrival_7",
+    "arrival_8",
+    "arrival_9",
+    "arrival_10",
+    "",
+    "",
+    "",
+    "slot_14",
+]

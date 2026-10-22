@@ -1,0 +1,101 @@
+# The assets of the group enemies/golem/pawn, each named enemies/golem/pawn/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[body]
+type = "model"
+rig = "enemies/golem/rig"
+slots = ["page_2", "page_1"]
+symbol = "_gGolemPawnBody"
+sha1 = "5d05412d3e2a515720bfdaa7c605e7e601bd51e2"
+
+[body_binding]
+type = "binding"
+model = "enemies/golem/pawn/body"
+
+[body_binding.textures]
+page_2 = "enemies/golem/pawn/texture_page_2.default"
+page_1 = "enemies/golem/pawn/texture_page_1.default"
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "cc227a9fda0cadf16345e38159daf7fcf87fe34d"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_file.contents]]
+asset = "enemies/golem/weapons_palette"
+sha1 = "e686ea27e93433b96e36c9b6f81986045bf1c4a5"
+
+[[package_file.contents.palettes]]
+texture = "texture_page_3"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0, 2]
+
+[[package_file.contents.palettes]]
+texture = "enemies/golem/rook/texture_page_3"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0, 2]
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "751a95ddd03c5580e9fa5e1f7aa169bd2e22972a"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+    { texture = "texture_page_3", region = "engine/vram/actor_sheet", offset = [128, 0] },
+]
+slots = 6
+
+[[package_file.contents]]
+asset = "enemies/golem/pawn/beam_sword/package_1"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_3]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[grenade_binding]
+type = "binding"
+model = "enemies/golem/grenade"
+textures = { page_3 = "enemies/golem/pawn/texture_page_3.default" }
+
+[footstep_a_set_4]
+type = "sound"
+sha1 = "c1218fc2c5d153fde5068065966ee1bdc8c1d0f5"
+
+[footstep_b_set_4]
+type = "sound"
+sha1 = "0c279ae7f2ae65cb5a6551301234a467fd4f1755"
+
+[beam_sword_binding]
+type = "binding"
+model = "enemies/golem/beam_sword"
+textures = { page_3 = "enemies/golem/pawn/texture_page_3.default" }
+
+[grenade_launcher_binding]
+type = "binding"
+model = "enemies/golem/grenade_launcher"
+textures = { page_3 = "enemies/golem/pawn/texture_page_3.default" }

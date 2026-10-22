@@ -65,142 +65,20 @@ static const TaskFuncTable4 _gReverseWalkStepHandlers = { {
 /// Backward movement scales it by -0.4 before rotating into the parent frame.
 static const VECTOR _gReverseWalkForwardVelocity = { 0, 0, 0x200000, 0 };
 
-static TmdSource _gActor350500EveBreaMaskedBody;
+extern TmdSource gEveMaskedBody;
 static s32       _actor350500ReverseWalkCommandMsg(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
 static void      _actor350500ReverseWalkTask(Task* task);
 
-static TmdBone _gActor350500EveBreaMaskedBodySkeleton[19] = {
-#include "assets/eve_brea_masked_body_skeleton.inc"
-};
+#include "assets/characters/eve/masked_body.inc"
 
-static u32 _gActor350500EveBreaMaskedBodyPartVerts[19] = {
-#include "assets/eve_brea_masked_body_partVerts.inc"
-};
-
-static SVECTOR _gActor350500EveBreaMaskedBodyVerts[312] = {
-#include "assets/eve_brea_masked_body_verts.inc"
-};
-
-static SVECTOR _gActor350500EveBreaMaskedBodyNormals[338] = {
-#include "assets/eve_brea_masked_body_normals.inc"
-};
-
-static u32 _gActor350500EveBreaMaskedBodyStream[3463] = {
-#include "assets/eve_brea_masked_body_stream.inc"
-};
-
-static TmdSource _gActor350500EveBreaMaskedBody = {
-    0,
-    18392,
-    6232,
-    19,
-    _gActor350500EveBreaMaskedBodyPartVerts,
-    _gActor350500EveBreaMaskedBodyVerts,
-    _gActor350500EveBreaMaskedBodyNormals,
-    _gActor350500EveBreaMaskedBodySkeleton,
-    _gActor350500EveBreaMaskedBodyStream,
-};
-
-static AnimationPackedPose _gActor350500Animation05C4CBank1[2] = {
-#include "assets/actor_350500_animation_05C4C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor350500Animation05C4CBank4[23] = {
-#include "assets/actor_350500_animation_05C4C_bank4.inc"
-};
-
-static AnimationRecord _gActor350500Animation05C4CRecords[84] = {
-#include "assets/actor_350500_animation_05C4C_records.inc"
-};
-
-static u16 _gActor350500Animation05C4CIndices[20] = {
-#include "assets/actor_350500_animation_05C4C_indices.inc"
-};
-
-static AnimationSet _gActor350500Animation05C4C = {
-    _gActor350500Animation05C4CRecords,
-    _gActor350500Animation05C4CIndices,
-    { NULL, _gActor350500Animation05C4CBank1, NULL, NULL, _gActor350500Animation05C4CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor350500Animation06830Bank1[22] = {
-#include "assets/actor_350500_animation_06830_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor350500Animation06830Bank4[298] = {
-#include "assets/actor_350500_animation_06830_bank4.inc"
-};
-
-static AnimationRecord _gActor350500Animation06830Records[377] = {
-#include "assets/actor_350500_animation_06830_records.inc"
-};
-
-static u16 _gActor350500Animation06830Indices[20] = {
-#include "assets/actor_350500_animation_06830_indices.inc"
-};
-
-static AnimationSet _gActor350500Animation06830 = {
-    _gActor350500Animation06830Records,
-    _gActor350500Animation06830Indices,
-    { NULL, _gActor350500Animation06830Bank1, NULL, NULL, _gActor350500Animation06830Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor350500Animation06C38Bank1[5] = {
-#include "assets/actor_350500_animation_06C38_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor350500Animation06C38Bank4[76] = {
-#include "assets/actor_350500_animation_06C38_bank4.inc"
-};
-
-static AnimationRecord _gActor350500Animation06C38Records[147] = {
-#include "assets/actor_350500_animation_06C38_records.inc"
-};
-
-static u16 _gActor350500Animation06C38Indices[20] = {
-#include "assets/actor_350500_animation_06C38_indices.inc"
-};
-
-static AnimationSet _gActor350500Animation06C38 = {
-    _gActor350500Animation06C38Records,
-    _gActor350500Animation06C38Indices,
-    { NULL, _gActor350500Animation06C38Bank1, NULL, NULL, _gActor350500Animation06C38Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor350500Animation07044Bank1[5] = {
-#include "assets/actor_350500_animation_07044_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor350500Animation07044Bank4[89] = {
-#include "assets/actor_350500_animation_07044_bank4.inc"
-};
-
-static AnimationRecord _gActor350500Animation07044Records[135] = {
-#include "assets/actor_350500_animation_07044_records.inc"
-};
-
-static u16 _gActor350500Animation07044Indices[20] = {
-#include "assets/actor_350500_animation_07044_indices.inc"
-};
-
-static AnimationSet _gActor350500Animation07044 = {
-    _gActor350500Animation07044Records,
-    _gActor350500Animation07044Indices,
-    { NULL, _gActor350500Animation07044Bank1, NULL, NULL, _gActor350500Animation07044Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/shelter/b6_corridor/eve_clips.inc"
 
 /// Masked Eve's bank-0 body animation sets: clip 0 absent, clips 1..4 loaded.
 ///
 /// `AnimationPlayRequest::animationId` selects the clip after `source.index`
 /// selects the outer bank. Reversing-walker playback borrows the table and
 /// sets for the body task's lifetime; the package must stay loaded.
-static AnimationSet* _gActor350500BodyAnimSets[5] = {
-    NULL,
-    &_gActor350500Animation05C4C,
-    &_gActor350500Animation06830,
-    &_gActor350500Animation06C38,
-    &_gActor350500Animation07044,
-};
+#include "assets/rooms/shelter/b6_corridor/eve_bank.inc"
 
 /// Carrier-local banks for nineteen-part playback: only bank 0, clips 1..4.
 ///
@@ -210,7 +88,7 @@ static AnimationSet** const _gActorMotionAnimBanks19[1] SECTION(".data") = {
     _gActor350500BodyAnimSets,
 };
 
-TaskDesc gActor350500MaskedEveReverseWalkTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor350500ReverseWalkTask, { .model = &_gActor350500EveBreaMaskedBody } };
+TaskDesc gActor350500MaskedEveReverseWalkTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor350500ReverseWalkTask, { .model = &gEveMaskedBody } };
 
 /// Terminated message table of this carrier's nineteen-part reversing walker.
 ///

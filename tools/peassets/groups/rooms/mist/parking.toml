@@ -1,0 +1,265 @@
+# The assets of the group rooms/mist/parking, each named rooms/mist/parking/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[jodie]
+type = "pe2pkg"
+embedded = [
+    { asset = "characters/jodie/body", offset = 0x006E0, size = 0x5D08, address = 0x8014A500 },
+    { asset = "characters/aya/stand", offset = 0x065E0, size = 0x304, address = 0x80150400 },
+    { asset = "characters/aya/talk_start", offset = 0x068E4, size = 0x3D4, address = 0x80150704 },
+    { asset = "characters/aya/talk", offset = 0x06CB8, size = 0x3F0, address = 0x80150AD8 },
+    { asset = "characters/aya/talk_end", offset = 0x070A8, size = 0x36C, address = 0x80150EC8 },
+    { name = "jodie_rest", offset = 0x07414, size = 0x550, address = 0x80151234 },
+    { name = "body_anim_06", offset = 0x07964, size = 0x3B0, address = 0x80151784 },
+    { asset = "characters/aya/anim_06", offset = 0x07D14, size = 0x1C4, address = 0x80151B34 },
+    { asset = "characters/aya/anim_07", offset = 0x07ED8, size = 0x2C0, address = 0x80151CF8 },
+    { asset = "characters/aya/anim_08", offset = 0x08198, size = 0x1C4, address = 0x80151FB8 },
+    { name = "jodie_bank", offset = 0x0835C, size = 0x28, address = 0x8015217C },
+]
+package_name = "actor_213100"
+required = true
+sha1 = "a0a2a0caf5972a7735dd424f246e1a2b7b42e0bd"
+
+[pierce]
+type = "pe2pkg"
+embedded = [
+    { asset = "characters/pierce/body", offset = 0x0164C, size = 0x621C, address = 0x8013346C },
+    { asset = "characters/pierce/glasses", offset = 0x07868, size = 0x1FC, address = 0x80139688 },
+    { asset = "characters/pierce/id_badge", offset = 0x07A64, size = 0xA8, address = 0x80139884 },
+    "actor_113100_model_07BC4",
+    { asset = "characters/pierce/rest", offset = 0x07D9C, size = 0x27C, address = 0x80139BBC },
+    { asset = "characters/pierce/walk", offset = 0x08018, size = 0x794, address = 0x80139E38 },
+    { asset = "characters/pierce/anim_04", offset = 0x087AC, size = 0x574, address = 0x8013A5CC },
+    { name = "pierce_anim_03", offset = 0x08D20, size = 0xA3C, address = 0x8013AB40 },
+    { name = "pierce_departure_prompt", offset = 0x0975C, size = 0x1BC, address = 0x8013B57C },
+    { name = "pierce_closing_talk", offset = 0x09918, size = 0x450, address = 0x8013B738 },
+    { name = "pierce_anim_07", offset = 0x09D68, size = 0x1BC, address = 0x8013BB88 },
+    { name = "pierce_follow_up_talk", offset = 0x09F24, size = 0x2D4, address = 0x8013BD44 },
+    { name = "pierce_anim_09", offset = 0x0A1F8, size = 0x86C, address = 0x8013C018 },
+    { name = "pierce_anim_10", offset = 0x0AA64, size = 0x988, address = 0x8013C884 },
+    { name = "pierce_anim_11", offset = 0x0B3EC, size = 0x260, address = 0x8013D20C },
+    { asset = "characters/pierce/anim_12", offset = 0x0B64C, size = 0x9AC, address = 0x8013D46C },
+    { name = "pierce_anim_13", offset = 0x0BFF8, size = 0xC0C, address = 0x8013DE18 },
+    { name = "pierce_anim_14", offset = 0x0CC04, size = 0x9C4, address = 0x8013EA24 },
+    { asset = "characters/pierce/departure_reply", offset = 0x0D5C8, size = 0x294, address = 0x8013F3E8 },
+    { name = "pierce_anim_16", offset = 0x0D85C, size = 0x660, address = 0x8013F67C },
+    { name = "pierce_parking_arrival_9", offset = 0x0DEBC, size = 0x3C8, address = 0x8013FCDC },
+    { name = "pierce_parking_arrival_10", offset = 0x0E284, size = 0x248, address = 0x801400A4 },
+    { name = "pierce_anim_23", offset = 0x0E4CC, size = 0x38C, address = 0x801402EC },
+    { name = "pierce_anim_24", offset = 0x0E858, size = 0x298, address = 0x80140678 },
+    { name = "pierce_anim_25", offset = 0x0EAF0, size = 0x320, address = 0x80140910 },
+    { asset = "characters/pierce/explain_analysis", offset = 0x0EE10, size = 0x348, address = 0x80140C30 },
+    { asset = "characters/pierce/parking_arrival_12", offset = 0x0F158, size = 0x23C, address = 0x80140F78 },
+    { asset = "characters/pierce/anim_21", offset = 0x0F394, size = 0x310, address = 0x801411B4 },
+    { name = "pierce_turn", offset = 0x0F6A4, size = 0x38C, address = 0x801414C4 },
+    { name = "pierce_walk_arrive", offset = 0x0FA30, size = 0x3BC, address = 0x80141850 },
+    { name = "pierce_parking_arrival_7", offset = 0x0FDEC, size = 0x2E4, address = 0x80141C0C },
+    { asset = "characters/pierce/ask_upset", offset = 0x100D0, size = 0x644, address = 0x80141EF0 },
+    { asset = "characters/pierce/joke", offset = 0x10714, size = 0x558, address = 0x80142534 },
+    { asset = "characters/pierce/anim_30", offset = 0x10C6C, size = 0x394, address = 0x80142A8C },
+    { name = "pierce_ask_why", offset = 0x11000, size = 0x3EC, address = 0x80142E20 },
+    { name = "pierce_anim_32", offset = 0x113EC, size = 0x288, address = 0x8014320C },
+    { asset = "characters/pierce/greet", offset = 0x11674, size = 0x3C0, address = 0x80143494 },
+    { asset = "characters/pierce/implant_talk", offset = 0x11A34, size = 0x3C4, address = 0x80143854 },
+    { asset = "characters/pierce/anim_35", offset = 0x11DF8, size = 0x638, address = 0x80143C18 },
+    { name = "pierce_bank", offset = 0x12430, size = 0x90, address = 0x80144250 },
+]
+package_name = "actor_113100"
+parent = "mist_parking"
+required = true
+sha1 = "5e87c8524e5c2a3924655335b7b17dcac281a669"
+
+[jodie_bank]
+type = "animation_bank"
+schema = "rooms/mist/parking/jodie_schema"
+symbol = "_gActor213100BodyAnimSets"
+
+[jodie_bank.clips]
+talk = "characters/aya/stand"
+slot_2 = "characters/aya/talk_start"
+slot_3 = "characters/aya/talk"
+slot_4 = "characters/aya/talk_end"
+rest = "rooms/mist/parking/jodie_rest"
+slot_6 = "rooms/mist/parking/body_anim_06"
+greeting = "characters/aya/anim_06"
+shop_reply = "characters/aya/anim_07"
+shop_reply_end = "characters/aya/anim_08"
+
+[jodie_rest]
+type = "clip"
+rig = "characters/jodie/rig"
+
+[pierce_bank]
+type = "animation_bank"
+schema = "rooms/mist/parking/pierce_schema"
+symbol = "_gActor113100PierceAnimationBank"
+
+[pierce_bank.clips]
+rest = "characters/pierce/rest"
+walk = "characters/pierce/walk"
+slot_3 = "rooms/mist/parking/pierce_anim_03"
+slot_4 = "characters/pierce/anim_04"
+departure_prompt = "rooms/mist/parking/pierce_departure_prompt"
+closing_talk = "rooms/mist/parking/pierce_closing_talk"
+slot_7 = "rooms/mist/parking/pierce_anim_07"
+follow_up_talk = "rooms/mist/parking/pierce_follow_up_talk"
+slot_9 = "rooms/mist/parking/pierce_anim_09"
+slot_10 = "rooms/mist/parking/pierce_anim_10"
+slot_11 = "rooms/mist/parking/pierce_anim_11"
+slot_12 = "characters/pierce/anim_12"
+slot_13 = "rooms/mist/parking/pierce_anim_13"
+slot_14 = "rooms/mist/parking/pierce_anim_14"
+departure_reply = "characters/pierce/departure_reply"
+slot_16 = "rooms/mist/parking/pierce_anim_16"
+parking_arrival_9 = "rooms/mist/parking/pierce_parking_arrival_9"
+parking_arrival_10 = "rooms/mist/parking/pierce_parking_arrival_10"
+explain_analysis = "characters/pierce/explain_analysis"
+parking_arrival_12 = "characters/pierce/parking_arrival_12"
+slot_21 = "characters/pierce/anim_21"
+turn = "rooms/mist/parking/pierce_turn"
+slot_23 = "rooms/mist/parking/pierce_anim_23"
+slot_24 = "rooms/mist/parking/pierce_anim_24"
+slot_25 = "rooms/mist/parking/pierce_anim_25"
+walk_arrive = "rooms/mist/parking/pierce_walk_arrive"
+parking_arrival_7 = "rooms/mist/parking/pierce_parking_arrival_7"
+ask_upset = "characters/pierce/ask_upset"
+joke = "characters/pierce/joke"
+slot_30 = "characters/pierce/anim_30"
+ask_why = "rooms/mist/parking/pierce_ask_why"
+slot_32 = "rooms/mist/parking/pierce_anim_32"
+greet = "characters/pierce/greet"
+implant_talk = "characters/pierce/implant_talk"
+slot_35 = "characters/pierce/anim_35"
+
+[pierce_turn]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[body_anim_06]
+type = "clip"
+rig = "characters/aya/rig"
+
+[jodie_schema]
+type = "animation_schema"
+slots = ["", "talk", "slot_2", "slot_3", "slot_4", "rest", "slot_6", "greeting", "shop_reply", "shop_reply_end"]
+
+[pierce_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "rest",
+    "walk",
+    "slot_3",
+    "slot_4",
+    "departure_prompt",
+    "closing_talk",
+    "slot_7",
+    "follow_up_talk",
+    "slot_9",
+    "slot_10",
+    "slot_11",
+    "slot_12",
+    "slot_13",
+    "slot_14",
+    "departure_reply",
+    "slot_16",
+    "parking_arrival_9",
+    "parking_arrival_10",
+    "explain_analysis",
+    "parking_arrival_12",
+    "slot_21",
+    "turn",
+    "slot_23",
+    "slot_24",
+    "slot_25",
+    "walk_arrive",
+    "parking_arrival_7",
+    "ask_upset",
+    "joke",
+    "slot_30",
+    "ask_why",
+    "slot_32",
+    "greet",
+    "implant_talk",
+    "slot_35",
+]
+
+[pierce_anim_03]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_anim_07]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_anim_09]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_anim_10]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_anim_11]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_anim_13]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_anim_14]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_anim_16]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_anim_23]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_anim_24]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_anim_25]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_anim_32]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_ask_why]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_walk_arrive]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_closing_talk]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_follow_up_talk]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_departure_prompt]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_parking_arrival_7]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_parking_arrival_9]
+type = "clip"
+rig = "characters/pierce/rig"
+
+[pierce_parking_arrival_10]
+type = "clip"
+rig = "characters/pierce/rig"

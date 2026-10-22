@@ -1,0 +1,193 @@
+# The assets of the group rooms/akropolis/forked_road, each named rooms/akropolis/forked_road/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[idle]
+type = "sound"
+sha1 = "c2c38b28323ce23d9d3c4decfb350153717bb773"
+
+[burst]
+type = "sound"
+sha1 = "e0a4ca1d841f31324273e7df2eb9b2a9a16b3a6e"
+
+[unused_1]
+type = "sound"
+sha1 = "d156900d9450d5fe567cc344ec9f4708009f82be"
+
+[sucklerceph_rig]
+type = "rig"
+joints = ["root", "body", "joint_2"]
+
+[sucklerceph_bank]
+type = "animation_bank"
+schema = "rooms/akropolis/forked_road/sucklerceph_schema"
+symbol = "_gSucklercephAnimSets"
+
+[sucklerceph_bank.clips]
+idle = "rooms/akropolis/forked_road/sucklerceph_idle"
+crawl = "rooms/akropolis/forked_road/sucklerceph_crawl"
+slot_3 = "rooms/akropolis/forked_road/sucklerceph_anim_03"
+
+[sucklerceph_body]
+type = "model"
+rig = "rooms/akropolis/forked_road/sucklerceph_rig"
+slots = ["sucklerceph_and_skull_stalker_1_texture"]
+symbol = "_gAkropolisForkedRoadSucklercephBody"
+sha1 = "e163102ebb9ebcc1dec683a94d229891ae4b23ee"
+
+[sucklerceph_hurt]
+type = "sound"
+sha1 = "1324019756030d2d336056f170a95805f9308d9b"
+
+[sucklerceph_idle]
+type = "clip"
+rig = "rooms/akropolis/forked_road/sucklerceph_rig"
+
+[skull_stalker_rig]
+type = "rig"
+joints = ["root", "body", "joint_2"]
+
+[sucklerceph_crawl]
+type = "clip"
+rig = "rooms/akropolis/forked_road/sucklerceph_rig"
+
+[skull_stalker_bank]
+type = "animation_bank"
+schema = "rooms/akropolis/forked_road/skull_stalker_schema"
+symbol = "_gSkullStalkerAnimSets"
+
+[skull_stalker_bank.clips]
+idle = "rooms/akropolis/forked_road/skull_stalker_idle"
+alert = "rooms/akropolis/forked_road/skull_stalker_alert"
+
+[skull_stalker_body]
+type = "model"
+rig = "rooms/akropolis/forked_road/skull_stalker_rig"
+slots = ["sucklerceph_and_skull_stalker_1_texture"]
+symbol = "_gAkropolisForkedRoadSkullStalkerBody"
+sha1 = "1d9c867f7c6e322c4ca3be860a207878ce18da48"
+
+[skull_stalker_idle]
+type = "clip"
+rig = "rooms/akropolis/forked_road/skull_stalker_rig"
+
+[sucklerceph_schema]
+type = "animation_schema"
+slots = ["", "idle", "crawl", "slot_3"]
+
+[skull_stalker_alert]
+type = "clip"
+rig = "rooms/akropolis/forked_road/skull_stalker_rig"
+
+[sucklerceph_anim_03]
+type = "clip"
+rig = "rooms/akropolis/forked_road/sucklerceph_rig"
+
+[skull_stalker_appear]
+type = "sound"
+sha1 = "55bcd745380a2f04bed61038f477282882459e95"
+
+[skull_stalker_schema]
+type = "animation_schema"
+slots = ["", "idle", "alert"]
+
+[sucklerceph_body_binding]
+type = "binding"
+model = "rooms/akropolis/forked_road/sucklerceph_body"
+
+[sucklerceph_body_binding.textures]
+sucklerceph_and_skull_stalker_1_texture = "rooms/akropolis/forked_road/sucklerceph_and_skull_stalker_1_texture.default"
+
+[skull_stalker_body_binding]
+type = "binding"
+model = "rooms/akropolis/forked_road/skull_stalker_body"
+
+[skull_stalker_body_binding.textures]
+sucklerceph_and_skull_stalker_1_texture = "rooms/akropolis/forked_road/sucklerceph_and_skull_stalker_1_texture.default"
+
+[sucklerceph_and_skull_stalker_1]
+type = "pe2pkg"
+embedded = [
+    { name = "sucklerceph_body", offset = 0x04188, size = 0x109C, address = 0x80135FA8 },
+    { name = "sucklerceph_idle", offset = 0x05224, size = 0x358, address = 0x80137044 },
+    { name = "sucklerceph_crawl", offset = 0x0557C, size = 0x148, address = 0x8013739C },
+    { name = "sucklerceph_anim_03", offset = 0x056C4, size = 0x1A4, address = 0x801374E4 },
+    { name = "sucklerceph_bank", offset = 0x05890, size = 0x10, address = 0x801376B0 },
+    { name = "skull_stalker_body", offset = 0x058C4, size = 0x920, address = 0x801376E4 },
+    { name = "skull_stalker_idle", offset = 0x061E4, size = 0x64, address = 0x80138004 },
+    { name = "skull_stalker_alert", offset = 0x06248, size = 0x254, address = 0x80138068 },
+    { name = "skull_stalker_bank", offset = 0x064A8, size = 0xC, address = 0x801382C8 },
+]
+package_name = "actor_104600"
+required = true
+sha1 = "dac44b4749eec1505f8b0e53ca7e6a23fcfd43f7"
+
+[sucklerceph_and_skull_stalker_2]
+type = "pe2pkg"
+embedded = [
+    { name = "sucklerceph_idle", offset = 0x05224, size = 0x358, address = 0x8014F044 },
+    { name = "sucklerceph_crawl", offset = 0x0557C, size = 0x148, address = 0x8014F39C },
+    { name = "sucklerceph_anim_03", offset = 0x056C4, size = 0x1A4, address = 0x8014F4E4 },
+    { name = "sucklerceph_bank", offset = 0x05890, size = 0x10, address = 0x8014F6B0 },
+    { name = "skull_stalker_idle", offset = 0x061E4, size = 0x64, address = 0x80150004 },
+    { name = "skull_stalker_alert", offset = 0x06248, size = 0x254, address = 0x80150068 },
+    { name = "skull_stalker_bank", offset = 0x064A8, size = 0xC, address = 0x801502C8 },
+]
+package_name = "actor_204600"
+required = true
+sha1 = "e93d4066313be9ac342bb06452d8149e82ba7b47"
+
+[sucklerceph_and_skull_stalker_3]
+type = "pe2pkg"
+package_name = "actor_304600"
+required = true
+sha1 = "8d7a4428316c25649422609deacc7234c2586fd7"
+
+[sucklerceph_and_skull_stalker_1_file]
+type = "file"
+
+[[sucklerceph_and_skull_stalker_1_file.contents]]
+chunk = "sucklerceph_and_skull_stalker_1_sounds"
+
+[[sucklerceph_and_skull_stalker_1_file.contents]]
+chunk = "sucklerceph_and_skull_stalker_1_palette"
+sha1 = "77e262d392f75995eb0ee5021a47ca414bb75e7a"
+
+[[sucklerceph_and_skull_stalker_1_file.contents.palettes]]
+texture = "sucklerceph_and_skull_stalker_1_texture"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0, 0]
+
+[[sucklerceph_and_skull_stalker_1_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/actor_palettes"
+offset = [0, 1]
+
+[[sucklerceph_and_skull_stalker_1_file.contents]]
+chunk = "sucklerceph_and_skull_stalker_1_image"
+sha1 = "3e5fc257cc4abdafdc758065e284ddde3d107754"
+pages = [{ texture = "sucklerceph_and_skull_stalker_1_texture", region = "engine/vram/actor_sheet", offset = [0, 0] }]
+slots = 6
+
+[[sucklerceph_and_skull_stalker_1_file.contents]]
+chunk = "sucklerceph_and_skull_stalker_1"
+
+[sucklerceph_and_skull_stalker_1_sounds]
+type = "sound_bank"
+samples = [
+    "rooms/akropolis/forked_road/burst",
+    "rooms/akropolis/forked_road/idle",
+    "rooms/akropolis/forked_road/sucklerceph_hurt",
+    "rooms/akropolis/forked_road/unused_1",
+    "rooms/akropolis/forked_road/skull_stalker_appear",
+]
+sounds = { idle = 1, hurt = 2, burst = 3, appear = 6, pop = 8 }
+sha1 = "f961e1a46f07de84ddf45baf0da18e961fb0f0c5"
+
+[sucklerceph_and_skull_stalker_1_texture]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128

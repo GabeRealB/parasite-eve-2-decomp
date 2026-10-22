@@ -1,0 +1,217 @@
+# The assets of the group enemies/stranger/grinning, each named enemies/stranger/grinning/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+schema = "enemies/stranger/grinning/schema"
+symbol = "_gActor01900AnimationSets"
+
+[bank.clips]
+walk = "enemies/stranger/grinning/walk"
+run = "enemies/stranger/grinning/walk"
+strike = "enemies/stranger/grinning/strike"
+step_back = "enemies/stranger/grinning/step_back"
+rise = "enemies/stranger/grinning/rise"
+alert = "enemies/stranger/grinning/alert"
+fall = "enemies/stranger/grinning/fall"
+down = "enemies/stranger/grinning/down"
+flinch = "enemies/stranger/grinning/flinch"
+back_off = "enemies/stranger/grinning/back_off"
+scripted_watch = "enemies/stranger/grinning/alert"
+sidestep_negative = "enemies/stranger/grinning/sidestep_negative"
+sidestep_positive = "enemies/stranger/grinning/sidestep_positive"
+status_hold = "enemies/stranger/grinning/down"
+burst_collapse = "enemies/stranger/burst_collapse"
+
+[body]
+type = "model"
+rig = "enemies/stranger/rig"
+slots = ["page_1", "page_2"]
+symbol = "_gStrangerGrinningBody"
+sha1 = "e9e9dbf08cdd6412d93c8afa66fd388f79bcc6a3"
+
+[down]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[fall]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[rise]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[walk]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[alert]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[flinch]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[schema]
+type = "animation_schema"
+slots = [
+    "",
+    "",
+    "walk",
+    "run",
+    "strike",
+    "",
+    "",
+    "step_back",
+    "rise",
+    "alert",
+    "fall",
+    "down",
+    "",
+    "flinch",
+    "",
+    "",
+    "",
+    "back_off",
+    "",
+    "scripted_watch",
+    "sidestep_negative",
+    "sidestep_positive",
+    "",
+    "status_hold",
+    "burst_collapse",
+]
+
+[strike]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[back_off]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[package_1]
+type = "pe2pkg"
+embedded = [
+    { name = "body", offset = 0x0AC88, size = 0x5664, address = 0x8013CAA8 },
+    { asset = "enemies/stranger/burst_hand", offset = 0x102EC, size = 0x8A0, address = 0x8014210C },
+    { name = "strike", offset = 0x10B8C, size = 0xA84, address = 0x801429AC },
+    { name = "flinch", offset = 0x11610, size = 0x404, address = 0x80143430 },
+    { name = "rise", offset = 0x11A14, size = 0xBE4, address = 0x80143834 },
+    { name = "alert", offset = 0x125F8, size = 0x520, address = 0x80144418 },
+    { name = "back_off", offset = 0x12B18, size = 0x454, address = 0x80144938 },
+    { name = "fall", offset = 0x12F6C, size = 0x38C, address = 0x80144D8C },
+    { name = "down", offset = 0x132F8, size = 0x388, address = 0x80145118 },
+    { asset = "enemies/stranger/burst_collapse", offset = 0x13680, size = 0x384, address = 0x801454A0 },
+    { name = "sidestep_negative", offset = 0x13A04, size = 0x788, address = 0x80145824 },
+    { name = "sidestep_positive", offset = 0x1418C, size = 0x7D4, address = 0x80145FAC },
+    { name = "step_back", offset = 0x14960, size = 0xAE8, address = 0x80146780 },
+    { name = "walk", offset = 0x15448, size = 0xB00, address = 0x80147268 },
+    { name = "scripted_dormant", offset = 0x15F48, size = 0xA40, address = 0x80147D68 },
+    { name = "bank", offset = 0x17174, size = 0xB8, address = 0x80148F94 },
+]
+package_name = "actor_101900"
+required = true
+sha1 = "cebcd8f9f838f684d81d3919f2b0bf0d0310dc1e"
+
+[package_2]
+type = "pe2pkg"
+package_name = "actor_201900"
+required = true
+sha1 = "3d1b86aee037f5fcee88839df0b17533531a2af8"
+
+[package_3]
+type = "pe2pkg"
+embedded = [
+    { name = "strike", offset = 0x10B8C, size = 0xA84, address = 0x801729AC },
+    { name = "flinch", offset = 0x11610, size = 0x404, address = 0x80173430 },
+    { name = "rise", offset = 0x11A14, size = 0xBE4, address = 0x80173834 },
+    { name = "alert", offset = 0x125F8, size = 0x520, address = 0x80174418 },
+    { name = "back_off", offset = 0x12B18, size = 0x454, address = 0x80174938 },
+    { name = "fall", offset = 0x12F6C, size = 0x38C, address = 0x80174D8C },
+    { name = "down", offset = 0x132F8, size = 0x388, address = 0x80175118 },
+    { asset = "enemies/stranger/burst_collapse", offset = 0x13680, size = 0x384, address = 0x801754A0 },
+    { name = "sidestep_negative", offset = 0x13A04, size = 0x788, address = 0x80175824 },
+    { name = "sidestep_positive", offset = 0x1418C, size = 0x7D4, address = 0x80175FAC },
+    { name = "step_back", offset = 0x14960, size = 0xAE8, address = 0x80176780 },
+    { name = "walk", offset = 0x15448, size = 0xB00, address = 0x80177268 },
+    { name = "scripted_dormant", offset = 0x15F48, size = 0xA40, address = 0x80177D68 },
+    { name = "bank", offset = 0x17174, size = 0xB8, address = 0x80178F94 },
+]
+package_name = "actor_301900"
+required = true
+sha1 = "b98c6d4767d77c054e91e6e66948cd573db712bf"
+
+[step_back]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[body_binding]
+type = "binding"
+model = "enemies/stranger/grinning/body"
+
+[body_binding.textures]
+page_1 = "enemies/stranger/grinning/texture_page_1.default"
+page_2 = "enemies/stranger/grinning/texture_page_2.default"
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+asset = "enemies/stranger/sounds"
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "833d890dcdcdd1183253a282063b77fc9797dfb5"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "601689df7e4f653f7ae7956f3a5a9448cd392b63"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_file.contents]]
+chunk = "package_1"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[scripted_dormant]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[sidestep_negative]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[sidestep_positive]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[burst_hand_binding]
+type = "binding"
+model = "enemies/stranger/burst_hand"
+
+[burst_hand_binding.textures]
+page_1 = "enemies/stranger/grinning/texture_page_1.default"
+page_2 = "enemies/stranger/grinning/texture_page_2.default"

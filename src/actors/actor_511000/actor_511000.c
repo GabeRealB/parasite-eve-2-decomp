@@ -241,8 +241,8 @@ static const EnemyTaskFuncTable3 _gActor511000No9GolemStates = {
     enemyDestroy,
 };
 
-static TmdSource _gActor511000RupertBroderickBody2;
-static TmdSource _gActor511000RupertBroderickMongoose;
+static TmdSource _gRupertBody2;
+static TmdSource _gRupertMongoose;
 static TmdSource _gActor511000Prop1;
 static s32       _actor511000PlayRupertAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
 static s32       _actor511000SetRupertModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg);
@@ -252,9 +252,9 @@ static void      _actor511000RupertRevolverTask(Task* task);
 static void      _actor511000RupertPropTask(Task* task);
 static void      _actor511000RupertBodyTask(Task* task);
 
-static AnimationSet _gActor511000Animation1121C;
-static AnimationSet _gActor511000Animation130D4;
-static AnimationSet _gActor511000Animation14B2C;
+static AnimationSet _gAkropolisHelicopterLandingPadRupertShootClip;
+static AnimationSet _gAkropolisHelicopterLandingPadRupertArriveClip;
+static AnimationSet _gAkropolisHelicopterLandingPadRupertDetonatorTalkClip;
 
 static s32  _actor511000RestartHelicopterSequence(Task* task, s32 messageId, s32 unusedRequest, s32 unusedArg);
 static s32  _actor511000PlaceHelicopter(Task* task, s32 messageId, const ActorTransform* transform, s32 unusedArg);
@@ -274,49 +274,7 @@ static void      _actor511000HelicopterTask(Task* task);
 static void      _actor511000HelicopterRotorTask(Task* task);
 static void      _actor511000HelicopterSearchlightTask(Task* task);
 
-static AnimationPackedPose _gActor511000Animation04CC8Bank1[84] = {
-#include "assets/actor_511000_animation_04CC8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor511000Animation04CC8Bank4[1028] = {
-#include "assets/actor_511000_animation_04CC8_bank4.inc"
-};
-
-static AnimationRecord _gActor511000Animation04CC8Records[1364] = {
-#include "assets/actor_511000_animation_04CC8_records.inc"
-};
-
-static u16 _gActor511000Animation04CC8Indices[20] = {
-#include "assets/actor_511000_animation_04CC8_indices.inc"
-};
-
-AnimationSet gActor511000Animation04CC8 = {
-    _gActor511000Animation04CC8Records,
-    _gActor511000Animation04CC8Indices,
-    { NULL, _gActor511000Animation04CC8Bank1, NULL, NULL, _gActor511000Animation04CC8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor511000Animation07ADCBank1[75] = {
-#include "assets/actor_511000_animation_07ADC_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor511000Animation07ADCBank4[1201] = {
-#include "assets/actor_511000_animation_07ADC_bank4.inc"
-};
-
-static AnimationRecord _gActor511000Animation07ADCRecords[1503] = {
-#include "assets/actor_511000_animation_07ADC_records.inc"
-};
-
-static u16 _gActor511000Animation07ADCIndices[20] = {
-#include "assets/actor_511000_animation_07ADC_indices.inc"
-};
-
-AnimationSet gActor511000Animation07ADC = {
-    _gActor511000Animation07ADCRecords,
-    _gActor511000Animation07ADCIndices,
-    { NULL, _gActor511000Animation07ADCBank1, NULL, NULL, _gActor511000Animation07ADCBank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_departure_clips_1.inc"
 
 /// Execution priorities of the package's scene models and GOLEM models.
 enum {
@@ -459,69 +417,9 @@ static TmdSource _gActor511000Model0A41C = {
     _gActor511000Model0A41CStream,
 };
 
-static TmdBone _gActor511000RupertBroderickBody2Skeleton[20] = {
-#include "assets/rupert_broderick_body_2_skeleton.inc"
-};
+#include "assets/characters/rupert/body_2.inc"
 
-static u32 _gActor511000RupertBroderickBody2PartVerts[20] = {
-#include "assets/rupert_broderick_body_2_partVerts.inc"
-};
-
-static SVECTOR _gActor511000RupertBroderickBody2Verts[386] = {
-#include "assets/rupert_broderick_body_2_verts.inc"
-};
-
-static SVECTOR _gActor511000RupertBroderickBody2Normals[385] = {
-#include "assets/rupert_broderick_body_2_normals.inc"
-};
-
-static u32 _gActor511000RupertBroderickBody2Stream[4327] = {
-#include "assets/rupert_broderick_body_2_stream.inc"
-};
-
-static TmdSource _gActor511000RupertBroderickBody2 = {
-    0,
-    23980,
-    6012,
-    20,
-    _gActor511000RupertBroderickBody2PartVerts,
-    _gActor511000RupertBroderickBody2Verts,
-    _gActor511000RupertBroderickBody2Normals,
-    _gActor511000RupertBroderickBody2Skeleton,
-    _gActor511000RupertBroderickBody2Stream,
-};
-
-static TmdBone _gActor511000RupertBroderickMongooseSkeleton[1] = {
-#include "assets/rupert_broderick_mongoose_skeleton.inc"
-};
-
-static u32 _gActor511000RupertBroderickMongoosePartVerts[1] = {
-#include "assets/rupert_broderick_mongoose_partVerts.inc"
-};
-
-static SVECTOR _gActor511000RupertBroderickMongooseVerts[28] = {
-#include "assets/rupert_broderick_mongoose_verts.inc"
-};
-
-static SVECTOR _gActor511000RupertBroderickMongooseNormals[28] = {
-#include "assets/rupert_broderick_mongoose_normals.inc"
-};
-
-static u32 _gActor511000RupertBroderickMongooseStream[211] = {
-#include "assets/rupert_broderick_mongoose_stream.inc"
-};
-
-static TmdSource _gActor511000RupertBroderickMongoose = {
-    0,
-    1464,
-    0,
-    1,
-    _gActor511000RupertBroderickMongoosePartVerts,
-    _gActor511000RupertBroderickMongooseVerts,
-    _gActor511000RupertBroderickMongooseNormals,
-    _gActor511000RupertBroderickMongooseSkeleton,
-    _gActor511000RupertBroderickMongooseStream,
-};
+#include "assets/characters/rupert/mongoose.inc"
 
 static TmdBone _gActor511000Prop1Skeleton[1] = {
 #include "assets/actor_511000_prop_1_skeleton.inc"
@@ -551,71 +449,7 @@ static TmdSource _gActor511000Prop1 = {
     _gActor511000Prop1Stream,
 };
 
-static AnimationPackedPose _gActor511000Animation1121CBank1[5] = {
-#include "assets/actor_511000_animation_1121C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor511000Animation1121CBank4[80] = {
-#include "assets/actor_511000_animation_1121C_bank4.inc"
-};
-
-static AnimationRecord _gActor511000Animation1121CRecords[121] = {
-#include "assets/actor_511000_animation_1121C_records.inc"
-};
-
-static u16 _gActor511000Animation1121CIndices[20] = {
-#include "assets/actor_511000_animation_1121C_indices.inc"
-};
-
-static AnimationSet _gActor511000Animation1121C = {
-    _gActor511000Animation1121CRecords,
-    _gActor511000Animation1121CIndices,
-    { NULL, _gActor511000Animation1121CBank1, NULL, NULL, _gActor511000Animation1121CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor511000Animation130D4Bank1[118] = {
-#include "assets/actor_511000_animation_130D4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor511000Animation130D4Bank4[422] = {
-#include "assets/actor_511000_animation_130D4_bank4.inc"
-};
-
-static AnimationRecord _gActor511000Animation130D4Records[1170] = {
-#include "assets/actor_511000_animation_130D4_records.inc"
-};
-
-static u16 _gActor511000Animation130D4Indices[20] = {
-#include "assets/actor_511000_animation_130D4_indices.inc"
-};
-
-static AnimationSet _gActor511000Animation130D4 = {
-    _gActor511000Animation130D4Records,
-    _gActor511000Animation130D4Indices,
-    { NULL, _gActor511000Animation130D4Bank1, NULL, NULL, _gActor511000Animation130D4Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor511000Animation14B2CBank1[19] = {
-#include "assets/actor_511000_animation_14B2C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor511000Animation14B2CBank4[703] = {
-#include "assets/actor_511000_animation_14B2C_bank4.inc"
-};
-
-static AnimationRecord _gActor511000Animation14B2CRecords[906] = {
-#include "assets/actor_511000_animation_14B2C_records.inc"
-};
-
-static u16 _gActor511000Animation14B2CIndices[20] = {
-#include "assets/actor_511000_animation_14B2C_indices.inc"
-};
-
-static AnimationSet _gActor511000Animation14B2C = {
-    _gActor511000Animation14B2CRecords,
-    _gActor511000Animation14B2CIndices,
-    { NULL, _gActor511000Animation14B2CBank1, NULL, NULL, _gActor511000Animation14B2CBank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_departure_clips_2.inc"
 
 /// Eye-patch dimensions: width counts 16-bit VRAM words, height counts rows.
 enum {
@@ -628,7 +462,7 @@ enum {
 /// Two VRAM words per `u_long`; the GPU borrows this word-aligned storage until
 /// transfer completion. The patch covers 24 VRAM words by 16 rows.
 static u_long _gActor511000RupertEyesOpenPixels[ACTOR_511000_EYE_TEXTURE_WIDTH_WORDS * ACTOR_511000_EYE_TEXTURE_HEIGHT_ROWS / 2] = {
-#include "assets/actor_210700_image_0DE2C.inc"
+#include "assets/characters/rupert/eyes_open.inc"
 };
 
 /// Writable COPY/END list restoring Rupert's open-eye texture patch.
@@ -645,7 +479,7 @@ static GpuImageUpload _gActor511000RupertEyesOpenUploads[2] = {
 /// Two VRAM words per `u_long`; the 24-word by 16-row patch remains borrowed
 /// until GPU transfer completion.
 static u_long _gActor511000RupertEyesHalfOpenPixels[ACTOR_511000_EYE_TEXTURE_WIDTH_WORDS * ACTOR_511000_EYE_TEXTURE_HEIGHT_ROWS / 2] = {
-#include "assets/actor_210700_image_0E14C.inc"
+#include "assets/characters/rupert/eyes_half_open.inc"
 };
 
 /// Writable COPY/END list for Rupert's half-open blink image.
@@ -662,7 +496,7 @@ static GpuImageUpload _gActor511000RupertEyesHalfOpenUploads[2] = {
 /// Two VRAM words per `u_long`; the 24-word by 16-row patch remains borrowed
 /// until GPU transfer completion.
 static u_long _gActor511000RupertEyesClosedPixels[ACTOR_511000_EYE_TEXTURE_WIDTH_WORDS * ACTOR_511000_EYE_TEXTURE_HEIGHT_ROWS / 2] = {
-#include "assets/actor_210700_image_0E46C.inc"
+#include "assets/characters/rupert/eyes_closed.inc"
 };
 
 /// Writable COPY/END list for Rupert's closed-eye image.
@@ -678,12 +512,7 @@ static GpuImageUpload _gActor511000RupertEyesClosedUploads[2] = {
 ///
 /// Playback borrows this table and its clip data while the package is loaded.
 /// Clip indices are unchecked and must select one of the loaded sets.
-static AnimationSet* _gActor511000RupertAnimationSets[4] = {
-    NULL,
-    &_gActor511000Animation1121C,
-    &_gActor511000Animation130D4,
-    &_gActor511000Animation14B2C,
-};
+#include "assets/rooms/akropolis/helicopter_landing_pad/rupert_bank.inc"
 
 /// Animation-bank selector for Rupert's body; only bank index 0 is valid.
 ///
@@ -694,8 +523,8 @@ static AnimationSet** _gActor511000RupertAnimationBanks[1] = {
 };
 
 TaskDesc gActor511000RupertTaskDescriptors[3] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000RupertBodyTask, { .model = &_gActor511000RupertBroderickBody2 } },
-    { { { TASK_BODY_TMD, ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000RupertRevolverTask, { .model = &_gActor511000RupertBroderickMongoose } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000RupertBodyTask, { .model = &_gRupertBody2 } },
+    { { { TASK_BODY_TMD, ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000RupertRevolverTask, { .model = &_gRupertMongoose } },
     { { { TASK_BODY_TMD, ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000RupertPropTask, { .model = &_gActor511000Prop1 } },
 };
 
@@ -729,7 +558,7 @@ enum { ACTOR_511000_HELICOPTER_SEQUENCE_FRAME_COUNT = 120 };
 /// Angles use 4096 units per turn in the root's parent coordinate frame.
 /// Shares the clamped playback cursor with the translations, camera and lamp.
 static SVECTOR _gActor511000HelicopterSequenceRotations[ACTOR_511000_HELICOPTER_SEQUENCE_FRAME_COUNT] = {
-#include "assets/actor_511000_motion_15524.inc"
+#include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_rotation_track.inc"
 };
 
 /// Helicopter hull positions for sequence frames 0..119, in parent game units.
@@ -737,7 +566,7 @@ static SVECTOR _gActor511000HelicopterSequenceRotations[ACTOR_511000_HELICOPTER_
 /// Applied with the corresponding rotation; initialization uses frame 0 and
 /// view-24 updates advance the shared cursor through the repeated final frame.
 static SVECTOR _gActor511000HelicopterSequenceTranslations[ACTOR_511000_HELICOPTER_SEQUENCE_FRAME_COUNT] = {
-#include "assets/actor_511000_motion_158E4.inc"
+#include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_translation_track.inc"
 };
 
 /// Searchlight Euler aim relative to the hull for sequence frames 0..119.
@@ -745,7 +574,7 @@ static SVECTOR _gActor511000HelicopterSequenceTranslations[ACTOR_511000_HELICOPT
 /// Angles use 4096 units per turn. Attachment applies frame 0; view-24 updates
 /// use the parent helicopter's clamped sequence cursor.
 static SVECTOR _gActor511000HelicopterSearchlightRotations[ACTOR_511000_HELICOPTER_SEQUENCE_FRAME_COUNT] = {
-#include "assets/actor_511000_motion_15CA4.inc"
+#include "assets/rooms/akropolis/helicopter_landing_pad/searchlight_rotation_track.inc"
 };
 
 /// Lit red-ramp endpoint of the helicopter's sixteen-colour flashing palette.
@@ -753,7 +582,7 @@ static SVECTOR _gActor511000HelicopterSearchlightRotations[ACTOR_511000_HELICOPT
 /// RGB555/STP halfwords are stored low byte first for byte-pair blending. The
 /// fade discards STP; the initial upload source borrows this word-aligned row.
 static u8 _gActor511000HelicopterFlashLitPalette[ACTOR_511000_PALETTE_BYTES] = {
-#include "assets/actor_511000_clut_16064.inc"
+#include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_palette_lit.inc"
 };
 
 /// Absolute VRAM row rewritten by the helicopter's flashing palette.
@@ -774,7 +603,7 @@ static GpuImageUpload _gActor511000HelicopterFlashPaletteUploads[2] = {
 /// RGB555/STP halfwords stored low byte first: white and black endpoints are
 /// retained around fourteen 0x8421 dark-grey entries. The fade discards STP.
 static u8 _gActor511000HelicopterFlashDarkPalette[ACTOR_511000_PALETTE_BYTES] = {
-#include "assets/actor_511000_clut_160A4.inc"
+#include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_palette_dark.inc"
 };
 
 /// Camera frames synchronized with the helicopter's view-24 hull and lamp poses.
@@ -983,205 +812,21 @@ static s32 _gActor511000HelicopterChildDescriptorIndices[3] = {
     ACTOR_511000_HELICOPTER_SEARCHLIGHT_DESCRIPTOR,
 };
 
-static TmdBone _gActor511000No9GolemAkropolisBodySkeleton[19] = {
-#include "assets/no9_golem_akropolis_body_skeleton.inc"
-};
+#include "assets/enemies/golem/no_9/body_akropolis.inc"
 
-static u32 _gActor511000No9GolemAkropolisBodyPartVerts[19] = {
-#include "assets/no9_golem_akropolis_body_partVerts.inc"
-};
+#include "assets/enemies/golem/no_9/akropolis_sword.inc"
 
-static SVECTOR _gActor511000No9GolemAkropolisBodyVerts[358] = {
-#include "assets/no9_golem_akropolis_body_verts.inc"
-};
+#include "assets/enemies/golem/no_9/akropolis_prop.inc"
 
-static SVECTOR _gActor511000No9GolemAkropolisBodyNormals[356] = {
-#include "assets/no9_golem_akropolis_body_normals.inc"
-};
+#include "assets/enemies/golem/no_9/akropolis_chest_piece.inc"
 
-static u32 _gActor511000No9GolemAkropolisBodyStream[3928] = {
-#include "assets/no9_golem_akropolis_body_stream.inc"
-};
-
-static TmdSource _gActor511000No9GolemAkropolisBody = {
-    0,
-    21588,
-    5944,
-    19,
-    _gActor511000No9GolemAkropolisBodyPartVerts,
-    _gActor511000No9GolemAkropolisBodyVerts,
-    _gActor511000No9GolemAkropolisBodyNormals,
-    _gActor511000No9GolemAkropolisBodySkeleton,
-    _gActor511000No9GolemAkropolisBodyStream,
-};
-
-static TmdBone _gActor511000Actor510900Model0FE60Skeleton[1] = {
-#include "assets/actor_510900_model_0FE60_skeleton.inc"
-};
-
-static u32 _gActor511000Actor510900Model0FE60PartVerts[1] = {
-#include "assets/actor_510900_model_0FE60_partVerts.inc"
-};
-
-static SVECTOR _gActor511000Actor510900Model0FE60Verts[14] = {
-#include "assets/actor_510900_model_0FE60_verts.inc"
-};
-
-static SVECTOR _gActor511000Actor510900Model0FE60Normals[12] = {
-#include "assets/actor_510900_model_0FE60_normals.inc"
-};
-
-static u32 _gActor511000Actor510900Model0FE60Stream[98] = {
-#include "assets/actor_510900_model_0FE60_stream.inc"
-};
-
-static TmdSource _gActor511000Actor510900Model0FE60 = {
-    0,
-    652,
-    0,
-    1,
-    _gActor511000Actor510900Model0FE60PartVerts,
-    _gActor511000Actor510900Model0FE60Verts,
-    _gActor511000Actor510900Model0FE60Normals,
-    _gActor511000Actor510900Model0FE60Skeleton,
-    _gActor511000Actor510900Model0FE60Stream,
-};
-
-static TmdBone _gActor511000No9GolemAkropolisPropSkeleton[1] = {
-#include "assets/no9_golem_akropolis_prop_skeleton.inc"
-};
-
-static u32 _gActor511000No9GolemAkropolisPropPartVerts[1] = {
-#include "assets/no9_golem_akropolis_prop_partVerts.inc"
-};
-
-static SVECTOR _gActor511000No9GolemAkropolisPropVerts[14] = {
-#include "assets/no9_golem_akropolis_prop_verts.inc"
-};
-
-static SVECTOR _gActor511000No9GolemAkropolisPropNormals[19] = {
-#include "assets/no9_golem_akropolis_prop_normals.inc"
-};
-
-static u32 _gActor511000No9GolemAkropolisPropStream[114] = {
-#include "assets/no9_golem_akropolis_prop_stream.inc"
-};
-
-static TmdSource _gActor511000No9GolemAkropolisProp = {
-    0,
-    724,
-    0,
-    1,
-    _gActor511000No9GolemAkropolisPropPartVerts,
-    _gActor511000No9GolemAkropolisPropVerts,
-    _gActor511000No9GolemAkropolisPropNormals,
-    _gActor511000No9GolemAkropolisPropSkeleton,
-    _gActor511000No9GolemAkropolisPropStream,
-};
-
-static TmdBone _gActor511000Actor510900Model10468Skeleton[1] = {
-#include "assets/actor_510900_model_10468_skeleton.inc"
-};
-
-static u32 _gActor511000Actor510900Model10468PartVerts[1] = {
-#include "assets/actor_510900_model_10468_partVerts.inc"
-};
-
-static SVECTOR _gActor511000Actor510900Model10468Verts[18] = {
-#include "assets/actor_510900_model_10468_verts.inc"
-};
-
-static SVECTOR _gActor511000Actor510900Model10468Normals[17] = {
-#include "assets/actor_510900_model_10468_normals.inc"
-};
-
-static u32 _gActor511000Actor510900Model10468Stream[126] = {
-#include "assets/actor_510900_model_10468_stream.inc"
-};
-
-static TmdSource _gActor511000Actor510900Model10468 = {
-    0,
-    860,
-    0,
-    1,
-    _gActor511000Actor510900Model10468PartVerts,
-    _gActor511000Actor510900Model10468Verts,
-    _gActor511000Actor510900Model10468Normals,
-    _gActor511000Actor510900Model10468Skeleton,
-    _gActor511000Actor510900Model10468Stream,
-};
-
-static AnimationPackedPose _gActor511000Animation208ECBank1[95] = {
-#include "assets/actor_511000_animation_208EC_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor511000Animation208ECBank4[1397] = {
-#include "assets/actor_511000_animation_208EC_bank4.inc"
-};
-
-static AnimationRecord _gActor511000Animation208ECRecords[1813] = {
-#include "assets/actor_511000_animation_208EC_records.inc"
-};
-
-static u16 _gActor511000Animation208ECIndices[20] = {
-#include "assets/actor_511000_animation_208EC_indices.inc"
-};
-
-static AnimationSet _gActor511000Animation208EC = {
-    _gActor511000Animation208ECRecords,
-    _gActor511000Animation208ECIndices,
-    { NULL, _gActor511000Animation208ECBank1, NULL, NULL, _gActor511000Animation208ECBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor511000Animation21EBCBank1[38] = {
-#include "assets/actor_511000_animation_21EBC_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor511000Animation21EBCBank4[559] = {
-#include "assets/actor_511000_animation_21EBC_bank4.inc"
-};
-
-static AnimationRecord _gActor511000Animation21EBCRecords[703] = {
-#include "assets/actor_511000_animation_21EBC_records.inc"
-};
-
-static u16 _gActor511000Animation21EBCIndices[20] = {
-#include "assets/actor_511000_animation_21EBC_indices.inc"
-};
-
-static AnimationSet _gActor511000Animation21EBC = {
-    _gActor511000Animation21EBCRecords,
-    _gActor511000Animation21EBCIndices,
-    { NULL, _gActor511000Animation21EBCBank1, NULL, NULL, _gActor511000Animation21EBCBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor511000Animation23228Bank1[109] = {
-#include "assets/actor_511000_animation_23228_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor511000Animation23228Bank4[368] = {
-#include "assets/actor_511000_animation_23228_bank4.inc"
-};
-
-static AnimationRecord _gActor511000Animation23228Records[528] = {
-#include "assets/actor_511000_animation_23228_records.inc"
-};
-
-static u16 _gActor511000Animation23228Indices[20] = {
-#include "assets/actor_511000_animation_23228_indices.inc"
-};
-
-static AnimationSet _gActor511000Animation23228 = {
-    _gActor511000Animation23228Records,
-    _gActor511000Animation23228Indices,
-    { NULL, _gActor511000Animation23228Bank1, NULL, NULL, _gActor511000Animation23228Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_departure_clips_3.inc"
 
 TaskDesc gActor511000No9GolemTaskDescriptors[4] = {
-    { { { TASK_BODY_TMD, ACTOR_511000_NO9_GOLEM_PRIORITY } }, _actor511000No9GolemTask, { .model = &_gActor511000No9GolemAkropolisBody } },
-    { { { TASK_BODY_TMD, ACTOR_511000_NO9_GOLEM_PRIORITY } }, _actor511000No9GolemPart8Task, { .model = &_gActor511000Actor510900Model0FE60 } },
-    { { { TASK_BODY_TMD, ACTOR_511000_NO9_GOLEM_PRIORITY } }, _actor511000No9GolemPart3Task, { .model = &_gActor511000Actor510900Model10468 } },
-    { { { TASK_BODY_TMD, ACTOR_511000_NO9_GOLEM_PRIORITY } }, _actor511000No9GolemPart12Task, { .model = &_gActor511000No9GolemAkropolisProp } },
+    { { { TASK_BODY_TMD, ACTOR_511000_NO9_GOLEM_PRIORITY } }, _actor511000No9GolemTask, { .model = &gGolemNo9BodyAkropolis } },
+    { { { TASK_BODY_TMD, ACTOR_511000_NO9_GOLEM_PRIORITY } }, _actor511000No9GolemPart8Task, { .model = &gGolemNo9AkropolisSword } },
+    { { { TASK_BODY_TMD, ACTOR_511000_NO9_GOLEM_PRIORITY } }, _actor511000No9GolemPart3Task, { .model = &gGolemNo9AkropolisChestPiece } },
+    { { { TASK_BODY_TMD, ACTOR_511000_NO9_GOLEM_PRIORITY } }, _actor511000No9GolemPart12Task, { .model = &gGolemNo9AkropolisProp } },
 };
 
 /// No. 9 GOLEM playback, matrix-placement and draw messages, with an end marker.
@@ -1202,12 +847,7 @@ static TaskMessageEntry _gActor511000No9GolemMessages[4] = {
 /// Spawn binds the context without playing clip zero. Messages reset clips
 /// 1..3; clip 3 also starts the body's fade and teardown. The context borrows
 /// this table and its descriptor/pose data for the initialized body's lifetime.
-static AnimationSet* _gActor511000No9GolemAnimationSets[4] = {
-    NULL,
-    &_gActor511000Animation208EC,
-    &_gActor511000Animation21EBC,
-    &_gActor511000Animation23228,
-};
+#include "assets/rooms/akropolis/helicopter_landing_pad/no_9_bank.inc"
 
 static void _actor511000TickHelicopterPaletteFlash(_Actor511000HelicopterWork* work);
 

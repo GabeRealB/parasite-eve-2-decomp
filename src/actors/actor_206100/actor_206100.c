@@ -398,239 +398,29 @@ static const TaskFuncTable3 _gActor206100ShotStates = {
     },
 };
 
-static u32     _gActor206100DiverEnergyBallPartVerts[1];
-static SVECTOR _gActor206100DiverEnergyBallVerts[24];
-static SVECTOR _gActor206100DiverEnergyBallNormals[25];
-static TmdBone _gActor206100DiverEnergyBallSkeleton[1];
-static u32     _gActor206100DiverEnergyBallStream[270];
+static u32     _gDiverEnergyBallPartVerts[1];
+static SVECTOR _gDiverEnergyBallVerts[24];
+static SVECTOR _gDiverEnergyBallNormals[25];
+static TmdBone _gDiverEnergyBallSkeleton[1];
+static u32     _gDiverEnergyBallStream[270];
 
-static TmdSource _gActor206100DiverBody;
+static TmdSource _gDiverBody;
 static void      _actor206100ShotTask(Task* task);
 static void      _actor206100Task(Task* task);
 
-static TmdBone _gActor206100DiverBodySkeleton[15] = {
-#include "assets/diver_body_skeleton.inc"
-};
+#include "assets/enemies/diver/body.inc"
 
-static u32 _gActor206100DiverBodyPartVerts[15] = {
-#include "assets/diver_body_partVerts.inc"
-};
+#include "assets/enemies/diver/burst_head.inc"
 
-static SVECTOR _gActor206100DiverBodyVerts[145] = {
-#include "assets/diver_body_verts.inc"
-};
+#include "assets/enemies/diver/burst_arm_right.inc"
 
-static SVECTOR _gActor206100DiverBodyNormals[142] = {
-#include "assets/diver_body_normals.inc"
-};
+#include "assets/enemies/diver/burst_arm_left_1.inc"
 
-static u32 _gActor206100DiverBodyStream[2494] = {
-#include "assets/diver_body_stream.inc"
-};
+#include "assets/enemies/diver/burst_leg_right.inc"
 
-static TmdSource _gActor206100DiverBody = {
-    0,
-    11652,
-    5104,
-    15,
-    _gActor206100DiverBodyPartVerts,
-    _gActor206100DiverBodyVerts,
-    _gActor206100DiverBodyNormals,
-    _gActor206100DiverBodySkeleton,
-    _gActor206100DiverBodyStream,
-};
+#include "assets/enemies/diver/burst_arm_left_2.inc"
 
-static TmdBone _gActor206100DiverBurstHeadSkeleton[1] = {
-#include "assets/diver_burst_head_skeleton.inc"
-};
-
-static u32 _gActor206100DiverBurstHeadPartVerts[1] = {
-#include "assets/diver_burst_head_partVerts.inc"
-};
-
-static SVECTOR _gActor206100DiverBurstHeadVerts[35] = {
-#include "assets/diver_burst_head_verts.inc"
-};
-
-static SVECTOR _gActor206100DiverBurstHeadNormals[44] = {
-#include "assets/diver_burst_head_normals.inc"
-};
-
-static u32 _gActor206100DiverBurstHeadStream[360] = {
-#include "assets/diver_burst_head_stream.inc"
-};
-
-static TmdSource _gActor206100DiverBurstHead = {
-    0,
-    2388,
-    0,
-    1,
-    _gActor206100DiverBurstHeadPartVerts,
-    _gActor206100DiverBurstHeadVerts,
-    _gActor206100DiverBurstHeadNormals,
-    _gActor206100DiverBurstHeadSkeleton,
-    _gActor206100DiverBurstHeadStream,
-};
-
-static TmdBone _gActor206100DiverBurstArmRightSkeleton[1] = {
-#include "assets/diver_burst_arm_right_skeleton.inc"
-};
-
-static u32 _gActor206100DiverBurstArmRightPartVerts[1] = {
-#include "assets/diver_burst_arm_right_partVerts.inc"
-};
-
-static SVECTOR _gActor206100DiverBurstArmRightVerts[14] = {
-#include "assets/diver_burst_arm_right_verts.inc"
-};
-
-static SVECTOR _gActor206100DiverBurstArmRightNormals[24] = {
-#include "assets/diver_burst_arm_right_normals.inc"
-};
-
-static u32 _gActor206100DiverBurstArmRightStream[143] = {
-#include "assets/diver_burst_arm_right_stream.inc"
-};
-
-static TmdSource _gActor206100DiverBurstArmRight = {
-    0,
-    904,
-    0,
-    1,
-    _gActor206100DiverBurstArmRightPartVerts,
-    _gActor206100DiverBurstArmRightVerts,
-    _gActor206100DiverBurstArmRightNormals,
-    _gActor206100DiverBurstArmRightSkeleton,
-    _gActor206100DiverBurstArmRightStream,
-};
-
-static TmdBone _gActor206100DiverBurstArmLeft1Skeleton[1] = {
-#include "assets/diver_burst_arm_left_1_skeleton.inc"
-};
-
-static u32 _gActor206100DiverBurstArmLeft1PartVerts[1] = {
-#include "assets/diver_burst_arm_left_1_partVerts.inc"
-};
-
-static SVECTOR _gActor206100DiverBurstArmLeft1Verts[14] = {
-#include "assets/diver_burst_arm_left_1_verts.inc"
-};
-
-static SVECTOR _gActor206100DiverBurstArmLeft1Normals[24] = {
-#include "assets/diver_burst_arm_left_1_normals.inc"
-};
-
-static u32 _gActor206100DiverBurstArmLeft1Stream[143] = {
-#include "assets/diver_burst_arm_left_1_stream.inc"
-};
-
-static TmdSource _gActor206100DiverBurstArmLeft1 = {
-    0,
-    904,
-    0,
-    1,
-    _gActor206100DiverBurstArmLeft1PartVerts,
-    _gActor206100DiverBurstArmLeft1Verts,
-    _gActor206100DiverBurstArmLeft1Normals,
-    _gActor206100DiverBurstArmLeft1Skeleton,
-    _gActor206100DiverBurstArmLeft1Stream,
-};
-
-static TmdBone _gActor206100DiverBurstLegRightSkeleton[1] = {
-#include "assets/diver_burst_leg_right_skeleton.inc"
-};
-
-static u32 _gActor206100DiverBurstLegRightPartVerts[1] = {
-#include "assets/diver_burst_leg_right_partVerts.inc"
-};
-
-static SVECTOR _gActor206100DiverBurstLegRightVerts[19] = {
-#include "assets/diver_burst_leg_right_verts.inc"
-};
-
-static SVECTOR _gActor206100DiverBurstLegRightNormals[33] = {
-#include "assets/diver_burst_leg_right_normals.inc"
-};
-
-static u32 _gActor206100DiverBurstLegRightStream[210] = {
-#include "assets/diver_burst_leg_right_stream.inc"
-};
-
-static TmdSource _gActor206100DiverBurstLegRight = {
-    0,
-    1360,
-    0,
-    1,
-    _gActor206100DiverBurstLegRightPartVerts,
-    _gActor206100DiverBurstLegRightVerts,
-    _gActor206100DiverBurstLegRightNormals,
-    _gActor206100DiverBurstLegRightSkeleton,
-    _gActor206100DiverBurstLegRightStream,
-};
-
-static TmdBone _gActor206100DiverBurstArmLeft2Skeleton[1] = {
-#include "assets/diver_burst_arm_left_2_skeleton.inc"
-};
-
-static u32 _gActor206100DiverBurstArmLeft2PartVerts[1] = {
-#include "assets/diver_burst_arm_left_2_partVerts.inc"
-};
-
-static SVECTOR _gActor206100DiverBurstArmLeft2Verts[19] = {
-#include "assets/diver_burst_arm_left_2_verts.inc"
-};
-
-static SVECTOR _gActor206100DiverBurstArmLeft2Normals[33] = {
-#include "assets/diver_burst_arm_left_2_normals.inc"
-};
-
-static u32 _gActor206100DiverBurstArmLeft2Stream[210] = {
-#include "assets/diver_burst_arm_left_2_stream.inc"
-};
-
-static TmdSource _gActor206100DiverBurstArmLeft2 = {
-    0,
-    1360,
-    0,
-    1,
-    _gActor206100DiverBurstArmLeft2PartVerts,
-    _gActor206100DiverBurstArmLeft2Verts,
-    _gActor206100DiverBurstArmLeft2Normals,
-    _gActor206100DiverBurstArmLeft2Skeleton,
-    _gActor206100DiverBurstArmLeft2Stream,
-};
-
-static TmdBone _gActor206100DiverEnergyBallSkeleton[1] = {
-#include "assets/diver_energy_ball_skeleton.inc"
-};
-
-static u32 _gActor206100DiverEnergyBallPartVerts[1] = {
-#include "assets/diver_energy_ball_partVerts.inc"
-};
-
-static SVECTOR _gActor206100DiverEnergyBallVerts[24] = {
-#include "assets/diver_energy_ball_verts.inc"
-};
-
-static SVECTOR _gActor206100DiverEnergyBallNormals[25] = {
-#include "assets/diver_energy_ball_normals.inc"
-};
-
-static u32 _gActor206100DiverEnergyBallStream[270] = {
-#include "assets/diver_energy_ball_stream.inc"
-};
-
-static TmdSource _gActor206100DiverEnergyBall = {
-    0,
-    1760,
-    0,
-    1,
-    _gActor206100DiverEnergyBallPartVerts,
-    _gActor206100DiverEnergyBallVerts,
-    _gActor206100DiverEnergyBallNormals,
-    _gActor206100DiverEnergyBallSkeleton,
-    _gActor206100DiverEnergyBallStream,
-};
+#include "assets/enemies/diver/energy_ball.inc"
 
 enum { ACTOR_206100_BOG_DIVER_RESOURCE_ENTRY = 4 };
 
@@ -675,225 +465,7 @@ static EnemyParams _gActor206100SeaDiverParams = {
     .damageOverTimeTicks  = 5,
 };
 
-static AnimationPackedPose _gActor206100Animation0B8F8Bank1[8] = {
-#include "assets/actor_206100_animation_0B8F8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor206100Animation0B8F8Bank4[133] = {
-#include "assets/actor_206100_animation_0B8F8_bank4.inc"
-};
-
-static AnimationRecord _gActor206100Animation0B8F8Records[183] = {
-#include "assets/actor_206100_animation_0B8F8_records.inc"
-};
-
-static u16 _gActor206100Animation0B8F8Indices[16] = {
-#include "assets/actor_206100_animation_0B8F8_indices.inc"
-};
-
-static AnimationSet _gActor206100Animation0B8F8 = {
-    _gActor206100Animation0B8F8Records,
-    _gActor206100Animation0B8F8Indices,
-    { NULL, _gActor206100Animation0B8F8Bank1, NULL, NULL, _gActor206100Animation0B8F8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor206100Animation0BC80Bank1[3] = {
-#include "assets/actor_206100_animation_0BC80_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor206100Animation0BC80Bank4[78] = {
-#include "assets/actor_206100_animation_0BC80_bank4.inc"
-};
-
-static AnimationRecord _gActor206100Animation0BC80Records[121] = {
-#include "assets/actor_206100_animation_0BC80_records.inc"
-};
-
-static u16 _gActor206100Animation0BC80Indices[16] = {
-#include "assets/actor_206100_animation_0BC80_indices.inc"
-};
-
-static AnimationSet _gActor206100Animation0BC80 = {
-    _gActor206100Animation0BC80Records,
-    _gActor206100Animation0BC80Indices,
-    { NULL, _gActor206100Animation0BC80Bank1, NULL, NULL, _gActor206100Animation0BC80Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor206100Animation0C544Bank1[8] = {
-#include "assets/actor_206100_animation_0C544_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor206100Animation0C544Bank4[174] = {
-#include "assets/actor_206100_animation_0C544_bank4.inc"
-};
-
-static AnimationRecord _gActor206100Animation0C544Records[345] = {
-#include "assets/actor_206100_animation_0C544_records.inc"
-};
-
-static u16 _gActor206100Animation0C544Indices[16] = {
-#include "assets/actor_206100_animation_0C544_indices.inc"
-};
-
-static AnimationSet _gActor206100Animation0C544 = {
-    _gActor206100Animation0C544Records,
-    _gActor206100Animation0C544Indices,
-    { NULL, _gActor206100Animation0C544Bank1, NULL, NULL, _gActor206100Animation0C544Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor206100Animation0CC4CBank1[10] = {
-#include "assets/actor_206100_animation_0CC4C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor206100Animation0CC4CBank4[167] = {
-#include "assets/actor_206100_animation_0CC4C_bank4.inc"
-};
-
-static AnimationRecord _gActor206100Animation0CC4CRecords[235] = {
-#include "assets/actor_206100_animation_0CC4C_records.inc"
-};
-
-static u16 _gActor206100Animation0CC4CIndices[16] = {
-#include "assets/actor_206100_animation_0CC4C_indices.inc"
-};
-
-static AnimationSet _gActor206100Animation0CC4C = {
-    _gActor206100Animation0CC4CRecords,
-    _gActor206100Animation0CC4CIndices,
-    { NULL, _gActor206100Animation0CC4CBank1, NULL, NULL, _gActor206100Animation0CC4CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor206100Animation0D530Bank1[10] = {
-#include "assets/actor_206100_animation_0D530_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor206100Animation0D530Bank4[213] = {
-#include "assets/actor_206100_animation_0D530_bank4.inc"
-};
-
-static AnimationRecord _gActor206100Animation0D530Records[308] = {
-#include "assets/actor_206100_animation_0D530_records.inc"
-};
-
-static u16 _gActor206100Animation0D530Indices[16] = {
-#include "assets/actor_206100_animation_0D530_indices.inc"
-};
-
-static AnimationSet _gActor206100Animation0D530 = {
-    _gActor206100Animation0D530Records,
-    _gActor206100Animation0D530Indices,
-    { NULL, _gActor206100Animation0D530Bank1, NULL, NULL, _gActor206100Animation0D530Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor206100Animation0D968Bank1[6] = {
-#include "assets/actor_206100_animation_0D968_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor206100Animation0D968Bank4[103] = {
-#include "assets/actor_206100_animation_0D968_bank4.inc"
-};
-
-static AnimationRecord _gActor206100Animation0D968Records[131] = {
-#include "assets/actor_206100_animation_0D968_records.inc"
-};
-
-static u16 _gActor206100Animation0D968Indices[16] = {
-#include "assets/actor_206100_animation_0D968_indices.inc"
-};
-
-static AnimationSet _gActor206100Animation0D968 = {
-    _gActor206100Animation0D968Records,
-    _gActor206100Animation0D968Indices,
-    { NULL, _gActor206100Animation0D968Bank1, NULL, NULL, _gActor206100Animation0D968Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor206100Animation0DEA8Bank1[15] = {
-#include "assets/actor_206100_animation_0DEA8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor206100Animation0DEA8Bank4[109] = {
-#include "assets/actor_206100_animation_0DEA8_bank4.inc"
-};
-
-static AnimationRecord _gActor206100Animation0DEA8Records[164] = {
-#include "assets/actor_206100_animation_0DEA8_records.inc"
-};
-
-static u16 _gActor206100Animation0DEA8Indices[16] = {
-#include "assets/actor_206100_animation_0DEA8_indices.inc"
-};
-
-static AnimationSet _gActor206100Animation0DEA8 = {
-    _gActor206100Animation0DEA8Records,
-    _gActor206100Animation0DEA8Indices,
-    { NULL, _gActor206100Animation0DEA8Bank1, NULL, NULL, _gActor206100Animation0DEA8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor206100Animation0E4A8Bank1[20] = {
-#include "assets/actor_206100_animation_0E4A8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor206100Animation0E4A8Bank4[126] = {
-#include "assets/actor_206100_animation_0E4A8_bank4.inc"
-};
-
-static AnimationRecord _gActor206100Animation0E4A8Records[180] = {
-#include "assets/actor_206100_animation_0E4A8_records.inc"
-};
-
-static u16 _gActor206100Animation0E4A8Indices[16] = {
-#include "assets/actor_206100_animation_0E4A8_indices.inc"
-};
-
-static AnimationSet _gActor206100Animation0E4A8 = {
-    _gActor206100Animation0E4A8Records,
-    _gActor206100Animation0E4A8Indices,
-    { NULL, _gActor206100Animation0E4A8Bank1, NULL, NULL, _gActor206100Animation0E4A8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor206100Animation0E798Bank1[5] = {
-#include "assets/actor_206100_animation_0E798_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor206100Animation0E798Bank4[43] = {
-#include "assets/actor_206100_animation_0E798_bank4.inc"
-};
-
-static AnimationRecord _gActor206100Animation0E798Records[112] = {
-#include "assets/actor_206100_animation_0E798_records.inc"
-};
-
-static u16 _gActor206100Animation0E798Indices[16] = {
-#include "assets/actor_206100_animation_0E798_indices.inc"
-};
-
-static AnimationSet _gActor206100Animation0E798 = {
-    _gActor206100Animation0E798Records,
-    _gActor206100Animation0E798Indices,
-    { NULL, _gActor206100Animation0E798Bank1, NULL, NULL, _gActor206100Animation0E798Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor206100Animation0ECA8Bank1[11] = {
-#include "assets/actor_206100_animation_0ECA8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor206100Animation0ECA8Bank4[108] = {
-#include "assets/actor_206100_animation_0ECA8_bank4.inc"
-};
-
-static AnimationRecord _gActor206100Animation0ECA8Records[165] = {
-#include "assets/actor_206100_animation_0ECA8_records.inc"
-};
-
-static u16 _gActor206100Animation0ECA8Indices[16] = {
-#include "assets/actor_206100_animation_0ECA8_indices.inc"
-};
-
-static AnimationSet _gActor206100Animation0ECA8 = {
-    _gActor206100Animation0ECA8Records,
-    _gActor206100Animation0ECA8Indices,
-    { NULL, _gActor206100Animation0ECA8Bank1, NULL, NULL, _gActor206100Animation0ECA8Bank4, NULL, NULL, NULL },
-};
+#include "assets/enemies/diver/sea/clips.inc"
 
 enum { ACTOR_206100_ENTRANCE_WAVE_TASK_PRIORITY = 192 };
 
@@ -919,7 +491,7 @@ TaskDesc gActor206100SeaDiverTaskDescriptors[2] = {
     {
         .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_206100_SEA_DIVER_TASK_PRIORITY } },
         .callback = _actor206100Task,
-        .data     = { .model = &_gActor206100DiverBody },
+        .data     = { .model = &_gDiverBody },
     },
     // 1: shot.
     {
@@ -933,25 +505,7 @@ TaskDesc gActor206100SeaDiverTaskDescriptors[2] = {
 ///
 /// Slots 0, 2, 4, 6, 9, 12 and 13 supply no set. The live animation rig
 /// borrows this table and its loaded sets throughout actor playback.
-static AnimationSet* _gActor206100SeaDiverAnimationSets[17] = {
-    NULL,
-    &_gActor206100Animation0B8F8,
-    NULL,
-    &_gActor206100Animation0BC80,
-    NULL,
-    &_gActor206100Animation0C544,
-    NULL,
-    &_gActor206100Animation0CC4C,
-    &_gActor206100Animation0D530,
-    NULL,
-    &_gActor206100Animation0D968,
-    &_gActor206100Animation0DEA8,
-    NULL,
-    NULL,
-    &_gActor206100Animation0E4A8,
-    &_gActor206100Animation0E798,
-    &_gActor206100Animation0ECA8,
-};
+#include "assets/enemies/diver/sea/bank.inc"
 
 /// Sea Diver's eight room-space waypoint positions, 45 degrees apart on its swim ring.
 ///

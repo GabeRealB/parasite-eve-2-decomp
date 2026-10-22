@@ -344,7 +344,7 @@ static AnimationPlayRequest D_acropolis_cafeteria_80182C2C = {
 /// The copy spans exactly this pointer array. The woman's animation overlay
 /// must remain loaded while the player's bank or playback retains its clip.
 static AnimationSet* _gAcropolisCafeteriaOpeningPlayerAnimationSets[1] = {
-    &gActor202900Animation06098,
+    &gAkropolisCafeteriaPlayerCafeteriaOpeningClip,
 };
 
 /// Installs the opening scene's one borrowed clip in the equipped player bank.
@@ -375,10 +375,10 @@ static AnimationPlayRequest _gAcropolisCafeteriaPlayerOpeningAnimation47 = {
 /// that order. The copy spans exactly four pointers; all three overlays must
 /// remain loaded while the bank or playback retains the corresponding clips.
 static AnimationSet* _gAcropolisCafeteriaFollowUpPlayerAnimationSets[4] = {
-    &gActor310600Animation04ADC,
+    &gAkropolisCafeteriaPlayerCafeteriaFollowUpStartClip,
     &_gAcropolisCafeteriaAnimation07704,
-    &gActor210600Animation07EF4,
-    &gActor210600Animation0A050,
+    &gAkropolisCafeteriaPlayerCafeteriaRupertTalkClip,
+    &gAkropolisCafeteriaPlayerCafeteriaFollowUpEndClip,
 };
 
 /// Installs the follow-up scene's four borrowed clips in the equipped player bank.

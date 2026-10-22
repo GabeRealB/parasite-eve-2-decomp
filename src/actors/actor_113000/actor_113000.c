@@ -91,234 +91,30 @@ static const TaskFuncTable3 _gActor113000RupertBroderickHurtStates = { {
     enemyTaskExit,
 } };
 
-static AnimationSet _gActor113000Animation05D94;
-static AnimationSet _gActor113000Animation061F4;
-static AnimationSet _gActor113000Animation0657C;
-static AnimationSet _gActor113000Animation06D10;
-static AnimationSet _gActor113000Animation073A8;
-static AnimationSet _gActor113000Animation078B8;
-static AnimationSet _gActor113000Animation07E6C;
-static AnimationSet _gActor113000Animation080E4;
-static TmdSource    _gActor113000RupertBroderickHurtBody;
+static AnimationSet _gMistR18RupertRestClip;
+static AnimationSet _gMistR18RupertBriefing1Clip;
+static AnimationSet _gMistR18RupertBriefing2Clip;
+static AnimationSet _gMistR18RupertCutTheCrapClip;
+static AnimationSet _gMistR18RupertAskAboutAkropolisClip;
+static AnimationSet _gMistR18RupertYesSirClip;
+static AnimationSet _gMistR18RupertDismissedClip;
+static AnimationSet _gMistR18RupertReminderClip;
+static TmdSource    _gRupertHurtBody;
 static s32          _actor113000PlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
 static s32          _actor113000SetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg);
 static s32          _actor113000SetEyes(Task* task, s32 messageId, s32 eyeMode, s32 unusedArg);
 static void         _actor113000Task(Task* task);
 
-static TmdBone _gActor113000RupertBroderickHurtBodySkeleton[20] = {
-#include "assets/rupert_broderick_hurt_body_skeleton.inc"
-};
+#include "assets/characters/rupert/hurt_body.inc"
 
-static u32 _gActor113000RupertBroderickHurtBodyPartVerts[20] = {
-#include "assets/rupert_broderick_hurt_body_partVerts.inc"
-};
-
-static SVECTOR _gActor113000RupertBroderickHurtBodyVerts[343] = {
-#include "assets/rupert_broderick_hurt_body_verts.inc"
-};
-
-static SVECTOR _gActor113000RupertBroderickHurtBodyNormals[334] = {
-#include "assets/rupert_broderick_hurt_body_normals.inc"
-};
-
-static u32 _gActor113000RupertBroderickHurtBodyStream[3801] = {
-#include "assets/rupert_broderick_hurt_body_stream.inc"
-};
-
-static TmdSource _gActor113000RupertBroderickHurtBody = {
-    0,
-    20988,
-    5348,
-    20,
-    _gActor113000RupertBroderickHurtBodyPartVerts,
-    _gActor113000RupertBroderickHurtBodyVerts,
-    _gActor113000RupertBroderickHurtBodyNormals,
-    _gActor113000RupertBroderickHurtBodySkeleton,
-    _gActor113000RupertBroderickHurtBodyStream,
-};
-
-static AnimationPackedPose _gActor113000Animation05D94Bank1[3] = {
-#include "assets/actor_113000_animation_05D94_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor113000Animation05D94Bank4[27] = {
-#include "assets/actor_113000_animation_05D94_bank4.inc"
-};
-
-static AnimationRecord _gActor113000Animation05D94Records[126] = {
-#include "assets/actor_113000_animation_05D94_records.inc"
-};
-
-static u16 _gActor113000Animation05D94Indices[20] = {
-#include "assets/actor_113000_animation_05D94_indices.inc"
-};
-
-static AnimationSet _gActor113000Animation05D94 = {
-    _gActor113000Animation05D94Records,
-    _gActor113000Animation05D94Indices,
-    { NULL, _gActor113000Animation05D94Bank1, NULL, NULL, _gActor113000Animation05D94Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor113000Animation061F4Bank1[3] = {
-#include "assets/actor_113000_animation_061F4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor113000Animation061F4Bank4[27] = {
-#include "assets/actor_113000_animation_061F4_bank4.inc"
-};
-
-static AnimationRecord _gActor113000Animation061F4Records[224] = {
-#include "assets/actor_113000_animation_061F4_records.inc"
-};
-
-static u16 _gActor113000Animation061F4Indices[20] = {
-#include "assets/actor_113000_animation_061F4_indices.inc"
-};
-
-static AnimationSet _gActor113000Animation061F4 = {
-    _gActor113000Animation061F4Records,
-    _gActor113000Animation061F4Indices,
-    { NULL, _gActor113000Animation061F4Bank1, NULL, NULL, _gActor113000Animation061F4Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor113000Animation0657CBank1[3] = {
-#include "assets/actor_113000_animation_0657C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor113000Animation0657CBank4[31] = {
-#include "assets/actor_113000_animation_0657C_bank4.inc"
-};
-
-static AnimationRecord _gActor113000Animation0657CRecords[166] = {
-#include "assets/actor_113000_animation_0657C_records.inc"
-};
-
-static u16 _gActor113000Animation0657CIndices[20] = {
-#include "assets/actor_113000_animation_0657C_indices.inc"
-};
-
-static AnimationSet _gActor113000Animation0657C = {
-    _gActor113000Animation0657CRecords,
-    _gActor113000Animation0657CIndices,
-    { NULL, _gActor113000Animation0657CBank1, NULL, NULL, _gActor113000Animation0657CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor113000Animation06D10Bank1[7] = {
-#include "assets/actor_113000_animation_06D10_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor113000Animation06D10Bank4[186] = {
-#include "assets/actor_113000_animation_06D10_bank4.inc"
-};
-
-static AnimationRecord _gActor113000Animation06D10Records[258] = {
-#include "assets/actor_113000_animation_06D10_records.inc"
-};
-
-static u16 _gActor113000Animation06D10Indices[20] = {
-#include "assets/actor_113000_animation_06D10_indices.inc"
-};
-
-static AnimationSet _gActor113000Animation06D10 = {
-    _gActor113000Animation06D10Records,
-    _gActor113000Animation06D10Indices,
-    { NULL, _gActor113000Animation06D10Bank1, NULL, NULL, _gActor113000Animation06D10Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor113000Animation073A8Bank1[24] = {
-#include "assets/actor_113000_animation_073A8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor113000Animation073A8Bank4[136] = {
-#include "assets/actor_113000_animation_073A8_bank4.inc"
-};
-
-static AnimationRecord _gActor113000Animation073A8Records[194] = {
-#include "assets/actor_113000_animation_073A8_records.inc"
-};
-
-static u16 _gActor113000Animation073A8Indices[20] = {
-#include "assets/actor_113000_animation_073A8_indices.inc"
-};
-
-static AnimationSet _gActor113000Animation073A8 = {
-    _gActor113000Animation073A8Records,
-    _gActor113000Animation073A8Indices,
-    { NULL, _gActor113000Animation073A8Bank1, NULL, NULL, _gActor113000Animation073A8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor113000Animation078B8Bank1[7] = {
-#include "assets/actor_113000_animation_078B8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor113000Animation078B8Bank4[108] = {
-#include "assets/actor_113000_animation_078B8_bank4.inc"
-};
-
-static AnimationRecord _gActor113000Animation078B8Records[175] = {
-#include "assets/actor_113000_animation_078B8_records.inc"
-};
-
-static u16 _gActor113000Animation078B8Indices[20] = {
-#include "assets/actor_113000_animation_078B8_indices.inc"
-};
-
-static AnimationSet _gActor113000Animation078B8 = {
-    _gActor113000Animation078B8Records,
-    _gActor113000Animation078B8Indices,
-    { NULL, _gActor113000Animation078B8Bank1, NULL, NULL, _gActor113000Animation078B8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor113000Animation07E6CBank1[15] = {
-#include "assets/actor_113000_animation_07E6C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor113000Animation07E6CBank4[120] = {
-#include "assets/actor_113000_animation_07E6C_bank4.inc"
-};
-
-static AnimationRecord _gActor113000Animation07E6CRecords[180] = {
-#include "assets/actor_113000_animation_07E6C_records.inc"
-};
-
-static u16 _gActor113000Animation07E6CIndices[20] = {
-#include "assets/actor_113000_animation_07E6C_indices.inc"
-};
-
-static AnimationSet _gActor113000Animation07E6C = {
-    _gActor113000Animation07E6CRecords,
-    _gActor113000Animation07E6CIndices,
-    { NULL, _gActor113000Animation07E6CBank1, NULL, NULL, _gActor113000Animation07E6CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor113000Animation080E4Bank1[3] = {
-#include "assets/actor_113000_animation_080E4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor113000Animation080E4Bank4[31] = {
-#include "assets/actor_113000_animation_080E4_bank4.inc"
-};
-
-static AnimationRecord _gActor113000Animation080E4Records[98] = {
-#include "assets/actor_113000_animation_080E4_records.inc"
-};
-
-static u16 _gActor113000Animation080E4Indices[20] = {
-#include "assets/actor_113000_animation_080E4_indices.inc"
-};
-
-static AnimationSet _gActor113000Animation080E4 = {
-    _gActor113000Animation080E4Records,
-    _gActor113000Animation080E4Indices,
-    { NULL, _gActor113000Animation080E4Bank1, NULL, NULL, _gActor113000Animation080E4Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/mist/r18/rupert_clips.inc"
 
 /// Packed open-eye texture pixels for the actor's face band.
 ///
 /// 32 VRAM halfwords per row by 16 rows (256 packed 32-bit words).
 /// The upload list borrows this word-aligned storage until GPU transfer completion.
 static u_long _gActor113000OpenEyesPixels[256] = {
-#include "assets/actor_113000_image_0810C.inc"
+#include "assets/characters/rupert/hurt_eyes_open.inc"
 };
 
 /// Writable COPY/END list for the open-eye texture band.
@@ -336,7 +132,7 @@ static GpuImageUpload _gActor113000OpenEyesUploads[2] = {
 /// 32 VRAM halfwords by 16 rows fill all 256 packed words.
 /// This word-aligned package storage stays live through GPU transfer.
 static u_long _gActor113000HalfOpenEyesPixels[256] = {
-#include "assets/actor_113000_image_0852C.inc"
+#include "assets/characters/rupert/hurt_eyes_half_open.inc"
 };
 
 /// Writable COPY/END list for the half-open-eye texture band.
@@ -354,7 +150,7 @@ static GpuImageUpload _gActor113000HalfOpenEyesUploads[2] = {
 /// 32 VRAM halfwords by 16 rows fill all 256 packed words.
 /// This word-aligned package storage stays live through GPU transfer.
 static u_long _gActor113000ClosedEyesPixels[256] = {
-#include "assets/actor_113000_image_0894C.inc"
+#include "assets/characters/rupert/hurt_eyes_closed.inc"
 };
 
 /// Writable COPY/END list for the closed-eye texture band.
@@ -371,17 +167,7 @@ static GpuImageUpload _gActor113000ClosedEyesUploads[2] = {
 ///
 /// Playback borrows this table and the package's clip descriptors; requests
 /// must select a loaded clip and keep the package live until teardown.
-static AnimationSet* _gActor113000AnimationSets[9] = {
-    NULL,
-    &_gActor113000Animation05D94,
-    &_gActor113000Animation061F4,
-    &_gActor113000Animation0657C,
-    &_gActor113000Animation06D10,
-    &_gActor113000Animation073A8,
-    &_gActor113000Animation078B8,
-    &_gActor113000Animation07E6C,
-    &_gActor113000Animation080E4,
-};
+#include "assets/rooms/mist/r18/rupert_bank.inc"
 
 /// Indexed animation banks; `AnimationPlayRequest.source.index` must be 0.
 ///
@@ -396,7 +182,7 @@ enum { ACTOR_113000_RUPERT_TASK_PRIORITY = 192 };
 TaskDesc gActor113000RupertBroderickHurtTaskDesc = {
     .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_113000_RUPERT_TASK_PRIORITY } },
     .callback = _actor113000Task,
-    .data     = { .model = &_gActor113000RupertBroderickHurtBody },
+    .data     = { .model = &_gRupertHurtBody },
 };
 
 /// Eye-image selection or timed-blink message for the hurt Rupert body.

@@ -1,0 +1,427 @@
+# The assets of the group characters/eve, each named characters/eve/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = [
+    "joint_0",
+    "joint_1",
+    "joint_2",
+    "joint_3",
+    "joint_4",
+    "joint_5",
+    "joint_6",
+    "joint_7",
+    "joint_8",
+    "joint_9",
+    "joint_10",
+    "joint_11",
+    "joint_12",
+    "joint_13",
+    "joint_14",
+    "joint_15",
+    "joint_16",
+    "joint_17",
+    "joint_18",
+]
+
+[run]
+type = "clip"
+rig = "characters/eve/rig"
+
+[body]
+type = "model"
+rig = "characters/eve/rig"
+slots = ["page_2", "page_1"]
+symbol = "_gEveBody"
+sha1 = "e54b414c388136e44f8394a0e4830770a65b377f"
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "4e494b2511ab103b260a8156e5ca06e474c45213"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "7393230cffdcfd32f2db49059471144571c4712b"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[file.contents]]
+asset = "rooms/dryfield/r08/eve"
+
+[idle]
+type = "clip"
+rig = "characters/eve/rig"
+
+[turn]
+type = "clip"
+rig = "characters/eve/rig"
+
+[walk]
+type = "clip"
+rig = "characters/eve/rig"
+
+[file_2]
+type = "file"
+
+[[file_2.contents]]
+chunk = "palette_2"
+sha1 = "96ba991ed5b40988eb1e12cf93ccc981e7aabff5"
+palettes = [
+    { texture = "texture_2_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_2_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[file_2.contents]]
+chunk = "image_2"
+sha1 = "4c3e136a5e9504fffe7433b781360fcd6261ef06"
+pages = [
+    { texture = "texture_2_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_2_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[file_2.contents]]
+asset = "rooms/shelter/b1_pod_access_tunnel/flame_image"
+sha1 = "27b83d351ef64a0c8bed0b9072f652ccb02b461f"
+slots = 2
+
+[[file_2.contents.pages]]
+texture = "rooms/shelter/b1_pod_access_tunnel/flame_texture"
+region = "engine/vram/effect_sheet"
+offset = [64, 0]
+
+[[file_2.contents]]
+asset = "rooms/shelter/b1_pod_access_tunnel/flame_palette"
+sha1 = "46dcf23651a7da268f89da4d5e1a7cb9c339adfc"
+
+[[file_2.contents.palettes]]
+texture = "rooms/shelter/b1_pod_access_tunnel/flame_texture"
+variant = "default"
+region = "engine/vram/effect_palettes"
+offset = [0, 1]
+
+[[file_2.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/effect_palettes"
+offset = [0, 2]
+
+[[file_2.contents]]
+asset = "rooms/shelter/b1_pod_access_tunnel/eve"
+
+[eve_walk]
+type = "clip"
+rig = "characters/eve/rig"
+
+[companion]
+type = "pe2pkg"
+package_name = "actor_800300"
+required = true
+sha1 = "93c98c881f411d688284fda33fe1b737a17b1838"
+
+[[companion.embedded]]
+name = "companion_body"
+offset = 0x01280
+size = 0x57E0
+address = 0x801630A0
+
+[[companion.embedded]]
+name = "idle"
+offset = 0x07C50
+size = 0x214
+address = 0x80169A70
+
+[[companion.embedded]]
+name = "walk"
+offset = 0x07E64
+size = 0x3DC
+address = 0x80169C84
+
+[[companion.embedded]]
+name = "companion_anim_03"
+offset = 0x08240
+size = 0x400
+address = 0x8016A060
+
+[[companion.embedded]]
+name = "run"
+offset = 0x08640
+size = 0xB7C
+address = 0x8016A460
+
+[[companion.embedded]]
+name = "turn_left"
+offset = 0x091BC
+size = 0x2E4
+address = 0x8016AFDC
+
+[[companion.embedded]]
+name = "turn_right"
+offset = 0x094A0
+size = 0x3A4
+address = 0x8016B2C0
+
+[[companion.embedded]]
+name = "idle_variation"
+offset = 0x09844
+size = 0x4F4
+address = 0x8016B664
+
+[[companion.embedded]]
+asset = "characters/aya/death"
+offset = 0x09D38
+size = 0x7C4
+address = 0x8016BB58
+
+[[companion.embedded]]
+asset = "rooms/shelter/b6_nursery/companion_distress"
+offset = 0x0A4FC
+size = 0x524
+address = 0x8016C31C
+
+[[companion.embedded]]
+asset = "rooms/shelter/b6_nursery/companion_conversation_reaction"
+offset = 0x0AA20
+size = 0x358
+address = 0x8016C840
+
+[[companion.embedded]]
+name = "companion_bank"
+offset = 0x0AD78
+size = 0x13C
+address = 0x8016CB98
+
+[turn_left]
+type = "clip"
+rig = "characters/eve/rig"
+
+[walk_slow]
+type = "clip"
+rig = "characters/eve/rig"
+
+[walk_stop]
+type = "clip"
+rig = "characters/eve/rig"
+
+[swing_arms]
+type = "clip"
+rig = "characters/eve/rig"
+
+[turn_right]
+type = "clip"
+rig = "characters/eve/rig"
+
+[masked_body]
+type = "model"
+rig = "characters/eve/rig"
+slots = ["masked_texture_page_2", "masked_texture_page_1"]
+symbol = "gEveMaskedBody"
+sha1 = "8d56be5278f8babec05fa1f3ade83ecb1dde3adf"
+
+[masked_file]
+type = "file"
+
+[[masked_file.contents]]
+chunk = "masked_palette"
+sha1 = "d310738d1d0601a96e6ec68fc530030e4485464a"
+palettes = [
+    { texture = "masked_texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "masked_texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[masked_file.contents]]
+chunk = "masked_image"
+sha1 = "7f67d6b6a99ebd77f1081f614cb3a95a9ffd36f5"
+pages = [
+    { texture = "masked_texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "masked_texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[masked_file.contents]]
+asset = "rooms/shelter/b6_corridor/eve"
+
+[body_binding]
+type = "binding"
+model = "characters/eve/body"
+textures = { page_2 = "characters/eve/texture_page_2.default", page_1 = "characters/eve/texture_page_1.default" }
+
+[walk_backward]
+type = "clip"
+rig = "characters/eve/rig"
+
+[companion_bank]
+type = "animation_bank"
+schema = "characters/eve/companion_schema"
+symbol = "gActor800300CompanionAnimationBank"
+
+[companion_bank.clips]
+idle = "characters/eve/idle"
+walk = "characters/eve/walk"
+slot_3 = "characters/eve/companion_anim_03"
+run = "characters/eve/run"
+turn_left = "characters/eve/turn_left"
+turn_right = "characters/eve/turn_right"
+slot_7 = "characters/eve/idle"
+slot_8 = "characters/eve/idle"
+slot_9 = "characters/eve/idle"
+slot_10 = "characters/eve/idle"
+slot_11 = "characters/eve/idle"
+approach = "characters/eve/idle"
+slot_13 = "characters/eve/idle"
+slot_14 = "characters/eve/idle"
+slot_15 = "characters/eve/idle"
+hit_head = "rooms/shelter/b6_nursery/companion_distress"
+hit_body = "rooms/shelter/b6_nursery/companion_conversation_reaction"
+death = "characters/aya/death"
+slot_19 = "characters/eve/idle"
+slot_20 = "characters/eve/idle"
+slot_21 = "characters/eve/idle"
+slot_22 = "characters/eve/idle"
+idle_variation = "characters/eve/idle_variation"
+slot_24 = "characters/eve/idle"
+slot_25 = "characters/eve/idle"
+slot_32 = "characters/eve/idle"
+slot_33 = "characters/eve/idle"
+slot_34 = "characters/eve/idle"
+slot_35 = "characters/eve/idle"
+slot_36 = "characters/eve/idle"
+slot_37 = "characters/eve/idle"
+slot_38 = "characters/eve/idle"
+slot_39 = "characters/eve/idle"
+slot_40 = "characters/eve/idle"
+
+[companion_body]
+type = "model"
+rig = "characters/eve/rig"
+slots = ["page_2", "page_1"]
+symbol = "gEveCompanionBody"
+sha1 = "10591793d4940af7af5bcfe995596130be41f23f"
+
+[idle_variation]
+type = "clip"
+rig = "characters/eve/rig"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[lie_unconscious]
+type = "clip"
+rig = "characters/eve/rig"
+
+[companion_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "idle",
+    "walk",
+    "slot_3",
+    "run",
+    "turn_left",
+    "turn_right",
+    "slot_7",
+    "slot_8",
+    "slot_9",
+    "slot_10",
+    "slot_11",
+    "approach",
+    "slot_13",
+    "slot_14",
+    "slot_15",
+    "hit_head",
+    "hit_body",
+    "death",
+    "slot_19",
+    "slot_20",
+    "slot_21",
+    "slot_22",
+    "idle_variation",
+    "slot_24",
+    "slot_25",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "slot_32",
+    "slot_33",
+    "slot_34",
+    "slot_35",
+    "slot_36",
+    "slot_37",
+    "slot_38",
+    "slot_39",
+    "slot_40",
+]
+
+[texture_2_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_2_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[companion_anim_03]
+type = "clip"
+rig = "characters/eve/rig"
+
+[clutch_head_and_run]
+type = "clip"
+rig = "characters/eve/rig"
+
+[masked_body_binding]
+type = "binding"
+model = "characters/eve/masked_body"
+
+[masked_body_binding.textures]
+masked_texture_page_2 = "characters/eve/masked_texture_page_2.default"
+masked_texture_page_1 = "characters/eve/masked_texture_page_1.default"
+
+[masked_texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[masked_texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[companion_body_binding]
+type = "binding"
+model = "characters/eve/companion_body"
+textures = { page_2 = "characters/eve/texture_page_2.default", page_1 = "characters/eve/texture_page_1.default" }

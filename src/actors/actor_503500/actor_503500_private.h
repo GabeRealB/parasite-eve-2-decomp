@@ -285,43 +285,43 @@ typedef struct {
 } Actor503500ChainScratch;
 STATIC_ASSERT_SIZEOF(Actor503500ChainScratch, 0x90);
 
-extern AnimationSet gActor503500Animation2DB14;
+extern AnimationSet gBrahmanIdleClip;
 
-extern AnimationSet gActor503500Animation2E4DC;
+extern AnimationSet gBrahmanLeftArmStrikeClip;
 
-extern AnimationSet gActor503500Animation2EF88;
+extern AnimationSet gBrahmanRightArmStrikeClip;
 
-extern AnimationSet gActor503500Animation2FC70;
+extern AnimationSet gBrahmanOrangeFlashWindupClip;
 
-extern AnimationSet gActor503500Animation306E0;
+extern AnimationSet gBrahmanOrangeFlashChargeClip;
 
-extern AnimationSet gActor503500Animation30F1C;
+extern AnimationSet gBrahmanOrangeFlashStrikeClip;
 
-extern AnimationSet gActor503500Animation31788;
+extern AnimationSet gBrahmanOrangeFlashRecoverClip;
 
-extern AnimationSet gActor503500Animation31D8C;
+extern AnimationSet gBrahmanOrangeFlashFinishClip;
 
-extern AnimationSet gActor503500Animation32E24;
+extern AnimationSet gBrahmanLargeOrbAttackClip;
 
-extern AnimationSet gActor503500Animation333DC;
+extern AnimationSet gBrahmanChainBaseAttackClip;
 
-extern AnimationSet gActor503500Animation33C14;
+extern AnimationSet gBrahmanSmallOrbAttackClip;
 
-extern AnimationSet gActor503500Animation33EBC;
+extern AnimationSet gBrahmanYellowFlashAttackClip;
 
-extern AnimationSet gActor503500Animation341D8;
+extern AnimationSet gBrahmanYellowFlashRecoverClip;
 
-extern AnimationSet gActor503500Animation350C8;
+extern AnimationSet gBrahmanRecoilClip;
 
-extern AnimationSet gActor503500Animation35390;
+extern AnimationSet gBrahmanPinkFlashAttackClip;
 
-extern AnimationSet gActor503500Animation356DC;
+extern AnimationSet gBrahmanPinkFlashRecoverClip;
 
-extern AnimationSet gActor503500Animation38AE0;
+extern AnimationSet gBrahmanPhaseTransitionClip;
 
-extern AnimationSet gActor503500Animation3A190;
+extern AnimationSet gBrahmanIntro1Clip;
 
-extern AnimationSet gActor503500Animation3C968;
+extern AnimationSet gBrahmanIntro2Clip;
 
 /// Damage table borrowed while a ballistic shot packs its attack sphere's key.
 ///

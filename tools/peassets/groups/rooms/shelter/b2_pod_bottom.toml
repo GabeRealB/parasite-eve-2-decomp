@@ -1,0 +1,262 @@
+# The assets of the group rooms/shelter/b2_pod_bottom, each named rooms/shelter/b2_pod_bottom/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[eves]
+type = "pe2pkg"
+embedded = ["eve_body", "actor_403600_model_199B8", "actor_403600_animation_1F0C8"]
+package_name = "actor_403600"
+parent = ["shelter_b2_pod_bottom", "shelter_r48"]
+required = true
+sha1 = "4e8b0e332c041022dc050b975148635203285e78"
+
+[eve_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b2_pod_bottom/eve_schema"
+symbol = "_gActor361100EveAnimationBank"
+
+[eve_bank.clips]
+held_by_tentacle = "rooms/shelter/b2_pod_bottom/eve_held_by_tentacle"
+appear = "rooms/shelter/b2_pod_bottom/eve_appear"
+after_appear = "rooms/shelter/b2_pod_bottom/eve_after_appear"
+call_aya = "rooms/shelter/b2_pod_bottom/eve_call_aya"
+
+[eve_appear]
+type = "clip"
+rig = "characters/eve/rig"
+
+[eve_schema]
+type = "animation_schema"
+slots = ["", "held_by_tentacle", "appear", "after_appear", "call_aya"]
+
+[ending_scene]
+type = "pe2pkg"
+embedded = [
+    "actor_303600_model_02DD0",
+    "actor_303600_animation_072A8",
+    "actor_303600_model_0814C",
+    "rooms/shelter/b2_pod_bottom/ending_figure_rotation_track",
+    "rooms/shelter/b2_pod_bottom/ending_camera_track",
+]
+package_name = "actor_303600"
+parent = "actor_403600"
+required = true
+sha1 = "eba542bc7a68546680e76639b81dc043e742f10b"
+
+[eve_call_aya]
+type = "clip"
+rig = "characters/eve/rig"
+
+[tentacle_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b2_pod_bottom/tentacle_schema"
+symbol = "_gActor361100TentacleAnimationBank"
+
+[tentacle_bank.clips]
+emerge = "rooms/shelter/b2_pod_bottom/tentacle_emerge"
+reach_for_eve = "rooms/shelter/b2_pod_bottom/tentacle_reach_for_eve"
+grab_eve = "rooms/shelter/b2_pod_bottom/tentacle_grab_eve"
+
+[tentacle_scene]
+type = "pe2pkg"
+package_name = "actor_361100"
+required = true
+sha1 = "2739adcb6469324e3911154a6cfb68f2f7a603f6"
+
+[[tentacle_scene.embedded]]
+asset = "characters/aya/stand"
+offset = 0x019B4
+size = 0x304
+address = 0x801637D4
+
+[[tentacle_scene.embedded]]
+name = "player_pod_cue_4"
+offset = 0x01CB8
+size = 0x308
+address = 0x80163AD8
+
+[[tentacle_scene.embedded]]
+name = "player_react_to_tentacle"
+offset = 0x01FC0
+size = 0x2E4
+address = 0x80163DE0
+
+[[tentacle_scene.embedded]]
+name = "player_call_eve"
+offset = 0x022A4
+size = 0x218
+address = 0x801640C4
+
+[[tentacle_scene.embedded]]
+name = "player_pod_cue_9"
+offset = 0x024BC
+size = 0x2D4
+address = 0x801642DC
+
+[[tentacle_scene.embedded]]
+name = "player_pod_cue_1"
+offset = 0x02790
+size = 0x2E8
+address = 0x801645B0
+
+[[tentacle_scene.embedded]]
+asset = "characters/aya/brace_for_fight"
+offset = 0x02A78
+size = 0x250
+address = 0x80164898
+
+[[tentacle_scene.embedded]]
+name = "player_run_to_eve"
+offset = 0x02CC8
+size = 0x95C
+address = 0x80164AE8
+
+[[tentacle_scene.embedded]]
+asset = "enemies/stinger/puppet/player_knockback_recover_back"
+offset = 0x03624
+size = 0x814
+address = 0x80165444
+
+[[tentacle_scene.embedded]]
+name = "player_scene_bank"
+offset = 0x03E50
+size = 0x28
+address = 0x80165C70
+
+[[tentacle_scene.embedded]]
+asset = "enemies/brahman/tentacle"
+offset = 0x04CBC
+size = 0x4800
+address = 0x80166ADC
+
+[[tentacle_scene.embedded]]
+name = "tentacle_emerge"
+offset = 0x094BC
+size = 0x2A8
+address = 0x8016B2DC
+
+[[tentacle_scene.embedded]]
+name = "tentacle_reach_for_eve"
+offset = 0x09764
+size = 0x36C
+address = 0x8016B584
+
+[[tentacle_scene.embedded]]
+name = "tentacle_grab_eve"
+offset = 0x09AD0
+size = 0x1E0
+address = 0x8016B8F0
+
+[[tentacle_scene.embedded]]
+name = "tentacle_bank"
+offset = 0x09CB0
+size = 0x10
+address = 0x8016BAD0
+
+[[tentacle_scene.embedded]]
+name = "eve_held_by_tentacle"
+offset = 0x0F4D0
+size = 0x3A4
+address = 0x801712F0
+
+[[tentacle_scene.embedded]]
+name = "eve_appear"
+offset = 0x0F874
+size = 0x18C
+address = 0x80171694
+
+[[tentacle_scene.embedded]]
+name = "eve_after_appear"
+offset = 0x0FA00
+size = 0x1CC
+address = 0x80171820
+
+[[tentacle_scene.embedded]]
+name = "eve_call_aya"
+offset = 0x0FBCC
+size = 0x1A8
+address = 0x801719EC
+
+[[tentacle_scene.embedded]]
+name = "eve_bank"
+offset = 0x0FD74
+size = 0x14
+address = 0x80171B94
+
+[player_call_eve]
+type = "clip"
+rig = "characters/aya/rig"
+
+[tentacle_emerge]
+type = "clip"
+rig = "enemies/brahman/tentacle_rig"
+
+[tentacle_schema]
+type = "animation_schema"
+slots = ["", "emerge", "reach_for_eve", "grab_eve"]
+
+[eve_after_appear]
+type = "clip"
+rig = "characters/eve/rig"
+
+[player_pod_cue_1]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_pod_cue_4]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_pod_cue_9]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_run_to_eve]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_scene_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b2_pod_bottom/player_scene_schema"
+symbol = "_gActor361100PlayerSceneAnimationExtension"
+
+[player_scene_bank.clips]
+stand = "characters/aya/stand"
+pod_cue_4 = "rooms/shelter/b2_pod_bottom/player_pod_cue_4"
+react_to_tentacle = "rooms/shelter/b2_pod_bottom/player_react_to_tentacle"
+call_eve = "rooms/shelter/b2_pod_bottom/player_call_eve"
+pod_cue_9 = "rooms/shelter/b2_pod_bottom/player_pod_cue_9"
+pod_cue_1 = "rooms/shelter/b2_pod_bottom/player_pod_cue_1"
+run_to_eve = "rooms/shelter/b2_pod_bottom/player_run_to_eve"
+brace_for_fight = "characters/aya/brace_for_fight"
+knockback_recover_back = "enemies/stinger/puppet/player_knockback_recover_back"
+
+[tentacle_grab_eve]
+type = "clip"
+rig = "enemies/brahman/tentacle_rig"
+
+[player_scene_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "stand",
+    "pod_cue_4",
+    "react_to_tentacle",
+    "call_eve",
+    "pod_cue_9",
+    "pod_cue_1",
+    "run_to_eve",
+    "brace_for_fight",
+    "knockback_recover_back",
+]
+
+[eve_held_by_tentacle]
+type = "clip"
+rig = "characters/eve/rig"
+
+[tentacle_reach_for_eve]
+type = "clip"
+rig = "enemies/brahman/tentacle_rig"
+
+[player_react_to_tentacle]
+type = "clip"
+rig = "characters/aya/rig"

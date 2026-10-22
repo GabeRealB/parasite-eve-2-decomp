@@ -106,13 +106,13 @@ enum {
     SHELTER_B1_POD_ACCESS_TUNNEL_PLAYER_SCENE_FIRST_CLIP = ANIMATION_BANK_BASE_SET_COUNT + 1,
 };
 
-/// CAP selections and placed-Aya commands used by the room's event scripts.
+/// CAP selections and placed-Eve commands used by the room's event scripts.
 enum {
     SHELTER_B1_POD_ACCESS_TUNNEL_CAP_ENTRY_SCENE       = 2,
     SHELTER_B1_POD_ACCESS_TUNNEL_CAP_POST_GANTRY       = 7,
-    SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_AYA_INDEX       = 0,
-    SHELTER_B1_POD_ACCESS_TUNNEL_AYA_COMMAND_SLOW_WALK = 1,
-    SHELTER_B1_POD_ACCESS_TUNNEL_AYA_COMMAND_FAST_WALK = 2,
+    SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_EVE_INDEX       = 0,
+    SHELTER_B1_POD_ACCESS_TUNNEL_EVE_COMMAND_SLOW_WALK = 1,
+    SHELTER_B1_POD_ACCESS_TUNNEL_EVE_COMMAND_FAST_WALK = 2,
 };
 
 /// Resource keys shared by this room's placement and loading tables.
@@ -121,7 +121,7 @@ enum {
     SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_WATCHER        = 21,
     SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_ROOK           = 23,
     SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_BRUTE_MOSSBACK = 49,
-    SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_AYA_BREA       = 132,
+    SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_EVE            = 132,
 };
 
 /// Watcher variants pack patrol range in decimal tens and weapon choice in units.
@@ -580,12 +580,12 @@ static AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182E60[4] = {
     { .source = { .index = 0 }, .animationId = 3, .blend = ANIMATION_BLEND_INTERPOLATE, .blendFrames = 10, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-/// Plays scripted Aya's bank-0 clip 4 after the slow-walk delay.
+/// Plays scripted Eve's bank-0 clip 4 after the slow-walk delay.
 ///
 /// Borrowed through synchronous dispatch. The actor reads the bank, clip and
 /// whole-frame blend duration, ignoring the world-collision word. Its actor
 /// overlay and clip data must remain loaded through playback.
-static AnimationPlayRequest _gShelterB1PodAccessTunnelSceneAyaClip4Request = {
+static AnimationPlayRequest _gShelterB1PodAccessTunnelSceneEveClip4Request = {
     .source               = { .index = 0 },
     .animationId          = 4,
     .blend                = ANIMATION_BLEND_INTERPOLATE,
@@ -593,12 +593,12 @@ static AnimationPlayRequest _gShelterB1PodAccessTunnelSceneAyaClip4Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Plays scripted Aya's bank-0 clip 5 six interpreter-wait frames after clip 4.
+/// Plays scripted Eve's bank-0 clip 5 six interpreter-wait frames after clip 4.
 ///
 /// Borrowed through synchronous dispatch. The actor reads the bank, clip and
 /// whole-frame blend duration, ignoring the world-collision word. Its actor
 /// overlay and clip data must remain loaded through playback.
-static AnimationPlayRequest _gShelterB1PodAccessTunnelSceneAyaClip5Request = {
+static AnimationPlayRequest _gShelterB1PodAccessTunnelSceneEveClip5Request = {
     .source               = { .index = 0 },
     .animationId          = 5,
     .blend                = ANIMATION_BLEND_INTERPOLATE,
@@ -606,12 +606,12 @@ static AnimationPlayRequest _gShelterB1PodAccessTunnelSceneAyaClip5Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Plays scripted Aya's bank-0 clip 6 after the flying model starts.
+/// Plays scripted Eve's bank-0 clip 6 after the flying model starts.
 ///
 /// Borrowed through synchronous dispatch. The actor reads the bank, clip and
 /// whole-frame blend duration, ignoring the world-collision word. Its actor
 /// overlay and clip data must remain loaded through playback.
-static AnimationPlayRequest _gShelterB1PodAccessTunnelSceneAyaClip6Request = {
+static AnimationPlayRequest _gShelterB1PodAccessTunnelSceneEveClip6Request = {
     .source               = { .index = 0 },
     .animationId          = 6,
     .blend                = ANIMATION_BLEND_RESET,
@@ -619,12 +619,12 @@ static AnimationPlayRequest _gShelterB1PodAccessTunnelSceneAyaClip6Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Plays scripted Aya's bank-0 clip 7 before the pod-chamber image scroll.
+/// Plays scripted Eve's bank-0 clip 7 before the pod-chamber image scroll.
 ///
 /// Borrowed through synchronous dispatch. The actor reads the bank, clip and
 /// whole-frame blend duration, ignoring the world-collision word. Its actor
 /// overlay and clip data must remain loaded through playback.
-static AnimationPlayRequest _gShelterB1PodAccessTunnelSceneAyaClip7Request = {
+static AnimationPlayRequest _gShelterB1PodAccessTunnelSceneEveClip7Request = {
     .source               = { .index = 0 },
     .animationId          = 7,
     .blend                = ANIMATION_BLEND_RESET,
@@ -632,12 +632,12 @@ static AnimationPlayRequest _gShelterB1PodAccessTunnelSceneAyaClip7Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Plays scripted Aya's bank-0 clip 8 during the pod-chamber camera pan.
+/// Plays scripted Eve's bank-0 clip 8 during the pod-chamber camera pan.
 ///
 /// Borrowed through synchronous dispatch. The actor reads the bank, clip and
 /// whole-frame blend duration, ignoring the world-collision word. Its actor
 /// overlay and clip data must remain loaded through playback.
-static AnimationPlayRequest _gShelterB1PodAccessTunnelSceneAyaClip8Request = {
+static AnimationPlayRequest _gShelterB1PodAccessTunnelSceneEveClip8Request = {
     .source               = { .index = 0 },
     .animationId          = 8,
     .blend                = ANIMATION_BLEND_RESET,
@@ -645,12 +645,12 @@ static AnimationPlayRequest _gShelterB1PodAccessTunnelSceneAyaClip8Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Plays scripted Aya's bank-0 clip 9 at the CAP cue following clip 8.
+/// Plays scripted Eve's bank-0 clip 9 at the CAP cue following clip 8.
 ///
 /// Borrowed through synchronous dispatch. The actor reads the bank, clip and
 /// whole-frame blend duration, ignoring the world-collision word. Its actor
 /// overlay and clip data must remain loaded through playback.
-static AnimationPlayRequest _gShelterB1PodAccessTunnelSceneAyaClip9Request = {
+static AnimationPlayRequest _gShelterB1PodAccessTunnelSceneEveClip9Request = {
     .source               = { .index = 0 },
     .animationId          = 9,
     .blend                = ANIMATION_BLEND_INTERPOLATE,
@@ -669,92 +669,92 @@ static AnimationPlayRequest _gShelterB1PodAccessTunnelUnreferencedClip10Request 
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Scripted Aya's placement before her slow walk.
+/// Scripted Eve's placement before her slow walk.
 ///
 /// XYZ are room-coordinate game units and Euler angles use 4096 units per
 /// turn. Placement copies XYZ and Euler angles synchronously.
-static ActorTransform _gShelterB1PodAccessTunnelSceneAyaSlowWalkStartTransform = {
+static ActorTransform _gShelterB1PodAccessTunnelSceneEveSlowWalkStartTransform = {
     .pos = { 1760, 0, -5100, 0 },
     .rot = { 0, 0, 0, 0 },
 };
 
-/// Scripted Aya's placement for bank-0 clip 6.
+/// Scripted Eve's placement for bank-0 clip 6.
 ///
 /// XYZ are room-coordinate game units and Euler angles use 4096 units per
 /// turn. Placement copies XYZ and Euler angles synchronously; authored yaw is 2047.
-static ActorTransform _gShelterB1PodAccessTunnelSceneAyaClip6Transform = {
+static ActorTransform _gShelterB1PodAccessTunnelSceneEveClip6Transform = {
     .pos = { 1740, 0, -3970, 0 },
     .rot = { 0, 2047, 0, 0 },
 };
 
-/// Scripted Aya's placement before her fast walk.
+/// Scripted Eve's placement before her fast walk.
 ///
 /// XYZ are room-coordinate game units and Euler angles use 4096 units per
 /// turn. Placement copies XYZ and Euler angles synchronously.
-static ActorTransform _gShelterB1PodAccessTunnelSceneAyaFastWalkStartTransform = {
+static ActorTransform _gShelterB1PodAccessTunnelSceneEveFastWalkStartTransform = {
     .pos = { 4000, 0, -1650, 0 },
     .rot = { 0, ONE / 4, 0, 0 },
 };
 
-/// Scripted Aya's fast-walk destination and final facing.
+/// Scripted Eve's fast-walk destination and final facing.
 ///
 /// XYZ are room-coordinate game units and Euler angles use 4096 units per
 /// turn. Walk dispatch copies XYZ and Euler angles and selects the pace-default clips.
-static ActorTransform _gShelterB1PodAccessTunnelSceneAyaFastWalkTarget = {
+static ActorTransform _gShelterB1PodAccessTunnelSceneEveFastWalkTarget = {
     .pos = { 6700, 0, -1650, 0 },
     .rot = { 0, ONE / 4, 0, 0 },
 };
 
-/// Scripted Aya's placement for bank-0 clip 7 and the pod panorama.
+/// Scripted Eve's placement for bank-0 clip 7 and the pod panorama.
 ///
 /// XYZ are room-coordinate game units and Euler angles use 4096 units per
 /// turn. Placement copies XYZ and Euler angles synchronously.
-static ActorTransform _gShelterB1PodAccessTunnelSceneAyaClip7Transform = {
+static ActorTransform _gShelterB1PodAccessTunnelSceneEveClip7Transform = {
     .pos = { 7100, 0, 2920, 0 },
     .rot = { 0, 0, 0, 0 },
 };
 
-/// Scripted Aya's placement for bank-0 clip 8 during the camera pan.
+/// Scripted Eve's placement for bank-0 clip 8 during the camera pan.
 ///
 /// XYZ are room-coordinate game units and Euler angles use 4096 units per
 /// turn. Placement copies XYZ and Euler angles synchronously.
-static ActorTransform _gShelterB1PodAccessTunnelSceneAyaClip8Transform = {
+static ActorTransform _gShelterB1PodAccessTunnelSceneEveClip8Transform = {
     .pos = { 6930, 0, 3710, 0 },
     .rot = { 0, 0, 0, 0 },
 };
 
-/// Scripted Aya's slow-walk destination and final facing.
+/// Scripted Eve's slow-walk destination and final facing.
 ///
 /// XYZ are room-coordinate game units and Euler angles use 4096 units per
 /// turn. Walk dispatch copies XYZ and Euler angles and uses the supplied clip pair.
-static ActorTransform _gShelterB1PodAccessTunnelSceneAyaSlowWalkTarget = {
+static ActorTransform _gShelterB1PodAccessTunnelSceneEveSlowWalkTarget = {
     .pos = { 1760, 0, -4100, 0 },
     .rot = { 0, 0, 0, 0 },
 };
 
-/// Selects half displacement and default walk clip 10 for scripted Aya's later walks.
+/// Selects half displacement and default walk clip 10 for scripted Eve's later walks.
 ///
 /// Does not alter an ongoing walk. Dispatch borrows the command synchronously;
-/// the stored stage/area context is ignored by Aya's pace handler.
-static ActorCommand _gShelterB1PodAccessTunnelSceneAyaSlowWalkCommand = {
+/// the stored stage/area context is ignored by Eve's pace handler.
+static ActorCommand _gShelterB1PodAccessTunnelSceneEveSlowWalkCommand = {
     .context = { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL } },
-    .command = SHELTER_B1_POD_ACCESS_TUNNEL_AYA_COMMAND_SLOW_WALK,
+    .command = SHELTER_B1_POD_ACCESS_TUNNEL_EVE_COMMAND_SLOW_WALK,
 };
 
-/// Selects full displacement and default walk clip 2 for scripted Aya's later walks.
+/// Selects full displacement and default walk clip 2 for scripted Eve's later walks.
 ///
 /// Does not alter an ongoing walk. Dispatch borrows the command synchronously;
-/// the stored stage/area context is ignored by Aya's pace handler.
-static ActorCommand _gShelterB1PodAccessTunnelSceneAyaFastWalkCommand = {
+/// the stored stage/area context is ignored by Eve's pace handler.
+static ActorCommand _gShelterB1PodAccessTunnelSceneEveFastWalkCommand = {
     .context = { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL } },
-    .command = SHELTER_B1_POD_ACCESS_TUNNEL_AYA_COMMAND_FAST_WALK,
+    .command = SHELTER_B1_POD_ACCESS_TUNNEL_EVE_COMMAND_FAST_WALK,
 };
 
-/// Scripted Aya's slow-walk clips: bank-0 clip 10 while walking, clip 3 on arrival.
+/// Scripted Eve's slow-walk clips: bank-0 clip 10 while walking, clip 3 on arrival.
 ///
 /// Borrowed only through synchronous dispatch; the receiver keeps both clip
 /// choices in its work. The actor's clip data must remain loaded for the walk.
-static ActorMotionWalkAnim _gShelterB1PodAccessTunnelSceneAyaSlowWalkClips = {
+static ActorMotionWalkAnim _gShelterB1PodAccessTunnelSceneEveSlowWalkClips = {
     .animationId = 10,
     .nextAnimId  = 3,
 };
@@ -769,19 +769,19 @@ static EvsSceneKey _gShelterB1PodAccessTunnelEntrySceneKey = {
     .subId    = 11,
 };
 
-/// One-time pod entry scene, replacing the live player with scripted Aya for the panorama.
+/// One-time pod entry scene, replacing the live player with scripted Eve for the panorama.
 ///
 /// Eighty-six instructions including END, with no calls or branches. Installs
 /// player clips 47..54, synchronizes CAP/audio and fade effects, then restores
 /// the player, ambient light, music and logical view 2. The interpreter borrows
 /// this stream and its records through completion; actor 141000 and the room's
 /// clip/CAP/image resources must remain loaded. Scene messages select placed
-/// Aya at index 0, not the scene manager.
+/// Eve at index 0, not the scene manager.
 static EvsCommand _gShelterB1PodAccessTunnelEntrySceneScript[86] = {
     { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, .operand3 = { .message = { .animationBankCopy = &_gShelterB1PodAccessTunnelPlayerSceneAnimationBankCopy } } },
     { .opcode = EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, .operand0 = { .value = 100 }, .operand1 = { .value = 100 }, .operand2 = { .value = 100 } },
     { .opcode = EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC },
-    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_AYA_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, .operand3 = { .value = ACTOR_MESSAGE_DRAW_HIDE } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_EVE_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, .operand3 = { .value = ACTOR_MESSAGE_DRAW_HIDE } },
     { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_CAP_CONTROL }, .operand2 = { .value = CAP_CONTROL_MESSAGE_START }, .operand3 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_CAP_ENTRY_SCENE } },
     { .opcode = EVENT_SCRIPT_OPCODE_SELECT_SCENE, .operand0 = { .sceneKey = &_gShelterB1PodAccessTunnelEntrySceneKey } },
     { .opcode = EVENT_SCRIPT_OPCODE_CALLBACK, .operand0 = { .callbackNoArg = _shelterB1PodAccessTunnelStageSceneAudioStart } },
@@ -800,47 +800,47 @@ static EvsCommand _gShelterB1PodAccessTunnelEntrySceneScript[86] = {
     { .opcode = EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE },
     { .opcode = EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE },
     { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, .operand3 = { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE } },
-    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_AYA_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, .operand3 = { .value = ACTOR_MESSAGE_DRAW_SHOW } },
-    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_AYA_INDEX }, .operand2 = { .value = ACTOR_COMMAND_MESSAGE_APPLY }, .operand3 = { .message = { .command = &_gShelterB1PodAccessTunnelSceneAyaSlowWalkCommand } } },
-    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_AYA_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_PLACE }, .operand3 = { .message = { .transform = &_gShelterB1PodAccessTunnelSceneAyaSlowWalkStartTransform } } },
-    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_AYA_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_WALK_TO }, .operand3 = { .message = { .transform = &_gShelterB1PodAccessTunnelSceneAyaSlowWalkTarget } }, .operand4 = { .message = { .pointer = &_gShelterB1PodAccessTunnelSceneAyaSlowWalkClips } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_EVE_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, .operand3 = { .value = ACTOR_MESSAGE_DRAW_SHOW } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_EVE_INDEX }, .operand2 = { .value = ACTOR_COMMAND_MESSAGE_APPLY }, .operand3 = { .message = { .command = &_gShelterB1PodAccessTunnelSceneEveSlowWalkCommand } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_EVE_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_PLACE }, .operand3 = { .message = { .transform = &_gShelterB1PodAccessTunnelSceneEveSlowWalkStartTransform } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_EVE_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_WALK_TO }, .operand3 = { .message = { .transform = &_gShelterB1PodAccessTunnelSceneEveSlowWalkTarget } }, .operand4 = { .message = { .pointer = &_gShelterB1PodAccessTunnelSceneEveSlowWalkClips } } },
     { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = 110 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_AYA_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, .operand3 = { .message = { .animation = &_gShelterB1PodAccessTunnelSceneAyaClip4Request } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_EVE_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, .operand3 = { .message = { .animation = &_gShelterB1PodAccessTunnelSceneEveClip4Request } } },
     { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = 6 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_AYA_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, .operand3 = { .message = { .animation = &_gShelterB1PodAccessTunnelSceneAyaClip5Request } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_EVE_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, .operand3 = { .message = { .animation = &_gShelterB1PodAccessTunnelSceneEveClip5Request } } },
     { .opcode = EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE },
     { .opcode = EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE },
     { .opcode = EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE },
     { .opcode = EVENT_SCRIPT_OPCODE_CALLBACK, .operand0 = { .callbackNoArg = _shelterB1PodAccessTunnelStartFlightController } },
     { .opcode = EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE },
-    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_AYA_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_PLACE }, .operand3 = { .message = { .transform = &_gShelterB1PodAccessTunnelSceneAyaClip6Transform } } },
-    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_AYA_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, .operand3 = { .message = { .animation = &_gShelterB1PodAccessTunnelSceneAyaClip6Request } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_EVE_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_PLACE }, .operand3 = { .message = { .transform = &_gShelterB1PodAccessTunnelSceneEveClip6Transform } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_EVE_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, .operand3 = { .message = { .animation = &_gShelterB1PodAccessTunnelSceneEveClip6Request } } },
     { .opcode = EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE },
-    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_AYA_INDEX }, .operand2 = { .value = ACTOR_COMMAND_MESSAGE_APPLY }, .operand3 = { .message = { .command = &_gShelterB1PodAccessTunnelSceneAyaFastWalkCommand } } },
-    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_AYA_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_PLACE }, .operand3 = { .message = { .transform = &_gShelterB1PodAccessTunnelSceneAyaFastWalkStartTransform } } },
-    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_AYA_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_WALK_TO }, .operand3 = { .message = { .transform = &_gShelterB1PodAccessTunnelSceneAyaFastWalkTarget } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_EVE_INDEX }, .operand2 = { .value = ACTOR_COMMAND_MESSAGE_APPLY }, .operand3 = { .message = { .command = &_gShelterB1PodAccessTunnelSceneEveFastWalkCommand } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_EVE_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_PLACE }, .operand3 = { .message = { .transform = &_gShelterB1PodAccessTunnelSceneEveFastWalkStartTransform } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_EVE_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_WALK_TO }, .operand3 = { .message = { .transform = &_gShelterB1PodAccessTunnelSceneEveFastWalkTarget } } },
     { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = 20 } },
     { .opcode = EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, .operand0 = { .value = GPU_BLEND_AVERAGE }, .operand1 = { .value = 30 } },
     { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = 30 } },
     { .opcode = EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE },
     { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = 30 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_AYA_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, .operand3 = { .message = { .animation = &_gShelterB1PodAccessTunnelSceneAyaClip7Request } } },
-    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_AYA_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_PLACE }, .operand3 = { .message = { .transform = &_gShelterB1PodAccessTunnelSceneAyaClip7Transform } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_EVE_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, .operand3 = { .message = { .animation = &_gShelterB1PodAccessTunnelSceneEveClip7Request } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_EVE_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_PLACE }, .operand3 = { .message = { .transform = &_gShelterB1PodAccessTunnelSceneEveClip7Transform } } },
     { .opcode = EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE },
     { .opcode = EVENT_SCRIPT_OPCODE_CALLBACK, .operand0 = { .callback = _shelterB1PodAccessTunnelStartImageScroll }, .operand1 = { .value = 240 } },
     { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = 44 } },
     { .opcode = EVENT_SCRIPT_OPCODE_CALLBACK, .operand0 = { .callback = _shelterB1PodAccessTunnelStartSceneCameraPan }, .operand1 = { .value = 150 } },
     { .opcode = EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE },
-    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_AYA_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, .operand3 = { .message = { .animation = &_gShelterB1PodAccessTunnelSceneAyaClip8Request } } },
-    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_AYA_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_PLACE }, .operand3 = { .message = { .transform = &_gShelterB1PodAccessTunnelSceneAyaClip8Transform } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_EVE_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, .operand3 = { .message = { .animation = &_gShelterB1PodAccessTunnelSceneEveClip8Request } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_EVE_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_PLACE }, .operand3 = { .message = { .transform = &_gShelterB1PodAccessTunnelSceneEveClip8Transform } } },
     { .opcode = EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE },
-    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_AYA_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, .operand3 = { .message = { .animation = &_gShelterB1PodAccessTunnelSceneAyaClip9Request } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_EVE_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, .operand3 = { .message = { .animation = &_gShelterB1PodAccessTunnelSceneEveClip9Request } } },
     { .opcode = EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE },
     { .opcode = EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, .operand0 = { .value = GPU_BLEND_AVERAGE }, .operand1 = { .value = 30 } },
     { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = 30 } },
     { .opcode = EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE },
     { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, .operand3 = { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO } },
-    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_AYA_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, .operand3 = { .value = ACTOR_MESSAGE_DRAW_HIDE } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_EVE_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, .operand3 = { .value = ACTOR_MESSAGE_DRAW_HIDE } },
     { .opcode = EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = ANIMATION_MESSAGE_PLAY }, .operand3 = { .animation = &_gShelterB1PodAccessTunnelPlayerSceneClip50Request } },
     { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = GAME_ACTOR_MESSAGE_PLACE }, .operand3 = { .message = { .transform = &_gShelterB1PodAccessTunnelSceneExitPlayerTransform } } },
     { .opcode = EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE },
@@ -869,7 +869,7 @@ static EvsCommand _gShelterB1PodAccessTunnelEntrySceneScript[86] = {
 /// Skip path restoring the player, view and room effects after the pod entry scene.
 ///
 /// Seventeen instructions including END. Runs from any accepted entry-scene
-/// skip: places and shows the player, resumes control, hides scripted Aya and
+/// skip: places and shows the player, resumes control, hides scripted Eve and
 /// clears the ambient override, then cancels effects and returns the primary
 /// fade. Borrows this room's stream and records through completion; requires
 /// live player, CAP and room-effect tasks and loaded scene resources.
@@ -879,7 +879,7 @@ static EvsCommand _gShelterB1PodAccessTunnelEntrySceneSkipScript[17] = {
     { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = GAME_ACTOR_MESSAGE_PLACE }, .operand3 = { .message = { .transform = &_gShelterB1PodAccessTunnelSceneExitPlayerTransform } } },
     { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, .operand3 = { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT } },
     { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, .operand3 = { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO } },
-    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_AYA_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, .operand3 = { .value = ACTOR_MESSAGE_DRAW_HIDE } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_EVE_INDEX }, .operand2 = { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, .operand3 = { .value = ACTOR_MESSAGE_DRAW_HIDE } },
     { .opcode = EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB },
     { .opcode = EVENT_SCRIPT_OPCODE_CALLBACK, .operand0 = { .callbackNoArg = _shelterB1PodAccessTunnelCancelScene } },
     { .opcode = EVENT_SCRIPT_OPCODE_START_AREA_MUSIC },
@@ -1249,12 +1249,12 @@ WorldCollisionTrigger gShelterB1PodAccessTunnelActionTriggers[3] = {
     { NULL, NULL, NULL, { 4721, -64, -672, 0 }, { { -880, 0, -480, 0 }, { 880, 0, -480, 0 }, { -880, 0, 480, 0 }, { 880, 0, 480, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, -ONE, 0 }, 1001, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_POD_ACCESS_TUNNEL_POD_COMMAND_USE, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-/// Variant 1's scripted Aya file and spawn recipe, followed by AREA_PLACEMENT_END.
+/// Variant 1's scripted Eve file and spawn recipe, followed by AREA_PLACEMENT_END.
 ///
 /// Entry 132 loads base file 141000 and selects the walker descriptor at index 0.
 /// Its placement borrows this table and the loaded actor package.
-static AreaResource _gShelterB1PodAccessTunnelVariant1AyaBreaResources[2] = {
-    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_AYA_BREA, .fileNumber = 410, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor141000AyaBreaWalkerTaskDesc },
+static AreaResource _gShelterB1PodAccessTunnelVariant1EveResources[2] = {
+    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_EVE, .fileNumber = 410, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor141000EveWalkerTaskDesc },
     { .entryId = AREA_PLACEMENT_END },
 };
 
@@ -1315,13 +1315,13 @@ static AreaResource _gShelterB1PodAccessTunnelVariant21WatcherResources[2] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-/// Variant 1's scripted Aya Brea placement at the world origin.
+/// Variant 1's scripted Eve placement at the world origin.
 ///
 /// Entry 132 uses actor 141000, with spawn variant/mode and yaw zero. Texture
 /// relocation is page 0, CLUT row 2. Includes AREA_PLACEMENT_END; the actor
 /// borrows this record from the loaded room for its lifetime.
-static AreaPlacement _gShelterB1PodAccessTunnelVariant1AyaBreaPlacements[2] = {
-    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_AYA_BREA, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+static AreaPlacement _gShelterB1PodAccessTunnelVariant1EvePlacements[2] = {
+    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_EVE, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
     { .entryId = AREA_PLACEMENT_END },
 };
 
@@ -1406,7 +1406,7 @@ static AreaPlacement _gShelterB1PodAccessTunnelVariant21WatcherPlacements[7] = {
 };
 
 AreaVariant gShelterB1PodAccessTunnelAreaVariants[23] = {
-    [1]  = { .placements = _gShelterB1PodAccessTunnelVariant1AyaBreaPlacements, .resources = _gShelterB1PodAccessTunnelVariant1AyaBreaResources },
+    [1]  = { .placements = _gShelterB1PodAccessTunnelVariant1EvePlacements, .resources = _gShelterB1PodAccessTunnelVariant1EveResources },
     [2]  = { .placements = _gShelterB1PodAccessTunnelVariant2WatcherPlacements, .resources = _gShelterB1PodAccessTunnelVariant2WatcherResources },
     [3]  = { .placements = _gShelterB1PodAccessTunnelVariant3MossbackPlacements, .resources = _gShelterB1PodAccessTunnelVariant3MossbackResources },
     [4]  = { .placements = _gShelterB1PodAccessTunnelVariant4BruteMossbackPlacements, .resources = _gShelterB1PodAccessTunnelVariant4BruteMossbackResources },

@@ -4,20 +4,20 @@
 #include "gameplay/animation.h"
 
 // Native animation sets referenced by room script banks.
-extern AnimationSet gActor210700Animation01E2C;
+extern AnimationSet gAkropolisSanctuaryPlayerSanctuaryArrival7Clip;
 
-extern AnimationSet gActor210700Animation027F8;
+extern AnimationSet gAkropolisSanctuaryPlayerSanctuaryArrival11Clip;
 
-extern AnimationSet gActor210700Animation02B54;
+extern AnimationSet gAkropolisSanctuaryPlayerSanctuaryTalkClip;
 
-extern AnimationSet gActor210700Animation02E0C;
+extern AnimationSet gAkropolisSanctuaryPlayerSanctuaryTalkEndClip;
 
-extern AnimationSet gActor210700Animation0318C;
+extern AnimationSet gAkropolisSanctuaryPlayerSanctuaryReplyClip;
 
-extern AnimationSet gActor210700Animation03424;
+extern AnimationSet gAkropolisSanctuaryPlayerSanctuaryListenClip;
 
-extern AnimationSet gActor210700Animation03BD0;
+extern AnimationSet gAkropolisSanctuaryPlayerSanctuaryArrival26Clip;
 
-extern AnimationSet gActor210700Animation067E8;
+extern AnimationSet gAkropolisSanctuaryPlayerSanctuaryArrival27Clip;
 
 #endif // INCLUDE_ACTORS_ACTOR_210700_H

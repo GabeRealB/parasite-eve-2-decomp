@@ -29,19 +29,19 @@ extern s32 gActor215100GalleryExitInputBlocked;
 /// Retains signed behavior, including decrementing a negative nonzero value.
 extern s32 gActor215100GalleryExitInputCooldownTicks;
 
-extern AnimationSet gActor215100Animation034E4;
+extern AnimationSet gMistShootingGalleryPlayerGalleryAcceptClip;
 
-extern AnimationSet gActor215100Animation03754;
+extern AnimationSet gMistShootingGalleryPlayerGalleryIdleClip;
 
-extern AnimationSet gActor215100Animation039AC;
+extern AnimationSet gMistShootingGalleryPlayerGalleryIntro6Clip;
 
-extern AnimationSet gActor215100Animation03B48;
+extern AnimationSet gMistShootingGalleryPlayerGalleryIntro9Clip;
 
-extern AnimationSet gActor215100Animation03D98;
+extern AnimationSet gMistShootingGalleryPlayerGalleryExcuseClip;
 
-extern AnimationSet gActor215100Animation03FF0;
+extern AnimationSet gMistShootingGalleryPlayerGalleryDeclineClip;
 
-extern AnimationSet gActor215100Animation042F4;
+extern AnimationSet gAyaStandClip;
 
 /// Waits for the accepted training offer's CAP cue before opening the course menu.
 ///

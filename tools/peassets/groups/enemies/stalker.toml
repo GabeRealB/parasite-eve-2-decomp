@@ -1,10 +1,205 @@
 # The assets of the group enemies/stalker, each named enemies/stalker/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
+[rig]
+type = "rig"
+joints = [
+    "root",
+    "pelvis",
+    "abdomen",
+    "chest",
+    "head",
+    "jaw",
+    "right_upper_arm",
+    "right_forearm",
+    "right_hand",
+    "left_upper_arm",
+    "left_forearm",
+    "left_hand",
+    "left_thigh",
+    "left_shin",
+    "left_foot",
+    "right_thigh",
+    "right_shin",
+    "right_foot",
+]
+
+[bite]
+type = "sound"
+sha1 = "9129cc0d9a1adb1d34341df687b971fda1f01ac5"
+
+[drop]
+type = "clip"
+rig = "enemies/stalker/rig"
+
 [file]
 type = "file"
 contents = [
-    { asset = "enemies/moth/palette", sha1 = "65e9784cafe3f1873b915a880cb1979b39621a83" },
-    { asset = "enemies/moth/image", sha1 = "161ac20e76eb8f36b46a091126eaafe3a329e23e" },
+    { asset = "enemies/moth/preview_palette", sha1 = "65e9784cafe3f1873b915a880cb1979b39621a83" },
+    { asset = "enemies/moth/preview_image", sha1 = "161ac20e76eb8f36b46a091126eaafe3a329e23e" },
     { asset = "txt_82" },
 ]
+
+[idle]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[land]
+type = "sound"
+sha1 = "c120838cbf020cef3ecda6eb8f31a6cd157c2e7e"
+
+[leap]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[stun]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[walk]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[land_2]
+type = "sound"
+sha1 = "76bd048c2b1009556dbcbb37b84f74aa171be24a"
+
+[strike]
+type = "sound"
+sha1 = "123520e9077b309ca571f8e942419842cad36ee6"
+
+[anim_03]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[anim_13]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[anim_14]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[anim_28]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[anim_29]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[anim_31]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[landing]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[recover]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[knockdown]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[footstep_1]
+type = "sound"
+sha1 = "e0d56306b96c791d4c9f3ca47df18d7118d14a08"
+
+[footstep_2]
+type = "sound"
+sha1 = "1851886a81ffff0801aab1319083559d6a59ec82"
+
+[burst_chunk]
+type = "model"
+slots = ["page_1"]
+symbol = "_gStalkerBurstChunk"
+sha1 = "d062000a7ed7e355e9502aed361976c4d3279582"
+
+[burst_torso]
+type = "model"
+slots = ["page_1"]
+symbol = "_gStalkerBurstTorso"
+sha1 = "39f4c361c71718973d6f9b4f6a01232d49b68183"
+
+[strike_left]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[fall_landing]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[recoil_heavy]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[recoil_light]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[rest_on_back]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[right_itself]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[strike_right]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[stun_on_back]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[crawl_on_back]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[player_grabbed]
+type = "clip"
+rig = "characters/aya/rig"
+
+[burst_hand_left]
+type = "model"
+slots = ["page_1"]
+symbol = "_gStalkerBurstHandLeft"
+sha1 = "ee236baeff0375371ee440389444fc45dd4deabb"
+
+[player_released]
+type = "clip"
+rig = "characters/aya/rig"
+
+[recover_on_back]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[burst_foot_right]
+type = "model"
+slots = ["page_1"]
+symbol = "_gStalkerBurstFootRight"
+sha1 = "e1f34a8a8df6ef730d1bcb0b982eb1cb1a1e507d"
+
+[knockdown_on_back]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[player_grab_death]
+type = "clip"
+rig = "characters/aya/rig"
+
+[fall_landing_death]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[recoil_heavy_on_back]
+type = "clip"
+rig = "enemies/stalker/rig"
+
+[recoil_light_on_back]
+type = "clip"
+rig = "enemies/stalker/rig"

@@ -1,0 +1,33 @@
+# The assets of the group rooms/shelter/b1_control_room, each named rooms/shelter/b1_control_room/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[no_9]
+type = "pe2pkg"
+embedded = [
+    "actor_150400_model_00C44",
+    { asset = "enemies/golem/no_9/body_dryfield", offset = 0x013B8, size = 0x68B0, address = 0x801331D8 },
+    { asset = "enemies/golem/idle", offset = 0x07C68, size = 0xC38, address = 0x80139A88 },
+    { asset = "enemies/golem/no_9/body_anim_02", offset = 0x088A0, size = 0x768, address = 0x8013A6C0 },
+    { asset = "enemies/golem/no_9/stance_enter", offset = 0x09008, size = 0xBF0, address = 0x8013AE28 },
+    { asset = "enemies/golem/walk", offset = 0x09BF8, size = 0x968, address = 0x8013BA18 },
+    { name = "no_9_bank", offset = 0x0AAEC, size = 0x18, address = 0x8013C90C },
+]
+package_name = "actor_150400"
+parent = "shelter_b1_control_room"
+required = true
+sha1 = "0cd6fa4290c8fc85a7ba506fb4b5049250a973cf"
+
+[no_9_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b1_control_room/no_9_schema"
+symbol = "_gActor150400No9AnimationSets"
+
+[no_9_bank.clips]
+idle = "enemies/golem/idle"
+slot_2 = "enemies/golem/no_9/body_anim_02"
+slot_3 = "enemies/golem/no_9/stance_enter"
+walk = "enemies/golem/walk"
+
+[no_9_schema]
+type = "animation_schema"
+slots = ["", "idle", "slot_2", "slot_3", "walk"]

@@ -1,0 +1,77 @@
+# The assets of the group rooms/dryfield/night_water_hole, each named rooms/dryfield/night_water_hole/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[player_scene_bank]
+type = "animation_bank"
+schema = "rooms/dryfield/night_water_hole/player_scene_schema"
+symbol = "_gActor146000PlayerAnimationBankExtension"
+
+[player_scene_bank.clips]
+see_flint = "characters/aya/see_flint"
+agree = "characters/aya/maya_was_my_sister"
+hear_kyle_will_wait = "characters/aya/say_kyle"
+explain_start = "characters/aya/explain_start"
+explain = "characters/aya/explain"
+be_careful_start = "characters/aya/you_too_1"
+be_careful = "characters/aya/you_too_2"
+converse = "characters/aya/converse"
+
+[shelter_departure]
+type = "pe2pkg"
+embedded = [
+    { asset = "characters/aya/see_flint", offset = 0x00160, size = 0x3CC, address = 0x80131F80 },
+    { asset = "characters/aya/maya_was_my_sister", offset = 0x0052C, size = 0x44C, address = 0x8013234C },
+    { asset = "characters/aya/say_kyle", offset = 0x00978, size = 0x328, address = 0x80132798 },
+    { asset = "characters/aya/explain_start", offset = 0x00CA0, size = 0x580, address = 0x80132AC0 },
+    { asset = "characters/aya/explain", offset = 0x01220, size = 0x3E0, address = 0x80133040 },
+    { asset = "characters/aya/you_too_1", offset = 0x01600, size = 0x2C0, address = 0x80133420 },
+    { asset = "characters/aya/you_too_2", offset = 0x018C0, size = 0x254, address = 0x801336E0 },
+    { asset = "characters/aya/converse", offset = 0x01B14, size = 0x3B8, address = 0x80133934 },
+    { asset = "characters/kyle/talk_start", offset = 0x01ECC, size = 0x1D8, address = 0x80133CEC },
+    { asset = "characters/kyle/talk", offset = 0x020A4, size = 0x41C, address = 0x80133EC4 },
+    { asset = "characters/kyle/talk_end", offset = 0x024C0, size = 0x1BC, address = 0x801342E0 },
+    { name = "companion_promise_to_wait", offset = 0x0267C, size = 0x2F8, address = 0x8013449C },
+    { asset = "characters/kyle/madigan_anim_04", offset = 0x02974, size = 0x2D4, address = 0x80134794 },
+    { asset = "characters/kyle/listen", offset = 0x02C48, size = 0x220, address = 0x80134A68 },
+    { asset = "characters/pierce/anim_04", offset = 0x02E68, size = 0x574, address = 0x80134C88 },
+    { name = "companion_scene_bank", offset = 0x033F4, size = 0x1C, address = 0x80135214 },
+    { name = "player_scene_bank", offset = 0x0349C, size = 0x20, address = 0x801352BC },
+]
+package_name = "actor_146000"
+required = true
+sha1 = "f9eae14569ae56031cdd88dc61ad99a6b67c25b9"
+
+[player_scene_schema]
+type = "animation_schema"
+slots = [
+    "see_flint",
+    "agree",
+    "hear_kyle_will_wait",
+    "explain_start",
+    "explain",
+    "be_careful_start",
+    "be_careful",
+    "converse",
+]
+
+[companion_scene_bank]
+type = "animation_bank"
+schema = "rooms/dryfield/night_water_hole/companion_scene_schema"
+symbol = "_gActor146000CompanionAnimationBankExtension"
+
+[companion_scene_bank.clips]
+talk_start = "characters/kyle/talk_start"
+talk = "characters/kyle/talk"
+talk_end = "characters/kyle/talk_end"
+promise_to_wait = "rooms/dryfield/night_water_hole/companion_promise_to_wait"
+slot_4 = "characters/kyle/madigan_anim_04"
+listen = "characters/kyle/listen"
+suggest_split_up = "characters/pierce/anim_04"
+
+[companion_scene_schema]
+type = "animation_schema"
+slots = ["talk_start", "talk", "talk_end", "promise_to_wait", "slot_4", "listen", "suggest_split_up"]
+
+[companion_promise_to_wait]
+type = "clip"
+rig = "characters/kyle/rig"

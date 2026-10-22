@@ -1,0 +1,130 @@
+# The assets of the group characters/jodie, each named characters/jodie/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = [
+    "root",
+    "pelvis",
+    "waist",
+    "chest",
+    "head",
+    "right_shoulder",
+    "right_upper_arm",
+    "right_forearm",
+    "right_hand",
+    "left_shoulder",
+    "left_upper_arm",
+    "left_forearm",
+    "left_hand",
+    "right_thigh",
+    "right_shin",
+    "right_foot",
+    "left_thigh",
+    "left_shin",
+    "left_foot",
+]
+
+[body]
+type = "model"
+rig = "characters/jodie/rig"
+slots = ["page_1", "page_2"]
+symbol = "_gJodieBody"
+sha1 = "7f8a1cde262628f686793829256fb66249a6ccd3"
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "aa3446602e6707f1b9fdcc248eb89744ba0200bd"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "7eccbc3f301c80c8407dae4d32223ddfd1f7854c"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 7
+
+[[file.contents]]
+asset = "rooms/mist/parking/jodie"
+
+[body_2]
+type = "model"
+rig = "characters/jodie/rig"
+slots = ["2_page_2", "2_page_1"]
+symbol = "_gJodieBody2"
+sha1 = "3cfde9cf6d597b64d8e99bfbc8ae5ec147b5a46b"
+
+[file_2]
+type = "file"
+
+[[file_2.contents]]
+chunk = "palette_2"
+sha1 = "f0bf329a2719c0b4771a803858b11255285dd78f"
+palettes = [
+    { texture = "texture_2_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_2_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[file_2.contents]]
+chunk = "image_2"
+sha1 = "04d83a04288dab6c521fa4690b1761ac45f208c7"
+pages = [
+    { texture = "texture_2_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_2_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[file_2.contents]]
+asset = "shelter_1f_heliport_dialogue_2_atlas"
+
+[[file_2.contents]]
+asset = "rooms/shelter/1f_heliport/jodie"
+
+[body_binding]
+type = "binding"
+model = "characters/jodie/body"
+textures = { page_1 = "characters/jodie/texture_page_1.default", page_2 = "characters/jodie/texture_page_2.default" }
+
+[body_2_binding]
+type = "binding"
+model = "characters/jodie/body_2"
+
+[body_2_binding.textures]
+2_page_2 = "characters/jodie/texture_2_page_2.default"
+2_page_1 = "characters/jodie/texture_2_page_1.default"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_2_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_2_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128

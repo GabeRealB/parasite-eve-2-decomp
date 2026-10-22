@@ -1,0 +1,559 @@
+# The assets of the group encounters/brute_and_mossback, each named encounters/brute_and_mossback/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = [
+    "root",
+    "pelvis",
+    "waist",
+    "chest",
+    "head",
+    "right_shoulder",
+    "right_upper_arm",
+    "right_forearm",
+    "right_hand",
+    "left_shoulder",
+    "left_upper_arm",
+    "left_forearm",
+    "left_hand",
+    "joint_13",
+    "joint_14",
+    "right_thigh",
+    "right_shin",
+    "right_foot",
+    "left_thigh",
+    "left_shin",
+    "left_foot",
+]
+
+[bank]
+type = "animation_bank"
+schema = "encounters/brute_and_mossback/schema"
+symbol = "_gActor01100AnimSets"
+
+[bank.clips]
+idle = "encounters/brute_and_mossback/idle"
+swing_left = "encounters/brute_and_mossback/swing_left"
+swing_right = "encounters/brute_and_mossback/swing_right"
+turn = "encounters/brute_and_mossback/turn"
+rest = "encounters/brute_and_mossback/rest"
+punch_left = "encounters/brute_and_mossback/punch_left"
+punch_right = "encounters/brute_and_mossback/punch_right"
+spit = "encounters/brute_and_mossback/spit"
+walk = "encounters/brute_and_mossback/walk"
+fall_front = "encounters/brute_and_mossback/fall_front"
+flinch_front = "encounters/brute_and_mossback/flinch_front"
+slot_12 = "encounters/brute_and_mossback/anim_12"
+fall_back = "encounters/brute_and_mossback/fall_back"
+flinch_back = "encounters/brute_and_mossback/flinch_back"
+rise_front = "encounters/brute_and_mossback/rise_front"
+rise_back = "encounters/brute_and_mossback/rise_back"
+death_front = "encounters/brute_and_mossback/death_front"
+death_back = "encounters/brute_and_mossback/death_back"
+fall_again_front = "encounters/brute_and_mossback/fall_again_front"
+fall_again_back = "encounters/brute_and_mossback/fall_again_back"
+stunned_front = "encounters/brute_and_mossback/stunned_front"
+stunned_back = "encounters/brute_and_mossback/stunned_back"
+
+[body]
+type = "model"
+rig = "encounters/brute_and_mossback/rig"
+slots = ["page_1", "page_2"]
+symbol = "_gBruteAndMossbackBody"
+sha1 = "5a7708c378f530bc5682c10ac4bdceeeaf4d31f1"
+
+[fall]
+type = "sound"
+sha1 = "4f91138c2d0a68d9c81972cca0c7096713dea67d"
+
+[hurt]
+type = "sound"
+sha1 = "161c8274135a538de16f8d138e803e26ec5d5e0c"
+
+[idle]
+type = "clip"
+rig = "encounters/brute_and_mossback/rig"
+
+[rest]
+type = "clip"
+rig = "encounters/brute_and_mossback/rig"
+
+[spit]
+type = "clip"
+rig = "encounters/brute_and_mossback/rig"
+
+[step]
+type = "sound"
+sha1 = "197fb660a9a31538da1d6e243aaa2fe6278a038f"
+
+[turn]
+type = "clip"
+rig = "encounters/brute_and_mossback/rig"
+
+[walk]
+type = "clip"
+rig = "encounters/brute_and_mossback/rig"
+
+[death]
+type = "sound"
+sha1 = "bf47b922875e3af3b08f0c2f6d526545cea6fdba"
+
+[punch]
+type = "sound"
+sha1 = "42414d2497cc1e5e6ed8e8eb3b7b56c5eb91da7a"
+
+[fall_2]
+type = "sound"
+sha1 = "064afb9a311d5c5d57a936f6d5961bef4b344942"
+
+[schema]
+type = "animation_schema"
+slots = [
+    "",
+    "idle",
+    "swing_left",
+    "swing_right",
+    "turn",
+    "rest",
+    "punch_left",
+    "punch_right",
+    "spit",
+    "walk",
+    "fall_front",
+    "flinch_front",
+    "slot_12",
+    "fall_back",
+    "flinch_back",
+    "rise_front",
+    "rise_back",
+    "death_front",
+    "death_back",
+    "fall_again_front",
+    "fall_again_back",
+    "stunned_front",
+    "stunned_back",
+]
+
+[sounds]
+type = "sound_bank"
+samples = [
+    "encounters/brute_and_mossback/step",
+    "encounters/brute_and_mossback/fall",
+    "encounters/brute_and_mossback/idle_sound",
+    "encounters/brute_and_mossback/death",
+    "encounters/brute_and_mossback/hurt",
+    "encounters/brute_and_mossback/punch",
+    "encounters/brute_and_mossback/spit_sound",
+    "encounters/brute_and_mossback/spit_impact",
+]
+sha1 = "bafbb07664205cfabba6568aea29ecafe52bd9cb"
+
+[sounds.sounds]
+step = 1
+step_2 = 2
+fall = 3
+idle = 4
+death = 6
+hurt = 7
+punch = 8
+spit = 10
+spit_impact = 11
+spit_cloud = 12
+
+[splash]
+type = "sound"
+sha1 = "fe5639b7a7b397162348323f0c166497a499fa2d"
+
+[step_2]
+type = "sound"
+sha1 = "515126de47b9d34dbd2a5e627ccc2500eadc1711"
+
+[anim_12]
+type = "clip"
+rig = "encounters/brute_and_mossback/rig"
+
+[burst_arm]
+type = "model"
+slots = ["page_2", "page_1"]
+symbol = "_gBruteAndMossbackBurstArm"
+sha1 = "198c69c21e4719fc5129ecabffdf9455ebd5e4ab"
+
+[burst_leg]
+type = "model"
+slots = ["page_1", "page_2"]
+symbol = "_gBruteAndMossbackBurstLeg"
+sha1 = "80c6e15e6e1304ba6f0d7bfa4e8dd4d169fcd1b0"
+
+[fall_back]
+type = "clip"
+rig = "encounters/brute_and_mossback/rig"
+
+[package_1]
+type = "pe2pkg"
+embedded = [
+    { name = "body", offset = 0x07520, size = 0x562C, address = 0x80139340 },
+    { name = "burst_leg", offset = 0x0CB4C, size = 0x524, address = 0x8013E96C },
+    { name = "burst_arm", offset = 0x0D070, size = 0x8A8, address = 0x8013EE90 },
+    { name = "burst_head", offset = 0x0D918, size = 0xBE8, address = 0x8013F738 },
+    { name = "idle", offset = 0x0E500, size = 0x3F4, address = 0x80140320 },
+    { name = "swing_left", offset = 0x0E8F4, size = 0x564, address = 0x80140714 },
+    { name = "swing_right", offset = 0x0EE58, size = 0x4D0, address = 0x80140C78 },
+    { name = "turn", offset = 0x0F328, size = 0x2A8, address = 0x80141148 },
+    { name = "rest", offset = 0x0F5D0, size = 0x830, address = 0x801413F0 },
+    { name = "punch_left", offset = 0x0FE00, size = 0x734, address = 0x80141C20 },
+    { name = "punch_right", offset = 0x10534, size = 0x600, address = 0x80142354 },
+    { name = "spit", offset = 0x10B34, size = 0x4D4, address = 0x80142954 },
+    { name = "walk", offset = 0x11008, size = 0x6FC, address = 0x80142E28 },
+    { name = "fall_front", offset = 0x11704, size = 0x5B4, address = 0x80143524 },
+    { name = "flinch_front", offset = 0x11CB8, size = 0x670, address = 0x80143AD8 },
+    { name = "anim_12", offset = 0x12328, size = 0x3F4, address = 0x80144148 },
+    { name = "fall_back", offset = 0x1271C, size = 0x6B4, address = 0x8014453C },
+    { name = "flinch_back", offset = 0x12DD0, size = 0x5AC, address = 0x80144BF0 },
+    { name = "rise_front", offset = 0x1337C, size = 0x748, address = 0x8014519C },
+    { name = "rise_back", offset = 0x13AC4, size = 0x934, address = 0x801458E4 },
+    { name = "death_front", offset = 0x143F8, size = 0x1B0, address = 0x80146218 },
+    { name = "death_back", offset = 0x145A8, size = 0x1B0, address = 0x801463C8 },
+    { name = "fall_again_front", offset = 0x14758, size = 0x3C8, address = 0x80146578 },
+    { name = "fall_again_back", offset = 0x14B20, size = 0x414, address = 0x80146940 },
+    { name = "stunned_front", offset = 0x14F34, size = 0x338, address = 0x80146D54 },
+    { name = "stunned_back", offset = 0x1526C, size = 0x374, address = 0x8014708C },
+    { name = "bank", offset = 0x15604, size = 0x5C, address = 0x80147424 },
+]
+package_name = "actor_101100"
+required = true
+sha1 = "4a21eb9797530b7d1a7ba4a2e9f4468c65cff4aa"
+
+[package_2]
+type = "pe2pkg"
+embedded = [
+    { name = "idle", offset = 0x0E500, size = 0x3F4, address = 0x80158320 },
+    { name = "swing_left", offset = 0x0E8F4, size = 0x564, address = 0x80158714 },
+    { name = "swing_right", offset = 0x0EE58, size = 0x4D0, address = 0x80158C78 },
+    { name = "turn", offset = 0x0F328, size = 0x2A8, address = 0x80159148 },
+    { name = "rest", offset = 0x0F5D0, size = 0x830, address = 0x801593F0 },
+    { name = "punch_left", offset = 0x0FE00, size = 0x734, address = 0x80159C20 },
+    { name = "punch_right", offset = 0x10534, size = 0x600, address = 0x8015A354 },
+    { name = "spit", offset = 0x10B34, size = 0x4D4, address = 0x8015A954 },
+    { name = "walk", offset = 0x11008, size = 0x6FC, address = 0x8015AE28 },
+    { name = "fall_front", offset = 0x11704, size = 0x5B4, address = 0x8015B524 },
+    { name = "flinch_front", offset = 0x11CB8, size = 0x670, address = 0x8015BAD8 },
+    { name = "anim_12", offset = 0x12328, size = 0x3F4, address = 0x8015C148 },
+    { name = "fall_back", offset = 0x1271C, size = 0x6B4, address = 0x8015C53C },
+    { name = "flinch_back", offset = 0x12DD0, size = 0x5AC, address = 0x8015CBF0 },
+    { name = "rise_front", offset = 0x1337C, size = 0x748, address = 0x8015D19C },
+    { name = "rise_back", offset = 0x13AC4, size = 0x934, address = 0x8015D8E4 },
+    { name = "death_front", offset = 0x143F8, size = 0x1B0, address = 0x8015E218 },
+    { name = "death_back", offset = 0x145A8, size = 0x1B0, address = 0x8015E3C8 },
+    { name = "fall_again_front", offset = 0x14758, size = 0x3C8, address = 0x8015E578 },
+    { name = "fall_again_back", offset = 0x14B20, size = 0x414, address = 0x8015E940 },
+    { name = "stunned_front", offset = 0x14F34, size = 0x338, address = 0x8015ED54 },
+    { name = "stunned_back", offset = 0x1526C, size = 0x374, address = 0x8015F08C },
+    { name = "bank", offset = 0x15604, size = 0x5C, address = 0x8015F424 },
+]
+package_name = "actor_201100"
+required = true
+sha1 = "820dd3b8560e6ccfdb6121875720ddc7ede40a28"
+
+[package_3]
+type = "pe2pkg"
+embedded = [
+    { name = "idle", offset = 0x0E500, size = 0x3F4, address = 0x80170320 },
+    { name = "swing_left", offset = 0x0E8F4, size = 0x564, address = 0x80170714 },
+    { name = "swing_right", offset = 0x0EE58, size = 0x4D0, address = 0x80170C78 },
+    { name = "turn", offset = 0x0F328, size = 0x2A8, address = 0x80171148 },
+    { name = "rest", offset = 0x0F5D0, size = 0x830, address = 0x801713F0 },
+    { name = "punch_left", offset = 0x0FE00, size = 0x734, address = 0x80171C20 },
+    { name = "punch_right", offset = 0x10534, size = 0x600, address = 0x80172354 },
+    { name = "spit", offset = 0x10B34, size = 0x4D4, address = 0x80172954 },
+    { name = "walk", offset = 0x11008, size = 0x6FC, address = 0x80172E28 },
+    { name = "fall_front", offset = 0x11704, size = 0x5B4, address = 0x80173524 },
+    { name = "flinch_front", offset = 0x11CB8, size = 0x670, address = 0x80173AD8 },
+    { name = "anim_12", offset = 0x12328, size = 0x3F4, address = 0x80174148 },
+    { name = "fall_back", offset = 0x1271C, size = 0x6B4, address = 0x8017453C },
+    { name = "flinch_back", offset = 0x12DD0, size = 0x5AC, address = 0x80174BF0 },
+    { name = "rise_front", offset = 0x1337C, size = 0x748, address = 0x8017519C },
+    { name = "rise_back", offset = 0x13AC4, size = 0x934, address = 0x801758E4 },
+    { name = "death_front", offset = 0x143F8, size = 0x1B0, address = 0x80176218 },
+    { name = "death_back", offset = 0x145A8, size = 0x1B0, address = 0x801763C8 },
+    { name = "fall_again_front", offset = 0x14758, size = 0x3C8, address = 0x80176578 },
+    { name = "fall_again_back", offset = 0x14B20, size = 0x414, address = 0x80176940 },
+    { name = "stunned_front", offset = 0x14F34, size = 0x338, address = 0x80176D54 },
+    { name = "stunned_back", offset = 0x1526C, size = 0x374, address = 0x8017708C },
+    { name = "bank", offset = 0x15604, size = 0x5C, address = 0x80177424 },
+]
+package_name = "actor_301100"
+required = true
+sha1 = "b24315c047a029e874f042656e7401165bda96f0"
+
+[rise_back]
+type = "clip"
+rig = "encounters/brute_and_mossback/rig"
+
+[burst_head]
+type = "model"
+slots = ["page_1"]
+symbol = "_gBruteAndMossbackBurstHead"
+sha1 = "9b296a6cb5d6156da9807c8b967ae02c172b2d14"
+
+[death_back]
+type = "clip"
+rig = "encounters/brute_and_mossback/rig"
+
+[fall_front]
+type = "clip"
+rig = "encounters/brute_and_mossback/rig"
+
+[idle_sound]
+type = "sound"
+sha1 = "25b09de8656cf4f004ec8307140eeb021288f940"
+
+[punch_left]
+type = "clip"
+rig = "encounters/brute_and_mossback/rig"
+
+[rise_front]
+type = "clip"
+rig = "encounters/brute_and_mossback/rig"
+
+[spit_sound]
+type = "sound"
+sha1 = "dd3ad8aa133123aa03866e57a2362b553ba4a2ab"
+
+[swing_left]
+type = "clip"
+rig = "encounters/brute_and_mossback/rig"
+
+[death_front]
+type = "clip"
+rig = "encounters/brute_and_mossback/rig"
+
+[flinch_back]
+type = "clip"
+rig = "encounters/brute_and_mossback/rig"
+
+[punch_right]
+type = "clip"
+rig = "encounters/brute_and_mossback/rig"
+
+[spit_impact]
+type = "sound"
+sha1 = "9491e9ee698732d955db28226259afbbf1c67025"
+
+[swing_right]
+type = "clip"
+rig = "encounters/brute_and_mossback/rig"
+
+[body_binding]
+type = "binding"
+model = "encounters/brute_and_mossback/body"
+
+[body_binding.textures]
+page_1 = "encounters/brute_and_mossback/texture_page_1.default"
+page_2 = "encounters/brute_and_mossback/texture_page_2.default"
+
+[flinch_front]
+type = "clip"
+rig = "encounters/brute_and_mossback/rig"
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "e043e14585b93c4bbf962c8d5a8a515c5a0b20b7"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "73b0329e03eb54304cce3fc21f8947e9b0edf849"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_file.contents]]
+chunk = "package_1"
+
+[recolor_file]
+type = "file"
+
+[[recolor_file.contents]]
+chunk = "sounds"
+
+[[recolor_file.contents]]
+chunk = "recolor_image"
+sha1 = "fb5fd0b04c67cd310335286dbaf81fe307859c4b"
+pages = [
+    { texture = "recolor_texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "recolor_texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[recolor_file.contents]]
+chunk = "recolor_palette"
+sha1 = "3bcd3a6d7e8ab6d8825cd29821118dd3e1798863"
+palettes = [
+    { texture = "recolor_texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "recolor_texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[recolor_file.contents]]
+chunk = "recolor_package_1"
+
+[stunned_back]
+type = "clip"
+rig = "encounters/brute_and_mossback/rig"
+
+[water_sounds]
+type = "sound_bank"
+samples = [
+    "encounters/brute_and_mossback/idle_sound",
+    "encounters/brute_and_mossback/death",
+    "encounters/brute_and_mossback/hurt",
+    "encounters/brute_and_mossback/punch",
+    "encounters/brute_and_mossback/spit_sound",
+    "encounters/brute_and_mossback/spit_impact",
+    "encounters/brute_and_mossback/step_2",
+    "encounters/brute_and_mossback/splash",
+    "encounters/brute_and_mossback/fall_2",
+]
+sha1 = "1fe29a2995ed3b6667e0e847e73524ba404e4d1b"
+
+[water_sounds.sounds]
+step = 1
+step_2 = 2
+fall = 3
+idle = 4
+death = 6
+hurt = 7
+punch = 8
+spit = 10
+spit_impact = 11
+spit_cloud = 12
+splash = 13
+
+[stunned_front]
+type = "clip"
+rig = "encounters/brute_and_mossback/rig"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[fall_again_back]
+type = "clip"
+rig = "encounters/brute_and_mossback/rig"
+
+[fall_again_front]
+type = "clip"
+rig = "encounters/brute_and_mossback/rig"
+
+[burst_arm_binding]
+type = "binding"
+model = "encounters/brute_and_mossback/burst_arm"
+
+[burst_arm_binding.textures]
+page_2 = "encounters/brute_and_mossback/texture_page_2.default"
+page_1 = "encounters/brute_and_mossback/texture_page_1.default"
+
+[burst_leg_binding]
+type = "binding"
+model = "encounters/brute_and_mossback/burst_leg"
+
+[burst_leg_binding.textures]
+page_1 = "encounters/brute_and_mossback/texture_page_1.default"
+page_2 = "encounters/brute_and_mossback/texture_page_2.default"
+
+[recolor_package_1]
+type = "pe2pkg"
+embedded = [
+    { name = "idle", offset = 0x0E500, size = 0x3F4, address = 0x80140320 },
+    { name = "swing_left", offset = 0x0E8F4, size = 0x564, address = 0x80140714 },
+    { name = "swing_right", offset = 0x0EE58, size = 0x4D0, address = 0x80140C78 },
+    { name = "turn", offset = 0x0F328, size = 0x2A8, address = 0x80141148 },
+    { name = "rest", offset = 0x0F5D0, size = 0x830, address = 0x801413F0 },
+    { name = "punch_left", offset = 0x0FE00, size = 0x734, address = 0x80141C20 },
+    { name = "punch_right", offset = 0x10534, size = 0x600, address = 0x80142354 },
+    { name = "spit", offset = 0x10B34, size = 0x4D4, address = 0x80142954 },
+    { name = "walk", offset = 0x11008, size = 0x6FC, address = 0x80142E28 },
+    { name = "fall_front", offset = 0x11704, size = 0x5B4, address = 0x80143524 },
+    { name = "flinch_front", offset = 0x11CB8, size = 0x670, address = 0x80143AD8 },
+    { name = "anim_12", offset = 0x12328, size = 0x3F4, address = 0x80144148 },
+    { name = "fall_back", offset = 0x1271C, size = 0x6B4, address = 0x8014453C },
+    { name = "flinch_back", offset = 0x12DD0, size = 0x5AC, address = 0x80144BF0 },
+    { name = "rise_front", offset = 0x1337C, size = 0x748, address = 0x8014519C },
+    { name = "rise_back", offset = 0x13AC4, size = 0x934, address = 0x801458E4 },
+    { name = "death_front", offset = 0x143F8, size = 0x1B0, address = 0x80146218 },
+    { name = "death_back", offset = 0x145A8, size = 0x1B0, address = 0x801463C8 },
+    { name = "fall_again_front", offset = 0x14758, size = 0x3C8, address = 0x80146578 },
+    { name = "fall_again_back", offset = 0x14B20, size = 0x414, address = 0x80146940 },
+    { name = "stunned_front", offset = 0x14F34, size = 0x338, address = 0x80146D54 },
+    { name = "stunned_back", offset = 0x1526C, size = 0x374, address = 0x8014708C },
+]
+package_name = "actor_104900"
+required = true
+sha1 = "2d082936af3892c31908e671418049ef1944ee14"
+
+[recolor_package_2]
+type = "pe2pkg"
+embedded = [
+    { name = "idle", offset = 0x0E500, size = 0x3F4, address = 0x80158320 },
+    { name = "swing_left", offset = 0x0E8F4, size = 0x564, address = 0x80158714 },
+    { name = "swing_right", offset = 0x0EE58, size = 0x4D0, address = 0x80158C78 },
+    { name = "turn", offset = 0x0F328, size = 0x2A8, address = 0x80159148 },
+    { name = "rest", offset = 0x0F5D0, size = 0x830, address = 0x801593F0 },
+    { name = "punch_left", offset = 0x0FE00, size = 0x734, address = 0x80159C20 },
+    { name = "punch_right", offset = 0x10534, size = 0x600, address = 0x8015A354 },
+    { name = "spit", offset = 0x10B34, size = 0x4D4, address = 0x8015A954 },
+    { name = "walk", offset = 0x11008, size = 0x6FC, address = 0x8015AE28 },
+    { name = "fall_front", offset = 0x11704, size = 0x5B4, address = 0x8015B524 },
+    { name = "flinch_front", offset = 0x11CB8, size = 0x670, address = 0x8015BAD8 },
+    { name = "anim_12", offset = 0x12328, size = 0x3F4, address = 0x8015C148 },
+    { name = "fall_back", offset = 0x1271C, size = 0x6B4, address = 0x8015C53C },
+    { name = "flinch_back", offset = 0x12DD0, size = 0x5AC, address = 0x8015CBF0 },
+    { name = "rise_front", offset = 0x1337C, size = 0x748, address = 0x8015D19C },
+    { name = "rise_back", offset = 0x13AC4, size = 0x934, address = 0x8015D8E4 },
+    { name = "death_front", offset = 0x143F8, size = 0x1B0, address = 0x8015E218 },
+    { name = "death_back", offset = 0x145A8, size = 0x1B0, address = 0x8015E3C8 },
+    { name = "fall_again_front", offset = 0x14758, size = 0x3C8, address = 0x8015E578 },
+    { name = "fall_again_back", offset = 0x14B20, size = 0x414, address = 0x8015E940 },
+    { name = "stunned_front", offset = 0x14F34, size = 0x338, address = 0x8015ED54 },
+    { name = "stunned_back", offset = 0x1526C, size = 0x374, address = 0x8015F08C },
+]
+package_name = "actor_204900"
+required = true
+sha1 = "3ae92cf964923b8562e5cd6f84c3a0a33ef1b62e"
+
+[burst_head_binding]
+type = "binding"
+model = "encounters/brute_and_mossback/burst_head"
+textures = { page_1 = "encounters/brute_and_mossback/texture_page_1.default" }
+
+[recolor_texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[recolor_texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128

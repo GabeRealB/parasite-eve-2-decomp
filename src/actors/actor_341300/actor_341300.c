@@ -120,115 +120,7 @@ static void _actor341300SetSceneEvent(s8 sceneEvent);
 static void _actor341300TurnPlayerTowardScenePlacementTask(Task* task);
 static void _actor341300TexturedQuadsTask(Task* task);
 
-static AnimationPackedPose _gActor341300Animation01FACBank1[6] = {
-#include "assets/actor_341300_animation_01FAC_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor341300Animation01FACBank4[46] = {
-#include "assets/actor_341300_animation_01FAC_bank4.inc"
-};
-
-static AnimationRecord _gActor341300Animation01FACRecords[109] = {
-#include "assets/actor_341300_animation_01FAC_records.inc"
-};
-
-static u16 _gActor341300Animation01FACIndices[20] = {
-#include "assets/actor_341300_animation_01FAC_indices.inc"
-};
-
-static AnimationSet _gActor341300Animation01FAC = {
-    _gActor341300Animation01FACRecords,
-    _gActor341300Animation01FACIndices,
-    { NULL, _gActor341300Animation01FACBank1, NULL, NULL, _gActor341300Animation01FACBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor341300Animation02810Bank1[20] = {
-#include "assets/actor_341300_animation_02810_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor341300Animation02810Bank4[200] = {
-#include "assets/actor_341300_animation_02810_bank4.inc"
-};
-
-static AnimationRecord _gActor341300Animation02810Records[257] = {
-#include "assets/actor_341300_animation_02810_records.inc"
-};
-
-static u16 _gActor341300Animation02810Indices[20] = {
-#include "assets/actor_341300_animation_02810_indices.inc"
-};
-
-static AnimationSet _gActor341300Animation02810 = {
-    _gActor341300Animation02810Records,
-    _gActor341300Animation02810Indices,
-    { NULL, _gActor341300Animation02810Bank1, NULL, NULL, _gActor341300Animation02810Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor341300Animation02CE0Bank1[14] = {
-#include "assets/actor_341300_animation_02CE0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor341300Animation02CE0Bank4[95] = {
-#include "assets/actor_341300_animation_02CE0_bank4.inc"
-};
-
-static AnimationRecord _gActor341300Animation02CE0Records[151] = {
-#include "assets/actor_341300_animation_02CE0_records.inc"
-};
-
-static u16 _gActor341300Animation02CE0Indices[20] = {
-#include "assets/actor_341300_animation_02CE0_indices.inc"
-};
-
-static AnimationSet _gActor341300Animation02CE0 = {
-    _gActor341300Animation02CE0Records,
-    _gActor341300Animation02CE0Indices,
-    { NULL, _gActor341300Animation02CE0Bank1, NULL, NULL, _gActor341300Animation02CE0Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor341300Animation02F50Bank1[4] = {
-#include "assets/actor_341300_animation_02F50_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor341300Animation02F50Bank4[27] = {
-#include "assets/actor_341300_animation_02F50_bank4.inc"
-};
-
-static AnimationRecord _gActor341300Animation02F50Records[97] = {
-#include "assets/actor_341300_animation_02F50_records.inc"
-};
-
-static u16 _gActor341300Animation02F50Indices[20] = {
-#include "assets/actor_341300_animation_02F50_indices.inc"
-};
-
-static AnimationSet _gActor341300Animation02F50 = {
-    _gActor341300Animation02F50Records,
-    _gActor341300Animation02F50Indices,
-    { NULL, _gActor341300Animation02F50Bank1, NULL, NULL, _gActor341300Animation02F50Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor341300Animation033C0Bank1[10] = {
-#include "assets/actor_341300_animation_033C0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor341300Animation033C0Bank4[95] = {
-#include "assets/actor_341300_animation_033C0_bank4.inc"
-};
-
-static AnimationRecord _gActor341300Animation033C0Records[139] = {
-#include "assets/actor_341300_animation_033C0_records.inc"
-};
-
-static u16 _gActor341300Animation033C0Indices[20] = {
-#include "assets/actor_341300_animation_033C0_indices.inc"
-};
-
-static AnimationSet _gActor341300Animation033C0 = {
-    _gActor341300Animation033C0Records,
-    _gActor341300Animation033C0Indices,
-    { NULL, _gActor341300Animation033C0Bank1, NULL, NULL, _gActor341300Animation033C0Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/shelter/b2_north_maintenance_walkway/stinger_scene_clips.inc"
 
 /// Priority of the scene's temporary tasks and placed-resource exit recipe.
 enum { ACTOR_341300_TASK_PRIORITY = 192 };
@@ -253,14 +145,7 @@ TaskDesc gActor341300ScriptTaskDescriptors[3] = {
 ///
 /// The six pointers are copied synchronously; their animation data remains
 /// borrowed by playback, so this actor package must remain loaded while used.
-static AnimationSet* _gActor341300PlayerAnimationExtensionSets[6] = {
-    NULL,
-    &_gActor341300Animation01FAC,
-    &_gActor341300Animation02810,
-    &_gActor341300Animation02CE0,
-    &_gActor341300Animation02F50,
-    &_gActor341300Animation033C0,
-};
+#include "assets/rooms/shelter/b2_north_maintenance_walkway/player_stinger_scene_bank.inc"
 
 /// Six-word copy request installing the scene sets in the equipped player bank.
 ///

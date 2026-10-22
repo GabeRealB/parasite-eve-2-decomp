@@ -354,16 +354,16 @@ static AnimationSet _gActor403200Animation2AE78;
 static AnimationSet _gActor403200Animation2BE50;
 
 static AnimationSet _gActor403200Animation2B644;
-static TmdSource    _gActor403200Model12884;
-static TmdSource    _gActor403200Model13774;
-static TmdSource    _gActor403200GluttonLegLeft;
-static TmdSource    _gActor403200GluttonLegRight;
-static TmdSource    _gActor403200Model1785C;
-static TmdSource    _gActor403200Model186D8;
-static TmdSource    _gActor403200Model18BE4;
-static TmdSource    _gActor403200Model19284;
-static TmdSource    _gActor403200Model199E4;
-static TmdSource    _gActor403200Model1AC48;
+extern TmdSource    gGluttonActor403200Model12884;
+extern TmdSource    gGluttonActor403200Model13774;
+extern TmdSource    gGluttonLegLeft;
+extern TmdSource    gGluttonLegRight;
+static TmdSource    _gGluttonLimb;
+static TmdSource    _gShelterB3DumpingHoleActor403200Model186D8;
+extern TmdSource    gGluttonActor403200Model18BE4;
+static TmdSource    _gGluttonSpinner;
+static TmdSource    _gGluttonGlob;
+static TmdSource    _gGluttonChunk;
 static s32          _actor403200PickGlobView(Task* host, s16 phase);
 static s32          _actor403200PickDebrisView(Task* host, s16 phase);
 static s32          _actor403200PickCombatView(Task* host, s16 phase);
@@ -566,353 +566,27 @@ static PadScriptVibrationSegment _gActor403200GluttonInhalePadSegments[2] = {
     { 80, 31, 34, 1 },
 };
 
-static TmdBone _gActor403200Model10824Skeleton[8] = {
-#include "assets/actor_403200_model_10824_skeleton.inc"
-};
+#include "assets/enemies/glutton/body.inc"
 
-static u32 _gActor403200Model10824PartVerts[8] = {
-#include "assets/actor_403200_model_10824_partVerts.inc"
-};
+#include "assets/enemies/glutton/actor_403200_model_12884.inc"
 
-static SVECTOR _gActor403200Model10824Verts[135] = {
-#include "assets/actor_403200_model_10824_verts.inc"
-};
+#include "assets/enemies/glutton/actor_403200_model_13774.inc"
 
-static SVECTOR _gActor403200Model10824Normals[135] = {
-#include "assets/actor_403200_model_10824_normals.inc"
-};
+#include "assets/enemies/glutton/leg_left.inc"
 
-static u32 _gActor403200Model10824Stream[1732] = {
-#include "assets/actor_403200_model_10824_stream.inc"
-};
+#include "assets/enemies/glutton/leg_right.inc"
 
-static TmdSource _gActor403200Model10824 = {
-    0,
-    8496,
-    3588,
-    8,
-    _gActor403200Model10824PartVerts,
-    _gActor403200Model10824Verts,
-    _gActor403200Model10824Normals,
-    _gActor403200Model10824Skeleton,
-    _gActor403200Model10824Stream,
-};
+#include "assets/enemies/glutton/limb.inc"
 
-static TmdBone _gActor403200Model12884Skeleton[1] = {
-#include "assets/actor_403200_model_12884_skeleton.inc"
-};
+#include "assets/rooms/shelter/b3_dumping_hole/actor_403200_model_186D8.inc"
 
-static u32 _gActor403200Model12884PartVerts[1] = {
-#include "assets/actor_403200_model_12884_partVerts.inc"
-};
+#include "assets/enemies/glutton/actor_403200_model_18BE4.inc"
 
-static SVECTOR _gActor403200Model12884Verts[82] = {
-#include "assets/actor_403200_model_12884_verts.inc"
-};
+#include "assets/enemies/glutton/spinner.inc"
 
-static SVECTOR _gActor403200Model12884Normals[79] = {
-#include "assets/actor_403200_model_12884_normals.inc"
-};
+#include "assets/enemies/glutton/glob.inc"
 
-static u32 _gActor403200Model12884Stream[533] = {
-#include "assets/actor_403200_model_12884_stream.inc"
-};
-
-static TmdSource _gActor403200Model12884 = {
-    0,
-    3696,
-    0,
-    1,
-    _gActor403200Model12884PartVerts,
-    _gActor403200Model12884Verts,
-    _gActor403200Model12884Normals,
-    _gActor403200Model12884Skeleton,
-    _gActor403200Model12884Stream,
-};
-
-static TmdBone _gActor403200Model13774Skeleton[1] = {
-#include "assets/actor_403200_model_13774_skeleton.inc"
-};
-
-static u32 _gActor403200Model13774PartVerts[1] = {
-#include "assets/actor_403200_model_13774_partVerts.inc"
-};
-
-static SVECTOR _gActor403200Model13774Verts[90] = {
-#include "assets/actor_403200_model_13774_verts.inc"
-};
-
-static SVECTOR _gActor403200Model13774Normals[112] = {
-#include "assets/actor_403200_model_13774_normals.inc"
-};
-
-static u32 _gActor403200Model13774Stream[698] = {
-#include "assets/actor_403200_model_13774_stream.inc"
-};
-
-static TmdSource _gActor403200Model13774 = {
-    0,
-    4808,
-    0,
-    1,
-    _gActor403200Model13774PartVerts,
-    _gActor403200Model13774Verts,
-    _gActor403200Model13774Normals,
-    _gActor403200Model13774Skeleton,
-    _gActor403200Model13774Stream,
-};
-
-static TmdBone _gActor403200GluttonLegLeftSkeleton[4] = {
-#include "assets/glutton_leg_left_skeleton.inc"
-};
-
-static u32 _gActor403200GluttonLegLeftPartVerts[4] = {
-#include "assets/glutton_leg_left_partVerts.inc"
-};
-
-static SVECTOR _gActor403200GluttonLegLeftVerts[104] = {
-#include "assets/glutton_leg_left_verts.inc"
-};
-
-static SVECTOR _gActor403200GluttonLegLeftNormals[115] = {
-#include "assets/glutton_leg_left_normals.inc"
-};
-
-static u32 _gActor403200GluttonLegLeftStream[1032] = {
-#include "assets/glutton_leg_left_stream.inc"
-};
-
-static TmdSource _gActor403200GluttonLegLeft = {
-    0,
-    6172,
-    1048,
-    4,
-    _gActor403200GluttonLegLeftPartVerts,
-    _gActor403200GluttonLegLeftVerts,
-    _gActor403200GluttonLegLeftNormals,
-    _gActor403200GluttonLegLeftSkeleton,
-    _gActor403200GluttonLegLeftStream,
-};
-
-static TmdBone _gActor403200GluttonLegRightSkeleton[4] = {
-#include "assets/glutton_leg_right_skeleton.inc"
-};
-
-static u32 _gActor403200GluttonLegRightPartVerts[4] = {
-#include "assets/glutton_leg_right_partVerts.inc"
-};
-
-static SVECTOR _gActor403200GluttonLegRightVerts[104] = {
-#include "assets/glutton_leg_right_verts.inc"
-};
-
-static SVECTOR _gActor403200GluttonLegRightNormals[115] = {
-#include "assets/glutton_leg_right_normals.inc"
-};
-
-static u32 _gActor403200GluttonLegRightStream[1032] = {
-#include "assets/glutton_leg_right_stream.inc"
-};
-
-static TmdSource _gActor403200GluttonLegRight = {
-    0,
-    6172,
-    1048,
-    4,
-    _gActor403200GluttonLegRightPartVerts,
-    _gActor403200GluttonLegRightVerts,
-    _gActor403200GluttonLegRightNormals,
-    _gActor403200GluttonLegRightSkeleton,
-    _gActor403200GluttonLegRightStream,
-};
-
-static TmdBone _gActor403200Model1785CSkeleton[8] = {
-#include "assets/actor_403200_model_1785C_skeleton.inc"
-};
-
-static u32 _gActor403200Model1785CPartVerts[8] = {
-#include "assets/actor_403200_model_1785C_partVerts.inc"
-};
-
-static SVECTOR _gActor403200Model1785CVerts[82] = {
-#include "assets/actor_403200_model_1785C_verts.inc"
-};
-
-static SVECTOR _gActor403200Model1785CNormals[82] = {
-#include "assets/actor_403200_model_1785C_normals.inc"
-};
-
-static u32 _gActor403200Model1785CStream[835] = {
-#include "assets/actor_403200_model_1785C_stream.inc"
-};
-
-static TmdSource _gActor403200Model1785C = {
-    0,
-    4140,
-    1872,
-    8,
-    _gActor403200Model1785CPartVerts,
-    _gActor403200Model1785CVerts,
-    _gActor403200Model1785CNormals,
-    _gActor403200Model1785CSkeleton,
-    _gActor403200Model1785CStream,
-};
-
-static TmdBone _gActor403200Model186D8Skeleton[1] = {
-#include "assets/actor_403200_model_186D8_skeleton.inc"
-};
-
-static u32 _gActor403200Model186D8PartVerts[1] = {
-#include "assets/actor_403200_model_186D8_partVerts.inc"
-};
-
-static SVECTOR _gActor403200Model186D8Verts[36] = {
-#include "assets/actor_403200_model_186D8_verts.inc"
-};
-
-static SVECTOR _gActor403200Model186D8Normals[1] = {
-#include "assets/actor_403200_model_186D8_normals.inc"
-};
-
-static u32 _gActor403200Model186D8Stream[216] = {
-#include "assets/actor_403200_model_186D8_stream.inc"
-};
-
-static TmdSource _gActor403200Model186D8 = {
-    0,
-    1560,
-    0,
-    1,
-    _gActor403200Model186D8PartVerts,
-    _gActor403200Model186D8Verts,
-    _gActor403200Model186D8Normals,
-    _gActor403200Model186D8Skeleton,
-    _gActor403200Model186D8Stream,
-};
-
-static TmdBone _gActor403200Model18BE4Skeleton[1] = {
-#include "assets/actor_403200_model_18BE4_skeleton.inc"
-};
-
-static u32 _gActor403200Model18BE4PartVerts[1] = {
-#include "assets/actor_403200_model_18BE4_partVerts.inc"
-};
-
-static SVECTOR _gActor403200Model18BE4Verts[22] = {
-#include "assets/actor_403200_model_18BE4_verts.inc"
-};
-
-static SVECTOR _gActor403200Model18BE4Normals[22] = {
-#include "assets/actor_403200_model_18BE4_normals.inc"
-};
-
-static u32 _gActor403200Model18BE4Stream[173] = {
-#include "assets/actor_403200_model_18BE4_stream.inc"
-};
-
-static TmdSource _gActor403200Model18BE4 = {
-    0,
-    1136,
-    0,
-    1,
-    _gActor403200Model18BE4PartVerts,
-    _gActor403200Model18BE4Verts,
-    _gActor403200Model18BE4Normals,
-    _gActor403200Model18BE4Skeleton,
-    _gActor403200Model18BE4Stream,
-};
-
-static TmdBone _gActor403200Model19284Skeleton[1] = {
-#include "assets/actor_403200_model_19284_skeleton.inc"
-};
-
-static u32 _gActor403200Model19284PartVerts[1] = {
-#include "assets/actor_403200_model_19284_partVerts.inc"
-};
-
-static SVECTOR _gActor403200Model19284Verts[58] = {
-#include "assets/actor_403200_model_19284_verts.inc"
-};
-
-static SVECTOR _gActor403200Model19284Normals[58] = {
-#include "assets/actor_403200_model_19284_normals.inc"
-};
-
-static u32 _gActor403200Model19284Stream[313] = {
-#include "assets/actor_403200_model_19284_stream.inc"
-};
-
-static TmdSource _gActor403200Model19284 = {
-    0,
-    2176,
-    0,
-    1,
-    _gActor403200Model19284PartVerts,
-    _gActor403200Model19284Verts,
-    _gActor403200Model19284Normals,
-    _gActor403200Model19284Skeleton,
-    _gActor403200Model19284Stream,
-};
-
-static TmdBone _gActor403200Model199E4Skeleton[1] = {
-#include "assets/actor_403200_model_199E4_skeleton.inc"
-};
-
-static u32 _gActor403200Model199E4PartVerts[1] = {
-#include "assets/actor_403200_model_199E4_partVerts.inc"
-};
-
-static SVECTOR _gActor403200Model199E4Verts[70] = {
-#include "assets/actor_403200_model_199E4_verts.inc"
-};
-
-static u32 _gActor403200Model199E4Stream[618] = {
-#include "assets/actor_403200_model_199E4_stream.inc"
-};
-
-static TmdSource _gActor403200Model199E4 = {
-    0,
-    3536,
-    0,
-    1,
-    _gActor403200Model199E4PartVerts,
-    _gActor403200Model199E4Verts,
-    &_gActor403200Model199E4Verts[70],
-    _gActor403200Model199E4Skeleton,
-    _gActor403200Model199E4Stream,
-};
-
-static TmdBone _gActor403200Model1AC48Skeleton[1] = {
-#include "assets/actor_403200_model_1AC48_skeleton.inc"
-};
-
-static u32 _gActor403200Model1AC48PartVerts[1] = {
-#include "assets/actor_403200_model_1AC48_partVerts.inc"
-};
-
-static SVECTOR _gActor403200Model1AC48Verts[135] = {
-#include "assets/actor_403200_model_1AC48_verts.inc"
-};
-
-static SVECTOR _gActor403200Model1AC48Normals[135] = {
-#include "assets/actor_403200_model_1AC48_normals.inc"
-};
-
-static u32 _gActor403200Model1AC48Stream[1400] = {
-#include "assets/actor_403200_model_1AC48_stream.inc"
-};
-
-static TmdSource _gActor403200Model1AC48 = {
-    0,
-    9492,
-    0,
-    1,
-    _gActor403200Model1AC48PartVerts,
-    _gActor403200Model1AC48Verts,
-    _gActor403200Model1AC48Normals,
-    _gActor403200Model1AC48Skeleton,
-    _gActor403200Model1AC48Stream,
-};
+#include "assets/enemies/glutton/chunk.inc"
 
 static TmdBone _gActor403200Model1C474Skeleton[1] = {
 #include "assets/actor_403200_model_1C474_skeleton.inc"
@@ -2841,13 +2515,13 @@ static AnimationSet* _gGluttonGlobPlayerAnimSets[GLUTTON_GLOB_PLAYER_ANIM_SET_CO
 /// attached TMD models. Each task runs texture setup, coordinate refresh and
 /// teardown at priority 96. The host supplies the parent enemy as spawn data.
 static TaskDesc _gActor403200GluttonAttachedTaskDescs[ACTOR_403200_GLUTTON_ATTACHED_TASK_COUNT] = {
-    { { { TASK_BODY_TMD, ACTOR_403200_GLUTTON_ATTACHED_TASK_PRIORITY } }, _gluttonPropTask, { .model = &_gActor403200GluttonLegRight } },
-    { { { TASK_BODY_TMD, ACTOR_403200_GLUTTON_ATTACHED_TASK_PRIORITY } }, _gluttonPropTask, { .model = &_gActor403200GluttonLegLeft } },
-    { { { TASK_BODY_TMD, ACTOR_403200_GLUTTON_ATTACHED_TASK_PRIORITY } }, _gluttonPropTask, { .model = &_gActor403200Model12884 } },
-    { { { TASK_BODY_TMD, ACTOR_403200_GLUTTON_ATTACHED_TASK_PRIORITY } }, _gluttonPropTask, { .model = &_gActor403200Model13774 } },
-    { { { TASK_BODY_TMD, ACTOR_403200_GLUTTON_ATTACHED_TASK_PRIORITY } }, _gluttonPropTask, { .model = &_gActor403200Model1785C } },
-    { { { TASK_BODY_TMD, ACTOR_403200_GLUTTON_ATTACHED_TASK_PRIORITY } }, _gluttonPropTask, { .model = &_gActor403200Model18BE4 } },
-    { { { TASK_BODY_TMD, ACTOR_403200_GLUTTON_ATTACHED_TASK_PRIORITY } }, _gluttonEscort6Task, { .model = &_gActor403200Model186D8 } },
+    { { { TASK_BODY_TMD, ACTOR_403200_GLUTTON_ATTACHED_TASK_PRIORITY } }, _gluttonPropTask, { .model = &gGluttonLegRight } },
+    { { { TASK_BODY_TMD, ACTOR_403200_GLUTTON_ATTACHED_TASK_PRIORITY } }, _gluttonPropTask, { .model = &gGluttonLegLeft } },
+    { { { TASK_BODY_TMD, ACTOR_403200_GLUTTON_ATTACHED_TASK_PRIORITY } }, _gluttonPropTask, { .model = &gGluttonActor403200Model12884 } },
+    { { { TASK_BODY_TMD, ACTOR_403200_GLUTTON_ATTACHED_TASK_PRIORITY } }, _gluttonPropTask, { .model = &gGluttonActor403200Model13774 } },
+    { { { TASK_BODY_TMD, ACTOR_403200_GLUTTON_ATTACHED_TASK_PRIORITY } }, _gluttonPropTask, { .model = &_gGluttonLimb } },
+    { { { TASK_BODY_TMD, ACTOR_403200_GLUTTON_ATTACHED_TASK_PRIORITY } }, _gluttonPropTask, { .model = &gGluttonActor403200Model18BE4 } },
+    { { { TASK_BODY_TMD, ACTOR_403200_GLUTTON_ATTACHED_TASK_PRIORITY } }, _gluttonEscort6Task, { .model = &_gShelterB3DumpingHoleActor403200Model186D8 } },
 };
 
 /// Launch translations for the eight rain blobs, indexed by spawnArg1's low half.
@@ -2910,11 +2584,11 @@ static u8 _gGluttonRainPointIndex[GLUTTON_RAIN_GROUP_COUNT][GLUTTON_RAIN_BLOB_CO
 /// the incinerator owns its spinner descriptor separately. Callbacks are private
 /// instances and each spawned task owns its body and work until teardown.
 static TaskDesc _gGluttonProjectileTaskDescs[GLUTTON_PROJECTILE_TASK_COUNT] = {
-    { { { TASK_BODY_TMD, GLUTTON_PROJECTILE_TASK_PRIORITY } }, _gluttonGlobTask, { .model = &_gActor403200Model199E4 } },
+    { { { TASK_BODY_TMD, GLUTTON_PROJECTILE_TASK_PRIORITY } }, _gluttonGlobTask, { .model = &_gGluttonGlob } },
     { { { TASK_BODY_COORD, GLUTTON_PROJECTILE_TASK_PRIORITY } }, _gluttonRainTask, { .value = 0 } },
     { { { TASK_BODY_COORD, GLUTTON_PROJECTILE_TASK_PRIORITY } }, _gluttonThrowTask, { .value = 0 } },
-    { { { TASK_BODY_TMD, GLUTTON_PROJECTILE_TASK_PRIORITY } }, _gluttonChunkTask, { .model = &_gActor403200Model1AC48 } },
-    { { { TASK_BODY_TMD, GLUTTON_PROJECTILE_TASK_PRIORITY } }, _gluttonSpinnerTask, { .model = &_gActor403200Model19284 } },
+    { { { TASK_BODY_TMD, GLUTTON_PROJECTILE_TASK_PRIORITY } }, _gluttonChunkTask, { .model = &_gGluttonChunk } },
+    { { { TASK_BODY_TMD, GLUTTON_PROJECTILE_TASK_PRIORITY } }, _gluttonSpinnerTask, { .model = &_gGluttonSpinner } },
 };
 
 static AnimationPackedPose _gActor403200Animation2CDE0Bank1[7] = {
@@ -3060,7 +2734,7 @@ static _Actor403200SpinnerSpawn _gActor403200GluttonSpinnerSpawnRecipes[ACTOR_40
 
 enum { ACTOR_403200_GLUTTON_HOST_TASK_PRIORITY = 96 };
 
-TaskDesc gActor403200GluttonHostTaskDesc = { { { TASK_BODY_TMD, ACTOR_403200_GLUTTON_HOST_TASK_PRIORITY } }, _actor403200HostTask, { .model = &_gActor403200Model10824 } };
+TaskDesc gActor403200GluttonHostTaskDesc = { { { TASK_BODY_TMD, ACTOR_403200_GLUTTON_HOST_TASK_PRIORITY } }, _actor403200HostTask, { .model = &gGluttonBody } };
 
 /// Four zero bytes between the descriptor and the next object. Nothing refers
 /// to them; what they were is not established.

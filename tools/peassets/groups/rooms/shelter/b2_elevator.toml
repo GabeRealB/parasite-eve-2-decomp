@@ -1,0 +1,153 @@
+# The assets of the group rooms/shelter/b2_elevator, each named rooms/shelter/b2_elevator/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[elevator_scene]
+type = "pe2pkg"
+embedded = [
+    { name = "companion_this_is_it", offset = 0x00204, size = 0x3EC, address = 0x80132024 },
+    { name = "companion_hand_over_id_card", offset = 0x005F0, size = 0x2D4, address = 0x80132410 },
+    { name = "companion_after_handing_card", offset = 0x008C4, size = 0x2EC, address = 0x801326E4 },
+    { name = "companion_talk_1", offset = 0x00BB0, size = 0x564, address = 0x801329D0 },
+    { name = "companion_talk_2", offset = 0x01114, size = 0x284, address = 0x80132F34 },
+    { name = "player_take_id_card", offset = 0x01398, size = 0x2AC, address = 0x801331B8 },
+    { name = "player_look_at_id_card", offset = 0x01644, size = 0x2A0, address = 0x80133464 },
+    { name = "player_listen_to_password", offset = 0x018E4, size = 0x1D8, address = 0x80133704 },
+    { name = "player_shocked", offset = 0x01ABC, size = 0x76C, address = 0x801338DC },
+    { asset = "characters/pierce/anim_04", offset = 0x02228, size = 0x574, address = 0x80134048 },
+    { asset = "characters/pierce/anim_35", offset = 0x0279C, size = 0x638, address = 0x801345BC },
+    { name = "companion_animation_bank_extension_anim_05", offset = 0x02DD4, size = 0x364, address = 0x80134BF4 },
+    { name = "companion_dont_get_me_wrong", offset = 0x03138, size = 0x4B8, address = 0x80134F58 },
+    { name = "companion_i_am_a_pi", offset = 0x035F0, size = 0x348, address = 0x80135410 },
+    { asset = "rooms/dryfield/night_garage/companion_shrug", offset = 0x03938, size = 0x67C, address = 0x80135758 },
+    { asset = "characters/kyle/madigan_anim_04", offset = 0x03FB4, size = 0x2D4, address = 0x80135DD4 },
+    { asset = "characters/kyle/listen", offset = 0x04288, size = 0x220, address = 0x801360A8 },
+    { asset = "characters/aya/introduce_herself", offset = 0x044A8, size = 0x384, address = 0x801362C8 },
+    { asset = "characters/aya/on_my_way", offset = 0x0482C, size = 0x32C, address = 0x8013664C },
+    { asset = "characters/aya/maya_was_my_sister", offset = 0x04B58, size = 0x44C, address = 0x80136978 },
+    { asset = "characters/aya/say_kyle", offset = 0x04FA4, size = 0x328, address = 0x80136DC4 },
+    { asset = "characters/aya/you_too_1", offset = 0x052CC, size = 0x2C0, address = 0x801370EC },
+    { asset = "characters/aya/you_too_2", offset = 0x0558C, size = 0x254, address = 0x801373AC },
+    { name = "companion_scene_bank", offset = 0x057F8, size = 0x34, address = 0x80137618 },
+    { name = "player_scene_bank", offset = 0x05944, size = 0x28, address = 0x80137764 },
+]
+package_name = "actor_142900"
+required = true
+sha1 = "f8c2224f296598367398663af785575add868707"
+
+[player_shocked]
+type = "clip"
+rig = "characters/aya/rig"
+
+[companion_talk_1]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[companion_talk_2]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[player_scene_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b2_elevator/player_scene_schema"
+symbol = "_gActor142900PlayerAnimationBankExtension"
+
+[player_scene_bank.clips]
+take_id_card = "rooms/shelter/b2_elevator/player_take_id_card"
+look_at_id_card = "rooms/shelter/b2_elevator/player_look_at_id_card"
+listen_to_password = "rooms/shelter/b2_elevator/player_listen_to_password"
+shocked = "rooms/shelter/b2_elevator/player_shocked"
+what = "characters/aya/introduce_herself"
+right = "characters/aya/on_my_way"
+maya_was_my_sister = "characters/aya/maya_was_my_sister"
+say_kyle = "characters/aya/say_kyle"
+you_too_1 = "characters/aya/you_too_1"
+you_too_2 = "characters/aya/you_too_2"
+
+[companion_i_am_a_pi]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[player_scene_schema]
+type = "animation_schema"
+slots = [
+    "take_id_card",
+    "look_at_id_card",
+    "listen_to_password",
+    "shocked",
+    "what",
+    "right",
+    "maya_was_my_sister",
+    "say_kyle",
+    "you_too_1",
+    "you_too_2",
+]
+
+[player_take_id_card]
+type = "clip"
+rig = "characters/aya/rig"
+
+[companion_scene_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b2_elevator/companion_scene_schema"
+symbol = "_gActor142900CompanionAnimationBankExtension"
+
+[companion_scene_bank.clips]
+this_is_it = "rooms/shelter/b2_elevator/companion_this_is_it"
+hand_over_id_card = "rooms/shelter/b2_elevator/companion_hand_over_id_card"
+after_handing_card = "rooms/shelter/b2_elevator/companion_after_handing_card"
+talk_3 = "characters/pierce/anim_04"
+slot_4 = "characters/pierce/anim_35"
+slot_5 = "rooms/shelter/b2_elevator/companion_animation_bank_extension_anim_05"
+dont_get_me_wrong = "rooms/shelter/b2_elevator/companion_dont_get_me_wrong"
+i_am_a_pi = "rooms/shelter/b2_elevator/companion_i_am_a_pi"
+couldnt_care_less = "rooms/dryfield/night_garage/companion_shrug"
+take_care = "characters/kyle/madigan_anim_04"
+good_luck = "characters/kyle/listen"
+talk_1 = "rooms/shelter/b2_elevator/companion_talk_1"
+talk_2 = "rooms/shelter/b2_elevator/companion_talk_2"
+
+[companion_this_is_it]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[companion_scene_schema]
+type = "animation_schema"
+slots = [
+    "this_is_it",
+    "hand_over_id_card",
+    "after_handing_card",
+    "talk_3",
+    "slot_4",
+    "slot_5",
+    "dont_get_me_wrong",
+    "i_am_a_pi",
+    "couldnt_care_less",
+    "take_care",
+    "good_luck",
+    "talk_1",
+    "talk_2",
+]
+
+[player_look_at_id_card]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_listen_to_password]
+type = "clip"
+rig = "characters/aya/rig"
+
+[companion_dont_get_me_wrong]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[companion_hand_over_id_card]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[companion_after_handing_card]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[companion_animation_bank_extension_anim_05]
+type = "clip"
+rig = "characters/kyle/rig"

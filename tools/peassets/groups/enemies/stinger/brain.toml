@@ -1,0 +1,309 @@
+# The assets of the group enemies/stinger/brain, each named enemies/stinger/brain/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+schema = "enemies/stinger/brain/schema"
+symbol = "_gActor00300StingerAnimationSets"
+
+[bank.clips]
+idle = "enemies/stinger/idle"
+walk = "enemies/stinger/brain/walk"
+turn = "enemies/stinger/turn"
+charge = "enemies/stinger/charge"
+release = "enemies/stinger/release"
+recover = "enemies/stinger/recover"
+drain = "enemies/stinger/brain/drain"
+stagger = "enemies/stinger/stagger"
+flinch_back = "enemies/stinger/brain/flinch_back"
+flinch_front = "enemies/stinger/brain/flinch_front"
+knock_down_back = "enemies/stinger/brain/knock_down_back"
+knock_down_front = "enemies/stinger/brain/knock_down_front"
+get_up_back = "enemies/stinger/brain/get_up_back"
+get_up_front = "enemies/stinger/brain/get_up_front"
+stunned = "enemies/stinger/stunned"
+slot_16 = "enemies/stinger/brain/stinger_anim_16"
+slot_17 = "enemies/stinger/brain/stinger_anim_17"
+stun_recover = "enemies/stinger/stun_recover"
+event_1 = "enemies/stinger/brain/event_1"
+event_2 = "enemies/stinger/brain/event_2"
+event_3 = "enemies/stinger/brain/event_3"
+
+[hurt]
+type = "sound"
+sha1 = "6ac99711326cc50f0adce9f04014421c909fb03a"
+
+[step]
+type = "sound"
+sha1 = "2d6a8f0e376b629d9cddcf3e6c6f493459dc9e4c"
+
+[walk]
+type = "clip"
+rig = "enemies/stinger/rig"
+
+[death]
+type = "sound"
+sha1 = "7710eec13c3ecb8da1e8f5ed7cd41bd22365baf8"
+
+[drain]
+type = "clip"
+rig = "enemies/stinger/rig"
+
+[charge]
+type = "sound"
+mode = "4bit"
+sha1 = "659528a58245cf36fd376a8ed77b293afd66f80d"
+
+[flinch]
+type = "sound"
+sha1 = "8921e8228b9040192bc4725584811bc2ee422377"
+
+[schema]
+type = "animation_schema"
+slots = [
+    "",
+    "idle",
+    "walk",
+    "turn",
+    "charge",
+    "release",
+    "recover",
+    "drain",
+    "stagger",
+    "flinch_back",
+    "flinch_front",
+    "knock_down_back",
+    "knock_down_front",
+    "get_up_back",
+    "get_up_front",
+    "stunned",
+    "slot_16",
+    "slot_17",
+    "stun_recover",
+    "event_1",
+    "event_2",
+    "event_3",
+]
+
+[sounds]
+type = "sound_bank"
+samples = [
+    "enemies/stinger/brain/flinch",
+    "enemies/stinger/brain/fireball",
+    "enemies/stinger/brain/hurt",
+    "enemies/stinger/brain/charge_start",
+    "enemies/stinger/brain/death",
+    "enemies/stinger/brain/step",
+    "enemies/stinger/brain/charge",
+    "pe/pyrokinesis/cast_1",
+    "enemies/stinger/brain/drain_sound",
+]
+sha1 = "ca021b0b004558b44ddb1ccaa65468d2338ab90c"
+
+[sounds.sounds]
+step = 1
+step_2 = 2
+flinch = 3
+fall = 4
+fireball = 5
+charge_start = 6
+hurt = 7
+death = 8
+charge = 9
+drain = 10
+restore = 11
+
+[event_1]
+type = "clip"
+rig = "enemies/stinger/rig"
+
+[event_2]
+type = "clip"
+rig = "enemies/stinger/rig"
+
+[event_3]
+type = "clip"
+rig = "enemies/stinger/rig"
+
+[fireball]
+type = "sound"
+sha1 = "5ff0916be8f951438367aa0b8e72683d84061f37"
+
+[drain_arm]
+type = "model"
+slots = ["page_1"]
+symbol = "_gStingerBrainDrainArm"
+sha1 = "d81227d601d47f458f8c9c052bf6be3ae7b3e594"
+
+[package_1]
+type = "pe2pkg"
+embedded = [
+    { asset = "enemies/stinger/body", offset = 0x054B4, size = 0x49F4, address = 0x801372D4 },
+    { name = "drain_arm", offset = 0x09EA8, size = 0x29C, address = 0x8013BCC8 },
+    { name = "burst_head", offset = 0x0A144, size = 0x8F8, address = 0x8013BF64 },
+    { name = "burst_part_1", offset = 0x0AA3C, size = 0x4B4, address = 0x8013C85C },
+    { name = "burst_part_2", offset = 0x0AEF0, size = 0x774, address = 0x8013CD10 },
+    { name = "burst_part_3", offset = 0x0B664, size = 0x804, address = 0x8013D484 },
+    { name = "burst_part_4", offset = 0x0BE68, size = 0x480, address = 0x8013DC88 },
+    { asset = "enemies/stinger/idle", offset = 0x0C2E8, size = 0x814, address = 0x8013E108 },
+    { name = "walk", offset = 0x0CAFC, size = 0xDD4, address = 0x8013E91C },
+    { asset = "enemies/stinger/turn", offset = 0x0D8D0, size = 0x780, address = 0x8013F6F0 },
+    { asset = "enemies/stinger/charge", offset = 0x0E050, size = 0xCD0, address = 0x8013FE70 },
+    { asset = "enemies/stinger/release", offset = 0x0ED20, size = 0x4B0, address = 0x80140B40 },
+    { asset = "enemies/stinger/recover", offset = 0x0F1D0, size = 0x43C, address = 0x80140FF0 },
+    { name = "drain", offset = 0x0F60C, size = 0x968, address = 0x8014142C },
+    { asset = "enemies/stinger/stagger", offset = 0x0FF74, size = 0x710, address = 0x80141D94 },
+    { name = "flinch_back", offset = 0x10684, size = 0x960, address = 0x801424A4 },
+    { name = "flinch_front", offset = 0x10FE4, size = 0x908, address = 0x80142E04 },
+    { name = "knock_down_back", offset = 0x118EC, size = 0x66C, address = 0x8014370C },
+    { name = "knock_down_front", offset = 0x11F58, size = 0x824, address = 0x80143D78 },
+    { name = "get_up_back", offset = 0x1277C, size = 0x6D0, address = 0x8014459C },
+    { name = "get_up_front", offset = 0x12E4C, size = 0x878, address = 0x80144C6C },
+    { asset = "enemies/stinger/stunned", offset = 0x136C4, size = 0x564, address = 0x801454E4 },
+    { name = "stinger_anim_16", offset = 0x13C28, size = 0x1E4, address = 0x80145A48 },
+    { name = "stinger_anim_17", offset = 0x13E0C, size = 0x1DC, address = 0x80145C2C },
+    { asset = "enemies/stinger/stun_recover", offset = 0x13FE8, size = 0x2A8, address = 0x80145E08 },
+    { name = "event_1", offset = 0x14290, size = 0xA24, address = 0x801460B0 },
+    { name = "event_2", offset = 0x14CB4, size = 0x908, address = 0x80146AD4 },
+    { name = "event_3", offset = 0x155BC, size = 0xA1C, address = 0x801473DC },
+    { name = "bank", offset = 0x1633C, size = 0x58, address = 0x8014815C },
+]
+package_name = "actor_100300"
+required = true
+sha1 = "9b37f30a92976641990d50c59fa5715f4fa08b69"
+
+[package_2]
+type = "pe2pkg"
+embedded = [
+    { asset = "enemies/stinger/idle", offset = 0x0C2E8, size = 0x814, address = 0x80156108 },
+    { name = "walk", offset = 0x0CAFC, size = 0xDD4, address = 0x8015691C },
+    { asset = "enemies/stinger/turn", offset = 0x0D8D0, size = 0x780, address = 0x801576F0 },
+    { asset = "enemies/stinger/charge", offset = 0x0E050, size = 0xCD0, address = 0x80157E70 },
+    { asset = "enemies/stinger/release", offset = 0x0ED20, size = 0x4B0, address = 0x80158B40 },
+    { asset = "enemies/stinger/recover", offset = 0x0F1D0, size = 0x43C, address = 0x80158FF0 },
+    { name = "drain", offset = 0x0F60C, size = 0x968, address = 0x8015942C },
+    { asset = "enemies/stinger/stagger", offset = 0x0FF74, size = 0x710, address = 0x80159D94 },
+    { name = "flinch_back", offset = 0x10684, size = 0x960, address = 0x8015A4A4 },
+    { name = "flinch_front", offset = 0x10FE4, size = 0x908, address = 0x8015AE04 },
+    { name = "knock_down_back", offset = 0x118EC, size = 0x66C, address = 0x8015B70C },
+    { name = "knock_down_front", offset = 0x11F58, size = 0x824, address = 0x8015BD78 },
+    { name = "get_up_back", offset = 0x1277C, size = 0x6D0, address = 0x8015C59C },
+    { name = "get_up_front", offset = 0x12E4C, size = 0x878, address = 0x8015CC6C },
+    { asset = "enemies/stinger/stunned", offset = 0x136C4, size = 0x564, address = 0x8015D4E4 },
+    { name = "stinger_anim_16", offset = 0x13C28, size = 0x1E4, address = 0x8015DA48 },
+    { name = "stinger_anim_17", offset = 0x13E0C, size = 0x1DC, address = 0x8015DC2C },
+    { asset = "enemies/stinger/stun_recover", offset = 0x13FE8, size = 0x2A8, address = 0x8015DE08 },
+    { name = "event_1", offset = 0x14290, size = 0xA24, address = 0x8015E0B0 },
+    { name = "event_2", offset = 0x14CB4, size = 0x908, address = 0x8015EAD4 },
+    { name = "event_3", offset = 0x155BC, size = 0xA1C, address = 0x8015F3DC },
+    { name = "bank", offset = 0x1633C, size = 0x58, address = 0x8016015C },
+]
+package_name = "actor_200300"
+required = true
+sha1 = "b7aa3b96d01b350a45a5a6cc3bb1bc4c7937a530"
+
+[package_3]
+type = "pe2pkg"
+package_name = "actor_300300"
+required = true
+sha1 = "d150562ff8199b4c1ca8a0a4a5b185998a6c4d42"
+
+[burst_head]
+type = "model"
+slots = ["page_1", "page_2"]
+symbol = "_gStingerBrainBurstHead"
+sha1 = "ad07c6f01ecc8e937e98f3e0850139db3c535755"
+
+[drain_sound]
+type = "sound"
+sha1 = "545f473520bde2ce9786f70e5e1e22795b83b1ec"
+
+[flinch_back]
+type = "clip"
+rig = "enemies/stinger/rig"
+
+[get_up_back]
+type = "clip"
+rig = "enemies/stinger/rig"
+
+[burst_part_1]
+type = "model"
+slots = ["page_1", "page_2"]
+symbol = "_gStingerBrainBurstPart1"
+sha1 = "9a33fdaca3b1d881e436fd8881bff4b959d1c11f"
+
+[burst_part_2]
+type = "model"
+slots = ["page_2", "page_1"]
+symbol = "_gStingerBrainBurstPart2"
+sha1 = "6014f9fa453425cf0156ad5cd7be1909c23d4d24"
+
+[burst_part_3]
+type = "model"
+slots = ["page_2"]
+symbol = "_gStingerBrainBurstPart3"
+sha1 = "0af7bc2f4f5a641b5a5c73c64e5be7720d74f6de"
+
+[burst_part_4]
+type = "model"
+slots = ["page_2"]
+symbol = "_gStingerBrainBurstPart4"
+sha1 = "203e264c18aa4c74cc83de7cfc635564e9e2886a"
+
+[charge_start]
+type = "sound"
+sha1 = "192905ad74d5627f280da1ef616a2fac1a1d9f12"
+
+[flinch_front]
+type = "clip"
+rig = "enemies/stinger/rig"
+
+[get_up_front]
+type = "clip"
+rig = "enemies/stinger/rig"
+
+[knock_down_back]
+type = "clip"
+rig = "enemies/stinger/rig"
+
+[stinger_anim_16]
+type = "clip"
+rig = "enemies/stinger/rig"
+
+[stinger_anim_17]
+type = "clip"
+rig = "enemies/stinger/rig"
+
+[knock_down_front]
+type = "clip"
+rig = "enemies/stinger/rig"
+
+[drain_arm_binding]
+type = "binding"
+model = "enemies/stinger/brain/drain_arm"
+textures = { page_1 = "enemies/stinger/texture_page_1.default" }
+
+[burst_head_binding]
+type = "binding"
+model = "enemies/stinger/brain/burst_head"
+textures = { page_1 = "enemies/stinger/texture_page_1.default", page_2 = "enemies/stinger/texture_page_2.default" }
+
+[burst_part_1_binding]
+type = "binding"
+model = "enemies/stinger/brain/burst_part_1"
+textures = { page_1 = "enemies/stinger/texture_page_1.default", page_2 = "enemies/stinger/texture_page_2.default" }
+
+[burst_part_2_binding]
+type = "binding"
+model = "enemies/stinger/brain/burst_part_2"
+textures = { page_2 = "enemies/stinger/texture_page_2.default", page_1 = "enemies/stinger/texture_page_1.default" }
+
+[burst_part_3_binding]
+type = "binding"
+model = "enemies/stinger/brain/burst_part_3"
+textures = { page_2 = "enemies/stinger/texture_page_2.default" }
+
+[burst_part_4_binding]
+type = "binding"
+model = "enemies/stinger/brain/burst_part_4"
+textures = { page_2 = "enemies/stinger/texture_page_2.default" }

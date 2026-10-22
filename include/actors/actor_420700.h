@@ -4,28 +4,28 @@
 #include "gameplay/animation.h"
 
 // Animation sets used by the trailer-coach event scripts.
-extern AnimationSet gActor420700Animation01C5C;
+extern AnimationSet gDryfieldTrailerCoachPlayerEvent47Clip;
 
-extern AnimationSet gActor420700Animation01EBC;
+extern AnimationSet gDryfieldTrailerCoachPlayerEvent48Clip;
 
-extern AnimationSet gActor420700Animation02328;
+extern AnimationSet gDryfieldTrailerCoachPlayerEvent49Clip;
 
-extern AnimationSet gActor420700Animation02F18;
+extern AnimationSet gDryfieldTrailerCoachPlayerEvent50Clip;
 
-extern AnimationSet gActor420700Animation0316C;
+extern AnimationSet gDryfieldTrailerCoachPlayerConversationClip;
 
-extern AnimationSet gActor420700Animation03404;
+extern AnimationSet gDryfieldTrailerCoachPlayerEvent52Clip;
 
-extern AnimationSet gActor420700Animation035D4;
+extern AnimationSet gDryfieldTrailerCoachPlayerEvent53Clip;
 
-extern AnimationSet gActor420700Animation03DD8;
+extern AnimationSet gDryfieldTrailerCoachPlayerEvent54Clip;
 
-extern AnimationSet gActor420700Animation00DE0;
+extern AnimationSet gDryfieldTrailerCoachPlayerEvent58Clip;
 
-extern AnimationSet gActor420700Animation013A8;
+extern AnimationSet gDryfieldTrailerCoachPlayerEvent59Clip;
 
-extern AnimationSet gActor420700Animation0164C;
+extern AnimationSet gDryfieldTrailerCoachPlayerEvent60Clip;
 
-extern AnimationSet gActor420700Animation01878;
+extern AnimationSet gDryfieldTrailerCoachPlayerEvent61Clip;
 
 #endif // INCLUDE_ACTORS_ACTOR_420700_H

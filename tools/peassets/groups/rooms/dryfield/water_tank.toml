@@ -1,0 +1,167 @@
+# The assets of the group rooms/dryfield/water_tank, each named rooms/dryfield/water_tank/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[kyle]
+type = "pe2pkg"
+embedded = [
+    { asset = "characters/kyle/body", offset = 0x00EFC, size = 0x4B44, address = 0x80132D1C },
+    { asset = "characters/kyle/hand_right", offset = 0x05A40, size = 0x454, address = 0x80137860 },
+    { asset = "characters/kyle/hand_left_2", offset = 0x05E94, size = 0x454, address = 0x80137CB4 },
+    { asset = "characters/pierce/rest", offset = 0x062E8, size = 0x27C, address = 0x80138108 },
+    { asset = "characters/pierce/walk", offset = 0x06564, size = 0x794, address = 0x80138384 },
+    { asset = "characters/kyle/mention_monsters", offset = 0x06CF8, size = 0x5E4, address = 0x80138B18 },
+    { asset = "characters/pierce/anim_04", offset = 0x072DC, size = 0x574, address = 0x801390FC },
+    { asset = "characters/kyle/talk_start", offset = 0x07850, size = 0x1D8, address = 0x80139670 },
+    { asset = "characters/kyle/talk", offset = 0x07A28, size = 0x41C, address = 0x80139848 },
+    { asset = "characters/kyle/talk_end", offset = 0x07E44, size = 0x1BC, address = 0x80139C64 },
+    { asset = "characters/kyle/explain_virus_start", offset = 0x08000, size = 0x1E8, address = 0x80139E20 },
+    { asset = "characters/kyle/explain_virus", offset = 0x081E8, size = 0x2BC, address = 0x8013A008 },
+    { asset = "characters/kyle/kyle_idle", offset = 0x084A4, size = 0x1E0, address = 0x8013A2C4 },
+    { name = "kyle_madigan_anim_02", offset = 0x08684, size = 0x2A8, address = 0x8013A4A4 },
+    { name = "kyle_introduce_himself", offset = 0x0892C, size = 0x2DC, address = 0x8013A74C },
+    { asset = "characters/kyle/madigan_anim_04", offset = 0x08C08, size = 0x2D4, address = 0x8013AA28 },
+    { name = "kyle_well_well", offset = 0x08EDC, size = 0x318, address = 0x8013ACFC },
+    { asset = "characters/kyle/leave_driving_to_me", offset = 0x091F4, size = 0x618, address = 0x8013B014 },
+    { asset = "characters/pierce/anim_12", offset = 0x0980C, size = 0x9AC, address = 0x8013B62C },
+    { asset = "characters/kyle/listen", offset = 0x0A1B8, size = 0x220, address = 0x8013BFD8 },
+    { name = "kyle_afraid_to_hit_you", offset = 0x0A3D8, size = 0x370, address = 0x8013C1F8 },
+    { name = "kyle_my_apologies", offset = 0x0A748, size = 0x240, address = 0x8013C568 },
+    { name = "kyle_say_hes_a_pi", offset = 0x0A988, size = 0x2F0, address = 0x8013C7A8 },
+    { name = "kyle_ask_if_mist_hunter", offset = 0x0AC78, size = 0x4C0, address = 0x8013CA98 },
+    { name = "kyle_mention_shelter", offset = 0x0B138, size = 0x434, address = 0x8013CF58 },
+    { name = "kyle_you_never_know", offset = 0x0B56C, size = 0x49C, address = 0x8013D38C },
+    { name = "kyle_propose_partnership", offset = 0x0BA08, size = 0x250, address = 0x8013D828 },
+    { name = "kyle_react_to_question", offset = 0x0BC58, size = 0x250, address = 0x8013DA78 },
+    { name = "kyle_explain", offset = 0x0BEA8, size = 0x3F8, address = 0x8013DCC8 },
+    { name = "kyle_madigan_anim_27", offset = 0x0C2A0, size = 0x3FC, address = 0x8013E0C0 },
+    { name = "kyle_ask_about_nmcs", offset = 0x0C69C, size = 0x214, address = 0x8013E4BC },
+    { name = "kyle_bank", offset = 0x0C8B0, size = 0x74, address = 0x8013E6D0 },
+]
+package_name = "actor_120400"
+required = true
+sha1 = "c977364fd27ef787b40fdfb396e3f387924342d1"
+
+[kyle_bank]
+type = "animation_bank"
+schema = "rooms/dryfield/water_tank/kyle_schema"
+symbol = "_gActor120400KyleMadiganAnimationBank"
+
+[kyle_bank.clips]
+stand = "characters/pierce/rest"
+slot_2 = "rooms/dryfield/water_tank/kyle_madigan_anim_02"
+introduce_himself = "rooms/dryfield/water_tank/kyle_introduce_himself"
+slot_4 = "characters/kyle/madigan_anim_04"
+well_well = "rooms/dryfield/water_tank/kyle_well_well"
+leave_driving_to_me = "characters/kyle/leave_driving_to_me"
+totaled_car = "characters/pierce/anim_12"
+listen = "characters/kyle/listen"
+talk_start = "characters/kyle/talk_start"
+talk = "characters/kyle/talk"
+talk_end = "characters/kyle/talk_end"
+explain_virus_start = "characters/kyle/explain_virus_start"
+explain_virus = "characters/kyle/explain_virus"
+idle = "characters/kyle/kyle_idle"
+slot_15 = "characters/pierce/anim_04"
+walk = "characters/pierce/walk"
+mention_monsters = "characters/kyle/mention_monsters"
+afraid_to_hit_you = "rooms/dryfield/water_tank/kyle_afraid_to_hit_you"
+my_apologies = "rooms/dryfield/water_tank/kyle_my_apologies"
+say_hes_a_pi = "rooms/dryfield/water_tank/kyle_say_hes_a_pi"
+ask_if_mist_hunter = "rooms/dryfield/water_tank/kyle_ask_if_mist_hunter"
+mention_shelter = "rooms/dryfield/water_tank/kyle_mention_shelter"
+you_never_know = "rooms/dryfield/water_tank/kyle_you_never_know"
+propose_partnership = "rooms/dryfield/water_tank/kyle_propose_partnership"
+react_to_question = "rooms/dryfield/water_tank/kyle_react_to_question"
+explain = "rooms/dryfield/water_tank/kyle_explain"
+slot_27 = "rooms/dryfield/water_tank/kyle_madigan_anim_27"
+ask_about_nmcs = "rooms/dryfield/water_tank/kyle_ask_about_nmcs"
+
+[kyle_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "stand",
+    "slot_2",
+    "introduce_himself",
+    "slot_4",
+    "well_well",
+    "leave_driving_to_me",
+    "totaled_car",
+    "listen",
+    "talk_start",
+    "talk",
+    "talk_end",
+    "explain_virus_start",
+    "explain_virus",
+    "idle",
+    "slot_15",
+    "walk",
+    "mention_monsters",
+    "afraid_to_hit_you",
+    "my_apologies",
+    "say_hes_a_pi",
+    "ask_if_mist_hunter",
+    "mention_shelter",
+    "you_never_know",
+    "propose_partnership",
+    "react_to_question",
+    "explain",
+    "slot_27",
+    "ask_about_nmcs",
+]
+
+[kyle_explain]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_well_well]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_my_apologies]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_say_hes_a_pi]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_ask_about_nmcs]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_you_never_know]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_madigan_anim_02]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_madigan_anim_27]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_mention_shelter]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_afraid_to_hit_you]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_introduce_himself]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_react_to_question]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_ask_if_mist_hunter]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kyle_propose_partnership]
+type = "clip"
+rig = "characters/kyle/rig"

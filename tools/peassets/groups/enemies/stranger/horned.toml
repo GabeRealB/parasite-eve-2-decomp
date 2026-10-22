@@ -1,0 +1,199 @@
+# The assets of the group enemies/stranger/horned, each named enemies/stranger/horned/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = [
+    "root",
+    "pelvis",
+    "chest",
+    "lower_neck",
+    "upper_neck",
+    "head",
+    "jaw",
+    "left_crest",
+    "right_crest",
+    "right_upper_arm",
+    "right_forearm",
+    "left_upper_arm",
+    "left_forearm",
+    "right_thigh",
+    "right_shin",
+    "right_metatarsus",
+    "right_foot",
+    "left_thigh",
+    "left_shin",
+    "left_metatarsus",
+    "left_foot",
+]
+
+[body]
+type = "model"
+rig = "enemies/stranger/horned/rig"
+slots = ["page_2", "page_1"]
+symbol = "_gStrangerHornedBody"
+sha1 = "f228e819f66f2cf177e1a34c408bd54449db3775"
+
+[sounds]
+type = "sound_bank"
+samples = [
+    "enemies/stranger/horned/walk_step_a",
+    "enemies/stranger/horned/walk_step_b",
+    "enemies/stranger/fall",
+    "enemies/stranger/leap",
+    "encounters/skull_stalker_and_creeping_stranger/attack_hit",
+    "enemies/stranger/land",
+    "enemies/scavenger/release",
+    "enemies/stranger/horned/player_impact",
+    "enemies/stranger/alert",
+    "enemies/stranger/hurt",
+    "enemies/stranger/death",
+]
+sha1 = "d8b18e788c97dab8dec91819deef408d99a53776"
+
+[sounds.sounds]
+walk_step_a = 1
+walk_step_b = 2
+run_step_a = 3
+run_step_b = 4
+fall = 5
+alert = 6
+hurt = 7
+death = 8
+leap = 10
+land = 11
+strike = 12
+charge_recoil = 18
+player_impact = 19
+
+[burst_arm]
+type = "model"
+slots = ["page_2", "page_1"]
+symbol = "_gStrangerHornedBurstArm"
+sha1 = "e461b53f25d4240ab9afe60b02870c66d01ed09c"
+
+[package_1]
+type = "pe2pkg"
+package_name = "actor_101300"
+required = true
+sha1 = "cec143d8ca6b58343b24a144a5610a257a2ac16c"
+
+[package_2]
+type = "pe2pkg"
+package_name = "actor_201300"
+required = true
+sha1 = "e0ff1996e80c9c8f50528c3661ad32b778feb195"
+
+[package_3]
+type = "pe2pkg"
+package_name = "actor_301300"
+required = true
+sha1 = "65ba3540ac8cf3d479c58e48a8e49d1310bbbbed"
+
+[package_4]
+type = "pe2pkg"
+embedded = [
+    { name = "burst_arm", offset = 0x15494, size = 0x604, address = 0x801472B4 },
+    { name = "burst_head", offset = 0x15A98, size = 0xF74, address = 0x801478B8 },
+    { name = "burst_fragment", offset = 0x16A0C, size = 0x20C, address = 0x8014882C },
+    "actor_401300_animation_16C18",
+]
+package_name = "actor_401300"
+required = true
+sha1 = "a4ce43e3dfd15c991531dc6ac76860fd2ffa7734"
+
+[burst_head]
+type = "model"
+slots = ["page_2", "page_1"]
+symbol = "_gStrangerHornedBurstHead"
+sha1 = "f6ebc63a2ebef2c9404c531896a011abfc270dc5"
+
+[walk_step_a]
+type = "sound"
+sha1 = "6a0cb2b62e12698c108b3a95c087bb1bb9e16c54"
+
+[walk_step_b]
+type = "sound"
+sha1 = "eea4bbf9190c9a6cd20bdd608d208aaf6be1e440"
+
+[body_binding]
+type = "binding"
+model = "enemies/stranger/horned/body"
+
+[body_binding.textures]
+page_2 = "enemies/stranger/horned/texture_page_2.default"
+page_1 = "enemies/stranger/horned/texture_page_1.default"
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+asset = "enemies/stranger/sounds"
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "8de5c40e312b871e142303a328240231bd3144dd"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "bbc1f852723073e83de2be33403bb70976f51242"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[package_file.contents]]
+chunk = "package_1"
+
+[player_impact]
+type = "sound"
+sha1 = "c2e17346db8c114747df239c2c98f70763d63aad"
+
+[burst_fragment]
+type = "model"
+slots = ["page_2", "page_1"]
+symbol = "_gStrangerHornedBurstFragment"
+sha1 = "6f2929e8f8d319e0161b343b81e9f405ee6c8c0a"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[burst_arm_binding]
+type = "binding"
+model = "enemies/stranger/horned/burst_arm"
+
+[burst_arm_binding.textures]
+page_2 = "enemies/stranger/horned/texture_page_2.default"
+page_1 = "enemies/stranger/horned/texture_page_1.default"
+
+[burst_head_binding]
+type = "binding"
+model = "enemies/stranger/horned/burst_head"
+
+[burst_head_binding.textures]
+page_2 = "enemies/stranger/horned/texture_page_2.default"
+page_1 = "enemies/stranger/horned/texture_page_1.default"
+
+[burst_fragment_binding]
+type = "binding"
+model = "enemies/stranger/horned/burst_fragment"
+
+[burst_fragment_binding.textures]
+page_2 = "enemies/stranger/horned/texture_page_2.default"
+page_1 = "enemies/stranger/horned/texture_page_1.default"

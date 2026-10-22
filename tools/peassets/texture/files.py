@@ -236,10 +236,16 @@ def decode_atlas(name: str, assets: dict, assets_root: Path) -> Path:
 def decode_file(name: str, assets: dict, assets_root: Path) -> list[Path]:
     """Write the variants of every texture the file uploads."""
     contents = assets[name]["contents"]
+    # A palette chunk the file carries that another file declares (a palette several actors' pages share) colors
+    # this file's textures too.
+    from .declaration import is_chunk_entry
+    borrowed = [o for e in contents if not is_chunk_entry(e)
+                for other in assets.values() if other.get("type") == "file" and other is not assets[name]
+                for o in other.get("contents", ()) if o.get("chunk") == e.get("chunk") and "palettes" in o and "pages" not in o]
     # Every palette first: a palette chunk's, or one an image chunk stores in its page (the credits font's), which
     # a texture on another page can be drawn with.
     blocks = [palette_block(chunk_path(assets_root, assets, e["chunk"]).read_bytes())
-              for e in contents if "palettes" in e and "pages" not in e]
+              for e in [*contents, *borrowed] if "palettes" in e and "pages" not in e]
     stored: dict[str, list] = {}                # an image chunk's pages, its palettes taken out
     for e in contents:
         if "pages" in e:
@@ -253,8 +259,10 @@ def decode_file(name: str, assets: dict, assets_root: Path) -> list[Path]:
             stored[e["chunk"]] = pages
     palettes: dict[tuple[str, str], list[int]] = {}
     written = []
-    for e in contents:
+    for e in [*contents, *borrowed]:
         for p in e.get("palettes", ()):
+            if e in borrowed and "texture" not in p:
+                continue                        # the declaring file writes its named palettes
             if "texture" not in p:
                 path = named_palette_path(assets_root, assets, e["chunk"], p["name"])
                 path.parent.mkdir(parents=True, exist_ok=True)

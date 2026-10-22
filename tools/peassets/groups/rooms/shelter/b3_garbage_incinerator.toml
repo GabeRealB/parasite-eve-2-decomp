@@ -1,0 +1,137 @@
+# The assets of the group rooms/shelter/b3_garbage_incinerator, each named rooms/shelter/b3_garbage_incinerator/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[gluttons]
+type = "pe2pkg"
+embedded = [
+    "actor_444000_animation_121E8",
+    "actor_444000_model_1C814",
+    "actor_444000_model_1D36C",
+    "actor_444000_model_1DC9C",
+    "actor_444000_model_1E14C",
+    "actor_444000_animation_20AE0",
+]
+package_name = "actor_444000"
+parent = "shelter_b3_garbage_incinerator"
+required = true
+sha1 = "454467028f7b59b74139bb7f0b57618a7dd3fd29"
+
+[mad_chaser]
+type = "pe2pkg"
+embedded = [
+    { asset = "enemies/chaser/mad/idle", offset = 0x0E778, size = 0x254, address = 0x80170598 },
+    { asset = "enemies/chaser/mad/mad_chaser_anim_anim_02", offset = 0x0E9CC, size = 0x1A4, address = 0x801707EC },
+    { asset = "enemies/chaser/mad/sidestep_left", offset = 0x0EB70, size = 0x4D4, address = 0x80170990 },
+    { asset = "enemies/chaser/mad/sidestep_right", offset = 0x0F044, size = 0x584, address = 0x80170E64 },
+    { asset = "enemies/chaser/mad/collapse_low", offset = 0x0F5C8, size = 0x100, address = 0x801713E8 },
+    { asset = "enemies/chaser/mad/collapse_upright", offset = 0x0F6C8, size = 0x100, address = 0x801714E8 },
+    { asset = "enemies/chaser/mad/walk", offset = 0x0F7C8, size = 0x430, address = 0x801715E8 },
+    { asset = "enemies/chaser/mad/leap", offset = 0x0FBF8, size = 0x4A4, address = 0x80171A18 },
+    { asset = "enemies/chaser/mad/alert_cry", offset = 0x1009C, size = 0x558, address = 0x80171EBC },
+    { asset = "enemies/chaser/mad/mad_chaser_anim_anim_10", offset = 0x105F4, size = 0x2B4, address = 0x80172414 },
+    { asset = "enemies/chaser/mad/recoil_light", offset = 0x108A8, size = 0x294, address = 0x801726C8 },
+    { asset = "enemies/chaser/mad/recoil_heavy", offset = 0x10B3C, size = 0x2B0, address = 0x8017295C },
+    { asset = "enemies/chaser/mad/turn_around", offset = 0x10DEC, size = 0x214, address = 0x80172C0C },
+    { asset = "enemies/chaser/mad/look_around", offset = 0x11000, size = 0x120, address = 0x80172E20 },
+    { asset = "enemies/chaser/mad/rise", offset = 0x11120, size = 0x13C, address = 0x80172F40 },
+    { asset = "enemies/chaser/mad/rebound", offset = 0x1125C, size = 0x1FC, address = 0x8017307C },
+    { asset = "enemies/chaser/mad/recoil_low", offset = 0x11458, size = 0x43C, address = 0x80173278 },
+    { asset = "enemies/chaser/mad/leap_land", offset = 0x11894, size = 0x18C, address = 0x801736B4 },
+    { asset = "enemies/chaser/mad/rebound_land", offset = 0x11A20, size = 0x1A8, address = 0x80173840 },
+    { name = "mad_chaser_bank", offset = 0x11BC8, size = 0x54, address = 0x801739E8 },
+]
+package_name = "actor_342400"
+required = true
+sha1 = "5643fd59ed5dbfa567c4e7fc71868d5f48e8b1ec"
+
+[mad_chaser_bank]
+type = "animation_bank"
+schema = "rooms/shelter/b3_garbage_incinerator/mad_chaser_schema"
+symbol = "_gMadChaserAnimBank"
+
+[mad_chaser_bank.clips]
+idle = "enemies/chaser/mad/idle"
+slot_2 = "enemies/chaser/mad/mad_chaser_anim_anim_02"
+sidestep_left = "enemies/chaser/mad/sidestep_left"
+sidestep_right = "enemies/chaser/mad/sidestep_right"
+collapse_low = "enemies/chaser/mad/collapse_low"
+collapse_upright = "enemies/chaser/mad/collapse_upright"
+walk = "enemies/chaser/mad/walk"
+leap = "enemies/chaser/mad/leap"
+alert_cry = "enemies/chaser/mad/alert_cry"
+slot_10 = "enemies/chaser/mad/mad_chaser_anim_anim_10"
+recoil_light = "enemies/chaser/mad/recoil_light"
+recoil_heavy = "enemies/chaser/mad/recoil_heavy"
+turn_around = "enemies/chaser/mad/turn_around"
+look_around = "enemies/chaser/mad/look_around"
+rise = "enemies/chaser/mad/rise"
+rebound = "enemies/chaser/mad/rebound"
+recoil_low = "enemies/chaser/mad/recoil_low"
+leap_land = "enemies/chaser/mad/leap_land"
+rebound_land = "enemies/chaser/mad/rebound_land"
+
+[mad_chaser_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "idle",
+    "slot_2",
+    "sidestep_left",
+    "sidestep_right",
+    "collapse_low",
+    "collapse_upright",
+    "walk",
+    "leap",
+    "alert_cry",
+    "slot_10",
+    "recoil_light",
+    "recoil_heavy",
+    "turn_around",
+    "look_around",
+    "rise",
+    "rebound",
+    "recoil_low",
+    "leap_land",
+    "rebound_land",
+]
+
+[glutton_door_scene]
+type = "pe2pkg"
+embedded = ["actor_341900_animation_01880"]
+package_name = "actor_341900"
+required = true
+sha1 = "493e1a11c45006aac85441bdc1fc8412c95bcc08"
+
+[glutton_trap_scene]
+type = "pe2pkg"
+embedded = ["actor_342000_animation_026C4"]
+package_name = "actor_342000"
+required = true
+sha1 = "3b7ab569997dbcc1a321b207d36f4f1ddfbb36c6"
+
+[summoned_mad_chaser]
+type = "pe2pkg"
+embedded = [
+    { asset = "enemies/chaser/mad/idle", offset = 0x0D328, size = 0x254, address = 0x8016F148 },
+    { asset = "enemies/chaser/mad/mad_chaser_anim_anim_02", offset = 0x0D57C, size = 0x1A4, address = 0x8016F39C },
+    { asset = "enemies/chaser/mad/sidestep_left", offset = 0x0D720, size = 0x4D4, address = 0x8016F540 },
+    { asset = "enemies/chaser/mad/sidestep_right", offset = 0x0DBF4, size = 0x584, address = 0x8016FA14 },
+    { asset = "enemies/chaser/mad/collapse_low", offset = 0x0E178, size = 0x100, address = 0x8016FF98 },
+    { asset = "enemies/chaser/mad/collapse_upright", offset = 0x0E278, size = 0x100, address = 0x80170098 },
+    { asset = "enemies/chaser/mad/walk", offset = 0x0E378, size = 0x430, address = 0x80170198 },
+    { asset = "enemies/chaser/mad/leap", offset = 0x0E7A8, size = 0x4A4, address = 0x801705C8 },
+    { asset = "enemies/chaser/mad/alert_cry", offset = 0x0EC4C, size = 0x558, address = 0x80170A6C },
+    { asset = "enemies/chaser/mad/mad_chaser_anim_anim_10", offset = 0x0F1A4, size = 0x2B4, address = 0x80170FC4 },
+    { asset = "enemies/chaser/mad/recoil_light", offset = 0x0F458, size = 0x294, address = 0x80171278 },
+    { asset = "enemies/chaser/mad/recoil_heavy", offset = 0x0F6EC, size = 0x2B0, address = 0x8017150C },
+    { asset = "enemies/chaser/mad/turn_around", offset = 0x0F99C, size = 0x214, address = 0x801717BC },
+    { asset = "enemies/chaser/mad/look_around", offset = 0x0FBB0, size = 0x120, address = 0x801719D0 },
+    { asset = "enemies/chaser/mad/rise", offset = 0x0FCD0, size = 0x13C, address = 0x80171AF0 },
+    { asset = "enemies/chaser/mad/rebound", offset = 0x0FE0C, size = 0x1FC, address = 0x80171C2C },
+    { asset = "enemies/chaser/mad/recoil_low", offset = 0x10008, size = 0x43C, address = 0x80171E28 },
+    { asset = "enemies/chaser/mad/leap_land", offset = 0x10444, size = 0x18C, address = 0x80172264 },
+    { asset = "enemies/chaser/mad/rebound_land", offset = 0x105D0, size = 0x1A8, address = 0x801723F0 },
+]
+package_name = "actor_342200"
+required = true
+sha1 = "aef29418bc23258ebc66da3a6a1cdcd1168010f0"

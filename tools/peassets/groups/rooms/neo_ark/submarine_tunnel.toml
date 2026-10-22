@@ -1,0 +1,307 @@
+# The assets of the group rooms/neo_ark/submarine_tunnel, each named rooms/neo_ark/submarine_tunnel/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[no_9_idle]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[no_9_stop]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[no_9_point]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[eve_and_no_9]
+type = "pe2pkg"
+embedded = [
+    { asset = "characters/aya/stand", offset = 0x01300, size = 0x304, address = 0x80133120 },
+    { asset = "characters/aya/shocked", offset = 0x01604, size = 0x6FC, address = 0x80133424 },
+    { asset = "characters/aya/before_agreeing", offset = 0x01D00, size = 0x278, address = 0x80133B20 },
+    { name = "player_sink_to_knees", offset = 0x01F78, size = 0x1000, address = 0x80133D98 },
+    { name = "player_scene_bank", offset = 0x032EC, size = 0x10, address = 0x8013510C },
+    { name = "eve_held_idle", offset = 0x09B68, size = 0x2DC, address = 0x8013B988 },
+    { name = "eve_held_talk_lean", offset = 0x09E44, size = 0x60C, address = 0x8013BC64 },
+    { name = "eve_held_raise_radio", offset = 0x0A450, size = 0x358, address = 0x8013C270 },
+    { name = "eve_held_lower_radio", offset = 0x0A7A8, size = 0x2E8, address = 0x8013C5C8 },
+    { name = "eve_held_talk_wave", offset = 0x0AA90, size = 0x3D8, address = 0x8013C8B0 },
+    { name = "eve_held_turn_away", offset = 0x0AE68, size = 0x368, address = 0x8013CC88 },
+    { name = "eve_held_talk_gesture", offset = 0x0B1D0, size = 0x3B0, address = 0x8013CFF0 },
+    { name = "eve_held_walk_away", offset = 0x0B580, size = 0x77C, address = 0x8013D3A0 },
+    { name = "eve_held_point", offset = 0x0BCFC, size = 0x50C, address = 0x8013DB1C },
+    { name = "eve_held_point_return", offset = 0x0C208, size = 0x27C, address = 0x8013E028 },
+    { name = "eve_held_radio_pose", offset = 0x0C484, size = 0x1A4, address = 0x8013E2A4 },
+    { name = "eve_held_radio_talk", offset = 0x0C628, size = 0x1F0, address = 0x8013E448 },
+    { name = "eve_held_radio_talk_2", offset = 0x0C818, size = 0x1C8, address = 0x8013E638 },
+    { name = "eve_held_talk_sweep_arm", offset = 0x0C9E0, size = 0x8FC, address = 0x8013E800 },
+    { name = "eve_held_stop", offset = 0x0D2DC, size = 0x368, address = 0x8013F0FC },
+    { name = "eve_held_turn_head", offset = 0x0D644, size = 0x29C, address = 0x8013F464 },
+    { name = "eve_walker_bank", offset = 0x0D920, size = 0x94, address = 0x8013F740 },
+    { asset = "enemies/golem/no_9/radio", offset = 0x14264, size = 0x2B8, address = 0x80146084 },
+    { name = "no_9_idle", offset = 0x1451C, size = 0x534, address = 0x8014633C },
+    { name = "no_9_talk_lean", offset = 0x14A50, size = 0xF8C, address = 0x80146870 },
+    { name = "no_9_raise_radio", offset = 0x159DC, size = 0x75C, address = 0x801477FC },
+    { name = "no_9_lower_radio", offset = 0x16138, size = 0x5D8, address = 0x80147F58 },
+    { name = "no_9_talk_wave", offset = 0x16710, size = 0x83C, address = 0x80148530 },
+    { name = "no_9_turn_away", offset = 0x16F4C, size = 0x7A4, address = 0x80148D6C },
+    { name = "no_9_talk_gesture", offset = 0x176F0, size = 0x688, address = 0x80149510 },
+    { name = "no_9_walk_away", offset = 0x17D78, size = 0x14FC, address = 0x80149B98 },
+    { name = "no_9_point", offset = 0x19274, size = 0xA2C, address = 0x8014B094 },
+    { name = "no_9_point_return", offset = 0x19CA0, size = 0x654, address = 0x8014BAC0 },
+    { name = "no_9_radio_pose", offset = 0x1A2F4, size = 0x22C, address = 0x8014C114 },
+    { name = "no_9_radio_talk", offset = 0x1A520, size = 0x2D8, address = 0x8014C340 },
+    { name = "no_9_radio_talk_2", offset = 0x1A7F8, size = 0x2C0, address = 0x8014C618 },
+    { name = "no_9_talk_sweep_arm", offset = 0x1AAB8, size = 0xE8C, address = 0x8014C8D8 },
+    { name = "no_9_stop", offset = 0x1B944, size = 0x8C8, address = 0x8014D764 },
+    { name = "no_9_turn_head", offset = 0x1C20C, size = 0x688, address = 0x8014E02C },
+    { name = "no_9_walker_bank", offset = 0x1C8DC, size = 0x48, address = 0x8014E6FC },
+]
+package_name = "actor_451100"
+required = true
+sha1 = "76ecd44614c5d8b73952f91b2ca7d8924a4139ca"
+
+[eve_held_idle]
+type = "clip"
+rig = "characters/eve/rig"
+
+[eve_held_stop]
+type = "clip"
+rig = "characters/eve/rig"
+
+[eve_held_point]
+type = "clip"
+rig = "characters/eve/rig"
+
+[no_9_talk_lean]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[no_9_talk_wave]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[no_9_turn_away]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[no_9_turn_head]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[no_9_walk_away]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[eve_walker_bank]
+type = "animation_bank"
+schema = "rooms/neo_ark/submarine_tunnel/eve_walker_schema"
+symbol = "_gActor451100QuietWalkAnimationSets"
+
+[eve_walker_bank.clips]
+startup = "rooms/neo_ark/submarine_tunnel/eve_held_idle"
+held_idle = "rooms/neo_ark/submarine_tunnel/eve_held_idle"
+held_talk_lean = "rooms/neo_ark/submarine_tunnel/eve_held_talk_lean"
+held_raise_radio = "rooms/neo_ark/submarine_tunnel/eve_held_raise_radio"
+held_lower_radio = "rooms/neo_ark/submarine_tunnel/eve_held_lower_radio"
+held_talk_wave = "rooms/neo_ark/submarine_tunnel/eve_held_talk_wave"
+held_turn_away = "rooms/neo_ark/submarine_tunnel/eve_held_turn_away"
+held_talk_gesture = "rooms/neo_ark/submarine_tunnel/eve_held_talk_gesture"
+held_walk_away = "rooms/neo_ark/submarine_tunnel/eve_held_walk_away"
+held_point = "rooms/neo_ark/submarine_tunnel/eve_held_point"
+held_point_return = "rooms/neo_ark/submarine_tunnel/eve_held_point_return"
+held_radio_pose = "rooms/neo_ark/submarine_tunnel/eve_held_radio_pose"
+held_radio_talk = "rooms/neo_ark/submarine_tunnel/eve_held_radio_talk"
+held_radio_talk_2 = "rooms/neo_ark/submarine_tunnel/eve_held_radio_talk_2"
+held_talk_sweep_arm = "rooms/neo_ark/submarine_tunnel/eve_held_talk_sweep_arm"
+held_stop = "rooms/neo_ark/submarine_tunnel/eve_held_stop"
+held_turn_head = "rooms/neo_ark/submarine_tunnel/eve_held_turn_head"
+
+[no_9_radio_pose]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[no_9_radio_talk]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[no_9_lower_radio]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[no_9_raise_radio]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[no_9_walker_bank]
+type = "animation_bank"
+schema = "rooms/neo_ark/submarine_tunnel/no_9_walker_schema"
+symbol = "_gActor451100PairWalkAnimationSets"
+
+[no_9_walker_bank.clips]
+idle = "rooms/neo_ark/submarine_tunnel/no_9_idle"
+talk_lean = "rooms/neo_ark/submarine_tunnel/no_9_talk_lean"
+raise_radio = "rooms/neo_ark/submarine_tunnel/no_9_raise_radio"
+lower_radio = "rooms/neo_ark/submarine_tunnel/no_9_lower_radio"
+talk_wave = "rooms/neo_ark/submarine_tunnel/no_9_talk_wave"
+turn_away = "rooms/neo_ark/submarine_tunnel/no_9_turn_away"
+talk_gesture = "rooms/neo_ark/submarine_tunnel/no_9_talk_gesture"
+walk_away = "rooms/neo_ark/submarine_tunnel/no_9_walk_away"
+point = "rooms/neo_ark/submarine_tunnel/no_9_point"
+point_return = "rooms/neo_ark/submarine_tunnel/no_9_point_return"
+radio_pose = "rooms/neo_ark/submarine_tunnel/no_9_radio_pose"
+radio_talk = "rooms/neo_ark/submarine_tunnel/no_9_radio_talk"
+radio_talk_2 = "rooms/neo_ark/submarine_tunnel/no_9_radio_talk_2"
+talk_sweep_arm = "rooms/neo_ark/submarine_tunnel/no_9_talk_sweep_arm"
+stop = "rooms/neo_ark/submarine_tunnel/no_9_stop"
+turn_head = "rooms/neo_ark/submarine_tunnel/no_9_turn_head"
+
+[eve_walker_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "startup",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "held_idle",
+    "held_talk_lean",
+    "held_raise_radio",
+    "held_lower_radio",
+    "held_talk_wave",
+    "held_turn_away",
+    "held_talk_gesture",
+    "held_walk_away",
+    "held_point",
+    "held_point_return",
+    "held_radio_pose",
+    "held_radio_talk",
+    "held_radio_talk_2",
+    "held_talk_sweep_arm",
+    "held_stop",
+    "held_turn_head",
+]
+
+[no_9_point_return]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[no_9_radio_talk_2]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[no_9_talk_gesture]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[player_scene_bank]
+type = "animation_bank"
+schema = "rooms/neo_ark/submarine_tunnel/player_scene_schema"
+symbol = "_gActor451100PlayerAnimationExtensionSets"
+
+[player_scene_bank.clips]
+sink_to_knees = "rooms/neo_ark/submarine_tunnel/player_sink_to_knees"
+stand = "characters/aya/stand"
+reach_out = "characters/aya/shocked"
+reach_out_end = "characters/aya/before_agreeing"
+
+[eve_held_talk_lean]
+type = "clip"
+rig = "characters/eve/rig"
+
+[eve_held_talk_wave]
+type = "clip"
+rig = "characters/eve/rig"
+
+[eve_held_turn_away]
+type = "clip"
+rig = "characters/eve/rig"
+
+[eve_held_turn_head]
+type = "clip"
+rig = "characters/eve/rig"
+
+[eve_held_walk_away]
+type = "clip"
+rig = "characters/eve/rig"
+
+[no_9_walker_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "idle",
+    "talk_lean",
+    "raise_radio",
+    "lower_radio",
+    "talk_wave",
+    "turn_away",
+    "talk_gesture",
+    "walk_away",
+    "point",
+    "point_return",
+    "radio_pose",
+    "radio_talk",
+    "radio_talk_2",
+    "talk_sweep_arm",
+    "stop",
+    "turn_head",
+]
+
+[eve_held_radio_pose]
+type = "clip"
+rig = "characters/eve/rig"
+
+[eve_held_radio_talk]
+type = "clip"
+rig = "characters/eve/rig"
+
+[no_9_talk_sweep_arm]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[player_scene_schema]
+type = "animation_schema"
+slots = ["sink_to_knees", "stand", "reach_out", "reach_out_end"]
+
+[eve_held_lower_radio]
+type = "clip"
+rig = "characters/eve/rig"
+
+[eve_held_raise_radio]
+type = "clip"
+rig = "characters/eve/rig"
+
+[player_sink_to_knees]
+type = "clip"
+rig = "characters/aya/rig"
+
+[eve_held_point_return]
+type = "clip"
+rig = "characters/eve/rig"
+
+[eve_held_radio_talk_2]
+type = "clip"
+rig = "characters/eve/rig"
+
+[eve_held_talk_gesture]
+type = "clip"
+rig = "characters/eve/rig"
+
+[eve_held_talk_sweep_arm]
+type = "clip"
+rig = "characters/eve/rig"

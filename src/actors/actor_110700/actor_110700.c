@@ -38,7 +38,7 @@ STATIC_ASSERT_SIZEOF(_Actor110700No9GolemWork, 0x480);
 static void _actor110700No9GolemSetup(Enemy* enemy, Task* task);
 static void _actor110700No9GolemUpdate(Enemy* enemy, Task* task);
 
-static TmdSource _gActor110700No9GolemAkropolisBody;
+extern TmdSource gGolemNo9BodyAkropolis;
 static s32       _actor110700No9GolemPlayAnimation(Task* task, s32 msgId, const AnimationPlayRequest* request, s32 unusedArg);
 static s32       _actor110700No9GolemSetModelDraw(Task* task, s32 msgId, s32 drawFlags, s32 unusedArg);
 static void      _actor110700No9GolemTask(Task* task);
@@ -55,154 +55,16 @@ enum { ACTOR_110700_ANIMATION_NONE = 0 };
 /// Model coordinate 0 is the placement root; body animation starts at 1.
 enum { ACTOR_110700_FIRST_ANIMATED_PART = 1 };
 
-static TmdBone _gActor110700No9GolemAkropolisBodySkeleton[19] = {
-#include "assets/no9_golem_akropolis_body_skeleton.inc"
-};
+#include "assets/enemies/golem/no_9/body_akropolis.inc"
 
-static u32 _gActor110700No9GolemAkropolisBodyPartVerts[19] = {
-#include "assets/no9_golem_akropolis_body_partVerts.inc"
-};
-
-static SVECTOR _gActor110700No9GolemAkropolisBodyVerts[358] = {
-#include "assets/no9_golem_akropolis_body_verts.inc"
-};
-
-static SVECTOR _gActor110700No9GolemAkropolisBodyNormals[356] = {
-#include "assets/no9_golem_akropolis_body_normals.inc"
-};
-
-static u32 _gActor110700No9GolemAkropolisBodyStream[3928] = {
-#include "assets/no9_golem_akropolis_body_stream.inc"
-};
-
-static TmdSource _gActor110700No9GolemAkropolisBody = {
-    0,
-    21588,
-    5944,
-    19,
-    _gActor110700No9GolemAkropolisBodyPartVerts,
-    _gActor110700No9GolemAkropolisBodyVerts,
-    _gActor110700No9GolemAkropolisBodyNormals,
-    _gActor110700No9GolemAkropolisBodySkeleton,
-    _gActor110700No9GolemAkropolisBodyStream,
-};
-
-static AnimationPackedPose _gActor110700Animation05D64Bank1[6] = {
-#include "assets/actor_110700_animation_05D64_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor110700Animation05D64Bank4[80] = {
-#include "assets/actor_110700_animation_05D64_bank4.inc"
-};
-
-static AnimationRecord _gActor110700Animation05D64Records[122] = {
-#include "assets/actor_110700_animation_05D64_records.inc"
-};
-
-static u16 _gActor110700Animation05D64Indices[20] = {
-#include "assets/actor_110700_animation_05D64_indices.inc"
-};
-
-static AnimationSet _gActor110700Animation05D64 = {
-    _gActor110700Animation05D64Records,
-    _gActor110700Animation05D64Indices,
-    { NULL, _gActor110700Animation05D64Bank1, NULL, NULL, _gActor110700Animation05D64Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor110700Animation0667CBank1[14] = {
-#include "assets/actor_110700_animation_0667C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor110700Animation0667CBank4[238] = {
-#include "assets/actor_110700_animation_0667C_bank4.inc"
-};
-
-static AnimationRecord _gActor110700Animation0667CRecords[282] = {
-#include "assets/actor_110700_animation_0667C_records.inc"
-};
-
-static u16 _gActor110700Animation0667CIndices[20] = {
-#include "assets/actor_110700_animation_0667C_indices.inc"
-};
-
-static AnimationSet _gActor110700Animation0667C = {
-    _gActor110700Animation0667CRecords,
-    _gActor110700Animation0667CIndices,
-    { NULL, _gActor110700Animation0667CBank1, NULL, NULL, _gActor110700Animation0667CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor110700Animation0820CBank1[53] = {
-#include "assets/actor_110700_animation_0820C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor110700Animation0820CBank4[730] = {
-#include "assets/actor_110700_animation_0820C_bank4.inc"
-};
-
-static AnimationRecord _gActor110700Animation0820CRecords[855] = {
-#include "assets/actor_110700_animation_0820C_records.inc"
-};
-
-static u16 _gActor110700Animation0820CIndices[20] = {
-#include "assets/actor_110700_animation_0820C_indices.inc"
-};
-
-static AnimationSet _gActor110700Animation0820C = {
-    _gActor110700Animation0820CRecords,
-    _gActor110700Animation0820CIndices,
-    { NULL, _gActor110700Animation0820CBank1, NULL, NULL, _gActor110700Animation0820CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor110700Animation08714Bank1[11] = {
-#include "assets/actor_110700_animation_08714_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor110700Animation08714Bank4[110] = {
-#include "assets/actor_110700_animation_08714_bank4.inc"
-};
-
-static AnimationRecord _gActor110700Animation08714Records[159] = {
-#include "assets/actor_110700_animation_08714_records.inc"
-};
-
-static u16 _gActor110700Animation08714Indices[20] = {
-#include "assets/actor_110700_animation_08714_indices.inc"
-};
-
-static AnimationSet _gActor110700Animation08714 = {
-    _gActor110700Animation08714Records,
-    _gActor110700Animation08714Indices,
-    { NULL, _gActor110700Animation08714Bank1, NULL, NULL, _gActor110700Animation08714Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor110700Animation0A14CBank1[51] = {
-#include "assets/actor_110700_animation_0A14C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor110700Animation0A14CBank4[692] = {
-#include "assets/actor_110700_animation_0A14C_bank4.inc"
-};
-
-static AnimationRecord _gActor110700Animation0A14CRecords[813] = {
-#include "assets/actor_110700_animation_0A14C_records.inc"
-};
-
-static u16 _gActor110700Animation0A14CIndices[20] = {
-#include "assets/actor_110700_animation_0A14C_indices.inc"
-};
-
-static AnimationSet _gActor110700Animation0A14C = {
-    _gActor110700Animation0A14CRecords,
-    _gActor110700Animation0A14CIndices,
-    { NULL, _gActor110700Animation0A14CBank1, NULL, NULL, _gActor110700Animation0A14CBank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/akropolis/sanctuary/no_9_clips.inc"
 
 enum { ACTOR_110700_GOLEM_TASK_PRIORITY = 96 };
 
 TaskDesc gActor110700No9GolemTaskDesc = {
     .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_110700_GOLEM_TASK_PRIORITY } },
     .callback = _actor110700No9GolemTask,
-    .data     = { .model = &_gActor110700No9GolemAkropolisBody },
+    .data     = { .model = &gGolemNo9BodyAkropolis },
 };
 
 /// Message map for the script-posed No. 9 golem.
@@ -221,14 +83,7 @@ static const TaskMessageEntry _gActor110700No9GolemMessages[4] __attribute__((se
 ///
 /// Entry 0 denotes no requested clip and must not be played; IDs 1..5 are loaded
 /// sets. The rig borrows this word-aligned table and its sets until teardown.
-static AnimationSet* _gActor110700No9GolemAnimationSets[6] = {
-    NULL,
-    &_gActor110700Animation05D64,
-    &_gActor110700Animation0667C,
-    &_gActor110700Animation0820C,
-    &_gActor110700Animation08714,
-    &_gActor110700Animation0A14C,
-};
+#include "assets/rooms/akropolis/sanctuary/no_9_bank.inc"
 
 /// Runs the script-posed No. 9 golem's setup or per-frame update.
 ///

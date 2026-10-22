@@ -1,0 +1,15 @@
+# The assets of the group rooms/akropolis/plaza, each named rooms/akropolis/plaza/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[police_officers]
+type = "pe2pkg"
+embedded = [
+    { asset = "characters/police_officer_1/body", offset = 0x0159C, size = 0x5868, address = 0x801633BC },
+    { asset = "characters/police_officer_1/culled_body", offset = 0x06E04, size = 0x488C, address = 0x80168C24 },
+    { asset = "characters/police_officer_2/body", offset = 0x0B690, size = 0x5C24, address = 0x8016D4B0 },
+    { asset = "characters/police_officer_2/culled_body", offset = 0x112B4, size = 0x48FC, address = 0x801730D4 },
+    "actor_310100_animation_15BB0",
+]
+package_name = "actor_310100"
+required = true
+sha1 = "f9b3a4b29e62b743444b4c28ff43cf71aa73b871"

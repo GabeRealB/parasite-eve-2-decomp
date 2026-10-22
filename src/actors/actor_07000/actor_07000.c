@@ -74,10 +74,10 @@ STATIC_ASSERT_SIZEOF(_Actor07000SlouchProjectileWork, 0x58);
 
 void ActorsShared801349d8(Task*);
 
-static AnimationSet _gActor07000Actor107000Animation07D1C;
-static AnimationSet _gActor07000Actor107000Animation07E64;
-static AnimationSet _gActor07000Actor107000Animation08008;
-static TmdSource    _gActor07000SucklercephBody;
+static AnimationSet _gAkropolisForkedRoadSucklercephIdleClip;
+static AnimationSet _gAkropolisForkedRoadSucklercephCrawlClip;
+static AnimationSet _gAkropolisForkedRoadSucklercephAnim03Clip;
+static TmdSource    _gAkropolisForkedRoadSucklercephBody;
 static s32          _actor07000SlouchApplyCommand(Task* task, s32 messageId, const ActorCommand* request, s32 unusedArg);
 static void         _actor07000SlouchTask(Task* task);
 static void         _actor07000SlouchProjectileTask(Task* task);
@@ -130,103 +130,9 @@ static PadScriptVibrationSegment _gSucklercephBurstVibrationSegments[3] = {
     [SUCKLERCEPH_BURST_VIBRATION_FADE] = { .startIntensity = 100, .endIntensity = 50, .durationFrames = 6, .field_3 = 1 },
 };
 
-static TmdBone _gActor07000SucklercephBodySkeleton[3] = {
-#include "assets/sucklerceph_body_skeleton.inc"
-};
+#include "assets/rooms/akropolis/forked_road/sucklerceph_body.inc"
 
-static u32 _gActor07000SucklercephBodyPartVerts[3] = {
-#include "assets/sucklerceph_body_partVerts.inc"
-};
-
-static SVECTOR _gActor07000SucklercephBodyVerts[68] = {
-#include "assets/sucklerceph_body_verts.inc"
-};
-
-static SVECTOR _gActor07000SucklercephBodyNormals[68] = {
-#include "assets/sucklerceph_body_normals.inc"
-};
-
-static u32 _gActor07000SucklercephBodyStream[752] = {
-#include "assets/sucklerceph_body_stream.inc"
-};
-
-static TmdSource _gActor07000SucklercephBody = {
-    0,
-    4516,
-    584,
-    3,
-    _gActor07000SucklercephBodyPartVerts,
-    _gActor07000SucklercephBodyVerts,
-    _gActor07000SucklercephBodyNormals,
-    _gActor07000SucklercephBodySkeleton,
-    _gActor07000SucklercephBodyStream,
-};
-
-static AnimationPackedPose _gActor07000Actor107000Animation07D1CBank1[34] = {
-#include "assets/actor_107000_animation_07D1C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor07000Actor107000Animation07D1CBank4[26] = {
-#include "assets/actor_107000_animation_07D1C_bank4.inc"
-};
-
-static AnimationRecord _gActor07000Actor107000Animation07D1CRecords[74] = {
-#include "assets/actor_107000_animation_07D1C_records.inc"
-};
-
-static u16 _gActor07000Actor107000Animation07D1CIndices[4] = {
-#include "assets/actor_107000_animation_07D1C_indices.inc"
-};
-
-static AnimationSet _gActor07000Actor107000Animation07D1C = {
-    _gActor07000Actor107000Animation07D1CRecords,
-    _gActor07000Actor107000Animation07D1CIndices,
-    { NULL, _gActor07000Actor107000Animation07D1CBank1, NULL, NULL, _gActor07000Actor107000Animation07D1CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor07000Actor107000Animation07E64Bank1[11] = {
-#include "assets/actor_107000_animation_07E64_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor07000Actor107000Animation07E64Bank4[9] = {
-#include "assets/actor_107000_animation_07E64_bank4.inc"
-};
-
-static AnimationRecord _gActor07000Actor107000Animation07E64Records[28] = {
-#include "assets/actor_107000_animation_07E64_records.inc"
-};
-
-static u16 _gActor07000Actor107000Animation07E64Indices[4] = {
-#include "assets/actor_107000_animation_07E64_indices.inc"
-};
-
-static AnimationSet _gActor07000Actor107000Animation07E64 = {
-    _gActor07000Actor107000Animation07E64Records,
-    _gActor07000Actor107000Animation07E64Indices,
-    { NULL, _gActor07000Actor107000Animation07E64Bank1, NULL, NULL, _gActor07000Actor107000Animation07E64Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor07000Actor107000Animation08008Bank1[15] = {
-#include "assets/actor_107000_animation_08008_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor07000Actor107000Animation08008Bank4[12] = {
-#include "assets/actor_107000_animation_08008_bank4.inc"
-};
-
-static AnimationRecord _gActor07000Actor107000Animation08008Records[36] = {
-#include "assets/actor_107000_animation_08008_records.inc"
-};
-
-static u16 _gActor07000Actor107000Animation08008Indices[4] = {
-#include "assets/actor_107000_animation_08008_indices.inc"
-};
-
-static AnimationSet _gActor07000Actor107000Animation08008 = {
-    _gActor07000Actor107000Animation08008Records,
-    _gActor07000Actor107000Animation08008Indices,
-    { NULL, _gActor07000Actor107000Animation08008Bank1, NULL, NULL, _gActor07000Actor107000Animation08008Bank4, NULL, NULL, NULL },
-};
+#include "assets/encounters/sucklerceph_and_slouch/package_1_clips_1.inc"
 
 /// Commands accepted by a hidden/drop Sucklerceph, followed by the lookup terminator.
 ///
@@ -240,19 +146,14 @@ static TaskMessageEntry _gSucklercephDropMsgTable[2] = {
 enum { ACTOR_07000_TASK_PRIORITY = 96 };
 
 TaskDesc gActor07000SucklercephTaskDescs[2] = {
-    { { { TASK_BODY_TMD, ACTOR_07000_TASK_PRIORITY } }, _sucklercephTask, { .model = &_gActor07000SucklercephBody } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_07000_TASK_PRIORITY } }, _sucklercephDropTask, { .model = &_gActor07000SucklercephBody } },
+    { { { TASK_BODY_TMD, ACTOR_07000_TASK_PRIORITY } }, _sucklercephTask, { .model = &_gAkropolisForkedRoadSucklercephBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_07000_TASK_PRIORITY } }, _sucklercephDropTask, { .model = &_gAkropolisForkedRoadSucklercephBody } },
 };
 
 /// Sucklerceph animation sets: 0 empty, 1 idle, 2 crawl, 3 retained but unrequested.
 ///
 /// Contexts borrow this table and its sets for the model's lifetime.
-static AnimationSet* _gSucklercephAnimSets[4] = {
-    NULL,
-    &_gActor07000Actor107000Animation07D1C,
-    &_gActor07000Actor107000Animation07E64,
-    &_gActor07000Actor107000Animation08008,
-};
+#include "assets/encounters/sucklerceph_and_slouch/sucklerceph_bank.inc"
 
 /// Burst-particle offset in signed game-coordinate units relative to the model root.
 static SVECTOR _gSucklercephBurstParticleOffset = { 0, -10, 0, 0 };
@@ -291,418 +192,22 @@ static EnemyParams _gActor07000SlouchParams = {
     .damageOverTimeTicks  = 0,
 };
 
-static TmdBone _gActor07000Actor107000Model08BB4Skeleton[7] = {
-#include "assets/actor_107000_model_08BB4_skeleton.inc"
-};
+#include "assets/encounters/sucklerceph_and_slouch/slouch_body.inc"
 
-static u32 _gActor07000Actor107000Model08BB4PartVerts[7] = {
-#include "assets/actor_107000_model_08BB4_partVerts.inc"
-};
+#include "assets/encounters/sucklerceph_and_slouch/slouch_burst_leg.inc"
 
-static SVECTOR _gActor07000Actor107000Model08BB4Verts[131] = {
-#include "assets/actor_107000_model_08BB4_verts.inc"
-};
+#include "assets/encounters/sucklerceph_and_slouch/slouch_burst_arm.inc"
 
-static SVECTOR _gActor07000Actor107000Model08BB4Normals[190] = {
-#include "assets/actor_107000_model_08BB4_normals.inc"
-};
+#include "assets/encounters/sucklerceph_and_slouch/slouch_poison.inc"
 
-static u32 _gActor07000Actor107000Model08BB4Stream[1734] = {
-#include "assets/actor_107000_model_08BB4_stream.inc"
-};
-
-static TmdSource _gActor07000Actor107000Model08BB4 = {
-    0,
-    9272,
-    2448,
-    7,
-    _gActor07000Actor107000Model08BB4PartVerts,
-    _gActor07000Actor107000Model08BB4Verts,
-    _gActor07000Actor107000Model08BB4Normals,
-    _gActor07000Actor107000Model08BB4Skeleton,
-    _gActor07000Actor107000Model08BB4Stream,
-};
-
-static TmdBone _gActor07000SlouchBurstLegSkeleton[1] = {
-#include "assets/slouch_burst_leg_skeleton.inc"
-};
-
-static u32 _gActor07000SlouchBurstLegPartVerts[1] = {
-#include "assets/slouch_burst_leg_partVerts.inc"
-};
-
-static SVECTOR _gActor07000SlouchBurstLegVerts[17] = {
-#include "assets/slouch_burst_leg_verts.inc"
-};
-
-static SVECTOR _gActor07000SlouchBurstLegNormals[27] = {
-#include "assets/slouch_burst_leg_normals.inc"
-};
-
-static u32 _gActor07000SlouchBurstLegStream[179] = {
-#include "assets/slouch_burst_leg_stream.inc"
-};
-
-static TmdSource _gActor07000SlouchBurstLeg = {
-    0,
-    1144,
-    0,
-    1,
-    _gActor07000SlouchBurstLegPartVerts,
-    _gActor07000SlouchBurstLegVerts,
-    _gActor07000SlouchBurstLegNormals,
-    _gActor07000SlouchBurstLegSkeleton,
-    _gActor07000SlouchBurstLegStream,
-};
-
-static TmdBone _gActor07000SlouchBurstArmSkeleton[1] = {
-#include "assets/slouch_burst_arm_skeleton.inc"
-};
-
-static u32 _gActor07000SlouchBurstArmPartVerts[1] = {
-#include "assets/slouch_burst_arm_partVerts.inc"
-};
-
-static SVECTOR _gActor07000SlouchBurstArmVerts[27] = {
-#include "assets/slouch_burst_arm_verts.inc"
-};
-
-static SVECTOR _gActor07000SlouchBurstArmNormals[29] = {
-#include "assets/slouch_burst_arm_normals.inc"
-};
-
-static u32 _gActor07000SlouchBurstArmStream[274] = {
-#include "assets/slouch_burst_arm_stream.inc"
-};
-
-static TmdSource _gActor07000SlouchBurstArm = {
-    0,
-    1804,
-    0,
-    1,
-    _gActor07000SlouchBurstArmPartVerts,
-    _gActor07000SlouchBurstArmVerts,
-    _gActor07000SlouchBurstArmNormals,
-    _gActor07000SlouchBurstArmSkeleton,
-    _gActor07000SlouchBurstArmStream,
-};
-
-static TmdBone _gActor07000SlouchPoisonSkeleton[1] = {
-#include "assets/slouch_poison_skeleton.inc"
-};
-
-static u32 _gActor07000SlouchPoisonPartVerts[1] = {
-#include "assets/slouch_poison_partVerts.inc"
-};
-
-static SVECTOR _gActor07000SlouchPoisonVerts[26] = {
-#include "assets/slouch_poison_verts.inc"
-};
-
-static SVECTOR _gActor07000SlouchPoisonNormals[28] = {
-#include "assets/slouch_poison_normals.inc"
-};
-
-static u32 _gActor07000SlouchPoisonStream[232] = {
-#include "assets/slouch_poison_stream.inc"
-};
-
-static TmdSource _gActor07000SlouchPoison = {
-    0,
-    1556,
-    0,
-    1,
-    _gActor07000SlouchPoisonPartVerts,
-    _gActor07000SlouchPoisonVerts,
-    _gActor07000SlouchPoisonNormals,
-    _gActor07000SlouchPoisonSkeleton,
-    _gActor07000SlouchPoisonStream,
-};
-
-static AnimationPackedPose _gActor07000Actor107000Animation0B868Bank1[4] = {
-#include "assets/actor_107000_animation_0B868_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor07000Actor107000Animation0B868Bank4[12] = {
-#include "assets/actor_107000_animation_0B868_bank4.inc"
-};
-
-static AnimationRecord _gActor07000Actor107000Animation0B868Records[41] = {
-#include "assets/actor_107000_animation_0B868_records.inc"
-};
-
-static u16 _gActor07000Actor107000Animation0B868Indices[8] = {
-#include "assets/actor_107000_animation_0B868_indices.inc"
-};
-
-static AnimationSet _gActor07000Actor107000Animation0B868 = {
-    _gActor07000Actor107000Animation0B868Records,
-    _gActor07000Actor107000Animation0B868Indices,
-    { NULL, _gActor07000Actor107000Animation0B868Bank1, NULL, NULL, _gActor07000Actor107000Animation0B868Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor07000Actor107000Animation0BCF4Bank1[18] = {
-#include "assets/actor_107000_animation_0BCF4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor07000Actor107000Animation0BCF4Bank4[92] = {
-#include "assets/actor_107000_animation_0BCF4_bank4.inc"
-};
-
-static AnimationRecord _gActor07000Actor107000Animation0BCF4Records[131] = {
-#include "assets/actor_107000_animation_0BCF4_records.inc"
-};
-
-static u16 _gActor07000Actor107000Animation0BCF4Indices[8] = {
-#include "assets/actor_107000_animation_0BCF4_indices.inc"
-};
-
-static AnimationSet _gActor07000Actor107000Animation0BCF4 = {
-    _gActor07000Actor107000Animation0BCF4Records,
-    _gActor07000Actor107000Animation0BCF4Indices,
-    { NULL, _gActor07000Actor107000Animation0BCF4Bank1, NULL, NULL, _gActor07000Actor107000Animation0BCF4Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor07000Actor107000Animation0BF18Bank1[6] = {
-#include "assets/actor_107000_animation_0BF18_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor07000Actor107000Animation0BF18Bank4[41] = {
-#include "assets/actor_107000_animation_0BF18_bank4.inc"
-};
-
-static AnimationRecord _gActor07000Actor107000Animation0BF18Records[64] = {
-#include "assets/actor_107000_animation_0BF18_records.inc"
-};
-
-static u16 _gActor07000Actor107000Animation0BF18Indices[8] = {
-#include "assets/actor_107000_animation_0BF18_indices.inc"
-};
-
-static AnimationSet _gActor07000Actor107000Animation0BF18 = {
-    _gActor07000Actor107000Animation0BF18Records,
-    _gActor07000Actor107000Animation0BF18Indices,
-    { NULL, _gActor07000Actor107000Animation0BF18Bank1, NULL, NULL, _gActor07000Actor107000Animation0BF18Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor07000Actor107000Animation0C268Bank1[13] = {
-#include "assets/actor_107000_animation_0C268_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor07000Actor107000Animation0C268Bank4[66] = {
-#include "assets/actor_107000_animation_0C268_bank4.inc"
-};
-
-static AnimationRecord _gActor07000Actor107000Animation0C268Records[93] = {
-#include "assets/actor_107000_animation_0C268_records.inc"
-};
-
-static u16 _gActor07000Actor107000Animation0C268Indices[8] = {
-#include "assets/actor_107000_animation_0C268_indices.inc"
-};
-
-static AnimationSet _gActor07000Actor107000Animation0C268 = {
-    _gActor07000Actor107000Animation0C268Records,
-    _gActor07000Actor107000Animation0C268Indices,
-    { NULL, _gActor07000Actor107000Animation0C268Bank1, NULL, NULL, _gActor07000Actor107000Animation0C268Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor07000Actor107000Animation0C3D4Bank1[5] = {
-#include "assets/actor_107000_animation_0C3D4_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor07000Actor107000Animation0C3D4Bank4[21] = {
-#include "assets/actor_107000_animation_0C3D4_bank4.inc"
-};
-
-static AnimationRecord _gActor07000Actor107000Animation0C3D4Records[41] = {
-#include "assets/actor_107000_animation_0C3D4_records.inc"
-};
-
-static u16 _gActor07000Actor107000Animation0C3D4Indices[8] = {
-#include "assets/actor_107000_animation_0C3D4_indices.inc"
-};
-
-static AnimationSet _gActor07000Actor107000Animation0C3D4 = {
-    _gActor07000Actor107000Animation0C3D4Records,
-    _gActor07000Actor107000Animation0C3D4Indices,
-    { NULL, _gActor07000Actor107000Animation0C3D4Bank1, NULL, NULL, _gActor07000Actor107000Animation0C3D4Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor07000Actor107000Animation0CA98Bank1[30] = {
-#include "assets/actor_107000_animation_0CA98_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor07000Actor107000Animation0CA98Bank4[140] = {
-#include "assets/actor_107000_animation_0CA98_bank4.inc"
-};
-
-static AnimationRecord _gActor07000Actor107000Animation0CA98Records[189] = {
-#include "assets/actor_107000_animation_0CA98_records.inc"
-};
-
-static u16 _gActor07000Actor107000Animation0CA98Indices[8] = {
-#include "assets/actor_107000_animation_0CA98_indices.inc"
-};
-
-static AnimationSet _gActor07000Actor107000Animation0CA98 = {
-    _gActor07000Actor107000Animation0CA98Records,
-    _gActor07000Actor107000Animation0CA98Indices,
-    { NULL, _gActor07000Actor107000Animation0CA98Bank1, NULL, NULL, _gActor07000Actor107000Animation0CA98Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor07000Actor107000Animation0D270Bank1[32] = {
-#include "assets/actor_107000_animation_0D270_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor07000Actor107000Animation0D270Bank4[171] = {
-#include "assets/actor_107000_animation_0D270_bank4.inc"
-};
-
-static AnimationRecord _gActor07000Actor107000Animation0D270Records[221] = {
-#include "assets/actor_107000_animation_0D270_records.inc"
-};
-
-static u16 _gActor07000Actor107000Animation0D270Indices[8] = {
-#include "assets/actor_107000_animation_0D270_indices.inc"
-};
-
-static AnimationSet _gActor07000Actor107000Animation0D270 = {
-    _gActor07000Actor107000Animation0D270Records,
-    _gActor07000Actor107000Animation0D270Indices,
-    { NULL, _gActor07000Actor107000Animation0D270Bank1, NULL, NULL, _gActor07000Actor107000Animation0D270Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor07000Actor107000Animation0D344Bank1[2] = {
-#include "assets/actor_107000_animation_0D344_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor07000Actor107000Animation0D344Bank4[5] = {
-#include "assets/actor_107000_animation_0D344_bank4.inc"
-};
-
-static AnimationRecord _gActor07000Actor107000Animation0D344Records[28] = {
-#include "assets/actor_107000_animation_0D344_records.inc"
-};
-
-static u16 _gActor07000Actor107000Animation0D344Indices[8] = {
-#include "assets/actor_107000_animation_0D344_indices.inc"
-};
-
-static AnimationSet _gActor07000Actor107000Animation0D344 = {
-    _gActor07000Actor107000Animation0D344Records,
-    _gActor07000Actor107000Animation0D344Indices,
-    { NULL, _gActor07000Actor107000Animation0D344Bank1, NULL, NULL, _gActor07000Actor107000Animation0D344Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor07000Actor107000Animation0D458Bank1[4] = {
-#include "assets/actor_107000_animation_0D458_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor07000Actor107000Animation0D458Bank4[15] = {
-#include "assets/actor_107000_animation_0D458_bank4.inc"
-};
-
-static AnimationRecord _gActor07000Actor107000Animation0D458Records[28] = {
-#include "assets/actor_107000_animation_0D458_records.inc"
-};
-
-static u16 _gActor07000Actor107000Animation0D458Indices[8] = {
-#include "assets/actor_107000_animation_0D458_indices.inc"
-};
-
-static AnimationSet _gActor07000Actor107000Animation0D458 = {
-    _gActor07000Actor107000Animation0D458Records,
-    _gActor07000Actor107000Animation0D458Indices,
-    { NULL, _gActor07000Actor107000Animation0D458Bank1, NULL, NULL, _gActor07000Actor107000Animation0D458Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor07000Actor107000Animation0D5A8Bank1[5] = {
-#include "assets/actor_107000_animation_0D5A8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor07000Actor107000Animation0D5A8Bank4[17] = {
-#include "assets/actor_107000_animation_0D5A8_bank4.inc"
-};
-
-static AnimationRecord _gActor07000Actor107000Animation0D5A8Records[38] = {
-#include "assets/actor_107000_animation_0D5A8_records.inc"
-};
-
-static u16 _gActor07000Actor107000Animation0D5A8Indices[8] = {
-#include "assets/actor_107000_animation_0D5A8_indices.inc"
-};
-
-static AnimationSet _gActor07000Actor107000Animation0D5A8 = {
-    _gActor07000Actor107000Animation0D5A8Records,
-    _gActor07000Actor107000Animation0D5A8Indices,
-    { NULL, _gActor07000Actor107000Animation0D5A8Bank1, NULL, NULL, _gActor07000Actor107000Animation0D5A8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor07000Actor107000Animation0D67CBank1[3] = {
-#include "assets/actor_107000_animation_0D67C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor07000Actor107000Animation0D67CBank4[9] = {
-#include "assets/actor_107000_animation_0D67C_bank4.inc"
-};
-
-static AnimationRecord _gActor07000Actor107000Animation0D67CRecords[21] = {
-#include "assets/actor_107000_animation_0D67C_records.inc"
-};
-
-static u16 _gActor07000Actor107000Animation0D67CIndices[8] = {
-#include "assets/actor_107000_animation_0D67C_indices.inc"
-};
-
-static AnimationSet _gActor07000Actor107000Animation0D67C = {
-    _gActor07000Actor107000Animation0D67CRecords,
-    _gActor07000Actor107000Animation0D67CIndices,
-    { NULL, _gActor07000Actor107000Animation0D67CBank1, NULL, NULL, _gActor07000Actor107000Animation0D67CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor07000Actor107000Animation0D754Bank1[3] = {
-#include "assets/actor_107000_animation_0D754_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor07000Actor107000Animation0D754Bank4[10] = {
-#include "assets/actor_107000_animation_0D754_bank4.inc"
-};
-
-static AnimationRecord _gActor07000Actor107000Animation0D754Records[21] = {
-#include "assets/actor_107000_animation_0D754_records.inc"
-};
-
-static u16 _gActor07000Actor107000Animation0D754Indices[8] = {
-#include "assets/actor_107000_animation_0D754_indices.inc"
-};
-
-static AnimationSet _gActor07000Actor107000Animation0D754 = {
-    _gActor07000Actor107000Animation0D754Records,
-    _gActor07000Actor107000Animation0D754Indices,
-    { NULL, _gActor07000Actor107000Animation0D754Bank1, NULL, NULL, _gActor07000Actor107000Animation0D754Bank4, NULL, NULL, NULL },
-};
+#include "assets/encounters/sucklerceph_and_slouch/package_1_clips_2.inc"
 
 /// Animation sets borrowed by both Slouch spawn forms for the model's lifetime.
 ///
 /// Entry 0 is empty. Indices 1..7 are idle, fidget, spit, strike, status flinch,
 /// flinch and recoil; 9 is watch and 12 death. Entries 8, 10 and 11 are retained
 /// but never requested. Playback uses ACTOR_07000_SLOUCH_ANIM_* indices.
-static AnimationSet* _gActor07000SlouchAnimSets[13] = {
-    NULL,
-    &_gActor07000Actor107000Animation0B868,
-    &_gActor07000Actor107000Animation0BCF4,
-    &_gActor07000Actor107000Animation0BF18,
-    &_gActor07000Actor107000Animation0C268,
-    &_gActor07000Actor107000Animation0C3D4,
-    &_gActor07000Actor107000Animation0CA98,
-    &_gActor07000Actor107000Animation0D270,
-    &_gActor07000Actor107000Animation0D344,
-    &_gActor07000Actor107000Animation0D458,
-    &_gActor07000Actor107000Animation0D5A8,
-    &_gActor07000Actor107000Animation0D67C,
-    &_gActor07000Actor107000Animation0D754,
-};
+#include "assets/encounters/sucklerceph_and_slouch/slouch_bank.inc"
 
 /// Hit-effect offset in signed game-coordinate units relative to Slouch model part 1.
 static SVECTOR _gActor07000SlouchHitEffectOffset = { 0, 0, -120, 0 };
@@ -720,9 +225,9 @@ static TaskMessageEntry _gActor07000SlouchHiddenMsgTable[2] = {
 };
 
 TaskDesc gActor07000SlouchTaskDescs[3] = {
-    { { { TASK_BODY_TMD, ACTOR_07000_TASK_PRIORITY } }, _actor07000SlouchTask, { .model = &_gActor07000Actor107000Model08BB4 } },
+    { { { TASK_BODY_TMD, ACTOR_07000_TASK_PRIORITY } }, _actor07000SlouchTask, { .model = &_gSucklercephAndSlouchSlouchBody } },
     { { { TASK_BODY_COORD, ACTOR_07000_TASK_PRIORITY } }, _actor07000SlouchProjectileTask, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_07000_TASK_PRIORITY } }, _actor07000SlouchHiddenTask, { .model = &_gActor07000Actor107000Model08BB4 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_07000_TASK_PRIORITY } }, _actor07000SlouchHiddenTask, { .model = &_gSucklercephAndSlouchSlouchBody } },
 };
 
 /// Values of `_Actor07000SlouchWork::state`, the behaviour the per-frame update runs.
@@ -827,11 +332,11 @@ STATIC_ASSERT_SIZEOF(_Actor07000SlouchWork, 0x39C);
 
 /// Models effect 0x80005 spawns, set in `gTaskBank8Descs[TASK_BANK8_BURST_MODEL_PART_SLOT].data.model`, one per
 /// random variant the roll selects.
-static TmdSource _gActor07000SlouchBurstLeg;
+static TmdSource _gSucklercephAndSlouchSlouchBurstLeg;
 
-static TmdSource _gActor07000SlouchBurstArm;
+static TmdSource _gSucklercephAndSlouchSlouchBurstArm;
 
-static TmdSource _gActor07000SlouchPoison;
+static TmdSource _gSucklercephAndSlouchSlouchPoison;
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
@@ -1862,13 +1367,13 @@ static void _actor07000SlouchBurst(Task* task)
     switch (variant) {
         case 0:
         case 1:
-            ACTOR_07000_SLOUCH_SPAWN_BURST_PART(&_gActor07000SlouchPoison, 1, task, effect);
+            ACTOR_07000_SLOUCH_SPAWN_BURST_PART(&_gSucklercephAndSlouchSlouchPoison, 1, task, effect);
             break;
         case 2:
-            ACTOR_07000_SLOUCH_SPAWN_BURST_PART(&_gActor07000SlouchBurstArm, 5, task, effect);
+            ACTOR_07000_SLOUCH_SPAWN_BURST_PART(&_gSucklercephAndSlouchSlouchBurstArm, 5, task, effect);
             break;
         case 3:
-            ACTOR_07000_SLOUCH_SPAWN_BURST_PART(&_gActor07000SlouchBurstLeg, 4, task, effect);
+            ACTOR_07000_SLOUCH_SPAWN_BURST_PART(&_gSucklercephAndSlouchSlouchBurstLeg, 4, task, effect);
             break;
     }
     effectSpawn(EFFECT_030, task->extra.tmd->coords + 1, ACTOR_07000_SLOUCH_BURST_PARTICLE_SIZE, NULL);

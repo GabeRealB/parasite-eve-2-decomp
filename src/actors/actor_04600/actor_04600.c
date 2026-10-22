@@ -56,10 +56,10 @@ static void _sucklercephDropState(Enemy* enemy, Task* task);
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-static AnimationSet _gActor04600Actor104600Animation05554;
-static AnimationSet _gActor04600Actor104600Animation0569C;
-static AnimationSet _gActor04600Actor104600Animation05840;
-static TmdSource    _gActor04600SucklercephBody;
+static AnimationSet _gAkropolisForkedRoadSucklercephIdleClip;
+static AnimationSet _gAkropolisForkedRoadSucklercephCrawlClip;
+static AnimationSet _gAkropolisForkedRoadSucklercephAnim03Clip;
+static TmdSource    _gAkropolisForkedRoadSucklercephBody;
 
 /// Burst damage to the player, enabled only while the burst attack sphere is armed.
 static DamageAttack _gSucklercephBurstAttack = { .power = 30, .reaction = SUCKLERCEPH_BURST_PLAYER_REACTION };
@@ -107,103 +107,9 @@ static PadScriptVibrationSegment _gSucklercephBurstVibrationSegments[3] = {
     [SUCKLERCEPH_BURST_VIBRATION_FADE] = { .startIntensity = 100, .endIntensity = 50, .durationFrames = 6, .field_3 = 1 },
 };
 
-static TmdBone _gActor04600SucklercephBodySkeleton[3] = {
-#include "assets/sucklerceph_body_skeleton.inc"
-};
+#include "assets/rooms/akropolis/forked_road/sucklerceph_body.inc"
 
-static u32 _gActor04600SucklercephBodyPartVerts[3] = {
-#include "assets/sucklerceph_body_partVerts.inc"
-};
-
-static SVECTOR _gActor04600SucklercephBodyVerts[68] = {
-#include "assets/sucklerceph_body_verts.inc"
-};
-
-static SVECTOR _gActor04600SucklercephBodyNormals[68] = {
-#include "assets/sucklerceph_body_normals.inc"
-};
-
-static u32 _gActor04600SucklercephBodyStream[752] = {
-#include "assets/sucklerceph_body_stream.inc"
-};
-
-static TmdSource _gActor04600SucklercephBody = {
-    0,
-    4516,
-    584,
-    3,
-    _gActor04600SucklercephBodyPartVerts,
-    _gActor04600SucklercephBodyVerts,
-    _gActor04600SucklercephBodyNormals,
-    _gActor04600SucklercephBodySkeleton,
-    _gActor04600SucklercephBodyStream,
-};
-
-static AnimationPackedPose _gActor04600Actor104600Animation05554Bank1[34] = {
-#include "assets/actor_104600_animation_05554_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor04600Actor104600Animation05554Bank4[26] = {
-#include "assets/actor_104600_animation_05554_bank4.inc"
-};
-
-static AnimationRecord _gActor04600Actor104600Animation05554Records[74] = {
-#include "assets/actor_104600_animation_05554_records.inc"
-};
-
-static u16 _gActor04600Actor104600Animation05554Indices[4] = {
-#include "assets/actor_104600_animation_05554_indices.inc"
-};
-
-static AnimationSet _gActor04600Actor104600Animation05554 = {
-    _gActor04600Actor104600Animation05554Records,
-    _gActor04600Actor104600Animation05554Indices,
-    { NULL, _gActor04600Actor104600Animation05554Bank1, NULL, NULL, _gActor04600Actor104600Animation05554Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor04600Actor104600Animation0569CBank1[11] = {
-#include "assets/actor_104600_animation_0569C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor04600Actor104600Animation0569CBank4[9] = {
-#include "assets/actor_104600_animation_0569C_bank4.inc"
-};
-
-static AnimationRecord _gActor04600Actor104600Animation0569CRecords[28] = {
-#include "assets/actor_104600_animation_0569C_records.inc"
-};
-
-static u16 _gActor04600Actor104600Animation0569CIndices[4] = {
-#include "assets/actor_104600_animation_0569C_indices.inc"
-};
-
-static AnimationSet _gActor04600Actor104600Animation0569C = {
-    _gActor04600Actor104600Animation0569CRecords,
-    _gActor04600Actor104600Animation0569CIndices,
-    { NULL, _gActor04600Actor104600Animation0569CBank1, NULL, NULL, _gActor04600Actor104600Animation0569CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor04600Actor104600Animation05840Bank1[15] = {
-#include "assets/actor_104600_animation_05840_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor04600Actor104600Animation05840Bank4[12] = {
-#include "assets/actor_104600_animation_05840_bank4.inc"
-};
-
-static AnimationRecord _gActor04600Actor104600Animation05840Records[36] = {
-#include "assets/actor_104600_animation_05840_records.inc"
-};
-
-static u16 _gActor04600Actor104600Animation05840Indices[4] = {
-#include "assets/actor_104600_animation_05840_indices.inc"
-};
-
-static AnimationSet _gActor04600Actor104600Animation05840 = {
-    _gActor04600Actor104600Animation05840Records,
-    _gActor04600Actor104600Animation05840Indices,
-    { NULL, _gActor04600Actor104600Animation05840Bank1, NULL, NULL, _gActor04600Actor104600Animation05840Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/akropolis/forked_road/sucklerceph_and_skull_stalker_1_clips_1.inc"
 
 /// Commands accepted by a hidden/drop Sucklerceph, followed by the lookup terminator.
 ///
@@ -217,7 +123,7 @@ static TaskMessageEntry _gSucklercephDropMsgTable[2] = {
 TaskDesc gActor04600SucklercephTaskDesc = {
     .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = 96 } },
     .callback = _sucklercephTask,
-    .data     = { .model = &_gActor04600SucklercephBody },
+    .data     = { .model = &_gAkropolisForkedRoadSucklercephBody },
 };
 
 /// Retained hidden/drop Sucklerceph recipe, with no automatic primitive buffer.
@@ -226,18 +132,13 @@ TaskDesc gActor04600SucklercephTaskDesc = {
 static TaskDesc _gActor04600SucklercephDropTaskDesc = {
     .header   = { .fields = { .flags = TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER, .priority = 96 } },
     .callback = _sucklercephDropTask,
-    .data     = { .model = &_gActor04600SucklercephBody },
+    .data     = { .model = &_gAkropolisForkedRoadSucklercephBody },
 };
 
 /// Sucklerceph animation sets: 0 empty, 1 idle, 2 crawl, 3 retained but unrequested.
 ///
 /// Contexts borrow this table and its sets for the model's lifetime.
-static AnimationSet* _gSucklercephAnimSets[4] = {
-    NULL,
-    &_gActor04600Actor104600Animation05554,
-    &_gActor04600Actor104600Animation0569C,
-    &_gActor04600Actor104600Animation05840,
-};
+#include "assets/rooms/akropolis/forked_road/sucklerceph_bank.inc"
 
 /// Burst-particle offset in signed game-coordinate units relative to the model root.
 static SVECTOR _gSucklercephBurstParticleOffset = { 0, -10, 0, 0 };
@@ -267,96 +168,20 @@ static EnemyParams _gSkullStalkerParams = {
     .damageOverTimeTicks  = 99,
 };
 
-static TmdBone _gActor04600SkullStalkerBodySkeleton[3] = {
-#include "assets/skull_stalker_body_skeleton.inc"
-};
+#include "assets/rooms/akropolis/forked_road/skull_stalker_body.inc"
 
-static u32 _gActor04600SkullStalkerBodyPartVerts[3] = {
-#include "assets/skull_stalker_body_partVerts.inc"
-};
-
-static SVECTOR _gActor04600SkullStalkerBodyVerts[37] = {
-#include "assets/skull_stalker_body_verts.inc"
-};
-
-static SVECTOR _gActor04600SkullStalkerBodyNormals[47] = {
-#include "assets/skull_stalker_body_normals.inc"
-};
-
-static u32 _gActor04600SkullStalkerBodyStream[377] = {
-#include "assets/skull_stalker_body_stream.inc"
-};
-
-static TmdSource _gActor04600SkullStalkerBody = {
-    0,
-    2184,
-    332,
-    3,
-    _gActor04600SkullStalkerBodyPartVerts,
-    _gActor04600SkullStalkerBodyVerts,
-    _gActor04600SkullStalkerBodyNormals,
-    _gActor04600SkullStalkerBodySkeleton,
-    _gActor04600SkullStalkerBodyStream,
-};
-
-static AnimationPackedPose _gActor04600Actor104600Animation06220Bank1[2] = {
-#include "assets/actor_104600_animation_06220_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor04600Actor104600Animation06220Bank4[1] = {
-#include "assets/actor_104600_animation_06220_bank4.inc"
-};
-
-static AnimationRecord _gActor04600Actor104600Animation06220Records[6] = {
-#include "assets/actor_104600_animation_06220_records.inc"
-};
-
-static u16 _gActor04600Actor104600Animation06220Indices[4] = {
-#include "assets/actor_104600_animation_06220_indices.inc"
-};
-
-static AnimationSet _gActor04600Actor104600Animation06220 = {
-    _gActor04600Actor104600Animation06220Records,
-    _gActor04600Actor104600Animation06220Indices,
-    { NULL, _gActor04600Actor104600Animation06220Bank1, NULL, NULL, _gActor04600Actor104600Animation06220Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor04600Actor104600Animation06474Bank1[24] = {
-#include "assets/actor_104600_animation_06474_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor04600Actor104600Animation06474Bank4[10] = {
-#include "assets/actor_104600_animation_06474_bank4.inc"
-};
-
-static AnimationRecord _gActor04600Actor104600Animation06474Records[55] = {
-#include "assets/actor_104600_animation_06474_records.inc"
-};
-
-static u16 _gActor04600Actor104600Animation06474Indices[4] = {
-#include "assets/actor_104600_animation_06474_indices.inc"
-};
-
-static AnimationSet _gActor04600Actor104600Animation06474 = {
-    _gActor04600Actor104600Animation06474Records,
-    _gActor04600Actor104600Animation06474Indices,
-    { NULL, _gActor04600Actor104600Animation06474Bank1, NULL, NULL, _gActor04600Actor104600Animation06474Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/akropolis/forked_road/sucklerceph_and_skull_stalker_1_clips_2.inc"
 
 TaskDesc gActor04600SkullStalkerTaskDesc = {
     .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = 96 } },
     .callback = _skullStalkerTask,
-    .data     = { .model = &_gActor04600SkullStalkerBody },
+    .data     = { .model = &_gAkropolisForkedRoadSkullStalkerBody },
 };
 
 /// Skull Stalker animation sets: 0 empty, 1 idle, 2 alert.
 ///
 /// Contexts borrow this table and its sets for the model's lifetime.
-static AnimationSet* _gSkullStalkerAnimSets[3] = {
-    NULL,
-    &_gActor04600Actor104600Animation06220,
-    &_gActor04600Actor104600Animation06474,
-};
+#include "assets/rooms/akropolis/forked_road/skull_stalker_bank.inc"
 
 /// Both death particles' offset in signed game-coordinate units relative to the model root.
 static SVECTOR _gSkullStalkerDeathParticleOffset = { 0, -100, 0, 0 };

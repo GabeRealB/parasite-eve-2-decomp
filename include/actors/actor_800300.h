@@ -7,7 +7,7 @@
 #include "main/tmd_types.h"
 
 /// Models those descriptors attach.
-extern TmdSource gActor800300Model02CF4;
+extern TmdSource gEveCompanionBody;
 
 /// Native companion clip bank selected by gameplay's companion bank index 7.
 ///

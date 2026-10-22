@@ -42,7 +42,7 @@
 #include "../../shared/actor/actor_messages.h"
 #include "../../shared/effects/glow_draw.h"
 
-/// `_Actor141000AyaBreaWork::blinkStep`: the eye image the blink posts next.
+/// `_Actor141000EveWork::blinkStep`: the eye image the blink posts next.
 ///
 /// A blink posts the closed, half-open and open eyes in turn, so the eyes are
 /// seen opening; nothing posts a closing frame before them.
@@ -53,7 +53,7 @@ enum {
     ACTOR_141000_BLINK_OPEN   = 3, // The open eyes are posted next, which ends the blink
 };
 
-/// Texture regions within Aya's page; X/width are VRAM words, Y/height are rows.
+/// Texture regions within Eve's page; X/width are VRAM words, Y/height are rows.
 enum {
     ACTOR_141000_EYES_X_WORDS      = 0,
     ACTOR_141000_EYES_Y_ROWS       = 64,
@@ -64,7 +64,7 @@ enum {
     ACTOR_141000_MOUTH_WIDTH_WORDS = 14,
 };
 
-/// Initial walk step, driven-slot range and blend duration shared by Aya's handlers.
+/// Initial walk step, driven-slot range and blend duration shared by Eve's handlers.
 enum {
     ACTOR_141000_WALK_FACE_TARGET  = 0,
     ACTOR_141000_FIRST_DRIVEN_SLOT = 1,
@@ -77,7 +77,7 @@ enum { ACTOR_141000_BEAM_SCREEN_POINT_COUNT = 24 };
 /// Actor-specific facial texture request, carried in the first message argument.
 enum { ACTOR_141000_MESSAGE_SET_TEXTURE_MODE = 0x7E0 };
 
-/// Work block of Aya Brea's body, the package's scripted walker.
+/// Work block of Eve's body, the package's scripted walker.
 ///
 /// The task's spawn state allocates it zeroed and keeps it at `Task::work`
 /// for the task's life. It opens as `ActorMotion19WalkWork` does - the
@@ -97,8 +97,8 @@ typedef struct {
     s8              fastPace;        // Pace of the walks that follow, set by an actor command (0 half the per-frame displacement and default start clip 10, 1 the full displacement and clip 2)
     s8              freeCountdown;   // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
     s8              blinkStep;       // Eye image the blink posts next (0 `ACTOR_141000_BLINK_NONE`, else `_CLOSED`, `_HALF` or `_OPEN`)
-} _Actor141000AyaBreaWork;
-STATIC_ASSERT_SIZEOF(_Actor141000AyaBreaWork, 0x4CC);
+} _Actor141000EveWork;
+STATIC_ASSERT_SIZEOF(_Actor141000EveWork, 0x4CC);
 
 /// Work block of the overlay's controller task, allocated zeroed by its spawn
 /// state and kept at `Task::work`.
@@ -127,16 +127,16 @@ static s32  _actor141000ApplyFlightPathFrame(GfxCoord* rootCoord, s32 pathFrame)
 static void _actor141000ScaleFlightModelZ(GfxCoord* rootCoord, s32 zScale);
 static void _actor141000AttachRingBeam(Task* task);
 static void _actor141000DrawCappedBeam(Task* task);
-static void _actor141000UpdateAyaBreaWalker(Task* task);
-static void _actor141000TickAyaBreaBlink(Task* task);
-static void _actor141000SpawnAyaBreaWalker(Task* task);
-static void _actor141000ExitAyaBreaWalker(Task* task);
-static void _actor141000BindAyaBreaLighting(Task* task);
-static void _actor141000IdleAyaBreaWalk(Task* task);
-static void _actor141000RunAyaBreaWalkStep(Task* task);
-static void _actor141000FaceAyaBreaWalkTarget(Task* task);
-static void _actor141000BeginAyaBreaWalk(Task* task);
-static void _actor141000TurnAyaBreaToYaw(Task* task);
+static void _actor141000UpdateEveWalker(Task* task);
+static void _actor141000TickEveBlink(Task* task);
+static void _actor141000SpawnEveWalker(Task* task);
+static void _actor141000ExitEveWalker(Task* task);
+static void _actor141000BindEveLighting(Task* task);
+static void _actor141000IdleEveWalk(Task* task);
+static void _actor141000RunEveWalkStep(Task* task);
+static void _actor141000FaceEveWalkTarget(Task* task);
+static void _actor141000BeginEveWalk(Task* task);
+static void _actor141000TurnEveToYaw(Task* task);
 
 /// Coordinate-body capped-beam lifecycle: 0 attach, 1 draw, 2 teardown.
 ///
@@ -163,32 +163,32 @@ static const TaskFuncTable4 _gActor141000FlightPhases = {
                _actor141000AdvanceFlightPath, _actor141000IdleFlightModel },
 };
 
-/// Scripted Aya walker lifecycle: 0 initialize, 1 update, 2 release and teardown.
+/// Scripted Eve walker lifecycle: 0 initialize, 1 update, 2 release and teardown.
 ///
 /// Copied by value and indexed by `Task::state` in 0..2 only while actors run.
 /// Initialization owns the work; exit releases the task's `Enemy` and body.
-static const TaskFuncTable3 _gActor141000AyaBreaWalkerTaskStates = {
-    .funcs = { _actor141000SpawnAyaBreaWalker, _actor141000UpdateAyaBreaWalker,
-               _actor141000ExitAyaBreaWalker },
+static const TaskFuncTable3 _gActor141000EveWalkerTaskStates = {
+    .funcs = { _actor141000SpawnEveWalker, _actor141000UpdateEveWalker,
+               _actor141000ExitEveWalker },
 };
 
-/// Aya walk steps: 0 face the target, 1 set velocity, 2 test arrival, 3 finish yaw.
+/// Eve walk steps: 0 face the target, 1 set velocity, 2 test arrival, 3 finish yaw.
 ///
 /// Copied by value and indexed by `walk.motionStep` in 0..3, without a bounds
 /// check. Arrival clears velocity; finishing yaw returns motion to idle.
-static const TaskFuncTable4 _gActor141000AyaBreaWalkSteps = {
-    .funcs = { _actor141000FaceAyaBreaWalkTarget, _actor141000BeginAyaBreaWalk,
-               _actorMotionArrive19, _actor141000TurnAyaBreaToYaw },
+static const TaskFuncTable4 _gActor141000EveWalkSteps = {
+    .funcs = { _actor141000FaceEveWalkTarget, _actor141000BeginEveWalk,
+               _actorMotionArrive19, _actor141000TurnEveToYaw },
 };
 
 /// One parent-coordinate unit in the walk velocity's signed 16.16 format.
 enum { ACTOR_141000_WALK_VELOCITY_ONE = 0x10000 };
 
-/// Aya's fast walk velocity: local +Z at 48 parent-coordinate units per tick.
+/// Eve's fast walk velocity: local +Z at 48 parent-coordinate units per tick.
 ///
 /// XYZ uses signed 16.16 displacement. Slow pace halves it before root rotation
 /// converts it into parent-frame velocity; the fourth word is unused and zero.
-static const VECTOR _gActor141000AyaBreaFastWalkVelocity = { 0, 0, 48 * ACTOR_141000_WALK_VELOCITY_ONE };
+static const VECTOR _gActor141000EveFastWalkVelocity = { 0, 0, 48 * ACTOR_141000_WALK_VELOCITY_ONE };
 
 static u32     _gActor141000Model0230CPartVerts[1];
 static SVECTOR _gActor141000Model0230CVerts[9];
@@ -200,22 +200,22 @@ static void      _actor141000FlightControllerTask(Task* task);
 static void      _actor141000SmokeTrailTask(Task* task);
 static void      _actor141000CappedBeamTask(Task* task);
 
-static AnimationSet _gActor141000Animation084A0;
-static AnimationSet _gActor141000Animation08898;
-static AnimationSet _gActor141000Animation0947C;
-static AnimationSet _gActor141000Animation09638;
-static AnimationSet _gActor141000Animation09800;
-static AnimationSet _gActor141000Animation09A88;
-static AnimationSet _gActor141000Animation0A210;
-static AnimationSet _gActor141000Animation0A448;
-static AnimationSet _gActor141000Animation0A5FC;
-static AnimationSet _gActor141000Animation0A84C;
-static TmdSource    _gActor141000AyaBreaBody;
-static s32          _actor141000StartAyaBreaWalk(Task* task, s32 messageId, const ActorTransform* destination, const ActorMotionWalkAnim* clips);
-static s32          _actor141000SetAyaBreaDrawMode(Task* task, s32 messageId, s32 mode, s32 unusedArg);
-static s32          _actor141000SetAyaBreaWalkPace(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
-static s32          _actor141000SetAyaBreaTextureMode(Task* task, s32 messageId, s32 textureMode, s32 unusedArg);
-static void         _actor141000AyaBreaWalkerTask(Task* task);
+static AnimationSet _gEveIdleClip;
+static AnimationSet _gEveWalkSlowClip;
+static AnimationSet _gEveEveWalkClip;
+static AnimationSet _gEveWalkStopClip;
+static AnimationSet _gShelterB1PodAccessTunnelEveEntryScene4aClip;
+static AnimationSet _gShelterB1PodAccessTunnelEveEntryScene4bClip;
+static AnimationSet _gShelterB1PodAccessTunnelEveCastFlameClip;
+static AnimationSet _gShelterB1PodAccessTunnelEveEntryScene10Clip;
+static AnimationSet _gShelterB1PodAccessTunnelEveEntryScene11Clip;
+static AnimationSet _gShelterB1PodAccessTunnelEveEntryScene12Clip;
+static TmdSource    _gEveBody;
+static s32          _actor141000StartEveWalk(Task* task, s32 messageId, const ActorTransform* destination, const ActorMotionWalkAnim* clips);
+static s32          _actor141000SetEveDrawMode(Task* task, s32 messageId, s32 mode, s32 unusedArg);
+static s32          _actor141000SetEveWalkPace(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
+static s32          _actor141000SetEveTextureMode(Task* task, s32 messageId, s32 textureMode, s32 unusedArg);
+static void         _actor141000EveWalkerTask(Task* task);
 
 static TmdBone _gActor141000Model0230CSkeleton[1] = {
 #include "assets/actor_141000_model_0230C_skeleton.inc"
@@ -250,7 +250,7 @@ static TmdSource _gActor141000Model0230C = {
 /// Paired by index with `_gActor141000FlightPositions`; completed flight holds
 /// frame 89. Kept writable for the SDK's non-const `RotMatrix` interface.
 static SVECTOR _gActor141000FlightRotations[90] = {
-#include "assets/actor_141000_motion_02408.inc"
+#include "assets/rooms/shelter/b1_pod_access_tunnel/flame_rotation_track.inc"
 };
 
 /// Recorded flight XYZ for frames 0..89, in integer root-parent coordinates.
@@ -258,7 +258,7 @@ static SVECTOR _gActor141000FlightRotations[90] = {
 /// Paired with `_gActor141000FlightRotations`; applying a frame subtracts 40
 /// from its X. The fourth halfword is unused.
 static const SVECTOR _gActor141000FlightPositions[ARRAY_SIZE(_gActor141000FlightRotations)] SECTION(".data") = {
-#include "assets/actor_141000_motion_026D8.inc"
+#include "assets/rooms/shelter/b1_pod_access_tunnel/flame_position_track.inc"
 };
 
 /// Capped-beam topology: six lit-core quads followed by ten fading halo quads.
@@ -370,309 +370,61 @@ TaskDesc gActor141000FlightTasks[3] = {
     },
 };
 
-static TmdBone _gActor141000AyaBreaBodySkeleton[19] = {
-#include "assets/aya_brea_body_skeleton.inc"
-};
+#include "assets/characters/eve/body.inc"
 
-static u32 _gActor141000AyaBreaBodyPartVerts[19] = {
-#include "assets/aya_brea_body_partVerts.inc"
-};
-
-static SVECTOR _gActor141000AyaBreaBodyVerts[365] = {
-#include "assets/aya_brea_body_verts.inc"
-};
-
-static SVECTOR _gActor141000AyaBreaBodyNormals[385] = {
-#include "assets/aya_brea_body_normals.inc"
-};
-
-static u32 _gActor141000AyaBreaBodyStream[3923] = {
-#include "assets/aya_brea_body_stream.inc"
-};
-
-static TmdSource _gActor141000AyaBreaBody = {
-    0,
-    21760,
-    5992,
-    19,
-    _gActor141000AyaBreaBodyPartVerts,
-    _gActor141000AyaBreaBodyVerts,
-    _gActor141000AyaBreaBodyNormals,
-    _gActor141000AyaBreaBodySkeleton,
-    _gActor141000AyaBreaBodyStream,
-};
-
-static AnimationPackedPose _gActor141000Animation084A0Bank1[2] = {
-#include "assets/actor_141000_animation_084A0_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor141000Animation084A0Bank4[23] = {
-#include "assets/actor_141000_animation_084A0_bank4.inc"
-};
-
-static AnimationRecord _gActor141000Animation084A0Records[84] = {
-#include "assets/actor_141000_animation_084A0_records.inc"
-};
-
-static u16 _gActor141000Animation084A0Indices[20] = {
-#include "assets/actor_141000_animation_084A0_indices.inc"
-};
-
-static AnimationSet _gActor141000Animation084A0 = {
-    _gActor141000Animation084A0Records,
-    _gActor141000Animation084A0Indices,
-    { NULL, _gActor141000Animation084A0Bank1, NULL, NULL, _gActor141000Animation084A0Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor141000Animation08898Bank1[7] = {
-#include "assets/actor_141000_animation_08898_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor141000Animation08898Bank4[75] = {
-#include "assets/actor_141000_animation_08898_bank4.inc"
-};
-
-static AnimationRecord _gActor141000Animation08898Records[138] = {
-#include "assets/actor_141000_animation_08898_records.inc"
-};
-
-static u16 _gActor141000Animation08898Indices[20] = {
-#include "assets/actor_141000_animation_08898_indices.inc"
-};
-
-static AnimationSet _gActor141000Animation08898 = {
-    _gActor141000Animation08898Records,
-    _gActor141000Animation08898Indices,
-    { NULL, _gActor141000Animation08898Bank1, NULL, NULL, _gActor141000Animation08898Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor141000Animation0947CBank1[22] = {
-#include "assets/actor_141000_animation_0947C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor141000Animation0947CBank4[298] = {
-#include "assets/actor_141000_animation_0947C_bank4.inc"
-};
-
-static AnimationRecord _gActor141000Animation0947CRecords[377] = {
-#include "assets/actor_141000_animation_0947C_records.inc"
-};
-
-static u16 _gActor141000Animation0947CIndices[20] = {
-#include "assets/actor_141000_animation_0947C_indices.inc"
-};
-
-static AnimationSet _gActor141000Animation0947C = {
-    _gActor141000Animation0947CRecords,
-    _gActor141000Animation0947CIndices,
-    { NULL, _gActor141000Animation0947CBank1, NULL, NULL, _gActor141000Animation0947CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor141000Animation09638Bank1[2] = {
-#include "assets/actor_141000_animation_09638_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor141000Animation09638Bank4[20] = {
-#include "assets/actor_141000_animation_09638_bank4.inc"
-};
-
-static AnimationRecord _gActor141000Animation09638Records[65] = {
-#include "assets/actor_141000_animation_09638_records.inc"
-};
-
-static u16 _gActor141000Animation09638Indices[20] = {
-#include "assets/actor_141000_animation_09638_indices.inc"
-};
-
-static AnimationSet _gActor141000Animation09638 = {
-    _gActor141000Animation09638Records,
-    _gActor141000Animation09638Indices,
-    { NULL, _gActor141000Animation09638Bank1, NULL, NULL, _gActor141000Animation09638Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor141000Animation09800Bank1[2] = {
-#include "assets/actor_141000_animation_09800_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor141000Animation09800Bank4[26] = {
-#include "assets/actor_141000_animation_09800_bank4.inc"
-};
-
-static AnimationRecord _gActor141000Animation09800Records[62] = {
-#include "assets/actor_141000_animation_09800_records.inc"
-};
-
-static u16 _gActor141000Animation09800Indices[20] = {
-#include "assets/actor_141000_animation_09800_indices.inc"
-};
-
-static AnimationSet _gActor141000Animation09800 = {
-    _gActor141000Animation09800Records,
-    _gActor141000Animation09800Indices,
-    { NULL, _gActor141000Animation09800Bank1, NULL, NULL, _gActor141000Animation09800Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor141000Animation09A88Bank1[5] = {
-#include "assets/actor_141000_animation_09A88_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor141000Animation09A88Bank4[47] = {
-#include "assets/actor_141000_animation_09A88_bank4.inc"
-};
-
-static AnimationRecord _gActor141000Animation09A88Records[80] = {
-#include "assets/actor_141000_animation_09A88_records.inc"
-};
-
-static u16 _gActor141000Animation09A88Indices[20] = {
-#include "assets/actor_141000_animation_09A88_indices.inc"
-};
-
-static AnimationSet _gActor141000Animation09A88 = {
-    _gActor141000Animation09A88Records,
-    _gActor141000Animation09A88Indices,
-    { NULL, _gActor141000Animation09A88Bank1, NULL, NULL, _gActor141000Animation09A88Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor141000Animation0A210Bank1[14] = {
-#include "assets/actor_141000_animation_0A210_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor141000Animation0A210Bank4[155] = {
-#include "assets/actor_141000_animation_0A210_bank4.inc"
-};
-
-static AnimationRecord _gActor141000Animation0A210Records[265] = {
-#include "assets/actor_141000_animation_0A210_records.inc"
-};
-
-static u16 _gActor141000Animation0A210Indices[20] = {
-#include "assets/actor_141000_animation_0A210_indices.inc"
-};
-
-static AnimationSet _gActor141000Animation0A210 = {
-    _gActor141000Animation0A210Records,
-    _gActor141000Animation0A210Indices,
-    { NULL, _gActor141000Animation0A210Bank1, NULL, NULL, _gActor141000Animation0A210Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor141000Animation0A448Bank1[2] = {
-#include "assets/actor_141000_animation_0A448_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor141000Animation0A448Bank4[22] = {
-#include "assets/actor_141000_animation_0A448_bank4.inc"
-};
-
-static AnimationRecord _gActor141000Animation0A448Records[94] = {
-#include "assets/actor_141000_animation_0A448_records.inc"
-};
-
-static u16 _gActor141000Animation0A448Indices[20] = {
-#include "assets/actor_141000_animation_0A448_indices.inc"
-};
-
-static AnimationSet _gActor141000Animation0A448 = {
-    _gActor141000Animation0A448Records,
-    _gActor141000Animation0A448Indices,
-    { NULL, _gActor141000Animation0A448Bank1, NULL, NULL, _gActor141000Animation0A448Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor141000Animation0A5FCBank1[2] = {
-#include "assets/actor_141000_animation_0A5FC_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor141000Animation0A5FCBank4[26] = {
-#include "assets/actor_141000_animation_0A5FC_bank4.inc"
-};
-
-static AnimationRecord _gActor141000Animation0A5FCRecords[57] = {
-#include "assets/actor_141000_animation_0A5FC_records.inc"
-};
-
-static u16 _gActor141000Animation0A5FCIndices[20] = {
-#include "assets/actor_141000_animation_0A5FC_indices.inc"
-};
-
-static AnimationSet _gActor141000Animation0A5FC = {
-    _gActor141000Animation0A5FCRecords,
-    _gActor141000Animation0A5FCIndices,
-    { NULL, _gActor141000Animation0A5FCBank1, NULL, NULL, _gActor141000Animation0A5FCBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor141000Animation0A84CBank1[2] = {
-#include "assets/actor_141000_animation_0A84C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor141000Animation0A84CBank4[40] = {
-#include "assets/actor_141000_animation_0A84C_bank4.inc"
-};
-
-static AnimationRecord _gActor141000Animation0A84CRecords[82] = {
-#include "assets/actor_141000_animation_0A84C_records.inc"
-};
-
-static u16 _gActor141000Animation0A84CIndices[20] = {
-#include "assets/actor_141000_animation_0A84C_indices.inc"
-};
-
-static AnimationSet _gActor141000Animation0A84C = {
-    _gActor141000Animation0A84CRecords,
-    _gActor141000Animation0A84CIndices,
-    { NULL, _gActor141000Animation0A84CBank1, NULL, NULL, _gActor141000Animation0A84CBank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/shelter/b1_pod_access_tunnel/eve_clips.inc"
 
 /// Open-eye 8bpp pixels: 50 texels by 20 rows, packed four texels per word.
 ///
 /// Borrowed by the corresponding upload list until GPU transfer completes.
-static u_long _gActor141000AyaBreaEyesOpenPixels[ACTOR_141000_EYES_WIDTH_WORDS * ACTOR_141000_FACE_HEIGHT_ROWS / 2] = {
-#include "assets/actor_121300_image_09DC8.inc"
+static u_long _gActor141000EveEyesOpenPixels[ACTOR_141000_EYES_WIDTH_WORDS * ACTOR_141000_FACE_HEIGHT_ROWS / 2] = {
+#include "assets/characters/eve/eyes_open.inc"
 };
 
 /// Terminated open-eye upload, used by static-eye requests and blink completion.
 ///
 /// The actor uploader rewrites the first destination to the eye rectangle.
 /// Width counts 16-bit VRAM words, height rows; pixels stay live through transfer.
-static GpuImageUpload _gActor141000AyaBreaEyesOpenUploads[2] = {
+static GpuImageUpload _gActor141000EveEyesOpenUploads[2] = {
     { .operation   = GPU_IMAGE_UPLOAD_COPY,
       .destination = { 0, 0, ACTOR_141000_EYES_WIDTH_WORDS, ACTOR_141000_FACE_HEIGHT_ROWS },
-      .pixels      = _gActor141000AyaBreaEyesOpenPixels },
+      .pixels      = _gActor141000EveEyesOpenPixels },
     { .operation = GPU_IMAGE_UPLOAD_END },
 };
 
 /// Half-open-eye 8bpp pixels: 50 texels by 20 rows, four texels per word.
 ///
 /// Borrowed through GPU completion during the middle step of a blink.
-static u_long _gActor141000AyaBreaEyesHalfOpenPixels[ACTOR_141000_EYES_WIDTH_WORDS * ACTOR_141000_FACE_HEIGHT_ROWS / 2] = {
-#include "assets/actor_121300_image_0A1B0.inc"
+static u_long _gActor141000EveEyesHalfOpenPixels[ACTOR_141000_EYES_WIDTH_WORDS * ACTOR_141000_FACE_HEIGHT_ROWS / 2] = {
+#include "assets/characters/eve/eyes_half_closed.inc"
 };
 
 /// Terminated half-open-eye upload for the middle step of a blink.
 ///
 /// The actor uploader rewrites the first destination to the eye rectangle.
 /// Width counts 16-bit VRAM words, height rows; pixels stay live through transfer.
-static GpuImageUpload _gActor141000AyaBreaEyesHalfOpenUploads[2] = {
+static GpuImageUpload _gActor141000EveEyesHalfOpenUploads[2] = {
     { .operation   = GPU_IMAGE_UPLOAD_COPY,
       .destination = { 0, 0, ACTOR_141000_EYES_WIDTH_WORDS, ACTOR_141000_FACE_HEIGHT_ROWS },
-      .pixels      = _gActor141000AyaBreaEyesHalfOpenPixels },
+      .pixels      = _gActor141000EveEyesHalfOpenPixels },
     { .operation = GPU_IMAGE_UPLOAD_END },
 };
 
 /// Closed-eye 8bpp pixels: 50 texels by 20 rows, four texels per word.
 ///
 /// Borrowed through GPU completion for static closed eyes and blink onset.
-static u_long _gActor141000AyaBreaEyesClosedPixels[ACTOR_141000_EYES_WIDTH_WORDS * ACTOR_141000_FACE_HEIGHT_ROWS / 2] = {
-#include "assets/actor_121300_image_0A598.inc"
+static u_long _gActor141000EveEyesClosedPixels[ACTOR_141000_EYES_WIDTH_WORDS * ACTOR_141000_FACE_HEIGHT_ROWS / 2] = {
+#include "assets/characters/eve/eyes_closed.inc"
 };
 
 /// Terminated closed-eye upload for static closed eyes and the first blink step.
 ///
 /// The actor uploader rewrites the first destination to the eye rectangle.
 /// Width counts 16-bit VRAM words, height rows; pixels stay live through transfer.
-static GpuImageUpload _gActor141000AyaBreaEyesClosedUploads[2] = {
+static GpuImageUpload _gActor141000EveEyesClosedUploads[2] = {
     { .operation   = GPU_IMAGE_UPLOAD_COPY,
       .destination = { 0, 0, ACTOR_141000_EYES_WIDTH_WORDS, ACTOR_141000_FACE_HEIGHT_ROWS },
-      .pixels      = _gActor141000AyaBreaEyesClosedPixels },
+      .pixels      = _gActor141000EveEyesClosedPixels },
     { .operation = GPU_IMAGE_UPLOAD_END },
 };
 
@@ -680,8 +432,8 @@ static GpuImageUpload _gActor141000AyaBreaEyesClosedUploads[2] = {
 ///
 /// The 140 words cover the normal mouth upload. Retained texture mode 2 requests
 /// 250 words from this base, reading 440 bytes beyond the payload into later data.
-static u_long _gActor141000AyaBreaMouthClosedPixels[ACTOR_141000_MOUTH_WIDTH_WORDS * ACTOR_141000_FACE_HEIGHT_ROWS / 2] = {
-#include "assets/actor_121300_image_0A980.inc"
+static u_long _gActor141000EveMouthClosedPixels[ACTOR_141000_MOUTH_WIDTH_WORDS * ACTOR_141000_FACE_HEIGHT_ROWS / 2] = {
+#include "assets/characters/eve/mouth_closed.inc"
 };
 
 /// Terminated closed-mouth upload, normally placed in the 14-word-wide mouth rect.
@@ -689,10 +441,10 @@ static u_long _gActor141000AyaBreaMouthClosedPixels[ACTOR_141000_MOUTH_WIDTH_WOR
 /// The actor uploader rewrites the destination. Mode 5 uses 14 by 20 words/rows;
 /// retained mode 2 uses the 25 by 20 eye rectangle and overreads pixels by 440
 /// bytes. Its intended visual meaning is unproven. Pixels stay live through transfer.
-static GpuImageUpload _gActor141000AyaBreaMouthClosedUploads[2] = {
+static GpuImageUpload _gActor141000EveMouthClosedUploads[2] = {
     { .operation   = GPU_IMAGE_UPLOAD_COPY,
       .destination = { 0, 0, ACTOR_141000_MOUTH_WIDTH_WORDS, ACTOR_141000_FACE_HEIGHT_ROWS },
-      .pixels      = _gActor141000AyaBreaMouthClosedPixels },
+      .pixels      = _gActor141000EveMouthClosedPixels },
     { .operation = GPU_IMAGE_UPLOAD_END },
 };
 
@@ -700,8 +452,8 @@ static GpuImageUpload _gActor141000AyaBreaMouthClosedUploads[2] = {
 ///
 /// The 140 words cover the normal mouth upload. Retained texture mode 3 requests
 /// 250 words: 440 bytes beyond the payload, including 292 beyond this loaded image.
-static u_long _gActor141000AyaBreaMouthOpenPixels[ACTOR_141000_MOUTH_WIDTH_WORDS * ACTOR_141000_FACE_HEIGHT_ROWS / 2] = {
-#include "assets/actor_121300_image_0ABB0.inc"
+static u_long _gActor141000EveMouthOpenPixels[ACTOR_141000_MOUTH_WIDTH_WORDS * ACTOR_141000_FACE_HEIGHT_ROWS / 2] = {
+#include "assets/characters/eve/mouth_open.inc"
 };
 
 /// Terminated open-mouth upload, normally placed in the 14-word-wide mouth rect.
@@ -710,60 +462,48 @@ static u_long _gActor141000AyaBreaMouthOpenPixels[ACTOR_141000_MOUTH_WIDTH_WORDS
 /// retained mode 3 uses the 25 by 20 eye rectangle, overreads pixels by 440 bytes,
 /// then starts a blink. Its intended visual meaning is unproven. Keep pixels live
 /// through GPU completion; the last 292 requested bytes lie beyond this image.
-static GpuImageUpload _gActor141000AyaBreaMouthOpenUploads[2] = {
+static GpuImageUpload _gActor141000EveMouthOpenUploads[2] = {
     { .operation   = GPU_IMAGE_UPLOAD_COPY,
       .destination = { 0, 0, ACTOR_141000_MOUTH_WIDTH_WORDS, ACTOR_141000_FACE_HEIGHT_ROWS },
-      .pixels      = _gActor141000AyaBreaMouthOpenPixels },
+      .pixels      = _gActor141000EveMouthOpenPixels },
     { .operation = GPU_IMAGE_UPLOAD_END },
 };
 
-/// Aya's bank-0 clip table: absent clip 0, loaded clips 1..10.
+/// Eve's bank-0 clip table: absent clip 0, loaded clips 1..10.
 ///
 /// `AnimationPlayRequest::animationId` selects an inner entry after bank
 /// selection. Walk defaults use 1 on arrival, 2 at fast pace and 10 at slow pace.
 /// Playback borrows this table and its sets while the actor overlay is loaded.
-static AnimationSet* _gActor141000AyaBreaAnimationSets[11] = {
-    NULL,
-    &_gActor141000Animation084A0,
-    &_gActor141000Animation0947C,
-    &_gActor141000Animation09638,
-    &_gActor141000Animation09800,
-    &_gActor141000Animation09A88,
-    &_gActor141000Animation0A210,
-    &_gActor141000Animation0A448,
-    &_gActor141000Animation0A5FC,
-    &_gActor141000Animation0A84C,
-    &_gActor141000Animation08898,
-};
+#include "assets/rooms/shelter/b1_pod_access_tunnel/eve_bank.inc"
 
 /// Carrier-local banks for nineteen-part playback: only bank 0, clips 1..10.
 ///
 /// `AnimationPlayRequest::source.index` selects the bank; `animationId` selects
 /// an entry of its clip table. Playback borrows that table and loaded clip data.
 static AnimationSet** const _gActorMotionAnimBanks19[1] SECTION(".data") = {
-    _gActor141000AyaBreaAnimationSets,
+    _gActor141000EveAnimationSets,
 };
 
-TaskDesc gActor141000AyaBreaWalkerTaskDesc = {
+TaskDesc gActor141000EveWalkerTaskDesc = {
     .header   = { .fields = { .flags    = TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER,
                               .priority = ACTOR_141000_TASK_PRIORITY } },
-    .callback = _actor141000AyaBreaWalkerTask,
-    .data     = { .model = &_gActor141000AyaBreaBody },
+    .callback = _actor141000EveWalkerTask,
+    .data     = { .model = &_gEveBody },
 };
 
-/// Terminated message routes borrowed by the initialized Aya walker.
+/// Terminated message routes borrowed by the initialized Eve walker.
 ///
 /// Animation and placement borrow requests; walk copies a destination and
 /// optional clip pair. Drawing and facial texture take integer modes; pace
 /// borrows an `ActorCommand`. Payloads are consumed synchronously. Unknown IDs
 /// return zero at `TASK_MESSAGE_TABLE_END`; callbacks retain both argument words.
-static TaskMessageEntry _gActor141000AyaBreaMessages[7] = {
+static TaskMessageEntry _gActor141000EveMessages[7] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim19 },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor141000SetAyaBreaDrawMode },
-    { ACTOR_MESSAGE_WALK_TO, _actor141000StartAyaBreaWalk },
-    { ACTOR_COMMAND_MESSAGE_APPLY, _actor141000SetAyaBreaWalkPace },
-    { ACTOR_141000_MESSAGE_SET_TEXTURE_MODE, _actor141000SetAyaBreaTextureMode },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor141000SetEveDrawMode },
+    { ACTOR_MESSAGE_WALK_TO, _actor141000StartEveWalk },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor141000SetEveWalkPace },
+    { ACTOR_141000_MESSAGE_SET_TEXTURE_MODE, _actor141000SetEveTextureMode },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1239,7 +979,7 @@ static void _actor141000DrawCappedBeam(Task* task)
 /// Requires live writable work and root coordinate. Composition is invalidated
 /// even when stationary; the integer halves are signed and remaining fractions
 /// are zero-extended back into the accumulators.
-static inline void _actor141000IntegrateAyaBreaWalkVelocity(_Actor141000AyaBreaWork* work, GfxCoord* rootCoord)
+static inline void _actor141000IntegrateEveWalkVelocity(_Actor141000EveWork* work, GfxCoord* rootCoord)
 {
     work->walk.carry[0].word += work->walk.velocity.vx;
     work->walk.carry[1].word += work->walk.velocity.vy;
@@ -1253,26 +993,26 @@ static inline void _actor141000IntegrateAyaBreaWalkVelocity(_Actor141000AyaBreaW
     work->walk.carry[2].word  = work->walk.carry[2].halves.fraction;
 }
 
-/// Updates Aya's walk, animation, visible-body lighting, blink and buffer release.
+/// Updates Eve's walk, animation, visible-body lighting, blink and buffer release.
 ///
 /// Requires initialized work and the nineteen-part TMD body. `walk.motion` must
 /// be 0 (idle) or 1 (walking); it indexes two callbacks without a bounds check.
 /// Integration and slots 1..18 continue while hidden. Shadows sample the previous
 /// composed part-1 position before lighting recomposes it. A nonnegative buffer
 /// countdown frees on the tick that finds zero, then becomes inactive at -1.
-static void _actor141000UpdateAyaBreaWalker(Task* task)
+static void _actor141000UpdateEveWalker(Task* task)
 {
     enum { ACTOR_141000_SHADOW_HALF_SIZE = 512 };
-    TmdObject*               model             = task->extra.tmd;
-    _Actor141000AyaBreaWork* work              = task->work;
-    TaskFunc                 motionHandlers[2] = { _actor141000IdleAyaBreaWalk, _actor141000RunAyaBreaWalkStep };
-    VECTOR3                  shadowPosition;
-    GfxCoord*                rootCoord;
-    s32                      slotIndex;
+    TmdObject*           model             = task->extra.tmd;
+    _Actor141000EveWork* work              = task->work;
+    TaskFunc             motionHandlers[2] = { _actor141000IdleEveWalk, _actor141000RunEveWalkStep };
+    VECTOR3              shadowPosition;
+    GfxCoord*            rootCoord;
+    s32                  slotIndex;
 
     motionHandlers[work->walk.motion](task);
     rootCoord = task->extra.tmd->coords;
-    _actor141000IntegrateAyaBreaWalkVelocity(work, rootCoord);
+    _actor141000IntegrateEveWalkVelocity(work, rootCoord);
     if (work->model.ticking != 0) {
         for (slotIndex = ACTOR_141000_FIRST_DRIVEN_SLOT; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
             animationTickSlot(&work->rig.anim, slotIndex);
@@ -1287,7 +1027,7 @@ static void _actor141000UpdateAyaBreaWalker(Task* task)
         actorRenderComposeCoord(&task->extra.tmd->coords[1]);
         worldCoordSetModelLighting(model, task->extra.tmd->coords[1].workm.t, 0, 3);
     }
-    _actor141000TickAyaBreaBlink(task);
+    _actor141000TickEveBlink(task);
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
             tmdFreePrimitiveBuffer(model);
@@ -1305,15 +1045,15 @@ static void _actor141000UpdateAyaBreaWalker(Task* task)
 /// GPU transfer completes. The rectangle is borrowed only through this call.
 /// Its X counts two positions per VRAM word, width counts words, and Y/height count rows.
 /// The caller decrements the countdown; this resets it from the signed delay.
-static inline void _actor141000AdvanceAyaBreaBlinkImage(Task* task, _Actor141000AyaBreaWork* work,
-                                                        GpuImageUpload* uploadList, const RECT* eyeRect)
+static inline void _actor141000AdvanceEveBlinkImage(Task* task, _Actor141000EveWork* work,
+                                                    GpuImageUpload* uploadList, const RECT* eyeRect)
 {
     actorRenderUploadTexture(task, uploadList, eyeRect);
     work->blinkCountdown = work->blinkFrameDelay;
     work->blinkStep      = work->blinkStep + 1;
 }
 
-/// Advances Aya's timed closed, half-open and open eye sequence once.
+/// Advances Eve's timed closed, half-open and open eye sequence once.
 ///
 /// Each active step decrements the signed-halfword countdown and posts its image
 /// when that stored value is negative. Closed and half-open restart it from
@@ -1321,10 +1061,10 @@ static inline void _actor141000AdvanceAyaBreaBlinkImage(Task* task, _Actor141000
 /// Open ends the blink without resetting the countdown; inactive steps do nothing.
 /// Requires initialized work and a live body. Pixel storage stays borrowed until
 /// the GPU transfer completes; no wait or automatic next blink is scheduled.
-static void _actor141000TickAyaBreaBlink(Task* task)
+static void _actor141000TickEveBlink(Task* task)
 {
-    _Actor141000AyaBreaWork* work;
-    RECT                     eyeRect;
+    _Actor141000EveWork* work;
+    RECT                 eyeRect;
 
     work      = task->work;
     eyeRect.x = ACTOR_141000_EYES_X_WORDS;
@@ -1336,38 +1076,38 @@ static void _actor141000TickAyaBreaBlink(Task* task)
         case ACTOR_141000_BLINK_CLOSED:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                _actor141000AdvanceAyaBreaBlinkImage(task, work, &_gActor141000AyaBreaEyesClosedUploads[0], &eyeRect);
+                _actor141000AdvanceEveBlinkImage(task, work, &_gActor141000EveEyesClosedUploads[0], &eyeRect);
             }
             break;
         case ACTOR_141000_BLINK_HALF:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                _actor141000AdvanceAyaBreaBlinkImage(task, work, &_gActor141000AyaBreaEyesHalfOpenUploads[0], &eyeRect);
+                _actor141000AdvanceEveBlinkImage(task, work, &_gActor141000EveEyesHalfOpenUploads[0], &eyeRect);
             }
             break;
         case ACTOR_141000_BLINK_OPEN:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                actorRenderUploadTexture(task, &_gActor141000AyaBreaEyesOpenUploads[0], &eyeRect);
+                actorRenderUploadTexture(task, &_gActor141000EveEyesOpenUploads[0], &eyeRect);
                 work->blinkStep = ACTOR_141000_BLINK_NONE;
             }
             break;
     }
 }
 
-/// Binds and applies a changed bank-0 walk clip to Aya's nineteen-part rig.
+/// Binds and applies a changed bank-0 walk clip to Eve's nineteen-part rig.
 ///
-/// Requires a live TMD task with initialized Aya work. Request is borrowed
+/// Requires a live TMD task with initialized Eve work. Request is borrowed
 /// through the call and must not overlap playback state. The bank must be 0
 /// and the clip a loaded entry 1..10; blend duration counts whole frames.
 /// Driven slots exclude root 0. Rebinding invalidates the old clip; an unchanged
 /// clip in the same bank leaves ticking and its current poses intact.
 /// The model, work-owned poses/slots and clip data must outlive playback.
-static inline void _actor141000ApplyAyaBreaWalkAnimation(Task* task, const AnimationPlayRequest* request)
+static inline void _actor141000ApplyEveWalkAnimation(Task* task, const AnimationPlayRequest* request)
 {
-    _Actor141000AyaBreaWork* work;
-    TmdObject*               model;
-    s32                      slotIndex;
+    _Actor141000EveWork* work;
+    TmdObject*           model;
+    s32                  slotIndex;
 
     work  = task->work;
     model = task->extra.tmd;
@@ -1397,7 +1137,7 @@ static inline void _actor141000ApplyAyaBreaWalkAnimation(Task* task, const Anima
     }
 }
 
-/// Starts Aya's scripted walk toward a borrowed destination and final rotation.
+/// Starts Eve's scripted walk toward a borrowed destination and final rotation.
 ///
 /// Copies parent-frame positions and 4096-unit Euler angles into work, then starts
 /// step 0. Optional clips select the starting and queued arrival clips in bank 0;
@@ -1406,14 +1146,14 @@ static inline void _actor141000ApplyAyaBreaWalkAnimation(Task* task, const Anima
 /// when already ticking, or reset otherwise. Carry and current velocity survive
 /// until the following walk steps replace them. Payloads are borrowed only during
 /// dispatch; the message ID is ignored. Requires initialized work; returns 0.
-static s32 _actor141000StartAyaBreaWalk(Task* task, s32 messageId, const ActorTransform* destination, const ActorMotionWalkAnim* clips)
+static s32 _actor141000StartEveWalk(Task* task, s32 messageId, const ActorTransform* destination, const ActorMotionWalkAnim* clips)
 {
     enum {
         ACTOR_141000_ANIM_DEFAULT_ARRIVAL = 1,
         ACTOR_141000_ANIM_FAST_WALK       = 2,
         ACTOR_141000_ANIM_SLOW_WALK       = 10,
     };
-    _Actor141000AyaBreaWork* work;
+    _Actor141000EveWork* work;
 
     AnimationPlayRequest walkRequest;
 
@@ -1442,35 +1182,35 @@ static s32 _actor141000StartAyaBreaWalk(Task* task, s32 messageId, const ActorTr
     walkRequest.blendFrames          = ACTOR_141000_WALK_BLEND_FRAMES;
     walkRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
 
-    _actor141000ApplyAyaBreaWalkAnimation(task, &walkRequest);
+    _actor141000ApplyEveWalkAnimation(task, &walkRequest);
     return 0;
 }
 
-/// Dispatches Aya's walker initialization, update or exit while actors are running.
+/// Dispatches Eve's walker initialization, update or exit while actors are running.
 ///
 /// Requires the descriptor-created nineteen-part TMD body and task state 0..2;
 /// the state indexes the table without a bounds check. The body and Enemy passed
 /// in `spawnArg2.pointer` belong to the task until teardown.
-static void _actor141000AyaBreaWalkerTask(Task* task)
+static void _actor141000EveWalkerTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = _gActor141000AyaBreaWalkerTaskStates;
+    handlers = _gActor141000EveWalkerTaskStates;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         handlers.funcs[task->state](task);
     }
 }
 
-/// Allocates and initializes Aya's scripted walker, then enables its message table.
+/// Allocates and initializes Eve's scripted walker, then enables its message table.
 ///
 /// The zeroed work belongs to the task until teardown. Bank and clip sentinels
 /// force the first animation request to bind the rig; no buffer release is pending.
 /// The model borrows the work's lighting matrices. Allocation failure releases the
 /// Enemy and ends the task before any later state can use absent work.
-static void _actor141000SpawnAyaBreaWalker(Task* task)
+static void _actor141000SpawnEveWalker(Task* task)
 {
     enum { ACTOR_141000_BUFFER_RELEASE_NONE = -1 };
-    _Actor141000AyaBreaWork* work;
+    _Actor141000EveWork* work;
 
     work = memCalloc(sizeof(*work), false);
     if (work == NULL) {
@@ -1486,19 +1226,19 @@ static void _actor141000SpawnAyaBreaWalker(Task* task)
     work->walk.carry[1].word = 0;
     work->walk.carry[2].word = 0;
 
-    _actor141000BindAyaBreaLighting(task);
+    _actor141000BindEveLighting(task);
 
-    task->msgTable     = _gActor141000AyaBreaMessages;
-    task->exitCallback = _actor141000ExitAyaBreaWalker;
+    task->msgTable     = _gActor141000EveMessages;
+    task->exitCallback = _actor141000ExitEveWalker;
     task->state++;
 }
 
-/// Releases Aya's enemy record and tears down her walker task and work.
+/// Releases Eve's enemy record and tears down her walker task and work.
 ///
 /// Requires the task-owned live Enemy in `spawnArg2.pointer`. Used as both the
 /// exit state and the teardown callback; direct `taskKill` teardown bypasses
 /// this replacement callback, so release does not recurse.
-static void _actor141000ExitAyaBreaWalker(Task* task)
+static void _actor141000ExitEveWalker(Task* task)
 {
     enemyTaskExit(task);
 }
@@ -1507,10 +1247,10 @@ static void _actor141000ExitAyaBreaWalker(Task* task)
 ///
 /// Requires initialized work and a live model. The matrices remain owned by the
 /// work block, which must outlive every model update using them.
-static void _actor141000BindAyaBreaLighting(Task* task)
+static void _actor141000BindEveLighting(Task* task)
 {
-    TmdObject*               model;
-    _Actor141000AyaBreaWork* work;
+    TmdObject*           model;
+    _Actor141000EveWork* work;
 
     model           = task->extra.tmd;
     work            = task->work;
@@ -1522,37 +1262,37 @@ static void _actor141000BindAyaBreaLighting(Task* task)
 ///
 /// This empty motion callback does not stop velocity integration, animation,
 /// lighting or blinking in the enclosing update.
-static void _actor141000IdleAyaBreaWalk(Task* task)
+static void _actor141000IdleEveWalk(Task* task)
 {
 }
 
-/// Runs Aya's current scripted-walk step.
+/// Runs Eve's current scripted-walk step.
 ///
 /// Requires initialized work with `walk.motionStep` in 0..3: face the destination,
 /// begin moving, test arrival, or turn to the requested final yaw. No bounds check
 /// is performed; each step controls its own transition.
-static void _actor141000RunAyaBreaWalkStep(Task* task)
+static void _actor141000RunEveWalkStep(Task* task)
 {
-    TaskFuncTable4           handlers;
-    _Actor141000AyaBreaWork* work;
+    TaskFuncTable4       handlers;
+    _Actor141000EveWork* work;
 
     work     = task->work;
-    handlers = _gActor141000AyaBreaWalkSteps;
+    handlers = _gActor141000EveWalkSteps;
     handlers.funcs[work->walk.motionStep](task);
 }
 
-/// Faces Aya's root coordinate toward the copied walk destination, then advances.
+/// Faces Eve's root coordinate toward the copied walk destination, then advances.
 ///
 /// Positions are in the root's parent frame; yaw uses 4096 units per turn.
 /// Replaces pitch, roll and scale with a yaw-only rotation and marks composition
 /// dirty. Requires a live model and initialized walker work.
-static void _actor141000FaceAyaBreaWalkTarget(Task* task)
+static void _actor141000FaceEveWalkTarget(Task* task)
 {
-    _Actor141000AyaBreaWork* work;
-    GfxCoord*                rootCoord;
-    VECTOR                   targetOffset;
-    SVECTOR                  direction;
-    SVECTOR                  rotation;
+    _Actor141000EveWork* work;
+    GfxCoord*            rootCoord;
+    VECTOR               targetOffset;
+    SVECTOR              direction;
+    SVECTOR              rotation;
 
     work      = task->work;
     rootCoord = task->extra.tmd->coords;
@@ -1574,21 +1314,21 @@ static void _actor141000FaceAyaBreaWalkTarget(Task* task)
     work->walk.motionStep++;
 }
 
-/// Sets Aya's walk velocity from the selected pace and current root rotation.
+/// Sets Eve's walk velocity from the selected pace and current root rotation.
 ///
 /// Rotates the local forward displacement into signed 16.16 parent-frame units
 /// per tick: 48 whole units at fast pace or 24 at slow pace. Seeds the arrival
 /// distance sentinel and advances to the arrival test; existing carry survives.
-static void _actor141000BeginAyaBreaWalk(Task* task)
+static void _actor141000BeginEveWalk(Task* task)
 {
-    _Actor141000AyaBreaWork* work;
-    GfxCoord*                rootCoord;
-    VECTOR                   localVelocity;
+    _Actor141000EveWork* work;
+    GfxCoord*            rootCoord;
+    VECTOR               localVelocity;
 
     rootCoord = task->extra.tmd->coords;
     work      = task->work;
 
-    localVelocity = _gActor141000AyaBreaFastWalkVelocity;
+    localVelocity = _gActor141000EveFastWalkVelocity;
     if (work->fastPace == 0) {
         localVelocity.vx >>= 1;
         localVelocity.vy >>= 1;
@@ -1601,28 +1341,28 @@ static void _actor141000BeginAyaBreaWalk(Task* task)
     work->walk.motionStep      = work->walk.motionStep + 1;
 }
 
-/// Rebuilds Aya's root rotation at unit 4.12 scale while retaining translation.
+/// Rebuilds Eve's root rotation at unit 4.12 scale while retaining translation.
 ///
 /// Requires writable coordinate and a borrowed Euler triple in 4096-unit angles.
 /// Invalidates world composition after installing the rotation.
-static inline void _actor141000RebuildAyaBreaRotation(GfxCoord* rootCoord, SVECTOR* rotation)
+static inline void _actor141000RebuildEveRotation(GfxCoord* rootCoord, SVECTOR* rotation)
 {
     gfxSetRotIdentity(&rootCoord->coord);
     RotMatrix(rotation, &rootCoord->coord);
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Turns Aya to the walk's final yaw and returns her motion dispatcher to idle.
+/// Turns Eve to the walk's final yaw and returns her motion dispatcher to idle.
 ///
 /// Yaw uses 4096 units per turn. The signed-halfword target difference selects a
 /// 64-unit step, without turn-period normalization; a gap of at most 64 snaps
 /// to the target and blends to the queued bank-0 clip for five frames.
 /// Requires initialized walker work and a valid queued clip (1..10). Translation
 /// survives the rotation rebuild; velocity has already been cleared on arrival.
-static void _actor141000TurnAyaBreaToYaw(Task* task)
+static void _actor141000TurnEveToYaw(Task* task)
 {
     enum { ACTOR_141000_YAW_STEP = 64 };
-    _Actor141000AyaBreaWork* work;
+    _Actor141000EveWork* work;
 
     GfxCoord*            rootCoord;
     SVECTOR              rotation;
@@ -1654,14 +1394,14 @@ static void _actor141000TurnAyaBreaToYaw(Task* task)
         work->walk.motionStep = ACTOR_141000_WALK_FACE_TARGET;
     }
 
-    _actor141000RebuildAyaBreaRotation(rootCoord, &rotation);
+    _actor141000RebuildEveRotation(rootCoord, &rotation);
 }
 
 #include "../../shared/actor/actor_motion_play19.inc.c"
 
 #include "../../shared/actor/actor_messages_place_euler.inc.c"
 
-/// Changes Aya's visibility and automatic primitive-buffer recovery mode.
+/// Changes Eve's visibility and automatic primitive-buffer recovery mode.
 ///
 /// Requires a live TMD body and initialized work. Mode 0 hides with recovery
 /// allowed; 1 shows, attempts buffer allocation and allows recovery; 2 hides,
@@ -1669,7 +1409,7 @@ static void _actor141000TurnAyaBreaToYaw(Task* task)
 /// 3 shows with recovery disabled. Other modes change nothing and return 1;
 /// handled modes return 0 even if allocation fails. Modes 0, 1 and 3 retain any
 /// pending release. The message ID and second payload are ignored.
-static s32 _actor141000SetAyaBreaDrawMode(Task* task, s32 messageId, s32 mode, s32 unusedArg)
+static s32 _actor141000SetEveDrawMode(Task* task, s32 messageId, s32 mode, s32 unusedArg)
 {
     enum { ACTOR_141000_DRAW_SHOW_SKIP_AUTO_BUFFER = 3 };
     TmdObject* model;
@@ -1688,7 +1428,7 @@ static s32 _actor141000SetAyaBreaDrawMode(Task* task, s32 messageId, s32 mode, s
             model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER: {
-            _Actor141000AyaBreaWork* work;
+            _Actor141000EveWork* work;
 
             model->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work                = task->work;
@@ -1707,19 +1447,19 @@ static s32 _actor141000SetAyaBreaDrawMode(Task* task, s32 messageId, s32 mode, s
     return result;
 }
 
-/// Selects Aya's pace for subsequent scripted walks from an actor command.
+/// Selects Eve's pace for subsequent scripted walks from an actor command.
 ///
 /// Command 1 selects half displacement and default clip 10; command 2 selects
 /// full displacement and default clip 2. An ongoing walk's velocity and clip
 /// remain unchanged. Requires initialized work and a borrowed non-NULL command.
 /// Other commands do nothing; all return 0. Ignores ID and second payload.
-static s32 _actor141000SetAyaBreaWalkPace(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg)
+static s32 _actor141000SetEveWalkPace(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg)
 {
     enum {
         ACTOR_141000_COMMAND_SLOW_WALK = 1,
         ACTOR_141000_COMMAND_FAST_WALK = 2,
     };
-    _Actor141000AyaBreaWork* work;
+    _Actor141000EveWork* work;
 
     work = task->work;
     switch (command->command) {
@@ -1733,7 +1473,7 @@ static s32 _actor141000SetAyaBreaWalkPace(Task* task, s32 messageId, const Actor
     return 0;
 }
 
-/// Selects Aya's facial texture mode for message 0x7E0.
+/// Selects Eve's facial texture mode for message 0x7E0.
 ///
 /// Requires a live body and initialized work. Modes 0/1 post open/closed eyes;
 /// 4/5 post open/closed mouth. Modes 2/3 retain the original mouth-list uploads
@@ -1745,7 +1485,7 @@ static s32 _actor141000SetAyaBreaWalkPace(Task* task, s32 messageId, const Actor
 /// Starting a blink retains its countdown; other modes do not cancel it.
 /// The writable lists and pixels stay live through GPU transfer. Returns the
 /// upload result, or 0 for unknown modes; ignores ID and the second payload.
-static s32 _actor141000SetAyaBreaTextureMode(Task* task, s32 messageId, s32 textureMode, s32 unusedArg)
+static s32 _actor141000SetEveTextureMode(Task* task, s32 messageId, s32 textureMode, s32 unusedArg)
 {
     enum {
         ACTOR_141000_TEXTURE_EYES_OPEN                    = 0,
@@ -1763,14 +1503,14 @@ static s32 _actor141000SetAyaBreaTextureMode(Task* task, s32 messageId, s32 text
     result = 0;
     switch (textureMode) {
         case ACTOR_141000_TEXTURE_EYES_OPEN:
-            uploadList    = &_gActor141000AyaBreaEyesOpenUploads[0];
+            uploadList    = &_gActor141000EveEyesOpenUploads[0];
             textureRect.y = ACTOR_141000_EYES_Y_ROWS;
             textureRect.w = ACTOR_141000_EYES_WIDTH_WORDS;
             textureRect.x = ACTOR_141000_EYES_X_WORDS;
             textureRect.h = ACTOR_141000_FACE_HEIGHT_ROWS;
             break;
         case ACTOR_141000_TEXTURE_EYES_CLOSED:
-            uploadList    = &_gActor141000AyaBreaEyesClosedUploads[0];
+            uploadList    = &_gActor141000EveEyesClosedUploads[0];
             textureRect.y = ACTOR_141000_EYES_Y_ROWS;
             textureRect.w = ACTOR_141000_EYES_WIDTH_WORDS;
             textureRect.x = ACTOR_141000_EYES_X_WORDS;
@@ -1778,16 +1518,16 @@ static s32 _actor141000SetAyaBreaTextureMode(Task* task, s32 messageId, s32 text
             break;
         // Retained request: this reads 1000 bytes from a 560-byte mouth array.
         case ACTOR_141000_TEXTURE_CLOSED_MOUTH_IN_EYES:
-            uploadList    = &_gActor141000AyaBreaMouthClosedUploads[0];
+            uploadList    = &_gActor141000EveMouthClosedUploads[0];
             textureRect.y = ACTOR_141000_EYES_Y_ROWS;
             textureRect.w = ACTOR_141000_EYES_WIDTH_WORDS;
             textureRect.x = ACTOR_141000_EYES_X_WORDS;
             textureRect.h = ACTOR_141000_FACE_HEIGHT_ROWS;
             break;
         case ACTOR_141000_TEXTURE_OPEN_MOUTH_IN_EYES_AND_BLINK: {
-            _Actor141000AyaBreaWork* stepWork;
-            _Actor141000AyaBreaWork* delayWork;
-            uploadList                 = &_gActor141000AyaBreaMouthOpenUploads[0];
+            _Actor141000EveWork* stepWork;
+            _Actor141000EveWork* delayWork;
+            uploadList                 = &_gActor141000EveMouthOpenUploads[0];
             textureRect.y              = ACTOR_141000_EYES_Y_ROWS;
             textureRect.w              = ACTOR_141000_EYES_WIDTH_WORDS;
             textureRect.x              = ACTOR_141000_EYES_X_WORDS;
@@ -1799,14 +1539,14 @@ static s32 _actor141000SetAyaBreaTextureMode(Task* task, s32 messageId, s32 text
             break;
         }
         case ACTOR_141000_TEXTURE_MOUTH_OPEN:
-            uploadList    = &_gActor141000AyaBreaMouthOpenUploads[0];
+            uploadList    = &_gActor141000EveMouthOpenUploads[0];
             textureRect.x = ACTOR_141000_MOUTH_X_WORDS;
             textureRect.y = ACTOR_141000_MOUTH_Y_ROWS;
             textureRect.w = ACTOR_141000_MOUTH_WIDTH_WORDS;
             textureRect.h = ACTOR_141000_FACE_HEIGHT_ROWS;
             break;
         case ACTOR_141000_TEXTURE_MOUTH_CLOSED:
-            uploadList    = &_gActor141000AyaBreaMouthClosedUploads[0];
+            uploadList    = &_gActor141000EveMouthClosedUploads[0];
             textureRect.x = ACTOR_141000_MOUTH_X_WORDS;
             textureRect.y = ACTOR_141000_MOUTH_Y_ROWS;
             textureRect.w = ACTOR_141000_MOUTH_WIDTH_WORDS;

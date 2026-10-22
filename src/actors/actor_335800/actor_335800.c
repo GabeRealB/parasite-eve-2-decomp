@@ -264,93 +264,7 @@ static void _actor335800GaryDouglasPartTask(Task* task);
 static void _actor335800GaryDouglasTask(Task* task);
 static void _actor335800FlintTask(Task* task);
 
-static AnimationPackedPose _gActor335800Animation0255CBank1[6] = {
-#include "assets/actor_335800_animation_0255C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor335800Animation0255CBank4[46] = {
-#include "assets/actor_335800_animation_0255C_bank4.inc"
-};
-
-static AnimationRecord _gActor335800Animation0255CRecords[109] = {
-#include "assets/actor_335800_animation_0255C_records.inc"
-};
-
-static u16 _gActor335800Animation0255CIndices[20] = {
-#include "assets/actor_335800_animation_0255C_indices.inc"
-};
-
-static AnimationSet _gActor335800Animation0255C = {
-    _gActor335800Animation0255CRecords,
-    _gActor335800Animation0255CIndices,
-    { NULL, _gActor335800Animation0255CBank1, NULL, NULL, _gActor335800Animation0255CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor335800Animation02B78Bank1[12] = {
-#include "assets/actor_335800_animation_02B78_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor335800Animation02B78Bank4[146] = {
-#include "assets/actor_335800_animation_02B78_bank4.inc"
-};
-
-static AnimationRecord _gActor335800Animation02B78Records[189] = {
-#include "assets/actor_335800_animation_02B78_records.inc"
-};
-
-static u16 _gActor335800Animation02B78Indices[20] = {
-#include "assets/actor_335800_animation_02B78_indices.inc"
-};
-
-static AnimationSet _gActor335800Animation02B78 = {
-    _gActor335800Animation02B78Records,
-    _gActor335800Animation02B78Indices,
-    { NULL, _gActor335800Animation02B78Bank1, NULL, NULL, _gActor335800Animation02B78Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor335800Animation02D8CBank1[2] = {
-#include "assets/actor_335800_animation_02D8C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor335800Animation02D8CBank4[24] = {
-#include "assets/actor_335800_animation_02D8C_bank4.inc"
-};
-
-static AnimationRecord _gActor335800Animation02D8CRecords[83] = {
-#include "assets/actor_335800_animation_02D8C_records.inc"
-};
-
-static u16 _gActor335800Animation02D8CIndices[20] = {
-#include "assets/actor_335800_animation_02D8C_indices.inc"
-};
-
-static AnimationSet _gActor335800Animation02D8C = {
-    _gActor335800Animation02D8CRecords,
-    _gActor335800Animation02D8CIndices,
-    { NULL, _gActor335800Animation02D8CBank1, NULL, NULL, _gActor335800Animation02D8CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor335800Animation02F98Bank1[2] = {
-#include "assets/actor_335800_animation_02F98_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor335800Animation02F98Bank4[23] = {
-#include "assets/actor_335800_animation_02F98_bank4.inc"
-};
-
-static AnimationRecord _gActor335800Animation02F98Records[82] = {
-#include "assets/actor_335800_animation_02F98_records.inc"
-};
-
-static u16 _gActor335800Animation02F98Indices[20] = {
-#include "assets/actor_335800_animation_02F98_indices.inc"
-};
-
-static AnimationSet _gActor335800Animation02F98 = {
-    _gActor335800Animation02F98Records,
-    _gActor335800Animation02F98Indices,
-    { NULL, _gActor335800Animation02F98Bank1, NULL, NULL, _gActor335800Animation02F98Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/dryfield/night_motel_balcony/gary_and_flint_clips_1.inc"
 
 /// Spawn recipes for the balcony scene's shadow and three control tasks.
 ///
@@ -368,13 +282,7 @@ static TaskDesc _gActor335800SceneTasks[] = {
 ///
 /// Index 47 becomes NULL; 48..51 borrow the four package-owned clips. Copying
 /// the pointers does not copy clip data, which must stay loaded through playback.
-static AnimationSet* _gActor335800PlayerSceneAnimationExtension[] = {
-    NULL,
-    &_gActor335800Animation0255C,
-    &_gActor335800Animation02B78,
-    &_gActor335800Animation02D8C,
-    &_gActor335800Animation02F98,
-};
+#include "assets/rooms/dryfield/night_motel_balcony/player_scene_bank.inc"
 
 /// Request to overwrite five words of the player's equipped-weapon bank extension.
 ///
@@ -954,202 +862,20 @@ EvsCommand gActor335800BurnerDefeatSceneScript[10] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-static TmdBone _gActor335800GaryDouglasBodySkeleton[20] = {
-#include "assets/gary_douglas_body_skeleton.inc"
-};
+#include "assets/characters/gary/body.inc"
 
-static u32 _gActor335800GaryDouglasBodyPartVerts[20] = {
-#include "assets/gary_douglas_body_partVerts.inc"
-};
+#include "assets/characters/gary/head_hat.inc"
 
-static SVECTOR _gActor335800GaryDouglasBodyVerts[364] = {
-#include "assets/gary_douglas_body_verts.inc"
-};
+#include "assets/characters/gary/shotgun.inc"
 
-static SVECTOR _gActor335800GaryDouglasBodyNormals[354] = {
-#include "assets/gary_douglas_body_normals.inc"
-};
-
-static u32 _gActor335800GaryDouglasBodyStream[4151] = {
-#include "assets/gary_douglas_body_stream.inc"
-};
-
-static TmdSource _gActor335800GaryDouglasBody = {
-    0,
-    22008,
-    6952,
-    20,
-    _gActor335800GaryDouglasBodyPartVerts,
-    _gActor335800GaryDouglasBodyVerts,
-    _gActor335800GaryDouglasBodyNormals,
-    _gActor335800GaryDouglasBodySkeleton,
-    _gActor335800GaryDouglasBodyStream,
-};
-
-static TmdBone _gActor335800GaryDouglasHeadHatSkeleton[1] = {
-#include "assets/gary_douglas_head_hat_skeleton.inc"
-};
-
-static u32 _gActor335800GaryDouglasHeadHatPartVerts[1] = {
-#include "assets/gary_douglas_head_hat_partVerts.inc"
-};
-
-static SVECTOR _gActor335800GaryDouglasHeadHatVerts[21] = {
-#include "assets/gary_douglas_head_hat_verts.inc"
-};
-
-static SVECTOR _gActor335800GaryDouglasHeadHatNormals[21] = {
-#include "assets/gary_douglas_head_hat_normals.inc"
-};
-
-static u32 _gActor335800GaryDouglasHeadHatStream[207] = {
-#include "assets/gary_douglas_head_hat_stream.inc"
-};
-
-static TmdSource _gActor335800GaryDouglasHeadHat = {
-    0,
-    1352,
-    0,
-    1,
-    _gActor335800GaryDouglasHeadHatPartVerts,
-    _gActor335800GaryDouglasHeadHatVerts,
-    _gActor335800GaryDouglasHeadHatNormals,
-    _gActor335800GaryDouglasHeadHatSkeleton,
-    _gActor335800GaryDouglasHeadHatStream,
-};
-
-static TmdBone _gActor335800Actor120300Model082F8Skeleton[1] = {
-#include "assets/actor_120300_model_082F8_skeleton.inc"
-};
-
-static u32 _gActor335800Actor120300Model082F8PartVerts[1] = {
-#include "assets/actor_120300_model_082F8_partVerts.inc"
-};
-
-static SVECTOR _gActor335800Actor120300Model082F8Verts[34] = {
-#include "assets/actor_120300_model_082F8_verts.inc"
-};
-
-static SVECTOR _gActor335800Actor120300Model082F8Normals[28] = {
-#include "assets/actor_120300_model_082F8_normals.inc"
-};
-
-static u32 _gActor335800Actor120300Model082F8Stream[238] = {
-#include "assets/actor_120300_model_082F8_stream.inc"
-};
-
-static TmdSource _gActor335800Actor120300Model082F8 = {
-    0,
-    1692,
-    0,
-    1,
-    _gActor335800Actor120300Model082F8PartVerts,
-    _gActor335800Actor120300Model082F8Verts,
-    _gActor335800Actor120300Model082F8Normals,
-    _gActor335800Actor120300Model082F8Skeleton,
-    _gActor335800Actor120300Model082F8Stream,
-};
-
-static AnimationPackedPose _gActor335800Animation0AB18Bank1[2] = {
-#include "assets/actor_335800_animation_0AB18_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor335800Animation0AB18Bank4[32] = {
-#include "assets/actor_335800_animation_0AB18_bank4.inc"
-};
-
-static AnimationRecord _gActor335800Animation0AB18Records[101] = {
-#include "assets/actor_335800_animation_0AB18_records.inc"
-};
-
-static u16 _gActor335800Animation0AB18Indices[20] = {
-#include "assets/actor_335800_animation_0AB18_indices.inc"
-};
-
-static AnimationSet _gActor335800Animation0AB18 = {
-    _gActor335800Animation0AB18Records,
-    _gActor335800Animation0AB18Indices,
-    { NULL, _gActor335800Animation0AB18Bank1, NULL, NULL, _gActor335800Animation0AB18Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor335800Animation0B59CBank1[11] = {
-#include "assets/actor_335800_animation_0B59C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor335800Animation0B59CBank4[255] = {
-#include "assets/actor_335800_animation_0B59C_bank4.inc"
-};
-
-static AnimationRecord _gActor335800Animation0B59CRecords[365] = {
-#include "assets/actor_335800_animation_0B59C_records.inc"
-};
-
-static u16 _gActor335800Animation0B59CIndices[20] = {
-#include "assets/actor_335800_animation_0B59C_indices.inc"
-};
-
-static AnimationSet _gActor335800Animation0B59C = {
-    _gActor335800Animation0B59CRecords,
-    _gActor335800Animation0B59CIndices,
-    { NULL, _gActor335800Animation0B59CBank1, NULL, NULL, _gActor335800Animation0B59CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor335800Animation0CA48Bank1[34] = {
-#include "assets/actor_335800_animation_0CA48_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor335800Animation0CA48Bank4[546] = {
-#include "assets/actor_335800_animation_0CA48_bank4.inc"
-};
-
-static AnimationRecord _gActor335800Animation0CA48Records[655] = {
-#include "assets/actor_335800_animation_0CA48_records.inc"
-};
-
-static u16 _gActor335800Animation0CA48Indices[20] = {
-#include "assets/actor_335800_animation_0CA48_indices.inc"
-};
-
-static AnimationSet _gActor335800Animation0CA48 = {
-    _gActor335800Animation0CA48Records,
-    _gActor335800Animation0CA48Indices,
-    { NULL, _gActor335800Animation0CA48Bank1, NULL, NULL, _gActor335800Animation0CA48Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor335800Animation0CC7CBank1[4] = {
-#include "assets/actor_335800_animation_0CC7C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor335800Animation0CC7CBank4[35] = {
-#include "assets/actor_335800_animation_0CC7C_bank4.inc"
-};
-
-static AnimationRecord _gActor335800Animation0CC7CRecords[74] = {
-#include "assets/actor_335800_animation_0CC7C_records.inc"
-};
-
-static u16 _gActor335800Animation0CC7CIndices[20] = {
-#include "assets/actor_335800_animation_0CC7C_indices.inc"
-};
-
-static AnimationSet _gActor335800Animation0CC7C = {
-    _gActor335800Animation0CC7CRecords,
-    _gActor335800Animation0CC7CIndices,
-    { NULL, _gActor335800Animation0CC7CBank1, NULL, NULL, _gActor335800Animation0CC7CBank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/dryfield/night_motel_balcony/gary_and_flint_clips_2.inc"
 
 /// Gary Douglas's bank-0 clip table for his twenty-part rig.
 ///
 /// Clip IDs 1..4 borrow the four loaded animation sets; entry 0 is NULL and
 /// cannot be played. `_gActorMotionAnimBanks[0]` supplies this table to the rig.
 /// The table and all referenced data must stay loaded while playback uses them.
-static AnimationSet* _gActor335800GaryDouglasAnimationBank[] = {
-    NULL,
-    &_gActor335800Animation0AB18,
-    &_gActor335800Animation0B59C,
-    &_gActor335800Animation0CA48,
-    &_gActor335800Animation0CC7C,
-};
+#include "assets/rooms/dryfield/night_motel_balcony/gary_bank.inc"
 
 /// Actor-motion bank selection for Douglas's twenty-part body (only source.index 0).
 ///
@@ -1160,9 +886,9 @@ static AnimationSet** _gActorMotionAnimBanks[1] = {
 };
 
 TaskDesc gActor335800GaryDouglasTasks[3] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_335800_TASK_PRIORITY } }, _actor335800GaryDouglasTask, { .model = &_gActor335800GaryDouglasBody } },
-    { { { TASK_BODY_TMD, ACTOR_335800_TASK_PRIORITY } }, _actor335800GaryDouglasPartTask, { .model = &_gActor335800GaryDouglasHeadHat } },
-    { { { TASK_BODY_TMD, ACTOR_335800_TASK_PRIORITY } }, _actor335800GaryDouglasPartTask, { .model = &_gActor335800Actor120300Model082F8 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_335800_TASK_PRIORITY } }, _actor335800GaryDouglasTask, { .model = &_gGaryBody } },
+    { { { TASK_BODY_TMD, ACTOR_335800_TASK_PRIORITY } }, _actor335800GaryDouglasPartTask, { .model = &_gGaryHeadHat } },
+    { { { TASK_BODY_TMD, ACTOR_335800_TASK_PRIORITY } }, _actor335800GaryDouglasPartTask, { .model = &_gGaryShotgun } },
 };
 
 /// Gary Douglas's body-task interface for animation, placement, draw, walk and dimming.
@@ -1180,69 +906,16 @@ static TaskMessageEntry _gActor335800GaryDouglasMessages[] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-static TmdBone _gActor335800FlintBodySkeleton[19] = {
-#include "assets/flint_body_skeleton.inc"
-};
+#include "assets/characters/flint/body.inc"
 
-static u32 _gActor335800FlintBodyPartVerts[19] = {
-#include "assets/flint_body_partVerts.inc"
-};
-
-static SVECTOR _gActor335800FlintBodyVerts[238] = {
-#include "assets/flint_body_verts.inc"
-};
-
-static SVECTOR _gActor335800FlintBodyNormals[238] = {
-#include "assets/flint_body_normals.inc"
-};
-
-static u32 _gActor335800FlintBodyStream[2784] = {
-#include "assets/flint_body_stream.inc"
-};
-
-static TmdSource _gActor335800FlintBody = {
-    0,
-    13636,
-    6016,
-    19,
-    _gActor335800FlintBodyPartVerts,
-    _gActor335800FlintBodyVerts,
-    _gActor335800FlintBodyNormals,
-    _gActor335800FlintBodySkeleton,
-    _gActor335800FlintBodyStream,
-};
-
-static AnimationPackedPose _gActor335800Animation11048Bank1[7] = {
-#include "assets/actor_335800_animation_11048_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor335800Animation11048Bank4[128] = {
-#include "assets/actor_335800_animation_11048_bank4.inc"
-};
-
-static AnimationRecord _gActor335800Animation11048Records[208] = {
-#include "assets/actor_335800_animation_11048_records.inc"
-};
-
-static u16 _gActor335800Animation11048Indices[20] = {
-#include "assets/actor_335800_animation_11048_indices.inc"
-};
-
-static AnimationSet _gActor335800Animation11048 = {
-    _gActor335800Animation11048Records,
-    _gActor335800Animation11048Indices,
-    { NULL, _gActor335800Animation11048Bank1, NULL, NULL, _gActor335800Animation11048Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/dryfield/night_motel_balcony/gary_and_flint_clips_3.inc"
 
 /// Flint's embedded clip table, with clip 0 absent and clip 1 loaded.
 ///
 /// Playback borrows this table and its clip data while the actor package is
 /// loaded. Animation IDs index its two entries directly; the NULL entry is
 /// not playable. There is no embedded clip-table extension.
-static AnimationSet* _gActor335800FlintAnimationBank[2] = {
-    NULL,
-    &_gActor335800Animation11048,
-};
+#include "assets/rooms/dryfield/night_motel_balcony/flint_bank.inc"
 
 /// Indexed banks for Flint's nineteen-part animation rig; bank 0 is the only bank.
 ///
@@ -1252,7 +925,7 @@ static AnimationSet** _gActor335800FlintAnimationBanks[1] = {
     _gActor335800FlintAnimationBank,
 };
 
-TaskDesc gActor335800FlintTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_335800_TASK_PRIORITY } }, _actor335800FlintTask, { .model = &_gActor335800FlintBody } };
+TaskDesc gActor335800FlintTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_335800_TASK_PRIORITY } }, _actor335800FlintTask, { .model = &gFlintBody } };
 
 /// Flint's synchronous placed-actor message table.
 ///

@@ -1,0 +1,1119 @@
+# The assets of the group characters/kyle, each named characters/kyle/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[mm1]
+type = "model"
+slots = ["mm1_texture"]
+symbol = "gKyleMm1"
+sha1 = "44ed19390778db6da487478468561340ddd5273f"
+
+[rig]
+type = "rig"
+joints = [
+    "joint_0",
+    "joint_1",
+    "joint_2",
+    "joint_3",
+    "joint_4",
+    "joint_5",
+    "joint_6",
+    "joint_7",
+    "joint_8",
+    "joint_9",
+    "joint_10",
+    "joint_11",
+    "joint_12",
+    "joint_13",
+    "joint_14",
+    "joint_15",
+    "joint_16",
+    "joint_17",
+    "joint_18",
+    "joint_19",
+]
+
+[run]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[body]
+type = "model"
+rig = "characters/kyle/rig"
+slots = ["page_2", "page_1"]
+symbol = "gKyleBody"
+sha1 = "e3cf76d849fcee0fc4656d781fbcedd708a3c1a1"
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "25489aff45973f27912a996c612e3a8141fa1813"
+palettes = [
+    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
+    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
+]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "900c89c06c8b71189bdedb0a2de780542c48406f"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[[file.contents]]
+asset = "rooms/dryfield/water_tank/kyle"
+
+[hurt]
+type = "sound"
+sha1 = "d38198cfc683efca587525e8884b1b9129964845"
+
+[idle]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[m4a1]
+type = "model"
+slots = ["m4a1_texture"]
+symbol = "gKyleM4a1"
+sha1 = "0c42617703287148c328419713a26b241d1a93a7"
+
+[m950]
+type = "model"
+slots = ["m950_texture"]
+symbol = "gKyleM950"
+sha1 = "3bc4f9c495c5d10bdc316d2d1b1af152aa64d428"
+
+[p229]
+type = "model"
+slots = ["p229_texture"]
+symbol = "gKyleP229"
+sha1 = "3fa34d13bce5e2792f496aebcd6982c977ab74c3"
+
+[talk]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[death]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[kneel]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[hurt_2]
+type = "sound"
+sha1 = "e0866b0c94c424d05b824e13ac5a9cad2ec21ab9"
+
+[listen]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[hit_body]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[hit_head]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[mm1_file]
+type = "file"
+
+[[mm1_file.contents]]
+chunk = "companion_2_sounds"
+
+[[mm1_file.contents]]
+chunk = "palette"
+sha1 = "25489aff45973f27912a996c612e3a8141fa1813"
+
+[[mm1_file.contents]]
+chunk = "image"
+sha1 = "900c89c06c8b71189bdedb0a2de780542c48406f"
+
+[[mm1_file.contents]]
+chunk = "mm1_palette"
+sha1 = "76303bb67d2984038bac7dc178e15d2a123a56de"
+palettes = [{ texture = "mm1_texture", variant = "default", region = "engine/vram/held_weapon_palette" }]
+
+[[mm1_file.contents]]
+chunk = "mm1_image"
+sha1 = "321de772e775a264a70cc456b63f291cc77b6a57"
+pages = [{ texture = "mm1_texture", region = "engine/vram/held_weapon_sheet" }]
+
+[[mm1_file.contents]]
+chunk = "companion_2"
+
+[mm1_fire]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[talk_end]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[armed_run]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[companion]
+type = "pe2pkg"
+embedded = [
+    "characters/kyle/eyes_open",
+    "characters/kyle/eyes_half_closed",
+    "characters/kyle/eyes_closed",
+    "characters/kyle/mouth_closed",
+    "characters/kyle/mouth_open",
+]
+package_name = "actor_800100"
+required = true
+sha1 = "7796ae807ed917aaba6fa2638384167af67bf40a"
+
+[hand_left]
+type = "model"
+slots = ["page_1"]
+symbol = "gKyleHandLeft"
+sha1 = "984b02fc66d2bcbdbba72da54c3bb88b39b09e14"
+
+[kyle_idle]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[m4a1_file]
+type = "file"
+
+[[m4a1_file.contents]]
+chunk = "companion_4_sounds"
+
+[[m4a1_file.contents]]
+chunk = "palette"
+sha1 = "25489aff45973f27912a996c612e3a8141fa1813"
+
+[[m4a1_file.contents]]
+chunk = "image"
+sha1 = "900c89c06c8b71189bdedb0a2de780542c48406f"
+
+[[m4a1_file.contents]]
+chunk = "m4a1_palette"
+sha1 = "30c1db1d9894a4de88e6215ac6e660725aca0592"
+palettes = [{ texture = "m4a1_texture", variant = "default", region = "engine/vram/held_weapon_palette" }]
+
+[[m4a1_file.contents]]
+chunk = "m4a1_image"
+sha1 = "c15b0e3d2ac50fe2226c5249f10c4f9229573d03"
+pages = [{ texture = "m4a1_texture", region = "engine/vram/held_weapon_sheet" }]
+
+[[m4a1_file.contents]]
+chunk = "companion_4"
+
+[m4a1_fire]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[m4a1_shot]
+type = "sound"
+sha1 = "063e25fd84e801e368e0437cd10d3409dcac9501"
+
+[m950_file]
+type = "file"
+
+[[m950_file.contents]]
+chunk = "companion_3_sounds"
+
+[[m950_file.contents]]
+chunk = "palette"
+sha1 = "25489aff45973f27912a996c612e3a8141fa1813"
+
+[[m950_file.contents]]
+chunk = "image"
+sha1 = "900c89c06c8b71189bdedb0a2de780542c48406f"
+
+[[m950_file.contents]]
+chunk = "m950_palette"
+sha1 = "9d90bfefb365038938325519fae6d83efe74ec56"
+palettes = [{ texture = "m950_texture", variant = "default", region = "engine/vram/held_weapon_palette" }]
+
+[[m950_file.contents]]
+chunk = "m950_image"
+sha1 = "8c97e9522da30044b42babb401e0a1161fff1929"
+pages = [{ texture = "m950_texture", region = "engine/vram/held_weapon_sheet" }]
+
+[[m950_file.contents]]
+chunk = "companion_3"
+
+[m950_fire]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[m950_shot]
+type = "sound"
+sha1 = "94350afc761e97c94ca6175b051b42221d1d483e"
+
+[p229_file]
+type = "file"
+
+[[p229_file.contents]]
+chunk = "p229_palette"
+sha1 = "3265702a42e6a0a8e327ca49288d432470524e67"
+palettes = [{ texture = "p229_texture", variant = "default", region = "engine/vram/held_weapon_palette" }]
+
+[[p229_file.contents]]
+chunk = "p229_image"
+sha1 = "f45b3f8399678cf4aaeb88c4721bc788850034a8"
+pages = [{ texture = "p229_texture", region = "engine/vram/held_weapon_sheet" }]
+
+[p229_shot]
+type = "sound"
+sha1 = "19de98fd5f7748b9cb56ce6093d337454735ebcc"
+
+[turn_left]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[armed_walk]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[hand_right]
+type = "model"
+slots = ["page_1"]
+symbol = "gKyleHandRight"
+sha1 = "0decff4ce4d28a2628b0d03fabdeba5f4e5484b7"
+
+[m4a1_flame]
+type = "sound"
+sha1 = "5af831eac6cde51abc3a4ca2910cfe90b29c6e99"
+
+[mm1_launch]
+type = "sound"
+sha1 = "40167f7c303d93125a4864d5e629c4ec0c8d9cfe"
+
+[mm1_reload]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[talk_start]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[turn_right]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[aim_forward]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[companion_1]
+type = "pe2pkg"
+embedded = [
+    { name = "hand_right_3", offset = 0x04F9C, size = 0x4F0, address = 0x8016CA0C },
+    { name = "idle", offset = 0x06214, size = 0x230, address = 0x8016DC84 },
+    { name = "turn_left", offset = 0x06444, size = 0x86C, address = 0x8016DEB4 },
+    { name = "turn_right", offset = 0x06CB0, size = 0x8D4, address = 0x8016E720 },
+    { name = "hit_head", offset = 0x07584, size = 0x4C0, address = 0x8016EFF4 },
+    { name = "hit_body", offset = 0x07A44, size = 0x5A4, address = 0x8016F4B4 },
+    { name = "death", offset = 0x07FE8, size = 0x570, address = 0x8016FA58 },
+    { name = "idle_variation", offset = 0x08558, size = 0x80C, address = 0x8016FFC8 },
+    { name = "kneel", offset = 0x08D64, size = 0x4D0, address = 0x801707D4 },
+    { name = "rise_from_kneel", offset = 0x09234, size = 0x558, address = 0x80170CA4 },
+    { name = "madigan_anim_29", offset = 0x0978C, size = 0x1F4, address = 0x801711FC },
+    { name = "p229_unused_pose", offset = 0x09980, size = 0x1F0, address = 0x801713F0 },
+    { name = "p229_aim_backward", offset = 0x09B70, size = 0x77C, address = 0x801715E0 },
+    { name = "p229_aim_forward", offset = 0x0A2EC, size = 0x9B8, address = 0x80171D5C },
+    { name = "p229_reload", offset = 0x0ACA4, size = 0xA74, address = 0x80172714 },
+    { name = "madigan_anim_28", offset = 0x0B718, size = 0x278, address = 0x80173188 },
+    { name = "madigan_anim_27", offset = 0x0B990, size = 0x408, address = 0x80173400 },
+    { name = "madigan_anim_30", offset = 0x0BD98, size = 0x4DC, address = 0x80173808 },
+    { asset = "characters/rupert/walk", offset = 0x0C274, size = 0x880, address = 0x80173CE4 },
+    { name = "run", offset = 0x0CAF4, size = 0xA04, address = 0x80174564 },
+    { name = "backward_walk", offset = 0x0D4F8, size = 0x768, address = 0x80174F68 },
+    { name = "companion_1_bank", offset = 0x0DC60, size = 0x13C, address = 0x801756D0 },
+]
+package_name = "kyle_800101"
+required = true
+sha1 = "29ac4970c8e1923e85a89cab932c601dd4a4c224"
+
+[companion_2]
+type = "pe2pkg"
+embedded = [
+    { name = "mm1", offset = 0x06674, size = 0x87C, address = 0x8016E0E4 },
+    { name = "idle", offset = 0x06EF0, size = 0x230, address = 0x8016E960 },
+    { asset = "characters/rupert/walk", offset = 0x07120, size = 0x880, address = 0x8016EB90 },
+    { name = "turn_left", offset = 0x079A0, size = 0x86C, address = 0x8016F410 },
+    { name = "turn_right", offset = 0x0820C, size = 0x8D4, address = 0x8016FC7C },
+    { name = "hit_head", offset = 0x08AE0, size = 0x4C0, address = 0x80170550 },
+    { name = "hit_body", offset = 0x08FA0, size = 0x5A4, address = 0x80170A10 },
+    { name = "death", offset = 0x09544, size = 0x570, address = 0x80170FB4 },
+    { name = "idle_variation", offset = 0x09AB4, size = 0x80C, address = 0x80171524 },
+    { name = "kneel", offset = 0x0A2C0, size = 0x4D0, address = 0x80171D30 },
+    { name = "rise_from_kneel", offset = 0x0A790, size = 0x558, address = 0x80172200 },
+    { name = "mm1_aim_idle", offset = 0x0ACE8, size = 0x1F0, address = 0x80172758 },
+    { name = "mm1_aim_backward", offset = 0x0AED8, size = 0x770, address = 0x80172948 },
+    { name = "aim_forward", offset = 0x0B648, size = 0xA10, address = 0x801730B8 },
+    { name = "mm1_reload", offset = 0x0C058, size = 0xCA8, address = 0x80173AC8 },
+    { name = "mm1_fire", offset = 0x0CD00, size = 0x3AC, address = 0x80174770 },
+    { name = "mm1_aim_enter", offset = 0x0D0AC, size = 0x5C4, address = 0x80174B1C },
+    { name = "mm1_aim_exit", offset = 0x0D670, size = 0x674, address = 0x801750E0 },
+    { name = "armed_walk", offset = 0x0DCE4, size = 0x894, address = 0x80175754 },
+    { name = "armed_backward_walk", offset = 0x0E578, size = 0x754, address = 0x80175FE8 },
+    { name = "armed_run", offset = 0x0ECCC, size = 0xBAC, address = 0x8017673C },
+    { name = "companion_2_bank", offset = 0x0F878, size = 0x13C, address = 0x801772E8 },
+    { name = "mm1_grenade_shell", offset = 0x0F9D0, size = 0x18C, address = 0x80177440 },
+]
+package_name = "kyle_800102"
+required = true
+sha1 = "c18836b60821be294d8a9fc4f49789f1df5543ac"
+
+[companion_3]
+type = "pe2pkg"
+embedded = [
+    { name = "m950", offset = 0x05DD0, size = 0x620, address = 0x8016D840 },
+    { name = "idle", offset = 0x063F0, size = 0x230, address = 0x8016DE60 },
+    { asset = "characters/rupert/walk", offset = 0x06620, size = 0x880, address = 0x8016E090 },
+    { name = "turn_left", offset = 0x06EA0, size = 0x86C, address = 0x8016E910 },
+    { name = "turn_right", offset = 0x0770C, size = 0x8D4, address = 0x8016F17C },
+    { name = "hit_head", offset = 0x07FE0, size = 0x4C0, address = 0x8016FA50 },
+    { name = "hit_body", offset = 0x084A0, size = 0x5A4, address = 0x8016FF10 },
+    { name = "death", offset = 0x08A44, size = 0x570, address = 0x801704B4 },
+    { name = "idle_variation", offset = 0x08FB4, size = 0x80C, address = 0x80170A24 },
+    { name = "kneel", offset = 0x097C0, size = 0x4D0, address = 0x80171230 },
+    { name = "rise_from_kneel", offset = 0x09C90, size = 0x558, address = 0x80171700 },
+    { name = "m950_aim_idle", offset = 0x0A1E8, size = 0x1F0, address = 0x80171C58 },
+    { name = "m950_aim_backward", offset = 0x0A3D8, size = 0x79C, address = 0x80171E48 },
+    { name = "aim_forward", offset = 0x0AB74, size = 0xA10, address = 0x801725E4 },
+    { name = "m950_reload", offset = 0x0B584, size = 0x8F0, address = 0x80172FF4 },
+    { name = "m950_fire", offset = 0x0BE74, size = 0x288, address = 0x801738E4 },
+    { name = "m950_aim_enter", offset = 0x0C0FC, size = 0x498, address = 0x80173B6C },
+    { name = "m950_aim_exit", offset = 0x0C594, size = 0x50C, address = 0x80174004 },
+    { name = "run", offset = 0x0CAA0, size = 0xA04, address = 0x80174510 },
+    { name = "backward_walk", offset = 0x0D4A4, size = 0x768, address = 0x80174F14 },
+    { name = "companion_3_bank", offset = 0x0DC0C, size = 0x13C, address = 0x8017567C },
+]
+package_name = "kyle_800103"
+required = true
+sha1 = "3c2490173ddaf3376d9f93a81e2fd074cff88553"
+
+[companion_4]
+type = "pe2pkg"
+embedded = [
+    { name = "m4a1", offset = 0x05DD0, size = 0xD4C, address = 0x8016D840 },
+    { name = "idle", offset = 0x06B1C, size = 0x230, address = 0x8016E58C },
+    { asset = "characters/rupert/walk", offset = 0x06D4C, size = 0x880, address = 0x8016E7BC },
+    { name = "turn_left", offset = 0x075CC, size = 0x86C, address = 0x8016F03C },
+    { name = "turn_right", offset = 0x07E38, size = 0x8D4, address = 0x8016F8A8 },
+    { name = "hit_head", offset = 0x0870C, size = 0x4C0, address = 0x8017017C },
+    { name = "hit_body", offset = 0x08BCC, size = 0x5A4, address = 0x8017063C },
+    { name = "death", offset = 0x09170, size = 0x570, address = 0x80170BE0 },
+    { name = "idle_variation", offset = 0x096E0, size = 0x80C, address = 0x80171150 },
+    { name = "kneel", offset = 0x09EEC, size = 0x4D0, address = 0x8017195C },
+    { name = "rise_from_kneel", offset = 0x0A3BC, size = 0x558, address = 0x80171E2C },
+    { name = "m4a1_aim_idle", offset = 0x0A914, size = 0x1F0, address = 0x80172384 },
+    { name = "m4a1_aim_backward", offset = 0x0AB04, size = 0x738, address = 0x80172574 },
+    { name = "aim_forward", offset = 0x0B23C, size = 0xA10, address = 0x80172CAC },
+    { name = "m4a1_reload", offset = 0x0BC4C, size = 0x948, address = 0x801736BC },
+    { name = "m4a1_fire", offset = 0x0C594, size = 0x2F4, address = 0x80174004 },
+    { name = "m4a1_pyke_finish", offset = 0x0C888, size = 0x300, address = 0x801742F8 },
+    { name = "m4a1_aim_enter", offset = 0x0CB88, size = 0x51C, address = 0x801745F8 },
+    { name = "m4a1_aim_exit", offset = 0x0D0A4, size = 0x574, address = 0x80174B14 },
+    { name = "armed_walk", offset = 0x0D618, size = 0x894, address = 0x80175088 },
+    { name = "armed_backward_walk", offset = 0x0DEAC, size = 0x754, address = 0x8017591C },
+    { name = "armed_run", offset = 0x0E600, size = 0xBAC, address = 0x80176070 },
+    { name = "companion_4_bank", offset = 0x0F1AC, size = 0x13C, address = 0x80176C1C },
+]
+package_name = "kyle_800104"
+required = true
+sha1 = "0411d7145c25db6d10c067b1506446c7d2b4ae63"
+
+[hand_left_2]
+type = "model"
+slots = ["page_1"]
+symbol = "gKyleHandLeft2"
+sha1 = "423c29466934cc654faf0489b6778b1d749da3e5"
+
+[hand_left_3]
+type = "model"
+slots = ["page_2"]
+symbol = "_gKyleHandLeft3"
+sha1 = "c2a0ec04f5ba510ca32d73109928f8a4804d184b"
+
+[m4a1_reload]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[m950_reload]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[mm1_binding]
+type = "binding"
+model = "characters/kyle/mm1"
+textures = { mm1_texture = "characters/kyle/mm1_texture.default" }
+
+[mm1_texture]
+type = "texture"
+bpp = 4
+height = 64
+variants = ["default"]
+width = 256
+
+[p229_reload]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[body_binding]
+type = "binding"
+model = "characters/kyle/body"
+textures = { page_2 = "characters/kyle/texture_page_2.default", page_1 = "characters/kyle/texture_page_1.default" }
+
+[hand_right_2]
+type = "model"
+slots = ["page_2"]
+symbol = "_gKyleHandRight2"
+sha1 = "01b5d657ea54166c16433d75edd75543ad434334"
+
+[hand_right_3]
+type = "model"
+slots = ["page_1"]
+symbol = "gKyleHandRight3"
+sha1 = "8cf3bdfe9c1b55b26a4d68ffd754f77fc2c5ea7e"
+
+[m4a1_binding]
+type = "binding"
+model = "characters/kyle/m4a1"
+textures = { m4a1_texture = "characters/kyle/m4a1_texture.default" }
+
+[m4a1_texture]
+type = "texture"
+bpp = 4
+height = 64
+variants = ["default"]
+width = 256
+
+[m950_binding]
+type = "binding"
+model = "characters/kyle/m950"
+textures = { m950_texture = "characters/kyle/m950_texture.default" }
+
+[m950_texture]
+type = "texture"
+bpp = 4
+height = 64
+variants = ["default"]
+width = 256
+
+[mm1_aim_exit]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[mm1_aim_idle]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[p229_binding]
+type = "binding"
+model = "characters/kyle/p229"
+textures = { p229_texture = "characters/kyle/p229_texture.default" }
+
+[p229_texture]
+type = "texture"
+bpp = 4
+height = 64
+variants = ["default"]
+width = 256
+
+[backward_walk]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[explain_virus]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[gas_mask_file]
+type = "file"
+
+[[gas_mask_file.contents]]
+chunk = "gas_mask_palette"
+sha1 = "a9a9ac3a39a92929f526f20c8f23b58297424d84"
+
+[[gas_mask_file.contents.palettes]]
+texture = "gas_mask_texture_page_1"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0, 0]
+
+[[gas_mask_file.contents.palettes]]
+texture = "gas_mask_texture_page_2"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0, 1]
+
+[[gas_mask_file.contents]]
+chunk = "gas_mask_image"
+sha1 = "4244394d816f3a7cd62fea7e4287d40dd3c44520"
+pages = [
+    { texture = "gas_mask_texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
+    { texture = "gas_mask_texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+]
+slots = 6
+
+[m4a1_aim_exit]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[m4a1_aim_idle]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[m950_aim_exit]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[m950_aim_idle]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[mm1_aim_enter]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[mm1_explosion]
+type = "sound"
+sha1 = "2c852246c9f98e5834e085893df9fe059e95669d"
+
+[alternate_body]
+type = "model"
+rig = "characters/kyle/rig"
+slots = ["page_2", "page_1"]
+symbol = "_gKyleAlternateBody"
+sha1 = "25694d0aaf97ba5c9df31e2f0afd6dc63d70e426"
+
+[idle_variation]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[m4a1_aim_enter]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[m950_aim_enter]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[madigan_anim_04]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[madigan_anim_27]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[madigan_anim_28]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[madigan_anim_29]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[madigan_anim_30]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[rise_from_kneel]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[companion_1_bank]
+type = "animation_bank"
+schema = "characters/kyle/companion_1_schema"
+symbol = "gKyle800101KyleMadiganAnimationBank"
+
+[companion_1_bank.clips]
+idle = "characters/kyle/idle"
+walk = "characters/rupert/walk"
+backward_walk = "characters/kyle/backward_walk"
+run = "characters/kyle/run"
+turn_left = "characters/kyle/turn_left"
+turn_right = "characters/kyle/turn_right"
+aim_enter = "characters/kyle/madigan_anim_27"
+aim_exit = "characters/kyle/madigan_anim_30"
+aim_idle = "characters/kyle/madigan_anim_29"
+fire = "characters/kyle/madigan_anim_28"
+secondary_fire = "characters/kyle/idle"
+aim_forward = "characters/kyle/p229_aim_forward"
+aim_backward = "characters/kyle/p229_aim_backward"
+reload = "characters/kyle/p229_reload"
+secondary_reload = "characters/kyle/idle"
+hit_head = "characters/kyle/hit_head"
+hit_body = "characters/kyle/hit_body"
+death = "characters/kyle/death"
+unarmed_walk = "characters/rupert/walk"
+reload_battle_end = "characters/kyle/p229_reload"
+slot_21 = "characters/kyle/idle"
+slot_22 = "characters/kyle/idle"
+high_health_idle = "characters/kyle/idle_variation"
+mid_health_idle = "characters/kyle/idle"
+low_health_idle = "characters/kyle/idle"
+examine_enter = "characters/kyle/kneel"
+examine_exit = "characters/kyle/rise_from_kneel"
+slot_34 = "characters/kyle/madigan_anim_27"
+slot_35 = "characters/kyle/madigan_anim_30"
+stair_ascent = "characters/kyle/idle"
+stair_descent = "characters/kyle/idle"
+stair_ascent_finish_even = "characters/kyle/idle"
+stair_ascent_finish_odd = "characters/kyle/idle"
+item_use = "characters/kyle/idle"
+
+[companion_2_bank]
+type = "animation_bank"
+schema = "characters/kyle/companion_2_schema"
+symbol = "gKyle800102CompanionAnimationBank"
+
+[companion_2_bank.clips]
+idle = "characters/kyle/idle"
+walk = "characters/kyle/armed_walk"
+backward_walk = "characters/kyle/armed_backward_walk"
+run = "characters/kyle/armed_run"
+turn_left = "characters/kyle/turn_left"
+turn_right = "characters/kyle/turn_right"
+aim_enter = "characters/kyle/mm1_aim_enter"
+aim_exit = "characters/kyle/mm1_aim_exit"
+aim_idle = "characters/kyle/mm1_aim_idle"
+fire = "characters/kyle/mm1_fire"
+secondary_fire = "characters/kyle/idle"
+aim_forward = "characters/kyle/aim_forward"
+aim_backward = "characters/kyle/mm1_aim_backward"
+reload = "characters/kyle/mm1_reload"
+secondary_reload = "characters/kyle/idle"
+hit_head = "characters/kyle/hit_head"
+hit_body = "characters/kyle/hit_body"
+death = "characters/kyle/death"
+unarmed_walk = "characters/rupert/walk"
+reload_battle_end = "characters/kyle/mm1_reload"
+slot_21 = "characters/kyle/idle"
+slot_22 = "characters/kyle/idle"
+high_health_idle = "characters/kyle/idle_variation"
+mid_health_idle = "characters/kyle/idle"
+low_health_idle = "characters/kyle/idle"
+examine_enter = "characters/kyle/kneel"
+examine_exit = "characters/kyle/rise_from_kneel"
+slot_34 = "characters/kyle/mm1_aim_enter"
+slot_35 = "characters/kyle/mm1_aim_exit"
+stair_ascent = "characters/kyle/idle"
+stair_descent = "characters/kyle/idle"
+stair_ascent_finish_even = "characters/kyle/idle"
+stair_ascent_finish_odd = "characters/kyle/idle"
+item_use = "characters/kyle/idle"
+
+[companion_3_bank]
+type = "animation_bank"
+schema = "characters/kyle/companion_3_schema"
+symbol = "gKyle800103KyleMadiganAnimationBank"
+
+[companion_3_bank.clips]
+idle = "characters/kyle/idle"
+walk = "characters/rupert/walk"
+backward_walk = "characters/kyle/backward_walk"
+run = "characters/kyle/run"
+turn_left = "characters/kyle/turn_left"
+turn_right = "characters/kyle/turn_right"
+aim_enter = "characters/kyle/m950_aim_enter"
+aim_exit = "characters/kyle/m950_aim_exit"
+aim_idle = "characters/kyle/m950_aim_idle"
+fire = "characters/kyle/m950_fire"
+secondary_fire = "characters/kyle/idle"
+aim_forward = "characters/kyle/aim_forward"
+aim_backward = "characters/kyle/m950_aim_backward"
+reload = "characters/kyle/m950_reload"
+secondary_reload = "characters/kyle/idle"
+hit_head = "characters/kyle/hit_head"
+hit_body = "characters/kyle/hit_body"
+death = "characters/kyle/death"
+unarmed_walk = "characters/rupert/walk"
+reload_battle_end = "characters/kyle/m950_reload"
+slot_21 = "characters/kyle/idle"
+slot_22 = "characters/kyle/idle"
+high_health_idle = "characters/kyle/idle_variation"
+mid_health_idle = "characters/kyle/idle"
+low_health_idle = "characters/kyle/idle"
+examine_enter = "characters/kyle/kneel"
+examine_exit = "characters/kyle/rise_from_kneel"
+slot_34 = "characters/kyle/m950_aim_enter"
+slot_35 = "characters/kyle/m950_aim_exit"
+stair_ascent = "characters/kyle/idle"
+stair_descent = "characters/kyle/idle"
+stair_ascent_finish_even = "characters/kyle/idle"
+stair_ascent_finish_odd = "characters/kyle/idle"
+item_use = "characters/kyle/idle"
+
+[companion_4_bank]
+type = "animation_bank"
+schema = "characters/kyle/companion_4_schema"
+symbol = "gKyle800104KyleMadiganAnimationBank"
+
+[companion_4_bank.clips]
+idle = "characters/kyle/idle"
+walk = "characters/kyle/armed_walk"
+backward_walk = "characters/kyle/armed_backward_walk"
+run = "characters/kyle/armed_run"
+turn_left = "characters/kyle/turn_left"
+turn_right = "characters/kyle/turn_right"
+aim_enter = "characters/kyle/m4a1_aim_enter"
+aim_exit = "characters/kyle/m4a1_aim_exit"
+aim_idle = "characters/kyle/m4a1_aim_idle"
+fire = "characters/kyle/m4a1_fire"
+secondary_fire = "characters/kyle/m4a1_pyke_finish"
+aim_forward = "characters/kyle/aim_forward"
+aim_backward = "characters/kyle/m4a1_aim_backward"
+reload = "characters/kyle/m4a1_reload"
+secondary_reload = "characters/kyle/idle"
+hit_head = "characters/kyle/hit_head"
+hit_body = "characters/kyle/hit_body"
+death = "characters/kyle/death"
+unarmed_walk = "characters/rupert/walk"
+reload_battle_end = "characters/kyle/m4a1_reload"
+slot_21 = "characters/kyle/idle"
+slot_22 = "characters/kyle/idle"
+high_health_idle = "characters/kyle/idle_variation"
+mid_health_idle = "characters/kyle/idle"
+low_health_idle = "characters/kyle/idle"
+examine_enter = "characters/kyle/kneel"
+examine_exit = "characters/kyle/rise_from_kneel"
+slot_34 = "characters/kyle/m4a1_aim_enter"
+slot_35 = "characters/kyle/m4a1_aim_exit"
+stair_ascent = "characters/kyle/idle"
+stair_descent = "characters/kyle/idle"
+stair_ascent_finish_even = "characters/kyle/idle"
+stair_ascent_finish_odd = "characters/kyle/idle"
+item_use = "characters/kyle/idle"
+
+[m4a1_pyke_finish]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[mention_monsters]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[mm1_aim_backward]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[p229_aim_forward]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[p229_unused_pose]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[hand_left_binding]
+type = "binding"
+model = "characters/kyle/hand_left"
+textures = { page_1 = "characters/kyle/texture_page_1.default" }
+
+[m4a1_aim_backward]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[m950_aim_backward]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[mm1_grenade_shell]
+type = "model"
+slots = ["mm1_texture"]
+symbol = "gKyleMm1GrenadeShell"
+sha1 = "82b1db1d689f01f2b408b7170350beedf155d0eb"
+
+[p229_aim_backward]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[companion_1_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "idle",
+    "walk",
+    "backward_walk",
+    "run",
+    "turn_left",
+    "turn_right",
+    "aim_enter",
+    "aim_exit",
+    "aim_idle",
+    "fire",
+    "secondary_fire",
+    "aim_forward",
+    "aim_backward",
+    "reload",
+    "secondary_reload",
+    "hit_head",
+    "hit_body",
+    "death",
+    "unarmed_walk",
+    "reload_battle_end",
+    "slot_21",
+    "slot_22",
+    "high_health_idle",
+    "mid_health_idle",
+    "low_health_idle",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "examine_enter",
+    "examine_exit",
+    "slot_34",
+    "slot_35",
+    "stair_ascent",
+    "stair_descent",
+    "stair_ascent_finish_even",
+    "stair_ascent_finish_odd",
+    "item_use",
+]
+
+[companion_1_sounds]
+type = "sound_bank"
+samples = ["characters/kyle/p229_shot", "characters/kyle/hurt"]
+sounds = { shot = 1, hurt = 10 }
+sha1 = "06ca4ca439345b5811b5236866ed6c251bd95802"
+
+[companion_2_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "idle",
+    "walk",
+    "backward_walk",
+    "run",
+    "turn_left",
+    "turn_right",
+    "aim_enter",
+    "aim_exit",
+    "aim_idle",
+    "fire",
+    "secondary_fire",
+    "aim_forward",
+    "aim_backward",
+    "reload",
+    "secondary_reload",
+    "hit_head",
+    "hit_body",
+    "death",
+    "unarmed_walk",
+    "reload_battle_end",
+    "slot_21",
+    "slot_22",
+    "high_health_idle",
+    "mid_health_idle",
+    "low_health_idle",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "examine_enter",
+    "examine_exit",
+    "slot_34",
+    "slot_35",
+    "stair_ascent",
+    "stair_descent",
+    "stair_ascent_finish_even",
+    "stair_ascent_finish_odd",
+    "item_use",
+]
+
+[companion_2_sounds]
+type = "sound_bank"
+samples = ["characters/kyle/mm1_launch", "characters/kyle/mm1_explosion", "characters/kyle/hurt_2"]
+sounds = { launch = 1, explosion = 2, hurt = 10 }
+sha1 = "083d82d3c347907da4d5ef6e6517446fc7d00365"
+
+[companion_3_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "idle",
+    "walk",
+    "backward_walk",
+    "run",
+    "turn_left",
+    "turn_right",
+    "aim_enter",
+    "aim_exit",
+    "aim_idle",
+    "fire",
+    "secondary_fire",
+    "aim_forward",
+    "aim_backward",
+    "reload",
+    "secondary_reload",
+    "hit_head",
+    "hit_body",
+    "death",
+    "unarmed_walk",
+    "reload_battle_end",
+    "slot_21",
+    "slot_22",
+    "high_health_idle",
+    "mid_health_idle",
+    "low_health_idle",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "examine_enter",
+    "examine_exit",
+    "slot_34",
+    "slot_35",
+    "stair_ascent",
+    "stair_descent",
+    "stair_ascent_finish_even",
+    "stair_ascent_finish_odd",
+    "item_use",
+]
+
+[companion_3_sounds]
+type = "sound_bank"
+samples = ["characters/kyle/m950_shot", "characters/kyle/hurt_2"]
+sounds = { shot = 1, hurt = 10 }
+sha1 = "9df53a1e2e39b702e334efe2c8b189d2ea66f2e5"
+
+[companion_4_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "idle",
+    "walk",
+    "backward_walk",
+    "run",
+    "turn_left",
+    "turn_right",
+    "aim_enter",
+    "aim_exit",
+    "aim_idle",
+    "fire",
+    "secondary_fire",
+    "aim_forward",
+    "aim_backward",
+    "reload",
+    "secondary_reload",
+    "hit_head",
+    "hit_body",
+    "death",
+    "unarmed_walk",
+    "reload_battle_end",
+    "slot_21",
+    "slot_22",
+    "high_health_idle",
+    "mid_health_idle",
+    "low_health_idle",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "examine_enter",
+    "examine_exit",
+    "slot_34",
+    "slot_35",
+    "stair_ascent",
+    "stair_descent",
+    "stair_ascent_finish_even",
+    "stair_ascent_finish_odd",
+    "item_use",
+]
+
+[companion_4_sounds]
+type = "sound_bank"
+samples = ["characters/kyle/m4a1_shot", "characters/kyle/m4a1_flame", "characters/kyle/hurt_2"]
+sounds = { shot = 1, flame = 2, hurt = 10 }
+sha1 = "2063bd53751e91fad980531a99cb57cb76a5ae81"
+
+[hand_right_binding]
+type = "binding"
+model = "characters/kyle/hand_right"
+textures = { page_1 = "characters/kyle/texture_page_1.default" }
+
+[armed_backward_walk]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[explain_virus_start]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[hand_left_2_binding]
+type = "binding"
+model = "characters/kyle/hand_left_2"
+textures = { page_1 = "characters/kyle/texture_page_1.default" }
+
+[hand_left_3_binding]
+type = "binding"
+model = "characters/kyle/hand_left_3"
+textures = { page_2 = "characters/kyle/texture_page_2.default" }
+
+[leave_driving_to_me]
+type = "clip"
+rig = "characters/kyle/rig"
+
+[hand_right_2_binding]
+type = "binding"
+model = "characters/kyle/hand_right_2"
+textures = { page_2 = "characters/kyle/texture_page_2.default" }
+
+[hand_right_3_binding]
+type = "binding"
+model = "characters/kyle/hand_right_3"
+textures = { page_1 = "characters/kyle/texture_page_1.default" }
+
+[alternate_body_binding]
+type = "binding"
+model = "characters/kyle/alternate_body"
+textures = { page_2 = "characters/kyle/texture_page_2.default", page_1 = "characters/kyle/texture_page_1.default" }
+
+[gas_mask_texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[gas_mask_texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[mm1_grenade_shell_binding]
+type = "binding"
+model = "characters/kyle/mm1_grenade_shell"
+textures = { mm1_texture = "characters/kyle/mm1_texture.default" }

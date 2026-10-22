@@ -321,9 +321,9 @@ enum {
 
 /// The records closing three of the overlay's model streams, which
 /// `_actor401300StateDeathBurst` points `gEffectBurstTaskDescriptors[5].data.model` at before spawning.
-static TmdSource _gActor401300HornedStrangerEffect1;
-static TmdSource _gActor401300HornedStrangerBurstHead;
-static TmdSource _gActor401300HornedStrangerEffect2;
+static TmdSource _gStrangerHornedBurstArm;
+static TmdSource _gStrangerHornedBurstHead;
+static TmdSource _gStrangerHornedBurstFragment;
 
 /// Overlay-data word `_actor401300StateDormantScripted` points
 /// `_gActor401300AnimationSets[16]` at on entering its state.
@@ -359,7 +359,7 @@ static AnimationSet _gActor401300Animation24A48;
 static AnimationSet _gActor401300Animation251E4;
 static AnimationSet _gActor401300Animation259F0;
 static AnimationSet _gActor401300Animation26204;
-static TmdSource    _gActor401300HornedStrangerBody;
+static TmdSource    _gStrangerHornedBody;
 static s32          _actor401300ApplyCommand(Task* task, s32 msgId, const ActorCommand* command, s32 unusedArg);
 static s32          _actor401300PlayMessageAnimation(Task* task, s32 msgId, const AnimationPlayRequest* request, s32 unusedArg);
 static s32          _actor401300IgnoreMessage2015(Task* task, s32 msgId, s32 unusedFirstArg, s32 unusedArg);
@@ -408,133 +408,13 @@ static ActorHornedStrangerVariant _gActor401300Variants[3] = {
     { 0, 500, 7, 0 },
 };
 
-static TmdBone _gActor401300HornedStrangerBodySkeleton[21] = {
-#include "assets/horned_stranger_body_skeleton.inc"
-};
+#include "assets/enemies/stranger/horned/body.inc"
 
-static u32 _gActor401300HornedStrangerBodyPartVerts[21] = {
-#include "assets/horned_stranger_body_partVerts.inc"
-};
+#include "assets/enemies/stranger/horned/burst_arm.inc"
 
-static SVECTOR _gActor401300HornedStrangerBodyVerts[293] = {
-#include "assets/horned_stranger_body_verts.inc"
-};
+#include "assets/enemies/stranger/horned/burst_head.inc"
 
-static SVECTOR _gActor401300HornedStrangerBodyNormals[363] = {
-#include "assets/horned_stranger_body_normals.inc"
-};
-
-static u32 _gActor401300HornedStrangerBodyStream[3776] = {
-#include "assets/horned_stranger_body_stream.inc"
-};
-
-static TmdSource _gActor401300HornedStrangerBody = {
-    0,
-    18488,
-    7600,
-    21,
-    _gActor401300HornedStrangerBodyPartVerts,
-    _gActor401300HornedStrangerBodyVerts,
-    _gActor401300HornedStrangerBodyNormals,
-    _gActor401300HornedStrangerBodySkeleton,
-    _gActor401300HornedStrangerBodyStream,
-};
-
-static TmdBone _gActor401300HornedStrangerEffect1Skeleton[1] = {
-#include "assets/horned_stranger_effect_1_skeleton.inc"
-};
-
-static u32 _gActor401300HornedStrangerEffect1PartVerts[1] = {
-#include "assets/horned_stranger_effect_1_partVerts.inc"
-};
-
-static SVECTOR _gActor401300HornedStrangerEffect1Verts[31] = {
-#include "assets/horned_stranger_effect_1_verts.inc"
-};
-
-static SVECTOR _gActor401300HornedStrangerEffect1Normals[1] = {
-#include "assets/horned_stranger_effect_1_normals.inc"
-};
-
-static u32 _gActor401300HornedStrangerEffect1Stream[302] = {
-#include "assets/horned_stranger_effect_1_stream.inc"
-};
-
-static TmdSource _gActor401300HornedStrangerEffect1 = {
-    0,
-    2004,
-    0,
-    1,
-    _gActor401300HornedStrangerEffect1PartVerts,
-    _gActor401300HornedStrangerEffect1Verts,
-    _gActor401300HornedStrangerEffect1Normals,
-    _gActor401300HornedStrangerEffect1Skeleton,
-    _gActor401300HornedStrangerEffect1Stream,
-};
-
-static TmdBone _gActor401300HornedStrangerBurstHeadSkeleton[1] = {
-#include "assets/horned_stranger_burst_head_skeleton.inc"
-};
-
-static u32 _gActor401300HornedStrangerBurstHeadPartVerts[1] = {
-#include "assets/horned_stranger_burst_head_partVerts.inc"
-};
-
-static SVECTOR _gActor401300HornedStrangerBurstHeadVerts[70] = {
-#include "assets/horned_stranger_burst_head_verts.inc"
-};
-
-static SVECTOR _gActor401300HornedStrangerBurstHeadNormals[85] = {
-#include "assets/horned_stranger_burst_head_normals.inc"
-};
-
-static u32 _gActor401300HornedStrangerBurstHeadStream[660] = {
-#include "assets/horned_stranger_burst_head_stream.inc"
-};
-
-static TmdSource _gActor401300HornedStrangerBurstHead = {
-    0,
-    4468,
-    0,
-    1,
-    _gActor401300HornedStrangerBurstHeadPartVerts,
-    _gActor401300HornedStrangerBurstHeadVerts,
-    _gActor401300HornedStrangerBurstHeadNormals,
-    _gActor401300HornedStrangerBurstHeadSkeleton,
-    _gActor401300HornedStrangerBurstHeadStream,
-};
-
-static TmdBone _gActor401300HornedStrangerEffect2Skeleton[1] = {
-#include "assets/horned_stranger_effect_2_skeleton.inc"
-};
-
-static u32 _gActor401300HornedStrangerEffect2PartVerts[1] = {
-#include "assets/horned_stranger_effect_2_partVerts.inc"
-};
-
-static SVECTOR _gActor401300HornedStrangerEffect2Verts[7] = {
-#include "assets/horned_stranger_effect_2_verts.inc"
-};
-
-static SVECTOR _gActor401300HornedStrangerEffect2Normals[7] = {
-#include "assets/horned_stranger_effect_2_normals.inc"
-};
-
-static u32 _gActor401300HornedStrangerEffect2Stream[84] = {
-#include "assets/horned_stranger_effect_2_stream.inc"
-};
-
-static TmdSource _gActor401300HornedStrangerEffect2 = {
-    0,
-    488,
-    0,
-    1,
-    _gActor401300HornedStrangerEffect2PartVerts,
-    _gActor401300HornedStrangerEffect2Verts,
-    _gActor401300HornedStrangerEffect2Normals,
-    _gActor401300HornedStrangerEffect2Skeleton,
-    _gActor401300HornedStrangerEffect2Stream,
-};
+#include "assets/enemies/stranger/horned/burst_fragment.inc"
 
 static AnimationPackedPose _gActor401300Animation17714Bank1[28] = {
 #include "assets/actor_401300_animation_17714_bank1.inc"
@@ -1349,7 +1229,7 @@ static SVECTOR _gActor401300Part8Rotations[2] = {
 
 enum { ACTOR_401300_TASK_PRIORITY = 96 };
 
-TaskDesc gActor401300HornedStrangerTaskDesc = { { { TASK_BODY_TMD, ACTOR_401300_TASK_PRIORITY } }, _actor401300Task, { .model = &_gActor401300HornedStrangerBody } };
+TaskDesc gActor401300HornedStrangerTaskDesc = { { { TASK_BODY_TMD, ACTOR_401300_TASK_PRIORITY } }, _actor401300Task, { .model = &_gStrangerHornedBody } };
 
 SVECTOR ActorContact_ScratchPosition = { 0 };
 
@@ -5064,24 +4944,24 @@ static void _actor401300StateDeathBurst(Task* actor)
     nextTick         = work->stateTimer + 1;
     work->stateTimer = nextTick;
     if ((s16)nextTick == ACTOR_401300_BURST_FIRST_TICK) {
-        gEffectBurstTaskDescriptors[ACTOR_401300_BURST_MODEL_SLOT].data.model = &_gActor401300HornedStrangerEffect1;
+        gEffectBurstTaskDescriptors[ACTOR_401300_BURST_MODEL_SLOT].data.model = &_gStrangerHornedBurstArm;
         effectOffset.vz                                                       = ACTOR_401300_BURST_OFFSET;
         effectOffset.vy                                                       = 0;
         effectOffset.vx                                                       = 0;
         _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, actor->extra.tmd->coords + 9, ACTOR_401300_BURST_PART_SIZE, &effectOffset), enemy);
     }
     if (work->stateTimer == ACTOR_401300_BURST_SECOND_TICK) {
-        gEffectBurstTaskDescriptors[ACTOR_401300_BURST_MODEL_SLOT].data.model = &_gActor401300HornedStrangerEffect1;
+        gEffectBurstTaskDescriptors[ACTOR_401300_BURST_MODEL_SLOT].data.model = &_gStrangerHornedBurstArm;
         effectOffset.vy                                                       = 0;
         effectOffset.vx                                                       = 0;
         _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, actor->extra.tmd->coords + 12, ACTOR_401300_BURST_PART_SIZE, &effectOffset), enemy);
     }
     if (work->stateTimer == ACTOR_401300_BURST_BODY_TICK) {
-        gEffectBurstTaskDescriptors[ACTOR_401300_BURST_MODEL_SLOT].data.model = &_gActor401300HornedStrangerEffect2;
+        gEffectBurstTaskDescriptors[ACTOR_401300_BURST_MODEL_SLOT].data.model = &_gStrangerHornedBurstFragment;
         _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, actor->extra.tmd->coords + 1, ACTOR_401300_BURST_PART_SIZE, NULL), enemy);
     }
     if (work->stateTimer == ACTOR_401300_BURST_HEAD_TICK) {
-        gEffectBurstTaskDescriptors[ACTOR_401300_BURST_MODEL_SLOT].data.model = &_gActor401300HornedStrangerBurstHead;
+        gEffectBurstTaskDescriptors[ACTOR_401300_BURST_MODEL_SLOT].data.model = &_gStrangerHornedBurstHead;
         _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, actor->extra.tmd->coords + 3, ACTOR_401300_BURST_PART_SIZE, NULL), enemy);
     }
     if (work->stateTimer >= ACTOR_401300_BURST_DEAD_TICK && work->playerHeld == 0) {
@@ -5177,14 +5057,14 @@ static void _actor401300StateDeathBurstWalk(Task* actor)
             }
             _actorContactApplyGridPushback(actor->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
             if (work->stateTimer == ACTOR_401300_BURST_WALK_FIRST_TICK) {
-                gEffectBurstTaskDescriptors[ACTOR_401300_BURST_WALK_MODEL_SLOT].data.model = &_gActor401300HornedStrangerBurstHead;
+                gEffectBurstTaskDescriptors[ACTOR_401300_BURST_WALK_MODEL_SLOT].data.model = &_gStrangerHornedBurstHead;
                 effectPosition.vz                                                          = ACTOR_401300_BURST_WALK_OFFSET;
                 effectPosition.vy                                                          = 0;
                 effectPosition.vx                                                          = 0;
                 _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, actor->extra.tmd->coords + 9, ACTOR_401300_BURST_WALK_PART_SIZE, &effectPosition), enemy);
             }
             if (work->stateTimer == ACTOR_401300_BURST_WALK_SECOND_TICK) {
-                gEffectBurstTaskDescriptors[ACTOR_401300_BURST_WALK_MODEL_SLOT].data.model = &_gActor401300HornedStrangerEffect2;
+                gEffectBurstTaskDescriptors[ACTOR_401300_BURST_WALK_MODEL_SLOT].data.model = &_gStrangerHornedBurstFragment;
                 _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, actor->extra.tmd->coords + 1, ACTOR_401300_BURST_WALK_PART_SIZE, NULL), enemy);
             }
             break;
