@@ -72,7 +72,6 @@ enum {
 
 #define ROOM_PART gMistParkingJodieShopTalkScript
 #include "assets/rooms/mist/parking/events.inc"
-
 /// Authored parking glow positions in signed world-coordinate units.
 ///
 /// Capsule drawers borrow one endpoint pair; row drawers borrow three
@@ -141,6 +140,7 @@ enum {
 #include "assets/rooms/mist/parking/placements.inc"
 #include "assets/rooms/mist/parking/ambient.inc"
 #include "assets/rooms/mist/parking/surfaces.inc"
+
 s32 gShopRefillDisplayQuantityFixed = 0;
 
 const EquipmentWeaponSupply* gShopRefillSupply = NULL;

@@ -442,7 +442,6 @@ enum {
 enum { ACROPOLIS_PLAZA_SEQUENCE_TASK_PRIORITY = 192 };
 
 #include "assets/rooms/akropolis/plaza/events.inc"
-
 TaskDesc gAcropolisPlazaSequenceTaskDescriptors[ACROPOLIS_PLAZA_TASK_COUNT] = {
     [ACROPOLIS_PLAZA_TASK_SEQUENCE]       = { { { TASK_BODY_NONE, ACROPOLIS_PLAZA_SEQUENCE_TASK_PRIORITY } }, _acropolisPlazaSequenceTask, { .value = 0 } },
     [ACROPOLIS_PLAZA_TASK_STREAMED_SCENE] = { { { TASK_BODY_NONE, ACROPOLIS_PLAZA_SEQUENCE_TASK_PRIORITY } }, _acropolisPlazaStreamedSceneTask, { .value = 0 } },
@@ -550,35 +549,8 @@ static VECTOR3 _gAcropolisPlazaTraversalShotPositions[ACROPOLIS_PLAZA_CAMERA_TRA
 };
 
 #include "assets/rooms/akropolis/plaza/clips.inc"
-
 #include "assets/rooms/akropolis/plaza/samples.inc"
-/// Local-frame anchor positions for the plaza's ambient-light placement slots.
-///
-/// Slots 1..6 supply siren beams, 7..10 flares and 12..18 glows; 0 and 11
-/// have no remaining consumer. Coordinates use signed-halfword game units
-/// relative to the emitter's coordinate. Effects retain the borrowed anchor
-/// pointer, so this overlay storage must stay live through their teardown.
-static SVECTOR _gAcropolisPlazaAmbientLightPlacements[] = {
-    { 0x5F5A, -710, 450, 0 },
-    { 0x6608, -1540, 2110, 0 },
-    { 0x66A8, -1540, 1960, 0 },
-    { 0x57D0, -1540, -310, 0 },
-    { 0x57B2, -1540, -530, 0 },
-    { 0x578A, -1540, -880, 0 },
-    { 0x5776, -1540, -1090, 0 },
-    { 0x3890, -1540, 8130, 0 },
-    { 0x37D2, -1540, 8230, 0 },
-    { 0x3692, -1540, 8390, 0 },
-    { 0x35D4, -1540, 8490, 0 },
-    { 0x4E8E, -690, 140, 0 },
-    { 0x4308, -2020, -290, 0 },
-    { 0x438A, -2020, 480, 0 },
-    { 0x2C06, -1680, 2230, 0 },
-    { 0x2990, -1680, 960, 0 },
-    { 0x2B7A, -640, 3390, 0 },
-    { 9580, -1070, 3620, 0 },
-    { 7970, -640, 4980, 0 },
-};
+#include "assets/rooms/akropolis/plaza/markers.inc"
 #define ROOM_PART gAcropolisPlazaRoomCollisionResources
 #include "assets/rooms/akropolis/plaza/header.inc"
 #include "assets/rooms/akropolis/plaza/cameras.inc"

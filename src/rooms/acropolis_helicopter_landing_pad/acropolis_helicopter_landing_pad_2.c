@@ -114,6 +114,7 @@ enum {
 #define ROOM_PART gAcropolisHelicopterLandingPadLethalStrikeVibrationCommands
 #include "assets/rooms/akropolis/helicopter_landing_pad/vibrations.inc"
 #include "assets/rooms/akropolis/helicopter_landing_pad/surfaces.inc"
+
 static TmdBone _gAcropolisHelicopterLandingPadModel0A8E8Skeleton[1] = {
 #include "assets/acropolis_helicopter_landing_pad_model_0A8E8_skeleton.inc"
 };

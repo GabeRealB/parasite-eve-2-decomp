@@ -161,20 +161,7 @@ static TaskDesc _gAcropolisPromenadeTranslucentPlaneTaskDescriptors[2] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-#define ROOM_PART _gAcropolisPromenadeBattleFollowupAnimationRequest
 #include "assets/rooms/akropolis/promenade/events.inc"
-
-/// Two retained records with word XYZ and halfword Euler-angle layout.
-///
-/// No consumer establishes their intended actors, coordinate frame or purpose.
-static ActorTransform D_acropolis_promenade_80180ED0[2] = {
-    { { -1454, 171, -1843, 0 }, { 0, 2048, 0, 0 } },
-    { { -999, 171, -2799, 0 }, { 0, 1324, 0, 0 } },
-};
-
-#define ROOM_PART _gAcropolisPromenadeBattleFollowupScript
-#include "assets/rooms/akropolis/promenade/events.inc"
-
 /// Warp-4 arrival movie latch (0 not started, 1 spawn already attempted).
 ///
 /// Reset by loading this overlay; set before spawning, even if spawning fails.

@@ -225,15 +225,7 @@ static TaskDesc _gAcropolisWestElevatorHallDoorLeafTaskTable[3] = {
 /// remain loaded while the arrival animation plays.
 #include "assets/rooms/akropolis/west_elevator_hall/acropolis_west_elevator_hall_arrival_bank.inc"
 
-#define ROOM_PART _gAcropolisWestElevatorHallArrivalAnimationBankCopyRequest
 #include "assets/rooms/akropolis/west_elevator_hall/events.inc"
-
-/// Unreferenced 24-byte record equal to the doorway transform; its role is unproven.
-static ActorTransform D_acropolis_west_elevator_hall_801845DC = { { 220, 0, 2650, 0 }, { 0, 2048, 0, 0 } };
-
-#define ROOM_PART _gAcropolisWestElevatorHallPlayerArrivalEndTransform
-#include "assets/rooms/akropolis/west_elevator_hall/events.inc"
-
 /// One-shot arrival-event latch (0 waiting, 1 running, 2 finished) for this overlay load.
 ///
 /// Set to running only on warp-1 entry and finished when the session event is
@@ -304,6 +296,7 @@ enum {
 #include "assets/rooms/akropolis/west_elevator_hall/lights.inc"
 #include "assets/rooms/akropolis/west_elevator_hall/cameras.inc"
 #include "assets/rooms/akropolis/west_elevator_hall/surfaces.inc"
+
 /// Borrowed live door-leaf task handles, negative X first and positive X second.
 ///
 /// Room initialization stores both spawn results. Door messages require both

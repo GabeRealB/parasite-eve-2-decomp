@@ -111,6 +111,7 @@ sha1 = "b62d1232be576a30edc6636ecacb2b53e8867f12"
 [package.entries]
 action_triggers = [{ at = 0x1BC30, single = true }, 0x1BC7C]
 animations = [0x05098]
+markers = [0x1B260]
 samples = [0x1B220]
 scripts = [0x05174, 0x05474, 0x05564, 0x056D0, 0x05958, 0x05B1C, 0x05EF4, 0x05F94, 0x0609C, 0x061A4]
 

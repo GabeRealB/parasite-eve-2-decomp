@@ -153,7 +153,9 @@ sha1 = "a3feb1e2773f95a09666e3065547f31d41ed53a3"
 animations = [0x03438, 0x0344C]
 geometry = [0x04D2C]
 markers = [{ at = 0x00010, single = true }, 0x051B4]
+scene_keys = [0x03544, 0x04B28]
 scripts = [0x0354C, 0x040A4, 0x04254, 0x04B30, 0x04C08]
+transforms = [0x032B4]
 updates = [0x08E58]
 view_masks = [0x05214]
 

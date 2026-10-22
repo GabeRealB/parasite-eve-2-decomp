@@ -1278,6 +1278,7 @@ enum {
 #include "assets/rooms/mist/shooting_gallery/placements.inc"
 #include "assets/rooms/mist/shooting_gallery/ambient.inc"
 #include "assets/rooms/mist/shooting_gallery/surfaces.inc"
+
 s32 gMistShootingGalleryUnscaledExp = 0;
 
 Task* gMistShootingGalleryControllerTask;

@@ -422,10 +422,14 @@ embedded = [
     { name = "acropolis_west_elevator_hall_arrival_bank", offset = 0x06FCC, size = 0x4, address = 0x8018458C },
     "acropolis_west_elevator_hall_clut_07644",
 ]
-entries = { markers = [{ at = 0x0002C, single = true }, { at = 0x00034, single = true }], scripts = [0x07060, 0x072D0] }
 package_name = "acropolis_west_elevator_hall"
 required = true
 sha1 = "73c92323301b410f55e6d5b25d07f178016ffed9"
+
+[package.entries]
+markers = [{ at = 0x0002C, single = true }, { at = 0x00034, single = true }]
+scripts = [0x07060, 0x072D0]
+transforms = [0x0701C]
 
 [sounds_0]
 type = "sound_bank"

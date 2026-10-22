@@ -296,7 +296,6 @@ static AnimationSet* _gMistParkingPlayerConversationAnimationSets[25] = {
 
 #define ROOM_PART gMistParkingPlayerConversationBankCopy
 #include "assets/rooms/mist/parking/events.inc"
-
 s8 gMistParkingPlayerAnimationHeadAimFlags[28] = {
     MIST_PARKING_PLAYER_ANIMATION_HEAD_AIM_OFF,
     MIST_PARKING_PLAYER_ANIMATION_HEAD_AIM_ON,
@@ -340,7 +339,6 @@ enum {
 
 #define ROOM_PART _gMistParkingPlayerArrivalAndDepartureTransform
 #include "assets/rooms/mist/parking/events.inc"
-
 /// Null-terminated Shift-JIS option label "まだよ (not yet)"; eight bytes of storage.
 static u8 _gMistParkingOptionNotYetLabel[8] = "\x82\xdc\x82\xbe\x82\xe6";
 
@@ -365,7 +363,6 @@ static u8* _gMistParkingOptionLabelPairs[2][2] = {
 
 #define ROOM_PART gMistParkingArrivalConversationScript
 #include "assets/rooms/mist/parking/events.inc"
-
 /// Item ids for shooting-gallery courses 0..4, paired with their quantities.
 ///
 /// Courses 0..3 use these words for storage grants. Course 4's Shoulder Holster

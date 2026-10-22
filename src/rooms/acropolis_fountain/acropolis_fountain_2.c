@@ -119,7 +119,6 @@ static void _acropolisFountainStopWaterMovieTask(Task* task);
 #define ROOM_PART _gAcropolisFountainClimbTrigger
 #include "assets/rooms/akropolis/fountain/action_triggers.inc"
 #include "assets/rooms/akropolis/fountain/markers.inc"
-
 /// Persistent water-loop request latch (0 no applied request, 1 request applied).
 ///
 /// Applying a movie window sets this even for logical views with no sound mix
@@ -190,6 +189,7 @@ enum {
 #include "assets/rooms/akropolis/fountain/sprites.inc"
 #include "assets/rooms/akropolis/fountain/cameras.inc"
 #include "assets/rooms/akropolis/fountain/surfaces.inc"
+
 u8 gAcropolisFountainPatioArrivalWarp = 0;
 
 u8 gAcropolisFountainPatioRequestedRoom = 0;

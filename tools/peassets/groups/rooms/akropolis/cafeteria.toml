@@ -183,9 +183,12 @@ required = true
 sha1 = "0a43c68c82490299076973953db45213ed28437d"
 
 [package.entries]
-actor_commands = [0x057F8]
+actor_commands = [0x057E0, 0x057F8]
+animations = [0x0555C, 0x0566C]
+scene_keys = [0x0589C]
 scripts = [0x058B4, 0x05BFC, 0x05D4C, 0x05F14, 0x0607C, 0x067FC, 0x068EC, 0x0697C, 0x06B44]
 spare_batches = [0x0DDC4, 0x0ED28]
+transforms = [0x05654]
 updates = [0x0F414]
 
 [sounds_0]

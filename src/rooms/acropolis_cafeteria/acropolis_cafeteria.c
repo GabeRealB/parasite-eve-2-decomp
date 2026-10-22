@@ -222,34 +222,6 @@ TaskDesc gAcropolisCafeteriaSceneTasks[4] = {
 
 #define ROOM_PART _gAcropolisCafeteriaPlayerAnimation1
 #include "assets/rooms/akropolis/cafeteria/events.inc"
-
-/// Unreferenced bank-1, clip-1 request; its recipient and scene role are unproven.
-static AnimationPlayRequest D_acropolis_cafeteria_80182B1C = {
-    .source               = { .index = 1 },
-    .animationId          = 1,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-#define ROOM_PART _gAcropolisCafeteriaPlayerPostBattleAnimation8
-#include "assets/rooms/akropolis/cafeteria/events.inc"
-
-/// Unreferenced placement; its actor and coordinate frame are unproven.
-static ActorTransform D_acropolis_cafeteria_80182C14 = {
-    .pos = { -2800, -300, -892, 0 },
-    .rot = { 0, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0 },
-};
-
-/// Unreferenced bank-0, clip-0 request; its recipient and scene role are unproven.
-static AnimationPlayRequest D_acropolis_cafeteria_80182C2C = {
-    .source               = { .index = 0 },
-    .animationId          = 0,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
 /// One borrowed player clip installed at bank slot 47 for the opening scene.
 ///
 /// The copy spans exactly this pointer array. The woman's animation overlay
@@ -260,7 +232,6 @@ static AnimationSet* _gAcropolisCafeteriaOpeningPlayerAnimationSets[1] = {
 
 #define ROOM_PART _gAcropolisCafeteriaOpeningPlayerBankCopy
 #include "assets/rooms/akropolis/cafeteria/events.inc"
-
 /// Four borrowed player clips installed at bank slots 47..50 for the follow-up.
 ///
 /// Slots borrow Rupert's clip, a room clip and two Grinning Stranger clips in
@@ -275,26 +246,6 @@ static AnimationSet* _gAcropolisCafeteriaFollowUpPlayerAnimationSets[4] = {
 
 #define ROOM_PART _gAcropolisCafeteriaFollowUpPlayerBankCopy
 #include "assets/rooms/akropolis/cafeteria/events.inc"
-
-/// Unreferenced cafeteria-context command zero; its recipient and effect are unproven.
-static ActorCommand D_acropolis_cafeteria_80182DA0 = {
-    .context = { .loc = { GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_CAFETERIA } },
-    .command = 0,
-};
-
-#define ROOM_PART _gAcropolisCafeteriaStrangerStartCommand
-#include "assets/rooms/akropolis/cafeteria/events.inc"
-
-/// Unreferenced current-folder stream key (4,11); its scene role is unproven.
-static EvsSceneKey D_acropolis_cafeteria_80182E5C = {
-    .group    = ACROPOLIS_CAFETERIA_SCENE_STREAM_GROUP,
-    .streamId = 4,
-    .subId    = 11,
-};
-
-#define ROOM_PART _gAcropolisCafeteriaFollowUpSceneKey
-#include "assets/rooms/akropolis/cafeteria/events.inc"
-
 /// Live cafeteria scene progress (0 not started, 1 active, 2 battle released).
 ///
 /// Independent of saved story progress, this overlay-local latch gates actions,

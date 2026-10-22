@@ -17,7 +17,6 @@ sha1 = "8ef57e20d7dfa9e5261af5d4e0243599b32e86ca"
 
 [package]
 type = "room"
-entries = { markers = [{ at = 0x00028, single = true }], scripts = [0x08794, 0x08AF4, 0x08C5C] }
 package_name = "acropolis_east_elevator_hall"
 required = true
 sha1 = "6978f029f6cf48bf1eb3c954976f25a1140dd2be"
@@ -57,6 +56,12 @@ name = "acropolis_east_elevator_hall_opening_player_exit_bank"
 offset = 0x08638
 size = 0x8
 address = 0x80185BF8
+
+[package.entries]
+markers = [{ at = 0x00028, single = true }]
+scene_keys = [0x086FC]
+scripts = [0x08794, 0x08AF4, 0x08C5C]
+transforms = [0x08704, 0x08764]
 
 [sounds_0]
 type = "sound_bank"

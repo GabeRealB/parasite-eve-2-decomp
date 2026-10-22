@@ -162,10 +162,13 @@ size = 0xC4
 address = 0x80186DD0
 
 [package.entries]
+actor_commands = [0x06680]
 animations = [0x074F8, 0x07534]
 markers = [0x07638]
 samples = [0x0769C]
+scene_keys = [0x067AC]
 scripts = [0x067B4, 0x06BD4, 0x07548]
+transforms = [0x066C8]
 view_masks = [0x07688]
 
 [ambience]

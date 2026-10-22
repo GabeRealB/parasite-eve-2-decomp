@@ -170,22 +170,14 @@ static TaskDesc _gAcropolisRoofGardenSoundTaskDescriptors[4] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-/// Unreferenced four-byte record retained as {1, 13, 0, 0}; its command role is unproven.
-static ActorCommand D_acropolis_roof_garden_80183C40 = { { .loc = { 1, 13 } }, 0 };
-
-#define ROOM_PART _gAcropolisRoofGardenArrivalFinalPlayerAnimation
-#include "assets/rooms/akropolis/roof_garden/events.inc"
-
-/// Unreferenced transform-shaped record; its receiver and coordinate frame are unproven.
-static ActorTransform D_acropolis_roof_garden_80183C88 = { { 0, 128, 0, 0 }, { 0, 407, 0, 0 } };
-
 /// Borrowed player clips for arrival opening, closing and dialogue, in that order.
 ///
 /// The bank-copy request installs all three at extension slots 47..49. The
 /// table and clip assets belong to the room overlay and stay live during playback.
 
-#define ROOM_PART _gAcropolisRoofGardenArrivalEndPlayerPlacement
+#define ROOM_PART D_acropolis_roof_garden_80183C40
 #include "assets/rooms/akropolis/roof_garden/events.inc"
+
 #include "assets/rooms/akropolis/roof_garden/acropolis_roof_garden_arrival_player_bank.inc"
 
 enum {
@@ -193,12 +185,6 @@ enum {
     ACROPOLIS_ROOF_GARDEN_ARRIVAL_CLOSING_SET  = ANIMATION_BANK_BASE_SET_COUNT + 1,
     ACROPOLIS_ROOF_GARDEN_ARRIVAL_DIALOGUE_SET = ANIMATION_BANK_BASE_SET_COUNT + 2,
 };
-
-#define ROOM_PART _gAcropolisRoofGardenArrivalPlayerBankCopy
-#include "assets/rooms/akropolis/roof_garden/events.inc"
-
-/// Unreferenced halfword triplet {1, 8, 11}; its scene-selection role is unproven.
-static EvsSceneKey D_acropolis_roof_garden_80183D6C = { 1, 8, 11 };
 
 // Arrival waits count interpreter ticks; sound cues use type-3 bank 0x108.
 enum {
@@ -222,9 +208,8 @@ enum {
     ACROPOLIS_ROOF_GARDEN_ENTRANCE_BATTLE_DELAY_FRAMES      = 40,
 };
 
-#define ROOM_PART _gAcropolisRoofGardenArrivalScript
+#define ROOM_PART _gAcropolisRoofGardenArrivalPlayerBankCopy
 #include "assets/rooms/akropolis/roof_garden/events.inc"
-
 /// Arrival-scene latch (0 unstarted, 1 attempted), reset by loading the overlay.
 ///
 /// Set before starting the warp-2 script; a failed start is not retried.
@@ -319,6 +304,7 @@ enum {
 #include "assets/rooms/akropolis/roof_garden/cameras.inc"
 #include "assets/rooms/akropolis/roof_garden/occluders.inc"
 #include "assets/rooms/akropolis/roof_garden/surfaces.inc"
+
 #include "assets/rooms/akropolis/roof_garden/acropolis_roof_garden_model_09868.inc"
 
 /// Last ambience volume percentage requested by the view controller (0, 30 or 100).

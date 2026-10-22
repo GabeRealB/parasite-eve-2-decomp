@@ -548,6 +548,7 @@ enum { MAP_AKROPOLIS_OBJECT_TASK_PRIORITY = 0x62 };
 #include "assets/rooms/akropolis/memory.inc"
 #define ROOM_PART gMapAkropolisPageFlagIds
 #include "assets/rooms/akropolis/map.inc"
+
 /// Empty model-spawn list for the Square.
 ///
 /// Contains only `AREA_OBJECT_SPAWN_END`. Its places still seed saved states
@@ -676,6 +677,7 @@ static AreaObjectSpawn _gMapAkropolisMistParkingObjectSpawns[1] = {
 
 #define ROOM_PART _gMapAkropolisHelicopterLandingPadObjectPlaces
 #include "assets/rooms/akropolis/objects.inc"
+
 /// Lift and additional pickup model-spawn recipes for the Helicopter landing pad.
 ///
 /// Ended by `AREA_OBJECT_SPAWN_END`; the owning area pairs this table with
@@ -693,6 +695,7 @@ enum { MAP_AKROPOLIS_ROOM_TASK_PRIORITY = 32 };
 
 #define ROOM_PART gMapAkropolisObjectRooms
 #include "assets/rooms/akropolis/objects.inc"
+
 TaskDesc gMapAkropolisRoomTaskDescriptors[21] = {
     { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, akropolisSquareRoomTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SQUARE, 0) } },
     { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, acropolisEastElevatorHallRoomTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_EAST_ELEVATOR_HALL, 0) } },
