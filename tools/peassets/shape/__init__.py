@@ -245,15 +245,28 @@ class Context:
         return owners[0] if owners else None
 
 
+PACKAGE_TYPES = ("pe2pkg", "room", "stage")
+_INFLATED: dict[tuple[str, int], bytes] = {}
+
+
 def stored_bytes(name: str, ctx: Context) -> bytes:
     """An output's stored bytes as the codec reads them: a text less its zero padding or NUL terminator, a package
-    inflated to its image, any other type as stored."""
+    inflated to its image, any other type as stored. A package's image is the one the extraction wrote to
+    `pe2pkg/<package>.pe2pkg` where it is there (inflated once per process), else inflated from the stored chunk."""
     import asset_schema
     from asset_decode import decode_ascii_payload
     from lzss import decode_lzss
     rec = ctx.embedded.get(name) or ctx.assets[name]
+    if rec.get("type") in PACKAGE_TYPES:
+        inflated = ctx.assets_root / "pe2pkg" / f"{rec.get('package_name', name.rsplit('/', 1)[-1])}.pe2pkg"
+        path = inflated if inflated.exists() else ctx.assets_root / asset_schema.raw_rel(name, rec)
+        key = (str(path), path.stat().st_mtime_ns)
+        if key not in _INFLATED:
+            data = path.read_bytes()
+            _INFLATED[key] = data if path == inflated else decode_lzss(data)
+        return _INFLATED[key]
     data = (ctx.assets_root / asset_schema.raw_rel(name, rec)).read_bytes()
-    return {"txt": decode_ascii_payload, "pe2pkg": decode_lzss, "room": decode_lzss, "stage": decode_lzss}.get(rec.get("type"), bytes)(data)
+    return decode_ascii_payload(data) if rec.get("type") == "txt" else data
 
 
 def check_asset(name: str, rec: dict, assets: dict, decls: dict) -> list[str]:

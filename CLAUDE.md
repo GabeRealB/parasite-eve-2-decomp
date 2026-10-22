@@ -332,6 +332,13 @@ overlay.
   about the overlays it skipped, which for a header change is the thing you
   have to check, so finish unscoped. `--clean` wipes `asm/`, `linkers/` and
   `build/` and splits everything, as every run used to.
+- `python3 tools/check/suite.py [--jobs N] [--skip STEP ...]` the full check suite
+  over the current extraction (it never extracts): asset-table stability, the
+  repack of both discs, every declared texture, model, clip, shape, font and
+  room encoding back (one task an asset), the build with the room order check,
+  residency, declarations and the asset map with its smoke test - a work graph
+  on one pool of workers, about 2.5 minutes. Re-extract (`ninja_config.py
+  -iso_e`) only after changing the asset table's schema or a decoder.
 - `PE2_JOBS=N` caps the parallelism of the build (`ninja_config.py`'s split
   pool and `ninja`) and of the libclang refactor tools, which otherwise use
   every CPU. Set it when several trees build at once: the naming pass sets it
