@@ -110,10 +110,18 @@ embedded = [
     "mist_shooting_gallery_model_0B4B0",
     "mist_shooting_gallery_model_0B6A0",
 ]
-entries = { geometry = [0x07BD8, 0x07C38], lights = [0x10978], markers = [0x07F90], view_counts = 2 }
 package_name = "mist_shooting_gallery"
 required = true
 sha1 = "57df52b9e88832b4ecfd2898406c57ca89827ed7"
+
+[package.entries]
+geometry = [0x07BD8, 0x07C38]
+jukebox = [{ at = 0x0051C, single = true }]
+lights = [0x10978]
+markers = [0x07F90]
+target_scores = [0x079D8]
+view_counts = 2
+wave_scripts = [0x0811C, 0x083EC, 0x08704, 0x08A88, 0x08F80]
 
 [sounds_0]
 type = "sound_bank"

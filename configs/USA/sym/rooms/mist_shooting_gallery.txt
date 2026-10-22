@@ -1,5 +1,6 @@
 // Overlay-local symbols for mist_shooting_gallery.
 _gMistShootingGalleryJukeboxRow3HeavenSentKillerLabel = 0x8017D86C;
+_gJukeboxTrackLists = 0x8017DADC; // size:0x28
 _gMistShootingGalleryJukeboxTitle = 0x8017DB04;
 _gMistShootingGalleryJukeboxRow2EagerForBloodLabel = 0x8017D884;
 _gMistShootingGalleryJukeboxRow1CrazyKingLabel = 0x8017D898;

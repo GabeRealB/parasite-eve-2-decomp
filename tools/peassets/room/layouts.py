@@ -122,6 +122,8 @@ FORMATS = {"b": 1, "B": 1, "h": 2, "H": 2, "i": 4, "I": 4}
 def _align(kind) -> int:
     if isinstance(kind, str):
         return FORMATS.get(kind) or max(_align(k) for _f, k in LAYOUTS[kind][1])
+    if kind[0] in ("named", "bits"):
+        return FORMATS[kind[1]]
     if kind[0] in ("bytes", "text"):
         return 1
     if kind[0] in ("arr", "union"):
@@ -148,6 +150,8 @@ def size(kind) -> int:
         return (end + a - 1) // a * a
     if kind[0] in ("bytes", "text"):
         return kind[1]
+    if kind[0] in ("named", "bits"):
+        return FORMATS[kind[1]]
     if kind[0] == "arr":
         return size(kind[1]) * kind[2]
     if kind[0] == "union":
@@ -185,9 +189,48 @@ ENTRY_KIND = {"lights": "WorldCoordRoomLights", "geometry": "WorldCollisionGrid"
               "cameras": "ViewCamera", "ambient": "WorldCoordRoomAmbientEntry"}
 
 
+from .music import SEQUENCES  # noqa: E402
+
 # --- values ----------------------------------------------------------------------------------------------------
 import re as _re
 import struct as _struct
+
+
+# ("named", format, {number: name}): a number, written by name where it has one. ("bits", format, [(field, shift,
+# width, {number: name} or None)]): a number as its bit fields, each by name where it has one, and `other` for bits no
+# field covers where any are set; a one-bit field is a flag, written (true) only where it is set.
+# Layouts whose records are written as their first field alone where every other field is zero (a marker record).
+FIRST_FIELD_ALONE = {"_MistShootingGallerySpawn"}
+def _bit_fields(value: int, kind) -> dict:
+    fmt, fields = kind[1], kind[2]
+    raw, out, covered = value & ((1 << 8 * FORMATS[fmt]) - 1), {}, 0
+    for name, shift, width, names in fields:
+        mask = (1 << width) - 1
+        v = raw >> shift & mask
+        covered |= mask << shift
+        if width == 1 and names is None:
+            if v:
+                out[name] = True                          # a flag: written where it is set
+        else:
+            out[name] = (names or {}).get(v, v)
+    if raw & ~covered:
+        out["other"] = raw & ~covered
+    return out
+
+
+def number(value, kind) -> int:
+    """A named or bit-field value's number, in the field's own signedness."""
+    if kind[0] == "named":
+        n = value if isinstance(value, int) else {v: k for k, v in kind[2].items()}[value]
+    else:
+        n = value.get("other", 0) if isinstance(value, dict) else value
+        if isinstance(value, dict):
+            for name, shift, _width, names in kind[2]:
+                v = value.get(name, 0)
+                n |= int(v if not isinstance(v, str) else {b: a for a, b in names.items()}[v]) << shift
+    bits = 8 * FORMATS[kind[1]]
+    n &= (1 << bits) - 1
+    return n - (1 << bits) if kind[1].islower() and n >> (bits - 1) else n
 
 
 def decode_value(data: bytes, off: int, kind, refs: list | None = None, field: str = ""):
@@ -199,6 +242,8 @@ def decode_value(data: bytes, off: int, kind, refs: list | None = None, field: s
         if fields[0][0] == "":
             return decode_value(data, off, fields[0][1], refs, field)
         return {n: decode_value(data, off + o, k, refs, n) for n, k, o in fields}
+    if kind[0] in ("named", "bits"):
+        return _struct.unpack_from("<" + kind[1], data, off)[0]
     if kind[0] == "bytes":
         return list(data[off:off + kind[1]])
     if kind[0] == "text":                                 # a line of text where the bytes are one, else the bytes
@@ -236,9 +281,15 @@ def named(value, kind, name_of):
         fields = list(_fields(kind))
         if fields[0][0] == "":
             return named(value, fields[0][1], name_of)
+        if kind in FIRST_FIELD_ALONE and not any(value[n] for n, _k, _o in fields[1:]):
+            return {fields[0][0]: named(value[fields[0][0]], fields[0][1], name_of)}
         return {n: named(value[n], k, name_of) for n, k, _o in fields}
     if kind[0] in ("bytes", "text"):
         return value
+    if kind[0] == "named":
+        return kind[2].get(value, value)
+    if kind[0] == "bits":
+        return _bit_fields(value, kind)
     if kind[0] == "arr":
         return [named(v, kind[1], name_of) for v in value]
     if kind[0] == "union":
@@ -249,6 +300,11 @@ def named(value, kind, name_of):
     return name_of(value)
 
 
+def _filled(value, kind) -> dict:
+    """A record written as its first field alone, with its other fields (zero)."""
+    return {n: value.get(n, 0) for n, _k, _o in _fields(kind)} if kind in FIRST_FIELD_ALONE else value
+
+
 def encode_value(value, kind, address_of) -> bytes:
     """The bytes of a value whose pointers are names (`address_of(name)`)."""
     if isinstance(kind, str) and kind in FORMATS:
@@ -257,11 +313,13 @@ def encode_value(value, kind, address_of) -> bytes:
         fields = list(_fields(kind))
         if fields[0][0] == "":
             return encode_value(value, fields[0][1], address_of)
-        out = bytearray(size(kind))
+        out, value = bytearray(size(kind)), _filled(value, kind)
         for n, k, o in fields:
             b = encode_value(value[n], k, address_of)
             out[o:o + len(b)] = b
         return bytes(out)
+    if kind[0] in ("named", "bits"):
+        return _struct.pack("<" + kind[1], number(value, kind))
     if kind[0] == "bytes":
         return bytes(value)
     if kind[0] == "text":
@@ -285,7 +343,7 @@ def c_value(value, kind, pointer, layout: str = "") -> str:
         fields = list(_fields(kind))
         if fields[0][0] == "":
             return c_value(value, fields[0][1], pointer, kind)
-        parts = []
+        parts, value = [], _filled(value, kind)
         for n, k, _o in fields:
             if isinstance(k, tuple) and k[0] == "word":
                 v = value[n]
@@ -300,6 +358,8 @@ def c_value(value, kind, pointer, layout: str = "") -> str:
             else:
                 parts.append(f".{n} = {c_value(value[n], k, pointer)}")
         return "{ " + ", ".join(parts) + " }"
+    if kind[0] in ("named", "bits"):
+        return str(number(value, kind))
     if kind[0] == "text" and isinstance(value, str):
         return '"' + value.replace("\\", "\\\\").replace('"', '\\"') + '"'
     if kind[0] in ("bytes", "arr", "text"):
@@ -323,12 +383,13 @@ def pointer_targets(value, kind):
         if fields[0][0] == "":
             yield from pointer_targets(value, fields[0][1])
             return
+        value = _filled(value, kind)
         for n, k, _o in fields:
             if kind == "SpriteView" and n == "sources" and value[n] == value["batches"]:
                 continue                                  # no sources: the slot keeps the view's batch list
             yield from pointer_targets(value[n], k)
         return
-    if kind[0] in ("bytes", "text"):
+    if kind[0] in ("bytes", "text", "named", "bits"):
         return
     if kind[0] == "arr":
         for v in value:
@@ -394,7 +455,7 @@ LAYOUTS.update({
     "MenuMapIcon": ("MenuMapIcon", [("page", "B"), ("area", "B"), ("kind", "B"), ("condition", "B"), ("x", "h"), ("y", "h")]),
     "MenuMapAreaName": ("MenuMapAreaName", [("text", ("text", 0x20))]),
     "GfxImageSlot": ("GfxImageSlot", [("regionBase", ("ptr", "ref")), ("byteExtent", "i")]),
-    "StageMusicEntry": ("StageMusicEntry", [("sequenceId", "B"), ("startMode", "B")]),
+    "StageMusicEntry": ("StageMusicEntry", [("sequenceId", ("named", "B", SEQUENCES)), ("startMode", "B")]),
     "InventoryBattleReward": ("InventoryBattleReward", [("areaLayoutKey", "i"), ("items", ("arr", "H", 4))]),
 })
 for _layout, _size in (("AreaObjectRoom", 8), ("AreaObjectPlace", 16), ("MenuMapArea", 14), ("MenuMapAreaShape", 8),
@@ -407,3 +468,32 @@ MODULE_OF.update({**{f"AreaTable{k}": "tables" for k in AREA_TABLES},
                   "AreaObjectRoom": "objects", "AreaObjectPlace": "objects",
                   **{k: "map" for k in ("MenuMapArea", "MenuMapAreaShape", "MenuMapMarker", "MenuMapIcon", "MenuMapAreaName")},
                   "GfxImageSlot": "memory", "StageMusicEntry": "music", "InventoryBattleReward": "rewards"})
+
+
+# --- room-specific tables ----------------------------------------------------------------------------------------
+# A jukebox's track lists (include/rooms/rooms_shared_8018055c.h): each row a sequence of the MIDI library and the
+# label it is drawn with, which stays in C with the room's other UI strings.
+LAYOUTS.update({
+    "JukeboxTrack": ("JukeboxTrack", [("sequenceId", ("named", "i", SEQUENCES)), ("name", ("ptr", "ref"))]),
+    "JukeboxTrackLists": ("JukeboxTrackLists", [("lists", ("arr", ("ptr", "JukeboxTrack"), 10))]),
+})
+# The shooting gallery's courses (mist_shooting_gallery_private.h): a wave script's records, by frame or marker, each
+# target's spawn argument as its fields, and each target kind's score.
+MIST_SHOOTING_GALLERY_TARGET_KINDS = {
+    0: "bacterium", 1: "bear", 2: "monkey", 3: "rat", 4: "scorpion", 5: "snake", 6: "spider", 7: "bee", 8: "crow",
+    9: "woman", 10: "yellow_target", 11: "brown_target", 12: "red_target"}
+LAYOUTS.update({
+    "_MistShootingGallerySpawn": ("_MistShootingGallerySpawn", [
+        ("frame", ("named", "H", {0xFFF1: "wait_clear", 0xFFFF: "end"})),
+        ("spawnArgLo", ("bits", "h", [("kind", 0, 4, MIST_SHOOTING_GALLERY_TARGET_KINDS),
+                                      ("behavior", 12, 4, {0: "path", 1: "turned", 2: "demo"})])),
+        ("spawnArgHi", ("bits", "h", [("path", 0, 8, None), ("hold", 8, 4, None), ("rotating", 12, 1, None),
+                                      ("target_flag", 13, 1, None), ("near_player", 14, 1, None)])),
+        ("x", "h"), ("y", "h"), ("z", "h")]),
+    "_MistShootingGalleryTargetScore": ("_MistShootingGalleryTargetScore", [("points", "i"), ("name", ("ptr", "ref"))]),
+})
+for _layout, _size in (("JukeboxTrack", 8), ("JukeboxTrackLists", 0x28), ("_MistShootingGallerySpawn", 0xC),
+                       ("_MistShootingGalleryTargetScore", 8)):
+    assert size(_layout) == _size, _layout
+MODULE_OF.update({"JukeboxTrack": "jukebox", "JukeboxTrackLists": "jukebox", "_MistShootingGallerySpawn": "waves",
+                  "_MistShootingGalleryTargetScore": "scores"})

@@ -131,7 +131,10 @@ STATED_ROLES = {"action_triggers": ("WorldCollisionTrigger", "action_triggers"),
                 "scripts": ("EvsCommand", "events"), "animations": ("AnimationPlayRequest", "events"),
                 "transforms": ("ActorTransform", "events"), "actor_commands": ("ActorCommand", "events"),
                 "bank_copies": ("AnimationBankCopyRequest", "events"), "scene_keys": ("EvsSceneKey", "events"),
-                "move_animations": ("GameActorMoveAnim", "events"), "walk_animations": ("ActorMotionWalkAnim", "events")}
+                "move_animations": ("GameActorMoveAnim", "events"), "walk_animations": ("ActorMotionWalkAnim", "events"),
+                # a room's own: a jukebox's track lists, the shooting gallery's wave scripts and target scores
+                "jukebox": ("JukeboxTrackLists", "jukebox"), "wave_scripts": ("_MistShootingGallerySpawn", "waves"),
+                "target_scores": ("_MistShootingGalleryTargetScore", "scores")}
 EVENT_PAYLOADS = frozenset({"AnimationPlayRequest", "ActorTransform", "ActorCommand", "AnimationBankCopyRequest",
                             "EvsSceneKey", "GameActorMoveAnim", "ActorMotionWalkAnim"})
 ROLE_KINDS = {**{r: k for k, r in IMPLICIT_ROLES.items()}, **{r: k for r, (k, _m) in STATED_ROLES.items()},

@@ -90,42 +90,6 @@ enum {
     MIST_SHOOTING_GALLERY_MODE_WARNING_TEXT_COLOR = 0x0D287F
 };
 
-/// One string for each run mode, in the order of the save's `gameMode`
-/// (0 Replay, 1 Bounty, 2 Scavenger, 3 Nightmare).
-///
-/// The gallery keeps two: the mode names its mode list draws as rows, and the
-/// descriptions its help panel shows for the mode in force. Both are constants
-/// that their reader copies whole onto its stack before indexing, and the
-/// struct is what lets a file-scope table be copied by assignment.
-typedef struct {
-    const char* byMode[4]; // Text for run mode 0..3
-} _MistShootingGalleryModeTexts;
-STATIC_ASSERT_SIZEOF(_MistShootingGalleryModeTexts, 0x10);
-
-/// A rating a row of the gallery's DATA panel can show: how far its gauge is
-/// filled and the word printed beside it.
-///
-/// The panel rates the run mode in force on four rows - mission level,
-/// condition, enemy level and supply level - and each row has a table of four
-/// of these, one for every run mode in the order of the save's `gameMode`
-/// (0 Replay, 1 Bounty, 2 Scavenger, 3 Nightmare).
-typedef struct {
-    s32         level; // Marks drawn on the row's gauge (1 lowest .. 5 full)
-    const char* name;  // Word for the rating ("EASY", "GOOD", "VERY POOR", ...)
-} _MistShootingGalleryRating;
-STATIC_ASSERT_SIZEOF(_MistShootingGalleryRating, 0x8);
-
-/// Score and label for one gallery target kind, as the RESULT panel prints it.
-///
-/// The table of these is indexed by target kind, the same index as
-/// `MistShootingGalleryWork::kills`. `points` is added once for each kill of
-/// that kind, and is negative when the kill is penalised.
-typedef struct {
-    s32         points; // Points added for each kill of this kind; negative deducts
-    const char* name;   // Name printed for the kind ("Bacterium", "Woman", "Red Target", ...)
-} _MistShootingGalleryTargetScore;
-STATIC_ASSERT_SIZEOF(_MistShootingGalleryTargetScore, 0x8);
-
 static const char _gMistShootingGallerySupplyLevelCaption[];
 
 static void _mistShootingGallerySetStoryBarrierLowered(s32 lowered);
@@ -308,26 +272,7 @@ static TaskDesc _gMistShootingGalleryWeaponMenuTaskDesc = {
     .data     = { .value = 0 },
 };
 
-/// Per-kill signed points and RESULT labels for target kinds 0..12.
-///
-/// Indexed with the controller's kill counts. Civilian kind 9 deducts 3000
-/// points per kill; the other kinds add points. There is no terminator.
-static _MistShootingGalleryTargetScore _gMistShootingGalleryTargetScores[MIST_SHOOTING_GALLERY_TARGET_KIND_COUNT] = {
-    { 600, _gMistShootingGalleryBacteriumTargetLabel },
-    { 1600, _gMistShootingGalleryBearTargetLabel },
-    { 900, _gMistShootingGalleryMonkeyTargetLabel },
-    { 500, _gMistShootingGalleryRatTargetLabel },
-    { 2400, _gMistShootingGalleryScorpionTargetLabel },
-    { 500, _gMistShootingGallerySnakeTargetLabel },
-    { 1300, _gMistShootingGallerySpiderTargetLabel },
-    { 3000, _gMistShootingGalleryBeeTargetLabel },
-    { 600, _gMistShootingGalleryCrowTargetLabel },
-    { -3000, _gMistShootingGalleryWomanTargetLabel },
-    { 200, _gMistShootingGalleryYellowTargetLabel },
-    { 400, _gMistShootingGalleryBrownTargetLabel },
-    { 600, _gMistShootingGalleryRedTargetLabel },
-};
-
+#include "assets/rooms/mist/shooting_gallery/scores.inc"
 UiObjectDesc gMistShootingGalleryResultPanelDesc = {
     .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
     .bounds          = { -104, -48, 208, 64 },
@@ -451,148 +396,10 @@ static TaskMessageEntry _gMistShootingGalleryRoomMessages[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-// Global MIDI-library sequence IDs used by the gallery playlists (file group 4).
-enum {
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_CRAZY_KING              = 20,
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_EAGER_FOR_BLOOD         = 23,
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_HEAVEN_SENT_KILLER      = 49,
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_PICK_UP_THE_GAUNTLET    = 60,
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_CRAWLING_WASTE_EMPEROR  = 66,
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_QUADRUMANOUS_LEADER     = 22,
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_HUNTERS_MOON            = 74,
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_YELLOW_RAIN             = 67,
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_REBEL_FORCES            = 82,
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_GENIC_REACTOR           = 93,
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_AMBUSH                  = 21,
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_GHOST_TOWN              = 41,
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_ROCK_AND_FIRE           = 45,
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_REQUIEM                 = 58,
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_DARK_VOICE_OF_THE_HEART = 61,
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_LA_MAZE                 = 35,
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_LIGHTNING_OPERATION     = 36,
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_WILD_HUNT               = 42,
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_SNOOPER                 = 44,
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_CURSE_YOUR_FATE         = 31,
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_WISHWASH                = 59,
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_MENTAL_AGONY            = 89,
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_MAN_MADE_NATURE         = 76,
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_GAZING_INTO_THE_VOID    = 77,
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_FOOLS_PARADISE          = 78,
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_KILLING_FIELD           = 83,
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_TOWER_RENDEZVOUS        = 9,
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_THE_VAGRANTS            = 43,
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_OUT_OF_PHASE_2          = 17,
-    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_LAZING_AWAY_THE_MORNING = 37,
-};
-
 #define ROOM_PART _gMistShootingGalleryStoryBarrierCollisionTemplateNormals
 #include "assets/rooms/mist/shooting_gallery/geometry.inc"
-
-/// 3 training jukebox rows for a cleared Replay save (gameMode 0).
-///
-/// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
-/// Valid row indices are 0..2.
-static JukeboxTrack _gMistShootingGalleryJukeboxTrainingReplayTracks[] = {
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_CRAZY_KING, _gMistShootingGalleryJukeboxRow1CrazyKingLabel },
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_EAGER_FOR_BLOOD, _gMistShootingGalleryJukeboxRow2EagerForBloodLabel },
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_HEAVEN_SENT_KILLER, _gMistShootingGalleryJukeboxRow3HeavenSentKillerLabel },
-};
-
-/// 3 training jukebox rows for a cleared Bounty save (gameMode 1).
-///
-/// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
-/// Valid row indices are 0..2.
-static JukeboxTrack _gMistShootingGalleryJukeboxTrainingBountyTracks[] = {
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_CRAZY_KING, _gMistShootingGalleryJukeboxRow1CrazyKingLabel },
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_PICK_UP_THE_GAUNTLET, _gMistShootingGalleryJukeboxRow2PickUpTheGauntletLabel },
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_CRAWLING_WASTE_EMPEROR, _gMistShootingGalleryJukeboxRow3CrawlingWasteEmperorLabel },
-};
-
-/// 3 training jukebox rows for a cleared Scavenger save (gameMode 2).
-///
-/// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
-/// Valid row indices are 0..2.
-static JukeboxTrack _gMistShootingGalleryJukeboxTrainingScavengerTracks[] = {
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_CRAZY_KING, _gMistShootingGalleryJukeboxRow1CrazyKingLabel },
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_QUADRUMANOUS_LEADER, _gMistShootingGalleryJukeboxRow2QuadrumanousLeaderLabel },
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_HUNTERS_MOON, _gMistShootingGalleryJukeboxRow3HuntersMoonLabel },
-};
-
-/// 3 training jukebox rows for a cleared Nightmare save (gameMode 3).
-///
-/// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
-/// Valid row indices are 0..2.
-static JukeboxTrack _gMistShootingGalleryJukeboxTrainingNightmareTracks[] = {
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_YELLOW_RAIN, _gMistShootingGalleryJukeboxRow1YellowRainLabel },
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_REBEL_FORCES, _gMistShootingGalleryJukeboxRow2RebelForcesLabel },
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_GENIC_REACTOR, _gMistShootingGalleryJukeboxRow3GenicReactorLabel },
-};
-
-/// 3 training jukebox rows for a save before its first clear, ignoring gameMode.
-///
-/// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
-/// Valid row indices are 0..2.
-static JukeboxTrack _gMistShootingGalleryJukeboxTrainingUnclearedTracks[] = {
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_CRAZY_KING, _gMistShootingGalleryJukeboxRow1CrazyKingLabel },
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_AMBUSH, _gMistShootingGalleryJukeboxRow2AmbushLabel },
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_PICK_UP_THE_GAUNTLET, _gMistShootingGalleryJukeboxRow3PickUpTheGauntletLabel },
-};
-
-/// 4 regular jukebox rows for a cleared Replay save (gameMode 0).
-///
-/// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
-/// Valid row indices are 0..3.
-static JukeboxTrack _gMistShootingGalleryJukeboxRegularReplayTracks[] = {
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_GHOST_TOWN, _gMistShootingGalleryJukeboxRow1GhostTownLabel },
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_ROCK_AND_FIRE, _gMistShootingGalleryJukeboxRow2RockAndFireLabel },
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_REQUIEM, _gMistShootingGalleryJukeboxRow3RequiemLabel },
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_DARK_VOICE_OF_THE_HEART, _gMistShootingGalleryJukeboxRow4DarkVoiceOfTheHeartLabel },
-};
-
-/// 4 regular jukebox rows for a cleared Bounty save (gameMode 1).
-///
-/// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
-/// Valid row indices are 0..3.
-static JukeboxTrack _gMistShootingGalleryJukeboxRegularBountyTracks[] = {
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_LA_MAZE, _gMistShootingGalleryJukeboxRow1LAMazeLabel },
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_LIGHTNING_OPERATION, _gMistShootingGalleryJukeboxRow2LightningOperationLabel },
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_WILD_HUNT, _gMistShootingGalleryJukeboxRow3WildHuntLabel },
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_SNOOPER, _gMistShootingGalleryJukeboxRow4SnooperLabel },
-};
-
-/// 4 regular jukebox rows for a cleared Scavenger save (gameMode 2).
-///
-/// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
-/// Valid row indices are 0..3.
-static JukeboxTrack _gMistShootingGalleryJukeboxRegularScavengerTracks[] = {
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_CURSE_YOUR_FATE, _gMistShootingGalleryJukeboxRow1CurseYourFateLabel },
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_WISHWASH, _gMistShootingGalleryJukeboxRow2WishwashLabel },
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_MENTAL_AGONY, _gMistShootingGalleryJukeboxRow3MentalAgonyLabel },
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_GENIC_REACTOR, _gMistShootingGalleryJukeboxRow4GenicReactorLabel },
-};
-
-/// 4 regular jukebox rows for a cleared Nightmare save (gameMode 3).
-///
-/// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
-/// Valid row indices are 0..3.
-static JukeboxTrack _gMistShootingGalleryJukeboxRegularNightmareTracks[] = {
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_MAN_MADE_NATURE, _gMistShootingGalleryJukeboxRow1ManMadeNatureLabel },
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_GAZING_INTO_THE_VOID, _gMistShootingGalleryJukeboxRow2GazingIntoTheVoidLabel },
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_FOOLS_PARADISE, _gMistShootingGalleryJukeboxRow3FoolsParadiseLabel },
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_KILLING_FIELD, _gMistShootingGalleryJukeboxRow4KillingFieldLabel },
-};
-
-/// 4 regular jukebox rows for a save before its first clear, ignoring gameMode.
-///
-/// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
-/// Valid row indices are 0..3.
-static JukeboxTrack _gMistShootingGalleryJukeboxRegularUnclearedTracks[] = {
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_TOWER_RENDEZVOUS, _gMistShootingGalleryJukeboxRow1TowerRendezvousLabel },
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_THE_VAGRANTS, _gMistShootingGalleryJukeboxRow2TheVagrantsLabel },
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_OUT_OF_PHASE_2, _gMistShootingGalleryJukeboxRow3OutOfPhase2Label },
-    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_LAZING_AWAY_THE_MORNING, _gMistShootingGalleryJukeboxRow4LazingAwayTheMorningLabel },
-};
-
+#define ROOM_PART _gMistShootingGalleryJukeboxTrainingReplayTracks
+#include "assets/rooms/mist/shooting_gallery/jukebox.inc"
 /// Single jukebox row handler; shared dispatch applies it to all three or four tracks.
 static UiListRowCallback _gMistShootingGalleryJukeboxRowCallbacks[1] = {
     _jukeboxDrawRow,
@@ -2020,25 +1827,8 @@ void mistShootingGallerySetTrainingBarrierLowered(s32 lowered)
     }
 }
 
-/// Gallery playlists: training lists first, then regular lists.
-///
-/// Each half orders cleared Replay, Bounty, Scavenger and Nightmare saves,
-/// followed by the list used before the first clear.
-static const JukeboxTrackLists _gJukeboxTrackLists = {
-    {
-        _gMistShootingGalleryJukeboxTrainingReplayTracks,
-        _gMistShootingGalleryJukeboxTrainingBountyTracks,
-        _gMistShootingGalleryJukeboxTrainingScavengerTracks,
-        _gMistShootingGalleryJukeboxTrainingNightmareTracks,
-        _gMistShootingGalleryJukeboxTrainingUnclearedTracks,
-        _gMistShootingGalleryJukeboxRegularReplayTracks,
-        _gMistShootingGalleryJukeboxRegularBountyTracks,
-        _gMistShootingGalleryJukeboxRegularScavengerTracks,
-        _gMistShootingGalleryJukeboxRegularNightmareTracks,
-        _gMistShootingGalleryJukeboxRegularUnclearedTracks,
-    },
-};
-
+#define ROOM_PART _gJukeboxTrackLists
+#include "assets/rooms/mist/shooting_gallery/jukebox.inc"
 /// SELECT title for the jukebox panel, ending at its first NUL.
 ///
 /// The eighth stored byte is 0xE1 and is not rendered; its role is unproven.

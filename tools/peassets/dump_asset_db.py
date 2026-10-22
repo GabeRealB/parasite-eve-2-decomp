@@ -762,12 +762,11 @@ GROUP_ROOT = _SCRIPT_DIR / "groups"
 
 
 # Keys whose numbers are offsets into a package, written in hex: an embedded asset's, and a room's entry points.
-OFFSET_KEYS = frozenset({"offset", "at", "commands", "segments", "geometry", "lights", "updates", "spare_batches",
-                         "spare_draw_areas", "action_triggers", "markers", "view_masks", "wide_view_masks", "samples",
-                         "scripts", "animations", "transforms", "actor_commands", "bank_copies", "scene_keys",
-                         "move_animations", "walk_animations", "map_areas", "map_shapes", "map_markers",
-                         "map_icons", "map_names", "page_flags", "marker_flags", "image_slots", "movie_workspaces",
-                         "music", "rewards"})
+from room.walk import STAGE_ROLES, STATED_ROLES  # noqa: E402
+
+# Keys whose numbers are package offsets, written in hex: a room's or stage's entry points by role, and the offsets
+# its vibrations and single entries state.
+OFFSET_KEYS = frozenset({"offset", "at", "commands", "segments", *STATED_ROLES, *STAGE_ROLES})
 
 
 def _toml_scalar(value: Any, key: str = "") -> str:

@@ -98,4 +98,74 @@ s32 mistShootingGalleryGetBonusBp(s32 score);
 /// 3..4 require at least 300 BP. Returns 0 or 1 without changing flags or rewards.
 s32 mistShootingGalleryQualifiesForPrize(s32 bonusBp);
 
+// The room data's record types: its wave scripts and target scores are written from its room instance.
+
+/// One record of a course's wave script: a gallery target to spawn once the
+/// script clock reaches `frame`, or a marker that controls the script.
+///
+/// A course walks its script in order. Consecutive records carrying the same
+/// `frame` spawn together, and since the clock only counts up, frames do not
+/// decrease along a script. A course may also spawn its leading records one at
+/// a time by index, ignoring `frame`. A marker record uses only `frame`; its
+/// other fields are zero.
+///
+/// The two argument halves form the 32-bit spawn argument of the gallery
+/// target actor, kept as halfwords because the word would sit unaligned:
+///
+/// - bits 0-3: target kind (below `MIST_SHOOTING_GALLERY_TARGET_KIND_COUNT`),
+///   which picks the target's model, hit points and score
+/// - bits 12-15: behaviour of the target's mount (0 follows its path, 1 starts
+///   turned half a revolution and runs the alternate path state, 2 is the
+///   uncounted demonstration target, which no script requests)
+/// - bits 16-23: movement path the mount follows
+/// - bits 24-27: seconds the mount holds on a path whose first waypoint has no speed
+/// - bit 28: the mount keeps rotating
+/// - bit 29: forwarded to the target itself
+/// - bit 30: spawn even when the player is within 0x400 of the position
+typedef struct {
+    u16 frame;      // Script frame the target spawns on, or a `MIST_SHOOTING_GALLERY_SPAWN_*` marker
+    s16 spawnArgLo; // Low half of the target's spawn argument: kind and mount behaviour
+    s16 spawnArgHi; // High half of the target's spawn argument: path, hold time and flags
+    s16 x;          // World position the target's mount is placed at
+    s16 y;
+    s16 z;
+} _MistShootingGallerySpawn;
+STATIC_ASSERT_SIZEOF(_MistShootingGallerySpawn, 0xC);
+
+/// One string for each run mode, in the order of the save's `gameMode`
+/// (0 Replay, 1 Bounty, 2 Scavenger, 3 Nightmare).
+///
+/// The gallery keeps two: the mode names its mode list draws as rows, and the
+/// descriptions its help panel shows for the mode in force. Both are constants
+/// that their reader copies whole onto its stack before indexing, and the
+/// struct is what lets a file-scope table be copied by assignment.
+typedef struct {
+    const char* byMode[4]; // Text for run mode 0..3
+} _MistShootingGalleryModeTexts;
+STATIC_ASSERT_SIZEOF(_MistShootingGalleryModeTexts, 0x10);
+
+/// A rating a row of the gallery's DATA panel can show: how far its gauge is
+/// filled and the word printed beside it.
+///
+/// The panel rates the run mode in force on four rows - mission level,
+/// condition, enemy level and supply level - and each row has a table of four
+/// of these, one for every run mode in the order of the save's `gameMode`
+/// (0 Replay, 1 Bounty, 2 Scavenger, 3 Nightmare).
+typedef struct {
+    s32         level; // Marks drawn on the row's gauge (1 lowest .. 5 full)
+    const char* name;  // Word for the rating ("EASY", "GOOD", "VERY POOR", ...)
+} _MistShootingGalleryRating;
+STATIC_ASSERT_SIZEOF(_MistShootingGalleryRating, 0x8);
+
+/// Score and label for one gallery target kind, as the RESULT panel prints it.
+///
+/// The table of these is indexed by target kind, the same index as
+/// `MistShootingGalleryWork::kills`. `points` is added once for each kill of
+/// that kind, and is negative when the kill is penalised.
+typedef struct {
+    s32         points; // Points added for each kill of this kind; negative deducts
+    const char* name;   // Name printed for the kind ("Bacterium", "Woman", "Red Target", ...)
+} _MistShootingGalleryTargetScore;
+STATIC_ASSERT_SIZEOF(_MistShootingGalleryTargetScore, 0x8);
+
 #endif // SRC_ROOMS_MIST_SHOOTING_GALLERY_MIST_SHOOTING_GALLERY_PRIVATE_H
