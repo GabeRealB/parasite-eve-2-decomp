@@ -225,7 +225,6 @@ sha1 = "2ec25d6eb4b1f8e0073974773035a09958547451"
 
 [package]
 type = "room"
-entries = { markers = [0x0581C], spare_batches = [0x08938, 0x08978], view_masks = [0x0588C] }
 package_name = "acropolis_patio"
 required = true
 sha1 = "a1d21b9d3d98c6ee720aa24c2f879af7387fd92a"
@@ -301,6 +300,14 @@ name = "acropolis_patio_second_visit_player_bank"
 offset = 0x04FF0
 size = 0x14
 address = 0x801825B0
+
+[package.entries]
+actor_commands = [0x02E80]
+animations = [0x02DD0, 0x0500C, 0x050E8, 0x05174]
+markers = [0x0581C]
+scripts = [0x02EC4, 0x030EC, 0x0326C, 0x036A4, 0x0382C, 0x0391C, 0x0524C, 0x05624]
+spare_batches = [0x08938, 0x08978]
+view_masks = [0x0588C]
 
 [sounds_0]
 type = "sound_bank"

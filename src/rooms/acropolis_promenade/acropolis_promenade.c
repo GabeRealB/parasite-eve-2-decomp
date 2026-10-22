@@ -161,20 +161,8 @@ static TaskDesc _gAcropolisPromenadeTranslucentPlaneTaskDescriptors[2] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-/// Player animation request starting the variant-1 battle's follow-up script.
-///
-/// Plays clip 1 with a reset blend and world collision disabled. The interpreter
-/// copies this request and replaces its bank index with the equipped weapon's
-/// bank; the stored index is retained serialization, not a fixed bank choice.
-/// Keep the overlay loaded while the event script borrows the request.
-static AnimationPlayRequest _gAcropolisPromenadeBattleFollowupAnimationRequest = {
-    .source               = { .index = 1 },
-    .animationId          = 1,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
+#define ROOM_PART _gAcropolisPromenadeBattleFollowupAnimationRequest
+#include "assets/rooms/akropolis/promenade/events.inc"
 /// Two retained records with word XYZ and halfword Euler-angle layout.
 ///
 /// No consumer establishes their intended actors, coordinate frame or purpose.
@@ -183,48 +171,8 @@ static ActorTransform D_acropolis_promenade_80180ED0[2] = {
     { { -999, 171, -2799, 0 }, { 0, 1324, 0, 0 } },
 };
 
-/// Variant-1 post-battle scene, synchronized to CAP command 10's four cues.
-///
-/// Starts after an observed engaged battle ends and battle reset is pending.
-/// Plays the player's weapon-bank clip, hides its model between CAP cues,
-/// starts room sound entries 12 and 15, then resumes control, restores the
-/// saved view and shows the model. The interpreter borrows this END-terminated
-/// stream and its animation request; keep the overlay loaded until it ends.
-static EvsCommand _gAcropolisPromenadeBattleFollowupScript[15] = {
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisPromenadeBattleFollowupAnimationRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACROPOLIS_PROMENADE_BATTLE_FOLLOWUP_CAP_COMMAND }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PROMENADE, 12) }, { .value = ACROPOLIS_PROMENADE_BATTLE_SOUND_PAN_OFFSET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PROMENADE, 15) }, { .value = ACROPOLIS_PROMENADE_BATTLE_SOUND_PAN_OFFSET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_END },
-};
-
-/// Skip exit for the battle follow-up: conceal cleanup, then resume the player.
-///
-/// Fades with GPU_BLEND_AVERAGE, restores the saved view, aborts CAP scene
-/// playback, returns the fade and ends scripted player control. This borrowed
-/// nine-command stream ends with END and must stay loaded through completion.
-static EvsCommand _gAcropolisPromenadeBattleFollowupSkipScript[9] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_END },
-};
-
+#define ROOM_PART _gAcropolisPromenadeBattleFollowupScript
+#include "assets/rooms/akropolis/promenade/events.inc"
 /// Warp-4 arrival movie latch (0 not started, 1 spawn already attempted).
 ///
 /// Reset by loading this overlay; set before spawning, even if spawning fails.

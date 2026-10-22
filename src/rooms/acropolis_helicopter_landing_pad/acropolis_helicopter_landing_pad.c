@@ -29,6 +29,9 @@
 #include "main/tmd_types.h"
 #include "../../shared/actor/actor_messages.h"
 
+#define ROOM_PART declarations_acropolis_helicopter_landing_pad
+#include "assets/rooms/akropolis/helicopter_landing_pad/declarations.inc"
+
 /// Frames one scripted run of the landing pad's lift lasts.
 #define ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_TRAVEL_FRAMES 120
 
@@ -123,16 +126,8 @@ static s8 _gAcropolisHelicopterLandingPadLiftVisibleByView[36] = {
     0,
 };
 
-/// Lift placement at the lower stop, used to begin raising and to park below the pad.
-///
-/// Position is in whole root-parent coordinate units; Euler angles are zero.
-static ActorTransform _gAcropolisHelicopterLandingPadLiftLowerStopPlacement = { { -5340, 120, -1900, 0 }, { 0, 0, 0, 0 } };
-
-/// Lift placement at the landing pad, used to begin lowering.
-///
-/// Position is in whole root-parent coordinate units; Euler angles are zero.
-static ActorTransform _gAcropolisHelicopterLandingPadLiftPadStopPlacement = { { -5340, -2880, -1900, 0 }, { 0, 0, 0, 0 } };
-
+#define ROOM_PART _gAcropolisHelicopterLandingPadLiftLowerStopPlacement
+#include "assets/rooms/akropolis/helicopter_landing_pad/events.inc"
 #include "assets/rooms/akropolis/helicopter_landing_pad/acropolis_helicopter_landing_pad_model_0547C.inc"
 
 /// Initializes the lift's model, lighting and message handling.

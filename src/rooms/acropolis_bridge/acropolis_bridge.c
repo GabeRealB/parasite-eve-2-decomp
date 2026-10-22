@@ -564,29 +564,6 @@ static TaskDesc _gAcropolisBridgeRoomTaskDescriptors[3] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-/// Player idle clip selected for the bridge's first fire-escape transition scene.
-///
-/// The interpreter copies the request and replaces its bank selector with the
-/// equipped weapon's bank. Clip 1 resets playback and disables world collision;
-/// the initial bank selector is ignored and the zero blend duration is unused.
-static AnimationPlayRequest _gAcropolisBridgeArrivalWeaponAnimationRequest = {
-    .source               = { .index = 1 },
-    .animationId          = 1,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Scene/audio stream key for the bridge's first fire-escape transition.
-///
-/// Selects group 1, stream 11 and qualifier 11 in the current folder. The
-/// interpreter retains this key until scene completion; keep the room loaded.
-static EvsSceneKey _gAcropolisBridgeArrivalSceneKey = {
-    .group    = 1,
-    .streamId = 11,
-    .subId    = 11,
-};
-
 /// Arrival CAP slot, pixel shake amplitude and interpreter-update delays.
 enum {
     ACROPOLIS_BRIDGE_ARRIVAL_CAP_SLOT                    = 1,
@@ -595,67 +572,13 @@ enum {
     ACROPOLIS_BRIDGE_ARRIVAL_FINISH_DELAY_UPDATES        = 3
 };
 
-/// Presents the bridge's arrival scene on the first fire-escape departure.
-///
-/// Holds the player in weapon idle, hides its model and synchronizes the
-/// arrival sprites, screen shake, vibration and dust with scene/audio CAP cues.
-/// Restores player visibility/control and the saved view before ending the
-/// stream. The interpreter and vibration task borrow the room's loaded data;
-/// the caller supplies a separate skip script.
-static EvsCommand _gAcropolisBridgeArrivalScript[26] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _acropolisBridgePrepareArrivalScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisBridgeSelectArrivalSpriteFrame }, { .value = ACROPOLIS_BRIDGE_ARRIVAL_FRAME_FIRST }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACROPOLIS_BRIDGE_ARRIVAL_CAP_SLOT }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisBridgeArrivalWeaponAnimationRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gAcropolisBridgeArrivalSceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SHAKE_SCREEN, { .value = ACROPOLIS_BRIDGE_ARRIVAL_SHAKE_AMPLITUDE_PIXELS }, { .value = ACROPOLIS_BRIDGE_ARRIVAL_SHAKE_HALF_DURATION_UPDATES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = _gAcropolisBridgeArrivalVibrationCommands }, { .vibrationSegments = _gAcropolisBridgeArrivalVibrationSegments }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_ROOM_EFFECT }, { .value = 0 }, { .value = ACROPOLIS_BRIDGE_EFFECT_MESSAGE_ARRIVAL_DUST }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisBridgeSelectArrivalSpriteFrame }, { .value = ACROPOLIS_BRIDGE_ARRIVAL_FRAME_SECOND }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisBridgeSelectArrivalSpriteFrame }, { .value = ACROPOLIS_BRIDGE_ARRIVAL_FRAME_THIRD }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisBridgeSetArrivalSpritesHidden }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_FINISH_SCENE_STREAM, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACROPOLIS_BRIDGE_ARRIVAL_FINISH_DELAY_UPDATES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_END },
-};
-
 /// Interpreter-update delays bracketing the arrival skip's fade and view restoration.
 enum {
     ACROPOLIS_BRIDGE_ARRIVAL_SKIP_FADE_WAIT_UPDATES = 8,
     ACROPOLIS_BRIDGE_ARRIVAL_SKIP_VIEW_WAIT_UPDATES = 1
 };
 
-/// Restores the bridge and player presentation when the arrival scene is skipped.
-///
-/// Fades out, restores the saved view, hides the arrival sprite batches and
-/// releases scene/CAP presentation before fading back and ending player scripting.
-/// The interpreter borrows all eleven commands, through END, while the room is loaded.
-static EvsCommand _gAcropolisBridgeArrivalSkipScript[11] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACROPOLIS_BRIDGE_ARRIVAL_SKIP_FADE_WAIT_UPDATES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACROPOLIS_BRIDGE_ARRIVAL_SKIP_VIEW_WAIT_UPDATES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisBridgeSelectArrivalSpriteFrame }, { .value = ACROPOLIS_BRIDGE_ARRIVAL_FRAME_HIDDEN }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisBridgeSetArrivalSpritesHidden }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACROPOLIS_BRIDGE_ARRIVAL_SKIP_FADE_WAIT_UPDATES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_END },
-};
-
+#include "assets/rooms/akropolis/bridge/events.inc"
 /// Bodyless accepted-code movie recipe at descriptor index zero.
 ///
 /// Spawning copies this recipe synchronously; keep its room-owned callback loaded
@@ -776,6 +699,7 @@ enum {
 #include "assets/rooms/akropolis/bridge/markers.inc"
 #define ROOM_PART _gAcropolisBridgeStarGlowViewMasks
 #include "assets/rooms/akropolis/bridge/view_masks.inc"
+
 /// Maps a one-based camera view to its framebuffer-streak family.
 ///
 /// Indexed by mapped view - 1; the room maps views only into 1..10. The six
@@ -806,7 +730,6 @@ static u16 _gAcropolisBridgeViewStreakStyles[16] = {
 #include "assets/rooms/akropolis/bridge/markers.inc"
 #define ROOM_PART gAcropolisBridgeRoomCollisionResources
 #include "assets/rooms/akropolis/bridge/header.inc"
-
 u8 gAcropolisBridgeStairSurfaceRows[2][12] = {
     { 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4 },
     { 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 },
@@ -832,6 +755,7 @@ enum {
 #include "assets/rooms/akropolis/bridge/vibrations.inc"
 #define ROOM_PART _gAcropolisBridgeSurface2FootstepSounds
 #include "assets/rooms/akropolis/bridge/surfaces.inc"
+
 /// Three retained type-1 sound-request words with no established consumer or role.
 ///
 /// Their values match the surface-2 walk/run/walk cues, but no pointer or
@@ -897,6 +821,7 @@ enum { ACROPOLIS_BRIDGE_ENEMY_ATTACK_REACTION_POISON = 3 };
 
 #define ROOM_PART _gAcropolisBridgeBlockingSurfaceProperties
 #include "assets/rooms/akropolis/bridge/surfaces.inc"
+
 /// Attack rows shared by all bridge enemies.
 ///
 /// Attack index 0 has base power 18 and applies the player's poison reaction.

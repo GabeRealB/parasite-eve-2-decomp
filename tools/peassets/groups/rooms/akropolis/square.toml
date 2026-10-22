@@ -26,7 +26,7 @@ sha1 = "b12e305ec25b7cf40339d3db913c9725d5888c38"
 [package]
 type = "room"
 embedded = [{ name = "collision", offset = 0x06784, size = 0x1458 }]
-entries = { samples = [0x065A8], updates = [0x0B2C8] }
+entries = { samples = [0x065A8], scripts = [0x06274, 0x0631C, 0x063DC, 0x0649C], updates = [0x0B2C8] }
 package_name = "akropolis_square"
 required = true
 sha1 = "aea68621481901e24a676f92121f06fea4c688f3"

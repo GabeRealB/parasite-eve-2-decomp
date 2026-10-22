@@ -30,6 +30,9 @@
 #include "main/tmd_types.h"
 #include "../../shared/actor/actor_messages.h"
 
+#define ROOM_PART declarations_mist_parking_3
+#include "assets/rooms/mist/parking/declarations.inc"
+
 static void _mistParkingPlayDepartureMovieTask(Task* task);
 static void _mistParkingStartDepartureMovieTask(Task* task);
 
@@ -40,14 +43,8 @@ TaskDesc gMistParkingDepartureMovieTaskDescs[2] = {
     { { { TASK_BODY_NONE, MIST_PARKING_DEPARTURE_MOVIE_TASK_PRIORITY } }, _mistParkingPlayDepartureMovieTask, { .value = 0 } },
 };
 
-/// Retained parent-frame placement of the arrival conversation's pitched model.
-///
-/// Position uses world-coordinate units; Euler angles use 4096 per turn.
-/// Setup uses the retained pitch, initially 20. Each positive update copies
-/// the complete placement before storing its next pitch, applying the preceding
-/// value. Shared by all instances, so only one model-pitch task may run at a time.
-static ActorTransform _gMistParkingCutsceneModelPlacement = { { 2105, -910, -3460, 0 }, { 20, 1081, 0, 0 } };
-
+#define ROOM_PART _gMistParkingCutsceneModelPlacement
+#include "assets/rooms/mist/parking/events.inc"
 static SVECTOR _gMistParkingPierceCollisionPatchNormals[2] = {
 #include "assets/mist_parking_collision_126F8_normals.inc"
 };

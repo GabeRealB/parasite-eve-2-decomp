@@ -225,101 +225,13 @@ static TaskDesc _gAcropolisWestElevatorHallDoorLeafTaskTable[3] = {
 /// remain loaded while the arrival animation plays.
 #include "assets/rooms/akropolis/west_elevator_hall/acropolis_west_elevator_hall_arrival_bank.inc"
 
-/// Installs exactly one arrival-clip pointer in the player's bank extension.
-///
-/// Message dispatch borrows this request and source table synchronously;
-/// playback continues borrowing the copied animation-set pointer.
-static AnimationBankCopyRequest _gAcropolisWestElevatorHallArrivalAnimationBankCopyRequest = { _gAcropolisWestElevatorHallArrivalAnimationSets, ARRAY_SIZE(_gAcropolisWestElevatorHallArrivalAnimationSets) };
-
-/// Plays the installed arrival clip from the equipped bank with collision disabled.
-///
-/// The event interpreter copies the request and replaces `source.index` before
-/// dispatch. Playback resets immediately, so `blendFrames` is unused.
-static AnimationPlayRequest _gAcropolisWestElevatorHallArrivalAnimationRequest = { { .index = 1 }, ANIMATION_BANK_BASE_SET_COUNT, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
-
-/// Off-stage player placement while the elevator bay lights and doors open.
-///
-/// Position uses whole room units; Euler angles use 4096 units per turn.
-/// The placement message copies XYZ and all three angles synchronously.
-static ActorTransform _gAcropolisWestElevatorHallPlayerArrivalHiddenTransform = { { 10000, 0, 2527, 0 }, { 0, 2048, 0, 0 } };
-
-/// Player placement at the opened doorway before the arrival clip starts.
-///
-/// Position uses whole room units; Euler angles use 4096 units per turn.
-/// The placement message copies XYZ and all three angles synchronously.
-static ActorTransform _gAcropolisWestElevatorHallPlayerDoorwayTransform = { { 220, 0, 2650, 0 }, { 0, 2048, 0, 0 } };
-
+#define ROOM_PART _gAcropolisWestElevatorHallArrivalAnimationBankCopyRequest
+#include "assets/rooms/akropolis/west_elevator_hall/events.inc"
 /// Unreferenced 24-byte record equal to the doorway transform; its role is unproven.
 static ActorTransform D_acropolis_west_elevator_hall_801845DC = { { 220, 0, 2650, 0 }, { 0, 2048, 0, 0 } };
 
-/// Final player placement shared by normal arrival and the skip path.
-///
-/// Position uses whole room units; Euler angles use 4096 units per turn.
-/// The placement message copies XYZ and all three angles synchronously.
-static ActorTransform _gAcropolisWestElevatorHallPlayerArrivalEndTransform = { { -1388, 0, 922, 0 }, { 0, 2048, 0, 0 } };
-
-/// Resets the player's equipped-bank idle clip and disables world collision.
-///
-/// Used before normal arrival and after skipped placement. The interpreter
-/// replaces `source.index` in its local copy; `blendFrames` is unused on reset.
-static AnimationPlayRequest _gAcropolisWestElevatorHallPlayerIdleAnimationRequest = { { .index = 1 }, ACROPOLIS_WEST_ELEVATOR_HALL_PLAYER_IDLE_CLIP, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
-
-/// Warp-1 arrival: light the bay, open the doors, play the arrival clip and resume play.
-///
-/// The 26-command stream includes END; waits count interpreter updates. It and
-/// its payloads remain borrowed until the event ends. Views are 1-based slots.
-static EvsCommand _gAcropolisWestElevatorHallArrivalScript[26] = {
-    // Take scripted control, install the room clip and park the player outside the scene.
-    { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 67 }, { .value = 67 }, { .value = 78 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_RUN_MOVEMENT }, { .value = true }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisWestElevatorHallPlayerIdleAnimationRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gAcropolisWestElevatorHallArrivalAnimationBankCopyRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisWestElevatorHallPlayerArrivalHiddenTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = ACROPOLIS_WEST_ELEVATOR_HALL_ARRIVAL_BAY_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_ROOM_EFFECT }, { .value = 0 }, { .value = ACROPOLIS_WEST_ELEVATOR_HALL_MESSAGE_START_BAY_LIGHTING }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = ACROPOLIS_WEST_ELEVATOR_HALL_ARRIVAL_SOUND }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 35 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_ROOM }, { .value = 0 }, { .value = ACROPOLIS_WEST_ELEVATOR_HALL_MESSAGE_OPEN_DOOR }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 80 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    // Play the installed clip at the doorway, then close the leaves behind the player.
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisWestElevatorHallPlayerDoorwayTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisWestElevatorHallArrivalAnimationRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = ACROPOLIS_WEST_ELEVATOR_HALL_ARRIVAL_MUSIC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_CLOSE_SOUND }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_ROOM }, { .value = 0 }, { .value = ACROPOLIS_WEST_ELEVATOR_HALL_MESSAGE_CLOSE_DOOR }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 90 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    // Restore hall presentation and normal control before the final placement.
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = ACROPOLIS_WEST_ELEVATOR_HALL_ARRIVAL_HALL_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_RUN_MOVEMENT }, { .value = false }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 130 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_RESET_ANIMATION }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisWestElevatorHallPlayerArrivalEndTransform } }, { .value = 0 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_END },
-};
-
-/// Skipped arrival: fade to the final placement, restore the hall and resume play.
-///
-/// The 13-command stream includes END and performs scene cleanup without
-/// issuing door commands. Commands and payloads stay loaded until event end.
-static EvsCommand _gAcropolisWestElevatorHallArrivalSkipScript[13] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisWestElevatorHallPlayerArrivalEndTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisWestElevatorHallPlayerIdleAnimationRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = ACROPOLIS_WEST_ELEVATOR_HALL_ARRIVAL_HALL_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = ACROPOLIS_WEST_ELEVATOR_HALL_ARRIVAL_MUSIC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_END },
-};
-
+#define ROOM_PART _gAcropolisWestElevatorHallPlayerArrivalEndTransform
+#include "assets/rooms/akropolis/west_elevator_hall/events.inc"
 /// One-shot arrival-event latch (0 waiting, 1 running, 2 finished) for this overlay load.
 ///
 /// Set to running only on warp-1 entry and finished when the session event is
@@ -390,6 +302,7 @@ enum {
 #include "assets/rooms/akropolis/west_elevator_hall/lights.inc"
 #include "assets/rooms/akropolis/west_elevator_hall/cameras.inc"
 #include "assets/rooms/akropolis/west_elevator_hall/surfaces.inc"
+
 /// Borrowed live door-leaf task handles, negative X first and positive X second.
 ///
 /// Room initialization stores both spawn results. Door messages require both

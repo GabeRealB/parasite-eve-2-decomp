@@ -130,6 +130,7 @@ required = true
 sha1 = "e0f563a5df845e45721bcf02a30ddee1283ed722"
 
 [package.entries]
+animations = [0x05044]
 markers = [0x063D8]
 spare_batches = [{ at = 0x06F08, rows = 8 }]
 updates = [0x07990, 0x079B8, 0x079BC, 0x079C0]

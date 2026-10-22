@@ -147,8 +147,11 @@ required = true
 sha1 = "dc29089521da635762fcffefbbf44f6e4914266a"
 
 [package.entries]
+animations = [0x07868, 0x0787C]
 markers = [0x078C0]
+scripts = [0x06444, 0x06474, 0x069E4, 0x06B64, 0x06EF4, 0x070BC, 0x07734]
 spare_draw_areas = [0x0A250]
+transforms = [0x04DD4, 0x04DEC, 0x061F0, 0x07890]
 vibrations = [
     { commands = 0x06178, segments = 0x06188 },
     { commands = 0x0A774, segments = 0x0A77C, single = true },

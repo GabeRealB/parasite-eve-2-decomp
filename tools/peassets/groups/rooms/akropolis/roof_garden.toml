@@ -109,7 +109,6 @@ sha1 = "47316332c72fd1509886d58fe74ce23a02511beb"
 
 [package]
 type = "room"
-entries = { markers = [0x07638], samples = [0x0769C], view_masks = [0x07688] }
 package_name = "acropolis_roof_garden"
 required = true
 sha1 = "2217089fcd1f4f7bc3c77434cf461ce6644a824b"
@@ -161,6 +160,13 @@ name = "acropolis_roof_garden_model_09868"
 offset = 0x09810
 size = 0xC4
 address = 0x80186DD0
+
+[package.entries]
+animations = [0x074F8, 0x07534]
+markers = [0x07638]
+samples = [0x0769C]
+scripts = [0x067B4, 0x06BD4, 0x07548]
+view_masks = [0x07688]
 
 [ambience]
 type = "sound"

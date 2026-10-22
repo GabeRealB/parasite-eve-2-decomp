@@ -537,23 +537,13 @@ static TaskMessageEntry _gAcropolisSecurityRoomRoomMessages[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// Unused bank-1 clip-1 reset request retained before the panel task recipes.
-///
-/// Requests disabled world collision; neither panel nor room scripts select it.
-static AnimationPlayRequest _gAcropolisSecurityRoomUnusedBank1Animation1Request = {
-    .source               = { .index = 1 },
-    .animationId          = 1,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
 /// Ascending execution priorities of the panel openers and their cursor/scene children.
 enum {
     ACROPOLIS_SECURITY_ROOM_PANEL_OPENER_PRIORITY = 32,
     ACROPOLIS_SECURITY_ROOM_PANEL_CHILD_PRIORITY  = 192,
 };
 
+#include "assets/rooms/akropolis/security_room/events.inc"
 /// Bodyless opener recipes: index 0 monitor, index 1 power supply, index 2 end.
 ///
 /// Only the first two entries may be spawned. The descriptor is read
@@ -752,6 +742,7 @@ enum {
 };
 
 #include "assets/rooms/akropolis/security_room/markers.inc"
+
 /// Red/green glow-channel bits in left locked/released, right locked/released order.
 ///
 /// Locked lamps are yellow; released lamps are green on the left and red on
@@ -814,6 +805,7 @@ enum {
 #include "assets/rooms/akropolis/security_room/cameras.inc"
 #include "assets/rooms/akropolis/security_room/updates.inc"
 #include "assets/rooms/akropolis/security_room/surfaces.inc"
+
 static TmdBone _gAcropolisSecurityRoomAcropolisSanctuaryModel090F0Skeleton[3] = {
 #include "assets/acropolis_sanctuary_model_090F0_skeleton.inc"
 };

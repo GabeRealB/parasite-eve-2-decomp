@@ -17,7 +17,7 @@ sha1 = "8ef57e20d7dfa9e5261af5d4e0243599b32e86ca"
 
 [package]
 type = "room"
-entries = { markers = [{ at = 0x00028, single = true }] }
+entries = { markers = [{ at = 0x00028, single = true }], scripts = [0x08794, 0x08AF4, 0x08C5C] }
 package_name = "acropolis_east_elevator_hall"
 required = true
 sha1 = "6978f029f6cf48bf1eb3c954976f25a1140dd2be"

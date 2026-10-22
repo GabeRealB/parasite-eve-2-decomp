@@ -110,25 +110,6 @@ static SVECTOR _gAcropolisForkedRoadMoviePlayerPositions[300] = {
 /// clip pools loaded while the player bank retains these pointers.
 #include "assets/rooms/akropolis/forked_road/acropolis_forked_road_lock_release_bank.inc"
 
-/// Installs the lock-release event's three-pointer extension in the player's equipped-weapon bank.
-///
-/// The request is borrowed synchronously; the copied set pointers outlive the message.
-static AnimationBankCopyRequest _gAcropolisForkedRoadLockReleaseBankCopyRequest = {
-    .sets  = _gAcropolisForkedRoadLockReleaseAnimationSets,
-    .count = ARRAY_SIZE(_gAcropolisForkedRoadLockReleaseAnimationSets),
-};
-
-/// Unused bank-1 clip-1 reset request retained in the room image.
-///
-/// Requests disabled world collision. No script or message selects this record.
-static AnimationPlayRequest _gAcropolisForkedRoadUnusedBank1Animation1Request = {
-    .source               = { .index = 1 },
-    .animationId          = 1,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
 enum {
     ACROPOLIS_FORKED_ROAD_LOCK_RELEASE_PLAYER_CLIP  = 48,
     ACROPOLIS_FORKED_ROAD_LOCK_RELEASE_BLEND_FRAMES = 20,
@@ -136,41 +117,10 @@ enum {
     ACROPOLIS_FORKED_ROAD_BATTLE_WAIT_TICKS         = 3,
 };
 
-/// Blends the player to extension clip 48 with grid collision disabled for the lock-release event.
-///
-/// The event interpreter copies the request and resolves its bank from the
-/// equipped weapon, replacing the stored index. Blend duration is twenty
-/// normal-rate frames; the installed set and its data must remain loaded.
-static AnimationPlayRequest _gAcropolisForkedRoadLockReleasePlayerClip48Request = {
-    .source               = { .index = 1 },
-    .animationId          = ACROPOLIS_FORKED_ROAD_LOCK_RELEASE_PLAYER_CLIP,
-    .blend                = ANIMATION_BLEND_INTERPOLATE,
-    .blendFrames          = ACROPOLIS_FORKED_ROAD_LOCK_RELEASE_BLEND_FRAMES,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Two unused bank-1 playback requests retained after the lock-release request.
-///
-/// Clips 49 and 9 request blends of 20 and 10 frames respectively, with world
-/// collision disabled. Neither record is selected by the room's scripts.
-static AnimationPlayRequest _gAcropolisForkedRoadUnusedBank1AnimationRequests[2] = {
-    { .source = { .index = 1 }, .animationId = 49, .blend = ANIMATION_BLEND_INTERPOLATE, .blendFrames = 20, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
-    { .source = { .index = 1 }, .animationId = 9, .blend = ANIMATION_BLEND_INTERPOLATE, .blendFrames = 10, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
-};
-
-EvsCommand gAcropolisForkedRoadLockReleaseScript[8] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gAcropolisForkedRoadLockReleaseBankCopyRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisForkedRoadLockReleasePlayerClip48Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _acropolisForkedRoadReleaseMaggotCaterpillarEntrance }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACROPOLIS_FORKED_ROAD_ENTRANCE_WAIT_TICKS }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACROPOLIS_FORKED_ROAD_BATTLE_WAIT_TICKS }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET }, { .value = 0 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_END },
-};
-
+#include "assets/rooms/akropolis/forked_road/events.inc"
 #include "assets/rooms/akropolis/forked_road/markers.inc"
 #include "assets/rooms/akropolis/forked_road/view_masks.inc"
+
 #include "../../shared/room/room_visual_effects_trail_data.inc.c"
 #include "assets/rooms/akropolis/forked_road/header.inc"
 #include "assets/rooms/akropolis/forked_road/geometry.inc"

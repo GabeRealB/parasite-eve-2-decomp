@@ -178,10 +178,15 @@ embedded = [
     "acropolis_cafeteria_model_0F7A4",
     { name = "acropolis_cafeteria_model_0FDFC", offset = 0x0FC94, size = 0x34C, address = 0x8018D254 },
 ]
-entries = { spare_batches = [0x0DDC4, 0x0ED28], updates = [0x0F414] }
 package_name = "acropolis_cafeteria"
 required = true
 sha1 = "0a43c68c82490299076973953db45213ed28437d"
+
+[package.entries]
+actor_commands = [0x057F8]
+scripts = [0x058B4, 0x05BFC, 0x05D4C, 0x05F14, 0x0607C, 0x067FC, 0x068EC, 0x0697C, 0x06B44]
+spare_batches = [0x0DDC4, 0x0ED28]
+updates = [0x0F414]
 
 [sounds_0]
 type = "sound_bank"

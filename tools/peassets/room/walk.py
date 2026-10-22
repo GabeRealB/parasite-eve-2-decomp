@@ -16,6 +16,7 @@ import re
 import struct
 from pathlib import Path
 
+from .events import payload_targets
 from .layouts import GEOMETRY, MODULE_OF, SCALAR, TRIGGER_MODULE, decode_value, size
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -127,7 +128,14 @@ STATED_ROLES = {"action_triggers": ("WorldCollisionTrigger", "action_triggers"),
                 "spare_batches": ("SpriteBatch", "sprites"), "spare_draw_areas": ("SpriteDrawArea", "sprites"),
                 "updates": ("AreaApplyRec", "updates"), "markers": ("SVECTOR", "markers"),
                 "samples": ("s16", "samples"), "view_masks": ("u16", "view_masks"),
-                "wide_view_masks": ("u32", "view_masks")}
+                "wide_view_masks": ("u32", "view_masks"),
+                # events: the scripts, and the payloads code sends or plays itself
+                "scripts": ("EvsCommand", "events"), "animations": ("AnimationPlayRequest", "events"),
+                "transforms": ("ActorTransform", "events"), "actor_commands": ("ActorCommand", "events"),
+                "bank_copies": ("AnimationBankCopyRequest", "events"), "scene_keys": ("EvsSceneKey", "events"),
+                "move_animations": ("GameActorMoveAnim", "events"), "walk_animations": ("ActorMotionWalkAnim", "events")}
+EVENT_PAYLOADS = frozenset({"AnimationPlayRequest", "ActorTransform", "ActorCommand", "AnimationBankCopyRequest",
+                            "EvsSceneKey", "GameActorMoveAnim", "ActorMotionWalkAnim"})
 ROLE_KINDS = {**{r: k for k, r in IMPLICIT_ROLES.items()}, **{r: k for r, (k, _m) in STATED_ROLES.items()},
               "commands": "PadScriptCmd", "segments": "PadScriptVibrationSegment"}
 
@@ -202,7 +210,16 @@ def walk(images: Images, area: int, entries: dict) -> tuple[int, dict[int, Objec
                 n = struct.unpack_from("<h", images.room, a - ROOM_LOAD)[0] + 1
             else:
                 n = extent(a, kind)
-            objs[a] = Object(a, kind, n, module, single or kind in SCALAR, rows)
+            single = single or kind in SCALAR or (kind in EVENT_PAYLOADS and n == 1)   # a payload: one, unless several
+            objs[a] = Object(a, kind, n, module, single, rows)
+            if kind == "EvsCommand":                          # a script: what its commands point to
+                for i in range(n):
+                    words = struct.unpack_from("<6i", images.room, a - ROOM_LOAD + 24 * i)
+                    for target, tkind in payload_targets(words):
+                        if tkind == "EvsCommand" and target not in images.names:
+                            continue                          # a command inside a script, not a script of its own
+                        queue.append((target, tkind, MODULE_OF.get(tkind, "events"), False, 0))
+                continue
             if kind in GEOMETRY:
                 continue
             if kind == "WorldCollisionGrid":                  # its geometry, as the collision asset cuts it

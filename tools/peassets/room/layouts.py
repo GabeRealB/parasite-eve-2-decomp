@@ -205,6 +205,8 @@ def decode_value(data: bytes, off: int, kind, refs: list | None = None, field: s
         return [decode_value(data, off + i * size(kind[1]), kind[1], refs, field) for i in range(kind[2])]
     if kind[0] == "union":
         return decode_value(data, off, kind[2], refs, field)
+    if kind[0] == "word":
+        return _struct.unpack_from("<I", data, off)[0]
     v = _struct.unpack_from("<I", data, off)[0]
     if refs is not None:
         refs.append((field, v, kind[1]))
@@ -232,6 +234,9 @@ def named(value, kind, name_of):
         return [named(v, kind[1], name_of) for v in value]
     if kind[0] == "union":
         return named(value, kind[2], name_of)
+    if kind[0] == "word":                                 # a name where something names the address, else the number
+        name = name_of(value) if value >= 0x80000000 else value
+        return name if isinstance(name, str) else value - (1 << 32) if value >= 0x80000000 else value
     return name_of(value)
 
 
@@ -254,6 +259,8 @@ def encode_value(value, kind, address_of) -> bytes:
         return b"".join(encode_value(v, kind[1], address_of) for v in value)
     if kind[0] == "union":
         return encode_value(value, kind[2], address_of)
+    if kind[0] == "word":
+        return _struct.pack("<I", (value if isinstance(value, int) else address_of(value)) & 0xFFFFFFFF)
     return _struct.pack("<I", value if isinstance(value, int) else address_of(value))
 
 
@@ -268,6 +275,11 @@ def c_value(value, kind, pointer, layout: str = "") -> str:
             return c_value(value, fields[0][1], pointer, kind)
         parts = []
         for n, k, _o in fields:
+            if isinstance(k, tuple) and k[0] == "word":
+                v = value[n]
+                member = k[2] if isinstance(v, str) else k[1]
+                parts.append(f".{n} = {{ .{member} = {pointer(v) if isinstance(v, str) else v} }}")
+                continue
             if isinstance(k, tuple) and k[0] == "union":
                 member = k[1]
                 if kind == "SpriteView" and n == "sources" and value[n] == value["batches"]:
@@ -311,5 +323,30 @@ def pointer_targets(value, kind):
     if kind[0] == "union":
         yield from pointer_targets(value, kind[2])
         return
+    if kind[0] == "word":
+        return
     if isinstance(value, str) and kind[1] != "ref":
         yield value, kind[1]
+
+
+# --- events ----------------------------------------------------------------------------------------------------
+# A word that is a number or a pointer by name: ("word", number member, pointer member) - a name where the word is an
+# address something names, else the number (event operands, an animation request's bank or clip table).
+LAYOUTS.update({
+    "EvsCommand": ("EvsCommand", [("opcode", "i")] + [(f"operand{i}", ("word", "value", "storage")) for i in range(5)]),
+    "AnimationPlayRequest": ("AnimationPlayRequest", [
+        ("source", ("word", "index", "sets")), ("animationId", "i"), ("blend", "i"), ("blendFrames", "i"),
+        ("enableWorldCollision", "i")]),
+    "ActorTransform": ("ActorTransform", [("pos", ("arr", "i", 4)), ("rot", ("arr", "h", 4))]),
+    "ActorCommandLoc": ("", [("stage", "B"), ("area", "B")]),
+    "ActorCommand": ("ActorCommand", [("context", ("union", "loc", "ActorCommandLoc")), ("command", "H")]),
+    "AnimationBankCopyRequest": ("AnimationBankCopyRequest", [("sets", ("ptr", "ref")), ("count", "i")]),
+    "EvsSceneKey": ("EvsSceneKey", [("group", "H"), ("streamId", "H"), ("subId", "H")]),
+    "GameActorMoveAnim": ("GameActorMoveAnim", [("approachAnimId", "i"), ("arrivalAnimId", "i")]),
+    "ActorMotionWalkAnim": ("ActorMotionWalkAnim", [("animationId", "i"), ("nextAnimId", "B")]),   # three bytes of padding
+})
+for _layout, _size in (("EvsCommand", 0x18), ("AnimationPlayRequest", 0x14), ("ActorTransform", 0x18), ("ActorCommand", 4),
+                       ("EvsSceneKey", 6), ("ActorMotionWalkAnim", 8)):
+    assert size(_layout) == _size, _layout
+MODULE_OF.update({k: "events" for k in ("EvsCommand", "AnimationPlayRequest", "ActorTransform", "ActorCommand",
+                                         "AnimationBankCopyRequest", "EvsSceneKey", "GameActorMoveAnim", "ActorMotionWalkAnim")})

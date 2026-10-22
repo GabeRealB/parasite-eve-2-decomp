@@ -227,6 +227,7 @@ sha1 = "61de7cf0d94d0b266b70a85befb299273b7b42ac"
 
 [package.entries]
 markers = [0x04534, { at = 0x0454C, single = true }, 0x04554]
+scripts = [0x03940, 0x03AA8]
 spare_batches = [0x089E4]
 vibrations = [{ commands = 0x08C64, segments = 0x08C7C }]
 view_masks = [{ at = 0x045B4, single = true }, { at = 0x045B6, single = true }, 0x045B8]

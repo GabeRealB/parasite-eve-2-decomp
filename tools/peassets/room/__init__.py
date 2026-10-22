@@ -28,10 +28,13 @@ from pathlib import Path
 from typing import Any
 
 from .layouts import GEOMETRY, LAYOUTS, c_value, decode_value, encode_value, named, pointer_targets, size
+from . import events as event_text
 from .walk import ROLE_KINDS, ROOM_LOAD, STAGES, Images, walk
 
 ROLE_LISTS = frozenset({"action_triggers", "geometry", "lights", "spare_batches", "spare_draw_areas", "updates",
-                        "vibrations", "markers", "view_masks", "wide_view_masks", "samples"})          # roles the record states: always lists
+                        "vibrations", "markers", "view_masks", "wide_view_masks", "samples", "scripts", "animations",
+                        "transforms", "actor_commands", "bank_copies", "scene_keys", "move_animations",
+                        "walk_animations"})          # roles the record states: always lists
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -84,6 +87,7 @@ def _name_of(im: Images, objs: dict):
 def decode_room(name: str, assets: dict, embedded: dict, assets_root: Path) -> dict[str, Any]:
     im, area = images(name, assets, embedded, assets_root)
     states, objs, roles = walk(im, area, assets[name].get("entries", {}))
+    _KINDS[name] = {im.names[a]: o.kind for a, o in objs.items() if a in im.names}
     name_of = _name_of(im, objs)
     entry = {}
     for role, points in roles.items():
@@ -111,6 +115,16 @@ def decode_room(name: str, assets: dict, embedded: dict, assets_root: Path) -> d
                 rec = {"values": vals}
         modules.setdefault(o.module, {})[sym] = rec
     return {"area": area, "states": states, "entry": entry, "modules": modules}
+
+
+_KINDS: dict[str, dict[str, str]] = {}
+
+
+def _kinds_of(name: str, assets: dict, embedded: dict, assets_root: Path) -> dict[str, str]:
+    """Each object's kind as the walk found it (the last decode of the room)."""
+    if name not in _KINDS:
+        decode_room(name, assets, embedded, assets_root)
+    return _KINDS[name]
 
 
 def _toml(v: Any) -> str:
@@ -146,8 +160,12 @@ def read(name: str, assets: dict, assets_root: Path) -> dict[str, Any]:
     field names."""
     room = tomllib.loads(instance_path(name, assets, assets_root).read_text())
     modules = {k: v for k, v in room.items() if k not in ("area", "states", "entry")}
+    epath = events_path(name, assets, assets_root)
+    if epath.exists():
+        names = event_text.Names(event_text.prefix_of(assets[name]["package_name"]), set())
+        modules["events"] = event_text.read(epath.read_text(), names)
     objects = {s: r for objs in modules.values() for s, r in objs.items()}
-    kinds: dict[str, str] = {}
+    kinds: dict[str, str] = {s: r["kind"] for s, r in objects.items() if "kind" in r}
 
     def assign(sym: str, kind: str) -> None:
         kind = "SpriteSource" if kind == "SpriteSources" else kind
@@ -208,11 +226,26 @@ def encode_room(name: str, room: dict[str, Any], assets: dict, embedded: dict, a
     return bytes(image)
 
 
+def events_path(name: str, assets: dict, assets_root: Path) -> Path:
+    return assets_root / assets[name]["group"] / "events.evs"
+
+
 def decode(name: str, assets: dict, embedded: dict, assets_root: Path) -> Path:
-    """Write the room's instance; it must encode back to the package."""
+    """Write the room's instance - its events as text (events.py), the rest as room.toml; it must encode back."""
     room = decode_room(name, assets, embedded, assets_root)
     path = instance_path(name, assets, assets_root)
     path.parent.mkdir(parents=True, exist_ok=True)
+    events = room["modules"].pop("events", {})
+    epath = events_path(name, assets, assets_root)
+    if events:
+        im, _area = images(name, assets, embedded, assets_root)
+        kinds = _kinds_of(name, assets, embedded, assets_root)
+        objs = {s: {**r, "kind": kinds[s]} for s, r in events.items()}
+        names = event_text.Names(event_text.prefix_of(assets[name]["package_name"]), set(objs))
+        header = f"# {name}: the room's events, decoded from its package (tools/peassets/room/events.py).\n"
+        epath.write_text(header + event_text.write(objs, names, sorted(objs, key=im.addresses.get)), encoding="utf-8")
+    elif epath.exists():
+        epath.unlink()
     path.write_text(to_toml(name, room), encoding="utf-8")
     problems = check(name, assets, embedded, assets_root)
     if problems:

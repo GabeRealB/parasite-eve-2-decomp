@@ -163,168 +163,21 @@ enum {
 /// Borrowed by player playback until replacement; keep the room overlay loaded.
 #include "assets/rooms/akropolis/east_elevator_hall/acropolis_east_elevator_hall_opening_player_exit_bank.inc"
 
-/// Installs the opening's main player clip with reset playback and grid collision off.
-///
-/// The request is borrowed during dispatch; its set table survives through playback.
-/// The retained one-frame blend duration is ignored by reset playback.
-static AnimationPlayRequest _gAcropolisEastElevatorHallOpeningPlayerMainAnimationRequest = {
-    .source               = { .sets = _gAcropolisEastElevatorHallOpeningPlayerMainAnimationSets },
-    .animationId          = ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_PLAYER_ANIMATION,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 1,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Installs the opening's lead-in player clip with reset playback and grid collision off.
-///
-/// The request is borrowed during dispatch; its set table survives through playback.
-/// The retained one-frame blend duration is ignored by reset playback.
-static AnimationPlayRequest _gAcropolisEastElevatorHallOpeningPlayerLeadInAnimationRequest = {
-    .source               = { .sets = _gAcropolisEastElevatorHallOpeningPlayerLeadInAnimationSets },
-    .animationId          = ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_PLAYER_ANIMATION,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 1,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Installs the opening's final player clip with reset playback and grid collision off.
-///
-/// The request is borrowed during dispatch; its set table survives through playback.
-static AnimationPlayRequest _gAcropolisEastElevatorHallOpeningPlayerExitAnimationRequest = {
-    .source               = { .sets = _gAcropolisEastElevatorHallOpeningPlayerExitAnimationSets },
-    .animationId          = ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_PLAYER_ANIMATION,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Resets the player's equipped-weapon clip 1 during the room's event scripts.
-///
-/// The interpreter copies the request and overwrites the bank selector with the
-/// equipped weapon's bank. The stored selector is unread; collision stays off.
-static AnimationPlayRequest _gAcropolisEastElevatorHallWeaponAnimationRequest = {
-    .source               = { .index = 1 },
-    .animationId          = ACROPOLIS_EAST_ELEVATOR_HALL_WEAPON_ANIMATION,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Restarts placed view figure 0's lead-in clip for the opening event.
-///
-/// Only the animation ID is consumed; the other words are retained but ignored.
-/// Borrowed only during dispatch to the loaded figure package.
-static AnimationPlayRequest _gAcropolisEastElevatorHallOpeningViewFigureLeadInAnimationRequest = {
-    .source               = { .index = 0 },
-    .animationId          = ACROPOLIS_EAST_ELEVATOR_HALL_VIEW_FIGURE_LEAD_IN_ANIMATION,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Restarts placed view figure 0's main opening clip for the 944-frame phase.
-///
-/// Only the animation ID is consumed; the other words are retained but ignored.
-/// Borrowed only during dispatch to the loaded figure package.
-static AnimationPlayRequest _gAcropolisEastElevatorHallOpeningViewFigureMainAnimationRequest = {
-    .source               = { .index = 0 },
-    .animationId          = ACROPOLIS_EAST_ELEVATOR_HALL_VIEW_FIGURE_MAIN_ANIMATION,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Restarts placed view figure 0's final opening clip for the 80-frame phase.
-///
-/// Only the animation ID is consumed; the other words are retained but ignored.
-/// Borrowed only during dispatch to the loaded figure package.
-static AnimationPlayRequest _gAcropolisEastElevatorHallOpeningViewFigureExitAnimationRequest = {
-    .source               = { .index = 0 },
-    .animationId          = ACROPOLIS_EAST_ELEVATOR_HALL_VIEW_FIGURE_EXIT_ANIMATION,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
 /// Body clip restored on entry and after the hall's scripted figure sequences.
 enum { ACROPOLIS_EAST_ELEVATOR_HALL_VIEW_FIGURE_DEFAULT_ANIMATION = 4 };
 
-/// Restarts placed view figure 0's default body clip (animation 4).
-///
-/// Entry, opening completion/skip and the command-2 scene use the same request.
-/// The figure reads only `animationId`, resetting its body tracks synchronously;
-/// bank, blend and collision words are ignored. The request belongs to this room
-/// overlay and is borrowed only during message dispatch.
-static AnimationPlayRequest _gAcropolisEastElevatorHallViewFigureDefaultAnimationRequest = {
-    .source               = { .index = 0 },
-    .animationId          = ACROPOLIS_EAST_ELEVATOR_HALL_VIEW_FIGURE_DEFAULT_ANIMATION,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Restarts placed view figure 0's clip for room command 2 and CAP sequence 2.
-///
-/// Only the animation ID is consumed; the other words are retained but ignored.
-/// Borrowed only during dispatch to the loaded figure package.
-static AnimationPlayRequest _gAcropolisEastElevatorHallCommand2ViewFigureAnimationRequest = {
-    .source               = { .index = 0 },
-    .animationId          = ACROPOLIS_EAST_ELEVATOR_HALL_VIEW_FIGURE_COMMAND_2_ANIMATION,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Scene/audio stream key held throughout the opening event.
-///
-/// Group 1, stream 3, qualifier 11 select the current folder's stream with
-/// second qualifier zero. Keep this key loaded until the event releases it.
-static EvsSceneKey _gAcropolisEastElevatorHallOpeningSceneKey = {
-    .group    = 1,
-    .streamId = 3,
-    .subId    = 11,
-};
-
+#define ROOM_PART _gAcropolisEastElevatorHallOpeningPlayerMainAnimationRequest
+#include "assets/rooms/akropolis/east_elevator_hall/events.inc"
 /// Unreferenced scene-key-shaped record; its intended use is unproven.
 static EvsSceneKey D_acropolis_east_elevator_hall_80185CBC = { 1, 3, 21 };
 
 /// Unreferenced 24-byte record; the transform interpretation is unproven.
 static ActorTransform D_acropolis_east_elevator_hall_80185CC4 = { { 1, 0, 0, 0 }, { 0, 0, 0, 0 } };
 
-/// Player's initial opening walk destination, in whole room-coordinate units.
-///
-/// The move-to message copies XYZ during dispatch; the angles are unread.
-static ActorTransform _gAcropolisEastElevatorHallOpeningPlayerWalkTarget = {
-    .pos = { 5051, 0, -1280, 0 },
-    .rot = { 0, 0, 0, 0 },
-};
-
-/// Zero position and orientation for the opening player's main animation phase.
-///
-/// The player copies room-coordinate XYZ and 4096-per-turn angles during
-/// dispatch. Also sent to the view figure, whose table ignores placement.
-static ActorTransform _gAcropolisEastElevatorHallOpeningOriginTransform = { 0 };
-
-/// Player placement for the opening's lead-in clip after the first CAP cue.
-///
-/// Position uses whole room-coordinate units and yaw uses 4096 per turn.
-/// Both vectors are copied during dispatch; the record is not retained.
-static ActorTransform _gAcropolisEastElevatorHallOpeningPlayerLeadInTransform = {
-    .pos = { 1937, 0, -492, 0 },
-    .rot = { 0, 1224, 0, 0 },
-};
-
+#define ROOM_PART _gAcropolisEastElevatorHallOpeningPlayerWalkTarget
+#include "assets/rooms/akropolis/east_elevator_hall/events.inc"
 /// Unreferenced 24-byte record; the transform interpretation is unproven.
 static ActorTransform D_acropolis_east_elevator_hall_80185D24 = { { 0, 0, 0, 0 }, { 0, 1640, 0, 0 } };
-
-/// Player placement after either normal completion or skipping the opening event.
-///
-/// Position uses whole room-coordinate units and yaw uses 4096 per turn.
-/// Both vectors are copied during dispatch; the record is not retained.
-static ActorTransform _gAcropolisEastElevatorHallOpeningPlayerEndTransform = {
-    .pos = { 4440, 0, -672, 0 },
-    .rot = { 0, 1640, 0, 0 },
-};
 
 /// Event-script CAP slots, placed figure selector and sound cue.
 enum {
@@ -336,91 +189,8 @@ enum {
     ACROPOLIS_EAST_ELEVATOR_HALL_SKIP_END_VIEW             = 5,
 };
 
-/// First-visit opening event, synchronized to CAP sequence 1 and its scene audio.
-///
-/// Runs 35 commands and END, with frame waits of 72, 944 and 80 in its animation
-/// phases. Borrows the room's requests and the loaded player/figure resources;
-/// keep them live until this script or its skip target ends. The event runner
-/// hides and restores the HUD. Only player animation playback retains set tables.
-static EvsCommand _gAcropolisEastElevatorHallOpeningScript[] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_CAP_SEQUENCE }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gAcropolisEastElevatorHallOpeningSceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_EAST_ELEVATOR_HALL_EVENT_FIGURE_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_EAST_ELEVATOR_HALL_EVENT_FIGURE_DRAW_ENABLED }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_EAST_ELEVATOR_HALL_EVENT_FIGURE_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gAcropolisEastElevatorHallOpeningOriginTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_EAST_ELEVATOR_HALL_EVENT_FIGURE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisEastElevatorHallOpeningViewFigureLeadInAnimationRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_MOVE_TO }, { .message = { .pointer = &_gAcropolisEastElevatorHallOpeningPlayerWalkTarget } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisEastElevatorHallWeaponAnimationRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_SOUND }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 67 }, { .value = 67 }, { .value = 78 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gAcropolisEastElevatorHallOpeningPlayerLeadInTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_INSTALL_AND_PLAY }, { .message = { .pointer = &_gAcropolisEastElevatorHallOpeningPlayerLeadInAnimationRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 72 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gAcropolisEastElevatorHallOpeningOriginTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_INSTALL_AND_PLAY }, { .message = { .pointer = &_gAcropolisEastElevatorHallOpeningPlayerMainAnimationRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_EAST_ELEVATOR_HALL_EVENT_FIGURE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisEastElevatorHallOpeningViewFigureMainAnimationRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 944 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_INSTALL_AND_PLAY }, { .message = { .pointer = &_gAcropolisEastElevatorHallOpeningPlayerExitAnimationRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_EAST_ELEVATOR_HALL_EVENT_FIGURE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisEastElevatorHallOpeningViewFigureExitAnimationRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 80 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_EAST_ELEVATOR_HALL_EVENT_FIGURE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisEastElevatorHallViewFigureDefaultAnimationRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisEastElevatorHallWeaponAnimationRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gAcropolisEastElevatorHallOpeningPlayerEndTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_RESET_ANIMATION }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 240 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_END },
-};
-
-/// Opening-event skip path that restores view 5, player placement and figure clip 4.
-///
-/// Runs 14 commands and END: fade out for eight frames, restore actors and
-/// scene state, fade back, start CAP sequence 16, release player control and
-/// resume area music. Borrows this overlay and its loaded actor resources until END.
-static EvsCommand _gAcropolisEastElevatorHallOpeningSkipScript[] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gAcropolisEastElevatorHallOpeningPlayerEndTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisEastElevatorHallWeaponAnimationRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_EAST_ELEVATOR_HALL_EVENT_FIGURE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisEastElevatorHallViewFigureDefaultAnimationRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = ACROPOLIS_EAST_ELEVATOR_HALL_SKIP_END_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _acropolisEastElevatorHallStartSkipCapSequence }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 240 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_END },
-};
-
-/// Room-command-2 event: CAP sequence 2 and view-figure clip 5, then clip 4.
-///
-/// Eight commands and END; waits for a CAP cue and three further frames before
-/// restoring the figure and player control. Selects no scene stream. The runner
-/// hides and restores the HUD; keep room, CAP and actor resources loaded until END.
-static EvsCommand _gAcropolisEastElevatorHallCommand2Script[] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACROPOLIS_EAST_ELEVATOR_HALL_COMMAND_2_CAP_SEQUENCE }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisEastElevatorHallWeaponAnimationRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_EAST_ELEVATOR_HALL_EVENT_FIGURE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisEastElevatorHallCommand2ViewFigureAnimationRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_EAST_ELEVATOR_HALL_EVENT_FIGURE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisEastElevatorHallViewFigureDefaultAnimationRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_END },
-};
-
+#define ROOM_PART _gAcropolisEastElevatorHallOpeningPlayerEndTransform
+#include "assets/rooms/akropolis/east_elevator_hall/events.inc"
 /// Room receiver's transition, command, key-item and action message handlers.
 ///
 /// Four entries followed by TASK_MESSAGE_TABLE_END; unsupported IDs return zero.

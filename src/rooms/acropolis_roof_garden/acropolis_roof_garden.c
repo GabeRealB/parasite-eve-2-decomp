@@ -173,61 +173,19 @@ static TaskDesc _gAcropolisRoofGardenSoundTaskDescriptors[4] = {
 /// Unreferenced four-byte record retained as {1, 13, 0, 0}; its command role is unproven.
 static ActorCommand D_acropolis_roof_garden_80183C40 = { { .loc = { 1, 13 } }, 0 };
 
-/// Player clip 1 restarted at the arrival scene's end and by its skip path.
-///
-/// EVS replaces source.index with the equipped weapon bank in a copy. Playback
-/// takes scripted control and disables grid participation until control resumes.
-static AnimationPlayRequest _gAcropolisRoofGardenArrivalFinalPlayerAnimation = {
-    .source               = { .index = 1 },
-    .animationId          = 1,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Zero transform carried by the arrival scene's figure-placement message.
-///
-/// The selected view figure has no placement handler, so this payload is ignored.
-static ActorTransform _gAcropolisRoofGardenArrivalFigurePlacement = {
-    .pos = { 0, 0, 0, 0 },
-    .rot = { 0, 0, 0, 0 },
-};
-
-/// Arrival opening placement of the player, in world-coordinate units.
-///
-/// Position is (0, 128, 0), with zero Euler rotation; dispatch copies XYZ and
-/// all three angles into the player's model without retaining the record.
-static ActorTransform _gAcropolisRoofGardenArrivalStartPlayerPlacement = {
-    .pos = { 0, 128, 0, 0 },
-    .rot = { 0, 0, 0, 0 },
-};
-
+#define ROOM_PART _gAcropolisRoofGardenArrivalFinalPlayerAnimation
+#include "assets/rooms/akropolis/roof_garden/events.inc"
 /// Unreferenced transform-shaped record; its receiver and coordinate frame are unproven.
 static ActorTransform D_acropolis_roof_garden_80183C88 = { { 0, 128, 0, 0 }, { 0, 407, 0, 0 } };
-
-/// Player placement shared by the arrival scene's normal and skipped endings.
-///
-/// Position is (-7508, 0, -8572) in world-coordinate units; yaw is 407 in
-/// 4096 units per turn. The player consumes the record synchronously.
-static ActorTransform _gAcropolisRoofGardenArrivalEndPlayerPlacement = {
-    .pos = { -7508, 0, -8572, 0 },
-    .rot = { 0, 407, 0, 0 },
-};
 
 /// Borrowed player clips for arrival opening, closing and dialogue, in that order.
 ///
 /// The bank-copy request installs all three at extension slots 47..49. The
 /// table and clip assets belong to the room overlay and stay live during playback.
-#include "assets/rooms/akropolis/roof_garden/acropolis_roof_garden_arrival_player_bank.inc"
+#define ROOM_PART _gAcropolisRoofGardenArrivalEndPlayerPlacement
+#include "assets/rooms/akropolis/roof_garden/events.inc"
 
-/// Installs the arrival scene's three player clips into the equipped bank extension.
-///
-/// Copies three pointer words synchronously without starting playback; the
-/// copied clips remain borrowed from the room overlay through the scene.
-static AnimationBankCopyRequest _gAcropolisRoofGardenArrivalPlayerBankCopy = {
-    .sets  = _gAcropolisRoofGardenArrivalPlayerAnimationSets,
-    .count = ARRAY_SIZE(_gAcropolisRoofGardenArrivalPlayerAnimationSets),
-};
+#include "assets/rooms/akropolis/roof_garden/acropolis_roof_garden_arrival_player_bank.inc"
 
 enum {
     ACROPOLIS_ROOF_GARDEN_ARRIVAL_OPENING_SET  = ANIMATION_BANK_BASE_SET_COUNT,
@@ -235,98 +193,8 @@ enum {
     ACROPOLIS_ROOF_GARDEN_ARRIVAL_DIALOGUE_SET = ANIMATION_BANK_BASE_SET_COUNT + 2,
 };
 
-/// Restarts the installed player clip for the arrival opening, disabling grid participation.
-///
-/// EVS resolves the equipped weapon bank in a copy; the room clip remains
-/// borrowed until playback changes. The opening phase waits 154 frames.
-static AnimationPlayRequest _gAcropolisRoofGardenArrivalOpeningPlayerAnimation = {
-    .source               = { .index = 1 },
-    .animationId          = ACROPOLIS_ROOF_GARDEN_ARRIVAL_OPENING_SET,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Restarts the installed player clip for the arrival closing, disabling grid participation.
-///
-/// EVS resolves the equipped weapon bank in a copy. The script waits 115 frames
-/// before replacing this borrowed room clip with the final player animation.
-static AnimationPlayRequest _gAcropolisRoofGardenArrivalClosingPlayerAnimation = {
-    .source               = { .index = 1 },
-    .animationId          = ACROPOLIS_ROOF_GARDEN_ARRIVAL_CLOSING_SET,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Restarts the installed player clip used through the arrival scene's CAP dialogue.
-///
-/// EVS resolves the equipped weapon bank in a copy. Grid participation stays
-/// disabled; the closing request replaces this borrowed room clip after the cues.
-static AnimationPlayRequest _gAcropolisRoofGardenArrivalDialoguePlayerAnimation = {
-    .source               = { .index = 1 },
-    .animationId          = ACROPOLIS_ROOF_GARDEN_ARRIVAL_DIALOGUE_SET,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Figure body clip 1 requested at arrival dialogue start and on scene skip.
-///
-/// The figure restarts tracks 1..19; only animationId is read. The request is
-/// borrowed through dispatch and the figure owns the clip assets.
-static AnimationPlayRequest _gAcropolisRoofGardenArrivalFigureAnimation1 = {
-    .source               = { .index = 0 },
-    .animationId          = 1,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Figure body clip 2 requested at the arrival dialogue's next CAP cue.
-///
-/// Only animationId is read; the figure restarts its body tracks synchronously.
-static AnimationPlayRequest _gAcropolisRoofGardenArrivalFigureAnimation2 = {
-    .source               = { .index = 0 },
-    .animationId          = 2,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Figure body clip 3 requested at a CAP cue before the arrival scene's 180-frame wait.
-///
-/// Only animationId is read; the figure restarts its body tracks synchronously.
-static AnimationPlayRequest _gAcropolisRoofGardenArrivalFigureAnimation3 = {
-    .source               = { .index = 0 },
-    .animationId          = 3,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Figure body clip 4 requested after the arrival scene's 180-frame wait.
-///
-/// Only animationId is read; the figure restarts its body tracks synchronously.
-static AnimationPlayRequest _gAcropolisRoofGardenArrivalFigureAnimation4 = {
-    .source               = { .index = 0 },
-    .animationId          = 4,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Figure body clip 5 requested after clip 4's 79-frame wait, before the next CAP cue.
-///
-/// Only animationId is read; the figure restarts its body tracks synchronously.
-static AnimationPlayRequest _gAcropolisRoofGardenArrivalFigureAnimation5 = {
-    .source               = { .index = 0 },
-    .animationId          = 5,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
+#define ROOM_PART _gAcropolisRoofGardenArrivalPlayerBankCopy
+#include "assets/rooms/akropolis/roof_garden/events.inc"
 /// Unreferenced halfword triplet {1, 8, 11}; its scene-selection role is unproven.
 static EvsSceneKey D_acropolis_roof_garden_80183D6C = { 1, 8, 11 };
 
@@ -352,84 +220,8 @@ enum {
     ACROPOLIS_ROOF_GARDEN_ENTRANCE_BATTLE_DELAY_FRAMES      = 40,
 };
 
-/// Arrival presentation: CAP dialogue, player/figure clips and synchronized sound cues.
-///
-/// Started once at warp 2 with HUD hide/restore. NULL scene selection leaves
-/// the stream unchanged. END terminates the 44-command sequence; frame waits
-/// count interpreter ticks. Commands and referenced actor resources stay
-/// borrowed through playback, including the alternate skip completion.
-static EvsCommand _gAcropolisRoofGardenArrivalScript[44] = {
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_CAP_COMMAND }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_FIGURE_HIDE }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gAcropolisRoofGardenArrivalPlayerBankCopy } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisRoofGardenArrivalStartPlayerPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisRoofGardenArrivalOpeningPlayerAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisRoofGardenControlCutsceneSound }, { .value = ACROPOLIS_ROOF_GARDEN_CUTSCENE_SOUND_OPENING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_SOUND_CUE_5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_OPENING_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisRoofGardenArrivalDialoguePlayerAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 61 }, { .value = 64 }, { .value = 80 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_FIGURE_SHOW }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisRoofGardenArrivalFigurePlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisRoofGardenArrivalFigureAnimation1 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisRoofGardenArrivalFigureAnimation2 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_SOUND_CUE_4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisRoofGardenArrivalFigureAnimation3 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_FIGURE_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisRoofGardenArrivalFigureAnimation4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_FIGURE_CLIP4_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisRoofGardenArrivalFigureAnimation5 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_SOUND_CUE_1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_SOUND_CUE_2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_SOUND_CUE_3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_FIGURE_HIDE }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisRoofGardenArrivalClosingPlayerAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisRoofGardenControlCutsceneSound }, { .value = ACROPOLIS_ROOF_GARDEN_CUTSCENE_SOUND_CLOSING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_CLOSING_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_MUSIC_FADE_TICKS }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisRoofGardenArrivalFinalPlayerAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_RESET_ANIMATION }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisRoofGardenArrivalEndPlayerPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_END },
-};
-
-/// Skip completion for the arrival, restoring player placement, view and ambience.
-///
-/// Stops type-3 sounds and the pending sound task, resets the figure, cleans
-/// up CAP under the default fade and resumes player control. END terminates
-/// all 17 commands; keep this script and its payloads loaded until completion.
-static EvsCommand _gAcropolisRoofGardenArrivalSkipScript[17] = {
-    { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_SOUND_ALL_TYPE_3 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_SKIP_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisRoofGardenArrivalEndPlayerPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisRoofGardenArrivalFinalPlayerAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_FIGURE_HIDE }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisRoofGardenArrivalFigureAnimation1 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_MUSIC_FADE_TICKS }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisRoofGardenControlCutsceneSound }, { .value = ACROPOLIS_ROOF_GARDEN_CUTSCENE_SOUND_CANCEL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_SKIP_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACROPOLIS_ROOF_GARDEN_ARRIVAL_SKIP_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_END },
-};
-
+#define ROOM_PART _gAcropolisRoofGardenArrivalScript
+#include "assets/rooms/akropolis/roof_garden/events.inc"
 /// Arrival-scene latch (0 unstarted, 1 attempted), reset by loading the overlay.
 ///
 /// Set before starting the warp-2 script; a failed start is not retried.
@@ -443,84 +235,10 @@ static s32 _gAcropolisRoofGardenArrivalSceneStarted = 0;
 /// installed clips are played; their room-owned assets stay live through playback.
 #include "assets/rooms/akropolis/roof_garden/acropolis_roof_garden_entrance_player_bank.inc"
 
-/// Copies the Maggot/Caterpillar entrance's three words into the equipped player bank.
-///
-/// The first word deliberately clears extension slot 47. The following two
-/// borrow the room's start/end clips; copying does not start playback.
-static AnimationBankCopyRequest _gAcropolisRoofGardenEntrancePlayerBankCopy = {
-    .sets  = _gAcropolisRoofGardenEntrancePlayerAnimationSets,
-    .count = ARRAY_SIZE(_gAcropolisRoofGardenEntrancePlayerAnimationSets),
-};
-
-/// Unused bank-1 clip-1 reset request retained with the entrance animation data.
-///
-/// Requests disabled world collision. Neither entrance nor arrival scripts use it.
-static AnimationPlayRequest _gAcropolisRoofGardenUnusedBank1Animation1Request = {
-    .source               = { .index = 1 },
-    .animationId          = 1,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
 enum {
     ACROPOLIS_ROOF_GARDEN_ENTRANCE_START_SET    = ANIMATION_BANK_BASE_SET_COUNT + 1,
     ACROPOLIS_ROOF_GARDEN_ENTRANCE_END_SET      = ANIMATION_BANK_BASE_SET_COUNT + 2,
     ACROPOLIS_ROOF_GARDEN_ENTRANCE_BLEND_FRAMES = 20,
-};
-
-/// Player clip blended in before releasing the Maggot/Caterpillar entrance.
-///
-/// EVS resolves the weapon bank in a copy. Blend duration is 20 normal-rate
-/// frames; playback takes scripted control and disables grid participation.
-static AnimationPlayRequest _gAcropolisRoofGardenEntranceStartPlayerAnimation = {
-    .source               = { .index = 1 },
-    .animationId          = ACROPOLIS_ROOF_GARDEN_ENTRANCE_START_SET,
-    .blend                = ANIMATION_BLEND_INTERPOLATE,
-    .blendFrames          = ACROPOLIS_ROOF_GARDEN_ENTRANCE_BLEND_FRAMES,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Player clip blended in 30 frames after releasing the Maggot/Caterpillar entrance.
-///
-/// EVS resolves the weapon bank in a copy. Blend duration is 20 normal-rate
-/// frames; grid participation stays disabled until scripted control ends.
-static AnimationPlayRequest _gAcropolisRoofGardenEntranceEndPlayerAnimation = {
-    .source               = { .index = 1 },
-    .animationId          = ACROPOLIS_ROOF_GARDEN_ENTRANCE_END_SET,
-    .blend                = ANIMATION_BLEND_INTERPOLATE,
-    .blendFrames          = ACROPOLIS_ROOF_GARDEN_ENTRANCE_BLEND_FRAMES,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Unused bank-1 clip-9 request retained with the entrance animation data.
-///
-/// Requests a ten-frame blend and disabled world collision; no script selects it.
-static AnimationPlayRequest _gAcropolisRoofGardenUnusedBank1Animation9Request = {
-    .source               = { .index = 1 },
-    .animationId          = 9,
-    .blend                = ANIMATION_BLEND_INTERPOLATE,
-    .blendFrames          = 10,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Releases the Maggot/Caterpillar entrance, stages the player and engages battle.
-///
-/// Triggered by room action 2 while entrance progress is armed. Copies the
-/// player's animation extension, releases the enemy after the first clip,
-/// waits 30 then 40 interpreter ticks and resumes with its root offset kept.
-/// END terminates ten commands; script and actor resources remain borrowed.
-static EvsCommand _gAcropolisRoofGardenMaggotCaterpillarEntranceScript[10] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gAcropolisRoofGardenEntrancePlayerBankCopy } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisRoofGardenEntranceStartPlayerAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _acropolisRoofGardenReleaseMaggotCaterpillarEntrance }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACROPOLIS_ROOF_GARDEN_ENTRANCE_SECOND_CLIP_DELAY_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisRoofGardenEntranceEndPlayerAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACROPOLIS_ROOF_GARDEN_ENTRANCE_BATTLE_DELAY_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET }, { .value = 0 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 /// Logical-view bits used by the roof garden's placed light glows.
@@ -583,6 +301,8 @@ enum {
     ACROPOLIS_ROOF_GARDEN_FOOTSTEP_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x1F,
 };
 
+#define ROOM_PART _gAcropolisRoofGardenEntrancePlayerBankCopy
+#include "assets/rooms/akropolis/roof_garden/events.inc"
 #include "assets/rooms/akropolis/roof_garden/markers.inc"
 #include "assets/rooms/akropolis/roof_garden/view_masks.inc"
 #include "assets/rooms/akropolis/roof_garden/samples.inc"
@@ -596,6 +316,7 @@ enum {
 #include "assets/rooms/akropolis/roof_garden/cameras.inc"
 #include "assets/rooms/akropolis/roof_garden/occluders.inc"
 #include "assets/rooms/akropolis/roof_garden/surfaces.inc"
+
 #include "assets/rooms/akropolis/roof_garden/acropolis_roof_garden_model_09868.inc"
 
 /// Last ambience volume percentage requested by the view controller (0, 30 or 100).

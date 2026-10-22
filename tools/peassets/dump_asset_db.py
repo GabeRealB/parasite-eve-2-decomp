@@ -763,7 +763,9 @@ GROUP_ROOT = _SCRIPT_DIR / "groups"
 
 # Keys whose numbers are offsets into a package, written in hex: an embedded asset's, and a room's entry points.
 OFFSET_KEYS = frozenset({"offset", "at", "commands", "segments", "geometry", "lights", "updates", "spare_batches",
-                         "spare_draw_areas", "action_triggers", "markers", "view_masks", "wide_view_masks", "samples"})
+                         "spare_draw_areas", "action_triggers", "markers", "view_masks", "wide_view_masks", "samples",
+                         "scripts", "animations", "transforms", "actor_commands", "bank_copies", "scene_keys",
+                         "move_animations", "walk_animations"})
 
 
 def _toml_scalar(value: Any, key: str = "") -> str:

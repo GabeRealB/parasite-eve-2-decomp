@@ -263,10 +263,13 @@ embedded = [
     { name = "mist_r18_player_briefing_anim_10", offset = 0x075F4, size = 0x2F4, address = 0x80184BB4 },
     { name = "mist_r18_player_briefing_bank", offset = 0x079A4, size = 0x2C, address = 0x80184F64 },
 ]
-entries = { view_counts = 2 }
 package_name = "mist_r18"
 required = true
 sha1 = "72d08008a6f9c1f371d03dc8d79a70aea31c66c7"
+
+[package.entries]
+scripts = [0x07C6C, 0x081AC, 0x08524, 0x088FC, 0x08A7C, 0x08BFC, 0x08DDC, 0x08E9C, 0x08F5C, 0x08FA4]
+view_counts = 2
 
 [sounds_0]
 type = "sound_bank"

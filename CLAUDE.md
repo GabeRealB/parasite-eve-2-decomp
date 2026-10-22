@@ -682,7 +682,12 @@ room's entries or layouts, `python3 tools/peassets/room decode`, then
 datum that stays (in address order; idempotent), and after the build
 `python3 tools/peassets/room check-order` names the first object a misplaced
 include put out of order - before the checksum only says the room differs. Converted so far:
-stage 1 (Akropolis and the MIST). Event scripts are next, as a recreated DSL.
+stage 1 (Akropolis and the MIST). A room's event scripts and the payloads they
+send (animation requests, actor transforms and commands, bank copies, scene keys)
+are room data too, written as text in `<room group>/events.evs`
+(`tools/peassets/room/events.py`: one statement per command, payloads by name,
+message recipients and ids named from `event_vocabulary.py`); they build into
+the `events` module include like any other module.
 
 **Morph targets and baked tracks are assets too.** A morph target is the second
 shape of a mesh, vertex for vertex (`dryfield_toilet`'s deltas and normals). A

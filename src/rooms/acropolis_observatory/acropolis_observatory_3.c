@@ -115,7 +115,6 @@ enum {
 #include "assets/rooms/akropolis/observatory/lights.inc"
 #define ROOM_PART _gAcropolisObservatoryView1SpriteBatches
 #include "assets/rooms/akropolis/observatory/sprites.inc"
-
 /// Retained eight-byte initializer with no established consumer; role unproven.
 u16 D_acropolis_observatory_80182124[4] = {
     256,

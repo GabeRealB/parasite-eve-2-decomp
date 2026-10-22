@@ -119,6 +119,7 @@ sha1 = "c24f91488b8fd9a1555870bbd30bb4e08d72bb8a"
 
 [package.entries]
 markers = [0x0C35C, 0x0C394, 0x0C3CC, 0x0C474, { at = 0x0C484, single = true }, { at = 0x0C48C, single = true }]
+scripts = [0x0B8FC, 0x0BB6C]
 vibrations = [{ commands = 0x135CC, segments = 0x135E4 }, { commands = 0x135FC, segments = 0x13614 }]
 view_masks = [0x0C42C, 0x0C45C]
 

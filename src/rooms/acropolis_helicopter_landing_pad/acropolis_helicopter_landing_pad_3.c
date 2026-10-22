@@ -170,118 +170,23 @@ TaskMessageEntry gAcropolisHelicopterLandingPadRoomMessages[5] = {
 
 #define ROOM_PART _gAcropolisHelicopterLandingPadEncounterVibrationCommands
 #include "assets/rooms/akropolis/helicopter_landing_pad/vibrations.inc"
-/// Zero position and Euler rotation for scene actors and the departure companion.
-///
-/// Used in each receiver's parent frame; placement copies the values during dispatch.
-static ActorTransform _gAcropolisHelicopterLandingPadSceneOriginPlacement = { .pos = { 0, 0, 0, 0 }, .rot = { 0, 0, 0, 0 } };
-
-/// Player's encounter placement, also applied when the introduction is skipped.
-///
-/// Position (3000, 0, -6692) is in the player's parent frame; yaw -1024 uses
-/// 4096 units per turn. Dispatch copies both vectors and retains no pointer.
-static ActorTransform _gAcropolisHelicopterLandingPadEncounterPlayerPlacement = { .pos = { 3000, 0, -6692, 0 }, .rot = { 0, -1024, 0, 0 } };
-
-/// Alternate player facing at the encounter mark during the introduction.
-///
-/// Keeps position (3000, 0, -6692) in the player's parent frame and uses yaw
-/// -1204, in 4096 units per turn. Dispatch copies the placement synchronously.
-static ActorTransform _gAcropolisHelicopterLandingPadEncounterPlayerTurnPlacement = { .pos = { 3000, 0, -6692, 0 }, .rot = { 0, -1204, 0, 0 } };
-
+#define ROOM_PART _gAcropolisHelicopterLandingPadSceneOriginPlacement
+#include "assets/rooms/akropolis/helicopter_landing_pad/events.inc"
 /// Unreferenced stored transform; its placement role is unproven.
 ///
 /// Its bytes duplicate the encounter player's position and yaw, but no code
 /// or script selects this record. Preserve the independent authored storage.
 static ActorTransform D_acropolis_helicopter_landing_pad_80183798 = { .pos = { 3000, 0, -6692, 0 }, .rot = { 0, -1024, 0, 0 } };
 
-ActorTransform gAcropolisHelicopterLandingPadLiftPlayerPlacement = { .pos = { 0, 0, 0, 0 }, .rot = { 0, ONE / 4, 0, 0 } };
-
-/// Player's starting placement for the departure-scene approach.
-///
-/// Applied after attaching to `gGfxViewCoord`: position is in that coordinate's
-/// local frame and yaw 808 uses 4096 units per turn. Dispatch copies the values.
-static ActorTransform _gAcropolisHelicopterLandingPadDeparturePlayerPlacement = { .pos = { -3975, -2871, -1454, 0 }, .rot = { 0, 808, 0, 0 } };
-
+#define ROOM_PART gAcropolisHelicopterLandingPadLiftPlayerPlacement
+#include "assets/rooms/akropolis/helicopter_landing_pad/events.inc"
 AcropolisHelicopterLandingPadSceneMarkStorage gAcropolisHelicopterLandingPadSceneMarkStorage = {
     .destination = { -3496, -2871, -1283 },
     .unknown_0C  = { 0, 0x3280000, 0, -360, -120, 480, 0, 0, 0, -3188, -2871, -694, 0, 0x9C40000, 0 },
 };
 
-/// Encounter actor 0's placement for the first ending-scene cue.
-///
-/// Position (-2176, 0, -6845) is in its parent frame; yaw 1024 uses 4096 units
-/// per turn. The following cue restores the scene-origin placement.
-static ActorTransform _gAcropolisHelicopterLandingPadEncounterEndingActorPlacement = { .pos = { -2176, 0, -6845, 0 }, .rot = { 0, 1024, 0, 0 } };
-
-/// Starts encounter actor 0's event clip 1, its body animation set 28.
-///
-/// Resets playback; this actor ignores the stored bank, duration and collision choice.
-static AnimationPlayRequest _gAcropolisHelicopterLandingPadEncounterActorClip1Request = {
-    .source               = { .index = 0 },
-    .animationId          = 1,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 1,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Starts encounter actor 0's event clip 2, its body animation set 29.
-///
-/// Resets playback; this actor ignores the stored bank, duration and collision choice.
-static AnimationPlayRequest _gAcropolisHelicopterLandingPadEncounterActorClip2Request = {
-    .source               = { .index = 0 },
-    .animationId          = 2,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 1,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Starts encounter actor 0's event clip 3, its body animation set 30.
-///
-/// Resets playback before the introduction's 360-frame wait. This actor ignores
-/// the stored bank, duration and collision choice.
-static AnimationPlayRequest _gAcropolisHelicopterLandingPadEncounterActorClip3Request = {
-    .source               = { .index = 0 },
-    .animationId          = 3,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 1,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Starts encounter actor 0's event clip 4, its body animation set 31.
-///
-/// Resets playback during the introduction; the bank, stored blend duration and
-/// collision choice are ignored. The room owns the request through script execution.
-static AnimationPlayRequest _gAcropolisHelicopterLandingPadEncounterActorClip4Request = {
-    .source               = { .index = 0 },
-    .animationId          = 4,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Starts encounter actor 0's event clip 5, its body animation set 32.
-///
-/// Resets playback during the introduction; the bank, stored blend duration and
-/// collision choice are ignored. The room owns the request through script execution.
-static AnimationPlayRequest _gAcropolisHelicopterLandingPadEncounterActorClip5Request = {
-    .source               = { .index = 0 },
-    .animationId          = 5,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 1,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Starts encounter actor 0's event clip 6, its body animation set 33.
-///
-/// Resets playback during the encounter ending; the bank, stored blend duration and
-/// collision choice are ignored. The room owns the request through script execution.
-static AnimationPlayRequest _gAcropolisHelicopterLandingPadEncounterActorClip6Request = {
-    .source               = { .index = 0 },
-    .animationId          = 6,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
+#define ROOM_PART _gAcropolisHelicopterLandingPadEncounterEndingActorPlacement
+#include "assets/rooms/akropolis/helicopter_landing_pad/events.inc"
 /// Unreferenced stored animation request; its receiver and purpose are unproven.
 ///
 /// Stores bank 0, clip 1, reset and disabled world collision. No script or
@@ -294,32 +199,8 @@ static AnimationPlayRequest D_acropolis_helicopter_landing_pad_801838B8 = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Requests Rupert Broderick's bank-0 clip 2 during helicopter departure.
-///
-/// A changed clip resets and immediately poses his body; an identical request
-/// keeps playback. The duration and collision choice are ignored on this reset.
-/// The room owns the request; actor resources must remain loaded through playback.
-static AnimationPlayRequest _gAcropolisHelicopterLandingPadRupertClip2Request = {
-    .source               = { .index = 0 },
-    .animationId          = 2,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Requests Rupert Broderick's bank-0 clip 3 during helicopter departure.
-///
-/// A changed clip resets and immediately poses his body; an identical request
-/// keeps playback. The duration and collision choice are ignored on this reset.
-/// The room owns the request; actor resources must remain loaded through playback.
-static AnimationPlayRequest _gAcropolisHelicopterLandingPadRupertClip3Request = {
-    .source               = { .index = 0 },
-    .animationId          = 3,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
+#define ROOM_PART _gAcropolisHelicopterLandingPadRupertClip2Request
+#include "assets/rooms/akropolis/helicopter_landing_pad/events.inc"
 /// Three words copied into the equipped-weapon bank's departure-scene extension.
 ///
 /// Extension slot 47 is NULL; slots 48 and 49 borrow the two player sets from
@@ -330,16 +211,8 @@ static AnimationSet* _gAcropolisHelicopterLandingPadDeparturePlayerAnimationSets
     &gAkropolisHelicopterLandingPadPlayerHelipadDetonatorTalkClip,
 };
 
-/// Installs the departure player's three-word animation-bank extension.
-///
-/// Copies NULL into slot 47 and the two player animation pointers into slots
-/// 48/49 of the equipped-weapon bank. The count covers the complete source array.
-/// Dispatch borrows this record synchronously; copied sets remain actor-owned.
-static AnimationBankCopyRequest _gAcropolisHelicopterLandingPadDeparturePlayerBankCopyRequest = {
-    .sets  = _gAcropolisHelicopterLandingPadDeparturePlayerAnimationSets,
-    .count = ARRAY_SIZE(_gAcropolisHelicopterLandingPadDeparturePlayerAnimationSets),
-};
-
+#define ROOM_PART _gAcropolisHelicopterLandingPadDeparturePlayerBankCopyRequest
+#include "assets/rooms/akropolis/helicopter_landing_pad/events.inc"
 /// Unreferenced stored request for bank 1, clip 47, with a five-frame blend.
 ///
 /// World collision is disabled; the receiver and scene role are unproven.
@@ -351,56 +224,8 @@ static AnimationPlayRequest D_acropolis_helicopter_landing_pad_80183908 = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Resets the player's departure clip 48 alongside Rupert's clip 2.
-///
-/// Script dispatch copies the request and substitutes the equipped-weapon bank.
-/// World collision is disabled. The earlier bank copy installs this clip from
-/// actor_511000; that package must remain loaded through playback.
-static AnimationPlayRequest _gAcropolisHelicopterLandingPadDeparturePlayerClip48Request = {
-    .source               = { .index = 1 },
-    .animationId          = ACROPOLIS_HELICOPTER_LANDING_PAD_PLAYER_CLIP_48,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Resets the player's departure clip 49 alongside Rupert's clip 3.
-///
-/// Script dispatch copies the request and substitutes the equipped-weapon bank.
-/// World collision is disabled. The earlier bank copy installs this clip from
-/// actor_511000; that package must remain loaded through playback.
-static AnimationPlayRequest _gAcropolisHelicopterLandingPadDeparturePlayerClip49Request = {
-    .source               = { .index = 1 },
-    .animationId          = ACROPOLIS_HELICOPTER_LANDING_PAD_PLAYER_CLIP_49,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Requests player clip 1 with a seven-frame blend and world collision disabled.
-///
-/// Event-script dispatch copies the request and replaces its bank selector with
-/// the equipped weapon's bank. Used by the encounter intro and both ending paths.
-static AnimationPlayRequest _gAcropolisHelicopterLandingPadPlayerClip1Request = {
-    .source               = { .index = 1 },
-    .animationId          = 1,
-    .blend                = ANIMATION_BLEND_INTERPOLATE,
-    .blendFrames          = 7,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Requests player clip 9 with a six-frame blend and world collision disabled.
-///
-/// Event-script dispatch copies the request and replaces its bank selector with
-/// the equipped weapon's bank. Used for encounter and departure player placements.
-static AnimationPlayRequest _gAcropolisHelicopterLandingPadPlayerClip9Request = {
-    .source               = { .index = 1 },
-    .animationId          = 9,
-    .blend                = ANIMATION_BLEND_INTERPOLATE,
-    .blendFrames          = 6,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
+#define ROOM_PART _gAcropolisHelicopterLandingPadDeparturePlayerClip48Request
+#include "assets/rooms/akropolis/helicopter_landing_pad/events.inc"
 /// Unreferenced stored request for bank 1, clip 9, with a ten-frame blend.
 ///
 /// World collision is disabled; the receiver and scene role are unproven.
@@ -412,72 +237,8 @@ static AnimationPlayRequest D_acropolis_helicopter_landing_pad_8018396C = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Scene/audio selector 1/9/11 for the encounter introduction.
-///
-/// Group 1 selects the current folder's matching stream; the absent second
-/// qualifier is zero. The interpreter retains this room-owned key until script end.
-static EvsSceneKey _gAcropolisHelicopterLandingPadEncounterIntroSceneKey = {
-    .group    = ACROPOLIS_HELICOPTER_LANDING_PAD_SCENE_GROUP,
-    .streamId = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_STREAM,
-    .subId    = ACROPOLIS_HELICOPTER_LANDING_PAD_INTRO_SCENE_SUB_ID,
-};
-
-/// Scene/audio selector 1/9/21 for the encounter ending.
-///
-/// Group 1 selects the current folder's matching stream; the absent second
-/// qualifier is zero. The interpreter retains this room-owned key until script end.
-static EvsSceneKey _gAcropolisHelicopterLandingPadEncounterEndingSceneKey = {
-    .group    = ACROPOLIS_HELICOPTER_LANDING_PAD_SCENE_GROUP,
-    .streamId = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_STREAM,
-    .subId    = ACROPOLIS_HELICOPTER_LANDING_PAD_ENDING_SCENE_SUB_ID,
-};
-
-/// Scene/audio selector 1/10/11 for helicopter departure.
-///
-/// Group 1 selects the current folder's matching stream; the absent second
-/// qualifier is zero. The interpreter retains this room-owned key until script end.
-static EvsSceneKey _gAcropolisHelicopterLandingPadDepartureSceneKey = {
-    .group    = ACROPOLIS_HELICOPTER_LANDING_PAD_SCENE_GROUP,
-    .streamId = ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_STREAM,
-    .subId    = ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_SCENE_SUB_ID,
-};
-
-/// Resets departure actor 0's No. 9 GOLEM body to clip 1.
-///
-/// The fixed actor bank supplies the clip; source, blend duration and collision
-/// choice are ignored. The room owns the request through execution.
-static AnimationPlayRequest _gAcropolisHelicopterLandingPadDepartureActorClip1Request = {
-    .source               = { .index = 0 },
-    .animationId          = 1,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 1,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Resets departure actor 0's No. 9 GOLEM body to clip 2.
-///
-/// The fixed actor bank supplies the clip; source, blend duration and collision
-/// choice are ignored. The room owns the request through execution.
-static AnimationPlayRequest _gAcropolisHelicopterLandingPadDepartureActorClip2Request = {
-    .source               = { .index = 0 },
-    .animationId          = 2,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 1,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Resets departure actor 0's No. 9 GOLEM body to clip 3.
-///
-/// The fixed actor bank supplies the clip; source, blend duration and collision
-/// choice are ignored. Clip 3 begins his timed fade and release. The room owns the request through execution.
-static AnimationPlayRequest _gAcropolisHelicopterLandingPadDepartureActorClip3Request = {
-    .source               = { .index = 0 },
-    .animationId          = 3,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 1,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
+#define ROOM_PART _gAcropolisHelicopterLandingPadEncounterIntroSceneKey
+#include "assets/rooms/akropolis/helicopter_landing_pad/events.inc"
 /// Unreferenced command 0 in the landing pad's stage/area namespace.
 ///
 /// No receiver or script uses the record, so its intended action is unproven.
@@ -486,269 +247,8 @@ static ActorCommand D_acropolis_helicopter_landing_pad_801839D4 = {
     .command = 0,
 };
 
-/// Shows Rupert's second prop while hiding his revolver for the departure scene.
-///
-/// Command 1 is in the landing pad's stage/area namespace; this receiver reads
-/// only the command word. The room owns the record through synchronous dispatch.
-static ActorCommand _gAcropolisHelicopterLandingPadRupertShowPropCommand = {
-    .context = { .loc = { GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_HELICOPTER_LANDING_PAD } },
-    .command = ACROPOLIS_HELICOPTER_LANDING_PAD_RUPERT_SHOW_PROP,
-};
-
-/// Starts the lift's 120-tick descent from the pad during the encounter ending.
-///
-/// Only the run selector in `animationId` is read; the animation-bank, blend
-/// and collision fields are ignored. The room owns the record through dispatch.
-static AnimationPlayRequest _gAcropolisHelicopterLandingPadLiftLowerRequest = {
-    .source               = { .index = 0 },
-    .animationId          = ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_LOWER,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-/// Parks the lift at its lower stop when the encounter ending is skipped.
-///
-/// Only `animationId` is read; this selector places the lift and clears its
-/// travel countdown. The room owns the record through synchronous dispatch.
-static AnimationPlayRequest _gAcropolisHelicopterLandingPadLiftParkLowerRequest = {
-    .source               = { .index = 0 },
-    .animationId          = ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_PARK_LOWER,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-EvsCommand gAcropolisHelicopterLandingPadAmbientSoundScript[2] = {
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_SOUND_AMBIENT }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_END },
-};
-
-EvsCommand gAcropolisHelicopterLandingPadEncounterIntroScript[58] = {
-    { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_SOUND_AMBIENT }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_INTRO_CAP_SLOT }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_MESSAGE_SET_ACTIVATION }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_SHOW }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gAcropolisHelicopterLandingPadEncounterIntroSceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_SHOW }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisHelicopterLandingPadSceneOriginPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisHelicopterLandingPadEncounterActorClip1Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = _gAcropolisHelicopterLandingPadEncounterVibrationCommands }, { .vibrationSegments = _gAcropolisHelicopterLandingPadEncounterVibrationSegments }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_SOUND_INTRO_CUE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisHelicopterLandingPadPlayerClip1Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisHelicopterLandingPadPlayerClip9Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = acropolisHelicopterLandingPadStartPlayerYawTurn }, { .value = 3072 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_SHOW }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 43 }, { .value = 43 }, { .value = 45 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisHelicopterLandingPadEncounterActorClip2Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisHelicopterLandingPadEncounterPlayerTurnPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisHelicopterLandingPadPlayerClip9Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ALTERNATE_SHOW }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_SHOW }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisHelicopterLandingPadEncounterActorClip3Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 360 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisHelicopterLandingPadEncounterActorClip4Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ALTERNATE_SHOW }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_SHOW }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisHelicopterLandingPadEncounterActorClip5Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisHelicopterLandingPadEncounterPlayerPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_FINISH_SCENE_STREAM, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_SHOW }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_MESSAGE_SET_ACTIVATION }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_START_FIGHT }, { .value = 0 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_END },
-};
-
-EvsCommand gAcropolisHelicopterLandingPadEncounterIntroSkipScript[16] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_SHOW }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisHelicopterLandingPadEncounterPlayerPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisHelicopterLandingPadPlayerClip9Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_MESSAGE_SET_ACTIVATION }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_START_FIGHT }, { .value = 0 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_END },
-};
-
-EvsCommand gAcropolisHelicopterLandingPadEncounterEndingScript[38] = {
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisHelicopterLandingPadPlayerClip1Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SAVE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENDING_CAP_SLOT }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gAcropolisHelicopterLandingPadEncounterEndingSceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisHelicopterLandingPadEncounterEndingActorPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = acropolisHelicopterLandingPadLockAttachmentsForEncounter }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisHelicopterLandingPadSceneOriginPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisHelicopterLandingPadEncounterActorClip6Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = acropolisHelicopterLandingPadPlacePlayerAfterEncounter }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_CHILD }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisHelicopterLandingPadLiftLowerRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_FINISH_SCENE_STREAM, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_REQUEST_SCENE_MUSIC, { .value = 6 }, { .value = 1 }, { .value = 1 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_SOUND_LIFT_CUE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_HIDE }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_MUSIC_LOAD, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_MESSAGE_SET_ACTIVATION }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_HIDE }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = acropolisHelicopterLandingPadReleaseEncounterBattle }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_END },
-};
-
-EvsCommand gAcropolisHelicopterLandingPadEncounterEndingSkipScript[19] = {
-    { EVENT_SCRIPT_OPCODE_REQUEST_SCENE_MUSIC, { .value = 6 }, { .value = 1 }, { .value = 1 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_MUSIC_LOAD, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisHelicopterLandingPadPlayerClip1Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_CHILD }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisHelicopterLandingPadLiftParkLowerRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_HIDE }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = acropolisHelicopterLandingPadPlacePlayerAfterEncounter }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_MESSAGE_SET_ACTIVATION }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_HIDE }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = acropolisHelicopterLandingPadReleaseEncounterBattle }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_END },
-};
-
-EvsCommand gAcropolisHelicopterLandingPadDepartureScript[69] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gAcropolisHelicopterLandingPadDeparturePlayerBankCopyRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_CAP_SLOT }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_HELICOPTER_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gAcropolisHelicopterLandingPadDepartureSceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_SHOW }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisHelicopterLandingPadPlayerClip9Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_ATTACH_TO_COORD }, { .message = { .parentCoord = &gGfxViewCoord } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisHelicopterLandingPadDeparturePlayerPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = acropolisHelicopterLandingPadStartPlayerMoveToSceneMark }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisHelicopterLandingPadSceneOriginPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisHelicopterLandingPadDepartureActorClip1Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_FADE_VOLUME, { .value = 32 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = acropolisHelicopterLandingPadSetPlayerPitchPulseState }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_PITCH_RISE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = acropolisHelicopterLandingPadSetPlayerPitchPulseState }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_PITCH_RISE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_FADE_VOLUME, { .value = 64 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisHelicopterLandingPadDepartureActorClip2Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisHelicopterLandingPadDepartureActorClip3Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_RUPERT_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_SHOW }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_RUPERT_ACTOR }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisHelicopterLandingPadSceneOriginPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 1 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisHelicopterLandingPadSceneOriginPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisHelicopterLandingPadDeparturePlayerClip48Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_RUPERT_ACTOR }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gAcropolisHelicopterLandingPadRupertShowPropCommand } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_RUPERT_ACTOR }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisHelicopterLandingPadSceneOriginPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_RUPERT_ACTOR }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisHelicopterLandingPadRupertClip2Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 300 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisHelicopterLandingPadDeparturePlayerClip49Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_RUPERT_ACTOR }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisHelicopterLandingPadRupertClip3Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 350 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = acropolisHelicopterLandingPadStartDepartureShakeTimeline }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_SOUND_DEPARTURE_SHAKE_CUE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_HELICOPTER_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_SHOW }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_RUPERT_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_SOUND_DEPARTURE_SHAKE_CUE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_SOUND_DEPARTURE_FINAL_CUE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 1 }, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_SOUND_DEPARTURE_FINAL_CUE }, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_HELICOPTER_LANDING_PAD_HELICOPTER_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_HIDE }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = acropolisHelicopterLandingPadStartReturnToMist }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CANCEL_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_END },
-};
-
-EvsCommand gAcropolisHelicopterLandingPadDepartureSkipScript[7] = {
-    { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = acropolisHelicopterLandingPadStartReturnToMist }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_END },
-};
-
+#define ROOM_PART _gAcropolisHelicopterLandingPadRupertShowPropCommand
+#include "assets/rooms/akropolis/helicopter_landing_pad/events.inc"
 s32 gAcropolisHelicopterLandingPadEncounterPhase = ACROPOLIS_HELICOPTER_LANDING_PAD_PHASE_WAITING;
 
 enum {
@@ -779,24 +279,9 @@ static s32 D_acropolis_helicopter_landing_pad_80184E10[6] = {
     0,
     0,
 };
-AnimationPlayRequest gAcropolisHelicopterLandingPadLiftRaiseRequest = {
-    .source               = { .index = 0 },
-    .animationId          = ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_RAISE,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
 
-AnimationPlayRequest gAcropolisHelicopterLandingPadLiftPlayerAnimationRequest = {
-    .source               = { .index = 1 },
-    .animationId          = 0,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-ActorTransform gAcropolisHelicopterLandingPadPostEncounterPlayerPlacement = { .pos = { -6801, 0, -1998, 0 }, .rot = { 0, 1024, 0, 0 } };
-
+#define ROOM_PART gAcropolisHelicopterLandingPadLiftRaiseRequest
+#include "assets/rooms/akropolis/helicopter_landing_pad/events.inc"
 TaskDesc gAcropolisHelicopterLandingPadMovieTasks[2] = {
     { .header = { .fields = { .flags = TASK_BODY_NONE, .priority = ACROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_PRIORITY } }, .callback = _acropolisHelicopterLandingPadStartMovieTask, .data = { .value = 0 } },
     { .header = { .fields = { .flags = TASK_BODY_NONE, .priority = ACROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_PRIORITY } }, .callback = _acropolisHelicopterLandingPadMovieTask, .data = { .value = 0 } },

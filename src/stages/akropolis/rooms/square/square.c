@@ -139,15 +139,8 @@ static TaskMessageEntry _gAkropolisSquareRoomMessages[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// The player's weapon animation in the arrival scene.
-static AnimationPlayRequest _gAkropolisSquareArrivalWeaponAnimation = {
-    .source               = { .index = 1 },
-    .animationId          = AKROPOLIS_SQUARE_ARRIVAL_ANIMATION_ID,
-    .blend                = ANIMATION_BLEND_RESET,
-    .blendFrames          = 0,
-    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
+#define ROOM_PART _gAkropolisSquareArrivalWeaponAnimation
+#include "assets/rooms/akropolis/square/events.inc"
 /// Room tasks: the telephone ring (0), the CAP view sequence (1, never spawned)
 /// and the scrolling backdrop (2).
 static TaskDesc _gAkropolisSquareSequenceTaskDescs[3] = {
@@ -168,54 +161,8 @@ enum {
     AKROPOLIS_SQUARE_BACKDROP_ACTION_STOP  = 1,
 };
 
-/// Telephone scene: the grinning stranger by the phone runs off and the phone starts ringing.
-static EvsCommand _gAkropolisSquareTelephoneSceneScript[7] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_ROOM_EFFECT }, { .value = 0 }, { .value = AKROPOLIS_SQUARE_MESSAGE_SET_TELEPHONE_LIGHT_MODE }, { .value = AKROPOLIS_SQUARE_TELEPHONE_LIGHT_RINGING }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = AKROPOLIS_SQUARE_TELEPHONE_EVENT_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = AKROPOLIS_SQUARE_SOUND(AKROPOLIS_SQUARE_SOUND_TELEPHONE_SCENE) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = AKROPOLIS_SQUARE_TELEPHONE_EVENT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_END },
-};
-
-/// Skips the telephone scene, fading back to the previous view.
-static EvsCommand _gAkropolisSquareTelephoneSceneSkipScript[8] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = AKROPOLIS_SQUARE_SKIP_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = AKROPOLIS_SQUARE_SKIP_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_END },
-};
-
-/// Arrival scene: CAP 10, the player's weapon animation and the scrolling backdrop.
-static EvsCommand _gAkropolisSquareArrivalEventScript[8] = {
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = AKROPOLIS_SQUARE_ARRIVAL_EVENT_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = AKROPOLIS_SQUARE_ARRIVAL_CAP_COMMAND }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAkropolisSquareArrivalWeaponAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _akropolisSquareControlScrollingBackdrop }, { .value = AKROPOLIS_SQUARE_BACKDROP_ACTION_START }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = AKROPOLIS_SQUARE_ARRIVAL_EVENT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_END },
-};
-
-/// Skips the arrival scene, stopping the backdrop at view 13.
-static EvsCommand _gAkropolisSquareArrivalSkipScript[9] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = AKROPOLIS_SQUARE_SKIP_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = AKROPOLIS_SQUARE_ARRIVAL_SKIP_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _akropolisSquareControlScrollingBackdrop }, { .value = AKROPOLIS_SQUARE_BACKDROP_ACTION_STOP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = AKROPOLIS_SQUARE_SKIP_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_END },
-};
-
+#define ROOM_PART _gAkropolisSquareTelephoneSceneScript
+#include "assets/rooms/akropolis/square/events.inc"
 /// Sound scripts by room sound cue; cues 0 and 2..4 play nothing.
 static s32 _gAkropolisSquareSoundCueScripts[9] = {
     SOUND_SCRIPT_REQUEST_NO_OP,
@@ -237,6 +184,7 @@ static TaskMessageEntry _gAkropolisSquareRoomEffectMessages[2] = {
 };
 
 #include "assets/rooms/akropolis/square/samples.inc"
+
 /// The telephone light's mode: 0 idle, 1 ringing.
 static s32 _gAkropolisSquareTelephoneLightMode = AKROPOLIS_SQUARE_TELEPHONE_LIGHT_IDLE;
 
@@ -251,6 +199,7 @@ static s32 _gAkropolisSquareTelephoneLightMode = AKROPOLIS_SQUARE_TELEPHONE_LIGH
 #include "assets/rooms/akropolis/square/cameras.inc"
 #include "assets/rooms/akropolis/square/surfaces.inc"
 #include "assets/rooms/akropolis/square/updates.inc"
+
 /// Frames since the last ring.
 static s32 _gAkropolisSquareTelephoneRingFrames = 0;
 

@@ -104,7 +104,9 @@ required = true
 sha1 = "0cc59b82e4c8116da25d79f5cf06274f0c8ee331"
 
 [package.entries]
+animations = [0x04AA8, 0x04AD0]
 markers = [0x04BB8]
+scripts = [0x04AF8]
 spare_batches = [0x06518, 0x06F10]
 vibrations = [{ commands = 0x07A78, segments = 0x07A90 }, { commands = 0x07A98, segments = 0x07AB0 }]
 view_masks = [0x04C28]
