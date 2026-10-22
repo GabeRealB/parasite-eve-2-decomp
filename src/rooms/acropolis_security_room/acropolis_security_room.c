@@ -544,6 +544,7 @@ enum {
 };
 
 #include "assets/rooms/akropolis/security_room/events.inc"
+
 /// Bodyless opener recipes: index 0 monitor, index 1 power supply, index 2 end.
 ///
 /// Only the first two entries may be spawned. The descriptor is read
@@ -742,7 +743,6 @@ enum {
 };
 
 #include "assets/rooms/akropolis/security_room/markers.inc"
-
 /// Red/green glow-channel bits in left locked/released, right locked/released order.
 ///
 /// Locked lamps are yellow; released lamps are green on the left and red on
@@ -805,7 +805,6 @@ enum {
 #include "assets/rooms/akropolis/security_room/cameras.inc"
 #include "assets/rooms/akropolis/security_room/updates.inc"
 #include "assets/rooms/akropolis/security_room/surfaces.inc"
-
 static TmdBone _gAcropolisSecurityRoomAcropolisSanctuaryModel090F0Skeleton[3] = {
 #include "assets/acropolis_sanctuary_model_090F0_skeleton.inc"
 };

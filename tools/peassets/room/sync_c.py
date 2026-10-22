@@ -24,7 +24,6 @@ import subprocess
 from pathlib import Path
 
 from . import _units, c_files, images, read
-from .walk import ROOM_LOAD
 
 ROOT = Path(__file__).resolve().parents[3]
 DEF = re.compile(r"^((?:static\s+)?(?:const\s+)?[\w]+[\s*]+(\w+)\s*((?:\[[^\]]*\])*)\s*"
@@ -57,6 +56,7 @@ def _with_comment(s: str, start: int) -> int:
 def _sources(rec: dict) -> list[Path]:
     group, pkg = rec["group"], rec["package_name"]
     return sorted(Path(p) for p in {*map(str, (ROOT / "src" / "rooms" / pkg).glob("*.c")),
+                                    *map(str, (ROOT / "src" / "mapui" / pkg).glob("*.c")),
                                     *map(str, (ROOT / "src" / "stages").glob(f"*/rooms/{group.rsplit('/', 1)[1]}/*.c"))})
 
 
@@ -86,7 +86,7 @@ def sync(name: str, assets: dict, embedded: dict, assets_root: Path, modules: se
     units = _units(pkg)
 
     def where(a: int) -> tuple[str, str] | None:
-        return next(((u, sec) for st, en, u, sec in units if st <= a - ROOM_LOAD < en), None)
+        return next(((u, sec) for st, en, u, sec in units if st <= a - im.base < en), None)
 
     decl_selected = "#define ROOM_IS_declarations_" in files["declarations.inc"]
     module_include = re.compile(r'^(?:#define ROOM_PART \w+\n)?#include "assets/' + re.escape(group) + r'/(' +
@@ -192,7 +192,9 @@ def check_order(name: str, assets: dict, embedded: dict, assets_root: Path) -> l
     im, _area = images(name, assets, embedded, assets_root)
     out = []
     for path in _sources(rec):
-        obj = ROOT / "build" / "USA" / "src" / "rooms" / rec["package_name"] / f"{path.stem}.c.o"
+        obj = next((d / f"{path.stem}.c.o" for d in (ROOT / "build" / "USA" / "src" / f / rec["package_name"]
+                                                      for f in ("rooms", "mapui")) if (d / f"{path.stem}.c.o").exists()),
+                   ROOT / "build" / "USA" / "src" / "rooms" / rec["package_name"] / f"{path.stem}.c.o")
         if not obj.exists():
             continue
         table = subprocess.run(["mips-linux-gnu-objdump", "-t", str(obj)], capture_output=True, text=True).stdout

@@ -141,6 +141,7 @@ static TaskMessageEntry _gAkropolisSquareRoomMessages[6] = {
 
 #define ROOM_PART _gAkropolisSquareArrivalWeaponAnimation
 #include "assets/rooms/akropolis/square/events.inc"
+
 /// Room tasks: the telephone ring (0), the CAP view sequence (1, never spawned)
 /// and the scrolling backdrop (2).
 static TaskDesc _gAkropolisSquareSequenceTaskDescs[3] = {
@@ -163,6 +164,7 @@ enum {
 
 #define ROOM_PART _gAkropolisSquareTelephoneSceneScript
 #include "assets/rooms/akropolis/square/events.inc"
+
 /// Sound scripts by room sound cue; cues 0 and 2..4 play nothing.
 static s32 _gAkropolisSquareSoundCueScripts[9] = {
     SOUND_SCRIPT_REQUEST_NO_OP,
@@ -184,7 +186,6 @@ static TaskMessageEntry _gAkropolisSquareRoomEffectMessages[2] = {
 };
 
 #include "assets/rooms/akropolis/square/samples.inc"
-
 /// The telephone light's mode: 0 idle, 1 ringing.
 static s32 _gAkropolisSquareTelephoneLightMode = AKROPOLIS_SQUARE_TELEPHONE_LIGHT_IDLE;
 
@@ -199,7 +200,6 @@ static s32 _gAkropolisSquareTelephoneLightMode = AKROPOLIS_SQUARE_TELEPHONE_LIGH
 #include "assets/rooms/akropolis/square/cameras.inc"
 #include "assets/rooms/akropolis/square/surfaces.inc"
 #include "assets/rooms/akropolis/square/updates.inc"
-
 /// Frames since the last ring.
 static s32 _gAkropolisSquareTelephoneRingFrames = 0;
 

@@ -222,6 +222,7 @@ TaskDesc gAcropolisCafeteriaSceneTasks[4] = {
 
 #define ROOM_PART _gAcropolisCafeteriaPlayerAnimation1
 #include "assets/rooms/akropolis/cafeteria/events.inc"
+
 /// Unreferenced bank-1, clip-1 request; its recipient and scene role are unproven.
 static AnimationPlayRequest D_acropolis_cafeteria_80182B1C = {
     .source               = { .index = 1 },
@@ -233,6 +234,7 @@ static AnimationPlayRequest D_acropolis_cafeteria_80182B1C = {
 
 #define ROOM_PART _gAcropolisCafeteriaPlayerPostBattleAnimation8
 #include "assets/rooms/akropolis/cafeteria/events.inc"
+
 /// Unreferenced placement; its actor and coordinate frame are unproven.
 static ActorTransform D_acropolis_cafeteria_80182C14 = {
     .pos = { -2800, -300, -892, 0 },
@@ -258,6 +260,7 @@ static AnimationSet* _gAcropolisCafeteriaOpeningPlayerAnimationSets[1] = {
 
 #define ROOM_PART _gAcropolisCafeteriaOpeningPlayerBankCopy
 #include "assets/rooms/akropolis/cafeteria/events.inc"
+
 /// Four borrowed player clips installed at bank slots 47..50 for the follow-up.
 ///
 /// Slots borrow Rupert's clip, a room clip and two Grinning Stranger clips in
@@ -272,6 +275,7 @@ static AnimationSet* _gAcropolisCafeteriaFollowUpPlayerAnimationSets[4] = {
 
 #define ROOM_PART _gAcropolisCafeteriaFollowUpPlayerBankCopy
 #include "assets/rooms/akropolis/cafeteria/events.inc"
+
 /// Unreferenced cafeteria-context command zero; its recipient and effect are unproven.
 static ActorCommand D_acropolis_cafeteria_80182DA0 = {
     .context = { .loc = { GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_CAFETERIA } },
@@ -280,6 +284,7 @@ static ActorCommand D_acropolis_cafeteria_80182DA0 = {
 
 #define ROOM_PART _gAcropolisCafeteriaStrangerStartCommand
 #include "assets/rooms/akropolis/cafeteria/events.inc"
+
 /// Unreferenced current-folder stream key (4,11); its scene role is unproven.
 static EvsSceneKey D_acropolis_cafeteria_80182E5C = {
     .group    = ACROPOLIS_CAFETERIA_SCENE_STREAM_GROUP,
@@ -289,6 +294,7 @@ static EvsSceneKey D_acropolis_cafeteria_80182E5C = {
 
 #define ROOM_PART _gAcropolisCafeteriaFollowUpSceneKey
 #include "assets/rooms/akropolis/cafeteria/events.inc"
+
 /// Live cafeteria scene progress (0 not started, 1 active, 2 battle released).
 ///
 /// Independent of saved story progress, this overlay-local latch gates actions,

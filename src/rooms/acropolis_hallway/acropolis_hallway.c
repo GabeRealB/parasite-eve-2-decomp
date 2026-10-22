@@ -112,7 +112,6 @@ enum {
 #include "assets/rooms/akropolis/hallway/sprites.inc"
 #include "assets/rooms/akropolis/hallway/cameras.inc"
 #include "assets/rooms/akropolis/hallway/surfaces.inc"
-
 #include "assets/rooms/akropolis/hallway/acropolis_hallway_model_01AE0.inc"
 
 static TmdBone _gAcropolisHallwayModel023C0Skeleton[1] = {

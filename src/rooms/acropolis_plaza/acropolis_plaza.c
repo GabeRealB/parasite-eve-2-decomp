@@ -442,6 +442,7 @@ enum {
 enum { ACROPOLIS_PLAZA_SEQUENCE_TASK_PRIORITY = 192 };
 
 #include "assets/rooms/akropolis/plaza/events.inc"
+
 TaskDesc gAcropolisPlazaSequenceTaskDescriptors[ACROPOLIS_PLAZA_TASK_COUNT] = {
     [ACROPOLIS_PLAZA_TASK_SEQUENCE]       = { { { TASK_BODY_NONE, ACROPOLIS_PLAZA_SEQUENCE_TASK_PRIORITY } }, _acropolisPlazaSequenceTask, { .value = 0 } },
     [ACROPOLIS_PLAZA_TASK_STREAMED_SCENE] = { { { TASK_BODY_NONE, ACROPOLIS_PLAZA_SEQUENCE_TASK_PRIORITY } }, _acropolisPlazaStreamedSceneTask, { .value = 0 } },
@@ -551,7 +552,6 @@ static VECTOR3 _gAcropolisPlazaTraversalShotPositions[ACROPOLIS_PLAZA_CAMERA_TRA
 #include "assets/rooms/akropolis/plaza/clips.inc"
 
 #include "assets/rooms/akropolis/plaza/samples.inc"
-
 /// Local-frame anchor positions for the plaza's ambient-light placement slots.
 ///
 /// Slots 1..6 supply siren beams, 7..10 flares and 12..18 glows; 0 and 11

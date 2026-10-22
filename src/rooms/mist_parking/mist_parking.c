@@ -132,9 +132,9 @@ static TaskMessageEntry _gMistParkingRoomMessages[5] = {
 /// Single player clip installed at extension index zero for room command 1.
 ///
 /// Playback borrows this room's clip data after the pointer word is copied.
+
 #define ROOM_PART _gMistParkingRoom2PlayerPlacement
 #include "assets/rooms/mist/parking/events.inc"
-
 #include "assets/rooms/mist/parking/mist_parking_command1_player_bank.inc"
 
 enum {
@@ -153,6 +153,7 @@ enum {
 
 #define ROOM_PART _gMistParkingCommand1PlayerBankCopy
 #include "assets/rooms/mist/parking/events.inc"
+
 #include "assets/rooms/mist/parking/mist_parking_model_09B9C.inc"
 
 #include "assets/rooms/mist/parking/clips_2.inc"

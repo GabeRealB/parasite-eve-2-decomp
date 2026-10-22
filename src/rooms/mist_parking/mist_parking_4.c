@@ -145,6 +145,7 @@ static AnimationSet* _gMistParkingShopPlayerAnimationSets[] = {
 
 #define ROOM_PART gMistParkingShopPlayerAnimationBankCopy
 #include "assets/rooms/mist/parking/events.inc"
+
 /// Player head-aim requests by extension index (0 disabled, 1 enabled).
 ///
 /// Only indices 1..3 are read: talk and menu aim at Pierce, while stay releases
@@ -153,6 +154,7 @@ static s8 _gMistParkingShopPlayerHeadAimFlags[ARRAY_SIZE(_gMistParkingShopPlayer
 
 #define ROOM_PART _gMistParkingUnusedBank0Clip1ResetAnimation
 #include "assets/rooms/mist/parking/events.inc"
+
 /// Unreferenced eight-byte storage; its object type and role are unproven.
 static u8 D_mist_parking_80190B9C[8] = { 0, 0, 0, 0, 0, 0, 1, 0 };
 #define ROOM_PART _gMistParkingShopPierceAimHeadCommand

@@ -253,7 +253,7 @@ def stored_bytes(name: str, ctx: Context) -> bytes:
     from lzss import decode_lzss
     rec = ctx.embedded.get(name) or ctx.assets[name]
     data = (ctx.assets_root / asset_schema.raw_rel(name, rec)).read_bytes()
-    return {"txt": decode_ascii_payload, "pe2pkg": decode_lzss, "room": decode_lzss}.get(rec.get("type"), bytes)(data)
+    return {"txt": decode_ascii_payload, "pe2pkg": decode_lzss, "room": decode_lzss, "stage": decode_lzss}.get(rec.get("type"), bytes)(data)
 
 
 def check_asset(name: str, rec: dict, assets: dict, decls: dict) -> list[str]:

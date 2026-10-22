@@ -579,6 +579,7 @@ enum {
 };
 
 #include "assets/rooms/akropolis/bridge/events.inc"
+
 /// Bodyless accepted-code movie recipe at descriptor index zero.
 ///
 /// Spawning copies this recipe synchronously; keep its room-owned callback loaded
@@ -699,7 +700,6 @@ enum {
 #include "assets/rooms/akropolis/bridge/markers.inc"
 #define ROOM_PART _gAcropolisBridgeStarGlowViewMasks
 #include "assets/rooms/akropolis/bridge/view_masks.inc"
-
 /// Maps a one-based camera view to its framebuffer-streak family.
 ///
 /// Indexed by mapped view - 1; the room maps views only into 1..10. The six
@@ -730,6 +730,7 @@ static u16 _gAcropolisBridgeViewStreakStyles[16] = {
 #include "assets/rooms/akropolis/bridge/markers.inc"
 #define ROOM_PART gAcropolisBridgeRoomCollisionResources
 #include "assets/rooms/akropolis/bridge/header.inc"
+
 u8 gAcropolisBridgeStairSurfaceRows[2][12] = {
     { 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4 },
     { 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 },
@@ -755,7 +756,6 @@ enum {
 #include "assets/rooms/akropolis/bridge/vibrations.inc"
 #define ROOM_PART _gAcropolisBridgeSurface2FootstepSounds
 #include "assets/rooms/akropolis/bridge/surfaces.inc"
-
 /// Three retained type-1 sound-request words with no established consumer or role.
 ///
 /// Their values match the surface-2 walk/run/walk cues, but no pointer or
@@ -821,7 +821,6 @@ enum { ACROPOLIS_BRIDGE_ENEMY_ATTACK_REACTION_POISON = 3 };
 
 #define ROOM_PART _gAcropolisBridgeBlockingSurfaceProperties
 #include "assets/rooms/akropolis/bridge/surfaces.inc"
-
 /// Attack rows shared by all bridge enemies.
 ///
 /// Attack index 0 has base power 18 and applies the player's poison reaction.

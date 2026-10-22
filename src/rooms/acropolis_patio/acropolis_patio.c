@@ -198,9 +198,9 @@ static TaskDesc _gAcropolisPatioSceneTaskDescriptors[] = {
 ///
 /// The directory is copied as pointer words; sets and tracks stay borrowed from
 /// the patio overlay through playback.
+
 #define ROOM_PART _gAcropolisPatioFollowUpPlayerStartPlacement
 #include "assets/rooms/akropolis/patio/events.inc"
-
 #include "assets/rooms/akropolis/patio/acropolis_patio_follow_up_player_bank.inc"
 
 /// Equipped-weapon idle clip selected when the patio scripts take player control.
@@ -221,6 +221,7 @@ enum {
 
 #define ROOM_PART _gAcropolisPatioFollowUpPlayerAnimation47Request
 #include "assets/rooms/akropolis/patio/events.inc"
+
 #include "assets/rooms/akropolis/patio/clips_2.inc"
 
 /// Second-visit player bank extension: NULL slot 47, then four clips in slots 48..51.
@@ -231,6 +232,7 @@ enum {
 
 #define ROOM_PART _gAcropolisPatioSecondVisitPlayerBankCopyRequest
 #include "assets/rooms/akropolis/patio/events.inc"
+
 /// Two retained transform-shaped records with zero rotations; their role is unproven.
 ///
 /// No code, event operand or other overlay selects them. Preserve both complete
@@ -254,6 +256,7 @@ enum {
 
 #define ROOM_PART _gAcropolisPatioSecondVisitPlayerRunDestination
 #include "assets/rooms/akropolis/patio/events.inc"
+
 /// Bodyless controller that turns the live player left by half a turn over sixteen ticks.
 ///
 /// Read synchronously at spawn; the patio callback and live player must remain

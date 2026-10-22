@@ -122,7 +122,7 @@ FORMATS = {"b": 1, "B": 1, "h": 2, "H": 2, "i": 4, "I": 4}
 def _align(kind) -> int:
     if isinstance(kind, str):
         return FORMATS.get(kind) or max(_align(k) for _f, k in LAYOUTS[kind][1])
-    if kind[0] == "bytes":
+    if kind[0] in ("bytes", "text"):
         return 1
     if kind[0] in ("arr", "union"):
         return _align(kind[-2] if kind[0] == "arr" else kind[2])
@@ -146,7 +146,7 @@ def size(kind) -> int:
         end = max(off + size(k) for _n, k, off in _fields(kind))
         a = _align(kind)
         return (end + a - 1) // a * a
-    if kind[0] == "bytes":
+    if kind[0] in ("bytes", "text"):
         return kind[1]
     if kind[0] == "arr":
         return size(kind[1]) * kind[2]
@@ -201,12 +201,21 @@ def decode_value(data: bytes, off: int, kind, refs: list | None = None, field: s
         return {n: decode_value(data, off + o, k, refs, n) for n, k, o in fields}
     if kind[0] == "bytes":
         return list(data[off:off + kind[1]])
+    if kind[0] == "text":                                 # a line of text where the bytes are one, else the bytes
+        raw = data[off:off + kind[1]]
+        text, _nul, rest = raw.partition(b"\0")
+        if _nul and not any(rest) and all(0x20 <= b < 0x7F for b in text):
+            return text.decode("ascii")
+        return list(raw)
     if kind[0] == "arr":
         return [decode_value(data, off + i * size(kind[1]), kind[1], refs, field) for i in range(kind[2])]
     if kind[0] == "union":
         return decode_value(data, off, kind[2], refs, field)
     if kind[0] == "word":
-        return _struct.unpack_from("<I", data, off)[0]
+        v = _struct.unpack_from("<I", data, off)[0]
+        if refs is not None and len(kind) > 3:           # a word that, as a pointer, leads to its target kind
+            refs.append((field, v, kind[3]))
+        return v
     v = _struct.unpack_from("<I", data, off)[0]
     if refs is not None:
         refs.append((field, v, kind[1]))
@@ -228,7 +237,7 @@ def named(value, kind, name_of):
         if fields[0][0] == "":
             return named(value, fields[0][1], name_of)
         return {n: named(value[n], k, name_of) for n, k, _o in fields}
-    if kind[0] == "bytes":
+    if kind[0] in ("bytes", "text"):
         return value
     if kind[0] == "arr":
         return [named(v, kind[1], name_of) for v in value]
@@ -255,6 +264,9 @@ def encode_value(value, kind, address_of) -> bytes:
         return bytes(out)
     if kind[0] == "bytes":
         return bytes(value)
+    if kind[0] == "text":
+        raw = value.encode("ascii") if isinstance(value, str) else bytes(value)
+        return raw + bytes(kind[1] - len(raw))
     if kind[0] == "arr":
         return b"".join(encode_value(v, kind[1], address_of) for v in value)
     if kind[0] == "union":
@@ -288,7 +300,9 @@ def c_value(value, kind, pointer, layout: str = "") -> str:
             else:
                 parts.append(f".{n} = {c_value(value[n], k, pointer)}")
         return "{ " + ", ".join(parts) + " }"
-    if kind[0] in ("bytes", "arr"):
+    if kind[0] == "text" and isinstance(value, str):
+        return '"' + value.replace("\\", "\\\\").replace('"', '\\"') + '"'
+    if kind[0] in ("bytes", "arr", "text"):
         inner = kind[1] if kind[0] == "arr" else "B"
         return "{ " + ", ".join(c_value(v, inner, pointer) for v in value) + " }"
     if kind[0] == "union":
@@ -314,7 +328,7 @@ def pointer_targets(value, kind):
                 continue                                  # no sources: the slot keeps the view's batch list
             yield from pointer_targets(value[n], k)
         return
-    if kind[0] == "bytes":
+    if kind[0] in ("bytes", "text"):
         return
     if kind[0] == "arr":
         for v in value:
@@ -324,6 +338,8 @@ def pointer_targets(value, kind):
         yield from pointer_targets(value, kind[2])
         return
     if kind[0] == "word":
+        if isinstance(value, str) and len(kind) > 3:
+            yield value, kind[3]
         return
     if isinstance(value, str) and kind[1] != "ref":
         yield value, kind[1]
@@ -350,3 +366,44 @@ for _layout, _size in (("EvsCommand", 0x18), ("AnimationPlayRequest", 0x14), ("A
     assert size(_layout) == _size, _layout
 MODULE_OF.update({k: "events" for k in ("EvsCommand", "AnimationPlayRequest", "ActorTransform", "ActorCommand",
                                          "AnimationBankCopyRequest", "EvsSceneKey", "GameActorMoveAnim", "ActorMotionWalkAnim")})
+
+
+# --- the stage overlay ---------------------------------------------------------------------------------------------
+# Its per-area tables point into the rooms (one entry an area, the room's object of that role) and the wrappers
+# gameplay reaches five of them through; its own data: the placement lists, area objects, the map, image memory, music
+# and battle rewards.
+AREA_TABLES = {"WorldCollisionRoomResources": "WorldCollisionRoomResources*", "ViewMapPtr": "u8**",
+               "ViewCount": "ViewCount*", "WorldCoordRoomLighting": "WorldCoordRoomLighting*", "ViewCamera": "ViewCamera*",
+               "SpriteView": "SpriteView*", "DirectionWarpEntry": "DirectionWarpEntry*",
+               "SurfacePtr": "WorldCollisionSurfaceProperties**"}
+LAYOUTS.update({f"AreaTable{k}": (ctype, [("", ("ptr", "ref"))]) for k, ctype in AREA_TABLES.items()})
+LAYOUTS.update({
+    "WorldCollisionStageResources": ("WorldCollisionStageResources", [("areaRooms", ("ptr", "AreaTableWorldCollisionRoomResources"))]),
+    "ViewIndexTable": ("ViewIndexTable", [("viewMaps", ("ptr", "AreaTableViewMapPtr"))]),
+    "ViewCountTable": ("ViewCountTable", [("viewCounts", ("ptr", "AreaTableViewCount"))]),
+    "ViewCameraTable": ("ViewCameraTable", [("cameras", ("ptr", "AreaTableViewCamera"))]),
+    "SpriteAreaTable": ("SpriteAreaTable", [("areaViews", ("ptr", "AreaTableSpriteView"))]),
+    "AreaObjectRoom": ("AreaObjectRoom", [("places", ("word", "sentinel", "list", "AreaObjectPlace")), ("spawns", ("ptr", "ref"))]),
+    "AreaObjectPlace": ("AreaObjectPlace", [
+        ("flagIndex", "H"), ("kind", "H"), ("placeKeyHigh", "H"), ("state", "H"), ("x", "h"), ("y", "h"), ("z", "h"),
+        ("yaw", "H")]),
+    "MenuMapArea": ("MenuMapArea", [("originX", "h"), ("originZ", "h"), ("mapX", "H"), ("mapY", "H"), ("scaleX", "h"),
+                                    ("scaleZ", "h"), ("page", "H")]),
+    "MenuMapAreaShape": ("MenuMapAreaShape", [("model", ("ptr", "ref")), ("page", "B"), ("pairedArea", "B")]),
+    "MenuMapMarker": ("MenuMapMarker", [("page", "B"), ("area", "B"), ("x", "h"), ("y", "h")]),
+    "MenuMapIcon": ("MenuMapIcon", [("page", "B"), ("area", "B"), ("kind", "B"), ("condition", "B"), ("x", "h"), ("y", "h")]),
+    "MenuMapAreaName": ("MenuMapAreaName", [("text", ("text", 0x20))]),
+    "GfxImageSlot": ("GfxImageSlot", [("regionBase", ("ptr", "ref")), ("byteExtent", "i")]),
+    "StageMusicEntry": ("StageMusicEntry", [("sequenceId", "B"), ("startMode", "B")]),
+    "InventoryBattleReward": ("InventoryBattleReward", [("areaLayoutKey", "i"), ("items", ("arr", "H", 4))]),
+})
+for _layout, _size in (("AreaObjectRoom", 8), ("AreaObjectPlace", 16), ("MenuMapArea", 14), ("MenuMapAreaShape", 8),
+                       ("MenuMapMarker", 6), ("MenuMapIcon", 8), ("MenuMapAreaName", 0x20), ("GfxImageSlot", 8),
+                       ("StageMusicEntry", 2), ("InventoryBattleReward", 12)):
+    assert size(_layout) == _size, _layout
+MODULE_OF.update({**{f"AreaTable{k}": "tables" for k in AREA_TABLES},
+                  **{k: "tables" for k in ("WorldCollisionStageResources", "ViewIndexTable", "ViewCountTable",
+                                           "ViewCameraTable", "SpriteAreaTable")},
+                  "AreaObjectRoom": "objects", "AreaObjectPlace": "objects",
+                  **{k: "map" for k in ("MenuMapArea", "MenuMapAreaShape", "MenuMapMarker", "MenuMapIcon", "MenuMapAreaName")},
+                  "GfxImageSlot": "memory", "StageMusicEntry": "music", "InventoryBattleReward": "rewards"})

@@ -29,7 +29,12 @@ from typing import Any
 
 from .layouts import GEOMETRY, LAYOUTS, c_value, decode_value, encode_value, named, pointer_targets, size
 from . import events as event_text
-from .walk import ROLE_KINDS, ROOM_LOAD, STAGES, Images, walk
+from .walk import ROLE_KINDS, ROOM_LOAD, STAGE_ROLE_KINDS, STAGES, Images, walk, walk_stage
+
+
+def walk_module():
+    import sys
+    return sys.modules[__name__ + ".walk"]
 
 ROLE_LISTS = frozenset({"action_triggers", "geometry", "lights", "spare_batches", "spare_draw_areas", "updates",
                         "vibrations", "markers", "view_masks", "wide_view_masks", "samples", "scripts", "animations",
@@ -40,11 +45,28 @@ ROOT = Path(__file__).resolve().parents[3]
 
 
 def declared(assets: dict) -> list[str]:
-    return sorted(k for k, r in assets.items() if r.get("type") == "room")
+    """Rooms and stage overlays: decoded the same way, each from its own package."""
+    return sorted(k for k, r in assets.items() if r.get("type") in ("room", "stage"))
+
+
+def is_stage(name: str, assets: dict) -> bool:
+    return assets[name].get("type") == "stage"
 
 
 def instance_path(name: str, assets: dict, assets_root: Path) -> Path:
-    return assets_root / assets[name]["group"] / "room.toml"
+    return assets_root / assets[name]["group"] / ("stage.toml" if is_stage(name, assets) else "room.toml")
+
+
+def stage_rooms(stage: int, assets: dict) -> list[tuple[int, str]]:
+    """(area, room asset) of each room of a game stage, from its folders."""
+    import asset_data
+    out = []
+    for folder in asset_data.TREE[stage].get("folders", {}).values():
+        for node in folder["files"].values():
+            for chunk in node.get("chunks", {}).values():
+                if assets.get(chunk, {}).get("type") in ("room", "pe2pkg") and folder["id"] % 100 == 1:
+                    out.append((folder["id"] // 100, chunk))
+    return sorted(set(out))
 
 
 def _place(name: str, tree: dict) -> tuple[int, int]:
@@ -58,12 +80,23 @@ def _place(name: str, tree: dict) -> tuple[int, int]:
 
 
 def images(name: str, assets: dict, embedded: dict, assets_root: Path) -> tuple[Images, int]:
-    """The room's images and its area."""
+    """The images a room or a stage overlay is decoded in, and the room's area (0 for a stage overlay). A stage
+    overlay's images also know its rooms' symbols by name (their addresses coincide)."""
     import asset_data
     import shape
     ctx = shape.Context(assets, embedded, assets_root)
+    if is_stage(name, assets):
+        stage = next(k for k, v in STAGES.items() if v[0] == assets[name].get("package_name", name))
+        im = Images(stage, shape.stored_bytes(name, ctx), None, b"", shape.stored_bytes("gameplay", ctx))
+        for _area, room in stage_rooms(stage, assets):
+            pkg = assets[room].get("package_name", room)
+            for a, n in walk_module().symbol_map(ROOT / "configs" / "USA" / "sym" / "rooms" / f"{pkg}.txt").items():
+                im.addresses.setdefault(n, a)
+        return im, 0
     stage, area = _place(name, asset_data.TREE)
     overlay = STAGES[stage][0]
+    overlay = next(k for k, r in assets.items() if r.get("type") in ("pe2pkg", "room", "stage")
+                   and r.get("package_name", k) == overlay)   # the stage overlay's asset, by its package
     return Images(stage, shape.stored_bytes(overlay, ctx), assets[name]["package_name"],
                   shape.stored_bytes(name, ctx), shape.stored_bytes("gameplay", ctx)), area
 
@@ -84,9 +117,44 @@ def _name_of(im: Images, objs: dict):
     return name_of
 
 
+def _stage_placements(stage: int, assets: dict, embedded: dict, assets_root: Path) -> list[int]:
+    """The placement lists the stage's rooms' variants point to."""
+    out = []
+    for _area, room in stage_rooms(stage, assets):
+        if assets[room].get("type") != "room":
+            continue
+        im, area = images(room, assets, embedded, assets_root)
+        _states, objs, _roles = walk(im, area, assets[room].get("entries", {}))
+        for o in objs.values():
+            if o.kind == "AreaVariant":
+                for i in range(o.count):
+                    placements = decode_value(im.room, o.address - ROOM_LOAD + 8 * i, "AreaVariant")["placements"]
+                    if placements:
+                        out.append(placements)
+    return out
+
+
+def _area_names(stage: int, assets: dict) -> dict[int, dict[int, str]]:
+    """{area: {address: name}} of the stage's rooms (their symbol maps and the stage map's room symbols)."""
+    out = {}
+    w = walk_module()
+    for area, room in stage_rooms(stage, assets):
+        pkg = assets[room].get("package_name", room)
+        out[area] = {**w.symbol_map(ROOT / "configs" / "USA" / "sym" / "mapui" / f"{STAGES[stage][0]}.txt", pkg),
+                     **w.symbol_map(ROOT / "configs" / "USA" / "sym" / "rooms" / f"{pkg}.txt")}
+    return out
+
+
 def decode_room(name: str, assets: dict, embedded: dict, assets_root: Path) -> dict[str, Any]:
     im, area = images(name, assets, embedded, assets_root)
-    states, objs, roles = walk(im, area, assets[name].get("entries", {}))
+    if is_stage(name, assets):
+        objs, roles = walk_stage(im, _stage_placements(im.stage, assets, embedded, assets_root),
+                                 assets[name].get("entries", {}))
+        states = 0
+        area_names = _area_names(im.stage, assets)
+    else:
+        states, objs, roles = walk(im, area, assets[name].get("entries", {}))
+        area_names = {}
     _KINDS[name] = {im.names[a]: o.kind for a, o in objs.items() if a in im.names}
     name_of = _name_of(im, objs)
     entry = {}
@@ -104,8 +172,12 @@ def decode_room(name: str, assets: dict, embedded: dict, assets_root: Path) -> d
         if o.kind in GEOMETRY:
             rec = {"count": o.count}
         else:
-            vals = [named(decode_value(im.room, a - ROOM_LOAD + i * size(o.kind), o.kind), o.kind, name_of)
-                    for i in range(o.count)]
+            if o.kind.startswith("AreaTable"):              # an entry an area: named through that area's room
+                vals = [named(decode_value(im.own, a - im.base + 4 * i, o.kind), o.kind,
+                              lambda v, i=i: area_names.get(i + 1, {}).get(v, v) if v else 0) for i in range(o.count)]
+            else:
+                vals = [named(decode_value(im.own, a - im.base + i * size(o.kind), o.kind), o.kind, name_of)
+                        for i in range(o.count)]
             if o.single:
                 rec = {"value": vals[0]}
             elif o.rows:
@@ -177,7 +249,7 @@ def read(name: str, assets: dict, assets_root: Path) -> dict[str, Any]:
     for role, value in room.get("entry", {}).items():
         for v in value if isinstance(value, list) else [value]:
             for r, sym in (v.items() if isinstance(v, dict) else [(role, v)]):
-                assign(sym, ROLE_KINDS[r])
+                assign(sym, ROLE_KINDS.get(r) or STAGE_ROLE_KINDS[r])
     queue = list(kinds)
     while queue:
         sym = queue.pop()
@@ -214,7 +286,7 @@ def encode_room(name: str, room: dict[str, Any], assets: dict, embedded: dict, a
         base = im.addresses[m.group(1)]
         return base + (int(m.group(2)) * size(objects[m.group(1)]["kind"]) if m.group(2) else 0)
 
-    image = bytearray(im.room)
+    image = bytearray(im.own)
     for sym, rec in objects.items():
         if "count" in rec:
             continue                                      # the collision asset's bytes
@@ -222,7 +294,7 @@ def encode_room(name: str, room: dict[str, Any], assets: dict, embedded: dict, a
         if _is_rows(rec):
             vals = [e for row in vals for e in row]
         data = b"".join(encode_value(v, rec["kind"], address_of) for v in vals)
-        at = im.addresses[sym] - ROOM_LOAD
+        at = im.addresses[sym] - im.base
         image[at:at + len(data)] = data
     return bytes(image)
 
@@ -272,9 +344,9 @@ def decode(name: str, assets: dict, embedded: dict, assets_root: Path) -> Path:
 def check(name: str, assets: dict, embedded: dict, assets_root: Path) -> list[str]:
     im, _area = images(name, assets, embedded, assets_root)
     mine = encode_room(name, read(name, assets, assets_root), assets, embedded, assets_root)
-    if mine == im.room:
+    if mine == im.own:
         return []
-    at = next(i for i in range(len(mine)) if mine[i] != im.room[i])
+    at = next(i for i in range(len(mine)) if mine[i] != im.own[i])
     return [f"{name}: the instance differs from the package at offset 0x{at:X}"]
 
 
@@ -365,18 +437,18 @@ def c_files(name: str, assets: dict, embedded: dict, assets_root: Path) -> dict[
               "#define ROOM_CAT_(a, b) a##b", "#define ROOM_CAT(a, b) ROOM_CAT_(a, b)"]
     files: dict[str, list] = {}
     units = _units(package)
-    rodata = {s for s in objects for start, stop, _u, sec in units if sec == ".rodata" and start <= at[s] - ROOM_LOAD < stop}
+    rodata = {s for s in objects for start, stop, _u, sec in units if sec == ".rodata" and start <= at[s] - im.base < stop}
     parts: dict[str, list[list[str]]] = {}
     decl: dict[str, list[str]] = {}
     for start, stop, unit, _section in units:
-        mine = sorted((s for s in objects if start <= at[s] - ROOM_LOAD < stop), key=at.get)
+        mine = sorted((s for s in objects if start <= at[s] - im.base < stop), key=at.get)
         if mine:
             decl.setdefault(unit, []).extend(mine)
         for s in mine:
             module = objects[s][0]
             runs = parts.setdefault(module, [])
             last = runs[-1][-1] if runs else None
-            if (last and start <= at[last] - ROOM_LOAD < stop and objects[last][0] == module
+            if (last and start <= at[last] - im.base < stop and objects[last][0] == module
                     and not any(at[last] < a < at[s] for a in others)
                     and not any(at[last] < at[o] < at[s] and objects[o][0] != module for o in objects)):
                 runs[-1].append(s)

@@ -168,6 +168,7 @@ enum { ACROPOLIS_EAST_ELEVATOR_HALL_VIEW_FIGURE_DEFAULT_ANIMATION = 4 };
 
 #define ROOM_PART _gAcropolisEastElevatorHallOpeningPlayerMainAnimationRequest
 #include "assets/rooms/akropolis/east_elevator_hall/events.inc"
+
 /// Unreferenced scene-key-shaped record; its intended use is unproven.
 static EvsSceneKey D_acropolis_east_elevator_hall_80185CBC = { 1, 3, 21 };
 
@@ -176,6 +177,7 @@ static ActorTransform D_acropolis_east_elevator_hall_80185CC4 = { { 1, 0, 0, 0 }
 
 #define ROOM_PART _gAcropolisEastElevatorHallOpeningPlayerWalkTarget
 #include "assets/rooms/akropolis/east_elevator_hall/events.inc"
+
 /// Unreferenced 24-byte record; the transform interpretation is unproven.
 static ActorTransform D_acropolis_east_elevator_hall_80185D24 = { { 0, 0, 0, 0 }, { 0, 1640, 0, 0 } };
 
@@ -191,6 +193,7 @@ enum {
 
 #define ROOM_PART _gAcropolisEastElevatorHallOpeningPlayerEndTransform
 #include "assets/rooms/akropolis/east_elevator_hall/events.inc"
+
 /// Room receiver's transition, command, key-item and action message handlers.
 ///
 /// Four entries followed by TASK_MESSAGE_TABLE_END; unsupported IDs return zero.

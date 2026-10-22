@@ -172,6 +172,7 @@ TaskMessageEntry gAcropolisHelicopterLandingPadRoomMessages[5] = {
 #include "assets/rooms/akropolis/helicopter_landing_pad/vibrations.inc"
 #define ROOM_PART _gAcropolisHelicopterLandingPadSceneOriginPlacement
 #include "assets/rooms/akropolis/helicopter_landing_pad/events.inc"
+
 /// Unreferenced stored transform; its placement role is unproven.
 ///
 /// Its bytes duplicate the encounter player's position and yaw, but no code
@@ -180,6 +181,7 @@ static ActorTransform D_acropolis_helicopter_landing_pad_80183798 = { .pos = { 3
 
 #define ROOM_PART gAcropolisHelicopterLandingPadLiftPlayerPlacement
 #include "assets/rooms/akropolis/helicopter_landing_pad/events.inc"
+
 AcropolisHelicopterLandingPadSceneMarkStorage gAcropolisHelicopterLandingPadSceneMarkStorage = {
     .destination = { -3496, -2871, -1283 },
     .unknown_0C  = { 0, 0x3280000, 0, -360, -120, 480, 0, 0, 0, -3188, -2871, -694, 0, 0x9C40000, 0 },
@@ -187,6 +189,7 @@ AcropolisHelicopterLandingPadSceneMarkStorage gAcropolisHelicopterLandingPadScen
 
 #define ROOM_PART _gAcropolisHelicopterLandingPadEncounterEndingActorPlacement
 #include "assets/rooms/akropolis/helicopter_landing_pad/events.inc"
+
 /// Unreferenced stored animation request; its receiver and purpose are unproven.
 ///
 /// Stores bank 0, clip 1, reset and disabled world collision. No script or
@@ -201,6 +204,7 @@ static AnimationPlayRequest D_acropolis_helicopter_landing_pad_801838B8 = {
 
 #define ROOM_PART _gAcropolisHelicopterLandingPadRupertClip2Request
 #include "assets/rooms/akropolis/helicopter_landing_pad/events.inc"
+
 /// Three words copied into the equipped-weapon bank's departure-scene extension.
 ///
 /// Extension slot 47 is NULL; slots 48 and 49 borrow the two player sets from
@@ -213,6 +217,7 @@ static AnimationSet* _gAcropolisHelicopterLandingPadDeparturePlayerAnimationSets
 
 #define ROOM_PART _gAcropolisHelicopterLandingPadDeparturePlayerBankCopyRequest
 #include "assets/rooms/akropolis/helicopter_landing_pad/events.inc"
+
 /// Unreferenced stored request for bank 1, clip 47, with a five-frame blend.
 ///
 /// World collision is disabled; the receiver and scene role are unproven.
@@ -226,6 +231,7 @@ static AnimationPlayRequest D_acropolis_helicopter_landing_pad_80183908 = {
 
 #define ROOM_PART _gAcropolisHelicopterLandingPadDeparturePlayerClip48Request
 #include "assets/rooms/akropolis/helicopter_landing_pad/events.inc"
+
 /// Unreferenced stored request for bank 1, clip 9, with a ten-frame blend.
 ///
 /// World collision is disabled; the receiver and scene role are unproven.
@@ -239,6 +245,7 @@ static AnimationPlayRequest D_acropolis_helicopter_landing_pad_8018396C = {
 
 #define ROOM_PART _gAcropolisHelicopterLandingPadEncounterIntroSceneKey
 #include "assets/rooms/akropolis/helicopter_landing_pad/events.inc"
+
 /// Unreferenced command 0 in the landing pad's stage/area namespace.
 ///
 /// No receiver or script uses the record, so its intended action is unproven.
@@ -249,6 +256,7 @@ static ActorCommand D_acropolis_helicopter_landing_pad_801839D4 = {
 
 #define ROOM_PART _gAcropolisHelicopterLandingPadRupertShowPropCommand
 #include "assets/rooms/akropolis/helicopter_landing_pad/events.inc"
+
 s32 gAcropolisHelicopterLandingPadEncounterPhase = ACROPOLIS_HELICOPTER_LANDING_PAD_PHASE_WAITING;
 
 enum {
@@ -282,6 +290,7 @@ static s32 D_acropolis_helicopter_landing_pad_80184E10[6] = {
 
 #define ROOM_PART gAcropolisHelicopterLandingPadLiftRaiseRequest
 #include "assets/rooms/akropolis/helicopter_landing_pad/events.inc"
+
 TaskDesc gAcropolisHelicopterLandingPadMovieTasks[2] = {
     { .header = { .fields = { .flags = TASK_BODY_NONE, .priority = ACROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_PRIORITY } }, .callback = _acropolisHelicopterLandingPadStartMovieTask, .data = { .value = 0 } },
     { .header = { .fields = { .flags = TASK_BODY_NONE, .priority = ACROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_PRIORITY } }, .callback = _acropolisHelicopterLandingPadMovieTask, .data = { .value = 0 } },

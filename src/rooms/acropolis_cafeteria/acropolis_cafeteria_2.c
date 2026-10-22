@@ -153,7 +153,6 @@ enum {
 #include "assets/rooms/akropolis/cafeteria/ambient.inc"
 #include "assets/rooms/akropolis/cafeteria/updates.inc"
 #include "assets/rooms/akropolis/cafeteria/surfaces.inc"
-
 static TmdBone _gAcropolisCafeteriaModel0F7A4Skeleton[1] = {
 #include "assets/acropolis_cafeteria_model_0F7A4_skeleton.inc"
 };

@@ -45,6 +45,7 @@ TaskDesc gMistParkingDepartureMovieTaskDescs[2] = {
 
 #define ROOM_PART _gMistParkingCutsceneModelPlacement
 #include "assets/rooms/mist/parking/events.inc"
+
 static SVECTOR _gMistParkingPierceCollisionPatchNormals[2] = {
 #include "assets/mist_parking_collision_126F8_normals.inc"
 };

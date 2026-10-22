@@ -32,7 +32,7 @@ def placements(name: str, assets: dict, embedded: dict) -> list[dict]:
     is the first (asset_groups.merge); a shared clip has one in each package placing it."""
     out = [embedded[name]] if name in embedded else []
     for key, rec in assets.items():
-        if rec.get("type") not in ("pe2pkg", "room"):
+        if rec.get("type") not in ("pe2pkg", "room", "stage"):
             continue
         source = f"{rec.get('package_name', key)}.pe2pkg"
         for place in rec.get("embedded", ()):

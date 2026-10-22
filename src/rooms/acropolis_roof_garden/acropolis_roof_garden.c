@@ -175,6 +175,7 @@ static ActorCommand D_acropolis_roof_garden_80183C40 = { { .loc = { 1, 13 } }, 0
 
 #define ROOM_PART _gAcropolisRoofGardenArrivalFinalPlayerAnimation
 #include "assets/rooms/akropolis/roof_garden/events.inc"
+
 /// Unreferenced transform-shaped record; its receiver and coordinate frame are unproven.
 static ActorTransform D_acropolis_roof_garden_80183C88 = { { 0, 128, 0, 0 }, { 0, 407, 0, 0 } };
 
@@ -182,9 +183,9 @@ static ActorTransform D_acropolis_roof_garden_80183C88 = { { 0, 128, 0, 0 }, { 0
 ///
 /// The bank-copy request installs all three at extension slots 47..49. The
 /// table and clip assets belong to the room overlay and stay live during playback.
+
 #define ROOM_PART _gAcropolisRoofGardenArrivalEndPlayerPlacement
 #include "assets/rooms/akropolis/roof_garden/events.inc"
-
 #include "assets/rooms/akropolis/roof_garden/acropolis_roof_garden_arrival_player_bank.inc"
 
 enum {
@@ -195,6 +196,7 @@ enum {
 
 #define ROOM_PART _gAcropolisRoofGardenArrivalPlayerBankCopy
 #include "assets/rooms/akropolis/roof_garden/events.inc"
+
 /// Unreferenced halfword triplet {1, 8, 11}; its scene-selection role is unproven.
 static EvsSceneKey D_acropolis_roof_garden_80183D6C = { 1, 8, 11 };
 
@@ -222,6 +224,7 @@ enum {
 
 #define ROOM_PART _gAcropolisRoofGardenArrivalScript
 #include "assets/rooms/akropolis/roof_garden/events.inc"
+
 /// Arrival-scene latch (0 unstarted, 1 attempted), reset by loading the overlay.
 ///
 /// Set before starting the warp-2 script; a failed start is not retried.
@@ -316,7 +319,6 @@ enum {
 #include "assets/rooms/akropolis/roof_garden/cameras.inc"
 #include "assets/rooms/akropolis/roof_garden/occluders.inc"
 #include "assets/rooms/akropolis/roof_garden/surfaces.inc"
-
 #include "assets/rooms/akropolis/roof_garden/acropolis_roof_garden_model_09868.inc"
 
 /// Last ambience volume percentage requested by the view controller (0, 30 or 100).

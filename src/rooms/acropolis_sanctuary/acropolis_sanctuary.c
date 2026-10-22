@@ -276,7 +276,6 @@ static const TaskFuncTable3 _gAcropolisSanctuaryRoomTaskStates = {
 
 #define ROOM_PART _gAcropolisSanctuaryMosaicOffset
 #include "assets/rooms/akropolis/sanctuary/markers.inc"
-
 /// Resting flame grey for texture/palette variants 0..2.
 ///
 /// The drawer copies exactly three bytes and applies the selected level to RGB.
@@ -319,11 +318,13 @@ static TaskMessageEntry _gAcropolisSanctuaryRoomMessages[] = {
 
 #define ROOM_PART _gAcropolisSanctuaryPlayerSceneStartPlacement
 #include "assets/rooms/akropolis/sanctuary/events.inc"
+
 /// Unread placement-shaped record; its intended receiver and frame are unproven.
 static ActorTransform D_acropolis_sanctuary_80180874 = { { 0, 0, -900, 0 }, { 0, -1024, 0, 0 } };
 
 #define ROOM_PART _gAcropolisSanctuaryPlayerSceneClip48Placement
 #include "assets/rooms/akropolis/sanctuary/events.inc"
+
 /// Nine animation sets copied into the player's sanctuary scene bank extension.
 ///
 /// Entries replace bank slots 47..55: eight borrowed Rupert animation sets,
@@ -343,6 +344,7 @@ static AnimationSet* _gAcropolisSanctuaryPlayerSceneAnimationSets[9] = {
 
 #define ROOM_PART _gAcropolisSanctuaryPlayerSceneBankExtensionRequest
 #include "assets/rooms/akropolis/sanctuary/events.inc"
+
 /// Unread scene-key-shaped record; no consumer establishes its event role.
 static EvsSceneKey D_acropolis_sanctuary_80180B04 = { .group = 1, .streamId = 7, .subId = 21 };
 
@@ -369,6 +371,7 @@ enum {
 
 #define ROOM_PART _gAcropolisSanctuaryArrivalScript
 #include "assets/rooms/akropolis/sanctuary/events.inc"
+
 #include "assets/rooms/akropolis/sanctuary/clips_2.inc"
 
 /// Single-set table installed for the player's sanctuary departure cutscene.
@@ -384,6 +387,7 @@ enum { ACROPOLIS_SANCTUARY_CUTSCENE_TASK_PRIORITY = 192 };
 
 #define ROOM_PART _gAcropolisSanctuaryDepartureScript
 #include "assets/rooms/akropolis/sanctuary/events.inc"
+
 /// Bodyless task recipe for the first sanctuary room action 1.
 ///
 /// Direct spawning reads this single entry synchronously with zero payloads.
@@ -397,7 +401,6 @@ static TaskDesc _gAcropolisSanctuaryCutsceneTaskDesc = {
 
 #define ROOM_PART _gAcropolisSanctuaryBlockerCollisionGridNormals
 #include "assets/rooms/akropolis/sanctuary/geometry.inc"
-
 /// Mosaic-start route borrowed by the sanctuary room-effect task.
 ///
 /// The start message ignores both payload words. The terminal record makes
@@ -596,7 +599,6 @@ enum { ACROPOLIS_SANCTUARY_AREA_UPDATE_SET_MAP_MARK = 1 };
 #include "assets/rooms/akropolis/sanctuary/cameras.inc"
 #include "assets/rooms/akropolis/sanctuary/surfaces.inc"
 #include "assets/rooms/akropolis/sanctuary/updates.inc"
-
 static TmdBone _gAcropolisSanctuaryModel090F0Skeleton[3] = {
 #include "assets/acropolis_sanctuary_model_090F0_skeleton.inc"
 };

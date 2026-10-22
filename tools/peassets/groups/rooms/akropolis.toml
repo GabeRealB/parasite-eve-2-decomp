@@ -9,6 +9,25 @@ height = 256
 variants = ["flare_0", "flare_1", "flare_2"]
 width = 256
 
+[stage]
+type = "stage"
+package_name = "map_akropolis"
+required = true
+sha1 = "abf6f6196ba05d45f48b59d4981cab5a01dc7d98"
+
+[stage.entries]
+image_slots = [0x006F8]
+map_areas = [0x00804]
+map_icons = [0x00A3C]
+map_markers = [0x009E0]
+map_names = [0x00A6C]
+map_shapes = [0x00938]
+marker_flags = [0x010BC]
+movie_workspaces = [0x007A8]
+music = [0x02864, 0x029B4]
+page_flags = [0x007FC]
+rewards = [0x0278C, 0x0281C]
+
 [story_calls]
 type = "cap"
 glyphs = { 52 = "I", 57 = "l" }

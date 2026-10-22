@@ -286,14 +286,15 @@ def shape_includes(version: str) -> list[tuple[str, Path, Path]]:
 
 
 def room_includes(version: str) -> list[tuple[str, Path, list[Path]]]:
-    """(room, its instance, its includes) for every room (asset type `room`): gen_room_inc.py writes one include per
-    module the instance holds, `assets/<group>/<module>.inc`, and `assets/<group>/declarations.inc`."""
+    """(room, its instance, its includes) for every room and stage overlay (asset types `room`, `stage`):
+    gen_room_inc.py writes one include per module the instance holds, `assets/<group>/<module>.inc`, and
+    `assets/<group>/declarations.inc`."""
     data, _schema = asset_tables()
     out = []
     for key, rec in data.ASSETS.items():
-        if rec.get("type") != "room":
+        if rec.get("type") not in ("room", "stage"):
             continue
-        instance = ASSETS_DIR / version / rec["group"] / "room.toml"
+        instance = ASSETS_DIR / version / rec["group"] / ("stage.toml" if rec["type"] == "stage" else "room.toml")
         if not instance.exists():
             continue
         modules = [k for k, v in tomllib.loads(instance.read_text()).items() if isinstance(v, dict) and k != "entry"]
@@ -354,7 +355,7 @@ def asset_placements(name: str) -> list[tuple[str, int]]:
         place = data.EMBEDDED_ASSETS[name]
         out.append((place["source"].removesuffix(".pe2pkg"), schema.embedded_offset(place)))
     for key, rec in data.ASSETS.items():
-        if rec.get("type") in ("pe2pkg", "room"):
+        if rec.get("type") in ("pe2pkg", "room", "stage"):
             package = rec.get("package_name", key)
             out += [(package, p["offset"]) for p in rec.get("embedded", ())
                     if isinstance(p, dict) and p["name"] == name and (package, p["offset"]) not in out]
@@ -434,7 +435,7 @@ def declared_animation_sources(version: str) -> tuple[list, list]:
     tables = (data.ASSETS, data.EMBEDDED_ASSETS)
     clips, banks = [], []
     for key, rec in data.ASSETS.items():
-        if rec.get("type") in ("pe2pkg", "room"):
+        if rec.get("type") in ("pe2pkg", "room", "stage"):
             placed = [p["name"] for p in rec.get("embedded", ()) if isinstance(p, dict)
                       and data.ASSETS[p["name"]]["type"] == "clip"]
             if placed:

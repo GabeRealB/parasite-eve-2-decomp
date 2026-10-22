@@ -487,7 +487,6 @@ enum {
 
 #define ROOM_PART _gMistShootingGalleryStoryBarrierCollisionTemplateNormals
 #include "assets/rooms/mist/shooting_gallery/geometry.inc"
-
 /// 3 training jukebox rows for a cleared Replay save (gameMode 0).
 ///
 /// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
