@@ -45,8 +45,10 @@ ROOT = Path(__file__).resolve().parents[3]
 
 
 def declared(assets: dict) -> list[str]:
-    """Rooms and stage overlays: decoded the same way, each from its own package."""
-    return sorted(k for k, r in assets.items() if r.get("type") in ("room", "stage"))
+    """Rooms and stage overlays: decoded the same way, each from its own package; the stage overlays after the
+    rooms, whose instances their derived per-area tables read."""
+    return sorted((k for k, r in assets.items() if r.get("type") in ("room", "stage")),
+                  key=lambda k: (assets[k]["type"] == "stage", k))
 
 
 def is_stage(name: str, assets: dict) -> bool:
@@ -124,7 +126,8 @@ def _stage_placements(stage: int, assets: dict, embedded: dict, assets_root: Pat
         if assets[room].get("type") != "room":
             continue
         im, area = images(room, assets, embedded, assets_root)
-        _states, objs, _roles = walk(im, area, assets[room].get("entries", {}))
+        _states, objs, roles = walk(im, area, assets[room].get("entries", {}))
+        _ROOM_ROLES[(stage, area)] = {r: im.names[p[0]] for r, p in roles.items() if r in TABLE_ROLES and p}
         for o in objs.values():
             if o.kind == "AreaVariant":
                 for i in range(o.count):
@@ -132,6 +135,24 @@ def _stage_placements(stage: int, assets: dict, embedded: dict, assets_root: Pat
                     if placements:
                         out.append(placements)
     return out
+
+
+_ROOM_ROLES: dict[tuple[int, int], dict[str, str]] = {}
+TABLE_ROLES = ("collision", "view_maps", "view_counts", "lighting", "cameras", "sprite_views", "warps", "surfaces")
+
+
+def _table_role(kind: str) -> str:
+    from .walk import IMPLICIT_ROLES
+    return IMPLICIT_ROLES[kind[len("AreaTable"):]]
+
+
+def _room_entry(stage: int, area: int, role: str, assets: dict, assets_root: Path):
+    """A room's object in a role, from its instance's [entry] (0 where the area has no room or no such object)."""
+    room = dict(stage_rooms(stage, assets)).get(area)
+    if not room or assets[room].get("type") != "room":
+        return 0
+    path = instance_path(room, assets, assets_root)
+    return tomllib.loads(path.read_text()).get("entry", {}).get(role, 0) if path.exists() else 0
 
 
 def _area_names(stage: int, assets: dict) -> dict[int, dict[int, str]]:
@@ -178,7 +199,10 @@ def decode_room(name: str, assets: dict, embedded: dict, assets_root: Path) -> d
             else:
                 vals = [named(decode_value(im.own, a - im.base + i * size(o.kind), o.kind), o.kind, name_of)
                         for i in range(o.count)]
-            if o.single:
+            if o.kind.startswith("AreaTable") and all(
+                    v == _ROOM_ROLES.get((im.stage, i + 1), {}).get(_table_role(o.kind), 0) for i, v in enumerate(vals)):
+                rec = {"areas": o.count}                  # derived: each area's room's object in the table's role
+            elif o.single:
                 rec = {"value": vals[0]}
             elif o.rows:
                 w = o.count // o.rows
@@ -219,6 +243,8 @@ def to_toml(name: str, room: dict[str, Any]) -> str:
             lines += ["", f"[{module}.{sym}]"]
             if "count" in rec:
                 lines.append(f"count = {rec['count']}")
+            elif "areas" in rec:
+                lines.append(f"areas = {rec['areas']}  # each area's room's object of this role (its [entry])")
             elif "value" in rec:
                 lines.append(f"value = {_toml(rec['value'])}")
             else:
@@ -254,7 +280,7 @@ def read(name: str, assets: dict, assets_root: Path) -> dict[str, Any]:
     while queue:
         sym = queue.pop()
         rec, kind = objects[sym], kinds[sym]
-        if "count" in rec:
+        if "count" in rec or "areas" in rec:              # geometry, or a derived table: nothing to follow
             continue
         values = [rec["value"]] if "value" in rec else rec["values"]
         if _is_rows(rec):
@@ -273,6 +299,10 @@ def read(name: str, assets: dict, assets_root: Path) -> dict[str, Any]:
         raise SystemExit(f"{name}: nothing reaches {', '.join(missing)}")
     for sym, rec in objects.items():
         rec["kind"] = kinds[sym]
+        if "areas" in rec:                                # a derived per-area table: its rooms' objects
+            stage = next(k for k, v in STAGES.items() if v[0] == assets[name].get("package_name", name))
+            rec["values"] = [_room_entry(stage, i + 1, _table_role(rec["kind"]), assets, assets_root)
+                             for i in range(rec.pop("areas"))]
     return {"area": room["area"], "states": room["states"], "entry": room.get("entry", {}), "modules": modules}
 
 
