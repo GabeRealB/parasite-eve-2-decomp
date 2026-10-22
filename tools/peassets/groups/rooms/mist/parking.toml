@@ -1,6 +1,44 @@
 # The assets of the group rooms/mist/parking, each named rooms/mist/parking/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "sounds_0"
+
+[[file.contents]]
+chunk = "sounds_1"
+
+[[file.contents]]
+chunk = "dialogue_1_atlas"
+
+[[file.contents]]
+chunk = "dialogue_0_atlas"
+
+[[file.contents]]
+chunk = "dialogue_2_atlas"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "15b61ed756c83b45ea47a7a517df3854cd82ddaa"
+palettes = [
+    { texture = "props", variant = "row_263", region = "engine/vram/effect_palettes", offset = [0x00000, 0x00002] },
+    { texture = "props", variant = "row_264", region = "engine/vram/effect_palettes", offset = [0x00000, 0x00003] },
+]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "840c617453f38705c00bad7d66c14ffb0a79cacb"
+pages = [{ texture = "props", region = "engine/vram/room_sprite_sheet", offset = [0x00000, 0x00000] }]
+slots = 2
+
+[[file.contents]]
+chunk = "package"
+
+[[file.contents]]
+chunk = "bundle"
+
 [jodie]
 type = "pe2pkg"
 embedded = [
@@ -20,13 +58,50 @@ package_name = "actor_213100"
 required = true
 sha1 = "a0a2a0caf5972a7735dd424f246e1a2b7b42e0bd"
 
+[props]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["row_263", "row_264"]
+width = 128
+
+[bundle]
+type = "pe2bundle"
+resources = [
+    "",
+    "rooms/mist/parking/view2_palette",
+    "",
+    "rooms/mist/parking/view4_palette",
+    "rooms/mist/parking/view5_palette",
+    "rooms/mist/parking/view6_palette",
+    "rooms/mist/parking/view7_palette",
+    "",
+    "",
+    "rooms/mist/parking/view10_palette",
+    "rooms/mist/parking/view11_palette",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "rooms/mist/parking/view18_palette",
+    "rooms/mist/parking/view19_palette",
+    "",
+    "rooms/mist/parking/dialogue_0",
+    "rooms/mist/parking/dialogue_1",
+    "rooms/mist/parking/dialogue_2",
+    "rooms/akropolis/story_calls",
+]
+sha1 = "01596c2f977b874beb385b68b9927f32f6517838"
+
 [pierce]
 type = "pe2pkg"
 embedded = [
     { asset = "characters/pierce/body", offset = 0x0164C, size = 0x621C, address = 0x8013346C },
     { asset = "characters/pierce/glasses", offset = 0x07868, size = 0x1FC, address = 0x80139688 },
     { asset = "characters/pierce/id_badge", offset = 0x07A64, size = 0xA8, address = 0x80139884 },
-    "actor_113100_model_07BC4",
+    { name = "hand_billboard", offset = 0x07B0C, size = 0x290, address = 0x8013992C },
     { asset = "characters/pierce/rest", offset = 0x07D9C, size = 0x27C, address = 0x80139BBC },
     { asset = "characters/pierce/walk", offset = 0x08018, size = 0x794, address = 0x80139E38 },
     { asset = "characters/pierce/anim_04", offset = 0x087AC, size = 0x574, address = 0x8013A5CC },
@@ -65,9 +140,273 @@ embedded = [
     { name = "pierce_bank", offset = 0x12430, size = 0x90, address = 0x80144250 },
 ]
 package_name = "actor_113100"
-parent = "mist_parking"
+parent = "rooms/mist/parking/package"
 required = true
 sha1 = "5e87c8524e5c2a3924655335b7b17dcac281a669"
+
+[package]
+type = "room"
+package_name = "mist_parking"
+required = true
+sha1 = "4f3789fd1543af7836b09e6cee5c09472fd0852e"
+
+[[package.embedded]]
+name = "mist_parking_command1_player_anim_00"
+offset = 0x0941C
+size = 0x1DC
+address = 0x801869DC
+
+[[package.embedded]]
+name = "mist_parking_command1_player_bank"
+offset = 0x09668
+size = 0x4
+address = 0x80186C28
+
+[[package.embedded]]
+name = "mist_parking_model_09B9C"
+offset = 0x09A5C
+size = 0x29C
+address = 0x8018701C
+
+[[package.embedded]]
+asset = "characters/aya/stand"
+offset = 0x09CF8
+size = 0x304
+address = 0x801872B8
+
+[[package.embedded]]
+asset = "rooms/shelter/r47/player_look_at_map"
+offset = 0x09FFC
+size = 0x7A0
+address = 0x801875BC
+
+[[package.embedded]]
+asset = "rooms/shelter/b3_incinerator_control_room/player_flustered"
+offset = 0x0A79C
+size = 0x4E8
+address = 0x80187D5C
+
+[[package.embedded]]
+name = "mist_parking_player_conversation_anim_04"
+offset = 0x0AC84
+size = 0x4DC
+address = 0x80188244
+
+[[package.embedded]]
+name = "mist_parking_player_conversation_anim_05"
+offset = 0x0B160
+size = 0x5C8
+address = 0x80188720
+
+[[package.embedded]]
+name = "mist_parking_player_conversation_anim_06"
+offset = 0x0B728
+size = 0x3B4
+address = 0x80188CE8
+
+[[package.embedded]]
+name = "mist_parking_player_conversation_anim_07"
+offset = 0x0BADC
+size = 0x6FC
+address = 0x8018909C
+
+[[package.embedded]]
+name = "mist_parking_player_conversation_anim_08"
+offset = 0x0C1D8
+size = 0x4D8
+address = 0x80189798
+
+[[package.embedded]]
+name = "mist_parking_player_conversation_anim_09"
+offset = 0x0C6B0
+size = 0x6F8
+address = 0x80189C70
+
+[[package.embedded]]
+name = "mist_parking_player_conversation_anim_10"
+offset = 0x0CDA8
+size = 0x2E0
+address = 0x8018A368
+
+[[package.embedded]]
+asset = "characters/aya/introduce_herself"
+offset = 0x0D088
+size = 0x384
+address = 0x8018A648
+
+[[package.embedded]]
+asset = "characters/aya/anim_07"
+offset = 0x0D40C
+size = 0x2C0
+address = 0x8018A9CC
+
+[[package.embedded]]
+asset = "characters/aya/talk"
+offset = 0x0D6CC
+size = 0x3F0
+address = 0x8018AC8C
+
+[[package.embedded]]
+asset = "rooms/shelter/b6_growth_room/player_choice_start"
+offset = 0x0DABC
+size = 0x400
+address = 0x8018B07C
+
+[[package.embedded]]
+asset = "characters/aya/its_nothing"
+offset = 0x0DEBC
+size = 0x33C
+address = 0x8018B47C
+
+[[package.embedded]]
+name = "mist_parking_player_conversation_anim_15"
+offset = 0x0E1F8
+size = 0x510
+address = 0x8018B7B8
+
+[[package.embedded]]
+asset = "characters/aya/on_my_way"
+offset = 0x0E708
+size = 0x32C
+address = 0x8018BCC8
+
+[[package.embedded]]
+asset = "characters/aya/talk_start"
+offset = 0x0EA34
+size = 0x3D4
+address = 0x8018BFF4
+
+[[package.embedded]]
+asset = "characters/aya/talk_end"
+offset = 0x0EE08
+size = 0x36C
+address = 0x8018C3C8
+
+[[package.embedded]]
+asset = "characters/aya/reply"
+offset = 0x0F174
+size = 0x428
+address = 0x8018C734
+
+[[package.embedded]]
+name = "mist_parking_player_conversation_anim_20"
+offset = 0x0F59C
+size = 0x27C
+address = 0x8018CB5C
+
+[[package.embedded]]
+name = "mist_parking_player_conversation_anim_21"
+offset = 0x0F818
+size = 0x470
+address = 0x8018CDD8
+
+[[package.embedded]]
+asset = "characters/aya/turn_pale"
+offset = 0x0FC88
+size = 0x1FC
+address = 0x8018D248
+
+[[package.embedded]]
+asset = "rooms/shelter/b1_pod_service_gantry/player_gantry_scene_7"
+offset = 0x0FE84
+size = 0x318
+address = 0x8018D444
+
+[[package.embedded]]
+name = "mist_parking_player_conversation_bank"
+offset = 0x10208
+size = 0x64
+address = 0x8018D7C8
+
+[[package.embedded]]
+name = "stand_copy"
+offset = 0x1271C
+size = 0x304
+address = 0x8018FCDC
+
+[[package.embedded]]
+name = "talk_start_copy"
+offset = 0x12A20
+size = 0x3D4
+address = 0x8018FFE0
+
+[[package.embedded]]
+name = "mist_parking_player_conversation_anim_21_copy"
+offset = 0x12DF4
+size = 0x470
+address = 0x801903B4
+
+[[package.embedded]]
+name = "mist_parking_shop_player_bank"
+offset = 0x132A0
+size = 0x10
+address = 0x80190860
+
+[sounds_0]
+type = "sound_bank"
+samples = [
+    "rooms/akropolis/patio/walk_floor_1",
+    "rooms/akropolis/patio/walk_floor_2",
+    "rooms/akropolis/cafeteria/walk_surface_3_1",
+    "rooms/akropolis/cafeteria/walk_surface_3_2",
+]
+sounds = { walk_floor_1 = 17, walk_floor_2 = 18, run_floor_1 = 19, run_floor_2 = 20 }
+sha1 = "86f82c6b17237764b7b5e51cbd368ecd4507d138"
+
+[sounds_1]
+type = "sound_bank"
+samples = [
+    "rooms/mist/parking/room_change_door_open",
+    "rooms/mist/parking/room_change_door_close",
+    "rooms/akropolis/square/call_start",
+    "rooms/akropolis/square/ammo_box_open",
+    "rooms/mist/parking/cutscene_playback",
+    "rooms/mist/parking/arrival_model_reveal",
+    "rooms/mist/parking/arrival_model_reveal_2",
+    "rooms/mist/parking/arrival_pierce_walk_steps",
+    "rooms/mist/parking/arrival_pierce_walk_steps_2",
+    "rooms/mist/parking/arrival_pierce_gesture",
+    "rooms/mist/parking/arrival_pierce_aim",
+    "rooms/akropolis/plaza/officer_step_1",
+    "rooms/akropolis/plaza/officer_step_2",
+    "rooms/mist/parking/arrival_player_gesture",
+    "rooms/mist/parking/arrival_player_gesture_2",
+    "rooms/mist/parking/cutscene_after",
+    "rooms/mist/parking/arrival_model_reveal_3",
+]
+sha1 = "07e072293408683ddd898eb74c44306a42249b02"
+
+[sounds_1.sounds]
+room_change_door_open = 1
+room_change_door_close = 2
+cutscene_start = 3
+cutscene_end = 4
+arrival_model_reveal = 5
+arrival_pierce_walk_steps = 6
+arrival_pierce_gesture = 8
+cutscene_playback = 11
+arrival_steps_2 = 12
+arrival_steps_3 = 13
+arrival_pierce_aim = 14
+pierce_step_1 = 15
+pierce_step_2 = 16
+arrival_player_gesture = 17
+cutscene_after = 18
+pierce_step_alternate = 19
+door_open = 20
+door_close = 21
+
+[dialogue_0]
+type = "cap"
+sha1 = "2bf5d565075c1aed1f86bf546a927cc7f546725b"
+
+[dialogue_1]
+type = "cap"
+sha1 = "027c9d2bd51dceac5fda9cc39ed7269a5116e375"
+
+[dialogue_2]
+type = "cap"
+sha1 = "3031a87869c4451465d6a229750d9d4ba1a808f1"
 
 [jodie_bank]
 type = "animation_bank"
@@ -88,6 +427,298 @@ shop_reply_end = "characters/aya/anim_08"
 [jodie_rest]
 type = "clip"
 rig = "characters/jodie/rig"
+
+[stand_copy]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistParkingStandCopyClip"
+
+[view2_file]
+type = "file"
+
+[[view2_file.contents]]
+chunk = "view2_image"
+sha1 = "511703b47a621687e9f35f27a4962ebed28aafe6"
+pages = [{ texture = "view2_page_1", region = "engine/vram/room_sprite_sheet", offset = [0x000C0, 0x00000] }]
+slots = 3
+
+[[view2_file.contents]]
+chunk = "view2_background"
+
+[[view2_file.contents]]
+chunk = "view2_palette"
+sha1 = "b1dbe57223f2c625fc69ea32a02a3a7150bfd7ec"
+
+[[view2_file.contents.palettes]]
+texture = "view2_page_1"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view2_file.contents.palettes]]
+name = "unread_row_1"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view2_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view2_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view2_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view2_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
+[view4_file]
+type = "file"
+
+[[view4_file.contents]]
+chunk = "view4_image"
+sha1 = "530b2478a39d6bcba90e152ef9880d6620ddc647"
+pages = [
+    { texture = "view4_page_1", region = "engine/vram/room_sprite_sheet", offset = [0x00080, 0x00000] },
+    { texture = "view4_page_2", region = "engine/vram/room_sprite_sheet", offset = [0x000C0, 0x00000] },
+]
+slots = 3
+
+[[view4_file.contents]]
+chunk = "view4_background"
+
+[[view4_file.contents]]
+chunk = "view4_palette"
+sha1 = "1b1374295e849d1e419cb3d7f0659ec94a2ef69b"
+
+[[view4_file.contents.palettes]]
+texture = "view4_page_1"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view4_file.contents.palettes]]
+texture = "view4_page_2"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view4_file.contents.palettes]]
+name = "unread_row_1"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view4_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view4_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view4_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view4_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
+[view5_file]
+type = "file"
+
+[[view5_file.contents]]
+chunk = "view5_image"
+sha1 = "f04550e859d005fae468689147fc957167f65aa9"
+pages = [
+    { texture = "view5_page_1", region = "engine/vram/room_sprite_sheet", offset = [0x00080, 0x00000] },
+    { texture = "view5_page_2", region = "engine/vram/room_sprite_sheet", offset = [0x000C0, 0x00000] },
+]
+slots = 3
+
+[[view5_file.contents]]
+chunk = "view5_background"
+
+[[view5_file.contents]]
+chunk = "view5_palette"
+sha1 = "3b649067de6467f87c3e750d3aa7401121ce6bb4"
+
+[[view5_file.contents.palettes]]
+texture = "view5_page_1"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view5_file.contents.palettes]]
+texture = "view5_page_2"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view5_file.contents.palettes]]
+name = "unread_row_1"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view5_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view5_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view5_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view5_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
+[view6_file]
+type = "file"
+
+[[view6_file.contents]]
+chunk = "view6_image"
+sha1 = "189ae945c6d3d694bcda06f2623faea3da9863a7"
+pages = [
+    { texture = "view6_page_1", region = "engine/vram/room_sprite_sheet", offset = [0x00080, 0x00000] },
+    { texture = "view6_page_2", region = "engine/vram/room_sprite_sheet", offset = [0x000C0, 0x00000] },
+]
+slots = 3
+
+[[view6_file.contents]]
+chunk = "view6_background"
+
+[[view6_file.contents]]
+chunk = "view6_palette"
+sha1 = "fa2f965a9919d9537da54b5c6620da97866e6da8"
+
+[[view6_file.contents.palettes]]
+texture = "view6_page_1"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view6_file.contents.palettes]]
+texture = "view6_page_2"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view6_file.contents.palettes]]
+name = "unread_row_1"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view6_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view6_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view6_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view6_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
+[view7_file]
+type = "file"
+
+[[view7_file.contents]]
+chunk = "view7_image"
+sha1 = "95c8ea8fbdab0da6610c911d07e259cdf063da4a"
+pages = [{ texture = "view7_page_1", region = "engine/vram/room_sprite_sheet", offset = [0x000C0, 0x00000] }]
+slots = 3
+
+[[view7_file.contents]]
+chunk = "view7_background"
+
+[[view7_file.contents]]
+chunk = "view7_palette"
+sha1 = "8840dc63a27d946ffa03dff8a51175908a59341f"
+
+[[view7_file.contents.palettes]]
+texture = "view7_page_1"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view7_file.contents.palettes]]
+name = "unread_row_1"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view7_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view7_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view7_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view7_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
 
 [pierce_bank]
 type = "animation_bank"
@@ -135,6 +766,232 @@ slot_35 = "characters/pierce/anim_35"
 type = "clip"
 rig = "characters/pierce/rig"
 
+[view10_file]
+type = "file"
+
+[[view10_file.contents]]
+chunk = "view10_image"
+sha1 = "ca262e11056c2716e1b4886e9fa5e99d194b7396"
+pages = [{ texture = "view10_page_1", region = "engine/vram/room_sprite_sheet", offset = [0x000C0, 0x00000] }]
+slots = 3
+
+[[view10_file.contents]]
+chunk = "view10_background"
+
+[[view10_file.contents]]
+chunk = "view10_palette"
+sha1 = "0fe5181cf51948b32b2a35bc6d807326a5309b44"
+
+[[view10_file.contents.palettes]]
+texture = "view10_page_1"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view10_file.contents.palettes]]
+name = "unread_row_1"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view10_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view10_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view10_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view10_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
+[view11_file]
+type = "file"
+
+[[view11_file.contents]]
+chunk = "view11_image"
+sha1 = "2a22b273a2f2e7d15c266c1c8b822d727e89700c"
+pages = [{ texture = "view11_page_1", region = "engine/vram/room_sprite_sheet", offset = [0x000C0, 0x00000] }]
+slots = 3
+
+[[view11_file.contents]]
+chunk = "view11_background"
+
+[[view11_file.contents]]
+chunk = "view11_palette"
+sha1 = "3f8d0f55f5edfd470cd0b566995510366c6e2690"
+
+[[view11_file.contents.palettes]]
+texture = "view11_page_1"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view11_file.contents.palettes]]
+name = "unread_row_1"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view11_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view11_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view11_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view11_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
+[view18_file]
+type = "file"
+
+[[view18_file.contents]]
+chunk = "view18_image"
+sha1 = "4437015ebe6553739538593bc0c07bb3ed8ad54a"
+pages = [
+    { texture = "view18_page_1", region = "engine/vram/room_sprite_sheet", offset = [0x00080, 0x00000] },
+    { texture = "view18_page_2", region = "engine/vram/room_sprite_sheet", offset = [0x000C0, 0x00000] },
+]
+slots = 3
+
+[[view18_file.contents]]
+chunk = "view18_background"
+
+[[view18_file.contents]]
+chunk = "view18_palette"
+sha1 = "ff6c96e9656a9a09ce94cc5a1cae51cc27a9ba0d"
+
+[[view18_file.contents.palettes]]
+texture = "view18_page_1"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view18_file.contents.palettes]]
+texture = "view18_page_2"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view18_file.contents.palettes]]
+name = "unread_row_1"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view18_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view18_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view18_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view18_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
+[view19_file]
+type = "file"
+
+[[view19_file.contents]]
+chunk = "view19_image"
+sha1 = "a7756a669d00815bd75c9711b2da3974d87505d8"
+pages = [
+    { texture = "view19_page_1", region = "engine/vram/room_sprite_sheet", offset = [0x00080, 0x00000] },
+    { texture = "view19_page_2", region = "engine/vram/room_sprite_sheet", offset = [0x000C0, 0x00000] },
+]
+slots = 3
+
+[[view19_file.contents]]
+chunk = "view19_background"
+
+[[view19_file.contents]]
+chunk = "view19_palette"
+sha1 = "a9c9242aafba91e9e1e890b3c61312fcabbf32be"
+
+[[view19_file.contents.palettes]]
+texture = "view19_page_1"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view19_file.contents.palettes]]
+texture = "view19_page_2"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view19_file.contents.palettes]]
+name = "unread_row_1"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view19_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view19_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view19_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view19_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
 [body_anim_06]
 type = "clip"
 rig = "characters/aya/rig"
@@ -142,6 +999,62 @@ rig = "characters/aya/rig"
 [jodie_schema]
 type = "animation_schema"
 slots = ["", "talk", "slot_2", "slot_3", "slot_4", "rest", "slot_6", "greeting", "shop_reply", "shop_reply_end"]
+
+[view2_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view4_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view4_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view5_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view5_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view6_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view6_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view7_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
 
 [pierce_schema]
 type = "animation_schema"
@@ -183,6 +1096,58 @@ slots = [
     "implant_talk",
     "slot_35",
 ]
+
+[view10_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view11_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view18_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view18_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view19_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view19_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[cutscene_after]
+type = "sound"
+sha1 = "fe319cd58e949e9b574cd334093bfdca3f2a6482"
+
+[hand_billboard]
+type = "model"
+slots = ["props_row_263"]
+symbol = "_gMistParkingHandBillboard"
+sha1 = "6b7949fd0635ddfb5f80f01dba69c83c3bc0d99b"
 
 [pierce_anim_03]
 type = "clip"
@@ -236,6 +1201,129 @@ rig = "characters/pierce/rig"
 type = "clip"
 rig = "characters/pierce/rig"
 
+[talk_start_copy]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistParkingTalkStartCopyClip"
+
+[dialogue_0_atlas]
+type = "font_atlas"
+bpp = 4
+generated_by = "rooms/mist/parking/dialogue_0"
+h = 256
+w = 64
+x = 384
+y = 0
+sha1 = "8ccf3bfd29c457423fbe9d2272f4e76eedd5a59e"
+
+[dialogue_1_atlas]
+type = "font_atlas"
+bpp = 4
+generated_by = "rooms/mist/parking/dialogue_1"
+h = 256
+w = 64
+x = 320
+y = 256
+sha1 = "654cf99a95b99f7eadffeb54147309f450c1d036"
+
+[dialogue_2_atlas]
+type = "font_atlas"
+bpp = 4
+generated_by = "rooms/mist/parking/dialogue_2"
+h = 256
+w = 64
+x = 704
+y = 0
+sha1 = "a750953b680ad38ff8a51b1438c9f9623660c338"
+
+[view1_background]
+type = "bs"
+sha1 = "f54b3e05b62b87ba8b8eecc25ecf4355f0c16f8d"
+
+[view2_background]
+type = "bs"
+sha1 = "5e9b1cfd95788b85f15c83d08f3f8389e226554f"
+
+[view3_background]
+type = "bs"
+sha1 = "8954f1e8e4fbbbd9ecccbddc974d31866aad661b"
+
+[view4_background]
+type = "bs"
+sha1 = "0f1090c67139dc26ecda3d6165b1eea7eaa260c3"
+
+[view5_background]
+type = "bs"
+sha1 = "d9b9d32b93af46ce22b0631028e39c44eaf3cbe6"
+
+[view6_background]
+type = "bs"
+sha1 = "c1fe6a0125b8d95ae580722e4c98f126ca5e28ad"
+
+[view7_background]
+type = "bs"
+sha1 = "ee26c6321e89d6175d694a0a88c78cea87a7cb0a"
+
+[view8_background]
+type = "bs"
+sha1 = "464be327c6a8751d2a62b4c1b4fb7809e36b27f1"
+
+[view9_background]
+type = "bs"
+sha1 = "4c7f72b60a48f8a700b38c7a635512ad23d0c106"
+
+[cutscene_playback]
+type = "sound"
+sha1 = "6b0c662bdf046cf17a063b267e91f0927f960285"
+
+[view10_background]
+type = "bs"
+sha1 = "49c503a80646e22126063baccb8d45f1f41a2692"
+
+[view11_background]
+type = "bs"
+sha1 = "3b74be3b878081c3bd7734771b08abab0c8afb1d"
+
+[view12_background]
+type = "bs"
+sha1 = "5750a3e284e8dbc3b13c2de22ebeebf1190f783d"
+
+[view13_background]
+type = "bs"
+sha1 = "4a00f2b62173f408c14f53dabbcab37ffdbeb6cd"
+
+[view14_background]
+type = "bs"
+sha1 = "80bd2b0ddb8bb554946158309d2d3999221d7477"
+
+[view15_background]
+type = "bs"
+sha1 = "c7728843f306c1dc2bf06611b151e236f89c0fb4"
+
+[view16_background]
+type = "bs"
+sha1 = "7821191b4ece6715532c238ce552551fab88d0fe"
+
+[view17_background]
+type = "bs"
+sha1 = "0845cc1a6edb957c2d7468549e21af30f909d44c"
+
+[view18_background]
+type = "bs"
+sha1 = "92ca29932c7ce5ef307ce3d6c242b41d7e887499"
+
+[view19_background]
+type = "bs"
+sha1 = "bd9a204b1db5f927520380347098282174f8a45f"
+
+[view20_background]
+type = "bs"
+sha1 = "5250d4730ecfaa2dfa245b0209e0295739b0da45"
+
+[arrival_pierce_aim]
+type = "sound"
+sha1 = "0d6a309c238f61f08677c2cdfb289503e2f16b99"
+
 [pierce_walk_arrive]
 type = "clip"
 rig = "characters/pierce/rig"
@@ -244,13 +1332,56 @@ rig = "characters/pierce/rig"
 type = "clip"
 rig = "characters/pierce/rig"
 
+[arrival_model_reveal]
+type = "sound"
+sha1 = "552958dddee0c978f03b4a2be1d8e8974417c2f9"
+
 [pierce_follow_up_talk]
 type = "clip"
 rig = "characters/pierce/rig"
 
+[room_change_door_open]
+type = "sound"
+sha1 = "7e1479db85ff2a01bdebebd9f938a54ddb8fb37f"
+
+[arrival_model_reveal_2]
+type = "sound"
+sha1 = "4c35e39a54e99cac2ac9a706617d30fb472e7e45"
+
+[arrival_model_reveal_3]
+type = "sound"
+sha1 = "7c28f1fb94c1a20476f5dd6ee6ee05516c101738"
+
+[arrival_pierce_gesture]
+type = "sound"
+sha1 = "876c4f9f56ee38d04010fa4bd97f451ad4f85db3"
+
+[arrival_player_gesture]
+type = "sound"
+sha1 = "0aaf78bfa37cfc9b9e2f6386663a922717f08eee"
+
+[hand_billboard_binding]
+type = "binding"
+model = "rooms/mist/parking/hand_billboard"
+textures = { props_row_263 = "rooms/mist/parking/props.row_263" }
+
+[room_change_door_close]
+type = "sound"
+sha1 = "c0d2b7a52327706ecec52d7175cde39bb1cce1c5"
+
 [pierce_departure_prompt]
 type = "clip"
 rig = "characters/pierce/rig"
+
+[arrival_player_gesture_2]
+type = "sound"
+sha1 = "2528ebca5a43982eca5c7ca2e5e82f62c995191a"
+
+[mist_parking_model_09B9C]
+type = "model"
+slots = []
+symbol = "gMistParkingMistParkingModel09B9C"
+sha1 = "1aa709e315f1b596cc854277b7964ee9645416db"
 
 [pierce_parking_arrival_7]
 type = "clip"
@@ -260,6 +1391,163 @@ rig = "characters/pierce/rig"
 type = "clip"
 rig = "characters/pierce/rig"
 
+[arrival_pierce_walk_steps]
+type = "sound"
+sha1 = "175743ef51a82f3eb59470b23bbe5e3a28122680"
+
 [pierce_parking_arrival_10]
 type = "clip"
 rig = "characters/pierce/rig"
+
+[arrival_pierce_walk_steps_2]
+type = "sound"
+sha1 = "d9e401601824a64836b64183a26641385f13aa26"
+
+[mist_parking_shop_player_bank]
+type = "animation_bank"
+schema = "rooms/mist/parking/mist_parking_shop_player_schema"
+symbol = "_gMistParkingShopPlayerAnimationSets"
+
+[mist_parking_shop_player_bank.clips]
+slot_1 = "rooms/mist/parking/stand_copy"
+slot_2 = "rooms/mist/parking/talk_start_copy"
+slot_3 = "rooms/mist/parking/mist_parking_player_conversation_anim_21_copy"
+
+[mist_parking_shop_player_schema]
+type = "animation_schema"
+slots = ["", "slot_1", "slot_2", "slot_3"]
+
+[mist_parking_model_09B9C_binding]
+type = "binding"
+model = "rooms/mist/parking/mist_parking_model_09B9C"
+textures = {  }
+
+[mist_parking_command1_player_bank]
+type = "animation_bank"
+clips = { slot_0 = "rooms/mist/parking/mist_parking_command1_player_anim_00" }
+schema = "rooms/mist/parking/mist_parking_command1_player_schema"
+symbol = "_gMistParkingCommand1PlayerAnimationSets"
+
+[mist_parking_command1_player_schema]
+type = "animation_schema"
+slots = ["slot_0"]
+
+[mist_parking_command1_player_anim_00]
+type = "clip"
+rig = "characters/aya/rig"
+
+[mist_parking_player_conversation_bank]
+type = "animation_bank"
+schema = "rooms/mist/parking/mist_parking_player_conversation_schema"
+symbol = "_gMistParkingPlayerConversationAnimationSets"
+
+[mist_parking_player_conversation_bank.clips]
+slot_1 = "characters/aya/stand"
+slot_2 = "rooms/shelter/r47/player_look_at_map"
+slot_3 = "rooms/shelter/b3_incinerator_control_room/player_flustered"
+slot_4 = "rooms/mist/parking/mist_parking_player_conversation_anim_04"
+slot_5 = "rooms/mist/parking/mist_parking_player_conversation_anim_05"
+slot_6 = "rooms/mist/parking/mist_parking_player_conversation_anim_06"
+slot_7 = "rooms/mist/parking/mist_parking_player_conversation_anim_07"
+slot_8 = "rooms/mist/parking/mist_parking_player_conversation_anim_08"
+slot_9 = "rooms/mist/parking/mist_parking_player_conversation_anim_09"
+slot_10 = "rooms/mist/parking/mist_parking_player_conversation_anim_10"
+slot_11 = "characters/aya/anim_07"
+slot_12 = "characters/aya/talk"
+slot_13 = "rooms/shelter/b6_growth_room/player_choice_start"
+slot_14 = "characters/aya/its_nothing"
+slot_15 = "rooms/mist/parking/mist_parking_player_conversation_anim_15"
+slot_16 = "characters/aya/on_my_way"
+slot_17 = "characters/aya/talk_start"
+slot_18 = "characters/aya/talk_end"
+slot_19 = "characters/aya/reply"
+slot_20 = "rooms/mist/parking/mist_parking_player_conversation_anim_20"
+slot_21 = "rooms/mist/parking/mist_parking_player_conversation_anim_21"
+slot_22 = "characters/aya/turn_pale"
+slot_23 = "rooms/shelter/b1_pod_service_gantry/player_gantry_scene_7"
+slot_24 = "characters/aya/introduce_herself"
+
+[mist_parking_player_conversation_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "slot_1",
+    "slot_2",
+    "slot_3",
+    "slot_4",
+    "slot_5",
+    "slot_6",
+    "slot_7",
+    "slot_8",
+    "slot_9",
+    "slot_10",
+    "slot_11",
+    "slot_12",
+    "slot_13",
+    "slot_14",
+    "slot_15",
+    "slot_16",
+    "slot_17",
+    "slot_18",
+    "slot_19",
+    "slot_20",
+    "slot_21",
+    "slot_22",
+    "slot_23",
+    "slot_24",
+]
+
+[mist_parking_player_conversation_anim_04]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistParkingMistParkingPlayerConversationAnim04Clip"
+
+[mist_parking_player_conversation_anim_05]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistParkingMistParkingPlayerConversationAnim05Clip"
+
+[mist_parking_player_conversation_anim_06]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistParkingMistParkingPlayerConversationAnim06Clip"
+
+[mist_parking_player_conversation_anim_07]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistParkingMistParkingPlayerConversationAnim07Clip"
+
+[mist_parking_player_conversation_anim_08]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistParkingMistParkingPlayerConversationAnim08Clip"
+
+[mist_parking_player_conversation_anim_09]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistParkingMistParkingPlayerConversationAnim09Clip"
+
+[mist_parking_player_conversation_anim_10]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistParkingMistParkingPlayerConversationAnim10Clip"
+
+[mist_parking_player_conversation_anim_15]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistParkingMistParkingPlayerConversationAnim15Clip"
+
+[mist_parking_player_conversation_anim_20]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistParkingMistParkingPlayerConversationAnim20Clip"
+
+[mist_parking_player_conversation_anim_21]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistParkingMistParkingPlayerConversationAnim21Clip"
+
+[mist_parking_player_conversation_anim_21_copy]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistParkingMistParkingPlayerConversationAnim21CopyClip"

@@ -39,17 +39,25 @@ type = "file"
 [[file.contents]]
 chunk = "palette"
 sha1 = "53b42eed79ee377d528b0ef902efac03eb1b9702"
-palettes = [
-    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
-    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
-]
+
+[[file.contents.palettes]]
+texture = "texture_page_1"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00000]
+
+[[file.contents.palettes]]
+texture = "texture_page_2"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00001]
 
 [[file.contents]]
 chunk = "image"
 sha1 = "8f26a21c4a35a786f31a30f96502f5b9022aa7c1"
 pages = [
-    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
-    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [0x00040, 0x00000] },
 ]
 slots = 6
 
@@ -69,6 +77,12 @@ asset = "rooms/akropolis/cafeteria/rupert"
 [walk]
 type = "clip"
 rig = "characters/rupert/rig"
+
+[radio]
+type = "model"
+slots = ["radio"]
+symbol = "_gRupertRadio"
+sha1 = "d1324c00d88e30ad78563ed4ec4da41188caf683"
 
 [body_2]
 type = "model"
@@ -96,17 +110,25 @@ type = "file"
 [[hurt_file.contents]]
 chunk = "hurt_palette"
 sha1 = "eb1fa3378993d003b53559608e6c73ebaac55445"
-palettes = [
-    { texture = "hurt_texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
-    { texture = "hurt_texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
-]
+
+[[hurt_file.contents.palettes]]
+texture = "hurt_texture_page_1"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00000]
+
+[[hurt_file.contents.palettes]]
+texture = "hurt_texture_page_2"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00001]
 
 [[hurt_file.contents]]
 chunk = "hurt_image"
 sha1 = "cdc7cc114ef7ebb4a51413577fd08bfbcda260e0"
 pages = [
-    { texture = "hurt_texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
-    { texture = "hurt_texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+    { texture = "hurt_texture_page_1", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] },
+    { texture = "hurt_texture_page_2", region = "engine/vram/actor_sheet", offset = [0x00040, 0x00000] },
 ]
 slots = 6
 
@@ -132,20 +154,20 @@ sha1 = "f204981b9e88c3f37270d0f3c97480bada0e97a4"
 texture = "bloodied_texture_page_1"
 variant = "default"
 region = "engine/vram/actor_palettes"
-offset = [0, 0]
+offset = [0x00000, 0x00000]
 
 [[bloodied_file.contents.palettes]]
 texture = "bloodied_texture_page_2"
 variant = "default"
 region = "engine/vram/actor_palettes"
-offset = [0, 1]
+offset = [0x00000, 0x00001]
 
 [[bloodied_file.contents]]
 chunk = "bloodied_image"
 sha1 = "fce42cdf1e6d9352880eedc51205251b10684fb1"
 pages = [
-    { texture = "bloodied_texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
-    { texture = "bloodied_texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+    { texture = "bloodied_texture_page_1", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] },
+    { texture = "bloodied_texture_page_2", region = "engine/vram/actor_sheet", offset = [0x00040, 0x00000] },
 ]
 slots = 6
 
@@ -154,6 +176,11 @@ type = "model"
 slots = ["mongoose_texture"]
 symbol = "_gRupertHurtMongoose"
 sha1 = "72178a18fb3b2e1a51c3bd261395d27607dadb8d"
+
+[radio_binding]
+type = "binding"
+model = "characters/rupert/radio"
+textures = { radio = "rooms/akropolis/helicopter_landing_pad/radio.default" }
 
 [body_2_binding]
 type = "binding"

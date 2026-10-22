@@ -13,75 +13,75 @@
 #include "main/task_types.h"
 
 // Native animation sets shared with the companion actor overlay.
-extern AnimationSet gAcropolisPlazaAnimation148BC;
+extern AnimationSet gAkropolisPlazaExtraAnimClip;
 
-extern AnimationSet gAcropolisPlazaAnimation156B4;
+extern AnimationSet gAkropolisPlazaExtraAnim2Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation15864;
+extern AnimationSet gAkropolisPlazaExtraAnim3Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation15CC8;
+extern AnimationSet gAkropolisPlazaExtraAnim4Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation15F78;
+extern AnimationSet gAkropolisPlazaExtraAnim5Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation1622C;
+extern AnimationSet gAkropolisPlazaExtraAnim6Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation1643C;
+extern AnimationSet gAkropolisPlazaExtraAnim7Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation16610;
+extern AnimationSet gAkropolisPlazaExtraAnim8Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation168FC;
+extern AnimationSet gAkropolisPlazaExtraAnim9Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation16D00;
+extern AnimationSet gAkropolisPlazaExtraAnim10Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation16EE4;
+extern AnimationSet gAkropolisPlazaExtraAnim11Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation170C0;
+extern AnimationSet gAkropolisPlazaExtraAnim12Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation17298;
+extern AnimationSet gAkropolisPlazaExtraAnim13Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation1754C;
+extern AnimationSet gAkropolisPlazaExtraAnim14Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation17818;
+extern AnimationSet gAkropolisPlazaExtraAnim15Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation17A00;
+extern AnimationSet gAkropolisPlazaExtraAnim16Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation17C68;
+extern AnimationSet gAkropolisPlazaExtraAnim17Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation17E54;
+extern AnimationSet gAkropolisPlazaExtraAnim18Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation17FF4;
+extern AnimationSet gAkropolisPlazaExtraAnim19Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation181CC;
+extern AnimationSet gAkropolisPlazaExtraAnim20Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation183B8;
+extern AnimationSet gAkropolisPlazaExtraAnim21Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation18614;
+extern AnimationSet gAkropolisPlazaExtraAnim22Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation18904;
+extern AnimationSet gAkropolisPlazaExtraAnim23Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation18DE0;
+extern AnimationSet gAkropolisPlazaExtraAnim24Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation18F98;
+extern AnimationSet gAyaIdleClip;
 
-extern AnimationSet gAcropolisPlazaAnimation19610;
+extern AnimationSet gAkropolisPlazaExtraAnim25Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation19AD8;
+extern AnimationSet gAkropolisPlazaExtraAnim26Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation19D64;
+extern AnimationSet gAkropolisPlazaExtraAnim27Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation19F7C;
+extern AnimationSet gAkropolisPlazaExtraAnim28Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation1A4F8;
+extern AnimationSet gAkropolisPlazaExtraAnim29Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation1A784;
+extern AnimationSet gAkropolisPlazaExtraAnim30Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation1AAAC;
+extern AnimationSet gAkropolisPlazaExtraAnim31Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation1AE04;
+extern AnimationSet gAkropolisPlazaExtraAnim32Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation1AFA4;
+extern AnimationSet gAkropolisPlazaExtraAnim33Clip;
 
-extern AnimationSet gAcropolisPlazaAnimation1B1F8;
+extern AnimationSet gAkropolisPlazaExtraAnim34Clip;
 
 /// Entry indices of the plaza's direct-spawn sequence task table.
 enum {

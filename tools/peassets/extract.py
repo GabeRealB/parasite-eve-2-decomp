@@ -713,9 +713,11 @@ class AssetStore:
 
         texture_chunks = texture_declaration.texture_chunks(ASSETS)
         # A shaped asset's instance is the decoded form of the outputs its group owns; a shared plain text it names
-        # (one the Parasite Energies' files hold too) is still decoded where it is.
+        # (one the Parasite Energies' files hold too) is still decoded where it is. A package keeps its image: a
+        # room's scene is only part of it, and the build and the other decoders read the rest.
         shaped_outputs = {out for rec in ASSETS.values() if rec.get("type") == "shaped"
-                          for out in rec["outputs"].values() if (ASSETS.get(out) or {}).get("group")}
+                          for out in rec["outputs"].values()
+                          if (ASSETS.get(out) or {}).get("group") and ASSETS[out].get("type") not in ("pe2pkg", "room")}
         # A font's glyph table is decoded as its UFO, and a palette a texture takes as `palettes_from` as the
         # texture's variants; neither keeps a copy of its bytes beside them.
         shaped_outputs |= {rec["table"] for rec in ASSETS.values() if rec.get("type") == "font" and "table" in rec}
@@ -1237,7 +1239,7 @@ def store_embedded_assets(output_path: Path, store: "AssetStore", *, skip: bool)
             entry["load_addr"], chunk_type=FileChunkType.RoomPkg
         )
         for entry in store.map.values()
-        if entry["type"] == "pe2pkg"
+        if entry["type"] in ("pe2pkg", "room")
         and embedded_for_source(asset_schema.package_name(asset_schema.raw_key(entry["raw_path"])) + ".pe2pkg")
     }
     targets = [(output_path / "main.exe", None)] + [
@@ -1468,8 +1470,8 @@ def decode_declared(assets_root: Path) -> None:
     """Decode what the asset table fully declares: each file's textures, as indexed PNGs, and each atlas's layout
     (texture/), each font as UFO (font/), each
     rig (derived from its models), each model with its slots and bindings, and each clip, as USD (model/,
-    animation/), each sound bank as SFZ and its own text with its sounds as WAVs (sound/), and each shaped asset
-    as its instance (shape/). The rest stays raw until it is declared."""
+    animation/), each sound bank as SFZ and its own text with its sounds as WAVs (sound/), each shaped asset
+    as its instance (shape/), and each room as its instance (room/). The rest stays raw until it is declared."""
     from animation import declared as clips
     from model import declared
     from asset_data import ASSETS, EMBEDDED_ASSETS
@@ -1493,6 +1495,9 @@ def decode_declared(assets_root: Path) -> None:
     import shape
     for name in shape.shaped_assets(ASSETS):
         shape.decode(name, ASSETS, EMBEDDED_ASSETS, assets_root)
+    import room
+    for name in room.declared(ASSETS):                  # a room: the data its entry points reach, as its instance
+        room.decode(name, ASSETS, EMBEDDED_ASSETS, assets_root)
 
 
 if __name__ == "__main__":

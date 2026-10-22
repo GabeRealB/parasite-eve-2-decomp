@@ -66,6 +66,8 @@
 #include "../../shared/actor/actor_contacts.h"
 #include "../../shared/effects/glow_draw.h"
 
+#include "assets/rooms/akropolis/roof_garden/declarations.inc"
+
 static Task* _gAcropolisRoofGardenCutsceneSoundTask;
 
 static s32 _gAcropolisRoofGardenRequestedAmbiencePercent;
@@ -107,12 +109,6 @@ static const TaskFuncTable3 _gAcropolisRoofGardenRoomTaskStates = {
     { _acropolisRoofGardenInitRoomTask, _acropolisRoofGardenTickRoom, taskKill },
 };
 
-static WorldCollisionGrid     _gAcropolisRoofGardenCollisionGrid;
-static WorldCollisionOccluder _gAcropolisRoofGardenOccluders[2];
-static WorldCollisionTrigger  _gAcropolisRoofGardenViewBoundaryTriggers[6];
-static WorldCollisionTrigger  _gAcropolisRoofGardenActionTriggers[7];
-static WorldCoordRoomLights   _gAcropolisRoofGardenRoomLights;
-
 static void _acropolisRoofGardenReleaseMaggotCaterpillarEntrance(void);
 
 /// Sound-task actions passed by the arrival scene and its skip script.
@@ -123,9 +119,9 @@ enum {
 };
 static void _acropolisRoofGardenControlCutsceneSound(s32 soundAction);
 
-static AnimationSet _gAcropolisRoofGardenAnimation04164;
-static AnimationSet _gAcropolisRoofGardenAnimation060FC;
-static AnimationSet _gAcropolisRoofGardenAnimation065F4;
+static AnimationSet _gAkropolisRoofGardenAcropolisRoofGardenArrivalPlayerAnim00Clip;
+static AnimationSet _gAkropolisRoofGardenAcropolisRoofGardenArrivalPlayerAnim01Clip;
+static AnimationSet _gAkropolisRoofGardenAcropolisRoofGardenArrivalPlayerAnim02Clip;
 
 static s32  _acropolisRoofGardenResolveRoomTransition(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32  _acropolisRoofGardenRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
@@ -136,71 +132,7 @@ static void _acropolisRoofGardenAmbienceTask(Task* task);
 static void _acropolisRoofGardenCutsceneOpeningSoundTask(Task* task);
 static void _acropolisRoofGardenCutsceneClosingSoundTask(Task* task);
 
-static AnimationPackedPose _gAcropolisRoofGardenAnimation04164Bank1[38] = {
-#include "assets/acropolis_roof_garden_animation_04164_bank1.inc"
-};
-
-static AnimationPackedRotation _gAcropolisRoofGardenAnimation04164Bank4[571] = {
-#include "assets/acropolis_roof_garden_animation_04164_bank4.inc"
-};
-
-static AnimationRecord _gAcropolisRoofGardenAnimation04164Records[666] = {
-#include "assets/acropolis_roof_garden_animation_04164_records.inc"
-};
-
-static u16 _gAcropolisRoofGardenAnimation04164Indices[20] = {
-#include "assets/acropolis_roof_garden_animation_04164_indices.inc"
-};
-
-static AnimationSet _gAcropolisRoofGardenAnimation04164 = {
-    _gAcropolisRoofGardenAnimation04164Records,
-    _gAcropolisRoofGardenAnimation04164Indices,
-    { NULL, _gAcropolisRoofGardenAnimation04164Bank1, NULL, NULL, _gAcropolisRoofGardenAnimation04164Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gAcropolisRoofGardenAnimation060FCBank1[40] = {
-#include "assets/acropolis_roof_garden_animation_060FC_bank1.inc"
-};
-
-static AnimationPackedRotation _gAcropolisRoofGardenAnimation060FCBank4[860] = {
-#include "assets/acropolis_roof_garden_animation_060FC_bank4.inc"
-};
-
-static AnimationRecord _gAcropolisRoofGardenAnimation060FCRecords[1022] = {
-#include "assets/acropolis_roof_garden_animation_060FC_records.inc"
-};
-
-static u16 _gAcropolisRoofGardenAnimation060FCIndices[20] = {
-#include "assets/acropolis_roof_garden_animation_060FC_indices.inc"
-};
-
-static AnimationSet _gAcropolisRoofGardenAnimation060FC = {
-    _gAcropolisRoofGardenAnimation060FCRecords,
-    _gAcropolisRoofGardenAnimation060FCIndices,
-    { NULL, _gAcropolisRoofGardenAnimation060FCBank1, NULL, NULL, _gAcropolisRoofGardenAnimation060FCBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gAcropolisRoofGardenAnimation065F4Bank1[6] = {
-#include "assets/acropolis_roof_garden_animation_065F4_bank1.inc"
-};
-
-static AnimationPackedRotation _gAcropolisRoofGardenAnimation065F4Bank4[87] = {
-#include "assets/acropolis_roof_garden_animation_065F4_bank4.inc"
-};
-
-static AnimationRecord _gAcropolisRoofGardenAnimation065F4Records[193] = {
-#include "assets/acropolis_roof_garden_animation_065F4_records.inc"
-};
-
-static u16 _gAcropolisRoofGardenAnimation065F4Indices[20] = {
-#include "assets/acropolis_roof_garden_animation_065F4_indices.inc"
-};
-
-static AnimationSet _gAcropolisRoofGardenAnimation065F4 = {
-    _gAcropolisRoofGardenAnimation065F4Records,
-    _gAcropolisRoofGardenAnimation065F4Indices,
-    { NULL, _gAcropolisRoofGardenAnimation065F4Bank1, NULL, NULL, _gAcropolisRoofGardenAnimation065F4Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/akropolis/roof_garden/clips_1.inc"
 
 enum { ACROPOLIS_ROOF_GARDEN_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
@@ -286,11 +218,7 @@ static ActorTransform _gAcropolisRoofGardenArrivalEndPlayerPlacement = {
 ///
 /// The bank-copy request installs all three at extension slots 47..49. The
 /// table and clip assets belong to the room overlay and stay live during playback.
-static AnimationSet* _gAcropolisRoofGardenArrivalPlayerAnimationSets[3] = {
-    &_gAcropolisRoofGardenAnimation04164,
-    &_gAcropolisRoofGardenAnimation060FC,
-    &_gAcropolisRoofGardenAnimation065F4,
-};
+#include "assets/rooms/akropolis/roof_garden/acropolis_roof_garden_arrival_player_bank.inc"
 
 /// Installs the arrival scene's three player clips into the equipped bank extension.
 ///
@@ -507,59 +435,13 @@ static EvsCommand _gAcropolisRoofGardenArrivalSkipScript[17] = {
 /// Set before starting the warp-2 script; a failed start is not retried.
 static s32 _gAcropolisRoofGardenArrivalSceneStarted = 0;
 
-static AnimationPackedPose _gAcropolisRoofGardenAnimation0704CBank1[6] = {
-#include "assets/acropolis_roof_garden_animation_0704C_bank1.inc"
-};
-
-static AnimationPackedRotation _gAcropolisRoofGardenAnimation0704CBank4[46] = {
-#include "assets/acropolis_roof_garden_animation_0704C_bank4.inc"
-};
-
-static AnimationRecord _gAcropolisRoofGardenAnimation0704CRecords[109] = {
-#include "assets/acropolis_roof_garden_animation_0704C_records.inc"
-};
-
-static u16 _gAcropolisRoofGardenAnimation0704CIndices[20] = {
-#include "assets/acropolis_roof_garden_animation_0704C_indices.inc"
-};
-
-static AnimationSet _gAcropolisRoofGardenAnimation0704C = {
-    _gAcropolisRoofGardenAnimation0704CRecords,
-    _gAcropolisRoofGardenAnimation0704CIndices,
-    { NULL, _gAcropolisRoofGardenAnimation0704CBank1, NULL, NULL, _gAcropolisRoofGardenAnimation0704CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gAcropolisRoofGardenAnimation074BCBank1[10] = {
-#include "assets/acropolis_roof_garden_animation_074BC_bank1.inc"
-};
-
-static AnimationPackedRotation _gAcropolisRoofGardenAnimation074BCBank4[95] = {
-#include "assets/acropolis_roof_garden_animation_074BC_bank4.inc"
-};
-
-static AnimationRecord _gAcropolisRoofGardenAnimation074BCRecords[139] = {
-#include "assets/acropolis_roof_garden_animation_074BC_records.inc"
-};
-
-static u16 _gAcropolisRoofGardenAnimation074BCIndices[20] = {
-#include "assets/acropolis_roof_garden_animation_074BC_indices.inc"
-};
-
-static AnimationSet _gAcropolisRoofGardenAnimation074BC = {
-    _gAcropolisRoofGardenAnimation074BCRecords,
-    _gAcropolisRoofGardenAnimation074BCIndices,
-    { NULL, _gAcropolisRoofGardenAnimation074BCBank1, NULL, NULL, _gAcropolisRoofGardenAnimation074BCBank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/akropolis/roof_garden/clips_2.inc"
 
 /// Player extension slots for the Maggot/Caterpillar entrance: empty, start, end.
 ///
 /// Copying all three clears slot 47 and installs clips 48/49. Only those two
 /// installed clips are played; their room-owned assets stay live through playback.
-static AnimationSet* _gAcropolisRoofGardenEntrancePlayerAnimationSets[3] = {
-    NULL,
-    &_gAcropolisRoofGardenAnimation0704C,
-    &_gAcropolisRoofGardenAnimation074BC,
-};
+#include "assets/rooms/akropolis/roof_garden/acropolis_roof_garden_entrance_player_bank.inc"
 
 /// Copies the Maggot/Caterpillar entrance's three words into the equipped player bank.
 ///
@@ -641,24 +523,7 @@ static EvsCommand _gAcropolisRoofGardenMaggotCaterpillarEntranceScript[10] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-/// Ten light-glow spawn offsets in the ambient emitter's coordinate frame.
-///
-/// Signed halfword game units, transformed at spawning; indices 0/1 select
-/// large glows, 2 the upper glow and 3..9 small glows. The same indices select
-/// visibility masks. Spawning copies XYZ but retains the offset pointer, so
-/// keep the room loaded through glow teardown. There is no terminator.
-static SVECTOR _gAcropolisRoofGardenLightOffsets[10] = {
-    { -6750, -1970, -0x2896, 0 },
-    { -8220, -1970, -0x2896, 0 },
-    { -2680, -6600, -1240, 0 },
-    { -5840, -548, -9840, 0 },
-    { -8740, -548, -9840, 0 },
-    { -3430, -548, -7300, 0 },
-    { -7620, -548, -7200, 0 },
-    { -6300, -548, -6590, 0 },
-    { -2890, -548, -2250, 0 },
-    { -6470, -548, -2250, 0 },
-};
+#include "assets/rooms/akropolis/roof_garden/markers.inc"
 
 /// Logical-view bits used by the roof garden's placed light glows.
 enum {
@@ -668,175 +533,29 @@ enum {
     ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_5 = 1 << (5 - 1),
 };
 
-/// Visible logical views for each of the ten placed light glows.
-///
-/// Index 0..9 is the light index in the spawn argument's low nibble; bit
-/// `view - 1` permits drawing in logical views 1..7. The flare's first ray
-/// also fetches entry 8 through its retained pre-array sine lookup.
-static u16 _gAcropolisRoofGardenLightViewMasks[10] = {
-    ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_2,
-    ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_2,
-    ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_3,
-    ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_2,
-    ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_2,
-    ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_3,
-    ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_3,
-    ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_3 | ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_4,
-    ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_5,
-    ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_4 | ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_5,
-};
+#include "assets/rooms/akropolis/roof_garden/view_masks.inc"
 
-/// Signed sine samples for the roof garden's circular flare geometry.
-///
-/// A turn has sixteen samples, beginning at -ONE; X reads four samples
-/// ahead of Y. Samples have twelve fractional bits. Indices 0..22 are used;
-/// the stored value 591 at index 23 has an unproven role. The first ray's
-/// index -2 fetches the preceding light-view mask 8, rather than a sine sample.
-static s16 _gAcropolisRoofGardenFlareSineSamples[24] = {
-    -ONE,
-    -3784,
-    -2896,
-    -1567,
-    0,
-    1567,
-    2896,
-    3784,
-    ONE,
-    3784,
-    2896,
-    1567,
-    0,
-    -1567,
-    -2896,
-    -3784,
-    -ONE,
-    -3784,
-    -2896,
-    -1567,
-    0,
-    1567,
-    2896,
-    591,
-};
+#include "assets/rooms/akropolis/roof_garden/samples.inc"
 
-WorldCollisionRoomResources gAcropolisRoofGardenCollisionRoomResources[1] = {
-    {
-        .grid                 = &_gAcropolisRoofGardenCollisionGrid,
-        .viewBoundaryTriggers = _gAcropolisRoofGardenViewBoundaryTriggers,
-        .actionTriggers       = _gAcropolisRoofGardenActionTriggers,
-        .occluders            = _gAcropolisRoofGardenOccluders,
-    },
-};
-
-u8* gAcropolisRoofGardenViewMaps[1] = {
-    gViewIdentityMap,
-};
-
-ViewCount gAcropolisRoofGardenViewCounts[1] = { ACROPOLIS_ROOF_GARDEN_VIEW_COUNT };
-
-WorldCoordRoomLighting gAcropolisRoofGardenRoomLightingTable[1] = {
-    { .lights = &_gAcropolisRoofGardenRoomLights, .ambientTable = NULL },
-};
+#include "assets/rooms/akropolis/roof_garden/header.inc"
+#include "assets/rooms/akropolis/roof_garden/geometry.inc"
+#include "assets/rooms/akropolis/roof_garden/view_boundaries.inc"
+#include "assets/rooms/akropolis/roof_garden/action_triggers.inc"
+#include "assets/rooms/akropolis/roof_garden/placements.inc"
+#include "assets/rooms/akropolis/roof_garden/sprites.inc"
+#include "assets/rooms/akropolis/roof_garden/lights.inc"
+#include "assets/rooms/akropolis/roof_garden/cameras.inc"
+#include "assets/rooms/akropolis/roof_garden/occluders.inc"
+#include "assets/rooms/akropolis/roof_garden/surfaces.inc"
 
 enum {
     ACROPOLIS_ROOF_GARDEN_WARP_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_ROOF_GARDEN, 2),
     ACROPOLIS_ROOF_GARDEN_WARP_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_ROOF_GARDEN, 1),
 };
 
-DirectionWarpEntry gAcropolisRoofGardenWarpEntries[2] = {
-    {
-        .player         = { { .word = 0 }, -7458, 0, -9712 },
-        .companion      = { { .word = 0 }, -7458, 0, -9712 },
-        .arrivalSound   = ACROPOLIS_ROOF_GARDEN_WARP_ARRIVAL_SOUND,
-        .departureSound = ACROPOLIS_ROOF_GARDEN_WARP_DEPARTURE_SOUND,
-        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
-        .initialView    = 2,
-        .flags          = DIRECTION_WARP_FLAG_NONE,
-        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
-    },
-    {
-        .player         = { { .word = 0 }, -7458, 0, -9712 },
-        .companion      = { { .word = 0 }, -7458, 0, -9712 },
-        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
-        .departureSound = DIRECTION_WARP_SOUND_NONE,
-        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
-        .initialView    = 3,
-        .flags          = DIRECTION_WARP_FLAG_NONE,
-        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
-    },
-};
-
-/// Room-coordinate Q12 normals indexed by the roof garden's collision faces.
-static SVECTOR _gAcropolisRoofGardenCollisionGridNormals[31] = {
-#include "assets/acropolis_roof_garden_collision_07EE4_normals.inc"
-};
-
-/// Room-coordinate vertices, in whole game units, indexed by the collision faces.
-static SVECTOR _gAcropolisRoofGardenCollisionGridVerts[92] = {
-#include "assets/acropolis_roof_garden_collision_07EE4_verts.inc"
-};
-
-/// Roof-garden triangles/quads and their surface classes 0..2.
-static WorldCollisionGridFace _gAcropolisRoofGardenCollisionGridFaces[53] = {
-#include "assets/acropolis_roof_garden_collision_07EE4_faces.inc"
-};
-
-/// Packed face-index lists for the roof garden's nine XZ cells.
-///
-/// Each list ends at WORLD_COLLISION_GRID_CELL_END. The final stored zero
-/// lies after the last terminator and is outside the traversed lists.
-static s16 _gAcropolisRoofGardenCollisionGridCells[136] = {
-#include "assets/acropolis_roof_garden_collision_07EE4_cells.inc"
-};
-
 enum {
     ACROPOLIS_ROOF_GARDEN_GRID_CELL_COUNT_X = 3,
     ACROPOLIS_ROOF_GARDEN_GRID_CELL_COUNT_Z = 3,
-};
-
-/// Resolves a generated face-list start in this grid's packed halfword pool.
-///
-/// halfwordOffset counts signed-halfword elements and is evaluated once.
-/// It must select an in-bounds list start in the captured pool.
-/// Captures `_gAcropolisRoofGardenCollisionGridCells`; returns a borrowed s16* without reading it.
-/// The table include supplies list-start constants; empty cells use NULL.
-/// Define only for that include and undefine immediately afterward.
-#define ACROPOLIS_ROOF_GARDEN_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gAcropolisRoofGardenCollisionGridCells[(halfwordOffset)])
-/// X-major 3-by-3 cell directory borrowing the packed signed face-index lists.
-static s16* _gAcropolisRoofGardenCollisionGridTable[ACROPOLIS_ROOF_GARDEN_GRID_CELL_COUNT_X * ACROPOLIS_ROOF_GARDEN_GRID_CELL_COUNT_Z] = {
-#include "assets/acropolis_roof_garden_collision_07EE4_table.inc"
-};
-#undef ACROPOLIS_ROOF_GARDEN_CELL_FACE_LIST_AT_OFFSET
-
-/// Roof garden's collision mesh and 3-by-3 XZ index of 4000-game-unit cells.
-///
-/// The grid origin is (-10461, -10652) in room XZ. Setup binds its current
-/// view transform; the mutable descriptor and all pools live with the overlay.
-static WorldCollisionGrid _gAcropolisRoofGardenCollisionGrid = {
-    .viewCoord   = NULL,
-    .normals     = _gAcropolisRoofGardenCollisionGridNormals,
-    .vertices    = _gAcropolisRoofGardenCollisionGridVerts,
-    .faces       = _gAcropolisRoofGardenCollisionGridFaces,
-    .cellFaceIds = _gAcropolisRoofGardenCollisionGridTable,
-    .xBias       = 10461,
-    .zBias       = 10652,
-    .cellCountX  = ACROPOLIS_ROOF_GARDEN_GRID_CELL_COUNT_X,
-    .cellCountZ  = ACROPOLIS_ROOF_GARDEN_GRID_CELL_COUNT_Z,
-    .cellSize    = 4000,
-    .faceCount   = ARRAY_SIZE(_gAcropolisRoofGardenCollisionGridFaces),
-};
-
-/// Directed view boundaries for both directions of 2/3, 3/4 and 4/5.
-///
-/// Positions/radii use room-coordinate units; normals use Q12. Setup binds,
-/// links and enables all six writable records, including the LAST record.
-static WorldCollisionTrigger _gAcropolisRoofGardenViewBoundaryTriggers[6] = {
-    { NULL, NULL, NULL, { -7264, -1440, -8768, 0 }, { { -1017, 5600, 185, 0 }, { 991, 5600, -215, 0 }, { -1017, -5600, 185, 0 }, { 991, -5600, -215, 0 } }, { 801, 0, 4025, 0 }, { 0, 0, 0, 0 }, 5678, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -4544, -1536, -6880, 0 }, { { -1024, 5600, 0, 0 }, { 1024, 5600, 0, 0 }, { -1024, -5600, 0, 0 }, { 1024, -5600, 0, 0 } }, { 0, 0, 4105, 0 }, { 0, 0, 0, 0 }, 5678, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -7296, -1696, -8448, 0 }, { { 982, 5600, -261, 0 }, { -1004, 5600, 237, 0 }, { 982, -5600, -261, 0 }, { -1004, -5600, 237, 0 } }, { -999, 0, -3982, 0 }, { 0, 0, 0, 0 }, 5678, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -4480, -1856, -6560, 0 }, { { 1024, 5600, 0, 0 }, { -1024, 5600, 0, 0 }, { 1024, -5600, 0, 0 }, { -1024, -5600, 0, 0 } }, { 0, 0, -4106, 0 }, { 0, 0, 0, 0 }, 5678, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -4736, -1568, -4000, 0 }, { { 2496, 5600, 0, 0 }, { -2496, 5600, 0, 0 }, { 2496, -5600, 0, 0 }, { -2496, -5600, 0, 0 } }, { 0, 0, -4103, 0 }, { 0, 0, 0, 0 }, 6122, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -4608, -1824, -4640, 0 }, { { -2496, 5600, 0, 0 }, { 2496, 5600, 0, 0 }, { -2496, -5600, 0, 0 }, { 2496, -5600, 0, 0 } }, { 0, 0, 4102, 0 }, { 0, 0, 0, 0 }, 6122, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 /// Trigger payloads selecting the sanctuary endpoint and the room's scripted actions.
@@ -846,21 +565,6 @@ enum {
     ACROPOLIS_ROOF_GARDEN_ROOM_ACTION_ARM_ENTRANCE   = 1,
     ACROPOLIS_ROOF_GARDEN_ROOM_ACTION_START_ENTRANCE = 2,
     ACROPOLIS_ROOF_GARDEN_ROOM_COMMAND_STORY         = 4,
-};
-
-/// Roof-garden interactions: sanctuary warp, three CAP actions and three automatic room actions.
-///
-/// Room actions 1/2 arm/start the Maggot/Caterpillar entrance; action 0 is ignored.
-/// Positions/radii use room-coordinate units and normals Q12. Setup binds,
-/// links and enables every writable record through the final LAST marker.
-static WorldCollisionTrigger _gAcropolisRoofGardenActionTriggers[7] = {
-    { NULL, NULL, NULL, { -7465, -32, -9928, 0 }, { { -752, 0, -416, 0 }, { 752, 0, -416, 0 }, { -752, 0, 416, 0 }, { 752, 0, 416, 0 } }, { 0, 4115, 0, 0 }, { 0, 0, 4096, 0 }, 858, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_AKROPOLIS_SANCTUARY, ACROPOLIS_ROOF_GARDEN_SANCTUARY_WARP_ENDPOINTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4608, -128, -4816, 0 }, { { -1040, 0, -608, 0 }, { 1040, 0, -608, 0 }, { -1040, 0, 608, 0 }, { 1040, 0, 608, 0 } }, { 0, 4116, 0, 0 }, { -201, 0, -4091, 0 }, 1200, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4640, -96, -3776, 0 }, { { -752, 0, -368, 0 }, { 752, 0, -368, 0 }, { -752, 0, 368, 0 }, { 752, 0, 368, 0 } }, { 0, 4100, 0, 0 }, { -1, 0, 4095, 0 }, 836, WORLD_COLLISION_TRIGGER_ACTION_CAP_WEAPON, ACROPOLIS_ROOF_GARDEN_ROOM_COMMAND_STORY, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4400, -96, -2080, 0 }, { { -640, 0, -560, 0 }, { 640, 0, -560, 0 }, { -640, 0, 560, 0 }, { 640, 0, 560, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 849, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -7697, -160, -8384, 0 }, { { -736, 0, -1136, 0 }, { 1280, 0, -1136, 0 }, { -1279, 0, 1136, 0 }, { 737, 0, 1136, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, 4096, 0 }, 1707, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, ACROPOLIS_ROOF_GARDEN_ROOM_ACTION_UNHANDLED, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { -4640, -64, -6544, 0 }, { { -1296, 0, -208, 0 }, { 1296, 0, -208, 0 }, { -1296, 0, 208, 0 }, { 1296, 0, 208, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, 4096, 0 }, 1311, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, ACROPOLIS_ROOF_GARDEN_ROOM_ACTION_ARM_ENTRANCE, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { -4640, -64, -7104, 0 }, { { -1296, 0, -208, 0 }, { 1296, 0, -208, 0 }, { -1296, 0, 208, 0 }, { 1296, 0, 208, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, 4096, 0 }, 1311, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, ACROPOLIS_ROOF_GARDEN_ROOM_ACTION_START_ENTRANCE, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 /// Placement-entry keys and decimal file numbers used by the resource lists.
@@ -878,65 +582,6 @@ enum {
     ACROPOLIS_ROOF_GARDEN_RESOURCE_FILE_MOTH         = 7,
 };
 
-/// Figure and room-bound Maggot resources for roof-garden placement variant 1.
-///
-/// Entry 110 loads actor file 110800 and spawns its view-parented figure;
-/// entry 55 loads room-bound Maggot file 205500. `AREA_PLACEMENT_END` ends
-/// the list. Placements and task recipes are borrowed while their overlays live.
-static AreaResource _gAcropolisRoofGardenVariant1Resources[3] = {
-    { ACROPOLIS_ROOF_GARDEN_RESOURCE_ENTRY_VIEW_FIGURE, ACROPOLIS_ROOF_GARDEN_RESOURCE_FILE_VIEW_FIGURE, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, VIEW_FIGURE_TASK_BODY, { 0, 0 }, gActor110800ViewFigureTasks },
-    { ACROPOLIS_ROOF_GARDEN_RESOURCE_ENTRY_MAGGOT, ACROPOLIS_ROOF_GARDEN_RESOURCE_FILE_MAGGOT, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor205500MaggotCaterpillarTasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
-};
-
-/// Regular Maggot and Moth resources for roof-garden placement variant 2.
-///
-/// Entry 55 loads Maggot file 105500; entry 8 loads Moth file 200700.
-/// `AREA_PLACEMENT_END` ends the list. Placement entry IDs select these
-/// borrowed task recipes during loading and spawning.
-static AreaResource _gAcropolisRoofGardenVariant2Resources[3] = {
-    { ACROPOLIS_ROOF_GARDEN_RESOURCE_ENTRY_MAGGOT, ACROPOLIS_ROOF_GARDEN_RESOURCE_FILE_MAGGOT, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor105500MaggotCaterpillarTasks },
-    { ACROPOLIS_ROOF_GARDEN_RESOURCE_ENTRY_MOTH, ACROPOLIS_ROOF_GARDEN_RESOURCE_FILE_MOTH, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor00700MothTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
-};
-
-/// Figure and room-bound Caterpillar resources for roof-garden placement variant 7.
-///
-/// Entry 110 loads actor file 110800 and spawns its view-parented figure;
-/// entry 26 loads room-bound Caterpillar file 202600. `AREA_PLACEMENT_END`
-/// ends the list. The room overlay owns the resource list and borrows task recipes.
-static AreaResource _gAcropolisRoofGardenVariant7Resources[3] = {
-    { ACROPOLIS_ROOF_GARDEN_RESOURCE_ENTRY_VIEW_FIGURE, ACROPOLIS_ROOF_GARDEN_RESOURCE_FILE_VIEW_FIGURE, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, VIEW_FIGURE_TASK_BODY, { 0, 0 }, gActor110800ViewFigureTasks },
-    { ACROPOLIS_ROOF_GARDEN_RESOURCE_ENTRY_CATERPILLAR, ACROPOLIS_ROOF_GARDEN_RESOURCE_FILE_CATERPILLAR, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor202600MaggotCaterpillarBodyTask },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
-};
-
-/// Regular Caterpillar and Moth resources for roof-garden placement variant 8.
-///
-/// Entry 26 loads Caterpillar file 102600; entry 8 loads Moth file 200700.
-/// `AREA_PLACEMENT_END` ends the list. The room overlay owns this list and
-/// borrows the loaded actor overlays' task recipes.
-static AreaResource _gAcropolisRoofGardenVariant8Resources[3] = {
-    { ACROPOLIS_ROOF_GARDEN_RESOURCE_ENTRY_CATERPILLAR, ACROPOLIS_ROOF_GARDEN_RESOURCE_FILE_CATERPILLAR, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor02600MaggotCaterpillarBodyTask },
-    { ACROPOLIS_ROOF_GARDEN_RESOURCE_ENTRY_MOTH, ACROPOLIS_ROOF_GARDEN_RESOURCE_FILE_MOTH, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor00700MothTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
-};
-
-AreaVariant gAcropolisRoofGardenAreaVariants[12] = {
-    { NULL, NULL },
-    { gMapAkropolisRoofGardenVariant1Placements, _gAcropolisRoofGardenVariant1Resources },
-    { gMapAkropolisRoofGardenVariant2Placements, _gAcropolisRoofGardenVariant2Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapAkropolisRoofGardenVariant7Placements, _gAcropolisRoofGardenVariant7Resources },
-    { gMapAkropolisRoofGardenVariant8Placements, _gAcropolisRoofGardenVariant8Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-};
-
 /// Texture bindings and colour-command values shared by the view sprite sources.
 ///
 /// Both pages use 8-bit texels at VRAM Y zero; the CLUT is row 255, X zero.
@@ -949,621 +594,13 @@ enum {
     ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE         = 0,
 };
 
-/// Empty sprite list for mapped roof-garden view 1.
-///
-/// The zero first count keeps decoded image strips; the next record ends the
-/// list. The view retains this address as its empty source slot. Overlay-owned.
-static SpriteBatch _gAcropolisRoofGardenView1SpriteBatches[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-/// Sprite rectangles and sorting depths for mapped roof-garden view 2.
-///
-/// 26 writable elements use pixel positions/sizes and unscaled sorting
-/// depths. `_gAcropolisRoofGardenView2SpriteBatches` selects their ranges;
-/// source storage belongs to the loaded room overlay.
-static SpriteSource _gAcropolisRoofGardenView2SpriteSources[26] = {
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, -40, 40, 729, { .fields = { 96, 208 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, -32, 40, 765, { .fields = { 104, 40 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 40 } }, -160, 40, 701, { .fields = { 104, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 16, 16 } }, -152, 40, 698, { .fields = { 88, 160 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 16, 48 } }, -136, 40, 661, { .fields = { 104, 48 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 24 } }, -120, 40, 653, { .fields = { 80, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 24 } }, -104, 64, 658, { .fields = { 104, 232 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 32, 16 } }, -96, 40, 650, { .fields = { 72, 176 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 16, 40 } }, -72, 56, 645, { .fields = { 96, 96 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 32 } }, -56, 56, 652, { .fields = { 104, 168 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 24 } }, -48, 40, 686, { .fields = { 96, 48 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 48 } }, -24, 40, 751, { .fields = { 112, 96 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 40 } }, -16, 40, 839, { .fields = { 112, 144 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 32 } }, -8, 40, 883, { .fields = { 104, 200 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 32 } }, 0, 40, 950, { .fields = { 104, 136 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 24 } }, 8, 48, 1072, { .fields = { 96, 72 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 32 } }, 88, 40, 1011, { .fields = { 112, 224 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 48 } }, 96, 40, 817, { .fields = { 112, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 56 } }, 104, 40, 667, { .fields = { 120, 200 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 64 } }, 112, 40, 551, { .fields = { 120, 80 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 80 } }, 120, 40, 473, { .fields = { 120, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 16 } }, 128, 104, 453, { .fields = { 96, 192 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 24 } }, 128, 40, 421, { .fields = { 96, 24 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 40 } }, 136, 48, 388, { .fields = { 112, 184 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 56 } }, 144, 64, 362, { .fields = { 120, 144 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 24 } }, 152, 96, 352, { .fields = { 96, 136 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-};
-
-/// Sprite ranges for mapped roof-garden view 2.
-///
-/// Ranges cover all 26 source elements. The zero first count keeps
-/// decoded image strips; `SPRITE_BATCH_END` terminates the list.
-/// These writable records belong to the loaded room overlay.
-static SpriteBatch _gAcropolisRoofGardenView2SpriteBatches[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, ARRAY_SIZE(_gAcropolisRoofGardenView2SpriteSources), 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-/// Sprite rectangles and sorting depths for mapped roof-garden view 3.
-///
-/// 57 writable elements use pixel positions/sizes and unscaled sorting
-/// depths. `_gAcropolisRoofGardenView3SpriteBatches` selects their ranges;
-/// source storage belongs to the loaded room overlay.
-static SpriteSource _gAcropolisRoofGardenView3SpriteSources[57] = {
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 40 } }, 32, 56, 563, { .fields = { 96, 56 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 16 } }, 40, 48, 551, { .fields = { 104, 96 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 32 } }, 40, 80, 563, { .fields = { 56, 80 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 56 } }, 48, 40, 518, { .fields = { 24, 56 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 24 } }, 56, 48, 499, { .fields = { 120, 232 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 24 } }, 64, 48, 479, { .fields = { 0, 96 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 40 } }, 72, 48, 456, { .fields = { 104, 56 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 40 } }, 80, 80, 424, { .fields = { 64, 216 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 16 } }, 88, 104, 471, { .fields = { 32, 240 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 40 } }, 96, 80, 417, { .fields = { 72, 216 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 16 } }, 80, 48, 418, { .fields = { 16, 104 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 16 } }, 88, 48, 403, { .fields = { 24, 240 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 16 } }, 96, 56, 412, { .fields = { 80, 120 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 40 } }, 104, 56, 401, { .fields = { 96, 96 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 24 } }, 112, 64, 392, { .fields = { 120, 96 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 24 } }, 120, 64, 377, { .fields = { 112, 96 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 32 } }, 128, 64, 346, { .fields = { 64, 80 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 8 } }, 136, 64, 326, { .fields = { 48, 112 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 32 } }, 136, 88, 349, { .fields = { 48, 192 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 88, 104, 480, { .fields = { 24, 112 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 24 } }, 32, 72, 561, { .fields = { 80, 232 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 24 } }, 40, 56, 558, { .fields = { 64, 120 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 16, 24 } }, 48, 40, 599, { .fields = { 0, 232 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 24 } }, 56, 72, 608, { .fields = { 16, 232 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 72, 64 } }, 64, 40, 557, { .fields = { 104, 120 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 88 } }, 136, 16, 560, { .fields = { 104, 144 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 40, 24 } }, 48, -120, 855, { .fields = { 88, 232 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 56, 40 } }, 32, -96, 920, { .fields = { 40, 40 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 56, 40 } }, 32, -56, 1272, { .fields = { 40, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 72, 40 } }, 88, -120, 1111, { .fields = { 8, 120 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 72, 32 } }, 88, -40, 1225, { .fields = { 0, 224 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 40, 8 } }, 112, -8, 1250, { .fields = { 8, 112 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 16, 8 } }, 72, -16, 1275, { .fields = { 48, 184 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 40 } }, 88, -80, 1111, { .fields = { 96, 184 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 32 } }, 112, -72, 1109, { .fields = { 96, 224 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 40 } }, 136, -80, 1112, { .fields = { 112, 56 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 64, 56 } }, -16, 16, 1104, { .fields = { 96, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 56, 144 } }, -112, -64, 1064, { .fields = { 72, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 40, 120 } }, -56, -48, 1149, { .fields = { 32, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 32, 48 } }, 80, 16, 1285, { .fields = { 120, 184 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 32, 24 } }, 112, 40, 1204, { .fields = { 32, 160 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 16, 64 } }, -8, -8, 1563, { .fields = { 48, 192 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 88 } }, 8, -32, 1580, { .fields = { 80, 144 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 56 } }, 32, 0, 1639, { .fields = { 24, 184 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 16, 72 } }, -160, 48, 600, { .fields = { 64, 144 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 16, 72 } }, -144, 40, 650, { .fields = { 48, 120 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 16, 32 } }, -128, 48, 700, { .fields = { 64, 160 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 16, 16 } }, -112, 40, 750, { .fields = { 40, 80 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 16, 40 } }, -96, 40, 800, { .fields = { 80, 176 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 16, 16 } }, -80, 40, 850, { .fields = { 40, 96 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 16, 48 } }, -64, 32, 900, { .fields = { 8, 56 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 40 } }, -48, 32, 950, { .fields = { 72, 216 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 40 } }, -24, 32, 1050, { .fields = { 72, 80 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 40 } }, 0, 32, 1100, { .fields = { 80, 136 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 16 } }, 24, 32, 1100, { .fields = { 8, 104 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 16 } }, 32, 40, 1100, { .fields = { 88, 120 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 16 } }, 40, 48, 1100, { .fields = { 40, 240 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-};
-
-/// Sprite ranges for mapped roof-garden view 3.
-///
-/// Ranges cover all 57 source elements. The zero first count keeps
-/// decoded image strips; `SPRITE_BATCH_END` terminates the list.
-/// These writable records belong to the loaded room overlay.
-static SpriteBatch _gAcropolisRoofGardenView3SpriteBatches[9] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 19, 0, 0, { 3, 0 } },
-    { 19, 7, 0, 0, { 4, 0 } },
-    { 26, 10, 0, 0, { 1, 0 } },
-    { 36, 3, 0, 0, { 5, 0 } },
-    { 39, 2, 0, 0, { 0, 0 } },
-    { 41, 3, 0, 0, { 6, 0 } },
-    { 44, ARRAY_SIZE(_gAcropolisRoofGardenView3SpriteSources) - 44, 0, 0, { 2, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-/// Sprite rectangles and sorting depths for mapped roof-garden view 4.
-///
-/// 21 writable elements use pixel positions/sizes and unscaled sorting
-/// depths. `_gAcropolisRoofGardenView4SpriteBatches` selects their ranges;
-/// source storage belongs to the loaded room overlay.
-static SpriteSource _gAcropolisRoofGardenView4SpriteSources[21] = {
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 32, 104 } }, -160, -96, 462, { .fields = { 56, 112 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 16 } }, -128, -56, 462, { .fields = { 48, 240 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 40, 104 } }, -160, 16, 472, { .fields = { 88, 152 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 32, 112 } }, -40, 8, 525, { .fields = { 56, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 24 } }, -8, 88, 500, { .fields = { 56, 216 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 40, 88 } }, -120, 32, 522, { .fields = { 104, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 40, 88 } }, -80, 32, 522, { .fields = { 104, 88 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 16 } }, 88, 64, 664, { .fields = { 32, 240 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 40, 96 } }, 96, 0, 624, { .fields = { 16, 96 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 16 } }, 136, 8, 663, { .fields = { 40, 240 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 48 } }, 136, 48, 599, { .fields = { 112, 176 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 40, -24, 966, { .fields = { 24, 192 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 96 } }, -40, -48, 1008, { .fields = { 16, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 80 } }, -48, -48, 1105, { .fields = { 8, 176 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 40, 152 } }, -32, -96, 974, { .fields = { 88, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 32, 96 } }, 8, -48, 963, { .fields = { 24, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 40 } }, -96, -16, 1550, { .fields = { 64, 216 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 48 } }, -104, -8, 1500, { .fields = { 40, 192 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 48 } }, -112, -8, 1450, { .fields = { 32, 192 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 48 } }, -120, -8, 1400, { .fields = { 48, 192 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 16 } }, -128, 24, 1350, { .fields = { 56, 240 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-};
-
-/// Sprite ranges for mapped roof-garden view 4.
-///
-/// Ranges cover all 21 source elements. The zero first count keeps
-/// decoded image strips; `SPRITE_BATCH_END` terminates the list.
-/// These writable records belong to the loaded room overlay.
-static SpriteBatch _gAcropolisRoofGardenView4SpriteBatches[6] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 7, 0, 0, { 3, 0 } },
-    { 7, 4, 0, 0, { 0, 0 } },
-    { 11, 5, 0, 0, { 2, 0 } },
-    { 16, ARRAY_SIZE(_gAcropolisRoofGardenView4SpriteSources) - 16, 0, 0, { 1, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-/// Sprite rectangles and sorting depths for mapped roof-garden view 5.
-///
-/// 47 writable elements use pixel positions/sizes and unscaled sorting
-/// depths. `_gAcropolisRoofGardenView5SpriteBatches` selects their ranges;
-/// source storage belongs to the loaded room overlay.
-static SpriteSource _gAcropolisRoofGardenView5SpriteSources[47] = {
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 40, 16 } }, -48, -32, 950, { .fields = { 32, 112 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 32, 32 } }, -8, -40, 1019, { .fields = { 48, 192 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 56, 48 } }, -64, -80, 875, { .fields = { 72, 72 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 40, 40 } }, -8, -80, 909, { .fields = { 88, 160 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 40, 24 } }, 0, -104, 923, { .fields = { 32, 72 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 56, 40 } }, -56, -120, 667, { .fields = { 72, 120 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 72, 72 } }, -160, 48, 153, { .fields = { 56, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 16, 32 } }, -88, 88, 296, { .fields = { 72, 160 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 56, 24 } }, -56, 96, 294, { .fields = { 40, 232 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 32 } }, 0, 88, 298, { .fields = { 80, 200 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 32, 24 } }, 24, 96, 298, { .fields = { 96, 232 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 32 } }, 56, 88, 302, { .fields = { 104, 200 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 24, 16 } }, 80, 104, 299, { .fields = { 48, 96 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 40, -120, 1294, { .fields = { 48, 24 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 48, -120, 1265, { .fields = { 48, 16 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 56, -120, 1302, { .fields = { 48, 40 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 64, -120, 1240, { .fields = { 48, 32 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 72, -120, 1256, { .fields = { 56, 224 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 80, -120, 1184, { .fields = { 56, 184 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 88, -120, 1118, { .fields = { 48, 8 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 96, -120, 1109, { .fields = { 48, 0 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 40, -112, 1316, { .fields = { 48, 144 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 48, -112, 1284, { .fields = { 48, 136 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 56, -112, 1281, { .fields = { 48, 160 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 64, -112, 1275, { .fields = { 48, 152 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 72, -112, 1229, { .fields = { 48, 56 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 80, -112, 1209, { .fields = { 48, 48 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 88, -112, 1147, { .fields = { 48, 128 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 96, -112, 1048, { .fields = { 48, 64 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 48, -104, 1307, { .fields = { 64, 160 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 56, -104, 1300, { .fields = { 64, 152 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 64, -104, 1276, { .fields = { 64, 176 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 72, -104, 1258, { .fields = { 64, 168 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 80, -104, 1258, { .fields = { 64, 144 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 88, -104, 1189, { .fields = { 72, 224 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 96, -104, 1085, { .fields = { 80, 192 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 64, -96, 1287, { .fields = { 64, 136 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 72, -96, 1268, { .fields = { 64, 128 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 80, -96, 1240, { .fields = { 56, 160 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 88, -96, 1196, { .fields = { 56, 152 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 96, -96, 1081, { .fields = { 56, 176 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 104, -96, 1069, { .fields = { 56, 168 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 72, -88, 1267, { .fields = { 56, 144 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 80, -88, 1199, { .fields = { 64, 224 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 88, -88, 1174, { .fields = { 64, 184 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 96, -88, 1070, { .fields = { 56, 136 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-    { ACROPOLIS_ROOF_GARDEN_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_ROOF_GARDEN_SPRITE_CLUT, { .fields = { 8, 8 } }, 104, -88, 1054, { .fields = { 56, 128 } }, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_NEUTRAL_RGB, ACROPOLIS_ROOF_GARDEN_SPRITE_OPAQUE },
-};
-
-/// Sprite ranges for mapped roof-garden view 5.
-///
-/// Ranges cover all 47 source elements. The zero first count keeps
-/// decoded image strips; `SPRITE_BATCH_END` terminates the list.
-/// These writable records belong to the loaded room overlay.
-static SpriteBatch _gAcropolisRoofGardenView5SpriteBatches[5] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 6, 0, 0, { 1, 0 } },
-    { 6, 7, 0, 0, { 2, 0 } },
-    { 13, ARRAY_SIZE(_gAcropolisRoofGardenView5SpriteSources) - 13, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-/// Empty sprite list for mapped roof-garden view 6.
-///
-/// The zero first count keeps decoded image strips; the next record ends
-/// the list. Its address also occupies the view's empty source slot.
-/// Storage belongs to the loaded room overlay.
-static SpriteBatch _gAcropolisRoofGardenView6SpriteBatches[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-/// Empty sprite list for mapped roof-garden view 7.
-///
-/// The zero first count keeps decoded image strips; the next record ends
-/// the list. Its address also occupies the view's empty source slot.
-/// Storage belongs to the loaded room overlay.
-static SpriteBatch _gAcropolisRoofGardenView7SpriteBatches[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-SpriteView gAcropolisRoofGardenSpriteViews[ACROPOLIS_ROOF_GARDEN_VIEW_COUNT] = {
-    { { .empty = _gAcropolisRoofGardenView1SpriteBatches }, _gAcropolisRoofGardenView1SpriteBatches, NULL },
-    { { .elements = _gAcropolisRoofGardenView2SpriteSources }, _gAcropolisRoofGardenView2SpriteBatches, NULL },
-    { { .elements = _gAcropolisRoofGardenView3SpriteSources }, _gAcropolisRoofGardenView3SpriteBatches, NULL },
-    { { .elements = _gAcropolisRoofGardenView4SpriteSources }, _gAcropolisRoofGardenView4SpriteBatches, NULL },
-    { { .elements = _gAcropolisRoofGardenView5SpriteSources }, _gAcropolisRoofGardenView5SpriteBatches, NULL },
-    { { .empty = _gAcropolisRoofGardenView6SpriteBatches }, _gAcropolisRoofGardenView6SpriteBatches, NULL },
-    { { .empty = _gAcropolisRoofGardenView7SpriteBatches }, _gAcropolisRoofGardenView7SpriteBatches, NULL },
-};
-
-/// Authored point lights for model shading throughout the roof garden.
-///
-/// Positions and inner/outer radii use integer world units; RGB intensities
-/// have 12 fractional bits (ONE is full intensity). Every light accepts every view.
-/// Gameplay updates the transform caches and attenuation, so these records stay
-/// writable and must remain live while the room overlay is in use.
-static WorldCoordPointLight _gAcropolisRoofGardenPointLights[] = {
-    {
-        .head = {
-            .transform = {
-                .lighting = {
-                    .composeStamp = GRAPHICS_COORD_DIRTY,
-                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -5884, -700, -9680 } },
-                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
-                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
-                },
-            },
-            .color = { ONE, 3686, 3276 },
-        },
-        .inner = 500,
-        .outer = 4000,
-    },
-    {
-        .head = {
-            .transform = {
-                .lighting = {
-                    .composeStamp = GRAPHICS_COORD_DIRTY,
-                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -6210, -700, -2566 } },
-                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
-                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
-                },
-            },
-            .color = { ONE, 3686, 3276 },
-        },
-        .inner = 500,
-        .outer = 4000,
-    },
-    {
-        .head = {
-            .transform = {
-                .lighting = {
-                    .composeStamp = GRAPHICS_COORD_DIRTY,
-                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -4984, -100, -5134 } },
-                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
-                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
-                },
-            },
-            .color = { 2457, 3276, ONE },
-        },
-        .inner = 100,
-        .outer = 1500,
-    },
-    {
-        .head = {
-            .transform = {
-                .lighting = {
-                    .composeStamp = GRAPHICS_COORD_DIRTY,
-                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -4153, -100, -5134 } },
-                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
-                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
-                },
-            },
-            .color = { 2457, 3276, ONE },
-        },
-        .inner = 100,
-        .outer = 1500,
-    },
-    {
-        .head = {
-            .transform = {
-                .lighting = {
-                    .composeStamp = GRAPHICS_COORD_DIRTY,
-                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -4153, -1500, -4622 } },
-                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
-                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
-                },
-            },
-            .color = { 2457, 3276, ONE },
-        },
-        .inner = 100,
-        .outer = 1500,
-    },
-    {
-        .head = {
-            .transform = {
-                .lighting = {
-                    .composeStamp = GRAPHICS_COORD_DIRTY,
-                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -5007, -1500, -4622 } },
-                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
-                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
-                },
-            },
-            .color = { 2457, 3276, ONE },
-        },
-        .inner = 100,
-        .outer = 1500,
-    },
-    {
-        .head = {
-            .transform = {
-                .lighting = {
-                    .composeStamp = GRAPHICS_COORD_DIRTY,
-                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -4654, -200, -3856 } },
-                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
-                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
-                },
-            },
-            .color = { ONE, 2457, 2867 },
-        },
-        .inner = 100,
-        .outer = 2000,
-    },
-    {
-        .head = {
-            .transform = {
-                .lighting = {
-                    .composeStamp = GRAPHICS_COORD_DIRTY,
-                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -4654, -2000, -2126 } },
-                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
-                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
-                },
-            },
-            .color = { ONE, 819, 1638 },
-        },
-        .inner = 100,
-        .outer = 2000,
-    },
-    {
-        .head = {
-            .transform = {
-                .lighting = {
-                    .composeStamp = GRAPHICS_COORD_DIRTY,
-                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -8188, -1800, -0x2864 } },
-                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
-                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
-                },
-            },
-            .color = { 2867, 3686, ONE },
-        },
-        .inner = 200,
-        .outer = 2000,
-    },
-    {
-        .head = {
-            .transform = {
-                .lighting = {
-                    .composeStamp = GRAPHICS_COORD_DIRTY,
-                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -6846, -1800, -0x2864 } },
-                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
-                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
-                },
-            },
-            .color = { 2867, 3686, ONE },
-        },
-        .inner = 200,
-        .outer = 2000,
-    },
-    {
-        .head = {
-            .transform = {
-                .lighting = {
-                    .composeStamp = GRAPHICS_COORD_DIRTY,
-                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -8931, -700, -9680 } },
-                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
-                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
-                },
-            },
-            .color = { ONE, 3686, 3276 },
-        },
-        .inner = 500,
-        .outer = 4000,
-    },
-    {
-        .head = {
-            .transform = {
-                .lighting = {
-                    .composeStamp = GRAPHICS_COORD_DIRTY,
-                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -6248, -700, -6705 } },
-                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
-                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
-                },
-            },
-            .color = { ONE, 3686, 3276 },
-        },
-        .inner = 500,
-        .outer = 4000,
-    },
-    {
-        .head = {
-            .transform = {
-                .lighting = {
-                    .composeStamp = GRAPHICS_COORD_DIRTY,
-                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -3472, -700, -7111 } },
-                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
-                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
-                },
-            },
-            .color = { ONE, 3686, 3276 },
-        },
-        .inner = 500,
-        .outer = 4000,
-    },
-    {
-        .head = {
-            .transform = {
-                .lighting = {
-                    .composeStamp = GRAPHICS_COORD_DIRTY,
-                    .local        = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, .t = { -3202, -700, -2566 } },
-                    .composed     = { .m = { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } } },
-                    .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
-                },
-            },
-            .color = { ONE, 3686, 3276 },
-        },
-        .inner = 500,
-        .outer = 4000,
-    },
-};
-
-/// Fourteen point lights used to shade models throughout roof-garden room 1.
-///
-/// No directional or cone lights are supplied. The collection borrows the
-/// overlay's mutable point-light array, whose coordinates lighting composes.
-static WorldCoordRoomLights _gAcropolisRoofGardenRoomLights = {
-    .directionalLightCount = 0,
-    .directionalLights     = NULL,
-    .pointLightCount       = ARRAY_SIZE(_gAcropolisRoofGardenPointLights),
-    .pointLights           = _gAcropolisRoofGardenPointLights,
-    .coneLightCount        = 0,
-    .coneLights            = NULL,
-};
-
-ViewCamera gAcropolisRoofGardenViewCameras[8] = {
-    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 5600, 0x7530, 5960 } }, 589 },
-    { { { { -3911, 0, -1216 }, { 204, 4037, -656 }, { 1199, -687, -3855 } }, { 7887, 505, 6331 } }, 230 },
-    { { { { 3788, 0, -1557 }, { 186, 4066, 454 }, { 1545, -491, 3761 } }, { 7879, 656, 0x29A1 } }, 230 },
-    { { { { 3851, 0, -1394 }, { -208, 4049, -576 }, { 1379, 612, 3807 } }, { 5932, 1317, 8463 } }, 230 },
-    { { { { -4010, 0, -830 }, { -785, 1329, 3793 }, { 269, 3874, -1302 } }, { 5201, 4187, 2281 } }, 230 },
-    { { { { -2305, 0, -3385 }, { -1984, 3319, 1350 }, { 2743, 2400, -1867 } }, { 5865, 2196, 2875 } }, 230 },
-    { { { { -3852, 0, -1389 }, { -827, 3291, 2292 }, { 1116, 2437, -3096 } }, { 4797, 459, 3558 } }, 230 },
-    { { { { -3750, 0, 1646 }, { 1161, 2905, 2643 }, { -1168, 2887, -2659 } }, { 3260, 3610, 2030 } }, 230 },
-};
-
-/// Two roof-garden quads that block enemy line-of-sight tests.
-///
-/// Origins/corner offsets use room-coordinate units; normals use Q12. Setup
-/// links and enables both writable records through LAST. Low flag bit 0 and
-/// the final zero byte are retained authored values with unproven roles.
-static WorldCollisionOccluder _gAcropolisRoofGardenOccluders[2] = {
-    { NULL, NULL, { -5888, -4064, -8128, 0 }, { { -4256, 0, -2848, 0 }, { 4256, 0, -2848, 0 }, { -4256, 0, 2848, 0 }, { 4256, 0, 2848, 0 } }, { 0, 4105, 0, 0 }, 5120, 1, 0 },
-    { NULL, NULL, { -4576, -496, -4400, 0 }, { { -576, 928, 0, 0 }, { 576, 928, 0, 0 }, { -576, -928, 0, 0 }, { 576, -928, 0, 0 } }, { 0, 0, 4111, 0 }, 1086, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
-};
-
 /// Cue-2 script bases in the currently loaded type-1 sound bank.
 enum {
     ACROPOLIS_ROOF_GARDEN_FOOTSTEP_WALK = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x1D,
     ACROPOLIS_ROOF_GARDEN_FOOTSTEP_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x1F,
 };
 
-/// Shared walking, running and scripted-jump cues for surface classes 1 and 2.
-///
-/// Cue 1 adds one to each base; companion playback adds 100. Scripted jumps
-/// use the walking pair. The surface records borrow this overlay-owned record.
-static WorldCollisionFootstepSounds _gAcropolisRoofGardenFootstepSounds = {
-    .walk         = ACROPOLIS_ROOF_GARDEN_FOOTSTEP_WALK,
-    .run          = ACROPOLIS_ROOF_GARDEN_FOOTSTEP_RUN,
-    .scriptedJump = ACROPOLIS_ROOF_GARDEN_FOOTSTEP_WALK,
-};
-
-/// Blocking, impact-enabled, pushback surfaces without footstep cues (classes 0, 3..7).
-static WorldCollisionSurfaceProperties _gAcropolisRoofGardenSilentSurfaceProperties = {
-    .field_0             = 0,
-    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
-    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
-    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
-    .footstepSounds      = NULL,
-};
-
-/// Blocking, impact-enabled, pushback surface class 1 with the room's footstep cues.
-static WorldCollisionSurfaceProperties _gAcropolisRoofGardenSurfaceClass1Properties = {
-    .field_0             = 0,
-    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
-    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
-    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
-    .footstepSounds      = &_gAcropolisRoofGardenFootstepSounds,
-};
-
-/// Blocking, impact-enabled, pushback surface class 2 with the room's footstep cues.
-static WorldCollisionSurfaceProperties _gAcropolisRoofGardenSurfaceClass2Properties = {
-    .field_0             = 0,
-    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
-    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
-    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
-    .footstepSounds      = &_gAcropolisRoofGardenFootstepSounds,
-};
-
-WorldCollisionSurfaceProperties* gAcropolisRoofGardenSurfacePropertiesByClass[8] = {
-    &_gAcropolisRoofGardenSilentSurfaceProperties,
-    &_gAcropolisRoofGardenSurfaceClass1Properties,
-    &_gAcropolisRoofGardenSurfaceClass2Properties,
-    &_gAcropolisRoofGardenSilentSurfaceProperties,
-    &_gAcropolisRoofGardenSilentSurfaceProperties,
-    &_gAcropolisRoofGardenSilentSurfaceProperties,
-    &_gAcropolisRoofGardenSilentSurfaceProperties,
-    &_gAcropolisRoofGardenSilentSurfaceProperties,
-};
-
-static TmdBone _gAcropolisRoofGardenModel09868Skeleton[1] = {
-#include "assets/acropolis_roof_garden_model_09868_skeleton.inc"
-};
-
-static u32 _gAcropolisRoofGardenModel09868PartVerts[1] = {
-#include "assets/acropolis_roof_garden_model_09868_partVerts.inc"
-};
-
-static SVECTOR _gAcropolisRoofGardenModel09868Verts[4] = {
-#include "assets/acropolis_roof_garden_model_09868_verts.inc"
-};
-
-static SVECTOR _gAcropolisRoofGardenModel09868Normals[2] = {
-#include "assets/acropolis_roof_garden_model_09868_normals.inc"
-};
-
-static u32 _gAcropolisRoofGardenModel09868Stream[18] = {
-#include "assets/acropolis_roof_garden_model_09868_stream.inc"
-};
-
-TmdSource gAcropolisRoofGardenModel09868 = {
-    0,
-    104,
-    0,
-    1,
-    _gAcropolisRoofGardenModel09868PartVerts,
-    _gAcropolisRoofGardenModel09868Verts,
-    _gAcropolisRoofGardenModel09868Normals,
-    _gAcropolisRoofGardenModel09868Skeleton,
-    _gAcropolisRoofGardenModel09868Stream,
-};
+#include "assets/rooms/akropolis/roof_garden/acropolis_roof_garden_model_09868.inc"
 
 /// Last ambience volume percentage requested by the view controller (0, 30 or 100).
 ///

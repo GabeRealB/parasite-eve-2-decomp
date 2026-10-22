@@ -28,10 +28,18 @@ type = "file"
 [[package_file.contents]]
 chunk = "palette"
 sha1 = "ded0a140f19a63360285cc120672783458b2a5fb"
-palettes = [
-    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
-    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
-]
+
+[[package_file.contents.palettes]]
+texture = "texture_page_1"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00000]
+
+[[package_file.contents.palettes]]
+texture = "texture_page_2"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00001]
 
 [[package_file.contents]]
 asset = "enemies/golem/weapons_palette"
@@ -41,9 +49,9 @@ sha1 = "e686ea27e93433b96e36c9b6f81986045bf1c4a5"
 chunk = "image"
 sha1 = "c11006938812c87bbfaaee1a746701dbc129b15a"
 pages = [
-    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
-    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
-    { texture = "texture_page_3", region = "engine/vram/actor_sheet", offset = [128, 0] },
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [0x00040, 0x00000] },
+    { texture = "texture_page_3", region = "engine/vram/actor_sheet", offset = [0x00080, 0x00000] },
 ]
 slots = 6
 

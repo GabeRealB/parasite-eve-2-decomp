@@ -61,8 +61,8 @@ static void _actor213000InitBodyLighting(Task* actorTask);
 static TmdSource _gEricBody;
 static TmdSource _gEricArmRight;
 static TmdSource _gEricHandRight;
-static TmdSource _gActor213000Model072AC;
-static TmdSource _gActor213000Prop;
+static TmdSource _gMistR18BriefingFile;
+static TmdSource _gMistR18Laptop;
 static s32       _actor213000PlayAnimation(Task* actorTask, s32 messageId, const AnimationPlayRequest* request, s32 unusedSecondArg);
 static s32       _actor213000SetModelDraw(Task* actorTask, s32 messageId, s32 mode, s32 unusedSecondArg);
 static s32       _actor213000ApplyHeldModelCommand(Task* actorTask, s32 messageId, const ActorCommand* request, s32 unusedSecondArg);
@@ -80,65 +80,9 @@ enum { ACTOR_213000_LIGHTING_PART = 1 };
 
 #include "assets/characters/eric/hand_right.inc"
 
-static TmdBone _gActor213000Model072ACSkeleton[1] = {
-#include "assets/actor_213000_model_072AC_skeleton.inc"
-};
+#include "assets/rooms/mist/r18/briefing_file.inc"
 
-static u32 _gActor213000Model072ACPartVerts[1] = {
-#include "assets/actor_213000_model_072AC_partVerts.inc"
-};
-
-static SVECTOR _gActor213000Model072ACVerts[14] = {
-#include "assets/actor_213000_model_072AC_verts.inc"
-};
-
-static SVECTOR _gActor213000Model072ACNormals[17] = {
-#include "assets/actor_213000_model_072AC_normals.inc"
-};
-
-static u32 _gActor213000Model072ACStream[98] = {
-#include "assets/actor_213000_model_072AC_stream.inc"
-};
-
-static TmdSource _gActor213000Model072AC = {
-    0,
-    652,
-    0,
-    1,
-    _gActor213000Model072ACPartVerts,
-    _gActor213000Model072ACVerts,
-    _gActor213000Model072ACNormals,
-    _gActor213000Model072ACSkeleton,
-    _gActor213000Model072ACStream,
-};
-
-static TmdBone _gActor213000PropSkeleton[1] = {
-#include "assets/actor_213000_prop_skeleton.inc"
-};
-
-static u32 _gActor213000PropPartVerts[1] = {
-#include "assets/actor_213000_prop_partVerts.inc"
-};
-
-static SVECTOR _gActor213000PropVerts[14] = {
-#include "assets/actor_213000_prop_verts.inc"
-};
-
-static u32 _gActor213000PropStream[79] = {
-#include "assets/actor_213000_prop_stream.inc"
-};
-
-static TmdSource _gActor213000Prop = {
-    0,
-    528,
-    0,
-    1,
-    _gActor213000PropPartVerts,
-    _gActor213000PropVerts,
-    &_gActor213000PropVerts[14],
-    _gActor213000PropSkeleton,
-    _gActor213000PropStream,
-};
+#include "assets/rooms/mist/r18/laptop.inc"
 
 #include "assets/rooms/mist/r18/eric_clips.inc"
 
@@ -171,13 +115,13 @@ TaskDesc gActor213000EricBaldwinTaskDescriptors[5] = {
     {
         .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_213000_ERIC_TASK_PRIORITY } },
         .callback = _actor213000HeldModelTask,
-        .data     = { .model = &_gActor213000Model072AC },
+        .data     = { .model = &_gMistR18BriefingFile },
     },
     // 2: second held model.
     {
         .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_213000_ERIC_TASK_PRIORITY } },
         .callback = _actor213000HeldModelTask,
-        .data     = { .model = &_gActor213000Prop },
+        .data     = { .model = &_gMistR18Laptop },
     },
     // 3: three-root attachment.
     {

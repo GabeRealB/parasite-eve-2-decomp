@@ -70,6 +70,9 @@
 #include "../../shared/effects/glow_draw.h"
 #include "../../shared/room/jukebox.h"
 
+#define ROOM_PART declarations_mist_shooting_gallery
+#include "assets/rooms/mist/shooting_gallery/declarations.inc"
+
 // Relocated CAP file slots selected by commands 5..8 and 0x21..0x22.
 enum {
     MIST_SHOOTING_GALLERY_CAP_FILE_LOW_COMMANDS       = 1,
@@ -195,25 +198,25 @@ static void       _mistShootingGalleryWeaponRow(UiList* list, UiObject* object);
 static void       _mistShootingGalleryWeaponSelectPanelTask(Task* task);
 
 /// Three-line Replay description shown below the run-mode selector.
-static const char _gMistShootingGalleryReplayModeDescription[80] __attribute__((section(".data"))) =
+static char _gMistShootingGalleryReplayModeDescription[80] =
     "Replay mode\n"
     "Collect bonus items each time you\n"
     "clear the game in replay mode!";
 
 /// Three-line Bounty description shown below the run-mode selector.
-static const char _gMistShootingGalleryBountyModeDescription[76] __attribute__((section(".data"))) =
+static char _gMistShootingGalleryBountyModeDescription[76] =
     "Bounty mode\n"
     "Find the hidden GOLEM soldiers\n"
     "and strive for a BP high score!";
 
 /// Three-line Scavenger description shown below the run-mode selector.
-static const char _gMistShootingGalleryScavengerModeDescription[84] __attribute__((section(".data"))) =
+static char _gMistShootingGalleryScavengerModeDescription[84] =
     "Scavenger mode\n"
     "Shops are bare, and pickings are\n"
     "slim. Use your wits, not your ammo!";
 
 /// Three-line Nightmare description shown below the run-mode selector.
-static const char _gMistShootingGalleryNightmareModeDescription[84] __attribute__((section(".data"))) =
+static char _gMistShootingGalleryNightmareModeDescription[84] =
     "Nightmare mode\n"
     "You start off sick and things get\n"
     "worse in this most difficult mode.";
@@ -221,19 +224,19 @@ static const char _gMistShootingGalleryNightmareModeDescription[84] __attribute_
 /// NUL-terminated DATA-panel gauge text for rating level 1; each { glyph draws one mark.
 ///
 /// The unused level-zero table entry also points here.
-static const char _gMistShootingGalleryGaugeOneMarkText[4] __attribute__((section(".data"))) = "{";
+static char _gMistShootingGalleryGaugeOneMarkText[4] = "{";
 
 /// NUL-terminated DATA-panel gauge text for rating level 2; each { glyph draws one mark.
-static const char _gMistShootingGalleryGaugeTwoMarksText[4] __attribute__((section(".data"))) = "{{";
+static char _gMistShootingGalleryGaugeTwoMarksText[4] = "{{";
 
 /// NUL-terminated DATA-panel gauge text for rating level 3; each { glyph draws one mark.
-static const char _gMistShootingGalleryGaugeThreeMarksText[4] __attribute__((section(".data"))) = "{{{";
+static char _gMistShootingGalleryGaugeThreeMarksText[4] = "{{{";
 
 /// NUL-terminated DATA-panel gauge text for rating level 4; each { glyph draws one mark.
-static const char _gMistShootingGalleryGaugeFourMarksText[8] __attribute__((section(".data"))) = "{{{{";
+static char _gMistShootingGalleryGaugeFourMarksText[8] = "{{{{";
 
 /// NUL-terminated DATA-panel gauge text for rating level 5; each { glyph draws one mark.
-static const char _gMistShootingGalleryGaugeFiveMarksText[8] __attribute__((section(".data"))) = "{{{{{";
+static char _gMistShootingGalleryGaugeFiveMarksText[8] = "{{{{{";
 
 // Inventory item IDs offered by this picker, rather than equipped-weapon selectors.
 enum {
@@ -285,7 +288,7 @@ static UiList _gMistShootingGalleryWeaponList = {
     .rowHeight       = 15,
 };
 
-const UiObjectDesc gMistShootingGalleryWeaponSelectPanelDesc __attribute__((section(".data"))) = {
+UiObjectDesc gMistShootingGalleryWeaponSelectPanelDesc = {
     .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
     .bounds          = { -8, 0, 144, 64 },
     .otIndexSeed     = 32,
@@ -325,7 +328,7 @@ static _MistShootingGalleryTargetScore _gMistShootingGalleryTargetScores[MIST_SH
     { 600, _gMistShootingGalleryRedTargetLabel },
 };
 
-const UiObjectDesc gMistShootingGalleryResultPanelDesc __attribute__((section(".data"))) = {
+UiObjectDesc gMistShootingGalleryResultPanelDesc = {
     .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
     .bounds          = { -104, -48, 208, 64 },
     .otIndexSeed     = 32,
@@ -339,7 +342,7 @@ const UiObjectDesc gMistShootingGalleryResultPanelDesc __attribute__((section(".
 /// Spawning copies centered pixel bounds (-72, -48, 144, 56), OT base 24 and a
 /// bodyless priority-192 task. The first spawn argument is the signed total
 /// score. Keep the gallery and controller work live until the child closes.
-static const UiObjectDesc _gMistShootingGalleryBonusPanelDesc __attribute__((section(".data"))) = {
+static UiObjectDesc _gMistShootingGalleryBonusPanelDesc = {
     .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
     .bounds          = { -72, -48, 144, 56 },
     .otIndexSeed     = 24,
@@ -370,7 +373,7 @@ static UiList _gMistShootingGalleryModeList = {
 ///
 /// Bounds are screen-centered pixels; the bodyless priority-192 task uses OT
 /// base 32. Spawning copies the recipe; its callback stays live with the gallery.
-static const UiObjectDesc _gMistShootingGalleryModeSelectPanelDesc __attribute__((section(".data"))) = {
+static UiObjectDesc _gMistShootingGalleryModeSelectPanelDesc = {
     .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
     .bounds          = { -144, -96, 176, 64 },
     .otIndexSeed     = 32,
@@ -386,7 +389,7 @@ enum { MIST_SHOOTING_GALLERY_MODE_HELP_UNTITLED_STYLE = 3 };
 /// Bounds are screen-centered pixels; OT bases 28, 24 and 20 order the children.
 /// Every task is bodyless at priority 192 and borrows the live run mode 0..3.
 /// Spawning copies each recipe; its callback must stay loaded until teardown.
-static const UiObjectDesc _gMistShootingGalleryModeChildPanelDescs[3] __attribute__((section(".data"))) = {
+static UiObjectDesc _gMistShootingGalleryModeChildPanelDescs[3] = {
     {
         .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
         .bounds          = { 32, -96, 112, 128 },
@@ -440,7 +443,7 @@ static TaskDesc _gMistShootingGalleryCapPlaybackTaskDesc = {
 /// Handles transition request/reply records, key-item ID words, room-action
 /// requests and CAP-command index words. Payloads live only for the synchronous
 /// call; the table and callback code stay loaded throughout the room task.
-static const TaskMessageEntry _gMistShootingGalleryRoomMessages[5] __attribute__((section(".data"))) = {
+static TaskMessageEntry _gMistShootingGalleryRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _mistShootingGalleryResolveRoomEvent },
     { MIST_SHOOTING_GALLERY_MESSAGE_USE_KEY_ITEM, _mistShootingGalleryRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _mistShootingGalleryHandleRoomAction },
@@ -448,115 +451,8 @@ static const TaskMessageEntry _gMistShootingGalleryRoomMessages[5] __attribute__
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// Three story-barrier room-space normals, scaled to 4096 for unit length.
-static SVECTOR _gMistShootingGalleryStoryBarrierCollisionTemplateNormals[3] = {
-#include "assets/mist_shooting_gallery_collision_07BD8_normals.inc"
-};
-
-/// Eight original story-barrier corners in signed room-coordinate units.
-static SVECTOR _gMistShootingGalleryStoryBarrierCollisionTemplateVerts[8] = {
-#include "assets/mist_shooting_gallery_collision_07BD8_verts.inc"
-};
-
-/// Three barrier quads using template-local indices and surface class zero.
-static WorldCollisionGridFace _gMistShootingGalleryStoryBarrierCollisionTemplateFaces[3] = {
-#include "assets/mist_shooting_gallery_collision_07BD8_faces.inc"
-};
-
-/// Sole cell's face indices 0..2 followed by WORLD_COLLISION_GRID_CELL_END.
-static s16 _gMistShootingGalleryStoryBarrierCollisionTemplateCells[4] = {
-#include "assets/mist_shooting_gallery_collision_07BD8_cells.inc"
-};
-
-/// Supplies this grid's cell face-list addresses to its generated table.
-///
-/// `halfwordOffset` is an integer constant measured in `s16` elements of
-/// `_gMistShootingGalleryStoryBarrierCollisionTemplateCells` and occurs once in the expansion.
-/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
-/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
-/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
-/// binding through the table include, then undefine it.
-#define MIST_SHOOTING_GALLERY_BARRIER_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gMistShootingGalleryStoryBarrierCollisionTemplateCells[(halfwordOffset)])
-/// Single-cell XZ lookup borrowing the template's terminated face list.
-static s16* _gMistShootingGalleryStoryBarrierCollisionTemplateTable[1] = {
-#include "assets/mist_shooting_gallery_collision_07BD8_table.inc"
-};
-#undef MIST_SHOOTING_GALLERY_BARRIER_CELL_FACE_LIST_AT_OFFSET
-
-/// Original collision patch for the story-controlled barrier at the firing lane.
-///
-/// Restores live normals/faces 0..2 and vertices 0..7 before an optional +3000
-/// Y displacement. Its single 4000-unit XZ cell starts at (-10425, 4925);
-/// neither the cell table nor a view transform is copied into the live grid.
-/// The descriptor and source pools belong to the loaded gallery overlay.
-static const WorldCollisionGrid _gMistShootingGalleryStoryBarrierCollisionTemplate __attribute__((section(".data"))) = {
-    .viewCoord   = NULL,
-    .normals     = _gMistShootingGalleryStoryBarrierCollisionTemplateNormals,
-    .vertices    = _gMistShootingGalleryStoryBarrierCollisionTemplateVerts,
-    .faces       = _gMistShootingGalleryStoryBarrierCollisionTemplateFaces,
-    .cellFaceIds = _gMistShootingGalleryStoryBarrierCollisionTemplateTable,
-    .xBias       = 10425,
-    .zBias       = -4925,
-    .cellCountX  = 1,
-    .cellCountZ  = 1,
-    .cellSize    = 4000,
-    .faceCount   = ARRAY_SIZE(_gMistShootingGalleryStoryBarrierCollisionTemplateFaces),
-};
-
-/// Training barrier's room-space normal, scaled to 4096 for unit length.
-static SVECTOR _gMistShootingGalleryTrainingBarrierCollisionTemplateNormals[1] = {
-#include "assets/mist_shooting_gallery_collision_07C38_normals.inc"
-};
-
-/// Training barrier's four original corners in signed room-coordinate units.
-static SVECTOR _gMistShootingGalleryTrainingBarrierCollisionTemplateVerts[4] = {
-#include "assets/mist_shooting_gallery_collision_07C38_verts.inc"
-};
-
-/// Barrier quad with template-local vertex/normal indices and surface class zero.
-static WorldCollisionGridFace _gMistShootingGalleryTrainingBarrierCollisionTemplateFaces[1] = {
-#include "assets/mist_shooting_gallery_collision_07C38_faces.inc"
-};
-
-/// Sole cell's face-index list: face zero followed by WORLD_COLLISION_GRID_CELL_END.
-static s16 _gMistShootingGalleryTrainingBarrierCollisionTemplateCells[2] = {
-#include "assets/mist_shooting_gallery_collision_07C38_cells.inc"
-};
-
-/// Supplies this grid's cell face-list addresses to its generated table.
-///
-/// `halfwordOffset` is an integer constant measured in `s16` elements of
-/// `_gMistShootingGalleryTrainingBarrierCollisionTemplateCells` and occurs once in the expansion.
-/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
-/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
-/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
-/// binding through the table include, then undefine it.
-#define MIST_SHOOTING_GALLERY_BARRIER_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gMistShootingGalleryTrainingBarrierCollisionTemplateCells[(halfwordOffset)])
-/// Single-cell XZ table borrowing the barrier template's terminated face list.
-static s16* _gMistShootingGalleryTrainingBarrierCollisionTemplateTable[1] = {
-#include "assets/mist_shooting_gallery_collision_07C38_table.inc"
-};
-#undef MIST_SHOOTING_GALLERY_BARRIER_CELL_FACE_LIST_AT_OFFSET
-
-/// Training barrier's restoration mesh: one +X normal, four vertices and one quad.
-///
-/// Copied into live normal/face 3 and vertices 8..11, rebasing the face indices.
-/// The lowering pass also displaces vertices 12..15 without restoring them here.
-/// XYZ are room units, normals use 4096 per unit. Its retained single 4000-unit
-/// XZ cell starts at (-6500, 3680); the template is never activated for queries.
-static const WorldCollisionGrid _gMistShootingGalleryTrainingBarrierCollisionTemplate __attribute__((section(".data"))) = {
-    .viewCoord   = NULL,
-    .normals     = _gMistShootingGalleryTrainingBarrierCollisionTemplateNormals,
-    .vertices    = _gMistShootingGalleryTrainingBarrierCollisionTemplateVerts,
-    .faces       = _gMistShootingGalleryTrainingBarrierCollisionTemplateFaces,
-    .cellFaceIds = _gMistShootingGalleryTrainingBarrierCollisionTemplateTable,
-    .xBias       = 6500,
-    .zBias       = -3680,
-    .cellCountX  = 1,
-    .cellCountZ  = 1,
-    .cellSize    = 4000,
-    .faceCount   = ARRAY_SIZE(_gMistShootingGalleryTrainingBarrierCollisionTemplateFaces),
-};
+#define ROOM_PART _gMistShootingGalleryStoryBarrierCollisionTemplateNormals
+#include "assets/rooms/mist/shooting_gallery/geometry.inc"
 
 // Global MIDI-library sequence IDs used by the gallery playlists (file group 4).
 enum {
@@ -596,7 +492,7 @@ enum {
 ///
 /// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
 /// Valid row indices are 0..2.
-static const JukeboxTrack _gMistShootingGalleryJukeboxTrainingReplayTracks[] __attribute__((section(".data"))) = {
+static JukeboxTrack _gMistShootingGalleryJukeboxTrainingReplayTracks[] = {
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_CRAZY_KING, _gMistShootingGalleryJukeboxRow1CrazyKingLabel },
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_EAGER_FOR_BLOOD, _gMistShootingGalleryJukeboxRow2EagerForBloodLabel },
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_HEAVEN_SENT_KILLER, _gMistShootingGalleryJukeboxRow3HeavenSentKillerLabel },
@@ -606,7 +502,7 @@ static const JukeboxTrack _gMistShootingGalleryJukeboxTrainingReplayTracks[] __a
 ///
 /// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
 /// Valid row indices are 0..2.
-static const JukeboxTrack _gMistShootingGalleryJukeboxTrainingBountyTracks[] __attribute__((section(".data"))) = {
+static JukeboxTrack _gMistShootingGalleryJukeboxTrainingBountyTracks[] = {
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_CRAZY_KING, _gMistShootingGalleryJukeboxRow1CrazyKingLabel },
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_PICK_UP_THE_GAUNTLET, _gMistShootingGalleryJukeboxRow2PickUpTheGauntletLabel },
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_CRAWLING_WASTE_EMPEROR, _gMistShootingGalleryJukeboxRow3CrawlingWasteEmperorLabel },
@@ -616,7 +512,7 @@ static const JukeboxTrack _gMistShootingGalleryJukeboxTrainingBountyTracks[] __a
 ///
 /// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
 /// Valid row indices are 0..2.
-static const JukeboxTrack _gMistShootingGalleryJukeboxTrainingScavengerTracks[] __attribute__((section(".data"))) = {
+static JukeboxTrack _gMistShootingGalleryJukeboxTrainingScavengerTracks[] = {
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_CRAZY_KING, _gMistShootingGalleryJukeboxRow1CrazyKingLabel },
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_QUADRUMANOUS_LEADER, _gMistShootingGalleryJukeboxRow2QuadrumanousLeaderLabel },
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_HUNTERS_MOON, _gMistShootingGalleryJukeboxRow3HuntersMoonLabel },
@@ -626,7 +522,7 @@ static const JukeboxTrack _gMistShootingGalleryJukeboxTrainingScavengerTracks[] 
 ///
 /// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
 /// Valid row indices are 0..2.
-static const JukeboxTrack _gMistShootingGalleryJukeboxTrainingNightmareTracks[] __attribute__((section(".data"))) = {
+static JukeboxTrack _gMistShootingGalleryJukeboxTrainingNightmareTracks[] = {
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_YELLOW_RAIN, _gMistShootingGalleryJukeboxRow1YellowRainLabel },
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_REBEL_FORCES, _gMistShootingGalleryJukeboxRow2RebelForcesLabel },
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_GENIC_REACTOR, _gMistShootingGalleryJukeboxRow3GenicReactorLabel },
@@ -636,7 +532,7 @@ static const JukeboxTrack _gMistShootingGalleryJukeboxTrainingNightmareTracks[] 
 ///
 /// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
 /// Valid row indices are 0..2.
-static const JukeboxTrack _gMistShootingGalleryJukeboxTrainingUnclearedTracks[] __attribute__((section(".data"))) = {
+static JukeboxTrack _gMistShootingGalleryJukeboxTrainingUnclearedTracks[] = {
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_CRAZY_KING, _gMistShootingGalleryJukeboxRow1CrazyKingLabel },
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_AMBUSH, _gMistShootingGalleryJukeboxRow2AmbushLabel },
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_PICK_UP_THE_GAUNTLET, _gMistShootingGalleryJukeboxRow3PickUpTheGauntletLabel },
@@ -646,7 +542,7 @@ static const JukeboxTrack _gMistShootingGalleryJukeboxTrainingUnclearedTracks[] 
 ///
 /// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
 /// Valid row indices are 0..3.
-static const JukeboxTrack _gMistShootingGalleryJukeboxRegularReplayTracks[] __attribute__((section(".data"))) = {
+static JukeboxTrack _gMistShootingGalleryJukeboxRegularReplayTracks[] = {
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_GHOST_TOWN, _gMistShootingGalleryJukeboxRow1GhostTownLabel },
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_ROCK_AND_FIRE, _gMistShootingGalleryJukeboxRow2RockAndFireLabel },
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_REQUIEM, _gMistShootingGalleryJukeboxRow3RequiemLabel },
@@ -657,7 +553,7 @@ static const JukeboxTrack _gMistShootingGalleryJukeboxRegularReplayTracks[] __at
 ///
 /// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
 /// Valid row indices are 0..3.
-static const JukeboxTrack _gMistShootingGalleryJukeboxRegularBountyTracks[] __attribute__((section(".data"))) = {
+static JukeboxTrack _gMistShootingGalleryJukeboxRegularBountyTracks[] = {
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_LA_MAZE, _gMistShootingGalleryJukeboxRow1LAMazeLabel },
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_LIGHTNING_OPERATION, _gMistShootingGalleryJukeboxRow2LightningOperationLabel },
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_WILD_HUNT, _gMistShootingGalleryJukeboxRow3WildHuntLabel },
@@ -668,7 +564,7 @@ static const JukeboxTrack _gMistShootingGalleryJukeboxRegularBountyTracks[] __at
 ///
 /// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
 /// Valid row indices are 0..3.
-static const JukeboxTrack _gMistShootingGalleryJukeboxRegularScavengerTracks[] __attribute__((section(".data"))) = {
+static JukeboxTrack _gMistShootingGalleryJukeboxRegularScavengerTracks[] = {
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_CURSE_YOUR_FATE, _gMistShootingGalleryJukeboxRow1CurseYourFateLabel },
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_WISHWASH, _gMistShootingGalleryJukeboxRow2WishwashLabel },
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_MENTAL_AGONY, _gMistShootingGalleryJukeboxRow3MentalAgonyLabel },
@@ -679,7 +575,7 @@ static const JukeboxTrack _gMistShootingGalleryJukeboxRegularScavengerTracks[] _
 ///
 /// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
 /// Valid row indices are 0..3.
-static const JukeboxTrack _gMistShootingGalleryJukeboxRegularNightmareTracks[] __attribute__((section(".data"))) = {
+static JukeboxTrack _gMistShootingGalleryJukeboxRegularNightmareTracks[] = {
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_MAN_MADE_NATURE, _gMistShootingGalleryJukeboxRow1ManMadeNatureLabel },
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_GAZING_INTO_THE_VOID, _gMistShootingGalleryJukeboxRow2GazingIntoTheVoidLabel },
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_FOOLS_PARADISE, _gMistShootingGalleryJukeboxRow3FoolsParadiseLabel },
@@ -690,7 +586,7 @@ static const JukeboxTrack _gMistShootingGalleryJukeboxRegularNightmareTracks[] _
 ///
 /// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
 /// Valid row indices are 0..3.
-static const JukeboxTrack _gMistShootingGalleryJukeboxRegularUnclearedTracks[] __attribute__((section(".data"))) = {
+static JukeboxTrack _gMistShootingGalleryJukeboxRegularUnclearedTracks[] = {
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_TOWER_RENDEZVOUS, _gMistShootingGalleryJukeboxRow1TowerRendezvousLabel },
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_THE_VAGRANTS, _gMistShootingGalleryJukeboxRow2TheVagrantsLabel },
     { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_OUT_OF_PHASE_2, _gMistShootingGalleryJukeboxRow3OutOfPhase2Label },
@@ -759,28 +655,9 @@ TaskDesc gMistShootingGalleryMovieTaskDescs[MIST_SHOOTING_GALLERY_MOVIE_TASK_COU
     },
 };
 
-WorldCollisionRoomResources gMistShootingGalleryRoomCollisionResources[MIST_SHOOTING_GALLERY_ROOM_COUNT] = {
-    {
-        .grid                 = &gMistShootingGalleryCollisionGrid,
-        .viewBoundaryTriggers = gMistShootingGalleryViewBoundaryTriggers,
-        .actionTriggers       = gMistShootingGalleryActionTriggers,
-        .occluders            = NULL,
-    },
-};
-
-u8* gMistShootingGalleryViewMaps[1] = {
-    gViewIdentityMap,
-};
+#include "assets/rooms/mist/shooting_gallery/header.inc"
 
 enum { MIST_SHOOTING_GALLERY_LOGICAL_VIEW_COUNT = 18 };
-ViewCount gMistShootingGalleryViewCounts[2] = { MIST_SHOOTING_GALLERY_LOGICAL_VIEW_COUNT, 0 };
-
-WorldCoordRoomLighting gMistShootingGalleryRoomLightingTable[1] = {
-    {
-        .lights       = &gMistShootingGalleryDefaultRoomLights,
-        .ambientTable = gMistShootingGalleryViewAmbientTable,
-    },
-};
 
 // Arrival/departure script entries in the gallery's area sound bank.
 enum {
@@ -792,133 +669,7 @@ enum {
     MIST_SHOOTING_GALLERY_WARP_5_6_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 6),
 };
 
-DirectionWarpEntry gMistShootingGalleryWarpEntries[MIST_SHOOTING_GALLERY_WARP_COUNT] = {
-    {
-        .player         = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -11600, 0, 5200 },
-        .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -11600, 0, 5200 },
-        .arrivalSound   = MIST_SHOOTING_GALLERY_WARP_1_ARRIVAL_SOUND,
-        .departureSound = MIST_SHOOTING_GALLERY_WARP_1_DEPARTURE_SOUND,
-        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
-        .initialView    = 2,
-        .flags          = DIRECTION_WARP_FLAG_NONE,
-        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
-    },
-    {
-        .player         = { { .word = 3 * ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -9630, 0, -3040 },
-        .companion      = { { .word = 3 * ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -9630, 0, -3040 },
-        .arrivalSound   = MIST_SHOOTING_GALLERY_WARP_2_4_ARRIVAL_SOUND,
-        .departureSound = MIST_SHOOTING_GALLERY_WARP_2_4_DEPARTURE_SOUND,
-        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
-        .initialView    = 4,
-        .flags          = DIRECTION_WARP_FLAG_NONE,
-        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
-    },
-    {
-        .player         = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -6800, 0, 3000 },
-        .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -6800, 0, 3000 },
-        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
-        .departureSound = DIRECTION_WARP_SOUND_NONE,
-        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
-        .initialView    = 14,
-        .flags          = DIRECTION_WARP_FLAG_NONE,
-        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
-    },
-    {
-        .player         = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -8700, 0, -3000 },
-        .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -8700, 0, -3000 },
-        .arrivalSound   = MIST_SHOOTING_GALLERY_WARP_2_4_ARRIVAL_SOUND,
-        .departureSound = MIST_SHOOTING_GALLERY_WARP_2_4_DEPARTURE_SOUND,
-        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
-        .initialView    = 5,
-        .flags          = DIRECTION_WARP_FLAG_NONE,
-        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
-    },
-    {
-        .player         = { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, -8000, 0, -1800 },
-        .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, -8000, 0, -1800 },
-        .arrivalSound   = MIST_SHOOTING_GALLERY_WARP_5_6_ARRIVAL_SOUND,
-        .departureSound = MIST_SHOOTING_GALLERY_WARP_5_6_DEPARTURE_SOUND,
-        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
-        .initialView    = 5,
-        .flags          = DIRECTION_WARP_FLAG_NONE,
-        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
-    },
-    {
-        .player         = { { .word = 0 }, -8000, 0, -720 },
-        .companion      = { { .word = 0 }, -8000, 0, -720 },
-        .arrivalSound   = MIST_SHOOTING_GALLERY_WARP_5_6_ARRIVAL_SOUND,
-        .departureSound = MIST_SHOOTING_GALLERY_WARP_5_6_DEPARTURE_SOUND,
-        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
-        .initialView    = 7,
-        .flags          = DIRECTION_WARP_FLAG_NONE,
-        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
-    },
-    {
-        .player         = { { .word = 0 }, -8000, 0, -720 },
-        .companion      = { { .word = 0 }, -8000, 0, -720 },
-        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
-        .departureSound = DIRECTION_WARP_SOUND_NONE,
-        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
-        .initialView    = 15,
-        .flags          = DIRECTION_WARP_FLAG_NONE,
-        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
-    },
-};
-
-/// Fixed world-space points for the gallery's view-selected light glows.
-///
-/// Capsules borrow adjacent pairs starting at even indices 0..28; discs borrow
-/// individual points 36..44. Points 2..3, 12..13 and 30..35 are retained but not
-/// selected by the current view cases. XYZ are signed room-coordinate units;
-/// the fourth halfword is unused. The drawers only read this 45-point table.
-/// Its section keeps the room's fixed data layout while making it read-only in C.
-static const SVECTOR _gMistShootingGalleryLightGlowPoints[45] __attribute__((section(".data"))) = {
-    { -11000, -2930, 5580, 0 },
-    { -11000, -2930, 4420, 0 },
-    { -11000, -2930, 2580, 0 },
-    { -11000, -2930, 1420, 0 },
-    { -11000, -2930, -420, 0 },
-    { -11000, -2930, -1580, 0 },
-    { -11080, -2930, -3000, 0 },
-    { -9920, -2930, -3000, 0 },
-    { -9400, -1990, 5680, 0 },
-    { -9400, -1990, 5220, 0 },
-    { -9400, -1990, 4480, 0 },
-    { -9400, -1990, 4020, 0 },
-    { -9400, -1990, 3290, 0 },
-    { -9400, -1990, 2820, 0 },
-    { -9400, -1990, 2090, 0 },
-    { -9400, -1990, 1610, 0 },
-    { -9400, -1990, 880, 0 },
-    { -9400, -1990, 420, 0 },
-    { -9400, -1990, -320, 0 },
-    { -9400, -1990, -780, 0 },
-    { -8130, -2920, 500, 0 },
-    { -6880, -2920, 500, 0 },
-    { -8130, -2920, 2750, 0 },
-    { -6880, -2920, 2750, 0 },
-    { -8130, -2920, 5000, 0 },
-    { -6880, -2920, 5000, 0 },
-    { -3920, -2000, -410, 0 },
-    { -3400, -2000, -560, 0 },
-    { -3920, -2000, 6420, 0 },
-    { -3400, -2000, 6560, 0 },
-    { -11510, -2770, 560, 0 },
-    { -11530, -2770, -470, 0 },
-    { -11520, -2770, -1500, 0 },
-    { -11520, -2770, -2880, 0 },
-    { -11270, -2770, -3410, 0 },
-    { -9890, -2770, -3420, 0 },
-    { -460, -2770, -780, 0 },
-    { 5000, -2770, -250, 0 },
-    { 7060, -2770, 220, 0 },
-    { 12620, -2770, -390, 0 },
-    { 12840, -2770, 3000, 0 },
-    { 12620, -2770, 6410, 0 },
-    { 7060, -2770, 5770, 0 },
-    { 4940, -2770, 6280, 0 },
-    { -390, -2770, 6800, 0 },
-};
+#include "assets/rooms/mist/shooting_gallery/markers.inc"
 
 static void _mistShootingGalleryInitRoomTask(Task* task);
 static void _mistShootingGalleryUpdateRoomTask(Task* unusedTask);

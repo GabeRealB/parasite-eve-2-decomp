@@ -113,14 +113,14 @@ type = "file"
 chunk = "palette"
 sha1 = "3f85058469abee319a45892d98a675b08a3dd185"
 palettes = [
-    { texture = "texture", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
-    { name = "unread_row_2", entries = 256, region = "engine/vram/actor_palettes", offset = [0, 1] },
+    { texture = "texture", variant = "default", region = "engine/vram/actor_palettes", offset = [0x00000, 0x00000] },
+    { name = "unread_row_2", entries = 256, region = "engine/vram/actor_palettes", offset = [0x00000, 0x00001] },
 ]
 
 [[package_file.contents]]
 chunk = "image"
 sha1 = "23dd0e8b469473a22840b83298e1d28cf34c5a94"
-pages = [{ texture = "texture", region = "engine/vram/actor_sheet", offset = [0, 0] }]
+pages = [{ texture = "texture", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] }]
 slots = 6
 
 [[package_file.contents]]

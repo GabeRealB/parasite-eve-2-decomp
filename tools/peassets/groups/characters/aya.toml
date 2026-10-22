@@ -65,10 +65,12 @@ slot_35 = "characters/aya/examine_exit"
 [idle]
 type = "clip"
 rig = "characters/aya/rig"
+symbol = "gAyaIdleClip"
 
 [talk]
 type = "clip"
 rig = "characters/aya/rig"
+symbol = "gAyaTalkClip"
 
 [death]
 type = "clip"
@@ -77,6 +79,7 @@ rig = "characters/aya/rig"
 [reply]
 type = "clip"
 rig = "characters/aya/rig"
+symbol = "gAyaReplyClip"
 
 [stand]
 type = "clip"
@@ -102,6 +105,7 @@ rig = "characters/aya/rig"
 [anim_07]
 type = "clip"
 rig = "characters/aya/rig"
+symbol = "gAyaAnim07Clip"
 
 [anim_08]
 type = "clip"
@@ -154,10 +158,12 @@ rig = "characters/aya/rig"
 [talk_end]
 type = "clip"
 rig = "characters/aya/rig"
+symbol = "gAyaTalkEndClip"
 
 [on_my_way]
 type = "clip"
 rig = "characters/aya/rig"
+symbol = "gAyaOnMyWayClip"
 
 [see_flint]
 type = "clip"
@@ -170,6 +176,7 @@ rig = "characters/aya/rig"
 [turn_pale]
 type = "clip"
 rig = "characters/aya/rig"
+symbol = "gAyaTurnPaleClip"
 
 [you_too_1]
 type = "clip"
@@ -198,6 +205,7 @@ rig = "characters/aya/rig"
 [talk_start]
 type = "clip"
 rig = "characters/aya/rig"
+symbol = "gAyaTalkStartClip"
 
 [turn_right]
 type = "clip"
@@ -217,23 +225,31 @@ type = "file"
 [[casual_file.contents]]
 chunk = "casual_palette"
 sha1 = "0d1ee4c40459adc1999cc662f1711448762b7603"
-palettes = [
-    { texture = "casual_page_0", variant = "default", region = "engine/vram/character_palette" },
-    { texture = "casual_page_1", variant = "default", region = "engine/vram/character_palette", offset = [0, 1] },
-]
+
+[[casual_file.contents.palettes]]
+texture = "casual_page_0"
+variant = "default"
+region = "engine/vram/character_palette"
+
+[[casual_file.contents.palettes]]
+texture = "casual_page_1"
+variant = "default"
+region = "engine/vram/character_palette"
+offset = [0x00000, 0x00001]
 
 [[casual_file.contents]]
 chunk = "casual_image"
 sha1 = "27dbbb718218617a6b55a834fed308774a4ce38b"
 pages = [
     { texture = "casual_page_0", region = "engine/vram/character_sheet" },
-    { texture = "casual_page_1", region = "engine/vram/character_sheet", offset = [64, 0] },
+    { texture = "casual_page_1", region = "engine/vram/character_sheet", offset = [0x00040, 0x00000] },
 ]
 slots = 6
 
 [its_nothing]
 type = "clip"
 rig = "characters/aya/rig"
+symbol = "gAyaItsNothingClip"
 
 [call_out_end]
 type = "clip"
@@ -316,6 +332,7 @@ rig = "characters/aya/rig"
 [introduce_herself]
 type = "clip"
 rig = "characters/aya/rig"
+symbol = "gAyaIntroduceHerselfClip"
 
 [kneel_talk_gesture]
 type = "clip"

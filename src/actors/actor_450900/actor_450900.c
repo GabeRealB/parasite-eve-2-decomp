@@ -63,9 +63,9 @@ static AnimationSet _gAyaThisWayReplyClip;
 static AnimationSet _gAyaHurryUpClip;
 static AnimationSet _gShelterB6GrowthRoomPlayerResponseClip;
 static AnimationSet _gShelterB6GrowthRoomPlayerEntryClip;
-static AnimationSet _gShelterB6GrowthRoomPlayerChoiceStartClip;
-static AnimationSet _gAyaTurnPaleClip;
-static AnimationSet _gAyaItsNothingClip;
+extern AnimationSet gShelterB6GrowthRoomPlayerChoiceStartClip;
+extern AnimationSet gAyaTurnPaleClip;
+extern AnimationSet gAyaItsNothingClip;
 static AnimationSet _gAyaConverseClip;
 
 // Request templates resolve their initial bank selector before playback. Extended

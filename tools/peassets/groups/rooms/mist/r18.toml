@@ -7,8 +7,8 @@ embedded = [
     { asset = "characters/eric/body", offset = 0x00C2C, size = 0x5BA8, address = 0x8014AA4C },
     { asset = "characters/eric/arm_right", offset = 0x067D4, size = 0x634, address = 0x801505F4 },
     { asset = "characters/eric/hand_right", offset = 0x06E08, size = 0x384, address = 0x80150C28 },
-    "actor_213000_model_072AC",
-    "actor_213000_prop",
+    { name = "briefing_file", offset = 0x0718C, size = 0x2CC, address = 0x80150FAC },
+    { name = "laptop", offset = 0x07458, size = 0x1F8, address = 0x80151278 },
     { name = "eric_rest", offset = 0x07650, size = 0xA58, address = 0x80151470 },
     { name = "eric_well_actually", offset = 0x080A8, size = 0x8CC, address = 0x80151EC8 },
     { name = "eric_show_article", offset = 0x08974, size = 0x1490, address = 0x80152794 },
@@ -22,9 +22,203 @@ embedded = [
     { name = "eric_bank", offset = 0x0DF90, size = 0x2C, address = 0x80157DB0 },
 ]
 package_name = "actor_213000"
-parent = "mist_r18"
+parent = "rooms/mist/r18/package"
 required = true
 sha1 = "ea8273b7341dd67f06108625be31c177a12ec40d"
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "sounds_0"
+
+[[file.contents]]
+chunk = "sounds_1"
+
+[[file.contents]]
+chunk = "dialogue_0_atlas"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "37ba03cc4f84cabaabfcf58b833fdc226baff1b2"
+
+[[file.contents.palettes]]
+name = "unread_row_255"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[file.contents.palettes]]
+name = "unread_row_256"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[file.contents.palettes]]
+name = "unread_row_257"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[file.contents.palettes]]
+name = "unread_row_258"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[file.contents.palettes]]
+name = "unread_row_259"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[file.contents.palettes]]
+name = "unread_260_0"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
+[[file.contents.palettes]]
+texture = "caption"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00010, 0x00005]
+
+[[file.contents.palettes]]
+name = "unread_260_32"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00020, 0x00005]
+
+[[file.contents.palettes]]
+name = "unread_260_48"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00030, 0x00005]
+
+[[file.contents.palettes]]
+name = "unread_260_64"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00040, 0x00005]
+
+[[file.contents.palettes]]
+name = "unread_260_80"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00050, 0x00005]
+
+[[file.contents.palettes]]
+name = "unread_260_96"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00060, 0x00005]
+
+[[file.contents.palettes]]
+name = "unread_260_112"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00070, 0x00005]
+
+[[file.contents.palettes]]
+name = "unread_260_128"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00080, 0x00005]
+
+[[file.contents.palettes]]
+name = "unread_260_144"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00090, 0x00005]
+
+[[file.contents.palettes]]
+name = "unread_260_160"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x000A0, 0x00005]
+
+[[file.contents.palettes]]
+name = "unread_260_176"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x000B0, 0x00005]
+
+[[file.contents.palettes]]
+name = "unread_260_192"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x000C0, 0x00005]
+
+[[file.contents.palettes]]
+name = "unread_260_208"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x000D0, 0x00005]
+
+[[file.contents.palettes]]
+name = "unread_260_224"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x000E0, 0x00005]
+
+[[file.contents.palettes]]
+name = "unread_260_240"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x000F0, 0x00005]
+
+[[file.contents]]
+chunk = "palette_2"
+sha1 = "5be24498a488b517e5661298838e17a393f5737c"
+palettes = [
+    { texture = "props", variant = "row_263", region = "engine/vram/effect_palettes", offset = [0x00000, 0x00002] },
+    { texture = "props", variant = "row_264", region = "engine/vram/effect_palettes", offset = [0x00000, 0x00003] },
+]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "0c377f40f81e995f257a140dc8f470ccee3d8c60"
+pages = [
+    { texture = "caption", region = "engine/vram/effect_sheet", offset = [0x000C0, 0x00000] },
+    { texture = "props", region = "engine/vram/room_sprite_sheet", offset = [0x00000, 0x00000] },
+]
+
+[[file.contents]]
+chunk = "package"
+
+[[file.contents]]
+chunk = "bundle"
+
+[props]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["row_263", "row_264"]
+width = 128
+
+[bundle]
+type = "pe2bundle"
+resources = [
+    "",
+    "",
+    "",
+    "rooms/mist/r18/view4_palette",
+    "",
+    "rooms/mist/r18/view6_palette",
+    "",
+    "",
+    "",
+    "",
+    "rooms/mist/r18/dialogue_0",
+]
+sha1 = "e5e2c90b0cfc47443dcc48c09ab3e8a31629f9cb"
+
+[laptop]
+type = "model"
+slots = ["props_row_264"]
+symbol = "_gMistR18Laptop"
+sha1 = "8a7112673f699d4bb7908e7a7e72e15485f60111"
 
 [rupert]
 type = "pe2pkg"
@@ -47,6 +241,72 @@ package_name = "actor_113000"
 required = true
 sha1 = "7da2ff08b25be9f5b909f550f8e9c9287e0e87cc"
 
+[caption]
+type = "texture"
+bpp = 4
+height = 256
+variants = ["default"]
+width = 256
+
+[package]
+type = "room"
+embedded = [
+    { name = "mist_r18_player_briefing_anim_01", offset = 0x01CC0, size = 0x5DC, address = 0x8017F280 },
+    { name = "mist_r18_player_briefing_anim_02", offset = 0x0229C, size = 0xE74, address = 0x8017F85C },
+    { name = "mist_r18_player_briefing_anim_03", offset = 0x03110, size = 0x674, address = 0x801806D0 },
+    { name = "mist_r18_player_briefing_anim_04", offset = 0x03784, size = 0x534, address = 0x80180D44 },
+    { name = "mist_r18_player_briefing_anim_05", offset = 0x03CB8, size = 0xAFC, address = 0x80181278 },
+    { name = "mist_r18_player_briefing_anim_06", offset = 0x047B4, size = 0x648, address = 0x80181D74 },
+    { name = "mist_r18_player_briefing_anim_07", offset = 0x04DFC, size = 0xCD0, address = 0x801823BC },
+    { name = "mist_r18_player_briefing_anim_08", offset = 0x05ACC, size = 0x178C, address = 0x8018308C },
+    { name = "mist_r18_player_briefing_anim_09", offset = 0x07258, size = 0x39C, address = 0x80184818 },
+    { name = "mist_r18_player_briefing_anim_10", offset = 0x075F4, size = 0x2F4, address = 0x80184BB4 },
+    { name = "mist_r18_player_briefing_bank", offset = 0x079A4, size = 0x2C, address = 0x80184F64 },
+]
+entries = { view_counts = 2 }
+package_name = "mist_r18"
+required = true
+sha1 = "72d08008a6f9c1f371d03dc8d79a70aea31c66c7"
+
+[sounds_0]
+type = "sound_bank"
+samples = [
+    "rooms/akropolis/fire_escape/unused_1",
+    "rooms/akropolis/fire_escape/unused_2",
+    "rooms/akropolis/square/walk_floor_1",
+    "rooms/akropolis/square/walk_floor_2",
+]
+sha1 = "feb38c589b34fa7c58c99c27e97af4bc7d18d046"
+
+[sounds_1]
+type = "sound_bank"
+samples = [
+    "rooms/mist/r18/unused_1",
+    "rooms/mist/r18/unused_2",
+    "rooms/mist/r18/briefing_baldwin_gesture",
+    "rooms/mist/r18/briefing_held_model_reveal",
+    "rooms/mist/r18/unused_3",
+    "rooms/mist/r18/unused_4",
+]
+sounds = { briefing_baldwin_gesture = 3, briefing_held_model_reveal = 4 }
+sha1 = "a54ac39672d7d38643b4d5cf7321d5eb984eabf7"
+
+[unused_1]
+type = "sound"
+sha1 = "b231cbc075855c03d02727b78494ed6b9c909de0"
+
+[unused_2]
+type = "sound"
+sha1 = "6dcfc8494905173f769f85cbb19cad700915b1b4"
+
+[unused_3]
+type = "sound"
+sha1 = "f44c50674103fa573919a9afaf301a090eba2334"
+
+[unused_4]
+type = "sound"
+sha1 = "e27e0285b0be1e2120e3b8012a2a73cb9899a128"
+
 [eric_bank]
 type = "animation_bank"
 schema = "rooms/mist/r18/eric_schema"
@@ -67,6 +327,114 @@ reminder = "rooms/mist/r18/eric_reminder"
 [eric_rest]
 type = "clip"
 rig = "characters/eric/rig"
+
+[dialogue_0]
+type = "cap"
+sha1 = "bc8bce16a078d9d0eeb5c753254a62900a25444b"
+
+[view4_file]
+type = "file"
+
+[[view4_file.contents]]
+chunk = "view4_image"
+sha1 = "4b7566ec1740893ad5c41d28dee8b56003ed7644"
+pages = [{ texture = "view4_page_1", region = "engine/vram/room_sprite_sheet", offset = [0x000C0, 0x00000] }]
+slots = 3
+
+[[view4_file.contents]]
+chunk = "view4_background"
+
+[[view4_file.contents]]
+chunk = "view4_palette"
+sha1 = "9f4586761add3983c0a1e5183ce7660fdfa71748"
+
+[[view4_file.contents.palettes]]
+texture = "view4_page_1"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view4_file.contents.palettes]]
+name = "unread_row_1"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view4_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view4_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view4_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view4_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
+[view6_file]
+type = "file"
+
+[[view6_file.contents]]
+chunk = "view6_image"
+sha1 = "cac8eb14b74e95d920fac907c73289a21466debe"
+pages = [{ texture = "view6_page_1", region = "engine/vram/room_sprite_sheet", offset = [0x000C0, 0x00000] }]
+slots = 3
+
+[[view6_file.contents]]
+chunk = "view6_background"
+
+[[view6_file.contents]]
+chunk = "view6_palette"
+sha1 = "dba71ab8c222b5a4182dc189667900789dd46388"
+
+[[view6_file.contents.palettes]]
+texture = "view6_page_1"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view6_file.contents.palettes]]
+name = "unread_row_1"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view6_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view6_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view6_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view6_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
 
 [eric_schema]
 type = "animation_schema"
@@ -107,6 +475,26 @@ rig = "characters/rupert/rig"
 type = "clip"
 rig = "characters/eric/rig"
 
+[view4_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view6_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[briefing_file]
+type = "model"
+slots = ["props_row_263"]
+symbol = "_gMistR18BriefingFile"
+sha1 = "fa59437f00f05b71da912e08b81c2650a1263591"
+
 [eric_reminder]
 type = "clip"
 rig = "characters/eric/rig"
@@ -125,6 +513,11 @@ slots = [
     "reminder",
 ]
 
+[laptop_binding]
+type = "binding"
+model = "rooms/mist/r18/laptop"
+textures = { props_row_264 = "rooms/mist/r18/props.row_264" }
+
 [rupert_yes_sir]
 type = "clip"
 rig = "characters/rupert/rig"
@@ -132,6 +525,16 @@ rig = "characters/rupert/rig"
 [rupert_reminder]
 type = "clip"
 rig = "characters/rupert/rig"
+
+[dialogue_0_atlas]
+type = "font_atlas"
+bpp = 4
+generated_by = "rooms/mist/r18/dialogue_0"
+h = 256
+w = 64
+x = 384
+y = 0
+sha1 = "bd30c83aaf299464dfe503b32f9cd8923d34eee4"
 
 [eric_departure_1]
 type = "clip"
@@ -144,6 +547,34 @@ rig = "characters/eric/rig"
 [rupert_dismissed]
 type = "clip"
 rig = "characters/rupert/rig"
+
+[view1_background]
+type = "bs"
+sha1 = "8abf06327f8b842a919a8fef7107ef8a60877273"
+
+[view2_background]
+type = "bs"
+sha1 = "0f9a206daa9f91969ace4d9dac04e1b1718731b7"
+
+[view3_background]
+type = "bs"
+sha1 = "cc5158df0410c9abb952b0f178b9e730eb3ea9f1"
+
+[view4_background]
+type = "bs"
+sha1 = "f3a6798a48b04edcf51212d78fcc44224992315a"
+
+[view5_background]
+type = "bs"
+sha1 = "448363677d823c0840f822ffd9b48e6795d68488"
+
+[view6_background]
+type = "bs"
+sha1 = "e4cfa59e15d0581dba4c1b64946098eef0d693b1"
+
+[view7_background]
+type = "bs"
+sha1 = "961ac498b96d9bb61e3675e2e256b431c5a5ba81"
 
 [eric_explain_nmcs]
 type = "clip"
@@ -161,6 +592,10 @@ rig = "characters/rupert/rig"
 type = "clip"
 rig = "characters/rupert/rig"
 
+[view10_background]
+type = "bs"
+sha1 = "c631b0e442ebd95d0ca020189f5120920df45bed"
+
 [eric_well_actually]
 type = "clip"
 rig = "characters/eric/rig"
@@ -173,10 +608,84 @@ rig = "characters/rupert/rig"
 type = "clip"
 rig = "characters/eric/rig"
 
+[briefing_file_binding]
+type = "binding"
+model = "rooms/mist/r18/briefing_file"
+textures = { props_row_263 = "rooms/mist/r18/props.row_263" }
+
 [eric_explain_autopsies]
 type = "clip"
 rig = "characters/eric/rig"
 
+[briefing_baldwin_gesture]
+type = "sound"
+sha1 = "a3bec672712932ae6d547ed1038f5fa937308977"
+
+[briefing_held_model_reveal]
+type = "sound"
+sha1 = "9a4e1610cddefcd505dd76c089f256b30459c84a"
+
 [rupert_ask_about_akropolis]
 type = "clip"
 rig = "characters/rupert/rig"
+
+[mist_r18_player_briefing_bank]
+type = "animation_bank"
+schema = "rooms/mist/r18/mist_r18_player_briefing_schema"
+symbol = "_gMistR18PlayerBriefingAnimationSets"
+
+[mist_r18_player_briefing_bank.clips]
+slot_1 = "rooms/mist/r18/mist_r18_player_briefing_anim_01"
+slot_2 = "rooms/mist/r18/mist_r18_player_briefing_anim_02"
+slot_3 = "rooms/mist/r18/mist_r18_player_briefing_anim_03"
+slot_4 = "rooms/mist/r18/mist_r18_player_briefing_anim_04"
+slot_5 = "rooms/mist/r18/mist_r18_player_briefing_anim_05"
+slot_6 = "rooms/mist/r18/mist_r18_player_briefing_anim_06"
+slot_7 = "rooms/mist/r18/mist_r18_player_briefing_anim_07"
+slot_8 = "rooms/mist/r18/mist_r18_player_briefing_anim_08"
+slot_9 = "rooms/mist/r18/mist_r18_player_briefing_anim_09"
+slot_10 = "rooms/mist/r18/mist_r18_player_briefing_anim_10"
+
+[mist_r18_player_briefing_schema]
+type = "animation_schema"
+slots = ["", "slot_1", "slot_2", "slot_3", "slot_4", "slot_5", "slot_6", "slot_7", "slot_8", "slot_9", "slot_10"]
+
+[mist_r18_player_briefing_anim_01]
+type = "clip"
+rig = "characters/aya/rig"
+
+[mist_r18_player_briefing_anim_02]
+type = "clip"
+rig = "characters/aya/rig"
+
+[mist_r18_player_briefing_anim_03]
+type = "clip"
+rig = "characters/aya/rig"
+
+[mist_r18_player_briefing_anim_04]
+type = "clip"
+rig = "characters/aya/rig"
+
+[mist_r18_player_briefing_anim_05]
+type = "clip"
+rig = "characters/aya/rig"
+
+[mist_r18_player_briefing_anim_06]
+type = "clip"
+rig = "characters/aya/rig"
+
+[mist_r18_player_briefing_anim_07]
+type = "clip"
+rig = "characters/aya/rig"
+
+[mist_r18_player_briefing_anim_08]
+type = "clip"
+rig = "characters/aya/rig"
+
+[mist_r18_player_briefing_anim_09]
+type = "clip"
+rig = "characters/aya/rig"
+
+[mist_r18_player_briefing_anim_10]
+type = "clip"
+rig = "characters/aya/rig"

@@ -96,55 +96,55 @@ extern Task* gMistParkingCutsceneModelTask;
 /// models live while held; starting twice does not release the earlier task.
 extern Task* gMistParkingPlayerHeadAimTask;
 
-extern TmdSource gMistParkingModel09B9C;
+extern TmdSource gMistParkingMistParkingModel09B9C;
 
-extern AnimationSet gMistParkingAnimation09FD4;
+extern AnimationSet gAyaStandClip;
 
-extern AnimationSet gMistParkingAnimation0A774;
+extern AnimationSet gShelterR47PlayerLookAtMapClip;
 
-extern AnimationSet gMistParkingAnimation0AC5C;
+extern AnimationSet gShelterB3IncineratorControlRoomPlayerFlusteredClip;
 
-extern AnimationSet gMistParkingAnimation0B138;
+extern AnimationSet gMistParkingMistParkingPlayerConversationAnim04Clip;
 
-extern AnimationSet gMistParkingAnimation0B700;
+extern AnimationSet gMistParkingMistParkingPlayerConversationAnim05Clip;
 
-extern AnimationSet gMistParkingAnimation0BAB4;
+extern AnimationSet gMistParkingMistParkingPlayerConversationAnim06Clip;
 
-extern AnimationSet gMistParkingAnimation0C1B0;
+extern AnimationSet gMistParkingMistParkingPlayerConversationAnim07Clip;
 
-extern AnimationSet gMistParkingAnimation0C688;
+extern AnimationSet gMistParkingMistParkingPlayerConversationAnim08Clip;
 
-extern AnimationSet gMistParkingAnimation0CD80;
+extern AnimationSet gMistParkingMistParkingPlayerConversationAnim09Clip;
 
-extern AnimationSet gMistParkingAnimation0D060;
+extern AnimationSet gMistParkingMistParkingPlayerConversationAnim10Clip;
 
-extern AnimationSet gMistParkingAnimation0D3E4;
+extern AnimationSet gAyaIntroduceHerselfClip;
 
-extern AnimationSet gMistParkingAnimation0D6A4;
+extern AnimationSet gAyaAnim07Clip;
 
-extern AnimationSet gMistParkingAnimation0DA94;
+extern AnimationSet gAyaTalkClip;
 
-extern AnimationSet gMistParkingAnimation0DE94;
+extern AnimationSet gShelterB6GrowthRoomPlayerChoiceStartClip;
 
-extern AnimationSet gMistParkingAnimation0E1D0;
+extern AnimationSet gAyaItsNothingClip;
 
-extern AnimationSet gMistParkingAnimation0E6E0;
+extern AnimationSet gMistParkingMistParkingPlayerConversationAnim15Clip;
 
-extern AnimationSet gMistParkingAnimation0EA0C;
+extern AnimationSet gAyaOnMyWayClip;
 
-extern AnimationSet gMistParkingAnimation0EDE0;
+extern AnimationSet gAyaTalkStartClip;
 
-extern AnimationSet gMistParkingAnimation0F14C;
+extern AnimationSet gAyaTalkEndClip;
 
-extern AnimationSet gMistParkingAnimation0F574;
+extern AnimationSet gAyaReplyClip;
 
-extern AnimationSet gMistParkingAnimation0F7F0;
+extern AnimationSet gMistParkingMistParkingPlayerConversationAnim20Clip;
 
-extern AnimationSet gMistParkingAnimation0FC60;
+extern AnimationSet gMistParkingMistParkingPlayerConversationAnim21Clip;
 
-extern AnimationSet gMistParkingAnimation0FE5C;
+extern AnimationSet gAyaTurnPaleClip;
 
-extern AnimationSet gMistParkingAnimation10174;
+extern AnimationSet gShelterB1PodServiceGantryPlayerGantryScene7Clip;
 
 /// Copies the room's 25 pointer words into the equipped player's animation-bank extension.
 ///
@@ -213,11 +213,11 @@ extern EvsCommand gMistParkingSecondFollowupScript[10];
 /// its view pointer stays NULL. The room owns the record and borrowed pools.
 extern WorldCollisionGrid gMistParkingPierceCollisionPatch;
 
-extern AnimationSet gMistParkingAnimation129F8;
+extern AnimationSet gMistParkingStandCopyClip;
 
-extern AnimationSet gMistParkingAnimation12DCC;
+extern AnimationSet gMistParkingTalkStartCopyClip;
 
-extern AnimationSet gMistParkingAnimation1323C;
+extern AnimationSet gMistParkingMistParkingPlayerConversationAnim21CopyClip;
 
 /// Installs the variant-1 player's four-word shop/departure animation extension.
 ///

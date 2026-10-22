@@ -38,17 +38,25 @@ type = "file"
 [[file.contents]]
 chunk = "palette"
 sha1 = "3b0a5b7a3969b6310c375e6f7875635a416bde5b"
-palettes = [
-    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
-    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
-]
+
+[[file.contents.palettes]]
+texture = "texture_page_1"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00000]
+
+[[file.contents.palettes]]
+texture = "texture_page_2"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00001]
 
 [[file.contents]]
 chunk = "image"
 sha1 = "60f87980634d3cec0f47c58482503e040d0aa2e9"
 pages = [
-    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
-    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [0x00040, 0x00000] },
 ]
 slots = 6
 

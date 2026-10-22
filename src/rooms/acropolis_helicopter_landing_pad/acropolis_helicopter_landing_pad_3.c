@@ -68,6 +68,9 @@
 #include "../../shared/actor/actor_contacts.h"
 #include "../../shared/actor/actor_messages.h"
 
+#define ROOM_PART declarations_acropolis_helicopter_landing_pad_3
+#include "assets/rooms/akropolis/helicopter_landing_pad/declarations.inc"
+
 /// Returns this carrier's persistent last contact-push correction.
 ///
 /// Components are signed 16.16 corrections shifted right by 16 and narrowed
@@ -122,9 +125,6 @@ static void _acropolisHelicopterLandingPadDrawUpperSparkLine(GfxCoord* coord);
 static void _acropolisHelicopterLandingPadMovieTask(Task* task);
 static void _acropolisHelicopterLandingPadStartMovieTask(Task* task);
 
-static WorldCollisionGrid    _gAcropolisHelicopterLandingPadCollisionGrid;
-static WorldCollisionTrigger _gAcropolisHelicopterLandingPadViewBoundaryTriggers[16];
-
 // Room-authored scene selectors, CAP slots and receiver-specific actor controls.
 enum {
     ACROPOLIS_HELICOPTER_LANDING_PAD_SCENE_GROUP                      = 1,
@@ -168,26 +168,8 @@ TaskMessageEntry gAcropolisHelicopterLandingPadRoomMessages[5] = {
     { .messageId = TASK_MESSAGE_TABLE_END, .handler = NULL },
 };
 
-/// Intro-cue vibration program: one four-frame full-intensity variable-motor pulse.
-///
-/// Both lanes start at step 0. The binary lane stops immediately; the variable
-/// lane plays segment 1 and stops at step 1. Later stored steps are unreachable.
-/// The interpreter borrows the program and segments through task completion.
-static PadScriptCmd _gAcropolisHelicopterLandingPadEncounterVibrationCommands[4] = {
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 3), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 4), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
-};
-
-/// Vibration records for the intro cue; only full-intensity segment 1 is played.
-///
-/// Intensities are bytes, durations are script frames, and `field_3` is unread.
-/// Segment 0 and both uninterpreted final bytes retain their authored values.
-static PadScriptVibrationSegment _gAcropolisHelicopterLandingPadEncounterVibrationSegments[2] = {
-    { .startIntensity = 0, .endIntensity = 0, .durationFrames = 1, .field_3 = 0 },
-    { .startIntensity = 255, .endIntensity = 255, .durationFrames = 4, .field_3 = 1 },
-};
+#define ROOM_PART _gAcropolisHelicopterLandingPadEncounterVibrationCommands
+#include "assets/rooms/akropolis/helicopter_landing_pad/vibrations.inc"
 
 /// Zero position and Euler rotation for scene actors and the departure companion.
 ///
@@ -798,7 +780,6 @@ static s32 D_acropolis_helicopter_landing_pad_80184E10[6] = {
     0,
     0,
 };
-
 AnimationPlayRequest gAcropolisHelicopterLandingPadLiftRaiseRequest = {
     .source               = { .index = 0 },
     .animationId          = ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_RAISE,
@@ -822,219 +803,17 @@ TaskDesc gAcropolisHelicopterLandingPadMovieTasks[2] = {
     { .header = { .fields = { .flags = TASK_BODY_NONE, .priority = ACROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_PRIORITY } }, .callback = _acropolisHelicopterLandingPadMovieTask, .data = { .value = 0 } },
 };
 
-/// World-space positions of the twelve pulsing red lights around the pad.
-///
-/// Signed halfword game coordinates, indexed by light 0..11. The matching view
-/// mask at each index controls both glow drawing and transient-light updates.
-static SVECTOR _gAcropolisHelicopterLandingPadPerimeterLightPositions[12] = {
-    { -7050, -2800, -7030, 0 },
-    { -2800, -3000, -7760, 0 },
-    { 2800, -3000, -7760, 0 },
-    { 7050, -2800, -7030, 0 },
-    { 7760, -3000, -2800, 0 },
-    { 7760, -3000, 2800, 0 },
-    { 7050, -2800, 7030, 0 },
-    { 2800, -3000, 7760, 0 },
-    { -2800, -3000, 7760, 0 },
-    { -7050, -2800, 7030, 0 },
-    { -7760, -3000, 2800, 0 },
-    { -7760, -3000, -2900, 0 },
-};
-
-/// Per-light visibility in mapped camera views 1..27, parallel to the positions.
-///
-/// Bit `mappedView - 1` admits that light. All masks fit in 27 bits; lookups
-/// require a nonzero mapped view, and all callers supply light indices 0..11.
-static u32 _gAcropolisHelicopterLandingPadPerimeterLightViewMasks[ARRAY_SIZE(_gAcropolisHelicopterLandingPadPerimeterLightPositions)] = {
-    0x4014404,
-    0x4014000,
-    8,
-    0x8818,
-    2064,
-    0xC2830,
-    0xC2910,
-    0x2C2980,
-    0x200580,
-    0x200700,
-    0x200600,
-    0x20400,
-};
-
-WorldCollisionRoomResources gAcropolisHelicopterLandingPadCollisionRoomResources[1] = {
-    {
-        .grid                 = &_gAcropolisHelicopterLandingPadCollisionGrid,
-        .viewBoundaryTriggers = _gAcropolisHelicopterLandingPadViewBoundaryTriggers,
-        .actionTriggers       = gAcropolisHelicopterLandingPadActionTriggers,
-        .occluders            = gAcropolisHelicopterLandingPadSightOccluders,
-    },
-};
+#include "assets/rooms/akropolis/helicopter_landing_pad/markers.inc"
+#include "assets/rooms/akropolis/helicopter_landing_pad/view_masks.inc"
+#include "assets/rooms/akropolis/helicopter_landing_pad/header.inc"
+#include "assets/rooms/akropolis/helicopter_landing_pad/geometry.inc"
+#include "assets/rooms/akropolis/helicopter_landing_pad/view_boundaries.inc"
 
 enum { ACROPOLIS_HELICOPTER_LANDING_PAD_LOGICAL_VIEW_COUNT = 27 };
-
-/// Identity camera/image/sprite mapping for logical views 1..27 of room 1.
-///
-/// Indexed by logical view minus one. The extra stored zero is outside the
-/// reverse-search count and is not a map terminator. Borrowed while loaded.
-static u8 _gAcropolisHelicopterLandingPadViewMap[ACROPOLIS_HELICOPTER_LANDING_PAD_LOGICAL_VIEW_COUNT + 1] = {
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    12,
-    13,
-    14,
-    15,
-    16,
-    17,
-    18,
-    19,
-    20,
-    21,
-    22,
-    23,
-    24,
-    25,
-    26,
-    27,
-    0,
-};
-
-u8* gAcropolisHelicopterLandingPadViewMaps[1] = {
-    _gAcropolisHelicopterLandingPadViewMap,
-};
-
-ViewCount gAcropolisHelicopterLandingPadViewCounts[1] = { ACROPOLIS_HELICOPTER_LANDING_PAD_LOGICAL_VIEW_COUNT };
-
-WorldCoordRoomLighting gAcropolisHelicopterLandingPadRoomLightingTable[1] = {
-    { .lights = &gAcropolisHelicopterLandingPadRoomLights, .ambientTable = NULL },
-};
-
-DirectionWarpEntry gAcropolisHelicopterLandingPadWarps[3] = {
-    {
-        .player         = { { .word = 2048 }, -6387, 1, -6306 },
-        .unknown_10     = { 0, 0, 0, 0 },
-        .companion      = { { .word = 2048 }, -6387, 1, -6306 },
-        .unknown_24     = { 0, 0, 0, 0 },
-        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
-        .departureSound = DIRECTION_WARP_SOUND_NONE,
-        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
-        .initialView    = 2,
-        .flags          = DIRECTION_WARP_FLAG_NONE,
-        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
-    },
-    {
-        .player         = { { .word = 1024 }, -5340, -3001, -1921 },
-        .unknown_10     = { 0, 0, 0, 0 },
-        .companion      = { { .word = 1024 }, -5340, -3001, -1921 },
-        .unknown_24     = { 0, 0, 0, 0 },
-        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
-        .departureSound = DIRECTION_WARP_SOUND_NONE,
-        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
-        .initialView    = 11,
-        .flags          = DIRECTION_WARP_FLAG_NONE,
-        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
-    },
-    {
-        .player         = { { .word = 2048 }, -6400, 600, -5280 },
-        .unknown_10     = { 0, 0, 0, 0 },
-        .companion      = { { .word = 2048 }, -6387, 451, -5400 },
-        .unknown_24     = { 0, 0, 0, 0 },
-        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
-        .departureSound = DIRECTION_WARP_SOUND_NONE,
-        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
-        .initialView    = 2,
-        .flags          = DIRECTION_WARP_FLAG_SCRIPTED_PLAYER,
-        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
-    },
-};
-
-SVECTOR gAcropolisHelicopterLandingPadCollisionGridNormals[15] = {
-#include "assets/acropolis_helicopter_landing_pad_collision_083D8_normals.inc"
-};
-
-SVECTOR gAcropolisHelicopterLandingPadCollisionGridVerts[92] = {
-#include "assets/acropolis_helicopter_landing_pad_collision_083D8_verts.inc"
-};
-
-WorldCollisionGridFace gAcropolisHelicopterLandingPadCollisionGridFaces[37] = {
-#include "assets/acropolis_helicopter_landing_pad_collision_083D8_faces.inc"
-};
-
-/// Signed face-index lists, each ended by WORLD_COLLISION_GRID_CELL_END.
-///
-/// Contains 512 stored halfwords; cell pointers select the thirty-six lists.
-static s16 _gAcropolisHelicopterLandingPadCollisionGridCells[512] = {
-#include "assets/acropolis_helicopter_landing_pad_collision_083D8_cells.inc"
-};
 
 enum {
     ACROPOLIS_HELICOPTER_LANDING_PAD_COLLISION_CELL_COUNT_X = 6,
     ACROPOLIS_HELICOPTER_LANDING_PAD_COLLISION_CELL_COUNT_Z = 6,
-};
-
-/// Resolves a generated face-list start in this grid's packed halfword pool.
-///
-/// halfwordOffset counts signed-halfword elements and is evaluated once.
-/// It must select an in-bounds list start in the captured pool.
-/// Captures `_gAcropolisHelicopterLandingPadCollisionGridCells`; returns a borrowed s16* without reading it.
-/// The table include supplies list-start constants; empty cells use NULL.
-/// Define only for that include and undefine immediately afterward.
-#define ACROPOLIS_HELICOPTER_LANDING_PAD_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gAcropolisHelicopterLandingPadCollisionGridCells[(halfwordOffset)])
-/// X-major 6-by-6 directory of borrowed, terminated face-index lists.
-static s16* _gAcropolisHelicopterLandingPadCollisionGridTable[ACROPOLIS_HELICOPTER_LANDING_PAD_COLLISION_CELL_COUNT_X * ACROPOLIS_HELICOPTER_LANDING_PAD_COLLISION_CELL_COUNT_Z] = {
-#include "assets/acropolis_helicopter_landing_pad_collision_083D8_table.inc"
-};
-#undef ACROPOLIS_HELICOPTER_LANDING_PAD_CELL_FACE_LIST_AT_OFFSET
-
-/// Room collision mesh and XZ cell index for the helipad, lower floor and exit stairs.
-///
-/// Cell origin is (-10000, -10000), with 4000-unit square cells. Activation binds
-/// the view coordinate; the encounter actor updates the first four normals/faces
-/// and first sixteen vertices through the active grid. All storage stays mutable
-/// and must remain loaded while the room collision resources borrow it.
-static WorldCollisionGrid _gAcropolisHelicopterLandingPadCollisionGrid = {
-    .viewCoord   = NULL,
-    .normals     = gAcropolisHelicopterLandingPadCollisionGridNormals,
-    .vertices    = gAcropolisHelicopterLandingPadCollisionGridVerts,
-    .faces       = gAcropolisHelicopterLandingPadCollisionGridFaces,
-    .cellFaceIds = _gAcropolisHelicopterLandingPadCollisionGridTable,
-    .xBias       = 10000,
-    .zBias       = 10000,
-    .cellCountX  = ACROPOLIS_HELICOPTER_LANDING_PAD_COLLISION_CELL_COUNT_X,
-    .cellCountZ  = ACROPOLIS_HELICOPTER_LANDING_PAD_COLLISION_CELL_COUNT_Z,
-    .cellSize    = 4000,
-    .faceCount   = ARRAY_SIZE(gAcropolisHelicopterLandingPadCollisionGridFaces),
-};
-
-/// Sixteen directed view boundaries joining the helipad's camera ring 2 through 10.
-///
-/// Each neighboring pair has one quad per direction. The final record carries
-/// LAST and is included during binding. Setup mutates coordinates, links and
-/// enabled flags, so the room retains writable storage until all records unlink.
-static WorldCollisionTrigger _gAcropolisHelicopterLandingPadViewBoundaryTriggers[16] = {
-    { NULL, NULL, NULL, { -5505, 0, -5857, 0 }, { { -473, 6080, -1561, 0 }, { 474, 6080, 1562, 0 }, { -473, -6080, -1561, 0 }, { 474, -6080, 1562, 0 } }, { -3931, 0, 1191, 0 }, { 0, 0, 4096, 0 }, 6291, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -6016, 0, -5888, 0 }, { { 395, 6080, 1582, 0 }, { -397, 6080, -1584, 0 }, { 395, -6080, 1582, 0 }, { -397, -6080, -1584, 0 } }, { 3984, 0, -998, 0 }, { 0, 0, 4096, 0 }, 6291, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1985, 0, -5921, 0 }, { { 155, 6080, 1619, 0 }, { -165, 6080, -1627, 0 }, { 155, -6080, 1619, 0 }, { -165, -6080, -1627, 0 } }, { 4085, 0, -403, 0 }, { 0, 0, 4096, 0 }, 6291, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1536, 0, -6112, 0 }, { { -161, 6080, -1626, 0 }, { 157, 6080, 1621, 0 }, { -161, -6080, -1626, 0 }, { 157, -6080, 1621, 0 } }, { -4087, 0, 400, 0 }, { 0, 0, 4096, 0 }, 6291, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3550, 0, -5857, 0 }, { { 1224, 6080, -1401, 0 }, { -1223, 6080, 1401, 0 }, { 1224, -6080, -1401, 0 }, { -1223, -6080, 1401, 0 } }, { -3090, 0, -2698, 0 }, { 0, 0, 4096, 0 }, 6353, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3007, 0, -6113, 0 }, { { -1515, 6080, 1692, 0 }, { 1515, 6080, -1691, 0 }, { -1515, -6080, 1692, 0 }, { 1515, -6080, -1691, 0 } }, { 3053, 0, 2735, 0 }, { 0, 0, 4096, 0 }, 6476, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 6048, 0, -1152, 0 }, { { 1860, 6080, -35, 0 }, { -1860, 6080, 34, 0 }, { 1860, -6080, -35, 0 }, { -1860, -6080, 34, 0 } }, { -77, 0, -4102, 0 }, { 0, 0, 4096, 0 }, 6353, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 6144, 0, -1729, 0 }, { { -1860, 6080, 34, 0 }, { 1860, 6080, -35, 0 }, { -1860, -6080, 34, 0 }, { 1860, -6080, -35, 0 } }, { 75, 0, 4100, 0 }, { 0, 0, 4096, 0 }, 6353, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 5760, 0, 3359, 0 }, { { -1624, 6080, 907, 0 }, { 1624, 6080, -907, 0 }, { -1624, -6080, 907, 0 }, { 1624, -6080, -907, 0 } }, { 1999, 0, 3580, 0 }, { 0, 0, 4096, 0 }, 6353, 0, 7, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 5952, 0, 3840, 0 }, { { 1666, 6080, -827, 0 }, { -1667, 6080, 826, 0 }, { 1666, -6080, -827, 0 }, { -1667, -6080, 826, 0 } }, { -1823, 0, -3675, 0 }, { 0, 0, 4096, 0 }, 6353, 0, 6, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2655, 0, 6143, 0 }, { { 304, 6080, 1833, 0 }, { -310, 6080, -1836, 0 }, { 304, -6080, 1833, 0 }, { -310, -6080, -1836, 0 } }, { 4044, 0, -677, 0 }, { 0, 0, 4096, 0 }, 6353, 0, 7, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3231, 0, 6047, 0 }, { { -310, 6080, -1836, 0 }, { 304, 6080, 1832, 0 }, { -310, -6080, -1836, 0 }, { 304, -6080, 1832, 0 } }, { -4044, 0, 676, 0 }, { 0, 0, 4096, 0 }, 6353, 0, 8, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -4193, 0, 6111, 0 }, { { 124, 6080, 1855, 0 }, { -126, 6080, -1856, 0 }, { 124, -6080, 1855, 0 }, { -126, -6080, -1856, 0 } }, { 4091, 0, -276, 0 }, { 0, 0, 4096, 0 }, 6353, 0, 8, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -3939, 0, 6079, 0 }, { { -216, 6080, -1848, 0 }, { 215, 6080, 1846, 0 }, { -216, -6080, -1848, 0 }, { 215, -6080, 1846, 0 } }, { -4073, 0, 474, 0 }, { 0, 0, 4096, 0 }, 6353, 0, 9, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -6098, 0, 3342, 0 }, { { -1437, 6080, 1741, 0 }, { 1437, 6080, -1740, 0 }, { -1437, -6080, 1741, 0 }, { 1437, -6080, -1740, 0 } }, { 3159, 0, 2608, 0 }, { 0, 0, 4096, 0 }, 6476, 0, 9, 10, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -5856, 0, 4064, 0 }, { { 1437, 6080, -1741, 0 }, { -1437, 6080, 1740, 0 }, { 1437, -6080, -1741, 0 }, { -1437, -6080, 1740, 0 } }, { -3161, 0, -2610, 0 }, { 0, 0, 4096, 0 }, 6476, 0, 10, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 /// Plays the room's view-100 movie, permits Start cancellation and restores gameplay.

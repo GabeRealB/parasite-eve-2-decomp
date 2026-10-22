@@ -190,12 +190,12 @@ enum { ACTOR_141000_WALK_VELOCITY_ONE = 0x10000 };
 /// converts it into parent-frame velocity; the fourth word is unused and zero.
 static const VECTOR _gActor141000EveFastWalkVelocity = { 0, 0, 48 * ACTOR_141000_WALK_VELOCITY_ONE };
 
-static u32     _gActor141000Model0230CPartVerts[1];
-static SVECTOR _gActor141000Model0230CVerts[9];
-static TmdBone _gActor141000Model0230CSkeleton[1];
-static u32     _gActor141000Model0230CStream[54];
+static u32     _gShelterB1PodAccessTunnelFlamePartVerts[1];
+static SVECTOR _gShelterB1PodAccessTunnelFlameVerts[9];
+static TmdBone _gShelterB1PodAccessTunnelFlameSkeleton[1];
+static u32     _gShelterB1PodAccessTunnelFlameStream[54];
 
-static TmdSource _gActor141000Model0230C;
+static TmdSource _gShelterB1PodAccessTunnelFlame;
 static void      _actor141000FlightControllerTask(Task* task);
 static void      _actor141000SmokeTrailTask(Task* task);
 static void      _actor141000CappedBeamTask(Task* task);
@@ -217,33 +217,7 @@ static s32          _actor141000SetEveWalkPace(Task* task, s32 messageId, const 
 static s32          _actor141000SetEveTextureMode(Task* task, s32 messageId, s32 textureMode, s32 unusedArg);
 static void         _actor141000EveWalkerTask(Task* task);
 
-static TmdBone _gActor141000Model0230CSkeleton[1] = {
-#include "assets/actor_141000_model_0230C_skeleton.inc"
-};
-
-static u32 _gActor141000Model0230CPartVerts[1] = {
-#include "assets/actor_141000_model_0230C_partVerts.inc"
-};
-
-static SVECTOR _gActor141000Model0230CVerts[9] = {
-#include "assets/actor_141000_model_0230C_verts.inc"
-};
-
-static u32 _gActor141000Model0230CStream[54] = {
-#include "assets/actor_141000_model_0230C_stream.inc"
-};
-
-static TmdSource _gActor141000Model0230C = {
-    0,
-    328,
-    0,
-    1,
-    _gActor141000Model0230CPartVerts,
-    _gActor141000Model0230CVerts,
-    &_gActor141000Model0230CVerts[9],
-    _gActor141000Model0230CSkeleton,
-    _gActor141000Model0230CStream,
-};
+#include "assets/rooms/shelter/b1_pod_access_tunnel/flame.inc"
 
 /// Recorded flight Euler angles for frames 0..89, in 4096 units per turn.
 ///
@@ -356,7 +330,7 @@ TaskDesc gActor141000FlightTasks[3] = {
     {
         .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_141000_TASK_PRIORITY } },
         .callback = _actor141000FlightControllerTask,
-        .data     = { .model = &_gActor141000Model0230C },
+        .data     = { .model = &_gShelterB1PodAccessTunnelFlame },
     },
     {
         .header   = { .fields = { .flags = TASK_BODY_COORD, .priority = ACTOR_141000_TASK_PRIORITY } },

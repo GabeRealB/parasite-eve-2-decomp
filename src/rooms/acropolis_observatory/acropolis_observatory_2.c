@@ -61,29 +61,9 @@ static SVECTOR _gAcropolisObservatoryPromenadeArrivalPlayerPath[300] = {
 #include "assets/acropolis_observatory_path_01BAC.inc"
 };
 
-static AnimationPackedPose _gAcropolisObservatoryAnimation02878Bank1[7] = {
-#include "assets/acropolis_observatory_animation_02878_bank1.inc"
-};
+#include "assets/rooms/akropolis/observatory/clips.inc"
 
-static AnimationPackedRotation _gAcropolisObservatoryAnimation02878Bank4[65] = {
-#include "assets/acropolis_observatory_animation_02878_bank4.inc"
-};
-
-static AnimationRecord _gAcropolisObservatoryAnimation02878Records[123] = {
-#include "assets/acropolis_observatory_animation_02878_records.inc"
-};
-
-static u16 _gAcropolisObservatoryAnimation02878Indices[20] = {
-#include "assets/acropolis_observatory_animation_02878_indices.inc"
-};
-
-AnimationSet gAcropolisObservatoryAnimation02878 = {
-    _gAcropolisObservatoryAnimation02878Records,
-    _gAcropolisObservatoryAnimation02878Indices,
-    { NULL, _gAcropolisObservatoryAnimation02878Bank1, NULL, NULL, _gAcropolisObservatoryAnimation02878Bank4, NULL, NULL, NULL },
-};
-
-AnimationSet* gAcropolisObservatoryPlayerAnimationSets[2] = { NULL, &gAcropolisObservatoryAnimation02878 };
+#include "assets/rooms/akropolis/observatory/acropolis_observatory_player_bank.inc"
 
 /// Phases and sampling units shared by the two observatory arrival controllers.
 enum {

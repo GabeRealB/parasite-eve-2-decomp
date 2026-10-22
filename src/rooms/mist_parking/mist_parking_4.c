@@ -135,9 +135,9 @@ TaskDesc gMistParkingShopTaskDescriptors[5] = {
 /// borrowed for playback while this overlay is loaded.
 static AnimationSet* _gMistParkingShopPlayerAnimationSets[] = {
     NULL,
-    &gMistParkingAnimation129F8,
-    &gMistParkingAnimation12DCC,
-    &gMistParkingAnimation1323C,
+    &gMistParkingStandCopyClip,
+    &gMistParkingTalkStartCopyClip,
+    &gMistParkingMistParkingPlayerConversationAnim21CopyClip,
 };
 
 AnimationBankCopyRequest gMistParkingShopPlayerAnimationBankCopy = { _gMistParkingShopPlayerAnimationSets, ARRAY_SIZE(_gMistParkingShopPlayerAnimationSets) };

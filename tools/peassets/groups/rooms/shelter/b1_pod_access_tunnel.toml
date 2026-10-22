@@ -4,7 +4,7 @@
 [eve]
 type = "pe2pkg"
 embedded = [
-    "actor_141000_model_0230C",
+    { name = "flame", offset = 0x0229C, size = 0x16C, address = 0x801340BC },
     "rooms/shelter/b1_pod_access_tunnel/flame_rotation_track",
     "rooms/shelter/b1_pod_access_tunnel/flame_position_track",
     { asset = "characters/eve/idle", offset = 0x082B4, size = 0x214, address = 0x8013A0D4 },
@@ -22,6 +22,12 @@ embedded = [
 package_name = "actor_141000"
 required = true
 sha1 = "2a2ab7f95a62766eb06a49260e7864c5b16b4432"
+
+[flame]
+type = "model"
+slots = ["flame_texture"]
+symbol = "_gShelterB1PodAccessTunnelFlame"
+sha1 = "7767c6d9d08972046ba6cdd72cd627365f742e63"
 
 [eve_bank]
 type = "animation_bank"
@@ -55,6 +61,11 @@ slots = [
     "entry_scene_12",
     "walk_slow",
 ]
+
+[flame_binding]
+type = "binding"
+model = "rooms/shelter/b1_pod_access_tunnel/flame"
+textures = { flame_texture = "rooms/shelter/b1_pod_access_tunnel/flame_texture.default" }
 
 [flame_texture]
 type = "texture"

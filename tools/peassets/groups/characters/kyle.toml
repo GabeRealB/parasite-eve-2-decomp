@@ -49,17 +49,25 @@ type = "file"
 [[file.contents]]
 chunk = "palette"
 sha1 = "25489aff45973f27912a996c612e3a8141fa1813"
-palettes = [
-    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
-    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
-]
+
+[[file.contents.palettes]]
+texture = "texture_page_1"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00000]
+
+[[file.contents.palettes]]
+texture = "texture_page_2"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00001]
 
 [[file.contents]]
 chunk = "image"
 sha1 = "900c89c06c8b71189bdedb0a2de780542c48406f"
 pages = [
-    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
-    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [0x00040, 0x00000] },
 ]
 slots = 6
 
@@ -544,20 +552,20 @@ sha1 = "a9a9ac3a39a92929f526f20c8f23b58297424d84"
 texture = "gas_mask_texture_page_1"
 variant = "default"
 region = "engine/vram/actor_palettes"
-offset = [0, 0]
+offset = [0x00000, 0x00000]
 
 [[gas_mask_file.contents.palettes]]
 texture = "gas_mask_texture_page_2"
 variant = "default"
 region = "engine/vram/actor_palettes"
-offset = [0, 1]
+offset = [0x00000, 0x00001]
 
 [[gas_mask_file.contents]]
 chunk = "gas_mask_image"
 sha1 = "4244394d816f3a7cd62fea7e4287d40dd3c44520"
 pages = [
-    { texture = "gas_mask_texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
-    { texture = "gas_mask_texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+    { texture = "gas_mask_texture_page_1", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] },
+    { texture = "gas_mask_texture_page_2", region = "engine/vram/actor_sheet", offset = [0x00040, 0x00000] },
 ]
 slots = 6
 

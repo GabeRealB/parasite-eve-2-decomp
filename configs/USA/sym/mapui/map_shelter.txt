@@ -673,3 +673,4 @@ _gMapShelterB2SouthMaintenanceWalkwayRoomCollisionResources = 0x8017b1e4;
 _gMapShelterB2NorthMaintenanceWalkwayRoomCollisionResources = 0x8017b204;
 _gMapShelterR47RoomCollisionResources = 0x8017b2e4;
 _gMapShelterWorldCollisionAreaRooms = 0x8017b2f4;
+gMapShelterAreaWarpEntries = 0x8017af88;

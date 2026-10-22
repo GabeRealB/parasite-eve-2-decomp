@@ -398,3 +398,6 @@ gMapDryfieldCellarVariant1Placements = 0x8017bc14;
 _gMapDryfieldRoomViewCountsByArea = 0x8017a990;
 gMapDryfieldViewCountTable = 0x8017aa28;
 _gMapDryfieldWorldCollisionAreaRooms = 0x8017aa2c;
+gMapDryfieldRoomLightingTables = 0x8017a860;
+gMapDryfieldAreaWarpEntries = 0x8017a8f8;
+gMapDryfieldSurfacePropertiesByArea = 0x8017ac9c;

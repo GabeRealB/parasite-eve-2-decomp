@@ -1,0 +1,145 @@
+# The assets of the group rooms/akropolis/hallway, each named rooms/akropolis/hallway/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "sounds_0"
+
+[[file.contents]]
+chunk = "sounds_1"
+
+[[file.contents]]
+chunk = "dialogue_0_atlas"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "6d96de9e86f6d5fd5f017b444405edf9087daeeb"
+palettes = [
+    { texture = "blue_key", variant = "default", region = "engine/vram/effect_palettes", offset = [0x00000, 0x00002] },
+    { name = "unread_row_264", entries = 256, region = "engine/vram/effect_palettes", offset = [0x00000, 0x00003] },
+]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "9a59e0fd256fb6840cf1431891b7b4aa2e53283b"
+pages = [{ texture = "blue_key", region = "engine/vram/room_sprite_sheet", offset = [0x00000, 0x00000] }]
+slots = 3
+
+[[file.contents]]
+chunk = "package"
+
+[[file.contents]]
+chunk = "bundle"
+
+[bundle]
+type = "pe2bundle"
+resources = ["rooms/akropolis/hallway/dialogue_0"]
+sha1 = "92423036ef88e01be88b40f8691a15d95e36714a"
+
+[package]
+type = "room"
+embedded = [
+    { name = "acropolis_hallway_model_01AE0", offset = 0x017A0, size = 0xB20, address = 0x8017ED60 },
+    "acropolis_hallway_model_023C0",
+]
+package_name = "acropolis_hallway"
+required = true
+sha1 = "61c66d02ac5846016b72779cd0bd9dd5fe6a4b44"
+
+[blue_key]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[sounds_0]
+type = "sound_bank"
+samples = [
+    "rooms/akropolis/patio/walk_floor_1",
+    "rooms/akropolis/patio/walk_floor_2",
+    "rooms/akropolis/cafeteria/walk_surface_3_1",
+    "rooms/akropolis/cafeteria/walk_surface_3_2",
+]
+sounds = { walk_floor_1 = 9, walk_floor_2 = 10, run_floor_1 = 11, run_floor_2 = 12 }
+sha1 = "af58a083eeffe8423612678fefe099e41595e44e"
+
+[sounds_1]
+type = "sound_bank"
+samples = [
+    "rooms/akropolis/security_room/door_depart",
+    "rooms/akropolis/security_room/door_arrive",
+    "rooms/akropolis/cafeteria/hallway_door_b_depart",
+    "rooms/akropolis/cafeteria/hallway_door_b_arrive",
+    "rooms/akropolis/hallway/unused_1",
+    "rooms/akropolis/hallway/key_box_open",
+    "rooms/akropolis/hallway/key_box_close",
+]
+sha1 = "b85e4341fa94f6bd29ebaba21c6cccc67617b9cc"
+
+[sounds_1.sounds]
+door_depart = 1
+door_arrive = 2
+cafeteria_door_depart = 3
+cafeteria_door_arrive = 4
+key_box_open = 6
+key_box_close = 7
+
+[unused_1]
+type = "sound"
+sha1 = "94ca207d3807db953822cfe8d40f3835aa1f9ee0"
+
+[dialogue_0]
+type = "cap"
+sha1 = "f861ec7c8eae2e7a657c2dc3daee0a736fbc2333"
+
+[key_box_open]
+type = "sound"
+sha1 = "6aa8aade9c0d6240f9bd692f45b3af97e085d856"
+
+[key_box_close]
+type = "sound"
+sha1 = "24e3526a540f5cf5e52756dd14d036781ff124d6"
+
+[dialogue_0_atlas]
+type = "font_atlas"
+bpp = 4
+generated_by = "rooms/akropolis/hallway/dialogue_0"
+h = 256
+w = 64
+x = 384
+y = 0
+sha1 = "c2bd811ecf4e9ab5e4722c173f520f84d57c3093"
+
+[view1_background]
+type = "bs"
+sha1 = "fc5fb2f3f50e81a4c683f2632bc501e51ce8fdc3"
+
+[view2_background]
+type = "bs"
+sha1 = "489ddadeec97620b88d3ed67cbb41ae01ab7b610"
+
+[view3_background]
+type = "bs"
+sha1 = "7b348b203899d93e6fd448687d8974bc26d6a54c"
+
+[view4_background]
+type = "bs"
+sha1 = "cfc371e33ffad2b33c3c60823cfaac580ece6ee2"
+
+[view5_background]
+type = "bs"
+sha1 = "4fe03700fe59be7f6e71f20f3e8f75baa7b6b864"
+
+[acropolis_hallway_model_01AE0]
+type = "model"
+slots = ["blue_key"]
+symbol = "gAkropolisHallwayAcropolisHallwayModel01AE0"
+sha1 = "fff6f28ce9a4e8511f7a36e1df9f84da24e761c2"
+
+[acropolis_hallway_model_01AE0_binding]
+type = "binding"
+model = "rooms/akropolis/hallway/acropolis_hallway_model_01AE0"
+textures = { blue_key = "rooms/akropolis/hallway/blue_key.default" }

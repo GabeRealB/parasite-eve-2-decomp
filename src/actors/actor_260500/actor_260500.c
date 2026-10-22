@@ -77,9 +77,9 @@ static AnimationSet _gShelter1fHeliportPlayerJodieOpening3Clip;
 static AnimationSet _gShelter1fHeliportPlayerJodieOpening4Clip;
 static AnimationSet _gShelter1fHeliportPlayerJodieOpening2Clip;
 static AnimationSet _gAyaConverseClip;
-static AnimationSet _gAyaIntroduceHerselfClip;
+extern AnimationSet gAyaIntroduceHerselfClip;
 extern AnimationSet gAyaStandClip;
-static AnimationSet _gAyaOnMyWayClip;
+extern AnimationSet gAyaOnMyWayClip;
 
 #include "assets/rooms/shelter/1f_heliport/jodie_clips_1.inc"
 

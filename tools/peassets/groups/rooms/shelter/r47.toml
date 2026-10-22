@@ -652,6 +652,7 @@ rig = "characters/aya/rig"
 [player_look_at_map]
 type = "clip"
 rig = "characters/aya/rig"
+symbol = "gShelterR47PlayerLookAtMapClip"
 
 [entry_player_schema]
 type = "animation_schema"

@@ -21,7 +21,7 @@ extern AreaVariant gAcropolisSanctuaryAreaVariants[12];
 
 extern TmdSource gAcropolisSanctuaryModel090F0;
 
-extern TmdSource gAcropolisSanctuaryModel09584;
+extern TmdSource gAkropolisSanctuaryAcropolisSanctuaryModel09584;
 
 /// Collision resources for the sanctuary's single room.
 ///

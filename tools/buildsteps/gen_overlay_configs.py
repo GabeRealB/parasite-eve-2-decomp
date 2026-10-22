@@ -498,7 +498,7 @@ def asset_symbols(package: str) -> list[tuple[str, int]]:
     out = []
     # An asset several packages carry (the P08's model, which its Snail variant places too) is listed by each.
     holder = next((rec for key, rec in data.ASSETS.items()
-                   if rec.get("type") == "pe2pkg" and rec.get("package_name", key) == package), None)
+                   if rec.get("type") in ("pe2pkg", "room") and rec.get("package_name", key) == package), None)
     placed = {p["name"]: p for p in (holder or {}).get("embedded", ()) if isinstance(p, dict)}
     for name, rec in data.ASSETS.items():
         place = data.EMBEDDED_ASSETS.get(name)

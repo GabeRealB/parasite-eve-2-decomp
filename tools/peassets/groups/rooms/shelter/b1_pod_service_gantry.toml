@@ -173,6 +173,7 @@ rig = "characters/aya/rig"
 [player_gantry_scene_7]
 type = "clip"
 rig = "characters/aya/rig"
+symbol = "gShelterB1PodServiceGantryPlayerGantryScene7Clip"
 
 [player_gantry_scene_9]
 type = "clip"

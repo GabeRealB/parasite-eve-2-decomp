@@ -1,0 +1,437 @@
+# The assets of the group rooms/akropolis/fire_escape, each named rooms/akropolis/fire_escape/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bundle]
+type = "pe2bundle"
+resources = [
+    "",
+    "",
+    "rooms/akropolis/fire_escape/view3_palette",
+    "",
+    "rooms/akropolis/fire_escape/view5_palette",
+    "",
+    "rooms/akropolis/fire_escape/view7_palette",
+    "",
+    "",
+    "",
+    "rooms/akropolis/fire_escape/dialogue_0",
+    "rooms/akropolis/story_calls",
+]
+sha1 = "bba4b123b927b03dded77bf32902642f029eb7a2"
+
+[package]
+type = "room"
+entries = { samples = [0x047BC], spare_batches = [0x05848] }
+package_name = "acropolis_fire_escape"
+required = true
+sha1 = "b7511004662cffe54763d3d29b6dce61614e4451"
+
+[sounds_0]
+type = "sound_bank"
+samples = [
+    "rooms/akropolis/fire_escape/unused_5",
+    "rooms/akropolis/fire_escape/unused_6",
+    "rooms/akropolis/fire_escape/unused_7",
+    "rooms/akropolis/fire_escape/unused_8",
+    "rooms/akropolis/fire_escape/unused_9",
+    "rooms/akropolis/fire_escape/unused_10",
+    "rooms/akropolis/fire_escape/unused_1",
+    "rooms/akropolis/fire_escape/unused_2",
+    "rooms/akropolis/square/walk_floor_1",
+    "rooms/akropolis/square/walk_floor_2",
+    "rooms/akropolis/fire_escape/unused_3",
+    "rooms/akropolis/fire_escape/unused_4",
+]
+sha1 = "4a4d7cbc6c2821867ca0e7ce7e51d787055da0ab"
+
+[sounds_0.sounds]
+walk_floor_1 = 13
+walk_floor_2 = 14
+run_floor_1 = 15
+run_floor_2 = 16
+walk_stairs_1 = 21
+walk_stairs_2 = 22
+run_stairs_1 = 23
+run_stairs_2 = 24
+jump_stairs_1 = 25
+jump_stairs_2 = 26
+
+[sounds_1]
+type = "sound_bank"
+samples = [
+    "rooms/akropolis/fire_escape/scene_start",
+    "rooms/akropolis/fire_escape/door_bridge_open",
+    "rooms/akropolis/fire_escape/door_bridge_close",
+    "rooms/akropolis/fire_escape/scene_end",
+    "rooms/akropolis/square/telephone_ring",
+    "rooms/akropolis/fire_escape/light_flicker",
+    "rooms/akropolis/square/call_scene",
+    "rooms/akropolis/roof_garden/ambience",
+    "rooms/akropolis/roof_garden/ambience_2",
+]
+sha1 = "6a782cf8f2c5f0f662b86d8f7fa13d074e3f7ec5"
+
+[sounds_1.sounds]
+scene_start = 1
+door_bridge_open = 2
+door_bridge_close = 3
+scene_end = 4
+ambience = 5
+light_flicker = 6
+scene_playback = 7
+scene_after = 8
+
+[unused_1]
+type = "sound"
+sha1 = "d689ec266fe853e6732bafce2cb81d71f9a423ce"
+
+[unused_2]
+type = "sound"
+sha1 = "11e53e4fbfbf2464f04340295e090a59b9e9b584"
+
+[unused_3]
+type = "sound"
+sha1 = "eab430060c2c5c8c18915fad6ff7e067db8c3efd"
+
+[unused_4]
+type = "sound"
+sha1 = "da591050955b2a673bbe99b3511cb364a11db382"
+
+[unused_5]
+type = "sound"
+sha1 = "4cd81bc64055864f94b082baf5e95e08ef238aa5"
+
+[unused_6]
+type = "sound"
+sha1 = "c43d01f95dbc122e9faa078f133e0cf87fa97c4c"
+
+[unused_7]
+type = "sound"
+sha1 = "7e3ab468b9e0746a749aacce89c6219667de1ccb"
+
+[unused_8]
+type = "sound"
+sha1 = "d957bfdcd7611acbddb93971a5d5002597092c93"
+
+[unused_9]
+type = "sound"
+sha1 = "c8cd1142d7c631e29a42a561ec68b4e3b90796bc"
+
+[scene_end]
+type = "sound"
+sha1 = "b004516d9dc39e6eb274306edcc3fb20b9cb382c"
+
+[unused_10]
+type = "sound"
+sha1 = "c0b09a0b9c3ca51d227f5ac5aa1a19a509671a57"
+
+[dialogue_0]
+type = "cap"
+sha1 = "6db5de4ea44ef373dde40258dfb282010b70ab99"
+
+[view3_file]
+type = "file"
+
+[[view3_file.contents]]
+chunk = "view3_image"
+sha1 = "8c0ff12d677e3455abddfe8e23dc217042b37f10"
+slots = 3
+
+[[view3_file.contents.pages]]
+texture = "view3_page_1"
+region = "engine/vram/room_sprite_sheet"
+offset = [0x00080, 0x00000]
+truncated = true
+
+[[view3_file.contents.pages]]
+texture = "view3_page_2"
+region = "engine/vram/room_sprite_sheet"
+offset = [0x000C0, 0x00000]
+truncated = true
+
+[[view3_file.contents]]
+chunk = "view3_background"
+
+[[view3_file.contents]]
+chunk = "view3_palette"
+sha1 = "3aa870fb9b602e618c7aceb6d0909b78fd08d311"
+
+[[view3_file.contents.palettes]]
+texture = "view3_page_1"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view3_file.contents.palettes]]
+texture = "view3_page_2"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view3_file.contents.palettes]]
+name = "unread_row_1"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view3_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view3_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view3_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view3_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
+[view5_file]
+type = "file"
+
+[[view5_file.contents]]
+chunk = "view5_image"
+sha1 = "965ee88a7618680d536ef34783afa6edb6864290"
+slots = 3
+
+[[view5_file.contents.pages]]
+texture = "view5_page_1"
+region = "engine/vram/room_sprite_sheet"
+offset = [0x00080, 0x00000]
+truncated = true
+
+[[view5_file.contents.pages]]
+texture = "view5_page_2"
+region = "engine/vram/room_sprite_sheet"
+offset = [0x000C0, 0x00000]
+truncated = true
+
+[[view5_file.contents]]
+chunk = "view5_background"
+
+[[view5_file.contents]]
+chunk = "view5_palette"
+sha1 = "7ca90c3d0884ebbeec38850ca882fc10a85731b9"
+
+[[view5_file.contents.palettes]]
+texture = "view5_page_1"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view5_file.contents.palettes]]
+texture = "view5_page_2"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view5_file.contents.palettes]]
+name = "unread_row_1"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view5_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view5_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view5_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view5_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
+[view7_file]
+type = "file"
+
+[[view7_file.contents]]
+chunk = "view7_image"
+sha1 = "a5c7246bac7c30ac1115bee02ae773674b8218bb"
+pages = [
+    { texture = "view7_page_1", region = "engine/vram/room_sprite_sheet", offset = [0x00080, 0x00000] },
+    { texture = "view7_page_2", region = "engine/vram/room_sprite_sheet", offset = [0x000C0, 0x00000] },
+]
+slots = 3
+
+[[view7_file.contents]]
+chunk = "view7_background"
+
+[[view7_file.contents]]
+chunk = "view7_palette"
+sha1 = "62ee63c2337e99c7771f44ae9eba3527076ad69c"
+
+[[view7_file.contents.palettes]]
+texture = "view7_page_1"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view7_file.contents.palettes]]
+texture = "view7_page_2"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view7_file.contents.palettes]]
+name = "unread_row_1"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view7_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view7_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view7_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view7_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
+[scene_start]
+type = "sound"
+sha1 = "fa7a5925242e6056dee2b7b54ad83e1251ebd9fa"
+
+[view3_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view3_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view5_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view5_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view7_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view7_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[light_flicker]
+type = "sound"
+sha1 = "4099206d3f3f9d703584d6c3fe2a8483341a36e4"
+
+[dialogue_0_atlas]
+type = "font_atlas"
+bpp = 4
+generated_by = "rooms/akropolis/fire_escape/dialogue_0"
+h = 256
+w = 64
+x = 384
+y = 0
+sha1 = "815a5a96d6f0c01c1c16fc80ff22cc351490fdfe"
+
+[door_bridge_open]
+type = "sound"
+sha1 = "3f93d61e4161092296bd53397cf14c6034c86b7a"
+
+[view1_background]
+type = "bs"
+sha1 = "38f2fc4b75e593ed4b761137dd2cff1fda9f2a65"
+
+[view2_background]
+type = "bs"
+sha1 = "281c5b54f9c23df803ab3d9b758ff2d02fb9e43f"
+
+[view3_background]
+type = "bs"
+sha1 = "a3b5be626691fb5c236be120c6e1a0e69aa23d2c"
+
+[view4_background]
+type = "bs"
+sha1 = "239d6c2421cee81d98b647a9fdc01add00e9d8f6"
+
+[view5_background]
+type = "bs"
+sha1 = "9fe0f9024814da4b860b8b954a2eedb494ed688e"
+
+[view6_background]
+type = "bs"
+sha1 = "a960019aa010a456cffafc6e92dd24cf1c6fb0c2"
+
+[view7_background]
+type = "bs"
+sha1 = "3fd6346594db13b5633a9c92c55f271260fbe159"
+
+[view8_background]
+type = "bs"
+sha1 = "861677e326bb1d690a74b08442473b21c8f9168d"
+
+[view9_background]
+type = "bs"
+sha1 = "64dc24f14897c61e4bac372d1bd2697e6f3656d8"
+
+[door_bridge_close]
+type = "sound"
+sha1 = "91e376b6422532e0b4e33d92dd2347f5ad5d8474"
+
+[view10_background]
+type = "bs"
+sha1 = "1af7da55cb985ebf50b79683421e46eb8d27d46f"

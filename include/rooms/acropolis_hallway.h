@@ -22,7 +22,7 @@
 /// and each selected actor overlay loaded throughout its tasks' lifetime.
 extern AreaVariant gAcropolisHallwayAreaVariants[13];
 
-extern TmdSource gAcropolisHallwayModel01AE0;
+extern TmdSource gAkropolisHallwayAcropolisHallwayModel01AE0;
 
 /// Collision resources for hallway room 1: mesh, view boundaries and action quads.
 ///

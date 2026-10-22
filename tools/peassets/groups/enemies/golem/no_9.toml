@@ -630,7 +630,7 @@ embedded = [
     "actor_510900_animation_11340",
 ]
 package_name = "actor_510900"
-parent = "acropolis_helicopter_landing_pad"
+parent = "rooms/akropolis/helicopter_landing_pad/package"
 required = true
 sha1 = "91bc20bb98fc6653a2729859fef0014c3366bfa1"
 
@@ -749,13 +749,13 @@ sha1 = "6807da259f0902b8c8c91c65ca8d47b530d7a6ea"
 texture = "texture_dryfield_page_1"
 variant = "default"
 region = "engine/vram/actor_palettes"
-offset = [0, 0]
+offset = [0x00000, 0x00000]
 
 [[package_dryfield_file.contents.palettes]]
 texture = "texture_dryfield_page_2"
 variant = "default"
 region = "engine/vram/actor_palettes"
-offset = [0, 1]
+offset = [0x00000, 0x00001]
 
 [[package_dryfield_file.contents]]
 chunk = "palette_dryfield_2"
@@ -765,15 +765,15 @@ sha1 = "e4e29496800573db7db990426c4145198368e756"
 texture = "texture_dryfield_page_3"
 variant = "default"
 region = "engine/vram/actor_palettes"
-offset = [0, 2]
+offset = [0x00000, 0x00002]
 
 [[package_dryfield_file.contents]]
 chunk = "image_dryfield"
 sha1 = "1e8ccf9275d5dae9c7bbab09c60a6b06acee1e98"
 pages = [
-    { texture = "texture_dryfield_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
-    { texture = "texture_dryfield_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
-    { texture = "texture_dryfield_page_3", region = "engine/vram/actor_sheet", offset = [128, 0] },
+    { texture = "texture_dryfield_page_1", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] },
+    { texture = "texture_dryfield_page_2", region = "engine/vram/actor_sheet", offset = [0x00040, 0x00000] },
+    { texture = "texture_dryfield_page_3", region = "engine/vram/actor_sheet", offset = [0x00080, 0x00000] },
 ]
 slots = 6
 
@@ -809,13 +809,13 @@ sha1 = "cf9959f2952722bf78513b1393525cbec4f57018"
 texture = "texture_akropolis_page_1"
 variant = "default"
 region = "engine/vram/actor_palettes"
-offset = [0, 0]
+offset = [0x00000, 0x00000]
 
 [[package_akropolis_file.contents.palettes]]
 texture = "texture_akropolis_page_2"
 variant = "default"
 region = "engine/vram/actor_palettes"
-offset = [0, 1]
+offset = [0x00000, 0x00001]
 
 [[package_akropolis_file.contents]]
 chunk = "palette_akropolis_2"
@@ -825,15 +825,15 @@ sha1 = "2af25ad0cce4b9b82f813b5f13fd6f8067607e0b"
 texture = "texture_akropolis_page_3"
 variant = "default"
 region = "engine/vram/actor_palettes"
-offset = [0, 2]
+offset = [0x00000, 0x00002]
 
 [[package_akropolis_file.contents]]
 chunk = "image_akropolis"
 sha1 = "cac88a65c67965fbf6c3b79113936088db6d3d53"
 pages = [
-    { texture = "texture_akropolis_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
-    { texture = "texture_akropolis_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
-    { texture = "texture_akropolis_page_3", region = "engine/vram/actor_sheet", offset = [128, 0] },
+    { texture = "texture_akropolis_page_1", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] },
+    { texture = "texture_akropolis_page_2", region = "engine/vram/actor_sheet", offset = [0x00040, 0x00000] },
+    { texture = "texture_akropolis_page_3", region = "engine/vram/actor_sheet", offset = [0x00080, 0x00000] },
 ]
 slots = 6
 

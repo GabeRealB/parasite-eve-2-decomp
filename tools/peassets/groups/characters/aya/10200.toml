@@ -16,7 +16,7 @@ chunk = "palette"
 sha1 = "e60cbd12a3db18d303d7e78e762536fa3339bee0"
 palettes = [
     { texture = "page_0", variant = "default", region = "engine/vram/character_palette" },
-    { texture = "page_1", variant = "default", region = "engine/vram/character_palette", offset = [0, 1] },
+    { texture = "page_1", variant = "default", region = "engine/vram/character_palette", offset = [0x00000, 0x00001] },
 ]
 
 [[file.contents]]
@@ -25,7 +25,7 @@ sha1 = "195bbc6bf54e1ad43f58aa097499486b1935ec2c"
 slots = 6
 pages = [
     { texture = "page_0", region = "engine/vram/character_sheet" },
-    { texture = "page_1", region = "engine/vram/character_sheet", offset = [64, 0] },
+    { texture = "page_1", region = "engine/vram/character_sheet", offset = [0x00040, 0x00000] },
 ]
 
 [[file.contents]]

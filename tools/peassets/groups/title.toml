@@ -49,7 +49,7 @@ chunk = "chrome_image"
 sha1 = "265dfbebeafa8446495f04515607ea05ffaa30f6"
 pages = [
     { texture = "chrome_left", region = "engine/vram/title_chrome" },
-    { texture = "chrome_right", region = "engine/vram/title_chrome", offset = [64, 0] },
+    { texture = "chrome_right", region = "engine/vram/title_chrome", offset = [0x00040, 0x00000] },
 ]
 
 [chrome_right]

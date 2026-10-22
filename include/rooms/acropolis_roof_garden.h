@@ -22,7 +22,7 @@
 /// and each selected actor overlay loaded throughout its tasks' lifetime.
 extern AreaVariant gAcropolisRoofGardenAreaVariants[12];
 
-extern TmdSource gAcropolisRoofGardenModel09868;
+extern TmdSource gAkropolisRoofGardenAcropolisRoofGardenModel09868;
 
 /// Collision resources for roof-garden room 1, indexed by room minus one.
 ///

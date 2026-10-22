@@ -65,7 +65,7 @@ static s32 _acropolisHelicopterLandingPadLiftHandleRunRequest(Task* task, s32 me
 /// Lift messages for scripted travel and Euler placement, followed by the terminator.
 ///
 /// The initialized lift task borrows this table while the room is loaded.
-static const TaskMessageEntry _gAcropolisHelicopterLandingPadLiftMessages[3] SECTION(".data") = {
+static TaskMessageEntry _gAcropolisHelicopterLandingPadLiftMessages[3] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _acropolisHelicopterLandingPadLiftHandleRunRequest },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -74,7 +74,7 @@ static const TaskMessageEntry _gAcropolisHelicopterLandingPadLiftMessages[3] SEC
 /// Three directional lights used to initialize the lift's task-owned matrices.
 ///
 /// Directions use ONE per unit; RGB levels are 128 on the 256-per-unit scale.
-static const GsF_LIGHT _gAcropolisHelicopterLandingPadLiftFlatLights[3] SECTION(".data") = {
+static GsF_LIGHT _gAcropolisHelicopterLandingPadLiftFlatLights[3] = {
     { 0, ONE, 0, 128, 128, 128 },
     { ONE, 0, 0, 128, 128, 128 },
     { 0, 0, ONE, 128, 128, 128 },
@@ -84,7 +84,7 @@ static const GsF_LIGHT _gAcropolisHelicopterLandingPadLiftFlatLights[3] SECTION(
 ///
 /// Nonzero draws the lift in views 1, 10, 11, 18 and 22. Room views are 1..27;
 /// slot 0 and the remaining authored storage stay present in this 36-byte table.
-static const s8 _gAcropolisHelicopterLandingPadLiftVisibleByView[36] SECTION(".data") = {
+static s8 _gAcropolisHelicopterLandingPadLiftVisibleByView[36] = {
     0,
     1,
     0,
@@ -126,44 +126,14 @@ static const s8 _gAcropolisHelicopterLandingPadLiftVisibleByView[36] SECTION(".d
 /// Lift placement at the lower stop, used to begin raising and to park below the pad.
 ///
 /// Position is in whole root-parent coordinate units; Euler angles are zero.
-static const ActorTransform _gAcropolisHelicopterLandingPadLiftLowerStopPlacement SECTION(".data") = { { -5340, 120, -1900, 0 }, { 0, 0, 0, 0 } };
+static ActorTransform _gAcropolisHelicopterLandingPadLiftLowerStopPlacement = { { -5340, 120, -1900, 0 }, { 0, 0, 0, 0 } };
 
 /// Lift placement at the landing pad, used to begin lowering.
 ///
 /// Position is in whole root-parent coordinate units; Euler angles are zero.
-static const ActorTransform _gAcropolisHelicopterLandingPadLiftPadStopPlacement SECTION(".data") = { { -5340, -2880, -1900, 0 }, { 0, 0, 0, 0 } };
+static ActorTransform _gAcropolisHelicopterLandingPadLiftPadStopPlacement = { { -5340, -2880, -1900, 0 }, { 0, 0, 0, 0 } };
 
-static TmdBone _gAcropolisHelicopterLandingPadModel0547CSkeleton[1] = {
-#include "assets/acropolis_helicopter_landing_pad_model_0547C_skeleton.inc"
-};
-
-static u32 _gAcropolisHelicopterLandingPadModel0547CPartVerts[1] = {
-#include "assets/acropolis_helicopter_landing_pad_model_0547C_partVerts.inc"
-};
-
-static SVECTOR _gAcropolisHelicopterLandingPadModel0547CVerts[191] = {
-#include "assets/acropolis_helicopter_landing_pad_model_0547C_verts.inc"
-};
-
-static SVECTOR _gAcropolisHelicopterLandingPadModel0547CNormals[11] = {
-#include "assets/acropolis_helicopter_landing_pad_model_0547C_normals.inc"
-};
-
-static u32 _gAcropolisHelicopterLandingPadModel0547CStream[812] = {
-#include "assets/acropolis_helicopter_landing_pad_model_0547C_stream.inc"
-};
-
-TmdSource gAcropolisHelicopterLandingPadModel0547C = {
-    0,
-    6956,
-    0,
-    1,
-    _gAcropolisHelicopterLandingPadModel0547CPartVerts,
-    _gAcropolisHelicopterLandingPadModel0547CVerts,
-    _gAcropolisHelicopterLandingPadModel0547CNormals,
-    _gAcropolisHelicopterLandingPadModel0547CSkeleton,
-    _gAcropolisHelicopterLandingPadModel0547CStream,
-};
+#include "assets/rooms/akropolis/helicopter_landing_pad/acropolis_helicopter_landing_pad_model_0547C.inc"
 
 /// Initializes the lift's model, lighting and message handling.
 ///

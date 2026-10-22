@@ -77,14 +77,14 @@ chunk = "sounds"
 chunk = "palette"
 sha1 = "b22d25ea63b0221035d826c1226e6578d7eb9a75"
 palettes = [
-    { texture = "texture", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
-    { name = "unread_row_2", entries = 256, region = "engine/vram/actor_palettes", offset = [0, 1] },
+    { texture = "texture", variant = "default", region = "engine/vram/actor_palettes", offset = [0x00000, 0x00000] },
+    { name = "unread_row_2", entries = 256, region = "engine/vram/actor_palettes", offset = [0x00000, 0x00001] },
 ]
 
 [[package_file.contents]]
 chunk = "image"
 sha1 = "b71bcfbc1990a00ded45d14d5609043ba00655ef"
-pages = [{ texture = "texture", region = "engine/vram/actor_sheet", offset = [0, 0] }]
+pages = [{ texture = "texture", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] }]
 slots = 6
 
 [[package_file.contents]]

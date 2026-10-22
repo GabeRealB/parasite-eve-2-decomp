@@ -83,11 +83,11 @@ asset = "enemies/glutton/sounds"
 asset = "enemies/glutton/image"
 sha1 = "43fa8e4cdc34bc1863994a1286c1c9a5bf55709d"
 pages = [
-    { texture = "enemies/glutton/texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
-    { texture = "enemies/glutton/texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
-    { texture = "enemies/glutton/texture_page_3", region = "engine/vram/actor_sheet", offset = [128, 0] },
-    { texture = "enemies/glutton/texture_page_4", region = "engine/vram/actor_sheet", offset = [192, 0] },
-    { texture = "enemies/glutton/texture_page_5", region = "engine/vram/actor_sheet", offset = [256, 0] },
+    { texture = "enemies/glutton/texture_page_1", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] },
+    { texture = "enemies/glutton/texture_page_2", region = "engine/vram/actor_sheet", offset = [0x00040, 0x00000] },
+    { texture = "enemies/glutton/texture_page_3", region = "engine/vram/actor_sheet", offset = [0x00080, 0x00000] },
+    { texture = "enemies/glutton/texture_page_4", region = "engine/vram/actor_sheet", offset = [0x000C0, 0x00000] },
+    { texture = "enemies/glutton/texture_page_5", region = "engine/vram/actor_sheet", offset = [0x00100, 0x00000] },
 ]
 slots = 6
 
@@ -99,13 +99,13 @@ sha1 = "8cbaa7c1176c953ce0013e253ff370a5069fdeec"
 texture = "enemies/glutton/texture_page_1"
 variant = "default"
 region = "engine/vram/actor_palettes"
-offset = [0, 0]
+offset = [0x00000, 0x00000]
 
 [[gluttons_file.contents.palettes]]
 texture = "enemies/glutton/texture_page_2"
 variant = "default"
 region = "engine/vram/actor_palettes"
-offset = [0, 1]
+offset = [0x00000, 0x00001]
 
 [[gluttons_file.contents]]
 asset = "enemies/glutton/palette_2"
@@ -115,7 +115,7 @@ sha1 = "f18363c53f250a4bf541b187cf08b7ca9626f6ad"
 texture = "enemies/glutton/texture_page_3"
 variant = "default"
 region = "engine/vram/actor_palettes"
-offset = [0, 2]
+offset = [0x00000, 0x00002]
 
 [[gluttons_file.contents]]
 asset = "enemies/glutton/palette_3"
@@ -125,13 +125,13 @@ sha1 = "39753c62696296216b393793a3ed0bebdd088d8c"
 texture = "enemies/glutton/texture_page_4"
 variant = "default"
 region = "engine/vram/actor_palettes"
-offset = [0, 3]
+offset = [0x00000, 0x00003]
 
 [[gluttons_file.contents.palettes]]
 texture = "enemies/glutton/texture_page_5"
 variant = "default"
 region = "engine/vram/actor_palettes"
-offset = [0, 4]
+offset = [0x00000, 0x00004]
 
 [[gluttons_file.contents]]
 chunk = "gluttons"

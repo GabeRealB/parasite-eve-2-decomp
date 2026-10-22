@@ -104,7 +104,7 @@ extern AreaVariant gMistShootingGalleryAreaVariants[MIST_SHOOTING_GALLERY_AREA_V
 /// kill-count rows and reads the live gallery controller; it ignores the first
 /// spawn argument. Spawning copies this recipe. Keep the gallery overlay and
 /// controller work live through the result and any BONUS child panel.
-extern const UiObjectDesc gMistShootingGalleryResultPanelDesc;
+extern UiObjectDesc gMistShootingGalleryResultPanelDesc;
 
 /// Gallery weapon-picker recipe exported to the inventory menu's root session.
 ///
@@ -112,7 +112,7 @@ extern const UiObjectDesc gMistShootingGalleryResultPanelDesc;
 /// and a bodyless priority-192 task. Its handler fits and centers the panel to
 /// the owned weapons. Spawning copies the recipe; keep the gallery and callback
 /// loaded until the picker and its help children close.
-extern const UiObjectDesc gMistShootingGalleryWeaponSelectPanelDesc;
+extern UiObjectDesc gMistShootingGalleryWeaponSelectPanelDesc;
 
 /// Extents of the gallery's room directory and 1-based warp endpoint table.
 enum {

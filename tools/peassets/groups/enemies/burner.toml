@@ -308,33 +308,54 @@ chunk = "sounds"
 chunk = "image"
 sha1 = "652c1741c31eb0bb2671d95b96220c1836409803"
 pages = [
-    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
-    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
-    { texture = "texture_page_3", region = "engine/vram/actor_sheet", offset = [128, 0] },
-    { texture = "texture_page_4", region = "engine/vram/actor_sheet", offset = [192, 0] },
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [0x00040, 0x00000] },
+    { texture = "texture_page_3", region = "engine/vram/actor_sheet", offset = [0x00080, 0x00000] },
+    { texture = "texture_page_4", region = "engine/vram/actor_sheet", offset = [0x000C0, 0x00000] },
 ]
 slots = 6
 
 [[package_file.contents]]
 chunk = "palette"
 sha1 = "69430b3709ead59e85cf0f577d79e08fb46d5247"
-palettes = [
-    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
-    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
-]
+
+[[package_file.contents.palettes]]
+texture = "texture_page_1"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00000]
+
+[[package_file.contents.palettes]]
+texture = "texture_page_2"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00001]
 
 [[package_file.contents]]
 chunk = "palette_2"
 sha1 = "da468b81a5e93d57d32d46529d44375a0b0b4095"
-palettes = [{ texture = "texture_page_3", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 2] }]
+
+[[package_file.contents.palettes]]
+texture = "texture_page_3"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00002]
 
 [[package_file.contents]]
 chunk = "palette_3"
 sha1 = "e5b2c852b15912133c906b6007b77cb1e390b831"
-palettes = [
-    { texture = "texture_page_4", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 3] },
-    { name = "unread_row_2", entries = 256, region = "engine/vram/actor_palettes", offset = [0, 4] },
-]
+
+[[package_file.contents.palettes]]
+texture = "texture_page_4"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00003]
+
+[[package_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00004]
 
 [[package_file.contents]]
 chunk = "package"

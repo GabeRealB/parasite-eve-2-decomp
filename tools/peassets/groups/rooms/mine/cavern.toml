@@ -502,10 +502,10 @@ chunk = "blizzard_chasers_sounds"
 chunk = "blizzard_chasers_image"
 sha1 = "a30efed5547eba03ea0fd813752ba44f792b0b0f"
 pages = [
-    { texture = "blizzard_chasers_texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
-    { texture = "blizzard_chasers_texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
-    { texture = "blizzard_chasers_texture_page_3", region = "engine/vram/actor_sheet", offset = [128, 0] },
-    { texture = "blizzard_chasers_texture_page_4", region = "engine/vram/actor_sheet", offset = [192, 0] },
+    { texture = "blizzard_chasers_texture_page_1", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] },
+    { texture = "blizzard_chasers_texture_page_2", region = "engine/vram/actor_sheet", offset = [0x00040, 0x00000] },
+    { texture = "blizzard_chasers_texture_page_3", region = "engine/vram/actor_sheet", offset = [0x00080, 0x00000] },
+    { texture = "blizzard_chasers_texture_page_4", region = "engine/vram/actor_sheet", offset = [0x000C0, 0x00000] },
 ]
 slots = 6
 
@@ -517,13 +517,13 @@ sha1 = "7ef71aa347549761a9f6138464d014f1debedfb3"
 texture = "blizzard_chasers_texture_page_1"
 variant = "default"
 region = "engine/vram/actor_palettes"
-offset = [0, 0]
+offset = [0x00000, 0x00000]
 
 [[blizzard_chasers_file.contents.palettes]]
 texture = "blizzard_chasers_texture_page_2"
 variant = "default"
 region = "engine/vram/actor_palettes"
-offset = [0, 1]
+offset = [0x00000, 0x00001]
 
 [[blizzard_chasers_file.contents]]
 chunk = "blizzard_chasers_palette_2"
@@ -533,7 +533,7 @@ sha1 = "f987843645954df64d154a3bdc73622f66bed619"
 texture = "blizzard_chasers_texture_page_3"
 variant = "default"
 region = "engine/vram/actor_palettes"
-offset = [0, 2]
+offset = [0x00000, 0x00002]
 
 [[blizzard_chasers_file.contents]]
 chunk = "blizzard_chasers_palette_3"
@@ -543,13 +543,13 @@ sha1 = "64351ccfb599ad0ec108c825a77a07da67dc0143"
 texture = "blizzard_chasers_texture_page_4"
 variant = "default"
 region = "engine/vram/actor_palettes"
-offset = [0, 3]
+offset = [0x00000, 0x00003]
 
 [[blizzard_chasers_file.contents.palettes]]
 name = "unread_row_2"
 entries = 256
 region = "engine/vram/actor_palettes"
-offset = [0, 4]
+offset = [0x00000, 0x00004]
 
 [[blizzard_chasers_file.contents]]
 chunk = "blizzard_chasers"

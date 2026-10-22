@@ -39,7 +39,7 @@ extern PadScriptVibrationSegment gAcropolisHelicopterLandingPadLethalStrikeVibra
 /// and each selected actor overlay loaded throughout its tasks' lifetime.
 extern AreaVariant gAcropolisHelicopterLandingPadAreaVariants[13];
 
-extern TmdSource gAcropolisHelicopterLandingPadModel0547C;
+extern TmdSource gAkropolisHelicopterLandingPadAcropolisHelicopterLandingPadModel0547C;
 
 extern TmdSource gAcropolisHelicopterLandingPadModel0A8E8;
 

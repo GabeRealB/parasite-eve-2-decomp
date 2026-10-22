@@ -243,7 +243,7 @@ static const EnemyTaskFuncTable3 _gActor511000No9GolemStates = {
 
 static TmdSource _gRupertBody2;
 static TmdSource _gRupertMongoose;
-static TmdSource _gActor511000Prop1;
+static TmdSource _gRupertRadio;
 static s32       _actor511000PlayRupertAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
 static s32       _actor511000SetRupertModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg);
 static s32       _actor511000ApplyRupertCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
@@ -267,9 +267,9 @@ static void _actor511000No9GolemPart3Task(Task* task);
 static void _actor511000No9GolemPart12Task(Task* task);
 
 static TmdSource _gActor511000HelicopterBase;
-static TmdSource _gActor511000Prop2;
-static TmdSource _gActor511000Prop3;
-static TmdSource _gActor511000Model0A41C;
+static TmdSource _gAkropolisHelicopterLandingPadMainRotor;
+static TmdSource _gAkropolisHelicopterLandingPadTailRotor;
+static TmdSource _gAkropolisHelicopterLandingPadSearchlight;
 static void      _actor511000HelicopterTask(Task* task);
 static void      _actor511000HelicopterRotorTask(Task* task);
 static void      _actor511000HelicopterSearchlightTask(Task* task);
@@ -284,9 +284,9 @@ enum {
 
 TaskDesc gActor511000HelicopterTaskDescriptors[4] = {
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000HelicopterTask, { .model = &_gActor511000HelicopterBase } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000HelicopterRotorTask, { .model = &_gActor511000Prop2 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000HelicopterRotorTask, { .model = &_gActor511000Prop3 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000HelicopterSearchlightTask, { .model = &_gActor511000Model0A41C } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000HelicopterRotorTask, { .model = &_gAkropolisHelicopterLandingPadMainRotor } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000HelicopterRotorTask, { .model = &_gAkropolisHelicopterLandingPadTailRotor } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000HelicopterSearchlightTask, { .model = &_gAkropolisHelicopterLandingPadSearchlight } },
 };
 
 static TmdBone _gActor511000HelicopterBaseSkeleton[1] = {
@@ -321,133 +321,17 @@ static TmdSource _gActor511000HelicopterBase = {
     _gActor511000HelicopterBaseStream,
 };
 
-static TmdBone _gActor511000Prop2Skeleton[1] = {
-#include "assets/actor_511000_prop_2_skeleton.inc"
-};
+#include "assets/rooms/akropolis/helicopter_landing_pad/main_rotor.inc"
 
-static u32 _gActor511000Prop2PartVerts[1] = {
-#include "assets/actor_511000_prop_2_partVerts.inc"
-};
+#include "assets/rooms/akropolis/helicopter_landing_pad/tail_rotor.inc"
 
-static SVECTOR _gActor511000Prop2Verts[59] = {
-#include "assets/actor_511000_prop_2_verts.inc"
-};
-
-static SVECTOR _gActor511000Prop2Normals[1] = {
-#include "assets/actor_511000_prop_2_normals.inc"
-};
-
-static u32 _gActor511000Prop2Stream[111] = {
-#include "assets/actor_511000_prop_2_stream.inc"
-};
-
-static TmdSource _gActor511000Prop2 = {
-    0,
-    840,
-    0,
-    1,
-    _gActor511000Prop2PartVerts,
-    _gActor511000Prop2Verts,
-    _gActor511000Prop2Normals,
-    _gActor511000Prop2Skeleton,
-    _gActor511000Prop2Stream,
-};
-
-static TmdBone _gActor511000Prop3Skeleton[1] = {
-#include "assets/actor_511000_prop_3_skeleton.inc"
-};
-
-static u32 _gActor511000Prop3PartVerts[1] = {
-#include "assets/actor_511000_prop_3_partVerts.inc"
-};
-
-static SVECTOR _gActor511000Prop3Verts[12] = {
-#include "assets/actor_511000_prop_3_verts.inc"
-};
-
-static SVECTOR _gActor511000Prop3Normals[2] = {
-#include "assets/actor_511000_prop_3_normals.inc"
-};
-
-static u32 _gActor511000Prop3Stream[41] = {
-#include "assets/actor_511000_prop_3_stream.inc"
-};
-
-static TmdSource _gActor511000Prop3 = {
-    0,
-    280,
-    0,
-    1,
-    _gActor511000Prop3PartVerts,
-    _gActor511000Prop3Verts,
-    _gActor511000Prop3Normals,
-    _gActor511000Prop3Skeleton,
-    _gActor511000Prop3Stream,
-};
-
-static TmdBone _gActor511000Model0A41CSkeleton[1] = {
-#include "assets/actor_511000_model_0A41C_skeleton.inc"
-};
-
-static u32 _gActor511000Model0A41CPartVerts[1] = {
-#include "assets/actor_511000_model_0A41C_partVerts.inc"
-};
-
-static SVECTOR _gActor511000Model0A41CVerts[36] = {
-#include "assets/actor_511000_model_0A41C_verts.inc"
-};
-
-static SVECTOR _gActor511000Model0A41CNormals[15] = {
-#include "assets/actor_511000_model_0A41C_normals.inc"
-};
-
-static u32 _gActor511000Model0A41CStream[264] = {
-#include "assets/actor_511000_model_0A41C_stream.inc"
-};
-
-static TmdSource _gActor511000Model0A41C = {
-    0,
-    1576,
-    0,
-    1,
-    _gActor511000Model0A41CPartVerts,
-    _gActor511000Model0A41CVerts,
-    _gActor511000Model0A41CNormals,
-    _gActor511000Model0A41CSkeleton,
-    _gActor511000Model0A41CStream,
-};
+#include "assets/rooms/akropolis/helicopter_landing_pad/searchlight.inc"
 
 #include "assets/characters/rupert/body_2.inc"
 
 #include "assets/characters/rupert/mongoose.inc"
 
-static TmdBone _gActor511000Prop1Skeleton[1] = {
-#include "assets/actor_511000_prop_1_skeleton.inc"
-};
-
-static u32 _gActor511000Prop1PartVerts[1] = {
-#include "assets/actor_511000_prop_1_partVerts.inc"
-};
-
-static SVECTOR _gActor511000Prop1Verts[14] = {
-#include "assets/actor_511000_prop_1_verts.inc"
-};
-
-static u32 _gActor511000Prop1Stream[74] = {
-#include "assets/actor_511000_prop_1_stream.inc"
-};
-
-static TmdSource _gActor511000Prop1 = {
-    0,
-    504,
-    0,
-    1,
-    _gActor511000Prop1PartVerts,
-    _gActor511000Prop1Verts,
-    &_gActor511000Prop1Verts[14],
-    _gActor511000Prop1Skeleton,
-    _gActor511000Prop1Stream,
-};
+#include "assets/characters/rupert/radio.inc"
 
 #include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_departure_clips_2.inc"
 
@@ -525,7 +409,7 @@ static AnimationSet** _gActor511000RupertAnimationBanks[1] = {
 TaskDesc gActor511000RupertTaskDescriptors[3] = {
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000RupertBodyTask, { .model = &_gRupertBody2 } },
     { { { TASK_BODY_TMD, ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000RupertRevolverTask, { .model = &_gRupertMongoose } },
-    { { { TASK_BODY_TMD, ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000RupertPropTask, { .model = &_gActor511000Prop1 } },
+    { { { TASK_BODY_TMD, ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000RupertPropTask, { .model = &_gRupertRadio } },
 };
 
 /// Rupert's eye-image message; argument 1 selects 0/2 open, 1 closed, 3 blink.

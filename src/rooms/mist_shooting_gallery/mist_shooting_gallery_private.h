@@ -67,7 +67,7 @@ enum { MIST_SHOOTING_GALLERY_AMBIENT_VIEW_COUNT = 18 };
 /// index. RGB components use 16 units per 8-bit colour level; stored brightness
 /// in the fourth component is unused by lighting. Both room light collections
 /// share this table. Borrowed pointers are valid only while the overlay is loaded.
-extern const WorldCoordRoomAmbientEntry gMistShootingGalleryViewAmbientTable[MIST_SHOOTING_GALLERY_AMBIENT_VIEW_COUNT + 1];
+extern WorldCoordRoomAmbientEntry gMistShootingGalleryViewAmbientTable[MIST_SHOOTING_GALLERY_AMBIENT_VIEW_COUNT + 1];
 
 /// Unspent EXP captured before the carryover menu changes the selected run mode.
 ///

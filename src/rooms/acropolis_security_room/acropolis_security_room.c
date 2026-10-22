@@ -70,6 +70,9 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
+
+#include "assets/rooms/akropolis/security_room/declarations.inc"
+
 static s32 _actionPromptHitTestDefault(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
 #define ACTION_PROMPT_HIT_TEST _actionPromptHitTestDefault
 #include "../../shared/room/action_prompt.h"
@@ -515,11 +518,6 @@ static void _acropolisSecurityRoomOpenPowerSupplyTask(Task* task);
 static void _acropolisSecurityRoomPowerSupplyUseLeftLock(Task* task);
 static void _acropolisSecurityRoomPowerSupplyUseRightLock(Task* task);
 
-static WorldCollisionGrid    _gAcropolisSecurityRoomCollisionGrid;
-static WorldCollisionTrigger _gAcropolisSecurityRoomViewBoundaryTriggers[4];
-static WorldCollisionTrigger _gAcropolisSecurityRoomActionTriggers[5];
-static WorldCoordRoomLights  _gAcropolisSecurityRoomLights;
-
 static s32 _acropolisSecurityRoomResolveTransition(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _acropolisSecurityRoomForwardKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedPayload);
 static s32 _acropolisSecurityRoomHandleCommand(Task* task, s32 messageId, s32 commandId, s32 unusedPayload);
@@ -748,17 +746,7 @@ static _AcropolisSecurityRoomMonitorFeedQuad _gAcropolisSecurityRoomLockIndicato
     { 264, 128, 128, 100, -15 },
 };
 
-/// Glow offsets for left locked/released and right locked/released indicators.
-///
-/// Signed halfword game units in the emitter coordinate's frame, transformed
-/// into each glow's coordinate during spawning. Indices 0..3 agree with the
-/// lamp-enable bits and colour masks; keep the room loaded through drawing.
-static SVECTOR _gAcropolisSecurityRoomLockIndicatorGlowOffsets[4] = {
-    { 720, -2450, 420, 0 },
-    { 720, -2450, 280, 0 },
-    { 720, -2450, 350, 0 },
-    { 720, -2450, 210, 0 },
-};
+#include "assets/rooms/akropolis/security_room/markers.inc"
 
 enum {
     ACROPOLIS_SECURITY_ROOM_LOCK_INDICATOR_GLOW_GREEN = 1 << 0,
@@ -788,24 +776,16 @@ static EffectUnitQuadCorner _gAcropolisSecurityRoomFallingQuadUnitCorners[4] = {
     { 1, -1 },
 };
 
-WorldCollisionRoomResources gAcropolisSecurityRoomRoomCollisionResources[1] = {
-    {
-        .grid                 = &_gAcropolisSecurityRoomCollisionGrid,
-        .viewBoundaryTriggers = _gAcropolisSecurityRoomViewBoundaryTriggers,
-        .actionTriggers       = _gAcropolisSecurityRoomActionTriggers,
-        .occluders            = NULL,
-    },
-};
-
-u8* gAcropolisSecurityRoomViewMaps[1] = {
-    gViewIdentityMap,
-};
-
-ViewCount gAcropolisSecurityRoomViewCounts[1] = { ARRAY_SIZE(gAcropolisSecurityRoomViewCameras) };
-
-WorldCoordRoomLighting gAcropolisSecurityRoomRoomLightingTable[1] = {
-    { .lights = &_gAcropolisSecurityRoomLights, .ambientTable = NULL },
-};
+#include "assets/rooms/akropolis/security_room/header.inc"
+#include "assets/rooms/akropolis/security_room/geometry.inc"
+#include "assets/rooms/akropolis/security_room/view_boundaries.inc"
+#include "assets/rooms/akropolis/security_room/action_triggers.inc"
+#include "assets/rooms/akropolis/security_room/placements.inc"
+#include "assets/rooms/akropolis/security_room/lights.inc"
+#include "assets/rooms/akropolis/security_room/sprites.inc"
+#include "assets/rooms/akropolis/security_room/cameras.inc"
+#include "assets/rooms/akropolis/security_room/updates.inc"
+#include "assets/rooms/akropolis/security_room/surfaces.inc"
 
 /// Security/hallway endpoint selectors and security-side arrival presentation.
 enum {
@@ -816,92 +796,6 @@ enum {
     ACROPOLIS_SECURITY_ROOM_HALLWAY_MAP_MARK_FLAG    = 0x1F2,
 };
 
-DirectionWarpEntry gAcropolisSecurityRoomWarpEntries[1] = {
-    [ACROPOLIS_SECURITY_ROOM_WARP_HALLWAY - 1] = {
-        .player         = { { .word = 0 }, -46, -935, -2877 },
-        .unknown_10     = { 0, 0, 0, 0 },
-        .companion      = { { .word = 0 }, -46, -935, -2877 },
-        .unknown_24     = { 0, 0, 0, 0 },
-        .arrivalSound   = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SECURITY_ROOM, 5),
-        .departureSound = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SECURITY_ROOM, 4),
-        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
-        .initialView    = ACROPOLIS_SECURITY_ROOM_WARP_INITIAL_VIEW,
-        .flags          = DIRECTION_WARP_FLAG_NONE,
-        .mapFlagId      = ACROPOLIS_SECURITY_ROOM_HALLWAY_MAP_MARK_FLAG,
-    },
-};
-
-/// Room-local Q12 normals for the security-room collision mesh.
-static SVECTOR _gAcropolisSecurityRoomCollisionGridNormals[11] = {
-#include "assets/acropolis_security_room_collision_067D4_normals.inc"
-};
-
-/// Room-local signed coordinate vertices for the security-room collision mesh.
-static SVECTOR _gAcropolisSecurityRoomCollisionGridVerts[50] = {
-#include "assets/acropolis_security_room_collision_067D4_verts.inc"
-};
-
-/// Collision quads selecting mesh vertices, normals and room-local surface classes.
-static WorldCollisionGridFace _gAcropolisSecurityRoomCollisionGridFaces[24] = {
-#include "assets/acropolis_security_room_collision_067D4_faces.inc"
-};
-
-/// Terminated face-index lists for the security-room collision cells.
-///
-/// The final stored halfword lies after the second list terminator; it is
-/// retained from the asset and its role is unproven.
-static s16 _gAcropolisSecurityRoomCollisionGridCells[46] = {
-#include "assets/acropolis_security_room_collision_067D4_cells.inc"
-};
-
-/// Selects a collision cell's face-index list for the generated directory.
-///
-/// Captures `_gAcropolisSecurityRoomCollisionGridCells` (46 s16 elements).
-/// `halfwordOffset` must be a constant s16-element offset to a list start
-/// within that pool; the list must also end there at
-/// `WORLD_COLLISION_GRID_CELL_END`. Evaluates the offset once and returns a
-/// borrowed `s16*` without reading or changing the list.
-/// The pool must stay loaded while the directory is used.
-/// This grid's `cell_face_list_macro` manifest setting selects the binding;
-/// it is defined only around the table include.
-#define ACROPOLIS_SECURITY_ROOM_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gAcropolisSecurityRoomCollisionGridCells[(halfwordOffset)])
-
-/// X-major cell directory borrowing the two terminated collision face lists.
-static s16* _gAcropolisSecurityRoomCollisionGridTable[2] = {
-#include "assets/acropolis_security_room_collision_067D4_table.inc"
-};
-#undef ACROPOLIS_SECURITY_ROOM_CELL_FACE_LIST_AT_OFFSET
-
-/// Security-room collision mesh and its one-by-two XZ cell index.
-///
-/// Coordinates use room units; cells have side 4000 and origin (-1250,-3250).
-/// Activation binds the view coordinate. The record and mesh pools remain
-/// writable and live while the room overlay is loaded.
-static WorldCollisionGrid _gAcropolisSecurityRoomCollisionGrid = {
-    .viewCoord   = NULL,
-    .normals     = _gAcropolisSecurityRoomCollisionGridNormals,
-    .vertices    = _gAcropolisSecurityRoomCollisionGridVerts,
-    .faces       = _gAcropolisSecurityRoomCollisionGridFaces,
-    .cellFaceIds = _gAcropolisSecurityRoomCollisionGridTable,
-    .xBias       = 1250,
-    .zBias       = 3250,
-    .cellCountX  = 1,
-    .cellCountZ  = ARRAY_SIZE(_gAcropolisSecurityRoomCollisionGridTable),
-    .cellSize    = 4000,
-    .faceCount   = ARRAY_SIZE(_gAcropolisSecurityRoomCollisionGridFaces),
-};
-
-/// Directed camera boundaries 2 to 3, 3 to 4, 4 to 3 and 3 to 2.
-///
-/// The LAST-marked fourth record is live. Room activation binds coordinates
-/// and links/enables the records; storage must remain loaded until unlinked.
-static WorldCollisionTrigger _gAcropolisSecurityRoomViewBoundaryTriggers[4] = {
-    { NULL, NULL, NULL, { -64, -2080, -513, 0 }, { { -1472, -1664, 0, 0 }, { 1472, -1664, 0, 0 }, { -1472, 1664, 0, 0 }, { 1472, 1664, 0, 0 } }, { 0, 0, -4104, 0 }, { 0, 0, 0, 0 }, 2217, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -2, -2016, 1215, 0 }, { { -1471, -1664, 0, 0 }, { 1472, -1664, 0, 0 }, { -1471, 1664, 0, 0 }, { 1472, 1664, 0, 0 } }, { 0, 0, -4104, 0 }, { 0, 0, 0, 0 }, 2217, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1, -2176, 1087, 0 }, { { -1473, 1664, 0, 0 }, { 1472, 1664, 1, 0 }, { -1473, -1664, 0, 0 }, { 1472, -1664, 1, 0 } }, { -2, 0, 4103, 0 }, { 0, 0, 0, 0 }, 2217, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0, -2208, -1024, 0 }, { { -1472, 1664, 0, 0 }, { 1472, 1664, 0, 0 }, { -1472, -1664, 0, 0 }, { 1472, -1664, 0, 0 } }, { 0, 0, 4103, 0 }, { 0, 0, 0, 0 }, 2217, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
-};
-
 /// Slots in the loaded CAP command table and the room-action message table.
 enum {
     ACROPOLIS_SECURITY_ROOM_TRIGGER_CAP_COMMAND_1  = 1,
@@ -910,472 +804,16 @@ enum {
     ACROPOLIS_SECURITY_ROOM_TRIGGER_MONITOR_ACTION = 0,
 };
 
-/// Facing quads for hallway departure, CAP commands 1/2, monitor use and CAP command 10.
-///
-/// Origins, vertices and radii use room-coordinate units; normals use ONE
-/// per unit. Activation binds coordinates and links/enables all five records,
-/// including the LAST-marked final quad. Keep storage loaded until unlinked.
-static WorldCollisionTrigger _gAcropolisSecurityRoomActionTriggers[5] = {
-    { NULL, NULL, NULL, { 128, -1024, -2896, 0 }, { { -544, 0, -240, 0 }, { 544, 0, -240, 0 }, { -544, 0, 240, 0 }, { 544, 0, 240, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, ONE, 0 }, 593, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_AKROPOLIS_HALLWAY, (ACROPOLIS_SECURITY_ROOM_WARP_HALLWAY << ACROPOLIS_SECURITY_ROOM_WARP_ENDPOINT_SHIFT) | ACROPOLIS_SECURITY_ROOM_HALLWAY_ARRIVAL_ENDPOINT, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -1088, -1088, -704, 0 }, { { -464, 0, -752, 0 }, { 464, 0, -752, 0 }, { -464, 0, 752, 0 }, { 464, 0, 752, 0 } }, { 0, 4111, 0, 0 }, { ONE, 0, 0, 0 }, 882, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_SECURITY_ROOM_TRIGGER_CAP_COMMAND_1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 192, -1088, 144, 0 }, { { -272, 0, -416, 0 }, { 272, 0, -416, 0 }, { -272, 0, 416, 0 }, { 272, 0, 416, 0 } }, { 0, 4095, 0, 0 }, { -4097, 0, -27, 0 }, 496, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_SECURITY_ROOM_TRIGGER_CAP_COMMAND_2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -448, -1056, 1568, 0 }, { { -784, 0, -272, 0 }, { 784, 0, -272, 0 }, { -784, 0, 272, 0 }, { 784, 0, 272, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -ONE, 0 }, 829, WORLD_COLLISION_TRIGGER_ACTION_ROOM, ACROPOLIS_SECURITY_ROOM_TRIGGER_MONITOR_ACTION, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -880, -1056, -2880, 0 }, { { -432, 0, -304, 0 }, { 432, 0, -304, 0 }, { -432, 0, 304, 0 }, { 432, 0, 304, 0 } }, { 0, ONE, 0, 0 }, { 1189, 0, 3920, 0 }, 527, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_SECURITY_ROOM_TRIGGER_CAP_COMMAND_10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
-};
-
-/// Rupert and SWAT resource recipes for the default security-room placement variant.
-///
-/// Placement IDs 102 and 110 select descriptor zero of each actor table.
-/// The final entry ends loading/spawning with AREA_PLACEMENT_END.
-static AreaResource _gAcropolisSecurityRoomActorResources[3] = {
-    { 102, 119, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor311900RupertTaskDesc },
-    { 110, 119, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &gActor311900SwatTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
-};
-
-AreaVariant gAcropolisSecurityRoomAreaVariants[4] = {
-    { .placements = NULL, .resources = NULL },
-    { .placements = gMapAkropolisSecurityRoomVariant1Placements, .resources = _gAcropolisSecurityRoomActorResources },
-    { .placements = NULL, .resources = NULL },
-    { .placements = NULL, .resources = NULL },
-};
-
-/// The security room's three white point lights, contributing in every view.
-///
-/// Positions and falloff radii use integer world units; RGB intensity uses
-/// 12 fractional bits (`ONE` is full strength). Each light is full strength
-/// within 1280 units and fades to zero at 2128 units. The loaded room overlay
-/// owns these writable records: coordinate updates parent and compose their
-/// transforms, and lighting queries overwrite attenuation. Borrowed pointers
-/// must not outlive the overlay.
-static WorldCoordPointLight _gAcropolisSecurityRoomPointLights[] = {
-    {
-        .head = {
-            .transform  = { .lighting = {
-                                .composeStamp = GRAPHICS_COORD_DIRTY,
-                                .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -2267, -2365 } },
-                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
-                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
-                                .unknown_46   = { 0, 0, 0, 0 },
-                                .attenuation  = 0,
-                                .parent       = NULL,
-                           } },
-            .color      = { ONE, ONE, ONE },
-            .unknown_56 = { 0, 0 },
-        },
-        .inner = 1280,
-        .outer = 2128,
-    },
-    {
-        .head = {
-            .transform  = { .lighting = {
-                                .composeStamp = GRAPHICS_COORD_DIRTY,
-                                .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -2267, -472 } },
-                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
-                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
-                                .unknown_46   = { 0, 0, 0, 0 },
-                                .attenuation  = 0,
-                                .parent       = NULL,
-                           } },
-            .color      = { ONE, ONE, ONE },
-            .unknown_56 = { 0, 0 },
-        },
-        .inner = 1280,
-        .outer = 2128,
-    },
-    {
-        .head = {
-            .transform  = { .lighting = {
-                                .composeStamp = GRAPHICS_COORD_DIRTY,
-                                .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -2993, 1623 } },
-                                .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
-                                .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
-                                .unknown_46   = { 0, 0, 0, 0 },
-                                .attenuation  = 0,
-                                .parent       = NULL,
-                           } },
-            .color      = { ONE, ONE, ONE },
-            .unknown_56 = { 0, 0 },
-        },
-        .inner = 1280,
-        .outer = 2128,
-    },
-};
-
-/// Light collection for the security room, with three all-view white point lights.
-///
-/// The point-light array remains writable for coordinate and attenuation
-/// updates. No directional or cone lights are selected.
-static WorldCoordRoomLights _gAcropolisSecurityRoomLights = {
-    .directionalLightCount = 0,
-    .directionalLights     = NULL,
-    .pointLightCount       = ARRAY_SIZE(_gAcropolisSecurityRoomPointLights),
-    .pointLights           = _gAcropolisSecurityRoomPointLights,
-    .coneLightCount        = 0,
-    .coneLights            = NULL,
-};
-
-/// Background-image-only batch list for view 1, ending with SPRITE_BATCH_END.
-static SpriteBatch _gAcropolisSecurityRoomView1SpriteBatches[2] = {
-    { .spriteCount = 0 },
-    { .firstSprite = SPRITE_BATCH_END },
-};
-
 /// Neutral RGB modulation for the room sprites (128 is unit intensity).
 enum { ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE = 128 };
 
-/// Foreground rectangles for view 2, layered over its decoded background image.
-///
-/// XY and sizes are pixels, UV are texels, and depths are unscaled sorting
-/// values. The room sprite interface borrows these writable records.
-static SpriteSource _gAcropolisSecurityRoomView2SpriteSources[18] = {
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 96 } }, -160, -112, 550, { .fields = { 88, 0 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 80 } }, -160, -16, 550, { .fields = { 64, 96 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 56 } }, -160, 64, 550, { .fields = { 48, 0 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 96 } }, -120, -112, 575, { .fields = { 104, 96 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 80 } }, -120, -16, 575, { .fields = { 80, 176 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 56 } }, -120, 64, 575, { .fields = { 104, 192 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, -96, -104, 600, { .fields = { 64, 176 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, -96, -48, 600, { .fields = { 48, 56 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, -96, 8, 600, { .fields = { 48, 112 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, -96, 64, 600, { .fields = { 48, 168 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, -80, -104, 612, { .fields = { 32, 0 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, -80, -48, 612, { .fields = { 32, 56 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, -80, 8, 612, { .fields = { 32, 112 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, -80, 64, 612, { .fields = { 16, 0 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, -64, -64, 625, { .fields = { 40, 168 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, -64, -8, 625, { .fields = { 32, 168 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, -64, 48, 625, { .fields = { 24, 48 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, -56, 40, 625, { .fields = { 24, 96 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-};
-
-/// Background-preserving batch list selecting all eighteen view-2 foreground sprites.
-static SpriteBatch _gAcropolisSecurityRoomView2SpriteBatches[3] = {
-    { .spriteCount = 0 },
-    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gAcropolisSecurityRoomView2SpriteSources), .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
-    { .firstSprite = SPRITE_BATCH_END },
-};
-
-/// Background-image-only batch list for view 3, ending with SPRITE_BATCH_END.
-static SpriteBatch _gAcropolisSecurityRoomView3SpriteBatches[2] = {
-    { .spriteCount = 0 },
-    { .firstSprite = SPRITE_BATCH_END },
-};
-
-/// Background-image-only batch list shared by views 4, 14 and 15.
-static SpriteBatch _gAcropolisSecurityRoomView4SpriteBatches[2] = {
-    { .spriteCount = 0 },
-    { .firstSprite = SPRITE_BATCH_END },
-};
-
-/// Foreground frame around the monitor picture in views 5 and 8 through 13.
-///
-/// Ten rectangles cover the two sides and upper/lower edges at sorting depth
-/// 129, leaving the decoded camera image visible inside.
-static SpriteSource _gAcropolisSecurityRoomMonitorFrameSpriteSources[10] = {
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 240 } }, -160, -120, 129, { .fields = { 72, 0 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 240 } }, 104, -120, 129, { .fields = { 16, 0 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 56, 32 } }, -104, -120, 129, { .fields = { 40, 96 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 56, 32 } }, -48, -120, 129, { .fields = { 40, 64 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 32 } }, 8, -120, 129, { .fields = { 48, 32 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 32 } }, 56, -120, 129, { .fields = { 48, 0 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 56, 64 } }, -104, 56, 129, { .fields = { 88, 192 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 56, 64 } }, -48, 56, 129, { .fields = { 88, 128 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 64 } }, 8, 56, 129, { .fields = { 96, 64 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 64 } }, 56, 56, 129, { .fields = { 96, 0 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-};
-
-/// Background-preserving batch list selecting the entire ten-sprite monitor frame.
-static SpriteBatch _gAcropolisSecurityRoomMonitorFrameSpriteBatches[3] = {
-    { .spriteCount = 0 },
-    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gAcropolisSecurityRoomMonitorFrameSpriteSources), .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
-    { .firstSprite = SPRITE_BATCH_END },
-};
-
-/// Left and right released-lock pictures over the power-supply panel in view 6.
-///
-/// Sources 0 and 1 draw independently at sorting depth 50. The matching
-/// batch visibility reflects the saved left/right released-lock bits.
-static SpriteSource _gAcropolisSecurityRoomReleasedLockSpriteSources[2] = {
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 120, 120 } }, -128, 0, 50, { .fields = { 8, 0 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 112, 120 } }, 8, 0, 50, { .fields = { 16, 120 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-};
-
-/// Background-preserving batches for the left and right released-lock pictures.
-///
-/// Batches 1 and 2 select source 0 and source 1. Their hidden bytes are
-/// updated independently; the fourth record ends the list with SPRITE_BATCH_END.
-static SpriteBatch _gAcropolisSecurityRoomReleasedLockSpriteBatches[4] = {
-    { .spriteCount = 0 },
-    { .firstSprite = 0, .spriteCount = 1, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 1, 0 } },
-    { .firstSprite = 1, .spriteCount = 1, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
-    { .firstSprite = SPRITE_BATCH_END },
-};
-
-/// Background-image-only batch list for view 7, ending with SPRITE_BATCH_END.
-static SpriteBatch _gAcropolisSecurityRoomView7SpriteBatches[2] = {
-    { .spriteCount = 0 },
-    { .firstSprite = SPRITE_BATCH_END },
-};
-
-/// Eight unselected empty sprite lists retained before the right-unlock resources.
-///
-/// Each pair is its own decoded-background header and end marker, with no
-/// source ranges. Views 8..15 select other resources in the view directory.
-static SpriteBatch _gAcropolisSecurityRoomUnusedEmptySpriteBatchLists[8][2] = {
-    { { .spriteCount = 0 }, { .firstSprite = SPRITE_BATCH_END } },
-    { { .spriteCount = 0 }, { .firstSprite = SPRITE_BATCH_END } },
-    { { .spriteCount = 0 }, { .firstSprite = SPRITE_BATCH_END } },
-    { { .spriteCount = 0 }, { .firstSprite = SPRITE_BATCH_END } },
-    { { .spriteCount = 0 }, { .firstSprite = SPRITE_BATCH_END } },
-    { { .spriteCount = 0 }, { .firstSprite = SPRITE_BATCH_END } },
-    { { .spriteCount = 0 }, { .firstSprite = SPRITE_BATCH_END } },
-    { { .spriteCount = 0 }, { .firstSprite = SPRITE_BATCH_END } },
-};
-
-/// Foreground rectangles layered over the right-lock unlock presentation in view 16.
-///
-/// Thirteen batches partition all 84 sources, retaining their individual
-/// sorting depths. These records remain borrowed while the overlay is loaded.
-static SpriteSource _gAcropolisSecurityRoomRightUnlockSpriteSources[84] = {
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 8 } }, -160, 72, 375, { .fields = { 104, 32 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, -160, 80, 375, { .fields = { 88, 120 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, -120, 80, 375, { .fields = { 96, 80 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, -80, 80, 375, { .fields = { 80, 40 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 24 } }, -40, 80, 375, { .fields = { 56, 144 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 16 } }, -136, 64, 375, { .fields = { 112, 240 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 24 } }, -120, 56, 375, { .fields = { 40, 200 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 24 } }, -80, 56, 375, { .fields = { 40, 224 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 24 } }, 64, 96, 375, { .fields = { 32, 64 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, 120, 80, 375, { .fields = { 88, 160 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 8 } }, 120, 72, 375, { .fields = { 40, 248 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 16 } }, 96, 80, 375, { .fields = { 8, 56 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 8 } }, 104, 112, 375, { .fields = { 48, 168 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, 120, -56, 375, { .fields = { 120, 40 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 120, -96, 375, { .fields = { 0, 160 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 8 } }, 96, -16, 375, { .fields = { 32, 56 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 152, 56, 375, { .fields = { 0, 240 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, 80, -96, 375, { .fields = { 112, 200 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, 80, -56, 375, { .fields = { 112, 0 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 24 } }, 64, -48, 375, { .fields = { 40, 0 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 24 } }, 24, -120, 375, { .fields = { 32, 88 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 32 } }, 56, -120, 375, { .fields = { 56, 112 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, 88, -120, 375, { .fields = { 8, 240 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 32 } }, 128, -120, 375, { .fields = { 80, 200 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 8 } }, -160, 0, 375, { .fields = { 48, 24 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, -160, -120, 375, { .fields = { 64, 0 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 16 } }, -120, -120, 375, { .fields = { 24, 152 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 32 } }, -160, -80, 681, { .fields = { 48, 32 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 16 } }, -160, -48, 1883, { .fields = { 64, 64 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 8 } }, -96, 24, 1475, { .fields = { 8, 32 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, -104, 32, 1425, { .fields = { 72, 184 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 8 } }, -88, 72, 1415, { .fields = { 88, 32 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, -72, 32, 1312, { .fields = { 56, 120 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, -72, 72, 1312, { .fields = { 40, 240 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, -40, 32, 1312, { .fields = { 64, 80 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 16 } }, -40, 72, 1312, { .fields = { 8, 232 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, 96, 32, 1400, { .fields = { 96, 80 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 8 } }, 96, 72, 1400, { .fields = { 16, 88 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, 72, 32, 1350, { .fields = { 104, 184 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 16 } }, 72, 72, 1350, { .fields = { 24, 136 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 16 } }, 32, 72, 1312, { .fields = { 0, 0 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 16 } }, -8, 72, 1312, { .fields = { 8, 184 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -8, 32, 1312, { .fields = { 88, 144 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 32, 32, 1312, { .fields = { 72, 40 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 8 } }, -72, 16, 1500, { .fields = { 88, 112 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, -72, -80, 1500, { .fields = { 88, 120 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 16 } }, -48, -80, 1500, { .fields = { 40, 168 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -64, -56, 1500, { .fields = { 96, 0 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -64, -16, 1500, { .fields = { 56, 40 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 16 } }, -48, 8, 1500, { .fields = { 24, 72 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 24 } }, -72, 24, 1500, { .fields = { 48, 176 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 8 } }, 24, -24, 1875, { .fields = { 80, 32 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -16, -16, 1875, { .fields = { 8, 80 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, 24, -16, 1875, { .fields = { 40, 120 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 32 } }, -16, -48, 1875, { .fields = { 88, 224 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -16, -72, 1875, { .fields = { 72, 160 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 8 } }, -16, 24, 1875, { .fields = { 0, 248 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 8 } }, 24, 24, 1875, { .fields = { 16, 104 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 16 } }, 72, -104, 1212, { .fields = { 32, 24 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 16 } }, 112, -104, 1212, { .fields = { 48, 136 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 88, 40, 1212, { .fields = { 0, 120 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 16 } }, 128, 64, 1212, { .fields = { 72, 64 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 8 } }, 112, 32, 1212, { .fields = { 16, 96 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, 88, 0, 1212, { .fields = { 24, 200 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, 88, -40, 1212, { .fields = { 32, 40 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, 88, -80, 1212, { .fields = { 48, 200 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 32 } }, 88, -112, 1212, { .fields = { 64, 144 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, 96, 24, 1625, { .fields = { 40, 160 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 32 } }, 96, -8, 1625, { .fields = { 88, 0 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, 96, -40, 1625, { .fields = { 72, 224 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 32 } }, 88, -72, 1625, { .fields = { 56, 0 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 24 } }, 128, 96, 375, { .fields = { 80, 232 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 16 } }, 88, 104, 375, { .fields = { 0, 216 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 832, 0), getClut(0, 255), { .fields = { 40, 16 } }, 48, 104, 375, { .fields = { 120, 16 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 16 } }, -32, 104, 375, { .fields = { 8, 40 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 16 } }, 8, 104, 375, { .fields = { 0, 168 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 16 } }, -72, 104, 375, { .fields = { 0, 200 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 24 } }, -112, 96, 375, { .fields = { 16, 112 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 32 } }, -144, 88, 375, { .fields = { 64, 80 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -160, 80, 375, { .fields = { 48, 80 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -72, -104, 1250, { .fields = { 24, 0 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, 72, 16, 2212, { .fields = { 112, 0 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, 88, 16, 2162, { .fields = { 112, 48 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, 104, 24, 2100, { .fields = { 112, 96 } }, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, ACROPOLIS_SECURITY_ROOM_SPRITE_COLOR_ONE, 0 },
-};
-
-/// Background-preserving batch list partitioning the 84 right-unlock foreground sprites.
-///
-/// Thirteen nonempty ranges follow the image header, then SPRITE_BATCH_END.
-/// Stored field_6 bytes retain their serialized values; their role is unproven.
-static SpriteBatch _gAcropolisSecurityRoomRightUnlockSpriteBatches[15] = {
-    { .spriteCount = 0 },
-    { .firstSprite = 0, .spriteCount = 8, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 5, 0 } },
-    { .firstSprite = 8, .spriteCount = 5, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 7, 0 } },
-    { .firstSprite = 13, .spriteCount = 7, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 1, 0 } },
-    { .firstSprite = 20, .spriteCount = 4, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 8, 0 } },
-    { .firstSprite = 24, .spriteCount = 5, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
-    { .firstSprite = 29, .spriteCount = 15, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 9, 0 } },
-    { .firstSprite = 44, .spriteCount = 7, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 6, 0 } },
-    { .firstSprite = 51, .spriteCount = 7, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 10, 0 } },
-    { .firstSprite = 58, .spriteCount = 9, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 3, 0 } },
-    { .firstSprite = 67, .spriteCount = 4, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 11, 0 } },
-    { .firstSprite = 71, .spriteCount = 9, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 2, 0 } },
-    { .firstSprite = 80, .spriteCount = 1, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 12, 0 } },
-    { .firstSprite = 81, .spriteCount = 3, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 4, 0 } },
-    { .firstSprite = SPRITE_BATCH_END },
-};
-
-SpriteView gAcropolisSecurityRoomSpriteViews[ACROPOLIS_SECURITY_ROOM_VIEW_COUNT] = {
-    { { .empty = _gAcropolisSecurityRoomView1SpriteBatches }, _gAcropolisSecurityRoomView1SpriteBatches, NULL },
-    { { .elements = _gAcropolisSecurityRoomView2SpriteSources }, _gAcropolisSecurityRoomView2SpriteBatches, NULL },
-    { { .empty = _gAcropolisSecurityRoomView3SpriteBatches }, _gAcropolisSecurityRoomView3SpriteBatches, NULL },
-    { { .empty = _gAcropolisSecurityRoomView4SpriteBatches }, _gAcropolisSecurityRoomView4SpriteBatches, NULL },
-    { { .elements = _gAcropolisSecurityRoomMonitorFrameSpriteSources }, _gAcropolisSecurityRoomMonitorFrameSpriteBatches, NULL },
-    { { .elements = _gAcropolisSecurityRoomReleasedLockSpriteSources }, _gAcropolisSecurityRoomReleasedLockSpriteBatches, NULL },
-    { { .empty = _gAcropolisSecurityRoomView7SpriteBatches }, _gAcropolisSecurityRoomView7SpriteBatches, NULL },
-    { { .elements = _gAcropolisSecurityRoomMonitorFrameSpriteSources }, _gAcropolisSecurityRoomMonitorFrameSpriteBatches, NULL },
-    { { .elements = _gAcropolisSecurityRoomMonitorFrameSpriteSources }, _gAcropolisSecurityRoomMonitorFrameSpriteBatches, NULL },
-    { { .elements = _gAcropolisSecurityRoomMonitorFrameSpriteSources }, _gAcropolisSecurityRoomMonitorFrameSpriteBatches, NULL },
-    { { .elements = _gAcropolisSecurityRoomMonitorFrameSpriteSources }, _gAcropolisSecurityRoomMonitorFrameSpriteBatches, NULL },
-    { { .elements = _gAcropolisSecurityRoomMonitorFrameSpriteSources }, _gAcropolisSecurityRoomMonitorFrameSpriteBatches, NULL },
-    { { .elements = _gAcropolisSecurityRoomMonitorFrameSpriteSources }, _gAcropolisSecurityRoomMonitorFrameSpriteBatches, NULL },
-    { { .empty = _gAcropolisSecurityRoomView4SpriteBatches }, _gAcropolisSecurityRoomView4SpriteBatches, NULL },
-    { { .empty = _gAcropolisSecurityRoomView4SpriteBatches }, _gAcropolisSecurityRoomView4SpriteBatches, NULL },
-    { { .elements = _gAcropolisSecurityRoomRightUnlockSpriteSources }, _gAcropolisSecurityRoomRightUnlockSpriteBatches, NULL },
-};
-
-ViewCamera gAcropolisSecurityRoomViewCameras[ACROPOLIS_SECURITY_ROOM_VIEW_COUNT] = {
-    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 0, 0x7530, 0 } }, 911 },
-    { { { { -3929, 0, -1154 }, { -300, 3954, 1023 }, { 1114, 1067, -3794 } }, { 670, 2800, -1160 } }, 207 },
-    { { { { 3895, 0, -1265 }, { -445, 3833, -1371 }, { 1184, 1441, 3646 } }, { 780, 3090, 2600 } }, 207 },
-    { { { { 3698, 0, -1759 }, { -1442, 2345, -3032 }, { 1007, 3357, 2118 } }, { 770, 3450, -750 } }, 207 },
-    { { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 780, 2260, -1930 } }, 207 },
-    { { { { 0, 0, -ONE }, { 0, ONE, 0 }, { ONE, 0, 0 } }, { -490, 2430, -320 } }, 207 },
-    { { { { 0, 0, ONE }, { 0, ONE, 0 }, { -ONE, 0, 0 } }, { 910, 2500, 880 } }, 207 },
-    { { { { 505, 0, 4064 }, { 822, 4011, -102 }, { -3980, 829, 495 } }, { -7580, 2600, 290 } }, 230 },
-    { { { { -4073, 0, 425 }, { 115, 3943, 1101 }, { -409, 1107, -3922 } }, { -4735, 2711, -4651 } }, 257 },
-    { { { { -1392, 0, 3852 }, { 1053, 3939, 380 }, { -3705, 1120, -1339 } }, { -1390, 2540, 250 } }, 297 },
-    { { { { -3750, 0, 1646 }, { 1161, 2905, 2643 }, { -1168, 2887, -2659 } }, { 3260, 3610, 2030 } }, 230 },
-    { { { { -169, 0, 4092 }, { 1090, 3948, 45 }, { -3944, 1091, -163 } }, { -5964, 2300, 6357 } }, 230 },
-    { { { { -1332, 0, -3873 }, { -1542, 3757, 530 }, { 3552, 1631, -1222 } }, { -2580, 5310, -0x3660 } }, 230 },
-    { { { { -3, 0, -4095 }, { 199, 4091, 0 }, { 4091, -199, -3 } }, { -6100, 1240, 5740 } }, 235 },
-    { { { { 3815, 0, 1489 }, { 981, 3080, -2514 }, { -1120, 2699, 2869 } }, { -920, 3010, 0x48A8 } }, 230 },
-    { { { { 3982, 0, 958 }, { -16, 4095, 69 }, { -958, -71, 3981 } }, { -1500, 1380, 7850 } }, 225 },
-};
-
 /// Nonzero low policy nibble requests the saved area's map mark.
 enum { ACROPOLIS_SECURITY_ROOM_AREA_UPDATE_SET_MAP_MARK = 1 };
-
-/// Saved-area layouts and map marks committed when the right lock releases.
-///
-/// Fountain, promenade and roof garden set their map marks; forked road and
-/// observatory clear them. Paired layouts select normal/replay plus Scavenger,
-/// or Bounty plus Nightmare. Observatory layout 3 applies in every mode.
-/// The tenth entry ends the synchronous update walk.
-static AreaApplyRec _gAcropolisSecurityRoomRightUnlockAreaUpdates[10] = {
-    { GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_FOUNTAIN, 2, AREA_APPLY_MODE_REPLAY_SCAVENGER | ACROPOLIS_SECURITY_ROOM_AREA_UPDATE_SET_MAP_MARK },
-    { GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_FOUNTAIN, 7, AREA_APPLY_MODE_BOUNTY_NIGHTMARE | ACROPOLIS_SECURITY_ROOM_AREA_UPDATE_SET_MAP_MARK },
-    { GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_FORKED_ROAD, 4, AREA_APPLY_MODE_REPLAY_SCAVENGER },
-    { GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_FORKED_ROAD, 8, AREA_APPLY_MODE_BOUNTY_NIGHTMARE },
-    { GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_OBSERVATORY, 3, AREA_APPLY_MODE_ALWAYS },
-    { GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PROMENADE, 3, AREA_APPLY_MODE_REPLAY_SCAVENGER | ACROPOLIS_SECURITY_ROOM_AREA_UPDATE_SET_MAP_MARK },
-    { GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PROMENADE, 8, AREA_APPLY_MODE_BOUNTY_NIGHTMARE | ACROPOLIS_SECURITY_ROOM_AREA_UPDATE_SET_MAP_MARK },
-    { GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_ROOF_GARDEN, 2, AREA_APPLY_MODE_REPLAY_SCAVENGER | ACROPOLIS_SECURITY_ROOM_AREA_UPDATE_SET_MAP_MARK },
-    { GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_ROOF_GARDEN, 8, AREA_APPLY_MODE_BOUNTY_NIGHTMARE | ACROPOLIS_SECURITY_ROOM_AREA_UPDATE_SET_MAP_MARK },
-    { AREA_APPLY_END, 0, 0, 0 },
-};
-
-/// Empty right-unlock update list for follow-up story progress below 3.
-///
-/// The end marker is checked before any area lookup, so applying it does nothing.
-static AreaApplyRec _gAcropolisSecurityRoomRightUnlockEarlyStoryAreaUpdates[1] = {
-    { AREA_APPLY_END, 0, 0, 0 },
-};
-
-/// Empty right-unlock update list for follow-up story progress at least 3.
-///
-/// The end marker is checked before any area lookup, so applying it does nothing.
-static AreaApplyRec _gAcropolisSecurityRoomRightUnlockLateStoryAreaUpdates[1] = {
-    { AREA_APPLY_END, 0, 0, 0 },
-};
-
-/// Empty saved-area update list applied by every successful left-lock release.
-///
-/// The end marker is checked before any area lookup, so applying it does nothing.
-static AreaApplyRec _gAcropolisSecurityRoomLeftUnlockAreaUpdates[1] = {
-    { AREA_APPLY_END, 0, 0, 0 },
-};
 
 /// Cue-2 entries in the loaded type-1 bank; cue 1 uses the following entry.
 enum {
     ACROPOLIS_SECURITY_ROOM_FLOOR_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 9,
     ACROPOLIS_SECURITY_ROOM_FLOOR_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 11,
-};
-
-/// Footstep cue bases for the security-room floor surface.
-///
-/// Walking and scripted jumping share one pair; running selects another.
-/// The cue consumer adds one for cue 1 and 100 for companions. The table is
-/// only read and retains its serialized .data position.
-static WorldCollisionFootstepSounds _gAcropolisSecurityRoomFloorFootstepSounds = {
-    .walk         = ACROPOLIS_SECURITY_ROOM_FLOOR_WALK_SOUND,
-    .run          = ACROPOLIS_SECURITY_ROOM_FLOOR_RUN_SOUND,
-    .scriptedJump = ACROPOLIS_SECURITY_ROOM_FLOOR_WALK_SOUND,
-};
-
-/// Blocking collision policy without footsteps for classes 0..3 and 5..7.
-///
-/// Weapon impacts and grid pushback are enabled independently of probe blocking.
-static WorldCollisionSurfaceProperties _gAcropolisSecurityRoomSilentSurfaceProperties = {
-    .field_0             = 0,
-    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
-    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
-    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
-    .footstepSounds      = NULL,
-};
-
-/// Blocking floor collision policy and footstep cues for surface class 4.
-///
-/// Weapon impacts and grid pushback are enabled; sound storage is borrowed
-/// from this room overlay.
-static WorldCollisionSurfaceProperties _gAcropolisSecurityRoomFloorSurfaceProperties = {
-    .field_0             = 0,
-    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
-    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
-    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
-    .footstepSounds      = &_gAcropolisSecurityRoomFloorFootstepSounds,
-};
-
-WorldCollisionSurfaceProperties* gAcropolisSecurityRoomSurfacePropertiesByClass[8] = {
-    &_gAcropolisSecurityRoomSilentSurfaceProperties,
-    &_gAcropolisSecurityRoomSilentSurfaceProperties,
-    &_gAcropolisSecurityRoomSilentSurfaceProperties,
-    &_gAcropolisSecurityRoomSilentSurfaceProperties,
-    &_gAcropolisSecurityRoomFloorSurfaceProperties,
-    &_gAcropolisSecurityRoomSilentSurfaceProperties,
-    &_gAcropolisSecurityRoomSilentSurfaceProperties,
-    &_gAcropolisSecurityRoomSilentSurfaceProperties,
 };
 
 static TmdBone _gAcropolisSecurityRoomAcropolisSanctuaryModel090F0Skeleton[3] = {

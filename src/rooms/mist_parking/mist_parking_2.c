@@ -248,7 +248,7 @@ enum {
 };
 
 TaskDesc gMistParkingConversationTaskDescs[9] = {
-    { { { TASK_BODY_TMD, MIST_PARKING_CONVERSATION_TASK_PRIORITY } }, mistParkingCutsceneModelPitchTask, { .model = &gMistParkingModel09B9C } },
+    { { { TASK_BODY_TMD, MIST_PARKING_CONVERSATION_TASK_PRIORITY } }, mistParkingCutsceneModelPitchTask, { .model = &gMistParkingMistParkingModel09B9C } },
     { { { TASK_BODY_NONE, MIST_PARKING_CONVERSATION_TASK_PRIORITY } }, _mistParkingOptionDialogTask, { .value = 0 } },
     { { { TASK_BODY_NONE, MIST_PARKING_CONVERSATION_TASK_PRIORITY } }, mistParkingContinueDepartureChoiceTask, { .value = 0 } },
     { { { TASK_BODY_NONE, MIST_PARKING_CONVERSATION_TASK_PRIORITY } }, _mistParkingDepartForDryfieldTask, { .value = 0 } },
@@ -265,30 +265,30 @@ TaskDesc gMistParkingConversationTaskDescs[9] = {
 /// sets. These descriptors and their clip data are borrowed for playback.
 static AnimationSet* _gMistParkingPlayerConversationAnimationSets[25] = {
     NULL,
-    &gMistParkingAnimation09FD4,
-    &gMistParkingAnimation0A774,
-    &gMistParkingAnimation0AC5C,
-    &gMistParkingAnimation0B138,
-    &gMistParkingAnimation0B700,
-    &gMistParkingAnimation0BAB4,
-    &gMistParkingAnimation0C1B0,
-    &gMistParkingAnimation0C688,
-    &gMistParkingAnimation0CD80,
-    &gMistParkingAnimation0D060,
-    &gMistParkingAnimation0D6A4,
-    &gMistParkingAnimation0DA94,
-    &gMistParkingAnimation0DE94,
-    &gMistParkingAnimation0E1D0,
-    &gMistParkingAnimation0E6E0,
-    &gMistParkingAnimation0EA0C,
-    &gMistParkingAnimation0EDE0,
-    &gMistParkingAnimation0F14C,
-    &gMistParkingAnimation0F574,
-    &gMistParkingAnimation0F7F0,
-    &gMistParkingAnimation0FC60,
-    &gMistParkingAnimation0FE5C,
-    &gMistParkingAnimation10174,
-    &gMistParkingAnimation0D3E4,
+    &gAyaStandClip,
+    &gShelterR47PlayerLookAtMapClip,
+    &gShelterB3IncineratorControlRoomPlayerFlusteredClip,
+    &gMistParkingMistParkingPlayerConversationAnim04Clip,
+    &gMistParkingMistParkingPlayerConversationAnim05Clip,
+    &gMistParkingMistParkingPlayerConversationAnim06Clip,
+    &gMistParkingMistParkingPlayerConversationAnim07Clip,
+    &gMistParkingMistParkingPlayerConversationAnim08Clip,
+    &gMistParkingMistParkingPlayerConversationAnim09Clip,
+    &gMistParkingMistParkingPlayerConversationAnim10Clip,
+    &gAyaAnim07Clip,
+    &gAyaTalkClip,
+    &gShelterB6GrowthRoomPlayerChoiceStartClip,
+    &gAyaItsNothingClip,
+    &gMistParkingMistParkingPlayerConversationAnim15Clip,
+    &gAyaOnMyWayClip,
+    &gAyaTalkStartClip,
+    &gAyaTalkEndClip,
+    &gAyaReplyClip,
+    &gMistParkingMistParkingPlayerConversationAnim20Clip,
+    &gMistParkingMistParkingPlayerConversationAnim21Clip,
+    &gAyaTurnPaleClip,
+    &gShelterB1PodServiceGantryPlayerGantryScene7Clip,
+    &gAyaIntroduceHerselfClip,
 };
 
 AnimationBankCopyRequest gMistParkingPlayerConversationBankCopy = { _gMistParkingPlayerConversationAnimationSets, ARRAY_SIZE(_gMistParkingPlayerConversationAnimationSets) };
@@ -298,7 +298,7 @@ AnimationBankCopyRequest gMistParkingPlayerConversationBankCopy = { _gMistParkin
 /// Retained in the room image; no script or dispatcher selects this storage.
 /// Stores source index 1; a weapon-animation opcode would select a bank in a copy.
 /// Blend durations are whole animation frames.
-static const AnimationPlayRequest _gMistParkingUnusedPlayerClip1Request SECTION(".data") = {
+static AnimationPlayRequest _gMistParkingUnusedPlayerClip1Request = {
     .source               = { .index = MIST_PARKING_PLAYER_REQUEST_BANK_SEED },
     .animationId          = MIST_PARKING_PLAYER_ANIM_BASE_IDLE,
     .blend                = ANIMATION_BLEND_RESET,
@@ -323,7 +323,7 @@ static AnimationPlayRequest _gMistParkingPlayerConversationResetAnimation = {
 /// Retained in the room image; no script or dispatcher selects this storage.
 /// Stores source index 1; a weapon-animation opcode would select a bank in a copy.
 /// Blend durations are whole animation frames.
-static const AnimationPlayRequest _gMistParkingUnusedPlayerClip49Request SECTION(".data") = {
+static AnimationPlayRequest _gMistParkingUnusedPlayerClip49Request = {
     .source               = { .index = MIST_PARKING_PLAYER_REQUEST_BANK_SEED },
     .animationId          = MIST_PARKING_PLAYER_ANIM_UNUSED_CLIP_49,
     .blend                = ANIMATION_BLEND_INTERPOLATE,
@@ -432,7 +432,7 @@ static AnimationPlayRequest _gMistParkingPlayerArrivalClip57Request = {
 /// Retained in the room image; no script or dispatcher selects this storage.
 /// Stores source index 1; a weapon-animation opcode would select a bank in a copy.
 /// Blend durations are whole animation frames.
-static const AnimationPlayRequest _gMistParkingUnusedPlayerClip58Request SECTION(".data") = {
+static AnimationPlayRequest _gMistParkingUnusedPlayerClip58Request = {
     .source               = { .index = MIST_PARKING_PLAYER_REQUEST_BANK_SEED },
     .animationId          = MIST_PARKING_PLAYER_ANIM_UNUSED_CLIP_58,
     .blend                = ANIMATION_BLEND_RESET,
@@ -481,7 +481,7 @@ static AnimationPlayRequest _gMistParkingPlayerArrivalClip61Request = {
 /// Retained in the room image; no script or dispatcher selects this storage.
 /// Stores source index 1; a weapon-animation opcode would select a bank in a copy.
 /// Blend durations are whole animation frames.
-static const AnimationPlayRequest _gMistParkingUnusedPlayerClip62Request SECTION(".data") = {
+static AnimationPlayRequest _gMistParkingUnusedPlayerClip62Request = {
     .source               = { .index = MIST_PARKING_PLAYER_REQUEST_BANK_SEED },
     .animationId          = MIST_PARKING_PLAYER_ANIM_UNUSED_CLIP_62,
     .blend                = ANIMATION_BLEND_INTERPOLATE,
@@ -518,7 +518,7 @@ static AnimationPlayRequest _gMistParkingPlayerTalkAnimation = {
 /// Retained in the room image; no script or dispatcher selects this storage.
 /// Stores source index 1; a weapon-animation opcode would select a bank in a copy.
 /// Blend durations are whole animation frames.
-static const AnimationPlayRequest _gMistParkingUnusedPlayerClip65Request SECTION(".data") = {
+static AnimationPlayRequest _gMistParkingUnusedPlayerClip65Request = {
     .source               = { .index = MIST_PARKING_PLAYER_REQUEST_BANK_SEED },
     .animationId          = MIST_PARKING_PLAYER_ANIM_UNUSED_CLIP_65,
     .blend                = ANIMATION_BLEND_INTERPOLATE,
@@ -567,7 +567,7 @@ static AnimationPlayRequest _gMistParkingPlayerStayOrGalleryReplyAnimation = {
 /// Retained in the room image; no script or dispatcher selects this storage.
 /// Stores source index 1; a weapon-animation opcode would select a bank in a copy.
 /// Blend durations are whole animation frames.
-static const AnimationPlayRequest _gMistParkingUnusedPlayerClip69Request SECTION(".data") = {
+static AnimationPlayRequest _gMistParkingUnusedPlayerClip69Request = {
     .source               = { .index = MIST_PARKING_PLAYER_REQUEST_BANK_SEED },
     .animationId          = MIST_PARKING_PLAYER_ANIM_UNUSED_CLIP_69,
     .blend                = ANIMATION_BLEND_RESET,
@@ -665,7 +665,7 @@ static ActorTransform _gMistParkingPlayerDeparturePromptTransform = { .pos = { 4
 /// Retained in the room image; no script or dispatcher selects this storage.
 /// Stores body-bank index 0; no visual gesture is inferred from the clip id.
 /// Blend durations are whole animation frames.
-static const AnimationPlayRequest _gMistParkingUnusedPierceResetRequest SECTION(".data") = {
+static AnimationPlayRequest _gMistParkingUnusedPierceResetRequest = {
     .source               = { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK },
     .animationId          = MIST_PARKING_PIERCE_ANIM_REST,
     .blend                = ANIMATION_BLEND_RESET,
@@ -690,7 +690,7 @@ static AnimationPlayRequest _gMistParkingPierceConversationRestAnimation = {
 /// Retained in the room image; no script or dispatcher selects this storage.
 /// Stores body-bank index 0; no visual gesture is inferred from the clip id.
 /// Blend durations are whole animation frames.
-static const AnimationPlayRequest _gMistParkingUnusedPierceClip2To4Requests[3] SECTION(".data") = {
+static AnimationPlayRequest _gMistParkingUnusedPierceClip2To4Requests[3] = {
     { { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK }, MIST_PARKING_PIERCE_ANIM_WALK, ANIMATION_BLEND_INTERPOLATE, MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
     { { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK }, MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_3, ANIMATION_BLEND_INTERPOLATE, MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
     { { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK }, MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_4, ANIMATION_BLEND_INTERPOLATE, MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
@@ -725,7 +725,7 @@ static AnimationPlayRequest _gMistParkingPierceArrivalClosingAnimation = {
 /// Retained in the room image; no script or dispatcher selects this storage.
 /// Stores body-bank index 0; no visual gesture is inferred from the clip id.
 /// Blend durations are whole animation frames.
-static const AnimationPlayRequest _gMistParkingUnusedPierceClip7Request SECTION(".data") = {
+static AnimationPlayRequest _gMistParkingUnusedPierceClip7Request = {
     .source               = { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK },
     .animationId          = MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_7,
     .blend                = ANIMATION_BLEND_INTERPOLATE,
@@ -750,7 +750,7 @@ static AnimationPlayRequest _gMistParkingPierceFollowupTalkAnimation = {
 /// Retained in the room image; no script or dispatcher selects this storage.
 /// Stores body-bank index 0; no visual gesture is inferred from the clip id.
 /// Blend durations are whole animation frames.
-static const AnimationPlayRequest _gMistParkingUnusedPierceClip9To14Requests[6] SECTION(".data") = {
+static AnimationPlayRequest _gMistParkingUnusedPierceClip9To14Requests[6] = {
     { { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK }, MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_9, ANIMATION_BLEND_INTERPOLATE, MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
     { { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK }, MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_10, ANIMATION_BLEND_INTERPOLATE, MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
     { { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK }, MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_11, ANIMATION_BLEND_INTERPOLATE, MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
@@ -776,7 +776,7 @@ static AnimationPlayRequest _gMistParkingPierceDepartureReplyAnimation = {
 /// Retained in the room image; no script or dispatcher selects this storage.
 /// Stores body-bank index 0; no visual gesture is inferred from the clip id.
 /// Blend durations are whole animation frames.
-static const AnimationPlayRequest _gMistParkingUnusedPierceClip16Request SECTION(".data") = {
+static AnimationPlayRequest _gMistParkingUnusedPierceClip16Request = {
     .source               = { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK },
     .animationId          = MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_16,
     .blend                = ANIMATION_BLEND_INTERPOLATE,
@@ -837,7 +837,7 @@ static AnimationPlayRequest _gMistParkingPierceArrivalClip20Request = {
 /// Retained in the room image; no script or dispatcher selects this storage.
 /// Stores body-bank index 0; no visual gesture is inferred from the clip id.
 /// Blend durations are whole animation frames.
-static const AnimationPlayRequest _gMistParkingUnusedPierceClip21To26Requests[6] SECTION(".data") = {
+static AnimationPlayRequest _gMistParkingUnusedPierceClip21To26Requests[6] = {
     { { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK }, MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_21, ANIMATION_BLEND_INTERPOLATE, MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
     { { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK }, MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_22, ANIMATION_BLEND_INTERPOLATE, MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
     { { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK }, MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_23, ANIMATION_BLEND_INTERPOLATE, MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
@@ -887,7 +887,7 @@ static AnimationPlayRequest _gMistParkingPierceArrivalClip29Request = {
 /// Retained in the room image; no script or dispatcher selects this storage.
 /// Stores body-bank index 0; no visual gesture is inferred from the clip id.
 /// Blend durations are whole animation frames.
-static const AnimationPlayRequest _gMistParkingUnusedPierceClip30Request SECTION(".data") = {
+static AnimationPlayRequest _gMistParkingUnusedPierceClip30Request = {
     .source               = { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK },
     .animationId          = MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_30,
     .blend                = ANIMATION_BLEND_INTERPOLATE,
@@ -912,7 +912,7 @@ static AnimationPlayRequest _gMistParkingPierceArrivalClip31Request = {
 /// Retained in the room image; no script or dispatcher selects this storage.
 /// Stores body-bank index 0; no visual gesture is inferred from the clip id.
 /// Blend durations are whole animation frames.
-static const AnimationPlayRequest _gMistParkingUnusedPierceClip32To33Requests[2] SECTION(".data") = {
+static AnimationPlayRequest _gMistParkingUnusedPierceClip32To33Requests[2] = {
     { { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK }, MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_32, ANIMATION_BLEND_INTERPOLATE, MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
     { { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK }, MIST_PARKING_PIERCE_ANIM_ARRIVAL_TALK, ANIMATION_BLEND_INTERPOLATE, MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
 };
@@ -934,7 +934,7 @@ static AnimationPlayRequest _gMistParkingPierceArrivalClip34Request = {
 /// Retained in the room image; no script or dispatcher selects this storage.
 /// Stores body-bank index 0; no visual gesture is inferred from the clip id.
 /// Blend durations are whole animation frames.
-static const AnimationPlayRequest _gMistParkingUnusedPierceClip35Request SECTION(".data") = {
+static AnimationPlayRequest _gMistParkingUnusedPierceClip35Request = {
     .source               = { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK },
     .animationId          = MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_35,
     .blend                = ANIMATION_BLEND_INTERPOLATE,
@@ -1028,7 +1028,7 @@ static ActorCommand _gMistParkingPierceReleaseHeadCommand = {
 /// Retained in the room image; no script or dispatcher selects this storage.
 /// Stores body-bank index 0; no visual gesture is inferred from the clip id.
 /// Blend durations are whole animation frames.
-static const AnimationPlayRequest _gMistParkingUnusedJodieResetRequest SECTION(".data") = {
+static AnimationPlayRequest _gMistParkingUnusedJodieResetRequest = {
     .source               = { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK },
     .animationId          = MIST_PARKING_JODIE_ANIM_TALK_OPENING,
     .blend                = ANIMATION_BLEND_RESET,
@@ -1059,7 +1059,7 @@ enum {
 /// Clips 2 and 3 store twenty-frame blends; clip 4 stores ten frames.
 /// All enable collision, which Jodie ignores. Bank 0 loads all three clips,
 /// but no script selects these records; their physical gestures are unproven.
-static const AnimationPlayRequest _gMistParkingJodieUnusedAnimations2To4[3] SECTION(".data") = {
+static AnimationPlayRequest _gMistParkingJodieUnusedAnimations2To4[3] = {
     {
         .source               = { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK },
         .animationId          = MIST_PARKING_JODIE_UNUSED_CLIP_2,
@@ -1104,7 +1104,7 @@ enum {
 /// Stores zero blend frames and enabled collision, which Jodie ignores.
 /// Bank 0 loads clip 6, but no script selects this record; its physical
 /// gesture and intended scene use are unproven.
-static const AnimationPlayRequest _gMistParkingJodieUnusedAnimation6 SECTION(".data") = {
+static AnimationPlayRequest _gMistParkingJodieUnusedAnimation6 = {
     .source               = { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK },
     .animationId          = MIST_PARKING_JODIE_UNUSED_CLIP_6,
     .blend                = ANIMATION_BLEND_RESET,
@@ -1117,7 +1117,7 @@ static const AnimationPlayRequest _gMistParkingJodieUnusedAnimation6 SECTION(".d
 /// Scene placement 1 borrows the request synchronously. Slots blend for ten
 /// whole frames when already ticking; selecting the same clip preserves it.
 /// The receiver ignores the collision word. Its bank and clips must stay loaded.
-static const AnimationPlayRequest _gMistParkingJodieTalkGreetingAnimation SECTION(".data") = {
+static AnimationPlayRequest _gMistParkingJodieTalkGreetingAnimation = {
     .source               = { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK },
     .animationId          = MIST_PARKING_JODIE_ANIM_GREETING,
     .blend                = ANIMATION_BLEND_INTERPOLATE,
@@ -1583,7 +1583,7 @@ static EvsCommand _gMistParkingJodieShopDeclineScript[8] = {
 /// Courses 0..3 use these words for storage grants. Course 4's Shoulder Holster
 /// is retained here but granted separately after checking its ownership limit.
 /// Signed-word catalog ids stay in the authored data section.
-static const s32 _gMistParkingCoursePrizeItemIds[5] SECTION(".data") = {
+static s32 _gMistParkingCoursePrizeItemIds[5] = {
     MIST_PARKING_COURSE_PRIZE_9MM_HYDRA,
     MIST_PARKING_COURSE_PRIZE_RINGERS_SOLUTION,
     MIST_PARKING_COURSE_PRIZE_HUNTER_GOGGLES,
@@ -1596,7 +1596,7 @@ static const s32 _gMistParkingCoursePrizeItemIds[5] SECTION(".data") = {
 /// Same course order and extent as `_gMistParkingCoursePrizeItemIds`; only
 /// courses 0..3 read this array. The last quantity is retained metadata.
 /// Signed words match `inventoryGiveItem`'s quantity contract; storage stays in .data.
-static const s32 _gMistParkingCoursePrizeQuantities[ARRAY_SIZE(_gMistParkingCoursePrizeItemIds)] SECTION(".data") = {
+static s32 _gMistParkingCoursePrizeQuantities[ARRAY_SIZE(_gMistParkingCoursePrizeItemIds)] = {
     MIST_PARKING_COURSE_PRIZE_AMMO_ROUNDS,
     MIST_PARKING_COURSE_PRIZE_ONE_ITEM,
     MIST_PARKING_COURSE_PRIZE_ONE_ITEM,

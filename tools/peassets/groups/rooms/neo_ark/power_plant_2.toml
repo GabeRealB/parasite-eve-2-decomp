@@ -62,13 +62,13 @@ sha1 = "efb054951ed9d6cc0996dd4a1528409e3483b05f"
 texture = "beta_generator_texture_page_1"
 variant = "default"
 region = "engine/vram/actor_palettes"
-offset = [0, 0]
+offset = [0x00000, 0x00000]
 
 [[beta_generator_file.contents.palettes]]
 texture = "beta_generator_texture_page_2"
 variant = "default"
 region = "engine/vram/actor_palettes"
-offset = [0, 1]
+offset = [0x00000, 0x00001]
 
 [[beta_generator_file.contents]]
 chunk = "beta_generator_palette_2"
@@ -78,15 +78,15 @@ sha1 = "eb4140a35a586a30e10ab6972f4fc5949b0a0c38"
 texture = "beta_generator_texture_page_3"
 variant = "default"
 region = "engine/vram/actor_palettes"
-offset = [0, 2]
+offset = [0x00000, 0x00002]
 
 [[beta_generator_file.contents]]
 chunk = "beta_generator_image"
 sha1 = "65aeac84469435ca2bd53a6e0d3c82c50a627d6b"
 pages = [
-    { texture = "beta_generator_texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
-    { texture = "beta_generator_texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
-    { texture = "beta_generator_texture_page_3", region = "engine/vram/actor_sheet", offset = [128, 0] },
+    { texture = "beta_generator_texture_page_1", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] },
+    { texture = "beta_generator_texture_page_2", region = "engine/vram/actor_sheet", offset = [0x00040, 0x00000] },
+    { texture = "beta_generator_texture_page_3", region = "engine/vram/actor_sheet", offset = [0x00080, 0x00000] },
 ]
 slots = 6
 

@@ -92,71 +92,7 @@ WorldCollisionGrid gMistParkingPierceCollisionPatch = {
     .faceCount   = ARRAY_SIZE(_gMistParkingPierceCollisionPatchFaces)
 };
 
-static AnimationPackedPose _gMistParkingAnimation129F8Bank1[6] = {
-#include "assets/mist_parking_animation_129F8_bank1.inc"
-};
-
-static AnimationPackedRotation _gMistParkingAnimation129F8Bank4[46] = {
-#include "assets/mist_parking_animation_129F8_bank4.inc"
-};
-
-static AnimationRecord _gMistParkingAnimation129F8Records[109] = {
-#include "assets/mist_parking_animation_129F8_records.inc"
-};
-
-static u16 _gMistParkingAnimation129F8Indices[20] = {
-#include "assets/mist_parking_animation_129F8_indices.inc"
-};
-
-AnimationSet gMistParkingAnimation129F8 = {
-    _gMistParkingAnimation129F8Records,
-    _gMistParkingAnimation129F8Indices,
-    { NULL, _gMistParkingAnimation129F8Bank1, NULL, NULL, _gMistParkingAnimation129F8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gMistParkingAnimation12DCCBank1[8] = {
-#include "assets/mist_parking_animation_12DCC_bank1.inc"
-};
-
-static AnimationPackedRotation _gMistParkingAnimation12DCCBank4[84] = {
-#include "assets/mist_parking_animation_12DCC_bank4.inc"
-};
-
-static AnimationRecord _gMistParkingAnimation12DCCRecords[117] = {
-#include "assets/mist_parking_animation_12DCC_records.inc"
-};
-
-static u16 _gMistParkingAnimation12DCCIndices[20] = {
-#include "assets/mist_parking_animation_12DCC_indices.inc"
-};
-
-AnimationSet gMistParkingAnimation12DCC = {
-    _gMistParkingAnimation12DCCRecords,
-    _gMistParkingAnimation12DCCIndices,
-    { NULL, _gMistParkingAnimation12DCCBank1, NULL, NULL, _gMistParkingAnimation12DCCBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gMistParkingAnimation1323CBank1[5] = {
-#include "assets/mist_parking_animation_1323C_bank1.inc"
-};
-
-static AnimationPackedRotation _gMistParkingAnimation1323CBank4[99] = {
-#include "assets/mist_parking_animation_1323C_bank4.inc"
-};
-
-static AnimationRecord _gMistParkingAnimation1323CRecords[150] = {
-#include "assets/mist_parking_animation_1323C_records.inc"
-};
-
-static u16 _gMistParkingAnimation1323CIndices[20] = {
-#include "assets/mist_parking_animation_1323C_indices.inc"
-};
-
-AnimationSet gMistParkingAnimation1323C = {
-    _gMistParkingAnimation1323CRecords,
-    _gMistParkingAnimation1323CIndices,
-    { NULL, _gMistParkingAnimation1323CBank1, NULL, NULL, _gMistParkingAnimation1323CBank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/mist/parking/clips_3.inc"
 
 static void _mistParkingInitCutsceneModelPitch(Task* task);
 static void _mistParkingAdvanceCutsceneModelPitch(Task* task);

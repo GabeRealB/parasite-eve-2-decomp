@@ -48,24 +48,49 @@ type = "file"
 [[kyle_file.contents]]
 chunk = "dome_backdrops_palette"
 sha1 = "cac9208d1c160fb92fdf62189c232f0bec0f8a8f"
-palettes = [
-    { texture = "dome_backdrop_page_1", variant = "outgoing", region = "engine/vram/actor_palettes" },
-    { texture = "dome_backdrop_page_2", variant = "outgoing", region = "engine/vram/actor_palettes" },
-    { texture = "dome_backdrop_page_3", variant = "outgoing", region = "engine/vram/actor_palettes" },
-    { texture = "dome_backdrop_page_3", variant = "incoming", region = "engine/vram/actor_palettes", offset = [0, 1] },
-    { texture = "dome_backdrop_page_4", variant = "incoming", region = "engine/vram/actor_palettes", offset = [0, 1] },
-    { texture = "dome_backdrop_page_5", variant = "incoming", region = "engine/vram/actor_palettes", offset = [0, 1] },
-]
+
+[[kyle_file.contents.palettes]]
+texture = "dome_backdrop_page_1"
+variant = "outgoing"
+region = "engine/vram/actor_palettes"
+
+[[kyle_file.contents.palettes]]
+texture = "dome_backdrop_page_2"
+variant = "outgoing"
+region = "engine/vram/actor_palettes"
+
+[[kyle_file.contents.palettes]]
+texture = "dome_backdrop_page_3"
+variant = "outgoing"
+region = "engine/vram/actor_palettes"
+
+[[kyle_file.contents.palettes]]
+texture = "dome_backdrop_page_3"
+variant = "incoming"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00001]
+
+[[kyle_file.contents.palettes]]
+texture = "dome_backdrop_page_4"
+variant = "incoming"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00001]
+
+[[kyle_file.contents.palettes]]
+texture = "dome_backdrop_page_5"
+variant = "incoming"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00001]
 
 [[kyle_file.contents]]
 chunk = "dome_backdrops"
 sha1 = "adf6d618668261d0258b86a7f8eb675ac6b6a24a"
 pages = [
-    { texture = "dome_backdrop_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
-    { texture = "dome_backdrop_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
-    { texture = "dome_backdrop_page_3", region = "engine/vram/actor_sheet", offset = [128, 0] },
-    { texture = "dome_backdrop_page_4", region = "engine/vram/actor_sheet", offset = [192, 0] },
-    { texture = "dome_backdrop_page_5", region = "engine/vram/actor_sheet", offset = [256, 0] },
+    { texture = "dome_backdrop_page_1", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] },
+    { texture = "dome_backdrop_page_2", region = "engine/vram/actor_sheet", offset = [0x00040, 0x00000] },
+    { texture = "dome_backdrop_page_3", region = "engine/vram/actor_sheet", offset = [0x00080, 0x00000] },
+    { texture = "dome_backdrop_page_4", region = "engine/vram/actor_sheet", offset = [0x000C0, 0x00000] },
+    { texture = "dome_backdrop_page_5", region = "engine/vram/actor_sheet", offset = [0x00100, 0x00000] },
 ]
 slots = 6
 

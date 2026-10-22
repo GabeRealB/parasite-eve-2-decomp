@@ -385,18 +385,26 @@ asset = "enemies/stranger/sounds"
 chunk = "image_2"
 sha1 = "d9cac39e687af20cfbb9686c10cad9748590f93e"
 pages = [
-    { texture = "texture_2_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
-    { texture = "texture_2_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+    { texture = "texture_2_page_1", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] },
+    { texture = "texture_2_page_2", region = "engine/vram/actor_sheet", offset = [0x00040, 0x00000] },
 ]
 slots = 6
 
 [[package_2_file.contents]]
 chunk = "palette_2"
 sha1 = "934a7fa2c1238cfcc9d1de043489517da1b5342e"
-palettes = [
-    { texture = "texture_2_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
-    { texture = "texture_2_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
-]
+
+[[package_2_file.contents.palettes]]
+texture = "texture_2_page_1"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00000]
+
+[[package_2_file.contents.palettes]]
+texture = "texture_2_page_2"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00001]
 
 [[package_2_file.contents]]
 asset = "rooms/akropolis/square/grinning_stranger"
@@ -411,18 +419,26 @@ asset = "enemies/stranger/sounds"
 chunk = "image_4"
 sha1 = "99a3b24594b5df76caf843667092cbfc09063ec8"
 pages = [
-    { texture = "texture_4_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
-    { texture = "texture_4_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+    { texture = "texture_4_page_1", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] },
+    { texture = "texture_4_page_2", region = "engine/vram/actor_sheet", offset = [0x00040, 0x00000] },
 ]
 slots = 6
 
 [[package_4_file.contents]]
 chunk = "palette_4"
 sha1 = "a238f0c149b53f3aac2dd044c72c4f17b9e24f78"
-palettes = [
-    { texture = "texture_4_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
-    { texture = "texture_4_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
-]
+
+[[package_4_file.contents.palettes]]
+texture = "texture_4_page_1"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00000]
+
+[[package_4_file.contents.palettes]]
+texture = "texture_4_page_2"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00001]
 
 [[package_4_file.contents]]
 chunk = "package_4"
@@ -437,19 +453,32 @@ asset = "enemies/stranger/sounds"
 chunk = "image_b_1"
 sha1 = "df80e66ff9cd19441469dbeb450f5229fd6b4be9"
 pages = [
-    { texture = "texture_b_1_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
-    { texture = "texture_b_1_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+    { texture = "texture_b_1_page_1", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] },
+    { texture = "texture_b_1_page_2", region = "engine/vram/actor_sheet", offset = [0x00040, 0x00000] },
 ]
 slots = 6
 
 [[package_b_1_file.contents]]
 chunk = "palette_b_1"
 sha1 = "7bb032df3ac96d82e3ef0046e963099fa4092512"
-palettes = [
-    { texture = "texture_b_1_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
-    { texture = "texture_b_1_page_2", variant = "row_0", region = "engine/vram/actor_palettes", offset = [0, 0] },
-    { texture = "texture_b_1_page_2", variant = "row_1", region = "engine/vram/actor_palettes", offset = [0, 1] },
-]
+
+[[package_b_1_file.contents.palettes]]
+texture = "texture_b_1_page_1"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00000]
+
+[[package_b_1_file.contents.palettes]]
+texture = "texture_b_1_page_2"
+variant = "row_0"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00000]
+
+[[package_b_1_file.contents.palettes]]
+texture = "texture_b_1_page_2"
+variant = "row_1"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00001]
 
 [[package_b_1_file.contents]]
 chunk = "package_b_1"

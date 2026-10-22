@@ -1,0 +1,25 @@
+# The assets of the group rooms/akropolis, each named rooms/akropolis/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[flare]
+type = "texture"
+bpp = 4
+cells = { flare_0 = [0, 0, 40, 40], flare_1 = [40, 0, 40, 40], flare_2 = [80, 0, 40, 40] }
+height = 256
+variants = ["flare_0", "flare_1", "flare_2"]
+width = 256
+
+[story_calls]
+type = "cap"
+glyphs = { 52 = "I", 57 = "l" }
+sha1 = "496c4c23e92b612542126dcf54099315cf88a6f7"
+
+[story_calls_atlas]
+type = "font_atlas"
+bpp = 4
+generated_by = "rooms/akropolis/story_calls"
+h = 256
+w = 64
+x = 960
+y = 0
+sha1 = "c0887787c2a7c396b2b5b43f16828d518216aa75"

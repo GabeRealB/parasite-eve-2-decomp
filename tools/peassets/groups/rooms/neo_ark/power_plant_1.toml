@@ -62,13 +62,13 @@ sha1 = "02ea6b8e02f6b92c3673aec33f447a1ae0150b47"
 texture = "proto_generator_texture_page_1"
 variant = "default"
 region = "engine/vram/actor_palettes"
-offset = [0, 0]
+offset = [0x00000, 0x00000]
 
 [[proto_generator_file.contents.palettes]]
 texture = "proto_generator_texture_page_2"
 variant = "default"
 region = "engine/vram/actor_palettes"
-offset = [0, 1]
+offset = [0x00000, 0x00001]
 
 [[proto_generator_file.contents]]
 chunk = "proto_generator_palette_2"
@@ -78,15 +78,15 @@ sha1 = "35dbf000e5591e763f254119bae6bc938618719f"
 texture = "proto_generator_texture_page_3"
 variant = "default"
 region = "engine/vram/actor_palettes"
-offset = [0, 2]
+offset = [0x00000, 0x00002]
 
 [[proto_generator_file.contents]]
 chunk = "proto_generator_image"
 sha1 = "0c5b898d1b74253b0d9e663cfe1f2d83ecb9765c"
 pages = [
-    { texture = "proto_generator_texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
-    { texture = "proto_generator_texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
-    { texture = "proto_generator_texture_page_3", region = "engine/vram/actor_sheet", offset = [128, 0] },
+    { texture = "proto_generator_texture_page_1", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] },
+    { texture = "proto_generator_texture_page_2", region = "engine/vram/actor_sheet", offset = [0x00040, 0x00000] },
+    { texture = "proto_generator_texture_page_3", region = "engine/vram/actor_sheet", offset = [0x00080, 0x00000] },
 ]
 slots = 6
 

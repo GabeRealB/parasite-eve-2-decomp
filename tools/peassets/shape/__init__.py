@@ -246,13 +246,14 @@ class Context:
 
 
 def stored_bytes(name: str, ctx: Context) -> bytes:
-    """An output's stored bytes as the codec reads them: a text less its zero padding or NUL terminator, any other
-    type as stored."""
+    """An output's stored bytes as the codec reads them: a text less its zero padding or NUL terminator, a package
+    inflated to its image, any other type as stored."""
     import asset_schema
     from asset_decode import decode_ascii_payload
+    from lzss import decode_lzss
     rec = ctx.embedded.get(name) or ctx.assets[name]
     data = (ctx.assets_root / asset_schema.raw_rel(name, rec)).read_bytes()
-    return decode_ascii_payload(data) if rec.get("type") == "txt" else data
+    return {"txt": decode_ascii_payload, "pe2pkg": decode_lzss, "room": decode_lzss}.get(rec.get("type"), bytes)(data)
 
 
 def check_asset(name: str, rec: dict, assets: dict, decls: dict) -> list[str]:

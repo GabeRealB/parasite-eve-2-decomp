@@ -179,6 +179,7 @@ rig = "characters/eve/rig"
 [player_choice_start]
 type = "clip"
 rig = "characters/aya/rig"
+symbol = "gShelterB6GrowthRoomPlayerChoiceStartClip"
 
 [companion_post_choice]
 type = "clip"

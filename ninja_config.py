@@ -227,6 +227,7 @@ GEN_ANIMATION_SOURCE = TOOLS_DIR / "buildsteps" / "gen_animation_source.py"
 GEN_ANIMATION_INC = TOOLS_DIR / "buildsteps" / "gen_animation_inc.py"
 GEN_COLLISION_INC = TOOLS_DIR / "buildsteps" / "gen_collision_inc.py"
 GEN_SHAPE_INC = TOOLS_DIR / "buildsteps" / "gen_shape_inc.py"
+GEN_ROOM_INC = TOOLS_DIR / "buildsteps" / "gen_room_inc.py"
 GEN_FONT_INC = TOOLS_DIR / "buildsteps" / "gen_font_inc.py"
 
 
@@ -284,6 +285,23 @@ def shape_includes(version: str) -> list[tuple[str, Path, Path]]:
     return out
 
 
+def room_includes(version: str) -> list[tuple[str, Path, list[Path]]]:
+    """(room, its instance, its includes) for every room (asset type `room`): gen_room_inc.py writes one include per
+    module the instance holds, `assets/<group>/<module>.inc`, and `assets/<group>/declarations.inc`."""
+    data, _schema = asset_tables()
+    out = []
+    for key, rec in data.ASSETS.items():
+        if rec.get("type") != "room":
+            continue
+        instance = ASSETS_DIR / version / rec["group"] / "room.toml"
+        if not instance.exists():
+            continue
+        modules = [k for k, v in tomllib.loads(instance.read_text()).items() if isinstance(v, dict) and k != "entry"]
+        outdir = BUILD_DIR / "include" / "assets" / rec["group"]
+        out.append((key, instance, [outdir / f"{m}.inc" for m in modules] + [outdir / "declarations.inc"]))
+    return out
+
+
 def shape_instances(version: str) -> set[str]:
     """Every shaped asset's instance (tools/peassets/shape/)."""
     data, schema = asset_tables()
@@ -336,7 +354,7 @@ def asset_placements(name: str) -> list[tuple[str, int]]:
         place = data.EMBEDDED_ASSETS[name]
         out.append((place["source"].removesuffix(".pe2pkg"), schema.embedded_offset(place)))
     for key, rec in data.ASSETS.items():
-        if rec.get("type") == "pe2pkg":
+        if rec.get("type") in ("pe2pkg", "room"):
             package = rec.get("package_name", key)
             out += [(package, p["offset"]) for p in rec.get("embedded", ())
                     if isinstance(p, dict) and p["name"] == name and (package, p["offset"]) not in out]
@@ -416,7 +434,7 @@ def declared_animation_sources(version: str) -> tuple[list, list]:
     tables = (data.ASSETS, data.EMBEDDED_ASSETS)
     clips, banks = [], []
     for key, rec in data.ASSETS.items():
-        if rec.get("type") == "pe2pkg":
+        if rec.get("type") in ("pe2pkg", "room"):
             placed = [p["name"] for p in rec.get("embedded", ()) if isinstance(p, dict)
                       and data.ASSETS[p["name"]]["type"] == "clip"]
             if placed:
@@ -1195,6 +1213,11 @@ def ninja_build(
         command=f"{PYTHON} {GEN_SHAPE_INC} $name $out --assets {ASSETS_DIR / 'USA'}",
     )
     ninja_rules_file.rule(
+        "room-inc",
+        description="room-inc $name",
+        command=f"{PYTHON} {GEN_ROOM_INC} $name $outdir --assets {ASSETS_DIR / 'USA'}",
+    )
+    ninja_rules_file.rule(
         "font-inc",
         description="font-inc $name",
         command=f"{PYTHON} {GEN_FONT_INC} $name $out --assets {ASSETS_DIR / 'USA'}",
@@ -1266,6 +1289,15 @@ def ninja_build(
             writer.build(outputs=str(inc), rule="shape-inc", inputs=str(instance), implicit=shape_deps + instances,
                          variables={"name": name})
         ASSET_INC_OUTPUTS.append(str(inc))
+    room_deps = [str(GEN_ROOM_INC), str(peassets / "asset_data.py"), str(peassets / "asset_schema.py"),
+                 *sorted(str(p) for p in (peassets / "room").glob("*.py")), str(peassets / "shape" / "__init__.py"),
+                 str(CONFIG_DIR / version / "overlays.toml"),
+                 *sorted(str(p) for p in (peassets / "groups").rglob("*.toml"))]
+    for name, instance, incs in room_includes(version):
+        for writer in asset_writers:
+            writer.build(outputs=[str(i) for i in incs], rule="room-inc", inputs=str(instance), implicit=room_deps,
+                         variables={"name": name, "outdir": str(incs[0].parent)})
+        ASSET_INC_OUTPUTS.extend(str(i) for i in incs)
     font_deps = [str(GEN_FONT_INC), str(peassets / "asset_data.py"), str(peassets / "asset_schema.py"),
                  str(peassets / "text_encoding.py"), *sorted(str(p) for p in (peassets / "font").glob("*.py")),
                  *sorted(str(p) for p in (peassets / "groups").rglob("*.toml"))]

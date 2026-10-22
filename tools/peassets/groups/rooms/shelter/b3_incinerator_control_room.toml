@@ -106,6 +106,7 @@ slots = ["pretty_smile", "talk_start", "went_tumbling", "talk", "landed_on_dog",
 [player_flustered]
 type = "clip"
 rig = "characters/aya/rig"
+symbol = "gShelterB3IncineratorControlRoomPlayerFlusteredClip"
 
 [companion_came_to]
 type = "clip"

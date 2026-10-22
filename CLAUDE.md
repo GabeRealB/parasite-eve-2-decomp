@@ -658,7 +658,26 @@ list-start pointer, with one argument evaluation. Headerless geometry
 that code copies into a live grid is a `collisionPatch`, declared by its
 `pieces`.
 Camera views are not assets: a view is a matrix and a position, data like any
-placement.
+placement. Like placements, they are a **room's data** (below), not C.
+
+**A room's data is its room asset, not C.** What a stage editor would have
+authored - the per-state collision, view maps, view counts and lighting, the
+warps, cameras, sprite views, triggers, occluders, lights and ambient levels,
+surfaces, placements and actor resources, area updates, vibration scripts, and
+the world points (`markers`), view masks and sample curves effect code reads -
+is decoded from the binary into `assets/USA/<room group>/room.toml` and
+written back to C by the build, one include per module
+(`assets/<group>/<module>.inc`, plus `declarations.inc`;
+`tools/buildsteps/gen_room_inc.py`). The room package's record has
+`type = "room"` and states only the entry points the stage overlay's per-area
+tables and gameplay's area table do not give, by role (`entries`;
+`tools/peassets/room/`); every other object is reached through pointers, and
+every object's type follows from its role or the field that reaches it. A
+room's C keeps its code, its code tables, its one-off globals and the tables
+its code reads as tuning parameters (item ids, radii, a mosaic's tiles), and
+includes the module files where their blocks sit. Never hand-write room data
+back into C; extend the room's entries or the room layouts. Converted so far:
+stage 1 (Akropolis and the MIST). Event scripts are next, as a recreated DSL.
 
 **Morph targets and baked tracks are assets too.** A morph target is the second
 shape of a mesh, vertex for vertex (`dryfield_toilet`'s deltas and normals). A
@@ -669,8 +688,9 @@ samples describing movement over time: a per-movie-frame player path
 (`actor_303600`'s 570 view keys). That last one is the distinction from the
 sentence above: a room's fixed views, selected by id, are data; a per-frame
 camera track is an asset. What stays in C is what a programmer would type and
-tune by hand - a placement, a small offset table, a tuning constant, a table
-of rules such as `actor_548100`'s circuit graph. Classify by how the code uses
+tune by hand - a small offset table, a tuning constant, a table of rules such
+as `actor_548100`'s circuit graph (a room's placements are its room data,
+above). Classify by how the code uses
 the array, not by its shape. The known embedded ones:
 
 | Asset | Where | Note |

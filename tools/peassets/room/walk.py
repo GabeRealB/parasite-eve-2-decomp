@@ -1,0 +1,243 @@
+"""Reaching a room's data in its package from its entry points, in the bytes alone.
+
+The images are mapped at their load addresses - gameplay at 0x80093800, the stage overlay at 0x80179950, the room at
+0x8017D5C0 - so pointers resolve across them. A room's implicit entry points are its stage overlay's per-area tables
+(indexed by the room's area: its folder's disc id divided by 100) and gameplay's area table (the area's placement
+variants); its record names the rest (`entries`: what only code names). Symbol maps give names only.
+
+Extents come from the bytes: sprite batches, draw areas, triggers, occluders, placements, actor resources, area
+updates and vibration scripts end at their own end marks, a room's light arrays and an object only code names reach
+the next object, the per-state tables share the count of those holding pointers (the view counts, halfwords, may be
+followed by padding), and every other object reaches the next object the symbol maps or a pointer starts.
+"""
+from __future__ import annotations
+
+import re
+import struct
+from pathlib import Path
+
+from .layouts import GEOMETRY, MODULE_OF, SCALAR, TRIGGER_MODULE, decode_value, size
+
+ROOT = Path(__file__).resolve().parents[3]
+GAMEPLAY_LOAD, STAGE_LOAD, ROOM_LOAD = 0x80093800, 0x80179950, 0x8017D5C0
+
+# Each game stage's overlay and its per-area tables: symbol -> the layout an entry points to.
+STAGES = {
+    1: ("map_akropolis", {
+        "_gMapAkropolisWorldCollisionAreaRooms": "WorldCollisionRoomResources", "_gMapAkropolisAreaViewMaps": "ViewMapPtr",
+        "_gMapAkropolisAreaViewCounts": "ViewCount", "gMapAkropolisAreaRoomLightingTables": "WorldCoordRoomLighting",
+        "_gMapAkropolisAreaCameras": "ViewCamera", "_gMapAkropolisAreaSpriteViews": "SpriteView",
+        "gMapAkropolisAreaWarpEntries": "DirectionWarpEntry", "gMapAkropolisSurfacePropertiesByArea": "SurfacePtr"}),
+    2: ("map_dryfield", {
+        "_gMapDryfieldWorldCollisionAreaRooms": "WorldCollisionRoomResources", "_gMapDryfieldAreaViewMaps": "ViewMapPtr",
+        "_gMapDryfieldRoomViewCountsByArea": "ViewCount", "gMapDryfieldRoomLightingTables": "WorldCoordRoomLighting",
+        "_gMapDryfieldAreaViewCameras": "ViewCamera", "_gMapDryfieldAreaSpriteViews": "SpriteView",
+        "gMapDryfieldAreaWarpEntries": "DirectionWarpEntry", "gMapDryfieldSurfacePropertiesByArea": "SurfacePtr"}),
+    3: ("map_dryfield_full", {
+        "_gMapDryfieldFullWorldCollisionAreaRooms": "WorldCollisionRoomResources",
+        "_gMapDryfieldFullAreaViewMaps": "ViewMapPtr", "_gMapDryfieldFullRoomViewCountsByArea": "ViewCount",
+        "gMapDryfieldFullRoomLightingTables": "WorldCoordRoomLighting", "_gMapDryfieldFullViewCamerasByArea": "ViewCamera",
+        "_gMapDryfieldFullSpriteViewsByArea": "SpriteView", "gMapDryfieldFullAreaWarpEntries": "DirectionWarpEntry",
+        "gMapDryfieldFullSurfacePropertiesByArea": "SurfacePtr"}),
+    4: ("map_shelter", {
+        "_gMapShelterWorldCollisionAreaRooms": "WorldCollisionRoomResources", "_gMapShelterAreaViewMaps": "ViewMapPtr",
+        "_gMapShelterAreaViewCounts": "ViewCount", "gMapShelterRoomLightingTables": "WorldCoordRoomLighting",
+        "_gMapShelterAreaViewCameras": "ViewCamera", "_gMapShelterAreaSpriteViews": "SpriteView",
+        "gMapShelterAreaWarpEntries": "DirectionWarpEntry", "gMapShelterSurfacePropertiesByArea": "SurfacePtr"}),
+    5: ("map_neo_ark", {
+        "_gMapNeoArkWorldCollisionAreaRooms": "WorldCollisionRoomResources", "_gMapNeoArkAreaViewMaps": "ViewMapPtr",
+        "_gMapNeoArkAreaViewCounts": "ViewCount", "gMapNeoArkRoomLightingTables": "WorldCoordRoomLighting",
+        "_gMapNeoArkAreaCameras": "ViewCamera", "_gMapNeoArkAreaSpriteViews": "SpriteView",
+        "gMapNeoArkAreaWarpEntries": "DirectionWarpEntry", "gMapNeoArkSurfacePropertiesByArea": "SurfacePtr"}),
+}
+PER_STATE = ("WorldCollisionRoomResources", "ViewMapPtr", "WorldCoordRoomLighting")
+END_MARKS = {
+    "SpriteBatch": lambda d, o: struct.unpack_from("<H", d, o)[0] == 0xFFFF,
+    "SpriteDrawArea": lambda d, o: struct.unpack_from("<H", d, o + 8)[0] == 0xFFFF,
+    "WorldCollisionTrigger": lambda d, o: d[o + 0x4A] & 0x80,
+    "WorldCollisionOccluder": lambda d, o: d[o + 0x3A] & 0x80,
+    "AreaPlacement": lambda d, o: d[o] == 0xFF,
+    "AreaResource": lambda d, o: struct.unpack_from("<H", d, o)[0] == 0xFF,
+    "AreaApplyRec": lambda d, o: d[o] == 0xFF,
+    "PadScriptCmd": lambda d, o: struct.unpack_from("<I", d, o)[0] == 0,
+}
+
+
+def symbol_map(path: Path, owner: str | None = None) -> dict[int, str]:
+    """Address -> name from a symbol map; a stage map's room symbols only for `owner`."""
+    out = {}
+    for line in path.read_text().splitlines():
+        m = re.match(r"(\w+) = (0x[0-9A-Fa-f]+);(.*)", line)
+        if m:
+            o = re.search(r"owner=(\w+)", m.group(3))
+            if o is None or o.group(1) == owner:
+                out[int(m.group(2), 16)] = m.group(1)
+    return out
+
+
+class Images:
+    """Gameplay, a stage overlay and a room, mapped at their load addresses, with the names the symbol maps give."""
+
+    def __init__(self, stage: int, stage_image: bytes, room_name: str, room: bytes, gameplay: bytes):
+        self.stage, (self.stage_name, self.directories) = stage, STAGES[stage]
+        self.stage_image, self.room_name, self.room, self.gameplay = stage_image, room_name, room, gameplay
+        sym = ROOT / "configs" / "USA"
+        self.names = {**symbol_map(sym / "sym.gameplay.txt"),
+                      **symbol_map(sym / "sym" / "mapui" / f"{self.stage_name}.txt", room_name),
+                      **symbol_map(sym / "sym" / "rooms" / f"{room_name}.txt")}
+        self.addresses = {n: a for a, n in self.names.items()}
+
+    def in_room(self, a: int) -> bool:
+        return ROOM_LOAD <= a < ROOM_LOAD + len(self.room)
+
+    def word(self, a: int) -> int:
+        for base, image in ((ROOM_LOAD, self.room), (GAMEPLAY_LOAD, self.gameplay), (STAGE_LOAD, self.stage_image)):
+            if base <= a < base + len(image):
+                return struct.unpack_from("<I", image, a - base)[0]
+        raise SystemExit(f"0x{a:08X} is in no mapped image")
+
+
+def _collision():
+    """tools/buildsteps/gen_collision_inc.py, which cuts a grid into its parts."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("gen_collision_inc", ROOT / "tools" / "buildsteps" / "gen_collision_inc.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+class Object:
+    """A room object: where it is, its layout, its elements, its module, and its C form (single, or rows)."""
+
+    def __init__(self, address: int, kind: str, count: int, module: str, single: bool = False, rows: int = 0):
+        self.address, self.kind, self.count, self.module, self.single, self.rows = address, kind, count, module, single, rows
+
+    @property
+    def end(self) -> int:
+        return self.address + self.count * size(self.kind)
+
+
+# The roles of a room's entry points: those the stage overlay's per-area tables and gameplay's area table give, by
+# the layout they point to, and those a record states (`entries`), each with its kind and module.
+IMPLICIT_ROLES = {"WorldCollisionRoomResources": "collision", "ViewMapPtr": "view_maps", "ViewCount": "view_counts",
+                  "WorldCoordRoomLighting": "lighting", "ViewCamera": "cameras", "SpriteView": "sprite_views",
+                  "DirectionWarpEntry": "warps", "SurfacePtr": "surfaces", "AreaVariant": "variants"}
+STATED_ROLES = {"action_triggers": ("WorldCollisionTrigger", "action_triggers"),
+                "geometry": ("WorldCollisionGrid", "geometry"), "lights": ("WorldCoordRoomLights", "lights"),
+                "spare_batches": ("SpriteBatch", "sprites"), "spare_draw_areas": ("SpriteDrawArea", "sprites"),
+                "updates": ("AreaApplyRec", "updates"), "markers": ("SVECTOR", "markers"),
+                "samples": ("s16", "samples"), "view_masks": ("u16", "view_masks"),
+                "wide_view_masks": ("u32", "view_masks")}
+ROLE_KINDS = {**{r: k for k, r in IMPLICIT_ROLES.items()}, **{r: k for r, (k, _m) in STATED_ROLES.items()},
+              "commands": "PadScriptCmd", "segments": "PadScriptVibrationSegment"}
+
+
+def entry_points(entries: dict) -> list[tuple[int, str, str, bool, int, str]]:
+    """(offset, kind, module, single, rows, role) of a record's entries, by role: `action_triggers`, `geometry`
+    (grids), `lights` (light sets), `spare_batches`, `spare_draw_areas`, `updates`, and the tables the room's code
+    places effects with - `markers` (world points), `view_masks` and `wide_view_masks` (a bit per view, halfwords
+    or words: which views a marker shows in) and `samples` (curves) - list offsets, or {at, single, rows}; `vibrations` lists {commands, segments, single (one
+    segment)}. `view_counts` is not an entry point: it is the length of the view-count table where the C's is longer
+    than the room's states need (zeros past them)."""
+    out = []
+    for role, items in entries.items():
+        if role == "view_counts":
+            continue
+        for e in items:
+            if role == "vibrations":
+                out.append((e["commands"], "PadScriptCmd", "vibrations", False, 0, "vibrations"))
+                out.append((e["segments"], "PadScriptVibrationSegment", "vibrations", bool(e.get("single")), 0, "vibrations"))
+                continue
+            e = e if isinstance(e, dict) else {"at": e}
+            kind, module = STATED_ROLES[role]
+            out.append((e["at"], kind, module, bool(e.get("single")), int(e.get("rows", 0)), role))
+    return out
+
+
+def walk(images: Images, area: int, entries: dict) -> tuple[int, dict[int, Object], dict[str, list]]:
+    """(states, {address: object}, {role: entry points}) of every object the room's entry points reach in the room;
+    a vibration's entry point is its (commands, segments)."""
+    entry = {}
+    tables = sorted(images.addresses[n] for n in images.directories)
+    areas = min(b - a for a, b in zip(tables, tables[1:])) // 4    # the tables are adjacent, one entry an area
+    for name, layout in images.directories.items():
+        p = images.word(images.addresses[name] + 4 * (area - 1)) if area <= areas else 0
+        if p:
+            entry[layout] = p
+    records = images.word(images.addresses["gAreaRecordsByStage"] + 4 * images.stage)
+    variants = images.word(records + 8 * area)                # AreaRecord.variants
+    stated = entry_points(entries)
+    extra = [(ROOM_LOAD + at, kind, module, single, rows) for at, kind, module, single, rows, _r in stated]
+    roots = [(a, k, MODULE_OF[k], False, 0) for k, a in entry.items()]
+    if variants:
+        roots.append((variants, "AreaVariant", "placements", False, 0))
+    code_named = {a for a, *_ in extra}
+    starts = {a for a in images.names if images.in_room(a)} | {a for a, *_ in roots + extra}
+    room_end = ROOM_LOAD + len(images.room)
+    while True:
+        def extent(a: int, kind: str) -> int:
+            return (min([s for s in starts if s > a] + [room_end]) - a) // size(kind)
+        in_room = [k for k in PER_STATE if k in entry and images.in_room(entry[k])]
+        states = min((extent(entry[k], k) for k in in_room), default=1)
+        counts = {(entry["ViewCount"], "ViewCount"): entries.get("view_counts", states)} if "ViewCount" in entry else {}
+        queue = list(roots) + list(extra)
+        objs: dict[int, Object] = {}
+        while queue:
+            a, kind, module, single, rows = queue.pop(0)
+            if kind == "ref" or not images.in_room(a) or a in objs:
+                continue
+            if kind == "SpriteSources":
+                kind = "SpriteSource"
+            mark = END_MARKS.get(kind)
+            if single:
+                n = 1
+            elif (a, kind) in counts:
+                n = counts[(a, kind)]
+            elif mark and a not in code_named:
+                k = 0
+                while not mark(images.room, a - ROOM_LOAD + k * size(kind)):
+                    k += 1
+                n = min(k + 1, extent(a, kind))
+            elif kind == "WorldCoordRoomAmbientEntry":
+                n = struct.unpack_from("<h", images.room, a - ROOM_LOAD)[0] + 1
+            else:
+                n = extent(a, kind)
+            objs[a] = Object(a, kind, n, module, single or kind in SCALAR, rows)
+            if kind in GEOMETRY:
+                continue
+            if kind == "WorldCollisionGrid":                  # its geometry, as the collision asset cuts it
+                for part in _collision().components(images.room, ROOM_LOAD, a - ROOM_LOAD):
+                    pk = next(k for k, v in GEOMETRY.items() if v == part["name"])
+                    objs[ROOM_LOAD + part["offset"]] = Object(ROOM_LOAD + part["offset"], pk, part["size"] // size(pk), "geometry")
+            for i in range(n):
+                refs: list = []
+                value = decode_value(images.room, a - ROOM_LOAD + i * size(kind), kind, refs)
+                for field, target, tkind in refs:
+                    if not target or tkind == "ref":
+                        continue
+                    if kind == "WorldCoordRoomLights" and tkind != "WorldCoordRoomLights":
+                        count = value[{"directionalLights": "directionalLightCount", "pointLights": "pointLightCount",
+                                       "coneLights": "coneLightCount"}[field]]
+                        if extent(target, tkind) < count:
+                            raise SystemExit(f"0x{target:08X}: {count} lights do not fit before the next object")
+                    if kind == "SpriteView" and field == "sources" and target == value["batches"]:
+                        continue                              # no sources: the slot keeps the view's batch list
+                    queue.append((target, tkind, TRIGGER_MODULE.get(field) or MODULE_OF.get(tkind, module), False, 0))
+        new = set(objs) - starts
+        if not new:
+            roles: dict[str, list] = {}
+            for k, a in entry.items():
+                if images.in_room(a):
+                    roles.setdefault(IMPLICIT_ROLES[k], []).append(a)
+            if variants and images.in_room(variants):
+                roles["variants"] = [variants]
+            for at, kind, _m, _s, _r, role in stated:
+                if role == "vibrations":
+                    if kind == "PadScriptCmd":
+                        roles.setdefault(role, []).append([ROOM_LOAD + at])
+                    else:
+                        roles[role][-1].append(ROOM_LOAD + at)
+                else:
+                    roles.setdefault(role, []).append(ROOM_LOAD + at)
+            return states, objs, roles
+        starts |= new

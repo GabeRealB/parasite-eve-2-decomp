@@ -19,7 +19,7 @@
 /// Keep the cafeteria overlay loaded while these recipes or their tasks are used.
 extern TaskDesc gAcropolisCafeteriaSceneTasks[4];
 
-extern TmdSource gAcropolisCafeteriaModel077D8;
+extern TmdSource gAkropolisCafeteriaAcropolisCafeteriaModel077D8;
 
 /// Cafeteria actor layouts indexed directly by saved placement variant 0..10.
 ///
@@ -43,7 +43,7 @@ extern TmdSource gAcropolisCafeteriaModel09A20;
 /// Models the Akropolis map UI overlay's enemy descriptors attach.
 extern TmdSource gAcropolisCafeteriaModel0F7A4;
 
-extern TmdSource gAcropolisCafeteriaModel0FDFC;
+extern TmdSource gAkropolisCafeteriaAcropolisCafeteriaModel0FDFC;
 
 /// Collision resources indexed by cafeteria room minus one (rooms 1..4).
 ///

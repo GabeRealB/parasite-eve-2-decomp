@@ -146,18 +146,18 @@ sha1 = "58c356d989ddd4c5ef6d03f7df979ba425f8d0cd"
 texture = "enemies/crawler/texture"
 variant = "default"
 region = "engine/vram/actor_palettes"
-offset = [0, 0]
+offset = [0x00000, 0x00000]
 
 [[package_file.contents.palettes]]
 name = "unread_row_2"
 entries = 256
 region = "engine/vram/actor_palettes"
-offset = [0, 1]
+offset = [0x00000, 0x00001]
 
 [[package_file.contents]]
 chunk = "image"
 sha1 = "788e398e271d8faa31772d774219331477452ac9"
-pages = [{ texture = "enemies/crawler/texture", region = "engine/vram/actor_sheet", offset = [0, 0] }]
+pages = [{ texture = "enemies/crawler/texture", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] }]
 slots = 6
 
 [[package_file.contents]]

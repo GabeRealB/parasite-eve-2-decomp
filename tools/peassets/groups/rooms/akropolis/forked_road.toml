@@ -1,6 +1,61 @@
 # The assets of the group rooms/akropolis/forked_road, each named rooms/akropolis/forked_road/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "sounds_0"
+
+[[file.contents]]
+chunk = "sounds_1"
+
+[[file.contents]]
+chunk = "dialogue_0_atlas"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "fe78d2a2315a38157c0240b41d8a8447703ce52d"
+palettes = [
+    { texture = "lamps", variant = "lamp_0", region = "engine/vram/effect_palettes", offset = [0x00000, 0x00009] },
+    { texture = "lamps", variant = "lamp_1", region = "engine/vram/effect_palettes", offset = [0x00010, 0x00009] },
+    { texture = "lamps", variant = "lamp_2", region = "engine/vram/effect_palettes", offset = [0x00020, 0x00009] },
+    { name = "unread_270_48", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00030, 0x00009] },
+    { name = "unread_270_64", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00040, 0x00009] },
+    { name = "unread_270_80", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00050, 0x00009] },
+    { name = "unread_270_96", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00060, 0x00009] },
+    { name = "unread_270_112", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00070, 0x00009] },
+    { name = "unread_270_128", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00080, 0x00009] },
+    { name = "unread_270_144", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00090, 0x00009] },
+    { name = "unread_270_160", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000A0, 0x00009] },
+    { name = "unread_270_176", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000B0, 0x00009] },
+    { name = "unread_270_192", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000C0, 0x00009] },
+    { name = "unread_270_208", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000D0, 0x00009] },
+    { name = "unread_270_224", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000E0, 0x00009] },
+    { name = "unread_270_240", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000F0, 0x00009] },
+    { texture = "lamps", variant = "leaf", region = "engine/vram/effect_palettes", offset = [0x00100, 0x00009] },
+    { name = "unread_270_272", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00110, 0x00009] },
+    { name = "unread_270_288", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00120, 0x00009] },
+    { name = "unread_270_304", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00130, 0x00009] },
+    { name = "unread_row_271", entries = 256, region = "engine/vram/effect_palettes", offset = [0x00000, 0x0000A] },
+    { name = "unread_271_256", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00100, 0x0000A] },
+    { name = "unread_271_272", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00110, 0x0000A] },
+    { name = "unread_271_288", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00120, 0x0000A] },
+    { name = "unread_271_304", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00130, 0x0000A] },
+]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "72f5f7a2131d77d79b1217be00ea068b7d958775"
+pages = [{ texture = "lamps", region = "engine/vram/effect_sheet", offset = [0x000C0, 0x00000] }]
+slots = 2
+
+[[file.contents]]
+chunk = "package"
+
+[[file.contents]]
+chunk = "bundle"
+
 [idle]
 type = "sound"
 sha1 = "c2c38b28323ce23d9d3c4decfb350153717bb773"
@@ -9,13 +64,460 @@ sha1 = "c2c38b28323ce23d9d3c4decfb350153717bb773"
 type = "sound"
 sha1 = "e0a4ca1d841f31324273e7df2eb9b2a9a16b3a6e"
 
+[lamps]
+type = "texture"
+bpp = 4
+cells = { lamp_0 = [0, 0, 40, 40], lamp_1 = [40, 0, 40, 40], lamp_2 = [80, 0, 40, 40], leaf = [0, 232, 8, 8] }
+height = 256
+variants = ["lamp_0", "lamp_1", "lamp_2", "leaf"]
+width = 256
+
+[bundle]
+type = "pe2bundle"
+resources = [
+    "",
+    "rooms/akropolis/forked_road/view2_palette",
+    "rooms/akropolis/forked_road/view3_palette",
+    "",
+    "rooms/akropolis/forked_road/view5_palette",
+    "",
+    "rooms/akropolis/forked_road/view7_palette",
+    "rooms/akropolis/forked_road/view7_palette",
+    "",
+    "",
+    "",
+    "rooms/akropolis/forked_road/view3_palette",
+    "rooms/akropolis/forked_road/dialogue_0",
+]
+sha1 = "38a9fa90e79dbc78940f8ddabc84ce35a7fc18bf"
+
+[package]
+type = "room"
+embedded = [
+    "acropolis_forked_road_path_039C0",
+    { asset = "characters/aya/stand", offset = 0x04320, size = 0x304, address = 0x801818E0 },
+    { asset = "rooms/shelter/b2_north_maintenance_walkway/player_turn_to_stinger", offset = 0x04624, size = 0x470, address = 0x80181BE4 },
+    { name = "acropolis_forked_road_lock_release_bank", offset = 0x04A94, size = 0xC, address = 0x80182054 },
+]
+package_name = "acropolis_forked_road"
+required = true
+sha1 = "0cc59b82e4c8116da25d79f5cf06274f0c8ee331"
+
+[package.entries]
+markers = [0x04BB8]
+spare_batches = [0x06518, 0x06F10]
+vibrations = [{ commands = 0x07A78, segments = 0x07A90 }, { commands = 0x07A98, segments = 0x07AB0 }]
+view_masks = [0x04C28]
+
+[sounds_0]
+type = "sound_bank"
+samples = [
+    "rooms/akropolis/patio/walk_floor_1",
+    "rooms/akropolis/patio/walk_floor_2",
+    "rooms/akropolis/cafeteria/walk_surface_3_1",
+    "rooms/akropolis/cafeteria/walk_surface_3_2",
+]
+sounds = { walk_surface_4_1 = 17, walk_surface_4_2 = 18, run_surface_4_1 = 19, run_surface_4_2 = 20 }
+sha1 = "a0eb9dd203524688f06faae761f3abe4c482f24f"
+
+[sounds_1]
+type = "sound_bank"
+samples = [
+    "rooms/akropolis/patio/fountain_door_depart",
+    "rooms/akropolis/patio/fountain_door_arrive",
+    "rooms/akropolis/patio/fountain_door_locked",
+    "rooms/akropolis/forked_road/crawler_leap",
+    "rooms/akropolis/forked_road/stranger_dormant_1",
+    "rooms/akropolis/forked_road/stranger_dormant_2",
+]
+sha1 = "628d7526d0ec47a6cb5f9c272368eda05a10fca0"
+
+[sounds_1.sounds]
+fountain_door_open = 2
+fountain_door_close = 3
+fountain_door_locked = 6
+crawler_leap = 7
+stranger_dormant_1 = 8
+stranger_dormant_2 = 9
+
 [unused_1]
 type = "sound"
 sha1 = "d156900d9450d5fe567cc344ec9f4708009f82be"
 
+[dialogue_0]
+type = "cap"
+sha1 = "f99d8f1695ee1f33cdc5991e6f81e1d4b1a0e98a"
+
+[view2_file]
+type = "file"
+
+[[view2_file.contents]]
+chunk = "view2_image"
+sha1 = "c2b5040d3e2c1bade290d4b11f3a0e4015130a89"
+pages = [
+    { texture = "view2_page_1", region = "engine/vram/room_sprite_sheet", offset = [0x00080, 0x00000] },
+    { texture = "view2_page_2", region = "engine/vram/room_sprite_sheet", offset = [0x000C0, 0x00000] },
+]
+slots = 3
+
+[[view2_file.contents]]
+chunk = "view2_background"
+
+[[view2_file.contents]]
+chunk = "view2_palette"
+sha1 = "54cb4130361b685aea119f9086bec22873f9714a"
+
+[[view2_file.contents.palettes]]
+texture = "view2_page_1"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view2_file.contents.palettes]]
+texture = "view2_page_2"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view2_file.contents.palettes]]
+name = "unread_row_1"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view2_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view2_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view2_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view2_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
+[view3_file]
+type = "file"
+
+[[view3_file.contents]]
+chunk = "view3_image"
+sha1 = "3ac450f01b20cd4c39318513ddf446c3528f82a2"
+pages = [{ texture = "view3_page_1", region = "engine/vram/room_sprite_sheet", offset = [0x000C0, 0x00000] }]
+slots = 3
+
+[[view3_file.contents]]
+chunk = "view3_background"
+
+[[view3_file.contents]]
+chunk = "view3_palette"
+sha1 = "4834b12aa4d87256014a8c58bafefbb6099f97a8"
+
+[[view3_file.contents.palettes]]
+texture = "view3_page_1"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view3_file.contents.palettes]]
+name = "unread_row_1"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view3_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view3_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view3_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view3_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
+[[view3_file.contents]]
+chunk = "view3_palette"
+sha1 = "4834b12aa4d87256014a8c58bafefbb6099f97a8"
+
+[[view3_file.contents.palettes]]
+texture = "view3_page_1"
+variant = "view12"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view3_file.contents.palettes]]
+name = "unread_row_1"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view3_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view3_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view3_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view3_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
+[view5_file]
+type = "file"
+
+[[view5_file.contents]]
+chunk = "view5_image"
+sha1 = "01f407af4ebf492c4cd9075cbf63586d8df9b21c"
+pages = [{ texture = "view5_page_1", region = "engine/vram/room_sprite_sheet", offset = [0x000C0, 0x00000] }]
+slots = 3
+
+[[view5_file.contents]]
+chunk = "view5_background"
+
+[[view5_file.contents]]
+chunk = "view5_palette"
+sha1 = "74443f41747c688a5200833f24fe9e20b4c80b88"
+
+[[view5_file.contents.palettes]]
+texture = "view5_page_1"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view5_file.contents.palettes]]
+name = "unread_row_1"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view5_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view5_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view5_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view5_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
+[view7_file]
+type = "file"
+
+[[view7_file.contents]]
+chunk = "view7_image"
+sha1 = "b21aaefb038e397576040662e0e22444f8614684"
+slots = 3
+
+[[view7_file.contents.pages]]
+texture = "view7_page_1"
+region = "engine/vram/room_sprite_sheet"
+offset = [0x000C0, 0x00000]
+truncated = true
+
+[[view7_file.contents]]
+chunk = "view7_background"
+
+[[view7_file.contents]]
+chunk = "view7_palette"
+sha1 = "ed45cedab6fdb0266d3cdd3d91b85fbb0af8fec9"
+
+[[view7_file.contents.palettes]]
+texture = "view7_page_1"
+variant = "row_0"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view7_file.contents.palettes]]
+texture = "view7_page_1"
+variant = "row_1"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view7_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view7_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view7_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view7_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
+[[view7_file.contents]]
+chunk = "view7_palette"
+sha1 = "ed45cedab6fdb0266d3cdd3d91b85fbb0af8fec9"
+
+[[view7_file.contents.palettes]]
+texture = "view7_page_1"
+variant = "view8_row_0"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view7_file.contents.palettes]]
+texture = "view7_page_1"
+variant = "view8_row_1"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view7_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view7_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view7_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view7_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
+[view8_file]
+type = "file"
+contents = [
+    { chunk = "view7_image", sha1 = "b21aaefb038e397576040662e0e22444f8614684" },
+    { chunk = "view8_background" },
+    { chunk = "view7_palette", sha1 = "ed45cedab6fdb0266d3cdd3d91b85fbb0af8fec9" },
+]
+
+[view12_file]
+type = "file"
+contents = [
+    { chunk = "view3_image", sha1 = "3ac450f01b20cd4c39318513ddf446c3528f82a2" },
+    { chunk = "view12_background" },
+    { chunk = "view3_palette", sha1 = "4834b12aa4d87256014a8c58bafefbb6099f97a8" },
+]
+
+[crawler_leap]
+type = "sound"
+sha1 = "748fde9c68fc7dea83d9e614789cc5f8ac3d2ebc"
+
+[view2_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view2_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view3_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default", "view12"]
+width = 128
+
+[view5_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view7_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["row_0", "row_1", "view8_row_0", "view8_row_1"]
+width = 128
+
 [sucklerceph_rig]
 type = "rig"
 joints = ["root", "body", "joint_2"]
+
+[dialogue_0_atlas]
+type = "font_atlas"
+bpp = 4
+generated_by = "rooms/akropolis/forked_road/dialogue_0"
+h = 256
+w = 64
+x = 384
+y = 0
+sha1 = "bcf31c83062597c4b71e4ce33d5ba9c9a4674913"
 
 [sucklerceph_bank]
 type = "animation_bank"
@@ -42,6 +544,42 @@ sha1 = "1324019756030d2d336056f170a95805f9308d9b"
 type = "clip"
 rig = "rooms/akropolis/forked_road/sucklerceph_rig"
 
+[view1_background]
+type = "bs"
+sha1 = "4d7d0a62f945c06a851f2fc4f98314e748694594"
+
+[view2_background]
+type = "bs"
+sha1 = "e526731c4e488ef6f1a6c9ddd76611dbd9bd5020"
+
+[view3_background]
+type = "bs"
+sha1 = "7d08c779aad8ebeed03d1ddace8fa8226d49e189"
+
+[view4_background]
+type = "bs"
+sha1 = "37e35b0f0c9c5e2794a2c313b3ee520145cd0239"
+
+[view5_background]
+type = "bs"
+sha1 = "2fd8419c93043d003a9bfb73a66e05f6dabe4793"
+
+[view6_background]
+type = "bs"
+sha1 = "ac01043bc1314485a487a10264470ddc35ae060d"
+
+[view7_background]
+type = "bs"
+sha1 = "538e8dec7e119ff9646194e7808590db57b5136b"
+
+[view8_background]
+type = "bs"
+sha1 = "3b6fe3aad862a1d132cc12ec7967a6ad1edf2924"
+
+[view9_background]
+type = "bs"
+sha1 = "4c3b7425a169234973f0740c9d9b2043fe9a4bb8"
+
 [skull_stalker_rig]
 type = "rig"
 joints = ["root", "body", "joint_2"]
@@ -49,6 +587,18 @@ joints = ["root", "body", "joint_2"]
 [sucklerceph_crawl]
 type = "clip"
 rig = "rooms/akropolis/forked_road/sucklerceph_rig"
+
+[view10_background]
+type = "bs"
+sha1 = "65add2ac840663744b5eebcb6efeab13851bc6dd"
+
+[view11_background]
+type = "bs"
+sha1 = "85a2624858797c51b0b23e4a7e3596f6c2bb4d4c"
+
+[view12_background]
+type = "bs"
+sha1 = "01a8d04e050a7d69d7802c3994be2fc2ba135798"
 
 [skull_stalker_bank]
 type = "animation_bank"
@@ -69,6 +619,14 @@ sha1 = "1d9c867f7c6e322c4ca3be860a207878ce18da48"
 [skull_stalker_idle]
 type = "clip"
 rig = "rooms/akropolis/forked_road/skull_stalker_rig"
+
+[stranger_dormant_1]
+type = "sound"
+sha1 = "c769ffd4568be0234e26da762bfc80dfa39511d5"
+
+[stranger_dormant_2]
+type = "sound"
+sha1 = "8a0ac6369e0e06206704da25748b415325ea1e05"
 
 [sucklerceph_schema]
 type = "animation_schema"
@@ -156,19 +714,23 @@ sha1 = "77e262d392f75995eb0ee5021a47ca414bb75e7a"
 texture = "sucklerceph_and_skull_stalker_1_texture"
 variant = "default"
 region = "engine/vram/actor_palettes"
-offset = [0, 0]
+offset = [0x00000, 0x00000]
 
 [[sucklerceph_and_skull_stalker_1_file.contents.palettes]]
 name = "unread_row_2"
 entries = 256
 region = "engine/vram/actor_palettes"
-offset = [0, 1]
+offset = [0x00000, 0x00001]
 
 [[sucklerceph_and_skull_stalker_1_file.contents]]
 chunk = "sucklerceph_and_skull_stalker_1_image"
 sha1 = "3e5fc257cc4abdafdc758065e284ddde3d107754"
-pages = [{ texture = "sucklerceph_and_skull_stalker_1_texture", region = "engine/vram/actor_sheet", offset = [0, 0] }]
 slots = 6
+
+[[sucklerceph_and_skull_stalker_1_file.contents.pages]]
+texture = "sucklerceph_and_skull_stalker_1_texture"
+region = "engine/vram/actor_sheet"
+offset = [0x00000, 0x00000]
 
 [[sucklerceph_and_skull_stalker_1_file.contents]]
 chunk = "sucklerceph_and_skull_stalker_1"
@@ -185,9 +747,22 @@ samples = [
 sounds = { idle = 1, hurt = 2, burst = 3, appear = 6, pop = 8 }
 sha1 = "f961e1a46f07de84ddf45baf0da18e961fb0f0c5"
 
+[acropolis_forked_road_lock_release_bank]
+type = "animation_bank"
+schema = "rooms/akropolis/forked_road/acropolis_forked_road_lock_release_schema"
+symbol = "_gAcropolisForkedRoadLockReleaseAnimationSets"
+
+[acropolis_forked_road_lock_release_bank.clips]
+slot_1 = "characters/aya/stand"
+slot_2 = "rooms/shelter/b2_north_maintenance_walkway/player_turn_to_stinger"
+
 [sucklerceph_and_skull_stalker_1_texture]
 type = "texture"
 bpp = 8
 height = 256
 variants = ["default"]
 width = 128
+
+[acropolis_forked_road_lock_release_schema]
+type = "animation_schema"
+slots = ["", "slot_1", "slot_2"]

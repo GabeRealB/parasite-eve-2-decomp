@@ -496,3 +496,4 @@ gMapNeoArkHardBattleRewards = 0x8017CB0C;
 _gMapNeoArkTrainingRoomCollisionRooms = 0x8017abbc;
 _gMapNeoArkTentCollisionRooms = 0x8017abdc;
 _gMapNeoArkWorldCollisionAreaRooms = 0x8017ac1c;
+gMapNeoArkAreaWarpEntries = 0x8017aa80;

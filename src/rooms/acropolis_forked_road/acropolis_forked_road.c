@@ -60,7 +60,7 @@ static s32 _acropolisForkedRoadHandleActionMessage(Task* unusedTask, s32 message
 ///
 /// Resolves departures, refuses key items, selects CAP commands and handles the
 /// lock-release action. The fifth record terminates unsupported-ID lookup.
-static const TaskMessageEntry _gAcropolisForkedRoadRoomMessages[5] SECTION(".data") = {
+static TaskMessageEntry _gAcropolisForkedRoadRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisForkedRoadResolveTransitionMessage },
     { ROOM_MESSAGE_USE_KEY_ITEM, _acropolisForkedRoadRejectKeyItemUse },
     { ROOM_MESSAGE_COMMAND, _acropolisForkedRoadHandleCommandMessage },

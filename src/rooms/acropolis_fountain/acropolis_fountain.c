@@ -37,7 +37,7 @@ static void _acropolisFountainPatioDepartureTask(Task* task);
 ///
 /// Resolves departures, runs CAP commands, refuses key items and routes sound
 /// cues. The fifth record terminates unsupported-ID lookup.
-static const TaskMessageEntry _gAcropolisFountainRoomMessages[5] SECTION(".data") = {
+static TaskMessageEntry _gAcropolisFountainRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisFountainResolveTransitionMessage },
     { ROOM_MESSAGE_COMMAND, _acropolisFountainHandleCommandMessage },
     { ROOM_MESSAGE_USE_KEY_ITEM, _acropolisFountainRejectKeyItemUse },

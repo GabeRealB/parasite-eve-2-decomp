@@ -263,49 +263,83 @@ chunk = "sounds"
 [[package_file.contents]]
 chunk = "palette"
 sha1 = "0c9359adefd01a71482e7f176cd9213bf800789b"
-palettes = [
-    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
-    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
-]
+
+[[package_file.contents.palettes]]
+texture = "texture_page_1"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00000]
+
+[[package_file.contents.palettes]]
+texture = "texture_page_2"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00001]
 
 [[package_file.contents]]
 chunk = "palette_2"
 sha1 = "2406240e63a12dcd49de6c9dcf50fb505173594e"
-palettes = [{ texture = "texture_page_3", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 2] }]
+
+[[package_file.contents.palettes]]
+texture = "texture_page_3"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00002]
 
 [[package_file.contents]]
 chunk = "palette_3"
 sha1 = "50203b1ab519e0e1c91fa722ae09bcdf6c8ba58f"
-palettes = [
-    { texture = "texture_page_4", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 3] },
-    { texture = "texture_page_5", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 4] },
-]
+
+[[package_file.contents.palettes]]
+texture = "texture_page_4"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00003]
+
+[[package_file.contents.palettes]]
+texture = "texture_page_5"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00004]
 
 [[package_file.contents]]
 chunk = "palette_4"
 sha1 = "4a14c2508e7af9298f86b5dfb67b8fe535f11ea2"
-palettes = [
-    { texture = "texture_page_6", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 5] },
-    { texture = "texture_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 6] },
-    { name = "unread_row_3", entries = 256, region = "engine/vram/actor_palettes", offset = [0, 7] },
-]
+
+[[package_file.contents.palettes]]
+texture = "texture_page_6"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00005]
+
+[[package_file.contents.palettes]]
+texture = "texture_2"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00006]
+
+[[package_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00007]
 
 [[package_file.contents]]
 chunk = "image"
 sha1 = "8fc631fd4929ce84f4e46fb99633bb3d2eefe1d1"
 pages = [
-    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
-    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
-    { texture = "texture_page_3", region = "engine/vram/actor_sheet", offset = [128, 0] },
-    { texture = "texture_page_4", region = "engine/vram/actor_sheet", offset = [192, 0] },
-    { texture = "texture_page_5", region = "engine/vram/actor_sheet", offset = [256, 0] },
-    { texture = "texture_page_6", region = "engine/vram/actor_sheet", offset = [320, 0] },
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [0x00040, 0x00000] },
+    { texture = "texture_page_3", region = "engine/vram/actor_sheet", offset = [0x00080, 0x00000] },
+    { texture = "texture_page_4", region = "engine/vram/actor_sheet", offset = [0x000C0, 0x00000] },
+    { texture = "texture_page_5", region = "engine/vram/actor_sheet", offset = [0x00100, 0x00000] },
+    { texture = "texture_page_6", region = "engine/vram/actor_sheet", offset = [0x00140, 0x00000] },
 ]
 
 [[package_file.contents]]
 chunk = "image_2"
 sha1 = "5cf7bec18828c2d4678c53cef3b669f0c8ebeaf1"
-pages = [{ texture = "texture_2", region = "engine/vram/actor_sheet", offset = [384, 0] }]
+pages = [{ texture = "texture_2", region = "engine/vram/actor_sheet", offset = [0x00180, 0x00000] }]
 slots = 2
 
 [[package_file.contents]]
@@ -368,15 +402,23 @@ type = "file"
 [[tentacle_file.contents]]
 chunk = "tentacle_palette"
 sha1 = "7665c6a4bd5cdc50daff0ad90f6bf9bfd339f3e0"
-palettes = [
-    { texture = "tentacle_texture", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
-    { name = "unread_row_2", entries = 256, region = "engine/vram/actor_palettes", offset = [0, 1] },
-]
+
+[[tentacle_file.contents.palettes]]
+texture = "tentacle_texture"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00000]
+
+[[tentacle_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00001]
 
 [[tentacle_file.contents]]
 chunk = "tentacle_image"
 sha1 = "fcb78eb48dff096162870899f2d07fc1ab238759"
-pages = [{ texture = "tentacle_texture", region = "engine/vram/actor_sheet", offset = [0, 0] }]
+pages = [{ texture = "tentacle_texture", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] }]
 slots = 6
 
 [[tentacle_file.contents]]

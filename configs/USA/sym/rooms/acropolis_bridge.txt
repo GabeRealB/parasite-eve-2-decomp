@@ -24,7 +24,7 @@ _gAcropolisBridgeArrivalSceneKey = 0x80188EB4; // size:0x6 defined:True
 _gAcropolisBridgeArrivalScript = 0x80188EBC; // size:0x270 defined:True
 _gAcropolisBridgeArrivalSkipScript = 0x8018912C; // size:0x108 defined:True
 gAcropolisBridgeRoomLightingTable = 0x80189A8C; // size:0x10 defined:True
-_gAcropolisBridgeTranslucentPlaneModel = 0x80188E28; // size:0x24 defined:True
+_gAkropolisBridgeAcropolisBridgeModel0AD9C = 0x80188E28; // size:0x24 defined:True
 _gAcropolisBridgeRoomMessageTable = 0x80188E4C; // size:0x30 defined:True
 _gAcropolisBridgeRoomTaskDescriptors = 0x80188E7C; // size:0x24 defined:True
 gAcropolisBridgeStairSurfaceRows = 0x80189A9C; // size:0x18 defined:True
@@ -74,10 +74,10 @@ _gAcropolisBridgeKeypadMovieVibrationCommands = 0x80190B8C; // size:0x18 defined
 gMapAkropolisBridgeDefaultPlacements = 0x8017BC7C; // absolute:True owner=map_akropolis
 gMapAkropolisBridgeVariant2Placements = 0x8017BCEC; // absolute:True owner=map_akropolis
 gMapAkropolisBridgeVariant3Placements = 0x8017BCFC; // absolute:True owner=map_akropolis
-_gAcropolisBridgeTranslucentPlaneModelSkeleton = 0x80187DDC; // size:0x24 defined:True
-_gAcropolisBridgeTranslucentPlaneModelPartVerts = 0x80187E00; // size:0x4 defined:True
-_gAcropolisBridgeTranslucentPlaneModelVerts = 0x80187E04; // size:0x558 defined:True
-_gAcropolisBridgeTranslucentPlaneModelStream = 0x8018835C; // size:0xACC defined:True
+_gAkropolisBridgeAcropolisBridgeModel0AD9CSkeleton = 0x80187DDC; // size:0x24 defined:True
+_gAkropolisBridgeAcropolisBridgeModel0AD9CPartVerts = 0x80187E00; // size:0x4 defined:True
+_gAkropolisBridgeAcropolisBridgeModel0AD9CVerts = 0x80187E04; // size:0x558 defined:True
+_gAkropolisBridgeAcropolisBridgeModel0AD9CStream = 0x8018835C; // size:0xACC defined:True
 _gAcropolisBridgeKeypadMovieVibrationSegments = 0x80190BA4; // size:0x18 defined:True
 _gAcropolisBridgeArrivalVibrationCommands = 0x80190BBC; // size:0x18 defined:True
 _gAcropolisBridgeArrivalVibrationSegments = 0x80190BD4; // size:0x14 defined:True

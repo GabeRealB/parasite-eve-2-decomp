@@ -84,6 +84,8 @@
 
 #include "rooms/room_common.h"
 
+#include "assets/rooms/akropolis/bridge/declarations.inc"
+
 /// Selects the private hotspot test used by the bridge keypad.
 ///
 /// Bind a function identifier with signature
@@ -473,17 +475,8 @@ static void _acropolisBridgeKeypadMovieTask(Task* movieTask);
 static void _acropolisBridgeKeypadCursorTask(Task* task);
 static s32  _acropolisBridgeSpawnArrivalDust(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
-static WorldCollisionGrid    _gAcropolisBridgeRoom1Collision;
-static WorldCollisionGrid    _gAcropolisBridgeRoom2Collision;
-static WorldCollisionTrigger _gAcropolisBridgeViewBoundaryTriggers[4];
-static WorldCollisionTrigger _gAcropolisBridgeRoom1ActionTriggers[7];
-static WorldCollisionTrigger _gAcropolisBridgeRoom2ActionTriggers[7];
-
-static WorldCoordRoomLights      _gAcropolisBridgeRoomLights;
-static PadScriptCmd              _gAcropolisBridgeArrivalVibrationCommands[6];
-static PadScriptVibrationSegment _gAcropolisBridgeArrivalVibrationSegments[5];
-static void                      _acropolisBridgePrepareArrivalScene(void);
-static void                      _acropolisBridgeSelectArrivalSpriteFrame(s32 frame);
+static void _acropolisBridgePrepareArrivalScene(void);
+static void _acropolisBridgeSelectArrivalSpriteFrame(s32 frame);
 
 static s32  _acropolisBridgeResolveRoomTransition(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32  _acropolisBridgeRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
@@ -525,28 +518,11 @@ static void _acropolisBridgeEnemyInactive(Task* task);
 static void _acropolisBridgeEnemyTask(Task* task);
 
 /// Initial identity transform of the translucent plane's only part.
-static const TmdBone _gAcropolisBridgeTranslucentPlaneModelSkeleton[] SECTION(".data") = {
-#include "assets/acropolis_bridge_model_0AD9C_skeleton.inc"
-};
-
 /// Vertex count of the translucent plane's single part.
-static const u32 _gAcropolisBridgeTranslucentPlaneModelPartVerts[] SECTION(".data") = {
-#include "assets/acropolis_bridge_model_0AD9C_partVerts.inc"
-};
-
 /// Translucent plane vertices in integer part-local coordinates, all at Y zero.
-static SVECTOR _gAcropolisBridgeTranslucentPlaneModelVerts[] = {
-#include "assets/acropolis_bridge_model_0AD9C_verts.inc"
-};
-
 /// Semi-transparent textured quads; model creation resolves the draw slots in place.
-static u32 _gAcropolisBridgeTranslucentPlaneModelStream[] = {
-#include "assets/acropolis_bridge_model_0AD9C_stream.inc"
-};
-
 /// Number of directly transformed FT4 packets in each plane primitive-buffer half.
 enum { ACROPOLIS_BRIDGE_TRANSLUCENT_PLANE_QUAD_COUNT = 137 };
-
 /// Fixed horizontal translucent plane drawn by the bridge room's model task.
 ///
 /// The single part is placed at world (-9200, 300, -2800) and hidden in mapped
@@ -554,17 +530,7 @@ enum { ACROPOLIS_BRIDGE_TRANSLUCENT_PLANE_QUAD_COUNT = 137 };
 /// packets. Instances borrow this source and its writable stream until teardown;
 /// keep the bridge overlay loaded. The stream never reads normals; the unused
 /// pointer retains the image's one-past-vertices address.
-static TmdSource _gAcropolisBridgeTranslucentPlaneModel = {
-    .handlersResolved    = false,
-    .bufferHalfBytes     = ACROPOLIS_BRIDGE_TRANSLUCENT_PLANE_QUAD_COUNT * sizeof(POLY_FT4),
-    .preXformRegionBytes = 0,
-    .partCount           = ARRAY_SIZE(_gAcropolisBridgeTranslucentPlaneModelSkeleton),
-    .partVertexCounts    = _gAcropolisBridgeTranslucentPlaneModelPartVerts,
-    .verts               = _gAcropolisBridgeTranslucentPlaneModelVerts,
-    .normals             = &_gAcropolisBridgeTranslucentPlaneModelVerts[ARRAY_SIZE(_gAcropolisBridgeTranslucentPlaneModelVerts)],
-    .skeleton            = _gAcropolisBridgeTranslucentPlaneModelSkeleton,
-    .stream              = _gAcropolisBridgeTranslucentPlaneModelStream,
-};
+#include "assets/rooms/akropolis/bridge/acropolis_bridge_model_0AD9C.inc"
 
 /// Room-transition, keypad, action, item-use and sound message bindings.
 ///
@@ -572,7 +538,7 @@ static TmdSource _gAcropolisBridgeTranslucentPlaneModel = {
 /// Transition payloads are a request and writable reply; keypad/item/sound
 /// payloads are integer words and room actions borrow a direction request.
 /// The final end marker makes unsupported messages return zero.
-static const TaskMessageEntry _gAcropolisBridgeRoomMessageTable[6] SECTION(".data") = {
+static TaskMessageEntry _gAcropolisBridgeRoomMessageTable[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisBridgeResolveRoomTransition },
     { ROOM_MESSAGE_COMMAND, _acropolisBridgeHandleKeypadCommand },
     { DIRECTION_MESSAGE_ROOM_ACTION, _acropolisBridgeIgnoreRoomAction },
@@ -593,7 +559,7 @@ enum {
 /// Model setup borrows the embedded plane source; the sequence has no body.
 /// Keep the overlay loaded while either task or its callbacks are live.
 static TaskDesc _gAcropolisBridgeRoomTaskDescriptors[3] = {
-    { { { TASK_BODY_TMD, ACROPOLIS_BRIDGE_CONTROL_TASK_PRIORITY } }, _acropolisBridgeModelTask, { .model = &_gAcropolisBridgeTranslucentPlaneModel } },
+    { { { TASK_BODY_TMD, ACROPOLIS_BRIDGE_CONTROL_TASK_PRIORITY } }, _acropolisBridgeModelTask, { .model = &_gAkropolisBridgeAcropolisBridgeModel0AD9C } },
     { { { TASK_BODY_NONE, ACROPOLIS_BRIDGE_CONTROL_TASK_PRIORITY } }, _acropolisBridgeKeypadSequenceTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
@@ -603,7 +569,7 @@ static TaskDesc _gAcropolisBridgeRoomTaskDescriptors[3] = {
 /// The interpreter copies the request and replaces its bank selector with the
 /// equipped weapon's bank. Clip 1 resets playback and disables world collision;
 /// the initial bank selector is ignored and the zero blend duration is unused.
-static const AnimationPlayRequest _gAcropolisBridgeArrivalWeaponAnimationRequest SECTION(".data") = {
+static AnimationPlayRequest _gAcropolisBridgeArrivalWeaponAnimationRequest = {
     .source               = { .index = 1 },
     .animationId          = 1,
     .blend                = ANIMATION_BLEND_RESET,
@@ -615,7 +581,7 @@ static const AnimationPlayRequest _gAcropolisBridgeArrivalWeaponAnimationRequest
 ///
 /// Selects group 1, stream 11 and qualifier 11 in the current folder. The
 /// interpreter retains this key until scene completion; keep the room loaded.
-static const EvsSceneKey _gAcropolisBridgeArrivalSceneKey SECTION(".data") = {
+static EvsSceneKey _gAcropolisBridgeArrivalSceneKey = {
     .group    = 1,
     .streamId = 11,
     .subId    = 11,
@@ -704,7 +670,7 @@ static TaskDesc _gAcropolisBridgeKeypadMovieTaskDesc = {
 /// presentation subtracts its own root-height offset. The index must be below
 /// 190. X, Z and the fourth halfword remain in the asset but have no consumers.
 /// Keep the samples loaded while the movie and its enemy presentation run.
-static const SVECTOR _gAcropolisBridgeMovieEnemyHeightPath[190] SECTION(".data") = {
+static SVECTOR _gAcropolisBridgeMovieEnemyHeightPath[190] = {
 #include "assets/acropolis_bridge_path_0BC80.inc"
 };
 
@@ -737,7 +703,7 @@ static ActionPromptHotspot _gAcropolisBridgeKeypadHotspots[] = {
 ///
 /// Each 16-entry row maps 0..9 to that digit's batch in mapped view 8. Nibbles
 /// 10..15 select the row's blank batch (33, 32 or 31), not a list terminator.
-static const u8 _gAcropolisBridgeKeypadDigitBatches[ACROPOLIS_BRIDGE_KEYPAD_CODE_DIGITS][16] SECTION(".data") = {
+static u8 _gAcropolisBridgeKeypadDigitBatches[ACROPOLIS_BRIDGE_KEYPAD_CODE_DIGITS][16] = {
     { ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_FIRST_BATCH, ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_FIRST_BATCH + 1,
       ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_FIRST_BATCH + 2, ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_FIRST_BATCH + 3,
       ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_FIRST_BATCH + 4, ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_FIRST_BATCH + 5,
@@ -768,7 +734,7 @@ static const u8 _gAcropolisBridgeKeypadDigitBatches[ACROPOLIS_BRIDGE_KEYPAD_CODE
 ///
 /// Payload words are ignored and the handler returns zero. The end marker
 /// rejects other messages; the live task borrows this table from the overlay.
-static const TaskMessageEntry _gAcropolisBridgeAmbientMessageTable[2] SECTION(".data") = {
+static TaskMessageEntry _gAcropolisBridgeAmbientMessageTable[2] = {
     { ACROPOLIS_BRIDGE_EFFECT_MESSAGE_ARRIVAL_DUST, _acropolisBridgeSpawnArrivalDust },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -777,64 +743,15 @@ static const TaskMessageEntry _gAcropolisBridgeAmbientMessageTable[2] SECTION(".
 ///
 /// The drawer scales these four corners in local game coordinates before its
 /// retained origin replacement. Storage is read-only and lives with this overlay.
-static const EffectUnitQuadCorner _gAcropolisBridgeGroundGlowUnitCorners[4] SECTION(".data") = {
+static EffectUnitQuadCorner _gAcropolisBridgeGroundGlowUnitCorners[4] = {
     { -1, 1 },
     { 1, 1 },
     { -1, -1 },
     { 1, -1 },
 };
 
-/// Seven star-glow emitter offsets in the ambient task's placement coordinates.
-///
-/// Signed-halfword XYZ use game-coordinate units. Each offset shares its index
-/// and view mask with a ground glow; mapped view 9 lowers Y by 576 and omits
-/// that ground glow. Spawning copies XYZ; the glow callbacks do not use the
-/// retained offset pointer. These loaded room placements remain unchanged.
-static SVECTOR _gAcropolisBridgeStarGlowOffsets[7] = {
-    { -3920, -1494, -3450, 0 },
-    { -6900, -1494, -3564, 0 },
-    { -9950, -1494, -3564, 0 },
-    { -0x3264, -1494, -3564, 0 },
-    { -7090, -1494, -500, 0 },
-    { -0x2788, -1494, -500, 0 },
-    { -0x334A, -1494, -500, 0 },
-};
-
-/// Ground-glow offsets paired by index with the seven star-glow emitters.
-///
-/// Signed-halfword XYZ use game-coordinate units in the ambient task's placement
-/// frame. The star-glow view masks gate both families except in mapped view 9.
-/// Spawning copies XYZ; these loaded room placements remain unchanged.
-static SVECTOR _gAcropolisBridgeGroundGlowOffsets[7] = {
-    { -3920, 300, -2543, 0 },
-    { -6900, 300, -2543, 0 },
-    { -9950, 300, -2543, 0 },
-    { -0x3264, 300, -2543, 0 },
-    { -7090, 300, -1524, 0 },
-    { -0x2788, 300, -1524, 0 },
-    { -0x334A, 300, -1524, 0 },
-};
-
-/// Lamp-glow placements indexed alongside their mapped-view masks.
-///
-/// Signed-halfword XYZ are offsets in the ambient task's placement frame.
-/// Slots 0..2 select texture variant 0, 3..4 and 11 variant 1, and 5..6 variant 2;
-/// stored slots 7..10 are not emitted. Spawning copies XYZ and the one-shot
-/// lamp callback does not follow the retained offset pointer.
-static SVECTOR _gAcropolisBridgeLampGlowOffsets[12] = {
-    { 810, -3000, -3720, 0 },
-    { 650, -3000, -4000, 0 },
-    { 810, -3000, -4270, 0 },
-    { -2470, -2050, -740, 0 },
-    { -2520, -2050, -3120, 0 },
-    { -0x3E80, -1700, -1330, 0 },
-    { -0x3E80, -1700, -2700, 0 },
-    { 1680, -1700, 0x2760, 0 },
-    { 1680, -1700, 8430, 0 },
-    { 1640, -360, 7020, 0 },
-    { -2150, -360, 8460, 0 },
-    { -3400, -370, 2300, 0 },
-};
+#define ROOM_PART _gAcropolisBridgeStarGlowOffsets
+#include "assets/rooms/akropolis/bridge/markers.inc"
 
 /// Bits for mapped camera views in the room's glow-emission masks.
 enum {
@@ -848,20 +765,8 @@ enum {
     ACROPOLIS_BRIDGE_GLOW_VIEW_10 = 1 << (10 - 1)
 };
 
-/// Mapped-view visibility masks shared by corresponding star and ground glows.
-///
-/// Bit view - 1 permits emission. Only slots 0..6 have emitter pairs; the
-/// eighth stored zero has no consumer and is not a sentinel used by the loop.
-static const u16 _gAcropolisBridgeStarGlowViewMasks[8] SECTION(".data") = {
-    ACROPOLIS_BRIDGE_GLOW_VIEW_3 | ACROPOLIS_BRIDGE_GLOW_VIEW_4 | ACROPOLIS_BRIDGE_GLOW_VIEW_6 | ACROPOLIS_BRIDGE_GLOW_VIEW_7 | ACROPOLIS_BRIDGE_GLOW_VIEW_9,
-    ACROPOLIS_BRIDGE_GLOW_VIEW_4 | ACROPOLIS_BRIDGE_GLOW_VIEW_6 | ACROPOLIS_BRIDGE_GLOW_VIEW_7 | ACROPOLIS_BRIDGE_GLOW_VIEW_9,
-    ACROPOLIS_BRIDGE_GLOW_VIEW_4 | ACROPOLIS_BRIDGE_GLOW_VIEW_7 | ACROPOLIS_BRIDGE_GLOW_VIEW_9,
-    ACROPOLIS_BRIDGE_GLOW_VIEW_2 | ACROPOLIS_BRIDGE_GLOW_VIEW_4 | ACROPOLIS_BRIDGE_GLOW_VIEW_5 | ACROPOLIS_BRIDGE_GLOW_VIEW_7 | ACROPOLIS_BRIDGE_GLOW_VIEW_9,
-    ACROPOLIS_BRIDGE_GLOW_VIEW_3 | ACROPOLIS_BRIDGE_GLOW_VIEW_4 | ACROPOLIS_BRIDGE_GLOW_VIEW_6 | ACROPOLIS_BRIDGE_GLOW_VIEW_7 | ACROPOLIS_BRIDGE_GLOW_VIEW_9,
-    ACROPOLIS_BRIDGE_GLOW_VIEW_4 | ACROPOLIS_BRIDGE_GLOW_VIEW_7 | ACROPOLIS_BRIDGE_GLOW_VIEW_9,
-    ACROPOLIS_BRIDGE_GLOW_VIEW_2 | ACROPOLIS_BRIDGE_GLOW_VIEW_4 | ACROPOLIS_BRIDGE_GLOW_VIEW_5 | ACROPOLIS_BRIDGE_GLOW_VIEW_7 | ACROPOLIS_BRIDGE_GLOW_VIEW_9,
-    0,
-};
+#define ROOM_PART _gAcropolisBridgeStarGlowViewMasks
+#include "assets/rooms/akropolis/bridge/view_masks.inc"
 
 /// Framebuffer-streak families selected by the ambient task's mapped camera.
 enum {
@@ -878,7 +783,7 @@ enum {
 /// Indexed by mapped view - 1; the room maps views only into 1..10. The six
 /// trailing stored zeroes are outside that domain. Selectors remain u16;
 /// NONE disables emission and the other values select the named families.
-static const u16 _gAcropolisBridgeViewStreakStyles[16] SECTION(".data") = {
+static u16 _gAcropolisBridgeViewStreakStyles[16] = {
     ACROPOLIS_BRIDGE_STREAK_NONE,
     ACROPOLIS_BRIDGE_STREAK_LOW_DUST,
     ACROPOLIS_BRIDGE_STREAK_NONE,
@@ -897,211 +802,55 @@ static const u16 _gAcropolisBridgeViewStreakStyles[16] SECTION(".data") = {
     0,
 };
 
-/// Mapped-view visibility masks indexed alongside the twelve lamp offsets.
-///
-/// Bit view - 1 permits emission. Slots 0..6 and 11 are tested; slots 7..10
-/// are retained zeroes outside the emitter loop's domain.
-static const u16 _gAcropolisBridgeLampGlowViewMasks[12] SECTION(".data") = {
-    ACROPOLIS_BRIDGE_GLOW_VIEW_3,
-    ACROPOLIS_BRIDGE_GLOW_VIEW_3 | ACROPOLIS_BRIDGE_GLOW_VIEW_7,
-    ACROPOLIS_BRIDGE_GLOW_VIEW_7,
-    ACROPOLIS_BRIDGE_GLOW_VIEW_7,
-    ACROPOLIS_BRIDGE_GLOW_VIEW_3 | ACROPOLIS_BRIDGE_GLOW_VIEW_7,
-    ACROPOLIS_BRIDGE_GLOW_VIEW_9 | ACROPOLIS_BRIDGE_GLOW_VIEW_10,
-    ACROPOLIS_BRIDGE_GLOW_VIEW_9 | ACROPOLIS_BRIDGE_GLOW_VIEW_10,
-    0,
-    0,
-    0,
-    0,
-    ACROPOLIS_BRIDGE_GLOW_VIEW_4 | ACROPOLIS_BRIDGE_GLOW_VIEW_6,
-};
+#define ROOM_PART _gAcropolisBridgeLampGlowViewMasks
+#include "assets/rooms/akropolis/bridge/view_masks.inc"
 
-/// Previous water-effect samples of player model parts 14 and 17, in that order.
-///
-/// XYZ copy each part's composed translation in game-coordinate units, narrowed
-/// to signed halfwords. Initialized when ambient effects start and refreshed
-/// only on eligible water updates; displacement controls ripple/spray chance.
-/// The fourth halfword is unused. This singleton storage lives with the room.
-static SVECTOR _gAcropolisBridgePlayerWaterPartPositions[2] = { 0 };
+#define ROOM_PART _gAcropolisBridgePlayerWaterPartPositions
+#include "assets/rooms/akropolis/bridge/markers.inc"
 
-/// World-coordinate centre of the warm tinted disc drawn in mapped views 6 and 7.
-///
-/// Signed-halfword XYZ use game-coordinate units; the fourth halfword is unused.
-/// The drawer borrows the point only during projection.
-static const SVECTOR _gAcropolisBridgeWarmDiscWorldPosition SECTION(".data") = { -4700, -1000, -620, 0 };
-
-/// World-coordinate centre of the cool tinted disc drawn in mapped views 3, 4 and 9.
-///
-/// Signed-halfword XYZ use game-coordinate units; the fourth halfword is unused.
-/// The drawer borrows the point only during projection.
-static const SVECTOR _gAcropolisBridgeCoolDiscWorldPosition SECTION(".data") = { -4700, -1000, -520, 0 };
-
-WorldCollisionRoomResources gAcropolisBridgeRoomCollisionResources[ACROPOLIS_BRIDGE_ROOM_COUNT] = {
-    { &_gAcropolisBridgeRoom1Collision, _gAcropolisBridgeViewBoundaryTriggers, _gAcropolisBridgeRoom1ActionTriggers, NULL },
-    { &_gAcropolisBridgeRoom2Collision, _gAcropolisBridgeViewBoundaryTriggers, _gAcropolisBridgeRoom2ActionTriggers, NULL },
-};
-
-/// Maps room 2's logical views 1..10 to the shared camera and sprite views.
-///
-/// Indexed by logical view - 1. The final two stored zero bytes are outside
-/// the ten-view domain and do not select valid views. Overlay-owned storage.
-static u8 _gAcropolisBridgeRoom2ViewMap[12] = {
-    1,
-    5,
-    6,
-    7,
-    2,
-    3,
-    4,
-    8,
-    9,
-    10,
-    0,
-    0,
-};
-
-u8* gAcropolisBridgeViewMaps[2] = {
-    gViewIdentityMap,
-    _gAcropolisBridgeRoom2ViewMap,
-};
-
-ViewCount gAcropolisBridgeViewCounts[ACROPOLIS_BRIDGE_ROOM_COUNT] = { ACROPOLIS_BRIDGE_VIEW_COUNT, ACROPOLIS_BRIDGE_VIEW_COUNT };
-
-WorldCoordRoomLighting gAcropolisBridgeRoomLightingTable[2] = {
-    { &_gAcropolisBridgeRoomLights, NULL },
-    { &_gAcropolisBridgeRoomLights, NULL },
-};
-
+#define ROOM_PART gAcropolisBridgeRoomCollisionResources
+#include "assets/rooms/akropolis/bridge/header.inc"
 u8 gAcropolisBridgeStairSurfaceRows[2][12] = {
     { 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4 },
     { 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 },
 };
+#define ROOM_PART gAcropolisBridgeWarpEntries
+#include "assets/rooms/akropolis/bridge/header.inc"
+#include "assets/rooms/akropolis/bridge/geometry.inc"
+#include "assets/rooms/akropolis/bridge/view_boundaries.inc"
+#include "assets/rooms/akropolis/bridge/action_triggers.inc"
+#include "assets/rooms/akropolis/bridge/sprites.inc"
+#include "assets/rooms/akropolis/bridge/placements.inc"
+#include "assets/rooms/akropolis/bridge/lights.inc"
+#include "assets/rooms/akropolis/bridge/cameras.inc"
+#include "assets/rooms/akropolis/bridge/vibrations.inc"
+#define ROOM_PART _gAcropolisBridgeSurface2FootstepSounds
+#include "assets/rooms/akropolis/bridge/surfaces.inc"
+/// Cue-2 bases in the loaded type-1 bank; cue 1 uses the following entry.
+enum {
+    ACROPOLIS_BRIDGE_SURFACE_2_WALK_CUE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x25,
+    ACROPOLIS_BRIDGE_SURFACE_2_RUN_CUE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x27,
+    ACROPOLIS_BRIDGE_SURFACE_4_WALK_CUE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x15,
+    ACROPOLIS_BRIDGE_SURFACE_4_RUN_CUE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x17,
+    ACROPOLIS_BRIDGE_SURFACE_4_JUMP_CUE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x19,
+};
+
+/// Three retained type-1 sound-request words with no established consumer or role.
+///
+/// Their values match the surface-2 walk/run/walk cues, but no pointer or
+/// relocation identifies them as a footstep record. Preserve this separate storage.
+static s32 D_acropolis_bridge_80190C00[3] = {
+    ACROPOLIS_BRIDGE_SURFACE_2_WALK_CUE,
+    ACROPOLIS_BRIDGE_SURFACE_2_RUN_CUE,
+    ACROPOLIS_BRIDGE_SURFACE_2_WALK_CUE,
+};
+#define ROOM_PART _gAcropolisBridgeBlockingSurfaceProperties
+#include "assets/rooms/akropolis/bridge/surfaces.inc"
 
 /// Map-marker nibble IDs attached to the bridge's two warp endpoints.
 enum {
     ACROPOLIS_BRIDGE_PROMENADE_WARP_MAP_FLAG   = 491,
     ACROPOLIS_BRIDGE_FIRE_ESCAPE_WARP_MAP_FLAG = 490
-};
-
-DirectionWarpEntry gAcropolisBridgeWarpEntries[ACROPOLIS_BRIDGE_WARP_COUNT] = {
-    { { { .word = 3072 }, -3643, 2, -2161 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -3643, 2, -2161 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_BRIDGE, 8), SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_BRIDGE, 7), DIRECTION_WARP_SOUND_NONE, ACROPOLIS_BRIDGE_VIEW_OVERVIEW, DIRECTION_WARP_FLAG_NONE, ACROPOLIS_BRIDGE_PROMENADE_WARP_MAP_FLAG },
-    { { { .word = 1024 }, -0x3D4E, 0, -2098 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -0x3D4E, 0, -2098 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_BRIDGE, 6), SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_BRIDGE, 5), DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, ACROPOLIS_BRIDGE_FIRE_ESCAPE_WARP_MAP_FLAG },
-};
-
-/// Room-space Q12 face normals for the bridge's room-1 collision grid.
-static SVECTOR _gAcropolisBridgeRoom1CollisionNormals[19] = {
-#include "assets/acropolis_bridge_collision_0D2DC_normals.inc"
-};
-
-/// Signed game-coordinate vertices for the bridge's room-1 collision grid.
-static SVECTOR _gAcropolisBridgeRoom1CollisionVerts[193] = {
-#include "assets/acropolis_bridge_collision_0D2DC_verts.inc"
-};
-
-/// Indexed faces and surface classes for the bridge's room-1 collision grid.
-static WorldCollisionGridFace _gAcropolisBridgeRoom1CollisionFaces[92] = {
-#include "assets/acropolis_bridge_collision_0D2DC_faces.inc"
-};
-
-/// Sentinel-terminated face-index lists for the bridge's room-1 grid cells.
-static s16 _gAcropolisBridgeRoom1CollisionCells[274] = {
-#include "assets/acropolis_bridge_collision_0D2DC_cells.inc"
-};
-
-/// Resolves a generated face-list start in this grid's packed halfword pool.
-///
-/// halfwordOffset counts signed-halfword elements and is evaluated once.
-/// It must select an in-bounds list start in the captured pool.
-/// Captures `_gAcropolisBridgeRoom1CollisionCells`; returns a borrowed s16* without reading it.
-/// The table include supplies list-start constants; empty cells use NULL.
-/// Define only for that include and undefine immediately afterward.
-#define ACROPOLIS_BRIDGE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gAcropolisBridgeRoom1CollisionCells[(halfwordOffset)])
-/// X-major 5-by-5 directory into the room-1 grid's face-index lists.
-static s16* _gAcropolisBridgeRoom1CollisionTable[25] = {
-#include "assets/acropolis_bridge_collision_0D2DC_table.inc"
-};
-#undef ACROPOLIS_BRIDGE_CELL_FACE_LIST_AT_OFFSET
-
-/// Collision mesh and XZ cell index selected for bridge room 1.
-///
-/// The 25 cells span 4000 game-coordinate units each. Activation binds the
-/// view coordinate; all mesh pools stay writable and live with this overlay.
-static WorldCollisionGrid _gAcropolisBridgeRoom1Collision = {
-    .viewCoord   = NULL,
-    .normals     = _gAcropolisBridgeRoom1CollisionNormals,
-    .vertices    = _gAcropolisBridgeRoom1CollisionVerts,
-    .faces       = _gAcropolisBridgeRoom1CollisionFaces,
-    .cellFaceIds = _gAcropolisBridgeRoom1CollisionTable,
-    .xBias       = 16020,
-    .zBias       = 8470,
-    .cellCountX  = 5,
-    .cellCountZ  = 5,
-    .cellSize    = 4000,
-    .faceCount   = ARRAY_SIZE(_gAcropolisBridgeRoom1CollisionFaces),
-};
-
-/// Room-space Q12 face normals for the bridge's room-2 collision grid.
-static SVECTOR _gAcropolisBridgeRoom2CollisionNormals[17] = {
-#include "assets/acropolis_bridge_collision_0E0D4_normals.inc"
-};
-
-/// Signed game-coordinate vertices for the bridge's room-2 collision grid.
-static SVECTOR _gAcropolisBridgeRoom2CollisionVerts[205] = {
-#include "assets/acropolis_bridge_collision_0E0D4_verts.inc"
-};
-
-/// Indexed faces and surface classes for the bridge's room-2 collision grid.
-static WorldCollisionGridFace _gAcropolisBridgeRoom2CollisionFaces[93] = {
-#include "assets/acropolis_bridge_collision_0E0D4_faces.inc"
-};
-
-/// Sentinel-terminated face-index lists for the bridge's room-2 grid cells.
-static s16 _gAcropolisBridgeRoom2CollisionCells[274] = {
-#include "assets/acropolis_bridge_collision_0E0D4_cells.inc"
-};
-
-/// Resolves a generated face-list start in this grid's packed halfword pool.
-///
-/// halfwordOffset counts signed-halfword elements and is evaluated once.
-/// It must select an in-bounds list start in the captured pool.
-/// Captures `_gAcropolisBridgeRoom2CollisionCells`; returns a borrowed s16* without reading it.
-/// The table include supplies list-start constants; empty cells use NULL.
-/// Define only for that include and undefine immediately afterward.
-#define ACROPOLIS_BRIDGE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gAcropolisBridgeRoom2CollisionCells[(halfwordOffset)])
-/// X-major 5-by-5 directory into the room-2 grid's face-index lists.
-static s16* _gAcropolisBridgeRoom2CollisionTable[25] = {
-#include "assets/acropolis_bridge_collision_0E0D4_table.inc"
-};
-#undef ACROPOLIS_BRIDGE_CELL_FACE_LIST_AT_OFFSET
-
-/// Collision mesh and XZ cell index selected for bridge room 2.
-///
-/// The 25 cells span 4000 game-coordinate units each. Activation binds the
-/// view coordinate; all mesh pools stay writable and live with this overlay.
-static WorldCollisionGrid _gAcropolisBridgeRoom2Collision = {
-    .viewCoord   = NULL,
-    .normals     = _gAcropolisBridgeRoom2CollisionNormals,
-    .vertices    = _gAcropolisBridgeRoom2CollisionVerts,
-    .faces       = _gAcropolisBridgeRoom2CollisionFaces,
-    .cellFaceIds = _gAcropolisBridgeRoom2CollisionTable,
-    .xBias       = 16020,
-    .zBias       = 8470,
-    .cellCountX  = 5,
-    .cellCountZ  = 5,
-    .cellSize    = 4000,
-    .faceCount   = ARRAY_SIZE(_gAcropolisBridgeRoom2CollisionFaces),
-};
-
-/// Directed logical-view boundaries 6 <-> 7 and 2 <-> 7, shared by both rooms.
-///
-/// LAST marks the final included record. Room binding installs the coordinate
-/// and mutable list links; origins, corners and radii use game units, normals
-/// use Q12. Keep this overlay loaded until the records are unlinked.
-static WorldCollisionTrigger _gAcropolisBridgeViewBoundaryTriggers[4] = {
-    { NULL, NULL, NULL, { -7584, 0, -1984, 0 }, { { 0, -4175, -2304, 0 }, { 0, -4209, 2304, 0 }, { 0, 4209, -2304, 0 }, { 0, 4175, 2304, 0 } }, { 4116, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4775, 0, 6, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -7040, 0, -1984, 0 }, { { 0, -4175, 2304, 0 }, { 0, -4209, -2304, 0 }, { 0, 4209, 2304, 0 }, { 0, 4175, -2304, 0 } }, { -4117, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4775, 0, 7, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -0x2E00, 0, -1984, 0 }, { { 0, -4175, 2304, 0 }, { 0, -4209, -2304, 0 }, { 0, 4209, 2304, 0 }, { 0, 4175, -2304, 0 } }, { -4117, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4775, 0, 2, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -0x301F, 0, -1983, 0 }, { { 0, -4175, -2304, 0 }, { 0, -4209, 2304, 0 }, { 0, 4209, -2304, 0 }, { 0, 4175, 2304, 0 } }, { 4116, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4775, 0, 7, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 /// Packed five-step stair selectors and the descent bit in the trigger control.
@@ -1112,38 +861,6 @@ enum {
     ACROPOLIS_BRIDGE_STAIR_DESCEND        = 0x100,
     ACROPOLIS_BRIDGE_STAIR_ROOM1_SELECTOR = 0x80 | 5,
     ACROPOLIS_BRIDGE_STAIR_ROOM2_SELECTOR = (4 << 4) | 5
-};
-
-/// Room-1 interactions before the keypad movie changes the bridge layout.
-///
-/// Seven included facing quads provide promenade/fire-escape warps, keypad
-/// CAP command 7 and four five-step stair flights. LAST ends the array. Runtime
-/// coordinates, list links and hit latches are mutable; keep this overlay loaded
-/// until unlinked. Geometry uses game units and normals use Q12.
-static WorldCollisionTrigger _gAcropolisBridgeRoom1ActionTriggers[7] = {
-    { NULL, NULL, NULL, { -2995, -144, -2076, 0 }, { { -336, 0, -1024, 0 }, { 336, 0, -1024, 0 }, { -336, 0, 1024, 0 }, { 336, 0, 1024, 0 } }, { 0, 4100, 0, 0 }, { -4096, 0, 0, 0 }, 1070, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_AKROPOLIS_PROMENADE, (1 << 4) | 5, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4544, -128, -448, 0 }, { { -576, 0, -576, 0 }, { 576, 0, -576, 0 }, { -576, 0, 576, 0 }, { 576, 0, 576, 0 } }, { 0, 4105, 0, 0 }, { 4094, 0, -1, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_BRIDGE_KEYPAD_COMMAND, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -5009, -64, -2432, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING | ACROPOLIS_BRIDGE_STAIR_DESCEND, ACROPOLIS_BRIDGE_STAIR_ROOM1_SELECTOR, (3072 >> 4), WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -6176, 992, -2016, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4091, 0, 200, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING, ACROPOLIS_BRIDGE_STAIR_ROOM1_SELECTOR, (1024 >> 4), WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -0x33C0, 928, -2048, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING, ACROPOLIS_BRIDGE_STAIR_ROOM1_SELECTOR, (3072 >> 4), WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -0x38E0, -64, -1984, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING | ACROPOLIS_BRIDGE_STAIR_DESCEND, ACROPOLIS_BRIDGE_STAIR_ROOM1_SELECTOR, (1024 >> 4), WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -0x3D00, -64, -2016, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_AKROPOLIS_FIRE_ESCAPE, (2 << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
-};
-
-/// Room-2 interactions after the keypad movie changes the bridge layout.
-///
-/// The same seven roles use shifted warp/stair geometry and surface class 4
-/// for the five-step flights. LAST ends the array. Runtime coordinates, list
-/// links and hit latches are mutable and require the loaded bridge overlay.
-/// Geometry uses game units and normals use Q12.
-static WorldCollisionTrigger _gAcropolisBridgeRoom2ActionTriggers[7] = {
-    { NULL, NULL, NULL, { -2979, -112, -1404, 0 }, { { -288, 0, -1024, 0 }, { 288, 0, -1024, 0 }, { -288, 0, 1024, 0 }, { 288, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1063, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_AKROPOLIS_PROMENADE, (1 << 4) | 5, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4544, -128, -448, 0 }, { { -576, 0, -576, 0 }, { 576, 0, -576, 0 }, { -576, 0, 576, 0 }, { 576, 0, 576, 0 } }, { 0, 4105, 0, 0 }, { 4094, 0, -1, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_BRIDGE_KEYPAD_COMMAND, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4893, -64, -2624, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING, ACROPOLIS_BRIDGE_STAIR_ROOM2_SELECTOR, (3072 >> 4), WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -6113, -992, -2016, 0 }, { { -367, 0, -1024, 0 }, { 368, 0, -1024, 0 }, { -367, 0, 1024, 0 }, { 368, 0, 1024, 0 } }, { 0, 4102, 0, 0 }, { -4091, 0, 200, 0 }, 1086, WORLD_COLLISION_TRIGGER_ACTION_FACING | ACROPOLIS_BRIDGE_STAIR_DESCEND, ACROPOLIS_BRIDGE_STAIR_ROOM2_SELECTOR, (1024 >> 4), WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -0x33D0, -1056, -2048, 0 }, { { -256, 0, -1024, 0 }, { 256, 0, -1024, 0 }, { -256, 0, 1024, 0 }, { 256, 0, 1024, 0 } }, { 0, 4096, 0, 0 }, { 4091, 0, 201, 0 }, 1055, WORLD_COLLISION_TRIGGER_ACTION_FACING | ACROPOLIS_BRIDGE_STAIR_DESCEND, ACROPOLIS_BRIDGE_STAIR_ROOM2_SELECTOR, (3072 >> 4), WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -0x38C0, -64, -1984, 0 }, { { -240, 0, -1024, 0 }, { 240, 0, -1024, 0 }, { -240, 0, 1024, 0 }, { 240, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1047, WORLD_COLLISION_TRIGGER_ACTION_FACING, ACROPOLIS_BRIDGE_STAIR_ROOM2_SELECTOR, (1024 >> 4), WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -0x3DA0, -64, -2016, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_AKROPOLIS_FIRE_ESCAPE, (2 << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 /// Encoded 8-bit texture pages, palette rows and modulation for bridge sprites.
@@ -1158,1425 +875,6 @@ enum {
     ACROPOLIS_BRIDGE_SPRITE_OPAQUE         = 0,
 };
 
-/// Background-only sprite batches for mapped bridge view 1.
-///
-/// The zero first count keeps decoded image strips enabled; the next record
-/// ends the list. The view retains this address in its empty source slot,
-/// which supplies no source sprites. Storage lives with the bridge overlay.
-static SpriteBatch _gAcropolisBridgeView1SpriteBatches[] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-/// Sprite rectangles and sorting depths for mapped bridge view 2.
-///
-/// The 104 elements use pixel positions/sizes and unscaled sorting depths.
-/// `_gAcropolisBridgeView2SpriteBatches` selects their ranges. Storage stays writable
-/// and live with the loaded bridge overlay.
-static SpriteSource _gAcropolisBridgeView2SpriteSources[] = {
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 80 } }, -128, 16, 1200, { .fields = { 32, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 88 } }, -88, 16, 1200, { .fields = { 96, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, -136, 32, 1200, { .fields = { 8, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, -56, 64, 1200, { .fields = { 120, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 80 } }, 96, 40, 1025, { .fields = { 64, 88 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 32 } }, 88, 80, 1025, { .fields = { 88, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 96, 40, 650, { .fields = { 24, 248 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 64 } }, -152, -96, 1000, { .fields = { 112, 80 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 16 } }, -152, -32, 1006, { .fields = { 24, 88 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 56 } }, -144, -16, 1005, { .fields = { 56, 200 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, -64, 16, 1005, { .fields = { 48, 144 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -96, 40, 1005, { .fields = { 8, 8 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 56 } }, 104, -96, 753, { .fields = { 88, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 32 } }, 120, -40, 752, { .fields = { 64, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 80 } }, 104, -8, 650, { .fields = { 72, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 8 } }, 128, 72, 650, { .fields = { 120, 16 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 64, 32, 1000, { .fields = { 24, 16 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 64, 40, 939, { .fields = { 24, 160 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 64, 48, 885, { .fields = { 24, 8 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 64, 56, 836, { .fields = { 120, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 64, 64, 777, { .fields = { 104, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 64, 72, 754, { .fields = { 16, 88 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 64, 80, 718, { .fields = { 0, 40 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 64, 88, 686, { .fields = { 0, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 64, 96, 609, { .fields = { 0, 24 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 64, 104, 598, { .fields = { 0, 32 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 64, 112, 575, { .fields = { 0, 88 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -40, 24, 1087, { .fields = { 16, 232 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 32, 1000, { .fields = { 16, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -56, 40, 939, { .fields = { 8, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 8 } }, -64, 48, 895, { .fields = { 0, 64 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 8 } }, -72, 56, 836, { .fields = { 0, 48 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -72, 64, 810, { .fields = { 8, 32 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -80, 72, 712, { .fields = { 8, 40 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -88, 80, 718, { .fields = { 32, 8 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 8 } }, -96, 88, 698, { .fields = { 16, 24 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 8 } }, -104, 96, 661, { .fields = { 32, 248 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 8 } }, -112, 104, 630, { .fields = { 32, 232 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 8 } }, -120, 112, 605, { .fields = { 32, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 64, 40, 925, { .fields = { 0, 8 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 56, 88, 880, { .fields = { 8, 232 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 56, 104, 901, { .fields = { 8, 24 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 64, 104, 636, { .fields = { 8, 88 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, -32, 56, 1135, { .fields = { 32, 144 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 40 } }, -40, 32, 1116, { .fields = { 104, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 40 } }, -48, 48, 972, { .fields = { 112, 144 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, -56, 48, 972, { .fields = { 40, 144 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 40 } }, -64, 80, 852, { .fields = { 104, 136 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 32 } }, -72, 72, 872, { .fields = { 96, 136 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, -96, 104, 677, { .fields = { 88, 152 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 56, 48, 904, { .fields = { 120, 72 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 56, 56, 1002, { .fields = { 8, 248 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 56, 64, 1090, { .fields = { 0, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 56, 72, 855, { .fields = { 8, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 56, 80, 867, { .fields = { 8, 96 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 56, 96, 932, { .fields = { 8, 160 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 56, 112, 731, { .fields = { 0, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 48 } }, -16, -32, 1363, { .fields = { 24, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 56 } }, -24, -32, 1214, { .fields = { 8, 200 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 40 } }, -32, -8, 1124, { .fields = { 96, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, 64, -32, 1179, { .fields = { 112, 184 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, 64, -16, 1118, { .fields = { 0, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, 64, 0, 1069, { .fields = { 112, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 24 } }, 64, 16, 1025, { .fields = { 56, 144 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 8 } }, -40, 56, 1187, { .fields = { 64, 80 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 8 } }, -40, 64, 1134, { .fields = { 40, 24 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 8 } }, 8, 64, 1122, { .fields = { 48, 8 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 8 } }, -48, 72, 1078, { .fields = { 32, 16 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 8 } }, 8, 72, 1078, { .fields = { 24, 32 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 8 } }, -56, 80, 1027, { .fields = { 24, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 8 } }, 8, 80, 1027, { .fields = { 24, 64 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 8 } }, -56, 88, 981, { .fields = { 24, 40 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 8 } }, 8, 88, 981, { .fields = { 24, 48 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 8 } }, -64, 96, 939, { .fields = { 64, 248 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 8 } }, 0, 96, 944, { .fields = { 16, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 8 } }, -72, 104, 901, { .fields = { 120, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 8 } }, 0, 104, 901, { .fields = { 112, 200 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 8 } }, -72, 112, 862, { .fields = { 120, 176 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 8 } }, 0, 112, 865, { .fields = { 120, 184 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 56, 72, 1097, { .fields = { 32, 160 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -24, 8, 1328, { .fields = { 32, 248 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 104, 16 } }, -32, 16, 1242, { .fields = { 120, 104 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 104, 16 } }, -32, 32, 1185, { .fields = { 120, 136 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 104, 16 } }, -32, 48, 1131, { .fields = { 120, 120 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 8 } }, 40, 64, 1097, { .fields = { 24, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 8 } }, -24, 0, 1275, { .fields = { 8, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 96, 8 } }, -24, 8, 1288, { .fields = { 88, 216 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -24, 16, 1275, { .fields = { 48, 248 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 8 } }, 40, 16, 1252, { .fields = { 112, 72 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 8 } }, -8, -24, 1728, { .fields = { 8, 72 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 88, 8 } }, -16, -16, 1630, { .fields = { 0, 80 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 88, 8 } }, -16, -8, 1463, { .fields = { 0, 152 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 88, 8 } }, -16, 0, 1341, { .fields = { 104, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 56 } }, -16, 8, 1375, { .fields = { 0, 144 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 64 } }, 56, 8, 1375, { .fields = { 16, 144 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, 48, 56, 1375, { .fields = { 104, 176 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 64, -48, 1441, { .fields = { 40, 160 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 64, -40, 1214, { .fields = { 48, 160 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 40 } }, 0, -56, 1696, { .fields = { 104, 96 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 48 } }, -8, -48, 1722, { .fields = { 16, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 48 } }, -16, -48, 1329, { .fields = { 120, 144 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 40 } }, 64, -32, 1264, { .fields = { 96, 96 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_1, { .fields = { 80, 80 } }, -8, -96, 1725, { .fields = { 16, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_1, { .fields = { 56, 8 } }, 16, -16, 1627, { .fields = { 32, 160 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-};
-
-/// Sentinel-terminated sprite ranges for mapped bridge view 2.
-///
-/// The zero first count keeps decoded image strips enabled. Remaining ranges
-/// cover the 104 source elements; the final record ends the list.
-/// Arrival-scene visibility controls batch 11 (source elements 102..103).
-/// Visibility remains writable while the bridge overlay is loaded.
-static SpriteBatch _gAcropolisBridgeView2SpriteBatches[] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 6, 0, 0, { 1, 0 } },
-    { 6, 10, 0, 0, { 6, 0 } },
-    { 16, 23, 0, 0, { 2, 0 } },
-    { 39, 18, 0, 0, { 7, 0 } },
-    { 57, 7, 0, 0, { 5, 0 } },
-    { 64, 15, 0, 0, { 8, 0 } },
-    { 79, 6, 0, 0, { 4, 0 } },
-    { 85, 4, 0, 0, { 9, 0 } },
-    { 89, 7, 0, 0, { 0, 0 } },
-    { 96, 6, 0, 0, { 10, 0 } },
-    { 102, 2, 0, 0, { 3, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-/// Sprite rectangles and sorting depths for mapped bridge view 3.
-///
-/// The 112 elements use pixel positions/sizes and unscaled sorting depths.
-/// `_gAcropolisBridgeView3SpriteBatches` selects their ranges. Storage stays writable
-/// and live with the loaded bridge overlay.
-static SpriteSource _gAcropolisBridgeView3SpriteSources[] = {
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 112 } }, -160, -96, 1425, { .fields = { 56, 144 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 24 } }, -96, -120, 1400, { .fields = { 40, 232 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 24 } }, -88, -96, 1425, { .fields = { 16, 80 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 88 } }, -88, -72, 1429, { .fields = { 32, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 24 } }, 16, -120, 1375, { .fields = { 104, 232 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 48 } }, 16, -96, 1420, { .fields = { 16, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 48 } }, 16, -48, 1425, { .fields = { 112, 104 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 56 } }, 48, -96, 1525, { .fields = { 8, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 40 } }, 48, -40, 1525, { .fields = { 80, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 88 } }, 104, -88, 1525, { .fields = { 16, 88 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 80 } }, 136, -88, 1525, { .fields = { 8, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 144 } }, -160, -96, 1250, { .fields = { 112, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 72 } }, -144, -40, 1651, { .fields = { 120, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, -128, 16, 850, { .fields = { 96, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 72 } }, -120, 0, 850, { .fields = { 104, 80 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 64 } }, -80, 0, 850, { .fields = { 72, 64 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 96 } }, 128, -88, 1478, { .fields = { 80, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -96, -24, 1450, { .fields = { 16, 80 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -96, 16, 1450, { .fields = { 112, 72 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, -128, 16, 1125, { .fields = { 0, 40 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 64 } }, -120, 0, 1150, { .fields = { 80, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 88 } }, -112, -16, 1275, { .fields = { 48, 88 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 80 } }, -104, -24, 1375, { .fields = { 32, 176 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 40 } }, 16, -32, 1561, { .fields = { 104, 216 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 56 } }, 24, -32, 1421, { .fields = { 56, 88 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 64 } }, 32, -24, 1275, { .fields = { 64, 128 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 56 } }, 40, -8, 1176, { .fields = { 48, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 32 } }, 48, 0, 1082, { .fields = { 120, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 8 } }, -40, -8, 1661, { .fields = { 104, 248 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 8 } }, -72, 0, 1566, { .fields = { 72, 176 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 8 } }, -8, 0, 1566, { .fields = { 96, 184 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 8 } }, -96, 8, 1470, { .fields = { 96, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 8 } }, -24, 8, 1470, { .fields = { 88, 80 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 8 } }, -104, 16, 1385, { .fields = { 48, 200 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 8 } }, -24, 16, 1385, { .fields = { 48, 40 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 8 } }, -104, 24, 1309, { .fields = { 24, 184 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 8 } }, -32, 24, 1309, { .fields = { 48, 232 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 8 } }, -104, 32, 1242, { .fields = { 88, 24 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 8 } }, -32, 32, 1242, { .fields = { 48, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 8 } }, -112, 40, 1200, { .fields = { 64, 96 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 8 } }, -32, 40, 1200, { .fields = { 32, 32 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 8 } }, -112, 48, 1175, { .fields = { 24, 72 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 8 } }, -32, 48, 1175, { .fields = { 24, 248 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 96, 8 } }, -112, 56, 1150, { .fields = { 24, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 8 } }, -112, 64, 1125, { .fields = { 40, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 40 } }, -104, -24, 1428, { .fields = { 56, 104 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 64 } }, 48, -72, 875, { .fields = { 8, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 48 } }, 40, -8, 807, { .fields = { 96, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 72 } }, -160, 48, 403, { .fields = { 112, 152 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 24 } }, 56, 96, 790, { .fields = { 56, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 64 } }, 64, 56, 843, { .fields = { 88, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 24 } }, 88, 48, 930, { .fields = { 48, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 40 } }, 136, 80, 739, { .fields = { 112, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 80 } }, 72, 40, 867, { .fields = { 16, 176 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 64 } }, -56, 56, 843, { .fields = { 80, 128 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 24 } }, -64, 56, 886, { .fields = { 96, 216 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 32 } }, -56, 56, 893, { .fields = { 32, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 40 } }, -8, 56, 880, { .fields = { 96, 152 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 40 } }, 40, 48, 907, { .fields = { 64, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 24 } }, 8, 96, 790, { .fields = { 56, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 80, 32, 800, { .fields = { 24, 80 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 88, 8 } }, -64, 48, 750, { .fields = { 72, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 8 } }, 24, 40, 800, { .fields = { 0, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 8 } }, 24, 48, 750, { .fields = { 80, 8 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 96, 8 } }, -72, 56, 712, { .fields = { 8, 64 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 88, 8 } }, 24, 56, 712, { .fields = { 24, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 96, 8 } }, -72, 64, 687, { .fields = { 16, 216 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 96, 8 } }, 24, 64, 687, { .fields = { 64, 16 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 96, 8 } }, -72, 72, 662, { .fields = { 32, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 96, 8 } }, 24, 72, 662, { .fields = { 48, 88 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 96, 16 } }, -72, 80, 612, { .fields = { 88, 136 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 112, 16 } }, 24, 80, 612, { .fields = { 72, 120 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 96, 16 } }, -72, 96, 587, { .fields = { 88, 104 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 128, 16 } }, 24, 96, 587, { .fields = { 56, 152 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 104, 8 } }, -80, 112, 550, { .fields = { 32, 48 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 136, 8 } }, 24, 112, 550, { .fields = { 0, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 88, -16, 1280, { .fields = { 104, 72 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 24 } }, -72, -8, 600, { .fields = { 56, 144 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 64 } }, -64, 16, 725, { .fields = { 72, 128 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 32 } }, -80, 16, 575, { .fields = { 16, 160 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 64 } }, -72, 48, 500, { .fields = { 64, 64 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 32 } }, -64, 88, 550, { .fields = { 112, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 40 } }, -88, 48, 475, { .fields = { 80, 40 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 32 } }, -96, 88, 425, { .fields = { 72, 144 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 48 } }, 88, 16, 695, { .fields = { 96, 96 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 56 } }, 96, -16, 650, { .fields = { 56, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 32 } }, 104, -16, 583, { .fields = { 32, 160 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 24 } }, 120, 0, 529, { .fields = { 64, 32 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 48 } }, 136, 8, 502, { .fields = { 88, 96 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 24 } }, 144, 16, 465, { .fields = { 80, 80 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 48 } }, 128, 32, 531, { .fields = { 80, 96 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 48 } }, 120, 56, 565, { .fields = { 104, 96 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 24 } }, 112, 80, 572, { .fields = { 96, 128 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 80 } }, -72, -8, 725, { .fields = { 40, 176 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 32 } }, -56, 40, 725, { .fields = { 0, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 32 } }, 64, 16, 806, { .fields = { 8, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 72 } }, 72, -16, 806, { .fields = { 104, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 64 } }, -64, 0, 771, { .fields = { 96, 152 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 64 } }, 56, -8, 845, { .fields = { 64, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 64 } }, -64, 0, 771, { .fields = { 88, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 56 } }, 48, -8, 982, { .fields = { 64, 88 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 56 } }, -64, 8, 838, { .fields = { 32, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 56 } }, 40, -8, 1051, { .fields = { 48, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 16 } }, 0, 40, 850, { .fields = { 112, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 16 } }, -64, 48, 850, { .fields = { 0, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 88, 16 } }, -16, 40, 900, { .fields = { 8, 176 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 56, 32, 900, { .fields = { 120, 72 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 16 } }, -64, 48, 900, { .fields = { 8, 48 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 16 } }, 16, 32, 950, { .fields = { 120, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 16 } }, -64, 40, 950, { .fields = { 112, 32 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 16 } }, 24, 32, 1000, { .fields = { 96, 40 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 16 } }, -56, 40, 1000, { .fields = { 104, 64 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-};
-
-/// Sentinel-terminated sprite ranges for mapped bridge view 3.
-///
-/// The zero first count keeps decoded image strips enabled. Remaining ranges
-/// cover the 112 source elements; the final record ends the list.
-/// Visibility remains writable while the bridge overlay is loaded.
-static SpriteBatch _gAcropolisBridgeView3SpriteBatches[] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 11, 0, 0, { 6, 0 } },
-    { 11, 6, 0, 0, { 9, 0 } },
-    { 17, 11, 0, 0, { 2, 0 } },
-    { 28, 17, 0, 0, { 10, 0 } },
-    { 45, 3, 0, 0, { 0, 0 } },
-    { 48, 8, 0, 0, { 11, 0 } },
-    { 56, 4, 0, 0, { 1, 0 } },
-    { 60, 16, 0, 0, { 12, 0 } },
-    { 76, 17, 0, 0, { 8, 0 } },
-    { 93, 4, 0, 0, { 13, 0 } },
-    { 97, 2, 0, 0, { 4, 0 } },
-    { 99, 2, 0, 0, { 14, 0 } },
-    { 101, 2, 0, 0, { 3, 0 } },
-    { 103, 2, 0, 0, { 15, 0 } },
-    { 105, 3, 0, 0, { 7, 0 } },
-    { 108, 2, 0, 0, { 16, 0 } },
-    { 110, 2, 0, 0, { 5, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-/// Sprite rectangles and sorting depths for mapped bridge view 4.
-///
-/// The 153 elements use pixel positions/sizes and unscaled sorting depths.
-/// `_gAcropolisBridgeView4SpriteBatches` selects their ranges. Storage stays writable
-/// and live with the loaded bridge overlay.
-static SpriteSource _gAcropolisBridgeView4SpriteSources[] = {
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -24, -112, 3000, { .fields = { 32, 136 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 104, 56 } }, -128, -120, 3000, { .fields = { 48, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 104, 56 } }, 0, -120, 3000, { .fields = { 88, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 40 } }, -56, -80, 2500, { .fields = { 96, 40 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, -64, -72, 2500, { .fields = { 0, 88 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 24 } }, -72, -80, 2875, { .fields = { 32, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 72 } }, -160, -120, 2000, { .fields = { 72, 72 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 32 } }, 8, -104, 2674, { .fields = { 64, 80 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 16 } }, 16, -72, 2822, { .fields = { 88, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 104, 64 } }, 56, -120, 2750, { .fields = { 24, 144 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 72 } }, -80, -120, 2875, { .fields = { 120, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 64 } }, -88, -112, 2750, { .fields = { 112, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 56 } }, -96, -104, 2500, { .fields = { 80, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 48 } }, -104, -96, 2250, { .fields = { 24, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, -64, -72, 2500, { .fields = { 72, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 40 } }, -56, -88, 2904, { .fields = { 72, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 24 } }, 0, -88, 2904, { .fields = { 88, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 32 } }, 8, -80, 2561, { .fields = { 48, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 8 } }, -56, -72, 3108, { .fields = { 0, 104 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 8 } }, -56, -64, 2249, { .fields = { 96, 16 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 8 } }, -56, -56, 2099, { .fields = { 0, 16 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 8 } }, -32, -56, 2297, { .fields = { 24, 16 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 72, 112, 1014, { .fields = { 112, 64 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 48 } }, -80, -32, 2425, { .fields = { 88, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 56 } }, -96, 16, 1800, { .fields = { 64, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, -48, 40, 1800, { .fields = { 80, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 8 } }, -96, 112, 990, { .fields = { 64, 72 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 40 } }, 24, -32, 2550, { .fields = { 104, 152 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 56 } }, 40, 8, 1875, { .fields = { 24, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 24 } }, 80, 96, 1014, { .fields = { 16, 232 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 40 } }, -96, -80, 2025, { .fields = { 16, 152 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 24 } }, -80, -40, 2012, { .fields = { 8, 88 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 40 } }, 24, -88, 2200, { .fields = { 32, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 32 } }, 24, -48, 2137, { .fields = { 80, 120 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 40 } }, -136, 56, 825, { .fields = { 120, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 96, 24 } }, -160, 96, 800, { .fields = { 48, 232 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 40 } }, 104, 40, 843, { .fields = { 120, 48 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 40 } }, 80, 80, 800, { .fields = { 80, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 48 } }, -120, -40, 1400, { .fields = { 16, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 40 } }, -96, 8, 1350, { .fields = { 88, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 16 } }, -120, 8, 1350, { .fields = { 72, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 56 } }, 48, -48, 1550, { .fields = { 88, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 24 } }, 48, 8, 1475, { .fields = { 56, 152 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 56 } }, -136, 56, 769, { .fields = { 88, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 48 } }, 104, 40, 842, { .fields = { 32, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 8 } }, -40, -64, 2299, { .fields = { 104, 176 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 8 } }, -40, -56, 2149, { .fields = { 104, 24 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 8 } }, -40, -48, 2034, { .fields = { 88, 128 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 8 } }, -40, -40, 1903, { .fields = { 120, 48 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 8 } }, -40, -32, 1794, { .fields = { 96, 184 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 8 } }, -40, -24, 1708, { .fields = { 72, 216 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 16 } }, -40, -16, 1586, { .fields = { 8, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 88, 16 } }, -40, 0, 1450, { .fields = { 120, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 16 } }, -48, 16, 1342, { .fields = { 16, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 16 } }, 8, 16, 1342, { .fields = { 16, 72 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 16 } }, -48, 32, 1239, { .fields = { 24, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 16 } }, 8, 32, 1235, { .fields = { 16, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 16 } }, -48, 48, 1155, { .fields = { 8, 32 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 16 } }, 8, 48, 1155, { .fields = { 0, 144 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 16 } }, -48, 64, 1062, { .fields = { 24, 128 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 16 } }, 8, 64, 1062, { .fields = { 40, 176 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 16 } }, -48, 80, 991, { .fields = { 120, 88 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 16 } }, 24, 80, 994, { .fields = { 104, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 16 } }, -56, 96, 932, { .fields = { 96, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 16 } }, 24, 96, 935, { .fields = { 112, 160 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 8 } }, -56, 112, 921, { .fields = { 48, 64 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 8 } }, 24, 112, 924, { .fields = { 80, 136 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, -88, 2116, { .fields = { 0, 8 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 8, -88, 2681, { .fields = { 56, 144 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, -80, 2000, { .fields = { 24, 136 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, -72, 1831, { .fields = { 88, 248 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 16, -72, 2361, { .fields = { 120, 40 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, -64, 1700, { .fields = { 120, 8 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, -56, 1587, { .fields = { 0, 32 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 24, -56, 2089, { .fields = { 80, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, -48, 1488, { .fields = { 120, 32 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, -40, 1401, { .fields = { 120, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 32, -40, 1901, { .fields = { 64, 32 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, -32, 1323, { .fields = { 104, 160 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 40, -24, 1753, { .fields = { 112, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -48, 8, 1035, { .fields = { 112, 152 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -48, 16, 994, { .fields = { 120, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -48, 24, 953, { .fields = { 112, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -48, 32, 916, { .fields = { 112, 48 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -48, 40, 882, { .fields = { 112, 200 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -48, 48, 850, { .fields = { 104, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -48, 56, 821, { .fields = { 112, 8 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -48, 64, 794, { .fields = { 112, 32 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 80, 64, 1294, { .fields = { 112, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, -24, 1253, { .fields = { 96, 120 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, -16, 1191, { .fields = { 96, 144 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, -8, 1134, { .fields = { 96, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 0, 1082, { .fields = { 120, 104 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -56, 72, 768, { .fields = { 88, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -56, 80, 725, { .fields = { 72, 32 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 8, -80, 2525, { .fields = { 48, 48 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 16, -64, 2214, { .fields = { 0, 40 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 24, -48, 1988, { .fields = { 64, 48 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 32, -32, 1823, { .fields = { 120, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 40, -16, 1691, { .fields = { 0, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 40, -8, 1704, { .fields = { 48, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 48, 0, 1582, { .fields = { 64, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 48, 8, 1578, { .fields = { 64, 144 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 56, 16, 1492, { .fields = { 0, 64 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 56, 24, 1464, { .fields = { 0, 72 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 64, 32, 1416, { .fields = { 0, 80 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 64, 40, 1385, { .fields = { 0, 120 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 72, 48, 1347, { .fields = { 0, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 72, 56, 1321, { .fields = { 120, 40 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, -80, 2003, { .fields = { 96, 40 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, -72, 1831, { .fields = { 96, 24 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, -64, 1700, { .fields = { 104, 104 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, -56, 1587, { .fields = { 104, 48 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, -48, 1956, { .fields = { 104, 152 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, -40, 1549, { .fields = { 104, 72 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, -32, 1739, { .fields = { 104, 32 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, -24, 1449, { .fields = { 96, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, -16, 1485, { .fields = { 96, 8 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 48, -8, 1168, { .fields = { 120, 152 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, 0, 1374, { .fields = { 104, 8 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 56, 8, 1078, { .fields = { 104, 200 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, 32, 1121, { .fields = { 96, 48 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -48, 80, 837, { .fields = { 96, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -48, 88, 949, { .fields = { 104, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, -8, 1134, { .fields = { 112, 80 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 8, 1361, { .fields = { 112, 120 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 16, 992, { .fields = { 112, 104 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 24, 1081, { .fields = { 112, 72 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 40, 929, { .fields = { 104, 40 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 48, 958, { .fields = { 104, 88 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 56, 988, { .fields = { 104, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 64, 1020, { .fields = { 104, 96 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 72, 1018, { .fields = { 112, 144 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 96, 900, { .fields = { 88, 32 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 104, 899, { .fields = { 96, 80 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 40 } }, 8, -88, 2250, { .fields = { 8, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 48 } }, 16, -80, 2000, { .fields = { 80, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 40 } }, 24, -56, 1750, { .fields = { 112, 80 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 48 } }, 32, -40, 1500, { .fields = { 80, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 48 } }, 40, -24, 1250, { .fields = { 80, 160 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 40 } }, 48, 8, 1142, { .fields = { 56, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 32 } }, 56, 40, 1044, { .fields = { 40, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, 64, 32, 969, { .fields = { 120, 88 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 24 } }, 64, 80, 943, { .fields = { 24, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 40 } }, 72, 56, 879, { .fields = { 104, 80 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, 80, 56, 814, { .fields = { 72, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 16 } }, -32, -64, 2299, { .fields = { 40, 16 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 32 } }, -16, -48, 2299, { .fields = { 56, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 40 } }, -40, -80, 2375, { .fields = { 64, 152 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 16 } }, -24, -64, 2375, { .fields = { 64, 40 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 40 } }, 8, -88, 2375, { .fields = { 64, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 32 } }, -128, -96, 2987, { .fields = { 96, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 8 } }, -112, -64, 2987, { .fields = { 88, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-};
-
-/// Sentinel-terminated sprite ranges for mapped bridge view 4.
-///
-/// The zero first count keeps decoded image strips enabled. Remaining ranges
-/// cover the 153 source elements; the final record ends the list.
-/// The interior zero-count range at source 148 does not end the list.
-/// Visibility remains writable while the bridge overlay is loaded.
-static SpriteBatch _gAcropolisBridgeView4SpriteBatches[] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 3, 0, 0, { 7, 0 } },
-    { 3, 11, 0, 0, { 8, 0 } },
-    { 14, 4, 0, 0, { 3, 0 } },
-    { 18, 4, 0, 0, { 9, 0 } },
-    { 22, 8, 0, 0, { 1, 0 } },
-    { 30, 8, 0, 0, { 10, 0 } },
-    { 38, 5, 0, 0, { 6, 0 } },
-    { 43, 2, 0, 0, { 11, 0 } },
-    { 45, 22, 0, 0, { 2, 0 } },
-    { 67, 42, 0, 0, { 12, 0 } },
-    { 109, 37, 0, 0, { 5, 0 } },
-    { 146, 2, 0, 0, { 13, 0 } },
-    { 148, 0, 0, 0, { 0, 0 } },
-    { 148, 3, 0, 0, { 14, 0 } },
-    { 151, 2, 0, 0, { 4, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-/// Sprite rectangles and sorting depths for mapped bridge view 5.
-///
-/// The 112 elements use pixel positions/sizes and unscaled sorting depths.
-/// `_gAcropolisBridgeView5SpriteBatches` selects their ranges. Storage stays writable
-/// and live with the loaded bridge overlay.
-static SpriteSource _gAcropolisBridgeView5SpriteSources[] = {
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 104, 72, 713, { .fields = { 80, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 72 } }, -160, -40, 700, { .fields = { 88, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 24 } }, -160, 32, 720, { .fields = { 120, 152 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 56 } }, -160, 56, 822, { .fields = { 64, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 40 } }, 112, 16, 533, { .fields = { 64, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 24 } }, 120, 56, 571, { .fields = { 24, 32 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 40 } }, 96, 80, 713, { .fields = { 56, 152 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, 88, 104, 713, { .fields = { 80, 136 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 88, 72 } }, -160, 48, 1175, { .fields = { 16, 96 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 56 } }, -40, 16, 1200, { .fields = { 8, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 64 } }, 40, 24, 1125, { .fields = { 64, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 16 } }, 80, 104, 924, { .fields = { 48, 32 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -80, 16, 747, { .fields = { 104, 96 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 8 } }, -88, 24, 742, { .fields = { 8, 128 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 16 } }, -96, 32, 737, { .fields = { 24, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 16 } }, -16, 32, 737, { .fields = { 40, 96 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 16 } }, -112, 48, 730, { .fields = { 32, 160 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 16 } }, -40, 48, 730, { .fields = { 80, 80 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 16 } }, 16, 48, 730, { .fields = { 80, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 16 } }, -120, 64, 655, { .fields = { 80, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 16 } }, -56, 64, 685, { .fields = { 56, 64 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 16 } }, 8, 64, 682, { .fields = { 56, 144 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 16 } }, -136, 80, 618, { .fields = { 56, 128 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 16 } }, -64, 80, 618, { .fields = { 56, 48 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 16 } }, 0, 80, 620, { .fields = { 56, 176 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 24 } }, -152, 96, 573, { .fields = { 120, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 24 } }, -80, 96, 570, { .fields = { 0, 128 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 24 } }, 0, 96, 574, { .fields = { 16, 232 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 64, -8, 581, { .fields = { 120, 144 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -160, 48, 462, { .fields = { 80, 200 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 8 } }, -104, -24, 646, { .fields = { 32, 136 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, -96, -16, 652, { .fields = { 8, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 16 } }, -96, 0, 688, { .fields = { 0, 176 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 16 } }, -88, 16, 730, { .fields = { 8, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 16 } }, -88, 32, 747, { .fields = { 120, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -112, -16, 611, { .fields = { 40, 176 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 8 } }, -120, -8, 587, { .fields = { 32, 152 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 8 } }, -128, 0, 561, { .fields = { 32, 144 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 8 } }, -136, 8, 538, { .fields = { 40, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 8 } }, -144, 16, 518, { .fields = { 40, 200 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 16 } }, -136, 24, 545, { .fields = { 104, 160 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 16 } }, -128, 40, 580, { .fields = { 88, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 16 } }, -120, 56, 618, { .fields = { 88, 16 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -112, 72, 635, { .fields = { 48, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -152, 24, 495, { .fields = { 40, 48 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 16 } }, -160, 32, 483, { .fields = { 88, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 16 } }, -160, 104, 498, { .fields = { 104, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 64, 0, 561, { .fields = { 40, 72 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 64, 8, 537, { .fields = { 40, 64 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 64, 16, 515, { .fields = { 40, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 64, 24, 495, { .fields = { 40, 184 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, 56, 32, 706, { .fields = { 8, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 16 } }, 64, 32, 468, { .fields = { 96, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 16 } }, 64, 48, 436, { .fields = { 112, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 24 } }, 56, 48, 657, { .fields = { 16, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 16 } }, 64, 64, 408, { .fields = { 88, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 16 } }, 64, 80, 383, { .fields = { 48, 80 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 24 } }, 64, 96, 356, { .fields = { 104, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, 56, 72, 626, { .fields = { 16, 80 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, 56, 88, 505, { .fields = { 88, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 16 } }, 48, 104, 543, { .fields = { 88, 136 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 32 } }, -80, 32, 750, { .fields = { 32, 96 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 32 } }, -72, 64, 750, { .fields = { 56, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 32 } }, -24, 80, 750, { .fields = { 56, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 40 } }, -32, 40, 750, { .fields = { 80, 216 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 32 } }, 24, 48, 750, { .fields = { 24, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 40 } }, 32, 80, 750, { .fields = { 80, 96 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 16 } }, -72, 16, 825, { .fields = { 112, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 16 } }, -32, 24, 825, { .fields = { 88, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 16 } }, 16, 40, 825, { .fields = { 104, 96 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 16 } }, -64, 16, 912, { .fields = { 104, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 16 } }, -16, 24, 912, { .fields = { 112, 32 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 16 } }, 24, 32, 912, { .fields = { 104, 16 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 16 } }, -56, 8, 1000, { .fields = { 24, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 16 } }, -24, 16, 1000, { .fields = { 8, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 16 } }, 24, 24, 1000, { .fields = { 16, 176 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 16 } }, -48, 8, 1100, { .fields = { 8, 80 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 16 } }, -8, 16, 1100, { .fields = { 24, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 16 } }, 24, 24, 1100, { .fields = { 16, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 64 } }, -80, -24, 950, { .fields = { 24, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 72 } }, 56, -8, 590, { .fields = { 104, 96 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -72, -16, 975, { .fields = { 80, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 56 } }, -64, -24, 1000, { .fields = { 120, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 64 } }, 56, -8, 733, { .fields = { 48, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 48 } }, -56, -24, 1025, { .fields = { 104, 104 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 56 } }, 56, -8, 821, { .fields = { 0, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 48, 32, 920, { .fields = { 120, 104 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 48 } }, -48, -24, 1031, { .fields = { 120, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 56 } }, 56, -8, 920, { .fields = { 8, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -16, -24, 1474, { .fields = { 8, 48 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 88, 8 } }, -24, -16, 1448, { .fields = { 120, 232 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 88, 8 } }, -24, -8, 1387, { .fields = { 120, 88 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 96, 8 } }, -32, 0, 1327, { .fields = { 120, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 8 } }, -40, 8, 1272, { .fields = { 32, 24 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 8 } }, 16, 8, 1272, { .fields = { 40, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 96, 8 } }, -32, 24, 1225, { .fields = { 120, 248 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 8 } }, -40, 16, 1225, { .fields = { 32, 80 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 8 } }, 8, 16, 1225, { .fields = { 32, 120 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 8 } }, 8, 32, 1225, { .fields = { 32, 16 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 56, 0, 1135, { .fields = { 16, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 40 } }, -16, -48, 1428, { .fields = { 24, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 48 } }, -24, -48, 1314, { .fields = { 120, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 56 } }, -32, -40, 1482, { .fields = { 8, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 48 } }, -40, -24, 1092, { .fields = { 112, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 56, -40, 1231, { .fields = { 64, 200 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 56, -32, 1165, { .fields = { 64, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 56, -24, 1106, { .fields = { 64, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 56, -16, 1053, { .fields = { 88, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 56, -8, 922, { .fields = { 120, 48 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_1, { .fields = { 96, 96 } }, -16, -104, 1428, { .fields = { 32, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_1, { .fields = { 80, 8 } }, -16, -8, 1386, { .fields = { 8, 8 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_1, { .fields = { 40, 8 } }, 24, 0, 1326, { .fields = { 48, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-};
-
-/// Sentinel-terminated sprite ranges for mapped bridge view 5.
-///
-/// The zero first count keeps decoded image strips enabled. Remaining ranges
-/// cover the 112 source elements; the final record ends the list.
-/// Arrival-scene visibility controls batch 16 (source elements 109..111).
-/// Visibility remains writable while the bridge overlay is loaded.
-static SpriteBatch _gAcropolisBridgeView5SpriteBatches[] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 8, 0, 0, { 13, 0 } },
-    { 8, 4, 0, 0, { 2, 0 } },
-    { 12, 16, 0, 0, { 9, 0 } },
-    { 28, 33, 0, 0, { 3, 0 } },
-    { 61, 6, 0, 0, { 11, 0 } },
-    { 67, 3, 0, 0, { 0, 0 } },
-    { 70, 3, 0, 0, { 12, 0 } },
-    { 73, 3, 0, 0, { 1, 0 } },
-    { 76, 3, 0, 0, { 8, 0 } },
-    { 79, 2, 0, 0, { 6, 0 } },
-    { 81, 3, 0, 0, { 15, 0 } },
-    { 84, 2, 0, 0, { 7, 0 } },
-    { 86, 3, 0, 0, { 10, 0 } },
-    { 89, 10, 0, 0, { 4, 0 } },
-    { 99, 10, 0, 0, { 14, 0 } },
-    { 109, 3, 0, 0, { 5, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-/// Sprite rectangles and sorting depths for mapped bridge view 6.
-///
-/// The 142 elements use pixel positions/sizes and unscaled sorting depths.
-/// `_gAcropolisBridgeView6SpriteBatches` selects their ranges. Storage stays writable
-/// and live with the loaded bridge overlay.
-static SpriteSource _gAcropolisBridgeView6SpriteSources[] = {
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 88 } }, -160, -112, 1875, { .fields = { 80, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 80 } }, -112, -112, 1875, { .fields = { 88, 176 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 24 } }, -72, -120, 1747, { .fields = { 96, 32 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 16 } }, -72, -96, 1747, { .fields = { 32, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 24 } }, -72, -80, 1747, { .fields = { 56, 232 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 32 } }, -72, -56, 1909, { .fields = { 120, 136 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 16 } }, 16, -120, 1800, { .fields = { 8, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 16 } }, 16, -104, 1825, { .fields = { 112, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 24 } }, 16, -88, 1843, { .fields = { 112, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 32 } }, 8, -64, 1914, { .fields = { 32, 136 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 80 } }, 40, -112, 1875, { .fields = { 64, 88 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 72 } }, 80, -112, 1875, { .fields = { 8, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 104, -48, 1893, { .fields = { 64, 80 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 32, -16, 1942, { .fields = { 16, 64 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 32, -8, 1962, { .fields = { 8, 128 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 32, 0, 1982, { .fields = { 88, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 32, 8, 2003, { .fields = { 64, 72 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 32, 16, 2024, { .fields = { 96, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 56 } }, -112, -72, 1843, { .fields = { 120, 184 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 88 } }, -136, -104, 1577, { .fields = { 104, 88 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 72 } }, -160, -88, 1267, { .fields = { 56, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 40 } }, -88, -24, 1500, { .fields = { 24, 176 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 56 } }, -72, -32, 1500, { .fields = { 64, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 64 } }, 32, -80, 1575, { .fields = { 96, 64 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 48 } }, 80, -80, 1624, { .fields = { 56, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 40 } }, 40, -16, 1886, { .fields = { 24, 96 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, 72, -16, 1806, { .fields = { 72, 72 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 64 } }, 112, -104, 1677, { .fields = { 16, 72 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 16, -64, 1867, { .fields = { 48, 176 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -80, -56, 1781, { .fields = { 80, 48 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 16, -56, 1781, { .fields = { 72, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -80, -48, 1710, { .fields = { 56, 96 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 24, -8, 1499, { .fields = { 56, 104 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 24, 0, 1639, { .fields = { 40, 176 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -80, 8, 1591, { .fields = { 88, 120 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -88, -40, 1630, { .fields = { 40, 64 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -88, -32, 1572, { .fields = { 24, 64 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 8 } }, -88, -24, 1423, { .fields = { 80, 8 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -88, -16, 1446, { .fields = { 96, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -88, -8, 1513, { .fields = { 96, 176 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -88, 0, 1540, { .fields = { 88, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 16, -48, 1702, { .fields = { 8, 160 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 16, -40, 1638, { .fields = { 80, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 16, -32, 1734, { .fields = { 96, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 16, -24, 1742, { .fields = { 72, 120 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 16, -16, 1765, { .fields = { 64, 48 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 8 } }, -8, -48, 2047, { .fields = { 96, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 8 } }, -48, -40, 2018, { .fields = { 80, 128 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 96, 8 } }, -72, -32, 1921, { .fields = { 40, 80 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 104, 8 } }, -80, -24, 1863, { .fields = { 32, 88 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 112, 8 } }, -80, -16, 1794, { .fields = { 40, 200 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 112, 8 } }, -80, -8, 1730, { .fields = { 40, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 112, 8 } }, -80, 0, 1675, { .fields = { 0, 104 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 96, 8 } }, -80, 8, 1650, { .fields = { 16, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 48 } }, -136, 16, 896, { .fields = { 8, 48 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 48 } }, -136, 64, 1148, { .fields = { 32, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 56 } }, -80, 48, 1125, { .fields = { 112, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 40 } }, -160, 40, 1125, { .fields = { 32, 136 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 40 } }, 72, 0, 1146, { .fields = { 104, 216 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 48 } }, 88, 40, 1148, { .fields = { 40, 184 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 56 } }, 64, 40, 1319, { .fields = { 96, 184 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 56 } }, 136, 0, 1128, { .fields = { 88, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 32 } }, -120, 16, 912, { .fields = { 112, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 32 } }, 72, 0, 994, { .fields = { 112, 96 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 8 } }, -48, 8, 1587, { .fields = { 32, 64 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 8 } }, -48, 16, 1587, { .fields = { 32, 96 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 24, 1587, { .fields = { 16, 40 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 16, 16, 1600, { .fields = { 96, 72 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 8 } }, -48, 24, 1600, { .fields = { 40, 152 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 8 } }, -48, 32, 1600, { .fields = { 24, 232 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 8 } }, -24, 32, 1587, { .fields = { 48, 16 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 8 } }, -40, 40, 1587, { .fields = { 32, 24 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 8 } }, -40, 48, 1587, { .fields = { 72, 184 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, 64, 1575, { .fields = { 40, 232 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 8 } }, -40, 48, 1575, { .fields = { 24, 216 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 8 } }, -40, 56, 1575, { .fields = { 24, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 8 } }, 16, 56, 1587, { .fields = { 8, 32 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 8 } }, -40, 64, 1557, { .fields = { 40, 136 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 8 } }, -40, 72, 1519, { .fields = { 40, 144 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 8 } }, -40, 80, 1479, { .fields = { 32, 120 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 88, 8 } }, -40, 88, 1442, { .fields = { 32, 160 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 88, 8 } }, -40, 96, 1407, { .fields = { 24, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 88, 8 } }, -40, 104, 1369, { .fields = { 0, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 88, 8 } }, -40, 112, 1338, { .fields = { 0, 32 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 48 } }, -40, 56, 1505, { .fields = { 88, 184 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 16 } }, -48, 104, 1152, { .fields = { 96, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 24 } }, 24, 48, 1745, { .fields = { 56, 160 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 24 } }, 32, 72, 1372, { .fields = { 8, 136 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 24 } }, 40, 96, 1368, { .fields = { 48, 232 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 32, 40, 1400, { .fields = { 40, 248 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, 48, 1350, { .fields = { 24, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 32, 48, 1375, { .fields = { 8, 40 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, 56, 1325, { .fields = { 96, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 32, 56, 1302, { .fields = { 96, 248 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, 64, 1300, { .fields = { 88, 32 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, 72, 1265, { .fields = { 72, 8 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 40, 80, 1257, { .fields = { 88, 248 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 40, 88, 1197, { .fields = { 56, 48 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 48, 112, 1139, { .fields = { 56, 40 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 80, 1232, { .fields = { 64, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 88, 1200, { .fields = { 72, 248 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 96, 1130, { .fields = { 64, 40 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 104, 1141, { .fields = { 64, 72 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 112, 1114, { .fields = { 64, 128 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 32, 64, 1325, { .fields = { 80, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 32, 72, 1301, { .fields = { 64, 176 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 40, 96, 1195, { .fields = { 64, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 40, 104, 1166, { .fields = { 64, 48 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 24, 16, 1563, { .fields = { 56, 128 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 16, 24, 1617, { .fields = { 56, 72 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 24, 24, 1600, { .fields = { 40, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 24, 32, 1624, { .fields = { 56, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, 40, 1581, { .fields = { 56, 176 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, 56, 1531, { .fields = { 64, 184 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, 64, 1453, { .fields = { 56, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 24, 1600, { .fields = { 56, 8 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 32, 1587, { .fields = { 64, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 48, 1560, { .fields = { 40, 248 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 24, 40, 1476, { .fields = { 40, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 24, 48, 1593, { .fields = { 56, 248 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 24, 56, 1595, { .fields = { 48, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 24, -16, 1425, { .fields = { 40, 16 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -48, -8, 1418, { .fields = { 40, 8 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 24, -8, 1417, { .fields = { 48, 176 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 24, 0, 1412, { .fields = { 40, 40 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 24, 8, 1402, { .fields = { 48, 8 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 32, 40, 1375, { .fields = { 48, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, 48, 1350, { .fields = { 48, 48 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 0, 1411, { .fields = { 48, 184 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 8, 1388, { .fields = { 80, 72 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 16, 1388, { .fields = { 80, 48 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 24, 1388, { .fields = { 40, 128 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 32, 1378, { .fields = { 40, 72 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 40, 1353, { .fields = { 80, 176 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 24, 16, 1406, { .fields = { 80, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 24, 24, 1406, { .fields = { 80, 40 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 24, 32, 1390, { .fields = { 80, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -128, 104, 1437, { .fields = { 48, 40 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 56 } }, -120, 64, 1437, { .fields = { 72, 128 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 64 } }, 56, 48, 1525, { .fields = { 0, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 32 } }, 112, 64, 1525, { .fields = { 24, 136 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 32 } }, -160, -64, 1862, { .fields = { 104, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-};
-
-/// Sentinel-terminated sprite ranges for mapped bridge view 6.
-///
-/// The zero first count keeps decoded image strips enabled. Remaining ranges
-/// cover the 142 source elements; the final record ends the list.
-/// Visibility remains writable while the bridge overlay is loaded.
-static SpriteBatch _gAcropolisBridgeView6SpriteBatches[] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 12, 0, 0, { 6, 0 } },
-    { 12, 16, 0, 0, { 9, 0 } },
-    { 28, 18, 0, 0, { 2, 0 } },
-    { 46, 8, 0, 0, { 10, 0 } },
-    { 54, 8, 0, 0, { 0, 0 } },
-    { 62, 2, 0, 0, { 11, 0 } },
-    { 64, 3, 0, 0, { 1, 0 } },
-    { 67, 3, 0, 0, { 12, 0 } },
-    { 70, 3, 0, 0, { 8, 0 } },
-    { 73, 3, 0, 0, { 13, 0 } },
-    { 76, 8, 0, 0, { 4, 0 } },
-    { 84, 5, 0, 0, { 14, 0 } },
-    { 89, 19, 0, 0, { 3, 0 } },
-    { 108, 13, 0, 0, { 15, 0 } },
-    { 121, 16, 0, 0, { 7, 0 } },
-    { 137, 4, 0, 0, { 16, 0 } },
-    { 141, 1, 0, 0, { 5, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-/// Sprite rectangles and sorting depths for mapped bridge view 7.
-///
-/// The 133 elements use pixel positions/sizes and unscaled sorting depths.
-/// `_gAcropolisBridgeView7SpriteBatches` selects their ranges. Storage stays writable
-/// and live with the loaded bridge overlay.
-static SpriteSource _gAcropolisBridgeView7SpriteSources[] = {
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -24, -104, 3000, { .fields = { 56, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 56 } }, -128, -104, 3000, { .fields = { 8, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 56 } }, -80, -104, 3000, { .fields = { 32, 176 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 72 } }, -48, -120, 3000, { .fields = { 16, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 72 } }, 0, -120, 3000, { .fields = { 40, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 56 } }, 16, -104, 3000, { .fields = { 32, 120 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 48 } }, 48, -96, 3000, { .fields = { 104, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 40 } }, -160, -120, 2987, { .fields = { 80, 128 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 72 } }, -128, -120, 2987, { .fields = { 32, 96 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 64 } }, -96, -104, 2987, { .fields = { 120, 144 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 32 } }, -72, -80, 2987, { .fields = { 72, 160 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, -64, -64, 2575, { .fields = { 24, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 32 } }, -56, -72, 2585, { .fields = { 56, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 24 } }, 8, -96, 2750, { .fields = { 8, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 40 } }, 16, -72, 2750, { .fields = { 56, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 16 } }, 8, -32, 2946, { .fields = { 0, 128 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 64 } }, 56, -112, 2987, { .fields = { 72, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 72 } }, 88, -120, 2987, { .fields = { 56, 176 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 24 } }, -160, -88, 600, { .fields = { 0, 160 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 40 } }, -160, -64, 600, { .fields = { 48, 48 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 40 } }, -160, -24, 575, { .fields = { 56, 88 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 96 } }, -160, 16, 550, { .fields = { 56, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 24 } }, -88, 56, 550, { .fields = { 112, 88 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 8 } }, -160, 112, 550, { .fields = { 96, 144 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 32 } }, -64, -72, 2943, { .fields = { 56, 160 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 32 } }, 0, -72, 2816, { .fields = { 56, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 40 } }, 136, -72, 600, { .fields = { 112, 48 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 40 } }, 144, -32, 575, { .fields = { 16, 216 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 24 } }, 128, 72, 550, { .fields = { 32, 232 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 32 } }, 120, 8, 550, { .fields = { 32, 128 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 32 } }, 112, 40, 550, { .fields = { 8, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 8 } }, -56, -56, 2835, { .fields = { 56, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 72, 8 } }, -56, -48, 2645, { .fields = { 48, 120 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 72 } }, 96, 48, 800, { .fields = { 96, 72 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 56 } }, -104, 64, 800, { .fields = { 56, 64 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 24 } }, -160, 96, 800, { .fields = { 120, 32 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 64 } }, -104, -8, 1550, { .fields = { 64, 144 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, -112, 8, 1550, { .fields = { 48, 32 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 56 } }, 48, -8, 1550, { .fields = { 16, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 56 } }, -96, -96, 2000, { .fields = { 112, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 24 } }, -80, -40, 2000, { .fields = { 16, 80 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 48 } }, 24, -96, 2000, { .fields = { 88, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 24 } }, 24, -48, 2000, { .fields = { 120, 104 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 80, 72 } }, -136, -96, 1350, { .fields = { 104, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 40 } }, -112, -24, 1350, { .fields = { 88, 216 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 80 } }, 56, -96, 1350, { .fields = { 64, 96 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 24 } }, 48, -16, 1350, { .fields = { 0, 216 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 32 } }, -32, -64, 2455, { .fields = { 72, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 32 } }, 8, -64, 2453, { .fields = { 72, 128 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 8 } }, -40, -40, 3281, { .fields = { 64, 152 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -32, -40, 2125, { .fields = { 96, 136 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 8, -40, 2125, { .fields = { 96, 24 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, -16, 1625, { .fields = { 8, 48 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, -8, 1500, { .fields = { 80, 248 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, 0, 1325, { .fields = { 96, 64 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, 8, 1200, { .fields = { 32, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, 16, 1100, { .fields = { 48, 120 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, 24, 1025, { .fields = { 104, 232 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, 32, 950, { .fields = { 96, 16 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, 40, 925, { .fields = { 104, 96 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, -40, 48, 875, { .fields = { 104, 176 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -40, -32, 1875, { .fields = { 96, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -40, -24, 1750, { .fields = { 96, 8 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 56, 837, { .fields = { 104, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 64, 777, { .fields = { 104, 248 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 72, 782, { .fields = { 104, 104 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 80, 746, { .fields = { 72, 40 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -48, 88, 700, { .fields = { 56, 40 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 8, -32, 1875, { .fields = { 40, 112 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 16, -24, 1625, { .fields = { 88, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 24, -16, 1525, { .fields = { 0, 96 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 24, -8, 1375, { .fields = { 112, 176 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 32, 0, 1225, { .fields = { 112, 232 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 40, 8, 1150, { .fields = { 120, 72 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 40, 16, 1075, { .fields = { 112, 96 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 48, 24, 975, { .fields = { 88, 96 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 56, 32, 925, { .fields = { 88, 64 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 8 } }, 56, 40, 875, { .fields = { 80, 104 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 64, 48, 850, { .fields = { 88, 72 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 72, 56, 800, { .fields = { 88, 160 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 80, 64, 775, { .fields = { 88, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 80, 72, 750, { .fields = { 88, 128 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, -32, -32, 2186, { .fields = { 32, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -40, -16, 1758, { .fields = { 56, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -40, -8, 1782, { .fields = { 80, 248 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -40, 0, 1645, { .fields = { 96, 248 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -40, 8, 1579, { .fields = { 112, 248 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -40, 16, 1525, { .fields = { 56, 248 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, -40, 24, 1061, { .fields = { 40, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, -40, 40, 1080, { .fields = { 48, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 24 } }, -40, 56, 940, { .fields = { 48, 72 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 24 } }, -48, 80, 996, { .fields = { 16, 144 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 24 } }, -40, 80, 982, { .fields = { 40, 72 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, -40, 104, 829, { .fields = { 24, 144 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 24 } }, 8, -32, 3008, { .fields = { 32, 72 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 24 } }, 16, -24, 1971, { .fields = { 24, 144 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 32 } }, 24, -16, 1684, { .fields = { 48, 160 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 40 } }, 32, 0, 1584, { .fields = { 80, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 40 } }, 40, 8, 1493, { .fields = { 80, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 56 } }, 48, 16, 1303, { .fields = { 88, 64 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 32 } }, 56, 32, 1131, { .fields = { 48, 88 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 40 } }, 64, 48, 997, { .fields = { 64, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 48 } }, 80, 72, 863, { .fields = { 104, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, 72, 104, 888, { .fields = { 48, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 8 } }, 8, -24, 2437, { .fields = { 72, 248 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 16 } }, -40, -16, 2189, { .fields = { 24, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 16 } }, -40, 0, 1837, { .fields = { 104, 216 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 16 } }, -40, 16, 1583, { .fields = { 96, 32 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 16 } }, -40, 32, 1400, { .fields = { 104, 128 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 16 } }, -40, 48, 1256, { .fields = { 104, 160 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 16 } }, -48, 64, 1114, { .fields = { 88, 48 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 16 } }, -48, 80, 1018, { .fields = { 88, 80 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 24 } }, -48, 96, 916, { .fields = { 64, 120 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 16 } }, 8, -16, 2189, { .fields = { 104, 64 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 16 } }, 8, 0, 1843, { .fields = { 120, 80 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 16 } }, 16, 16, 1594, { .fields = { 112, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 16 } }, 24, 32, 1390, { .fields = { 120, 144 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 16 } }, 32, 48, 1239, { .fields = { 120, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 16 } }, 40, 64, 1118, { .fields = { 104, 184 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 16 } }, 48, 80, 1018, { .fields = { 104, 200 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 48, 24 } }, 48, 96, 916, { .fields = { 8, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 16 } }, -56, 80, 595, { .fields = { 120, 56 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 32, 16 } }, -72, 96, 483, { .fields = { 104, 16 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 40, 8 } }, -80, 112, 440, { .fields = { 8, 184 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 16 } }, 88, 72, 675, { .fields = { 16, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 40 } }, 96, 64, 650, { .fields = { 72, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 48 } }, 104, 72, 625, { .fields = { 0, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 48 } }, 120, 72, 575, { .fields = { 112, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 48 } }, 136, 72, 519, { .fields = { 80, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 24 } }, -48, 96, 728, { .fields = { 32, 104 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, 72, 112, 816, { .fields = { 64, 248 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 40 } }, 88, 80, 778, { .fields = { 88, 168 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 24 } }, 104, 96, 692, { .fields = { 120, 88 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-};
-
-/// Sentinel-terminated sprite ranges for mapped bridge view 7.
-///
-/// The zero first count keeps decoded image strips enabled. Remaining ranges
-/// cover the 133 source elements; the final record ends the list.
-/// The interior zero-count range at source 49 does not end the list.
-/// Visibility remains writable while the bridge overlay is loaded.
-static SpriteBatch _gAcropolisBridgeView7SpriteBatches[] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 7, 0, 0, { 13, 0 } },
-    { 7, 11, 0, 0, { 2, 0 } },
-    { 18, 13, 0, 0, { 9, 0 } },
-    { 31, 2, 0, 0, { 3, 0 } },
-    { 33, 3, 0, 0, { 11, 0 } },
-    { 36, 3, 0, 0, { 0, 0 } },
-    { 39, 4, 0, 0, { 12, 0 } },
-    { 43, 4, 0, 0, { 1, 0 } },
-    { 47, 2, 0, 0, { 8, 0 } },
-    { 49, 0, 0, 0, { 6, 0 } },
-    { 49, 1, 0, 0, { 15, 0 } },
-    { 50, 32, 0, 0, { 7, 0 } },
-    { 82, 22, 0, 0, { 10, 0 } },
-    { 104, 17, 0, 0, { 4, 0 } },
-    { 121, 8, 0, 0, { 14, 0 } },
-    { 129, 4, 0, 0, { 5, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-/// Digit bands, blanks, error and prompt sprites for the bridge keypad view.
-///
-/// Mapped view 8 has 40 source elements: thirty digits, three blanks, an
-/// error sprite and the six-sprite prompt. Its batch list selects these
-/// ranges; keypad scripts change batch visibility. Positions/sizes use pixels,
-/// depths are unscaled, and storage stays writable with the loaded overlay.
-static SpriteSource _gAcropolisBridgeKeypadSpriteSources[] = {
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 32 } }, -40, -32, 85, { .fields = { 56, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 24 } }, -32, -32, 85, { .fields = { 32, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 32 } }, -40, -32, 85, { .fields = { 112, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 32 } }, -40, -32, 85, { .fields = { 32, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 24 } }, -40, -32, 85, { .fields = { 16, 24 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 32 } }, -40, -32, 85, { .fields = { 64, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 32 } }, -40, -32, 85, { .fields = { 40, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 24 } }, -40, -32, 85, { .fields = { 16, 176 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 32 } }, -40, -32, 85, { .fields = { 48, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 32 } }, -40, -32, 85, { .fields = { 72, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 32 } }, -64, -32, 85, { .fields = { 104, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 24 } }, -48, -32, 85, { .fields = { 24, 48 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 32 } }, -64, -32, 85, { .fields = { 8, 216 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 32 } }, -56, -32, 85, { .fields = { 96, 216 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 24 } }, -64, -32, 85, { .fields = { 8, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 32 } }, -64, -32, 85, { .fields = { 40, 216 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 32 } }, -64, -32, 85, { .fields = { 16, 184 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 24 } }, -56, -32, 85, { .fields = { 8, 48 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 32 } }, -64, -32, 85, { .fields = { 112, 216 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 32 } }, -64, -32, 85, { .fields = { 104, 184 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 32 } }, -80, -32, 85, { .fields = { 0, 184 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 8, 24 } }, -72, -32, 85, { .fields = { 16, 72 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 32 } }, -80, -32, 85, { .fields = { 88, 192 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 32 } }, -80, -32, 85, { .fields = { 80, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 24 } }, -80, -32, 85, { .fields = { 24, 232 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 32 } }, -80, -32, 85, { .fields = { 96, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 32 } }, -80, -32, 85, { .fields = { 80, 216 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 24 } }, -80, -32, 85, { .fields = { 16, 200 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 32 } }, -80, -32, 85, { .fields = { 32, 176 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 32 } }, -80, -32, 85, { .fields = { 64, 216 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -40, -24, 85, { .fields = { 0, 248 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -56, -24, 85, { .fields = { 112, 248 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 16, 8 } }, -80, -24, 85, { .fields = { 16, 248 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 56, 32 } }, -80, -32, 85, { .fields = { 48, 184 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_1, { .fields = { 72, 88 } }, -160, -64, 85, { .fields = { 24, 88 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_1, { .fields = { 72, 88 } }, -8, -64, 85, { .fields = { 32, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_1, { .fields = { 80, 88 } }, -88, -64, 95, { .fields = { 96, 96 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_1, { .fields = { 80, 96 } }, -160, 24, 84, { .fields = { 104, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_1, { .fields = { 80, 96 } }, -80, 24, 84, { .fields = { 48, 96 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_1, { .fields = { 72, 96 } }, 0, 24, 84, { .fields = { 56, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-};
-
-/// Mutable sprite selections for the keypad in mapped bridge view 8.
-///
-/// The zero-count background record is followed by ten ones, ten tens and ten
-/// hundreds digit batches, three blanks, error and the six-sprite prompt. The
-/// final END record contributes no sprites. Ranges cover the 40 keypad sources;
-/// state callbacks change visibility. Storage lives with the bridge overlay.
-static SpriteBatch _gAcropolisBridgeKeypadSpriteBatches[] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 1, 0, 0, { 14, 0 } },
-    { 1, 1, 0, 0, { 18, 0 } },
-    { 2, 1, 0, 0, { 0, 0 } },
-    { 3, 1, 0, 0, { 19, 0 } },
-    { 4, 1, 0, 0, { 1, 0 } },
-    { 5, 1, 0, 0, { 20, 0 } },
-    { 6, 1, 0, 0, { 5, 0 } },
-    { 7, 1, 0, 0, { 21, 0 } },
-    { 8, 1, 0, 0, { 13, 0 } },
-    { 9, 1, 0, 0, { 22, 0 } },
-    { 10, 1, 0, 0, { 4, 0 } },
-    { 11, 1, 0, 0, { 23, 0 } },
-    { 12, 1, 0, 0, { 7, 0 } },
-    { 13, 1, 0, 0, { 24, 0 } },
-    { 14, 1, 0, 0, { 17, 0 } },
-    { 15, 1, 0, 0, { 25, 0 } },
-    { 16, 1, 0, 0, { 3, 0 } },
-    { 17, 1, 0, 0, { 26, 0 } },
-    { 18, 1, 0, 0, { 9, 0 } },
-    { 19, 1, 0, 0, { 27, 0 } },
-    { 20, 1, 0, 0, { 16, 0 } },
-    { 21, 1, 0, 0, { 28, 0 } },
-    { 22, 1, 0, 0, { 6, 0 } },
-    { 23, 1, 0, 0, { 29, 0 } },
-    { 24, 1, 0, 0, { 8, 0 } },
-    { 25, 1, 0, 0, { 30, 0 } },
-    { 26, 1, 0, 0, { 2, 0 } },
-    { 27, 1, 0, 0, { 31, 0 } },
-    { 28, 1, 0, 0, { 10, 0 } },
-    { 29, 1, 0, 0, { 32, 0 } },
-    { 30, 1, 0, 0, { 12, 0 } },
-    { 31, 1, 0, 0, { 33, 0 } },
-    { 32, 1, 0, 0, { 15, 0 } },
-    { 33, 1, 0, 0, { 34, 0 } },
-    { 34, 6, 0, 0, { 11, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-/// Background-only batches for mapped bridge view 9, used by the keypad movie.
-///
-/// The zero first count enables decoded image strips; END terminates the list.
-/// Its address also occupies the view's empty source slot, supplying no sprites.
-static SpriteBatch _gAcropolisBridgeView9SpriteBatches[] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-/// Nine sprite rectangles forming the arrival scene's three presentation frames.
-///
-/// Mapped view 10 draws one consecutive triple at a time. Positions and sizes
-/// are pixels relative to the view centre; depth is an unscaled sorting value.
-/// Texture pages are 8-bit with neutral RGB modulation. Keep writable sources
-/// loaded while their cached packets and batches are used.
-static SpriteSource _gAcropolisBridgeArrivalSpriteSources[] = {
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 16 } }, 24, 104, 750, { .fields = { 16, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 32 } }, -72, 56, 750, { .fields = { 104, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 136, 208 } }, -48, -104, 750, { .fields = { 104, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_1, { .fields = { 136, 208 } }, -48, -104, 750, { .fields = { 120, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_1, { .fields = { 64, 16 } }, 24, 104, 750, { .fields = { 16, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_1, { .fields = { 24, 24 } }, -72, 56, 750, { .fields = { 80, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, getClut(0, 257), { .fields = { 136, 208 } }, -48, -104, 750, { .fields = { 112, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, getClut(0, 257), { .fields = { 24, 24 } }, -72, 56, 750, { .fields = { 80, 232 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, getClut(0, 257), { .fields = { 64, 16 } }, 24, 104, 750, { .fields = { 16, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
-};
-
-/// Three selectable sprite triples for the arrival scene in mapped view 10.
-///
-/// A zero-count background record precedes the triples and END follows them.
-/// The scene callback changes their visibility; the three ranges exactly cover
-/// the nine arrival sources. Storage stays writable with the loaded overlay.
-static SpriteBatch _gAcropolisBridgeArrivalSpriteBatches[] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 3, 0, 0, { 1, 0 } },
-    { 3, 3, 0, 0, { 2, 0 } },
-    { 6, 3, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-SpriteView gAcropolisBridgeSpriteViews[ACROPOLIS_BRIDGE_VIEW_COUNT] = {
-    { { .empty = _gAcropolisBridgeView1SpriteBatches }, _gAcropolisBridgeView1SpriteBatches, NULL },
-    { { .elements = _gAcropolisBridgeView2SpriteSources }, _gAcropolisBridgeView2SpriteBatches, NULL },
-    { { .elements = _gAcropolisBridgeView3SpriteSources }, _gAcropolisBridgeView3SpriteBatches, NULL },
-    { { .elements = _gAcropolisBridgeView4SpriteSources }, _gAcropolisBridgeView4SpriteBatches, NULL },
-    { { .elements = _gAcropolisBridgeView5SpriteSources }, _gAcropolisBridgeView5SpriteBatches, NULL },
-    { { .elements = _gAcropolisBridgeView6SpriteSources }, _gAcropolisBridgeView6SpriteBatches, NULL },
-    { { .elements = _gAcropolisBridgeView7SpriteSources }, _gAcropolisBridgeView7SpriteBatches, NULL },
-    { { .elements = _gAcropolisBridgeKeypadSpriteSources }, _gAcropolisBridgeKeypadSpriteBatches, NULL },
-    { { .empty = _gAcropolisBridgeView9SpriteBatches }, _gAcropolisBridgeView9SpriteBatches, NULL },
-    { { .elements = _gAcropolisBridgeArrivalSpriteSources }, _gAcropolisBridgeArrivalSpriteBatches, NULL },
-};
-
-/// Default-layout enemy resource, keyed by placement entry 41, followed by END.
-///
-/// Six default placements share its one TMD enemy recipe at task index zero.
-/// File 41 at group base 60 selects global-library file 604100. The variant
-/// directory borrows this writable table and descriptor while the room is loaded.
-static AreaResource _gAcropolisBridgeDefaultAreaResources[] = {
-    { 41, 41, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &_gAcropolisBridgeEnemyTaskDescStorage.desc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
-};
-
-/// Empty resource list for bridge placement variant 2.
-///
-/// Its END-only table matches that variant's empty placement list and borrows
-/// no file or task recipe. The variant directory retains its own table address.
-static AreaResource _gAcropolisBridgeVariant2AreaResources[] = {
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
-};
-
-/// Empty resource list for bridge placement variant 3.
-///
-/// Its END-only table matches that variant's empty placement list and retains
-/// a separate address in the variant directory. Storage lives with this overlay.
-static AreaResource _gAcropolisBridgeVariant3AreaResources[] = {
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
-};
-
-AreaVariant gAcropolisBridgePlacementVariants[12] = {
-    { NULL, NULL },
-    { gMapAkropolisBridgeDefaultPlacements, _gAcropolisBridgeDefaultAreaResources },
-    { gMapAkropolisBridgeVariant2Placements, _gAcropolisBridgeVariant2AreaResources },
-    { gMapAkropolisBridgeVariant3Placements, _gAcropolisBridgeVariant3AreaResources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-};
-
-/// Point lights shared by both bridge room entries in every view.
-///
-/// Overlay-owned writable records: room updates parent and compose the
-/// transforms, and shading queries overwrite attenuation. Positions and
-/// falloff radii use integer world units; RGB uses 12 fractional bits
-/// (`ONE` is full intensity). Storage remains live while this overlay is loaded.
-static WorldCoordPointLight _gAcropolisBridgePointLights[] = {
-    {
-        .head = {
-            .transform  = { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1367, -507, 6799 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } },
-            .color      = { ONE, 3686, 2457 },
-            .unknown_56 = { 0, 0 },
-        },
-        .inner = 500,
-        .outer = 6000,
-    },
-    {
-        .head = {
-            .transform  = { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -335, -2500, 3516 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } },
-            .color      = { 3686, ONE, ONE },
-            .unknown_56 = { 0, 0 },
-        },
-        .inner = 0,
-        .outer = 0x2B5C,
-    },
-    {
-        .head = {
-            .transform  = { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -1970, -507, 8207 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } },
-            .color      = { ONE, 3686, 2457 },
-            .unknown_56 = { 0, 0 },
-        },
-        .inner = 500,
-        .outer = 6000,
-    },
-    {
-        .head = {
-            .transform  = { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1342, -2000, 0x2854 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } },
-            .color      = { 3686, ONE, ONE },
-            .unknown_56 = { 0, 0 },
-        },
-        .inner = 200,
-        .outer = 9000,
-    },
-    {
-        .head = {
-            .transform  = { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -80, -2500, -3995 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } },
-            .color      = { 3686, ONE, ONE },
-            .unknown_56 = { 0, 0 },
-        },
-        .inner = 500,
-        .outer = 0x3714,
-    },
-    {
-        .head = {
-            .transform  = { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -2333, -2000, -763 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } },
-            .color      = { 3686, 3276, 2867 },
-            .unknown_56 = { 0, 0 },
-        },
-        .inner = 200,
-        .outer = 3000,
-    },
-    {
-        .head = {
-            .transform  = { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -2333, -2000, -3192 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } },
-            .color      = { 3686, 3276, 2867 },
-            .unknown_56 = { 0, 0 },
-        },
-        .inner = 200,
-        .outer = 3000,
-    },
-    {
-        .head = {
-            .transform  = { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -6854, -1500, -3373 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } },
-            .color      = { 3686, 2457, 2457 },
-            .unknown_56 = { 0, 0 },
-        },
-        .inner = 500,
-        .outer = 3955,
-    },
-    {
-        .head = {
-            .transform  = { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -9907, -1500, -3373 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } },
-            .color      = { 3686, 2457, 2457 },
-            .unknown_56 = { 0, 0 },
-        },
-        .inner = 500,
-        .outer = 6000,
-    },
-    {
-        .head = {
-            .transform  = { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x324D, -1500, -3373 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } },
-            .color      = { 3686, 2457, 2457 },
-            .unknown_56 = { 0, 0 },
-        },
-        .inner = 500,
-        .outer = 6000,
-    },
-    {
-        .head = {
-            .transform  = { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x33A3, -1500, -719 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } },
-            .color      = { 3686, 2457, 2457 },
-            .unknown_56 = { 0, 0 },
-        },
-        .inner = 500,
-        .outer = 6000,
-    },
-    {
-        .head = {
-            .transform  = { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x2808, -1500, -719 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } },
-            .color      = { 3686, 2457, 2457 },
-            .unknown_56 = { 0, 0 },
-        },
-        .inner = 500,
-        .outer = 6000,
-    },
-    {
-        .head = {
-            .transform  = { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -7195, -1500, -719 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } },
-            .color      = { 3604, 2457, 2457 },
-            .unknown_56 = { 0, 0 },
-        },
-        .inner = 500,
-        .outer = 4000,
-    },
-    {
-        .head = {
-            .transform  = { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x38AB, 1600, -4070 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } },
-            .color      = { 2457, 3686, ONE },
-            .unknown_56 = { 0, 0 },
-        },
-        .inner = 500,
-        .outer = 7500,
-    },
-    {
-        .head = {
-            .transform  = { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x2D1E, 1600, -4070 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } },
-            .color      = { 2457, 3686, ONE },
-            .unknown_56 = { 0, 0 },
-        },
-        .inner = 500,
-        .outer = 7500,
-    },
-    {
-        .head = {
-            .transform  = { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -5464, 1600, -4070 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } },
-            .color      = { 2457, 3686, ONE },
-            .unknown_56 = { 0, 0 },
-        },
-        .inner = 500,
-        .outer = 5179,
-    },
-    {
-        .head = {
-            .transform  = { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -8422, 1600, -4070 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } },
-            .color      = { 2457, 3686, ONE },
-            .unknown_56 = { 0, 0 },
-        },
-        .inner = 500,
-        .outer = 7500,
-    },
-    {
-        .head = {
-            .transform  = { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -8422, 1600, -22 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } },
-            .color      = { 2457, 3686, ONE },
-            .unknown_56 = { 0, 0 },
-        },
-        .inner = 500,
-        .outer = 7500,
-    },
-    {
-        .head = {
-            .transform  = { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -5464, 1600, -22 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } },
-            .color      = { 2457, 3686, ONE },
-            .unknown_56 = { 0, 0 },
-        },
-        .inner = 501,
-        .outer = 3961,
-    },
-    {
-        .head = {
-            .transform  = { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x2D1E, 1600, -22 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } },
-            .color      = { 2457, 3686, ONE },
-            .unknown_56 = { 0, 0 },
-        },
-        .inner = 500,
-        .outer = 7500,
-    },
-    {
-        .head = {
-            .transform  = { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x38AB, 1600, -22 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } },
-            .color      = { 2457, 3686, ONE },
-            .unknown_56 = { 0, 0 },
-        },
-        .inner = 500,
-        .outer = 7500,
-    },
-    {
-        .head = {
-            .transform  = { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x3D7E, 2000, -3035 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } },
-            .color      = { ONE, ONE, 3276 },
-            .unknown_56 = { 0, 0 },
-        },
-        .inner = 200,
-        .outer = 3000,
-    },
-    {
-        .head = {
-            .transform  = { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x3D7E, 2000, -994 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } },
-            .color      = { ONE, ONE, 3276 },
-            .unknown_56 = { 0, 0 },
-        },
-        .inner = 200,
-        .outer = 3000,
-    },
-    {
-        .head = {
-            .transform  = { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -80, -2500, -8518 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } },
-            .color      = { 3686, ONE, ONE },
-            .unknown_56 = { 0, 0 },
-        },
-        .inner = 500,
-        .outer = 0x3714,
-    },
-    {
-        .head = {
-            .transform  = { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -4630, -1500, -3219 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } },
-            .color      = { 3686, 2457, 2457 },
-            .unknown_56 = { 0, 0 },
-        },
-        .inner = 0,
-        .outer = 2,
-    },
-};
-
-/// Point-light collection shared by both bridge rooms.
-///
-/// No directional or cone lights are present. The overlay owns this record
-/// and its mutable point lights for coordinate updates and shading queries.
-static WorldCoordRoomLights _gAcropolisBridgeRoomLights = {
-    .directionalLightCount = 0,
-    .directionalLights     = NULL,
-    .pointLightCount       = ARRAY_SIZE(_gAcropolisBridgePointLights),
-    .pointLights           = _gAcropolisBridgePointLights,
-    .coneLightCount        = 0,
-    .coneLights            = NULL,
-};
-
-ViewCamera gAcropolisBridgeViewCameras[ACROPOLIS_BRIDGE_VIEW_COUNT] = {
-    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 9107, 0x7530, 3098 } }, 499 },
-    { { { { -990, 0, 3974 }, { 1381, 3840, 344 }, { -3726, 1423, -928 } }, { 9483, 1851, 1361 } }, 230 },
-    { { { { -716, 0, -4032 }, { -1803, 3663, 320 }, { 3607, 1831, -640 } }, { 8500, 2876, 1406 } }, 230 },
-    { { { { -388, 0, -4077 }, { -2430, 3288, 231 }, { 3273, 2441, -312 } }, { 0x3AE4, 4509, 1554 } }, 230 },
-    { { { { -1039, 0, 3961 }, { 2408, 3252, 631 }, { -3146, 2489, -825 } }, { 0x2BF7, 3255, 1351 } }, 230 },
-    { { { { -386, 0, -4077 }, { -2842, 2936, 269 }, { 2923, 2855, -276 } }, { 9497, 4691, 1750 } }, 230 },
-    { { { { -431, 0, -4073 }, { -1488, 3812, 157 }, { 3791, 1496, -401 } }, { 0x3CF8, 1974, 1394 } }, 230 },
-    { { { { 0, 0, ONE }, { 3580, 1989, 0 }, { -1989, 3580, 0 } }, { 4620, 1300, 500 } }, 230 },
-    { { { { 1369, 0, 3860 }, { 952, 3969, -337 }, { -3741, 1010, 1326 } }, { 1976, 2297, 3308 } }, 230 },
-    { { { { -990, 0, 3974 }, { 1381, 3840, 344 }, { -3726, 1423, -928 } }, { 0x3552, 1930, 1439 } }, 230 },
-};
-
 /// Segment indices, repeat count and frame gap in the keypad movie's vibration script.
 enum {
     ACROPOLIS_BRIDGE_KEYPAD_MOVIE_VIBRATION_FALL         = 0,
@@ -2589,38 +887,6 @@ enum {
     ACROPOLIS_BRIDGE_KEYPAD_MOVIE_VIBRATION_GAP_FRAMES   = 1
 };
 
-/// Two-motor vibration program started at the keypad movie's first ready frame.
-///
-/// The binary lane plays segment 4 and waits one script frame, repeating from
-/// step 0 another 85 times before STOP at step 4. The variable lane plays
-/// segments 0, 1, 2, 3 and 5, then stops at step 5. The final binary STOP is
-/// unreachable; STOP operands are ignored. The movie's child script borrows
-/// both loaded arrays until completion or movie teardown.
-static const PadScriptCmd _gAcropolisBridgeKeypadMovieVibrationCommands[6] SECTION(".data") = {
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACROPOLIS_BRIDGE_KEYPAD_MOVIE_VIBRATION_BINARY_PULSE), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACROPOLIS_BRIDGE_KEYPAD_MOVIE_VIBRATION_FALL) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, ACROPOLIS_BRIDGE_KEYPAD_MOVIE_VIBRATION_GAP_FRAMES), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACROPOLIS_BRIDGE_KEYPAD_MOVIE_VIBRATION_RISE) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, ACROPOLIS_BRIDGE_KEYPAD_MOVIE_VIBRATION_REPEATS), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACROPOLIS_BRIDGE_KEYPAD_MOVIE_VIBRATION_HOLD) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACROPOLIS_BRIDGE_KEYPAD_MOVIE_VIBRATION_RELEASE) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 2), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACROPOLIS_BRIDGE_KEYPAD_MOVIE_VIBRATION_FINAL_FADE) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
-};
-
-/// Six timed vibration segments indexed by the keypad movie's two motor lanes.
-///
-/// Intensity endpoints are bytes (0..255) and durations are script frames.
-/// The binary motor uses only segment 4's one-frame duration, ignoring its
-/// zero endpoints; the variable motor uses all five other ramps. The fourth
-/// byte retains its image value without an interpreter consumer. Both arrays
-/// must remain loaded while the movie's vibration task is live.
-static const PadScriptVibrationSegment _gAcropolisBridgeKeypadMovieVibrationSegments[6] SECTION(".data") = {
-    { 120, 110, 30, 1 },
-    { 110, 150, 225, 1 },
-    { 180, 180, 6, 1 },
-    { 85, 55, 22, 1 },
-    { 0, 0, 1, 0 },
-    { 50, 45, 60, 1 },
-};
-
 /// Segment indices and binary-lane repeat count in the arrival vibration script.
 enum {
     ACROPOLIS_BRIDGE_ARRIVAL_VIBRATION_PULSE      = 0,
@@ -2629,132 +895,6 @@ enum {
     ACROPOLIS_BRIDGE_ARRIVAL_VIBRATION_FALL       = 3,
     ACROPOLIS_BRIDGE_ARRIVAL_VIBRATION_FINAL_HOLD = 4,
     ACROPOLIS_BRIDGE_ARRIVAL_VIBRATION_REPEATS    = 3
-};
-
-/// Two-motor vibration script for the arrival scene's shake and dust cue.
-///
-/// The binary lane plays segment 0, then repeats it three times before segment
-/// 4 and STOP. The variable lane plays segments 1, 2 and 3 before STOP.
-/// Command 5 and the variable-lane command at slot 4 are not reached. STOP
-/// operands are retained but ignored. The spawned task borrows both arrays.
-static PadScriptCmd _gAcropolisBridgeArrivalVibrationCommands[6] = {
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACROPOLIS_BRIDGE_ARRIVAL_VIBRATION_PULSE), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACROPOLIS_BRIDGE_ARRIVAL_VIBRATION_RISE) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, ACROPOLIS_BRIDGE_ARRIVAL_VIBRATION_REPEATS), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACROPOLIS_BRIDGE_ARRIVAL_VIBRATION_PEAK) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACROPOLIS_BRIDGE_ARRIVAL_VIBRATION_FALL) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACROPOLIS_BRIDGE_ARRIVAL_VIBRATION_FINAL_HOLD), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 1) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACROPOLIS_BRIDGE_ARRIVAL_VIBRATION_FALL) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 14) }
-};
-
-/// Five timed vibration segments selected by the arrival vibration script.
-///
-/// Intensity endpoints are bytes (0..255), durations are script frames, and
-/// the fourth byte retains its stored value with no interpreter consumer.
-/// The first and last segments have zero intensity; the middle three raise,
-/// hold and lower the variable motor. Keep this storage live through playback.
-static PadScriptVibrationSegment _gAcropolisBridgeArrivalVibrationSegments[5] = {
-    { 0, 0, 1, 0 },
-    { 100, 200, 6, 1 },
-    { 255, 255, 8, 1 },
-    { 200, 100, 10, 1 },
-    { 0, 0, 8, 0 },
-};
-
-/// Cue-2 bases in the loaded type-1 bank; cue 1 uses the following entry.
-enum {
-    ACROPOLIS_BRIDGE_SURFACE_2_WALK_CUE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x25,
-    ACROPOLIS_BRIDGE_SURFACE_2_RUN_CUE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x27,
-    ACROPOLIS_BRIDGE_SURFACE_4_WALK_CUE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x15,
-    ACROPOLIS_BRIDGE_SURFACE_4_RUN_CUE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x17,
-    ACROPOLIS_BRIDGE_SURFACE_4_JUMP_CUE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x19,
-};
-
-/// Walk/run/scripted-jump footstep bases for bridge surface class 2.
-///
-/// Walking and scripted jumps share a cue pair. Requests use the loaded
-/// type-1 bank; playback adds one for cue 1 and 100 for a companion.
-static WorldCollisionFootstepSounds _gAcropolisBridgeSurface2FootstepSounds = {
-    .walk         = ACROPOLIS_BRIDGE_SURFACE_2_WALK_CUE,
-    .run          = ACROPOLIS_BRIDGE_SURFACE_2_RUN_CUE,
-    .scriptedJump = ACROPOLIS_BRIDGE_SURFACE_2_WALK_CUE,
-};
-
-/// Walk/run/scripted-jump footstep bases for bridge surface class 4.
-///
-/// Each movement kind has its own cue pair in the loaded type-1 bank.
-/// Playback adds one for cue 1 and 100 for a companion.
-static WorldCollisionFootstepSounds _gAcropolisBridgeSurface4FootstepSounds = {
-    .walk         = ACROPOLIS_BRIDGE_SURFACE_4_WALK_CUE,
-    .run          = ACROPOLIS_BRIDGE_SURFACE_4_RUN_CUE,
-    .scriptedJump = ACROPOLIS_BRIDGE_SURFACE_4_JUMP_CUE,
-};
-
-/// Three retained type-1 sound-request words with no established consumer or role.
-///
-/// Their values match the surface-2 walk/run/walk cues, but no pointer or
-/// relocation identifies them as a footstep record. Preserve this separate storage.
-static s32 D_acropolis_bridge_80190C00[3] = {
-    ACROPOLIS_BRIDGE_SURFACE_2_WALK_CUE,
-    ACROPOLIS_BRIDGE_SURFACE_2_RUN_CUE,
-    ACROPOLIS_BRIDGE_SURFACE_2_WALK_CUE,
-};
-
-/// Silent blocking policy shared by bridge surface classes 0, 3, 5 and 6.
-static WorldCollisionSurfaceProperties _gAcropolisBridgeBlockingSurfaceProperties = {
-    .field_0             = 0,
-    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
-    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
-    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
-    .footstepSounds      = NULL,
-};
-
-/// Surface-1 policy: pass probes, ignore weapon impacts, apply pushback, no steps.
-static WorldCollisionSurfaceProperties _gAcropolisBridgeSurface1Properties = {
-    .field_0             = 0,
-    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
-    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
-    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
-    .footstepSounds      = NULL,
-};
-
-/// Surface-2 blocking policy with weapon impacts, pushback and its own step cues.
-static WorldCollisionSurfaceProperties _gAcropolisBridgeSurface2Properties = {
-    .field_0             = 0,
-    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
-    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
-    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
-    .footstepSounds      = &_gAcropolisBridgeSurface2FootstepSounds,
-};
-
-/// Surface-4 blocking policy with weapon impacts, pushback and its own step cues.
-static WorldCollisionSurfaceProperties _gAcropolisBridgeSurface4Properties = {
-    .field_0             = 0,
-    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
-    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
-    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
-    .footstepSounds      = &_gAcropolisBridgeSurface4FootstepSounds,
-};
-
-/// Surface-7 policy: pass probes, allow weapon impacts, suppress pushback, no steps.
-///
-/// The retained first byte is 1; its role remains unproven.
-static WorldCollisionSurfaceProperties _gAcropolisBridgeSurface7Properties = {
-    .field_0             = 1,
-    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
-    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
-    .suppressPushback    = WORLD_COLLISION_SURFACE_SUPPRESS_PUSHBACK,
-    .footstepSounds      = NULL,
-};
-
-WorldCollisionSurfaceProperties* gAcropolisBridgeSurfacePropertiesByClass[8] = {
-    &_gAcropolisBridgeBlockingSurfaceProperties,
-    &_gAcropolisBridgeSurface1Properties,
-    &_gAcropolisBridgeSurface2Properties,
-    &_gAcropolisBridgeBlockingSurfaceProperties,
-    &_gAcropolisBridgeSurface4Properties,
-    &_gAcropolisBridgeBlockingSurfaceProperties,
-    &_gAcropolisBridgeBlockingSurfaceProperties,
-    &_gAcropolisBridgeSurface7Properties,
 };
 
 /// Victim reaction packed into the bridge enemy's category-4 contact key.
@@ -2951,7 +1091,7 @@ static AnimationSet* _gAcropolisBridgeEnemyAnimationSets[7] = {
 /// Both clip indices must be 0..5. Values count whole normal-rate frames:
 /// 1 between patrol/chase, 8 from either into bob, and 0 for the other pairs.
 /// The same duration starts each of the three driven animation slots.
-static const s16 _gAcropolisBridgeEnemyAnimationBlendFrames[6][6] SECTION(".data") = {
+static s16 _gAcropolisBridgeEnemyAnimationBlendFrames[6][6] = {
     { 0, 0, 0, 0, 0, 0 },
     { 0, 0, 1, 8, 0, 0 },
     { 0, 1, 0, 8, 0, 0 },
@@ -3142,7 +1282,7 @@ static u8* _gAcropolisBridgeEnemyRoutesByPlacement[9] = {
 ///
 /// APPLY borrows an ActorCommand; SET_MODEL_DRAW takes an integer visibility
 /// word. The enemy task borrows this read-only table while the room is loaded.
-static const TaskMessageEntry _gAcropolisBridgeEnemyMessageTable[3] SECTION(".data") = {
+static TaskMessageEntry _gAcropolisBridgeEnemyMessageTable[3] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, _acropolisBridgeEnemyApplyCommand },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _acropolisBridgeEnemySetModelDraw },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -3153,7 +1293,7 @@ static const TaskMessageEntry _gAcropolisBridgeEnemyMessageTable[3] SECTION(".da
 /// INACTIVE through ANIMATE_AT_PLACEMENT occupy slots 0..8, with no end marker.
 /// The frame dispatcher calls the selected handler directly on its live enemy
 /// task; the room and callback code must remain loaded throughout dispatch.
-static const TaskFunc _gAcropolisBridgeEnemyStateHandlers[9] SECTION(".data") = {
+static TaskFunc _gAcropolisBridgeEnemyStateHandlers[9] = {
     _acropolisBridgeEnemyInactive,
     _acropolisBridgeEnemyPatrolSunk,
     _acropolisBridgeEnemyChase,

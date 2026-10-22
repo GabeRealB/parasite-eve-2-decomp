@@ -38,17 +38,25 @@ type = "file"
 [[file.contents]]
 chunk = "palette"
 sha1 = "aa3446602e6707f1b9fdcc248eb89744ba0200bd"
-palettes = [
-    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
-    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
-]
+
+[[file.contents.palettes]]
+texture = "texture_page_1"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00000]
+
+[[file.contents.palettes]]
+texture = "texture_page_2"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00001]
 
 [[file.contents]]
 chunk = "image"
 sha1 = "7eccbc3f301c80c8407dae4d32223ddfd1f7854c"
 pages = [
-    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
-    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [0x00040, 0x00000] },
 ]
 slots = 7
 
@@ -68,17 +76,25 @@ type = "file"
 [[file_2.contents]]
 chunk = "palette_2"
 sha1 = "f0bf329a2719c0b4771a803858b11255285dd78f"
-palettes = [
-    { texture = "texture_2_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
-    { texture = "texture_2_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
-]
+
+[[file_2.contents.palettes]]
+texture = "texture_2_page_1"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00000]
+
+[[file_2.contents.palettes]]
+texture = "texture_2_page_2"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00001]
 
 [[file_2.contents]]
 chunk = "image_2"
 sha1 = "04d83a04288dab6c521fa4690b1761ac45f208c7"
 pages = [
-    { texture = "texture_2_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
-    { texture = "texture_2_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+    { texture = "texture_2_page_1", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] },
+    { texture = "texture_2_page_2", region = "engine/vram/actor_sheet", offset = [0x00040, 0x00000] },
 ]
 slots = 6
 

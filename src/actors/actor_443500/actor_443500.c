@@ -150,10 +150,10 @@ static AnimationSet _gShelterR47PlayerListenToPierceClip;
 static AnimationSet _gShelterR47PlayerProtestClip;
 static AnimationSet _gShelterR47PlayerWhatClip;
 static AnimationSet _gShelterR47PlayerSetOffClip;
-static AnimationSet _gShelterR47PlayerLookAtMapClip;
-static AnimationSet _gAyaTalkStartClip;
-static AnimationSet _gAyaTalkClip;
-static AnimationSet _gAyaTalkEndClip;
+extern AnimationSet gShelterR47PlayerLookAtMapClip;
+extern AnimationSet gAyaTalkStartClip;
+extern AnimationSet gAyaTalkClip;
+extern AnimationSet gAyaTalkEndClip;
 static AnimationSet _gAyaExplainStartClip;
 static AnimationSet _gAyaExplainClip;
 

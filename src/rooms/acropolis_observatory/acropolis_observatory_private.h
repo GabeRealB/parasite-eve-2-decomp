@@ -15,7 +15,7 @@
 /// a terminator; keep the room code and movie resources loaded through teardown.
 extern TaskDesc gAcropolisObservatoryArrivalTaskDescs[4];
 
-extern AnimationSet gAcropolisObservatoryAnimation02878;
+extern AnimationSet gDryfieldTrailerCoachPlayerEvent58Clip;
 
 /// Direct player animation-set directory for the scripted battle handoff.
 ///

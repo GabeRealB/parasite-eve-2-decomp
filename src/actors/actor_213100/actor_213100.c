@@ -53,40 +53,14 @@ static void _actor213100ExitBody(Task* actorTask);
 static void _actor213100InitBodyLighting(Task* actorTask);
 
 static TmdSource _gJodieBody;
-static TmdSource _gActor213100Actor213000Prop;
+static TmdSource _gMistR18Laptop;
 static s32       _actor213100SetModelDraw(Task* actorTask, s32 messageId, s32 mode, s32 unusedSecondArg);
 static void      _actor213100HeldModelTask(Task* heldModelTask);
 static void      _actor213100BodyTask(Task* actorTask);
 
 #include "assets/characters/jodie/body.inc"
 
-static TmdBone _gActor213100Actor213000PropSkeleton[1] = {
-#include "assets/actor_213000_prop_skeleton.inc"
-};
-
-static u32 _gActor213100Actor213000PropPartVerts[1] = {
-#include "assets/actor_213000_prop_partVerts.inc"
-};
-
-static SVECTOR _gActor213100Actor213000PropVerts[14] = {
-#include "assets/actor_213000_prop_verts.inc"
-};
-
-static u32 _gActor213100Actor213000PropStream[79] = {
-#include "assets/actor_213000_prop_stream.inc"
-};
-
-static TmdSource _gActor213100Actor213000Prop = {
-    0,
-    528,
-    0,
-    1,
-    _gActor213100Actor213000PropPartVerts,
-    _gActor213100Actor213000PropVerts,
-    &_gActor213100Actor213000PropVerts[14],
-    _gActor213100Actor213000PropSkeleton,
-    _gActor213100Actor213000PropStream,
-};
+#include "assets/rooms/mist/r18/laptop.inc"
 
 #include "assets/rooms/mist/parking/jodie_clips.inc"
 
@@ -118,7 +92,7 @@ TaskDesc gActor213100JodieBouquetTaskDescriptors[2] = {
     {
         .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_213100_JODIE_TASK_PRIORITY } },
         .callback = _actor213100HeldModelTask,
-        .data     = { .model = &_gActor213100Actor213000Prop },
+        .data     = { .model = &_gMistR18Laptop },
     },
 };
 

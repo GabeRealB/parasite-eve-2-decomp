@@ -1,6 +1,361 @@
 # The assets of the group rooms/akropolis/plaza, each named rooms/akropolis/plaza/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "sounds_0"
+
+[[file.contents]]
+chunk = "sounds_1"
+
+[[file.contents]]
+chunk = "dialogue_0_atlas"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "e0fba54081099a907d06dfe2ab043ecee25cecb7"
+palettes = [
+    { name = "unread_row_269", entries = 256, region = "engine/vram/effect_palettes", offset = [0x00000, 0x00008] },
+    { name = "unread_269_256", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00100, 0x00008] },
+    { name = "unread_269_272", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00110, 0x00008] },
+    { name = "unread_269_288", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00120, 0x00008] },
+    { name = "unread_269_304", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00130, 0x00008] },
+    { name = "unread_row_270", entries = 256, region = "engine/vram/effect_palettes", offset = [0x00000, 0x00009] },
+    { name = "unread_270_256", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00100, 0x00009] },
+    { name = "unread_270_272", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00110, 0x00009] },
+    { name = "unread_270_288", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00120, 0x00009] },
+    { name = "unread_270_304", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00130, 0x00009] },
+    { name = "unread_row_271", entries = 256, region = "engine/vram/effect_palettes", offset = [0x00000, 0x0000A] },
+    { name = "unread_271_256", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00100, 0x0000A] },
+    { name = "unread_271_272", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00110, 0x0000A] },
+    { name = "unread_271_288", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00120, 0x0000A] },
+    { texture = "radio", variant = "default", region = "engine/vram/effect_palettes", offset = [0x00130, 0x0000A] },
+]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "a6db9ab1ac9e357ee4f7fd31e010dc18296fef03"
+pages = [{ texture = "radio", region = "engine/vram/effect_sheet", offset = [0x000C0, 0x00000] }]
+slots = 3
+
+[[file.contents]]
+chunk = "package"
+
+[[file.contents]]
+chunk = "bundle"
+
+[radio]
+type = "texture"
+bpp = 4
+cells = { radio = [128, 224, 92, 32] }
+height = 256
+variants = ["default"]
+width = 256
+
+[bundle]
+type = "pe2bundle"
+resources = ["rooms/akropolis/plaza/dialogue_0"]
+sha1 = "aeb19f6425491cab36f2759ebecf8903c2e2a4dd"
+
+[package]
+type = "room"
+embedded = [
+    "acropolis_plaza_path_062F8",
+    "acropolis_plaza_path_0D378",
+    "acropolis_plaza_path_0F53C",
+    "acropolis_plaza_path_11F70",
+    "acropolis_plaza_path_123F4",
+    "acropolis_plaza_path_13204",
+    { name = "extra_anim", offset = 0x144C4, size = 0x420, address = 0x80191A84 },
+    { name = "extra_anim_2", offset = 0x148E4, size = 0xDF8, address = 0x80191EA4 },
+    { name = "extra_anim_3", offset = 0x156DC, size = 0x1B0, address = 0x80192C9C },
+    { name = "extra_anim_4", offset = 0x1588C, size = 0x464, address = 0x80192E4C },
+    { name = "extra_anim_5", offset = 0x15CF0, size = 0x2B0, address = 0x801932B0 },
+    { name = "extra_anim_6", offset = 0x15FA0, size = 0x2B4, address = 0x80193560 },
+    { name = "extra_anim_7", offset = 0x16254, size = 0x210, address = 0x80193814 },
+    { name = "extra_anim_8", offset = 0x16464, size = 0x1D4, address = 0x80193A24 },
+    { name = "extra_anim_9", offset = 0x16638, size = 0x2EC, address = 0x80193BF8 },
+    { name = "extra_anim_10", offset = 0x16924, size = 0x404, address = 0x80193EE4 },
+    { name = "extra_anim_11", offset = 0x16D28, size = 0x1E4, address = 0x801942E8 },
+    { name = "extra_anim_12", offset = 0x16F0C, size = 0x1DC, address = 0x801944CC },
+    { name = "extra_anim_13", offset = 0x170E8, size = 0x1D8, address = 0x801946A8 },
+    { name = "extra_anim_14", offset = 0x172C0, size = 0x2B4, address = 0x80194880 },
+    { name = "extra_anim_15", offset = 0x17574, size = 0x2CC, address = 0x80194B34 },
+    { name = "extra_anim_16", offset = 0x17840, size = 0x1E8, address = 0x80194E00 },
+    { name = "extra_anim_17", offset = 0x17A28, size = 0x268, address = 0x80194FE8 },
+    { name = "extra_anim_18", offset = 0x17C90, size = 0x1EC, address = 0x80195250 },
+    { name = "extra_anim_19", offset = 0x17E7C, size = 0x1A0, address = 0x8019543C },
+    { name = "extra_anim_20", offset = 0x1801C, size = 0x1D8, address = 0x801955DC },
+    { name = "extra_anim_21", offset = 0x181F4, size = 0x1EC, address = 0x801957B4 },
+    { name = "extra_anim_22", offset = 0x183E0, size = 0x25C, address = 0x801959A0 },
+    { name = "extra_anim_23", offset = 0x1863C, size = 0x2F0, address = 0x80195BFC },
+    { name = "extra_anim_24", offset = 0x1892C, size = 0x4DC, address = 0x80195EEC },
+    { asset = "characters/aya/idle", offset = 0x18E08, size = 0x1B8, address = 0x801963C8 },
+    { name = "extra_anim_25", offset = 0x18FC0, size = 0x678, address = 0x80196580 },
+    { name = "extra_anim_26", offset = 0x19638, size = 0x4C8, address = 0x80196BF8 },
+    { name = "extra_anim_27", offset = 0x19B00, size = 0x28C, address = 0x801970C0 },
+    { name = "extra_anim_28", offset = 0x19D8C, size = 0x218, address = 0x8019734C },
+    { name = "extra_anim_29", offset = 0x19FA4, size = 0x57C, address = 0x80197564 },
+    { name = "extra_anim_30", offset = 0x1A520, size = 0x28C, address = 0x80197AE0 },
+    { name = "extra_anim_31", offset = 0x1A7AC, size = 0x328, address = 0x80197D6C },
+    { name = "extra_anim_32", offset = 0x1AAD4, size = 0x358, address = 0x80198094 },
+    { name = "extra_anim_33", offset = 0x1AE2C, size = 0x1A0, address = 0x801983EC },
+    { name = "extra_anim_34", offset = 0x1AFCC, size = 0x254, address = 0x8019858C },
+]
+entries = { action_triggers = [{ at = 0x1BC30, single = true }, 0x1BC7C], samples = [0x1B220] }
+package_name = "acropolis_plaza"
+required = true
+sha1 = "b62d1232be576a30edc6636ecacb2b53e8867f12"
+
+[sounds_0]
+type = "sound_bank"
+samples = [
+    "rooms/akropolis/cafeteria/run_surface_3_1",
+    "rooms/akropolis/cafeteria/run_surface_3_2",
+    "rooms/akropolis/cafeteria/walk_surface_1_1",
+    "rooms/akropolis/cafeteria/walk_surface_1_2",
+    "rooms/akropolis/square/walk_floor_1",
+    "rooms/akropolis/square/walk_floor_2",
+]
+sha1 = "e8d8270adfef92a6668c59f5d0aabee1e9431bcd"
+
+[sounds_0.sounds]
+walk_surface_0_1 = 17
+walk_surface_0_2 = 18
+run_surface_0_1 = 19
+run_surface_0_2 = 20
+walk_surface_1_1 = 45
+walk_surface_1_2 = 46
+run_surface_1_1 = 47
+run_surface_1_2 = 48
+
+[sounds_1]
+type = "sound_bank"
+samples = [
+    "rooms/akropolis/plaza/final_scene_cue",
+    "rooms/akropolis/plaza/officer_ambience",
+    "rooms/akropolis/plaza/officer_ambience_2",
+    "rooms/akropolis/plaza/walk_ambience",
+    "rooms/akropolis/plaza/entry_ambience",
+    "rooms/akropolis/plaza/approach_ambience",
+    "rooms/akropolis/plaza/approach_ambience_2",
+    "rooms/akropolis/plaza/approach_ambience_3",
+    "rooms/akropolis/plaza/approach_ambience_4",
+    "rooms/akropolis/plaza/approach_ambience_5",
+    "rooms/akropolis/plaza/officer_step_1",
+    "rooms/akropolis/plaza/officer_step_2",
+]
+sha1 = "ef20a9de46a8ac145955ced1db1da18c21520413"
+
+[sounds_1.sounds]
+officer_ambience = 1
+entry_ambience = 2
+final_scene_cue = 3
+approach_ambience = 4
+walk_ambience = 5
+officer_step_1 = 6
+officer_step_2 = 7
+officer_1_step_1 = 8
+officer_1_step_2 = 9
+officer_1_step_3 = 10
+officers_walk_in = 11
+
+[dialogue_0]
+type = "cap"
+sha1 = "10e97799b62ee49bcca33ec1b6097fc4aefb1fe8"
+
+[extra_anim]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnimClip"
+
+[extra_anim_2]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim2Clip"
+
+[extra_anim_3]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim3Clip"
+
+[extra_anim_4]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim4Clip"
+
+[extra_anim_5]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim5Clip"
+
+[extra_anim_6]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim6Clip"
+
+[extra_anim_7]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim7Clip"
+
+[extra_anim_8]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim8Clip"
+
+[extra_anim_9]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim9Clip"
+
+[extra_anim_10]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim10Clip"
+
+[extra_anim_11]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim11Clip"
+
+[extra_anim_12]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim12Clip"
+
+[extra_anim_13]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim13Clip"
+
+[extra_anim_14]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim14Clip"
+
+[extra_anim_15]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim15Clip"
+
+[extra_anim_16]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim16Clip"
+
+[extra_anim_17]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim17Clip"
+
+[extra_anim_18]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim18Clip"
+
+[extra_anim_19]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim19Clip"
+
+[extra_anim_20]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim20Clip"
+
+[extra_anim_21]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim21Clip"
+
+[extra_anim_22]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim22Clip"
+
+[extra_anim_23]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim23Clip"
+
+[extra_anim_24]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim24Clip"
+
+[extra_anim_25]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim25Clip"
+
+[extra_anim_26]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim26Clip"
+
+[extra_anim_27]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim27Clip"
+
+[extra_anim_28]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim28Clip"
+
+[extra_anim_29]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim29Clip"
+
+[extra_anim_30]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim30Clip"
+
+[extra_anim_31]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim31Clip"
+
+[extra_anim_32]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim32Clip"
+
+[extra_anim_33]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim33Clip"
+
+[extra_anim_34]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisPlazaExtraAnim34Clip"
+
+[walk_ambience]
+type = "sound"
+sha1 = "d3dc862286ffbc3cab0f47ee6eba96b2c88a053b"
+
+[entry_ambience]
+type = "sound"
+sha1 = "8a58cf384757c161094f3ac856f7cdc466b9a94a"
+
+[officer_step_1]
+type = "sound"
+sha1 = "1157904a46fb62b99e7f12decb6ad0179d4278da"
+
+[officer_step_2]
+type = "sound"
+sha1 = "aaac5e0327975fc81a5b68c0d5b701bedf2f3e00"
+
+[final_scene_cue]
+type = "sound"
+sha1 = "9820ab79577a80ea37e77c6c0eb9c5065df47dc4"
+
 [police_officers]
 type = "pe2pkg"
 embedded = [
@@ -13,3 +368,41 @@ embedded = [
 package_name = "actor_310100"
 required = true
 sha1 = "f9b3a4b29e62b743444b4c28ff43cf71aa73b871"
+
+[dialogue_0_atlas]
+type = "font_atlas"
+bpp = 4
+generated_by = "rooms/akropolis/plaza/dialogue_0"
+h = 256
+w = 64
+x = 384
+y = 0
+sha1 = "cb93df1e724a86a7aa8c24205f2894cf1470609f"
+
+[officer_ambience]
+type = "sound"
+sha1 = "0483c62138c921048a65a5924fd3bdaf773133c5"
+
+[approach_ambience]
+type = "sound"
+sha1 = "5e9c21132d59209b70bfa23b764cae4b368e1f84"
+
+[officer_ambience_2]
+type = "sound"
+sha1 = "2b9be465630c96e2aeec7634e6887f639df6a48f"
+
+[approach_ambience_2]
+type = "sound"
+sha1 = "2d5ddc388392301e1f44b6a1fccba63a2e6cb2d3"
+
+[approach_ambience_3]
+type = "sound"
+sha1 = "af35569f3546bfbd2d9079af3b3dfcfaf95659b8"
+
+[approach_ambience_4]
+type = "sound"
+sha1 = "96abe57ab41aa3f6fcd951eeb9b9380ad2840a48"
+
+[approach_ambience_5]
+type = "sound"
+sha1 = "bee2bb2b5cf420c2104a662346775aa6bea85f7a"

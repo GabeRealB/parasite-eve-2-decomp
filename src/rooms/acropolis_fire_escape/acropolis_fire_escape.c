@@ -71,11 +71,11 @@
 #include "../../shared/room/room_cutscene.h"
 #include "../../shared/effects/glow_draw.h"
 
+#include "assets/rooms/akropolis/fire_escape/declarations.inc"
+
 static void _roomCutsceneTask(Task* task);
 
 static void _roomCutsceneSoundTask(Task* task);
-
-static WorldCollisionTrigger _gAcropolisFireEscapeActionTriggers[12];
 
 /// The save's `companionType` byte under a symbol of its own; the cutscene's
 /// end reads it through this name rather than through `gMcSaveData`.
@@ -130,11 +130,6 @@ static s32 _acropolisFireEscapeIgnoreSoundMessage(Task* task, s32 messageId, s32
 
 static void _acropolisFireEscapeAmbienceTask(Task* task);
 
-static WorldCollisionGrid     _gAcropolisFireEscapeCollisionGrid;
-static WorldCollisionOccluder _gAcropolisFireEscapeOccluders[2];
-static WorldCollisionTrigger  _gAcropolisFireEscapeViewBoundaryTriggers[8];
-static WorldCoordRoomLights   _gAcropolisFireEscapeRoomLights;
-
 #include "../../shared/room/telephone_data.inc.c"
 
 /// This carrier's bodyless scene runner and timed sound task, followed by END.
@@ -155,7 +150,7 @@ static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
 /// record makes unsupported IDs return zero. Transition payloads borrow a
 /// request/reply pair; the other handlers receive integer words. Keep this
 /// table and its callback code loaded while the room task can receive messages.
-static const TaskMessageEntry _gAcropolisFireEscapeRoomMessages[5] SECTION(".data") = {
+static TaskMessageEntry _gAcropolisFireEscapeRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisFireEscapeResolveRoomTransition },
     { ACROPOLIS_FIRE_ESCAPE_MESSAGE_USE_KEY_ITEM, _acropolisFireEscapeRejectKeyItemUse },
     { ROOM_MESSAGE_COMMAND, _acropolisFireEscapeHandleRoomCommand },
@@ -179,158 +174,20 @@ static TaskDesc _gAcropolisFireEscapeAmbienceTaskDescriptors[2] = {
     { .header = { .fields = { TASK_DESC_END, 0 } } },
 };
 
-/// Signed Q12 cosine samples for the fire escape's glow and radial flare wedges.
-///
-/// Indices 0..22 sample -cos(i * 2*pi/16), with 4096 representing unity;
-/// y uses index i and x uses i + 4. The final stored zero is not sampled.
-static s16 _gAcropolisFireEscapeGlowCircleSamples[24] = {
-    -4096,
-    -3784,
-    -2896,
-    -1567,
-    0,
-    1567,
-    2896,
-    3784,
-    4096,
-    3784,
-    2896,
-    1567,
-    0,
-    -1567,
-    -2896,
-    -3784,
-    -4096,
-    -3784,
-    -2896,
-    -1567,
-    0,
-    1567,
-    2896,
-    0,
-};
+#include "assets/rooms/akropolis/fire_escape/samples.inc"
 
-WorldCollisionRoomResources gAcropolisFireEscapeCollisionRoomResources[1] = {
-    {
-        .grid                 = &_gAcropolisFireEscapeCollisionGrid,
-        .viewBoundaryTriggers = _gAcropolisFireEscapeViewBoundaryTriggers,
-        .actionTriggers       = _gAcropolisFireEscapeActionTriggers,
-        .occluders            = _gAcropolisFireEscapeOccluders,
-    },
-};
-
-u8* gAcropolisFireEscapeViewMaps[1] = {
-    gViewIdentityMap,
-};
-
-ViewCount gAcropolisFireEscapeViewCounts[1] = { ARRAY_SIZE(gAcropolisFireEscapeSpriteViews) };
-
-WorldCoordRoomLighting gAcropolisFireEscapeRoomLightingTable[1] = {
-    { &_gAcropolisFireEscapeRoomLights, NULL },
-};
+#include "assets/rooms/akropolis/fire_escape/header.inc"
+#include "assets/rooms/akropolis/fire_escape/geometry.inc"
+#include "assets/rooms/akropolis/fire_escape/view_boundaries.inc"
+#include "assets/rooms/akropolis/fire_escape/action_triggers.inc"
+#include "assets/rooms/akropolis/fire_escape/occluders.inc"
+#include "assets/rooms/akropolis/fire_escape/placements.inc"
+#include "assets/rooms/akropolis/fire_escape/lights.inc"
+#include "assets/rooms/akropolis/fire_escape/sprites.inc"
+#include "assets/rooms/akropolis/fire_escape/cameras.inc"
+#include "assets/rooms/akropolis/fire_escape/surfaces.inc"
 
 enum { ACROPOLIS_FIRE_ESCAPE_BRIDGE_DOOR_MAP_FLAG = 490 };
-
-DirectionWarpEntry gAcropolisFireEscapeWarpEntries[3] = {
-    {
-        .player         = { { .word = 3072 }, 2628, 1, -183 },
-        .companion      = { { .word = 3072 }, 2628, 1, -183 },
-        .arrivalSound   = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_FIRE_ESCAPE, 3),
-        .departureSound = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_FIRE_ESCAPE, 2),
-        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
-        .initialView    = 2,
-        .flags          = DIRECTION_WARP_FLAG_NONE,
-        .mapFlagId      = ACROPOLIS_FIRE_ESCAPE_BRIDGE_DOOR_MAP_FLAG,
-    },
-    {
-        .player         = { { .word = 0 }, -4294, -1799, 1240 },
-        .companion      = { { .word = 0 }, -4294, -1799, 1240 },
-        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
-        .departureSound = DIRECTION_WARP_SOUND_NONE,
-        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
-        .initialView    = 6,
-        .flags          = DIRECTION_WARP_FLAG_NONE,
-        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
-    },
-    {
-        .player         = { { .word = 0 }, -4294, -2450, 340 },
-        .companion      = { { .word = 0 }, -4294, -1800, 1240 },
-        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
-        .departureSound = DIRECTION_WARP_SOUND_NONE,
-        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
-        .initialView    = 6,
-        .flags          = DIRECTION_WARP_FLAG_SCRIPTED_PLAYER,
-        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
-    },
-};
-
-SVECTOR gAcropolisFireEscapeCollisionGridNormals[10] = {
-#include "assets/acropolis_fire_escape_collision_04CE8_normals.inc"
-};
-
-SVECTOR gAcropolisFireEscapeCollisionGridVerts[55] = {
-#include "assets/acropolis_fire_escape_collision_04CE8_verts.inc"
-};
-
-WorldCollisionGridFace gAcropolisFireEscapeCollisionGridFaces[23] = {
-#include "assets/acropolis_fire_escape_collision_04CE8_faces.inc"
-};
-
-/// Packed signed face-index lists for the fire escape's nine XZ cells.
-///
-/// Each list ends at WORLD_COLLISION_GRID_CELL_END; trailing serialized zeroes
-/// remain outside the traversed lists. Indices select the 23-face mesh.
-static s16 _gAcropolisFireEscapeCollisionGridCells[122] = {
-#include "assets/acropolis_fire_escape_collision_04CE8_cells.inc"
-};
-
-/// Resolves a generated face-list start in this grid's packed halfword pool.
-///
-/// halfwordOffset counts signed-halfword elements and is evaluated once.
-/// It must select an in-bounds list start in the captured pool.
-/// Captures `_gAcropolisFireEscapeCollisionGridCells`; returns a borrowed s16* without reading it.
-/// The table include supplies list-start constants; empty cells use NULL.
-/// Define only for that include and undefine immediately afterward.
-#define ACROPOLIS_FIRE_ESCAPE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gAcropolisFireEscapeCollisionGridCells[(halfwordOffset)])
-/// X-major 3-by-3 cell table, borrowing the packed face-index lists.
-static s16* _gAcropolisFireEscapeCollisionGridTable[9] = {
-#include "assets/acropolis_fire_escape_collision_04CE8_table.inc"
-};
-#undef ACROPOLIS_FIRE_ESCAPE_CELL_FACE_LIST_AT_OFFSET
-
-/// Fire escape's collision mesh and 3-by-3 XZ index of 4000-game-unit cells.
-///
-/// The grid origin is (-5000, -3800) in room XZ. Activation binds the current
-/// view transform. The enemy's barrier occupies the first normal, four
-/// vertices and one face; those pools remain writable while the grid is live.
-static WorldCollisionGrid _gAcropolisFireEscapeCollisionGrid = {
-    .viewCoord   = NULL,
-    .normals     = gAcropolisFireEscapeCollisionGridNormals,
-    .vertices    = gAcropolisFireEscapeCollisionGridVerts,
-    .faces       = gAcropolisFireEscapeCollisionGridFaces,
-    .cellFaceIds = _gAcropolisFireEscapeCollisionGridTable,
-    .xBias       = 5000,
-    .zBias       = 3800,
-    .cellCountX  = 3,
-    .cellCountZ  = 3,
-    .cellSize    = 4000,
-    .faceCount   = ARRAY_SIZE(gAcropolisFireEscapeCollisionGridFaces),
-};
-
-/// Directed view boundaries for both directions of 2/3, 3/4, 4/5 and 5/6.
-///
-/// Origins, corner offsets and radii use game units; normals use Q12.
-/// Setup binds, links and enables every mutable entry through LAST.
-static WorldCollisionTrigger _gAcropolisFireEscapeViewBoundaryTriggers[8] = {
-    { NULL, NULL, NULL, { 2010, -2256, 1376, 0 }, { { -1024, -2352, 0, 0 }, { 1024, -2352, 0, 0 }, { -1024, 2352, 0, 0 }, { 1024, 2352, 0, 0 } }, { 0, 0, -4106, 0 }, { 0, 0, 4096, 0 }, 2560, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2016, -2272, 839, 0 }, { { -1024, 2352, 0, 0 }, { 1024, 2352, 0, 0 }, { -1024, -2352, 0, 0 }, { 1024, -2352, 0, 0 } }, { 0, 0, 4105, 0 }, { 0, 0, 4096, 0 }, 2560, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1862, -2272, 3879, 0 }, { { -1055, -2352, -1086, 0 }, { 1055, -2352, 1086, 0 }, { -1055, 2352, -1086, 0 }, { 1055, 2352, 1086, 0 } }, { 2940, 0, -2859, 0 }, { 0, 0, 4096, 0 }, 2792, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1927, -2272, 3609, 0 }, { { 1181, -2352, 1169, 0 }, { -1180, -2352, -1168, 0 }, { 1181, 2352, 1169, 0 }, { -1180, 2352, -1168, 0 } }, { -2882, 0, 2910, 0 }, { 0, 0, 4096, 0 }, 2873, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -2465, -2336, 3935, 0 }, { { -8, -2352, -1240, 0 }, { 8, -2352, 1240, 0 }, { -8, 2352, -1240, 0 }, { 8, 2352, 1240, 0 } }, { 4107, 0, -28, 0 }, { 0, 0, 4096, 0 }, 2648, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -2016, -2304, 3936, 0 }, { { 0, -2352, 1024, 0 }, { 0, -2352, -1024, 0 }, { 0, 2352, 1024, 0 }, { 0, 2352, -1024, 0 } }, { -4106, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2560, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -4066, -2304, 3234, 0 }, { { 1380, -2352, -319, 0 }, { -1387, -2352, 308, 0 }, { 1380, 2352, -319, 0 }, { -1387, 2352, 308, 0 } }, { 907, 0, 4005, 0 }, { 0, 0, 4096, 0 }, 2745, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -3859, -2176, 3301, 0 }, { { -1314, -2352, 291, 0 }, { 1303, -2352, -308, 0 }, { -1314, 2352, 291, 0 }, { 1303, 2352, -308, 0 } }, { -915, 0, -3994, 0 }, { 0, 0, 4096, 0 }, 2697, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
-};
 
 /// Stair controls: bit 8 selects descent; parameter0 packs surface class above the step count.
 enum {
@@ -340,287 +197,6 @@ enum {
     ACROPOLIS_FIRE_ESCAPE_STAIR_CLASS1_THREE_STEPS = (1 << 4) | 3,
 };
 
-/// Room action quads for stairs, exits, CAP interactions and placed-actor dialogue.
-///
-/// Coordinates and radii use game units; normals use 4096 per unit. Setup
-/// links and enables the twelve writable records, ending with LAST. Entry 5
-/// routes command 1 to the room and is disabled when placement 0 is absent.
-static WorldCollisionTrigger _gAcropolisFireEscapeActionTriggers[12] = {
-    { NULL, NULL, NULL, { -338, -32, 4144, 0 }, { { -110, 0, -848, 0 }, { 110, 0, -848, 0 }, { -110, 0, 848, 0 }, { 110, 0, 848, 0 } }, { 0, 4102, 0, 0 }, { 4096, 0, 0, 0 }, 853, WORLD_COLLISION_TRIGGER_ACTION_FACING, ACROPOLIS_FIRE_ESCAPE_STAIR_CLASS0_NINE_STEPS, 192, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3095, -1856, 4095, 0 }, { { -128, 0, -768, 0 }, { 128, 0, -768, 0 }, { -128, 0, 768, 0 }, { 128, 0, 768, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 778, WORLD_COLLISION_TRIGGER_ACTION_FACING | ACROPOLIS_FIRE_ESCAPE_STAIR_DESCEND, ACROPOLIS_FIRE_ESCAPE_STAIR_CLASS0_NINE_STEPS, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4486, -1856, 1184, 0 }, { { 384, 0, -176, 0 }, { 384, 0, 176, 0 }, { -384, 0, -176, 0 }, { -384, 0, 176, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, 4096, 0 }, 422, WORLD_COLLISION_TRIGGER_ACTION_FACING, ACROPOLIS_FIRE_ESCAPE_STAIR_CLASS1_TEN_STEPS, 128, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4320, -2384, 544, 0 }, { { -592, 1552, 0, 0 }, { 592, 1552, 0, 0 }, { -592, -1552, 0, 0 }, { 592, -1552, 0, 0 } }, { 0, 0, 4099, 0 }, { 0, 0, 4096, 0 }, 1659, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, GAME_AREA_AKROPOLIS_HELICOPTER_LANDING_PAD, 51, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2544, -32, 0, 0 }, { { -320, 0, -768, 0 }, { 320, 0, -768, 0 }, { -320, 0, 768, 0 }, { 320, 0, 768, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 832, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_AKROPOLIS_BRIDGE, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1440, -96, -1680, 0 }, { { -480, 0, 1216, 0 }, { -480, 0, -320, 0 }, { 1568, 0, 1216, 0 }, { 1568, 0, -320, 0 } }, { 0, 4095, 0, 0 }, { -201, 0, 4091, 0 }, 1982, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1312, -96, 1856, 0 }, { { -416, 0, 480, 0 }, { -416, 0, -480, 0 }, { 416, 0, 480, 0 }, { 416, 0, -480, 0 } }, { 0, 4102, 0, 0 }, { 4095, 0, 0, 0 }, 633, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3392, -1856, 2080, 0 }, { { -592, 0, 720, 0 }, { -592, 0, -720, 0 }, { 592, 0, 720, 0 }, { 592, 0, -720, 0 } }, { 0, 4095, 0, 0 }, { -4077, 0, 401, 0 }, 931, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4288, -2544, 160, 0 }, { { 768, 0, -304, 0 }, { 768, 0, 304, 0 }, { -768, 0, -304, 0 }, { -768, 0, 304, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 824, WORLD_COLLISION_TRIGGER_ACTION_FACING | ACROPOLIS_FIRE_ESCAPE_STAIR_DESCEND | WORLD_COLLISION_TRIGGER_AUTOMATIC, ACROPOLIS_FIRE_ESCAPE_STAIR_CLASS1_THREE_STEPS, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4448, -1835, 3984, 0 }, { { -270, 0, -832, 0 }, { 270, 0, -832, 0 }, { -270, 0, 832, 0 }, { 270, 0, 832, 0 } }, { 0, 4099, 0, 0 }, { 4096, 0, 0, 0 }, 872, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1248, -64, 224, 0 }, { { -416, 0, 480, 0 }, { -416, 0, -480, 0 }, { 416, 0, 480, 0 }, { 416, 0, -480, 0 } }, { 0, 4102, 0, 0 }, { 4095, 0, 0, 0 }, 633, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2016, -64, -1712, 0 }, { { -686, 0, -384, 0 }, { 686, 0, -384, 0 }, { -686, 0, 384, 0 }, { 686, 0, 384, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, 4096, 0 }, 783, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
-};
-
-/// Two mutable room-space quads that block actor line-of-sight probes.
-///
-/// Origins, corner offsets and radii use game units; normals use Q12.
-/// Setup links and enables both records, including the LAST-marked second one.
-static WorldCollisionOccluder _gAcropolisFireEscapeOccluders[2] = {
-    { NULL, NULL, { -944, -2320, 2624, 0 }, { { -1808, -3344, 0, 0 }, { 1808, -3344, 0, 0 }, { -1808, 3344, 0, 0 }, { 1808, 3344, 0, 0 } }, { 0, 0, -4096, 0 }, 3797, 1, 0 },
-    { NULL, NULL, { -864, -2272, -448, 0 }, { { 0, -3296, 3088, 0 }, { 0, -3296, -3088, 0 }, { 0, 3296, 3088, 0 }, { 0, 3296, -3088, 0 } }, { -4101, 0, 0, 0 }, 4492, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
-};
-
-/// Placement-entry 10's Stranger actor resource, shared by area variants 1..3.
-///
-/// File number 115 under base 30 loads actor package 311500; task index 0
-/// spawns its single descriptor. The second record terminates resource lookup.
-/// Loading and spawning borrow this table while the room overlay is loaded.
-static AreaResource _gAcropolisFireEscapeActorResources[2] = {
-    {
-        .entryId        = 10,
-        .fileNumber     = 115,
-        .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_30,
-        .taskIndex      = 0,
-        .taskTable      = &gActor311500StrangerTaskDesc,
-    },
-    { .entryId = AREA_PLACEMENT_END },
-};
-
-AreaVariant gAcropolisFireEscapeAreaVariants[5] = {
-    { NULL, NULL },
-    { gMapAkropolisFireEscapePlacements, _gAcropolisFireEscapeActorResources },
-    { gMapAkropolisFireEscapePlacements, _gAcropolisFireEscapeActorResources },
-    { gMapAkropolisFireEscapePlacements, _gAcropolisFireEscapeActorResources },
-    { NULL, NULL },
-};
-
-/// The fire escape's five white point lights, contributing in every room view.
-///
-/// Positions and falloff radii use integer world units; RGB intensities use
-/// 12 fractional bits, initially `ONE` in each channel. The loaded room overlay
-/// owns these writable records: coordinate updates parent and compose their
-/// transforms, and lighting queries overwrite attenuation. Borrowed pointers
-/// must not survive unloading the overlay.
-static WorldCoordPointLight _gAcropolisFireEscapePointLights[] = {
-    {
-        .head = {
-            .transform = { .lighting = {
-                               .composeStamp = GRAPHICS_COORD_DIRTY,
-                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2020, -2380, 663 } },
-                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
-                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
-                               .parent       = NULL,
-                           } },
-            .color     = { ONE, ONE, ONE },
-        },
-        .inner = 760,
-        .outer = 4206,
-    },
-    {
-        .head = {
-            .transform = { .lighting = {
-                               .composeStamp = GRAPHICS_COORD_DIRTY,
-                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2020, -2380, 2820 } },
-                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
-                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
-                               .parent       = NULL,
-                           } },
-            .color     = { ONE, ONE, ONE },
-        },
-        .inner = 500,
-        .outer = 3000,
-    },
-    {
-        .head = {
-            .transform = { .lighting = {
-                               .composeStamp = GRAPHICS_COORD_DIRTY,
-                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -10, -2380, 3860 } },
-                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
-                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
-                               .parent       = NULL,
-                           } },
-            .color     = { ONE, ONE, ONE },
-        },
-        .inner = 500,
-        .outer = 3000,
-    },
-    {
-        .head = {
-            .transform = { .lighting = {
-                               .composeStamp = GRAPHICS_COORD_DIRTY,
-                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -3870, -4220, 3850 } },
-                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
-                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
-                               .parent       = NULL,
-                           } },
-            .color     = { ONE, ONE, ONE },
-        },
-        .inner = 500,
-        .outer = 3000,
-    },
-    {
-        .head = {
-            .transform = { .lighting = {
-                               .composeStamp = GRAPHICS_COORD_DIRTY,
-                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -3870, -4220, 1740 } },
-                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
-                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
-                               .parent       = NULL,
-                           } },
-            .color     = { ONE, ONE, ONE },
-        },
-        .inner = 500,
-        .outer = 2000,
-    },
-};
-
-/// Room 1's mutable collection of five white point lights and no other light kinds.
-static WorldCoordRoomLights _gAcropolisFireEscapeRoomLights = {
-    0,
-    NULL,
-    ARRAY_SIZE(_gAcropolisFireEscapePointLights),
-    _gAcropolisFireEscapePointLights,
-    0,
-    NULL,
-};
-
-/// View 1's empty sprite list, selecting decoded background strips.
-static SpriteBatch _gAcropolisFireEscapeView1SpriteBatches[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-/// View 2's empty sprite list, selecting decoded background strips.
-static SpriteBatch _gAcropolisFireEscapeView2SpriteBatches[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-/// View 3's thirteen depth-sorted texture rectangles, positioned in view-centred pixels.
-static SpriteSource _gAcropolisFireEscapeView3SpriteSources[13] = {
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -32, -104, 1025, { .fields = { 8, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -32, -48, 1025, { .fields = { 0, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -32, 8, 1025, { .fields = { 0, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -48, -120, 1025, { .fields = { 8, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 56 } }, -48, -48, 1025, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, -48, 8, 1025, { .fields = { 24, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 72 } }, -72, -120, 1025, { .fields = { 16, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 72 } }, -72, -48, 1025, { .fields = { 40, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 96 } }, -72, 24, 1025, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 88 } }, -96, -120, 1025, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 88 } }, -96, -32, 1025, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 64 } }, -96, 56, 1025, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 240 } }, -160, -120, 1000, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-};
-
-/// View 3's background-strip selector and complete thirteen-sprite range, then END.
-static SpriteBatch _gAcropolisFireEscapeView3SpriteBatches[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, ARRAY_SIZE(_gAcropolisFireEscapeView3SpriteSources), 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-/// View 4's empty sprite list, selecting decoded background strips.
-static SpriteBatch _gAcropolisFireEscapeView4SpriteBatches[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-/// View 5's five full-height texture columns, positioned in view-centred pixels.
-static SpriteSource _gAcropolisFireEscapeView5SpriteSources[5] = {
-    { 143, 0x3FC0, { .fields = { 16, 240 } }, -32, -120, 625, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 240 } }, -48, -120, 650, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 240 } }, -72, -120, 625, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 240 } }, -112, -120, 625, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 240 } }, -160, -120, 625, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-};
-
-/// View 5's background-strip selector and complete five-sprite range, then END.
-static SpriteBatch _gAcropolisFireEscapeView5SpriteBatches[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, ARRAY_SIZE(_gAcropolisFireEscapeView5SpriteSources), 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-/// View 6's empty sprite list; its separate draw-area list still clips scene objects.
-static SpriteBatch _gAcropolisFireEscapeView6SpriteBatches[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-/// View 6's (103, 0, 215, 239) pixel clip, restored at sorting depth 1000, then END.
-static SpriteDrawArea _gAcropolisFireEscapeView6SpriteDrawAreas[2] = {
-    { { 103, 0, 215, 239 }, 1000 },
-    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
-};
-
-/// View 7's five depth-sorted texture rectangles, positioned in view-centred pixels.
-static SpriteSource _gAcropolisFireEscapeView7SpriteSources[5] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -112, 112, 490, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, 112, 516, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 160, 112 } }, -88, -120, 500, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 176, 88 } }, -96, -8, 500, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 200, 40 } }, -104, 80, 500, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
-};
-
-/// View 7's background-strip selector and complete five-sprite range, then END.
-static SpriteBatch _gAcropolisFireEscapeView7SpriteBatches[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, ARRAY_SIZE(_gAcropolisFireEscapeView7SpriteSources), 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-/// View 8's empty sprite list, selecting decoded background strips.
-static SpriteBatch _gAcropolisFireEscapeView8SpriteBatches[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-/// Shared empty sprite list for views 9 and 10; neither source slot supplies sprites.
-static SpriteBatch _gAcropolisFireEscapeViews9And10SpriteBatches[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-/// View 9's zero-extent clip at (19, 11), restored at sorting depth 250, then END.
-static SpriteDrawArea _gAcropolisFireEscapeView9SpriteDrawAreas[2] = {
-    { { 19, 11, 0, 0 }, 250 },
-    { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
-};
-
-/// Retained empty sprite-batch list with no published view or other consumer.
-///
-/// Both live slots 9 and 10 borrow the preceding shared list instead. The
-/// original allocation remains in the room image; its intended use is unproven.
-static SpriteBatch _gAcropolisFireEscapeUnusedSpriteBatches[2] = {
-    { .firstSprite = 0 },
-    { .firstSprite = SPRITE_BATCH_END },
-};
-
-SpriteView gAcropolisFireEscapeSpriteViews[10] = {
-    { { .empty = _gAcropolisFireEscapeView1SpriteBatches }, _gAcropolisFireEscapeView1SpriteBatches, NULL },
-    { { .empty = _gAcropolisFireEscapeView2SpriteBatches }, _gAcropolisFireEscapeView2SpriteBatches, NULL },
-    { { .elements = _gAcropolisFireEscapeView3SpriteSources }, _gAcropolisFireEscapeView3SpriteBatches, NULL },
-    { { .empty = _gAcropolisFireEscapeView4SpriteBatches }, _gAcropolisFireEscapeView4SpriteBatches, NULL },
-    { { .elements = _gAcropolisFireEscapeView5SpriteSources }, _gAcropolisFireEscapeView5SpriteBatches, NULL },
-    { { .empty = _gAcropolisFireEscapeView6SpriteBatches }, _gAcropolisFireEscapeView6SpriteBatches, _gAcropolisFireEscapeView6SpriteDrawAreas },
-    { { .elements = _gAcropolisFireEscapeView7SpriteSources }, _gAcropolisFireEscapeView7SpriteBatches, NULL },
-    { { .empty = _gAcropolisFireEscapeView8SpriteBatches }, _gAcropolisFireEscapeView8SpriteBatches, NULL },
-    { { .empty = _gAcropolisFireEscapeViews9And10SpriteBatches }, _gAcropolisFireEscapeViews9And10SpriteBatches, _gAcropolisFireEscapeView9SpriteDrawAreas },
-    { { .empty = _gAcropolisFireEscapeViews9And10SpriteBatches }, _gAcropolisFireEscapeViews9And10SpriteBatches, NULL },
-};
-
-ViewCamera gAcropolisFireEscapeViewCameras[9] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 1200, 0x7530, -1600 } }, 680 },
-    { { { { -4039, 0, 676 }, { 308, 3645, 1842 }, { -602, 1868, -3595 } }, { -2490, 2330, -2698 } }, 230 },
-    { { { { 4020, 0, 784 }, { 142, 4028, -728 }, { -771, 742, 3953 } }, { -2414, 1819, 1108 } }, 230 },
-    { { { { -519, 0, 4062 }, { -431, 4072, -55 }, { -4039, -434, -517 } }, { -3951, 691, -4228 } }, 257 },
-    { { { { -1415, 0, 3843 }, { -298, 4083, -109 }, { -3832, -317, -1411 } }, { 390, 2571, -4428 } }, 230 },
-    { { { { -3980, 0, -964 }, { 41, 4092, -169 }, { 963, -174, -3977 } }, { 4348, 2874, -5793 } }, 257 },
-    { { { { 4058, 0, -556 }, { 73, 4060, 532 }, { 551, -537, 4022 } }, { -1702, 511, 4673 } }, 230 },
-    { { { { 1699, 0, 3726 }, { 2331, 3195, -1063 }, { -2906, 2562, 1325 } }, { -1417, 1157, -1423 } }, 230 },
-    { { { { -1538, 0, -3796 }, { -2236, 3309, 906 }, { 3067, 2413, -1242 } }, { 3307, 3439, -2448 } }, 230 },
-};
-
 /// Type-1 cue-2 bases used by this room's surface footstep records.
 enum {
     ACROPOLIS_FIRE_ESCAPE_FOOTSTEP_DEFAULT_WALK = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x0D,
@@ -628,83 +204,6 @@ enum {
     ACROPOLIS_FIRE_ESCAPE_FOOTSTEP_CLASS1_WALK  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x15,
     ACROPOLIS_FIRE_ESCAPE_FOOTSTEP_CLASS1_RUN   = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x17,
     ACROPOLIS_FIRE_ESCAPE_FOOTSTEP_CLASS1_JUMP  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x19,
-};
-
-/// Surface class 1's loaded-bank walk, run and scripted-stair cue bases.
-static WorldCollisionFootstepSounds _gAcropolisFireEscapeSurfaceClass1FootstepSounds = {
-    .walk         = ACROPOLIS_FIRE_ESCAPE_FOOTSTEP_CLASS1_WALK,
-    .run          = ACROPOLIS_FIRE_ESCAPE_FOOTSTEP_CLASS1_RUN,
-    .scriptedJump = ACROPOLIS_FIRE_ESCAPE_FOOTSTEP_CLASS1_JUMP,
-};
-
-/// Surface class 3's separate cue record, initially identical to class 1's.
-static WorldCollisionFootstepSounds _gAcropolisFireEscapeSurfaceClass3FootstepSounds = {
-    .walk         = ACROPOLIS_FIRE_ESCAPE_FOOTSTEP_CLASS1_WALK,
-    .run          = ACROPOLIS_FIRE_ESCAPE_FOOTSTEP_CLASS1_RUN,
-    .scriptedJump = ACROPOLIS_FIRE_ESCAPE_FOOTSTEP_CLASS1_JUMP,
-};
-
-/// Cue bases for classes 0, 2, 4..7; scripted stairs use the walking pair.
-static WorldCollisionFootstepSounds _gAcropolisFireEscapeDefaultFootstepSounds = {
-    .walk         = ACROPOLIS_FIRE_ESCAPE_FOOTSTEP_DEFAULT_WALK,
-    .run          = ACROPOLIS_FIRE_ESCAPE_FOOTSTEP_DEFAULT_RUN,
-    .scriptedJump = ACROPOLIS_FIRE_ESCAPE_FOOTSTEP_DEFAULT_WALK,
-};
-
-/// Blocking, impact-enabled surface shared by classes 0, 4, 5 and 7.
-static WorldCollisionSurfaceProperties _gAcropolisFireEscapeDefaultSurfaceProperties = {
-    0,
-    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
-    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
-    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
-    &_gAcropolisFireEscapeDefaultFootstepSounds,
-};
-
-/// Class 1's blocking, impact-enabled surface and its stair-flight cue bases.
-static WorldCollisionSurfaceProperties _gAcropolisFireEscapeSurfaceClass1Properties = {
-    0,
-    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
-    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
-    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
-    &_gAcropolisFireEscapeSurfaceClass1FootstepSounds,
-};
-
-/// Class 2's separate blocking surface, borrowing the default footstep cues.
-static WorldCollisionSurfaceProperties _gAcropolisFireEscapeSurfaceClass2Properties = {
-    0,
-    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
-    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
-    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
-    &_gAcropolisFireEscapeDefaultFootstepSounds,
-};
-
-/// Class 3's separate blocking surface and cue record.
-static WorldCollisionSurfaceProperties _gAcropolisFireEscapeSurfaceClass3Properties = {
-    0,
-    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
-    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
-    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
-    &_gAcropolisFireEscapeSurfaceClass3FootstepSounds,
-};
-
-/// Class 6's probe-passing surface, retaining pushback and default footstep cues.
-static WorldCollisionSurfaceProperties _gAcropolisFireEscapeSurfaceClass6Properties = {
-    0,
-    WORLD_COLLISION_SURFACE_PASS_PROBES,
-    WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
-    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
-    &_gAcropolisFireEscapeDefaultFootstepSounds,
-};
-
-WorldCollisionSurfaceProperties* gAcropolisFireEscapeSurfacePropertiesByClass[8] = {
-    &_gAcropolisFireEscapeDefaultSurfaceProperties,
-    &_gAcropolisFireEscapeSurfaceClass1Properties,
-    &_gAcropolisFireEscapeSurfaceClass2Properties,
-    &_gAcropolisFireEscapeSurfaceClass3Properties,
-    &_gAcropolisFireEscapeDefaultSurfaceProperties,
-    &_gAcropolisFireEscapeDefaultSurfaceProperties,
-    &_gAcropolisFireEscapeSurfaceClass6Properties,
-    &_gAcropolisFireEscapeDefaultSurfaceProperties,
 };
 
 Task* gRoomCutsceneSoundTask;

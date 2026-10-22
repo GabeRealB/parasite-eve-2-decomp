@@ -1,0 +1,1081 @@
+# The assets of the group rooms/akropolis/bridge, each named rooms/akropolis/bridge/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "sounds_0"
+
+[[file.contents]]
+chunk = "sounds_1"
+
+[[file.contents]]
+chunk = "dialogue_0_atlas"
+
+[[file.contents]]
+asset = "rooms/akropolis/bridge_model_palette"
+sha1 = "82bbdfc9a19bd207c929469cdaf0de47ea916795"
+
+[[file.contents]]
+chunk = "palette_2"
+sha1 = "51b9fe53c3a093b46551e0777a550cb7c0e7aba3"
+palettes = [
+    { texture = "stars", variant = "star_core", region = "engine/vram/effect_palettes", offset = [0x00000, 0x00009] },
+    { texture = "stars", variant = "star_flare", region = "engine/vram/effect_palettes", offset = [0x00010, 0x00009] },
+    { texture = "stars", variant = "lamp_0", region = "engine/vram/effect_palettes", offset = [0x00020, 0x00009] },
+    { texture = "stars", variant = "lamp_1", region = "engine/vram/effect_palettes", offset = [0x00030, 0x00009] },
+    { texture = "stars", variant = "lamp_2", region = "engine/vram/effect_palettes", offset = [0x00040, 0x00009] },
+    { name = "unread_270_80", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00050, 0x00009] },
+    { name = "unread_270_96", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00060, 0x00009] },
+    { name = "unread_270_112", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00070, 0x00009] },
+    { name = "unread_270_128", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00080, 0x00009] },
+    { name = "unread_270_144", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00090, 0x00009] },
+    { name = "unread_270_160", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000A0, 0x00009] },
+    { name = "unread_270_176", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000B0, 0x00009] },
+    { name = "unread_270_192", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000C0, 0x00009] },
+    { name = "unread_270_208", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000D0, 0x00009] },
+    { name = "unread_270_224", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000E0, 0x00009] },
+    { name = "unread_270_240", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000F0, 0x00009] },
+    { name = "unread_270_256", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00100, 0x00009] },
+    { name = "unread_270_272", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00110, 0x00009] },
+    { name = "unread_270_288", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00120, 0x00009] },
+    { name = "unread_270_304", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00130, 0x00009] },
+    { name = "unread_row_271", entries = 256, region = "engine/vram/effect_palettes", offset = [0x00000, 0x0000A] },
+    { name = "unread_271_256", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00100, 0x0000A] },
+    { texture = "stars", variant = "ripple", region = "engine/vram/effect_palettes", offset = [0x00110, 0x0000A] },
+    { texture = "stars", variant = "debris", region = "engine/vram/effect_palettes", offset = [0x00120, 0x0000A] },
+    { texture = "stars", variant = "spray", region = "engine/vram/effect_palettes", offset = [0x00130, 0x0000A] },
+]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "cb212ad8ea686cde73fdf13de0f42f8f8505ad06"
+pages = [
+    { texture = "stars", region = "engine/vram/effect_sheet", offset = [0x000C0, 0x00000] },
+    { texture = "bridge", region = "engine/vram/room_sprite_sheet", offset = [0x00000, 0x00000] },
+]
+
+[[file.contents]]
+chunk = "package"
+
+[[file.contents]]
+chunk = "bundle"
+
+[stars]
+type = "texture"
+bpp = 4
+height = 256
+variants = ["star_core", "star_flare", "lamp_0", "lamp_1", "lamp_2", "ripple", "debris", "spray"]
+width = 256
+
+[stars.cells]
+star_core_0 = [0, 0, 16, 16]
+star_core_1 = [16, 0, 16, 16]
+star_core_2 = [32, 0, 16, 16]
+star_core_3 = [48, 0, 16, 16]
+star_core_4 = [64, 0, 16, 16]
+star_core_5 = [80, 0, 16, 16]
+star_flare = [0, 16, 40, 40]
+lamp_0 = [40, 16, 40, 40]
+lamp_1 = [80, 16, 40, 40]
+lamp_2 = [120, 16, 40, 40]
+
+[bridge]
+type = "texture"
+bpp = 4
+height = 256
+variants = ["default"]
+width = 256
+
+[bundle]
+type = "pe2bundle"
+resources = [
+    "",
+    "rooms/akropolis/bridge/view2_palette",
+    "rooms/akropolis/bridge/view3_palette",
+    "rooms/akropolis/bridge/view4_palette",
+    "rooms/akropolis/bridge/view5_palette",
+    "rooms/akropolis/bridge/view6_palette",
+    "rooms/akropolis/bridge/view7_palette",
+    "rooms/akropolis/bridge/view8_palette",
+    "",
+    "rooms/akropolis/bridge/view10_palette",
+    "rooms/akropolis/bridge/dialogue_0",
+]
+sha1 = "cf461a73a92f5a7d0f35bf2efe4e3bb7659308d1"
+
+[package]
+type = "room"
+embedded = [
+    { name = "acropolis_bridge_model_0AD9C", offset = 0x0A81C, size = 0x1070, address = 0x80187DDC },
+    "acropolis_bridge_path_0BC80",
+    "acropolis_bridge_model_13870",
+    "acropolis_bridge_animation_13C00",
+]
+package_name = "acropolis_bridge"
+required = true
+sha1 = "c24f91488b8fd9a1555870bbd30bb4e08d72bb8a"
+
+[package.entries]
+markers = [0x0C35C, 0x0C394, 0x0C3CC, 0x0C474, { at = 0x0C484, single = true }, { at = 0x0C48C, single = true }]
+vibrations = [{ commands = 0x135CC, segments = 0x135E4 }, { commands = 0x135FC, segments = 0x13614 }]
+view_masks = [0x0C42C, 0x0C45C]
+
+[sounds_0]
+type = "sound_bank"
+samples = [
+    "rooms/akropolis/bridge/walk_surface_4_1",
+    "rooms/akropolis/promenade/walk_surface_4_2",
+    "rooms/akropolis/bridge/walk_surface_2_1",
+    "rooms/akropolis/bridge/walk_surface_2_2",
+    "rooms/akropolis/bridge/run_surface_2_1",
+    "rooms/akropolis/bridge/run_surface_2_2",
+]
+sha1 = "d1f22b478e60b9f2c9be28e0785d75b8adfcc634"
+
+[sounds_0.sounds]
+walk_surface_4_1 = 21
+walk_surface_4_2 = 22
+run_surface_4_1 = 23
+run_surface_4_2 = 24
+jump_surface_4_1 = 25
+jump_surface_4_2 = 26
+walk_surface_2_1 = 37
+walk_surface_2_2 = 38
+run_surface_2_1 = 39
+run_surface_2_2 = 40
+
+[sounds_1]
+type = "sound_bank"
+samples = [
+    "rooms/akropolis/bridge/keypad_beep",
+    "rooms/akropolis/bridge/code_rejected",
+    "rooms/akropolis/bridge/door_fire_escape_open",
+    "rooms/akropolis/bridge/door_fire_escape_close",
+    "rooms/akropolis/promenade/bridge_door_open",
+    "rooms/akropolis/promenade/bridge_door_close",
+    "rooms/akropolis/bridge/code_accepted",
+]
+sha1 = "3a6238eb41397d52e3d3579d19ea07549ab1d019"
+
+[sounds_1.sounds]
+keypad_beep = 3
+code_rejected = 4
+door_fire_escape_open = 5
+door_fire_escape_close = 6
+door_promenade_open = 7
+door_promenade_close = 8
+code_accepted = 9
+
+[dialogue_0]
+type = "cap"
+sha1 = "09058d279b9cfba71d619ab06358b5a580ba53a6"
+
+[view2_file]
+type = "file"
+
+[[view2_file.contents]]
+chunk = "view2_image"
+sha1 = "2902826784be595dab2bc317de45fb2f86ff048e"
+pages = [
+    { texture = "view2_page_1", region = "engine/vram/room_sprite_sheet", offset = [0x00040, 0x00000] },
+    { texture = "view2_page_2", region = "engine/vram/room_sprite_sheet", offset = [0x00080, 0x00000] },
+    { texture = "view2_page_3", region = "engine/vram/room_sprite_sheet", offset = [0x000C0, 0x00000] },
+]
+
+[[view2_file.contents]]
+chunk = "view2_background"
+
+[[view2_file.contents]]
+chunk = "view2_palette"
+sha1 = "bebecf912ca532f722ec6aca7fa5b39585f0dbf5"
+
+[[view2_file.contents.palettes]]
+texture = "view2_page_1"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view2_file.contents.palettes]]
+texture = "view2_page_2"
+variant = "row_0"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view2_file.contents.palettes]]
+texture = "view2_page_3"
+variant = "row_0"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view2_file.contents.palettes]]
+texture = "view2_page_2"
+variant = "row_1"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view2_file.contents.palettes]]
+texture = "view2_page_3"
+variant = "row_1"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view2_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view2_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view2_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view2_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
+[view3_file]
+type = "file"
+
+[[view3_file.contents]]
+chunk = "view3_image"
+sha1 = "3a4252daacbe9c5138fba661eb83e7d62c21b705"
+pages = [{ texture = "view3_page_1", region = "engine/vram/room_sprite_sheet", offset = [0x00000, 0x00000] }]
+slots = 2
+
+[[view3_file.contents]]
+chunk = "view3_image_2"
+sha1 = "31a87b146c0605fd6a52ddcb5bd62e7492ebbe7a"
+pages = [
+    { texture = "view3_page_2", region = "engine/vram/room_sprite_sheet", offset = [0x00040, 0x00000] },
+    { texture = "view3_page_3", region = "engine/vram/room_sprite_sheet", offset = [0x00080, 0x00000] },
+    { texture = "view3_page_4", region = "engine/vram/room_sprite_sheet", offset = [0x000C0, 0x00000] },
+]
+
+[[view3_file.contents]]
+chunk = "view3_background"
+
+[[view3_file.contents]]
+chunk = "view3_palette"
+sha1 = "aede562d831a1e5af97ddf13f4fa5ad65ee2e544"
+
+[[view3_file.contents.palettes]]
+texture = "view3_page_1"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view3_file.contents.palettes]]
+texture = "view3_page_2"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view3_file.contents.palettes]]
+texture = "view3_page_3"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view3_file.contents.palettes]]
+texture = "view3_page_4"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view3_file.contents.palettes]]
+name = "unread_row_1"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view3_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view3_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view3_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view3_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
+[view4_file]
+type = "file"
+
+[[view4_file.contents]]
+chunk = "view4_image"
+sha1 = "d536047d81d6706877295b7dba7f29764d14ec28"
+pages = [{ texture = "view4_page_1", region = "engine/vram/room_sprite_sheet", offset = [0x00000, 0x00000] }]
+slots = 2
+
+[[view4_file.contents]]
+chunk = "view4_image_2"
+sha1 = "581ff98fc0a2b6c4bbbdbd3a233450d08cd3d39b"
+pages = [
+    { texture = "view4_page_2", region = "engine/vram/room_sprite_sheet", offset = [0x00040, 0x00000] },
+    { texture = "view4_page_3", region = "engine/vram/room_sprite_sheet", offset = [0x00080, 0x00000] },
+    { texture = "view4_page_4", region = "engine/vram/room_sprite_sheet", offset = [0x000C0, 0x00000] },
+]
+
+[[view4_file.contents]]
+chunk = "view4_background"
+
+[[view4_file.contents]]
+chunk = "view4_palette"
+sha1 = "b77b5f0056be44123a985c09d6fd81d0b3a3743f"
+
+[[view4_file.contents.palettes]]
+texture = "view4_page_1"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view4_file.contents.palettes]]
+texture = "view4_page_2"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view4_file.contents.palettes]]
+texture = "view4_page_3"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view4_file.contents.palettes]]
+texture = "view4_page_4"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view4_file.contents.palettes]]
+name = "unread_row_1"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view4_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view4_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view4_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view4_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
+[view5_file]
+type = "file"
+
+[[view5_file.contents]]
+chunk = "view5_image"
+sha1 = "808afc250beb7754f71232ef0286442040ab003d"
+pages = [{ texture = "view5_page_1", region = "engine/vram/room_sprite_sheet", offset = [0x00000, 0x00000] }]
+slots = 3
+
+[[view5_file.contents]]
+chunk = "view5_image_2"
+sha1 = "21e81c8b3b9a073e79154f6aa8046dd3f9baa100"
+pages = [
+    { texture = "view5_page_2", region = "engine/vram/room_sprite_sheet", offset = [0x00040, 0x00000] },
+    { texture = "view5_page_3", region = "engine/vram/room_sprite_sheet", offset = [0x00080, 0x00000] },
+    { texture = "view5_page_4", region = "engine/vram/room_sprite_sheet", offset = [0x000C0, 0x00000] },
+]
+
+[[view5_file.contents]]
+chunk = "view5_background"
+
+[[view5_file.contents]]
+chunk = "view5_palette"
+sha1 = "5fc92aaab75a2598812c539495f100730f77f58b"
+
+[[view5_file.contents.palettes]]
+texture = "view5_page_1"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view5_file.contents.palettes]]
+texture = "view5_page_2"
+variant = "row_0"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view5_file.contents.palettes]]
+texture = "view5_page_3"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view5_file.contents.palettes]]
+texture = "view5_page_4"
+variant = "row_0"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view5_file.contents.palettes]]
+texture = "view5_page_2"
+variant = "row_1"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view5_file.contents.palettes]]
+texture = "view5_page_4"
+variant = "row_1"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view5_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view5_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view5_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view5_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
+[view6_file]
+type = "file"
+
+[[view6_file.contents]]
+chunk = "view6_image"
+sha1 = "f9f1c5233ed248c409177484e83329dc6ddaecf0"
+pages = [
+    { texture = "view6_page_1", region = "engine/vram/room_sprite_sheet", offset = [0x00040, 0x00000] },
+    { texture = "view6_page_2", region = "engine/vram/room_sprite_sheet", offset = [0x00080, 0x00000] },
+    { texture = "view6_page_3", region = "engine/vram/room_sprite_sheet", offset = [0x000C0, 0x00000] },
+]
+
+[[view6_file.contents]]
+chunk = "view6_background"
+
+[[view6_file.contents]]
+chunk = "view6_palette"
+sha1 = "5005d580bf861dccf4605292f6c8bc1bbcbcd065"
+
+[[view6_file.contents.palettes]]
+texture = "view6_page_1"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view6_file.contents.palettes]]
+texture = "view6_page_2"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view6_file.contents.palettes]]
+texture = "view6_page_3"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view6_file.contents.palettes]]
+name = "unread_row_1"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view6_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view6_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view6_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view6_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
+[view7_file]
+type = "file"
+
+[[view7_file.contents]]
+chunk = "view7_image"
+sha1 = "0afd0d8091c8715ac6953fc9fc050b82ef161f87"
+pages = [{ texture = "view7_page_1", region = "engine/vram/room_sprite_sheet", offset = [0x00000, 0x00000] }]
+slots = 2
+
+[[view7_file.contents]]
+chunk = "view7_image_2"
+sha1 = "008859fbf864a2a7cfc9e82a2f54479914cbc679"
+pages = [
+    { texture = "view7_page_2", region = "engine/vram/room_sprite_sheet", offset = [0x00040, 0x00000] },
+    { texture = "view7_page_3", region = "engine/vram/room_sprite_sheet", offset = [0x00080, 0x00000] },
+    { texture = "view7_page_4", region = "engine/vram/room_sprite_sheet", offset = [0x000C0, 0x00000] },
+]
+
+[[view7_file.contents]]
+chunk = "view7_background"
+
+[[view7_file.contents]]
+chunk = "view7_palette"
+sha1 = "fce07de84c7d14e66b30bb32eae5f60abf1cdbb9"
+
+[[view7_file.contents.palettes]]
+texture = "view7_page_1"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view7_file.contents.palettes]]
+texture = "view7_page_2"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view7_file.contents.palettes]]
+texture = "view7_page_3"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view7_file.contents.palettes]]
+texture = "view7_page_4"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view7_file.contents.palettes]]
+name = "unread_row_1"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view7_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view7_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view7_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view7_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
+[view8_file]
+type = "file"
+
+[[view8_file.contents]]
+chunk = "view8_image"
+sha1 = "dcad22d51969b6c117b848c7b15d5bb133cb812e"
+pages = [
+    { texture = "view8_page_1", region = "engine/vram/room_sprite_sheet", offset = [0x00080, 0x00000] },
+    { texture = "view8_page_2", region = "engine/vram/room_sprite_sheet", offset = [0x000C0, 0x00000] },
+]
+slots = 3
+
+[[view8_file.contents]]
+chunk = "view8_background"
+
+[[view8_file.contents]]
+chunk = "view8_palette"
+sha1 = "9ce2deab73aee18a1d9976c9d9cd81ff17a81336"
+
+[[view8_file.contents.palettes]]
+texture = "view8_page_1"
+variant = "row_0"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view8_file.contents.palettes]]
+texture = "view8_page_2"
+variant = "row_0"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view8_file.contents.palettes]]
+texture = "view8_page_1"
+variant = "row_1"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view8_file.contents.palettes]]
+texture = "view8_page_2"
+variant = "row_1"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view8_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view8_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view8_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view8_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
+[keypad_beep]
+type = "sound"
+mode = "high"
+sha1 = "67ff8d2c37c814334b9fdd1872eb3c4f4fc9cbd0"
+
+[view10_file]
+type = "file"
+
+[[view10_file.contents]]
+chunk = "view10_image"
+sha1 = "f2319574334ea295baa48fc31b5b5c19e41a7ff8"
+pages = [{ texture = "view10_page_1", region = "engine/vram/room_sprite_sheet", offset = [0x00000, 0x00000] }]
+slots = 3
+
+[[view10_file.contents]]
+chunk = "view10_image_2"
+sha1 = "b44c7f61713090c56e32152b968f21f30ed113a9"
+pages = [
+    { texture = "view10_page_2", region = "engine/vram/room_sprite_sheet", offset = [0x00040, 0x00000] },
+    { texture = "view10_page_3", region = "engine/vram/room_sprite_sheet", offset = [0x00080, 0x00000] },
+    { texture = "view10_page_4", region = "engine/vram/room_sprite_sheet", offset = [0x000C0, 0x00000] },
+]
+
+[[view10_file.contents]]
+chunk = "view10_background"
+
+[[view10_file.contents]]
+chunk = "view10_palette"
+sha1 = "3d4f887bf7d02a274230c9e35c8bd09b3ebbe363"
+
+[[view10_file.contents.palettes]]
+texture = "view10_page_1"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view10_file.contents.palettes]]
+texture = "view10_page_4"
+variant = "row_0"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view10_file.contents.palettes]]
+texture = "view10_page_3"
+variant = "row_1"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view10_file.contents.palettes]]
+texture = "view10_page_4"
+variant = "row_1"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view10_file.contents.palettes]]
+texture = "view10_page_2"
+variant = "row_2"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view10_file.contents.palettes]]
+texture = "view10_page_4"
+variant = "row_2"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view10_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view10_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view10_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
+[view2_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view2_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["row_0", "row_1"]
+width = 128
+
+[view2_page_3]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["row_0", "row_1"]
+width = 128
+
+[view3_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view3_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view3_page_3]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view3_page_4]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view4_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view4_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view4_page_3]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view4_page_4]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view5_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view5_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["row_0", "row_1"]
+width = 128
+
+[view5_page_3]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view5_page_4]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["row_0", "row_1"]
+width = 128
+
+[view6_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view6_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view6_page_3]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view7_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view7_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view7_page_3]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view7_page_4]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view8_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["row_0", "row_1"]
+width = 128
+
+[view8_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["row_0", "row_1"]
+width = 128
+
+[code_accepted]
+type = "sound"
+mode = "high"
+sha1 = "9b2868b9e5b45895b13a711b04ccfbf119244d1f"
+
+[code_rejected]
+type = "sound"
+mode = "high"
+sha1 = "141620cc3512ab9e14da109734d1ba0960cac4fe"
+
+[view10_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view10_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["row_2"]
+width = 128
+
+[view10_page_3]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["row_1"]
+width = 128
+
+[view10_page_4]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["row_0", "row_1", "row_2"]
+width = 128
+
+[run_surface_2_1]
+type = "sound"
+sha1 = "0766fcfcf69498fa2a51613ca33a06d278bf0d56"
+
+[run_surface_2_2]
+type = "sound"
+sha1 = "7e9011c8b5e8026a3012b6c975043bb664654085"
+
+[dialogue_0_atlas]
+type = "font_atlas"
+bpp = 4
+generated_by = "rooms/akropolis/bridge/dialogue_0"
+h = 256
+w = 64
+x = 384
+y = 0
+sha1 = "3c3824845b8638f7e742459fd69f3acb8a46474b"
+
+[view1_background]
+type = "bs"
+sha1 = "31248aafba3516e9f56966251324462b2c2d9bfb"
+
+[view2_background]
+type = "bs"
+sha1 = "f25c3aa0ae0edf31b786c2e39701ccb81b1b7902"
+
+[view3_background]
+type = "bs"
+sha1 = "899ca6c3562893a5a2e20566bca7d41c19fdcd33"
+
+[view4_background]
+type = "bs"
+sha1 = "4d155ec888adf56153fc0e3a993873a98fee1278"
+
+[view5_background]
+type = "bs"
+sha1 = "73fda54ce43f888237e423fd88c8b9ed63ba35a6"
+
+[view6_background]
+type = "bs"
+sha1 = "3eb01b871e196fc09b77a111a2ce94f1ce4ade56"
+
+[view7_background]
+type = "bs"
+sha1 = "b317320bbf8ee8f9322ddec6f58482c874fbed1d"
+
+[view8_background]
+type = "bs"
+sha1 = "6eaa2368af814d2a26df40bc176eca12b74774b2"
+
+[view9_background]
+type = "bs"
+sha1 = "00ec009a3effc20274530630988f468cfd731b6f"
+
+[walk_surface_2_1]
+type = "sound"
+sha1 = "0afc27a9bde63a55077903d02d7212006ccdbfdd"
+
+[walk_surface_2_2]
+type = "sound"
+sha1 = "b99b8d236a0392f4524558c4d781615cbfd83d83"
+
+[walk_surface_4_1]
+type = "sound"
+sha1 = "c4e3c15dd1ea3f97089f7417f79e8edf5a9b54cb"
+
+[view10_background]
+type = "bs"
+sha1 = "3f91f7838c27fc77e7df8efb10f22e43d6b5dd68"
+
+[door_fire_escape_open]
+type = "sound"
+sha1 = "09ea8a5071f88a17cbf5f86c2c1086c65a580b39"
+
+[door_fire_escape_close]
+type = "sound"
+sha1 = "d431093b45cb046357868d648353162b00211e59"
+
+[acropolis_bridge_model_0AD9C]
+type = "model"
+slots = ["bridge"]
+symbol = "_gAkropolisBridgeAcropolisBridgeModel0AD9C"
+sha1 = "77ce31e152d110faf8cba604eadb8ff32db339c9"
+
+[acropolis_bridge_model_0AD9C_binding]
+type = "binding"
+model = "rooms/akropolis/bridge/acropolis_bridge_model_0AD9C"
+textures = { bridge = "rooms/akropolis/bridge/bridge.default" }

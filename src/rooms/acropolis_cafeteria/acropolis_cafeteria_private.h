@@ -13,18 +13,6 @@
 
 #include "main/task_types.h"
 
-/// The cafeteria's live cone light followed by fourteen inactive record slots.
-///
-/// `liveLights` is the complete array borrowed by the room's light collection.
-/// Coordinates and attenuation remain writable while this overlay is loaded.
-/// `inactiveSlots` preserves unused representations at the spotlight stride;
-/// their remaining payload's role is unproven.
-typedef struct {
-    WorldCoordSpotLight liveLights[1];                                  // Cone light used by the room's lighting descriptor.
-    u8                  inactiveSlots[14][sizeof(WorldCoordSpotLight)]; // Opaque inactive records, excluded from the live count.
-} AcropolisCafeteriaSpotLightStorage;
-STATIC_ASSERT_SIZEOF(AcropolisCafeteriaSpotLightStorage, 1620);
-
 /// Descriptor indices for the cafeteria movie transition; there is no end marker.
 enum {
     ACROPOLIS_CAFETERIA_MOVIE_TASK_LAUNCH   = 0,
@@ -46,7 +34,7 @@ extern TaskDesc gAcropolisCafeteriaMovieTasks[ACROPOLIS_CAFETERIA_MOVIE_TASK_COU
 /// The effect task borrows both read-only entries while the overlay is loaded.
 /// The first integer payload stores the puff gate verbatim (0 disables,
 /// nonzero enables); unsupported message IDs return zero.
-extern const TaskMessageEntry gAcropolisCafeteriaRoomEffectMessages[2];
+extern TaskMessageEntry gAcropolisCafeteriaRoomEffectMessages[2];
 
 /// Shared cafeteria puff gate (0 disabled, any nonzero signed word enabled).
 ///
@@ -86,7 +74,7 @@ extern WorldCoordRoomAmbientEntry gAcropolisCafeteriaViewAmbientColors[25];
 /// the patio's map mark and setting the forked road's. Also discards both areas'
 /// saved enemy poses. The third record is `AREA_APPLY_END`; the synchronous
 /// update call borrows the list while the cafeteria overlay is loaded.
-extern const AreaApplyRec gAcropolisCafeteriaFollowUpAreaUpdates[3];
+extern AreaApplyRec gAcropolisCafeteriaFollowUpAreaUpdates[3];
 
 /// Singleton Stranger recoil X velocity in signed room units per controller tick.
 ///
@@ -109,16 +97,12 @@ extern s32 gAcropolisCafeteriaStrangerRecoilVelocityY;
 /// loaded; the controller ends once X/Z stop and the root reaches its floor.
 extern s32 gAcropolisCafeteriaStrangerRecoilVelocityZ;
 
-/// Authored cone-light storage shared by all cafeteria lighting sets.
+/// The cafeteria's cone lights: the room's light collection counts the first.
 ///
-/// The room light collection borrows only the one-element `liveLights` array
-/// while the overlay is loaded; `inactiveSlots` is outside its live count.
-/// The light contributes in every view. Position and falloff radii use integer
-/// world units, RGB intensities use 12 fractional bits, and the full cone opening
-/// uses 0x1000 units per turn. Coordinate caches, parent links and query
-/// attenuation remain writable; pointers into this block must not outlive the
-/// overlay.
-extern AcropolisCafeteriaSpotLightStorage gAcropolisCafeteriaSpotLightStorage;
+/// The other fourteen records keep stale bytes - sprite fields and a pointer
+/// outside the room among them - that nothing reads. Coordinate caches, parent
+/// links and attenuation remain writable while the overlay is loaded.
+extern WorldCoordSpotLight gAcropolisCafeteriaSpotLightStorage[15];
 
 // Callbacks referenced by the overlay's shared data tables.
 /// Plays the cafeteria movie with its area-music cue, then restores game presentation.

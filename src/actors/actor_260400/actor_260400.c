@@ -101,7 +101,7 @@ static AnimationSet _gShelter1fHeliportPlayerRupertOpeningTalkClip;
 static AnimationSet _gAyaConverseClip;
 static AnimationSet _gShelter1fHeliportPlayerRupertFourthTalkClip;
 extern AnimationSet gAyaStandClip;
-static AnimationSet _gAyaOnMyWayClip;
+extern AnimationSet gAyaOnMyWayClip;
 
 #include "assets/rooms/shelter/1f_heliport/rupert_clips_1.inc"
 

@@ -363,18 +363,26 @@ type = "file"
 chunk = "image"
 sha1 = "e043e14585b93c4bbf962c8d5a8a515c5a0b20b7"
 pages = [
-    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
-    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [0x00040, 0x00000] },
 ]
 slots = 6
 
 [[package_file.contents]]
 chunk = "palette"
 sha1 = "73b0329e03eb54304cce3fc21f8947e9b0edf849"
-palettes = [
-    { texture = "texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
-    { texture = "texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
-]
+
+[[package_file.contents.palettes]]
+texture = "texture_page_1"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00000]
+
+[[package_file.contents.palettes]]
+texture = "texture_page_2"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00001]
 
 [[package_file.contents]]
 chunk = "package_1"
@@ -389,18 +397,26 @@ chunk = "sounds"
 chunk = "recolor_image"
 sha1 = "fb5fd0b04c67cd310335286dbaf81fe307859c4b"
 pages = [
-    { texture = "recolor_texture_page_1", region = "engine/vram/actor_sheet", offset = [0, 0] },
-    { texture = "recolor_texture_page_2", region = "engine/vram/actor_sheet", offset = [64, 0] },
+    { texture = "recolor_texture_page_1", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] },
+    { texture = "recolor_texture_page_2", region = "engine/vram/actor_sheet", offset = [0x00040, 0x00000] },
 ]
 slots = 6
 
 [[recolor_file.contents]]
 chunk = "recolor_palette"
 sha1 = "3bcd3a6d7e8ab6d8825cd29821118dd3e1798863"
-palettes = [
-    { texture = "recolor_texture_page_1", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 0] },
-    { texture = "recolor_texture_page_2", variant = "default", region = "engine/vram/actor_palettes", offset = [0, 1] },
-]
+
+[[recolor_file.contents.palettes]]
+texture = "recolor_texture_page_1"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00000]
+
+[[recolor_file.contents.palettes]]
+texture = "recolor_texture_page_2"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00001]
 
 [[recolor_file.contents]]
 chunk = "recolor_package_1"

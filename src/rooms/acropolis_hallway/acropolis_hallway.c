@@ -41,6 +41,8 @@
 #include "overlay.h"
 #include "../../shared/actor/actor_contacts.h"
 
+#include "assets/rooms/akropolis/hallway/declarations.inc"
+
 extern SVECTOR ActorContact_ScratchPosition;
 
 /// Returns this carrier's persistent last contact-push correction.
@@ -75,13 +77,9 @@ static SVECTOR _gAcropolisHallwayModel023C0Normals[6];
 static TmdBone _gAcropolisHallwayModel023C0Skeleton[1];
 static u32     _gAcropolisHallwayModel023C0Stream[42];
 
-static WorldCollisionGrid    _gAcropolisHallwayCollisionGrid;
-static WorldCollisionTrigger _gAcropolisHallwayViewBoundaryTriggers[4];
-static WorldCollisionTrigger _gAcropolisHallwayActionTriggers[9];
-static WorldCoordRoomLights  _gAcropolisHallwayRoomLights;
-static s32                   _acropolisHallwayResolveRoomTransition(Task* unusedTask, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
-static s32                   _acropolisHallwayRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedSecondArg);
-static s32                   _acropolisHallwayHandleSoundCue(Task* unusedTask, s32 messageId, s32 soundCue, s32 unusedArg);
+static s32 _acropolisHallwayResolveRoomTransition(Task* unusedTask, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32 _acropolisHallwayRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedSecondArg);
+static s32 _acropolisHallwayHandleSoundCue(Task* unusedTask, s32 messageId, s32 soundCue, s32 unusedArg);
 
 /// Synchronous room messages for transition resolution, key-item refusal and sound cues.
 ///
@@ -96,24 +94,15 @@ static TaskMessageEntry _gAcropolisHallwayRoomMessages[] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-WorldCollisionRoomResources gAcropolisHallwayRoomCollisionResources[1] = {
-    {
-        .grid                 = &_gAcropolisHallwayCollisionGrid,
-        .viewBoundaryTriggers = _gAcropolisHallwayViewBoundaryTriggers,
-        .actionTriggers       = _gAcropolisHallwayActionTriggers,
-        .occluders            = NULL,
-    },
-};
-
-u8* gAcropolisHallwayViewMaps[1] = {
-    gViewIdentityMap,
-};
-
-ViewCount gAcropolisHallwayViewCounts[1] = { ARRAY_SIZE(gAcropolisHallwayViewCameras) };
-
-WorldCoordRoomLighting gAcropolisHallwayRoomLightingTable[1] = {
-    { .lights = &_gAcropolisHallwayRoomLights, .ambientTable = NULL },
-};
+#include "assets/rooms/akropolis/hallway/header.inc"
+#include "assets/rooms/akropolis/hallway/geometry.inc"
+#include "assets/rooms/akropolis/hallway/view_boundaries.inc"
+#include "assets/rooms/akropolis/hallway/action_triggers.inc"
+#include "assets/rooms/akropolis/hallway/placements.inc"
+#include "assets/rooms/akropolis/hallway/lights.inc"
+#include "assets/rooms/akropolis/hallway/sprites.inc"
+#include "assets/rooms/akropolis/hallway/cameras.inc"
+#include "assets/rooms/akropolis/hallway/surfaces.inc"
 
 /// One-based hallway endpoints selected by departure triggers and arrival warps.
 enum {
@@ -124,359 +113,7 @@ enum {
     ACROPOLIS_HALLWAY_WARP_ENDPOINT_SHIFT  = 4,
 };
 
-DirectionWarpEntry gAcropolisHallwayWarpEntries[4] = {
-    [ACROPOLIS_HALLWAY_WARP_FOUNTAIN - 1]        = { { { .word = 3072 }, 3012, -937, -698 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 3012, -937, -698 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_HALLWAY, 2), SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_HALLWAY, 1), DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, 497 },
-    [ACROPOLIS_HALLWAY_WARP_SECURITY_ROOM - 1]   = { { { .word = 2048 }, 2271, -937, 970 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 2271, -937, 970 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_HALLWAY, 2), SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_HALLWAY, 1), DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, 498 },
-    [ACROPOLIS_HALLWAY_WARP_CAFETERIA_VIEW3 - 1] = { { { .word = 2048 }, -748, -937, 970 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -748, -937, 970 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_HALLWAY, 2), SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_HALLWAY, 1), DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, 499 },
-    [ACROPOLIS_HALLWAY_WARP_CAFETERIA_VIEW2 - 1] = { { { .word = 1024 }, -2963, -937, -623 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -2963, -937, -623 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_HALLWAY, 4), SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_HALLWAY, 3), DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 500 },
-};
-
-/// Room-space plane normals for the hallway grid, with 4096 per unit length.
-static SVECTOR _gAcropolisHallwayCollisionGridNormals[10] = {
-#include "assets/acropolis_hallway_collision_01010_normals.inc"
-};
-
-/// Hallway grid vertices in signed room-coordinate game units.
-static SVECTOR _gAcropolisHallwayCollisionGridVerts[35] = {
-#include "assets/acropolis_hallway_collision_01010_verts.inc"
-};
-
-/// Hallway grid faces, using surface classes 0 (silent), 1 (pass-through) and 4 (blocking).
-static WorldCollisionGridFace _gAcropolisHallwayCollisionGridFaces[17] = {
-#include "assets/acropolis_hallway_collision_01010_faces.inc"
-};
-
-/// Packed signed face-index lists, each ending at WORLD_COLLISION_GRID_CELL_END.
-///
-/// The two cells start at elements 0 and 18. Element 17 is retained storage
-/// outside the first list; no active cell references it.
-static s16 _gAcropolisHallwayCollisionGridCells[30] = {
-#include "assets/acropolis_hallway_collision_01010_cells.inc"
-};
-
-/// Resolves a generated face-list start in this grid's packed halfword pool.
-///
-/// halfwordOffset counts signed-halfword elements and is evaluated once.
-/// It must select an in-bounds list start in the captured pool.
-/// Captures `_gAcropolisHallwayCollisionGridCells`; returns a borrowed s16* without reading it.
-/// The table include supplies list-start constants; empty cells use NULL.
-/// Define only for that include and undefine immediately afterward.
-#define ACROPOLIS_HALLWAY_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gAcropolisHallwayCollisionGridCells[(halfwordOffset)])
-/// X-major table of the hallway grid's two cells, each borrowing its face list.
-static s16* _gAcropolisHallwayCollisionGridTable[2] = {
-#include "assets/acropolis_hallway_collision_01010_table.inc"
-};
-#undef ACROPOLIS_HALLWAY_CELL_FACE_LIST_AT_OFFSET
-
-/// The hallway's room collision mesh and two-cell XZ index.
-///
-/// Covers a 2-by-1 grid from (-3250, -1250), with 4000-unit square cells.
-/// Room activation binds the view transform; the mesh and cell lists remain
-/// borrowed until the active grid is replaced and the overlay can unload.
-static WorldCollisionGrid _gAcropolisHallwayCollisionGrid = {
-    .viewCoord   = NULL,
-    .normals     = _gAcropolisHallwayCollisionGridNormals,
-    .vertices    = _gAcropolisHallwayCollisionGridVerts,
-    .faces       = _gAcropolisHallwayCollisionGridFaces,
-    .cellFaceIds = _gAcropolisHallwayCollisionGridTable,
-    .xBias       = 3250,
-    .zBias       = 1250,
-    .cellCountX  = ARRAY_SIZE(_gAcropolisHallwayCollisionGridTable),
-    .cellCountZ  = 1,
-    .cellSize    = 4000,
-    .faceCount   = ARRAY_SIZE(_gAcropolisHallwayCollisionGridFaces),
-};
-
-/// Directed view boundaries 2->3, 3->4, 4->3 and 3->2, in scan order.
-///
-/// Positions and radii use room game units; normals use 4096 per unit. Room
-/// setup binds, links and enables all four mutable records through LAST.
-/// Keep the overlay loaded until these runtime list nodes are unlinked.
-static WorldCollisionTrigger _gAcropolisHallwayViewBoundaryTriggers[4] = {
-    { NULL, NULL, NULL, { -1984, -2016, 0, 0 }, { { 0, -1792, -1760, 0 }, { 0, 1792, -1760, 0 }, { 0, -1792, 1760, 0 }, { 0, 1792, 1760, 0 } }, { -4106, 0, 0, 0 }, { 0, 0, 0, 0 }, 2508, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 320, -2016, 0, 0 }, { { -174, -1792, -1752, 0 }, { -174, 1792, -1752, 0 }, { 172, -1792, 1750, 0 }, { 172, 1792, 1750, 0 } }, { -4086, 0, 402, 0 }, { 0, 0, 0, 0 }, 2508, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 192, -1920, 0, 0 }, { { -174, 1792, -1752, 0 }, { -174, -1792, -1752, 0 }, { 172, 1792, 1750, 0 }, { 172, -1792, 1750, 0 } }, { 4084, 0, -404, 0 }, { 0, 0, 0, 0 }, 2508, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -2112, -1952, 0, 0 }, { { 0, 1792, -1760, 0 }, { 0, -1792, -1760, 0 }, { 0, 1792, 1760, 0 }, { 0, -1792, 1760, 0 } }, { 4105, 0, 0, 0 }, { 0, 0, 0, 0 }, 2508, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
-};
-
-/// Four hallway exit quads followed by CAP interaction commands 2..6.
-///
-/// Exit parameter1 packs the hallway departure slot above the destination
-/// arrival slot. The CAP parameters select commands without presentation flags.
-/// Positions/radii use room game units and normals use 4096 per unit. Setup
-/// binds and enables all nine records through LAST; retain them until unlinked.
-static WorldCollisionTrigger _gAcropolisHallwayActionTriggers[9] = {
-    { NULL, NULL, NULL, { -2960, -1024, -384, 0 }, { { -272, 0, -736, 0 }, { 272, 0, -736, 0 }, { -272, 0, 736, 0 }, { 272, 0, 736, 0 } }, { 0, 4102, 0, 0 }, { ONE, 0, 0, 0 }, 783, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_AKROPOLIS_CAFETERIA, (ACROPOLIS_HALLWAY_WARP_CAFETERIA_VIEW2 << ACROPOLIS_HALLWAY_WARP_ENDPOINT_SHIFT) | 3, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -768, -1016, 920, 0 }, { { -496, 0, -352, 0 }, { 496, 0, -352, 0 }, { -496, 0, 352, 0 }, { 496, 0, 352, 0 } }, { 0, 4111, 0, 0 }, { 0, 0, -ONE, 0 }, 607, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_AKROPOLIS_CAFETERIA, (ACROPOLIS_HALLWAY_WARP_CAFETERIA_VIEW3 << ACROPOLIS_HALLWAY_WARP_ENDPOINT_SHIFT) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2304, -1024, 928, 0 }, { { -496, 0, -352, 0 }, { 496, 0, -352, 0 }, { -496, 0, 352, 0 }, { 496, 0, 352, 0 } }, { 0, 4111, 0, 0 }, { 0, 0, -ONE, 0 }, 607, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_AKROPOLIS_SECURITY_ROOM, (ACROPOLIS_HALLWAY_WARP_SECURITY_ROOM << ACROPOLIS_HALLWAY_WARP_ENDPOINT_SHIFT) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2944, -1024, -672, 0 }, { { 288, 0, -496, 0 }, { 288, 0, 496, 0 }, { -288, 0, -496, 0 }, { -288, 0, 496, 0 } }, { 0, 4108, 0, 0 }, { -ONE, 0, 0, 0 }, 572, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_AKROPOLIS_FOUNTAIN, (ACROPOLIS_HALLWAY_WARP_FOUNTAIN << ACROPOLIS_HALLWAY_WARP_ENDPOINT_SHIFT) | 3, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 800, -1088, -928, 0 }, { { -560, 0, -288, 0 }, { 560, 0, -288, 0 }, { -560, 0, 288, 0 }, { 560, 0, 288, 0 } }, { 0, 4101, 0, 0 }, { -201, 0, 4091, 0 }, 627, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3184, -1056, 368, 0 }, { { -1056, 0, -912, 0 }, { 128, 0, -912, 0 }, { -1056, 0, 208, 0 }, { 128, 0, 208, 0 } }, { 0, 4113, 0, 0 }, { -4076, 0, 401, 0 }, 1390, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 736, -1056, 848, 0 }, { { -528, 0, -240, 0 }, { 528, 0, -240, 0 }, { -528, 0, 432, 0 }, { 528, 0, 432, 0 } }, { 0, 4111, 0, 0 }, { 0, 0, -4096, 0 }, 680, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -784, -1056, -864, 0 }, { { -832, 0, -368, 0 }, { 832, 0, -368, 0 }, { -832, 0, 240, 0 }, { 832, 0, 240, 0 } }, { 0, 4098, 0, 0 }, { -201, 0, 4091, 0 }, 909, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -2128, -1042, -1024, 0 }, { { -400, 0, -304, 0 }, { 400, 0, -304, 0 }, { -400, 0, 304, 0 }, { 400, 0, 304, 0 } }, { 0, 4100, 0, 0 }, { 200, 0, 4090, 0 }, 501, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
-};
-
-/// Variant 1's Rat resource, serving eight placements with entry ID 7.
-///
-/// Loads actor file 300700 and borrows its descriptor at index 0. The final
-/// AREA_PLACEMENT_END record ends resource lookup; retain both overlays during use.
-static AreaResource _gAcropolisHallwayVariant1Resources[2] = {
-    { 7, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor300700RatTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
-};
-
-/// Variant 2's Odd Stranger resource, serving its single entry-ID-18 placement.
-///
-/// Loads actor file 401800 and uses descriptor index 0; AREA_PLACEMENT_END
-/// terminates the list. The room and actor overlays stay loaded during use.
-static AreaResource _gAcropolisHallwayVariant2Resources[2] = {
-    { 18, 18, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401800OddStrangerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
-};
-
-/// Variant 3's Odd Stranger resource, serving its single entry-ID-18 placement.
-///
-/// Loads actor file 401800 with descriptor index 0 and ends at AREA_PLACEMENT_END.
-/// This variant owns a separate list; retain the room and actor overlays during use.
-static AreaResource _gAcropolisHallwayVariant3Resources[2] = {
-    { 18, 18, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401800OddStrangerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
-};
-
-/// Variant 4's Odd Stranger and Rat resources, serving one and four placements.
-///
-/// Entry IDs 18 and 7 select actor files 401800 and 300700 at descriptor index 0.
-/// The third record ends lookup; retain the room and actor overlays during use.
-static AreaResource _gAcropolisHallwayVariant4Resources[3] = {
-    { 18, 18, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401800OddStrangerTaskDesc },
-    { 7, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor300700RatTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
-};
-
-AreaVariant gAcropolisHallwayAreaVariants[13] = {
-    { NULL, NULL },
-    { gMapAkropolisHallwayVariant1Placements, _gAcropolisHallwayVariant1Resources },
-    { gMapAkropolisHallwayVariant2Placements, _gAcropolisHallwayVariant2Resources },
-    { gMapAkropolisHallwayVariant3Placements, _gAcropolisHallwayVariant3Resources },
-    { gMapAkropolisHallwayVariant4Placements, _gAcropolisHallwayVariant4Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-};
-
-/// The hallway's three white point lights, contributing in every room view.
-///
-/// Positions and falloff radii use integer world units; RGB intensities use
-/// 12 fractional bits, initially `ONE` in each channel. Each light is at full
-/// strength within 1360 units and fades to zero at 2384 units. The loaded room
-/// overlay owns these writable records: coordinate updates parent and compose
-/// their transforms, and lighting queries overwrite attenuation. Borrowed
-/// pointers must not survive unloading the overlay.
-static WorldCoordPointLight _gAcropolisHallwayPointLights[] = {
-    {
-        .head = {
-            .transform = { .lighting = {
-                               .composeStamp = GRAPHICS_COORD_DIRTY,
-                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2374, -2432, 0 } },
-                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
-                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
-                               .parent       = NULL,
-                           } },
-            .color     = { ONE, ONE, ONE },
-        },
-        .inner = 1360,
-        .outer = 2384,
-    },
-    {
-        .head = {
-            .transform = { .lighting = {
-                               .composeStamp = GRAPHICS_COORD_DIRTY,
-                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -2384, 0 } },
-                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
-                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
-                               .parent       = NULL,
-                           } },
-            .color     = { ONE, ONE, ONE },
-        },
-        .inner = 1360,
-        .outer = 2384,
-    },
-    {
-        .head = {
-            .transform = { .lighting = {
-                               .composeStamp = GRAPHICS_COORD_DIRTY,
-                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -2297, -2384, 0 } },
-                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
-                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
-                               .parent       = NULL,
-                           } },
-            .color     = { ONE, ONE, ONE },
-        },
-        .inner = 1360,
-        .outer = 2384,
-    },
-};
-
-/// The hallway's three all-view point lights, with no directional or cone lights.
-///
-/// Borrows the mutable room-owned point array for coordinate composition and
-/// light queries. The collection and array remain live while the overlay is loaded.
-static WorldCoordRoomLights _gAcropolisHallwayRoomLights = {
-    .directionalLightCount = 0,
-    .directionalLights     = NULL,
-    .pointLightCount       = ARRAY_SIZE(_gAcropolisHallwayPointLights),
-    .pointLights           = _gAcropolisHallwayPointLights,
-    .coneLightCount        = 0,
-    .coneLights            = NULL,
-};
-
-/// View 1's decoded-background selection, followed by the batch-list end marker.
-///
-/// Keep both records: cached linking skips the zero-count first record before
-/// testing the next record's end marker. No source sprite is selected.
-static SpriteBatch _gAcropolisHallwayView1SpriteBatches[2] = {
-    { .firstSprite = 0, .spriteCount = 0 },
-    { .firstSprite = SPRITE_BATCH_END },
-};
-
-/// View 2's decoded-background selection and end marker, selecting no sprites.
-///
-/// Cached linking skips the zero-count first record before testing the second.
-static SpriteBatch _gAcropolisHallwayView2SpriteBatches[2] = {
-    { .firstSprite = 0, .spriteCount = 0 },
-    { .firstSprite = SPRITE_BATCH_END },
-};
-
-/// View 3's decoded-background selection and end marker, selecting no sprites.
-///
-/// Cached linking skips the zero-count first record before testing the second.
-static SpriteBatch _gAcropolisHallwayView3SpriteBatches[2] = {
-    { .firstSprite = 0, .spriteCount = 0 },
-    { .firstSprite = SPRITE_BATCH_END },
-};
-
-/// View 4's decoded-background selection and end marker, selecting no sprites.
-///
-/// Cached linking skips the zero-count first record before testing the second.
-static SpriteBatch _gAcropolisHallwayView4SpriteBatches[2] = {
-    { .firstSprite = 0, .spriteCount = 0 },
-    { .firstSprite = SPRITE_BATCH_END },
-};
-
-/// View 5's decoded-background selection and end marker, selecting no sprites.
-///
-/// Cached linking skips the zero-count first record before testing the second.
-static SpriteBatch _gAcropolisHallwayView5SpriteBatches[2] = {
-    { .firstSprite = 0, .spriteCount = 0 },
-    { .firstSprite = SPRITE_BATCH_END },
-};
-
-SpriteView gAcropolisHallwaySpriteViews[5] = {
-    { { .empty = _gAcropolisHallwayView1SpriteBatches }, _gAcropolisHallwayView1SpriteBatches, NULL },
-    { { .empty = _gAcropolisHallwayView2SpriteBatches }, _gAcropolisHallwayView2SpriteBatches, NULL },
-    { { .empty = _gAcropolisHallwayView3SpriteBatches }, _gAcropolisHallwayView3SpriteBatches, NULL },
-    { { .empty = _gAcropolisHallwayView4SpriteBatches }, _gAcropolisHallwayView4SpriteBatches, NULL },
-    { { .empty = _gAcropolisHallwayView5SpriteBatches }, _gAcropolisHallwayView5SpriteBatches, NULL },
-};
-
-ViewCamera gAcropolisHallwayViewCameras[5] = {
-    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 0, 0x6590, 0 } }, 911 },
-    { { { { -908, 0, 3994 }, { -529, 4059, -120 }, { -3958, -542, -900 } }, { 240, 1610, -240 } }, 207 },
-    { { { { -481, 0, 4067 }, { 891, 3996, 105 }, { -3968, 897, -469 } }, { -2520, 2700, -240 } }, 207 },
-    { { { { -624, 0, -4048 }, { -1848, 3644, 285 }, { 3601, 1870, -555 } }, { 1430, 3260, -240 } }, 207 },
-    { { { { -ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, -ONE } }, { -880, 2360, 640 } }, 207 },
-};
-
-/// Type-1 bank footstep bases: entries 9 for walking/jumps and 11 for running.
-///
-/// Cue 2 uses the base, cue 1 adds one, and companions add 100. Surface classes
-/// 1 and 4 borrow these read-only values while the room overlay is loaded.
-static WorldCollisionFootstepSounds _gAcropolisHallwayFootstepSounds = {
-    .walk         = SOUND_SCRIPT_REQUEST_TYPE_1 | 9,
-    .run          = SOUND_SCRIPT_REQUEST_TYPE_1 | 11,
-    .scriptedJump = SOUND_SCRIPT_REQUEST_TYPE_1 | 9,
-};
-
-/// Silent blocking response shared by hallway classes 0, 2, 3, 5, 6 and 7.
-///
-/// Blocks probes, permits weapon impacts and applies pushback. The leading
-/// stored byte remains zero with an unproven role; no footstep table is supplied.
-static WorldCollisionSurfaceProperties _gAcropolisHallwaySilentBlockingSurface = {
-    .field_0             = 0,
-    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
-    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
-    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
-    .footstepSounds      = NULL,
-};
-
-/// Class 1's footstep-bearing response, passing probes and suppressing weapon impacts.
-///
-/// Still applies grid pushback. The leading stored byte's role is unproven;
-/// the room-owned footstep table must remain loaded while borrowed.
-static WorldCollisionSurfaceProperties _gAcropolisHallwayWalkablePassThroughSurface = {
-    .field_0             = 0,
-    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
-    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
-    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
-    .footstepSounds      = &_gAcropolisHallwayFootstepSounds,
-};
-
-/// Class 4's footstep-bearing response, blocking probes and permitting weapon impacts.
-///
-/// Applies grid pushback. The leading stored byte's role is unproven;
-/// the room-owned footstep table must remain loaded while borrowed.
-static WorldCollisionSurfaceProperties _gAcropolisHallwayWalkableBlockingSurface = {
-    .field_0             = 0,
-    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
-    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
-    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
-    .footstepSounds      = &_gAcropolisHallwayFootstepSounds,
-};
-
-WorldCollisionSurfaceProperties* gAcropolisHallwaySurfacePropertiesByClass[8] = {
-    &_gAcropolisHallwaySilentBlockingSurface,
-    &_gAcropolisHallwayWalkablePassThroughSurface,
-    &_gAcropolisHallwaySilentBlockingSurface,
-    &_gAcropolisHallwaySilentBlockingSurface,
-    &_gAcropolisHallwayWalkableBlockingSurface,
-    &_gAcropolisHallwaySilentBlockingSurface,
-    &_gAcropolisHallwaySilentBlockingSurface,
-    &_gAcropolisHallwaySilentBlockingSurface,
-};
-
-static TmdBone _gAcropolisHallwayModel01AE0Skeleton[1] = {
-#include "assets/acropolis_hallway_model_01AE0_skeleton.inc"
-};
-
-static u32 _gAcropolisHallwayModel01AE0PartVerts[1] = {
-#include "assets/acropolis_hallway_model_01AE0_partVerts.inc"
-};
-
-static SVECTOR _gAcropolisHallwayModel01AE0Verts[99] = {
-#include "assets/acropolis_hallway_model_01AE0_verts.inc"
-};
-
-static u32 _gAcropolisHallwayModel01AE0Stream[495] = {
-#include "assets/acropolis_hallway_model_01AE0_stream.inc"
-};
-
-TmdSource gAcropolisHallwayModel01AE0 = {
-    0,
-    3728,
-    0,
-    1,
-    _gAcropolisHallwayModel01AE0PartVerts,
-    _gAcropolisHallwayModel01AE0Verts,
-    &_gAcropolisHallwayModel01AE0Verts[99],
-    _gAcropolisHallwayModel01AE0Skeleton,
-    _gAcropolisHallwayModel01AE0Stream,
-};
+#include "assets/rooms/akropolis/hallway/acropolis_hallway_model_01AE0.inc"
 
 static TmdBone _gAcropolisHallwayModel023C0Skeleton[1] = {
 #include "assets/acropolis_hallway_model_023C0_skeleton.inc"

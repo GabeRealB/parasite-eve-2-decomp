@@ -412,7 +412,7 @@ def collect_tree(
                 aid = _asset_id_from_stages_path(ent.get("path") or "")
                 if aid and str(ent.get("path") or "").startswith("pe2pkg/"):
                     # pe2pkg/ holds a package under its overlay name (`package_name`).
-                    aid = next((k for k, r in assets.items() if r.get("type") == "pe2pkg" and r.get("package_name") == aid), aid)
+                    aid = next((k for k, r in assets.items() if r.get("type") in ("pe2pkg", "room") and r.get("package_name") == aid), aid)
                 if idx is None or not aid:
                     continue
                 chunk_map[idx] = aid
@@ -546,7 +546,7 @@ def collect_models(
     # A model a group declares is placed by its package, whole - arrays, stream and record - and named there.
     declared: dict[tuple[str, int], str] = {}
     for rec in old.values():
-        if rec.get("type") != "pe2pkg":
+        if rec.get("type") not in ("pe2pkg", "room"):
             continue
         for place in rec.get("embedded", ()):
             if isinstance(place, dict) and old.get(place["name"], {}).get("type") == "model":
@@ -684,7 +684,7 @@ def collect_embedded_lists(assets: dict[str, dict[str, Any]], embedded: dict[str
     """Each package's `embedded`: the embedded assets whose source is the package, by address. A package is a
     container, as a bundle or a bank is; its overlay name (`package_name`) is what a source names."""
     for key, rec in assets.items():
-        if rec.get("type") != "pe2pkg":
+        if rec.get("type") not in ("pe2pkg", "room"):
             continue
         if any(isinstance(p, dict) for p in rec.get("embedded", ())):
             continue                    # a group's package places its embedded assets itself
@@ -721,7 +721,7 @@ def collect_animations(assets_root: Path, old: dict[str, dict[str, Any]],
     # A package whose group places its clips one by one (type clip) has no block of its own any more. A clip
     # several packages carry has its record from one of them, so each package's own placements say.
     declared = {f"{rec.get('package_name', key)}.pe2pkg" for key, rec in old_assets.items()
-                if rec.get("type") == "pe2pkg" and any(isinstance(p, dict) and old_assets.get(p["name"], {}).get("type") == "clip"
+                if rec.get("type") in ("pe2pkg", "room") and any(isinstance(p, dict) and old_assets.get(p["name"], {}).get("type") == "clip"
                                                       for p in rec.get("embedded", ()))}
     for row in declared_animations(manifest):
         source = row["package"] + ".pe2pkg"
@@ -761,19 +761,24 @@ def _fmt_embedded(rec: dict[str, Any]) -> str:
 GROUP_ROOT = _SCRIPT_DIR / "groups"
 
 
+# Keys whose numbers are offsets into a package, written in hex: an embedded asset's, and a room's entry points.
+OFFSET_KEYS = frozenset({"offset", "at", "commands", "segments", "geometry", "lights", "updates", "spare_batches",
+                         "spare_draw_areas", "action_triggers", "markers", "view_masks", "wide_view_masks", "samples"})
+
+
 def _toml_scalar(value: Any, key: str = "") -> str:
     if isinstance(value, bool):
         return "true" if value else "false"
     if isinstance(value, int):
-        return f"0x{value:05X}" if key == "offset" else f"0x{value:X}" if key in ("size", "address") else str(value)
+        return f"0x{value:05X}" if key in OFFSET_KEYS else f"0x{value:X}" if key in ("size", "address") else str(value)
     if value is None:
         return '""'                     # TOML has no null: an empty slot of a list
     if isinstance(value, str):
         return json.dumps(value, ensure_ascii=False)
     if isinstance(value, dict):
         return "{ " + ", ".join(f"{k} = {_toml_scalar(v, k)}" for k, v in value.items()) + " }"
-    if isinstance(value, (list, tuple)):
-        return "[" + ", ".join(_toml_scalar(v) for v in value) + "]"
+    if isinstance(value, (list, tuple)):                 # a list of offsets (a room's entry points) stays in hex
+        return "[" + ", ".join(_toml_scalar(v, key if key in OFFSET_KEYS else "") for v in value) + "]"
     raise TypeError(f"no TOML for {value!r}")
 
 

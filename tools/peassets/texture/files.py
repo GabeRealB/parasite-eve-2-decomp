@@ -375,8 +375,9 @@ def extracted_sector_lens(assets_root: Path) -> dict[str, int]:
         if isinstance(node, dict):
             for key, value in node.items():
                 if isinstance(value, dict) and "path" in value and "type" in value:
-                    if "sector_len" in value:
+                    if "sector_len" in value:              # by the asset's name: its path less the suffix (and the stem, for raw names)
                         out[Path(value["path"]).stem] = int(value["sector_len"], 16)
+                        out[str(Path(value["path"]).with_suffix(""))] = int(value["sector_len"], 16)
                 elif isinstance(value, (dict, list)):
                     walk(value)
         elif isinstance(node, list):

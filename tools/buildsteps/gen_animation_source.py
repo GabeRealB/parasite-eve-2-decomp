@@ -36,7 +36,7 @@ def ident(name: str) -> str:
 
 def package_record(package: str) -> dict:
     for key, rec in asset_data.ASSETS.items():
-        if rec.get("type") == "pe2pkg" and rec.get("package_name", key) == package:
+        if rec.get("type") in ("pe2pkg", "room") and rec.get("package_name", key) == package:
             return rec
     raise SystemExit(f"{package}: no package of that name in the asset table")
 

@@ -24,12 +24,12 @@ chunk = "palette"
 sha1 = "e523af5c11086379eac181adbaf5a69ca234abcd"
 upload = "engine/vram/screen_palettes"
 palettes = [
-    { texture = "texture", variant = "default", region = "engine/vram/screen_palettes", offset = [0, 5] },
-    { texture = "texture", variant = "x16", region = "engine/vram/screen_palettes", offset = [16, 5] },
-    { texture = "texture", variant = "x32", region = "engine/vram/screen_palettes", offset = [32, 5] },
-    { texture = "texture", variant = "x48", region = "engine/vram/screen_palettes", offset = [48, 5] },
-    { texture = "texture", variant = "x64", region = "engine/vram/screen_palettes", offset = [64, 5] },
-    { texture = "texture", variant = "x80", region = "engine/vram/screen_palettes", offset = [80, 5] },
+    { texture = "texture", variant = "default", region = "engine/vram/screen_palettes", offset = [0x00000, 0x00005] },
+    { texture = "texture", variant = "x16", region = "engine/vram/screen_palettes", offset = [0x00010, 0x00005] },
+    { texture = "texture", variant = "x32", region = "engine/vram/screen_palettes", offset = [0x00020, 0x00005] },
+    { texture = "texture", variant = "x48", region = "engine/vram/screen_palettes", offset = [0x00030, 0x00005] },
+    { texture = "texture", variant = "x64", region = "engine/vram/screen_palettes", offset = [0x00040, 0x00005] },
+    { texture = "texture", variant = "x80", region = "engine/vram/screen_palettes", offset = [0x00050, 0x00005] },
 ]
 
 [texture]

@@ -301,7 +301,7 @@ enum {
     /// lamp cells); the promenade respawns it each frame at the lamps its view mask
     /// allows.
     EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW = EFFECT_ID(EFFECT_TASK_BANK, 0x062),
-    /// Unidentified. A small room model (gAcropolisCafeteriaModel077D8) that wanders
+    /// Unidentified. A small room model (gAkropolisCafeteriaAcropolisCafeteriaModel077D8) that wanders
     /// with random turns and then runs off, playing a cafeteria sound in view 7;
     /// several are spawned by the Akropolis cafeteria event task.
     EFFECT_064 = EFFECT_ID(EFFECT_TASK_BANK, 0x064),

@@ -161,33 +161,7 @@ static void      _actor113100PierceCarradineTask(Task* task);
 
 #include "assets/characters/pierce/id_badge.inc"
 
-static TmdBone _gActor113100Model07BC4Skeleton[1] = {
-#include "assets/actor_113100_model_07BC4_skeleton.inc"
-};
-
-static u32 _gActor113100Model07BC4PartVerts[1] = {
-#include "assets/actor_113100_model_07BC4_partVerts.inc"
-};
-
-static SVECTOR _gActor113100Model07BC4Verts[18] = {
-#include "assets/actor_113100_model_07BC4_verts.inc"
-};
-
-static u32 _gActor113100Model07BC4Stream[109] = {
-#include "assets/actor_113100_model_07BC4_stream.inc"
-};
-
-static TmdSource _gActor113100Model07BC4 = {
-    0,
-    672,
-    0,
-    1,
-    _gActor113100Model07BC4PartVerts,
-    _gActor113100Model07BC4Verts,
-    &_gActor113100Model07BC4Verts[18],
-    _gActor113100Model07BC4Skeleton,
-    _gActor113100Model07BC4Stream,
-};
+#include "assets/rooms/mist/parking/hand_billboard.inc"
 
 #include "assets/rooms/mist/parking/pierce_clips.inc"
 
@@ -257,7 +231,7 @@ static u8 _gActor113100HeadTurnByClip[36] = {
     ACTOR_113100_HEAD_TURN_RELEASE,
 };
 
-static TmdSource _gActor113100Model07BC4;
+static TmdSource _gMistParkingHandBillboard;
 static TmdSource _gPierceGlasses;
 static TmdSource _gPierceIdBadge;
 
@@ -274,7 +248,7 @@ TaskDesc gActor113100PierceCarradineTaskDescriptors[4] = {
     {
         .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_113100_PIERCE_TASK_PRIORITY } },
         .callback = _actor113100BillboardTask,
-        .data     = { .model = &_gActor113100Model07BC4 },
+        .data     = { .model = &_gMistParkingHandBillboard },
     },
     // 2: part-4 attachment.
     {

@@ -735,7 +735,7 @@ static AreaObjectSpawn _gMapAkropolisEastElevatorHallObjectSpawns[1] = {
 /// overlay to remain loaded for the spawned task.
 static AreaObjectSpawn _gMapAkropolisCafeteriaObjectSpawns[3] = {
     { MAP_AKROPOLIS_KIND_STIM, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, acropolisCafeteriaStimPickupTask, { &gAcropolisCafeteriaModel0F7A4 } } },
-    { INVENTORY_COLLECTION_ID_MENDEL_JOURNAL, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, acropolisCafeteriaMendelPickupTask, { &gAcropolisCafeteriaModel0FDFC } } },
+    { INVENTORY_COLLECTION_ID_MENDEL_JOURNAL, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, acropolisCafeteriaMendelPickupTask, { &gAkropolisCafeteriaAcropolisCafeteriaModel0FDFC } } },
     { AREA_OBJECT_SPAWN_END },
 };
 
@@ -756,7 +756,7 @@ static AreaObjectSpawn _gMapAkropolisSecurityRoomObjectSpawns[2] = {
 /// its placement list. Callbacks and borrowed models require their room
 /// overlay to remain loaded for the spawned task.
 static AreaObjectSpawn _gMapAkropolisHallwayObjectSpawns[2] = {
-    { INVENTORY_COLLECTION_ID_BLUE_KEY, { { { TASK_BODY_TMD, MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, acropolisHallwayBlueKeyPickupTask, { &gAcropolisHallwayModel01AE0 } } },
+    { INVENTORY_COLLECTION_ID_BLUE_KEY, { { { TASK_BODY_TMD, MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, acropolisHallwayBlueKeyPickupTask, { &gAkropolisHallwayAcropolisHallwayModel01AE0 } } },
     { AREA_OBJECT_SPAWN_END },
 };
 
@@ -799,7 +799,7 @@ static AreaObjectSpawn _gMapAkropolisPromenadeObjectSpawns[1] = {
 /// overlay to remain loaded for the spawned task.
 /// Only the red key has a matching placement; the lid recipe is unselected.
 static AreaObjectSpawn _gMapAkropolisSanctuaryObjectSpawns[3] = {
-    { INVENTORY_COLLECTION_ID_RED_KEY, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, acropolisSanctuaryItemVisibilityTask, { &gAcropolisSanctuaryModel09584 } } },
+    { INVENTORY_COLLECTION_ID_RED_KEY, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, acropolisSanctuaryItemVisibilityTask, { &gAkropolisSanctuaryAcropolisSanctuaryModel09584 } } },
     { MAP_AKROPOLIS_KIND_SANCTUARY_CONTAINER_LID, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, itemPickupContainerLidTask, { &gAcropolisSanctuaryModel090F0 } } },
     { AREA_OBJECT_SPAWN_END },
 };
@@ -810,7 +810,7 @@ static AreaObjectSpawn _gMapAkropolisSanctuaryObjectSpawns[3] = {
 /// its placement list. Callbacks and borrowed models require their room
 /// overlay to remain loaded for the spawned task.
 static AreaObjectSpawn _gMapAkropolisRoofGardenObjectSpawns[2] = {
-    { INVENTORY_COLLECTION_ID_ARMORY_CARDKEY, { { { TASK_BODY_TMD, MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, acropolisRoofGardenPickupModelTask, { &gAcropolisRoofGardenModel09868 } } },
+    { INVENTORY_COLLECTION_ID_ARMORY_CARDKEY, { { { TASK_BODY_TMD, MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, acropolisRoofGardenPickupModelTask, { &gAkropolisRoofGardenAcropolisRoofGardenModel09868 } } },
     { AREA_OBJECT_SPAWN_END },
 };
 
@@ -855,7 +855,7 @@ static AreaObjectPlace _gMapAkropolisHelicopterLandingPadObjectPlaces[2] = {
 /// overlay to remain loaded for the spawned task.
 /// Only the lift has a matching placement; the pickup recipe is unselected.
 static AreaObjectSpawn _gMapAkropolisHelicopterLandingPadObjectSpawns[3] = {
-    { MAP_AKROPOLIS_KIND_HELICOPTER_LANDING_PAD_LIFT, { { { TASK_BODY_TMD, MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, acropolisHelicopterLandingPadLiftTask, { &gAcropolisHelicopterLandingPadModel0547C } } },
+    { MAP_AKROPOLIS_KIND_HELICOPTER_LANDING_PAD_LIFT, { { { TASK_BODY_TMD, MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, acropolisHelicopterLandingPadLiftTask, { &gAkropolisHelicopterLandingPadAcropolisHelicopterLandingPadModel0547C } } },
     { MAP_AKROPOLIS_KIND_HELICOPTER_LANDING_PAD_PICKUP, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, acropolisHelicopterLandingPadPickupModelTask, { &gAcropolisHelicopterLandingPadModel0A8E8 } } },
     { AREA_OBJECT_SPAWN_END },
 };
