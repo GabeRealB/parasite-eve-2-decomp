@@ -272,11 +272,8 @@ static EffectUnitQuadCorner _gAcropolisPromenadeGroundGlowUnitCorners[4] = {
     { -1, -1 },
     { 1, -1 },
 };
-
 #include "assets/rooms/akropolis/promenade/markers.inc"
-
 #include "assets/rooms/akropolis/promenade/view_masks.inc"
-
 #include "assets/rooms/akropolis/promenade/header.inc"
 #include "assets/rooms/akropolis/promenade/geometry.inc"
 #include "assets/rooms/akropolis/promenade/view_boundaries.inc"

@@ -1119,7 +1119,6 @@ TmdSource gAcropolisCafeteriaModel09A20 = {
     _gAcropolisCafeteriaModel09A20Skeleton,
     _gAcropolisCafeteriaModel09A20Stream,
 };
-
 #include "assets/rooms/akropolis/cafeteria/header.inc"
 #include "assets/rooms/akropolis/cafeteria/geometry.inc"
 #include "assets/rooms/akropolis/cafeteria/view_boundaries.inc"

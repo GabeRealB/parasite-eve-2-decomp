@@ -123,7 +123,6 @@ static const TaskFuncTable3 _gAcropolisWestElevatorHallRoomTaskStates = {
 static const TaskFuncTable3 _gAcropolisWestElevatorHallDoorLeafStates = {
     { _acropolisWestElevatorHallInitializeDoorLeaf, _acropolisWestElevatorHallUpdateDoorLeaf, taskKill },
 };
-
 #include "assets/rooms/akropolis/west_elevator_hall/markers.inc"
 
 static s32 _acropolisWestElevatorHallOpenDoorMessage(Task* unusedTask, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
@@ -374,15 +373,6 @@ static GpuImageUpload _gAcropolisWestElevatorHallBayClutUploads[2] = {
     { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-#include "assets/rooms/akropolis/west_elevator_hall/header.inc"
-#include "assets/rooms/akropolis/west_elevator_hall/geometry.inc"
-#include "assets/rooms/akropolis/west_elevator_hall/view_boundaries.inc"
-#include "assets/rooms/akropolis/west_elevator_hall/action_triggers.inc"
-#include "assets/rooms/akropolis/west_elevator_hall/sprites.inc"
-#include "assets/rooms/akropolis/west_elevator_hall/lights.inc"
-#include "assets/rooms/akropolis/west_elevator_hall/cameras.inc"
-#include "assets/rooms/akropolis/west_elevator_hall/surfaces.inc"
-
 /// Packed warp slots for the square exit: departure 2 in the high nibble, arrival 1 in the low.
 enum { ACROPOLIS_WEST_ELEVATOR_HALL_SQUARE_WARP_SLOTS = (2 << 4) | 1 };
 
@@ -392,6 +382,14 @@ enum {
     ACROPOLIS_WEST_ELEVATOR_HALL_FOOTSTEP_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 19,
 };
 
+#include "assets/rooms/akropolis/west_elevator_hall/header.inc"
+#include "assets/rooms/akropolis/west_elevator_hall/geometry.inc"
+#include "assets/rooms/akropolis/west_elevator_hall/view_boundaries.inc"
+#include "assets/rooms/akropolis/west_elevator_hall/action_triggers.inc"
+#include "assets/rooms/akropolis/west_elevator_hall/sprites.inc"
+#include "assets/rooms/akropolis/west_elevator_hall/lights.inc"
+#include "assets/rooms/akropolis/west_elevator_hall/cameras.inc"
+#include "assets/rooms/akropolis/west_elevator_hall/surfaces.inc"
 /// Borrowed live door-leaf task handles, negative X first and positive X second.
 ///
 /// Room initialization stores both spawn results. Door messages require both

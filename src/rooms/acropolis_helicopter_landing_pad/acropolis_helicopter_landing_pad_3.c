@@ -170,7 +170,6 @@ TaskMessageEntry gAcropolisHelicopterLandingPadRoomMessages[5] = {
 
 #define ROOM_PART _gAcropolisHelicopterLandingPadEncounterVibrationCommands
 #include "assets/rooms/akropolis/helicopter_landing_pad/vibrations.inc"
-
 /// Zero position and Euler rotation for scene actors and the departure companion.
 ///
 /// Used in each receiver's parent frame; placement copies the values during dispatch.
@@ -802,7 +801,6 @@ TaskDesc gAcropolisHelicopterLandingPadMovieTasks[2] = {
     { .header = { .fields = { .flags = TASK_BODY_NONE, .priority = ACROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_PRIORITY } }, .callback = _acropolisHelicopterLandingPadStartMovieTask, .data = { .value = 0 } },
     { .header = { .fields = { .flags = TASK_BODY_NONE, .priority = ACROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_PRIORITY } }, .callback = _acropolisHelicopterLandingPadMovieTask, .data = { .value = 0 } },
 };
-
 #include "assets/rooms/akropolis/helicopter_landing_pad/markers.inc"
 #include "assets/rooms/akropolis/helicopter_landing_pad/view_masks.inc"
 #include "assets/rooms/akropolis/helicopter_landing_pad/header.inc"

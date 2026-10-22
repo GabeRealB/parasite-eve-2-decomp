@@ -118,8 +118,8 @@ static void _acropolisFountainStopWaterMovieTask(Task* task);
 
 #define ROOM_PART _gAcropolisFountainClimbTrigger
 #include "assets/rooms/akropolis/fountain/action_triggers.inc"
-
 #include "assets/rooms/akropolis/fountain/markers.inc"
+
 /// Persistent water-loop request latch (0 no applied request, 1 request applied).
 ///
 /// Applying a movie window sets this even for logical views with no sound mix
@@ -140,17 +140,6 @@ static TaskDesc _gAcropolisFountainWaterMovieTaskDescriptors[2] = {
     { { { TASK_BODY_NONE, ACROPOLIS_FOUNTAIN_WATER_MOVIE_TASK_PRIORITY } }, _acropolisFountainWaterMovieTask, { .value = 0 } },
     { { { TASK_BODY_NONE, ACROPOLIS_FOUNTAIN_WATER_MOVIE_TASK_PRIORITY } }, _acropolisFountainStopWaterMovieTask, { .value = 0 } },
 };
-
-#include "assets/rooms/akropolis/fountain/header.inc"
-#include "assets/rooms/akropolis/fountain/geometry.inc"
-#include "assets/rooms/akropolis/fountain/view_boundaries.inc"
-#define ROOM_PART _gAcropolisFountainActionTriggers
-#include "assets/rooms/akropolis/fountain/action_triggers.inc"
-#include "assets/rooms/akropolis/fountain/placements.inc"
-#include "assets/rooms/akropolis/fountain/lights.inc"
-#include "assets/rooms/akropolis/fountain/sprites.inc"
-#include "assets/rooms/akropolis/fountain/cameras.inc"
-#include "assets/rooms/akropolis/fountain/surfaces.inc"
 
 enum { ACROPOLIS_FOUNTAIN_LOGICAL_VIEW_COUNT = 22 };
 
@@ -191,6 +180,16 @@ enum {
     ACROPOLIS_FOUNTAIN_CLASS5_RUN_SOUND  = 0x1000003B
 };
 
+#include "assets/rooms/akropolis/fountain/header.inc"
+#include "assets/rooms/akropolis/fountain/geometry.inc"
+#include "assets/rooms/akropolis/fountain/view_boundaries.inc"
+#define ROOM_PART _gAcropolisFountainActionTriggers
+#include "assets/rooms/akropolis/fountain/action_triggers.inc"
+#include "assets/rooms/akropolis/fountain/placements.inc"
+#include "assets/rooms/akropolis/fountain/lights.inc"
+#include "assets/rooms/akropolis/fountain/sprites.inc"
+#include "assets/rooms/akropolis/fountain/cameras.inc"
+#include "assets/rooms/akropolis/fountain/surfaces.inc"
 u8 gAcropolisFountainPatioArrivalWarp = 0;
 
 u8 gAcropolisFountainPatioRequestedRoom = 0;

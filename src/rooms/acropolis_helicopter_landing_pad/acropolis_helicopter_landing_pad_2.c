@@ -85,16 +85,6 @@ enum {
     ACROPOLIS_HELICOPTER_LANDING_PAD_STAIR_FACING             = ACTOR_TRANSFORM_ANGLE_HALF_TURN / 16,
 };
 
-#include "assets/rooms/akropolis/helicopter_landing_pad/action_triggers.inc"
-#include "assets/rooms/akropolis/helicopter_landing_pad/occluders.inc"
-#include "assets/rooms/akropolis/helicopter_landing_pad/placements.inc"
-#include "assets/rooms/akropolis/helicopter_landing_pad/lights.inc"
-#include "assets/rooms/akropolis/helicopter_landing_pad/sprites.inc"
-#include "assets/rooms/akropolis/helicopter_landing_pad/cameras.inc"
-#define ROOM_PART gAcropolisHelicopterLandingPadLethalStrikeVibrationCommands
-#include "assets/rooms/akropolis/helicopter_landing_pad/vibrations.inc"
-#include "assets/rooms/akropolis/helicopter_landing_pad/surfaces.inc"
-
 /// Placement-entry keys used by this room's resource recipes.
 enum {
     ACROPOLIS_HELICOPTER_LANDING_PAD_NO9_RESOURCE_ENTRY        = 27,
@@ -115,6 +105,15 @@ enum {
     ACROPOLIS_HELICOPTER_LANDING_PAD_STAIR_RUN_SOUND           = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x0F,
 };
 
+#include "assets/rooms/akropolis/helicopter_landing_pad/action_triggers.inc"
+#include "assets/rooms/akropolis/helicopter_landing_pad/occluders.inc"
+#include "assets/rooms/akropolis/helicopter_landing_pad/placements.inc"
+#include "assets/rooms/akropolis/helicopter_landing_pad/lights.inc"
+#include "assets/rooms/akropolis/helicopter_landing_pad/sprites.inc"
+#include "assets/rooms/akropolis/helicopter_landing_pad/cameras.inc"
+#define ROOM_PART gAcropolisHelicopterLandingPadLethalStrikeVibrationCommands
+#include "assets/rooms/akropolis/helicopter_landing_pad/vibrations.inc"
+#include "assets/rooms/akropolis/helicopter_landing_pad/surfaces.inc"
 static TmdBone _gAcropolisHelicopterLandingPadModel0A8E8Skeleton[1] = {
 #include "assets/acropolis_helicopter_landing_pad_model_0A8E8_skeleton.inc"
 };

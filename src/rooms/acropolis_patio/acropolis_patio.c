@@ -839,8 +839,18 @@ static EvsCommand _gAcropolisPatioSecondVisitSkipScript[] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
-
 #include "assets/rooms/akropolis/patio/markers.inc"
+#include "assets/rooms/akropolis/patio/view_masks.inc"
+#include "assets/rooms/akropolis/patio/header.inc"
+#include "assets/rooms/akropolis/patio/geometry.inc"
+#include "assets/rooms/akropolis/patio/view_boundaries.inc"
+#include "assets/rooms/akropolis/patio/action_triggers.inc"
+#include "assets/rooms/akropolis/patio/occluders.inc"
+#include "assets/rooms/akropolis/patio/placements.inc"
+#include "assets/rooms/akropolis/patio/sprites.inc"
+#include "assets/rooms/akropolis/patio/lights.inc"
+#include "assets/rooms/akropolis/patio/cameras.inc"
+#include "assets/rooms/akropolis/patio/surfaces.inc"
 
 /// Visibility bits for the logical camera views that show a patio light.
 enum {
@@ -852,20 +862,7 @@ enum {
     ACROPOLIS_PATIO_LIGHT_VIEW_9 = 1 << (9 - 1),
 };
 
-#include "assets/rooms/akropolis/patio/view_masks.inc"
-
 STATIC_ASSERT(ARRAY_SIZE(_gAcropolisPatioLightViewMasks) == ARRAY_SIZE(_gAcropolisPatioLightAnchors), acropolisPatioLightMaskCount);
-
-#include "assets/rooms/akropolis/patio/header.inc"
-#include "assets/rooms/akropolis/patio/geometry.inc"
-#include "assets/rooms/akropolis/patio/view_boundaries.inc"
-#include "assets/rooms/akropolis/patio/action_triggers.inc"
-#include "assets/rooms/akropolis/patio/occluders.inc"
-#include "assets/rooms/akropolis/patio/placements.inc"
-#include "assets/rooms/akropolis/patio/sprites.inc"
-#include "assets/rooms/akropolis/patio/lights.inc"
-#include "assets/rooms/akropolis/patio/cameras.inc"
-#include "assets/rooms/akropolis/patio/surfaces.inc"
 
 /// Door sound requests and map-marker nibbles carried by the patio warp endpoints.
 enum {

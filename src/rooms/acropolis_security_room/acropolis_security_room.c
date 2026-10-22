@@ -746,13 +746,12 @@ static _AcropolisSecurityRoomMonitorFeedQuad _gAcropolisSecurityRoomLockIndicato
     { 264, 128, 128, 100, -15 },
 };
 
-#include "assets/rooms/akropolis/security_room/markers.inc"
-
 enum {
     ACROPOLIS_SECURITY_ROOM_LOCK_INDICATOR_GLOW_GREEN = 1 << 0,
     ACROPOLIS_SECURITY_ROOM_LOCK_INDICATOR_GLOW_RED   = 1 << 1,
 };
 
+#include "assets/rooms/akropolis/security_room/markers.inc"
 /// Red/green glow-channel bits in left locked/released, right locked/released order.
 ///
 /// Locked lamps are yellow; released lamps are green on the left and red on
@@ -775,17 +774,6 @@ static EffectUnitQuadCorner _gAcropolisSecurityRoomFallingQuadUnitCorners[4] = {
     { -1, -1 },
     { 1, -1 },
 };
-
-#include "assets/rooms/akropolis/security_room/header.inc"
-#include "assets/rooms/akropolis/security_room/geometry.inc"
-#include "assets/rooms/akropolis/security_room/view_boundaries.inc"
-#include "assets/rooms/akropolis/security_room/action_triggers.inc"
-#include "assets/rooms/akropolis/security_room/placements.inc"
-#include "assets/rooms/akropolis/security_room/lights.inc"
-#include "assets/rooms/akropolis/security_room/sprites.inc"
-#include "assets/rooms/akropolis/security_room/cameras.inc"
-#include "assets/rooms/akropolis/security_room/updates.inc"
-#include "assets/rooms/akropolis/security_room/surfaces.inc"
 
 /// Security/hallway endpoint selectors and security-side arrival presentation.
 enum {
@@ -816,6 +804,16 @@ enum {
     ACROPOLIS_SECURITY_ROOM_FLOOR_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 11,
 };
 
+#include "assets/rooms/akropolis/security_room/header.inc"
+#include "assets/rooms/akropolis/security_room/geometry.inc"
+#include "assets/rooms/akropolis/security_room/view_boundaries.inc"
+#include "assets/rooms/akropolis/security_room/action_triggers.inc"
+#include "assets/rooms/akropolis/security_room/placements.inc"
+#include "assets/rooms/akropolis/security_room/lights.inc"
+#include "assets/rooms/akropolis/security_room/sprites.inc"
+#include "assets/rooms/akropolis/security_room/cameras.inc"
+#include "assets/rooms/akropolis/security_room/updates.inc"
+#include "assets/rooms/akropolis/security_room/surfaces.inc"
 static TmdBone _gAcropolisSecurityRoomAcropolisSanctuaryModel090F0Skeleton[3] = {
 #include "assets/acropolis_sanctuary_model_090F0_skeleton.inc"
 };

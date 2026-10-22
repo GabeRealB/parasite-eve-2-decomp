@@ -451,9 +451,6 @@ static TaskMessageEntry _gMistShootingGalleryRoomMessages[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-#define ROOM_PART _gMistShootingGalleryStoryBarrierCollisionTemplateNormals
-#include "assets/rooms/mist/shooting_gallery/geometry.inc"
-
 // Global MIDI-library sequence IDs used by the gallery playlists (file group 4).
 enum {
     MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_CRAZY_KING              = 20,
@@ -488,6 +485,8 @@ enum {
     MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_LAZING_AWAY_THE_MORNING = 37,
 };
 
+#define ROOM_PART _gMistShootingGalleryStoryBarrierCollisionTemplateNormals
+#include "assets/rooms/mist/shooting_gallery/geometry.inc"
 /// 3 training jukebox rows for a cleared Replay save (gameMode 0).
 ///
 /// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
@@ -654,8 +653,8 @@ TaskDesc gMistShootingGalleryMovieTaskDescs[MIST_SHOOTING_GALLERY_MOVIE_TASK_COU
         .data     = { .value = 0 },
     },
 };
-
 #include "assets/rooms/mist/shooting_gallery/header.inc"
+#include "assets/rooms/mist/shooting_gallery/markers.inc"
 
 enum { MIST_SHOOTING_GALLERY_LOGICAL_VIEW_COUNT = 18 };
 
@@ -668,8 +667,6 @@ enum {
     MIST_SHOOTING_GALLERY_WARP_5_6_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 5),
     MIST_SHOOTING_GALLERY_WARP_5_6_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 6),
 };
-
-#include "assets/rooms/mist/shooting_gallery/markers.inc"
 
 static void _mistShootingGalleryInitRoomTask(Task* task);
 static void _mistShootingGalleryUpdateRoomTask(Task* unusedTask);

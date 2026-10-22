@@ -170,11 +170,8 @@ EvsCommand gAcropolisForkedRoadLockReleaseScript[8] = {
 };
 
 #include "assets/rooms/akropolis/forked_road/markers.inc"
-
 #include "assets/rooms/akropolis/forked_road/view_masks.inc"
-
 #include "../../shared/room/room_visual_effects_trail_data.inc.c"
-
 #include "assets/rooms/akropolis/forked_road/header.inc"
 #include "assets/rooms/akropolis/forked_road/geometry.inc"
 #include "assets/rooms/akropolis/forked_road/view_boundaries.inc"

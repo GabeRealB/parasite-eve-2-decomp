@@ -71,6 +71,8 @@
 #include "rooms/room_common.h"
 #include "../../shared/actor/actor_contacts.h"
 
+#include "assets/rooms/akropolis/sanctuary/declarations.inc"
+
 /// Task-owned state for the sanctuary cutscene's script-cued player placement.
 ///
 /// Stored in `Task::work` on the primary heap and freed by default task teardown.
@@ -104,7 +106,6 @@ typedef struct {
     s16 sizeClass;  // Tile size (0 one 15 x 16 texel cell, 1 a 30 x 32 block)
 } _AcropolisSanctuaryMosaicTile;
 
-#include "assets/rooms/akropolis/sanctuary/declarations.inc"
 STATIC_ASSERT_SIZEOF(_AcropolisSanctuaryMosaicTile, 0xE);
 
 /// Views selected by player placement and the mosaic's retained cleanup latch.
@@ -275,7 +276,6 @@ static const TaskFuncTable3 _gAcropolisSanctuaryRoomTaskStates = {
 
 #define ROOM_PART _gAcropolisSanctuaryMosaicOffset
 #include "assets/rooms/akropolis/sanctuary/markers.inc"
-
 /// Resting flame grey for texture/palette variants 0..2.
 ///
 /// The drawer copies exactly three bytes and applies the selected level to RGB.
@@ -988,7 +988,6 @@ static TaskDesc _gAcropolisSanctuaryCutsceneTaskDesc = {
 
 #define ROOM_PART _gAcropolisSanctuaryBlockerCollisionGridNormals
 #include "assets/rooms/akropolis/sanctuary/geometry.inc"
-
 /// Mosaic-start route borrowed by the sanctuary room-effect task.
 ///
 /// The start message ignores both payload words. The terminal record makes
@@ -1136,21 +1135,6 @@ static s16 _gAcropolisSanctuaryMosaicRepeatedTileIndices[] = {
 /// the room's cleanup boundaries. Stored as a word (0 clear, 1 latched).
 static s32 _gAcropolisSanctuaryMosaicCleanupLatched = ACROPOLIS_SANCTUARY_MOSAIC_CLEANUP_CLEAR;
 
-#define ROOM_PART _gAcropolisSanctuaryFlamePositions
-#include "assets/rooms/akropolis/sanctuary/markers.inc"
-#include "assets/rooms/akropolis/sanctuary/view_masks.inc"
-#include "assets/rooms/akropolis/sanctuary/header.inc"
-#define ROOM_PART _gAcropolisSanctuaryCollisionGridNormals
-#include "assets/rooms/akropolis/sanctuary/geometry.inc"
-#include "assets/rooms/akropolis/sanctuary/view_boundaries.inc"
-#include "assets/rooms/akropolis/sanctuary/action_triggers.inc"
-#include "assets/rooms/akropolis/sanctuary/placements.inc"
-#include "assets/rooms/akropolis/sanctuary/lights.inc"
-#include "assets/rooms/akropolis/sanctuary/sprites.inc"
-#include "assets/rooms/akropolis/sanctuary/cameras.inc"
-#include "assets/rooms/akropolis/sanctuary/surfaces.inc"
-#include "assets/rooms/akropolis/sanctuary/updates.inc"
-
 /// Map-marker nibbles updated when arriving through the sanctuary's doorways.
 enum {
     ACROPOLIS_SANCTUARY_ROOF_GARDEN_MAP_FLAG = 492,
@@ -1188,6 +1172,20 @@ enum {
 
 enum { ACROPOLIS_SANCTUARY_AREA_UPDATE_SET_MAP_MARK = 1 };
 
+#define ROOM_PART _gAcropolisSanctuaryFlamePositions
+#include "assets/rooms/akropolis/sanctuary/markers.inc"
+#include "assets/rooms/akropolis/sanctuary/view_masks.inc"
+#include "assets/rooms/akropolis/sanctuary/header.inc"
+#define ROOM_PART _gAcropolisSanctuaryCollisionGridNormals
+#include "assets/rooms/akropolis/sanctuary/geometry.inc"
+#include "assets/rooms/akropolis/sanctuary/view_boundaries.inc"
+#include "assets/rooms/akropolis/sanctuary/action_triggers.inc"
+#include "assets/rooms/akropolis/sanctuary/placements.inc"
+#include "assets/rooms/akropolis/sanctuary/lights.inc"
+#include "assets/rooms/akropolis/sanctuary/sprites.inc"
+#include "assets/rooms/akropolis/sanctuary/cameras.inc"
+#include "assets/rooms/akropolis/sanctuary/surfaces.inc"
+#include "assets/rooms/akropolis/sanctuary/updates.inc"
 static TmdBone _gAcropolisSanctuaryModel090F0Skeleton[3] = {
 #include "assets/acropolis_sanctuary_model_090F0_skeleton.inc"
 };

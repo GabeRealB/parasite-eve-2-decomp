@@ -139,17 +139,6 @@ static _MistParkingGlowWorldPoints _gMistParkingGlowWorldPoints = {
     .pointCenter = { -7412, -1345, 773, 0 },
 };
 
-#include "assets/rooms/mist/parking/header.inc"
-#include "assets/rooms/mist/parking/geometry.inc"
-#include "assets/rooms/mist/parking/cameras.inc"
-#include "assets/rooms/mist/parking/sprites.inc"
-#include "assets/rooms/mist/parking/view_boundaries.inc"
-#include "assets/rooms/mist/parking/action_triggers.inc"
-#include "assets/rooms/mist/parking/lights.inc"
-#include "assets/rooms/mist/parking/placements.inc"
-#include "assets/rooms/mist/parking/ambient.inc"
-#include "assets/rooms/mist/parking/surfaces.inc"
-
 /// Texture depth, neutral modulation and opaque code flags for parking sprites.
 enum {
     MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT = 1,
@@ -184,6 +173,16 @@ enum {
     MIST_PARKING_FOOTSTEP_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 19
 };
 
+#include "assets/rooms/mist/parking/header.inc"
+#include "assets/rooms/mist/parking/geometry.inc"
+#include "assets/rooms/mist/parking/cameras.inc"
+#include "assets/rooms/mist/parking/sprites.inc"
+#include "assets/rooms/mist/parking/view_boundaries.inc"
+#include "assets/rooms/mist/parking/action_triggers.inc"
+#include "assets/rooms/mist/parking/lights.inc"
+#include "assets/rooms/mist/parking/placements.inc"
+#include "assets/rooms/mist/parking/ambient.inc"
+#include "assets/rooms/mist/parking/surfaces.inc"
 s32 gShopRefillDisplayQuantityFixed = 0;
 
 const EquipmentWeaponSupply* gShopRefillSupply = NULL;

@@ -1330,7 +1330,6 @@ static VECTOR3 _gAcropolisPlazaTraversalShotPositions[ACROPOLIS_PLAZA_CAMERA_TRA
 #include "assets/rooms/akropolis/plaza/clips.inc"
 
 #include "assets/rooms/akropolis/plaza/samples.inc"
-
 /// Local-frame anchor positions for the plaza's ambient-light placement slots.
 ///
 /// Slots 1..6 supply siren beams, 7..10 flares and 12..18 glows; 0 and 11
@@ -1358,7 +1357,6 @@ static SVECTOR _gAcropolisPlazaAmbientLightPlacements[] = {
     { 9580, -1070, 3620, 0 },
     { 7970, -640, 4980, 0 },
 };
-
 #define ROOM_PART gAcropolisPlazaRoomCollisionResources
 #include "assets/rooms/akropolis/plaza/header.inc"
 #include "assets/rooms/akropolis/plaza/cameras.inc"

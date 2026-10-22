@@ -1244,17 +1244,6 @@ TmdSource gMistShootingGalleryModel0B6A0 = {
     _gMistShootingGalleryModel0B6A0Stream,
 };
 
-#define ROOM_PART _gMistShootingGalleryCollisionGridNormals
-#include "assets/rooms/mist/shooting_gallery/geometry.inc"
-#include "assets/rooms/mist/shooting_gallery/cameras.inc"
-#include "assets/rooms/mist/shooting_gallery/sprites.inc"
-#include "assets/rooms/mist/shooting_gallery/view_boundaries.inc"
-#include "assets/rooms/mist/shooting_gallery/action_triggers.inc"
-#include "assets/rooms/mist/shooting_gallery/lights.inc"
-#include "assets/rooms/mist/shooting_gallery/placements.inc"
-#include "assets/rooms/mist/shooting_gallery/ambient.inc"
-#include "assets/rooms/mist/shooting_gallery/surfaces.inc"
-
 /// Initial colour modulation and code flags for gallery background sprites.
 enum {
     MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB = 128,
@@ -1279,6 +1268,16 @@ enum {
     MIST_SHOOTING_GALLERY_SURFACE2_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 67,
 };
 
+#define ROOM_PART _gMistShootingGalleryCollisionGridNormals
+#include "assets/rooms/mist/shooting_gallery/geometry.inc"
+#include "assets/rooms/mist/shooting_gallery/cameras.inc"
+#include "assets/rooms/mist/shooting_gallery/sprites.inc"
+#include "assets/rooms/mist/shooting_gallery/view_boundaries.inc"
+#include "assets/rooms/mist/shooting_gallery/action_triggers.inc"
+#include "assets/rooms/mist/shooting_gallery/lights.inc"
+#include "assets/rooms/mist/shooting_gallery/placements.inc"
+#include "assets/rooms/mist/shooting_gallery/ambient.inc"
+#include "assets/rooms/mist/shooting_gallery/surfaces.inc"
 s32 gMistShootingGalleryUnscaledExp = 0;
 
 Task* gMistShootingGalleryControllerTask;

@@ -106,9 +106,7 @@ enum {
 };
 
 #include "assets/rooms/akropolis/observatory/markers.inc"
-
 #include "assets/rooms/akropolis/observatory/view_masks.inc"
-
 #include "assets/rooms/akropolis/observatory/header.inc"
 #include "assets/rooms/akropolis/observatory/geometry.inc"
 #include "assets/rooms/akropolis/observatory/view_boundaries.inc"
@@ -117,6 +115,7 @@ enum {
 #include "assets/rooms/akropolis/observatory/lights.inc"
 #define ROOM_PART _gAcropolisObservatoryView1SpriteBatches
 #include "assets/rooms/akropolis/observatory/sprites.inc"
+
 /// Retained eight-byte initializer with no established consumer; role unproven.
 u16 D_acropolis_observatory_80182124[4] = {
     256,

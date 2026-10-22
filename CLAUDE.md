@@ -676,7 +676,12 @@ every object's type follows from its role or the field that reaches it. A
 room's C keeps its code, its code tables, its one-off globals and the tables
 its code reads as tuning parameters (item ids, radii, a mosaic's tiles), and
 includes the module files where their blocks sit. Never hand-write room data
-back into C; extend the room's entries or the room layouts. Converted so far:
+back into C; extend the room's entries or the room layouts. After changing a
+room's entries or layouts, `python3 tools/peassets/room decode`, then
+`python3 tools/peassets/room sync-c` puts each module include before the next
+datum that stays (in address order; idempotent), and after the build
+`python3 tools/peassets/room check-order` names the first object a misplaced
+include put out of order - before the checksum only says the room differs. Converted so far:
 stage 1 (Akropolis and the MIST). Event scripts are next, as a recreated DSL.
 
 **Morph targets and baked tracks are assets too.** A morph target is the second

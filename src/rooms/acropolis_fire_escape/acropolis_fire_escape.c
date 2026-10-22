@@ -173,9 +173,7 @@ static TaskDesc _gAcropolisFireEscapeAmbienceTaskDescriptors[2] = {
     },
     { .header = { .fields = { TASK_DESC_END, 0 } } },
 };
-
 #include "assets/rooms/akropolis/fire_escape/samples.inc"
-
 #include "assets/rooms/akropolis/fire_escape/header.inc"
 #include "assets/rooms/akropolis/fire_escape/geometry.inc"
 #include "assets/rooms/akropolis/fire_escape/view_boundaries.inc"

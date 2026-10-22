@@ -367,3 +367,6 @@ def module_parts(name: str, assets: dict, embedded: dict, assets_root: Path) -> 
 def _is_rows(r: dict) -> bool:
     """Whether an object's values are rows: no layout's element is itself a list."""
     return bool(r.get("values")) and isinstance(r["values"][0], list)
+
+
+from . import sync_c  # noqa: E402  (bringing a room's C in line: sync_c.py)

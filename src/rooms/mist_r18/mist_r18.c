@@ -1165,7 +1165,6 @@ static EvsCommand _gMistR18SkipPlacePropScript[] = {
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
-
 #include "assets/rooms/mist/r18/header.inc"
 #include "assets/rooms/mist/r18/geometry.inc"
 #include "assets/rooms/mist/r18/cameras.inc"

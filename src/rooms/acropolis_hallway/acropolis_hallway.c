@@ -94,16 +94,6 @@ static TaskMessageEntry _gAcropolisHallwayRoomMessages[] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-#include "assets/rooms/akropolis/hallway/header.inc"
-#include "assets/rooms/akropolis/hallway/geometry.inc"
-#include "assets/rooms/akropolis/hallway/view_boundaries.inc"
-#include "assets/rooms/akropolis/hallway/action_triggers.inc"
-#include "assets/rooms/akropolis/hallway/placements.inc"
-#include "assets/rooms/akropolis/hallway/lights.inc"
-#include "assets/rooms/akropolis/hallway/sprites.inc"
-#include "assets/rooms/akropolis/hallway/cameras.inc"
-#include "assets/rooms/akropolis/hallway/surfaces.inc"
-
 /// One-based hallway endpoints selected by departure triggers and arrival warps.
 enum {
     ACROPOLIS_HALLWAY_WARP_FOUNTAIN        = 1,
@@ -113,6 +103,15 @@ enum {
     ACROPOLIS_HALLWAY_WARP_ENDPOINT_SHIFT  = 4,
 };
 
+#include "assets/rooms/akropolis/hallway/header.inc"
+#include "assets/rooms/akropolis/hallway/geometry.inc"
+#include "assets/rooms/akropolis/hallway/view_boundaries.inc"
+#include "assets/rooms/akropolis/hallway/action_triggers.inc"
+#include "assets/rooms/akropolis/hallway/placements.inc"
+#include "assets/rooms/akropolis/hallway/lights.inc"
+#include "assets/rooms/akropolis/hallway/sprites.inc"
+#include "assets/rooms/akropolis/hallway/cameras.inc"
+#include "assets/rooms/akropolis/hallway/surfaces.inc"
 #include "assets/rooms/akropolis/hallway/acropolis_hallway_model_01AE0.inc"
 
 static TmdBone _gAcropolisHallwayModel023C0Skeleton[1] = {

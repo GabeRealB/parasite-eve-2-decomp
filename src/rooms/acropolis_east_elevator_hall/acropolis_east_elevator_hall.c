@@ -439,7 +439,6 @@ static TaskMessageEntry _gAcropolisEastElevatorHallRoomMessageTable[] = {
 /// Set when the opening starts, so skipping does not clear it. Reloading the
 /// overlay restores zero; persistent story progress is stored in game flags.
 static s32 _gAcropolisEastElevatorHallOpeningEventStarted = 0;
-
 #include "assets/rooms/akropolis/east_elevator_hall/header.inc"
 #include "assets/rooms/akropolis/east_elevator_hall/geometry.inc"
 #include "assets/rooms/akropolis/east_elevator_hall/view_boundaries.inc"
@@ -600,6 +599,7 @@ static void _acropolisEastElevatorHallInitializeRoomTask(Task* task)
 /// The visible string ends after "Player". The final byte has no established
 /// display meaning; keep it and the rodata position intact.
 static const char _gAcropolisEastElevatorHallPlayerDebugLabel[8] = "Player\0\x0F";
+#include "assets/rooms/akropolis/east_elevator_hall/markers.inc"
 
 /// Updates the player's diagnostic display during the room task's idle state.
 ///
@@ -627,8 +627,6 @@ void acropolisEastElevatorHallRoomTask(Task* task)
     TaskFuncTable3 stateHandlers = _gAcropolisEastElevatorHallRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }
-
-#include "assets/rooms/akropolis/east_elevator_hall/markers.inc"
 
 void acropolisEastElevatorHallReflectionsAndBeaconsTask(Task* task)
 {

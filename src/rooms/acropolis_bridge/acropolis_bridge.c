@@ -750,9 +750,6 @@ static EffectUnitQuadCorner _gAcropolisBridgeGroundGlowUnitCorners[4] = {
     { 1, -1 },
 };
 
-#define ROOM_PART _gAcropolisBridgeStarGlowOffsets
-#include "assets/rooms/akropolis/bridge/markers.inc"
-
 /// Bits for mapped camera views in the room's glow-emission masks.
 enum {
     ACROPOLIS_BRIDGE_GLOW_VIEW_2  = 1 << (2 - 1),
@@ -765,9 +762,6 @@ enum {
     ACROPOLIS_BRIDGE_GLOW_VIEW_10 = 1 << (10 - 1)
 };
 
-#define ROOM_PART _gAcropolisBridgeStarGlowViewMasks
-#include "assets/rooms/akropolis/bridge/view_masks.inc"
-
 /// Framebuffer-streak families selected by the ambient task's mapped camera.
 enum {
     ACROPOLIS_BRIDGE_STREAK_NONE      = 0,
@@ -778,6 +772,10 @@ enum {
     ACROPOLIS_BRIDGE_STREAK_PARTICLE  = 6
 };
 
+#define ROOM_PART _gAcropolisBridgeStarGlowOffsets
+#include "assets/rooms/akropolis/bridge/markers.inc"
+#define ROOM_PART _gAcropolisBridgeStarGlowViewMasks
+#include "assets/rooms/akropolis/bridge/view_masks.inc"
 /// Maps a one-based camera view to its framebuffer-streak family.
 ///
 /// Indexed by mapped view - 1; the room maps views only into 1..10. The six
@@ -804,16 +802,24 @@ static u16 _gAcropolisBridgeViewStreakStyles[16] = {
 
 #define ROOM_PART _gAcropolisBridgeLampGlowViewMasks
 #include "assets/rooms/akropolis/bridge/view_masks.inc"
-
 #define ROOM_PART _gAcropolisBridgePlayerWaterPartPositions
 #include "assets/rooms/akropolis/bridge/markers.inc"
-
 #define ROOM_PART gAcropolisBridgeRoomCollisionResources
 #include "assets/rooms/akropolis/bridge/header.inc"
+
 u8 gAcropolisBridgeStairSurfaceRows[2][12] = {
     { 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4 },
     { 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 },
 };
+/// Cue-2 bases in the loaded type-1 bank; cue 1 uses the following entry.
+enum {
+    ACROPOLIS_BRIDGE_SURFACE_2_WALK_CUE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x25,
+    ACROPOLIS_BRIDGE_SURFACE_2_RUN_CUE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x27,
+    ACROPOLIS_BRIDGE_SURFACE_4_WALK_CUE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x15,
+    ACROPOLIS_BRIDGE_SURFACE_4_RUN_CUE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x17,
+    ACROPOLIS_BRIDGE_SURFACE_4_JUMP_CUE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x19,
+};
+
 #define ROOM_PART gAcropolisBridgeWarpEntries
 #include "assets/rooms/akropolis/bridge/header.inc"
 #include "assets/rooms/akropolis/bridge/geometry.inc"
@@ -826,15 +832,6 @@ u8 gAcropolisBridgeStairSurfaceRows[2][12] = {
 #include "assets/rooms/akropolis/bridge/vibrations.inc"
 #define ROOM_PART _gAcropolisBridgeSurface2FootstepSounds
 #include "assets/rooms/akropolis/bridge/surfaces.inc"
-/// Cue-2 bases in the loaded type-1 bank; cue 1 uses the following entry.
-enum {
-    ACROPOLIS_BRIDGE_SURFACE_2_WALK_CUE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x25,
-    ACROPOLIS_BRIDGE_SURFACE_2_RUN_CUE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x27,
-    ACROPOLIS_BRIDGE_SURFACE_4_WALK_CUE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x15,
-    ACROPOLIS_BRIDGE_SURFACE_4_RUN_CUE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x17,
-    ACROPOLIS_BRIDGE_SURFACE_4_JUMP_CUE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x19,
-};
-
 /// Three retained type-1 sound-request words with no established consumer or role.
 ///
 /// Their values match the surface-2 walk/run/walk cues, but no pointer or
@@ -844,8 +841,6 @@ static s32 D_acropolis_bridge_80190C00[3] = {
     ACROPOLIS_BRIDGE_SURFACE_2_RUN_CUE,
     ACROPOLIS_BRIDGE_SURFACE_2_WALK_CUE,
 };
-#define ROOM_PART _gAcropolisBridgeBlockingSurfaceProperties
-#include "assets/rooms/akropolis/bridge/surfaces.inc"
 
 /// Map-marker nibble IDs attached to the bridge's two warp endpoints.
 enum {
@@ -900,6 +895,8 @@ enum {
 /// Victim reaction packed into the bridge enemy's category-4 contact key.
 enum { ACROPOLIS_BRIDGE_ENEMY_ATTACK_REACTION_POISON = 3 };
 
+#define ROOM_PART _gAcropolisBridgeBlockingSurfaceProperties
+#include "assets/rooms/akropolis/bridge/surfaces.inc"
 /// Attack rows shared by all bridge enemies.
 ///
 /// Attack index 0 has base power 18 and applies the player's poison reaction.

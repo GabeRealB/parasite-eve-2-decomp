@@ -523,8 +523,6 @@ static EvsCommand _gAcropolisRoofGardenMaggotCaterpillarEntranceScript[10] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-#include "assets/rooms/akropolis/roof_garden/markers.inc"
-
 /// Logical-view bits used by the roof garden's placed light glows.
 enum {
     ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_2 = 1 << (2 - 1),
@@ -532,21 +530,6 @@ enum {
     ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_4 = 1 << (4 - 1),
     ACROPOLIS_ROOF_GARDEN_LIGHT_VIEW_5 = 1 << (5 - 1),
 };
-
-#include "assets/rooms/akropolis/roof_garden/view_masks.inc"
-
-#include "assets/rooms/akropolis/roof_garden/samples.inc"
-
-#include "assets/rooms/akropolis/roof_garden/header.inc"
-#include "assets/rooms/akropolis/roof_garden/geometry.inc"
-#include "assets/rooms/akropolis/roof_garden/view_boundaries.inc"
-#include "assets/rooms/akropolis/roof_garden/action_triggers.inc"
-#include "assets/rooms/akropolis/roof_garden/placements.inc"
-#include "assets/rooms/akropolis/roof_garden/sprites.inc"
-#include "assets/rooms/akropolis/roof_garden/lights.inc"
-#include "assets/rooms/akropolis/roof_garden/cameras.inc"
-#include "assets/rooms/akropolis/roof_garden/occluders.inc"
-#include "assets/rooms/akropolis/roof_garden/surfaces.inc"
 
 enum {
     ACROPOLIS_ROOF_GARDEN_WARP_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_ROOF_GARDEN, 2),
@@ -600,6 +583,19 @@ enum {
     ACROPOLIS_ROOF_GARDEN_FOOTSTEP_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x1F,
 };
 
+#include "assets/rooms/akropolis/roof_garden/markers.inc"
+#include "assets/rooms/akropolis/roof_garden/view_masks.inc"
+#include "assets/rooms/akropolis/roof_garden/samples.inc"
+#include "assets/rooms/akropolis/roof_garden/header.inc"
+#include "assets/rooms/akropolis/roof_garden/geometry.inc"
+#include "assets/rooms/akropolis/roof_garden/view_boundaries.inc"
+#include "assets/rooms/akropolis/roof_garden/action_triggers.inc"
+#include "assets/rooms/akropolis/roof_garden/placements.inc"
+#include "assets/rooms/akropolis/roof_garden/sprites.inc"
+#include "assets/rooms/akropolis/roof_garden/lights.inc"
+#include "assets/rooms/akropolis/roof_garden/cameras.inc"
+#include "assets/rooms/akropolis/roof_garden/occluders.inc"
+#include "assets/rooms/akropolis/roof_garden/surfaces.inc"
 #include "assets/rooms/akropolis/roof_garden/acropolis_roof_garden_model_09868.inc"
 
 /// Last ambience volume percentage requested by the view controller (0, 30 or 100).

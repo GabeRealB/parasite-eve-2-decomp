@@ -129,14 +129,6 @@ enum {
     ACROPOLIS_CAFETERIA_SPRITE_OPAQUE      = 0,
 };
 
-#define ROOM_PART gAcropolisCafeteriaRoomLights
-#include "assets/rooms/akropolis/cafeteria/lights.inc"
-#include "assets/rooms/akropolis/cafeteria/sprites.inc"
-#include "assets/rooms/akropolis/cafeteria/cameras.inc"
-#include "assets/rooms/akropolis/cafeteria/ambient.inc"
-#include "assets/rooms/akropolis/cafeteria/updates.inc"
-#include "assets/rooms/akropolis/cafeteria/surfaces.inc"
-
 /// Placement layout and low-policy-nibble map mark committed by the follow-up scene.
 enum {
     ACROPOLIS_CAFETERIA_FOLLOW_UP_PLACEMENT_VARIANT = 2,
@@ -154,6 +146,13 @@ enum {
     ACROPOLIS_CAFETERIA_SURFACE3_JUMP_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x05,
 };
 
+#define ROOM_PART gAcropolisCafeteriaRoomLights
+#include "assets/rooms/akropolis/cafeteria/lights.inc"
+#include "assets/rooms/akropolis/cafeteria/sprites.inc"
+#include "assets/rooms/akropolis/cafeteria/cameras.inc"
+#include "assets/rooms/akropolis/cafeteria/ambient.inc"
+#include "assets/rooms/akropolis/cafeteria/updates.inc"
+#include "assets/rooms/akropolis/cafeteria/surfaces.inc"
 static TmdBone _gAcropolisCafeteriaModel0F7A4Skeleton[1] = {
 #include "assets/acropolis_cafeteria_model_0F7A4_skeleton.inc"
 };
