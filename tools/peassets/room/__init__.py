@@ -162,8 +162,9 @@ def read(name: str, assets: dict, assets_root: Path) -> dict[str, Any]:
     modules = {k: v for k, v in room.items() if k not in ("area", "states", "entry")}
     epath = events_path(name, assets, assets_root)
     if epath.exists():
-        names = event_text.Names(event_text.prefix_of(assets[name]["package_name"]), set())
-        modules["events"] = event_text.read(epath.read_text(), names)
+        names = event_names(name, assets, set())
+        for sym, rec in event_text.read(epath.read_text(), names).items():
+            modules.setdefault("updates" if rec["kind"] == "AreaApplyRec" else "events", {})[sym] = rec
     objects = {s: r for objs in modules.values() for s, r in objs.items()}
     kinds: dict[str, str] = {s: r["kind"] for s, r in objects.items() if "kind" in r}
 
@@ -226,6 +227,21 @@ def encode_room(name: str, room: dict[str, Any], assets: dict, embedded: dict, a
     return bytes(image)
 
 
+def event_names(name: str, assets: dict, local: set[str]) -> "event_text.Names":
+    """How the room's events text writes names: its prefix, its objects, and its own sound bank's slots by entry
+    (the slots of all its sound banks, where no entry has two names)."""
+    import asset_data
+    stage, area = _place(name, asset_data.TREE)
+    group = assets[name]["group"]
+    slots: dict[int, set[str]] = {}
+    for k, r in assets.items():
+        if r.get("type") == "sound_bank" and k.rsplit("/", 1)[0] == group:
+            for slot_name, entry in r.get("sounds", {}).items():
+                slots.setdefault(entry, set()).add(slot_name)
+    sounds = {e: next(iter(ns)) for e, ns in slots.items() if len(ns) == 1}
+    return event_text.Names(event_text.prefix_of(assets[name]["package_name"]), local, (stage, area), sounds)
+
+
 def events_path(name: str, assets: dict, assets_root: Path) -> Path:
     return assets_root / assets[name]["group"] / "events.evs"
 
@@ -235,13 +251,13 @@ def decode(name: str, assets: dict, embedded: dict, assets_root: Path) -> Path:
     room = decode_room(name, assets, embedded, assets_root)
     path = instance_path(name, assets, assets_root)
     path.parent.mkdir(parents=True, exist_ok=True)
-    events = room["modules"].pop("events", {})
+    events = {**room["modules"].pop("events", {}), **room["modules"].pop("updates", {})}   # area updates: story data
     epath = events_path(name, assets, assets_root)
     if events:
         im, _area = images(name, assets, embedded, assets_root)
         kinds = _kinds_of(name, assets, embedded, assets_root)
         objs = {s: {**r, "kind": kinds[s]} for s, r in events.items()}
-        names = event_text.Names(event_text.prefix_of(assets[name]["package_name"]), set(objs))
+        names = event_names(name, assets, set(objs))
         header = f"# {name}: the room's events, decoded from its package (tools/peassets/room/events.py).\n"
         epath.write_text(header + event_text.write(objs, names, sorted(objs, key=im.addresses.get)), encoding="utf-8")
     elif epath.exists():

@@ -42,7 +42,7 @@ from .event_vocabulary import MESSAGES, OPCODES, SLOTS
 
 KINDS = {"animation": "AnimationPlayRequest", "transform": "ActorTransform", "command": "ActorCommand",
          "bank_copy": "AnimationBankCopyRequest", "scene_key": "EvsSceneKey", "move_animations": "GameActorMoveAnim",
-         "walk_animation": "ActorMotionWalkAnim", "script": "EvsCommand"}
+         "walk_animation": "ActorMotionWalkAnim", "area_update": "AreaApplyRec", "script": "EvsCommand"}
 KEYWORDS = {v: k for k, v in KINDS.items()}
 # Operands an opcode reads; send_message and play_weapon_animation have forms of their own.
 ARITY = {"end": 0, "start_flash": 2, "set_view": 1, "wait_frames": 1, "cancel_primary_fade": 0, "restore_hud": 0,
@@ -80,6 +80,29 @@ OPCODE_PAYLOADS = {OPCODE_OF["play_weapon_animation"]: {3: "AnimationPlayRequest
                    OPCODE_OF["set_skip_target"]: {0: "EvsCommand"}}
 
 
+# The message family a recipient's messages come from: written without its prefix where that names exactly one id.
+FAMILY = {"player": "actor_", "companion": "actor_", "scene": "scene_actor_", "child": "scene_actor_",
+          "cap_control": "cap_"}
+
+
+def _message_text(target: str, mid: int) -> str:
+    full = MESSAGES.get(mid)
+    if not full:
+        return f"message_0x{mid & 0xFFFFFFFF:X}"
+    family = FAMILY.get(target.split("[")[0].split(".")[0], "")
+    short = full[len(family):] if family and full.startswith(family) else full
+    return short if short not in MESSAGE_OF else full     # a short name that is some other message's: in full
+
+
+def _message_value(target: str, name: str) -> int:
+    family = FAMILY.get(target, "")
+    if family and family + name in MESSAGE_OF and name not in MESSAGE_OF:
+        return MESSAGE_OF[family + name]
+    if name in MESSAGE_OF:
+        return MESSAGE_OF[name]
+    return int(name[len("message_"):], 0)
+
+
 def payload_targets(words: tuple[int, ...]) -> list[tuple[int, str]]:
     """(address, kind) of what one command's operands point to (an event script: its six words)."""
     opcode, ops = words[0], words[1:]
@@ -93,11 +116,13 @@ SOUND_OPERANDS = {"start_sound": 0, "fade_sound_attenuation": 0}
 _SOUND_TYPES = {0: "common", 2: "weapon", 4: "character", 5: "area"}
 
 
-def sound_text(v: int) -> str:
+def sound_text(v: int, n: "Names") -> str:
     u = v & 0xFFFFFFFF
     kind, bank, entry = u >> 28, (u >> 16) & 0xFFF, u & 0xFFFF
     if v == 0 or kind not in _SOUND_TYPES:
         return str(v)
+    if kind == 5 and (bank >> 8, bank & 0xFF) == n.area and entry in n.sounds:
+        return f"room_sound({n.sounds[entry]})"           # the room's own bank: its slot's name
     if kind == 5:
         return f"area_sound({bank >> 8},{bank & 0xFF},{entry})"
     if kind == 0:
@@ -105,7 +130,11 @@ def sound_text(v: int) -> str:
     return f"{_SOUND_TYPES[kind]}_sound({bank},{entry})"
 
 
-def sound_value(token: str) -> int | None:
+def sound_value(token: str, n: "Names") -> int | None:
+    m = re.fullmatch(r"room_sound\((\w+)\)", token)
+    if m:
+        entry = {v: k for k, v in n.sounds.items()}[m.group(1)]
+        return 5 << 28 | (n.area[0] << 8 | n.area[1]) << 16 | entry
     m = re.fullmatch(r"(common|weapon|character|area)_sound\(([\d,]+)\)", token)
     if not m:
         return None
@@ -122,8 +151,9 @@ def sound_value(token: str) -> int | None:
 class Names:
     """A room's symbols as the text writes them, and back."""
 
-    def __init__(self, prefix: str, local: set[str]):
+    def __init__(self, prefix: str, local: set[str], area: tuple[int, int] = (0, 0), sounds: dict[int, str] | None = None):
         self.prefix, self.local = prefix, local          # local: the symbols of the room's event objects
+        self.area, self.sounds = area, sounds or {}      # the room's (stage, area), its sound banks' slots by entry
 
     def write(self, v) -> str:
         if isinstance(v, int):
@@ -176,6 +206,10 @@ def _payload_text(kind: str, v: dict, n: Names) -> str:
         return f"approach {v['approachAnimId']} arrival {v['arrivalAnimId']}"
     if kind == "ActorMotionWalkAnim":
         return f"clip {v['animationId']} next {v['nextAnimId']}"
+    if kind == "AreaApplyRec":
+        if (v["stage"], v["area"], v["variant"], v["policy"]) == (0xFF, 0, 0, 0):
+            return "end"
+        return f"area {v['stage']}/{v['area']} variant {v['variant']} policy 0x{v['policy']:02X}"
     raise ValueError(kind)
 
 
@@ -192,7 +226,7 @@ def _command_text(v: dict, n: Names) -> str:
             target = f"child[{index}]"
         else:
             target = (SLOTS.get(slot) or f"slot_{slot}") + (f"[{index}]" if index else "")
-        message = MESSAGES.get(ops[2] & 0xFFFFFFFF if ops[2] < 0 else ops[2]) or f"message_0x{ops[2] & 0xFFFFFFFF:X}"
+        message = _message_text(target, ops[2] & 0xFFFFFFFF if ops[2] < 0 else ops[2])
         args = [ops[3], ops[4]]
         while args and args[-1] == 0:
             args.pop()
@@ -203,7 +237,7 @@ def _command_text(v: dict, n: Names) -> str:
     if op in ARITY and all(o == 0 for o in ops[ARITY[op]:]):
         args = [w(a) for a in ops[:ARITY[op]]]
         if op in SOUND_OPERANDS and isinstance(ops[SOUND_OPERANDS[op]], int):
-            args[SOUND_OPERANDS[op]] = sound_text(ops[SOUND_OPERANDS[op]])
+            args[SOUND_OPERANDS[op]] = sound_text(ops[SOUND_OPERANDS[op]], n)
         return op + "".join(" " + a for a in args)
     return f"raw {opcode} " + " ".join(w(a) for a in ops)
 
@@ -211,10 +245,14 @@ def _command_text(v: dict, n: Names) -> str:
 def write(objects: dict[str, dict], n: Names, order: list[str]) -> str:
     """The events text: each object in `order` (address order), declarations and scripts."""
     lines: list[str] = []
+    previous = None
     for sym in order:
         rec = objects[sym]
         kind = rec["kind"]
         name = n.write(sym)
+        if kind != "EvsCommand" and previous in (None, "EvsCommand"):     # a scene: its payloads, then its scripts
+            lines += ["", f"# scene {1 + sum(1 for l in lines if l.startswith('# scene '))}"]
+        previous = kind
         if kind == "EvsCommand":
             lines += ["", f"script {name}"] + [f"    {_command_text(c, n)}" for c in rec["values"]]
         elif "value" in rec:
@@ -256,6 +294,11 @@ def _payload_value(kind: str, text: str, n: Names) -> dict:
         return {"approachAnimId": int(after("approach"), 0), "arrivalAnimId": int(after("arrival"), 0)}
     if kind == "ActorMotionWalkAnim":
         return {"animationId": int(after("clip"), 0), "nextAnimId": int(after("next"), 0)}
+    if kind == "AreaApplyRec":
+        if t == ["end"]:
+            return {"stage": 0xFF, "area": 0, "variant": 0, "policy": 0}
+        stage, area = (int(x, 0) for x in after("area").split("/"))
+        return {"stage": stage, "area": area, "variant": int(after("variant"), 0), "policy": int(after("policy"), 0)}
     raise ValueError(kind)
 
 
@@ -273,12 +316,12 @@ def _command_value(text: str, n: Names) -> dict:
             return {"opcode": OPCODE_OF["play_weapon_animation"], **{f"operand{i}": ops[i] for i in range(5)}}
         slot = OTHER_CHILD if target == "child" else SLOT_OF.get(target) if target in SLOT_OF else int(target[5:])
         idx = MANAGER if manager else int(index) if index else 0
-        mid = MESSAGE_OF[message] if message in MESSAGE_OF else int(message[len("message_"):], 0)
+        mid = _message_value(target, message)
         mid = mid - (1 << 32) if mid >= 0x80000000 else mid
         args = [r(x) for x in t[1:3]] + [0] * (2 - len(t[1:3]))
         ops = [slot, idx, mid, *args]
         return {"opcode": OPCODE_OF["send_message"], **{f"operand{i}": ops[i] for i in range(5)}}
-    ops = [sound_value(x) if sound_value(x) is not None else r(x) for x in t[1:]] + [0] * (5 - len(t[1:]))
+    ops = [sound_value(x, n) if sound_value(x, n) is not None else r(x) for x in t[1:]] + [0] * (5 - len(t[1:]))
     return {"opcode": OPCODE_OF[t[0]], **{f"operand{i}": ops[i] for i in range(5)}}
 
 
