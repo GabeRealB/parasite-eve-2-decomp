@@ -38,7 +38,8 @@ from asset_db import (  # noqa: E402
     tree_chunk_asset,
     validate_asset_db,
 )
-from parallel_util import default_jobs, run_jobs  # noqa: E402
+from parallel_util import default_jobs, map_calls, run_jobs, shared_pool  # noqa: E402
+from concurrent.futures import ThreadPoolExecutor  # noqa: E402
 import asset_schema  # noqa: E402
 from texture import declaration as texture_declaration  # noqa: E402
 
@@ -198,39 +199,20 @@ def infer_rom_root(stage0_hed: Path) -> Path | None:
     return None
 
 
-def extract_cd_streams(
-    rom_usa: Path,
-    assets_root: Path,
-    *,
-    write_raw: bool = True,
-    write_decoded: bool = True,
-    jobs: int | None = None,
-) -> None:
-    """Extract MTS audio and STR movies from the dumped ``rom/USA`` tree.
-
-    Streaming-list payloads live in ``STAGE*.CDF`` and ``INTER*.STR``, not in
-    the file-chunk walk. Delegates to :mod:`extract_streams` / :mod:`extract_movies`.
-    """
+def extract_cd_streams(rom_usa: Path, assets_root: Path, write_decoded: bool) -> None:
+    """The MTS audio and the STR movies at once, each on the shared pool; a failure is logged, not fatal."""
     import extract_movies
     import extract_streams
 
-    logging.info("Extracting CD audio streams from %s", rom_usa)
-    extract_streams.extract_all(
-        rom_usa,
-        assets_root,
-        write_raw=write_raw,
-        write_wav=write_decoded,
-        jobs=jobs,
-    )
-    logging.info("Extracting CD movie streams from %s", rom_usa)
-    extract_movies.extract_all(
-        rom_usa,
-        assets_root,
-        write_raw=write_raw,
-        write_mp4=write_decoded,
-        write_audio=write_decoded,
-        jobs=jobs,
-    )
+    def run(label, fn, **kw):
+        try:
+            logging.info("Extracting CD %s streams from %s", label, rom_usa)
+            fn(rom_usa, assets_root, write_raw=True, **kw)
+        except Exception:
+            logging.exception("Failed to extract CD %s streams", label)
+    with ThreadPoolExecutor(max_workers=2) as both:
+        both.submit(run, "movie", extract_movies.extract_all, write_mp4=write_decoded, write_audio=write_decoded)
+        both.submit(run, "audio", extract_streams.extract_all, write_wav=write_decoded)
 
 
 def computeChecksum(exe: BinaryIO):
@@ -1370,20 +1352,16 @@ def main():
     # stages.json     — pack manifest (paths of the inflated forms)
     # stage0/…        — pack sidecars only (trailers, layout, streaming)
     store = AssetStore(output_path)
+    with shared_pool(args.jobs), ThreadPoolExecutor(max_workers=4) as background:
+        _extract(args, output_path, store, background)
 
-    extract_stage_0(args.stage0_header, args.stage0_data, store=store)
-    extract_stage_n(args.stage1, stage=1, store=store)
-    extract_stage_n(args.stage2, stage=2, store=store)
-    extract_stage_n(args.stage3, stage=3, store=store)
-    extract_stage_n(args.stage4, stage=4, store=store)
-    extract_stage_n(args.stage5, stage=5, store=store)
 
-    rom_root = args.rom
-    if rom_root is not None:
-        rom_root = Path(rom_root)
-    else:
-        rom_root = infer_rom_root(Path(args.stage0_header.name))
-
+def _extract(args, output_path: Path, store: "AssetStore", background: ThreadPoolExecutor) -> None:
+    """The extraction, its process-pool work fed from every phase at once: the CD streams, which need only the
+    disc, from the start, beside the chunk walk, the inflation and the declared decoders."""
+    executable_disk1 = args.executable_disk1
+    rom_root = Path(args.rom) if args.rom is not None else infer_rom_root(Path(args.stage0_header.name))
+    streams = None
     if args.minimal_inflate:
         logging.info("minimal-inflate: skipped CD audio/movie streams")
     elif args.skip_streams:
@@ -1395,16 +1373,14 @@ def main():
             Path(args.stage0_header.name),
         )
     else:
-        try:
-            extract_cd_streams(
-                rom_root,
-                output_path,
-                write_raw=True,
-                write_decoded=not args.raw_only,
-                jobs=args.jobs,
-            )
-        except Exception:
-            logging.exception("Failed to extract CD audio/movie streams")
+        streams = background.submit(extract_cd_streams, rom_root, output_path, not args.raw_only)
+
+    extract_stage_0(args.stage0_header, args.stage0_data, store=store)
+    extract_stage_n(args.stage1, stage=1, store=store)
+    extract_stage_n(args.stage2, stage=2, store=store)
+    extract_stage_n(args.stage3, stage=3, store=store)
+    extract_stage_n(args.stage4, stage=4, store=store)
+    extract_stage_n(args.stage5, stage=5, store=store)
 
     for type_dir, st in sorted(store.stats().items()):
         logging.info(
@@ -1422,6 +1398,8 @@ def main():
         logging.info("Stored %d embedded asset(s) from the binaries", n_embedded)
 
     if args.raw_only:
+        if streams is not None:
+            streams.result()
         write_pack_manifests(args, output_path, store, rom_root)
         logging.info("raw-only: skipped inflate")
         logging.info("All done! (raw at %s)", store.raw_root)
@@ -1452,6 +1430,8 @@ def main():
     logging.info("Materialized %d inflated assets", n)
     decode_declared(output_path)
 
+    if streams is not None:
+        streams.result()
     write_pack_manifests(args, output_path, store, rom_root)
     decode_dialogues()
 
@@ -1472,32 +1452,65 @@ def decode_declared(assets_root: Path) -> None:
     rig (derived from its models), each model with its slots and bindings, and each clip, as USD (model/,
     animation/), each sound bank as SFZ and its own text with its sounds as WAVs (sound/), each shaped asset
     as its instance (shape/), and each room as its instance (room/). The rest stays raw until it is declared."""
+    import room
+    import shape
     from animation import declared as clips
+    from asset_data import ASSETS
+    from font import declared as fonts
     from model import declared
-    from asset_data import ASSETS, EMBEDDED_ASSETS
     from sound import declared as sounds
     from texture import files
 
-    for name in files.declared_files(ASSETS):
-        files.decode_file(name, ASSETS, assets_root)
-    for name in files.declared_atlases(ASSETS):
-        files.decode_atlas(name, ASSETS, assets_root)
-    from font import declared as fonts
-    for name in fonts.declared(ASSETS):                 # after the textures, whose PNGs its images are cut from
-        fonts.decode(name, ASSETS, EMBEDDED_ASSETS, assets_root)
-    for name in declared.rigs(ASSETS):               # before the models and clips that reference them
-        declared.decode_rig(name, ASSETS, EMBEDDED_ASSETS, assets_root)
-    for name in declared.declared(ASSETS):
-        declared.decode(name, ASSETS, EMBEDDED_ASSETS, assets_root)
-    for name in clips.declared(ASSETS):
-        clips.decode(name, ASSETS, EMBEDDED_ASSETS, assets_root)
-    sounds.decode_all(ASSETS, assets_root)
-    import shape
-    for name in shape.shaped_assets(ASSETS):
-        shape.decode(name, ASSETS, EMBEDDED_ASSETS, assets_root)
+    with ThreadPoolExecutor(max_workers=12) as phases:
+        def phase(kind, names, *needs):
+            def run():
+                for need in needs:
+                    need.result()
+                map_calls(_decode_one, [(kind, name, str(assets_root)) for name in names])
+            return phases.submit(run)
+        textures = phase("texture", files.declared_files(ASSETS))
+        atlases = phase("atlas", files.declared_atlases(ASSETS), textures)
+        rigs = phase("rig", declared.rigs(ASSETS))
+        rooms = phase("room", [n for n in room.declared(ASSETS) if not room.is_stage(n, ASSETS)])
+        fonts_ = phase("font", fonts.declared(ASSETS), textures, atlases)       # its images cut from the PNGs
+        done = [textures, atlases, rigs, rooms, fonts_,
+                phase("model", declared.declared(ASSETS), textures, atlases, rigs),  # bound to the PNGs, on its rig
+                phase("clip", clips.declared(ASSETS), rigs),
+                phases.submit(sounds.decode_all, ASSETS, assets_root),
+                phase("shape", shape.shaped_assets(ASSETS), fonts_),             # the credits' text is in a font
+                phase("room", [n for n in room.declared(ASSETS) if room.is_stage(n, ASSETS)], rooms)]  # the stages
+    for d in done:
+        d.result()
+
+
+def _decode_one(kind: str, name: str, assets_root: str) -> None:
+    """One declared asset's decode, in a pool worker."""
     import room
-    for name in room.declared(ASSETS):                  # a room: the data its entry points reach, as its instance
-        room.decode(name, ASSETS, EMBEDDED_ASSETS, assets_root)
+    import shape
+    from animation import declared as clips
+    from asset_data import ASSETS, EMBEDDED_ASSETS
+    from font import declared as fonts
+    from model import declared
+    from texture import files
+    root = Path(assets_root)
+    if kind == "texture":
+        files.decode_file(name, ASSETS, root)
+    elif kind == "atlas":
+        files.decode_atlas(name, ASSETS, root)
+    elif kind == "font":
+        fonts.decode(name, ASSETS, EMBEDDED_ASSETS, root)
+    elif kind == "rig":
+        declared.decode_rig(name, ASSETS, EMBEDDED_ASSETS, root)
+    elif kind == "model":
+        declared.decode(name, ASSETS, EMBEDDED_ASSETS, root)
+    elif kind == "clip":
+        clips.decode(name, ASSETS, EMBEDDED_ASSETS, root)
+    elif kind == "shape":
+        shape.decode(name, ASSETS, EMBEDDED_ASSETS, root)
+    elif kind == "room":
+        room.decode(name, ASSETS, EMBEDDED_ASSETS, root)
+    else:
+        raise ValueError(kind)
 
 
 if __name__ == "__main__":

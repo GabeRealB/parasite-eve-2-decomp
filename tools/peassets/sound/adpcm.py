@@ -145,7 +145,7 @@ class _State:
 
 
 def _clamp(v):
-    return float(min(HI, max(LO, v)))
+    return float(HI if v > HI else LO if v < LO else v)
 
 
 def _peaks(st, x):
@@ -195,25 +195,23 @@ def _body_frames(body):
 
 
 def _residuals(s1, s2, x):
-    out = []
-    for f0, f1 in _F:
-        a, b, r = s1, s2, []
-        for v in x:
-            s = _clamp(v); r.append(s + a * f0 + b * f1); b, a = a, s
-        out.append(r)
-    return out
+    xs = [float(HI if v > HI else LO if v < LO else v) for v in x]   # _clamp, once an input
+    a = [s1] + xs[:-1]; b = [s2, s1] + xs[:-2]
+    return [[s + p * f0 + q * f1 for s, p, q in zip(xs, a, b)] for f0, f1 in _F]
 
 
 def _violation(s1, s2, x, filt, shift, w):
     """0 when the encoder selects (filt, shift) on x; otherwise a penalty that falls with each residual moved the
     right way: residuals over the shift's cap, the peak under its floor, the stored filter's residuals over another
-    filter's weighted peak, filter 0's peak at 7 or below."""
-    r = _residuals(s1, s2, x); pk = [max(abs(v) for v in rj) for rj in r]
+    filter's weighted peak, filter 0's peak at 7 or below. (The sums leave out their zero terms, which do not change
+    a float sum.)"""
+    r = _residuals(s1, s2, x); pk = [max(map(abs, rj)) for rj in r]
 
     def shift_pen(rj, m):
         best = None
         for lo, hi in _RUNS[shift]:
-            pen = max(0.0, lo - m) + sum(max(0.0, abs(v) - (hi + 1 - _EPS)) for v in rj)
+            lim = hi + 1 - _EPS
+            pen = max(0.0, lo - m) + sum([d - lim for v in rj if (d := abs(v)) > lim])
             best = pen if best is None or pen < best else best
         return best
     if filt == 0 and pk[0] <= 7.0:
@@ -223,7 +221,7 @@ def _violation(s1, s2, x, filt, shift, w):
         if j != filt:
             cap = w[j] * pk[j] - (_EPS if j < filt else 0.0)
             if wf * pk[filt] > cap:
-                v += sum(max(0.0, wf * abs(t) - cap) for t in r[filt]) / wf
+                v += sum([d for t in r[filt] if (d := wf * abs(t) - cap) > 0.0]) / wf
     if filt != 0:
         v += max(0.0, 7.0 + _EPS - pk[0])
     return v, r, pk
@@ -309,7 +307,30 @@ class _Win:
             v, r, pk = _violation(s1, s2, x, hdr >> 4, hdr & 15, self.w)
             tot += v; info.append((v, r, pk))
             s1, s2 = _clamp(x[-1]), _clamp(x[-2])
+        self.vs = [v for v, _r, _pk in info]
         return tot, info
+
+    def trial(self, moved):
+        """total()'s penalty, given that only the inputs `moved` ((frame, k) pairs) differ from those of the last
+        total() or commit(): a frame's penalty depends on its own inputs and its predecessor's last two, so only
+        those frames are evaluated again. -> (penalty, the frames' new penalties) for commit()."""
+        touched = set()
+        for w, k in moved:
+            touched.add(w)
+            if k >= 26 and w + 1 < len(self.f): touched.add(w + 1)
+        tot, new = 0.0, {}
+        for i, v in enumerate(self.vs):
+            if i in touched:
+                if i == 0: s1, s2 = self.s1, self.s2
+                else:
+                    xp = self.f[i - 1][4]; s1, s2 = _clamp(xp[-1]), _clamp(xp[-2])
+                hdr = self.f[i][0]
+                v = new[i] = _violation(s1, s2, self.f[i][4], hdr >> 4, hdr & 15, self.w)[0]
+            tot += v
+        return tot, new
+
+    def commit(self, new):
+        for i, v in new.items(): self.vs[i] = v
 
 
 def _hot(win, info):
@@ -366,7 +387,7 @@ def _repair(win, rounds=80):
         for w, k in hot:
             fr = win.f[w]; old = fr[4][k]
             for v in _values(fr, k, targets, prev_of(w, k)):
-                fr[4][k] = v; val = win.total()[0]; fr[4][k] = old
+                fr[4][k] = v; val = win.trial(((w, k),))[0]; fr[4][k] = old
                 key = (val, abs(v - fr[3][k]) - abs(old - fr[3][k]))
                 if best is None or key < best[0]: best = (key, ((w, k, v),))
         if best is None or best[0][0] >= cur:
@@ -376,7 +397,7 @@ def _repair(win, rounds=80):
                     for v1 in _values(f1, k1, targets, prev_of(w1, k1)):
                         f1[4][k1] = v1
                         for v2 in _values(f2, k2, targets, prev_of(w2, k2)):
-                            f2[4][k2] = v2; val = win.total()[0]; f2[4][k2] = o2
+                            f2[4][k2] = v2; val = win.trial(((w1, k1), (w2, k2)))[0]; f2[4][k2] = o2
                             if val < cur and (best is None or (val, 0) < best[0]):
                                 best = ((val, 0), ((w1, k1, v1), (w2, k2, v2)))
                         f1[4][k1] = o1
@@ -404,9 +425,9 @@ def _anneal(win, iters, seed):
         else: v = min(hi, max(lo, old + int(rnd.gauss(0, max(1.0, span / 6)))))
         if v == old: continue
         fr[4][k] = v
-        new = win.total()[0]
+        new, frames = win.trial(((w, k),))
         if new <= cur or rnd.random() < _m.exp((cur - new) / T):
-            cur = new
+            cur = new; win.commit(frames)
             if cur < best[0]: best = (cur, [list(f[4]) for f in win.f])
             if cur == 0.0: return True
         else:
