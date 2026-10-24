@@ -789,7 +789,7 @@ static void _actor113100AttachBillboard(Task* task)
     rootCoord->parent       = &parentCoords[parentPartIndex];
 
     taskReparent(parentTask, task);
-    if (gameFlagGetNibble(GAME_FLAG_0F1) == 0) {
+    if (gameFlagGetNibble(EVENT_FLAG_MIST_PARKING_DRYFIELD_DEPARTURE_STATE) == 0) {
         model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;

@@ -5,24 +5,13 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 
-#include "gte.h"
 #include "common.h"
+#include "gte.h"
 
 #include "mist_parking_private.h"
 
-#include "actors/task_tables.h"
-
-#include "gameplay/area.h"
-#include "gameplay/collision.h"
-#include "gameplay/direction.h"
-#include "gameplay/evs.h"
 #include "gameplay/inventory.h"
-#include "gameplay/item_menu.h"
-#include "gameplay/light.h"
-#include "gameplay/loading.h"
-#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
-#include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
 #include "main/coord.h"
@@ -31,36 +20,24 @@
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
-#include "main/sound_ids.h"
-#include "main/sound_types.h"
-#include "main/task_types.h"
-
-#include "mapui/map_akropolis.h"
 
 #include "overlay.h"
 
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/effects/glow_draw.h"
-#include "../../shared/room/room_cutscene.h"
+#include "../../../../shared/effects/glow_draw.h"
+#include "../../../../shared/room/room_cutscene.h"
 
-#define ROOM_PART declarations_mist_parking_5
+#define ROOM_PART declarations_mist_parking_glows
 #include "assets/rooms/mist/parking/declarations.inc"
 
-/// World-coordinate capsule endpoints and the separate pulsing point-glow centre.
-///
-/// Positions use signed whole world-coordinate units and are borrowed only
-/// during drawing. Row drawing takes three consecutive capsule pairs. Every
-/// vector includes the fourth halfword read alongside Z by the GTE.
+/// World-coordinate capsule endpoints and the separate pulsing point-glow center.
 typedef struct {
     SVECTOR capsuleEndpoints[13][2]; // Thirteen capsule pairs; pair 1 is retained but unused
     SVECTOR pointCenter;             // Centre shared by the cyan diamond and disc glows
 } _MistParkingGlowWorldPoints;
 STATIC_ASSERT_SIZEOF(_MistParkingGlowWorldPoints, 0xD8);
-
-/// XZ cell-row stride of the parking grid's authored cell index.
-enum { MIST_PARKING_COLLISION_CELL_COUNT_Z = 4 };
 
 /// Scene target, MIST stock profile and script delays for the variant-1 shop poses.
 enum {
@@ -73,10 +50,6 @@ enum {
 #define ROOM_PART gMistParkingJodieShopTalkScript
 #include "assets/rooms/mist/parking/events.inc"
 /// Authored parking glow positions in signed world-coordinate units.
-///
-/// Capsule drawers borrow one endpoint pair; row drawers borrow three
-/// consecutive pairs. The separate centre serves
-/// all point glows. Keep the unused second pair and all vector fourth halfwords.
 static _MistParkingGlowWorldPoints _gMistParkingGlowWorldPoints = {
     .capsuleEndpoints = {
         { { 11430, -2690, -4750, 0 }, { 10230, -2690, -4750, 0 } },
@@ -96,40 +69,6 @@ static _MistParkingGlowWorldPoints _gMistParkingGlowWorldPoints = {
     .pointCenter = { -7412, -1345, 773, 0 },
 };
 
-/// Texture depth, neutral modulation and opaque code flags for parking sprites.
-enum {
-    MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT = 1,
-    MIST_PARKING_SPRITE_NEUTRAL_RGB        = 128,
-    MIST_PARKING_SPRITE_OPAQUE             = 0
-};
-
-/// CAP command slots and room actions selected by the parking interaction quads.
-///
-/// Numbered CAP entries identify the default dialogue resource's authored slots.
-/// Room-message entries instead invoke the room script or view-9 cutscene.
-enum {
-    MIST_PARKING_TRIGGER_CAP_COMMAND_5          = 5,
-    MIST_PARKING_TRIGGER_CAP_COMMAND_6          = 6,
-    MIST_PARKING_TRIGGER_CAP_COMMAND_7          = 7,
-    MIST_PARKING_TRIGGER_CAP_COMMAND_9          = 9,
-    MIST_PARKING_TRIGGER_CAP_COMMAND_11         = 11,
-    MIST_PARKING_TRIGGER_CAP_COMMAND_12         = 12,
-    MIST_PARKING_TRIGGER_CAP_COMMAND_21         = 21,
-    MIST_PARKING_TRIGGER_DEPARTURE_MENU         = 15,
-    MIST_PARKING_TRIGGER_SHOP_TALK              = 18,
-    MIST_PARKING_TRIGGER_ROOM_SCRIPT            = 1,
-    MIST_PARKING_TRIGGER_ROOM_CUTSCENE          = 8,
-    MIST_PARKING_TRIGGER_SELECT_ROOM_2          = 1,
-    MIST_PARKING_TRIGGER_SELECT_ROOM_1          = 2,
-    MIST_PARKING_TRIGGER_SHOOTING_GALLERY_WARPS = (1 << 4) | 1 // Current-area endpoint 1; destination arrival 1
-};
-
-/// Type-1 loaded-bank request bases for paired parking footstep cues.
-enum {
-    MIST_PARKING_FOOTSTEP_WALK = SOUND_SCRIPT_REQUEST_TYPE_1 | 17,
-    MIST_PARKING_FOOTSTEP_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 19
-};
-
 #include "assets/rooms/mist/parking/header.inc"
 #include "assets/rooms/mist/parking/geometry.inc"
 #include "assets/rooms/mist/parking/cameras.inc"
@@ -147,7 +86,7 @@ const EquipmentWeaponSupply* gShopRefillSupply = NULL;
 
 Task* gRoomCutsceneSoundTask = NULL;
 
-s32 D_mist_parking_8019531C = 0;
+s32 gMistParkingDialogChoice = 0;
 
 Task* gMistParkingCutsceneModelTask = NULL;
 
@@ -166,19 +105,6 @@ static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiu
 static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 
 /// Draws one parking-area row of three capsule glows.
-///
-/// Borrows three contiguous, word-aligned `worldEndpointPairs`, drawing pairs
-/// 0, 1 and 2 in order. A negative GTE flag at either endpoint skips
-/// that capsule; the other pairs are still drawn. The signed low halfword of
-/// `radiusScale` gives each endpoint's pixel radius as that value times 64
-/// divided by camera Z / 4, which must be nonzero for accepted projections.
-/// `rgbNibbles` bits 8..11, 4..7 and 0..3 supply RGB channels scaled by 16;
-/// odd animation frames set intensity bit 3 in each channel.
-///
-/// Requires the current view, an initialized scratch stack with room for one
-/// `OverlayPointPairScratch`, and a current ordering table and packet arena.
-/// Queues up to eighteen additive Gouraud quads plus their blend commands.
-/// Retains no endpoint pointer; packets use the frame arena until GPU completion.
 static inline void _mistParkingDrawGlowRow(const SVECTOR worldEndpointPairs[3][2], s32 radiusScale, s32 rgbNibbles)
 {
     _glowDrawCapsule(worldEndpointPairs[0], radiusScale, rgbNibbles);
@@ -262,8 +188,8 @@ void mistParkingDrawGlowsTask(Task* unused)
     }
 }
 
-#include "../../shared/effects/glow_draw_diamond.inc.c"
+#include "../../../../shared/effects/glow_draw_diamond.inc.c"
 
-#include "../../shared/effects/glow_draw_pulsing_disc.inc.c"
+#include "../../../../shared/effects/glow_draw_pulsing_disc.inc.c"
 
-#include "../../shared/effects/glow_draw_capsule.inc.c"
+#include "../../../../shared/effects/glow_draw_capsule.inc.c"

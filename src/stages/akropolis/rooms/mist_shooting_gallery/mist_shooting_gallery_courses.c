@@ -59,7 +59,7 @@ s32 gMistShootingGalleryUnscaledBp;
 #include "../../../../shared/effects/sprite_quad.h"
 #include "../../../../shared/effects/beam_strip.h"
 
-#define ROOM_PART declarations_mist_shooting_gallery_2
+#define ROOM_PART declarations_mist_shooting_gallery_courses
 #include "assets/rooms/mist/shooting_gallery/declarations.inc"
 
 /// Marker values of `_MistShootingGallerySpawn::frame`, above every frame the script clock can reach.

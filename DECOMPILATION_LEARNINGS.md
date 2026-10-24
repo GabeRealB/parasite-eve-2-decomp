@@ -44366,7 +44366,7 @@ part of the tail (the constant `a2`/`a3` setup plus the `jal`) into one block,
 reproducing the target's `j` into a shared spawn label. It also lets the
 `%hi` of a two-arm `if` hoist into the branch's delay slot.
 
-`_mistParkingHandleCommand` is the example: four `taskSpawnFromTable(&D_…,
+`_mistParkingHandleRoomCommand` is the example: four `taskSpawnFromTable(&D_…,
 n, 0, 0)` sites, one merged tail, 99.46% → 99.75% purely from dropping the
 locals.
 
@@ -51223,7 +51223,7 @@ Writing the odd store early gives its constant a birth before the repeated
 constant's live range ends, so the two no longer overlap the same free register,
 and `sched1` sinks the store back into the emitted order by itself. Do not read
 the emitted store order as the source order here, and do not reach for pins:
-`_mistParkingDepartForAcropolisTask` went from 93% to 100% on that one line move.
+`_mistParkingDepartForAkropolisTask` went from 93% to 100% on that one line move.
 
 ## A callee whose `$a0` is never written before the `jal` is being handed the caller's own `index`
 

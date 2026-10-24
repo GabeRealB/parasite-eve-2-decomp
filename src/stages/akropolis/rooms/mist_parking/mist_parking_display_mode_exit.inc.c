@@ -1,5 +1,8 @@
 /* Shared by two units of mist_parking. */
 
+#include "main/stage.h"
+#include "main/task.h"
+
 static inline void _mistParkingDelayDisplayModeExit(Task* task)
 {
     s32 ticksLeft;

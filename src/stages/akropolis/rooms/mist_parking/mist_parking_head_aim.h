@@ -14,11 +14,6 @@ enum {
 };
 
 /// Advances the parking talk's head-aim weight by 1/16 toward its enabled state.
-///
-/// `killCountdown` starts at zero and holds a signed weight in 1/4096 units.
-/// Animation or a nonzero `spawnArg1.value` enables aiming; normal updates
-/// clamp the weight to 0..4096. The step wraps to 16 bits before the signed
-/// clamp, retaining the counter's behavior even outside that normal range.
 static inline void _mistParkingRampPlayerHeadAimBlend(Task* task, s32 animationRequestsAim)
 {
     enum { MIST_PARKING_HEAD_AIM_BLEND_STEP = ONE / 16 };

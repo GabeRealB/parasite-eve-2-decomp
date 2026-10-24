@@ -6,7 +6,6 @@
 
 #include "types.h"
 
-#include "gameplay/animation.h"
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/hud_sprites.h"
@@ -16,6 +15,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/event_flags.h"
 #include "main/fs.h"
 #include "main/fs_types.h"
 #include "main/gameflag.h"
@@ -28,9 +28,9 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
-#include "../../shared/actor/actor_messages.h"
+#include "../../../../shared/actor/actor_messages.h"
 
-#define ROOM_PART declarations_mist_parking_3
+#define ROOM_PART declarations_mist_parking_scenes
 #include "assets/rooms/mist/parking/declarations.inc"
 
 static void _mistParkingPlayDepartureMovieTask(Task* task);
@@ -62,13 +62,6 @@ static s16 _gMistParkingPierceCollisionPatchCells[4] = {
 };
 
 /// Supplies this grid's cell face-list addresses to its generated table.
-///
-/// `halfwordOffset` is an integer constant measured in `s16` elements of
-/// `_gMistParkingPierceCollisionPatchCells` and occurs once in the expansion.
-/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
-/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
-/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
-/// binding through the table include, then undefine it.
 #define MIST_PARKING_PIERCE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gMistParkingPierceCollisionPatchCells[(halfwordOffset)])
 static s16* _gMistParkingPierceCollisionPatchTable[1] = {
 #include "assets/mist_parking_collision_126F8_table.inc"
@@ -102,11 +95,6 @@ enum {
 };
 
 /// Applies the previous shared placement while recording this callback's pitch.
-///
-/// Requires a live TMD task; `killCountdown` is a signed angle in 4096 units
-/// per turn. Copy the complete placement before changing its pitch so the
-/// model receives the preceding update. The placement call borrows the snapshot
-/// synchronously, and the shared placement retains the new pitch for the next call.
 static inline void _mistParkingApplyPreviousCutsceneModelPlacement(Task* task)
 {
     ActorTransform previousPlacement = _gMistParkingCutsceneModelPlacement;
@@ -174,7 +162,7 @@ void mistParkingSelectDialogueResource(s32 resourceOrdinal)
 
 void mistParkingSetConversationProgress(s32 progress)
 {
-    gameFlagSetNibble(GAME_FLAG_0F1, progress);
+    gameFlagSetNibble(EVENT_FLAG_MIST_PARKING_DRYFIELD_DEPARTURE_STATE, progress);
 }
 
 void mistParkingResetCutsceneTaskHandles(s32 unused)
@@ -184,13 +172,6 @@ void mistParkingResetCutsceneTaskHandles(s32 unused)
 }
 
 /// Plays one of the two departure movies and restores game presentation.
-///
-/// `spawnArg1.value` selects stream 100 when zero, 101 otherwise, in the current
-/// room. The matching slot (0..14) must already be loaded. Requires state 0..5
-/// and exclusive display presentation while movie workspace replaces image memory.
-/// Start requests cancellation; both paths wait for CD idle before restoring
-/// saved VRAM images and model buffers, clearing the resident image workspace,
-/// releasing the task and resuming the game loop. No work allocation is retained.
 static void _mistParkingPlayDepartureMovieTask(Task* task)
 {
     enum {
@@ -272,10 +253,6 @@ static void _mistParkingPlayDepartureMovieTask(Task* task)
 }
 
 /// Transfers the departure movie selector to a display task and releases the launcher.
-///
-/// The room launcher supplies `spawnArg1.value` (zero selects stream 100,
-/// nonzero stream 101). Switches to task-only flipping and queues the current
-/// camera and packets before teardown. Requires the room's live display resources.
 static void _mistParkingStartDepartureMovieTask(Task* task)
 {
     displaySpawnTaskFromTable(gMistParkingDepartureMovieTaskDescs, 1, task->spawnArg1.value, 0);
@@ -296,10 +273,6 @@ static void _mistParkingInitCutsceneModelPitch(Task* task)
 }
 
 /// Advances the model's delayed pitch and holds it at one eighth of a turn.
-///
-/// Requires initialization and a live model root. The shared placement lags the
-/// counter by one positive update; the signed halfword can overshoot the limit
-/// for one update before being clamped on the next.
 static void _mistParkingAdvanceCutsceneModelPitch(Task* task)
 {
     if (task->killCountdown > 0) {
@@ -315,7 +288,7 @@ static void _mistParkingAdvanceCutsceneModelPitch(Task* task)
     }
 }
 
-#include "../../shared/actor/actor_messages_place_euler_zyx.inc.c"
+#include "../../../../shared/actor/actor_messages_place_euler_zyx.inc.c"
 
 void mistParkingCutsceneModelPitchTask(Task* task)
 {

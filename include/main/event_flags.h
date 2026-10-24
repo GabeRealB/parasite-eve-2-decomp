@@ -208,6 +208,11 @@ enum {
     /// room (the parking lot's room action 2); the shooting gallery and Pierce's
     /// actors go by it.
     EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT = 0x0ED,
+    /// MIST parking lot, the departure for Dryfield after Akropolis (placement variant
+    /// 2). State: the arrival conversation and its follow-ups, step by step; values in
+    /// the room's private header (`MIST_PARKING_CONVERSATION_*`). While nonzero, part of
+    /// Pierce's model (actor_113100) is hidden.
+    EVENT_FLAG_MIST_PARKING_DRYFIELD_DEPARTURE_STATE = 0x0F1,
 
     // ---- From 0x100: not divided yet -----------------------------------------
 

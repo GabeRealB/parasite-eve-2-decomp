@@ -1,20 +1,18 @@
 #include "mist_parking_private.h"
 
+#include "../../room_ids.h"
+
 #include "types.h"
 
 #include "rooms/mist_parking.h"
 
-#include "gameplay/companion_load.h"
+#include "gameplay/actor_presentation.h"
 #include "gameplay/animation.h"
 #include "gameplay/captions.h"
-#include "gameplay/actor_presentation.h"
-#include "gameplay/evs.h"
+#include "gameplay/companion_load.h"
 #include "gameplay/evs_scripts.h"
-#include "gameplay/inventory.h"
-#include "gameplay/item_menu.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
-#include "gameplay/player_actor.h"
 #include "gameplay/starter_inventory.h"
 
 #include "main/coord.h"
@@ -38,7 +36,7 @@
 
 #include "rooms/room_common.h"
 
-#define ROOM_PART declarations_mist_parking_2
+#define ROOM_PART declarations_mist_parking_conversation
 #include "assets/rooms/mist/parking/declarations.inc"
 
 static void _modelPlacementAttachPartTask(Task* childTask);
@@ -49,10 +47,6 @@ static void _mistParkingOpenOptionDialog(Task* task);
 static void _mistParkingExitOptionDialogTask(Task* task);
 
 /// Unreferenced three-state recipe for attaching a child model to a parent part.
-///
-/// States 0..2 attach/reparent, idle, then kill the task; there is no terminator.
-/// Setup expects a live TMD child, spawnArg1's part index and spawnArg2's parent.
-/// The parent's model coordinates and lighting must outlive the child.
 static const TaskFuncTable3 _gMistParkingAttachedModelStates = {
     {
         _modelPlacementAttachPartTask,
@@ -73,7 +67,7 @@ static void _mistParkingJodiePrizeAndShopTalkTask(Task* task);
 static void _mistParkingDepartureMenuTask(Task* task);
 static void _mistParkingStartPackedDialogue(s32 packedCommandAndVariant);
 static void _mistParkingStartDepartureMovie(s32 movieSelector);
-static void _mistParkingReloadAcropolisArea(s32 areaId);
+static void _mistParkingReloadAkropolisArea(s32 areaId);
 static void _mistParkingSpawnCutsceneModel(s32 descriptorIndex);
 static void _mistParkingReleaseCutsceneModel(s32 descriptorIndex);
 
@@ -87,13 +81,7 @@ static void _mistParkingStartPlayerHeadAim(void);
 
 /// CAP slots and variant keys packed into the room's dialogue callback words.
 enum {
-    MIST_PARKING_CAP_COMMAND_SHIFT              = 16,
-    MIST_PARKING_CAP_FIRST_FOLLOWUP             = (15 << MIST_PARKING_CAP_COMMAND_SHIFT) | 0,
-    MIST_PARKING_CAP_SECOND_FOLLOWUP            = (15 << MIST_PARKING_CAP_COMMAND_SHIFT) | 1,
-    MIST_PARKING_CAP_FOLLOWUP_VARIANT_2         = (15 << MIST_PARKING_CAP_COMMAND_SHIFT) | 2,
-    MIST_PARKING_CAP_DEPARTURE_STAY             = (5 << MIST_PARKING_CAP_COMMAND_SHIFT) | 1,
-    MIST_PARKING_CAP_DEPARTURE_DRYFIELD         = (5 << MIST_PARKING_CAP_COMMAND_SHIFT) | 2,
-    MIST_PARKING_CAP_DEPARTURE_SHOOTING_GALLERY = (5 << MIST_PARKING_CAP_COMMAND_SHIFT) | 3
+    MIST_PARKING_CAP_COMMAND_SHIFT = 16,
 };
 
 /// Resource and entrance selectors installed for a departure reload.
@@ -116,128 +104,20 @@ enum {
 
 /// Clip indices and actor actions used by the parking conversation requests.
 enum {
-    MIST_PARKING_CONVERSATION_TASK_PRIORITY        = 192,
-    MIST_PARKING_PLAYER_HEAD_AIM_TASK_PRIORITY     = 97,
-    MIST_PARKING_PLAYER_ANIM_RESET                 = ANIMATION_BANK_BASE_SET_COUNT + 1,
-    MIST_PARKING_PLAYER_ANIM_ARRIVAL_CUE           = ANIMATION_BANK_BASE_SET_COUNT + 3,
-    MIST_PARKING_PLAYER_ANIM_MODEL_CUE             = ANIMATION_BANK_BASE_SET_COUNT + 4,
-    MIST_PARKING_PLAYER_ANIM_TALK                  = ANIMATION_BANK_BASE_SET_COUNT + 17,
-    MIST_PARKING_PLAYER_ANIM_STAY_OR_GALLERY_REPLY = ANIMATION_BANK_BASE_SET_COUNT + 21,
-    MIST_PARKING_PLAYER_ANIM_DEPARTURE_REPLY       = ANIMATION_BANK_BASE_SET_COUNT + 23,
-    MIST_PARKING_ACTOR_BODY_ANIMATION_BANK         = 0,
-    MIST_PARKING_PIERCE_ANIM_REST                  = 1,
-    MIST_PARKING_PIERCE_ANIM_WALK                  = 2,
-    MIST_PARKING_PIERCE_ANIM_FOLLOWUP_TALK         = 8,
-    MIST_PARKING_PIERCE_ANIM_DEPARTURE_REPLY       = 15,
-    MIST_PARKING_PIERCE_ANIM_POST_ARRIVAL          = 26,
-    MIST_PARKING_JODIE_ANIM_REST                   = 5,
-    MIST_PARKING_JODIE_ANIM_SHOP_REPLY             = 8,
-    MIST_PARKING_JODIE_ANIM_SHOP_REPLY_CLOSING     = 9,
-    MIST_PARKING_PIERCE_COMMAND_HIDE_BILLBOARD     = 1,
-    MIST_PARKING_PIERCE_COMMAND_AIM_HEAD           = 2,
-    MIST_PARKING_PIERCE_COMMAND_RELEASE_HEAD       = 3,
-    MIST_PARKING_PLAYER_ANIMATION_HEAD_AIM_OFF     = 0,
-    MIST_PARKING_PLAYER_ANIMATION_HEAD_AIM_ON      = 1,
-};
-
-/// Clip IDs and whole-frame blend durations for the private dialogue requests.
-enum {
-    MIST_PARKING_PLAYER_DIALOGUE_BLEND_FRAMES  = 6,
-    MIST_PARKING_PLAYER_SLOW_BLEND_FRAMES      = 30,
-    MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES   = 20,
-    MIST_PARKING_PLAYER_ANIM_ARRIVAL_CLIP_52   = ANIMATION_BANK_BASE_SET_COUNT + 5,
-    MIST_PARKING_PLAYER_ANIM_ARRIVAL_CLIP_53   = ANIMATION_BANK_BASE_SET_COUNT + 6,
-    MIST_PARKING_PLAYER_ANIM_ARRIVAL_CLIP_54   = ANIMATION_BANK_BASE_SET_COUNT + 7,
-    MIST_PARKING_PLAYER_ANIM_ARRIVAL_CLIP_55   = ANIMATION_BANK_BASE_SET_COUNT + 8,
-    MIST_PARKING_PLAYER_ANIM_ARRIVAL_CLIP_56   = ANIMATION_BANK_BASE_SET_COUNT + 9,
-    MIST_PARKING_PLAYER_ANIM_ARRIVAL_CLIP_57   = ANIMATION_BANK_BASE_SET_COUNT + 10,
-    MIST_PARKING_PLAYER_ANIM_ARRIVAL_CLIP_59   = ANIMATION_BANK_BASE_SET_COUNT + 12,
-    MIST_PARKING_PLAYER_ANIM_ARRIVAL_CLIP_60   = ANIMATION_BANK_BASE_SET_COUNT + 13,
-    MIST_PARKING_PLAYER_ANIM_ARRIVAL_CLIP_61   = ANIMATION_BANK_BASE_SET_COUNT + 14,
-    MIST_PARKING_PLAYER_ANIM_ARRIVAL_CLIP_63   = ANIMATION_BANK_BASE_SET_COUNT + 16,
-    MIST_PARKING_PLAYER_ANIM_ARRIVAL_CLIP_66   = ANIMATION_BANK_BASE_SET_COUNT + 19,
-    MIST_PARKING_PLAYER_ANIM_ARRIVAL_CLIP_67   = ANIMATION_BANK_BASE_SET_COUNT + 20,
-    MIST_PARKING_PLAYER_ANIM_ARRIVAL_CLIP_71   = ANIMATION_BANK_BASE_SET_COUNT + 24,
-    MIST_PARKING_PIERCE_ANIM_DEPARTURE_PROMPT  = 5,
-    MIST_PARKING_PIERCE_ANIM_ARRIVAL_CLOSING   = 6,
-    MIST_PARKING_PIERCE_ANIM_ARRIVAL_CLIP_17   = 17,
-    MIST_PARKING_PIERCE_ANIM_ARRIVAL_CLIP_18   = 18,
-    MIST_PARKING_PIERCE_ANIM_ARRIVAL_CLIP_19   = 19,
-    MIST_PARKING_PIERCE_ANIM_ARRIVAL_CLIP_20   = 20,
-    MIST_PARKING_PIERCE_ANIM_ARRIVAL_CLIP_27   = 27,
-    MIST_PARKING_PIERCE_ANIM_ARRIVAL_CLIP_28   = 28,
-    MIST_PARKING_PIERCE_ANIM_ARRIVAL_CLIP_29   = 29,
-    MIST_PARKING_PIERCE_ANIM_ARRIVAL_CLIP_31   = 31,
-    MIST_PARKING_PIERCE_ANIM_ARRIVAL_CLIP_34   = 34,
-    MIST_PARKING_JODIE_ANIM_TALK_OPENING       = 1,
-    MIST_PARKING_PIERCE_ANIM_ARRIVAL_TALK      = 33,
-    MIST_PARKING_PIERCE_COMMAND_SHOW_BILLBOARD = 0,
-};
-
-/// Stored bank seed and clip selectors of the unreferenced conversation requests.
-enum {
-    MIST_PARKING_PLAYER_REQUEST_BANK_SEED   = 1,
-    MIST_PARKING_PLAYER_ANIM_BASE_IDLE      = 1,
-    MIST_PARKING_PLAYER_ANIM_UNUSED_CLIP_49 = ANIMATION_BANK_BASE_SET_COUNT + 2,
-    MIST_PARKING_PLAYER_ANIM_UNUSED_CLIP_58 = ANIMATION_BANK_BASE_SET_COUNT + 11,
-    MIST_PARKING_PLAYER_ANIM_UNUSED_CLIP_62 = ANIMATION_BANK_BASE_SET_COUNT + 15,
-    MIST_PARKING_PLAYER_ANIM_UNUSED_CLIP_65 = ANIMATION_BANK_BASE_SET_COUNT + 18,
-    MIST_PARKING_PLAYER_ANIM_UNUSED_CLIP_69 = ANIMATION_BANK_BASE_SET_COUNT + 22,
-    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_3  = 3,
-    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_4  = 4,
-    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_7  = 7,
-    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_9  = 9,
-    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_10 = 10,
-    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_11 = 11,
-    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_12 = 12,
-    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_13 = 13,
-    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_14 = 14,
-    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_16 = 16,
-    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_21 = 21,
-    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_22 = 22,
-    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_23 = 23,
-    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_24 = 24,
-    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_25 = 25,
-    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_30 = 30,
-    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_32 = 32,
-    MIST_PARKING_PIERCE_ANIM_UNUSED_CLIP_35 = 35,
-};
-
-/// Jodie greeting clip and its whole-frame interpolation duration.
-enum {
-    MIST_PARKING_JODIE_ANIM_GREETING         = 7,
-    MIST_PARKING_JODIE_GREETING_BLEND_FRAMES = 10
+    MIST_PARKING_CONVERSATION_TASK_PRIORITY    = 192,
+    MIST_PARKING_PLAYER_HEAD_AIM_TASK_PRIORITY = 97,
+    MIST_PARKING_PIERCE_COMMAND_AIM_HEAD       = 2,
+    MIST_PARKING_PIERCE_COMMAND_RELEASE_HEAD   = 3,
+    MIST_PARKING_PLAYER_ANIMATION_HEAD_AIM_OFF = 0,
+    MIST_PARKING_PLAYER_ANIMATION_HEAD_AIM_ON  = 1,
 };
 
 /// Script targets, CAP slots, view selectors and the room's MIST stock profile.
-///
-/// WAIT_FRAMES delays below count interpreter updates; zero still yields once.
 enum {
-    MIST_PARKING_PIERCE_SCENE_PLACEMENT  = 0,
     MIST_PARKING_JODIE_SCENE_PLACEMENT   = 1,
-    MIST_PARKING_SCENE_MODEL_HIDE        = 0,
-    MIST_PARKING_SCENE_MODEL_SHOW        = 1,
-    MIST_PARKING_CAP_ARRIVAL             = 14,
-    MIST_PARKING_CAP_DEPARTURE_MENU      = 5,
-    MIST_PARKING_VIEW_ARRIVAL            = 10,
-    MIST_PARKING_VIEW_POST_ARRIVAL       = 5,
     MIST_PARKING_SHOP_STOCK_PROFILE      = 0x10,
     MIST_PARKING_SHOP_POSE_DELAY_UPDATES = 20,
     MIST_PARKING_SHOP_REPLY_END_UPDATES  = 30,
-    MIST_PARKING_DEPARTURE_MOVIE_NORMAL  = 0,
-    MIST_PARKING_FADE_BLEND_AVERAGE      = 0
-};
-
-/// Arrival sound ids: bank 0x5113, instance tag 0, and the named script entry.
-enum {
-    MIST_PARKING_ARRIVAL_SOUND_ENTRY_05  = 0x51130005,
-    MIST_PARKING_ARRIVAL_SOUND_ENTRY_06  = 0x51130006,
-    MIST_PARKING_ARRIVAL_SOUND_ENTRY_08  = 0x51130008,
-    MIST_PARKING_ARRIVAL_SOUND_ENTRY_0C  = 0x5113000C,
-    MIST_PARKING_ARRIVAL_SOUND_ENTRY_0D  = 0x5113000D,
-    MIST_PARKING_ARRIVAL_SOUND_ENTRY_0E  = 0x5113000E,
-    MIST_PARKING_ARRIVAL_SOUND_ENTRY_11  = 0x51130011,
-    MIST_PARKING_ARRIVAL_AMBIENT_CHANNEL = 100
 };
 
 /// Catalog ids and quantities awarded for the five shooting-gallery courses.
@@ -252,7 +132,7 @@ enum {
 };
 
 TaskDesc gMistParkingConversationTaskDescs[9] = {
-    { { { TASK_BODY_TMD, MIST_PARKING_CONVERSATION_TASK_PRIORITY } }, mistParkingCutsceneModelPitchTask, { .model = &gMistParkingMistParkingModel09B9C } },
+    { { { TASK_BODY_TMD, MIST_PARKING_CONVERSATION_TASK_PRIORITY } }, mistParkingCutsceneModelPitchTask, { .model = &gMistParkingHingedPanelModel } },
     { { { TASK_BODY_NONE, MIST_PARKING_CONVERSATION_TASK_PRIORITY } }, _mistParkingOptionDialogTask, { .value = 0 } },
     { { { TASK_BODY_NONE, MIST_PARKING_CONVERSATION_TASK_PRIORITY } }, mistParkingContinueDepartureChoiceTask, { .value = 0 } },
     { { { TASK_BODY_NONE, MIST_PARKING_CONVERSATION_TASK_PRIORITY } }, _mistParkingDepartForDryfieldTask, { .value = 0 } },
@@ -264,32 +144,29 @@ TaskDesc gMistParkingConversationTaskDescs[9] = {
 };
 
 /// Player-bank extension for the arrival, follow-up, departure and Jodie shop scripts.
-///
-/// Copied to bank indices 47..71: entry 0 is NULL, entries 1..24 are playable
-/// sets. These descriptors and their clip data are borrowed for playback.
 static AnimationSet* _gMistParkingPlayerConversationAnimationSets[25] = {
     NULL,
     &gAyaStandClip,
     &gShelterR47PlayerLookAtMapClip,
     &gShelterB3IncineratorControlRoomPlayerFlusteredClip,
-    &gMistParkingMistParkingPlayerConversationAnim04Clip,
-    &gMistParkingMistParkingPlayerConversationAnim05Clip,
-    &gMistParkingMistParkingPlayerConversationAnim06Clip,
-    &gMistParkingMistParkingPlayerConversationAnim07Clip,
-    &gMistParkingMistParkingPlayerConversationAnim08Clip,
-    &gMistParkingMistParkingPlayerConversationAnim09Clip,
-    &gMistParkingMistParkingPlayerConversationAnim10Clip,
+    &gMistParkingPlayerConversationAnim04Clip,
+    &gMistParkingPlayerConversationAnim05Clip,
+    &gMistParkingPlayerConversationAnim06Clip,
+    &gMistParkingPlayerConversationAnim07Clip,
+    &gMistParkingPlayerConversationAnim08Clip,
+    &gMistParkingPlayerConversationAnim09Clip,
+    &gMistParkingPlayerConversationAnim10Clip,
     &gAyaAnim07Clip,
     &gAyaTalkClip,
     &gShelterB6GrowthRoomPlayerChoiceStartClip,
     &gAyaItsNothingClip,
-    &gMistParkingMistParkingPlayerConversationAnim15Clip,
+    &gMistParkingPlayerConversationAnim15Clip,
     &gAyaOnMyWayClip,
     &gAyaTalkStartClip,
     &gAyaTalkEndClip,
     &gAyaReplyClip,
-    &gMistParkingMistParkingPlayerConversationAnim20Clip,
-    &gMistParkingMistParkingPlayerConversationAnim21Clip,
+    &gMistParkingPlayerConversationAnim20Clip,
+    &gMistParkingPlayerConversationAnim21Clip,
     &gAyaTurnPaleClip,
     &gShelterB1PodServiceGantryPlayerGantryScene7Clip,
     &gAyaIntroduceHerselfClip,
@@ -328,16 +205,6 @@ s8 gMistParkingPlayerAnimationHeadAimFlags[28] = {
     MIST_PARKING_PLAYER_ANIMATION_HEAD_AIM_OFF,
 };
 
-enum {
-    MIST_PARKING_JODIE_UNUSED_CLIP_2 = 2,
-    MIST_PARKING_JODIE_UNUSED_CLIP_3 = 3,
-    MIST_PARKING_JODIE_UNUSED_CLIP_4 = 4,
-};
-
-enum {
-    MIST_PARKING_JODIE_UNUSED_CLIP_6 = 6,
-};
-
 #define ROOM_PART _gMistParkingPlayerArrivalAndDepartureTransform
 #include "assets/rooms/mist/parking/events.inc"
 /// Null-terminated Shift-JIS option label "まだよ (not yet)"; eight bytes of storage.
@@ -353,10 +220,6 @@ static u8 _gMistParkingOptionHaiLabel[8] = "\x82\xcd\x82\xa2";
 static u8 _gMistParkingOptionNoLabel[8] = "\x82\xa2\x82\xa2\x82\xa6";
 
 /// Two ordered label pairs borrowed by the modal option dialog.
-///
-/// Pair 0 is not-yet/yes; pair 1 is yes/no. Only selector 1 chooses pair 1;
-/// every other selector uses pair 0. Each row supplies the two dialog options.
-/// The strings remain in the loaded parking overlay through dialog closure.
 static u8* _gMistParkingOptionLabelPairs[2][2] = {
     { _gMistParkingOptionNotYetLabel, _gMistParkingOptionEeLabel },
     { _gMistParkingOptionHaiLabel, _gMistParkingOptionNoLabel },
@@ -365,10 +228,6 @@ static u8* _gMistParkingOptionLabelPairs[2][2] = {
 #define ROOM_PART gMistParkingArrivalConversationScript
 #include "assets/rooms/mist/parking/events.inc"
 /// Item ids for shooting-gallery courses 0..4, paired with their quantities.
-///
-/// Courses 0..3 use these words for storage grants. Course 4's Shoulder Holster
-/// is retained here but granted separately after checking its ownership limit.
-/// Signed-word catalog ids stay in the authored data section.
 static s32 _gMistParkingCoursePrizeItemIds[5] = {
     MIST_PARKING_COURSE_PRIZE_9MM_HYDRA,
     MIST_PARKING_COURSE_PRIZE_RINGERS_SOLUTION,
@@ -378,10 +237,6 @@ static s32 _gMistParkingCoursePrizeItemIds[5] = {
 };
 
 /// Item units per course prize: fifty Hydra rounds, then one of each item.
-///
-/// Same course order and extent as `_gMistParkingCoursePrizeItemIds`; only
-/// courses 0..3 read this array. The last quantity is retained metadata.
-/// Signed words match `inventoryGiveItem`'s quantity contract; storage stays in .data.
 static s32 _gMistParkingCoursePrizeQuantities[ARRAY_SIZE(_gMistParkingCoursePrizeItemIds)] = {
     MIST_PARKING_COURSE_PRIZE_AMMO_ROUNDS,
     MIST_PARKING_COURSE_PRIZE_ONE_ITEM,
@@ -391,13 +246,6 @@ static s32 _gMistParkingCoursePrizeQuantities[ARRAY_SIZE(_gMistParkingCoursePriz
 };
 
 /// Advances one course prize's announcement while CAP is idle.
-///
-/// Borrows the singleton cursor and a live talk in its announcement state.
-/// Requires course index 0..4 and timer 1..10, initialized to index 0/timer 10
-/// before the first turn. Waiting prizes start their caption at five ticks left.
-/// At zero, an unavailable placed prize closes its saved prize flag and the
-/// cursor resets to ten ticks. Finishing course 4 leaves index 5 and advances
-/// the talk, which must stop calling this helper. CAP playback pauses the timer.
 static inline void _mistParkingAdvancePrizeAnnouncement(Task* task, MistParkingPrizeAnnouncementState* announcement)
 {
     s16 announcementCourse;
@@ -428,14 +276,6 @@ static inline void _mistParkingAdvancePrizeAnnouncement(Task* task, MistParkingP
 }
 
 /// Runs Jodie's prize collection and shop conversation outside area variant 1.
-///
-/// Requires player control already held, live scene actors and the loaded default
-/// and prize CAP resources. States 0..10 drive the exchange. State 0 clears the
-/// shared announcement cursor; only one talk may run at a time.
-/// Keys 1, 3 and 4 announce, store or close the waiting
-/// prizes; the final menu opens the shop on key 1. The signed `killCountdown`
-/// counts callback ticks before the menu and farewell. Completion resumes player
-/// control and releases this bodyless task; spawn arguments and work are unused.
 static void _mistParkingJodiePrizeAndShopTalkTask(Task* task)
 {
     enum {
@@ -607,12 +447,6 @@ static void _mistParkingJodiePrizeAndShopTalkTask(Task* task)
 }
 
 /// Runs the departure menu used after the variant-2 conversation follow-ups.
-///
-/// State 0 starts the prompt; states 1 and 3 wait for EVS, state 2 selects the
-/// CAP key and state 4 releases the task. Keys 4, 5 and 6 select staying,
-/// Dryfield departure and the shooting gallery respectively. The selected key
-/// replaces `spawnArg1.value` until finish; only staying resumes player control.
-/// Requires loaded dialogue, live scene actors and player control already held.
 static void _mistParkingDepartureMenuTask(Task* task)
 {
     enum {
@@ -665,33 +499,20 @@ static void _mistParkingDepartureMenuTask(Task* task)
     }
 }
 
-#include "../../shared/actor/model_placement_attach_part.inc.c"
+#include "../../../../shared/actor/model_placement_attach_part.inc.c"
 
 /// Keeps an attached model task idle between attachment and teardown.
-///
-/// Ignores the task and makes no state change. Its three-state table has no
-/// observed dispatcher in this room; the retained callback performs no drawing.
 static void _mistParkingIdleAttachedModelState(Task* unusedTask)
 {
 }
 
 /// Starts in-place CAP playback from a packed command slot and variant key.
-///
-/// Bits 16..31 and 0..15 become signed halfword slot and key arguments.
-/// The slot must satisfy `capStartSequenceSlot`'s bounds, and its borrowed CAP
-/// resources must remain loaded through playback. Busy playback is skipped;
-/// the return value is discarded. The full signed word is the EVS argument.
 static void _mistParkingStartPackedDialogue(s32 packedCommandAndVariant)
 {
     capStartSequenceSlot(packedCommandAndVariant >> MIST_PARKING_CAP_COMMAND_SHIFT, CAP_PLAYBACK_IN_PLACE, packedCommandAndVariant);
 }
 
 /// Queues the departure movie launcher and freezes room objects for the transition.
-///
-/// Zero selects the normal movie, every nonzero `movieSelector` the alternate.
-/// The launcher transfers this word to a display task on its next update.
-/// The room and movie resources must stay loaded until presentation is restored.
-/// Room objects are frozen even if allocation fails; this call does not unfreeze them.
 static void _mistParkingStartDepartureMovie(s32 movieSelector)
 {
     enum { MIST_PARKING_DEPARTURE_MOVIE_LAUNCHER_DESCRIPTOR = 0 };
@@ -700,14 +521,8 @@ static void _mistParkingStartDepartureMovie(s32 movieSelector)
     gGameSession->freezeRoomObjs = 1;
 }
 
-/// Installs an Acropolis destination and queues a reload capturing the current frame.
-///
-/// Stores the low byte of `areaId` in the live save, with entrance, room and sprite
-/// variant 1. Stops all non-ambient sound scripts immediately. The full signed
-/// argument selects a normal load caption only for the plaza. The low byte must
-/// name a valid Acropolis/MIST area; the current caller selects the shooting gallery.
-/// Requires live save and session state.
-static void _mistParkingReloadAcropolisArea(s32 areaId)
+/// Installs an Akropolis destination and queues a reload capturing the current frame.
+static void _mistParkingReloadAkropolisArea(s32 areaId)
 {
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage     = GAME_STAGE_AKROPOLIS;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = MIST_PARKING_RELOAD_WARP;
@@ -716,17 +531,12 @@ static void _mistParkingReloadAcropolisArea(s32 areaId)
     gDisplayState.spriteVariant                                 = MIST_PARKING_RELOAD_SPRITE_VARIANT;
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
-    if (areaId == GAME_AREA_AKROPOLIS_PLAZA) {
+    if (areaId == AKROPOLIS_ROOM_ID_PLAZA) {
         gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location, GAME_FLOW_LOAD_CAPTION_NORMAL);
     }
 }
 
 /// Shows the arrival conversation's model task if the room holds none.
-///
-/// Only descriptor 0 selects the model; every other signed index is ignored.
-/// The room holds the spawned task until the release callback or room reset;
-/// an existing handle must remain live. Allocation failure leaves it NULL.
-/// Successful spawn owns its TMD body and borrows the loaded model source.
 static void _mistParkingSpawnCutsceneModel(s32 descriptorIndex)
 {
     Task**     modelTaskHandle = descriptorIndex == MIST_PARKING_CUTSCENE_MODEL_DESCRIPTOR_INDEX ? &gMistParkingCutsceneModelTask : NULL;
@@ -744,9 +554,6 @@ static void _mistParkingSpawnCutsceneModel(s32 descriptorIndex)
 }
 
 /// Releases the arrival conversation's model task and forgets its handle.
-///
-/// Descriptor 0 selects the model; every other index is ignored. A non-NULL
-/// handle must identify a live task. Model-body release follows normal task teardown.
 static void _mistParkingReleaseCutsceneModel(s32 descriptorIndex)
 {
     if (descriptorIndex == MIST_PARKING_CUTSCENE_MODEL_DESCRIPTOR_INDEX) {
@@ -758,11 +565,6 @@ static void _mistParkingReleaseCutsceneModel(s32 descriptorIndex)
 }
 
 /// Runs a modal two-option choice and forwards its one-based answer.
-///
-/// State 0 opens, 1 waits and 2 exits, with no bounds check. `spawnArg1.value`
-/// selects the second label pair only when 1; `spawnArg2.pointer` borrows a
-/// writable aligned s32 for the answer (1 or 2). The task owns its dialog work
-/// until teardown. Its descriptor's launcher has not been identified.
 static void _mistParkingOptionDialogTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
@@ -772,11 +574,6 @@ static void _mistParkingOptionDialogTask(Task* task)
 }
 
 /// Allocates and opens the room's two-option dialog with cancellation disabled.
-///
-/// Labels are "not yet"/"yes", or "yes"/"no" when `spawnArg1.value` is 1.
-/// The task owns the request and linked options; the UI borrows them and the
-/// loaded label strings until closing. Allocation failure kills the task;
-/// success installs the exit callback and advances to waiting for the answer.
 static void _mistParkingOpenOptionDialog(Task* task)
 {
     enum { MIST_PARKING_OPTION_ALTERNATE_LABEL_PAIR = 1 };
@@ -821,11 +618,6 @@ static void _mistParkingOpenOptionDialog(Task* task)
 }
 
 /// Publishes the dialog's one-based option number and advances to exit.
-///
-/// `work` owns a live `RoomOptionDialog`; `spawnArg2.pointer` borrows a writable,
-/// word-aligned `s32` through this wait. Zero leaves both destination and state
-/// untouched. A nonzero signed-halfword result is widened before storing; normal
-/// answers are 1 or 2 because cancellation is disabled. The destination is borrowed.
 static void _mistParkingWaitOptionDialogAnswer(Task* task)
 {
     const RoomOptionDialog* dialog;
@@ -842,9 +634,6 @@ static void _mistParkingWaitOptionDialogAnswer(Task* task)
 }
 
 /// Releases the room's option-dialog request task and requests modal exit.
-///
-/// Used as both the final state and exit callback. The task must be live;
-/// task teardown frees its dialog work before the mode-exit request is posted.
 static void _mistParkingExitOptionDialogTask(Task* task)
 {
     taskKill(task);
@@ -856,7 +645,7 @@ void mistParkingContinueDepartureChoiceTask(Task* task)
     enum { MIST_PARKING_DEPARTURE_CHOICE_LEAVE = 2 };
 
     if (gGameSession->eventState == 0 && capIsBusy() == 0) {
-        if (D_mist_parking_8019531C == MIST_PARKING_DEPARTURE_CHOICE_LEAVE) {
+        if (gMistParkingDialogChoice == MIST_PARKING_DEPARTURE_CHOICE_LEAVE) {
             evsStartScript(_gMistParkingDryfieldDepartureScript, EVENT_SCRIPT_HUD_KEEP);
         } else {
             evsStartScript(_gMistParkingStayReplyScript, EVENT_SCRIPT_HUD_KEEP);
@@ -866,16 +655,12 @@ void mistParkingContinueDepartureChoiceTask(Task* task)
 }
 
 /// Starts or skips the shop once the room's current EVS and CAP have finished.
-///
-/// The room answer word selects skipping when it is 2, opening otherwise.
-/// The producer of that word is unproven. Starts one script, then kills the
-/// continuation; work, body and spawn arguments are unused.
 static void _mistParkingContinueShopChoiceTask(Task* task)
 {
     enum { MIST_PARKING_SHOP_CHOICE_SKIP = 2 };
 
     if (gGameSession->eventState == 0 && capIsBusy() == 0) {
-        if (D_mist_parking_8019531C == MIST_PARKING_SHOP_CHOICE_SKIP) {
+        if (gMistParkingDialogChoice == MIST_PARKING_SHOP_CHOICE_SKIP) {
             evsStartScript(_gMistParkingJodieShopDeclineScript, EVENT_SCRIPT_HUD_KEEP);
         } else {
             evsStartScript(_gMistParkingJodieShopSessionScript, EVENT_SCRIPT_HUD_KEEP);
@@ -885,10 +670,6 @@ static void _mistParkingContinueShopChoiceTask(Task* task)
 }
 
 /// Queues the task that prepares the field loadout and departs for Dryfield.
-///
-/// The departure script calls this after starting the movie launcher. The
-/// bodyless task needs no work or spawn arguments. Allocation failure silently
-/// leaves the departure unqueued; the parking overlay must remain loaded until dispatch.
 static void _mistParkingQueueDryfieldDeparture(void)
 {
     enum { MIST_PARKING_DRYFIELD_DEPARTURE_DESCRIPTOR = 3 };
@@ -897,11 +678,6 @@ static void _mistParkingQueueDryfieldDeparture(void)
 }
 
 /// Prepares the field loadout and queues departure to Dryfield's gas station.
-///
-/// Runs once with live save and player state, selecting entrance, room and sprite
-/// variant 1 and the alternate load caption. Stops non-ambient sound scripts,
-/// queues a reload capturing the frame, then releases this bodyless task.
-/// Spawn arguments and work are unused; the destination is saved, not immediately applied.
 static void _mistParkingDepartForDryfieldTask(Task* task)
 {
     playerActorPrepareDryfieldLoadout();
@@ -917,11 +693,6 @@ static void _mistParkingDepartForDryfieldTask(Task* task)
 }
 
 /// Starts animation-controlled player head aiming toward the room's talk partner.
-///
-/// Replaces the room's task handle without releasing an earlier task; call while
-/// the room holds none. Allocation failure stores NULL. The task borrows the live
-/// player and index-zero partner models and uses the loaded parking animation bank.
-/// `mistParkingControlPlayerHeadAim` stops it and clears the handle after the talk.
 static void _mistParkingStartPlayerHeadAim(void)
 {
     enum { MIST_PARKING_PLAYER_HEAD_AIM_DESCRIPTOR = 4 };

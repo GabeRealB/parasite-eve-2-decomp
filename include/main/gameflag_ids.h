@@ -711,10 +711,6 @@ enum {
     /// the transition into the armory is refused, and the lock glow uses tint 0x5C00
     /// instead of 0x50C0.
     GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED = 0x0F0,
-    /// Unidentified. MIST parking variant-2 progress: set by script callback
-    /// func_80183780 and stepped 1->2->3 by event 15, each step playing a script; while
-    /// nonzero part of Pierce's model (actor_113100) is hidden.
-    GAME_FLAG_0F1 = 0x0F1,
     /// Bitmask of one-shot cap messages already shown in the sterilization room: bit 2
     /// for action 5 (cap 5), bit 8 for action 8 (cap 3).
     GAME_FLAG_STERILIZATION_ROOM_NOTES_SHOWN = 0x0F2,

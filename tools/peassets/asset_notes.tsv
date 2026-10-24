@@ -1177,7 +1177,7 @@ mist_parking_animation_09CF8	Bank of 24 player (Aya) clips copied into her bank 
 mist_parking_animation_1271C	Three player (Aya) clips used only in mist_parking variant 1, for Jodie's shop-talk scripts and the departure prompt and branch; apparently second copies of clips in the variant 2 bank.	
 mist_parking_collision_12694	Two-face collision patch standing where Pierce stands in mist_parking, copied over the first entries of the live grid and lowered out of the way or restored by actor_113100 and the scripts.	
 mist_parking_collision_14108	Live collision grid of mist_parking (66 faces, 7x4 cells), the same in all four room indices; its first two faces are the prefix the Pierce patch rewrites.	
-rooms/mist/parking/mist_parking_model_09B9C	Untextured one-part curved panel hinged at one edge, spawned and pitched open up to an eighth turn during mist_parking's variant 2 arrival conversation; the code does not say what it depicts.	
+rooms/mist/parking/hinged_panel	Untextured one-part curved panel hinged at one edge, spawned and pitched open up to an eighth turn during mist_parking's variant 2 arrival conversation; the code does not say what it depicts.	
 mist_r18_animation_01CC0	Bank of ten player (Aya) clips mist_r18 copies into her bank extension as sets 48-57 for the intro, second briefing, departure and key-item menu scripts.	
 mist_r18_collision_090A4	Collision grid of mist_r18 consisting of a single floor face, the room's only collision resource, used for the whole stay.	
 mist_shooting_gallery_collision_07B50	Three-face collision patch for the shooting gallery's story barrier, copied over the live grid's first faces at room start and lowered 3000 when GAME_FLAG_0ED is set.	

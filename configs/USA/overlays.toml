@@ -1395,14 +1395,15 @@ objects = [
 [rooms.overlays.mist_parking]
 label = "code starts at 0x338: the first function is a leaf (a switch returning item-id lists, jump tables at 0x4), so the span detector, which keys on a stack prologue, begins at 0x9A8 and left it as rodata words"
 id = 303
+src = "src/stages/akropolis/rooms/mist_parking"
 text = ["0x338", "0x8A98"]
 objects = [
   { kind = "packageId" },
-  { unit = "mist_parking/mist_parking", rodata = "0x4", text = "0x338", data = "0x8A98" },
-  { unit = "mist_parking/mist_parking_2", rodata = "0x228", text = "0x5484", data = "0x1019C" },
-  { unit = "mist_parking/mist_parking_3", rodata = "0x284", text = "0x6074", data = "0x12664" },
-  { unit = "mist_parking/mist_parking_4", rodata = "0x2A8", text = "0x65EC", data = "0x13264" },
-  { unit = "mist_parking/mist_parking_5", rodata = "0x2EC", text = "0x7168", data = "0x13B94" },
+  { unit = "mist_parking", rodata = "0x4", text = "0x338", data = "0x8A98" },
+  { unit = "mist_parking_conversation", rodata = "0x228", text = "0x5484", data = "0x1019C" },
+  { unit = "mist_parking_scenes", rodata = "0x284", text = "0x6074", data = "0x12664" },
+  { unit = "mist_parking_shop", rodata = "0x2A8", text = "0x65EC", data = "0x13264" },
+  { unit = "mist_parking_glows", rodata = "0x2EC", text = "0x7168", data = "0x13B94" },
   { kind = "model", at = "0x9A5C", in_c = true },
   { kind = "modelSource", at = "0x9CD4", in_c = true },
   { kind = "animation", at = "0x941C", sets = ["0x95D0"], in_c = true },

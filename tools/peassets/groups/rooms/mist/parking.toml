@@ -151,19 +151,19 @@ required = true
 sha1 = "4f3789fd1543af7836b09e6cee5c09472fd0852e"
 
 [[package.embedded]]
-name = "mist_parking_command1_player_anim_00"
+name = "command1_player_anim_00"
 offset = 0x0941C
 size = 0x1DC
 address = 0x801869DC
 
 [[package.embedded]]
-name = "mist_parking_command1_player_bank"
+name = "command1_player_bank"
 offset = 0x09668
 size = 0x4
 address = 0x80186C28
 
 [[package.embedded]]
-name = "mist_parking_model_09B9C"
+name = "hinged_panel"
 offset = 0x09A5C
 size = 0x29C
 address = 0x8018701C
@@ -187,43 +187,43 @@ size = 0x4E8
 address = 0x80187D5C
 
 [[package.embedded]]
-name = "mist_parking_player_conversation_anim_04"
+name = "player_conversation_anim_04"
 offset = 0x0AC84
 size = 0x4DC
 address = 0x80188244
 
 [[package.embedded]]
-name = "mist_parking_player_conversation_anim_05"
+name = "player_conversation_anim_05"
 offset = 0x0B160
 size = 0x5C8
 address = 0x80188720
 
 [[package.embedded]]
-name = "mist_parking_player_conversation_anim_06"
+name = "player_conversation_anim_06"
 offset = 0x0B728
 size = 0x3B4
 address = 0x80188CE8
 
 [[package.embedded]]
-name = "mist_parking_player_conversation_anim_07"
+name = "player_conversation_anim_07"
 offset = 0x0BADC
 size = 0x6FC
 address = 0x8018909C
 
 [[package.embedded]]
-name = "mist_parking_player_conversation_anim_08"
+name = "player_conversation_anim_08"
 offset = 0x0C1D8
 size = 0x4D8
 address = 0x80189798
 
 [[package.embedded]]
-name = "mist_parking_player_conversation_anim_09"
+name = "player_conversation_anim_09"
 offset = 0x0C6B0
 size = 0x6F8
 address = 0x80189C70
 
 [[package.embedded]]
-name = "mist_parking_player_conversation_anim_10"
+name = "player_conversation_anim_10"
 offset = 0x0CDA8
 size = 0x2E0
 address = 0x8018A368
@@ -259,7 +259,7 @@ size = 0x33C
 address = 0x8018B47C
 
 [[package.embedded]]
-name = "mist_parking_player_conversation_anim_15"
+name = "player_conversation_anim_15"
 offset = 0x0E1F8
 size = 0x510
 address = 0x8018B7B8
@@ -289,13 +289,13 @@ size = 0x428
 address = 0x8018C734
 
 [[package.embedded]]
-name = "mist_parking_player_conversation_anim_20"
+name = "player_conversation_anim_20"
 offset = 0x0F59C
 size = 0x27C
 address = 0x8018CB5C
 
 [[package.embedded]]
-name = "mist_parking_player_conversation_anim_21"
+name = "player_conversation_anim_21"
 offset = 0x0F818
 size = 0x470
 address = 0x8018CDD8
@@ -313,7 +313,7 @@ size = 0x318
 address = 0x8018D444
 
 [[package.embedded]]
-name = "mist_parking_player_conversation_bank"
+name = "player_conversation_bank"
 offset = 0x10208
 size = 0x64
 address = 0x8018D7C8
@@ -331,13 +331,13 @@ size = 0x3D4
 address = 0x8018FFE0
 
 [[package.embedded]]
-name = "mist_parking_player_conversation_anim_21_copy"
+name = "player_conversation_anim_21_copy"
 offset = 0x12DF4
 size = 0x470
 address = 0x801903B4
 
 [[package.embedded]]
-name = "mist_parking_shop_player_bank"
+name = "shop_player_bank"
 offset = 0x132A0
 size = 0x10
 address = 0x80190860
@@ -1053,6 +1053,12 @@ offset = [0x00000, 0x00005]
 type = "clip"
 rig = "characters/aya/rig"
 
+[hinged_panel]
+type = "model"
+slots = []
+symbol = "gMistParkingHingedPanelModel"
+sha1 = "1aa709e315f1b596cc854277b7964ee9645416db"
+
 [jodie_schema]
 type = "animation_schema"
 slots = ["", "talk", "slot_2", "slot_3", "slot_4", "rest", "slot_6", "greeting", "shop_reply", "shop_reply_end"]
@@ -1293,6 +1299,16 @@ x = 704
 y = 0
 sha1 = "a750953b680ad38ff8a51b1438c9f9623660c338"
 
+[shop_player_bank]
+type = "animation_bank"
+schema = "rooms/mist/parking/shop_player_schema"
+symbol = "_gMistParkingShopPlayerAnimationSets"
+
+[shop_player_bank.clips]
+slot_1 = "rooms/mist/parking/stand_copy"
+slot_2 = "rooms/mist/parking/talk_start_copy"
+slot_3 = "rooms/mist/parking/player_conversation_anim_21_copy"
+
 [view1_background]
 type = "bs"
 sha1 = "f54b3e05b62b87ba8b8eecc25ecf4355f0c16f8d"
@@ -1385,6 +1401,10 @@ sha1 = "0d6a309c238f61f08677c2cdfb289503e2f16b99"
 type = "clip"
 rig = "characters/pierce/rig"
 
+[shop_player_schema]
+type = "animation_schema"
+slots = ["", "slot_1", "slot_2", "slot_3"]
+
 [pierce_closing_talk]
 type = "clip"
 rig = "characters/pierce/rig"
@@ -1392,6 +1412,17 @@ rig = "characters/pierce/rig"
 [arrival_model_reveal]
 type = "sound"
 sha1 = "552958dddee0c978f03b4a2be1d8e8974417c2f9"
+
+[command1_player_bank]
+type = "animation_bank"
+clips = { slot_0 = "rooms/mist/parking/command1_player_anim_00" }
+schema = "rooms/mist/parking/command1_player_schema"
+symbol = "_gMistParkingCommand1PlayerAnimationSets"
+
+[hinged_panel_binding]
+type = "binding"
+model = "rooms/mist/parking/hinged_panel"
+textures = {  }
 
 [pierce_follow_up_talk]
 type = "clip"
@@ -1417,6 +1448,10 @@ sha1 = "876c4f9f56ee38d04010fa4bd97f451ad4f85db3"
 type = "sound"
 sha1 = "0aaf78bfa37cfc9b9e2f6386663a922717f08eee"
 
+[command1_player_schema]
+type = "animation_schema"
+slots = ["slot_0"]
+
 [hand_billboard_binding]
 type = "binding"
 model = "rooms/mist/parking/hand_billboard"
@@ -1426,6 +1461,10 @@ textures = { props_row_263 = "rooms/mist/parking/props.row_263" }
 type = "sound"
 sha1 = "c0d2b7a52327706ecec52d7175cde39bb1cce1c5"
 
+[command1_player_anim_00]
+type = "clip"
+rig = "characters/aya/rig"
+
 [pierce_departure_prompt]
 type = "clip"
 rig = "characters/pierce/rig"
@@ -1433,12 +1472,6 @@ rig = "characters/pierce/rig"
 [arrival_player_gesture_2]
 type = "sound"
 sha1 = "2528ebca5a43982eca5c7ca2e5e82f62c995191a"
-
-[mist_parking_model_09B9C]
-type = "model"
-slots = []
-symbol = "gMistParkingMistParkingModel09B9C"
-sha1 = "1aa709e315f1b596cc854277b7964ee9645416db"
 
 [pierce_parking_arrival_7]
 type = "clip"
@@ -1448,6 +1481,37 @@ rig = "characters/pierce/rig"
 type = "clip"
 rig = "characters/pierce/rig"
 
+[player_conversation_bank]
+type = "animation_bank"
+schema = "rooms/mist/parking/player_conversation_schema"
+symbol = "_gMistParkingPlayerConversationAnimationSets"
+
+[player_conversation_bank.clips]
+slot_1 = "characters/aya/stand"
+slot_2 = "rooms/shelter/r47/player_look_at_map"
+slot_3 = "rooms/shelter/b3_incinerator_control_room/player_flustered"
+slot_4 = "rooms/mist/parking/player_conversation_anim_04"
+slot_5 = "rooms/mist/parking/player_conversation_anim_05"
+slot_6 = "rooms/mist/parking/player_conversation_anim_06"
+slot_7 = "rooms/mist/parking/player_conversation_anim_07"
+slot_8 = "rooms/mist/parking/player_conversation_anim_08"
+slot_9 = "rooms/mist/parking/player_conversation_anim_09"
+slot_10 = "rooms/mist/parking/player_conversation_anim_10"
+slot_11 = "characters/aya/anim_07"
+slot_12 = "characters/aya/talk"
+slot_13 = "rooms/shelter/b6_growth_room/player_choice_start"
+slot_14 = "characters/aya/its_nothing"
+slot_15 = "rooms/mist/parking/player_conversation_anim_15"
+slot_16 = "characters/aya/on_my_way"
+slot_17 = "characters/aya/talk_start"
+slot_18 = "characters/aya/talk_end"
+slot_19 = "characters/aya/reply"
+slot_20 = "rooms/mist/parking/player_conversation_anim_20"
+slot_21 = "rooms/mist/parking/player_conversation_anim_21"
+slot_22 = "characters/aya/turn_pale"
+slot_23 = "rooms/shelter/b1_pod_service_gantry/player_gantry_scene_7"
+slot_24 = "characters/aya/introduce_herself"
+
 [arrival_pierce_walk_steps]
 type = "sound"
 sha1 = "175743ef51a82f3eb59470b23bbe5e3a28122680"
@@ -1456,75 +1520,7 @@ sha1 = "175743ef51a82f3eb59470b23bbe5e3a28122680"
 type = "clip"
 rig = "characters/pierce/rig"
 
-[arrival_pierce_walk_steps_2]
-type = "sound"
-sha1 = "d9e401601824a64836b64183a26641385f13aa26"
-
-[mist_parking_shop_player_bank]
-type = "animation_bank"
-schema = "rooms/mist/parking/mist_parking_shop_player_schema"
-symbol = "_gMistParkingShopPlayerAnimationSets"
-
-[mist_parking_shop_player_bank.clips]
-slot_1 = "rooms/mist/parking/stand_copy"
-slot_2 = "rooms/mist/parking/talk_start_copy"
-slot_3 = "rooms/mist/parking/mist_parking_player_conversation_anim_21_copy"
-
-[mist_parking_shop_player_schema]
-type = "animation_schema"
-slots = ["", "slot_1", "slot_2", "slot_3"]
-
-[mist_parking_model_09B9C_binding]
-type = "binding"
-model = "rooms/mist/parking/mist_parking_model_09B9C"
-textures = {  }
-
-[mist_parking_command1_player_bank]
-type = "animation_bank"
-clips = { slot_0 = "rooms/mist/parking/mist_parking_command1_player_anim_00" }
-schema = "rooms/mist/parking/mist_parking_command1_player_schema"
-symbol = "_gMistParkingCommand1PlayerAnimationSets"
-
-[mist_parking_command1_player_schema]
-type = "animation_schema"
-slots = ["slot_0"]
-
-[mist_parking_command1_player_anim_00]
-type = "clip"
-rig = "characters/aya/rig"
-
-[mist_parking_player_conversation_bank]
-type = "animation_bank"
-schema = "rooms/mist/parking/mist_parking_player_conversation_schema"
-symbol = "_gMistParkingPlayerConversationAnimationSets"
-
-[mist_parking_player_conversation_bank.clips]
-slot_1 = "characters/aya/stand"
-slot_2 = "rooms/shelter/r47/player_look_at_map"
-slot_3 = "rooms/shelter/b3_incinerator_control_room/player_flustered"
-slot_4 = "rooms/mist/parking/mist_parking_player_conversation_anim_04"
-slot_5 = "rooms/mist/parking/mist_parking_player_conversation_anim_05"
-slot_6 = "rooms/mist/parking/mist_parking_player_conversation_anim_06"
-slot_7 = "rooms/mist/parking/mist_parking_player_conversation_anim_07"
-slot_8 = "rooms/mist/parking/mist_parking_player_conversation_anim_08"
-slot_9 = "rooms/mist/parking/mist_parking_player_conversation_anim_09"
-slot_10 = "rooms/mist/parking/mist_parking_player_conversation_anim_10"
-slot_11 = "characters/aya/anim_07"
-slot_12 = "characters/aya/talk"
-slot_13 = "rooms/shelter/b6_growth_room/player_choice_start"
-slot_14 = "characters/aya/its_nothing"
-slot_15 = "rooms/mist/parking/mist_parking_player_conversation_anim_15"
-slot_16 = "characters/aya/on_my_way"
-slot_17 = "characters/aya/talk_start"
-slot_18 = "characters/aya/talk_end"
-slot_19 = "characters/aya/reply"
-slot_20 = "rooms/mist/parking/mist_parking_player_conversation_anim_20"
-slot_21 = "rooms/mist/parking/mist_parking_player_conversation_anim_21"
-slot_22 = "characters/aya/turn_pale"
-slot_23 = "rooms/shelter/b1_pod_service_gantry/player_gantry_scene_7"
-slot_24 = "characters/aya/introduce_herself"
-
-[mist_parking_player_conversation_schema]
+[player_conversation_schema]
 type = "animation_schema"
 slots = [
     "",
@@ -1554,57 +1550,61 @@ slots = [
     "slot_24",
 ]
 
-[mist_parking_player_conversation_anim_04]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gMistParkingMistParkingPlayerConversationAnim04Clip"
+[arrival_pierce_walk_steps_2]
+type = "sound"
+sha1 = "d9e401601824a64836b64183a26641385f13aa26"
 
-[mist_parking_player_conversation_anim_05]
+[player_conversation_anim_04]
 type = "clip"
 rig = "characters/aya/rig"
-symbol = "gMistParkingMistParkingPlayerConversationAnim05Clip"
+symbol = "gMistParkingPlayerConversationAnim04Clip"
 
-[mist_parking_player_conversation_anim_06]
+[player_conversation_anim_05]
 type = "clip"
 rig = "characters/aya/rig"
-symbol = "gMistParkingMistParkingPlayerConversationAnim06Clip"
+symbol = "gMistParkingPlayerConversationAnim05Clip"
 
-[mist_parking_player_conversation_anim_07]
+[player_conversation_anim_06]
 type = "clip"
 rig = "characters/aya/rig"
-symbol = "gMistParkingMistParkingPlayerConversationAnim07Clip"
+symbol = "gMistParkingPlayerConversationAnim06Clip"
 
-[mist_parking_player_conversation_anim_08]
+[player_conversation_anim_07]
 type = "clip"
 rig = "characters/aya/rig"
-symbol = "gMistParkingMistParkingPlayerConversationAnim08Clip"
+symbol = "gMistParkingPlayerConversationAnim07Clip"
 
-[mist_parking_player_conversation_anim_09]
+[player_conversation_anim_08]
 type = "clip"
 rig = "characters/aya/rig"
-symbol = "gMistParkingMistParkingPlayerConversationAnim09Clip"
+symbol = "gMistParkingPlayerConversationAnim08Clip"
 
-[mist_parking_player_conversation_anim_10]
+[player_conversation_anim_09]
 type = "clip"
 rig = "characters/aya/rig"
-symbol = "gMistParkingMistParkingPlayerConversationAnim10Clip"
+symbol = "gMistParkingPlayerConversationAnim09Clip"
 
-[mist_parking_player_conversation_anim_15]
+[player_conversation_anim_10]
 type = "clip"
 rig = "characters/aya/rig"
-symbol = "gMistParkingMistParkingPlayerConversationAnim15Clip"
+symbol = "gMistParkingPlayerConversationAnim10Clip"
 
-[mist_parking_player_conversation_anim_20]
+[player_conversation_anim_15]
 type = "clip"
 rig = "characters/aya/rig"
-symbol = "gMistParkingMistParkingPlayerConversationAnim20Clip"
+symbol = "gMistParkingPlayerConversationAnim15Clip"
 
-[mist_parking_player_conversation_anim_21]
+[player_conversation_anim_20]
 type = "clip"
 rig = "characters/aya/rig"
-symbol = "gMistParkingMistParkingPlayerConversationAnim21Clip"
+symbol = "gMistParkingPlayerConversationAnim20Clip"
 
-[mist_parking_player_conversation_anim_21_copy]
+[player_conversation_anim_21]
 type = "clip"
 rig = "characters/aya/rig"
-symbol = "gMistParkingMistParkingPlayerConversationAnim21CopyClip"
+symbol = "gMistParkingPlayerConversationAnim21Clip"
+
+[player_conversation_anim_21_copy]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistParkingPlayerConversationAnim21CopyClip"
