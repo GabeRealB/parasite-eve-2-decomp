@@ -1469,10 +1469,11 @@ objects = [
 [rooms.overlays.mist_r21]
 label = "cutscene or one-off room; no map names it. Code starts at 0x1C: the four handlers the room's message table at 0x1B0 names at 0x1C, 0x24, 0x4C and 0x54 are frameless leaves (three `return 0` stubs and an eight-byte copy returning 1), so the span detector - which looks for the first stack-frame prologue - starts at 0x5C and left them as rodata words"
 id = 305
+src = "src/stages/akropolis/rooms/mist_r21"
 text = ["0x1C", "0x1B0"]
 objects = [
   { kind = "packageId" },
-  { unit = "mist_r21/mist_r21", rodata = "0x4", text = "0x1C", data = "0x1B0" },
+  { unit = "mist_r21", rodata = "0x4", text = "0x1C", data = "0x1B0" },
 ]
 
 [rooms.overlays.dryfield_gas_station]
