@@ -138,11 +138,13 @@ def tasks(jobs: int, skip: set[str]) -> list[tuple[str, str, tuple, tuple[str, .
         out.append(("order", "order", (check_order, ()), ("build",)))
         out.append(("residency", "residency", (run_command, ([PY, str(PEASSETS / "asset_residency.py"), "build"],)), ("build",)))
         out.append(("decls", "decls", (run_command, ([PY, str(ROOT / "tools" / "refactor" / "check_decls.py"),
-                                                     "src/actors", "src/kyle", "src/rooms"],)), ("build",)))
+                                                     "src/actors", "src/kyle", "src/rooms", "src/stages"],)), ("build",)))
     if "repack" not in skip:
         out.append(("repack", "repack", (repack, ()), ()))
     if "map" not in skip:
-        out.append(("map", "map", (run_command, ([PY, str(PEASSETS / "asset_map.py")],)), ()))
+        # The map reads the load graph the residency step rebuilds; after an asset rename the old one names assets
+        # that are gone.
+        out.append(("map", "map", (run_command, ([PY, str(PEASSETS / "asset_map.py")],)), () if "build" in skip else ("residency",)))
         out.append(("smoke", "smoke", (run_command, (["node", str(PEASSETS / "asset_map_smoke.js"), "local/asset_map.html",
                                                       "a.rooms/akropolis/patio/package"],)), ("map",)))
     for kind in ("texture", "animation", "room", "model", "shape", "font"):
