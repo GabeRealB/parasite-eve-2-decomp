@@ -2184,7 +2184,7 @@ static void _actor356100ScriptedDormantState(Task* task)
         work->lookYawTarget           = 0;
         work->stateTimer              = 0;
     } else if (work->stateTimer == 0) {
-        soundKey = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT;
+        soundKey = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_AKROPOLIS_PATIO_STRANGER_DORMANT;
         pan      = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
         sndEvtRequestScriptStart(soundKey, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
         work->stateTimer = 1;
@@ -2202,7 +2202,7 @@ static void _actor356100ScriptedDormantState(Task* task)
     playerOffset       = &toPlayer;
     _actorPositionDeltaToLivePlayer(rootCoord, playerOffset);
     if (!_actorRangeOutsideRadiusXZ(playerOffset, ACTOR_356100_SCRIPTED_WAKE_DISTANCE)) {
-        sndEvtRequestScriptStop(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+        sndEvtRequestScriptStop(SOUND_AKROPOLIS_PATIO_STRANGER_DORMANT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         work->state = ACTOR_356100_STATE_ALERT;
     }
 }

@@ -1336,7 +1336,7 @@ static void _actor01900TakeHit(Task* task)
                 effectSpawn(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[2], (s32)criticalEffectKind, NULL);
             }
             if (work->state == ACTOR_01900_STATE_DORMANT_SCRIPTED) {
-                sndEvtRequestScriptStop(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+                sndEvtRequestScriptStop(SOUND_AKROPOLIS_PATIO_STRANGER_DORMANT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             }
             if ((work->state == ACTOR_01900_STATE_UNUSED_0C || work->state == ACTOR_01900_STATE_UNUSED_0D) && playerStatus->hp > 0 && work->playerHeld == 1) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
@@ -2640,7 +2640,7 @@ static void _actor01900StateDormantScripted(Task* task)
     playerOffset->vy       = gPlayerStatus.coordMtx->t[1] - rootCoord->coord.t[1];
     playerOffset->vz       = gPlayerStatus.coordMtx->t[2] - rootCoord->coord.t[2];
     if (!_actorRangeOutsideRadiusXZ(playerOffset, work->noticeRange)) {
-        sndEvtRequestScriptStop(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+        sndEvtRequestScriptStop(SOUND_AKROPOLIS_PATIO_STRANGER_DORMANT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         if (_actor01900EngageBattleIfPlayerLevel(task) == 1) {
             work->state = ACTOR_01900_STATE_ALERT;
         }

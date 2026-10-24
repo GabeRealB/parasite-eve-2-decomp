@@ -393,7 +393,7 @@ static void _actor312200Tick(Enemy* unusedEnemy, Task* task)
             task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             if ((viewGetMappedIndex() == ACTOR_312200_DORMANT_SOUND_VIEW) && (work->command == ACTOR_312200_ANIM_1)) {
                 pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-                sndEvtRequestScriptStart(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, pan,
+                sndEvtRequestScriptStart(SOUND_AKROPOLIS_PATIO_STRANGER_DORMANT, pan,
                                          (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
             }
         }

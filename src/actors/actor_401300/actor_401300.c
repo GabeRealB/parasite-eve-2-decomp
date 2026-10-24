@@ -2782,7 +2782,7 @@ static void _actor401300TakeHit(Task* actor)
             enemy->hp -= hitScratch->damage;
             worldTargetAddReadoutAmount(&enemy->node, hitScratch->damage, 0);
             if (work->state == ACTOR_401300_STATE_DORMANT_SCRIPTED) {
-                sndEvtRequestScriptStop(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+                sndEvtRequestScriptStop(SOUND_AKROPOLIS_PATIO_STRANGER_DORMANT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             }
             if ((work->state == ACTOR_401300_STATE_GRAB_PULL || work->state == ACTOR_401300_STATE_GRAB_STRIKE || work->state == ACTOR_401300_STATE_GRAB_DONE) && playerStatus->hp > 0 && work->playerHeld == 1) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
@@ -4330,7 +4330,7 @@ static void _actor401300StateDormant(Task* actor)
         (toPlayer)->vy = gPlayerStatus.coordMtx->t[1] - (rootCoord)->coord.t[1];                             \
         (toPlayer)->vz = gPlayerStatus.coordMtx->t[2] - (rootCoord)->coord.t[2];                             \
         if (!_actorRangeOutsideRadiusXZ((toPlayer), ACTOR_401300_DORMANT_NOTICE_RADIUS)) {                   \
-            sndEvtRequestScriptStop(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, SOUND_SCRIPT_STOP_KEEP_RELEASE); \
+            sndEvtRequestScriptStop(SOUND_AKROPOLIS_PATIO_STRANGER_DORMANT, SOUND_SCRIPT_STOP_KEEP_RELEASE); \
             sceneEngageBattle(1);                                                                            \
             (work)->state = ACTOR_401300_STATE_ALERT;                                                        \
         }                                                                                                    \
@@ -4381,7 +4381,7 @@ static void _actor401300StateDormantScripted(Task* actor)
         work->lookYawTarget           = 0;
         work->stateTimer              = 0;
     } else if (work->stateTimer == 0) {
-        soundScriptId = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_401300_DORMANT_SOUND_PLACE_SHIFT) | SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT;
+        soundScriptId = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_401300_DORMANT_SOUND_PLACE_SHIFT) | SOUND_AKROPOLIS_PATIO_STRANGER_DORMANT;
         audioPan      = (s8)worldCoordGetOriginAudioPan(actor->extra.tmd->coords);
         sndEvtRequestScriptStart(soundScriptId, audioPan, (s8)worldCoordGetOriginAudioDepth(actor->extra.tmd->coords));
         work->stateTimer = 1;

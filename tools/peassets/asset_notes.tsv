@@ -41,9 +41,9 @@ acropolis_observatory_animation_0250C	Aya's scripted reaction clip in the Akropo
 acropolis_observatory_collision_02A2C	Collision grid of the Akropolis observatory, published identically for both room indices.	
 acropolis_observatory_path_0124C	Per-movie-frame player path (300 samples) for arriving at the observatory from the forked road, copied into the player's root while the movie plays.	
 acropolis_observatory_path_01BAC	Per-movie-frame player path (300 samples) for arriving at the observatory from the promenade, same mechanism with a Z offset.	
-acropolis_patio_animation_0172C	Six player clips of the Akropolis patio's follow-up scene, copied into the weapon bank as clips 47-52 and played by its event script; the second (clip 48) has no use found.	
-acropolis_patio_animation_039F4	No reached use found: four player clips the patio's second-visit script copies into the weapon bank as clips 48-51 but never plays.	
-acropolis_patio_collision_05A0C	Collision grid of the Akropolis patio (7x4 cells, 70 faces), shared by all three room indices.	
+akropolis_patio_animation_0172C	Six player clips of the Akropolis patio's follow-up scene, copied into the weapon bank as clips 47-52 and played by its event script; the second (clip 48) has no use found.	
+akropolis_patio_animation_039F4	No reached use found: four player clips the patio's second-visit script copies into the weapon bank as clips 48-51 but never plays.	
+akropolis_patio_collision_05A0C	Collision grid of the Akropolis patio (7x4 cells, 70 faces), shared by all three room indices.	
 acropolis_plaza_animation_144C4	Scene clips of the Akropolis plaza: the two officers' clips and the clips installed on the player, bound through actor_310100's tables and requested by the plaza's first, repeat and final scene scripts.	
 acropolis_plaza_collision_1B4E0	Collision grid of the Akropolis plaza; its first eight vertices are rewritten every tick into two walls that follow the traversal movie's shot position.	
 acropolis_plaza_path_062F8	Camera track of the plaza's traversal movie: 400 frames of two view samples, applied forward or in reverse as the player's progress scrubs the movie.	
@@ -782,7 +782,7 @@ bs_616..bs_626	View backgrounds 1-11 of dryfield_cellar over two room indices: w
 bs_626	No reached use found: background of file 11 in the day and night Dryfield cellars, the dark-cellar counterpart of the close-up view, which nothing selects.	
 bs_627..bs_630	View backgrounds of dryfield_night_underpass (25 of 26 files) over six room indices chosen by the underpass event and switch flags; walked logical views 2-10.	
 bs_627..bs_652	View backgrounds 1-26 of dryfield_underpass over six room indices chosen by the underpass event and switch flags; walked logical views 2-10.	
-rooms/akropolis/patio/view1_background..rooms/akropolis/patio/view19_background	View backgrounds 1-19 of acropolis_patio over three room indices (later indices show file 17 for view 4 and file 13 for view 7); walked views 2-4 and 6-9.	
+rooms/akropolis/patio/view1_background..rooms/akropolis/patio/view19_background	View backgrounds 1-19 of akropolis_patio over three room indices (later indices show file 17 for view 4 and file 13 for view 7); walked views 2-4 and 6-9.	
 bs_652	No reached use found by night: background of the underpass's close camera (file 26), live in the day room's stalker event but with no path found in dryfield_night_underpass.	
 bs_659	No reached use found: background of dryfield_night_gas_station view 8, for which none of the nine checked paths gives a selector.	
 bs_672..bs_695	View backgrounds 1-24 of dryfield_night_main_street over three room variants whose view maps show the same shots in another state; walked views plus a caption-selected view 8.	
@@ -1035,7 +1035,7 @@ enemies/stalker/gray/burst_leg_right	One-part right leg chunk of the Gray Stalke
 weapons/grenade_pistol/bank	Aya's animation bank while the Grenade Pistol is equipped: ready and fire clips plus the standard locomotion, aim, reload, hit, parasite-energy, stair and item-use clips; a few filler slots are unused.	
 weapons/grenade_pistol/model	One-part Grenade Pistol weapon model spawned by gameplay as the player's held weapon whenever equipment is restored with it; the muzzle flash and fired shell start from its root.	
 weapons/grenade_pistol/grenade_model	Small box model of the Grenade Pistol's fired shell, spawned per shot as the projectile body, flown under gravity with a smoke trail until it becomes the blast.	
-enemies/stranger/grinning/body	19-part body of the Grinning Stranger: the enemy in acropolis_patio and forked road (burns or bursts on death) and the scripted figure in the acropolis square, cafeteria and patio scenes.	
+enemies/stranger/grinning/body	19-part body of the Grinning Stranger: the enemy in akropolis_patio and forked road (burns or bursts on death) and the scripted figure in the acropolis square, cafeteria and patio scenes.	
 weapons/gunblade/bank	Aya's animation bank while the Gunblade is equipped: ready, spinning slash and shot clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips; a few filler slots are unused.	
 weapons/gunblade/model	One-part Gunblade weapon model spawned by gameplay as the player's held weapon; its coords parent the shot's muzzle flash and the slash trail.	
 enemies/stranger/horned/body	21-part body of the Horned Stranger: the enemy of enemies/stranger/horned/package_4 in the Neo Ark forest zone and woodland path (leaps in, burns or bursts on death) and a scripted cut in the forest ambush scene.	
@@ -1092,7 +1092,7 @@ enemies/chaser/mad/burst_head	One-part Mad Chaser chunk always thrown from body 
 enemies/chaser/mad/burst_tail	One-part Mad Chaser chunk thrown from body part 2 as the alternative second flying body chunk on a lethal blast, when the arm is not thrown.	
 mappic_s1_00	Fifteen flat area-outline model records of the stage 1 page 1 map picture package, drawn by gameplay's map menu over the picture as patterned, dimmed or tinted room shapes.	
 mappic_s1_00_model_00174	Face stream of the flat outline of akropolis_east_elevator_hall on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
-mappic_s1_00_model_00294	Face stream of the flat outline of acropolis_patio on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
+mappic_s1_00_model_00294	Face stream of the flat outline of akropolis_patio on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
 mappic_s1_00_model_00564	Face stream of the flat outline of acropolis_fountain on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
 mappic_s1_00_model_00650	Face stream of the flat outline of acropolis_forked_road on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
 mappic_s1_00_model_00718	Face stream of the flat outline of acropolis_observatory on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
@@ -3675,18 +3675,18 @@ rooms/akropolis/east_elevator_hall/view3_image	8-bit sheet of the 41 depth-sorte
 rooms/akropolis/east_elevator_hall/view4_image	8-bit sheet of the 38 depth-sorted occluder sprites of akropolis_east_elevator_hall's mapped view 4, the room's arrival view.	
 rooms/akropolis/east_elevator_hall/view5_image	8-bit sheet of the 28 depth-sorted occluder sprites of akropolis_east_elevator_hall's mapped view 5.	
 rooms/akropolis/east_elevator_hall/view7_image	No reached use found: an 8-bit page uploaded with view 7's file in akropolis_east_elevator_hall during the opening event, but nothing in the room references it.	
-rooms/akropolis/patio/dialogue_0_atlas	4-bit caption glyph atlas of acropolis_patio's dialogue, drawn by gameplay's caption code whenever the room shows text.	
+rooms/akropolis/patio/dialogue_0_atlas	4-bit caption glyph atlas of akropolis_patio's dialogue, drawn by gameplay's caption code whenever the room shows text.	
 rooms/akropolis/flare_image	Shared 4-bit sheet of three 40x40 light-glow cells, drawn as flickering additive lamp flares by the room effect tasks of many Acropolis, Dryfield, mine, Neo Ark and Shelter rooms.	
 weapons/p08/snail_preview_image	Item preview picture of weapon 0x80, the P08 with snail magazine, drawn in gameplay's item menu panels when that weapon is selected.	
-rooms/akropolis/patio/view2_image	8-bit sheet (two pages) of the 27 depth-sorted occluder sprites of acropolis_patio's mapped view 2.	
-rooms/akropolis/patio/view3_image	8-bit sheet (three pages) of the 45 depth-sorted occluder sprites of acropolis_patio's mapped view 3.	
-rooms/akropolis/patio/view4_image	8-bit sheet of the 15 occluder sprites shared by acropolis_patio's mapped views 4 and 17, which use one table and one camera.	
-rooms/akropolis/patio/view6_image	8-bit sheet of the 13 depth-sorted occluder sprites of acropolis_patio's mapped view 6.	
-rooms/akropolis/patio/view7_image	8-bit sheet of the 21 occluder sprites shared by acropolis_patio's mapped views 7 and 13, which use one table and one camera.	
-rooms/akropolis/patio/view8_image	8-bit sheet (two pages) of the 56 depth-sorted occluder sprites of acropolis_patio's mapped view 8.	
-rooms/akropolis/patio/view9_image	8-bit sheet (two pages) of the 47 depth-sorted occluder sprites of acropolis_patio's mapped view 9.	
-rooms/akropolis/patio/view18_image	8-bit sheet of the 20 occluder sprites of acropolis_patio's mapped view 18, used in the second-visit scene.	
-rooms/akropolis/patio/view19_image	8-bit sheet of the 30 occluder sprites of acropolis_patio's mapped view 19, selected by a scene step of the second-visit scene.	
+rooms/akropolis/patio/view2_image	8-bit sheet (two pages) of the 27 depth-sorted occluder sprites of akropolis_patio's mapped view 2.	
+rooms/akropolis/patio/view3_image	8-bit sheet (three pages) of the 45 depth-sorted occluder sprites of akropolis_patio's mapped view 3.	
+rooms/akropolis/patio/view4_image	8-bit sheet of the 15 occluder sprites shared by akropolis_patio's mapped views 4 and 17, which use one table and one camera.	
+rooms/akropolis/patio/view6_image	8-bit sheet of the 13 depth-sorted occluder sprites of akropolis_patio's mapped view 6.	
+rooms/akropolis/patio/view7_image	8-bit sheet of the 21 occluder sprites shared by akropolis_patio's mapped views 7 and 13, which use one table and one camera.	
+rooms/akropolis/patio/view8_image	8-bit sheet (two pages) of the 56 depth-sorted occluder sprites of akropolis_patio's mapped view 8.	
+rooms/akropolis/patio/view9_image	8-bit sheet (two pages) of the 47 depth-sorted occluder sprites of akropolis_patio's mapped view 9.	
+rooms/akropolis/patio/view18_image	8-bit sheet of the 20 occluder sprites of akropolis_patio's mapped view 18, used in the second-visit scene.	
+rooms/akropolis/patio/view19_image	8-bit sheet of the 30 occluder sprites of akropolis_patio's mapped view 19, selected by a scene step of the second-visit scene.	
 rooms/akropolis/cafeteria/dialogue_0_atlas	4-bit caption glyph atlas of acropolis_cafeteria's dialogue with AYA, RUPERT and KYLE name plates, drawn by gameplay's caption code.	
 weapons/m93r/preview_image	Item preview picture of weapon 0x81, the M93R, drawn in gameplay's item menu panels when that weapon is selected.	
 rooms/akropolis/cafeteria/image	Shared 4-bit item-pickup texture sheet: textures the Stim pickup in the cafeteria and the item container lid in the trailer coaches and Shelter rooms; unread in the heliport and parking.	
@@ -4624,7 +4624,7 @@ rooms/akropolis/square/sounds_0	Footstep bank of akropolis_square: walk, scripte
 rooms/akropolis/square/sounds_1	Acropolis square room sound bank: door sounds of warps 1, 2 and 7, the room cutscene's start/scene/after/end sounds, caption cue sounds and the telephone's rings.	
 rooms/akropolis/east_elevator_hall/sounds_0	Footstep bank of akropolis_east_elevator_hall: walk and run steps (same two samples) while the player is on surface class 0 or 3 of the hall.	
 rooms/akropolis/east_elevator_hall/sounds_1	Acropolis east elevator hall room sound bank: arrival and departure sounds of the room's only warp and one three-sample sound started by the first-visit opening event.	
-rooms/akropolis/patio/sounds_0	Footstep bank of acropolis_patio: walk, run and stair-climb step sounds on surface class 4 and the patio's stair flights.	
+rooms/akropolis/patio/sounds_0	Footstep bank of akropolis_patio: walk, run and stair-climb step sounds on surface class 4 and the patio's stair flights.	
 rooms/akropolis/patio/sounds_1	Acropolis patio room sound bank: door sounds of warps 1 and 2, the cafeteria door unlock, a caption sound, opening and follow-up scene sounds, and the Strangers' dormant loop (actor packages).	
 rooms/akropolis/cafeteria/sounds_0	Footstep bank of acropolis_cafeteria: walk, jump and run step sounds for surface classes 1, 2, 3 and 4 of the room.	
 rooms/akropolis/cafeteria/sounds_1	Acropolis cafeteria room sound bank: door sounds of warps 0, 1 and 2, a caption cue sound, the post-battle scene sound and the woman's (actor_202900) animation cue in room variant 1.	
@@ -5032,7 +5032,7 @@ enemies/stinger/body	19-part Brain Stinger body model spawned per placement by a
 rooms/akropolis/cafeteria/boss_stranger_body	19-part Stranger body model: the cafeteria Stranger boss (rooms/akropolis/cafeteria/boss_stranger), the stationary Stranger on the Acropolis fire escape (enemies/stranger/lesser/package) and the Odd Stranger enemy (enemies/stranger/odd/package_b_4).	
 enemies/stranger/burst_hand	3-part body piece flung by the bank-10 burst effect when a Stranger (actors 101900/301900/401000) dies bursting, released from body parts 9 and 12, or part 1 in the walking death.	
 rooms/akropolis/forked_road/sucklerceph_body	3-part Sucklerceph enemy body spawned by actors 104600/107000/204600/207000, swelling, then hidden on a burst death or squashed on a slump death; a hidden-spawn variant waits for an APPEAR command.	
-characters/swat_member_1/body	19-part scripted figure placed once in acropolis_patio variant 1 by actor_312200: starts hidden, shown and hidden by the room's scenes, not lockable, with a sphere in the enemy-body list.	the code never identifies the figure as a SWAT member: it is a scripted body on the patio whose only sound is named STRANGER_DORMANT, and the rows leave what it depicts unsettled.
+characters/swat_member_1/body	19-part scripted figure placed once in akropolis_patio variant 1 by actor_312200: starts hidden, shown and hidden by the room's scenes, not lockable, with a sphere in the enemy-body list.	the code never identifies the figure as a SWAT member: it is a scripted body on the patio whose only sound is named STRANGER_DORMANT, and the rows leave what it depicts unsettled.
 characters/swat_member_2/body	20-part view-parented scripted figure used by actors 110300, 110800 and 311900 in the east elevator hall, roof garden and security room, where it is the figure seen on the monitor's camera view.	
 weapons/tonfa_baton/bank	Player animation bank for the Tonfa Baton (weapon 19): locomotion, aim, hit, PE and stair clips gameplay plays while it is equipped, plus first strike, combo strike and recovery clips.	
 weapons/tonfa_baton/model	One-part Tonfa Baton model spawned as the player's held weapon and posed every frame by the overlay's own model task, which flips it half a turn in the hand for a strike.	

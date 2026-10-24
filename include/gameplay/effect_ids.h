@@ -407,7 +407,7 @@ enum {
     /// Flickering camera-facing sprite (tpage 0x2B) at one of 14 anchors, visible per a
     /// view mask; the patio fountain task spawns 14 of them once (three main jets, four
     /// and seven smaller) plus mist 0x6008F.
-    EFFECT_ACROPOLIS_PATIO_FOUNTAIN_JET = EFFECT_ID(EFFECT_TASK_BANK, 0x087),
+    EFFECT_AKROPOLIS_PATIO_LIGHT_GLOW = EFFECT_ID(EFFECT_TASK_BANK, 0x087),
     /// Flickering water-spray sprite of the Acropolis fountain, drawn only in the eight
     /// views that see it.
     EFFECT_ACROPOLIS_FOUNTAIN_SPRAY = EFFECT_ID(EFFECT_TASK_BANK, 0x088),
@@ -434,7 +434,7 @@ enum {
     EFFECT_HIT_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x08E),
     /// Fountain mist mote: a shimmering grey 1x1 tile that random-walks or gathers back
     /// toward its jet anchor; spawned per jet by the patio task.
-    EFFECT_ACROPOLIS_PATIO_FOUNTAIN_MIST = EFFECT_ID(EFFECT_TASK_BANK, 0x08F),
+    EFFECT_AKROPOLIS_PATIO_LIGHT_MOTE = EFFECT_ID(EFFECT_TASK_BANK, 0x08F),
     /// Pulsating Gouraud flare with optional rays on the Akropolis roof garden, spawned
     /// by the room task (acropolisRoofGardenAmbientEffectsTask) for particular camera
     /// views.

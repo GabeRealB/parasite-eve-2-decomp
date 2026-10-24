@@ -42,7 +42,7 @@
 
 #include "rooms/acropolis_observatory.h"
 
-#include "rooms/acropolis_patio.h"
+#include "rooms/akropolis_patio.h"
 
 #include "rooms/acropolis_plaza.h"
 
@@ -409,7 +409,7 @@ const AreaRecord* gAreaRecordsByStage[GAME_STAGE_SHELTER_NEO_ARK + 1] = {
 static const AreaRecord _gAreaAcropolisRecords[GAME_AREA_MIST_SHOOTING_GALLERY + 1] SECTION(".data") = {
     [GAME_AREA_AKROPOLIS_SQUARE]                 = { gAkropolisSquareAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[0].state },
     [GAME_AREA_AKROPOLIS_EAST_ELEVATOR_HALL]     = { gAkropolisEastElevatorHallAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[1].state },
-    [GAME_AREA_AKROPOLIS_PATIO]                  = { gAcropolisPatioAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[2].state },
+    [GAME_AREA_AKROPOLIS_PATIO]                  = { gAkropolisPatioAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[2].state },
     [GAME_AREA_AKROPOLIS_CAFETERIA]              = { gAcropolisCafeteriaAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[3].state },
     [GAME_AREA_AKROPOLIS_PLAZA]                  = { gAcropolisPlazaAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[4].state },
     [GAME_AREA_AKROPOLIS_SECURITY_ROOM]          = { gAcropolisSecurityRoomAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[5].state },

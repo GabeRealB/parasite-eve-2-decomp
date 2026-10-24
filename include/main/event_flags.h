@@ -109,6 +109,13 @@ enum {
     /// has finished. Below 2, the square, fountain and cafeteria doors lead to the
     /// patio's first variant.
     EVENT_FLAG_AKROPOLIS_PATIO_CUTSCENE_PROGRESS = 0x021,
+    /// Akropolis patio. Marker: Rupert's scene at the cafeteria door has played - the
+    /// first time the door is tried after the cafeteria boss, before MIST is contacted;
+    /// afterwards the door runs CAP 8.
+    EVENT_FLAG_AKROPOLIS_PATIO_CAFETERIA_DOOR_SCENE_SEEN = 0x023,
+    /// Akropolis patio. Marker: the ambush scene has played - on the way back from the
+    /// cafeteria; while clear, entering the patio in that variant sends placed actors 2 and 3 their command 0.
+    EVENT_FLAG_AKROPOLIS_PATIO_AMBUSH_SCENE_SEEN = 0x026,
 
     // ---- Not reserved for flags ---------------------------------------------
 

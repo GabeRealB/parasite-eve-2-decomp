@@ -1154,15 +1154,16 @@ objects = [
   { kind = "collisionSource", at = "0x9278", in_c = true, cell_face_list_macro = "AKROPOLIS_EAST_ELEVATOR_HALL_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
-[rooms.overlays.acropolis_patio]
+[rooms.overlays.akropolis_patio]
 id = 287
+src = "src/stages/akropolis/rooms/patio"
 objects = [
   { kind = "packageId" },
   { kind = "animation", at = "0x172C", sets = ["0x18A0", "0x1B48", "0x1CE4", "0x22B8", "0x2AD0", "0x2CA4"], in_c = true },
   { kind = "animation", at = "0x39F4", sets = ["0x3CD0", "0x4470", "0x494C", "0x4FC8"], in_c = true },
   { kind = "collision", at = "0x5A0C", in_c = true },
-  { kind = "collisionSource", at = "0x6838", in_c = true, cell_face_list_macro = "ACROPOLIS_PATIO_CELL_FACE_LIST_AT_OFFSET" },
-  { unit = "acropolis_patio/acropolis_patio", rodata = "0x4", text = "0x2C", data = "0x172C", bss = "0x9AA0", tail = true },
+  { kind = "collisionSource", at = "0x6838", in_c = true, cell_face_list_macro = "AKROPOLIS_PATIO_CELL_FACE_LIST_AT_OFFSET" },
+  { unit = "patio", rodata = "0x4", text = "0x2C", data = "0x172C", bss = "0x9AA0", tail = true },
 ]
 
 [rooms.overlays.acropolis_cafeteria]

@@ -24,15 +24,15 @@ gAkropolisEastElevatorHallWarpEntries = 0x80186340; // absolute:True owner=akrop
 gAkropolisEastElevatorHallSpriteViews = 0x80187870; // absolute:True owner=akropolis_east_elevator_hall shared=rooms
 gAkropolisEastElevatorHallViewCameras = 0x80187A5C; // absolute:True owner=akropolis_east_elevator_hall
 gAkropolisEastElevatorHallSurfacePropertiesByClass = 0x80187B74; // absolute:True owner=akropolis_east_elevator_hall shared=rooms
-acropolisPatioRoomTask = 0x8017DF8C; // type:func absolute:True owner=acropolis_patio
-gAcropolisPatioRoomCollisionResources = 0x80182E68; // absolute:True owner=acropolis_patio
-gAcropolisPatioViewMaps = 0x80182EC0; // absolute:True owner=acropolis_patio
-gAcropolisPatioViewCounts = 0x80182ECC; // absolute:True owner=acropolis_patio
-gAcropolisPatioRoomLightingTable = 0x80182ED4; // absolute:True owner=acropolis_patio
-gAcropolisPatioWarpEntries = 0x80182EEC; // absolute:True owner=acropolis_patio shared=rooms
-gAcropolisPatioSpriteViews = 0x80186360; // absolute:True owner=acropolis_patio shared=rooms
-gAcropolisPatioViewCameras = 0x80186D5C; // absolute:True owner=acropolis_patio
-gAcropolisPatioSurfacePropertiesByClass = 0x8018703C; // absolute:True owner=acropolis_patio
+akropolisPatioRoomTask = 0x8017DF8C; // type:func absolute:True owner=akropolis_patio
+gAkropolisPatioRoomCollisionResources = 0x80182E68; // absolute:True owner=akropolis_patio
+gAkropolisPatioViewMaps = 0x80182EC0; // absolute:True owner=akropolis_patio
+gAkropolisPatioViewCounts = 0x80182ECC; // absolute:True owner=akropolis_patio
+gAkropolisPatioRoomLightingTable = 0x80182ED4; // absolute:True owner=akropolis_patio
+gAkropolisPatioWarpEntries = 0x80182EEC; // absolute:True owner=akropolis_patio shared=rooms
+gAkropolisPatioSpriteViews = 0x80186360; // absolute:True owner=akropolis_patio shared=rooms
+gAkropolisPatioViewCameras = 0x80186D5C; // absolute:True owner=akropolis_patio
+gAkropolisPatioSurfacePropertiesByClass = 0x8018703C; // absolute:True owner=akropolis_patio
 acropolisCafeteriaRoomTask = 0x8017E424; // type:func absolute:True owner=acropolis_cafeteria shared=rooms
 acropolisCafeteriaMendelPickupTask = 0x801827C4; // type:func absolute:True owner=acropolis_cafeteria
 acropolisCafeteriaStimPickupTask = 0x8018286C; // type:func absolute:True owner=acropolis_cafeteria

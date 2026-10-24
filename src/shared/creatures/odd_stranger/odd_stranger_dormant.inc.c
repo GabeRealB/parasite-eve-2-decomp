@@ -35,7 +35,7 @@ static void _oddStrangerDormantScripted(Task* task)
         work->lookYawTarget           = 0;
         work->stateTimer              = 0;
     } else if (work->stateTimer == 0) {
-        soundId = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT;
+        soundId = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_AKROPOLIS_PATIO_STRANGER_DORMANT;
         pan     = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
         sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
         work->stateTimer = 1;
@@ -54,7 +54,7 @@ static void _oddStrangerDormantScripted(Task* task)
     toPlayerPtr->vy    = gPlayerStatus.coordMtx->t[1] - root->coord.t[1];
     toPlayerPtr->vz    = gPlayerStatus.coordMtx->t[2] - root->coord.t[2];
     if (!_oddStrangerOutOfRange(toPlayerPtr, work->noticeRadius)) {
-        sndEvtRequestScriptStop(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+        sndEvtRequestScriptStop(SOUND_AKROPOLIS_PATIO_STRANGER_DORMANT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         sceneEngageBattle(1);
         work->state = ODD_STRANGER_STATE_ALERT;
     }

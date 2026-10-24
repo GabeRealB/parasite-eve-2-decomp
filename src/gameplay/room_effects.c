@@ -87,7 +87,7 @@
 
 #include "rooms/acropolis_observatory.h"
 
-#include "rooms/acropolis_patio.h"
+#include "rooms/akropolis_patio.h"
 
 #include "rooms/acropolis_plaza.h"
 
@@ -664,11 +664,11 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask80, { NULL } },                                                          // 0x080
     { { { TASK_BODY_COORD, 0x70 } }, effectProjectileGlowTask, { NULL } },                                                    // 0x081
     { { { TASK_BODY_NONE, 0x70 } }, taskKill, { NULL } },                                                                     // 0x082
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisPatioSpawnLightEffectsTask, { NULL } },                                         // 0x083
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisPatioSpawnLightEffectsTask, { NULL } },                                         // 0x083
     { { { TASK_BODY_COORD, 0x70 } }, acropolisHallwayEffectControlTask84, { NULL } },                                         // 0x084
     { { { TASK_BODY_COORD, 0x70 } }, acropolisForkedRoadInitializeRoomEffectsTask, { NULL } },                                // 0x085
     { { { TASK_BODY_COORD, 0x70 } }, acropolisRoofGardenAmbientEffectsTask, { NULL } },                                       // 0x086
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisPatioFountainJetTask, { NULL } },                                               // 0x087
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisPatioLightGlowTask, { NULL } },                                                 // 0x087
     { { { TASK_BODY_COORD, 0x70 } }, acropolisFountainSprayTask, { NULL } },                                                  // 0x088
     { { { TASK_BODY_COORD, 0x70 } }, acropolisForkedRoadWallLampTask, { NULL } },                                             // 0x089
     { { { TASK_BODY_COORD, 0x70 } }, acropolisRoofGardenLightGlowTask, { NULL } },                                            // 0x08A
@@ -676,7 +676,7 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, acropolisFireEscapeFlickerLightTask, { NULL } },                                         // 0x08C
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask8D, { NULL } },                                                          // 0x08D
     { { { TASK_BODY_COORD, 0x70 } }, effectHitSparkBurstTask, { NULL } },                                                     // 0x08E
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisPatioFountainMistTask, { NULL } },                                              // 0x08F
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisPatioLightMoteTask, { NULL } },                                                 // 0x08F
     { { { TASK_BODY_COORD, 0x70 } }, acropolisRoofGardenFlareTask, { NULL } },                                                // 0x090
     { { { TASK_BODY_TMD, 0x70 } }, effectThrownModelTask, { &gEffectThrownModel91 } },                                        // 0x091
     { { { TASK_BODY_COORD, 0x70 } }, effectLineTask92, { NULL } },                                                            // 0x092

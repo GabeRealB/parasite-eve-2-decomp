@@ -174,7 +174,7 @@ enum {
     /// place index) when the stranger enters its dormant state 23, stopped with Type7
     /// when the player comes in range or it takes hit state 0x17; also queued by the
     /// SWAT-member body actor 312200 from view 0x10.
-    SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO, 8),
+    SOUND_AKROPOLIS_PATIO_STRANGER_DORMANT = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO, 8),
     /// Played by the cafeteria woman actor (anmc_woman_cafeteria_body) each time her
     /// animation 1 reaches the frame cue 0x15; what the sound is is not shown.
     SOUND_ACROPOLIS_CAFETERIA_WOMAN_CUE = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_CAFETERIA, 0x0D),

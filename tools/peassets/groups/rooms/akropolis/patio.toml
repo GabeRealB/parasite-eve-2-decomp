@@ -225,7 +225,7 @@ sha1 = "2ec25d6eb4b1f8e0073974773035a09958547451"
 
 [package]
 type = "room"
-package_name = "acropolis_patio"
+package_name = "akropolis_patio"
 required = true
 sha1 = "a1d21b9d3d98c6ee720aa24c2f879af7387fd92a"
 
@@ -260,13 +260,13 @@ size = 0x818
 address = 0x8017F8A0
 
 [[package.embedded]]
-name = "acropolis_patio_follow_up_player_anim_03"
+name = "follow_up_player"
 offset = 0x02AF8
 size = 0x1D4
 address = 0x801800B8
 
 [[package.embedded]]
-name = "acropolis_patio_follow_up_player_bank"
+name = "follow_up_player_bank"
 offset = 0x02DA4
 size = 0x18
 address = 0x80180364
@@ -284,7 +284,7 @@ size = 0x7A0
 address = 0x801812B8
 
 [[package.embedded]]
-name = "acropolis_patio_second_visit_player_anim_03"
+name = "ambush_player"
 offset = 0x04498
 size = 0x4DC
 address = 0x80181A58
@@ -296,7 +296,7 @@ size = 0x67C
 address = 0x80181F34
 
 [[package.embedded]]
-name = "acropolis_patio_second_visit_player_bank"
+name = "ambush_player_bank"
 offset = 0x04FF0
 size = 0x14
 address = 0x801825B0
@@ -1154,6 +1154,10 @@ sha1 = "49a928f43f0e0eb8f8e8d13c3a6adf176a8f8a4b"
 type = "sound"
 sha1 = "30deb660556d3b0fdd64a1c8cfb99c4a5badedf7"
 
+[ambush_player]
+type = "clip"
+rig = "characters/aya/rig"
+
 [opening_scene]
 type = "sound"
 sha1 = "b673b18c20356046ad90e22d16b5f6b3ab1b457e"
@@ -1212,6 +1216,10 @@ w = 64
 x = 384
 y = 0
 sha1 = "141e5dcd949de89d0d4ec09d677ac0f0a0699b3c"
+
+[follow_up_player]
+type = "clip"
+rig = "characters/aya/rig"
 
 [stranger_dormant]
 type = "sound"
@@ -1322,6 +1330,17 @@ sha1 = "38dc0bc8242b63320bd5347f5866e3e15045c6c0"
 type = "bs"
 sha1 = "277fea6e9cc7047268a085ece034138f348827bf"
 
+[ambush_player_bank]
+type = "animation_bank"
+schema = "rooms/akropolis/patio/ambush_player_schema"
+symbol = "_gAkropolisPatioAmbushPlayerAnimationSets"
+
+[ambush_player_bank.clips]
+slot_1 = "characters/aya/stand"
+slot_2 = "rooms/shelter/r47/player_look_at_map"
+slot_3 = "rooms/akropolis/patio/ambush_player"
+slot_4 = "characters/aya/extended_aim/aim_enter"
+
 [stranger_dormant_2]
 type = "sound"
 sha1 = "67b043dfb5bee2c9fb6acb58c87f014e4873e703"
@@ -1345,6 +1364,10 @@ sha1 = "81f9e6eada7dec0a24f1f71bf07916b8cb8584f6"
 [stranger_leap_start]
 type = "clip"
 rig = "enemies/stranger/rig"
+
+[ambush_player_schema]
+type = "animation_schema"
+slots = ["", "slot_1", "slot_2", "slot_3", "slot_4"]
 
 [fountain_door_arrive]
 type = "sound"
@@ -1374,42 +1397,19 @@ sha1 = "e250e0a6306aab956eb8269f0fc36cda007ab7eb"
 type = "sound"
 sha1 = "9f9cc042c3e0da106d6c9127bb1767d656f172e2"
 
-[acropolis_patio_follow_up_player_bank]
+[follow_up_player_bank]
 type = "animation_bank"
-schema = "rooms/akropolis/patio/acropolis_patio_follow_up_player_schema"
-symbol = "_gAcropolisPatioFollowUpPlayerAnimationSets"
+schema = "rooms/akropolis/patio/follow_up_player_schema"
+symbol = "_gAkropolisPatioFollowUpPlayerAnimationSets"
 
-[acropolis_patio_follow_up_player_bank.clips]
+[follow_up_player_bank.clips]
 slot_0 = "rooms/shelter/b1_sterilization_room/player_talk_start"
 slot_1 = "rooms/shelter/b1_sterilization_room/player_talk_end"
 slot_2 = "rooms/shelter/b1_sterilization_room/player_talk"
-slot_3 = "rooms/akropolis/patio/acropolis_patio_follow_up_player_anim_03"
+slot_3 = "rooms/akropolis/patio/follow_up_player"
 slot_4 = "rooms/shelter/b1_sterilization_room/player_conversation_arrival"
 slot_5 = "rooms/shelter/b1_sterilization_room/player_sterilization_17"
 
-[acropolis_patio_follow_up_player_schema]
+[follow_up_player_schema]
 type = "animation_schema"
 slots = ["slot_0", "slot_1", "slot_2", "slot_3", "slot_4", "slot_5"]
-
-[acropolis_patio_follow_up_player_anim_03]
-type = "clip"
-rig = "characters/aya/rig"
-
-[acropolis_patio_second_visit_player_bank]
-type = "animation_bank"
-schema = "rooms/akropolis/patio/acropolis_patio_second_visit_player_schema"
-symbol = "_gAcropolisPatioSecondVisitPlayerAnimationSets"
-
-[acropolis_patio_second_visit_player_bank.clips]
-slot_1 = "characters/aya/stand"
-slot_2 = "rooms/shelter/r47/player_look_at_map"
-slot_3 = "rooms/akropolis/patio/acropolis_patio_second_visit_player_anim_03"
-slot_4 = "characters/aya/extended_aim/aim_enter"
-
-[acropolis_patio_second_visit_player_schema]
-type = "animation_schema"
-slots = ["", "slot_1", "slot_2", "slot_3", "slot_4"]
-
-[acropolis_patio_second_visit_player_anim_03]
-type = "clip"
-rig = "characters/aya/rig"

@@ -61,16 +61,9 @@ enum {
     /// Unidentified. Set to 1 together with 0x17 and other story flags in a shelter B2
     /// laboratory story sequence; no reader found.
     GAME_FLAG_SHELTER_B2_LABORATORY_018 = 0x018,
-    /// Set to 1 when the patio's cafeteria door is used while flag 0 is 2, which plays
-    /// a scene once; afterwards the door runs CAP 8 instead.
-    GAME_FLAG_PATIO_CAFETERIA_DOOR_SCENE_SEEN = 0x023,
     /// Set to 1 the first time the observatory is left for the forked road; later uses
     /// answer warp 5 instead. Also set when the sanctuary scene runs.
     GAME_FLAG_OBSERVATORY_EXIT_USED = 0x025,
-    /// Unidentified. One-shot patio scene: set to 1 when trigger 2 is hit while flag 0
-    /// is 2, playing a scene; while clear, entering the patio as variant 2 sends slot-4
-    /// actors 2 and 3 a command.
-    GAME_FLAG_AKROPOLIS_PATIO_026 = 0x026,
     /// Dryfield junk yard / trailer coach story counter: 1 when first entering the
     /// trailer coach from the junk yard (also companion flag 0x4B = 4), 2 after the
     /// trailer coach scene (sets 0x3A=1, 0x4B=1), 3 after a later trailer coach scene.

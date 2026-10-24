@@ -593,11 +593,11 @@ acropolisObservatoryAmbientGlowTask = 0x8017E424; // type:func absolute:True own
 
 acropolisObservatoryLensFlareEmitterTask = 0x8017E6F8; // type:func absolute:True owner=acropolis_observatory
 
-acropolisPatioSpawnLightEffectsTask = 0x8017E100; // type:func absolute:True owner=acropolis_patio
+akropolisPatioSpawnLightEffectsTask = 0x8017E100; // type:func absolute:True owner=akropolis_patio
 
-acropolisPatioFountainJetTask = 0x8017E324; // type:func absolute:True owner=acropolis_patio
+akropolisPatioLightGlowTask = 0x8017E324; // type:func absolute:True owner=akropolis_patio
 
-acropolisPatioFountainMistTask = 0x8017E730; // type:func absolute:True owner=acropolis_patio
+akropolisPatioLightMoteTask = 0x8017E730; // type:func absolute:True owner=akropolis_patio
 
 acropolisPlazaSirenLightTask = 0x801802C0; // type:func absolute:True owner=acropolis_plaza shared=rooms
 
@@ -1409,7 +1409,7 @@ gAcropolisHelicopterLandingPadAreaVariants = 0x801861E8; // absolute:True owner=
 
 gAcropolisObservatoryAreaVariants = 0x80181264; // absolute:True owner=acropolis_observatory
 
-gAcropolisPatioAreaVariants = 0x80184A90; // absolute:True owner=acropolis_patio
+gAkropolisPatioAreaVariants = 0x80184A90; // absolute:True owner=akropolis_patio
 
 gAcropolisPromenadeAreaVariants = 0x80183020; // absolute:True owner=acropolis_promenade shared=rooms
 

@@ -10460,7 +10460,7 @@ dryfield_motel_room_1 = { text = [0x2C, 0xAE8], ... }
 ```
 
 `0x2C` is the offset the sibling rooms reach by accident, because their first
-handler has a frame (`acropolis_patio`'s `_acropolisPatioInitializeRoomTask` is the
+handler has a frame (`acropolis_patio`'s `_akropolisPatioInitializeRoomTask` is the
 first function at `0x2C`). Pinning the start there splits the three stubs as
 functions, so the message table's handler words resolve to them rather than to
 a `D_...` rodata symbol - and the function is 8 bytes longer than before, which
@@ -49173,7 +49173,7 @@ local rather than reaching for a pin.
 
 The `r = g = b` trick is usually described as a store-order fix, but it also
 decides which address `high` is emitted — and therefore coloured — first. In
-`_acropolisPatioActivateRoom2` the target is
+`_akropolisPatioActivateRoom2` the target is
 
 ```
 lui a1, %hi(gGameSession)
@@ -49207,7 +49207,7 @@ keeps each one's *positional* name. A function whose first two arguments are
 unused comes out as
 
 ```c
-void _acropolisPatioHandleActionMessage(void *arg2) { ... }
+void _akropolisPatioHandleActionMessage(void *arg2) { ... }
 ```
 
 That single `arg2` is not the first argument — the name says it lives in `$a2`.
@@ -49223,12 +49223,12 @@ The fix is to restore the dropped leading parameters rather than to chase the
 register through pins or the permuter:
 
 ```c
-s32 _acropolisPatioHandleActionMessage(Task* unusedTask, s32 messageId, const DirectionActionRequest* actionRequest, s32 unusedArg)
+s32 _akropolisPatioHandleActionMessage(Task* unusedTask, s32 messageId, const DirectionActionRequest* actionRequest, s32 unusedArg)
 ```
 
 Whenever the *only* diff is the argument register a parameter is moved out of,
 count the gap in m2c's `argN` names first — the matched siblings in the same TU
-usually show the real arity (here `_acropolisPatioHandleCommandMessage(Task*, s32, s32, s32)`
+usually show the real arity (here `_akropolisPatioHandleCommandMessage(Task*, s32, s32, s32)`
 and the other four-argument message handlers).
 
 The drop need not be leading, so a gap can sit in the middle of an emitted
@@ -61481,7 +61481,7 @@ A non-zero leftover byte in the word's fourth slot does not change this, and
 does not call for a 3-byte struct copied from a named `static const`. The
 initializer's constant is emitted with its function, so define the leftover as
 a one-byte `static const u8` directly *below* that function and it lands at
-`+3`. `acropolisPatioFountainJetTask` (levels `0x50, 0x30, 0x40`, then `0xF2`)
+`+3`. `akropolisPatioLightGlowTask` (levels `0x50, 0x30, 0x40`, then `0xF2`)
 is the worked example; being a single-unit overlay it needed no cut either.
 
 ## `lh` + `andi 0x3f` for a clut is `getClut(x * 16, y)`, not `(x & 0x3f) | base`
@@ -61542,7 +61542,7 @@ taskMessageDispatch(sceneFindPlacedActor(3), 0x7DB, (s32)&msg, 0);
 The aggregation, not the store count, is what stops the CSE: an attempt that
 kept the struct but assigned only `field_0` still had the frame, the register
 choice and both `addiu a2,sp,0x10` right, and differed only by the two dropped
-stores. `_acropolisPatioInitializeRoomTask` went from 90.96%
+stores. `_akropolisPatioInitializeRoomTask` went from 90.96%
 (`branch=9 regs=17 insert=5 delete=5`) to 100% on that one edit, so read a
 `&sp<N>` in an m2c seed whose neighbouring slots are written but never read as
 "this was one struct".
@@ -61617,7 +61617,7 @@ change anything: in the *flat* loops the target initialises the counter first
 and derives the pointer after it (`li $s0, 3` … `addiu $s1, $v0, 0x18`), which
 is the order strength reduction emits. A hand-written walking pointer is
 assigned in source order and comes out the other way round.
-`acropolisPatioSpawnLightEffectsTask` went from 83.83%
+`akropolisPatioSpawnLightEffectsTask` went from 83.83%
 (`branch=5 regs=66 reorder=3 insert=7 delete=10`) to 100% on this one edit.
 
 ## A named global array flips `addu` operands only when the field offset is non-zero
@@ -61656,7 +61656,7 @@ Note this is the *opposite* direction from "Array index vs intermediate pointer
 for `addu` operand order", which is about `p = base + idx` naming the whole
 element. Here the local names only the base, and the index stays at the use, so
 the `lui`/`addiu` pair is still emitted once inside the block. That single edit
-took `acropolisPatioFountainMistTask` from 99.918% to 100%.
+took `akropolisPatioLightMoteTask` from 99.918% to 100%.
 
 ## `x % C == 0`: an inline cast beats a named 16-bit temp, and `%=` ties the `subu`
 
@@ -61711,7 +61711,7 @@ and wrong when the constants are a *local array initialiser*, because GCC
 materialises those on the stack from the function's own `.rodata`, which the
 shared object then owns for every carrier at once.
 
-`acropolisPatioFountainJetTask` is the worked refusal: the sprite task ends with
+`akropolisPatioLightGlowTask` is the worked refusal: the sprite task ends with
 
 ```c
 u8 levels[3] = { 0x50, 0x30, 0x10 };
@@ -61791,7 +61791,7 @@ function set of the two halves against the original before building.
 ## A body's own string literal is shareable; a stack-materialised initialiser is not
 
 The refusal recorded above ("A shared body's constants are part of the object")
-is right about `acropolisPatioFountainJetTask` and too strong as a rule. What
+is right about `akropolisPatioLightGlowTask` and too strong as a rule. What
 decides it is not where the data sits but **how the body reaches it**. A
 `const char*` handed to a callee compiles to `lui %hi(sym)` / `addiu %lo(sym)`,
 and an `extern` array compiles to exactly the same two instructions, so
@@ -87274,7 +87274,7 @@ body with the `%hi`s the other way round, and it confirms the mechanism decides
 both directions — so use the target's first `lui` as the selector:
 
 ```
-_mineCavernActivateRoom2        _acropolisPatioActivateRoom2
+_mineCavernActivateRoom2        _akropolisPatioActivateRoom2
 lui a1, %hi(D_8007216D)          lui a1, %hi(gGameSession)
 lui a0, %hi(gGameSession)        lui v1, %hi(D_8007216D)
 lw  v1, %lo(gGameSession)(a0)    lw  a0, %lo(gGameSession)(a1)
