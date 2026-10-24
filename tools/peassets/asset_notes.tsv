@@ -46,12 +46,12 @@ akropolis_patio_animation_039F4	No reached use found: four player clips the pati
 akropolis_patio_collision_05A0C	Collision grid of the Akropolis patio (7x4 cells, 70 faces), shared by all three room indices.	
 akropolis_plaza_animation_144C4	Scene clips of the Akropolis plaza: the two officers' clips and the clips installed on the player, bound through actor_310100's tables and requested by the plaza's first, repeat and final scene scripts.	
 akropolis_plaza_collision_1B4E0	Collision grid of the Akropolis plaza; its first eight vertices are rewritten every tick into two walls that follow the traversal movie's shot position.	
-akropolis_plaza_path_062F8	Camera track of the plaza's traversal movie: 400 frames of two view samples, applied forward or in reverse as the player's progress scrubs the movie.	
-akropolis_plaza_path_0D378	Camera track (120 frames) of the plaza's stream scene, movie sub-id 2.	
-akropolis_plaza_path_0F53C	Camera track (150 frames) of the tail and closing shots of the plaza's final scene, movie sub-id 3.	
-akropolis_plaza_path_11F70	Camera track (16 frames) of the first shot of the plaza's final scene, movie sub-id 4.	
-akropolis_plaza_path_123F4	Camera track (50 frames) of the officer shot in the plaza's final scene, movie sub-id 5.	
-akropolis_plaza_path_13204	Per-frame shot position of the plaza's traversal movie (400 points): compared with the player's X to advance or reverse the movie and used to place the moving collision walls.	
+rooms/akropolis/plaza/traversal_camera_path	Camera track of the plaza's traversal movie: 400 frames of two view samples, applied forward or in reverse as the player's progress scrubs the movie.	
+rooms/akropolis/plaza/helicopter_wreck_camera_path	Camera track (120 frames) of the plaza's stream scene, movie sub-id 2.	
+rooms/akropolis/plaza/officers_talk_camera_path	Camera track (150 frames) of the tail and closing shots of the plaza's final scene, movie sub-id 3.	
+rooms/akropolis/plaza/entrance_officer_talk_camera_path	Camera track (16 frames) of the first shot of the plaza's final scene, movie sub-id 4.	
+rooms/akropolis/plaza/entering_tower_camera_path	Camera track (50 frames) of the officer shot in the plaza's final scene, movie sub-id 5.	
+rooms/akropolis/plaza/traversal_shot_positions	Per-frame shot position of the plaza's traversal movie (400 points): compared with the player's X to advance or reverse the movie and used to place the moving collision walls.	
 akropolis_promenade_collision_04734	Collision grid of the Akropolis promenade's room 1 (bridge progress 0).	
 akropolis_promenade_collision_04E40	Collision grid of the Akropolis promenade's room 2 (bridge progress non-zero), eight faces more than room 1's.	
 rooms/akropolis/promenade/arrival_player_path	Per-movie-frame player path for the promenade's arrival movie from the observatory; 70 of 300 samples are read, backwards.	
@@ -2746,8 +2746,8 @@ enemies/diver/sea/palette	Two 256-colour palette rows, one per page, of the dive
 characters/eric/palette	Two 256-colour palette rows of Eric Baldwin (actor_213000): the first for his body's first page and a three-part model, the second for the second page and his right hand.	
 characters/jodie/palette	Two 256-colour palette rows, one per page, of Jodie Bouquet's first body model, placed in the MIST parking lot (actor_213100).	
 characters/jodie/palette_2	Two 256-colour palette rows, one per page, of Jodie Bouquet's second body model in actor_260500.	
-characters/police_officer_1/palette	Two 256-colour palette rows, one per page, of police officer 1's body and culled body in the Acropolis plaza scenes.	
-characters/police_officer_2/palette	Two 256-colour palette rows, one per page, of police officer 2's body and culled body in the Acropolis plaza scenes.	
+characters/police_officer/palette	Two 256-colour palette rows, one per page, of police officer 1's body and culled body in the Acropolis plaza scenes.	
+characters/police_sergeant/palette	Two 256-colour palette rows, one per page, of police officer 2's body and culled body in the Acropolis plaza scenes.	
 characters/rupert/palette	Two 256-colour palette rows of Rupert Broderick's body_1 in actor_310600 and on the security room's enemy-camera monitor, where they are greyed after spawn.	
 characters/rupert/mongoose_palette	16-colour palette at row 244 of Rupert Broderick's Mongoose revolver model; heliport view file 7 also uploads it, where no reader was found.	
 weapons/m4a1_javelin/palette	16-colour palette row (0,243) of the M4A1 javelin weapon model: all 71 face groups of weapons/m4a1_javelin/model name it, loaded with the weapon's image.	
@@ -3620,8 +3620,8 @@ characters/jodie/image	Two-page 8-bit texture of Jodie Bouquet's body (character
 shelter_1f_heliport_dialogue_1_atlas	4-bit caption glyph page at (832,0) carried by actor_260400 and used for the conversations in the shelter 1F heliport variant 2.	
 characters/jodie/image_2	Two-page 8-bit texture of Jodie Bouquet's second body (characters/jodie/body_2) in actor_260500.	
 shelter_1f_heliport_dialogue_2_atlas	4-bit caption glyph page at (832,0) carried by actor_260500 and used for the conversations in the shelter 1F heliport variant 1.	
-characters/police_officer_1/image	Two-page 8-bit texture of both police officer 1 models in the Acropolis plaza variant 1 (actor_310100).	
-characters/police_officer_2/image	Two-page 8-bit texture of both police officer 2 models in the Acropolis plaza variant 1 (actor_310100).	
+characters/police_officer/image	Two-page 8-bit texture of both police officer 1 models in the Acropolis plaza variant 1 (actor_310100).	
+characters/police_sergeant/image	Two-page 8-bit texture of both police officer 2 models in the Acropolis plaza variant 1 (actor_310100).	
 weapons/m4a1_grenade/image	4-bit texture of the M4A1 Grenade weapon model; the grenade projectile's faces name a rectangle outside this image, which is still open.	
 characters/rupert/image	Two-page 8-bit texture of Rupert Broderick's body in the Acropolis cafeteria and security room actor packages; the copy in file 605200 is never loaded.	
 characters/rupert/mongoose_image	4-bit texture of Rupert Broderick's Mongoose revolver model, stored in the weapon cell at (448,64); view file 7 of the shelter 1F heliport re-uploads it for the hurt Rupert's gun.	
@@ -4432,10 +4432,10 @@ pe2img_997	8-bit sheet (two pages) of the 19 occluder sprites of shelter_b1_stor
 pe2img_998	8-bit sheet (two pages) of the 32 occluder sprites of shelter_b1_storeroom's mapped view 7.	
 shelter_b1_north_maintenance_walkway_dialogue_0_atlas	4-bit caption glyph atlas of shelter_b1_north_maintenance_walkway's dialogue, drawn by gameplay's caption code for commands 1-4.	
 characters/pierce/body	20-part body model of Pierce Carradine, spawned as a placed story actor in mist_parking, mist_shooting_gallery, shelter_b1_golem_freezer_1 and shelter_r47 and shown or hidden by those rooms.	
-characters/police_officer_1/body	19-part animated body model of police officer 1, spawned by actor_310100 in place of his standing model for the final scene's script.	
-characters/police_officer_1/culled_body	19-part standing model of police officer 1 in actor_310100: shown during the plaza movie and respawned as the replacement for the animated body in the final scene.	named 'culled body', but the rows show it as the officer's standing model that is actually drawn in the plaza movie and after the animated body; nothing in the uses explains 'culled'.
-characters/police_officer_2/body	19-part animated body model of police officer 2, spawned by actor_310100 for the first-scene script; this officer plays no animation of the package.	
-characters/police_officer_2/culled_body	19-part standing model of police officer 2 in actor_310100: shown during part of the plaza movie and respawned in place of the animated body at the end of the first scene.	named 'culled body', but the rows show it as the officer's standing model that is actually drawn in the plaza movie and after the animated body; nothing in the uses explains 'culled'.
+characters/police_officer/body	19-part animated body model of police officer 1, spawned by actor_310100 in place of his standing model for the final scene's script.	
+characters/police_officer/culled_body	19-part standing model of police officer 1 in actor_310100: shown during the plaza movie and respawned as the replacement for the animated body in the final scene.	named 'culled body', but the rows show it as the officer's standing model that is actually drawn in the plaza movie and after the animated body; nothing in the uses explains 'culled'.
+characters/police_sergeant/body	19-part animated body model of police officer 2, spawned by actor_310100 for the first-scene script; this officer plays no animation of the package.	
+characters/police_sergeant/culled_body	19-part standing model of police officer 2 in actor_310100: shown during part of the plaza movie and respawned in place of the animated body at the end of the first scene.	named 'culled body', but the rows show it as the officer's standing model that is actually drawn in the plaza movie and after the animated body; nothing in the uses explains 'culled'.
 rooms/neo_ark/power_plant_1/proto_generator_body	10-part body model of the Proto Generator enemy in rooms/neo_ark/power_plant_1/proto_generator, spawned at neo_ark_power_plant_1 and held in place through its death until the room releases it.	
 encounters/rat_and_moth/rat_body	7-part body model of the rat enemy, spawned from encounters/rat_and_moth/package_1, encounters/rat_and_moth/package_2 and encounters/rat_and_moth/package_3 in the Acropolis hallway and Dryfield cellar and kitchen rooms.	
 enemies/golem/rook/body	19-part body model of the Rook GOLEM (beam sword and shield build), spawned in several Dryfield night, Neo Ark and Shelter rooms and kept as a corpse after death.	

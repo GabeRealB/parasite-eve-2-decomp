@@ -62,47 +62,47 @@ sha1 = "aeb19f6425491cab36f2759ebecf8903c2e2a4dd"
 [package]
 type = "room"
 embedded = [
-    "akropolis_plaza_path_062F8",
-    "akropolis_plaza_path_0D378",
-    "akropolis_plaza_path_0F53C",
-    "akropolis_plaza_path_11F70",
-    "akropolis_plaza_path_123F4",
-    "akropolis_plaza_path_13204",
-    { name = "extra_anim", offset = 0x144C4, size = 0x420, address = 0x80191A84 },
-    { name = "extra_anim_2", offset = 0x148E4, size = 0xDF8, address = 0x80191EA4 },
-    { name = "extra_anim_3", offset = 0x156DC, size = 0x1B0, address = 0x80192C9C },
-    { name = "extra_anim_4", offset = 0x1588C, size = 0x464, address = 0x80192E4C },
-    { name = "extra_anim_5", offset = 0x15CF0, size = 0x2B0, address = 0x801932B0 },
-    { name = "extra_anim_6", offset = 0x15FA0, size = 0x2B4, address = 0x80193560 },
-    { name = "extra_anim_7", offset = 0x16254, size = 0x210, address = 0x80193814 },
-    { name = "extra_anim_8", offset = 0x16464, size = 0x1D4, address = 0x80193A24 },
-    { name = "extra_anim_9", offset = 0x16638, size = 0x2EC, address = 0x80193BF8 },
-    { name = "extra_anim_10", offset = 0x16924, size = 0x404, address = 0x80193EE4 },
-    { name = "extra_anim_11", offset = 0x16D28, size = 0x1E4, address = 0x801942E8 },
-    { name = "extra_anim_12", offset = 0x16F0C, size = 0x1DC, address = 0x801944CC },
-    { name = "extra_anim_13", offset = 0x170E8, size = 0x1D8, address = 0x801946A8 },
-    { name = "extra_anim_14", offset = 0x172C0, size = 0x2B4, address = 0x80194880 },
-    { name = "extra_anim_15", offset = 0x17574, size = 0x2CC, address = 0x80194B34 },
-    { name = "extra_anim_16", offset = 0x17840, size = 0x1E8, address = 0x80194E00 },
-    { name = "extra_anim_17", offset = 0x17A28, size = 0x268, address = 0x80194FE8 },
-    { name = "extra_anim_18", offset = 0x17C90, size = 0x1EC, address = 0x80195250 },
-    { name = "extra_anim_19", offset = 0x17E7C, size = 0x1A0, address = 0x8019543C },
-    { name = "extra_anim_20", offset = 0x1801C, size = 0x1D8, address = 0x801955DC },
-    { name = "extra_anim_21", offset = 0x181F4, size = 0x1EC, address = 0x801957B4 },
-    { name = "extra_anim_22", offset = 0x183E0, size = 0x25C, address = 0x801959A0 },
-    { name = "extra_anim_23", offset = 0x1863C, size = 0x2F0, address = 0x80195BFC },
-    { name = "extra_anim_24", offset = 0x1892C, size = 0x4DC, address = 0x80195EEC },
+    "rooms/akropolis/plaza/traversal_camera_path",
+    "rooms/akropolis/plaza/helicopter_wreck_camera_path",
+    "rooms/akropolis/plaza/officers_talk_camera_path",
+    "rooms/akropolis/plaza/entrance_officer_talk_camera_path",
+    "rooms/akropolis/plaza/entering_tower_camera_path",
+    "rooms/akropolis/plaza/traversal_shot_positions",
+    { asset = "characters/police_sergeant/cleared_for_entry", offset = 0x144C4, size = 0x420, address = 0x80191A84 },
+    { asset = "characters/police_sergeant/go_right_in", offset = 0x148E4, size = 0xDF8, address = 0x80191EA4 },
+    { asset = "characters/police_sergeant/talk_idle", offset = 0x156DC, size = 0x1B0, address = 0x80192C9C },
+    { asset = "characters/police_sergeant/outta_control", offset = 0x1588C, size = 0x464, address = 0x80192E4C },
+    { asset = "characters/police_sergeant/outta_control_gesture", offset = 0x15CF0, size = 0x2B0, address = 0x801932B0 },
+    { asset = "characters/police_sergeant/helicopter_down", offset = 0x15FA0, size = 0x2B4, address = 0x80193560 },
+    { asset = "characters/police_sergeant/something_big", offset = 0x16254, size = 0x210, address = 0x80193814 },
+    { asset = "characters/police_sergeant/watch_yourself", offset = 0x16464, size = 0x1D4, address = 0x80193A24 },
+    { asset = "characters/police_sergeant/raise_arm", offset = 0x16638, size = 0x2EC, address = 0x80193BF8 },
+    { asset = "characters/police_sergeant/lower_arm", offset = 0x16924, size = 0x404, address = 0x80193EE4 },
+    { asset = "characters/police_sergeant/listen", offset = 0x16D28, size = 0x1E4, address = 0x801942E8 },
+    { asset = "characters/police_sergeant/turn_head", offset = 0x16F0C, size = 0x1DC, address = 0x801944CC },
+    { asset = "characters/police_sergeant/turn_head_back", offset = 0x170E8, size = 0x1D8, address = 0x801946A8 },
+    { asset = "characters/police_sergeant/heard_of_them", offset = 0x172C0, size = 0x2B4, address = 0x80194880 },
+    { asset = "characters/police_sergeant/turned_idle", offset = 0x17574, size = 0x2CC, address = 0x80194B34 },
+    { asset = "characters/police_sergeant/damn_rookies", offset = 0x17840, size = 0x1E8, address = 0x80194E00 },
+    { asset = "characters/police_sergeant/turn_away", offset = 0x17A28, size = 0x268, address = 0x80194FE8 },
+    { asset = "characters/police_sergeant/hunter_from_mist", offset = 0x17C90, size = 0x1EC, address = 0x80195250 },
+    { asset = "characters/police_sergeant/idle", offset = 0x17E7C, size = 0x1A0, address = 0x8019543C },
+    { asset = "characters/police_officer/stand", offset = 0x1801C, size = 0x1D8, address = 0x801955DC },
+    { asset = "characters/police_officer/look_at_badge", offset = 0x181F4, size = 0x1EC, address = 0x801957B4 },
+    { asset = "characters/police_officer/shift_stance", offset = 0x183E0, size = 0x25C, address = 0x801959A0 },
+    { asset = "characters/police_officer/idle", offset = 0x1863C, size = 0x2F0, address = 0x80195BFC },
+    { asset = "characters/police_officer/explain_swat", offset = 0x1892C, size = 0x4DC, address = 0x80195EEC },
     { asset = "characters/aya/idle", offset = 0x18E08, size = 0x1B8, address = 0x801963C8 },
-    { name = "extra_anim_25", offset = 0x18FC0, size = 0x678, address = 0x80196580 },
-    { name = "extra_anim_26", offset = 0x19638, size = 0x4C8, address = 0x80196BF8 },
-    { name = "extra_anim_27", offset = 0x19B00, size = 0x28C, address = 0x801970C0 },
-    { name = "extra_anim_28", offset = 0x19D8C, size = 0x218, address = 0x8019734C },
-    { name = "extra_anim_29", offset = 0x19FA4, size = 0x57C, address = 0x80197564 },
-    { name = "extra_anim_30", offset = 0x1A520, size = 0x28C, address = 0x80197AE0 },
-    { name = "extra_anim_31", offset = 0x1A7AC, size = 0x328, address = 0x80197D6C },
-    { name = "extra_anim_32", offset = 0x1AAD4, size = 0x358, address = 0x80198094 },
-    { name = "extra_anim_33", offset = 0x1AE2C, size = 0x1A0, address = 0x801983EC },
-    { name = "extra_anim_34", offset = 0x1AFCC, size = 0x254, address = 0x8019858C },
+    { asset = "characters/aya/show_badge", offset = 0x18FC0, size = 0x678, address = 0x80196580 },
+    { asset = "characters/aya/put_away_badge", offset = 0x19638, size = 0x4C8, address = 0x80196BF8 },
+    { asset = "characters/aya/turn_to_sergeant", offset = 0x19B00, size = 0x28C, address = 0x801970C0 },
+    { asset = "characters/aya/face_sergeant", offset = 0x19D8C, size = 0x218, address = 0x8019734C },
+    { asset = "characters/aya/ask_situation", offset = 0x19FA4, size = 0x57C, address = 0x80197564 },
+    { asset = "characters/aya/turn_from_sergeant", offset = 0x1A520, size = 0x28C, address = 0x80197AE0 },
+    { asset = "characters/aya/ask_about_civilians", offset = 0x1A7AC, size = 0x328, address = 0x80197D6C },
+    { asset = "characters/aya/thank_officer", offset = 0x1AAD4, size = 0x358, address = 0x80198094 },
+    { asset = "characters/aya/ask_about_roof", offset = 0x1AE2C, size = 0x1A0, address = 0x801983EC },
+    { asset = "characters/aya/look_at_wreck", offset = 0x1AFCC, size = 0x254, address = 0x8019858C },
 ]
 package_name = "akropolis_plaza"
 required = true
@@ -140,7 +140,7 @@ run_surface_1_2 = 48
 [sounds_1]
 type = "sound_bank"
 samples = [
-    "rooms/akropolis/plaza/final_scene_cue",
+    "rooms/akropolis/plaza/entering_tower_cue",
     "rooms/akropolis/plaza/officer_ambience",
     "rooms/akropolis/plaza/officer_ambience_2",
     "rooms/akropolis/plaza/walk_ambience",
@@ -150,197 +150,35 @@ samples = [
     "rooms/akropolis/plaza/approach_ambience_3",
     "rooms/akropolis/plaza/approach_ambience_4",
     "rooms/akropolis/plaza/approach_ambience_5",
-    "rooms/akropolis/plaza/officer_step_1",
-    "rooms/akropolis/plaza/officer_step_2",
+    "rooms/akropolis/plaza/police_step_1",
+    "rooms/akropolis/plaza/police_step_2",
 ]
 sha1 = "ef20a9de46a8ac145955ced1db1da18c21520413"
 
 [sounds_1.sounds]
 officer_ambience = 1
 entry_ambience = 2
-final_scene_cue = 3
+entering_tower_cue = 3
 approach_ambience = 4
 walk_ambience = 5
-officer_step_1 = 6
-officer_step_2 = 7
-officer_1_step_1 = 8
-officer_1_step_2 = 9
-officer_1_step_3 = 10
+police_step_1 = 6
+police_step_2 = 7
+officer_step_1 = 8
+officer_step_2 = 9
+officer_step_3 = 10
 officers_walk_in = 11
 
 [dialogue_0]
 type = "cap"
 sha1 = "10e97799b62ee49bcca33ec1b6097fc4aefb1fe8"
 
-[extra_anim]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnimClip"
+[police_step_1]
+type = "sound"
+sha1 = "1157904a46fb62b99e7f12decb6ad0179d4278da"
 
-[extra_anim_2]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim2Clip"
-
-[extra_anim_3]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim3Clip"
-
-[extra_anim_4]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim4Clip"
-
-[extra_anim_5]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim5Clip"
-
-[extra_anim_6]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim6Clip"
-
-[extra_anim_7]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim7Clip"
-
-[extra_anim_8]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim8Clip"
-
-[extra_anim_9]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim9Clip"
-
-[extra_anim_10]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim10Clip"
-
-[extra_anim_11]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim11Clip"
-
-[extra_anim_12]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim12Clip"
-
-[extra_anim_13]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim13Clip"
-
-[extra_anim_14]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim14Clip"
-
-[extra_anim_15]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim15Clip"
-
-[extra_anim_16]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim16Clip"
-
-[extra_anim_17]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim17Clip"
-
-[extra_anim_18]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim18Clip"
-
-[extra_anim_19]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim19Clip"
-
-[extra_anim_20]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim20Clip"
-
-[extra_anim_21]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim21Clip"
-
-[extra_anim_22]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim22Clip"
-
-[extra_anim_23]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim23Clip"
-
-[extra_anim_24]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim24Clip"
-
-[extra_anim_25]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim25Clip"
-
-[extra_anim_26]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim26Clip"
-
-[extra_anim_27]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim27Clip"
-
-[extra_anim_28]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim28Clip"
-
-[extra_anim_29]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim29Clip"
-
-[extra_anim_30]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim30Clip"
-
-[extra_anim_31]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim31Clip"
-
-[extra_anim_32]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim32Clip"
-
-[extra_anim_33]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim33Clip"
-
-[extra_anim_34]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisPlazaExtraAnim34Clip"
+[police_step_2]
+type = "sound"
+sha1 = "aaac5e0327975fc81a5b68c0d5b701bedf2f3e00"
 
 [walk_ambience]
 type = "sound"
@@ -350,26 +188,25 @@ sha1 = "d3dc862286ffbc3cab0f47ee6eba96b2c88a053b"
 type = "sound"
 sha1 = "8a58cf384757c161094f3ac856f7cdc466b9a94a"
 
-[officer_step_1]
-type = "sound"
-sha1 = "1157904a46fb62b99e7f12decb6ad0179d4278da"
-
-[officer_step_2]
-type = "sound"
-sha1 = "aaac5e0327975fc81a5b68c0d5b701bedf2f3e00"
-
-[final_scene_cue]
-type = "sound"
-sha1 = "9820ab79577a80ea37e77c6c0eb9c5065df47dc4"
-
 [police_officers]
 type = "pe2pkg"
 embedded = [
-    { asset = "characters/police_officer_1/body", offset = 0x0159C, size = 0x5868, address = 0x801633BC },
-    { asset = "characters/police_officer_1/culled_body", offset = 0x06E04, size = 0x488C, address = 0x80168C24 },
-    { asset = "characters/police_officer_2/body", offset = 0x0B690, size = 0x5C24, address = 0x8016D4B0 },
-    { asset = "characters/police_officer_2/culled_body", offset = 0x112B4, size = 0x48FC, address = 0x801730D4 },
-    "actor_310100_animation_15BB0",
+    { asset = "characters/police_officer/body", offset = 0x0159C, size = 0x5868, address = 0x801633BC },
+    { asset = "characters/police_officer/culled_body", offset = 0x06E04, size = 0x488C, address = 0x80168C24 },
+    { asset = "characters/police_sergeant/body", offset = 0x0B690, size = 0x5C24, address = 0x8016D4B0 },
+    { asset = "characters/police_sergeant/culled_body", offset = 0x112B4, size = 0x48FC, address = 0x801730D4 },
+    { asset = "characters/police_officer/step_aside", offset = 0x15BB0, size = 0x470, address = 0x801779D0 },
+    { asset = "characters/police_officer/aside_idle", offset = 0x16020, size = 0x214, address = 0x80177E40 },
+    { asset = "characters/police_officer/watch_aya_enter", offset = 0x16234, size = 0x2AC, address = 0x80178054 },
+    { asset = "characters/police_officer/walk_to_sergeant", offset = 0x164E0, size = 0x830, address = 0x80178300 },
+    { asset = "characters/police_officer/halt", offset = 0x16D10, size = 0x27C, address = 0x80178B30 },
+    { asset = "characters/police_officer/talk_idle", offset = 0x16F8C, size = 0x1E4, address = 0x80178DAC },
+    { asset = "characters/police_officer/ask_sergeant", offset = 0x17170, size = 0x304, address = 0x80178F90 },
+    { asset = "characters/police_officer/report_agent", offset = 0x17474, size = 0x1EC, address = 0x80179294 },
+    { asset = "characters/police_officer/turn_away", offset = 0x17660, size = 0x2D4, address = 0x80179480 },
+    { name = "police_officer_bank", offset = 0x17934, size = 0x40, address = 0x80179754 },
+    { name = "police_sergeant_bank", offset = 0x17974, size = 0x68, address = 0x80179794 },
+    { name = "police_scene_player_bank", offset = 0x179DC, size = 0x34, address = 0x801797FC },
 ]
 package_name = "actor_310100"
 required = true
@@ -393,6 +230,10 @@ sha1 = "0483c62138c921048a65a5924fd3bdaf773133c5"
 type = "sound"
 sha1 = "5e9c21132d59209b70bfa23b764cae4b368e1f84"
 
+[entering_tower_cue]
+type = "sound"
+sha1 = "9820ab79577a80ea37e77c6c0eb9c5065df47dc4"
+
 [officer_ambience_2]
 type = "sound"
 sha1 = "2b9be465630c96e2aeec7634e6887f639df6a48f"
@@ -412,3 +253,141 @@ sha1 = "96abe57ab41aa3f6fcd951eeb9b9380ad2840a48"
 [approach_ambience_5]
 type = "sound"
 sha1 = "bee2bb2b5cf420c2104a662346775aa6bea85f7a"
+
+[police_officer_bank]
+type = "animation_bank"
+borrows = ["akropolis_plaza"]
+schema = "rooms/akropolis/plaza/police_officer_schema"
+symbol = "_gActor310100OfficerAnimationSets"
+
+[police_officer_bank.clips]
+stand = "characters/police_officer/stand"
+look_at_badge = "characters/police_officer/look_at_badge"
+shift_stance = "characters/police_officer/shift_stance"
+idle = "characters/police_officer/idle"
+explain_swat = "characters/police_officer/explain_swat"
+step_aside = "characters/police_officer/step_aside"
+aside_idle = "characters/police_officer/aside_idle"
+watch_aya_enter = "characters/police_officer/watch_aya_enter"
+walk_to_sergeant = "characters/police_officer/walk_to_sergeant"
+halt = "characters/police_officer/halt"
+talk_idle = "characters/police_officer/talk_idle"
+ask_sergeant = "characters/police_officer/ask_sergeant"
+report_agent = "characters/police_officer/report_agent"
+turn_away = "characters/police_officer/turn_away"
+
+[police_sergeant_bank]
+type = "animation_bank"
+borrows = ["akropolis_plaza"]
+schema = "rooms/akropolis/plaza/police_sergeant_schema"
+symbol = "_gActor310100SergeantAnimationSets"
+
+[police_sergeant_bank.clips]
+cleared_for_entry = "characters/police_sergeant/cleared_for_entry"
+go_right_in = "characters/police_sergeant/go_right_in"
+talk_idle = "characters/police_sergeant/talk_idle"
+outta_control = "characters/police_sergeant/outta_control"
+outta_control_gesture = "characters/police_sergeant/outta_control_gesture"
+helicopter_down = "characters/police_sergeant/helicopter_down"
+something_big = "characters/police_sergeant/something_big"
+watch_yourself = "characters/police_sergeant/watch_yourself"
+raise_arm = "characters/police_sergeant/raise_arm"
+lower_arm = "characters/police_sergeant/lower_arm"
+listen = "characters/police_sergeant/listen"
+turn_head = "characters/police_sergeant/turn_head"
+turn_head_back = "characters/police_sergeant/turn_head_back"
+heard_of_them = "characters/police_sergeant/heard_of_them"
+turned_idle = "characters/police_sergeant/turned_idle"
+damn_rookies = "characters/police_sergeant/damn_rookies"
+turn_away = "characters/police_sergeant/turn_away"
+hunter_from_mist = "characters/police_sergeant/hunter_from_mist"
+idle = "characters/police_sergeant/idle"
+
+[police_officer_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "stand",
+    "look_at_badge",
+    "shift_stance",
+    "idle",
+    "explain_swat",
+    "step_aside",
+    "aside_idle",
+    "watch_aya_enter",
+    "walk_to_sergeant",
+    "halt",
+    "talk_idle",
+    "ask_sergeant",
+    "report_agent",
+    "turn_away",
+    "",
+]
+
+[police_sergeant_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "",
+    "cleared_for_entry",
+    "",
+    "go_right_in",
+    "talk_idle",
+    "outta_control",
+    "outta_control_gesture",
+    "helicopter_down",
+    "something_big",
+    "watch_yourself",
+    "",
+    "",
+    "",
+    "raise_arm",
+    "lower_arm",
+    "listen",
+    "turn_head",
+    "turn_head_back",
+    "heard_of_them",
+    "turned_idle",
+    "damn_rookies",
+    "turn_away",
+    "hunter_from_mist",
+    "idle",
+    "",
+]
+
+[police_scene_player_bank]
+type = "animation_bank"
+borrows = ["akropolis_plaza"]
+schema = "rooms/akropolis/plaza/police_scene_player_schema"
+symbol = "gActor310100PlayerAnimationSets"
+
+[police_scene_player_bank.clips]
+idle = "characters/aya/idle"
+show_badge = "characters/aya/show_badge"
+put_away_badge = "characters/aya/put_away_badge"
+turn_to_sergeant = "characters/aya/turn_to_sergeant"
+face_sergeant = "characters/aya/face_sergeant"
+ask_situation = "characters/aya/ask_situation"
+turn_from_sergeant = "characters/aya/turn_from_sergeant"
+ask_about_civilians = "characters/aya/ask_about_civilians"
+thank_officer = "characters/aya/thank_officer"
+ask_about_roof = "characters/aya/ask_about_roof"
+look_at_wreck = "characters/aya/look_at_wreck"
+
+[police_scene_player_schema]
+type = "animation_schema"
+slots = [
+    "idle",
+    "show_badge",
+    "put_away_badge",
+    "turn_to_sergeant",
+    "face_sergeant",
+    "ask_situation",
+    "turn_from_sergeant",
+    "ask_about_civilians",
+    "thank_officer",
+    "ask_about_roof",
+    "",
+    "look_at_wreck",
+    "",
+]

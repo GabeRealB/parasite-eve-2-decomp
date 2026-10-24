@@ -32,12 +32,8 @@
 
 #include "rooms/akropolis_plaza.h"
 
-/// Area placement entries the two police officers are spawned from; the same
-/// IDs select each officer's placement record in the plaza's nested layout.
-enum {
-    ACTOR_310100_PLACEMENT_OFFICER_1 = 0x6C,
-    ACTOR_310100_PLACEMENT_OFFICER_2 = 0x6D,
-};
+#include "assets/rooms/akropolis/plaza/police_officer_schema.h"
+#include "assets/rooms/akropolis/plaza/police_sergeant_schema.h"
 
 /// Ground shadow of an officer model, in the units of its part-1 frame.
 enum {
@@ -48,8 +44,8 @@ enum {
 /// Values of `_Actor310100PoliceOfficerWork::playState`.
 ///
 /// The body model draws its floor quad in every state. The culled-body model
-/// never steps its animation after spawn; officer 1's draws its floor quad
-/// only while posed, officer 2's until frozen.
+/// never steps its animation after spawn; the officer's draws its floor quad
+/// only while posed, the sergeant's until frozen.
 enum {
     ACTOR_310100_PLAY_STATE_POSED   = 0, // Holding the spawn pose: relit each frame, animation not stepped
     ACTOR_310100_PLAY_STATE_PLAYING = 1, // A play request arrived: the body model steps its animation and follow-ups
@@ -58,8 +54,8 @@ enum {
 
 /// Officer selected by a model-swap request.
 enum {
-    ACTOR_310100_MODEL_SELECT_OFFICER_2 = 0,
-    ACTOR_310100_MODEL_SELECT_OFFICER_1 = 1,
+    ACTOR_310100_MODEL_SELECT_SERGEANT = 0,
+    ACTOR_310100_MODEL_SELECT_OFFICER  = 1,
 };
 
 /// Model entries in each officer's task descriptor table.
@@ -93,15 +89,6 @@ enum {
     ACTOR_310100_SWAP_STATE_INSTALL = 3,
 };
 
-/// Receiver-specific scene messages supplementing the common actor messages.
-enum {
-    ACTOR_310100_MESSAGE_STOP_CONTROLLER = 2002,
-    ACTOR_310100_MESSAGE_SET_CULLED_BODY = 2007,
-};
-
-/// Follow-up selector for the paired player's animation table.
-enum { ACTOR_310100_FOLLOW_UP_PLAYER = 0 };
-
 /// Fixed animation transition durations in normal-rate frames.
 enum {
     ACTOR_310100_OFFICER_BLEND_FRAMES = 8,
@@ -131,13 +118,13 @@ typedef struct {
     u16                    playState;         // Model: `ACTOR_310100_PLAY_STATE_*`
     byte                   pad_4F2[0x4];
     u16                    playerAnimationId; // Model: animation last requested of the player; indexes the player's follow-up table
-    u16                    followUpTable;     // Model: follow-up table the officer chains through (0 the player's until the first request, 1 officer 1, 2 officer 2)
+    u16                    followUpTable;     // Model: follow-up table the officer chains through (0 the player's until the first request, 1 the officer, 2 the sergeant)
     u16                    animationId;       // Model: animation last requested of the officer or chained to; 0 at spawn whatever the spawn animation
     byte                   pad_4FC[0x8];
-    u16                    spawnAnimationId;  // Controller: animation officer 2's culled-body model spawns on. Model: the one a culled-body model spawned on
+    u16                    spawnAnimationId;  // Controller: animation the sergeant's culled-body model spawns on. Model: the one a culled-body model spawned on
     u16                    bodyAnimationId;   // Controller: animation the body model starts on when a draw-mode message swaps it in
     u16                    placementId;       // Model: its `ACTOR_310100_PLACEMENT_*`, stored just before the spawn clear and so always read back as 0
-    u16                    stepSoundIndex;    // Model: next entry of the officer-1 step-sound sequence, stopping at the last
+    u16                    stepSoundIndex;    // Model: next entry of the officer's step-sound sequence, stopping at the last
 } _Actor310100PoliceOfficerWork;
 STATIC_ASSERT_SIZEOF(_Actor310100PoliceOfficerWork, 0x50C);
 
@@ -147,298 +134,44 @@ static s32 _actor310100PlayOfficerOrPlayerAnimation(Task* task, s32 messageId, c
 static s32 _actor310100PlaceOfficerModel(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedSecondArg);
 static s32 _actor310100StopOfficerController(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
-static TmdSource _gPoliceOfficer1Body;
-static TmdSource _gPoliceOfficer1CulledBody;
-static TmdSource _gPoliceOfficer2Body;
-static TmdSource _gPoliceOfficer2CulledBody;
+static TmdSource _gPoliceOfficerBody;
+static TmdSource _gPoliceOfficerCulledBody;
+static TmdSource _gPoliceSergeantBody;
+static TmdSource _gPoliceSergeantCulledBody;
 static void      _actor310100SwapOfficerBodyModelTask(Task* task);
 static void      _actor310100SwapOfficerCulledBodyModelTask(Task* task);
-static void      _actor310100Officer1ControllerTask(Task* task);
-static void      _actor310100Officer2ControllerTask(Task* task);
-static void      _actor310100Officer1BodyTask(Task* task);
-static void      _actor310100Officer2BodyTask(Task* task);
-static void      _actor310100Officer1CulledBodyTask(Task* task);
-static void      _actor310100Officer2CulledBodyTask(Task* task);
+static void      _actor310100OfficerControllerTask(Task* task);
+static void      _actor310100SergeantControllerTask(Task* task);
+static void      _actor310100OfficerBodyTask(Task* task);
+static void      _actor310100SergeantBodyTask(Task* task);
+static void      _actor310100OfficerCulledBodyTask(Task* task);
+static void      _actor310100SergeantCulledBodyTask(Task* task);
 
-#include "assets/characters/police_officer_1/body.inc"
+#include "assets/characters/police_officer/body.inc"
 
-#include "assets/characters/police_officer_1/culled_body.inc"
+#include "assets/characters/police_officer/culled_body.inc"
 
-#include "assets/characters/police_officer_2/body.inc"
+#include "assets/characters/police_sergeant/body.inc"
 
-#include "assets/characters/police_officer_2/culled_body.inc"
+#include "assets/characters/police_sergeant/culled_body.inc"
 
-static AnimationPackedPose _gActor310100Animation15FF8Bank1[21] = {
-#include "assets/actor_310100_animation_15FF8_bank1.inc"
-};
+#include "assets/rooms/akropolis/plaza/police_officers_clips.inc"
 
-static AnimationPackedRotation _gActor310100Animation15FF8Bank4[77] = {
-#include "assets/actor_310100_animation_15FF8_bank4.inc"
-};
-
-static AnimationRecord _gActor310100Animation15FF8Records[124] = {
-#include "assets/actor_310100_animation_15FF8_records.inc"
-};
-
-static u16 _gActor310100Animation15FF8Indices[20] = {
-#include "assets/actor_310100_animation_15FF8_indices.inc"
-};
-
-static AnimationSet _gActor310100Animation15FF8 = {
-    _gActor310100Animation15FF8Records,
-    _gActor310100Animation15FF8Indices,
-    { NULL, _gActor310100Animation15FF8Bank1, NULL, NULL, _gActor310100Animation15FF8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor310100Animation1620CBank1[3] = {
-#include "assets/actor_310100_animation_1620C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor310100Animation1620CBank4[24] = {
-#include "assets/actor_310100_animation_1620C_bank4.inc"
-};
-
-static AnimationRecord _gActor310100Animation1620CRecords[80] = {
-#include "assets/actor_310100_animation_1620C_records.inc"
-};
-
-static u16 _gActor310100Animation1620CIndices[20] = {
-#include "assets/actor_310100_animation_1620C_indices.inc"
-};
-
-static AnimationSet _gActor310100Animation1620C = {
-    _gActor310100Animation1620CRecords,
-    _gActor310100Animation1620CIndices,
-    { NULL, _gActor310100Animation1620CBank1, NULL, NULL, _gActor310100Animation1620CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor310100Animation164B8Bank1[14] = {
-#include "assets/actor_310100_animation_164B8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor310100Animation164B8Bank4[33] = {
-#include "assets/actor_310100_animation_164B8_bank4.inc"
-};
-
-static AnimationRecord _gActor310100Animation164B8Records[76] = {
-#include "assets/actor_310100_animation_164B8_records.inc"
-};
-
-static u16 _gActor310100Animation164B8Indices[20] = {
-#include "assets/actor_310100_animation_164B8_indices.inc"
-};
-
-static AnimationSet _gActor310100Animation164B8 = {
-    _gActor310100Animation164B8Records,
-    _gActor310100Animation164B8Indices,
-    { NULL, _gActor310100Animation164B8Bank1, NULL, NULL, _gActor310100Animation164B8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor310100Animation16CE8Bank1[57] = {
-#include "assets/actor_310100_animation_16CE8_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor310100Animation16CE8Bank4[121] = {
-#include "assets/actor_310100_animation_16CE8_bank4.inc"
-};
-
-static AnimationRecord _gActor310100Animation16CE8Records[212] = {
-#include "assets/actor_310100_animation_16CE8_records.inc"
-};
-
-static u16 _gActor310100Animation16CE8Indices[20] = {
-#include "assets/actor_310100_animation_16CE8_indices.inc"
-};
-
-static AnimationSet _gActor310100Animation16CE8 = {
-    _gActor310100Animation16CE8Records,
-    _gActor310100Animation16CE8Indices,
-    { NULL, _gActor310100Animation16CE8Bank1, NULL, NULL, _gActor310100Animation16CE8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor310100Animation16F64Bank1[10] = {
-#include "assets/actor_310100_animation_16F64_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor310100Animation16F64Bank4[37] = {
-#include "assets/actor_310100_animation_16F64_bank4.inc"
-};
-
-static AnimationRecord _gActor310100Animation16F64Records[72] = {
-#include "assets/actor_310100_animation_16F64_records.inc"
-};
-
-static u16 _gActor310100Animation16F64Indices[20] = {
-#include "assets/actor_310100_animation_16F64_indices.inc"
-};
-
-static AnimationSet _gActor310100Animation16F64 = {
-    _gActor310100Animation16F64Records,
-    _gActor310100Animation16F64Indices,
-    { NULL, _gActor310100Animation16F64Bank1, NULL, NULL, _gActor310100Animation16F64Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor310100Animation17148Bank1[2] = {
-#include "assets/actor_310100_animation_17148_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor310100Animation17148Bank4[19] = {
-#include "assets/actor_310100_animation_17148_bank4.inc"
-};
-
-static AnimationRecord _gActor310100Animation17148Records[76] = {
-#include "assets/actor_310100_animation_17148_records.inc"
-};
-
-static u16 _gActor310100Animation17148Indices[20] = {
-#include "assets/actor_310100_animation_17148_indices.inc"
-};
-
-static AnimationSet _gActor310100Animation17148 = {
-    _gActor310100Animation17148Records,
-    _gActor310100Animation17148Indices,
-    { NULL, _gActor310100Animation17148Bank1, NULL, NULL, _gActor310100Animation17148Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor310100Animation1744CBank1[2] = {
-#include "assets/actor_310100_animation_1744C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor310100Animation1744CBank4[61] = {
-#include "assets/actor_310100_animation_1744C_bank4.inc"
-};
-
-static AnimationRecord _gActor310100Animation1744CRecords[106] = {
-#include "assets/actor_310100_animation_1744C_records.inc"
-};
-
-static u16 _gActor310100Animation1744CIndices[20] = {
-#include "assets/actor_310100_animation_1744C_indices.inc"
-};
-
-static AnimationSet _gActor310100Animation1744C = {
-    _gActor310100Animation1744CRecords,
-    _gActor310100Animation1744CIndices,
-    { NULL, _gActor310100Animation1744CBank1, NULL, NULL, _gActor310100Animation1744CBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor310100Animation17638Bank1[2] = {
-#include "assets/actor_310100_animation_17638_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor310100Animation17638Bank4[30] = {
-#include "assets/actor_310100_animation_17638_bank4.inc"
-};
-
-static AnimationRecord _gActor310100Animation17638Records[67] = {
-#include "assets/actor_310100_animation_17638_records.inc"
-};
-
-static u16 _gActor310100Animation17638Indices[20] = {
-#include "assets/actor_310100_animation_17638_indices.inc"
-};
-
-static AnimationSet _gActor310100Animation17638 = {
-    _gActor310100Animation17638Records,
-    _gActor310100Animation17638Indices,
-    { NULL, _gActor310100Animation17638Bank1, NULL, NULL, _gActor310100Animation17638Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gActor310100Animation1790CBank1[11] = {
-#include "assets/actor_310100_animation_1790C_bank1.inc"
-};
-
-static AnimationPackedRotation _gActor310100Animation1790CBank4[45] = {
-#include "assets/actor_310100_animation_1790C_bank4.inc"
-};
-
-static AnimationRecord _gActor310100Animation1790CRecords[83] = {
-#include "assets/actor_310100_animation_1790C_records.inc"
-};
-
-static u16 _gActor310100Animation1790CIndices[20] = {
-#include "assets/actor_310100_animation_1790C_indices.inc"
-};
-
-static AnimationSet _gActor310100Animation1790C = {
-    _gActor310100Animation1790CRecords,
-    _gActor310100Animation1790CIndices,
-    { NULL, _gActor310100Animation1790CBank1, NULL, NULL, _gActor310100Animation1790CBank4, NULL, NULL, NULL },
-};
-
-/// Officer 1's animation bank for both ordinary and culled plaza body models.
+/// The officer's animation bank for both ordinary and culled plaza body models.
 ///
 /// Clips 1..14 are populated; 0 and 15 are NULL. Clips 1..5 borrow plaza
 /// resources, and 6..14 belong to this actor package. Both overlays must remain
 /// loaded while a body rig retains this table, its poses and its clip records.
-static AnimationSet* _gActor310100Officer1AnimationSets[16] = {
-    NULL,
-    &gAkropolisPlazaExtraAnim20Clip,
-    &gAkropolisPlazaExtraAnim21Clip,
-    &gAkropolisPlazaExtraAnim22Clip,
-    &gAkropolisPlazaExtraAnim23Clip,
-    &gAkropolisPlazaExtraAnim24Clip,
-    &_gActor310100Animation15FF8,
-    &_gActor310100Animation1620C,
-    &_gActor310100Animation164B8,
-    &_gActor310100Animation16CE8,
-    &_gActor310100Animation16F64,
-    &_gActor310100Animation17148,
-    &_gActor310100Animation1744C,
-    &_gActor310100Animation17638,
-    &_gActor310100Animation1790C,
-    NULL,
-};
+#include "assets/rooms/akropolis/plaza/police_officer_bank.inc"
 
-/// Officer 2's animation bank for both ordinary and culled plaza body models.
+/// The sergeant's animation bank for both ordinary and culled plaza body models.
 ///
 /// Populated clips are 2, 4..10 and 14..24; 0, 1, 3, 11..13 and 25 are NULL.
 /// All clips borrow plaza resources. The plaza and this actor package must
 /// remain loaded while a body rig retains the table and its clip records.
-static AnimationSet* _gActor310100Officer2AnimationSets[26] = {
-    NULL,
-    NULL,
-    &gAkropolisPlazaExtraAnimClip,
-    NULL,
-    &gAkropolisPlazaExtraAnim2Clip,
-    &gAkropolisPlazaExtraAnim3Clip,
-    &gAkropolisPlazaExtraAnim4Clip,
-    &gAkropolisPlazaExtraAnim5Clip,
-    &gAkropolisPlazaExtraAnim6Clip,
-    &gAkropolisPlazaExtraAnim7Clip,
-    &gAkropolisPlazaExtraAnim8Clip,
-    NULL,
-    NULL,
-    NULL,
-    &gAkropolisPlazaExtraAnim9Clip,
-    &gAkropolisPlazaExtraAnim10Clip,
-    &gAkropolisPlazaExtraAnim11Clip,
-    &gAkropolisPlazaExtraAnim12Clip,
-    &gAkropolisPlazaExtraAnim13Clip,
-    &gAkropolisPlazaExtraAnim14Clip,
-    &gAkropolisPlazaExtraAnim15Clip,
-    &gAkropolisPlazaExtraAnim16Clip,
-    &gAkropolisPlazaExtraAnim17Clip,
-    &gAkropolisPlazaExtraAnim18Clip,
-    &gAkropolisPlazaExtraAnim19Clip,
-    NULL,
-};
+#include "assets/rooms/akropolis/plaza/police_sergeant_bank.inc"
 
-AnimationSet* gActor310100PlayerAnimationSets[13] = {
-    &gAyaIdleClip,
-    &gAkropolisPlazaExtraAnim25Clip,
-    &gAkropolisPlazaExtraAnim26Clip,
-    &gAkropolisPlazaExtraAnim27Clip,
-    &gAkropolisPlazaExtraAnim28Clip,
-    &gAkropolisPlazaExtraAnim29Clip,
-    &gAkropolisPlazaExtraAnim30Clip,
-    &gAkropolisPlazaExtraAnim31Clip,
-    &gAkropolisPlazaExtraAnim32Clip,
-    &gAkropolisPlazaExtraAnim33Clip,
-    NULL,
-    &gAkropolisPlazaExtraAnim34Clip,
-    NULL,
-};
+#include "assets/rooms/akropolis/plaza/police_scene_player_bank.inc"
 
 /// Sentinel ending a police-officer scene animation chain.
 enum { ACTOR_310100_NO_FOLLOW_UP_ANIMATION = -1 };
@@ -462,82 +195,82 @@ static s16 _gActor310100PlayerFollowUpAnimations[12] = {
     ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
 };
 
-/// Officer-1 clip successors, indexed by animation ID 0..15.
+/// The officer's clip successors, indexed by animation ID 0..15.
 ///
 /// A nonnegative entry selects the next clip when slot 1 reaches its boundary;
 /// ACTOR_310100_NO_FOLLOW_UP_ANIMATION ends the chain. Storage is borrowed by
 /// the follow-up table directory for the overlay's lifetime.
-static s16 _gActor310100Officer1FollowUpAnimations[16] = {
+static s16 _gActor310100OfficerFollowUpAnimations[16] = {
     0,
     ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
-    3,
-    4,
-    4,
-    4,
-    7,
-    7,
+    POLICE_OFFICER_ANIMATION_SHIFT_STANCE,
+    POLICE_OFFICER_ANIMATION_IDLE,
+    POLICE_OFFICER_ANIMATION_IDLE,
+    POLICE_OFFICER_ANIMATION_IDLE,
+    POLICE_OFFICER_ANIMATION_ASIDE_IDLE,
+    POLICE_OFFICER_ANIMATION_ASIDE_IDLE,
     ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
     ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
     ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
-    11,
-    11,
-    11,
+    POLICE_OFFICER_ANIMATION_TALK_IDLE,
+    POLICE_OFFICER_ANIMATION_TALK_IDLE,
+    POLICE_OFFICER_ANIMATION_TALK_IDLE,
     ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
     0,
 };
 
-/// Officer-2 clip successors, indexed by animation ID 0..25.
+/// The sergeant's clip successors, indexed by animation ID 0..25.
 ///
 /// A nonnegative entry selects the next clip when slot 1 reaches its boundary;
 /// ACTOR_310100_NO_FOLLOW_UP_ANIMATION ends the chain. Storage is borrowed by
 /// the follow-up table directory for the overlay's lifetime.
-static s16 _gActor310100Officer2FollowUpAnimations[26] = {
+static s16 _gActor310100SergeantFollowUpAnimations[26] = {
     0,
     ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
     ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
     ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
-    5,
-    5,
+    POLICE_SERGEANT_ANIMATION_TALK_IDLE,
+    POLICE_SERGEANT_ANIMATION_TALK_IDLE,
     ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
     ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
-    5,
-    24,
-    24,
-    24,
-    24,
-    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
-    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
-    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
+    POLICE_SERGEANT_ANIMATION_TALK_IDLE,
+    POLICE_SERGEANT_ANIMATION_IDLE,
+    POLICE_SERGEANT_ANIMATION_IDLE,
+    POLICE_SERGEANT_ANIMATION_IDLE,
+    POLICE_SERGEANT_ANIMATION_IDLE,
     ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
     ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
     ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
     ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
     ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
-    20,
     ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
-    18,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
+    POLICE_SERGEANT_ANIMATION_TURNED_IDLE,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
+    POLICE_SERGEANT_ANIMATION_TURN_HEAD_BACK,
     ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
     0,
 };
 
 /// Clip-successor tables for the paired player and two police-officer models.
 ///
-/// Selectors 0/1/2 choose player/officer 1/officer 2, with animation ID domains
+/// Selectors 0/1/2 choose player/officer/sergeant, with animation ID domains
 /// 0..11, 0..15 and 0..25 respectively. A signed -1 entry ends the chain.
 /// Slot-1 boundaries advance officer clips; stopped playback advances the player.
 /// The directory borrows its child tables for the overlay's lifetime.
 static const s16* _gActor310100FollowUpAnimationTables[3] = {
     _gActor310100PlayerFollowUpAnimations,
-    _gActor310100Officer1FollowUpAnimations,
-    _gActor310100Officer2FollowUpAnimations,
+    _gActor310100OfficerFollowUpAnimations,
+    _gActor310100SergeantFollowUpAnimations,
 };
 
-/// Officer-1 step-sound sequence for newly entered slot-1 cue-2 records.
+/// The officer's step-sound sequence for newly entered slot-1 cue-2 records.
 ///
 /// The index starts at zero and saturates at entry 2, repeating the final sound.
-/// This branch requires the officer-1 placement ID; current model initializers
+/// This branch requires the officer's placement ID; current model initializers
 /// store that ID before clearing the work, so they leave the branch unreachable.
-static s32 _gActor310100Officer1StepSoundScripts[3] = {
+static s32 _gActor310100OfficerStepSoundScripts[3] = {
     SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PLAZA, 8),
     SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PLAZA, 9),
     SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PLAZA, 10),
@@ -557,16 +290,14 @@ static TaskMessageEntry _gActor310100OfficerMessageTable[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-enum { ACTOR_310100_OFFICER_TASK_PRIORITY = 192 };
-
 /// Bodyless display-task recipe for a delayed police-officer body-model swap.
 ///
-/// Entry 0 runs at priority 192. Spawn argument 1 selects officer 2 with 0 or
-/// officer 1 with 1; argument 2 borrows the live controller. After three display
+/// Entry 0 runs at priority 192. Spawn argument 1 selects the sergeant with 0 or
+/// the officer with 1; argument 2 borrows the live controller. After three display
 /// ticks the replacement uses its saved body animation and area placement,
 /// then resumes the game loop. The old model is released before scheduling.
 static TaskDesc _gActor310100OfficerBodySwapTaskDescriptor = {
-    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = ACTOR_310100_OFFICER_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },
     .callback = _actor310100SwapOfficerBodyModelTask,
     .data     = { .value = 0 },
 };
@@ -574,54 +305,54 @@ static TaskDesc _gActor310100OfficerBodySwapTaskDescriptor = {
 /// Bodyless display-task recipe for a delayed police-officer culled-body swap.
 ///
 /// Entry 0 runs at priority 192 and holds display flipping for three ticks.
-/// Spawn argument 1 selects officer 2 with 0 (clip 5) or officer 1 with 1
+/// Spawn argument 1 selects the sergeant with 0 (his talk idle) or the officer with 1
 /// (clip 7); argument 2 borrows the live controller. Requires its area placement
 /// and loaded model/clip data. Replacement is posed before the game loop resumes.
 static TaskDesc _gActor310100OfficerCulledBodySwapTaskDescriptor = {
-    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = ACTOR_310100_OFFICER_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },
     .callback = _actor310100SwapOfficerCulledBodyModelTask,
     .data     = { .value = 0 },
 };
 
-TaskDesc gActor310100Officer1TaskDescriptors[3] = {
+TaskDesc gActor310100OfficerTaskDescriptors[3] = {
     // 0: controller.
     {
-        .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = ACTOR_310100_OFFICER_TASK_PRIORITY } },
-        .callback = _actor310100Officer1ControllerTask,
+        .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },
+        .callback = _actor310100OfficerControllerTask,
         .data     = { .value = 0 },
     },
     // 1: animated body.
     {
-        .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_310100_OFFICER_TASK_PRIORITY } },
-        .callback = _actor310100Officer1BodyTask,
-        .data     = { .model = &_gPoliceOfficer1Body },
+        .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = TASK_PRIORITY_CONTROL } },
+        .callback = _actor310100OfficerBodyTask,
+        .data     = { .model = &_gPoliceOfficerBody },
     },
     // 2: culled body.
     {
-        .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_310100_OFFICER_TASK_PRIORITY } },
-        .callback = _actor310100Officer1CulledBodyTask,
-        .data     = { .model = &_gPoliceOfficer1CulledBody },
+        .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = TASK_PRIORITY_CONTROL } },
+        .callback = _actor310100OfficerCulledBodyTask,
+        .data     = { .model = &_gPoliceOfficerCulledBody },
     },
 };
 
-TaskDesc gActor310100Officer2TaskDescriptors[3] = {
+TaskDesc gActor310100SergeantTaskDescriptors[3] = {
     // 0: controller.
     {
-        .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = ACTOR_310100_OFFICER_TASK_PRIORITY } },
-        .callback = _actor310100Officer2ControllerTask,
+        .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },
+        .callback = _actor310100SergeantControllerTask,
         .data     = { .value = 0 },
     },
     // 1: animated body.
     {
-        .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_310100_OFFICER_TASK_PRIORITY } },
-        .callback = _actor310100Officer2BodyTask,
-        .data     = { .model = &_gPoliceOfficer2Body },
+        .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = TASK_PRIORITY_CONTROL } },
+        .callback = _actor310100SergeantBodyTask,
+        .data     = { .model = &_gPoliceSergeantBody },
     },
     // 2: culled body.
     {
-        .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_310100_OFFICER_TASK_PRIORITY } },
-        .callback = _actor310100Officer2CulledBodyTask,
-        .data     = { .model = &_gPoliceOfficer2CulledBody },
+        .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = TASK_PRIORITY_CONTROL } },
+        .callback = _actor310100SergeantCulledBodyTask,
+        .data     = { .model = &_gPoliceSergeantCulledBody },
     },
 };
 
@@ -631,7 +362,7 @@ TaskDesc gActor310100Officer2TaskDescriptors[3] = {
 /// The initialized model rig borrows its animation sets. Cue identity is the
 /// record pointer, so a held record sounds once. Both model initializers clear
 /// `placementId` after storing it; their models therefore use the fixed sound
-/// pair. The retained officer-1 sequence branch requires a placement ID those
+/// pair. The retained officer's sequence branch requires a placement ID those
 /// initializers do not preserve.
 static s32 _actor310100TickOfficerAnimation(Task* task)
 {
@@ -647,11 +378,11 @@ static s32 _actor310100TickOfficerAnimation(Task* task)
     // Process cues before advancing so the current record is heard once.
     if (cueRecord != work->lastCueRecord) {
         if (cueRecord != NULL) {
-            if (work->placementId == ACTOR_310100_PLACEMENT_OFFICER_1) {
+            if (work->placementId == ACTOR_310100_PLACEMENT_OFFICER) {
                 if (cueRecord->flags & ANIMATION_RECORD_CUE_2) {
-                    sndEvtRequestScriptStart(_gActor310100Officer1StepSoundScripts[work->stepSoundIndex], worldCoordGetOriginAudioPan(rootCoord), 0);
+                    sndEvtRequestScriptStart(_gActor310100OfficerStepSoundScripts[work->stepSoundIndex], worldCoordGetOriginAudioPan(rootCoord), 0);
                     stepSoundIndex = work->stepSoundIndex;
-                    if (stepSoundIndex < ARRAY_SIZE(_gActor310100Officer1StepSoundScripts) - 1U) {
+                    if (stepSoundIndex < ARRAY_SIZE(_gActor310100OfficerStepSoundScripts) - 1U) {
                         work->stepSoundIndex = (u16)(stepSoundIndex + 1);
                     }
                 }
@@ -692,8 +423,8 @@ static inline u16 _actor310100IsPlayerAnimationStopped(Task* task)
 /// Advances the officer and chains the officer's and player's follow-up clips.
 ///
 /// The initialized rig and borrowed player task must remain live. Follow-up
-/// selector 0 uses the twelve-entry player table, 1 the sixteen-entry officer-1
-/// table, and 2 the twenty-six-entry officer-2 table; cached animation IDs must
+/// selector 0 uses the twelve-entry player table, 1 the sixteen-entry officer's
+/// table, and 2 the twenty-six-entry sergeant's table; cached animation IDs must
 /// fit their selected tables. A negative table entry ends that chain.
 /// Officer transitions blend for eight frames; player transitions use ten
 /// frames and enable world collision. A missing player still advances its
@@ -722,8 +453,8 @@ static void _actor310100UpdateOfficerAnimation(Task* task)
     }
     // Chain the paired player clip only after the player reports it has stopped.
     if (_actor310100IsPlayerAnimationStopped(task)) {
-        followUpAnimationId = _gActor310100FollowUpAnimationTables[ACTOR_310100_FOLLOW_UP_PLAYER][work->playerAnimationId];
-        if (_gActor310100FollowUpAnimationTables[ACTOR_310100_FOLLOW_UP_PLAYER][work->playerAnimationId] >= 0) {
+        followUpAnimationId = _gActor310100FollowUpAnimationTables[ACTOR_310100_ANIMATION_PLAYER][work->playerAnimationId];
+        if (_gActor310100FollowUpAnimationTables[ACTOR_310100_ANIMATION_PLAYER][work->playerAnimationId] >= 0) {
             playerWork = (_Actor310100PoliceOfficerWork*)task->work;
             if (playerWork->playerTask != NULL) {
                 playerRequest.source.sets          = gActor310100PlayerAnimationSets;
@@ -771,8 +502,8 @@ static inline void _actor310100FinishOfficerModelSwap(Task* displayTask, const _
 
 /// Replaces the controller's officer model with its body model after a three-tick display hold.
 ///
-/// `spawnArg2` borrows the live controller task. `spawnArg1` selects officer 2
-/// with 0 or officer 1 with 1; other selectors are unsupported. The area's
+/// `spawnArg2` borrows the live controller task. `spawnArg1` selects the sergeant
+/// with 0 or the officer with 1; other selectors are unsupported. The area's
 /// placement table must contain that officer's record. The replacement starts
 /// posed on the default task list, then this temporary display task releases
 /// presentation back to the game loop. Its clip is the controller's `bodyAnimationId`.
@@ -791,18 +522,18 @@ static void _actor310100SwapOfficerBodyModelTask(Task* task)
             task->state++;
             return;
         case ACTOR_310100_SWAP_STATE_INSTALL:
-            if (task->spawnArg1.value == ACTOR_310100_MODEL_SELECT_OFFICER_2) {
+            if (task->spawnArg1.value == ACTOR_310100_MODEL_SELECT_SERGEANT) {
                 do {
-                    placementId = ACTOR_310100_PLACEMENT_OFFICER_2;
+                    placementId = ACTOR_310100_PLACEMENT_SERGEANT;
                 } while (0);
-                controllerWork->modelTask = taskSpawnFromTableOnDefaultList(gActor310100Officer2TaskDescriptors, ACTOR_310100_MODEL_TASK_BODY, (s32)controllerWork->bodyAnimationId, 0);
-            } else if (task->spawnArg1.value == ACTOR_310100_MODEL_SELECT_OFFICER_1) {
+                controllerWork->modelTask = taskSpawnFromTableOnDefaultList(gActor310100SergeantTaskDescriptors, ACTOR_310100_MODEL_TASK_BODY, (s32)controllerWork->bodyAnimationId, 0);
+            } else if (task->spawnArg1.value == ACTOR_310100_MODEL_SELECT_OFFICER) {
                 do {
                     do {
-                        placementId = ACTOR_310100_PLACEMENT_OFFICER_1;
+                        placementId = ACTOR_310100_PLACEMENT_OFFICER;
                     } while (0);
                 } while (0);
-                controllerWork->modelTask = taskSpawnFromTableOnDefaultList(gActor310100Officer1TaskDescriptors, ACTOR_310100_MODEL_TASK_BODY, (s32)controllerWork->bodyAnimationId, 0);
+                controllerWork->modelTask = taskSpawnFromTableOnDefaultList(gActor310100OfficerTaskDescriptors, ACTOR_310100_MODEL_TASK_BODY, (s32)controllerWork->bodyAnimationId, 0);
             }
             _actor310100FinishOfficerModelSwap(task, controllerWork, placementId);
             break;
@@ -811,17 +542,17 @@ static void _actor310100SwapOfficerBodyModelTask(Task* task)
 
 /// Replaces the controller's officer model with its culled-body model after a three-tick display hold.
 ///
-/// `spawnArg2` borrows the live controller task. `spawnArg1` selects officer 2
-/// with 0 or officer 1 with 1; other selectors are unsupported. The area's
+/// `spawnArg2` borrows the live controller task. `spawnArg1` selects the sergeant
+/// with 0 or the officer with 1; other selectors are unsupported. The area's
 /// placement table must contain that officer's record. The replacement starts
 /// posed on the default task list, then this temporary display task releases
-/// presentation back to the game loop. Officer 2 starts on clip 5, officer 1 on clip 7.
+/// presentation back to the game loop. The sergeant starts on his talk idle, the officer on his idle aside.
 static void _actor310100SwapOfficerCulledBodyModelTask(Task* task)
 {
     // Spawn clips for the two culled-body models.
     enum {
-        ACTOR_310100_OFFICER_2_CULLED_BODY_ANIMATION = 5,
-        ACTOR_310100_OFFICER_1_CULLED_BODY_ANIMATION = 7,
+        ACTOR_310100_SERGEANT_CULLED_BODY_ANIMATION = 5,
+        ACTOR_310100_OFFICER_CULLED_BODY_ANIMATION  = 7,
     };
 
     _Actor310100PoliceOfficerWork* controllerWork;
@@ -837,18 +568,18 @@ static void _actor310100SwapOfficerCulledBodyModelTask(Task* task)
             task->state++;
             return;
         case ACTOR_310100_SWAP_STATE_INSTALL:
-            if (task->spawnArg1.value == ACTOR_310100_MODEL_SELECT_OFFICER_2) {
+            if (task->spawnArg1.value == ACTOR_310100_MODEL_SELECT_SERGEANT) {
                 do {
-                    placementId = ACTOR_310100_PLACEMENT_OFFICER_2;
+                    placementId = ACTOR_310100_PLACEMENT_SERGEANT;
                 } while (0);
-                controllerWork->modelTask = taskSpawnFromTableOnDefaultList(gActor310100Officer2TaskDescriptors, ACTOR_310100_MODEL_TASK_CULLED_BODY, ACTOR_310100_OFFICER_2_CULLED_BODY_ANIMATION, 0);
-            } else if (task->spawnArg1.value == ACTOR_310100_MODEL_SELECT_OFFICER_1) {
+                controllerWork->modelTask = taskSpawnFromTableOnDefaultList(gActor310100SergeantTaskDescriptors, ACTOR_310100_MODEL_TASK_CULLED_BODY, ACTOR_310100_SERGEANT_CULLED_BODY_ANIMATION, 0);
+            } else if (task->spawnArg1.value == ACTOR_310100_MODEL_SELECT_OFFICER) {
                 do {
                     do {
-                        placementId = ACTOR_310100_PLACEMENT_OFFICER_1;
+                        placementId = ACTOR_310100_PLACEMENT_OFFICER;
                     } while (0);
                 } while (0);
-                controllerWork->modelTask = taskSpawnFromTableOnDefaultList(gActor310100Officer1TaskDescriptors, ACTOR_310100_MODEL_TASK_CULLED_BODY, ACTOR_310100_OFFICER_1_CULLED_BODY_ANIMATION, 0);
+                controllerWork->modelTask = taskSpawnFromTableOnDefaultList(gActor310100OfficerTaskDescriptors, ACTOR_310100_MODEL_TASK_CULLED_BODY, ACTOR_310100_OFFICER_CULLED_BODY_ANIMATION, 0);
             }
             _actor310100FinishOfficerModelSwap(task, controllerWork, placementId);
             break;
@@ -875,8 +606,8 @@ static inline void _actor310100ResetOfficerSlots(_Actor310100PoliceOfficerWork* 
 
 /// Initializes an officer's body-model rig, primitive buffer and placement textures.
 ///
-/// `placementId` is `ACTOR_310100_PLACEMENT_OFFICER_1` or
-/// `ACTOR_310100_PLACEMENT_OFFICER_2` and must have an area placement record.
+/// `placementId` is `ACTOR_310100_PLACEMENT_OFFICER` or
+/// `ACTOR_310100_PLACEMENT_SERGEANT` and must have an area placement record.
 /// The task already owns the nineteen-part model and its coordinates. This
 /// allocates task-owned work, borrows the live player task and the selected
 /// animation sets, parents the root to the view, and starts slots 1..18 on
@@ -912,11 +643,11 @@ static void _actor310100InitOfficerBodyModel(Task* task, s32 placementId)
     model->lightMtx = &work->light;
     model->colorMtx = &work->color;
     model->flags    = 0;
-    if (officerPlacementId == ACTOR_310100_PLACEMENT_OFFICER_1) {
-        animationInitContext(&work->rig.anim, _gActor310100Officer1AnimationSets, model, work->rig.poses,
+    if (officerPlacementId == ACTOR_310100_PLACEMENT_OFFICER) {
+        animationInitContext(&work->rig.anim, _gActor310100OfficerAnimationSets, model, work->rig.poses,
                              &work->rig.slots[0]);
     } else {
-        animationInitContext(&work->rig.anim, _gActor310100Officer2AnimationSets, model, work->rig.poses,
+        animationInitContext(&work->rig.anim, _gActor310100SergeantAnimationSets, model, work->rig.poses,
                              &work->rig.slots[0]);
     }
     spawnAnimationId = task->spawnArg1.value;
@@ -934,8 +665,8 @@ static void _actor310100InitOfficerBodyModel(Task* task, s32 placementId)
 
 /// Initializes an officer's culled-body rig, primitive buffer and placement textures.
 ///
-/// `placementId` is `ACTOR_310100_PLACEMENT_OFFICER_1` or
-/// `ACTOR_310100_PLACEMENT_OFFICER_2` and must have an area placement record.
+/// `placementId` is `ACTOR_310100_PLACEMENT_OFFICER` or
+/// `ACTOR_310100_PLACEMENT_SERGEANT` and must have an area placement record.
 /// The task already owns the nineteen-part model and its coordinates. This
 /// allocates task-owned work, borrows the live player task and the selected
 /// animation sets, parents the root to the view, and starts slots 1..18 on
@@ -972,11 +703,11 @@ static void _actor310100InitOfficerCulledBodyModel(Task* task, s32 placementId)
     model->lightMtx = &work->light;
     model->colorMtx = &work->color;
     model->flags    = 0;
-    if (officerPlacementId == ACTOR_310100_PLACEMENT_OFFICER_1) {
-        animationInitContext(&work->rig.anim, _gActor310100Officer1AnimationSets, model, work->rig.poses,
+    if (officerPlacementId == ACTOR_310100_PLACEMENT_OFFICER) {
+        animationInitContext(&work->rig.anim, _gActor310100OfficerAnimationSets, model, work->rig.poses,
                              &work->rig.slots[0]);
     } else {
-        animationInitContext(&work->rig.anim, _gActor310100Officer2AnimationSets, model, work->rig.poses,
+        animationInitContext(&work->rig.anim, _gActor310100SergeantAnimationSets, model, work->rig.poses,
                              &work->rig.slots[0]);
     }
     work->spawnAnimationId = task->spawnArg1.value;
@@ -993,21 +724,20 @@ static void _actor310100InitOfficerCulledBodyModel(Task* task, s32 placementId)
     tmdSetTextureOffsets(model, placement->texturePageOffset, placement->clutRowOffset);
 }
 
-/// Shows or releases police officer 1's posed model as the plaza movie advances.
+/// Shows or releases the officer's posed model as the plaza movie advances.
 ///
 /// Allocates uncleared controller work and installs the scene-message table.
 /// Stream sub-ID 3 parks the controller without releasing its current model.
 /// Sub-IDs 0/1 show it from movie frame 230; sub-ID 2 hides it at frames 7..107.
-/// Other sub-IDs show it. Requires an officer-1 area placement and successful
+/// Other sub-IDs show it. Requires the officer's area placement and successful
 /// model-task creation. Hidden-to-shown transitions restart culled-body clip 1;
 /// placement uses parent-frame game units and yaw at 4096 units per turn.
-static void _actor310100Officer1ControllerTask(Task* task)
+static void _actor310100OfficerControllerTask(Task* task)
 {
     enum {
-        ACTOR_310100_OFFICER_1_SHOW_FRAME       = 230,
-        ACTOR_310100_OFFICER_1_HIDE_FRAME       = 7,
-        ACTOR_310100_OFFICER_1_HIDE_FRAME_COUNT = 101,
-        ACTOR_310100_OFFICER_1_SPAWN_CLIP       = 1,
+        ACTOR_310100_OFFICER_SHOW_FRAME       = 230,
+        ACTOR_310100_OFFICER_HIDE_FRAME       = 7,
+        ACTOR_310100_OFFICER_HIDE_FRAME_COUNT = 101,
     };
     /// Stores whether this movie part and frame should show the officer.
     ///
@@ -1015,16 +745,16 @@ static void _actor310100Officer1ControllerTask(Task* task)
     /// side-effect-free u16 lvalue; it may be assigned repeatedly. Invoke in a
     /// braced block. The unsigned
     /// frame subtraction also excludes frames before the window starts.
-#define ACTOR_310100_OFFICER_1_MOVIE_VISIBLE(result)                                                                            \
-    {                                                                                                                           \
-        (result) = 1;                                                                                                           \
-        if (gCdCmdQueue.plazaStreamSubId < (u32)ACTOR_310100_PLAZA_STREAM_PART_2) {                                             \
-            (result) = gCdCmdQueue.sceneFrame >= (u32)ACTOR_310100_OFFICER_1_SHOW_FRAME;                                        \
-        }                                                                                                                       \
-        if (gCdCmdQueue.plazaStreamSubId == ACTOR_310100_PLAZA_STREAM_PART_2 &&                                                 \
-            (u32)(gCdCmdQueue.sceneFrame - ACTOR_310100_OFFICER_1_HIDE_FRAME) < (u32)ACTOR_310100_OFFICER_1_HIDE_FRAME_COUNT) { \
-            (result) = 0;                                                                                                       \
-        }                                                                                                                       \
+#define ACTOR_310100_OFFICER_MOVIE_VISIBLE(result)                                                                          \
+    {                                                                                                                       \
+        (result) = 1;                                                                                                       \
+        if (gCdCmdQueue.plazaStreamSubId < (u32)ACTOR_310100_PLAZA_STREAM_PART_2) {                                         \
+            (result) = gCdCmdQueue.sceneFrame >= (u32)ACTOR_310100_OFFICER_SHOW_FRAME;                                      \
+        }                                                                                                                   \
+        if (gCdCmdQueue.plazaStreamSubId == ACTOR_310100_PLAZA_STREAM_PART_2 &&                                             \
+            (u32)(gCdCmdQueue.sceneFrame - ACTOR_310100_OFFICER_HIDE_FRAME) < (u32)ACTOR_310100_OFFICER_HIDE_FRAME_COUNT) { \
+            (result) = 0;                                                                                                   \
+        }                                                                                                                   \
     }
     _Actor310100PoliceOfficerWork* work;
     _Actor310100PoliceOfficerWork* hiddenWork;
@@ -1050,14 +780,14 @@ static void _actor310100Officer1ControllerTask(Task* task)
             break;
         case ACTOR_310100_CONTROLLER_HIDDEN:
             // Keep the model lifetime synchronized with its movie visibility window:
-            ACTOR_310100_OFFICER_1_MOVIE_VISIBLE(modelVisible);
+            ACTOR_310100_OFFICER_MOVIE_VISIBLE(modelVisible);
             if (modelVisible) {
                 work      = task->work;
                 placement = areaGetVariant(&gGameSession->location)->placements;
-                while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != ACTOR_310100_PLACEMENT_OFFICER_1) {
+                while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != ACTOR_310100_PLACEMENT_OFFICER) {
                     placement++;
                 }
-                modelTask             = taskSpawnFromTable(gActor310100Officer1TaskDescriptors, ACTOR_310100_MODEL_TASK_CULLED_BODY, ACTOR_310100_OFFICER_1_SPAWN_CLIP, 0);
+                modelTask             = taskSpawnFromTable(gActor310100OfficerTaskDescriptors, ACTOR_310100_MODEL_TASK_CULLED_BODY, POLICE_OFFICER_ANIMATION_STAND, 0);
                 work->modelTask       = modelTask;
                 rootCoord             = modelTask->extra.tmd->coords;
                 rootCoord->coord.t[0] = placement->x;
@@ -1068,7 +798,7 @@ static void _actor310100Officer1ControllerTask(Task* task)
             }
             break;
         case ACTOR_310100_CONTROLLER_SHOWN:
-            ACTOR_310100_OFFICER_1_MOVIE_VISIBLE(modelVisible);
+            ACTOR_310100_OFFICER_MOVIE_VISIBLE(modelVisible);
             if (!modelVisible) {
                 hiddenWork = task->work;
                 task->state--;
@@ -1077,23 +807,22 @@ static void _actor310100Officer1ControllerTask(Task* task)
             }
             break;
     }
-#undef ACTOR_310100_OFFICER_1_MOVIE_VISIBLE
+#undef ACTOR_310100_OFFICER_MOVIE_VISIBLE
 }
 
-/// Shows or releases police officer 2's posed model as the plaza movie advances.
+/// Shows or releases the sergeant's posed model as the plaza movie advances.
 ///
 /// Allocates uncleared controller work, installs scene messages and seeds clip
 /// 24. Stream sub-ID 3 parks the controller without releasing its current model.
 /// Sub-IDs 0/1 show it at movie frames 75..195; 2, 4 and 5 hide it; others show it.
-/// Requires an officer-2 area placement and successful model-task creation.
+/// Requires the sergeant's area placement and successful model-task creation.
 /// Saves the model's spawn clip before hiding and reuses it on the next spawn.
 /// Placement uses parent-frame game units and yaw at 4096 units per turn.
-static void _actor310100Officer2ControllerTask(Task* task)
+static void _actor310100SergeantControllerTask(Task* task)
 {
     enum {
-        ACTOR_310100_OFFICER_2_SHOW_FRAME       = 75,
-        ACTOR_310100_OFFICER_2_SHOW_FRAME_COUNT = 121,
-        ACTOR_310100_OFFICER_2_SPAWN_CLIP       = 24,
+        ACTOR_310100_SERGEANT_SHOW_FRAME       = 75,
+        ACTOR_310100_SERGEANT_SHOW_FRAME_COUNT = 121,
     };
     /// Stores whether this movie part and frame should show the officer.
     ///
@@ -1101,21 +830,21 @@ static void _actor310100Officer2ControllerTask(Task* task)
     /// side-effect-free u16 lvalue; it may be assigned repeatedly. Invoke in a
     /// braced block. The unsigned
     /// frame subtraction also excludes frames before the window starts.
-#define ACTOR_310100_OFFICER_2_MOVIE_VISIBLE(result)                                                                                     \
-    {                                                                                                                                    \
-        (result) = 1;                                                                                                                    \
-        if (gCdCmdQueue.plazaStreamSubId < (u32)ACTOR_310100_PLAZA_STREAM_PART_2) {                                                      \
-            (result) = (u32)(gCdCmdQueue.sceneFrame - ACTOR_310100_OFFICER_2_SHOW_FRAME) < (u32)ACTOR_310100_OFFICER_2_SHOW_FRAME_COUNT; \
-        }                                                                                                                                \
-        if (gCdCmdQueue.plazaStreamSubId == ACTOR_310100_PLAZA_STREAM_PART_2) {                                                          \
-            (result) = 0;                                                                                                                \
-        }                                                                                                                                \
-        if (gCdCmdQueue.plazaStreamSubId == ACTOR_310100_PLAZA_STREAM_PART_4) {                                                          \
-            (result) = 0;                                                                                                                \
-        }                                                                                                                                \
-        if (gCdCmdQueue.plazaStreamSubId == ACTOR_310100_PLAZA_STREAM_PART_5) {                                                          \
-            (result) = 0;                                                                                                                \
-        }                                                                                                                                \
+#define ACTOR_310100_SERGEANT_MOVIE_VISIBLE(result)                                                                                    \
+    {                                                                                                                                  \
+        (result) = 1;                                                                                                                  \
+        if (gCdCmdQueue.plazaStreamSubId < (u32)ACTOR_310100_PLAZA_STREAM_PART_2) {                                                    \
+            (result) = (u32)(gCdCmdQueue.sceneFrame - ACTOR_310100_SERGEANT_SHOW_FRAME) < (u32)ACTOR_310100_SERGEANT_SHOW_FRAME_COUNT; \
+        }                                                                                                                              \
+        if (gCdCmdQueue.plazaStreamSubId == ACTOR_310100_PLAZA_STREAM_PART_2) {                                                        \
+            (result) = 0;                                                                                                              \
+        }                                                                                                                              \
+        if (gCdCmdQueue.plazaStreamSubId == ACTOR_310100_PLAZA_STREAM_PART_4) {                                                        \
+            (result) = 0;                                                                                                              \
+        }                                                                                                                              \
+        if (gCdCmdQueue.plazaStreamSubId == ACTOR_310100_PLAZA_STREAM_PART_5) {                                                        \
+            (result) = 0;                                                                                                              \
+        }                                                                                                                              \
     }
     _Actor310100PoliceOfficerWork* work;
     AreaPlacement*                 placement;
@@ -1137,17 +866,17 @@ static void _actor310100Officer2ControllerTask(Task* task)
                 return;
             }
             task->msgTable         = _gActor310100OfficerMessageTable;
-            work->spawnAnimationId = ACTOR_310100_OFFICER_2_SPAWN_CLIP;
+            work->spawnAnimationId = POLICE_SERGEANT_ANIMATION_IDLE;
             task->state++;
             break;
         case ACTOR_310100_CONTROLLER_HIDDEN:
-            ACTOR_310100_OFFICER_2_MOVIE_VISIBLE(modelVisible);
+            ACTOR_310100_SERGEANT_MOVIE_VISIBLE(modelVisible);
             if (modelVisible) {
                 placement = areaGetVariant(&gGameSession->location)->placements;
-                while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != ACTOR_310100_PLACEMENT_OFFICER_2) {
+                while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != ACTOR_310100_PLACEMENT_SERGEANT) {
                     placement++;
                 }
-                modelTask             = taskSpawnFromTable(gActor310100Officer2TaskDescriptors, ACTOR_310100_MODEL_TASK_CULLED_BODY, (s32)work->spawnAnimationId, 0);
+                modelTask             = taskSpawnFromTable(gActor310100SergeantTaskDescriptors, ACTOR_310100_MODEL_TASK_CULLED_BODY, (s32)work->spawnAnimationId, 0);
                 work->modelTask       = modelTask;
                 rootCoord             = modelTask->extra.tmd->coords;
                 rootCoord->coord.t[0] = placement->x;
@@ -1158,7 +887,7 @@ static void _actor310100Officer2ControllerTask(Task* task)
             }
             break;
         case ACTOR_310100_CONTROLLER_SHOWN:
-            ACTOR_310100_OFFICER_2_MOVIE_VISIBLE(modelVisible);
+            ACTOR_310100_SERGEANT_MOVIE_VISIBLE(modelVisible);
             if (!modelVisible) {
                 work->spawnAnimationId = ((const _Actor310100PoliceOfficerWork*)work->modelTask->work)->spawnAnimationId;
                 task->state--;
@@ -1167,13 +896,13 @@ static void _actor310100Officer2ControllerTask(Task* task)
             }
             break;
     }
-#undef ACTOR_310100_OFFICER_2_MOVIE_VISIBLE
+#undef ACTOR_310100_SERGEANT_MOVIE_VISIBLE
 }
 
 /// Handles `ACTOR_MESSAGE_SET_MODEL_DRAW` by scheduling an officer body-model swap.
 ///
-/// The receiver is the live officer controller; selector 0 chooses officer 2,
-/// 1 chooses officer 1. This receiver requires a non-null, synchronously
+/// The receiver is the live officer controller; selector 0 chooses the sergeant,
+/// 1 chooses the officer. This receiver requires a non-null, synchronously
 /// borrowed `AnimationPlayRequest` as the second payload and copies only its
 /// animation ID's low halfword. It releases any old model before the delayed
 /// swap. The callback leaves the result word unset; senders must discard it.
@@ -1193,19 +922,17 @@ static s32 _actor310100SetOfficerBodyModel(Task* task, s32 messageId, s32 office
 ///
 /// The controller must have live model work before every mode, including a
 /// replacement request. Mode 3 freezes that model without replacing it; mode
-/// 0 replaces it with officer 2's culled body, mode 1 with officer 1's.
+/// 0 replaces it with the sergeant's culled body, mode 1 with the officer's.
 /// The second payload is unused. The callback leaves the result word unset;
 /// senders must discard it.
 static s32 _actor310100SetOfficerCulledBodyModel(Task* task, s32 messageId, s32 mode, s32 unusedSecondArg)
 {
-    enum { ACTOR_310100_MODEL_FREEZE = 3 };
-
     _Actor310100PoliceOfficerWork* controllerWork;
     _Actor310100PoliceOfficerWork* modelWork;
 
     controllerWork = (_Actor310100PoliceOfficerWork*)task->work;
     modelWork      = (_Actor310100PoliceOfficerWork*)controllerWork->modelTask->work;
-    if (mode == ACTOR_310100_MODEL_FREEZE) {
+    if (mode == ACTOR_310100_CULLED_BODY_FREEZE) {
         modelWork->playState = ACTOR_310100_PLAY_STATE_FROZEN;
     } else {
         if (controllerWork->modelTask != NULL) {
@@ -1218,8 +945,8 @@ static s32 _actor310100SetOfficerCulledBodyModel(Task* task, s32 messageId, s32 
 /// Handles `ACTOR_MESSAGE_PLAY_ANIMATION` for the officer or its paired player.
 ///
 /// The controller must have an initialized live model. `animation` is borrowed
-/// for this dispatch: source index 0 targets the player, 1 officer 1, and 2
-/// officer 2, matching the model's bound sets. IDs must fit the twelve-entry
+/// for this dispatch: the source index is an
+/// `ACTOR_310100_ANIMATION_*` target, matching the model's bound sets. IDs must fit the twelve-entry
 /// player or sixteen-/twenty-six-entry officer follow-up table. ID and blend
 /// values narrow to unsigned halfwords. Officer reset requests restore unit
 /// rates; nonzero blends use eight frames. Player requests use ten frames and
@@ -1245,7 +972,7 @@ static s32 _actor310100PlayOfficerOrPlayerAnimation(Task* task, s32 messageId, c
     modelWork            = (_Actor310100PoliceOfficerWork*)modelTask->work;
     modelWork->playState = ACTOR_310100_PLAY_STATE_PLAYING;
     // A player request installs the paired sets; officer requests drive this rig.
-    if (animation->source.index == ACTOR_310100_FOLLOW_UP_PLAYER) {
+    if (animation->source.index == ACTOR_310100_ANIMATION_PLAYER) {
         modelWork->playerAnimationId = animation->animationId;
         playerWork                   = (_Actor310100PoliceOfficerWork*)modelTask->work;
         playerAnimationId            = animation->animationId;
@@ -1349,14 +1076,14 @@ static inline void _actor310100DrawOfficerShadow(Task* modelTask)
     actorRenderDrawGroundShadow(&modelTask->extra.tmd->coords[1], ACTOR_310100_SHADOW_SIDE, &offset);
 }
 
-/// Initializes and updates officer 1's animated body, lighting and ground shadow.
+/// Initializes and updates the officer's animated body, lighting and ground shadow.
 ///
 /// Requires a nineteen-part model; ready ticks require initialized work.
-/// Initialization binds the officer-1 rig and falls through to ready processing.
+/// Initialization binds the officer's rig and falls through to ready processing.
 /// Every ready tick draws the shadow first. Playing advances animation and
 /// follow-ups; posed holds the rig. Frozen or unhandled playback states return
 /// after the shadow, before animation and lighting.
-static void _actor310100Officer1BodyTask(Task* task)
+static void _actor310100OfficerBodyTask(Task* task)
 {
     _Actor310100PoliceOfficerWork* work;
 
@@ -1364,7 +1091,7 @@ static void _actor310100Officer1BodyTask(Task* task)
     work = task->work;
     switch (task->state) {
         case ACTOR_310100_MODEL_INIT:
-            _actor310100InitOfficerBodyModel(task, ACTOR_310100_PLACEMENT_OFFICER_1);
+            _actor310100InitOfficerBodyModel(task, ACTOR_310100_PLACEMENT_OFFICER);
             task->state++;
             /* fallthrough */
         case ACTOR_310100_MODEL_READY:
@@ -1384,14 +1111,14 @@ static void _actor310100Officer1BodyTask(Task* task)
     }
 }
 
-/// Initializes and updates officer 2's animated body, lighting and ground shadow.
+/// Initializes and updates the sergeant's animated body, lighting and ground shadow.
 ///
 /// Requires a nineteen-part model; ready ticks require initialized work.
-/// Initialization binds the officer-2 rig and falls through to ready processing.
+/// Initialization binds the sergeant's rig and falls through to ready processing.
 /// Every ready tick draws the shadow first. Playing advances animation and
 /// follow-ups; posed holds the rig. Frozen or unhandled playback states return
 /// after the shadow, before animation and lighting.
-static void _actor310100Officer2BodyTask(Task* task)
+static void _actor310100SergeantBodyTask(Task* task)
 {
     _Actor310100PoliceOfficerWork* work;
 
@@ -1399,7 +1126,7 @@ static void _actor310100Officer2BodyTask(Task* task)
     work = task->work;
     switch (task->state) {
         case ACTOR_310100_MODEL_INIT:
-            _actor310100InitOfficerBodyModel(task, ACTOR_310100_PLACEMENT_OFFICER_2);
+            _actor310100InitOfficerBodyModel(task, ACTOR_310100_PLACEMENT_SERGEANT);
             task->state++;
             /* fallthrough */
         case ACTOR_310100_MODEL_READY:
@@ -1419,21 +1146,21 @@ static void _actor310100Officer2BodyTask(Task* task)
     }
 }
 
-/// Initializes officer 1's culled body and draws its shadow while posed.
+/// Initializes the officer's culled body and draws its shadow while posed.
 ///
 /// Requires a nineteen-part model; ready ticks require initialized work.
 /// The spawn tick binds
 /// the selected pose, composes part 1 and samples lighting once. Ready ticks
 /// never advance animation or lighting; only the posed playback state draws
 /// the shadow. Playing, frozen and unhandled states draw no shadow.
-static void _actor310100Officer1CulledBodyTask(Task* task)
+static void _actor310100OfficerCulledBodyTask(Task* task)
 {
     _Actor310100PoliceOfficerWork* work;
 
     work = task->work;
     switch (task->state) {
         case ACTOR_310100_MODEL_INIT:
-            _actor310100InitOfficerCulledBodyModel(task, ACTOR_310100_PLACEMENT_OFFICER_1);
+            _actor310100InitOfficerCulledBodyModel(task, ACTOR_310100_PLACEMENT_OFFICER);
             actorRenderComposeCoord(&task->extra.tmd->coords[1]);
             _actor310100LightOfficerModel(task);
             task->state++;
@@ -1446,21 +1173,21 @@ static void _actor310100Officer1CulledBodyTask(Task* task)
     }
 }
 
-/// Initializes officer 2's culled body and draws its shadow until frozen.
+/// Initializes the sergeant's culled body and draws its shadow until frozen.
 ///
 /// Requires a nineteen-part model; ready ticks require initialized work.
 /// The spawn tick binds
 /// the selected pose, composes part 1 and samples lighting once. Ready ticks
 /// never advance animation or lighting; posed and playing states draw the
 /// shadow. Frozen and unhandled states draw no shadow.
-static void _actor310100Officer2CulledBodyTask(Task* task)
+static void _actor310100SergeantCulledBodyTask(Task* task)
 {
     _Actor310100PoliceOfficerWork* work;
 
     work = task->work;
     switch (task->state) {
         case ACTOR_310100_MODEL_INIT:
-            _actor310100InitOfficerCulledBodyModel(task, ACTOR_310100_PLACEMENT_OFFICER_2);
+            _actor310100InitOfficerCulledBodyModel(task, ACTOR_310100_PLACEMENT_SERGEANT);
             actorRenderComposeCoord(&task->extra.tmd->coords[1]);
             _actor310100LightOfficerModel(task);
             task->state++;

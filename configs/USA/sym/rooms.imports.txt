@@ -637,6 +637,6 @@ mapNeoArkResolveRoomVariant = 0x80179B14; // type:func absolute:True owner=map_n
 
 gActor310100PlayerAnimationSets = 0x801797FC; // absolute:True owner=actor_310100
 
-gActor310100Officer1TaskDescriptors = 0x801798FC; // absolute:True owner=actor_310100
+gActor310100OfficerTaskDescriptors = 0x801798FC; // absolute:True owner=actor_310100
 
-gActor310100Officer2TaskDescriptors = 0x80179920; // absolute:True owner=actor_310100
+gActor310100SergeantTaskDescriptors = 0x80179920; // absolute:True owner=actor_310100

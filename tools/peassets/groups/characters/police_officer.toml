@@ -1,0 +1,159 @@
+# The assets of the group characters/police_officer, each named characters/police_officer/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = [
+    "root",
+    "pelvis",
+    "waist",
+    "chest",
+    "head",
+    "right_shoulder",
+    "right_upper_arm",
+    "right_forearm",
+    "right_hand",
+    "left_shoulder",
+    "left_upper_arm",
+    "left_forearm",
+    "left_hand",
+    "right_thigh",
+    "right_shin",
+    "right_foot",
+    "left_thigh",
+    "left_shin",
+    "left_foot",
+]
+
+[body]
+type = "model"
+rig = "characters/police_officer/rig"
+slots = ["page_2", "page_1"]
+symbol = "_gPoliceOfficerBody"
+sha1 = "003b3c8b93ee3c2d2ce65d07af75e7c6bf9a6775"
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "2f1ccdb1ef44d094e4b72643eb8d5d0341ecda3d"
+
+[[file.contents.palettes]]
+texture = "texture_page_1"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00000]
+
+[[file.contents.palettes]]
+texture = "texture_page_2"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00001]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "295d17a566791536b3f9a0c68d7afa55f68a9eb0"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [0x00040, 0x00000] },
+]
+slots = 6
+
+[halt]
+type = "clip"
+rig = "characters/police_officer/rig"
+
+[idle]
+type = "clip"
+rig = "characters/police_officer/rig"
+symbol = "gPoliceOfficerIdleClip"
+
+[stand]
+type = "clip"
+rig = "characters/police_officer/rig"
+symbol = "gPoliceOfficerStandClip"
+
+[talk_idle]
+type = "clip"
+rig = "characters/police_officer/rig"
+
+[turn_away]
+type = "clip"
+rig = "characters/police_officer/rig"
+
+[aside_idle]
+type = "clip"
+rig = "characters/police_officer/rig"
+
+[step_aside]
+type = "clip"
+rig = "characters/police_officer/rig"
+
+[culled_body]
+type = "model"
+rig = "characters/police_officer/rig"
+slots = ["page_2", "page_1"]
+symbol = "_gPoliceOfficerCulledBody"
+sha1 = "2aaabff253c9376e4e6e8146545f0e5fa5ffa3b9"
+
+[ask_sergeant]
+type = "clip"
+rig = "characters/police_officer/rig"
+
+[body_binding]
+type = "binding"
+model = "characters/police_officer/body"
+
+[body_binding.textures]
+page_2 = "characters/police_officer/texture_page_2.default"
+page_1 = "characters/police_officer/texture_page_1.default"
+
+[explain_swat]
+type = "clip"
+rig = "characters/police_officer/rig"
+symbol = "gPoliceOfficerExplainSwatClip"
+
+[report_agent]
+type = "clip"
+rig = "characters/police_officer/rig"
+
+[shift_stance]
+type = "clip"
+rig = "characters/police_officer/rig"
+symbol = "gPoliceOfficerShiftStanceClip"
+
+[look_at_badge]
+type = "clip"
+rig = "characters/police_officer/rig"
+symbol = "gPoliceOfficerLookAtBadgeClip"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[watch_aya_enter]
+type = "clip"
+rig = "characters/police_officer/rig"
+
+[walk_to_sergeant]
+type = "clip"
+rig = "characters/police_officer/rig"
+
+[culled_body_binding]
+type = "binding"
+model = "characters/police_officer/culled_body"
+
+[culled_body_binding.textures]
+page_2 = "characters/police_officer/texture_page_2.default"
+page_1 = "characters/police_officer/texture_page_1.default"

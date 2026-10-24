@@ -202,6 +202,11 @@ rig = "characters/aya/rig"
 type = "clip"
 rig = "characters/aya/rig"
 
+[show_badge]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAyaShowBadgeClip"
+
 [talk_start]
 type = "clip"
 rig = "characters/aya/rig"
@@ -271,6 +276,11 @@ rig = "characters/aya/rig"
 type = "clip"
 rig = "characters/aya/rig"
 
+[ask_situation]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAyaAskSituationClip"
+
 [casual_page_0]
 type = "texture"
 bpp = 8
@@ -293,13 +303,38 @@ rig = "characters/aya/rig"
 type = "clip"
 rig = "characters/aya/rig"
 
+[face_sergeant]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAyaFaceSergeantClip"
+
+[look_at_wreck]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAyaLookAtWreckClip"
+
 [stair_descent]
 type = "clip"
 rig = "characters/aya/rig"
 
+[thank_officer]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAyaThankOfficerClip"
+
+[ask_about_roof]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAyaAskAboutRoofClip"
+
 [kneel_take_key]
 type = "clip"
 rig = "characters/aya/rig"
+
+[put_away_badge]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAyaPutAwayBadgeClip"
 
 [this_way_reply]
 type = "clip"
@@ -329,6 +364,11 @@ rig = "characters/aya/rig"
 type = "clip"
 rig = "characters/aya/rig"
 
+[turn_to_sergeant]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAyaTurnToSergeantClip"
+
 [introduce_herself]
 type = "clip"
 rig = "characters/aya/rig"
@@ -345,6 +385,16 @@ rig = "characters/aya/rig"
 [maya_was_my_sister]
 type = "clip"
 rig = "characters/aya/rig"
+
+[turn_from_sergeant]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAyaTurnFromSergeantClip"
+
+[ask_about_civilians]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAyaAskAboutCiviliansClip"
 
 [parasite_energy_cast_0]
 type = "clip"

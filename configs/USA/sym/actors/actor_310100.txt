@@ -1,121 +1,85 @@
 // Overlay-local symbols for actor_310100.
-_gActor310100Officer1StepSoundScripts = 0x801798A8; // size:0xC defined:True
+_gActor310100OfficerStepSoundScripts = 0x801798A8; // size:0xC defined:True
 _gActor310100FollowUpAnimationTables = 0x8017989C; // size:0xC defined:True
 _gActor310100OfficerMessageTable = 0x801798B4; // size:0x30 defined:True
 _gActor310100OfficerBodySwapTaskDescriptor = 0x801798E4; // size:0xC defined:True
 _gActor310100OfficerCulledBodySwapTaskDescriptor = 0x801798F0; // size:0xC defined:True
-gActor310100Officer1TaskDescriptors = 0x801798FC; // size:0x24 defined:True
-gActor310100Officer2TaskDescriptors = 0x80179920; // size:0x24 defined:True
-gAkropolisPlazaExtraAnim20Clip = 0x8019578C; // absolute:True
-gAkropolisPlazaExtraAnim21Clip = 0x80195978; // absolute:True
-gAkropolisPlazaExtraAnim22Clip = 0x80195BD4; // absolute:True
-gAkropolisPlazaExtraAnim23Clip = 0x80195EC4; // absolute:True
-gAkropolisPlazaExtraAnim24Clip = 0x801963A0; // absolute:True
-gAkropolisPlazaExtraAnimClip = 0x80191E7C; // absolute:True owner=akropolis_plaza
-gAkropolisPlazaExtraAnim2Clip = 0x80192C74; // absolute:True owner=akropolis_plaza
-gAkropolisPlazaExtraAnim3Clip = 0x80192E24; // absolute:True owner=akropolis_plaza
-gAkropolisPlazaExtraAnim4Clip = 0x80193288; // absolute:True owner=akropolis_plaza
-gAkropolisPlazaExtraAnim5Clip = 0x80193538; // absolute:True owner=akropolis_plaza
-gAkropolisPlazaExtraAnim6Clip = 0x801937EC; // absolute:True owner=akropolis_plaza
-gAkropolisPlazaExtraAnim7Clip = 0x801939FC; // absolute:True owner=akropolis_plaza
-gAkropolisPlazaExtraAnim8Clip = 0x80193BD0; // absolute:True owner=akropolis_plaza
-gAkropolisPlazaExtraAnim9Clip = 0x80193EBC; // absolute:True owner=akropolis_plaza
-gAkropolisPlazaExtraAnim10Clip = 0x801942C0; // absolute:True owner=akropolis_plaza
-gAkropolisPlazaExtraAnim11Clip = 0x801944A4; // absolute:True owner=akropolis_plaza
-gAkropolisPlazaExtraAnim12Clip = 0x80194680; // absolute:True owner=akropolis_plaza
-gAkropolisPlazaExtraAnim13Clip = 0x80194858; // absolute:True owner=akropolis_plaza
-gAkropolisPlazaExtraAnim14Clip = 0x80194B0C; // absolute:True owner=akropolis_plaza
-gAkropolisPlazaExtraAnim15Clip = 0x80194DD8; // absolute:True owner=akropolis_plaza
-gAkropolisPlazaExtraAnim16Clip = 0x80194FC0; // absolute:True owner=akropolis_plaza
-gAkropolisPlazaExtraAnim17Clip = 0x80195228; // absolute:True owner=akropolis_plaza
-gAkropolisPlazaExtraAnim18Clip = 0x80195414; // absolute:True
-gAkropolisPlazaExtraAnim19Clip = 0x801955B4; // absolute:True
+gActor310100OfficerTaskDescriptors = 0x801798FC; // size:0x24 defined:True
+gActor310100SergeantTaskDescriptors = 0x80179920; // size:0x24 defined:True
+gPoliceOfficerStandClip = 0x8019578C; // absolute:True
+gPoliceOfficerLookAtBadgeClip = 0x80195978; // absolute:True
+gPoliceOfficerShiftStanceClip = 0x80195BD4; // absolute:True
+gPoliceOfficerIdleClip = 0x80195EC4; // absolute:True
+gPoliceOfficerExplainSwatClip = 0x801963A0; // absolute:True
+gPoliceSergeantClearedForEntryClip = 0x80191E7C; // absolute:True owner=akropolis_plaza
+gPoliceSergeantGoRightInClip = 0x80192C74; // absolute:True owner=akropolis_plaza
+gPoliceSergeantTalkIdleClip = 0x80192E24; // absolute:True owner=akropolis_plaza
+gPoliceSergeantOuttaControlClip = 0x80193288; // absolute:True owner=akropolis_plaza
+gPoliceSergeantOuttaControlGestureClip = 0x80193538; // absolute:True owner=akropolis_plaza
+gPoliceSergeantHelicopterDownClip = 0x801937EC; // absolute:True owner=akropolis_plaza
+gPoliceSergeantSomethingBigClip = 0x801939FC; // absolute:True owner=akropolis_plaza
+gPoliceSergeantWatchYourselfClip = 0x80193BD0; // absolute:True owner=akropolis_plaza
+gPoliceSergeantRaiseArmClip = 0x80193EBC; // absolute:True owner=akropolis_plaza
+gPoliceSergeantLowerArmClip = 0x801942C0; // absolute:True owner=akropolis_plaza
+gPoliceSergeantListenClip = 0x801944A4; // absolute:True owner=akropolis_plaza
+gPoliceSergeantTurnHeadClip = 0x80194680; // absolute:True owner=akropolis_plaza
+gPoliceSergeantTurnHeadBackClip = 0x80194858; // absolute:True owner=akropolis_plaza
+gPoliceSergeantHeardOfThemClip = 0x80194B0C; // absolute:True owner=akropolis_plaza
+gPoliceSergeantTurnedIdleClip = 0x80194DD8; // absolute:True owner=akropolis_plaza
+gPoliceSergeantDamnRookiesClip = 0x80194FC0; // absolute:True owner=akropolis_plaza
+gPoliceSergeantTurnAwayClip = 0x80195228; // absolute:True owner=akropolis_plaza
+gPoliceSergeantHunterFromMistClip = 0x80195414; // absolute:True
+gPoliceSergeantIdleClip = 0x801955B4; // absolute:True
 gAyaIdleClip = 0x80196558; // absolute:True
-gAkropolisPlazaExtraAnim25Clip = 0x80196BD0; // absolute:True
-gAkropolisPlazaExtraAnim26Clip = 0x80197098; // absolute:True
-gAkropolisPlazaExtraAnim27Clip = 0x80197324; // absolute:True
-gAkropolisPlazaExtraAnim28Clip = 0x8019753C; // absolute:True
-gAkropolisPlazaExtraAnim29Clip = 0x80197AB8; // absolute:True
-gAkropolisPlazaExtraAnim30Clip = 0x80197D44; // absolute:True
-gAkropolisPlazaExtraAnim31Clip = 0x8019806C; // absolute:True
-gAkropolisPlazaExtraAnim32Clip = 0x801983C4; // absolute:True
-gAkropolisPlazaExtraAnim33Clip = 0x80198564; // absolute:True
-gAkropolisPlazaExtraAnim34Clip = 0x801987B8; // absolute:True
-_gPoliceOfficer1BodySkeleton = 0x801633BC; // size:0x2AC defined:True
-_gPoliceOfficer1BodyPartVerts = 0x80163668; // size:0x4C defined:True
-_gPoliceOfficer1BodyVerts = 0x801636B4; // size:0xAF8 defined:True
-_gPoliceOfficer1BodyNormals = 0x801641AC; // size:0xD50 defined:True
-_gPoliceOfficer1BodyStream = 0x80164EFC; // size:0x3D04 defined:True
-_gPoliceOfficer1Body = 0x80168C00; // size:0x24 defined:True
-_gPoliceOfficer1CulledBodySkeleton = 0x80168C24; // size:0x2AC defined:True
-_gPoliceOfficer1CulledBodyPartVerts = 0x80168ED0; // size:0x4C defined:True
-_gPoliceOfficer1CulledBodyVerts = 0x80168F1C; // size:0xA68 defined:True
-_gPoliceOfficer1CulledBodyNormals = 0x80169984; // size:0xB48 defined:True
-_gPoliceOfficer1CulledBodyStream = 0x8016A4CC; // size:0x2FC0 defined:True
-_gPoliceOfficer1CulledBody = 0x8016D48C; // size:0x24 defined:True
-_gPoliceOfficer2BodySkeleton = 0x8016D4B0; // size:0x2AC defined:True
-_gPoliceOfficer2BodyPartVerts = 0x8016D75C; // size:0x4C defined:True
-_gPoliceOfficer2BodyVerts = 0x8016D7A8; // size:0xB48 defined:True
-_gPoliceOfficer2BodyNormals = 0x8016E2F0; // size:0xD90 defined:True
-_gPoliceOfficer2BodyStream = 0x8016F080; // size:0x4030 defined:True
-_gPoliceOfficer2Body = 0x801730B0; // size:0x24 defined:True
-_gPoliceOfficer2CulledBodySkeleton = 0x801730D4; // size:0x2AC defined:True
-_gPoliceOfficer2CulledBodyPartVerts = 0x80173380; // size:0x4C defined:True
-_gPoliceOfficer2CulledBodyVerts = 0x801733CC; // size:0xA08 defined:True
-_gPoliceOfficer2CulledBodyNormals = 0x80173DD4; // size:0xC28 defined:True
-_gPoliceOfficer2CulledBodyStream = 0x801749FC; // size:0x2FB0 defined:True
-_gPoliceOfficer2CulledBody = 0x801779AC; // size:0x24 defined:True
-_gActor310100Animation15FF8Bank1 = 0x801779D0; // size:0xFC defined:True
-_gActor310100Animation15FF8Bank4 = 0x80177ACC; // size:0x134 defined:True
-_gActor310100Animation15FF8Records = 0x80177C00; // size:0x1F0 defined:True
-_gActor310100Animation15FF8Indices = 0x80177DF0; // size:0x28 defined:True
-_gActor310100Animation15FF8 = 0x80177E18; // size:0x28 defined:True
-_gActor310100Animation1620CBank1 = 0x80177E40; // size:0x24 defined:True
-_gActor310100Animation1620CBank4 = 0x80177E64; // size:0x60 defined:True
-_gActor310100Animation1620CRecords = 0x80177EC4; // size:0x140 defined:True
-_gActor310100Animation1620CIndices = 0x80178004; // size:0x28 defined:True
-_gActor310100Animation1620C = 0x8017802C; // size:0x28 defined:True
-_gActor310100Animation164B8Bank1 = 0x80178054; // size:0xA8 defined:True
-_gActor310100Animation164B8Bank4 = 0x801780FC; // size:0x84 defined:True
-_gActor310100Animation164B8Records = 0x80178180; // size:0x130 defined:True
-_gActor310100Animation164B8Indices = 0x801782B0; // size:0x28 defined:True
-_gActor310100Animation164B8 = 0x801782D8; // size:0x28 defined:True
-_gActor310100Animation16CE8Bank1 = 0x80178300; // size:0x2AC defined:True
-_gActor310100Animation16CE8Bank4 = 0x801785AC; // size:0x1E4 defined:True
-_gActor310100Animation16CE8Records = 0x80178790; // size:0x350 defined:True
-_gActor310100Animation16CE8Indices = 0x80178AE0; // size:0x28 defined:True
-_gActor310100Animation16CE8 = 0x80178B08; // size:0x28 defined:True
-_gActor310100Animation16F64Bank1 = 0x80178B30; // size:0x78 defined:True
-_gActor310100Animation16F64Bank4 = 0x80178BA8; // size:0x94 defined:True
-_gActor310100Animation16F64Records = 0x80178C3C; // size:0x120 defined:True
-_gActor310100Animation16F64Indices = 0x80178D5C; // size:0x28 defined:True
-_gActor310100Animation16F64 = 0x80178D84; // size:0x28 defined:True
-_gActor310100Animation17148Bank1 = 0x80178DAC; // size:0x18 defined:True
-_gActor310100Animation17148Bank4 = 0x80178DC4; // size:0x4C defined:True
-_gActor310100Animation17148Records = 0x80178E10; // size:0x130 defined:True
-_gActor310100Animation17148Indices = 0x80178F40; // size:0x28 defined:True
-_gActor310100Animation17148 = 0x80178F68; // size:0x28 defined:True
-_gActor310100Animation1744CBank1 = 0x80178F90; // size:0x18 defined:True
-_gActor310100Animation1744CBank4 = 0x80178FA8; // size:0xF4 defined:True
-_gActor310100Animation1744CRecords = 0x8017909C; // size:0x1A8 defined:True
-_gActor310100Animation1744CIndices = 0x80179244; // size:0x28 defined:True
-_gActor310100Animation1744C = 0x8017926C; // size:0x28 defined:True
-_gActor310100Animation17638Bank1 = 0x80179294; // size:0x18 defined:True
-_gActor310100Animation17638Bank4 = 0x801792AC; // size:0x78 defined:True
-_gActor310100Animation17638Records = 0x80179324; // size:0x10C defined:True
-_gActor310100Animation17638Indices = 0x80179430; // size:0x28 defined:True
-_gActor310100Animation17638 = 0x80179458; // size:0x28 defined:True
-_gActor310100Animation1790CBank1 = 0x80179480; // size:0x84 defined:True
-_gActor310100Animation1790CBank4 = 0x80179504; // size:0xB4 defined:True
-_gActor310100Animation1790CRecords = 0x801795B8; // size:0x14C defined:True
-_gActor310100Animation1790CIndices = 0x80179704; // size:0x28 defined:True
-_gActor310100Animation1790C = 0x8017972C; // size:0x28 defined:True
-_gActor310100Officer1AnimationSets = 0x80179754; // size:0x40 defined:True
-_gActor310100Officer2AnimationSets = 0x80179794; // size:0x68 defined:True
+gAyaShowBadgeClip = 0x80196BD0; // absolute:True
+gAyaPutAwayBadgeClip = 0x80197098; // absolute:True
+gAyaTurnToSergeantClip = 0x80197324; // absolute:True
+gAyaFaceSergeantClip = 0x8019753C; // absolute:True
+gAyaAskSituationClip = 0x80197AB8; // absolute:True
+gAyaTurnFromSergeantClip = 0x80197D44; // absolute:True
+gAyaAskAboutCiviliansClip = 0x8019806C; // absolute:True
+gAyaThankOfficerClip = 0x801983C4; // absolute:True
+gAyaAskAboutRoofClip = 0x80198564; // absolute:True
+gAyaLookAtWreckClip = 0x801987B8; // absolute:True
+_gPoliceOfficerBodySkeleton = 0x801633BC; // size:0x2AC defined:True
+_gPoliceOfficerBodyPartVerts = 0x80163668; // size:0x4C defined:True
+_gPoliceOfficerBodyVerts = 0x801636B4; // size:0xAF8 defined:True
+_gPoliceOfficerBodyNormals = 0x801641AC; // size:0xD50 defined:True
+_gPoliceOfficerBodyStream = 0x80164EFC; // size:0x3D04 defined:True
+_gPoliceOfficerBody = 0x80168C00; // size:0x24 defined:True
+_gPoliceOfficerCulledBodySkeleton = 0x80168C24; // size:0x2AC defined:True
+_gPoliceOfficerCulledBodyPartVerts = 0x80168ED0; // size:0x4C defined:True
+_gPoliceOfficerCulledBodyVerts = 0x80168F1C; // size:0xA68 defined:True
+_gPoliceOfficerCulledBodyNormals = 0x80169984; // size:0xB48 defined:True
+_gPoliceOfficerCulledBodyStream = 0x8016A4CC; // size:0x2FC0 defined:True
+_gPoliceOfficerCulledBody = 0x8016D48C; // size:0x24 defined:True
+_gPoliceSergeantBodySkeleton = 0x8016D4B0; // size:0x2AC defined:True
+_gPoliceSergeantBodyPartVerts = 0x8016D75C; // size:0x4C defined:True
+_gPoliceSergeantBodyVerts = 0x8016D7A8; // size:0xB48 defined:True
+_gPoliceSergeantBodyNormals = 0x8016E2F0; // size:0xD90 defined:True
+_gPoliceSergeantBodyStream = 0x8016F080; // size:0x4030 defined:True
+_gPoliceSergeantBody = 0x801730B0; // size:0x24 defined:True
+_gPoliceSergeantCulledBodySkeleton = 0x801730D4; // size:0x2AC defined:True
+_gPoliceSergeantCulledBodyPartVerts = 0x80173380; // size:0x4C defined:True
+_gPoliceSergeantCulledBodyVerts = 0x801733CC; // size:0xA08 defined:True
+_gPoliceSergeantCulledBodyNormals = 0x80173DD4; // size:0xC28 defined:True
+_gPoliceSergeantCulledBodyStream = 0x801749FC; // size:0x2FB0 defined:True
+_gPoliceSergeantCulledBody = 0x801779AC; // size:0x24 defined:True
+_gPoliceOfficerStepAsideClip = 0x80177E18; // size:0x28 defined:True
+_gPoliceOfficerAsideIdleClip = 0x8017802C; // size:0x28 defined:True
+_gPoliceOfficerWatchAyaEnterClip = 0x801782D8; // size:0x28 defined:True
+_gPoliceOfficerWalkToSergeantClip = 0x80178B08; // size:0x28 defined:True
+_gPoliceOfficerHaltClip = 0x80178D84; // size:0x28 defined:True
+_gPoliceOfficerTalkIdleClip = 0x80178F68; // size:0x28 defined:True
+_gPoliceOfficerAskSergeantClip = 0x8017926C; // size:0x28 defined:True
+_gPoliceOfficerReportAgentClip = 0x80179458; // size:0x28 defined:True
+_gPoliceOfficerTurnAwayClip = 0x8017972C; // size:0x28 defined:True
+_gActor310100OfficerAnimationSets = 0x80179754; // size:0x40 defined:True
+_gActor310100SergeantAnimationSets = 0x80179794; // size:0x68 defined:True
 gActor310100PlayerAnimationSets = 0x801797FC; // size:0x34 defined:True
 _gActor310100PlayerFollowUpAnimations = 0x80179830; // size:0x18 defined:True
-_gActor310100Officer1FollowUpAnimations = 0x80179848; // size:0x20 defined:True
-_gActor310100Officer2FollowUpAnimations = 0x80179868; // size:0x34 defined:True
+_gActor310100OfficerFollowUpAnimations = 0x80179848; // size:0x20 defined:True
+_gActor310100SergeantFollowUpAnimations = 0x80179868; // size:0x34 defined:True
 _actor310100TickOfficerAnimation = 0x80161e24; // type:func
 _actor310100UpdateOfficerAnimation = 0x80161f80; // type:func
 _actor310100InitOfficerBodyModel = 0x80162414; // type:func
@@ -127,9 +91,9 @@ _actor310100SetOfficerCulledBodyModel = 0x80162cdc; // type:func
 _actor310100PlayOfficerOrPlayerAnimation = 0x80162d50; // type:func
 _actor310100PlaceOfficerModel = 0x80162ec8; // type:func
 _actor310100StopOfficerController = 0x80162f34; // type:func
-_actor310100Officer1ControllerTask = 0x801627bc; // type:func
-_actor310100Officer2ControllerTask = 0x801629fc; // type:func
-_actor310100Officer1BodyTask = 0x80162f88; // type:func
-_actor310100Officer2BodyTask = 0x8016309c; // type:func
-_actor310100Officer1CulledBodyTask = 0x801631b0; // type:func
-_actor310100Officer2CulledBodyTask = 0x801632b0; // type:func
+_actor310100OfficerControllerTask = 0x801627bc; // type:func
+_actor310100SergeantControllerTask = 0x801629fc; // type:func
+_actor310100OfficerBodyTask = 0x80162f88; // type:func
+_actor310100SergeantBodyTask = 0x8016309c; // type:func
+_actor310100OfficerCulledBodyTask = 0x801631b0; // type:func
+_actor310100SergeantCulledBodyTask = 0x801632b0; // type:func

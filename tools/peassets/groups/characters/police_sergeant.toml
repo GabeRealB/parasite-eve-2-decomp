@@ -1,0 +1,192 @@
+# The assets of the group characters/police_sergeant, each named characters/police_sergeant/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = [
+    "root",
+    "pelvis",
+    "waist",
+    "chest",
+    "head",
+    "right_shoulder",
+    "right_upper_arm",
+    "right_forearm",
+    "right_hand",
+    "left_shoulder",
+    "left_upper_arm",
+    "left_forearm",
+    "left_hand",
+    "right_thigh",
+    "right_shin",
+    "right_foot",
+    "left_thigh",
+    "left_shin",
+    "left_foot",
+]
+
+[body]
+type = "model"
+rig = "characters/police_sergeant/rig"
+slots = ["page_2", "page_1"]
+symbol = "_gPoliceSergeantBody"
+sha1 = "31acf5dd640f258d9239ca08a4c85dcadc0d6219"
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "2bc1e3c2da38ecb8d9c56e16734e07d54c546745"
+
+[[file.contents.palettes]]
+texture = "texture_page_1"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00000]
+
+[[file.contents.palettes]]
+texture = "texture_page_2"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00001]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "3f045d1a035e621b0025644a47a60f2c3fb7ad72"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [0x00040, 0x00000] },
+]
+slots = 6
+
+[idle]
+type = "clip"
+rig = "characters/police_sergeant/rig"
+symbol = "gPoliceSergeantIdleClip"
+
+[listen]
+type = "clip"
+rig = "characters/police_sergeant/rig"
+symbol = "gPoliceSergeantListenClip"
+
+[lower_arm]
+type = "clip"
+rig = "characters/police_sergeant/rig"
+symbol = "gPoliceSergeantLowerArmClip"
+
+[raise_arm]
+type = "clip"
+rig = "characters/police_sergeant/rig"
+symbol = "gPoliceSergeantRaiseArmClip"
+
+[talk_idle]
+type = "clip"
+rig = "characters/police_sergeant/rig"
+symbol = "gPoliceSergeantTalkIdleClip"
+
+[turn_away]
+type = "clip"
+rig = "characters/police_sergeant/rig"
+symbol = "gPoliceSergeantTurnAwayClip"
+
+[turn_head]
+type = "clip"
+rig = "characters/police_sergeant/rig"
+symbol = "gPoliceSergeantTurnHeadClip"
+
+[culled_body]
+type = "model"
+slots = ["page_2", "page_1"]
+symbol = "_gPoliceSergeantCulledBody"
+sha1 = "64fe7fb1202561bee368e4e00dade4668e6604ae"
+
+[go_right_in]
+type = "clip"
+rig = "characters/police_sergeant/rig"
+symbol = "gPoliceSergeantGoRightInClip"
+
+[turned_idle]
+type = "clip"
+rig = "characters/police_sergeant/rig"
+symbol = "gPoliceSergeantTurnedIdleClip"
+
+[body_binding]
+type = "binding"
+model = "characters/police_sergeant/body"
+
+[body_binding.textures]
+page_2 = "characters/police_sergeant/texture_page_2.default"
+page_1 = "characters/police_sergeant/texture_page_1.default"
+
+[damn_rookies]
+type = "clip"
+rig = "characters/police_sergeant/rig"
+symbol = "gPoliceSergeantDamnRookiesClip"
+
+[heard_of_them]
+type = "clip"
+rig = "characters/police_sergeant/rig"
+symbol = "gPoliceSergeantHeardOfThemClip"
+
+[outta_control]
+type = "clip"
+rig = "characters/police_sergeant/rig"
+symbol = "gPoliceSergeantOuttaControlClip"
+
+[something_big]
+type = "clip"
+rig = "characters/police_sergeant/rig"
+symbol = "gPoliceSergeantSomethingBigClip"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[turn_head_back]
+type = "clip"
+rig = "characters/police_sergeant/rig"
+symbol = "gPoliceSergeantTurnHeadBackClip"
+
+[watch_yourself]
+type = "clip"
+rig = "characters/police_sergeant/rig"
+symbol = "gPoliceSergeantWatchYourselfClip"
+
+[helicopter_down]
+type = "clip"
+rig = "characters/police_sergeant/rig"
+symbol = "gPoliceSergeantHelicopterDownClip"
+
+[hunter_from_mist]
+type = "clip"
+rig = "characters/police_sergeant/rig"
+symbol = "gPoliceSergeantHunterFromMistClip"
+
+[cleared_for_entry]
+type = "clip"
+rig = "characters/police_sergeant/rig"
+symbol = "gPoliceSergeantClearedForEntryClip"
+
+[culled_body_binding]
+type = "binding"
+model = "characters/police_sergeant/culled_body"
+
+[culled_body_binding.textures]
+page_2 = "characters/police_sergeant/texture_page_2.default"
+page_1 = "characters/police_sergeant/texture_page_1.default"
+
+[outta_control_gesture]
+type = "clip"
+rig = "characters/police_sergeant/rig"
+symbol = "gPoliceSergeantOuttaControlGestureClip"

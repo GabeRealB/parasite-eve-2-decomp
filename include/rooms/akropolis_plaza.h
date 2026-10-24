@@ -12,90 +12,64 @@
 
 #include "main/task_types.h"
 
-// Native animation sets shared with the companion actor overlay.
-extern AnimationSet gAkropolisPlazaExtraAnimClip;
+// The clips the plaza places for its scenes, which actor_310100's banks bind: the rookie officer's at the tower's
+// entrance, the sergeant's at the barricade, and Aya's. Each is named for the line or step it plays on.
 
-extern AnimationSet gAkropolisPlazaExtraAnim2Clip;
+/// The officer's clips; the rest of his are actor_310100's own.
+extern AnimationSet gPoliceOfficerStandClip;
+extern AnimationSet gPoliceOfficerLookAtBadgeClip;
+extern AnimationSet gPoliceOfficerShiftStanceClip;
+extern AnimationSet gPoliceOfficerIdleClip;
+extern AnimationSet gPoliceOfficerExplainSwatClip;
 
-extern AnimationSet gAkropolisPlazaExtraAnim3Clip;
+/// The sergeant's clips.
+extern AnimationSet gPoliceSergeantClearedForEntryClip;
+extern AnimationSet gPoliceSergeantGoRightInClip;
+extern AnimationSet gPoliceSergeantTalkIdleClip;
+extern AnimationSet gPoliceSergeantOuttaControlClip;
+extern AnimationSet gPoliceSergeantOuttaControlGestureClip;
+extern AnimationSet gPoliceSergeantHelicopterDownClip;
+extern AnimationSet gPoliceSergeantSomethingBigClip;
+extern AnimationSet gPoliceSergeantWatchYourselfClip;
+extern AnimationSet gPoliceSergeantRaiseArmClip;
+extern AnimationSet gPoliceSergeantLowerArmClip;
+extern AnimationSet gPoliceSergeantListenClip;
+extern AnimationSet gPoliceSergeantTurnHeadClip;
+extern AnimationSet gPoliceSergeantTurnHeadBackClip;
+extern AnimationSet gPoliceSergeantHeardOfThemClip;
+extern AnimationSet gPoliceSergeantTurnedIdleClip;
+extern AnimationSet gPoliceSergeantDamnRookiesClip;
+extern AnimationSet gPoliceSergeantTurnAwayClip;
+extern AnimationSet gPoliceSergeantHunterFromMistClip;
+extern AnimationSet gPoliceSergeantIdleClip;
 
-extern AnimationSet gAkropolisPlazaExtraAnim4Clip;
-
-extern AnimationSet gAkropolisPlazaExtraAnim5Clip;
-
-extern AnimationSet gAkropolisPlazaExtraAnim6Clip;
-
-extern AnimationSet gAkropolisPlazaExtraAnim7Clip;
-
-extern AnimationSet gAkropolisPlazaExtraAnim8Clip;
-
-extern AnimationSet gAkropolisPlazaExtraAnim9Clip;
-
-extern AnimationSet gAkropolisPlazaExtraAnim10Clip;
-
-extern AnimationSet gAkropolisPlazaExtraAnim11Clip;
-
-extern AnimationSet gAkropolisPlazaExtraAnim12Clip;
-
-extern AnimationSet gAkropolisPlazaExtraAnim13Clip;
-
-extern AnimationSet gAkropolisPlazaExtraAnim14Clip;
-
-extern AnimationSet gAkropolisPlazaExtraAnim15Clip;
-
-extern AnimationSet gAkropolisPlazaExtraAnim16Clip;
-
-extern AnimationSet gAkropolisPlazaExtraAnim17Clip;
-
-extern AnimationSet gAkropolisPlazaExtraAnim18Clip;
-
-extern AnimationSet gAkropolisPlazaExtraAnim19Clip;
-
-extern AnimationSet gAkropolisPlazaExtraAnim20Clip;
-
-extern AnimationSet gAkropolisPlazaExtraAnim21Clip;
-
-extern AnimationSet gAkropolisPlazaExtraAnim22Clip;
-
-extern AnimationSet gAkropolisPlazaExtraAnim23Clip;
-
-extern AnimationSet gAkropolisPlazaExtraAnim24Clip;
-
+/// Aya's clips, with the idle her bank starts with.
 extern AnimationSet gAyaIdleClip;
+extern AnimationSet gAyaShowBadgeClip;
+extern AnimationSet gAyaPutAwayBadgeClip;
+extern AnimationSet gAyaTurnToSergeantClip;
+extern AnimationSet gAyaFaceSergeantClip;
+extern AnimationSet gAyaAskSituationClip;
+extern AnimationSet gAyaTurnFromSergeantClip;
+extern AnimationSet gAyaAskAboutCiviliansClip;
+extern AnimationSet gAyaThankOfficerClip;
+extern AnimationSet gAyaAskAboutRoofClip;
+extern AnimationSet gAyaLookAtWreckClip;
 
-extern AnimationSet gAkropolisPlazaExtraAnim25Clip;
-
-extern AnimationSet gAkropolisPlazaExtraAnim26Clip;
-
-extern AnimationSet gAkropolisPlazaExtraAnim27Clip;
-
-extern AnimationSet gAkropolisPlazaExtraAnim28Clip;
-
-extern AnimationSet gAkropolisPlazaExtraAnim29Clip;
-
-extern AnimationSet gAkropolisPlazaExtraAnim30Clip;
-
-extern AnimationSet gAkropolisPlazaExtraAnim31Clip;
-
-extern AnimationSet gAkropolisPlazaExtraAnim32Clip;
-
-extern AnimationSet gAkropolisPlazaExtraAnim33Clip;
-
-extern AnimationSet gAkropolisPlazaExtraAnim34Clip;
-
-/// Entry indices of the plaza's direct-spawn sequence task table.
+/// The plaza's tasks in `gAkropolisPlazaSequenceTaskDescriptors`: the room's sequence, the traversal, each scene's
+/// task and their presentation.
 enum {
     AKROPOLIS_PLAZA_TASK_SEQUENCE = 0,
-    AKROPOLIS_PLAZA_TASK_STREAMED_SCENE,
-    AKROPOLIS_PLAZA_TASK_STREAM_SCENE,
-    AKROPOLIS_PLAZA_TASK_FINAL_SCENE,
-    AKROPOLIS_PLAZA_TASK_FIRST_SCENE,
-    AKROPOLIS_PLAZA_TASK_DISPLAY_SETUP,
-    AKROPOLIS_PLAZA_TASK_REPEAT_SCENE,
+    AKROPOLIS_PLAZA_TASK_TRAVERSAL,
+    AKROPOLIS_PLAZA_TASK_HELICOPTER_WRECK,
+    AKROPOLIS_PLAZA_TASK_ENTRANCE,
+    AKROPOLIS_PLAZA_TASK_SERGEANT,
+    AKROPOLIS_PLAZA_TASK_OPENING_MOVIE_SETUP,
+    AKROPOLIS_PLAZA_TASK_SERGEANT_AGAIN,
     AKROPOLIS_PLAZA_TASK_FADE_OUT,
     AKROPOLIS_PLAZA_TASK_FADE_IN,
     AKROPOLIS_PLAZA_TASK_CAPTION,
-    AKROPOLIS_PLAZA_TASK_MOVIE_DISPLAY,
+    AKROPOLIS_PLAZA_TASK_OPENING_MOVIE,
     AKROPOLIS_PLAZA_TASK_LETTERBOX,
     AKROPOLIS_PLAZA_TASK_COUNT
 };
@@ -108,7 +82,7 @@ enum {
     AKROPOLIS_PLAZA_SURFACE_CLASS_COUNT = 8
 };
 
-/// Direct-spawn recipes for the streamed plaza sequence and its presentation tasks.
+/// The plaza's tasks, spawned by index (`AKROPOLIS_PLAZA_TASK_*`).
 extern TaskDesc gAkropolisPlazaSequenceTaskDescriptors[AKROPOLIS_PLAZA_TASK_COUNT];
 
 /// Collision resources for the plaza's single room.
@@ -141,19 +115,23 @@ enum { AKROPOLIS_PLAZA_AREA_VARIANT_COUNT = 3 };
 /// Area layouts of the plaza, indexed directly by placement variant 0..2.
 extern AreaVariant gAkropolisPlazaAreaVariants[AKROPOLIS_PLAZA_AREA_VARIANT_COUNT];
 
-/// Spawns the plaza's ambient glows, flares and siren beams on the first tick.
+/// Spawns the plaza's lights on its first frame, one per marker of `_gAkropolisPlazaAmbientLightPlacements`: the
+/// police lights' six siren beams (markers 1..6), four rotating flares (7..10) and the street's glows (12 on).
 void akropolisPlazaSpawnAmbientLightsTask(Task* task);
 
-/// Draws a stationary flickering or pulsing additive glow at a placed light.
+/// A glow at a light that does not move: a flickering yellow street lamp below marker 16, a pulsing red one from it.
 void akropolisPlazaLightGlowTask(Task* task);
 
-/// Sweeps a siren beam, its point light and its near and far additive glows.
+/// A rotating siren, blue below marker 5 and red from it: its beam sweeps round, with a glow at the lamp, a far glow
+/// while the beam is long, and a point light on the scene while the lamp is on screen.
 void akropolisPlazaSirenLightTask(Task* task);
 
-/// Sweeps a pulsing four-ray flare and a flickering glow ahead of a placed light.
+/// A rotating light seen as a pulsing four-ray flare, blue below marker 9 and red from it, with a flickering glow
+/// ahead of it.
 void akropolisPlazaLightFlareTask(Task* task);
 
-/// Services the plaza's queued play, reset and resume movie commands.
+/// Main's CD queue handler for the offset-movie commands: plays or resets a movie at a sector offset, or resumes one
+/// at a saved position, then polls it. Only the plaza issues these, so main calls into this overlay for them.
 void akropolisPlazaPollStreamCommands(void);
 
 #endif // INCLUDE_ROOMS_AKROPOLIS_PLAZA_H
