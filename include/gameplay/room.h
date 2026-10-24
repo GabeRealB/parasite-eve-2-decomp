@@ -131,7 +131,7 @@ enum { WORLD_COLLISION_FOOTSTEP_SILENT = 0 };
 /// modifying it and must not retain it after that overlay is unloaded.
 typedef struct {
     s32 walk;         // Default cue-2 base outside running and scripted jumps (0 silent).
-    s32 run;          // Running cue-2 base (movementMode 3; 0 silent).
+    s32 run;          // Running cue-2 base (`GAME_ACTOR_MOVEMENT_RUN`; 0 silent).
     s32 scriptedJump; // Scripted jump cue-2 base (actor mode 2, state 3; 0 silent).
 } WorldCollisionFootstepSounds;
 STATIC_ASSERT_SIZEOF(WorldCollisionFootstepSounds, 12);

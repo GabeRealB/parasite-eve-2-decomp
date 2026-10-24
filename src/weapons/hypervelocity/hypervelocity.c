@@ -999,7 +999,7 @@ void hypervelocityAttackState(Task* playerTask)
         case HYPERVELOCITY_PHASE_PREPARE:
             actor->mode                              = GAME_ACTOR_MODE_NORMAL;
             actor->state                             = PLAYER_ACTOR_STATE_ATTACK;
-            actor->movementMode                      = 0;
+            actor->movementMode                      = GAME_ACTOR_MOVEMENT_STOPPED;
             actor->turnRateIndex                     = 0;
             actor->animationState                    = 0;
             actor->statePhase                        = HYPERVELOCITY_PHASE_CHARGE;

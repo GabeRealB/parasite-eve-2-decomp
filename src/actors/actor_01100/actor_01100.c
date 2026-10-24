@@ -1287,7 +1287,6 @@ static void _actor01100UpdateAwareness(Enemy* enemy, Task* task, _Actor01100Work
         ACTOR_01100_AWARENESS_ACTION_RUN_RANGE_SQUARED = 2000 * 2000,
         ACTOR_01100_AWARENESS_RUN_RANGE_SQUARED        = 4000 * 4000,
         ACTOR_01100_AWARENESS_WALK_RANGE_SQUARED       = 1000 * 1000,
-        ACTOR_01100_PLAYER_MOVEMENT_RUN                = 3
     };
 
     WorldTargetNode* targetNode;
@@ -1317,7 +1316,7 @@ static void _actor01100UpdateAwareness(Enemy* enemy, Task* task, _Actor01100Work
 
         if (playerTask != NULL) {
             playerWork = playerTask->work;
-            if (((gSceneCombatState.signals.bytes.actionFlags ^ 1) == 0) || (((u16)playerWork->movementMode == ACTOR_01100_PLAYER_MOVEMENT_RUN) && distanceSquared <= ACTOR_01100_AWARENESS_ACTION_RUN_RANGE_SQUARED - 1)) {
+            if (((gSceneCombatState.signals.bytes.actionFlags ^ 1) == 0) || (((u16)playerWork->movementMode == GAME_ACTOR_MOVEMENT_RUN) && distanceSquared <= ACTOR_01100_AWARENESS_ACTION_RUN_RANGE_SQUARED - 1)) {
                 engage = 1;
             }
         }
@@ -1327,7 +1326,7 @@ static void _actor01100UpdateAwareness(Enemy* enemy, Task* task, _Actor01100Work
 
         if (playerTask != NULL) {
             playerWork = playerTask->work;
-            if ((((u16)playerWork->movementMode == ACTOR_01100_PLAYER_MOVEMENT_RUN) && distanceSquared <= ACTOR_01100_AWARENESS_RUN_RANGE_SQUARED - 1) || distanceSquared <= ACTOR_01100_AWARENESS_WALK_RANGE_SQUARED - 1) {
+            if ((((u16)playerWork->movementMode == GAME_ACTOR_MOVEMENT_RUN) && distanceSquared <= ACTOR_01100_AWARENESS_RUN_RANGE_SQUARED - 1) || distanceSquared <= ACTOR_01100_AWARENESS_WALK_RANGE_SQUARED - 1) {
                 engage = 1;
             }
         }

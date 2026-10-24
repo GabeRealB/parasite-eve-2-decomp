@@ -69,9 +69,6 @@ enum {
     ACTOR_800200_STATE_APPROACH            = 8,
     ACTOR_800200_STATE_TIMED_WAIT          = 9,
     ACTOR_800200_STATE_ROUTE_ANIMATION     = 11,
-    ACTOR_800200_MOVEMENT_STOPPED          = 0,
-    ACTOR_800200_MOVEMENT_WALK             = 5,
-    ACTOR_800200_MOVEMENT_RUN              = 6,
     ACTOR_800200_TURN_DISABLED             = 0,
     ACTOR_800200_TURN_TARGET               = 2,
     ACTOR_800200_ANIMATION_CONTROLLER_NONE = 0,
@@ -509,7 +506,7 @@ static inline void _actor800200ResetActionBurst(GameActor* actor, u16 targetVari
     enum { ACTOR_800200_ACTION_BURST_INITIAL_PHASE = 0 };
     actor->mode                        = GAME_ACTOR_MODE_NORMAL;
     actor->state                       = ACTOR_800200_STATE_ACTION_BURST;
-    actor->movementMode                = ACTOR_800200_MOVEMENT_STOPPED;
+    actor->movementMode                = GAME_ACTOR_MOVEMENT_STOPPED;
     actor->turnRateIndex               = ACTOR_800200_TURN_DISABLED;
     actor->animationState              = ACTOR_800200_ANIMATION_CONTROLLER_NONE;
     actor->statePhase                  = ACTOR_800200_ACTION_BURST_INITIAL_PHASE;
@@ -867,7 +864,7 @@ static void _actor800200TickFreeIdle(Task* task)
                 break;
             case ACTOR_800200_IDLE_APPROACH_TARGET:
                 worldTargetGetBodyPosition(actor->targetNode, &actor->destination);
-                _actor800200EnterApproach(task, ACTOR_800200_MOVEMENT_RUN);
+                _actor800200EnterApproach(task, GAME_ACTOR_MOVEMENT_COMPANION_RUN);
                 break;
             case ACTOR_800200_IDLE_ACTION_BURST:
                 companion->activity.combat.repeatsRemaining = (rand() & ACTOR_800200_COMBAT_REPEAT_MASK) + 1;
@@ -965,9 +962,9 @@ static void _actor800200TickArea26Route(Task* task)
                 companion->waypointIndex++;
                 return;
             }
-            movementMode = ACTOR_800200_MOVEMENT_RUN;
+            movementMode = GAME_ACTOR_MOVEMENT_COMPANION_RUN;
             if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
-                movementMode = ACTOR_800200_MOVEMENT_WALK;
+                movementMode = GAME_ACTOR_MOVEMENT_COMPANION_WALK;
             }
             _actor800200EnterApproach(task, movementMode);
             return;
@@ -1039,9 +1036,9 @@ static void _actor800200TickArea23Route1(Task* task)
                 companion->waypointIndex++;
                 return;
             }
-            movementMode = ACTOR_800200_MOVEMENT_RUN;
+            movementMode = GAME_ACTOR_MOVEMENT_COMPANION_RUN;
             if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
-                movementMode = ACTOR_800200_MOVEMENT_WALK;
+                movementMode = GAME_ACTOR_MOVEMENT_COMPANION_WALK;
             }
             _actor800200EnterApproach(task, movementMode);
             return;
@@ -1102,7 +1099,7 @@ static void _actor800200TickSchedule3Route(Task* task)
                     actor->statePhase     = 0;
                     actor->animationState = ACTOR_800200_ANIMATION_CONTROLLER_ONCE;
                     playerActorPlayChildSlotsWithBlend(task, ACTOR_800200_ANIMATION_REST, 0, ACTOR_800200_ENTRY_BLEND_FRAMES);
-                    _actor800200EnterApproach(task, ACTOR_800200_MOVEMENT_RUN);
+                    _actor800200EnterApproach(task, GAME_ACTOR_MOVEMENT_COMPANION_RUN);
                     return;
                 }
                 if (companionGetPlayerPlanarDistance(rootCoord) >= ACTOR_800200_ROUTE_WAIT_DISTANCE) {
@@ -1114,7 +1111,7 @@ static void _actor800200TickSchedule3Route(Task* task)
                 }
                 companion->waypointIndex++;
             }
-            _actor800200EnterApproach(task, ACTOR_800200_MOVEMENT_RUN);
+            _actor800200EnterApproach(task, GAME_ACTOR_MOVEMENT_COMPANION_RUN);
             return;
         case ACTOR_800200_SCHEDULE3_WAIT_PLAYER:
             if ((companionGetPlayerPlanarDistance(rootCoord) < ACTOR_800200_ROUTE_RESUME_DISTANCE_LIMIT) || (rootCoord->coord.t[0] < playerCoord->coord.t[0])) {
@@ -1188,7 +1185,7 @@ static void _actor800200TickArea23Route7(Task* task)
                 companion->waypointIndex++;
                 return;
             }
-            _actor800200EnterApproach(task, ACTOR_800200_MOVEMENT_RUN);
+            _actor800200EnterApproach(task, GAME_ACTOR_MOVEMENT_COMPANION_RUN);
             return;
         default:
             return;
@@ -1244,7 +1241,7 @@ static void _actor800200TickArea22Route(Task* task)
                 companion->waypointIndex++;
                 return;
             }
-            _actor800200EnterApproach(task, ACTOR_800200_MOVEMENT_RUN);
+            _actor800200EnterApproach(task, GAME_ACTOR_MOVEMENT_COMPANION_RUN);
             return;
         case ACTOR_800200_ROUTE_WAIT_PLAYER:
             if (companionGetPlayerPlanarDistance(coord) < ACTOR_800200_ROUTE_RESUME_DISTANCE_LIMIT) {
@@ -1313,9 +1310,9 @@ static void _actor800200TickArea20Route7(Task* task)
                 companion->waypointIndex++;
                 return;
             }
-            movementMode = ACTOR_800200_MOVEMENT_RUN;
+            movementMode = GAME_ACTOR_MOVEMENT_COMPANION_RUN;
             if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
-                movementMode = ACTOR_800200_MOVEMENT_WALK;
+                movementMode = GAME_ACTOR_MOVEMENT_COMPANION_WALK;
             }
             _actor800200EnterApproach(task, movementMode);
             return;
@@ -1391,9 +1388,9 @@ static void _actor800200TickArea4Route(Task* task)
                 companion->waypointIndex++;
                 return;
             }
-            movementMode = ACTOR_800200_MOVEMENT_RUN;
+            movementMode = GAME_ACTOR_MOVEMENT_COMPANION_RUN;
             if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
-                movementMode = ACTOR_800200_MOVEMENT_WALK;
+                movementMode = GAME_ACTOR_MOVEMENT_COMPANION_WALK;
             }
             _actor800200EnterApproach(task, movementMode);
             return;
@@ -1456,9 +1453,9 @@ static void _actor800200TickArea2Route(Task* task)
                 _actor800200EnterRouteAnimation(task);
                 return;
             }
-            movementMode = ACTOR_800200_MOVEMENT_RUN;
+            movementMode = GAME_ACTOR_MOVEMENT_COMPANION_RUN;
             if (companion->waypointIndex == ACTOR_800200_ROUTE_WALK_WAYPOINT) {
-                movementMode = ACTOR_800200_MOVEMENT_WALK;
+                movementMode = GAME_ACTOR_MOVEMENT_COMPANION_WALK;
             }
             _actor800200EnterApproach(task, movementMode);
             return;
@@ -1508,7 +1505,7 @@ static void _actor800200TickArea5Route(Task* task)
                 _actor800200EnterRouteAnimation(task);
                 return;
             }
-            _actor800200EnterApproach(task, ACTOR_800200_MOVEMENT_RUN);
+            _actor800200EnterApproach(task, GAME_ACTOR_MOVEMENT_COMPANION_RUN);
             return;
         default:
             return;
@@ -1555,7 +1552,7 @@ static void _actor800200TickArea1Route(Task* task)
                 _actor800200EnterRouteAnimation(task);
                 break;
             }
-            _actor800200EnterApproach(task, ACTOR_800200_MOVEMENT_RUN);
+            _actor800200EnterApproach(task, GAME_ACTOR_MOVEMENT_COMPANION_RUN);
             break;
     }
 }
@@ -1602,7 +1599,7 @@ static void _actor800200TickArea20Route8To10(Task* task)
                 _actor800200EnterRouteAnimation(task);
                 return;
             }
-            _actor800200EnterApproach(task, ACTOR_800200_MOVEMENT_RUN);
+            _actor800200EnterApproach(task, GAME_ACTOR_MOVEMENT_COMPANION_RUN);
             return;
         default:
             return;
@@ -1648,7 +1645,7 @@ static void _actor800200TickArea19Route(Task* task)
                 _actor800200EnterRouteAnimation(task);
                 return;
             }
-            _actor800200EnterApproach(task, ACTOR_800200_MOVEMENT_RUN);
+            _actor800200EnterApproach(task, GAME_ACTOR_MOVEMENT_COMPANION_RUN);
             return;
         default:
             return;
@@ -1696,9 +1693,9 @@ static void _actor800200TickArea15Route(Task* task)
                 _actor800200EnterRouteAnimation(task);
                 return;
             }
-            movementMode = ACTOR_800200_MOVEMENT_RUN;
+            movementMode = GAME_ACTOR_MOVEMENT_COMPANION_RUN;
             if (companion->waypointIndex == ACTOR_800200_ROUTE_WALK_WAYPOINT) {
-                movementMode = ACTOR_800200_MOVEMENT_WALK;
+                movementMode = GAME_ACTOR_MOVEMENT_COMPANION_WALK;
             }
             _actor800200EnterApproach(task, movementMode);
             return;
@@ -1763,13 +1760,13 @@ static void _actor800200TickPlayerFollow(Task* task)
             if (companionGetPlayerPlanarDistance(rootCoord) >= ACTOR_800200_FOLLOW_RUN_DISTANCE) {
                 animationId         = ACTOR_800200_ANIMATION_RUN;
                 actor->statePhase   = ACTOR_800200_FOLLOW_RUN_PHASE;
-                actor->movementMode = ACTOR_800200_MOVEMENT_RUN;
+                actor->movementMode = GAME_ACTOR_MOVEMENT_COMPANION_RUN;
             } else {
             resume:
                 if (actor->statePhase != ACTOR_800200_FOLLOW_STEADY_WALK_PHASE) {
                     actor->statePhase = ACTOR_800200_FOLLOW_WALK_PHASE;
                 }
-                actor->movementMode = ACTOR_800200_MOVEMENT_WALK;
+                actor->movementMode = GAME_ACTOR_MOVEMENT_COMPANION_WALK;
                 animationId         = ACTOR_800200_ANIMATION_WALK;
             }
             actor->movementSign = 1;
@@ -1845,7 +1842,7 @@ static void _actor800200TickTargetTurn(Task* task)
     switch (actor->statePhase) {
         case ACTOR_800200_TARGET_TURN_START_PHASE:
             actor->statePhase   = ACTOR_800200_TARGET_TURN_ACTIVE_PHASE;
-            actor->movementMode = ACTOR_800200_MOVEMENT_WALK;
+            actor->movementMode = GAME_ACTOR_MOVEMENT_COMPANION_WALK;
             actor->movementSign = 1;
             if (playerActorGetTurnToPoint(task, focusPosition) < 0) {
                 actor->turnSign = -1;
@@ -2023,7 +2020,7 @@ static void _actor800200TickApproach(Task* task)
                 actor->movementMode = actor->stateTimer;
                 actor->statePhase++;
                 animationId = ACTOR_800200_ANIMATION_RUN;
-                if ((u16)actor->stateTimer == ACTOR_800200_MOVEMENT_WALK) {
+                if ((u16)actor->stateTimer == GAME_ACTOR_MOVEMENT_COMPANION_WALK) {
                     animationId = ACTOR_800200_ANIMATION_WALK;
                 }
                 playerActorPlayChildSlotsWithBlend(task, animationId, 0, ACTOR_800200_MOVEMENT_BLEND_FRAMES);
@@ -2224,7 +2221,7 @@ static void _actor800200TickClearanceEscape(Task* task)
                 actor->turnSign    = 0;
                 if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                     movementAnimationId = ACTOR_800200_ANIMATION_RUN;
-                    actor->movementMode = ACTOR_800200_MOVEMENT_RUN;
+                    actor->movementMode = GAME_ACTOR_MOVEMENT_COMPANION_RUN;
                     delayRandom         = RANDOM_LCG_NEXT(gRandomLcgState);
                     gRandomLcgState     = delayRandom;
                     delayRandom         = ((delayRandom >> ACTOR_800200_ESCAPE_RANDOM_DRAW_SHIFT) & ACTOR_800200_ESCAPE_COMBAT_RANDOM_MASK) + ACTOR_800200_ESCAPE_COMBAT_MIN_TICKS;
@@ -2232,7 +2229,7 @@ static void _actor800200TickClearanceEscape(Task* task)
                     playerActorPlayChildSlotsWithBlend(task, movementAnimationId, 0, ACTOR_800200_ENTRY_BLEND_FRAMES);
                 } else {
                     movementAnimationId = ACTOR_800200_ANIMATION_WALK;
-                    actor->movementMode = ACTOR_800200_MOVEMENT_WALK;
+                    actor->movementMode = GAME_ACTOR_MOVEMENT_COMPANION_WALK;
                     delayRandom         = RANDOM_LCG_NEXT(gRandomLcgState);
                     gRandomLcgState     = delayRandom;
                     delayRandom         = ((delayRandom >> ACTOR_800200_ESCAPE_RANDOM_DRAW_SHIFT) & ACTOR_800200_ESCAPE_CALM_RANDOM_MASK) + ACTOR_800200_ESCAPE_CALM_MIN_TICKS;
@@ -2290,7 +2287,7 @@ static void _actor800200TickScriptedWalkToDestination(Task* task)
             playerActorPlayChildSlots(task, animationId, 1);
         case ACTOR_800200_DESTINATION_TURN_PHASE:
             if (scratch->turnStep == 0) {
-                actor->movementMode = ACTOR_800200_MOVEMENT_WALK;
+                actor->movementMode = GAME_ACTOR_MOVEMENT_COMPANION_WALK;
                 actor->statePhase++;
                 if (actor->actionArgument == 0) {
                     animationId = ACTOR_800200_ANIMATION_WALK;
@@ -2359,7 +2356,7 @@ static void _actor800200TickScriptedRunToDestination(Task* task)
             playerActorPlayChildSlots(task, animationId, 1);
         case ACTOR_800200_DESTINATION_TURN_PHASE:
             if (scratch->turnStep == 0) {
-                actor->movementMode = ACTOR_800200_MOVEMENT_RUN;
+                actor->movementMode = GAME_ACTOR_MOVEMENT_COMPANION_RUN;
                 actor->statePhase++;
                 animationId = ACTOR_800200_ANIMATION_RUN;
                 if (actor->actionArgument != 0) {
@@ -2490,7 +2487,7 @@ static s32 _actor800200PlayFootstepCue(Task* task)
                 surface        = gWorldCollisionSurfacePropertiesTables[gGameSession->location.stage - 1][gGameSession->location.area - 1][actor->surfaceClass];
                 footstepSounds = surface->footstepSounds;
                 if (footstepSounds != NULL) {
-                    if ((u16)actor->movementMode - ACTOR_800200_MOVEMENT_WALK < 2U) {
+                    if ((u16)actor->movementMode - GAME_ACTOR_MOVEMENT_COMPANION_WALK < 2U) {
                         switch (footstepSounds->walk) {
                             case 0x10000015:
                                 soundId = SOUND_CHARACTER(SOUND_BANK_ACTOR_800200, 7);
@@ -2514,7 +2511,7 @@ static s32 _actor800200PlayFootstepCue(Task* task)
                         if (cueBits == ANIMATION_RECORD_CUE_1) {
                             soundId++;
                         }
-                        if ((u16)actor->movementMode == ACTOR_800200_MOVEMENT_RUN) {
+                        if ((u16)actor->movementMode == GAME_ACTOR_MOVEMENT_COMPANION_RUN) {
                             sceneLatchActionSignal(SCENE_COMBAT_ACTION_SIGNAL_FOOTSTEP);
                         }
                     }
@@ -2596,7 +2593,7 @@ static void _actor800200EnterRest(Task* task)
 
     actor->mode           = GAME_ACTOR_MODE_NORMAL;
     actor->state          = ACTOR_800200_STATE_REST;
-    actor->movementMode   = ACTOR_800200_MOVEMENT_STOPPED;
+    actor->movementMode   = GAME_ACTOR_MOVEMENT_STOPPED;
     actor->turnRateIndex  = ACTOR_800200_TURN_DISABLED;
     actor->animationState = ACTOR_800200_ANIMATION_CONTROLLER_ONCE;
     actor->statePhase     = 0;
@@ -2615,7 +2612,7 @@ static void _actor800200EnterApproach(Task* task, s32 movementMode)
 
     actor->state          = ACTOR_800200_STATE_APPROACH;
     actor->mode           = GAME_ACTOR_MODE_NORMAL;
-    actor->movementMode   = ACTOR_800200_MOVEMENT_WALK;
+    actor->movementMode   = GAME_ACTOR_MOVEMENT_COMPANION_WALK;
     actor->turnRateIndex  = ACTOR_800200_TURN_DISABLED;
     actor->animationState = ACTOR_800200_ANIMATION_CONTROLLER_NONE;
     actor->statePhase     = 0;
@@ -2631,7 +2628,7 @@ static inline void _actor800200EnterStationaryState(GameActor* actor, u16 state)
 {
     actor->mode           = GAME_ACTOR_MODE_NORMAL;
     actor->state          = state;
-    actor->movementMode   = ACTOR_800200_MOVEMENT_STOPPED;
+    actor->movementMode   = GAME_ACTOR_MOVEMENT_STOPPED;
     actor->turnRateIndex  = ACTOR_800200_TURN_DISABLED;
     actor->animationState = ACTOR_800200_ANIMATION_CONTROLLER_NONE;
     actor->statePhase     = 0;
@@ -2703,7 +2700,7 @@ static void _actor800200EnterRouteAnimation(Task* task)
 
     actor->state          = ACTOR_800200_STATE_ROUTE_ANIMATION;
     actor->mode           = GAME_ACTOR_MODE_NORMAL;
-    actor->movementMode   = ACTOR_800200_MOVEMENT_STOPPED;
+    actor->movementMode   = GAME_ACTOR_MOVEMENT_STOPPED;
     actor->turnRateIndex  = ACTOR_800200_TURN_DISABLED;
     actor->animationState = ACTOR_800200_ANIMATION_CONTROLLER_ONCE;
     actor->statePhase     = 0;
@@ -2844,9 +2841,9 @@ static void _actor800200TickArea24Route1(Task* task)
             _actor800200EnterTimedWait(task, 0);
             return;
         }
-        movementMode = ACTOR_800200_MOVEMENT_RUN;
+        movementMode = GAME_ACTOR_MOVEMENT_COMPANION_RUN;
         if (companion->waypointIndex == ACTOR_800200_ROUTE_WALK_OVERRIDE_INDEX) {
-            movementMode = ACTOR_800200_MOVEMENT_WALK;
+            movementMode = GAME_ACTOR_MOVEMENT_COMPANION_WALK;
         }
         _actor800200EnterApproach(task, movementMode);
     }
@@ -2873,7 +2870,7 @@ static void _actor800200TickArea25Route1(Task* task)
             _actor800200EnterTimedWait(task, 0);
             return;
         }
-        _actor800200EnterApproach(task, ACTOR_800200_MOVEMENT_RUN);
+        _actor800200EnterApproach(task, GAME_ACTOR_MOVEMENT_COMPANION_RUN);
     }
 }
 
@@ -2918,7 +2915,7 @@ static void _actor800200TickArea3Route(Task* task)
                 }
                 return;
             }
-            _actor800200EnterApproach(task, ACTOR_800200_MOVEMENT_RUN);
+            _actor800200EnterApproach(task, GAME_ACTOR_MOVEMENT_COMPANION_RUN);
             return;
         case ACTOR_800200_BULWARK_COMPLETE:
             companion->routeComplete = routePhase;
@@ -2948,7 +2945,7 @@ static void _actor800200TickArea24Route10(Task* task)
             _actor800200EnterRouteAnimation(task);
             return;
         }
-        _actor800200EnterApproach(task, ACTOR_800200_MOVEMENT_RUN);
+        _actor800200EnterApproach(task, GAME_ACTOR_MOVEMENT_COMPANION_RUN);
     }
 }
 
@@ -3169,7 +3166,7 @@ static void _actor800200TickScriptedTurn(Task* task)
         } else if (turnDelta < -ACTOR_800200_SCRIPTED_TURN_STEP) {
             turnDelta = -ACTOR_800200_SCRIPTED_TURN_STEP;
         }
-        actor->movementMode = ACTOR_800200_MOVEMENT_WALK;
+        actor->movementMode = GAME_ACTOR_MOVEMENT_COMPANION_WALK;
         actor->movementSign = 1;
         actor->rotation.vy  = ((u16)actor->rotation.vy + turnDelta) & ACTOR_TRANSFORM_ANGLE_MASK;
     }

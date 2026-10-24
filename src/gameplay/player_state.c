@@ -407,8 +407,6 @@ void playerStateTickStatusEffects(Task* task)
         PLAYER_STATE_POISON_STOPPED_INTERVAL = 120,
         PLAYER_STATE_POISON_RUNNING_INTERVAL = 20,
         PLAYER_STATE_POISON_OTHER_INTERVAL   = 60,
-        PLAYER_STATE_POISON_MOVEMENT_STOPPED = 0,
-        PLAYER_STATE_POISON_MOVEMENT_RUN     = 3
     };
     s32        statusFlags;
     GameActor* actor;
@@ -446,9 +444,9 @@ void playerStateTickStatusEffects(Task* task)
             if ((s8)remainingTicks <= 0) {
                 playerStateApplyHpDamage(PLAYER_STATE_POISON_DAMAGE_HP);
                 movementMode = (u16)actor->movementMode;
-                if (movementMode == PLAYER_STATE_POISON_MOVEMENT_STOPPED) {
+                if (movementMode == GAME_ACTOR_MOVEMENT_STOPPED) {
                     actor->poisonDamageTicks = PLAYER_STATE_POISON_STOPPED_INTERVAL;
-                } else if (movementMode == PLAYER_STATE_POISON_MOVEMENT_RUN) {
+                } else if (movementMode == GAME_ACTOR_MOVEMENT_RUN) {
                     actor->poisonDamageTicks = PLAYER_STATE_POISON_RUNNING_INTERVAL;
                 } else {
                     actor->poisonDamageTicks = PLAYER_STATE_POISON_OTHER_INTERVAL;
@@ -798,7 +796,6 @@ void playerActorEnterPendingHit(Task* task)
 void playerActorEnterStoppedPose(Task* task, s32 blendFrames)
 {
     enum {
-        PLAYER_ACTOR_STOPPED_MOVEMENT                  = 0,
         PLAYER_ACTOR_STOPPED_TURN_DISABLED             = 0,
         PLAYER_ACTOR_STOPPED_ANIMATION_CONTROLLER_NONE = 0
     };
@@ -806,7 +803,7 @@ void playerActorEnterStoppedPose(Task* task, s32 blendFrames)
 
     actor                 = task->work;
     actor->mode           = GAME_ACTOR_MODE_DAMAGE;
-    actor->movementMode   = PLAYER_ACTOR_STOPPED_MOVEMENT;
+    actor->movementMode   = GAME_ACTOR_MOVEMENT_STOPPED;
     actor->turnRateIndex  = PLAYER_ACTOR_STOPPED_TURN_DISABLED;
     actor->animationState = PLAYER_ACTOR_STOPPED_ANIMATION_CONTROLLER_NONE;
     actor->statePhase     = 0;
@@ -835,7 +832,7 @@ static inline void _playerActorStopForDamageClip(GameActor* actor)
     };
 
     actor->mode           = GAME_ACTOR_MODE_DAMAGE;
-    actor->movementMode   = PLAYER_ACTOR_DAMAGE_MOVEMENT_STOPPED;
+    actor->movementMode   = GAME_ACTOR_MOVEMENT_STOPPED;
     actor->turnRateIndex  = PLAYER_ACTOR_DAMAGE_TURN_DISABLED;
     actor->animationState = PLAYER_ACTOR_DAMAGE_ANIMATION_CONTROLLER;
     actor->statePhase     = PLAYER_ACTOR_DAMAGE_CLIP_INITIAL_PHASE;
@@ -1432,13 +1429,13 @@ void companionRemoveEquipment(Task* task)
         /// each store evaluates it. Playback is selected after this reset.
 #define COMPANION_REMOVE_EQUIPMENT_RESET_IDLE(actor)                                    \
     {                                                                                   \
-        enum { COMPANION_REMOVE_EQUIPMENT_IDLE_STATE                = 0,                \
-               COMPANION_REMOVE_EQUIPMENT_MOVEMENT_STOPPED          = 0,                \
+        enum { COMPANION_REMOVE_EQUIPMENT_IDLE_STATE = 0,                               \
+                                                                                        \
                COMPANION_REMOVE_EQUIPMENT_TURN_DISABLED             = 0,                \
                COMPANION_REMOVE_EQUIPMENT_ANIMATION_CONTROLLER_NONE = 0 };              \
         (actor)->mode           = GAME_ACTOR_MODE_NORMAL;                               \
         (actor)->state          = COMPANION_REMOVE_EQUIPMENT_IDLE_STATE;                \
-        (actor)->movementMode   = COMPANION_REMOVE_EQUIPMENT_MOVEMENT_STOPPED;          \
+        (actor)->movementMode   = GAME_ACTOR_MOVEMENT_STOPPED;                          \
         (actor)->turnRateIndex  = COMPANION_REMOVE_EQUIPMENT_TURN_DISABLED;             \
         (actor)->animationState = COMPANION_REMOVE_EQUIPMENT_ANIMATION_CONTROLLER_NONE; \
         (actor)->statePhase     = 0;                                                    \
@@ -1465,7 +1462,6 @@ Task* companionRestoreEquipment(void)
         COMPANION_RESTORE_PYKE_VARIANT              = 4,
         COMPANION_RESTORE_ATTACK_KEY_BIT            = 0x80,
         COMPANION_RESTORE_IDLE_STATE                = 0,
-        COMPANION_RESTORE_MOVEMENT_STOPPED          = 0,
         COMPANION_RESTORE_TURN_DISABLED             = 0,
         COMPANION_RESTORE_ANIMATION_CONTROLLER_NONE = 0
     };
@@ -1526,7 +1522,7 @@ Task* companionRestoreEquipment(void)
     {                                                                          \
         (actor)->mode           = GAME_ACTOR_MODE_NORMAL;                      \
         (actor)->state          = COMPANION_RESTORE_IDLE_STATE;                \
-        (actor)->movementMode   = COMPANION_RESTORE_MOVEMENT_STOPPED;          \
+        (actor)->movementMode   = GAME_ACTOR_MOVEMENT_STOPPED;                 \
         (actor)->turnRateIndex  = COMPANION_RESTORE_TURN_DISABLED;             \
         (actor)->animationState = COMPANION_RESTORE_ANIMATION_CONTROLLER_NONE; \
         (actor)->statePhase     = 0;                                           \
@@ -1579,7 +1575,7 @@ void companionEnterDamageReaction(Task* task)
     actor->mode           = GAME_ACTOR_MODE_DAMAGE;
     actor->animationState = COMPANION_DAMAGE_ANIMATION_CONTROLLER;
     save                  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    actor->movementMode   = 0;
+    actor->movementMode   = GAME_ACTOR_MOVEMENT_STOPPED;
     actor->turnRateIndex  = 0;
     actor->statePhase     = 0;
     actor->stateAux       = 0;
@@ -1655,14 +1651,13 @@ static inline void _companionResetIdleState(GameActor* actor)
 {
     enum {
         COMPANION_IDLE_STATE                     = 0,
-        COMPANION_IDLE_MOVEMENT_STOPPED          = 0,
         COMPANION_IDLE_TURN_DISABLED             = 0,
         COMPANION_IDLE_ANIMATION_CONTROLLER_NONE = 0
     };
 
     actor->mode           = GAME_ACTOR_MODE_NORMAL;
     actor->state          = COMPANION_IDLE_STATE;
-    actor->movementMode   = COMPANION_IDLE_MOVEMENT_STOPPED;
+    actor->movementMode   = GAME_ACTOR_MOVEMENT_STOPPED;
     actor->turnRateIndex  = COMPANION_IDLE_TURN_DISABLED;
     actor->animationState = COMPANION_IDLE_ANIMATION_CONTROLLER_NONE;
     actor->statePhase     = 0;

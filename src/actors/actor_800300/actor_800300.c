@@ -60,7 +60,6 @@ enum {
     ACTOR_800300_STATE_FOLLOW_PLAYER           = 1,
     ACTOR_800300_STATE_TURN_TO_TARGET          = 2,
     ACTOR_800300_STATE_FLINCH                  = 5,
-    ACTOR_800300_MOVEMENT_STOPPED              = 0,
     ACTOR_800300_TURN_DISABLED                 = 0,
     ACTOR_800300_TURN_RATE_64                  = 1,
     ACTOR_800300_ANIMATION_CONTROLLER_NONE     = 0,
@@ -767,7 +766,7 @@ static void _actor800300TickNormalMode(Task* task)
                 }
                 actor->animationState   = ACTOR_800300_ANIMATION_CONTROLLER_CLIP_END;
                 actor->state            = ACTOR_800300_STATE_FLINCH;
-                actor->movementMode     = ACTOR_800300_MOVEMENT_STOPPED;
+                actor->movementMode     = GAME_ACTOR_MOVEMENT_STOPPED;
                 actor->turnRateIndex    = ACTOR_800300_TURN_DISABLED;
                 actor->statePhase       = 0;
                 actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
@@ -819,8 +818,6 @@ static void _actor800300FollowPlayerState(Task* task)
         ACTOR_800300_FOLLOW_WALK               = 1,
         ACTOR_800300_FOLLOW_RUN                = 2,
         ACTOR_800300_FOLLOW_FORCED_WALK        = 3,
-        ACTOR_800300_MOVEMENT_RUN              = 3,
-        ACTOR_800300_MOVEMENT_SLOW_WALK        = 7,
         ACTOR_800300_MOVE_FORWARD              = 1,
         ACTOR_800300_ANIMATION_WALK            = 2,
         ACTOR_800300_ANIMATION_RUN             = 4,
@@ -849,13 +846,13 @@ static void _actor800300FollowPlayerState(Task* task)
             if (companionGetPlayerPlanarDistance(rootCoord) >= ACTOR_800300_FOLLOW_RUN_DISTANCE) {
                 animationSet        = ACTOR_800300_ANIMATION_RUN;
                 actor->statePhase   = ACTOR_800300_FOLLOW_RUN;
-                actor->movementMode = ACTOR_800300_MOVEMENT_RUN;
+                actor->movementMode = GAME_ACTOR_MOVEMENT_RUN;
             } else {
             selectWalk:
                 if (actor->statePhase != ACTOR_800300_FOLLOW_FORCED_WALK) {
                     actor->statePhase = ACTOR_800300_FOLLOW_WALK;
                 }
-                actor->movementMode = ACTOR_800300_MOVEMENT_SLOW_WALK;
+                actor->movementMode = GAME_ACTOR_MOVEMENT_SLOW_WALK;
                 animationSet        = ACTOR_800300_ANIMATION_WALK;
             }
             playerActorPlayChildSlotsWithBlend(task, animationSet, 0, ACTOR_800300_MOVEMENT_BLEND_FRAMES);
@@ -1038,13 +1035,12 @@ static void _actor800300IdleDecisionState(Task* task)
 static inline void _actor800300StartApproach(Task* task, GameActor* actor)
 {
     enum {
-        ACTOR_800300_APPROACH_MOVEMENT_RUN = 3,
-        ACTOR_800300_APPROACH_ANIMATION    = 12,
+        ACTOR_800300_APPROACH_ANIMATION = 12,
     };
 
     actor->statePhase   = ACTOR_800300_APPROACH_MOVE;
     actor->stateTimer   = 0;
-    actor->movementMode = ACTOR_800300_APPROACH_MOVEMENT_RUN;
+    actor->movementMode = GAME_ACTOR_MOVEMENT_RUN;
     playerActorPlayChildSlotsWithBlend(task, ACTOR_800300_APPROACH_ANIMATION, 0, ACTOR_800300_MOVEMENT_BLEND_FRAMES);
 }
 
@@ -1223,7 +1219,7 @@ static void _actor800300EnterTurnToTarget(Task* task)
     actor                 = task->work;
     actor->state          = ACTOR_800300_STATE_TURN_TO_TARGET;
     actor->mode           = GAME_ACTOR_MODE_NORMAL;
-    actor->movementMode   = ACTOR_800300_MOVEMENT_STOPPED;
+    actor->movementMode   = GAME_ACTOR_MOVEMENT_STOPPED;
     actor->turnRateIndex  = ACTOR_800300_TURN_RATE_64;
     actor->animationState = ACTOR_800300_ANIMATION_CONTROLLER_NONE;
     actor->statePhase     = 0;

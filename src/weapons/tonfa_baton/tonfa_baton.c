@@ -356,7 +356,7 @@ void tonfaBatonAttackState(Task* playerTask)
             actor->state          = PLAYER_ACTOR_STATE_ATTACK;
             actor->statePhase     = TONFA_BATON_PHASE_FIRST_STRIKE;
             actor->mode           = GAME_ACTOR_MODE_NORMAL;
-            actor->movementMode   = 0;
+            actor->movementMode   = GAME_ACTOR_MOVEMENT_STOPPED;
             actor->turnRateIndex  = 0;
             actor->animationState = 0;
             actor->stateTimer     = TONFA_BATON_WINDUP_FRAMES;

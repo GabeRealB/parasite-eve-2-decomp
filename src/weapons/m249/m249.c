@@ -76,7 +76,7 @@ void m249AttackState(Task* playerTask)
                 readyBlendFrames = M249_MOVING_READY_BLEND_FRAMES;
             }
             playerActorPlayChildSlotsWithBlend(playerTask, PLAYER_ANIMATION_AIM_IDLE, 0, readyBlendFrames);
-            actor->movementMode = 0;
+            actor->movementMode = GAME_ACTOR_MOVEMENT_STOPPED;
             break;
         case M249_PHASE_WAIT_READY:
             if (animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1) !=
