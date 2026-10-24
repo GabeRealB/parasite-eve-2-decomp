@@ -1,30 +1,20 @@
 #include "rooms/mist_r18.h"
 
+#include "config.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
-#include "common.h"
-
-#include "actors/task_tables.h"
-
-#include "gameplay/companion_load.h"
 #include "gameplay/animation.h"
-#include "gameplay/area.h"
-#include "gameplay/captions.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
-#include "gameplay/collision.h"
-#include "gameplay/direction.h"
+#include "gameplay/companion_load.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
-#include "gameplay/light.h"
 #include "gameplay/message.h"
-#include "gameplay/room.h"
 #include "gameplay/scene_runtime.h"
-#include "gameplay/sprites.h"
 #include "gameplay/starter_inventory.h"
-#include "gameplay/view.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -42,7 +32,7 @@
 #include "main/tmd_types.h"
 
 #include "mapui/map_akropolis.h"
-#include "../../shared/room/backdrop_crossfade.h"
+#include "../../../../shared/room/backdrop_crossfade.h"
 
 #include "assets/rooms/mist/r18/declarations.inc"
 
@@ -79,66 +69,30 @@ static void _mistR18InitBriefingState(Task* task);
 
 static TaskDesc _gMistR18TaskDescs[8];
 /// Saved task drawing the first briefing model on the player's part 8.
-///
-/// NULL before spawning or after explicit teardown, including spawn failure.
-/// Its attachment joins the player's teardown tree; clear this handle before
-/// using it again if that tree has been killed. Room setup requires no live
-/// previous instance because it resets the handle without killing a task.
 static Task* _gMistR18FirstAttachedModelTask;
 
 /// Saved task drawing the second briefing model on the player's part 8.
-///
-/// NULL before spawning or after explicit teardown, including spawn failure.
-/// Its attachment joins the player's teardown tree; clear this handle before
-/// using it again if that tree has been killed. Room setup requires no live
-/// previous instance because it resets the handle without killing a task.
 static Task* _gMistR18SecondAttachedModelTask;
 
 /// Saved task drawing the briefing's separately placed prop.
-///
-/// Each spawn overwrites the handle, including with NULL on failure; scripts
-/// tear down the previous instance before spawning again. Explicit teardown
-/// kills a non-NULL task and clears the handle. Room setup only clears it,
-/// so no previous instance may remain live when setup runs.
 static Task* _gMistR18PlacedPropTask;
 
 /// Next briefing phase to launch after the current event and menu finish.
-///
-/// Uses MIST_R18_BRIEFING_* values 1 place prop, 2 first held model, 3 open
-/// key items, 4 check the Dryfield-map choice and 5 departure already started.
-/// Phase 4 repeats the reminder until the map is selected; phase 5 launches
-/// nothing further. This signed word is separate from the room task's state.
 static s32 _gMistR18BriefingStep;
 /// Keeps the key-item menu's collected-item bits and Dryfield-map choice on reminders.
-///
-/// Zero initializes the four collection bits and clears the map-opened latch;
-/// one retains that state when reopening the menu. Written before each menu
-/// script starts and forwarded as a signed word to the map overlay.
 static s32 _gMistR18RetainKeyItemMenuState;
 
 /// Attachment, idle and teardown callbacks for the room's two held models.
-///
-/// Indexed by task state (0 attach to the parent part, 1 retain attachment,
-/// 2 kill), without a terminator or bounds check. Dispatch copies all three
-/// pointers by value; the callback code must remain loaded through the call.
 static const TaskFuncTable3 _gMistR18AttachedModelStates = {
     { _modelPlacementAttachPartTask, _mistR18AttachedModelIdleState, taskKill },
 };
 
 /// Initialization, script/menu progression and teardown callbacks for the briefing task.
-///
-/// Task states 0..2 index these three pointers without a bounds check or
-/// terminator. Dispatch copies the table by value; keep this room loaded
-/// through the call. These states are separate from the briefing-script cursor.
 static const TaskFuncTable3 _gMistR18BriefingStates = {
     { _mistR18InitBriefingState, _mistR18AdvanceBriefingState, taskKill },
 };
 
 /// Capture, view-wait, crossfade and teardown callbacks for the frozen backdrop.
-///
-/// Indexed by task state (0 capture, 1 wait for the replacement view,
-/// 2 crossfade to the live frame, 3 kill). Dispatch copies all four pointers
-/// by value and performs no bounds check; keep their code loaded through use.
 static const TaskFuncTable4 _gMistR18CrossfadeStates = {
     { _mistR18CaptureBackdropState, _mistR18WaitForCrossfadeViewState, _crossfadeOutState, taskKill },
 };
@@ -164,16 +118,16 @@ static void _mistR18CancelScene(void);
 static void _mistR18SetOrderingDepthShift(s8 depthShift);
 static void _mistR18OpenKeyItemMenu(void);
 
-static AnimationSet _gMistR18MistR18PlayerBriefingAnim01Clip;
-static AnimationSet _gMistR18MistR18PlayerBriefingAnim02Clip;
-static AnimationSet _gMistR18MistR18PlayerBriefingAnim03Clip;
-static AnimationSet _gMistR18MistR18PlayerBriefingAnim04Clip;
-static AnimationSet _gMistR18MistR18PlayerBriefingAnim05Clip;
-static AnimationSet _gMistR18MistR18PlayerBriefingAnim06Clip;
-static AnimationSet _gMistR18MistR18PlayerBriefingAnim07Clip;
-static AnimationSet _gMistR18MistR18PlayerBriefingAnim08Clip;
-static AnimationSet _gMistR18MistR18PlayerBriefingAnim09Clip;
-static AnimationSet _gMistR18MistR18PlayerBriefingAnim10Clip;
+static AnimationSet _gMistR18PlayerBriefingAnim01Clip;
+static AnimationSet _gMistR18PlayerBriefingAnim02Clip;
+static AnimationSet _gMistR18PlayerBriefingAnim03Clip;
+static AnimationSet _gMistR18PlayerBriefingAnim04Clip;
+static AnimationSet _gMistR18PlayerBriefingAnim05Clip;
+static AnimationSet _gMistR18PlayerBriefingAnim06Clip;
+static AnimationSet _gMistR18PlayerBriefingAnim07Clip;
+static AnimationSet _gMistR18PlayerBriefingAnim08Clip;
+static AnimationSet _gMistR18PlayerBriefingAnim09Clip;
+static AnimationSet _gMistR18PlayerBriefingAnim10Clip;
 static TmdSource    _gMistR18BriefingFile;
 static TmdSource    _gMistR18Laptop;
 static void         _mistR18CaptionTask(Task* task);
@@ -191,10 +145,6 @@ static void         _mistR18ReleaseScriptPauseTask(Task* task);
 #include "assets/rooms/mist/r18/clips.inc"
 
 /// Glyph-byte script for the briefing's two-line date and M.I.S.T. location caption.
-///
-/// The first 56 bytes select resident cells 0..69 or a line break, followed by
-/// TEXT_STREAM_END and three retained zero bytes. The reveal's post-end probe
-/// is inside this array; readable storage for its predecessor probe is unproven.
 static u8 _gMistR18BriefingCaptionScript[60] = {
     18,
     30,
@@ -259,13 +209,6 @@ static u8 _gMistR18BriefingCaptionScript[60] = {
 };
 
 /// Mutable date-and-place caption state borrowed by the briefing's single reveal task.
-///
-/// Draws at (-150, -90) pixels with 13-pixel line spacing. Stored plate dimensions
-/// are 216 by 29; the emitter subtracts one from each dimension.
-/// Uses the room font at VRAM (704, 48) and palette (16, 260). The child resets
-/// cursor, reveals a script byte every two ticks and reloads 45 for the final
-/// hold. Keep this stream, script, font pixels and palette live until teardown;
-/// simultaneous reveals would share the cursor and are not supported.
 static TextStream _gMistR18BriefingCaptionStream = {
     .x           = -150,
     .y           = -90,
@@ -287,13 +230,6 @@ static TextStream _gMistR18BriefingCaptionStream = {
 enum { MIST_R18_BRIEFING_TASK_PRIORITY = 192 };
 
 /// Spawn recipes for the briefing's held models, prop and presentation tasks.
-///
-/// Direct spawns use indices 0..7; there is no terminator. Slots 0/1 attach
-/// models, 2 fades textured rectangles, 3 crossfades the backdrop, 4 places the
-/// prop, 5 reveals the caption, 6 draws a fade tile and 7 monitors script pause.
-/// Slots 2 and 6 have no room-local spawner or event-command reference.
-/// Descriptors are read synchronously; callbacks and borrowed model sources
-/// remain live with this overlay until their spawned tasks are torn down.
 static TaskDesc _gMistR18TaskDescs[8] = {
     { { { TASK_BODY_TMD, MIST_R18_BRIEFING_TASK_PRIORITY } }, _mistR18AttachedModelTask, { .model = &_gMistR18BriefingFile } },
     { { { TASK_BODY_TMD, MIST_R18_BRIEFING_TASK_PRIORITY } }, _mistR18AttachedModelTask, { .model = &_gMistR18Laptop } },
@@ -306,10 +242,7 @@ static TaskDesc _gMistR18TaskDescs[8] = {
 };
 
 /// Player-bank extension: NULL at slot 47, followed by briefing clips 48..57.
-///
-/// Copied by value into the equipped bank; the ten referenced room-owned sets
-/// remain borrowed during playback. The complete table is eleven pointer words.
-#include "assets/rooms/mist/r18/mist_r18_player_briefing_bank.inc"
+#include "assets/rooms/mist/r18/player_briefing_bank.inc"
 #include "assets/rooms/mist/r18/events.inc"
 #include "assets/rooms/mist/r18/header.inc"
 #include "assets/rooms/mist/r18/geometry.inc"
@@ -319,107 +252,12 @@ static TaskDesc _gMistR18TaskDescs[8] = {
 #include "assets/rooms/mist/r18/lights.inc"
 #include "assets/rooms/mist/r18/surfaces.inc"
 
-/// Indexed clips and transition timing used by the briefing requests.
-enum {
-    MIST_R18_PLAYER_STORED_BANK_INDEX  = 1, // EVS replaces this value in its local request copy.
-    MIST_R18_PLACED_ACTOR_BANK         = 0,
-    MIST_R18_PLAYER_BASE_CLIP_1        = 1,
-    MIST_R18_PLAYER_BRIEFING_CLIP_48   = ANIMATION_BANK_BASE_SET_COUNT + 1,
-    MIST_R18_PLAYER_BRIEFING_CLIP_49   = ANIMATION_BANK_BASE_SET_COUNT + 2,
-    MIST_R18_PLAYER_BRIEFING_CLIP_50   = ANIMATION_BANK_BASE_SET_COUNT + 3,
-    MIST_R18_PLAYER_BRIEFING_CLIP_51   = ANIMATION_BANK_BASE_SET_COUNT + 4,
-    MIST_R18_PLAYER_BRIEFING_CLIP_52   = ANIMATION_BANK_BASE_SET_COUNT + 5,
-    MIST_R18_PLAYER_BRIEFING_CLIP_53   = ANIMATION_BANK_BASE_SET_COUNT + 6,
-    MIST_R18_PLAYER_BRIEFING_CLIP_54   = ANIMATION_BANK_BASE_SET_COUNT + 7,
-    MIST_R18_PLAYER_BRIEFING_CLIP_55   = ANIMATION_BANK_BASE_SET_COUNT + 8,
-    MIST_R18_PLAYER_BRIEFING_CLIP_56   = ANIMATION_BANK_BASE_SET_COUNT + 9,
-    MIST_R18_PLAYER_BRIEFING_CLIP_57   = ANIMATION_BANK_BASE_SET_COUNT + 10,
-    MIST_R18_BALDWIN_CLIP_1            = 1,
-    MIST_R18_BALDWIN_CLIP_2            = 2,
-    MIST_R18_BALDWIN_CLIP_3            = 3,
-    MIST_R18_BALDWIN_CLIP_4            = 4,
-    MIST_R18_BALDWIN_CLIP_5            = 5,
-    MIST_R18_BALDWIN_CLIP_6            = 6,
-    MIST_R18_BALDWIN_CLIP_7            = 7,
-    MIST_R18_BALDWIN_CLIP_8            = 8,
-    MIST_R18_BALDWIN_CLIP_9            = 9,
-    MIST_R18_BALDWIN_CLIP_10           = 10,
-    MIST_R18_RUPERT_CLIP_1             = 1,
-    MIST_R18_RUPERT_CLIP_2             = 2,
-    MIST_R18_RUPERT_CLIP_3             = 3,
-    MIST_R18_RUPERT_CLIP_4             = 4,
-    MIST_R18_RUPERT_CLIP_5             = 5,
-    MIST_R18_RUPERT_CLIP_6             = 6,
-    MIST_R18_RUPERT_CLIP_7             = 7,
-    MIST_R18_RUPERT_CLIP_8             = 8,
-    MIST_R18_PLACED_ACTOR_BLEND_FRAMES = 6,
-};
-
-/// Baldwin's actor-command IDs used when the briefing reveals his held models.
-enum {
-    MIST_R18_BALDWIN_COMMAND_SHOW_FIRST_HELD_MODEL  = 0,
-    MIST_R18_BALDWIN_COMMAND_SHOW_SECOND_HELD_MODEL = 2,
-};
-
-/// Baldwin's actor-command IDs used when the briefing hides his held models.
-enum {
-    MIST_R18_BALDWIN_COMMAND_HIDE_FIRST_HELD_MODEL  = 1,
-    MIST_R18_BALDWIN_COMMAND_HIDE_SECOND_HELD_MODEL = 3,
-};
-
-/// Scene-child indices, CAP command slots and rendering choices used by these streams.
-enum {
-    MIST_R18_SCENE_ACTOR_RUPERT       = 0,
-    MIST_R18_SCENE_ACTOR_BALDWIN      = 1,
-    MIST_R18_CAP_COMMAND_INTRO        = 1,
-    MIST_R18_CAP_COMMAND_FIRST_MODEL  = 2,
-    MIST_R18_CAP_COMMAND_DEPARTURE    = 3,
-    MIST_R18_CAP_COMMAND_PLACE_PROP   = 4,
-    MIST_R18_CAP_COMMAND_MAP_REMINDER = 5,
-    MIST_R18_ACTOR_DRAW_HIDE          = 0,
-    MIST_R18_ACTOR_DRAW_SHOW          = 1,
-    MIST_R18_WEAPON_ACTOR_PLAYER      = 0,
-    MIST_R18_VIEW_CAPTION             = 2,
-    MIST_R18_VIEW_BACKDROP            = 3,
-    MIST_R18_VIEW_DIALOGUE            = 4,
-    MIST_R18_VIEW_HELD_MODELS         = 5,
-    MIST_R18_VIEW_PROP_INTERLUDE      = 10,
-    MIST_R18_AMBIENT_COMPONENT        = 100, // EVS multiplies by 16: Q12 channel intensity 1600.
-    MIST_R18_FADE_DEFAULT_FRAMES      = 0,   // Requests the interpreter's seven-frame default ramp.
-    MIST_R18_FADE_RETAIN_FRAMES       = 0,   // Keeps the secondary fade's existing ramp duration on return.
-};
-
 /// Encoded 8-bit sprite texture page at (960, 0), with its CLUT at (0, 255).
 enum {
     MIST_R18_SPRITE_TEXTURE_DEPTH_8BIT = 1,
-    MIST_R18_SPRITE_TEXTURE_PAGE       = getTPage(MIST_R18_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0),
-    MIST_R18_SPRITE_CLUT               = getClut(0, 255),
-};
-
-/// Placement entry keys and decimal file numbers for the briefing's actor packages.
-enum {
-    MIST_R18_PLACEMENT_ENTRY_RUPERT  = 144,
-    MIST_R18_PLACEMENT_ENTRY_BALDWIN = 105,
-    MIST_R18_ACTOR_FILE_NUMBER       = 130,
-};
-
-/// Type-1 script request bases for the room's paired walking and running cues.
-enum {
-    MIST_R18_FOOTSTEP_WALK = SOUND_SCRIPT_REQUEST_TYPE_1 | 45,
-    MIST_R18_FOOTSTEP_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 47,
 };
 
 /// Reveals a glyph-script caption over a translucent black plate during an event.
-///
-/// Borrows the mutable `TextStream` in `spawnArg2.pointer`, its script and glyph
-/// table until teardown. `charDelay` and `delayReload` are callback ticks;
-/// a negative character delay reveals the complete caption on initialization.
-/// Uses unmasked glyph bytes (the room script has no high-bit glyph indices),
-/// centered draw-environment pixels and a plate inset of three pixels. The
-/// compiled probe reads the byte before `chars` at cursor zero and one byte
-/// after the terminator; the script storage must make both reads valid.
-/// State 0 initializes, state 1 redraws and advances the cursor, and all other
-/// states kill the task. Leaving the event also requests teardown.
 static void _mistR18CaptionTask(Task* task)
 {
     enum {
@@ -522,11 +360,6 @@ static void _mistR18CaptionTask(Task* task)
 }
 
 /// Starts a skippable briefing event and commits the cursor for its successor.
-///
-/// Both script arrays remain live through event playback. The interpreter marks
-/// the event active before the cursor advances, preventing another launch.
-/// Call only while EVS is idle. `nextStep` is the briefing cursor to run when
-/// playback ends; it is independent of the room task's state.
 static inline void _mistR18StartSkippableBriefingStep(EvsCommand* script, EvsCommand* skipScript, s32 nextStep)
 {
     evsStartScriptWithSkip(script, EVENT_SCRIPT_HUD_HIDE_RESTORE, skipScript);
@@ -534,11 +367,6 @@ static inline void _mistR18StartSkippableBriefingStep(EvsCommand* script, EvsCom
 }
 
 /// Advances the briefing scripts and repeats the key-item menu until the Dryfield map is opened.
-///
-/// Runs only while the event interpreter is idle, the attachment wheel is closed
-/// and no display-mode transition is pending. The script cursor is independent
-/// of the task's state. A repeated menu preserves its map-opened latch; departure
-/// starts once the map choice is latched. `unusedTask` is required by task dispatch.
 static void _mistR18AdvanceBriefingState(Task* unusedTask)
 {
     enum { MIST_R18_EVENT_IDLE = 0 };
@@ -569,12 +397,6 @@ static void _mistR18AdvanceBriefingState(Task* unusedTask)
 }
 
 /// Fades two fixed textured rectangles in, holds them opaque, then fades them out.
-///
-/// `killCountdown` holds RGB modulation, stepped by 21 per callback; the ramp
-/// reaches 147 before switching to opaque raw-texture drawing. `spawnArg1.value`
-/// counts hold callbacks, shortened by event skipping. State 0 queues the zero
-/// level twice, states 1/3 ramp, state 2 holds, and later states kill the task.
-/// This is task-table entry 2; no room-local spawner or event command uses it.
 static void _mistR18TextureFadeTask(Task* task)
 {
     enum {
@@ -621,13 +443,6 @@ static void _mistR18TextureFadeTask(Task* task)
 }
 
 /// Queues the two fixed 4-bit texture rectangles used by the room's texture fade.
-///
-/// `fadeActive` selects modulated semitransparent drawing when nonzero, or
-/// opaque raw-texture drawing when zero. `shade` supplies RGB modulation through
-/// its low byte. Samples page (704, 0), with palettes at (0, 271)/(16, 271).
-/// Reserves two `SPRT`s and one `DR_TPAGE` in the frame arena; the additive page
-/// command executes first because OT insertion prepends packets. Requires that
-/// texture/palette data and packet storage remain live until the GPU finishes.
 static void _mistR18DrawFadeSprites(s32 fadeActive, s32 shade)
 {
     enum {
@@ -683,11 +498,6 @@ static void _mistR18DrawFadeSprites(s32 fadeActive, s32 shade)
 }
 
 /// Captures the current 320x240 draw framebuffer as the crossfade's saved backdrop.
-///
-/// Splits at column 192, copying to VRAM (832, 0) and (640, 256). Buffer 0
-/// starts at (0, 0), buffer 1 at (0, 272). The frame must already be rendered
-/// when OT slot 8 executes. Reserves two `DR_MOVE`s and two `DR_STP`s, borrowed
-/// by the GPU until frame completion. Resets the shade and advances the state.
 static void _mistR18CaptureBackdropState(Task* task)
 {
     enum {
@@ -740,27 +550,14 @@ static void _mistR18CaptureBackdropState(Task* task)
     task->state++;
 }
 
-#include "../../shared/room/backdrop_crossfade_live.inc.c"
+#include "../../../../shared/room/backdrop_crossfade_live.inc.c"
 
 /// Queues an additive redraw of the captured backdrop for the room crossfade.
-///
-/// Samples 192x240 pixels at VRAM (832, 0) and 128x240 at (640, 256), placing
-/// them over the centered 320x240 frame. `shade` is RGB modulation (0 black,
-/// 0x80 unchanged); only its low byte is stored. Requires the completed capture
-/// and room for two `SPRT`s and two `DR_TPAGE`s in the current frame arena.
-/// The GPU borrows those packets until completion; no capacity checks are made.
 static void _crossfadeDrawBackdrop(s32 shade)
 {
     SPRT* sprite;
 
     /// Reserves and initializes one semitransparent, greyscale backdrop sprite.
-    ///
-    /// `spritePacket` must be a writable SPRT pointer local and `shadeValue` a
-    /// side-effect-free value, read three times. Uses the current frame arena;
-    /// the caller fills geometry and linkage and retains storage for the GPU.
-    /// Captures gGpuPrimCursor, advancing by sizeof(SPRT) bytes without a
-    /// capacity check. RGB keeps the shade's low byte; 0x80 is unity modulation.
-    /// Invoke inside a braced caller context; expansion is a compound statement.
 #define CROSSFADE_ALLOCATE_BACKDROP_SPRITE(spritePacket, shadeValue) \
     {                                                                \
         (spritePacket) = gGpuPrimCursor;                             \
@@ -798,12 +595,6 @@ static void _crossfadeDrawBackdrop(s32 shade)
 }
 
 /// Dispatches attachment, idle and teardown for either of the room's held models.
-///
-/// Requires a live TMD task and a state in 0..2. Setup borrows the parent TMD
-/// task in `spawnArg2.pointer`; `spawnArg1.value` indexes its part coordinates.
-/// The parent coordinate and lighting matrices must outlive the child. Setup
-/// joins the parent's teardown tree; state 1 keeps the attachment unchanged,
-/// and state 2 kills it. The three callbacks are copied by value before dispatch.
 static void _mistR18AttachedModelTask(Task* task)
 {
     TaskFuncTable3 states;
@@ -812,7 +603,7 @@ static void _mistR18AttachedModelTask(Task* task)
     states.funcs[task->state](task);
 }
 
-#include "../../shared/actor/model_placement_attach_part.inc.c"
+#include "../../../../shared/actor/model_placement_attach_part.inc.c"
 
 /// Keeps an attached model unchanged while its parent controls its lifetime.
 static void _mistR18AttachedModelIdleState(Task* task)
@@ -820,12 +611,6 @@ static void _mistR18AttachedModelIdleState(Task* task)
 }
 
 /// Draws a translucent black rectangle until its callback countdown expires.
-///
-/// In state 0, borrows the `RECT` in `spawnArg2.pointer` on every callback and
-/// covers (w - 1) by (h - 1) draw-environment pixels using average blending.
-/// Decrements `spawnArg1.value` after drawing; a nonpositive result or any other
-/// state kills the task. The rectangle must remain live until teardown.
-/// Task-table entry 6 has no room-local spawner or event-command reference.
 static void _mistR18FadeTileTask(Task* task)
 {
     enum { MIST_R18_FADE_TILE_DRAW = 0 };
@@ -853,12 +638,7 @@ static void _mistR18FadeTileTask(Task* task)
     taskKill(task);
 }
 
-/// Queues a coloured tile in the caption plate OT slot.
-///
-/// Borrows `draw` only for this call; it supplies screen X/Y, RGB and dimensions
-/// whose low halfwords become (w - 1)/(h - 1). Nonzero `semiTrans` enables GPU
-/// blending; the caller supplies its draw-mode command. Reserves one `TILE` in
-/// the frame arena, retained until the GPU completes; capacity is not checked.
+/// Queues a colored tile in the caption plate OT slot.
 static void _mistR18DrawTile(const PrimDrawParams* draw)
 {
     TILE* tile;
@@ -884,13 +664,6 @@ static void _mistR18DrawTile(const PrimDrawParams* draw)
 }
 
 /// Queues a caption sprite with the palette at VRAM `clutX`/`clutY`.
-///
-/// Borrows `draw` for the call. X/Y are draw-environment pixels, U/V take their
-/// low byte, and the dimensions become (w - 1)/(h - 1). Palette X is a pixel
-/// coordinate rounded down to a 16-pixel boundary; Y is a VRAM row.
-/// Nonzero `semiTrans` selects modulated blending,
-/// otherwise the texture is opaque and unmodulated. The caller queues the
-/// texture page separately. Reserves one `SPRT` until the GPU finishes.
 static void _mistR18DrawSprite(const PrimDrawParams* draw, u32 clutX, s32 clutY)
 {
     SPRT* sprite;
@@ -921,12 +694,6 @@ static void _mistR18DrawSprite(const PrimDrawParams* draw, u32 clutX, s32 clutY)
 }
 
 /// Queues a 4-bit texture-page command before sprites in the selected OT slot.
-///
-/// `vramX`/`vramY` are signed 16-bit VRAM pixel coordinates; the SDK packs their
-/// page origin. The low two bits of `blendMode` select a `GPU_BLEND_*` mode.
-/// `orderingTableSlot` indexes the current OT and must be in bounds. Enables
-/// drawing in the display area, disables dithering, and reserves one `DR_TPAGE`
-/// until the GPU completes. Queue sprites first: OT insertion prepends packets.
 static void _mistR18SetTexturePage(s16 blendMode, s16 vramX, s16 vramY, s32 orderingTableSlot)
 {
     DR_TPAGE* pageCommand;
@@ -938,12 +705,6 @@ static void _mistR18SetTexturePage(s16 blendMode, s16 vramX, s16 vramY, s32 orde
 }
 
 /// Spawns either briefing model for attachment to the live player's part 8.
-///
-/// `modelIndex` is 0 first model or 1 second model; other values do nothing.
-/// Spawns only when the selected saved handle is NULL, leaving it NULL on
-/// failure. A successful model is drawable and its setup task later borrows
-/// the player's part coordinate and lighting, joining the player's teardown
-/// tree. The player/model resources must remain live through that attachment.
 static void _mistR18SpawnAttachedModel(s32 modelIndex)
 {
     Task** modelTaskSlot;
@@ -971,8 +732,6 @@ static void _mistR18SpawnAttachedModel(s32 modelIndex)
 }
 
 /// Kills and clears the selected held-model task (0 first model, 1 second model).
-///
-/// Other indices do nothing. The handle is cleared even when already NULL.
 static void _mistR18KillAttachedModel(s32 modelIndex)
 {
     enum {
@@ -993,10 +752,6 @@ static void _mistR18KillAttachedModel(s32 modelIndex)
 }
 
 /// Starts the briefing's glyph-script caption over its translucent plate.
-///
-/// The child borrows and resets the room's mutable text stream. Keep that
-/// stream, glyph cells and this overlay live until it finishes or the event
-/// ends. The script starts one instance; spawn failure is ignored here.
 static void _mistR18SpawnBriefingCaption(void)
 {
     enum { MIST_R18_BRIEFING_CAPTION_TASK_INDEX = 5 };
@@ -1005,11 +760,6 @@ static void _mistR18SpawnBriefingCaption(void)
 }
 
 /// Starts the briefing's captured-backdrop transition to the next view.
-///
-/// Captures the current backdrop, waits for the replacement view and fades to
-/// its live frame. The script leaves view 2 after this request. Keep this
-/// overlay and frame resources live through the child's teardown; its spawn
-/// failure is ignored and no handle is retained here.
 static void _mistR18StartBackdropCrossfade(void)
 {
     enum { MIST_R18_BACKDROP_CROSSFADE_TASK_INDEX = 3 };
@@ -1018,11 +768,6 @@ static void _mistR18StartBackdropCrossfade(void)
 }
 
 /// Dispatches the room's captured-backdrop crossfade.
-///
-/// Requires a live task with state 0 capture, 1 wait for the replacement view,
-/// 2 fade to the live frame or 3 teardown. Handlers keep RGB modulation in
-/// `killCountdown` and borrow frame packets until GPU completion. The callback
-/// table is copied by value before dispatch; there is no index check.
 static void _mistR18CrossfadeTask(Task* task)
 {
     TaskFuncTable4 states;
@@ -1032,10 +777,6 @@ static void _mistR18CrossfadeTask(Task* task)
 }
 
 /// Waits for the crossfade's replacement view while advancing its saved shade.
-///
-/// Adds eight per callback with 16-bit wrapping, clamping the signed result at
-/// 64. Once the view is ready or the view index leaves 2, sets shade 128 and
-/// advances to the crossfade state. This state queues no drawing packets.
 static void _mistR18WaitForCrossfadeViewState(Task* task)
 {
     enum {
@@ -1056,13 +797,9 @@ static void _mistR18WaitForCrossfadeViewState(Task* task)
     }
 }
 
-#include "../../shared/room/backdrop_crossfade.inc.c"
+#include "../../../../shared/room/backdrop_crossfade.inc.c"
 
 /// Spawns the briefing's separately placed prop and saves its task handle.
-///
-/// Requires the room's prop model and task table to remain loaded. Each call
-/// overwrites the saved handle, including on allocation failure; event scripts
-/// pair successful spawns with teardown before spawning again.
 static void _mistR18SpawnPlacedProp(void)
 {
     enum { MIST_R18_PLACED_PROP_TASK_INDEX = 4 };
@@ -1080,11 +817,6 @@ static void _mistR18KillPlacedProp(void)
 }
 
 /// Places the room's prop model once at its fixed cutscene transform.
-///
-/// Requires a live TMD body with root coordinate 0. State 0 sets its translation
-/// in parent-coordinate units and Euler angles in 4096 units per turn, rebuilds
-/// the rotation, invalidates composition, applies an OT bias of -8 and enables
-/// drawing. Later states retain the placement; task teardown owns the model.
 static void _mistR18PlacePropTask(Task* task)
 {
     enum {
@@ -1112,21 +844,14 @@ static void _mistR18PlacePropTask(Task* task)
 }
 
 /// Reloads the M.I.S.T. parking area with the starter inventory after the briefing.
-///
-/// Resets the carried loadout and queues the resident reload task for Acropolis,
-/// parking room 3 and arrival 3 with sprite variant 1. Stops non-ambient sound
-/// scripts without fading. Used by both briefing completion paths; the saved
-/// destination is consumed by the reload task after this callback returns.
 static void _mistR18ReloadParkingWithStarterLoadout(void)
 {
     enum {
-        MIST_R18_PARKING_ENTRY_WARP     = 3,
-        MIST_R18_PARKING_ENTRY_ROOM     = 3,
         MIST_R18_PARKING_SPRITE_VARIANT = 1,
     };
     inventoryInitializeStarterLoadout();
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage     = GAME_STAGE_AKROPOLIS;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = GAME_AREA_MIST_PARKING;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = AKROPOLIS_ROOM_ID_MIST_PARKING;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = MIST_R18_PARKING_ENTRY_WARP;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = MIST_R18_PARKING_ENTRY_ROOM;
     gDisplayState.spriteVariant                                 = MIST_R18_PARKING_SPRITE_VARIANT;
@@ -1135,11 +860,6 @@ static void _mistR18ReloadParkingWithStarterLoadout(void)
 }
 
 /// Selects the briefing's scene stream and stages its deferred audio-start request.
-///
-/// Marks the view dirty first. Requires the current stage's descriptor table to
-/// contain scene key (1, 30, 11, 0) and no unfinished earlier scene selection.
-/// Selection saves random state; the stream and buffers remain live through
-/// playback. The resident CD dispatcher commits the deferred start separately.
 static void _mistR18PrepareBriefingScene(void)
 {
     enum {
@@ -1153,11 +873,6 @@ static void _mistR18PrepareBriefingScene(void)
 }
 
 /// Pauses the briefing script after starting its scene-view monitor.
-///
-/// The pause latch is set only if the bodyless monitor task is allocated.
-/// The monitor releases the latch when the scene view is no longer ready;
-/// it stays alive until task-list teardown. Requires loaded room descriptors
-/// and a live event interpreter; allocation failure leaves the latch unchanged.
 static void _mistR18StartSceneScriptPause(void)
 {
     enum { MIST_R18_SCENE_SCRIPT_PAUSE_TASK_INDEX = 7 };
@@ -1168,37 +883,24 @@ static void _mistR18StartSceneScriptPause(void)
 }
 
 /// Queues playback of the briefing's previously selected scene/audio session.
-///
-/// Requires prepared playback buffers and space in the resident CD request ring.
-/// An audio-free selection enters playing mode immediately.
 static void _mistR18EnqueueScenePlayback(void)
 {
     cdCmdEnqueueScenePlayback();
 }
 
 /// Ends briefing scene streaming and restores the random state saved at selection.
-///
-/// Requires a successful earlier scene selection. Buffer and task teardown remain
-/// with their owners; pending resident CD requests are left in place.
 static void _mistR18FinishSceneStream(void)
 {
     streamFinishScene();
 }
 
 /// Requests scene cancellation when the briefing's introductory event is skipped.
-///
-/// Discards the deferred CD replacement and immediately finishes scene streaming,
-/// restoring saved random state. Resident CD dispatch completes cancellation;
-/// the skip script handles actor and display cleanup separately.
 static void _mistR18CancelScene(void)
 {
     cdCmdCancelScene();
 }
 
 /// Releases the event-script pause when the scene's view is no longer ready.
-///
-/// The spawner first sets the shared pause latch. Each callback clears it when
-/// `viewReady != 1`; the task neither advances its state nor kills itself.
 static void _mistR18ReleaseScriptPauseTask(Task* task)
 {
     if (gGameSession->viewReady != 1) {
@@ -1207,30 +909,18 @@ static void _mistR18ReleaseScriptPauseTask(Task* task)
 }
 
 /// Sets the camera-depth left shift used before ordering-table quantization.
-///
-/// The departure script passes `DISPLAY_DEPTH_SHIFT_4X` while view 5 is active and
-/// `DISPLAY_DEPTH_SHIFT_1X` to restore normal depth. The signed-byte EVS argument
-/// is stored as a byte without validation; supported renderer shifts are 0..3.
 static void _mistR18SetOrderingDepthShift(s8 depthShift)
 {
     gDisplayState.otDepthShift = depthShift;
 }
 
 /// Opens the briefing's key-item menu without reinitializing it on reminder passes.
-///
-/// The first pass marks the four briefing items collected and clears the map
-/// choice. Reminder passes skip that initialization. The map overlay and its UI
-/// must stay loaded until the queued display-mode task finishes.
 static void _mistR18OpenKeyItemMenu(void)
 {
     mapAkropolisOpenKeyItemMenu(0, _gMistR18RetainKeyItemMenuState);
 }
 
 /// Registers the room task and starts the introductory briefing event with its skip script.
-///
-/// Requires fresh prop handles: initialization forgets them without killing tasks.
-/// Advances to task state 1 and seeds the separate cursor for the prop-placement
-/// script, which starts after the introductory event finishes or is skipped.
 static void _mistR18InitBriefingState(Task* task)
 {
     _gMistR18FirstAttachedModelTask  = NULL;

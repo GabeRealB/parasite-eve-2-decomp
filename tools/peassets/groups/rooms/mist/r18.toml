@@ -251,17 +251,17 @@ width = 256
 [package]
 type = "room"
 embedded = [
-    { name = "mist_r18_player_briefing_anim_01", offset = 0x01CC0, size = 0x5DC, address = 0x8017F280 },
-    { name = "mist_r18_player_briefing_anim_02", offset = 0x0229C, size = 0xE74, address = 0x8017F85C },
-    { name = "mist_r18_player_briefing_anim_03", offset = 0x03110, size = 0x674, address = 0x801806D0 },
-    { name = "mist_r18_player_briefing_anim_04", offset = 0x03784, size = 0x534, address = 0x80180D44 },
-    { name = "mist_r18_player_briefing_anim_05", offset = 0x03CB8, size = 0xAFC, address = 0x80181278 },
-    { name = "mist_r18_player_briefing_anim_06", offset = 0x047B4, size = 0x648, address = 0x80181D74 },
-    { name = "mist_r18_player_briefing_anim_07", offset = 0x04DFC, size = 0xCD0, address = 0x801823BC },
-    { name = "mist_r18_player_briefing_anim_08", offset = 0x05ACC, size = 0x178C, address = 0x8018308C },
-    { name = "mist_r18_player_briefing_anim_09", offset = 0x07258, size = 0x39C, address = 0x80184818 },
-    { name = "mist_r18_player_briefing_anim_10", offset = 0x075F4, size = 0x2F4, address = 0x80184BB4 },
-    { name = "mist_r18_player_briefing_bank", offset = 0x079A4, size = 0x2C, address = 0x80184F64 },
+    { name = "player_briefing_anim_01", offset = 0x01CC0, size = 0x5DC, address = 0x8017F280 },
+    { name = "player_briefing_anim_02", offset = 0x0229C, size = 0xE74, address = 0x8017F85C },
+    { name = "player_briefing_anim_03", offset = 0x03110, size = 0x674, address = 0x801806D0 },
+    { name = "player_briefing_anim_04", offset = 0x03784, size = 0x534, address = 0x80180D44 },
+    { name = "player_briefing_anim_05", offset = 0x03CB8, size = 0xAFC, address = 0x80181278 },
+    { name = "player_briefing_anim_06", offset = 0x047B4, size = 0x648, address = 0x80181D74 },
+    { name = "player_briefing_anim_07", offset = 0x04DFC, size = 0xCD0, address = 0x801823BC },
+    { name = "player_briefing_anim_08", offset = 0x05ACC, size = 0x178C, address = 0x8018308C },
+    { name = "player_briefing_anim_09", offset = 0x07258, size = 0x39C, address = 0x80184818 },
+    { name = "player_briefing_anim_10", offset = 0x075F4, size = 0x2F4, address = 0x80184BB4 },
+    { name = "player_briefing_bank", offset = 0x079A4, size = 0x2C, address = 0x80184F64 },
 ]
 package_name = "mist_r18"
 required = true
@@ -611,6 +611,23 @@ rig = "characters/rupert/rig"
 type = "clip"
 rig = "characters/eric/rig"
 
+[player_briefing_bank]
+type = "animation_bank"
+schema = "rooms/mist/r18/player_briefing_schema"
+symbol = "_gMistR18PlayerBriefingAnimationSets"
+
+[player_briefing_bank.clips]
+slot_1 = "rooms/mist/r18/player_briefing_anim_01"
+slot_2 = "rooms/mist/r18/player_briefing_anim_02"
+slot_3 = "rooms/mist/r18/player_briefing_anim_03"
+slot_4 = "rooms/mist/r18/player_briefing_anim_04"
+slot_5 = "rooms/mist/r18/player_briefing_anim_05"
+slot_6 = "rooms/mist/r18/player_briefing_anim_06"
+slot_7 = "rooms/mist/r18/player_briefing_anim_07"
+slot_8 = "rooms/mist/r18/player_briefing_anim_08"
+slot_9 = "rooms/mist/r18/player_briefing_anim_09"
+slot_10 = "rooms/mist/r18/player_briefing_anim_10"
+
 [briefing_file_binding]
 type = "binding"
 model = "rooms/mist/r18/briefing_file"
@@ -619,6 +636,50 @@ textures = { props_row_263 = "rooms/mist/r18/props.row_263" }
 [eric_explain_autopsies]
 type = "clip"
 rig = "characters/eric/rig"
+
+[player_briefing_schema]
+type = "animation_schema"
+slots = ["", "slot_1", "slot_2", "slot_3", "slot_4", "slot_5", "slot_6", "slot_7", "slot_8", "slot_9", "slot_10"]
+
+[player_briefing_anim_01]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_briefing_anim_02]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_briefing_anim_03]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_briefing_anim_04]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_briefing_anim_05]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_briefing_anim_06]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_briefing_anim_07]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_briefing_anim_08]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_briefing_anim_09]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_briefing_anim_10]
+type = "clip"
+rig = "characters/aya/rig"
 
 [briefing_baldwin_gesture]
 type = "sound"
@@ -631,64 +692,3 @@ sha1 = "9a4e1610cddefcd505dd76c089f256b30459c84a"
 [rupert_ask_about_akropolis]
 type = "clip"
 rig = "characters/rupert/rig"
-
-[mist_r18_player_briefing_bank]
-type = "animation_bank"
-schema = "rooms/mist/r18/mist_r18_player_briefing_schema"
-symbol = "_gMistR18PlayerBriefingAnimationSets"
-
-[mist_r18_player_briefing_bank.clips]
-slot_1 = "rooms/mist/r18/mist_r18_player_briefing_anim_01"
-slot_2 = "rooms/mist/r18/mist_r18_player_briefing_anim_02"
-slot_3 = "rooms/mist/r18/mist_r18_player_briefing_anim_03"
-slot_4 = "rooms/mist/r18/mist_r18_player_briefing_anim_04"
-slot_5 = "rooms/mist/r18/mist_r18_player_briefing_anim_05"
-slot_6 = "rooms/mist/r18/mist_r18_player_briefing_anim_06"
-slot_7 = "rooms/mist/r18/mist_r18_player_briefing_anim_07"
-slot_8 = "rooms/mist/r18/mist_r18_player_briefing_anim_08"
-slot_9 = "rooms/mist/r18/mist_r18_player_briefing_anim_09"
-slot_10 = "rooms/mist/r18/mist_r18_player_briefing_anim_10"
-
-[mist_r18_player_briefing_schema]
-type = "animation_schema"
-slots = ["", "slot_1", "slot_2", "slot_3", "slot_4", "slot_5", "slot_6", "slot_7", "slot_8", "slot_9", "slot_10"]
-
-[mist_r18_player_briefing_anim_01]
-type = "clip"
-rig = "characters/aya/rig"
-
-[mist_r18_player_briefing_anim_02]
-type = "clip"
-rig = "characters/aya/rig"
-
-[mist_r18_player_briefing_anim_03]
-type = "clip"
-rig = "characters/aya/rig"
-
-[mist_r18_player_briefing_anim_04]
-type = "clip"
-rig = "characters/aya/rig"
-
-[mist_r18_player_briefing_anim_05]
-type = "clip"
-rig = "characters/aya/rig"
-
-[mist_r18_player_briefing_anim_06]
-type = "clip"
-rig = "characters/aya/rig"
-
-[mist_r18_player_briefing_anim_07]
-type = "clip"
-rig = "characters/aya/rig"
-
-[mist_r18_player_briefing_anim_08]
-type = "clip"
-rig = "characters/aya/rig"
-
-[mist_r18_player_briefing_anim_09]
-type = "clip"
-rig = "characters/aya/rig"
-
-[mist_r18_player_briefing_anim_10]
-type = "clip"
-rig = "characters/aya/rig"

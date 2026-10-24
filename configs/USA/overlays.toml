@@ -1378,10 +1378,11 @@ objects = [
 [rooms.overlays.mist_r18]
 label = "cutscene or one-off room; no map names it. Code starts at 0x2C: GCC hoisted the lui/lw of gGameSession above the typewriter task's addiu $sp prologue, so the span detector starts 8 bytes late; the room's task table names 0x8017D5EC as the entry"
 id = 302
+src = "src/stages/akropolis/rooms/mist_r18"
 text = ["0x2C", "0x17FC"]
 objects = [
   { kind = "packageId" },
-  { unit = "mist_r18/mist_r18", rodata = "0x4", text = "0x2C", data = "0x17FC", bss = "0x98D0" },
+  { unit = "mist_r18", rodata = "0x4", text = "0x2C", data = "0x17FC", bss = "0x98D0" },
   { kind = "model", at = "0x17FC", in_c = true },
   { kind = "modelSource", at = "0x1AA4", in_c = true },
   { kind = "model", at = "0x1AC8", in_c = true },
