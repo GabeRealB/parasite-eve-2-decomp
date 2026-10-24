@@ -279,7 +279,7 @@ akropolisPlazaLightFlareTask = 0x801811D0; // type:func
 
 akropolisPlazaPollStreamCommands = 0x8017D6D4; // type:func
 screenFadeInTileTask = 0x8017DA58; // type:func
-_akropolisPlazaFadeToWhiteTask = 0x8017d8ac; // type:func
+_akropolisPlazaFadeOutTask = 0x8017d8ac; // type:func
 _akropolisPlazaLetterboxTask = 0x8017ff18; // type:func
 _akropolisPlazaUpdateSceneCollisionWalls = 0x8017dd90; // type:func
 _akropolisPlazaApplyStreamCamera = 0x8017de24; // type:func

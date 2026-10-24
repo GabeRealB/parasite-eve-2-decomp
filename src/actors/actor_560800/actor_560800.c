@@ -57,6 +57,8 @@
 
 #include "rooms/shelter_b1_pod_service_gantry.h"
 #include "../../shared/actor/actor_messages.h"
+#include "../../shared/screen/screen_fade_step_down.inc.c"
+#include "../../shared/screen/screen_fade_step_up.inc.c"
 
 /// Work block of the task that runs the package's cutscene, allocated zeroed at
 /// its full size by that task's first state and kept at its `Task::work`.
@@ -6081,9 +6083,7 @@ static void _actor560800FadeOutTask(Task* task)
             /* fallthrough */
         case ACTOR_560800_FADE_RAMP:
             fadeDrawOverlay(fade->r, fade->g, fade->r, GPU_BLEND_SUBTRACT);
-            fade->r += task->spawnArg1.halves.low;
-            fade->g += task->spawnArg1.halves.low;
-            fade->b += task->spawnArg1.halves.low;
+            _screenFadeStepUp(fade, task);
             if (fade->r >= ACTOR_560800_FADE_END_INTENSITY) {
                 SetDispMask(0);
                 taskKill(task);
@@ -6141,9 +6141,7 @@ static void _actor560800FadeInTask(Task* task)
             return;
     }
     fadeDrawOverlay(fade->r, fade->g, fade->r, GPU_BLEND_SUBTRACT);
-    fade->r -= task->spawnArg1.halves.low;
-    fade->g -= task->spawnArg1.halves.low;
-    fade->b -= task->spawnArg1.halves.low;
+    _screenFadeStepDown(fade, task);
     if (fade->r < 0) {
         taskKill(task);
     }

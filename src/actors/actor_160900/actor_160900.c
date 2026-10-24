@@ -50,6 +50,8 @@
 #include "overlay.h"
 #include "../../shared/screen/screen_wave.h"
 #include "../../shared/actor/actor_messages.h"
+#include "../../shared/screen/screen_fade_step_down.inc.c"
+#include "../../shared/screen/screen_fade_step_up.inc.c"
 
 /// Work block of one light quad, a gradient quad the cutscene blends
 /// additively over the scene.
@@ -1751,9 +1753,7 @@ static void _actor160900FadeOutTask(Task* task)
             /* fallthrough */
         case ACTOR_160900_FADE_OUT_RAMP:
             fadeDrawOverlay(fade->r, fade->g, fade->r, GPU_BLEND_SUBTRACT);
-            fade->r += task->spawnArg1.halves.low;
-            fade->g += task->spawnArg1.halves.low;
-            fade->b += task->spawnArg1.halves.low;
+            _screenFadeStepUp(fade, task);
             if (fade->r > ACTOR_160900_FADE_MAX_INTENSITY) {
                 fade->b = ACTOR_160900_FADE_MAX_INTENSITY;
                 fade->g = ACTOR_160900_FADE_MAX_INTENSITY;
@@ -1814,9 +1814,7 @@ static void _actor160900FadeInTask(Task* task)
     }
     // Fade progress continues while the display is masked.
     fadeDrawOverlay(fade->r, fade->g, fade->r, GPU_BLEND_SUBTRACT);
-    fade->r -= task->spawnArg1.halves.low;
-    fade->g -= task->spawnArg1.halves.low;
-    fade->b -= task->spawnArg1.halves.low;
+    _screenFadeStepDown(fade, task);
     if (fade->r < 0) {
         taskKill(task);
     }

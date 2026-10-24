@@ -49,6 +49,7 @@
 #include "rooms/dryfield_r08.h"
 #include "../../shared/screen/screen_wave.h"
 #include "../../shared/actor/actor_messages.h"
+#include "../../shared/screen/screen_fade_step_up.inc.c"
 
 /// Scene step of Eve, stored in `_Actor121300EveWork::step`.
 ///
@@ -1707,9 +1708,7 @@ static void _actor121300FadeOutTask(Task* task)
             /* fallthrough */
         case ACTOR_121300_FADE_OUT_DARKEN:
             fadeDrawOverlay(fade->r, fade->g, fade->r, GPU_BLEND_SUBTRACT);
-            fade->r += task->spawnArg1.halves.low;
-            fade->g += task->spawnArg1.halves.low;
-            fade->b += task->spawnArg1.halves.low;
+            _screenFadeStepUp(fade, task);
             if (fade->r < ACTOR_121300_FADE_OUT_END_INTENSITY) {
                 return;
             }

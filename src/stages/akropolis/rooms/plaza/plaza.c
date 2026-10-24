@@ -64,6 +64,8 @@
 #include "overlay.h"
 #include "rooms/room_common.h"
 #include "../../../../shared/screen/screen_fade.h"
+#include "../../../../shared/screen/screen_fade_step_up.inc.c"
+#include "../../../../shared/screen/screen_fade_tile_overlay.inc.c"
 
 #include "assets/rooms/akropolis/plaza/declarations.inc"
 
@@ -260,7 +262,7 @@ typedef struct {
 } _AkropolisPlazaEventWork;
 STATIC_ASSERT_SIZEOF(_AkropolisPlazaEventWork, 0x8);
 
-static void _akropolisPlazaFadeToWhiteTask(Task* task);
+static void _akropolisPlazaFadeOutTask(Task* task);
 static void _akropolisPlazaMovieDisplayTask(Task* task);
 static void _akropolisPlazaStreamedSceneTask(Task* task);
 static void _akropolisPlazaFirstSceneTask(Task* task);
@@ -284,7 +286,7 @@ TaskDesc gAkropolisPlazaSequenceTaskDescriptors[AKROPOLIS_PLAZA_TASK_COUNT] = {
     [AKROPOLIS_PLAZA_TASK_FIRST_SCENE]    = { { { TASK_BODY_NONE, AKROPOLIS_PLAZA_SEQUENCE_TASK_PRIORITY } }, _akropolisPlazaFirstSceneTask, { .value = 0 } },
     [AKROPOLIS_PLAZA_TASK_DISPLAY_SETUP]  = { { { TASK_BODY_NONE, AKROPOLIS_PLAZA_SEQUENCE_TASK_PRIORITY } }, _akropolisPlazaStartMovieDisplayTask, { .value = 0 } },
     [AKROPOLIS_PLAZA_TASK_REPEAT_SCENE]   = { { { TASK_BODY_NONE, AKROPOLIS_PLAZA_SEQUENCE_TASK_PRIORITY } }, _akropolisPlazaRepeatSceneTask, { .value = 0 } },
-    [AKROPOLIS_PLAZA_TASK_FADE_TO_WHITE]  = { { { TASK_BODY_NONE, AKROPOLIS_PLAZA_SEQUENCE_TASK_PRIORITY } }, _akropolisPlazaFadeToWhiteTask, { .value = 0 } },
+    [AKROPOLIS_PLAZA_TASK_FADE_OUT]       = { { { TASK_BODY_NONE, AKROPOLIS_PLAZA_SEQUENCE_TASK_PRIORITY } }, _akropolisPlazaFadeOutTask, { .value = 0 } },
     [AKROPOLIS_PLAZA_TASK_FADE_IN]        = { { { TASK_BODY_NONE, AKROPOLIS_PLAZA_SEQUENCE_TASK_PRIORITY } }, screenFadeInTileTask, { .value = 0 } },
     [AKROPOLIS_PLAZA_TASK_CAPTION]        = { { { TASK_BODY_NONE, AKROPOLIS_PLAZA_SEQUENCE_TASK_PRIORITY } }, _akropolisPlazaCaptionEventTask, { .value = 0 } },
     [AKROPOLIS_PLAZA_TASK_MOVIE_DISPLAY]  = { { { TASK_BODY_NONE, AKROPOLIS_PLAZA_SEQUENCE_TASK_PRIORITY } }, _akropolisPlazaMovieDisplayTask, { .value = 0 } },
@@ -439,65 +441,37 @@ void akropolisPlazaPollStreamCommands(void)
     }
 }
 
-/// Fades the plaza to white, then blanks the display and ends the task.
-static void _akropolisPlazaFadeToWhiteTask(Task* task)
+/// Fades the screen to black with a rising subtractive tile, then blanks the display. `spawnArg1` is the step per
+/// update.
+static void _akropolisPlazaFadeOutTask(Task* task)
 {
     enum {
-        AKROPOLIS_PLAZA_FADE_INIT               = 0,
-        AKROPOLIS_PLAZA_FADE_DRAW               = 1,
-        AKROPOLIS_PLAZA_FADE_COMPLETE_INTENSITY = 256,
-        AKROPOLIS_PLAZA_FADE_FRONT_TAG_OFFSET   = -16,
-        AKROPOLIS_PLAZA_FADE_ADDITIVE_DRAW_MODE = 0xE1000240
+        AKROPOLIS_PLAZA_FADE_OUT_INITIALIZE    = 0,
+        AKROPOLIS_PLAZA_FADE_OUT_RAMP          = 1,
+        AKROPOLIS_PLAZA_FADE_OUT_END_INTENSITY = 256,
     };
     ScreenFadeWork* fade;
-    ScreenFadeWork* newFade;
-    u8              red;
-    u8              green;
-    TILE*           tile;
-    DR_TPAGE*       drawMode;
+    ScreenFadeWork* allocatedFade;
 
     fade = task->work;
     switch (task->state) {
-        case AKROPOLIS_PLAZA_FADE_INIT:
-            newFade    = memMalloc(sizeof(*newFade), false);
-            task->work = newFade;
-            if (newFade == NULL) {
+        case AKROPOLIS_PLAZA_FADE_OUT_INITIALIZE:
+            allocatedFade = memMalloc(sizeof(*allocatedFade), false);
+            task->work    = allocatedFade;
+            if (allocatedFade == NULL) {
                 taskKill(task);
                 break;
             }
-            fade         = newFade;
+            fade         = allocatedFade;
             fade->b      = 0;
             fade->g      = 0;
             fade->r      = 0;
             task->state += 1;
             /* fallthrough */
-        case AKROPOLIS_PLAZA_FADE_DRAW:
-            red            = fade->r;
-            green          = fade->g;
-            tile           = gGpuPrimCursor;
-            gGpuPrimCursor = tile + 1;
-            setTile(tile);
-            setSemiTrans(tile, 1);
-            tile->r0 = red;
-            tile->g0 = green;
-            tile->b0 = red;
-            tile->x0 = -AKROPOLIS_PLAZA_SCREEN_WIDTH / 2;
-            tile->y0 = -AKROPOLIS_PLAZA_SCREEN_HEIGHT / 2;
-            tile->w  = AKROPOLIS_PLAZA_SCREEN_WIDTH;
-            tile->h  = AKROPOLIS_PLAZA_SCREEN_HEIGHT;
-            addPrim(gGpuCurrentOt + AKROPOLIS_PLAZA_FADE_FRONT_TAG_OFFSET, tile);
-
-            drawMode       = gGpuPrimCursor;
-            gGpuPrimCursor = drawMode + 1;
-            setlen(drawMode, 1);
-            // Prepending the draw mode makes additive blending apply to the tile.
-            drawMode->code[0] = AKROPOLIS_PLAZA_FADE_ADDITIVE_DRAW_MODE;
-            addPrim(gGpuCurrentOt + AKROPOLIS_PLAZA_FADE_FRONT_TAG_OFFSET, drawMode);
-
-            fade->r += (u16)task->spawnArg1.value;
-            fade->g += (u16)task->spawnArg1.value;
-            fade->b += (u16)task->spawnArg1.value;
-            if (fade->r >= AKROPOLIS_PLAZA_FADE_COMPLETE_INTENSITY) {
+        case AKROPOLIS_PLAZA_FADE_OUT_RAMP:
+            _screenFadeDrawTileOverlay(fade);
+            _screenFadeStepUp(fade, task);
+            if (fade->r >= AKROPOLIS_PLAZA_FADE_OUT_END_INTENSITY) {
                 SetDispMask(0);
                 taskKill(task);
             }
@@ -1193,11 +1167,11 @@ static void _akropolisPlazaFinalSceneTask(Task* task)
         AKROPOLIS_PLAZA_FINAL_OFFICER_SOUND_FRAME     = 30,
         AKROPOLIS_PLAZA_FINAL_OFFICER_EFFECT_FRAME    = 61,
         AKROPOLIS_PLAZA_FINAL_TAIL_EFFECT_FRAME       = 11,
-        AKROPOLIS_PLAZA_FINAL_WHITE_FADE_TASK         = AKROPOLIS_PLAZA_TASK_FADE_TO_WHITE,
+        AKROPOLIS_PLAZA_FINAL_FADE_OUT_TASK           = AKROPOLIS_PLAZA_TASK_FADE_OUT,
         AKROPOLIS_PLAZA_FINAL_FADE_IN_TASK            = AKROPOLIS_PLAZA_TASK_FADE_IN,
         AKROPOLIS_PLAZA_FINAL_OFFICER_ANIMATION       = 8,
         AKROPOLIS_PLAZA_FINAL_OFFICER_BLEND_FRAMES    = 10,
-        AKROPOLIS_PLAZA_FINAL_WHITE_FADE_FRAMES       = 9,
+        AKROPOLIS_PLAZA_FINAL_FADE_OUT_STEP           = 9,
         AKROPOLIS_PLAZA_FINAL_FADE_IN_FRAMES          = 8,
         AKROPOLIS_PLAZA_FINAL_SKIP_MUSIC_FADE_TICKS   = 10,
         AKROPOLIS_PLAZA_FINAL_MUSIC_FADE_TICKS        = 480,
@@ -1304,7 +1278,7 @@ static void _akropolisPlazaFinalSceneTask(Task* task)
             }
             work->elapsedFrames = work->elapsedFrames + 1;
             if (work->elapsedFrames >= AKROPOLIS_PLAZA_FINAL_OFFICER_EFFECT_FRAME) {
-                taskSpawnFromTable(gAkropolisPlazaSequenceTaskDescriptors, AKROPOLIS_PLAZA_FINAL_WHITE_FADE_TASK, AKROPOLIS_PLAZA_FINAL_WHITE_FADE_FRAMES, 0);
+                taskSpawnFromTable(gAkropolisPlazaSequenceTaskDescriptors, AKROPOLIS_PLAZA_FINAL_FADE_OUT_TASK, AKROPOLIS_PLAZA_FINAL_FADE_OUT_STEP, 0);
                 task->state = task->state + 1;
             }
             _akropolisPlazaApplyStreamCamera(AKROPOLIS_PLAZA_FINAL_OFFICER_CAMERA);

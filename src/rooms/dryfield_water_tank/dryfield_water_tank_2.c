@@ -49,6 +49,8 @@
 #include "overlay.h"
 #include "../../shared/actor/actor_messages.h"
 #include "../../shared/screen/screen_fade.h"
+#include "../../shared/screen/screen_fade_step_up.inc.c"
+#include "../../shared/screen/screen_fade_tile_overlay.inc.c"
 
 /// Requests the room's event script leaves for the event task, each carried
 /// out on the task's next update.
@@ -828,51 +830,6 @@ static inline void _dryfieldWaterTankRestoreWeaponStance(void)
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &stance, 0);
 }
 
-/// Queues a 320x240 subtractive fade tile at the current draw origin.
-///
-/// Borrows readable ramp channels and uses their low red/green/red bytes without
-/// advancing them. The current draw origin, including screen shake, offsets the
-/// centred tile. Requires a word-aligned frame cursor with space for a `TILE`
-/// and `DR_TPAGE`, and foreground tag -16 in the active ordering table.
-/// Packet storage must remain live through GPU consumption. The mode runs first
-/// and remains active: subtractive blending, dithering on, displayed-area
-/// drawing off and a 4-bit texture page at (0,0), unused by the untextured tile.
-static inline void _dryfieldWaterTankDrawFadeOverlay(const ScreenFadeWork* fade)
-{
-    enum {
-        DRYFIELD_WATER_TANK_FADE_WIDTH_PIXELS   = 320,
-        DRYFIELD_WATER_TANK_FADE_HEIGHT_PIXELS  = 240,
-        DRYFIELD_WATER_TANK_FADE_FOREGROUND_TAG = -16,
-        DRYFIELD_WATER_TANK_FADE_TEXTURE_4BIT   = 0,
-    };
-
-    u8        red;
-    u8        green;
-    TILE*     tile;
-    DR_TPAGE* drawMode;
-
-    red            = fade->r;
-    green          = fade->g;
-    tile           = gGpuPrimCursor;
-    gGpuPrimCursor = tile + 1;
-    setTile(tile);
-    setSemiTrans(tile, true);
-    tile->r0 = red;
-    tile->g0 = green;
-    tile->b0 = red;
-    tile->x0 = -DRYFIELD_WATER_TANK_FADE_WIDTH_PIXELS / 2;
-    tile->y0 = -DRYFIELD_WATER_TANK_FADE_HEIGHT_PIXELS / 2;
-    tile->w  = DRYFIELD_WATER_TANK_FADE_WIDTH_PIXELS;
-    tile->h  = DRYFIELD_WATER_TANK_FADE_HEIGHT_PIXELS;
-    addPrim(gGpuCurrentOt + DRYFIELD_WATER_TANK_FADE_FOREGROUND_TAG, tile);
-
-    // Prepending the mode after the tile makes the GPU execute it first.
-    drawMode       = gGpuPrimCursor;
-    gGpuPrimCursor = drawMode + 1;
-    setDrawTPage(drawMode, false, true, getTPage(DRYFIELD_WATER_TANK_FADE_TEXTURE_4BIT, GPU_BLEND_SUBTRACT, 0, 0));
-    addPrim(gGpuCurrentOt + DRYFIELD_WATER_TANK_FADE_FOREGROUND_TAG, drawMode);
-}
-
 /// Darkens the screen before the water-tank movie with a rising subtractive tile.
 ///
 /// The room supplies a rate of 8 colour units per frame in `Task::spawnArg1`;
@@ -911,12 +868,10 @@ static void _dryfieldWaterTankFadeOutTileTask(Task* task)
             task->state += 1;
             /* fallthrough */
         case DRYFIELD_WATER_TANK_FADE_STATE_DRAW:
-            _dryfieldWaterTankDrawFadeOverlay(fade);
+            _screenFadeDrawTileOverlay(fade);
 
             // Blue follows the ramp even though the packet uses red for blue.
-            fade->r += (u16)task->spawnArg1.value;
-            fade->g += (u16)task->spawnArg1.value;
-            fade->b += (u16)task->spawnArg1.value;
+            _screenFadeStepUp(fade, task);
             if (fade->r >= DRYFIELD_WATER_TANK_FADE_CHANNEL_END) {
                 taskKill(task);
             }

@@ -47,6 +47,7 @@
 #include "overlay.h"
 
 #include "rooms/dryfield_night_main_street.h"
+#include "../../shared/screen/screen_fade_step_up.inc.c"
 
 static void _screenFadeInTask(Task* task);
 /// Binds the shared fade-in declaration and definition to this file's private task.
@@ -2044,19 +2045,6 @@ static void _actor136100SceneTask(Task* task)
 #include "../../shared/screen/screen_fade_in.inc.c"
 #undef SCREEN_FADE_IN_TASK
 
-/// Adds the task's intensity increment to each signed fade channel in order.
-///
-/// Requires writable fade work and a live task. The low unsigned halfword of
-/// `spawnArg1` is intensity units per tick; zero holds the current channels.
-/// Each addition reads the rate anew and narrows to a signed halfword without
-/// clamping. Completion and display cancellation belong to the caller.
-static inline void _actor136100StepFadeOut(ScreenFadeWork* fade, const Task* task)
-{
-    fade->r += task->spawnArg1.halves.low;
-    fade->g += task->spawnArg1.halves.low;
-    fade->b += task->spawnArg1.halves.low;
-}
-
 /// Darkens the street scene and blanks the display when the ramp completes.
 ///
 /// Start at state 0 without owned work. Initialization allocates primary-heap
@@ -2094,7 +2082,7 @@ static void _actor136100FadeOutTask(Task* task)
             /* fallthrough */
         case RAMP:
             fadeDrawOverlay(fade->r, fade->g, fade->r, GPU_BLEND_SUBTRACT);
-            _actor136100StepFadeOut(fade, task);
+            _screenFadeStepUp(fade, task);
             if (_gActor136100FadeOutCancelled != 0) {
                 taskKill(task);
                 return;
