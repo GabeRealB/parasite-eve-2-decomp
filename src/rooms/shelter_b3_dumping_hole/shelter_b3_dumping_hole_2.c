@@ -82,6 +82,8 @@
 #include "../../shared/screen/screen_fade.h"
 #include "../../shared/effects/glow_draw.h"
 
+#include "assets/engine/animation/player_schema.h"
+
 /// Selects this room's billboard declaration with `s32` frame and size arguments.
 ///
 /// Presence-only configuration for the first inclusion of `effect_sprite.h`;
@@ -3246,7 +3248,6 @@ static void _shelterB3DumpingHoleDebrisEventHandlePlayerCommand(Task* directorTa
         SHELTER_B3_DUMPING_HOLE_DEBRIS_PREPARE_DELAY_TICKS     = 6,
         SHELTER_B3_DUMPING_HOLE_DEBRIS_RISE_DELAY_TICKS        = 16,
         SHELTER_B3_DUMPING_HOLE_DEBRIS_ACTOR_COMMAND_RISE_PROP = 1,
-        SHELTER_B3_DUMPING_HOLE_DEBRIS_RESTORE_CLIP            = 9,
         SHELTER_B3_DUMPING_HOLE_DEBRIS_BLEND_FRAMES            = 10,
         SHELTER_B3_DUMPING_HOLE_DEBRIS_CLIP_47                 = 47,
         SHELTER_B3_DUMPING_HOLE_DEBRIS_CLIP_48                 = 48,
@@ -3320,7 +3321,7 @@ static void _shelterB3DumpingHoleDebrisEventHandlePlayerCommand(Task* directorTa
         case SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_RESTORE_PLAYER:
             taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO, 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &_gShelterB3DumpingHoleDebrisPlayerFinalTransform, 0);
-            SHELTER_B3_DUMPING_HOLE_PLAY_DEBRIS_PLAYER_ANIMATION(directorTask, &request.animation, SHELTER_B3_DUMPING_HOLE_DEBRIS_RESTORE_CLIP, ANIMATION_BLEND_RESET, 0);
+            SHELTER_B3_DUMPING_HOLE_PLAY_DEBRIS_PLAYER_ANIMATION(directorTask, &request.animation, PLAYER_ANIMATION_AIM_IDLE, ANIMATION_BLEND_RESET, 0);
             break;
         case SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_PLAY_ANIMATION_48:
             switch (work->playerStep) {
@@ -3536,7 +3537,6 @@ static void _shelterB3DumpingHoleDebrisEventTask(Task* directorTask)
         SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_ACTOR_YAW    = 0x400,
         SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_SCENE_EVENT  = 12,
         SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_MUSIC_ENTRY  = 3,
-        SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_IDLE_CLIP    = 1,
         SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_BLEND_FRAMES = 10,
     };
     _ShelterB3DumpingHoleDebrisEventWork* allocatedWork;
@@ -3603,7 +3603,7 @@ static void _shelterB3DumpingHoleDebrisEventTask(Task* directorTask)
             weaponId                       = gPlayerStatus.weapon;
             animationRequest               = &animation;
             animation.source.index         = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
-            animationRequest->animationId  = SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_IDLE_CLIP;
+            animationRequest->animationId  = PLAYER_ANIMATION_IDLE;
             animationRequest->blend        = ANIMATION_BLEND_INTERPOLATE;
             animationRequest->blendFrames  = SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_BLEND_FRAMES;
             animation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
@@ -4055,8 +4055,6 @@ static void _shelterB3DumpingHoleCollapseEventHandleCommand(Task* task)
         SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLICKER_HIDE_THIRD       = 5,
         SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLICKER_WAIT_BLEND       = 6,
         SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLICKER_RESTORE          = 7,
-        SHELTER_B3_DUMPING_HOLE_COLLAPSE_RESTORE_CLIP             = 9,
-        SHELTER_B3_DUMPING_HOLE_COLLAPSE_IDLE_CLIP                = 1,
         SHELTER_B3_DUMPING_HOLE_COLLAPSE_BLEND_FRAMES             = 10,
         SHELTER_B3_DUMPING_HOLE_COLLAPSE_ACTOR_COMMAND_START      = 10,
         SHELTER_B3_DUMPING_HOLE_COLLAPSE_ACTOR_COMMAND_SKIP_SHORT = 11,
@@ -4119,7 +4117,7 @@ static void _shelterB3DumpingHoleCollapseEventHandleCommand(Task* task)
             roomEffectRequestCancelAll();
             gAttachmentState.flags                |= ATTACHMENT_FLAG_EVENT_LOCK;
             scratch.animation.source.index         = gPlayerStatus.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == SHELTER_B3_DUMPING_HOLE_PRIMARY_CHARACTER ? SHELTER_B3_DUMPING_HOLE_PRIMARY_ANIMATION_BANK_OFFSET : SHELTER_B3_DUMPING_HOLE_NONPRIMARY_ANIMATION_BANK_OFFSET);
-            scratch.animation.animationId          = SHELTER_B3_DUMPING_HOLE_COLLAPSE_RESTORE_CLIP;
+            scratch.animation.animationId          = PLAYER_ANIMATION_AIM_IDLE;
             scratch.animation.blend                = ANIMATION_BLEND_INTERPOLATE;
             scratch.animation.blendFrames          = SHELTER_B3_DUMPING_HOLE_COLLAPSE_BLEND_FRAMES;
             scratch.animation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
@@ -4262,7 +4260,7 @@ static void _shelterB3DumpingHoleCollapseEventHandleCommand(Task* task)
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, finishCommand, ACTOR_COMMAND_MESSAGE_APPLY);
             animationRequest               = &animation;
             animation.source.index         = gPlayerStatus.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == SHELTER_B3_DUMPING_HOLE_PRIMARY_CHARACTER ? SHELTER_B3_DUMPING_HOLE_PRIMARY_ANIMATION_BANK_OFFSET : SHELTER_B3_DUMPING_HOLE_NONPRIMARY_ANIMATION_BANK_OFFSET);
-            animationRequest->animationId  = SHELTER_B3_DUMPING_HOLE_COLLAPSE_IDLE_CLIP;
+            animationRequest->animationId  = PLAYER_ANIMATION_IDLE;
             animationRequest->blend        = ANIMATION_BLEND_INTERPOLATE;
             animationRequest->blendFrames  = SHELTER_B3_DUMPING_HOLE_COLLAPSE_BLEND_FRAMES;
             animation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
@@ -4325,7 +4323,6 @@ static void _shelterB3DumpingHoleCollapseEventSkip(void)
 {
     enum {
         SHELTER_B3_DUMPING_HOLE_ACTOR_COMMAND_COLLAPSE_SKIP_LONG = 19,
-        SHELTER_B3_DUMPING_HOLE_COLLAPSE_PLAYER_IDLE_CLIP        = 1,
         SHELTER_B3_DUMPING_HOLE_ACTOR0_DRAW_SHOW_ALLOCATE        = 1,
     };
     _ShelterB3DumpingHoleCollapseEventWork* work;
@@ -4354,7 +4351,7 @@ static void _shelterB3DumpingHoleCollapseEventSkip(void)
 
     animationRequest               = &animation;
     animation.source.index         = gPlayerStatus.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == SHELTER_B3_DUMPING_HOLE_PRIMARY_CHARACTER ? SHELTER_B3_DUMPING_HOLE_PRIMARY_ANIMATION_BANK_OFFSET : SHELTER_B3_DUMPING_HOLE_NONPRIMARY_ANIMATION_BANK_OFFSET);
-    animationRequest->animationId  = SHELTER_B3_DUMPING_HOLE_COLLAPSE_PLAYER_IDLE_CLIP;
+    animationRequest->animationId  = PLAYER_ANIMATION_IDLE;
     animation.blend                = ANIMATION_BLEND_RESET;
     animation.blendFrames          = 0;
     animation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
@@ -4375,7 +4372,6 @@ static void _shelterB3DumpingHoleCollapseEventTask(Task* task)
         SHELTER_B3_DUMPING_HOLE_COLLAPSE_EVENT_SETUP        = 0,
         SHELTER_B3_DUMPING_HOLE_COLLAPSE_EVENT_START_SCRIPT = 1,
         SHELTER_B3_DUMPING_HOLE_COLLAPSE_EVENT_RUN_SCRIPT   = 2,
-        SHELTER_B3_DUMPING_HOLE_COLLAPSE_EVENT_RESTORE_CLIP = 9,
         SHELTER_B3_DUMPING_HOLE_COLLAPSE_EVENT_BLEND_FRAMES = 10,
     };
     union {
@@ -4411,7 +4407,7 @@ static void _shelterB3DumpingHoleCollapseEventTask(Task* task)
             ((_ShelterB3DumpingHoleCollapseEventWork*)task->work)->savedView = gGameSession->location.view;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             scratch.animation.source.index         = gPlayerStatus.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == SHELTER_B3_DUMPING_HOLE_PRIMARY_CHARACTER ? SHELTER_B3_DUMPING_HOLE_PRIMARY_ANIMATION_BANK_OFFSET : SHELTER_B3_DUMPING_HOLE_NONPRIMARY_ANIMATION_BANK_OFFSET);
-            scratch.animation.animationId          = SHELTER_B3_DUMPING_HOLE_COLLAPSE_EVENT_RESTORE_CLIP;
+            scratch.animation.animationId          = PLAYER_ANIMATION_AIM_IDLE;
             scratch.animation.blend                = ANIMATION_BLEND_INTERPOLATE;
             scratch.animation.blendFrames          = SHELTER_B3_DUMPING_HOLE_COLLAPSE_EVENT_BLEND_FRAMES;
             scratch.animation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;

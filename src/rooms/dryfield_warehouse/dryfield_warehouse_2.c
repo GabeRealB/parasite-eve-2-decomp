@@ -52,6 +52,8 @@
 
 #include "rooms/room_common.h"
 
+#include "assets/engine/animation/player_schema.h"
+
 static void _screenFadeInTask(Task* task);
 /// Binds the shared fade-in declaration and definition to this file's private task.
 ///
@@ -672,7 +674,6 @@ static void _dryfieldWarehouseDrawLightBeam(const GfxCoord* coord, s16 firstRing
 /// base 34, beyond the declared bank table; that path's reachability is unproven.
 static inline void _dryfieldWarehouseRestoreSkippedPlayer(_DryfieldWarehouseCutsceneWork* work)
 {
-    enum { WEAPON_RESTORE_ANIMATION = 1 };
     AnimationPlayRequest animationRequest;
     s32                  weaponId;
     s32                  animationBankIndex;
@@ -685,7 +686,7 @@ static inline void _dryfieldWarehouseRestoreSkippedPlayer(_DryfieldWarehouseCuts
     weaponId                              = gPlayerStatus.weapon;
     animationBankIndex                    = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
     animationRequest.source.index         = animationBankIndex;
-    animationRequest.animationId          = WEAPON_RESTORE_ANIMATION;
+    animationRequest.animationId          = PLAYER_ANIMATION_IDLE;
     animationRequest.blend                = ANIMATION_BLEND_RESET;
     animationRequest.blendFrames          = 0;
     animationRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
@@ -794,7 +795,7 @@ static void _dryfieldWarehouseExecuteCutsceneCommand(Task* task)
         (weaponSlot)                            = gPlayerStatus.weapon;                                                                 \
         (bankIndex)                             = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponSlot);                                           \
         (animationRequest).source.index         = (bankIndex);                                                                          \
-        (animationRequest).animationId          = DRYFIELD_WAREHOUSE_PLAYER_SCENE_CLIP;                                                 \
+        (animationRequest).animationId          = PLAYER_ANIMATION_IDLE;                                                                \
         (animationRequest).blend                = ANIMATION_BLEND_RESET;                                                                \
         (animationRequest).blendFrames          = 0;                                                                                    \
         (animationRequest).enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;                                                     \
@@ -941,11 +942,10 @@ static void _dryfieldWarehouseExecuteCutsceneCommand(Task* task)
 static void _dryfieldWarehouseCutsceneTask(Task* task)
 {
     enum {
-        DRYFIELD_WAREHOUSE_SCENE_INITIALIZE      = 0,
-        DRYFIELD_WAREHOUSE_SCENE_START_SCRIPT    = 1,
-        DRYFIELD_WAREHOUSE_SCENE_EXECUTE         = 2,
-        DRYFIELD_WAREHOUSE_PLAYER_IDLE_ANIMATION = 1,
-        DRYFIELD_WAREHOUSE_PLAYER_TICK_HOLD      = 1,
+        DRYFIELD_WAREHOUSE_SCENE_INITIALIZE   = 0,
+        DRYFIELD_WAREHOUSE_SCENE_START_SCRIPT = 1,
+        DRYFIELD_WAREHOUSE_SCENE_EXECUTE      = 2,
+        DRYFIELD_WAREHOUSE_PLAYER_TICK_HOLD   = 1,
     };
     _DryfieldWarehouseCutsceneWork* work;
     AnimationPlayRequest            animationRequest;
@@ -963,7 +963,7 @@ static void _dryfieldWarehouseCutsceneTask(Task* task)
         /* Dispatch borrows this request; playback borrows the selected bank. */                                             \
         bankIndex                             = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);                                    \
         animationRequest.source.index         = bankIndex;                                                                   \
-        animationRequest.animationId          = DRYFIELD_WAREHOUSE_PLAYER_IDLE_ANIMATION;                                    \
+        animationRequest.animationId          = PLAYER_ANIMATION_IDLE;                                                       \
         animationRequest.blend                = ANIMATION_BLEND_RESET;                                                       \
         animationRequest.blendFrames          = 0;                                                                           \
         animationRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                           \

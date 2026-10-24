@@ -64,6 +64,8 @@
 
 #include "rooms/room_common.h"
 
+#include "assets/engine/animation/player_schema.h"
+
 /// Selects the private hotspot test used by the key-item cursor and line tip.
 ///
 /// Bind a function identifier with signature
@@ -538,7 +540,7 @@ static void _dryfieldBreezewayProcessFirstEventAction(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = viewFindLogicalIndex(DRYFIELD_BREEZEWAY_FIRST_EVENT_STAGING_VIEW);
             break;
         case DRYFIELD_BREEZEWAY_FIRST_EVENT_ACTION_PLAY_ANIMATION_9:
-            _dryfieldBreezewayPlayPlayerAnimation(DRYFIELD_BREEZEWAY_FIRST_EVENT_PLAYER_ANIMATION, ANIMATION_BLEND_INTERPOLATE, 10);
+            _dryfieldBreezewayPlayPlayerAnimation(PLAYER_ANIMATION_AIM_IDLE, ANIMATION_BLEND_INTERPOLATE, 10);
             break;
     }
     work->action = DRYFIELD_BREEZEWAY_FIRST_EVENT_ACTION_NONE;
@@ -614,7 +616,7 @@ static void _dryfieldBreezewayFirstEventTask(Task* task)
             }
             // Bind the actors before scripts can send their staging requests.
             _dryfieldBreezewayInitializeFirstEventWork(task);
-            _dryfieldBreezewayPlayPlayerAnimation(1, ANIMATION_BLEND_INTERPOLATE, 10);
+            _dryfieldBreezewayPlayPlayerAnimation(PLAYER_ANIMATION_IDLE, ANIMATION_BLEND_INTERPOLATE, 10);
             evsStartScriptWithSkip(_gDryfieldBreezewayFirstEventScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gDryfieldBreezewayFirstEventSkipScript);
             task->state += 1;
             break;
@@ -680,7 +682,7 @@ static void _dryfieldBreezewayRequestFirstEventAction(s16 action)
 /// The player, loaded animation bank and published first-event task must be live.
 static void _dryfieldBreezewayStageFirstEventSkip(void)
 {
-    _dryfieldBreezewayPlayPlayerAnimation(DRYFIELD_BREEZEWAY_FIRST_EVENT_PLAYER_ANIMATION, ANIMATION_BLEND_RESET, 0);
+    _dryfieldBreezewayPlayPlayerAnimation(PLAYER_ANIMATION_AIM_IDLE, ANIMATION_BLEND_RESET, 0);
     _dryfieldBreezewayStartFirstEventPursuit();
 }
 

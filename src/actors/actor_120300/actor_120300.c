@@ -50,6 +50,8 @@
 #include "../../shared/screen/screen_fade.h"
 #include "../../shared/actor/actor_messages.h"
 
+#include "assets/engine/animation/player_schema.h"
+
 static void _screenFadeOutTask(Task* task);
 
 /// Gary Douglas's texture resource in the garage area-placement table.
@@ -859,7 +861,7 @@ static void _actor120300RunPlayerRequest(Task* task)
                                                                                       \
         weaponId                     = gPlayerStatus.weapon;                          \
         request.source.index         = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);      \
-        request.animationId          = ACTOR_120300_WEAPON_ANIMATION;                 \
+        request.animationId          = PLAYER_ANIMATION_IDLE;                         \
         request.blend                = (blendChoice);                                 \
         request.blendFrames          = (frames);                                      \
         request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;             \
@@ -1208,7 +1210,6 @@ static void _actor120300PrepareRoomPlay(s32 preservePlayer)
         ACTOR_120300_PRIMARY_CHARACTER          = 1,
         ACTOR_120300_PRIMARY_WEAPON_BANK_BASE   = 1,
         ACTOR_120300_ALTERNATE_WEAPON_BANK_BASE = 0x22,
-        ACTOR_120300_WEAPON_ANIMATION           = 1
     };
     Task*                task;
     _Actor120300Work*    work;
@@ -1231,7 +1232,7 @@ static void _actor120300PrepareRoomPlay(s32 preservePlayer)
         weaponId                                    = gPlayerStatus.weapon;
         weaponBank                                  = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
         playerAnimationRequest.source.index         = weaponBank;
-        playerAnimationRequest.animationId          = ACTOR_120300_WEAPON_ANIMATION;
+        playerAnimationRequest.animationId          = PLAYER_ANIMATION_IDLE;
         playerAnimationRequest.blend                = ANIMATION_BLEND_RESET;
         playerAnimationRequest.blendFrames          = 0;
         playerAnimationRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;

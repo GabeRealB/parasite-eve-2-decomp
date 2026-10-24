@@ -29,6 +29,8 @@
 
 #include "rooms/room.h"
 
+#include "assets/engine/animation/player_schema.h"
+
 static void _akropolisObservatoryForkedRoadArrivalMoviePathTask(Task* task);
 static void _akropolisObservatoryPromenadeArrivalMoviePathTask(Task* task);
 static void _akropolisObservatorySkipFadeOutTask(Task* task);
@@ -102,7 +104,7 @@ static void _akropolisObservatoryForkedRoadArrivalMoviePathTask(Task* task)
             ((RoomMoviePathWork*)task->work)->playerMtx  = gPlayerStatus.coordMtx;
             weaponId                                     = gPlayerStatus.weapon;
             animationRequest.source.index                = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
-            animationRequest.animationId                 = 1;
+            animationRequest.animationId                 = PLAYER_ANIMATION_IDLE;
             animationRequest.blend                       = ANIMATION_BLEND_RESET;
             animationRequest.blendFrames                 = 0;
             animationRequest.enableWorldCollision        = ANIMATION_WORLD_COLLISION_DISABLE;
@@ -194,7 +196,7 @@ static void _akropolisObservatoryPromenadeArrivalMoviePathTask(Task* task)
             ((RoomMoviePathWork*)task->work)->playerMtx  = gPlayerStatus.coordMtx;
             weaponId                                     = gPlayerStatus.weapon;
             animationRequest.source.index                = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
-            animationRequest.animationId                 = 1;
+            animationRequest.animationId                 = PLAYER_ANIMATION_IDLE;
             animationRequest.blend                       = ANIMATION_BLEND_RESET;
             animationRequest.blendFrames                 = 0;
             animationRequest.enableWorldCollision        = ANIMATION_WORLD_COLLISION_DISABLE;

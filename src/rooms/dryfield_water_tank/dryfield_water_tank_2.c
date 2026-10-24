@@ -53,6 +53,8 @@
 #include "../../shared/screen/screen_fade_step_up.inc.c"
 #include "../../shared/screen/screen_fade_tile_overlay.inc.c"
 
+#include "assets/engine/animation/player_schema.h"
+
 /// Requests the room's event script leaves for the event task, each carried
 /// out on the task's next update.
 ///
@@ -810,10 +812,6 @@ static inline void _dryfieldWaterTankResumeAfterMovie(Task* task)
 /// is unproven. Position and orientation are supplied separately by the caller.
 static inline void _dryfieldWaterTankRestoreWeaponStance(void)
 {
-    enum {
-        DRYFIELD_WATER_TANK_WEAPON_STANCE_CLIP = 1,
-    };
-
     AnimationPlayRequest stance;
     s32                  weaponId;
     s32                  animationBank;
@@ -821,7 +819,7 @@ static inline void _dryfieldWaterTankRestoreWeaponStance(void)
     weaponId                    = gPlayerStatus.weapon;
     animationBank               = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
     stance.source.index         = animationBank;
-    stance.animationId          = DRYFIELD_WATER_TANK_WEAPON_STANCE_CLIP;
+    stance.animationId          = PLAYER_ANIMATION_IDLE;
     stance.blend                = ANIMATION_BLEND_RESET;
     stance.blendFrames          = 0;
     stance.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
@@ -1078,7 +1076,6 @@ static void _dryfieldWaterTankExecuteEventCommand(Task* task)
 static inline void _dryfieldWaterTankBlendPlayerWeaponStance(void)
 {
     enum {
-        DRYFIELD_WATER_TANK_EVENT_STANCE_CLIP         = 1,
         DRYFIELD_WATER_TANK_EVENT_STANCE_BLEND_FRAMES = 10,
     };
     AnimationPlayRequest stance;
@@ -1088,7 +1085,7 @@ static inline void _dryfieldWaterTankBlendPlayerWeaponStance(void)
     weaponId                    = gPlayerStatus.weapon;
     animationBank               = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
     stance.source.index         = animationBank;
-    stance.animationId          = DRYFIELD_WATER_TANK_EVENT_STANCE_CLIP;
+    stance.animationId          = PLAYER_ANIMATION_IDLE;
     stance.blend                = ANIMATION_BLEND_INTERPOLATE;
     stance.blendFrames          = DRYFIELD_WATER_TANK_EVENT_STANCE_BLEND_FRAMES;
     stance.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;

@@ -47,6 +47,8 @@
 #include "../../shared/screen/screen_fade.h"
 #include "../../shared/actor/actor_messages.h"
 
+#include "assets/engine/animation/player_schema.h"
+
 /// `_Actor341900EventWork::playerAction`: the one-shot request the event script
 /// hands the player.
 ///
@@ -839,8 +841,6 @@ static void _actor341900GluttonBodyTask(Task* task)
 static void _actor341900UpdatePlayerAction(Task* eventTask)
 {
     enum {
-        ACTOR_341900_OPENING_WEAPON_CLIP = 1,
-        ACTOR_341900_END_WEAPON_CLIP     = 9,
         ACTOR_341900_EVENT_START_CLIP    = 0,
         ACTOR_341900_EVENT_NEXT_CLIP     = 1,
         ACTOR_341900_PLAYER_BLEND_FRAMES = 10,
@@ -879,7 +879,7 @@ static void _actor341900UpdatePlayerAction(Task* eventTask)
             break;
         case ACTOR_341900_PLAYER_ACTION_PLACE_AT_START:
             TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &_gActor341900PlayerStartPlacement, 0);
-            ACTOR_341900_BUILD_WEAPON_PLAY_REQUEST(request, ACTOR_341900_OPENING_WEAPON_CLIP);
+            ACTOR_341900_BUILD_WEAPON_PLAY_REQUEST(request, PLAYER_ANIMATION_IDLE);
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &request, 0);
             break;
         case ACTOR_341900_PLAYER_ACTION_WALK_TO_MARK:
@@ -909,7 +909,7 @@ static void _actor341900UpdatePlayerAction(Task* eventTask)
             }
             break;
         case ACTOR_341900_PLAYER_ACTION_WEAPON_CLIP_9:
-            ACTOR_341900_BUILD_WEAPON_PLAY_REQUEST(request, ACTOR_341900_END_WEAPON_CLIP);
+            ACTOR_341900_BUILD_WEAPON_PLAY_REQUEST(request, PLAYER_ANIMATION_AIM_IDLE);
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &request, 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &_gActor341900PlayerWeaponClip9Placement, 0);
             break;
@@ -1342,9 +1342,6 @@ static void _actor341900SetStagingMode(s16 stagingMode)
 /// collision. Both request and placement dispatches complete before cancellation.
 static void _actor341900FinishSkippedScene(void)
 {
-    enum {
-        ACTOR_341900_END_WEAPON_CLIP = 9,
-    };
     _Actor341900EventWork* work;
     AnimationPlayRequest   request;
 
@@ -1362,7 +1359,7 @@ static void _actor341900FinishSkippedScene(void)
         animationBankIndex =                                                    \
             PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);                           \
         (playRequest).source.index         = animationBankIndex;                \
-        (playRequest).animationId          = ACTOR_341900_END_WEAPON_CLIP;      \
+        (playRequest).animationId          = PLAYER_ANIMATION_AIM_IDLE;         \
         (playRequest).blend                = ANIMATION_BLEND_RESET;             \
         (playRequest).blendFrames          = 0;                                 \
         (playRequest).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE; \

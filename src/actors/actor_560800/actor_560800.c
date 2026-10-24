@@ -61,6 +61,8 @@
 #include "../../shared/screen/screen_fade_step_down.inc.c"
 #include "../../shared/screen/screen_fade_step_up.inc.c"
 
+#include "assets/engine/animation/player_schema.h"
+
 /// Work block of the task that runs the package's cutscene, allocated zeroed at
 /// its full size by that task's first state and kept at its `Task::work`.
 ///
@@ -5318,16 +5320,16 @@ static void _actor560800HandlePlayerCue(Task* task)
         case 38:
             break;
         case 1:
-            _actor560800RestartPlayerWeaponAnimation(1);
+            _actor560800RestartPlayerWeaponAnimation(PLAYER_ANIMATION_IDLE);
             break;
         case 3:
-            _actor560800BlendPlayerWeaponAnimation(7);
+            _actor560800BlendPlayerWeaponAnimation(PLAYER_ANIMATION_AIM_ENTER);
             break;
         case 9:
             _actor560800BlendPlayerAnimation(task, 0, ACTOR_560800_ANIMATION_BLEND_FRAMES);
             break;
         case 12:
-            _actor560800RestartPlayerWeaponAnimation(9);
+            _actor560800RestartPlayerWeaponAnimation(PLAYER_ANIMATION_AIM_IDLE);
             break;
         case 16:
             _actor560800RestartPlayerAnimation(task, 0xC);
@@ -5335,7 +5337,7 @@ static void _actor560800HandlePlayerCue(Task* task)
         case 18:
             switch (work->playerCue.step) {
                 case 0:
-                    _actor560800RestartPlayerWeaponAnimation(3);
+                    _actor560800RestartPlayerWeaponAnimation(PLAYER_ANIMATION_BACKWARD_WALK);
                     taskMessageDispatch(work->player, ANIMATION_MESSAGE_SET_RATE, ANIMATION_RATE_ONE / 2, 0);
                     work->playerCue.counter = 0;
                     work->playerCue.step++;
@@ -5383,7 +5385,7 @@ static void _actor560800HandlePlayerCue(Task* task)
         case ACTOR_560800_PLAYER_CUE_DELAYED_WEAPON_BLEND:
             switch (work->playerCue.step) {
                 case 0:
-                    _actor560800BlendPlayerWeaponAnimation(8);
+                    _actor560800BlendPlayerWeaponAnimation(PLAYER_ANIMATION_AIM_EXIT);
                     taskMessageDispatch(work->player, ANIMATION_MESSAGE_SET_RATE, ANIMATION_RATE_ONE / 2, 0);
                     work->playerCue.counter = 0;
                     work->playerCue.step++;
@@ -5691,7 +5693,7 @@ static void _actor560800HandleKyleCue(Task* task)
             switch (work->kyleCue.step) {
                 case 0:
                     ((_Actor560800CastWork*)work->kyle->work)->relit = true;
-                    _actor560800BlendPlayerWeaponAnimation(3);
+                    _actor560800BlendPlayerWeaponAnimation(PLAYER_ANIMATION_BACKWARD_WALK);
                     taskMessageDispatch(work->player, ANIMATION_MESSAGE_SET_RATE, ANIMATION_RATE_ONE / 2, 0);
                     work->kyleCue.counter = 0;
                     work->kyleCue.step++;
@@ -5996,7 +5998,7 @@ static void _actor560800CutsceneTask(Task* task)
                 roomEffectRequestCancelAll();
                 weaponId                     = gPlayerStatus.weapon;
                 request.source.index         = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
-                request.animationId          = 1;
+                request.animationId          = PLAYER_ANIMATION_IDLE;
                 request.blend                = ANIMATION_BLEND_RESET;
                 request.blendFrames          = 0;
                 request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;

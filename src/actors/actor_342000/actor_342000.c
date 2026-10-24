@@ -55,6 +55,8 @@
 #include "../../shared/screen/screen_fade.h"
 #include "../../shared/actor/actor_messages.h"
 
+#include "assets/engine/animation/player_schema.h"
+
 /// Work block of each task that makes up the Glutton's display model: the
 /// body, its two legs and the three further parts hung off the body.
 ///
@@ -879,7 +881,6 @@ static void _actor342000UpdatePlayerAction(Task* eventTask)
         ACTOR_342000_PLAYER_BLEND_FRAMES       = 10,
         ACTOR_342000_PLAYER_EVENT_CLIP_AT_MARK = 0,
         ACTOR_342000_PLAYER_EVENT_CLIP_1       = 1,
-        ACTOR_342000_PLAYER_WEAPON_CLIP        = 1,
         ACTOR_342000_PLAYER_EVENT_CLIP_2       = 2,
         ACTOR_342000_PLAYER_EVENT_CLIP_ALERT   = 3,
     };
@@ -934,7 +935,7 @@ static void _actor342000UpdatePlayerAction(Task* eventTask)
             weaponId                              = gPlayerStatus.weapon;
             animationBankIndex                    = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
             animationRequest.source.index         = animationBankIndex;
-            animationRequest.animationId          = ACTOR_342000_PLAYER_WEAPON_CLIP;
+            animationRequest.animationId          = PLAYER_ANIMATION_IDLE;
             animationRequest.blend                = ANIMATION_BLEND_RESET;
             animationRequest.blendFrames          = 0;
             animationRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
@@ -951,7 +952,7 @@ static void _actor342000UpdatePlayerAction(Task* eventTask)
             weaponId                              = gPlayerStatus.weapon;
             animationBankIndex                    = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
             animationRequest.source.index         = animationBankIndex;
-            animationRequest.animationId          = ACTOR_342000_PLAYER_WEAPON_CLIP;
+            animationRequest.animationId          = PLAYER_ANIMATION_IDLE;
             animationRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
             animationRequest.blendFrames          = ACTOR_342000_PLAYER_BLEND_FRAMES;
             animationRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
@@ -1709,9 +1710,6 @@ static void _actor342000SetPlayerDrawMode(s32 drawMode)
 /// stack request synchronously; its selected resources must outlive playback.
 static void _actor342000RestorePlayerAfterSkip(void)
 {
-    enum {
-        ACTOR_342000_WEAPON_CLIP = 1,
-    };
     _Actor342000EventWork* work;
     AnimationPlayRequest   animationRequest;
     s32                    weaponId;
@@ -1724,7 +1722,7 @@ static void _actor342000RestorePlayerAfterSkip(void)
     weaponId                              = gPlayerStatus.weapon;
     animationBankIndex                    = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
     animationRequest.source.index         = animationBankIndex;
-    animationRequest.animationId          = ACTOR_342000_WEAPON_CLIP;
+    animationRequest.animationId          = PLAYER_ANIMATION_IDLE;
     animationRequest.blend                = ANIMATION_BLEND_RESET;
     animationRequest.blendFrames          = 0;
     animationRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;

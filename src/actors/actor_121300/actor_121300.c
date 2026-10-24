@@ -53,6 +53,8 @@
 #include "../../shared/screen/screen_fade.h"
 #include "../../shared/screen/screen_fade_step_up.inc.c"
 
+#include "assets/engine/animation/player_schema.h"
+
 /// Scene step of Eve, stored in `_Actor121300EveWork::step`.
 ///
 /// The event script selects one at each of its cues and the double's tick
@@ -1581,7 +1583,6 @@ static void _actor121300EveSceneTask(Task* task)
         ACTOR_121300_SCENE_START_SCRIPT   = 1,
         ACTOR_121300_SCENE_WAIT_SCRIPT    = 2,
         ACTOR_121300_SCENE_RELOAD         = 3,
-        ACTOR_121300_SCENE_WEAPON_CLIP    = 1,
         ACTOR_121300_SCENE_END_TASK       = 9,
         ACTOR_121300_SCENE_FRAME_WIDTH    = 320,
         ACTOR_121300_SCENE_FRAME_HEIGHT   = 240,
@@ -1603,7 +1604,7 @@ static void _actor121300EveSceneTask(Task* task)
                 weaponId                     = gPlayerStatus.weapon;
                 animationBank                = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
                 request.source.index         = animationBank;
-                request.animationId          = ACTOR_121300_SCENE_WEAPON_CLIP;
+                request.animationId          = PLAYER_ANIMATION_IDLE;
                 request.blend                = ANIMATION_BLEND_RESET;
                 request.blendFrames          = 0;
                 request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;

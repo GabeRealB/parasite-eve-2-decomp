@@ -67,6 +67,7 @@
 #include "../../../../shared/actor/actor_contacts.h"
 
 #include "assets/rooms/akropolis/sanctuary/declarations.inc"
+#include "assets/engine/animation/player_schema.h"
 
 /// Task-owned state for the sanctuary cutscene's script-cued player placement.
 typedef struct {
@@ -714,7 +715,7 @@ static void _akropolisSanctuaryCutsceneTask(Task* task)
                 weaponBankIndex = PLAYER_ACTOR_SCENE_WEAPON_BANK(equippedWeapon);
 
                 request.source.index         = weaponBankIndex;
-                request.animationId          = 1;
+                request.animationId          = PLAYER_ANIMATION_IDLE;
                 request.blend                = ANIMATION_BLEND_INTERPOLATE;
                 request.blendFrames          = AKROPOLIS_SANCTUARY_CUTSCENE_WEAPON_BLEND_FRAMES;
                 request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;

@@ -76,6 +76,8 @@
 #include "../../shared/room/room_events.h"
 #include "../../shared/actor/actor_messages.h"
 
+#include "assets/engine/animation/player_schema.h"
+
 /// Logical view containing the two-image pod-chamber pan.
 enum { SHELTER_B1_POD_ACCESS_TUNNEL_POD_PAN_VIEW               = 11,
        SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_FRACTION_BITS = 16 };
@@ -1872,7 +1874,6 @@ static void _shelterB1PodAccessTunnelPostGantryDialogueTask(Task* task)
 {
     enum { DIALOGUE_START,
            DIALOGUE_WAIT_SCRIPT,
-           DIALOGUE_WEAPON_POSE = 1,
            DIALOGUE_MUSIC_EVENT = 29 };
 
     AnimationPlayRequest poseRequest;
@@ -1888,7 +1889,7 @@ static void _shelterB1PodAccessTunnelPostGantryDialogueTask(Task* task)
                 weaponId                         = gPlayerStatus.weapon;
                 weaponSetIndex                   = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
                 poseRequest.source.index         = weaponSetIndex;
-                poseRequest.animationId          = DIALOGUE_WEAPON_POSE;
+                poseRequest.animationId          = PLAYER_ANIMATION_IDLE;
                 poseRequest.blend                = ANIMATION_BLEND_RESET;
                 poseRequest.blendFrames          = 0;
                 poseRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;

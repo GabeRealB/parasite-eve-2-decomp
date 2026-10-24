@@ -66,6 +66,7 @@
 #include "../../../../shared/effects/acropolis_glows.h"
 
 #include "assets/rooms/akropolis/promenade/declarations.inc"
+#include "assets/engine/animation/player_schema.h"
 
 static void _akropolisPromenadeInitializeRoomTask(Task* task);
 static void _akropolisPromenadeUpdateRoomProgress(Task* unusedTask);
@@ -403,7 +404,7 @@ static void _akropolisPromenadeMoviePathTask(Task* task)
             ((RoomMoviePathWork*)task->work)->playerMtx  = gPlayerStatus.coordMtx;
             equippedWeapon                               = gPlayerStatus.weapon;
             animationRequest.source.index                = PLAYER_ACTOR_SCENE_WEAPON_BANK(equippedWeapon);
-            animationRequest.animationId                 = 1;
+            animationRequest.animationId                 = PLAYER_ANIMATION_IDLE;
             animationRequest.blend                       = ANIMATION_BLEND_RESET;
             animationRequest.blendFrames                 = 0;
             animationRequest.enableWorldCollision        = ANIMATION_WORLD_COLLISION_DISABLE;

@@ -56,6 +56,7 @@
 #include "../../../../shared/effects/falling_leaves.h"
 
 #include "assets/rooms/akropolis/forked_road/declarations.inc"
+#include "assets/engine/animation/player_schema.h"
 
 static void _akropolisForkedRoadOutboundMoviePathTask(Task* task);
 static void _akropolisForkedRoadReturnMoviePathTask(Task* task);
@@ -224,7 +225,6 @@ static void _akropolisForkedRoadReturnMoviePathTask(Task* task)
         AKROPOLIS_FORKED_ROAD_RETURN_REVEAL_TICK     = 3,
         AKROPOLIS_FORKED_ROAD_RETURN_YAW             = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4,
         AKROPOLIS_FORKED_ROAD_RETURN_LOGICAL_VIEW    = 5,
-        AKROPOLIS_FORKED_ROAD_RETURN_IDLE_ANIMATION  = 1
     };
     AnimationPlayRequest animationRequest;
     ActorTransform       exitPose;
@@ -247,7 +247,7 @@ static void _akropolisForkedRoadReturnMoviePathTask(Task* task)
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
             weaponId                              = gPlayerStatus.weapon;
             animationRequest.source.index         = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
-            animationRequest.animationId          = AKROPOLIS_FORKED_ROAD_RETURN_IDLE_ANIMATION;
+            animationRequest.animationId          = PLAYER_ANIMATION_IDLE;
             animationRequest.blend                = ANIMATION_BLEND_RESET;
             animationRequest.blendFrames          = 0;
             animationRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;

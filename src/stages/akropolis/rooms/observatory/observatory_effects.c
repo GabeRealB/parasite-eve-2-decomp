@@ -38,6 +38,7 @@
 #include "main/wipsys_types.h"
 
 #include "assets/rooms/akropolis/observatory/declarations.inc"
+#include "assets/engine/animation/player_schema.h"
 
 /// Work block of the observatory's one-time scripted player scene, owned by the scene task through `Task::work`.
 typedef struct {
@@ -164,7 +165,7 @@ static void _akropolisObservatoryScriptedBattleTask(Task* task)
             weaponIndex                          = gPlayerStatus.weapon;
             animationBankIndex                   = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponIndex);
             playbackRequest.source.index         = animationBankIndex;
-            playbackRequest.animationId          = AKROPOLIS_OBSERVATORY_SCENE_CLIP;
+            playbackRequest.animationId          = PLAYER_ANIMATION_IDLE;
             playbackRequest.blend                = ANIMATION_BLEND_RESET;
             playbackRequest.blendFrames          = 0;
             playbackRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;

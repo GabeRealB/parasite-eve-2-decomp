@@ -49,6 +49,8 @@
 #include "rooms/dryfield_night_main_street.h"
 #include "../../shared/screen/screen_fade_step_up.inc.c"
 
+#include "assets/engine/animation/player_schema.h"
+
 static void _screenFadeInTask(Task* task);
 /// Binds the shared fade-in declaration and definition to this file's private task.
 ///
@@ -1135,10 +1137,10 @@ static void _actor136100UpdateAfterBurnerPlayerRequest(Task* task)
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(task, ANIMATION_BANK_BASE_SET_COUNT, ANIMATION_BLEND_RESET, 0, request);
             break;
         case ACTOR_136100_PLAYER_AFTER_BLEND_WEAPON:
-            ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(task, ACTOR_136100_PLAYER_WEAPON_ANIMATION, ANIMATION_BLEND_INTERPOLATE, ACTOR_136100_ANIMATION_BLEND_FRAMES, request);
+            ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(task, PLAYER_ANIMATION_IDLE, ANIMATION_BLEND_INTERPOLATE, ACTOR_136100_ANIMATION_BLEND_FRAMES, request);
             break;
         case ACTOR_136100_PLAYER_AFTER_RESET_WEAPON:
-            ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(task, ACTOR_136100_PLAYER_WEAPON_ANIMATION, ANIMATION_BLEND_RESET, 0, request);
+            ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(task, PLAYER_ANIMATION_IDLE, ANIMATION_BLEND_RESET, 0, request);
             break;
     }
     work->playerRequest = ACTOR_136100_REQUEST_NONE;
@@ -1427,7 +1429,7 @@ static void _actor136100UpdateBeforeBurnerPlayerRequest(Task* task)
             break;
         case ACTOR_136100_PLAYER_BEFORE_HIDE:
             taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE, 0);
-            ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(task, ACTOR_136100_PLAYER_WEAPON_ANIMATION, ANIMATION_BLEND_RESET, 0, request);
+            ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(task, PLAYER_ANIMATION_IDLE, ANIMATION_BLEND_RESET, 0, request);
             break;
         case ACTOR_136100_PLAYER_BEFORE_ENTER:
             switch ((u16)work->playerRequestStep) {
@@ -1458,13 +1460,13 @@ static void _actor136100UpdateBeforeBurnerPlayerRequest(Task* task)
             break;
         case ACTOR_136100_PLAYER_BEFORE_EXIT:
             TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &_gActor136100BeforeBurnerPlayerExitPlacement, 0);
-            ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(task, ACTOR_136100_PLAYER_WEAPON_ANIMATION, ANIMATION_BLEND_RESET, 0, request);
+            ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(task, PLAYER_ANIMATION_IDLE, ANIMATION_BLEND_RESET, 0, request);
             break;
         case ACTOR_136100_PLAYER_BEFORE_RESET_SCENE_ANIMATION:
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(task, ANIMATION_BANK_BASE_SET_COUNT, ANIMATION_BLEND_RESET, 0, request);
             break;
         case ACTOR_136100_PLAYER_BEFORE_BLEND_WEAPON:
-            ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(task, ACTOR_136100_PLAYER_WEAPON_ANIMATION, ANIMATION_BLEND_INTERPOLATE, ACTOR_136100_ANIMATION_BLEND_FRAMES, request);
+            ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(task, PLAYER_ANIMATION_IDLE, ANIMATION_BLEND_INTERPOLATE, ACTOR_136100_ANIMATION_BLEND_FRAMES, request);
             break;
     }
     work->playerRequest = ACTOR_136100_REQUEST_NONE;
@@ -1624,7 +1626,7 @@ static void _actor136100ResetAfterBurnerScene(void)
     bankIndex                    = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
     request.source.index         = bankIndex;
     requestWork->playerAnimation = ACTOR_136100_PLAYER_WEAPON_ANIMATION;
-    request.animationId          = ACTOR_136100_PLAYER_WEAPON_ANIMATION;
+    request.animationId          = PLAYER_ANIMATION_IDLE;
     request.blend                = ANIMATION_BLEND_RESET;
     request.blendFrames          = 0;
     request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
@@ -1666,7 +1668,7 @@ static void _actor136100ResetBeforeBurnerScene(s32 resetHeadRotation)
     bankIndex                    = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
     request.source.index         = bankIndex;
     requestWork->playerAnimation = ACTOR_136100_PLAYER_WEAPON_ANIMATION;
-    request.animationId          = ACTOR_136100_PLAYER_WEAPON_ANIMATION;
+    request.animationId          = PLAYER_ANIMATION_IDLE;
     request.blend                = ANIMATION_BLEND_RESET;
     request.blendFrames          = 0;
     request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
@@ -1978,7 +1980,7 @@ static void _actor136100SceneTask(Task* task)
                 if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                     return;
                 }
-                ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(task, ACTOR_136100_PLAYER_WEAPON_ANIMATION, ANIMATION_BLEND_INTERPOLATE, ACTOR_136100_ANIMATION_BLEND_FRAMES, message.animation);
+                ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(task, PLAYER_ANIMATION_IDLE, ANIMATION_BLEND_INTERPOLATE, ACTOR_136100_ANIMATION_BLEND_FRAMES, message.animation);
                 evsStartScriptWithSkip(_gActor136100AfterBurnerOpeningScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gActor136100AfterBurnerOpeningSkipScript);
                 worldCollisionUnlinkTrigger(WORLD_COLLISION_TRIGGER_LIST_ACTION, &gDryfieldNightMainStreetRooms2And3ActionTriggers[DRYFIELD_NIGHT_MAIN_STREET_ACTION_TRIGGER_AFTER_BURNER]);
                 ACTOR_136100_COPY_PLAYER_ANIMATION_SETS(task, message.copy);
@@ -1993,7 +1995,7 @@ static void _actor136100SceneTask(Task* task)
                 if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                     return;
                 }
-                ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(task, ACTOR_136100_PLAYER_WEAPON_ANIMATION, ANIMATION_BLEND_INTERPOLATE, ACTOR_136100_ANIMATION_BLEND_FRAMES, message.animation);
+                ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(task, PLAYER_ANIMATION_IDLE, ANIMATION_BLEND_INTERPOLATE, ACTOR_136100_ANIMATION_BLEND_FRAMES, message.animation);
                 evsStartScriptWithSkip(_gActor136100BeforeBurnerOpeningScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gActor136100BeforeBurnerOpeningSkipScript);
                 worldCollisionUnlinkTrigger(WORLD_COLLISION_TRIGGER_LIST_ACTION, &gDryfieldNightMainStreetRooms2And3ActionTriggers[DRYFIELD_NIGHT_MAIN_STREET_ACTION_TRIGGER_BEFORE_BURNER]);
                 ACTOR_136100_COPY_PLAYER_ANIMATION_SETS(task, message.copy);
@@ -2103,7 +2105,7 @@ static void _actor136100ResetPlayerWeaponAnimation(void)
     weaponId                     = gPlayerStatus.weapon;
     bankIndex                    = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
     request.source.index         = bankIndex;
-    request.animationId          = ACTOR_136100_PLAYER_WEAPON_ANIMATION;
+    request.animationId          = PLAYER_ANIMATION_IDLE;
     request.blend                = ANIMATION_BLEND_RESET;
     request.blendFrames          = 0;
     request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;

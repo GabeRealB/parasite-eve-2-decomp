@@ -61,6 +61,8 @@
 
 #include "../../shared/room/room_events.h"
 
+#include "assets/engine/animation/player_schema.h"
+
 static void _screenFadeInTask(Task* task);
 /// Binds the shared fade-in declaration and definition to this file's private task.
 ///
@@ -3108,10 +3110,6 @@ static void _dryfieldWaterTowerPropSceneTask(Task* task)
 /// synchronously consumes the stack request.
 static void _dryfieldWaterTowerRestorePlayerWeaponAnimation(s32 blendFrames)
 {
-    enum {
-        DRYFIELD_WATER_TOWER_WEAPON_ANIMATION_SET = 1
-    };
-
     AnimationPlayRequest request;
     s32                  weaponId;
     s32                  bankIndex;
@@ -3121,7 +3119,7 @@ static void _dryfieldWaterTowerRestorePlayerWeaponAnimation(s32 blendFrames)
     bankIndex                    = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
     durationFrames               = blendFrames & 0xFFFF;
     request.source.index         = bankIndex;
-    request.animationId          = DRYFIELD_WATER_TOWER_WEAPON_ANIMATION_SET;
+    request.animationId          = PLAYER_ANIMATION_IDLE;
     request.blend                = durationFrames != 0 ? ANIMATION_BLEND_INTERPOLATE : ANIMATION_BLEND_RESET;
     request.blendFrames          = durationFrames;
     request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
@@ -3359,8 +3357,7 @@ static void _dryfieldWaterTowerDispatchActorSceneRequest(Task* task)
 static inline void _dryfieldWaterTowerStartActorSceneWeaponPose(void)
 {
     enum {
-        DRYFIELD_WATER_TOWER_ACTOR_SCENE_WEAPON_ANIMATION_SET = 1,
-        DRYFIELD_WATER_TOWER_ACTOR_SCENE_WEAPON_BLEND_FRAMES  = 10,
+        DRYFIELD_WATER_TOWER_ACTOR_SCENE_WEAPON_BLEND_FRAMES = 10,
     };
     AnimationPlayRequest animationRequest;
     s32                  weaponIndex;
@@ -3369,7 +3366,7 @@ static inline void _dryfieldWaterTowerStartActorSceneWeaponPose(void)
     weaponIndex                           = gPlayerStatus.weapon;
     bankIndex                             = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponIndex);
     animationRequest.source.index         = bankIndex;
-    animationRequest.animationId          = DRYFIELD_WATER_TOWER_ACTOR_SCENE_WEAPON_ANIMATION_SET;
+    animationRequest.animationId          = PLAYER_ANIMATION_IDLE;
     animationRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
     animationRequest.blendFrames          = DRYFIELD_WATER_TOWER_ACTOR_SCENE_WEAPON_BLEND_FRAMES;
     animationRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;

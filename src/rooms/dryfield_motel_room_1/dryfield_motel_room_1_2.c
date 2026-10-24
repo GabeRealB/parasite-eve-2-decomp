@@ -46,6 +46,8 @@
 
 #include "mapui/map_dryfield.h"
 
+#include "assets/engine/animation/player_schema.h"
+
 /// Commands in the motel room 1 actors' stage/area namespace.
 ///
 /// The staged sucklers handle 1..3; the enemy sucklers handle 3 and 4
@@ -1312,9 +1314,6 @@ static inline void _dryfieldMotelRoom1PlayPlayerAnimation(u16 animationId, u16 b
 static void _dryfieldMotelRoom1ExecuteEventAction(Task* task)
 {
     enum { DRYFIELD_MOTEL_ROOM_1_EVENT_CLIP_STAND       = 1,
-           DRYFIELD_MOTEL_ROOM_1_EVENT_CLIP_TURN_UP     = 5,
-           DRYFIELD_MOTEL_ROOM_1_EVENT_CLIP_TURN_DOWN   = 6,
-           DRYFIELD_MOTEL_ROOM_1_EVENT_CLIP_AFTER_TURN  = 9,
            DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_BLEND       = 5,
            DRYFIELD_MOTEL_ROOM_1_EVENT_STAND_BLEND      = 3,
            DRYFIELD_MOTEL_ROOM_1_EVENT_AFTER_TURN_BLEND = 10,
@@ -1356,11 +1355,11 @@ static void _dryfieldMotelRoom1ExecuteEventAction(Task* task)
                     work->turnYaw =
                         (((GameActor*)work->playerTask->work)->rotation.vy + (ACTOR_TRANSFORM_ANGLE_TURN - DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_FACING_YAW)) % ACTOR_TRANSFORM_ANGLE_TURN;
                     if (work->turnYaw > ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
-                        _dryfieldMotelRoom1PlayPlayerAnimation(DRYFIELD_MOTEL_ROOM_1_EVENT_CLIP_TURN_UP, ANIMATION_BLEND_INTERPOLATE, DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_BLEND);
+                        _dryfieldMotelRoom1PlayPlayerAnimation(PLAYER_ANIMATION_TURN_LEFT, ANIMATION_BLEND_INTERPOLATE, DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_BLEND);
                         taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_SET_RATE, DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_RATE, 0);
                         work->actionStep += 1;
                     } else {
-                        _dryfieldMotelRoom1PlayPlayerAnimation(DRYFIELD_MOTEL_ROOM_1_EVENT_CLIP_TURN_DOWN, ANIMATION_BLEND_INTERPOLATE, DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_BLEND);
+                        _dryfieldMotelRoom1PlayPlayerAnimation(PLAYER_ANIMATION_TURN_RIGHT, ANIMATION_BLEND_INTERPOLATE, DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_BLEND);
                         taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_SET_RATE, DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_RATE, 0);
                         work->actionStep += 2;
                     }
@@ -1369,7 +1368,7 @@ static void _dryfieldMotelRoom1ExecuteEventAction(Task* task)
                     work->turnYaw               += DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_YAW_STEP;
                     work->playerPlacement.rot.vy = work->turnYaw + DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_FACING_YAW;
                     if (work->turnYaw > ACTOR_TRANSFORM_ANGLE_TURN) {
-                        _dryfieldMotelRoom1PlayPlayerAnimation(DRYFIELD_MOTEL_ROOM_1_EVENT_CLIP_STAND, ANIMATION_BLEND_INTERPOLATE, DRYFIELD_MOTEL_ROOM_1_EVENT_STAND_BLEND);
+                        _dryfieldMotelRoom1PlayPlayerAnimation(PLAYER_ANIMATION_IDLE, ANIMATION_BLEND_INTERPOLATE, DRYFIELD_MOTEL_ROOM_1_EVENT_STAND_BLEND);
                         work->settleFrames = 0;
                         work->actionStep   = DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_SETTLE;
                         return;
@@ -1380,7 +1379,7 @@ static void _dryfieldMotelRoom1ExecuteEventAction(Task* task)
                     work->turnYaw               -= DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_YAW_STEP;
                     work->playerPlacement.rot.vy = work->turnYaw + DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_FACING_YAW;
                     if (work->turnYaw < 0) {
-                        _dryfieldMotelRoom1PlayPlayerAnimation(DRYFIELD_MOTEL_ROOM_1_EVENT_CLIP_STAND, ANIMATION_BLEND_INTERPOLATE, DRYFIELD_MOTEL_ROOM_1_EVENT_STAND_BLEND);
+                        _dryfieldMotelRoom1PlayPlayerAnimation(PLAYER_ANIMATION_IDLE, ANIMATION_BLEND_INTERPOLATE, DRYFIELD_MOTEL_ROOM_1_EVENT_STAND_BLEND);
                         work->settleFrames = 0;
                         work->actionStep   = DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_SETTLE;
                         return;
@@ -1390,7 +1389,7 @@ static void _dryfieldMotelRoom1ExecuteEventAction(Task* task)
                 case DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_SETTLE:
                     work->settleFrames += 1;
                     if (work->settleFrames >= DRYFIELD_MOTEL_ROOM_1_EVENT_TURN_SETTLE_FRAMES) {
-                        _dryfieldMotelRoom1PlayPlayerAnimation(DRYFIELD_MOTEL_ROOM_1_EVENT_CLIP_AFTER_TURN, ANIMATION_BLEND_INTERPOLATE, DRYFIELD_MOTEL_ROOM_1_EVENT_AFTER_TURN_BLEND);
+                        _dryfieldMotelRoom1PlayPlayerAnimation(PLAYER_ANIMATION_AIM_IDLE, ANIMATION_BLEND_INTERPOLATE, DRYFIELD_MOTEL_ROOM_1_EVENT_AFTER_TURN_BLEND);
                         work->action = DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_NONE;
                     }
                     return;
@@ -1453,14 +1452,13 @@ static void _dryfieldMotelRoom1OpeningEventTask(Task* task)
     enum { DRYFIELD_MOTEL_ROOM_1_OPENING_START            = 0,
            DRYFIELD_MOTEL_ROOM_1_OPENING_WAIT_SCRIPT      = 1,
            DRYFIELD_MOTEL_ROOM_1_OPENING_WAIT_COMBAT_VIEW = 2,
-           DRYFIELD_MOTEL_ROOM_1_OPENING_PLAYER_CLIP      = 1,
            DRYFIELD_MOTEL_ROOM_1_OPENING_BLEND_FRAMES     = 5 };
 
     switch (task->state) {
         case DRYFIELD_MOTEL_ROOM_1_OPENING_START:
             if ((gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 _dryfieldMotelRoom1InitializeOpeningEvent(task);
-                _dryfieldMotelRoom1PlayPlayerAnimation(DRYFIELD_MOTEL_ROOM_1_OPENING_PLAYER_CLIP, ANIMATION_BLEND_INTERPOLATE, DRYFIELD_MOTEL_ROOM_1_OPENING_BLEND_FRAMES);
+                _dryfieldMotelRoom1PlayPlayerAnimation(PLAYER_ANIMATION_IDLE, ANIMATION_BLEND_INTERPOLATE, DRYFIELD_MOTEL_ROOM_1_OPENING_BLEND_FRAMES);
                 evsStartScriptWithSkip(_gDryfieldMotelRoom1OpeningScript, EVENT_SCRIPT_HUD_HIDE_RESTORE,
                                        _gDryfieldMotelRoom1OpeningSkipScript);
                 task->state = task->state + 1;
@@ -1527,14 +1525,13 @@ static void _dryfieldMotelRoom1RequestEventAction(s16 action)
 static void _dryfieldMotelRoom1RestorePlayerAfterSkip(void)
 {
     enum {
-        DRYFIELD_MOTEL_ROOM_1_SKIP_FINAL_POSE_CLIP = 9,
-        DRYFIELD_MOTEL_ROOM_1_SKIP_PLAYER_YAW      = ACTOR_TRANSFORM_ANGLE_TURN * 5 / 16,
+        DRYFIELD_MOTEL_ROOM_1_SKIP_PLAYER_YAW = ACTOR_TRANSFORM_ANGLE_TURN * 5 / 16,
     };
     _DryfieldMotelRoom1EventWork* work;
     PlayerStatus*                 playerStatus;
 
     work = _gDryfieldMotelRoom1OpeningEventTask->work;
-    _dryfieldMotelRoom1PlayPlayerAnimation(DRYFIELD_MOTEL_ROOM_1_SKIP_FINAL_POSE_CLIP, ANIMATION_BLEND_RESET, 0);
+    _dryfieldMotelRoom1PlayPlayerAnimation(PLAYER_ANIMATION_AIM_IDLE, ANIMATION_BLEND_RESET, 0);
     playerStatus                 = &gPlayerStatus;
     work->playerPlacement.pos.vx = playerStatus->coordMtx->t[0];
     work->playerPlacement.pos.vy = playerStatus->coordMtx->t[1];
