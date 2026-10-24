@@ -298,15 +298,15 @@ static inline void _acropolisCafeteriaChoosePuffSpawnOffset(EffectWork* work)
            PUFF_OFFSET_Z_RANDOM_MASK = 0x3FF };
     u16 randomWord;
 
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    randomWord      = gRandomLcgState >> 16;
-    work->move.vx   = (u32)randomWord % PUFF_OFFSET_X_SPAN + PUFF_OFFSET_X_MIN;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    randomWord      = gRandomLcgState >> 16;
-    work->move.vy   = PUFF_OFFSET_Y_TOP - (u16)((u32)randomWord % PUFF_OFFSET_Y_LEVELS) * PUFF_OFFSET_Y_STEP;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    randomWord      = gRandomLcgState >> 16;
-    work->move.vz   = (randomWord & PUFF_OFFSET_Z_RANDOM_MASK) + PUFF_OFFSET_Z_MIN;
+    RANDOM_LCG_ADVANCE();
+    randomWord    = RANDOM_LCG_DRAW();
+    work->move.vx = (u32)randomWord % PUFF_OFFSET_X_SPAN + PUFF_OFFSET_X_MIN;
+    RANDOM_LCG_ADVANCE();
+    randomWord    = RANDOM_LCG_DRAW();
+    work->move.vy = PUFF_OFFSET_Y_TOP - (u16)((u32)randomWord % PUFF_OFFSET_Y_LEVELS) * PUFF_OFFSET_Y_STEP;
+    RANDOM_LCG_ADVANCE();
+    randomWord    = RANDOM_LCG_DRAW();
+    work->move.vz = (randomWord & PUFF_OFFSET_Z_RANDOM_MASK) + PUFF_OFFSET_Z_MIN;
 }
 
 void acropolisCafeteriaPlayMovieTask(Task* movieTask)
@@ -495,9 +495,9 @@ void acropolisCafeteriaPuffEmitterTask(Task* task)
         // Consume four successive LCG draws for X, Y, Z and perspective size, even on spawn failure.
         for (puffIndex = 0; puffIndex < puffCount; puffIndex++) {
             _acropolisCafeteriaChoosePuffSpawnOffset(work);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            randomWord      = gRandomLcgState >> 16;
-            spawnSizeBase   = spawnFlags + PUFF_EMITTER_SIZE_MIN;
+            RANDOM_LCG_ADVANCE();
+            randomWord    = RANDOM_LCG_DRAW();
+            spawnSizeBase = spawnFlags + PUFF_EMITTER_SIZE_MIN;
             effectSpawn(EFFECT_ACROPOLIS_CAFETERIA_PUFF, coord, (randomWord & PUFF_EMITTER_SIZE_RANDOM_MASK) + spawnSizeBase, &work->move);
         }
     }
@@ -578,16 +578,16 @@ void acropolisCafeteriaPuffTask(Task* task)
             gte_stszotz(&scratch->otz);
             // Depth gates seeding only; drawing and division below always proceed.
             if (scratchEnd[-1].otz > PUFF_SEED_MIN_DEPTH && work->age == 0) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->scale     = (gRandomLcgState >> 16) & PUFF_ROTATION_MASK;
-                work->angle     = task->spawnArg1.halves.low & PUFF_SPAWN_SIZE_MASK;
-                work->move.vx   = 0;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->move.vy   = ((gRandomLcgState >> 16) & 0xF) + 4;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->move.vz   = -((gRandomLcgState >> 16) & 0xF) - 4;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->step      = ((gRandomLcgState >> 16) & 3) + 3;
+                RANDOM_LCG_ADVANCE();
+                work->scale   = RANDOM_LCG_DRAW() & PUFF_ROTATION_MASK;
+                work->angle   = task->spawnArg1.halves.low & PUFF_SPAWN_SIZE_MASK;
+                work->move.vx = 0;
+                RANDOM_LCG_ADVANCE();
+                work->move.vy = (RANDOM_LCG_DRAW() & 0xF) + 4;
+                RANDOM_LCG_ADVANCE();
+                work->move.vz = -(RANDOM_LCG_DRAW() & 0xF) - 4;
+                RANDOM_LCG_ADVANCE();
+                work->step = (RANDOM_LCG_DRAW() & 3) + 3;
                 if (task->spawnArg1.value & PUFF_SPAWN_SKIP_FADE) {
                     work->age = PUFF_SKIP_FADE_AGE;
                 }
@@ -682,11 +682,11 @@ void acropolisCafeteriaModelWanderTask(Task* task)
     if (task->state == WANDER_INITIALIZE) {
         model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         if (task->spawnArg1.value != 0) {
-            work->period    = WANDER_AMBIENT_EXIT_X;
-            work->angle     = 0;
-            work->index     = WANDER_AMBIENT_TURN;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->scale     = (gRandomLcgState >> 16) & 0xF00;
+            work->period = WANDER_AMBIENT_EXIT_X;
+            work->angle  = 0;
+            work->index  = WANDER_AMBIENT_TURN;
+            RANDOM_LCG_ADVANCE();
+            work->scale = RANDOM_LCG_DRAW() & 0xF00;
         } else {
             work->scale  = WANDER_EXIT_YAW;
             work->angle  = 0;
@@ -698,11 +698,11 @@ void acropolisCafeteriaModelWanderTask(Task* task)
     }
     switch (work->index) {
         case WANDER_TIMED_TURN:
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->angle     = 0;
-            work->scale    -= ((gRandomLcgState >> 16) & 0xFF) - 0x80;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((u16)((gRandomLcgState >> 16) % 30) == 0) {
+            RANDOM_LCG_ADVANCE();
+            work->angle  = 0;
+            work->scale -= (RANDOM_LCG_DRAW() & 0xFF) - 0x80;
+            RANDOM_LCG_ADVANCE();
+            if ((u16)(RANDOM_LCG_DRAW() % 30) == 0) {
                 work->index = WANDER_TIMED_MOVE;
             }
             if (work->age >= WANDER_DEPART_AGE) {
@@ -710,23 +710,23 @@ void acropolisCafeteriaModelWanderTask(Task* task)
             }
             break;
         case WANDER_TIMED_MOVE:
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((gRandomLcgState >> 16) & 1) {
+            RANDOM_LCG_ADVANCE();
+            if (RANDOM_LCG_DRAW() & 1) {
                 previousYaw = work->scale;
                 if (previousYaw > WANDER_EXIT_YAW) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    nextYaw         = previousYaw - 0x10;
-                    nextYaw        -= (gRandomLcgState >> 16) & 0x3F;
+                    RANDOM_LCG_ADVANCE();
+                    nextYaw  = previousYaw - 0x10;
+                    nextYaw -= RANDOM_LCG_DRAW() & 0x3F;
                 } else {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    nextYaw         = previousYaw + 0x10;
-                    nextYaw        += (gRandomLcgState >> 16) & 0x3F;
+                    RANDOM_LCG_ADVANCE();
+                    nextYaw  = previousYaw + 0x10;
+                    nextYaw += RANDOM_LCG_DRAW() & 0x3F;
                 }
                 work->scale = nextYaw;
             }
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->angle     = WANDER_MOVE_SPEED_Q4;
-            if ((u16)((gRandomLcgState >> 16) % 30) == 0) {
+            RANDOM_LCG_ADVANCE();
+            work->angle = WANDER_MOVE_SPEED_Q4;
+            if ((u16)(RANDOM_LCG_DRAW() % 30) == 0) {
                 work->index = WANDER_TIMED_TURN;
             }
             if (work->age >= WANDER_DEPART_AGE) {
@@ -734,18 +734,18 @@ void acropolisCafeteriaModelWanderTask(Task* task)
             }
             break;
         case WANDER_AMBIENT_TURN:
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->scale    -= ((gRandomLcgState >> 16) & 0xFF) - 0x80;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((u16)((gRandomLcgState >> 16) % 240) == 0) {
+            RANDOM_LCG_ADVANCE();
+            work->scale -= (RANDOM_LCG_DRAW() & 0xFF) - 0x80;
+            RANDOM_LCG_ADVANCE();
+            if ((u16)(RANDOM_LCG_DRAW() % 240) == 0) {
                 work->scale = WANDER_EXIT_YAW;
                 work->angle = WANDER_MOVE_SPEED_Q4;
                 work->index = WANDER_AMBIENT_MOVE;
             }
             break;
         case WANDER_AMBIENT_MOVE:
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if (((gRandomLcgState >> 16) & 7) == 0) {
+            RANDOM_LCG_ADVANCE();
+            if ((RANDOM_LCG_DRAW() & 7) == 0) {
                 work->angle = 0;
                 work->index = WANDER_AMBIENT_TURN;
             }
@@ -756,12 +756,12 @@ void acropolisCafeteriaModelWanderTask(Task* task)
                 randomIncrement = RANDOM_LCG_INCREMENT;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + randomIncrement;
                 departureYaw   -= 0x10;
-                departureYaw   -= (gRandomLcgState >> 16) & 0x3F;
+                departureYaw   -= RANDOM_LCG_DRAW() & 0x3F;
             } else {
                 randomIncrement = RANDOM_LCG_INCREMENT;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + randomIncrement;
                 departureYaw   += 0x10;
-                departureYaw   += (gRandomLcgState >> 16) & 0x3F;
+                departureYaw   += RANDOM_LCG_DRAW() & 0x3F;
             }
             work->scale = departureYaw;
             work->angle = WANDER_DEPART_SPEED_Q4;

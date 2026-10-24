@@ -119,21 +119,21 @@ void effectBurstModelPartTask(Task* task)
             } else {
                 puffSize = EFFECT_BURST_PART_DEFAULT_PUFF_SIZE;
             }
-            work->angle     = puffSize;
-            work->period    = EFFECT_BURST_PART_INITIAL_AMBIENT_Q12;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vx   = 0x800 - ((gRandomLcgState >> 16) & 0xFFF);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vy   = 0x400 - ((gRandomLcgState >> 16) % 0xC00);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vz   = 0x800 - ((gRandomLcgState >> 16) & 0xFFF);
+            work->angle  = puffSize;
+            work->period = EFFECT_BURST_PART_INITIAL_AMBIENT_Q12;
+            RANDOM_LCG_ADVANCE();
+            work->move.vx = 0x800 - (RANDOM_LCG_DRAW() & 0xFFF);
+            RANDOM_LCG_ADVANCE();
+            work->move.vy = 0x400 - (RANDOM_LCG_DRAW() % 0xC00);
+            RANDOM_LCG_ADVANCE();
+            work->move.vz = 0x800 - (RANDOM_LCG_DRAW() & 0xFFF);
             VectorNormalSS(&work->move, &work->move);
-            gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->pos.vx        = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-            gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->pos.vy        = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-            gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->pos.vz        = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+            RANDOM_LCG_ADVANCE();
+            work->pos.vx = 0x100 - (RANDOM_LCG_DRAW() & 0x1FF);
+            RANDOM_LCG_ADVANCE();
+            work->pos.vy = 0x100 - (RANDOM_LCG_DRAW() & 0x1FF);
+            RANDOM_LCG_ADVANCE();
+            work->pos.vz        = 0x100 - (RANDOM_LCG_DRAW() & 0x1FF);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
             task->state = EFFECT_BURST_PART_FLY;
@@ -198,13 +198,13 @@ void effectBurstModelPartTask(Task* task)
             if (!(work->age & EFFECT_BURST_PART_LIGHT_UPDATE_MASK)) {
                 worldCoordSetModelLighting(model, coord->workm.t, 0, EFFECT_BURST_PART_LIGHT_COUNT);
             }
-            work->move.vy  += EFFECT_BURST_PART_GRAVITY_Q12 / work->scale;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if (!((gRandomLcgState >> 16) & 3)) {
+            work->move.vy += EFFECT_BURST_PART_GRAVITY_Q12 / work->scale;
+            RANDOM_LCG_ADVANCE();
+            if (!(RANDOM_LCG_DRAW() & 3)) {
                 effectSpawn(EFFECT_TRAIL_PUFF, coord, work->angle + EFFECT_BURST_PART_AIR_PUFF_ARG, 0);
             }
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if (!((gRandomLcgState >> 16) & 7)) {
+            RANDOM_LCG_ADVANCE();
+            if (!(RANDOM_LCG_DRAW() & 7)) {
                 effectSpawn(EFFECT_HIT_PUFF, coord, work->angle + EFFECT_BURST_PART_AIR_PUFF_ARG, 0);
             }
             if (work->age >= EFFECT_BURST_PART_DIM_START_FRAME) {

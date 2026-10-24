@@ -1680,7 +1680,7 @@ static void _actor02100TickGunAttack(Task* task)
             scratch->muzzleOffset.vx = 0;
             scratch->muzzleOffset.vy = 0;
             scratch->muzzleOffset.vz = ACTOR_02100_MUZZLE_OFFSET;
-            randomState              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            randomState              = RANDOM_LCG_NEXT(gRandomLcgState);
             flareSize                = ((randomState >> 16) & ACTOR_02100_GUN_FLARE_SIZE_JITTER_MASK) | ACTOR_02100_GUN_FLARE_SIZE_BASE;
             gRandomLcgState          = randomState;
             effectSpawn(EFFECT_MUZZLE_FLARE, rootCoord, flareSize, &scratch->muzzleOffset);

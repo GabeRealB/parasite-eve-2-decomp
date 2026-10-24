@@ -401,19 +401,19 @@ static s32 _actor342100AdvanceBlazeAnimation(Task* controller)
     {                                                                                            \
         enum { ACTOR_342100_FIRE_EMITTER_OFFSET_MASK = 63 };                                     \
         s32 xMagnitudeRoll, zMagnitudeRoll, xOffset, zOffset;                                    \
-        xMagnitudeRoll  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;        \
+        xMagnitudeRoll  = RANDOM_LCG_NEXT(gRandomLcgState);                                      \
         xOffset         = ((u32)xMagnitudeRoll >> 16) & ACTOR_342100_FIRE_EMITTER_OFFSET_MASK;   \
-        gRandomLcgState = xMagnitudeRoll * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;         \
-        if ((gRandomLcgState >> 16) & 1) {                                                       \
+        gRandomLcgState = RANDOM_LCG_NEXT(xMagnitudeRoll);                                       \
+        if (RANDOM_LCG_DRAW() & 1) {                                                             \
             xOffset = -xOffset;                                                                  \
         }                                                                                        \
-        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;      \
+        RANDOM_LCG_ADVANCE();                                                                    \
         (offsetValue)->vx = xOffset;                                                             \
-        (offsetValue)->vy = -((gRandomLcgState >> 16) & ACTOR_342100_FIRE_EMITTER_OFFSET_MASK);  \
-        zMagnitudeRoll    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;      \
+        (offsetValue)->vy = -(RANDOM_LCG_DRAW() & ACTOR_342100_FIRE_EMITTER_OFFSET_MASK);        \
+        zMagnitudeRoll    = RANDOM_LCG_NEXT(gRandomLcgState);                                    \
         zOffset           = ((u32)zMagnitudeRoll >> 16) & ACTOR_342100_FIRE_EMITTER_OFFSET_MASK; \
-        gRandomLcgState   = zMagnitudeRoll * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;       \
-        if ((gRandomLcgState >> 16) & 1) {                                                       \
+        gRandomLcgState   = RANDOM_LCG_NEXT(zMagnitudeRoll);                                     \
+        if (RANDOM_LCG_DRAW() & 1) {                                                             \
             zOffset = -zOffset;                                                                  \
         }                                                                                        \
         (offsetValue)->vz = zOffset;                                                             \
@@ -530,7 +530,7 @@ static void _actor342100SpawnBlazeFireEmitters(void)
             break;
     }
     while (placement->vx != 0) {
-        delayRoll       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        delayRoll       = RANDOM_LCG_NEXT(gRandomLcgState);
         gRandomLcgState = delayRoll;
         emitter         = taskSpawnFromTable(gActor342100EncounterBlazeTaskDescriptors, ACTOR_342100_BLAZE_FIRE_EMITTER_DESCRIPTOR, (delayRoll >> 16) & ACTOR_342100_BLAZE_FIRE_DELAY_MASK, 0);
         coord           = emitter->extra.coordBody->coord;

@@ -6805,12 +6805,12 @@ static void _actor560800InitChainModel(Task* task)
     model->colorMtx = &work->color;
     taskReparent(work->parent, task);
     // Keep all three draws so later scene effects see the same RNG sequence.
-    gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->swayPhase  = gRandomLcgState >> 16;
-    gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->field_274  = gRandomLcgState >> 16;
-    gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->pulseScale = (gRandomLcgState >> 16) & 0x3FF;
+    RANDOM_LCG_ADVANCE();
+    work->swayPhase = RANDOM_LCG_DRAW();
+    RANDOM_LCG_ADVANCE();
+    work->field_274 = RANDOM_LCG_DRAW();
+    RANDOM_LCG_ADVANCE();
+    work->pulseScale = RANDOM_LCG_DRAW() & 0x3FF;
     animationInitContext(&work->rig.anim, _gActor560800ChainAnimationSets, model, work->rig.poses, work->rig.slots);
     work->chainNumber = task->spawnArg1.value;
 }

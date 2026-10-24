@@ -434,13 +434,13 @@ static void _golemKnightBishopIdleSeq(Task* task)
             work->flickerStage     = GOLEM_KNIGHT_BISHOP_FLICKER_NONE;
             work->counterattacking = 0;
             if (work->feintBroken != 0) {
-                gRandomLcgState        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->step             = _gGolemKnightBishopCounterattackStepOffsets[(gRandomLcgState >> 16) & (ARRAY_SIZE(_gGolemKnightBishopCounterattackStepOffsets) - 1)] + GOLEM_KNIGHT_BISHOP_IDLE_PICK_ATTACK;
+                RANDOM_LCG_ADVANCE();
+                work->step             = _gGolemKnightBishopCounterattackStepOffsets[RANDOM_LCG_DRAW() & (ARRAY_SIZE(_gGolemKnightBishopCounterattackStepOffsets) - 1)] + GOLEM_KNIGHT_BISHOP_IDLE_PICK_ATTACK;
                 work->counterattacking = 1;
                 _golemKnightBishopPlaceTarget(task);
                 work->feinting = 0;
             } else if (work->feinting == 0) {
-                work->timer = (_gGolemKnightBishopIdleWaitFrames[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (ARRAY_SIZE(_gGolemKnightBishopIdleWaitFrames) - 1)] * (GOLEM_KNIGHT_BISHOP_IDLE_WAIT_SCALE - work->attackCount)) / GOLEM_KNIGHT_BISHOP_IDLE_WAIT_SCALE;
+                work->timer = (_gGolemKnightBishopIdleWaitFrames[((RANDOM_LCG_ADVANCE()) >> 16) & (ARRAY_SIZE(_gGolemKnightBishopIdleWaitFrames) - 1)] * (GOLEM_KNIGHT_BISHOP_IDLE_WAIT_SCALE - work->attackCount)) / GOLEM_KNIGHT_BISHOP_IDLE_WAIT_SCALE;
                 work->step  = GOLEM_KNIGHT_BISHOP_IDLE_WAIT;
             } else {
                 work->timer    = 0;
@@ -462,8 +462,8 @@ static void _golemKnightBishopIdleSeq(Task* task)
                 break;
             }
             if (work->lastAttack == GOLEM_KNIGHT_BISHOP_SEQUENCE_GRAB) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                if ((s32)((gRandomLcgState >> 16) & 0xF) < work->repeatCount + 10) {
+                RANDOM_LCG_ADVANCE();
+                if ((s32)(RANDOM_LCG_DRAW() & 0xF) < work->repeatCount + 10) {
                     work->step        = GOLEM_KNIGHT_BISHOP_IDLE_TEST_STRIKE;
                     work->repeatCount = 0;
                 } else {
@@ -471,8 +471,8 @@ static void _golemKnightBishopIdleSeq(Task* task)
                     work->repeatCount++;
                 }
             } else if (work->lastAttack == GOLEM_KNIGHT_BISHOP_SEQUENCE_STRIKE) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                if ((s32)((gRandomLcgState >> 16) & 0xF) < work->repeatCount + 8) {
+                RANDOM_LCG_ADVANCE();
+                if ((s32)(RANDOM_LCG_DRAW() & 0xF) < work->repeatCount + 8) {
                     work->step        = GOLEM_KNIGHT_BISHOP_IDLE_TEST_GRAB;
                     work->repeatCount = 0;
                 } else {
@@ -480,8 +480,8 @@ static void _golemKnightBishopIdleSeq(Task* task)
                     work->repeatCount++;
                 }
             } else {
-                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->step        = ((gRandomLcgState >> 16) & 0xF) < 8 ? GOLEM_KNIGHT_BISHOP_IDLE_TEST_GRAB : GOLEM_KNIGHT_BISHOP_IDLE_TEST_STRIKE;
+                RANDOM_LCG_ADVANCE();
+                work->step        = (RANDOM_LCG_DRAW() & 0xF) < 8 ? GOLEM_KNIGHT_BISHOP_IDLE_TEST_GRAB : GOLEM_KNIGHT_BISHOP_IDLE_TEST_STRIKE;
                 work->repeatCount = 0;
             }
             _golemKnightBishopPlaceTarget(task);
@@ -612,10 +612,10 @@ static void _golemKnightBishopPlaceTarget(Task* task)
         work->spotProbeBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
     } else if (work->step == GOLEM_KNIGHT_BISHOP_TARGET_STRIKE_STEP) {
         if (work->feintBroken != 0) {
-            gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-            work->targetYaw = (gRandomLcgState >> 16) & GOLEM_KNIGHT_BISHOP_TARGET_YAW_MASK;
+            RANDOM_LCG_ADVANCE();
+            work->targetYaw = RANDOM_LCG_DRAW() & GOLEM_KNIGHT_BISHOP_TARGET_YAW_MASK;
         } else {
-            randomDraw      = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            randomDraw      = RANDOM_LCG_NEXT(gRandomLcgState);
             gRandomLcgState = randomDraw;
             relativeYaw     = (randomDraw >> 16) & GOLEM_KNIGHT_BISHOP_TARGET_QUARTER_TURN_MASK;
             if (!((randomDraw >> 16) & GOLEM_KNIGHT_BISHOP_TARGET_YAW_SIGN_BIT)) {
@@ -815,9 +815,9 @@ static void _golemKnightBishopGrabSeq(Task* task)
                         } else {
                             killChance = work->grabDamageTicks * (0x32 - (gPlayerStatus.hp * 100) / gPlayerStatus.hpMax) / 2;
                             if (killChance > 0) {
-                                killChance      = (killChance * 0xFFF) / 100;
-                                gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                                if ((s32)((gRandomLcgState >> 16) & 0xFFF) < killChance) {
+                                killChance = (killChance * 0xFFF) / 100;
+                                RANDOM_LCG_ADVANCE();
+                                if ((s32)(RANDOM_LCG_DRAW() & 0xFFF) < killChance) {
                                     killSelected = 1;
                                 }
                             }
@@ -988,7 +988,7 @@ static void _golemKnightBishopStrikeSeq(Task* task)
     switch (work->step) {
         case GOLEM_KNIGHT_BISHOP_STRIKE_START:
             work->anim          = GOLEM_KNIGHT_BISHOP_ANIM_STAND;
-            work->feinting      = _gGolemKnightBishopFeintRoll[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (ARRAY_SIZE(_gGolemKnightBishopFeintRoll) - 1)];
+            work->feinting      = _gGolemKnightBishopFeintRoll[((RANDOM_LCG_ADVANCE()) >> 16) & (ARRAY_SIZE(_gGolemKnightBishopFeintRoll) - 1)];
             scratch->operand.vx = 0;
             scratch->operand.vy = (work->targetYaw + GOLEM_KNIGHT_BISHOP_YAW_HALF_TURN) & GOLEM_KNIGHT_BISHOP_YAW_MASK;
             scratch->operand.vz = 0;
@@ -997,7 +997,7 @@ static void _golemKnightBishopStrikeSeq(Task* task)
             root->coord.t[1] = work->targetPos.vy;
             root->coord.t[2] = work->targetPos.vz;
             if (work->feinting == 1 && work->feintBroken == 0) {
-                randomDraw                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                randomDraw                   = RANDOM_LCG_NEXT(gRandomLcgState);
                 appearanceFrames             = ((randomDraw >> 16) & 0xF) + 0xF;
                 work->step                   = GOLEM_KNIGHT_BISHOP_STRIKE_FEINT_APPEAR;
                 work->fadeState              = GOLEM_KNIGHT_BISHOP_FADE_FEINT_APPEAR;
@@ -1009,7 +1009,7 @@ static void _golemKnightBishopStrikeSeq(Task* task)
             } else {
                 work->feinting = 0;
                 if (work->feintBroken == 0) {
-                    framesLeft                   = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF) + 0x1E;
+                    framesLeft                   = (((RANDOM_LCG_ADVANCE()) >> 16) & 0xF) + 0x1E;
                     work->step                   = GOLEM_KNIGHT_BISHOP_STRIKE_APPEAR;
                     work->timer                  = framesLeft;
                     translucencyFrames           = framesLeft * 2 / 3;
@@ -1041,9 +1041,9 @@ static void _golemKnightBishopStrikeSeq(Task* task)
             framesLeft  = work->timer - 1;
             work->timer = framesLeft;
             if (framesLeft <= 0 || work->feintBroken != 0) {
-                work->step      = GOLEM_KNIGHT_BISHOP_STRIKE_FEINT_WAIT;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->timer     = ((gRandomLcgState >> 16) & 0xF) + 0x3C;
+                work->step = GOLEM_KNIGHT_BISHOP_STRIKE_FEINT_WAIT;
+                RANDOM_LCG_ADVANCE();
+                work->timer = (RANDOM_LCG_DRAW() & 0xF) + 0x3C;
             }
             break;
         case GOLEM_KNIGHT_BISHOP_STRIKE_FEINT_WAIT:
@@ -1075,9 +1075,9 @@ static void _golemKnightBishopStrikeSeq(Task* task)
             framesLeft  = work->timer - 1;
             work->timer = framesLeft;
             if (framesLeft <= 0) {
-                work->step      = GOLEM_KNIGHT_BISHOP_STRIKE_WAIT;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->timer     = (gRandomLcgState >> 16) & 0xF;
+                work->step = GOLEM_KNIGHT_BISHOP_STRIKE_WAIT;
+                RANDOM_LCG_ADVANCE();
+                work->timer = RANDOM_LCG_DRAW() & 0xF;
             } else if (work->interruptDamage > 0) {
                 work->sequence  = GOLEM_KNIGHT_BISHOP_SEQUENCE_RECOVER;
                 work->step      = GOLEM_KNIGHT_BISHOP_SEQUENCE_START;
@@ -1356,7 +1356,7 @@ static void _golemKnightBishopRecoverSeq(Task* task)
         case GOLEM_KNIGHT_BISHOP_RECOVER_START:
             work->anim      = GOLEM_KNIGHT_BISHOP_ANIM_RECOVER;
             work->step      = GOLEM_KNIGHT_BISHOP_RECOVER_WAIT;
-            randomDraw      = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            randomDraw      = RANDOM_LCG_NEXT(gRandomLcgState);
             gRandomLcgState = randomDraw;
             work->timer     = ((randomDraw >> 16) & 0x1F) + GOLEM_KNIGHT_BISHOP_RECOVERY_BASE_FRAMES;
             if (work->hitCooldown == 0) {
@@ -1399,8 +1399,8 @@ static inline void _golemKnightBishopResetFlickerPeriod(GolemKnightBishopWork* w
         GOLEM_KNIGHT_BISHOP_FLICKER_MIN_FRAMES  = 2,
     };
     s16 fadeFrames;
-    work->flickerTimer           = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & GOLEM_KNIGHT_BISHOP_FLICKER_RANDOM_MASK) + GOLEM_KNIGHT_BISHOP_FLICKER_MIN_FRAMES;
-    fadeFrames                   = work->flickerTimer + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & GOLEM_KNIGHT_BISHOP_FLICKER_RANDOM_MASK);
+    work->flickerTimer           = (((RANDOM_LCG_ADVANCE()) >> 16) & GOLEM_KNIGHT_BISHOP_FLICKER_RANDOM_MASK) + GOLEM_KNIGHT_BISHOP_FLICKER_MIN_FRAMES;
+    fadeFrames                   = work->flickerTimer + (((RANDOM_LCG_ADVANCE()) >> 16) & GOLEM_KNIGHT_BISHOP_FLICKER_RANDOM_MASK);
     work->translucencyFadeFrames = fadeFrames;
     work->colorBlendFadeFrames   = fadeFrames;
 }
@@ -1610,8 +1610,8 @@ static void _golemKnightBishopUpdateAppearance(Task* task)
             }
             if (work->animFrame & 1) {
                 sparkOffset->vx = 0;
-                sparkOffset->vy = -(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFF);
-                sparkOffset->vz = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFF;
+                sparkOffset->vy = -(((RANDOM_LCG_ADVANCE()) >> 16) & 0xFF);
+                sparkOffset->vz = ((RANDOM_LCG_ADVANCE()) >> 16) & 0xFF;
                 effectSpawn(EFFECT_FLASH_BURST, &task->extra.tmd->coords[3], 0x100, sparkOffset);
             }
             break;
@@ -1638,8 +1638,8 @@ static void _golemKnightBishopUpdateAppearance(Task* task)
             }
             if (work->animFrame & 1) {
                 sparkOffset->vx = 0;
-                sparkOffset->vy = -(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFF);
-                sparkOffset->vz = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFF;
+                sparkOffset->vy = -(((RANDOM_LCG_ADVANCE()) >> 16) & 0xFF);
+                sparkOffset->vz = ((RANDOM_LCG_ADVANCE()) >> 16) & 0xFF;
                 effectSpawn(EFFECT_FLASH_BURST, &task->extra.tmd->coords[3], 0x100, sparkOffset);
             }
             break;
@@ -1778,7 +1778,7 @@ static inline void _golemKnightBishopFinishKnockdownFall(GolemKnightBishopWork* 
     work->anim         = lyingAnimation;
     work->step         = GOLEM_KNIGHT_BISHOP_KNOCKDOWN_REST_STEP;
     work->reactionLock = GOLEM_KNIGHT_BISHOP_REACTION_UNLOCKED;
-    randomDraw         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    randomDraw         = RANDOM_LCG_NEXT(gRandomLcgState);
     gRandomLcgState    = randomDraw;
     work->timer        = (randomDraw >> 16) & GOLEM_KNIGHT_BISHOP_KNOCKDOWN_REST_MAX_FRAMES;
 }
@@ -1878,7 +1878,7 @@ static void _golemKnightBishopKnockdownSeq(Task* task)
                 }
                 work->anim      = downedAnimation;
                 work->step      = GOLEM_KNIGHT_BISHOP_KNOCKDOWN_REST;
-                randomDraw      = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                randomDraw      = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState = randomDraw;
                 work->timer     = (randomDraw >> 16) & 0x3F;
             }
@@ -1903,11 +1903,11 @@ static inline void _golemKnightBishopResumeDownedRest(GolemKnightBishopWork* wor
         GOLEM_KNIGHT_BISHOP_KNOCKDOWN_REST_STEP = 3,
         GOLEM_KNIGHT_BISHOP_DOWNED_DWELL_MASK   = 63,
     };
-    work->anim      = lyingAnimation;
-    work->sequence  = GOLEM_KNIGHT_BISHOP_SEQUENCE_KNEEL;
-    work->step      = GOLEM_KNIGHT_BISHOP_KNOCKDOWN_REST_STEP;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->timer     = (gRandomLcgState >> 16) & GOLEM_KNIGHT_BISHOP_DOWNED_DWELL_MASK;
+    work->anim     = lyingAnimation;
+    work->sequence = GOLEM_KNIGHT_BISHOP_SEQUENCE_KNEEL;
+    work->step     = GOLEM_KNIGHT_BISHOP_KNOCKDOWN_REST_STEP;
+    RANDOM_LCG_ADVANCE();
+    work->timer = RANDOM_LCG_DRAW() & GOLEM_KNIGHT_BISHOP_DOWNED_DWELL_MASK;
 }
 
 /// Flinches from a hit while downed, then resumes the corresponding lying pose.

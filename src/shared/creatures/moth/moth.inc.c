@@ -147,7 +147,7 @@ static void _mothUpdate(Enemy* enemy, Task* task)
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(rootCoord);
     _mothUpdateColor(task);
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    RANDOM_LCG_ADVANCE();
     if ((gRandomLcgState >> 16 & MOTH_AMBIENT_SOUND_ROLL_MASK) == 0) {
         s32 soundPan;
         s32 soundId;
@@ -282,9 +282,9 @@ static void _mothOscillateParts(Task* task)
     wingAngles = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
     work       = task->work;
     if (++work->timer >= MOTH_FLAP_MODE_TICKS) {
-        work->timer     = 0;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->flapFast  = !((gRandomLcgState >> 16) & 1);
+        work->timer = 0;
+        RANDOM_LCG_ADVANCE();
+        work->flapFast = !(RANDOM_LCG_DRAW() & 1);
     }
     switch (work->flapFast) {
         case false:
@@ -357,11 +357,11 @@ static void _mothSteer(Task* task)
     rootCoord = task->extra.tmd->coords;
     switch (work->alerted) {
         case false:
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            yawDraw         = gRandomLcgState >> 16;
-            yawStep         = yawDraw & MOTH_YAW_STEP_MASK;
-            previousYaw     = work->yaw;
-            work->yaw       = !(yawDraw & MOTH_YAW_POSITIVE_STEP_BIT) ? previousYaw - yawStep : previousYaw + yawStep;
+            RANDOM_LCG_ADVANCE();
+            yawDraw     = RANDOM_LCG_DRAW();
+            yawStep     = yawDraw & MOTH_YAW_STEP_MASK;
+            previousYaw = work->yaw;
+            work->yaw   = !(yawDraw & MOTH_YAW_POSITIVE_STEP_BIT) ? previousYaw - yawStep : previousYaw + yawStep;
             break;
         case true:
             scratch->delta.vx = gPlayerStatus.coordMtx->t[0] - rootCoord->coord.t[0];
@@ -389,11 +389,11 @@ static void _mothSteer(Task* task)
             }
             break;
     }
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    pitchDraw       = gRandomLcgState >> 16;
-    pitchStep       = pitchDraw & MOTH_PITCH_STEP_MASK;
-    previousPitch   = work->pitch;
-    work->pitch     = !(pitchDraw & MOTH_PITCH_POSITIVE_STEP_BIT) ? previousPitch - pitchStep : previousPitch + pitchStep;
+    RANDOM_LCG_ADVANCE();
+    pitchDraw     = RANDOM_LCG_DRAW();
+    pitchStep     = pitchDraw & MOTH_PITCH_STEP_MASK;
+    previousPitch = work->pitch;
+    work->pitch   = !(pitchDraw & MOTH_PITCH_POSITIVE_STEP_BIT) ? previousPitch - pitchStep : previousPitch + pitchStep;
     if (work->pitch > MOTH_PITCH_LIMIT) {
         work->pitch = MOTH_PITCH_LIMIT;
     } else if (work->pitch < -MOTH_PITCH_LIMIT) {
@@ -448,7 +448,7 @@ static void _mothDrift(Task* task)
     work->prevPos.vz = rootCoord->coord.t[2];
     switch (work->alerted) {
         case false:
-            horizontalDraw = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
+            horizontalDraw = (RANDOM_LCG_ADVANCE()) >> 16;
             horizontalStep = horizontalDraw & MOTH_FLIGHT_JITTER_MASK;
             if (!(horizontalDraw & MOTH_WANDER_POSITIVE_STEP_BIT)) {
                 horizontalStep = -horizontalStep;
@@ -460,7 +460,7 @@ static void _mothDrift(Task* task)
             } else {
                 rootCoord->coord.t[0] -= wanderStep;
             }
-            verticalStep = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & MOTH_FLIGHT_JITTER_MASK;
+            verticalStep = ((RANDOM_LCG_ADVANCE()) >> 16) & MOTH_FLIGHT_JITTER_MASK;
             if (work->flapFast != 0) {
                 verticalStep = -verticalStep;
             }
@@ -471,7 +471,7 @@ static void _mothDrift(Task* task)
             } else {
                 rootCoord->coord.t[1] -= wanderStep;
             }
-            zDraw          = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
+            zDraw          = (RANDOM_LCG_ADVANCE()) >> 16;
             horizontalStep = zDraw & MOTH_FLIGHT_JITTER_MASK;
             if (!(zDraw & MOTH_WANDER_POSITIVE_STEP_BIT)) {
                 horizontalStep = -horizontalStep;
@@ -486,11 +486,11 @@ static void _mothDrift(Task* task)
             break;
         case true:
             forwardSpeed = _gMothPursuitSpeeds[((Enemy*)task->spawnArg2.pointer)->place->rowIndex] +
-                           (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & MOTH_FLIGHT_JITTER_MASK);
+                           (((RANDOM_LCG_ADVANCE()) >> 16) & MOTH_FLIGHT_JITTER_MASK);
             rootCoord->coord.t[0] += (rootCoord->coord.m[0][2] * forwardSpeed) >> MOTH_FORWARD_BASIS_FRACTION_BITS;
             rootCoord->coord.t[2] += (rootCoord->coord.m[2][2] * forwardSpeed) >> MOTH_FORWARD_BASIS_FRACTION_BITS;
             targetY                = gPlayerStatus.coordMtx->t[1] - MOTH_PURSUIT_HEIGHT_ABOVE_PLAYER;
-            heightDraw             = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
+            heightDraw             = (RANDOM_LCG_ADVANCE()) >> 16;
             currentY               = rootCoord->coord.t[1];
             if (currentY >= targetY + MOTH_PURSUIT_HEIGHT_HALF_BAND) {
                 rootCoord->coord.t[1] = currentY - (heightDraw & MOTH_PURSUIT_HEIGHT_STEP_MASK);
@@ -561,7 +561,7 @@ static void _mothDeath(Enemy* enemy, Task* task)
             switch (work->deathStep) {
                 case MOTH_DEATH_BEGIN:
                     gSceneCombatState.actor00700DeathAlert = 1;
-                    nextSeed                               = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    nextSeed                               = RANDOM_LCG_NEXT(gRandomLcgState);
                     spinDraw                               = nextSeed >> 16;
                     spinRate                               = spinDraw & MOTH_DEATH_SPIN_MAGNITUDE_MASK;
                     task->extra.tmd->flags                 = TMD_OBJECT_SEMI_TRANS;
@@ -693,7 +693,7 @@ static void _mothDrawBurst(Task* task)
     if (work->timer == 1) {
         scratch->corners[0].vx = 0;
         scratch->corners[0].vy = 0;
-        scratch->corners[0].vz = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & ACTOR_TRANSFORM_ANGLE_MASK;
+        scratch->corners[0].vz = ((RANDOM_LCG_ADVANCE()) >> 16) & ACTOR_TRANSFORM_ANGLE_MASK;
         RotMatrix(&scratch->corners[0], &work->burstRollMtx);
     }
     // Rotate a camera-facing quad in screen space, then bind its animation cell.

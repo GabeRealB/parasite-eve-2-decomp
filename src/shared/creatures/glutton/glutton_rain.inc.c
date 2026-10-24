@@ -82,8 +82,8 @@ static void _gluttonRainSpawn(Enemy* enemy, Task* task)
 
     // Only the first of the eight launches chooses a pattern for the whole set.
     if ((u16)task->spawnArg1.value == GLUTTON_RAIN_FIRST_BLOB_INDEX) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        patternRoll     = (gRandomLcgState >> 16) & 3;
+        RANDOM_LCG_ADVANCE();
+        patternRoll = RANDOM_LCG_DRAW() & 3;
         switch (patternRoll) {
             case 0:
             case 1:
@@ -121,12 +121,12 @@ static void _gluttonRainSpawn(Enemy* enemy, Task* task)
                                                    [(u16)task->spawnArg1.value]]
             .vz;
     work->aim.landing.vy = 0;
-    gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    RANDOM_LCG_ADVANCE();
     work->aim.landing.vz = _gGluttonRainPoints[_gGluttonRainPointIndex[_gGluttonRainGroup]
                                                                       [(u16)task->spawnArg1.value]]
                                .vx -
                            GLUTTON_RAIN_PATTERN_Z_OFFSET;
-    work->aim.landing.vz = ((gRandomLcgState >> 16) & GLUTTON_RAIN_LANDING_JITTER_MASK) + work->aim.landing.vz;
+    work->aim.landing.vz = (RANDOM_LCG_DRAW() & GLUTTON_RAIN_LANDING_JITTER_MASK) + work->aim.landing.vz;
 
     if ((u16)task->spawnArg1.value == GLUTTON_RAIN_PLAYER_TARGET_INDEX) {
         work->aim.landing.vx = playerTask->extra.tmd->coords->coord.t[0];
@@ -134,9 +134,9 @@ static void _gluttonRainSpawn(Enemy* enemy, Task* task)
         work->aim.landing.vz = playerTask->extra.tmd->coords->coord.t[2];
     }
 
-    work->stateTicks  = 0;
-    gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->speedJitter = (gRandomLcgState >> 16) & GLUTTON_RAIN_SPEED_JITTER_MASK;
+    work->stateTicks = 0;
+    RANDOM_LCG_ADVANCE();
+    work->speedJitter = RANDOM_LCG_DRAW() & GLUTTON_RAIN_SPEED_JITTER_MASK;
 
     offset.vx = _gGluttonRainLaunchOffsets[(u16)task->spawnArg1.value].vx;
     offset.vy = _gGluttonRainLaunchOffsets[(u16)task->spawnArg1.value].vy;
@@ -200,10 +200,10 @@ static void _gluttonRainRise(Enemy* enemy, Task* task)
         task->state++;
         task->extra.coordBody->coord->coord.t[0] = work->aim.landing.vx;
         task->extra.coordBody->coord->coord.t[2] = work->aim.landing.vz;
-        gRandomLcgState                          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        RANDOM_LCG_ADVANCE();
         task->extra.coordBody->coord->coord.t[1] = GLUTTON_RAIN_TOP_Y;
         work->stateTicks                         = 0;
-        work->speedJitter                        = (gRandomLcgState >> 16) & GLUTTON_RAIN_DROP_JITTER_MASK;
+        work->speedJitter                        = RANDOM_LCG_DRAW() & GLUTTON_RAIN_DROP_JITTER_MASK;
         work->attackBody.flags                  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     }
 

@@ -2556,8 +2556,8 @@ static inline void _actor401300SelectHitOffset(s16 hitYaw, ActorHitAnchor* hitPl
     absoluteHitYaw = (hitYaw >= 0) ? hitYaw : -hitYaw;
     // Pick a local impact offset and model part from the incoming hit bearing.
     if (absoluteHitYaw < ACTOR_401300_HIT_FRONT_HALF_ANGLE) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        switch ((s32)(gRandomLcgState >> 16) & 3) {
+        RANDOM_LCG_ADVANCE();
+        switch ((s32)RANDOM_LCG_DRAW() & 3) {
             case 0:
                 *hitPlacement = _gActor401300HitPlacements[0];
                 break;
@@ -2575,9 +2575,9 @@ static inline void _actor401300SelectHitOffset(s16 hitYaw, ActorHitAnchor* hitPl
                 break;
         }
     } else if (absoluteHitYaw > ACTOR_401300_HIT_REAR_MIN_ANGLE) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        RANDOM_LCG_ADVANCE();
         // The retained mask selects only rear offsets 5 and 7.
-        switch ((s32)(gRandomLcgState >> 16) & 2) {
+        switch ((s32)RANDOM_LCG_DRAW() & 2) {
             case 0:
                 *hitPlacement = _gActor401300HitPlacements[5];
                 break;
@@ -2589,15 +2589,15 @@ static inline void _actor401300SelectHitOffset(s16 hitYaw, ActorHitAnchor* hitPl
                 break;
         }
     } else if (hitYaw > 0) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if ((gRandomLcgState >> 16) & 1) {
+        RANDOM_LCG_ADVANCE();
+        if (RANDOM_LCG_DRAW() & 1) {
             *hitPlacement = _gActor401300HitPlacements[8];
         } else {
             *hitPlacement = _gActor401300HitPlacements[9];
         }
     } else {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if ((gRandomLcgState >> 16) & 1) {
+        RANDOM_LCG_ADVANCE();
+        if (RANDOM_LCG_DRAW() & 1) {
             *hitPlacement = _gActor401300HitPlacements[10];
         } else {
             *hitPlacement = _gActor401300HitPlacements[11];
@@ -3082,8 +3082,8 @@ static void _actor401300StateWounded(Task* actor)
     }
     if (++work->stateTimer == 0) {
         work->animRequest = ACTOR_401300_ANIM_REQUEST_RESET;
-        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        rateChoice        = (gRandomLcgState >> 16) % ACTOR_401300_WOUNDED_RATE_CHOICES;
+        RANDOM_LCG_ADVANCE();
+        rateChoice = RANDOM_LCG_DRAW() % ACTOR_401300_WOUNDED_RATE_CHOICES;
         switch (rateChoice) {
             case 0:
                 work->animRate = (2 * ANIMATION_RATE_ONE);
@@ -3106,8 +3106,8 @@ static void _actor401300StateWounded(Task* actor)
         _actor401300UpdateAnimationEffects(actor);
     }
     if (work->stateTimer >= ACTOR_401300_WOUNDED_TWITCH_TICKS) {
-        gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->stateTimer = -((gRandomLcgState >> 16) & ACTOR_401300_WOUNDED_PAUSE_MASK);
+        RANDOM_LCG_ADVANCE();
+        work->stateTimer = -(RANDOM_LCG_DRAW() & ACTOR_401300_WOUNDED_PAUSE_MASK);
     }
     if (enemy->hp <= 0) {
         work->state = ACTOR_401300_STATE_DOWN;
@@ -3206,15 +3206,15 @@ static inline void _actor401300ChooseChaseAttack(_Actor401300Work* work, s32 pla
     if (playerDistance > ACTOR_401300_CHARGE_DISTANCE) {
         work->state = ACTOR_401300_STATE_CHARGE;
     } else if (playerDistance > ACTOR_401300_LEAP_DISTANCE) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if (((gRandomLcgState >> 16) & ACTOR_401300_ATTACK_DRAW_MASK) < ACTOR_401300_CHARGE_DRAW_COUNT) {
+        RANDOM_LCG_ADVANCE();
+        if ((RANDOM_LCG_DRAW() & ACTOR_401300_ATTACK_DRAW_MASK) < ACTOR_401300_CHARGE_DRAW_COUNT) {
             work->state = ACTOR_401300_STATE_CHARGE;
         } else {
             work->state = ACTOR_401300_STATE_LEAP;
         }
     } else if (playerDistance < ACTOR_401300_STRIKE_DISTANCE) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if (((gRandomLcgState >> 16) & ACTOR_401300_ATTACK_DRAW_MASK) < ACTOR_401300_STRIKE_A_DRAW_COUNT) {
+        RANDOM_LCG_ADVANCE();
+        if ((RANDOM_LCG_DRAW() & ACTOR_401300_ATTACK_DRAW_MASK) < ACTOR_401300_STRIKE_A_DRAW_COUNT) {
             work->state = ACTOR_401300_STATE_STRIKE_A;
         } else {
             work->state = ACTOR_401300_STATE_STRIKE_B;
@@ -3662,8 +3662,8 @@ static void _actor401300StateSidestep(Task* actor)
         _actorPositionDeltaToPlayer(&gPlayerStatus, actor->extra.tmd->coords, &sidestep->delta);
         sidestep->turn = ratan2(savedCursor[-1].delta.vx, sidestep->delta.vz);
         if (work->sidestepSide == 0) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((gRandomLcgState >> 16) & 1) {
+            RANDOM_LCG_ADVANCE();
+            if (RANDOM_LCG_DRAW() & 1) {
                 work->sidestepSide = 1;
             } else {
                 work->sidestepSide = -1;
@@ -4285,8 +4285,8 @@ static void _actor401300StateDormant(Task* actor)
     }
     // A skipped long-idle tick also skips player detection.
     if (work->stateTimer > ACTOR_401300_DORMANT_THROTTLE_TICKS) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if (!((gRandomLcgState >> 16) & ACTOR_401300_DORMANT_SKIP_DRAW_MASK)) {
+        RANDOM_LCG_ADVANCE();
+        if (!(RANDOM_LCG_DRAW() & ACTOR_401300_DORMANT_SKIP_DRAW_MASK)) {
             return;
         }
     } else {
@@ -4295,8 +4295,8 @@ static void _actor401300StateDormant(Task* actor)
     ACTOR_401300_CHECK_DORMANT_ALERT(actor, work, rootCoord, delta, toPlayer);
     _actor401300UpdateAnimationEffects(actor);
     if (work->animId == ACTOR_401300_ANIM_DORMANT && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP)) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if ((gRandomLcgState >> 16) & 1) {
+        RANDOM_LCG_ADVANCE();
+        if (RANDOM_LCG_DRAW() & 1) {
             work->animId      = ACTOR_401300_ANIM_DORMANT_ALTERNATE;
             work->animRequest = ACTOR_401300_ANIM_REQUEST_BLEND;
             _actor401300UpdateAnimationEffects(actor);
@@ -7030,8 +7030,8 @@ static void _actor401300StateDown(Task* actor)
     if (work->stateEntered != 0) {
         work->jointPairTarget = ACTOR_401300_FALL_PAIR_BLEND;
         work->jointPairStep   = ACTOR_401300_FALL_PAIR_STEP;
-        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->stateTimer      = work->downFramesBase + ((gRandomLcgState >> 16) & ACTOR_401300_DOWN_RANDOM_TICKS_MASK);
+        RANDOM_LCG_ADVANCE();
+        work->stateTimer = work->downFramesBase + (RANDOM_LCG_DRAW() & ACTOR_401300_DOWN_RANDOM_TICKS_MASK);
     }
     _actor401300UpdateAnimationEffects(actor);
     if (--work->stateTimer < 0) {

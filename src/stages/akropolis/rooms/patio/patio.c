@@ -550,19 +550,19 @@ void akropolisPatioSpawnLightEffectsTask(Task* task)
     s32         moteIndex;
 
 /// A random point within 1024 units of a large light (its arguments are evaluated more than once).
-#define AKROPOLIS_PATIO_CHOOSE_LIGHT_MOTE_POSITION(position, anchorIndex)                    \
-    {                                                                                        \
-        enum { MOTE_JITTER_CENTER = 1024,                                                    \
-               MOTE_JITTER_MASK   = 2047 };                                                    \
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;    \
-        (position)->vx  = MOTE_JITTER_CENTER - ((gRandomLcgState >> 16) & MOTE_JITTER_MASK); \
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;    \
-        (position)->vy  = MOTE_JITTER_CENTER - ((gRandomLcgState >> 16) & MOTE_JITTER_MASK); \
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;    \
-        (position)->vz  = MOTE_JITTER_CENTER - ((gRandomLcgState >> 16) & MOTE_JITTER_MASK); \
-        (position)->vx += _gAkropolisPatioLightAnchors[(anchorIndex)].vx;                    \
-        (position)->vy += _gAkropolisPatioLightAnchors[(anchorIndex)].vy;                    \
-        (position)->vz += _gAkropolisPatioLightAnchors[(anchorIndex)].vz;                    \
+#define AKROPOLIS_PATIO_CHOOSE_LIGHT_MOTE_POSITION(position, anchorIndex)              \
+    {                                                                                  \
+        enum { MOTE_JITTER_CENTER = 1024,                                              \
+               MOTE_JITTER_MASK   = 2047 };                                              \
+        RANDOM_LCG_ADVANCE();                                                          \
+        (position)->vx = MOTE_JITTER_CENTER - (RANDOM_LCG_DRAW() & MOTE_JITTER_MASK);  \
+        RANDOM_LCG_ADVANCE();                                                          \
+        (position)->vy = MOTE_JITTER_CENTER - (RANDOM_LCG_DRAW() & MOTE_JITTER_MASK);  \
+        RANDOM_LCG_ADVANCE();                                                          \
+        (position)->vz  = MOTE_JITTER_CENTER - (RANDOM_LCG_DRAW() & MOTE_JITTER_MASK); \
+        (position)->vx += _gAkropolisPatioLightAnchors[(anchorIndex)].vx;              \
+        (position)->vy += _gAkropolisPatioLightAnchors[(anchorIndex)].vy;              \
+        (position)->vz += _gAkropolisPatioLightAnchors[(anchorIndex)].vz;              \
     }
 
     scratchWork = task->spawnArg2.pointer;
@@ -716,9 +716,9 @@ static inline void _akropolisPatioDrawLightMote(const GfxCoord* cachedCoord, Eff
     gte_stsxy(&moteTile->x0);
     gte_stszotz(&tileScratch->depth);
     if (tileScratch->depth >= EFFECT_POINT_TILE_MIN_DEPTH) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        greyLevel       = gRandomLcgState >> 16;
-        greyLevel      %= AKROPOLIS_PATIO_LIGHT_MOTE_GREY_LEVELS;
+        RANDOM_LCG_ADVANCE();
+        greyLevel  = RANDOM_LCG_DRAW();
+        greyLevel %= AKROPOLIS_PATIO_LIGHT_MOTE_GREY_LEVELS;
         setRGB0(moteTile, greyLevel, greyLevel, greyLevel);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(tileScratch->depth),
                 moteTile);
@@ -756,18 +756,18 @@ void akropolisPatioLightMoteTask(Task* task)
         tileScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectPointTileScratch);
         actorRenderComposeCoord(coord);
         if (task->state == AKROPOLIS_PATIO_LIGHT_MOTE_INIT) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vx   = AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_CENTER - ((gRandomLcgState >> 16) & AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_MASK);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vy   = AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_CENTER - ((gRandomLcgState >> 16) & AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_MASK);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vz   = AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_CENTER - ((gRandomLcgState >> 16) & AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_MASK);
+            RANDOM_LCG_ADVANCE();
+            work->move.vx = AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_CENTER - (RANDOM_LCG_DRAW() & AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_MASK);
+            RANDOM_LCG_ADVANCE();
+            work->move.vy = AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_CENTER - (RANDOM_LCG_DRAW() & AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_MASK);
+            RANDOM_LCG_ADVANCE();
+            work->move.vz = AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_CENTER - (RANDOM_LCG_DRAW() & AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_MASK);
             task->state++;
         }
         // Gather re-aims on a random quarter of ticks, rather than periodically.
         if (work->index != AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if (((gRandomLcgState >> 16) & AKROPOLIS_PATIO_LIGHT_MOTE_AIM_SAMPLE_MASK) == 0) {
+            RANDOM_LCG_ADVANCE();
+            if ((RANDOM_LCG_DRAW() & AKROPOLIS_PATIO_LIGHT_MOTE_AIM_SAMPLE_MASK) == 0) {
                 anchors       = _gAkropolisPatioLightAnchors;
                 velocity      = &work->move;
                 work->move.vx = (u16)anchors[task->spawnArg1.value].vx -
@@ -782,25 +782,25 @@ void akropolisPatioLightMoteTask(Task* task)
                 gte_gpf12();
                 gte_stsv(velocity);
             }
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vx  -= ((gRandomLcgState >> 16) & AKROPOLIS_PATIO_LIGHT_MOTE_JITTER_MASK) - AKROPOLIS_PATIO_LIGHT_MOTE_JITTER_CENTER;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vy  -= ((gRandomLcgState >> 16) & AKROPOLIS_PATIO_LIGHT_MOTE_JITTER_MASK) - AKROPOLIS_PATIO_LIGHT_MOTE_JITTER_CENTER;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vz  -= ((gRandomLcgState >> 16) & AKROPOLIS_PATIO_LIGHT_MOTE_JITTER_MASK) - AKROPOLIS_PATIO_LIGHT_MOTE_JITTER_CENTER;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((u16)((gRandomLcgState >> 16) % AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_CHANCE) == 0) {
+            RANDOM_LCG_ADVANCE();
+            work->move.vx -= (RANDOM_LCG_DRAW() & AKROPOLIS_PATIO_LIGHT_MOTE_JITTER_MASK) - AKROPOLIS_PATIO_LIGHT_MOTE_JITTER_CENTER;
+            RANDOM_LCG_ADVANCE();
+            work->move.vy -= (RANDOM_LCG_DRAW() & AKROPOLIS_PATIO_LIGHT_MOTE_JITTER_MASK) - AKROPOLIS_PATIO_LIGHT_MOTE_JITTER_CENTER;
+            RANDOM_LCG_ADVANCE();
+            work->move.vz -= (RANDOM_LCG_DRAW() & AKROPOLIS_PATIO_LIGHT_MOTE_JITTER_MASK) - AKROPOLIS_PATIO_LIGHT_MOTE_JITTER_CENTER;
+            RANDOM_LCG_ADVANCE();
+            if ((u16)(RANDOM_LCG_DRAW() % AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_CHANCE) == 0) {
                 work->index = AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT;
             }
         } else {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vx   = AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_CENTER - ((gRandomLcgState >> 16) & AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_MASK);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vy   = AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_CENTER - ((gRandomLcgState >> 16) & AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_MASK);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vz   = AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_CENTER - ((gRandomLcgState >> 16) & AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_MASK);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((u16)((gRandomLcgState >> 16) % AKROPOLIS_PATIO_LIGHT_MOTE_GATHER_CHANCE) == 0) {
+            RANDOM_LCG_ADVANCE();
+            work->move.vx = AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_CENTER - (RANDOM_LCG_DRAW() & AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_MASK);
+            RANDOM_LCG_ADVANCE();
+            work->move.vy = AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_CENTER - (RANDOM_LCG_DRAW() & AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_MASK);
+            RANDOM_LCG_ADVANCE();
+            work->move.vz = AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_CENTER - (RANDOM_LCG_DRAW() & AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_MASK);
+            RANDOM_LCG_ADVANCE();
+            if ((u16)(RANDOM_LCG_DRAW() % AKROPOLIS_PATIO_LIGHT_MOTE_GATHER_CHANCE) == 0) {
                 work->index = AKROPOLIS_PATIO_LIGHT_MOTE_GATHER;
             }
         }

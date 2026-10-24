@@ -129,7 +129,7 @@ static inline void _metabolismDrawGlow(const GfxCoord* coord, const EffectWork* 
         s32 bearingRoll;                                                                                                                                              \
                                                                                                                                                                       \
         for ((wedgeIndex) = 0; (wedgeIndex) < _gMetabolismLevelTuning[(levelIndex)].wedgeCount; (wedgeIndex)++) {                                                     \
-            bearingRoll                                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                              \
+            bearingRoll                                = RANDOM_LCG_NEXT(gRandomLcgState);                                                                            \
             _gMetabolismFanWedgeBearings[(wedgeIndex)] = ((wedgeIndex) << METABOLISM_WEDGE_SECTOR_SHIFT) + (((u32)bearingRoll >> 16) & METABOLISM_WEDGE_JITTER_MASK); \
             gRandomLcgState                            = bearingRoll;                                                                                                 \
         }                                                                                                                                                             \
@@ -197,8 +197,8 @@ void metabolismCastTask(Task* task)
                 s32 yawRoll;
 
                 for (particleIndex = 0; particleIndex < METABOLISM_SPARKLES_PER_TICK; particleIndex++) {
-                    bearingRoll     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    yawRoll         = bearingRoll * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    bearingRoll     = RANDOM_LCG_NEXT(gRandomLcgState);
+                    yawRoll         = RANDOM_LCG_NEXT(bearingRoll);
                     gRandomLcgState = bearingRoll;
                     effect->step    = ((u32)bearingRoll >> 16) & METABOLISM_ANGLE_MASK;
                     gRandomLcgState = yawRoll;
@@ -297,12 +297,12 @@ void metabolismSparkleTask(Task* task)
             // Only PE level 3 can select the fading variant; lower levels skip that random draw.
             peLevel = gAttachmentState.attachId % 10U;
             if (peLevel - 1 < METABOLISM_SPARKLE_ALWAYS_SPIN_LEVELS ||
-                (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT,
-                 variantRoll     = (gRandomLcgState >> 16) % (u32)METABOLISM_SPARKLE_FADING_ROLL_COUNT, variantRoll != 0)) {
-                task->state     = METABOLISM_SPARKLE_STATE_SPINNING;
-                work->period    = METABOLISM_SPARKLE_SPINNING_PALETTE << METABOLISM_SPARKLE_PALETTE_SHIFT;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->scale     = (gRandomLcgState >> 16) & METABOLISM_SPARKLE_ROTATION_MASK;
+                (RANDOM_LCG_ADVANCE(),
+                 variantRoll = RANDOM_LCG_DRAW() % (u32)METABOLISM_SPARKLE_FADING_ROLL_COUNT, variantRoll != 0)) {
+                task->state  = METABOLISM_SPARKLE_STATE_SPINNING;
+                work->period = METABOLISM_SPARKLE_SPINNING_PALETTE << METABOLISM_SPARKLE_PALETTE_SHIFT;
+                RANDOM_LCG_ADVANCE();
+                work->scale = RANDOM_LCG_DRAW() & METABOLISM_SPARKLE_ROTATION_MASK;
             } else {
                 task->state  = METABOLISM_SPARKLE_STATE_FADING;
                 work->scale  = METABOLISM_SPARKLE_INITIAL_BRIGHTNESS;

@@ -257,7 +257,7 @@ static void _golemPawnRookKnockdownState(Task* actor)
             if (work->animFrame >= GOLEM_PAWN_ROOK_KNOCKDOWN_BEHIND_FRAMES) {
                 work->anim        = GOLEM_PAWN_ROOK_KNOCKDOWN_ANIM_REST_BEHIND;
                 work->fallingDown = 0;
-                behindFallRandom  = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                behindFallRandom  = RANDOM_LCG_NEXT(gRandomLcgState);
                 work->timer       = (u16)((behindFallRandom >> 0x10) & GOLEM_PAWN_ROOK_KNOCKDOWN_REST_FRAME_MASK);
                 gRandomLcgState   = behindFallRandom;
                 if (((Enemy*)actor->spawnArg2.pointer)->hp > 0) {
@@ -279,7 +279,7 @@ static void _golemPawnRookKnockdownState(Task* actor)
             if (work->animFrame >= GOLEM_PAWN_ROOK_KNOCKDOWN_FRONT_FRAMES) {
                 work->anim        = GOLEM_PAWN_ROOK_KNOCKDOWN_ANIM_REST_FRONT;
                 work->fallingDown = 0;
-                frontFallRandom   = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                frontFallRandom   = RANDOM_LCG_NEXT(gRandomLcgState);
                 work->timer       = (u16)((frontFallRandom >> 0x10) & GOLEM_PAWN_ROOK_KNOCKDOWN_REST_FRAME_MASK);
                 gRandomLcgState   = frontFallRandom;
                 if (((Enemy*)actor->spawnArg2.pointer)->hp > 0) {
@@ -318,7 +318,7 @@ static void _golemPawnRookKnockdownState(Task* actor)
                 }
                 work->anim      = restAnimation;
                 work->step      = GOLEM_PAWN_ROOK_KNOCKDOWN_REST;
-                shiftEndRandom  = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                shiftEndRandom  = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState = shiftEndRandom;
                 work->timer     = (u16)(((u32)shiftEndRandom >> 0x10) & GOLEM_PAWN_ROOK_KNOCKDOWN_REST_FRAME_MASK);
             }
@@ -368,20 +368,20 @@ static void _golemPawnRookDownedHitState(Task* actor)
             break;
         case GOLEM_PAWN_ROOK_DOWNED_HIT_BEHIND:
             if (work->animFrame >= GOLEM_PAWN_ROOK_DOWNED_HIT_BEHIND_FRAMES) {
-                work->anim      = GOLEM_PAWN_ROOK_ANIM_LIE_BEHIND;
-                work->behavior  = GOLEM_PAWN_ROOK_BEHAVIOR_KNOCKDOWN;
-                work->step      = GOLEM_PAWN_ROOK_KNOCKDOWN_REST_STEP;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->timer     = (gRandomLcgState >> 16) & GOLEM_PAWN_ROOK_DOWNED_DWELL_MASK;
+                work->anim     = GOLEM_PAWN_ROOK_ANIM_LIE_BEHIND;
+                work->behavior = GOLEM_PAWN_ROOK_BEHAVIOR_KNOCKDOWN;
+                work->step     = GOLEM_PAWN_ROOK_KNOCKDOWN_REST_STEP;
+                RANDOM_LCG_ADVANCE();
+                work->timer = RANDOM_LCG_DRAW() & GOLEM_PAWN_ROOK_DOWNED_DWELL_MASK;
             }
             break;
         case GOLEM_PAWN_ROOK_DOWNED_HIT_FRONT:
             if (work->animFrame >= GOLEM_PAWN_ROOK_DOWNED_HIT_FRONT_FRAMES) {
-                work->anim      = GOLEM_PAWN_ROOK_ANIM_LIE_FRONT;
-                work->behavior  = GOLEM_PAWN_ROOK_BEHAVIOR_KNOCKDOWN;
-                work->step      = GOLEM_PAWN_ROOK_KNOCKDOWN_REST_STEP;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->timer     = (gRandomLcgState >> 16) & GOLEM_PAWN_ROOK_DOWNED_DWELL_MASK;
+                work->anim     = GOLEM_PAWN_ROOK_ANIM_LIE_FRONT;
+                work->behavior = GOLEM_PAWN_ROOK_BEHAVIOR_KNOCKDOWN;
+                work->step     = GOLEM_PAWN_ROOK_KNOCKDOWN_REST_STEP;
+                RANDOM_LCG_ADVANCE();
+                work->timer = RANDOM_LCG_DRAW() & GOLEM_PAWN_ROOK_DOWNED_DWELL_MASK;
             }
             break;
     }
@@ -808,7 +808,7 @@ static void _golemPawnRookDeadState(Enemy* enemy, Task* actor)
             if (!(work->animFrame & GOLEM_PAWN_ROOK_CORPSE_SPARK_FRAME_MASK)) {
                 sparkOffset->vx = 0;
                 sparkOffset->vz = 0;
-                randomDraw      = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                randomDraw      = RANDOM_LCG_NEXT(gRandomLcgState);
                 sparkOffset->vy = -((randomDraw >> 0x10) & GOLEM_PAWN_ROOK_CORPSE_SPARK_Y_MASK);
                 gRandomLcgState = randomDraw;
                 effectSpawn(EFFECT_FLASH_BURST, &actor->extra.tmd->coords[3], GOLEM_PAWN_ROOK_CORPSE_SPARK_SIZE, sparkOffset);

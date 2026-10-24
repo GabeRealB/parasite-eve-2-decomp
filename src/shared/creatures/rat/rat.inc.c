@@ -214,8 +214,8 @@ static inline void _ratPickWanderHeading(RatWork* work)
     s32 wanderYawOffset;
 
     work->turnRate    = RAT_WANDER_TURN_RATE;
-    wanderDelayRandom = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    wanderYawRandom   = wanderDelayRandom * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    wanderDelayRandom = RANDOM_LCG_NEXT(gRandomLcgState);
+    wanderYawRandom   = RANDOM_LCG_NEXT(wanderDelayRandom);
     wanderYawOffset   = ((u32)wanderYawRandom >> 16) & RAT_WANDER_YAW_MAGNITUDE_MASK;
     gRandomLcgState   = wanderDelayRandom;
     work->wanderTimer = ((u32)wanderDelayRandom >> 16) & RAT_WANDER_DELAY_MASK;
@@ -263,23 +263,23 @@ static void _ratIdle(Task* actor)
             if (work->timer < RAT_IDLE_MOVE_ROLL_FRAMES) {
                 break;
             }
-            slowChanceRandom = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            slowChanceRandom = RANDOM_LCG_NEXT(gRandomLcgState);
             gRandomLcgState  = slowChanceRandom;
             if ((s32)(((u32)slowChanceRandom >> 16) & (RAT_CHANCE_ROLL_COUNT - 1)) <
                 _gRatWalkChance[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex]) {
                 work->animId    = RAT_ANIM_WALK;
-                moveFrames      = _gRatWalkFrames[((u32)(slowDurationRandom = slowChanceRandom * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (RAT_MOVE_DURATION_COUNT - 1)];
+                moveFrames      = _gRatWalkFrames[((u32)(slowDurationRandom = RANDOM_LCG_NEXT(slowChanceRandom)) >> 16) & (RAT_MOVE_DURATION_COUNT - 1)];
                 gRandomLcgState = slowDurationRandom;
                 work->step      = RAT_IDLE_STEP_WALK;
                 work->timer     = moveFrames;
                 break;
             }
-            fastChanceRandom = slowChanceRandom * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            fastChanceRandom = RANDOM_LCG_NEXT(slowChanceRandom);
             gRandomLcgState  = fastChanceRandom;
             if ((s32)(((u32)fastChanceRandom >> 16) & (RAT_CHANCE_ROLL_COUNT - 1)) <
                 _gRatRunChance[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex]) {
                 work->animId    = RAT_ANIM_RUN;
-                moveFrames      = _gRatRunFrames[((u32)(fastDurationRandom = fastChanceRandom * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (RAT_MOVE_DURATION_COUNT - 1)];
+                moveFrames      = _gRatRunFrames[((u32)(fastDurationRandom = RANDOM_LCG_NEXT(fastChanceRandom)) >> 16) & (RAT_MOVE_DURATION_COUNT - 1)];
                 gRandomLcgState = fastDurationRandom;
                 work->step      = RAT_IDLE_STEP_RUN;
                 work->timer     = moveFrames;
@@ -318,7 +318,7 @@ static void _ratIdle(Task* actor)
         work->attackRequested  = 0;
         work->step             = RAT_ATTACK_STEP_APPROACH;
         work->animId           = RAT_ANIM_RUN;
-        approachDurationRandom = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        approachDurationRandom = RANDOM_LCG_NEXT(gRandomLcgState);
         work->timer            = (((u32)approachDurationRandom >> 16) & 0x1F) + RAT_IDLE_APPROACH_BASE_FRAMES;
         soundId                = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << RAT_SOUND_PLACE_INDEX_SHIFT) | RAT_SOUND_ALERT;
         gRandomLcgState        = approachDurationRandom;
@@ -447,8 +447,8 @@ static void _ratAttack(Task* actor)
                 soundId  = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << RAT_SOUND_PLACE_INDEX_SHIFT) | RAT_SOUND_ATTACK_RECOVER;
                 audioPan = (s8)worldCoordGetOriginAudioPan(rootCoord);
                 sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                if ((s32)((gRandomLcgState >> 16) & (RAT_CHANCE_ROLL_COUNT - 1)) < _gRatAttackRepeatChance[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex]) {
+                RANDOM_LCG_ADVANCE();
+                if ((s32)(RANDOM_LCG_DRAW() & (RAT_CHANCE_ROLL_COUNT - 1)) < _gRatAttackRepeatChance[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex]) {
                     work->step   = RAT_ATTACK_STEP_APPROACH;
                     work->animId = RAT_ANIM_RUN;
                 } else {
@@ -501,7 +501,7 @@ static void _ratStagger(Task* actor)
             work->turnRate      = 0;
             work->knockedDown   = 1;
             work->step          = RAT_STAGGER_STEP_KNOCKBACK;
-            durationRandom      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            durationRandom      = RANDOM_LCG_NEXT(gRandomLcgState);
             work->timer         = (((u32)durationRandom >> 16) & 0x1F) + RAT_STAGGER_PUSH_FRAMES;
             gRandomLcgState     = durationRandom;
             // Capture the full 3D direction; knockback later applies only X/Z.
@@ -575,7 +575,7 @@ static void _ratBuildup(Task* actor)
                 work->animId = RAT_ANIM_COLLAPSE;
             } else {
                 work->step      = RAT_BUILDUP_STEP_WAIT;
-                randomDelay     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                randomDelay     = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState = randomDelay;
                 work->timer     = ((u32)randomDelay >> 0x10) & 0xF;
             }
@@ -585,7 +585,7 @@ static void _ratBuildup(Task* actor)
         case RAT_BUILDUP_STEP_COLLAPSE:
             if (work->animFrame >= RAT_BUILDUP_COLLAPSE_END_FRAME) {
                 work->step               = RAT_BUILDUP_STEP_WAIT;
-                randomDelayAfterCollapse = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                randomDelayAfterCollapse = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState          = randomDelayAfterCollapse;
                 work->timer              = ((u32)randomDelayAfterCollapse >> 0x10) & 0xF;
                 return;
@@ -962,7 +962,7 @@ static void _ratIdleSound(Task* actor)
     rootCoord = actor->extra.tmd->coords;
     work->idleSoundTimer--;
     if (work->idleSoundTimer <= 0) {
-        delayRandom          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        delayRandom          = RANDOM_LCG_NEXT(gRandomLcgState);
         work->idleSoundTimer = ((delayRandom >> 0x10) & 0x7F) + RAT_IDLE_SOUND_BASE_FRAMES;
         gRandomLcgState      = delayRandom;
         soundId              = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << RAT_SOUND_PLACE_INDEX_SHIFT) | RAT_SOUND_IDLE;

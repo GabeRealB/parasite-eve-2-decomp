@@ -730,8 +730,8 @@ static void _gluttonHitEffect(GfxCoord* coord, s32 attackKey)
         case 8:
         case 9:
         default:
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            switch ((u16)((gRandomLcgState >> 16) % 3U)) {
+            RANDOM_LCG_ADVANCE();
+            switch ((u16)(RANDOM_LCG_DRAW() % 3U)) {
                 case 0:
                     scratch->offset.vy = 0;
                     scratch->offset.vx = 0;

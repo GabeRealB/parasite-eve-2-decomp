@@ -506,21 +506,21 @@ static void _actor01500Spawn(Enemy* enemy, Task* task)
                     work->loopSound   = 0;
                     break;
             }
-            work->timer = 0;
-            randomDraw = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->hoverOffset            = ((randomDraw >> 16) & 0x1F) + 1;
-            work->targetYaw              = (ratan2(rootCoord->coord.m[0][2], rootCoord->coord.m[2][2]) + ACTOR_TRANSFORM_ANGLE_HALF_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
+            work->timer       = 0;
+            randomDraw        = RANDOM_LCG_ADVANCE();
+            work->hoverOffset = ((randomDraw >> 16) & 0x1F) + 1;
+            work->targetYaw   = (ratan2(rootCoord->coord.m[0][2], rootCoord->coord.m[2][2]) + ACTOR_TRANSFORM_ANGLE_HALF_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
             break;
         case ACTOR_01500_VARIANT_SCRIPTED:
-            work->noWallPerch    = 1;
-            work->anim           = ACTOR_01500_ANIM_HOVER;
-            work->playingAnim    = ACTOR_01500_ANIM_HOVER;
-            work->action         = ACTOR_01500_ACTION_SCRIPTED;
-            work->actionStep     = ACTOR_01500_CHASE_SETTLE;
-            gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->timer          = ((gRandomLcgState >> 16) & 0x3F) + 0x3C;
-            gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->hoverOffset    = (gRandomLcgState >> 16) & 0x1FF;
+            work->noWallPerch = 1;
+            work->anim        = ACTOR_01500_ANIM_HOVER;
+            work->playingAnim = ACTOR_01500_ANIM_HOVER;
+            work->action      = ACTOR_01500_ACTION_SCRIPTED;
+            work->actionStep  = ACTOR_01500_CHASE_SETTLE;
+            RANDOM_LCG_ADVANCE();
+            work->timer = (RANDOM_LCG_DRAW() & 0x3F) + 0x3C;
+            RANDOM_LCG_ADVANCE();
+            work->hoverOffset    = RANDOM_LCG_DRAW() & 0x1FF;
             work->loopSound      = ACTOR_01500_SOUND_FLIGHT_START;
             work->loopSoundTimer = ACTOR_01500_FLIGHT_START_TICKS;
             break;
@@ -532,8 +532,8 @@ static void _actor01500Spawn(Enemy* enemy, Task* task)
     }
     if (work->variant == ACTOR_01500_VARIANT_PERCHED) {
         // Blend from each slot's ticked pose for a random number of whole frames.
-        randomDraw = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        blendFrames                  = (randomDraw >> 16) & 0x3F;
+        randomDraw  = RANDOM_LCG_ADVANCE();
+        blendFrames = (randomDraw >> 16) & 0x3F;
         for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
             animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->anim, 0, blendFrames);
         }
@@ -658,8 +658,8 @@ static void _actor01500ProcessContacts(Task* actor)
             work->posture         = ACTOR_01500_POSTURE_PERCHED;
             work->roomBody.pos.vy = 0;
             work->roomBody.pos.vz = -300;
-            gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->timer           = ((gRandomLcgState >> 16) & 0x3F) + 0x1E;
+            RANDOM_LCG_ADVANCE();
+            work->timer = (RANDOM_LCG_DRAW() & 0x3F) + 0x1E;
             for (contactIndex = 0; contactIndex < ARRAY_SIZE(work->roomContacts); contactIndex++) {
                 if ((work->roomContacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {
                     scratch->gridNormalX = work->roomContacts[contactIndex].response.direction.vx;
@@ -871,7 +871,7 @@ static void _actor01500PerchAction(Task* actor)
         work->action         = ACTOR_01500_ACTION_TAKE_OFF;
         work->anim           = ACTOR_01500_ANIM_TAKE_OFF_WALL;
         work->animFrame      = 0;
-        takeOffAnim          = _gActor01500HoverWaitTicks[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (ARRAY_SIZE(_gActor01500HoverWaitTicks) - 1)];
+        takeOffAnim          = _gActor01500HoverWaitTicks[((RANDOM_LCG_ADVANCE()) >> 16) & (ARRAY_SIZE(_gActor01500HoverWaitTicks) - 1)];
         work->posture        = ACTOR_01500_POSTURE_AIRBORNE;
         work->hoverOffset    = 0;
         work->loopSound      = ACTOR_01500_SOUND_FLIGHT_START;
@@ -896,8 +896,8 @@ static void _actor01500PerchAction(Task* actor)
     } else {
         if (gSceneCombatState.signals.bytes.actionFlags & SCENE_COMBAT_ACTION_NOISE) {
             if (work->timer == 0) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->timer     = ((gRandomLcgState >> 16) & 0x1F) + 1;
+                RANDOM_LCG_ADVANCE();
+                work->timer = (RANDOM_LCG_DRAW() & 0x1F) + 1;
             }
         }
         if (work->timer != 0) {
@@ -912,8 +912,8 @@ static void _actor01500PerchAction(Task* actor)
             if (gSceneCombatState.signals.bytes.enemyAlert != 0) {
                 takeOffPending = 1;
             }
-            gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->hoverOffset = ((gRandomLcgState >> 16) & 0x1F) + 1;
+            RANDOM_LCG_ADVANCE();
+            work->hoverOffset = (RANDOM_LCG_DRAW() & 0x1F) + 1;
         }
         enemy = actor->spawnArg2.pointer;
         if (enemy->hp != _gActor01500EnemyParams.hpMax) {
@@ -926,7 +926,7 @@ static void _actor01500PerchAction(Task* actor)
                 takeOffAnim = ACTOR_01500_ANIM_TAKE_OFF_CEILING;
             }
             work->anim           = takeOffAnim;
-            hoverTicks           = _gActor01500HoverWaitTicks[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (ARRAY_SIZE(_gActor01500HoverWaitTicks) - 1)];
+            hoverTicks           = _gActor01500HoverWaitTicks[((RANDOM_LCG_ADVANCE()) >> 16) & (ARRAY_SIZE(_gActor01500HoverWaitTicks) - 1)];
             work->hoverOffset    = 0;
             work->posture        = ACTOR_01500_POSTURE_AIRBORNE;
             work->roused         = 1;
@@ -975,7 +975,7 @@ static void _actor01500TakeOffAction(Task* actor)
                 break;
         }
         if (work->animFrame >= 59) {
-            settleDraw           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            settleDraw           = RANDOM_LCG_NEXT(gRandomLcgState);
             work->action         = ACTOR_01500_ACTION_CHASE;
             work->anim           = ACTOR_01500_ANIM_HOVER;
             work->actionStep     = ACTOR_01500_CHASE_SETTLE;
@@ -983,7 +983,7 @@ static void _actor01500TakeOffAction(Task* actor)
             work->loopSoundTimer = ACTOR_01500_FLIGHT_START_TICKS;
             gRandomLcgState      = settleDraw;
             work->timer          = ((settleDraw >> 16) & 0x3F) + 0x3C;
-            heightDraw           = settleDraw * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            heightDraw           = RANDOM_LCG_NEXT(settleDraw);
             gRandomLcgState      = heightDraw;
             work->hoverOffset    = (heightDraw >> 16) & 0x1FF;
         }
@@ -1036,8 +1036,8 @@ static void _actor01500ChaseAction(Task* actor)
             work->speed         = 0;
             work->lunged        = 0;
             if (--work->timer < 0) {
-                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                advanceDistance   = _gActor01500AdvanceDistances[(gRandomLcgState >> 16) & (ARRAY_SIZE(_gActor01500AdvanceDistances) - 1)];
+                RANDOM_LCG_ADVANCE();
+                advanceDistance   = _gActor01500AdvanceDistances[RANDOM_LCG_DRAW() & (ARRAY_SIZE(_gActor01500AdvanceDistances) - 1)];
                 work->anim        = ACTOR_01500_ANIM_ADVANCE;
                 work->actionStep  = ACTOR_01500_CHASE_ADVANCE;
                 work->advanceLeft = advanceDistance;
@@ -1050,7 +1050,7 @@ static void _actor01500ChaseAction(Task* actor)
             if (work->advanceLeft < 0) {
                 hoverWaits           = _gActor01500HoverWaitTicks;
                 work->anim           = ACTOR_01500_ANIM_HOVER;
-                hoverDraw            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                hoverDraw            = RANDOM_LCG_NEXT(gRandomLcgState);
                 hoverTicks           = hoverWaits[(hoverDraw >> 16) & (ARRAY_SIZE(_gActor01500HoverWaitTicks) - 1)];
                 gRandomLcgState      = hoverDraw;
                 work->loopSound      = ACTOR_01500_SOUND_FLIGHT_START;
@@ -1077,11 +1077,11 @@ static void _actor01500ChaseAction(Task* actor)
             work->speed         = 100;
             work->verticalSpeed = 180;
             if (heightY < rootCoord->coord.t[1] || work->attackLanded != 0) {
-                work->actionStep        = ACTOR_01500_CHASE_CLIMB;
-                work->attackLanded      = 0;
-                work->anim              = ACTOR_01500_ANIM_ADVANCE;
-                gRandomLcgState         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->timer             = ((gRandomLcgState >> 16) & 0xF) + 15;
+                work->actionStep   = ACTOR_01500_CHASE_CLIMB;
+                work->attackLanded = 0;
+                work->anim         = ACTOR_01500_ANIM_ADVANCE;
+                RANDOM_LCG_ADVANCE();
+                work->timer             = (RANDOM_LCG_DRAW() & 0xF) + 15;
                 work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
             break;
@@ -1164,7 +1164,7 @@ static void _actor01500HitAction(Task* actor)
                 work->action         = ACTOR_01500_ACTION_CHASE;
                 work->anim           = ACTOR_01500_ANIM_HOVER;
                 work->actionStep     = ACTOR_01500_CHASE_SETTLE;
-                hoverDraw            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                hoverDraw            = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState      = hoverDraw;
                 hoverTicks           = hoverWaits[(hoverDraw >> 16) & (ARRAY_SIZE(_gActor01500HoverWaitTicks) - 1)];
                 work->loopSound      = ACTOR_01500_SOUND_FLIGHT_START;
@@ -1519,8 +1519,8 @@ static void _actor01500ScriptedAction(Task* actor)
             work->speed         = 0;
             work->lunged        = 0;
             if (--work->timer < 0) {
-                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                advanceDistance   = _gActor01500AdvanceDistances[(gRandomLcgState >> 16) & (ARRAY_SIZE(_gActor01500AdvanceDistances) - 1)];
+                RANDOM_LCG_ADVANCE();
+                advanceDistance   = _gActor01500AdvanceDistances[RANDOM_LCG_DRAW() & (ARRAY_SIZE(_gActor01500AdvanceDistances) - 1)];
                 work->anim        = ACTOR_01500_ANIM_ADVANCE;
                 work->actionStep  = ACTOR_01500_CHASE_ADVANCE;
                 work->advanceLeft = advanceDistance;
@@ -1537,7 +1537,7 @@ static void _actor01500ScriptedAction(Task* actor)
             if (work->advanceLeft < 0) {
                 hoverWaits           = _gActor01500HoverWaitTicks;
                 work->anim           = ACTOR_01500_ANIM_HOVER;
-                hoverTicks           = hoverWaits[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (ARRAY_SIZE(_gActor01500HoverWaitTicks) - 1)];
+                hoverTicks           = hoverWaits[((RANDOM_LCG_ADVANCE()) >> 16) & (ARRAY_SIZE(_gActor01500HoverWaitTicks) - 1)];
                 work->loopSound      = ACTOR_01500_SOUND_FLIGHT_START;
                 work->loopSoundTimer = ACTOR_01500_FLIGHT_START_TICKS;
                 work->actionStep     = ACTOR_01500_CHASE_HOVER;
@@ -1548,7 +1548,7 @@ static void _actor01500ScriptedAction(Task* actor)
     // Crossing both bounds switches from the fixed room point to the player.
     if (gPlayerStatus.coordMtx->t[0] > _gActor01500ChaseTriggerBounds.vx && gPlayerStatus.coordMtx->t[2] < _gActor01500ChaseTriggerBounds.vz) {
         work->action         = ACTOR_01500_ACTION_CHASE;
-        settleTicks          = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x3F) + 60;
+        settleTicks          = (((RANDOM_LCG_ADVANCE()) >> 16) & 0x3F) + 60;
         work->anim           = ACTOR_01500_ANIM_HOVER;
         work->loopSoundTimer = ACTOR_01500_FLIGHT_START_TICKS;
         work->actionStep     = ACTOR_01500_CHASE_SETTLE;
@@ -1556,7 +1556,7 @@ static void _actor01500ScriptedAction(Task* actor)
         work->posture        = ACTOR_01500_POSTURE_AIRBORNE;
         work->roused         = 1;
         work->timer          = settleTicks;
-        work->hoverOffset    = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x1FF;
+        work->hoverOffset    = ((RANDOM_LCG_ADVANCE()) >> 16) & 0x1FF;
         sceneEngageBattle(1);
     }
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
@@ -1736,7 +1736,7 @@ static void _actor01500AlertAction(Task* actor)
             takeOffAnim = ACTOR_01500_ANIM_TAKE_OFF_CEILING;
         }
         work->anim           = takeOffAnim;
-        hoverDraw            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        hoverDraw            = RANDOM_LCG_NEXT(gRandomLcgState);
         gRandomLcgState      = hoverDraw;
         hoverTicks           = _gActor01500HoverWaitTicks[(hoverDraw >> 16) & (ARRAY_SIZE(_gActor01500HoverWaitTicks) - 1)];
         work->posture        = ACTOR_01500_POSTURE_AIRBORNE;
@@ -1783,7 +1783,7 @@ static void _actor01500WallRestAction(Task* actor)
         work->action         = ACTOR_01500_ACTION_TAKE_OFF;
         work->anim           = ACTOR_01500_ANIM_TAKE_OFF_WALL;
         work->actionStep     = 0;
-        hoverDraw            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        hoverDraw            = RANDOM_LCG_NEXT(gRandomLcgState);
         gRandomLcgState      = hoverDraw;
         hoverTicks           = hoverWaits[(hoverDraw >> 16) & (ARRAY_SIZE(_gActor01500HoverWaitTicks) - 1)];
         work->perch          = ACTOR_01500_PERCH_WALL;

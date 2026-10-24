@@ -92,7 +92,7 @@ static s32 _mainStreetCapSoundCue(Task* unusedTask, s32 unusedMessageId, s32 cue
 ///
 /// Captures `gRandomLcgState`; multiplication and addition wrap modulo 2^32.
 /// Each invocation consumes one draw, so callers must preserve draw order.
-#define DRYFIELD_MAIN_STREET_RAND() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
+#define DRYFIELD_MAIN_STREET_RAND() ((RANDOM_LCG_ADVANCE()) >> 16)
 
 extern RoomEventActiveBytes gRoomEventActive;
 

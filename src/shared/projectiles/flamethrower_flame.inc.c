@@ -231,7 +231,7 @@ static void _flamethrowerFlameTask(Task* task)
             task->exitCallback = _flamethrowerFlameRelease;
             // Rotate the launch displacement into the coordinate's parent frame.
             work->move.vx   = 0;
-            launchRandom    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            launchRandom    = RANDOM_LCG_NEXT(gRandomLcgState);
             gRandomLcgState = launchRandom;
             work->move.vy   = (u16)task->spawnArg1.value - ((launchRandom >> 16) & FLAMETHROWER_FLAME_LAUNCH_JITTER_MASK);
             work->move.vz   = 0;
@@ -240,7 +240,7 @@ static void _flamethrowerFlameTask(Task* task)
             gte_rtv0();
             gte_stsv(&work->move);
             work->scale                  = (u16)task->spawnArg1.value + FLAMETHROWER_FLAME_INITIAL_SIZE_BIAS;
-            spinRandom                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            spinRandom                   = RANDOM_LCG_NEXT(gRandomLcgState);
             work->angle                  = (spinRandom >> 16) & FLAMETHROWER_FLAME_SPIN_ANGLE_MASK;
             task->state                  = FLAMETHROWER_FLAME_STATE_FLIGHT;
             task->work                   = flame;
@@ -269,7 +269,7 @@ static void _flamethrowerFlameTask(Task* task)
             _flamethrowerFlameDrawBlob(GRAPHICS_MATRIX_TRANSLATION(&coord->workm),
                                        (work->age >> 1) + 1, work->scale,
                                        work->angle);
-            splashRandom    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            splashRandom    = RANDOM_LCG_NEXT(gRandomLcgState);
             gRandomLcgState = splashRandom;
             if ((u16)((splashRandom >> 16) % 3) == 0 && gRoomEffectState->groundTraceEnabled != 0 &&
                 worldCollisionProjectGroundCoord(coord, &groundCoord) == 1) {
@@ -287,7 +287,7 @@ static void _flamethrowerFlameTask(Task* task)
                 task->state     = FLAMETHROWER_FLAME_STATE_DRIFT;
                 work->move.vx   = (u32)rcos(work->angle) >> FLAMETHROWER_FLAME_DRIFT_TRIG_SHIFT;
                 work->move.vy   = (u32)rsin(work->angle) >> FLAMETHROWER_FLAME_DRIFT_TRIG_SHIFT;
-                driftRandom     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                driftRandom     = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState = driftRandom;
                 work->move.vz   = (u32)rsin((driftRandom >> 16) & FLAMETHROWER_FLAME_SPIN_ANGLE_MASK) >> FLAMETHROWER_FLAME_DRIFT_TRIG_SHIFT;
                 return;

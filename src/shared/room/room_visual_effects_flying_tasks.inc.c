@@ -87,8 +87,8 @@ static inline void _roomVisualEffectsGlowDiscTask(Task* task)
             actorRenderComposeCoord(coord);
             if (!(work->age & (GLOW_DISC_SPARK_INTERVAL_TICKS - 1))) {
                 Task* playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                sparkWork        = effectSpawn(gRoomEffectFlyingSparkId, &playerTask->extra.tmd->coords[((gRandomLcgState >> 16) & (GLOW_DISC_PLAYER_PART_COUNT - 1)) + GLOW_DISC_FIRST_PLAYER_PART], coord, NULL);
+                RANDOM_LCG_ADVANCE();
+                sparkWork = effectSpawn(gRoomEffectFlyingSparkId, &playerTask->extra.tmd->coords[(RANDOM_LCG_DRAW() & (GLOW_DISC_PLAYER_PART_COUNT - 1)) + GLOW_DISC_FIRST_PLAYER_PART], coord, NULL);
                 if (sparkWork != NULL) {
                     taskReparent(task, sparkWork->task);
                 }

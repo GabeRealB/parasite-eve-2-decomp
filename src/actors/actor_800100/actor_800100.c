@@ -778,7 +778,7 @@ static inline void _actor800100RefreshPykeLight(WorldCoordTransientPointLight* t
     transientLight->framesLeft = ACTOR_800100_PYKE_LIGHT_FRAMES;
     pointLight->inner          = innerRadius;
     pointLight->outer          = outerRadius;
-    lightRandom                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    lightRandom                = RANDOM_LCG_NEXT(gRandomLcgState);
     gRandomLcgState            = lightRandom;
     // Green halves the unsigned red halfword; blue quarters its signed value.
     pointLight->head.color.r = ((lightRandom >> 16) & ACTOR_800100_PYKE_LIGHT_RANDOM_MASK) + redMinimum;
@@ -2043,7 +2043,7 @@ static void _actor800100ApproachState(Task* task)
     if (planarDistance != 0 && planarDistance < (ACTOR_800100_APPROACH_OBSTACLE_DISTANCE + 1)) {
         obstructionTicks   = actor->actionValue + 1;
         actor->actionValue = obstructionTicks;
-        randomState        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        randomState        = RANDOM_LCG_NEXT(gRandomLcgState);
         gRandomLcgState    = randomState;
         if ((s16)obstructionTicks >= (s32)(((randomState >> 16) & ACTOR_800100_APPROACH_SCAN_TICKS_MASK) + ACTOR_800100_APPROACH_SCAN_MIN_TICKS)) {
             _actor800100ApproachStartScan(task);
@@ -2258,14 +2258,14 @@ static void _actor800100ObstacleScanState(Task* task)
                 if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                     moveSet             = ACTOR_800100_ANIMATION_RUN;
                     actor->movementMode = ACTOR_800100_MOVEMENT_RUN;
-                    randomState         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    randomState         = RANDOM_LCG_NEXT(gRandomLcgState);
                     gRandomLcgState     = randomState;
                     actor->stateTimer   = ((randomState >> 16) & ACTOR_800100_SCAN_RUN_TICKS_MASK) + ACTOR_800100_SCAN_RUN_MIN_TICKS;
                     playerActorPlayChildSlotsWithBlend(task, moveSet, 0, ACTOR_800100_SCAN_BLEND_FRAMES);
                 } else {
                     moveSet             = ACTOR_800100_SCAN_ANIMATION_WALK;
                     actor->movementMode = ACTOR_800100_SCAN_MOVEMENT_WALK;
-                    randomState         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    randomState         = RANDOM_LCG_NEXT(gRandomLcgState);
                     gRandomLcgState     = randomState;
                     actor->stateTimer   = ((randomState >> 16) & ACTOR_800100_SCAN_WALK_TICKS_MASK) + ACTOR_800100_SCAN_WALK_MIN_TICKS;
                     playerActorPlayChildSlotsWithBlend(task, moveSet, 0, ACTOR_800100_SCAN_BLEND_FRAMES);
@@ -2381,7 +2381,7 @@ static void _actor800100WanderState(Task* task)
                 actor->rotation.vy  = (u16)companion->targetHeading;
                 actor->turnSign     = 0;
                 actor->movementMode = ACTOR_800100_WANDER_MOVEMENT_WALK;
-                turnAndTimingValue  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                turnAndTimingValue  = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState     = turnAndTimingValue;
                 turnAndTimingValue  = (((u32)turnAndTimingValue >> 16) & ACTOR_800100_WANDER_PAUSE_TICKS_MASK) + ACTOR_800100_WANDER_PAUSE_MIN_TICKS;
                 actor->stateTimer   = turnAndTimingValue;
@@ -3153,8 +3153,8 @@ static void _actor800100TickM4a1PykeAttack(Task* task)
             break;
 
         case ACTOR_800100_RIFLE_SELECT:
-            gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-            if (((gRandomLcgState >> 16) & ACTOR_800100_RIFLE_RANDOM_MASK) < ACTOR_800100_RIFLE_PYKE_THRESHOLD) {
+            RANDOM_LCG_ADVANCE();
+            if ((RANDOM_LCG_DRAW() & ACTOR_800100_RIFLE_RANDOM_MASK) < ACTOR_800100_RIFLE_PYKE_THRESHOLD) {
                 actor->stateAux                    = ACTOR_800100_RIFLE_PYKE;
                 actor->turnRateIndex               = ACTOR_800100_ATTACK_TURN_RATE;
                 actor->attackControl.cooldownTicks = ACTOR_800100_RIFLE_PYKE_COOLDOWN_TICKS;

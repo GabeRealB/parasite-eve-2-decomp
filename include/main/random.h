@@ -36,4 +36,13 @@ enum {
 /// sequence.
 extern u32 gRandomLcgState;
 
+/// The state that follows `state` in a sequence (the shared one, or one seeded on its own).
+#define RANDOM_LCG_NEXT(state) ((state) * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT)
+
+/// Advances the shared sequence by one draw; its value is the new state.
+#define RANDOM_LCG_ADVANCE() (gRandomLcgState = RANDOM_LCG_NEXT(gRandomLcgState))
+
+/// The shared sequence's current draw: the state's upper 16 bits, 0..65535.
+#define RANDOM_LCG_DRAW() (gRandomLcgState >> 16)
+
 #endif // MAIN_RANDOM_H

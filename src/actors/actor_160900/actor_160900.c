@@ -1330,10 +1330,10 @@ static void _actor160900SpawnDriftingSprites(const SVECTOR* points)
         spawnArgument = ACTOR_160900_DRIFT_SPAWN_ARGUMENT;
         do {
             // Draw sign and magnitude separately; the LCG and sum wrap as unsigned words.
-            seed            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            seed            = RANDOM_LCG_NEXT(gRandomLcgState);
             gRandomLcgState = seed;
-            jitteredX       = points->vx + (((seed >> 16) & 1) ? ((gRandomLcgState = seed * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & ACTOR_160900_DRIFT_JITTER_MASK
-                                                               : -(((gRandomLcgState = seed * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & ACTOR_160900_DRIFT_JITTER_MASK)) *
+            jitteredX       = points->vx + (((seed >> 16) & 1) ? ((gRandomLcgState = RANDOM_LCG_NEXT(seed)) >> 16) & ACTOR_160900_DRIFT_JITTER_MASK
+                                                               : -(((gRandomLcgState = RANDOM_LCG_NEXT(seed)) >> 16) & ACTOR_160900_DRIFT_JITTER_MASK)) *
                                          ACTOR_160900_DRIFT_JITTER_STEP;
             spawnOffset.vx = jitteredX;
             spawnOffset.vy = points->vy;

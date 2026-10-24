@@ -157,7 +157,7 @@ void antibodyCastTask(Task* task)
 
                         wedgeYaws             = _gAntibodyWedgeYaws;
                         baseYaw               = wedgeIndex * (ANTIBODY_CAST_FULL_TURN / _gAntibodyLevelTuning[work->index].wedgeCount);
-                        yawRng                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        yawRng                = RANDOM_LCG_NEXT(gRandomLcgState);
                         wedgeYaws[wedgeIndex] = baseYaw + (((u32)yawRng >> 16) & ANTIBODY_CAST_WEDGE_YAW_JITTER_MASK);
                         gRandomLcgState       = yawRng;
                     } while (++wedgeIndex < _gAntibodyLevelTuning[work->index].wedgeCount);
@@ -214,7 +214,7 @@ void antibodyCastTask(Task* task)
                     if ((work->age % _gAntibodyLevelTuning[work->index].moteSpawnInterval) == ANTIBODY_CAST_MOTE_BURST_PHASE) {
                         burstBaseYaw = 0;
                         do {
-                            moteRng         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                            moteRng         = RANDOM_LCG_NEXT(gRandomLcgState);
                             moteYaw         = burstBaseYaw + (((u32)moteRng >> 16) & (ANTIBODY_CAST_QUARTER_TURN - 1));
                             gRandomLcgState = moteRng;
                             work->angle     = moteYaw;
@@ -325,14 +325,14 @@ void antibodyMoteTask(Task* task)
         s32 sizeRng;                                                                                       \
         s32 angleRng;                                                                                      \
                                                                                                            \
-        rerollRng       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                  \
+        rerollRng       = RANDOM_LCG_NEXT(gRandomLcgState);                                                \
         gRandomLcgState = rerollRng;                                                                       \
         if ((((u32)rerollRng >> 16) & ANTIBODY_MOTE_REROLL_MASK) == 0) {                                   \
-            sizeRng         = rerollRng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                    \
+            sizeRng         = RANDOM_LCG_NEXT(rerollRng);                                                  \
             gRandomLcgState = sizeRng;                                                                     \
             (work)->scale   = _gAntibodyLevelTuning[(work)->index].moteRerollSizeBase * (sizeMultiplier) + \
                             (((u32)sizeRng >> 16) & ANTIBODY_MOTE_SIZE_JITTER_MASK);                       \
-            angleRng        = sizeRng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                      \
+            angleRng        = RANDOM_LCG_NEXT(sizeRng);                                                    \
             gRandomLcgState = angleRng;                                                                    \
             (work)->angle   = ((u32)angleRng >> 16) & ANTIBODY_MOTE_ANGLE_MASK;                            \
         }                                                                                                  \
@@ -359,7 +359,7 @@ void antibodyMoteTask(Task* task)
             gte_stsv(&work->move);
 
             task->state     = ANTIBODY_MOTE_CONVERGE;
-            seedRng         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            seedRng         = RANDOM_LCG_NEXT(gRandomLcgState);
             gRandomLcgState = seedRng;
             levelIndex      = gAttachmentState.attachId % 10 - 1;
             work->index     = levelIndex;
@@ -379,7 +379,7 @@ void antibodyMoteTask(Task* task)
                 task->state   = ANTIBODY_MOTE_RISE;
                 return;
             }
-            flashRng        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            flashRng        = RANDOM_LCG_NEXT(gRandomLcgState);
             gRandomLcgState = flashRng;
             if ((((u32)flashRng >> 16) & ANTIBODY_MOTE_FLASH_MASK) == 0) {
                 task->state = ANTIBODY_MOTE_PLAYER_FLASH;

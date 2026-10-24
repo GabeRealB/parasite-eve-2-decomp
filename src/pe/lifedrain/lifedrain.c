@@ -221,7 +221,7 @@ void lifedrainCastTask(Task* task)
                 do {
                     s32 yawRng;
 
-                    yawRng                           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    yawRng                           = RANDOM_LCG_NEXT(gRandomLcgState);
                     _gLifedrainWedgeYaws[phaseIndex] = (phaseIndex << LIFEDRAIN_CAST_WEDGE_YAW_SHIFT) + (((u32)yawRng >> 16) & LIFEDRAIN_CAST_WEDGE_YAW_JITTER_MASK);
                     gRandomLcgState                  = yawRng;
                 } while (++phaseIndex < _gLifedrainLevelTuning[work->index].wedgeCount);
@@ -293,10 +293,10 @@ void lifedrainCastTask(Task* task)
             rgb[1]      = work->scale >> 1;
             rgb[2]      = (u8)work->scale;
             LIFEDRAIN_DRAW_CAST_FUNNEL(coord, work, rgb, phaseIndex);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->step      = (gRandomLcgState >> 16) & LIFEDRAIN_CAST_ANGLE_MASK;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gfxRotMatrixY(&coord->coord, (gRandomLcgState >> 16) & LIFEDRAIN_CAST_ANGLE_MASK, 0);
+            RANDOM_LCG_ADVANCE();
+            work->step = RANDOM_LCG_DRAW() & LIFEDRAIN_CAST_ANGLE_MASK;
+            RANDOM_LCG_ADVANCE();
+            gfxRotMatrixY(&coord->coord, RANDOM_LCG_DRAW() & LIFEDRAIN_CAST_ANGLE_MASK, 0);
             gte_SetRotMatrix(&coord->coord);
             gte_ldv0(&work->move);
             gte_rtv0();
@@ -411,13 +411,13 @@ void lifedrainMoteTask(Task* task)
             case LIFEDRAIN_MOTE_STATE_INITIALIZE:
                 taskReparent(_gLifedrainCollectorTask, task);
                 _gLifedrainCollectorTask->spawnArg1.value += task->spawnArg1.value;
-                gRandomLcgState                            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->move.vx                              = LIFEDRAIN_MOTE_HORIZONTAL_DRIFT_BASE - ((gRandomLcgState >> 16) & LIFEDRAIN_MOTE_HORIZONTAL_DRIFT_MASK);
-                gRandomLcgState                            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->move.vy                              = LIFEDRAIN_MOTE_VERTICAL_DRIFT_ENCODING - ((gRandomLcgState >> 16) & LIFEDRAIN_MOTE_VERTICAL_DRIFT_MASK);
-                gRandomLcgState                            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->move.vz                              = LIFEDRAIN_MOTE_HORIZONTAL_DRIFT_BASE - ((gRandomLcgState >> 16) & LIFEDRAIN_MOTE_HORIZONTAL_DRIFT_MASK);
-                task->state                                = LIFEDRAIN_MOTE_STATE_DRIFTING;
+                RANDOM_LCG_ADVANCE();
+                work->move.vx = LIFEDRAIN_MOTE_HORIZONTAL_DRIFT_BASE - (RANDOM_LCG_DRAW() & LIFEDRAIN_MOTE_HORIZONTAL_DRIFT_MASK);
+                RANDOM_LCG_ADVANCE();
+                work->move.vy = LIFEDRAIN_MOTE_VERTICAL_DRIFT_ENCODING - (RANDOM_LCG_DRAW() & LIFEDRAIN_MOTE_VERTICAL_DRIFT_MASK);
+                RANDOM_LCG_ADVANCE();
+                work->move.vz = LIFEDRAIN_MOTE_HORIZONTAL_DRIFT_BASE - (RANDOM_LCG_DRAW() & LIFEDRAIN_MOTE_HORIZONTAL_DRIFT_MASK);
+                task->state   = LIFEDRAIN_MOTE_STATE_DRIFTING;
                 // Keep the binary's sizing selector: step stays at its cleared zero value.
                 work->scale  = (gAttachmentState.attachId % 10) - 1;
                 sparkRadius  = _gLifedrainLevelTuning[work->step].radiusLimit;
@@ -433,8 +433,8 @@ void lifedrainMoteTask(Task* task)
                 if (work->age & 1) {
                     work->index = work->index + 1;
                     _lifedrainDrawMoteBillboards(coord, work->index, work->period);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    if (((gRandomLcgState >> 16) & LIFEDRAIN_MOTE_SPARK_CHANCE_MASK) == 0) {
+                    RANDOM_LCG_ADVANCE();
+                    if ((RANDOM_LCG_DRAW() & LIFEDRAIN_MOTE_SPARK_CHANCE_MASK) == 0) {
                         spawned = effectSpawn(EFFECT_LIFEDRAIN_SPARK, coord, (s32)(work->angle), NULL);
                         if (spawned != NULL) {
                             taskReparent(task, spawned->task);
@@ -466,8 +466,8 @@ void lifedrainMoteTask(Task* task)
                 if (work->age & 1) {
                     work->index = (work->index + 1) & LIFEDRAIN_MOTE_FRAME_MASK;
                     _lifedrainDrawMoteBillboards(coord, work->index, work->period);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    if (((gRandomLcgState >> 16) & LIFEDRAIN_MOTE_SPARK_CHANCE_MASK) == 0) {
+                    RANDOM_LCG_ADVANCE();
+                    if ((RANDOM_LCG_DRAW() & LIFEDRAIN_MOTE_SPARK_CHANCE_MASK) == 0) {
                         spawned = effectSpawn(EFFECT_LIFEDRAIN_SPARK, coord, (s32)(work->angle), NULL);
                         if (spawned != NULL) {
                             taskReparent(task, spawned->task);

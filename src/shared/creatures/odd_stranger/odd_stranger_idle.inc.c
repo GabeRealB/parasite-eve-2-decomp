@@ -14,8 +14,8 @@ static void _oddStrangerDown(Task* task)
     work  = task->work;
     enemy = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->stateTimer = work->downFramesBase + ((gRandomLcgState >> 16) & ODD_STRANGER_DOWN_JITTER_MASK);
+        RANDOM_LCG_ADVANCE();
+        work->stateTimer = work->downFramesBase + (RANDOM_LCG_DRAW() & ODD_STRANGER_DOWN_JITTER_MASK);
     }
     if (--work->stateTimer < 0) {
         switch (work->animId) {

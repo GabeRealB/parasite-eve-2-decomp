@@ -118,7 +118,7 @@ static void _golemPawnRookSilenceScreamState(Task* actor)
             if (!(work->animFrame & GOLEM_PAWN_ROOK_SCREAM_SPARK_FRAME_MASK)) {
                 effectOffset->vx = 0;
                 effectOffset->vz = 0;
-                randomDraw       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                randomDraw       = RANDOM_LCG_NEXT(gRandomLcgState);
                 effectOffset->vy = -((randomDraw >> 16) & GOLEM_PAWN_ROOK_SCREAM_SPARK_Y_MASK);
                 gRandomLcgState  = randomDraw;
                 effectSpawn(EFFECT_FLASH_BURST, &actor->extra.tmd->coords[3], GOLEM_PAWN_ROOK_SCREAM_SPARK_SIZE, effectOffset);

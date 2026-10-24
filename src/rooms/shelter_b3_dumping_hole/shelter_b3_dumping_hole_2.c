@@ -108,7 +108,7 @@ static void _effectSpriteDrawRotated(const GfxCoord* coord, u16 frameAndPalette,
 /// and addition wrap unsigned at 32 bits before the logical shift. Each
 /// invocation consumes one draw; conditional jitter consumes only its chosen
 /// branch's draw. Keep separate invocations in their existing evaluation order.
-#define SHELTER_B3_DUMPING_HOLE_RANDOM_U16() ((s32)((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16))
+#define SHELTER_B3_DUMPING_HOLE_RANDOM_U16() ((s32)((RANDOM_LCG_ADVANCE()) >> 16))
 
 /// Advances a sprite frame and returns from its task after killing the closing frame.
 ///
@@ -2806,13 +2806,13 @@ static void _shelterB3DumpingHoleDebrisSpriteTask(Task* task)
             if (eventWork->debrisSpriteSignal != SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITES_RISE) {
                 return;
             }
-            work->frame     = SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITE_FIRST_FRAME;
-            work->vel.vx    = 0;
-            work->vel.vz    = 0;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->vel.vy    = -SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITE_RISE_SPEED - ((gRandomLcgState >> 16) & SHELTER_B3_DUMPING_HOLE_SPRITE_JITTER_MASK);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->delay     = (gRandomLcgState >> 16) & SHELTER_B3_DUMPING_HOLE_SPRITE_JITTER_MASK;
+            work->frame  = SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITE_FIRST_FRAME;
+            work->vel.vx = 0;
+            work->vel.vz = 0;
+            RANDOM_LCG_ADVANCE();
+            work->vel.vy = -SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITE_RISE_SPEED - (RANDOM_LCG_DRAW() & SHELTER_B3_DUMPING_HOLE_SPRITE_JITTER_MASK);
+            RANDOM_LCG_ADVANCE();
+            work->delay = RANDOM_LCG_DRAW() & SHELTER_B3_DUMPING_HOLE_SPRITE_JITTER_MASK;
             task->state++;
             return;
         case SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITE_WAIT_DELAY:
@@ -2898,13 +2898,13 @@ static void _shelterB3DumpingHoleActorSpriteTask(Task* task)
             coord->coord.t[0] = sourceWorldPos.vx + work->offset.vx;
             coord->coord.t[1] = sourceWorldPos.vy + work->offset.vy;
             coord->coord.t[2] = sourceWorldPos.vz + work->offset.vz;
-            gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->vel.vy      = -SHELTER_B3_DUMPING_HOLE_ACTOR_SPRITE_RISE_SPEED - ((gRandomLcgState >> 16) & SHELTER_B3_DUMPING_HOLE_SPRITE_JITTER_MASK);
-            work->vel.vx      = 0;
-            work->vel.vz      = 0;
-            work->frame       = 0;
-            gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->delay       = ((gRandomLcgState >> 16) & SHELTER_B3_DUMPING_HOLE_SPRITE_JITTER_MASK) + SHELTER_B3_DUMPING_HOLE_ACTOR_SPRITE_DELAY;
+            RANDOM_LCG_ADVANCE();
+            work->vel.vy = -SHELTER_B3_DUMPING_HOLE_ACTOR_SPRITE_RISE_SPEED - (RANDOM_LCG_DRAW() & SHELTER_B3_DUMPING_HOLE_SPRITE_JITTER_MASK);
+            work->vel.vx = 0;
+            work->vel.vz = 0;
+            work->frame  = 0;
+            RANDOM_LCG_ADVANCE();
+            work->delay = (RANDOM_LCG_DRAW() & SHELTER_B3_DUMPING_HOLE_SPRITE_JITTER_MASK) + SHELTER_B3_DUMPING_HOLE_ACTOR_SPRITE_DELAY;
             task->state++;
             return;
         case SHELTER_B3_DUMPING_HOLE_ACTOR_SPRITE_WAIT_DELAY:
@@ -3010,36 +3010,36 @@ static void _shelterB3DumpingHolePlayerSpriteTask(Task* task)
             work->vel.vz     = 0;
             work->seed.scale = ONE;
             work->vel.vx     = 0;
-            riseRandomState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            riseRandomState  = RANDOM_LCG_NEXT(gRandomLcgState);
             work->vel.vy     = -SHELTER_B3_DUMPING_HOLE_PLAYER_SPRITE_RISE_SPEED - ((riseRandomState >> 16) & SHELTER_B3_DUMPING_HOLE_SPRITE_JITTER_MASK);
             baseDriftZ       = task->spawnArg1.value;
             gRandomLcgState  = riseRandomState;
             // Retain the halfword wrap and the original random-draw order for Z drift.
             if (baseDriftZ == 0) {
-                directionRandomState = riseRandomState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                directionRandomState = RANDOM_LCG_NEXT(riseRandomState);
                 currentDriftZ        = work->vel.vz;
                 gRandomLcgState      = directionRandomState;
                 if ((directionRandomState >> 16) & 1) {
-                    gRandomLcgState = directionRandomState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    randomDriftZ    = currentDriftZ + ((gRandomLcgState >> 16) & 1);
+                    gRandomLcgState = RANDOM_LCG_NEXT(directionRandomState);
+                    randomDriftZ    = currentDriftZ + (RANDOM_LCG_DRAW() & 1);
                 } else {
-                    gRandomLcgState = directionRandomState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    randomDriftZ    = currentDriftZ - ((gRandomLcgState >> 16) & 1);
+                    gRandomLcgState = RANDOM_LCG_NEXT(directionRandomState);
+                    randomDriftZ    = currentDriftZ - (RANDOM_LCG_DRAW() & 1);
                 }
                 work->vel.vz = randomDriftZ;
             } else {
                 if (baseDriftZ < 0) {
-                    gRandomLcgState = riseRandomState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    biasedDriftZ    = (u16)work->vel.vz + ((u16)task->spawnArg1.value - ((gRandomLcgState >> 16) & 1));
+                    gRandomLcgState = RANDOM_LCG_NEXT(riseRandomState);
+                    biasedDriftZ    = (u16)work->vel.vz + ((u16)task->spawnArg1.value - (RANDOM_LCG_DRAW() & 1));
                 } else {
-                    gRandomLcgState = riseRandomState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    biasedDriftZ    = (u16)work->vel.vz + ((u16)task->spawnArg1.value + ((gRandomLcgState >> 16) & 1));
+                    gRandomLcgState = RANDOM_LCG_NEXT(riseRandomState);
+                    biasedDriftZ    = (u16)work->vel.vz + ((u16)task->spawnArg1.value + (RANDOM_LCG_DRAW() & 1));
                 }
                 work->vel.vz = biasedDriftZ;
             }
-            work->frame     = 0;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->delay     = (gRandomLcgState >> 16) & SHELTER_B3_DUMPING_HOLE_SPRITE_JITTER_MASK;
+            work->frame = 0;
+            RANDOM_LCG_ADVANCE();
+            work->delay = RANDOM_LCG_DRAW() & SHELTER_B3_DUMPING_HOLE_SPRITE_JITTER_MASK;
             task->state++;
             return;
         case SHELTER_B3_DUMPING_HOLE_PLAYER_SPRITE_WAIT_DELAY:
@@ -5365,9 +5365,9 @@ void shelterB3DumpingHoleGluttonRainParticleTask(Task* task)
     work->age++;
     switch (task->state) {
         case SHELTER_B3_DUMPING_HOLE_RAIN_SETUP:
-            work->scale     = task->spawnArg1.halves.low & SHELTER_B3_DUMPING_HOLE_RAIN_SIZE_MASK;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->angle     = (gRandomLcgState >> 16) & SHELTER_B3_DUMPING_HOLE_RAIN_ANGLE_MASK;
+            work->scale = task->spawnArg1.halves.low & SHELTER_B3_DUMPING_HOLE_RAIN_SIZE_MASK;
+            RANDOM_LCG_ADVANCE();
+            work->angle = RANDOM_LCG_DRAW() & SHELTER_B3_DUMPING_HOLE_RAIN_ANGLE_MASK;
             if (task->spawnArg1.value & SHELTER_B3_DUMPING_HOLE_RAIN_PERIOD_BITS) {
                 framePeriod = (task->spawnArg1.value >> SHELTER_B3_DUMPING_HOLE_RAIN_PERIOD_SHIFT) & 0xF;
             } else {
@@ -5393,28 +5393,28 @@ void shelterB3DumpingHoleGluttonRainParticleTask(Task* task)
                         work->step = 0;
                         break;
                     case SHELTER_B3_DUMPING_HOLE_RAIN_RANDOM_UPWARD:
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vy   = SHELTER_B3_DUMPING_HOLE_RAIN_UPWARD_Y_BITS - ((gRandomLcgState >> 16) & 0x7F);
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                        RANDOM_LCG_ADVANCE();
+                        work->move.vx = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
+                        RANDOM_LCG_ADVANCE();
+                        work->move.vy = SHELTER_B3_DUMPING_HOLE_RAIN_UPWARD_Y_BITS - (RANDOM_LCG_DRAW() & 0x7F);
+                        RANDOM_LCG_ADVANCE();
+                        work->move.vz = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
                         break;
                     case SHELTER_B3_DUMPING_HOLE_RAIN_RANDOM_ALL_AXES:
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vy   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                        RANDOM_LCG_ADVANCE();
+                        work->move.vx = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
+                        RANDOM_LCG_ADVANCE();
+                        work->move.vy = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
+                        RANDOM_LCG_ADVANCE();
+                        work->move.vz = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
                         break;
                     case SHELTER_B3_DUMPING_HOLE_RAIN_RANDOM_NARROW_UPWARD:
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vx   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vy   = -((gRandomLcgState >> 16) & 0xFF);
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vz   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                        RANDOM_LCG_ADVANCE();
+                        work->move.vx = 0x10 - (RANDOM_LCG_DRAW() & 0x1F);
+                        RANDOM_LCG_ADVANCE();
+                        work->move.vy = -(RANDOM_LCG_DRAW() & 0xFF);
+                        RANDOM_LCG_ADVANCE();
+                        work->move.vz = 0x10 - (RANDOM_LCG_DRAW() & 0x1F);
                         break;
                     case SHELTER_B3_DUMPING_HOLE_RAIN_OFFSET_DIRECTION:
                         work->move.vx = work->pos.vx;

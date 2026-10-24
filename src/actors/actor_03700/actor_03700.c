@@ -590,9 +590,9 @@ static inline void _actor03700ApplySwayStep(Task* task, s32 baseAmplitude)
     coord = task->extra.tmd->coords;
 
     if (++work->swayPhase >= ACTOR_03700_SWAY_CYCLE_TICKS) {
-        work->swayPhase     = 0;
-        gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->swayAmplitude = baseAmplitude + ((gRandomLcgState >> 16) & ACTOR_03700_SWAY_RANDOM_MASK);
+        work->swayPhase = 0;
+        RANDOM_LCG_ADVANCE();
+        work->swayAmplitude = baseAmplitude + (RANDOM_LCG_DRAW() & ACTOR_03700_SWAY_RANDOM_MASK);
     }
     displacement       = (work->swayAmplitude * _gActor03700SwayWaveQ12[work->swayPhase] * ACTOR_03700_SWAY_WAVE_RESCALE) >> ACTOR_03700_SWAY_WAVE_SHIFT;
     coord->coord.t[0] += (displacement * coord->coord.m[0][0]) >> ACTOR_03700_MATRIX_FRACTION_BITS;
@@ -711,9 +711,9 @@ static void _actor03700InitEnemy(Enemy* enemy, Task* task)
     for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
         animationResetSlot(&work->rig.anim, slotIndex, work->anim);
     }
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    RANDOM_LCG_ADVANCE();
     // The scalar is reused for rate jitter to retain the target register allocation.
-    modeOrRateOffset = (gRandomLcgState >> 16) & 3;
+    modeOrRateOffset = RANDOM_LCG_DRAW() & 3;
     for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
         work->rig.slots[slotIndex].rate += modeOrRateOffset;
     }
@@ -1016,16 +1016,16 @@ static void _actor03700Wander(Task* task)
     switch (work->actionStep) {
         // Pick a nearby waypoint around the spawn position.
         case ACTOR_03700_WANDER_PICK_TARGET:
-            gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->speed        = ((gRandomLcgState >> 16) & 0xF) + 20;
-            work->turnRate     = _gActor03700TurnRates[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
-            gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            waypointYaw        = (gRandomLcgState >> 16) & ACTOR_TRANSFORM_ANGLE_MASK;
-            gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            waypointRadius     = (gRandomLcgState >> 16) & 0x1FF;
+            RANDOM_LCG_ADVANCE();
+            work->speed    = (RANDOM_LCG_DRAW() & 0xF) + 20;
+            work->turnRate = _gActor03700TurnRates[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
+            RANDOM_LCG_ADVANCE();
+            waypointYaw = RANDOM_LCG_DRAW() & ACTOR_TRANSFORM_ANGLE_MASK;
+            RANDOM_LCG_ADVANCE();
+            waypointRadius     = RANDOM_LCG_DRAW() & 0x1FF;
             work->targetPos.vx = work->homePos.vx + ((waypointRadius * rsin(waypointYaw)) >> ACTOR_03700_MATRIX_FRACTION_BITS);
-            gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->targetPos.vy = work->homePos.vy + ((gRandomLcgState >> 16) & 0x1FF);
+            RANDOM_LCG_ADVANCE();
+            work->targetPos.vy = work->homePos.vy + (RANDOM_LCG_DRAW() & 0x1FF);
             work->targetPos.vz = work->homePos.vz + ((waypointRadius * rcos(waypointYaw)) >> ACTOR_03700_MATRIX_FRACTION_BITS);
             targetOffset->vx   = work->targetPos.vx - coord->coord.t[0];
             targetOffset->vy   = 0;
@@ -1093,9 +1093,9 @@ static void _actor03700DropFromPerch(Task* task)
         case ACTOR_03700_PERCH_WAIT_FOR_ALERT:
             if (_actor03700NoticePlayer(task) != 0) {
                 gSceneCombatState.actor03700Flags |= SCENE_COMBAT_ACTOR03700_ALERT;
-                gRandomLcgState                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->actionStep                   = ACTOR_03700_PERCH_DELAY_TAKEOFF;
-                work->timer                        = (gRandomLcgState >> 16) & 0x3F;
+                RANDOM_LCG_ADVANCE();
+                work->actionStep = ACTOR_03700_PERCH_DELAY_TAKEOFF;
+                work->timer      = RANDOM_LCG_DRAW() & 0x3F;
             }
             break;
         case ACTOR_03700_PERCH_DELAY_TAKEOFF:
@@ -1136,9 +1136,9 @@ static void _actor03700BackOffPerch(Task* task)
         case ACTOR_03700_PERCH_WAIT_FOR_ALERT:
             if (_actor03700NoticePlayer(task) != 0) {
                 gSceneCombatState.actor03700Flags |= SCENE_COMBAT_ACTOR03700_ALERT;
-                gRandomLcgState                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->actionStep                   = ACTOR_03700_PERCH_DELAY_TAKEOFF;
-                work->timer                        = (gRandomLcgState >> 16) & 0x3F;
+                RANDOM_LCG_ADVANCE();
+                work->actionStep = ACTOR_03700_PERCH_DELAY_TAKEOFF;
+                work->timer      = RANDOM_LCG_DRAW() & 0x3F;
             }
             break;
         case ACTOR_03700_PERCH_DELAY_TAKEOFF:
@@ -1172,8 +1172,8 @@ static inline void _actor03700PickPlayerTarget(_Actor03700Work* work, u32 height
 {
     enum { ACTOR_03700_PLAYER_TARGET_HEIGHT = 800 };
     work->targetPos.vx = gPlayerStatus.coordMtx->t[0];
-    gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->targetPos.vy = gPlayerStatus.coordMtx->t[1] - (((gRandomLcgState >> 16) & heightMask) + ACTOR_03700_PLAYER_TARGET_HEIGHT);
+    RANDOM_LCG_ADVANCE();
+    work->targetPos.vy = gPlayerStatus.coordMtx->t[1] - ((RANDOM_LCG_DRAW() & heightMask) + ACTOR_03700_PLAYER_TARGET_HEIGHT);
     work->targetPos.vz = gPlayerStatus.coordMtx->t[2];
 }
 
@@ -1218,13 +1218,13 @@ static void _actor03700Chase(Task* task)
             _actor03700StepSway(task, 20);
             if (work->yaw == work->targetYaw) {
                 work->actionStep = ACTOR_03700_CHASE_DASH;
-                work->speed      = _gActor03700DashSpeeds[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (ARRAY_SIZE(_gActor03700DashSpeeds) - 1)];
+                work->speed      = _gActor03700DashSpeeds[((RANDOM_LCG_ADVANCE()) >> 16) & (ARRAY_SIZE(_gActor03700DashSpeeds) - 1)];
                 coord            = task->extra.tmd->coords;
                 targetOffset->vx = work->targetPos.vx - coord->coord.t[0];
                 targetOffset->vy = work->targetPos.vy - coord->coord.t[1];
                 targetOffset->vz = work->targetPos.vz - coord->coord.t[2];
                 work->timer      = SquareRoot0(targetOffset->vx * targetOffset->vx + targetOffset->vy * targetOffset->vy + targetOffset->vz * targetOffset->vz) / work->speed;
-                animationRate    = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3) + 17;
+                animationRate    = (((RANDOM_LCG_ADVANCE()) >> 16) & 3) + 17;
                 for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
                     work->rig.slots[slotIndex].rate = animationRate;
                 }
@@ -1317,7 +1317,7 @@ static void _actor03700AttackHeldPlayer(Task* task)
             break;
         case ACTOR_03700_ATTACK_RETURN:
             _actor03700PickPlayerTarget(work, ACTOR_03700_PLAYER_TARGET_HEIGHT_MASK);
-            work->speed    = _gActor03700DashSpeeds[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (ARRAY_SIZE(_gActor03700DashSpeeds) - 1)];
+            work->speed    = _gActor03700DashSpeeds[((RANDOM_LCG_ADVANCE()) >> 16) & (ARRAY_SIZE(_gActor03700DashSpeeds) - 1)];
             work->turnRate = _gActor03700TurnRates[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
             if (work->touchingPlayer != 0) {
                 work->actionStep = 0;
@@ -1379,17 +1379,17 @@ static void _actor03700Retreat(Task* task)
         case ACTOR_03700_RETREAT_BEGIN:
             work->actionStep   = ACTOR_03700_RETREAT_BACK_AWAY;
             work->timer        = 30;
-            work->retreatTimer = _gActor03700RetreatBackAwayTicks[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (ARRAY_SIZE(_gActor03700RetreatBackAwayTicks) - 1)];
+            work->retreatTimer = _gActor03700RetreatBackAwayTicks[((RANDOM_LCG_ADVANCE()) >> 16) & (ARRAY_SIZE(_gActor03700RetreatBackAwayTicks) - 1)];
             work->attackCount  = 0;
-            animationRate      = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3) + 10;
+            animationRate      = (((RANDOM_LCG_ADVANCE()) >> 16) & 3) + 10;
             for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
                 work->rig.slots[slotIndex].rate = animationRate;
             }
             break;
         case ACTOR_03700_RETREAT_BACK_AWAY:
             work->targetPos.vx = gPlayerStatus.coordMtx->t[0];
-            gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->targetPos.vy = gPlayerStatus.coordMtx->t[1] - (((gRandomLcgState >> 16) & 0x3FF) + 800);
+            RANDOM_LCG_ADVANCE();
+            work->targetPos.vy = gPlayerStatus.coordMtx->t[1] - ((RANDOM_LCG_DRAW() & 0x3FF) + 800);
             work->targetPos.vz = gPlayerStatus.coordMtx->t[2];
             work->turnRate     = _gActor03700TurnRates[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
             if (--work->retreatTimer > 0) {
@@ -1406,8 +1406,8 @@ static void _actor03700Retreat(Task* task)
             break;
         case ACTOR_03700_RETREAT_RETURN:
             work->targetPos.vx = gPlayerStatus.coordMtx->t[0];
-            gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->targetPos.vy = gPlayerStatus.coordMtx->t[1] - (((gRandomLcgState >> 16) & 0x1FF) + 800);
+            RANDOM_LCG_ADVANCE();
+            work->targetPos.vy = gPlayerStatus.coordMtx->t[1] - ((RANDOM_LCG_DRAW() & 0x1FF) + 800);
             work->targetPos.vz = gPlayerStatus.coordMtx->t[2];
             work->turnRate     = _gActor03700TurnRates[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
             work->speed        = 5;
@@ -1420,7 +1420,7 @@ static void _actor03700Retreat(Task* task)
             break;
         // Repelling hits enter here and keep the existing heading.
         case ACTOR_03700_RETREAT_BEGIN_REPEL:
-            work->timer        = _gActor03700RepelledHoverTicks[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (ARRAY_SIZE(_gActor03700RepelledHoverTicks) - 1)];
+            work->timer        = _gActor03700RepelledHoverTicks[((RANDOM_LCG_ADVANCE()) >> 16) & (ARRAY_SIZE(_gActor03700RepelledHoverTicks) - 1)];
             work->retreatTimer = 15;
             work->actionStep   = ACTOR_03700_RETREAT_REPEL_HOVER;
             work->turnRate     = 0;
@@ -1664,8 +1664,8 @@ static inline void _actor03700SpawnRemains(Task* task)
     s32              placementIndex;
     u32              placeKey;
 
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    if ((gRandomLcgState >> 16) & 1) {
+    RANDOM_LCG_ADVANCE();
+    if (RANDOM_LCG_DRAW() & 1) {
         gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gBatBurstWingRight;
     } else {
         gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gBatBurstWingLeft;
@@ -1857,25 +1857,25 @@ static void _actor03700WaitForWave(Task* task)
                 // Choose an arrival point above the root before enabling contact and buffers.
                 work->body.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                 if (activationWave < ACTOR_03700_WAVE_HIGH_THRESHOLD) {
-                    work->action       = ACTOR_03700_ACTION_ENTER_LOW;
-                    gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->targetPos.vx = (u16)coord->coord.t[0] + ((gRandomLcgState >> 16) & 0xFF);
-                    gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->targetPos.vy = (u16)coord->coord.t[1] - (((gRandomLcgState >> 16) & 0x1FF) + ACTOR_03700_WAVE_LOW_RISE);
-                    gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->targetPos.vz = (u16)coord->coord.t[2] + ((gRandomLcgState >> 16) & 0xFF);
+                    work->action = ACTOR_03700_ACTION_ENTER_LOW;
+                    RANDOM_LCG_ADVANCE();
+                    work->targetPos.vx = (u16)coord->coord.t[0] + (RANDOM_LCG_DRAW() & 0xFF);
+                    RANDOM_LCG_ADVANCE();
+                    work->targetPos.vy = (u16)coord->coord.t[1] - ((RANDOM_LCG_DRAW() & 0x1FF) + ACTOR_03700_WAVE_LOW_RISE);
+                    RANDOM_LCG_ADVANCE();
+                    work->targetPos.vz = (u16)coord->coord.t[2] + (RANDOM_LCG_DRAW() & 0xFF);
                 } else {
-                    work->action       = ACTOR_03700_ACTION_ENTER_HIGH;
-                    gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->targetPos.vx = (u16)coord->coord.t[0] + ((gRandomLcgState >> 16) & 0xFF);
-                    gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->targetPos.vy = (u16)coord->coord.t[1] - (((gRandomLcgState >> 16) & 0x1FF) + ACTOR_03700_WAVE_HIGH_RISE);
-                    gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->targetPos.vz = (u16)coord->coord.t[2] + ((gRandomLcgState >> 16) & 0xFF);
+                    work->action = ACTOR_03700_ACTION_ENTER_HIGH;
+                    RANDOM_LCG_ADVANCE();
+                    work->targetPos.vx = (u16)coord->coord.t[0] + (RANDOM_LCG_DRAW() & 0xFF);
+                    RANDOM_LCG_ADVANCE();
+                    work->targetPos.vy = (u16)coord->coord.t[1] - ((RANDOM_LCG_DRAW() & 0x1FF) + ACTOR_03700_WAVE_HIGH_RISE);
+                    RANDOM_LCG_ADVANCE();
+                    work->targetPos.vz = (u16)coord->coord.t[2] + (RANDOM_LCG_DRAW() & 0xFF);
                 }
                 work->actionStep = 0;
-                gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->timer      = (gRandomLcgState >> 16) & 0x1F;
+                RANDOM_LCG_ADVANCE();
+                work->timer = RANDOM_LCG_DRAW() & 0x1F;
                 tmdAllocPrimitiveBuffer(model);
                 model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             }
@@ -1982,16 +1982,16 @@ static void _actor03700EnterScriptedWave(Task* task)
             model->flags                 |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             if (gSceneCombatState.actor03700Wave == 0) {
-                work->actionStep   = ACTOR_03700_SCRIPTED_DELAY;
-                work->body.flags  |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->targetPos.vx = coord->coord.t[0] - (((gRandomLcgState >> 16) & 0x1FF) + 500);
-                gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->targetPos.vy = coord->coord.t[1] + (((gRandomLcgState >> 16) & 0x1FF) + 3500);
-                gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->targetPos.vz = coord->coord.t[2] + (((gRandomLcgState >> 16) & 0x1FF) + 2000);
-                gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->timer        = (gRandomLcgState >> 16) & 0x1F;
+                work->actionStep  = ACTOR_03700_SCRIPTED_DELAY;
+                work->body.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+                RANDOM_LCG_ADVANCE();
+                work->targetPos.vx = coord->coord.t[0] - ((RANDOM_LCG_DRAW() & 0x1FF) + 500);
+                RANDOM_LCG_ADVANCE();
+                work->targetPos.vy = coord->coord.t[1] + ((RANDOM_LCG_DRAW() & 0x1FF) + 3500);
+                RANDOM_LCG_ADVANCE();
+                work->targetPos.vz = coord->coord.t[2] + ((RANDOM_LCG_DRAW() & 0x1FF) + 2000);
+                RANDOM_LCG_ADVANCE();
+                work->timer = RANDOM_LCG_DRAW() & 0x1F;
                 tmdAllocPrimitiveBuffer(model);
                 model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             }

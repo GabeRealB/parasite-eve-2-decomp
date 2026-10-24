@@ -1525,7 +1525,7 @@ static void _actor04000StateIdle(Enemy* enemy, Task* task)
     }
     _animDriverTick(task);
     if ((work->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) && work->driver.jumpCount >= 0x19) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        RANDOM_LCG_ADVANCE();
         if (!((gRandomLcgState >> 0x10) & 7)) {
             work->state = ACTOR_04000_STATE_ROUSE;
         }
@@ -1927,8 +1927,8 @@ static void _actor04000SpawnHitEffect(Task* task, s16 hitYaw, u32 attackKey)
     yawMagnitude  = (hitYaw >= 0) ? hitYaw : -hitYaw;
     work          = task->work;
     if (yawMagnitude < ACTOR_04000_HIT_FRONT_LIMIT) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if (!((gRandomLcgState >> 16) & 1)) {
+        RANDOM_LCG_ADVANCE();
+        if (!(RANDOM_LCG_DRAW() & 1)) {
             offsetAndPart->pad = ACTOR_04000_HIT_FRONT_PART;
             offsetAndPart->vx  = 80;
             offsetAndPart->vy  = -180;
@@ -1940,8 +1940,8 @@ static void _actor04000SpawnHitEffect(Task* task, s16 hitYaw, u32 attackKey)
             offsetAndPart->vz  = 300;
         }
     } else if (yawMagnitude > ACTOR_04000_HIT_BACK_LIMIT) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if (!((gRandomLcgState >> 16) & 1)) {
+        RANDOM_LCG_ADVANCE();
+        if (!(RANDOM_LCG_DRAW() & 1)) {
             offsetAndPart->pad = ACTOR_04000_HIT_BACK_PART;
             offsetAndPart->vx  = 0;
             offsetAndPart->vy  = 0;
@@ -1953,8 +1953,8 @@ static void _actor04000SpawnHitEffect(Task* task, s16 hitYaw, u32 attackKey)
             offsetAndPart->vz  = -50;
         }
     } else if (hitYaw > 0) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if (!((gRandomLcgState >> 16) & 1)) {
+        RANDOM_LCG_ADVANCE();
+        if (!(RANDOM_LCG_DRAW() & 1)) {
             offsetAndPart->pad = ACTOR_04000_HIT_RIGHT_PART;
             offsetAndPart->vx  = 100;
             offsetAndPart->vy  = 0;
@@ -1966,8 +1966,8 @@ static void _actor04000SpawnHitEffect(Task* task, s16 hitYaw, u32 attackKey)
             offsetAndPart->vz  = 100;
         }
     } else {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if (!((gRandomLcgState >> 16) & 1)) {
+        RANDOM_LCG_ADVANCE();
+        if (!(RANDOM_LCG_DRAW() & 1)) {
             offsetAndPart->pad = ACTOR_04000_HIT_LEFT_PART;
             offsetAndPart->vx  = -100;
             offsetAndPart->vy  = 0;
@@ -2148,7 +2148,7 @@ static void _actor04000StatePatrol(Enemy* enemy, Task* task)
     _animDriverTick(task);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if ((work->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) && work->driver.jumpCount > 0x14) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        RANDOM_LCG_ADVANCE();
         if (!((gRandomLcgState >> 0x10) & 7)) {
             work->state = ACTOR_04000_STATE_SETTLE;
         }

@@ -401,16 +401,16 @@ static inline void _acropolisSecurityRoomSeedQuadMotion(EffectWork* work)
         ACROPOLIS_SECURITY_ROOM_QUAD_MOVE_BIAS     = 16,
         ACROPOLIS_SECURITY_ROOM_QUAD_MOVE_MASK     = 0x1F,
     };
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->period    = ACROPOLIS_SECURITY_ROOM_QUAD_X_TUMBLE_BIAS - ((gRandomLcgState >> 16) & ACROPOLIS_SECURITY_ROOM_QUAD_X_TUMBLE_MASK);
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->step      = ACROPOLIS_SECURITY_ROOM_QUAD_Z_TUMBLE_BIAS - ((gRandomLcgState >> 16) & ACROPOLIS_SECURITY_ROOM_QUAD_Z_TUMBLE_MASK);
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vx   = ACROPOLIS_SECURITY_ROOM_QUAD_MOVE_BIAS - ((gRandomLcgState >> 16) & ACROPOLIS_SECURITY_ROOM_QUAD_MOVE_MASK);
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vy   = ACROPOLIS_SECURITY_ROOM_QUAD_MOVE_BIAS - ((gRandomLcgState >> 16) & ACROPOLIS_SECURITY_ROOM_QUAD_MOVE_MASK);
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vz   = ACROPOLIS_SECURITY_ROOM_QUAD_MOVE_BIAS - ((gRandomLcgState >> 16) & ACROPOLIS_SECURITY_ROOM_QUAD_MOVE_MASK);
+    RANDOM_LCG_ADVANCE();
+    work->period = ACROPOLIS_SECURITY_ROOM_QUAD_X_TUMBLE_BIAS - (RANDOM_LCG_DRAW() & ACROPOLIS_SECURITY_ROOM_QUAD_X_TUMBLE_MASK);
+    RANDOM_LCG_ADVANCE();
+    work->step = ACROPOLIS_SECURITY_ROOM_QUAD_Z_TUMBLE_BIAS - (RANDOM_LCG_DRAW() & ACROPOLIS_SECURITY_ROOM_QUAD_Z_TUMBLE_MASK);
+    RANDOM_LCG_ADVANCE();
+    work->move.vx = ACROPOLIS_SECURITY_ROOM_QUAD_MOVE_BIAS - (RANDOM_LCG_DRAW() & ACROPOLIS_SECURITY_ROOM_QUAD_MOVE_MASK);
+    RANDOM_LCG_ADVANCE();
+    work->move.vy = ACROPOLIS_SECURITY_ROOM_QUAD_MOVE_BIAS - (RANDOM_LCG_DRAW() & ACROPOLIS_SECURITY_ROOM_QUAD_MOVE_MASK);
+    RANDOM_LCG_ADVANCE();
+    work->move.vz = ACROPOLIS_SECURITY_ROOM_QUAD_MOVE_BIAS - (RANDOM_LCG_DRAW() & ACROPOLIS_SECURITY_ROOM_QUAD_MOVE_MASK);
 }
 
 /// Places one corner of the falling quad's local XZ square in its composed coordinate space.
@@ -2506,8 +2506,8 @@ void acropolisSecurityRoomFallingQuadTask(Task* task)
 
         driftX = work->move.vx;
         if (driftX == 0) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vx  += (2 - (u16)((gRandomLcgState >> 16) % 5U)) * 8;
+            RANDOM_LCG_ADVANCE();
+            work->move.vx += (2 - (u16)(RANDOM_LCG_DRAW() % 5U)) * 8;
         } else {
             if (driftX > 0) {
                 driftX--;
@@ -2519,9 +2519,9 @@ void acropolisSecurityRoomFallingQuadTask(Task* task)
 
         driftZ = work->move.vz;
         if (driftZ == 0) {
-            work->move.vz  += work->step % 32;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vz  += (2 - (u16)((gRandomLcgState >> 16) % 5U)) * 8;
+            work->move.vz += work->step % 32;
+            RANDOM_LCG_ADVANCE();
+            work->move.vz += (2 - (u16)(RANDOM_LCG_DRAW() % 5U)) * 8;
         } else {
             if (driftZ > 0) {
                 driftZ--;
@@ -2531,10 +2531,10 @@ void acropolisSecurityRoomFallingQuadTask(Task* task)
             work->move.vz = driftZ;
         }
 
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->period   += (1 - (u16)((gRandomLcgState >> 16) % 3U)) * 16;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->step     += (1 - (u16)((gRandomLcgState >> 16) % 3U)) * 8;
+        RANDOM_LCG_ADVANCE();
+        work->period += (1 - (u16)(RANDOM_LCG_DRAW() % 3U)) * 16;
+        RANDOM_LCG_ADVANCE();
+        work->step += (1 - (u16)(RANDOM_LCG_DRAW() % 3U)) * 8;
         if (coord->coord.t[1] >= ACROPOLIS_SECURITY_ROOM_FALLING_QUAD_STOP_Y) {
             work->index = ACROPOLIS_SECURITY_ROOM_QUAD_SETTLED;
         }
@@ -2579,10 +2579,10 @@ void acropolisSecurityRoomMonitorGlowTask(Task* task)
     gte_stsxy(&scratch->screenPos);
     gte_stszotz(&scratch->otz);
     if (scratch->otz >= ACROPOLIS_SECURITY_ROOM_MONITOR_GLOW_MIN_DEPTH) {
-        redFactor           = (task->spawnArg1.value >> 1) & 1;
-        greenFactor         = task->spawnArg1.value & 1;
-        gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        brightness          = ((gRandomLcgState >> 16) & ACROPOLIS_SECURITY_ROOM_MONITOR_GLOW_BRIGHTNESS_MASK) + ACROPOLIS_SECURITY_ROOM_MONITOR_GLOW_BRIGHTNESS_BASE;
+        redFactor   = (task->spawnArg1.value >> 1) & 1;
+        greenFactor = task->spawnArg1.value & 1;
+        RANDOM_LCG_ADVANCE();
+        brightness          = (RANDOM_LCG_DRAW() & ACROPOLIS_SECURITY_ROOM_MONITOR_GLOW_BRIGHTNESS_MASK) + ACROPOLIS_SECURITY_ROOM_MONITOR_GLOW_BRIGHTNESS_BASE;
         scratch->halfExtent = ACROPOLIS_SECURITY_ROOM_MONITOR_GLOW_EXTENT_DEPTH_PRODUCT / scratch->otz;
         for (armIndex = 0; armIndex < 2; armIndex++) {
             quad           = gGpuPrimCursor;

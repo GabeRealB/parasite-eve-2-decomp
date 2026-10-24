@@ -549,7 +549,7 @@ void shelterB6TrainingRoomGlowTask(Task* task)
         // Preserve all three seed passes over the selected band, including the discarded draws.
         for (seedPass = 0; seedPass < 3; seedPass++) {
             for (segmentIndex = 0; segmentIndex < SHELTER_B6_TRAINING_ROOM_BAND_SEGMENT_COUNT; segmentIndex++) {
-                gShelterB6TrainingRoomRingTexturePhases[task->spawnArg1.value][segmentIndex] = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
+                gShelterB6TrainingRoomRingTexturePhases[task->spawnArg1.value][segmentIndex] = (RANDOM_LCG_ADVANCE()) >> 16;
             }
         }
         task->state = SHELTER_B6_TRAINING_ROOM_GLOW_DRAW;
@@ -1334,10 +1334,10 @@ void shelterB6TrainingRoomDrawBodyGlow(Task* task)
         rgb[2]                                = brightness >> 1;
         effectDrawGouraudDisc(anchorCoord, SHELTER_B6_TRAINING_ROOM_BODY_GLOW_INNER_RADIUS, rgb);
         effectDrawGouraudDisc(anchorCoord, SHELTER_B6_TRAINING_ROOM_BODY_GLOW_OUTER_RADIUS, rgb);
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if (((gRandomLcgState >> 16) & SHELTER_B6_TRAINING_ROOM_BODY_GLOW_FLASH_CHANCE_MASK) == 0) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            effectSpawn(EFFECT_FLASH_BURST, task->extra.tmd->coords + (((gRandomLcgState >> 16) & SHELTER_B6_TRAINING_ROOM_BODY_GLOW_FLASH_JOINT_MASK) + SHELTER_B6_TRAINING_ROOM_BODY_GLOW_FIRST_FLASH_JOINT), SHELTER_B6_TRAINING_ROOM_BODY_GLOW_FLASH_SIZE_PALETTE, NULL);
+        RANDOM_LCG_ADVANCE();
+        if ((RANDOM_LCG_DRAW() & SHELTER_B6_TRAINING_ROOM_BODY_GLOW_FLASH_CHANCE_MASK) == 0) {
+            RANDOM_LCG_ADVANCE();
+            effectSpawn(EFFECT_FLASH_BURST, task->extra.tmd->coords + ((RANDOM_LCG_DRAW() & SHELTER_B6_TRAINING_ROOM_BODY_GLOW_FLASH_JOINT_MASK) + SHELTER_B6_TRAINING_ROOM_BODY_GLOW_FIRST_FLASH_JOINT), SHELTER_B6_TRAINING_ROOM_BODY_GLOW_FLASH_SIZE_PALETTE, NULL);
         }
     }
 }
@@ -1362,16 +1362,16 @@ void shelterB6TrainingRoomEnergyArcTask(Task* task)
 
             coord->parent = work->parent;
             gfxSetRotIdentity(&coord->coord);
-            coord->coord.t[0]   = work->pos.vx;
-            gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            sizeRandom          = gRandomLcgState;
-            coord->coord.t[1]   = work->pos.vy;
-            gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            coord->coord.t[0] = work->pos.vx;
+            RANDOM_LCG_ADVANCE();
+            sizeRandom        = gRandomLcgState;
+            coord->coord.t[1] = work->pos.vy;
+            RANDOM_LCG_ADVANCE();
             coord->coord.t[2]   = work->pos.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             work->scale         = ((sizeRandom >> 16) & 0x1FF) + 0x100;
-            work->angle         = (gRandomLcgState >> 16) & (ONE - 1);
-            work->period        = ((gRandomLcgState >> 16) & 0xF) + 6;
+            work->angle         = RANDOM_LCG_DRAW() & (ONE - 1);
+            work->period        = (RANDOM_LCG_DRAW() & 0xF) + 6;
             task->state         = SHELTER_B6_TRAINING_ROOM_ENERGY_ARC_DRAW;
         }
         // Draw the animated sprite every tick and the link to the body anchor on odd ticks.
@@ -1563,12 +1563,12 @@ void shelterB6TrainingRoomSinkingSpriteTask(Task* task)
     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         work->age++;
         if (task->state == SHELTER_B6_TRAINING_ROOM_SINKING_SPRITE_INIT) {
-            work->move.vx   = 0;
-            work->move.vy   = 8;
-            work->move.vz   = 0;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->scale     = ((gRandomLcgState >> 16) & (ONE - 1)) | ONE;
-            task->state     = SHELTER_B6_TRAINING_ROOM_SINKING_SPRITE_DRAW;
+            work->move.vx = 0;
+            work->move.vy = 8;
+            work->move.vz = 0;
+            RANDOM_LCG_ADVANCE();
+            work->scale = (RANDOM_LCG_DRAW() & (ONE - 1)) | ONE;
+            task->state = SHELTER_B6_TRAINING_ROOM_SINKING_SPRITE_DRAW;
         }
         coord->coord.t[1]  += work->move.vy;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -1619,8 +1619,8 @@ void shelterB6TrainingRoomDescendingSpriteTask(Task* task)
             if (work->age & 1) {
                 work->index = (work->index + 1) & SHELTER_B6_TRAINING_ROOM_DESCENDING_SPRITE_FRAME_MASK;
                 effectDrawModulatedBillboard(coord, work->index, SHELTER_B6_TRAINING_ROOM_DESCENDING_SPRITE_SIZE_BANK, SHELTER_B6_TRAINING_ROOM_DESCENDING_SPRITE_BRIGHTNESS_PALETTE);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                if (((gRandomLcgState >> 16) & SHELTER_B6_TRAINING_ROOM_DESCENDING_SPRITE_SHED_CHANCE_MASK) == 0) {
+                RANDOM_LCG_ADVANCE();
+                if ((RANDOM_LCG_DRAW() & SHELTER_B6_TRAINING_ROOM_DESCENDING_SPRITE_SHED_CHANCE_MASK) == 0) {
                     effectSpawn(EFFECT_1AD, coord, 0, NULL);
                 }
             }
@@ -1650,9 +1650,9 @@ void shelterB6TrainingRoomHealSpiralTask(Task* task)
     }
     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         work->age++;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        RANDOM_LCG_ADVANCE();
         // The scale slot holds a wrapping 16-bit angle here, and move holds the next world position.
-        work->scale  += ((gRandomLcgState >> 16) & SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_PHASE_STEP_MASK) + SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_PHASE_STEP_MIN;
+        work->scale  += (RANDOM_LCG_DRAW() & SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_PHASE_STEP_MASK) + SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_PHASE_STEP_MIN;
         work->move.vx = _gShelterB6TrainingRoomEffectPositions[SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_CENTRE_INDEX].vx + ((rcos(work->scale) * SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_RADIUS) >> SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_TRIG_SHIFT);
         work->move.vy = _gShelterB6TrainingRoomEffectPositions[SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_CENTRE_INDEX].vy - work->age * SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_RISE_STEP;
         work->move.vz = _gShelterB6TrainingRoomEffectPositions[SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_CENTRE_INDEX].vz + ((rsin(work->scale) * SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_RADIUS) >> SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_TRIG_SHIFT);
@@ -1668,10 +1668,10 @@ void shelterB6TrainingRoomSpawnShieldArcs(Task* task)
         SHELTER_B6_TRAINING_ROOM_SHIELD_ARC_JOINT_COUNT = 18
     };
     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if (((gRandomLcgState >> 16) & SHELTER_B6_TRAINING_ROOM_SHIELD_ARC_CHANCE_MASK) == 0) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            effectSpawn(EFFECT_TRAINING_ROOM_ENERGY_ARC, task->extra.tmd->coords + ((u16)((gRandomLcgState >> 16) % SHELTER_B6_TRAINING_ROOM_SHIELD_ARC_JOINT_COUNT) + SHELTER_B6_TRAINING_ROOM_SHIELD_ARC_FIRST_JOINT), 0, NULL);
+        RANDOM_LCG_ADVANCE();
+        if ((RANDOM_LCG_DRAW() & SHELTER_B6_TRAINING_ROOM_SHIELD_ARC_CHANCE_MASK) == 0) {
+            RANDOM_LCG_ADVANCE();
+            effectSpawn(EFFECT_TRAINING_ROOM_ENERGY_ARC, task->extra.tmd->coords + ((u16)(RANDOM_LCG_DRAW() % SHELTER_B6_TRAINING_ROOM_SHIELD_ARC_JOINT_COUNT) + SHELTER_B6_TRAINING_ROOM_SHIELD_ARC_FIRST_JOINT), 0, NULL);
         }
     }
 }

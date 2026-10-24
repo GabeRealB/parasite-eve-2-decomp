@@ -2035,7 +2035,7 @@ static void _actor206100SurfaceSplashTick(Task* task)
     }
     // One draw in four restarts the dive; the rest advance to surface completion.
     if (work->stateFrames >= ACTOR_206100_SURFACE_DECISION_TICK) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        RANDOM_LCG_ADVANCE();
         if (((gRandomLcgState >> 0x10) & ACTOR_206100_SURFACE_REDIVE_DRAW_MASK) == 0) {
             _diverSetState(task, ACTOR_206100_FIGHT_STATE_DIVE);
             return;

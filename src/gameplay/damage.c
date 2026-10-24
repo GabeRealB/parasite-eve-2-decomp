@@ -279,10 +279,10 @@ u32 damageComputePlayerAttack(u32 attackKey, u32 playerDistance, s32 scaledReact
             }
         }
 
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        weaponRoll      = gRandomLcgState >> 16;
-        weaponPercent   = (u16)(weaponRoll % DAMAGE_WEAPON_DAMAGE_JITTER_RANGE) + 100;
-        baseDamageQ8    = baseDamageQ8 * weaponPercent / 100;
+        RANDOM_LCG_ADVANCE();
+        weaponRoll    = RANDOM_LCG_DRAW();
+        weaponPercent = (u16)(weaponRoll % DAMAGE_WEAPON_DAMAGE_JITTER_RANGE) + 100;
+        baseDamageQ8  = baseDamageQ8 * weaponPercent / 100;
 
         // Retain byte narrowing of both the distance bucket and its mapped class.
         distanceBand = playerDistance / DAMAGE_DISTANCE_BAND_UNITS;
@@ -336,10 +336,10 @@ u32 damageComputePlayerAttack(u32 attackKey, u32 playerDistance, s32 scaledReact
             }
         }
 
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        peRoll          = gRandomLcgState >> 16;
-        pePercent       = (u16)(peRoll % DAMAGE_PE_DAMAGE_JITTER_RANGE) + 100;
-        damage          = damage * pePercent / 100;
+        RANDOM_LCG_ADVANCE();
+        peRoll    = RANDOM_LCG_DRAW();
+        pePercent = (u16)(peRoll % DAMAGE_PE_DAMAGE_JITTER_RANGE) + 100;
+        damage    = damage * pePercent / 100;
 
         if (equipmentHasEffect(EQUIPMENT_EFFECT_OFUDA) != 0) {
             damage = damage * DAMAGE_OFUDA_PERCENT / 100;
@@ -454,8 +454,8 @@ s32 damageRollCriticalHit(const Enemy* enemy, u32 attackKey, s32 chanceMultiplie
         chance *= chanceMultiplier;
     }
 
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    roll            = gRandomLcgState >> 16 & DAMAGE_CHANCE_DRAW_MASK;
+    RANDOM_LCG_ADVANCE();
+    roll = RANDOM_LCG_DRAW() & DAMAGE_CHANCE_DRAW_MASK;
     SCRATCH_STACK_RELEASE_BLOCK(_DamagePlayerDistanceScratch);
     return roll < chance;
 }
@@ -495,14 +495,14 @@ static void _damageApplyEnemyReaction(Enemy* enemy, s32 attackKey)
             enemy->buildupGrade = gAttachmentState.attachId % 10U;
             break;
         case DAMAGE_PLAYER_REACTION_POISON:
-            poisonPercent   = enemy->param->damageOverTimeChance;
-            poisonChance    = (poisonPercent << DAMAGE_CHANCE_FRACTION_BITS) / 100;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            roll            = gRandomLcgState >> 16 & DAMAGE_CHANCE_DRAW_MASK;
+            poisonPercent = enemy->param->damageOverTimeChance;
+            poisonChance  = (poisonPercent << DAMAGE_CHANCE_FRACTION_BITS) / 100;
+            RANDOM_LCG_ADVANCE();
+            roll = RANDOM_LCG_DRAW() & DAMAGE_CHANCE_DRAW_MASK;
             if (roll < poisonChance) {
                 enemy->damageOverTimePulse = 0;
                 enemy->reactionFlags      |= ENEMY_REACTION_DAMAGE_OVER_TIME;
-                gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                RANDOM_LCG_ADVANCE();
                 enemy->damageOverTimeDelay = (gRandomLcgState >> 16 & DAMAGE_ENEMY_POISON_DELAY_JITTER_MASK) + DAMAGE_ENEMY_POISON_DELAY_BASE_TICKS;
                 if ((attackKey & DAMAGE_PLAYER_ATTACK_ATTACHMENT) == 0) {
                     enemy->damageOverTimeGrade = 0;

@@ -1374,29 +1374,29 @@ void dryfieldBreezewayAmbientEffectsTask(Task* task)
     if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FIRST_EVENT_SEEN) == 0) {
         // Offsets use this task's placement frame; work->move stages each spawn position.
         if (gGameSession->location.view == DRYFIELD_BREEZEWAY_PARTICLE_APPROACH_VIEW) {
-            spawnChance     = (playerCoord->coord.t[0] - 5856) >> 7;
-            work->move.vx   = 12000;
-            work->move.vy   = -3000;
-            work->move.vz   = 3000;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((u16)((gRandomLcgState >> 16) % 100) < spawnChance) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                effectSpawn(EFFECT_DRYFIELD_BREEZEWAY_BOUNCING_PARTICLE, coord, (s32)(gRandomLcgState >> 16) % spawnChance + DRYFIELD_BREEZEWAY_PARTICLE_MIN_SIZE, &work->move);
+            spawnChance   = (playerCoord->coord.t[0] - 5856) >> 7;
+            work->move.vx = 12000;
+            work->move.vy = -3000;
+            work->move.vz = 3000;
+            RANDOM_LCG_ADVANCE();
+            if ((u16)(RANDOM_LCG_DRAW() % 100) < spawnChance) {
+                RANDOM_LCG_ADVANCE();
+                effectSpawn(EFFECT_DRYFIELD_BREEZEWAY_BOUNCING_PARTICLE, coord, (s32)RANDOM_LCG_DRAW() % spawnChance + DRYFIELD_BREEZEWAY_PARTICLE_MIN_SIZE, &work->move);
             }
             if (work->step == DRYFIELD_BREEZEWAY_SOUND_NOT_STARTED) {
                 sndEvtRequestScriptStart(SOUND_BREEZEWAY_EFFECT_LOOP, 0, 0);
                 work->step = DRYFIELD_BREEZEWAY_SOUND_LOOP_STARTED;
             }
         } else if (gGameSession->location.view == DRYFIELD_BREEZEWAY_PARTICLE_NEAR_VIEW) {
-            work->scale     = DRYFIELD_BREEZEWAY_PARTICLE_END_TICKS;
-            work->move.vx   = playerCoord->coord.t[0] + 0x100;
-            work->move.vy   = -3000;
-            work->move.vz   = 3000;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            effectSpawn(EFFECT_DRYFIELD_BREEZEWAY_BOUNCING_PARTICLE, coord, ((gRandomLcgState >> 16) & 0x7F) + DRYFIELD_BREEZEWAY_PARTICLE_MIN_SIZE, &work->move);
+            work->scale   = DRYFIELD_BREEZEWAY_PARTICLE_END_TICKS;
+            work->move.vx = playerCoord->coord.t[0] + 0x100;
+            work->move.vy = -3000;
+            work->move.vz = 3000;
+            RANDOM_LCG_ADVANCE();
+            effectSpawn(EFFECT_DRYFIELD_BREEZEWAY_BOUNCING_PARTICLE, coord, (RANDOM_LCG_DRAW() & 0x7F) + DRYFIELD_BREEZEWAY_PARTICLE_MIN_SIZE, &work->move);
             if (work->step < DRYFIELD_BREEZEWAY_SOUND_BURST_STARTED) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                if (!((gRandomLcgState >> 16) & 3)) {
+                RANDOM_LCG_ADVANCE();
+                if (!(RANDOM_LCG_DRAW() & 3)) {
                     panOffset = (s8)worldCoordGetOriginAudioPan(coord);
                     sndEvtRequestScriptStart(SOUND_BREEZEWAY_EFFECT_BURST, panOffset, (s8)worldCoordGetOriginAudioDepth(coord));
                     work->step = DRYFIELD_BREEZEWAY_SOUND_BURST_STARTED;
@@ -1411,16 +1411,16 @@ void dryfieldBreezewayAmbientEffectsTask(Task* task)
         }
         if (work->scale != 0) {
             work->scale--;
-            work->move.vx   = 16000;
-            work->move.vy   = -3000;
-            work->move.vz   = 2750;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            effectSpawn(EFFECT_DRYFIELD_BREEZEWAY_BOUNCING_PARTICLE, coord, ((gRandomLcgState >> 16) & 0xFF) + DRYFIELD_BREEZEWAY_PARTICLE_MIN_SIZE, &work->move);
-            work->move.vx   = 17000;
-            work->move.vy   = -3000;
-            work->move.vz   = 4000;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            effectSpawn(EFFECT_DRYFIELD_BREEZEWAY_BOUNCING_PARTICLE, coord, ((gRandomLcgState >> 16) & 0xFF) + DRYFIELD_BREEZEWAY_PARTICLE_MIN_SIZE, &work->move);
+            work->move.vx = 16000;
+            work->move.vy = -3000;
+            work->move.vz = 2750;
+            RANDOM_LCG_ADVANCE();
+            effectSpawn(EFFECT_DRYFIELD_BREEZEWAY_BOUNCING_PARTICLE, coord, (RANDOM_LCG_DRAW() & 0xFF) + DRYFIELD_BREEZEWAY_PARTICLE_MIN_SIZE, &work->move);
+            work->move.vx = 17000;
+            work->move.vy = -3000;
+            work->move.vz = 4000;
+            RANDOM_LCG_ADVANCE();
+            effectSpawn(EFFECT_DRYFIELD_BREEZEWAY_BOUNCING_PARTICLE, coord, (RANDOM_LCG_DRAW() & 0xFF) + DRYFIELD_BREEZEWAY_PARTICLE_MIN_SIZE, &work->move);
         }
     }
 }
@@ -1644,23 +1644,23 @@ void dryfieldBreezewayBouncingParticleTask(Task* task)
         case DRYFIELD_BREEZEWAY_PARTICLE_INITIALIZE:
             // Choose independent texture timing, spin and a Q12 launch direction.
             gfxSetRotIdentity(&coord->coord);
-            work->pos.vx    = (u16)task->spawnArg1.value & DRYFIELD_BREEZEWAY_PARTICLE_SIZE_MASK;
-            work->scale     = DRYFIELD_BREEZEWAY_PARTICLE_INITIAL_SPEED;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->pos.vy    = (gRandomLcgState >> 16) & DRYFIELD_BREEZEWAY_PARTICLE_FRAME_PERIOD_MASK;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->index     = (gRandomLcgState >> 16) & (DRYFIELD_BREEZEWAY_PARTICLE_FRAME_COUNT - 1);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->pos.vz    = (gRandomLcgState >> 16) & ACTOR_TRANSFORM_ANGLE_MASK;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->period    = 0x200 - ((gRandomLcgState >> 16) & 0x3FF);
+            work->pos.vx = (u16)task->spawnArg1.value & DRYFIELD_BREEZEWAY_PARTICLE_SIZE_MASK;
+            work->scale  = DRYFIELD_BREEZEWAY_PARTICLE_INITIAL_SPEED;
+            RANDOM_LCG_ADVANCE();
+            work->pos.vy = RANDOM_LCG_DRAW() & DRYFIELD_BREEZEWAY_PARTICLE_FRAME_PERIOD_MASK;
+            RANDOM_LCG_ADVANCE();
+            work->index = RANDOM_LCG_DRAW() & (DRYFIELD_BREEZEWAY_PARTICLE_FRAME_COUNT - 1);
+            RANDOM_LCG_ADVANCE();
+            work->pos.vz = RANDOM_LCG_DRAW() & ACTOR_TRANSFORM_ANGLE_MASK;
+            RANDOM_LCG_ADVANCE();
+            work->period = 0x200 - (RANDOM_LCG_DRAW() & 0x3FF);
             if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->move.vx   = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->move.vy   = ((gRandomLcgState >> 16) & 0x3F) + 0x40;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->move.vz   = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
+                RANDOM_LCG_ADVANCE();
+                work->move.vx = 0x40 - (RANDOM_LCG_DRAW() & 0x7F);
+                RANDOM_LCG_ADVANCE();
+                work->move.vy = (RANDOM_LCG_DRAW() & 0x3F) + 0x40;
+                RANDOM_LCG_ADVANCE();
+                work->move.vz = 0x40 - (RANDOM_LCG_DRAW() & 0x7F);
                 gte_SetRotMatrix(&work->parent->coord);
                 gte_ldv0(&work->move);
                 gte_rtv0();

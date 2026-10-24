@@ -174,9 +174,9 @@ static inline void _roomVisualEffectsSparkEmitterTask(Task* task)
             effectKillTask(work, task);
             return;
         }
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        RANDOM_LCG_ADVANCE();
         // scale accumulates the halfword heading; move holds the next local spawn offset.
-        heading     = work->scale + (((gRandomLcgState >> 16) & EMITTER_HEADING_STEP_RANDOM_MASK) + EMITTER_HEADING_STEP_MIN);
+        heading     = work->scale + ((RANDOM_LCG_DRAW() & EMITTER_HEADING_STEP_RANDOM_MASK) + EMITTER_HEADING_STEP_MIN);
         work->scale = heading;
         // Keep the unsigned shifts and signed-halfword narrowing of the radial offset.
         work->move.vx = (u32)(rcos(heading) * 3) >> 4;

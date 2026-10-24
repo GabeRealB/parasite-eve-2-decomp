@@ -623,14 +623,14 @@ static inline void _dryfieldNightMotelLoftSpawnShard(_DryfieldNightMotelLoftFlar
     enum { DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_MIN_RADIUS = 16,
            SHARD_RADIUS_JITTER_MASK                   = 0x3F };
 
-    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    points->shardSpawn.vx = 0xFB8 - ((gRandomLcgState >> 16) & 0x3FF);
-    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    points->shardSpawn.vy = ((gRandomLcgState >> 16) & 0x1FF) - 0xD5C;
-    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    points->shardSpawn.vz = 0x400 - ((gRandomLcgState >> 16) & 0x7FF);
-    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    effectSpawn(EFFECT_NIGHT_MOTEL_LOFT_FALLING_SHARD, NULL, ((gRandomLcgState >> 16) & SHARD_RADIUS_JITTER_MASK) + DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_MIN_RADIUS, &points->shardSpawn);
+    RANDOM_LCG_ADVANCE();
+    points->shardSpawn.vx = 0xFB8 - (RANDOM_LCG_DRAW() & 0x3FF);
+    RANDOM_LCG_ADVANCE();
+    points->shardSpawn.vy = (RANDOM_LCG_DRAW() & 0x1FF) - 0xD5C;
+    RANDOM_LCG_ADVANCE();
+    points->shardSpawn.vz = 0x400 - (RANDOM_LCG_DRAW() & 0x7FF);
+    RANDOM_LCG_ADVANCE();
+    effectSpawn(EFFECT_NIGHT_MOTEL_LOFT_FALLING_SHARD, NULL, (RANDOM_LCG_DRAW() & SHARD_RADIUS_JITTER_MASK) + DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_MIN_RADIUS, &points->shardSpawn);
 }
 
 void dryfieldNightMotelLoftFlaresAndShardsTask(Task* task)
@@ -749,24 +749,24 @@ void dryfieldNightMotelLoftFallingShardTask(Task* task)
                     // move is a ONE-normalized velocity, scaled by scale's speed;
                     // gravity and bounces change its length. angle holds the
                     // radius in coordinate units, and period holds the grey level.
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vy   = (gRandomLcgState >> 16) & 0x7F;
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->scale     = ((gRandomLcgState >> 16) & 0x3F) + 0x40;
-                    work->angle     = task->spawnArg1.value & DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_RADIUS_MASK;
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->period    = ((gRandomLcgState >> 16) & 0x7F) + 0x40;
+                    RANDOM_LCG_ADVANCE();
+                    work->move.vx = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
+                    RANDOM_LCG_ADVANCE();
+                    work->move.vy = RANDOM_LCG_DRAW() & 0x7F;
+                    RANDOM_LCG_ADVANCE();
+                    work->move.vz = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
+                    RANDOM_LCG_ADVANCE();
+                    work->scale = (RANDOM_LCG_DRAW() & 0x3F) + 0x40;
+                    work->angle = task->spawnArg1.value & DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_RADIUS_MASK;
+                    RANDOM_LCG_ADVANCE();
+                    work->period = (RANDOM_LCG_DRAW() & 0x7F) + 0x40;
                     VectorNormalSS(&work->move, &work->move);
-                    gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->pos.vx        = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                    gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->pos.vy        = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                    gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->pos.vz        = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                    RANDOM_LCG_ADVANCE();
+                    work->pos.vx = 0x100 - (RANDOM_LCG_DRAW() & 0x1FF);
+                    RANDOM_LCG_ADVANCE();
+                    work->pos.vy = 0x100 - (RANDOM_LCG_DRAW() & 0x1FF);
+                    RANDOM_LCG_ADVANCE();
+                    work->pos.vz        = 0x100 - (RANDOM_LCG_DRAW() & 0x1FF);
                     coord->composeStamp = GRAPHICS_COORD_DIRTY;
                     task->state         = DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_FALLING;
                     break;
@@ -888,8 +888,8 @@ static void _dryfieldNightMotelLoftDrawShard(const GfxCoord* coord, s16 radius, 
         setRGB0(primitive, shade, shade, shade);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->otz),
                 primitive);
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        gpuSetPrimitiveBlendMode(primitive, (gRandomLcgState >> 16) & 1, scratch->otz);
+        RANDOM_LCG_ADVANCE();
+        gpuSetPrimitiveBlendMode(primitive, RANDOM_LCG_DRAW() & 1, scratch->otz);
     }
     SCRATCH_STACK_RELEASE_BLOCK(_DryfieldNightMotelLoftTriScratch);
 }

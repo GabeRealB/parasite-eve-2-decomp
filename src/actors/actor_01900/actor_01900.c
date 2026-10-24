@@ -1111,8 +1111,8 @@ static void _actor01900SpawnHitEffect(Task* task, s16 hitYaw, s32 attackKey)
     yawMagnitude = (hitYaw >= 0) ? hitYaw : -hitYaw;
     work         = task->work;
     if (yawMagnitude < (ACTOR_TRANSFORM_ANGLE_TURN / 8)) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        switch ((s32)(gRandomLcgState >> 16) & 3) {
+        RANDOM_LCG_ADVANCE();
+        switch ((s32)RANDOM_LCG_DRAW() & 3) {
             case 0:
                 *hitAnchor = _gActor01900HitAnchors[0];
                 break;
@@ -1130,8 +1130,8 @@ static void _actor01900SpawnHitEffect(Task* task, s16 hitYaw, s32 attackKey)
                 break;
         }
     } else if (yawMagnitude > (3 * ACTOR_TRANSFORM_ANGLE_TURN / 8)) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        switch ((s32)(gRandomLcgState >> 16) & 2) {
+        RANDOM_LCG_ADVANCE();
+        switch ((s32)RANDOM_LCG_DRAW() & 2) {
             case 0:
                 *hitAnchor = _gActor01900HitAnchors[5];
                 break;
@@ -1143,15 +1143,15 @@ static void _actor01900SpawnHitEffect(Task* task, s16 hitYaw, s32 attackKey)
                 break;
         }
     } else if (hitYaw > 0) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if ((gRandomLcgState >> 16) & 1) {
+        RANDOM_LCG_ADVANCE();
+        if (RANDOM_LCG_DRAW() & 1) {
             *hitAnchor = _gActor01900HitAnchors[8];
         } else {
             *hitAnchor = _gActor01900HitAnchors[9];
         }
     } else {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if ((gRandomLcgState >> 16) & 1) {
+        RANDOM_LCG_ADVANCE();
+        if (RANDOM_LCG_DRAW() & 1) {
             *hitAnchor = _gActor01900HitAnchors[10];
         } else {
             *hitAnchor = _gActor01900HitAnchors[11];
@@ -1936,8 +1936,8 @@ static void _actor01900StateChase(Task* task)
         chase->turn         = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-rootCoord->coord.m[2][0], rootCoord->coord.m[2][2]));
         work->lookYawTarget = chase->turn;
         if (work->sidestepSide == 0) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((gRandomLcgState >> 16) & 1) {
+            RANDOM_LCG_ADVANCE();
+            if (RANDOM_LCG_DRAW() & 1) {
                 work->sidestepSide = -1;
             } else {
                 work->sidestepSide = 1;
@@ -2256,8 +2256,8 @@ static void _actor01900StateSidestep(Task* task)
         _actorPositionDeltaToPlayer(&gPlayerStatus, task->extra.tmd->coords, &sidestepScratch->delta);
         sidestepScratch->turn = ratan2(scratchEnd[-1].delta.vx, sidestepScratch->delta.vz);
         if (work->sidestepSide == 0) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((gRandomLcgState >> 16) & 1) {
+            RANDOM_LCG_ADVANCE();
+            if (RANDOM_LCG_DRAW() & 1) {
                 work->sidestepSide = 1;
             } else {
                 work->sidestepSide = -1;
@@ -2607,9 +2607,9 @@ static void _actor01900StateDormantScripted(Task* task)
     // Edge-trigger cues on the low ten bits of the pose record index.
     if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == ACTOR_01900_DORMANT_SOUND_CUE && work->dormantAnimFrame != (work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) &&
         (GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_FORKED_ROAD, 0, 0)) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        sound           = ACTOR_01900_DORMANT_SOUND_B;
-        if ((u16)((gRandomLcgState >> 16) % 3) == 0) {
+        RANDOM_LCG_ADVANCE();
+        sound = ACTOR_01900_DORMANT_SOUND_B;
+        if ((u16)(RANDOM_LCG_DRAW() % 3) == 0) {
             sound = ACTOR_01900_DORMANT_SOUND_A;
         }
         switch ((u8)viewGetMappedIndex()) {
@@ -3883,7 +3883,7 @@ static void _actor01900StateDown(Task* task)
     work  = task->work;
     enemy = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        randomState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        randomState      = RANDOM_LCG_NEXT(gRandomLcgState);
         gRandomLcgState  = randomState;
         work->stateTimer = ((randomState >> 16) & ACTOR_01900_DOWN_RANDOM_FRAME_MASK) + work->downFramesBase;
     }

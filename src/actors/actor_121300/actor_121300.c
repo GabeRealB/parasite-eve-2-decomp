@@ -839,13 +839,13 @@ static inline s16 _actor121300RollDebrisSpin(void)
     enum { ACTOR_121300_DEBRIS_SPIN_MAGNITUDE_MASK = 127 };
     s16 spin;
 
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    if ((gRandomLcgState >> 16) & 1) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        spin            = (gRandomLcgState >> 16) & ACTOR_121300_DEBRIS_SPIN_MAGNITUDE_MASK;
+    RANDOM_LCG_ADVANCE();
+    if (RANDOM_LCG_DRAW() & 1) {
+        RANDOM_LCG_ADVANCE();
+        spin = RANDOM_LCG_DRAW() & ACTOR_121300_DEBRIS_SPIN_MAGNITUDE_MASK;
     } else {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        spin            = -((gRandomLcgState >> 16) & ACTOR_121300_DEBRIS_SPIN_MAGNITUDE_MASK);
+        RANDOM_LCG_ADVANCE();
+        spin = -(RANDOM_LCG_DRAW() & ACTOR_121300_DEBRIS_SPIN_MAGNITUDE_MASK);
     }
     return spin;
 }
@@ -952,33 +952,33 @@ static void _actor121300LampDebrisTask(Task* task)
             model->colorMtx = &work->colorMtx;
 
             // The positive lateral roll is 0..7; the negative roll is -17..-10.
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((gRandomLcgState >> 16) & 1) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                lateralVelocity = ((gRandomLcgState >> 16) + 10) & 7;
+            RANDOM_LCG_ADVANCE();
+            if (RANDOM_LCG_DRAW() & 1) {
+                RANDOM_LCG_ADVANCE();
+                lateralVelocity = (RANDOM_LCG_DRAW() + 10) & 7;
             } else {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                lateralVelocity = -10 - ((gRandomLcgState >> 16) & 7);
+                RANDOM_LCG_ADVANCE();
+                lateralVelocity = -10 - (RANDOM_LCG_DRAW() & 7);
             }
-            work->velX      = lateralVelocity;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->velY      = ((gRandomLcgState >> 16) & 3) + 3;
+            work->velX = lateralVelocity;
+            RANDOM_LCG_ADVANCE();
+            work->velY = (RANDOM_LCG_DRAW() & 3) + 3;
 
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((gRandomLcgState >> 16) & 1) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                lateralVelocity = ((gRandomLcgState >> 16) + 10) & 7;
+            RANDOM_LCG_ADVANCE();
+            if (RANDOM_LCG_DRAW() & 1) {
+                RANDOM_LCG_ADVANCE();
+                lateralVelocity = (RANDOM_LCG_DRAW() + 10) & 7;
             } else {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                lateralVelocity = -10 - ((gRandomLcgState >> 16) & 7);
+                RANDOM_LCG_ADVANCE();
+                lateralVelocity = -10 - (RANDOM_LCG_DRAW() & 7);
             }
             work->velZ = lateralVelocity;
 
-            work->spinX     = _actor121300RollDebrisSpin();
-            work->spinY     = _actor121300RollDebrisSpin();
-            work->spinZ     = _actor121300RollDebrisSpin();
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->delay     = (gRandomLcgState >> 16) & 3;
+            work->spinX = _actor121300RollDebrisSpin();
+            work->spinY = _actor121300RollDebrisSpin();
+            work->spinZ = _actor121300RollDebrisSpin();
+            RANDOM_LCG_ADVANCE();
+            work->delay = RANDOM_LCG_DRAW() & 3;
             task->state++;
             break;
         case ACTOR_121300_DEBRIS_DELAY:
@@ -1227,10 +1227,10 @@ static void _actor121300SpawnRingSprites(Task* unusedTask, s16 raised)
         if (point->vx != ACTOR_121300_RING_END_X) {
             spriteArg = ACTOR_121300_DRIFT_SPRITE_ARGUMENT;
             do {
-                randomSeed      = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                randomSeed      = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState = randomSeed;
-                jitteredX       = pointX + (((randomSeed >> 16) & 1) ? ((gRandomLcgState = (randomSeed * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT) >> 16) & 7
-                                                                     : -(((gRandomLcgState = (randomSeed * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT) >> 16) & 7)) *
+                jitteredX       = pointX + (((randomSeed >> 16) & 1) ? ((gRandomLcgState = RANDOM_LCG_NEXT(randomSeed)) >> 16) & 7
+                                                                     : -(((gRandomLcgState = RANDOM_LCG_NEXT(randomSeed)) >> 16) & 7)) *
                                          10;
                 spawnPosition.vx = jitteredX;
                 spawnPosition.vy = point->vy;
@@ -1272,10 +1272,10 @@ static void _actor121300SpawnUpperRowSprites(Task* task, s16 dwindle)
         for (pointIndex = 0; pointIndex < ARRAY_SIZE(_gActor121300UpperRowPoints) - 1 - work->spritePointsDropped; pointIndex++) {
             spriteArg       = ACTOR_121300_DRIFT_SPRITE_ARGUMENT;
             points          = _gActor121300UpperRowPoints;
-            randomSeed      = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            randomSeed      = RANDOM_LCG_NEXT(gRandomLcgState);
             gRandomLcgState = randomSeed;
-            jitteredX       = points[pointIndex].vx + (((randomSeed >> 16) & 1) ? ((gRandomLcgState = (randomSeed * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT) >> 16) & 7
-                                                                                : -(((gRandomLcgState = (randomSeed * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT) >> 16) & 7)) *
+            jitteredX       = points[pointIndex].vx + (((randomSeed >> 16) & 1) ? ((gRandomLcgState = RANDOM_LCG_NEXT(randomSeed)) >> 16) & 7
+                                                                                : -(((gRandomLcgState = RANDOM_LCG_NEXT(randomSeed)) >> 16) & 7)) *
                                                     10;
             spawnPosition.vx = jitteredX;
             spawnPosition.vy = points[pointIndex].vy;

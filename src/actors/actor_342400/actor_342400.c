@@ -409,27 +409,27 @@ static s16 _actor342400PickEncounterSpot(void)
     s16       playerZ     = playerCoord->coord.t[2];
 
     if (playerX <= 5000) {
-        return _gActor342400EncounterSpotChoices[0][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
+        return _gActor342400EncounterSpotChoices[0][(RANDOM_LCG_ADVANCE()) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
     }
     if (playerX <= 8000) {
-        return _gActor342400EncounterSpotChoices[1][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
+        return _gActor342400EncounterSpotChoices[1][(RANDOM_LCG_ADVANCE()) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
     }
     if (playerX <= 11000) {
-        return _gActor342400EncounterSpotChoices[2][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
+        return _gActor342400EncounterSpotChoices[2][(RANDOM_LCG_ADVANCE()) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
     }
     if (playerZ >= -5500) {
-        return _gActor342400EncounterSpotChoices[3][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
+        return _gActor342400EncounterSpotChoices[3][(RANDOM_LCG_ADVANCE()) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
     }
     if (playerZ >= -8500) {
-        return _gActor342400EncounterSpotChoices[4][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
+        return _gActor342400EncounterSpotChoices[4][(RANDOM_LCG_ADVANCE()) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
     }
     if (playerZ >= -11500) {
-        return _gActor342400EncounterSpotChoices[5][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
+        return _gActor342400EncounterSpotChoices[5][(RANDOM_LCG_ADVANCE()) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
     }
     if (playerZ >= -24500) {
-        return _gActor342400EncounterSpotChoices[5][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
+        return _gActor342400EncounterSpotChoices[5][(RANDOM_LCG_ADVANCE()) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
     }
-    return _gActor342400EncounterSpotChoices[5][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
+    return _gActor342400EncounterSpotChoices[5][(RANDOM_LCG_ADVANCE()) >> ACTOR_342400_ENCOUNTER_RANDOM_SHIFT & ACTOR_342400_ENCOUNTER_PICK_MASK];
 }
 
 /// Latches a stop command that suspends the controller's feeding stage.

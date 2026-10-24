@@ -132,7 +132,7 @@ static void _golemPawnRookEngageState(Task* actor)
                 work->anim     = GOLEM_PAWN_ROOK_CLOSE_ATTACK_ANIM;
             } else {
 #if GOLEM_PAWN_ROOK_KIND == GOLEM_PAWN_ROOK_KIND_ROOK
-                screamRandom    = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                screamRandom    = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState = screamRandom;
                 if (!((screamRandom >> 0x10) & ((1 << (work->screamCount + 1)) - 1)) && !(gPlayerStatus.statusFlags & PLAYER_STATUS_SILENCE) &&
                     work->screamCharges != 0) {

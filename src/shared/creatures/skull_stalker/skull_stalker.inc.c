@@ -62,7 +62,7 @@ static void _skullStalkerSpawnState(Enemy* enemy, Task* task)
     work->fadeFrames              = SKULL_STALKER_FADE_FRAMES;
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     model->flags                  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    nextRandomState               = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    nextRandomState               = RANDOM_LCG_NEXT(gRandomLcgState);
     work->fadeWaitFrames          = ((nextRandomState >> 16) & SKULL_STALKER_HIDDEN_WAIT_JITTER_MASK) + SKULL_STALKER_HIDDEN_WAIT_BASE;
     gRandomLcgState               = nextRandomState;
     worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_BLACK);
@@ -173,10 +173,10 @@ static void _skullStalkerIdleTick(Task* task)
             } else {
                 SKULL_STALKER_PLAY_IDLE_SOUND(SKULL_STALKER_SOUND_APPEAR);
             }
-            work->animFrames     = 0;
-            work->hiding         = 0;
-            gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->fadeWaitFrames = ((gRandomLcgState >> 16) & SKULL_STALKER_VISIBLE_WAIT_JITTER_MASK) + SKULL_STALKER_VISIBLE_WAIT_BASE;
+            work->animFrames = 0;
+            work->hiding     = 0;
+            RANDOM_LCG_ADVANCE();
+            work->fadeWaitFrames = (RANDOM_LCG_DRAW() & SKULL_STALKER_VISIBLE_WAIT_JITTER_MASK) + SKULL_STALKER_VISIBLE_WAIT_BASE;
         }
     }
     if (work->alertRequested != 0) {
@@ -203,15 +203,15 @@ static void _skullStalkerIdleTick(Task* task)
                 } else {
                     SKULL_STALKER_PLAY_IDLE_SOUND(SKULL_STALKER_SOUND_APPEAR);
                 }
-                work->animFrames     = 0;
-                work->hiding         = 0;
-                gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->fadeWaitFrames = ((gRandomLcgState >> 16) & SKULL_STALKER_VISIBLE_WAIT_JITTER_MASK) + SKULL_STALKER_VISIBLE_WAIT_BASE;
+                work->animFrames = 0;
+                work->hiding     = 0;
+                RANDOM_LCG_ADVANCE();
+                work->fadeWaitFrames = (RANDOM_LCG_DRAW() & SKULL_STALKER_VISIBLE_WAIT_JITTER_MASK) + SKULL_STALKER_VISIBLE_WAIT_BASE;
             } else if (work->fadeFrames == 0 && work->hiding == 0) {
-                work->animFrames     = 0;
-                work->hiding         = 1;
-                gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->fadeWaitFrames = ((gRandomLcgState >> 16) & SKULL_STALKER_HIDDEN_WAIT_JITTER_MASK) + SKULL_STALKER_HIDDEN_WAIT_BASE;
+                work->animFrames = 0;
+                work->hiding     = 1;
+                RANDOM_LCG_ADVANCE();
+                work->fadeWaitFrames = (RANDOM_LCG_DRAW() & SKULL_STALKER_HIDDEN_WAIT_JITTER_MASK) + SKULL_STALKER_HIDDEN_WAIT_BASE;
             }
         }
     } else if (animId == SKULL_STALKER_ANIM_ALERT) {

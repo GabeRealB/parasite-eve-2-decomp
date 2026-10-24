@@ -649,8 +649,8 @@ static void _actor503500BossUpkeep(Task* task)
             }
         }
     }
-    gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->randomRoll = gRandomLcgState >> 16;
+    RANDOM_LCG_ADVANCE();
+    work->randomRoll = RANDOM_LCG_DRAW();
     rootCoord        = task->extra.tmd->coords;
     playerOffset.vx  = gPlayerStatus.coordMtx->t[0] - rootCoord->coord.t[0];
     playerOffset.vy  = 0;
@@ -1310,9 +1310,9 @@ static void _actor503500StepPhaseTransitionState(Task* task)
             if (work->stateFrames < ACTOR_503500_PHASE_PUFF_FRAMES) {
                 effectSpawn(EFFECT_HIT_PUFF, &task->extra.tmd->coords[ACTOR_503500_ORANGE_FLASH_PARENT_PART], ACTOR_503500_PHASE_PUFF_SPAWN_ARG,
                             &gActor503500PhaseTransitionPuffOffsets[(s16)(work->stateFrames % (s32)ARRAY_SIZE(gActor503500PhaseTransitionPuffOffsets))]);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                RANDOM_LCG_ADVANCE();
                 effectSpawn(EFFECT_HIT_PUFF, &task->extra.tmd->coords[ACTOR_503500_ORANGE_FLASH_PARENT_PART], ACTOR_503500_PHASE_PUFF_SPAWN_ARG,
-                            &gActor503500PhaseTransitionPuffOffsets[(u16)((gRandomLcgState >> 16) % ARRAY_SIZE(gActor503500PhaseTransitionPuffOffsets))]);
+                            &gActor503500PhaseTransitionPuffOffsets[(u16)(RANDOM_LCG_DRAW() % ARRAY_SIZE(gActor503500PhaseTransitionPuffOffsets))]);
             }
             if (work->stateFrames == ACTOR_503500_PHASE_PUFF_FRAMES) {
                 sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, ACTOR_503500_PHASE_SOUND), ACTOR_503500_PHASE_SOUND_FADE_FRAMES);

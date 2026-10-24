@@ -2989,16 +2989,16 @@ void mineCavernDrawRoomLightGlowsTask(Task* task)
     }
 
     if (gameFlagGetNibble(GAME_FLAG_0C4) == MINE_CAVERN_FLASH_ENABLED) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if (((gRandomLcgState >> 16) & 7) == 0) {
+        RANDOM_LCG_ADVANCE();
+        if ((RANDOM_LCG_DRAW() & 7) == 0) {
             SVECTOR* flashPoint = &_gMineCavernRoomLightPoints[MINE_CAVERN_FLASH_POINT];
 
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            flashPoint->vx  = ((gRandomLcgState >> 16) & MINE_CAVERN_FLASH_JITTER_MASK) + MINE_CAVERN_FLASH_MIN_X;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            flashPoint->vy  = ((gRandomLcgState >> 16) & MINE_CAVERN_FLASH_JITTER_MASK) + MINE_CAVERN_FLASH_MIN_Y;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            flashPoint->vz  = ((gRandomLcgState >> 16) & MINE_CAVERN_FLASH_JITTER_MASK) + MINE_CAVERN_FLASH_MIN_Z;
+            RANDOM_LCG_ADVANCE();
+            flashPoint->vx = (RANDOM_LCG_DRAW() & MINE_CAVERN_FLASH_JITTER_MASK) + MINE_CAVERN_FLASH_MIN_X;
+            RANDOM_LCG_ADVANCE();
+            flashPoint->vy = (RANDOM_LCG_DRAW() & MINE_CAVERN_FLASH_JITTER_MASK) + MINE_CAVERN_FLASH_MIN_Y;
+            RANDOM_LCG_ADVANCE();
+            flashPoint->vz = (RANDOM_LCG_DRAW() & MINE_CAVERN_FLASH_JITTER_MASK) + MINE_CAVERN_FLASH_MIN_Z;
             effectSpawn(EFFECT_FLASH_BURST, NULL, 0x300, flashPoint);
         }
     }
@@ -3216,10 +3216,10 @@ static void _mineCavernDrawFixedGlows(void)
         if (projectionFlags < 0) {
             continue;
         }
-        screenX         = packedScreenPosition;
-        screenY         = packedScreenPosition >> 16;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        pixelRadius     = (s32)(radiusScale + ((gRandomLcgState >> 16) & 0xF)) * MINE_CAVERN_GLOW_PROJECTION_SCALE / (depthQuarterZ * 4);
+        screenX = packedScreenPosition;
+        screenY = packedScreenPosition >> 16;
+        RANDOM_LCG_ADVANCE();
+        pixelRadius = (s32)(radiusScale + (RANDOM_LCG_DRAW() & 0xF)) * MINE_CAVERN_GLOW_PROJECTION_SCALE / (depthQuarterZ * 4);
         MINE_CAVERN_DRAW_GLOW_FAN(screenX, screenY, pixelRadius, depthQuarterZ, trigShift,
                                   _gMineCavernFixedGlowCenterRed, _gMineCavernFixedGlowCenterGreen, _gMineCavernFixedGlowCenterBlue,
                                   _gMineCavernFixedGlowRimRed, _gMineCavernFixedGlowRimGreen, _gMineCavernFixedGlowRimBlue);
@@ -3241,7 +3241,7 @@ static void _mineCavernRefreshTargetLight(s16 targetIndex)
 
     lightSlot->framesLeft                              = MINE_CAVERN_TARGET_LIGHT_TICKS;
     pointLight->inner                                  = gMineCavernTargetLightInnerRadius;
-    pointLight->outer                                  = gMineCavernTargetLightBaseOuterRadius + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x7FF);
+    pointLight->outer                                  = gMineCavernTargetLightBaseOuterRadius + (((RANDOM_LCG_ADVANCE()) >> 16) & 0x7FF);
     pointLight->head.color.r                           = gMineCavernTargetLightRed;
     pointLight->head.color.g                           = gMineCavernTargetLightGreen;
     pointLight->head.color.b                           = gMineCavernTargetLightBlue;
@@ -3305,10 +3305,10 @@ static void _mineCavernDrawTargetGlow(s16 targetIndex)
     gte_stflg(&projectionFlags);
     gte_stszotz(&depthQuarterZ);
     if (projectionFlags >= 0) {
-        screenX         = packedScreenPosition;
-        screenY         = packedScreenPosition >> 16;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        pixelRadius     = (s32)(baseRadiusScale | ((gRandomLcgState >> 16) & 0x7F)) * MINE_CAVERN_GLOW_PROJECTION_SCALE / (depthQuarterZ * 4);
+        screenX = packedScreenPosition;
+        screenY = packedScreenPosition >> 16;
+        RANDOM_LCG_ADVANCE();
+        pixelRadius = (s32)(baseRadiusScale | (RANDOM_LCG_DRAW() & 0x7F)) * MINE_CAVERN_GLOW_PROJECTION_SCALE / (depthQuarterZ * 4);
         MINE_CAVERN_DRAW_GLOW_FAN(screenX, screenY, pixelRadius, depthQuarterZ, GLOW_TRIG_SHIFT,
                                   _gMineCavernTargetGlowCenterRed, _gMineCavernTargetGlowCenterGreen, _gMineCavernTargetGlowCenterBlue,
                                   _gMineCavernTargetGlowRimRed, _gMineCavernTargetGlowRimGreen, _gMineCavernTargetGlowRimBlue);
@@ -3367,9 +3367,9 @@ static void _mineCavernUpdateTargetEffects(void)
             gfxSetRotIdentity(&puffCoord.coord);
             puffCoord.parent       = &gGfxViewCoord;
             targetPoint            = &gMineCavernTargetEffectPoints[targetIndex];
-            puffCoord.coord.t[0]   = targetPoint->vx + ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 0x7F) - 0x40;
-            puffCoord.coord.t[1]   = targetPoint->vy + ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 0x7F) - 0x40;
-            puffCoord.coord.t[2]   = targetPoint->vz + ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 0x7F) - 0x40;
+            puffCoord.coord.t[0]   = targetPoint->vx + ((RANDOM_LCG_ADVANCE()) >> 16 & 0x7F) - 0x40;
+            puffCoord.coord.t[1]   = targetPoint->vy + ((RANDOM_LCG_ADVANCE()) >> 16 & 0x7F) - 0x40;
+            puffCoord.coord.t[2]   = targetPoint->vz + ((RANDOM_LCG_ADVANCE()) >> 16 & 0x7F) - 0x40;
             puffCoord.composeStamp = GRAPHICS_COORD_DIRTY;
             effectSpawn(EFFECT_ADDITIVE_PUFF, &puffCoord, 0x800004FF, NULL);
         }

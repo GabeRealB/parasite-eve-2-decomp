@@ -281,7 +281,7 @@ static void _madChaserLeapLand(Task* task)
         sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
     if (_madChaserAnimHasBoundaryStatus(task) != 0) {
-        randomState        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        randomState        = RANDOM_LCG_NEXT(gRandomLcgState);
         gRandomLcgState    = randomState;
         work->leapCooldown = ((randomState >> 16) & MAD_CHASER_LEAP_COOLDOWN_RANDOM_MASK) + MAD_CHASER_LEAP_COOLDOWN_MIN_FRAMES;
         _madChaserSetBehaviorState(task, MAD_CHASER_COMBAT_STATE_WALK);

@@ -33,7 +33,7 @@ static inline void _sucklercephTickIdleSound(const Task* task, const GfxCoord* r
     }
     work->idleSoundFrames--;
     if (work->idleSoundFrames <= 0) {
-        randomState           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        randomState           = RANDOM_LCG_NEXT(gRandomLcgState);
         gRandomLcgState       = randomState;
         work->idleSoundFrames = (randomState >> 16) % SUCKLERCEPH_IDLE_SOUND_FRAME_CHOICES + SUCKLERCEPH_IDLE_SOUND_MIN_FRAMES;
         if (work->variant != 0) {
@@ -610,8 +610,8 @@ static void _sucklercephKill(Task* task, u8 forceBurst)
     rootCoord = model->coords;
     enemy->hp = 0;
     // Consume the death draw even when the caller forces a burst.
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    if (((gRandomLcgState >> 16) & SUCKLERCEPH_BURST_ROLL_BIT) || forceBurst) {
+    RANDOM_LCG_ADVANCE();
+    if ((RANDOM_LCG_DRAW() & SUCKLERCEPH_BURST_ROLL_BIT) || forceBurst) {
         if (work->variant != 0) {
             SUCKLERCEPH_REQUEST_DEATH_SOUND(task->spawnArg2.pointer, rootCoord, SOUND_CHARACTER(SOUND_BANK_SUCKLERCEPH, 0x0B), soundId);
         } else {

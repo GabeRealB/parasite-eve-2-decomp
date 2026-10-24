@@ -724,7 +724,7 @@ static inline void _shelterB1PodServiceGantrySeedGlowFlicker(void)
     s32 flickerSlot;
 
     for (flickerSlot = 0; flickerSlot < ARRAY_SIZE(_gShelterB1PodServiceGantryGlowFlickerOffsets); flickerSlot++) {
-        _gShelterB1PodServiceGantryGlowFlickerOffsets[flickerSlot] = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> SHELTER_B1_POD_SERVICE_GANTRY_GLOW_RANDOM_BYTE_SHIFT;
+        _gShelterB1PodServiceGantryGlowFlickerOffsets[flickerSlot] = (RANDOM_LCG_ADVANCE()) >> SHELTER_B1_POD_SERVICE_GANTRY_GLOW_RANDOM_BYTE_SHIFT;
     }
 }
 

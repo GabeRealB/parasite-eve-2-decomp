@@ -248,9 +248,9 @@ static void _golemPawnRookTakeHits(Task* actor)
                             work->behavior = GOLEM_PAWN_ROOK_BEHAVIOR_ENGAGE;
                             work->step     = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
                         }
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        randomBits      = gRandomLcgState >> 16;
-                        pitchTilt       = (randomBits & 0x7F) + 0x40;
+                        RANDOM_LCG_ADVANCE();
+                        randomBits = RANDOM_LCG_DRAW();
+                        pitchTilt  = (randomBits & 0x7F) + 0x40;
                         if (!(randomBits & 1)) {
                             pitchTilt = -pitchTilt;
                         }

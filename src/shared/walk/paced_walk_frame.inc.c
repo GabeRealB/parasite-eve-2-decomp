@@ -60,10 +60,10 @@ static void _pacedWalkFrame(Enemy* unusedEnemy, Task* task)
     ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW(task);
     if (work->smoking != 0 && !(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && model->buffer != NULL) {
         if (task->killCountdown & 1) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            smokeLowBits    = (gRandomLcgState >> 16) & PACED_WALK_SMOKE_LOW_MASK;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            smokeHighBits   = (((gRandomLcgState >> 16) & 1) << 30) + PACED_WALK_SMOKE_HIGH_BASE;
+            RANDOM_LCG_ADVANCE();
+            smokeLowBits = RANDOM_LCG_DRAW() & PACED_WALK_SMOKE_LOW_MASK;
+            RANDOM_LCG_ADVANCE();
+            smokeHighBits = ((RANDOM_LCG_DRAW() & 1) << 30) + PACED_WALK_SMOKE_HIGH_BASE;
             effectSpawn(EFFECT_SMOKE_PUFF, smokePart, smokeLowBits + smokeHighBits, NULL);
         }
         task->killCountdown++;

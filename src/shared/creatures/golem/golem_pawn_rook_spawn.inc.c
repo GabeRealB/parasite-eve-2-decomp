@@ -141,7 +141,7 @@ static void _golemPawnRookSpawn(Enemy* enemy, Task* actor)
             work->sightCapsule.end1Radius = GOLEM_PAWN_ROOK_SIGHT_NEAR_RADIUS;
             work->sightCapsule.contacts   = work->sightContacts;
 #if GOLEM_PAWN_ROOK_KIND == GOLEM_PAWN_ROOK_KIND_ROOK
-            randomDraw          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            randomDraw          = RANDOM_LCG_NEXT(gRandomLcgState);
             work->screamCharges = ((randomDraw >> 16) & 1) + 1;
             gRandomLcgState     = randomDraw;
 #endif

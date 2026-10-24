@@ -43,9 +43,9 @@ static void _blazeBodyFireTask(Task* task)
     Task* playerTask;
     s32   partIndex;
 
-    playerTask      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    partIndex       = gRandomLcgState >> 16;
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    RANDOM_LCG_ADVANCE();
+    partIndex = RANDOM_LCG_DRAW();
 
     switch (task->state) {
         case BLAZE_BODY_FIRE_INITIAL:

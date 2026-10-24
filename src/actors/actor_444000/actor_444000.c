@@ -5956,15 +5956,15 @@ static void _actor444000ChooseAttackState(Task* task)
                                                rangeScratch->toPlayer.vz * rangeScratch->toPlayer.vz);
     if (rangeScratch->playerDistance < ACTOR_444000_FAR_ATTACK_DISTANCE) {
         if (rangeScratch->playerDistance >= ACTOR_444000_NEAR_ATTACK_DISTANCE) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((gRandomLcgState >> 16) & 1) {
+            RANDOM_LCG_ADVANCE();
+            if (RANDOM_LCG_DRAW() & 1) {
                 work->state = ACTOR_444000_STATE_THROW_DEBRIS;
             } else {
                 work->state = GLUTTON_STATE_INHALE;
             }
         } else {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((gRandomLcgState >> 16) & 1) {
+            RANDOM_LCG_ADVANCE();
+            if (RANDOM_LCG_DRAW() & 1) {
                 work->state = GLUTTON_STATE_INHALE;
             } else {
                 work->state = GLUTTON_STATE_SWIPE;
@@ -6115,15 +6115,15 @@ static void _actor444000SummonState(Task* task)
                 case 0:
                 case 1:
                     if (summonScratch->slot == 0) {
-                        gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                        if (!((gRandomLcgState >> 16) & 1)) {
+                        RANDOM_LCG_ADVANCE();
+                        if (!(RANDOM_LCG_DRAW() & 1)) {
                             _gActor444000GluttonMadChaserCommand.command.command = 3;
                         } else {
                             _gActor444000GluttonMadChaserCommand.command.command = 4;
                         }
                     } else {
-                        gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                        if (!((gRandomLcgState >> 16) & 1)) {
+                        RANDOM_LCG_ADVANCE();
+                        if (!(RANDOM_LCG_DRAW() & 1)) {
                             _gActor444000GluttonMadChaserCommand.command.command = 5;
                         } else {
                             _gActor444000GluttonMadChaserCommand.command.command = 6;
@@ -6133,15 +6133,15 @@ static void _actor444000SummonState(Task* task)
                 case 2:
                 case 3:
                     if (summonScratch->slot == 0) {
-                        gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                        if (!((gRandomLcgState >> 16) & 1)) {
+                        RANDOM_LCG_ADVANCE();
+                        if (!(RANDOM_LCG_DRAW() & 1)) {
                             _gActor444000GluttonMadChaserCommand.command.command = 0xd;
                         } else {
                             _gActor444000GluttonMadChaserCommand.command.command = 8;
                         }
                     } else {
-                        gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                        if (!((gRandomLcgState >> 16) & 1)) {
+                        RANDOM_LCG_ADVANCE();
+                        if (!(RANDOM_LCG_DRAW() & 1)) {
                             _gActor444000GluttonMadChaserCommand.command.command = 7;
                         } else {
                             _gActor444000GluttonMadChaserCommand.command.command = 0xe;
@@ -6151,15 +6151,15 @@ static void _actor444000SummonState(Task* task)
                 case 4:
                 case 5:
                     if (summonScratch->slot == 0) {
-                        gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                        if (((gRandomLcgState >> 16) & 1)) {
+                        RANDOM_LCG_ADVANCE();
+                        if ((RANDOM_LCG_DRAW() & 1)) {
                             _gActor444000GluttonMadChaserCommand.command.command = 9;
                         } else {
                             _gActor444000GluttonMadChaserCommand.command.command = 0xf;
                         }
                     } else {
-                        gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                        if (!((gRandomLcgState >> 16) & 1)) {
+                        RANDOM_LCG_ADVANCE();
+                        if (!(RANDOM_LCG_DRAW() & 1)) {
                             _gActor444000GluttonMadChaserCommand.command.command = 9;
                         } else {
                             _gActor444000GluttonMadChaserCommand.command.command = 0xf;
@@ -6169,7 +6169,7 @@ static void _actor444000SummonState(Task* task)
             }
             // Bits 8..11 choose the room spot; bits 4..7 choose one of three emergence moves.
             _gActor444000GluttonMadChaserCommand.command.command <<= ACTOR_444000_SUMMON_SPOT_SHIFT;
-            nextRandomState                                        = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            nextRandomState                                        = RANDOM_LCG_NEXT(gRandomLcgState);
             _gActor444000GluttonMadChaserCommand.command.command  |= (s16)(((((u32)nextRandomState >> 16) % 3) * ACTOR_444000_SUMMON_MOVE_STRIDE) | MAD_CHASER_COMMAND_EMERGE);
             gRandomLcgState                                        = nextRandomState;
             TASK_MESSAGE_DISPATCH_POINTER(work->summons[summonScratch->slot]->task, ACTOR_COMMAND_MESSAGE_APPLY, &_gActor444000GluttonMadChaserCommand.command, 0);

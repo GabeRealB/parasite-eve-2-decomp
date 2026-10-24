@@ -703,7 +703,7 @@ void shelterB1GolemFreezer1AmbientEffectsTask(Task* task)
     /// Advances `gRandomLcgState` once using unsigned modulo-2^32 arithmetic,
     /// then returns its upper halfword as u32 (0..65535). Each expansion
     /// mutates the resident state; preserve ordering with other random draws.
-#define SHELTER_B1_GOLEM_FREEZER_1_RANDOM_WORD() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
+#define SHELTER_B1_GOLEM_FREEZER_1_RANDOM_WORD() ((RANDOM_LCG_ADVANCE()) >> 16)
 
     enum {
         SHELTER_B1_GOLEM_FREEZER_1_MIST_EMISSION_FRAME_MASK = 3,
@@ -776,10 +776,10 @@ static inline void _shelterB1GolemFreezer1InitializeMistDrift(EffectWork* work, 
     // Draw a nonzero horizontal bearing before normalizing it in place.
     work->step      = speed;
     work->move.vy   = 0;
-    directionXState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    directionXState = RANDOM_LCG_NEXT(gRandomLcgState);
     gRandomLcgState = directionXState;
     work->move.vx   = SHELTER_B1_GOLEM_FREEZER_1_MIST_DIRECTION_MIDPOINT - ((directionXState >> SHELTER_B1_GOLEM_FREEZER_1_MIST_RANDOM_SAMPLE_SHIFT) & SHELTER_B1_GOLEM_FREEZER_1_MIST_DIRECTION_MASK);
-    directionZState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    directionZState = RANDOM_LCG_NEXT(gRandomLcgState);
     gRandomLcgState = directionZState;
     work->move.vz   = SHELTER_B1_GOLEM_FREEZER_1_MIST_DIRECTION_MIDPOINT - ((directionZState >> SHELTER_B1_GOLEM_FREEZER_1_MIST_RANDOM_SAMPLE_SHIFT) & SHELTER_B1_GOLEM_FREEZER_1_MIST_DIRECTION_MASK);
     VectorNormalSS(&work->move, &work->move);
@@ -814,9 +814,9 @@ void shelterB1GolemFreezer1FloorMistTask(Task* task)
     work->age++;
     if (task->state == SHELTER_B1_GOLEM_FREEZER_1_MIST_STATE_INIT) {
         // Decode the spawn word and choose one screen rotation for the puff's lifetime.
-        work->scale     = task->spawnArg1.value & SHELTER_B1_GOLEM_FREEZER_1_MIST_SIZE_MASK;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->angle     = (gRandomLcgState >> 16) & SHELTER_B1_GOLEM_FREEZER_1_MIST_ANGLE_MASK;
+        work->scale = task->spawnArg1.value & SHELTER_B1_GOLEM_FREEZER_1_MIST_SIZE_MASK;
+        RANDOM_LCG_ADVANCE();
+        work->angle = RANDOM_LCG_DRAW() & SHELTER_B1_GOLEM_FREEZER_1_MIST_ANGLE_MASK;
 
         // Bit 15 participates in the presence test but not the decoded period.
         if (task->spawnArg1.value & SHELTER_B1_GOLEM_FREEZER_1_MIST_PERIOD_PRESENT_MASK) {

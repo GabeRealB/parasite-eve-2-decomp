@@ -1197,8 +1197,8 @@ static void _actor401000Dormant(Task* task)
     }
     // Long-idle throttling also skips awareness and animation work on this tick.
     if (work->stateTimer > ACTOR_401000_DORMANT_QUIET_TICKS) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if (!((gRandomLcgState >> 16) & ACTOR_401000_DORMANT_SKIP_MASK)) {
+        RANDOM_LCG_ADVANCE();
+        if (!(RANDOM_LCG_DRAW() & ACTOR_401000_DORMANT_SKIP_MASK)) {
             return;
         }
     } else {
@@ -1218,8 +1218,8 @@ static void _actor401000Dormant(Task* task)
     }
     _oddStrangerDriveAnimation(task);
     if (work->animId == ACTOR_401000_DORMANT_IDLE_ANIM && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP)) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if ((gRandomLcgState >> 16) & 1) {
+        RANDOM_LCG_ADVANCE();
+        if (RANDOM_LCG_DRAW() & 1) {
             work->animId      = ACTOR_401000_DORMANT_SHIFT_ANIM;
             work->animRequest = ODD_STRANGER_ANIM_REQUEST_BLEND;
             _oddStrangerDriveAnimation(task);

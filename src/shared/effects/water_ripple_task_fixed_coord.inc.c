@@ -36,8 +36,8 @@ static inline void _waterInitializeCachedRipple(const Task* task, EffectWork* ri
 
     rippleWork->scale = WATER_RIPPLE_INITIAL_BRIGHTNESS;
     rippleWork->angle = task->spawnArg1.halves.low & WATER_RIPPLE_SPAWN_SIZE_MASK;
-    gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    surfaceYaw        = (gRandomLcgState >> 16) & ACTOR_TRANSFORM_ANGLE_MASK;
+    RANDOM_LCG_ADVANCE();
+    surfaceYaw = RANDOM_LCG_DRAW() & ACTOR_TRANSFORM_ANGLE_MASK;
     gfxRotMatrixY(&surfaceCoord->coord, surfaceYaw, GRAPHICS_ROTATION_REPLACE);
     surfaceCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }

@@ -128,14 +128,14 @@ static inline void _dryfieldNightMotelBalconyDisableBrokenLamp(void)
 /// a fourth draw for size, while the smoke loop takes only these three.
 /// Leaves the vector's pad halfword intact. Y uses unsigned arithmetic with
 /// the encoded base 0xFE80, then narrows to signed 16 bits. Invoke inside braces.
-#define DRYFIELD_NIGHT_MOTEL_BALCONY_CHOOSE_FLAME_BURST_OFFSET(offset)                    \
-    {                                                                                     \
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT; \
-        (offset)->vx    = 0x80 - ((gRandomLcgState >> 16) & 0xFF);                        \
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT; \
-        (offset)->vy    = 0xFE80 - ((gRandomLcgState >> 16) & 0xFF);                      \
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT; \
-        (offset)->vz    = 0x680 - ((gRandomLcgState >> 16) & 0xFF);                       \
+#define DRYFIELD_NIGHT_MOTEL_BALCONY_CHOOSE_FLAME_BURST_OFFSET(offset) \
+    {                                                                  \
+        RANDOM_LCG_ADVANCE();                                          \
+        (offset)->vx = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);              \
+        RANDOM_LCG_ADVANCE();                                          \
+        (offset)->vy = 0xFE80 - (RANDOM_LCG_DRAW() & 0xFF);            \
+        RANDOM_LCG_ADVANCE();                                          \
+        (offset)->vz = 0x680 - (RANDOM_LCG_DRAW() & 0xFF);             \
     }
 
 /// Projects a debris billboard's cached centre through the current screen matrix.
@@ -4423,11 +4423,11 @@ void dryfieldNightMotelBalconyAmbientEffectsTask(Task* task)
                 effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, DRYFIELD_NIGHT_MOTEL_BALCONY_SCATTERED_PUFF_ARGS, &_gDryfieldNightMotelBalconyView17DebrisBurstOffset);
                 effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, DRYFIELD_NIGHT_MOTEL_BALCONY_SCATTERED_PUFF_ARGS, &_gDryfieldNightMotelBalconyView17DebrisBurstOffset);
                 for (effectIndex = 0; effectIndex < DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_PAIR_COUNT; effectIndex++) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & DRYFIELD_NIGHT_MOTEL_BALCONY_LARGE_DEBRIS_SIZE_MASK) | DRYFIELD_NIGHT_MOTEL_BALCONY_LARGE_DEBRIS_ARGS,
+                    RANDOM_LCG_ADVANCE();
+                    effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, (RANDOM_LCG_DRAW() & DRYFIELD_NIGHT_MOTEL_BALCONY_LARGE_DEBRIS_SIZE_MASK) | DRYFIELD_NIGHT_MOTEL_BALCONY_LARGE_DEBRIS_ARGS,
                                 &_gDryfieldNightMotelBalconyView17DebrisBurstOffset);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & DRYFIELD_NIGHT_MOTEL_BALCONY_SMALL_DEBRIS_SIZE_MASK) | DRYFIELD_NIGHT_MOTEL_BALCONY_SMALL_DEBRIS_ARGS,
+                    RANDOM_LCG_ADVANCE();
+                    effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, (RANDOM_LCG_DRAW() & DRYFIELD_NIGHT_MOTEL_BALCONY_SMALL_DEBRIS_SIZE_MASK) | DRYFIELD_NIGHT_MOTEL_BALCONY_SMALL_DEBRIS_ARGS,
                                 &_gDryfieldNightMotelBalconyView17DebrisBurstOffset);
                 }
             }
@@ -4445,12 +4445,12 @@ void dryfieldNightMotelBalconyAmbientEffectsTask(Task* task)
                 expansionFrames = elapsedFrames - (DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_EXPANSION_START - 1);
                 if ((s16)(elapsedFrames % DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_EMISSION_PERIOD) == 0) {
                     memset(&randomOffset, 0, sizeof(randomOffset));
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    randomOffset.vx = -((s32)(gRandomLcgState >> 16) % (expansionFrames * 10));
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    randomOffset.vy = (s32)(gRandomLcgState >> 16) % (expansionFrames * 10);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    randomOffset.vz = (s32)(gRandomLcgState >> 16) % (expansionFrames * 10);
+                    RANDOM_LCG_ADVANCE();
+                    randomOffset.vx = -((s32)RANDOM_LCG_DRAW() % (expansionFrames * 10));
+                    RANDOM_LCG_ADVANCE();
+                    randomOffset.vy = (s32)RANDOM_LCG_DRAW() % (expansionFrames * 10);
+                    RANDOM_LCG_ADVANCE();
+                    randomOffset.vz = (s32)RANDOM_LCG_DRAW() % (expansionFrames * 10);
                     spawnOffset     = randomOffset;
                     spawnOffset.vx += _gDryfieldNightMotelBalconyExpandingFlameBaseOffset.vx;
                     spawnOffset.vy += _gDryfieldNightMotelBalconyExpandingFlameBaseOffset.vy;
@@ -4478,8 +4478,8 @@ void dryfieldNightMotelBalconyAmbientEffectsTask(Task* task)
         case 29:
             if (++work->scale == DRYFIELD_NIGHT_MOTEL_BALCONY_VIEW_29_BURST_TICK) {
                 for (effectIndex = 0; effectIndex < DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_PAIR_COUNT; effectIndex++) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & DRYFIELD_NIGHT_MOTEL_BALCONY_SMALL_DEBRIS_SIZE_MASK) | DRYFIELD_NIGHT_MOTEL_BALCONY_SMALL_DEBRIS_ARGS,
+                    RANDOM_LCG_ADVANCE();
+                    effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, (RANDOM_LCG_DRAW() & DRYFIELD_NIGHT_MOTEL_BALCONY_SMALL_DEBRIS_SIZE_MASK) | DRYFIELD_NIGHT_MOTEL_BALCONY_SMALL_DEBRIS_ARGS,
                                 &_gDryfieldNightMotelBalconyView29DebrisOffset);
                 }
             }
@@ -4581,33 +4581,33 @@ void dryfieldNightMotelBalconyDebrisTask(Task* task)
             // Discard inherited rotation; velocity remains in the local world frame.
             localTransform = &coord->coord;
             gfxSetRotIdentity(localTransform);
-            work->pos.vx    = (u16)task->spawnArg1.value & DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_SIZE_MASK;
-            work->scale     = DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_INITIAL_SPEED;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->pos.vy    = (gRandomLcgState >> 16) & 7;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->index     = (gRandomLcgState >> 16) & 7;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->pos.vz    = (gRandomLcgState >> 16) & (ONE - 1);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->period    = 0x200 - ((gRandomLcgState >> 16) & 0x3FF);
+            work->pos.vx = (u16)task->spawnArg1.value & DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_SIZE_MASK;
+            work->scale  = DRYFIELD_NIGHT_MOTEL_BALCONY_DEBRIS_INITIAL_SPEED;
+            RANDOM_LCG_ADVANCE();
+            work->pos.vy = RANDOM_LCG_DRAW() & 7;
+            RANDOM_LCG_ADVANCE();
+            work->index = RANDOM_LCG_DRAW() & 7;
+            RANDOM_LCG_ADVANCE();
+            work->pos.vz = RANDOM_LCG_DRAW() & (ONE - 1);
+            RANDOM_LCG_ADVANCE();
+            work->period = 0x200 - (RANDOM_LCG_DRAW() & 0x3FF);
             if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
                 if (task->spawnArg1.value < 0) {
-                    randomCentre    = 0x40;
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vx   = randomCentre - ((gRandomLcgState >> 16) & 0x7F);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vy   = ((gRandomLcgState >> 16) & 0xFF) + 0x20;
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vz   = randomCentre - ((gRandomLcgState >> 16) & 0x7F);
+                    randomCentre = 0x40;
+                    RANDOM_LCG_ADVANCE();
+                    work->move.vx = randomCentre - (RANDOM_LCG_DRAW() & 0x7F);
+                    RANDOM_LCG_ADVANCE();
+                    work->move.vy = (RANDOM_LCG_DRAW() & 0xFF) + 0x20;
+                    RANDOM_LCG_ADVANCE();
+                    work->move.vz = randomCentre - (RANDOM_LCG_DRAW() & 0x7F);
                 } else {
-                    randomCentre    = 0x80;
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vx   = randomCentre - ((gRandomLcgState >> 16) & 0xFF);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vy   = randomCentre - ((gRandomLcgState >> 16) & 0xFF);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vz   = randomCentre - ((gRandomLcgState >> 16) & 0xFF);
+                    randomCentre = 0x80;
+                    RANDOM_LCG_ADVANCE();
+                    work->move.vx = randomCentre - (RANDOM_LCG_DRAW() & 0xFF);
+                    RANDOM_LCG_ADVANCE();
+                    work->move.vy = randomCentre - (RANDOM_LCG_DRAW() & 0xFF);
+                    RANDOM_LCG_ADVANCE();
+                    work->move.vz = randomCentre - (RANDOM_LCG_DRAW() & 0xFF);
                 }
                 gte_SetRotMatrix(&work->parent->coord);
                 gte_ldv0(&work->move);
@@ -4799,12 +4799,12 @@ void dryfieldNightMotelBalconyBreakBurstTask(Task* task)
 /// side-effect-free: count is tested each iteration; sizeMask and packedArgs
 /// are evaluated for each particle. The spawn copies placement and retains
 /// coord as its borrowed parent. Expands to a block and changes particleIndex.
-#define DRYFIELD_NIGHT_MOTEL_BALCONY_EMIT_DEBRIS_BATCH(count, sizeMask, packedArgs)                                                   \
-    {                                                                                                                                 \
-        for (particleIndex = 0; particleIndex < (count); particleIndex++) {                                                           \
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                         \
-            effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & (sizeMask)) | (packedArgs), NULL); \
-        }                                                                                                                             \
+#define DRYFIELD_NIGHT_MOTEL_BALCONY_EMIT_DEBRIS_BATCH(count, sizeMask, packedArgs)                                             \
+    {                                                                                                                           \
+        for (particleIndex = 0; particleIndex < (count); particleIndex++) {                                                     \
+            RANDOM_LCG_ADVANCE();                                                                                               \
+            effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, (RANDOM_LCG_DRAW() & (sizeMask)) | (packedArgs), NULL); \
+        }                                                                                                                       \
     }
 
     EffectWork* work  = task->spawnArg2.pointer;
@@ -4829,8 +4829,8 @@ void dryfieldNightMotelBalconyBreakBurstTask(Task* task)
             break;
         case LARGE_DEBRIS_AND_PUFFS:
             for (particleIndex = 0; particleIndex < 4; particleIndex++) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & LARGE_SIZE_MASK) | LARGE_ROW_ONE_ARGS, NULL);
+                RANDOM_LCG_ADVANCE();
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, (RANDOM_LCG_DRAW() & LARGE_SIZE_MASK) | LARGE_ROW_ONE_ARGS, NULL);
                 effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, ROW_ZERO_PUFF_ARGS, NULL);
             }
             task->state = FINISH;
@@ -4841,8 +4841,8 @@ void dryfieldNightMotelBalconyBreakBurstTask(Task* task)
             break;
         case SMALL_DEBRIS_AND_PUFFS:
             for (particleIndex = 0; particleIndex < 3; particleIndex++) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & SMALL_SIZE_MASK) | SMALL_ROW_ONE_ARGS, NULL);
+                RANDOM_LCG_ADVANCE();
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, (RANDOM_LCG_DRAW() & SMALL_SIZE_MASK) | SMALL_ROW_ONE_ARGS, NULL);
                 effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, ROW_ZERO_PUFF_ARGS, NULL);
             }
             task->state = FINISH;
@@ -4939,13 +4939,13 @@ void dryfieldNightMotelBalconyFallingParticleTask(Task* task)
     switch (task->state) {
         case NEW:
             gfxSetRotIdentity(&coord->coord);
-            work->pos.vx    = task->spawnArg1.halves.low & SIZE_MASK;
-            work->scale     = INITIAL_SCALE;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->index     = (gRandomLcgState >> 16) & START_FRAME_MASK;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vy   = (gRandomLcgState >> 16) & INITIAL_FALL_SPEED_MASK;
-            task->state     = FALLING;
+            work->pos.vx = task->spawnArg1.halves.low & SIZE_MASK;
+            work->scale  = INITIAL_SCALE;
+            RANDOM_LCG_ADVANCE();
+            work->index = RANDOM_LCG_DRAW() & START_FRAME_MASK;
+            RANDOM_LCG_ADVANCE();
+            work->move.vy = RANDOM_LCG_DRAW() & INITIAL_FALL_SPEED_MASK;
+            task->state   = FALLING;
             break;
         case FALLING:
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
@@ -5057,12 +5057,12 @@ static void _dryfieldNightMotelBalconyDrawFallingParticle(const Task* task, cons
 static inline void _dryfieldNightMotelBalconyChooseLampParticleOffset(EffectWork* work)
 {
     enum { DRYFIELD_NIGHT_MOTEL_BALCONY_PARTICLE_OFFSET_RANDOM_MASK = 0x1FF };
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vx   = 0x100 - ((gRandomLcgState >> 16) & DRYFIELD_NIGHT_MOTEL_BALCONY_PARTICLE_OFFSET_RANDOM_MASK);
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vy   = 0x100 - ((gRandomLcgState >> 16) & DRYFIELD_NIGHT_MOTEL_BALCONY_PARTICLE_OFFSET_RANDOM_MASK);
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vz   = 0x100 - ((gRandomLcgState >> 16) & DRYFIELD_NIGHT_MOTEL_BALCONY_PARTICLE_OFFSET_RANDOM_MASK);
+    RANDOM_LCG_ADVANCE();
+    work->move.vx = 0x100 - (RANDOM_LCG_DRAW() & DRYFIELD_NIGHT_MOTEL_BALCONY_PARTICLE_OFFSET_RANDOM_MASK);
+    RANDOM_LCG_ADVANCE();
+    work->move.vy = 0x100 - (RANDOM_LCG_DRAW() & DRYFIELD_NIGHT_MOTEL_BALCONY_PARTICLE_OFFSET_RANDOM_MASK);
+    RANDOM_LCG_ADVANCE();
+    work->move.vz = 0x100 - (RANDOM_LCG_DRAW() & DRYFIELD_NIGHT_MOTEL_BALCONY_PARTICLE_OFFSET_RANDOM_MASK);
 }
 
 void dryfieldNightMotelBalconyLampBurstTask(Task* task)
@@ -5094,61 +5094,61 @@ void dryfieldNightMotelBalconyLampBurstTask(Task* task)
     }
     // The close view emits continuously without advancing the afterglow age.
     if (gGameSession->location.view == CONTINUOUS_VIEW) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if (((gRandomLcgState >> 16) & 3) == 0) {
+        RANDOM_LCG_ADVANCE();
+        if ((RANDOM_LCG_DRAW() & 3) == 0) {
             _dryfieldNightMotelBalconyChooseLampParticleOffset(work);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            randomSize      = (gRandomLcgState >> 16) & SIZE_RANDOM_MASK;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            debrisArgs      = (((gRandomLcgState >> 16) % 3) << 16) + DOWNWARD_DEBRIS_ARGS;
+            RANDOM_LCG_ADVANCE();
+            randomSize = RANDOM_LCG_DRAW() & SIZE_RANDOM_MASK;
+            RANDOM_LCG_ADVANCE();
+            debrisArgs = ((RANDOM_LCG_DRAW() % 3) << 16) + DOWNWARD_DEBRIS_ARGS;
             effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, randomSize + debrisArgs, &work->move);
         }
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if ((u16)((gRandomLcgState >> 16) % 3U) == 0) {
+        RANDOM_LCG_ADVANCE();
+        if ((u16)(RANDOM_LCG_DRAW() % 3U) == 0) {
             _dryfieldNightMotelBalconyChooseLampParticleOffset(work);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_FALLING, coord, ((gRandomLcgState >> 16) & SIZE_RANDOM_MASK) + FALLING_SIZE_BASE, &work->move);
+            RANDOM_LCG_ADVANCE();
+            effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_FALLING, coord, (RANDOM_LCG_DRAW() & SIZE_RANDOM_MASK) + FALLING_SIZE_BASE, &work->move);
         }
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if ((u16)((gRandomLcgState >> 16) % 7U) == 0) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-            work->move.vy   = 0;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, ((gRandomLcgState >> 16) & SIZE_RANDOM_MASK) | RISING_PUFF_ARGS, &work->move);
+        RANDOM_LCG_ADVANCE();
+        if ((u16)(RANDOM_LCG_DRAW() % 7U) == 0) {
+            RANDOM_LCG_ADVANCE();
+            work->move.vx = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
+            work->move.vy = 0;
+            RANDOM_LCG_ADVANCE();
+            work->move.vz = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
+            RANDOM_LCG_ADVANCE();
+            effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, (RANDOM_LCG_DRAW() & SIZE_RANDOM_MASK) | RISING_PUFF_ARGS, &work->move);
         }
     } else {
         // Away from the close view, two emission windows taper out before release.
         work->age++;
         if (work->age < AFTERGLOW_LIFETIME) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if (work->age < (u16)((gRandomLcgState >> 16) % (u32)AFTERGLOW_LIFETIME)) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                if (((gRandomLcgState >> 16) & 3) == 0) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vy   = (gRandomLcgState >> 16) & 0x7FF;
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, ((gRandomLcgState >> 16) & SIZE_RANDOM_MASK) | AFTERGLOW_PUFF_ARGS,
+            RANDOM_LCG_ADVANCE();
+            if (work->age < (u16)(RANDOM_LCG_DRAW() % (u32)AFTERGLOW_LIFETIME)) {
+                RANDOM_LCG_ADVANCE();
+                if ((RANDOM_LCG_DRAW() & 3) == 0) {
+                    RANDOM_LCG_ADVANCE();
+                    work->move.vx = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
+                    RANDOM_LCG_ADVANCE();
+                    work->move.vy = RANDOM_LCG_DRAW() & 0x7FF;
+                    RANDOM_LCG_ADVANCE();
+                    work->move.vz = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
+                    RANDOM_LCG_ADVANCE();
+                    effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, (RANDOM_LCG_DRAW() & SIZE_RANDOM_MASK) | AFTERGLOW_PUFF_ARGS,
                                 &work->move);
                 }
             }
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if (work->age < (u16)((gRandomLcgState >> 16) % (u32)HIGH_PUFF_EMISSION_WINDOW)) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                if (((gRandomLcgState >> 16) & 3) == 0) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vx   = 0x100 - ((gRandomLcgState >> 16) & SIZE_RANDOM_MASK);
-                    work->move.vy   = HIGH_PUFF_HEIGHT;
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vz   = 0x100 - ((gRandomLcgState >> 16) & SIZE_RANDOM_MASK);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, ((gRandomLcgState >> 16) & SIZE_RANDOM_MASK) | HIGH_PUFF_ARGS,
+            RANDOM_LCG_ADVANCE();
+            if (work->age < (u16)(RANDOM_LCG_DRAW() % (u32)HIGH_PUFF_EMISSION_WINDOW)) {
+                RANDOM_LCG_ADVANCE();
+                if ((RANDOM_LCG_DRAW() & 3) == 0) {
+                    RANDOM_LCG_ADVANCE();
+                    work->move.vx = 0x100 - (RANDOM_LCG_DRAW() & SIZE_RANDOM_MASK);
+                    work->move.vy = HIGH_PUFF_HEIGHT;
+                    RANDOM_LCG_ADVANCE();
+                    work->move.vz = 0x100 - (RANDOM_LCG_DRAW() & SIZE_RANDOM_MASK);
+                    RANDOM_LCG_ADVANCE();
+                    effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, (RANDOM_LCG_DRAW() & SIZE_RANDOM_MASK) | HIGH_PUFF_ARGS,
                                 &work->move);
                 }
             }
@@ -5192,37 +5192,37 @@ void dryfieldNightMotelBalconyDriftPuffTask(Task* task)
             // Normalize the chosen world-frame drift once, then retain displacement per frame.
             localTransform = &coord->coord;
             gfxSetRotIdentity(localTransform);
-            work->pos.vx    = (u16)task->spawnArg1.value & DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_SIZE_MASK;
-            work->scale     = driftRange;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->pos.vy    = ((gRandomLcgState >> 16) & 3) + 1;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->pos.vz    = (gRandomLcgState >> 16) & (ONE - 1);
-            work->index     = 0;
+            work->pos.vx = (u16)task->spawnArg1.value & DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_SIZE_MASK;
+            work->scale  = driftRange;
+            RANDOM_LCG_ADVANCE();
+            work->pos.vy = (RANDOM_LCG_DRAW() & 3) + 1;
+            RANDOM_LCG_ADVANCE();
+            work->pos.vz = RANDOM_LCG_DRAW() & (ONE - 1);
+            work->index  = 0;
             if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
                 if (task->spawnArg1.value & DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_SCATTER) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vx   = driftRange - ((gRandomLcgState >> 16) & 0xFF);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vy   = driftRange - ((gRandomLcgState >> 16) & 0xFF);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vz   = driftRange - ((gRandomLcgState >> 16) & 0xFF);
-                    work->scale     = 0x40;
+                    RANDOM_LCG_ADVANCE();
+                    work->move.vx = driftRange - (RANDOM_LCG_DRAW() & 0xFF);
+                    RANDOM_LCG_ADVANCE();
+                    work->move.vy = driftRange - (RANDOM_LCG_DRAW() & 0xFF);
+                    RANDOM_LCG_ADVANCE();
+                    work->move.vz = driftRange - (RANDOM_LCG_DRAW() & 0xFF);
+                    work->scale   = 0x40;
                 } else {
                     if (task->spawnArg1.value < 0) {
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vx   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vy   = -((gRandomLcgState >> 16) & 0xFF);
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vz   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                        RANDOM_LCG_ADVANCE();
+                        work->move.vx = 0x10 - (RANDOM_LCG_DRAW() & 0x1F);
+                        RANDOM_LCG_ADVANCE();
+                        work->move.vy = -(RANDOM_LCG_DRAW() & 0xFF);
+                        RANDOM_LCG_ADVANCE();
+                        work->move.vz = 0x10 - (RANDOM_LCG_DRAW() & 0x1F);
                     } else {
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vx   = driftRange - ((gRandomLcgState >> 16) & 0xFF);
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vy   = (gRandomLcgState >> 16) & 0xF;
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vz   = driftRange - ((gRandomLcgState >> 16) & 0xFF);
+                        RANDOM_LCG_ADVANCE();
+                        work->move.vx = driftRange - (RANDOM_LCG_DRAW() & 0xFF);
+                        RANDOM_LCG_ADVANCE();
+                        work->move.vy = RANDOM_LCG_DRAW() & 0xF;
+                        RANDOM_LCG_ADVANCE();
+                        work->move.vz = driftRange - (RANDOM_LCG_DRAW() & 0xFF);
                     }
                     if (task->spawnArg1.value & DRYFIELD_NIGHT_MOTEL_BALCONY_PUFF_SLOW) {
                         work->scale = 0x40;
@@ -5369,21 +5369,21 @@ void dryfieldNightMotelBalconyFlameTask(Task* task)
     switch (task->state) {
         case DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_NEW:
             // Randomize the sprite phase and lifetime before selecting and scaling drift.
-            randomState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            randomState    = RANDOM_LCG_NEXT(gRandomLcgState);
             localTransform = &coord->coord;
             gfxSetRotIdentity(localTransform);
             work->pos.vx    = task->spawnArg1.value & DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_SIZE_MASK;
             gRandomLcgState = randomState;
-            work->index     = (gRandomLcgState >> 16) % 10;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->angle     = (gRandomLcgState >> 16) % 10 + 5;
+            work->index     = RANDOM_LCG_DRAW() % 10;
+            RANDOM_LCG_ADVANCE();
+            work->angle = RANDOM_LCG_DRAW() % 10 + 5;
             if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->move.vy   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                RANDOM_LCG_ADVANCE();
+                work->move.vx = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
+                RANDOM_LCG_ADVANCE();
+                work->move.vy = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
+                RANDOM_LCG_ADVANCE();
+                work->move.vz = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
                 if (task->spawnArg1.value < 0) {
                     work->scale = 8;
                 } else if (task->spawnArg1.value & DRYFIELD_NIGHT_MOTEL_BALCONY_FLAME_FAST) {
@@ -5537,8 +5537,8 @@ void dryfieldNightMotelBalconySpawnFlameBurst(void)
 
     for (particleIndex = 0; particleIndex < DRYFIELD_NIGHT_MOTEL_BALCONY_BURST_FLAME_COUNT; particleIndex++) {
         DRYFIELD_NIGHT_MOTEL_BALCONY_CHOOSE_FLAME_BURST_OFFSET(&spawnOffset);
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        effectSpawn(EFFECT_NIGHT_MOTEL_BALCONY_FLAME, emissionCoord, ((gRandomLcgState >> 16) & DRYFIELD_NIGHT_MOTEL_BALCONY_BURST_SIZE_MASK) + DRYFIELD_NIGHT_MOTEL_BALCONY_BURST_SIZE_BASE, &spawnOffset);
+        RANDOM_LCG_ADVANCE();
+        effectSpawn(EFFECT_NIGHT_MOTEL_BALCONY_FLAME, emissionCoord, (RANDOM_LCG_DRAW() & DRYFIELD_NIGHT_MOTEL_BALCONY_BURST_SIZE_MASK) + DRYFIELD_NIGHT_MOTEL_BALCONY_BURST_SIZE_BASE, &spawnOffset);
     }
 
     for (particleIndex = 0; particleIndex < DRYFIELD_NIGHT_MOTEL_BALCONY_BURST_SMOKE_COUNT; particleIndex++) {
@@ -5557,13 +5557,13 @@ void dryfieldNightMotelBalconyTrySpawnFlame(void)
     };
     Task* sceneTask;
 
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    if ((u16)((gRandomLcgState >> 16) % (u32)DRYFIELD_NIGHT_MOTEL_BALCONY_PERIODIC_FLAME_CHANCE_DIVISOR) == 0) {
-        sceneTask       = gameGetTaskSlot(GAME_TASK_SLOT_SCENE);
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    RANDOM_LCG_ADVANCE();
+    if ((u16)(RANDOM_LCG_DRAW() % (u32)DRYFIELD_NIGHT_MOTEL_BALCONY_PERIODIC_FLAME_CHANCE_DIVISOR) == 0) {
+        sceneTask = gameGetTaskSlot(GAME_TASK_SLOT_SCENE);
+        RANDOM_LCG_ADVANCE();
         // Bit 31 selects slow drift; the random bits alter only the size.
         effectSpawn(EFFECT_NIGHT_MOTEL_BALCONY_FLAME, sceneTask->firstChild->extra.tmd->coords + DRYFIELD_NIGHT_MOTEL_BALCONY_PERIODIC_FLAME_MODEL_PART,
-                    ((gRandomLcgState >> 16) & DRYFIELD_NIGHT_MOTEL_BALCONY_PERIODIC_FLAME_SIZE_MASK) + DRYFIELD_NIGHT_MOTEL_BALCONY_PERIODIC_FLAME_SLOW_SIZE_BASE,
+                    (RANDOM_LCG_DRAW() & DRYFIELD_NIGHT_MOTEL_BALCONY_PERIODIC_FLAME_SIZE_MASK) + DRYFIELD_NIGHT_MOTEL_BALCONY_PERIODIC_FLAME_SLOW_SIZE_BASE,
                     &_gDryfieldNightMotelBalconyPeriodicFlameOffset);
     }
 }

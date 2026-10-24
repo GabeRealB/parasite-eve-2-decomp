@@ -22,16 +22,16 @@ static inline void _leafSeedMotion(EffectWork* work)
         LEAF_INITIAL_MOVE_MASK     = 0x1F,
     };
 
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->period    = LEAF_INITIAL_X_TUMBLE_BIAS - ((gRandomLcgState >> 16) & LEAF_INITIAL_X_TUMBLE_MASK);
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->step      = LEAF_INITIAL_Z_TUMBLE_BIAS - ((gRandomLcgState >> 16) & LEAF_INITIAL_Z_TUMBLE_MASK);
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vx   = LEAF_INITIAL_MOVE_BIAS - ((gRandomLcgState >> 16) & LEAF_INITIAL_MOVE_MASK);
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vy   = LEAF_INITIAL_MOVE_BIAS - ((gRandomLcgState >> 16) & LEAF_INITIAL_MOVE_MASK);
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vz   = LEAF_INITIAL_MOVE_BIAS - ((gRandomLcgState >> 16) & LEAF_INITIAL_MOVE_MASK);
+    RANDOM_LCG_ADVANCE();
+    work->period = LEAF_INITIAL_X_TUMBLE_BIAS - (RANDOM_LCG_DRAW() & LEAF_INITIAL_X_TUMBLE_MASK);
+    RANDOM_LCG_ADVANCE();
+    work->step = LEAF_INITIAL_Z_TUMBLE_BIAS - (RANDOM_LCG_DRAW() & LEAF_INITIAL_Z_TUMBLE_MASK);
+    RANDOM_LCG_ADVANCE();
+    work->move.vx = LEAF_INITIAL_MOVE_BIAS - (RANDOM_LCG_DRAW() & LEAF_INITIAL_MOVE_MASK);
+    RANDOM_LCG_ADVANCE();
+    work->move.vy = LEAF_INITIAL_MOVE_BIAS - (RANDOM_LCG_DRAW() & LEAF_INITIAL_MOVE_MASK);
+    RANDOM_LCG_ADVANCE();
+    work->move.vz = LEAF_INITIAL_MOVE_BIAS - (RANDOM_LCG_DRAW() & LEAF_INITIAL_MOVE_MASK);
 }
 
 /// Advances one tumbling leaf through its fall, stationary hold and fade.
@@ -92,8 +92,8 @@ static inline void _leafFallTask(Task* task)
 
             driftX = work->move.vx;
             if (driftX == 0) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->move.vx  += (2 - (u16)((gRandomLcgState >> 16) % 5U)) * 8;
+                RANDOM_LCG_ADVANCE();
+                work->move.vx += (2 - (u16)(RANDOM_LCG_DRAW() % 5U)) * 8;
             } else {
                 if (driftX > 0) {
                     driftX = driftX - 1;
@@ -105,9 +105,9 @@ static inline void _leafFallTask(Task* task)
 
             driftZ = work->move.vz;
             if (driftZ == 0) {
-                work->move.vz  += work->step % 32;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->move.vz  += (2 - (u16)((gRandomLcgState >> 16) % 5U)) * 8;
+                work->move.vz += work->step % 32;
+                RANDOM_LCG_ADVANCE();
+                work->move.vz += (2 - (u16)(RANDOM_LCG_DRAW() % 5U)) * 8;
             } else {
                 if (driftZ > 0) {
                     driftZ = driftZ - 1;
@@ -117,10 +117,10 @@ static inline void _leafFallTask(Task* task)
                 work->move.vz = driftZ;
             }
 
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->period   += (1 - (u16)((gRandomLcgState >> 16) % 3U)) * 0x10;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->step     += (1 - (u16)((gRandomLcgState >> 16) % 3U)) * 8;
+            RANDOM_LCG_ADVANCE();
+            work->period += (1 - (u16)(RANDOM_LCG_DRAW() % 3U)) * 0x10;
+            RANDOM_LCG_ADVANCE();
+            work->step += (1 - (u16)(RANDOM_LCG_DRAW() % 3U)) * 8;
 
             if (coord->coord.t[1] > 0) {
                 task->state = LEAF_STATE_HOLD;

@@ -167,7 +167,7 @@ void energyshotCastTask(Task* task)
                         s32 randomState;
 
                         segmentIndex   += 1;
-                        randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        randomState     = RANDOM_LCG_NEXT(gRandomLcgState);
                         *texturePhase   = ((u32)randomState >> 16) & ENERGYSHOT_CAST_TEXTURE_PHASE_MASK;
                         texturePhase   += 1;
                         gRandomLcgState = randomState;
@@ -186,7 +186,7 @@ void energyshotCastTask(Task* task)
                             s32 randomState;
 
                             baseYaw                             = segmentIndex * (ENERGYSHOT_CAST_ANGLE_TURN / _gEnergyshotLevelTuning[(s16)levelIndex].wedgeCount);
-                            randomState                         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                            randomState                         = RANDOM_LCG_NEXT(gRandomLcgState);
                             _gEnergyshotWedgeYaws[segmentIndex] = baseYaw + (((u32)randomState >> 16) & ENERGYSHOT_CAST_YAW_JITTER_MASK);
                             segmentIndex                       += 1;
                             gRandomLcgState                     = randomState;
@@ -239,7 +239,7 @@ void energyshotCastTask(Task* task)
                 _energyshotDrawBeamBand(
                     coord, (s16)(work->scale * 6),
                     _gEnergyshotLevelTuning[work->index].ringHeight - ENERGYSHOT_CAST_BEAM_HEIGHT_SHORTFALL, rgb);
-                randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                randomState     = RANDOM_LCG_NEXT(gRandomLcgState);
                 spawnYaw        = ((u32)randomState >> 16) & ENERGYSHOT_CAST_SPARK_ANGLE_MASK;
                 gRandomLcgState = randomState;
                 work->angle     = spawnYaw;
@@ -452,14 +452,14 @@ static inline void _energyshotInitRisingBillboard(EffectWork* work)
         ENERGYSHOT_BILLBOARD_ROTATION_MASK   = 0xFFF,
     };
 
-    work->move.vx   = 0;
-    work->move.vz   = 0;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->move.vx = 0;
+    work->move.vz = 0;
+    RANDOM_LCG_ADVANCE();
     // Interpret the unsigned subtraction's low halfword as a signed Y displacement.
-    work->move.vy   = (s16)(ENERGYSHOT_BILLBOARD_Y_VELOCITY_BASE -
-                          ((gRandomLcgState >> 16) & ENERGYSHOT_BILLBOARD_Y_JITTER_MASK));
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->scale     = (gRandomLcgState >> 16) & ENERGYSHOT_BILLBOARD_ROTATION_MASK;
+    work->move.vy = (s16)(ENERGYSHOT_BILLBOARD_Y_VELOCITY_BASE -
+                          (RANDOM_LCG_DRAW() & ENERGYSHOT_BILLBOARD_Y_JITTER_MASK));
+    RANDOM_LCG_ADVANCE();
+    work->scale = RANDOM_LCG_DRAW() & ENERGYSHOT_BILLBOARD_ROTATION_MASK;
 }
 
 void energyshotRisingBillboardTask(Task* task)

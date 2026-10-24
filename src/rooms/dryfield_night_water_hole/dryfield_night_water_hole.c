@@ -1735,12 +1735,12 @@ void dryfieldNightWaterHoleSplashAndLightShaftsTask(Task* task)
         surfaceCoord.coord.t[1]   = gGameSession->waterY;                                                                                                                \
         surfaceCoord.composeStamp = GRAPHICS_COORD_DIRTY;                                                                                                                \
         actorRenderComposeCoord(&surfaceCoord);                                                                                                                          \
-        randomRoll = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);                                                                 \
+        randomRoll = (RANDOM_LCG_ADVANCE());                                                                                                                             \
         if ((s32)((randomRoll >> 16) & DRYFIELD_NIGHT_WATER_HOLE_SPLASH_ROLL_MASK) < work->angle) {                                                                      \
             effectSpawn(gRoomEffectWaterRippleId, &surfaceCoord, DRYFIELD_NIGHT_WATER_HOLE_RIPPLE_HALF_SIDE, 0);                                                         \
         }                                                                                                                                                                \
         work->angle -= DRYFIELD_NIGHT_WATER_HOLE_RIPPLE_ODDS_BIAS;                                                                                                       \
-        randomRoll   = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);                                                               \
+        randomRoll   = (RANDOM_LCG_ADVANCE());                                                                                                                           \
         if ((s32)((randomRoll >> 16) & DRYFIELD_NIGHT_WATER_HOLE_SPLASH_ROLL_MASK) < work->angle) {                                                                      \
             effectSpawn(gRoomEffectWaterSprayId, &surfaceCoord, DRYFIELD_NIGHT_WATER_HOLE_SPRAY_SPAWN_ARG, 0);                                                           \
         }                                                                                                                                                                \

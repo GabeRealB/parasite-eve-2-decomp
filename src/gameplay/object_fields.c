@@ -95,8 +95,8 @@ static u16 D_80114096 = 0x3430;
 /// Callers own reaction activation, pulse counting and expiry.
 static inline void _damageReseedEnemyDamageOverTimeDelay(Enemy* enemy)
 {
-    gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    enemy->damageOverTimeDelay = ((gRandomLcgState >> 16) & DAMAGE_ENEMY_POISON_DELAY_JITTER_MASK) + DAMAGE_ENEMY_POISON_DELAY_BASE_TICKS;
+    RANDOM_LCG_ADVANCE();
+    enemy->damageOverTimeDelay = (RANDOM_LCG_DRAW() & DAMAGE_ENEMY_POISON_DELAY_JITTER_MASK) + DAMAGE_ENEMY_POISON_DELAY_BASE_TICKS;
 }
 
 s32 damageGetHazardDamage(s32 hazardKey, s32 victim)
@@ -146,10 +146,10 @@ void damageTryStartEnemyDamageOverTime(Enemy* enemy, s32 attackKey, s32 unused)
     s32 roll;
 
     // Roll the kind's percent chance before changing any reaction state.
-    poisonPercent   = enemy->param->damageOverTimeChance;
-    poisonChance    = (poisonPercent << DAMAGE_CHANCE_FRACTION_BITS) / 100;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    roll            = gRandomLcgState >> 16 & DAMAGE_CHANCE_DRAW_MASK;
+    poisonPercent = enemy->param->damageOverTimeChance;
+    poisonChance  = (poisonPercent << DAMAGE_CHANCE_FRACTION_BITS) / 100;
+    RANDOM_LCG_ADVANCE();
+    roll = RANDOM_LCG_DRAW() & DAMAGE_CHANCE_DRAW_MASK;
     if (roll < poisonChance) {
         enemy->damageOverTimePulse = 0;
         enemy->reactionFlags      |= ENEMY_REACTION_DAMAGE_OVER_TIME;
@@ -245,8 +245,8 @@ s32 damageTickEnemyBuildup(Enemy* enemy)
         if (enemy->buildupTimer >= DAMAGE_ENEMY_BUILDUP_STEP_TICKS) {
             enemy->buildupStep++;
             if (enemy->buildupStep >= stepLimit) {
-                gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                enemy->buildupTimer = gRandomLcgState >> 16 & DAMAGE_ENEMY_BUILDUP_HOLD_SEED_MASK;
+                RANDOM_LCG_ADVANCE();
+                enemy->buildupTimer = RANDOM_LCG_DRAW() & DAMAGE_ENEMY_BUILDUP_HOLD_SEED_MASK;
             } else {
                 enemy->buildupTimer = 0;
             }

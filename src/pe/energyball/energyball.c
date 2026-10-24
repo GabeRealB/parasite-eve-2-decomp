@@ -136,14 +136,14 @@ static s16 _gEnergyballChargeBandFrameOffsets[EFFECT_BAND_SEGMENT_COUNT];
 /// table length and phaseRoll holding the final state bits. Captures the
 /// package phase table and shared random state; neither output is retained.
 /// Expands to one statement; the loop and RNG stores retain their original order.
-#define ENERGYBALL_SEED_CHARGE_BAND_PHASES(segmentIndex, phaseRoll)                                                              \
-    do {                                                                                                                         \
-        enum { ENERGYBALL_PHASE_JITTER_MASK = 0xFF };                                                                            \
-        for ((segmentIndex) = 0; (segmentIndex) < ARRAY_SIZE(_gEnergyballChargeBandFrameOffsets); (segmentIndex)++) {            \
-            (phaseRoll)                                        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT; \
-            _gEnergyballChargeBandFrameOffsets[(segmentIndex)] = ((u32)(phaseRoll) >> 16) & ENERGYBALL_PHASE_JITTER_MASK;        \
-            gRandomLcgState                                    = (phaseRoll);                                                    \
-        }                                                                                                                        \
+#define ENERGYBALL_SEED_CHARGE_BAND_PHASES(segmentIndex, phaseRoll)                                                       \
+    do {                                                                                                                  \
+        enum { ENERGYBALL_PHASE_JITTER_MASK = 0xFF };                                                                     \
+        for ((segmentIndex) = 0; (segmentIndex) < ARRAY_SIZE(_gEnergyballChargeBandFrameOffsets); (segmentIndex)++) {     \
+            (phaseRoll)                                        = RANDOM_LCG_NEXT(gRandomLcgState);                        \
+            _gEnergyballChargeBandFrameOffsets[(segmentIndex)] = ((u32)(phaseRoll) >> 16) & ENERGYBALL_PHASE_JITTER_MASK; \
+            gRandomLcgState                                    = (phaseRoll);                                             \
+        }                                                                                                                 \
     } while (0)
 
 void energyballCastTask(Task* task)
@@ -293,14 +293,14 @@ void energyballProjectileTask(Task* task)
                 effect->age = 0;
                 return;
             }
-            task->work                = collision;
-            effect->index             = (gAttachmentState.attachId % 10) - 1;
-            effect->move.vx           = 0;
-            gRandomLcgState           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            task->work      = collision;
+            effect->index   = (gAttachmentState.attachId % 10) - 1;
+            effect->move.vx = 0;
+            RANDOM_LCG_ADVANCE();
             effect->move.vy           = -_gEnergyballLevelTuning[effect->index].sizeStep;
             effect->move.vz           = 0;
             effect->angle             = 0;
-            effect->period            = (gRandomLcgState >> 16) & ENERGYBALL_RANDOM_DIRECTION_MASK;
+            effect->period            = RANDOM_LCG_DRAW() & ENERGYBALL_RANDOM_DIRECTION_MASK;
             gEnergyBallInFlightCount += 1;
             effect->scale             = ENERGYBALL_BRIGHTNESS;
             effect->step              = ENERGYBALL_INITIAL_SPEED;
@@ -326,12 +326,12 @@ void energyballProjectileTask(Task* task)
                 collision->contacts[0].flags = WORLD_COLLISION_CONTACT_LAST;
                 collision->body.flags       |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 task->state                  = ENERGYBALL_STATE_FLYING;
-                gRandomLcgState              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                effect->move.vx              = ENERGYBALL_RANDOM_DIRECTION_CENTRE - ((gRandomLcgState >> 16) & ENERGYBALL_RANDOM_DIRECTION_MASK);
-                gRandomLcgState              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                effect->move.vy              = ENERGYBALL_RANDOM_DIRECTION_CENTRE - ((gRandomLcgState >> 16) & ENERGYBALL_RANDOM_DIRECTION_MASK);
-                gRandomLcgState              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                effect->move.vz              = ENERGYBALL_RANDOM_DIRECTION_CENTRE - ((gRandomLcgState >> 16) & ENERGYBALL_RANDOM_DIRECTION_MASK);
+                RANDOM_LCG_ADVANCE();
+                effect->move.vx = ENERGYBALL_RANDOM_DIRECTION_CENTRE - (RANDOM_LCG_DRAW() & ENERGYBALL_RANDOM_DIRECTION_MASK);
+                RANDOM_LCG_ADVANCE();
+                effect->move.vy = ENERGYBALL_RANDOM_DIRECTION_CENTRE - (RANDOM_LCG_DRAW() & ENERGYBALL_RANDOM_DIRECTION_MASK);
+                RANDOM_LCG_ADVANCE();
+                effect->move.vz = ENERGYBALL_RANDOM_DIRECTION_CENTRE - (RANDOM_LCG_DRAW() & ENERGYBALL_RANDOM_DIRECTION_MASK);
                 VectorNormalSS(flightVelocity, flightVelocity);
                 gte_lddp(effect->step);
                 gte_ldsv(flightVelocity);
@@ -341,11 +341,11 @@ void energyballProjectileTask(Task* task)
                 effect->pos.vy = -_gEnergyballLevelTuning[effect->index].sizeStep;
                 effect->pos.vz = 0;
             }
-            lightSlot->framesLeft    = ENERGYBALL_LIGHT_HOLD_FRAMES;
-            pointLight->inner        = ENERGYBALL_LIGHT_INNER_RADIUS;
-            pointLight->outer        = ENERGYBALL_LIGHT_OUTER_RADIUS;
-            gRandomLcgState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            lightIntensity           = ((gRandomLcgState >> 16) & ENERGYBALL_LIGHT_JITTER_MASK) + ENERGYBALL_LIGHT_INTENSITY_BASE;
+            lightSlot->framesLeft = ENERGYBALL_LIGHT_HOLD_FRAMES;
+            pointLight->inner     = ENERGYBALL_LIGHT_INNER_RADIUS;
+            pointLight->outer     = ENERGYBALL_LIGHT_OUTER_RADIUS;
+            RANDOM_LCG_ADVANCE();
+            lightIntensity           = (RANDOM_LCG_DRAW() & ENERGYBALL_LIGHT_JITTER_MASK) + ENERGYBALL_LIGHT_INTENSITY_BASE;
             pointLight->head.color.g = lightIntensity;
             pointLight->head.color.r = (u16)pointLight->head.color.g >> 1;
             pointLight->head.color.b = pointLight->head.color.g >> 1;
@@ -406,11 +406,11 @@ void energyballProjectileTask(Task* task)
                 effect->move.vz   = (velocityComponent < effect->pos.vz) ? velocityComponent + ENERGYBALL_STEERING_STEP : velocityComponent - ENERGYBALL_STEERING_STEP;
             }
             _energyballAdvanceProjectileCoord(coord, effect);
-            lightSlot->framesLeft    = ENERGYBALL_LIGHT_HOLD_FRAMES;
-            pointLight->inner        = ENERGYBALL_LIGHT_INNER_RADIUS;
-            pointLight->outer        = ENERGYBALL_LIGHT_OUTER_RADIUS;
-            gRandomLcgState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            lightIntensity           = ((gRandomLcgState >> 16) & ENERGYBALL_LIGHT_JITTER_MASK) + ENERGYBALL_LIGHT_INTENSITY_BASE;
+            lightSlot->framesLeft = ENERGYBALL_LIGHT_HOLD_FRAMES;
+            pointLight->inner     = ENERGYBALL_LIGHT_INNER_RADIUS;
+            pointLight->outer     = ENERGYBALL_LIGHT_OUTER_RADIUS;
+            RANDOM_LCG_ADVANCE();
+            lightIntensity           = (RANDOM_LCG_DRAW() & ENERGYBALL_LIGHT_JITTER_MASK) + ENERGYBALL_LIGHT_INTENSITY_BASE;
             pointLight->head.color.g = lightIntensity;
             pointLight->head.color.r = (u16)pointLight->head.color.g >> 1;
             pointLight->head.color.b = pointLight->head.color.g >> 1;

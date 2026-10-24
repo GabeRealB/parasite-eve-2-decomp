@@ -114,7 +114,7 @@ enum {
 ///
 /// Captures `gRandomLcgState`; multiplication and addition wrap modulo 2^32.
 /// Each invocation consumes one draw, so callers must preserve draw order.
-#define DRYFIELD_NIGHT_MAIN_STREET_RAND() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
+#define DRYFIELD_NIGHT_MAIN_STREET_RAND() ((RANDOM_LCG_ADVANCE()) >> 16)
 
 /// The room effect mode of each view, indexed by view - 1.
 

@@ -1685,8 +1685,8 @@ static void _actor356100Sidestep(Task* actor)
         _actorPositionDeltaToPlayer(&gPlayerStatus, actor->extra.tmd->coords, &sidestep->delta);
         sidestep->turn = ratan2(scratchEnd[-1].delta.vx, sidestep->delta.vz);
         if (work->sidestepSide == 0) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((gRandomLcgState >> 16) & 1) {
+            RANDOM_LCG_ADVANCE();
+            if (RANDOM_LCG_DRAW() & 1) {
                 work->sidestepSide = 1;
             } else {
                 work->sidestepSide = -1;
@@ -2112,8 +2112,8 @@ static void _actor356100Dormant(Task* actor)
     }
     // After the idle threshold, only a zero random nibble skips this tick.
     if (work->stateTimer > RANDOM_SKIP_AFTER_TICKS) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if (!((gRandomLcgState >> 16) & RANDOM_SKIP_MASK)) {
+        RANDOM_LCG_ADVANCE();
+        if (!(RANDOM_LCG_DRAW() & RANDOM_SKIP_MASK)) {
             return;
         }
     } else {
@@ -2127,8 +2127,8 @@ static void _actor356100Dormant(Task* actor)
     }
     _actor356100UpdateAnimation(actor);
     if (work->animId == ACTOR_356100_ANIM_DORMANT && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP)) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if ((gRandomLcgState >> 16) & 1) {
+        RANDOM_LCG_ADVANCE();
+        if (RANDOM_LCG_DRAW() & 1) {
             work->animId      = ACTOR_356100_ANIM_DORMANT_FIDGET;
             work->animRequest = ACTOR_356100_ANIM_REQUEST_BLEND;
             _actor356100UpdateAnimation(actor);
@@ -3156,8 +3156,8 @@ static void _actor356100Down(Task* actor)
     work  = actor->work;
     enemy = actor->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->stateTimer = work->downFramesBase + ((gRandomLcgState >> 16) & EXTRA_DOWN_TICKS_MASK);
+        RANDOM_LCG_ADVANCE();
+        work->stateTimer = work->downFramesBase + (RANDOM_LCG_DRAW() & EXTRA_DOWN_TICKS_MASK);
     }
     if ((s16)--work->stateTimer < 0) {
         switch (work->animId) {

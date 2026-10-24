@@ -1069,10 +1069,10 @@ void neoArkBridgeAmbientEffectsTask(Task* task)
     /// cell and drifting rise. Keep the room-owned point live for the puff.
 #define NEO_ARK_BRIDGE_TRY_SPAWN_AMBIENT_SMOKE(worldPoint, rollState, optionsState)                                                                            \
     {                                                                                                                                                          \
-        (rollState)     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                                      \
+        (rollState)     = RANDOM_LCG_NEXT(gRandomLcgState);                                                                                                    \
         gRandomLcgState = (rollState);                                                                                                                         \
         if ((((rollState) >> 16) & NEO_ARK_BRIDGE_SMOKE_CHANCE_MASK) == 0) {                                                                                   \
-            (optionsState)  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                                  \
+            (optionsState)  = RANDOM_LCG_NEXT(gRandomLcgState);                                                                                                \
             gRandomLcgState = (optionsState);                                                                                                                  \
             effectSpawn(EFFECT_SMOKE_PUFF, 0, (((optionsState) >> 16) & NEO_ARK_BRIDGE_SMOKE_JITTER_MASK) | NEO_ARK_BRIDGE_SMOKE_BASE_ARGUMENT, (worldPoint)); \
         }                                                                                                                                                      \

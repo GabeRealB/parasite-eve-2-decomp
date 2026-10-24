@@ -95,22 +95,22 @@ void GLOW_STAR_TASK(Task* task)
 
         // Tint and rotate the larger flare in Q12, keeping the halfword phase wrap.
         GLOW_STAR_RESERVE_QUAD(quad);
-        quad->clut      = GLOW_FLARE_PALETTE_BASE + 1;
-        quad->tpage     = GLOW_FLARE_TEXTURE_PAGE;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        flareIntensity  = (gRandomLcgState >> 16) % GLOW_STAR_FLARE_GREY_LEVEL_COUNT + GLOW_FLICKER_BASE_INTENSITY;
-        quad->u0        = 0;
-        quad->v0        = GLOW_STAR_FLARE_TOP_V;
-        quad->u1        = GLOW_FLARE_CELL_LAST_TEXEL;
-        quad->v1        = GLOW_STAR_FLARE_TOP_V;
-        quad->u2        = 0;
-        quad->v2        = GLOW_STAR_FLARE_TOP_V + GLOW_FLARE_CELL_LAST_TEXEL;
-        quad->u3        = GLOW_FLARE_CELL_LAST_TEXEL;
-        quad->v3        = GLOW_STAR_FLARE_TOP_V + GLOW_FLARE_CELL_LAST_TEXEL;
-        quad->code     |= GLOW_STAR_SEMITRANSPARENT;
-        quad->r0        = flareIntensity;
-        quad->g0        = flareIntensity;
-        quad->b0        = flareIntensity;
+        quad->clut  = GLOW_FLARE_PALETTE_BASE + 1;
+        quad->tpage = GLOW_FLARE_TEXTURE_PAGE;
+        RANDOM_LCG_ADVANCE();
+        flareIntensity = RANDOM_LCG_DRAW() % GLOW_STAR_FLARE_GREY_LEVEL_COUNT + GLOW_FLICKER_BASE_INTENSITY;
+        quad->u0       = 0;
+        quad->v0       = GLOW_STAR_FLARE_TOP_V;
+        quad->u1       = GLOW_FLARE_CELL_LAST_TEXEL;
+        quad->v1       = GLOW_STAR_FLARE_TOP_V;
+        quad->u2       = 0;
+        quad->v2       = GLOW_STAR_FLARE_TOP_V + GLOW_FLARE_CELL_LAST_TEXEL;
+        quad->u3       = GLOW_FLARE_CELL_LAST_TEXEL;
+        quad->v3       = GLOW_STAR_FLARE_TOP_V + GLOW_FLARE_CELL_LAST_TEXEL;
+        quad->code    |= GLOW_STAR_SEMITRANSPARENT;
+        quad->r0       = flareIntensity;
+        quad->g0       = flareIntensity;
+        quad->b0       = flareIntensity;
 
         work->scale     = gDisplayState.animFrame + work->age;
         block->cornerDx = ((GLOW_STAR_FLARE_RADIUS_DEPTH_PRODUCT / block->otz) * rsin(work->scale)) >> GLOW_TRIG_SHIFT;

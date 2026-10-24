@@ -1278,7 +1278,7 @@ static void _actor403100EmitFlame(Task* task, SVECTOR* offset, const SVECTOR* ve
             flameCoord                                 = &_gActor403100Flames[flameIndex].coord;
             _gActor403100Flames[flameIndex].active     = 1;
             _gActor403100Flames[flameIndex].age        = 0;
-            spriteRandom                               = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            spriteRandom                               = RANDOM_LCG_NEXT(gRandomLcgState);
             gRandomLcgState                            = spriteRandom;
             _gActor403100Flames[flameIndex].spriteStep = (s16)((spriteRandom >> 0x10) & 0xF);
             _actorRenderTransformPointToWorld(headCoord, offset);
@@ -3720,12 +3720,12 @@ static void _actor403100ChooseAttack(Task* task)
     // Apply the health-dependent odds, then restrict attacks to eligible regions.
     if (playerRegion != ACTOR_403100_PLAYER_REGION_2 && playerRegion != ACTOR_403100_PLAYER_REGION_6) {
         if ((gPlayerStatus.hp < halfPlayerHealth) || (_gActor403100Work->lowHealth != 0)) {
-            weakenedDraw                = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            weakenedDraw                = RANDOM_LCG_NEXT(gRandomLcgState);
             gRandomLcgState             = weakenedDraw;
             _gActor403100Work->state    = _gActor403100AttackOdds.states[ACTOR_403100_ATTACK_ODDS_WEAKENED][(weakenedDraw >> 16) & (ACTOR_403100_ATTACK_DRAWS - 1)];
             _gActor403100Work->subState = 0;
         } else {
-            normalDraw                  = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            normalDraw                  = RANDOM_LCG_NEXT(gRandomLcgState);
             gRandomLcgState             = normalDraw;
             _gActor403100Work->state    = _gActor403100AttackOdds.states[ACTOR_403100_ATTACK_ODDS_NORMAL][(normalDraw >> 16) & (ACTOR_403100_ATTACK_DRAWS - 1)];
             _gActor403100Work->subState = 0;
@@ -3803,8 +3803,8 @@ static void _actor403100BeginArmSwingCombo(Task* task)
     u32 firstSwingDraw;
 
     // Two independent bits choose one, two or three repeats with weights 1:2:1.
-    firstSwingDraw                  = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-    secondSwingDraw                 = (firstSwingDraw * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+    firstSwingDraw                  = RANDOM_LCG_NEXT(gRandomLcgState);
+    secondSwingDraw                 = RANDOM_LCG_NEXT(firstSwingDraw);
     gRandomLcgState                 = secondSwingDraw;
     _gActor403100Work->stateCounter = ((firstSwingDraw >> 0x10) & 1) + 1 + ((secondSwingDraw >> 0x10) & 1);
     _gActor403100Work->walkSpeed    = 0x20;
@@ -4043,7 +4043,7 @@ static void _actor403100FinishArmSwingCombo(Task* task)
         // A connected combo gets an impact follow-up one quarter of the time.
         if (_gActor403100Work->swingConnected != 0) {
             _gActor403100Work->stateFrames = 0;
-            followupDraw                   = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            followupDraw                   = RANDOM_LCG_NEXT(gRandomLcgState);
             gRandomLcgState                = followupDraw;
             if (!((followupDraw >> 0x10) & 3)) {
                 _gActor403100Work->animationBlendFrames = ACTOR_403100_COMBO_IMPACT_BLEND_FRAMES;
@@ -4488,7 +4488,7 @@ static void _actor403100FinishJumpSlamRecovery(Task* task)
     _actor403100RequestHitPitchKick();
     _actor403100RelaxArmPose();
     if (_actor403100AnimationAtBoundaryOrJump()) {
-        pitchKickDraw   = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        pitchKickDraw   = RANDOM_LCG_NEXT(gRandomLcgState);
         gRandomLcgState = pitchKickDraw;
         if ((pitchKickDraw >> 0x10) & 1) {
             _actor403100RequestPitchKick(ACTOR_403100_PITCH_KICK_SELECT_ATTACK_SOUND);
@@ -4720,7 +4720,7 @@ static void _actor403100StepHeldPlayerSqueeze(Task* task)
     if (_gActor403100Work->playerKilled == 0) {
         releaseRequested = _gActor403100Work->releaseRequested;
         if ((releaseRequested == 1) && (_gActor403100Work->forearmStrokeDone == releaseRequested)) {
-            repromptDraw                     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            repromptDraw                     = RANDOM_LCG_NEXT(gRandomLcgState);
             gRandomLcgState                  = repromptDraw;
             _gActor403100Work->repromptDelay = (((repromptDraw >> 0x10) & 0x1F) + 0x3C) * 3;
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
@@ -6263,7 +6263,7 @@ static void _actor403100StepPlayerSqueeze(Task* task)
                 }
                 if (_gActor403100Work->playerKilled == 0) {
                     padScriptSpawnVariableMotorRamp(ACTOR_403100_SQUEEZE_RUMBLE_TICKS, ACTOR_403100_SQUEEZE_RUMBLE_START, ACTOR_403100_SQUEEZE_RUMBLE_END);
-                    voiceDraw       = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    voiceDraw       = RANDOM_LCG_NEXT(gRandomLcgState);
                     gRandomLcgState = voiceDraw;
                     voiceChoice     = (voiceDraw >> 0x10) & 3;
                     if (voiceChoice == 0) {
@@ -6512,7 +6512,7 @@ static void _actor403100StepJawPitchKick(Task* task)
             if (soundRequest == ACTOR_403100_JAW_KICK_SOUND_HIT) {
                 _actor403100PlayJawSound(task, SOUND_CHARACTER(SOUND_BANK_BURNER, 9));
             } else if (soundRequest == ACTOR_403100_JAW_KICK_SOUND_ATTACK) {
-                soundDraw       = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                soundDraw       = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState = soundDraw;
                 if ((soundDraw >> 16) & 1) {
                     _actor403100PlayJawSound(task, SOUND_CHARACTER(SOUND_BANK_BURNER, 2));
@@ -6735,7 +6735,7 @@ static void _actor403100RefreshBreathLight(Task* task)
     transientLight->framesLeft                              = ACTOR_403100_BREATH_LIGHT_FRAMES;
     pointLight                                              = &transientLight->light;
     pointLight->inner                                       = 0x300;
-    flickerDraw                                             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    flickerDraw                                             = RANDOM_LCG_NEXT(gRandomLcgState);
     pointLight->outer                                       = 0x3000;
     redIntensityQ12                                         = ((flickerDraw >> 16) & 0x700) + 0x800;
     pointLight->head.color.r                                = redIntensityQ12;

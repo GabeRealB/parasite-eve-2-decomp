@@ -110,8 +110,8 @@ static inline void _waterDriftTaskU16(Task* task)
         case WATER_DRIFT_STATE_NEW:
             // Decode independent spawn fields; the random angle remains fixed.
             particleWork->scale = task->spawnArg1.halves.low & WATER_DRIFT_SPAWN_SIZE_MASK;
-            gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            particleWork->angle = (gRandomLcgState >> 16) & ACTOR_TRANSFORM_ANGLE_MASK;
+            RANDOM_LCG_ADVANCE();
+            particleWork->angle = RANDOM_LCG_DRAW() & ACTOR_TRANSFORM_ANGLE_MASK;
             if (task->spawnArg1.value & WATER_DRIFT_SPAWN_PERIOD_MASK) {
                 updatesPerCell = (task->spawnArg1.value >> WATER_DRIFT_SPAWN_PERIOD_SHIFT) & WATER_DRIFT_PERIOD_MASK;
             } else {
@@ -133,28 +133,28 @@ static inline void _waterDriftTaskU16(Task* task)
                         particleWork->step = 0;
                         break;
                     case WATER_DRIFT_VELOCITY_UPWARD_BURST:
-                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        particleWork->move.vx = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        particleWork->move.vy = WATER_DRIFT_UPWARD_Y_BIAS - ((gRandomLcgState >> 16) & 0x7F);
-                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        particleWork->move.vz = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                        RANDOM_LCG_ADVANCE();
+                        particleWork->move.vx = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
+                        RANDOM_LCG_ADVANCE();
+                        particleWork->move.vy = WATER_DRIFT_UPWARD_Y_BIAS - (RANDOM_LCG_DRAW() & 0x7F);
+                        RANDOM_LCG_ADVANCE();
+                        particleWork->move.vz = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
                         break;
                     case WATER_DRIFT_VELOCITY_ALL_AXES:
-                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        particleWork->move.vx = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        particleWork->move.vy = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        particleWork->move.vz = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                        RANDOM_LCG_ADVANCE();
+                        particleWork->move.vx = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
+                        RANDOM_LCG_ADVANCE();
+                        particleWork->move.vy = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
+                        RANDOM_LCG_ADVANCE();
+                        particleWork->move.vz = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
                         break;
                     case WATER_DRIFT_VELOCITY_NARROW_JET:
-                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        particleWork->move.vx = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
-                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        particleWork->move.vy = -((gRandomLcgState >> 16) & 0xFF);
-                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        particleWork->move.vz = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                        RANDOM_LCG_ADVANCE();
+                        particleWork->move.vx = 0x10 - (RANDOM_LCG_DRAW() & 0x1F);
+                        RANDOM_LCG_ADVANCE();
+                        particleWork->move.vy = -(RANDOM_LCG_DRAW() & 0xFF);
+                        RANDOM_LCG_ADVANCE();
+                        particleWork->move.vz = 0x10 - (RANDOM_LCG_DRAW() & 0x1F);
                         break;
                     case WATER_DRIFT_VELOCITY_POS_DIRECTION:
                         // Reuse the copied spawn offset as a direction without transforming it.

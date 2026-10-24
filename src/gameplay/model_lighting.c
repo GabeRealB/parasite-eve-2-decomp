@@ -3041,7 +3041,7 @@ void playClockUpdateTask(Task* task)
             _playClockCancelDeathEffects();
             session = gGameSession;
             if (session->restartMode != GAME_SESSION_RESTART_PRESERVE_DISPLAY) {
-                gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                RANDOM_LCG_ADVANCE();
                 session->deathVariant = (gRandomLcgState >> 16 & 1) + 1;
                 sndEvtRequestScriptStop(SOUND_BANK_TYPE_WEAPON_ALL, PLAY_CLOCK_WEAPON_STOP_CONTROL);
                 sndScriptSetTypeRequestsEnabled(0, SOUND_BANK_TYPE_WEAPON_ALL);
@@ -3058,8 +3058,8 @@ void playClockUpdateTask(Task* task)
             _playClockCancelDeathEffects();
             companionType = companionSave->state.companionType;
             if (companionType == PLAY_CLOCK_COMPANION_KYLE) {
-                gGameSession->restartMode  = companionType;
-                gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gGameSession->restartMode = companionType;
+                RANDOM_LCG_ADVANCE();
                 gGameSession->deathVariant = (gRandomLcgState >> 16 & 1) + 1;
                 sndEvtRequestScriptStop(SOUND_BANK_TYPE_WEAPON_ALL, PLAY_CLOCK_WEAPON_STOP_CONTROL);
                 sndScriptSetTypeRequestsEnabled(0, SOUND_BANK_TYPE_WEAPON_ALL);

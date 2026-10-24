@@ -23,10 +23,10 @@ static void _madChaserLurkStartIdleHold(Task* task)
     work->animRate        = ANIMATION_RATE_ONE;
     work->animId          = MAD_CHASER_IDLE_HOLD_CLIP;
     work->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
-    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->holdFrames      = ((gRandomLcgState >> 16) & MAD_CHASER_IDLE_HOLD_RANDOM_MASK) + MAD_CHASER_IDLE_HOLD_MIN_FRAMES;
-    work->stateFrames     = 0;
-    work->subState        = work->subState + 1;
+    RANDOM_LCG_ADVANCE();
+    work->holdFrames  = (RANDOM_LCG_DRAW() & MAD_CHASER_IDLE_HOLD_RANDOM_MASK) + MAD_CHASER_IDLE_HOLD_MIN_FRAMES;
+    work->stateFrames = 0;
+    work->subState    = work->subState + 1;
 }
 
 #include "main/random.h"
@@ -46,8 +46,8 @@ static void _madChaserLurkWait(Task* task)
     s16            playerDistance;
 
     if (work->holdFrames < (s16)work->stateFrames++) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if ((gRandomLcgState >> 16) & 1) {
+        RANDOM_LCG_ADVANCE();
+        if (RANDOM_LCG_DRAW() & 1) {
             MadChaserWork* nextWork = task->work;
 
             nextWork->state    = MAD_CHASER_LURK_STATE_SHIFT;
@@ -161,10 +161,10 @@ static void _madChaserLurkStartLookHold(Task* task)
         requestWork->animRate        = ANIMATION_RATE_ONE;
         requestWork->animId          = MAD_CHASER_LOOK_HOLD_CLIP;
         requestWork->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
-        gRandomLcgState              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->stateFrames            = 0;
-        work->lookFrames             = 0;
-        work->holdFrames             = ((gRandomLcgState >> 16) & MAD_CHASER_LOOK_HOLD_RANDOM_MASK) + MAD_CHASER_LOOK_HOLD_MIN_FRAMES;
+        RANDOM_LCG_ADVANCE();
+        work->stateFrames = 0;
+        work->lookFrames  = 0;
+        work->holdFrames  = (RANDOM_LCG_DRAW() & MAD_CHASER_LOOK_HOLD_RANDOM_MASK) + MAD_CHASER_LOOK_HOLD_MIN_FRAMES;
         work->subState++;
     }
 }

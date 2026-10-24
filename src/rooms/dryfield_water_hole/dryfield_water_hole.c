@@ -1813,12 +1813,12 @@ void dryfieldWaterHoleRoomEffectsTask(Task* task)
         surfaceCoord.coord.t[1]   = gGameSession->waterY;                                                                                               \
         surfaceCoord.composeStamp = GRAPHICS_COORD_DIRTY;                                                                                               \
         actorRenderComposeCoord(&surfaceCoord);                                                                                                         \
-        randomValue = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);                                               \
+        randomValue = (RANDOM_LCG_ADVANCE());                                                                                                           \
         if ((s32)((randomValue >> 16) & DRYFIELD_WATER_HOLE_SPLASH_ROLL_MASK) < work->angle) {                                                          \
             effectSpawn(gRoomEffectWaterRippleId, &surfaceCoord, DRYFIELD_WATER_HOLE_RIPPLE_HALF_SIDE, 0);                                              \
         }                                                                                                                                               \
         work->angle -= DRYFIELD_WATER_HOLE_RIPPLE_ODDS_BIAS;                                                                                            \
-        randomValue  = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);                                              \
+        randomValue  = (RANDOM_LCG_ADVANCE());                                                                                                          \
         if ((s32)((randomValue >> 16) & DRYFIELD_WATER_HOLE_SPLASH_ROLL_MASK) < work->angle) {                                                          \
             effectSpawn(gRoomEffectWaterSprayId, &surfaceCoord, DRYFIELD_WATER_HOLE_SPRAY_SPAWN_ARG, 0);                                                \
         }                                                                                                                                               \

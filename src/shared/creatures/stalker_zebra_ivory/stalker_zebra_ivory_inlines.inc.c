@@ -120,7 +120,7 @@ static inline void _stalkerZebraIvorySeedCrawlCountdown(StalkerZebraIvoryWork* w
            STALKER_ZEBRA_IVORY_CRAWL_RANDOM_HIGH_SHIFT = 16 };
     u32 randomState;
 
-    randomState     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+    randomState     = RANDOM_LCG_NEXT(gRandomLcgState);
     gRandomLcgState = randomState;
     work->countdown = ((randomState >> STALKER_ZEBRA_IVORY_CRAWL_RANDOM_HIGH_SHIFT) & STALKER_ZEBRA_IVORY_CRAWL_SPREAD_MASK) + STALKER_ZEBRA_IVORY_CRAWL_BASE_TICKS;
 }

@@ -543,7 +543,7 @@ static void _golemKnightBishopDeadState(Enemy* enemy, Task* task)
             if (!(work->animFrame & GOLEM_KNIGHT_BISHOP_CORPSE_FLASH_FRAME_MASK)) {
                 flashOffset->vx = 0;
                 flashOffset->vz = 0;
-                randomDraw      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                randomDraw      = RANDOM_LCG_NEXT(gRandomLcgState);
                 flashOffset->vy = -((randomDraw >> 16) & GOLEM_KNIGHT_BISHOP_CORPSE_FLASH_OFFSET_MASK);
                 gRandomLcgState = randomDraw;
                 effectSpawn(EFFECT_FLASH_BURST, &task->extra.tmd->coords[3], GOLEM_KNIGHT_BISHOP_CORPSE_FLASH_SIZE, flashOffset);

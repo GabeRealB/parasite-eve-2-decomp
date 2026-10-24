@@ -485,8 +485,8 @@ static void _actor02400InitBody(Enemy* enemy, Task* task)
     work->scale.vy   = ACTOR_02400_SCALE_FLAT;
     work->scale.vz   = ACTOR_02400_SCALE_FLAT;
     work->baseMatrix = rootCoord->coord;
-    gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->counter    = (gRandomLcgState >> 16) & 0xF;
+    RANDOM_LCG_ADVANCE();
+    work->counter = RANDOM_LCG_DRAW() & 0xF;
     _actor02400InitHitSphere(work, rootCoord);
     work->attackBody.coord            = &task->extra.tmd->coords[3];
     work->attackBody.context.contacts = work->attackContacts;
@@ -674,8 +674,8 @@ static void _actor02400ResolveBodyContacts(Task* task)
                         } else {
                             damage = _gActor02400Variant1Params.hpMax;
                         }
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        damage         += (s16)(((gRandomLcgState >> 16) & ACTOR_02400_ATTACK_ROW_MASK) + 200);
+                        RANDOM_LCG_ADVANCE();
+                        damage += (s16)((RANDOM_LCG_DRAW() & ACTOR_02400_ATTACK_ROW_MASK) + 200);
                         effectSpawn(EFFECT_CRITICAL_HIT, rootCoord, ACTOR_02400_HIT_BURST_STYLE, NULL);
                         break;
                 }
@@ -768,7 +768,7 @@ static void _actor02400UpdateDormant(Task* task)
     rootCoord  = task->extra.tmd->coords;
     shouldWake = 0;
     if (--work->counter < 0) {
-        randomState     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        randomState     = RANDOM_LCG_NEXT(gRandomLcgState);
         work->counter   = (randomState >> 16) & 0xF;
         gRandomLcgState = randomState;
         if (gSceneCombatState.signals.bytes.actionFlags & SCENE_COMBAT_ACTION_PE_ACTIVE) {
@@ -845,9 +845,9 @@ static void _actor02400UpdateCrawl(Task* task)
             work->targetSpeed = ACTOR_02400_CRAWL_TURN_SPEED;
             work->counter--;
             if (work->counter < 0) {
-                work->phase     = ACTOR_02400_CRAWL_PHASE_SURGE;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->counter   = ((gRandomLcgState >> 16) & 0x3F) + ACTOR_02400_CRAWL_MIN_PHASE_FRAMES;
+                work->phase = ACTOR_02400_CRAWL_PHASE_SURGE;
+                RANDOM_LCG_ADVANCE();
+                work->counter = (RANDOM_LCG_DRAW() & 0x3F) + ACTOR_02400_CRAWL_MIN_PHASE_FRAMES;
             }
             break;
         case ACTOR_02400_CRAWL_PHASE_SURGE:
@@ -856,18 +856,18 @@ static void _actor02400UpdateCrawl(Task* task)
             work->counter--;
             bobCenterScale = ACTOR_02400_SCALE_FLAT;
             if (work->counter < 0) {
-                work->phase     = ACTOR_02400_CRAWL_PHASE_TURN;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->counter   = ((gRandomLcgState >> 16) & 0x1F) + ACTOR_02400_CRAWL_MIN_PHASE_FRAMES;
+                work->phase = ACTOR_02400_CRAWL_PHASE_TURN;
+                RANDOM_LCG_ADVANCE();
+                work->counter = (RANDOM_LCG_DRAW() & 0x1F) + ACTOR_02400_CRAWL_MIN_PHASE_FRAMES;
             }
             break;
         case ACTOR_02400_CRAWL_PHASE_WAKE:
             work->turnRate = 0;
             ACTOR_02400_SWELL_BODY(work, ACTOR_02400_CRAWL_WAKE_SCALE_BIAS);
             if (work->scale.vy > ACTOR_02400_SCALE_SWOLLEN) {
-                work->phase     = ACTOR_02400_CRAWL_PHASE_TURN;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->counter   = ((gRandomLcgState >> 16) & 0x1F) + ACTOR_02400_CRAWL_MIN_PHASE_FRAMES;
+                work->phase = ACTOR_02400_CRAWL_PHASE_TURN;
+                RANDOM_LCG_ADVANCE();
+                work->counter = (RANDOM_LCG_DRAW() & 0x1F) + ACTOR_02400_CRAWL_MIN_PHASE_FRAMES;
             }
             break;
     }
@@ -914,8 +914,8 @@ static void _actor02400UpdateCrawl(Task* task)
         work->scale.vz  = ONE;
         scratch->rot.vy = 0;
         scratch->rot.vz = 0;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        scratch->rot.vx = ((gRandomLcgState >> 16) & 0xFF) + ACTOR_02400_STRIKE_MIN_PITCH;
+        RANDOM_LCG_ADVANCE();
+        scratch->rot.vx = (RANDOM_LCG_DRAW() & 0xFF) + ACTOR_02400_STRIKE_MIN_PITCH;
         RotMatrix(&scratch->rot, &task->extra.tmd->coords[2].coord);
         soundId  = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_02400_STRIKE_SOUND_SCRIPT;
         audioPan = (s8)worldCoordGetOriginAudioPan(rootCoord);
@@ -973,10 +973,10 @@ static void _actor02400UpdateStrike(Task* task)
                     work->scale.vx     = work->scale.vy;
                     work->scale.vz     = work->scale.vy;
                 } else {
-                    work->mode              = ACTOR_02400_MODE_CRAWL;
-                    work->phase             = ACTOR_02400_CRAWL_PHASE_TURN;
-                    gRandomLcgState         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->counter           = ((gRandomLcgState >> 16) & 0x1F) + 0x1E;
+                    work->mode  = ACTOR_02400_MODE_CRAWL;
+                    work->phase = ACTOR_02400_CRAWL_PHASE_TURN;
+                    RANDOM_LCG_ADVANCE();
+                    work->counter           = (RANDOM_LCG_DRAW() & 0x1F) + 0x1E;
                     work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 }
             }
@@ -1097,10 +1097,10 @@ static void _actor02400UpdateCast(Task* task)
                 scaleReady    |= ACTOR_02400_CAST_SCALE_Z_READY;
             }
             if (scaleReady == ACTOR_02400_CAST_SCALE_ALL_READY) {
-                work->mode              = ACTOR_02400_MODE_CRAWL;
-                work->phase             = ACTOR_02400_CRAWL_PHASE_TURN;
-                gRandomLcgState         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->counter           = ((gRandomLcgState >> 16) & 0x1F) + ACTOR_02400_CAST_RECOVERY_MIN_FRAMES;
+                work->mode  = ACTOR_02400_MODE_CRAWL;
+                work->phase = ACTOR_02400_CRAWL_PHASE_TURN;
+                RANDOM_LCG_ADVANCE();
+                work->counter           = (RANDOM_LCG_DRAW() & 0x1F) + ACTOR_02400_CAST_RECOVERY_MIN_FRAMES;
                 work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             }
             break;
@@ -1140,10 +1140,10 @@ static void _actor02400UpdateStunned(Task* task)
     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->counter++;
     if (work->counter > ACTOR_02400_STUN_FRAMES) {
-        work->mode              = ACTOR_02400_MODE_CRAWL;
-        work->phase             = ACTOR_02400_CRAWL_PHASE_TURN;
-        gRandomLcgState         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->counter           = ((gRandomLcgState >> 16) & 0x1F) + 0x1E;
+        work->mode  = ACTOR_02400_MODE_CRAWL;
+        work->phase = ACTOR_02400_CRAWL_PHASE_TURN;
+        RANDOM_LCG_ADVANCE();
+        work->counter           = (RANDOM_LCG_DRAW() & 0x1F) + 0x1E;
         work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     }
 }
@@ -1713,7 +1713,7 @@ static void _actor02400UpdateHurt(Task* task)
     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->counter++;
     if (work->counter >= ACTOR_02400_HURT_FRAMES) {
-        randomState             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        randomState             = RANDOM_LCG_NEXT(gRandomLcgState);
         work->mode              = ACTOR_02400_MODE_CRAWL;
         work->phase             = ACTOR_02400_CRAWL_PHASE_TURN;
         gRandomLcgState         = randomState;

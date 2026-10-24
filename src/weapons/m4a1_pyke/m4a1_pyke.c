@@ -100,7 +100,7 @@ void m4a1PykeNozzleTask(Task* task)
                     transientLight->framesLeft = M4A1_PYKE_NOZZLE_LIGHT_FRAMES;
                     pointLight->inner          = M4A1_PYKE_NOZZLE_IDLE_LIGHT_INNER;
                     pointLight->outer          = M4A1_PYKE_NOZZLE_IDLE_LIGHT_OUTER;
-                    lightRandom                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    lightRandom                = RANDOM_LCG_NEXT(gRandomLcgState);
                     gRandomLcgState            = lightRandom;
                     // Green halves the unsigned red halfword; blue quarters its signed value.
                     pointLight->head.color.r = ((lightRandom >> 16) & M4A1_PYKE_NOZZLE_LIGHT_RANDOM_MASK) + M4A1_PYKE_NOZZLE_IDLE_RED_MIN;
@@ -126,7 +126,7 @@ void m4a1PykeNozzleTask(Task* task)
                     transientLight->framesLeft = M4A1_PYKE_NOZZLE_LIGHT_FRAMES;
                     pointLight->inner          = M4A1_PYKE_NOZZLE_FIRE_LIGHT_INNER;
                     pointLight->outer          = M4A1_PYKE_NOZZLE_FIRE_LIGHT_OUTER;
-                    lightRandom                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    lightRandom                = RANDOM_LCG_NEXT(gRandomLcgState);
                     gRandomLcgState            = lightRandom;
                     pointLight->head.color.r   = ((lightRandom >> 16) & M4A1_PYKE_NOZZLE_LIGHT_RANDOM_MASK) + M4A1_PYKE_NOZZLE_FIRE_RED_MIN;
                     pointLight->head.color.g   = (u16)pointLight->head.color.r >> 1;

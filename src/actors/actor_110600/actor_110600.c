@@ -2318,8 +2318,8 @@ static void _actor110600SpawnHitEffect(Task* task, s16 hitYaw, s32 attackKey)
     // Use yaw sectors to choose the effect position; the rear mask keeps only bit 1.
     absoluteHitYaw = (hitYaw >= 0) ? hitYaw : -hitYaw;
     if (absoluteHitYaw < ACTOR_110600_HIT_FRONT_YAW_LIMIT) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        switch ((s32)(gRandomLcgState >> 16) & 3) {
+        RANDOM_LCG_ADVANCE();
+        switch ((s32)RANDOM_LCG_DRAW() & 3) {
             case 0:
                 *hitAnchor = _gActor110600HitAnchors[0];
                 break;
@@ -2337,8 +2337,8 @@ static void _actor110600SpawnHitEffect(Task* task, s16 hitYaw, s32 attackKey)
                 break;
         }
     } else if (absoluteHitYaw > ACTOR_110600_HIT_REAR_YAW_LIMIT) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        switch ((s32)(gRandomLcgState >> 16) & 2) {
+        RANDOM_LCG_ADVANCE();
+        switch ((s32)RANDOM_LCG_DRAW() & 2) {
             case 0:
                 *hitAnchor = _gActor110600HitAnchors[5];
                 break;
@@ -2350,15 +2350,15 @@ static void _actor110600SpawnHitEffect(Task* task, s16 hitYaw, s32 attackKey)
                 break;
         }
     } else if (hitYaw > 0) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if ((gRandomLcgState >> 16) & 1) {
+        RANDOM_LCG_ADVANCE();
+        if (RANDOM_LCG_DRAW() & 1) {
             *hitAnchor = _gActor110600HitAnchors[8];
         } else {
             *hitAnchor = _gActor110600HitAnchors[9];
         }
     } else {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if ((gRandomLcgState >> 16) & 1) {
+        RANDOM_LCG_ADVANCE();
+        if (RANDOM_LCG_DRAW() & 1) {
             *hitAnchor = _gActor110600HitAnchors[10];
         } else {
             *hitAnchor = _gActor110600HitAnchors[11];
@@ -2601,7 +2601,7 @@ static void _actor110600IdleState(Task* task)
     _actor110600TickAnimation(task);
     if (work->animId == ACTOR_110600_ANIM_IDLE) {
         if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
-            randomValue     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            randomValue     = RANDOM_LCG_NEXT(gRandomLcgState);
             gRandomLcgState = randomValue;
             if (!((randomValue >> 16) & 7)) {
                 work->animId      = ACTOR_110600_ANIM_IDLE_VARIATION;
@@ -2904,7 +2904,7 @@ static void _actor110600ScriptedState(Task* task)
         work->lookYawTarget           = 0;
         work->lookYaw                 = 0;
         if ((work->lastCommand.stage == GAME_STAGE_AKROPOLIS) && (work->lastCommand.area == GAME_AREA_AKROPOLIS_CAFETERIA) && (work->lastCommand.command == ACTOR_110600_SCRIPTED_COMMAND_RANDOM_HIT)) {
-            randomValue     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            randomValue     = RANDOM_LCG_NEXT(gRandomLcgState);
             gRandomLcgState = randomValue;
             if ((randomValue >> 16) & 1) {
                 localHitOffset.vx                     = -0xE;
@@ -2997,7 +2997,7 @@ static void _actor110600DeathThrashState(Task* task)
     _actor110600TickAnimation(task);
     // Bias the root jerk forward, then finish on the transition clip.
     if (work->animId == ACTOR_110600_DEATH_THRASH_CLIP) {
-        randomValue     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        randomValue     = RANDOM_LCG_NEXT(gRandomLcgState);
         gRandomLcgState = randomValue;
         if (((randomValue >> 16) & ACTOR_110600_DEATH_THRASH_RANDOM_MASK) < ACTOR_110600_DEATH_THRASH_FORWARD_CHOICES) {
             gfxRotMatrixY(&task->extra.tmd->coords->coord, ACTOR_110600_DEATH_THRASH_FORWARD_YAW, 0);
@@ -3718,7 +3718,7 @@ static void _actor110600DownState(Task* task)
 
     work = task->work;
     if (work->stateEntered != 0) {
-        randomValue      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        randomValue      = RANDOM_LCG_NEXT(gRandomLcgState);
         gRandomLcgState  = randomValue;
         work->downFrames = (randomValue >> 16) & ACTOR_110600_DOWN_DELAY_MASK;
     }

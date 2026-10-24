@@ -226,8 +226,8 @@ static void _gluttonHitGroups1To2(Task* task)
 #else
                 if (bossState != GLUTTON_STATE_INHALE && bossState != GLUTTON_STATE_ADVANCE) {
 #endif
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    reactionRoll    = (gRandomLcgState >> 16) % 6;
+                    RANDOM_LCG_ADVANCE();
+                    reactionRoll = RANDOM_LCG_DRAW() % 6;
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
                     if (reactionRoll == 0 && work->summonsAlive == 0) {
 #else

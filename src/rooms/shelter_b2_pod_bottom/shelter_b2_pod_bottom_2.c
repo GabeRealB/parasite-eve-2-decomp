@@ -372,12 +372,12 @@ void shelterB2PodBottomShadowTask(Task* task)
 
     if (task->state == SHELTER_B2_POD_BOTTOM_EFFECT_INIT) {
         for (segmentIndex = 0; segmentIndex < (s32)ARRAY_SIZE(_gShelterB2PodBottomArcFlashPhases[0]); segmentIndex++) {
-            gRandomLcgState                                     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            _gShelterB2PodBottomArcFlashPhases[0][segmentIndex] = (gRandomLcgState >> 16) & SHELTER_B2_POD_BOTTOM_ARC_FLASH_PHASE_MASK;
-            gRandomLcgState                                     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            _gShelterB2PodBottomArcFlashPhases[1][segmentIndex] = (gRandomLcgState >> 16) & SHELTER_B2_POD_BOTTOM_ARC_FLASH_PHASE_MASK;
-            gRandomLcgState                                     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            _gShelterB2PodBottomArcFlashPhases[2][segmentIndex] = (gRandomLcgState >> 16) & SHELTER_B2_POD_BOTTOM_ARC_FLASH_PHASE_MASK;
+            RANDOM_LCG_ADVANCE();
+            _gShelterB2PodBottomArcFlashPhases[0][segmentIndex] = RANDOM_LCG_DRAW() & SHELTER_B2_POD_BOTTOM_ARC_FLASH_PHASE_MASK;
+            RANDOM_LCG_ADVANCE();
+            _gShelterB2PodBottomArcFlashPhases[1][segmentIndex] = RANDOM_LCG_DRAW() & SHELTER_B2_POD_BOTTOM_ARC_FLASH_PHASE_MASK;
+            RANDOM_LCG_ADVANCE();
+            _gShelterB2PodBottomArcFlashPhases[2][segmentIndex] = RANDOM_LCG_DRAW() & SHELTER_B2_POD_BOTTOM_ARC_FLASH_PHASE_MASK;
         }
         task->state                          = SHELTER_B2_POD_BOTTOM_EFFECT_ACTIVE;
         gRoomEffectState->groundTraceEnabled = false;
@@ -748,8 +748,8 @@ void shelterB2PodBottomEnergyRingTask(Task* task)
                 work->angle         = SHELTER_B2_POD_BOTTOM_ENERGY_RING_INITIAL_RADIUS;
                 work->step          = SHELTER_B2_POD_BOTTOM_ENERGY_RING_BRIGHTNESS_SPAN / task->spawnArg1.value;
                 task->state         = SHELTER_B2_POD_BOTTOM_EFFECT_ACTIVE;
-                gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->index         = (gRandomLcgState >> 16) % ARRAY_SIZE(gShelterB2PodBottomEnergyRingChannelShifts);
+                RANDOM_LCG_ADVANCE();
+                work->index = RANDOM_LCG_DRAW() % ARRAY_SIZE(gShelterB2PodBottomEnergyRingChannelShifts);
             // Pausing retains drawing without consuming the charge countdown.
             case SHELTER_B2_POD_BOTTOM_EFFECT_ACTIVE:
                 if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
@@ -778,8 +778,8 @@ void shelterB2PodBottomEnergyRingTask(Task* task)
                     work->period = 0x300;
                     work->step   = 0;
                 }
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->index     = (gRandomLcgState >> 16) % ARRAY_SIZE(gShelterB2PodBottomEnergyRingChannelShifts);
+                RANDOM_LCG_ADVANCE();
+                work->index = RANDOM_LCG_DRAW() % ARRAY_SIZE(gShelterB2PodBottomEnergyRingChannelShifts);
                 return;
             // The full-bright flash is drawn before each running fade step.
             case SHELTER_B2_POD_BOTTOM_EFFECT_FADE:
@@ -792,9 +792,9 @@ void shelterB2PodBottomEnergyRingTask(Task* task)
                 effectDrawGouraudDisc(coord, work->angle, rgb);
                 effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->scale    -= SHELTER_B2_POD_BOTTOM_ENERGY_RING_FADE_STEP;
-                    work->index     = (gRandomLcgState >> 16) % ARRAY_SIZE(gShelterB2PodBottomEnergyRingChannelShifts);
+                    RANDOM_LCG_ADVANCE();
+                    work->scale -= SHELTER_B2_POD_BOTTOM_ENERGY_RING_FADE_STEP;
+                    work->index  = RANDOM_LCG_DRAW() % ARRAY_SIZE(gShelterB2PodBottomEnergyRingChannelShifts);
                 }
                 return;
             default:
@@ -970,8 +970,8 @@ void shelterB2PodBottomChargeBurstTask(Task* task)
                 work->step          = SHELTER_B2_POD_BOTTOM_CHARGE_BURST_BRIGHTNESS_SPAN / task->spawnArg1.value;
                 task->state         = SHELTER_B2_POD_BOTTOM_EFFECT_ACTIVE;
                 for (bladeIndex = 0; bladeIndex < (s32)ARRAY_SIZE(_gShelterB2PodBottomBurstBladeAngles); bladeIndex++) {
-                    gRandomLcgState                                  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    _gShelterB2PodBottomBurstBladeAngles[bladeIndex] = (bladeIndex * SHELTER_B2_POD_BOTTOM_EIGHTH_TURN) + ((gRandomLcgState >> 16) & (SHELTER_B2_POD_BOTTOM_EIGHTH_TURN - 1));
+                    RANDOM_LCG_ADVANCE();
+                    _gShelterB2PodBottomBurstBladeAngles[bladeIndex] = (bladeIndex * SHELTER_B2_POD_BOTTOM_EIGHTH_TURN) + (RANDOM_LCG_DRAW() & (SHELTER_B2_POD_BOTTOM_EIGHTH_TURN - 1));
                 }
             // Pausing retains drawing without consuming the charge countdown.
             case SHELTER_B2_POD_BOTTOM_EFFECT_ACTIVE:
@@ -1001,8 +1001,8 @@ void shelterB2PodBottomChargeBurstTask(Task* task)
                     work->period = 0x300;
                     work->step   = 0;
                 }
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->index     = (gRandomLcgState >> 16) % 18;
+                RANDOM_LCG_ADVANCE();
+                work->index = RANDOM_LCG_DRAW() % 18;
                 return;
             // The full-bright flash is drawn before each running fade step.
             case SHELTER_B2_POD_BOTTOM_EFFECT_FADE:
@@ -1018,9 +1018,9 @@ void shelterB2PodBottomChargeBurstTask(Task* task)
                     _shelterB2PodBottomDrawBurstBlade(coord, (s16)((u16)work->angle * 2), _gShelterB2PodBottomBurstBladeAngles[bladeIndex], rgb);
                 }
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->scale    -= SHELTER_B2_POD_BOTTOM_CHARGE_BURST_FADE_STEP;
-                    work->index     = (gRandomLcgState >> 16) % 18;
+                    RANDOM_LCG_ADVANCE();
+                    work->scale -= SHELTER_B2_POD_BOTTOM_CHARGE_BURST_FADE_STEP;
+                    work->index  = RANDOM_LCG_DRAW() % 18;
                 }
                 return;
             default:
@@ -1203,7 +1203,7 @@ void shelterB2PodBottomLightBeamTask(Task* task)
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            random          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            random          = RANDOM_LCG_NEXT(gRandomLcgState);
             gRandomLcgState = random;
             _shelterB2PodBottomDrawLightBeam(coord, SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_RADIUS_SCALE, (random >> 16) & SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_RANDOM_NIBBLE_MASK, SHELTER_B2_POD_BOTTOM_LIGHT_BEAM_FULL_BRIGHTNESS);
             return;
@@ -1374,11 +1374,11 @@ void shelterB2PodBottomSpawnJointFlash(Task* task)
     u32       randomState;
 
     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-        randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        randomState     = RANDOM_LCG_NEXT(gRandomLcgState);
         gRandomLcgState = randomState;
         jointCoord      = &task->extra.tmd->coords[(u16)((randomState >> 16) % SHELTER_B2_POD_BOTTOM_FLASH_JOINT_COUNT) + SHELTER_B2_POD_BOTTOM_FLASH_JOINT_FIRST];
         effectSpawn(EFFECT_FLASH_BURST, jointCoord, SHELTER_B2_POD_BOTTOM_JOINT_FLASH_ARGUMENT, 0);
-        randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        randomState     = RANDOM_LCG_NEXT(gRandomLcgState);
         gRandomLcgState = randomState;
         if ((randomState >> 16) & 1) {
             effectSpawn(EFFECT_SPARK_FADE, jointCoord, SHELTER_B2_POD_BOTTOM_JOINT_FLASH_ARGUMENT, 0);
@@ -1398,11 +1398,11 @@ void shelterB2PodBottomSpawnJointEnergySparks(Task* task)
     u32       randomState;
 
     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-        randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        randomState     = RANDOM_LCG_NEXT(gRandomLcgState);
         gRandomLcgState = randomState;
         jointCoord      = &task->extra.tmd->coords[(u16)((randomState >> 16) % SHELTER_B2_POD_BOTTOM_ENERGY_JOINT_COUNT) + SHELTER_B2_POD_BOTTOM_ENERGY_JOINT_FIRST];
         effectSpawn(EFFECT_RISING_ENERGY_SPARK, jointCoord, SHELTER_B2_POD_BOTTOM_JOINT_ENERGY_ARGUMENT, 0);
-        randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        randomState     = RANDOM_LCG_NEXT(gRandomLcgState);
         gRandomLcgState = randomState;
         if (!((randomState >> 16) & 1)) {
             effectSpawn(EFFECT_RISING_ENERGY_SPARK, jointCoord, SHELTER_B2_POD_BOTTOM_JOINT_ENERGY_ARGUMENT, 0);

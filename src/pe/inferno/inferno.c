@@ -444,11 +444,11 @@ void infernoFlameFanTask(Task* task)
             segmentIndex = 0;
             do {
                 segmentPhases    = &texturePhase->byte[segmentIndex];
-                randomDraw       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                randomDraw       = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState  = randomDraw;
                 segmentPhases[0] = randomDraw >> INFERNO_FAN_RANDOM_PHASE_SHIFT;
                 segmentIndex++;
-                randomDraw                               = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                randomDraw                               = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState                          = randomDraw;
                 segmentPhases[INFERNO_FAN_SEGMENT_COUNT] = randomDraw >> INFERNO_FAN_RANDOM_PHASE_SHIFT;
             } while (segmentIndex < INFERNO_FAN_SEGMENT_COUNT);

@@ -847,7 +847,7 @@ static void _actor01600Init(Enemy* enemy, Task* actor)
     work->scriptedDelay   = 0;
     work->longLeap        = 0;
     work->animRate        = ANIMATION_RATE_ONE;
-    randomState           = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+    randomState           = RANDOM_LCG_NEXT(gRandomLcgState);
     work->reactionDelay   = (s16)(((randomState >> 0x10) & 0x1F) + 1);
     gRandomLcgState       = randomState;
     gfxReadMatrixZAxis(&actor->extra.tmd->coords->coord, &facingAxis);
@@ -1277,8 +1277,8 @@ static void _actor01600ProcessContacts(Task* actor)
                             work->jumpHeight    = 0;
                         }
                     } else {
-                        work->recoilActive      = 1;
-                        gRandomLcgState         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->recoilActive = 1;
+                        RANDOM_LCG_ADVANCE();
                         work->recoilRotation.vx = ((gRandomLcgState >> 11) & 0x60) + 0x100;
                     }
                     if (work->behavior != ACTOR_01600_BEHAVIOR_ROAM && work->airborne != 0) {
@@ -1490,8 +1490,8 @@ static void _actor01600StepBehavior(Task* actor)
             if (work->animRequest == ACTOR_01600_ANIMATION_STAGGER) {
                 if (work->animFrame >= 0x2C && work->recoilActive == 0 &&
                     ((u16)work->animFrame & 2)) {
-                    work->recoilActive      = 1;
-                    gRandomLcgState         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    work->recoilActive = 1;
+                    RANDOM_LCG_ADVANCE();
                     work->recoilRotation.vx = ((gRandomLcgState >> 11) & 0x60) + 0x20;
                 }
             } else if (work->animRequest == ACTOR_01600_ANIMATION_RISE_BACK) {
@@ -1520,8 +1520,8 @@ static void _actor01600StepBehavior(Task* actor)
     if (soundCountdown != 0) {
         return;
     }
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    soundChoice     = (gRandomLcgState >> 16) % 5;
+    RANDOM_LCG_ADVANCE();
+    soundChoice = RANDOM_LCG_DRAW() % 5;
     switch (soundChoice) {
         case 0:
             soundKey = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_01600_SOUND_IDLE_1;
@@ -2639,7 +2639,7 @@ static void _actor01600StepTurn(Task* actor)
             }
             break;
         case ACTOR_01600_TURN_RANDOM_BEGIN:
-            randomState     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            randomState     = RANDOM_LCG_NEXT(gRandomLcgState);
             randomBits      = randomState >> 0x10;
             randomTurn      = (randomBits & 0x3FF) + 0x400;
             gRandomLcgState = randomState;
@@ -2650,7 +2650,7 @@ static void _actor01600StepTurn(Task* actor)
             work->turnMode      = ACTOR_01600_TURN_RANDOM;
             break;
         case ACTOR_01600_TURN_RANDOM:
-            stepRandomState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            stepRandomState = RANDOM_LCG_NEXT(gRandomLcgState);
             randomStep      = (stepRandomState >> 0x10) & 0x17;
             gRandomLcgState = stepRandomState;
             if (work->turnRemaining <= 0) {
@@ -3770,12 +3770,12 @@ static s32 _actor01600HandleCommand(Task* actor, s32 messageId, const ActorComma
         case ACTOR_01600_COMMAND_CUE_1:
             work->colorRefresh = 1;
             if (placementVariant == 2) {
-                gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                RANDOM_LCG_ADVANCE();
                 work->animFrame     = 0;
                 work->animPlaying   = ACTOR_01600_ANIMATION_UNSET;
                 work->animRequest   = ACTOR_01600_ANIMATION_ROAM_IDLE;
                 work->scriptedAnim  = ACTOR_01600_ANIMATION_SETTLE;
-                work->scriptedDelay = (gRandomLcgState >> 16) % 20;
+                work->scriptedDelay = RANDOM_LCG_DRAW() % 20;
             }
             if (placementVariant == 4) {
                 work->animRequest = ACTOR_01600_ANIMATION_POSED;
@@ -3804,12 +3804,12 @@ static s32 _actor01600HandleCommand(Task* actor, s32 messageId, const ActorComma
                 work->animPlaying = ACTOR_01600_ANIMATION_UNSET;
             }
             if (placementVariant == 2) {
-                gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                RANDOM_LCG_ADVANCE();
                 work->animFrame     = 0;
                 work->animPlaying   = ACTOR_01600_ANIMATION_UNSET;
                 work->animRequest   = ACTOR_01600_ANIMATION_ROAM_IDLE;
                 work->scriptedAnim  = ACTOR_01600_ANIMATION_SETTLE;
-                work->scriptedDelay = (gRandomLcgState >> 16) % 20;
+                work->scriptedDelay = RANDOM_LCG_DRAW() % 20;
             }
             if (placementVariant == 3) {
                 model         = actor->extra.tmd;
@@ -3831,12 +3831,12 @@ static s32 _actor01600HandleCommand(Task* actor, s32 messageId, const ActorComma
                 work->animPlaying = ACTOR_01600_ANIMATION_UNSET;
             }
             if (placementVariant == 2) {
-                gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                RANDOM_LCG_ADVANCE();
                 work->animFrame     = 0;
                 work->animPlaying   = ACTOR_01600_ANIMATION_UNSET;
                 work->animRequest   = ACTOR_01600_ANIMATION_ROAM_IDLE;
                 work->scriptedAnim  = ACTOR_01600_ANIMATION_SETTLE;
-                work->scriptedDelay = (gRandomLcgState >> 16) % 20;
+                work->scriptedDelay = RANDOM_LCG_DRAW() % 20;
             }
             break;
         case ACTOR_01600_COMMAND_CUE_4:
@@ -4094,7 +4094,7 @@ static void _actor01600SpawnBurstParts(Task* actor)
         effectSpawn(EFFECT_030, actor->extra.tmd->coords + 1, ACTOR_01600_MULTI_PART_BURST_SIZE, &_gActor01600BurstOffset);
         return;
     }
-    randomState     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+    randomState     = RANDOM_LCG_NEXT(gRandomLcgState);
     gRandomLcgState = randomState;
     partChoice      = ((u32)randomState >> 0x10) & 3;
     switch (partChoice) {

@@ -934,10 +934,10 @@ static inline void _actor510900SpawnReactionSpark(GfxCoord* bodyCoord, SVECTOR* 
         ACTOR_510900_SPARK_HEIGHT_OFFSET = 1664,
         ACTOR_510900_SPARK_BASE_SIZE     = 256,
     };
-    offset->vx      = 0;
-    offset->vz      = 0;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    offset->vy      = ((gRandomLcgState >> 16) & ACTOR_510900_SPARK_HEIGHT_MASK) - ACTOR_510900_SPARK_HEIGHT_OFFSET;
+    offset->vx = 0;
+    offset->vz = 0;
+    RANDOM_LCG_ADVANCE();
+    offset->vy = (RANDOM_LCG_DRAW() & ACTOR_510900_SPARK_HEIGHT_MASK) - ACTOR_510900_SPARK_HEIGHT_OFFSET;
     effectSpawn(EFFECT_FLASH_BURST, bodyCoord, ACTOR_510900_SPARK_BASE_SIZE, offset);
 }
 
@@ -1024,7 +1024,7 @@ static inline void _actor510900StartHitTwist(Actor510900Work* work)
     s32 yawBits;
     s32 yawTwist;
 
-    randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    randomState     = RANDOM_LCG_NEXT(gRandomLcgState);
     randomBits      = randomState >> 16;
     pitchTwist      = (randomBits & ACTOR_510900_HIT_TWIST_ANGLE_MASK) + ACTOR_510900_HIT_TWIST_MIN_ANGLE;
     gRandomLcgState = randomState;
@@ -1161,8 +1161,8 @@ static void _actor510900ResolveBodyContacts(Task* task)
                         break;
                     case DAMAGE_PLAYER_REACTION_STAGGER:
                         if (work->buildupStunned == 0) {
-                            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                            if ((gRandomLcgState >> 16) & 1) {
+                            RANDOM_LCG_ADVANCE();
+                            if (RANDOM_LCG_DRAW() & 1) {
                                 hitReaction = ACTOR_510900_HIT_FLINCH;
                             }
                         }
@@ -1191,8 +1191,8 @@ static void _actor510900ResolveBodyContacts(Task* task)
                     }
                 }
                 if (hitReaction != ACTOR_510900_HIT_TWIST) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    if (!((gRandomLcgState >> 16) & 1)) {
+                    RANDOM_LCG_ADVANCE();
+                    if (!(RANDOM_LCG_DRAW() & 1)) {
                         soundKey = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_HIT_FLINCH;
                     } else {
                         soundKey = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_RECOIL;
@@ -1446,7 +1446,7 @@ static void _actor510900TickPatrol(Task* task)
                     work->animationId   = ACTOR_510900_ANIM_WALK_FIRE;
                     work->shotCountdown = ACTOR_510900_PATROL_FIRST_SHOT_FRAMES;
                 }
-                work->stateCounter = _gActor510900PatrolWalkDistances[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+                work->stateCounter = _gActor510900PatrolWalkDistances[((RANDOM_LCG_ADVANCE()) >> 16) & 0xF];
             }
             break;
         case ACTOR_510900_PATROL_WALK:
@@ -1455,7 +1455,7 @@ static void _actor510900TickPatrol(Task* task)
             if (work->stateCounter <= 0 || work->lapDistance > (u32)ACTOR_510900_PATROL_END_DISTANCE) {
                 work->animationId  = ACTOR_510900_ANIM_PATROL_IDLE;
                 work->subState     = ACTOR_510900_PATROL_WAIT;
-                work->stateCounter = _gActor510900PatrolWaitFrames[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+                work->stateCounter = _gActor510900PatrolWaitFrames[((RANDOM_LCG_ADVANCE()) >> 16) & 0xF];
             }
             // The binary retains this empty lap-distance interval.
             if (work->sideRemaining >= 0x7D0 && work->playerDistance < 0x3E8 && work->lapDistance <= (u32)ACTOR_510900_LAST_ATTACK_DISTANCE &&
@@ -1488,7 +1488,7 @@ static void _actor510900TickPatrol(Task* task)
             if (work->stateCounter <= 0 || work->lapDistance > (u32)ACTOR_510900_PATROL_END_DISTANCE) {
                 work->animationId  = ACTOR_510900_ANIM_PATROL_IDLE;
                 work->subState     = ACTOR_510900_PATROL_WAIT;
-                work->stateCounter = _gActor510900PatrolWaitFrames[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+                work->stateCounter = _gActor510900PatrolWaitFrames[((RANDOM_LCG_ADVANCE()) >> 16) & 0xF];
             }
             if (work->sideRemaining >= 0x7D0 && work->playerDistance < 0x3E8 && work->lapDistance <= (u32)ACTOR_510900_LAST_ATTACK_DISTANCE &&
                 work->lapDistance > (u32)ACTOR_510900_LETHAL_ATTACK_DISTANCE) {
@@ -1520,7 +1520,7 @@ static void _actor510900TickPatrol(Task* task)
             if (work->animationFrame >= 0xF) {
                 work->subState     = ACTOR_510900_PATROL_SHOTGUN_RESPONSE_WALK;
                 work->animationId  = ACTOR_510900_ANIM_SHOTGUN_RESPONSE_WALK;
-                work->stateCounter = _gActor510900PatrolWalkDistances[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+                work->stateCounter = _gActor510900PatrolWalkDistances[((RANDOM_LCG_ADVANCE()) >> 16) & 0xF];
             }
             break;
         case ACTOR_510900_PATROL_SHOTGUN_RESPONSE_WALK:
@@ -1541,7 +1541,7 @@ static void _actor510900TickPatrol(Task* task)
                     work->lapDistance > (u32)ACTOR_510900_LETHAL_ATTACK_DISTANCE) {
                     work->stateCounter = 0;
                 } else {
-                    work->stateCounter = _gActor510900PatrolWaitFrames[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+                    work->stateCounter = _gActor510900PatrolWaitFrames[((RANDOM_LCG_ADVANCE()) >> 16) & 0xF];
                 }
             }
             break;
@@ -1637,7 +1637,7 @@ static s32 _actor510900TrySelectAttack(Task* task)
             work->subState    = ACTOR_510900_FLAME_LUNGE_WINDUP;
             work->animationId = ACTOR_510900_ANIM_FLAME_WINDUP;
         } else if (playerDistance < ACTOR_510900_MIXED_ATTACK_RANGE) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            RANDOM_LCG_ADVANCE();
             if ((gRandomLcgState >> 0x10) & 1) {
                 work->state       = ACTOR_510900_STATE_FLAME_LUNGE;
                 work->subState    = ACTOR_510900_FLAME_LUNGE_WINDUP;
@@ -1663,7 +1663,7 @@ static s32 _actor510900TrySelectAttack(Task* task)
             work->subState    = ACTOR_510900_SLASH_WINDUP;
             work->animationId = ACTOR_510900_ANIM_SLASH_WINDUP;
         } else {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            RANDOM_LCG_ADVANCE();
             if (((gRandomLcgState >> 0x10) & 0xF) < 0xAU) {
                 work->state       = ACTOR_510900_STATE_GRENADE;
                 work->subState    = ACTOR_510900_ATTACK_INITIAL_STEP;
@@ -1725,13 +1725,13 @@ static void _actor510900TickSlash(Task* task)
                     work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 } else {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    RANDOM_LCG_ADVANCE();
                     if (_gActor510900SlashContinuationThresholds[work->stateCounter] < (s32)((gRandomLcgState >> 0x10) & 0xF)) {
-                        u16* patrolWaitFrames      = _gActor510900PostAttackWaitFrames;
-                        work->state                = ACTOR_510900_STATE_PATROL;
-                        work->animationId          = ACTOR_510900_ANIM_PATROL_IDLE;
-                        work->subState             = ACTOR_510900_PATROL_WAIT;
-                        gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        u16* patrolWaitFrames = _gActor510900PostAttackWaitFrames;
+                        work->state           = ACTOR_510900_STATE_PATROL;
+                        work->animationId     = ACTOR_510900_ANIM_PATROL_IDLE;
+                        work->subState        = ACTOR_510900_PATROL_WAIT;
+                        RANDOM_LCG_ADVANCE();
                         work->stateCounter         = patrolWaitFrames[(gRandomLcgState >> 0x10) & 0xF];
                         work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -1762,13 +1762,13 @@ static void _actor510900TickSlash(Task* task)
                     work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 } else {
                     if ((_gActor510900SlashContinuationThresholds[work->stateCounter] <
-                         (s32)(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF)) ||
+                         (s32)(((RANDOM_LCG_ADVANCE()) >> 0x10) & 0xF)) ||
                         (work->stateCounter >= (s32)ARRAY_SIZE(_gActor510900SlashContinuationThresholds) - 1)) {
-                        u16* patrolWaitFrames      = _gActor510900PostAttackWaitFrames;
-                        work->state                = ACTOR_510900_STATE_PATROL;
-                        work->subState             = ACTOR_510900_PATROL_WAIT;
-                        work->animationId          = ACTOR_510900_ANIM_PATROL_IDLE;
-                        gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        u16* patrolWaitFrames = _gActor510900PostAttackWaitFrames;
+                        work->state           = ACTOR_510900_STATE_PATROL;
+                        work->subState        = ACTOR_510900_PATROL_WAIT;
+                        work->animationId     = ACTOR_510900_ANIM_PATROL_IDLE;
+                        RANDOM_LCG_ADVANCE();
                         work->stateCounter         = patrolWaitFrames[(gRandomLcgState >> 0x10) & 0xF];
                         work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -1791,8 +1791,8 @@ static void _actor510900TickSlash(Task* task)
                 work->state           = ACTOR_510900_STATE_PATROL;
                 work->subState        = ACTOR_510900_PATROL_WAIT;
                 work->animationId     = ACTOR_510900_ANIM_PATROL_IDLE;
-                gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->stateCounter    = patrolWaitFrames[(gRandomLcgState >> 0x10) & 0xF];
+                RANDOM_LCG_ADVANCE();
+                work->stateCounter = patrolWaitFrames[(gRandomLcgState >> 0x10) & 0xF];
             }
             break;
     }
@@ -1870,7 +1870,7 @@ static void _actor510900TickFlameLunge(Task* task)
                     work->state        = ACTOR_510900_STATE_PATROL;
                     work->animationId  = ACTOR_510900_ANIM_PATROL_IDLE;
                     work->subState     = ACTOR_510900_PATROL_WAIT;
-                    work->stateCounter = _gActor510900PostAttackWaitFrames[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF];
+                    work->stateCounter = _gActor510900PostAttackWaitFrames[((u32)(randomState = RANDOM_LCG_NEXT(gRandomLcgState)) >> 0x10) & 0xF];
                     gRandomLcgState    = randomState;
                 }
                 work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -1940,7 +1940,7 @@ static void _actor510900TickGrenadeThrow(Task* task)
     }
     if (work->animationFrame >= ACTOR_510900_GRENADE_THROW_END_FRAME) {
         if (work->playerDistance >= ACTOR_510900_GRENADE_DASH_MIN_DISTANCE) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            RANDOM_LCG_ADVANCE();
             if (((gRandomLcgState >> 0x10) & 0xF) < (u32)ACTOR_510900_GRENADE_DASH_ROLL_LIMIT) {
                 dashNext = 1;
             }
@@ -1949,7 +1949,7 @@ static void _actor510900TickGrenadeThrow(Task* task)
             work->state        = ACTOR_510900_STATE_PATROL;
             work->animationId  = ACTOR_510900_ANIM_PATROL_IDLE;
             work->subState     = ACTOR_510900_PATROL_WAIT;
-            work->stateCounter = _gActor510900PostAttackWaitFrames[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF];
+            work->stateCounter = _gActor510900PostAttackWaitFrames[((u32)(randomState = RANDOM_LCG_NEXT(gRandomLcgState)) >> 0x10) & 0xF];
             gRandomLcgState    = randomState;
             return;
         }
@@ -1996,11 +1996,11 @@ static void _actor510900TickDash(Task* task)
             } else {
                 work->stateCounter -= ACTOR_510900_DASH_SPEED;
                 if (work->stateCounter < 0 || work->sideRemaining < 0x384) {
-                    work->state                = ACTOR_510900_STATE_PATROL;
-                    work->subState             = ACTOR_510900_PATROL_WAIT;
-                    work->animationId          = ACTOR_510900_ANIM_PATROL_IDLE;
-                    gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    patrolWaitFrames           = _gActor510900PostAttackWaitFrames[(gRandomLcgState >> 16) & 0xF];
+                    work->state       = ACTOR_510900_STATE_PATROL;
+                    work->subState    = ACTOR_510900_PATROL_WAIT;
+                    work->animationId = ACTOR_510900_ANIM_PATROL_IDLE;
+                    RANDOM_LCG_ADVANCE();
+                    patrolWaitFrames           = _gActor510900PostAttackWaitFrames[RANDOM_LCG_DRAW() & 0xF];
                     work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     work->stateCounter         = patrolWaitFrames;
@@ -2145,7 +2145,7 @@ static void _actor510900TickLethalAttack(Task* task)
                 work->state        = ACTOR_510900_STATE_PATROL;
                 work->animationId  = ACTOR_510900_ANIM_PATROL_IDLE;
                 work->subState     = ACTOR_510900_PATROL_WAIT;
-                work->stateCounter = _gActor510900PostAttackWaitFrames[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF];
+                work->stateCounter = _gActor510900PostAttackWaitFrames[((u32)(randomState = RANDOM_LCG_NEXT(gRandomLcgState)) >> 0x10) & 0xF];
                 gRandomLcgState    = randomState;
             }
             break;
@@ -2235,7 +2235,7 @@ static void _actor510900TickRecoil(Task* task)
                     work->animationId = ACTOR_510900_ANIM_PATROL_IDLE;
                     work->subState    = ACTOR_510900_PATROL_WAIT;
                     work->stateCounter =
-                        _gActor510900ReactionWaitFrames[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+                        _gActor510900ReactionWaitFrames[((u32)(randomState = RANDOM_LCG_NEXT(gRandomLcgState)) >> 16) & 0xF];
                     gRandomLcgState = randomState;
                 }
             }
@@ -2312,7 +2312,7 @@ static void _actor510900TickSparkRecoil(Task* task)
                     work->animationId = ACTOR_510900_ANIM_PATROL_IDLE;
                     work->subState    = ACTOR_510900_PATROL_WAIT;
                     work->stateCounter =
-                        _gActor510900ReactionWaitFrames[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF];
+                        _gActor510900ReactionWaitFrames[((u32)(randomState = RANDOM_LCG_NEXT(gRandomLcgState)) >> 0x10) & 0xF];
                     gRandomLcgState = randomState;
                 }
             }
@@ -2383,7 +2383,7 @@ static void _actor510900TickSparkStun(Task* task)
                     work->animationId = ACTOR_510900_ANIM_PATROL_IDLE;
                     work->subState    = ACTOR_510900_PATROL_WAIT;
                     work->stateCounter =
-                        _gActor510900ReactionWaitFrames[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF];
+                        _gActor510900ReactionWaitFrames[((u32)(randomState = RANDOM_LCG_NEXT(gRandomLcgState)) >> 0x10) & 0xF];
                     gRandomLcgState = randomState;
                 }
             }
@@ -2416,7 +2416,7 @@ static void _actor510900TickDeath(Task* task)
         work->state                           = ACTOR_510900_STATE_PATROL;
         work->animationId                     = ACTOR_510900_ANIM_PATROL_IDLE;
         work->subState                        = ACTOR_510900_PATROL_WAIT;
-        work->stateCounter                    = _gActor510900ReactionWaitFrames[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+        work->stateCounter                    = _gActor510900ReactionWaitFrames[((u32)(randomState = RANDOM_LCG_NEXT(gRandomLcgState)) >> 16) & 0xF];
         gRandomLcgState                       = randomState;
         return;
     }
@@ -3710,7 +3710,7 @@ static void _actor510900TickBlastSource(Enemy* enemy, Task* task)
     // Publish the new phase before drawing this frame's ambient ember.
     _actor510900TickBlastSourcePhases(task);
     gameFlagSetNibble(GAME_FLAG_00D, _gActor510900HelipadStatusFlagValues[work->state][parentWork->light2Status]);
-    randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    randomState     = RANDOM_LCG_NEXT(gRandomLcgState);
     gRandomLcgState = randomState;
     if ((u16)((randomState >> 16) % 3) == 0) {
         effectSpawn(EFFECT_ACROPOLIS_HELIPAD_EMBER, task->extra.coordBody->coord, 0, NULL);
@@ -4094,7 +4094,7 @@ static void _actor510900TickBuildupStun(Task* task)
                 work->subState    = ACTOR_510900_PATROL_WAIT;
                 work->animationId = ACTOR_510900_ANIM_PATROL_IDLE;
                 work->stateCounter =
-                    _gActor510900ReactionWaitFrames[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+                    _gActor510900ReactionWaitFrames[((u32)(randomState = RANDOM_LCG_NEXT(gRandomLcgState)) >> 16) & 0xF];
                 gRandomLcgState = randomState;
             }
             break;
@@ -4135,7 +4135,7 @@ static void _actor510900TickFlinch(Task* task)
                     work->subState    = ACTOR_510900_PATROL_WAIT;
                     work->animationId = ACTOR_510900_ANIM_PATROL_IDLE;
                     work->stateCounter =
-                        _gActor510900ReactionWaitFrames[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+                        _gActor510900ReactionWaitFrames[((u32)(randomState = RANDOM_LCG_NEXT(gRandomLcgState)) >> 16) & 0xF];
                     gRandomLcgState = randomState;
                 }
             }

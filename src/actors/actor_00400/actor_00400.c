@@ -1669,8 +1669,8 @@ static void _actor00400SpawnBodyChunks(Task* task)
     if (leftArmEffect != NULL) {
         _actor00400BindChunkTexture(task, leftArmEffect);
     }
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    if ((gRandomLcgState >> 16) & 1) {
+    RANDOM_LCG_ADVANCE();
+    if (RANDOM_LCG_DRAW() & 1) {
         gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &_gDiverBurstLegRight;
         randomLimbEffect                                             = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[8], ACTOR_00400_CHUNK_PARTICLE_SIZE, NULL);
     } else {
@@ -3261,7 +3261,7 @@ static void _actor00400SwimDecide(Task* task)
     work = task->work;
     if ((_actor00400ApplyHitReaction(task) << 0x10) == 0) {
         if (work->targetDistance < ACTOR_00400_SWIM_ATTACK_DISTANCE && (u32)(work->targetBearing - ACTOR_00400_SWIM_ATTACK_EXCLUDED_START) >= ACTOR_00400_SWIM_ATTACK_EXCLUDED_WIDTH) {
-            randomValue     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            randomValue     = RANDOM_LCG_NEXT(gRandomLcgState);
             gRandomLcgState = randomValue;
             if ((randomValue >> 16) & 1) {
                 attackWork                                              = task->work;
@@ -4029,10 +4029,10 @@ static void _actor00400SwimStart(Task* task)
     work      = task->work;
     rootCoord = task->extra.tmd->coords;
     sceneAcquireBattleRef(0);
-    gRandomLcgState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->bobPhase           = gRandomLcgState >> 16;
-    gRandomLcgState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->frameCount         = gRandomLcgState >> 16;
+    RANDOM_LCG_ADVANCE();
+    work->bobPhase = RANDOM_LCG_DRAW();
+    RANDOM_LCG_ADVANCE();
+    work->frameCount         = RANDOM_LCG_DRAW();
     requestWork              = task->work;
     requestWork->animStep    = ANIMATION_RATE_ONE;
     requestWork->animClip    = ACTOR_00400_ANIM_SURFACED;
@@ -4897,7 +4897,7 @@ static void _actor00400WoundedGroundIdleEnter(Task* task)
     u32              randomValue;
 
     work            = task->work;
-    randomValue     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    randomValue     = RANDOM_LCG_NEXT(gRandomLcgState);
     gRandomLcgState = randomValue;
     requestWork     = task->work;
     _diverRequestClipBlend(requestWork, ACTOR_00400_ANIM_STRANDED_STATUS_HOLD_ENTER,
@@ -6073,7 +6073,7 @@ static void _actor00400WoundedFloatIdleEnter(Task* task)
     u32              randomValue;
 
     work        = task->work;
-    randomValue = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    randomValue = RANDOM_LCG_NEXT(gRandomLcgState);
     work->goalY = work->waterLevel;
     requestWork = task->work;
     _diverRequestClipBlend(requestWork, ACTOR_00400_ANIM_SWIM_STATUS_HOLD_LOOP,

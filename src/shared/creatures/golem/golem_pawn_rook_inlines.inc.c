@@ -23,7 +23,7 @@ static inline void _golemPawnRookSpawnDamageSparks(Task* actor)
         work->dustTimer = 0;
         sparkOffset->vx = 0;
         sparkOffset->vz = 0;
-        sparkOffset->vy = -(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & GOLEM_PAWN_ROOK_DAMAGE_SPARK_Y_MASK);
+        sparkOffset->vy = -(((RANDOM_LCG_ADVANCE()) >> 16) & GOLEM_PAWN_ROOK_DAMAGE_SPARK_Y_MASK);
         effectSpawn(EFFECT_FLASH_BURST, &actor->extra.tmd->coords[3], GOLEM_PAWN_ROOK_DAMAGE_SPARK_SIZE, sparkOffset);
     }
     SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);

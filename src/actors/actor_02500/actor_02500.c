@@ -561,8 +561,8 @@ static void _actor02500Spawn(Enemy* enemy, Task* actor)
             work->action     = ACTOR_02500_ACTION_WANDER;
             work->actionStep = ACTOR_02500_WANDER_STEP_STAND;
             enemy->recs      = work->hitContacts;
-            gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->timer      = ((gRandomLcgState >> 16) & ACTOR_02500_SHORT_WAIT_MASK) + ACTOR_02500_WAIT_MIN_TICKS;
+            RANDOM_LCG_ADVANCE();
+            work->timer = (RANDOM_LCG_DRAW() & ACTOR_02500_SHORT_WAIT_MASK) + ACTOR_02500_WAIT_MIN_TICKS;
             break;
         case ACTOR_02500_PLACE_AMBUSH_LEADER:
             work->action     = ACTOR_02500_ACTION_AMBUSH;
@@ -577,8 +577,8 @@ static void _actor02500Spawn(Enemy* enemy, Task* actor)
             worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
             break;
     }
-    gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->idleSoundTimer = ((gRandomLcgState >> 16) & ACTOR_02500_LONG_WAIT_MASK) + ACTOR_02500_WAIT_MIN_TICKS;
+    RANDOM_LCG_ADVANCE();
+    work->idleSoundTimer = (RANDOM_LCG_DRAW() & ACTOR_02500_LONG_WAIT_MASK) + ACTOR_02500_WAIT_MIN_TICKS;
     work->home.vx        = rootCoord->coord.t[0];
     work->home.vy        = rootCoord->coord.t[1];
     work->home.vz        = rootCoord->coord.t[2];
@@ -846,7 +846,7 @@ static void _actor02500Wander(Task* actor)
                 work->headingHome = 0;
                 work->anim        = ACTOR_02500_ANIM_WALK;
                 work->actionStep  = ACTOR_02500_WANDER_STEP_TURN;
-                randomYawState    = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                randomYawState    = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState   = randomYawState;
                 work->targetYaw   = (randomYawState >> 16) & ACTOR_TRANSFORM_ANGLE_MASK;
             }
@@ -855,7 +855,7 @@ static void _actor02500Wander(Task* actor)
             work->speed = 0;
             if (work->yaw == (s16)work->targetYaw) {
                 work->actionStep = ACTOR_02500_WANDER_STEP_WALK;
-                randomWalkState  = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                randomWalkState  = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState  = randomWalkState;
                 work->timer      = ((randomWalkState >> 16) & ACTOR_02500_LONG_WAIT_MASK) + ACTOR_02500_WAIT_MIN_TICKS;
             }
@@ -878,7 +878,7 @@ static void _actor02500Wander(Task* actor)
                     }
                 }
                 work->actionStep = ACTOR_02500_WANDER_STEP_STAND;
-                randomStandState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                randomStandState = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState  = randomStandState;
                 randomStandTicks = (randomStandState >> 16) & ACTOR_02500_SHORT_WAIT_MASK;
                 work->timer      = randomStandTicks + ACTOR_02500_WAIT_MIN_TICKS;
@@ -1032,7 +1032,7 @@ static void _actor02500TickSounds(Task* actor)
     rootCoord = actor->extra.tmd->coords;
     work->idleSoundTimer--;
     if (work->idleSoundTimer <= 0) {
-        randomState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        randomState          = RANDOM_LCG_NEXT(gRandomLcgState);
         work->idleSoundTimer = ((randomState >> 16) & ACTOR_02500_LONG_WAIT_MASK) + ACTOR_02500_WAIT_MIN_TICKS;
         gRandomLcgState      = randomState;
         soundId              = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_02500_SOUND_INSTANCE_SHIFT) | ACTOR_02500_SOUND_IDLE;
@@ -1171,7 +1171,7 @@ static void _actor02500Ambush(Task* actor)
         work->dustTimer = dustTicks;
         // One random radius per burst; the stepped table index stays in 0..7.
         if (!(dustTicks & ACTOR_02500_AMBUSH_DUST_PERIOD_MASK)) {
-            randomState     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            randomState     = RANDOM_LCG_NEXT(gRandomLcgState);
             puffIndex       = 0;
             distance        = ((randomState >> 16) & ACTOR_02500_AMBUSH_DUST_RADIUS_MASK) + ACTOR_02500_AMBUSH_DUST_RADIUS_MIN;
             gRandomLcgState = randomState;

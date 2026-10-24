@@ -1914,11 +1914,11 @@ static inline void _actor107600RollTargetSpin(s16* spinAngle)
 
     s16 spin;
 
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    spin            = (gRandomLcgState >> 16) & ACTOR_107600_TARGET_SPIN_MAGNITUDE_MASK;
+    RANDOM_LCG_ADVANCE();
+    spin = RANDOM_LCG_DRAW() & ACTOR_107600_TARGET_SPIN_MAGNITUDE_MASK;
     // Publish the magnitude before choosing its sign.
     *spinAngle = spin;
-    if (!((gRandomLcgState >> 16) & 1)) {
+    if (!(RANDOM_LCG_DRAW() & 1)) {
         spin = -spin;
     }
     *spinAngle = spin;
@@ -2589,10 +2589,10 @@ static void _actor107600BeginTargetBehaviour(Task* task)
     switch (work->mountBehaviour) {
         case ACTOR_107600_MOUNT_STANDING:
         case ACTOR_107600_MOUNT_HANGING:
-            work->state         = ACTOR_107600_TARGET_STATE_ACTIVE;
-            work->pitch         = ACTOR_107600_ANGLE_QUARTER_TURN;
-            gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->hitMarkFirst  = (gRandomLcgState >> 16) & (ACTOR_107600_TARGET_HIT_MARK_COUNT - 1);
+            work->state = ACTOR_107600_TARGET_STATE_ACTIVE;
+            work->pitch = ACTOR_107600_ANGLE_QUARTER_TURN;
+            RANDOM_LCG_ADVANCE();
+            work->hitMarkFirst  = RANDOM_LCG_DRAW() & (ACTOR_107600_TARGET_HIT_MARK_COUNT - 1);
             work->widthPercent  = ACTOR_107600_TARGET_INITIAL_SCALE_PERCENT;
             work->heightPercent = ACTOR_107600_TARGET_INITIAL_SCALE_PERCENT;
             _actor107600UpdateTargetRotation(task);

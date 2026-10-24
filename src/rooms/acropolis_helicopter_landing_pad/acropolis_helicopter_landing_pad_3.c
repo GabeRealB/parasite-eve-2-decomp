@@ -671,32 +671,32 @@ void acropolisHelicopterLandingPadEmberTask(Task* task)
     actorRenderComposeCoord(coord);
     if (task->state == ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_INITIALIZE) {
         if (task->spawnArg1.value != 0) {
-            work->move.vx   = 0;
-            work->move.vy   = -ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_BRIGHT_RISE_STEP;
-            work->move.vz   = 0;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->scale     = ((gRandomLcgState >> 16) & 0xFF) + 0x300;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->angle     = (gRandomLcgState >> 16) & ACTOR_TRANSFORM_ANGLE_MASK;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->period    = (gRandomLcgState >> 16) & 0x3F;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->step      = ((gRandomLcgState >> 16) & 3) + 2;
+            work->move.vx = 0;
+            work->move.vy = -ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_BRIGHT_RISE_STEP;
+            work->move.vz = 0;
+            RANDOM_LCG_ADVANCE();
+            work->scale = (RANDOM_LCG_DRAW() & 0xFF) + 0x300;
+            RANDOM_LCG_ADVANCE();
+            work->angle = RANDOM_LCG_DRAW() & ACTOR_TRANSFORM_ANGLE_MASK;
+            RANDOM_LCG_ADVANCE();
+            work->period = RANDOM_LCG_DRAW() & 0x3F;
+            RANDOM_LCG_ADVANCE();
+            work->step = (RANDOM_LCG_DRAW() & 3) + 2;
         } else {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->scale     = ((gRandomLcgState >> 16) & 0xFF) + 0x100;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->angle     = (gRandomLcgState >> 16) & ACTOR_TRANSFORM_ANGLE_MASK;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->period    = ((gRandomLcgState >> 16) & 3) + 1;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->step      = ((gRandomLcgState >> 16) & 3) + 1;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vx   = ((gRandomLcgState >> 16) & 7) - 4;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vy   = ~((gRandomLcgState >> 16) & 0xF);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vz   = ((gRandomLcgState >> 16) & 7) - 4;
+            RANDOM_LCG_ADVANCE();
+            work->scale = (RANDOM_LCG_DRAW() & 0xFF) + 0x100;
+            RANDOM_LCG_ADVANCE();
+            work->angle = RANDOM_LCG_DRAW() & ACTOR_TRANSFORM_ANGLE_MASK;
+            RANDOM_LCG_ADVANCE();
+            work->period = (RANDOM_LCG_DRAW() & 3) + 1;
+            RANDOM_LCG_ADVANCE();
+            work->step = (RANDOM_LCG_DRAW() & 3) + 1;
+            RANDOM_LCG_ADVANCE();
+            work->move.vx = (RANDOM_LCG_DRAW() & 7) - 4;
+            RANDOM_LCG_ADVANCE();
+            work->move.vy = ~(RANDOM_LCG_DRAW() & 0xF);
+            RANDOM_LCG_ADVANCE();
+            work->move.vz = (RANDOM_LCG_DRAW() & 7) - 4;
         }
         task->state++;
     }
@@ -708,17 +708,17 @@ void acropolisHelicopterLandingPadEmberTask(Task* task)
         gGpuPrimCursor = sprite + 1;
         setPolyFT4(sprite);
         if (task->spawnArg1.value == ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_FLICKER_VARIANT) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if (((gRandomLcgState >> 16) & 3) == 0) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                colorSample     = (gRandomLcgState >> 16) & 0xFF;
+            RANDOM_LCG_ADVANCE();
+            if ((RANDOM_LCG_DRAW() & 3) == 0) {
+                RANDOM_LCG_ADVANCE();
+                colorSample = RANDOM_LCG_DRAW() & 0xFF;
                 setRGB0(sprite, colorSample >> 1, colorSample, 0xFF);
             } else {
                 setShadeTex(sprite, true);
             }
             if (work->age < work->step * ACROPOLIS_HELICOPTER_LANDING_PAD_EMBER_FRAMES_PER_CELL - 2) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                if (((gRandomLcgState >> 16) & 0xF) == 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+                RANDOM_LCG_ADVANCE();
+                if ((RANDOM_LCG_DRAW() & 0xF) == 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     effectSpawn(EFFECT_FLASH_BURST, coord, 0x100, NULL);
                 }
             }
@@ -812,13 +812,13 @@ void acropolisHelicopterLandingPadDamagedLightSparksTask(Task* task)
     work->age++;
     switch (task->state) {
         case ACROPOLIS_HELICOPTER_LANDING_PAD_SPARKS_LINES_AND_BURSTS:
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            upperSparkCount = (gRandomLcgState >> 16) & 3;
+            RANDOM_LCG_ADVANCE();
+            upperSparkCount = RANDOM_LCG_DRAW() & 3;
             for (sparkIndex = 0; sparkIndex < upperSparkCount; sparkIndex++) {
                 _acropolisHelicopterLandingPadDrawUpperSparkLine(coord);
             }
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if (((gRandomLcgState >> 16) & 3) == 0) {
+            RANDOM_LCG_ADVANCE();
+            if ((RANDOM_LCG_DRAW() & 3) == 0) {
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     acropolisHelicopterLandingPadDrawLowerSparkLine(coord);
                 }
@@ -830,15 +830,15 @@ void acropolisHelicopterLandingPadDamagedLightSparksTask(Task* task)
             light->outer          = ACROPOLIS_HELICOPTER_LANDING_PAD_SPARKS_LINE_OUTER_DISTANCE;
             light->head.color.r   = ACROPOLIS_HELICOPTER_LANDING_PAD_LIGHT_HALF_INTENSITY;
             light->head.color.g   = ACROPOLIS_HELICOPTER_LANDING_PAD_LIGHT_HALF_INTENSITY;
-            gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            light->head.color.b   = ((gRandomLcgState >> 16) & ACROPOLIS_HELICOPTER_LANDING_PAD_LIGHT_BLUE_RANDOM_MASK) + ACROPOLIS_HELICOPTER_LANDING_PAD_LIGHT_BLUE_BASE;
+            RANDOM_LCG_ADVANCE();
+            light->head.color.b = (RANDOM_LCG_DRAW() & ACROPOLIS_HELICOPTER_LANDING_PAD_LIGHT_BLUE_RANDOM_MASK) + ACROPOLIS_HELICOPTER_LANDING_PAD_LIGHT_BLUE_BASE;
             gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &lightSlot->light.head.transform.coord.coord);
             lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
             /* fallthrough */
         case ACROPOLIS_HELICOPTER_LANDING_PAD_SPARKS_BURSTS_ONLY:
             if ((gDisplayState.animFrame & 7) == 0) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                if (((gRandomLcgState >> 16) & 3) == 0) {
+                RANDOM_LCG_ADVANCE();
+                if ((RANDOM_LCG_DRAW() & 3) == 0) {
                     work->scale = 1;
                 }
             }
@@ -893,21 +893,21 @@ static void _acropolisHelicopterLandingPadDrawUpperSparkLine(GfxCoord* coord)
     u16                greenIntensity;
 
     actorRenderComposeCoord(coord);
-    line                  = SCRATCH_STACK_RESERVE_BLOCK(EffectLineScratch);
-    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    line->endpoints[0].vx = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
-    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    line->endpoints[0].vy = ((gRandomLcgState >> 16) & 0x7F) - 0xC0;
-    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    line->endpoints[0].vz = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
+    line = SCRATCH_STACK_RESERVE_BLOCK(EffectLineScratch);
+    RANDOM_LCG_ADVANCE();
+    line->endpoints[0].vx = (RANDOM_LCG_DRAW() & 0x3F) - 0x20;
+    RANDOM_LCG_ADVANCE();
+    line->endpoints[0].vy = (RANDOM_LCG_DRAW() & 0x7F) - 0xC0;
+    RANDOM_LCG_ADVANCE();
+    line->endpoints[0].vz = (RANDOM_LCG_DRAW() & 0x3F) - 0x20;
     // Convert the local endpoint to view space, narrowing each component to s16.
     ACROPOLIS_HELICOPTER_LANDING_PAD_TRANSFORM_SPARK_ENDPOINT(line, 0, coord);
-    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    line->endpoints[1].vx = ((gRandomLcgState >> 16) & 0x7F) - 0x40;
-    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    line->endpoints[1].vy = ((gRandomLcgState >> 16) % 0xFF) - 0x80;
-    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    line->endpoints[1].vz = ((gRandomLcgState >> 16) & 0x7F) - 0x40;
+    RANDOM_LCG_ADVANCE();
+    line->endpoints[1].vx = (RANDOM_LCG_DRAW() & 0x7F) - 0x40;
+    RANDOM_LCG_ADVANCE();
+    line->endpoints[1].vy = (RANDOM_LCG_DRAW() % 0xFF) - 0x80;
+    RANDOM_LCG_ADVANCE();
+    line->endpoints[1].vz = (RANDOM_LCG_DRAW() & 0x7F) - 0x40;
     ACROPOLIS_HELICOPTER_LANDING_PAD_TRANSFORM_SPARK_ENDPOINT(line, 1, coord);
     // Project both ends; only the second endpoint supplies rejection flags and depth.
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -917,9 +917,9 @@ static void _acropolisHelicopterLandingPadDrawUpperSparkLine(GfxCoord* coord)
     gte_stsxy(&line->screenEndpoints[0]);
     gte_ldv0(&line->endpoints[1]);
     gte_rtps();
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    colorSample     = (gRandomLcgState >> 16) & 0xFF;
-    greenIntensity  = colorSample;
+    RANDOM_LCG_ADVANCE();
+    colorSample    = RANDOM_LCG_DRAW() & 0xFF;
+    greenIntensity = colorSample;
     gte_stsxy(&line->screenEndpoints[1]);
     gte_stflg(&line->projectionFlags);
     if (line->projectionFlags >= 0) {
@@ -945,21 +945,21 @@ void acropolisHelicopterLandingPadDrawLowerSparkLine(GfxCoord* coord)
     u16                greenIntensity;
 
     actorRenderComposeCoord(coord);
-    line                  = SCRATCH_STACK_RESERVE_BLOCK(EffectLineScratch);
-    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    line->endpoints[0].vx = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
-    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    line->endpoints[0].vy = (gRandomLcgState >> 16) & 0x7F;
-    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    line->endpoints[0].vz = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
+    line = SCRATCH_STACK_RESERVE_BLOCK(EffectLineScratch);
+    RANDOM_LCG_ADVANCE();
+    line->endpoints[0].vx = (RANDOM_LCG_DRAW() & 0x3F) - 0x20;
+    RANDOM_LCG_ADVANCE();
+    line->endpoints[0].vy = RANDOM_LCG_DRAW() & 0x7F;
+    RANDOM_LCG_ADVANCE();
+    line->endpoints[0].vz = (RANDOM_LCG_DRAW() & 0x3F) - 0x20;
     // Convert the local endpoint to view space, narrowing each component to s16.
     ACROPOLIS_HELICOPTER_LANDING_PAD_TRANSFORM_SPARK_ENDPOINT(line, 0, coord);
-    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    line->endpoints[1].vx = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
-    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    line->endpoints[1].vy = (gRandomLcgState >> 16) & 0xFF;
-    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    line->endpoints[1].vz = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
+    RANDOM_LCG_ADVANCE();
+    line->endpoints[1].vx = (RANDOM_LCG_DRAW() & 0x3F) - 0x20;
+    RANDOM_LCG_ADVANCE();
+    line->endpoints[1].vy = RANDOM_LCG_DRAW() & 0xFF;
+    RANDOM_LCG_ADVANCE();
+    line->endpoints[1].vz = (RANDOM_LCG_DRAW() & 0x3F) - 0x20;
     ACROPOLIS_HELICOPTER_LANDING_PAD_TRANSFORM_SPARK_ENDPOINT(line, 1, coord);
     // Project both ends; only the second endpoint supplies rejection flags and depth.
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -969,9 +969,9 @@ void acropolisHelicopterLandingPadDrawLowerSparkLine(GfxCoord* coord)
     gte_stsxy(&line->screenEndpoints[0]);
     gte_ldv0(&line->endpoints[1]);
     gte_rtps();
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    colorSample     = (gRandomLcgState >> 16) & 0xFF;
-    greenIntensity  = colorSample;
+    RANDOM_LCG_ADVANCE();
+    colorSample    = RANDOM_LCG_DRAW() & 0xFF;
+    greenIntensity = colorSample;
     gte_stsxy(&line->screenEndpoints[1]);
     gte_stflg(&line->projectionFlags);
     if (line->projectionFlags >= 0) {
@@ -1032,8 +1032,8 @@ void acropolisHelicopterLandingPadFlareEmitterTask(Task* task)
             light->outer          = ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_EMITTER_OUTER_DISTANCE;
             light->head.color.r   = ACROPOLIS_HELICOPTER_LANDING_PAD_LIGHT_HALF_INTENSITY;
             light->head.color.g   = ACROPOLIS_HELICOPTER_LANDING_PAD_LIGHT_HALF_INTENSITY;
-            gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            light->head.color.b   = ((gRandomLcgState >> 16) & ACROPOLIS_HELICOPTER_LANDING_PAD_LIGHT_BLUE_RANDOM_MASK) + ACROPOLIS_HELICOPTER_LANDING_PAD_LIGHT_BLUE_BASE;
+            RANDOM_LCG_ADVANCE();
+            light->head.color.b = (RANDOM_LCG_DRAW() & ACROPOLIS_HELICOPTER_LANDING_PAD_LIGHT_BLUE_RANDOM_MASK) + ACROPOLIS_HELICOPTER_LANDING_PAD_LIGHT_BLUE_BASE;
             // Spawn places the emitter under the view; copy that parent-frame translation.
             light->head.transform.coord.coord.t[0]             = coord->coord.t[0];
             light->head.transform.coord.coord.t[1]             = coord->coord.t[1];
@@ -1046,8 +1046,8 @@ void acropolisHelicopterLandingPadFlareEmitterTask(Task* task)
             break;
         case ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_EMITTER_EMBERS:
             if (gDisplayState.animFrame & ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_EMITTER_FRAME_HALF_BIT) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                if (((gRandomLcgState >> 16) & 0xF) == 0) {
+                RANDOM_LCG_ADVANCE();
+                if ((RANDOM_LCG_DRAW() & 0xF) == 0) {
                     effectSpawn(EFFECT_ACROPOLIS_HELIPAD_EMBER, coord, ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_EMITTER_LARGE_EMBER_VARIANT, NULL);
                 }
             }
@@ -1088,18 +1088,18 @@ void acropolisHelicopterLandingPadLensFlareTask(Task* task)
     }
     actorRenderComposeCoord(coord);
     if (task->state == ACROPOLIS_HELICOPTER_LANDING_PAD_FLARE_INITIALIZE) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->scale     = ((gRandomLcgState >> 16) & 0x1FF) + 0x200;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->angle     = (gRandomLcgState >> 16) & ACTOR_TRANSFORM_ANGLE_MASK;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->step      = ((gRandomLcgState >> 16) & 3) + 1;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->move.vx   = -((gRandomLcgState >> 16) & 0x1F) - 0x40;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->move.vy   = ((gRandomLcgState >> 16) & 0xF) - 8;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->move.vz   = ((gRandomLcgState >> 16) & 0xF) - 8;
+        RANDOM_LCG_ADVANCE();
+        work->scale = (RANDOM_LCG_DRAW() & 0x1FF) + 0x200;
+        RANDOM_LCG_ADVANCE();
+        work->angle = RANDOM_LCG_DRAW() & ACTOR_TRANSFORM_ANGLE_MASK;
+        RANDOM_LCG_ADVANCE();
+        work->step = (RANDOM_LCG_DRAW() & 3) + 1;
+        RANDOM_LCG_ADVANCE();
+        work->move.vx = -(RANDOM_LCG_DRAW() & 0x1F) - 0x40;
+        RANDOM_LCG_ADVANCE();
+        work->move.vy = (RANDOM_LCG_DRAW() & 0xF) - 8;
+        RANDOM_LCG_ADVANCE();
+        work->move.vz = (RANDOM_LCG_DRAW() & 0xF) - 8;
         task->state++;
     }
     projection = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
@@ -1117,23 +1117,23 @@ void acropolisHelicopterLandingPadLensFlareTask(Task* task)
             setRGB0(sprite, fadeIntensity, fadeIntensity, fadeIntensity);
         } else {
             if (task->spawnArg1.value != 0) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                if (((gRandomLcgState >> 16) & 3) == 0) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    greenIntensity  = gRandomLcgState >> 16;
+                RANDOM_LCG_ADVANCE();
+                if ((RANDOM_LCG_DRAW() & 3) == 0) {
+                    RANDOM_LCG_ADVANCE();
+                    greenIntensity = RANDOM_LCG_DRAW();
                     setRGB0(sprite, greenIntensity >> 1, greenIntensity, 0xFF);
                 } else {
                     setShadeTex(sprite, true);
                 }
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                if (((gRandomLcgState >> 16) & 0xF) == 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+                RANDOM_LCG_ADVANCE();
+                if ((RANDOM_LCG_DRAW() & 0xF) == 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     effectSpawn(EFFECT_FLASH_BURST, coord, 0x100, NULL);
                 }
             } else {
                 sprite->code = ACROPOLIS_HELICOPTER_LANDING_PAD_SPRITE_RAW_TEXTURE_CODE;
             }
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if (((gRandomLcgState >> 16) & 0xF) == 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+            RANDOM_LCG_ADVANCE();
+            if ((RANDOM_LCG_DRAW() & 0xF) == 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 effectSpawn(EFFECT_ACROPOLIS_HELIPAD_EMBER, coord, 2 - task->spawnArg1.value, NULL);
             }
         }

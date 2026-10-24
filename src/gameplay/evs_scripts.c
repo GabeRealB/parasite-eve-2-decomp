@@ -984,17 +984,17 @@ void evsScreenShakeTask(Task* task)
     /// fractional-bit constants and shared random state; no caller locals are
     /// captured. Preserves signed multiply/divide then arithmetic-shift order;
     /// inputs must keep the signed products representable. Expands to a compound statement.
-#define EVENT_SCRIPT_SAMPLE_SCREEN_SHAKE(shakeTask, packed, halfDuration, sample, weightedAmplitude)                                                                                 \
-    {                                                                                                                                                                                \
-        (sample)            = (halfDuration) - ABS((shakeTask)->spawnArg1.value);                                                                                                    \
-        (weightedAmplitude) = (sample) * ((packed) >> EVENT_SCRIPT_SHAKE_AMPLITUDE_SHIFT);                                                                                           \
-        gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                                                        \
-        (sample)            = ((weightedAmplitude) * (s32)(gRandomLcgState >> EVENT_SCRIPT_SHAKE_RANDOM_FRACTION_BITS)) / (halfDuration) >> EVENT_SCRIPT_SHAKE_RANDOM_FRACTION_BITS; \
-        if ((shakeTask)->spawnArg1.value & 1) {                                                                                                                                      \
-            (sample) = ABS(sample);                                                                                                                                                  \
-        } else {                                                                                                                                                                     \
-            (sample) = -ABS(sample);                                                                                                                                                 \
-        }                                                                                                                                                                            \
+#define EVENT_SCRIPT_SAMPLE_SCREEN_SHAKE(shakeTask, packed, halfDuration, sample, weightedAmplitude)                                                                      \
+    {                                                                                                                                                                     \
+        (sample)            = (halfDuration) - ABS((shakeTask)->spawnArg1.value);                                                                                         \
+        (weightedAmplitude) = (sample) * ((packed) >> EVENT_SCRIPT_SHAKE_AMPLITUDE_SHIFT);                                                                                \
+        RANDOM_LCG_ADVANCE();                                                                                                                                             \
+        (sample) = ((weightedAmplitude) * (s32)(gRandomLcgState >> EVENT_SCRIPT_SHAKE_RANDOM_FRACTION_BITS)) / (halfDuration) >> EVENT_SCRIPT_SHAKE_RANDOM_FRACTION_BITS; \
+        if ((shakeTask)->spawnArg1.value & 1) {                                                                                                                           \
+            (sample) = ABS(sample);                                                                                                                                       \
+        } else {                                                                                                                                                          \
+            (sample) = -ABS(sample);                                                                                                                                      \
+        }                                                                                                                                                                 \
     }
 
     packedShake        = task->spawnArg2.value;

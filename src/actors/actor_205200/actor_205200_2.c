@@ -397,8 +397,8 @@ static inline void _actor205200TickFidget(_Actor205200Work* work)
         ACTOR_205200_FIDGET_DRAW_MASK  = 7
     };
     if (--work->fidgetTimer <= 0) {
-        work->fidgetTimer = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & ACTOR_205200_FIDGET_DELAY_MASK) + ACTOR_205200_FIDGET_MIN_DELAY;
-        if (!(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & ACTOR_205200_FIDGET_DRAW_MASK)) {
+        work->fidgetTimer = (((RANDOM_LCG_ADVANCE()) >> 16) & ACTOR_205200_FIDGET_DELAY_MASK) + ACTOR_205200_FIDGET_MIN_DELAY;
+        if (!(((RANDOM_LCG_ADVANCE()) >> 16) & ACTOR_205200_FIDGET_DRAW_MASK)) {
             work->actionStep = ACTOR_205200_IDLE_FIDGET;
             work->anim       = ACTOR_205200_ANIM_FIDGET;
         }

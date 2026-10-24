@@ -1064,30 +1064,30 @@ static inline s16 _actor00300TiltMagnitude(s8 randomByte)
 /// hit-twist fields, yawResult and the shared LCG. Each angle uses 4096 units
 /// per turn: even magnitudes 64..190 are negative and odd magnitudes 65..191
 /// positive. The helper intentionally narrows each byte to s8 before masking.
-#define ACTOR_00300_CHOOSE_HIT_TWIST(enemyWork, yawResult)                                \
-    {                                                                                     \
-        s16 randomHalfword;                                                               \
-        s32 pitchSignBit;                                                                 \
-        u32 randomState;                                                                  \
-        s32 pitchTwist;                                                                   \
-        s32 yawRandomByte;                                                                \
-                                                                                          \
-        randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT; \
-        randomHalfword  = randomState >> 16;                                              \
-        pitchTwist      = _actor00300TiltMagnitude(randomHalfword);                       \
-        pitchSignBit    = randomHalfword & 1;                                             \
-        gRandomLcgState = randomState;                                                    \
-        if (!pitchSignBit) {                                                              \
-            pitchTwist = -pitchTwist;                                                     \
-        }                                                                                 \
-        (enemyWork)->hitTwist.vx = pitchTwist;                                            \
-        yawRandomByte            = randomHalfword >> 8;                                   \
-        (yawResult)              = _actor00300TiltMagnitude(yawRandomByte);               \
-        if (!(yawRandomByte & 1)) {                                                       \
-            (yawResult) = -(yawResult);                                                   \
-        }                                                                                 \
-        (enemyWork)->hitTwist.vy    = (yawResult);                                        \
-        (enemyWork)->hitTwistActive = 1;                                                  \
+#define ACTOR_00300_CHOOSE_HIT_TWIST(enemyWork, yawResult)                  \
+    {                                                                       \
+        s16 randomHalfword;                                                 \
+        s32 pitchSignBit;                                                   \
+        u32 randomState;                                                    \
+        s32 pitchTwist;                                                     \
+        s32 yawRandomByte;                                                  \
+                                                                            \
+        randomState     = RANDOM_LCG_NEXT(gRandomLcgState);                 \
+        randomHalfword  = randomState >> 16;                                \
+        pitchTwist      = _actor00300TiltMagnitude(randomHalfword);         \
+        pitchSignBit    = randomHalfword & 1;                               \
+        gRandomLcgState = randomState;                                      \
+        if (!pitchSignBit) {                                                \
+            pitchTwist = -pitchTwist;                                       \
+        }                                                                   \
+        (enemyWork)->hitTwist.vx = pitchTwist;                              \
+        yawRandomByte            = randomHalfword >> 8;                     \
+        (yawResult)              = _actor00300TiltMagnitude(yawRandomByte); \
+        if (!(yawRandomByte & 1)) {                                         \
+            (yawResult) = -(yawResult);                                     \
+        }                                                                   \
+        (enemyWork)->hitTwist.vy    = (yawResult);                          \
+        (enemyWork)->hitTwistActive = 1;                                    \
     }
 
 /// Resolves grid correction, attack damage, enemy overlaps, MP drain and player sight for one combat tick.
@@ -1478,7 +1478,7 @@ static void _actor00300TickPursuit(Task* task)
                 if (playerDistance >= ACTOR_00300_CLOSE_RANGE || yawError >= ACTOR_00300_PURSUIT_YAW_TOLERANCE) {
                     work->actionStep = ACTOR_00300_PURSUIT_MOVE;
                 }
-                randomValue     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                randomValue     = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState = randomValue;
                 work->timer     = (((u32)randomValue >> 16) & 31) + ACTOR_00300_PURSUIT_MOVE_MIN_TICKS;
             }
@@ -1509,7 +1509,7 @@ static void _actor00300TickPursuit(Task* task)
             work->timer = timer;
             if (timer <= 0 || (playerDistance < ACTOR_00300_CLOSE_RANGE && yawError < ACTOR_00300_PURSUIT_YAW_TOLERANCE)) {
                 work->actionStep = ACTOR_00300_PURSUIT_WAIT;
-                randomValue      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                randomValue      = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState  = randomValue;
                 work->timer      = ((u32)randomValue >> 16) & 31;
             }
@@ -1525,7 +1525,7 @@ static void _actor00300TickPursuit(Task* task)
         timer             = (u16)work->attackTimer - 1;
         work->attackTimer = timer;
         if (timer <= 0) {
-            randomValue       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            randomValue       = RANDOM_LCG_NEXT(gRandomLcgState);
             gRandomLcgState   = randomValue;
             work->attackTimer = (((u32)randomValue >> 16) & 63) + ACTOR_00300_ATTACK_MIN_TICKS;
             if (work->playerSeen == 1) {
@@ -1563,15 +1563,15 @@ static void _actor00300SelectAttack(Task* task)
         work->actionStep = ACTOR_00300_ACTION_BEGIN;
     } else if (work->mp >= ACTOR_00300_MP_FIREBALL_COST) {
         work->mp            -= ACTOR_00300_MP_FIREBALL_COST;
-        work->fireballAttack = _gActor00300FireballAttackDraws[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (ARRAY_SIZE(_gActor00300FireballAttackDraws) - 1)];
+        work->fireballAttack = _gActor00300FireballAttackDraws[((RANDOM_LCG_ADVANCE()) >> 16) & (ARRAY_SIZE(_gActor00300FireballAttackDraws) - 1)];
         if (work->fireballAttack == ACTOR_00300_FIREBALL_NO_ATTACK) {
             work->action     = ACTOR_00300_ACTION_PURSUE;
             work->actionStep = ACTOR_00300_ACTION_BEGIN;
-            work->timer      = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 31);
+            work->timer      = ((RANDOM_LCG_ADVANCE()) >> 16 & 31);
         } else {
             work->action     = ACTOR_00300_ACTION_FIREBALL;
             work->actionStep = ACTOR_00300_ACTION_BEGIN;
-            work->timer      = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 31) + ACTOR_00300_ATTACK_TURN_MIN_TICKS;
+            work->timer      = ((RANDOM_LCG_ADVANCE()) >> 16 & 31) + ACTOR_00300_ATTACK_TURN_MIN_TICKS;
         }
     } else {
         scratch->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
@@ -1580,7 +1580,7 @@ static void _actor00300SelectAttack(Task* task)
         if (SquareRoot0(scratch->delta.vx * scratch->delta.vx + scratch->delta.vz * scratch->delta.vz) < ACTOR_00300_CLOSE_RANGE) {
             work->action     = ACTOR_00300_ACTION_DRAIN;
             work->actionStep = ACTOR_00300_ACTION_BEGIN;
-            randomValue      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            randomValue      = RANDOM_LCG_NEXT(gRandomLcgState);
             gRandomLcgState  = randomValue;
             work->timer      = (((u32)randomValue >> 16) & 31) + ACTOR_00300_ATTACK_TURN_MIN_TICKS;
         } else {
@@ -1677,7 +1677,7 @@ static void _actor00300TickFireballAttack(Task* task)
                 if (turnTimer <= 0) {
                     work->action     = ACTOR_00300_ACTION_PURSUE;
                     work->actionStep = ACTOR_00300_ACTION_BEGIN;
-                    abortDelayRandom = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    abortDelayRandom = RANDOM_LCG_NEXT(gRandomLcgState);
                     gRandomLcgState  = abortDelayRandom;
                     pursuitDelay     = ((u32)abortDelayRandom >> 0x10) & 0xF;
                     work->timer      = pursuitDelay;
@@ -1695,10 +1695,10 @@ static void _actor00300TickFireballAttack(Task* task)
                 ratan2((s16)stackTop[-1].delta.vx, (s16)scratch->delta.vz) &
                 ACTOR_TRANSFORM_ANGLE_MASK;
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                chargeSpawnRandom = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                chargeSpawnRandom = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState   = chargeSpawnRandom;
                 if (!((chargeSpawnRandom >> 0x10) & ACTOR_00300_MOTE_SPAWN_MASK)) {
-                    chargeMoteRandom = (chargeSpawnRandom * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    chargeMoteRandom = RANDOM_LCG_NEXT(chargeSpawnRandom);
                     gRandomLcgState  = chargeMoteRandom;
                     chargeMoteAngle  = ((u32)chargeMoteRandom >> 0x10) & ACTOR_00300_MOTE_ANGLE_MASK;
                     memset(&radialOffset, 0, sizeof(radialOffset));
@@ -1753,10 +1753,10 @@ static void _actor00300TickFireballAttack(Task* task)
                 }
             }
             if ((work->animFrame < ACTOR_00300_FIREBALL_SPAWN_FRAME) && (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING)) {
-                releaseSpawnRandom = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                releaseSpawnRandom = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState    = releaseSpawnRandom;
                 if (!((releaseSpawnRandom >> 0x10) & ACTOR_00300_MOTE_SPAWN_MASK)) {
-                    releaseMoteRandom = (releaseSpawnRandom * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    releaseMoteRandom = RANDOM_LCG_NEXT(releaseSpawnRandom);
                     gRandomLcgState   = releaseMoteRandom;
                     releaseMoteAngle  = ((u32)releaseMoteRandom >> 0x10) & ACTOR_00300_MOTE_ANGLE_MASK;
                     memset(&radialOffset, 0, sizeof(radialOffset));
@@ -1783,7 +1783,7 @@ static void _actor00300TickFireballAttack(Task* task)
             if (work->animFrame >= ACTOR_00300_FIREBALL_RECOVER_END_FRAME) {
                 work->action        = ACTOR_00300_ACTION_PURSUE;
                 work->actionStep    = ACTOR_00300_ACTION_BEGIN;
-                recoveryDelayRandom = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                recoveryDelayRandom = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState     = recoveryDelayRandom;
                 pursuitDelay        = ((u32)recoveryDelayRandom >> 0x10) & 0x1F;
                 work->timer         = pursuitDelay;
@@ -1854,7 +1854,7 @@ static void _actor00300TickDrainAttack(Task* task)
                 if (timer <= 0) {
                     work->action     = ACTOR_00300_ACTION_PURSUE;
                     work->actionStep = ACTOR_00300_ACTION_BEGIN;
-                    randomValue      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    randomValue      = RANDOM_LCG_NEXT(gRandomLcgState);
                     gRandomLcgState  = randomValue;
                     work->timer      = ((u32)randomValue >> 16) & 15;
                 }
@@ -1877,7 +1877,7 @@ static void _actor00300TickDrainAttack(Task* task)
                 work->drainScaleY      = 0;
                 work->action           = ACTOR_00300_ACTION_PURSUE;
                 work->actionStep       = ACTOR_00300_ACTION_BEGIN;
-                randomValue            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                randomValue            = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState        = randomValue;
                 work->timer            = ((u32)randomValue >> 16) & 31;
                 work->drainBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -1903,7 +1903,7 @@ static void _actor00300TickDrainAttack(Task* task)
 /// lasts through spawn only and must not be followed after the caller returns.
 #define ACTOR_00300_SPAWN_CHARGE_MOTE(coord, packedArg, spawnRandom, angleRandom, moteAngle, radialOffset, moteOffset) \
     do {                                                                                                               \
-        (spawnRandom)   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                              \
+        (spawnRandom)   = RANDOM_LCG_NEXT(gRandomLcgState);                                                            \
         gRandomLcgState = (spawnRandom);                                                                               \
         if (!(((spawnRandom) >> 16) & ACTOR_00300_MOTE_SPAWN_MASK)) {                                                  \
             (angleRandom)   = (spawnRandom) * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                            \
@@ -2020,7 +2020,7 @@ static void _actor00300TickHeal(Task* task)
             if (work->animFrame >= ACTOR_00300_HEAL_RECOVER_END_FRAME) {
                 work->action        = ACTOR_00300_ACTION_PURSUE;
                 work->actionStep    = ACTOR_00300_ACTION_BEGIN;
-                recoveryDelayRandom = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                recoveryDelayRandom = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState     = recoveryDelayRandom;
                 work->timer         = ((u32)recoveryDelayRandom >> 0x10) & 0x1F;
             }
@@ -2148,7 +2148,7 @@ static void _actor00300TickHurt(Task* task)
                 work->actionStep    = ACTOR_00300_PURSUIT_MOVE;
                 work->alertTimer    = ACTOR_00300_ALERT_TICKS;
                 work->reactionBlend = 0;
-                flinchDelayRandom   = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                flinchDelayRandom   = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState     = flinchDelayRandom;
                 work->timer         = ((u32)flinchDelayRandom >> 0x10) & 0x1F;
             }
@@ -2211,7 +2211,7 @@ static void _actor00300TickHurt(Task* task)
                 work->actionStep    = ACTOR_00300_PURSUIT_MOVE;
                 work->alertTimer    = ACTOR_00300_ALERT_TICKS;
                 work->reactionBlend = 0;
-                getUpDelayRandom    = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                getUpDelayRandom    = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState     = getUpDelayRandom;
                 work->timer         = ((u32)getUpDelayRandom >> 0x10) & 0x1F;
             }
@@ -2266,7 +2266,7 @@ static void _actor00300TickRecharge(Task* task)
                 work->action       = ACTOR_00300_ACTION_PURSUE;
                 work->timer        = 0;
                 work->actionStep   = ACTOR_00300_ACTION_BEGIN;
-                pursuitDelayRandom = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                pursuitDelayRandom = RANDOM_LCG_NEXT(gRandomLcgState);
                 work->mp           = work->mp + ACTOR_00300_MP_RECHARGED;
                 work->timer        = (pursuitDelayRandom >> 0x10) & 0x1F;
                 gRandomLcgState    = pursuitDelayRandom;
@@ -3213,7 +3213,7 @@ static void _actor00300TickBuildup(Task* task)
             if (work->animFrame >= ACTOR_00300_BUILDUP_END_FRAME) {
                 work->action     = ACTOR_00300_ACTION_PURSUE;
                 work->actionStep = ACTOR_00300_PURSUIT_MOVE;
-                randomValue      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                randomValue      = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState  = randomValue;
                 work->timer      = ((u32)randomValue >> 16) & 0x1F;
             }

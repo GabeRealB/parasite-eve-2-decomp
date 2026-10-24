@@ -1238,35 +1238,35 @@ void acropolisSanctuaryMosaicTileTask(Task* task)
         if (tileWork->age == 0) {
             tileWork->scale = _gAcropolisSanctuaryMosaicTiles[task->spawnArg1.value].thrown;
             if (tileWork->scale != ACROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE) {
-                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                tileWork->move.vx = -((gRandomLcgState >> 16) & 0xFF);
-                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                tileWork->move.vy = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
-                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                tileWork->move.vz = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
-                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                tileWork->pos.vx  = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                tileWork->pos.vy  = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                tileWork->pos.vz  = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-                tileWork->angle   = _gAcropolisSanctuaryMosaicTiles[task->spawnArg1.value].holdFrames;
+                RANDOM_LCG_ADVANCE();
+                tileWork->move.vx = -(RANDOM_LCG_DRAW() & 0xFF);
+                RANDOM_LCG_ADVANCE();
+                tileWork->move.vy = 0x40 - (RANDOM_LCG_DRAW() & 0x7F);
+                RANDOM_LCG_ADVANCE();
+                tileWork->move.vz = 0x40 - (RANDOM_LCG_DRAW() & 0x7F);
+                RANDOM_LCG_ADVANCE();
+                tileWork->pos.vx = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
+                RANDOM_LCG_ADVANCE();
+                tileWork->pos.vy = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
+                RANDOM_LCG_ADVANCE();
+                tileWork->pos.vz = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
+                tileWork->angle  = _gAcropolisSanctuaryMosaicTiles[task->spawnArg1.value].holdFrames;
             } else {
-                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                tileWork->move.vx = -((gRandomLcgState >> 16) & 0x1F);
-                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                tileWork->move.vy = (gRandomLcgState >> 16) & 7;
-                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                tileWork->move.vz = 4 - ((gRandomLcgState >> 16) & 7);
-                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                tileWork->pos.vx  = 0x20 - ((gRandomLcgState >> 16) & 0x3F);
-                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                tileWork->pos.vy  = 0x20 - ((gRandomLcgState >> 16) & 0x3F);
-                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                tileWork->pos.vz  = 0x20 - ((gRandomLcgState >> 16) & 0x3F);
-                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                tileWork->angle   = _gAcropolisSanctuaryMosaicTiles[task->spawnArg1.value].holdFrames +
-                                  ((gRandomLcgState >> 16) & 7);
+                RANDOM_LCG_ADVANCE();
+                tileWork->move.vx = -(RANDOM_LCG_DRAW() & 0x1F);
+                RANDOM_LCG_ADVANCE();
+                tileWork->move.vy = RANDOM_LCG_DRAW() & 7;
+                RANDOM_LCG_ADVANCE();
+                tileWork->move.vz = 4 - (RANDOM_LCG_DRAW() & 7);
+                RANDOM_LCG_ADVANCE();
+                tileWork->pos.vx = 0x20 - (RANDOM_LCG_DRAW() & 0x3F);
+                RANDOM_LCG_ADVANCE();
+                tileWork->pos.vy = 0x20 - (RANDOM_LCG_DRAW() & 0x3F);
+                RANDOM_LCG_ADVANCE();
+                tileWork->pos.vz = 0x20 - (RANDOM_LCG_DRAW() & 0x3F);
+                RANDOM_LCG_ADVANCE();
+                tileWork->angle = _gAcropolisSanctuaryMosaicTiles[task->spawnArg1.value].holdFrames +
+                                  (RANDOM_LCG_DRAW() & 7);
             }
         }
         tileQuad->tpage = ACROPOLIS_SANCTUARY_MOSAIC_TEXTURE_PAGE;
@@ -1302,10 +1302,10 @@ void acropolisSanctuaryMosaicTileTask(Task* task)
         tileCoord->composeStamp = GRAPHICS_COORD_DIRTY;
         tileWork->move.vy       = tileWork->move.vy + ACROPOLIS_SANCTUARY_MOSAIC_GRAVITY;
         if (tileWork->scale == ACROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((u16)((gRandomLcgState >> 16) % (u32)ACROPOLIS_SANCTUARY_MOSAIC_SPLIT_PERIOD) == 0 || tileCoord->coord.t[1] >= ACROPOLIS_SANCTUARY_MOSAIC_SPLIT_HEIGHT) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                shardCount      = ((gRandomLcgState >> 16) & 3) + 1;
+            RANDOM_LCG_ADVANCE();
+            if ((u16)(RANDOM_LCG_DRAW() % (u32)ACROPOLIS_SANCTUARY_MOSAIC_SPLIT_PERIOD) == 0 || tileCoord->coord.t[1] >= ACROPOLIS_SANCTUARY_MOSAIC_SPLIT_HEIGHT) {
+                RANDOM_LCG_ADVANCE();
+                shardCount = (RANDOM_LCG_DRAW() & 3) + 1;
                 for (cornerIndex = 0; cornerIndex < shardCount; cornerIndex++) {
                     effectSpawn(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_SHARD, tileCoord, task->spawnArg1.value | ACROPOLIS_SANCTUARY_MOSAIC_SHARD_AIRBORNE, NULL);
                 }
@@ -1315,9 +1315,9 @@ void acropolisSanctuaryMosaicTileTask(Task* task)
     }
     if (tileCoord->coord.t[0] < ACROPOLIS_SANCTUARY_MOSAIC_BOUNCE_X && tileCoord->coord.t[1] >= ACROPOLIS_SANCTUARY_MOSAIC_BOUNCE_Y) {
         if (sizeClass != ACROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            RANDOM_LCG_ADVANCE();
             // Retain this temporary for the later shard count to preserve allocation.
-            sizeClass = (gRandomLcgState >> 16) & 3;
+            sizeClass = RANDOM_LCG_DRAW() & 3;
             if (sizeClass != 0) {
                 sizeClass = sizeClass + 1;
                 for (cornerIndex = 0; cornerIndex < sizeClass; cornerIndex++) {
@@ -1384,26 +1384,26 @@ void acropolisSanctuaryMosaicShardTask(Task* task)
         shardWork->angle      = sizeFactor;
         task->spawnArg1.value = task->spawnArg1.value & ACROPOLIS_SANCTUARY_MOSAIC_TILE_INDEX_MASK;
         if (shardWork->scale != 0) {
-            gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            shardWork->move.vx = 8 - ((gRandomLcgState >> 16) & 0xF);
-            gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            shardWork->move.vy = (gRandomLcgState >> 16) & 0xF;
-            gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            shardWork->move.vz = 8 - ((gRandomLcgState >> 16) & 0xF);
+            RANDOM_LCG_ADVANCE();
+            shardWork->move.vx = 8 - (RANDOM_LCG_DRAW() & 0xF);
+            RANDOM_LCG_ADVANCE();
+            shardWork->move.vy = RANDOM_LCG_DRAW() & 0xF;
+            RANDOM_LCG_ADVANCE();
+            shardWork->move.vz = 8 - (RANDOM_LCG_DRAW() & 0xF);
         } else {
-            gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            shardWork->move.vx = 8 - ((gRandomLcgState >> 16) & 0xF);
-            gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            shardWork->move.vy = -((gRandomLcgState >> 16) & 0x1F);
-            gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            shardWork->move.vz = 8 - ((gRandomLcgState >> 16) & 0xF);
+            RANDOM_LCG_ADVANCE();
+            shardWork->move.vx = 8 - (RANDOM_LCG_DRAW() & 0xF);
+            RANDOM_LCG_ADVANCE();
+            shardWork->move.vy = -(RANDOM_LCG_DRAW() & 0x1F);
+            RANDOM_LCG_ADVANCE();
+            shardWork->move.vz = 8 - (RANDOM_LCG_DRAW() & 0xF);
         }
-        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        shardWork->pos.vx = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        shardWork->pos.vy = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        shardWork->pos.vz = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+        RANDOM_LCG_ADVANCE();
+        shardWork->pos.vx = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
+        RANDOM_LCG_ADVANCE();
+        shardWork->pos.vy = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
+        RANDOM_LCG_ADVANCE();
+        shardWork->pos.vz = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
     }
     gte_SetTransMatrix(&GsWSMATRIX);
     baseCorners = _gAcropolisSanctuaryMosaicTileCorners[ACROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL];
@@ -1459,8 +1459,8 @@ void acropolisSanctuaryMosaicShardTask(Task* task)
     shardWork->move.vy       = shardWork->move.vy + ACROPOLIS_SANCTUARY_MOSAIC_GRAVITY;
     // Bounce at the floor region or split into children with half the encoded size.
     if (shardCoord->coord.t[0] < ACROPOLIS_SANCTUARY_MOSAIC_BOUNCE_X && shardCoord->coord.t[1] >= ACROPOLIS_SANCTUARY_MOSAIC_BOUNCE_Y) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        shardCount      = (gRandomLcgState >> 16) & 1;
+        RANDOM_LCG_ADVANCE();
+        shardCount = RANDOM_LCG_DRAW() & 1;
         if (shardWork->angle >= ACROPOLIS_SANCTUARY_MOSAIC_SHARD_MIN_SPLIT_SIZE && shardCount != 0) {
             shardCount = shardCount + 1;
             for (cornerIndex = 0; cornerIndex < shardCount; cornerIndex++) {
@@ -1473,8 +1473,8 @@ void acropolisSanctuaryMosaicShardTask(Task* task)
             shardWork->index        = shardWork->index + 1;
         }
     } else if (shardWork->angle >= ACROPOLIS_SANCTUARY_MOSAIC_SHARD_MIN_SPLIT_SIZE) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if ((u16)((gRandomLcgState >> 16) % (u32)ACROPOLIS_SANCTUARY_MOSAIC_SPLIT_PERIOD) == 0 || shardCoord->coord.t[1] >= ACROPOLIS_SANCTUARY_MOSAIC_SPLIT_HEIGHT) {
+        RANDOM_LCG_ADVANCE();
+        if ((u16)(RANDOM_LCG_DRAW() % (u32)ACROPOLIS_SANCTUARY_MOSAIC_SPLIT_PERIOD) == 0 || shardCoord->coord.t[1] >= ACROPOLIS_SANCTUARY_MOSAIC_SPLIT_HEIGHT) {
             for (cornerIndex = 0; cornerIndex < 2; cornerIndex++) {
                 childParams = (shardWork->angle << ACROPOLIS_SANCTUARY_MOSAIC_SHARD_CHILD_SIZE_SHIFT) | ACROPOLIS_SANCTUARY_MOSAIC_SHARD_AIRBORNE;
                 effectSpawn(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_SHARD, shardCoord, task->spawnArg1.value | childParams, NULL);

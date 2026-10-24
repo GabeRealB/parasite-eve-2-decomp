@@ -54,12 +54,12 @@ static void _gluttonSpinnerSpawn(Enemy* enemy, Task* task)
     work->chaseSpeed = 0;
     work->chaseTicks = 0;
 
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    gfxRotMatrixY(&task->extra.tmd->coords->coord, (gRandomLcgState >> 16) & GLUTTON_SPINNER_ORIENTATION_MASK, GRAPHICS_ROTATION_COMPOSE);
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    gfxRotMatrixZ(&task->extra.tmd->coords->coord, (gRandomLcgState >> 16) & GLUTTON_SPINNER_ORIENTATION_MASK, GRAPHICS_ROTATION_COMPOSE);
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    gfxRotMatrixX(&task->extra.tmd->coords->coord, (gRandomLcgState >> 16) & GLUTTON_SPINNER_ORIENTATION_MASK, GRAPHICS_ROTATION_COMPOSE);
+    RANDOM_LCG_ADVANCE();
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, RANDOM_LCG_DRAW() & GLUTTON_SPINNER_ORIENTATION_MASK, GRAPHICS_ROTATION_COMPOSE);
+    RANDOM_LCG_ADVANCE();
+    gfxRotMatrixZ(&task->extra.tmd->coords->coord, RANDOM_LCG_DRAW() & GLUTTON_SPINNER_ORIENTATION_MASK, GRAPHICS_ROTATION_COMPOSE);
+    RANDOM_LCG_ADVANCE();
+    gfxRotMatrixX(&task->extra.tmd->coords->coord, RANDOM_LCG_DRAW() & GLUTTON_SPINNER_ORIENTATION_MASK, GRAPHICS_ROTATION_COMPOSE);
 
     task->extra.tmd->lightMtx             = &work->lightMtx;
     task->extra.tmd->colorMtx             = &work->colorMtx;

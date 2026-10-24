@@ -945,14 +945,14 @@ static void _actor403600ProcessStatusReactions(Task* task)
             if (work->action != ACTOR_403600_ACTION_RUSH) {
                 tickDamage = damageTickEnemyDamageOverTime(enemy);
                 if (tickDamage != 0) {
-                    flinchSignRandomState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    flinchSignRandomState = RANDOM_LCG_NEXT(gRandomLcgState);
                     gRandomLcgState       = flinchSignRandomState;
                     if ((flinchSignRandomState >> 0x10) & 1) {
-                        positiveFlinchRandomState = (flinchSignRandomState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                        positiveFlinchRandomState = RANDOM_LCG_NEXT(flinchSignRandomState);
                         gRandomLcgState           = positiveFlinchRandomState;
                         work->flinchRot.vx        = ((positiveFlinchRandomState >> 0xB) & 0x60) + 0x80;
                     } else {
-                        negativeFlinchRandomState = (flinchSignRandomState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                        negativeFlinchRandomState = RANDOM_LCG_NEXT(flinchSignRandomState);
                         gRandomLcgState           = negativeFlinchRandomState;
                         work->flinchRot.vx        = -(((negativeFlinchRandomState >> 0xB) & 0x60) + 0x80);
                     }
@@ -1441,7 +1441,7 @@ static void _actor403600UpdateFightAction(Task* task)
     {                                                                                                                    \
         enum { ACTOR_403600_PROJECTILE_ROLL_SHIFT = 16,                                                                  \
                ACTOR_403600_PROJECTILE_ROLL_MASK  = 0xF };                                                                \
-        (randomStateOut) = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                               \
+        (randomStateOut) = RANDOM_LCG_NEXT(gRandomLcgState);                                                             \
         gRandomLcgState  = (randomStateOut);                                                                             \
         (rollOut)        = ((randomStateOut) >> ACTOR_403600_PROJECTILE_ROLL_SHIFT) & ACTOR_403600_PROJECTILE_ROLL_MASK; \
     }
@@ -2717,8 +2717,8 @@ static void _actor403600ChooseFlightTarget(Task* task, s32 useRushReferences)
 /// its upper halfword. This consumes the same sequence as other overlays.
 static inline u32 _actor403600Rand(void)
 {
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    return gRandomLcgState >> 16;
+    RANDOM_LCG_ADVANCE();
+    return RANDOM_LCG_DRAW();
 }
 
 /// Starts the boss's weakened transition after a qualifying hit.

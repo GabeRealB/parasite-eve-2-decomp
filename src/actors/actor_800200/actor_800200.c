@@ -2225,7 +2225,7 @@ static void _actor800200TickClearanceEscape(Task* task)
                 if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                     movementAnimationId = ACTOR_800200_ANIMATION_RUN;
                     actor->movementMode = ACTOR_800200_MOVEMENT_RUN;
-                    delayRandom         = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    delayRandom         = RANDOM_LCG_NEXT(gRandomLcgState);
                     gRandomLcgState     = delayRandom;
                     delayRandom         = ((delayRandom >> ACTOR_800200_ESCAPE_RANDOM_DRAW_SHIFT) & ACTOR_800200_ESCAPE_COMBAT_RANDOM_MASK) + ACTOR_800200_ESCAPE_COMBAT_MIN_TICKS;
                     actor->stateTimer   = delayRandom;
@@ -2233,7 +2233,7 @@ static void _actor800200TickClearanceEscape(Task* task)
                 } else {
                     movementAnimationId = ACTOR_800200_ANIMATION_WALK;
                     actor->movementMode = ACTOR_800200_MOVEMENT_WALK;
-                    delayRandom         = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    delayRandom         = RANDOM_LCG_NEXT(gRandomLcgState);
                     gRandomLcgState     = delayRandom;
                     delayRandom         = ((delayRandom >> ACTOR_800200_ESCAPE_RANDOM_DRAW_SHIFT) & ACTOR_800200_ESCAPE_CALM_RANDOM_MASK) + ACTOR_800200_ESCAPE_CALM_MIN_TICKS;
                     actor->stateTimer   = delayRandom;

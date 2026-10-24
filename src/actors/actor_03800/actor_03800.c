@@ -515,10 +515,10 @@ static void _actor03800ApplyPlacementMode(Task* task)
             work->action  = initialAction;
             switch (initialAction) {
                 case ACTOR_03800_ACTION_IDLE:
-                    work->anim      = ACTOR_03800_ANIM_STAND;
-                    work->alerted   = 0;
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->timer     = ((gRandomLcgState >> 0x10) & ACTOR_03800_IDLE_WAIT_JITTER_MASK) + ACTOR_03800_IDLE_WAIT_BASE;
+                    work->anim    = ACTOR_03800_ANIM_STAND;
+                    work->alerted = 0;
+                    RANDOM_LCG_ADVANCE();
+                    work->timer = ((gRandomLcgState >> 0x10) & ACTOR_03800_IDLE_WAIT_JITTER_MASK) + ACTOR_03800_IDLE_WAIT_BASE;
                     break;
                 case ACTOR_03800_ACTION_WANDER:
                     work->anim    = ACTOR_03800_ANIM_WALK;
@@ -881,9 +881,9 @@ static void _actor03800ActionIdle(Task* task)
             work->timer--;
             if (work->timer <= 0) {
                 work->actionStep = ACTOR_03800_IDLE_TURN;
-                gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                yawOffset        = (gRandomLcgState >> 16) & (ACTOR_TRANSFORM_ANGLE_TURN / 4 - 1);
-                if (((gRandomLcgState >> 16) & ACTOR_03800_RANDOM_TURN_POSITIVE_BIT) == 0) {
+                RANDOM_LCG_ADVANCE();
+                yawOffset = RANDOM_LCG_DRAW() & (ACTOR_TRANSFORM_ANGLE_TURN / 4 - 1);
+                if ((RANDOM_LCG_DRAW() & ACTOR_03800_RANDOM_TURN_POSITIVE_BIT) == 0) {
                     yawOffset = -yawOffset;
                 }
                 work->anim           = ACTOR_03800_ANIM_WALK;
@@ -900,8 +900,8 @@ static void _actor03800ActionIdle(Task* task)
                     work->actionStep     = ACTOR_03800_ACTION_BEGIN;
                     work->anim           = ACTOR_03800_ANIM_STAND;
                     work->stepSoundTimer = 0;
-                    gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->timer          = ((gRandomLcgState >> 16) & ACTOR_03800_IDLE_WAIT_JITTER_MASK) + ACTOR_03800_IDLE_WAIT_BASE;
+                    RANDOM_LCG_ADVANCE();
+                    work->timer = (RANDOM_LCG_DRAW() & ACTOR_03800_IDLE_WAIT_JITTER_MASK) + ACTOR_03800_IDLE_WAIT_BASE;
                 } else {
                     work->action     = ACTOR_03800_ACTION_WANDER;
                     work->actionStep = ACTOR_03800_ACTION_BEGIN;
@@ -942,11 +942,11 @@ static void _actor03800ActionWander(Task* task)
 
     switch (work->actionStep) {
         case ACTOR_03800_ACTION_BEGIN:
-            work->turnRate   = 0;
-            work->accel      = 2;
-            gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            initialYawOffset = (gRandomLcgState >> 16) & (ACTOR_TRANSFORM_ANGLE_TURN / 8 - 1);
-            if (((gRandomLcgState >> 16) & ACTOR_03800_RANDOM_TURN_POSITIVE_BIT) == 0) {
+            work->turnRate = 0;
+            work->accel    = 2;
+            RANDOM_LCG_ADVANCE();
+            initialYawOffset = RANDOM_LCG_DRAW() & (ACTOR_TRANSFORM_ANGLE_TURN / 8 - 1);
+            if ((RANDOM_LCG_DRAW() & ACTOR_03800_RANDOM_TURN_POSITIVE_BIT) == 0) {
                 initialYawOffset = -initialYawOffset;
             }
             entryYawOffset = initialYawOffset;
@@ -954,25 +954,25 @@ static void _actor03800ActionWander(Task* task)
                 entryYawOffset = initialYawOffset + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
                 work->hitWall  = 0;
             }
-            work->anim        = ACTOR_03800_ANIM_WALK;
-            work->actionStep  = ACTOR_03800_WANDER_WALK;
-            work->targetYaw   = (work->yaw + entryYawOffset) & ACTOR_TRANSFORM_ANGLE_MASK;
-            initialYawOffset  = 0; /* dead store: keeps `initialYawOffset` cse-canonical over `entryYawOffset` */
-            gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->timer       = ((gRandomLcgState >> 16) & ACTOR_03800_WANDER_HEADING_DELAY_JITTER_MASK) + ACTOR_03800_WANDER_HEADING_DELAY_BASE;
-            gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->wanderTimer = ((gRandomLcgState >> 16) & ACTOR_03800_WANDER_DURATION_JITTER_MASK) + ACTOR_03800_WANDER_DURATION_BASE;
+            work->anim       = ACTOR_03800_ANIM_WALK;
+            work->actionStep = ACTOR_03800_WANDER_WALK;
+            work->targetYaw  = (work->yaw + entryYawOffset) & ACTOR_TRANSFORM_ANGLE_MASK;
+            initialYawOffset = 0; /* dead store: keeps `initialYawOffset` cse-canonical over `entryYawOffset` */
+            RANDOM_LCG_ADVANCE();
+            work->timer = (RANDOM_LCG_DRAW() & ACTOR_03800_WANDER_HEADING_DELAY_JITTER_MASK) + ACTOR_03800_WANDER_HEADING_DELAY_BASE;
+            RANDOM_LCG_ADVANCE();
+            work->wanderTimer = (RANDOM_LCG_DRAW() & ACTOR_03800_WANDER_DURATION_JITTER_MASK) + ACTOR_03800_WANDER_DURATION_BASE;
             break;
         case ACTOR_03800_WANDER_WALK:
             work->turnRate = 0x1E;
             work->accel    = 2;
             work->timer--;
             if (work->timer <= 0) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->timer     = ((gRandomLcgState >> 16) & ACTOR_03800_WANDER_HEADING_DELAY_JITTER_MASK) + ACTOR_03800_WANDER_HEADING_DELAY_BASE;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                nextYawOffset   = (gRandomLcgState >> 16) & (ACTOR_TRANSFORM_ANGLE_TURN / 8 - 1);
-                if (((gRandomLcgState >> 16) & ACTOR_03800_RANDOM_TURN_POSITIVE_BIT) == 0) {
+                RANDOM_LCG_ADVANCE();
+                work->timer = (RANDOM_LCG_DRAW() & ACTOR_03800_WANDER_HEADING_DELAY_JITTER_MASK) + ACTOR_03800_WANDER_HEADING_DELAY_BASE;
+                RANDOM_LCG_ADVANCE();
+                nextYawOffset = RANDOM_LCG_DRAW() & (ACTOR_TRANSFORM_ANGLE_TURN / 8 - 1);
+                if ((RANDOM_LCG_DRAW() & ACTOR_03800_RANDOM_TURN_POSITIVE_BIT) == 0) {
                     nextYawOffset = -nextYawOffset;
                 }
                 work->targetYaw = (work->yaw + nextYawOffset) & ACTOR_TRANSFORM_ANGLE_MASK;
@@ -983,8 +983,8 @@ static void _actor03800ActionWander(Task* task)
                     work->actionStep     = ACTOR_03800_ACTION_BEGIN;
                     work->anim           = ACTOR_03800_ANIM_STAND;
                     work->stepSoundTimer = 0;
-                    gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->timer          = ((gRandomLcgState >> 16) & ACTOR_03800_WANDER_DURATION_JITTER_MASK) + ACTOR_03800_WANDER_DURATION_BASE;
+                    RANDOM_LCG_ADVANCE();
+                    work->timer = (RANDOM_LCG_DRAW() & ACTOR_03800_WANDER_DURATION_JITTER_MASK) + ACTOR_03800_WANDER_DURATION_BASE;
                 } else {
                     work->action     = ACTOR_03800_ACTION_LEAP_AWAY;
                     work->actionStep = ACTOR_03800_ACTION_BEGIN;
@@ -996,8 +996,8 @@ static void _actor03800ActionWander(Task* task)
                 work->actionStep     = ACTOR_03800_ACTION_BEGIN;
                 work->anim           = ACTOR_03800_ANIM_STAND;
                 work->stepSoundTimer = 0;
-                gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->timer          = ((gRandomLcgState >> 16) & ACTOR_03800_WANDER_DURATION_JITTER_MASK) + ACTOR_03800_WANDER_DURATION_BASE;
+                RANDOM_LCG_ADVANCE();
+                work->timer = (RANDOM_LCG_DRAW() & ACTOR_03800_WANDER_DURATION_JITTER_MASK) + ACTOR_03800_WANDER_DURATION_BASE;
             }
             break;
     }
@@ -1049,8 +1049,8 @@ static void _actor03800ActionCharge(Task* task)
             work->accel    = 0;
             if (work->yaw == work->targetYaw) {
                 work->actionStep = ACTOR_03800_CHARGE_RUN;
-                gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->timer      = ((gRandomLcgState >> 16) & ACTOR_03800_CHARGE_DURATION_JITTER_MASK) + ACTOR_03800_CHARGE_DURATION_BASE;
+                RANDOM_LCG_ADVANCE();
+                work->timer = (RANDOM_LCG_DRAW() & ACTOR_03800_CHARGE_DURATION_JITTER_MASK) + ACTOR_03800_CHARGE_DURATION_BASE;
             }
             break;
         case ACTOR_03800_CHARGE_RUN:
@@ -1242,8 +1242,8 @@ static void _actor03800ActionBuildup(Task* task)
             work->anim = ACTOR_03800_ANIM_FLINCH_OVERTURNED;
         }
         work->playingAnim = ACTOR_03800_ANIM_STAND; // not the animation asked for, so it starts afresh
-        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->timer       = ((gRandomLcgState >> 16) & ACTOR_03800_BUILDUP_FLINCH_DELAY_JITTER_MASK) + ACTOR_03800_BUILDUP_FLINCH_DELAY_BASE;
+        RANDOM_LCG_ADVANCE();
+        work->timer = (RANDOM_LCG_DRAW() & ACTOR_03800_BUILDUP_FLINCH_DELAY_JITTER_MASK) + ACTOR_03800_BUILDUP_FLINCH_DELAY_BASE;
     }
     buildupEnemy = task->spawnArg2.pointer;
     if (damageTickEnemyBuildup(buildupEnemy) != 0) {
@@ -1374,9 +1374,9 @@ static void _actor03800ActionWallWait(Task* task)
                 break;
             }
 
-            gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            RANDOM_LCG_ADVANCE();
             work->actionStep = ACTOR_03800_WALL_WAIT_TURN;
-            randomBits       = gRandomLcgState >> 16;
+            randomBits       = RANDOM_LCG_DRAW();
             yawOffset        = randomBits & (ACTOR_TRANSFORM_ANGLE_TURN / 4 - 1);
             if (!(randomBits & ACTOR_03800_RANDOM_TURN_POSITIVE_BIT)) {
                 yawOffset = -yawOffset;
@@ -1392,7 +1392,7 @@ static void _actor03800ActionWallWait(Task* task)
             work->speed    = 0;
             work->accel    = 0;
             if (work->yaw == work->targetYaw) {
-                gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                RANDOM_LCG_ADVANCE();
                 work->actionStep     = ACTOR_03800_ACTION_BEGIN;
                 work->anim           = ACTOR_03800_ANIM_STAND;
                 work->stepSoundTimer = 0;
@@ -1402,7 +1402,7 @@ static void _actor03800ActionWallWait(Task* task)
     }
 
     if ((gSceneCombatState.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_CAST_OTHER)) || work->attackTouched != 0) {
-        gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        RANDOM_LCG_ADVANCE();
         work->action     = ACTOR_03800_ACTION_DROP;
         work->actionStep = ACTOR_03800_ACTION_BEGIN;
         work->alerted    = 1;
@@ -1435,9 +1435,9 @@ static void _actor03800ActionCeilingWait(Task* task)
                 break;
             }
 
-            gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            RANDOM_LCG_ADVANCE();
             work->actionStep = ACTOR_03800_CEILING_WAIT_TURN;
-            randomBits       = gRandomLcgState >> 16;
+            randomBits       = RANDOM_LCG_DRAW();
             yawOffset        = randomBits & (ACTOR_TRANSFORM_ANGLE_TURN / 4 - 1);
             if (!(randomBits & ACTOR_03800_RANDOM_TURN_POSITIVE_BIT)) {
                 yawOffset = -yawOffset;
@@ -1453,7 +1453,7 @@ static void _actor03800ActionCeilingWait(Task* task)
             work->speed    = 0;
             work->accel    = 0;
             if (work->yaw == work->targetYaw) {
-                gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                RANDOM_LCG_ADVANCE();
                 work->actionStep     = ACTOR_03800_ACTION_BEGIN;
                 work->anim           = ACTOR_03800_ANIM_STAND;
                 work->stepSoundTimer = 0;
@@ -1463,7 +1463,7 @@ static void _actor03800ActionCeilingWait(Task* task)
     }
 
     if ((gSceneCombatState.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_CAST_OTHER)) || work->attackTouched != 0) {
-        gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        RANDOM_LCG_ADVANCE();
         work->action     = ACTOR_03800_ACTION_DROP;
         work->actionStep = ACTOR_03800_ACTION_BEGIN;
         work->alerted    = 1;
@@ -1935,8 +1935,8 @@ static void _actor03800SpawnBurstFragments(Task* task)
     u32  firstVariant;
     s32  secondChoiceIndex;
 
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    firstVariant    = (u16)((gRandomLcgState >> 16) % ACTOR_03800_BURST_VARIANT_COUNT);
+    RANDOM_LCG_ADVANCE();
+    firstVariant = (u16)(RANDOM_LCG_DRAW() % ACTOR_03800_BURST_VARIANT_COUNT);
     _actor03800SpawnBurstFragment(task, firstVariant);
     if (gSceneCombatState.battleRefs < ARRAY_SIZE(_gActor03800ExtraBurstFragmentCounts)) {
         extraFragmentCount = _gActor03800ExtraBurstFragmentCounts[gSceneCombatState.battleRefs];
@@ -1946,8 +1946,8 @@ static void _actor03800SpawnBurstFragments(Task* task)
                 *variantOut++ = variantIndex;
             }
         }
-        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        secondChoiceIndex = (gRandomLcgState >> 16) & (ARRAY_SIZE(remainingVariants) - 1);
+        RANDOM_LCG_ADVANCE();
+        secondChoiceIndex = RANDOM_LCG_DRAW() & (ARRAY_SIZE(remainingVariants) - 1);
         _actor03800SpawnBurstFragment(task, remainingVariants[secondChoiceIndex]);
         if (--extraFragmentCount > 0) {
             s16* thirdVariantOut = remainingVariants;
@@ -1958,8 +1958,8 @@ static void _actor03800SpawnBurstFragments(Task* task)
                     *thirdVariantOut++ = variantIndex;
                 }
             }
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            _actor03800SpawnBurstFragment(task, remainingVariants[(u16)((gRandomLcgState >> 16) % (ACTOR_03800_BURST_VARIANT_COUNT - 2))]);
+            RANDOM_LCG_ADVANCE();
+            _actor03800SpawnBurstFragment(task, remainingVariants[(u16)(RANDOM_LCG_DRAW() % (ACTOR_03800_BURST_VARIANT_COUNT - 2))]);
         }
     }
 }

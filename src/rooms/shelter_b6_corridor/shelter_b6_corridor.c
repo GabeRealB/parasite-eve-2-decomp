@@ -1081,10 +1081,10 @@ void shelterB6CorridorDrawBodyGlow(Task* task)
         effectDrawGouraudDisc(anchorCoord, SHELTER_B6_CORRIDOR_BODY_GLOW_INNER_RADIUS, rgb);
         effectDrawGouraudDisc(anchorCoord, SHELTER_B6_CORRIDOR_BODY_GLOW_OUTER_RADIUS, rgb);
         // Advance once for eligibility, and only on success for the joint choice.
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if (((gRandomLcgState >> 16) & SHELTER_B6_CORRIDOR_BODY_GLOW_FLASH_CHANCE_MASK) == 0) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            effectSpawn(EFFECT_FLASH_BURST, task->extra.tmd->coords + (((gRandomLcgState >> 16) & SHELTER_B6_CORRIDOR_BODY_GLOW_FLASH_JOINT_MASK) + SHELTER_B6_CORRIDOR_BODY_GLOW_FIRST_FLASH_JOINT), SHELTER_B6_CORRIDOR_BODY_GLOW_FLASH_SIZE_PALETTE, NULL);
+        RANDOM_LCG_ADVANCE();
+        if ((RANDOM_LCG_DRAW() & SHELTER_B6_CORRIDOR_BODY_GLOW_FLASH_CHANCE_MASK) == 0) {
+            RANDOM_LCG_ADVANCE();
+            effectSpawn(EFFECT_FLASH_BURST, task->extra.tmd->coords + ((RANDOM_LCG_DRAW() & SHELTER_B6_CORRIDOR_BODY_GLOW_FLASH_JOINT_MASK) + SHELTER_B6_CORRIDOR_BODY_GLOW_FIRST_FLASH_JOINT), SHELTER_B6_CORRIDOR_BODY_GLOW_FLASH_SIZE_PALETTE, NULL);
         }
     }
 }

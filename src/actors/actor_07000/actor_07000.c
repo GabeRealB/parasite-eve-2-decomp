@@ -522,10 +522,10 @@ static void _actor07000SlouchSpawn(Enemy* enemy, Task* task)
     worldCollisionInitContacts(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
     work->hasBurst          = 0;
     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    idleDraw                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    idleDraw                = RANDOM_LCG_NEXT(gRandomLcgState);
     gRandomLcgState         = idleDraw;
     work->idleFrames        = (u16)((idleDraw >> 16) % 20U + 0x50);
-    watchDraw               = idleDraw * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    watchDraw               = RANDOM_LCG_NEXT(idleDraw);
     gRandomLcgState         = watchDraw;
     work->watchFrames       = (u16)((watchDraw >> 16) % 50U + 0x32);
     task->exitCallback      = _actor07000SlouchExit;
@@ -664,10 +664,10 @@ static void _actor07000SlouchIdle(Task* task, TmdObject* unusedModel, s32 unused
             work->stateFrames++;
             if (work->stateFrames > work->idleFrames) {
                 work->stateFrames = 0;
-                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->idleFrames  = (gRandomLcgState >> 16) % 20 + 80;
-                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                if ((u16)((gRandomLcgState >> 16) % 100) < 31U) {
+                RANDOM_LCG_ADVANCE();
+                work->idleFrames = RANDOM_LCG_DRAW() % 20 + 80;
+                RANDOM_LCG_ADVANCE();
+                if ((u16)(RANDOM_LCG_DRAW() % 100) < 31U) {
                     work->animId = ACTOR_07000_SLOUCH_ANIM_FIDGET;
                 } else {
                     work->animId = ACTOR_07000_SLOUCH_ANIM_WATCH;
@@ -697,10 +697,10 @@ static void _actor07000SlouchIdle(Task* task, TmdObject* unusedModel, s32 unused
                 work->alert = 1;
             }
             if (work->animFrames >= work->watchFrames + 18) {
-                work->alert       = 0;
-                work->animId      = ACTOR_07000_SLOUCH_ANIM_IDLE;
-                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->watchFrames = (gRandomLcgState >> 16) % 50 + 50;
+                work->alert  = 0;
+                work->animId = ACTOR_07000_SLOUCH_ANIM_IDLE;
+                RANDOM_LCG_ADVANCE();
+                work->watchFrames = RANDOM_LCG_DRAW() % 50 + 50;
             }
             break;
         case ACTOR_07000_SLOUCH_ANIM_STATUS_FLINCH:
@@ -813,8 +813,8 @@ static void _actor07000SlouchEngaged(Task* task)
                     work->stateFrames = 0;
                     work->state       = ACTOR_07000_SLOUCH_STATE_IDLE;
                     work->animId      = ACTOR_07000_SLOUCH_ANIM_FIDGET;
-                    gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->idleFrames  = (gRandomLcgState >> 16) % ACTOR_07000_SLOUCH_IDLE_TICKS_COUNT + ACTOR_07000_SLOUCH_IDLE_TICKS_BASE;
+                    RANDOM_LCG_ADVANCE();
+                    work->idleFrames = RANDOM_LCG_DRAW() % ACTOR_07000_SLOUCH_IDLE_TICKS_COUNT + ACTOR_07000_SLOUCH_IDLE_TICKS_BASE;
                 }
             } else {
                 work->engagedAction = ACTOR_07000_SLOUCH_ENGAGED_STRIKE;
@@ -1060,7 +1060,7 @@ static void _actor07000SlouchContacts(Task* task)
                         work->hitCooldown = hitCooldownTicks;
                     }
                     work->twistActive = 1;
-                    twistDraw         = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    twistDraw         = RANDOM_LCG_NEXT(gRandomLcgState);
                     gRandomLcgState   = twistDraw;
                     work->twist.vx    = ((twistDraw >> 11) & ACTOR_07000_SLOUCH_HIT_TWIST_RANDOM_MASK) + ACTOR_07000_SLOUCH_HIT_TWIST_BASE;
                 }
@@ -1288,15 +1288,15 @@ static void _actor07000SlouchPickAction(Task* task, s32 unusedAfterStrike)
         work->engagedAction = ACTOR_07000_SLOUCH_ENGAGED_WATCH;
         work->stateFrames   = 0;
     } else {
-        actionDraw      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        actionDraw      = RANDOM_LCG_NEXT(gRandomLcgState);
         gRandomLcgState = actionDraw;
         if ((u16)((actionDraw >> 16) % 100) < 11) {
             work->engagedAction = ACTOR_07000_SLOUCH_ENGAGED_FIDGET;
         } else if (playerRange >= 2500) {
             work->engagedAction = ACTOR_07000_SLOUCH_ENGAGED_SPIT;
         } else {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((u16)((gRandomLcgState >> 16) % 100) < 11) {
+            RANDOM_LCG_ADVANCE();
+            if ((u16)(RANDOM_LCG_DRAW() % 100) < 11) {
                 work->engagedAction = ACTOR_07000_SLOUCH_ENGAGED_SPIT;
             } else {
                 work->engagedAction = ACTOR_07000_SLOUCH_ENGAGED_STRIKE;
@@ -1362,8 +1362,8 @@ static void _actor07000SlouchBurst(Task* task)
     EffectWork* effect;
     s32         variant;
 
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    variant         = (gRandomLcgState >> 16) & 3;
+    RANDOM_LCG_ADVANCE();
+    variant = RANDOM_LCG_DRAW() & 3;
     switch (variant) {
         case 0:
         case 1:
@@ -1426,19 +1426,19 @@ static void _actor07000SlouchProjectileLaunch(Task* task)
     aimAngle         = task->spawnArg1.value;
     launchVector->vy = -rcos(aimAngle);
     launchVector->vx = rsin(aimAngle);
-    gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    launchVector->vz = ACTOR_07000_SLOUCH_LAUNCH_Z_BASE - ((gRandomLcgState >> 16) & ACTOR_07000_SLOUCH_LAUNCH_Z_RANDOM_MASK);
+    RANDOM_LCG_ADVANCE();
+    launchVector->vz = ACTOR_07000_SLOUCH_LAUNCH_Z_BASE - (RANDOM_LCG_DRAW() & ACTOR_07000_SLOUCH_LAUNCH_Z_RANDOM_MASK);
     _gfxRotateSv(&rootCoord->coord, launchVector);
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    gte_lddp(((gRandomLcgState >> 16) & ACTOR_07000_SLOUCH_LAUNCH_SCALE_RANDOM_MASK) + ACTOR_07000_SLOUCH_LAUNCH_SCALE_MIN);
+    RANDOM_LCG_ADVANCE();
+    gte_lddp((RANDOM_LCG_DRAW() & ACTOR_07000_SLOUCH_LAUNCH_SCALE_RANDOM_MASK) + ACTOR_07000_SLOUCH_LAUNCH_SCALE_MIN);
     gte_ldsv(launchVector);
     gte_gpf12();
     gte_stsv(&work->velocity);
     // Velocity keeps the launch orientation; the live coordinate becomes unrotated.
     gfxSetRotIdentity(&rootCoord->coord);
-    rootCoord->coord.t[0]  += work->velocity.vx;
-    gRandomLcgState         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    rootCoord->coord.t[1]  += (gRandomLcgState >> 16) & ACTOR_07000_SLOUCH_LAUNCH_HEIGHT_RANDOM_MASK;
+    rootCoord->coord.t[0] += work->velocity.vx;
+    RANDOM_LCG_ADVANCE();
+    rootCoord->coord.t[1]  += RANDOM_LCG_DRAW() & ACTOR_07000_SLOUCH_LAUNCH_HEIGHT_RANDOM_MASK;
     rootCoord->coord.t[2]  += work->velocity.vz;
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     body->coord             = rootCoord;
@@ -1688,12 +1688,12 @@ static void _actor07000SlouchHiddenSpawn(Enemy* enemy, Task* task)
     work->hasBurst         = 0;
     work->dropArmed        = 0;
     work->attackBody.flags = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-    randomDraw = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->idleFrames             = (u16)(((u32)randomDraw >> 16) % (u32)ACTOR_07000_SLOUCH_IDLE_TICKS_COUNT + ACTOR_07000_SLOUCH_IDLE_TICKS_BASE);
-    randomDraw = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->watchFrames            = (u16)(((u32)randomDraw >> 16) % (u32)ACTOR_07000_SLOUCH_WATCH_TICKS_COUNT + ACTOR_07000_SLOUCH_WATCH_TICKS_BASE);
-    task->msgTable               = _gActor07000SlouchHiddenMsgTable;
-    task->state                  = ACTOR_07000_SLOUCH_TASK_HIDDEN;
+    randomDraw             = RANDOM_LCG_ADVANCE();
+    work->idleFrames       = (u16)(((u32)randomDraw >> 16) % (u32)ACTOR_07000_SLOUCH_IDLE_TICKS_COUNT + ACTOR_07000_SLOUCH_IDLE_TICKS_BASE);
+    randomDraw             = RANDOM_LCG_ADVANCE();
+    work->watchFrames      = (u16)(((u32)randomDraw >> 16) % (u32)ACTOR_07000_SLOUCH_WATCH_TICKS_COUNT + ACTOR_07000_SLOUCH_WATCH_TICKS_BASE);
+    task->msgTable         = _gActor07000SlouchHiddenMsgTable;
+    task->state            = ACTOR_07000_SLOUCH_TASK_HIDDEN;
 }
 
 /// Right-multiplies one part's rotation by the Euler twist using borrowed scratch.

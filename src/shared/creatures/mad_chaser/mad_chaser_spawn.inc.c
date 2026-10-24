@@ -311,8 +311,8 @@ static void _madChaserWalkStart(Task* task)
     soundId  = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_MAD_CHASER, 1);
     audioPan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
     sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
-    gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->leapRangeBonus = (gRandomLcgState >> 16) & MAD_CHASER_WALK_LEAP_RANGE_BONUS_MASK;
+    RANDOM_LCG_ADVANCE();
+    work->leapRangeBonus = RANDOM_LCG_DRAW() & MAD_CHASER_WALK_LEAP_RANGE_BONUS_MASK;
     if (work->playerDist < MAD_CHASER_WALK_DISTANCE_BAND) {
         work->animRate = ANIMATION_RATE_ONE;
         work->turnStep = MAD_CHASER_WALK_BASE_TURN_STEP;
@@ -597,7 +597,7 @@ static void _madChaserLeapTurnAway(Task* task)
     }
     if (_madChaserAnimHasBoundaryStatus(task) != 0) {
         work->busy               = 0;
-        randomState              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        randomState              = RANDOM_LCG_NEXT(gRandomLcgState);
         work->leapCooldown       = ((randomState >> 16) & MAD_CHASER_LEAP_COOLDOWN_RANDOM_MASK) + MAD_CHASER_LEAP_COOLDOWN_MIN_FRAMES;
         work->rotation.vy       += ACTOR_TRANSFORM_ANGLE_HALF_TURN;
         requestWork              = task->work;

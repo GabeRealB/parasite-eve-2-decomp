@@ -780,17 +780,17 @@ static inline void _acropolisPromenadeInitializeScreenDrip(Task* task, EffectWor
     };
     u16 randomBits;
 
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vx   = (gRandomLcgState >> 16) % ACROPOLIS_PROMENADE_DRIP_COLUMN_COUNT;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vy   = ((gRandomLcgState >> 16) & (ACROPOLIS_PROMENADE_DRIP_ROW_RANGE - 1)) + ACROPOLIS_PROMENADE_DRIP_FIRST_ROW;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    randomBits      = gRandomLcgState >> 16;
-    work->scale     = (u32)randomBits % ACROPOLIS_PROMENADE_DRIP_LIFETIME_RANGE_FRAMES + ACROPOLIS_PROMENADE_DRIP_MIN_LIFETIME_FRAMES;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->angle     = ((gRandomLcgState >> 16) & (ACROPOLIS_PROMENADE_DRIP_WIDTH_RANGE_PIXELS - 1)) + ACROPOLIS_PROMENADE_DRIP_MIN_WIDTH_PIXELS;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->period    = ((gRandomLcgState >> 16) & (ACROPOLIS_PROMENADE_DRIP_MAX_FRAMES_PER_ROW - 1)) + 1;
+    RANDOM_LCG_ADVANCE();
+    work->move.vx = RANDOM_LCG_DRAW() % ACROPOLIS_PROMENADE_DRIP_COLUMN_COUNT;
+    RANDOM_LCG_ADVANCE();
+    work->move.vy = (RANDOM_LCG_DRAW() & (ACROPOLIS_PROMENADE_DRIP_ROW_RANGE - 1)) + ACROPOLIS_PROMENADE_DRIP_FIRST_ROW;
+    RANDOM_LCG_ADVANCE();
+    randomBits  = RANDOM_LCG_DRAW();
+    work->scale = (u32)randomBits % ACROPOLIS_PROMENADE_DRIP_LIFETIME_RANGE_FRAMES + ACROPOLIS_PROMENADE_DRIP_MIN_LIFETIME_FRAMES;
+    RANDOM_LCG_ADVANCE();
+    work->angle = (RANDOM_LCG_DRAW() & (ACROPOLIS_PROMENADE_DRIP_WIDTH_RANGE_PIXELS - 1)) + ACROPOLIS_PROMENADE_DRIP_MIN_WIDTH_PIXELS;
+    RANDOM_LCG_ADVANCE();
+    work->period = (RANDOM_LCG_DRAW() & (ACROPOLIS_PROMENADE_DRIP_MAX_FRAMES_PER_ROW - 1)) + 1;
     task->state++;
 }
 
@@ -948,13 +948,13 @@ void acropolisPromenadeGroundGlowTask(Task* task)
     gte_stszotz(&quadScratch->depth);
     quadScratch->depth += ACROPOLIS_PROMENADE_GROUND_GLOW_DEPTH_BIAS;
     if (quadScratch->depth >= ACROPOLIS_PROMENADE_GROUND_GLOW_MIN_DEPTH) {
-        quad->tpage     = ACROPOLIS_PROMENADE_GROUND_GLOW_TEXTURE_PAGE;
-        quad->clut      = ACROPOLIS_PROMENADE_GROUND_GLOW_TEXTURE_CLUT;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        grey            = (gRandomLcgState >> 16) & (ACROPOLIS_PROMENADE_GROUND_GLOW_GREY_LEVEL_COUNT - 1);
-        quad->r0        = grey;
-        quad->g0        = grey;
-        quad->b0        = grey;
+        quad->tpage = ACROPOLIS_PROMENADE_GROUND_GLOW_TEXTURE_PAGE;
+        quad->clut  = ACROPOLIS_PROMENADE_GROUND_GLOW_TEXTURE_CLUT;
+        RANDOM_LCG_ADVANCE();
+        grey     = RANDOM_LCG_DRAW() & (ACROPOLIS_PROMENADE_GROUND_GLOW_GREY_LEVEL_COUNT - 1);
+        quad->r0 = grey;
+        quad->g0 = grey;
+        quad->b0 = grey;
         setSemiTrans(quad, 1);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(quadScratch->depth),
                 quad);

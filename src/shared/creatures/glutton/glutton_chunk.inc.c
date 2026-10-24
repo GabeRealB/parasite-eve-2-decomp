@@ -80,8 +80,8 @@ static void _gluttonChunkSpawn(Enemy* enemy, Task* task)
     audioPan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
     sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
 
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    gfxRotMatrixY(&task->extra.tmd->coords->coord, (gRandomLcgState >> 16) & GLUTTON_CHUNK_LAUNCH_YAW_MASK, GRAPHICS_ROTATION_REPLACE);
+    RANDOM_LCG_ADVANCE();
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, RANDOM_LCG_DRAW() & GLUTTON_CHUNK_LAUNCH_YAW_MASK, GRAPHICS_ROTATION_REPLACE);
 
     launchPoint.vx = launchPoint.vy = launchPoint.vz = 0;
 

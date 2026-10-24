@@ -50,15 +50,15 @@ static inline void _risingSparkTask(Task* task)
     work->age = work->age + 1;
     switch (task->state) {
         case RISING_SPARK_STATE_INITIALIZE:
-            work->move.vy   = RISING_SPARK_RISE_PER_TICK;
-            work->move.vx   = 0;
-            work->move.vz   = 0;
-            task->state     = RISING_SPARK_STATE_ANIMATE;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->scale     = (gRandomLcgState >> 16) & RISING_SPARK_ROTATION_MASK;
-            spawnSize       = task->spawnArg1.halves.low;
-            work->period    = RISING_SPARK_PALETTE_INDEX << RISING_SPARK_PALETTE_SHIFT;
-            work->angle     = spawnSize & RISING_SPARK_SIZE_MASK;
+            work->move.vy = RISING_SPARK_RISE_PER_TICK;
+            work->move.vx = 0;
+            work->move.vz = 0;
+            task->state   = RISING_SPARK_STATE_ANIMATE;
+            RANDOM_LCG_ADVANCE();
+            work->scale  = RANDOM_LCG_DRAW() & RISING_SPARK_ROTATION_MASK;
+            spawnSize    = task->spawnArg1.halves.low;
+            work->period = RISING_SPARK_PALETTE_INDEX << RISING_SPARK_PALETTE_SHIFT;
+            work->angle  = spawnSize & RISING_SPARK_SIZE_MASK;
             return;
         case RISING_SPARK_STATE_ANIMATE:
             _risingSparkMoveCoord(coord, work->move.vy);

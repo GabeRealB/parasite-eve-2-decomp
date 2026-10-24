@@ -875,17 +875,17 @@ void mistShootingGalleryTracerTask(Task* task)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             task->state         = MIST_SHOOTING_GALLERY_TRACER_FADE;
 
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            randomX         = gRandomLcgState;
-            work->pos.vx    = (u16)coord->workm.t[0] - ((randomX >> 16 & MIST_SHOOTING_GALLERY_TRACER_HORIZONTAL_MASK) - MIST_SHOOTING_GALLERY_TRACER_HORIZONTAL_RADIUS);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            randomZ         = gRandomLcgState;
-            work->pos.vy    = coord->workm.t[1] - MIST_SHOOTING_GALLERY_TRACER_VERTICAL_OFFSET;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            randomAngle     = gRandomLcgState;
-            work->pos.vz    = (u16)coord->workm.t[2] - ((randomZ >> 16 & MIST_SHOOTING_GALLERY_TRACER_HORIZONTAL_MASK) - MIST_SHOOTING_GALLERY_TRACER_HORIZONTAL_RADIUS);
-            work->scale     = MIST_SHOOTING_GALLERY_TRACER_INITIAL_BRIGHTNESS;
-            work->angle     = randomAngle >> 16 & ACTOR_TRANSFORM_ANGLE_MASK;
+            RANDOM_LCG_ADVANCE();
+            randomX      = gRandomLcgState;
+            work->pos.vx = (u16)coord->workm.t[0] - ((randomX >> 16 & MIST_SHOOTING_GALLERY_TRACER_HORIZONTAL_MASK) - MIST_SHOOTING_GALLERY_TRACER_HORIZONTAL_RADIUS);
+            RANDOM_LCG_ADVANCE();
+            randomZ      = gRandomLcgState;
+            work->pos.vy = coord->workm.t[1] - MIST_SHOOTING_GALLERY_TRACER_VERTICAL_OFFSET;
+            RANDOM_LCG_ADVANCE();
+            randomAngle  = gRandomLcgState;
+            work->pos.vz = (u16)coord->workm.t[2] - ((randomZ >> 16 & MIST_SHOOTING_GALLERY_TRACER_HORIZONTAL_MASK) - MIST_SHOOTING_GALLERY_TRACER_HORIZONTAL_RADIUS);
+            work->scale  = MIST_SHOOTING_GALLERY_TRACER_INITIAL_BRIGHTNESS;
+            work->angle  = randomAngle >> 16 & ACTOR_TRANSFORM_ANGLE_MASK;
         case MIST_SHOOTING_GALLERY_TRACER_FADE:
             // Only odd running ticks advance the texture frame and draw the tracer.
             if (work->age & 1) {

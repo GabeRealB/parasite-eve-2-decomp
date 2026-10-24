@@ -372,8 +372,8 @@ static void _actor311500TickIdle(Task* actorTask)
 
     switch (work->step) {
         case ACTOR_311500_IDLE_STEP_CHOOSE:
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            randomChoice    = gRandomLcgState >> 16;
+            RANDOM_LCG_ADVANCE();
+            randomChoice = RANDOM_LCG_DRAW();
             if (work->idlePlayCount >= ACTOR_311500_IDLE_MAX_REPLAYS) {
                 work->step++;
             } else if (randomChoice & 1) {

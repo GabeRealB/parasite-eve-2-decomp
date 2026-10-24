@@ -239,10 +239,10 @@ void hypervelocityChargeEffectTask(Task* task)
             transientLight->framesLeft = HYPERVELOCITY_CHARGE_EFFECT_LIGHT_FRAMES;
             pointLight->inner          = HYPERVELOCITY_CHARGE_EFFECT_LIGHT_INNER;
             pointLight->outer          = HYPERVELOCITY_CHARGE_EFFECT_LIGHT_OUTER;
-            gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            pointLight->head.color.b   = ((gRandomLcgState >> 16) & HYPERVELOCITY_CHARGE_EFFECT_LIGHT_RANDOM_MASK) + HYPERVELOCITY_CHARGE_EFFECT_CHARGING_BLUE_MIN;
-            pointLight->head.color.r   = (u16)pointLight->head.color.b >> 1;
-            pointLight->head.color.g   = pointLight->head.color.b >> 1;
+            RANDOM_LCG_ADVANCE();
+            pointLight->head.color.b = (RANDOM_LCG_DRAW() & HYPERVELOCITY_CHARGE_EFFECT_LIGHT_RANDOM_MASK) + HYPERVELOCITY_CHARGE_EFFECT_CHARGING_BLUE_MIN;
+            pointLight->head.color.r = (u16)pointLight->head.color.b >> 1;
+            pointLight->head.color.g = pointLight->head.color.b >> 1;
             gfxMakeRelativeTransform(&gGfxViewCoord.workm, &muzzleCoord->workm, &lightCoord->coord);
             lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             if (task->spawnArg1.value < 0) {
@@ -269,10 +269,10 @@ void hypervelocityChargeEffectTask(Task* task)
             transientLight->framesLeft = HYPERVELOCITY_CHARGE_EFFECT_LIGHT_FRAMES;
             pointLight->inner          = HYPERVELOCITY_CHARGE_EFFECT_DISCHARGE_LIGHT_INNER;
             pointLight->outer          = HYPERVELOCITY_CHARGE_EFFECT_DISCHARGE_LIGHT_OUTER;
-            gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            pointLight->head.color.b   = ((gRandomLcgState >> 16) & HYPERVELOCITY_CHARGE_EFFECT_LIGHT_RANDOM_MASK) + HYPERVELOCITY_CHARGE_EFFECT_DISCHARGING_BLUE_MIN;
-            pointLight->head.color.r   = (u16)pointLight->head.color.b >> 1;
-            pointLight->head.color.g   = pointLight->head.color.b >> 1;
+            RANDOM_LCG_ADVANCE();
+            pointLight->head.color.b = (RANDOM_LCG_DRAW() & HYPERVELOCITY_CHARGE_EFFECT_LIGHT_RANDOM_MASK) + HYPERVELOCITY_CHARGE_EFFECT_DISCHARGING_BLUE_MIN;
+            pointLight->head.color.r = (u16)pointLight->head.color.b >> 1;
+            pointLight->head.color.g = pointLight->head.color.b >> 1;
             gfxMakeRelativeTransform(&gGfxViewCoord.workm, &muzzleCoord->workm, &lightCoord->coord);
             lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             effectWork->scale       += effectWork->step;
@@ -333,9 +333,9 @@ void hypervelocityChargeEffectTask(Task* task)
                 effectWork->scale = effectWork->scale - HYPERVELOCITY_CHARGE_EFFECT_FADE_STEP;
                 effectWork->angle = effectWork->angle - HYPERVELOCITY_CHARGE_EFFECT_FADE_STEP;
             }
-            playerCoords    = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            effectSpawn(EFFECT_DUST_PUFF, &playerCoords[(((gRandomLcgState >> 16) & 1) * HYPERVELOCITY_CHARGE_EFFECT_HAND_STRIDE) + HYPERVELOCITY_CHARGE_EFFECT_FIRST_HAND], HYPERVELOCITY_CHARGE_EFFECT_DUST_ARGUMENT, NULL);
+            playerCoords = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
+            RANDOM_LCG_ADVANCE();
+            effectSpawn(EFFECT_DUST_PUFF, &playerCoords[((RANDOM_LCG_DRAW() & 1) * HYPERVELOCITY_CHARGE_EFFECT_HAND_STRIDE) + HYPERVELOCITY_CHARGE_EFFECT_FIRST_HAND], HYPERVELOCITY_CHARGE_EFFECT_DUST_ARGUMENT, NULL);
             if (effectWork->age >= HYPERVELOCITY_CHARGE_EFFECT_RETIRE_AGE || task->spawnArg1.value < 0) {
                 task->state = HYPERVELOCITY_CHARGE_EFFECT_IDLE;
             }
@@ -407,13 +407,13 @@ void hypervelocityRoundTask(Task* task)
             gte_rtv0();
             gte_stsv(&effectWork->move);
             for (jitterIndex = 0; jitterIndex < ARRAY_SIZE(_gHypervelocityConeTextureFrameOffsets); jitterIndex++) {
-                gRandomLcgState                                     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                _gHypervelocityConeTextureFrameOffsets[jitterIndex] = (gRandomLcgState >> 16) & HYPERVELOCITY_ROUND_JITTER_MASK;
+                RANDOM_LCG_ADVANCE();
+                _gHypervelocityConeTextureFrameOffsets[jitterIndex] = RANDOM_LCG_DRAW() & HYPERVELOCITY_ROUND_JITTER_MASK;
             }
-            effectWork->scale                = HYPERVELOCITY_ROUND_BRIGHTNESS;
-            effectWork->angle                = HYPERVELOCITY_ROUND_VISUAL_RADIUS;
-            gRandomLcgState                  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            effectWork->period               = (gRandomLcgState >> 16) & HYPERVELOCITY_ROUND_ROTATION_MASK;
+            effectWork->scale = HYPERVELOCITY_ROUND_BRIGHTNESS;
+            effectWork->angle = HYPERVELOCITY_ROUND_VISUAL_RADIUS;
+            RANDOM_LCG_ADVANCE();
+            effectWork->period               = RANDOM_LCG_DRAW() & HYPERVELOCITY_ROUND_ROTATION_MASK;
             task->work                       = roundBody;
             roundBody->body.context.contacts = roundBody->contacts;
             roundBody->body.radius           = HYPERVELOCITY_ROUND_COLLISION_RADIUS;
@@ -432,7 +432,7 @@ void hypervelocityRoundTask(Task* task)
             lightSlot->framesLeft    = HYPERVELOCITY_ROUND_LIGHT_TTL;
             pointLight->inner        = (effectWork->index << HYPERVELOCITY_ROUND_LIGHT_INDEX_SHIFT) + HYPERVELOCITY_ROUND_LIGHT_INNER_BASE;
             pointLight->outer        = pointLight->inner * HYPERVELOCITY_ROUND_LIGHT_OUTER_SCALE;
-            lightRandom              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            lightRandom              = RANDOM_LCG_NEXT(gRandomLcgState);
             pointLight->head.color.b = ((lightRandom >> 16) & HYPERVELOCITY_ROUND_LIGHT_RANDOM_MASK) + HYPERVELOCITY_ROUND_LIGHT_BLUE_BASE;
             pointLight->head.color.r = (u16)pointLight->head.color.b >> 1;
             pointLight->head.color.g = pointLight->head.color.b >> 1;
@@ -483,8 +483,8 @@ void hypervelocityRoundTask(Task* task)
             lightCoord->coord.t[1]   = roundCoord->coord.t[1];
             lightCoord->coord.t[2]   = roundCoord->coord.t[2];
             lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-            gRandomLcgState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            pointLight->head.color.b = ((gRandomLcgState >> 16) & HYPERVELOCITY_ROUND_LIGHT_RANDOM_MASK) + HYPERVELOCITY_ROUND_LIGHT_BLUE_BASE;
+            RANDOM_LCG_ADVANCE();
+            pointLight->head.color.b = (RANDOM_LCG_DRAW() & HYPERVELOCITY_ROUND_LIGHT_RANDOM_MASK) + HYPERVELOCITY_ROUND_LIGHT_BLUE_BASE;
             pointLight->head.color.r = (u16)pointLight->head.color.b >> 1;
             lightSlot->framesLeft    = HYPERVELOCITY_ROUND_LIGHT_TTL;
             pointLight->head.color.g = pointLight->head.color.b >> 1;

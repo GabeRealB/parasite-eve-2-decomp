@@ -386,7 +386,7 @@ static void _maggotCaterpillarStunState(Task* actor)
                 work->step         = 0;
                 work->animId       = MAGGOT_CATERPILLAR_ANIM_HURT;
                 work->stunned      = 0;
-                random             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                random             = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState    = random;
                 work->stateCounter = (random >> 0x10) & 0xF;
             }

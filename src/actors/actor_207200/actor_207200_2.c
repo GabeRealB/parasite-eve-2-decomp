@@ -497,7 +497,7 @@ static void _actor207200CreepingStrangerDormantTick(Task* task)
             work->wakeRequested = 1;
         }
         if (work->wakeRequested != 0 || gSceneCombatState.signals.bytes.enemyAlert != 0) {
-            randomState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            randomState            = RANDOM_LCG_NEXT(gRandomLcgState);
             randomHigh             = randomState >> 16;
             work->activeStage      = ACTOR_207200_ACTIVE_STAGE_DELAY;
             work->forwardSpeed     = 0;
@@ -517,8 +517,8 @@ static void _actor207200CreepingStrangerDormantTick(Task* task)
                 work->animFrames  = 0;
                 work->appliedAnim = ACTOR_207200_ANIM_NONE;
                 if (work->headLost == 0) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    if ((u16)((gRandomLcgState >> 16) % 100) < ACTOR_207200_CREEPING_STRANGER_FIDGET_CHANCE_PERCENT) {
+                    RANDOM_LCG_ADVANCE();
+                    if ((u16)(RANDOM_LCG_DRAW() % 100) < ACTOR_207200_CREEPING_STRANGER_FIDGET_CHANCE_PERCENT) {
                         work->animId = ACTOR_207200_ANIM_FIDGET;
                     }
                 }
@@ -728,8 +728,8 @@ static void _actor207200CreepingStrangerActiveTick(Task* task)
                     work->state  = ACTOR_207200_STATE_DORMANT;
                     work->animId = ACTOR_207200_ANIM_IDLE;
                 } else {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    if ((u16)((gRandomLcgState >> 16) % 100) < ACTOR_207200_CREEPING_STRANGER_CRY_CHANCE_PERCENT) {
+                    RANDOM_LCG_ADVANCE();
+                    if ((u16)(RANDOM_LCG_DRAW() % 100) < ACTOR_207200_CREEPING_STRANGER_CRY_CHANCE_PERCENT) {
                         work->activeStage = ACTOR_207200_ACTIVE_STAGE_CRY;
                         work->animId      = ACTOR_207200_ANIM_CRY;
                     } else {
@@ -972,8 +972,8 @@ static void _actor207200CreepingStrangerScanContacts(Task* task)
                 case ACTOR_207200_CREEPING_STRANGER_SHATTER_ATTRIBUTE_5:
                 case DAMAGE_PLAYER_REACTION_EXPLOSION:
                     effectSpawn(EFFECT_CRITICAL_HIT, task->extra.tmd->coords, ACTOR_207200_CREEPING_STRANGER_SHATTER_BURST_STYLE, NULL);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    worldTargetAddReadoutAmount(&enemy->node, _gActor207200CreepingStrangerParams.hpMax * 2 + (u16)((gRandomLcgState >> 16) % 100), 0);
+                    RANDOM_LCG_ADVANCE();
+                    worldTargetAddReadoutAmount(&enemy->node, _gActor207200CreepingStrangerParams.hpMax * 2 + (u16)(RANDOM_LCG_DRAW() % 100), 0);
                     _actor207200CreepingStrangerBurstRandomPart(task);
                     work->hasBurst = 1;
                     task->state++;
@@ -1351,8 +1351,8 @@ static void _actor207200CreepingStrangerBurstRandomPart(Task* task)
     EffectWork* burstEffect;
     s32         partRoll;
 
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    partRoll        = (gRandomLcgState >> 16) & 3;
+    RANDOM_LCG_ADVANCE();
+    partRoll = RANDOM_LCG_DRAW() & 3;
     switch (partRoll) {
         case 0:
         case 1:

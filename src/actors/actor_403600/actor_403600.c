@@ -1232,13 +1232,13 @@ static void _actor403600PlaceDistortionVertex(_Actor403600GridQuad* quad, s32 co
     screenX = localX + ACTOR_403600_DISTORTION_SCREEN_CENTER_X;
     screenY = localY + ACTOR_403600_DISTORTION_SCREEN_CENTER_Y;
     // Advance modulo 2^32; draws use a signed high-halfword view before masking.
-    chanceState                       = gActor403600DistortionRandomState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    chanceState                       = RANDOM_LCG_NEXT(gActor403600DistortionRandomState);
     gActor403600DistortionRandomState = chanceState;
     if ((((s32)chanceState >> 16) & ACTOR_403600_DISTORTION_RANDOM_MASK) < distortion + ACTOR_403600_DISTORTION_BASE_CHANCE) {
         jitterLeft                        = localX + ACTOR_403600_DISTORTION_SCREEN_CENTER_X - ACTOR_403600_DISTORTION_JITTER_RADIUS;
-        xState                            = chanceState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        xState                            = RANDOM_LCG_NEXT(chanceState);
         screenX                           = jitterLeft + (((s32)xState >> 16) & ACTOR_403600_DISTORTION_JITTER_MASK);
-        yState                            = xState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        yState                            = RANDOM_LCG_NEXT(xState);
         gActor403600DistortionRandomState = yState;
         jitterTop                         = localY + ACTOR_403600_DISTORTION_SCREEN_CENTER_Y - ACTOR_403600_DISTORTION_JITTER_RADIUS;
         screenY                           = jitterTop + (((s32)yState >> 16) & ACTOR_403600_DISTORTION_JITTER_MASK);

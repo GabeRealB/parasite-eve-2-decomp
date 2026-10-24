@@ -376,7 +376,7 @@ static void _actor341700PropRiseState(Enemy* enemy, Task* task)
             return;
         }
         spriteOffset    = _gActor341700PropSpriteOffsets[_gActor341700PropSpriteSchedule[work->stateFrame - ACTOR_341700_PROP_SPRITE_FIRST_FRAME][spriteSlot]];
-        nextRandomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        nextRandomState = RANDOM_LCG_NEXT(gRandomLcgState);
         randomByte      = (nextRandomState >> 16) & 0xFF;
         jitter          = randomByte;
         gRandomLcgState = nextRandomState;

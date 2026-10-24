@@ -1570,12 +1570,12 @@ static inline void _shelterB4WaterSupplyEmitPartSplashes(EffectWork* controllerW
     surfaceCoord.coord.t[1]   = gGameSession->waterY;
     surfaceCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&surfaceCoord);
-    randomRoll = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);
+    randomRoll = (RANDOM_LCG_ADVANCE());
     if ((s32)((randomRoll >> SPLASH_ROLL_SHIFT) & SPLASH_ROLL_MASK) < controllerWork->angle) {
         effectSpawn(gRoomEffectWaterRippleId, &surfaceCoord, RIPPLE_HALF_SIDE, NULL);
     }
     controllerWork->angle -= RIPPLE_ODDS_BIAS;
-    randomRoll             = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);
+    randomRoll             = (RANDOM_LCG_ADVANCE());
     if ((s32)((randomRoll >> SPLASH_ROLL_SHIFT) & SPLASH_ROLL_MASK) < controllerWork->angle) {
         effectSpawn(gRoomEffectWaterSprayId, &surfaceCoord, SPRAY_SPAWN_ARG, NULL);
     }

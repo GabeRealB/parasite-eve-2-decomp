@@ -649,12 +649,12 @@ static s32 _actor00100ApplyCommand(Task* task, s32 messageId, const ActorCommand
                     // Keep each camera branch's random draw independent.
                     switch (viewIndex) {
                         case 2:
-                            randomView2     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                            randomView2     = RANDOM_LCG_NEXT(gRandomLcgState);
                             gRandomLcgState = randomView2;
                             placementIndex  = ((randomView2 >> 0x10) % 3) + 1;
                             break;
                         case 4:
-                            randomView4     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                            randomView4     = RANDOM_LCG_NEXT(gRandomLcgState);
                             gRandomLcgState = randomView4;
                             placementIndex  = 1;
                             if (((randomView4 >> 0x10) & 1) == 0) {
@@ -662,18 +662,18 @@ static s32 _actor00100ApplyCommand(Task* task, s32 messageId, const ActorCommand
                             }
                             break;
                         case 5:
-                            randomView5     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                            randomView5     = RANDOM_LCG_NEXT(gRandomLcgState);
                             placementIndex  = (randomView5 >> 0x10) & 1;
                             gRandomLcgState = randomView5;
                             break;
                         case 3:
                         case 8:
-                            randomViews3And8 = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                            randomViews3And8 = RANDOM_LCG_NEXT(gRandomLcgState);
                             placementIndex   = ((randomViews3And8 >> 0x10) & 1) | 2;
                             gRandomLcgState  = randomViews3And8;
                             break;
                         default:
-                            randomOtherView = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                            randomOtherView = RANDOM_LCG_NEXT(gRandomLcgState);
                             placementIndex  = (randomOtherView >> 0x10) & 3;
                             gRandomLcgState = randomOtherView;
                     }
@@ -2787,7 +2787,7 @@ static void _actor00100WaitDowned(Task* task)
 
     work = task->work;
     if (work->stateEntered != 0) {
-        randomDelay      = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        randomDelay      = RANDOM_LCG_NEXT(gRandomLcgState);
         gRandomLcgState  = randomDelay;
         work->stateTimer = work->downFramesBase + ((randomDelay >> 0x10) & ACTOR00100_DOWN_DELAY_MASK);
     }

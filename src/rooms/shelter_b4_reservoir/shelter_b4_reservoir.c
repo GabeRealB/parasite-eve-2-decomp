@@ -93,7 +93,7 @@ static void _waterDrawTile(const GfxCoord* coord, s16 frameIndex, s16 radiusScal
 /// invocation consumes one draw, including draws followed by failed spawns.
 /// Do not combine unsequenced invocations in a single expression. This room
 /// uses the same resident sequence as other loaded gameplay effects.
-#define SHELTER_B4_RESERVOIR_NEXT_RANDOM_U16() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
+#define SHELTER_B4_RESERVOIR_NEXT_RANDOM_U16() ((RANDOM_LCG_ADVANCE()) >> 16)
 
 enum {
     SHELTER_B4_RESERVOIR_BURST_CHANCE_SCALE     = 100,
@@ -2530,7 +2530,7 @@ static inline void _shelterB4ReservoirInitializeBurstVelocity(EffectWork* sprite
 
     spriteWork->move.vy = 0;
     spriteWork->move.vz = 0;
-    randomSample        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    randomSample        = RANDOM_LCG_NEXT(gRandomLcgState);
     gRandomLcgState     = randomSample;
     spriteWork->move.vx = -((randomSample >> 16) & SHELTER_B4_RESERVOIR_BURST_DIRECTION_VARIATION_MASK) -
                           SHELTER_B4_RESERVOIR_BURST_DIRECTION_MAGNITUDE_MIN;

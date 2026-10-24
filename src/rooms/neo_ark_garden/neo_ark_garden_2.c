@@ -521,16 +521,16 @@ static inline void _neoArkGardenSpawnAmbientSmoke(void)
     /// `worldPosition` once on a successful roll; it must point to a live
     /// `SVECTOR` in world units. The spawner copies XYZ and retains its address.
     /// Expand only as a standalone braced block; the binding ends below.
-#define NEO_ARK_GARDEN_TRY_SPAWN_AMBIENT_SMOKE(worldPosition)                                                         \
-    {                                                                                                                 \
-        randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                             \
-        gRandomLcgState = randomState;                                                                                \
-        if (((randomState >> 16) & NEO_ARK_GARDEN_SMOKE_CHANCE_MASK) == 0) {                                          \
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                         \
-            effectSpawn(EFFECT_SMOKE_PUFF, NULL,                                                                      \
-                        ((gRandomLcgState >> 16) & NEO_ARK_GARDEN_SMOKE_JITTER_MASK) | NEO_ARK_GARDEN_SMOKE_BASE_ARG, \
-                        (worldPosition));                                                                             \
-        }                                                                                                             \
+#define NEO_ARK_GARDEN_TRY_SPAWN_AMBIENT_SMOKE(worldPosition)                                                   \
+    {                                                                                                           \
+        randomState     = RANDOM_LCG_NEXT(gRandomLcgState);                                                     \
+        gRandomLcgState = randomState;                                                                          \
+        if (((randomState >> 16) & NEO_ARK_GARDEN_SMOKE_CHANCE_MASK) == 0) {                                    \
+            RANDOM_LCG_ADVANCE();                                                                               \
+            effectSpawn(EFFECT_SMOKE_PUFF, NULL,                                                                \
+                        (RANDOM_LCG_DRAW() & NEO_ARK_GARDEN_SMOKE_JITTER_MASK) | NEO_ARK_GARDEN_SMOKE_BASE_ARG, \
+                        (worldPosition));                                                                       \
+        }                                                                                                       \
     }
 
     NEO_ARK_GARDEN_TRY_SPAWN_AMBIENT_SMOKE(&_gNeoArkGardenAmbiencePositions.smokeEmitters[0]);

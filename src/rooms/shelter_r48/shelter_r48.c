@@ -2610,7 +2610,7 @@ void shelterR48InitRingsAndDrawGlowTask(Task* task)
         gRoomEffectState->groundTraceEnabled = false;
         for (bandIndex = 0; bandIndex < ARRAY_SIZE(_gShelterR48RingTexturePhases); bandIndex++) {
             for (segmentIndex = 0; segmentIndex < ARRAY_SIZE(_gShelterR48RingTexturePhases[bandIndex]); segmentIndex++) {
-                _gShelterR48RingTexturePhases[bandIndex][segmentIndex] = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
+                _gShelterR48RingTexturePhases[bandIndex][segmentIndex] = (RANDOM_LCG_ADVANCE()) >> 16;
             }
         }
         task->state = SHELTER_R48_GLOW_STATE_RUNNING;

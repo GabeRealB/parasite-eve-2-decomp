@@ -634,8 +634,8 @@ void acropolisFireEscapeFlickerLightTask(Task* task)
         projection->otz -= ACROPOLIS_FIRE_ESCAPE_FLICKER_DEPTH_BIAS;
         if (projection->otz >= GLOW_MIN_DEPTH) {
             if (!(gDisplayState.animFrame & ACROPOLIS_FIRE_ESCAPE_FLICKER_MODE_FRAME_MASK)) {
-                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                effectWork->index = (gRandomLcgState >> 16) & ACROPOLIS_FIRE_ESCAPE_FLICKER_MODE_MASK;
+                RANDOM_LCG_ADVANCE();
+                effectWork->index = RANDOM_LCG_DRAW() & ACROPOLIS_FIRE_ESCAPE_FLICKER_MODE_MASK;
             }
             // Choose flicker brightness, then sound only a dim-to-bright transition.
             brightness = effectWork->scale;
@@ -644,13 +644,13 @@ void acropolisFireEscapeFlickerLightTask(Task* task)
             }
             switch (effectWork->index) {
                 case ACROPOLIS_FIRE_ESCAPE_FLICKER_RANDOM:
-                    gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    effectWork->scale = (gRandomLcgState >> 16) & ACROPOLIS_FIRE_ESCAPE_FLICKER_BRIGHTNESS_MASK;
+                    RANDOM_LCG_ADVANCE();
+                    effectWork->scale = RANDOM_LCG_DRAW() & ACROPOLIS_FIRE_ESCAPE_FLICKER_BRIGHTNESS_MASK;
                     break;
                 case ACROPOLIS_FIRE_ESCAPE_FLICKER_RANDOM_ODD_FRAMES:
                     if (gDisplayState.animFrame & 1) {
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        brightness      = (gRandomLcgState >> 16) & ACROPOLIS_FIRE_ESCAPE_FLICKER_BRIGHTNESS_MASK;
+                        RANDOM_LCG_ADVANCE();
+                        brightness = RANDOM_LCG_DRAW() & ACROPOLIS_FIRE_ESCAPE_FLICKER_BRIGHTNESS_MASK;
                     }
                     effectWork->scale = brightness;
                     break;
@@ -658,8 +658,8 @@ void acropolisFireEscapeFlickerLightTask(Task* task)
                     effectWork->scale = ACROPOLIS_FIRE_ESCAPE_FLICKER_BRIGHTNESS_MASK;
                     break;
                 case ACROPOLIS_FIRE_ESCAPE_FLICKER_DIM_RANDOM:
-                    gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    effectWork->scale = (gRandomLcgState >> 16) & ACROPOLIS_FIRE_ESCAPE_FLICKER_LOW_BRIGHTNESS_MASK;
+                    RANDOM_LCG_ADVANCE();
+                    effectWork->scale = RANDOM_LCG_DRAW() & ACROPOLIS_FIRE_ESCAPE_FLICKER_LOW_BRIGHTNESS_MASK;
                     break;
             }
             if (wasDim && effectWork->scale >= ACROPOLIS_FIRE_ESCAPE_FLICKER_SOUND_MIN) {

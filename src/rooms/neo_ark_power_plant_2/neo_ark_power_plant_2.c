@@ -1242,7 +1242,7 @@ static inline void _neoArkPowerPlant2EmitGeneratorFlash(void)
     u32 randomWord;
 
     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0) {
-        randomWord      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        randomWord      = RANDOM_LCG_NEXT(gRandomLcgState);
         gRandomLcgState = randomWord;
         if (((randomWord >> 16) & GENERATOR_FLASH_MASK) == 0) {
             effectSpawn(EFFECT_FLASH_BURST, NULL, GENERATOR_FLASH_BASE_SIZE, &_gNeoArkPowerPlant2GeneratorGlowPosition);
@@ -1292,7 +1292,7 @@ void neoArkPowerPlant2UpdateViewLightingTask(Task* task)
             pointLight->inner                                  = BLUE_LIGHT_INNER_RADIUS;
             pointLight->outer                                  = BLUE_LIGHT_OUTER_RADIUS;
             lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-            randomWord                                         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            randomWord                                         = RANDOM_LCG_NEXT(gRandomLcgState);
             gRandomLcgState                                    = randomWord;
             blueIntensityQ12                                   = ((randomWord >> 16) & BLUE_LIGHT_RANDOM_Q12_MASK) + BLUE_LIGHT_BASE_Q12;
             pointLight->head.color.b                           = blueIntensityQ12;

@@ -5272,21 +5272,21 @@ void dryfieldDilapidatedHouseFireBlastTask(Task* task)
 /// random generator once for Q12 red intensity 2048..3840, with half/quarter
 /// green/blue. Expiration is four gameplay frames; the slot remains borrowed.
 /// No arguments are evaluated; use as a standalone statement. Undefined below.
-#define DRYFIELD_DILAPIDATED_HOUSE_SEED_FIRE_BLAST_LIGHT()                                                                                         \
-    {                                                                                                                                              \
-        s16 lightIntensityQ12;                                                                                                                     \
-        gWorldCoordTransientPointLights[0].framesLeft      = FIRE_BLAST_LIGHT_FRAMES;                                                              \
-        pointLight->inner                                  = FIRE_BLAST_LIGHT_INNER_RADIUS;                                                        \
-        pointLight->outer                                  = FIRE_BLAST_LIGHT_OUTER_RADIUS;                                                        \
-        gRandomLcgState                                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                       \
-        lightIntensityQ12                                  = ((gRandomLcgState >> 16) & FIRE_BLAST_LIGHT_RANDOM_MASK) + FIRE_BLAST_LIGHT_BASE_Q12; \
-        pointLight->head.color.r                           = lightIntensityQ12;                                                                    \
-        pointLight->head.color.g                           = lightIntensityQ12 >> 1;                                                               \
-        pointLight->head.color.b                           = lightIntensityQ12 >> 2;                                                               \
-        pointLight->head.transform.coord.coord.t[0]        = coord->coord.t[0];                                                                    \
-        pointLight->head.transform.coord.coord.t[1]        = coord->coord.t[1];                                                                    \
-        pointLight->head.transform.coord.coord.t[2]        = coord->coord.t[2];                                                                    \
-        lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;                                                                 \
+#define DRYFIELD_DILAPIDATED_HOUSE_SEED_FIRE_BLAST_LIGHT()                                                                                   \
+    {                                                                                                                                        \
+        s16 lightIntensityQ12;                                                                                                               \
+        gWorldCoordTransientPointLights[0].framesLeft = FIRE_BLAST_LIGHT_FRAMES;                                                             \
+        pointLight->inner                             = FIRE_BLAST_LIGHT_INNER_RADIUS;                                                       \
+        pointLight->outer                             = FIRE_BLAST_LIGHT_OUTER_RADIUS;                                                       \
+        RANDOM_LCG_ADVANCE();                                                                                                                \
+        lightIntensityQ12                                  = (RANDOM_LCG_DRAW() & FIRE_BLAST_LIGHT_RANDOM_MASK) + FIRE_BLAST_LIGHT_BASE_Q12; \
+        pointLight->head.color.r                           = lightIntensityQ12;                                                              \
+        pointLight->head.color.g                           = lightIntensityQ12 >> 1;                                                         \
+        pointLight->head.color.b                           = lightIntensityQ12 >> 2;                                                         \
+        pointLight->head.transform.coord.coord.t[0]        = coord->coord.t[0];                                                              \
+        pointLight->head.transform.coord.coord.t[1]        = coord->coord.t[1];                                                              \
+        pointLight->head.transform.coord.coord.t[2]        = coord->coord.t[2];                                                              \
+        lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;                                                           \
     }
 
     switch (task->state) {
@@ -5299,11 +5299,11 @@ void dryfieldDilapidatedHouseFireBlastTask(Task* task)
                 return;
             }
             // Seed the flash before resetting the radius for the expanding phase.
-            work->scale     = FIRE_BLAST_INTENSITY;
-            work->angle     = FIRE_BLAST_FLASH_RADIUS;
-            work->index     = 0;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->period    = (gRandomLcgState >> 16) & ACTOR_TRANSFORM_ANGLE_MASK;
+            work->scale = FIRE_BLAST_INTENSITY;
+            work->angle = FIRE_BLAST_FLASH_RADIUS;
+            work->index = 0;
+            RANDOM_LCG_ADVANCE();
+            work->period = RANDOM_LCG_DRAW() & ACTOR_TRANSFORM_ANGLE_MASK;
             effectSpawn(EFFECT_DRYFIELD_DILAPIDATED_HOUSE_FLAME_CONE, coord, 0, NULL);
             flashRgb[0] = 0xFF;
             flashRgb[1] = 0x7F;

@@ -864,13 +864,13 @@ static void _actor205200TickDownPart(Enemy* enemy, Task* task)
                     break;
             }
             part->downState      = ACTOR_205200_PART_DOWN_SMOULDERING;
-            part->sparkTimer     = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & ACTOR_205200_PART_WRECK_SPARK_DELAY_MASK) + ACTOR_205200_PART_WRECK_DELAY_BASE;
-            part->effectCooldown = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & ACTOR_205200_PART_WRECK_SMOKE_DELAY_MASK) + ACTOR_205200_PART_WRECK_DELAY_BASE;
+            part->sparkTimer     = (((RANDOM_LCG_ADVANCE()) >> 16) & ACTOR_205200_PART_WRECK_SPARK_DELAY_MASK) + ACTOR_205200_PART_WRECK_DELAY_BASE;
+            part->effectCooldown = (((RANDOM_LCG_ADVANCE()) >> 16) & ACTOR_205200_PART_WRECK_SMOKE_DELAY_MASK) + ACTOR_205200_PART_WRECK_DELAY_BASE;
             break;
         case ACTOR_205200_PART_DOWN_SMOULDERING:
             if (--part->sparkTimer <= 0) {
-                gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                part->sparkTimer = ((gRandomLcgState >> 16) & ACTOR_205200_PART_WRECK_SPARK_DELAY_MASK) + ACTOR_205200_PART_WRECK_DELAY_BASE;
+                RANDOM_LCG_ADVANCE();
+                part->sparkTimer = (RANDOM_LCG_DRAW() & ACTOR_205200_PART_WRECK_SPARK_DELAY_MASK) + ACTOR_205200_PART_WRECK_DELAY_BASE;
                 effectSpawnHit(EFFECT_HIT_KIND_SPARK_BURST, coord, NULL, &part->effectArg);
                 effectSpawn(EFFECT_SMOKE_PUFF, coord, ACTOR_205200_PART_SMOKE_SUBTRACTIVE, NULL);
                 camera          = viewGetMappedCamera(&gGameSession->location);
@@ -884,8 +884,8 @@ static void _actor205200TickDownPart(Enemy* enemy, Task* task)
                 sndEvtRequestScriptStart(soundId, panOffset, (s16)distanceOffset >> ACTOR_205200_AUDIO_DISTANCE_SHIFT);
             }
             if (--part->effectCooldown <= 0) {
-                gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                part->effectCooldown = ((gRandomLcgState >> 16) & ACTOR_205200_PART_WRECK_SMOKE_DELAY_MASK) + ACTOR_205200_PART_WRECK_DELAY_BASE;
+                RANDOM_LCG_ADVANCE();
+                part->effectCooldown = (RANDOM_LCG_DRAW() & ACTOR_205200_PART_WRECK_SMOKE_DELAY_MASK) + ACTOR_205200_PART_WRECK_DELAY_BASE;
                 effectSpawn(EFFECT_SMOKE_PUFF, coord, ACTOR_205200_PART_SMOKE_SUBTRACTIVE, NULL);
                 effectSpawn(EFFECT_SMOKE_PUFF, coord, ACTOR_205200_PART_SMOKE_SUBTRACTIVE, NULL);
             }

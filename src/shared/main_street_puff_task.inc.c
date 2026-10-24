@@ -25,10 +25,10 @@ static inline void _mainStreetInitializePuffDrift(EffectWork* work, s16 speed)
 
     work->step      = speed;
     work->move.vy   = 0;
-    directionXState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    directionXState = RANDOM_LCG_NEXT(gRandomLcgState);
     gRandomLcgState = directionXState;
     work->move.vx   = -((directionXState >> MAIN_STREET_PUFF_RANDOM_SAMPLE_SHIFT) & MAIN_STREET_PUFF_DIRECTION_X_MASK);
-    directionZState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    directionZState = RANDOM_LCG_NEXT(gRandomLcgState);
     gRandomLcgState = directionZState;
     work->move.vz   = MAIN_STREET_PUFF_DIRECTION_Z_MIDPOINT - ((directionZState >> MAIN_STREET_PUFF_RANDOM_SAMPLE_SHIFT) & MAIN_STREET_PUFF_DIRECTION_Z_MASK);
     // Consecutive LCG draws cannot make both horizontal components zero.
@@ -65,9 +65,9 @@ void MAIN_STREET_PUFF_TASK(Task* task)
     work->age++;
     if (task->state == MAIN_STREET_PUFF_STATE_INIT) {
         // Decode the packed spawn values and choose the fixed screen rotation.
-        work->scale     = task->spawnArg1.value & MAIN_STREET_PUFF_SIZE_MASK;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->angle     = (gRandomLcgState >> 16) & MAIN_STREET_PUFF_ANGLE_MASK;
+        work->scale = task->spawnArg1.value & MAIN_STREET_PUFF_SIZE_MASK;
+        RANDOM_LCG_ADVANCE();
+        work->angle = RANDOM_LCG_DRAW() & MAIN_STREET_PUFF_ANGLE_MASK;
 
         // Bit 15 affects presence but is excluded from the decoded period.
         if (task->spawnArg1.value & MAIN_STREET_PUFF_PERIOD_PRESENT_MASK) {

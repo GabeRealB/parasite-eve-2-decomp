@@ -70,7 +70,7 @@ void pepperSprayEffectTask(Task* task)
         if (age == PEPPER_SPRAY_CAST_APPLY_STATS_AGE) {
             attachment->flags |= ATTACHMENT_FLAG_APPLY_STATS;
         }
-        sizeRng         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        sizeRng         = RANDOM_LCG_NEXT(gRandomLcgState);
         gRandomLcgState = sizeRng;
         spawned         = effectSpawn(EFFECT_PEPPER_SPRAY_SPARK, coord, (((u32)sizeRng >> 16) & PEPPER_SPRAY_CAST_SPARK_SIZE_JITTER_MASK) + PEPPER_SPRAY_CAST_SPARK_SIZE_BASE, 0);
         if (spawned != NULL) {
@@ -113,7 +113,7 @@ void pepperSpraySparkTask(Task* task)
         actorRenderComposeCoord(sparkCoord);
 
         // Reuse the effect parameters for sprite size, bearing and transverse speed.
-        directionRng    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        directionRng    = RANDOM_LCG_NEXT(gRandomLcgState);
         work->period    = task->spawnArg1.value & PEPPER_SPRAY_SPARK_SIZE_MASK;
         work->scale     = (directionRng >> 16) & (PEPPER_SPRAY_SPARK_ANGLE_TURN - 1);
         gRandomLcgState = directionRng;

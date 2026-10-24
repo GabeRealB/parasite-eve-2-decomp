@@ -35,7 +35,7 @@ static void _roomVisualEffectsDrawHaloBurstGlow(const GfxCoord* coord, s16 halfE
     light                                              = &lightSlot->light;
     light->inner                                       = ROOM_VISUAL_EFFECTS_BURST_LIGHT_INNER_RADIUS;
     light->outer                                       = ROOM_VISUAL_EFFECTS_BURST_LIGHT_OUTER_RADIUS;
-    randomState                                        = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+    randomState                                        = RANDOM_LCG_NEXT(gRandomLcgState);
     intensity                                          = ((randomState >> 0x10) & ROOM_VISUAL_EFFECTS_BURST_LIGHT_RANDOM_INTENSITY_MASK) + ROOM_VISUAL_EFFECTS_BURST_LIGHT_BASE_INTENSITY;
     light->head.color.r                                = intensity;
     packedIntensity                                    = intensity << 0x10;

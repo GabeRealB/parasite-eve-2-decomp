@@ -202,10 +202,10 @@ static inline void _combustionTrySpawnEmber(Task* parentTask, GfxCoord* parentCo
     s32         variantRng;
     EffectWork* spawned;
 
-    emissionRng     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    emissionRng     = RANDOM_LCG_NEXT(gRandomLcgState);
     gRandomLcgState = emissionRng;
     if ((((u32)emissionRng >> 16) & COMBUSTION_FLAME_EMBER_CHANCE_MASK) == 0) {
-        variantRng      = emissionRng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        variantRng      = RANDOM_LCG_NEXT(emissionRng);
         gRandomLcgState = variantRng;
         spawned         = effectSpawn(EFFECT_COMBUSTION_EMBER, parentCoord, ((u32)variantRng >> 16) & COMBUSTION_FLAME_EMBER_VARIANT_MASK, 0);
         if (spawned != NULL) {
@@ -246,7 +246,7 @@ void combustionFlameTask(Task* task)
             actorRenderComposeCoord(coord);
 
             // Animation starts at a random phase; the emission age determines size.
-            phaseRng          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            phaseRng          = RANDOM_LCG_NEXT(gRandomLcgState);
             work->age         = ((u32)phaseRng >> 16) & COMBUSTION_FLAME_INITIAL_AGE_MASK;
             work->scale       = task->spawnArg1.value * COMBUSTION_FLAME_SIZE_STEP + COMBUSTION_FLAME_SIZE_BASE;
             work->index       = gAttachmentState.attachId % 10 - 1;
@@ -439,8 +439,8 @@ void combustionEmberTask(Task* task)
         case COMBUSTION_EMBER_STATE_INIT:
             // Retain the PE level, fixed orientation, rise speed and size for this ember.
             levelIndex      = (gAttachmentState.attachId % 10U) - 1;
-            riseRng         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            angleRng        = riseRng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            riseRng         = RANDOM_LCG_NEXT(gRandomLcgState);
+            angleRng        = RANDOM_LCG_NEXT(riseRng);
             work->scale     = ((u32)angleRng >> 16) & (PYRO_FLAME_FULL_TURN - 1);
             randomRiseStep  = ((u32)riseRng >> 16) & COMBUSTION_EMBER_RANDOM_RISE_MASK;
             work->step      = levelIndex;
@@ -452,8 +452,8 @@ void combustionEmberTask(Task* task)
             sizeLevelIndex  = work->step;
             work->angle     = (sizeLevelIndex << COMBUSTION_EMBER_LEVEL_SIZE_SHIFT) + COMBUSTION_EMBER_BASE_SIZE_FACTOR;
             if (work->step >= COMBUSTION_EMBER_LARGE_LEVEL_INDEX) {
-                gRandomLcgState = angleRng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                task->state    += (gRandomLcgState >> 16) & 1;
+                gRandomLcgState = RANDOM_LCG_NEXT(angleRng);
+                task->state    += RANDOM_LCG_DRAW() & 1;
             }
             // The first tick always uses pyro-flame frame zero, regardless of the selected state.
             /* fallthrough */

@@ -1374,8 +1374,8 @@ void effectSpriteTask46(Task* task)
     actorRenderComposeCoord(coord);
     switch (task->state) {
         case EFFECT_GROUND_DECAL_STATE_NEW:
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gfxRotMatrixY(&coord->coord, (gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK, GRAPHICS_ROTATION_REPLACE);
+            RANDOM_LCG_ADVANCE();
+            gfxRotMatrixY(&coord->coord, RANDOM_LCG_DRAW() & EFFECT_DRAW_ANGLE_MASK, GRAPHICS_ROTATION_REPLACE);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             work->angle         = task->spawnArg1.halves.low & EFFECT_DRAW_SIZE_MASK;
             paletteBits         = task->spawnArg1.halves.high;
@@ -1608,8 +1608,8 @@ static inline void _effectSpawnProjectileBurstParticle(const EffectWork* work, G
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         return;
     }
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    if ((u16)((gRandomLcgState >> 16) % (u32)EFFECT_PROJECTILE_BURST_RANDOM_CHOICES) == 0) {
+    RANDOM_LCG_ADVANCE();
+    if ((u16)(RANDOM_LCG_DRAW() % (u32)EFFECT_PROJECTILE_BURST_RANDOM_CHOICES) == 0) {
         effectSpawn(EFFECT_PROJECTILE_BURST_PARTICLE, coord, (s32)work->scale, NULL);
     }
 }
@@ -1685,8 +1685,8 @@ void effectProjectileGlowTask(Task* task)
             if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                 break;
             }
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if (((gRandomLcgState >> 16) & EFFECT_PROJECTILE_GLOW_TRAIL_RANDOM_MASK) == 0) {
+            RANDOM_LCG_ADVANCE();
+            if ((RANDOM_LCG_DRAW() & EFFECT_PROJECTILE_GLOW_TRAIL_RANDOM_MASK) == 0) {
                 effectSpawn(EFFECT_TRAIL_PUFF, coord, work->scale + EFFECT_PROJECTILE_GLOW_TRAIL_PUFF_BITS, NULL);
             }
             work->age++;
@@ -1823,7 +1823,7 @@ void effectSpriteTask55(Task* task)
                 if (requestedSize != 0) {
                     size = requestedSize;
                 }
-                randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                randomState     = RANDOM_LCG_NEXT(gRandomLcgState);
                 work->scale     = size;
                 work->angle     = ((u32)randomState >> 16) & EFFECT_DRAW_ANGLE_MASK;
                 ticksPerFrame   = ((u16)task->spawnArg1.value & EFFECT_PUFF_PERIOD_MASK) << 16;
@@ -1841,12 +1841,12 @@ void effectSpriteTask55(Task* task)
                 work->move.vy -= EFFECT_PUFF_INITIAL_LIFT;
                 work->move.vz += ((work->angle & 0xF) * rcos(work->angle)) >> EFFECT_DRAW_FRACTION_BITS;
                 if (task->spawnArg1.value & EFFECT_PUFF_RANDOM_VELOCITY) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vx   = ((gRandomLcgState >> 16) & 0x1F) - 0x10;
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vy   = ((gRandomLcgState >> 16) & 0x1F) - 0x10;
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vz   = ((gRandomLcgState >> 16) & 0x1F) - 0x10;
+                    RANDOM_LCG_ADVANCE();
+                    work->move.vx = (RANDOM_LCG_DRAW() & 0x1F) - 0x10;
+                    RANDOM_LCG_ADVANCE();
+                    work->move.vy = (RANDOM_LCG_DRAW() & 0x1F) - 0x10;
+                    RANDOM_LCG_ADVANCE();
+                    work->move.vz = (RANDOM_LCG_DRAW() & 0x1F) - 0x10;
                 }
                 if (task->spawnArg1.value & EFFECT_PUFF_SCALE_VELOCITY) {
                     gte_lddp(work->scale << EFFECT_PUFF_VELOCITY_SCALE_SHIFT);
@@ -1952,7 +1952,7 @@ void effectSpriteTask42(Task* task)
                 if (requestedSize != 0) {
                     size = requestedSize;
                 }
-                randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                randomState     = RANDOM_LCG_NEXT(gRandomLcgState);
                 work->scale     = size;
                 work->angle     = ((u32)randomState >> 16) & EFFECT_DRAW_ANGLE_MASK;
                 ticksPerFrame   = ((u16)task->spawnArg1.value & EFFECT_PUFF_PERIOD_MASK) << 16;
@@ -1967,12 +1967,12 @@ void effectSpriteTask42(Task* task)
                 work->step    = blendBits & 3;
                 work->move.vy = work->move.vy - EFFECT_PUFF_INITIAL_LIFT;
                 if (task->spawnArg1.value & EFFECT_PUFF_RANDOM_VELOCITY) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vx   = ((gRandomLcgState >> 16) & 0x1F) - 0x10;
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vy   = ((gRandomLcgState >> 16) & 0x1F) - 0x10;
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vz   = ((gRandomLcgState >> 16) & 0x1F) - 0x10;
+                    RANDOM_LCG_ADVANCE();
+                    work->move.vx = (RANDOM_LCG_DRAW() & 0x1F) - 0x10;
+                    RANDOM_LCG_ADVANCE();
+                    work->move.vy = (RANDOM_LCG_DRAW() & 0x1F) - 0x10;
+                    RANDOM_LCG_ADVANCE();
+                    work->move.vz = (RANDOM_LCG_DRAW() & 0x1F) - 0x10;
                 }
                 if (task->spawnArg1.value & EFFECT_PUFF_SCALE_VELOCITY) {
                     gte_lddp(work->scale << EFFECT_PUFF_VELOCITY_SCALE_SHIFT);
@@ -2081,14 +2081,14 @@ void effectHitPuffEmitterTask(Task* task)
     emissionWidth = work->scale;
     halfWidth     = emissionWidth >> 1;
     for (particleIndex = 0; particleIndex < work->step; particleIndex++) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->move.vx   = (s32)(gRandomLcgState >> 16) % emissionWidth - halfWidth;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->move.vy   = (s32)(gRandomLcgState >> 16) % emissionWidth - halfWidth;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->move.vz   = (s32)(gRandomLcgState >> 16) % emissionWidth - halfWidth;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        effectSpawn(EFFECT_HIT_PUFF, coord, ((gRandomLcgState >> 16) & EFFECT_HIT_PUFF_CHILD_PERIOD_BIT) + EFFECT_HIT_PUFF_CHILD_ARGUMENT, &work->move);
+        RANDOM_LCG_ADVANCE();
+        work->move.vx = (s32)RANDOM_LCG_DRAW() % emissionWidth - halfWidth;
+        RANDOM_LCG_ADVANCE();
+        work->move.vy = (s32)RANDOM_LCG_DRAW() % emissionWidth - halfWidth;
+        RANDOM_LCG_ADVANCE();
+        work->move.vz = (s32)RANDOM_LCG_DRAW() % emissionWidth - halfWidth;
+        RANDOM_LCG_ADVANCE();
+        effectSpawn(EFFECT_HIT_PUFF, coord, (RANDOM_LCG_DRAW() & EFFECT_HIT_PUFF_CHILD_PERIOD_BIT) + EFFECT_HIT_PUFF_CHILD_ARGUMENT, &work->move);
     }
     work->age++;
 }
@@ -2129,12 +2129,12 @@ void effectHitSplatterSprayTask(Task* task)
         work->angle         = durationUnits;
         work->period        = durationUnits << EFFECT_SPLATTER_DURATION_SHIFT;
         if ((work->pos.vx | work->pos.vy | work->pos.vz) == 0) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->pos.vx    = ((gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK) - EFFECT_DRAW_FULL_TURN / 2;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->pos.vy    = ((gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK) - EFFECT_DRAW_FULL_TURN / 2;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->pos.vz    = ((gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK) - EFFECT_DRAW_FULL_TURN / 2;
+            RANDOM_LCG_ADVANCE();
+            work->pos.vx = (RANDOM_LCG_DRAW() & EFFECT_DRAW_ANGLE_MASK) - EFFECT_DRAW_FULL_TURN / 2;
+            RANDOM_LCG_ADVANCE();
+            work->pos.vy = (RANDOM_LCG_DRAW() & EFFECT_DRAW_ANGLE_MASK) - EFFECT_DRAW_FULL_TURN / 2;
+            RANDOM_LCG_ADVANCE();
+            work->pos.vz = (RANDOM_LCG_DRAW() & EFFECT_DRAW_ANGLE_MASK) - EFFECT_DRAW_FULL_TURN / 2;
         }
         VectorNormalSS(&work->pos, &work->move);
     }
@@ -2234,23 +2234,23 @@ void effectGravityParticleTask(Task* task)
         case EFFECT_DRAW_TASK_NEW:
             // Reuse pos as size/frame-period/spin; keep the supplied or random Q12 heading in move.
             gfxSetRotIdentity(&coord->coord);
-            work->pos.vx    = task->spawnArg1.halves.low & EFFECT_DRAW_SIZE_MASK;
-            work->scale     = EFFECT_GRAVITY_PARTICLE_INITIAL_SPEED;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->pos.vy    = (gRandomLcgState >> 16) & (EFFECT_GRAVITY_PARTICLE_FRAME_COUNT - 1);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->index     = (gRandomLcgState >> 16) & (EFFECT_GRAVITY_PARTICLE_FRAME_COUNT - 1);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->pos.vz    = (gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->period    = EFFECT_GRAVITY_PARTICLE_SPIN_BIAS - ((gRandomLcgState >> 16) & EFFECT_GRAVITY_PARTICLE_SPIN_MASK);
+            work->pos.vx = task->spawnArg1.halves.low & EFFECT_DRAW_SIZE_MASK;
+            work->scale  = EFFECT_GRAVITY_PARTICLE_INITIAL_SPEED;
+            RANDOM_LCG_ADVANCE();
+            work->pos.vy = RANDOM_LCG_DRAW() & (EFFECT_GRAVITY_PARTICLE_FRAME_COUNT - 1);
+            RANDOM_LCG_ADVANCE();
+            work->index = RANDOM_LCG_DRAW() & (EFFECT_GRAVITY_PARTICLE_FRAME_COUNT - 1);
+            RANDOM_LCG_ADVANCE();
+            work->pos.vz = RANDOM_LCG_DRAW() & EFFECT_DRAW_ANGLE_MASK;
+            RANDOM_LCG_ADVANCE();
+            work->period = EFFECT_GRAVITY_PARTICLE_SPIN_BIAS - (RANDOM_LCG_DRAW() & EFFECT_GRAVITY_PARTICLE_SPIN_MASK);
             if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->move.vx   = EFFECT_GRAVITY_PARTICLE_RANDOM_COMPONENT_BIAS - ((gRandomLcgState >> 16) & EFFECT_GRAVITY_PARTICLE_RANDOM_COMPONENT_MASK);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->move.vy   = EFFECT_GRAVITY_PARTICLE_RANDOM_COMPONENT_BIAS - ((gRandomLcgState >> 16) & EFFECT_GRAVITY_PARTICLE_RANDOM_COMPONENT_MASK);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->move.vz   = EFFECT_GRAVITY_PARTICLE_RANDOM_COMPONENT_BIAS - ((gRandomLcgState >> 16) & EFFECT_GRAVITY_PARTICLE_RANDOM_COMPONENT_MASK);
+                RANDOM_LCG_ADVANCE();
+                work->move.vx = EFFECT_GRAVITY_PARTICLE_RANDOM_COMPONENT_BIAS - (RANDOM_LCG_DRAW() & EFFECT_GRAVITY_PARTICLE_RANDOM_COMPONENT_MASK);
+                RANDOM_LCG_ADVANCE();
+                work->move.vy = EFFECT_GRAVITY_PARTICLE_RANDOM_COMPONENT_BIAS - (RANDOM_LCG_DRAW() & EFFECT_GRAVITY_PARTICLE_RANDOM_COMPONENT_MASK);
+                RANDOM_LCG_ADVANCE();
+                work->move.vz = EFFECT_GRAVITY_PARTICLE_RANDOM_COMPONENT_BIAS - (RANDOM_LCG_DRAW() & EFFECT_GRAVITY_PARTICLE_RANDOM_COMPONENT_MASK);
                 gte_SetRotMatrix(&coord->coord);
                 gte_ldv0(&work->move);
                 gte_rtv0();
@@ -2297,8 +2297,8 @@ void effectGravityParticleTask(Task* task)
                 work->period = work->period >> 1;
                 EFFECT_GRAVITY_PARTICLE_ADVANCE(coord, work->scale, &work->move, &displacement);
                 actorRenderComposeCoord(coord);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                if (((gRandomLcgState >> 16) & 1) != 0) {
+                RANDOM_LCG_ADVANCE();
+                if ((RANDOM_LCG_DRAW() & 1) != 0) {
                     if (task->spawnArg1.value == EFFECT_GRAVITY_PARTICLE_SUBTRACT_VARIANT) {
                         childArgumentBase = EFFECT_GRAVITY_PARTICLE_SMOKE_ARGUMENT;
                         childEffectId     = EFFECT_SMOKE_PUFF;
@@ -2344,9 +2344,9 @@ void effectGravityParticleTask(Task* task)
 
                     tintRgb[0] = tintRgb[1] = tintRgb[2] = work->angle;
                     _effectDrawGravityParticle(task, task->spawnArg1.value, tintRgb);
-                    work->period   += work->pos.vx >> 4;
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    wispRoll        = (gRandomLcgState >> 16) % 3;
+                    work->period += work->pos.vx >> 4;
+                    RANDOM_LCG_ADVANCE();
+                    wispRoll = RANDOM_LCG_DRAW() % 3;
                     if (wispRoll == 0) {
                         effectSpawn(EFFECT_RISING_WISP, coord, (s32)work->pos.vx, NULL);
                     }
@@ -2386,9 +2386,9 @@ void effectGravityParticleTask(Task* task)
 
                     tintRgb[0] = tintRgb[1] = tintRgb[2] = work->angle;
                     _effectDrawGravityParticle(task, task->spawnArg1.value, tintRgb);
-                    work->period   += work->pos.vx >> 4;
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    wispRoll        = (gRandomLcgState >> 16) % 3;
+                    work->period += work->pos.vx >> 4;
+                    RANDOM_LCG_ADVANCE();
+                    wispRoll = RANDOM_LCG_DRAW() % 3;
                     if (wispRoll == 0) {
                         effectSpawn(EFFECT_RISING_WISP, coord, (s32)work->pos.vx, NULL);
                     }
@@ -2792,8 +2792,8 @@ void effectSpriteTask32(Task* task)
             work->angle     = EFFECT_CHARGE_PARTICLE_SPRITE_SIZE;
             work->period    = EFFECT_CHARGE_PARTICLE_INITIAL_BRIGHTNESS;
             work->step      = EFFECT_CHARGE_PARTICLE_INITIAL_RADIUS;
-            randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            nextRandomState = randomState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            randomState     = RANDOM_LCG_NEXT(gRandomLcgState);
+            nextRandomState = RANDOM_LCG_NEXT(randomState);
             elevationAngle  = ((nextRandomState >> 0x10) & EFFECT_CHARGE_PARTICLE_ELEVATION_MASK) - EFFECT_CHARGE_PARTICLE_ELEVATION_BIAS;
             gRandomLcgState = randomState;
             work->scale     = ((u32)randomState >> 0x10) & EFFECT_DRAW_ANGLE_MASK;
@@ -3140,14 +3140,14 @@ void effectEnergyShotAuraTask(Task* task)
         return;
     }
 
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    if ((gRandomLcgState >> 16) & 3) {
+    RANDOM_LCG_ADVANCE();
+    if (RANDOM_LCG_DRAW() & 3) {
         return;
     }
-    playerTask      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    RANDOM_LCG_ADVANCE();
     effectSpawn(EFFECT_RISING_ENERGY_SPARK,
-                &playerTask->extra.tmd->coords[((gRandomLcgState >> 16) & 1) * EFFECT_ENERGY_SHOT_SPARK_PART_STRIDE + EFFECT_ENERGY_SHOT_FIRST_SPARK_PART],
+                &playerTask->extra.tmd->coords[(RANDOM_LCG_DRAW() & 1) * EFFECT_ENERGY_SHOT_SPARK_PART_STRIDE + EFFECT_ENERGY_SHOT_FIRST_SPARK_PART],
                 work->step | EFFECT_ENERGY_SHOT_SPARK_RANDOM_PALETTE, NULL);
 }
 
@@ -3218,7 +3218,7 @@ static void _effectDrawRadialTriangles(const GfxCoord* coord, s32 radius, s32 ra
         scratch->depth++;
         // Randomize one narrow ray within each equal angular sector.
         for (sectorAngle = 0; sectorAngle < angleStep * narrowRayCount; sectorAngle += angleStep) {
-            randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            randomState     = RANDOM_LCG_NEXT(gRandomLcgState);
             gRandomLcgState = randomState;
             triangle        = gGpuPrimCursor;
             gGpuPrimCursor  = triangle + 1;
@@ -3261,24 +3261,24 @@ void effectSpriteTaskF4(Task* task)
             return;
         }
         actorRenderComposeCoord(coord);
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        RANDOM_LCG_ADVANCE();
         effectDrawSpinningBillboard(coord, work->index, work->angle,
-                                    work->scale | ((gRandomLcgState >> 16) & EFFECT_ENERGY_SPARK_PALETTE_ONE_BITS));
+                                    work->scale | (RANDOM_LCG_DRAW() & EFFECT_ENERGY_SPARK_PALETTE_ONE_BITS));
         return;
     }
 
     // Four update ticks advance one animation cell; negative local Y rises.
     work->age++;
     if (task->state == EFFECT_DRAW_TASK_NEW) {
-        work->move.vx   = 0;
-        work->move.vz   = 0;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->move.vy   = EFFECT_ENERGY_SPARK_BASE_Y_BITS - ((gRandomLcgState >> 16) & EFFECT_ENERGY_SPARK_Y_SPREAD_MASK);
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->scale     = (gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK;
-        work->angle     = task->spawnArg1.halves.low & EFFECT_DRAW_SIZE_MASK;
-        task->state     = EFFECT_DRAW_TASK_ACTIVE;
-        work->period    = task->spawnArg1.halves.low & EFFECT_ENERGY_SPARK_PALETTE_MASK;
+        work->move.vx = 0;
+        work->move.vz = 0;
+        RANDOM_LCG_ADVANCE();
+        work->move.vy = EFFECT_ENERGY_SPARK_BASE_Y_BITS - (RANDOM_LCG_DRAW() & EFFECT_ENERGY_SPARK_Y_SPREAD_MASK);
+        RANDOM_LCG_ADVANCE();
+        work->scale  = RANDOM_LCG_DRAW() & EFFECT_DRAW_ANGLE_MASK;
+        work->angle  = task->spawnArg1.halves.low & EFFECT_DRAW_SIZE_MASK;
+        task->state  = EFFECT_DRAW_TASK_ACTIVE;
+        work->period = task->spawnArg1.halves.low & EFFECT_ENERGY_SPARK_PALETTE_MASK;
     }
 
     nextY               = coord->coord.t[1] + work->move.vy;
@@ -3290,9 +3290,9 @@ void effectSpriteTaskF4(Task* task)
     }
     if (work->index < EFFECT_ENERGY_SPARK_FRAME_COUNT) {
         if (work->period & EFFECT_ENERGY_SPARK_RANDOM_PALETTE) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            RANDOM_LCG_ADVANCE();
             effectDrawSpinningBillboard(coord, work->index, work->angle,
-                                        work->scale | ((gRandomLcgState >> 16) & EFFECT_ENERGY_SPARK_PALETTE_ONE_BITS));
+                                        work->scale | (RANDOM_LCG_DRAW() & EFFECT_ENERGY_SPARK_PALETTE_ONE_BITS));
         } else {
             effectDrawSpinningBillboard(coord, work->index, work->angle,
                                         work->scale | work->period);
@@ -3410,12 +3410,12 @@ void effectAntibodyAuraTask(Task* task)
             work->angle = EFFECT_ANTIBODY_SUPPRESSED_HIT_BRIGHTNESS;
         }
     } else {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if (((gRandomLcgState >> 16) & 3) == 0) {
-            playerTask      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        RANDOM_LCG_ADVANCE();
+        if ((RANDOM_LCG_DRAW() & 3) == 0) {
+            playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+            RANDOM_LCG_ADVANCE();
             effectSpawn(EFFECT_FLASH_BURST,
-                        &playerTask->extra.tmd->coords[((gRandomLcgState >> 16) & EFFECT_ANTIBODY_FLASH_PART_MASK) + EFFECT_ANTIBODY_FIRST_FLASH_PART],
+                        &playerTask->extra.tmd->coords[(RANDOM_LCG_DRAW() & EFFECT_ANTIBODY_FLASH_PART_MASK) + EFFECT_ANTIBODY_FIRST_FLASH_PART],
                         EFFECT_ANTIBODY_AMBIENT_FLASH_ARGUMENT, NULL);
         }
     }
@@ -3425,15 +3425,15 @@ void effectAntibodyAuraTask(Task* task)
     if (work->angle < EFFECT_ANTIBODY_BASE_BRIGHTNESS + 1) {
         return;
     }
-    work->angle     = work->angle - EFFECT_ANTIBODY_FADE_STEP;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    if ((gRandomLcgState >> 16) & 1) {
+    work->angle = work->angle - EFFECT_ANTIBODY_FADE_STEP;
+    RANDOM_LCG_ADVANCE();
+    if (RANDOM_LCG_DRAW() & 1) {
         return;
     }
-    playerTask      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    RANDOM_LCG_ADVANCE();
     effectSpawn(EFFECT_FLASH_BURST,
-                &playerTask->extra.tmd->coords[((gRandomLcgState >> 16) & EFFECT_ANTIBODY_FLASH_PART_MASK) + EFFECT_ANTIBODY_FIRST_FLASH_PART],
+                &playerTask->extra.tmd->coords[(RANDOM_LCG_DRAW() & EFFECT_ANTIBODY_FLASH_PART_MASK) + EFFECT_ANTIBODY_FIRST_FLASH_PART],
                 EFFECT_ANTIBODY_HIT_FLASH_ARGUMENT, NULL);
 }
 
@@ -3665,13 +3665,13 @@ void effectDeathFlameTask(Task* task)
         case EFFECT_DRAW_TASK_NEW:
             // scale seeds heading/flicker; angle is brightness, period top Y, step base radius.
             work->age++;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->scale     = gRandomLcgState >> 16;
-            work->angle     = (work->scale & EFFECT_DEATH_FLAME_BRIGHTNESS_MASK) + EFFECT_DEATH_FLAME_BRIGHTNESS_BASE;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            flameTuning     = task->spawnArg1.value;
-            work->period    = -(flameTuning << EFFECT_DEATH_FLAME_HEIGHT_TUNING_SHIFT) - ((gRandomLcgState >> 16) & EFFECT_DEATH_FLAME_HEIGHT_JITTER_MASK);
-            work->step      = task->spawnArg1.value * EFFECT_DEATH_FLAME_RADIUS_PER_TUNING + EFFECT_DEATH_FLAME_RADIUS_BASE;
+            RANDOM_LCG_ADVANCE();
+            work->scale = RANDOM_LCG_DRAW();
+            work->angle = (work->scale & EFFECT_DEATH_FLAME_BRIGHTNESS_MASK) + EFFECT_DEATH_FLAME_BRIGHTNESS_BASE;
+            RANDOM_LCG_ADVANCE();
+            flameTuning  = task->spawnArg1.value;
+            work->period = -(flameTuning << EFFECT_DEATH_FLAME_HEIGHT_TUNING_SHIFT) - (RANDOM_LCG_DRAW() & EFFECT_DEATH_FLAME_HEIGHT_JITTER_MASK);
+            work->step   = task->spawnArg1.value * EFFECT_DEATH_FLAME_RADIUS_PER_TUNING + EFFECT_DEATH_FLAME_RADIUS_BASE;
             gfxRotMatrixY(&coord->coord, work->scale & EFFECT_DEATH_FLAME_HEADING_MASK, GRAPHICS_ROTATION_REPLACE);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
@@ -3929,7 +3929,7 @@ void effectSpriteTaskA7(Task* task)
     }
     // Reparent at the origin; upward acceleration is expressed in that frame.
     if (task->state == EFFECT_DRAW_TASK_NEW) {
-        randomState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        randomState   = RANDOM_LCG_NEXT(gRandomLcgState);
         work->scale   = ((u32)randomState >> 16) & EFFECT_DRAW_ANGLE_MASK;
         work->angle   = task->spawnArg1.halves.low & EFFECT_DRAW_SIZE_MASK;
         parentCoord   = work->parent;
@@ -4134,12 +4134,12 @@ static const TaskFuncTable4 _gPlayerActorWorkStateHandlers = { {
 /// Writes only work->move XYZ, each narrowed to s16; vector metadata stays intact.
 static inline void _effectChooseHitBlastOffset(EffectWork* work, s16 offsetRange, s16 offsetHalfRange)
 {
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vx   = ((s32)(gRandomLcgState >> 16) % offsetRange) - offsetHalfRange;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vy   = (s32)(gRandomLcgState >> 16) % offsetRange;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vz   = ((s32)(gRandomLcgState >> 16) % offsetRange) - offsetHalfRange;
+    RANDOM_LCG_ADVANCE();
+    work->move.vx = ((s32)RANDOM_LCG_DRAW() % offsetRange) - offsetHalfRange;
+    RANDOM_LCG_ADVANCE();
+    work->move.vy = (s32)RANDOM_LCG_DRAW() % offsetRange;
+    RANDOM_LCG_ADVANCE();
+    work->move.vz = ((s32)RANDOM_LCG_DRAW() % offsetRange) - offsetHalfRange;
 }
 
 void effectControlTask7F(Task* task)
@@ -4207,8 +4207,8 @@ void effectControlTask7F(Task* task)
     offsetSpan      = work->scale >> 1;
     offsetHalfRange = (u32)offsetSpan >> 1;
     offsetRange     = offsetSpan;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    if ((gRandomLcgState >> 16) & 1) {
+    RANDOM_LCG_ADVANCE();
+    if (RANDOM_LCG_DRAW() & 1) {
         burstCount = work->step;
     } else {
         burstCount = 1;
@@ -4216,8 +4216,8 @@ void effectControlTask7F(Task* task)
     for (burstIndex = 0; burstIndex < burstCount; burstIndex++) {
         _effectChooseHitBlastOffset(work, offsetRange, offsetHalfRange);
         if (work->age < work->angle) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if (work->age < (s32)(gRandomLcgState >> 16) % work->period) {
+            RANDOM_LCG_ADVANCE();
+            if (work->age < (s32)RANDOM_LCG_DRAW() % work->period) {
                 // The signed X promotion sets the rise flag only on the negative side.
                 effectSpawn(EFFECT_ADDITIVE_PUFF, coord, (work->move.vx & EFFECT_HIT_BLAST_PUFF_RISE_FLAG) | EFFECT_HIT_BLAST_FLAME_SIZE,
                             &work->move);
@@ -4225,8 +4225,8 @@ void effectControlTask7F(Task* task)
                 effectSpawn(EFFECT_FIRE_BURST, coord, EFFECT_HIT_BLAST_FLAME_SIZE, &work->move);
             }
         } else {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((gRandomLcgState >> 16) & 1) {
+            RANDOM_LCG_ADVANCE();
+            if (RANDOM_LCG_DRAW() & 1) {
                 effectSpawn(EFFECT_SMOKE_PUFF, coord, (work->scale >> 2) + EFFECT_HIT_BLAST_SMOKE_ARGUMENT_BASE,
                             &work->move);
             }
@@ -4354,14 +4354,14 @@ void effectSpriteTask80(Task* task)
             if (requestedSize != 0) {
                 size = requestedSize;
             }
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->scale     = size;
-            work->angle     = (gRandomLcgState >> 16) % EFFECT_PUFF_LIFETIME_SPAN + EFFECT_PUFF_MIN_LAST_AGE;
-            riseFlags       = task->spawnArg1.halves.high;
+            RANDOM_LCG_ADVANCE();
+            work->scale = size;
+            work->angle = RANDOM_LCG_DRAW() % EFFECT_PUFF_LIFETIME_SPAN + EFFECT_PUFF_MIN_LAST_AGE;
+            riseFlags   = task->spawnArg1.halves.high;
             if (riseFlags & EFFECT_PUFF_RISE_FLAG) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                riseSpeed       = gRandomLcgState >> 16;
-                riseSpeed       = riseSpeed % EFFECT_PUFF_RISE_SPEED_RANGE;
+                RANDOM_LCG_ADVANCE();
+                riseSpeed = RANDOM_LCG_DRAW();
+                riseSpeed = riseSpeed % EFFECT_PUFF_RISE_SPEED_RANGE;
             } else {
                 riseSpeed = 0;
             }
@@ -4488,11 +4488,11 @@ void effectSpriteTask8D(Task* task)
                 if (requestedSize != 0) {
                     size = requestedSize;
                 }
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->scale     = size;
-                work->angle     = ((gRandomLcgState >> 16) & EFFECT_PUFF_LIFETIME_MASK) + EFFECT_PUFF_MIN_LAST_AGE;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->step      = (gRandomLcgState >> 16) % EFFECT_PUFF_RISE_SPEED_RANGE;
+                RANDOM_LCG_ADVANCE();
+                work->scale = size;
+                work->angle = (RANDOM_LCG_DRAW() & EFFECT_PUFF_LIFETIME_MASK) + EFFECT_PUFF_MIN_LAST_AGE;
+                RANDOM_LCG_ADVANCE();
+                work->step = RANDOM_LCG_DRAW() % EFFECT_PUFF_RISE_SPEED_RANGE;
                 task->state++;
                 task->spawnArg1.value &= EFFECT_PUFF_RETAINED_SPAWN_FLAG;
             }
@@ -4575,13 +4575,13 @@ void effectSpriteTask3F(Task* task)
         if (scratch->projectionFlags >= 0) {
             // Initialize after projection, retaining its screen point when reparenting.
             if (task->state == EFFECT_DRAW_TASK_NEW) {
-                work->period    = ((task->spawnArg1.value >> 12) & 3) + 2;
-                size            = (u16)task->spawnArg1.value & EFFECT_DRAW_SIZE_MASK;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->angle     = (gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK;
-                work->scale     = size;
-                attachmentBits  = task->spawnArg1.halves.high;
-                work->index     = attachmentBits & 1;
+                work->period = ((task->spawnArg1.value >> 12) & 3) + 2;
+                size         = (u16)task->spawnArg1.value & EFFECT_DRAW_SIZE_MASK;
+                RANDOM_LCG_ADVANCE();
+                work->angle    = RANDOM_LCG_DRAW() & EFFECT_DRAW_ANGLE_MASK;
+                work->scale    = size;
+                attachmentBits = task->spawnArg1.halves.high;
+                work->index    = attachmentBits & 1;
                 if (work->index != 0) {
                     coord->parent = work->parent;
                     gfxSetRotIdentity(&coord->coord);
@@ -4590,15 +4590,15 @@ void effectSpriteTask3F(Task* task)
                     coord->coord.t[0]   = 0;
                     coord->composeStamp = GRAPHICS_COORD_DIRTY;
                     actorRenderComposeCoord(coord);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vy   = -((gRandomLcgState >> 16) & 3);
+                    RANDOM_LCG_ADVANCE();
+                    work->move.vy = -(RANDOM_LCG_DRAW() & 3);
                 } else {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vx   = ((gRandomLcgState >> 16) & 0xF) - 8;
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vy   = -((gRandomLcgState >> 16) & 0xF);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vz   = ((gRandomLcgState >> 16) & 0xF) - 8;
+                    RANDOM_LCG_ADVANCE();
+                    work->move.vx = (RANDOM_LCG_DRAW() & 0xF) - 8;
+                    RANDOM_LCG_ADVANCE();
+                    work->move.vy = -(RANDOM_LCG_DRAW() & 0xF);
+                    RANDOM_LCG_ADVANCE();
+                    work->move.vz = (RANDOM_LCG_DRAW() & 0xF) - 8;
                 }
                 task->state++;
             }
@@ -4656,21 +4656,21 @@ static inline void _effectEmitHitSparkParticle(EffectWork* work, GfxCoord* coord
     s32 transitionAge;
     s32 particleEffectId;
 
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vx   = (s32)(gRandomLcgState >> 16) % emissionWidth - halfWidth;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vy   = (s32)(gRandomLcgState >> 16) % emissionWidth - halfWidth;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vz   = (s32)(gRandomLcgState >> 16) % emissionWidth - halfWidth;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    transitionAge   = (s32)(gRandomLcgState >> 16) % work->period;
+    RANDOM_LCG_ADVANCE();
+    work->move.vx = (s32)RANDOM_LCG_DRAW() % emissionWidth - halfWidth;
+    RANDOM_LCG_ADVANCE();
+    work->move.vy = (s32)RANDOM_LCG_DRAW() % emissionWidth - halfWidth;
+    RANDOM_LCG_ADVANCE();
+    work->move.vz = (s32)RANDOM_LCG_DRAW() % emissionWidth - halfWidth;
+    RANDOM_LCG_ADVANCE();
+    transitionAge = (s32)RANDOM_LCG_DRAW() % work->period;
 
     particleEffectId = EFFECT_SPARK_FADE;
     if (work->age < transitionAge) {
         particleEffectId = EFFECT_FLASH_BURST;
     }
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    effectSpawn(particleEffectId, coord, ((gRandomLcgState >> 16) & EFFECT_HIT_SPARK_PARTICLE_SIZE_MASK) + EFFECT_HIT_SPARK_PARTICLE_MIN_SIZE, &work->move);
+    RANDOM_LCG_ADVANCE();
+    effectSpawn(particleEffectId, coord, (RANDOM_LCG_DRAW() & EFFECT_HIT_SPARK_PARTICLE_SIZE_MASK) + EFFECT_HIT_SPARK_PARTICLE_MIN_SIZE, &work->move);
 }
 
 void effectHitSparkBurstTask(Task* task)
@@ -4712,8 +4712,8 @@ void effectHitSparkBurstTask(Task* task)
             task->state         = EFFECT_DRAW_TASK_ACTIVE;
             // The previous random state shares $v1 with the identity's ONE.
             previousRandomState = gRandomLcgState;
-            gRandomLcgState     = previousRandomState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->index         = (gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK;
+            gRandomLcgState     = RANDOM_LCG_NEXT(previousRandomState);
+            work->index         = RANDOM_LCG_DRAW() & EFFECT_DRAW_ANGLE_MASK;
             requestedWidth      = task->spawnArg1.halves.low;
             work->scale         = requestedWidth;
             durationUnits       = task->spawnArg1.halves.high;
@@ -4734,8 +4734,8 @@ void effectHitSparkBurstTask(Task* task)
         emissionWidth = work->scale;
         halfWidth     = emissionWidth >> 1;
         for (particleIndex = 0; particleIndex < work->step; particleIndex++) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if (work->angle >= (s32)((gRandomLcgState >> 16) & EFFECT_HIT_SPARK_EMISSION_MASK)) {
+            RANDOM_LCG_ADVANCE();
+            if (work->angle >= (s32)(RANDOM_LCG_DRAW() & EFFECT_HIT_SPARK_EMISSION_MASK)) {
                 _effectEmitHitSparkParticle(work, coord, emissionWidth, halfWidth);
             }
         }
@@ -4802,14 +4802,14 @@ void effectSpriteTaskE0(Task* task)
             setcode(quad, EFFECT_DRAW_TEXTURED_QUAD);
             // The first visible cell chooses size and rotation; offscreen ticks still age.
             if (task->state == EFFECT_DRAW_TASK_NEW) {
-                baseSize        = (u16)task->spawnArg1.value & EFFECT_DRAW_SIZE_MASK;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->scale     = baseSize + ((gRandomLcgState >> 16) & 0xFF);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->angle     = (gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK;
-                paletteBits     = task->spawnArg1.halves.high;
-                work->step      = paletteBits;
-                task->state     = EFFECT_DRAW_TASK_ACTIVE;
+                baseSize = (u16)task->spawnArg1.value & EFFECT_DRAW_SIZE_MASK;
+                RANDOM_LCG_ADVANCE();
+                work->scale = baseSize + (RANDOM_LCG_DRAW() & 0xFF);
+                RANDOM_LCG_ADVANCE();
+                work->angle = RANDOM_LCG_DRAW() & EFFECT_DRAW_ANGLE_MASK;
+                paletteBits = task->spawnArg1.halves.high;
+                work->step  = paletteBits;
+                task->state = EFFECT_DRAW_TASK_ACTIVE;
             }
             quad->tpage = EFFECT_BURST_TEXTURE_PAGE;
             quad->code |= EFFECT_DRAW_RAW_TEXTURE | EFFECT_DRAW_SEMITRANSPARENT;
@@ -4890,13 +4890,13 @@ void effectSpriteTaskE1(Task* task)
         projectionScratch                        = scratch;
         // Initialize before projection so offscreen ticks use the same lifetime.
         if (task->state == EFFECT_DRAW_TASK_NEW) {
-            baseSize        = (u16)task->spawnArg1.value & EFFECT_DRAW_SIZE_MASK;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->scale     = baseSize + ((gRandomLcgState >> 16) & 0xFF);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->angle     = (gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK;
-            paletteBits     = task->spawnArg1.halves.high;
-            work->step      = paletteBits;
+            baseSize = (u16)task->spawnArg1.value & EFFECT_DRAW_SIZE_MASK;
+            RANDOM_LCG_ADVANCE();
+            work->scale = baseSize + (RANDOM_LCG_DRAW() & 0xFF);
+            RANDOM_LCG_ADVANCE();
+            work->angle = RANDOM_LCG_DRAW() & EFFECT_DRAW_ANGLE_MASK;
+            paletteBits = task->spawnArg1.halves.high;
+            work->step  = paletteBits;
             task->state++;
         }
         actorRenderComposeCoord(coord);
@@ -4992,12 +4992,12 @@ void effectSpriteTaskE2(Task* task)
             if (task->spawnArg1.value < 0) {
                 _effectInitSparkBurstCoord(coord, work);
             }
-            baseSize        = (u16)task->spawnArg1.value & EFFECT_DRAW_SIZE_MASK;
-            work->step      = EFFECT_SPARK_BURST_PALETTE_ZERO;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->scale     = baseSize + ((gRandomLcgState >> 16) & EFFECT_SPARK_BURST_SIZE_JITTER_MASK);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->angle     = (gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK;
+            baseSize   = (u16)task->spawnArg1.value & EFFECT_DRAW_SIZE_MASK;
+            work->step = EFFECT_SPARK_BURST_PALETTE_ZERO;
+            RANDOM_LCG_ADVANCE();
+            work->scale = baseSize + (RANDOM_LCG_DRAW() & EFFECT_SPARK_BURST_SIZE_JITTER_MASK);
+            RANDOM_LCG_ADVANCE();
+            work->angle = RANDOM_LCG_DRAW() & EFFECT_DRAW_ANGLE_MASK;
             task->state++;
         }
         actorRenderComposeCoord(coord);

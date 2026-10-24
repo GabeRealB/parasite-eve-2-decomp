@@ -20,8 +20,8 @@ static void _oddStrangerSpawnHitEffect(Task* task, s16 hitYaw, s32 attackKey)
     yawMagnitude = (hitYaw >= 0) ? hitYaw : -hitYaw;
     work         = task->work;
     if (yawMagnitude < ACTOR_TRANSFORM_ANGLE_TURN / 8) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        switch ((s32)(gRandomLcgState >> 16) & 3) {
+        RANDOM_LCG_ADVANCE();
+        switch ((s32)RANDOM_LCG_DRAW() & 3) {
             case 0:
                 *hitOffset = _gOddStrangerHitOffsets[0];
                 break;
@@ -39,8 +39,8 @@ static void _oddStrangerSpawnHitEffect(Task* task, s16 hitYaw, s32 attackKey)
                 break;
         }
     } else if (yawMagnitude > 3 * ACTOR_TRANSFORM_ANGLE_TURN / 8) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        switch ((s32)(gRandomLcgState >> 16) & 2) {
+        RANDOM_LCG_ADVANCE();
+        switch ((s32)RANDOM_LCG_DRAW() & 2) {
             case 0:
                 *hitOffset = _gOddStrangerHitOffsets[5];
                 break;
@@ -52,15 +52,15 @@ static void _oddStrangerSpawnHitEffect(Task* task, s16 hitYaw, s32 attackKey)
                 break;
         }
     } else if (hitYaw > 0) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if ((gRandomLcgState >> 16) & 1) {
+        RANDOM_LCG_ADVANCE();
+        if (RANDOM_LCG_DRAW() & 1) {
             *hitOffset = _gOddStrangerHitOffsets[8];
         } else {
             *hitOffset = _gOddStrangerHitOffsets[9];
         }
     } else {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if ((gRandomLcgState >> 16) & 1) {
+        RANDOM_LCG_ADVANCE();
+        if (RANDOM_LCG_DRAW() & 1) {
             *hitOffset = _gOddStrangerHitOffsets[10];
         } else {
             *hitOffset = _gOddStrangerHitOffsets[11];

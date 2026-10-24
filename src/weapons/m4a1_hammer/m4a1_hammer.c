@@ -148,11 +148,11 @@ void m4a1HammerGlowTask(Task* task)
                         }
                         actorRenderComposeCoord(glowCoord);
                         if ((work->age & M4A1_HAMMER_SPIN_TICK_MASK) == 0) {
-                            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                            work->angle     = (gRandomLcgState >> 16) & M4A1_HAMMER_ANGLE_MASK;
+                            RANDOM_LCG_ADVANCE();
+                            work->angle = RANDOM_LCG_DRAW() & M4A1_HAMMER_ANGLE_MASK;
                         }
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->period    = ((gRandomLcgState >> 16) & 0xFF) + 0xC0;
+                        RANDOM_LCG_ADVANCE();
+                        work->period = (RANDOM_LCG_DRAW() & 0xFF) + 0xC0;
                         if ((work->age & 1) == 0) {
                             spriteQuadDrawCharge(glowCoord->workm.t, work->age >> 1, work->period,
                                                  work->angle);
@@ -160,10 +160,10 @@ void m4a1HammerGlowTask(Task* task)
                         transientLight->framesLeft = M4A1_HAMMER_LIGHT_REFRESH_FRAMES;
                         pointLight->inner          = M4A1_HAMMER_IDLE_LIGHT_INNER;
                         pointLight->outer          = M4A1_HAMMER_IDLE_LIGHT_OUTER;
-                        gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        pointLight->head.color.b   = ((gRandomLcgState >> 16) & 0x700) + 0x400;
-                        pointLight->head.color.r   = (u16)pointLight->head.color.b >> 1;
-                        pointLight->head.color.g   = (u16)pointLight->head.color.b >> 1;
+                        RANDOM_LCG_ADVANCE();
+                        pointLight->head.color.b = (RANDOM_LCG_DRAW() & 0x700) + 0x400;
+                        pointLight->head.color.r = (u16)pointLight->head.color.b >> 1;
+                        pointLight->head.color.g = (u16)pointLight->head.color.b >> 1;
                         gfxMakeRelativeTransform(&gGfxViewCoord.workm, &glowCoord->workm, &lightCoord->coord);
                         lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                         work->index              = 0;
@@ -181,28 +181,28 @@ void m4a1HammerGlowTask(Task* task)
                         if (work->index == 0) {
                             // Three eight-entry banks hold each spark's angle, height and radius.
                             for (sparkIndex = 0; sparkIndex < M4A1_HAMMER_SPARK_COUNT; sparkIndex++) {
-                                gRandomLcgState                                                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                                _gM4a1HammerSparkState[sparkIndex]                                 = (sparkIndex << 9) + ((gRandomLcgState >> 16) & 0x1FF);
-                                gRandomLcgState                                                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                                _gM4a1HammerSparkState[sparkIndex + M4A1_HAMMER_SPARK_HEIGHT_BASE] = ((gRandomLcgState >> 16) & 0x7FF) + 0x200;
-                                gRandomLcgState                                                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                                _gM4a1HammerSparkState[sparkIndex + M4A1_HAMMER_SPARK_RADIUS_BASE] = (gRandomLcgState >> 16) & 0x3FF;
+                                RANDOM_LCG_ADVANCE();
+                                _gM4a1HammerSparkState[sparkIndex] = (sparkIndex << 9) + (RANDOM_LCG_DRAW() & 0x1FF);
+                                RANDOM_LCG_ADVANCE();
+                                _gM4a1HammerSparkState[sparkIndex + M4A1_HAMMER_SPARK_HEIGHT_BASE] = (RANDOM_LCG_DRAW() & 0x7FF) + 0x200;
+                                RANDOM_LCG_ADVANCE();
+                                _gM4a1HammerSparkState[sparkIndex + M4A1_HAMMER_SPARK_RADIUS_BASE] = RANDOM_LCG_DRAW() & 0x3FF;
                             }
                         }
                         if ((work->age & M4A1_HAMMER_SPIN_TICK_MASK) == 0) {
-                            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                            work->angle     = (gRandomLcgState >> 16) & M4A1_HAMMER_ANGLE_MASK;
+                            RANDOM_LCG_ADVANCE();
+                            work->angle = RANDOM_LCG_DRAW() & M4A1_HAMMER_ANGLE_MASK;
                         }
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->period    = ((gRandomLcgState >> 16) & 0x3FF) + 0x400;
+                        RANDOM_LCG_ADVANCE();
+                        work->period = (RANDOM_LCG_DRAW() & 0x3FF) + 0x400;
                         if ((work->age & 1) == 0) {
                             spriteQuadDraw(glowCoord, work->age >> 1, work->period, work->angle);
                             for (sparkIndex = 0; sparkIndex < M4A1_HAMMER_SPARK_COUNT; sparkIndex++) {
-                                heightIndex                          = sparkIndex + M4A1_HAMMER_SPARK_HEIGHT_BASE;
-                                gRandomLcgState                      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                                _gM4a1HammerSparkState[sparkIndex]  -= ((gRandomLcgState >> 16) & 0x1FF) - 0x100;
-                                gRandomLcgState                      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                                _gM4a1HammerSparkState[heightIndex] += (gRandomLcgState >> 16) & 0xFF;
+                                heightIndex = sparkIndex + M4A1_HAMMER_SPARK_HEIGHT_BASE;
+                                RANDOM_LCG_ADVANCE();
+                                _gM4a1HammerSparkState[sparkIndex] -= (RANDOM_LCG_DRAW() & 0x1FF) - 0x100;
+                                RANDOM_LCG_ADVANCE();
+                                _gM4a1HammerSparkState[heightIndex] += RANDOM_LCG_DRAW() & 0xFF;
                                 work->pos.vx =
                                     (_gM4a1HammerSparkState[sparkIndex + M4A1_HAMMER_SPARK_RADIUS_BASE] * rsin(_gM4a1HammerSparkState[sparkIndex])) >> M4A1_HAMMER_TRIG_SHIFT;
                                 work->pos.vz =
@@ -219,10 +219,10 @@ void m4a1HammerGlowTask(Task* task)
                         transientLight->framesLeft = M4A1_HAMMER_LIGHT_REFRESH_FRAMES;
                         pointLight->inner          = M4A1_HAMMER_CHARGED_LIGHT_INNER;
                         pointLight->outer          = M4A1_HAMMER_CHARGED_LIGHT_OUTER;
-                        gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        pointLight->head.color.b   = ((gRandomLcgState >> 16) & 0x700) + 0x800;
-                        pointLight->head.color.r   = (u16)pointLight->head.color.b >> 1;
-                        pointLight->head.color.g   = pointLight->head.color.b >> 1;
+                        RANDOM_LCG_ADVANCE();
+                        pointLight->head.color.b = (RANDOM_LCG_DRAW() & 0x700) + 0x800;
+                        pointLight->head.color.r = (u16)pointLight->head.color.b >> 1;
+                        pointLight->head.color.g = pointLight->head.color.b >> 1;
                         gfxMakeRelativeTransform(&gGfxViewCoord.workm, &glowCoord->workm, &lightCoord->coord);
                         lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                         work->index              = work->index + 1;
@@ -333,9 +333,9 @@ void m4a1HammerImpactFlashTask(Task* task)
                 actorRenderComposeCoord(impactCoord);
                 task->state = M4A1_HAMMER_IMPACT_TASK_DRAW;
             }
-            work->scale     = 0x80;
-            gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-            work->angle     = (gRandomLcgState >> 16) & M4A1_HAMMER_IMPACT_ANGLE_MASK;
+            work->scale = 0x80;
+            RANDOM_LCG_ADVANCE();
+            work->angle = RANDOM_LCG_DRAW() & M4A1_HAMMER_IMPACT_ANGLE_MASK;
             /* fallthrough */
         case M4A1_HAMMER_IMPACT_TASK_DRAW:
             if (work->age & 1) {

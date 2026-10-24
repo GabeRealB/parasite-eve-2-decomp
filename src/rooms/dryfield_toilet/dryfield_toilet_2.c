@@ -765,12 +765,12 @@ static inline void _dryfieldToiletNormalizeSprayDirection(EffectWork* work)
            SPRAY_RANDOM_DIRECTION_BIAS = 0x800 };
 
     if ((work->pos.vx | work->pos.vy | work->pos.vz) == 0) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->pos.vx    = ((gRandomLcgState >> 16) & SPRAY_RANDOM_DIRECTION_MASK) - SPRAY_RANDOM_DIRECTION_BIAS;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->pos.vy    = ((gRandomLcgState >> 16) & SPRAY_RANDOM_DIRECTION_MASK) - SPRAY_RANDOM_DIRECTION_BIAS;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->pos.vz    = ((gRandomLcgState >> 16) & SPRAY_RANDOM_DIRECTION_MASK) - SPRAY_RANDOM_DIRECTION_BIAS;
+        RANDOM_LCG_ADVANCE();
+        work->pos.vx = (RANDOM_LCG_DRAW() & SPRAY_RANDOM_DIRECTION_MASK) - SPRAY_RANDOM_DIRECTION_BIAS;
+        RANDOM_LCG_ADVANCE();
+        work->pos.vy = (RANDOM_LCG_DRAW() & SPRAY_RANDOM_DIRECTION_MASK) - SPRAY_RANDOM_DIRECTION_BIAS;
+        RANDOM_LCG_ADVANCE();
+        work->pos.vz = (RANDOM_LCG_DRAW() & SPRAY_RANDOM_DIRECTION_MASK) - SPRAY_RANDOM_DIRECTION_BIAS;
     }
     // The offset also supplies the spray direction, normalized to Q12.
     VectorNormalSS(&work->pos, &work->move);
@@ -909,7 +909,7 @@ void dryfieldToiletJetPuffTask(Task* task)
     gte_stszotz(&projection->otz);
     if ((scratchEnd - 1)->otz >= PUFF_MIN_DEPTH) {
         if (task->state == PUFF_INITIALIZE) {
-            randomBits  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            randomBits  = RANDOM_LCG_NEXT(gRandomLcgState);
             work->scale = task->spawnArg1.value & PUFF_SIZE_MASK;
             work->angle = ((u32)randomBits >> 16) & (ROOM_VISUAL_EFFECTS_FULL_TURN - 1);
             // Keep the signed halfword: nibble values 8..15 decode as negative.
@@ -922,12 +922,12 @@ void dryfieldToiletJetPuffTask(Task* task)
             }
             work->period = framePeriod;
             if (task->spawnArg1.value & PUFF_RANDOM_MOVE_FLAG) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->move.vx   = ((gRandomLcgState >> 16) & PUFF_RANDOM_MOVE_MASK) - PUFF_RANDOM_MOVE_BIAS;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->move.vy   = ((gRandomLcgState >> 16) & PUFF_RANDOM_MOVE_MASK) - PUFF_RANDOM_MOVE_BIAS;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->move.vz   = ((gRandomLcgState >> 16) & PUFF_RANDOM_MOVE_MASK) - PUFF_RANDOM_MOVE_BIAS;
+                RANDOM_LCG_ADVANCE();
+                work->move.vx = (RANDOM_LCG_DRAW() & PUFF_RANDOM_MOVE_MASK) - PUFF_RANDOM_MOVE_BIAS;
+                RANDOM_LCG_ADVANCE();
+                work->move.vy = (RANDOM_LCG_DRAW() & PUFF_RANDOM_MOVE_MASK) - PUFF_RANDOM_MOVE_BIAS;
+                RANDOM_LCG_ADVANCE();
+                work->move.vz = (RANDOM_LCG_DRAW() & PUFF_RANDOM_MOVE_MASK) - PUFF_RANDOM_MOVE_BIAS;
             }
             if (task->spawnArg1.value & PUFF_SCALE_MOVE_FLAG) {
                 gte_lddp(work->scale << 2);

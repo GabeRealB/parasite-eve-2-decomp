@@ -768,7 +768,7 @@ static void _actor02300SpawnBody(Enemy* enemy, Task* actor)
             work->sightCapsule.ends[1].vy   = 0;
             work->sightCapsule.ends[1].vz   = 0;
             work->sightCapsule.contacts     = work->sightContacts;
-            randomDraw                      = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            randomDraw                      = RANDOM_LCG_NEXT(gRandomLcgState);
             work->screamCharges             = ((randomDraw >> 16) & 1) + 1;
             gRandomLcgState                 = randomDraw;
             sightCoords                     = actor->extra.tmd->coords;

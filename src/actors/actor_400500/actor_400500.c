@@ -2840,7 +2840,7 @@ static void _actor400500TickCrawlPositiveX(Task* task)
                             work->subState = ACTOR_400500_CRAWL_STEP_TURN_NEGATIVE_X;
                         }
                     } else if (work->toTarget.vx < (-ACTOR_400500_POSTURE_CHANGE_TARGET_GAP + 1)) {
-                        randomState     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                        randomState     = RANDOM_LCG_NEXT(gRandomLcgState);
                         gRandomLcgState = randomState;
                         if (((randomState >> 0x10) & ACTOR_400500_POSTURE_CHANGE_CHANCE_MASK) == 0) {
                             if (!(work->posture & ACTOR_400500_POSTURE_ON_FLOOR)) {
@@ -2952,7 +2952,7 @@ static void _actor400500TickCrawlNegativeX(Task* task)
                         work->subState = ACTOR_400500_CRAWL_STEP_TURN_POSITIVE_X;
                     }
                 } else if (work->toTarget.vx >= ACTOR_400500_POSTURE_CHANGE_TARGET_GAP) {
-                    randomState     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    randomState     = RANDOM_LCG_NEXT(gRandomLcgState);
                     gRandomLcgState = randomState;
                     if (((randomState >> 0x10) & ACTOR_400500_POSTURE_CHANGE_CHANCE_MASK) == 0) {
                         if (!(work->posture & ACTOR_400500_POSTURE_ON_FLOOR)) {
@@ -3861,7 +3861,7 @@ static void _actor400500FinishFloorArmStrike(Task* task)
             cloakWork->cloakPhase   = ACTOR_400500_CLOAK_PHASE_FIRST_RAMP;
         }
         boundaryWork->attackCooldown = ACTOR_400500_ATTACK_COOLDOWN_TICKS;
-        randomState                  = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        randomState                  = RANDOM_LCG_NEXT(gRandomLcgState);
         gRandomLcgState              = randomState;
         if (!((randomState >> 16) & ACTOR_400500_FLOOR_STRIKE_ROUTE_CHANCE_MASK)) {
             _actor400500SetState(task, ACTOR_400500_STATE_CRAWL, ACTOR_400500_CRAWL_STEP_SELECT);
@@ -4374,7 +4374,7 @@ static void _actor400500TickTurnOver(Task* task)
             actorRenderComposeCoord(rootCoord);
             knockdownTaken = _actor400500TakeKnockdown(task);
             if (knockdownTaken == 0) {
-                randomState     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                randomState     = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState = randomState;
                 if (((randomState >> 16) & ACTOR_400500_TURN_OVER_ROUTE_CHANCE_MASK) == 0) {
                     _actor400500SetState(task, ACTOR_400500_STATE_CRAWL, ACTOR_400500_CRAWL_STEP_SELECT);

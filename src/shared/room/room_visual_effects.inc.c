@@ -150,7 +150,7 @@ static inline void _roomVisualEffectsMoteTask(Task* task)
                     lifetime      = ((const _RoomFxMoteArg*)&task->spawnArg1)->lifetime;
                     work->step    = lifetime;
                     work->move.vx = 0;
-                    work->move.vy = -((const _RoomFxMoteArg*)&task->spawnArg1)->verticalSpeed - (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & MOTE_RANDOM_SPEED_MASK);
+                    work->move.vy = -((const _RoomFxMoteArg*)&task->spawnArg1)->verticalSpeed - (((RANDOM_LCG_ADVANCE()) >> 16) & MOTE_RANDOM_SPEED_MASK);
                     work->move.vz = 0;
                     task->state   = (task->spawnArg1.value & ROOM_VISUAL_EFFECTS_MOTE_STEADY) + MOTE_RISE;
                 }

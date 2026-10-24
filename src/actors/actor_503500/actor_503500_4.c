@@ -1716,15 +1716,15 @@ static void _actor503500RearPartStepDying(Task* task)
             // Shed local effects while the rear model part contracts along Z.
             if (++work->stateFrames <= ACTOR_503500_REAR_PART_DYING_EFFECT_FRAMES) {
                 if (actor503500TryReserveSlotEffects(task->spawnArg1.value, ACTOR_503500_REAR_PART_DEATH_EFFECT_COST) != 0) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    RANDOM_LCG_ADVANCE();
                     effectSpawn(EFFECT_HIT_PUFF, coord, ACTOR_503500_REAR_PART_DEATH_FIRST_PUFF_ARG,
-                                &gActor503500RearPartDeathEffectOffsets[(u16)((gRandomLcgState >> 16) % ARRAY_SIZE(gActor503500RearPartDeathEffectOffsets))]);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                                &gActor503500RearPartDeathEffectOffsets[(u16)(RANDOM_LCG_DRAW() % ARRAY_SIZE(gActor503500RearPartDeathEffectOffsets))]);
+                    RANDOM_LCG_ADVANCE();
                     effectSpawn(EFFECT_HIT_PUFF, coord, ACTOR_503500_REAR_PART_DEATH_SECOND_PUFF_ARG,
-                                &gActor503500RearPartDeathEffectOffsets[(u16)((gRandomLcgState >> 16) % ARRAY_SIZE(gActor503500RearPartDeathEffectOffsets))]);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                                &gActor503500RearPartDeathEffectOffsets[(u16)(RANDOM_LCG_DRAW() % ARRAY_SIZE(gActor503500RearPartDeathEffectOffsets))]);
+                    RANDOM_LCG_ADVANCE();
                     effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, ACTOR_503500_REAR_PART_DEATH_DRIFT_ARG,
-                                &gActor503500RearPartDeathEffectOffsets[(u16)((gRandomLcgState >> 16) % ARRAY_SIZE(gActor503500RearPartDeathEffectOffsets))]);
+                                &gActor503500RearPartDeathEffectOffsets[(u16)(RANDOM_LCG_DRAW() % ARRAY_SIZE(gActor503500RearPartDeathEffectOffsets))]);
                 }
             }
             partScale.vx = ONE;
@@ -2891,9 +2891,9 @@ static void _actor503500SmallOrbEmitterStepDying(Task* task)
                 effectSpawn(EFFECT_HIT_PUFF, coord, ACTOR_503500_SMALL_ORB_EMITTER_DEATH_HIT_PUFF_ARG,
                             &gActor503500SmallOrbEmitterDeathEffectOffsets[work->stateFrames % (s32)ARRAY_SIZE(gActor503500SmallOrbEmitterDeathEffectOffsets)]);
                 if (work->stateFrames & 1) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    RANDOM_LCG_ADVANCE();
                     effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, ACTOR_503500_SMALL_ORB_EMITTER_DEATH_DRIFT_ARG,
-                                &gActor503500SmallOrbEmitterDeathEffectOffsets[(u16)((gRandomLcgState >> 16) % ARRAY_SIZE(gActor503500SmallOrbEmitterDeathEffectOffsets))]);
+                                &gActor503500SmallOrbEmitterDeathEffectOffsets[(u16)(RANDOM_LCG_DRAW() % ARRAY_SIZE(gActor503500SmallOrbEmitterDeathEffectOffsets))]);
                 }
             }
             if (work->stateFrames == ACTOR_503500_SMALL_ORB_EMITTER_DYING_REPAINT_FRAME) {

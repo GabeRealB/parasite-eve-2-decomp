@@ -264,8 +264,8 @@ void m4a1JavelinGuideBeamTask(Task* task)
             redIntensity               = pointLight->head.color.r >> 1;
             pointLight->head.color.r   = redIntensity;
             pointLight->head.color.g   = redIntensity >> 2;
-            gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            pointLight->head.color.b   = ((gRandomLcgState >> 16) & 0x700) + 0x400;
+            RANDOM_LCG_ADVANCE();
+            pointLight->head.color.b = (RANDOM_LCG_DRAW() & 0x700) + 0x400;
             gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &lightCoord->coord);
             lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             if (work->scale == M4A1_JAVELIN_FLARE_MAX_BRIGHTNESS) {
@@ -298,11 +298,11 @@ void m4a1JavelinGuideBeamTask(Task* task)
             transientLight->framesLeft = M4A1_JAVELIN_LIGHT_LIFETIME_TICKS;
             pointLight->inner          = 0x400;
             pointLight->outer          = 0x4000;
-            gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            blueIntensity              = ((gRandomLcgState >> 16) & 0x700) + 0x800;
-            pointLight->head.color.b   = blueIntensity;
-            pointLight->head.color.r   = blueIntensity >> 1;
-            pointLight->head.color.g   = blueIntensity >> 1;
+            RANDOM_LCG_ADVANCE();
+            blueIntensity            = (RANDOM_LCG_DRAW() & 0x700) + 0x800;
+            pointLight->head.color.b = blueIntensity;
+            pointLight->head.color.r = blueIntensity >> 1;
+            pointLight->head.color.g = blueIntensity >> 1;
             gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &lightCoord->coord);
             _gM4a1JavelinBeamAngleRefreshPending       = false;
             lightCoord->composeStamp                   = GRAPHICS_COORD_DIRTY;
@@ -768,10 +768,10 @@ void m4a1JavelinContactFlashTask(Task* task)
 
     work->age++;
     if (task->state == M4A1_JAVELIN_CONTACT_FLASH_INIT) {
-        work->scale     = M4A1_JAVELIN_CONTACT_FLASH_SIZE;
-        gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-        work->angle     = (gRandomLcgState >> 16) & (M4A1_JAVELIN_FULL_TURN - 1);
-        task->state     = M4A1_JAVELIN_CONTACT_FLASH_PLAYING;
+        work->scale = M4A1_JAVELIN_CONTACT_FLASH_SIZE;
+        RANDOM_LCG_ADVANCE();
+        work->angle = RANDOM_LCG_DRAW() & (M4A1_JAVELIN_FULL_TURN - 1);
+        task->state = M4A1_JAVELIN_CONTACT_FLASH_PLAYING;
     }
     // Age counts active ticks from one; the texture strip is indexed from zero.
     spriteQuadDraw(coord->workm.t, work->age - 1, work->scale, work->angle);

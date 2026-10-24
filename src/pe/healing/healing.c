@@ -169,13 +169,13 @@ void healingAuraTask(Task* task)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
             // Scatter the next child in the spinning aura's local frame.
-            randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            randomState     = RANDOM_LCG_NEXT(gRandomLcgState);
             spawnAngle      = ((u32)randomState >> 16) & HEALING_AURA_ANGLE_MASK;
             gRandomLcgState = randomState;
             work->step      = spawnAngle;
             work->move.vx   = (rcos(spawnAngle) * (work->angle * 3 / 2)) >> HEALING_AURA_TRIG_FRACTION_BITS;
             verticalProduct = rsin(work->step) * (work->angle * 3 / 2);
-            randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            randomState     = RANDOM_LCG_NEXT(gRandomLcgState);
             gRandomLcgState = randomState;
             work->move.vy   = verticalProduct >> HEALING_AURA_TRIG_FRACTION_BITS;
             work->move.vz   = (rsin(((u32)randomState >> 16) & HEALING_AURA_ANGLE_MASK) * work->move.vx) >> HEALING_AURA_TRIG_FRACTION_BITS;

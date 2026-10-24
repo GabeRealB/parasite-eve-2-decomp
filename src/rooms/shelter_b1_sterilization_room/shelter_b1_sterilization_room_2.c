@@ -1623,10 +1623,10 @@ void shelterB1SterilizationRoomEffectsTask(Task* task)
         SVECTOR* secondSmokePoint;                                                                                                            \
         firstSmokePoint      = &_gShelterB1SterilizationRoomEffectGeometry.smokePoints[0];                                                    \
         secondSmokePoint     = &_gShelterB1SterilizationRoomEffectGeometry.smokePoints[1];                                                    \
-        randomHigh           = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;                      \
+        randomHigh           = (RANDOM_LCG_ADVANCE()) >> 16;                                                                                  \
         ringAngle            = (randomHigh << 16) >> 16;                                                                                      \
         ringAngle           &= (GLOW_FULL_TURN - 1);                                                                                          \
-        randomState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                \
+        randomState          = RANDOM_LCG_NEXT(gRandomLcgState);                                                                              \
         gRandomLcgState      = randomState;                                                                                                   \
         randomHigh           = (randomState >> 16) & SHELTER_B1_STERILIZATION_ROOM_EFFECTS_RING_RADIUS_MASK;                                  \
         ringRadius           = randomHigh + SHELTER_B1_STERILIZATION_ROOM_EFFECTS_RING_RADIUS_MIN;                                            \
@@ -1637,12 +1637,12 @@ void shelterB1SterilizationRoomEffectsTask(Task* task)
         secondSmokePoint->vy = 0;                                                                                                             \
         secondSmokePoint->vz = ((ringRadius * rsin((s16)ringAngle)) >> GLOW_TRIG_SHIFT) + SHELTER_B1_STERILIZATION_ROOM_SECOND_RING_CENTER_Z; \
         effectSpawn(EFFECT_SMOKE_PUFF, (parentCoord),                                                                                         \
-                    ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1)                         \
+                    ((((RANDOM_LCG_ADVANCE()) >> 16) & 1)                                                                                     \
                      << SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_BLEND_VARIANT_SHIFT) |                                                    \
                         SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_PARAMETERS,                                                               \
                     firstSmokePoint);                                                                                                         \
         effectSpawn(EFFECT_SMOKE_PUFF, (parentCoord),                                                                                         \
-                    ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1)                         \
+                    ((((RANDOM_LCG_ADVANCE()) >> 16) & 1)                                                                                     \
                      << SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_BLEND_VARIANT_SHIFT) |                                                    \
                         SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_PARAMETERS,                                                               \
                     secondSmokePoint);                                                                                                        \
@@ -1667,10 +1667,10 @@ void shelterB1SterilizationRoomEffectsTask(Task* task)
         s16      ringRadius;                                                                                                                  \
         SVECTOR* secondSmokePoint;                                                                                                            \
         secondSmokePoint     = &_gShelterB1SterilizationRoomEffectGeometry.smokePoints[1];                                                    \
-        randomHigh           = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;                      \
+        randomHigh           = (RANDOM_LCG_ADVANCE()) >> 16;                                                                                  \
         ringAngle            = (randomHigh << 16) >> 16;                                                                                      \
         ringAngle           &= (GLOW_FULL_TURN - 1);                                                                                          \
-        randomState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                \
+        randomState          = RANDOM_LCG_NEXT(gRandomLcgState);                                                                              \
         gRandomLcgState      = randomState;                                                                                                   \
         randomHigh           = (randomState >> 16) & SHELTER_B1_STERILIZATION_ROOM_EFFECTS_RING_RADIUS_MASK;                                  \
         ringRadius           = randomHigh + SHELTER_B1_STERILIZATION_ROOM_EFFECTS_RING_RADIUS_MIN;                                            \
@@ -1678,7 +1678,7 @@ void shelterB1SterilizationRoomEffectsTask(Task* task)
         secondSmokePoint->vy = 0;                                                                                                             \
         secondSmokePoint->vz = ((ringRadius * rsin((s16)ringAngle)) >> GLOW_TRIG_SHIFT) + SHELTER_B1_STERILIZATION_ROOM_SECOND_RING_CENTER_Z; \
         effectSpawn(EFFECT_SMOKE_PUFF, (parentCoord),                                                                                         \
-                    ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1)                         \
+                    ((((RANDOM_LCG_ADVANCE()) >> 16) & 1)                                                                                     \
                      << SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_BLEND_VARIANT_SHIFT) |                                                    \
                         SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_PARAMETERS,                                                               \
                     secondSmokePoint);                                                                                                        \
@@ -1759,7 +1759,7 @@ void shelterB1SterilizationRoomEffectsTask(Task* task)
             case 14:
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (sourceGroup = 8; sourceGroup < SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCES_PER_DIRECTION; sourceGroup += SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCES_PER_GROUP) {
-                        sourceIndex = sourceGroup + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3);
+                        sourceIndex = sourceGroup + (((RANDOM_LCG_ADVANCE()) >> 16) & 3);
                         effectSpawn(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, sourceIndex, &_gShelterB1SterilizationRoomEffectGeometry.puffOrigins[sourceIndex]);
                     }
                 }
@@ -1767,8 +1767,8 @@ void shelterB1SterilizationRoomEffectsTask(Task* task)
             case 15:
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (sourceGroup = 4; sourceGroup < SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCES_PER_DIRECTION; sourceGroup += SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCES_PER_GROUP) {
-                        if (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1) {
-                            sourceIndex = sourceGroup + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3);
+                        if (((RANDOM_LCG_ADVANCE()) >> 16) & 1) {
+                            sourceIndex = sourceGroup + (((RANDOM_LCG_ADVANCE()) >> 16) & 3);
                             effectSpawn(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, sourceIndex - SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SMALL_SIZE_BIAS, &_gShelterB1SterilizationRoomEffectGeometry.puffOrigins[sourceIndex]);
                         }
                     }
@@ -1777,8 +1777,8 @@ void shelterB1SterilizationRoomEffectsTask(Task* task)
             case 16:
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (sourceGroup = 0; sourceGroup < SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCE_COUNT; sourceGroup += SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCES_PER_GROUP) {
-                        if (!(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3)) {
-                            sourceIndex = sourceGroup + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3);
+                        if (!(((RANDOM_LCG_ADVANCE()) >> 16) & 3)) {
+                            sourceIndex = sourceGroup + (((RANDOM_LCG_ADVANCE()) >> 16) & 3);
                             effectSpawn(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, sourceIndex, &_gShelterB1SterilizationRoomEffectGeometry.puffOrigins[sourceIndex]);
                         }
                     }
@@ -1789,8 +1789,8 @@ void shelterB1SterilizationRoomEffectsTask(Task* task)
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (directionGroup = 0; directionGroup < SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCE_COUNT; directionGroup += SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCES_PER_DIRECTION) {
                         for (sourceGroup = 4; sourceGroup < SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCES_PER_DIRECTION; sourceGroup += SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCES_PER_GROUP) {
-                            if (!(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3)) {
-                                sourceIndex = directionGroup + sourceGroup + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3);
+                            if (!(((RANDOM_LCG_ADVANCE()) >> 16) & 3)) {
+                                sourceIndex = directionGroup + sourceGroup + (((RANDOM_LCG_ADVANCE()) >> 16) & 3);
                                 effectSpawn(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, sourceIndex + SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_MEDIUM_SIZE_BIAS, &_gShelterB1SterilizationRoomEffectGeometry.puffOrigins[sourceIndex]);
                             }
                         }
@@ -1803,8 +1803,8 @@ void shelterB1SterilizationRoomEffectsTask(Task* task)
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (directionGroup = 0; directionGroup < SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCE_COUNT; directionGroup += SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCES_PER_DIRECTION) {
                         for (sourceGroup = 0; sourceGroup < 0xC; sourceGroup += SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCES_PER_GROUP) {
-                            if (!(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3)) {
-                                sourceIndex = directionGroup + sourceGroup + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3);
+                            if (!(((RANDOM_LCG_ADVANCE()) >> 16) & 3)) {
+                                sourceIndex = directionGroup + sourceGroup + (((RANDOM_LCG_ADVANCE()) >> 16) & 3);
                                 effectSpawn(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, sourceIndex + SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_MEDIUM_SIZE_BIAS, &_gShelterB1SterilizationRoomEffectGeometry.puffOrigins[sourceIndex]);
                             }
                         }
@@ -1814,7 +1814,7 @@ void shelterB1SterilizationRoomEffectsTask(Task* task)
             case 17:
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (sourceGroup = 0xC; sourceGroup < SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCE_COUNT; sourceGroup += SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCES_PER_DIRECTION) {
-                        sourceIndex = sourceGroup + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3);
+                        sourceIndex = sourceGroup + (((RANDOM_LCG_ADVANCE()) >> 16) & 3);
                         effectSpawn(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, sourceIndex + SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_LARGE_SIZE_BIAS, &_gShelterB1SterilizationRoomEffectGeometry.puffOrigins[sourceIndex]);
                     }
                 }
@@ -1822,7 +1822,7 @@ void shelterB1SterilizationRoomEffectsTask(Task* task)
             case 18:
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (sourceGroup = 0xC; sourceGroup < SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCE_COUNT; sourceGroup += SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCES_PER_DIRECTION) {
-                        sourceIndex = sourceGroup + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3);
+                        sourceIndex = sourceGroup + (((RANDOM_LCG_ADVANCE()) >> 16) & 3);
                         effectSpawn(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, sourceIndex + SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SECOND_SIZE_BIAS, &_gShelterB1SterilizationRoomEffectGeometry.puffOrigins[sourceIndex]);
                     }
                 }
@@ -1855,21 +1855,21 @@ void shelterB1SterilizationRoomPuffTask(Task* task)
         case SHELTER_B1_STERILIZATION_ROOM_PUFF_INITIALIZE:
             // Choose the size, fixed sprite rotation and animation cadence once.
             sizeBias               = task->spawnArg1.halves.high;
-            work->scale            = ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFF) + SHELTER_B1_STERILIZATION_ROOM_PUFF_BASE_SIZE) + sizeBias;
-            work->angle            = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (GLOW_FULL_TURN - 1);
+            work->scale            = ((((RANDOM_LCG_ADVANCE()) >> 16) & 0xFF) + SHELTER_B1_STERILIZATION_ROOM_PUFF_BASE_SIZE) + sizeBias;
+            work->angle            = ((RANDOM_LCG_ADVANCE()) >> 16) & (GLOW_FULL_TURN - 1);
             task->spawnArg1.value &= SHELTER_B1_STERILIZATION_ROOM_PUFF_SOURCE_INDEX_MASK;
-            work->index            = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3) + 1;
-            work->period           = (work->scale >> 5) + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF);
-            work->step             = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF;
+            work->index            = (((RANDOM_LCG_ADVANCE()) >> 16) & 3) + 1;
+            work->period           = (work->scale >> 5) + (((RANDOM_LCG_ADVANCE()) >> 16) & 0xF);
+            work->step             = ((RANDOM_LCG_ADVANCE()) >> 16) & 0xF;
             // Scale the source group's Q12 direction, then jitter each component.
             gte_lddp(work->period);
             gte_ldsv(&_gShelterB1SterilizationRoomEffectGeometry.puffDirections[task->spawnArg1.value / SHELTER_B1_STERILIZATION_ROOM_PUFF_SOURCES_PER_DIRECTION]);
             gte_gpf12();
             velocity = &work->move;
             gte_stsv(velocity);
-            work->move.vx -= (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF) - 8;
-            work->move.vy -= (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF) - 8;
-            work->move.vz -= (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF) - 8;
+            work->move.vx -= (((RANDOM_LCG_ADVANCE()) >> 16) & 0xF) - 8;
+            work->move.vy -= (((RANDOM_LCG_ADVANCE()) >> 16) & 0xF) - 8;
+            work->move.vz -= (((RANDOM_LCG_ADVANCE()) >> 16) & 0xF) - 8;
             task->state    = SHELTER_B1_STERILIZATION_ROOM_PUFF_ANIMATE;
             // The first animation tick also runs on the initialization tick.
         case SHELTER_B1_STERILIZATION_ROOM_PUFF_ANIMATE:

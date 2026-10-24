@@ -205,15 +205,15 @@ void pyrokinesisCastTask(Task* task)
             gte_rtv0();
             gte_stsv(&effect->move);
             for (rimIndex = 0; rimIndex < ARRAY_SIZE(_gPyrokinesisConeFrameOffsets); rimIndex++) {
-                gRandomLcgState                         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                _gPyrokinesisConeFrameOffsets[rimIndex] = (gRandomLcgState >> 16) & PYROKINESIS_PHASE_JITTER_MASK;
+                RANDOM_LCG_ADVANCE();
+                _gPyrokinesisConeFrameOffsets[rimIndex] = RANDOM_LCG_DRAW() & PYROKINESIS_PHASE_JITTER_MASK;
             }
-            effect->scale   = PYROKINESIS_INITIAL_BRIGHTNESS;
-            effect->angle   = PYROKINESIS_LAUNCH_RADIUS;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            effect->period  = (gRandomLcgState >> 16) & PYROKINESIS_ANGLE_MASK;
-            effect->index   = (gAttachmentState.attachId % 10) - 1;
-            pan             = (s8)worldCoordGetOriginAudioPan(coord);
+            effect->scale = PYROKINESIS_INITIAL_BRIGHTNESS;
+            effect->angle = PYROKINESIS_LAUNCH_RADIUS;
+            RANDOM_LCG_ADVANCE();
+            effect->period = RANDOM_LCG_DRAW() & PYROKINESIS_ANGLE_MASK;
+            effect->index  = (gAttachmentState.attachId % 10) - 1;
+            pan            = (s8)worldCoordGetOriginAudioPan(coord);
             sndEvtRequestScriptStart(_gPyrokinesisCastSoundScripts[effect->index][task->spawnArg1.value], pan,
                                      (s8)worldCoordGetOriginAudioDepth(coord));
             padScriptSpawnVariableMotorRamp((s16)(effect->index * 2 + 8), PYROKINESIS_MOTOR_START_INTENSITY, PYROKINESIS_MOTOR_END_INTENSITY);
@@ -305,11 +305,11 @@ void pyrokinesisCastTask(Task* task)
                     _pyrokinesisDrawGroundGlow(&groundCoord, effect->angle);
                 }
             }
-            lightSlot->framesLeft    = PYROKINESIS_LIGHT_HOLD_FRAMES;
-            pointLight->inner        = (effect->index << 9) + PYROKINESIS_LIGHT_RADIUS_BASE;
-            pointLight->outer        = pointLight->inner * 16;
-            gRandomLcgState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            lightIntensity           = ((gRandomLcgState >> 16) & PYROKINESIS_LIGHT_JITTER_MASK) + PYROKINESIS_LIGHT_INTENSITY_BASE;
+            lightSlot->framesLeft = PYROKINESIS_LIGHT_HOLD_FRAMES;
+            pointLight->inner     = (effect->index << 9) + PYROKINESIS_LIGHT_RADIUS_BASE;
+            pointLight->outer     = pointLight->inner * 16;
+            RANDOM_LCG_ADVANCE();
+            lightIntensity           = (RANDOM_LCG_DRAW() & PYROKINESIS_LIGHT_JITTER_MASK) + PYROKINESIS_LIGHT_INTENSITY_BASE;
             pointLight->head.color.r = lightIntensity;
             pointLight->head.color.g = (u16)pointLight->head.color.r >> 1;
             pointLight->head.color.b = pointLight->head.color.r >> 2;
@@ -655,11 +655,11 @@ void pyrokinesisFlamePuffTask(Task* task)
             work->age++;
             if (task->state == PYROKINESIS_FLAME_PUFF_INITIALIZE) {
                 // Choose a fixed rise velocity and screen rotation once per puff.
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->move.vy   = -((gRandomLcgState >> 16) & (PYROKINESIS_FLAME_PUFF_RISE_SPEED_COUNT - 1));
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->scale     = (gRandomLcgState >> 16) & (PYRO_FLAME_FULL_TURN - 1);
-                task->state     = PYROKINESIS_FLAME_PUFF_ACTIVE;
+                RANDOM_LCG_ADVANCE();
+                work->move.vy = -(RANDOM_LCG_DRAW() & (PYROKINESIS_FLAME_PUFF_RISE_SPEED_COUNT - 1));
+                RANDOM_LCG_ADVANCE();
+                work->scale = RANDOM_LCG_DRAW() & (PYRO_FLAME_FULL_TURN - 1);
+                task->state = PYROKINESIS_FLAME_PUFF_ACTIVE;
             }
             nextY               = coord->coord.t[1] + work->move.vy;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;

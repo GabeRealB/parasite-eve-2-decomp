@@ -31,7 +31,7 @@ static inline void _effectSpriteRiseDrawRandomPalette(const GfxCoord* cachedCoor
     u16 packedAnglePalette;
 
     // Select before projection so rejected sprites still consume their random step.
-    gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    RANDOM_LCG_ADVANCE();
     packedAnglePalette = spriteWork->scale | (((gRandomLcgState >> EFFECT_SPRITE_RISE_RANDOM_SHIFT) % EFFECT_SPRITE_RISE_PALETTE_COUNT) << EFFECT_SPRITE_RISE_PALETTE_SHIFT);
     effectDrawSpinningBillboard(cachedCoord, spriteWork->index, spriteWork->angle, packedAnglePalette);
 }
@@ -67,13 +67,13 @@ void EFFECT_SPRITE_RISE_TASK(Task* task)
     work->age++;
     if (task->state == EFFECT_SPRITE_RISE_INITIALIZE) {
         // Store the fixed screen angle in scale and the size numerator in angle.
-        work->move.vx   = 0;
-        work->move.vz   = 0;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->move.vy   = ((gRandomLcgState >> EFFECT_SPRITE_RISE_RANDOM_SHIFT) & EFFECT_SPRITE_RISE_SPEED_MASK) + EFFECT_SPRITE_RISE_MIN_SPEED;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->scale     = (gRandomLcgState >> EFFECT_SPRITE_RISE_RANDOM_SHIFT) & EFFECT_SPRITE_RISE_ANGLE_MASK;
-        work->angle     = task->spawnArg1.value & EFFECT_SPRITE_RISE_SIZE_MASK;
+        work->move.vx = 0;
+        work->move.vz = 0;
+        RANDOM_LCG_ADVANCE();
+        work->move.vy = ((gRandomLcgState >> EFFECT_SPRITE_RISE_RANDOM_SHIFT) & EFFECT_SPRITE_RISE_SPEED_MASK) + EFFECT_SPRITE_RISE_MIN_SPEED;
+        RANDOM_LCG_ADVANCE();
+        work->scale = (gRandomLcgState >> EFFECT_SPRITE_RISE_RANDOM_SHIFT) & EFFECT_SPRITE_RISE_ANGLE_MASK;
+        work->angle = task->spawnArg1.value & EFFECT_SPRITE_RISE_SIZE_MASK;
         if (task->spawnArg1.value & EFFECT_SPRITE_RISE_REVERSE_Y) {
             work->move.vy = -work->move.vy;
         }

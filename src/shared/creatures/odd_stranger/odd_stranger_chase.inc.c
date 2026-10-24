@@ -330,8 +330,8 @@ static void _oddStrangerSidestep(Task* task)
         _actorPositionDeltaToPlayer(&gPlayerStatus, task->extra.tmd->coords, &sidestep->delta);
         sidestep->turn = ratan2(sidestep->delta.vx, sidestep->delta.vz);
         if (work->sidestepSide == 0) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((gRandomLcgState >> 16) & 1) {
+            RANDOM_LCG_ADVANCE();
+            if (RANDOM_LCG_DRAW() & 1) {
                 work->sidestepSide = 1;
             } else {
                 work->sidestepSide = -1;

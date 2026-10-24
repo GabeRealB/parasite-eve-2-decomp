@@ -22,8 +22,8 @@ static void _desertChaserHitEffect(Task* task, s16 hitYaw, s32 hitKey)
     work         = task->work;
     // Front, rear and side bearings choose different attachment groups.
     if (yawMagnitude < 0x200) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        switch ((s32)(gRandomLcgState >> 16) & 3) {
+        RANDOM_LCG_ADVANCE();
+        switch ((s32)RANDOM_LCG_DRAW() & 3) {
             case 0:
                 *hitAnchor = _gDesertChaserHitAnchors[0];
                 break;
@@ -41,9 +41,9 @@ static void _desertChaserHitEffect(Task* task, s16 hitYaw, s32 hitKey)
                 break;
         }
     } else if (yawMagnitude > 0x600) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        RANDOM_LCG_ADVANCE();
         // The retained mask selects only 0 or 2; the case-1 offset is unreachable.
-        switch ((s32)(gRandomLcgState >> 16) & 2) {
+        switch ((s32)RANDOM_LCG_DRAW() & 2) {
             case 0:
                 *hitAnchor = _gDesertChaserHitAnchors[5];
                 break;
@@ -55,15 +55,15 @@ static void _desertChaserHitEffect(Task* task, s16 hitYaw, s32 hitKey)
                 break;
         }
     } else if (hitYaw > 0) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if ((gRandomLcgState >> 16) & 1) {
+        RANDOM_LCG_ADVANCE();
+        if (RANDOM_LCG_DRAW() & 1) {
             *hitAnchor = _gDesertChaserHitAnchors[8];
         } else {
             *hitAnchor = _gDesertChaserHitAnchors[9];
         }
     } else {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if ((gRandomLcgState >> 16) & 1) {
+        RANDOM_LCG_ADVANCE();
+        if (RANDOM_LCG_DRAW() & 1) {
             *hitAnchor = _gDesertChaserHitAnchors[10];
         } else {
             *hitAnchor = _gDesertChaserHitAnchors[11];

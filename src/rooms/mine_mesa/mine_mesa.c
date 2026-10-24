@@ -4629,7 +4629,7 @@ void mineMesaRoomVisualEffectsTwinTrailTask(Task* task)
         /// Advances `gRandomLcgState` once using unsigned modulo-2^32 arithmetic,
         /// then returns its upper halfword as u32 (0..65535). Each expansion
         /// mutates the resident state; preserve ordering with other random draws.
-#define MINE_MESA_RANDOM_WORD() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
+#define MINE_MESA_RANDOM_WORD() ((RANDOM_LCG_ADVANCE()) >> 16)
 
         enum { MESA_LEAP_TUNING_ZERO       = (3 << 16) | 2,
                SPAWN_COOLDOWN_TICKS        = 80,

@@ -84,12 +84,12 @@ static inline void _plasmaSeedBandPhases(void)
     enum { PLASMA_PHASE_JITTER_MASK = 0xFF };
     segmentIndex = 0;
     do {
-        gRandomLcgState                           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        _gPlasmaBandFrameOffsets[0][segmentIndex] = (gRandomLcgState >> 16) & PLASMA_PHASE_JITTER_MASK;
-        gRandomLcgState                           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        _gPlasmaBandFrameOffsets[1][segmentIndex] = (gRandomLcgState >> 16) & PLASMA_PHASE_JITTER_MASK;
-        gRandomLcgState                           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        _gPlasmaBandFrameOffsets[2][segmentIndex] = (gRandomLcgState >> 16) & PLASMA_PHASE_JITTER_MASK;
+        RANDOM_LCG_ADVANCE();
+        _gPlasmaBandFrameOffsets[0][segmentIndex] = RANDOM_LCG_DRAW() & PLASMA_PHASE_JITTER_MASK;
+        RANDOM_LCG_ADVANCE();
+        _gPlasmaBandFrameOffsets[1][segmentIndex] = RANDOM_LCG_DRAW() & PLASMA_PHASE_JITTER_MASK;
+        RANDOM_LCG_ADVANCE();
+        _gPlasmaBandFrameOffsets[2][segmentIndex] = RANDOM_LCG_DRAW() & PLASMA_PHASE_JITTER_MASK;
         segmentIndex++;
     } while (segmentIndex < ARRAY_SIZE(_gPlasmaBandFrameOffsets[0]));
 }

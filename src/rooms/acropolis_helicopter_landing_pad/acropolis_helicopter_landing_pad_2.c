@@ -213,8 +213,8 @@ static inline s32 _acropolisHelicopterLandingPadSampleScreenShake(Task* task, s3
 
     shakeSample       = halfDurationFrames - ABS(task->spawnArg1.value);
     envelopeAmplitude = shakeSample * (packedShake >> ACROPOLIS_HELICOPTER_LANDING_PAD_SHAKE_AMPLITUDE_SHIFT);
-    gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    shakeSample       = (envelopeAmplitude * (s32)(gRandomLcgState >> ACROPOLIS_HELICOPTER_LANDING_PAD_SHAKE_RANDOM_FRACTION_BITS)) / halfDurationFrames >> ACROPOLIS_HELICOPTER_LANDING_PAD_SHAKE_RANDOM_FRACTION_BITS;
+    RANDOM_LCG_ADVANCE();
+    shakeSample = (envelopeAmplitude * (s32)(gRandomLcgState >> ACROPOLIS_HELICOPTER_LANDING_PAD_SHAKE_RANDOM_FRACTION_BITS)) / halfDurationFrames >> ACROPOLIS_HELICOPTER_LANDING_PAD_SHAKE_RANDOM_FRACTION_BITS;
     if (task->spawnArg1.value & 1) {
         shakeSample = ABS(shakeSample);
     } else {

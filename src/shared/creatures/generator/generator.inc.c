@@ -157,9 +157,9 @@ static void _generatorPulse(Task* task)
                 scale = _gGeneratorIdlePulse[work->stateFrames].scale;
                 if (_gGeneratorIdlePulse[work->stateFrames].last != 0) {
                     work->stateFrames = 0;
-                    gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->pulseTimer  = ((gRandomLcgState >> 16) & GENERATOR_PULSE_DELAY_JITTER_MASK) + GENERATOR_PULSE_MIN_DELAY_FRAMES;
-                    soundId           = _gGeneratorPulseSoundId |
+                    RANDOM_LCG_ADVANCE();
+                    work->pulseTimer = (RANDOM_LCG_DRAW() & GENERATOR_PULSE_DELAY_JITTER_MASK) + GENERATOR_PULSE_MIN_DELAY_FRAMES;
+                    soundId          = _gGeneratorPulseSoundId |
                               ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                     panOffset = (s8)worldCoordGetOriginAudioPan(rootCoord);
                     sndEvtRequestScriptStart(soundId, panOffset, (s8)worldCoordGetOriginAudioDepth(rootCoord));
@@ -175,8 +175,8 @@ static void _generatorPulse(Task* task)
             if (_gGeneratorHitPulse[work->stateFrames].last != 0) {
                 work->stateFrames = 0;
                 work->pulseState  = GENERATOR_PULSE_HIT_RECOVER;
-                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->pulseTimer  = ((gRandomLcgState >> 16) & GENERATOR_PULSE_DELAY_JITTER_MASK) + GENERATOR_PULSE_MIN_DELAY_FRAMES;
+                RANDOM_LCG_ADVANCE();
+                work->pulseTimer = (RANDOM_LCG_DRAW() & GENERATOR_PULSE_DELAY_JITTER_MASK) + GENERATOR_PULSE_MIN_DELAY_FRAMES;
             } else {
                 work->stateFrames = work->stateFrames + 1;
             }
@@ -290,30 +290,30 @@ static void _generatorDeathState(Enemy* enemy, Task* task)
 /// the second effect or undo random draws. Expands to one statement.
 #define GENERATOR_DEATH_SPAWN_EFFECTS()                                                            \
     do {                                                                                           \
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;          \
-        flashX          = (gRandomLcgState >> 16) & GENERATOR_DEATH_OFFSET_MAGNITUDE_MASK;         \
-        if (!((gRandomLcgState >> 16) & GENERATOR_DEATH_OFFSET_SIGN_BIT)) {                        \
+        RANDOM_LCG_ADVANCE();                                                                      \
+        flashX = RANDOM_LCG_DRAW() & GENERATOR_DEATH_OFFSET_MAGNITUDE_MASK;                        \
+        if (!(RANDOM_LCG_DRAW() & GENERATOR_DEATH_OFFSET_SIGN_BIT)) {                              \
             flashX = -flashX;                                                                      \
         }                                                                                          \
         effectOffset.vx = flashX;                                                                  \
         effectOffset.vy = GENERATOR_DEATH_FLASH_Y;                                                 \
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;          \
-        flashZ          = (gRandomLcgState >> 16) & GENERATOR_DEATH_OFFSET_MAGNITUDE_MASK;         \
-        if (!((gRandomLcgState >> 16) & GENERATOR_DEATH_OFFSET_SIGN_BIT)) {                        \
+        RANDOM_LCG_ADVANCE();                                                                      \
+        flashZ = RANDOM_LCG_DRAW() & GENERATOR_DEATH_OFFSET_MAGNITUDE_MASK;                        \
+        if (!(RANDOM_LCG_DRAW() & GENERATOR_DEATH_OFFSET_SIGN_BIT)) {                              \
             flashZ = -flashZ;                                                                      \
         }                                                                                          \
         effectOffset.vz = flashZ;                                                                  \
         effectSpawn(EFFECT_FLASH_BURST, rootCoord, GENERATOR_DEATH_FLASH_ARGUMENT, &effectOffset); \
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;          \
-        smokeX          = (gRandomLcgState >> 16) & GENERATOR_DEATH_OFFSET_MAGNITUDE_MASK;         \
-        if (!((gRandomLcgState >> 16) & GENERATOR_DEATH_OFFSET_SIGN_BIT)) {                        \
+        RANDOM_LCG_ADVANCE();                                                                      \
+        smokeX = RANDOM_LCG_DRAW() & GENERATOR_DEATH_OFFSET_MAGNITUDE_MASK;                        \
+        if (!(RANDOM_LCG_DRAW() & GENERATOR_DEATH_OFFSET_SIGN_BIT)) {                              \
             smokeX = -smokeX;                                                                      \
         }                                                                                          \
         effectOffset.vx = smokeX;                                                                  \
         effectOffset.vy = GENERATOR_DEATH_SMOKE_Y;                                                 \
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;          \
-        smokeZ          = (gRandomLcgState >> 16) & GENERATOR_DEATH_OFFSET_MAGNITUDE_MASK;         \
-        if (!((gRandomLcgState >> 16) & GENERATOR_DEATH_OFFSET_SIGN_BIT)) {                        \
+        RANDOM_LCG_ADVANCE();                                                                      \
+        smokeZ = RANDOM_LCG_DRAW() & GENERATOR_DEATH_OFFSET_MAGNITUDE_MASK;                        \
+        if (!(RANDOM_LCG_DRAW() & GENERATOR_DEATH_OFFSET_SIGN_BIT)) {                              \
             smokeZ = -smokeZ;                                                                      \
         }                                                                                          \
         effectOffset.vz = smokeZ;                                                                  \
@@ -356,7 +356,7 @@ static void _generatorDeathState(Enemy* enemy, Task* task)
             work->stateFrames                       = 0;
             work->pulseState                        = GENERATOR_PULSE_IDLE;
             work->deathState                        = GENERATOR_DEATH_SHRINK;
-            randomBits                              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            randomBits                              = RANDOM_LCG_NEXT(gRandomLcgState);
             gRandomLcgState                         = randomBits;
             work->pulseTimer                        = (((u32)randomBits >> 16) & GENERATOR_DEATH_PULSE_DELAY_MASK) + GENERATOR_DEATH_PULSE_MIN_DELAY;
             gSceneCombatState.generatorDeathStarted = 1;
@@ -378,8 +378,8 @@ static void _generatorDeathState(Enemy* enemy, Task* task)
                     scaleQ12 = (work->shrinkScale * frame->scale) >> GENERATOR_DEATH_PULSE_FRACTION_BITS;
                     if (frame->last != 0) {
                         work->pulseState = GENERATOR_PULSE_IDLE;
-                        gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->pulseTimer = ((gRandomLcgState >> 16) & GENERATOR_DEATH_PULSE_DELAY_MASK) + GENERATOR_DEATH_PULSE_MIN_DELAY;
+                        RANDOM_LCG_ADVANCE();
+                        work->pulseTimer = (RANDOM_LCG_DRAW() & GENERATOR_DEATH_PULSE_DELAY_MASK) + GENERATOR_DEATH_PULSE_MIN_DELAY;
                     } else {
                         work->pulseTimer++;
                     }

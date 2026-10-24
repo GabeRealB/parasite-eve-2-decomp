@@ -2322,7 +2322,7 @@ static void _actor421600DownedWaitState(Task* task)
 
     work = task->work;
     if (work->stateEntered != 0) {
-        randomState      = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        randomState      = RANDOM_LCG_NEXT(gRandomLcgState);
         gRandomLcgState  = randomState;
         work->stateTimer = work->downFramesBase + ((randomState >> 0x10) & 0xF);
     }

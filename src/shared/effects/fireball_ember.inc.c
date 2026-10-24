@@ -22,10 +22,10 @@ static void _fireballSpawnEmber(GfxCoord* coord, s32 spawnArgBits)
     s32     heading;
 
     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if (((gRandomLcgState >> 16) & FIREBALL_EMBER_SPAWN_CHANCE_MASK) == 0) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            heading         = (gRandomLcgState >> 16) & FIREBALL_EMBER_HEADING_MASK;
+        RANDOM_LCG_ADVANCE();
+        if ((RANDOM_LCG_DRAW() & FIREBALL_EMBER_SPAWN_CHANCE_MASK) == 0) {
+            RANDOM_LCG_ADVANCE();
+            heading = RANDOM_LCG_DRAW() & FIREBALL_EMBER_HEADING_MASK;
             memset(&horizontalOffset, 0, sizeof(horizontalOffset));
             // Preserve logical shifts and halfword narrowing of the Q12 trig results.
             horizontalOffset.vx = (u32)(rcos(heading) * 5) >> 5;

@@ -986,7 +986,7 @@ static void _actor105100Idle(Task* task, Enemy* unusedEnemy)
             return;
         case ACTOR_105100_IDLE_SELECT_SUMMON: {
             s16* actions     = _gActor105100SummonActions;
-            u32  randomState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            u32  randomState = RANDOM_LCG_NEXT(gRandomLcgState);
 
             nextAction       = actions[(randomState >> 16) & (ARRAY_SIZE(_gActor105100SummonActions) - 1)];
             gRandomLcgState  = randomState;
@@ -1002,7 +1002,7 @@ static void _actor105100Idle(Task* task, Enemy* unusedEnemy)
             return;
         case ACTOR_105100_IDLE_REPLACE_CHARGE: {
             s16* actions     = _gActor105100SummonActions;
-            u32  randomState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            u32  randomState = RANDOM_LCG_NEXT(gRandomLcgState);
 
             gRandomLcgState  = randomState;
             work->action     = actions[(randomState >> 16) & (ARRAY_SIZE(_gActor105100SummonActions) - 1)];
@@ -1052,7 +1052,7 @@ static void _actor105100SummonFireballs(Task* task, Enemy* unusedEnemy)
             work->childCount    = 0;
             work->actionStep    = ACTOR_105100_FIREBALL_CAST_HOLD;
             work->summonPhase   = ACTOR_105100_SUMMON_FIREBALLS_GATHER;
-            durationRandomState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            durationRandomState = RANDOM_LCG_NEXT(gRandomLcgState);
             gRandomLcgState     = durationRandomState;
             work->timer         = ((durationRandomState >> 16) & 0x1F) + ACTOR_105100_FIREBALL_CAST_MIN_TICKS;
             return;
@@ -1062,7 +1062,7 @@ static void _actor105100SummonFireballs(Task* task, Enemy* unusedEnemy)
                     enemySpawnFromTable(gActor105100TaskDescriptors, ACTOR_105100_CHILD_FIREBALL, 0,
                                         task->spawnArg2.pointer);
                     work->childCount   += 1;
-                    intervalRandomState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    intervalRandomState = RANDOM_LCG_NEXT(gRandomLcgState);
                     gRandomLcgState     = intervalRandomState;
                     work->fireballTimer = ((intervalRandomState >> 16) & 0xF) + ACTOR_105100_FIREBALL_SPAWN_MIN_TICKS;
                 }
@@ -1088,7 +1088,7 @@ static void _actor105100SummonFireballs(Task* task, Enemy* unusedEnemy)
                 work->action      = ACTOR_105100_ACTION_IDLE;
                 work->actionStep  = 0;
                 work->summonPhase = ACTOR_105100_SUMMON_NONE;
-                idleRandomState   = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                idleRandomState   = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState   = idleRandomState;
                 work->timer       = (idleRandomState >> 16) & 0x3F;
                 sndEvtRequestScriptStop(work->fireballSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
@@ -1140,7 +1140,7 @@ static void _actor105100SummonBeams(Task* task, Enemy* unusedEnemy)
             work->anim        = ACTOR_105100_ANIM_CAST;
             work->actionStep  = ACTOR_105100_BEAM_CAST_HOLD;
             patterns          = _gActor105100BeamPatternDraws;
-            randomState       = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            randomState       = RANDOM_LCG_NEXT(gRandomLcgState);
             pattern           = patterns[(randomState >> 16) & (ARRAY_SIZE(_gActor105100BeamPatternDraws) - 1)];
             gRandomLcgState   = randomState;
             work->childCount  = 0;
@@ -1203,7 +1203,7 @@ static void _actor105100SummonBeams(Task* task, Enemy* unusedEnemy)
                 work->anim       = ACTOR_105100_ANIM_IDLE;
                 work->action     = ACTOR_105100_ACTION_IDLE;
                 work->actionStep = 0;
-                randomState      = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                randomState      = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState  = randomState;
                 ringEffect       = work->ringEffect;
                 work->timer      = (randomState >> 16) & 0x3F;
@@ -1321,7 +1321,7 @@ static void _actor105100TickChargedStrike(Task* task, Enemy* unusedEnemy)
                 work->anim       = ACTOR_105100_ANIM_IDLE;
                 work->action     = ACTOR_105100_ACTION_IDLE;
                 work->actionStep = ACTOR_105100_CHARGE_BEGIN;
-                randomState      = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                randomState      = RANDOM_LCG_NEXT(gRandomLcgState);
                 gRandomLcgState  = randomState;
                 work->timer      = (randomState >> 16) & ACTOR_105100_CHARGE_IDLE_WAIT_MASK;
             }
@@ -1733,7 +1733,7 @@ static void _actor105100FireballSpawn(Enemy* enemy, Task* task)
     randomState             = gRandomLcgState;
     translationY            = &coord->coord.t[1];
     *translationY           = parentCoord->coord.t[1] + offsetY;
-    jitterRollX             = (gRandomLcgState = randomState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
+    jitterRollX             = (gRandomLcgState = RANDOM_LCG_NEXT(randomState)) >> 16;
     childIndexOrFlags       = parentWork->childCount;
     startOffsetOrSweepCoord = &_gActor105100FireballStartOffsets[childIndexOrFlags];
     coord->coord.t[2]       = parentCoord->coord.t[2] + (jitterX = ((SVECTOR*)startOffsetOrSweepCoord)->vz);
@@ -1742,13 +1742,13 @@ static void _actor105100FireballSpawn(Enemy* enemy, Task* task)
     positionX               = coord->coord.t[0];
     coord->coord.t[0]       = !addJitterX ? positionX - jitterX : positionX + jitterX;
 
-    jitterRollY       = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
+    jitterRollY       = (RANDOM_LCG_ADVANCE()) >> 16;
     jitterY           = jitterRollY & 0x7F;
     addJitterY        = jitterRollY & 0x80;
     positionY         = coord->coord.t[1];
     coord->coord.t[1] = !addJitterY ? positionY - jitterY : positionY + jitterY;
 
-    jitterRollZ       = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
+    jitterRollZ       = (RANDOM_LCG_ADVANCE()) >> 16;
     jitterZ           = jitterRollZ & 0x7F;
     addJitterZ        = jitterRollZ & 0x80;
     positionZ         = coord->coord.t[2];
@@ -1790,8 +1790,8 @@ static void _actor105100FireballSpawn(Enemy* enemy, Task* task)
     work->sweepBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
     worldCollisionInitContacts(work->contacts, ARRAY_SIZE(work->contacts), 0);
     work->glowSize  = 0x190;
-    delayRollA      = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-    delayRollB      = (delayRollA * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+    delayRollA      = RANDOM_LCG_NEXT(gRandomLcgState);
+    delayRollB      = RANDOM_LCG_NEXT(delayRollA);
     gRandomLcgState = delayRollB;
     work->timer     = ((delayRollA >> 16) & 0xF) + ((delayRollB >> 16) & 7);
     task->state     = ACTOR_105100_TASK_UPDATE;
@@ -1883,7 +1883,7 @@ static void _actor105100FireballTick(Enemy* unusedEnemy, Task* task)
         case ACTOR_105100_FIREBALL_HOVER:
             // Take a step of up to 63 units either way on each axis, unless it
             // would carry the fireball 500 units from where it appeared.
-            randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            randomState     = RANDOM_LCG_NEXT(gRandomLcgState);
             randomDraw      = randomState >> 16;
             hoverStep       = randomDraw & ACTOR_105100_FIREBALL_HOVER_STEP_MASK;
             gRandomLcgState = randomState;
@@ -1895,7 +1895,7 @@ static void _actor105100FireballTick(Enemy* unusedEnemy, Task* task)
                 work->hoverOffset.vx += hoverStep;
                 coord->coord.t[0]    += scratch->operand.vx;
             }
-            randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            randomState     = RANDOM_LCG_NEXT(gRandomLcgState);
             randomDraw      = randomState >> 16;
             hoverStep       = randomDraw & ACTOR_105100_FIREBALL_HOVER_STEP_MASK;
             gRandomLcgState = randomState;
@@ -1907,7 +1907,7 @@ static void _actor105100FireballTick(Enemy* unusedEnemy, Task* task)
                 work->hoverOffset.vy += hoverStep;
                 coord->coord.t[1]    += scratch->operand.vy;
             }
-            randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            randomState     = RANDOM_LCG_NEXT(gRandomLcgState);
             randomDraw      = randomState >> 16;
             hoverStep       = randomDraw & ACTOR_105100_FIREBALL_HOVER_STEP_MASK;
             gRandomLcgState = randomState;

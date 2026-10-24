@@ -2390,7 +2390,7 @@ static void _effectDarknessScreenDimTaskE8(Task* task)
             targetBrightness = work->angle;
             if (brightness == targetBrightness) {
                 targetChangeCount = work->period + 1;
-                randomState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                randomState       = RANDOM_LCG_NEXT(gRandomLcgState);
                 work->period      = targetChangeCount;
                 gRandomLcgState   = randomState;
                 work->angle       = ((targetChangeCount & 1) << (((randomState >> 16) & 1) + EFFECT_DARKNESS_BASE_SHIFT)) + EFFECT_DARKNESS_BASE_BRIGHTNESS;

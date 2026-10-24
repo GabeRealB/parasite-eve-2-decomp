@@ -139,9 +139,9 @@ void EFFECT_SPRITE_DRIFT_TASK(Task* task)
     switch (task->state) {
         case EFFECT_SPRITE_DRIFT_INITIALIZE:
             // Initialization consumes one random spin sample and does not draw.
-            work->scale     = task->spawnArg1.value & EFFECT_SPRITE_DRIFT_SIZE_MASK;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->angle     = (gRandomLcgState >> 16) & EFFECT_SPRITE_DRIFT_SPIN_MASK;
+            work->scale = task->spawnArg1.value & EFFECT_SPRITE_DRIFT_SIZE_MASK;
+            RANDOM_LCG_ADVANCE();
+            work->angle = RANDOM_LCG_DRAW() & EFFECT_SPRITE_DRIFT_SPIN_MASK;
             if (task->spawnArg1.value & EFFECT_SPRITE_DRIFT_PERIOD_NIBBLE_MASK) {
                 framesPerCell = (task->spawnArg1.value >> EFFECT_SPRITE_DRIFT_PERIOD_SHIFT) & EFFECT_SPRITE_DRIFT_PERIOD_MASK;
             } else {
@@ -171,28 +171,28 @@ void EFFECT_SPRITE_DRIFT_TASK(Task* task)
                         work->step = 0;
                         break;
                     case EFFECT_SPRITE_DRIFT_RANDOM_UPWARD:
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vy   = EFFECT_SPRITE_DRIFT_UPWARD_Y_BIAS - ((gRandomLcgState >> 16) & 0x7F);
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                        RANDOM_LCG_ADVANCE();
+                        work->move.vx = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
+                        RANDOM_LCG_ADVANCE();
+                        work->move.vy = EFFECT_SPRITE_DRIFT_UPWARD_Y_BIAS - (RANDOM_LCG_DRAW() & 0x7F);
+                        RANDOM_LCG_ADVANCE();
+                        work->move.vz = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
                         break;
                     case EFFECT_SPRITE_DRIFT_RANDOM_ALL_AXES:
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vy   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                        RANDOM_LCG_ADVANCE();
+                        work->move.vx = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
+                        RANDOM_LCG_ADVANCE();
+                        work->move.vy = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
+                        RANDOM_LCG_ADVANCE();
+                        work->move.vz = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
                         break;
                     case EFFECT_SPRITE_DRIFT_RANDOM_NARROW_UPWARD:
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vx   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vy   = -((gRandomLcgState >> 16) & 0xFF);
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vz   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                        RANDOM_LCG_ADVANCE();
+                        work->move.vx = 0x10 - (RANDOM_LCG_DRAW() & 0x1F);
+                        RANDOM_LCG_ADVANCE();
+                        work->move.vy = -(RANDOM_LCG_DRAW() & 0xFF);
+                        RANDOM_LCG_ADVANCE();
+                        work->move.vz = 0x10 - (RANDOM_LCG_DRAW() & 0x1F);
                         break;
                     case EFFECT_SPRITE_DRIFT_OFFSET_DIRECTION:
                         // X now contains palette bits; Y and Z retain the spawn offset.
@@ -201,11 +201,11 @@ void EFFECT_SPRITE_DRIFT_TASK(Task* task)
                         work->move.vz = work->pos.vz;
                         break;
                     case EFFECT_SPRITE_DRIFT_RANDOM_PLANAR:
-                        work->move.vy   = 0;
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                        work->move.vy = 0;
+                        RANDOM_LCG_ADVANCE();
+                        work->move.vx = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
+                        RANDOM_LCG_ADVANCE();
+                        work->move.vz = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
                         break;
                 }
                 _effectSpriteDriftInitializeVelocity(work);

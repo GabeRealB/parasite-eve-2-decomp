@@ -2437,14 +2437,14 @@ void acropolisBridgeAmbientEffectsTask(Task* task)
             axisDistance       = ((axisDistance >= 0) ? (distanceSum + axisDistance) : (distanceSum + (axisValue - previousComponent))) + ACROPOLIS_BRIDGE_WATER_CHANCE_BIAS;
             ambientWork->angle = axisDistance;
 
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            randomBits      = gRandomLcgState >> 16;
+            RANDOM_LCG_ADVANCE();
+            randomBits = RANDOM_LCG_DRAW();
             if ((randomBits & ACROPOLIS_BRIDGE_WATER_RANDOM_MASK) < ambientWork->angle) {
                 effectSpawn(gRoomEffectWaterRippleId, playerPart, ACROPOLIS_BRIDGE_WATER_RIPPLE_HALF_SIZE, NULL);
             }
             ambientWork->angle = ambientWork->angle - ACROPOLIS_BRIDGE_WATER_CHANCE_BIAS;
-            gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            randomBits         = gRandomLcgState >> 16;
+            RANDOM_LCG_ADVANCE();
+            randomBits = RANDOM_LCG_DRAW();
             if ((randomBits & ACROPOLIS_BRIDGE_WATER_RANDOM_MASK) < ambientWork->angle) {
                 effectSpawn(gRoomEffectWaterSprayId, playerPart, ACROPOLIS_BRIDGE_WATER_SPRAY_ARGUMENT, NULL);
             }
@@ -2485,14 +2485,14 @@ void acropolisBridgeAmbientEffectsTask(Task* task)
                     effectSpawn(EFFECT_ACROPOLIS_BRIDGE_FALLING_STREAK, effectCoord, (s32)(previousView), NULL);
                     effectSpawn(EFFECT_ACROPOLIS_BRIDGE_FALLING_STREAK, effectCoord, (s32)(previousView), NULL);
                 } else {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    if (((gRandomLcgState >> 16) & 1) == 0) {
+                    RANDOM_LCG_ADVANCE();
+                    if ((RANDOM_LCG_DRAW() & 1) == 0) {
                         effectSpawn(EFFECT_ACROPOLIS_BRIDGE_FALLING_STREAK, effectCoord, (s32)(previousView), NULL);
                     }
                 }
             } else {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                if ((u16)((gRandomLcgState >> 16) % 3) == 0) {
+                RANDOM_LCG_ADVANCE();
+                if ((u16)(RANDOM_LCG_DRAW() % 3) == 0) {
                     effectSpawn(EFFECT_ACROPOLIS_BRIDGE_FALLING_STREAK, effectCoord, (s32)(previousView), NULL);
                 }
             }
@@ -2505,8 +2505,8 @@ void acropolisBridgeAmbientEffectsTask(Task* task)
                 effectSpawn(EFFECT_ACROPOLIS_BRIDGE_MID_DUST_STREAK, effectCoord, (s32)(previousView), NULL);
                 effectSpawn(EFFECT_ACROPOLIS_BRIDGE_MID_DUST_STREAK, effectCoord, (s32)(previousView), NULL);
             } else {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                if ((u16)((gRandomLcgState >> 16) % 3) == 0) {
+                RANDOM_LCG_ADVANCE();
+                if ((u16)(RANDOM_LCG_DRAW() % 3) == 0) {
                     effectSpawn(EFFECT_ACROPOLIS_BRIDGE_MID_DUST_STREAK, effectCoord, (s32)(previousView), NULL);
                 }
             }
@@ -2519,8 +2519,8 @@ void acropolisBridgeAmbientEffectsTask(Task* task)
                 effectSpawn(EFFECT_ACROPOLIS_BRIDGE_LOW_DUST_STREAK, effectCoord, (s32)(previousView), NULL);
                 effectSpawn(EFFECT_ACROPOLIS_BRIDGE_LOW_DUST_STREAK, effectCoord, (s32)(previousView), NULL);
             } else {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                if ((u16)((gRandomLcgState >> 16) % 3) == 0) {
+                RANDOM_LCG_ADVANCE();
+                if ((u16)(RANDOM_LCG_DRAW() % 3) == 0) {
                     effectSpawn(EFFECT_ACROPOLIS_BRIDGE_LOW_DUST_STREAK, effectCoord, (s32)(previousView), NULL);
                 }
             }
@@ -2533,8 +2533,8 @@ void acropolisBridgeAmbientEffectsTask(Task* task)
                 effectSpawn(EFFECT_ACROPOLIS_BRIDGE_TALL_DUST_STREAK, effectCoord, (s32)(previousView), NULL);
                 effectSpawn(EFFECT_ACROPOLIS_BRIDGE_TALL_DUST_STREAK, effectCoord, (s32)(previousView), NULL);
             } else {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                if ((u16)((gRandomLcgState >> 16) % 3) == 0) {
+                RANDOM_LCG_ADVANCE();
+                if ((u16)(RANDOM_LCG_DRAW() % 3) == 0) {
                     effectSpawn(EFFECT_ACROPOLIS_BRIDGE_TALL_DUST_STREAK, effectCoord, (s32)(previousView), NULL);
                 }
             }
@@ -2547,8 +2547,8 @@ void acropolisBridgeAmbientEffectsTask(Task* task)
                 effectSpawn(EFFECT_ACROPOLIS_BRIDGE_PARTICLE_STREAK, effectCoord, (s32)(previousView), NULL);
                 effectSpawn(EFFECT_ACROPOLIS_BRIDGE_PARTICLE_STREAK, effectCoord, (s32)(previousView), NULL);
             } else {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                if ((u16)((gRandomLcgState >> 16) % 3) == 0) {
+                RANDOM_LCG_ADVANCE();
+                if ((u16)(RANDOM_LCG_DRAW() % 3) == 0) {
                     effectSpawn(EFFECT_ACROPOLIS_BRIDGE_PARTICLE_STREAK, effectCoord, (s32)(previousView), NULL);
                 }
             }
@@ -2573,13 +2573,13 @@ static inline void _acropolisBridgeInitializeStreakLifetime(Task* task, EffectWo
            ACROPOLIS_BRIDGE_STREAK_WIDTH_RANGE_PIXELS    = 64,
            ACROPOLIS_BRIDGE_STREAK_MAX_FRAMES_PER_ROW    = 4 };
     u16 randomBits;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    randomBits      = gRandomLcgState >> 16;
-    work->scale     = (u32)randomBits % ACROPOLIS_BRIDGE_STREAK_LIFETIME_RANGE_FRAMES + ACROPOLIS_BRIDGE_STREAK_MIN_LIFETIME_FRAMES;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->angle     = ((gRandomLcgState >> 16) & (ACROPOLIS_BRIDGE_STREAK_WIDTH_RANGE_PIXELS - 1)) + ACROPOLIS_BRIDGE_STREAK_MIN_WIDTH_PIXELS;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->period    = ((gRandomLcgState >> 16) & (ACROPOLIS_BRIDGE_STREAK_MAX_FRAMES_PER_ROW - 1)) + 1;
+    RANDOM_LCG_ADVANCE();
+    randomBits  = RANDOM_LCG_DRAW();
+    work->scale = (u32)randomBits % ACROPOLIS_BRIDGE_STREAK_LIFETIME_RANGE_FRAMES + ACROPOLIS_BRIDGE_STREAK_MIN_LIFETIME_FRAMES;
+    RANDOM_LCG_ADVANCE();
+    work->angle = (RANDOM_LCG_DRAW() & (ACROPOLIS_BRIDGE_STREAK_WIDTH_RANGE_PIXELS - 1)) + ACROPOLIS_BRIDGE_STREAK_MIN_WIDTH_PIXELS;
+    RANDOM_LCG_ADVANCE();
+    work->period = (RANDOM_LCG_DRAW() & (ACROPOLIS_BRIDGE_STREAK_MAX_FRAMES_PER_ROW - 1)) + 1;
     task->state++;
 }
 
@@ -2605,16 +2605,16 @@ void acropolisBridgeFallingStreakTask(Task* task)
     if ((u8)viewGetMappedIndex() == task->spawnArg1.value) {
         // Seed a screen-space strip; its fields hold pixels and frame counts.
         if (work->age == 0) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            randomBits      = gRandomLcgState >> 16;
-            work->move.vy   = (u32)randomBits % 144 + 0x60;
+            RANDOM_LCG_ADVANCE();
+            randomBits    = RANDOM_LCG_DRAW();
+            work->move.vy = (u32)randomBits % 144 + 0x60;
             /* x and y double as the drift and spread of the column window here */
-            x               = (work->move.vy - 0x60) / 3;
-            y               = work->move.vy < 0xA0 ? (work->move.vy - 0x60) / 2 : 0x20;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            randomColumn    = gRandomLcgState >> 16;
-            columnSpan      = y + 0x90;
-            work->move.vx   = randomColumn % (x + columnSpan) + (0x40 - x);
+            x = (work->move.vy - 0x60) / 3;
+            y = work->move.vy < 0xA0 ? (work->move.vy - 0x60) / 2 : 0x20;
+            RANDOM_LCG_ADVANCE();
+            randomColumn  = RANDOM_LCG_DRAW();
+            columnSpan    = y + 0x90;
+            work->move.vx = randomColumn % (x + columnSpan) + (0x40 - x);
             _acropolisBridgeInitializeStreakLifetime(task, work);
         }
         // Copy the current buffer row down by one pixel at the row-derived depth.
@@ -2662,18 +2662,18 @@ void acropolisBridgeMidDustStreakTask(Task* task)
     if ((u8)viewGetMappedIndex() == task->spawnArg1.value) {
         // Seed a screen-space strip; its fields hold pixels and frame counts.
         if (work->age == 0) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            randomBits      = gRandomLcgState >> 16;
-            work->move.vy   = (u32)randomBits % 168 + 0x48;
+            RANDOM_LCG_ADVANCE();
+            randomBits    = RANDOM_LCG_DRAW();
+            work->move.vy = (u32)randomBits % 168 + 0x48;
             /* x and y double as the drift and spread of the column window here */
-            x               = work->move.vy < 0xA0 ? work->move.vy - 0x48 : 0x58;
-            y               = work->move.vy < 0x78 ? (work->move.vy - 0x48) * 5 / 3 : 0x50;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            randomColumn    = gRandomLcgState >> 16;
-            columnSpan      = y + 0x48;
-            column          = randomColumn % (x + columnSpan) + 0x58;
-            column         -= x;
-            work->move.vx   = column;
+            x = work->move.vy < 0xA0 ? work->move.vy - 0x48 : 0x58;
+            y = work->move.vy < 0x78 ? (work->move.vy - 0x48) * 5 / 3 : 0x50;
+            RANDOM_LCG_ADVANCE();
+            randomColumn  = RANDOM_LCG_DRAW();
+            columnSpan    = y + 0x48;
+            column        = randomColumn % (x + columnSpan) + 0x58;
+            column       -= x;
+            work->move.vx = column;
             _acropolisBridgeInitializeStreakLifetime(task, work);
         }
         // Copy the current buffer row down by one pixel at the row-derived depth.
@@ -2721,18 +2721,18 @@ void acropolisBridgeLowDustStreakTask(Task* task)
     if ((u8)viewGetMappedIndex() == task->spawnArg1.value) {
         // Seed a screen-space strip; its fields hold pixels and frame counts.
         if (work->age == 0) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            randomBits      = gRandomLcgState >> 16;
-            work->move.vy   = (u32)randomBits % 136 + 0x68;
+            RANDOM_LCG_ADVANCE();
+            randomBits    = RANDOM_LCG_DRAW();
+            work->move.vy = (u32)randomBits % 136 + 0x68;
             /* x and y double as the drift and spread of the column window here */
-            x               = work->move.vy < 0x78 ? (work->move.vy - 0x68) * 2 : 0x20;
-            y               = work->move.vy < 0x78 ? (work->move.vy - 0x68) * 9 : 0x90;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            randomColumn    = gRandomLcgState >> 16;
-            columnSpan      = y + 0x40;
-            column          = randomColumn % (x + columnSpan) + 0x20;
-            column         -= x;
-            work->move.vx   = column;
+            x = work->move.vy < 0x78 ? (work->move.vy - 0x68) * 2 : 0x20;
+            y = work->move.vy < 0x78 ? (work->move.vy - 0x68) * 9 : 0x90;
+            RANDOM_LCG_ADVANCE();
+            randomColumn  = RANDOM_LCG_DRAW();
+            columnSpan    = y + 0x40;
+            column        = randomColumn % (x + columnSpan) + 0x20;
+            column       -= x;
+            work->move.vx = column;
             _acropolisBridgeInitializeStreakLifetime(task, work);
         }
         // Copy the current buffer row down by one pixel at the row-derived depth.
@@ -2780,18 +2780,18 @@ void acropolisBridgeTallDustStreakTask(Task* task)
     if ((u8)viewGetMappedIndex() == task->spawnArg1.value) {
         // Seed a screen-space strip; its fields hold pixels and frame counts.
         if (work->age == 0) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            randomBits      = gRandomLcgState >> 16;
-            work->move.vy   = (u32)randomBits % 168 + 0x48;
+            RANDOM_LCG_ADVANCE();
+            randomBits    = RANDOM_LCG_DRAW();
+            work->move.vy = (u32)randomBits % 168 + 0x48;
             /* x and y double as the drift and spread of the column window here */
-            x               = (work->move.vy - 0x48) / 3;
-            y               = (work->move.vy - 0x48) / 2;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            randomColumn    = gRandomLcgState >> 16;
-            columnSpan      = y + 0x48;
-            column          = randomColumn % (x + columnSpan) + 0x58;
-            column         -= x;
-            work->move.vx   = column;
+            x = (work->move.vy - 0x48) / 3;
+            y = (work->move.vy - 0x48) / 2;
+            RANDOM_LCG_ADVANCE();
+            randomColumn  = RANDOM_LCG_DRAW();
+            columnSpan    = y + 0x48;
+            column        = randomColumn % (x + columnSpan) + 0x58;
+            column       -= x;
+            work->move.vx = column;
             _acropolisBridgeInitializeStreakLifetime(task, work);
         }
         // Copy the current buffer row down by one pixel at the row-derived depth.
@@ -2836,11 +2836,11 @@ void acropolisBridgeParticleStreakTask(Task* task)
     if ((u8)viewGetMappedIndex() == task->spawnArg1.value) {
         // Seed a screen-space strip; its fields hold pixels and frame counts.
         if (work->age == 0) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->move.vy   = ((gRandomLcgState >> 16) & 0x7F) + 0x68;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            randomColumn    = gRandomLcgState >> 16;
-            work->move.vx   = work->move.vy < 0x80 ? randomColumn % ((work->move.vy - 0x58) * 6) : randomColumn % 240;
+            RANDOM_LCG_ADVANCE();
+            work->move.vy = (RANDOM_LCG_DRAW() & 0x7F) + 0x68;
+            RANDOM_LCG_ADVANCE();
+            randomColumn  = RANDOM_LCG_DRAW();
+            work->move.vx = work->move.vy < 0x80 ? randomColumn % ((work->move.vy - 0x58) * 6) : randomColumn % 240;
             _acropolisBridgeInitializeStreakLifetime(task, work);
         }
         // Copy the current buffer row down by one pixel at the row-derived depth.
@@ -2939,10 +2939,10 @@ void acropolisBridgeGroundGlowTask(Task* task)
     gte_stszotz(&quadScratch->otz);
     quadScratch->otz += ACROPOLIS_BRIDGE_GROUND_GLOW_DEPTH_BIAS;
     if (quadScratch->otz >= GLOW_MIN_DEPTH) {
-        quad->tpage     = ACROPOLIS_BRIDGE_GROUND_GLOW_TEXTURE_PAGE;
-        quad->clut      = ACROPOLIS_BRIDGE_GROUND_GLOW_PALETTE;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        grey            = (gRandomLcgState >> 16) & ACROPOLIS_BRIDGE_GROUND_GLOW_GREY_MASK;
+        quad->tpage = ACROPOLIS_BRIDGE_GROUND_GLOW_TEXTURE_PAGE;
+        quad->clut  = ACROPOLIS_BRIDGE_GROUND_GLOW_PALETTE;
+        RANDOM_LCG_ADVANCE();
+        grey = RANDOM_LCG_DRAW() & ACROPOLIS_BRIDGE_GROUND_GLOW_GREY_MASK;
         setRGB0(quad, grey, grey, grey);
         setSemiTrans(quad, 1);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(quadScratch->otz),
@@ -2992,28 +2992,28 @@ static s32 _acropolisBridgeSpawnArrivalDust(Task* task, s32 messageId, s32 unuse
 /// lvalue, both evaluated repeatedly. Consumes six shared LCG draws and captures
 /// the function's ACROPOLIS_BRIDGE_DUST_* bounds; each spawn snapshots XYZ.
 /// Expands as one compound statement, with no return or loop control.
-#define ACROPOLIS_BRIDGE_SPAWN_EDGE_DUST(parentCoord, offset)                                                                         \
-    {                                                                                                                                 \
-        (offset).vx     = ACROPOLIS_BRIDGE_DUST_PLANE_X;                                                                              \
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                             \
-        (offset).vy     = (gRandomLcgState >> 16) % ACROPOLIS_BRIDGE_DUST_HEIGHT_RANGE + ACROPOLIS_BRIDGE_DUST_EDGE_Y_BASE_WORD;      \
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                             \
-        (offset).vz     = ((gRandomLcgState >> 16) & ACROPOLIS_BRIDGE_DUST_EDGE_WIDTH_MASK) + ACROPOLIS_BRIDGE_DUST_EDGE_Z_BASE_WORD; \
-        effectSpawn(EFFECT_ACROPOLIS_BRIDGE_DUST_MOTE, (parentCoord), 0, &(offset));                                                  \
-                                                                                                                                      \
-        (offset).vx     = ACROPOLIS_BRIDGE_DUST_PLANE_X;                                                                              \
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                             \
-        (offset).vy     = (gRandomLcgState >> 16) % ACROPOLIS_BRIDGE_DUST_HEIGHT_RANGE + ACROPOLIS_BRIDGE_DUST_EDGE_Y_BASE_WORD;      \
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                             \
-        (offset).vz     = ACROPOLIS_BRIDGE_DUST_EDGE_Z_FAR_WORD - ((gRandomLcgState >> 16) & ACROPOLIS_BRIDGE_DUST_EDGE_WIDTH_MASK);  \
-        effectSpawn(EFFECT_ACROPOLIS_BRIDGE_DUST_MOTE, (parentCoord), 0, &(offset));                                                  \
-                                                                                                                                      \
-        (offset).vx     = ACROPOLIS_BRIDGE_DUST_PLANE_X;                                                                              \
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                             \
-        (offset).vy     = ((gRandomLcgState >> 16) & ACROPOLIS_BRIDGE_DUST_EDGE_WIDTH_MASK) + ACROPOLIS_BRIDGE_DUST_EDGE_Y_BASE_WORD; \
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                             \
-        (offset).vz     = (u16)(gRandomLcgState >> 16) % ACROPOLIS_BRIDGE_DUST_DEPTH_RANGE + ACROPOLIS_BRIDGE_DUST_EDGE_Z_BASE_WORD;  \
-        effectSpawn(EFFECT_ACROPOLIS_BRIDGE_DUST_MOTE, (parentCoord), 0, &(offset));                                                  \
+#define ACROPOLIS_BRIDGE_SPAWN_EDGE_DUST(parentCoord, offset)                                                               \
+    {                                                                                                                       \
+        (offset).vx = ACROPOLIS_BRIDGE_DUST_PLANE_X;                                                                        \
+        RANDOM_LCG_ADVANCE();                                                                                               \
+        (offset).vy = RANDOM_LCG_DRAW() % ACROPOLIS_BRIDGE_DUST_HEIGHT_RANGE + ACROPOLIS_BRIDGE_DUST_EDGE_Y_BASE_WORD;      \
+        RANDOM_LCG_ADVANCE();                                                                                               \
+        (offset).vz = (RANDOM_LCG_DRAW() & ACROPOLIS_BRIDGE_DUST_EDGE_WIDTH_MASK) + ACROPOLIS_BRIDGE_DUST_EDGE_Z_BASE_WORD; \
+        effectSpawn(EFFECT_ACROPOLIS_BRIDGE_DUST_MOTE, (parentCoord), 0, &(offset));                                        \
+                                                                                                                            \
+        (offset).vx = ACROPOLIS_BRIDGE_DUST_PLANE_X;                                                                        \
+        RANDOM_LCG_ADVANCE();                                                                                               \
+        (offset).vy = RANDOM_LCG_DRAW() % ACROPOLIS_BRIDGE_DUST_HEIGHT_RANGE + ACROPOLIS_BRIDGE_DUST_EDGE_Y_BASE_WORD;      \
+        RANDOM_LCG_ADVANCE();                                                                                               \
+        (offset).vz = ACROPOLIS_BRIDGE_DUST_EDGE_Z_FAR_WORD - (RANDOM_LCG_DRAW() & ACROPOLIS_BRIDGE_DUST_EDGE_WIDTH_MASK);  \
+        effectSpawn(EFFECT_ACROPOLIS_BRIDGE_DUST_MOTE, (parentCoord), 0, &(offset));                                        \
+                                                                                                                            \
+        (offset).vx = ACROPOLIS_BRIDGE_DUST_PLANE_X;                                                                        \
+        RANDOM_LCG_ADVANCE();                                                                                               \
+        (offset).vy = (RANDOM_LCG_DRAW() & ACROPOLIS_BRIDGE_DUST_EDGE_WIDTH_MASK) + ACROPOLIS_BRIDGE_DUST_EDGE_Y_BASE_WORD; \
+        RANDOM_LCG_ADVANCE();                                                                                               \
+        (offset).vz = (u16)RANDOM_LCG_DRAW() % ACROPOLIS_BRIDGE_DUST_DEPTH_RANGE + ACROPOLIS_BRIDGE_DUST_EDGE_Z_BASE_WORD;  \
+        effectSpawn(EFFECT_ACROPOLIS_BRIDGE_DUST_MOTE, (parentCoord), 0, &(offset));                                        \
     }
 
     // Seed both side edges and the bottom edge of the arrival dust plane.
@@ -3028,11 +3028,11 @@ static s32 _acropolisBridgeSpawnArrivalDust(Task* task, s32 messageId, s32 unuse
     // Fill the plane with eight additional motes.
     burstIndex = 0;
     do {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        position.vx     = ACROPOLIS_BRIDGE_DUST_PLANE_X;
-        position.vy     = (gRandomLcgState >> 16) % ACROPOLIS_BRIDGE_DUST_HEIGHT_RANGE + ACROPOLIS_BRIDGE_DUST_INTERIOR_Y_BASE;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        position.vz     = (u16)(gRandomLcgState >> 16) % ACROPOLIS_BRIDGE_DUST_DEPTH_RANGE + ACROPOLIS_BRIDGE_DUST_INTERIOR_Z_BASE;
+        RANDOM_LCG_ADVANCE();
+        position.vx = ACROPOLIS_BRIDGE_DUST_PLANE_X;
+        position.vy = RANDOM_LCG_DRAW() % ACROPOLIS_BRIDGE_DUST_HEIGHT_RANGE + ACROPOLIS_BRIDGE_DUST_INTERIOR_Y_BASE;
+        RANDOM_LCG_ADVANCE();
+        position.vz = (u16)RANDOM_LCG_DRAW() % ACROPOLIS_BRIDGE_DUST_DEPTH_RANGE + ACROPOLIS_BRIDGE_DUST_INTERIOR_Z_BASE;
         effectSpawn(EFFECT_ACROPOLIS_BRIDGE_DUST_MOTE, effectCoord, 0, &position);
         burstIndex++;
     } while (burstIndex < ACROPOLIS_BRIDGE_DUST_INTERIOR_COUNT);
@@ -3058,13 +3058,13 @@ void acropolisBridgeDustMoteTask(Task* task)
     actorRenderComposeCoord(coord);
 
     if (work->age == 0) {
-        work->move.vz   = 0;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->move.vx   = (gRandomLcgState >> 16) & 0xF;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->move.vy   = ((gRandomLcgState >> 16) & 3) - 1;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->scale     = ((gRandomLcgState >> 16) & 0x3F) + 0x30;
+        work->move.vz = 0;
+        RANDOM_LCG_ADVANCE();
+        work->move.vx = RANDOM_LCG_DRAW() & 0xF;
+        RANDOM_LCG_ADVANCE();
+        work->move.vy = (RANDOM_LCG_DRAW() & 3) - 1;
+        RANDOM_LCG_ADVANCE();
+        work->scale = (RANDOM_LCG_DRAW() & 0x3F) + 0x30;
     }
 
     coord->coord.t[0]  += work->move.vx;
@@ -3127,10 +3127,10 @@ void acropolisBridgeWaterRippleTask(Task* task)
         switch (task->state) {
             case ACROPOLIS_BRIDGE_RIPPLE_STATE_NEW:
                 // Initialization leaves workm cached; the caller controls composition.
-                work->scale     = ACROPOLIS_BRIDGE_RIPPLE_INITIAL_BRIGHTNESS;
-                work->angle     = task->spawnArg1.halves.low & ACROPOLIS_BRIDGE_RIPPLE_SPAWN_SIZE_MASK;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gfxRotMatrixY(&coord->coord, (gRandomLcgState >> 16) & ACTOR_TRANSFORM_ANGLE_MASK, GRAPHICS_ROTATION_REPLACE);
+                work->scale = ACROPOLIS_BRIDGE_RIPPLE_INITIAL_BRIGHTNESS;
+                work->angle = task->spawnArg1.halves.low & ACROPOLIS_BRIDGE_RIPPLE_SPAWN_SIZE_MASK;
+                RANDOM_LCG_ADVANCE();
+                gfxRotMatrixY(&coord->coord, RANDOM_LCG_DRAW() & ACTOR_TRANSFORM_ANGLE_MASK, GRAPHICS_ROTATION_REPLACE);
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 task->state         = ACROPOLIS_BRIDGE_RIPPLE_STATE_ACTIVE;
                 /* fallthrough */
@@ -4193,8 +4193,8 @@ static void _acropolisBridgeEnemyFollowMovie(Task* task)
         work->colorMtx.m[0][1] = 0xC0;
         work->colorMtx.m[0][0] = 0xC0;
         work->colorMtx.m[0][2] = 0x5A0;
-        gRandomLcgState        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->yaw              = gRandomLcgState >> 16;
+        RANDOM_LCG_ADVANCE();
+        work->yaw = RANDOM_LCG_DRAW();
     }
     _acropolisBridgeUpdateMovieEnemyTransform(task, work);
     if (task->extra.tmd->coords->coord.t[1] < ACROPOLIS_BRIDGE_ENEMY_PRESENTATION_SCALE_START_Y &&
@@ -4206,8 +4206,8 @@ static void _acropolisBridgeEnemyFollowMovie(Task* task)
     if (work->animId == ACROPOLIS_BRIDGE_ENEMY_ANIM_REACTION) {
         if (task->extra.tmd->coords->coord.t[1] >= ACROPOLIS_BRIDGE_ENEMY_PRESENTATION_RETRY_MIN_Y &&
             (s32)((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) + ACROPOLIS_BRIDGE_ENEMY_PRESENTATION_RETRY_TICKS) < work->animFrame) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if (((gRandomLcgState >> 16) & 0xF) == 0) {
+            RANDOM_LCG_ADVANCE();
+            if ((RANDOM_LCG_DRAW() & 0xF) == 0) {
                 work->animRate    = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) * 2) + ANIMATION_RATE_ONE;
                 work->animRequest = ACROPOLIS_BRIDGE_ENEMY_ANIM_REQUEST_RESET;
                 work->animId      = ACROPOLIS_BRIDGE_ENEMY_ANIM_REACTION;
@@ -4218,8 +4218,8 @@ static void _acropolisBridgeEnemyFollowMovie(Task* task)
     if (task->extra.tmd->coords->coord.t[1] < ACROPOLIS_BRIDGE_ENEMY_PRESENTATION_POSE_MAX_Y) {
         reloadedWork = task->work;
         if (reloadedWork->rig.slots[1].currentPose.indices.recordIndex == reloadedWork->rig.slots[1].nextPose.indices.recordIndex) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if (((gRandomLcgState >> 16) & 0x1F) == 0) {
+            RANDOM_LCG_ADVANCE();
+            if ((RANDOM_LCG_DRAW() & 0x1F) == 0) {
                 work->animRate    = ANIMATION_RATE_ONE;
                 work->animRequest = ACROPOLIS_BRIDGE_ENEMY_ANIM_REQUEST_RESET;
                 work->animId      = ACROPOLIS_BRIDGE_ENEMY_ANIM_REACTION;
@@ -4229,8 +4229,8 @@ static void _acropolisBridgeEnemyFollowMovie(Task* task)
     }
     // Compare the adjacent clip and update halfwords with one word load.
     if (*(s32*)&work->animId == ACROPOLIS_BRIDGE_ENEMY_ANIM_YAW_REROLL_WORD) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->yaw       = gRandomLcgState >> 16;
+        RANDOM_LCG_ADVANCE();
+        work->yaw = RANDOM_LCG_DRAW();
     }
     // Player and companion bodies trigger the death presentation.
     if (_acropolisBridgeEnemyHasPlayerContact(work->bodyContacts) != 0) {
@@ -4281,8 +4281,8 @@ static void _acropolisBridgeEnemyAnimateAtPlacement(Task* task)
         work->colorMtx.m[0][1]        = 0xC0;
         work->colorMtx.m[0][0]        = 0xC0;
         work->colorMtx.m[0][2]        = 0x5A0;
-        gRandomLcgState               = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->yaw                     = gRandomLcgState >> 16;
+        RANDOM_LCG_ADVANCE();
+        work->yaw = RANDOM_LCG_DRAW();
     }
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     heightForScale                        = task->extra.tmd->coords->coord.t[1];
@@ -4307,8 +4307,8 @@ static void _acropolisBridgeEnemyAnimateAtPlacement(Task* task)
     if (work->animId == ACROPOLIS_BRIDGE_ENEMY_ANIM_REACTION) {
         if (task->extra.tmd->coords->coord.t[1] >= ACROPOLIS_BRIDGE_ENEMY_PRESENTATION_RETRY_MIN_Y &&
             (s32)((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) + ACROPOLIS_BRIDGE_ENEMY_PRESENTATION_RETRY_TICKS) < work->animFrame) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if (((gRandomLcgState >> 16) & 0xF) == 0) {
+            RANDOM_LCG_ADVANCE();
+            if ((RANDOM_LCG_DRAW() & 0xF) == 0) {
                 work->animRate    = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) * 2) + ANIMATION_RATE_ONE;
                 work->animRequest = ACROPOLIS_BRIDGE_ENEMY_ANIM_REQUEST_RESET;
                 work->animId      = ACROPOLIS_BRIDGE_ENEMY_ANIM_REACTION;
@@ -4319,8 +4319,8 @@ static void _acropolisBridgeEnemyAnimateAtPlacement(Task* task)
     if (task->extra.tmd->coords->coord.t[1] < ACROPOLIS_BRIDGE_ENEMY_PRESENTATION_POSE_MAX_Y) {
         reloadedWork = task->work;
         if (reloadedWork->rig.slots[1].currentPose.indices.recordIndex == reloadedWork->rig.slots[1].nextPose.indices.recordIndex) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if (((gRandomLcgState >> 16) & 0x1F) == 0) {
+            RANDOM_LCG_ADVANCE();
+            if ((RANDOM_LCG_DRAW() & 0x1F) == 0) {
                 work->animRate    = ANIMATION_RATE_ONE;
                 work->animRequest = ACROPOLIS_BRIDGE_ENEMY_ANIM_REQUEST_RESET;
                 work->animId      = ACROPOLIS_BRIDGE_ENEMY_ANIM_REACTION;
@@ -4330,8 +4330,8 @@ static void _acropolisBridgeEnemyAnimateAtPlacement(Task* task)
     }
     // Compare the adjacent clip and update halfwords with one word load.
     if (*(s32*)&work->animId == ACROPOLIS_BRIDGE_ENEMY_ANIM_YAW_REROLL_WORD) {
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->yaw       = gRandomLcgState >> 16;
+        RANDOM_LCG_ADVANCE();
+        work->yaw = RANDOM_LCG_DRAW();
     }
     // Player and companion bodies trigger the death presentation.
     if (_acropolisBridgeEnemyHasPlayerContact(work->bodyContacts) != 0) {
@@ -4368,8 +4368,8 @@ static void _acropolisBridgeEnemyDefeatedBob(Task* task)
         work->animRequest             = ACROPOLIS_BRIDGE_ENEMY_ANIM_REQUEST_BLEND;
         work->animId                  = ACROPOLIS_BRIDGE_ENEMY_ANIM_BOB;
         work->animRate                = ANIMATION_RATE_ONE;
-        gRandomLcgState               = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        gfxRotMatrixY(&task->extra.tmd->coords->coord, gRandomLcgState >> 16, 1);
+        RANDOM_LCG_ADVANCE();
+        gfxRotMatrixY(&task->extra.tmd->coords->coord, RANDOM_LCG_DRAW(), 1);
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     if (work->sinkDepth > 0) {
@@ -4427,8 +4427,8 @@ static void _acropolisBridgeEnemyCollapse(Task* task)
         work->animRequest             = ACROPOLIS_BRIDGE_ENEMY_ANIM_REQUEST_BLEND;
         work->animId                  = ACROPOLIS_BRIDGE_ENEMY_COLLAPSE_ANIMATION;
         work->animRate                = ANIMATION_RATE_ONE;
-        gRandomLcgState               = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        gfxRotMatrixY(&task->extra.tmd->coords->coord, gRandomLcgState >> 16, 1);
+        RANDOM_LCG_ADVANCE();
+        gfxRotMatrixY(&task->extra.tmd->coords->coord, RANDOM_LCG_DRAW(), 1);
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         worldTargetDisableNodeLockOn(&enemy->node);
         if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_IDLE && gSceneCombatState.battleRefs != 0) {

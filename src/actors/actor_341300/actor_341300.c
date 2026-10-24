@@ -40,7 +40,7 @@
 /// at 32 bits, and the updated `gRandomLcgState` is visible to other consumers.
 /// Each invocation consumes a draw, including separate sign and magnitude draws;
 /// evaluating this expression again advances the sequence again.
-#define ACTOR_341300_DRAW_RANDOM_U16() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
+#define ACTOR_341300_DRAW_RANDOM_U16() ((RANDOM_LCG_ADVANCE()) >> 16)
 
 /// Work block of a debris shard task: one flat triangle that tumbles and falls
 /// under gravity until its origin drops below y 0.

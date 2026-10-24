@@ -120,10 +120,10 @@ static inline void _apobiosisSpawnDriftingShard(EffectWork* castWork, GfxCoord* 
         APOBIOSIS_SHARD_SPAWN_DRIFTING = 0 // Keeps the spawned coordinate parented to the view
     };
 
-    gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    castWork->scale   = (gRandomLcgState >> 16) & radiusMask;
-    gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    castWork->angle   = (gRandomLcgState >> 16) & (APOBIOSIS_FULL_TURN - 1);
+    RANDOM_LCG_ADVANCE();
+    castWork->scale = RANDOM_LCG_DRAW() & radiusMask;
+    RANDOM_LCG_ADVANCE();
+    castWork->angle   = RANDOM_LCG_DRAW() & (APOBIOSIS_FULL_TURN - 1);
     castWork->move.vx = castWork->scale * rsin(castWork->angle) >> APOBIOSIS_TRIG_SHIFT;
     castWork->move.vz = castWork->scale * rcos(castWork->angle) >> APOBIOSIS_TRIG_SHIFT;
     effectSpawn(EFFECT_APOBIOSIS_SHARD, castCoord, APOBIOSIS_SHARD_SPAWN_DRIFTING, &castWork->move);
@@ -205,8 +205,8 @@ void apobiosisCastTask(Task* task)
                 work->period = APOBIOSIS_CAST_UNUSED_PERIOD;
                 work->step   = APOBIOSIS_CAST_INITIAL_BRIGHTNESS;
                 for (ringIndex = 0; ringIndex < _gApobiosisLevelParams[work->index].stripCount * APOBIOSIS_CAST_SEEDED_ANGLES_PER_STRIP; ringIndex++) {
-                    gRandomLcgState                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    _gApobiosisStripAngles[ringIndex] = (ringIndex << APOBIOSIS_CAST_QUARTER_TURN_SHIFT) + ((gRandomLcgState >> 16) & (APOBIOSIS_QUARTER_TURN - 1));
+                    RANDOM_LCG_ADVANCE();
+                    _gApobiosisStripAngles[ringIndex] = (ringIndex << APOBIOSIS_CAST_QUARTER_TURN_SHIFT) + (RANDOM_LCG_DRAW() & (APOBIOSIS_QUARTER_TURN - 1));
                 }
                 padScriptSpawnVariableMotorRamp(APOBIOSIS_CAST_RING_MOTOR_FRAMES, APOBIOSIS_CAST_MOTOR_START, APOBIOSIS_CAST_MOTOR_END);
                 /* fallthrough */
@@ -229,12 +229,12 @@ void apobiosisCastTask(Task* task)
                     _glowDrawHalo(coord, APOBIOSIS_CAST_HALO_THICKNESS, work->scale, rgb);
                 }
                 for (ringIndex = 0; ringIndex < _gApobiosisLevelParams[work->index].stripCount; ringIndex++) {
-                    gRandomLcgState                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    _gApobiosisStripAngles[ringIndex] -= ((gRandomLcgState >> 16) & APOBIOSIS_CAST_ANGLE_JITTER_MASK) - APOBIOSIS_CAST_ANGLE_JITTER_HALF_SPAN;
+                    RANDOM_LCG_ADVANCE();
+                    _gApobiosisStripAngles[ringIndex] -= (RANDOM_LCG_DRAW() & APOBIOSIS_CAST_ANGLE_JITTER_MASK) - APOBIOSIS_CAST_ANGLE_JITTER_HALF_SPAN;
                     // Retained original access: radiusStep is 192/256/320, beyond the 16 seeded halfwords.
-                    secondaryAngleIndex                          = ringIndex + _gApobiosisLevelParams[work->index].radiusStep;
-                    gRandomLcgState                              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    _gApobiosisStripAngles[secondaryAngleIndex] -= ((gRandomLcgState >> 16) & APOBIOSIS_CAST_ANGLE_JITTER_MASK) - APOBIOSIS_CAST_ANGLE_JITTER_HALF_SPAN;
+                    secondaryAngleIndex = ringIndex + _gApobiosisLevelParams[work->index].radiusStep;
+                    RANDOM_LCG_ADVANCE();
+                    _gApobiosisStripAngles[secondaryAngleIndex] -= (RANDOM_LCG_DRAW() & APOBIOSIS_CAST_ANGLE_JITTER_MASK) - APOBIOSIS_CAST_ANGLE_JITTER_HALF_SPAN;
                     work->pos.vx                                 = work->scale * rsin(_gApobiosisStripAngles[ringIndex]) >> APOBIOSIS_TRIG_SHIFT;
                     work->pos.vy                                 = work->scale * rcos(_gApobiosisStripAngles[ringIndex]) >> APOBIOSIS_TRIG_SHIFT;
                     work->pos.vz =
@@ -260,11 +260,11 @@ void apobiosisCastTask(Task* task)
                 if (work->step >= APOBIOSIS_CAST_SPARSE_FADE_FLOOR + 1) {
                     work->step = work->step - APOBIOSIS_CAST_SPARSE_FADE_STEP;
                 }
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                if (((gRandomLcgState >> 16) & APOBIOSIS_CAST_SPARSE_SHARD_CHANCE_MASK) == 0) {
+                RANDOM_LCG_ADVANCE();
+                if ((RANDOM_LCG_DRAW() & APOBIOSIS_CAST_SPARSE_SHARD_CHANCE_MASK) == 0) {
                     _apobiosisSpawnDriftingShard(work, coord, APOBIOSIS_CAST_SPARSE_RADIUS_MASK);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->step      = ((gRandomLcgState >> 16) & APOBIOSIS_CAST_FLASH_JITTER_MASK) + APOBIOSIS_CAST_FLASH_JITTER_BASE;
+                    RANDOM_LCG_ADVANCE();
+                    work->step = (RANDOM_LCG_DRAW() & APOBIOSIS_CAST_FLASH_JITTER_MASK) + APOBIOSIS_CAST_FLASH_JITTER_BASE;
                 }
                 if (work->age == APOBIOSIS_CAST_SPARSE_END_AGE) {
                     work->step  = APOBIOSIS_CAST_INITIAL_BRIGHTNESS;
@@ -332,7 +332,7 @@ static void _apobiosisDrawScreenFlash(s16 brightness)
     quad           = gGpuPrimCursor;
     gGpuPrimCursor = quad + 1;
     setPolyF4(quad);
-    if ((u16)(gAttachmentState.attachId % (u32)APOBIOSIS_LEVEL_ID_RADIX) - 1 == APOBIOSIS_LEVEL_THREE_ROW && (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & APOBIOSIS_ALT_COLOR_ROLL_MASK) == 0) {
+    if ((u16)(gAttachmentState.attachId % (u32)APOBIOSIS_LEVEL_ID_RADIX) - 1 == APOBIOSIS_LEVEL_THREE_ROW && (((RANDOM_LCG_ADVANCE()) >> 16) & APOBIOSIS_ALT_COLOR_ROLL_MASK) == 0) {
         setRGB0(quad, brightness, brightness, brightness >> 1);
     } else {
         setRGB0(quad, brightness >> 1, brightness >> 1, brightness);
@@ -377,15 +377,15 @@ static inline void _apobiosisInitShardAppearance(EffectWork* work)
         APOBIOSIS_SHARD_END_HALF_SPAN = APOBIOSIS_SHARD_END_SPAN / 2,
     };
     // The spawn offset has positioned the shard; pos now describes its strip.
-    work->pos.vy    = APOBIOSIS_SHARD_END_Y;
-    work->scale     = APOBIOSIS_SHARD_UNUSED_SCALE;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->pos.vx    = APOBIOSIS_SHARD_END_HALF_SPAN - ((gRandomLcgState >> 16) & (APOBIOSIS_SHARD_END_SPAN - 1));
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->pos.vz    = APOBIOSIS_SHARD_END_HALF_SPAN - ((gRandomLcgState >> 16) & (APOBIOSIS_SHARD_END_SPAN - 1));
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->angle     = (gRandomLcgState >> 16) & (APOBIOSIS_FULL_TURN - 1);
-    work->step      = gAttachmentState.attachId % APOBIOSIS_LEVEL_ID_RADIX - 1;
+    work->pos.vy = APOBIOSIS_SHARD_END_Y;
+    work->scale  = APOBIOSIS_SHARD_UNUSED_SCALE;
+    RANDOM_LCG_ADVANCE();
+    work->pos.vx = APOBIOSIS_SHARD_END_HALF_SPAN - (RANDOM_LCG_DRAW() & (APOBIOSIS_SHARD_END_SPAN - 1));
+    RANDOM_LCG_ADVANCE();
+    work->pos.vz = APOBIOSIS_SHARD_END_HALF_SPAN - (RANDOM_LCG_DRAW() & (APOBIOSIS_SHARD_END_SPAN - 1));
+    RANDOM_LCG_ADVANCE();
+    work->angle = RANDOM_LCG_DRAW() & (APOBIOSIS_FULL_TURN - 1);
+    work->step  = gAttachmentState.attachId % APOBIOSIS_LEVEL_ID_RADIX - 1;
 }
 
 void apobiosisShardTask(Task* task)
@@ -419,12 +419,12 @@ void apobiosisShardTask(Task* task)
                     actorRenderComposeCoord(coord);
                     task->state = APOBIOSIS_SHARD_PINNED;
                 } else {
-                    work->move.vy   = 0;
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vx   = APOBIOSIS_SHARD_DRIFT_HALF_SPAN - ((gRandomLcgState >> 16) & APOBIOSIS_SHARD_DRIFT_MASK);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->move.vz   = APOBIOSIS_SHARD_DRIFT_HALF_SPAN - ((gRandomLcgState >> 16) & APOBIOSIS_SHARD_DRIFT_MASK);
-                    task->state     = APOBIOSIS_SHARD_DRIFTING;
+                    work->move.vy = 0;
+                    RANDOM_LCG_ADVANCE();
+                    work->move.vx = APOBIOSIS_SHARD_DRIFT_HALF_SPAN - (RANDOM_LCG_DRAW() & APOBIOSIS_SHARD_DRIFT_MASK);
+                    RANDOM_LCG_ADVANCE();
+                    work->move.vz = APOBIOSIS_SHARD_DRIFT_HALF_SPAN - (RANDOM_LCG_DRAW() & APOBIOSIS_SHARD_DRIFT_MASK);
+                    task->state   = APOBIOSIS_SHARD_DRIFTING;
                 }
                 _apobiosisInitShardAppearance(work);
                 return;
@@ -529,8 +529,8 @@ static void _apobiosisDrawShardSprite(const GfxCoord* coord, s16 textureFrame, s
         setShadeTex(quad, 1);
         quad->tpage = getTPage(0, GPU_BLEND_ADD, 640, 0);
         if ((u16)(gAttachmentState.attachId % APOBIOSIS_LEVEL_ID_RADIX) - 1 == APOBIOSIS_LEVEL_THREE_ROW) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if (((gRandomLcgState >> 16) & APOBIOSIS_ALT_COLOR_ROLL_MASK) == 0) {
+            RANDOM_LCG_ADVANCE();
+            if ((RANDOM_LCG_DRAW() & APOBIOSIS_ALT_COLOR_ROLL_MASK) == 0) {
                 quad->clut = getClut(144, 267);
             } else {
                 quad->clut = getClut(304, 266);
@@ -617,7 +617,7 @@ static void _apobiosisDrawShardStrip(const GfxCoord* coord, const SVECTOR* endOf
             setShadeTex(quad, 1);
             quad->tpage = getTPage(0, GPU_BLEND_ADD, 512, 0);
             if ((u16)(gAttachmentState.attachId % (u32)APOBIOSIS_LEVEL_ID_RADIX) - 1 == APOBIOSIS_LEVEL_THREE_ROW &&
-                (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & APOBIOSIS_ALT_COLOR_ROLL_MASK) == 0) {
+                (((RANDOM_LCG_ADVANCE()) >> 16) & APOBIOSIS_ALT_COLOR_ROLL_MASK) == 0) {
                 quad->clut = getClut(128, 267);
             } else {
                 quad->clut = getClut(112, 266);

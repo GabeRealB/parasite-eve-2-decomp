@@ -4128,13 +4128,13 @@ void dryfieldNightGasStationAmbientEffectsTask(Task* task)
     /// Captures the anchor table and this function's scatter constants. Two ordered
     /// LCG draws add X/Z jitter -255..256 parent-coordinate units, preserving anchor
     /// Y. XYZ narrow to s16 and move.pad is retained. Expands to one block.
-#define DRYFIELD_NIGHT_GAS_STATION_CHOOSE_SCATTER_OFFSET(effectWork, pointIndex)                                                                                                                                             \
-    {                                                                                                                                                                                                                        \
-        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                                                                                              \
-        (effectWork)->move.vx = _gDryfieldNightGasStationAmbientEffectAnchors[(pointIndex)].vx - ((gRandomLcgState >> 16) & DRYFIELD_NIGHT_GAS_STATION_SCATTER_RANDOM_MASK) + DRYFIELD_NIGHT_GAS_STATION_SCATTER_OFFSET_MAX; \
-        (effectWork)->move.vy = _gDryfieldNightGasStationAmbientEffectAnchors[(pointIndex)].vy;                                                                                                                              \
-        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                                                                                              \
-        (effectWork)->move.vz = _gDryfieldNightGasStationAmbientEffectAnchors[(pointIndex)].vz - ((gRandomLcgState >> 16) & DRYFIELD_NIGHT_GAS_STATION_SCATTER_RANDOM_MASK) + DRYFIELD_NIGHT_GAS_STATION_SCATTER_OFFSET_MAX; \
+#define DRYFIELD_NIGHT_GAS_STATION_CHOOSE_SCATTER_OFFSET(effectWork, pointIndex)                                                                                                                                       \
+    {                                                                                                                                                                                                                  \
+        RANDOM_LCG_ADVANCE();                                                                                                                                                                                          \
+        (effectWork)->move.vx = _gDryfieldNightGasStationAmbientEffectAnchors[(pointIndex)].vx - (RANDOM_LCG_DRAW() & DRYFIELD_NIGHT_GAS_STATION_SCATTER_RANDOM_MASK) + DRYFIELD_NIGHT_GAS_STATION_SCATTER_OFFSET_MAX; \
+        (effectWork)->move.vy = _gDryfieldNightGasStationAmbientEffectAnchors[(pointIndex)].vy;                                                                                                                        \
+        RANDOM_LCG_ADVANCE();                                                                                                                                                                                          \
+        (effectWork)->move.vz = _gDryfieldNightGasStationAmbientEffectAnchors[(pointIndex)].vz - (RANDOM_LCG_DRAW() & DRYFIELD_NIGHT_GAS_STATION_SCATTER_RANDOM_MASK) + DRYFIELD_NIGHT_GAS_STATION_SCATTER_OFFSET_MAX; \
     }
 
     enum {
@@ -4194,16 +4194,16 @@ void dryfieldNightGasStationAmbientEffectsTask(Task* task)
         work->scale = 1;
         if (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
             for (anchorIndex = DRYFIELD_NIGHT_GAS_STATION_SCATTER_ANCHOR_FIRST; anchorIndex < (s32)ARRAY_SIZE(_gDryfieldNightGasStationAmbientEffectAnchors); anchorIndex++) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->angle     = (gRandomLcgState >> 16) % DRYFIELD_NIGHT_GAS_STATION_SCATTER_CHOICE_COUNT;
+                RANDOM_LCG_ADVANCE();
+                work->angle = RANDOM_LCG_DRAW() % DRYFIELD_NIGHT_GAS_STATION_SCATTER_CHOICE_COUNT;
                 DRYFIELD_NIGHT_GAS_STATION_CHOOSE_SCATTER_OFFSET(work, anchorIndex);
                 if (work->angle == DRYFIELD_NIGHT_GAS_STATION_SCATTER_PUFF) {
                     effectSpawn(EFFECT_ADDITIVE_PUFF, spawnCoord, DRYFIELD_NIGHT_GAS_STATION_SCATTER_PUFF_ARG, &work->move);
                 } else if (work->angle == DRYFIELD_NIGHT_GAS_STATION_SCATTER_FIRE) {
                     effectSpawn(EFFECT_FIRE_BURST, spawnCoord, DRYFIELD_NIGHT_GAS_STATION_SCATTER_FIRE_SIZE, &work->move);
                 } else {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    if ((u16)((gRandomLcgState >> 16) % DRYFIELD_NIGHT_GAS_STATION_SCATTER_CHOICE_COUNT) == 0) {
+                    RANDOM_LCG_ADVANCE();
+                    if ((u16)(RANDOM_LCG_DRAW() % DRYFIELD_NIGHT_GAS_STATION_SCATTER_CHOICE_COUNT) == 0) {
                         effectSpawn(EFFECT_SMOKE_PUFF, spawnCoord, DRYFIELD_NIGHT_GAS_STATION_SCATTER_SMOKE_ARG, &work->move);
                     }
                 }
@@ -4211,8 +4211,8 @@ void dryfieldNightGasStationAmbientEffectsTask(Task* task)
         }
     } else if (work->scale != 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         for (anchorIndex = DRYFIELD_NIGHT_GAS_STATION_SCATTER_ANCHOR_FIRST; anchorIndex < (s32)ARRAY_SIZE(_gDryfieldNightGasStationAmbientEffectAnchors); anchorIndex++) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((u16)((gRandomLcgState >> 16) % DRYFIELD_NIGHT_GAS_STATION_SCATTER_CHOICE_COUNT) == 0) {
+            RANDOM_LCG_ADVANCE();
+            if ((u16)(RANDOM_LCG_DRAW() % DRYFIELD_NIGHT_GAS_STATION_SCATTER_CHOICE_COUNT) == 0) {
                 DRYFIELD_NIGHT_GAS_STATION_CHOOSE_SCATTER_OFFSET(work, anchorIndex);
                 effectSpawn(EFFECT_SMOKE_PUFF, spawnCoord, DRYFIELD_NIGHT_GAS_STATION_SCATTER_SMOKE_ARG, &work->move);
             }
