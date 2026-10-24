@@ -30,7 +30,7 @@
 
 #include "rooms/akropolis_east_elevator_hall.h"
 
-#include "rooms/acropolis_fire_escape.h"
+#include "rooms/akropolis_fire_escape.h"
 
 #include "rooms/akropolis_forked_road.h"
 
@@ -421,7 +421,7 @@ static const AreaRecord _gAreaAcropolisRecords[GAME_AREA_MIST_SHOOTING_GALLERY +
     [GAME_AREA_AKROPOLIS_SANCTUARY]              = { gAkropolisSanctuaryAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[11].state },
     [GAME_AREA_AKROPOLIS_ROOF_GARDEN]            = { gAkropolisRoofGardenAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[12].state },
     [GAME_AREA_AKROPOLIS_BRIDGE]                 = { gAkropolisBridgePlacementVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[13].state },
-    [GAME_AREA_AKROPOLIS_FIRE_ESCAPE]            = { gAcropolisFireEscapeAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[14].state },
+    [GAME_AREA_AKROPOLIS_FIRE_ESCAPE]            = { gAkropolisFireEscapeAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[14].state },
     [GAME_AREA_AKROPOLIS_HELICOPTER_LANDING_PAD] = { gAcropolisHelicopterLandingPadAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[15].state },
     [GAME_AREA_AKROPOLIS_WEST_ELEVATOR_HALL]     = { NULL, NULL },
     [GAME_AREA_MIST_R18]                         = { gMistR18AreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[16].state },

@@ -200,6 +200,9 @@ enum {
     EVENT_FLAG_STORY_DIALOGUE_INDEX = 0x155,
     /// Akropolis square. Marker: the controls hint by the stairs has been shown.
     EVENT_FLAG_AKROPOLIS_SQUARE_STAIRS_HINT_SEEN = 0x156,
+    /// Akropolis fire escape. Marker: the telephone has been inspected (room command
+    /// 4, CAP 11); afterwards it plays the call's scene.
+    EVENT_FLAG_AKROPOLIS_FIRE_ESCAPE_TELEPHONE_INSPECTED = 0x16A,
 
     // ---- Map door markers, about 0x1AC..0x1F7 --------------------------------
     // One sequential run per stage, the stages in reverse story order: Shelter and

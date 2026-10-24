@@ -49075,7 +49075,7 @@ case -1: /* this one after it */
 ```
 
 Reading the body order off the target and matching it in the source turned
-`acropolisFireEscapeTelephoneMenuTask` from 84% to 96%. The same function's
+`akropolisFireEscapeTelephoneMenuTask` from 84% to 96%. The same function's
 `switch (task->state)` at the top is what produces `beqz`/`beq 1`/`j end`;
 writing it as an `if` chain gives a visibly different shape.
 
@@ -49083,7 +49083,7 @@ writing it as an `if` chain gives a visibly different shape.
 
 When two switch cases end in the same `if (c) a = X; else a = Y;`, jump.c
 cross-jumps them, and the branch polarity you see is not simply "invert the
-condition". `acropolisFireEscapeTelephoneMenuTask` needed
+condition". `akropolisFireEscapeTelephoneMenuTask` needed
 
 ```c
 case 6:  if (ready != 0) { state = 2; } else { state = 3; }   /* beqz */
@@ -65543,7 +65543,7 @@ has this function three times.
 
 ## Assign the fallback after a call result to avoid preserving it across the call
 
-`_acropolisFireEscapeHandleRoomCommand` matched with an initial `capCommand = 1`,
+`_akropolisFireEscapeHandleRoomCommand` matched with an initial `capCommand = 1`,
 then, inside a non-null task check, `actorPresent = taskMessageDispatch(...)`,
 `capCommand = 9`, and `if (actorPresent == 0) capCommand = 1`. Both assignments after the call
 kill the earlier value, leaving `capCommand` in `$a0`. The target places the initial
@@ -88478,7 +88478,7 @@ appeared but the `lhu` stayed below it (`reorder=2`, 99.46%). Reading it into a
 local first - `worldX = ...; tmp = head - 0x18; SOFT_USE_REG(tmp); projection = tmp;
 projection->worldPos.vx = worldX;` - and holding the last half in a local until after
 `*scratch = projection` matched. Only hold it when the target loads it *before* the
-head store: `acropolisFireEscapeFlickerLightTask` loads `workm.t[2]` into `$v0`
+head store: `akropolisFireEscapeFlickerLightTask` loads `workm.t[2]` into `$v0`
 after `sw s7,0(a1)`, and there the `vz` local pulled the loads into `$a1` and
 swapped the head/scratch registers (99.86%, `regs=17`); writing
 `projection->worldPos.vz = coord->workm.t[2]` straight after the store matched.
@@ -93204,7 +93204,7 @@ operand.
 No pointer local is needed for the fix here. A member access on a global whose
 *type* has the field - `extern WorldCollisionTrigger D_x;` then `D_x.flags &= 0xBF;` -
 leaves the symbol bare and puts the displacement in the memory operand. That is
-what the sibling rooms do for the same clear (`_acropolisFireEscapeDisableAbsentActorInteraction`,
+what the sibling rooms do for the same clear (`_akropolisFireEscapeDisableAbsentActorInteraction`,
 `_dryfieldNightMotelLoftUpdateRoom`, `_acropolisHelicopterLandingPadInitRoom`,
 all `extern WorldCollisionTrigger`), so it is also the shape the original source had. One
 build, 100.000%, all penalties zero.
@@ -120453,7 +120453,7 @@ born in arm blocks where `$v0` is already dead, and reorg moves the else arm's
 a *matched* body from the same repo that uses the same idiom and read its pass
 trail rather than theorising about allocation: `./dump.sh` on the sibling's
 source gives `.rtl`/`.jump`/`.cse`/`.lreg` for a body whose result is known
-correct. Here `_acropolisFireEscapeResolveRoomTransition` - a matched if/else-double-
+correct. Here `_akropolisFireEscapeResolveRoomTransition` - a matched if/else-double-
 store two-message handler in the same family - spent `.rtl` through `.lreg` with
 *two* stores and two `reg:QI` temps, then printed the target's single `sb` with
 `# 74` (the else block's store) after the then block's `li`: that is jump.c's
@@ -143001,7 +143001,7 @@ came out with its loads swapped.
   function-scope pointer. The shared one made the two tests allocate alike,
   so jump2 merged more than the compare.
 
-### A phony loop can act as a CSE boundary, not a weight: only loop constructs reproduce it (acropolisFireEscapeFlareTask, 2026-09-26)
+### A phony loop can act as a CSE boundary, not a weight: only loop constructs reproduce it (akropolisFireEscapeFlareTask, 2026-09-26)
 
 **Problem.** A glow routine draws two `POLY_G4` wedges per iteration of a
 short loop. Its seed wrapped the first wedge and the second wedge's header in
@@ -143058,7 +143058,7 @@ the original wrote it.
 
 ### After an earlier call in the same block, argument moves tie on priority and source order decides (akropolisSquareTelephoneLightTask, 2026-09-26)
 
-**Problem.** The twin of `acropolisFireEscapeFlareTask`. With every
+**Problem.** The twin of `akropolisFireEscapeFlareTask`. With every
 barrier stripped and one empty `do {} while (0)` after the second wedge's
 `setPolyG4`, the whole function matches except the second wedge's call:
 ours hoists `move a0,t3` above the `addPrim` and keeps `li a1,1` by the
@@ -147862,7 +147862,7 @@ the assignment has to sit before it. The inline subscript also gives
 pointer first.
 
 Two notes for the scratch loop. Compile with the build's `-gcoff`: without it
-`acropolisFireEscapeFlareTask` allocated a different frame, and a
+`akropolisFireEscapeFlareTask` allocated a different frame, and a
 candidate that diffed clean failed the real build. And a `"+r"` asm on a byte
 offset blocks `combine` from seeing its low bits, so `off / 4` behind it costs
 `srl 2; sll 2`; move the asm up to the shifted depth and mask after it
@@ -148220,7 +148220,7 @@ integer address both go. The `register ... asm("s1")` on the typed pointer
 stays: a pseudo for the sum is block-local and local-alloc puts it and the
 half in `$v0`.
 
-### A hoisted mask next to an in-loop `lui`: count the moves loop.c makes before it, and check the type of the loop's invariant locals (acropolisFireEscapeFlareTask, 2026-10-05)
+### A hoisted mask next to an in-loop `lui`: count the moves loop.c makes before it, and check the type of the loop's invariant locals (akropolisFireEscapeFlareTask, 2026-10-05)
 
 **Symptom.** A loop body drawing two `POLY_G4` rays, a call after each. The
 target hoists the `0x00FFFFFF` link mask (`lui a3,0xff; ori` before the

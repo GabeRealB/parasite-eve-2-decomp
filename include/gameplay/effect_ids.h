@@ -235,7 +235,7 @@ enum {
     /// Pulsing red or cyan flare (diamond with optional crossed streaks, or radial
     /// glow) at view-dependent offsets; spawned every frame by the Acropolis fire
     /// escape effect emitter for views 3/6/8/9.
-    EFFECT_ACROPOLIS_FIRE_ESCAPE_FLARE = EFFECT_ID(EFFECT_TASK_BANK, 0x04F),
+    EFFECT_AKROPOLIS_FIRE_ESCAPE_FLARE = EFFECT_ID(EFFECT_TASK_BANK, 0x04F),
     /// Debris-burst controller for the night motel balcony: by kind sprays 0x6003D
     /// chunks and 0x60095 puffs once; spawned by actor_403100 where it strikes a
     /// balcony region (first strike marks the region broken).
@@ -422,9 +422,9 @@ enum {
     /// camera views; twelve are spawned by the sanctuary room task.
     EFFECT_AKROPOLIS_SANCTUARY_FLAME = EFFECT_ID(EFFECT_TASK_BANK, 0x08B),
     /// Flickering three-layer glow of POLY_G4 wedges, shown on views 2/3/7, that plays
-    /// SOUND_ACROPOLIS_FIRE_ESCAPE_LIGHT_FLICKER when it brightens; spawned once by the
+    /// SOUND_AKROPOLIS_FIRE_ESCAPE_LIGHT_FLICKER when it brightens; spawned once by the
     /// fire escape's emitter task.
-    EFFECT_ACROPOLIS_FIRE_ESCAPE_FLICKER_LIGHT = EFFECT_ID(EFFECT_TASK_BANK, 0x08C),
+    EFFECT_AKROPOLIS_FIRE_ESCAPE_FLICKER_LIGHT = EFFECT_ID(EFFECT_TASK_BANK, 0x08C),
     /// Additive 8-frame animated sprite (clut 0x430D) that grows then fades while
     /// rising; spawned with 0x60080 and smoke on special-ammo hits (weaponSlotItem
     /// 0xE), by effectControlTask7F and by the night gas-station explosion.

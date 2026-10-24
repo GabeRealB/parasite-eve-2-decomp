@@ -1095,9 +1095,6 @@ enum {
     /// One-shot: request 1 in the Shelter 1F tent runs CAP 0x18 the first time and sets
     /// it; afterwards the room cutscene path is used.
     GAME_FLAG_TENT_FIRST_SCENE = 0x169,
-    /// One-shot: event 4 on the Akropolis fire escape runs CAP 0xB the first time and
-    /// sets it; afterwards the room cutscene (view 9) runs.
-    GAME_FLAG_FIRE_ESCAPE_FIRST_SCENE = 0x16A,
     /// One-shot: request 1 at the Dryfield gas station runs CAP 0xB the first time and
     /// sets it; afterwards the room cutscene runs.
     GAME_FLAG_GAS_STATION_FIRST_SCENE = 0x16B,

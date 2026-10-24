@@ -47,7 +47,7 @@
 
 #include "overlay.h"
 
-#include "rooms/acropolis_fire_escape.h"
+#include "rooms/akropolis_fire_escape.h"
 #include "../../shared/actor/actor_contacts.h"
 
 /// Task phases of this package's stationary enemy.
@@ -694,9 +694,9 @@ static void _actor311500Task(Task* actorTask)
             switch (actorTask->state) {
                 case ACTOR_311500_PHASE_INIT:
                     // Install the opening barrier patch into the loaded fire-escape grid.
-                    memCopyBytes(_gActor311500BarrierPatchVerts, gAcropolisFireEscapeCollisionGridVerts, sizeof(_gActor311500BarrierPatchVerts));
-                    memCopyBytes(_gActor311500BarrierPatchNormals, gAcropolisFireEscapeCollisionGridNormals, sizeof(_gActor311500BarrierPatchNormals));
-                    memCopyBytes(_gActor311500BarrierPatchFaces, gAcropolisFireEscapeCollisionGridFaces, sizeof(_gActor311500BarrierPatchFaces));
+                    memCopyBytes(_gActor311500BarrierPatchVerts, gAkropolisFireEscapeCollisionGridVerts, sizeof(_gActor311500BarrierPatchVerts));
+                    memCopyBytes(_gActor311500BarrierPatchNormals, gAkropolisFireEscapeCollisionGridNormals, sizeof(_gActor311500BarrierPatchNormals));
+                    memCopyBytes(_gActor311500BarrierPatchFaces, gAkropolisFireEscapeCollisionGridFaces, sizeof(_gActor311500BarrierPatchFaces));
                     _actor311500Init(actorTask);
                     work = actorTask->work;
                     _actor311500TickAnim(actorTask);
@@ -726,9 +726,9 @@ static void _actor311500Task(Task* actorTask)
                         break;
                     }
                     if ((s16)_actor311500TickHitReaction(actorTask) < ACTOR_311500_HIT_REACTION_PLAYING) {
-                        memFillBytes(gAcropolisFireEscapeCollisionGridVerts, 0, sizeof(_gActor311500BarrierPatchVerts));
-                        memFillBytes(gAcropolisFireEscapeCollisionGridNormals, 0, sizeof(_gActor311500BarrierPatchNormals));
-                        memFillBytes(gAcropolisFireEscapeCollisionGridFaces, 0, sizeof(_gActor311500BarrierPatchFaces));
+                        memFillBytes(gAkropolisFireEscapeCollisionGridVerts, 0, sizeof(_gActor311500BarrierPatchVerts));
+                        memFillBytes(gAkropolisFireEscapeCollisionGridNormals, 0, sizeof(_gActor311500BarrierPatchNormals));
+                        memFillBytes(gAkropolisFireEscapeCollisionGridFaces, 0, sizeof(_gActor311500BarrierPatchFaces));
                         work->present     = 0;
                         work->step        = ACTOR_311500_DEATH_STEP_CRY;
                         actorTask->state += 1;

@@ -26,7 +26,7 @@ akropolis_cafeteria_model_0F7A4	Stim pickup model placed in the Akropolis cafete
 rooms/akropolis/cafeteria/mendel_journal	Mendel journal pickup model placed in the Akropolis cafeteria by map_akropolis's object table, hidden once collected.	
 akropolis_east_elevator_hall_animation_026E8	Three scripted player clips of the east elevator hall's first-visit opening event (short entry, long conversation with the SWAT member, closing), installed and played by the event script.	
 akropolis_east_elevator_hall_collision_08DB8	Collision grid of the Akropolis east elevator hall, read by gameplay's world collision for the whole stay.	
-acropolis_fire_escape_collision_048B4	Collision grid of the Akropolis fire escape; its first normal, four vertices and face are overwritten by the placed Stranger enemies/stranger/lesser/package as a barrier and cleared when it dies.	
+akropolis_fire_escape_collision_048B4	Collision grid of the Akropolis fire escape; its first normal, four vertices and face are overwritten by the placed Stranger enemies/stranger/lesser/package as a barrier and cleared when it dies.	
 akropolis_forked_road_animation_04320	Two player clips the forked road's lock-release event installs as a weapon-bank extension; one is played just before the caterpillars are released, the other has no use found.	
 akropolis_forked_road_collision_04DE0	Collision grid of the Akropolis forked road, bound for all three room indices with its view-boundary and action triggers.	
 rooms/akropolis/forked_road/movie_player_path	Per-movie-frame player path (300 samples) for the forked road's observatory movies: read forwards when leaving and backwards when arriving; samples 121-299 are never read.	
@@ -675,7 +675,7 @@ load_screens/acropolis_square/background	Load-screen picture for the Acropolis s
 load_screens/shelter_sterilization_chapter_5/background	Load-screen picture for the Mine/Shelter stage with destination B1 Sterilization Room in story chapter 5, under the Shelter dwelling boot caption; what lands on it is open.	
 rooms/akropolis/bridge/view1_background..rooms/akropolis/bridge/view10_background	View backgrounds 1-10 of akropolis_bridge; room 2, set when the keypad movie finishes, maps the same walked views onto files 5, 3 and 4 instead of 2, 6 and 7.	
 load_screens/shelter_incinerator_chapter_5/background	Load-screen picture for the Mine/Shelter stage with destination B3 Incinerator Control Room in story chapter 5, under the Shelter waste boot caption; what lands on it is open.	
-rooms/akropolis/fire_escape/view1_background..rooms/akropolis/fire_escape/view10_background	View backgrounds 1-10 of acropolis_fire_escape: views 2-6 are walked between the bridge and landing-pad warps, view 7 is selected by caption text.	
+rooms/akropolis/fire_escape/view1_background..rooms/akropolis/fire_escape/view10_background	View backgrounds 1-10 of akropolis_fire_escape: views 2-6 are walked between the bridge and landing-pad warps, view 7 is selected by caption text.	
 load_screens/dryfield_night_lobby_chapter_5/background	Load-screen picture for Dryfield night with destination Motel Lobby in story chapter 5, shown under the Dryfield-return boot caption; what lands on it is open.	
 rooms/akropolis/helicopter_landing_pad/view1_background..rooms/akropolis/helicopter_landing_pad/view23_background	View backgrounds of acropolis_helicopter_landing_pad (27 view files): the walked ring 2-10 around the pad, plus intro, ending, lift-ride and departure scene views.	
 load_screens/dryfield_night_trailer_chapter_5/background	Load-screen picture for Dryfield night with destination Trailer Coach in story chapter 5, shown under the Dryfield-return boot caption; what lands on it is open.	
@@ -3667,7 +3667,7 @@ rooms/akropolis/square/view6_image	8-bit sheet (two pages) of the 91 depth-sorte
 rooms/akropolis/square/view7_image	8-bit sheet (two pages) of the 94 depth-sorted occluder sprites of akropolis_square's mapped view 7.	
 rooms/akropolis/square/view8_image	8-bit sheet of the 53 depth-sorted occluder sprites of akropolis_square's mapped view 8.	
 pe2img_31	Two-page 8-bit body and hand texture of the player model in aya_10400 (resource variant 1, set on leaving for the Acropolis); a head rectangle is overwritten by the texture sequences.	
-rooms/akropolis/story_calls_atlas	4-bit caption glyph atlas with name plates for the telephone cutscene's dialogue, brought in as view 9's image in akropolis_square, acropolis_fire_escape and mist_parking.	
+rooms/akropolis/story_calls_atlas	4-bit caption glyph atlas with name plates for the telephone cutscene's dialogue, brought in as view 9's image in akropolis_square, akropolis_fire_escape and mist_parking.	
 rooms/akropolis/square/view15_image	640x240 8-bit panorama of the square, panned across the screen as three strips by akropolis_square's scrolling backdrop task during the arrival scene (view 15).	
 rooms/akropolis/east_elevator_hall/dialogue_0_atlas	4-bit caption glyph atlas of akropolis_east_elevator_hall's dialogue, drawn by gameplay's caption code whenever the room shows text.	
 rooms/akropolis/east_elevator_hall/view2_image	8-bit sheet of the 39 depth-sorted occluder sprites of akropolis_east_elevator_hall's mapped view 2.	
@@ -3795,10 +3795,10 @@ rooms/akropolis/bridge/view7_image_2	8-bit sheet (three pages) holding the rest 
 rooms/akropolis/bridge/view8_image	8-bit sheet (two pages) of the digit sprites of akropolis_bridge's keypad display, shown in mapped view 8 as the three-digit code is typed.	
 rooms/akropolis/bridge/view10_image	8-bit page holding the large sprite of arrival frame 1 in akropolis_bridge's arrival scene (mapped view 10).	
 rooms/akropolis/bridge/view10_image_2	8-bit sheet (three pages) of the three-frame sprite animation that akropolis_bridge's arrival scene script steps through.	
-rooms/akropolis/fire_escape/dialogue_0_atlas	4-bit caption glyph atlas of acropolis_fire_escape's default dialogue file (slot 10), drawn by gameplay's caption code outside the telephone cutscene.	
-rooms/akropolis/fire_escape/view3_image	8-bit sheet (two pages) of the 13 occluder sprites of acropolis_fire_escape's view 3.	
-rooms/akropolis/fire_escape/view5_image	8-bit sheet (two pages) of the 5 room sprites of acropolis_fire_escape's view 5.	
-rooms/akropolis/fire_escape/view7_image	8-bit sheet (two pages) of the 5 room sprites of acropolis_fire_escape's view 7, a view only caption command 1 selects.	
+rooms/akropolis/fire_escape/dialogue_0_atlas	4-bit caption glyph atlas of akropolis_fire_escape's default dialogue file (slot 10), drawn by gameplay's caption code outside the telephone cutscene.	
+rooms/akropolis/fire_escape/view3_image	8-bit sheet (two pages) of the 13 occluder sprites of akropolis_fire_escape's view 3.	
+rooms/akropolis/fire_escape/view5_image	8-bit sheet (two pages) of the 5 room sprites of akropolis_fire_escape's view 5.	
+rooms/akropolis/fire_escape/view7_image	8-bit sheet (two pages) of the 5 room sprites of akropolis_fire_escape's view 7, a view only caption command 1 selects.	
 weapons/m4a1/preview_image	Item preview picture of weapon 0x8F, the M4A1 Rifle, drawn in gameplay's item menu panels when that weapon is selected.	
 rooms/akropolis/helicopter_landing_pad/dialogue_0_atlas	4-bit caption glyph atlas of acropolis_helicopter_landing_pad's dialogue, drawn by gameplay's caption code.	
 rooms/akropolis/helicopter_landing_pad/image	Effect sheet of acropolis_helicopter_landing_pad: additive blast and drifting flare billboards drawn by the room's effects and by enemies/golem/no_9/package_akropolis's blast source.	
@@ -4651,7 +4651,7 @@ rooms/akropolis/roof_garden/sounds_2	Acropolis roof garden room sound bank: warp
 rooms/akropolis/bridge/sounds_0	Footstep bank of akropolis_bridge: walk, scripted-jump and run step sounds on surface classes 2 and 4.	
 rooms/akropolis/bridge/sounds_1	Acropolis bridge room sound bank: door sounds of warps 0 and 1 and the keypad's key beep, code-rejected and code-accepted sounds.	
 weapons/mp5a5/p1_sounds	MP5A5 P1 weapon sound bank (weapon 31): primary shot, secondary flash fire, empty-chamber click, reload start and reload load cues.	
-rooms/akropolis/fire_escape/sounds_0	Footstep bank of acropolis_fire_escape: walk and run step sounds on the floor and stair-climb steps on the two stair flights.	
+rooms/akropolis/fire_escape/sounds_0	Footstep bank of akropolis_fire_escape: walk and run step sounds on the floor and stair-climb steps on the two stair flights.	
 rooms/akropolis/fire_escape/sounds_1	Acropolis fire escape room sound bank: bridge door sounds, a view-levelled ambience loop, the flickering lamp's one-shot, and the telephone cutscene's start/scene/after/end sounds.	
 rooms/akropolis/helicopter_landing_pad/sounds_0	Footstep bank of acropolis_helicopter_landing_pad: walk, run and scripted-stairs step sounds on surface classes 2 and 3.	
 rooms/akropolis/helicopter_landing_pad/sounds_1	Helicopter landing pad room sound bank: room ambience until the No. 9 encounter, intro sound, lift travel, light sparks, and enemies/golem/no_9/package_akropolis's blast, light-break and grenade sounds in the fight.	

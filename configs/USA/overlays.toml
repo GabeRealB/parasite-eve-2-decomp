@@ -1334,13 +1334,14 @@ objects = [
   { kind = "collisionSource", at = "0xE0D4", in_c = true, cell_face_list_macro = "AKROPOLIS_BRIDGE_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
-[rooms.overlays.acropolis_fire_escape]
+[rooms.overlays.akropolis_fire_escape]
 id = 299
+src = "src/stages/akropolis/rooms/fire_escape"
 objects = [
   { kind = "packageId" },
-  { unit = "acropolis_fire_escape/acropolis_fire_escape", rodata = "0x4", text = "0x110", data = "0x4438", bss = "0x5A80" },
+  { unit = "fire_escape", rodata = "0x4", text = "0x110", data = "0x4438", bss = "0x5A80" },
   { kind = "collision", at = "0x48B4", in_c = true },
-  { kind = "collisionSource", at = "0x4CE8", in_c = true, cell_face_list_macro = "ACROPOLIS_FIRE_ESCAPE_CELL_FACE_LIST_AT_OFFSET" },
+  { kind = "collisionSource", at = "0x4CE8", in_c = true, cell_face_list_macro = "AKROPOLIS_FIRE_ESCAPE_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.acropolis_helicopter_landing_pad]

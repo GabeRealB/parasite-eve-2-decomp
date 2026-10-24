@@ -143,15 +143,15 @@ gAkropolisBridgeWarpEntries = 0x80189AB4; // absolute:True owner=akropolis_bridg
 gAkropolisBridgeSpriteViews = 0x8018FFA4; // absolute:True owner=akropolis_bridge
 gAkropolisBridgeViewCameras = 0x80190A24; // absolute:True owner=akropolis_bridge
 gAkropolisBridgeSurfacePropertiesByClass = 0x80190C34; // absolute:True owner=akropolis_bridge
-acropolisFireEscapeRoomTask = 0x8017FF24; // type:func absolute:True owner=acropolis_fire_escape
-gAcropolisFireEscapeCollisionRoomResources = 0x80181DAC; // absolute:True owner=acropolis_fire_escape
-gAcropolisFireEscapeViewMaps = 0x80181DBC; // absolute:True owner=acropolis_fire_escape shared=rooms
-gAcropolisFireEscapeViewCounts = 0x80181DC0; // absolute:True owner=acropolis_fire_escape
-gAcropolisFireEscapeRoomLightingTable = 0x80181DC4; // absolute:True owner=acropolis_fire_escape shared=rooms
-gAcropolisFireEscapeWarpEntries = 0x80181DCC; // absolute:True owner=acropolis_fire_escape shared=rooms
-gAcropolisFireEscapeSpriteViews = 0x80182E18; // absolute:True owner=acropolis_fire_escape shared=rooms
-gAcropolisFireEscapeViewCameras = 0x80182E90; // absolute:True owner=acropolis_fire_escape
-gAcropolisFireEscapeSurfacePropertiesByClass = 0x80183020; // absolute:True owner=acropolis_fire_escape shared=rooms
+akropolisFireEscapeRoomTask = 0x8017FF24; // type:func absolute:True owner=akropolis_fire_escape
+gAkropolisFireEscapeCollisionRoomResources = 0x80181DAC; // absolute:True owner=akropolis_fire_escape
+gAkropolisFireEscapeViewMaps = 0x80181DBC; // absolute:True owner=akropolis_fire_escape shared=rooms
+gAkropolisFireEscapeViewCounts = 0x80181DC0; // absolute:True owner=akropolis_fire_escape
+gAkropolisFireEscapeRoomLightingTable = 0x80181DC4; // absolute:True owner=akropolis_fire_escape shared=rooms
+gAkropolisFireEscapeWarpEntries = 0x80181DCC; // absolute:True owner=akropolis_fire_escape shared=rooms
+gAkropolisFireEscapeSpriteViews = 0x80182E18; // absolute:True owner=akropolis_fire_escape shared=rooms
+gAkropolisFireEscapeViewCameras = 0x80182E90; // absolute:True owner=akropolis_fire_escape
+gAkropolisFireEscapeSurfacePropertiesByClass = 0x80183020; // absolute:True owner=akropolis_fire_escape shared=rooms
 acropolisHelicopterLandingPadLiftTask = 0x8017D964; // type:func absolute:True owner=acropolis_helicopter_landing_pad shared=rooms
 acropolisHelicopterLandingPadRoomTask = 0x8017EB00; // type:func absolute:True owner=acropolis_helicopter_landing_pad
 acropolisHelicopterLandingPadPickupModelTask = 0x801822B0; // type:func absolute:True owner=acropolis_helicopter_landing_pad

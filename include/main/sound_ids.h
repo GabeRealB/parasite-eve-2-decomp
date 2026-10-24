@@ -226,10 +226,10 @@ enum {
     SOUND_AKROPOLIS_BRIDGE_CODE_ACCEPTED = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_BRIDGE, 9),
     /// Looping ambience whose level follows the camera view (view 8 full, views 2-3
     /// 0x1E, views 4-5 0xF), stopped when the player leaves the room.
-    SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_FIRE_ESCAPE, 5),
+    SOUND_AKROPOLIS_FIRE_ESCAPE_AMBIENCE = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_FIRE_ESCAPE, 5),
     /// Positional one-shot each time the room's flickering glow effect jumps from dim
     /// (<=0x10) to bright (>=0x20).
-    SOUND_ACROPOLIS_FIRE_ESCAPE_LIGHT_FLICKER = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_FIRE_ESCAPE, 6),
+    SOUND_AKROPOLIS_FIRE_ESCAPE_LIGHT_FLICKER = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_FIRE_ESCAPE, 6),
     /// Positional one-shot when the helipad floodlight effect randomly flares, spawning
     /// one 0x6003B and six 0x600A4 effects and a point light.
     SOUND_HELICOPTER_LANDING_PAD_LIGHT_SPARK = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_HELICOPTER_LANDING_PAD, 1),

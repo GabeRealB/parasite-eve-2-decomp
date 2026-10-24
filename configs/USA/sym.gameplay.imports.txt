@@ -565,9 +565,9 @@ akropolisEastElevatorHallReflectionsAndBeaconsTask = 0x8017F5B4; // type:func ab
 
 akropolisEastElevatorHallRedBeaconTask = 0x8017F77C; // type:func absolute:True owner=akropolis_east_elevator_hall shared=rooms
 
-acropolisFireEscapeFlickerLightTask = 0x80180154; // type:func absolute:True owner=acropolis_fire_escape
+akropolisFireEscapeFlickerLightTask = 0x80180154; // type:func absolute:True owner=akropolis_fire_escape
 
-acropolisFireEscapeFlareTask = 0x80180B20; // type:func absolute:True owner=acropolis_fire_escape
+akropolisFireEscapeFlareTask = 0x80180B20; // type:func absolute:True owner=akropolis_fire_escape
 
 akropolisForkedRoadInitializeRoomEffectsTask = 0x8017E298; // type:func absolute:True owner=akropolis_forked_road
 
@@ -1397,7 +1397,7 @@ gAkropolisCafeteriaAreaVariants = 0x80189DCC; // absolute:True owner=akropolis_c
 
 gAkropolisEastElevatorHallAreaVariants = 0x80186C50; // absolute:True owner=akropolis_east_elevator_hall
 
-gAcropolisFireEscapeAreaVariants = 0x8018294C; // absolute:True owner=acropolis_fire_escape
+gAkropolisFireEscapeAreaVariants = 0x8018294C; // absolute:True owner=akropolis_fire_escape
 
 gAkropolisForkedRoadAreaVariants = 0x801831C4; // absolute:True owner=akropolis_forked_road
 
@@ -1689,7 +1689,7 @@ gMistShootingGalleryResultPanelDesc = 0x80185000; // absolute:True owner=mist_sh
 
 akropolisSquareTelephoneMenuTask = 0x80180804; // type:func absolute:True owner=akropolis_square
 
-acropolisFireEscapeTelephoneMenuTask = 0x8017EA68; // type:func absolute:True owner=acropolis_fire_escape
+akropolisFireEscapeTelephoneMenuTask = 0x8017EA68; // type:func absolute:True owner=akropolis_fire_escape
 
 mistParkingTelephoneMenuTask = 0x80181468; // type:func absolute:True owner=mist_parking
 
@@ -1757,7 +1757,7 @@ neoArkSubstationDrawLightGlowsTask = 0x8017D874; // type:func absolute:True owne
 
 mistParkingDrawGlowsTask = 0x80184728; // type:func absolute:True owner=mist_parking
 
-acropolisFireEscapeLightEmitterTask = 0x8017FF7C; // type:func absolute:True owner=acropolis_fire_escape shared=rooms
+akropolisFireEscapeLightEmitterTask = 0x8017FF7C; // type:func absolute:True owner=akropolis_fire_escape shared=rooms
 
 akropolisCafeteriaPuffTask = 0x8017EA90; // type:func absolute:True owner=akropolis_cafeteria shared=rooms
 

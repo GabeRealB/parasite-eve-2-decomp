@@ -6623,8 +6623,8 @@ TREE = {
                 'file9': {"id": 9, "chunks": {'bs_213': 'rooms/akropolis/bridge/view9_background'}},
                 'file10': {"id": 10, "chunks": {'pe2img_424': 'rooms/akropolis/bridge/view10_image', 'pe2img_425': 'rooms/akropolis/bridge/view10_image_2', 'bs_214': 'rooms/akropolis/bridge/view10_background'}},
             }},
-            'acropolis_fire_escape': {"id": 1501, "files": {
-                'file0': {"id": 0, "chunks": {'spk_180': 'rooms/akropolis/fire_escape/sounds_0', 'spk_181': 'rooms/akropolis/fire_escape/sounds_1', 'acropolis_fire_escape_dialogue_0_atlas': 'rooms/akropolis/fire_escape/dialogue_0_atlas', 'package': 'rooms/akropolis/fire_escape/package', 'bundle': 'rooms/akropolis/fire_escape/bundle'}},
+            'akropolis_fire_escape': {"id": 1501, "files": {
+                'file0': {"id": 0, "chunks": {'spk_180': 'rooms/akropolis/fire_escape/sounds_0', 'spk_181': 'rooms/akropolis/fire_escape/sounds_1', 'akropolis_fire_escape_dialogue_0_atlas': 'rooms/akropolis/fire_escape/dialogue_0_atlas', 'package': 'rooms/akropolis/fire_escape/package', 'bundle': 'rooms/akropolis/fire_escape/bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_215': 'rooms/akropolis/fire_escape/view1_background'}},
                 'file2': {"id": 2, "chunks": {'bs_216': 'rooms/akropolis/fire_escape/view2_background'}},
                 'file3': {"id": 3, "chunks": {'pe2img_427': 'rooms/akropolis/fire_escape/view3_image', 'bs_217': 'rooms/akropolis/fire_escape/view3_background'}},

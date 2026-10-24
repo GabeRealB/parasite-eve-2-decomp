@@ -75,7 +75,7 @@
 
 #include "rooms/akropolis_east_elevator_hall.h"
 
-#include "rooms/acropolis_fire_escape.h"
+#include "rooms/akropolis_fire_escape.h"
 
 #include "rooms/akropolis_forked_road.h"
 
@@ -611,8 +611,8 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, akropolisPromenadeGlowStarTask, { NULL } },                                         // 0x04B
     { { { TASK_BODY_COORD, 0x70 } }, actor510900FlameSpriteTask4C, { NULL } },                                           // 0x04C
     { { { TASK_BODY_COORD, 0x70 } }, akropolisPlazaSpawnAmbientLightsTask, { NULL } },                                   // 0x04D
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisFireEscapeLightEmitterTask, { NULL } },                                    // 0x04E
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisFireEscapeFlareTask, { NULL } },                                           // 0x04F
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisFireEscapeLightEmitterTask, { NULL } },                                    // 0x04E
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisFireEscapeFlareTask, { NULL } },                                           // 0x04F
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelBalconyBreakBurstTask, { NULL } },                                // 0x050
     { { { TASK_BODY_COORD, 0x70 } }, akropolisForkedRoadLeafFallTask, { NULL } },                                        // 0x051
     { { { TASK_BODY_COORD, 0x70 } }, actor510900FlameSpriteTask52, { NULL } },                                           // 0x052
@@ -673,7 +673,7 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, akropolisForkedRoadWallLampTask, { NULL } },                                        // 0x089
     { { { TASK_BODY_COORD, 0x70 } }, akropolisRoofGardenLightGlowTask, { NULL } },                                       // 0x08A
     { { { TASK_BODY_COORD, 0x70 } }, akropolisSanctuaryFlameTask, { NULL } },                                            // 0x08B
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisFireEscapeFlickerLightTask, { NULL } },                                    // 0x08C
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisFireEscapeFlickerLightTask, { NULL } },                                    // 0x08C
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask8D, { NULL } },                                                     // 0x08D
     { { { TASK_BODY_COORD, 0x70 } }, effectHitSparkBurstTask, { NULL } },                                                // 0x08E
     { { { TASK_BODY_COORD, 0x70 } }, akropolisPatioLightMoteTask, { NULL } },                                            // 0x08F
