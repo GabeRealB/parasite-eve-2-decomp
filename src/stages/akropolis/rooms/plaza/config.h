@@ -67,7 +67,7 @@ enum {
 // Triggers and scenes
 
 /// Event kinds of the plaza sequence: `WorldCollisionTrigger::parameter0` of the room's action triggers, latched in
-/// `_AkropolisPlazaSequenceWork::eventKind`.
+/// the sequence work's `eventKind` (plaza.c).
 enum {
     AKROPOLIS_PLAZA_EVENT_HELICOPTER_WRECK = 0, // Once
     AKROPOLIS_PLAZA_EVENT_SERGEANT         = 1, // Once, and before every other scene

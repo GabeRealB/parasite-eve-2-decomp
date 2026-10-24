@@ -76,37 +76,37 @@
 
 /// Screen geometry shared by the plaza's fade and cinematic bars, in pixels.
 enum {
-    AKROPOLIS_PLAZA_LETTERBOX_HEIGHT = 24
+    LETTERBOX_HEIGHT = 24
 };
 
 /// Sweep, reach, flicker and fan units of the plaza's lights, beside the glow library's projection and angle units.
 enum {
-    AKROPOLIS_PLAZA_LIGHT_CULL_X                    = 192, // Absolute center X in screen pixels; exclusive
-    AKROPOLIS_PLAZA_LIGHT_CULL_Y                    = 152, // Absolute center Y in screen pixels; exclusive
-    AKROPOLIS_PLAZA_LIGHT_HALF_TURN_SHIFT           = 11,
-    AKROPOLIS_PLAZA_LIGHT_YAW_STEP                  = 0x80,
-    AKROPOLIS_PLAZA_LIGHT_YAW_MASK                  = GLOW_FULL_TURN - 1,
-    AKROPOLIS_PLAZA_LIGHT_SHORT_REACH               = 0x200, // Local +Z world units
-    AKROPOLIS_PLAZA_LIGHT_LONG_REACH                = 0x800,
-    AKROPOLIS_PLAZA_LIGHT_FAR_GLOW_Z                = 0xE00,
-    AKROPOLIS_PLAZA_LIGHT_FAR_GLOW_YAW_WINDOW       = 0x300,
-    AKROPOLIS_PLAZA_LIGHT_FAN_SAMPLES               = 16, // One turn; each wedge spans two samples
-    AKROPOLIS_PLAZA_LIGHT_FAR_GLOW_RADIUS_NUMERATOR = 0x10000,
-    AKROPOLIS_PLAZA_LIGHT_FLICKER_BASE_INTENSITY    = 0x80,
-    AKROPOLIS_PLAZA_LIGHT_FLICKER_INTENSITY_MASK    = 0x7F,
-    AKROPOLIS_PLAZA_LIGHT_PULSE_HALF_PERIOD         = 0x80,
-    AKROPOLIS_PLAZA_LIGHT_PULSE_LEVEL_MASK          = 0x7F,
+    LIGHT_CULL_X                    = 192, // Absolute center X in screen pixels; exclusive
+    LIGHT_CULL_Y                    = 152, // Absolute center Y in screen pixels; exclusive
+    LIGHT_HALF_TURN_SHIFT           = 11,
+    LIGHT_YAW_STEP                  = 0x80,
+    LIGHT_YAW_MASK                  = GLOW_FULL_TURN - 1,
+    LIGHT_SHORT_REACH               = 0x200, // Local +Z world units
+    LIGHT_LONG_REACH                = 0x800,
+    LIGHT_FAR_GLOW_Z                = 0xE00,
+    LIGHT_FAR_GLOW_YAW_WINDOW       = 0x300,
+    LIGHT_FAN_SAMPLES               = 16, // One turn; each wedge spans two samples
+    LIGHT_FAR_GLOW_RADIUS_NUMERATOR = 0x10000,
+    LIGHT_FLICKER_BASE_INTENSITY    = 0x80,
+    LIGHT_FLICKER_INTENSITY_MASK    = 0x7F,
+    LIGHT_PULSE_HALF_PERIOD         = 0x80,
+    LIGHT_PULSE_LEVEL_MASK          = 0x7F,
 };
 
 /// Translates one rotated light vertex into world space, narrowing at each store.
-#define AKROPOLIS_PLAZA_TRANSLATE_LIGHT_VERTEX(vertex, coordinate) \
-    (vertex)->vx += (u16)(coordinate)->workm.t[0];                 \
-    (vertex)->vy += (u16)(coordinate)->workm.t[1];                 \
+#define TRANSLATE_LIGHT_VERTEX(vertex, coordinate) \
+    (vertex)->vx += (u16)(coordinate)->workm.t[0]; \
+    (vertex)->vy += (u16)(coordinate)->workm.t[1]; \
     (vertex)->vz += (u16)(coordinate)->workm.t[2]
 
 /// Queues the eight Gouraud wedges of one additive light glow.
-#define AKROPOLIS_PLAZA_DRAW_LIGHT_GLOW_FAN(center, radius, depth, primitive, sampleIndex, red, green, blue)                   \
-    for ((sampleIndex) = 0; (sampleIndex) < AKROPOLIS_PLAZA_LIGHT_FAN_SAMPLES; (sampleIndex) += 2) {                           \
+#define DRAW_LIGHT_GLOW_FAN(center, radius, depth, primitive, sampleIndex, red, green, blue)                                   \
+    for ((sampleIndex) = 0; (sampleIndex) < LIGHT_FAN_SAMPLES; (sampleIndex) += 2) {                                           \
         (primitive)    = gGpuPrimCursor;                                                                                       \
         gGpuPrimCursor = (primitive) + 1;                                                                                      \
         setPolyG4((primitive));                                                                                                \
@@ -126,7 +126,7 @@ enum {
         gpuSetPrimitiveBlendMode((primitive), GPU_BLEND_ADD, (depth));                                                         \
     }
 
-/// Index of one vertex in `_AkropolisPlazaBeamScratch`.
+/// Index of one vertex in `_BeamScratch`.
 enum {
     AKROPOLIS_PLAZA_BEAM_VERTEX_CENTER,    // Beacon origin and the beam's apex; replaced by the far glow's center
     AKROPOLIS_PLAZA_BEAM_VERTEX_FAR_LEFT,  // Far edge of the beam, at the beam's current length
@@ -145,8 +145,8 @@ typedef struct {
     s32     glowRadius;                                         // On-screen radius in pixels of the wedge fan round the center: a world size divided by `otz`
     SVECTOR vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_COUNT];        // Beam vertices: staged in the beacon's frame, then the world positions supplied to the projection
     DVECTOR centerScreenPos;                                    // Projected center in screen pixels, stored as one GTE word
-} _AkropolisPlazaBeamScratch;
-STATIC_ASSERT_SIZEOF(_AkropolisPlazaBeamScratch, 0x60);
+} _BeamScratch;
+STATIC_ASSERT_SIZEOF(_BeamScratch, 0x60);
 
 /// Scratch-stack workspace for one frame of a light flare.
 typedef struct {
@@ -157,47 +157,47 @@ typedef struct {
     SVECTOR worldPos;       // Center in world coordinates, the input to the projection; staged in the flare's frame for the far glow
     u8      unused28[0x20]; // Reserved with the block but never accessed; role unproven
     DVECTOR screenPos;      // Projected center in screen pixels, stored as one GTE word
-} _AkropolisPlazaFlareScratch;
-STATIC_ASSERT_SIZEOF(_AkropolisPlazaFlareScratch, 0x4C);
+} _FlareScratch;
+STATIC_ASSERT_SIZEOF(_FlareScratch, 0x4C);
 
 /// The camera paths `_akropolisPlazaApplyMovieCamera` selects, one sample per half movie frame. Selectors 0..3 all
 /// take the traversal's path; the traversal uses 0 and 1, its two movies.
 enum {
-    AKROPOLIS_PLAZA_CAMERA_TRAVERSAL             = 0,
-    AKROPOLIS_PLAZA_CAMERA_HELICOPTER_WRECK      = 4,
-    AKROPOLIS_PLAZA_CAMERA_OFFICERS_TALK         = 5,
-    AKROPOLIS_PLAZA_CAMERA_ENTRANCE_OFFICER_TALK = 6,
-    AKROPOLIS_PLAZA_CAMERA_ENTERING_TOWER        = 7,
+    CAMERA_TRAVERSAL             = 0,
+    CAMERA_HELICOPTER_WRECK      = 4,
+    CAMERA_OFFICERS_TALK         = 5,
+    CAMERA_ENTRANCE_OFFICER_TALK = 6,
+    CAMERA_ENTERING_TOWER        = 7,
 };
 
 /// Spawn argument of the traversal task.
 typedef struct {
     u16 startFrame;      // Scene frame to resume at; seeds both `CdCmdQueue::sceneFrame` and `movieFrame`
     u16 skipStreamReset; // 0 resets the stream to the frame before `startFrame`; non-zero only clears `movieAtEnd`
-} _AkropolisPlazaTraversalArg;
-STATIC_ASSERT_SIZEOF(_AkropolisPlazaTraversalArg, 0x4);
+} _TraversalArg;
+STATIC_ASSERT_SIZEOF(_TraversalArg, 0x4);
 
 /// Which way the player is crossing the current shot's edge, and how fast.
 enum {
-    AKROPOLIS_PLAZA_EDGE_NONE = 0,
-    AKROPOLIS_PLAZA_EDGE_WALK = 1,
-    AKROPOLIS_PLAZA_EDGE_RUN  = 2
+    EDGE_NONE = 0,
+    EDGE_WALK = 1,
+    EDGE_RUN  = 2
 };
 
 /// How far ahead of the current shot (along -X) or behind it the player may go, in world units, before the movie moves
 /// on; and the traversal's first frame, which has no shot behind it.
 enum {
-    AKROPOLIS_PLAZA_FORWARD_EDGE          = 201,
-    AKROPOLIS_PLAZA_BACK_EDGE             = -20,
-    AKROPOLIS_PLAZA_FIRST_TRAVERSAL_FRAME = 1
+    FORWARD_EDGE          = 201,
+    BACK_EDGE             = -20,
+    FIRST_TRAVERSAL_FRAME = 1
 };
 
 /// Seek scale stored in `frameStep`, and the stream frames one movie frame spans.
 enum {
-    AKROPOLIS_PLAZA_FRAME_STEP_FINE    = 1,
-    AKROPOLIS_PLAZA_FRAME_STEP_COARSE  = 2,
-    AKROPOLIS_PLAZA_SEEK_FRAMES_FINE   = 10,
-    AKROPOLIS_PLAZA_SEEK_FRAMES_COARSE = 40
+    FRAME_STEP_FINE    = 1,
+    FRAME_STEP_COARSE  = 2,
+    SEEK_FRAMES_FINE   = 10,
+    SEEK_FRAMES_COARSE = 40
 };
 
 /// Work block of the traversal task, kept in `Task::work`.
@@ -218,54 +218,54 @@ typedef struct {
     s16        prevBack;     // `back` from the previous frame
     s16        frameStep;    // Seek scale (1 = 10 stream frames, 2 = 40). This task only stores 1
     byte       field_30[4];  // No access established; role unproven
-} _AkropolisPlazaTraversalWork;
-STATIC_ASSERT_SIZEOF(_AkropolisPlazaTraversalWork, 0x34);
+} _TraversalWork;
+STATIC_ASSERT_SIZEOF(_TraversalWork, 0x34);
 
-/// Steps of the plaza sequence's event handling, kept in `_AkropolisPlazaSequenceWork::step`.
+/// Steps of the plaza sequence's event handling, kept in `_SequenceWork::step`.
 enum {
-    AKROPOLIS_PLAZA_STEP_AWAIT_SERGEANT     = 0, // Before the barricade: accepts the sergeant or a caption
-    AKROPOLIS_PLAZA_STEP_RUN_SERGEANT       = 1, // The sergeant's scene; his trigger is unlinked when it ends
-    AKROPOLIS_PLAZA_STEP_AWAIT_EVENT        = 2, // Past the barricade: accepts every event but the sergeant's
-    AKROPOLIS_PLAZA_STEP_RUN_SCENE          = 3, // The helicopter wreck or the entrance; the entrance ends the sequence
-    AKROPOLIS_PLAZA_STEP_RUN_SERGEANT_AGAIN = 4, // Talking to the sergeant again; the next visit's talk follows
-    AKROPOLIS_PLAZA_STEP_RUN_FIRST_CAPTION  = 5, // A caption before the barricade; back to AWAIT_SERGEANT
-    AKROPOLIS_PLAZA_STEP_RUN_CAPTION        = 6  // A caption past it; back to AWAIT_EVENT
+    STEP_AWAIT_SERGEANT     = 0, // Before the barricade: accepts the sergeant or a caption
+    STEP_RUN_SERGEANT       = 1, // The sergeant's scene; his trigger is unlinked when it ends
+    STEP_AWAIT_EVENT        = 2, // Past the barricade: accepts every event but the sergeant's
+    STEP_RUN_SCENE          = 3, // The helicopter wreck or the entrance; the entrance ends the sequence
+    STEP_RUN_SERGEANT_AGAIN = 4, // Talking to the sergeant again; the next visit's talk follows
+    STEP_RUN_FIRST_CAPTION  = 5, // A caption before the barricade; back to AWAIT_SERGEANT
+    STEP_RUN_CAPTION        = 6  // A caption past it; back to AWAIT_EVENT
 };
 
-/// Which visit to the sergeant after the first; the last repeats, `_AkropolisPlazaSequenceWork::sergeantAgainVisit`.
+/// Which visit to the sergeant after the first; the last repeats, `_SequenceWork::sergeantAgainVisit`.
 enum {
-    AKROPOLIS_PLAZA_SERGEANT_AGAIN_FIRST  = 0,
-    AKROPOLIS_PLAZA_SERGEANT_AGAIN_SECOND = 1,
-    AKROPOLIS_PLAZA_SERGEANT_AGAIN_LATER  = 2,
+    SERGEANT_AGAIN_FIRST  = 0,
+    SERGEANT_AGAIN_SECOND = 1,
+    SERGEANT_AGAIN_LATER  = 2,
 };
 
 /// Work block of the plaza's sequence task, kept in `Task::work`.
 typedef struct {
-    byte                        field_0[4];          // No access established; role unproven
-    Task*                       playerTask;          // Borrowed player task, cached on the first frame and not read back
-    Task*                       traversalTask;       // The traversal task; a scene kills it when its own movie takes over
-    Task*                       eventTask;           // The scene or caption answering the latched event, polled until killed; first the opening movie's setup
-    _AkropolisPlazaTraversalArg traversalArg;        // Spawn argument of `traversalTask`, refilled before every spawn
-    u16                         step;                // Event-handling step (`AKROPOLIS_PLAZA_STEP_*`)
-    u16                         eventControl;        // Latched trigger `control` word; stored and not read back
-    u8                          eventKind;           // Latched trigger `parameter0` (`AKROPOLIS_PLAZA_EVENT_*`); read back as a signed byte
-    u8                          eventParameter1;     // Latched trigger `parameter1`; stored and not read back
-    u16                         resumeFrame;         // Traversal frame when the event began; the traversal resumes there afterwards
-    u16                         sergeantAgainVisit;  // The next visit to the sergeant (`AKROPOLIS_PLAZA_SERGEANT_AGAIN_*`)
-    u16                         walkAmbiencePlaying; // Non-zero while that ambience is started; the three below likewise
-    u16                         officerAmbiencePlaying;
-    u16                         entryAmbiencePlaying;
-    u16                         approachAmbiencePlaying;
-} _AkropolisPlazaSequenceWork;
-STATIC_ASSERT_SIZEOF(_AkropolisPlazaSequenceWork, 0x28);
+    byte          field_0[4];          // No access established; role unproven
+    Task*         playerTask;          // Borrowed player task, cached on the first frame and not read back
+    Task*         traversalTask;       // The traversal task; a scene kills it when its own movie takes over
+    Task*         eventTask;           // The scene or caption answering the latched event, polled until killed; first the opening movie's setup
+    _TraversalArg traversalArg;        // Spawn argument of `traversalTask`, refilled before every spawn
+    u16           step;                // Event-handling step (`AKROPOLIS_PLAZA_STEP_*`)
+    u16           eventControl;        // Latched trigger `control` word; stored and not read back
+    u8            eventKind;           // Latched trigger `parameter0` (`AKROPOLIS_PLAZA_EVENT_*`); read back as a signed byte
+    u8            eventParameter1;     // Latched trigger `parameter1`; stored and not read back
+    u16           resumeFrame;         // Traversal frame when the event began; the traversal resumes there afterwards
+    u16           sergeantAgainVisit;  // The next visit to the sergeant (`AKROPOLIS_PLAZA_SERGEANT_AGAIN_*`)
+    u16           walkAmbiencePlaying; // Non-zero while that ambience is started; the three below likewise
+    u16           officerAmbiencePlaying;
+    u16           entryAmbiencePlaying;
+    u16           approachAmbiencePlaying;
+} _SequenceWork;
+STATIC_ASSERT_SIZEOF(_SequenceWork, 0x28);
 
 /// Work block of the plaza's player-scripting event tasks, kept in `Task::work`.
 /// The tasks send their scripted motion through `task->work` read again, not their `work` local: the original does.
 typedef struct {
     Task* playerTask;    // Borrowed player task the scripted-control messages are sent to; set once on the first frame
     s16   elapsedFrames; // Frames counted in the current timed wait; restarted from 0 when one begins
-} _AkropolisPlazaEventWork;
-STATIC_ASSERT_SIZEOF(_AkropolisPlazaEventWork, 0x8);
+} _EventWork;
+STATIC_ASSERT_SIZEOF(_EventWork, 0x8);
 
 static void _akropolisPlazaFadeOutTask(Task* task);
 static void _akropolisPlazaOpeningMovieTask(Task* task);
@@ -298,54 +298,54 @@ TaskDesc gAkropolisPlazaSequenceTaskDescriptors[AKROPOLIS_PLAZA_TASK_COUNT] = {
 
 /// The camera paths' lengths in movie frames; each frame has two samples, one per half frame.
 enum {
-    AKROPOLIS_PLAZA_CAMERA_SAMPLES_PER_FRAME                 = 2,
-    AKROPOLIS_PLAZA_CAMERA_TRAVERSAL_FRAME_COUNT             = 400,
-    AKROPOLIS_PLAZA_CAMERA_HELICOPTER_WRECK_FRAME_COUNT      = 120,
-    AKROPOLIS_PLAZA_CAMERA_OFFICERS_TALK_FRAME_COUNT         = 150,
-    AKROPOLIS_PLAZA_CAMERA_ENTRANCE_OFFICER_TALK_FRAME_COUNT = 16,
-    AKROPOLIS_PLAZA_CAMERA_ENTERING_TOWER_FRAME_COUNT        = 50
+    CAMERA_SAMPLES_PER_FRAME                 = 2,
+    CAMERA_TRAVERSAL_FRAME_COUNT             = 400,
+    CAMERA_HELICOPTER_WRECK_FRAME_COUNT      = 120,
+    CAMERA_OFFICERS_TALK_FRAME_COUNT         = 150,
+    CAMERA_ENTRANCE_OFFICER_TALK_FRAME_COUNT = 16,
+    CAMERA_ENTERING_TOWER_FRAME_COUNT        = 50
 };
 
 /// Unread: the number of samples in the path after it. Only some paths have one.
-static s32 _gAkropolisPlazaTraversalCameraSampleCount = AKROPOLIS_PLAZA_CAMERA_TRAVERSAL_FRAME_COUNT * AKROPOLIS_PLAZA_CAMERA_SAMPLES_PER_FRAME;
+static s32 _gAkropolisPlazaTraversalCameraSampleCount = CAMERA_TRAVERSAL_FRAME_COUNT * CAMERA_SAMPLES_PER_FRAME;
 
 /// The traversal's camera, frame by frame along both of its movies.
-static ViewCamera _gAkropolisPlazaTraversalCameraSamples[AKROPOLIS_PLAZA_CAMERA_TRAVERSAL_FRAME_COUNT * AKROPOLIS_PLAZA_CAMERA_SAMPLES_PER_FRAME] = {
+static ViewCamera _gAkropolisPlazaTraversalCameraSamples[CAMERA_TRAVERSAL_FRAME_COUNT * CAMERA_SAMPLES_PER_FRAME] = {
 #include "assets/rooms/akropolis/plaza/traversal_camera_path.inc"
 };
 
 /// The camera at the helicopter wreck.
-static ViewCamera _gAkropolisPlazaHelicopterWreckCameraSamples[AKROPOLIS_PLAZA_CAMERA_HELICOPTER_WRECK_FRAME_COUNT * AKROPOLIS_PLAZA_CAMERA_SAMPLES_PER_FRAME] = {
+static ViewCamera _gAkropolisPlazaHelicopterWreckCameraSamples[CAMERA_HELICOPTER_WRECK_FRAME_COUNT * CAMERA_SAMPLES_PER_FRAME] = {
 #include "assets/rooms/akropolis/plaza/helicopter_wreck_camera_path.inc"
 };
 
 /// Unread: the number of samples in the path after it.
-static s32 _gAkropolisPlazaOfficersTalkCameraSampleCount = AKROPOLIS_PLAZA_CAMERA_OFFICERS_TALK_FRAME_COUNT * AKROPOLIS_PLAZA_CAMERA_SAMPLES_PER_FRAME;
+static s32 _gAkropolisPlazaOfficersTalkCameraSampleCount = CAMERA_OFFICERS_TALK_FRAME_COUNT * CAMERA_SAMPLES_PER_FRAME;
 
 /// The camera while the officer and the sergeant talk, after Aya has gone in.
-static ViewCamera _gAkropolisPlazaOfficersTalkCameraSamples[AKROPOLIS_PLAZA_CAMERA_OFFICERS_TALK_FRAME_COUNT * AKROPOLIS_PLAZA_CAMERA_SAMPLES_PER_FRAME] = {
+static ViewCamera _gAkropolisPlazaOfficersTalkCameraSamples[CAMERA_OFFICERS_TALK_FRAME_COUNT * CAMERA_SAMPLES_PER_FRAME] = {
 #include "assets/rooms/akropolis/plaza/officers_talk_camera_path.inc"
 };
 
 /// Unread: the number of samples in the path after it.
-static s32 _gAkropolisPlazaEntranceOfficerTalkCameraSampleCount = AKROPOLIS_PLAZA_CAMERA_ENTRANCE_OFFICER_TALK_FRAME_COUNT * AKROPOLIS_PLAZA_CAMERA_SAMPLES_PER_FRAME;
+static s32 _gAkropolisPlazaEntranceOfficerTalkCameraSampleCount = CAMERA_ENTRANCE_OFFICER_TALK_FRAME_COUNT * CAMERA_SAMPLES_PER_FRAME;
 
 /// The camera while Aya talks to the officer at the entrance.
-static ViewCamera _gAkropolisPlazaEntranceOfficerTalkCameraSamples[AKROPOLIS_PLAZA_CAMERA_ENTRANCE_OFFICER_TALK_FRAME_COUNT * AKROPOLIS_PLAZA_CAMERA_SAMPLES_PER_FRAME] = {
+static ViewCamera _gAkropolisPlazaEntranceOfficerTalkCameraSamples[CAMERA_ENTRANCE_OFFICER_TALK_FRAME_COUNT * CAMERA_SAMPLES_PER_FRAME] = {
 #include "assets/rooms/akropolis/plaza/entrance_officer_talk_camera_path.inc"
 };
 
 /// Unread: the number of samples in the path after it.
-static s32 _gAkropolisPlazaEnteringTowerCameraSampleCount = AKROPOLIS_PLAZA_CAMERA_ENTERING_TOWER_FRAME_COUNT * AKROPOLIS_PLAZA_CAMERA_SAMPLES_PER_FRAME;
+static s32 _gAkropolisPlazaEnteringTowerCameraSampleCount = CAMERA_ENTERING_TOWER_FRAME_COUNT * CAMERA_SAMPLES_PER_FRAME;
 
 /// The camera as Aya walks into the tower.
-static ViewCamera _gAkropolisPlazaEnteringTowerCameraSamples[AKROPOLIS_PLAZA_CAMERA_ENTERING_TOWER_FRAME_COUNT * AKROPOLIS_PLAZA_CAMERA_SAMPLES_PER_FRAME] = {
+static ViewCamera _gAkropolisPlazaEnteringTowerCameraSamples[CAMERA_ENTERING_TOWER_FRAME_COUNT * CAMERA_SAMPLES_PER_FRAME] = {
 #include "assets/rooms/akropolis/plaza/entering_tower_camera_path.inc"
 };
 
 /// The traversal's shot positions, one per movie frame: where its collision walls stand and the edges are measured
 /// from.
-static VECTOR3 _gAkropolisPlazaTraversalShotPositions[AKROPOLIS_PLAZA_CAMERA_TRAVERSAL_FRAME_COUNT] = {
+static VECTOR3 _gAkropolisPlazaTraversalShotPositions[CAMERA_TRAVERSAL_FRAME_COUNT] = {
 #include "assets/rooms/akropolis/plaza/traversal_shot_positions.inc"
 };
 
@@ -366,25 +366,25 @@ static VECTOR3 _gAkropolisPlazaTraversalShotPositions[AKROPOLIS_PLAZA_CAMERA_TRA
 
 /// Envelope selectors and byte-volume units of the plaza ambience driver.
 enum {
-    AKROPOLIS_PLAZA_AMBIENCE_TRIANGLE           = 0,
-    AKROPOLIS_PLAZA_AMBIENCE_QUIET_TRIANGLE     = 1,
-    AKROPOLIS_PLAZA_AMBIENCE_EARLY_FADE         = 2,
-    AKROPOLIS_PLAZA_AMBIENCE_FULL_VOLUME        = 127,
-    AKROPOLIS_PLAZA_AMBIENCE_BASE_VOLUME        = 95,
-    AKROPOLIS_PLAZA_AMBIENCE_SILENT_ATTENUATION = 127,
+    AMBIENCE_TRIANGLE           = 0,
+    AMBIENCE_QUIET_TRIANGLE     = 1,
+    AMBIENCE_EARLY_FADE         = 2,
+    AMBIENCE_FULL_VOLUME        = 127,
+    AMBIENCE_BASE_VOLUME        = 95,
+    AMBIENCE_SILENT_ATTENUATION = 127,
 };
 
 static void        _akropolisPlazaUpdateTraversalCollisionWalls(Task* sceneTask);
 static void        _akropolisPlazaApplyMovieCamera(s32 subId);
-static inline void _akropolisPlazaUpdateTraversalEdgeFlags(_AkropolisPlazaTraversalWork* work);
+static inline void _akropolisPlazaUpdateTraversalEdgeFlags(_TraversalWork* work);
 static void        _akropolisPlazaUpdateAmbienceVoice(u16 firstFrame, u16 lastFrame, u16 peakFrame, u16* startRequested, s32 soundId, u16 envelope);
 static void        _akropolisPlazaUpdateTraversalAmbience(Task* task);
 
 void akropolisPlazaPollStreamCommands(void)
 {
     enum {
-        AKROPOLIS_PLAZA_STREAM_COMMAND_INIT = 0,
-        AKROPOLIS_PLAZA_STREAM_COMMAND_POLL = 1,
+        INIT = 0,
+        POLL = 1,
     };
     CdCmdQueue* queue;
     CdCmdEntry* entry;
@@ -403,7 +403,7 @@ void akropolisPlazaPollStreamCommands(void)
             if (command < CD_COMMAND_RESUME_STREAM_AT_POSITION + 1) {
                 if (command >= CD_COMMAND_PLAY_STREAM_AT_OFFSET) {
                     switch (queue->step) {
-                        case AKROPOLIS_PLAZA_STREAM_COMMAND_INIT:
+                        case INIT:
                             switch (cdSyncPollCommand(0, 0)) {
                                 case CD_SYNC_PENDING:
                                     return;
@@ -426,7 +426,7 @@ void akropolisPlazaPollStreamCommands(void)
                                     break;
                             }
                             /* fallthrough */
-                        case AKROPOLIS_PLAZA_STREAM_COMMAND_POLL:
+                        case POLL:
                             if (queue->entries[queue->readIdx].cmd == CD_COMMAND_PLAY_STREAM_AT_OFFSET) {
                                 if (streamPollMoviePlayback(0, sectorOffset) != 0) {
                                     cdCmdCompleteHeadRequest();
@@ -449,15 +449,15 @@ void akropolisPlazaPollStreamCommands(void)
 static void _akropolisPlazaFadeOutTask(Task* task)
 {
     enum {
-        AKROPOLIS_PLAZA_FADE_OUT_INITIALIZE = 0,
-        AKROPOLIS_PLAZA_FADE_OUT_RAMP       = 1,
+        INITIALIZE = 0,
+        RAMP       = 1,
     };
     ScreenFadeWork* fade;
     ScreenFadeWork* allocatedFade;
 
     fade = task->work;
     switch (task->state) {
-        case AKROPOLIS_PLAZA_FADE_OUT_INITIALIZE:
+        case INITIALIZE:
             allocatedFade = memMalloc(sizeof(*allocatedFade), false);
             task->work    = allocatedFade;
             if (allocatedFade == NULL) {
@@ -470,7 +470,7 @@ static void _akropolisPlazaFadeOutTask(Task* task)
             fade->r      = 0;
             task->state += 1;
             /* fallthrough */
-        case AKROPOLIS_PLAZA_FADE_OUT_RAMP:
+        case RAMP:
             _screenFadeDrawTileOverlay(fade);
             _screenFadeStepUp(fade, task);
             if (fade->r >= SCREEN_FADE_OUT_COMPLETE) {
@@ -487,13 +487,13 @@ static void _akropolisPlazaFadeOutTask(Task* task)
 static void _akropolisPlazaOpeningMovieTask(Task* task)
 {
     enum {
-        AKROPOLIS_PLAZA_OPENING_MOVIE_SAVE_GRAPHICS = 0,
-        AKROPOLIS_PLAZA_OPENING_MOVIE_START         = 1,
-        AKROPOLIS_PLAZA_OPENING_MOVIE_WAIT_READY    = 2,
-        AKROPOLIS_PLAZA_OPENING_MOVIE_WAIT_END      = 3,
-        AKROPOLIS_PLAZA_OPENING_MOVIE_WAIT_CANCEL   = 4,
-        AKROPOLIS_PLAZA_OPENING_MOVIE_BEGIN_RESTORE = 5,
-        AKROPOLIS_PLAZA_OPENING_MOVIE_WAIT_RESTORE  = 6,
+        SAVE_GRAPHICS = 0,
+        START         = 1,
+        WAIT_READY    = 2,
+        WAIT_END      = 3,
+        WAIT_CANCEL   = 4,
+        BEGIN_RESTORE = 5,
+        WAIT_RESTORE  = 6,
     };
     u8              streamArgs[4];
     GameLocationKey movieLocation;
@@ -501,25 +501,25 @@ static void _akropolisPlazaOpeningMovieTask(Task* task)
 
     queue = &gCdCmdQueue;
     switch (task->state) {
-        case AKROPOLIS_PLAZA_OPENING_MOVIE_SAVE_GRAPHICS:
+        case SAVE_GRAPHICS:
             SetDispMask(0);
             streamPrepareMovieWorkspace(1);
             task->state++;
             break;
-        case AKROPOLIS_PLAZA_OPENING_MOVIE_START:
+        case START:
             movieLocation      = gGameSession->location;
             movieLocation.view = AKROPOLIS_PLAZA_MOVIE_OPENING;
             streamArgs[0]      = streamFindMovieSlot(&movieLocation, 0, 0);
             cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, streamArgs);
             task->state++;
             break;
-        case AKROPOLIS_PLAZA_OPENING_MOVIE_WAIT_READY:
+        case WAIT_READY:
             if (queue->movieReady != 0) {
                 SetDispMask(1);
                 task->state++;
             }
             break;
-        case AKROPOLIS_PLAZA_OPENING_MOVIE_WAIT_END:
+        case WAIT_END:
             if (cdCmdIsIdle() & 0xFFFF) {
                 SetDispMask(0);
                 task->state++;
@@ -528,17 +528,17 @@ static void _akropolisPlazaOpeningMovieTask(Task* task)
                 task->state++;
             }
             break;
-        case AKROPOLIS_PLAZA_OPENING_MOVIE_WAIT_CANCEL:
+        case WAIT_CANCEL:
             if (cdCmdIsIdle() & 0xFFFF) {
                 SetDispMask(0);
                 task->state++;
             }
             break;
-        case AKROPOLIS_PLAZA_OPENING_MOVIE_BEGIN_RESTORE:
+        case BEGIN_RESTORE:
             streamResetGameRestore();
             task->state++;
             break;
-        case AKROPOLIS_PLAZA_OPENING_MOVIE_WAIT_RESTORE:
+        case WAIT_RESTORE:
             if (streamPollGameRestore(1, 0) & 0xFFFF) {
                 taskKill(task);
                 displayResumeGameLoop();
@@ -553,31 +553,31 @@ static void _akropolisPlazaOpeningMovieTask(Task* task)
 static void _akropolisPlazaUpdateTraversalCollisionWalls(Task* traversalTask)
 {
     enum {
-        AKROPOLIS_PLAZA_WALL_AHEAD  = 3000, // Distance of the wall ahead from the shot, along -X
-        AKROPOLIS_PLAZA_WALL_BEHIND = 2000, // Distance of the wall behind, along +X
-        AKROPOLIS_PLAZA_WALL_HEIGHT = 1000,
-        AKROPOLIS_PLAZA_WALL_NEAR_Z = 4096, // The walls' extent along Z, before and after the shot
-        AKROPOLIS_PLAZA_WALL_FAR_Z  = 12288,
+        AHEAD  = 3000, // Distance of the wall ahead from the shot, along -X
+        BEHIND = 2000, // Distance of the wall behind, along +X
+        HEIGHT = 1000,
+        NEAR_Z = 4096, // The walls' extent along Z, before and after the shot
+        FAR_Z  = 12288,
     };
-    _AkropolisPlazaTraversalWork* work  = traversalTask->work;
-    s32                           shotX = work->shotPos.vx;
-    s32                           shotY = work->shotPos.vy;
-    s32                           shotZ = work->shotPos.vz;
-    s16                           leftX = shotX - AKROPOLIS_PLAZA_WALL_AHEAD;
-    s16                           topY;
-    s16                           minZ;
-    s16                           maxZ;
-    s16                           rightX;
+    _TraversalWork* work  = traversalTask->work;
+    s32             shotX = work->shotPos.vx;
+    s32             shotY = work->shotPos.vy;
+    s32             shotZ = work->shotPos.vz;
+    s16             leftX = shotX - AHEAD;
+    s16             topY;
+    s16             minZ;
+    s16             maxZ;
+    s16             rightX;
 
     _gAkropolisPlazaCollisionGridVerts[0].vx = leftX;
     _gAkropolisPlazaCollisionGridVerts[1].vx = leftX;
     _gAkropolisPlazaCollisionGridVerts[2].vx = leftX;
     _gAkropolisPlazaCollisionGridVerts[3].vx = leftX;
 
-    topY   = shotY + AKROPOLIS_PLAZA_WALL_HEIGHT;
-    minZ   = shotZ - AKROPOLIS_PLAZA_WALL_NEAR_Z;
-    maxZ   = shotZ + AKROPOLIS_PLAZA_WALL_FAR_Z;
-    rightX = shotX + AKROPOLIS_PLAZA_WALL_BEHIND;
+    topY   = shotY + HEIGHT;
+    minZ   = shotZ - NEAR_Z;
+    maxZ   = shotZ + FAR_Z;
+    rightX = shotX + BEHIND;
 
     _gAkropolisPlazaCollisionGridVerts[0].vy = shotY;
     _gAkropolisPlazaCollisionGridVerts[1].vy = shotY;
@@ -615,39 +615,39 @@ static void _akropolisPlazaApplyMovieCamera(s32 selector)
     s16         cameraIndex;
 
     switch ((u16)selector) {
-        case AKROPOLIS_PLAZA_CAMERA_TRAVERSAL:
+        case CAMERA_TRAVERSAL:
         case 1:
         case 2:
         case 3:
             cameraSamples = _gAkropolisPlazaTraversalCameraSamples;
             if (queue->movieReady == 0) {
                 s32 sceneIndex = queue->sceneFrame - 1;
-                camera         = cameraSamples + sceneIndex * AKROPOLIS_PLAZA_CAMERA_SAMPLES_PER_FRAME;
+                camera         = cameraSamples + sceneIndex * CAMERA_SAMPLES_PER_FRAME;
             } else if (queue->reverseSceneFrames == 0) {
                 s32 sceneIndex = queue->sceneFrame - 1;
-                camera         = cameraSamples + sceneIndex * AKROPOLIS_PLAZA_CAMERA_SAMPLES_PER_FRAME + queue->movieFrameSubstep;
+                camera         = cameraSamples + sceneIndex * CAMERA_SAMPLES_PER_FRAME + queue->movieFrameSubstep;
             } else {
                 s32 sceneIndex = queue->sceneFrame - 1;
-                camera         = cameraSamples + sceneIndex * AKROPOLIS_PLAZA_CAMERA_SAMPLES_PER_FRAME - queue->movieFrameSubstep;
+                camera         = cameraSamples + sceneIndex * CAMERA_SAMPLES_PER_FRAME - queue->movieFrameSubstep;
             }
             viewApplyCamera(camera);
             return;
-        case AKROPOLIS_PLAZA_CAMERA_HELICOPTER_WRECK:
+        case CAMERA_HELICOPTER_WRECK:
             cameraSamples = _gAkropolisPlazaHelicopterWreckCameraSamples;
             break;
-        case AKROPOLIS_PLAZA_CAMERA_OFFICERS_TALK:
+        case CAMERA_OFFICERS_TALK:
             cameraSamples = _gAkropolisPlazaOfficersTalkCameraSamples;
             break;
-        case AKROPOLIS_PLAZA_CAMERA_ENTRANCE_OFFICER_TALK:
+        case CAMERA_ENTRANCE_OFFICER_TALK:
             cameraSamples = _gAkropolisPlazaEntranceOfficerTalkCameraSamples;
             break;
-        case AKROPOLIS_PLAZA_CAMERA_ENTERING_TOWER:
+        case CAMERA_ENTERING_TOWER:
             cameraSamples = _gAkropolisPlazaEnteringTowerCameraSamples;
             break;
     }
     if (queue->movieReady == 0) {
         s32 sceneIndex = queue->sceneFrame - 1;
-        camera         = cameraSamples + sceneIndex * AKROPOLIS_PLAZA_CAMERA_SAMPLES_PER_FRAME;
+        camera         = cameraSamples + sceneIndex * CAMERA_SAMPLES_PER_FRAME;
     } else {
         if (queue->reverseSceneFrames == 0) {
             cameraIndex = ((queue->sceneFrame - 1) * 2) + queue->movieFrameSubstep + 1;
@@ -664,25 +664,25 @@ static void _akropolisPlazaApplyMovieCamera(s32 selector)
 
 /// Sets the edge flags: whether the player is past the current shot's forward or back edge, walking or running. The
 /// first frame has no back edge.
-static inline void _akropolisPlazaUpdateTraversalEdgeFlags(_AkropolisPlazaTraversalWork* work)
+static inline void _akropolisPlazaUpdateTraversalEdgeFlags(_TraversalWork* work)
 {
     CdCmdQueue* queue     = &gCdCmdQueue;
     s32         relativeX = work->relX;
 
-    work->fwd  = AKROPOLIS_PLAZA_EDGE_NONE;
-    work->back = AKROPOLIS_PLAZA_EDGE_NONE;
-    if (relativeX >= AKROPOLIS_PLAZA_FORWARD_EDGE) {
+    work->fwd  = EDGE_NONE;
+    work->back = EDGE_NONE;
+    if (relativeX >= FORWARD_EDGE) {
         if ((u16)work->player->movementMode == GAME_ACTOR_MOVEMENT_RUN) {
-            work->fwd = AKROPOLIS_PLAZA_EDGE_RUN;
+            work->fwd = EDGE_RUN;
         } else {
-            work->fwd = AKROPOLIS_PLAZA_EDGE_WALK;
+            work->fwd = EDGE_WALK;
         }
-    } else if (relativeX < AKROPOLIS_PLAZA_BACK_EDGE) {
-        if (queue->sceneFrame != AKROPOLIS_PLAZA_FIRST_TRAVERSAL_FRAME) {
+    } else if (relativeX < BACK_EDGE) {
+        if (queue->sceneFrame != FIRST_TRAVERSAL_FRAME) {
             if ((u16)work->player->movementMode == GAME_ACTOR_MOVEMENT_RUN) {
-                work->back = AKROPOLIS_PLAZA_EDGE_RUN;
+                work->back = EDGE_RUN;
             } else {
-                work->back = AKROPOLIS_PLAZA_EDGE_WALK;
+                work->back = EDGE_WALK;
             }
         }
     }
@@ -694,31 +694,31 @@ static inline void _akropolisPlazaUpdateTraversalEdgeFlags(_AkropolisPlazaTraver
 static void _akropolisPlazaTraversalTask(Task* task)
 {
     enum {
-        AKROPOLIS_PLAZA_TRAVERSAL_INIT          = 0,
-        AKROPOLIS_PLAZA_TRAVERSAL_WAIT_IDLE     = 1,
-        AKROPOLIS_PLAZA_TRAVERSAL_CHECK_EDGES   = 2,
-        AKROPOLIS_PLAZA_TRAVERSAL_WAIT_READY    = 3,
-        AKROPOLIS_PLAZA_TRAVERSAL_FOLLOW_EDGE   = 4,
-        AKROPOLIS_PLAZA_TRAVERSAL_WAIT_SEEK_END = 5,
-        AKROPOLIS_PLAZA_TRAVERSAL_AT_END        = 6,
+        INIT          = 0,
+        WAIT_IDLE     = 1,
+        CHECK_EDGES   = 2,
+        WAIT_READY    = 3,
+        FOLLOW_EDGE   = 4,
+        WAIT_SEEK_END = 5,
+        AT_END        = 6,
     };
-    u8                            streamArgs[4];
-    s32                           sectorOffset;
-    u32                           packedSeekOffset;
-    u32                           packedOpeningOffset;
-    s32                           lowByteMask = 0xFF;
-    s32                           reverse;
-    _AkropolisPlazaTraversalWork* allocatedWork;
-    CdCmdQueue*                   queue;
-    _AkropolisPlazaTraversalWork* work;
-    _AkropolisPlazaTraversalArg*  spawnArg;
-    Task*                         playerTask;
-    u16                           startFrame;
+    u8              streamArgs[4];
+    s32             sectorOffset;
+    u32             packedSeekOffset;
+    u32             packedOpeningOffset;
+    s32             lowByteMask = 0xFF;
+    s32             reverse;
+    _TraversalWork* allocatedWork;
+    CdCmdQueue*     queue;
+    _TraversalWork* work;
+    _TraversalArg*  spawnArg;
+    Task*           playerTask;
+    u16             startFrame;
 
     queue = &gCdCmdQueue;
     work  = task->work;
 
-    if (task->state != AKROPOLIS_PLAZA_TRAVERSAL_INIT) {
+    if (task->state != INIT) {
         // The traversal code takes movies 0..3 as two forward and reverse pairs sharing one shot table, a row per
         // frame; only the first pair is ever played, 2 and 3 being scenes' movies.
         switch (queue->plazaStreamSubId) {
@@ -735,7 +735,7 @@ static void _akropolisPlazaTraversalTask(Task* task)
     }
 
     switch (task->state) {
-        case AKROPOLIS_PLAZA_TRAVERSAL_INIT:
+        case INIT:
             allocatedWork = memMalloc(sizeof(*allocatedWork), false);
             task->work    = allocatedWork;
             if (allocatedWork == NULL) {
@@ -757,7 +757,7 @@ static void _akropolisPlazaTraversalTask(Task* task)
             spawnArg = task->spawnArg2.pointer;
             if (spawnArg->skipStreamReset == 0) {
                 streamArgs[0]       = streamFindMovieSlot(&gGameSession->location, queue->plazaStreamSubId, 0);
-                sectorOffset        = (queue->movieFrame - 1) * AKROPOLIS_PLAZA_SEEK_FRAMES_FINE;
+                sectorOffset        = (queue->movieFrame - 1) * SEEK_FRAMES_FINE;
                 packedOpeningOffset = sectorOffset & 0xFFFF;
                 streamArgs[1]       = packedOpeningOffset >> 8;
                 streamArgs[2]       = packedOpeningOffset & lowByteMask;
@@ -765,11 +765,11 @@ static void _akropolisPlazaTraversalTask(Task* task)
             } else {
                 queue->movieAtEnd = 0;
             }
-            ((_AkropolisPlazaTraversalWork*)task->work)->playerMtx = gPlayerStatus.coordMtx;
-            work->frameStep                                        = AKROPOLIS_PLAZA_FRAME_STEP_FINE;
-            task->state                                            = task->state + 1;
+            ((_TraversalWork*)task->work)->playerMtx = gPlayerStatus.coordMtx;
+            work->frameStep                          = FRAME_STEP_FINE;
+            task->state                              = task->state + 1;
             break;
-        case AKROPOLIS_PLAZA_TRAVERSAL_WAIT_IDLE:
+        case WAIT_IDLE:
             if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 break;
             }
@@ -779,23 +779,23 @@ static void _akropolisPlazaTraversalTask(Task* task)
             SetDispMask(1);
             task->state = task->state + 1;
             break;
-        case AKROPOLIS_PLAZA_TRAVERSAL_CHECK_EDGES:
+        case CHECK_EDGES:
         checkEdges:
             work->frameLimit = streamGetFrameLimit(queue->plazaStreamSubId);
             if (queue->movieAtEnd != 0) {
-                task->state = AKROPOLIS_PLAZA_TRAVERSAL_AT_END;
+                task->state = AT_END;
                 break;
             }
             _akropolisPlazaUpdateTraversalEdgeFlags(task->work);
-            if (work->fwd != AKROPOLIS_PLAZA_EDGE_NONE) {
+            if (work->fwd != EDGE_NONE) {
                 work->prevReverse         = queue->reverseSceneFrames;
                 queue->reverseSceneFrames = 0;
             }
-            if (work->back != AKROPOLIS_PLAZA_EDGE_NONE) {
+            if (work->back != EDGE_NONE) {
                 work->prevReverse         = queue->reverseSceneFrames;
                 queue->reverseSceneFrames = 1;
             }
-            if (work->fwd == AKROPOLIS_PLAZA_EDGE_NONE && work->back == AKROPOLIS_PLAZA_EDGE_NONE) {
+            if (work->fwd == EDGE_NONE && work->back == EDGE_NONE) {
                 break;
             }
             // Seek the walking direction's movie: from the current frame when the direction is unchanged, from the
@@ -806,46 +806,46 @@ static void _akropolisPlazaTraversalTask(Task* task)
             reverse              = queue->reverseSceneFrames;
             if (reverse == work->prevReverse) {
                 if (reverse == 0) {
-                    if (work->fwd == AKROPOLIS_PLAZA_EDGE_WALK) {
+                    if (work->fwd == EDGE_WALK) {
                         queue->plazaStreamSubId = work->forwardSubId;
-                        if (work->frameStep == AKROPOLIS_PLAZA_FRAME_STEP_COARSE) {
-                            sectorOffset = queue->movieFrame * AKROPOLIS_PLAZA_SEEK_FRAMES_COARSE;
+                        if (work->frameStep == FRAME_STEP_COARSE) {
+                            sectorOffset = queue->movieFrame * SEEK_FRAMES_COARSE;
                         } else {
-                            sectorOffset = queue->movieFrame * AKROPOLIS_PLAZA_SEEK_FRAMES_FINE;
+                            sectorOffset = queue->movieFrame * SEEK_FRAMES_FINE;
                         }
-                        work->frameStep = AKROPOLIS_PLAZA_FRAME_STEP_FINE;
+                        work->frameStep = FRAME_STEP_FINE;
                     }
                 } else if (reverse == 1) {
                     if (work->back == reverse) {
                         queue->plazaStreamSubId = work->forwardSubId + 1;
-                        if (work->frameStep == AKROPOLIS_PLAZA_FRAME_STEP_COARSE) {
-                            sectorOffset = queue->movieFrame * AKROPOLIS_PLAZA_SEEK_FRAMES_COARSE;
+                        if (work->frameStep == FRAME_STEP_COARSE) {
+                            sectorOffset = queue->movieFrame * SEEK_FRAMES_COARSE;
                         } else {
-                            sectorOffset = queue->movieFrame * AKROPOLIS_PLAZA_SEEK_FRAMES_FINE;
+                            sectorOffset = queue->movieFrame * SEEK_FRAMES_FINE;
                         }
-                        work->frameStep = AKROPOLIS_PLAZA_FRAME_STEP_FINE;
+                        work->frameStep = FRAME_STEP_FINE;
                     }
                 }
             } else {
                 if (reverse == 0) {
-                    if (work->fwd == AKROPOLIS_PLAZA_EDGE_WALK) {
+                    if (work->fwd == EDGE_WALK) {
                         queue->plazaStreamSubId = work->forwardSubId;
-                        if (work->frameStep == AKROPOLIS_PLAZA_FRAME_STEP_COARSE) {
-                            sectorOffset = (work->frameLimit - queue->movieFrame) * AKROPOLIS_PLAZA_SEEK_FRAMES_COARSE;
+                        if (work->frameStep == FRAME_STEP_COARSE) {
+                            sectorOffset = (work->frameLimit - queue->movieFrame) * SEEK_FRAMES_COARSE;
                         } else {
-                            sectorOffset = (work->frameLimit - queue->movieFrame) * AKROPOLIS_PLAZA_SEEK_FRAMES_FINE;
+                            sectorOffset = (work->frameLimit - queue->movieFrame) * SEEK_FRAMES_FINE;
                         }
-                        work->frameStep = AKROPOLIS_PLAZA_FRAME_STEP_FINE;
+                        work->frameStep = FRAME_STEP_FINE;
                     }
                 } else if (reverse == 1) {
                     if (work->back == reverse) {
                         queue->plazaStreamSubId = work->forwardSubId + 1;
-                        if (work->frameStep == AKROPOLIS_PLAZA_FRAME_STEP_COARSE) {
-                            sectorOffset = (work->frameLimit - queue->movieFrame) * AKROPOLIS_PLAZA_SEEK_FRAMES_COARSE;
+                        if (work->frameStep == FRAME_STEP_COARSE) {
+                            sectorOffset = (work->frameLimit - queue->movieFrame) * SEEK_FRAMES_COARSE;
                         } else {
-                            sectorOffset = (work->frameLimit - queue->movieFrame) * AKROPOLIS_PLAZA_SEEK_FRAMES_FINE;
+                            sectorOffset = (work->frameLimit - queue->movieFrame) * SEEK_FRAMES_FINE;
                         }
-                        work->frameStep = AKROPOLIS_PLAZA_FRAME_STEP_FINE;
+                        work->frameStep = FRAME_STEP_FINE;
                     }
                 }
             }
@@ -857,48 +857,48 @@ static void _akropolisPlazaTraversalTask(Task* task)
             queue->movieReady = 0;
             task->state       = task->state + 1;
             break;
-        case AKROPOLIS_PLAZA_TRAVERSAL_WAIT_READY:
+        case WAIT_READY:
             if (queue->movieReady != 0) {
                 task->state = task->state + 1;
             }
             break;
-        case AKROPOLIS_PLAZA_TRAVERSAL_FOLLOW_EDGE:
+        case FOLLOW_EDGE:
             _akropolisPlazaUpdateTraversalEdgeFlags(task->work);
             if (queue->movieAtEnd != 0) {
-                task->state = AKROPOLIS_PLAZA_TRAVERSAL_AT_END;
+                task->state = AT_END;
                 break;
             }
-            if ((work->fwd == AKROPOLIS_PLAZA_EDGE_NONE && queue->reverseSceneFrames == 0) ||
-                (work->back == AKROPOLIS_PLAZA_EDGE_NONE && queue->reverseSceneFrames == 1) ||
+            if ((work->fwd == EDGE_NONE && queue->reverseSceneFrames == 0) ||
+                (work->back == EDGE_NONE && queue->reverseSceneFrames == 1) ||
                 work->fwd != work->prevFwd || work->back != work->prevBack) {
                 queue->continueMovie = 0;
                 task->state          = task->state + 1;
             }
             break;
-        case AKROPOLIS_PLAZA_TRAVERSAL_WAIT_SEEK_END:
+        case WAIT_SEEK_END:
             _akropolisPlazaUpdateTraversalEdgeFlags(task->work);
             if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 break;
             }
-            task->state = AKROPOLIS_PLAZA_TRAVERSAL_CHECK_EDGES;
+            task->state = CHECK_EDGES;
             goto checkEdges;
-        case AKROPOLIS_PLAZA_TRAVERSAL_AT_END:
+        case AT_END:
             _akropolisPlazaUpdateTraversalEdgeFlags(task->work);
             // At a movie's end only turning back goes on: a forward movie waits for the back edge, a reverse one for
             // the forward edge.
             switch (queue->plazaStreamSubId) {
                 case AKROPOLIS_PLAZA_MOVIE_TRAVERSAL_FORWARD:
                 case 2:
-                    if (work->back != AKROPOLIS_PLAZA_EDGE_NONE) {
+                    if (work->back != EDGE_NONE) {
                         queue->movieAtEnd = 0;
-                        task->state       = AKROPOLIS_PLAZA_TRAVERSAL_CHECK_EDGES;
+                        task->state       = CHECK_EDGES;
                     }
                     break;
                 case AKROPOLIS_PLAZA_MOVIE_TRAVERSAL_REVERSE:
                 case 3:
-                    if (work->fwd != AKROPOLIS_PLAZA_EDGE_NONE) {
+                    if (work->fwd != EDGE_NONE) {
                         queue->movieAtEnd = 0;
-                        task->state       = AKROPOLIS_PLAZA_TRAVERSAL_CHECK_EDGES;
+                        task->state       = CHECK_EDGES;
                     }
                     break;
             }
@@ -924,22 +924,22 @@ static inline void _akropolisPlazaSelectSceneMovie(CdCmdQueue* queue, u16 movie)
 /// Stops the traversal for an event task's scene, remembering its frame to resume from.
 static inline void _akropolisPlazaStopTraversal(Task* task, CdCmdQueue* queue)
 {
-    ((_AkropolisPlazaSequenceWork*)task->spawnArg2.pointer)->resumeFrame = queue->sceneFrame;
-    taskKill(((_AkropolisPlazaSequenceWork*)task->spawnArg2.pointer)->traversalTask);
+    ((_SequenceWork*)task->spawnArg2.pointer)->resumeFrame = queue->sceneFrame;
+    taskKill(((_SequenceWork*)task->spawnArg2.pointer)->traversalTask);
 }
 
 /// Allocates an event task's work, caches the player, or kills it and returns.
-#define AKROPOLIS_PLAZA_INITIALIZE_EVENT_WORK(eventTask)                                                     \
-    {                                                                                                        \
-        _AkropolisPlazaEventWork* allocatedWork;                                                             \
-        allocatedWork     = memMalloc(sizeof(*allocatedWork), false);                                        \
-        (eventTask)->work = allocatedWork;                                                                   \
-        if (allocatedWork == NULL) {                                                                         \
-            taskKill(eventTask);                                                                             \
-            return;                                                                                          \
-        }                                                                                                    \
-        memFillBytes(allocatedWork, 0, sizeof(*allocatedWork));                                              \
-        ((_AkropolisPlazaEventWork*)(eventTask)->work)->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER); \
+#define INITIALIZE_EVENT_WORK(eventTask)                                                       \
+    {                                                                                          \
+        _EventWork* allocatedWork;                                                             \
+        allocatedWork     = memMalloc(sizeof(*allocatedWork), false);                          \
+        (eventTask)->work = allocatedWork;                                                     \
+        if (allocatedWork == NULL) {                                                           \
+            taskKill(eventTask);                                                               \
+            return;                                                                            \
+        }                                                                                      \
+        memFillBytes(allocatedWork, 0, sizeof(*allocatedWork));                                \
+        ((_EventWork*)(eventTask)->work)->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER); \
     }
 
 /// Showing the badge to the police sergeant at the barricade (CAP 1): the player walks up to him, then the
@@ -947,41 +947,41 @@ static inline void _akropolisPlazaStopTraversal(Task* task, CdCmdQueue* queue)
 static void _akropolisPlazaSergeantSceneTask(Task* task)
 {
     enum {
-        AKROPOLIS_PLAZA_SERGEANT_SCENE_INIT        = 0,
-        AKROPOLIS_PLAZA_SERGEANT_SCENE_WAIT_MOVE   = 1,
-        AKROPOLIS_PLAZA_SERGEANT_SCENE_WAIT_TURN   = 2,
-        AKROPOLIS_PLAZA_SERGEANT_SCENE_WAIT_STREAM = 3,
-        AKROPOLIS_PLAZA_SERGEANT_SCENE_WAIT_SCRIPT = 4,
+        INIT        = 0,
+        WAIT_MOVE   = 1,
+        WAIT_TURN   = 2,
+        WAIT_STREAM = 3,
+        WAIT_SCRIPT = 4,
     };
-    ActorTransform            destination;
-    ActorTransform            heading;
-    CdCmdQueue*               queue = &gCdCmdQueue;
-    _AkropolisPlazaEventWork* work  = task->work;
+    ActorTransform destination;
+    ActorTransform heading;
+    CdCmdQueue*    queue = &gCdCmdQueue;
+    _EventWork*    work  = task->work;
 
     switch (task->state) {
-        case AKROPOLIS_PLAZA_SERGEANT_SCENE_INIT:
-            AKROPOLIS_PLAZA_INITIALIZE_EVENT_WORK(task);
+        case INIT:
+            INITIALIZE_EVENT_WORK(task);
             destination.pos.vx = AKROPOLIS_PLAZA_SERGEANT_SPOT_X;
             destination.pos.vy = 0;
             destination.pos.vz = AKROPOLIS_PLAZA_SERGEANT_SPOT_Z;
-            TASK_MESSAGE_DISPATCH_POINTER(((_AkropolisPlazaEventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, &destination, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(((_EventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, &destination, 0);
             task->state = task->state + 1;
             return;
-        case AKROPOLIS_PLAZA_SERGEANT_SCENE_WAIT_MOVE:
+        case WAIT_MOVE:
             if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
                 return;
             }
             heading.rot.vy = AKROPOLIS_PLAZA_SCENE_FACING;
-            TASK_MESSAGE_DISPATCH_POINTER(((_AkropolisPlazaEventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_TURN_TO_YAW, &heading, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(((_EventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_TURN_TO_YAW, &heading, 0);
             task->state = task->state + 1;
             return;
-        case AKROPOLIS_PLAZA_SERGEANT_SCENE_WAIT_TURN:
+        case WAIT_TURN:
             if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
                 return;
             }
             task->state = task->state + 1;
             return;
-        case AKROPOLIS_PLAZA_SERGEANT_SCENE_WAIT_STREAM:
+        case WAIT_STREAM:
             // The traversal resumes from this frame after the scene.
             if (cdCmdIsIdle() == 0) {
                 return;
@@ -990,7 +990,7 @@ static void _akropolisPlazaSergeantSceneTask(Task* task)
             evsStartScriptWithSkip(_gAkropolisPlazaSergeantSceneScript, EVENT_SCRIPT_HUD_KEEP, _gAkropolisPlazaSergeantSceneSkipScript);
             task->state = task->state + 1;
             return;
-        case AKROPOLIS_PLAZA_SERGEANT_SCENE_WAIT_SCRIPT:
+        case WAIT_SCRIPT:
             if (gGameSession->eventState == 0) {
                 taskRequestKill(task, 0);
             }
@@ -1045,7 +1045,7 @@ found:
 
 /// The blend the scenes return the player to its weapon bank's idle with.
 enum {
-    AKROPOLIS_PLAZA_PLAYER_BLEND_FRAMES = 10,
+    PLAYER_BLEND_FRAMES = 10,
 };
 
 /// Plays a clip from the player's equipped-weapon bank with world collision disabled.
@@ -1069,14 +1069,14 @@ static inline void _akropolisPlazaPlacePlayerAtModelRoot(Task* task, s32 yaw)
     ActorTransform placement;
     GfxCoord*      root;
 
-    root             = ((_AkropolisPlazaEventWork*)task->work)->playerTask->extra.tmd->coords;
+    root             = ((_EventWork*)task->work)->playerTask->extra.tmd->coords;
     placement.pos.vx = root->coord.t[0];
     placement.pos.vy = root->coord.t[1];
     placement.pos.vz = root->coord.t[2];
     placement.rot.vz = 0;
     placement.rot.vx = 0;
     placement.rot.vy = yaw;
-    TASK_MESSAGE_DISPATCH_POINTER(((_AkropolisPlazaEventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_PLACE, &placement, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(((_EventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_PLACE, &placement, 0);
 }
 
 /// The helicopter wreck (CAP 9): the player walks to the wreck and its movie plays with the scene's script, the player
@@ -1085,38 +1085,38 @@ static inline void _akropolisPlazaPlacePlayerAtModelRoot(Task* task, s32 yaw)
 static void _akropolisPlazaHelicopterWreckSceneTask(Task* task)
 {
     enum {
-        AKROPOLIS_PLAZA_HELICOPTER_WRECK_INIT        = 0,
-        AKROPOLIS_PLAZA_HELICOPTER_WRECK_WAIT_MOVE   = 1,
-        AKROPOLIS_PLAZA_HELICOPTER_WRECK_WAIT_TURN   = 2,
-        AKROPOLIS_PLAZA_HELICOPTER_WRECK_WAIT_IDLE   = 3,
-        AKROPOLIS_PLAZA_HELICOPTER_WRECK_WAIT_READY  = 4,
-        AKROPOLIS_PLAZA_HELICOPTER_WRECK_WAIT_REJOIN = 5,
-        AKROPOLIS_PLAZA_HELICOPTER_WRECK_WAIT_END    = 6,
+        INIT        = 0,
+        WAIT_MOVE   = 1,
+        WAIT_TURN   = 2,
+        WAIT_IDLE   = 3,
+        WAIT_READY  = 4,
+        WAIT_REJOIN = 5,
+        WAIT_END    = 6,
     };
-    ActorTransform            destination;
-    ActorTransform            heading;
-    AnimationPlayRequest      animationRequest;
-    CdCmdQueue*               queue = &gCdCmdQueue;
-    _AkropolisPlazaEventWork* work  = task->work;
+    ActorTransform       destination;
+    ActorTransform       heading;
+    AnimationPlayRequest animationRequest;
+    CdCmdQueue*          queue = &gCdCmdQueue;
+    _EventWork*          work  = task->work;
 
     switch (task->state) {
-        case AKROPOLIS_PLAZA_HELICOPTER_WRECK_INIT:
-            AKROPOLIS_PLAZA_INITIALIZE_EVENT_WORK(task);
+        case INIT:
+            INITIALIZE_EVENT_WORK(task);
             destination.pos.vx = AKROPOLIS_PLAZA_HELICOPTER_SPOT_X;
             destination.pos.vy = 0;
             destination.pos.vz = AKROPOLIS_PLAZA_HELICOPTER_SPOT_Z;
-            TASK_MESSAGE_DISPATCH_POINTER(((_AkropolisPlazaEventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, &destination, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(((_EventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, &destination, 0);
             task->state = task->state + 1;
             return;
-        case AKROPOLIS_PLAZA_HELICOPTER_WRECK_WAIT_MOVE:
+        case WAIT_MOVE:
             if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
                 return;
             }
             heading.rot.vy = AKROPOLIS_PLAZA_SCENE_FACING;
-            TASK_MESSAGE_DISPATCH_POINTER(((_AkropolisPlazaEventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_TURN_TO_YAW, &heading, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(((_EventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_TURN_TO_YAW, &heading, 0);
             task->state = task->state + 1;
             return;
-        case AKROPOLIS_PLAZA_HELICOPTER_WRECK_WAIT_TURN:
+        case WAIT_TURN:
             if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
                 return;
             }
@@ -1128,7 +1128,7 @@ static void _akropolisPlazaHelicopterWreckSceneTask(Task* task)
             TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &animationRequest, 0);
             task->state = task->state + 1;
             return;
-        case AKROPOLIS_PLAZA_HELICOPTER_WRECK_WAIT_IDLE:
+        case WAIT_IDLE:
             if (cdCmdIsIdle() == 0) {
                 return;
             }
@@ -1138,22 +1138,22 @@ static void _akropolisPlazaHelicopterWreckSceneTask(Task* task)
             queue->continueMovie = 1;
             task->state          = task->state + 1;
             return;
-        case AKROPOLIS_PLAZA_HELICOPTER_WRECK_WAIT_READY:
+        case WAIT_READY:
             if (queue->movieReady == 0) {
                 return;
             }
             evsStartScript(_gAkropolisPlazaHelicopterWreckScript, EVENT_SCRIPT_HUD_KEEP);
             task->state = task->state + 1;
             return;
-        case AKROPOLIS_PLAZA_HELICOPTER_WRECK_WAIT_REJOIN:
+        case WAIT_REJOIN:
             // Where the clip left the player becomes its placement.
             if (queue->movieFrame >= AKROPOLIS_PLAZA_HELICOPTER_WRECK_REJOIN_FRAME) {
-                _akropolisPlazaPlayPlayerAnimation(PLAYER_ANIMATION_IDLE, ANIMATION_BLEND_RESET, AKROPOLIS_PLAZA_PLAYER_BLEND_FRAMES);
+                _akropolisPlazaPlayPlayerAnimation(PLAYER_ANIMATION_IDLE, ANIMATION_BLEND_RESET, PLAYER_BLEND_FRAMES);
                 _akropolisPlazaPlacePlayerAtModelRoot(task, AKROPOLIS_PLAZA_FACING_AFTER_HELICOPTER);
                 task->state = task->state + 1;
             }
             break;
-        case AKROPOLIS_PLAZA_HELICOPTER_WRECK_WAIT_END:
+        case WAIT_END:
             if (cdCmdIsIdle() != 0) {
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                 taskRequestKill(task, 0);
@@ -1162,7 +1162,7 @@ static void _akropolisPlazaHelicopterWreckSceneTask(Task* task)
         default:
             return;
     }
-    _akropolisPlazaApplyMovieCamera(AKROPOLIS_PLAZA_CAMERA_HELICOPTER_WRECK);
+    _akropolisPlazaApplyMovieCamera(CAMERA_HELICOPTER_WRECK);
 }
 
 /// Prepares one of the plaza's movies at its start, paused, in the caller's command buffer.
@@ -1181,87 +1181,87 @@ static inline void _akropolisPlazaResetStreamInBuffer(u8 streamArgs[4], u8 movie
 static void _akropolisPlazaEntranceSceneTask(Task* task)
 {
     enum {
-        AKROPOLIS_PLAZA_ENTRANCE_INIT                  = 0,
-        AKROPOLIS_PLAZA_ENTRANCE_WAIT_WALK             = 1,
-        AKROPOLIS_PLAZA_ENTRANCE_WAIT_TURN             = 2,
-        AKROPOLIS_PLAZA_ENTRANCE_START_BADGE_MOVIE     = 3,
-        AKROPOLIS_PLAZA_ENTRANCE_WAIT_BADGE_MOVIE      = 4,
-        AKROPOLIS_PLAZA_ENTRANCE_WAIT_BADGE_SCRIPT     = 5,
-        AKROPOLIS_PLAZA_ENTRANCE_START_ENTERING        = 6,
-        AKROPOLIS_PLAZA_ENTRANCE_WAIT_ENTERING         = 7,
-        AKROPOLIS_PLAZA_ENTRANCE_REBUILD_GRAPHICS      = 8,
-        AKROPOLIS_PLAZA_ENTRANCE_SHOW_OFFICERS_TALK    = 9,
-        AKROPOLIS_PLAZA_ENTRANCE_WAIT_OFFICERS_TALK    = 10,
-        AKROPOLIS_PLAZA_ENTRANCE_WAIT_FADE_IN          = 11,
-        AKROPOLIS_PLAZA_ENTRANCE_WAIT_DISPLAY          = 12,
-        AKROPOLIS_PLAZA_ENTRANCE_WAIT_OFFICERS_SCRIPT  = 13,
-        AKROPOLIS_PLAZA_ENTRANCE_WAIT_OFFICERS_MOVIE   = 14,
-        AKROPOLIS_PLAZA_ENTRANCE_WAIT_END              = 15,
-        AKROPOLIS_PLAZA_ENTRANCE_OFFICER_BLEND_FRAMES  = 10,
-        AKROPOLIS_PLAZA_ENTRANCE_FADE_OUT_STEP         = 9,
-        AKROPOLIS_PLAZA_ENTRANCE_FADE_IN_STEP          = 8,
-        AKROPOLIS_PLAZA_ENTRANCE_SKIP_MUSIC_FADE_TICKS = 10,
-        AKROPOLIS_PLAZA_ENTRANCE_MUSIC_FADE_TICKS      = 480,
-        AKROPOLIS_PLAZA_ENTRANCE_AMBIENCE_STOP_TICKS   = 180,
-        AKROPOLIS_PLAZA_ENTRANCE_AMBIENCE_VOLUME       = 38,
+        INIT                  = 0,
+        WAIT_WALK             = 1,
+        WAIT_TURN             = 2,
+        START_BADGE_MOVIE     = 3,
+        WAIT_BADGE_MOVIE      = 4,
+        WAIT_BADGE_SCRIPT     = 5,
+        START_ENTERING        = 6,
+        WAIT_ENTERING         = 7,
+        REBUILD_GRAPHICS      = 8,
+        SHOW_OFFICERS_TALK    = 9,
+        WAIT_OFFICERS_TALK    = 10,
+        WAIT_FADE_IN          = 11,
+        WAIT_DISPLAY          = 12,
+        WAIT_OFFICERS_SCRIPT  = 13,
+        WAIT_OFFICERS_MOVIE   = 14,
+        WAIT_END              = 15,
+        OFFICER_BLEND_FRAMES  = 10,
+        FADE_OUT_STEP         = 9,
+        FADE_IN_STEP          = 8,
+        SKIP_MUSIC_FADE_TICKS = 10,
+        MUSIC_FADE_TICKS      = 480,
+        AMBIENCE_STOP_TICKS   = 180,
+        AMBIENCE_VOLUME       = 38,
     };
 
-    ActorTransform            walkDestination;
-    ActorTransform            heading;
-    u8                        streamArgs[4];
-    ActorTransform            insideDestination;
-    AnimationPlayRequest      officerAnimation;
-    CdCmdQueue*               queue = &gCdCmdQueue;
-    _AkropolisPlazaEventWork* work  = task->work;
+    ActorTransform       walkDestination;
+    ActorTransform       heading;
+    u8                   streamArgs[4];
+    ActorTransform       insideDestination;
+    AnimationPlayRequest officerAnimation;
+    CdCmdQueue*          queue = &gCdCmdQueue;
+    _EventWork*          work  = task->work;
 
     switch (task->state) {
-        case AKROPOLIS_PLAZA_ENTRANCE_INIT:
-            AKROPOLIS_PLAZA_INITIALIZE_EVENT_WORK(task);
+        case INIT:
+            INITIALIZE_EVENT_WORK(task);
             walkDestination.pos.vx = AKROPOLIS_PLAZA_ENTRANCE_SPOT_X;
             walkDestination.pos.vy = 0;
             walkDestination.pos.vz = AKROPOLIS_PLAZA_ENTRANCE_SPOT_Z;
-            TASK_MESSAGE_DISPATCH_POINTER(((_AkropolisPlazaEventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, &walkDestination, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(((_EventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, &walkDestination, 0);
             task->state = task->state + 1;
             return;
-        case AKROPOLIS_PLAZA_ENTRANCE_WAIT_WALK:
+        case WAIT_WALK:
             if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
                 return;
             }
             heading.rot.vy = ACTOR_TRANSFORM_ANGLE_TURN;
-            TASK_MESSAGE_DISPATCH_POINTER(((_AkropolisPlazaEventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_TURN_TO_YAW, &heading, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(((_EventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_TURN_TO_YAW, &heading, 0);
             task->state = task->state + 1;
             return;
-        case AKROPOLIS_PLAZA_ENTRANCE_WAIT_TURN:
+        case WAIT_TURN:
             if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
                 return;
             }
             task->state = task->state + 1;
             return;
-        case AKROPOLIS_PLAZA_ENTRANCE_START_BADGE_MOVIE:
+        case START_BADGE_MOVIE:
             if (cdCmdIsIdle() == 0) {
                 return;
             }
-            taskKill(((_AkropolisPlazaSequenceWork*)task->spawnArg2.pointer)->traversalTask);
+            taskKill(((_SequenceWork*)task->spawnArg2.pointer)->traversalTask);
             _akropolisPlazaSelectSceneMovie(queue, AKROPOLIS_PLAZA_MOVIE_ENTRANCE_OFFICER_TALK);
             _akropolisPlazaResetStreamInBuffer(streamArgs, AKROPOLIS_PLAZA_MOVIE_ENTRANCE_OFFICER_TALK);
             queue->continueMovie = 1;
             task->state          = task->state + 1;
             return;
-        case AKROPOLIS_PLAZA_ENTRANCE_WAIT_BADGE_MOVIE:
+        case WAIT_BADGE_MOVIE:
             if (cdCmdIsIdle() != 0) {
                 evsStartScriptWithSkip(_gAkropolisPlazaEntranceOfficerTalkScript, EVENT_SCRIPT_HUD_KEEP, _gAkropolisPlazaEntranceOfficerTalkSkipScript);
                 task->state = task->state + 1;
                 return;
             }
-            _akropolisPlazaApplyMovieCamera(AKROPOLIS_PLAZA_CAMERA_ENTRANCE_OFFICER_TALK);
+            _akropolisPlazaApplyMovieCamera(CAMERA_ENTRANCE_OFFICER_TALK);
             return;
-        case AKROPOLIS_PLAZA_ENTRANCE_WAIT_BADGE_SCRIPT:
+        case WAIT_BADGE_SCRIPT:
             if (gGameSession->eventState != 0) {
                 return;
             }
             if (gGameSession->evtSkipped != 0) {
                 SetDispMask(0);
-                task->state = AKROPOLIS_PLAZA_ENTRANCE_REBUILD_GRAPHICS;
+                task->state = REBUILD_GRAPHICS;
                 return;
             }
             _akropolisPlazaSelectSceneMovie(queue, AKROPOLIS_PLAZA_MOVIE_ENTERING_TOWER);
@@ -1269,7 +1269,7 @@ static void _akropolisPlazaEntranceSceneTask(Task* task)
             queue->continueMovie = 1;
             task->state          = task->state + 1;
             return;
-        case AKROPOLIS_PLAZA_ENTRANCE_START_ENTERING:
+        case START_ENTERING:
             if (queue->movieReady == 0) {
                 return;
             }
@@ -1278,30 +1278,30 @@ static void _akropolisPlazaEntranceSceneTask(Task* task)
             insideDestination.pos.vy = 0;
             insideDestination.pos.vz = AKROPOLIS_PLAZA_INSIDE_SPOT_Z;
             TASK_MESSAGE_DISPATCH_POINTER(
-                ((_AkropolisPlazaEventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, &insideDestination, 0);
+                ((_EventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, &insideDestination, 0);
             officerAnimation.source.index         = ACTOR_310100_FOLLOW_UP_OFFICER;
             officerAnimation.animationId          = POLICE_OFFICER_ANIMATION_WATCH_AYA_ENTER;
             officerAnimation.blend                = ANIMATION_BLEND_RESET;
-            officerAnimation.blendFrames          = AKROPOLIS_PLAZA_ENTRANCE_OFFICER_BLEND_FRAMES;
+            officerAnimation.blendFrames          = OFFICER_BLEND_FRAMES;
             officerAnimation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
             TASK_MESSAGE_DISPATCH_POINTER(_akropolisPlazaFindPlacedEnemy(ACTOR_310100_PLACEMENT_OFFICER)->task, ACTOR_MESSAGE_PLAY_ANIMATION, &officerAnimation, 0);
             task->state         = task->state + 1;
             work->elapsedFrames = 0;
             return;
-        case AKROPOLIS_PLAZA_ENTRANCE_WAIT_ENTERING:
+        case WAIT_ENTERING:
             if (work->elapsedFrames == AKROPOLIS_PLAZA_ENTRANCE_CUE_FRAME) {
                 sndEvtRequestScriptStart(AKROPOLIS_PLAZA_SOUND(AKROPOLIS_PLAZA_SOUND_ENTERING_TOWER_CUE), 0, 0);
             }
             work->elapsedFrames = work->elapsedFrames + 1;
             if (work->elapsedFrames >= AKROPOLIS_PLAZA_ENTRANCE_FADE_OUT_FRAME) {
-                taskSpawnFromTable(gAkropolisPlazaSequenceTaskDescriptors, AKROPOLIS_PLAZA_TASK_FADE_OUT, AKROPOLIS_PLAZA_ENTRANCE_FADE_OUT_STEP, 0);
+                taskSpawnFromTable(gAkropolisPlazaSequenceTaskDescriptors, AKROPOLIS_PLAZA_TASK_FADE_OUT, FADE_OUT_STEP, 0);
                 task->state = task->state + 1;
             }
-            _akropolisPlazaApplyMovieCamera(AKROPOLIS_PLAZA_CAMERA_ENTERING_TOWER);
+            _akropolisPlazaApplyMovieCamera(CAMERA_ENTERING_TOWER);
             return;
         // The tower's entrance leaves the scene: the officer takes his culled body, the player is hidden and its buffers
         // released, and the room's image memory is laid out again.
-        case AKROPOLIS_PLAZA_ENTRANCE_REBUILD_GRAPHICS:
+        case REBUILD_GRAPHICS:
             if (cdCmdIsIdle() != 0) {
                 taskMessageDispatch(_akropolisPlazaFindPlacedEnemy(ACTOR_310100_PLACEMENT_OFFICER)->task, ACTOR_310100_MESSAGE_SET_CULLED_BODY, ACTOR_310100_CULLED_BODY_OFFICER, 0);
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE, 0);
@@ -1309,19 +1309,19 @@ static void _akropolisPlazaEntranceSceneTask(Task* task)
                 memConfigureImageMemory(gGameSession->location.stage, gGameSession->location.area);
                 memSelectAuxHeapRegion(true);
                 tmdResetAuxHeapAndRestoreBuffers();
-                sndEvtRequestScriptVolume(AKROPOLIS_PLAZA_SOUND(AKROPOLIS_PLAZA_SOUND_WALK_AMBIENCE), AKROPOLIS_PLAZA_ENTRANCE_AMBIENCE_VOLUME);
+                sndEvtRequestScriptVolume(AKROPOLIS_PLAZA_SOUND(AKROPOLIS_PLAZA_SOUND_WALK_AMBIENCE), AMBIENCE_VOLUME);
                 task->state = task->state + 1;
                 return;
             }
-            _akropolisPlazaApplyMovieCamera(AKROPOLIS_PLAZA_CAMERA_ENTERING_TOWER);
+            _akropolisPlazaApplyMovieCamera(CAMERA_ENTERING_TOWER);
             return;
-        case AKROPOLIS_PLAZA_ENTRANCE_SHOW_OFFICERS_TALK:
+        case SHOW_OFFICERS_TALK:
             _akropolisPlazaSelectSceneMovie(queue, AKROPOLIS_PLAZA_MOVIE_OFFICERS_TALK);
             _akropolisPlazaResetStreamInBuffer(streamArgs, AKROPOLIS_PLAZA_MOVIE_OFFICERS_TALK);
             queue->continueMovie = 0;
             task->state          = task->state + 1;
             /* fallthrough */
-        case AKROPOLIS_PLAZA_ENTRANCE_WAIT_OFFICERS_TALK:
+        case WAIT_OFFICERS_TALK:
             if (cdCmdIsIdle() == 0) {
                 return;
             }
@@ -1329,92 +1329,92 @@ static void _akropolisPlazaEntranceSceneTask(Task* task)
             work->elapsedFrames = 0;
             task->state         = task->state + 1;
             return;
-        case AKROPOLIS_PLAZA_ENTRANCE_WAIT_FADE_IN:
+        case WAIT_FADE_IN:
             work->elapsedFrames = work->elapsedFrames + 1;
             if (work->elapsedFrames >= AKROPOLIS_PLAZA_ENTRANCE_FADE_IN_FRAME) {
                 sndEvtRequestScriptStart(AKROPOLIS_PLAZA_SOUND(AKROPOLIS_PLAZA_SOUND_OFFICERS_WALK_IN), 0, 0);
-                taskSpawnFromTable(gAkropolisPlazaSequenceTaskDescriptors, AKROPOLIS_PLAZA_TASK_FADE_IN, AKROPOLIS_PLAZA_ENTRANCE_FADE_IN_STEP, 0);
+                taskSpawnFromTable(gAkropolisPlazaSequenceTaskDescriptors, AKROPOLIS_PLAZA_TASK_FADE_IN, FADE_IN_STEP, 0);
                 work->elapsedFrames = 0;
                 task->state         = task->state + 1;
             }
             return;
-        case AKROPOLIS_PLAZA_ENTRANCE_WAIT_DISPLAY:
+        case WAIT_DISPLAY:
             work->elapsedFrames = work->elapsedFrames + 1;
             if (work->elapsedFrames >= 2) {
                 SetDispMask(1);
                 task->state = task->state + 1;
             }
             return;
-        case AKROPOLIS_PLAZA_ENTRANCE_WAIT_OFFICERS_SCRIPT:
+        case WAIT_OFFICERS_SCRIPT:
             if (padIsStartPressed() != 0) {
-                stageMusicRequestAreaStop(AKROPOLIS_PLAZA_ENTRANCE_SKIP_MUSIC_FADE_TICKS);
+                stageMusicRequestAreaStop(SKIP_MUSIC_FADE_TICKS);
                 cdCmdRequestCancel();
-                task->state = AKROPOLIS_PLAZA_ENTRANCE_WAIT_END;
+                task->state = WAIT_END;
             } else if (gGameSession->eventState == 0) {
-                stageMusicRequestAreaStop(AKROPOLIS_PLAZA_ENTRANCE_MUSIC_FADE_TICKS);
+                stageMusicRequestAreaStop(MUSIC_FADE_TICKS);
                 _akropolisPlazaSelectSceneMovie(queue, AKROPOLIS_PLAZA_MOVIE_OFFICERS_TALK);
                 _akropolisPlazaQueueStreamAtStart(CD_COMMAND_PLAY_STREAM_AT_OFFSET, AKROPOLIS_PLAZA_MOVIE_OFFICERS_TALK);
                 queue->continueMovie = 1;
                 task->state          = task->state + 1;
             }
-            _akropolisPlazaApplyMovieCamera(AKROPOLIS_PLAZA_CAMERA_OFFICERS_TALK);
+            _akropolisPlazaApplyMovieCamera(CAMERA_OFFICERS_TALK);
             return;
-        case AKROPOLIS_PLAZA_ENTRANCE_WAIT_OFFICERS_MOVIE:
+        case WAIT_OFFICERS_MOVIE:
             if (queue->movieReady != 0) {
                 evsStartScript(_gAkropolisPlazaOfficersTalkEndScript, EVENT_SCRIPT_HUD_KEEP);
                 task->state = task->state + 1;
             }
-            _akropolisPlazaApplyMovieCamera(AKROPOLIS_PLAZA_CAMERA_OFFICERS_TALK);
+            _akropolisPlazaApplyMovieCamera(CAMERA_OFFICERS_TALK);
             return;
-        case AKROPOLIS_PLAZA_ENTRANCE_WAIT_END:
+        case WAIT_END:
             if (cdCmdIsIdle() != 0) {
-                sndEvtRequestScriptStop(AKROPOLIS_PLAZA_SOUND(AKROPOLIS_PLAZA_SOUND_ENTRY_AMBIENCE), AKROPOLIS_PLAZA_ENTRANCE_AMBIENCE_STOP_TICKS);
+                sndEvtRequestScriptStop(AKROPOLIS_PLAZA_SOUND(AKROPOLIS_PLAZA_SOUND_ENTRY_AMBIENCE), AMBIENCE_STOP_TICKS);
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 1, 0);
                 taskRequestKill(task, 0);
             }
-            _akropolisPlazaApplyMovieCamera(AKROPOLIS_PLAZA_CAMERA_OFFICERS_TALK);
+            _akropolisPlazaApplyMovieCamera(CAMERA_OFFICERS_TALK);
             return;
         default:
             return;
     }
 }
 
-#undef AKROPOLIS_PLAZA_INITIALIZE_EVENT_WORK
+#undef INITIALIZE_EVENT_WORK
 
 /// Talking to the sergeant again (CAP 2, then 3, then 8 every later time): the player stands idle, the traversal
 /// stops and the visit's script runs.
 static void _akropolisPlazaSergeantAgainSceneTask(Task* task)
 {
     enum {
-        AKROPOLIS_PLAZA_SERGEANT_AGAIN_INIT        = 0,
-        AKROPOLIS_PLAZA_SERGEANT_AGAIN_WAIT_STREAM = 1,
-        AKROPOLIS_PLAZA_SERGEANT_AGAIN_WAIT_SCRIPT = 2,
+        INIT        = 0,
+        WAIT_STREAM = 1,
+        WAIT_SCRIPT = 2,
     };
     CdCmdQueue* queue = &gCdCmdQueue;
 
     switch (task->state) {
-        case AKROPOLIS_PLAZA_SERGEANT_AGAIN_INIT:
-            _akropolisPlazaPlayPlayerAnimation(PLAYER_ANIMATION_IDLE, ANIMATION_BLEND_RESET, AKROPOLIS_PLAZA_PLAYER_BLEND_FRAMES);
+        case INIT:
+            _akropolisPlazaPlayPlayerAnimation(PLAYER_ANIMATION_IDLE, ANIMATION_BLEND_RESET, PLAYER_BLEND_FRAMES);
             task->state = task->state + 1;
             break;
-        case AKROPOLIS_PLAZA_SERGEANT_AGAIN_WAIT_STREAM:
+        case WAIT_STREAM:
             if (cdCmdIsIdle() != 0) {
                 _akropolisPlazaStopTraversal(task, queue);
                 switch (task->spawnArg1.value) {
-                    case AKROPOLIS_PLAZA_SERGEANT_AGAIN_FIRST:
+                    case SERGEANT_AGAIN_FIRST:
                         evsStartScript(_gAkropolisPlazaSergeantAgain1Script, EVENT_SCRIPT_HUD_KEEP);
                         break;
-                    case AKROPOLIS_PLAZA_SERGEANT_AGAIN_SECOND:
+                    case SERGEANT_AGAIN_SECOND:
                         evsStartScript(_gAkropolisPlazaSergeantAgain2Script, EVENT_SCRIPT_HUD_KEEP);
                         break;
-                    case AKROPOLIS_PLAZA_SERGEANT_AGAIN_LATER:
+                    case SERGEANT_AGAIN_LATER:
                         evsStartScript(_gAkropolisPlazaSergeantAgainLaterScript, EVENT_SCRIPT_HUD_KEEP);
                         break;
                 }
                 task->state = task->state + 1;
             }
             break;
-        case AKROPOLIS_PLAZA_SERGEANT_AGAIN_WAIT_SCRIPT:
+        case WAIT_SCRIPT:
             if (gGameSession->eventState == 0) {
                 taskRequestKill(task, 0);
             }
@@ -1427,26 +1427,26 @@ static void _akropolisPlazaSergeantAgainSceneTask(Task* task)
 static void _akropolisPlazaCaptionEventTask(Task* task)
 {
     enum {
-        AKROPOLIS_PLAZA_CAPTION_INIT        = 0,
-        AKROPOLIS_PLAZA_CAPTION_WAIT_STREAM = 1,
-        AKROPOLIS_PLAZA_CAPTION_END         = 2,
+        INIT        = 0,
+        WAIT_STREAM = 1,
+        END         = 2,
     };
 
     CdCmdQueue* queue = &gCdCmdQueue;
 
     switch (task->state) {
-        case AKROPOLIS_PLAZA_CAPTION_INIT:
-            _akropolisPlazaPlayPlayerAnimation(PLAYER_ANIMATION_IDLE, ANIMATION_BLEND_RESET, AKROPOLIS_PLAZA_PLAYER_BLEND_FRAMES);
+        case INIT:
+            _akropolisPlazaPlayPlayerAnimation(PLAYER_ANIMATION_IDLE, ANIMATION_BLEND_RESET, PLAYER_BLEND_FRAMES);
             task->state = task->state + 1;
             break;
-        case AKROPOLIS_PLAZA_CAPTION_WAIT_STREAM:
+        case WAIT_STREAM:
             if (cdCmdIsIdle() != 0) {
                 _akropolisPlazaStopTraversal(task, queue);
-                capRunCommandWithTransition((s8)((_AkropolisPlazaSequenceWork*)task->spawnArg2.pointer)->eventKind);
+                capRunCommandWithTransition((s8)((_SequenceWork*)task->spawnArg2.pointer)->eventKind);
                 task->state = task->state + 1;
             }
             break;
-        case AKROPOLIS_PLAZA_CAPTION_END:
+        case END:
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 1, 0);
             taskRequestKill(task, 0);
             break;
@@ -1468,28 +1468,28 @@ static void _akropolisPlazaUpdateAmbienceVoice(u16 firstFrame, u16 lastFrame, u1
         // register allocation the original has.
         do {
             if (*startRequested == false) {
-                sndEvtRequestScriptStart(soundId, 0, AKROPOLIS_PLAZA_AMBIENCE_SILENT_ATTENUATION);
+                sndEvtRequestScriptStart(soundId, 0, AMBIENCE_SILENT_ATTENUATION);
                 sndEvtRequestScriptVolume(soundId, 0);
                 *startRequested = true;
                 return;
             }
         } while (0);
-        if (envelope == AKROPOLIS_PLAZA_AMBIENCE_TRIANGLE) {
+        if (envelope == AMBIENCE_TRIANGLE) {
             if (sceneFrame < peakFrame) {
-                volume = ((queue->sceneFrame - firstFrame) * AKROPOLIS_PLAZA_AMBIENCE_FULL_VOLUME) / (peakFrame - firstFrame);
+                volume = ((queue->sceneFrame - firstFrame) * AMBIENCE_FULL_VOLUME) / (peakFrame - firstFrame);
             } else {
-                volume = ((lastFrame - queue->sceneFrame) * AKROPOLIS_PLAZA_AMBIENCE_FULL_VOLUME) / (lastFrame - peakFrame);
+                volume = ((lastFrame - queue->sceneFrame) * AMBIENCE_FULL_VOLUME) / (lastFrame - peakFrame);
             }
-        } else if (envelope == AKROPOLIS_PLAZA_AMBIENCE_QUIET_TRIANGLE) {
+        } else if (envelope == AMBIENCE_QUIET_TRIANGLE) {
             if (sceneFrame < peakFrame) {
-                volume = ((queue->sceneFrame - firstFrame) * (AKROPOLIS_PLAZA_AMBIENCE_FULL_VOLUME * 3)) / ((peakFrame - firstFrame) * 4);
+                volume = ((queue->sceneFrame - firstFrame) * (AMBIENCE_FULL_VOLUME * 3)) / ((peakFrame - firstFrame) * 4);
             } else {
-                volume = ((lastFrame - queue->sceneFrame) * (AKROPOLIS_PLAZA_AMBIENCE_FULL_VOLUME * 3)) / ((lastFrame - peakFrame) * 4);
+                volume = ((lastFrame - queue->sceneFrame) * (AMBIENCE_FULL_VOLUME * 3)) / ((lastFrame - peakFrame) * 4);
             }
         } else if (sceneFrame < (u32)AKROPOLIS_PLAZA_AMBIENCE_EARLY_FADE_KNEE) {
-            volume = (((AKROPOLIS_PLAZA_AMBIENCE_EARLY_FADE_KNEE - queue->sceneFrame) * AKROPOLIS_PLAZA_AMBIENCE_FULL_VOLUME) / ((AKROPOLIS_PLAZA_AMBIENCE_EARLY_FADE_KNEE - 1) * 4)) + AKROPOLIS_PLAZA_AMBIENCE_BASE_VOLUME;
+            volume = (((AKROPOLIS_PLAZA_AMBIENCE_EARLY_FADE_KNEE - queue->sceneFrame) * AMBIENCE_FULL_VOLUME) / ((AKROPOLIS_PLAZA_AMBIENCE_EARLY_FADE_KNEE - 1) * 4)) + AMBIENCE_BASE_VOLUME;
         } else {
-            volume = ((AKROPOLIS_PLAZA_AMBIENCE_EARLY_FADE_END - queue->sceneFrame) * (AKROPOLIS_PLAZA_AMBIENCE_FULL_VOLUME * 3)) / ((AKROPOLIS_PLAZA_AMBIENCE_EARLY_FADE_END - AKROPOLIS_PLAZA_AMBIENCE_EARLY_FADE_KNEE) * 4);
+            volume = ((AKROPOLIS_PLAZA_AMBIENCE_EARLY_FADE_END - queue->sceneFrame) * (AMBIENCE_FULL_VOLUME * 3)) / ((AKROPOLIS_PLAZA_AMBIENCE_EARLY_FADE_END - AKROPOLIS_PLAZA_AMBIENCE_EARLY_FADE_KNEE) * 4);
         }
         sndEvtRequestScriptVolume(soundId, volume);
         return;
@@ -1504,29 +1504,29 @@ static void _akropolisPlazaUpdateAmbienceVoice(u16 firstFrame, u16 lastFrame, u1
 /// the officer ambience swells and fades with it.
 static void _akropolisPlazaUpdateTraversalAmbience(Task* task)
 {
-    CdCmdQueue*                  queue            = &gCdCmdQueue;
-    volatile u16*                sceneFrameSource = &gCdCmdQueue.sceneFrame;
-    _AkropolisPlazaSequenceWork* work             = task->work;
-    s32                          sceneFrame;
-    s32                          volume;
+    CdCmdQueue*    queue            = &gCdCmdQueue;
+    volatile u16*  sceneFrameSource = &gCdCmdQueue.sceneFrame;
+    _SequenceWork* work             = task->work;
+    s32            sceneFrame;
+    s32            volume;
 
     switch (gCdCmdQueue.plazaStreamSubId) {
         case AKROPOLIS_PLAZA_MOVIE_TRAVERSAL_FORWARD:
         case AKROPOLIS_PLAZA_MOVIE_TRAVERSAL_REVERSE:
-            _akropolisPlazaUpdateAmbienceVoice(1, AKROPOLIS_PLAZA_AMBIENCE_TRAVERSAL_END_FRAME, 1, &work->walkAmbiencePlaying, AKROPOLIS_PLAZA_SOUND(AKROPOLIS_PLAZA_SOUND_WALK_AMBIENCE), AKROPOLIS_PLAZA_AMBIENCE_TRIANGLE);
-            _akropolisPlazaUpdateAmbienceVoice(1, AKROPOLIS_PLAZA_AMBIENCE_EARLY_FADE_END, 1, &work->entryAmbiencePlaying, AKROPOLIS_PLAZA_SOUND(AKROPOLIS_PLAZA_SOUND_ENTRY_AMBIENCE), AKROPOLIS_PLAZA_AMBIENCE_EARLY_FADE);
-            _akropolisPlazaUpdateAmbienceVoice(AKROPOLIS_PLAZA_AMBIENCE_APPROACH_FIRST_FRAME, AKROPOLIS_PLAZA_AMBIENCE_APPROACH_LAST_FRAME, AKROPOLIS_PLAZA_AMBIENCE_APPROACH_PEAK_FRAME, &work->approachAmbiencePlaying, AKROPOLIS_PLAZA_SOUND(AKROPOLIS_PLAZA_SOUND_APPROACH_AMBIENCE), AKROPOLIS_PLAZA_AMBIENCE_TRIANGLE);
-            _akropolisPlazaUpdateAmbienceVoice(AKROPOLIS_PLAZA_AMBIENCE_OFFICER_FIRST_FRAME, AKROPOLIS_PLAZA_AMBIENCE_OFFICER_LAST_FRAME, AKROPOLIS_PLAZA_AMBIENCE_OFFICER_PEAK_FRAME, &work->officerAmbiencePlaying, AKROPOLIS_PLAZA_SOUND(AKROPOLIS_PLAZA_SOUND_OFFICER_AMBIENCE), AKROPOLIS_PLAZA_AMBIENCE_QUIET_TRIANGLE);
+            _akropolisPlazaUpdateAmbienceVoice(1, AKROPOLIS_PLAZA_AMBIENCE_TRAVERSAL_END_FRAME, 1, &work->walkAmbiencePlaying, AKROPOLIS_PLAZA_SOUND(AKROPOLIS_PLAZA_SOUND_WALK_AMBIENCE), AMBIENCE_TRIANGLE);
+            _akropolisPlazaUpdateAmbienceVoice(1, AKROPOLIS_PLAZA_AMBIENCE_EARLY_FADE_END, 1, &work->entryAmbiencePlaying, AKROPOLIS_PLAZA_SOUND(AKROPOLIS_PLAZA_SOUND_ENTRY_AMBIENCE), AMBIENCE_EARLY_FADE);
+            _akropolisPlazaUpdateAmbienceVoice(AKROPOLIS_PLAZA_AMBIENCE_APPROACH_FIRST_FRAME, AKROPOLIS_PLAZA_AMBIENCE_APPROACH_LAST_FRAME, AKROPOLIS_PLAZA_AMBIENCE_APPROACH_PEAK_FRAME, &work->approachAmbiencePlaying, AKROPOLIS_PLAZA_SOUND(AKROPOLIS_PLAZA_SOUND_APPROACH_AMBIENCE), AMBIENCE_TRIANGLE);
+            _akropolisPlazaUpdateAmbienceVoice(AKROPOLIS_PLAZA_AMBIENCE_OFFICER_FIRST_FRAME, AKROPOLIS_PLAZA_AMBIENCE_OFFICER_LAST_FRAME, AKROPOLIS_PLAZA_AMBIENCE_OFFICER_PEAK_FRAME, &work->officerAmbiencePlaying, AKROPOLIS_PLAZA_SOUND(AKROPOLIS_PLAZA_SOUND_OFFICER_AMBIENCE), AMBIENCE_QUIET_TRIANGLE);
             break;
         case AKROPOLIS_PLAZA_MOVIE_HELICOPTER_WRECK:
             // Compare a snapshot, then reread the frame published by MDEC completion.
             sceneFrame = queue->sceneFrame;
             if ((u32)(sceneFrame - AKROPOLIS_PLAZA_AMBIENCE_WRECK_FULL_FIRST_FRAME) < (u32)AKROPOLIS_PLAZA_AMBIENCE_WRECK_FULL_FRAME_COUNT) {
-                volume = AKROPOLIS_PLAZA_AMBIENCE_FULL_VOLUME;
+                volume = AMBIENCE_FULL_VOLUME;
             } else if (sceneFrame < (u32)AKROPOLIS_PLAZA_AMBIENCE_WRECK_RISE_END_FRAME) {
-                volume = ((*sceneFrameSource * AKROPOLIS_PLAZA_AMBIENCE_FULL_VOLUME) / AKROPOLIS_PLAZA_AMBIENCE_WRECK_RAMP_FRAMES) + AKROPOLIS_PLAZA_AMBIENCE_BASE_VOLUME;
+                volume = ((*sceneFrameSource * AMBIENCE_FULL_VOLUME) / AKROPOLIS_PLAZA_AMBIENCE_WRECK_RAMP_FRAMES) + AMBIENCE_BASE_VOLUME;
             } else {
-                volume = (((AKROPOLIS_PLAZA_AMBIENCE_WRECK_FALL_ANCHOR_FRAME - *sceneFrameSource) * AKROPOLIS_PLAZA_AMBIENCE_FULL_VOLUME) / AKROPOLIS_PLAZA_AMBIENCE_WRECK_RAMP_FRAMES) + AKROPOLIS_PLAZA_AMBIENCE_BASE_VOLUME;
+                volume = (((AKROPOLIS_PLAZA_AMBIENCE_WRECK_FALL_ANCHOR_FRAME - *sceneFrameSource) * AMBIENCE_FULL_VOLUME) / AKROPOLIS_PLAZA_AMBIENCE_WRECK_RAMP_FRAMES) + AMBIENCE_BASE_VOLUME;
             }
             sndEvtRequestScriptVolume(AKROPOLIS_PLAZA_SOUND(AKROPOLIS_PLAZA_SOUND_OFFICER_AMBIENCE), volume & 0xFF);
             break;
@@ -1534,7 +1534,7 @@ static void _akropolisPlazaUpdateTraversalAmbience(Task* task)
 }
 
 /// Restarts the traversal at the frame a scene stopped it on, without resetting the movie.
-static inline void _akropolisPlazaResumeTraversal(_AkropolisPlazaSequenceWork* work)
+static inline void _akropolisPlazaResumeTraversal(_SequenceWork* work)
 {
     work->traversalArg.skipStreamReset = 1;
     work->traversalArg.startFrame      = work->resumeFrame;
@@ -1543,29 +1543,29 @@ static inline void _akropolisPlazaResumeTraversal(_AkropolisPlazaSequenceWork* w
 
 /// What `_akropolisPlazaUpdateSequenceEvent` returns.
 enum {
-    AKROPOLIS_PLAZA_SEQUENCE_RUNNING       = 0,
-    AKROPOLIS_PLAZA_SEQUENCE_ENTERED_TOWER = 1,
+    SEQUENCE_RUNNING       = 0,
+    SEQUENCE_ENTERED_TOWER = 1,
 };
 
 /// The plaza's story: waits for the sergeant at the barricade, whose scene lets the player through (captions can run
 /// before it); then for the helicopter wreck, the entrance or the sergeant again, any number of captions. Each
 /// trigger's scene stops the traversal and resumes it afterwards; the helicopter's and the entrance's triggers go once
-/// done. Returns `AKROPOLIS_PLAZA_SEQUENCE_ENTERED_TOWER` after the entrance's scene.
+/// done. Returns `SEQUENCE_ENTERED_TOWER` after the entrance's scene.
 static u16 _akropolisPlazaUpdateSequenceEvent(Task* task)
 {
-    CdCmdQueue*                  queue = &gCdCmdQueue;
-    _AkropolisPlazaSequenceWork* work  = task->work;
-    u16                          eventControl;
-    u8                           eventKind;
-    u8                           eventParameter1;
-    s32                          firstSceneResult;
-    s32                          sceneResult;
-    s32                          repeatOrCaptionResult;
-    s16                          eventReady;
-    u16                          completedStep;
-    s32                          signedEventKind;
-    u32                          latchedKind;
-    u16                          latchedKind16;
+    CdCmdQueue*    queue = &gCdCmdQueue;
+    _SequenceWork* work  = task->work;
+    u16            eventControl;
+    u8             eventKind;
+    u8             eventParameter1;
+    s32            firstSceneResult;
+    s32            sceneResult;
+    s32            repeatOrCaptionResult;
+    s16            eventReady;
+    u16            completedStep;
+    s32            signedEventKind;
+    u32            latchedKind;
+    u16            latchedKind16;
 
     // An automatic trigger fires as the player walks into it, any other on a fresh press of the action button. The
     // trigger's words are read even when none fired.
@@ -1575,7 +1575,7 @@ static u16 _akropolisPlazaUpdateSequenceEvent(Task* task)
     }
 
     switch (work->step) {
-        case AKROPOLIS_PLAZA_STEP_AWAIT_SERGEANT:
+        case STEP_AWAIT_SERGEANT:
             if (eventReady != 0) {
                 work->eventControl    = eventControl;
                 work->eventKind       = eventKind;
@@ -1588,18 +1588,18 @@ static u16 _akropolisPlazaUpdateSequenceEvent(Task* task)
                 } else if ((s8)eventKind >= AKROPOLIS_PLAZA_EVENT_FIRST_CAPTION) {
                     work->eventTask =
                         taskSpawnFromTable(gAkropolisPlazaSequenceTaskDescriptors, AKROPOLIS_PLAZA_TASK_CAPTION, 0, work);
-                    work->step = AKROPOLIS_PLAZA_STEP_RUN_FIRST_CAPTION;
+                    work->step = STEP_RUN_FIRST_CAPTION;
                 }
             }
             break;
-        case AKROPOLIS_PLAZA_STEP_RUN_SERGEANT:
+        case STEP_RUN_SERGEANT:
             if (taskPollKill(work->eventTask, &firstSceneResult) != 0) {
                 _akropolisPlazaResumeTraversal(work);
                 worldCollisionUnlinkTrigger(WORLD_COLLISION_TRIGGER_LIST_ACTION, &_gAkropolisPlazaSergeantTrigger);
                 work->step = work->step + 1;
             }
             break;
-        case AKROPOLIS_PLAZA_STEP_AWAIT_EVENT:
+        case STEP_AWAIT_EVENT:
             if (eventReady != 0) {
                 work->eventControl    = eventControl;
                 work->eventKind       = eventKind;
@@ -1617,27 +1617,27 @@ static u16 _akropolisPlazaUpdateSequenceEvent(Task* task)
                     work->step = work->step + 1;
                     break;
                 } else if (signedEventKind == AKROPOLIS_PLAZA_EVENT_SERGEANT_AGAIN) {
-                    if (work->sergeantAgainVisit == AKROPOLIS_PLAZA_SERGEANT_AGAIN_FIRST) {
+                    if (work->sergeantAgainVisit == SERGEANT_AGAIN_FIRST) {
                         work->eventTask =
-                            taskSpawnFromTable(gAkropolisPlazaSequenceTaskDescriptors, AKROPOLIS_PLAZA_TASK_SERGEANT_AGAIN, AKROPOLIS_PLAZA_SERGEANT_AGAIN_FIRST, work);
-                        work->step = AKROPOLIS_PLAZA_STEP_RUN_SERGEANT_AGAIN;
-                    } else if (work->sergeantAgainVisit == AKROPOLIS_PLAZA_SERGEANT_AGAIN_SECOND) {
+                            taskSpawnFromTable(gAkropolisPlazaSequenceTaskDescriptors, AKROPOLIS_PLAZA_TASK_SERGEANT_AGAIN, SERGEANT_AGAIN_FIRST, work);
+                        work->step = STEP_RUN_SERGEANT_AGAIN;
+                    } else if (work->sergeantAgainVisit == SERGEANT_AGAIN_SECOND) {
                         work->eventTask =
-                            taskSpawnFromTable(gAkropolisPlazaSequenceTaskDescriptors, AKROPOLIS_PLAZA_TASK_SERGEANT_AGAIN, AKROPOLIS_PLAZA_SERGEANT_AGAIN_SECOND, work);
-                        work->step = AKROPOLIS_PLAZA_STEP_RUN_SERGEANT_AGAIN;
+                            taskSpawnFromTable(gAkropolisPlazaSequenceTaskDescriptors, AKROPOLIS_PLAZA_TASK_SERGEANT_AGAIN, SERGEANT_AGAIN_SECOND, work);
+                        work->step = STEP_RUN_SERGEANT_AGAIN;
                     } else {
                         work->eventTask =
-                            taskSpawnFromTable(gAkropolisPlazaSequenceTaskDescriptors, AKROPOLIS_PLAZA_TASK_SERGEANT_AGAIN, AKROPOLIS_PLAZA_SERGEANT_AGAIN_LATER, work);
-                        work->step = AKROPOLIS_PLAZA_STEP_RUN_SERGEANT_AGAIN;
+                            taskSpawnFromTable(gAkropolisPlazaSequenceTaskDescriptors, AKROPOLIS_PLAZA_TASK_SERGEANT_AGAIN, SERGEANT_AGAIN_LATER, work);
+                        work->step = STEP_RUN_SERGEANT_AGAIN;
                     }
                 } else if (signedEventKind >= AKROPOLIS_PLAZA_EVENT_FIRST_CAPTION) {
                     work->eventTask =
                         taskSpawnFromTable(gAkropolisPlazaSequenceTaskDescriptors, AKROPOLIS_PLAZA_TASK_CAPTION, 0, work);
-                    work->step = AKROPOLIS_PLAZA_STEP_RUN_CAPTION;
+                    work->step = STEP_RUN_CAPTION;
                 }
             }
             break;
-        case AKROPOLIS_PLAZA_STEP_RUN_SCENE:
+        case STEP_RUN_SCENE:
             if (taskPollKill(work->eventTask, &sceneResult) != 0) {
                 // Keep the signed-byte extension and unsigned-halfword comparison widths.
                 latchedKind   = work->eventKind;
@@ -1649,56 +1649,56 @@ static u16 _akropolisPlazaUpdateSequenceEvent(Task* task)
                 }
                 work->step = work->step - 1;
                 if ((s8)work->eventKind == AKROPOLIS_PLAZA_EVENT_ENTRANCE) {
-                    return AKROPOLIS_PLAZA_SEQUENCE_ENTERED_TOWER;
+                    return SEQUENCE_ENTERED_TOWER;
                 }
                 _akropolisPlazaResumeTraversal(work);
             }
             break;
-        case AKROPOLIS_PLAZA_STEP_RUN_SERGEANT_AGAIN:
-        case AKROPOLIS_PLAZA_STEP_RUN_FIRST_CAPTION:
-        case AKROPOLIS_PLAZA_STEP_RUN_CAPTION:
+        case STEP_RUN_SERGEANT_AGAIN:
+        case STEP_RUN_FIRST_CAPTION:
+        case STEP_RUN_CAPTION:
             if (taskPollKill(work->eventTask, &repeatOrCaptionResult) != 0) {
                 _akropolisPlazaResumeTraversal(work);
                 completedStep = work->step;
-                if (completedStep == AKROPOLIS_PLAZA_STEP_RUN_FIRST_CAPTION) {
-                    work->step = AKROPOLIS_PLAZA_STEP_AWAIT_SERGEANT;
+                if (completedStep == STEP_RUN_FIRST_CAPTION) {
+                    work->step = STEP_AWAIT_SERGEANT;
                 } else {
-                    if (completedStep != AKROPOLIS_PLAZA_STEP_RUN_CAPTION) {
-                        if (work->sergeantAgainVisit < AKROPOLIS_PLAZA_SERGEANT_AGAIN_LATER) {
+                    if (completedStep != STEP_RUN_CAPTION) {
+                        if (work->sergeantAgainVisit < SERGEANT_AGAIN_LATER) {
                             work->sergeantAgainVisit = work->sergeantAgainVisit + 1;
                         }
                     }
-                    work->step = AKROPOLIS_PLAZA_STEP_AWAIT_EVENT;
+                    work->step = STEP_AWAIT_EVENT;
                 }
             }
             break;
     }
-    return AKROPOLIS_PLAZA_SEQUENCE_RUNNING;
+    return SEQUENCE_RUNNING;
 }
 
 /// Draws black bars over the top and bottom 24 pixels of the cinematic view.
 static void _akropolisPlazaLetterboxTask(Task* task)
 {
-    enum { AKROPOLIS_PLAZA_LETTERBOX_TAG = 3 };
+    enum { LETTERBOX_TAG = 3 };
     TILE* tile;
 
     /// Queues one cinematic bar. Both bars share this `tile` local, as the original allocates them.
-#define AKROPOLIS_PLAZA_DRAW_LETTERBOX_BAR(topY) \
-    tile           = gGpuPrimCursor;             \
-    gGpuPrimCursor = tile + 1;                   \
-    SetTile(tile);                               \
-    tile->b0 = 0;                                \
-    tile->g0 = 0;                                \
-    tile->r0 = 0;                                \
-    tile->x0 = -DISPLAY_SCREEN_WIDTH / 2;        \
-    tile->y0 = (topY);                           \
-    tile->w  = DISPLAY_SCREEN_WIDTH;             \
-    tile->h  = AKROPOLIS_PLAZA_LETTERBOX_HEIGHT; \
-    addPrim(gGpuCurrentOt + AKROPOLIS_PLAZA_LETTERBOX_TAG, tile);
+#define DRAW_LETTERBOX_BAR(topY)          \
+    tile           = gGpuPrimCursor;      \
+    gGpuPrimCursor = tile + 1;            \
+    SetTile(tile);                        \
+    tile->b0 = 0;                         \
+    tile->g0 = 0;                         \
+    tile->r0 = 0;                         \
+    tile->x0 = -DISPLAY_SCREEN_WIDTH / 2; \
+    tile->y0 = (topY);                    \
+    tile->w  = DISPLAY_SCREEN_WIDTH;      \
+    tile->h  = LETTERBOX_HEIGHT;          \
+    addPrim(gGpuCurrentOt + LETTERBOX_TAG, tile);
 
-    AKROPOLIS_PLAZA_DRAW_LETTERBOX_BAR(-DISPLAY_SCREEN_HEIGHT / 2);
-    AKROPOLIS_PLAZA_DRAW_LETTERBOX_BAR(DISPLAY_SCREEN_HEIGHT / 2 - AKROPOLIS_PLAZA_LETTERBOX_HEIGHT);
-#undef AKROPOLIS_PLAZA_DRAW_LETTERBOX_BAR
+    DRAW_LETTERBOX_BAR(-DISPLAY_SCREEN_HEIGHT / 2);
+    DRAW_LETTERBOX_BAR(DISPLAY_SCREEN_HEIGHT / 2 - LETTERBOX_HEIGHT);
+#undef DRAW_LETTERBOX_BAR
 }
 
 /// Sets the location the reload goes to after the player enters the tower (`AKROPOLIS_PLAZA_ELEVATOR_*`).
@@ -1716,23 +1716,23 @@ static inline void _akropolisPlazaCommitElevatorDestination(void)
 static void _akropolisPlazaSequenceTask(Task* task)
 {
     enum {
-        AKROPOLIS_PLAZA_SEQUENCE_INITIALIZE        = 0,
-        AKROPOLIS_PLAZA_SEQUENCE_WAIT_FIRST_FRAME  = 1,
-        AKROPOLIS_PLAZA_SEQUENCE_WAIT_SECOND_FRAME = 2,
-        AKROPOLIS_PLAZA_SEQUENCE_START_STREAM      = 3,
-        AKROPOLIS_PLAZA_SEQUENCE_RUN               = 4,
-        AKROPOLIS_PLAZA_SEQUENCE_LEAVE             = 5,
-        AKROPOLIS_PLAZA_SEQUENCE_FADE_IN_STEP      = 6,
+        INITIALIZE        = 0,
+        WAIT_FIRST_FRAME  = 1,
+        WAIT_SECOND_FRAME = 2,
+        START_STREAM      = 3,
+        RUN               = 4,
+        LEAVE             = 5,
+        FADE_IN_STEP      = 6,
     };
-    CdCmdQueue*                  queue = &gCdCmdQueue;
-    _AkropolisPlazaSequenceWork* work  = task->work;
-    _AkropolisPlazaSequenceWork* allocatedWork;
-    _AkropolisPlazaSequenceWork* initializedWork;
-    Task*                        childTask;
-    SVECTOR                      ambientColor;
+    CdCmdQueue*    queue = &gCdCmdQueue;
+    _SequenceWork* work  = task->work;
+    _SequenceWork* allocatedWork;
+    _SequenceWork* initializedWork;
+    Task*          childTask;
+    SVECTOR        ambientColor;
 
     switch (task->state) {
-        case AKROPOLIS_PLAZA_SEQUENCE_INITIALIZE:
+        case INITIALIZE:
             // Hold input while presentation and the owned work block are prepared.
             padInputChangeSuppression(PAD_INPUT_SUPPRESSION_SET_AND_HOLD, PAD_INPUT_SUPPRESS_ACTIONS_AND_MENU & ~PAD_BUTTON_CIRCLE);
             viewApplyCamera(&_gAkropolisPlazaTraversalCameraSamples[0]);
@@ -1753,11 +1753,11 @@ static void _akropolisPlazaSequenceTask(Task* task)
             taskSpawnFromTable(gAkropolisPlazaSequenceTaskDescriptors, AKROPOLIS_PLAZA_TASK_LETTERBOX, 0, 0);
             task->state = task->state + 1;
             return;
-        case AKROPOLIS_PLAZA_SEQUENCE_WAIT_FIRST_FRAME:
-        case AKROPOLIS_PLAZA_SEQUENCE_WAIT_SECOND_FRAME:
+        case WAIT_FIRST_FRAME:
+        case WAIT_SECOND_FRAME:
             task->state = task->state + 1;
             return;
-        case AKROPOLIS_PLAZA_SEQUENCE_START_STREAM:
+        case START_STREAM:
             // The traversal borrows its argument from this work until the sequence ends.
             ambientColor.vx = AKROPOLIS_PLAZA_TRAVERSAL_AMBIENT_LEVEL;
             ambientColor.vy = AKROPOLIS_PLAZA_TRAVERSAL_AMBIENT_LEVEL;
@@ -1768,18 +1768,18 @@ static void _akropolisPlazaSequenceTask(Task* task)
             work->traversalArg.startFrame      = 0;
             work->traversalTask                = taskSpawnFromTable(gAkropolisPlazaSequenceTaskDescriptors, AKROPOLIS_PLAZA_TASK_TRAVERSAL, 0, &work->traversalArg);
             stageMusicRequestAreaStart(0);
-            taskSpawnFromTable(gAkropolisPlazaSequenceTaskDescriptors, AKROPOLIS_PLAZA_TASK_FADE_IN, AKROPOLIS_PLAZA_SEQUENCE_FADE_IN_STEP, 0);
+            taskSpawnFromTable(gAkropolisPlazaSequenceTaskDescriptors, AKROPOLIS_PLAZA_TASK_FADE_IN, FADE_IN_STEP, 0);
             queue->blockGamePause = 1;
             task->state           = task->state + 1;
             return;
-        case AKROPOLIS_PLAZA_SEQUENCE_RUN:
+        case RUN:
             _akropolisPlazaUpdateTraversalAmbience(task);
-            if (_akropolisPlazaUpdateSequenceEvent(task) == AKROPOLIS_PLAZA_SEQUENCE_RUNNING) {
+            if (_akropolisPlazaUpdateSequenceEvent(task) == SEQUENCE_RUNNING) {
                 return;
             }
             task->state = task->state + 1;
             return;
-        case AKROPOLIS_PLAZA_SEQUENCE_LEAVE:
+        case LEAVE:
             _akropolisPlazaCommitElevatorDestination();
             loadingEnqueueEquippedWeaponResources();
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
@@ -1802,22 +1802,22 @@ static void _akropolisPlazaStartOpeningMovieTask(Task* task)
 void akropolisPlazaSirenLightTask(Task* task)
 {
     enum {
-        AKROPOLIS_PLAZA_LIGHT_SIREN_YAW_WINDOW             = 0x200,
-        AKROPOLIS_PLAZA_LIGHT_POINT_INNER_RADIUS           = 0x600,
-        AKROPOLIS_PLAZA_LIGHT_REFRESH_FRAMES               = 2,
-        AKROPOLIS_PLAZA_LIGHT_POINT_COLOR_SHIFT            = 4,
-        AKROPOLIS_PLAZA_SIREN_BEAM_HALF_WIDTH              = 0x200,
-        AKROPOLIS_PLAZA_SIREN_FRINGE_HALF_WIDTH            = 0x400,
-        AKROPOLIS_PLAZA_SIREN_FRINGE_Z                     = 0x400,
-        AKROPOLIS_PLAZA_SIREN_FRINGE_NEAR_Z                = 0x100,
-        AKROPOLIS_PLAZA_SIREN_ORIGIN_GLOW_RADIUS_NUMERATOR = 0xC000
+        LIGHT_SIREN_YAW_WINDOW             = 0x200,
+        LIGHT_POINT_INNER_RADIUS           = 0x600,
+        LIGHT_REFRESH_FRAMES               = 2,
+        LIGHT_POINT_COLOR_SHIFT            = 4,
+        SIREN_BEAM_HALF_WIDTH              = 0x200,
+        SIREN_FRINGE_HALF_WIDTH            = 0x400,
+        SIREN_FRINGE_Z                     = 0x400,
+        SIREN_FRINGE_NEAR_Z                = 0x100,
+        SIREN_ORIGIN_GLOW_RADIUS_NUMERATOR = 0xC000
     };
     WorldCoordTransientPointLight* lightSlot;
     WorldCoordPointLight*          light;
     GfxCoord*                      coord;
     GfxCoord*                      lightCoord;
     EffectWork*                    work;
-    _AkropolisPlazaBeamScratch*    beam;
+    _BeamScratch*                  beam;
     POLY_G3*                       beamTriangle;
     POLY_G4*                       primitive;
     s32                            index;
@@ -1837,14 +1837,14 @@ void akropolisPlazaSirenLightTask(Task* task)
     work       = task->spawnArg2.pointer;
     lightCoord = &light->head.transform.coord;
     if (task->state == 0) {
-        work->scale = (slot & 1) << AKROPOLIS_PLAZA_LIGHT_HALF_TURN_SHIFT;
+        work->scale = (slot & 1) << LIGHT_HALF_TURN_SHIFT;
         task->state = task->state + 1;
     }
     // Compose the sweeping beacon before projecting its origin and outline.
     gfxRotMatrixY(&coord->coord, work->scale, 1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
-    beam                                                  = SCRATCH_STACK_RESERVE_BLOCK(_AkropolisPlazaBeamScratch);
+    beam                                                  = SCRATCH_STACK_RESERVE_BLOCK(_BeamScratch);
     beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_CENTER].vx = coord->workm.t[0];
     beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_CENTER].vy = coord->workm.t[1];
     beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_CENTER].vz = coord->workm.t[2];
@@ -1857,59 +1857,59 @@ void akropolisPlazaSirenLightTask(Task* task)
     // A culled origin leaves this slot inactive for the frame.
     lightSlot->framesLeft = WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE;
     if (beam->otz >= GLOW_MIN_DEPTH) {
-        if (__builtin_abs(beam->centerScreenPos.vx) < AKROPOLIS_PLAZA_LIGHT_CULL_X && __builtin_abs(beam->centerScreenPos.vy) < AKROPOLIS_PLAZA_LIGHT_CULL_Y) {
+        if (__builtin_abs(beam->centerScreenPos.vx) < LIGHT_CULL_X && __builtin_abs(beam->centerScreenPos.vy) < LIGHT_CULL_Y) {
             RANDOM_LCG_ADVANCE();
-            brightness = (RANDOM_LCG_DRAW() & AKROPOLIS_PLAZA_LIGHT_FLICKER_INTENSITY_MASK) | AKROPOLIS_PLAZA_LIGHT_FLICKER_BASE_INTENSITY;
+            brightness = (RANDOM_LCG_DRAW() & LIGHT_FLICKER_INTENSITY_MASK) | LIGHT_FLICKER_BASE_INTENSITY;
             if (task->spawnArg1.value < AKROPOLIS_PLAZA_LIGHT_FIRST_RED_SIREN) {
-                work->angle = ABS(work->scale - GLOW_HALF_TURN) > AKROPOLIS_PLAZA_LIGHT_SIREN_YAW_WINDOW ? AKROPOLIS_PLAZA_LIGHT_LONG_REACH : AKROPOLIS_PLAZA_LIGHT_SHORT_REACH;
+                work->angle = ABS(work->scale - GLOW_HALF_TURN) > LIGHT_SIREN_YAW_WINDOW ? LIGHT_LONG_REACH : LIGHT_SHORT_REACH;
                 red         = brightness >> 1;
                 green       = brightness >> 1;
                 blue        = brightness;
             } else {
-                work->angle = ABS(work->scale - GLOW_HALF_TURN) < GLOW_HALF_TURN - AKROPOLIS_PLAZA_LIGHT_SIREN_YAW_WINDOW ? AKROPOLIS_PLAZA_LIGHT_LONG_REACH : AKROPOLIS_PLAZA_LIGHT_SHORT_REACH;
+                work->angle = ABS(work->scale - GLOW_HALF_TURN) < GLOW_HALF_TURN - LIGHT_SIREN_YAW_WINDOW ? LIGHT_LONG_REACH : LIGHT_SHORT_REACH;
                 red         = brightness;
                 green       = red >> 1;
                 blue        = red >> 1;
             }
             beamLength = work->angle;
             // Refresh the point light; only a long beam adds yaw-dependent falloff.
-            falloffWidth                                              = beamLength != AKROPOLIS_PLAZA_LIGHT_LONG_REACH ? 0 : (yaw = work->scale, work->scale - GLOW_HALF_TURN >= 0 ? (yaw - GLOW_HALF_TURN) * 4 : (beamLength - yaw) * 4);
+            falloffWidth                                              = beamLength != LIGHT_LONG_REACH ? 0 : (yaw = work->scale, work->scale - GLOW_HALF_TURN >= 0 ? (yaw - GLOW_HALF_TURN) * 4 : (beamLength - yaw) * 4);
             work->period                                              = falloffWidth;
             lightCoord->coord.t[0]                                    = coord->coord.t[0];
             lightCoord->coord.t[1]                                    = coord->coord.t[1];
             lightCoord->coord.t[2]                                    = coord->coord.t[2];
             lightCoord->composeStamp                                  = GRAPHICS_COORD_DIRTY;
-            lightSlot->framesLeft                                     = AKROPOLIS_PLAZA_LIGHT_REFRESH_FRAMES;
-            light->inner                                              = AKROPOLIS_PLAZA_LIGHT_POINT_INNER_RADIUS;
-            light->outer                                              = work->period + AKROPOLIS_PLAZA_LIGHT_POINT_INNER_RADIUS;
-            light->head.color.r                                       = red << AKROPOLIS_PLAZA_LIGHT_POINT_COLOR_SHIFT;
-            light->head.color.g                                       = green << AKROPOLIS_PLAZA_LIGHT_POINT_COLOR_SHIFT;
-            light->head.color.b                                       = blue << AKROPOLIS_PLAZA_LIGHT_POINT_COLOR_SHIFT;
-            beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_FAR_LEFT].vx   = -AKROPOLIS_PLAZA_SIREN_BEAM_HALF_WIDTH;
+            lightSlot->framesLeft                                     = LIGHT_REFRESH_FRAMES;
+            light->inner                                              = LIGHT_POINT_INNER_RADIUS;
+            light->outer                                              = work->period + LIGHT_POINT_INNER_RADIUS;
+            light->head.color.r                                       = red << LIGHT_POINT_COLOR_SHIFT;
+            light->head.color.g                                       = green << LIGHT_POINT_COLOR_SHIFT;
+            light->head.color.b                                       = blue << LIGHT_POINT_COLOR_SHIFT;
+            beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_FAR_LEFT].vx   = -SIREN_BEAM_HALF_WIDTH;
             beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_FAR_LEFT].vy   = 0;
             beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_FAR_LEFT].vz   = work->angle;
-            beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_FAR_RIGHT].vx  = AKROPOLIS_PLAZA_SIREN_BEAM_HALF_WIDTH;
+            beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_FAR_RIGHT].vx  = SIREN_BEAM_HALF_WIDTH;
             beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_FAR_RIGHT].vy  = 0;
             beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_FAR_RIGHT].vz  = work->angle;
-            beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_SIDE_LEFT].vx  = -AKROPOLIS_PLAZA_SIREN_FRINGE_HALF_WIDTH;
+            beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_SIDE_LEFT].vx  = -SIREN_FRINGE_HALF_WIDTH;
             beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_SIDE_LEFT].vy  = 0;
-            beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_SIDE_LEFT].vz  = AKROPOLIS_PLAZA_SIREN_FRINGE_Z;
-            beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_SIDE_RIGHT].vx = AKROPOLIS_PLAZA_SIREN_FRINGE_HALF_WIDTH;
+            beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_SIDE_LEFT].vz  = SIREN_FRINGE_Z;
+            beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_SIDE_RIGHT].vx = SIREN_FRINGE_HALF_WIDTH;
             beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_SIDE_RIGHT].vy = 0;
-            beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_SIDE_RIGHT].vz = AKROPOLIS_PLAZA_SIREN_FRINGE_Z;
-            beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_NEAR_LEFT].vx  = -AKROPOLIS_PLAZA_SIREN_BEAM_HALF_WIDTH;
+            beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_SIDE_RIGHT].vz = SIREN_FRINGE_Z;
+            beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_NEAR_LEFT].vx  = -SIREN_BEAM_HALF_WIDTH;
             beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_NEAR_LEFT].vy  = 0;
-            beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_NEAR_LEFT].vz  = AKROPOLIS_PLAZA_SIREN_FRINGE_NEAR_Z;
-            beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_NEAR_RIGHT].vx = AKROPOLIS_PLAZA_SIREN_BEAM_HALF_WIDTH;
+            beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_NEAR_LEFT].vz  = SIREN_FRINGE_NEAR_Z;
+            beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_NEAR_RIGHT].vx = SIREN_BEAM_HALF_WIDTH;
             beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_NEAR_RIGHT].vy = 0;
-            beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_NEAR_RIGHT].vz = AKROPOLIS_PLAZA_SIREN_FRINGE_NEAR_Z;
+            beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_NEAR_RIGHT].vz = SIREN_FRINGE_NEAR_Z;
             for (index = AKROPOLIS_PLAZA_BEAM_VERTEX_FAR_LEFT; index < AKROPOLIS_PLAZA_BEAM_VERTEX_COUNT; index++) {
                 gte_SetRotMatrix(&coord->workm);
                 gte_ldv0(&beam->vertices[index]);
                 gte_rtv0();
                 gte_stsv(&beam->vertices[index]);
                 // Move the rotated outline vertex into world coordinates.
-                AKROPOLIS_PLAZA_TRANSLATE_LIGHT_VERTEX(&beam->vertices[index], coord);
+                TRANSLATE_LIGHT_VERTEX(&beam->vertices[index], coord);
             }
             gte_SetRotMatrix(&GsWSMATRIX);
             for (index = AKROPOLIS_PLAZA_BEAM_VERTEX_FAR_LEFT; index < AKROPOLIS_PLAZA_BEAM_VERTEX_COUNT; index++) {
@@ -1955,38 +1955,38 @@ void akropolisPlazaSirenLightTask(Task* task)
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(beam->otz), primitive);
                 gpuSetPrimitiveBlendMode(primitive, GPU_BLEND_ADD, beam->otz);
             }
-            beam->glowRadius = AKROPOLIS_PLAZA_SIREN_ORIGIN_GLOW_RADIUS_NUMERATOR / beam->otz;
+            beam->glowRadius = SIREN_ORIGIN_GLOW_RADIUS_NUMERATOR / beam->otz;
             red            <<= 1;
             green          <<= 1;
             blue           <<= 1;
-            AKROPOLIS_PLAZA_DRAW_LIGHT_GLOW_FAN(beam->centerScreenPos, beam->glowRadius, beam->otz, primitive, index, red, green, blue);
+            DRAW_LIGHT_GLOW_FAN(beam->centerScreenPos, beam->glowRadius, beam->otz, primitive, index, red, green, blue);
         }
     }
     // The far glow has its own flicker and visibility test, even if the origin was culled.
     RANDOM_LCG_ADVANCE();
-    brightness = (RANDOM_LCG_DRAW() & AKROPOLIS_PLAZA_LIGHT_FLICKER_INTENSITY_MASK) | AKROPOLIS_PLAZA_LIGHT_FLICKER_BASE_INTENSITY;
+    brightness = (RANDOM_LCG_DRAW() & LIGHT_FLICKER_INTENSITY_MASK) | LIGHT_FLICKER_BASE_INTENSITY;
     if (task->spawnArg1.value < AKROPOLIS_PLAZA_LIGHT_FIRST_RED_SIREN) {
-        work->angle          = ABS(work->scale - GLOW_HALF_TURN) > AKROPOLIS_PLAZA_LIGHT_FAR_GLOW_YAW_WINDOW ? AKROPOLIS_PLAZA_LIGHT_LONG_REACH : AKROPOLIS_PLAZA_LIGHT_SHORT_REACH;
+        work->angle          = ABS(work->scale - GLOW_HALF_TURN) > LIGHT_FAR_GLOW_YAW_WINDOW ? LIGHT_LONG_REACH : LIGHT_SHORT_REACH;
         packedBlueBrightness = brightness << 16;
         red                  = packedBlueBrightness >> 20;
         green                = packedBlueBrightness >> 20;
         blue                 = (u32)packedBlueBrightness >> 18;
     } else {
-        work->angle         = ABS(work->scale - GLOW_HALF_TURN) < GLOW_HALF_TURN - AKROPOLIS_PLAZA_LIGHT_FAR_GLOW_YAW_WINDOW ? AKROPOLIS_PLAZA_LIGHT_LONG_REACH : AKROPOLIS_PLAZA_LIGHT_SHORT_REACH;
+        work->angle         = ABS(work->scale - GLOW_HALF_TURN) < GLOW_HALF_TURN - LIGHT_FAR_GLOW_YAW_WINDOW ? LIGHT_LONG_REACH : LIGHT_SHORT_REACH;
         packedRedBrightness = brightness << 16;
         red                 = (u32)packedRedBrightness >> 18;
         green               = (s32)packedRedBrightness >> 20;
         blue                = (s32)packedRedBrightness >> 20;
     }
-    if (work->angle == AKROPOLIS_PLAZA_LIGHT_LONG_REACH) {
+    if (work->angle == LIGHT_LONG_REACH) {
         beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_CENTER].vx = 0;
         beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_CENTER].vy = 0;
-        beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_CENTER].vz = AKROPOLIS_PLAZA_LIGHT_FAR_GLOW_Z;
+        beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_CENTER].vz = LIGHT_FAR_GLOW_Z;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_CENTER]);
         gte_rtv0();
         gte_stsv(&beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_CENTER]);
-        AKROPOLIS_PLAZA_TRANSLATE_LIGHT_VERTEX(&beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_CENTER], coord);
+        TRANSLATE_LIGHT_VERTEX(&beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_CENTER], coord);
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&beam->vertices[AKROPOLIS_PLAZA_BEAM_VERTEX_CENTER]);
@@ -1994,43 +1994,43 @@ void akropolisPlazaSirenLightTask(Task* task)
         gte_stsxy(&beam->centerScreenPos);
         gte_stszotz(&beam->otz);
         if (beam->otz >= GLOW_MIN_DEPTH) {
-            if (__builtin_abs(beam->centerScreenPos.vx) < AKROPOLIS_PLAZA_LIGHT_CULL_X && __builtin_abs(beam->centerScreenPos.vy) < AKROPOLIS_PLAZA_LIGHT_CULL_Y) {
-                beam->glowRadius = AKROPOLIS_PLAZA_LIGHT_FAR_GLOW_RADIUS_NUMERATOR / beam->otz;
-                AKROPOLIS_PLAZA_DRAW_LIGHT_GLOW_FAN(beam->centerScreenPos, beam->glowRadius, beam->otz, primitive, index, red, green, blue);
+            if (__builtin_abs(beam->centerScreenPos.vx) < LIGHT_CULL_X && __builtin_abs(beam->centerScreenPos.vy) < LIGHT_CULL_Y) {
+                beam->glowRadius = LIGHT_FAR_GLOW_RADIUS_NUMERATOR / beam->otz;
+                DRAW_LIGHT_GLOW_FAN(beam->centerScreenPos, beam->glowRadius, beam->otz, primitive, index, red, green, blue);
             }
         }
     }
-    work->scale = (work->scale - AKROPOLIS_PLAZA_LIGHT_YAW_STEP) & AKROPOLIS_PLAZA_LIGHT_YAW_MASK;
-    SCRATCH_STACK_RELEASE_BLOCK(_AkropolisPlazaBeamScratch);
+    work->scale = (work->scale - LIGHT_YAW_STEP) & LIGHT_YAW_MASK;
+    SCRATCH_STACK_RELEASE_BLOCK(_BeamScratch);
 }
 
 void akropolisPlazaLightFlareTask(Task* task)
 {
     enum {
-        AKROPOLIS_PLAZA_FLARE_PULSE_STEP                    = 8,
-        AKROPOLIS_PLAZA_FLARE_SLOT_PHASE_STEP               = 0xC0,
-        AKROPOLIS_PLAZA_FLARE_RISING_LEVEL_MASK             = 0x78,
-        AKROPOLIS_PLAZA_FLARE_ORIGIN_RADIUS_NUMERATOR       = 0xA000,
-        AKROPOLIS_PLAZA_FLARE_RAY_TIP_RADIUS_NUMERATOR      = 0x8000,
-        AKROPOLIS_PLAZA_FLARE_RAY_SHOULDER_RADIUS_NUMERATOR = 0x1800,
-        AKROPOLIS_PLAZA_FLARE_FIRST_RAY_SAMPLE              = 3,
-        AKROPOLIS_PLAZA_FLARE_OPPOSITE_RAY_SAMPLE_STEP      = 8
+        PULSE_STEP                    = 8,
+        SLOT_PHASE_STEP               = 0xC0,
+        RISING_LEVEL_MASK             = 0x78,
+        ORIGIN_RADIUS_NUMERATOR       = 0xA000,
+        RAY_TIP_RADIUS_NUMERATOR      = 0x8000,
+        RAY_SHOULDER_RADIUS_NUMERATOR = 0x1800,
+        FIRST_RAY_SAMPLE              = 3,
+        OPPOSITE_RAY_SAMPLE_STEP      = 8
     };
-    GfxCoord*                    coord;
-    EffectWork*                  work;
-    _AkropolisPlazaFlareScratch* flare;
-    POLY_G4*                     primitive;
-    s32                          index;
-    s16                          brightness;
-    u16                          red, green, blue;
-    s32                          initialYaw;
-    s32                          pulsePhase, packedBlueBrightness;
-    u32                          packedRedBrightness;
-    s16                          pulseLevel;
+    GfxCoord*      coord;
+    EffectWork*    work;
+    _FlareScratch* flare;
+    POLY_G4*       primitive;
+    s32            index;
+    s16            brightness;
+    u16            red, green, blue;
+    s32            initialYaw;
+    s32            pulsePhase, packedBlueBrightness;
+    u32            packedRedBrightness;
+    s16            pulseLevel;
     coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
     if (task->state == 0) {
-        initialYaw  = (task->spawnArg1.value & 1) << AKROPOLIS_PLAZA_LIGHT_HALF_TURN_SHIFT;
+        initialYaw  = (task->spawnArg1.value & 1) << LIGHT_HALF_TURN_SHIFT;
         work->scale = initialYaw;
         task->state = task->state + 1;
     }
@@ -2038,7 +2038,7 @@ void akropolisPlazaLightFlareTask(Task* task)
     gfxRotMatrixY(&coord->coord, work->scale, 1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
-    flare              = SCRATCH_STACK_RESERVE_BLOCK(_AkropolisPlazaFlareScratch);
+    flare              = SCRATCH_STACK_RESERVE_BLOCK(_FlareScratch);
     flare->worldPos.vx = coord->workm.t[0];
     flare->worldPos.vy = coord->workm.t[1];
     flare->worldPos.vz = coord->workm.t[2];
@@ -2049,12 +2049,12 @@ void akropolisPlazaLightFlareTask(Task* task)
     gte_stsxy(&flare->screenPos);
     gte_stszotz(&flare->otz);
     if (flare->otz >= GLOW_MIN_DEPTH) {
-        if (__builtin_abs(flare->screenPos.vx) < AKROPOLIS_PLAZA_LIGHT_CULL_X && __builtin_abs(flare->screenPos.vy) < AKROPOLIS_PLAZA_LIGHT_CULL_Y) {
-            pulsePhase = gDisplayState.animFrame * AKROPOLIS_PLAZA_FLARE_PULSE_STEP + task->spawnArg1.value * AKROPOLIS_PLAZA_FLARE_SLOT_PHASE_STEP;
-            if (pulsePhase & AKROPOLIS_PLAZA_LIGHT_PULSE_HALF_PERIOD) {
-                pulseLevel = AKROPOLIS_PLAZA_LIGHT_PULSE_LEVEL_MASK - (pulsePhase & AKROPOLIS_PLAZA_LIGHT_PULSE_LEVEL_MASK);
+        if (__builtin_abs(flare->screenPos.vx) < LIGHT_CULL_X && __builtin_abs(flare->screenPos.vy) < LIGHT_CULL_Y) {
+            pulsePhase = gDisplayState.animFrame * PULSE_STEP + task->spawnArg1.value * SLOT_PHASE_STEP;
+            if (pulsePhase & LIGHT_PULSE_HALF_PERIOD) {
+                pulseLevel = LIGHT_PULSE_LEVEL_MASK - (pulsePhase & LIGHT_PULSE_LEVEL_MASK);
             } else {
-                pulseLevel = pulsePhase & AKROPOLIS_PLAZA_FLARE_RISING_LEVEL_MASK;
+                pulseLevel = pulsePhase & RISING_LEVEL_MASK;
             }
             brightness = pulseLevel;
             if (task->spawnArg1.value < AKROPOLIS_PLAZA_LIGHT_FIRST_RED_FLARE) {
@@ -2066,15 +2066,15 @@ void akropolisPlazaLightFlareTask(Task* task)
                 green = (s16)red >> 2;
                 blue  = (s16)red >> 2;
             }
-            flare->outerRadius = AKROPOLIS_PLAZA_FLARE_ORIGIN_RADIUS_NUMERATOR / flare->otz;
-            AKROPOLIS_PLAZA_DRAW_LIGHT_GLOW_FAN(flare->screenPos, flare->outerRadius, flare->otz, primitive, index, red, green, blue);
+            flare->outerRadius = ORIGIN_RADIUS_NUMERATOR / flare->otz;
+            DRAW_LIGHT_GLOW_FAN(flare->screenPos, flare->outerRadius, flare->otz, primitive, index, red, green, blue);
             // Overlay four diagonal rays, alternating double and single radii.
-            flare->outerRadius = AKROPOLIS_PLAZA_FLARE_RAY_TIP_RADIUS_NUMERATOR / flare->otz;
-            flare->innerRadius = AKROPOLIS_PLAZA_FLARE_RAY_SHOULDER_RADIUS_NUMERATOR / flare->otz;
+            flare->outerRadius = RAY_TIP_RADIUS_NUMERATOR / flare->otz;
+            flare->innerRadius = RAY_SHOULDER_RADIUS_NUMERATOR / flare->otz;
             red              <<= 1;
             green            <<= 1;
             blue             <<= 1;
-            for (index = AKROPOLIS_PLAZA_FLARE_FIRST_RAY_SAMPLE; index < AKROPOLIS_PLAZA_LIGHT_FAN_SAMPLES; index += AKROPOLIS_PLAZA_FLARE_OPPOSITE_RAY_SAMPLE_STEP) {
+            for (index = FIRST_RAY_SAMPLE; index < LIGHT_FAN_SAMPLES; index += OPPOSITE_RAY_SAMPLE_STEP) {
                 primitive      = gGpuPrimCursor;
                 gGpuPrimCursor = primitive + 1;
                 setPolyG4(primitive);
@@ -2114,29 +2114,29 @@ void akropolisPlazaLightFlareTask(Task* task)
     }
     // Gate an independently flickering glow ahead of the flare by the sweep yaw.
     RANDOM_LCG_ADVANCE();
-    brightness = (RANDOM_LCG_DRAW() & AKROPOLIS_PLAZA_LIGHT_FLICKER_INTENSITY_MASK) | AKROPOLIS_PLAZA_LIGHT_FLICKER_BASE_INTENSITY;
+    brightness = (RANDOM_LCG_DRAW() & LIGHT_FLICKER_INTENSITY_MASK) | LIGHT_FLICKER_BASE_INTENSITY;
     if (task->spawnArg1.value < AKROPOLIS_PLAZA_LIGHT_FIRST_RED_FLARE) {
-        work->angle          = ABS(work->scale - GLOW_HALF_TURN) > AKROPOLIS_PLAZA_LIGHT_FAR_GLOW_YAW_WINDOW ? AKROPOLIS_PLAZA_LIGHT_LONG_REACH : AKROPOLIS_PLAZA_LIGHT_SHORT_REACH;
+        work->angle          = ABS(work->scale - GLOW_HALF_TURN) > LIGHT_FAR_GLOW_YAW_WINDOW ? LIGHT_LONG_REACH : LIGHT_SHORT_REACH;
         packedBlueBrightness = brightness << 16;
         red                  = packedBlueBrightness >> 20;
         green                = packedBlueBrightness >> 20;
         blue                 = packedBlueBrightness >> 18;
     } else {
-        work->angle         = ABS(work->scale - GLOW_HALF_TURN) < GLOW_HALF_TURN - AKROPOLIS_PLAZA_LIGHT_FAR_GLOW_YAW_WINDOW ? AKROPOLIS_PLAZA_LIGHT_LONG_REACH : AKROPOLIS_PLAZA_LIGHT_SHORT_REACH;
+        work->angle         = ABS(work->scale - GLOW_HALF_TURN) < GLOW_HALF_TURN - LIGHT_FAR_GLOW_YAW_WINDOW ? LIGHT_LONG_REACH : LIGHT_SHORT_REACH;
         packedRedBrightness = brightness << 16;
         red                 = (s32)packedRedBrightness >> 18;
         green               = (s32)packedRedBrightness >> 20;
         blue                = (s32)packedRedBrightness >> 20;
     }
-    if (work->angle == AKROPOLIS_PLAZA_LIGHT_LONG_REACH) {
+    if (work->angle == LIGHT_LONG_REACH) {
         flare->worldPos.vx = 0;
         flare->worldPos.vy = 0;
-        flare->worldPos.vz = AKROPOLIS_PLAZA_LIGHT_FAR_GLOW_Z;
+        flare->worldPos.vz = LIGHT_FAR_GLOW_Z;
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&flare->worldPos);
         gte_rtv0();
         gte_stsv(&flare->worldPos);
-        AKROPOLIS_PLAZA_TRANSLATE_LIGHT_VERTEX(&flare->worldPos, coord);
+        TRANSLATE_LIGHT_VERTEX(&flare->worldPos, coord);
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&flare->worldPos);
@@ -2144,26 +2144,26 @@ void akropolisPlazaLightFlareTask(Task* task)
         gte_stsxy(&flare->screenPos);
         gte_stszotz(&flare->otz);
         if (flare->otz >= GLOW_MIN_DEPTH) {
-            if (__builtin_abs(flare->screenPos.vx) < AKROPOLIS_PLAZA_LIGHT_CULL_X && __builtin_abs(flare->screenPos.vy) < AKROPOLIS_PLAZA_LIGHT_CULL_Y) {
-                flare->outerRadius = AKROPOLIS_PLAZA_LIGHT_FAR_GLOW_RADIUS_NUMERATOR / flare->otz;
-                AKROPOLIS_PLAZA_DRAW_LIGHT_GLOW_FAN(flare->screenPos, flare->outerRadius, flare->otz, primitive, index, red, green, blue);
+            if (__builtin_abs(flare->screenPos.vx) < LIGHT_CULL_X && __builtin_abs(flare->screenPos.vy) < LIGHT_CULL_Y) {
+                flare->outerRadius = LIGHT_FAR_GLOW_RADIUS_NUMERATOR / flare->otz;
+                DRAW_LIGHT_GLOW_FAN(flare->screenPos, flare->outerRadius, flare->otz, primitive, index, red, green, blue);
             }
         }
     }
-    work->scale = (work->scale - AKROPOLIS_PLAZA_LIGHT_YAW_STEP) & AKROPOLIS_PLAZA_LIGHT_YAW_MASK;
-    SCRATCH_STACK_RELEASE_BLOCK(_AkropolisPlazaFlareScratch);
+    work->scale = (work->scale - LIGHT_YAW_STEP) & LIGHT_YAW_MASK;
+    SCRATCH_STACK_RELEASE_BLOCK(_FlareScratch);
 }
 
-#undef AKROPOLIS_PLAZA_TRANSLATE_LIGHT_VERTEX
+#undef TRANSLATE_LIGHT_VERTEX
 
 void akropolisPlazaLightGlowTask(Task* task)
 {
     enum {
-        AKROPOLIS_PLAZA_GLOW_YELLOW_FLICKER_MASK     = 0x3F,
-        AKROPOLIS_PLAZA_GLOW_YELLOW_RADIUS_NUMERATOR = 0xC000,
-        AKROPOLIS_PLAZA_GLOW_RED_RADIUS_NUMERATOR    = 0x8000,
-        AKROPOLIS_PLAZA_GLOW_RED_PULSE_STEP          = 6,
-        AKROPOLIS_PLAZA_GLOW_RED_RISING_LEVEL_MASK   = 0x7E
+        YELLOW_FLICKER_MASK     = 0x3F,
+        YELLOW_RADIUS_NUMERATOR = 0xC000,
+        RED_RADIUS_NUMERATOR    = 0x8000,
+        RED_PULSE_STEP          = 6,
+        RED_RISING_LEVEL_MASK   = 0x7E
     };
     GfxCoord*              coord;
     RoomGlowSpriteScratch* glow;
@@ -2187,48 +2187,48 @@ void akropolisPlazaLightGlowTask(Task* task)
     gte_stsxy(&glow->screenPos);
     gte_stszotz(&glow->otz);
     if (glow->otz >= GLOW_MIN_DEPTH) {
-        if (__builtin_abs(glow->screenPos.vx) < AKROPOLIS_PLAZA_LIGHT_CULL_X && __builtin_abs(glow->screenPos.vy) < AKROPOLIS_PLAZA_LIGHT_CULL_Y) {
+        if (__builtin_abs(glow->screenPos.vx) < LIGHT_CULL_X && __builtin_abs(glow->screenPos.vy) < LIGHT_CULL_Y) {
             if (task->spawnArg1.value < AKROPOLIS_PLAZA_LIGHT_FIRST_RED_GLOW) {
                 RANDOM_LCG_ADVANCE();
-                packedBrightness = ((RANDOM_LCG_DRAW() & AKROPOLIS_PLAZA_GLOW_YELLOW_FLICKER_MASK) + AKROPOLIS_PLAZA_LIGHT_FLICKER_BASE_INTENSITY) << 16;
+                packedBrightness = ((RANDOM_LCG_DRAW() & YELLOW_FLICKER_MASK) + LIGHT_FLICKER_BASE_INTENSITY) << 16;
                 yellowIntensity  = packedBrightness >> 17;
                 red              = yellowIntensity;
                 green            = yellowIntensity;
                 blue             = (u32)packedBrightness >> 18;
-                glow->halfExtent = AKROPOLIS_PLAZA_GLOW_YELLOW_RADIUS_NUMERATOR / glow->otz;
+                glow->halfExtent = YELLOW_RADIUS_NUMERATOR / glow->otz;
             } else {
-                pulsePhase = gDisplayState.animFrame * AKROPOLIS_PLAZA_GLOW_RED_PULSE_STEP;
-                if (pulsePhase & AKROPOLIS_PLAZA_LIGHT_PULSE_HALF_PERIOD) {
-                    pulseLevel = AKROPOLIS_PLAZA_LIGHT_PULSE_LEVEL_MASK - (pulsePhase & AKROPOLIS_PLAZA_LIGHT_PULSE_LEVEL_MASK);
+                pulsePhase = gDisplayState.animFrame * RED_PULSE_STEP;
+                if (pulsePhase & LIGHT_PULSE_HALF_PERIOD) {
+                    pulseLevel = LIGHT_PULSE_LEVEL_MASK - (pulsePhase & LIGHT_PULSE_LEVEL_MASK);
                 } else {
-                    pulseLevel = pulsePhase & AKROPOLIS_PLAZA_GLOW_RED_RISING_LEVEL_MASK;
+                    pulseLevel = pulsePhase & RED_RISING_LEVEL_MASK;
                 }
                 red                = pulseLevel;
                 redAccentIntensity = (s32)(red << 16) >> 18;
                 green              = redAccentIntensity;
                 blue               = redAccentIntensity;
-                glow->halfExtent   = AKROPOLIS_PLAZA_GLOW_RED_RADIUS_NUMERATOR / glow->otz;
+                glow->halfExtent   = RED_RADIUS_NUMERATOR / glow->otz;
             }
-            AKROPOLIS_PLAZA_DRAW_LIGHT_GLOW_FAN(glow->screenPos, glow->halfExtent, glow->otz, primitive, fanSample, red, green, blue);
+            DRAW_LIGHT_GLOW_FAN(glow->screenPos, glow->halfExtent, glow->otz, primitive, fanSample, red, green, blue);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
 }
 
-#undef AKROPOLIS_PLAZA_DRAW_LIGHT_GLOW_FAN
+#undef DRAW_LIGHT_GLOW_FAN
 
 void akropolisPlazaSpawnAmbientLightsTask(Task* task)
 {
     enum {
-        AKROPOLIS_PLAZA_AMBIENT_LIGHTS_INITIAL = 0,
-        AKROPOLIS_PLAZA_AMBIENT_GLOW_END       = ARRAY_SIZE(_gAkropolisPlazaAmbientLightPlacements),
+        LIGHTS_INITIAL = 0,
+        GLOW_END       = ARRAY_SIZE(_gAkropolisPlazaAmbientLightPlacements),
     };
     GfxCoord* roomCoord;
     s32       placementIndex;
 
     roomCoord = task->extra.coordBody->coord;
-    if (task->state == AKROPOLIS_PLAZA_AMBIENT_LIGHTS_INITIAL) {
-        for (placementIndex = AKROPOLIS_PLAZA_LIGHT_FIRST_GLOW; placementIndex < AKROPOLIS_PLAZA_AMBIENT_GLOW_END; placementIndex++) {
+    if (task->state == LIGHTS_INITIAL) {
+        for (placementIndex = AKROPOLIS_PLAZA_LIGHT_FIRST_GLOW; placementIndex < GLOW_END; placementIndex++) {
             effectSpawn(EFFECT_AKROPOLIS_PLAZA_LIGHT_GLOW, roomCoord, placementIndex, &_gAkropolisPlazaAmbientLightPlacements[placementIndex]);
         }
         for (placementIndex = AKROPOLIS_PLAZA_LIGHT_FIRST_FLARE; placementIndex < AKROPOLIS_PLAZA_LIGHT_FLARE_END; placementIndex++) {
