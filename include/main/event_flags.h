@@ -86,6 +86,14 @@ enum {
     /// ("A SWAT ammunition box..."): the CAP interpreter keeps the command's
     /// counter here (doc/CAP_FORMAT.md §6), 0 before the box is examined, 1 after.
     EVENT_FLAG_AKROPOLIS_SQUARE_AMMO_BOX_DIALOG_SEEN = 0x004,
+    /// Akropolis sanctuary. Marker: Rupert has left - the roof garden has been entered,
+    /// or the fire escape's door to the bridge used; the sanctuary then moves its cage
+    /// out of the doorway and no longer arms Rupert's actor.
+    EVENT_FLAG_AKROPOLIS_SANCTUARY_RUPERT_LEFT = 0x006,
+    /// Akropolis sanctuary, the bomb scene. State: 1 it has played (room action),
+    /// 2 it was passed by - the player left for the promenade, or reached the roof
+    /// garden, first.
+    EVENT_FLAG_AKROPOLIS_SANCTUARY_BOMB_SCENE_STATE = 0x007,
     /// Akropolis patio, its door to the cafeteria. State: 1 the player has found it
     /// locked (CAP 3), 2 the east elevator hall scene has unlocked it, 3 it has been
     /// opened and the warp to the cafeteria has started.

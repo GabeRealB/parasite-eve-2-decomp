@@ -376,13 +376,13 @@ enum {
     EFFECT_IMPACT_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x076),
     /// Akropolis sanctuary mosaic controller: spawns one 0x60079 falling tile per
     /// mosaic entry (plus a second pass over 16 tiles) and releases.
-    EFFECT_ACROPOLIS_SANCTUARY_MOSAIC = EFFECT_ID(EFFECT_TASK_BANK, 0x078),
+    EFFECT_AKROPOLIS_SANCTUARY_MOSAIC = EFFECT_ID(EFFECT_TASK_BANK, 0x078),
     /// Falling mosaic tile: a whole textured tile of the sanctuary mosaic drifting and
     /// tumbling, shedding 0x6007A shards and shattering on the wall line.
-    EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_TILE = EFFECT_ID(EFFECT_TASK_BANK, 0x079),
+    EFFECT_AKROPOLIS_SANCTUARY_MOSAIC_TILE = EFFECT_ID(EFFECT_TASK_BANK, 0x079),
     /// A falling, spinning textured triangle shard of the Akropolis sanctuary mosaic
     /// that bounces or shatters into further shards.
-    EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_SHARD = EFFECT_ID(EFFECT_TASK_BANK, 0x07A),
+    EFFECT_AKROPOLIS_SANCTUARY_MOSAIC_SHARD = EFFECT_ID(EFFECT_TASK_BANK, 0x07A),
     /// Glowing spark particle that falls under gravity, bounces off the traced ground
     /// (halving its speed), draws a ground glow under itself and fades over 31 frames;
     /// used by spark bursts (_roomVisualEffectsSparkBurstTask, effectControlTask71, gunblade).
@@ -420,7 +420,7 @@ enum {
     EFFECT_ACROPOLIS_ROOF_GARDEN_LIGHT_GLOW = EFFECT_ID(EFFECT_TASK_BANK, 0x08A),
     /// The Akropolis sanctuary's flickering flame sprite, visible only from its listed
     /// camera views; twelve are spawned by the sanctuary room task.
-    EFFECT_ACROPOLIS_SANCTUARY_FLAME = EFFECT_ID(EFFECT_TASK_BANK, 0x08B),
+    EFFECT_AKROPOLIS_SANCTUARY_FLAME = EFFECT_ID(EFFECT_TASK_BANK, 0x08B),
     /// Flickering three-layer glow of POLY_G4 wedges, shown on views 2/3/7, that plays
     /// SOUND_ACROPOLIS_FIRE_ESCAPE_LIGHT_FLICKER when it brightens; spawned once by the
     /// fire escape's emitter task.

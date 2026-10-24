@@ -503,7 +503,7 @@ static AreaObjectSpawn _gMapDryfieldFullTrailerCoachObjectSpawns[2] = {
         .taskDesc = {
             .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = MAP_DRYFIELD_FULL_OBJECT_PRIORITY } },
             .callback = itemPickupContainerLidTask,
-            .data     = { .model = &gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0 },
+            .data     = { .model = &gDryfieldNightTrailerCoachAkropolisSanctuaryModel090F0 },
         },
     },
     { .kind = AREA_OBJECT_SPAWN_END },

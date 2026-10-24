@@ -95,7 +95,7 @@
 
 #include "rooms/acropolis_roof_garden.h"
 
-#include "rooms/acropolis_sanctuary.h"
+#include "rooms/akropolis_sanctuary.h"
 
 #include "rooms/akropolis_security_room.h"
 
@@ -652,10 +652,10 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldMotelBalconyRoomVisualEffectsSparkBurstTask, { NULL } },                    // 0x074
     { { { TASK_BODY_NONE, 0x70 } }, taskKill, { NULL } },                                                                // 0x075
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask76, { NULL } },                                                     // 0x076
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisSanctuaryRoomEffectTask, { NULL } },                                       // 0x077
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisSanctuaryMosaicTask, { NULL } },                                           // 0x078
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisSanctuaryMosaicTileTask, { NULL } },                                       // 0x079
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisSanctuaryMosaicShardTask, { NULL } },                                      // 0x07A
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisSanctuaryRoomEffectTask, { NULL } },                                       // 0x077
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisSanctuaryMosaicTask, { NULL } },                                           // 0x078
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisSanctuaryMosaicTileTask, { NULL } },                                       // 0x079
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisSanctuaryMosaicShardTask, { NULL } },                                      // 0x07A
     { { { TASK_BODY_COORD, 0x70 } }, akropolisSecurityRoomFallingQuadTask, { NULL } },                                   // 0x07B
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask7C, { NULL } },                                                     // 0x07C
     { { { TASK_BODY_NONE, 0x70 } }, taskKill, { NULL } },                                                                // 0x07D
@@ -672,7 +672,7 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, akropolisFountainSprayTask, { NULL } },                                             // 0x088
     { { { TASK_BODY_COORD, 0x70 } }, akropolisForkedRoadWallLampTask, { NULL } },                                        // 0x089
     { { { TASK_BODY_COORD, 0x70 } }, acropolisRoofGardenLightGlowTask, { NULL } },                                       // 0x08A
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisSanctuaryFlameTask, { NULL } },                                            // 0x08B
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisSanctuaryFlameTask, { NULL } },                                            // 0x08B
     { { { TASK_BODY_COORD, 0x70 } }, acropolisFireEscapeFlickerLightTask, { NULL } },                                    // 0x08C
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask8D, { NULL } },                                                     // 0x08D
     { { { TASK_BODY_COORD, 0x70 } }, effectHitSparkBurstTask, { NULL } },                                                // 0x08E

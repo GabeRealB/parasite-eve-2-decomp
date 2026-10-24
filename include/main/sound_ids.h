@@ -209,10 +209,10 @@ enum {
     SOUND_AKROPOLIS_FOUNTAIN_WATER_LOOP = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_FOUNTAIN, 1),
     /// Played by `itemPickupContainerLidTask` in the sanctuary when the item container's part
     /// starts tilting open (case falls through and also queues 0x521B000B).
-    SOUND_ACROPOLIS_SANCTUARY_ITEM_LID_OPEN = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SANCTUARY, 5),
+    SOUND_AKROPOLIS_SANCTUARY_ITEM_LID_OPEN = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SANCTUARY, 5),
     /// Played by `itemPickupContainerLidTask` in the sanctuary when the tilted part swings back
     /// after the pickup.
-    SOUND_ACROPOLIS_SANCTUARY_ITEM_LID_CLOSE = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SANCTUARY, 6),
+    SOUND_AKROPOLIS_SANCTUARY_ITEM_LID_CLOSE = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SANCTUARY, 6),
     /// Looping ambience whose level follows the camera view (view 7 full, view 5 at
     /// 0x1E, silent elsewhere), started, ramped or faded only on a change.
     SOUND_ACROPOLIS_ROOF_GARDEN_AMBIENCE = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_ROOF_GARDEN, 5),

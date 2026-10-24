@@ -31,7 +31,7 @@ enum { DRYFIELD_TRAILER_COACH_AREA_VARIANT_COUNT = 13 };
 /// their tables are used. There is no terminator or index check.
 extern AreaVariant gDryfieldTrailerCoachAreaVariants[DRYFIELD_TRAILER_COACH_AREA_VARIANT_COUNT];
 
-extern TmdSource gDryfieldTrailerCoachAcropolisSanctuaryModel090F0;
+extern TmdSource gDryfieldTrailerCoachAkropolisSanctuaryModel090F0;
 
 /// Collision resources for room 1 of daytime Dryfield area 27.
 ///

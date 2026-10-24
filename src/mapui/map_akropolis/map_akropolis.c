@@ -62,7 +62,7 @@
 
 #include "rooms/acropolis_roof_garden.h"
 
-#include "rooms/acropolis_sanctuary.h"
+#include "rooms/akropolis_sanctuary.h"
 
 #include "rooms/akropolis_security_room.h"
 
@@ -583,7 +583,7 @@ static AreaObjectSpawn _gMapAkropolisCafeteriaObjectSpawns[3] = {
 /// overlay to remain loaded for the spawned task.
 /// The area's empty placement list selects none of these recipes.
 static AreaObjectSpawn _gMapAkropolisSecurityRoomObjectSpawns[2] = {
-    { MAP_AKROPOLIS_KIND_SECURITY_ROOM_CONTAINER_LID, { { { TASK_BODY_TMD, MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, itemPickupContainerLidTask, { &gAkropolisSecurityRoomAcropolisSanctuaryModel090F0 } } },
+    { MAP_AKROPOLIS_KIND_SECURITY_ROOM_CONTAINER_LID, { { { TASK_BODY_TMD, MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, itemPickupContainerLidTask, { &gAkropolisSecurityRoomAkropolisSanctuaryModel090F0 } } },
     { AREA_OBJECT_SPAWN_END },
 };
 
@@ -636,8 +636,8 @@ static AreaObjectSpawn _gMapAkropolisPromenadeObjectSpawns[1] = {
 /// overlay to remain loaded for the spawned task.
 /// Only the red key has a matching placement; the lid recipe is unselected.
 static AreaObjectSpawn _gMapAkropolisSanctuaryObjectSpawns[3] = {
-    { INVENTORY_COLLECTION_ID_RED_KEY, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, acropolisSanctuaryItemVisibilityTask, { &gAkropolisSanctuaryAcropolisSanctuaryModel09584 } } },
-    { MAP_AKROPOLIS_KIND_SANCTUARY_CONTAINER_LID, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, itemPickupContainerLidTask, { &gAcropolisSanctuaryModel090F0 } } },
+    { INVENTORY_COLLECTION_ID_RED_KEY, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, akropolisSanctuaryItemVisibilityTask, { &gAkropolisSanctuaryRedKeyPickupModel } } },
+    { MAP_AKROPOLIS_KIND_SANCTUARY_CONTAINER_LID, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, itemPickupContainerLidTask, { &gAkropolisSanctuaryModel090F0 } } },
     { AREA_OBJECT_SPAWN_END },
 };
 
@@ -707,7 +707,7 @@ TaskDesc gMapAkropolisRoomTaskDescriptors[21] = {
     { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, akropolisForkedRoadRoomTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_FORKED_ROAD, 0) } },
     { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, akropolisObservatoryRoomTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_OBSERVATORY, 0) } },
     { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, akropolisPromenadeRoomTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PROMENADE, 0) } },
-    { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, acropolisSanctuaryRoomTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SANCTUARY, 0) } },
+    { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, akropolisSanctuaryRoomTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SANCTUARY, 0) } },
     { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, acropolisRoofGardenRoomTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_ROOF_GARDEN, 0) } },
     { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, acropolisBridgeRoomTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_BRIDGE, 0) } },
     { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, acropolisFireEscapeRoomTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_FIRE_ESCAPE, 0) } },

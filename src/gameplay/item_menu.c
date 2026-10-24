@@ -1621,7 +1621,7 @@ void itemPickupContainerLidTask(Task* task)
                         break;
                     }
                     case GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SANCTUARY, 0, 0): {
-                        _itemPickupPlayLidSound(task, SOUND_ACROPOLIS_SANCTUARY_ITEM_LID_OPEN);
+                        _itemPickupPlayLidSound(task, SOUND_AKROPOLIS_SANCTUARY_ITEM_LID_OPEN);
                     }
                     // Sanctuary also requests the following sound; retain this fallthrough.
                     case GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TRAILER_COACH, 0, 0): {
@@ -1670,7 +1670,7 @@ void itemPickupContainerLidTask(Task* task)
                     break;
                 }
                 case GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SANCTUARY, 0, 0): {
-                    _itemPickupPlayLidSound(task, SOUND_ACROPOLIS_SANCTUARY_ITEM_LID_CLOSE);
+                    _itemPickupPlayLidSound(task, SOUND_AKROPOLIS_SANCTUARY_ITEM_LID_CLOSE);
                     break;
                 }
                 case GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TRAILER_COACH, 0, 0):

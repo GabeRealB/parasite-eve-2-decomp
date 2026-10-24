@@ -7585,13 +7585,13 @@ attempt. Its `Actor300700Work` gained `field_340` (`MATRIX`) and
 
 ## Hoist the pointer chase out of a call when a block copy sits before it
 
-`_acropolisSanctuaryStartMosaic` is the minimal case: one 8-byte `SVECTOR`
+`_akropolisSanctuaryStartMosaic` is the minimal case: one 8-byte `SVECTOR`
 copy from rodata, one call. Written as the obvious two statements the copy
 comes out first and the argument setup after, which cost 5 `reorder` and a
 77.8% score:
 
 ```c
-SVECTOR vec = _gAcropolisSanctuaryMosaicOffset;
+SVECTOR vec = _gAkropolisSanctuaryMosaicOffset;
 effectSpawn(0x60078, task->extra.coordBody->coord, 0, &vec);
 ```
 
@@ -7602,7 +7602,7 @@ already be a separate statement ahead of the copy:
 
 ```c
 GfxCoord* coord = task->extra.coordBody->coord;
-SVECTOR        vec   = _gAcropolisSanctuaryMosaicOffset;
+SVECTOR        vec   = _gAkropolisSanctuaryMosaicOffset;
 
 effectSpawn(0x60078, coord, 0, &vec);
 ```
@@ -39608,7 +39608,7 @@ fails to reduce it and recomputes `addu`/`sll` every iteration; and a plain
 
 ## A hoisted invariant sits *before* a giv init, but *after* an explicit pointer
 
-`acropolisSanctuaryRoomEffectTask` spawns twelve effects in two `do`/`while`
+`akropolisSanctuaryRoomEffectTask` spawns twelve effects in two `do`/`while`
 loops, the second passing `i + 0xA00000` — too wide for `addiu`, so GCC hoists
 `lui $s4, 0xA0` into the loop preheader. Writing the array walk as its own local
 (`vec = &tbl[6]; ... vec++;`) reproduced every instruction but put the `lui`
@@ -44097,10 +44097,10 @@ live across two calls it has to sit in a callee-saved register, and the same
 `regs=4` leftover appears with `$s0` in place of `$a0`:
 
 ```
-lui   v0,%hi(_gAcropolisSanctuaryPlayerSpecialWeaponRestoreRequest)   # ours
-addiu s0,v0,%lo(_gAcropolisSanctuaryPlayerSpecialWeaponRestoreRequest)
-lui   s0,%hi(_gAcropolisSanctuaryPlayerSpecialWeaponRestoreRequest)   # target
-addiu s0,s0,%lo(_gAcropolisSanctuaryPlayerSpecialWeaponRestoreRequest)
+lui   v0,%hi(_gAkropolisSanctuaryPlayerSpecialWeaponRestoreRequest)   # ours
+addiu s0,v0,%lo(_gAkropolisSanctuaryPlayerSpecialWeaponRestoreRequest)
+lui   s0,%hi(_gAkropolisSanctuaryPlayerSpecialWeaponRestoreRequest)   # target
+addiu s0,s0,%lo(_gAkropolisSanctuaryPlayerSpecialWeaponRestoreRequest)
 ```
 
 The mechanism is the same: with a join-point temporary the address pseudo is
@@ -44108,7 +44108,7 @@ The mechanism is the same: with a join-point temporary the address pseudo is
 independently hands the `high` pseudo `$v0`. Repeating the whole tail in each
 arm keeps the address pseudo block-local, local alloc ties it to its `high`, and
 `jump2` cross-jumps the duplicated `jal`s back together so the instruction count
-is unchanged. `_acropolisSanctuaryRestorePlayerWeaponAnimation` went 99.20% → 100% by moving
+is unchanged. `_akropolisSanctuaryRestorePlayerWeaponAnimation` went 99.20% → 100% by moving
 both `playerActorWriteWeaponAnimationBankIndex(...)` and `taskMessageDispatch(...)` inside the `if`/`else`.
 
 ## A shared body may reference overlay-local data — give the datum one name in every sym map
@@ -53530,13 +53530,13 @@ a pseudo with two uses (the load and the store), which combine cannot fold into
 both. Write one pointer local per element:
 
 ```c
-trigger9 = &(_gAcropolisSanctuaryActionTriggers + 6)[3];
+trigger9 = &(_gAkropolisSanctuaryActionTriggers + 6)[3];
 trigger9->flags &= disabledTriggerMask;
 ```
 
 This also fixes the instruction scheduling for free: GCC then interleaves the
 next element's `addiu` with the previous element's `sb`, which is the pairing
-the target shows. `_acropolisSanctuaryUpdateRoomProgress` is the worked example
+the target shows. `_akropolisSanctuaryUpdateRoomProgress` is the worked example
 (64% -> 77% from the pointer locals, 77% -> 100% from the mask local).
 
 ## Reuse the call-result variable to keep a two-way constant in `$v0`
@@ -53570,12 +53570,12 @@ if (destinationRoom == 0) { destinationRoom = 1; } else { destinationRoom = 2; }
 reply->room = destinationRoom;
 ```
 
-`_acropolisSanctuaryResolvePromenadeExit` is the worked example (94.7% -> 99.7% from
+`_akropolisSanctuaryResolveRoomTransition` is the worked example (94.7% -> 99.7% from
 the ternary, 99.7% -> 100% from the reassignment).
 
 ## `bltz` + `slti N` before the `bne N` is a switch with empty low cases
 
-`_acropolisSanctuaryCutsceneTask` reads a `u16` field and then tests it three
+`_akropolisSanctuaryCutsceneTask` reads a `u16` field and then tests it three
 times before running the only body in sight:
 
 ```asm
@@ -53652,7 +53652,7 @@ CSE materialises the shared address at the *first* use, which is inside the
 first expression and therefore after its operand chain. So: a pointer local
 pulls the address computation up to the index load, an index local pushes it
 down to first use. Pick whichever side of the operand chain the target puts it
-on. `acropolisSanctuaryMosaicTask` is the worked example (89% -> 100%,
+on. `akropolisSanctuaryMosaicTask` is the worked example (89% -> 100%,
 `regs=22 reorder=1 insert=6 delete=6` -> all zero, from this single change).
 
 ## A global's base address is only kept in `$sN` across a `jal` if a local pointer names it
@@ -53663,20 +53663,20 @@ direct global references, make GCC 2.8.1 materialise the `lui`/`addiu` pair
 crosses the call:
 
 ```c
-for (i = 0; i < 4; i++) { _gAcropolisSanctuaryCollisionGrid.vertices[i].vx = _gAcropolisSanctuaryBlockerCollisionGrid.vertices[i].vx; ... }
+for (i = 0; i < 4; i++) { _gAkropolisSanctuaryCollisionGrid.vertices[i].vx = _gAkropolisSanctuaryBlockerCollisionGrid.vertices[i].vx; ... }
 if (gameFlagGetNibble(6) == 0) { ... }
-for (i = 0; i < 8; i++) { _gAcropolisSanctuaryCollisionGrid.vertices[i].vx += placementOffset.vx; }   /* second lui/addiu */
+for (i = 0; i < 8; i++) { _gAkropolisSanctuaryCollisionGrid.vertices[i].vx += placementOffset.vx; }   /* second lui/addiu */
 ```
 
-The target had one `addiu s0, v0, %lo(_gAcropolisSanctuaryCollisionGrid)` in the prologue, `sw s0` /
+The target had one `addiu s0, v0, %lo(_gAkropolisSanctuaryCollisionGrid)` in the prologue, `sw s0` /
 `lw s0` around it, and no re-materialisation after the call. Binding the global
 to a named local pointer at the top of the function is what produces that: the
 address becomes a single pseudo live across the `jal`, so the allocator is
 forced to give it a callee-saved register.
 
 ```c
-WorldCollisionGrid* roomGrid = &_gAcropolisSanctuaryCollisionGrid;
-WorldCollisionGrid* blockerTemplate = &_gAcropolisSanctuaryBlockerCollisionGrid;
+WorldCollisionGrid* roomGrid = &_gAkropolisSanctuaryCollisionGrid;
+WorldCollisionGrid* blockerTemplate = &_gAkropolisSanctuaryBlockerCollisionGrid;
 ```
 
 Declare them in the order the target materialises the addresses. The symptom is
@@ -53684,7 +53684,7 @@ distinctive and easy to misread as register colouring: every instruction lines
 up except that the target uses `$s0` where you use a scratch register, plus one
 extra `lui`/`addiu` pair after the call and a shifted `ra`/`s0` save slot
 (`stack=18 regs=38` on an otherwise byte-identical body).
-`_acropolisSanctuaryPlaceBlockerCollision` is the worked example (92.7% -> 100% from
+`_akropolisSanctuaryPlaceBlockerCollision` is the worked example (92.7% -> 100% from
 this single change).
 
 This is the intra-function twin of "Materialize long-lived pointers before
@@ -53723,7 +53723,7 @@ constant `0x4382` for the same page) says the original wrote.
 
 Generally: when a mask on a 16-bit field flips `lh` to `lhu` and the value is a
 packed hardware field, look for the Psy-Q packing macro (`getClut`, `getTPage`)
-before reaching for a cast. `acropolisSanctuaryFlameTask` is the example.
+before reaching for a cast. `akropolisSanctuaryFlameTask` is the example.
 
 ## Two loop pointers to the same address need two different C spellings
 
@@ -53752,7 +53752,7 @@ has nothing to match against the `&shardScratch->corners[i]` the asm operands us
 ```c
 for (i = 0; i < 3; i++) {
     shardScratch->corners[i].vx = corner[i].vx;
-    scratchCorner = (SVECTOR*)((u8*)shardScratch + i * sizeof(SVECTOR) + OFFSET_OF(_AcropolisSanctuaryMosaicShardScratch, corners));
+    scratchCorner = (SVECTOR*)((u8*)shardScratch + i * sizeof(SVECTOR) + OFFSET_OF(_AkropolisSanctuaryMosaicShardScratch, corners));
     scratchCorner->vy = corner[i].vy;
     scratchCorner->vz = corner[i].vz;
     gte_ldsv(&shardScratch->corners[i]);       /* stays a separate pointer */
@@ -53767,7 +53767,7 @@ the asm operand keeps its own giv. Use `sizeof` / `OFFSET_OF` rather than raw
 
 Symptom to recognise: the diff is a single `addiu $aN, $aM, k` you cannot
 produce, every other instruction matches, and the two registers involved hold
-the same value. `acropolisSanctuaryMosaicShardTask` is the worked example
+the same value. `akropolisSanctuaryMosaicShardTask` is the worked example
 (99.3% -> 100%); an unpinned `TOUCH_REG(scratchCorner)` reaches 99.5% the same way but
 stops `combine_givs` from folding, so it is not the answer.
 
@@ -53775,7 +53775,7 @@ stops `combine_givs` from folding, so it is not the answer.
 
 Two locals whose live ranges never overlap are free to share a register, and
 GCC 2.8.1 will not always pick the one the target picked. In
-`acropolisSanctuaryMosaicTileTask` the tile's size class lives in `$s5` across
+`akropolisSanctuaryMosaicTileTask` the tile's size class lives in `$s5` across
 the whole first half of the function; after the `beqz $s5` that tests it, the
 target reuses `$s5` for the shard-spawn count:
 
@@ -60812,7 +60812,7 @@ restart helper there moved all four triples and the key into one slot after the
 locals and shrank the frame from 0x98 to 0x90. Those three sites are a plain
 `u8[4]` local.
 
-## Two payload types at one offset behind a base set up before the branch are helpers inside a helper (_acropolisSanctuaryCutsceneTask, 2026-10-03)
+## Two payload types at one offset behind a base set up before the branch are helpers inside a helper (_akropolisSanctuaryCutsceneTask, 2026-10-03)
 
 **Symptom.** One arm of a nested `switch` sends an `AnimationPlayRequest` and
 then an `ActorTransform`, both built at `sp+0x28`, and the address is taken
@@ -84580,7 +84580,7 @@ The payload is not an `s32`: it is the five-word `AnimationPlayRequest`
 from `playerActorWriteWeaponAnimationBankIndex`, `animationId` is the animation id the handler plays, and
 `blend`/`blendFrames`/`enableWorldCollision` are zero. `src/rooms/acropolis_sanctuary/
 acropolis_sanctuary.c` carries the identical pattern already matched as
-`static AnimationPlayRequest _gAcropolisSanctuaryPlayerSpecialWeaponRestoreRequest;`, and the splat data extent
+`static AnimationPlayRequest _gAkropolisSanctuaryPlayerSpecialWeaponRestoreRequest;`, and the splat data extent
 corroborates it (`actor_335800`: words `1, 0x33, 0, 0, 0` from `0x305C` to
 `0x3068`, next `dlabel` at `0x3070`). Treat the extent as corroboration only —
 see "A data symbol's `dlabel` extent is not the array's length" above. Because

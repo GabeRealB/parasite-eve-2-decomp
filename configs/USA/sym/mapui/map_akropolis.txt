@@ -63,7 +63,7 @@ gAkropolisSecurityRoomWarpEntries = 0x801839F0; // absolute:True owner=akropolis
 gAkropolisSecurityRoomSpriteViews = 0x80184C50; // absolute:True owner=akropolis_security_room
 gAkropolisSecurityRoomViewCameras = 0x80184D10; // absolute:True owner=akropolis_security_room shared=rooms
 gAkropolisSecurityRoomSurfacePropertiesByClass = 0x80184FA0; // absolute:True owner=akropolis_security_room
-gAkropolisSecurityRoomAcropolisSanctuaryModel090F0 = 0x80185584; // absolute:True owner=akropolis_security_room shared=rooms
+gAkropolisSecurityRoomAkropolisSanctuaryModel090F0 = 0x80185584; // absolute:True owner=akropolis_security_room shared=rooms
 akropolisHallwayRoomTask = 0x8017D7D0; // type:func absolute:True owner=akropolis_hallway
 akropolisHallwayBlueKeyPickupTask = 0x8017E120; // type:func absolute:True owner=akropolis_hallway
 gAkropolisHallwayRoomCollisionResources = 0x8017E258; // absolute:True owner=akropolis_hallway
@@ -111,18 +111,18 @@ gAkropolisPromenadeWarpEntries = 0x80181BDC; // absolute:True owner=akropolis_pr
 gAkropolisPromenadeSpriteViews = 0x80185FB4; // absolute:True owner=akropolis_promenade
 gAkropolisPromenadeViewCameras = 0x80186050; // absolute:True owner=akropolis_promenade
 gAkropolisPromenadeSurfacePropertiesByClass = 0x801862B0; // absolute:True owner=akropolis_promenade
-acropolisSanctuaryRoomTask = 0x8017D9E8; // type:func absolute:True owner=acropolis_sanctuary shared=rooms
-acropolisSanctuaryItemVisibilityTask = 0x80180264; // type:func absolute:True owner=acropolis_sanctuary
-gAcropolisSanctuaryRoomCollisionResources = 0x801827EC; // absolute:True owner=acropolis_sanctuary shared=rooms
-gAcropolisSanctuaryViewMaps = 0x801827FC; // absolute:True owner=acropolis_sanctuary
-gAcropolisSanctuaryViewCounts = 0x80182800; // absolute:True owner=acropolis_sanctuary
-gAcropolisSanctuaryRoomLightingTable = 0x80182804; // absolute:True owner=acropolis_sanctuary shared=rooms
-gAcropolisSanctuaryWarpEntries = 0x8018280C; // absolute:True owner=acropolis_sanctuary
-gAcropolisSanctuarySpriteViews = 0x801860C8; // absolute:True owner=acropolis_sanctuary
-gAcropolisSanctuaryViewCameras = 0x80186188; // absolute:True owner=acropolis_sanctuary
-gAcropolisSanctuarySurfacePropertiesByClass = 0x801863F8; // absolute:True owner=acropolis_sanctuary
-gAcropolisSanctuaryModel090F0 = 0x80186A08; // absolute:True owner=acropolis_sanctuary
-gAkropolisSanctuaryAcropolisSanctuaryModel09584 = 0x80186C68; // absolute:True owner=acropolis_sanctuary shared=rooms
+akropolisSanctuaryRoomTask = 0x8017D9E8; // type:func absolute:True owner=akropolis_sanctuary shared=rooms
+akropolisSanctuaryItemVisibilityTask = 0x80180264; // type:func absolute:True owner=akropolis_sanctuary
+gAkropolisSanctuaryRoomCollisionResources = 0x801827EC; // absolute:True owner=akropolis_sanctuary shared=rooms
+gAkropolisSanctuaryViewMaps = 0x801827FC; // absolute:True owner=akropolis_sanctuary
+gAkropolisSanctuaryViewCounts = 0x80182800; // absolute:True owner=akropolis_sanctuary
+gAkropolisSanctuaryRoomLightingTable = 0x80182804; // absolute:True owner=akropolis_sanctuary shared=rooms
+gAkropolisSanctuaryWarpEntries = 0x8018280C; // absolute:True owner=akropolis_sanctuary
+gAkropolisSanctuarySpriteViews = 0x801860C8; // absolute:True owner=akropolis_sanctuary
+gAkropolisSanctuaryViewCameras = 0x80186188; // absolute:True owner=akropolis_sanctuary
+gAkropolisSanctuarySurfacePropertiesByClass = 0x801863F8; // absolute:True owner=akropolis_sanctuary
+gAkropolisSanctuaryModel090F0 = 0x80186A08; // absolute:True owner=akropolis_sanctuary
+gAkropolisSanctuaryRedKeyPickupModel = 0x80186C68; // absolute:True owner=akropolis_sanctuary shared=rooms
 acropolisRoofGardenRoomTask = 0x8017DC74; // type:func absolute:True owner=acropolis_roof_garden
 acropolisRoofGardenPickupModelTask = 0x80180160; // type:func absolute:True owner=acropolis_roof_garden
 gAcropolisRoofGardenCollisionRoomResources = 0x80184C8C; // absolute:True owner=acropolis_roof_garden

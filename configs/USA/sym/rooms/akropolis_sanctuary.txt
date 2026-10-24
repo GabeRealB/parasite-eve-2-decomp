@@ -1,0 +1,189 @@
+// Overlay-local symbols for akropolis_sanctuary.
+_gAkropolisSanctuaryFlameBaseGray = 0x8017D5D8; // force_not_migration:True three-byte level table padded to a word, read from C
+_gAkropolisSanctuaryFlameFlickerGray = 0x8017D5DC; // force_not_migration:True three-byte level table with a non-zero byte after it, read from C
+_gAkropolisSanctuaryMosaicTiles = 0x80182320; // size:0x3F0 defined:True
+_gAkropolisSanctuaryMosaicTileCorners = 0x80182710; // size:0x40 defined:True
+_gAkropolisSanctuaryMosaicRepeatedTileIndices = 0x80182750; // size:0x20 defined:True
+_gAkropolisSanctuaryMosaicCleanupLatched = 0x80182770; // size:0x4 defined:True
+_gAkropolisSanctuaryFlamePositions = 0x80182774; // size:0x60 defined:True
+_gAkropolisSanctuaryRoomEffectMessages = 0x80182310; // size:0x10 defined:True
+_gAkropolisSanctuaryCutsceneTaskDesc = 0x80182240; // size:0xC defined:True
+_gAkropolisSanctuaryBlockerCollisionGridNormals = 0x8018224C; // size:0x20 defined:True
+_gAkropolisSanctuaryBlockerCollisionGridVerts = 0x8018226C; // size:0x40 defined:True
+_gAkropolisSanctuaryBlockerCollisionGridFaces = 0x801822AC; // size:0x30 defined:True
+_gAkropolisSanctuaryBlockerCollisionGridCells = 0x801822DC; // size:0xA defined:True
+_gAkropolisSanctuaryBlockerCollisionGridTable = 0x801822E8; // size:0x4 defined:True
+_gAkropolisSanctuaryBlockerCollisionGrid = 0x801822EC; // size:0x24 defined:True
+_gAkropolisSanctuaryFlameViewMasks = 0x801827D4; // size:0x18 defined:True
+_gAkropolisSanctuaryDepartureScript = 0x801820F0; // size:0xD8 defined:True
+_gAkropolisSanctuaryDepartureSkipScript = 0x801821C8; // size:0x78 defined:True
+gAkropolisSanctuaryRoomCollisionResources = 0x801827EC; // size:0x10 defined:True
+gAkropolisSanctuaryViewMaps = 0x801827FC; // size:0x4 defined:True
+gAkropolisSanctuaryViewCounts = 0x80182800; // size:0x2 defined:True
+gAkropolisSanctuaryRoomLightingTable = 0x80182804; // size:0x8 defined:True
+gAkropolisSanctuaryWarpEntries = 0x8018280C; // size:0xA8 defined:True
+_gAkropolisSanctuaryCollisionGridNormals = 0x801828B4; // size:0x150 defined:True
+_gAkropolisSanctuaryCollisionGridVerts = 0x80182A04; // size:0x440 defined:True
+_gAkropolisSanctuaryCollisionGridFaces = 0x80182E44; // size:0x3FC defined:True
+_gAkropolisSanctuaryCollisionGridCells = 0x80183240; // size:0x304 defined:True
+_gAkropolisSanctuaryCollisionGridTable = 0x80183544; // size:0x24 defined:True
+_gAkropolisSanctuaryCollisionGrid = 0x80183568; // size:0x24 defined:True
+_gAkropolisSanctuaryViewBoundaryTriggers = 0x8018358C; // size:0x558 defined:True
+gViewIdentityMap = 0x8010CAF8; // absolute:True
+_gAkropolisSanctuaryActionTriggers = 0x80183AE4; // size:0x50C defined:True
+_gAkropolisSanctuaryNo9AndRupertResources = 0x80183FF0; // size:0x24 defined:True
+_gAkropolisSanctuaryRupertResources = 0x80184014; // size:0x18 defined:True
+gAkropolisSanctuaryAreaVariants = 0x8018402C; // size:0x60 defined:True
+_gAkropolisSanctuaryPointLights = 0x8018408C; // size:0x360 defined:True
+_gAkropolisSanctuaryRoomLights = 0x801843EC; // size:0x18 defined:True
+_gAkropolisSanctuaryView1SpriteBatches = 0x80184404; // size:0x10 defined:True
+_gAkropolisSanctuaryView2SpriteSources = 0x80184414; // size:0x320 defined:True
+_gAkropolisSanctuaryView2SpriteBatches = 0x80184734; // size:0x30 defined:True
+_gAkropolisSanctuaryView3SpriteSources = 0x80184764; // size:0x3E8 defined:True
+_gAkropolisSanctuaryView3SpriteBatches = 0x80184B4C; // size:0x40 defined:True
+_gAkropolisSanctuaryView4SpriteSources = 0x80184B8C; // size:0x398 defined:True
+_gAkropolisSanctuaryView4SpriteBatches = 0x80184F24; // size:0x50 defined:True
+_gAkropolisSanctuaryView5SpriteSources = 0x80184F74; // size:0x334 defined:True
+_gAkropolisSanctuaryView5SpriteBatches = 0x801852A8; // size:0x48 defined:True
+_gAkropolisSanctuaryView6SpriteSources = 0x801852F0; // size:0x280 defined:True
+_gAkropolisSanctuaryView6SpriteBatches = 0x80185570; // size:0x30 defined:True
+_gAkropolisSanctuaryView7SpriteSources = 0x801855A0; // size:0x1E0 defined:True
+_gAkropolisSanctuaryView7SpriteBatches = 0x80185780; // size:0x38 defined:True
+_gAkropolisSanctuaryView8SpriteSources = 0x801857B8; // size:0xB4 defined:True
+_gAkropolisSanctuaryView8SpriteBatches = 0x8018586C; // size:0x20 defined:True
+_gAkropolisSanctuaryView9SpriteSources = 0x8018588C; // size:0x50 defined:True
+_gAkropolisSanctuaryView9SpriteBatches = 0x801858DC; // size:0x18 defined:True
+_gAkropolisSanctuaryView10SpriteBatches = 0x801858F4; // size:0x10 defined:True
+_gAkropolisSanctuaryView11SpriteSources = 0x80185904; // size:0xA0 defined:True
+_gAkropolisSanctuaryView11SpriteBatches = 0x801859A4; // size:0x18 defined:True
+_gAkropolisSanctuaryView12SpriteSources = 0x801859BC; // size:0x280 defined:True
+_gAkropolisSanctuaryView12SpriteBatches = 0x80185C3C; // size:0x28 defined:True
+_gAkropolisSanctuaryView13SpriteSources = 0x80185C64; // size:0x64 defined:True
+_gAkropolisSanctuaryView13SpriteBatches = 0x80185CC8; // size:0x18 defined:True
+_gAkropolisSanctuaryView14SpriteSources = 0x80185CE0; // size:0xA0 defined:True
+_gAkropolisSanctuaryView14SpriteBatches = 0x80185D80; // size:0x18 defined:True
+_gAkropolisSanctuaryView15SpriteBatches = 0x80185D98; // size:0x10 defined:True
+_gAkropolisSanctuaryView16SpriteSources = 0x80185DA8; // size:0x2F8 defined:True
+_gAkropolisSanctuaryView16SpriteBatches = 0x801860A0; // size:0x28 defined:True
+gAkropolisSanctuarySpriteViews = 0x801860C8; // size:0xC0 defined:True
+gAkropolisSanctuaryViewCameras = 0x80186188; // size:0x240 defined:True
+_gAkropolisSanctuarySurfaceClass1FootstepSounds = 0x801863C8; // size:0xC defined:True
+_gAkropolisSanctuarySurfaceClass2FootstepSounds = 0x801863D4; // size:0xC defined:True
+_gAkropolisSanctuaryDefaultSurfaceProperties = 0x801863E0; // size:0x8 defined:True
+_gAkropolisSanctuarySurfaceClass1Properties = 0x801863E8; // size:0x8 defined:True
+_gAkropolisSanctuarySurfaceClass2Properties = 0x801863F0; // size:0x8 defined:True
+gAkropolisSanctuarySurfacePropertiesByClass = 0x801863F8; // size:0x20 defined:True
+_gAkropolisSanctuaryArrivalAreaUpdates = 0x80186418; // size:0x2C defined:True
+gActor110700No9GolemTaskDesc = 0x8013BF94; // absolute:True owner=actor_110700
+gActor210700RupertBroderickTaskDesc = 0x801585CC; // absolute:True owner=actor_210700
+gMapAkropolisSanctuaryNo9AndRupertPlacements = 0x8017BA5C; // absolute:True owner=map_akropolis
+gMapAkropolisSanctuaryRupertPlacements = 0x8017BA8C; // absolute:True owner=map_akropolis
+_gAkropolisSanctuaryModel090F0Skeleton = 0x80186444; // size:0x6C defined:True
+_gAkropolisSanctuaryModel090F0PartVerts = 0x801864B0; // size:0xC defined:True
+_gAkropolisSanctuaryModel090F0Verts = 0x801864BC; // size:0x1C0 defined:True
+_gAkropolisSanctuaryModel090F0Normals = 0x8018667C; // size:0x30 defined:True
+_gAkropolisSanctuaryModel090F0Stream = 0x801866AC; // size:0x35C defined:True
+gAkropolisSanctuaryModel090F0 = 0x80186A08; // size:0x24 defined:True
+_gAkropolisSanctuaryRedKeyPickupModelSkeleton = 0x80186A2C; // size:0x24 defined:True
+_gAkropolisSanctuaryRedKeyPickupModelPartVerts = 0x80186A50; // size:0x4 defined:True
+_gAkropolisSanctuaryRedKeyPickupModelVerts = 0x80186A54; // size:0x98 defined:True
+_gAkropolisSanctuaryRedKeyPickupModelNormals = 0x80186AEC; // size:0x58 defined:True
+_gAkropolisSanctuaryRedKeyPickupModelStream = 0x80186B44; // size:0x124 defined:True
+gAkropolisSanctuaryRedKeyPickupModel = 0x80186C68; // size:0x24 defined:True
+gAkropolisSanctuaryPlayerSanctuaryArrival7Clip = 0x8014BC4C; // absolute:True owner=actor_210700
+gAkropolisSanctuaryPlayerSanctuaryArrival11Clip = 0x8014C618; // absolute:True owner=actor_210700
+gAkropolisSanctuaryPlayerSanctuaryTalkClip = 0x8014C974; // absolute:True owner=actor_210700
+gAkropolisSanctuaryPlayerSanctuaryTalkEndClip = 0x8014CC2C; // absolute:True owner=actor_210700
+gAkropolisSanctuaryPlayerSanctuaryReplyClip = 0x8014CFAC; // absolute:True owner=actor_210700
+gAkropolisSanctuaryPlayerSanctuaryListenClip = 0x8014D244; // absolute:True owner=actor_210700
+gAkropolisSanctuaryPlayerSanctuaryArrival26Clip = 0x8014D9F0; // absolute:True owner=actor_210700
+gAkropolisSanctuaryPlayerSanctuaryArrival27Clip = 0x80150608; // absolute:True owner=actor_210700
+_gAkropolisSanctuaryArrivalScript = 0x80180B0C; // size:0xB58 defined:True
+_gAkropolisSanctuaryArrivalSkipScript = 0x80181664; // size:0x1B0 defined:True
+_gAkropolisSanctuaryBlockerScript = 0x80181814; // size:0x108 defined:True
+_gAkropolisSanctuaryAnimation04708Bank1 = 0x8018191C; // size:0x54 defined:True
+_gAkropolisSanctuaryAnimation04708Bank4 = 0x80181970; // size:0x150 defined:True
+_gAkropolisSanctuaryAnimation04708Records = 0x80181AC0; // size:0x1E0 defined:True
+_gAkropolisSanctuaryAnimation04708Indices = 0x80181CA0; // size:0x28 defined:True
+_gAkropolisSanctuaryAkropolisSanctuaryCutscenePlayerAnim00Clip = 0x80181CC8; // size:0x28 defined:True
+_gAkropolisSanctuaryAnimation04AFCBank1 = 0x80181CF0; // size:0x60 defined:True
+_gAkropolisSanctuaryAnimation04AFCBank4 = 0x80181D50; // size:0x160 defined:True
+_gAkropolisSanctuaryAnimation04AFCRecords = 0x80181EB0; // size:0x1E4 defined:True
+_gAkropolisSanctuaryAnimation04AFCIndices = 0x80182094; // size:0x28 defined:True
+_gAkropolisSanctuaryExtraAnimClip = 0x801820BC; // size:0x28 defined:True
+_gAkropolisSanctuaryCutscenePlayerAnimationSets = 0x801820E4; // size:0x4 defined:True
+_gAkropolisSanctuaryUnusedSceneKey2 = 0x801820E8; // size:0x6 defined:True
+_gAkropolisSanctuaryAnimation03234Bank1 = 0x80180348; // size:0x60 defined:True
+_gAkropolisSanctuaryAnimation03234Bank4 = 0x801803A8; // size:0x1CC defined:True
+_gAkropolisSanctuaryAnimation03234Records = 0x80180574; // size:0x258 defined:True
+_gAkropolisSanctuaryAnimation03234Indices = 0x801807CC; // size:0x28 defined:True
+_gAkropolisCafeteriaRupertArriveClip = 0x801807F4; // size:0x28 defined:True
+_gAkropolisSanctuaryRoomMessages = 0x8018081C; // size:0x28 defined:True
+_gAkropolisSanctuaryPlayerSceneStartPlacement = 0x80180844; // size:0x18 defined:True
+_gAkropolisSanctuarySceneOriginPlacement = 0x8018085C; // size:0x18 defined:True
+_gAkropolisSanctuaryUnusedTransform = 0x80180874; // size:0x18 defined:True
+_gAkropolisSanctuaryPlayerSceneClip48Placement = 0x8018088C; // size:0x18 defined:True
+_gAkropolisSanctuaryPlayerSceneClip49Placement = 0x801808A4; // size:0x18 defined:True
+_gAkropolisSanctuaryRupertRestoredPlacement = 0x801808BC; // size:0x18 defined:True
+_gAkropolisSanctuaryPlayerSceneClosingPlacement = 0x801808D4; // size:0x18 defined:True
+_gAkropolisSanctuaryPlayerSceneEndPlacement = 0x801808EC; // size:0x18 defined:True
+_gAkropolisSanctuaryPlayerWeaponClip1Request = 0x80180904; // size:0x14 defined:True
+_gAkropolisSanctuaryPlayerSceneAnimationSets = 0x80180918; // size:0x24 defined:True
+_gAkropolisSanctuaryPlayerSceneBankExtensionRequest = 0x8018093C; // size:0x8 defined:True
+_gAkropolisSanctuaryPlayerSceneClip47Request = 0x80180944; // size:0x14 defined:True
+_gAkropolisSanctuaryPlayerSceneClip48Request = 0x80180958; // size:0x14 defined:True
+_gAkropolisSanctuaryPlayerSceneClip49Request = 0x8018096C; // size:0x14 defined:True
+_gAkropolisSanctuaryPlayerSceneClip50Request = 0x80180980; // size:0x14 defined:True
+_gAkropolisSanctuaryPlayerSceneClip51Request = 0x80180994; // size:0x14 defined:True
+_gAkropolisSanctuaryPlayerSceneClip52Request = 0x801809A8; // size:0x14 defined:True
+_gAkropolisSanctuaryPlayerSceneClip52LongBlendRequest = 0x801809BC; // size:0x14 defined:True
+_gAkropolisSanctuaryPlayerSceneClip53Request = 0x801809D0; // size:0x14 defined:True
+_gAkropolisSanctuaryPlayerSceneClip54Request = 0x801809E4; // size:0x14 defined:True
+_gAkropolisSanctuaryPlayerSpecialWeaponRestoreRequest = 0x801809F8; // size:0x14 defined:True
+_gAkropolisSanctuaryPlayerWeaponRestoreRequest = 0x80180A0C; // size:0x14 defined:True
+_gAkropolisSanctuaryNo9Clip1Request = 0x80180A20; // size:0x14 defined:True
+_gAkropolisSanctuaryNo9Clip2Request = 0x80180A34; // size:0x14 defined:True
+_gAkropolisSanctuaryNo9Clip3Request = 0x80180A48; // size:0x14 defined:True
+_gAkropolisSanctuaryNo9Clip4Request = 0x80180A5C; // size:0x14 defined:True
+_gAkropolisSanctuaryRupertClip1Request = 0x80180A70; // size:0x14 defined:True
+_gAkropolisSanctuaryRupertClip2Request = 0x80180A84; // size:0x14 defined:True
+_gAkropolisSanctuaryRupertClip3Request = 0x80180A98; // size:0x14 defined:True
+_gAkropolisSanctuaryRupertClip4Request = 0x80180AAC; // size:0x14 defined:True
+_gAkropolisSanctuaryRupertClip5Request = 0x80180AC0; // size:0x14 defined:True
+_gAkropolisSanctuaryRupertClip6Request = 0x80180AD4; // size:0x14 defined:True
+_gAkropolisSanctuaryRupertRestoredClip3Request = 0x80180AE8; // size:0x14 defined:True
+_gAkropolisSanctuaryArrivalSceneKey = 0x80180AFC; // size:0x6 defined:True
+_gAkropolisSanctuaryUnusedSceneKey = 0x80180B04; // size:0x6 defined:True
+_gAkropolisSanctuaryUnusedWord = 0x80186C8C; // size:0x4 defined:True
+_gAkropolisSanctuaryCutsceneTask = 0x80186C90; // size:0x4 defined:True
+ActorContact_ScratchPosition = 0x80186C94; // size:0x8 defined:True
+
+akropolisSanctuaryRoomEffectTask = 0x8017E00C; // type:func
+
+akropolisSanctuaryMosaicTask = 0x8017E134; // type:func
+
+akropolisSanctuaryMosaicTileTask = 0x8017E338; // type:func
+
+akropolisSanctuaryMosaicShardTask = 0x8017EC90; // type:func
+
+akropolisSanctuaryFlameTask = 0x8017F4E8; // type:func
+_actorContactApplyGridPushback = 0x8017F974; // type:func
+_actorContactApplyBearingPushback = 0x8017FB18; // type:func
+_akropolisSanctuarySelectViewSpriteBatch = 0x8017df88; // type:func
+_akropolisSanctuaryApplyScriptSpriteSelection = 0x8017d8a0; // type:func
+_akropolisSanctuaryRejectKeyItemUse = 0x8017d808; // type:func
+_akropolisSanctuaryRequestCutsceneCue = 0x8017dce0; // type:func
+_akropolisSanctuaryPlaceBlockerCollision = 0x8017dd78; // type:func
+_akropolisSanctuaryResolveRoomTransition = 0x8017d73c; // type:func
+_akropolisSanctuaryHandleRoomCommand = 0x8017d810; // type:func
+_akropolisSanctuaryRestorePlayerWeaponAnimation = 0x8017d8cc; // type:func
+_akropolisSanctuaryInitializeRoomTask = 0x8017d930; // type:func
+akropolisSanctuaryRoomTask = 0x8017d9e8; // type:func
+_akropolisSanctuaryStartMosaic = 0x8017f918; // type:func
+akropolisSanctuaryItemVisibilityTask = 0x80180264; // type:func
+_akropolisSanctuaryUpdateRoomProgress = 0x8017d5e0; // type:func
+_akropolisSanctuaryCutsceneTask = 0x8017da40; // type:func
+_akropolisSanctuaryHandleRoomAction = 0x8017d848; // type:func
+_akropolisSanctuaryUpdateUnusedPlacedObjectVisibility = 0x801802e0; // type:func
+_gAkropolisSanctuaryRoomTaskStates = 0x8017d5c4;
+_gAkropolisSanctuaryMosaicOffset = 0x8017d5d0;

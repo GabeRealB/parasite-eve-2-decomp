@@ -4350,7 +4350,7 @@ ASSETS = {
     'shelter_b6_nursery_model_07BAC': {"sha1": "9ec60465ea6bb1979830727815fbf5c735945a50", "type": "tmd", 'textures': [[43, 17283]]},
     'shelter_b6_training_room_view3': {"sha1": "d2be12ac126837d2105fc10616f0e226bdbd0efe", "type": "pe2clut", 'h': 6, 'w': 256, 'x': 0, 'y': 255},
     'shelter_b6_training_room_view7': {"sha1": "076126b799fbec5aae1f2531765205ef131aacfb", "type": "pe2clut", 'h': 6, 'w': 256, 'x': 0, 'y': 255},
-    'acropolis_sanctuary_model_090F0': {"sha1": "735b1860c25a3f594ae80aa9847bd3c9f8c58af2", "type": "tmd", 'textures': [[53, 16715]]},
+    'akropolis_sanctuary_model_090F0': {"sha1": "735b1860c25a3f594ae80aa9847bd3c9f8c58af2", "type": "tmd", 'textures': [[53, 16715]]},
     'dryfield_back_street_dialogue_0': {"sha1": "6b295e58acf86000937a91125a3511ef6beb1f38", "type": "cap"},
     'dryfield_g_r_kitchen_dialogue_0': {"sha1": "cc6fcf642e35cec35cc40656b314f4c5ea8b6bb0", "type": "cap"},
     'dryfield_gas_station_dialogue_0': {"sha1": "08ab5cba54fc42f168bd72f2721287ba90db0164", "type": "cap"},
@@ -5450,7 +5450,7 @@ EMBEDDED_ASSETS = {
     'mine_forked_tunnel_model_01B48': {"source": 'mine_forked_tunnel.pe2pkg', "vram": 0x8017F108, "size": 0x16AC, "type": 'tmd'},
     'mine_forked_tunnel_model_03340': {"source": 'mine_forked_tunnel.pe2pkg', "vram": 0x80180900, "size": 0x1A0, "type": 'tmd'},
     'shelter_b6_nursery_model_07BAC': {"source": 'shelter_b6_nursery.pe2pkg', "vram": 0x8018516C, "size": 0x164, "type": 'tmd'},
-    'acropolis_sanctuary_model_090F0': {"source": 'acropolis_sanctuary.pe2pkg', "vram": 0x801866B0, "size": 0x358, "type": 'tmd'},
+    'akropolis_sanctuary_model_090F0': {"source": 'akropolis_sanctuary.pe2pkg', "vram": 0x801866B0, "size": 0x358, "type": 'tmd'},
     'dryfield_toilet_animation_02D78': {"source": 'dryfield_toilet.pe2pkg', "vram": 0x80180338, "size": 0x854, "type": 'animation', "clips": 2},
     'dryfield_water_tank_model_020D4': {"source": 'dryfield_water_tank.pe2pkg', "vram": 0x8017F694, "size": 0x6A8, "type": 'tmd'},
     'rooms/akropolis/observatory/forked_road_arrival_player_path': {"source": 'akropolis_observatory.pe2pkg', "vram": 0x8017E80C, "size": 0x960, "type": 'movie_path', "group": 'rooms/akropolis/observatory', "include": 'u16'},
@@ -6581,8 +6581,8 @@ TREE = {
                 'file12': {"id": 12, "chunks": {'bs_180': 'rooms/akropolis/promenade/view12_background'}},
                 'file13': {"id": 13, "chunks": {'bs_181': 'rooms/akropolis/promenade/view13_background'}},
             }},
-            'acropolis_sanctuary': {"id": 1201, "files": {
-                'file0': {"id": 0, "chunks": {'spk_173': 'rooms/akropolis/sanctuary/sounds_0', 'spk_174': 'rooms/akropolis/sanctuary/sounds_1', 'acropolis_sanctuary_dialogue_0_atlas': 'rooms/akropolis/sanctuary/dialogue_0_atlas', 'pe2clut_321': 'rooms/akropolis/sanctuary/palette', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_390': 'rooms/akropolis/sanctuary/image', 'pe2img_391': 'rooms/akropolis/sanctuary/image_2', 'package': 'rooms/akropolis/sanctuary/package', 'bundle': 'rooms/akropolis/sanctuary/bundle'}},
+            'akropolis_sanctuary': {"id": 1201, "files": {
+                'file0': {"id": 0, "chunks": {'spk_173': 'rooms/akropolis/sanctuary/sounds_0', 'spk_174': 'rooms/akropolis/sanctuary/sounds_1', 'akropolis_sanctuary_dialogue_0_atlas': 'rooms/akropolis/sanctuary/dialogue_0_atlas', 'pe2clut_321': 'rooms/akropolis/sanctuary/palette', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_390': 'rooms/akropolis/sanctuary/image', 'pe2img_391': 'rooms/akropolis/sanctuary/image_2', 'package': 'rooms/akropolis/sanctuary/package', 'bundle': 'rooms/akropolis/sanctuary/bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_182': 'rooms/akropolis/sanctuary/view1_background'}},
                 'file2': {"id": 2, "chunks": {'pe2img_392': 'rooms/akropolis/sanctuary/view2_image', 'bs_183': 'rooms/akropolis/sanctuary/view2_background'}},
                 'file3': {"id": 3, "chunks": {'pe2img_393': 'rooms/akropolis/sanctuary/view3_image', 'bs_184': 'rooms/akropolis/sanctuary/view3_background'}},

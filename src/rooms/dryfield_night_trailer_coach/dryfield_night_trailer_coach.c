@@ -125,36 +125,36 @@ TaskDesc gDryfieldNightTrailerCoachShopSessionTaskDesc = {
     .data     = { .value = 0 },
 };
 
-static TmdBone _gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0Skeleton[3] = {
-#include "assets/acropolis_sanctuary_model_090F0_skeleton.inc"
+static TmdBone _gDryfieldNightTrailerCoachAkropolisSanctuaryModel090F0Skeleton[3] = {
+#include "assets/akropolis_sanctuary_model_090F0_skeleton.inc"
 };
 
-static u32 _gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0PartVerts[3] = {
-#include "assets/acropolis_sanctuary_model_090F0_partVerts.inc"
+static u32 _gDryfieldNightTrailerCoachAkropolisSanctuaryModel090F0PartVerts[3] = {
+#include "assets/akropolis_sanctuary_model_090F0_partVerts.inc"
 };
 
-static SVECTOR _gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0Verts[56] = {
-#include "assets/acropolis_sanctuary_model_090F0_verts.inc"
+static SVECTOR _gDryfieldNightTrailerCoachAkropolisSanctuaryModel090F0Verts[56] = {
+#include "assets/akropolis_sanctuary_model_090F0_verts.inc"
 };
 
-static SVECTOR _gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0Normals[6] = {
-#include "assets/acropolis_sanctuary_model_090F0_normals.inc"
+static SVECTOR _gDryfieldNightTrailerCoachAkropolisSanctuaryModel090F0Normals[6] = {
+#include "assets/akropolis_sanctuary_model_090F0_normals.inc"
 };
 
-static u32 _gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0Stream[215] = {
-#include "assets/acropolis_sanctuary_model_090F0_stream.inc"
+static u32 _gDryfieldNightTrailerCoachAkropolisSanctuaryModel090F0Stream[215] = {
+#include "assets/akropolis_sanctuary_model_090F0_stream.inc"
 };
 
-TmdSource gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0 = {
+TmdSource gDryfieldNightTrailerCoachAkropolisSanctuaryModel090F0 = {
     0,
     1768,
     0,
     3,
-    _gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0PartVerts,
-    _gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0Verts,
-    _gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0Normals,
-    _gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0Skeleton,
-    _gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0Stream,
+    _gDryfieldNightTrailerCoachAkropolisSanctuaryModel090F0PartVerts,
+    _gDryfieldNightTrailerCoachAkropolisSanctuaryModel090F0Verts,
+    _gDryfieldNightTrailerCoachAkropolisSanctuaryModel090F0Normals,
+    _gDryfieldNightTrailerCoachAkropolisSanctuaryModel090F0Skeleton,
+    _gDryfieldNightTrailerCoachAkropolisSanctuaryModel090F0Stream,
 };
 
 #include "../../shared/room/telephone_data.inc.c"

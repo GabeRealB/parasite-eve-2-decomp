@@ -148,36 +148,36 @@ static void _shelterB2LaboratoryFinishConsoleSceneTask(Task* task);
 
 #include "../../shared/room/telephone_data.inc.c"
 
-static TmdBone _gShelterB2LaboratoryAcropolisSanctuaryModel090F0Skeleton[3] = {
-#include "assets/acropolis_sanctuary_model_090F0_skeleton.inc"
+static TmdBone _gShelterB2LaboratoryAkropolisSanctuaryModel090F0Skeleton[3] = {
+#include "assets/akropolis_sanctuary_model_090F0_skeleton.inc"
 };
 
-static u32 _gShelterB2LaboratoryAcropolisSanctuaryModel090F0PartVerts[3] = {
-#include "assets/acropolis_sanctuary_model_090F0_partVerts.inc"
+static u32 _gShelterB2LaboratoryAkropolisSanctuaryModel090F0PartVerts[3] = {
+#include "assets/akropolis_sanctuary_model_090F0_partVerts.inc"
 };
 
-static SVECTOR _gShelterB2LaboratoryAcropolisSanctuaryModel090F0Verts[56] = {
-#include "assets/acropolis_sanctuary_model_090F0_verts.inc"
+static SVECTOR _gShelterB2LaboratoryAkropolisSanctuaryModel090F0Verts[56] = {
+#include "assets/akropolis_sanctuary_model_090F0_verts.inc"
 };
 
-static SVECTOR _gShelterB2LaboratoryAcropolisSanctuaryModel090F0Normals[6] = {
-#include "assets/acropolis_sanctuary_model_090F0_normals.inc"
+static SVECTOR _gShelterB2LaboratoryAkropolisSanctuaryModel090F0Normals[6] = {
+#include "assets/akropolis_sanctuary_model_090F0_normals.inc"
 };
 
-static u32 _gShelterB2LaboratoryAcropolisSanctuaryModel090F0Stream[215] = {
-#include "assets/acropolis_sanctuary_model_090F0_stream.inc"
+static u32 _gShelterB2LaboratoryAkropolisSanctuaryModel090F0Stream[215] = {
+#include "assets/akropolis_sanctuary_model_090F0_stream.inc"
 };
 
-TmdSource gShelterB2LaboratoryAcropolisSanctuaryModel090F0 = {
+TmdSource gShelterB2LaboratoryAkropolisSanctuaryModel090F0 = {
     0,
     1768,
     0,
     3,
-    _gShelterB2LaboratoryAcropolisSanctuaryModel090F0PartVerts,
-    _gShelterB2LaboratoryAcropolisSanctuaryModel090F0Verts,
-    _gShelterB2LaboratoryAcropolisSanctuaryModel090F0Normals,
-    _gShelterB2LaboratoryAcropolisSanctuaryModel090F0Skeleton,
-    _gShelterB2LaboratoryAcropolisSanctuaryModel090F0Stream,
+    _gShelterB2LaboratoryAkropolisSanctuaryModel090F0PartVerts,
+    _gShelterB2LaboratoryAkropolisSanctuaryModel090F0Verts,
+    _gShelterB2LaboratoryAkropolisSanctuaryModel090F0Normals,
+    _gShelterB2LaboratoryAkropolisSanctuaryModel090F0Skeleton,
+    _gShelterB2LaboratoryAkropolisSanctuaryModel090F0Stream,
 };
 
 /// This carrier's bodyless scene runner and timed sound task, followed by END.

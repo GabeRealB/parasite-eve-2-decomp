@@ -622,7 +622,7 @@ static AreaObjectSpawn _gMapShelterB1SleepingQuartersObjectSpawns[2] = {
 /// Tasks own their enemy/model allocations; borrowed callbacks and model sources
 /// must remain loaded until the spawned tasks finish.
 static AreaObjectSpawn _gMapShelterB2LaboratoryObjectSpawns[2] = {
-    { .kind = MAP_SHELTER_KIND_LABORATORY_ITEM_BOX, .taskDesc = { { { TASK_BODY_TMD, MAP_SHELTER_OBJECT_TASK_PRIORITY } }, itemPickupContainerLidTask, { &gShelterB2LaboratoryAcropolisSanctuaryModel090F0 } } },
+    { .kind = MAP_SHELTER_KIND_LABORATORY_ITEM_BOX, .taskDesc = { { { TASK_BODY_TMD, MAP_SHELTER_OBJECT_TASK_PRIORITY } }, itemPickupContainerLidTask, { &gShelterB2LaboratoryAkropolisSanctuaryModel090F0 } } },
     { .kind = AREA_OBJECT_SPAWN_END },
 };
 
@@ -642,7 +642,7 @@ static AreaObjectSpawn _gMapShelterB2BreedingRoomObjectSpawns[2] = {
 /// Tasks own their enemy/model allocations; borrowed callbacks and model sources
 /// must remain loaded until the spawned tasks finish.
 static AreaObjectSpawn _gMapShelterB3DumpingHoleObjectSpawns[2] = {
-    { .kind = MAP_SHELTER_KIND_MEDICINE_WHEEL, .taskDesc = { { { TASK_BODY_TMD, MAP_SHELTER_OBJECT_TASK_PRIORITY } }, itemPickupContainerLidTask, { &gShelterB3DumpingHoleAcropolisSanctuaryModel090F0 } } },
+    { .kind = MAP_SHELTER_KIND_MEDICINE_WHEEL, .taskDesc = { { { TASK_BODY_TMD, MAP_SHELTER_OBJECT_TASK_PRIORITY } }, itemPickupContainerLidTask, { &gShelterB3DumpingHoleAkropolisSanctuaryModel090F0 } } },
     { .kind = AREA_OBJECT_SPAWN_END },
 };
 
@@ -671,7 +671,7 @@ static AreaObjectSpawn _gMapShelterB1UndergroundParkingObjectSpawns[1] = {
 /// Tasks own their enemy/model allocations; borrowed callbacks and model sources
 /// must remain loaded until the spawned tasks finish.
 static AreaObjectSpawn _gMapShelterB1SterilizationRoomObjectSpawns[2] = {
-    { .kind = MAP_SHELTER_KIND_STERILIZATION_ROOM_ITEM_BOX, .taskDesc = { { { TASK_BODY_TMD, MAP_SHELTER_OBJECT_TASK_PRIORITY } }, itemPickupContainerLidTask, { &gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0 } } },
+    { .kind = MAP_SHELTER_KIND_STERILIZATION_ROOM_ITEM_BOX, .taskDesc = { { { TASK_BODY_TMD, MAP_SHELTER_OBJECT_TASK_PRIORITY } }, itemPickupContainerLidTask, { &gShelterB1SterilizationRoomAkropolisSanctuaryModel090F0 } } },
     { .kind = AREA_OBJECT_SPAWN_END },
 };
 

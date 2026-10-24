@@ -1285,11 +1285,12 @@ objects = [
   { kind = "collisionSource", at = "0x5610", in_c = true, cell_face_list_macro = "AKROPOLIS_PROMENADE_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
-[rooms.overlays.acropolis_sanctuary]
+[rooms.overlays.akropolis_sanctuary]
 id = 296
+src = "src/stages/akropolis/rooms/sanctuary"
 objects = [
   { kind = "packageId" },
-  { unit = "acropolis_sanctuary/acropolis_sanctuary", rodata = "0x4", text = "0x20", data = "0x2D88" },
+  { unit = "sanctuary", rodata = "0x4", text = "0x20", data = "0x2D88" },
   { kind = "model", at = "0x8E84", in_c = true },
   { kind = "modelSource", at = "0x9448", in_c = true },
   { kind = "model", at = "0x946C", in_c = true },
@@ -1297,9 +1298,9 @@ objects = [
   { kind = "animation", at = "0x2D88", sets = ["0x3234"], in_c = true },
   { kind = "animation", at = "0x435C", sets = ["0x4708", "0x4AFC"], in_c = true },
   { kind = "collision", at = "0x4C8C", in_c = true },
-  { kind = "collisionSource", at = "0x4D2C", in_c = true, cell_face_list_macro = "ACROPOLIS_SANCTUARY_CELL_FACE_LIST_AT_OFFSET" },
+  { kind = "collisionSource", at = "0x4D2C", in_c = true, cell_face_list_macro = "AKROPOLIS_SANCTUARY_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0x52F4", in_c = true },
-  { kind = "collisionSource", at = "0x5FA8", in_c = true, cell_face_list_macro = "ACROPOLIS_SANCTUARY_CELL_FACE_LIST_AT_OFFSET" },
+  { kind = "collisionSource", at = "0x5FA8", in_c = true, cell_face_list_macro = "AKROPOLIS_SANCTUARY_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.acropolis_roof_garden]

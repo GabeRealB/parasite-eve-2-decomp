@@ -1338,7 +1338,7 @@ static s32 _acropolisBridgeResolveRoomTransition(Task* task, s32 messageId, cons
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 gameFlagSetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN, 1);
                 evsStartScriptWithSkip(_gAcropolisBridgeArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAcropolisBridgeArrivalSkipScript);
-                gameFlagSetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED, 1);
+                gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_SANCTUARY_RUPERT_LEFT, 1);
                 sanctuaryLocation.stage = GAME_STAGE_AKROPOLIS;
                 sanctuaryLocation.area  = GAME_AREA_AKROPOLIS_SANCTUARY;
                 areaSetPlacementVariant(&sanctuaryLocation, ACROPOLIS_BRIDGE_SANCTUARY_CLEARED_VARIANT, AREA_VARIANT_RESET_ALWAYS);

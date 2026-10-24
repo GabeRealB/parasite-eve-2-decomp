@@ -154,7 +154,7 @@ gShelterB1MainCorridorViewBoundaries = 0x801853F8; // absolute:True owner=shelte
 gShelterB1MainCorridorWarpTriggers = 0x801858B8; // absolute:True owner=shelter_b1_main_corridor shared=rooms
 gShelterB1MainCorridorSurfacePropertiesByClass = 0x80185D04; // absolute:True owner=shelter_b1_main_corridor
 shelterB1SterilizationRoomTask = 0x80180518; // type:func absolute:True owner=shelter_b1_sterilization_room
-gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0 = 0x80184DF8; // absolute:True owner=shelter_b1_sterilization_room
+gShelterB1SterilizationRoomAkropolisSanctuaryModel090F0 = 0x80184DF8; // absolute:True owner=shelter_b1_sterilization_room
 gShelterB1SterilizationRoomLighting = 0x80189354; // absolute:True owner=shelter_b1_sterilization_room
 gShelterB1SterilizationRoomCollisionResources = 0x8018936C; // absolute:True owner=shelter_b1_sterilization_room
 gShelterB1SterilizationRoomViewMaps = 0x801893CC; // absolute:True owner=shelter_b1_sterilization_room
@@ -321,7 +321,7 @@ gShelterB2NorthMaintenanceWalkwayActionTriggers = 0x80185F24; // absolute:True o
 gShelterB2NorthMaintenanceWalkwaySightOccluders = 0x80186308; // absolute:True owner=shelter_b2_north_maintenance_walkway
 gShelterB2NorthMaintenanceWalkwaySurfacePropertiesByClass = 0x80186360; // absolute:True owner=shelter_b2_north_maintenance_walkway shared=rooms
 shelterB2LaboratoryTask = 0x801804A4; // type:func absolute:True owner=shelter_b2_laboratory
-gShelterB2LaboratoryAcropolisSanctuaryModel090F0 = 0x801829E4; // absolute:True owner=shelter_b2_laboratory
+gShelterB2LaboratoryAkropolisSanctuaryModel090F0 = 0x801829E4; // absolute:True owner=shelter_b2_laboratory
 gShelterB2LaboratoryRoomViewMaps = 0x80182C08; // absolute:True owner=shelter_b2_laboratory
 gShelterB2LaboratoryRoomViewCounts = 0x80182C0C; // absolute:True owner=shelter_b2_laboratory
 gShelterB2LaboratoryWarpEntries = 0x80182C10; // absolute:True owner=shelter_b2_laboratory
@@ -410,7 +410,7 @@ gShelter1fHeliportS4RoomLights = 0x8017DE6C; // absolute:True owner=shelter_1f_h
 gShelter1fHeliportS4ViewBoundaryTriggers = 0x8017DE84; // absolute:True owner=shelter_1f_heliport_s4 shared=rooms
 gShelter1fHeliportS4SurfacePropertiesByClass = 0x8017E060; // absolute:True owner=shelter_1f_heliport_s4 shared=rooms
 shelterB3DumpingHoleRoomTask = 0x8017D9A8; // type:func absolute:True owner=shelter_b3_dumping_hole shared=rooms
-gShelterB3DumpingHoleAcropolisSanctuaryModel090F0 = 0x80187550; // absolute:True owner=shelter_b3_dumping_hole
+gShelterB3DumpingHoleAkropolisSanctuaryModel090F0 = 0x80187550; // absolute:True owner=shelter_b3_dumping_hole
 gShelterB3DumpingHoleRoomCollisionResources = 0x8018B678; // absolute:True owner=shelter_b3_dumping_hole
 gShelterB3DumpingHoleViewMaps = 0x8018B698; // absolute:True owner=shelter_b3_dumping_hole
 gShelterB3DumpingHoleViewCounts = 0x8018B6A0; // absolute:True owner=shelter_b3_dumping_hole

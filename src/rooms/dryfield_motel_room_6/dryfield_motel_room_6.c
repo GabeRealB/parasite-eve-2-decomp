@@ -2274,7 +2274,7 @@ static s32 _dryfieldMotelRoom6GateWaterTowerExit(Task* task, s32 messageId, cons
 /// The receiver, message ID and zero second payload are unused. Requires the
 /// room and actor_120500 resources to remain loaded through the spawned event.
 /// The sibling `_akropolisSecurityRoomHandleRoomAction` leaves its reply unspecified;
-/// `_acropolisSanctuaryHandleRoomAction` answers zero.
+/// `_akropolisSanctuaryHandleRoomAction` answers zero.
 static s32 _dryfieldMotelRoom6HandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
     enum { DRYFIELD_MOTEL_ROOM_6_ACTION_ACTOR_EVENT = 0,

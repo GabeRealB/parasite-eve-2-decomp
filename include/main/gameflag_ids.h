@@ -15,16 +15,6 @@
 /// `GAME_FLAG_<HHH>` are placeholders for flags whose meaning is not yet known,
 /// named by the room that uses them where it is a single one.
 enum {
-    /// Set to 1 once the sanctuary scene has been passed (on first reaching the roof
-    /// garden or the bridge from the fire escape); the sanctuary then pushes its
-    /// blocker cage collision aside instead of across the doorway and skips arming its
-    /// slot-4 actor.
-    GAME_FLAG_SANCTUARY_BLOCKER_CLEARED = 0x006,
-    /// One-shot latch for the sanctuary's scripted event: 1 when the sanctuary hotspot
-    /// (0x13EF sub-id 1) spawns the room task, 2 when the player leaves to the
-    /// promenade or reaches the roof garden first (also raising bit-2 flag 0x13), which
-    /// suppresses the event.
-    GAME_FLAG_SANCTUARY_EVENT_LATCH = 0x007,
     /// Unidentified. Written every tick by enemy actor_510900 with a value from its
     /// table `_gActor510900HelipadStatusFlagValues` indexed by source phase and light-2 status; no reader found.
     GAME_FLAG_00D = 0x00D,

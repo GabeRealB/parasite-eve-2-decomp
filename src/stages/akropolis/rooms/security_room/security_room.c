@@ -574,36 +574,36 @@ static EffectUnitQuadCorner _gAkropolisSecurityRoomFallingQuadUnitCorners[4] = {
 #include "assets/rooms/akropolis/security_room/cameras.inc"
 #include "assets/rooms/akropolis/security_room/updates.inc"
 #include "assets/rooms/akropolis/security_room/surfaces.inc"
-static TmdBone _gAkropolisSecurityRoomAcropolisSanctuaryModel090F0Skeleton[3] = {
-#include "assets/acropolis_sanctuary_model_090F0_skeleton.inc"
+static TmdBone _gAkropolisSecurityRoomAkropolisSanctuaryModel090F0Skeleton[3] = {
+#include "assets/akropolis_sanctuary_model_090F0_skeleton.inc"
 };
 
-static u32 _gAkropolisSecurityRoomAcropolisSanctuaryModel090F0PartVerts[3] = {
-#include "assets/acropolis_sanctuary_model_090F0_partVerts.inc"
+static u32 _gAkropolisSecurityRoomAkropolisSanctuaryModel090F0PartVerts[3] = {
+#include "assets/akropolis_sanctuary_model_090F0_partVerts.inc"
 };
 
-static SVECTOR _gAkropolisSecurityRoomAcropolisSanctuaryModel090F0Verts[56] = {
-#include "assets/acropolis_sanctuary_model_090F0_verts.inc"
+static SVECTOR _gAkropolisSecurityRoomAkropolisSanctuaryModel090F0Verts[56] = {
+#include "assets/akropolis_sanctuary_model_090F0_verts.inc"
 };
 
-static SVECTOR _gAkropolisSecurityRoomAcropolisSanctuaryModel090F0Normals[6] = {
-#include "assets/acropolis_sanctuary_model_090F0_normals.inc"
+static SVECTOR _gAkropolisSecurityRoomAkropolisSanctuaryModel090F0Normals[6] = {
+#include "assets/akropolis_sanctuary_model_090F0_normals.inc"
 };
 
-static u32 _gAkropolisSecurityRoomAcropolisSanctuaryModel090F0Stream[215] = {
-#include "assets/acropolis_sanctuary_model_090F0_stream.inc"
+static u32 _gAkropolisSecurityRoomAkropolisSanctuaryModel090F0Stream[215] = {
+#include "assets/akropolis_sanctuary_model_090F0_stream.inc"
 };
 
-TmdSource gAkropolisSecurityRoomAcropolisSanctuaryModel090F0 = {
+TmdSource gAkropolisSecurityRoomAkropolisSanctuaryModel090F0 = {
     0,
     1768,
     0,
     3,
-    _gAkropolisSecurityRoomAcropolisSanctuaryModel090F0PartVerts,
-    _gAkropolisSecurityRoomAcropolisSanctuaryModel090F0Verts,
-    _gAkropolisSecurityRoomAcropolisSanctuaryModel090F0Normals,
-    _gAkropolisSecurityRoomAcropolisSanctuaryModel090F0Skeleton,
-    _gAkropolisSecurityRoomAcropolisSanctuaryModel090F0Stream,
+    _gAkropolisSecurityRoomAkropolisSanctuaryModel090F0PartVerts,
+    _gAkropolisSecurityRoomAkropolisSanctuaryModel090F0Verts,
+    _gAkropolisSecurityRoomAkropolisSanctuaryModel090F0Normals,
+    _gAkropolisSecurityRoomAkropolisSanctuaryModel090F0Skeleton,
+    _gAkropolisSecurityRoomAkropolisSanctuaryModel090F0Stream,
 };
 
 /// Borrowed live power-supply panel handle used to forward room key-item messages.

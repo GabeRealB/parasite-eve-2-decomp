@@ -44,6 +44,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/event_flags.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
@@ -388,8 +389,8 @@ static s32 _acropolisRoofGardenResolveRoomTransition(Task* task, s32 messageId, 
         ACROPOLIS_ROOF_GARDEN_TRANSITION_ALLOWED         = 1,
     };
     *reply = *request;
-    if (request->areaId == GAME_AREA_AKROPOLIS_SANCTUARY && request->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH) == ACROPOLIS_ROOF_GARDEN_SANCTUARY_EVENT_UNSET) {
-        gameFlagSetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH, ACROPOLIS_ROOF_GARDEN_SANCTUARY_EVENT_SUPPRESSED);
+    if (request->areaId == GAME_AREA_AKROPOLIS_SANCTUARY && request->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SANCTUARY_BOMB_SCENE_STATE) == ACROPOLIS_ROOF_GARDEN_SANCTUARY_EVENT_UNSET) {
+        gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_SANCTUARY_BOMB_SCENE_STATE, ACROPOLIS_ROOF_GARDEN_SANCTUARY_EVENT_SUPPRESSED);
         areaSetCurrentObjectState(ACROPOLIS_ROOF_GARDEN_PICKUP_OBJECT_ID, ACROPOLIS_ROOF_GARDEN_PICKUP_HIDDEN);
     }
     return ACROPOLIS_ROOF_GARDEN_TRANSITION_ALLOWED;
@@ -627,7 +628,7 @@ static void _acropolisRoofGardenTickRoom(Task* task)
     if ((gGameSession->location.warp == ACROPOLIS_ROOF_GARDEN_CUTSCENE_WARP) && (_gAcropolisRoofGardenArrivalSceneStarted == ACROPOLIS_ROOF_GARDEN_CUTSCENE_NOT_STARTED)) {
         _gAcropolisRoofGardenArrivalSceneStarted = ACROPOLIS_ROOF_GARDEN_CUTSCENE_STARTED;
         evsStartScriptWithSkip(_gAcropolisRoofGardenArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAcropolisRoofGardenArrivalSkipScript);
-        gameFlagSetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED, ACROPOLIS_ROOF_GARDEN_SANCTUARY_BLOCKER_CLEARED);
+        gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_SANCTUARY_RUPERT_LEFT, ACROPOLIS_ROOF_GARDEN_SANCTUARY_BLOCKER_CLEARED);
         sanctuary.stage = GAME_STAGE_AKROPOLIS;
         sanctuary.area  = GAME_AREA_AKROPOLIS_SANCTUARY;
         areaSetPlacementVariant(&sanctuary, ACROPOLIS_ROOF_GARDEN_SANCTUARY_CLEARED_VARIANT, AREA_VARIANT_RESET_ALWAYS);

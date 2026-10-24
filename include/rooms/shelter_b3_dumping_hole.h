@@ -24,7 +24,7 @@
 /// 6..11 face opposite ways. Actor overlays borrow the table while this room is loaded.
 extern OverlayEncounterSpot gShelterB3DumpingHoleEncounterSpots[12];
 
-extern TmdSource gShelterB3DumpingHoleAcropolisSanctuaryModel090F0;
+extern TmdSource gShelterB3DumpingHoleAkropolisSanctuaryModel090F0;
 
 enum { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_TASK_CONTROLLER = 0 };
 

@@ -33,7 +33,7 @@ enum { DRYFIELD_NIGHT_TRAILER_COACH_AREA_VARIANT_COUNT = 13 };
 /// be loaded for spawning and model-policy updates.
 extern AreaVariant gDryfieldNightTrailerCoachAreaVariants[DRYFIELD_NIGHT_TRAILER_COACH_AREA_VARIANT_COUNT];
 
-extern TmdSource gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0;
+extern TmdSource gDryfieldNightTrailerCoachAkropolisSanctuaryModel090F0;
 
 /// Model lighting for the nighttime coach's sole room (room ID 1).
 ///
