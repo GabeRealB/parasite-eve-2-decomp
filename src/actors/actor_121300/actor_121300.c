@@ -50,6 +50,7 @@
 #include "rooms/dryfield_r08.h"
 #include "../../shared/screen/screen_wave.h"
 #include "../../shared/actor/actor_messages.h"
+#include "../../shared/screen/screen_fade.h"
 #include "../../shared/screen/screen_fade_step_up.inc.c"
 
 /// Scene step of Eve, stored in `_Actor121300EveWork::step`.
@@ -746,7 +747,6 @@ static void _actor121300FadeInTask(Task* task)
         ACTOR_121300_FADE_IN_HOLD_BLACK     = 1,
         ACTOR_121300_FADE_IN_ENABLE_DISPLAY = 2,
         ACTOR_121300_FADE_IN_REVEAL         = 3,
-        ACTOR_121300_FADE_IN_MAX_INTENSITY  = 255,
     };
     ScreenFadeWork* fade;
     ScreenFadeWork* allocatedFade;
@@ -761,9 +761,9 @@ static void _actor121300FadeInTask(Task* task)
                 return;
             }
             fade    = allocatedFade;
-            fade->r = ACTOR_121300_FADE_IN_MAX_INTENSITY;
-            fade->g = ACTOR_121300_FADE_IN_MAX_INTENSITY;
-            fade->b = ACTOR_121300_FADE_IN_MAX_INTENSITY;
+            fade->r = SCREEN_FADE_FULL_INTENSITY;
+            fade->g = SCREEN_FADE_FULL_INTENSITY;
+            fade->b = SCREEN_FADE_FULL_INTENSITY;
             fadeDrawOverlay(fade->r, fade->g, fade->b, GPU_BLEND_SUBTRACT);
             task->state += 1;
             break;
@@ -1682,9 +1682,8 @@ static void _actor121300EveSceneTask(Task* task)
 static void _actor121300FadeOutTask(Task* task)
 {
     enum {
-        ACTOR_121300_FADE_OUT_INITIALIZE    = 0,
-        ACTOR_121300_FADE_OUT_DARKEN        = 1,
-        ACTOR_121300_FADE_OUT_END_INTENSITY = 256,
+        ACTOR_121300_FADE_OUT_INITIALIZE = 0,
+        ACTOR_121300_FADE_OUT_DARKEN     = 1,
     };
     ScreenFadeWork* fade;
     ScreenFadeWork* allocatedFade;
@@ -1707,7 +1706,7 @@ static void _actor121300FadeOutTask(Task* task)
         case ACTOR_121300_FADE_OUT_DARKEN:
             fadeDrawOverlay(fade->r, fade->g, fade->r, GPU_BLEND_SUBTRACT);
             _screenFadeStepUp(fade, task);
-            if (fade->r < ACTOR_121300_FADE_OUT_END_INTENSITY) {
+            if (fade->r < SCREEN_FADE_OUT_COMPLETE) {
                 return;
             }
             SetDispMask(0);

@@ -57,6 +57,7 @@
 
 #include "rooms/shelter_b1_pod_service_gantry.h"
 #include "../../shared/actor/actor_messages.h"
+#include "../../shared/screen/screen_fade.h"
 #include "../../shared/screen/screen_fade_step_down.inc.c"
 #include "../../shared/screen/screen_fade_step_up.inc.c"
 
@@ -6046,9 +6047,8 @@ static void _actor560800StartMovieTask(Task* task)
 /// narrow to signed 16 bits without clamping. Zero rate never finishes.
 static void _actor560800FadeOutTask(Task* task)
 {
-    enum { ACTOR_560800_FADE_INITIALIZE    = 0,
-           ACTOR_560800_FADE_RAMP          = 1,
-           ACTOR_560800_FADE_END_INTENSITY = 256 };
+    enum { ACTOR_560800_FADE_INITIALIZE = 0,
+           ACTOR_560800_FADE_RAMP       = 1 };
     ScreenFadeWork* fade;
     ScreenFadeWork* allocatedFade;
 
@@ -6071,7 +6071,7 @@ static void _actor560800FadeOutTask(Task* task)
         case ACTOR_560800_FADE_RAMP:
             fadeDrawOverlay(fade->r, fade->g, fade->r, GPU_BLEND_SUBTRACT);
             _screenFadeStepUp(fade, task);
-            if (fade->r >= ACTOR_560800_FADE_END_INTENSITY) {
+            if (fade->r >= SCREEN_FADE_OUT_COMPLETE) {
                 SetDispMask(0);
                 taskKill(task);
             }
@@ -6091,8 +6091,7 @@ static void _actor560800FadeInTask(Task* task)
 {
     enum { ACTOR_560800_FADE_INITIALIZE     = 0,
            ACTOR_560800_FADE_ENABLE_DISPLAY = 6,
-           ACTOR_560800_FADE_RAMP           = 7,
-           ACTOR_560800_FADE_MAX_INTENSITY  = 255 };
+           ACTOR_560800_FADE_RAMP           = 7 };
     ScreenFadeWork* fade;
     ScreenFadeWork* allocatedFade;
 
@@ -6106,9 +6105,9 @@ static void _actor560800FadeInTask(Task* task)
                 return;
             }
             fade    = allocatedFade;
-            fade->b = ACTOR_560800_FADE_MAX_INTENSITY;
-            fade->g = ACTOR_560800_FADE_MAX_INTENSITY;
-            fade->r = ACTOR_560800_FADE_MAX_INTENSITY;
+            fade->b = SCREEN_FADE_FULL_INTENSITY;
+            fade->g = SCREEN_FADE_FULL_INTENSITY;
+            fade->r = SCREEN_FADE_FULL_INTENSITY;
             taskReparent(_gActor560800CutsceneTask, task);
             task->state += 1;
             break;

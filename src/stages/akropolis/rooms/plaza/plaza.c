@@ -448,7 +448,6 @@ static void _akropolisPlazaFadeOutTask(Task* task)
     enum {
         AKROPOLIS_PLAZA_FADE_OUT_INITIALIZE    = 0,
         AKROPOLIS_PLAZA_FADE_OUT_RAMP          = 1,
-        AKROPOLIS_PLAZA_FADE_OUT_END_INTENSITY = 256,
     };
     ScreenFadeWork* fade;
     ScreenFadeWork* allocatedFade;
@@ -471,7 +470,7 @@ static void _akropolisPlazaFadeOutTask(Task* task)
         case AKROPOLIS_PLAZA_FADE_OUT_RAMP:
             _screenFadeDrawTileOverlay(fade);
             _screenFadeStepUp(fade, task);
-            if (fade->r >= AKROPOLIS_PLAZA_FADE_OUT_END_INTENSITY) {
+            if (fade->r >= SCREEN_FADE_OUT_COMPLETE) {
                 SetDispMask(0);
                 taskKill(task);
             }

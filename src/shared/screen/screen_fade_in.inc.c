@@ -7,7 +7,6 @@ void SCREEN_FADE_IN_TASK(Task* task)
     enum {
         SCREEN_FADE_IN_STATE_INITIALIZE = 0,
         SCREEN_FADE_IN_STATE_RAMP       = 1,
-        SCREEN_FADE_IN_MAX_INTENSITY    = 255,
     };
     ScreenFadeWork* fade;
     ScreenFadeWork* allocatedFade;
@@ -22,9 +21,9 @@ void SCREEN_FADE_IN_TASK(Task* task)
                 return;
             }
             fade         = allocatedFade;
-            fade->b      = SCREEN_FADE_IN_MAX_INTENSITY;
-            fade->g      = SCREEN_FADE_IN_MAX_INTENSITY;
-            fade->r      = SCREEN_FADE_IN_MAX_INTENSITY;
+            fade->b      = SCREEN_FADE_FULL_INTENSITY;
+            fade->g      = SCREEN_FADE_FULL_INTENSITY;
+            fade->r      = SCREEN_FADE_FULL_INTENSITY;
             task->state += SCREEN_FADE_IN_STATE_RAMP - SCREEN_FADE_IN_STATE_INITIALIZE;
             // Draw immediately so initialization does not expose an unfaded frame.
             /* fallthrough */

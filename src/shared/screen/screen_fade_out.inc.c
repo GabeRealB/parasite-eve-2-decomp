@@ -18,7 +18,6 @@ static void _screenFadeOutTask(Task* task)
     enum {
         SCREEN_FADE_OUT_STATE_INITIALIZE = 0,
         SCREEN_FADE_OUT_STATE_RAMP       = 1,
-        SCREEN_FADE_OUT_END_INTENSITY    = 256,
     };
     ScreenFadeWork* fade;
     ScreenFadeWork* allocatedFade;
@@ -42,7 +41,7 @@ static void _screenFadeOutTask(Task* task)
         case SCREEN_FADE_OUT_STATE_RAMP:
             fadeDrawOverlay(fade->r, fade->g, fade->r, GPU_BLEND_SUBTRACT);
             _screenFadeStepUp(fade, task);
-            if (fade->r >= SCREEN_FADE_OUT_END_INTENSITY) {
+            if (fade->r >= SCREEN_FADE_OUT_COMPLETE) {
                 taskKill(task);
             }
             break;

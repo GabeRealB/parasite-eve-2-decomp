@@ -12,6 +12,13 @@
 
 #include "main/task_types.h"
 
+/// The range of a fade's channels: a fade in starts at full intensity, and a fade out is complete once its red channel
+/// has passed it.
+enum {
+    SCREEN_FADE_FULL_INTENSITY = 255,
+    SCREEN_FADE_OUT_COMPLETE   = 256,
+};
+
 #ifndef SCREEN_FADE_IN_TASK
 /// Selects the callback identifier declared here and defined by the fade-in fragment.
 ///

@@ -48,6 +48,7 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
+#include "../../shared/screen/screen_fade.h"
 #include "../../shared/screen/screen_wave.h"
 #include "../../shared/actor/actor_messages.h"
 #include "../../shared/screen/screen_fade_step_down.inc.c"
@@ -1730,7 +1731,6 @@ static void _actor160900FadeOutTask(Task* task)
     enum {
         ACTOR_160900_FADE_OUT_INITIALIZE = 0,
         ACTOR_160900_FADE_OUT_RAMP       = 1,
-        ACTOR_160900_FADE_MAX_INTENSITY  = 255,
     };
     ScreenFadeWork* fade;
     ScreenFadeWork* allocatedFade;
@@ -1754,10 +1754,10 @@ static void _actor160900FadeOutTask(Task* task)
         case ACTOR_160900_FADE_OUT_RAMP:
             fadeDrawOverlay(fade->r, fade->g, fade->r, GPU_BLEND_SUBTRACT);
             _screenFadeStepUp(fade, task);
-            if (fade->r > ACTOR_160900_FADE_MAX_INTENSITY) {
-                fade->b = ACTOR_160900_FADE_MAX_INTENSITY;
-                fade->g = ACTOR_160900_FADE_MAX_INTENSITY;
-                fade->r = ACTOR_160900_FADE_MAX_INTENSITY;
+            if (fade->r > SCREEN_FADE_FULL_INTENSITY) {
+                fade->b = SCREEN_FADE_FULL_INTENSITY;
+                fade->g = SCREEN_FADE_FULL_INTENSITY;
+                fade->r = SCREEN_FADE_FULL_INTENSITY;
             }
             break;
     }
@@ -1780,7 +1780,6 @@ static void _actor160900FadeInTask(Task* task)
         ACTOR_160900_FADE_IN_WAIT_SECOND    = 2,
         ACTOR_160900_FADE_IN_ENABLE_DISPLAY = 3,
         ACTOR_160900_FADE_IN_RAMP           = 4,
-        ACTOR_160900_FADE_MAX_INTENSITY     = 255,
     };
     ScreenFadeWork* fade;
     ScreenFadeWork* allocatedFade;
@@ -1795,9 +1794,9 @@ static void _actor160900FadeInTask(Task* task)
                 return;
             }
             fade         = allocatedFade;
-            fade->b      = ACTOR_160900_FADE_MAX_INTENSITY;
-            fade->g      = ACTOR_160900_FADE_MAX_INTENSITY;
-            fade->r      = ACTOR_160900_FADE_MAX_INTENSITY;
+            fade->b      = SCREEN_FADE_FULL_INTENSITY;
+            fade->g      = SCREEN_FADE_FULL_INTENSITY;
+            fade->r      = SCREEN_FADE_FULL_INTENSITY;
             task->state += 1;
             break;
         case ACTOR_160900_FADE_IN_ENABLE_DISPLAY:

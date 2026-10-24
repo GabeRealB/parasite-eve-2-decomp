@@ -79,6 +79,7 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/screen/screen_fade.h"
 #include "../../shared/effects/glow_draw.h"
 
 /// Selects this room's billboard declaration with `s32` frame and size arguments.
@@ -3646,9 +3647,8 @@ s16 shelterB3DumpingHoleIsIncineratorExitBlocked(void)
 static void _shelterB3DumpingHoleFadeFromBlackTask(Task* task)
 {
     enum {
-        SHELTER_B3_DUMPING_HOLE_FADE_SETUP          = 0,
-        SHELTER_B3_DUMPING_HOLE_FADE_RUN            = 1,
-        SHELTER_B3_DUMPING_HOLE_FADE_FULL_INTENSITY = 0xFF,
+        SHELTER_B3_DUMPING_HOLE_FADE_SETUP = 0,
+        SHELTER_B3_DUMPING_HOLE_FADE_RUN   = 1,
     };
     ScreenFadeWork*                       fade;
     ScreenFadeWork*                       allocatedFade;
@@ -3669,9 +3669,9 @@ static void _shelterB3DumpingHoleFadeFromBlackTask(Task* task)
                 return;
             }
             fade         = allocatedFade;
-            fade->b      = SHELTER_B3_DUMPING_HOLE_FADE_FULL_INTENSITY;
-            fade->g      = SHELTER_B3_DUMPING_HOLE_FADE_FULL_INTENSITY;
-            fade->r      = SHELTER_B3_DUMPING_HOLE_FADE_FULL_INTENSITY;
+            fade->b      = SCREEN_FADE_FULL_INTENSITY;
+            fade->g      = SCREEN_FADE_FULL_INTENSITY;
+            fade->r      = SCREEN_FADE_FULL_INTENSITY;
             task->state += 1;
             /* fallthrough */
         case SHELTER_B3_DUMPING_HOLE_FADE_RUN:

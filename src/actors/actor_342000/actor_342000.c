@@ -52,6 +52,7 @@
 #include "overlay.h"
 
 #include "rooms/shelter_b3_garbage_incinerator.h"
+#include "../../shared/screen/screen_fade.h"
 #include "../../shared/actor/actor_messages.h"
 
 /// Work block of each task that makes up the Glutton's display model: the
@@ -1473,7 +1474,6 @@ static void _actor342000FadeInTask(Task* task)
     enum {
         ACTOR_342000_FADE_STATE_INITIALIZE = 0,
         ACTOR_342000_FADE_STATE_RAMP       = 1,
-        ACTOR_342000_FADE_MAX_INTENSITY    = 255,
     };
     ScreenFadeWork* fade;
     ScreenFadeWork* allocatedFade;
@@ -1488,9 +1488,9 @@ static void _actor342000FadeInTask(Task* task)
                 return;
             }
             fade         = allocatedFade;
-            fade->b      = ACTOR_342000_FADE_MAX_INTENSITY;
-            fade->g      = ACTOR_342000_FADE_MAX_INTENSITY;
-            fade->r      = ACTOR_342000_FADE_MAX_INTENSITY;
+            fade->b      = SCREEN_FADE_FULL_INTENSITY;
+            fade->g      = SCREEN_FADE_FULL_INTENSITY;
+            fade->r      = SCREEN_FADE_FULL_INTENSITY;
             task->state += ACTOR_342000_FADE_STATE_RAMP - ACTOR_342000_FADE_STATE_INITIALIZE;
             /* fallthrough */
         case ACTOR_342000_FADE_STATE_RAMP:

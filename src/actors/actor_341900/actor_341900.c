@@ -44,6 +44,7 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
+#include "../../shared/screen/screen_fade.h"
 #include "../../shared/actor/actor_messages.h"
 
 /// `_Actor341900EventWork::playerAction`: the one-shot request the event script
@@ -1154,7 +1155,6 @@ static void _actor341900FadeInTask(Task* task)
     enum {
         ACTOR_341900_FADE_STATE_INITIALIZE = 0,
         ACTOR_341900_FADE_STATE_RAMP       = 1,
-        ACTOR_341900_FADE_MAX_INTENSITY    = 255,
     };
     ScreenFadeWork* fade;
     ScreenFadeWork* allocatedFade;
@@ -1169,9 +1169,9 @@ static void _actor341900FadeInTask(Task* task)
                 return;
             }
             fade         = allocatedFade;
-            fade->b      = ACTOR_341900_FADE_MAX_INTENSITY;
-            fade->g      = ACTOR_341900_FADE_MAX_INTENSITY;
-            fade->r      = ACTOR_341900_FADE_MAX_INTENSITY;
+            fade->b      = SCREEN_FADE_FULL_INTENSITY;
+            fade->g      = SCREEN_FADE_FULL_INTENSITY;
+            fade->r      = SCREEN_FADE_FULL_INTENSITY;
             task->state += ACTOR_341900_FADE_STATE_RAMP - ACTOR_341900_FADE_STATE_INITIALIZE;
             /* fallthrough */
         case ACTOR_341900_FADE_STATE_RAMP:
