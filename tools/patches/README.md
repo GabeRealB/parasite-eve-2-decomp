@@ -14,8 +14,11 @@ for that reason: a patched working tree is the expected state.
 | `decomp-permuter-objdump.patch` | `tools/decomp-permuter` | `tools/match/prepare_permuter.py` | no |
 | `decomp-permuter-sizeof.patch` | `tools/decomp-permuter` | `tools/match/prepare_permuter.py` | no |
 
-The maspsx patches are written against upstream `670417c` (2026-10-17), the
-commit the submodule points at. They apply in the order listed.
+The maspsx patches apply to upstream `4ffa8b5` (2026-10-24), the commit the
+submodule points at, as written against `670417c` (2026-10-17); they apply in
+the order listed. With them, one of upstream's own tests fails,
+`test_lcomm_alignment_none`: it expects every `.lcomm` symbol global, which is
+what `maspsx-bss-local.patch` undoes.
 
 ## maspsx
 
@@ -87,7 +90,7 @@ them: to 2 from two bytes, to 4 from four and to 8 from eight.
 **Why it is needed.** The compiler hands the assembler `.lcomm` and `.comm`
 with a size and no alignment, so where each variable lands is decided
 downstream, by two different programs. ASPSX places the `.lcomm` ones itself,
-at the start of the object's `.bss`, and upstream maspsx (`670417c`) lays them
+at the start of the object's `.bss`, and upstream maspsx (since `670417c`) lays them
 out the same way, by ASPSX version. A `.comm` one ASPSX only records, by name
 and size, and the linker places it: PSYLINK puts an object's `.comm` variables
 after that object's own `.bss`, with the alignment above. Upstream aligns them
