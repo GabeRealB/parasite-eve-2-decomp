@@ -60,7 +60,7 @@
 
 #include "rooms/akropolis_promenade.h"
 
-#include "rooms/acropolis_roof_garden.h"
+#include "rooms/akropolis_roof_garden.h"
 
 #include "rooms/akropolis_sanctuary.h"
 
@@ -647,7 +647,7 @@ static AreaObjectSpawn _gMapAkropolisSanctuaryObjectSpawns[3] = {
 /// its placement list. Callbacks and borrowed models require their room
 /// overlay to remain loaded for the spawned task.
 static AreaObjectSpawn _gMapAkropolisRoofGardenObjectSpawns[2] = {
-    { INVENTORY_COLLECTION_ID_ARMORY_CARDKEY, { { { TASK_BODY_TMD, MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, acropolisRoofGardenPickupModelTask, { &gAkropolisRoofGardenAcropolisRoofGardenModel09868 } } },
+    { INVENTORY_COLLECTION_ID_ARMORY_CARDKEY, { { { TASK_BODY_TMD, MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, akropolisRoofGardenPickupModelTask, { &gAkropolisRoofGardenArmoryCardkeyPickupModel } } },
     { AREA_OBJECT_SPAWN_END },
 };
 
@@ -708,7 +708,7 @@ TaskDesc gMapAkropolisRoomTaskDescriptors[21] = {
     { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, akropolisObservatoryRoomTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_OBSERVATORY, 0) } },
     { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, akropolisPromenadeRoomTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PROMENADE, 0) } },
     { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, akropolisSanctuaryRoomTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SANCTUARY, 0) } },
-    { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, acropolisRoofGardenRoomTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_ROOF_GARDEN, 0) } },
+    { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, akropolisRoofGardenRoomTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_ROOF_GARDEN, 0) } },
     { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, acropolisBridgeRoomTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_BRIDGE, 0) } },
     { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, acropolisFireEscapeRoomTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_FIRE_ESCAPE, 0) } },
     { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, acropolisHelicopterLandingPadRoomTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_HELICOPTER_LANDING_PAD, 0) } },

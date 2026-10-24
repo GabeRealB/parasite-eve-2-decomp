@@ -215,7 +215,7 @@ enum {
     SOUND_AKROPOLIS_SANCTUARY_ITEM_LID_CLOSE = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SANCTUARY, 6),
     /// Looping ambience whose level follows the camera view (view 7 full, view 5 at
     /// 0x1E, silent elsewhere), started, ramped or faded only on a change.
-    SOUND_ACROPOLIS_ROOF_GARDEN_AMBIENCE = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_ROOF_GARDEN, 5),
+    SOUND_AKROPOLIS_ROOF_GARDEN_AMBIENCE = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_ROOF_GARDEN, 5),
     /// Beep when a keypad hotspot (digit or clear) is pressed while entering the bridge
     /// code.
     SOUND_ACROPOLIS_BRIDGE_KEYPAD_BEEP = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_BRIDGE, 3),

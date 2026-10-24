@@ -1303,17 +1303,18 @@ objects = [
   { kind = "collisionSource", at = "0x5FA8", in_c = true, cell_face_list_macro = "AKROPOLIS_SANCTUARY_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
-[rooms.overlays.acropolis_roof_garden]
+[rooms.overlays.akropolis_roof_garden]
 id = 297
+src = "src/stages/akropolis/rooms/roof_garden"
 objects = [
   { kind = "packageId" },
-  { unit = "acropolis_roof_garden/acropolis_roof_garden", rodata = "0x4", text = "0x14", data = "0x2C20", bss = "0x98D8" },
+  { unit = "roof_garden", rodata = "0x4", text = "0x14", data = "0x2C20", bss = "0x98D8" },
   { kind = "model", at = "0x9810", in_c = true },
   { kind = "modelSource", at = "0x98B0", in_c = true },
   { kind = "animation", at = "0x2C20", sets = ["0x4164", "0x60FC", "0x65F4"], in_c = true },
   { kind = "animation", at = "0x6D70", sets = ["0x704C", "0x74BC"], in_c = true },
   { kind = "collision", at = "0x775C", in_c = true },
-  { kind = "collisionSource", at = "0x7EE4", in_c = true, cell_face_list_macro = "ACROPOLIS_ROOF_GARDEN_CELL_FACE_LIST_AT_OFFSET" },
+  { kind = "collisionSource", at = "0x7EE4", in_c = true, cell_face_list_macro = "AKROPOLIS_ROOF_GARDEN_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.acropolis_bridge]

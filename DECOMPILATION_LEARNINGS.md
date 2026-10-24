@@ -22140,7 +22140,7 @@ flickerLevel = ((u8)gDisplayState.animFrame & 1) * 0x10;
 greyLevel    = (u8)work->period + flickerLevel;
 ```
 
-`acropolisRoofGardenLightGlowTask` needed this. Same shape as "Jump-table
+`akropolisRoofGardenLightGlowTask` needed this. Same shape as "Jump-table
 mult: load order vs `mult` operand order", but the fix there is keeping a value
 live early rather than hoisting a whole sub-expression.
 
@@ -53889,7 +53889,7 @@ struct traffic. Restructuring the `switch` cannot fix it.
 
 ## A `switch` decision tree with a `slti` high-bound check needs a *third*, invisible case
 
-`_acropolisRoofGardenHandleSoundMessage` is a room message handler whose entire
+`_akropolisRoofGardenHandleSoundCue` is a room message handler whose entire
 body is one `sndEvtRequestScriptStart` call, yet the target opens with a three-test
 decision tree:
 
@@ -53972,7 +53972,7 @@ of the three-node `case 2: default: return;`, the same body scores 90%.
 
 ## Two bounds on one variable fold into a `sltiu` range test unless they are separate `if` statements
 
-`acropolisRoofGardenPickupModelTask` hides an item mesh unless the room is
+`akropolisRoofGardenPickupModelTask` hides an item mesh unless the room is
 being drawn from views 5..7 and the item's 2-bit flag is not 2. The target
 tests the two bounds separately:
 
@@ -54101,14 +54101,14 @@ pseudo and reaches the rest with `addiu`. *Which* address becomes that base is
 decided by the first `&sym[k]` expression the pass sees, and that is visible in
 the object dump.
 
-`acropolisRoofGardenAmbientEffectsTask` spawns one effect from
-`_gAcropolisRoofGardenLightOffsets[2]` and then loops over `[3]`..`[9]`. Writing
+`akropolisRoofGardenAmbientEffectsTask` spawns one effect from
+`_gAkropolisRoofGardenLightOffsets[2]` and then loops over `[3]`..`[9]`. Writing
 both references against the symbol,
 
 ```c
-effectSpawn(0x6008A, coord, 0x4000102, &_gAcropolisRoofGardenLightOffsets[2]);
+effectSpawn(0x6008A, coord, 0x4000102, &_gAkropolisRoofGardenLightOffsets[2]);
 for (lightIndex = 3; lightIndex < 10; lightIndex++) {
-    effectSpawn(0x6008A, coord, lightIndex + 0x200, &_gAcropolisRoofGardenLightOffsets[lightIndex]);
+    effectSpawn(0x6008A, coord, lightIndex + 0x200, &_gAkropolisRoofGardenLightOffsets[lightIndex]);
 }
 ```
 
@@ -54138,7 +54138,7 @@ To get that, give the base its own local and assign it the *plain* symbol right
 before the first use, so `&sym` is what CSE sees first:
 
 ```c
-lightOffsets = _gAcropolisRoofGardenLightOffsets;
+lightOffsets = _gAkropolisRoofGardenLightOffsets;
 effectSpawn(0x6008A, coord, 0x4000102, &lightOffsets[2]);
 for (lightIndex = 3; lightIndex < 10; lightIndex++) {
     effectSpawn(0x6008A, coord, lightIndex + 0x200, &lightOffsets[lightIndex]);
@@ -54159,7 +54159,7 @@ Two `for` loops in sequence, each with its own counter and its own
 strength-reduced pointer, produce four pseudos, and global allocation orders
 them by refs-per-live-length. Those ratios come out nearly tied between a
 counter and a pointer (`9/14 = 0.643` against `7/11 = 0.636` in
-`acropolisRoofGardenAmbientEffectsTask`), so the two loops can end up coloring
+`akropolisRoofGardenAmbientEffectsTask`), so the two loops can end up coloring
 their counter/pointer pairs *opposite* ways round: the second loop matched with
 counter in `$s1` and pointer in `$s0` while the first loop got the reverse, for
 a residual `regs=9` and nothing else.
@@ -54364,7 +54364,7 @@ the real assembler produces.
 
 **Ground truth, and why the obvious test is not one.** The tempting check is
 "does the patched assembler score closer to the ROM?" — it does, by 9 branch
-penalties on `acropolisRoofGardenFlareTask` — but that reasoning is
+penalties on `akropolisRoofGardenFlareTask` — but that reasoning is
 circular. The ROM is the *target*; validating a toolchain change by whether it
 improves the match fits the assembler to the answer, and every later function
 is then assembled by a tool that is wrong in a way nothing will catch.
@@ -54817,7 +54817,7 @@ and never reads those bytes or takes the address of anything on the stack. m2c
 drops them entirely. They are a leftover `GameLocationKey key; key.stage = 1;
 key.area = 4;` — the sibling rooms follow it with
 `areaSetPlacementVariant(&key, …)` (`_acropolisBridgeResolveRoomTransition`,
-`_acropolisRoofGardenTickRoom`), this room does not. GCC 2.8.1 does not
+`_akropolisRoofGardenStartArrivalScene`), this room does not. GCC 2.8.1 does not
 dead-store-eliminate stores to a stack *aggregate*, so writing the same dead
 struct back reproduces them exactly; the offsets in the asm give the field
 offsets, and the local's size sets the frame padding.
@@ -84367,7 +84367,7 @@ sinks the pair back to the tail. A wrong register can therefore be a scheduling
 consequence rather than an allocation one: before reaching for a pin, compile a
 matched function with the same tail shape alone under the scratch flags and read
 its `.lreg` — `_akropolisSecurityRoomInitializeRoomTask` and
-`_acropolisRoofGardenAmbienceTask` both have this tail and both show `mem/s`
+`_akropolisRoofGardenAmbienceTask` both have this tail and both show `mem/s`
 on the state access. Inputs: `base_2.i`
 `ac93762280d36b4b90feac3c58c9539259752988e10bca28f4740e15ec38f830` (99.83%),
 `base_5.i` `379a062c792785396fa125202ac9205a248c135abaa6fac31baacd5d7b9a2237`
@@ -87343,7 +87343,7 @@ Nothing merges the two calls early either — every `jump_optimize` call before
 where the store-flag block is already disabled by `! reload_completed`. So the
 merge happens late and lands exactly on the ROM's `beqz` + delay-slot constant.
 The idiom is everywhere in this project (`menuMapNavigateTask`,
-`_akropolisSecurityRoomInitializeRoomTask`, `_acropolisRoofGardenAmbienceTask`),
+`_akropolisSecurityRoomInitializeRoomTask`, `_akropolisRoofGardenAmbienceTask`),
 so a branchy 0/1 argument is a signal to look for the two-call form rather than
 to fight the scheduler. `_mineCavernInitRoom`. Inputs: `base_1.i`
 `d071dc9b40e5ce0f52dfd28e943d210037645ba7843fc647d81c70fc0493f526` (else-form,
@@ -119748,7 +119748,7 @@ either way; what follows the source is the order the bodies are emitted in, and
 therefore which one becomes the fall-through into the break target. Read the
 target's leaf order off the object - two leaves ending in `j <merge>` plus one
 that runs into it - and write the cases to match. The same rule explains the
-`if/else` form: in the matched `_acropolisRoofGardenAmbienceTask` the `else`
+`if/else` form: in the matched `_akropolisRoofGardenAmbienceTask` the `else`
 arm is last in the source and is the arm that falls through.
 
 **Two more things this function needed**, both worth checking on any small
@@ -148271,7 +148271,7 @@ for (partIndex = 2; partIndex < 0x10; partIndex += 8) {
 
 The same change removed an `intensitySi = intensity;` copy the first loop carried inside
 its body: `intensity` used directly gives the same hoisted extension.
-`akropolisSquareTelephoneLightTask` and `acropolisRoofGardenFlareTask`
+`akropolisSquareTelephoneLightTask` and `akropolisRoofGardenFlareTask`
 take the same form.
 
 **Use.** When `.loop` shows a constant hoisted that the target keeps in the

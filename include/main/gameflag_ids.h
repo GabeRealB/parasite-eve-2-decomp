@@ -581,10 +581,6 @@ enum {
     /// arrival 1 (script plays). Once set, the underpass resolves to rooms 1-4 from
     /// switch nibbles 0x53/0x51, otherwise to 5 or 6.
     GAME_FLAG_UNDERPASS_EVENT_SEEN = 0x0C9,
-    /// Roof garden scene progress on places 1/7: 0 -> 1 on arrival 1, 1 -> 2 on arrival
-    /// 2 (plays its script); at 2 the maggot/caterpillar actor spawns in its alternate
-    /// placement.
-    GAME_FLAG_ROOF_GARDEN_PROGRESS = 0x0CB,
     /// Unidentified. One-shot mine mesa event on variant 1 with the companion present:
     /// the actor-event handler sets it to 1 (and raises the attachment event lock in `gAttachmentState.flags`),
     /// and the room tick then plays a scripted scene once the fight state clears.

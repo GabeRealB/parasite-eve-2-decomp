@@ -417,7 +417,7 @@ enum {
     /// Roof-garden glow sprite: a flickering, distance-scaled semi-transparent
     /// billboard in one of three cells, drawn only in the views its mask allows; ten
     /// are placed at fixed points by the roof-garden task.
-    EFFECT_ACROPOLIS_ROOF_GARDEN_LIGHT_GLOW = EFFECT_ID(EFFECT_TASK_BANK, 0x08A),
+    EFFECT_AKROPOLIS_ROOF_GARDEN_LIGHT_GLOW = EFFECT_ID(EFFECT_TASK_BANK, 0x08A),
     /// The Akropolis sanctuary's flickering flame sprite, visible only from its listed
     /// camera views; twelve are spawned by the sanctuary room task.
     EFFECT_AKROPOLIS_SANCTUARY_FLAME = EFFECT_ID(EFFECT_TASK_BANK, 0x08B),
@@ -436,9 +436,9 @@ enum {
     /// toward its jet anchor; spawned per jet by the patio task.
     EFFECT_AKROPOLIS_PATIO_LIGHT_MOTE = EFFECT_ID(EFFECT_TASK_BANK, 0x08F),
     /// Pulsating Gouraud flare with optional rays on the Akropolis roof garden, spawned
-    /// by the room task (acropolisRoofGardenAmbientEffectsTask) for particular camera
+    /// by the room task (akropolisRoofGardenAmbientEffectsTask) for particular camera
     /// views.
-    EFFECT_ACROPOLIS_ROOF_GARDEN_FLARE = EFFECT_ID(EFFECT_TASK_BANK, 0x090),
+    EFFECT_AKROPOLIS_ROOF_GARDEN_FLARE = EFFECT_ID(EFFECT_TASK_BANK, 0x090),
     /// Thrown box model `gEffectThrownModel91`; its physical identity is unproven.
     /// Grenade-fire and post-reload controllers emit it at their weapon offsets.
     EFFECT_091 = EFFECT_ID(EFFECT_TASK_BANK, 0x091),
@@ -827,7 +827,7 @@ enum {
     EFFECT_NEO_ARK_BRIDGE_WATER_SPRAY = EFFECT_ID(EFFECT_TASK_BANK, 0x17B),
     /// A falling leaf (`_leafDraw`) at a random height offset; five are spawned
     /// by the Maggot Caterpillar entrance.
-    EFFECT_ACROPOLIS_ROOF_GARDEN_LEAF = EFFECT_ID(EFFECT_TASK_BANK, 0x17C),
+    EFFECT_AKROPOLIS_ROOF_GARDEN_LEAF = EFFECT_ID(EFFECT_TASK_BANK, 0x17C),
     /// Ten-frame additive sprite (spriteQuadDraw, 48-texel cells) drifting along a
     /// direction taken from the spawn angle; spawned at random entries of the
     /// sterilization room's position table in that room's state-1 views.

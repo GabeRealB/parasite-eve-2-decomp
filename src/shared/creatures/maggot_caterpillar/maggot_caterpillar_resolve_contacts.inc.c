@@ -956,7 +956,7 @@ static void _maggotCaterpillarEntranceState(Task* actor)
                     randomRise      = RANDOM_LCG_NEXT(gRandomLcgState);
                     gRandomLcgState = randomRise;
                     spawnOffset->vy = ((randomRise >> 0x10) & 0x1FF) + 0x2EE;
-                    effectSpawn(EFFECT_ACROPOLIS_ROOF_GARDEN_LEAF, coord, 0, spawnOffset);
+                    effectSpawn(EFFECT_AKROPOLIS_ROOF_GARDEN_LEAF, coord, 0, spawnOffset);
                     loopIndex++;
                 } while (loopIndex < MAGGOT_CATERPILLAR_ENTRANCE_DROP_LEAVES);
                 soundKey     = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | MAGGOT_CATERPILLAR_ENTRANCE_DROP_SOUND;

@@ -55,10 +55,10 @@ akropolis_plaza_path_13204	Per-frame shot position of the plaza's traversal movi
 akropolis_promenade_collision_04734	Collision grid of the Akropolis promenade's room 1 (bridge progress 0).	
 akropolis_promenade_collision_04E40	Collision grid of the Akropolis promenade's room 2 (bridge progress non-zero), eight faces more than room 1's.	
 rooms/akropolis/promenade/arrival_player_path	Per-movie-frame player path for the promenade's arrival movie from the observatory; 70 of 300 samples are read, backwards.	
-acropolis_roof_garden_animation_02C20	Three player clips of the Akropolis roof garden's arrival scene, installed as weapon-bank clips 47-49 and played in turn by the arrival script.	
-acropolis_roof_garden_animation_06D70	Two player clips of the roof garden's entrance script (variants 1 and 7), played as the creatures are released just before the battle engages.	
-acropolis_roof_garden_collision_0775C	Collision grid of the Akropolis roof garden, read by gameplay's world collision for the whole stay.	
-rooms/akropolis/roof_garden/acropolis_roof_garden_model_09868	Flat-quad pickup model in the roof garden (a sheet of paper by its texture), placed by map_akropolis and drawn only in mapped views 5-7 until collected.	
+akropolis_roof_garden_animation_02C20	Three player clips of the Akropolis roof garden's arrival scene, installed as weapon-bank clips 47-49 and played in turn by the arrival script.	
+akropolis_roof_garden_animation_06D70	Two player clips of the roof garden's entrance script (variants 1 and 7), played as the creatures are released just before the battle engages.	
+akropolis_roof_garden_collision_0775C	Collision grid of the Akropolis roof garden, read by gameplay's world collision for the whole stay.	
+rooms/akropolis/roof_garden/armory_cardkey_pickup	Flat-quad pickup model in the roof garden (a sheet of paper by its texture), placed by map_akropolis and drawn only in mapped views 5-7 until collected.	
 akropolis_sanctuary_animation_02D88	One player clip the sanctuary's arrival scene plays in place of weapon clip 7 only when the equipped weapon index is 2.	
 akropolis_sanctuary_animation_0435C	Player clip installed and played by the sanctuary's room-action-1 cutscene after her equipment is removed; a second set of the same shape has no use found.	
 akropolis_sanctuary_collision_04C8C	Template of a four-sided collision box (4 faces) that the sanctuary copies into its live grid as the blocker, moved aside once the blocker is cleared.	
@@ -670,7 +670,7 @@ load_screens/shelter_pod_chapter_4/background	Load-screen picture for Mine/Shelt
 rooms/akropolis/promenade/view12_background	No reached use found: background of akropolis_promenade view 12, a steep downward camera selected by none of the nine checked paths.	
 rooms/akropolis/sanctuary/view1_background..rooms/akropolis/sanctuary/view16_background	View backgrounds 1-16 of akropolis_sanctuary: play views 2-8, views 9-13, 15 and 16 shown by caption command 1 in the arrival scene, view 14 set by the cutscene task.	
 load_screens/mine_refuge_chapter_5/background	Load-screen picture for the Mine/Shelter stage with destination Mine Refuge in story chapter 5, shown under the Mine boot caption; what lands on it is open.	
-rooms/akropolis/roof_garden/view1_background..rooms/akropolis/roof_garden/view7_background	View backgrounds 1-7 of acropolis_roof_garden: walked views 2-5, view 6 shown only by CAP command 1's arrival scene; view 1 is the plan view.	
+rooms/akropolis/roof_garden/view1_background..rooms/akropolis/roof_garden/view7_background	View backgrounds 1-7 of akropolis_roof_garden: walked views 2-5, view 6 shown only by CAP command 1's arrival scene; view 1 is the plan view.	
 load_screens/acropolis_square/background	Load-screen picture for the Acropolis stage with destination Acropolis Square, shown under the Akropolis boot caption; which save or event lands on it is open.	
 load_screens/shelter_sterilization_chapter_5/background	Load-screen picture for the Mine/Shelter stage with destination B1 Sterilization Room in story chapter 5, under the Shelter dwelling boot caption; what lands on it is open.	
 rooms/akropolis/bridge/view1_background..rooms/akropolis/bridge/view10_background	View backgrounds 1-10 of acropolis_bridge; room 2, set when the keypad movie finishes, maps the same walked views onto files 5, 3 and 4 instead of 2, 6 and 7.	
@@ -3772,13 +3772,13 @@ rooms/akropolis/sanctuary/view12_image	8-bit sheet of the 32 room sprites of akr
 rooms/akropolis/sanctuary/view13_image	8-bit sheet of the 5 depth-sorted room sprites of akropolis_sanctuary's view 13.	
 rooms/akropolis/sanctuary/view14_image	8-bit sheet of the 8 depth-sorted room sprites of akropolis_sanctuary's view 14.	
 rooms/akropolis/sanctuary/view16_image	8-bit sheet (two pages) of the 38 room sprites of akropolis_sanctuary's view 16, with two alternative batches switched by the arrival scene script.	
-rooms/akropolis/roof_garden/dialogue_0_atlas	4-bit caption glyph atlas of acropolis_roof_garden's dialogue, drawn by gameplay's caption code whenever the room shows text.	
-rooms/akropolis/roof_garden/image	4-bit acropolis_roof_garden sheet: three light-glow cells for the room's light glow task, a falling-leaf cell, and the texture of the handset held by actor_110800's figure.	
-rooms/akropolis/roof_garden/view2_image	8-bit sheet of the 26 occluder sprites of acropolis_roof_garden's mapped view 2.	
-rooms/akropolis/roof_garden/view3_image	8-bit sheet (two pages) of the 57 occluder sprites of acropolis_roof_garden's mapped view 3.	
-rooms/akropolis/roof_garden/view4_image	8-bit sheet (two pages) of the 21 occluder sprites of acropolis_roof_garden's mapped view 4.	
+rooms/akropolis/roof_garden/dialogue_0_atlas	4-bit caption glyph atlas of akropolis_roof_garden's dialogue, drawn by gameplay's caption code whenever the room shows text.	
+rooms/akropolis/roof_garden/image	4-bit akropolis_roof_garden sheet: three light-glow cells for the room's light glow task, a falling-leaf cell, and the texture of the handset held by actor_110800's figure.	
+rooms/akropolis/roof_garden/view2_image	8-bit sheet of the 26 occluder sprites of akropolis_roof_garden's mapped view 2.	
+rooms/akropolis/roof_garden/view3_image	8-bit sheet (two pages) of the 57 occluder sprites of akropolis_roof_garden's mapped view 3.	
+rooms/akropolis/roof_garden/view4_image	8-bit sheet (two pages) of the 21 occluder sprites of akropolis_roof_garden's mapped view 4.	
 weapons/sp12/preview_image	Item preview picture of weapon 0x8D, the SP12, drawn in gameplay's item menu panels when that weapon is selected.	
-rooms/akropolis/roof_garden/view5_image	8-bit sheet of the 47 occluder sprites of acropolis_roof_garden's mapped view 5, the last batch being 34 8x8 tiles.	
+rooms/akropolis/roof_garden/view5_image	8-bit sheet of the 47 occluder sprites of akropolis_roof_garden's mapped view 5, the last batch being 34 8x8 tiles.	
 rooms/akropolis/bridge/dialogue_0_atlas	4-bit caption glyph atlas of acropolis_bridge's dialogue, drawn by gameplay's caption code for commands 7-9.	
 rooms/akropolis/bridge/image	4-bit acropolis_bridge light sheet: star-glow cores, a rotating flare and ground glow cell, and three lamp cells, drawn additively by the room's star and lamp glow tasks.	
 rooms/akropolis/bridge/view2_image	8-bit sheet (three pages) of the occluder sprites of acropolis_bridge's mapped view 2; one batch is hidden once the arrival scene has been seen.	
@@ -4645,8 +4645,8 @@ rooms/akropolis/promenade/sounds_0	Footstep bank of akropolis_promenade: walk, s
 rooms/akropolis/promenade/sounds_1	Acropolis promenade room sound bank: door sounds of the sanctuary and bridge warps, two caption-cue one-shots and two sounds of the post-battle scene.	
 rooms/akropolis/sanctuary/sounds_0	Footstep bank of akropolis_sanctuary: walk, scripted-jump and run step sounds on surface classes 1 and 2.	
 rooms/akropolis/sanctuary/sounds_1	Acropolis sanctuary room sound bank: door sounds of the promenade and roof-garden warps and the two sounds of the room's automatic cutscene; the item-lid entries are not reached.	
-rooms/akropolis/roof_garden/sounds_0	Type-3 scene sound bank of acropolis_roof_garden: five sounds started by the arrival scene's event script after caption cues, all stopped when the scene is skipped.	
-rooms/akropolis/roof_garden/sounds_1	Footstep bank of acropolis_roof_garden: walk, scripted-jump and run step sounds on surface classes 1 and 2.	
+rooms/akropolis/roof_garden/sounds_0	Type-3 scene sound bank of akropolis_roof_garden: five sounds started by the arrival scene's event script after caption cues, all stopped when the scene is skipped.	
+rooms/akropolis/roof_garden/sounds_1	Footstep bank of akropolis_roof_garden: walk, scripted-jump and run step sounds on surface classes 1 and 2.	
 rooms/akropolis/roof_garden/sounds_2	Acropolis roof garden room sound bank: warp 0 door sounds, a caption sound, the view-mixed ambience, timed arrival-scene sounds, the view figure's cues (actor_110800) and Caterpillar drop-ins.	
 rooms/akropolis/bridge/sounds_0	Footstep bank of acropolis_bridge: walk, scripted-jump and run step sounds on surface classes 2 and 4.	
 rooms/akropolis/bridge/sounds_1	Acropolis bridge room sound bank: door sounds of warps 0 and 1 and the keypad's key beep, code-rejected and code-accepted sounds.	

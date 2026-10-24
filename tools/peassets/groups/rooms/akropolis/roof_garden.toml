@@ -22,7 +22,7 @@ chunk = "palette"
 sha1 = "de9589216f35516dbbb247be764c6f179a1f7781"
 
 [[file.contents.palettes]]
-texture = "model_09868"
+texture = "armory_cardkey"
 variant = "default"
 region = "engine/vram/effect_palettes"
 offset = [0x00000, 0x00002]
@@ -70,7 +70,7 @@ sha1 = "661768e41ae72812dd8abd476ad28a9ae9be0634"
 sector_len = 1536
 pages = [
     { texture = "glows", region = "engine/vram/effect_sheet", offset = [0x000C0, 0x00000] },
-    { texture = "model_09868", region = "engine/vram/room_sprite_sheet", offset = [0x00000, 0x00000] },
+    { texture = "armory_cardkey", region = "engine/vram/room_sprite_sheet", offset = [0x00000, 0x00000] },
 ]
 
 [[file.contents]]
@@ -109,30 +109,30 @@ sha1 = "47316332c72fd1509886d58fe74ce23a02511beb"
 
 [package]
 type = "room"
-package_name = "acropolis_roof_garden"
+package_name = "akropolis_roof_garden"
 required = true
 sha1 = "2217089fcd1f4f7bc3c77434cf461ce6644a824b"
 
 [[package.embedded]]
-name = "acropolis_roof_garden_arrival_player_anim_00"
+name = "arrival_player_anim_00"
 offset = 0x02C20
 size = 0x156C
 address = 0x801801E0
 
 [[package.embedded]]
-name = "acropolis_roof_garden_arrival_player_anim_01"
+name = "arrival_player_anim_01"
 offset = 0x0418C
 size = 0x1F98
 address = 0x8018174C
 
 [[package.embedded]]
-name = "acropolis_roof_garden_arrival_player_anim_02"
+name = "arrival_player_anim_02"
 offset = 0x06124
 size = 0x4F8
 address = 0x801836E4
 
 [[package.embedded]]
-name = "acropolis_roof_garden_arrival_player_bank"
+name = "arrival_player_bank"
 offset = 0x066F8
 size = 0xC
 address = 0x80183CB8
@@ -150,13 +150,13 @@ size = 0x470
 address = 0x80184634
 
 [[package.embedded]]
-name = "acropolis_roof_garden_entrance_player_bank"
+name = "entrance_player_bank"
 offset = 0x074E4
 size = 0xC
 address = 0x80184AA4
 
 [[package.embedded]]
-name = "acropolis_roof_garden_model_09868"
+name = "armory_cardkey_pickup"
 offset = 0x09810
 size = 0xC4
 address = 0x80186DD0
@@ -494,13 +494,6 @@ entries = 256
 region = "engine/vram/room_sprite_palettes"
 offset = [0x00000, 0x00005]
 
-[model_09868]
-type = "texture"
-bpp = 4
-height = 256
-variants = ["default"]
-width = 256
-
 [swat_member]
 type = "pe2pkg"
 embedded = [
@@ -562,6 +555,13 @@ bpp = 8
 height = 256
 variants = ["default"]
 width = 128
+
+[armory_cardkey]
+type = "texture"
+bpp = 4
+height = 256
+variants = ["default"]
+width = 256
 
 [radio_chatter_2]
 type = "sound"
@@ -657,52 +657,52 @@ sha1 = "63076c5f2b34e90769e3b4c8c5d740f02e388c5a"
 type = "sound"
 sha1 = "6a50230dcc06ac117d204a81f3818ee562fa5502"
 
-[acropolis_roof_garden_model_09868]
-type = "model"
-slots = ["model_09868"]
-symbol = "gAkropolisRoofGardenAcropolisRoofGardenModel09868"
-sha1 = "2913512c27c63ed61d06ea6759df5b3a98da61e0"
-
-[acropolis_roof_garden_arrival_player_bank]
+[arrival_player_bank]
 type = "animation_bank"
-schema = "rooms/akropolis/roof_garden/acropolis_roof_garden_arrival_player_schema"
-symbol = "_gAcropolisRoofGardenArrivalPlayerAnimationSets"
+schema = "rooms/akropolis/roof_garden/arrival_player_schema"
+symbol = "_gAkropolisRoofGardenArrivalPlayerAnimationSets"
 
-[acropolis_roof_garden_arrival_player_bank.clips]
-slot_0 = "rooms/akropolis/roof_garden/acropolis_roof_garden_arrival_player_anim_00"
-slot_1 = "rooms/akropolis/roof_garden/acropolis_roof_garden_arrival_player_anim_01"
-slot_2 = "rooms/akropolis/roof_garden/acropolis_roof_garden_arrival_player_anim_02"
+[arrival_player_bank.clips]
+slot_0 = "rooms/akropolis/roof_garden/arrival_player_anim_00"
+slot_1 = "rooms/akropolis/roof_garden/arrival_player_anim_01"
+slot_2 = "rooms/akropolis/roof_garden/arrival_player_anim_02"
 
-[acropolis_roof_garden_model_09868_binding]
-type = "binding"
-model = "rooms/akropolis/roof_garden/acropolis_roof_garden_model_09868"
-textures = { model_09868 = "rooms/akropolis/roof_garden/model_09868.default" }
-
-[acropolis_roof_garden_entrance_player_bank]
+[entrance_player_bank]
 type = "animation_bank"
-schema = "rooms/akropolis/roof_garden/acropolis_roof_garden_entrance_player_schema"
-symbol = "_gAcropolisRoofGardenEntrancePlayerAnimationSets"
+schema = "rooms/akropolis/roof_garden/entrance_player_schema"
+symbol = "_gAkropolisRoofGardenEntrancePlayerAnimationSets"
 
-[acropolis_roof_garden_entrance_player_bank.clips]
+[entrance_player_bank.clips]
 slot_1 = "characters/aya/stand"
 slot_2 = "rooms/shelter/b2_north_maintenance_walkway/player_turn_to_stinger"
 
-[acropolis_roof_garden_arrival_player_schema]
+[armory_cardkey_pickup]
+type = "model"
+slots = ["cardkey"]
+symbol = "gAkropolisRoofGardenArmoryCardkeyPickupModel"
+sha1 = "2913512c27c63ed61d06ea6759df5b3a98da61e0"
+
+[arrival_player_schema]
 type = "animation_schema"
 slots = ["slot_0", "slot_1", "slot_2"]
 
-[acropolis_roof_garden_arrival_player_anim_00]
+[arrival_player_anim_00]
 type = "clip"
 rig = "characters/aya/rig"
 
-[acropolis_roof_garden_arrival_player_anim_01]
+[arrival_player_anim_01]
 type = "clip"
 rig = "characters/aya/rig"
 
-[acropolis_roof_garden_arrival_player_anim_02]
+[arrival_player_anim_02]
 type = "clip"
 rig = "characters/aya/rig"
 
-[acropolis_roof_garden_entrance_player_schema]
+[entrance_player_schema]
 type = "animation_schema"
 slots = ["", "slot_1", "slot_2"]
+
+[armory_cardkey_pickup_binding]
+type = "binding"
+model = "rooms/akropolis/roof_garden/armory_cardkey_pickup"
+textures = { cardkey = "rooms/akropolis/roof_garden/armory_cardkey.default" }

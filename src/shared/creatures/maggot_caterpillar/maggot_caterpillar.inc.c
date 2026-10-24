@@ -156,7 +156,7 @@ static void _maggotCaterpillarSpawn(Enemy* enemy, Task* actor)
                 }
                 break;
             case MAGGOT_CATERPILLAR_ENTRANCE_DROP:
-                if (gameFlagGetNibble(GAME_FLAG_ROOF_GARDEN_PROGRESS) == 2) {
+                if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_ROOF_GARDEN_ENEMY_DROP_STATE) == 2) {
                     work->animId         = MAGGOT_CATERPILLAR_ANIM_DORMANT;
                     work->behaviour      = MAGGOT_CATERPILLAR_BEHAVIOUR_WAIT;
                     work->fallSpeed      = MAGGOT_CATERPILLAR_GROUND_FALL_STEP;

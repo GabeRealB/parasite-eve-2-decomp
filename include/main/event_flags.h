@@ -173,6 +173,10 @@ enum {
     /// forked road after the red key; while clear, the forked road leads to the
     /// observatory's second state.
     EVENT_FLAG_AKROPOLIS_OBSERVATORY_BAT_AMBUSH_SEEN = 0x0CA,
+    /// Akropolis roof garden, the enemy drop (placement variants 1 and 7). State: 1
+    /// armed by its first trigger, 2 dropped by its second; from 2 the
+    /// maggot/caterpillar is in its other placement.
+    EVENT_FLAG_AKROPOLIS_ROOF_GARDEN_ENEMY_DROP_STATE = 0x0CB,
     /// Akropolis forked road. Marker: the ambush has played - back on the road after
     /// the red key (room action 1, placement variants 4 and 8); from then on the
     /// maggot/caterpillar is in its other placement.
