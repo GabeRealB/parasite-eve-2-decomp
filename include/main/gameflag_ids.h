@@ -15,11 +15,6 @@
 /// `GAME_FLAG_<HHH>` are placeholders for flags whose meaning is not yet known,
 /// named by the room that uses them where it is a single one.
 enum {
-    /// Sanctuary/bridge progress: 0 until the sanctuary is entered from the promenade
-    /// (warp 3), then 2; 3 once the bridge cutscene completes and the bridge room
-    /// switches to room 2. The promenade's bridge door is refused while 0 and leads to
-    /// room 2 at 3; the fire escape's bridge warp likewise picks room 2 at 3.
-    GAME_FLAG_AKROPOLIS_BRIDGE_PROGRESS = 0x002,
     /// Set to 1 once the sanctuary scene has been passed (on first reaching the roof
     /// garden or the bridge from the fire escape); the sanctuary then pushes its
     /// blocker cage collision aside instead of across the doorway and skips arming its
@@ -43,9 +38,6 @@ enum {
     /// Unidentified. Set to 1 together with 0x17 and other story flags in a shelter B2
     /// laboratory story sequence; no reader found.
     GAME_FLAG_SHELTER_B2_LABORATORY_018 = 0x018,
-    /// Set to 1 the first time the observatory is left for the forked road; later uses
-    /// answer warp 5 instead. Also set when the sanctuary scene runs.
-    GAME_FLAG_OBSERVATORY_EXIT_USED = 0x025,
     /// Dryfield junk yard / trailer coach story counter: 1 when first entering the
     /// trailer coach from the junk yard (also companion flag 0x4B = 4), 2 after the
     /// trailer coach scene (sets 0x3A=1, 0x4B=1), 3 after a later trailer coach scene.

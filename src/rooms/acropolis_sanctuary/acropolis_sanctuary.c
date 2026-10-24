@@ -688,13 +688,13 @@ static void _acropolisSanctuaryUpdateRoomProgress(Task* unusedTask)
         ACROPOLIS_SANCTUARY_ARRIVAL_OBJECTIVE           = 6,
     };
 
-    if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_BRIDGE_PROGRESS) == 0 && gGameSession->location.warp == ACROPOLIS_SANCTUARY_SCENE_ARRIVAL_WARP) {
-        gameFlagSetNibble(GAME_FLAG_AKROPOLIS_BRIDGE_PROGRESS, ACROPOLIS_SANCTUARY_BRIDGE_PROGRESS_ENTERED);
+    if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_BRIDGE_PROGRESS) == 0 && gGameSession->location.warp == ACROPOLIS_SANCTUARY_SCENE_ARRIVAL_WARP) {
+        gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_BRIDGE_PROGRESS, ACROPOLIS_SANCTUARY_BRIDGE_PROGRESS_ENTERED);
         evsStartScriptWithSkip(_gAcropolisSanctuaryArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAcropolisSanctuaryArrivalSkipScript);
         areaApplySavedUpdates(_gAcropolisSanctuaryArrivalAreaUpdates);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ACROPOLIS_SANCTUARY_ARRIVAL_SCENE_EVENT;
         gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_SANCTUARY_ROUTE_PROGRESS, ACROPOLIS_SANCTUARY_OBSERVATORY_ROUTE_COMPLETE);
-        gameFlagSetNibble(GAME_FLAG_OBSERVATORY_EXIT_USED, 1);
+        gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_OBSERVATORY_FORKED_ROAD_RIDE_SEEN, 1);
         gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, ACROPOLIS_SANCTUARY_ARRIVAL_OBJECTIVE);
         gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
         gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, AKROPOLIS_STORY_DIALOGUE_ARMORED_ASSAILANT);
@@ -733,7 +733,7 @@ static s32 _acropolisSanctuaryResolvePromenadeExit(Task* task, s32 messageId, Ro
             }
         }
         if (request->areaId == GAME_AREA_AKROPOLIS_PROMENADE && request->queryOnly == ROOM_EVENT_EXECUTE) {
-            destinationRoom = gameFlagGetNibble(GAME_FLAG_AKROPOLIS_BRIDGE_PROGRESS);
+            destinationRoom = gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_BRIDGE_PROGRESS);
             if (destinationRoom == 0) {
                 destinationRoom = ACROPOLIS_SANCTUARY_PROMENADE_ROOM_BEFORE_BRIDGE;
             } else {
@@ -840,7 +840,7 @@ static void _acropolisSanctuaryInitRoomTask(Task* task)
     if (gameFlagGetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED) != ACROPOLIS_SANCTUARY_BLOCKER_CLEARED) {
         placedActor = sceneFindPlacedActor(ACROPOLIS_SANCTUARY_BLOCKER_ACTOR_INDEX);
         sceneSetPlacedActorDrawMode(ACROPOLIS_SANCTUARY_BLOCKER_ACTOR_INDEX, ACROPOLIS_SANCTUARY_BLOCKER_ACTOR_DRAW);
-        if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_BRIDGE_PROGRESS) != 0 && placedActor != NULL) {
+        if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_BRIDGE_PROGRESS) != 0 && placedActor != NULL) {
             TASK_MESSAGE_DISPATCH_POINTER(placedActor, ACTOR_MESSAGE_PLAY_ANIMATION, &_gAcropolisSanctuaryRupertRestoredClip3Request, 0);
             TASK_MESSAGE_DISPATCH_POINTER(placedActor, ACTOR_MESSAGE_PLACE, &_gAcropolisSanctuaryRupertRestoredPlacement, 0);
         }

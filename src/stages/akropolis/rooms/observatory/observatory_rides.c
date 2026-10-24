@@ -1,11 +1,10 @@
-#include "acropolis_observatory_private.h"
+#include "observatory_private.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
 #include "types.h"
 
-#include "gameplay/animation.h"
 #include "gameplay/captions.h"
 #include "gameplay/message.h"
 #include "gameplay/pad_input.h"
@@ -29,66 +28,51 @@
 
 #include "rooms/room.h"
 
-static void _acropolisObservatoryForkedRoadArrivalMoviePathTask(Task* task);
-static void _acropolisObservatoryPromenadeArrivalMoviePathTask(Task* task);
-static void _acropolisObservatorySkipFadeOutTask(Task* task);
-static void _acropolisObservatorySkipFadeInTask(Task* task);
+static void _akropolisObservatoryForkedRoadArrivalMoviePathTask(Task* task);
+static void _akropolisObservatoryPromenadeArrivalMoviePathTask(Task* task);
+static void _akropolisObservatorySkipFadeOutTask(Task* task);
+static void _akropolisObservatorySkipFadeInTask(Task* task);
 
-TaskDesc gAcropolisObservatoryArrivalTaskDescs[4] = {
-    { { { TASK_BODY_NONE, 192 } }, _acropolisObservatoryForkedRoadArrivalMoviePathTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _acropolisObservatoryPromenadeArrivalMoviePathTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _acropolisObservatorySkipFadeOutTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _acropolisObservatorySkipFadeInTask, { .value = 0 } },
+TaskDesc gAkropolisObservatoryArrivalTaskDescs[4] = {
+    { { { TASK_BODY_NONE, 192 } }, _akropolisObservatoryForkedRoadArrivalMoviePathTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _akropolisObservatoryPromenadeArrivalMoviePathTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _akropolisObservatorySkipFadeOutTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _akropolisObservatorySkipFadeInTask, { .value = 0 } },
 };
 
 /// Player-root XYZ samples for the movie arrival from the forked road.
-///
-/// Signed halfword room-coordinate units, indexed by encoded movie frame + 168.
-/// The 300 samples have no terminator; every read requires movieFrame <= 131.
-/// The controller samples before testing its handoff at index 230, so that test
-/// does not clamp a late first frame. Keep the room loaded through sampling.
-static SVECTOR _gAcropolisObservatoryForkedRoadArrivalPlayerPath[300] = {
-#include "assets/acropolis_observatory_path_0124C.inc"
+static SVECTOR _gAkropolisObservatoryForkedRoadArrivalPlayerPath[300] = {
+#include "assets/rooms/akropolis/observatory/forked_road_arrival_player_path.inc"
 };
 
 /// Player-root XYZ samples for the movie arrival from the promenade.
-///
-/// Signed halfword room-coordinate units, indexed by encoded movie frame + 168;
-/// the controller adds 200 to Z. The 300 samples have no terminator and every
-/// read requires movieFrame <= 131. Sampling precedes the index-230 handoff
-/// test, which does not clamp a late first frame. Keep the room loaded through sampling.
-static SVECTOR _gAcropolisObservatoryPromenadeArrivalPlayerPath[300] = {
-#include "assets/acropolis_observatory_path_01BAC.inc"
+static SVECTOR _gAkropolisObservatoryPromenadeArrivalPlayerPath[300] = {
+#include "assets/rooms/akropolis/observatory/promenade_arrival_player_path.inc"
 };
 
 #include "assets/rooms/akropolis/observatory/clips.inc"
 
-#include "assets/rooms/akropolis/observatory/acropolis_observatory_player_bank.inc"
+#include "assets/rooms/akropolis/observatory/akropolis_observatory_player_bank.inc"
 
 /// Phases and sampling units shared by the two observatory arrival controllers.
 enum {
-    ACROPOLIS_OBSERVATORY_MOVIE_INITIALIZE                 = 0,
-    ACROPOLIS_OBSERVATORY_MOVIE_WAIT_READY                 = 1,
-    ACROPOLIS_OBSERVATORY_MOVIE_FOLLOW_PATH                = 2,
-    ACROPOLIS_OBSERVATORY_MOVIE_WAIT_PLAYER                = 3,
-    ACROPOLIS_OBSERVATORY_MOVIE_RESTORE                    = 4,
-    ACROPOLIS_OBSERVATORY_MOVIE_FRAME_ORIGIN               = 168,
-    ACROPOLIS_OBSERVATORY_MOVIE_WALK_HANDOFF_INDEX         = 230,
-    ACROPOLIS_OBSERVATORY_MOVIE_PROMENADE_Z_OFFSET         = 200,
-    ACROPOLIS_OBSERVATORY_MOVIE_PRIMARY_CHARACTER          = 1,
-    ACROPOLIS_OBSERVATORY_MOVIE_ALTERNATE_WEAPON_BANK_BASE = 34,
-    ACROPOLIS_OBSERVATORY_MOVIE_SKIP_FADE_OUT_TASK         = 2,
-    ACROPOLIS_OBSERVATORY_MOVIE_SKIP_FADE_IN_TASK          = 3,
-    ACROPOLIS_OBSERVATORY_MOVIE_EXIT_YAW                   = 1024
+    AKROPOLIS_OBSERVATORY_MOVIE_INITIALIZE                 = 0,
+    AKROPOLIS_OBSERVATORY_MOVIE_WAIT_READY                 = 1,
+    AKROPOLIS_OBSERVATORY_MOVIE_FOLLOW_PATH                = 2,
+    AKROPOLIS_OBSERVATORY_MOVIE_WAIT_PLAYER                = 3,
+    AKROPOLIS_OBSERVATORY_MOVIE_RESTORE                    = 4,
+    AKROPOLIS_OBSERVATORY_MOVIE_FRAME_ORIGIN               = 168,
+    AKROPOLIS_OBSERVATORY_MOVIE_WALK_HANDOFF_INDEX         = 230,
+    AKROPOLIS_OBSERVATORY_MOVIE_PROMENADE_Z_OFFSET         = 200,
+    AKROPOLIS_OBSERVATORY_MOVIE_PRIMARY_CHARACTER          = 1,
+    AKROPOLIS_OBSERVATORY_MOVIE_ALTERNATE_WEAPON_BANK_BASE = 34,
+    AKROPOLIS_OBSERVATORY_MOVIE_SKIP_FADE_OUT_TASK         = 2,
+    AKROPOLIS_OBSERVATORY_MOVIE_SKIP_FADE_IN_TASK          = 3,
+    AKROPOLIS_OBSERVATORY_MOVIE_EXIT_YAW                   = 1024
 };
 
 /// Copies one movie-path XYZ sample into the borrowed player root, in room units.
-///
-/// Requires a valid index in the supplied path. Work, path and sample index are
-/// evaluated once per axis and must be stable and free of side effects. The Z
-/// offset is evaluated once. Rotation and coordinate cache stamps are untouched.
-/// Expands to a braced statement block; use inside a braced scope.
-#define ACROPOLIS_OBSERVATORY_APPLY_MOVIE_PATH_POSITION(movieWork, path, sampleIndex, zOffset) \
+#define AKROPOLIS_OBSERVATORY_APPLY_MOVIE_PATH_POSITION(movieWork, path, sampleIndex, zOffset) \
     {                                                                                          \
         (movieWork)->playerMtx->t[0] = (path)[(sampleIndex)].vx;                               \
         (movieWork)->playerMtx->t[1] = (path)[(sampleIndex)].vy;                               \
@@ -96,16 +80,7 @@ enum {
     }
 
 /// Completes the forked-road movie arrival by moving the player along its sampled path.
-///
-/// Starts bodyless in state 0, owns zeroed `RoomMoviePathWork` and borrows the
-/// live player/root matrix. Allocation failure kills the controller. Waits for
-/// movie readiness, starts a child vibration script, and indexes the 300-point
-/// path by `movieFrame + 168`; the caller must keep that index in 0..299.
-/// A Start skip fades out before placing the exit pose; normal playback hands
-/// off to a scripted walk at index 230. After player motion ends, selects mapped view 2
-/// and restores HUD, input and actor updates before task teardown.
-/// Child script/fade allocation is assumed to succeed; spawn results are retained.
-static void _acropolisObservatoryForkedRoadArrivalMoviePathTask(Task* task)
+static void _akropolisObservatoryForkedRoadArrivalMoviePathTask(Task* task)
 {
     AnimationPlayRequest animationRequest;
     ActorTransform       exitPlacement;
@@ -117,7 +92,7 @@ static void _acropolisObservatoryForkedRoadArrivalMoviePathTask(Task* task)
     cdQueue = &gCdCmdQueue;
     work    = task->work;
     switch (task->state) {
-        case ACROPOLIS_OBSERVATORY_MOVIE_INITIALIZE:
+        case AKROPOLIS_OBSERVATORY_MOVIE_INITIALIZE:
             task->work = memCalloc(sizeof(RoomMoviePathWork), 0);
             if (task->work == NULL) {
                 taskKill(task);
@@ -127,7 +102,7 @@ static void _acropolisObservatoryForkedRoadArrivalMoviePathTask(Task* task)
             ((RoomMoviePathWork*)task->work)->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             ((RoomMoviePathWork*)task->work)->playerMtx  = gPlayerStatus.coordMtx;
             weaponId                                     = gPlayerStatus.weapon;
-            animationRequest.source.index                = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACROPOLIS_OBSERVATORY_MOVIE_PRIMARY_CHARACTER) ? weaponId + 1 : weaponId + ACROPOLIS_OBSERVATORY_MOVIE_ALTERNATE_WEAPON_BANK_BASE;
+            animationRequest.source.index                = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == AKROPOLIS_OBSERVATORY_MOVIE_PRIMARY_CHARACTER) ? weaponId + 1 : weaponId + AKROPOLIS_OBSERVATORY_MOVIE_ALTERNATE_WEAPON_BANK_BASE;
             animationRequest.animationId                 = 1;
             animationRequest.blend                       = ANIMATION_BLEND_RESET;
             animationRequest.blendFrames                 = 0;
@@ -138,19 +113,19 @@ static void _acropolisObservatoryForkedRoadArrivalMoviePathTask(Task* task)
             task->state                    = task->state + 1;
             break;
 
-        case ACROPOLIS_OBSERVATORY_MOVIE_WAIT_READY:
+        case AKROPOLIS_OBSERVATORY_MOVIE_WAIT_READY:
             if (cdQueue->movieReady != 0) {
-                work->padScriptTask           = padScriptSpawn(gAcropolisObservatoryForkedRoadArrivalVibrationCommands,
-                                                               gAcropolisObservatoryForkedRoadArrivalVibrationSegments);
+                work->padScriptTask           = padScriptSpawn(gAkropolisObservatoryForkedRoadArrivalVibrationCommands,
+                                                               gAkropolisObservatoryForkedRoadArrivalVibrationSegments);
                 gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
                 taskReparent(task, work->padScriptTask);
                 task->state = task->state + 1;
             }
             break;
 
-        case ACROPOLIS_OBSERVATORY_MOVIE_FOLLOW_PATH:
+        case AKROPOLIS_OBSERVATORY_MOVIE_FOLLOW_PATH:
             // Movie samples change only the player root translation, in room units.
-            ACROPOLIS_OBSERVATORY_APPLY_MOVIE_PATH_POSITION(work, _gAcropolisObservatoryForkedRoadArrivalPlayerPath, cdQueue->movieFrame + ACROPOLIS_OBSERVATORY_MOVIE_FRAME_ORIGIN, 0);
+            AKROPOLIS_OBSERVATORY_APPLY_MOVIE_PATH_POSITION(work, _gAkropolisObservatoryForkedRoadArrivalPlayerPath, cdQueue->movieFrame + AKROPOLIS_OBSERVATORY_MOVIE_FRAME_ORIGIN, 0);
             if (work->skipFadeStarted != 0) {
                 if (taskPollKill(work->skipFadeTask, &fadeResult) != 0) {
                     exitPlacement.pos.vx = -0x968;
@@ -158,18 +133,18 @@ static void _acropolisObservatoryForkedRoadArrivalMoviePathTask(Task* task)
                     exitPlacement.pos.vz = -0x6D4;
                     exitPlacement.rot.vz = 0;
                     exitPlacement.rot.vx = 0;
-                    exitPlacement.rot.vy = ACROPOLIS_OBSERVATORY_MOVIE_EXIT_YAW;
+                    exitPlacement.rot.vy = AKROPOLIS_OBSERVATORY_MOVIE_EXIT_YAW;
                     TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_PLACE, &exitPlacement, 0);
-                    taskSpawnFromTable(gAcropolisObservatoryArrivalTaskDescs, ACROPOLIS_OBSERVATORY_MOVIE_SKIP_FADE_IN_TASK, 0, 0);
+                    taskSpawnFromTable(gAkropolisObservatoryArrivalTaskDescs, AKROPOLIS_OBSERVATORY_MOVIE_SKIP_FADE_IN_TASK, 0, 0);
                     task->state = task->state + 1;
                     break;
                 }
             } else if (padIsStartPressed() != 0) {
-                work->skipFadeTask    = taskSpawnFromTable(gAcropolisObservatoryArrivalTaskDescs, ACROPOLIS_OBSERVATORY_MOVIE_SKIP_FADE_OUT_TASK, 0, 0);
+                work->skipFadeTask    = taskSpawnFromTable(gAkropolisObservatoryArrivalTaskDescs, AKROPOLIS_OBSERVATORY_MOVIE_SKIP_FADE_OUT_TASK, 0, 0);
                 work->skipFadeStarted = 1;
             }
             // The normal handoff reads XYZ only; skip placement also reads angles.
-            if ((cdQueue->movieFrame + ACROPOLIS_OBSERVATORY_MOVIE_FRAME_ORIGIN) >= ACROPOLIS_OBSERVATORY_MOVIE_WALK_HANDOFF_INDEX) {
+            if ((cdQueue->movieFrame + AKROPOLIS_OBSERVATORY_MOVIE_FRAME_ORIGIN) >= AKROPOLIS_OBSERVATORY_MOVIE_WALK_HANDOFF_INDEX) {
                 exitPlacement.pos.vx = -0x968;
                 exitPlacement.pos.vy = -0xBAD;
                 exitPlacement.pos.vz = -0x6D4;
@@ -178,7 +153,7 @@ static void _acropolisObservatoryForkedRoadArrivalMoviePathTask(Task* task)
             }
             break;
 
-        case ACROPOLIS_OBSERVATORY_MOVIE_WAIT_PLAYER:
+        case AKROPOLIS_OBSERVATORY_MOVIE_WAIT_PLAYER:
             if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = viewFindLogicalIndex(2);
@@ -186,7 +161,7 @@ static void _acropolisObservatoryForkedRoadArrivalMoviePathTask(Task* task)
             }
             break;
 
-        case ACROPOLIS_OBSERVATORY_MOVIE_RESTORE:
+        case AKROPOLIS_OBSERVATORY_MOVIE_RESTORE:
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_SHOW_HUD, 0, 0);
             padInputChangeSuppression(PAD_INPUT_SUPPRESSION_CLEAR_ALIAS, PAD_INPUT_SUPPRESS_ACTIONS_AND_MENU);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
@@ -197,16 +172,7 @@ static void _acropolisObservatoryForkedRoadArrivalMoviePathTask(Task* task)
 }
 
 /// Completes the promenade movie arrival by moving the player along its sampled path.
-///
-/// Starts bodyless in state 0, owns zeroed `RoomMoviePathWork` and borrows the
-/// live player/root matrix. Allocation failure kills the controller. Waits for
-/// movie readiness, starts a child vibration script, and indexes the 300-point
-/// path by `movieFrame + 168`; the caller must keep that index in 0..299.
-/// A Start skip fades out before placing the exit pose; normal playback hands
-/// off to a scripted walk at index 230. After player motion ends, selects mapped view 4
-/// and restores HUD, input and actor updates before task teardown.
-/// Child script/fade allocation is assumed to succeed; spawn results are retained.
-static void _acropolisObservatoryPromenadeArrivalMoviePathTask(Task* task)
+static void _akropolisObservatoryPromenadeArrivalMoviePathTask(Task* task)
 {
     AnimationPlayRequest animationRequest;
     ActorTransform       exitPlacement;
@@ -218,7 +184,7 @@ static void _acropolisObservatoryPromenadeArrivalMoviePathTask(Task* task)
     cdQueue = &gCdCmdQueue;
     work    = task->work;
     switch (task->state) {
-        case ACROPOLIS_OBSERVATORY_MOVIE_INITIALIZE:
+        case AKROPOLIS_OBSERVATORY_MOVIE_INITIALIZE:
             task->work = memCalloc(sizeof(RoomMoviePathWork), 0);
             if (task->work == NULL) {
                 taskKill(task);
@@ -228,7 +194,7 @@ static void _acropolisObservatoryPromenadeArrivalMoviePathTask(Task* task)
             ((RoomMoviePathWork*)task->work)->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             ((RoomMoviePathWork*)task->work)->playerMtx  = gPlayerStatus.coordMtx;
             weaponId                                     = gPlayerStatus.weapon;
-            animationRequest.source.index                = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACROPOLIS_OBSERVATORY_MOVIE_PRIMARY_CHARACTER) ? weaponId + 1 : weaponId + ACROPOLIS_OBSERVATORY_MOVIE_ALTERNATE_WEAPON_BANK_BASE;
+            animationRequest.source.index                = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == AKROPOLIS_OBSERVATORY_MOVIE_PRIMARY_CHARACTER) ? weaponId + 1 : weaponId + AKROPOLIS_OBSERVATORY_MOVIE_ALTERNATE_WEAPON_BANK_BASE;
             animationRequest.animationId                 = 1;
             animationRequest.blend                       = ANIMATION_BLEND_RESET;
             animationRequest.blendFrames                 = 0;
@@ -239,19 +205,19 @@ static void _acropolisObservatoryPromenadeArrivalMoviePathTask(Task* task)
             task->state                    = task->state + 1;
             break;
 
-        case ACROPOLIS_OBSERVATORY_MOVIE_WAIT_READY:
+        case AKROPOLIS_OBSERVATORY_MOVIE_WAIT_READY:
             if (cdQueue->movieReady != 0) {
-                work->padScriptTask           = padScriptSpawn(gAcropolisObservatoryPromenadeArrivalVibrationCommands,
-                                                               gAcropolisObservatoryPromenadeArrivalVibrationSegments);
+                work->padScriptTask           = padScriptSpawn(gAkropolisObservatoryPromenadeArrivalVibrationCommands,
+                                                               gAkropolisObservatoryPromenadeArrivalVibrationSegments);
                 gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
                 taskReparent(task, work->padScriptTask);
                 task->state = task->state + 1;
             }
             break;
 
-        case ACROPOLIS_OBSERVATORY_MOVIE_FOLLOW_PATH:
+        case AKROPOLIS_OBSERVATORY_MOVIE_FOLLOW_PATH:
             // Movie samples change only the player root translation, in room units.
-            ACROPOLIS_OBSERVATORY_APPLY_MOVIE_PATH_POSITION(work, _gAcropolisObservatoryPromenadeArrivalPlayerPath, cdQueue->movieFrame + ACROPOLIS_OBSERVATORY_MOVIE_FRAME_ORIGIN, ACROPOLIS_OBSERVATORY_MOVIE_PROMENADE_Z_OFFSET);
+            AKROPOLIS_OBSERVATORY_APPLY_MOVIE_PATH_POSITION(work, _gAkropolisObservatoryPromenadeArrivalPlayerPath, cdQueue->movieFrame + AKROPOLIS_OBSERVATORY_MOVIE_FRAME_ORIGIN, AKROPOLIS_OBSERVATORY_MOVIE_PROMENADE_Z_OFFSET);
             if (work->skipFadeStarted != 0) {
                 if (taskPollKill(work->skipFadeTask, &fadeResult) != 0) {
                     exitPlacement.pos.vx = -0x8F8;
@@ -259,18 +225,18 @@ static void _acropolisObservatoryPromenadeArrivalMoviePathTask(Task* task)
                     exitPlacement.pos.vz = -0x2936;
                     exitPlacement.rot.vz = 0;
                     exitPlacement.rot.vx = 0;
-                    exitPlacement.rot.vy = ACROPOLIS_OBSERVATORY_MOVIE_EXIT_YAW;
+                    exitPlacement.rot.vy = AKROPOLIS_OBSERVATORY_MOVIE_EXIT_YAW;
                     TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_PLACE, &exitPlacement, 0);
-                    taskSpawnFromTable(gAcropolisObservatoryArrivalTaskDescs, ACROPOLIS_OBSERVATORY_MOVIE_SKIP_FADE_IN_TASK, 0, 0);
+                    taskSpawnFromTable(gAkropolisObservatoryArrivalTaskDescs, AKROPOLIS_OBSERVATORY_MOVIE_SKIP_FADE_IN_TASK, 0, 0);
                     task->state = task->state + 1;
                     break;
                 }
             } else if (padIsStartPressed() != 0) {
-                work->skipFadeTask    = taskSpawnFromTable(gAcropolisObservatoryArrivalTaskDescs, ACROPOLIS_OBSERVATORY_MOVIE_SKIP_FADE_OUT_TASK, 0, 0);
+                work->skipFadeTask    = taskSpawnFromTable(gAkropolisObservatoryArrivalTaskDescs, AKROPOLIS_OBSERVATORY_MOVIE_SKIP_FADE_OUT_TASK, 0, 0);
                 work->skipFadeStarted = 1;
             }
             // The normal handoff reads XYZ only; skip placement also reads angles.
-            if ((cdQueue->movieFrame + ACROPOLIS_OBSERVATORY_MOVIE_FRAME_ORIGIN) >= ACROPOLIS_OBSERVATORY_MOVIE_WALK_HANDOFF_INDEX) {
+            if ((cdQueue->movieFrame + AKROPOLIS_OBSERVATORY_MOVIE_FRAME_ORIGIN) >= AKROPOLIS_OBSERVATORY_MOVIE_WALK_HANDOFF_INDEX) {
                 exitPlacement.pos.vx = -0x8F8;
                 exitPlacement.pos.vy = -0xBAD;
                 exitPlacement.pos.vz = -0x2936;
@@ -279,7 +245,7 @@ static void _acropolisObservatoryPromenadeArrivalMoviePathTask(Task* task)
             }
             break;
 
-        case ACROPOLIS_OBSERVATORY_MOVIE_WAIT_PLAYER:
+        case AKROPOLIS_OBSERVATORY_MOVIE_WAIT_PLAYER:
             if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = viewFindLogicalIndex(4);
@@ -287,7 +253,7 @@ static void _acropolisObservatoryPromenadeArrivalMoviePathTask(Task* task)
             }
             break;
 
-        case ACROPOLIS_OBSERVATORY_MOVIE_RESTORE:
+        case AKROPOLIS_OBSERVATORY_MOVIE_RESTORE:
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_SHOW_HUD, 0, 0);
             padInputChangeSuppression(PAD_INPUT_SUPPRESSION_CLEAR_ALIAS, PAD_INPUT_SUPPRESS_ACTIONS_AND_MENU);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
@@ -297,48 +263,38 @@ static void _acropolisObservatoryPromenadeArrivalMoviePathTask(Task* task)
     }
 }
 
-#undef ACROPOLIS_OBSERVATORY_APPLY_MOVIE_PATH_POSITION
+#undef AKROPOLIS_OBSERVATORY_APPLY_MOVIE_PATH_POSITION
 
 /// Darkens either observatory ride before its skip caller replaces the player's pose.
-///
-/// Requires a bodyless task with `killCountdown` initially zero. Draws eight
-/// equal-channel subtractive overlays, intensities 0..224 in steps of 32,
-/// then suspends with result zero at progress 256. The ride must collect the
-/// retained task with `taskPollKill` before starting the reverse fade.
-static void _acropolisObservatorySkipFadeOutTask(Task* task)
+static void _akropolisObservatorySkipFadeOutTask(Task* task)
 {
-    enum { ACROPOLIS_OBSERVATORY_SKIP_FADE_STEP = 32,
-           ACROPOLIS_OBSERVATORY_SKIP_FADE_SPAN = 256 };
+    enum { AKROPOLIS_OBSERVATORY_SKIP_FADE_STEP = 32,
+           AKROPOLIS_OBSERVATORY_SKIP_FADE_SPAN = 256 };
     u8  fadeLevel;
     s16 nextProgress;
 
     fadeLevel = (u8)task->killCountdown;
     fadeDrawOverlay(fadeLevel, fadeLevel, fadeLevel, GPU_BLEND_SUBTRACT);
-    nextProgress        = (u16)task->killCountdown + ACROPOLIS_OBSERVATORY_SKIP_FADE_STEP;
+    nextProgress        = (u16)task->killCountdown + AKROPOLIS_OBSERVATORY_SKIP_FADE_STEP;
     task->killCountdown = nextProgress;
-    if (nextProgress >= ACROPOLIS_OBSERVATORY_SKIP_FADE_SPAN) {
+    if (nextProgress >= AKROPOLIS_OBSERVATORY_SKIP_FADE_SPAN) {
         taskRequestKill(task, 0);
     }
 }
 
 /// Reveals either observatory ride's final pose after the skip transition.
-///
-/// Requires a bodyless task with `killCountdown` initially zero. Draws eight
-/// equal-channel subtractive overlays, intensities 255..31 in steps of 32,
-/// then tears down the task at progress 256. The signed 16-bit counter is
-/// callback-owned progress; no work or spawn arguments are used.
-static void _acropolisObservatorySkipFadeInTask(Task* task)
+static void _akropolisObservatorySkipFadeInTask(Task* task)
 {
-    enum { ACROPOLIS_OBSERVATORY_SKIP_FADE_STEP = 32,
-           ACROPOLIS_OBSERVATORY_SKIP_FADE_SPAN = 256 };
+    enum { AKROPOLIS_OBSERVATORY_SKIP_FADE_STEP = 32,
+           AKROPOLIS_OBSERVATORY_SKIP_FADE_SPAN = 256 };
     u8  fadeLevel;
     s16 nextProgress;
 
     fadeLevel = ~(u8)task->killCountdown;
     fadeDrawOverlay(fadeLevel, fadeLevel, fadeLevel, GPU_BLEND_SUBTRACT);
-    nextProgress        = (u16)task->killCountdown + ACROPOLIS_OBSERVATORY_SKIP_FADE_STEP;
+    nextProgress        = (u16)task->killCountdown + AKROPOLIS_OBSERVATORY_SKIP_FADE_STEP;
     task->killCountdown = nextProgress;
-    if (nextProgress >= ACROPOLIS_OBSERVATORY_SKIP_FADE_SPAN) {
+    if (nextProgress >= AKROPOLIS_OBSERVATORY_SKIP_FADE_SPAN) {
         taskKill(task);
     }
 }

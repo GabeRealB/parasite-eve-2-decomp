@@ -1256,16 +1256,17 @@ objects = [
   { kind = "collisionSource", at = "0x5630", in_c = true, cell_face_list_macro = "AKROPOLIS_FORKED_ROAD_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
-[rooms.overlays.acropolis_observatory]
+[rooms.overlays.akropolis_observatory]
 id = 294
+src = "src/stages/akropolis/rooms/observatory"
 objects = [
   { kind = "packageId" },
-  { unit = "acropolis_observatory/acropolis_observatory", rodata = "0x4", text = "0x58", data = "0x11F8", bss = "0x1218" },
-  { unit = "acropolis_observatory/acropolis_observatory_2", rodata = "0x10", text = "0x3E8", data = "0x121C" },
-  { unit = "acropolis_observatory/acropolis_observatory_3", rodata = "0x3C", text = "0xBDC", data = "0x28A8" },
+  { unit = "observatory", rodata = "0x4", text = "0x58", data = "0x11F8", bss = "0x1218" },
+  { unit = "observatory_rides", rodata = "0x10", text = "0x3E8", data = "0x121C" },
+  { unit = "observatory_effects", rodata = "0x3C", text = "0xBDC", data = "0x28A8" },
   { kind = "animation", at = "0x250C", sets = ["0x2878"], in_c = true },
   { kind = "collision", at = "0x2A2C", in_c = true },
-  { kind = "collisionSource", at = "0x3490", in_c = true, cell_face_list_macro = "ACROPOLIS_OBSERVATORY_CELL_FACE_LIST_AT_OFFSET" },
+  { kind = "collisionSource", at = "0x3490", in_c = true, cell_face_list_macro = "AKROPOLIS_OBSERVATORY_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.acropolis_promenade]

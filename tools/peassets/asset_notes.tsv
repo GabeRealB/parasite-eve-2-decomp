@@ -37,10 +37,10 @@ akropolis_hallway_model_023C0	No reached use found: a one-part 21-vertex model i
 acropolis_helicopter_landing_pad_collision_07A34	Collision grid of the Akropolis helicopter landing pad (6x6 cells); the golem enemies/golem/no_9/package_akropolis patches three faces into it while present.	
 rooms/akropolis/helicopter_landing_pad/acropolis_helicopter_landing_pad_model_0547C	Model of the helicopter landing pad's lift, spawned as a room object at its upper stop and raised or lowered by the ending and departure scenes.	
 acropolis_helicopter_landing_pad_model_0A8E8	No reached use found: a pickup model in the landing pad package whose map_akropolis spawn descriptor (kind 0xA4) is selected by no place record.	
-acropolis_observatory_animation_0250C	Aya's scripted reaction clip in the Akropolis observatory, installed and played once on the player when she crosses the trigger that starts the bat battle.	
-acropolis_observatory_collision_02A2C	Collision grid of the Akropolis observatory, published identically for both room indices.	
-acropolis_observatory_path_0124C	Per-movie-frame player path (300 samples) for arriving at the observatory from the forked road, copied into the player's root while the movie plays.	
-acropolis_observatory_path_01BAC	Per-movie-frame player path (300 samples) for arriving at the observatory from the promenade, same mechanism with a Z offset.	
+akropolis_observatory_animation_0250C	Aya's scripted reaction clip in the Akropolis observatory, installed and played once on the player when she crosses the trigger that starts the bat battle.	
+akropolis_observatory_collision_02A2C	Collision grid of the Akropolis observatory, published identically for both room indices.	
+rooms/akropolis/observatory/forked_road_arrival_player_path	Per-movie-frame player path (300 samples) for arriving at the observatory from the forked road, copied into the player's root while the movie plays.	
+rooms/akropolis/observatory/promenade_arrival_player_path	Per-movie-frame player path (300 samples) for arriving at the observatory from the promenade, same mechanism with a Z offset.	
 akropolis_patio_animation_0172C	Six player clips of the Akropolis patio's follow-up scene, copied into the weapon bank as clips 47-52 and played by its event script; the second (clip 48) has no use found.	
 akropolis_patio_animation_039F4	No reached use found: four player clips the patio's second-visit script copies into the weapon bank as clips 48-51 but never plays.	
 akropolis_patio_collision_05A0C	Collision grid of the Akropolis patio (7x4 cells, 70 faces), shared by all three room indices.	
@@ -613,7 +613,7 @@ bs_1602	Background of neo_ark_island view 3, reached by boundary triggers from v
 bs_1603	Background of neo_ark_island view 4, the arrival view from the submarine gallery, also reached by the 3->4 boundary trigger.	
 bs_1604	Background of neo_ark_island view 5, a close-up selected only by the first text record of CAP command 1, shown with the gallery departure prompt.	
 bs_1605..bs_1611	View backgrounds 1-7 of neo_ark_garden: walked views from three arrival endpoints and boundary triggers, view 3 also closing the arrival scene; view 1 is the plan view.	
-rooms/akropolis/observatory/view1_background..rooms/akropolis/observatory/view8_background	View backgrounds 1-8 of acropolis_observatory; room index 2 swaps files 2 and 8, walked views are 2-4 and the movie arrivals open views 6 and 7.	
+rooms/akropolis/observatory/view1_background..rooms/akropolis/observatory/view8_background	View backgrounds 1-8 of akropolis_observatory; room index 2 swaps files 2 and 8, walked views are 2-4 and the movie arrivals open views 6 and 7.	
 bs_1612	No reached use found: background of neo_ark_power_plant_2 view 1, the straight-down plan view, with no selector in the shipped game.	
 bs_1612..bs_1620	View backgrounds 1-9 of neo_ark_power_plant_2: views 2-6 are walked, views 9 and 8 are shown only by CAP command 1's scene steps in the generator-clear scene.	
 bs_1618	No reached use found: background of neo_ark_power_plant_2 view 7, a real camera that nothing selects.	
@@ -1095,7 +1095,7 @@ mappic_s1_00_model_00174	Face stream of the flat outline of akropolis_east_eleva
 mappic_s1_00_model_00294	Face stream of the flat outline of akropolis_patio on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
 mappic_s1_00_model_00564	Face stream of the flat outline of akropolis_fountain on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
 mappic_s1_00_model_00650	Face stream of the flat outline of akropolis_forked_road on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
-mappic_s1_00_model_00718	Face stream of the flat outline of acropolis_observatory on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
+mappic_s1_00_model_00718	Face stream of the flat outline of akropolis_observatory on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
 mappic_s1_00_model_007E8	Face stream of the flat outline of acropolis_promenade on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
 mappic_s1_00_model_00B48	Face stream of the flat outline of acropolis_west_elevator_hall on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
 mappic_s1_02	The single area-outline model record of the stage 1 page 2 map picture package, drawn by gameplay's map menu over that page's picture.	
@@ -1485,7 +1485,7 @@ rooms/akropolis/forked_road/view7_palette	Palette rows of mapped view 7 of akrop
 rooms/akropolis/forked_road/view7_palette	Palette rows of mapped view 8 of akropolis_forked_road (logical view 8, and logical view 7 in room indices 2 and 3); its sprites read rows 255 and 256 (rooms/akropolis/forked_road/view7_image).	
 rooms/akropolis/forked_road/view3_palette	No reached use found: palette rows that would serve mapped view 12 of akropolis_forked_road (the view 3 sprites), but nothing selects view 12.	
 rooms/akropolis/forked_road/dialogue_0	Dialogue (CAP) file of akropolis_forked_road: refused-exit texts toward the fountain and the observatory, plus commands 3 and 4 whose room command has no sender found.	
-rooms/akropolis/observatory/bundle	Resource bundle of acropolis_observatory: view palettes in slots 1, 2, 3, 5, 6 and 7 and the room's dialogue file in slot 8, loaded for the whole stay.	
+rooms/akropolis/observatory/bundle	Resource bundle of akropolis_observatory: view palettes in slots 1, 2, 3, 5, 6 and 7 and the room's dialogue file in slot 8, loaded for the whole stay.	
 shelter_b3_incinerator_control_room_bundle	Resource bundle of shelter_b3_incinerator_control_room: view palettes in slots 2, 3 and 4 and two dialogue files in slots 8 and 9, loaded for the whole stay.	
 shelter_b3_incinerator_control_room_view3	Palette rows of view 3 of shelter_b3_incinerator_control_room, uploaded on each change to that view; row 255 is read by all 13 of its sprites (pe2img_1198).	
 shelter_b3_incinerator_control_room_view4	Palette rows of view 4 of shelter_b3_incinerator_control_room, uploaded on each change to that view; row 255 is read by all 18 of its sprites (pe2img_1199).	
@@ -3734,14 +3734,14 @@ rooms/akropolis/forked_road/view3_image	8-bit sheet of the 6 room sprites of akr
 rooms/akropolis/forked_road/view5_image	8-bit sheet of the 6 room sprites of akropolis_forked_road's mapped view 5.	
 weapons/mongoose/preview_image	Item preview picture of weapon 0x88, the Mongoose, drawn in gameplay's item menu panels when that weapon is selected.	
 rooms/akropolis/forked_road/view7_image	8-bit sheet of the 26 room sprites shared by akropolis_forked_road's mapped views 7 and 8, which use one table and one camera.	
-rooms/akropolis/observatory/dialogue_0_atlas	4-bit caption glyph atlas of acropolis_observatory's dialogue, drawn by gameplay's caption code whenever the room shows text.	
-rooms/akropolis/observatory/image	4-bit sheet holding the lamp glow cell drawn as additive billboards at the observatory's lights by acropolis_observatory's ambient room effect.	
-rooms/akropolis/observatory/view2_image	8-bit sheet (two pages) of the 49 occluder sprites of acropolis_observatory's mapped view 2.	
-rooms/akropolis/observatory/view3_image	8-bit sheet (two pages) of the 61 occluder sprites of acropolis_observatory's mapped view 3.	
-rooms/akropolis/observatory/view4_image	8-bit sheet (two pages) of the 67 occluder sprites of acropolis_observatory's mapped view 4, the only view using four palette rows.	
-rooms/akropolis/observatory/view6_image	8-bit sheet (three pages) of the occluder sprites of acropolis_observatory's mapped view 6, the arrival view from the forked road.	
-rooms/akropolis/observatory/view7_image	8-bit sheet (three pages) of the occluder sprites of acropolis_observatory's mapped view 7, the arrival view from the promenade.	
-rooms/akropolis/observatory/view8_image	8-bit sheet (two pages) of the 81 occluder sprites of acropolis_observatory's mapped view 8, which is logical view 2 in room index 2.	
+rooms/akropolis/observatory/dialogue_0_atlas	4-bit caption glyph atlas of akropolis_observatory's dialogue, drawn by gameplay's caption code whenever the room shows text.	
+rooms/akropolis/observatory/image	4-bit sheet holding the lamp glow cell drawn as additive billboards at the observatory's lights by akropolis_observatory's ambient room effect.	
+rooms/akropolis/observatory/view2_image	8-bit sheet (two pages) of the 49 occluder sprites of akropolis_observatory's mapped view 2.	
+rooms/akropolis/observatory/view3_image	8-bit sheet (two pages) of the 61 occluder sprites of akropolis_observatory's mapped view 3.	
+rooms/akropolis/observatory/view4_image	8-bit sheet (two pages) of the 67 occluder sprites of akropolis_observatory's mapped view 4, the only view using four palette rows.	
+rooms/akropolis/observatory/view6_image	8-bit sheet (three pages) of the occluder sprites of akropolis_observatory's mapped view 6, the arrival view from the forked road.	
+rooms/akropolis/observatory/view7_image	8-bit sheet (three pages) of the occluder sprites of akropolis_observatory's mapped view 7, the arrival view from the promenade.	
+rooms/akropolis/observatory/view8_image	8-bit sheet (two pages) of the 81 occluder sprites of akropolis_observatory's mapped view 8, which is logical view 2 in room index 2.	
 rooms/akropolis/promenade/dialogue_0_atlas	4-bit caption glyph atlas of acropolis_promenade's dialogue, drawn by gameplay's caption code whenever the room shows text.	
 weapons/grenade_pistol/preview_image	Item preview picture of weapon 0x8A, the Grenade Pistol, drawn in gameplay's item menu panels when that weapon is selected.	
 rooms/akropolis/promenade/image	4-bit acropolis_promenade light sheet: star-glow cores, a rotating flare and ground glow cell, and three lamp cells, drawn additively by the room's star and lamp glow tasks.	
@@ -4640,7 +4640,7 @@ rooms/akropolis/fountain/sounds_1	Acropolis fountain room sound bank: the founta
 rooms/akropolis/forked_road/sounds_0	Footstep bank of akropolis_forked_road: walk and run step sounds on surface class 4, the room's only walkable class.	
 rooms/akropolis/forked_road/sounds_1	Acropolis forked road room sound bank: fountain-exit door sounds, the leap-in sound of the scripted Caterpillars (enemies/caterpillar/package_1/102600) and the dormant Grinning Stranger's two random sounds.	
 weapons/mp5a5/sounds	MP5A5 weapon sound bank (weapon 30): primary shot, secondary flash fire, empty-chamber click, reload start and reload load cues.	
-rooms/akropolis/observatory/sounds_0	Footstep bank of acropolis_observatory: walk, scripted-jump and run step sounds on surface class 1.	
+rooms/akropolis/observatory/sounds_0	Footstep bank of akropolis_observatory: walk, scripted-jump and run step sounds on surface class 1.	
 rooms/akropolis/promenade/sounds_0	Footstep bank of acropolis_promenade: walk, stair-climb and run step sounds on surface classes 1, 2 and 4.	The third footstep base is selected for scripted stair climbing (actor mode 2, state 3).
 rooms/akropolis/promenade/sounds_1	Acropolis promenade room sound bank: door sounds of the sanctuary and bridge warps, two caption-cue one-shots and two sounds of the post-battle scene.	
 rooms/akropolis/sanctuary/sounds_0	Footstep bank of acropolis_sanctuary: walk, scripted-jump and run step sounds on surface classes 1 and 2.	

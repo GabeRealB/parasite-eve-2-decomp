@@ -79,12 +79,12 @@ sha1 = "124a633a4fd8c3acec02cb25f7328ae847b10a8d"
 [package]
 type = "room"
 embedded = [
-    "acropolis_observatory_path_0124C",
-    "acropolis_observatory_path_01BAC",
+    "rooms/akropolis/observatory/forked_road_arrival_player_path",
+    "rooms/akropolis/observatory/promenade_arrival_player_path",
     { asset = "rooms/dryfield/trailer_coach/player_event_58", offset = 0x0250C, size = 0x394, address = 0x8017FACC },
-    { name = "acropolis_observatory_player_bank", offset = 0x028A0, size = 0x8, address = 0x8017FE60 },
+    { name = "akropolis_observatory_player_bank", offset = 0x028A0, size = 0x8, address = 0x8017FE60 },
 ]
-package_name = "acropolis_observatory"
+package_name = "akropolis_observatory"
 required = true
 sha1 = "68dd1721f0677347cfcdbd4ef610e125572ef4fd"
 
@@ -690,12 +690,12 @@ sha1 = "34b54e8b9c1649f66fa40f768071ab402acaa8d0"
 type = "bs"
 sha1 = "5c9b59970b06470d2fcc0d990b3442718b01d3f6"
 
-[acropolis_observatory_player_bank]
+[akropolis_observatory_player_bank]
 type = "animation_bank"
 clips = { slot_1 = "rooms/dryfield/trailer_coach/player_event_58" }
-schema = "rooms/akropolis/observatory/acropolis_observatory_player_schema"
-symbol = "gAcropolisObservatoryPlayerAnimationSets"
+schema = "rooms/akropolis/observatory/akropolis_observatory_player_schema"
+symbol = "gAkropolisObservatoryPlayerAnimationSets"
 
-[acropolis_observatory_player_schema]
+[akropolis_observatory_player_schema]
 type = "animation_schema"
 slots = ["", "slot_1"]

@@ -41,13 +41,14 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/event_flags.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
-#include "main/random.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
+#include "main/random.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
@@ -422,7 +423,7 @@ static s32 _acropolisFireEscapeResolveRoomTransition(Task* unusedTask, s32 messa
         sndEvtRequestScriptStop(SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE, ACROPOLIS_FIRE_ESCAPE_DEPARTURE_FADE_TICKS);
     }
     if (request->areaId == GAME_AREA_AKROPOLIS_BRIDGE && request->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_BRIDGE_PROGRESS) == ACROPOLIS_FIRE_ESCAPE_BRIDGE_PROGRESS_CHANGED) {
+        if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_BRIDGE_PROGRESS) == ACROPOLIS_FIRE_ESCAPE_BRIDGE_PROGRESS_CHANGED) {
             reply->roomState = ACROPOLIS_FIRE_ESCAPE_BRIDGE_ROOM_CHANGED;
         } else {
             reply->roomState = ACROPOLIS_FIRE_ESCAPE_BRIDGE_ROOM_INITIAL;

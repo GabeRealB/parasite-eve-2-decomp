@@ -1,0 +1,107 @@
+// Overlay-local symbols for akropolis_observatory.
+_gAkropolisObservatoryArrivalSceneStarted = 0x8017E7D8; // size:0x4 defined:True
+_gAkropolisObservatoryForkedRoadArrivalPlayerPath = 0x8017E80C; // size:0x960 defined:True
+_gAkropolisObservatoryPromenadeArrivalPlayerPath = 0x8017F16C; // size:0x960 defined:True
+_gAkropolisObservatoryLensFlareAnchors = 0x8017FE78; // size:0x40 defined:True
+_gAkropolisObservatoryRoomMessages = 0x8017E7B8; // size:0x20 defined:True
+_gAkropolisObservatoryLensFlareViewMasks = 0x8017FEB8; // size:0x10 defined:True
+gAkropolisObservatoryRoomCollisionResources = 0x8017FEC8; // size:0x20 defined:True
+_gAkropolisObservatoryRoom2ViewMap = 0x8017FEE8; // size:0x8 defined:True
+gAkropolisObservatoryViewMaps = 0x8017FEF0; // size:0x8 defined:True
+gAkropolisObservatoryViewCounts = 0x8017FEF8; // size:0x4 defined:True
+gAkropolisObservatoryRoomLightingTable = 0x8017FEFC; // size:0x10 defined:True
+gAkropolisObservatoryWarpEntries = 0x8017FF0C; // size:0xE0 defined:True
+_gAkropolisObservatoryCollisionGridNormals = 0x8017FFEC; // size:0xB0 defined:True
+_gAkropolisObservatoryCollisionGridVerts = 0x8018009C; // size:0x4D8 defined:True
+_gAkropolisObservatoryCollisionGridFaces = 0x80180574; // size:0x2E8 defined:True
+_gAkropolisObservatoryCollisionGridCells = 0x8018085C; // size:0x3E defined:True
+_gAkropolisObservatoryCollisionGridTable = 0x80180A2C; // size:0x24 defined:True
+_gAkropolisObservatoryCollisionGrid = 0x80180A50; // size:0x24 defined:True
+_gAkropolisObservatoryViewBoundaryTriggers = 0x80180A74; // size:0x2F8 defined:True
+_gAkropolisObservatoryActionTriggers = 0x80180D6C; // size:0x2AC defined:True
+_gAkropolisObservatoryVariant1Resources = 0x80181018; // size:0x18 defined:True
+_gAkropolisObservatoryVariant2Resources = 0x80181030; // size:0x18 defined:True
+_gAkropolisObservatoryVariant3Resources = 0x80181048; // size:0x18 defined:True
+_gAkropolisObservatoryVariant7Resources = 0x80181060; // size:0x18 defined:True
+_gAkropolisObservatoryVariant10Resources = 0x80181078; // size:0x18 defined:True
+_gAkropolisObservatoryVariant11Resources = 0x80181090; // size:0x18 defined:True
+_gAkropolisObservatoryVariant11Placements = 0x801810A8; // size:0x20 defined:True
+_gAkropolisObservatoryVariants12And13Resources = 0x801810C8; // size:0x18 defined:True
+_gAkropolisObservatoryVariant12Placements = 0x801810E0; // size:0x20 defined:True
+_gAkropolisObservatoryVariant13Placements = 0x80181100; // size:0x70 defined:True
+_gAkropolisObservatoryVariant14Resources = 0x80181170; // size:0x18 defined:True
+_gAkropolisObservatoryVariant14Placements = 0x80181188; // size:0x30 defined:True
+_gAkropolisObservatoryVariant15Resources = 0x801811B8; // size:0xC defined:True
+_gAkropolisObservatoryVariant15Placements = 0x801811C4; // size:0x30 defined:True
+_gAkropolisObservatoryVariant16Resources = 0x801811F4; // size:0x18 defined:True
+_gAkropolisObservatoryVariant16Placements = 0x8018120C; // size:0x20 defined:True
+_gAkropolisObservatoryVariant17Resources = 0x8018122C; // size:0x18 defined:True
+_gAkropolisObservatoryVariant17Placements = 0x80181244; // size:0x20 defined:True
+gAkropolisObservatoryAreaVariants = 0x80181264; // size:0x98 defined:True
+_gAkropolisObservatoryPointLights = 0x801812FC; // size:0x480 defined:True
+_gAkropolisObservatoryRoomLights = 0x8018177C; // size:0x18 defined:True
+_gAkropolisObservatoryView1SpriteBatches = 0x80181794; // size:0x10 defined:True
+_gAkropolisObservatoryView2SpriteSources = 0x801817A4; // size:0x3D4 defined:True
+_gAkropolisObservatoryView2SpriteBatches = 0x80181B78; // size:0x38 defined:True
+_gAkropolisObservatoryView3SpriteSources = 0x80181BB0; // size:0x4C4 defined:True
+_gAkropolisObservatoryView3SpriteBatches = 0x80182074; // size:0xB0 defined:True
+gActor101200BoneSucklerTaskDesc = 0x80138E98; // absolute:True owner=actor_101200
+gActor103700BatTaskDesc = 0x80139DAC; // absolute:True owner=actor_103700
+gActor04000BloodSucklerTaskDesc = 0x8013E500; // absolute:True owner=actor_104000
+gActor101100Tasks = 0x80147400; // absolute:True owner=actor_101100
+gActor01100Tasks = 0x80147400; // absolute:True owner=actor_104900
+gActor101900GrinningStrangerTaskDesc = 0x80149120; // absolute:True owner=actor_101900
+gActor401000StrangerTaskDesc = 0x80155004; // absolute:True owner=actor_401000
+gActor401800OddStrangerTaskDesc = 0x80155AC4; // absolute:True owner=actor_401800
+gActor401300HornedStrangerTaskDesc = 0x80158A18; // absolute:True owner=actor_401300
+gActor301900GrinningStrangerTaskDesc = 0x80179120; // absolute:True owner=actor_301900
+gMapAkropolisObservatoryVariant1Placements = 0x8017B6DC; // absolute:True owner=map_akropolis
+gMapAkropolisObservatoryVariant2Placements = 0x8017B70C; // absolute:True owner=map_akropolis
+gMapAkropolisObservatoryVariant3Placements = 0x8017B73C; // absolute:True owner=map_akropolis
+gMapAkropolisObservatoryVariant7Placements = 0x8017B7DC; // absolute:True owner=map_akropolis
+gMapAkropolisObservatoryVariant10Placements = 0x8017B80C; // absolute:True owner=map_akropolis
+_gAkropolisObservatorySceneFollowUpClips = 0x8017FE68; // size:0x4 defined:True
+gAkropolisObservatoryScriptedBattleTaskDesc = 0x8017FE6C; // size:0xC defined:True
+gAkropolisObservatoryArrivalTaskDescs = 0x8017E7DC; // size:0x30 defined:True
+_gAkropolisObservatoryAnimation02878Bank1 = 0x8017FACC; // size:0x54 defined:True
+_gAkropolisObservatoryAnimation02878Bank4 = 0x8017FB20; // size:0x104 defined:True
+_gAkropolisObservatoryAnimation02878Records = 0x8017FC24; // size:0x1EC defined:True
+_gAkropolisObservatoryAnimation02878Indices = 0x8017FE10; // size:0x28 defined:True
+gDryfieldTrailerCoachPlayerEvent58Clip = 0x8017FE38; // size:0x28 defined:True
+gAkropolisObservatoryPlayerAnimationSets = 0x8017FE60; // size:0x8 defined:True
+gAkropolisObservatoryUnusedHalfwords = 0x80182124; // size:0x8 defined:True
+_gAkropolisObservatoryView4SpriteSources = 0x8018212C; // size:0x53C defined:True
+_gAkropolisObservatoryView4SpriteBatches = 0x80182668; // size:0x60 defined:True
+_gAkropolisObservatoryView5SpriteBatches = 0x801826C8; // size:0x10 defined:True
+_gAkropolisObservatoryView6SpriteSources = 0x801826D8; // size:0x244 defined:True
+_gAkropolisObservatoryView6SpriteBatches = 0x8018291C; // size:0x30 defined:True
+_gAkropolisObservatoryView7SpriteSources = 0x8018294C; // size:0x2D0 defined:True
+_gAkropolisObservatoryView7SpriteBatches = 0x80182C1C; // size:0x40 defined:True
+_gAkropolisObservatoryView8SpriteSources = 0x80182C5C; // size:0x654 defined:True
+_gAkropolisObservatoryView8SpriteBatches = 0x801832B0; // size:0x50 defined:True
+gAkropolisObservatorySpriteViews = 0x80183300; // size:0x60 defined:True
+gAkropolisObservatoryViewCameras = 0x80183360; // size:0x120 defined:True
+gAkropolisObservatoryForkedRoadArrivalVibrationCommands = 0x80183480; // size:0x18 defined:True
+gAkropolisObservatoryForkedRoadArrivalVibrationSegments = 0x80183498; // size:0x8 defined:True
+gAkropolisObservatoryPromenadeArrivalVibrationCommands = 0x801834A0; // size:0x18 defined:True
+gAkropolisObservatoryPromenadeArrivalVibrationSegments = 0x801834B8; // size:0x8 defined:True
+_gAkropolisObservatoryFootstepSounds = 0x801834C0; // size:0xC defined:True
+_gAkropolisObservatorySilentSurfaceProperties = 0x801834CC; // size:0x8 defined:True
+_gAkropolisObservatoryFootstepSurfaceProperties = 0x801834D4; // size:0x8 defined:True
+gAkropolisObservatorySurfacePropertiesByClass = 0x801834DC; // size:0x20 defined:True
+
+akropolisObservatoryLensFlareEmitterTask = 0x8017E6F8; // type:func
+
+akropolisObservatoryAmbientGlowTask = 0x8017E424; // type:func
+_akropolisObservatorySkipFadeOutTask = 0x8017e0d4; // type:func
+_akropolisObservatorySkipFadeInTask = 0x8017e134; // type:func
+_akropolisObservatoryResolveRoomTransition = 0x8017d618; // type:func
+_akropolisObservatoryRejectKeyItemUse = 0x8017d7bc; // type:func
+_akropolisObservatoryScriptedBattleTask = 0x8017e19c; // type:func
+_akropolisObservatoryInitializeRoomTask = 0x8017d834; // type:func
+akropolisObservatoryRoomTask = 0x8017d950; // type:func
+_akropolisObservatoryHandleRoomAction = 0x8017d7c4; // type:func
+_akropolisObservatoryStartArrivalScene = 0x8017d8ac; // type:func
+_akropolisObservatoryForkedRoadArrivalMoviePathTask = 0x8017d9a8; // type:func
+_akropolisObservatoryPromenadeArrivalMoviePathTask = 0x8017dd3c; // type:func
+_gAkropolisObservatoryRoomTaskStates = 0x8017d5c4;

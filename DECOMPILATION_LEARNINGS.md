@@ -31952,7 +31952,7 @@ projection->worldPoint.vz = viewZ;
 }
 ```
 
-`acropolisObservatoryAmbientGlowTask` is the example: with the alias at the
+`akropolisObservatoryAmbientGlowTask` is the example: with the alias at the
 `gte_ldv0` the only diff is that one `move`, scheduled ~15 instructions late.
 
 The scratch store itself then floats: once the alias is in place, the only
@@ -53549,7 +53549,7 @@ register and the `li` hoists into the delay slot of the *earlier* branch:
 
 ```c
 var = 2;                                /* li s0,2 in the wrong delay slot */
-if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_BRIDGE_PROGRESS) == 0) var = 1;
+if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_BRIDGE_PROGRESS) == 0) var = 1;
 reply->room = var;
 ```
 
@@ -53557,7 +53557,7 @@ A ternary on the call keeps the range short but still needs a second pseudo,
 because `$v0` is live at the compare, so the constants land in `$v1`:
 
 ```c
-reply->room = (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_BRIDGE_PROGRESS) == 0) ? 1 : 2;   /* li v1,2 / li v1,1 */
+reply->room = (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_BRIDGE_PROGRESS) == 0) ? 1 : 2;   /* li v1,2 / li v1,1 */
 ```
 
 Fix: store the return value in a local and reassign *that same local* in both
@@ -53565,7 +53565,7 @@ arms. One pseudo covers the return and the constants, so it gets `$v0`, and the
 `li v0,2` fills the `bnez v0` delay slot as in the target:
 
 ```c
-destinationRoom = gameFlagGetNibble(GAME_FLAG_AKROPOLIS_BRIDGE_PROGRESS);
+destinationRoom = gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_BRIDGE_PROGRESS);
 if (destinationRoom == 0) { destinationRoom = 1; } else { destinationRoom = 2; }
 reply->room = destinationRoom;
 ```
@@ -53842,11 +53842,11 @@ and the compare is then sign-extended from it, which changes nothing. The
 `u16` temp is what forces the `andi` — an `s32 uv = (u16)*p` folds the mask
 into the `lhu` and loses the instruction. CSE keeps only one `mem:HI` load
 insn, so the extend `lh` and the `lhu` end up on the same pointer, exactly as
-the target has them. `_acropolisObservatoryScriptedBattleTask` is the example.
+the target has them. `_akropolisObservatoryScriptedBattleTask` is the example.
 
 ## Cross-jumping only merges tails that already agree on registers, so a scalar-global store shows up as a `branch`/`insert`/`delete` miss
 
-`_acropolisObservatoryPromenadeArrivalMoviePathTask` is a five-case `switch` in which four
+`_akropolisObservatoryPromenadeArrivalMoviePathTask` is a five-case `switch` in which four
 arms end with the same `task->state = task->state + 1;`. The target emits that
 tail once, at the end of the last arm that uses it, with the other three
 arms doing `j` to it. A first attempt sat at 96.3% with
@@ -55176,7 +55176,7 @@ than for the body:
 grep -rn "movieFrame\|movieReady" src/     # -> acropolis_observatory_2.c
 ```
 
-`_acropolisObservatoryForkedRoadArrivalMoviePathTask` turned out to be the same task with a
+`_akropolisObservatoryForkedRoadArrivalMoviePathTask` turned out to be the same task with a
 different path table and one fewer state, already matched and already carrying
 the `RoomMoviePathWork` struct, the `AnimationPlayRequest` 0x3E8 record and the `ActorTransform`
 0x3E9 payload. Porting its C shape scored 99.837% on the first attempt, with
@@ -74179,7 +74179,7 @@ spelling and the reverse for the other. Nothing later swaps two pseudos.
 This is what was left when a loop body was otherwise exact: 99.77% (regs=10,
 reorder=2, all from that one insn) with `*flareViewMasks & viewMask`, 100% after swapping the
 two terms. `dryfieldUnderpassDrawFlaresTask` is the worked example; its sibling
-`acropolisObservatoryLensFlareEmitterTask` reads the same shape as `*anchorViewMask & viewMask`
+`akropolisObservatoryLensFlareEmitterTask` reads the same shape as `*anchorViewMask & viewMask`
 and matched that way, so the two are genuinely different sources, not two
 spellings of one.
 

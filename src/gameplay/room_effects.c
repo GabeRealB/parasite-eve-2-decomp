@@ -85,7 +85,7 @@
 
 #include "rooms/acropolis_helicopter_landing_pad.h"
 
-#include "rooms/acropolis_observatory.h"
+#include "rooms/akropolis_observatory.h"
 
 #include "rooms/akropolis_patio.h"
 
@@ -572,8 +572,8 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, hypervelocityChargeEffectTask, { NULL } },                                          // 0x024
     { { { TASK_BODY_COORD, 0x70 } }, acropolisWestElevatorHallLightGlowTask, { NULL } },                                 // 0x025
     { { { TASK_BODY_COORD, 0x70 } }, akropolisFountainViewEffectsTask, { NULL } },                                       // 0x026
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisObservatoryLensFlareEmitterTask, { NULL } },                               // 0x027
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisObservatoryAmbientGlowTask, { NULL } },                                    // 0x028
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisObservatoryLensFlareEmitterTask, { NULL } },                               // 0x027
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisObservatoryAmbientGlowTask, { NULL } },                                    // 0x028
     { { { TASK_BODY_COORD, 0x70 } }, m4a1HammerGlowTask, { NULL } },                                                     // 0x029
     { { { TASK_BODY_COORD, 0x70 } }, m4a1PykeNozzleTask, { NULL } },                                                     // 0x02A
     { { { TASK_BODY_COORD, 0x70 } }, effectControlTask2B, { NULL } },                                                    // 0x02B

@@ -54,16 +54,17 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/event_flags.h"
 #include "main/fs.h"
 #include "main/fs_types.h"
 #include "main/gameflag.h"
-#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/pad_types.h"
+#include "main/random.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
@@ -1368,7 +1369,7 @@ static s32 _acropolisBridgeRejectKeyItemUse(Task* task, s32 messageId, s32 itemI
 static s32 _acropolisBridgeHandleKeypadCommand(Task* task, s32 messageId, s32 commandIndex, s32 unusedArg)
 {
     if (commandIndex == ACROPOLIS_BRIDGE_KEYPAD_COMMAND) {
-        if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_BRIDGE_PROGRESS) == ACROPOLIS_BRIDGE_PROGRESS_KEYPAD_MOVIE_COMPLETE) {
+        if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_BRIDGE_PROGRESS) == ACROPOLIS_BRIDGE_PROGRESS_KEYPAD_MOVIE_COMPLETE) {
             capStartSequenceSlot(ACROPOLIS_BRIDGE_KEYPAD_COMMAND, ACROPOLIS_BRIDGE_KEYPAD_CAPTION_PLAYBACK_MODE,
                                  ACROPOLIS_BRIDGE_KEYPAD_COMPLETE_CAPTION_VARIANT);
             return 0;
@@ -1632,7 +1633,7 @@ static void _acropolisBridgeFinishKeypadMovie(Task* task)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = ACROPOLIS_BRIDGE_ROOM_AFTER_KEYPAD_MOVIE;
         gGameSession->location.roomState                            = ACROPOLIS_BRIDGE_ROOM_AFTER_KEYPAD_MOVIE;
         gGameSession->roomObjsDirty                                 = 1;
-        gameFlagSetNibble(GAME_FLAG_AKROPOLIS_BRIDGE_PROGRESS, ACROPOLIS_BRIDGE_PROGRESS_KEYPAD_MOVIE_COMPLETE);
+        gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_BRIDGE_PROGRESS, ACROPOLIS_BRIDGE_PROGRESS_KEYPAD_MOVIE_COMPLETE);
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
         task->state = task->state + 1;
     }

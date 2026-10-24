@@ -71,6 +71,10 @@ enum {
     /// promenade has been entered from the observatory, 5 the sanctuary has been
     /// reached. The security room's SWAT member (actor_311900) is gone from 3.
     EVENT_FLAG_AKROPOLIS_SANCTUARY_ROUTE_PROGRESS = 0x001,
+    /// Akropolis bridge. State: 2 the sanctuary has been entered, 3 the bridge has
+    /// been raised (the keypad movie). The promenade's bridge door is refused at 0;
+    /// the promenade and the fire escape lead to the bridge's second state at 3.
+    EVENT_FLAG_AKROPOLIS_BRIDGE_PROGRESS = 0x002,
     /// Telephone dialogue. Counter of the story call's CAP command (16 +
     /// `EVENT_FLAG_STORY_DIALOGUE_INDEX`), incremented each time the phone is used;
     /// it picks the call's variant, so a repeat plays a shorter one. Cleared whenever the story index changes - a
@@ -130,6 +134,10 @@ enum {
     /// first time the door is tried after the cafeteria boss, before MIST is contacted;
     /// afterwards the door runs CAP 8.
     EVENT_FLAG_AKROPOLIS_PATIO_CAFETERIA_DOOR_SCENE_SEEN = 0x023,
+    /// Akropolis observatory. Marker: the ride down to the forked road has played -
+    /// the first time the observatory is left that way; later departures arrive by
+    /// the stairs. The sanctuary sets it too.
+    EVENT_FLAG_AKROPOLIS_OBSERVATORY_FORKED_ROAD_RIDE_SEEN = 0x025,
     /// Akropolis patio. Marker: the ambush scene has played - on the way back from the
     /// cafeteria; while clear, entering the patio in that variant sends placed actors 2 and 3 their command 0.
     EVENT_FLAG_AKROPOLIS_PATIO_AMBUSH_SCENE_SEEN = 0x026,

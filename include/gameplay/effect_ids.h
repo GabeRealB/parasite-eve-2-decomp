@@ -135,7 +135,7 @@ enum {
     /// Flickering lens-flare POLY_FT4 (tpage 0x2B, CLUT alternating per frame) at the
     /// projected model position; respawned per camera view by the observatory's
     /// ambient-effect task.
-    EFFECT_ACROPOLIS_OBSERVATORY_LENS_FLARE = EFFECT_ID(EFFECT_TASK_BANK, 0x028),
+    EFFECT_AKROPOLIS_OBSERVATORY_LENS_FLARE = EFFECT_ID(EFFECT_TASK_BANK, 0x028),
     /// Muzzle flash controller for P229/M93R/M950/MP5A5 and NPC guns (spawnArg 0x21):
     /// parks on the weapon muzzle offset, lights a white transient point light, spawns
     /// flare sprite 0x60034 and shell-casing model 0x60036/0x60066.
