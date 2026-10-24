@@ -531,10 +531,8 @@ static const TaskMessageEntry _gActor223600Messages[4] __attribute__((section(".
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-enum { ACTOR_223600_BLOOD_SUCKLER_TASK_PRIORITY = 96 };
-
 TaskDesc gActor223600BloodSucklerTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_223600_BLOOD_SUCKLER_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_ACTOR } },
     .callback = _actor223600Task,
     .data     = { .model = &_gSucklerBloodBody },
 };

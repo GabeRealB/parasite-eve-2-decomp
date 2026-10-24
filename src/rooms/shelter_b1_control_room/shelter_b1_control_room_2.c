@@ -49,11 +49,9 @@
 
 static void _shelterB1ControlRoomStartMovieTask(Task* task);
 
-enum { SHELTER_B1_CONTROL_ROOM_MOVIE_TASK_PRIORITY = 192 };
-
 TaskDesc gShelterB1ControlRoomMovieTaskDescs[2] = {
-    { .header = { .fields = { TASK_BODY_NONE, SHELTER_B1_CONTROL_ROOM_MOVIE_TASK_PRIORITY } }, .callback = _shelterB1ControlRoomStartMovieTask, .data = { .value = 0 } },
-    { .header = { .fields = { TASK_BODY_NONE, SHELTER_B1_CONTROL_ROOM_MOVIE_TASK_PRIORITY } }, .callback = streamedScenePlayThenHold, .data = { .value = 0 } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, .callback = _shelterB1ControlRoomStartMovieTask, .data = { .value = 0 } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, .callback = streamedScenePlayThenHold, .data = { .value = 0 } },
 };
 
 /// The control room's capsule endpoint pairs and disc centres in signed world units.

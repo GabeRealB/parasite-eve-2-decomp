@@ -227,18 +227,17 @@ static TextStream _gMistR18BriefingCaptionStream = {
 };
 
 /// Execution priority shared by the briefing's directly spawned child tasks.
-enum { MIST_R18_BRIEFING_TASK_PRIORITY = 192 };
 
 /// Spawn recipes for the briefing's held models, prop and presentation tasks.
 static TaskDesc _gMistR18TaskDescs[8] = {
-    { { { TASK_BODY_TMD, MIST_R18_BRIEFING_TASK_PRIORITY } }, _mistR18AttachedModelTask, { .model = &_gMistR18BriefingFile } },
-    { { { TASK_BODY_TMD, MIST_R18_BRIEFING_TASK_PRIORITY } }, _mistR18AttachedModelTask, { .model = &_gMistR18Laptop } },
-    { { { TASK_BODY_COORD, MIST_R18_BRIEFING_TASK_PRIORITY } }, _mistR18TextureFadeTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, MIST_R18_BRIEFING_TASK_PRIORITY } }, _mistR18CrossfadeTask, { .value = 0 } },
-    { { { TASK_BODY_TMD, MIST_R18_BRIEFING_TASK_PRIORITY } }, _mistR18PlacePropTask, { .model = &_gMistR18Laptop } },
-    { { { TASK_BODY_NONE, MIST_R18_BRIEFING_TASK_PRIORITY } }, _mistR18CaptionTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, MIST_R18_BRIEFING_TASK_PRIORITY } }, _mistR18FadeTileTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, MIST_R18_BRIEFING_TASK_PRIORITY } }, _mistR18ReleaseScriptPauseTask, { .value = 0 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _mistR18AttachedModelTask, { .model = &_gMistR18BriefingFile } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _mistR18AttachedModelTask, { .model = &_gMistR18Laptop } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_CONTROL } }, _mistR18TextureFadeTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _mistR18CrossfadeTask, { .value = 0 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _mistR18PlacePropTask, { .model = &_gMistR18Laptop } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _mistR18CaptionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _mistR18FadeTileTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _mistR18ReleaseScriptPauseTask, { .value = 0 } },
 };
 
 /// Player-bank extension: NULL at slot 47, followed by briefing clips 48..57.

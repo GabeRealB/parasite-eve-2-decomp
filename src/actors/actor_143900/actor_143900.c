@@ -217,7 +217,7 @@ static TaskMessageEntry _gActor143900ScriptedWalkerMessages[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc gActor143900ScriptedWalkerTaskDesc = { { { TASK_BODY_TMD, 192 } }, _actor143900ScriptedWalkerTask, { .model = &_gPresidentBody } };
+TaskDesc gActor143900ScriptedWalkerTaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _actor143900ScriptedWalkerTask, { .model = &_gPresidentBody } };
 
 /// Borrowed animation sets for the first scripted walker.
 ///
@@ -316,9 +316,9 @@ static TaskMessageEntry _gActor143900SecondScriptedWalkerMessages[6] = {
 };
 
 TaskDesc gActor143900SecondScriptedWalkerTaskDescriptors[3] = {
-    { { { TASK_BODY_TMD, 192 } }, _actor143900SecondScriptedWalkerTask, { .model = &_gStaffOfficerBody } },
-    { { { TASK_BODY_TMD, 192 } }, _actor143900ScriptedWalkerAttachmentTask, { .model = &_gActor143900Model173A8 } },
-    { { { TASK_BODY_TMD, 192 } }, _actor143900ScriptedWalkerAttachmentTask, { .model = &_gActor143900Model17688 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _actor143900SecondScriptedWalkerTask, { .model = &_gStaffOfficerBody } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _actor143900ScriptedWalkerAttachmentTask, { .model = &_gActor143900Model173A8 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _actor143900ScriptedWalkerAttachmentTask, { .model = &_gActor143900Model17688 } },
 };
 
 /// Borrowed animation sets for the second scripted walker.

@@ -104,7 +104,6 @@ enum {
 
 /// Clip indices and actor actions used by the parking conversation requests.
 enum {
-    MIST_PARKING_CONVERSATION_TASK_PRIORITY    = 192,
     MIST_PARKING_PLAYER_HEAD_AIM_TASK_PRIORITY = 97,
     MIST_PARKING_PIERCE_COMMAND_AIM_HEAD       = 2,
     MIST_PARKING_PIERCE_COMMAND_RELEASE_HEAD   = 3,
@@ -132,15 +131,15 @@ enum {
 };
 
 TaskDesc gMistParkingConversationTaskDescs[9] = {
-    { { { TASK_BODY_TMD, MIST_PARKING_CONVERSATION_TASK_PRIORITY } }, mistParkingCutsceneModelPitchTask, { .model = &gMistParkingHingedPanelModel } },
-    { { { TASK_BODY_NONE, MIST_PARKING_CONVERSATION_TASK_PRIORITY } }, _mistParkingOptionDialogTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, MIST_PARKING_CONVERSATION_TASK_PRIORITY } }, mistParkingContinueDepartureChoiceTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, MIST_PARKING_CONVERSATION_TASK_PRIORITY } }, _mistParkingDepartForDryfieldTask, { .value = 0 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, mistParkingCutsceneModelPitchTask, { .model = &gMistParkingHingedPanelModel } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _mistParkingOptionDialogTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, mistParkingContinueDepartureChoiceTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _mistParkingDepartForDryfieldTask, { .value = 0 } },
     { { { TASK_BODY_NONE, MIST_PARKING_PLAYER_HEAD_AIM_TASK_PRIORITY } }, mistParkingAimPlayerHeadAtTalkPartnerTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, MIST_PARKING_CONVERSATION_TASK_PRIORITY } }, mistParkingDelayDisplayModeExitTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, MIST_PARKING_CONVERSATION_TASK_PRIORITY } }, _mistParkingContinueShopChoiceTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, MIST_PARKING_CONVERSATION_TASK_PRIORITY } }, _mistParkingJodiePrizeAndShopTalkTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, MIST_PARKING_CONVERSATION_TASK_PRIORITY } }, _mistParkingDepartureMenuTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, mistParkingDelayDisplayModeExitTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _mistParkingContinueShopChoiceTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _mistParkingJodiePrizeAndShopTalkTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _mistParkingDepartureMenuTask, { .value = 0 } },
 };
 
 /// Player-bank extension for the arrival, follow-up, departure and Jodie shop scripts.

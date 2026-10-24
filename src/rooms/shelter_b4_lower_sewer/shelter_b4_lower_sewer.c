@@ -77,7 +77,7 @@ s16 gShelterB4LowerSewerWaterY = -1700;
 /// actor-load buffer; state 1 draws the surfaces. Keep the room and buffer
 /// live through drawing and GPU consumption; this single recipe has no END.
 static TaskDesc _gShelterB4LowerSewerWaterTaskDesc = {
-    { { TASK_BODY_NONE, 96 } }, _shelterB4LowerSewerWaterTask, { .value = 0 }
+    { { TASK_BODY_NONE, TASK_PRIORITY_ACTOR } }, _shelterB4LowerSewerWaterTask, { .value = 0 }
 };
 
 /// World-unit rectangle list for the water with two strips and a waving X seam.

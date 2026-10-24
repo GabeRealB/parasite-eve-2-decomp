@@ -69,14 +69,13 @@ static TaskMessageEntry _gShelterB2BreedingRoomMessages[6] = {
 };
 
 /// Scheduler priority byte of the bodyless scene task.
-enum { SHELTER_B2_BREEDING_ROOM_FIRST_SCENE_COMPLETION_TASK_PRIORITY = 32 };
 
 /// Bodyless watcher restoring CAP and player control after first-entry playback.
 ///
 /// A single priority-32 descriptor, spawned at index 0 with zero payloads
 /// immediately after playback is requested. It waits for idle CAP before
 /// restoring the default resource; keep the room and CAP resources loaded.
-static TaskDesc _gShelterB2BreedingRoomFirstSceneCompletionTaskDesc = { { { TASK_BODY_NONE, SHELTER_B2_BREEDING_ROOM_FIRST_SCENE_COMPLETION_TASK_PRIORITY } }, _shelterB2BreedingRoomFinishFirstSceneTask, { .value = 0 } };
+static TaskDesc _gShelterB2BreedingRoomFirstSceneCompletionTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelterB2BreedingRoomFinishFirstSceneTask, { .value = 0 } };
 
 void shelterB2BreedingRoomAreaObjectTask(Task* task)
 {

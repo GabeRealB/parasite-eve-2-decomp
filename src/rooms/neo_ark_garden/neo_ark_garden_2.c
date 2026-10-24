@@ -54,15 +54,14 @@ static WorldCollisionTrigger _gNeoArkGardenActionTriggers[7];
 static WorldCoordRoomLights  _gNeoArkGardenRoomLights;
 
 /// Execution priority of the garden's framebuffer water tasks.
-enum { NEO_ARK_GARDEN_WATER_TASK_PRIORITY = 192 };
 
-TaskDesc gNeoArkGardenWaterRefractionTaskDesc = { { { TASK_BODY_NONE, NEO_ARK_GARDEN_WATER_TASK_PRIORITY } }, waterRefractionTask, { .value = 0 } };
+TaskDesc gNeoArkGardenWaterRefractionTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, waterRefractionTask, { .value = 0 } };
 
 /// Retained bodyless water-band spawn recipe with no garden caller.
 ///
 /// Priority matches refraction. The callback ignores both spawn payloads and
 /// returns without drawing in the garden; it supports tunnel/gallery views.
-static TaskDesc _gNeoArkGardenWaterDistortionTaskDesc = { { { TASK_BODY_NONE, NEO_ARK_GARDEN_WATER_TASK_PRIORITY } }, waterDistortBandTask, { .value = 0 } };
+static TaskDesc _gNeoArkGardenWaterDistortionTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, waterDistortBandTask, { .value = 0 } };
 
 TaskMessageEntry gNeoArkGardenRoomMessageTable[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, neoArkGardenResolveTransition },

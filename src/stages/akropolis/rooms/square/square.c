@@ -98,8 +98,8 @@ static void _akropolisSquareControlScrollingBackdrop(s32 action);
 
 /// Reflection tasks: the player (0) and their attachment (1).
 static TaskDesc _gAkropolisSquareReflectionTaskDescs[2] = {
-    { { { TASK_BODY_NONE, AKROPOLIS_SQUARE_REFLECTION_TASK_PRIORITY } }, akropolisSquarePlayerReflectionTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, AKROPOLIS_SQUARE_REFLECTION_TASK_PRIORITY } }, _planarReflectionAttachmentTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_EFFECT } }, akropolisSquarePlayerReflectionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_EFFECT } }, _planarReflectionAttachmentTask, { .value = 0 } },
 };
 
 /// The reflection task table, for `planar_reflection.inc.c`.
@@ -112,8 +112,8 @@ static inline TaskDesc* _planarReflectionGetTaskTable(void)
 
 /// The room cutscene task and its sound task.
 static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
-    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -132,9 +132,9 @@ static TaskMessageEntry _gAkropolisSquareRoomMessages[6] = {
 /// Room tasks: the telephone ring (0), the CAP view sequence (1, never spawned)
 /// and the scrolling backdrop (2).
 static TaskDesc _gAkropolisSquareSequenceTaskDescs[3] = {
-    { { { TASK_BODY_NONE, AKROPOLIS_SQUARE_SEQUENCE_TASK_PRIORITY } }, _akropolisSquareTelephoneRingTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, AKROPOLIS_SQUARE_SEQUENCE_TASK_PRIORITY } }, _akropolisSquareCapViewSequenceTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, AKROPOLIS_SQUARE_BACKDROP_TASK_PRIORITY } }, _akropolisSquareScrollingBackdropTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _akropolisSquareTelephoneRingTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _akropolisSquareCapViewSequenceTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _akropolisSquareScrollingBackdropTask, { .value = 0 } },
 };
 
 /// 1 while the phone rings and the call has not been answered.

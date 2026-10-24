@@ -22,8 +22,8 @@
 #include "rooms/mist_shooting_gallery.h"
 
 TaskDesc gActor215100GalleryDecisionTaskDescs[2] = {
-    { { { TASK_BODY_NONE, 32 } }, actor215100GalleryExitDecisionTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, actor215100GalleryAbortDecisionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, actor215100GalleryExitDecisionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, actor215100GalleryAbortDecisionTask, { .value = 0 } },
 };
 
 enum { ACTOR_215100_LEVEL_PROMPT_PLAYER_CLIP = 9 };

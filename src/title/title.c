@@ -158,7 +158,6 @@ enum {
     TITLE_MENU_LOAD_GAME_TASK_SLOT     = 4,
     TITLE_MENU_CONFIGURATION_TASK_SLOT = 5,
     TITLE_MENU_EXIT_TASK_SLOT          = 6,
-    TITLE_STARTUP_TASK_PRIORITY        = 0xC0,
 };
 
 /// Resident bank-0 task slots indexed by TITLE_MENU_ entry, without a terminator.
@@ -176,8 +175,8 @@ static const s32 _gTitleMenuTaskSlots[TITLE_MENU_DEBUG_OPTION + 1] __attribute__
 };
 
 TaskDesc gTitleStartupTaskDescriptors[2] = {
-    { .header = { .fields = { TASK_BODY_NONE, TITLE_STARTUP_TASK_PRIORITY } }, .callback = _titleStartupTask },
-    { .header = { .fields = { TASK_BODY_NONE, TITLE_STARTUP_TASK_PRIORITY } }, .callback = _titleIntroMovieTask },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, .callback = _titleStartupTask },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, .callback = _titleIntroMovieTask },
 };
 
 /// Most recent SDK rand() result sampled before a title-screen state runs.

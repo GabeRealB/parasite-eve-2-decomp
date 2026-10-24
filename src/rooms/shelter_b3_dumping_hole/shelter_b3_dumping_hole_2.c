@@ -829,7 +829,6 @@ static EvsCommand _gShelterB3DumpingHoleDebrisEventSkipScript[14] = {
 
 /// Execution priority and direct sprite-recipe indices for the debris event's effects.
 enum {
-    SHELTER_B3_DUMPING_HOLE_EVENT_EFFECT_PRIORITY    = 192,
     SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITE_TASK_INDEX = 0,
     SHELTER_B3_DUMPING_HOLE_ACTOR_SPRITE_TASK_INDEX  = 1,
 };
@@ -839,11 +838,11 @@ enum {
 /// The director and fade have no body; rubble borrows its selected model
 /// source and allocates its own primitive buffer. No terminator is present.
 static TaskDesc _gShelterB3DumpingHoleDebrisEventTaskDescriptors[5] = {
-    { { { TASK_BODY_NONE, SHELTER_B3_DUMPING_HOLE_EVENT_EFFECT_PRIORITY } }, _shelterB3DumpingHoleDebrisEventTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, SHELTER_B3_DUMPING_HOLE_EVENT_EFFECT_PRIORITY } }, _shelterB3DumpingHoleFadeFromBlackTask, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), SHELTER_B3_DUMPING_HOLE_EVENT_EFFECT_PRIORITY } }, _shelterB3DumpingHoleDebrisModelTask, { .model = &gShelterB3DumpingHoleModel0A0CC } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), SHELTER_B3_DUMPING_HOLE_EVENT_EFFECT_PRIORITY } }, _shelterB3DumpingHoleDebrisModelTask, { .model = &gShelterB3DumpingHoleModel0A348 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), SHELTER_B3_DUMPING_HOLE_EVENT_EFFECT_PRIORITY } }, _shelterB3DumpingHoleDebrisModelTask, { .model = &gShelterB3DumpingHoleModel0A5EC } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _shelterB3DumpingHoleDebrisEventTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _shelterB3DumpingHoleFadeFromBlackTask, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _shelterB3DumpingHoleDebrisModelTask, { .model = &gShelterB3DumpingHoleModel0A0CC } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _shelterB3DumpingHoleDebrisModelTask, { .model = &gShelterB3DumpingHoleModel0A348 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _shelterB3DumpingHoleDebrisModelTask, { .model = &gShelterB3DumpingHoleModel0A5EC } },
 };
 
 /// Coordinate-body sprite recipes: debris (0), actor (1) and player (3).
@@ -851,10 +850,10 @@ static TaskDesc _gShelterB3DumpingHoleDebrisEventTaskDescriptors[5] = {
 /// Slot 2 retains a NULL callback and must not be spawned. Recipes are read
 /// during spawning; their callbacks require this room overlay to stay loaded.
 static TaskDesc _gShelterB3DumpingHoleSpriteTaskDescriptors[4] = {
-    { { { TASK_BODY_COORD, SHELTER_B3_DUMPING_HOLE_EVENT_EFFECT_PRIORITY } }, _shelterB3DumpingHoleDebrisSpriteTask, { .value = 0 } },
-    { { { TASK_BODY_COORD, SHELTER_B3_DUMPING_HOLE_EVENT_EFFECT_PRIORITY } }, _shelterB3DumpingHoleActorSpriteTask, { .value = 0 } },
-    { { { TASK_BODY_COORD, SHELTER_B3_DUMPING_HOLE_EVENT_EFFECT_PRIORITY } }, NULL, { .value = 0 } },
-    { { { TASK_BODY_COORD, SHELTER_B3_DUMPING_HOLE_EVENT_EFFECT_PRIORITY } }, _shelterB3DumpingHolePlayerSpriteTask, { .value = 0 } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_CONTROL } }, _shelterB3DumpingHoleDebrisSpriteTask, { .value = 0 } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_CONTROL } }, _shelterB3DumpingHoleActorSpriteTask, { .value = 0 } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_CONTROL } }, NULL, { .value = 0 } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_CONTROL } }, _shelterB3DumpingHolePlayerSpriteTask, { .value = 0 } },
 };
 
 static TmdBone _gShelterB3DumpingHoleModel0BAC8Skeleton[4] = {
@@ -975,11 +974,9 @@ static EvsCommand _gShelterB3DumpingHoleCollapseEventSkipScript[13] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-enum { SHELTER_B3_DUMPING_HOLE_COLLAPSE_TASK_PRIORITY = 192 };
-
 TaskDesc gShelterB3DumpingHoleCollapseTaskDescriptors[2] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), SHELTER_B3_DUMPING_HOLE_COLLAPSE_TASK_PRIORITY } }, _shelterB3DumpingHoleCollapseEventTask, { .model = &_gShelterB3DumpingHoleModel0BAC8 } },
-    { { { TASK_BODY_COORD, SHELTER_B3_DUMPING_HOLE_COLLAPSE_TASK_PRIORITY } }, _shelterB3DumpingHoleShardTask, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _shelterB3DumpingHoleCollapseEventTask, { .model = &_gShelterB3DumpingHoleModel0BAC8 } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_CONTROL } }, _shelterB3DumpingHoleShardTask, { .value = 0 } },
 };
 
 static AnimationPackedPose _gShelterB3DumpingHoleAnimation0C810Bank1[6] = {
@@ -1052,7 +1049,6 @@ enum {
     SHELTER_B3_DUMPING_HOLE_ARRIVAL_VARIABLE_MOTOR_SEGMENT = 0,
     SHELTER_B3_DUMPING_HOLE_ARRIVAL_BINARY_MOTOR_SEGMENT   = 1,
     SHELTER_B3_DUMPING_HOLE_ARRIVAL_VIBRATION_FRAMES       = 9,
-    SHELTER_B3_DUMPING_HOLE_ARRIVAL_SHAKE_PRIORITY         = 192,
     SHELTER_B3_DUMPING_HOLE_ARRIVAL_CLIP_48                = ANIMATION_BANK_BASE_SET_COUNT + 1,
     SHELTER_B3_DUMPING_HOLE_ARRIVAL_CLIP_49                = ANIMATION_BANK_BASE_SET_COUNT + 2,
     SHELTER_B3_DUMPING_HOLE_ARRIVAL_CLIP_50                = ANIMATION_BANK_BASE_SET_COUNT + 3,
@@ -1082,7 +1078,7 @@ static PadScriptVibrationSegment _gShelterB3DumpingHoleArrivalVibrationSegments[
 /// Bodyless arrival-scene task that shakes the display vertically and clears it on completion.
 ///
 /// No work or spawn payload is required; the callback initializes its own amplitude and timer.
-static TaskDesc _gShelterB3DumpingHoleArrivalShakeTaskDescriptor = { { { TASK_BODY_NONE, SHELTER_B3_DUMPING_HOLE_ARRIVAL_SHAKE_PRIORITY } }, _shelterB3DumpingHoleShakeTask, { .value = 0 } };
+static TaskDesc _gShelterB3DumpingHoleArrivalShakeTaskDescriptor = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _shelterB3DumpingHoleShakeTask, { .value = 0 } };
 
 /// Arrival-scene player clips at bank-extension indices 47..50.
 ///
@@ -1210,10 +1206,8 @@ EvsCommand gShelterB3DumpingHoleArrivalEventSkipScript[14] = {
 
 #include "../../shared/room/cap_captions_settings.inc.c"
 
-enum { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_CAPTION_TASK_PRIORITY = 32 };
-
 TaskDesc gShelterB3DumpingHoleEncounterCaptionTaskDescriptors[1] = {
-    { { { TASK_BODY_NONE, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_CAPTION_TASK_PRIORITY } }, _capCaptionRunSchedule, { .value = 0 } }
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _capCaptionRunSchedule, { .value = 0 } }
 };
 
 #include "../../shared/room/cap_captions_schedule.inc.c"
@@ -1291,12 +1285,11 @@ static OverlayEncounterSlot _gShelterB3DumpingHoleEncounterSlots[16] = {
 };
 
 enum {
-    SHELTER_B3_DUMPING_HOLE_ENCOUNTER_CONTROLLER_PRIORITY = 32,
-    SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_PRIORITY    = 97,
+    SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_PRIORITY = 97,
 };
 
 TaskDesc gShelterB3DumpingHoleEncounterTaskDescriptors[4] = {
-    { { { TASK_BODY_NONE, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_CONTROLLER_PRIORITY } }, _shelterB3DumpingHoleEncounterTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelterB3DumpingHoleEncounterTask, { .value = 0 } },
     { { { TASK_BODY_NONE, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_PRIORITY } }, _shelterB3DumpingHoleEncounterMadChaserTask, { .value = 0 } },
     { { { TASK_BODY_NONE, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_PRIORITY } }, _shelterB3DumpingHoleEncounterSlouchTask, { .value = 0 } },
     { { { TASK_BODY_NONE, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_PRIORITY } }, _shelterB3DumpingHoleEncounterPairTask, { .value = 0 } },

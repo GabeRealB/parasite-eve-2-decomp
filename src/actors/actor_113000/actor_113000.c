@@ -177,10 +177,8 @@ static AnimationSet** _gActor113000AnimationBanks[1] = {
     _gActor113000AnimationSets,
 };
 
-enum { ACTOR_113000_RUPERT_TASK_PRIORITY = 192 };
-
 TaskDesc gActor113000RupertBroderickHurtTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_113000_RUPERT_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_CONTROL } },
     .callback = _actor113000Task,
     .data     = { .model = &_gRupertHurtBody },
 };

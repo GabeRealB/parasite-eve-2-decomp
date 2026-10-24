@@ -246,9 +246,9 @@ static void _actor403600RippleTask(Task* task);
 
 TaskDesc gActor403600ChildTaskTable[ACTOR_403600_CHILD_TASK_COUNT] = {
     { { { TASK_BODY_NONE, 95 } }, _actor403600FxTask, { .value = 0 } },
-    { { { TASK_BODY_COORD, 96 } }, _actor403600ProjectileTask, { .value = 0 } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, _actor403600ProjectileTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 97 } }, actor403600LoosePartsTask, { .value = 0 } },
-    { { { TASK_BODY_COORD, 112 } }, _actor403600RippleTask, { .value = 0 } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, _actor403600RippleTask, { .value = 0 } },
 };
 
 static TmdBone _gActor403600EveBodySkeleton[20] = {

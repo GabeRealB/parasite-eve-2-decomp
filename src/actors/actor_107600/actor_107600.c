@@ -376,28 +376,27 @@ static EnemyParams _gActor107600MountParams = {
 };
 
 /// Execution priority shared by the gallery mount and its carried target.
-enum { ACTOR_107600_TASK_PRIORITY = 96 };
 
 TaskDesc gActor107600TaskDescriptors[ACTOR_107600_TASK_COUNT] = {
-    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600MountTask, { .model = &gMistShootingGalleryModel0A81C } },
-    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel093FC } },
-    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel095EC } },
-    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel097DC } },
-    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel099CC } },
-    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel09BBC } },
-    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel09DAC } },
-    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel09F9C } },
-    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0A18C } },
-    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0A37C } },
-    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0A56C } },
-    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0B0D0 } },
-    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0B2C0 } },
-    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0B4B0 } },
-    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0B6A0 } },
-    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0AB30 } },
-    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0AC94 } },
-    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0ADF8 } },
-    { { { TASK_BODY_TMD, ACTOR_107600_TASK_PRIORITY } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0AF5C } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600MountTask, { .model = &gMistShootingGalleryModel0A81C } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel093FC } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel095EC } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel097DC } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel099CC } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel09BBC } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel09DAC } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel09F9C } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0A18C } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0A37C } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0A56C } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0B0D0 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0B2C0 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0B4B0 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0B6A0 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0AB30 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0AC94 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0ADF8 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0AF5C } },
 };
 
 /// Mount path 0: hold at the spawn position for the spawn argument's hold time.

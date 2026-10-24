@@ -83,7 +83,6 @@ static void _mothSquash(Task* task);
 static void _mothUpdateColor(Task* task);
 
 /// Execution priority of this package's two enemy model tasks.
-enum { ACTOR_00700_TASK_PRIORITY = 96 };
 
 /// Task-state callbacks: 0 spawn, 1 living update, 2 death; copied before dispatch.
 ///
@@ -198,7 +197,7 @@ static s16 _gRatAttackRepeatChance[RAT_PLACEMENT_ROW_COUNT] = {
     16,
 };
 
-TaskDesc gActor00700RatTaskDesc = { { { TASK_BODY_TMD, ACTOR_00700_TASK_PRIORITY } }, _ratTask, { .model = &gRatAndMothRatBody } };
+TaskDesc gActor00700RatTaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _ratTask, { .model = &gRatAndMothRatBody } };
 
 /// Rat clips indexed by `RAT_ANIM_*`: entry 0 empty, entries 1..10 drive slots 1..6.
 ///
@@ -260,7 +259,7 @@ static u16 _gMothPursuitSpeeds[MOTH_PLACEMENT_ROW_COUNT] = {
     36,
 };
 
-TaskDesc gActor00700MothTaskDesc = { { { TASK_BODY_TMD, ACTOR_00700_TASK_PRIORITY } }, _mothTask, { .model = &_gRatAndMothMothBody } };
+TaskDesc gActor00700MothTaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _mothTask, { .model = &_gRatAndMothMothBody } };
 
 /// Moth rest-pose sets: entry 0 empty, entry 1 seeds articulated slots 1..3.
 ///

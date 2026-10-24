@@ -33,7 +33,6 @@ CapActionRequest gCapActionRequest;
 
 /// Descriptor priority and indexed animation defaults for CAP helper tasks.
 enum {
-    CAP_HELPER_TASK_PRIORITY            = 32,
     CAP_ANIMATION_BANK_PLACEHOLDER      = 1,
     CAP_WEAPON_EVENT_ENTRY_ANIMATION_ID = 32,
     CAP_WEAPON_EVENT_EXIT_ANIMATION_ID  = 33,
@@ -73,8 +72,8 @@ static void _objectTaskRoomIdleState(Task* unusedTask);
 /// Both tasks run at priority 32. Normal events take flags/command in the two
 /// spawn arguments; weapon events take command/flags. Never spawn the terminator.
 static TaskDesc _gCapEventTaskDescriptors[3] = {
-    { { { TASK_BODY_NONE, CAP_HELPER_TASK_PRIORITY } }, capEventTask, { NULL } },
-    { { { TASK_BODY_NONE, CAP_HELPER_TASK_PRIORITY } }, _capWeaponEventTask, { NULL } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, capEventTask, { NULL } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _capWeaponEventTask, { NULL } },
     { { { TASK_DESC_END, 0 } }, NULL, { NULL } },
 };
 
@@ -104,8 +103,8 @@ static AnimationPlayRequest _gCapScriptedIdleAnimationRequest = {
 };
 
 TaskDesc gCapPlaybackTaskDescriptors[3] = {
-    { { { TASK_BODY_NONE, CAP_HELPER_TASK_PRIORITY } }, capClearUnstartedSequenceTask, { NULL } },
-    { { { TASK_BODY_NONE, CAP_HELPER_TASK_PRIORITY } }, capDelayedTextureMessageTask, { NULL } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, capClearUnstartedSequenceTask, { NULL } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, capDelayedTextureMessageTask, { NULL } },
     { { { TASK_DESC_END, 0 } }, NULL, { NULL } },
 };
 

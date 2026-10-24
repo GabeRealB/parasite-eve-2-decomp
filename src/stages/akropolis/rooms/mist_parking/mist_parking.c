@@ -88,16 +88,14 @@ static void _mistParkingSpawnCapEventIfIdle(s32 commandIndex);
 
 #include "../../../../shared/room/shop_data.inc.c"
 
-enum { MIST_PARKING_SHOP_SESSION_TASK_PRIORITY = 192 };
-
-TaskDesc gMistParkingShopSessionTaskDesc = { { { TASK_BODY_NONE, MIST_PARKING_SHOP_SESSION_TASK_PRIORITY } }, _shopSessionTask, { .value = 0 } };
+TaskDesc gMistParkingShopSessionTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _shopSessionTask, { .value = 0 } };
 
 #include "../../../../shared/room/telephone_data.inc.c"
 
 /// This carrier's bodyless scene runner and timed sound task, followed by END.
 static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
-    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

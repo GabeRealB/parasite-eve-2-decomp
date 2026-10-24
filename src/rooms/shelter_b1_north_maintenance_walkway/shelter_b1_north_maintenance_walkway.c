@@ -54,7 +54,7 @@ enum { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 /// The gate reads index 0 synchronously with zero metadata and unused payloads.
 /// The deferred task borrows the latched event and destination through CAP,
 /// optional sound/fade and reload; retain them and the loaded room throughout.
-static TaskDesc _gShelterB1NorthMaintenanceWalkwayStagedEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventStagedTask, { .value = 0 } };
+static TaskDesc _gShelterB1NorthMaintenanceWalkwayStagedEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventStagedTask, { .value = 0 } };
 
 /// Room-message routes: stage eligible departures, refuse key items, ignore actions and commands.
 ///
@@ -70,14 +70,13 @@ static TaskMessageEntry _gShelterB1NorthMaintenanceWalkwayRoomMessages[5] = {
 };
 
 /// Scheduler priority byte of the bodyless scene task.
-enum { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_POST_BATTLE_TASK_PRIORITY = 32 };
 
 /// Bodyless post-battle scene watcher spawned on entry to placement variant 2.
 ///
 /// A single priority-32 descriptor, spawned at index 0 with zero payloads.
 /// Watches battle engagement, actor completion and the display handoff before
 /// requesting CAP command 1. Borrows this room's callback and scene resources.
-static TaskDesc _gShelterB1NorthMaintenanceWalkwayPostBattleSceneTaskDesc = { { { TASK_BODY_NONE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_POST_BATTLE_TASK_PRIORITY } }, _shelterB1NorthMaintenanceWalkwayPostBattleSceneTask, { .value = 0 } };
+static TaskDesc _gShelterB1NorthMaintenanceWalkwayPostBattleSceneTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelterB1NorthMaintenanceWalkwayPostBattleSceneTask, { .value = 0 } };
 
 /// World-space lamp endpoint pairs followed by the red disc centre.
 ///

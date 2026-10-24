@@ -121,18 +121,14 @@ static void      _actor311900SwatTask(Task* task);
 /// The rig borrows this word-aligned table and its loaded set until teardown.
 #include "assets/rooms/akropolis/security_room/swat_bank.inc"
 
-enum { ACTOR_311900_SWAT_TASK_PRIORITY = 96 };
-
 TaskDesc gActor311900SwatTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_311900_SWAT_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_ACTOR } },
     .callback = _actor311900SwatTask,
     .data     = { .model = &_gSwatMember2Body },
 };
 
-enum { ACTOR_311900_RUPERT_TASK_PRIORITY = 96 };
-
 TaskDesc gActor311900RupertTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_311900_RUPERT_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_ACTOR } },
     .callback = _actor311900RupertTask,
     .data     = { .model = &_gRupertBody },
 };

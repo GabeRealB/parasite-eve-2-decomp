@@ -234,11 +234,11 @@ static TaskDesc _gStageModeControllerTaskDesc = {
 };
 GameDebugState* gGameDebugState    = &_gGameDebugStateStorage;
 TaskDesc        gTaskBank5Descs[5] = {
-    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
-    { { { TASK_BODY_NONE, 0xC0 } }, taskDebugLaunchCallback },
-    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
-    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
-    { { { TASK_BODY_NONE, 0xC0 } }, func_80701470 },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskDebugLaunchCallback },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, func_80701470 },
 };
 
 /// Mode-controller phases in unchecked Task state order 0..5.
@@ -688,7 +688,6 @@ static void _stageProcessTransitionRequests(Task* task)
 /// The argument is ignored; its zero-valued call setup is present in the binary.
 static void _stageFlipOtAndRedraw(s32 unused)
 {
-    enum { STAGE_REDRAW_TASK_PRIORITY = 0x62 };
     DisplayState* display;
     u_long*       savedOt;
     s32           otBuffer;
@@ -713,7 +712,7 @@ static void _stageFlipOtAndRedraw(s32 unused)
             actorRenderComposeAndDrawActiveModels(&gGpuFrameOrderingTables[display->otBuffer]);
             break;
         case STAGE_TRANSITION_FILTERED:
-            taskExecListForPriority(&gTaskDefaultList, STAGE_REDRAW_TASK_PRIORITY);
+            taskExecListForPriority(&gTaskDefaultList, TASK_PRIORITY_REDRAW);
             spriteLinkViewCachedPackets();
             actorRenderComposeAndDrawFlaggedModels(&gGpuFrameOrderingTables[display->otBuffer]);
             break;

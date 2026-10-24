@@ -61,15 +61,13 @@ static WorldCollisionTrigger  _gDryfieldNightUnderpassActionTriggers[6];
 static WorldCoordRoomLights   _gDryfieldNightUnderpassLampRoomLights;
 static WorldCoordRoomLights   _gDryfieldNightUnderpassDimRoomLights;
 
-enum { UNDERPASS_SWITCH_TASK_PRIORITY = 32 };
-
 /// Bodyless switch-prompt recipe at index zero, followed by the descriptor end marker.
 ///
 /// The command handler supplies a flag nibble index and CAP command in the
 /// two spawn words. Spawning reads the recipe synchronously; the room and CAP
 /// resources must remain loaded until the prompt task completes.
 static TaskDesc _gUnderpassSwitchTaskDescriptors[2] = {
-    { { { TASK_BODY_NONE, UNDERPASS_SWITCH_TASK_PRIORITY } }, _underpassSwitchTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _underpassSwitchTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

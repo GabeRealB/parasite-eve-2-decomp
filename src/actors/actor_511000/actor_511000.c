@@ -277,16 +277,12 @@ static void      _actor511000HelicopterSearchlightTask(Task* task);
 #include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_departure_clips_1.inc"
 
 /// Execution priorities of the package's scene models and GOLEM models.
-enum {
-    ACTOR_511000_SCENE_MODEL_PRIORITY = 192,
-    ACTOR_511000_NO9_GOLEM_PRIORITY   = 96,
-};
 
 TaskDesc gActor511000HelicopterTaskDescriptors[4] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000HelicopterTask, { .model = &_gActor511000HelicopterBase } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000HelicopterRotorTask, { .model = &_gAkropolisHelicopterLandingPadMainRotor } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000HelicopterRotorTask, { .model = &_gAkropolisHelicopterLandingPadTailRotor } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000HelicopterSearchlightTask, { .model = &_gAkropolisHelicopterLandingPadSearchlight } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor511000HelicopterTask, { .model = &_gActor511000HelicopterBase } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor511000HelicopterRotorTask, { .model = &_gAkropolisHelicopterLandingPadMainRotor } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor511000HelicopterRotorTask, { .model = &_gAkropolisHelicopterLandingPadTailRotor } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor511000HelicopterSearchlightTask, { .model = &_gAkropolisHelicopterLandingPadSearchlight } },
 };
 
 static TmdBone _gActor511000HelicopterBaseSkeleton[1] = {
@@ -407,9 +403,9 @@ static AnimationSet** _gActor511000RupertAnimationBanks[1] = {
 };
 
 TaskDesc gActor511000RupertTaskDescriptors[3] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000RupertBodyTask, { .model = &_gRupertBody2 } },
-    { { { TASK_BODY_TMD, ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000RupertRevolverTask, { .model = &_gRupertMongoose } },
-    { { { TASK_BODY_TMD, ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000RupertPropTask, { .model = &_gRupertRadio } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor511000RupertBodyTask, { .model = &_gRupertBody2 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _actor511000RupertRevolverTask, { .model = &_gRupertMongoose } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _actor511000RupertPropTask, { .model = &_gRupertRadio } },
 };
 
 /// Rupert's eye-image message; argument 1 selects 0/2 open, 1 closed, 3 blink.
@@ -707,10 +703,10 @@ static s32 _gActor511000HelicopterChildDescriptorIndices[3] = {
 #include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_departure_clips_3.inc"
 
 TaskDesc gActor511000No9GolemTaskDescriptors[4] = {
-    { { { TASK_BODY_TMD, ACTOR_511000_NO9_GOLEM_PRIORITY } }, _actor511000No9GolemTask, { .model = &gGolemNo9BodyAkropolis } },
-    { { { TASK_BODY_TMD, ACTOR_511000_NO9_GOLEM_PRIORITY } }, _actor511000No9GolemPart8Task, { .model = &gGolemNo9AkropolisSword } },
-    { { { TASK_BODY_TMD, ACTOR_511000_NO9_GOLEM_PRIORITY } }, _actor511000No9GolemPart3Task, { .model = &gGolemNo9AkropolisChestPiece } },
-    { { { TASK_BODY_TMD, ACTOR_511000_NO9_GOLEM_PRIORITY } }, _actor511000No9GolemPart12Task, { .model = &gGolemNo9AkropolisProp } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor511000No9GolemTask, { .model = &gGolemNo9BodyAkropolis } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor511000No9GolemPart8Task, { .model = &gGolemNo9AkropolisSword } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor511000No9GolemPart3Task, { .model = &gGolemNo9AkropolisChestPiece } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor511000No9GolemPart12Task, { .model = &gGolemNo9AkropolisProp } },
 };
 
 /// No. 9 GOLEM playback, matrix-placement and draw messages, with an end marker.

@@ -144,7 +144,6 @@ enum {
     DRYFIELD_WATER_TANK_PLAYER_EVENT_CLIP65             = ANIMATION_BANK_BASE_SET_COUNT + 18,
     DRYFIELD_WATER_TANK_PLAYER_EVENT_BLEND_FRAMES       = 20,
     DRYFIELD_WATER_TANK_PLAYER_EVENT_SHORT_BLEND_FRAMES = 3,
-    DRYFIELD_WATER_TANK_PLAYER_PATH_PRIORITY            = 192,
 };
 
 /// Player-path clips, extended ids 47..65; 47 is NULL.
@@ -604,8 +603,8 @@ static ActorTransform _gDryfieldWaterTankKylePathSceneForwardPlacement = { .pos 
 static ActorTransform _gDryfieldWaterTankKylePathSceneWalkTarget = { .pos = { 2530, -12000, 10000, 0 }, .rot = { 0, 0, 0, 0 } };
 
 TaskDesc gDryfieldWaterTankPlayerPathTaskDescs[2] = {
-    { { { TASK_BODY_NONE, DRYFIELD_WATER_TANK_PLAYER_PATH_PRIORITY } }, dryfieldWaterTankMovePlayerFirstLegTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, DRYFIELD_WATER_TANK_PLAYER_PATH_PRIORITY } }, dryfieldWaterTankMovePlayerSecondLegTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, dryfieldWaterTankMovePlayerFirstLegTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, dryfieldWaterTankMovePlayerSecondLegTask, { .value = 0 } },
 };
 
 /// Selectors and timing of the CAP-cued player/Kyle path scene.
@@ -833,15 +832,13 @@ static TmdSource _gDryfieldWaterTankDryfieldNightWaterTankModel00FF8 = {
     _gDryfieldWaterTankDryfieldNightWaterTankModel00FF8Stream,
 };
 
-enum { DRYFIELD_WATER_TANK_SWAY_TASK_PRIORITY = 192 };
-
 /// Spawn recipe for the room's swaying tank model, followed by TASK_DESC_END.
 ///
 /// Entry 0 uses a TMD body at priority 192 and the shared waterTank sway task.
 /// Room initialization spawns it with zero arguments; the task borrows the
 /// room's one-part model geometry until teardown. Never spawn the final row.
 static TaskDesc _gDryfieldWaterTankSwayTaskDescs[2] = {
-    { { { TASK_BODY_TMD, DRYFIELD_WATER_TANK_SWAY_TASK_PRIORITY } }, waterTankSwayTask, { .model = &_gDryfieldWaterTankDryfieldNightWaterTankModel00FF8 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, waterTankSwayTask, { .model = &_gDryfieldWaterTankDryfieldNightWaterTankModel00FF8 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

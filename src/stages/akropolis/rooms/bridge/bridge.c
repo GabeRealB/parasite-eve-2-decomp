@@ -406,13 +406,12 @@ static TaskMessageEntry _gAkropolisBridgeRoomMessageTable[6] = {
 enum {
     AKROPOLIS_BRIDGE_ROOM_TASK_MODEL           = 0,
     AKROPOLIS_BRIDGE_ROOM_TASK_KEYPAD_SEQUENCE = 1,
-    AKROPOLIS_BRIDGE_CONTROL_TASK_PRIORITY     = 192
 };
 
 /// Bridge-model and keypad-sequence task recipes, followed by the bank end marker.
 static TaskDesc _gAkropolisBridgeRoomTaskDescriptors[3] = {
-    { { { TASK_BODY_TMD, AKROPOLIS_BRIDGE_CONTROL_TASK_PRIORITY } }, _akropolisBridgeModelTask, { .model = &_gAkropolisBridgeWaterSurfaceModel } },
-    { { { TASK_BODY_NONE, AKROPOLIS_BRIDGE_CONTROL_TASK_PRIORITY } }, _akropolisBridgeKeypadSequenceTask, { .value = 0 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _akropolisBridgeModelTask, { .model = &_gAkropolisBridgeWaterSurfaceModel } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _akropolisBridgeKeypadSequenceTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -420,7 +419,7 @@ static TaskDesc _gAkropolisBridgeRoomTaskDescriptors[3] = {
 
 /// Bodyless accepted-code movie recipe at descriptor index zero.
 static TaskDesc _gAkropolisBridgeKeypadMovieTaskDesc = {
-    { { TASK_BODY_NONE, AKROPOLIS_BRIDGE_CONTROL_TASK_PRIORITY } }, _akropolisBridgeKeypadMovieTask, { .value = 0 }
+    { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _akropolisBridgeKeypadMovieTask, { .value = 0 }
 };
 
 /// Raw movie samples supplying the bridge enemies' presentation height.
@@ -430,7 +429,7 @@ static SVECTOR _gAkropolisBridgeMovieEnemyHeightPath[190] = {
 
 /// Bodyless keypad cursor recipe, borrowed until the keypad closes its cursor.
 static TaskDesc _gAkropolisBridgeKeypadCursorTaskDesc = {
-    { { TASK_BODY_NONE, AKROPOLIS_BRIDGE_CONTROL_TASK_PRIORITY } }, _akropolisBridgeKeypadCursorTask, { .value = 0 }
+    { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _akropolisBridgeKeypadCursorTask, { .value = 0 }
 };
 
 /// Cursor hit regions for the bridge keypad's ten digit keys and clear key.
@@ -930,11 +929,10 @@ static TaskFunc _gAkropolisBridgeEnemyStateHandlers[9] = {
 };
 
 /// Scheduler priority of the bridge enemy's TMD task recipe.
-enum { AKROPOLIS_BRIDGE_ENEMY_TASK_PRIORITY = 96 };
 
 /// One bridge-enemy spawn recipe with its retained, uninterpreted storage tail.
 static _AkropolisBridgeEnemyTaskDescStorage _gAkropolisBridgeEnemyTaskDescStorage = {
-    .desc      = { { { TASK_BODY_TMD, AKROPOLIS_BRIDGE_ENEMY_TASK_PRIORITY } }, _akropolisBridgeEnemyTask, { .model = &_gAkropolisBridgeModel13870 } },
+    .desc      = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _akropolisBridgeEnemyTask, { .model = &_gAkropolisBridgeModel13870 } },
     .unknown_C = { 0 },
 };
 

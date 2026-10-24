@@ -57,7 +57,6 @@ enum {
 };
 
 enum {
-    NEO_ARK_SHRINE_PUZZLE_SESSION_PRIORITY = 32,
     NEO_ARK_SHRINE_OBJECT_EVENT_FIRST_KEY  = 2,
     NEO_ARK_SHRINE_NEIGHBOUR_END           = 255,
     NEO_ARK_SHRINE_NEIGHBOUR_LIST_CAPACITY = 5,
@@ -90,7 +89,7 @@ static const TaskMessageEntry _gNeoArkShrineRoomMessages[5] SECTION(".data") = {
 /// owns the puzzle-controller handle until completion. Spawning reads the
 /// recipe synchronously; callback code must remain loaded for the session.
 static TaskDesc _gNeoArkShrinePuzzleSessionTaskDescs[2] = {
-    { .header = { .fields = { .flags = TASK_BODY_NONE, .priority = NEO_ARK_SHRINE_PUZZLE_SESSION_PRIORITY } }, .callback = _neoArkShrinePuzzleSessionTask, .data = { .value = 0 } },
+    { .header = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_SCENE } }, .callback = _neoArkShrinePuzzleSessionTask, .data = { .value = 0 } },
     { .header = { .fields = { .flags = TASK_DESC_END } } },
 };
 
@@ -157,11 +156,9 @@ static TmdSource _gNeoArkShrineModel04C6C = {
     _gNeoArkShrineModel04C6CStream,
 };
 
-enum { NEO_ARK_SHRINE_PUZZLE_CURSOR_TASK_PRIORITY = 192 };
-
 TaskDesc gNeoArkShrinePuzzleCursorTaskDescs[1] = {
     {
-        .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = NEO_ARK_SHRINE_PUZZLE_CURSOR_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },
         .callback = neoArkShrinePuzzleCursorTask,
         .data     = { .value = 0 },
     },
@@ -210,9 +207,9 @@ ActionPromptHotspot gNeoArkShrinePuzzleHotspots[NEO_ARK_SHRINE_PUZZLE_HOTSPOT_CO
 };
 
 TaskDesc gNeoArkShrinePuzzleTaskDescs[3] = {
-    { { { TASK_BODY_NONE, 192 } }, neoArkShrinePuzzleTask, { .value = 0 } },
-    { { { TASK_BODY_TMD, 192 } }, neoArkShrineFirstFallingPropTask, { .model = &_gNeoArkShrineModel049E8 } },
-    { { { TASK_BODY_TMD, 192 } }, neoArkShrineSecondFallingPropTask, { .model = &_gNeoArkShrineModel04C6C } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, neoArkShrinePuzzleTask, { .value = 0 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, neoArkShrineFirstFallingPropTask, { .model = &_gNeoArkShrineModel049E8 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, neoArkShrineSecondFallingPropTask, { .model = &_gNeoArkShrineModel04C6C } },
 };
 
 /// Screen origins of the sixteen puzzle cells, in row-major cell order.

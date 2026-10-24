@@ -162,21 +162,20 @@ static u8 _gStageMusicColumnCounts[] = {
 /// Stages 1..5 supply 9, 8, 12, 9 and 20. These are event bases, not row widths;
 /// the selector applies stage-specific overrides before clamping the column.
 static u8 _gStageMusicSceneEventBases[] = { 9, 8, 12, 9, 20 };
-enum { STAGE_MUSIC_TASK_PRIORITY = 192 };
 
 TaskDesc gStageMusicTaskDesc = {
-    .header   = { .fields = { TASK_BODY_NONE, STAGE_MUSIC_TASK_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } },
     .callback = _stageMusicTask,
 };
 TaskDesc gTaskBank3Descs[8] = {
-    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
-    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
-    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
-    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
-    { { { TASK_BODY_NONE, 0xC0 } }, func_80704BC8 },
-    { { { TASK_BODY_NONE, 0xC0 } }, func_80703FE8 },
-    { { { TASK_BODY_NONE, 0xC0 } }, func_80704A78 },
-    { { { TASK_BODY_TMD, 0xC0 } }, func_80704AD0, { &D_80725F44 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, func_80704BC8 },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, func_80703FE8 },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, func_80704A78 },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, func_80704AD0, { &D_80725F44 } },
 };
 
 /// Stage-music task states: select, await stop/load, start when CD idle, finish when idle.

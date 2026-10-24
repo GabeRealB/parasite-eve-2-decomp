@@ -1227,9 +1227,7 @@ static SVECTOR _gActor401300Part8Rotations[2] = {
     { 30, 130, -190, 0 },
 };
 
-enum { ACTOR_401300_TASK_PRIORITY = 96 };
-
-TaskDesc gActor401300HornedStrangerTaskDesc = { { { TASK_BODY_TMD, ACTOR_401300_TASK_PRIORITY } }, _actor401300Task, { .model = &_gStrangerHornedBody } };
+TaskDesc gActor401300HornedStrangerTaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor401300Task, { .model = &_gStrangerHornedBody } };
 
 SVECTOR ActorContact_ScratchPosition = { 0 };
 

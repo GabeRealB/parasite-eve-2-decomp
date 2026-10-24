@@ -109,8 +109,6 @@ enum {
 
 // Scheduling priorities and placement indices of this room's scene tasks.
 enum {
-    SHELTER_B6_TRAINING_ROOM_HEAD_AIM_TASK_PRIORITY   = 96,
-    SHELTER_B6_TRAINING_ROOM_MOVIE_TASK_PRIORITY      = 192,
     SHELTER_B6_TRAINING_ROOM_DEFEAT_EVE_ACTOR         = 0,
     SHELTER_B6_TRAINING_ROOM_DEFEAT_KYLE_ACTOR        = 1,
     SHELTER_B6_TRAINING_ROOM_DEFEAT_BATTLE_BODY_ACTOR = 4,
@@ -242,7 +240,7 @@ static AnimationSet _gShelterB6TrainingRoomAnimation063C0 = {
     { NULL, _gShelterB6TrainingRoomAnimation063C0Bank1, NULL, NULL, _gShelterB6TrainingRoomAnimation063C0Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc gShelterB6TrainingRoomPlayerHeadAimTaskDesc = { { { TASK_BODY_NONE, SHELTER_B6_TRAINING_ROOM_HEAD_AIM_TASK_PRIORITY } }, shelterB6TrainingRoomPlayerHeadAimTask, { .value = 0 } };
+TaskDesc gShelterB6TrainingRoomPlayerHeadAimTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_ACTOR } }, shelterB6TrainingRoomPlayerHeadAimTask, { .value = 0 } };
 
 /// Five words copied to the equipped player's bank at set indices 47..51.
 ///
@@ -439,8 +437,8 @@ EvsCommand gShelterB6TrainingRoomDepartureScript[7] = {
 };
 
 TaskDesc gShelterB6TrainingRoomMovieTasks[2] = {
-    { { { TASK_BODY_NONE, SHELTER_B6_TRAINING_ROOM_MOVIE_TASK_PRIORITY } }, shelterB6TrainingRoomStartMovieTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, SHELTER_B6_TRAINING_ROOM_MOVIE_TASK_PRIORITY } }, streamedScenePlayThenHold, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, shelterB6TrainingRoomStartMovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, streamedScenePlayThenHold, { .value = 0 } },
 };
 
 /// Fixed room-space effect positions, in signed whole-coordinate units.

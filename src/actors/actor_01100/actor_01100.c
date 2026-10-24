@@ -495,9 +495,9 @@ static EnemyParams _gActor01100BruteMossbackParams = {
 #include "assets/encounters/brute_and_mossback/package_1_clips.inc"
 
 TaskDesc gActor01100Tasks[3] = {
-    { { { TASK_BODY_TMD, 96 } }, _actor01100Task, { .model = &_gBruteAndMossbackBody } },
-    { { { TASK_BODY_COORD, 96 } }, _actor01100SpitGlobTask, { .value = 0 } },
-    { { { TASK_BODY_COORD, 96 } }, _actor01100SpitCloudTask, { .value = 0 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor01100Task, { .model = &_gBruteAndMossbackBody } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, _actor01100SpitGlobTask, { .value = 0 } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, _actor01100SpitCloudTask, { .value = 0 } },
 };
 
 /// Mossback clip bank shared by the body rig and directional flinch rig.

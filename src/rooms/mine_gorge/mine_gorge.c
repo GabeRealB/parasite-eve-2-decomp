@@ -99,7 +99,7 @@ static TaskMessageEntry _gMineGorgeRoomMessageTable[6] = {
 /// The default-list spawner reads entry zero synchronously. The task uses no
 /// descriptor metadata or spawn payload and releases itself on its second tick.
 static TaskDesc _gMineGorgeOakBoardCutsceneTaskDescriptors[2] = {
-    { .header = { .fields = { TASK_BODY_NONE, 32 } }, .callback = _mineGorgeOakBoardCutsceneTask, .data = { .value = 0 } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = _mineGorgeOakBoardCutsceneTask, .data = { .value = 0 } },
     { .header = { .fields = { TASK_DESC_END, 0 } }, .callback = NULL, .data = { .model = NULL } },
 };
 

@@ -41,8 +41,6 @@ enum { SHELTER_1F_GUARDROOM_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 /// Room-local selectors and rendering constants used by the resource tables.
 enum {
-    SHELTER_1F_GUARDROOM_UNLOCK_PRIORITY        = 32,
-    SHELTER_1F_GUARDROOM_MOVIE_PRIORITY         = 192,
     SHELTER_1F_GUARDROOM_ARRIVAL_VIEW           = 2,
     SHELTER_1F_GUARDROOM_BULWARK_VIEW           = 3,
     SHELTER_1F_GUARDROOM_ARRIVAL_YAW            = 2048, // Half a turn, in 4096-unit yaw angles
@@ -96,13 +94,13 @@ static TaskMessageEntry _gShelter1fGuardroomRoomMessageTable[] = {
 ///
 /// Spawned at index 0 with zero payloads after player control is held. Priority
 /// 32 runs before the priority-192 movie; body metadata is unused.
-static TaskDesc _gShelter1fGuardroomUnlockBulwarkTaskDescriptor = { { { TASK_BODY_NONE, SHELTER_1F_GUARDROOM_UNLOCK_PRIORITY } }, _shelter1fGuardroomUnlockBulwarkTask, { .value = 0 } };
+static TaskDesc _gShelter1fGuardroomUnlockBulwarkTaskDescriptor = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelter1fGuardroomUnlockBulwarkTask, { .value = 0 } };
 
 /// Bodyless task recipe for the confirmed bulwark-unlock movie.
 ///
 /// Spawned at index 0 with zero payloads. The unlock task retains the result
 /// until it polls the movie's requested teardown; body metadata is unused.
-static TaskDesc _gShelter1fGuardroomUnlockMovieTaskDescriptor = { { { TASK_BODY_NONE, SHELTER_1F_GUARDROOM_MOVIE_PRIORITY } }, _shelter1fGuardroomUnlockMovieTask, { .value = 0 } };
+static TaskDesc _gShelter1fGuardroomUnlockMovieTaskDescriptor = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _shelter1fGuardroomUnlockMovieTask, { .value = 0 } };
 
 WorldCollisionRoomResources gShelter1fGuardroomRoomCollisionResources[1] = {
     { &_gShelter1fGuardroomCollisionGrid, _gShelter1fGuardroomViewBoundaryTriggers, _gShelter1fGuardroomActionTriggers, NULL },

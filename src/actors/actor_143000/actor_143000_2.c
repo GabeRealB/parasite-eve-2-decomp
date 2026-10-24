@@ -81,12 +81,12 @@ enum {
 };
 
 TaskDesc gActor143000TerminalTasks[2] = {
-    { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, _actor143000TerminalSessionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _actor143000TerminalSessionTask, { .value = 0 } },
 };
 
 /// Bodyless priority-32 task descriptor for asynchronous background-band capture.
-static TaskDesc _gActor143000CaptureStripTaskDesc = { { { TASK_BODY_NONE, 32 } }, actor143000CaptureStripTask, { .value = 0 } };
+static TaskDesc _gActor143000CaptureStripTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, actor143000CaptureStripTask, { .value = 0 } };
 
 /// Player clips for the laboratory terminal and completion scenes, extended ids 47..51.
 ///

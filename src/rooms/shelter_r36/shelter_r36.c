@@ -473,8 +473,8 @@ static ActorTransform _gShelterR36ArrivalPlayerTransform = {
 /// Indices 0 and 1 use priority 32 and receive zero spawn words. The controller
 /// borrows this two-entry table; its callbacks require the room's loaded resources.
 static TaskDesc _gShelterR36ArrivalTasks[2] = {
-    { { { TASK_BODY_NONE, 32 } }, _shelterR36ArrivalSceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, _shelterR36MovieEndingTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelterR36ArrivalSceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelterR36MovieEndingTask, { .value = 0 } },
 };
 
 /// CAP-paced first-arrival choreography for both meeting-progress branches.
@@ -645,8 +645,8 @@ static TaskMessageEntry _gShelterR36RoomMessages[5] = {
 };
 
 TaskDesc gShelterR36MovieTasks[2] = {
-    { { { TASK_BODY_NONE, 192 } }, shelterR36StartMovieTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, streamedScenePlay, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, shelterR36StartMovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, streamedScenePlay, { .value = 0 } },
 };
 
 u8* gShelterR36RoomViewMaps[1] = {

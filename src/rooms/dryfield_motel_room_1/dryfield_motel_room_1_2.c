@@ -132,7 +132,6 @@ static WorldCoordRoomLights   _gDryfieldMotelRoom1RoomLights;
 enum {
     DRYFIELD_MOTEL_ROOM_1_OPENING_CAP_COMMAND       = 5,
     DRYFIELD_MOTEL_ROOM_1_OPENING_SKIP_VIEW         = 5,
-    DRYFIELD_MOTEL_ROOM_1_OPENING_TASK_PRIORITY     = 192,
     DRYFIELD_MOTEL_ROOM_1_LOGICAL_VIEW_COUNT        = 9,
     DRYFIELD_MOTEL_ROOM_1_WARP_INITIAL_VIEW         = 2,
     DRYFIELD_MOTEL_ROOM_1_WARP_MAP_FLAG             = 487,
@@ -225,7 +224,7 @@ static EvsCommand _gDryfieldMotelRoom1OpeningSkipScript[13] = {
 };
 
 TaskDesc gDryfieldMotelRoom1OpeningEventTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = DRYFIELD_MOTEL_ROOM_1_OPENING_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },
     .callback = _dryfieldMotelRoom1OpeningEventTask,
     .data     = { .value = 0 },
 };

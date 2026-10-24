@@ -38,7 +38,6 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(ViewFigureWork, 0x55C);
 
 /// Equal body/helper execution priorities preserve their spawn order.
-enum { VIEW_FIGURE_TASK_PRIORITY = 192 };
 
 static void _viewFigureSpawnState(Enemy* enemy, Task* task);
 

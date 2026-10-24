@@ -78,14 +78,13 @@ static TaskMessageEntry _gShelterB1SleepingQuartersRoomMessages[5] = {
 };
 
 /// Scheduler priority byte of the bodyless scene task.
-enum { SHELTER_B1_SLEEPING_QUARTERS_ALTERNATE_CAP_TASK_PRIORITY = 192 };
 
 /// Bodyless task recipe for alternate-resource CAP playback and control restoration.
 ///
 /// A single priority-192 descriptor, spawned at index 0. The first argument
 /// is a valid alternate CAP command (the room sends 8); the second is unused.
 /// Keep both CAP resources and this callback loaded until playback completes.
-static TaskDesc _gShelterB1SleepingQuartersAlternateCapTaskDesc = { { { TASK_BODY_NONE, SHELTER_B1_SLEEPING_QUARTERS_ALTERNATE_CAP_TASK_PRIORITY } }, _shelterB1SleepingQuartersPlayAlternateCapTask, { .value = 0 } };
+static TaskDesc _gShelterB1SleepingQuartersAlternateCapTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _shelterB1SleepingQuartersPlayAlternateCapTask, { .value = 0 } };
 
 static void _shelterB1SleepingQuartersInitializeRoom(Task* task);
 static void _shelterB1SleepingQuartersIdleRoomState(Task* task);

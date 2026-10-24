@@ -1829,31 +1829,29 @@ static TaskMessageEntry _gActor450800KyleMadiganMessages[] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-enum { ACTOR_450800_NURSERY_ACTOR_TASK_PRIORITY = 192 };
-
 TaskDesc gActor450800NurseryActorTasks[ACTOR_450800_NURSERY_ACTOR_TASK_COUNT] = {
     [ACTOR_450800_NURSERY_ACTOR_TASK_KYLE] = {
-        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_450800_NURSERY_ACTOR_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _actor450800KyleMadiganTask,
         .data     = { .model = &gKyleBody },
     },
     [ACTOR_450800_NURSERY_ACTOR_TASK_LEFT_HAND] = {
-        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_450800_NURSERY_ACTOR_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _actor450800KyleMadiganAttachmentTask,
         .data     = { .model = &gKyleHandLeft },
     },
     [ACTOR_450800_NURSERY_ACTOR_TASK_RIGHT_HAND] = {
-        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_450800_NURSERY_ACTOR_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _actor450800KyleMadiganAttachmentTask,
         .data     = { .model = &gKyleHandRight },
     },
     [ACTOR_450800_NURSERY_ACTOR_TASK_SECOND_BODY] = {
-        .header   = { .fields = { .flags = TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER, .priority = ACTOR_450800_NURSERY_ACTOR_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _actor450800KyleMadiganTask,
         .data     = { .model = &_gKyleAlternateBody },
     },
     [ACTOR_450800_NURSERY_ACTOR_TASK_GUN] = {
-        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_450800_NURSERY_ACTOR_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _actor450800KyleMadiganAttachmentTask,
         .data     = { .model = &gKyleP229 },
     },
@@ -1888,8 +1886,8 @@ static TaskMessageEntry _gPairWalkMessages[6] = {
 };
 
 TaskDesc gActor450800PawnGolemTasks[PAIR_WALK_TASK_COUNT] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), PAIR_WALK_TASK_PRIORITY } }, _actor450800PawnGolemWalkerTask, { .model = &_gGolemPawnBody } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), PAIR_WALK_TASK_PRIORITY } }, _pairWalkSubModelTask, { .model = &_gGolemBeamSword } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_ACTOR } }, _actor450800PawnGolemWalkerTask, { .model = &_gGolemPawnBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_ACTOR } }, _pairWalkSubModelTask, { .model = &_gGolemBeamSword } },
 };
 
 /// Six-entry clip bank borrowed by this carrier's pair-walker animation context.

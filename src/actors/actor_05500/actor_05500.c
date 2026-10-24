@@ -311,11 +311,9 @@ static s16 _gMaggotCaterpillarPuffRadius[14] = {
     0,
 };
 
-enum { ACTOR_05500_TASK_PRIORITY = 96 };
-
 TaskDesc gActor05500MaggotCaterpillarTasks[2] = {
-    { { { TASK_BODY_TMD, ACTOR_05500_TASK_PRIORITY } }, _maggotCaterpillarTask, { .model = &_gCrawlerBody } },
-    { { { TASK_BODY_COORD, ACTOR_05500_TASK_PRIORITY } }, _maggotCaterpillarPuffTask, { .value = 0 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _maggotCaterpillarTask, { .model = &_gCrawlerBody } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, _maggotCaterpillarPuffTask, { .value = 0 } },
 };
 
 /// Borrowed model clips indexed by `MAGGOT_CATERPILLAR_ANIM_*`.

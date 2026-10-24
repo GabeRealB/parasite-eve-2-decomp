@@ -587,7 +587,7 @@ static TaskMessageEntry _gActor451100QuietWalkMessages[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc gActor451100QuietWalkTaskDesc = { { { TASK_BODY_TMD, 192 } }, _actor451100QuietWalkTask, { .model = &_gEveBody } };
+TaskDesc gActor451100QuietWalkTaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _actor451100QuietWalkTask, { .model = &_gEveBody } };
 
 /// Sparse animation-set table borrowed by the quiet walker's nineteen-part rig.
 ///
@@ -621,7 +621,7 @@ static TaskMessageEntry _gActor451100PairWalkMessages[] = {
 };
 
 TaskDesc gActor451100PairWalkTaskDescs[2] = {
-    { { { TASK_BODY_TMD, 96 } }, _actor451100PairWalkTask, { .model = &_gGolemNo9BodyDryfield } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor451100PairWalkTask, { .model = &_gGolemNo9BodyDryfield } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor451100CarriedModelTask, { .model = &_gGolemNo9Radio } },
 };
 

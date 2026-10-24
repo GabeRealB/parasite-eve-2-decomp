@@ -142,8 +142,8 @@ static void                       _mineRefugeCutscenePromptTask(Task* task);
 /// Both run at priority 32. Keep callback code and the scene record loaded
 /// until completion; spawning copies the recipe and retains no table pointer.
 static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
-    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -167,7 +167,7 @@ static const TaskMessageEntry _gMineRefugeRoomMessages[6] SECTION(".data") = {
 /// Direct spawns must exclude entry 2. Callback code and the prompt's saved
 /// view remain room-owned until those tasks finish.
 static TaskDesc _gMineRefugeSceneTaskDescs[3] = {
-    { { { TASK_BODY_NONE, 32 } }, _mineRefugeCircuitPanelTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _mineRefugeCircuitPanelTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 31 } }, _mineRefugeCutscenePromptTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };

@@ -104,8 +104,6 @@ enum { SHELTER_B1_POD_ACCESS_TUNNEL_TRAVEL_TO_B2     = 0,
        SHELTER_B1_POD_ACCESS_TUNNEL_TRAVEL_TO_GANTRY = 1 };
 
 enum {
-    SHELTER_B1_POD_ACCESS_TUNNEL_DEPARTURE_TASK_PRIORITY = 32,
-    SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_TASK_PRIORITY     = 192,
     SHELTER_B1_POD_ACCESS_TUNNEL_PLAYER_SCENE_FIRST_CLIP = ANIMATION_BANK_BASE_SET_COUNT + 1,
 };
 
@@ -196,7 +194,7 @@ static void _shelterB1PodAccessTunnelCancelRoomEffects(void);
 /// records. Only one staged departure may use those records at a time; keep
 /// them and the room overlay loaded until reload discards the old task list.
 static TaskDesc _gShelterB1PodAccessTunnelStagedDepartureTaskDesc = {
-    .header   = { .fields = { TASK_BODY_NONE, SHELTER_B1_POD_ACCESS_TUNNEL_DEPARTURE_TASK_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } },
     .callback = roomEventStagedTask,
     .data     = { .value = 0 },
 };
@@ -220,8 +218,8 @@ static TaskMessageEntry _gShelterB1PodAccessTunnelRoomMessages[6] = {
 /// control; their CAP choices either restore control or commit a session reload.
 /// Keep this room overlay loaded through the travel task's completion.
 static TaskDesc _gShelterB1PodAccessTunnelTravelTaskDescs[2] = {
-    { { { TASK_BODY_NONE, SHELTER_B1_POD_ACCESS_TUNNEL_DEPARTURE_TASK_PRIORITY } }, _shelterB1PodAccessTunnelRideToB2Task, { .value = 0 } },
-    { { { TASK_BODY_NONE, SHELTER_B1_POD_ACCESS_TUNNEL_DEPARTURE_TASK_PRIORITY } }, _shelterB1PodAccessTunnelTravelToGantryTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelterB1PodAccessTunnelRideToB2Task, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelterB1PodAccessTunnelTravelToGantryTask, { .value = 0 } },
 };
 
 /// Return-from-gantry dialogue: CAP selection 7, area music and player-control restoration.
@@ -244,7 +242,7 @@ static EvsCommand _gShelterB1PodAccessTunnelPostGantryDialogueScript[7] = {
 /// Requires the player, its weapon bank and room CAP resources to stay loaded
 /// until dialogue completion. The spawned task waits for pending displays to close.
 static TaskDesc _gShelterB1PodAccessTunnelPostGantryDialogueTaskDesc = {
-    .header   = { .fields = { TASK_BODY_NONE, SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_TASK_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } },
     .callback = _shelterB1PodAccessTunnelPostGantryDialogueTask,
     .data     = { .value = 0 },
 };
@@ -411,9 +409,9 @@ static AnimationSet _gShelterB1PodAccessTunnelAnimation05744 = {
 /// The gray-countdown recipe runs on the display-mode list; the others use the
 /// current list. Keep this room overlay loaded while any callback is active.
 static TaskDesc _gShelterB1PodAccessTunnelSceneTaskDescs[3] = {
-    { { { TASK_BODY_NONE, SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_TASK_PRIORITY } }, _shelterB1PodAccessTunnelPanSceneCameraTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_TASK_PRIORITY } }, _shelterB1PodAccessTunnelImageScrollTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_TASK_PRIORITY } }, _shelterB1PodAccessTunnelGrayCaptureCountdownTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _shelterB1PodAccessTunnelPanSceneCameraTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _shelterB1PodAccessTunnelImageScrollTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _shelterB1PodAccessTunnelGrayCaptureCountdownTask, { .value = 0 } },
 };
 
 /// Player entry-scene bank extension: null slot 47 followed by clips 48..54.

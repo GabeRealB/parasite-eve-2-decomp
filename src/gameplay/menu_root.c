@@ -51,9 +51,7 @@ s32 gItemMenuConsumableChoiceItemIds[6];
 
 /// Menu task priorities and the equipped-bank stationary aiming clip.
 enum {
-    MENU_PENDING_ITEM_USE_TASK_PRIORITY = 32,
-    MENU_GALLERY_WEAPON_HOLD_ANIMATION  = 9,
-    ITEM_MENU_PANEL_TASK_PRIORITY       = 192
+    MENU_GALLERY_WEAPON_HOLD_ANIMATION = 9,
 };
 
 static void _itemMenuUpdatePromptTask(UiObject* object, Task* task);
@@ -190,7 +188,7 @@ const u8* gItemMenuAmmoSpecialAttributeTexts[10] = {
 /// Menu exit acquires a display hold only when spawning succeeds; the task
 /// releases that hold after consuming the pending actions, then exits.
 static TaskDesc _gMenuPendingItemUseTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = MENU_PENDING_ITEM_USE_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_SCENE } },
     .callback = menuApplyPendingItemUseTask,
 };
 
@@ -441,7 +439,7 @@ UiObjectDesc gItemMenuPanelDescriptors[ITEM_MENU_DESCRIPTOR_COUNT] = {
         .bounds          = { -144, 64, 288, 40 },
         .otIndexSeed     = 768,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = itemMenuCaptionTask,
     },
     [ITEM_MENU_DESCRIPTOR_MAIN_COMMANDS] = {
@@ -449,7 +447,7 @@ UiObjectDesc gItemMenuPanelDescriptors[ITEM_MENU_DESCRIPTOR_COUNT] = {
         .bounds          = { -144, -104, 72, 64 },
         .otIndexSeed     = 28,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = itemMenuMainPanelTask,
     },
     [ITEM_MENU_DESCRIPTOR_PLAYER_SUMMARY] = {
@@ -457,7 +455,7 @@ UiObjectDesc gItemMenuPanelDescriptors[ITEM_MENU_DESCRIPTOR_COUNT] = {
         .bounds          = { -72, -104, 216, 65 },
         .otIndexSeed     = 40,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = itemMenuPlayerSummaryTask,
     },
     [ITEM_MENU_DESCRIPTOR_WEAPON_SUMMARY] = {
@@ -465,14 +463,14 @@ UiObjectDesc gItemMenuPanelDescriptors[ITEM_MENU_DESCRIPTOR_COUNT] = {
         .bounds          = { -144, -39, 144, 72 },
         .otIndexSeed     = 36,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = itemMenuWeaponSummaryTask,
     },
     [ITEM_MENU_DESCRIPTOR_INVENTORY_COUNT] = {
         .bounds          = { 0, 0, 144, 20 },
         .otIndexSeed     = 48,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = itemMenuInventoryCountTask,
     },
     [ITEM_MENU_DESCRIPTOR_INVENTORY] = {
@@ -480,7 +478,7 @@ UiObjectDesc gItemMenuPanelDescriptors[ITEM_MENU_DESCRIPTOR_COUNT] = {
         .bounds          = { 0, -104, 144, 165 },
         .otIndexSeed     = 40,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = itemMenuInventoryPanelTask,
     },
     [ITEM_MENU_DESCRIPTOR_COLLECTED_ITEMS] = {
@@ -488,7 +486,7 @@ UiObjectDesc gItemMenuPanelDescriptors[ITEM_MENU_DESCRIPTOR_COUNT] = {
         .bounds          = { -144, -104, 144, 120 },
         .otIndexSeed     = 40,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = itemMenuCollectedItemsTask,
     },
     [ITEM_MENU_DESCRIPTOR_ARMOR_SUMMARY] = {
@@ -496,7 +494,7 @@ UiObjectDesc gItemMenuPanelDescriptors[ITEM_MENU_DESCRIPTOR_COUNT] = {
         .bounds          = { 0, -39, 144, 120 },
         .otIndexSeed     = 512,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = itemMenuArmorSummaryTask,
     },
     [ITEM_MENU_DESCRIPTOR_PARASITE_ENERGY_SUMMARY] = {
@@ -504,7 +502,7 @@ UiObjectDesc gItemMenuPanelDescriptors[ITEM_MENU_DESCRIPTOR_COUNT] = {
         .bounds          = { -144, 33, 144, 48 },
         .otIndexSeed     = 516,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = itemMenuParasiteEnergySummaryTask,
     },
     [ITEM_MENU_DESCRIPTOR_PARASITE_ENERGY_LIST] = {
@@ -512,7 +510,7 @@ UiObjectDesc gItemMenuPanelDescriptors[ITEM_MENU_DESCRIPTOR_COUNT] = {
         .bounds          = { -144, -104, 200, 24 },
         .otIndexSeed     = 40,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = itemMenuParasiteEnergyListTask,
     },
     [ITEM_MENU_DESCRIPTOR_EQUIPMENT_DETAIL] = {
@@ -520,7 +518,7 @@ UiObjectDesc gItemMenuPanelDescriptors[ITEM_MENU_DESCRIPTOR_COUNT] = {
         .bounds          = { -152, -104, 144, 104 },
         .otIndexSeed     = 816,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = itemMenuEquipmentDetailTask,
     },
     [ITEM_MENU_DESCRIPTOR_ARMOR_SELECTION] = {
@@ -528,7 +526,7 @@ UiObjectDesc gItemMenuPanelDescriptors[ITEM_MENU_DESCRIPTOR_COUNT] = {
         .bounds          = { -8, 0, 144, 8 },
         .otIndexSeed     = 32,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = itemMenuArmorSelectionTask,
     },
     [ITEM_MENU_DESCRIPTOR_AMMO_SELECTION] = {
@@ -536,7 +534,7 @@ UiObjectDesc gItemMenuPanelDescriptors[ITEM_MENU_DESCRIPTOR_COUNT] = {
         .bounds          = { -8, 0, 144, 8 },
         .otIndexSeed     = 32,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = itemMenuAmmoSelectionTask,
     },
     [ITEM_MENU_DESCRIPTOR_WEAPON_SELECTION] = {
@@ -544,7 +542,7 @@ UiObjectDesc gItemMenuPanelDescriptors[ITEM_MENU_DESCRIPTOR_COUNT] = {
         .bounds          = { -8, 0, 144, 8 },
         .otIndexSeed     = 32,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = itemMenuWeaponSelectionTask,
     },
     [ITEM_MENU_DESCRIPTOR_ATTACHMENT_PICKER] = {
@@ -552,7 +550,7 @@ UiObjectDesc gItemMenuPanelDescriptors[ITEM_MENU_DESCRIPTOR_COUNT] = {
         .bounds          = { -8, 0, 144, 8 },
         .otIndexSeed     = 32,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = itemMenuAttachmentItemPickerTask,
     },
     [ITEM_MENU_DESCRIPTOR_ATTACH_NOTICE] = {
@@ -560,14 +558,14 @@ UiObjectDesc gItemMenuPanelDescriptors[ITEM_MENU_DESCRIPTOR_COUNT] = {
         .bounds          = { -60, -40, 144, 78 },
         .otIndexSeed     = 8,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = itemMenuAttachNoticeTask,
     },
     [ITEM_MENU_DESCRIPTOR_ITEM_COMMANDS] = {
         .bounds          = { 0, 0, 48, 1 },
         .otIndexSeed     = 16,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = itemMenuCommandTask,
     },
     [ITEM_MENU_DESCRIPTOR_ITEM_USE] = {
@@ -575,7 +573,7 @@ UiObjectDesc gItemMenuPanelDescriptors[ITEM_MENU_DESCRIPTOR_COUNT] = {
         .bounds          = { -100, -80, 198, 158 },
         .otIndexSeed     = 8,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = itemMenuUseItemTask,
     },
     [ITEM_MENU_DESCRIPTOR_OPTIONS] = {
@@ -583,14 +581,14 @@ UiObjectDesc gItemMenuPanelDescriptors[ITEM_MENU_DESCRIPTOR_COUNT] = {
         .bounds          = { -144, -104, 288, 144 },
         .otIndexSeed     = 56,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = uiUpdateOptionsAfterLoadTask,
     },
     [ITEM_MENU_DESCRIPTOR_WEAPON_CHOICES] = {
         .bounds          = { -100, -80, 144, 78 },
         .otIndexSeed     = 12,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = itemMenuWeaponChoiceListTask,
     },
     [ITEM_MENU_DESCRIPTOR_RELOAD_NOTICE] = {
@@ -598,14 +596,14 @@ UiObjectDesc gItemMenuPanelDescriptors[ITEM_MENU_DESCRIPTOR_COUNT] = {
         .bounds          = { -72, -40, 144, 78 },
         .otIndexSeed     = 8,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = itemMenuReloadNoticeTask,
     },
     [ITEM_MENU_DESCRIPTOR_CONSUMABLE_CHOICES] = {
         .bounds          = { -100, -80, 144, 78 },
         .otIndexSeed     = 12,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = itemMenuConsumableChoiceListTask,
     },
     [ITEM_MENU_DESCRIPTOR_EQUIP_NOTICE] = {
@@ -613,14 +611,14 @@ UiObjectDesc gItemMenuPanelDescriptors[ITEM_MENU_DESCRIPTOR_COUNT] = {
         .bounds          = { -60, -40, 144, 78 },
         .otIndexSeed     = 8,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = itemMenuEquipNoticeTask,
     },
     [ITEM_MENU_DESCRIPTOR_KEY_ITEM_COMMANDS] = {
         .bounds          = { 0, 0, 48, 32 },
         .otIndexSeed     = 16,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = itemMenuKeyItemCommandTask,
     },
     [ITEM_MENU_DESCRIPTOR_KEY_ITEM_USE] = {
@@ -628,7 +626,7 @@ UiObjectDesc gItemMenuPanelDescriptors[ITEM_MENU_DESCRIPTOR_COUNT] = {
         .bounds          = { -90, -40, 178, 78 },
         .otIndexSeed     = 8,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = itemMenuUseKeyItemTask,
     },
     [ITEM_MENU_DESCRIPTOR_INFORMATION] = {
@@ -636,7 +634,7 @@ UiObjectDesc gItemMenuPanelDescriptors[ITEM_MENU_DESCRIPTOR_COUNT] = {
         .bounds          = { -144, -104, 288, 208 },
         .otIndexSeed     = 8,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = itemMenuInfoTask,
     },
     [ITEM_MENU_DESCRIPTOR_HOTSPOT_ITEM_CAPTION] = {
@@ -644,7 +642,7 @@ UiObjectDesc gItemMenuPanelDescriptors[ITEM_MENU_DESCRIPTOR_COUNT] = {
         .bounds          = { -144, 64, 288, 40 },
         .otIndexSeed     = 56,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = itemMenuCaptionTask,
     },
     [ITEM_MENU_DESCRIPTOR_WEAPON_DESTINATION] = {
@@ -652,7 +650,7 @@ UiObjectDesc gItemMenuPanelDescriptors[ITEM_MENU_DESCRIPTOR_COUNT] = {
         .bounds          = { -144, -104, 144, 72 },
         .otIndexSeed     = 960,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = itemMenuWeaponPanelTask,
     },
     [ITEM_MENU_DESCRIPTOR_ARMOR_DESTINATION] = {
@@ -660,7 +658,7 @@ UiObjectDesc gItemMenuPanelDescriptors[ITEM_MENU_DESCRIPTOR_COUNT] = {
         .bounds          = { -144, -32, 144, 91 },
         .otIndexSeed     = 976,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = itemMenuArmorPanelTask,
     },
     [ITEM_MENU_DESCRIPTOR_PICKUP] = {
@@ -668,7 +666,7 @@ UiObjectDesc gItemMenuPanelDescriptors[ITEM_MENU_DESCRIPTOR_COUNT] = {
         .bounds          = { -150, -80, 120, 70 },
         .otIndexSeed     = 60,
         .taskFlags       = TASK_BODY_NONE,
-        .taskPriority    = ITEM_MENU_PANEL_TASK_PRIORITY,
+        .taskPriority    = TASK_PRIORITY_CONTROL,
         .contentCallback = itemPickupPanelTask,
     },
 };

@@ -37,7 +37,6 @@
 static WorldCollisionGrid _gNeoArkEveAccessTunnelCollisionGrid;
 
 enum {
-    NEO_ARK_EVE_ACCESS_TUNNEL_EVENT_TASK_PRIORITY    = 32,
     NEO_ARK_EVE_ACCESS_TUNNEL_GRID_CELLS_X           = 2,
     NEO_ARK_EVE_ACCESS_TUNNEL_GRID_CELLS_Z           = 2,
     NEO_ARK_EVE_ACCESS_TUNNEL_SHELTER_MAP_FLAG       = 0x1AF,
@@ -47,7 +46,7 @@ enum {
     NEO_ARK_EVE_ACCESS_TUNNEL_ELEVATOR_ARRIVAL_SOUND = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_EVE_ACCESS_TUNNEL, 4),
 };
 
-TaskDesc gNeoArkEveAccessTunnelDepartureTaskDesc = { { { TASK_BODY_NONE, NEO_ARK_EVE_ACCESS_TUNNEL_EVENT_TASK_PRIORITY } }, roomEventDepartureTask, { .value = 0 } };
+TaskDesc gNeoArkEveAccessTunnelDepartureTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventDepartureTask, { .value = 0 } };
 
 TaskMessageEntry gNeoArkEveAccessTunnelRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, neoArkEveAccessTunnelResolveTransition },
@@ -59,9 +58,9 @@ TaskMessageEntry gNeoArkEveAccessTunnelRoomMessages[6] = {
 };
 
 TaskDesc gNeoArkEveAccessTunnelEventTasks[3] = {
-    { { { TASK_BODY_NONE, NEO_ARK_EVE_ACCESS_TUNNEL_EVENT_TASK_PRIORITY } }, neoArkEveAccessTunnelShelterDepartureTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, NEO_ARK_EVE_ACCESS_TUNNEL_EVENT_TASK_PRIORITY } }, neoArkEveAccessTunnelElevatorDepartureTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, NEO_ARK_EVE_ACCESS_TUNNEL_EVENT_TASK_PRIORITY } }, neoArkEveAccessTunnelRecordCapCompletionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, neoArkEveAccessTunnelShelterDepartureTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, neoArkEveAccessTunnelElevatorDepartureTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, neoArkEveAccessTunnelRecordCapCompletionTask, { .value = 0 } },
 };
 
 /// Two fixed capsule-glow segments visible in mapped view 3.

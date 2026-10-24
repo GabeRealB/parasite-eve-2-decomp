@@ -61,10 +61,7 @@ enum {
 
 /// Execution priorities of the scene's bodyless tasks.
 enum {
-    ACTOR_450200_SCENE_STOP_PRIORITY = 192,
-    ACTOR_450200_PUFF_PRIORITY       = 32,
-    ACTOR_450200_HEAD_AIM_PRIORITY   = 97,
-    ACTOR_450200_BACKDROP_PRIORITY   = 32,
+    ACTOR_450200_HEAD_AIM_PRIORITY = 97,
 };
 
 /// Playable prefixes of the fixed-capacity animation-bank transfers.
@@ -179,8 +176,8 @@ static void _actor450200HeadAimTask(Task* task);
 #include "assets/rooms/neo_ark/observatory/kyle_clips_1.inc"
 
 TaskDesc gActor450200SceneTaskDescs[3] = {
-    { { { TASK_BODY_NONE, ACTOR_450200_SCENE_STOP_PRIORITY } }, taskKill, { .value = 0 } },
-    { { { TASK_BODY_NONE, ACTOR_450200_PUFF_PRIORITY } }, _actor450200CompanionPuffTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _actor450200CompanionPuffTask, { .value = 0 } },
     { { { TASK_BODY_NONE, ACTOR_450200_HEAD_AIM_PRIORITY } }, _actor450200HeadAimTask, { .value = 0 } },
 };
 
@@ -823,7 +820,7 @@ EvsCommand gActor450200SoloSceneSkipScript[12] = {
 ///
 /// Spawned directly at index zero. The scene must avoid simultaneous instances,
 /// which would overwrite the same four palette buffers; view 8 terminates it.
-static TaskDesc _gActor450200BackdropCrossFadeTaskDesc = { { { TASK_BODY_NONE, ACTOR_450200_BACKDROP_PRIORITY } }, _actor450200BackdropCrossFadeTask, { .value = 0 } };
+static TaskDesc _gActor450200BackdropCrossFadeTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _actor450200BackdropCrossFadeTask, { .value = 0 } };
 
 /// Player clips installed at bank ids 47-50 for the observatory room-variant scene.
 ///

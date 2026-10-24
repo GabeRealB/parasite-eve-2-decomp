@@ -585,7 +585,6 @@ enum {
 };
 
 /// Execution priority of this stage's generic placed-model tasks.
-enum { MAP_SHELTER_OBJECT_TASK_PRIORITY = 0x62 };
 
 /// Empty generic spawn list shared by areas with flag-only object placements.
 ///
@@ -602,7 +601,7 @@ static AreaObjectSpawn _gMapShelterEmptyObjectSpawns[1] = {
 /// Tasks own their enemy/model allocations; borrowed callbacks and model sources
 /// must remain loaded until the spawned tasks finish.
 static AreaObjectSpawn _gMapShelterMineForkedTunnelObjectSpawns[2] = {
-    { .kind = MAP_SHELTER_KIND_FORKED_TUNNEL_PROP, .taskDesc = { { { TASK_BODY_TMD, MAP_SHELTER_OBJECT_TASK_PRIORITY } }, mineForkedTunnelAreaObjectTask, { &gMineForkedTunnelModel01B48 } } },
+    { .kind = MAP_SHELTER_KIND_FORKED_TUNNEL_PROP, .taskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_REDRAW } }, mineForkedTunnelAreaObjectTask, { &gMineForkedTunnelModel01B48 } } },
     { .kind = AREA_OBJECT_SPAWN_END },
 };
 
@@ -612,7 +611,7 @@ static AreaObjectSpawn _gMapShelterMineForkedTunnelObjectSpawns[2] = {
 /// Tasks own their enemy/model allocations; borrowed callbacks and model sources
 /// must remain loaded until the spawned tasks finish.
 static AreaObjectSpawn _gMapShelterB1SleepingQuartersObjectSpawns[2] = {
-    { .kind = MAP_SHELTER_KIND_AERIS_MAGAZINE, .taskDesc = { { { TASK_BODY_TMD, MAP_SHELTER_OBJECT_TASK_PRIORITY } }, shelterB1SleepingQuartersAreaObjectTask, { &gShelterB1SleepingQuartersModel02DFC } } },
+    { .kind = MAP_SHELTER_KIND_AERIS_MAGAZINE, .taskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_REDRAW } }, shelterB1SleepingQuartersAreaObjectTask, { &gShelterB1SleepingQuartersModel02DFC } } },
     { .kind = AREA_OBJECT_SPAWN_END },
 };
 
@@ -622,7 +621,7 @@ static AreaObjectSpawn _gMapShelterB1SleepingQuartersObjectSpawns[2] = {
 /// Tasks own their enemy/model allocations; borrowed callbacks and model sources
 /// must remain loaded until the spawned tasks finish.
 static AreaObjectSpawn _gMapShelterB2LaboratoryObjectSpawns[2] = {
-    { .kind = MAP_SHELTER_KIND_LABORATORY_ITEM_BOX, .taskDesc = { { { TASK_BODY_TMD, MAP_SHELTER_OBJECT_TASK_PRIORITY } }, itemPickupContainerLidTask, { &gShelterB2LaboratoryAkropolisSanctuaryModel090F0 } } },
+    { .kind = MAP_SHELTER_KIND_LABORATORY_ITEM_BOX, .taskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_REDRAW } }, itemPickupContainerLidTask, { &gShelterB2LaboratoryAkropolisSanctuaryModel090F0 } } },
     { .kind = AREA_OBJECT_SPAWN_END },
 };
 
@@ -632,7 +631,7 @@ static AreaObjectSpawn _gMapShelterB2LaboratoryObjectSpawns[2] = {
 /// Tasks own their enemy/model allocations; borrowed callbacks and model sources
 /// must remain loaded until the spawned tasks finish.
 static AreaObjectSpawn _gMapShelterB2BreedingRoomObjectSpawns[2] = {
-    { .kind = MAP_SHELTER_KIND_BREEDING_ROOM_MODEL, .taskDesc = { { { TASK_BODY_TMD, MAP_SHELTER_OBJECT_TASK_PRIORITY } }, shelterB2BreedingRoomAreaObjectTask, { &gShelterB2BreedingRoomModel02E04 } } },
+    { .kind = MAP_SHELTER_KIND_BREEDING_ROOM_MODEL, .taskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_REDRAW } }, shelterB2BreedingRoomAreaObjectTask, { &gShelterB2BreedingRoomModel02E04 } } },
     { .kind = AREA_OBJECT_SPAWN_END },
 };
 
@@ -642,7 +641,7 @@ static AreaObjectSpawn _gMapShelterB2BreedingRoomObjectSpawns[2] = {
 /// Tasks own their enemy/model allocations; borrowed callbacks and model sources
 /// must remain loaded until the spawned tasks finish.
 static AreaObjectSpawn _gMapShelterB3DumpingHoleObjectSpawns[2] = {
-    { .kind = MAP_SHELTER_KIND_MEDICINE_WHEEL, .taskDesc = { { { TASK_BODY_TMD, MAP_SHELTER_OBJECT_TASK_PRIORITY } }, itemPickupContainerLidTask, { &gShelterB3DumpingHoleAkropolisSanctuaryModel090F0 } } },
+    { .kind = MAP_SHELTER_KIND_MEDICINE_WHEEL, .taskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_REDRAW } }, itemPickupContainerLidTask, { &gShelterB3DumpingHoleAkropolisSanctuaryModel090F0 } } },
     { .kind = AREA_OBJECT_SPAWN_END },
 };
 
@@ -652,8 +651,8 @@ static AreaObjectSpawn _gMapShelterB3DumpingHoleObjectSpawns[2] = {
 /// Tasks own their enemy/model allocations; borrowed callbacks and model sources
 /// must remain loaded until the spawned tasks finish.
 static AreaObjectSpawn _gMapShelterR48ObjectSpawns[3] = {
-    { .kind = MAP_SHELTER_KIND_R48_FIRST_SLIDER, .taskDesc = { { { TASK_BODY_TMD, MAP_SHELTER_OBJECT_TASK_PRIORITY } }, actor503500SliderTask, { &gActor503500Model14DA0 } } },
-    { .kind = MAP_SHELTER_KIND_R48_SECOND_SLIDER, .taskDesc = { { { TASK_BODY_TMD, MAP_SHELTER_OBJECT_TASK_PRIORITY } }, actor503500SliderTask, { &gActor503500Model15820 } } },
+    { .kind = MAP_SHELTER_KIND_R48_FIRST_SLIDER, .taskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_REDRAW } }, actor503500SliderTask, { &gActor503500Model14DA0 } } },
+    { .kind = MAP_SHELTER_KIND_R48_SECOND_SLIDER, .taskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_REDRAW } }, actor503500SliderTask, { &gActor503500Model15820 } } },
     { .kind = AREA_OBJECT_SPAWN_END },
 };
 
@@ -671,7 +670,7 @@ static AreaObjectSpawn _gMapShelterB1UndergroundParkingObjectSpawns[1] = {
 /// Tasks own their enemy/model allocations; borrowed callbacks and model sources
 /// must remain loaded until the spawned tasks finish.
 static AreaObjectSpawn _gMapShelterB1SterilizationRoomObjectSpawns[2] = {
-    { .kind = MAP_SHELTER_KIND_STERILIZATION_ROOM_ITEM_BOX, .taskDesc = { { { TASK_BODY_TMD, MAP_SHELTER_OBJECT_TASK_PRIORITY } }, itemPickupContainerLidTask, { &gShelterB1SterilizationRoomAkropolisSanctuaryModel090F0 } } },
+    { .kind = MAP_SHELTER_KIND_STERILIZATION_ROOM_ITEM_BOX, .taskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_REDRAW } }, itemPickupContainerLidTask, { &gShelterB1SterilizationRoomAkropolisSanctuaryModel090F0 } } },
     { .kind = AREA_OBJECT_SPAWN_END },
 };
 
@@ -731,61 +730,60 @@ AreaObjectRoom gMapShelterObjectRooms[GAME_AREA_SHELTER_R49 + 2] = {
 
 /// Priority and default-room selector for the Mine/Shelter room recipes.
 enum {
-    MAP_SHELTER_ROOM_TASK_PRIORITY     = 32,
     MAP_SHELTER_ROOM_TASK_AREA_DEFAULT = 0,
 };
 
 TaskDesc gMapShelterRoomTaskDescriptors[GAME_AREA_SHELTER_R49 + 1] = {
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = mineMesaRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_MESA, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = mineCavernRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_CAVERN, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = mineTunnelEntranceRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_TUNNEL_ENTRANCE, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = mineTunnelRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_TUNNEL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = mineGorgeRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_GORGE, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = mineRefugeRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = mineForkedTunnelRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_FORKED_TUNNEL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = mineSecretPassageRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_SECRET_PASSAGE, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1ElevatorHallRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ELEVATOR_HALL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1SouthMaintenanceWalkwayRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1StoreroomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STOREROOM, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1NorthMaintenanceWalkwayRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1ArmoryRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ARMORY, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1SleepingQuartersRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1MainCorridorRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1SterilizationRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1PodAccessTunnelRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1AccessTunnelRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1UndergroundParkingRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1GolemFreezer1RoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1TransferTunnelRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1ControlRoomAccessTunnelRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB2ElevatorRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_ELEVATOR, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB2ElevatorHallRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_ELEVATOR_HALL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB2SouthMaintenanceWalkwayRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB2OperatingRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_OPERATING_ROOM, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB2NorthMaintenanceWalkwayRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB2LaboratoryTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB2BreedingRoomRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB2MainCorridorRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_MAIN_CORRIDOR, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB2SepticTankRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SEPTIC_TANK, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB2PodAccessTunnelRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterR36RoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R36, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterR37RoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R37, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelter1fHeliportS4RoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_1F_HELIPORT_S4, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB3DumpingHoleRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_DUMPING_HOLE, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB3GarbageIncineratorRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB3IncineratorControlRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB3ElevatorHallRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_ELEVATOR_HALL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB4LowerSewerRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_LOWER_SEWER, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB4UpperSewerRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_UPPER_SEWER, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB4ReservoirRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_RESERVOIR, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB4WaterSupplyRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_WATER_SUPPLY, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterR48RoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R48, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterR47RoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterR49RoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R49, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1ControlRoomRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_CONTROL_ROOM, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1PodServiceGantryRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_POD_SERVICE_GANTRY, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB2PodBottomRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
-    { .header = { .fields = { TASK_DESC_END, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = NULL, .data = { .value = 0 } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = mineMesaRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_MESA, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = mineCavernRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_CAVERN, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = mineTunnelEntranceRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_TUNNEL_ENTRANCE, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = mineTunnelRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_TUNNEL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = mineGorgeRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_GORGE, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = mineRefugeRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = mineForkedTunnelRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_FORKED_TUNNEL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = mineSecretPassageRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_SECRET_PASSAGE, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB1ElevatorHallRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ELEVATOR_HALL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB1SouthMaintenanceWalkwayRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB1StoreroomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STOREROOM, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB1NorthMaintenanceWalkwayRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB1ArmoryRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ARMORY, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB1SleepingQuartersRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB1MainCorridorRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB1SterilizationRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB1PodAccessTunnelRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB1AccessTunnelRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB1UndergroundParkingRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB1GolemFreezer1RoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB1TransferTunnelRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB1ControlRoomAccessTunnelRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB2ElevatorRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_ELEVATOR, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB2ElevatorHallRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_ELEVATOR_HALL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB2SouthMaintenanceWalkwayRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB2OperatingRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_OPERATING_ROOM, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB2NorthMaintenanceWalkwayRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB2LaboratoryTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB2BreedingRoomRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB2MainCorridorRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_MAIN_CORRIDOR, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB2SepticTankRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SEPTIC_TANK, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB2PodAccessTunnelRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterR36RoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R36, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterR37RoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R37, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelter1fHeliportS4RoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_1F_HELIPORT_S4, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB3DumpingHoleRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_DUMPING_HOLE, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB3GarbageIncineratorRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB3IncineratorControlRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB3ElevatorHallRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_ELEVATOR_HALL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB4LowerSewerRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_LOWER_SEWER, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB4UpperSewerRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_UPPER_SEWER, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB4ReservoirRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_RESERVOIR, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB4WaterSupplyRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_WATER_SUPPLY, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterR48RoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R48, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterR47RoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterR49RoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R49, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB1ControlRoomRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_CONTROL_ROOM, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB1PodServiceGantryRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_POD_SERVICE_GANTRY, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = shelterB2PodBottomRoomTask, .data = { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_DESC_END, TASK_PRIORITY_SCENE } }, .callback = NULL, .data = { .value = 0 } },
 };
 
 /// Game-flag nibble IDs for marker words without a resident named ID.

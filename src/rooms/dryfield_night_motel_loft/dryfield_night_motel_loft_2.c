@@ -109,10 +109,8 @@ TaskMessageEntry gDryfieldNightMotelLoftMessageHandlers[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-enum { DRYFIELD_NIGHT_MOTEL_LOFT_CAPTION_SCENE_PRIORITY = 32 };
-
 TaskDesc gDryfieldNightMotelLoftCaptionSceneTaskDesc = {
-    .header   = { .fields = { TASK_BODY_NONE, DRYFIELD_NIGHT_MOTEL_LOFT_CAPTION_SCENE_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } },
     .callback = dryfieldNightMotelLoftCaptionSceneTask,
     .data     = { .value = 0 },
 };

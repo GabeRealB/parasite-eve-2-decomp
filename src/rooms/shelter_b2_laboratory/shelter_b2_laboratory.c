@@ -187,8 +187,8 @@ TmdSource gShelterB2LaboratoryAkropolisSanctuaryModel090F0 = {
 /// Both run at priority 32. Keep callback code and the scene record loaded
 /// until completion; spawning copies the recipe and retains no table pointer.
 static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
-    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -198,7 +198,7 @@ static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
 /// then reload the session. Spawn payloads and metadata are unused. The gate
 /// reads the recipe synchronously; room snapshots and callback code must remain
 /// live through the deferred transition.
-static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
+static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventTask, { .value = 0 } };
 
 /// Laboratory room-message routes, with five handlers followed by the end marker.
 ///
@@ -228,7 +228,6 @@ enum {
     SHELTER_B2_LABORATORY_TASK_AMBIENCE             = 1,
     SHELTER_B2_LABORATORY_TASK_FINISH_CONSOLE_SCENE = 2,
     SHELTER_B2_LABORATORY_TASK_COUNT                = 3,
-    SHELTER_B2_LABORATORY_TASK_PRIORITY             = 32,
 };
 
 /// Spawn recipes for the console keypad waiter, ambience and post-scene follow-up.
@@ -237,9 +236,9 @@ enum {
 /// No end marker: callers select only the named descriptor indices. Spawning
 /// copies the recipe; this overlay's callback code must outlive each task.
 static TaskDesc _gShelterB2LaboratoryTaskDescriptors[SHELTER_B2_LABORATORY_TASK_COUNT] = {
-    { { { TASK_BODY_NONE, SHELTER_B2_LABORATORY_TASK_PRIORITY } }, _shelterB2LaboratoryConsoleKeypadTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, SHELTER_B2_LABORATORY_TASK_PRIORITY } }, _shelterB2LaboratoryAmbienceTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, SHELTER_B2_LABORATORY_TASK_PRIORITY } }, _shelterB2LaboratoryFinishConsoleSceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelterB2LaboratoryConsoleKeypadTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelterB2LaboratoryAmbienceTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelterB2LaboratoryFinishConsoleSceneTask, { .value = 0 } },
 };
 
 /// Looping ambience gain percentages indexed by the active logical view, 0..15.

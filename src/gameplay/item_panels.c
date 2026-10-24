@@ -288,7 +288,6 @@ static const UiObjectDesc _gItemPickupChildPanelDescs[ITEM_PICKUP_CHILD_PANEL_CO
 /// Style and task priority seeds for the pickup's child panels.
 enum {
     ITEM_PICKUP_PREVIEW_PANEL_STYLE = 0,
-    ITEM_PICKUP_PANEL_TASK_PRIORITY = 192
 };
 
 /// Recipe for the obtained-item notice shown after a pickup is accepted.
@@ -300,7 +299,7 @@ static const UiObjectDesc _gItemPickupObtainedNoticeDesc __attribute__((section(
     .bounds          = { -80, -40, 160, 80 },
     .otIndexSeed     = 8,
     .taskFlags       = TASK_BODY_NONE,
-    .taskPriority    = ITEM_PICKUP_PANEL_TASK_PRIORITY,
+    .taskPriority    = TASK_PRIORITY_CONTROL,
     .contentCallback = _itemPickupObtainedNoticeTask,
 };
 
@@ -314,7 +313,7 @@ static const UiObjectDesc _gItemPickupPreviewDesc __attribute__((section(".data"
     .bounds          = { -144, 0, 90, 70 },
     .otIndexSeed     = 52,
     .taskFlags       = TASK_BODY_NONE,
-    .taskPriority    = ITEM_PICKUP_PANEL_TASK_PRIORITY,
+    .taskPriority    = TASK_PRIORITY_CONTROL,
     .contentCallback = _itemPickupPreviewTask,
 };
 
@@ -586,7 +585,6 @@ const char* const gItemMenuPeElementTitles[4] __attribute__((section(".data"))) 
 /// Style selector and execution priority of the Item command panel recipe.
 enum {
     ITEM_MENU_ITEM_COMMAND_PANEL_UNTITLED_STYLE = 3,
-    ITEM_MENU_ITEM_COMMAND_PANEL_TASK_PRIORITY  = 192
 };
 
 /// Recipe for the Item menu's Use/Attach and Key Item command panel.
@@ -598,13 +596,12 @@ static UiObjectDesc _gItemMenuItemCommandPanelDesc = {
     .bounds          = { -136, -50, 60, 80 },
     .otIndexSeed     = 24,
     .taskFlags       = TASK_BODY_NONE,
-    .taskPriority    = ITEM_MENU_ITEM_COMMAND_PANEL_TASK_PRIORITY,
+    .taskPriority    = TASK_PRIORITY_CONTROL,
     .contentCallback = itemMenuItemCommandTask,
 };
 
 enum {
     ITEM_MENU_PE_COMMAND_PANEL_UNTITLED_STYLE = 3,
-    ITEM_MENU_PE_COMMAND_PANEL_TASK_PRIORITY  = 192
 };
 
 const UiObjectDesc gItemMenuPeCommandPanelDesc __attribute__((section(".data"))) = {
@@ -612,7 +609,7 @@ const UiObjectDesc gItemMenuPeCommandPanelDesc __attribute__((section(".data")))
     .bounds          = { -136, -50, 70, 80 },
     .otIndexSeed     = 20,
     .taskFlags       = TASK_BODY_NONE,
-    .taskPriority    = ITEM_MENU_PE_COMMAND_PANEL_TASK_PRIORITY,
+    .taskPriority    = TASK_PRIORITY_CONTROL,
     .contentCallback = itemMenuPeCommandTask,
 };
 

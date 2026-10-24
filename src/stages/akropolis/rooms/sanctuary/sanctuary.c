@@ -258,13 +258,11 @@ static AnimationSet* _gAkropolisSanctuaryPlayerSceneAnimationSets[9] = {
 /// Single-set table installed for the player's sanctuary departure cutscene.
 #include "assets/rooms/akropolis/sanctuary/cutscene_player_bank.inc"
 
-enum { AKROPOLIS_SANCTUARY_CUTSCENE_TASK_PRIORITY = 192 };
-
 #define ROOM_PART _gAkropolisSanctuaryUnusedSceneKey2
 #include "assets/rooms/akropolis/sanctuary/events.inc"
 /// Bodyless task recipe for the first sanctuary room action 1.
 static TaskDesc _gAkropolisSanctuaryCutsceneTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = AKROPOLIS_SANCTUARY_CUTSCENE_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },
     .callback = _akropolisSanctuaryCutsceneTask,
     .data     = { .value = 0 },
 };

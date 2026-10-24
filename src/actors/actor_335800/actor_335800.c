@@ -96,7 +96,6 @@ enum {
 enum { ACTOR_335800_WALK_VELOCITY_ONE = 0x10000 };
 
 /// Execution priority shared by the body, attached-part and scene spawn recipes.
-enum { ACTOR_335800_TASK_PRIORITY = 192 };
 
 /// Balcony Z ranges, placement-table entries and ordinary views used by the scenes.
 enum {
@@ -272,10 +271,10 @@ static void _actor335800FlintTask(Task* task);
 /// the player's scene animation, start stream 59/60 from the first spawn word,
 /// or shake the display. Only index 0 has a coordinate body; all run at priority 192.
 static TaskDesc _gActor335800SceneTasks[] = {
-    { { { TASK_BODY_COORD, ACTOR_335800_TASK_PRIORITY } }, _actor335800SceneGroundShadowTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ACTOR_335800_TASK_PRIORITY } }, _actor335800RestorePlayerAnimationOnBattleResetTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ACTOR_335800_TASK_PRIORITY } }, _actor335800StartSceneVariantTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ACTOR_335800_TASK_PRIORITY } }, _actor335800SceneScreenShakeTask, { .value = 0 } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_CONTROL } }, _actor335800SceneGroundShadowTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor335800RestorePlayerAnimationOnBattleResetTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor335800StartSceneVariantTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor335800SceneScreenShakeTask, { .value = 0 } },
 };
 
 /// Five words installed at player weapon-bank indices 47..51 for balcony scenes.
@@ -886,9 +885,9 @@ static AnimationSet** _gActorMotionAnimBanks[1] = {
 };
 
 TaskDesc gActor335800GaryDouglasTasks[3] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_335800_TASK_PRIORITY } }, _actor335800GaryDouglasTask, { .model = &_gGaryBody } },
-    { { { TASK_BODY_TMD, ACTOR_335800_TASK_PRIORITY } }, _actor335800GaryDouglasPartTask, { .model = &_gGaryHeadHat } },
-    { { { TASK_BODY_TMD, ACTOR_335800_TASK_PRIORITY } }, _actor335800GaryDouglasPartTask, { .model = &_gGaryShotgun } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor335800GaryDouglasTask, { .model = &_gGaryBody } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _actor335800GaryDouglasPartTask, { .model = &_gGaryHeadHat } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _actor335800GaryDouglasPartTask, { .model = &_gGaryShotgun } },
 };
 
 /// Gary Douglas's body-task interface for animation, placement, draw, walk and dimming.
@@ -925,7 +924,7 @@ static AnimationSet** _gActor335800FlintAnimationBanks[1] = {
     _gActor335800FlintAnimationBank,
 };
 
-TaskDesc gActor335800FlintTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_335800_TASK_PRIORITY } }, _actor335800FlintTask, { .model = &gFlintBody } };
+TaskDesc gActor335800FlintTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor335800FlintTask, { .model = &gFlintBody } };
 
 /// Flint's synchronous placed-actor message table.
 ///

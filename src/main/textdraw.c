@@ -184,19 +184,19 @@ static void _bootStartTitleTask(Task* task);
 /// be spawned; overlay callbacks require their owning code to remain loaded.
 /// This table is private even though other overlays spawn its numbered entries.
 static TaskDesc _gTaskSystemDescs[39] = {
-    { { { TASK_BODY_NONE, 0xC0 } }, taskNoopCallback },
-    { { { TASK_BODY_NONE, 0xC0 } }, taskCountdownCallback },
-    { { { TASK_BODY_NONE, 0xC0 } }, titleScreenTask },
-    { { { TASK_BODY_NONE, 0xC0 } }, gameFlowLaunchSessionTask },
-    { { { TASK_BODY_NONE, 0xC0 } }, gameFlowLoadDialogTask },
-    { { { TASK_BODY_NONE, 0xC0 } }, _uiVibrationOptionsTask },
-    { { { TASK_BODY_NONE, 0xC0 } }, titleExitTask },
-    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskNoopCallback },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskCountdownCallback },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, titleScreenTask },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, gameFlowLaunchSessionTask },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, gameFlowLoadDialogTask },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _uiVibrationOptionsTask },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, titleExitTask },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
     { { { TASK_BODY_NONE, 0x0 } }, NULL },
     { { { TASK_BODY_NONE, 0x18 } }, gameFlowStartSessionTask },
     { { { TASK_BODY_NONE, 0x10 } }, mcSaveDialogTask },
     { { { TASK_BODY_NONE, 0x10 } }, mcLoadDialogTask },
-    { { { TASK_BODY_NONE, 0xC0 } }, taskNoopBank0Slot12 },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskNoopBank0Slot12 },
     { { { TASK_BODY_NONE, 0x10 } }, _bootStartTitleTask },
     { { { TASK_BODY_COORD, 0x2F } }, viewApplyCoordTask },
     { { { TASK_BODY_NONE, 0x2F } }, viewApplyCameraTask },
@@ -205,11 +205,11 @@ static TaskDesc _gTaskSystemDescs[39] = {
     { { { TASK_BODY_NONE, 0x10 } }, mcSaveDialogTask },
     { { { TASK_BODY_NONE, 0x10 } }, mcLoadDialogTask },
     { { { TASK_BODY_NONE, 0x1F } }, directionTask },
-    { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
     { { { TASK_BODY_NONE, 0x30 } }, viewTransitionGateTask },
     { { { TASK_BODY_NONE, 0x2F } }, spriteAllocateViewCachedPacketsTask },
-    { { { TASK_BODY_NONE, 0xC0 } }, taskExitCallback },
-    { { { TASK_BODY_NONE, 0xC0 } }, func_807011D8 },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskExitCallback },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, func_807011D8 },
     { { { TASK_BODY_NONE, 0xE0 } }, modelObjectDrawTemporaryListsTask },
     { { { TASK_BODY_NONE, 0xD0 } }, spriteViewTask },
     { { { TASK_BODY_NONE, 0x2F } }, loadingSessionLoadTask },
@@ -219,7 +219,7 @@ static TaskDesc _gTaskSystemDescs[39] = {
     { { { TASK_BODY_NONE, 0x10 } }, bootReloadTitleTask },
     { { { TASK_BODY_NONE, 0x2F } }, fadeResumeSessionTask },
     { { { TASK_BODY_NONE, 0xF8 } }, NULL },
-    { { { TASK_BODY_NONE, 0xC0 } }, func_80701400 },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, func_80701400 },
     { { { TASK_BODY_NONE, 0x2F } }, NULL },
     { { { TASK_BODY_NONE, 0xF8 } }, viewCommitIndexTask },
     { { { TASK_BODY_NONE, 0xF8 } }, loadingRestoreViewGraphicsTask },
@@ -282,7 +282,6 @@ static _FontGlyph _gFontGlyphsSmall[FONT_GLYPH_SMALL_COUNT] = {
 /// Ordering-table tag seed and task priority of the resident vibration panel.
 enum {
     USER_INTERFACE_VIBRATION_OPTIONS_OT_INDEX = 56,
-    USER_INTERFACE_VIBRATION_OPTIONS_PRIORITY = 192,
 };
 
 /// Resident title-style panel recipe for vibration-only options after CD loading.
@@ -296,7 +295,7 @@ static UiObjectDesc _gUiVibrationOptionsDescriptor = {
     .otIndexSeed     = USER_INTERFACE_VIBRATION_OPTIONS_OT_INDEX,
     .field_E         = 0,
     .taskFlags       = TASK_BODY_NONE,
-    .taskPriority    = USER_INTERFACE_VIBRATION_OPTIONS_PRIORITY,
+    .taskPriority    = TASK_PRIORITY_CONTROL,
     .contentCallback = uiUpdateOptionsAfterLoadTask,
     .taskDataValue   = 0,
 };

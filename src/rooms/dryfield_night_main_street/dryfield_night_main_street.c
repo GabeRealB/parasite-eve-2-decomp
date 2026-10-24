@@ -154,13 +154,11 @@ static WorldCollisionTrigger _gDryfieldNightMainStreetRoom1ActionTriggers[12];
 static WorldCoordRoomAmbientEntry _gDryfieldNightMainStreetRoomAmbientTable[25];
 static WorldCoordRoomLights       _gDryfieldNightMainStreetRoomLights;
 
-enum { MAIN_STREET_EVENT_TASK_PRIORITY = 32 };
-
 /// Bodyless staged motel-scene recipe, using the room's latched event and destination.
 ///
 /// Priority 32; spawn payloads and metadata are unused. Spawn reads the recipe
 /// synchronously, and the callback and singleton snapshots stay live through reload.
-static TaskDesc _gMainStreetStagedSceneTaskDescriptor = { { { TASK_BODY_NONE, MAIN_STREET_EVENT_TASK_PRIORITY } }, roomEventStagedTask, { .value = 0 } };
+static TaskDesc _gMainStreetStagedSceneTaskDescriptor = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventStagedTask, { .value = 0 } };
 
 /// Bodyless transition task spawned by this room's event gate at priority 32.
 ///
@@ -168,13 +166,13 @@ static TaskDesc _gMainStreetStagedSceneTaskDescriptor = { { { TASK_BODY_NONE, MA
 /// then reload the session. Spawn payloads and metadata are unused. The gate
 /// reads the recipe synchronously; room snapshots and callback code must remain
 /// live through the deferred transition.
-static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
+static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventTask, { .value = 0 } };
 
 /// Bodyless Ice Bag handover-completion recipe at priority 32.
 ///
 /// Waits for CAP to become idle, then updates the saved timer and water-bag
 /// possession. Spawn payloads and metadata are unused; keep callback code loaded.
-static TaskDesc _gMainStreetIceBagCompletionTaskDescriptor = { { { TASK_BODY_NONE, MAIN_STREET_EVENT_TASK_PRIORITY } }, _mainStreetFinishIceBagEvent, { .value = 0 } };
+static TaskDesc _gMainStreetIceBagCompletionTaskDescriptor = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _mainStreetFinishIceBagEvent, { .value = 0 } };
 
 /// Room-task message interface, borrowed from this overlay until receiver teardown.
 ///

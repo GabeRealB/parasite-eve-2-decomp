@@ -443,9 +443,7 @@ static ActorHeightClamp _gActor01900RoomHeightClamps[3] = {
 /// coordinate units, retaining signed-halfword wrapping. No recovered code reads it.
 static s16 _gActor01900CircleTravel = 0;
 
-enum { ACTOR_01900_TASK_PRIORITY = 96 };
-
-TaskDesc gActor01900GrinningStrangerTaskDesc = { { { TASK_BODY_TMD, ACTOR_01900_TASK_PRIORITY } }, _actor01900Task, { .model = &_gStrangerGrinningBody } };
+TaskDesc gActor01900GrinningStrangerTaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor01900Task, { .model = &_gStrangerGrinningBody } };
 
 static SVECTOR ActorContact_ScratchPosition = { 0 };
 

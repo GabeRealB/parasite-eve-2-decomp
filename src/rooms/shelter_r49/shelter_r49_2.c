@@ -35,7 +35,6 @@
 #include "main/task_types.h"
 
 enum {
-    SHELTER_R49_OBSERVATORY_TASK_PRIORITY   = 192,
     SHELTER_R49_ARRIVAL_VIEW                = 2,
     SHELTER_R49_ARRIVAL_YAW                 = 1024, // Quarter turn; 4096 units per turn
     SHELTER_R49_GRID_CELL_COUNT_X           = 1,
@@ -57,8 +56,8 @@ static void                 _shelterR49PlayMovieTask(Task* movieTask);
 static void                 _shelterR49EnterObservatoryTask(Task* transitionTask);
 
 TaskDesc gShelterR49ObservatoryTransitionTasks[SHELTER_R49_OBSERVATORY_TASK_COUNT] = {
-    [SHELTER_R49_OBSERVATORY_TRANSITION_TASK_INDEX] = { { { TASK_BODY_NONE, SHELTER_R49_OBSERVATORY_TASK_PRIORITY } }, _shelterR49EnterObservatoryTask, { .value = 0 } },
-    [SHELTER_R49_OBSERVATORY_MOVIE_TASK_INDEX]      = { { { TASK_BODY_NONE, SHELTER_R49_OBSERVATORY_TASK_PRIORITY } }, _shelterR49PlayMovieTask, { .value = 0 } },
+    [SHELTER_R49_OBSERVATORY_TRANSITION_TASK_INDEX] = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _shelterR49EnterObservatoryTask, { .value = 0 } },
+    [SHELTER_R49_OBSERVATORY_MOVIE_TASK_INDEX]      = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _shelterR49PlayMovieTask, { .value = 0 } },
 };
 
 WorldCollisionRoomResources gShelterR49RoomCollisionResources[SHELTER_R49_ROOM_COUNT] = {

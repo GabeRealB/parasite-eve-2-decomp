@@ -305,7 +305,7 @@ static DamageAttack _gActor03800ContactAttacks[1] = {
 /// maximum HP already lost. Keep the record loaded while enemies borrow it.
 static EnemyParams _gActor03800EnemyParams = { _gActor03800ContactAttacks, 280, 15, 53, 1, 0, 10, 100, 0 };
 
-TaskDesc gActor03800BlackBeetleTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor03800Task, { .model = &_gBlackBeetleBody } };
+TaskDesc gActor03800BlackBeetleTaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor03800Task, { .model = &_gBlackBeetleBody } };
 
 /// Black Beetle body clips indexed by `ACTOR_03800_ANIM_*` (1..11).
 ///

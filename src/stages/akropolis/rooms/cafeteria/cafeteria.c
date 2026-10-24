@@ -112,13 +112,13 @@ static TaskMessageEntry _gAkropolisCafeteriaRoomMessages[6] = {
 /// Scene tasks: the battle (0), the follow-up (1) and the Stranger's settling (2).
 
 TaskDesc gAkropolisCafeteriaSceneTasks[4] = {
-    { .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = AKROPOLIS_CAFETERIA_SCENE_TASK_PRIORITY } },
+    { .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_SCENE } },
       .callback = _akropolisCafeteriaBattleSceneTask,
       .data     = { .value = 0 } },
-    { .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = AKROPOLIS_CAFETERIA_SCENE_TASK_PRIORITY } },
+    { .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_SCENE } },
       .callback = _akropolisCafeteriaFollowUpSceneTask,
       .data     = { .value = 0 } },
-    { .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = AKROPOLIS_CAFETERIA_SCENE_TASK_PRIORITY } },
+    { .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_SCENE } },
       .callback = _akropolisCafeteriaSettleStrangerTask,
       .data     = { .value = 0 } },
     { .header = { .fields = { .flags = TASK_DESC_END, .priority = 0 } }, .callback = NULL, .data = { .model = NULL } },
@@ -156,13 +156,13 @@ static RECT _gAkropolisCafeteriaPostBattleRowSource = { .x = 0, .y = 271, .w = 2
 
 /// Movie tasks: the launcher (0), the blackout (1, never spawned) and the playback (2).
 TaskDesc gAkropolisCafeteriaMovieTasks[AKROPOLIS_CAFETERIA_MOVIE_TASK_COUNT] = {
-    { .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = AKROPOLIS_CAFETERIA_MOVIE_TASK_PRIORITY } },
+    { .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },
       .callback = akropolisCafeteriaStartMovieTask,
       .data     = { .value = 0 } },
-    { .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = AKROPOLIS_CAFETERIA_MOVIE_TASK_PRIORITY } },
+    { .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },
       .callback = akropolisCafeteriaBlackoutTask,
       .data     = { .value = 0 } },
-    { .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = AKROPOLIS_CAFETERIA_MOVIE_TASK_PRIORITY } },
+    { .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },
       .callback = akropolisCafeteriaPlayMovieTask,
       .data     = { .value = 0 } },
 };

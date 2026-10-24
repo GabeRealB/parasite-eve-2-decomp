@@ -70,19 +70,17 @@ static void _dryfieldGasStationArrivalSupervisorTask(Task* task);
 /// Both run at priority 32. Keep callback code and the scene record loaded
 /// until completion; spawning copies the recipe and retains no table pointer.
 static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
-    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
-
-enum { DRYFIELD_GAS_STATION_ARRIVAL_SUPERVISOR_TASK_PRIORITY = 32 };
 
 /// Bodyless arrival-supervisor recipe at slot 0, followed by TASK_DESC_END.
 ///
 /// Spawned with zero payloads on saved warp 1. Spawning consumes the recipe;
 /// callback code must remain loaded until it collects the arrival task's result.
 static TaskDesc _gDryfieldGasStationArrivalSupervisorTaskDescs[2] = {
-    { { { TASK_BODY_NONE, DRYFIELD_GAS_STATION_ARRIVAL_SUPERVISOR_TASK_PRIORITY } }, _dryfieldGasStationArrivalSupervisorTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _dryfieldGasStationArrivalSupervisorTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

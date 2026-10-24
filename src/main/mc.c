@@ -138,7 +138,6 @@ STATIC_ASSERT(OFFSET_OF(_McCardFileHeader, iconClut) == 0x60, mc_card_clut_offse
 STATIC_ASSERT(OFFSET_OF(_McCardFileHeader, iconPixels) == 0x80, mc_card_icons_offset);
 
 /// Scheduling priority of memory-card dialog and file-list content tasks.
-enum { MEMORY_CARD_DIALOG_TASK_PRIORITY = 0xC0 };
 
 /// Backing extent of each mutable filename, including three retained bytes after NUL.
 enum { MEMORY_CARD_FILENAME_BUFFER_BYTES = 24 };
@@ -806,20 +805,20 @@ UiList                   gMcSaveFileList             = { _gMcSaveFileRowCallback
 static const u8* _gMcPreviewModeLabels[4] = { gMcPreviewReplayLabel, gMcPreviewBountyLabel, gMcPreviewScavengerLabel, gMcPreviewNightmareLabel };
 
 UiObjectDesc gMcDialogDescriptors[MEMORY_CARD_DIALOG_COUNT] = {
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -25, 0x120, 0x32 }, 0x14, 0, TASK_BODY_NONE, MEMORY_CARD_DIALOG_TASK_PRIORITY, mcLoadDialogTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -25, 0x120, 0x32 }, 0x14, 0, TASK_BODY_NONE, MEMORY_CARD_DIALOG_TASK_PRIORITY, mcSaveDialogTask, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -25, 0x120, 0x32 }, 0x14, 0, TASK_BODY_NONE, TASK_PRIORITY_CONTROL, mcLoadDialogTask, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -25, 0x120, 0x32 }, 0x14, 0, TASK_BODY_NONE, TASK_PRIORITY_CONTROL, mcSaveDialogTask, 0 },
 };
 /// One child-panel recipe for choosing a cached file to load; borrows the dialog McWork.
 static UiObjectDesc _gMcLoadFileListDescriptors[1] = {
-    { 0x80000 | USER_INTERFACE_PANEL_TITLE_STYLE, { -136, 10, 0x120, 0x3C }, 0x0C, 0, TASK_BODY_NONE, MEMORY_CARD_DIALOG_TASK_PRIORITY, mcMenuUpdateLoadFileList, 0 },
+    { 0x80000 | USER_INTERFACE_PANEL_TITLE_STYLE, { -136, 10, 0x120, 0x3C }, 0x0C, 0, TASK_BODY_NONE, TASK_PRIORITY_CONTROL, mcMenuUpdateLoadFileList, 0 },
 };
 /// Save-destination child recipe followed by a retained File Information panel recipe.
 ///
 /// The parent spawns only entry zero, borrowing its McWork. Entry one has no
 /// spawning reference; it retains the information callback and its layout.
 static UiObjectDesc _gMcSaveFileListDescriptors[2] = {
-    { 0x80000 | USER_INTERFACE_PANEL_TITLE_STYLE, { -136, 10, 0x120, 0x3C }, 0x0C, 0, TASK_BODY_NONE, MEMORY_CARD_DIALOG_TASK_PRIORITY, mcMenuUpdateSaveFileList, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -60, 30, 0xC8, 0x3C }, 0x1C, 0, TASK_BODY_NONE, MEMORY_CARD_DIALOG_TASK_PRIORITY, mcMenuUpdateFileInformation, 0 },
+    { 0x80000 | USER_INTERFACE_PANEL_TITLE_STYLE, { -136, 10, 0x120, 0x3C }, 0x0C, 0, TASK_BODY_NONE, TASK_PRIORITY_CONTROL, mcMenuUpdateSaveFileList, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -60, 30, 0xC8, 0x3C }, 0x1C, 0, TASK_BODY_NONE, TASK_PRIORITY_CONTROL, mcMenuUpdateFileInformation, 0 },
 };
 
 /// Build a new card filename from the product prefix, directory index and random suffix.

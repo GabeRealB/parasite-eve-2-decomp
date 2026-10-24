@@ -120,7 +120,6 @@ enum {
     MINE_MESA_SCENE_TASK_FADE_FROM_BLACK,
     MINE_MESA_SCENE_TASK_RUN_SOUND_CUES,
     MINE_MESA_SCENE_TASK_COUNT,
-    MINE_MESA_SCENE_TASK_PRIORITY = 192,
 };
 static Task* _gMineMesaPlayerHeadTask;
 
@@ -254,15 +253,13 @@ static s32 _mineMesaRoomCommandMsg(Task* task, s32 messageId, s32 commandId, s32
 static s32 _mineMesaRoomActionMsg(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unused);
 static s32 _mineMesaActorEventMsg(Task* task, s32 messageId, s32 slotIndex, s32 secondArg);
 
-enum { MINE_MESA_STAGED_EVENT_TASK_PRIORITY = 32 };
-
 /// Bodyless task recipe for a latched departure's CAP, sound and session reload.
 ///
 /// Priority 32 runs the staged transition on the ordinary task list. Spawning
 /// consumes the descriptor synchronously; the room's destination, event and
 /// fade storage must remain loaded until the old session is discarded.
 static TaskDesc _gMineMesaStagedEventTaskDesc = {
-    .header   = { .fields = { TASK_BODY_NONE, MINE_MESA_STAGED_EVENT_TASK_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } },
     .callback = roomEventStagedTask,
     .data     = { .value = 0 },
 };
@@ -346,8 +343,8 @@ static EvsCommand _gMineMesaEnableDisplayScript[2] = {
 /// task list; it starts entry 1 on the display list before retiring. Descriptor
 /// storage is consumed at spawn; playback code remains live through restoration.
 static TaskDesc _gMineMesaMovieTaskDescs[] = {
-    { .header = { .fields = { TASK_BODY_NONE, MINE_MESA_SCENE_TASK_PRIORITY } }, .callback = _mineMesaStartMovieTask, .data = { .value = 0 } },
-    { .header = { .fields = { TASK_BODY_NONE, MINE_MESA_SCENE_TASK_PRIORITY } }, .callback = streamedScenePlay, .data = { .value = 0 } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, .callback = _mineMesaStartMovieTask, .data = { .value = 0 } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, .callback = streamedScenePlay, .data = { .value = 0 } },
 };
 
 /// Retained, unreferenced bodyless task recipe for the room's 64-tick black hold.
@@ -355,7 +352,7 @@ static TaskDesc _gMineMesaMovieTaskDescs[] = {
 /// Runs at scene priority. A fresh task's zero timer gives the full hold;
 /// descriptor storage is consumed at spawn and no model or work is attached.
 static TaskDesc _gMineMesaHoldBlackScreenTaskDesc = {
-    .header   = { .fields = { TASK_BODY_NONE, MINE_MESA_SCENE_TASK_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } },
     .callback = _mineMesaHoldBlackScreenTask,
     .data     = { .value = 0 },
 };
@@ -602,12 +599,12 @@ static void _mineMesaRunSoundCuesTask(Task* task);
 /// All run at priority 192, start at state zero and receive both launcher
 /// arguments unchanged. Callbacks and borrowed scene resources must stay loaded.
 static TaskDesc _gMineMesaSceneTaskDescriptors[MINE_MESA_SCENE_TASK_COUNT] = {
-    { { { TASK_BODY_NONE, MINE_MESA_SCENE_TASK_PRIORITY } }, _mineMesaPlayerPathTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, MINE_MESA_SCENE_TASK_PRIORITY } }, _mineMesaPlayerHeadAimTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, MINE_MESA_SCENE_TASK_PRIORITY } }, _mineMesaCompanionHeadAimTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, MINE_MESA_SCENE_TASK_PRIORITY } }, _mineMesaPlayerHeadBlendTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, MINE_MESA_SCENE_TASK_PRIORITY } }, _mineMesaFadeFromBlackTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, MINE_MESA_SCENE_TASK_PRIORITY } }, _mineMesaRunSoundCuesTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _mineMesaPlayerPathTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _mineMesaPlayerHeadAimTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _mineMesaCompanionHeadAimTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _mineMesaPlayerHeadBlendTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _mineMesaFadeFromBlackTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _mineMesaRunSoundCuesTask, { .value = 0 } },
 };
 
 /// Player scene sets copied into extension indices 47 and 48 of the equipped-weapon bank.
@@ -3429,15 +3426,13 @@ static TaskMessageEntry _gMineMesaEnemyWaveMessages[2] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-enum { MINE_MESA_ENEMY_WAVE_TASK_PRIORITY = 32 };
-
 /// Bodyless task recipe for the room's two-slot, ten-kill enemy-wave controller.
 ///
 /// Priority 32 puts the controller on the ordinary task list. Spawn arguments
 /// are unused; descriptor storage is consumed synchronously. The callback and
 /// room/actor resources must remain loaded until the controller and enemies retire.
 static TaskDesc _gMineMesaEnemyWaveTaskDesc = {
-    .header   = { .fields = { TASK_BODY_NONE, MINE_MESA_ENEMY_WAVE_TASK_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } },
     .callback = _mineMesaEnemyWaveTask,
     .data     = { .value = 0 },
 };

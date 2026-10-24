@@ -85,15 +85,13 @@ enum {
     SHELTER_1F_PARKING_GARAGE_KEY_ITEM_UNUSABLE = 0,
 };
 
-enum { SHELTER_1F_PARKING_GARAGE_DEPARTURE_TASK_PRIORITY = 32 };
-
 /// Bodyless resolved-departure recipe, priority 32 and zero metadata/payloads.
 ///
 /// One descriptor with no terminator. Starts after the underground destination
 /// has been stored in `gRoomDeparture`; that singleton and the callback must
 /// remain loaded and unchanged through sound playback and session reload.
 static TaskDesc _gShelter1fParkingGarageDepartureTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = SHELTER_1F_PARKING_GARAGE_DEPARTURE_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_SCENE } },
     .callback = roomEventDepartureTask,
     .data     = { .value = 0 },
 };
@@ -102,7 +100,7 @@ static TaskDesc _gShelter1fParkingGarageDepartureTaskDesc = {
 ///
 /// Spawn payloads are unused. Keep the latched destination/event records and
 /// callback code loaded and stable through the staged departure.
-static TaskDesc _gShelter1fParkingGarageStagedEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
+static TaskDesc _gShelter1fParkingGarageStagedEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventStagedTask, { .value = 0 } };
 
 /// Garage handlers for exit events, key-item refusal, travel actions and ignored commands.
 ///
@@ -122,7 +120,7 @@ static const TaskMessageEntry _gShelter1fParkingGarageRoomMessages[5] SECTION(".
 /// and opens CAP command 2; confirmation fades and stages the underground
 /// destination, while refusal resumes control. Keep this room loaded through reload.
 static TaskDesc _gShelter1fParkingGarageUndergroundDepartureTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = SHELTER_1F_PARKING_GARAGE_DEPARTURE_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_SCENE } },
     .callback = _shelter1fParkingGarageUndergroundDepartureTask,
     .data     = { .value = 0 },
 };

@@ -48,11 +48,8 @@
 #define WATER_RIPPLE_CACHED_COORD_TASK neoArkIslandWaterRippleTask
 #include "../../shared/effects/water_effects.h"
 
-enum { NEO_ARK_ISLAND_WATER_TASK_PRIORITY             = 192,
-       NEO_ARK_ISLAND_GALLERY_DEPARTURE_TASK_PRIORITY = 32 };
-
 TaskDesc gNeoArkIslandWaterRefractionTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = NEO_ARK_ISLAND_WATER_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },
     .callback = waterRefractionTask,
     .data     = { .value = 0 },
 };
@@ -62,7 +59,7 @@ TaskDesc gNeoArkIslandWaterRefractionTaskDesc = {
 /// One record with zero metadata and no terminator. Nothing spawns it; the
 /// callback's drawing branches select only the submarine tunnel and gallery.
 static TaskDesc _gNeoArkIslandUnusedWaterDistortionTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = NEO_ARK_ISLAND_WATER_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },
     .callback = waterDistortBandTask,
     .data     = { .value = 0 },
 };
@@ -77,7 +74,7 @@ TaskMessageEntry gNeoArkIslandRoomMessages[6] = {
 };
 
 TaskDesc gNeoArkIslandGalleryDepartureTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = NEO_ARK_ISLAND_GALLERY_DEPARTURE_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_SCENE } },
     .callback = neoArkIslandGalleryDepartureTask,
     .data     = { .value = 0 },
 };

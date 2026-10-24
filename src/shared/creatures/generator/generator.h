@@ -64,7 +64,6 @@ enum {
 };
 
 /// Execution-list priority shared by the generator body and Life Support part.
-enum { GENERATOR_TASK_PRIORITY = 96 };
 
 /// State indices of the body and Life Support task dispatchers.
 enum {

@@ -212,10 +212,8 @@ static AnimationSet* _gActor111800GrinningStrangerAnimationSets[8] = {
     NULL,
 };
 
-enum { ACTOR_111800_STRANGER_TASK_PRIORITY = 192 };
-
 TaskDesc gActor111800GrinningStrangerTaskDesc = {
-    .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_111800_STRANGER_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = TASK_PRIORITY_CONTROL } },
     .callback = _actor111800GrinningStrangerTask,
     .data     = { .model = &_gStrangerGrinningBody },
 };

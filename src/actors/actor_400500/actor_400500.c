@@ -565,18 +565,17 @@ static TaskMessageEntry _gActor400500RoomCommandMessages[2] = {
 #include "assets/enemies/stalker/gray/bank.inc"
 
 /// Execution priority shared by the Stalker's body and attached strike-arm tasks.
-enum { ACTOR_400500_MODEL_TASK_PRIORITY = 96 };
 
 /// Attached strike-arm spawn recipes, indexed by `ACTOR_400500_ARM_LEFT/RIGHT`.
 ///
 /// Each creates an owned TMD body from borrowed package geometry at priority 96.
 /// The parent owns the child handles and ends both tasks during teardown.
 static TaskDesc _gActor400500ArmTaskDescs[2] = {
-    { { { TASK_BODY_TMD, ACTOR_400500_MODEL_TASK_PRIORITY } }, _actor400500LeftArmTask, { .model = &_gStalkerGrayBurstArmLeft } },
-    { { { TASK_BODY_TMD, ACTOR_400500_MODEL_TASK_PRIORITY } }, _actor400500RightArmTask, { .model = &_gStalkerGrayBurstArmRight } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor400500LeftArmTask, { .model = &_gStalkerGrayBurstArmLeft } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor400500RightArmTask, { .model = &_gStalkerGrayBurstArmRight } },
 };
 
-TaskDesc gActor400500TaskDesc = { { { TASK_BODY_TMD, ACTOR_400500_MODEL_TASK_PRIORITY } }, _actor400500Task, { .model = &_gStalkerGrayBody } };
+TaskDesc gActor400500TaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor400500Task, { .model = &_gStalkerGrayBody } };
 
 /// Six crawl-route rectangles in room X/Z coordinates, followed by `ACTOR_ZONE_END`.
 ///

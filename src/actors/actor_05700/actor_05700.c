@@ -605,13 +605,11 @@ static s16 _gGolemPawnRookBeamRibbonCorners[2][4] = {
     { 0, 1, 4, 5 },
 };
 
-enum { ACTOR_05700_TASK_PRIORITY = 96 };
-
 TaskDesc gActor05700RookGolemTasks[4] = {
-    { { { TASK_BODY_TMD, ACTOR_05700_TASK_PRIORITY } }, _actor05700RookGolemTask, { .model = &_gGolemRookBody } },
-    { { { TASK_BODY_TMD, ACTOR_05700_TASK_PRIORITY } }, _actor05700GrenadeLauncherTask, { .model = &_gGolemGrenadeLauncher } },
-    { { { TASK_BODY_TMD, ACTOR_05700_TASK_PRIORITY } }, _actor05700GrenadeTask, { .model = &gGolemGrenade } },
-    { { { TASK_BODY_TMD, ACTOR_05700_TASK_PRIORITY } }, _actor05700ShieldTask, { .model = &_gGolemRookShield } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor05700RookGolemTask, { .model = &_gGolemRookBody } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor05700GrenadeLauncherTask, { .model = &_gGolemGrenadeLauncher } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor05700GrenadeTask, { .model = &gGolemGrenade } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor05700ShieldTask, { .model = &_gGolemRookShield } },
 };
 
 /// Launcher GOLEM body clip bank indexed by animation selectors 0..30.

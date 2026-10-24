@@ -439,19 +439,18 @@ static EvsCommand _gActor341900GluttonEntranceSkipScript[20] = {
 };
 
 /// Execution priority of the entrance controller and all its display tasks.
-enum { ACTOR_341900_ENTRANCE_TASK_PRIORITY = 192 };
 
 TaskDesc gActor341900GluttonEntranceTaskDescs[ACTOR_341900_ENTRANCE_TASK_COUNT] = {
-    { { { TASK_BODY_NONE, ACTOR_341900_ENTRANCE_TASK_PRIORITY } }, _actor341900EventTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ACTOR_341900_ENTRANCE_TASK_PRIORITY } }, _actor341900FadeInTask, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_341900_ENTRANCE_TASK_PRIORITY } }, _actor341900GluttonBodyTask, { .model = &gGluttonBody } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_341900_ENTRANCE_TASK_PRIORITY } }, _actor341900GluttonPartTask, { .model = &gGluttonLegRight } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_341900_ENTRANCE_TASK_PRIORITY } }, _actor341900GluttonPartTask, { .model = &gGluttonLegLeft } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_341900_ENTRANCE_TASK_PRIORITY } }, _actor341900GluttonPartTask, { .model = &gGluttonActor403200Model12884 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_341900_ENTRANCE_TASK_PRIORITY } }, _actor341900GluttonPartTask, { .model = &gGluttonActor403200Model13774 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_341900_ENTRANCE_TASK_PRIORITY } }, _actor341900GluttonPartTask, { .model = &gGluttonActor403200Model18BE4 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_341900_ENTRANCE_TASK_PRIORITY } }, _actor341900DoorHalfTask, { .model = &gActor444000Model1DC9C } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_341900_ENTRANCE_TASK_PRIORITY } }, _actor341900DoorHalfTask, { .model = &gActor444000Model1E14C } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor341900EventTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor341900FadeInTask, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor341900GluttonBodyTask, { .model = &gGluttonBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor341900GluttonPartTask, { .model = &gGluttonLegRight } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor341900GluttonPartTask, { .model = &gGluttonLegLeft } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor341900GluttonPartTask, { .model = &gGluttonActor403200Model12884 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor341900GluttonPartTask, { .model = &gGluttonActor403200Model13774 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor341900GluttonPartTask, { .model = &gGluttonActor403200Model18BE4 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor341900DoorHalfTask, { .model = &gActor444000Model1DC9C } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor341900DoorHalfTask, { .model = &gActor444000Model1E14C } },
 };
 
 /// Borrowed entrance controller used by the event script's callbacks.

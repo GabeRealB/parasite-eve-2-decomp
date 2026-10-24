@@ -316,10 +316,9 @@ static void _gameOverTask(Task* task)
     }
 }
 
-enum { GAME_OVER_PRESENTATION_TASK_PRIORITY = 0xC0 };
 TaskDesc gGameOverTaskDescriptors[GAME_OVER_TASK_COUNT] = {
-    { { { TASK_BODY_NONE, GAME_OVER_PRESENTATION_TASK_PRIORITY } }, _gameOverTask, { NULL } },
-    { { { TASK_BODY_NONE, GAME_OVER_PRESENTATION_TASK_PRIORITY } }, NULL, { NULL } },
-    { { { TASK_BODY_NONE, GAME_OVER_PRESENTATION_TASK_PRIORITY } }, NULL, { NULL } },
-    { { { TASK_BODY_NONE, GAME_OVER_PRESENTATION_TASK_PRIORITY } }, _gameOverRedFlashTask, { NULL } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _gameOverTask, { NULL } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, NULL, { NULL } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, NULL, { NULL } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _gameOverRedFlashTask, { NULL } },
 };

@@ -112,12 +112,12 @@ enum {
 };
 
 TaskDesc gMistShootingGalleryTaskDescs[MIST_SHOOTING_GALLERY_TASK_COUNT] = {
-    [MIST_SHOOTING_GALLERY_TASK_COURSE_CONTROLLER] = { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryCourseTask, { .value = 0 } },
-    [MIST_SHOOTING_GALLERY_TASK_RED_FLASH]         = { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryRedFlashTask, { .value = 0 } },
+    [MIST_SHOOTING_GALLERY_TASK_COURSE_CONTROLLER] = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _mistShootingGalleryCourseTask, { .value = 0 } },
+    [MIST_SHOOTING_GALLERY_TASK_RED_FLASH]         = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _mistShootingGalleryRedFlashTask, { .value = 0 } },
 };
 
 /// Modal caption task descriptor, with no body and priority 192.
-static TaskDesc _gMistShootingGalleryCaptionModeTaskDesc = { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryCaptionModeTask, { .value = 0 } };
+static TaskDesc _gMistShootingGalleryCaptionModeTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _mistShootingGalleryCaptionModeTask, { .value = 0 } };
 
 #include "assets/rooms/mist/shooting_gallery/waves.inc"
 /// One pointer slot selecting course 0's finite wave script.

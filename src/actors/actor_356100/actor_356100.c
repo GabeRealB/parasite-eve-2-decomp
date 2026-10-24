@@ -411,7 +411,7 @@ static TaskMessageEntry _gActor356100Messages[7] = {
 /// value; its further purpose is unproven.
 static u16 _gActor356100CircleStepTotal = 0;
 
-TaskDesc gActor356100HornedStrangerTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor356100Task, { .model = &_gStrangerHornedBody } };
+TaskDesc gActor356100HornedStrangerTaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor356100Task, { .model = &_gStrangerHornedBody } };
 
 static SVECTOR ActorContact_ScratchPosition = { 0 };
 

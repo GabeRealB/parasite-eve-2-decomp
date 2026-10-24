@@ -386,10 +386,8 @@ static TaskMessageEntry _gDesertChaserMessages[7] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-enum { ACTOR_323400_DESERT_CHASER_TASK_PRIORITY = 96 };
-
 TaskDesc gActor323400DesertChaserTaskDesc = {
-    .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_323400_DESERT_CHASER_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = TASK_PRIORITY_ACTOR } },
     .callback = _desertChaserTask,
     .data     = { .model = &_gChaserDesertBody },
 };

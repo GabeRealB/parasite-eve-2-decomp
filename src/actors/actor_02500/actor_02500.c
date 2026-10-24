@@ -378,8 +378,8 @@ static s16 _gActor02500ChaseSpeeds[8] = {
 };
 
 TaskDesc gActor02500Tasks[2] = {
-    { { { TASK_BODY_TMD, 96 } }, _actor02500Task, { .model = &_gScorpionBody } },
-    { { { TASK_BODY_COORD, 96 } }, _actor02500CorpsePoisonTask, { .value = 0 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor02500Task, { .model = &_gScorpionBody } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, _actor02500CorpsePoisonTask, { .value = 0 } },
 };
 
 /// Scorpion body clips indexed by `ACTOR_02500_ANIM_*`.

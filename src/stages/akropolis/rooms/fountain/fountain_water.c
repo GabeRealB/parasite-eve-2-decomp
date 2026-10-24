@@ -96,12 +96,10 @@ static void _akropolisFountainStopWaterMovieTask(Task* task);
 /// Persistent water-loop request latch (0 no applied request, 1 request applied).
 static s16 _gAkropolisFountainWaterLoopRequested = 0;
 
-enum { AKROPOLIS_FOUNTAIN_WATER_MOVIE_TASK_PRIORITY = 192 };
-
 /// Bodyless water-movie recipes: slot 0 starts the updater, slot 1 stops it.
 static TaskDesc _gAkropolisFountainWaterMovieTaskDescriptors[2] = {
-    { { { TASK_BODY_NONE, AKROPOLIS_FOUNTAIN_WATER_MOVIE_TASK_PRIORITY } }, _akropolisFountainWaterMovieTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, AKROPOLIS_FOUNTAIN_WATER_MOVIE_TASK_PRIORITY } }, _akropolisFountainStopWaterMovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _akropolisFountainWaterMovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _akropolisFountainStopWaterMovieTask, { .value = 0 } },
 };
 
 #include "assets/rooms/akropolis/fountain/header.inc"

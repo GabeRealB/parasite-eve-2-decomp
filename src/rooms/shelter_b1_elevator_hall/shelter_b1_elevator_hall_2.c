@@ -76,7 +76,6 @@ enum {
 };
 
 /// Priority shared by the two bodyless departure controllers.
-enum { SHELTER_B1_ELEVATOR_HALL_TRANSITION_TASK_PRIORITY = 32 };
 
 /// One-based endpoint IDs used by the warp table and the action triggers.
 enum {
@@ -122,7 +121,7 @@ enum {
 };
 
 TaskDesc gShelterB1ElevatorHallElevatorTaskDesc = {
-    .header   = { .fields = { TASK_BODY_NONE, SHELTER_B1_ELEVATOR_HALL_TRANSITION_TASK_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } },
     .callback = shelterElevatorTask,
     .data     = { .value = 0 },
 };
@@ -137,7 +136,7 @@ TaskMessageEntry gShelterB1ElevatorHallRoomMessages[6] = {
 };
 
 TaskDesc gShelterB1ElevatorHallMineTransitTaskDesc = {
-    .header   = { .fields = { TASK_BODY_NONE, SHELTER_B1_ELEVATOR_HALL_TRANSITION_TASK_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } },
     .callback = shelterB1ElevatorHallMineTransitTask,
     .data     = { .value = 0 },
 };

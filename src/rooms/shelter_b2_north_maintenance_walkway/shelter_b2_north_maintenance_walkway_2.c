@@ -50,9 +50,9 @@
 /// Per-palette channel shifts for the halo, indexed by the palette the spawn
 /// argument selects.
 
-TaskDesc gShelterB2NorthMaintenanceWalkwayStagedEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventStagedTask, { .value = 0 } };
+TaskDesc gShelterB2NorthMaintenanceWalkwayStagedEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventStagedTask, { .value = 0 } };
 
-TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry gShelterB2NorthMaintenanceWalkwayRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, shelterB2NorthMaintenanceWalkwayResolveRoomEvent },

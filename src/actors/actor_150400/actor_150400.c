@@ -102,14 +102,12 @@ static TmdSource _gActor150400Model00C44 = {
     _gActor150400Model00C44Stream,
 };
 
-enum { ACTOR_150400_SLIDING_MODEL_PRIORITY = 32 };
-
 /// Recipe used twice for the freezer scene's sliding TMD models.
 ///
 /// Spawn argument 1 selects copy 1 or 2; scene cues initialize and then slide
 /// both live tasks. Spawning skips automatic primitive-buffer allocation.
 static TaskDesc _gActor150400SlidingModelTaskDesc = {
-    .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_150400_SLIDING_MODEL_PRIORITY } },
+    .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = TASK_PRIORITY_SCENE } },
     .callback = _actor150400SlidingModelTask,
     .data     = { .model = &_gActor150400Model00C44 },
 };
@@ -257,20 +255,18 @@ static TaskMessageEntry _gActor150400No9Messages[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-enum { ACTOR_150400_GOLEM_TASK_PRIORITY = 96 };
-
 enum { ACTOR_150400_BEAM_SWORD_DESCRIPTOR = 1 };
 
 TaskDesc gActor150400No9GolemTaskDescriptors[2] = {
     // 0: body.
     {
-        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_150400_GOLEM_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_ACTOR } },
         .callback = _actor150400PairWalkerTask,
         .data     = { .model = &_gGolemNo9BodyDryfield },
     },
     // 1: beam sword.
     {
-        .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_150400_GOLEM_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = TASK_PRIORITY_ACTOR } },
         .callback = _pairWalkSubModelTask,
         .data     = { .model = &_gGolemBeamSword },
     },

@@ -102,36 +102,34 @@ static AnimationSet** _gActor213000EricBaldwinAnimationBanks[1] = {
     _gActor213000EricBaldwinAnimationSets,
 };
 
-enum { ACTOR_213000_ERIC_TASK_PRIORITY = 192 };
-
 TaskDesc gActor213000EricBaldwinTaskDescriptors[5] = {
     // 0: body.
     {
-        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_213000_ERIC_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _actor213000BodyTask,
         .data     = { .model = &_gEricBody },
     },
     // 1: first held model.
     {
-        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_213000_ERIC_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _actor213000HeldModelTask,
         .data     = { .model = &_gMistR18BriefingFile },
     },
     // 2: second held model.
     {
-        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_213000_ERIC_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _actor213000HeldModelTask,
         .data     = { .model = &_gMistR18Laptop },
     },
     // 3: three-root attachment.
     {
-        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_213000_ERIC_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _actor213000ThreeRootModelTask,
         .data     = { .model = &_gEricArmRight },
     },
     // 4: right hand.
     {
-        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_213000_ERIC_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _actor213000RightHandTask,
         .data     = { .model = &_gEricHandRight },
     },

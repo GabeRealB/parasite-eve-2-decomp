@@ -55,7 +55,6 @@ enum {
     ACTOR_160600_COMPANION_EXTENSION_COPY_WORDS = 10,
     ACTOR_160600_PLAYER_UNARMED_WALK_CLIP       = 19,
     ACTOR_160600_PLAYER_OPENING_ARRIVAL_CLIP    = ANIMATION_BANK_BASE_SET_COUNT,
-    ACTOR_160600_PLACED_ACTOR_TASK_PRIORITY     = 96,
 };
 
 /// Player scene clips for extension indices 47..61, with unused holes at 52..55.
@@ -842,7 +841,7 @@ static TaskMessageEntry _gPacedWalkMsgTable[6] = {
 };
 
 TaskDesc gActor160600PlacedActorTask = {
-    .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_160600_PLACED_ACTOR_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_ACTOR } },
     .callback = _pacedWalkTask,
     .data     = { .model = &_gSoldierABody },
 };

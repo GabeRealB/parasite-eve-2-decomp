@@ -267,13 +267,7 @@ enum {
     SHELTER_B3_GARBAGE_INCINERATOR_BODY_FIRE_SPREAD = 1,
 };
 
-enum {
-    SHELTER_B3_GARBAGE_INCINERATOR_EXIT_ENCOUNTER_TASK_PRIORITY = 192,
-    SHELTER_B3_GARBAGE_INCINERATOR_LIFT_TASK_PRIORITY           = 192,
-    SHELTER_B3_GARBAGE_INCINERATOR_CLOCK_CAPTION_TASK_PRIORITY  = 32,
-};
-
-TaskDesc gShelterB3GarbageIncineratorExitEncounterTaskDesc = { { { TASK_BODY_NONE, SHELTER_B3_GARBAGE_INCINERATOR_EXIT_ENCOUNTER_TASK_PRIORITY } }, _shelterB3GarbageIncineratorExitEncounterTask, { .value = 0 } };
+TaskDesc gShelterB3GarbageIncineratorExitEncounterTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _shelterB3GarbageIncineratorExitEncounterTask, { .value = 0 } };
 
 static TmdBone _gShelterB3GarbageIncineratorModel081E4Skeleton[1] = {
 #include "assets/shelter_b3_garbage_incinerator_model_081E4_skeleton.inc"
@@ -344,9 +338,7 @@ static ActorTransform _gShelterB3GarbageIncineratorLiftRestPlacements[SHELTER_B3
 /// phase. Coordinates are whole game units; angles use 4096 units per turn.
 static const ActorTransform _gShelterB3GarbageIncineratorLiftInitialPlacement SECTION(".data") = { .pos = { 14000, 3000, -18000, 0 }, .rot = { 0, 0, 0, 0 } };
 
-TaskDesc gShelterB3GarbageIncineratorLiftTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), SHELTER_B3_GARBAGE_INCINERATOR_LIFT_TASK_PRIORITY } }, _shelterB3GarbageIncineratorLiftTask, { .model = &_gShelterB3GarbageIncineratorModel081E4 } };
-
-enum { SHELTER_B3_GARBAGE_INCINERATOR_HEAT_HAZE_TASK_PRIORITY = 192 };
+TaskDesc gShelterB3GarbageIncineratorLiftTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _shelterB3GarbageIncineratorLiftTask, { .model = &_gShelterB3GarbageIncineratorModel081E4 } };
 
 /// Burn-scene heat-haze mesh recipe followed by a descriptor terminator.
 ///
@@ -354,7 +346,7 @@ enum { SHELTER_B3_GARBAGE_INCINERATOR_HEAT_HAZE_TASK_PRIORITY = 192 };
 /// argument borrows the controller's embedded ScreenWaveCtx ramp through the
 /// final draw; keep that work and this overlay loaded until the mesh exits.
 static TaskDesc _gShelterB3GarbageIncineratorBlazeHeatHazeTaskDescs[2] = {
-    { { { TASK_BODY_NONE, SHELTER_B3_GARBAGE_INCINERATOR_HEAT_HAZE_TASK_PRIORITY } }, _screenWaveGridTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _screenWaveGridTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -520,10 +512,10 @@ static EvsCommand _gShelterB3GarbageIncineratorBlazeScript[17] = {
 };
 
 TaskDesc gShelterB3GarbageIncineratorBlazeTaskDescs[SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_TASK_COUNT] = {
-    { { { TASK_BODY_NONE, 192 } }, _shelterB3GarbageIncineratorBlazeControllerTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _blazeFadeTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _blazeBodyFireTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _shelterB3GarbageIncineratorBlazeControllerTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _blazeFadeTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _blazeBodyFireTask, { .value = 0 } },
 };
 
 #include "../../shared/room/cap_captions_settings.inc.c"
@@ -533,7 +525,7 @@ TaskDesc gShelterB3GarbageIncineratorBlazeTaskDescs[SHELTER_B3_GARBAGE_INCINERAT
 /// Spawn only index 0; spawnArg1's signed low halfword is the bottom baseline
 /// in screen pixels (208 here), and spawnArg2/metadata are unused. The task
 /// borrows the caption schedule and CAP data for the room's loaded lifetime.
-static TaskDesc _gShelterB3GarbageIncineratorClockCaptionTaskDesc = { { { TASK_BODY_NONE, SHELTER_B3_GARBAGE_INCINERATOR_CLOCK_CAPTION_TASK_PRIORITY } }, _capCaptionRunSchedule, { .value = 0 } };
+static TaskDesc _gShelterB3GarbageIncineratorClockCaptionTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _capCaptionRunSchedule, { .value = 0 } };
 
 #include "../../shared/room/cap_captions_schedule.inc.c"
 

@@ -123,7 +123,6 @@ static void _actor341300TexturedQuadsTask(Task* task);
 #include "assets/rooms/shelter/b2_north_maintenance_walkway/stinger_scene_clips.inc"
 
 /// Priority of the scene's temporary tasks and placed-resource exit recipe.
-enum { ACTOR_341300_TASK_PRIORITY = 192 };
 
 /// Scene-local script choices; music durations count audio updates.
 enum {
@@ -136,9 +135,9 @@ enum {
 };
 
 TaskDesc gActor341300ScriptTaskDescriptors[3] = {
-    { { { TASK_BODY_COORD, ACTOR_341300_TASK_PRIORITY } }, _actor341300TexturedQuadsTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ACTOR_341300_TASK_PRIORITY } }, _actor341300TurnPlayerTowardScenePlacementTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ACTOR_341300_TASK_PRIORITY } }, enemyTaskExit, { .value = 0 } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_CONTROL } }, _actor341300TexturedQuadsTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor341300TurnPlayerTowardScenePlacementTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, enemyTaskExit, { .value = 0 } },
 };
 
 /// Player weapon-bank extension: NULL at index 47, then scene sets at 48..52.
@@ -379,17 +378,17 @@ static void _actor341300Emitter2ShardTask(Task* task);
 /// until their first update joins its teardown tree. Emitters have no body;
 /// shards own coordinate bodies. All callbacks require this package loaded.
 static TaskDesc _gActor341300DebrisTaskDescriptors[4] = {
-    { { { TASK_BODY_NONE, ACTOR_341300_TASK_PRIORITY } }, _actor341300Emitter0Task, { .value = 0 } },
-    { { { TASK_BODY_COORD, ACTOR_341300_TASK_PRIORITY } }, _actor341300Emitter0ShardTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ACTOR_341300_TASK_PRIORITY } }, _actor341300Emitter2Task, { .value = 0 } },
-    { { { TASK_BODY_COORD, ACTOR_341300_TASK_PRIORITY } }, _actor341300Emitter2ShardTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor341300Emitter0Task, { .value = 0 } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_CONTROL } }, _actor341300Emitter0ShardTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor341300Emitter2Task, { .value = 0 } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_CONTROL } }, _actor341300Emitter2ShardTask, { .value = 0 } },
 };
 
 /// Unspawned bodyless emitter recipe for two delayed ten-pair shard bursts.
 ///
 /// Its callback uses shard descriptor 1 at positions 0/1. No package spawn
 /// path reaches this recipe; ignored script indices do not establish a mapping.
-static TaskDesc _gActor341300PairedDebrisEmitterTaskDescriptor = { { { TASK_BODY_NONE, ACTOR_341300_TASK_PRIORITY } }, _actor341300PairedDebrisEmitterTask, { .value = 0 } };
+static TaskDesc _gActor341300PairedDebrisEmitterTaskDescriptor = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor341300PairedDebrisEmitterTask, { .value = 0 } };
 
 /// Borrowed task handle shared by the player-facing and textured-quad script phases.
 ///

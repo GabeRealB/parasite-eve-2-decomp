@@ -150,9 +150,9 @@ static TaskMessageEntry _gActor420700Messages[4] = {
 };
 
 TaskDesc gActor420700GaryDouglasTaskDescriptors[3] = {
-    { { { TASK_BODY_TMD, 192 } }, _actor420700GaryDouglasTask, { .model = &_gGaryBody } },
-    { { { TASK_BODY_TMD, 192 } }, _actor420700HeadHatTask, { .model = &_gGaryHeadHat } },
-    { { { TASK_BODY_TMD, 192 } }, _actor420700ShotgunTask, { .model = &_gGaryShotgun2 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _actor420700GaryDouglasTask, { .model = &_gGaryBody } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _actor420700HeadHatTask, { .model = &_gGaryHeadHat } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _actor420700ShotgunTask, { .model = &_gGaryShotgun2 } },
 };
 
 /// Gary Douglas's clip directory, borrowed by the body rig while this overlay is loaded.

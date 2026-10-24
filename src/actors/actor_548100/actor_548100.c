@@ -137,9 +137,8 @@ enum {
 
 /// Pulse phases stored in a byte, and the exported panel task's scheduling priority.
 enum {
-    ACTOR_548100_PULSE_RISING        = 0,
-    ACTOR_548100_PULSE_FALLING       = 1,
-    ACTOR_548100_PANEL_TASK_PRIORITY = 192,
+    ACTOR_548100_PULSE_RISING  = 0,
+    ACTOR_548100_PULSE_FALLING = 1,
 };
 
 /// Publishes a route node, skipping a gap marker when the caller already selected that branch.
@@ -354,14 +353,12 @@ static const char _gActor548100StopWireLabel[5];
 static const char _gActor548100FlowWireLabel[5];
 static void       _actor548100PanelTask(Task* task);
 
-enum { ACTOR_548100_PANEL_PROMPT_PRIORITY = 192 };
-
 /// Action-cursor child task recipe for the mine power panel.
 ///
 /// The child has no automatic task body and runs at priority 192. The panel
 /// retains its borrowed handle until requesting completion on exit; cursor work
 /// and presentation are owned by the spawned prompt task.
-static TaskDesc _gActor548100PanelPromptTaskDesc = { { { TASK_BODY_NONE, ACTOR_548100_PANEL_PROMPT_PRIORITY } }, _actor548100PromptTask, { .value = 0 } };
+static TaskDesc _gActor548100PanelPromptTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor548100PromptTask, { .value = 0 } };
 
 /// Forwarded key-item-use requests handled by the mine power panel.
 ///
@@ -613,7 +610,7 @@ static _Actor548100ColorRow _gActor548100WireColorRows[3] = {
     { { &_gActor548100ShortBaseRed, &_gActor548100ShortBaseGreen, _gActor548100ShortBaseBlueStorage }, _gActor548100ShortWireLabel },
 };
 
-TaskDesc gActor548100PanelTaskDesc = { { { TASK_BODY_NONE, ACTOR_548100_PANEL_TASK_PRIORITY } }, _actor548100PanelTask, { .value = 0 } };
+TaskDesc gActor548100PanelTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor548100PanelTask, { .value = 0 } };
 
 /// Diagram node positions in pixels from the screen's top-left corner.
 ///

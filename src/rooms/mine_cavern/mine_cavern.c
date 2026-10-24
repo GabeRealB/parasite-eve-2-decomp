@@ -50,7 +50,6 @@ static s32 _gMineCavernFirstSceneRequestState;
 #include "mapui/map_shelter.h"
 
 // All target tasks share this scheduler priority, independently of their body kind.
-enum { MINE_CAVERN_TARGET_TASK_PRIORITY = 96 };
 
 u16 gMineCavernTargetLightRed = 6016;
 
@@ -101,7 +100,7 @@ CVECTOR gMineCavernDarknessColors[MINE_CAVERN_TARGET_COUNT + 1] = {
 /// terminator. Its data word is ignored because no model or coordinate body
 /// is requested. The task requires the cavern code and resources until teardown.
 static TaskDesc _gMineCavernTargetEffectsTaskDesc = {
-    .header   = { .fields = { TASK_BODY_NONE, MINE_CAVERN_TARGET_TASK_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_ACTOR } },
     .callback = mineCavernTargetEffectsTask,
     .data     = { .value = 0 }
 };
@@ -237,8 +236,8 @@ SVECTOR gMineCavernTargetModelPositions[MINE_CAVERN_TARGET_COUNT] = {
 };
 
 TaskDesc gMineCavernTargetTaskDescs[2] = {
-    { .header = { .fields = { TASK_BODY_TMD, MINE_CAVERN_TARGET_TASK_PRIORITY } }, .callback = mineCavernTargetTask, .data = { .model = &_gMineCavernModel10F60 } },
-    { .header = { .fields = { TASK_BODY_TMD, MINE_CAVERN_TARGET_TASK_PRIORITY } }, .callback = mineCavernTargetRemainsTask, .data = { .model = &_gMineCavernModel11244 } },
+    { .header = { .fields = { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, .callback = mineCavernTargetTask, .data = { .model = &_gMineCavernModel10F60 } },
+    { .header = { .fields = { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, .callback = mineCavernTargetRemainsTask, .data = { .model = &_gMineCavernModel11244 } },
 };
 
 s32 gMineCavernEventBattleReleaseCount;

@@ -1172,10 +1172,7 @@ static void _endingSelectCreditsResource(s32 dataResourceIndex)
 /* The package's data, in address order. */
 
 enum {
-    ENDING_PICTURE_DECODER_TASK_PRIORITY = 192,
-    ENDING_AWARD_PANEL_TASK_PRIORITY     = 192,
-    ENDING_CREDITS_TASK_PRIORITY         = 32,
-    ENDING_COMPLETE_BONUS_ROW_HEIGHT     = 15,
+    ENDING_COMPLETE_BONUS_ROW_HEIGHT = 15,
 };
 
 /// Bodyless priority-192 worker that decodes one borrowed credits picture.
@@ -1184,7 +1181,7 @@ enum {
 /// The request, VLC table and resource bitstream must survive worker completion.
 /// Only one worker may use the shared MDEC workspace at a time.
 static const TaskDesc _gEndingPictureDecoderTaskDescriptor SECTION(".data") = {
-    .header   = { .fields = { TASK_BODY_NONE, ENDING_PICTURE_DECODER_TASK_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } },
     .callback = endingDecodePictureTask,
     .data     = { .model = NULL },
 };
@@ -1407,7 +1404,7 @@ static const UiObjectDesc _gEndingCompleteBonusPanelDescriptor SECTION(".data") 
     .bounds          = { -144, -104, 208, 160 },
     .otIndexSeed     = 60,
     .taskFlags       = TASK_BODY_NONE,
-    .taskPriority    = ENDING_AWARD_PANEL_TASK_PRIORITY,
+    .taskPriority    = TASK_PRIORITY_CONTROL,
     .contentCallback = endingCompleteBonusPanelTask,
 };
 
@@ -1422,7 +1419,7 @@ static const UiObjectDesc _gEndingQuitWarningPanelDescriptor SECTION(".data") = 
     .bounds          = { -144, -96, 160, 160 },
     .otIndexSeed     = 60,
     .taskFlags       = TASK_BODY_NONE,
-    .taskPriority    = ENDING_AWARD_PANEL_TASK_PRIORITY,
+    .taskPriority    = TASK_PRIORITY_CONTROL,
     .contentCallback = endingQuitWarningTask,
 };
 
@@ -1436,7 +1433,7 @@ static const UiObjectDesc _gEndingBalancePanelDescriptor SECTION(".data") = {
     .bounds          = { -72, -64, 144, 56 },
     .otIndexSeed     = 48,
     .taskFlags       = TASK_BODY_NONE,
-    .taskPriority    = ENDING_AWARD_PANEL_TASK_PRIORITY,
+    .taskPriority    = TASK_PRIORITY_CONTROL,
     .contentCallback = endingBalancePanelTask,
 };
 
@@ -1445,7 +1442,7 @@ const UiObjectDesc gEndingNextEndingPanelDescriptor SECTION(".data") = {
     .bounds          = { -72, 8, 144, 56 },
     .otIndexSeed     = 52,
     .taskFlags       = TASK_BODY_NONE,
-    .taskPriority    = ENDING_AWARD_PANEL_TASK_PRIORITY,
+    .taskPriority    = TASK_PRIORITY_CONTROL,
     .contentCallback = endingBalancePanelTask,
 };
 
@@ -1460,7 +1457,7 @@ static const UiObjectDesc _gEndingFirstAndThirdShopItemPanelDescriptor SECTION("
     .bounds          = { -144, -104, 288, 208 },
     .otIndexSeed     = 44,
     .taskFlags       = TASK_BODY_NONE,
-    .taskPriority    = ENDING_AWARD_PANEL_TASK_PRIORITY,
+    .taskPriority    = TASK_PRIORITY_CONTROL,
     .contentCallback = endingUnlockedItemPanelTask,
 };
 
@@ -1475,7 +1472,7 @@ static const UiObjectDesc _gEndingSecondShopItemPanelDescriptor SECTION(".data")
     .bounds          = { -144, -104, 288, 208 },
     .otIndexSeed     = 40,
     .taskFlags       = TASK_BODY_NONE,
-    .taskPriority    = ENDING_AWARD_PANEL_TASK_PRIORITY,
+    .taskPriority    = TASK_PRIORITY_CONTROL,
     .contentCallback = endingUnlockedItemPanelTask,
 };
 
@@ -1489,12 +1486,11 @@ static const UiObjectDesc _gEndingExtraBpPanelDescriptor SECTION(".data") = {
     .bounds          = { -72, -32, 144, 40 },
     .otIndexSeed     = 44,
     .taskFlags       = TASK_BODY_NONE,
-    .taskPriority    = ENDING_AWARD_PANEL_TASK_PRIORITY,
+    .taskPriority    = TASK_PRIORITY_CONTROL,
     .contentCallback = endingExtraBpPanelTask,
 };
 
-enum { ENDING_AWARD_SCREEN_TASK_PRIORITY = 0xC0 };
-TaskDesc gEndingAwardScreenTaskDescriptor = { { { TASK_BODY_NONE, ENDING_AWARD_SCREEN_TASK_PRIORITY } }, _endingAwardScreenTask, { NULL } };
+TaskDesc gEndingAwardScreenTaskDescriptor = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _endingAwardScreenTask, { NULL } };
 
 /// Next credits packet arena to select (0 first 64-KiB arena, 1 second).
 ///
@@ -1528,10 +1524,10 @@ static u8 _gEndingCreditsPictureCrossFadeFramesLeft = 0;
 static Task* _gEndingPictureDecoderTask = NULL;
 
 const TaskDesc gEndingCreditsTaskDescriptors[ENDING_CREDITS_TASK_COUNT] SECTION(".data") = {
-    [ENDING_CREDITS_CONTROLLER_TASK_INDEX] = { { { TASK_BODY_NONE, ENDING_CREDITS_TASK_PRIORITY } }, _endingCreditsTask, { NULL } },
-    [ENDING_CREDITS_FADE_IN_TASK_INDEX]    = { { { TASK_BODY_NONE, ENDING_CREDITS_TASK_PRIORITY } }, _endingFadeCreditsInTask, { NULL } },
-    [ENDING_CREDITS_FADE_OUT_TASK_INDEX]   = { { { TASK_BODY_NONE, ENDING_CREDITS_TASK_PRIORITY } }, _endingFadeCreditsOutTask, { NULL } },
-    [ENDING_CREDITS_PICTURE_TASK_INDEX]    = { { { TASK_BODY_NONE, ENDING_CREDITS_TASK_PRIORITY } }, _endingStartCreditsPictureTask, { NULL } },
+    [ENDING_CREDITS_CONTROLLER_TASK_INDEX] = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _endingCreditsTask, { NULL } },
+    [ENDING_CREDITS_FADE_IN_TASK_INDEX]    = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _endingFadeCreditsInTask, { NULL } },
+    [ENDING_CREDITS_FADE_OUT_TASK_INDEX]   = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _endingFadeCreditsOutTask, { NULL } },
+    [ENDING_CREDITS_PICTURE_TASK_INDEX]    = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _endingStartCreditsPictureTask, { NULL } },
 };
 
 u_long* gEndingPictureStripPixels = NULL;

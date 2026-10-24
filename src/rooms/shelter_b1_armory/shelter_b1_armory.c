@@ -105,7 +105,7 @@ enum {
 
 #include "../../shared/room/shop_data.inc.c"
 
-TaskDesc gShelterB1ArmoryShopSessionTaskDesc = { { { TASK_BODY_NONE, 192 } }, _shopSessionTask, { .value = 0 } };
+TaskDesc gShelterB1ArmoryShopSessionTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _shopSessionTask, { .value = 0 } };
 
 /// Bodyless transition task spawned by this room's event gate at priority 32.
 ///
@@ -113,9 +113,7 @@ TaskDesc gShelterB1ArmoryShopSessionTaskDesc = { { { TASK_BODY_NONE, 192 } }, _s
 /// then reload the session. Spawn payloads and metadata are unused. The gate
 /// reads the recipe synchronously; room snapshots and callback code must remain
 /// live through the deferred transition.
-static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
-
-enum { SHELTER_B1_ARMORY_SCENE_TASK_PRIORITY = 192 };
+static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventTask, { .value = 0 } };
 
 /// Two bodyless priority-192 recipes for cardkey responses and the shop scene.
 ///
@@ -124,8 +122,8 @@ enum { SHELTER_B1_ARMORY_SCENE_TASK_PRIORITY = 192 };
 /// reads a recipe synchronously; room callbacks and saved-view storage outlive
 /// the resulting task.
 static TaskDesc _gShelterB1ArmorySceneTaskDescs[2] = {
-    { { { TASK_BODY_NONE, SHELTER_B1_ARMORY_SCENE_TASK_PRIORITY } }, _shelterB1ArmoryCardkeyEventTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, SHELTER_B1_ARMORY_SCENE_TASK_PRIORITY } }, _shelterB1ArmoryShopSceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _shelterB1ArmoryCardkeyEventTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _shelterB1ArmoryShopSceneTask, { .value = 0 } },
 };
 
 /// Armory handlers for exits, cardkey use, shop actions and progress-dependent captions.

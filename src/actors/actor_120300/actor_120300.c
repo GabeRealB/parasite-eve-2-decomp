@@ -58,7 +58,6 @@ static void _screenFadeOutTask(Task* task);
 enum { ACTOR_120300_TEXTURE_RESOURCE_ENTRY_ID = 0x6A };
 
 /// Execution priority shared by all five task recipes.
-enum { ACTOR_120300_TASK_PRIORITY = 192 };
 
 /// Fade-in duration for the current area's music, in gameplay ticks.
 enum { ACTOR_120300_AREA_MUSIC_FADE_TICKS = 10 };
@@ -549,11 +548,11 @@ static EvsCommand _gActor120300RemarkScript[13] = {
 };
 
 TaskDesc gActor120300TaskDescriptors[ACTOR_120300_TASK_COUNT] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_120300_TASK_PRIORITY } }, _actor120300BodyTask, { .model = &_gGaryBody } },
-    { { { TASK_BODY_NONE, ACTOR_120300_TASK_PRIORITY } }, _actor120300JunkYardRefusalTask, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_120300_TASK_PRIORITY } }, _actor120300HeadTask, { .model = &_gGaryHeadHat } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_120300_TASK_PRIORITY } }, _actor120300RifleTask, { .model = &_gGaryShotgun } },
-    { { { TASK_BODY_NONE, ACTOR_120300_TASK_PRIORITY } }, _screenFadeOutTask, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor120300BodyTask, { .model = &_gGaryBody } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor120300JunkYardRefusalTask, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor120300HeadTask, { .model = &_gGaryHeadHat } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor120300RifleTask, { .model = &_gGaryShotgun } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _screenFadeOutTask, { .value = 0 } },
 };
 
 /// Borrowed live Gary body task used by this package's event-script callbacks.

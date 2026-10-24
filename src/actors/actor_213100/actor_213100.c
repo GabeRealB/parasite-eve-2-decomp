@@ -79,18 +79,16 @@ static AnimationSet** const _gActorMotionAnimBanks19[1] SECTION(".data") = {
     _gActor213100BodyAnimSets,
 };
 
-enum { ACTOR_213100_JODIE_TASK_PRIORITY = 192 };
-
 TaskDesc gActor213100JodieBouquetTaskDescriptors[2] = {
     // 0: body.
     {
-        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_213100_JODIE_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _actor213100BodyTask,
         .data     = { .model = &_gJodieBody },
     },
     // 1: held model.
     {
-        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_213100_JODIE_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _actor213100HeldModelTask,
         .data     = { .model = &_gMistR18Laptop },
     },

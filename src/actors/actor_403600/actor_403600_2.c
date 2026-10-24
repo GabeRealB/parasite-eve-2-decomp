@@ -274,8 +274,7 @@ enum {
     ACTOR_403600_PLAYER_ANIM_FORWARD         = 4
 };
 
-enum { ACTOR_403600_ENEMY_TASK_PRIORITY = 96,
-       ACTOR_403600_SCENE_FIGURE_TASK   = 2 };
+enum { ACTOR_403600_SCENE_FIGURE_TASK = 2 };
 
 /// Commands accepted by both the boss and scene figure, followed by the terminator.
 ///
@@ -286,9 +285,9 @@ static TaskMessageEntry _gActor403600SceneCommandMessages[2] = {
 };
 
 TaskDesc gActor403600TaskTable[3] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_403600_ENEMY_TASK_PRIORITY } }, _actor403600BossTask, { .model = &gActor403600EveBody } },
-    { { { TASK_BODY_TMD, ACTOR_403600_ENEMY_TASK_PRIORITY } }, _actor403600DoubleTask, { .model = &gActor403600Model199B8 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_403600_ENEMY_TASK_PRIORITY } }, _actor403600SceneFigureTask, { .model = &gActor303600Model02DD0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_ACTOR } }, _actor403600BossTask, { .model = &gActor403600EveBody } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor403600DoubleTask, { .model = &gActor403600Model199B8 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_ACTOR } }, _actor403600SceneFigureTask, { .model = &gActor303600Model02DD0 } },
 };
 
 /// Borrowed clips installed on the player for boss knockback and scene poses.

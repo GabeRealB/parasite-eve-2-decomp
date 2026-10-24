@@ -79,22 +79,20 @@ static s32  _shelterB3ElevatorHallHandleSoundCue(Task* task, s32 messageId, s32 
 
 enum { SHELTER_B3_ELEVATOR_HALL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
-enum { SHELTER_B3_ELEVATOR_HALL_TRAVEL_TASK_PRIORITY = 32 };
-
 /// Bodyless transition task spawned by this room's event gate at priority 32.
 ///
 /// Uses the latched request and destination to play CAP and optional sounds,
 /// then reload the session. Spawn payloads and metadata are unused. The gate
 /// reads the recipe synchronously; room snapshots and callback code must remain
 /// live through the deferred transition.
-static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
+static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventTask, { .value = 0 } };
 
 /// Bodyless priority-32 recipe for CAP floor selection and the selected elevator ride.
 ///
 /// Spawn only index 0, with the resolved ride-sound ID in spawnArg1 and unused
 /// zero spawnArg2. Spawning reads the recipe synchronously; CAP, sound and map
 /// resources and this overlay's callback code must remain loaded through travel.
-static TaskDesc _gShelterB3ElevatorHallFloorSelectionTaskDesc = { { { TASK_BODY_NONE, SHELTER_B3_ELEVATOR_HALL_TRAVEL_TASK_PRIORITY } }, shelterElevatorTask, { .value = 0 } };
+static TaskDesc _gShelterB3ElevatorHallFloorSelectionTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, shelterElevatorTask, { .value = 0 } };
 
 /// Room receiver routes for departures, key items, actions, commands and sound cues.
 ///
@@ -114,7 +112,7 @@ static TaskMessageEntry _gShelterB3ElevatorHallRoomMessages[6] = {
 ///
 /// Spawn only index 0; payloads and zero metadata are unused. The callback
 /// borrows this hall's CAP/sound resources through completion or room reload.
-static TaskDesc _gShelterB3ElevatorHallTransitTaskDesc = { { { TASK_BODY_NONE, SHELTER_B3_ELEVATOR_HALL_TRAVEL_TASK_PRIORITY } }, _shelterB3ElevatorHallElevatorTransitTask, { .value = 0 } };
+static TaskDesc _gShelterB3ElevatorHallTransitTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelterB3ElevatorHallElevatorTransitTask, { .value = 0 } };
 
 /// World-space endpoints of four additive glow strips visible in mapped view 3.
 ///

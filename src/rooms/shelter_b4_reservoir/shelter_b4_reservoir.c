@@ -228,7 +228,7 @@ static void                   _shelterB4ReservoirCancelEffects(void);
 /// Only one wave may be active; its context and this carrier's code/storage
 /// must remain live through the final draw. The spawner copies the recipe.
 static TaskDesc _gScreenWaveTaskDescs[2] = {
-    { { { TASK_BODY_NONE, 192 } }, _screenWaveTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _screenWaveTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -287,8 +287,6 @@ enum {
     SHELTER_B4_RESERVOIR_TASK_VIEW10_WATER_RAMP = 2,
     SHELTER_B4_RESERVOIR_TASK_EXIT              = 3,
     SHELTER_B4_RESERVOIR_EVENT_TASK_COUNT       = 4,
-    SHELTER_B4_RESERVOIR_EVENT_TASK_PRIORITY    = 32,
-    SHELTER_B4_RESERVOIR_WATER_TASK_PRIORITY    = 96,
     SHELTER_B4_RESERVOIR_DIVER_COMMAND_STRAND   = 6,
 };
 
@@ -297,10 +295,10 @@ enum {
 /// Indexed by SHELTER_B4_RESERVOIR_TASK_*; there is no end record. Ramp
 /// spawnArg1 supplies updates and exit spawnArg1 selects the CAP command.
 static TaskDesc _gShelterB4ReservoirEventTasks[SHELTER_B4_RESERVOIR_EVENT_TASK_COUNT] = {
-    [SHELTER_B4_RESERVOIR_TASK_WATER_EVENT]       = { { { TASK_BODY_NONE, SHELTER_B4_RESERVOIR_EVENT_TASK_PRIORITY } }, _shelterB4ReservoirWaterEventTask, { .value = 0 } },
-    [SHELTER_B4_RESERVOIR_TASK_MAIN_WATER_RAMP]   = { { { TASK_BODY_NONE, SHELTER_B4_RESERVOIR_EVENT_TASK_PRIORITY } }, _shelterB4ReservoirRampMainWaterHeightTask, { .value = 0 } },
-    [SHELTER_B4_RESERVOIR_TASK_VIEW10_WATER_RAMP] = { { { TASK_BODY_NONE, SHELTER_B4_RESERVOIR_EVENT_TASK_PRIORITY } }, _shelterB4ReservoirRampView10WaterHeightTask, { .value = 0 } },
-    [SHELTER_B4_RESERVOIR_TASK_EXIT]              = { { { TASK_BODY_NONE, SHELTER_B4_RESERVOIR_EVENT_TASK_PRIORITY } }, _shelterB4ReservoirExitTask, { .value = 0 } },
+    [SHELTER_B4_RESERVOIR_TASK_WATER_EVENT]       = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelterB4ReservoirWaterEventTask, { .value = 0 } },
+    [SHELTER_B4_RESERVOIR_TASK_MAIN_WATER_RAMP]   = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelterB4ReservoirRampMainWaterHeightTask, { .value = 0 } },
+    [SHELTER_B4_RESERVOIR_TASK_VIEW10_WATER_RAMP] = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelterB4ReservoirRampView10WaterHeightTask, { .value = 0 } },
+    [SHELTER_B4_RESERVOIR_TASK_EXIT]              = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelterB4ReservoirExitTask, { .value = 0 } },
 };
 
 /// Strands the reservoir's placed Bog Diver after normal or skipped water events.
@@ -314,7 +312,7 @@ static ActorCommand _gShelterB4ReservoirDiverStrandCommand = { { .loc = { GAME_S
 /// Creates a TMD body while deferring its draw buffer; no end record. The model
 /// task borrows the room geometry and stays live for later script state requests.
 static TaskDesc _gShelterB4ReservoirEventModelTasks[1] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), SHELTER_B4_RESERVOIR_EVENT_TASK_PRIORITY } }, _shelterB4ReservoirView8ModelTask, { .model = &_gShelterB4ReservoirModel07220 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_SCENE } }, _shelterB4ReservoirView8ModelTask, { .model = &_gShelterB4ReservoirModel07220 } },
 };
 
 /// Retained handle of the most recently started main or view-10 water ramp.
@@ -465,7 +463,7 @@ static s16 _gShelterB4ReservoirView10WaterY = SHELTER_B4_RESERVOIR_VIEW10_WATER_
 /// Initialization supplies zero payloads; there is no terminator. The task
 /// publishes water Y and borrows the room's surfaces for its lifetime.
 static TaskDesc _gShelterB4ReservoirWaterTasks[1] = {
-    { { { TASK_BODY_NONE, SHELTER_B4_RESERVOIR_WATER_TASK_PRIORITY } }, _shelterB4ReservoirWaterTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_ACTOR } }, _shelterB4ReservoirWaterTask, { .value = 0 } },
 };
 
 /// Main water rectangle and its `WATER_SURFACE_LIST_END` terminator.

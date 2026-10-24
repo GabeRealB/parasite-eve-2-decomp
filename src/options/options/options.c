@@ -171,11 +171,10 @@ static UiListRowCallback _gOptionsMenuRowCallbacks[] = {
 
 /// Options-list navigation, pixel spacing and key-editor task seeds.
 enum {
-    OPTIONS_LIST_CLAMP_NAVIGATION           = 0,
-    OPTIONS_MENU_ROW_HEIGHT_PIXELS          = 18,
-    OPTIONS_VIBRATION_ROW_HEIGHT_PIXELS     = 15,
-    OPTIONS_KEY_CONFIGURATION_OT_INDEX      = 52,
-    OPTIONS_KEY_CONFIGURATION_TASK_PRIORITY = 192
+    OPTIONS_LIST_CLAMP_NAVIGATION       = 0,
+    OPTIONS_MENU_ROW_HEIGHT_PIXELS      = 18,
+    OPTIONS_VIBRATION_ROW_HEIGHT_PIXELS = 15,
+    OPTIONS_KEY_CONFIGURATION_OT_INDEX  = 52,
 };
 
 /// Mutable list state for the full seven-setting options panel.
@@ -226,7 +225,7 @@ static const UiObjectDesc _gOptionsKeyConfigurationDesc __attribute__((section("
     OPTIONS_KEY_CONFIGURATION_OT_INDEX,
     0x0000,
     TASK_BODY_NONE,
-    OPTIONS_KEY_CONFIGURATION_TASK_PRIORITY,
+    TASK_PRIORITY_CONTROL,
     _optionsUpdateKeyConfigurationTask,
     0,
 };

@@ -93,10 +93,9 @@ enum {
 
 /// Fixed plane scheduling priority and roles of the glow group's position slots.
 enum {
-    AKROPOLIS_PROMENADE_PLANE_TASK_PRIORITY = 192,
-    AKROPOLIS_PROMENADE_GLOW_DISC_POSITION  = 0,
-    AKROPOLIS_PROMENADE_GLOW_FIRST_STAR     = 1,
-    AKROPOLIS_PROMENADE_GLOW_SECOND_STAR    = 2,
+    AKROPOLIS_PROMENADE_GLOW_DISC_POSITION = 0,
+    AKROPOLIS_PROMENADE_GLOW_FIRST_STAR    = 1,
+    AKROPOLIS_PROMENADE_GLOW_SECOND_STAR   = 2,
 };
 
 /// Live indices in the movie task descriptor table; slots 0 and 1 are unused.
@@ -120,7 +119,7 @@ static TaskMessageEntry _gAkropolisPromenadeRoomMessages[6] = {
 
 /// Spawn recipe for the fixed translucent plane, followed by TASK_DESC_END.
 static TaskDesc _gAkropolisPromenadeTranslucentPlaneTaskDescriptors[2] = {
-    { { { TASK_BODY_TMD, AKROPOLIS_PROMENADE_PLANE_TASK_PRIORITY } }, _akropolisPromenadeTranslucentPlaneTask, { .model = &_gAkropolisBridgeWaterSurfaceModel } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _akropolisPromenadeTranslucentPlaneTask, { .model = &_gAkropolisBridgeWaterSurfaceModel } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -133,11 +132,11 @@ static s32 _gAkropolisPromenadeBattleFollowupState = AKROPOLIS_PROMENADE_BATTLE_
 
 /// Bodyless movie-path and skip-fade spawn recipes, indexed by MOVIE_*_TASK.
 static TaskDesc _gAkropolisPromenadeMovieTaskDescriptors[5] = {
-    { { { TASK_BODY_NONE, 192 } }, NULL, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, NULL, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _akropolisPromenadeMoviePathTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _akropolisPromenadeMovieSkipFadeOutTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _akropolisPromenadeSceneFadeInTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, NULL, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, NULL, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _akropolisPromenadeMoviePathTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _akropolisPromenadeMovieSkipFadeOutTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _akropolisPromenadeSceneFadeInTask, { .value = 0 } },
 };
 
 /// Player-root positions for the warp-4 arrival movie, in whole room units.

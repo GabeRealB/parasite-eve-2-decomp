@@ -59,10 +59,8 @@ enum { ACTOR_110700_FIRST_ANIMATED_PART = 1 };
 
 #include "assets/rooms/akropolis/sanctuary/no_9_clips.inc"
 
-enum { ACTOR_110700_GOLEM_TASK_PRIORITY = 96 };
-
 TaskDesc gActor110700No9GolemTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_110700_GOLEM_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_ACTOR } },
     .callback = _actor110700No9GolemTask,
     .data     = { .model = &gGolemNo9BodyAkropolis },
 };

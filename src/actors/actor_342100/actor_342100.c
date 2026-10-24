@@ -143,15 +143,13 @@ static void _actor342100EncounterBlazeControllerTask(Task* task);
 
 #include "assets/rooms/shelter/b3_dumping_hole/blaze_scene_clips.inc"
 
-enum { ACTOR_342100_HEAT_HAZE_TASK_PRIORITY = 192 };
-
 /// Bodyless captured-frame heat-haze task for the blaze scene, followed by its end marker.
 ///
 /// Spawn slot 0 with a live writable ScreenWaveCtx; the grid task borrows
 /// that context through its final draw. Only one wave may be active in this
 /// package because it shares the prebuilt grid and oscillator storage.
 static TaskDesc _gActor342100BlazeHeatHazeTaskDescs[2] = {
-    { { { TASK_BODY_NONE, ACTOR_342100_HEAT_HAZE_TASK_PRIORITY } }, _screenWaveGridTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _screenWaveGridTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -303,11 +301,11 @@ static EvsCommand _gActor342100BlazeScript[18] = {
 };
 
 TaskDesc gActor342100EncounterBlazeTaskDescriptors[5] = {
-    { { { TASK_BODY_NONE, 192 } }, _actor342100EncounterBlazeControllerTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _blazeFadeTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _blazeBodyFireTask, { .value = 0 } },
-    { { { TASK_BODY_COORD, 192 } }, _actor342100BlazeFireEmitterTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor342100EncounterBlazeControllerTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _blazeFadeTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _blazeBodyFireTask, { .value = 0 } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_CONTROL } }, _actor342100BlazeFireEmitterTask, { .value = 0 } },
 };
 
 /// Borrowed context of this renderer's active wave task.

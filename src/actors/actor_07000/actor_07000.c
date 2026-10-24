@@ -143,11 +143,9 @@ static TaskMessageEntry _gSucklercephDropMsgTable[2] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-enum { ACTOR_07000_TASK_PRIORITY = 96 };
-
 TaskDesc gActor07000SucklercephTaskDescs[2] = {
-    { { { TASK_BODY_TMD, ACTOR_07000_TASK_PRIORITY } }, _sucklercephTask, { .model = &_gAkropolisForkedRoadSucklercephBody } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_07000_TASK_PRIORITY } }, _sucklercephDropTask, { .model = &_gAkropolisForkedRoadSucklercephBody } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _sucklercephTask, { .model = &_gAkropolisForkedRoadSucklercephBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_ACTOR } }, _sucklercephDropTask, { .model = &_gAkropolisForkedRoadSucklercephBody } },
 };
 
 /// Sucklerceph animation sets: 0 empty, 1 idle, 2 crawl, 3 retained but unrequested.
@@ -225,9 +223,9 @@ static TaskMessageEntry _gActor07000SlouchHiddenMsgTable[2] = {
 };
 
 TaskDesc gActor07000SlouchTaskDescs[3] = {
-    { { { TASK_BODY_TMD, ACTOR_07000_TASK_PRIORITY } }, _actor07000SlouchTask, { .model = &_gSucklercephAndSlouchSlouchBody } },
-    { { { TASK_BODY_COORD, ACTOR_07000_TASK_PRIORITY } }, _actor07000SlouchProjectileTask, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_07000_TASK_PRIORITY } }, _actor07000SlouchHiddenTask, { .model = &_gSucklercephAndSlouchSlouchBody } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor07000SlouchTask, { .model = &_gSucklercephAndSlouchSlouchBody } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, _actor07000SlouchProjectileTask, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_ACTOR } }, _actor07000SlouchHiddenTask, { .model = &_gSucklercephAndSlouchSlouchBody } },
 };
 
 /// Values of `_Actor07000SlouchWork::state`, the behaviour the per-frame update runs.

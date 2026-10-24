@@ -774,7 +774,7 @@ static TaskMessageEntry _gActor04000MessageTable[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc gActor04000BloodSucklerTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor04000Task, { .model = &_gSucklerBloodBody } };
+TaskDesc gActor04000BloodSucklerTaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor04000Task, { .model = &_gSucklerBloodBody } };
 
 /// Hanging-pool controller phases, indexed by Task::state (0..3).
 ///
@@ -787,7 +787,7 @@ static TaskFunc _gActor04000HangingPoolPhases[4] = {
     taskKill,
 };
 
-TaskDesc gActor04000HangingPoolTaskDesc = { { { TASK_BODY_NONE, 96 } }, _actor04000HangingPoolTask, { .value = 0 } };
+TaskDesc gActor04000HangingPoolTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_ACTOR } }, _actor04000HangingPoolTask, { .value = 0 } };
 
 SVECTOR ActorContact_ScratchPosition;
 

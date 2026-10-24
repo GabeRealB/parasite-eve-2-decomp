@@ -69,10 +69,8 @@ TaskMessageEntry gMineSecretPassageRoomMessages[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-enum { MINE_SECRET_PASSAGE_DEPARTURE_TASK_PRIORITY = 32 };
-
 TaskDesc gMineSecretPassageDepartureTaskDesc = {
-    .header   = { .fields = { TASK_BODY_NONE, MINE_SECRET_PASSAGE_DEPARTURE_TASK_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } },
     .callback = mineSecretPassageDepartureTask,
     .data     = { .value = 0 },
 };

@@ -105,18 +105,13 @@ static void _actor136300QueueStageExitCountdown(s32 countdownTicks);
 static void _actor136300SelectSceneCaptions(s32 restoreDefaults);
 
 /// Scheduler priorities of the screen effect and this package's task recipes.
-enum {
-    ACTOR_136300_SCREEN_WAVE_TASK_PRIORITY = 192,
-    ACTOR_136300_RETAINED_TASK_PRIORITY    = 192,
-    ACTOR_136300_SCENE_TASK_PRIORITY       = 32,
-};
 
 /// Workless screen-wave task recipe, followed by the descriptor terminator.
 ///
 /// Entry 0 borrows the package's persistent ramp context through its final draw.
 /// It runs at priority 192 and uses the package's singleton wave storage.
 static TaskDesc _gActor136300ScreenWaveTaskTable[] = {
-    { { { TASK_BODY_NONE, ACTOR_136300_SCREEN_WAVE_TASK_PRIORITY } }, _screenWaveTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _screenWaveTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -130,9 +125,9 @@ static s32 _gScreenWaveAmplitude = 256;
 
 TaskDesc gActor136300TaskTable[ACTOR_136300_TASK_COUNT] = {
     // The empty placement list never spawns entry 0; preserve its stored address.
-    { { { TASK_BODY_NONE, ACTOR_136300_RETAINED_TASK_PRIORITY } }, (TaskFunc)enemyDestroy, { .value = 0 } },
-    { { { TASK_BODY_NONE, ACTOR_136300_SCENE_TASK_PRIORITY } }, _actor136300GarageDepartureTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ACTOR_136300_SCENE_TASK_PRIORITY } }, _actor136300StageExitCountdownTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, (TaskFunc)enemyDestroy, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _actor136300GarageDepartureTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _actor136300StageExitCountdownTask, { .value = 0 } },
 };
 
 /// Companion clip pointers installed at animation-bank indices 47-61.

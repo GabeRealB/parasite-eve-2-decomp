@@ -441,8 +441,8 @@ static s16 _gActor521100WeaponHitResponses[48] = {
 };
 
 TaskDesc gActor521100No9GolemTaskDescs[2] = {
-    { { { TASK_BODY_TMD, 96 } }, _actor521100BodyTask, { .model = &_gGolemNo9BodyDryfield } },
-    { { { TASK_BODY_TMD, 96 } }, _actor521100GunbladeTask, { .model = &_gGolemNo9Gunblade } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor521100BodyTask, { .model = &_gGolemNo9BodyDryfield } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor521100GunbladeTask, { .model = &_gGolemNo9Gunblade } },
 };
 
 /// No. 9 GOLEM body message bindings, terminated by TASK_MESSAGE_TABLE_END.

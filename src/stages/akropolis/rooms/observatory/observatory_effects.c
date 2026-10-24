@@ -52,9 +52,8 @@ static void _akropolisObservatoryScriptedBattleTask(Task* task);
 
 /// Clip-table values and scheduler priority of the scripted battle controller.
 enum {
-    AKROPOLIS_OBSERVATORY_SCENE_NO_FOLLOW_UP       = -1,
-    AKROPOLIS_OBSERVATORY_SCENE_FOLLOW_UP_CLIP     = 1,
-    AKROPOLIS_OBSERVATORY_SCRIPTED_BATTLE_PRIORITY = 192,
+    AKROPOLIS_OBSERVATORY_SCENE_NO_FOLLOW_UP   = -1,
+    AKROPOLIS_OBSERVATORY_SCENE_FOLLOW_UP_CLIP = 1,
 };
 
 /// Player follow-up clip IDs indexed by the scene work's `followUpIndex`.
@@ -64,7 +63,7 @@ static s16 _gAkropolisObservatorySceneFollowUpClips[2] = {
 };
 
 TaskDesc gAkropolisObservatoryScriptedBattleTaskDesc = {
-    .header   = { .fields = { TASK_BODY_NONE, AKROPOLIS_OBSERVATORY_SCRIPTED_BATTLE_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } },
     .callback = _akropolisObservatoryScriptedBattleTask,
     .data     = { .value = 0 },
 };

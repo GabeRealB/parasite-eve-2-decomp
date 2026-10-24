@@ -291,7 +291,7 @@ static s32  _dryfieldBreezewayUseBottlecapMagnet(Task* task, s32 unusedMessageId
 static void _dryfieldBreezewayActionPromptTask(Task* task);
 static void _dryfieldBreezewayKeyItemEventTask(Task* task);
 
-TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry gDryfieldBreezewayRoomMessageTable[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, dryfieldBreezewayResolveRoomEventMessage },
@@ -303,8 +303,8 @@ TaskMessageEntry gDryfieldBreezewayRoomMessageTable[6] = {
 };
 
 TaskDesc gDryfieldBreezewayInteractionTaskDescs[2] = {
-    { { { TASK_BODY_NONE, 32 } }, dryfieldBreezewayKeyItemSessionTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, dryfieldBreezewayFactoryDoorDialogueTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, dryfieldBreezewayKeyItemSessionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, dryfieldBreezewayFactoryDoorDialogueTask, { .value = 0 } },
 };
 
 /// Staging mark shared by the opening encounter's cutscene and combat chasers.
@@ -366,14 +366,14 @@ static EvsCommand _gDryfieldBreezewayFirstEventSkipScript[12] = {
 };
 
 TaskDesc gDryfieldBreezewayFirstEventTaskDescs[2] = {
-    { { { TASK_BODY_NONE, 192 } }, _dryfieldBreezewayInitFirstEventTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _dryfieldBreezewayFirstEventTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _dryfieldBreezewayInitFirstEventTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _dryfieldBreezewayFirstEventTask, { .value = 0 } },
 };
 
 /// Unused bodyless task recipe that retires on its first update at priority 192.
 ///
 /// No room code spawns this descriptor.
-static TaskDesc _gDryfieldBreezewayImmediateExitTaskDesc = { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } };
+static TaskDesc _gDryfieldBreezewayImmediateExitTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill, { .value = 0 } };
 
 static TmdBone _gDryfieldBreezewayModel04E8CSkeleton[1] = {
 #include "assets/dryfield_breezeway_model_04E8C_skeleton.inc"
@@ -411,7 +411,7 @@ static TmdSource _gDryfieldBreezewayModel04E8C = {
 ///
 /// Runs at priority 192. The event passes first payload 1 to select port 0
 /// and retains the child handle until event exit; the second payload is unused.
-static TaskDesc _gDryfieldBreezewayKeyItemCursorTaskDesc = { { { TASK_BODY_NONE, 192 } }, _dryfieldBreezewayActionPromptTask, { .value = 0 } };
+static TaskDesc _gDryfieldBreezewayKeyItemCursorTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _dryfieldBreezewayActionPromptTask, { .value = 0 } };
 
 /// Key-item-use receiver installed on the TMD event that owns the hanging line.
 ///
@@ -445,7 +445,7 @@ static ActionPromptHotspot _gDryfieldBreezewayKeyItemModelHotspots[2] = {
     { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
-TaskDesc gDryfieldBreezewayKeyItemModelTaskDesc = { { { TASK_BODY_TMD, 192 } }, _dryfieldBreezewayKeyItemEventTask, { .model = &_gDryfieldBreezewayModel04E8C } };
+TaskDesc gDryfieldBreezewayKeyItemModelTaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _dryfieldBreezewayKeyItemEventTask, { .model = &_gDryfieldBreezewayModel04E8C } };
 
 /// Packed eight-bit indexed artwork for the hanging line, 16 by 16 texels.
 ///

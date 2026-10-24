@@ -95,7 +95,7 @@ static void                             _dryfieldGarageJunkYardRefusalTask(Task*
 /// then reload the session. Spawn payloads and metadata are unused. The gate
 /// reads the recipe synchronously; room snapshots and callback code must remain
 /// live through the deferred transition.
-static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
+static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventTask, { .value = 0 } };
 
 /// The room receiver's five message handlers and unsupported-message terminator.
 ///
@@ -115,7 +115,7 @@ static const TaskMessageEntry _gDryfieldGarageMessageTable[6] SECTION(".data") =
 /// Only slot 0 is spawnable; the second record ends the descriptor table.
 /// The wrapper starts Gary's scene task independently and then releases itself.
 static TaskDesc _gDryfieldGarageJunkYardRefusalTaskDescriptors[2] = {
-    { { { TASK_BODY_NONE, 32 } }, _dryfieldGarageJunkYardRefusalTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _dryfieldGarageJunkYardRefusalTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

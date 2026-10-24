@@ -377,8 +377,8 @@ static s16 _gActor02400HitEffectSuppressed[16] = {
 };
 
 TaskDesc gActor02400Tasks[2] = {
-    { { { TASK_BODY_TMD, 96 } }, _actor02400BodyTask, { .model = &_gGreenAndRedAmoebaBody } },
-    { { { TASK_BODY_COORD, 96 } }, _actor02400FireballTask, { .value = 0 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor02400BodyTask, { .model = &_gGreenAndRedAmoebaBody } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, _actor02400FireballTask, { .value = 0 } },
 };
 
 static void _actor02400ResolveBodyContacts(Task* task);

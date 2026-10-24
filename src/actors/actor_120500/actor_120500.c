@@ -165,7 +165,6 @@ enum {
     ACTOR_120500_SKIP_FINAL_VIEW           = 5,
     ACTOR_120500_SKIP_FADE_WAIT_FRAMES     = 8,
     ACTOR_120500_SKIP_VIEW_WAIT_FRAMES     = 2,
-    ACTOR_120500_SCENE_TASK_PRIORITY       = 192,
 };
 
 /// CAP-cued player, Kyle-body and movie choreography for motel room 6.
@@ -239,14 +238,14 @@ static TaskMessageEntry _gActor120500KyleMadiganMessages[2] = {
 /// argument 1 is an unsigned-halfword intensity step per update, normally 8;
 /// argument 2 is unused. Keep the actor package loaded until each task ends.
 static TaskDesc _gActor120500MovieFadeTaskDescriptors[3] = {
-    { { { TASK_BODY_NONE, ACTOR_120500_SCENE_TASK_PRIORITY } }, _actor120500MovieTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ACTOR_120500_SCENE_TASK_PRIORITY } }, _screenFadeInTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ACTOR_120500_SCENE_TASK_PRIORITY } }, _screenFadeOutTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor120500MovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _screenFadeInTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _screenFadeOutTask, { .value = 0 } },
 };
 
 TaskDesc gActor120500EmptyPlacementTaskDesc[2] = {
-    { { { TASK_BODY_NONE, ACTOR_120500_SCENE_TASK_PRIORITY } }, taskKill, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_120500_SCENE_TASK_PRIORITY } }, _actor120500SceneTask, { .model = &gKyleBody } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor120500SceneTask, { .model = &gKyleBody } },
 };
 
 /// Borrowed Kyle Madigan body task for the motel-room movie's request channels.

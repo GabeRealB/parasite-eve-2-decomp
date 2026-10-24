@@ -140,9 +140,8 @@ static s32  _dryfieldNightSaloonGRRoomActionMessage(Task* task, s32 messageId, c
 static void _dryfieldNightSaloonGRJukeboxSceneTask(Task* task);
 
 enum {
-    DRYFIELD_NIGHT_SALOON_G_R_MESSAGE_USE_KEY_ITEM  = 0x13F1,
-    DRYFIELD_NIGHT_SALOON_G_R_ROOM_AFTER_CUTSCENE   = 2,
-    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_TASK_PRIORITY = 192,
+    DRYFIELD_NIGHT_SALOON_G_R_MESSAGE_USE_KEY_ITEM = 0x13F1,
+    DRYFIELD_NIGHT_SALOON_G_R_ROOM_AFTER_CUTSCENE  = 2,
 };
 
 /// Bodyless transition task spawned by this room's event gate at priority 32.
@@ -151,7 +150,7 @@ enum {
 /// then reload the session. Spawn payloads and metadata are unused. The gate
 /// reads the recipe synchronously; room snapshots and callback code must remain
 /// live through the deferred transition.
-static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
+static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventTask, { .value = 0 } };
 
 /// Message routes installed on the live night-saloon room task.
 ///
@@ -172,7 +171,7 @@ static TaskMessageEntry _gDryfieldNightSaloonGRRoomMessages[] = {
 /// Priority 192; the task uses the room's singleton saved view, so scenes must
 /// not overlap. Spawning copies the recipe; keep this room loaded through exit.
 static TaskDesc _gDryfieldNightSaloonGRJukeboxSceneTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },
     .callback = _dryfieldNightSaloonGRJukeboxSceneTask,
     .data     = { .value = 0 },
 };
@@ -1524,7 +1523,7 @@ static UiObjectDesc _gJukeboxPanelDesc = {
 /// with zero payloads. The host creates the panel and exits the mode after its
 /// closing delay. Keep the room, callbacks and menu data loaded through exit.
 static TaskDesc _gDryfieldNightSaloonGRJukeboxHostTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },
     .callback = _jukeboxHostTask,
     .data     = { .value = 0 },
 };

@@ -20,12 +20,12 @@
 #include "main/task.h"
 
 TaskDesc gEffectBurstTaskDescriptors[6] = {
-    { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { .value = 0 } },
-    { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { .value = 0 } },
-    { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { .value = 0 } },
-    { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { .value = 0 } },
-    { { { TASK_BODY_NONE, 0xC0 } }, NULL, { .value = 0 } },
-    { { { TASK_BODY_TMD, 0x70 } }, effectBurstModelPartTask, { .model = NULL } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, NULL, { .value = 0 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_EFFECT } }, effectBurstModelPartTask, { .model = NULL } },
 };
 
 /// Retained bytes after the burst-part task descriptors.

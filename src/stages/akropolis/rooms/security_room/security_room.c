@@ -405,22 +405,18 @@ static TaskMessageEntry _gAkropolisSecurityRoomRoomMessages[5] = {
 };
 
 /// Ascending execution priorities of the panel openers and their cursor/scene children.
-enum {
-    AKROPOLIS_SECURITY_ROOM_PANEL_OPENER_PRIORITY = 32,
-    AKROPOLIS_SECURITY_ROOM_PANEL_CHILD_PRIORITY  = 192,
-};
 
 #include "assets/rooms/akropolis/security_room/events.inc"
 
 /// Bodyless opener recipes: index 0 monitor, index 1 power supply, index 2 end.
 static TaskDesc _gAkropolisSecurityRoomPanelOpenerTaskDescs[3] = {
-    { { { TASK_BODY_NONE, AKROPOLIS_SECURITY_ROOM_PANEL_OPENER_PRIORITY } }, _akropolisSecurityRoomOpenMonitorTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, AKROPOLIS_SECURITY_ROOM_PANEL_OPENER_PRIORITY } }, _akropolisSecurityRoomOpenPowerSupplyTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _akropolisSecurityRoomOpenMonitorTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _akropolisSecurityRoomOpenPowerSupplyTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 /// Bodyless cursor recipe spawned at index zero and owned by the monitor panel.
-static TaskDesc _gAkropolisSecurityRoomMonitorCursorTaskDesc = { { { TASK_BODY_NONE, AKROPOLIS_SECURITY_ROOM_PANEL_CHILD_PRIORITY } }, _akropolisSecurityRoomMonitorCursorTask, { .value = 0 } };
+static TaskDesc _gAkropolisSecurityRoomMonitorCursorTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _akropolisSecurityRoomMonitorCursorTask, { .value = 0 } };
 
 /// Camera-button view base and first command rows of the panel hotspot prompts.
 enum {
@@ -453,7 +449,7 @@ static s16 _gAkropolisSecurityRoomMonitorWashDetents[6] = {
 };
 
 /// Bodyless cursor recipe spawned at index zero and owned by the power-supply panel.
-static TaskDesc _gAkropolisSecurityRoomPowerSupplyCursorTaskDesc = { { { TASK_BODY_NONE, AKROPOLIS_SECURITY_ROOM_PANEL_CHILD_PRIORITY } }, _akropolisSecurityRoomPowerSupplyCursorTask, { .value = 0 } };
+static TaskDesc _gAkropolisSecurityRoomPowerSupplyCursorTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _akropolisSecurityRoomPowerSupplyCursorTask, { .value = 0 } };
 
 /// Key-item messages borrowed by the live power-supply panel, followed by an end marker.
 static TaskMessageEntry _gAkropolisSecurityRoomPowerSupplyMessages[2] = {
@@ -470,8 +466,8 @@ static ActionPromptHotspot _gAkropolisSecurityRoomPowerSupplyHotspots[3] = {
 
 /// Independent unlock-scene recipes: index 0 right-lock sound, index 1 left-lock movie.
 static TaskDesc _gAkropolisSecurityRoomUnlockSceneTaskDescs[2] = {
-    { { { TASK_BODY_NONE, AKROPOLIS_SECURITY_ROOM_PANEL_CHILD_PRIORITY } }, _akropolisSecurityRoomRightUnlockSoundTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, AKROPOLIS_SECURITY_ROOM_PANEL_CHILD_PRIORITY } }, _akropolisSecurityRoomLeftUnlockMovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _akropolisSecurityRoomRightUnlockSoundTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _akropolisSecurityRoomLeftUnlockMovieTask, { .value = 0 } },
 };
 
 /// All-black 256-color RGB555 source shared by the four lock-indicator blends.

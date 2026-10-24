@@ -190,18 +190,16 @@ static AnimationSet** const _gActorMotionAnimBanks19[1] SECTION(".data") = {
     _gActor323300WomanAnimSets,
 };
 
-enum { ACTOR_323300_ENCOUNTER_TASK_PRIORITY = 192 };
-
 TaskDesc gActor323300WomanStrangerTaskDescriptors[2] = {
     // 0: woman.
     {
-        .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_323300_ENCOUNTER_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = TASK_PRIORITY_CONTROL } },
         .callback = _actor323300WomanTask,
         .data     = { .model = &_gAnmcWoman1Body },
     },
     // 1: lesser stranger.
     {
-        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_323300_ENCOUNTER_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _actor323300StrangerTask,
         .data     = { .model = &_gStrangerLesserBody },
     },

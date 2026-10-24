@@ -104,8 +104,6 @@ enum {
     DRYFIELD_WATER_TANK_PLACEMENT_FADE_FRAMES   = 32,
     DRYFIELD_WATER_TANK_PLACEMENT_HOLD_FRAMES   = 30,
     DRYFIELD_WATER_TANK_PLACEMENT_SOUND         = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, 1),
-    DRYFIELD_WATER_TANK_ROOM_ACTION_PRIORITY    = 32,
-    DRYFIELD_WATER_TANK_SCENE_PRIORITY          = 192,
     DRYFIELD_WATER_TANK_PROP_SCENE_CAP_COMMAND  = 15,
     DRYFIELD_WATER_TANK_MOVIE_EVENT_CAP_COMMAND = 3,
     DRYFIELD_WATER_TANK_SKIP_FADE_WAIT_FRAMES   = 8,
@@ -161,8 +159,8 @@ TaskMessageEntry gDryfieldWaterTankRoomMessages[5] = {
 };
 
 TaskDesc gDryfieldWaterTankRoomActionTaskDescs[2] = {
-    { { { TASK_BODY_NONE, DRYFIELD_WATER_TANK_ROOM_ACTION_PRIORITY } }, dryfieldWaterTankWaitMovieEventTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, DRYFIELD_WATER_TANK_ROOM_ACTION_PRIORITY } }, dryfieldWaterTankMechanismPromptTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, dryfieldWaterTankWaitMovieEventTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, dryfieldWaterTankMechanismPromptTask, { .value = 0 } },
 };
 
 static TmdBone _gDryfieldWaterTankModel020D4Skeleton[1] = {
@@ -245,8 +243,8 @@ EvsCommand gDryfieldWaterTankPropSceneSkipScript[8] = {
 };
 
 TaskDesc gDryfieldWaterTankPropSceneTaskDescs[2] = {
-    { { { TASK_BODY_NONE, DRYFIELD_WATER_TANK_SCENE_PRIORITY } }, dryfieldWaterTankPropSceneTask, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), DRYFIELD_WATER_TANK_SCENE_PRIORITY } }, dryfieldWaterTankPropTask, { .model = &_gDryfieldWaterTankModel020D4 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, dryfieldWaterTankPropSceneTask, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, dryfieldWaterTankPropTask, { .model = &_gDryfieldWaterTankModel020D4 } },
 };
 
 static AnimationPackedPose _gDryfieldWaterTankAnimation02B70Bank1[2] = {
@@ -357,13 +355,13 @@ static EvsCommand _gDryfieldWaterTankMovieEventSkipScript[9] = {
 /// current callers pass eight. Movie arguments and all spawnArg2 values are zero.
 /// This indexed table has no TASK_DESC_END entry.
 static TaskDesc _gDryfieldWaterTankMovieFadeTaskDescs[4] = {
-    { { { TASK_BODY_NONE, DRYFIELD_WATER_TANK_SCENE_PRIORITY } }, NULL, { .value = 0 } },
-    { { { TASK_BODY_NONE, DRYFIELD_WATER_TANK_SCENE_PRIORITY } }, _dryfieldWaterTankMovieTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, DRYFIELD_WATER_TANK_SCENE_PRIORITY } }, screenFadeInTileTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, DRYFIELD_WATER_TANK_SCENE_PRIORITY } }, _dryfieldWaterTankFadeOutTileTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, NULL, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _dryfieldWaterTankMovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, screenFadeInTileTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _dryfieldWaterTankFadeOutTileTask, { .value = 0 } },
 };
 
-TaskDesc gDryfieldWaterTankMovieEventTaskDesc = { { { TASK_BODY_NONE, DRYFIELD_WATER_TANK_SCENE_PRIORITY } }, _dryfieldWaterTankMovieEventTask, { .value = 0 } };
+TaskDesc gDryfieldWaterTankMovieEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _dryfieldWaterTankMovieEventTask, { .value = 0 } };
 
 static AnimationPackedPose _gDryfieldWaterTankAnimation034BCBank1[6] = {
 #include "assets/dryfield_water_tank_animation_034BC_bank1.inc"

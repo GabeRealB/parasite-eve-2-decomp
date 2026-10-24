@@ -139,14 +139,12 @@ enum { DRYFIELD_MOTEL_ROOM_6_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 #include "../../shared/room/planar_reflection_data.inc.c"
 
 /// Execution priority shared by this carrier's two reflection recipes.
-enum { DRYFIELD_MOTEL_ROOM_6_REFLECTION_TASK_PRIORITY = 112 };
 
 /// Execution priority of this room's bodyless actor-event runner.
-enum { DRYFIELD_MOTEL_ROOM_6_ACTOR_EVENT_TASK_PRIORITY = 32 };
 
 TaskDesc gDryfieldMotelRoom6ReflectionTaskDescs[2] = {
-    { { { TASK_BODY_NONE, DRYFIELD_MOTEL_ROOM_6_REFLECTION_TASK_PRIORITY } }, dryfieldMotelRoom6PlayerReflectionTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, DRYFIELD_MOTEL_ROOM_6_REFLECTION_TASK_PRIORITY } }, _planarReflectionAttachmentTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_EFFECT } }, dryfieldMotelRoom6PlayerReflectionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_EFFECT } }, _planarReflectionAttachmentTask, { .value = 0 } },
 };
 
 /// Borrows this overlay's two reflection task descriptors.
@@ -166,8 +164,8 @@ static inline TaskDesc* _planarReflectionGetTaskTable(void)
 /// Both run at priority 32. Keep callback code and the scene record loaded
 /// until completion; spawning copies the recipe and retains no table pointer.
 static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
-    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -191,7 +189,7 @@ static TaskMessageEntry _gDryfieldMotelRoom6MessageTable[6] = {
 /// receiver spawns it once, after latching progress. Spawning copies the recipe;
 /// keep this room and actor_120500 loaded until the event's stop handshake ends.
 static TaskDesc _gDryfieldMotelRoom6ActorEventTaskDescs[2] = {
-    { { { TASK_BODY_NONE, DRYFIELD_MOTEL_ROOM_6_ACTOR_EVENT_TASK_PRIORITY } }, _dryfieldMotelRoom6RunActorEventTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _dryfieldMotelRoom6RunActorEventTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

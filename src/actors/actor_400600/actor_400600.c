@@ -629,7 +629,6 @@ static TaskMessageEntry _gActor400600MessageHandlers[3] = {
 };
 
 /// Execution priority of the Stalker body and its separately drawn arms.
-enum { ACTOR_400600_TASK_PRIORITY = 96 };
 
 /// Attached-arm model spawn recipes, indexed 0 left and 1 right.
 ///
@@ -637,11 +636,11 @@ enum { ACTOR_400600_TASK_PRIORITY = 96 };
 /// retains the tasks and kills them during corpse release. Their borrowed
 /// model sources and callbacks must remain loaded until teardown.
 static TaskDesc _gActor400600ArmTaskDescs[2] = {
-    { { { TASK_BODY_TMD, ACTOR_400600_TASK_PRIORITY } }, _actor400600InitLeftArmTask, { .model = &_gStalkerZebraBurstArmLeft } },
-    { { { TASK_BODY_TMD, ACTOR_400600_TASK_PRIORITY } }, _actor400600InitRightArmTask, { .model = &_gStalkerZebraBurstArmRight } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor400600InitLeftArmTask, { .model = &_gStalkerZebraBurstArmLeft } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor400600InitRightArmTask, { .model = &_gStalkerZebraBurstArmRight } },
 };
 
-TaskDesc gActor400600ZebraStalkerTaskDesc = { { { TASK_BODY_TMD, ACTOR_400600_TASK_PRIORITY } }, _actor400600Task, { .model = &_gStalkerZebraBody } };
+TaskDesc gActor400600ZebraStalkerTaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor400600Task, { .model = &_gStalkerZebraBody } };
 
 /// Grounded-death clip selected from the requested body pose, indexed 0..34.
 ///

@@ -221,10 +221,8 @@ static TaskMessageEntry _gActor311500StrangerMessages[1] = {
     { ACTOR_MESSAGE_IS_PRESENT, _actor311500IsPresentMessage },
 };
 
-enum { ACTOR_311500_STRANGER_TASK_PRIORITY = 192 };
-
 TaskDesc gActor311500StrangerTaskDesc = {
-    .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_311500_STRANGER_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = TASK_PRIORITY_CONTROL } },
     .callback = _actor311500Task,
     .data     = { .model = &_gAkropolisCafeteriaBossStrangerBody },
 };

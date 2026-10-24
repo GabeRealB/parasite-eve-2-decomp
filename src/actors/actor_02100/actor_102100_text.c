@@ -411,7 +411,7 @@ static _Actor02100BeamEdges _gActor02100BeamEdges[ACTOR_02100_WEAPON_COUNT][ACTO
 /// A received hit bypasses the ordinary player range test.
 static s16 _gActor02100SightRanges[8] = { 3000, 3500, 4000, 4500, 5000, 6000, 7000, 8000 };
 
-TaskDesc gActor02100WatcherTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor02100Task, { .model = &_gWatcherBody } };
+TaskDesc gActor02100WatcherTaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor02100Task, { .model = &_gWatcherBody } };
 
 /// Corner indices for the two fading edge quads of each beam segment.
 ///

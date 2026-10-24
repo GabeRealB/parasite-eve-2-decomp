@@ -77,7 +77,6 @@ static void _actor151000BlackoutTask(Task* task);
 
 /// Selectors and flags used by the garden arrival data.
 enum {
-    ACTOR_151000_GARDEN_TASK_PRIORITY      = 192,
     ACTOR_151000_GARDEN_CAP_ARRIVAL        = 2,
     ACTOR_151000_GARDEN_RETURN_VIEW        = 3,
     ACTOR_151000_GARDEN_ENABLE_FOOTSTEPS   = 1,
@@ -109,7 +108,7 @@ enum {
 ///
 /// Spawn arguments and descriptor metadata are unused. The actor package's
 /// callback must remain loaded until the switch is cleared and the task exits.
-static TaskDesc _gActor151000BlackoutTaskDesc = { { { TASK_BODY_NONE, ACTOR_151000_GARDEN_TASK_PRIORITY } }, _actor151000BlackoutTask, { .value = 0 } };
+static TaskDesc _gActor151000BlackoutTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor151000BlackoutTask, { .value = 0 } };
 
 /// Three player clips installed at equipped-bank indices 47..49 for the garden scene.
 ///
@@ -306,7 +305,7 @@ static TaskMessageEntry _gFootstepWalkMessageTable[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc gActor151000WalkerTaskDesc = { { { TASK_BODY_TMD, ACTOR_151000_GARDEN_TASK_PRIORITY } }, _actor151000WalkerTask, { .model = &_gEveBody } };
+TaskDesc gActor151000WalkerTaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _actor151000WalkerTask, { .model = &_gEveBody } };
 
 /// Native clip-index table borrowed by the sound walker's animation context.
 ///

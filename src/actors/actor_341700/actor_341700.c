@@ -277,13 +277,11 @@ static TaskMessageEntry _gMadChaserMsgTable[3] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-enum { ACTOR_341700_MAD_CHASER_TASK_PRIORITY = 96 };
-
 TaskDesc gActor341700MadChaserTaskDescs[ACTOR_341700_MAD_CHASER_TASK_COUNT] = {
-    { { { TASK_BODY_TMD, ACTOR_341700_MAD_CHASER_TASK_PRIORITY } }, _madChaserTask, { .model = &gChaserMadBody } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_341700_MAD_CHASER_TASK_PRIORITY } }, _madChaserHiddenTask, { .model = &gChaserMadBody } },
-    { { { TASK_BODY_COORD, ACTOR_341700_MAD_CHASER_TASK_PRIORITY } }, taskKill, { .value = 0 } },
-    { { { TASK_BODY_TMD, ACTOR_341700_MAD_CHASER_TASK_PRIORITY } }, _madChaserHiddenTask, { .model = &gChaserMadBody } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _madChaserTask, { .model = &gChaserMadBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_ACTOR } }, _madChaserHiddenTask, { .model = &gChaserMadBody } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, taskKill, { .value = 0 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _madChaserHiddenTask, { .model = &gChaserMadBody } },
 };
 
 /// Interrupted-clip stance used by recoil, knockdown and pull selection.

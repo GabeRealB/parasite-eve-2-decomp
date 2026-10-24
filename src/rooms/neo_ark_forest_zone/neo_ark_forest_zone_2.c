@@ -130,10 +130,8 @@ static AnimationSet _gNeoArkForestZoneAnimation047D4 = {
     { NULL, _gNeoArkForestZoneAnimation047D4Bank1, NULL, NULL, _gNeoArkForestZoneAnimation047D4Bank4, NULL, NULL, NULL },
 };
 
-enum { NEO_ARK_FOREST_ZONE_STAGED_EVENT_PRIORITY = 32 };
-
 TaskDesc gNeoArkForestZoneStagedEventTaskDesc = {
-    .header   = { .fields = { TASK_BODY_NONE, NEO_ARK_FOREST_ZONE_STAGED_EVENT_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } },
     .callback = roomEventStagedTask,
     .data     = { .value = 0 },
 };
@@ -923,13 +921,9 @@ static const RoamerSpawnPoint _gNeoArkForestZoneRoamerPoolBSpawnPointEnd SECTION
     .yaw = ROAMER_SPAWN_POINT_END,
 };
 
-enum { NEO_ARK_FOREST_ZONE_POOL_B_TASK_PRIORITY = 32 };
-
 TaskDesc gNeoArkForestZoneRoamerPoolBTaskDesc = {
-    { { TASK_BODY_NONE, NEO_ARK_FOREST_ZONE_POOL_B_TASK_PRIORITY } }, _neoArkForestZoneRoamerPoolBTask, { .value = 0 }
+    { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _neoArkForestZoneRoamerPoolBTask, { .value = 0 }
 };
-
-enum { NEO_ARK_FOREST_ZONE_UNUSED_POOL_A_PRIORITY = 32 };
 
 /// Retained, unused bodyless recipe for the pool-A roaming-enemy controller.
 ///
@@ -937,7 +931,7 @@ enum { NEO_ARK_FOREST_ZONE_UNUSED_POOL_A_PRIORITY = 32 };
 /// No room code spawns this descriptor; a spawned task would borrow the
 /// callback code for its lifetime.
 static TaskDesc _gNeoArkForestZoneUnusedRoamerPoolATaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = NEO_ARK_FOREST_ZONE_UNUSED_POOL_A_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_SCENE } },
     .callback = _neoArkForestZoneRoamerPoolATask,
     .data     = { .value = 0 },
 };

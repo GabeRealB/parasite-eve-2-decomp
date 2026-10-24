@@ -65,8 +65,8 @@ static void _akropolisEastElevatorHallStartSkipCapSequence(void);
 
 /// Reflection tasks: the player (0) and their attachment (1).
 static TaskDesc _gAkropolisEastElevatorHallReflectionTaskDescs[2] = {
-    { { { TASK_BODY_NONE, AKROPOLIS_EAST_ELEVATOR_HALL_REFLECTION_TASK_PRIORITY } }, akropolisEastElevatorHallPlayerReflectionTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, AKROPOLIS_EAST_ELEVATOR_HALL_REFLECTION_TASK_PRIORITY } }, _planarReflectionAttachmentTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_EFFECT } }, akropolisEastElevatorHallPlayerReflectionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_EFFECT } }, _planarReflectionAttachmentTask, { .value = 0 } },
 };
 
 /// The reflection task table, for `planar_reflection.inc.c`.

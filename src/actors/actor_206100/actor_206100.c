@@ -467,14 +467,12 @@ static EnemyParams _gActor206100SeaDiverParams = {
 
 #include "assets/enemies/diver/sea/clips.inc"
 
-enum { ACTOR_206100_ENTRANCE_WAVE_TASK_PRIORITY = 192 };
-
 /// Screen distortion task used during the Sea Diver's entrance relocation.
 ///
 /// Descriptor 0 has no body and borrows the entrance wave context until the
 /// task ends; descriptor 1 terminates the recipe table. Priority is 192.
 static TaskDesc _gActor206100EntranceWaveTaskDescriptors[2] = {
-    { { { TASK_BODY_NONE, ACTOR_206100_ENTRANCE_WAVE_TASK_PRIORITY } }, _screenWaveTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _screenWaveTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -484,18 +482,16 @@ static TaskDesc _gActor206100EntranceWaveTaskDescriptors[2] = {
 /// the initial 256 to zero; the context must have a positive span while drawing.
 static s32 _gScreenWaveAmplitude = 256;
 
-enum { ACTOR_206100_SEA_DIVER_TASK_PRIORITY = 96 };
-
 TaskDesc gActor206100SeaDiverTaskDescriptors[2] = {
     // 0: body.
     {
-        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_206100_SEA_DIVER_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_ACTOR } },
         .callback = _actor206100Task,
         .data     = { .model = &_gDiverBody },
     },
     // 1: shot.
     {
-        .header   = { .fields = { .flags = TASK_BODY_COORD, .priority = ACTOR_206100_SEA_DIVER_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_COORD, .priority = TASK_PRIORITY_ACTOR } },
         .callback = _actor206100ShotTask,
         .data     = { .value = 0 },
     },

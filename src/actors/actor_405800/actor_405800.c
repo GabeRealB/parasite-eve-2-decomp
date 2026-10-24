@@ -389,19 +389,17 @@ static TaskMessageEntry _gActor405800Messages[3] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-enum { ACTOR_405800_ARM_TASK_PRIORITY = 96 };
-
 /// Left and right Ivory Stalker child-arm model recipes, with no terminator.
 ///
 /// Slots `ACTOR_405800_ARM_LEFT` and `ACTOR_405800_ARM_RIGHT` select the two
 /// models. Spawned tasks borrow their sources and body-owned coordinates and
 /// lighting; both child spawns must succeed before binding them to the body.
 static TaskDesc _gActor405800ArmTaskDescs[2] = {
-    { { { TASK_BODY_TMD, ACTOR_405800_ARM_TASK_PRIORITY } }, _actor405800LeftArmTask, { .model = &_gStalkerIvoryBurstArmLeft } },
-    { { { TASK_BODY_TMD, ACTOR_405800_ARM_TASK_PRIORITY } }, _actor405800RightArmTask, { .model = &_gStalkerIvoryBurstArmRight } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor405800LeftArmTask, { .model = &_gStalkerIvoryBurstArmLeft } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor405800RightArmTask, { .model = &_gStalkerIvoryBurstArmRight } },
 };
 
-TaskDesc gActor405800IvoryStalkerTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor405800Task, { .model = &_gStalkerIvoryBody } };
+TaskDesc gActor405800IvoryStalkerTaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor405800Task, { .model = &_gStalkerIvoryBody } };
 
 /// Grounded-death clip selected from the requested body pose, indexed 0..34.
 ///

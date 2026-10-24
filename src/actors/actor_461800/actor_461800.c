@@ -147,8 +147,8 @@ static Task* _gActor461800SceneDistortionTask = NULL;
 ///
 /// Both run at priority 32 with unused spawn arguments; there is no terminator.
 static TaskDesc _gActor461800SceneEffectTasks[2] = {
-    { { { TASK_BODY_NONE, 32 } }, _actor461800SceneFadeTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, _actor461800SceneDistortionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _actor461800SceneFadeTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _actor461800SceneDistortionTask, { .value = 0 } },
 };
 
 /// Scene-child selectors and native clip IDs used by this package's requests.
@@ -345,9 +345,9 @@ static TaskMessageEntry _gActor461800ScriptedWalkerMessages[6] = {
 };
 
 TaskDesc gActor461800ScriptedWalkerTasks[3] = {
-    { { { TASK_BODY_TMD, 192 } }, _actor461800ScriptedWalkerTask, { .model = &gKyleBody } },
-    { { { TASK_BODY_TMD, 192 } }, _actor461800ScriptedWalkerAttachmentTask, { .model = &_gKyleHandLeft3 } },
-    { { { TASK_BODY_TMD, 192 } }, _actor461800ScriptedWalkerAttachmentTask, { .model = &_gKyleHandRight2 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _actor461800ScriptedWalkerTask, { .model = &gKyleBody } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _actor461800ScriptedWalkerAttachmentTask, { .model = &_gKyleHandLeft3 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _actor461800ScriptedWalkerAttachmentTask, { .model = &_gKyleHandRight2 } },
 };
 
 /// Native clip-index table borrowed by Kyle walker's twenty-part animation rig.
@@ -385,7 +385,7 @@ static TaskMessageEntry _gFootstepWalkMessageTable[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc gActor461800FootstepWalkerTaskDesc = { { { TASK_BODY_TMD, 192 } }, _actor461800FootstepWalkerTask, { .model = &_gEveBody } };
+TaskDesc gActor461800FootstepWalkerTaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _actor461800FootstepWalkerTask, { .model = &_gEveBody } };
 
 /// Native clip-index table borrowed by the sound walker's animation context.
 ///

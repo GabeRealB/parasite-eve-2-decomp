@@ -53,15 +53,13 @@ static s32 _neoArkWoodlandPathForwardActorEvent(Task* task, s32 messageId, s32 h
 
 enum { NEO_ARK_WOODLAND_PATH_ROAMER_ABSENT = -1 };
 
-enum { NEO_ARK_WOODLAND_PATH_WATER_TASK_PRIORITY = 192 };
-
-TaskDesc gNeoArkWoodlandPathWaterRefractionTaskDesc = { { { TASK_BODY_NONE, NEO_ARK_WOODLAND_PATH_WATER_TASK_PRIORITY } }, waterRefractionTask, { .value = 0 } };
+TaskDesc gNeoArkWoodlandPathWaterRefractionTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, waterRefractionTask, { .value = 0 } };
 
 /// Retained no-body, priority-192 recipe for the framebuffer distortion task.
 ///
 /// No spawn site selects this recipe; it is distinct from the active refraction
 /// descriptor. The callback's room/view clipping determines whether it draws.
-static TaskDesc _gNeoArkWoodlandPathWaterDistortBandTaskDesc = { { { TASK_BODY_NONE, NEO_ARK_WOODLAND_PATH_WATER_TASK_PRIORITY } }, waterDistortBandTask, { .value = 0 } };
+static TaskDesc _gNeoArkWoodlandPathWaterDistortBandTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, waterDistortBandTask, { .value = 0 } };
 
 /// Synchronous message handlers installed on the woodland room receiver.
 ///

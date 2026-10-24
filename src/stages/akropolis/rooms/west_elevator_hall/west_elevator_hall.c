@@ -125,7 +125,6 @@ enum {
 enum {
     AKROPOLIS_WEST_ELEVATOR_HALL_NEGATIVE_LEAF_INDEX = 0,
     AKROPOLIS_WEST_ELEVATOR_HALL_POSITIVE_LEAF_INDEX = 1,
-    AKROPOLIS_WEST_ELEVATOR_HALL_DOOR_LEAF_PRIORITY  = 192,
 };
 
 static AnimationSet _gAkropolisWestElevatorHallArrivalAnim00Clip;
@@ -136,12 +135,11 @@ static void         _akropolisWestElevatorHallDoorLeafTask(Task* task);
 #include "../../../../shared/room/planar_reflection_data.inc.c"
 
 /// Execution priority shared by the hall's reflected player and held models.
-enum { AKROPOLIS_WEST_ELEVATOR_HALL_REFLECTION_PRIORITY = 112 };
 
 /// Spawn recipes for the hall's player reflection and its attachment reflections.
 static TaskDesc _gAkropolisWestElevatorHallReflectionTaskTable[2] = {
-    { { { TASK_BODY_NONE, AKROPOLIS_WEST_ELEVATOR_HALL_REFLECTION_PRIORITY } }, akropolisWestElevatorHallPlayerReflectionTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, AKROPOLIS_WEST_ELEVATOR_HALL_REFLECTION_PRIORITY } }, _planarReflectionAttachmentTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_EFFECT } }, akropolisWestElevatorHallPlayerReflectionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_EFFECT } }, _planarReflectionAttachmentTask, { .value = 0 } },
 };
 
 /// Borrows this overlay's two reflection task descriptors.
@@ -158,8 +156,8 @@ static inline TaskDesc* _planarReflectionGetTaskTable(void)
 
 /// Model-backed door-leaf descriptors, negative X then positive X, followed by END.
 static TaskDesc _gAkropolisWestElevatorHallDoorLeafTaskTable[3] = {
-    { { { TASK_BODY_TMD, AKROPOLIS_WEST_ELEVATOR_HALL_DOOR_LEAF_PRIORITY } }, _akropolisWestElevatorHallDoorLeafTask, { .model = &_gAkropolisWestElevatorHallDoorLeafLeftModel } },
-    { { { TASK_BODY_TMD, AKROPOLIS_WEST_ELEVATOR_HALL_DOOR_LEAF_PRIORITY } }, _akropolisWestElevatorHallDoorLeafTask, { .model = &_gAkropolisWestElevatorHallDoorLeafRightModel } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _akropolisWestElevatorHallDoorLeafTask, { .model = &_gAkropolisWestElevatorHallDoorLeafLeftModel } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _akropolisWestElevatorHallDoorLeafTask, { .model = &_gAkropolisWestElevatorHallDoorLeafRightModel } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

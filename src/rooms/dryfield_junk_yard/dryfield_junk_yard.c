@@ -120,7 +120,6 @@ enum {
 };
 
 /// Execution-list priority of the room's bodyless companion controller.
-enum { DRYFIELD_JUNK_YARD_COMPANION_SEQUENCE_PRIORITY = 32 };
 
 static WorldCollisionGrid         _gDryfieldJunkYardCollisionGrid;
 static WorldCollisionOccluder     _gDryfieldJunkYardSightOccluders[1];
@@ -148,7 +147,7 @@ static TaskMessageEntry _gDryfieldJunkYardRoomMessages[] = {
 /// scene at state 0 with both spawn arguments zero. Keep the overlay loaded
 /// until the task ends.
 static TaskDesc _gDryfieldJunkYardCompanionSequenceTasks[] = {
-    { { { TASK_BODY_NONE, DRYFIELD_JUNK_YARD_COMPANION_SEQUENCE_PRIORITY } }, _dryfieldJunkYardCompanionSequenceTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _dryfieldJunkYardCompanionSequenceTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

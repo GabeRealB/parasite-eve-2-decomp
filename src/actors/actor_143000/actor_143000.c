@@ -200,20 +200,15 @@ static const char _gActor143000KeypadBottomRow[ACTOR_143000_KEYPAD_COLUMNS + 1];
 static const char _gActor143000KeypadMiddleRow[ACTOR_143000_KEYPAD_COLUMNS + 1];
 static const char _gActor143000KeypadTopRow[ACTOR_143000_KEYPAD_COLUMNS + 1];
 
-enum {
-    ACTOR_143000_KEYPAD_CURSOR_TASK_PRIORITY = 192,
-    ACTOR_143000_KEYPAD_TASK_PRIORITY        = 32,
-};
-
 /// Bodyless cursor companion of one keypad session, stopped when that session closes.
 static TaskDesc _gActor143000KeypadCursorTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = ACTOR_143000_KEYPAD_CURSOR_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },
     .callback = _actor143000KeypadCursorTask,
     .data     = { .value = 0 },
 };
 
 TaskDesc gActor143000KeypadTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = ACTOR_143000_KEYPAD_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_SCENE } },
     .callback = _actor143000KeypadTask,
     .data     = { .value = 0 },
 };

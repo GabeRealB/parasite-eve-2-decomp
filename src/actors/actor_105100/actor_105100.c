@@ -477,9 +477,9 @@ static s16 _gActor105100BeamRoutes[10] = {
 };
 
 TaskDesc gActor105100TaskDescriptors[3] = {
-    { { { TASK_BODY_TMD, 96 } }, _actor105100Task, { .model = &_gStingerBody } },
-    { { { TASK_BODY_COORD, 96 } }, _actor105100FireballTask, { .value = 0 } },
-    { { { TASK_BODY_COORD, 96 } }, _actor105100BeamTask, { .value = 0 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor105100Task, { .model = &_gStingerBody } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, _actor105100FireballTask, { .value = 0 } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, _actor105100BeamTask, { .value = 0 } },
 };
 
 /// Stinger body clips indexed by `ACTOR_105100_ANIM_*`.

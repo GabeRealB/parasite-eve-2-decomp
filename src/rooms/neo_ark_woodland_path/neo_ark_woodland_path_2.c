@@ -263,11 +263,9 @@ static RoamerSpawnPoint _gRoamerPoolBSpawnPointEnd = {
     .yaw = ROAMER_SPAWN_POINT_END,
 };
 
-enum { NEO_ARK_WOODLAND_PATH_ROAMER_CONTROLLER_PRIORITY = 32 };
-
 TaskDesc gNeoArkWoodlandPathRoamerControllerTaskDescs[2] = {
-    { .header = { .fields = { .flags = TASK_BODY_NONE, .priority = NEO_ARK_WOODLAND_PATH_ROAMER_CONTROLLER_PRIORITY } }, .callback = _neoArkWoodlandPathRoamerPoolBTask, .data = { .value = 0 } },
-    { .header = { .fields = { .flags = TASK_BODY_NONE, .priority = NEO_ARK_WOODLAND_PATH_ROAMER_CONTROLLER_PRIORITY } }, .callback = _neoArkWoodlandPathRoamerPoolATask, .data = { .value = 0 } },
+    { .header = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_SCENE } }, .callback = _neoArkWoodlandPathRoamerPoolBTask, .data = { .value = 0 } },
+    { .header = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_SCENE } }, .callback = _neoArkWoodlandPathRoamerPoolATask, .data = { .value = 0 } },
 };
 
 ActorCommand gRoamerCommand = { { .loc = { 0, 0 } }, 0 };

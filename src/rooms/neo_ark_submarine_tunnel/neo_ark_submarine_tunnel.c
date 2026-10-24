@@ -94,11 +94,9 @@ static void _neoArkSubmarineTunnelSetEventSeen(s32 seenValue);
 
 enum { NEO_ARK_SUBMARINE_TUNNEL_EVENT_SEEN = 1 };
 
-enum { NEO_ARK_SUBMARINE_TUNNEL_WATER_REFRACTION_TASK_PRIORITY = 192 };
-
 TaskDesc gNeoArkSubmarineTunnelWaterRefractionTaskDesc[2] = {
-    { { { TASK_BODY_NONE, NEO_ARK_SUBMARINE_TUNNEL_WATER_REFRACTION_TASK_PRIORITY } }, waterRefractionTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, NEO_ARK_SUBMARINE_TUNNEL_WATER_REFRACTION_TASK_PRIORITY } }, waterDistortBandTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, waterRefractionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, waterDistortBandTask, { .value = 0 } },
 };
 
 static AnimationPackedPose _gNeoArkSubmarineTunnelAnimation03EE0Bank1[6] = {
@@ -151,7 +149,7 @@ static AnimationSet _gNeoArkSubmarineTunnelAnimation0444C = {
 /// Only one wave may be active; its context and this carrier's code/storage
 /// must remain live through the final draw. The spawner copies the recipe.
 static TaskDesc _gScreenWaveTaskDescs[2] = {
-    { { { TASK_BODY_NONE, 192 } }, _screenWaveTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _screenWaveTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

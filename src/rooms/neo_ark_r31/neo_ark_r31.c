@@ -37,10 +37,8 @@ static s32  _neoArkR31IgnoreRoomCommand(Task* task, s32 messageId, s32 commandId
 static s32  _neoArkR31IgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 static void _neoArkR31FramebufferShiftTask(Task* task);
 
-enum { NEO_ARK_R31_FRAMEBUFFER_SHIFT_TASK_PRIORITY = 192 };
-
 TaskDesc gNeoArkR31FramebufferShiftTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = NEO_ARK_R31_FRAMEBUFFER_SHIFT_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },
     .callback = _neoArkR31FramebufferShiftTask,
     .data     = { .value = 0 },
 };

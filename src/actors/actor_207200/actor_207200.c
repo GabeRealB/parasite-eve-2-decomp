@@ -73,9 +73,7 @@ static EnemyParams _gSkullStalkerParams = {
 
 #include "assets/encounters/skull_stalker_and_creeping_stranger/package_2_clips_1.inc"
 
-enum { ACTOR_207200_TASK_PRIORITY = 96 };
-
-TaskDesc gActor207200SkullStalkerTaskDesc = { { { TASK_BODY_TMD, ACTOR_207200_TASK_PRIORITY } }, _skullStalkerTask, { .model = &_gAkropolisForkedRoadSkullStalkerBody } };
+TaskDesc gActor207200SkullStalkerTaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _skullStalkerTask, { .model = &_gAkropolisForkedRoadSkullStalkerBody } };
 
 /// Skull Stalker animation sets: 0 empty, 1 idle, 2 alert.
 ///

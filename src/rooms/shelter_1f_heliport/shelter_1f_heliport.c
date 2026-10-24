@@ -134,11 +134,8 @@ enum {
 
 #include "../../shared/room/shop_data.inc.c"
 
-enum { SHELTER_1F_HELIPORT_SHOP_TASK_PRIORITY   = 192,
-       SHELTER_1F_HELIPORT_SCRIPT_TASK_PRIORITY = 32 };
-
 TaskDesc gShelter1fHeliportShopSessionTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = SHELTER_1F_HELIPORT_SHOP_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },
     .callback = _shopSessionTask,
     .data     = { .value = 0 },
 };
@@ -149,7 +146,7 @@ TaskDesc gShelter1fHeliportShopSessionTaskDesc = {
 /// singleton event/message records through CAP, fade, sound and session reload;
 /// keep this overlay loaded and those records unchanged until completion.
 static TaskDesc _gShelter1fHeliportDepartureEventTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = SHELTER_1F_HELIPORT_SCRIPT_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_SCENE } },
     .callback = roomEventStagedTask,
     .data     = { .value = 0 },
 };
@@ -172,7 +169,7 @@ static TaskMessageEntry _gShelter1fHeliportRoomMessages[5] = {
 /// CAP choice 15 restores control and ends the task. Spawning reads the recipe
 /// synchronously; this overlay and its CAP resources must outlive playback.
 static TaskDesc _gShelter1fHeliportDialogueLoopTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = SHELTER_1F_HELIPORT_SCRIPT_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_SCENE } },
     .callback = _capDialogueLoopTask,
     .data     = { .value = 0 },
 };

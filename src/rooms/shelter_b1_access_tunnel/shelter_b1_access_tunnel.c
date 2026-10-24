@@ -102,15 +102,13 @@ enum { SHELTER_B1_ACCESS_TUNNEL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 /// then reload the session. Spawn payloads and metadata are unused. The gate
 /// reads the recipe synchronously; room snapshots and callback code must remain
 /// live through the deferred transition.
-static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
-
-enum { SHELTER_B1_ACCESS_TUNNEL_STAGED_EVENT_PRIORITY = 32 };
+static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventTask, { .value = 0 } };
 
 /// Bodyless controller for the staged departure scene and room reload.
 ///
 /// Spawning copies this recipe; the controller borrows the latched transition
 /// and scene records until reload. It starts with both spawn arguments zero.
-static TaskDesc _gShelterB1AccessTunnelStagedEventTaskDesc = { { { TASK_BODY_NONE, SHELTER_B1_ACCESS_TUNNEL_STAGED_EVENT_PRIORITY } }, roomEventStagedTask, { .value = 0 } };
+static TaskDesc _gShelterB1AccessTunnelStagedEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventStagedTask, { .value = 0 } };
 
 /// Room messages for exit resolution, key-item use, actions and script commands.
 ///

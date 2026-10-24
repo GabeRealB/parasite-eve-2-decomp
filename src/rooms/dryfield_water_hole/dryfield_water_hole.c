@@ -101,14 +101,12 @@ static TaskMessageEntry _gDryfieldWaterHoleRoomMessages[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-enum { DRYFIELD_WATER_HOLE_WATER_TASK_PRIORITY = 192 };
-
 /// Bodyless priority-192 recipe for the persistent daytime water-surface task.
 ///
 /// Room initialization spawns this one recipe with zero arguments. The callback
 /// and room-owned surface resources must remain loaded until the task exits.
 static TaskDesc _gDryfieldWaterHoleWaterTaskDesc = {
-    { { TASK_BODY_NONE, DRYFIELD_WATER_HOLE_WATER_TASK_PRIORITY } },
+    { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } },
     _waterHoleWaterTask,
     { .value = 0 },
 };

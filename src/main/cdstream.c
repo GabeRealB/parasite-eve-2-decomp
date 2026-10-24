@@ -762,14 +762,13 @@ static volatile s32 _gCdStreamLastDmaSpuAddress = 0;
 static volatile s32 _gCdStreamLastGapSectorStamp = 0;
 /// Gap-sector cursor, reset on entering a gap; its low eight bits form the replay key.
 static u16 _gCdStreamGapSectorIndex = 0;
-enum { TASK_BANK14_EXECUTION_PRIORITY = 192 };
 
 TaskDesc gTaskBank14Descs[5] = {
-    { { { TASK_BODY_NONE, TASK_BANK14_EXECUTION_PRIORITY } }, taskKill },
-    { { { TASK_BODY_NONE, TASK_BANK14_EXECUTION_PRIORITY } }, taskKill },
-    { { { TASK_BODY_NONE, TASK_BANK14_EXECUTION_PRIORITY } }, taskKill },
-    { { { TASK_BODY_NONE, TASK_BANK14_EXECUTION_PRIORITY } }, taskKill },
-    { { { TASK_BODY_NONE, TASK_BANK14_EXECUTION_PRIORITY } }, func_80725BB8 },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, func_80725BB8 },
 };
 u16 gSpuSemitonePitchTable[] = {
     0x0010,

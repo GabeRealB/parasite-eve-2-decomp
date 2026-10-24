@@ -189,10 +189,8 @@ static s32 _shelterB1ControlRoomIgnoreRoomAction(Task* task, s32 messageId, cons
 
 static void _shelterB1ControlRoomMirrorTask(Task* task);
 
-enum { SHELTER_B1_CONTROL_ROOM_MIRROR_TASK_PRIORITY = 112 };
-
 TaskDesc gShelterB1ControlRoomMirrorTaskDesc = {
-    .header   = { .fields = { TASK_BODY_NONE, SHELTER_B1_CONTROL_ROOM_MIRROR_TASK_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_EFFECT } },
     .callback = _shelterB1ControlRoomMirrorTask,
     .data     = { .value = 0 },
 };

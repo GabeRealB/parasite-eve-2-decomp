@@ -83,7 +83,6 @@ enum {
 
 /// Execution priorities of the shop controllers and the player's head-aim update.
 enum {
-    MIST_PARKING_SHOP_TASK_PRIORITY     = 192,
     MIST_PARKING_SHOP_HEAD_AIM_PRIORITY = 97
 };
 
@@ -94,11 +93,11 @@ enum {
 };
 
 TaskDesc gMistParkingShopTaskDescriptors[5] = {
-    { { { TASK_BODY_NONE, MIST_PARKING_SHOP_TASK_PRIORITY } }, _mistParkingDepartForAkropolisTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _mistParkingDepartForAkropolisTask, { .value = 0 } },
     { { { TASK_BODY_NONE, MIST_PARKING_SHOP_HEAD_AIM_PRIORITY } }, _mistParkingAimPlayerHeadAtShopPartnerTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, MIST_PARKING_SHOP_TASK_PRIORITY } }, _mistParkingDelayShopDisplayModeExitTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, MIST_PARKING_SHOP_TASK_PRIORITY } }, _mistParkingJodieShopTalkTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, MIST_PARKING_SHOP_TASK_PRIORITY } }, _mistParkingShopDepartureMenuTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _mistParkingDelayShopDisplayModeExitTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _mistParkingJodieShopTalkTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _mistParkingShopDepartureMenuTask, { .value = 0 } },
 };
 
 /// Variant-1 player bank extension: empty slot 47, then talk, menu and stay clips.

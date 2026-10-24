@@ -31,7 +31,7 @@ static void _dryfieldNightMotelBalconyBlackoutTask(Task* task);
 
 static void _dryfieldNightMotelBalconyMovieTask(Task* task);
 
-TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventTask, { .value = 0 } };
 
 const TaskMessageEntry gDryfieldNightMotelBalconyMessageTable[6] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMotelBalconyDoorsMsg },
@@ -42,20 +42,16 @@ const TaskMessageEntry gDryfieldNightMotelBalconyMessageTable[6] SECTION(".data"
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-enum { DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_TASK_PRIORITY = 192 };
-
 TaskDesc gDryfieldNightMotelBalconyMovieTaskDescs[2] = {
-    { { { TASK_BODY_NONE, DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_TASK_PRIORITY } }, dryfieldNightMotelBalconyBeginMoviesTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_TASK_PRIORITY } }, _dryfieldNightMotelBalconyMovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, dryfieldNightMotelBalconyBeginMoviesTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _dryfieldNightMotelBalconyMovieTask, { .value = 0 } },
 };
-
-enum { DRYFIELD_NIGHT_MOTEL_BALCONY_BLACKOUT_PRIORITY = 192 };
 
 /// Retained bodyless task recipe for a 64-tick full-black display hold.
 ///
 /// Priority 192; metadata is unused. The callback requires a zero initial
 /// kill counter and live display packet storage. No current caller uses this recipe.
-static const TaskDesc _gDryfieldNightMotelBalconyBlackoutTaskDesc SECTION(".data") = { { { TASK_BODY_NONE, DRYFIELD_NIGHT_MOTEL_BALCONY_BLACKOUT_PRIORITY } }, _dryfieldNightMotelBalconyBlackoutTask, { .value = 0 } };
+static const TaskDesc _gDryfieldNightMotelBalconyBlackoutTaskDesc SECTION(".data") = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _dryfieldNightMotelBalconyBlackoutTask, { .value = 0 } };
 
 /// Reveals a ready movie and advances the borrowed controller to playback.
 ///

@@ -105,11 +105,6 @@ enum {
 };
 
 /// Scheduler priorities of the square's tasks.
-enum {
-    AKROPOLIS_SQUARE_REFLECTION_TASK_PRIORITY = 112,
-    AKROPOLIS_SQUARE_SEQUENCE_TASK_PRIORITY   = 32,
-    AKROPOLIS_SQUARE_BACKDROP_TASK_PRIORITY   = 192,
-};
 
 /// Player reflections: their task and its two modes.
 enum {

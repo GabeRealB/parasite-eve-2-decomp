@@ -194,30 +194,28 @@ static AnimationSet** _gActorMotionAnimBanks[1] = {
     _gActor350700KyleMadiganAnimationBank,
 };
 
-enum { ACTOR_350700_KYLE_TASK_PRIORITY = 192 };
-
 TaskDesc gActor350700KyleMadiganTaskDescriptors[4] = {
     // 0: body.
     {
-        .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_350700_KYLE_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = TASK_PRIORITY_CONTROL } },
         .callback = _actor350700KyleMadiganWalkerTask,
         .data     = { .model = &gKyleBody },
     },
     // 1: left hand.
     {
-        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_350700_KYLE_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _actor350700KyleMadiganAttachmentTask,
         .data     = { .model = &gKyleHandLeft },
     },
     // 2: right hand.
     {
-        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_350700_KYLE_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _actor350700KyleMadiganAttachmentTask,
         .data     = { .model = &gKyleHandRight },
     },
     // 3: held gun.
     {
-        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_350700_KYLE_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _actor350700KyleMadiganAttachmentTask,
         .data     = { .model = &gKyleP229 },
     },

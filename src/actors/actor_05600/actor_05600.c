@@ -602,9 +602,9 @@ static s16 _gGolemPawnRookBeamRibbonCorners[2][4] = {
 };
 
 TaskDesc gActor05600PawnGolemTasks[3] = {
-    { { { TASK_BODY_TMD, 96 } }, _actor05600BodyTask, { .model = &_gGolemPawnBody } },
-    { { { TASK_BODY_TMD, 96 } }, _actor05600GrenadeLauncherTask, { .model = &_gGolemGrenadeLauncher } },
-    { { { TASK_BODY_TMD, 96 } }, _actor05600GrenadeTask, { .model = &gGolemGrenade } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor05600BodyTask, { .model = &_gGolemPawnBody } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor05600GrenadeLauncherTask, { .model = &_gGolemGrenadeLauncher } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor05600GrenadeTask, { .model = &gGolemGrenade } },
 };
 
 /// Launcher GOLEM body clip bank indexed by animation selectors 0..30.

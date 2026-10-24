@@ -55,9 +55,7 @@ static s32 _dryfieldNightGeneralStoreIgnoreRoomAction(Task* unusedTask, s32 unus
 /// then reload the session. Spawn payloads and metadata are unused. The gate
 /// reads the recipe synchronously; room snapshots and callback code must remain
 /// live through the deferred transition.
-static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
-
-enum { GENERAL_STORE_TASK_PRIORITY = 32 };
+static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventTask, { .value = 0 } };
 
 /// General Store prompt recipes: flag toggle at slot 0, underpass departure at slot 1.
 ///
@@ -65,8 +63,8 @@ enum { GENERAL_STORE_TASK_PRIORITY = 32 };
 /// payloads are a flag index and CAP command, while departure payloads are unused.
 /// Spawn reads these recipes synchronously; callbacks and latched state stay loaded.
 static TaskDesc _gGeneralStoreTaskDescriptors[3] = {
-    { { { TASK_BODY_NONE, GENERAL_STORE_TASK_PRIORITY } }, _generalStoreToggleFlagTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, GENERAL_STORE_TASK_PRIORITY } }, _generalStoreUnderpassTransitionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _generalStoreToggleFlagTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _generalStoreUnderpassTransitionTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

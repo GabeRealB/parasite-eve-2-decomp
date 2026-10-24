@@ -139,7 +139,6 @@ enum {
 };
 
 /// Execution priority of the package's water, control and scripted model tasks.
-enum { ACTOR_361100_TASK_PRIORITY = 192 };
 
 /// Player clip indices: scene pointers extend the equipped bank after its base sets.
 ///
@@ -273,7 +272,7 @@ static void _actor361100StreamWaterTask(Task* task);
 static void _actor361100HeadAimTask(Task* task);
 static void _actor361100ShakeTask(Task* task);
 
-TaskDesc gActor361100StreamWaterTaskDesc = { { { TASK_BODY_COORD, ACTOR_361100_TASK_PRIORITY } }, _actor361100StreamWaterTask, { .value = 0 } };
+TaskDesc gActor361100StreamWaterTaskDesc = { { { TASK_BODY_COORD, TASK_PRIORITY_CONTROL } }, _actor361100StreamWaterTask, { .value = 0 } };
 
 #include "assets/rooms/shelter/b2_pod_bottom/tentacle_scene_clips_1.inc"
 
@@ -283,8 +282,8 @@ TaskDesc gActor361100StreamWaterTaskDesc = { { { TASK_BODY_COORD, ACTOR_361100_T
 /// head aim, or a signed tick countdown for shake; the second word is unused.
 /// Their callbacks and any borrowed vibration data must remain loaded until exit.
 static TaskDesc _gActor361100SceneTasks[] = {
-    { { { TASK_BODY_NONE, ACTOR_361100_TASK_PRIORITY } }, _actor361100HeadAimTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ACTOR_361100_TASK_PRIORITY } }, _actor361100ShakeTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor361100HeadAimTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor361100ShakeTask, { .value = 0 } },
 };
 
 /// Ten words installed at equipped player-bank indices 47..56 for the pod scene.
@@ -917,7 +916,7 @@ static AnimationSet** const _gActorMotionAnimBanks19[1] SECTION(".data") = {
     _gActor361100TentacleAnimationBank,
 };
 
-TaskDesc gActor361100TentacleTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_361100_TASK_PRIORITY } }, _actor361100TentacleTask, { .model = &_gBrahmanTentacle } };
+TaskDesc gActor361100TentacleTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor361100TentacleTask, { .model = &_gBrahmanTentacle } };
 
 /// Sentinel-terminated message handlers of the initialized tentacle task.
 ///
@@ -951,7 +950,7 @@ static AnimationSet** _gActor361100EveAnimationBanks[] = {
     _gActor361100EveAnimationBank,
 };
 
-TaskDesc gActor361100EveTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_361100_TASK_PRIORITY } }, _actor361100EveTask, { .model = &_gEveBody } };
+TaskDesc gActor361100EveTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor361100EveTask, { .model = &_gEveBody } };
 
 /// Sentinel-terminated message handlers of Eve's initialized scripted body.
 ///

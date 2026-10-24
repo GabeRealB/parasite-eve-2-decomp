@@ -66,15 +66,13 @@ static void _displayResumeGameLoop(void);
 
 static void _displayFlipOtAndDrawFlaggedModels(void);
 
-enum { DISPLAY_MENU_TASK_PRIORITY = 192 };
-
 /// Bodyless gameplay menu-root recipe queued by resident display-mode requests.
 ///
 /// The mode request becomes spawnArg1 and spawnArg2 is zero. Gameplay menu
 /// code must be loaded when the queued callback runs. The descriptor itself
 /// has program lifetime and is copied synchronously when the task is spawned.
 static TaskDesc _gDisplayMenuTaskDesc = {
-    .header   = { .fields = { TASK_BODY_NONE, DISPLAY_MENU_TASK_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } },
     .callback = menuRootTask,
 };
 
@@ -398,7 +396,6 @@ static void _displayResumeGameLoop(void)
 /// full presentation; drawing determines the final primitive cursor.
 static void _displayFlipOtAndDrawFlaggedModels(void)
 {
-    enum { DISPLAY_REDRAW_TASK_PRIORITY = 0x62 };
     DisplayState* display;
     u_long*       savedOt;
     s32           otBuffer;
@@ -411,7 +408,7 @@ static void _displayFlipOtAndDrawFlaggedModels(void)
     gGpuCurrentOt = gGpuFrameOtTags[otBuffer];
     gpuClearFrameOrderingTable(display->otBuffer);
     gGpuCurrentOt = gGpuCurrentOt + GPU_ORDERING_TABLE_RESERVED_ENTRIES;
-    taskExecListForPriority(&gTaskDefaultList, DISPLAY_REDRAW_TASK_PRIORITY);
+    taskExecListForPriority(&gTaskDefaultList, TASK_PRIORITY_REDRAW);
     actorRenderComposeAndDrawFlaggedModels(&gGpuFrameOrderingTables[display->otBuffer]);
     gGpuCurrentOt                   = savedOt;
     display->control.flags.flipMode = DISPLAY_FLIP_FULL;

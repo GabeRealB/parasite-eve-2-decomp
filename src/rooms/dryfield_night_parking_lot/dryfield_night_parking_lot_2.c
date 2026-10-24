@@ -79,7 +79,7 @@ static AnimationSet _gDryfieldNightParkingLotAnimation0166C = {
     { NULL, _gDryfieldNightParkingLotAnimation0166CBank1, NULL, NULL, _gDryfieldNightParkingLotAnimation0166CBank4, NULL, NULL, NULL },
 };
 
-TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventTask, { .value = 0 } };
 
 const TaskMessageEntry gDryfieldNightParkingLotRoomMessages[6] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, parkingLotResolveMessage },

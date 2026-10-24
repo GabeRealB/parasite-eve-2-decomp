@@ -92,15 +92,13 @@ static const TaskMessageEntry _gNeoArkPyramidRoomMessages[5] __attribute__((sect
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-enum { NEO_ARK_PYRAMID_ROTATION_TASK_PRIORITY = 32 };
-
 /// Bodyless rotation-puzzle task recipe, started with zero spawn arguments.
 ///
 /// The room action holds and hides the player before spawning it. Priority 32
 /// matches the room controller; the callback must remain loaded until the
 /// puzzle restores control and exits.
 static TaskDesc _gNeoArkPyramidRotationPuzzleTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = NEO_ARK_PYRAMID_ROTATION_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_SCENE } },
     .callback = _neoArkPyramidRotationPuzzleTask,
     .data     = { .value = 0 },
 };

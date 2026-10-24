@@ -228,7 +228,6 @@ static TaskMessageEntry _gDryfieldNightGasStationRoomMessages[7] = {
 
 /// Authored settings for the jerry-can scene and the companion's reentry idle request.
 enum {
-    DRYFIELD_NIGHT_GAS_STATION_JERRY_CAN_TASK_PRIORITY     = 32,
     DRYFIELD_NIGHT_GAS_STATION_IDLE_ANIMATION_ID           = 1,
     DRYFIELD_NIGHT_GAS_STATION_JERRY_CAN_CAP_SEQUENCE      = 19,
     DRYFIELD_NIGHT_GAS_STATION_JERRY_CAN_SKIP_CAP_SEQUENCE = 20,
@@ -241,7 +240,7 @@ enum {
 /// Spawning reads the descriptor synchronously; its callback must remain
 /// loaded until the one-shot task starts the script and releases itself.
 static TaskDesc _gDryfieldNightGasStationJerryCanTaskDescriptors[2] = {
-    { { { TASK_BODY_NONE, DRYFIELD_NIGHT_GAS_STATION_JERRY_CAN_TASK_PRIORITY } }, _dryfieldNightGasStationStartJerryCanCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _dryfieldNightGasStationStartJerryCanCutsceneTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -712,7 +711,6 @@ static void _dryfieldNightGasStationSpriteFlickerTask(Task* task);
 static void _dryfieldNightGasStationCompanionRedStreakTask(Task* task);
 
 /// Authored execution priority shared by the four room-local cutscene tasks.
-enum { DRYFIELD_NIGHT_GAS_STATION_CUTSCENE_TASK_PRIORITY = 192 };
 
 /// Indexed recipes for head aim toward the companion, track streak, sprite flicker and companion streak.
 ///
@@ -720,10 +718,10 @@ enum { DRYFIELD_NIGHT_GAS_STATION_CUTSCENE_TASK_PRIORITY = 192 };
 /// coordinate bodies. Spawning borrows a recipe synchronously; callbacks and
 /// the actor models or sprite resources they borrow must remain loaded.
 static TaskDesc _gDryfieldNightGasStationCutsceneTaskDescriptors[4] = {
-    { { { TASK_BODY_NONE, DRYFIELD_NIGHT_GAS_STATION_CUTSCENE_TASK_PRIORITY } }, _dryfieldNightGasStationCompanionHeadAimTask, { .value = 0 } },
-    { { { TASK_BODY_COORD, DRYFIELD_NIGHT_GAS_STATION_CUTSCENE_TASK_PRIORITY } }, _dryfieldNightGasStationTrackRedStreakTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, DRYFIELD_NIGHT_GAS_STATION_CUTSCENE_TASK_PRIORITY } }, _dryfieldNightGasStationSpriteFlickerTask, { .value = 0 } },
-    { { { TASK_BODY_COORD, DRYFIELD_NIGHT_GAS_STATION_CUTSCENE_TASK_PRIORITY } }, _dryfieldNightGasStationCompanionRedStreakTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _dryfieldNightGasStationCompanionHeadAimTask, { .value = 0 } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_CONTROL } }, _dryfieldNightGasStationTrackRedStreakTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _dryfieldNightGasStationSpriteFlickerTask, { .value = 0 } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_CONTROL } }, _dryfieldNightGasStationCompanionRedStreakTask, { .value = 0 } },
 };
 
 /// Player weapon-bank slots 47..52: a null slot followed by five cutscene clips.

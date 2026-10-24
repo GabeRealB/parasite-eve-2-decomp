@@ -241,8 +241,8 @@ static AnimationSet** _gActorMotionAnimBanks[1] = {
 
 TaskDesc gActor135400GaryDouglasTasks[3] = {
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor135400GaryDouglasTask, { .model = &_gGaryBody } },
-    { { { TASK_BODY_TMD, 192 } }, _actor135400GaryDouglasHeadTask, { .model = &_gGaryHeadHat } },
-    { { { TASK_BODY_TMD, 192 } }, _actor135400GaryDouglasCarriedTask, { .model = &_gActor135400Model071AC } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _actor135400GaryDouglasHeadTask, { .model = &_gGaryHeadHat } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _actor135400GaryDouglasCarriedTask, { .model = &_gActor135400Model071AC } },
 };
 
 /// Gary Douglas's body messages for animation, placement, drawing and actor commands.
@@ -293,10 +293,8 @@ static AnimationSet** _gActor135400FlintAnimationBanks[1] = {
     _gActor135400FlintAnimationSets,
 };
 
-enum { ACTOR_135400_FLINT_TASK_PRIORITY = 192 };
-
 TaskDesc gActor135400FlintTaskDesc = {
-    .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_135400_FLINT_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = TASK_PRIORITY_CONTROL } },
     .callback = _actor135400FlintTask,
     .data     = { .model = &gFlintBody },
 };

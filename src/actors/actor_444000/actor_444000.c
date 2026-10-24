@@ -569,10 +569,8 @@ static EvsCommand _gActor444000DescentSkipScript[15] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-enum { ACTOR_444000_INCINERATOR_EVENT_PRIORITY = 192 };
-
 TaskDesc gActor444000IncineratorEventTaskDesc = {
-    .header   = { .fields = { TASK_BODY_NONE, ACTOR_444000_INCINERATOR_EVENT_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } },
     .callback = _actor444000IncineratorEventTask,
     .data     = { .value = 0 },
 };
@@ -2447,7 +2445,6 @@ extern TmdSource gGluttonActor403200Model18BE4;
 static TmdSource _gActor444000GluttonEscort6ModelSource;
 
 /// Execution priority shared by the host and its attached-part recipes.
-enum { ACTOR_444000_GLUTTON_TASK_PRIORITY = 96 };
 
 /// Recipes indexed by the host's seven attached-part slots.
 ///
@@ -2456,13 +2453,13 @@ enum { ACTOR_444000_GLUTTON_TASK_PRIORITY = 96 };
 /// both room placements suppress it. Its zero-filled source has no recovered
 /// initialization. All seven callbacks have the same prop-task lifecycle.
 static TaskDesc _gActor444000GluttonAttachedTaskDescs[7] = {
-    { { { TASK_BODY_TMD, ACTOR_444000_GLUTTON_TASK_PRIORITY } }, _gluttonPropTask, { .model = &gGluttonLegRight } },
-    { { { TASK_BODY_TMD, ACTOR_444000_GLUTTON_TASK_PRIORITY } }, _gluttonPropTask, { .model = &gGluttonLegLeft } },
-    { { { TASK_BODY_TMD, ACTOR_444000_GLUTTON_TASK_PRIORITY } }, _gluttonPropTask, { .model = &gGluttonActor403200Model12884 } },
-    { { { TASK_BODY_TMD, ACTOR_444000_GLUTTON_TASK_PRIORITY } }, _gluttonPropTask, { .model = &gGluttonActor403200Model13774 } },
-    { { { TASK_BODY_TMD, ACTOR_444000_GLUTTON_TASK_PRIORITY } }, _gluttonPropTask, { .model = &_gGluttonLimb } },
-    { { { TASK_BODY_TMD, ACTOR_444000_GLUTTON_TASK_PRIORITY } }, _gluttonPropTask, { .model = &gGluttonActor403200Model18BE4 } },
-    { { { TASK_BODY_TMD, ACTOR_444000_GLUTTON_TASK_PRIORITY } }, _gluttonEscort6Task, { .model = &_gActor444000GluttonEscort6ModelSource } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _gluttonPropTask, { .model = &gGluttonLegRight } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _gluttonPropTask, { .model = &gGluttonLegLeft } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _gluttonPropTask, { .model = &gGluttonActor403200Model12884 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _gluttonPropTask, { .model = &gGluttonActor403200Model13774 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _gluttonPropTask, { .model = &_gGluttonLimb } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _gluttonPropTask, { .model = &gGluttonActor403200Model18BE4 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _gluttonEscort6Task, { .model = &_gActor444000GluttonEscort6ModelSource } },
 };
 
 /// Launch translations for the eight rain blobs, indexed by spawnArg1's low half.
@@ -2525,10 +2522,10 @@ static u8 _gGluttonRainPointIndex[GLUTTON_RAIN_GROUP_COUNT][GLUTTON_RAIN_BLOB_CO
 /// the incinerator owns its spinner descriptor separately. Callbacks are private
 /// instances and each spawned task owns its body and work until teardown.
 static TaskDesc _gGluttonProjectileTaskDescs[GLUTTON_PROJECTILE_TASK_COUNT] = {
-    { { { TASK_BODY_TMD, GLUTTON_PROJECTILE_TASK_PRIORITY } }, _gluttonGlobTask, { .model = &_gGluttonGlob } },
-    { { { TASK_BODY_COORD, GLUTTON_PROJECTILE_TASK_PRIORITY } }, _gluttonRainTask, { .value = 0 } },
-    { { { TASK_BODY_COORD, GLUTTON_PROJECTILE_TASK_PRIORITY } }, _gluttonThrowTask, { .value = 0 } },
-    { { { TASK_BODY_TMD, GLUTTON_PROJECTILE_TASK_PRIORITY } }, _gluttonChunkTask, { .model = &_gGluttonChunk } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _gluttonGlobTask, { .model = &_gGluttonGlob } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, _gluttonRainTask, { .value = 0 } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, _gluttonThrowTask, { .value = 0 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _gluttonChunkTask, { .model = &_gGluttonChunk } },
 };
 
 /// Unspawned recipe for a Glutton floor spinner with its own TMD body.
@@ -2537,7 +2534,7 @@ static TaskDesc _gGluttonProjectileTaskDescs[GLUTTON_PROJECTILE_TASK_COUNT] = {
 /// half of spawnArg1 (0 short, 1 medium, otherwise long). Model geometry and
 /// callbacks belong to this overlay and must outlive the task.
 static TaskDesc _gActor444000UnusedGluttonSpinnerTaskDesc = {
-    .header   = { .fields = { TASK_BODY_TMD, GLUTTON_PROJECTILE_TASK_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } },
     .callback = _gluttonSpinnerTask,
     .data     = { .model = &_gGluttonSpinner },
 };
@@ -2562,7 +2559,7 @@ static TaskMessageEntry _gActor444000GluttonMessages[7] = {
 /// remains in 0..2 and persists between host states and spawns in this overlay.
 static s16 _gActor444000GluttonDebrisCoordIndex = 0;
 
-TaskDesc gActor444000GluttonHostTaskDesc = { { { TASK_BODY_TMD, ACTOR_444000_GLUTTON_TASK_PRIORITY } }, _actor444000GluttonTask, { .model = &gGluttonBody } };
+TaskDesc gActor444000GluttonHostTaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor444000GluttonTask, { .model = &gGluttonBody } };
 
 /// Borrowed live post-boss event task used by this package's script callbacks.
 ///

@@ -204,9 +204,7 @@ static u8 _gActor341700PropSpriteSchedule[150][4] = {
 #include "assets/actor_341700_motion_142DC.inc"
 };
 
-enum { ACTOR_341700_PROP_TASK_PRIORITY = 96 };
-
-TaskDesc gActor341700PropTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_341700_PROP_TASK_PRIORITY } }, _actor341700PropTask, { .model = &_gActor341700Model13558 } };
+TaskDesc gActor341700PropTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_ACTOR } }, _actor341700PropTask, { .model = &_gActor341700Model13558 } };
 
 /// Returns this carrier's persistent last contact-push correction.
 ///

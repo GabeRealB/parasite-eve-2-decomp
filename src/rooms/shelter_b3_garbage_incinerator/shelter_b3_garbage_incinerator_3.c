@@ -106,7 +106,6 @@ enum {
     SHELTER_B3_GARBAGE_INCINERATOR_RESOURCE_TASK_ENTRANCE = 0,
     SHELTER_B3_GARBAGE_INCINERATOR_RESOURCE_TASK_DISCARD  = 1,
     SHELTER_B3_GARBAGE_INCINERATOR_RESOURCE_TASK_COUNT    = 2,
-    SHELTER_B3_GARBAGE_INCINERATOR_RESOURCE_TASK_PRIORITY = 192,
 };
 
 /// Resource-entry keys and populated area-placement variants.
@@ -2306,12 +2305,12 @@ AreaVariant gShelterB3GarbageIncineratorAreaVariants[13] = {
 /// borrows this overlay's lifetime during area spawning.
 static TaskDesc _gShelterB3GarbageIncineratorResourceTaskDescs[SHELTER_B3_GARBAGE_INCINERATOR_RESOURCE_TASK_COUNT] = {
     [SHELTER_B3_GARBAGE_INCINERATOR_RESOURCE_TASK_ENTRANCE] = {
-        .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = SHELTER_B3_GARBAGE_INCINERATOR_RESOURCE_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _shelterB3GarbageIncineratorGluttonEntranceTask,
         .data     = { .value = 0 },
     },
     [SHELTER_B3_GARBAGE_INCINERATOR_RESOURCE_TASK_DISCARD] = {
-        .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = SHELTER_B3_GARBAGE_INCINERATOR_RESOURCE_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _shelterB3GarbageIncineratorKillTask,
         .data     = { .value = 0 },
     },

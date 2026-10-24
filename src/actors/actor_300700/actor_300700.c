@@ -94,7 +94,7 @@ static u16 _gMothPursuitSpeeds[MOTH_PLACEMENT_ROW_COUNT] = {
     36,
 };
 
-TaskDesc gActor300700MothTaskDesc = { { { TASK_BODY_TMD, 96 } }, _mothTask, { .model = &_gRatAndMothMothBody } };
+TaskDesc gActor300700MothTaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _mothTask, { .model = &_gRatAndMothMothBody } };
 
 /// Moth rest-pose sets: entry 0 empty, entry 1 seeds articulated slots 1..3.
 ///

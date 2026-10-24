@@ -125,9 +125,6 @@ enum { ACTOR_503500_STAFF_CARD_USE_READY = 1 };
 
 /// Execution order and hit presentations of this translation unit's spawn recipes.
 enum {
-    ACTOR_503500_SCENE_EFFECT_TASK_PRIORITY      = 192,
-    ACTOR_503500_ENEMY_TASK_PRIORITY             = 96,
-    ACTOR_503500_ATTACK_TASK_PRIORITY            = 192,
     ACTOR_503500_ATTACK_REACTION_BODY_BLAST      = 6,
     ACTOR_503500_ATTACK_REACTION_SPARK_AND_PUFFS = 7,
 };
@@ -145,11 +142,11 @@ static TmdSource _gBrahmanArmLeft;
 
 #include "assets/enemies/brahman/clips_1.inc"
 
-TaskDesc gActor503500StaffCardSceneTaskDesc = { { { TASK_BODY_NONE, ACTOR_503500_SCENE_EFFECT_TASK_PRIORITY } }, _actor503500StaffCardSceneTask, { .value = 0 } };
+TaskDesc gActor503500StaffCardSceneTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor503500StaffCardSceneTask, { .value = 0 } };
 
 TaskDesc gActor503500SceneEffectTaskDescs[ACTOR_503500_SCENE_TASK_COUNT] = {
-    [ACTOR_503500_SCENE_TASK_DRIFT_EMITTER]   = { { { TASK_BODY_COORD, ACTOR_503500_SCENE_EFFECT_TASK_PRIORITY } }, _actor503500DriftSpriteEmitterTask, { .value = 0 } },
-    [ACTOR_503500_SCENE_TASK_FADE_FROM_BLACK] = { { { TASK_BODY_NONE, ACTOR_503500_SCENE_EFFECT_TASK_PRIORITY } }, _actor503500FadeFromBlackTask, { .value = 0 } },
+    [ACTOR_503500_SCENE_TASK_DRIFT_EMITTER]   = { { { TASK_BODY_COORD, TASK_PRIORITY_CONTROL } }, _actor503500DriftSpriteEmitterTask, { .value = 0 } },
+    [ACTOR_503500_SCENE_TASK_FADE_FROM_BLACK] = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor503500FadeFromBlackTask, { .value = 0 } },
 };
 
 /// Fixed room-coordinate origins for Shelter R48 drift-sprite emitters.
@@ -883,31 +880,31 @@ u8 gActor503500SlotTargetEligibilityMasks[20] = {
 };
 
 TaskDesc gActor503500EnemyTaskDescs[ACTOR_503500_SLOT_COUNT] = {
-    [ACTOR_503500_SLOT_BODY]                 = { { { TASK_BODY_TMD, ACTOR_503500_ENEMY_TASK_PRIORITY } }, actor503500BossTask, { .model = &_gBrahmanTorso } },
-    [ACTOR_503500_SLOT_PINK_FLASH_EMITTER]   = { { { TASK_BODY_TMD, ACTOR_503500_ENEMY_TASK_PRIORITY } }, actor503500PinkFlashEmitterTask, { .model = &_gBrahmanPinkFlashEmitter } },
-    [ACTOR_503500_SLOT_LARGE_CHAIN_0]        = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_503500_ENEMY_TASK_PRIORITY } }, actor503500LargeChainTask, { .model = &_gBrahmanLargeChainRight } },
-    [ACTOR_503500_SLOT_LARGE_CHAIN_1]        = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_503500_ENEMY_TASK_PRIORITY } }, actor503500LargeChainTask, { .model = &_gBrahmanLargeChainLeft } },
-    [ACTOR_503500_SLOT_LARGE_ORB_EMITTER_0]  = { { { TASK_BODY_COORD, ACTOR_503500_ENEMY_TASK_PRIORITY } }, actor503500LargeOrbEmitterTask, { .value = 0 } },
-    [ACTOR_503500_SLOT_LARGE_ORB_EMITTER_1]  = { { { TASK_BODY_COORD, ACTOR_503500_ENEMY_TASK_PRIORITY } }, actor503500LargeOrbEmitterTask, { .value = 0 } },
-    [ACTOR_503500_SLOT_REAR_PART]            = { { { TASK_BODY_COORD, ACTOR_503500_ENEMY_TASK_PRIORITY } }, actor503500RearPartTask, { .value = 0 } },
-    [ACTOR_503500_SLOT_CHAIN_BASE_0]         = { { { TASK_BODY_COORD, ACTOR_503500_ENEMY_TASK_PRIORITY } }, actor503500ChainBaseTask, { .value = 0 } },
-    [ACTOR_503500_SLOT_CHAIN_BASE_1]         = { { { TASK_BODY_COORD, ACTOR_503500_ENEMY_TASK_PRIORITY } }, actor503500ChainBaseTask, { .value = 0 } },
-    [ACTOR_503500_SLOT_SMALL_ORB_EMITTER]    = { { { TASK_BODY_COORD, ACTOR_503500_ENEMY_TASK_PRIORITY } }, actor503500SmallOrbEmitterTask, { .value = 0 } },
-    [ACTOR_503500_SLOT_ARM_0]                = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_503500_ENEMY_TASK_PRIORITY } }, actor503500ArmTask, { .model = &_gBrahmanArmRight } },
-    [ACTOR_503500_SLOT_ARM_1]                = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_503500_ENEMY_TASK_PRIORITY } }, actor503500ArmTask, { .model = &_gBrahmanArmLeft } },
-    [ACTOR_503500_SLOT_YELLOW_FLASH_EMITTER] = { { { TASK_BODY_COORD, ACTOR_503500_ENEMY_TASK_PRIORITY } }, actor503500YellowFlashEmitterTask, { .value = 0 } },
-    [ACTOR_503500_SLOT_LUNGING_CHAIN_0]      = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_503500_ENEMY_TASK_PRIORITY } }, actor503500LungingChainTask, { .model = &_gBrahmanLungingChainRight1 } },
-    [ACTOR_503500_SLOT_LUNGING_CHAIN_1]      = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_503500_ENEMY_TASK_PRIORITY } }, actor503500LungingChainTask, { .model = &_gBrahmanLungingChainRight2 } },
-    [ACTOR_503500_SLOT_LUNGING_CHAIN_2]      = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_503500_ENEMY_TASK_PRIORITY } }, actor503500LungingChainTask, { .model = &_gBrahmanLungingChainLeft1 } },
-    [ACTOR_503500_SLOT_LUNGING_CHAIN_3]      = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_503500_ENEMY_TASK_PRIORITY } }, actor503500LungingChainTask, { .model = &_gBrahmanLungingChainLeft2 } },
+    [ACTOR_503500_SLOT_BODY]                 = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, actor503500BossTask, { .model = &_gBrahmanTorso } },
+    [ACTOR_503500_SLOT_PINK_FLASH_EMITTER]   = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, actor503500PinkFlashEmitterTask, { .model = &_gBrahmanPinkFlashEmitter } },
+    [ACTOR_503500_SLOT_LARGE_CHAIN_0]        = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_ACTOR } }, actor503500LargeChainTask, { .model = &_gBrahmanLargeChainRight } },
+    [ACTOR_503500_SLOT_LARGE_CHAIN_1]        = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_ACTOR } }, actor503500LargeChainTask, { .model = &_gBrahmanLargeChainLeft } },
+    [ACTOR_503500_SLOT_LARGE_ORB_EMITTER_0]  = { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, actor503500LargeOrbEmitterTask, { .value = 0 } },
+    [ACTOR_503500_SLOT_LARGE_ORB_EMITTER_1]  = { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, actor503500LargeOrbEmitterTask, { .value = 0 } },
+    [ACTOR_503500_SLOT_REAR_PART]            = { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, actor503500RearPartTask, { .value = 0 } },
+    [ACTOR_503500_SLOT_CHAIN_BASE_0]         = { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, actor503500ChainBaseTask, { .value = 0 } },
+    [ACTOR_503500_SLOT_CHAIN_BASE_1]         = { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, actor503500ChainBaseTask, { .value = 0 } },
+    [ACTOR_503500_SLOT_SMALL_ORB_EMITTER]    = { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, actor503500SmallOrbEmitterTask, { .value = 0 } },
+    [ACTOR_503500_SLOT_ARM_0]                = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_ACTOR } }, actor503500ArmTask, { .model = &_gBrahmanArmRight } },
+    [ACTOR_503500_SLOT_ARM_1]                = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_ACTOR } }, actor503500ArmTask, { .model = &_gBrahmanArmLeft } },
+    [ACTOR_503500_SLOT_YELLOW_FLASH_EMITTER] = { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, actor503500YellowFlashEmitterTask, { .value = 0 } },
+    [ACTOR_503500_SLOT_LUNGING_CHAIN_0]      = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_ACTOR } }, actor503500LungingChainTask, { .model = &_gBrahmanLungingChainRight1 } },
+    [ACTOR_503500_SLOT_LUNGING_CHAIN_1]      = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_ACTOR } }, actor503500LungingChainTask, { .model = &_gBrahmanLungingChainRight2 } },
+    [ACTOR_503500_SLOT_LUNGING_CHAIN_2]      = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_ACTOR } }, actor503500LungingChainTask, { .model = &_gBrahmanLungingChainLeft1 } },
+    [ACTOR_503500_SLOT_LUNGING_CHAIN_3]      = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_ACTOR } }, actor503500LungingChainTask, { .model = &_gBrahmanLungingChainLeft2 } },
 };
 
 TaskDesc gActor503500AttackTaskDescs[ACTOR_503500_ATTACK_TASK_COUNT] = {
-    [ACTOR_503500_ATTACK_TASK_BALLISTIC_SHOT] = { { { TASK_BODY_COORD, ACTOR_503500_ATTACK_TASK_PRIORITY } }, actor503500BallisticShotTask, { .value = 0 } },
-    [ACTOR_503500_ATTACK_TASK_LINGERING_SHOT] = { { { TASK_BODY_COORD, ACTOR_503500_ATTACK_TASK_PRIORITY } }, actor503500LingeringShotTask, { .value = 0 } },
-    [ACTOR_503500_ATTACK_TASK_PINK_FLASH]     = { { { TASK_BODY_COORD, ACTOR_503500_ATTACK_TASK_PRIORITY } }, actor503500PinkFlashAttackTask, { .value = 0 } },
-    [ACTOR_503500_ATTACK_TASK_YELLOW_FLASH]   = { { { TASK_BODY_COORD, ACTOR_503500_ATTACK_TASK_PRIORITY } }, actor503500YellowFlashAttackTask, { .value = 0 } },
-    [ACTOR_503500_ATTACK_TASK_ORANGE_FLASH]   = { { { TASK_BODY_COORD, ACTOR_503500_ATTACK_TASK_PRIORITY } }, actor503500OrangeFlashAttackTask, { .value = 0 } },
+    [ACTOR_503500_ATTACK_TASK_BALLISTIC_SHOT] = { { { TASK_BODY_COORD, TASK_PRIORITY_CONTROL } }, actor503500BallisticShotTask, { .value = 0 } },
+    [ACTOR_503500_ATTACK_TASK_LINGERING_SHOT] = { { { TASK_BODY_COORD, TASK_PRIORITY_CONTROL } }, actor503500LingeringShotTask, { .value = 0 } },
+    [ACTOR_503500_ATTACK_TASK_PINK_FLASH]     = { { { TASK_BODY_COORD, TASK_PRIORITY_CONTROL } }, actor503500PinkFlashAttackTask, { .value = 0 } },
+    [ACTOR_503500_ATTACK_TASK_YELLOW_FLASH]   = { { { TASK_BODY_COORD, TASK_PRIORITY_CONTROL } }, actor503500YellowFlashAttackTask, { .value = 0 } },
+    [ACTOR_503500_ATTACK_TASK_ORANGE_FLASH]   = { { { TASK_BODY_COORD, TASK_PRIORITY_CONTROL } }, actor503500OrangeFlashAttackTask, { .value = 0 } },
 };
 
 /// Emits drift sprites from a fixed Shelter R48 position until its scene winds down.

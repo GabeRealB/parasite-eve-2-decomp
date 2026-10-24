@@ -76,14 +76,12 @@ static TaskMessageEntry _gDryfieldBackStreetRoomMessages[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-enum { DRYFIELD_BACK_STREET_AMBIENCE_TASK_PRIORITY = 32 };
-
 /// Bodyless view-dependent ambience recipe at slot 0, followed by TASK_DESC_END.
 ///
 /// The room initializer spawns slot 0 with zero payloads. Spawning consumes the
 /// descriptor; callback code stays loaded while the independent ambience runs.
 static TaskDesc _gDryfieldBackStreetAmbienceTaskDescs[2] = {
-    { { { TASK_BODY_NONE, DRYFIELD_BACK_STREET_AMBIENCE_TASK_PRIORITY } }, _dryfieldBackStreetAmbienceTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _dryfieldBackStreetAmbienceTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

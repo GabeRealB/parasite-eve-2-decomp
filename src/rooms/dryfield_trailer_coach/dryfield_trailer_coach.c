@@ -214,8 +214,8 @@ static AnimationSet _gDryfieldTrailerCoachAnimation07994 = {
 /// Both run at priority 32. Keep callback code and the scene record loaded
 /// until completion; spawning copies the recipe and retains no table pointer.
 static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
-    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -230,8 +230,7 @@ static const TaskMessageEntry _gDryfieldTrailerCoachRoomMessages[4] SECTION(".da
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-enum { DRYFIELD_TRAILER_COACH_INTERACTION_TASK_COUNT    = 2,
-       DRYFIELD_TRAILER_COACH_INTERACTION_TASK_PRIORITY = 32 };
+enum { DRYFIELD_TRAILER_COACH_INTERACTION_TASK_COUNT = 2 };
 
 /// Bodyless topic-choice and conversation-selector task recipes, at indices 0 and 1.
 ///
@@ -242,8 +241,8 @@ enum { DRYFIELD_TRAILER_COACH_INTERACTION_TASK_COUNT    = 2,
 /// Spawning copies a recipe synchronously; keep this room's callbacks loaded
 /// until task completion. The spawner's interface requires a mutable table.
 static TaskDesc _gDryfieldTrailerCoachInteractionTaskDescs[DRYFIELD_TRAILER_COACH_INTERACTION_TASK_COUNT] = {
-    { { { TASK_BODY_NONE, DRYFIELD_TRAILER_COACH_INTERACTION_TASK_PRIORITY } }, _dryfieldTrailerCoachTopicChoiceTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, DRYFIELD_TRAILER_COACH_INTERACTION_TASK_PRIORITY } }, _dryfieldTrailerCoachConversationTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _dryfieldTrailerCoachTopicChoiceTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _dryfieldTrailerCoachConversationTask, { .value = 0 } },
 };
 
 /// Places the player for trailer-coach conversations in room coordinates.

@@ -192,7 +192,7 @@ static SVECTOR _gActor205200BodyTouchCenters[2] = {
     { 0, -700, 0, 0 },
 };
 
-TaskDesc gActor205200BodyTaskDesc = { { { TASK_BODY_TMD, ACTOR_205200_ENEMY_TASK_PRIORITY } }, _actor205200BodyTask, { .model = &gEveMaskedBody } };
+TaskDesc gActor205200BodyTaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor205200BodyTask, { .model = &gEveMaskedBody } };
 
 /// Stationary-body messages for model drawing and command-triggered teardown.
 ///

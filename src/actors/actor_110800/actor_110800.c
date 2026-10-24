@@ -103,8 +103,8 @@ static TaskMessageEntry _gViewFigureMessages[3] = {
 };
 
 TaskDesc gActor110800ViewFigureTasks[VIEW_FIGURE_TASK_COUNT] = {
-    { { { TASK_BODY_TMD, VIEW_FIGURE_TASK_PRIORITY } }, _actor110800ViewFigureTask, { .model = &_gSwatMember2Body } },
-    { { { TASK_BODY_TMD, VIEW_FIGURE_TASK_PRIORITY } }, _actor110800AttachModelTask, { .model = &_gActor110800Model060A0 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _actor110800ViewFigureTask, { .model = &_gSwatMember2Body } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _actor110800AttachModelTask, { .model = &_gActor110800Model060A0 } },
 };
 
 /// Body animation-set bank for this carrier's camera-parented scripted figure.

@@ -146,11 +146,9 @@ const TaskMessageEntry gDryfieldWarehouseRoomMessages[3] SECTION(".data") = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-enum { DRYFIELD_WAREHOUSE_ROOM_TASK_PRIORITY = 32 };
-
 TaskDesc gDryfieldWarehouseRoomTaskDescs[2] = {
-    { { { TASK_BODY_NONE, DRYFIELD_WAREHOUSE_ROOM_TASK_PRIORITY } }, dryfieldWarehouseEventTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, DRYFIELD_WAREHOUSE_ROOM_TASK_PRIORITY } }, dryfieldWarehouseAmbienceTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, dryfieldWarehouseEventTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, dryfieldWarehouseAmbienceTask, { .value = 0 } },
 };
 
 static AnimationPackedPose _gDryfieldWarehouseAnimation02260Bank1[2] = {
@@ -246,9 +244,9 @@ static EvsCommand _gDryfieldWarehouseCutsceneSkipScript[11] = {
 };
 
 TaskDesc gDryfieldWarehouseCutsceneTaskDescs[3] = {
-    { { { TASK_BODY_NONE, 192 } }, _dryfieldWarehouseCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _dryfieldWarehouseFadeOutTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _screenFadeInTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _dryfieldWarehouseCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _dryfieldWarehouseFadeOutTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _screenFadeInTask, { .value = 0 } },
 };
 
 SVECTOR gGlowPrismCorners[16] = {

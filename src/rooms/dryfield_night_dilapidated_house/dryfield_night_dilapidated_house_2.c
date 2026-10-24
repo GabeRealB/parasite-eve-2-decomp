@@ -58,7 +58,7 @@ static WorldCollisionTrigger _gDryfieldNightDilapidatedHouseViewBoundaries[8];
 static void _dryfieldNightDilapidatedHouseMovieTask(Task* task);
 static void _dryfieldNightDilapidatedHouseLaunchMovieTask(Task* task);
 
-TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry gDryfieldNightDilapidatedHouseRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, dryfieldNightDilapidatedHouseGateBackStreetExit },
@@ -1421,7 +1421,6 @@ enum {
     DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_FINAL_VIEW                = 5,
     DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_USE_DEFAULT_FADE_DURATION = 0,
     DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_KEEP_FADE_DURATION        = 0,
-    DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_TASK_PRIORITY                   = 192,
 };
 
 EvsCommand gDryfieldNightDilapidatedHouseFirstVisitScript[88] = {
@@ -1540,12 +1539,12 @@ EvsCommand gDryfieldNightDilapidatedHouseFirstVisitSkipScript[16] = {
 
 TaskDesc gDryfieldNightDilapidatedHouseMovieTaskDescriptors[2] = {
     {
-        .header   = { .fields = { TASK_BODY_NONE, DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_TASK_PRIORITY } },
+        .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } },
         .callback = _dryfieldNightDilapidatedHouseLaunchMovieTask,
         .data     = { .value = 0 },
     },
     {
-        .header   = { .fields = { TASK_BODY_NONE, DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_TASK_PRIORITY } },
+        .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } },
         .callback = _dryfieldNightDilapidatedHouseMovieTask,
         .data     = { .value = 0 },
     },

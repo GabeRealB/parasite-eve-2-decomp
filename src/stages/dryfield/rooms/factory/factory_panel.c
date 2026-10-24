@@ -74,10 +74,10 @@ static void _factoryPanelMarkMoveSettled(Task* task, s32 messageId, s32 firstArg
 ///
 /// The panel passes spawnArg1 value 1 for controller port 0 and retains the child
 /// task until exit; no table terminator or model resource is stored.
-static TaskDesc _gFactoryPanelCursorDesc = { { { TASK_BODY_NONE, FACTORY_TASK_PRIORITY } }, _factoryPromptTask, { .value = 0 } };
+static TaskDesc _gFactoryPanelCursorDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _factoryPromptTask, { .value = 0 } };
 
 /// This package's own panel task; room setup picks it or the other package's by stage.
-TaskDesc FACTORY_OWN_PANEL_DESC = { { { TASK_BODY_NONE, FACTORY_TASK_PRIORITY } }, _factoryPanelRun, { .value = 0 } };
+TaskDesc FACTORY_OWN_PANEL_DESC = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _factoryPanelRun, { .value = 0 } };
 
 /// Lift-completion notification followed by the task-message end marker.
 ///

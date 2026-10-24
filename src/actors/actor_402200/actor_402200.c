@@ -561,9 +561,7 @@ static s16 _gGolemKnightBishopBeamQuadCorners[2][4] = {
     { 0, 1, 4, 5 },
 };
 
-enum { ACTOR_402200_GOLEM_TASK_PRIORITY = 96 };
-
-TaskDesc gActor402200GolemTaskDesc = { { { TASK_BODY_TMD, ACTOR_402200_GOLEM_TASK_PRIORITY } }, _actor402200GolemTask, { .model = &_gGolemBody } };
+TaskDesc gActor402200GolemTaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor402200GolemTask, { .model = &_gGolemBody } };
 
 /// GOLEM animation bank indexed by `GOLEM_KNIGHT_BISHOP_ANIM_`.
 ///

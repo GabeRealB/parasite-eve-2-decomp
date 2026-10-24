@@ -43,15 +43,11 @@ static s32  _neoArkBridgeIgnoreRoomAction(Task* task, s32 messageId, const Direc
 static void _neoArkBridgeInitRoomTask(Task* task);
 static void _neoArkBridgeIdleRoomTask(Task* unusedTask);
 
-enum { NEO_ARK_BRIDGE_WATER_REFRACTION_TASK_PRIORITY = 192 };
-
 TaskDesc gNeoArkBridgeWaterRefractionTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = NEO_ARK_BRIDGE_WATER_REFRACTION_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },
     .callback = waterRefractionTask,
     .data     = { .value = 0 },
 };
-
-enum { NEO_ARK_BRIDGE_UNUSED_WATER_DISTORTION_PRIORITY = 192 };
 
 /// Retained, unused bodyless recipe for the water-distortion strip task.
 ///
@@ -60,7 +56,7 @@ enum { NEO_ARK_BRIDGE_UNUSED_WATER_DISTORTION_PRIORITY = 192 };
 /// callback code for its lifetime.
 /// The callback draws only in the submarine tunnel and gallery areas.
 static TaskDesc _gNeoArkBridgeUnusedWaterDistortionTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = NEO_ARK_BRIDGE_UNUSED_WATER_DISTORTION_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },
     .callback = waterDistortBandTask,
     .data     = { .value = 0 },
 };

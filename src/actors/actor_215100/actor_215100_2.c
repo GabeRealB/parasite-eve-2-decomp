@@ -182,9 +182,6 @@ static void _actor215100SelectGalleryRoomLights(s16 useAlternate);
 static void _actor215100SetViewRespawnPending(s16 pending);
 
 enum {
-    ACTOR_215100_GALLERY_TASK_PRIORITY          = 32,
-    ACTOR_215100_PIERCE_BODY_TASK_PRIORITY      = 96,
-    ACTOR_215100_PIERCE_PAIR_TASK_PRIORITY      = 192,
     ACTOR_215100_CONVERSATION_BLEND_FRAMES      = 10,
     ACTOR_215100_CONVERSATION_IDLE_BLEND_FRAMES = 8,
 };
@@ -213,9 +210,9 @@ enum {
 };
 
 TaskDesc gActor215100GalleryTaskDescs[ACTOR_215100_GALLERY_TASK_COUNT] = {
-    { { { TASK_BODY_NONE, ACTOR_215100_GALLERY_TASK_PRIORITY } }, _actor215100GalleryIntroTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ACTOR_215100_GALLERY_TASK_PRIORITY } }, actor215100GalleryTrainingMenuTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ACTOR_215100_GALLERY_TASK_PRIORITY } }, _actor215100GalleryRedFlashLoopTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _actor215100GalleryIntroTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, actor215100GalleryTrainingMenuTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _actor215100GalleryRedFlashLoopTask, { .value = 0 } },
 };
 
 /// Player animation extension for the gallery's introduction and course menus.
@@ -1551,8 +1548,6 @@ static EvsCommand _gActor215100PierceRepeatTalkScript[11] = {
 
 #include "../../shared/room/cap_captions_settings.inc.c"
 
-enum { CAP_CAPTION_SCHEDULE_TASK_PRIORITY = 32 };
-
 /// Retained bodyless task recipe for the scene-clock caption schedule.
 ///
 /// No code spawns it. The first spawn argument's low signed halfword would
@@ -1561,7 +1556,7 @@ enum { CAP_CAPTION_SCHEDULE_TASK_PRIORITY = 32 };
 /// gallery's selected caption resource does not provide. The owner must kill
 /// the task before releasing that file or this overlay; it never ends itself.
 static TaskDesc _gCapCaptionScheduleTaskDesc = {
-    { { TASK_BODY_NONE, CAP_CAPTION_SCHEDULE_TASK_PRIORITY } }, _capCaptionRunSchedule, { .value = 0 }
+    { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _capCaptionRunSchedule, { .value = 0 }
 };
 
 #include "../../shared/room/cap_captions_schedule.inc.c"
@@ -1591,8 +1586,8 @@ static TaskMessageEntry _gActor215100PierceMessageTable[6] = {
 };
 
 TaskDesc gActor215100PierceTaskDescs[ACTOR_215100_PIERCE_TASK_COUNT] = {
-    { { { TASK_BODY_TMD, ACTOR_215100_PIERCE_BODY_TASK_PRIORITY } }, _actor215100PierceTask, { .model = &_gPierceBody } },
-    { { { TASK_BODY_TMD, ACTOR_215100_PIERCE_PAIR_TASK_PRIORITY } }, _pacedWalkSubModelTask, { .model = &_gPierceGlasses } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor215100PierceTask, { .model = &_gPierceBody } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _pacedWalkSubModelTask, { .model = &_gPierceGlasses } },
 };
 
 /// Pierce's body animation bank, indexed directly by scripted clip ID.

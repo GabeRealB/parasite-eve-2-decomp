@@ -250,7 +250,7 @@ enum {
 /// Bodyless, priority 192. Spawn argument 2 borrows the cutscene's
 /// `ScreenWaveCtx`; it must outlive the wave task. Argument 1 is unused.
 static TaskDesc _gActor160900ScreenWaveTaskDescriptors[2] = {
-    { { { TASK_BODY_NONE, 192 } }, _screenWaveTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _screenWaveTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -549,14 +549,14 @@ static EvsCommand _gActor160900SkipScript[7] = {
 };
 
 TaskDesc gActor160900TaskDescriptors[8] = {
-    { { { TASK_BODY_NONE, 192 } }, _actor160900CutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _actor160900FadeInTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _actor160900FadeOutTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor160900CutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor160900FadeInTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor160900FadeOutTask, { .value = 0 } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor160900KyleBodyTask, { .model = &gKyleBody } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor160900KyleAttachmentTask, { .model = &gKyleP229 } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor160900KyleAttachmentTask, { .model = &gKyleHandLeft2 } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor160900KyleAttachmentTask, { .model = &gKyleHandRight } },
-    { { { TASK_BODY_COORD, 192 } }, _actor160900DrawLightQuadTask, { .value = 0 } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_CONTROL } }, _actor160900DrawLightQuadTask, { .value = 0 } },
 };
 
 /// Borrowed context of this renderer's active wave task.

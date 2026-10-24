@@ -46,11 +46,9 @@ static TaskMessageEntry _gAkropolisFountainRoomMessages[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-enum { AKROPOLIS_FOUNTAIN_PATIO_DEPARTURE_TASK_PRIORITY = 32 };
-
 /// The patio departure's task.
 static TaskDesc _gAkropolisFountainPatioDepartureTaskDescriptors[2] = {
-    { { { TASK_BODY_NONE, AKROPOLIS_FOUNTAIN_PATIO_DEPARTURE_TASK_PRIORITY } }, _akropolisFountainPatioDepartureTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _akropolisFountainPatioDepartureTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

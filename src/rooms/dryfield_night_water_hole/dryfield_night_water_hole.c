@@ -136,8 +136,6 @@ enum {
 
 // Room-local script choices, task priorities and logical-view extent.
 enum {
-    DRYFIELD_NIGHT_WATER_HOLE_DEPARTURE_TASK_PRIORITY      = 32,
-    DRYFIELD_NIGHT_WATER_HOLE_WATER_TASK_PRIORITY          = 192,
     DRYFIELD_NIGHT_WATER_HOLE_PLAYER_IDLE_CLIP             = 1,
     DRYFIELD_NIGHT_WATER_HOLE_CAP_ARRIVAL                  = 5,
     DRYFIELD_NIGHT_WATER_HOLE_CAP_LOGICAL_VIEW_IDS         = 1,
@@ -191,7 +189,7 @@ static AnimationSet _gDryfieldNightWaterHoleAnimation03004 = {
 /// Bodyless priority-32 controller for a resolved departure through the Shelter door.
 ///
 /// Borrows the staged `gRoomDeparture` until the departure has been issued.
-static TaskDesc _gDryfieldNightWaterHoleShelterDepartureTaskDesc = { { { TASK_BODY_NONE, DRYFIELD_NIGHT_WATER_HOLE_DEPARTURE_TASK_PRIORITY } }, roomEventDepartureTask, { .value = 0 } };
+static TaskDesc _gDryfieldNightWaterHoleShelterDepartureTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventDepartureTask, { .value = 0 } };
 
 /// Room-transition, key-item, trigger-action and Shelter-door message dispatch.
 ///
@@ -304,7 +302,7 @@ static EvsCommand _gDryfieldNightWaterHoleArrival1Script[15] = {
 };
 
 /// Bodyless priority-192 water drawer, spawned while the Shelter route is closed.
-static TaskDesc _gDryfieldNightWaterHoleWaterTaskDesc = { { { TASK_BODY_NONE, DRYFIELD_NIGHT_WATER_HOLE_WATER_TASK_PRIORITY } }, _waterHoleWaterTask, { .value = 0 } };
+static TaskDesc _gDryfieldNightWaterHoleWaterTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _waterHoleWaterTask, { .value = 0 } };
 
 /// Two world-space water patches at the shared session height, followed by a Y=-1 sentinel.
 ///

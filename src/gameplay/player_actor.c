@@ -1321,8 +1321,8 @@ static u16 D_801132BC[33][2] = {
     { 43, 6 }
 };
 TaskDesc gEffectPlayerBodyHitTaskDescriptors[2] = {
-    { { { TASK_BODY_NONE, 192 } }, effectPlayerBodyBlastTask, { NULL } },
-    { { { TASK_BODY_NONE, 192 } }, effectPlayerBodyPuffTask, { NULL } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, effectPlayerBodyBlastTask, { NULL } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, effectPlayerBodyPuffTask, { NULL } },
 };
 EffectSpawnArg gEffectPlayerHitSpawnArg        = { NULL, 512, 3 };
 u16            gCompanionAnimationBankBases[4] = {

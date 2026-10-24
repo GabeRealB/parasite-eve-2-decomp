@@ -59,7 +59,6 @@ enum {
 enum {
     ACTOR_460200_PLAYER_EXTENSION_SET_COUNT = 15,
     ACTOR_460200_SOLDIER_C_SET_COUNT        = 18,
-    ACTOR_460200_SOLDIER_TASK_PRIORITY      = 96,
     ACTOR_460200_PLAYER_CLIP1_BLEND_FRAMES  = 8,
 };
 
@@ -184,8 +183,6 @@ static AnimationSet _gShelter1fTentSoldierCArrival11Clip;
 
 #include "assets/rooms/shelter/1f_tent/soldiers_clips_1.inc"
 
-enum { ACTOR_460200_CONTROL_TASK_PRIORITY = 32 };
-
 /// Unspawned negative-frame capture recipe followed by a descriptor terminator.
 ///
 /// Only entry 0 can spawn. The callback requires writable
@@ -193,7 +190,7 @@ enum { ACTOR_460200_CONTROL_TASK_PRIORITY = 32 };
 /// descriptor data are unused. No spawner establishes the argument's owner.
 static TaskDesc _gActor460200UnusedNegativeCaptureTaskDescs[2] = {
     {
-        .header   = { .fields = { TASK_BODY_NONE, ACTOR_460200_CONTROL_TASK_PRIORITY } },
+        .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } },
         .callback = _actor460200NegativeCaptureTask,
         .data     = { .value = 0 },
     },
@@ -563,7 +560,7 @@ static ActorTransform _gActor460200SoldierBCutsceneRepositionPlacement = { { -13
 /// exit on invocation N+2. spawnArg2 and descriptor data are unused. This
 /// overlay's callback must remain loaded until task completion.
 static TaskDesc _gActor460200UnusedModeExitCountdownTaskDesc = {
-    .header   = { .fields = { TASK_BODY_NONE, ACTOR_460200_CONTROL_TASK_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } },
     .callback = _actor460200ModeExitCountdownTask,
     .data     = { .value = 0 },
 };
@@ -995,7 +992,7 @@ static TaskMessageEntry _gPacedWalkMsgTable[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc gActor460200SoldierATaskDesc = { { { TASK_BODY_TMD, ACTOR_460200_SOLDIER_TASK_PRIORITY } }, _actor460200SoldierATask, { .model = &_gSoldierABody } };
+TaskDesc gActor460200SoldierATaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor460200SoldierATask, { .model = &_gSoldierABody } };
 
 /// Soldier A's borrowed animation bank: NULL slot 0 and playable clips 1..15.
 ///
@@ -1044,13 +1041,13 @@ static TaskMessageEntry _gStrideWalkMessages[6] = {
 TaskDesc gActor460200SoldierBTasks[2] = {
     {
         .header   = { .fields = { .flags    = TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER,
-                                  .priority = ACTOR_460200_SOLDIER_TASK_PRIORITY } },
+                                  .priority = TASK_PRIORITY_ACTOR } },
         .callback = _actor460200SoldierBTask,
         .data     = { .model = &_gSoldierBBody },
     },
     {
         .header   = { .fields = { .flags    = TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER,
-                                  .priority = ACTOR_460200_SOLDIER_TASK_PRIORITY } },
+                                  .priority = TASK_PRIORITY_ACTOR } },
         .callback = _strideWalkSubModelTask,
         .data     = { .model = &_gSoldierBRifle },
     },
@@ -1080,7 +1077,7 @@ static TaskMessageEntry _gActor460200SoldierCMessages[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc gActor460200SoldierCTaskDesc = { { { TASK_BODY_TMD, ACTOR_460200_SOLDIER_TASK_PRIORITY } }, _actor460200SoldierCTask, { .model = &_gSoldierCBody } };
+TaskDesc gActor460200SoldierCTaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor460200SoldierCTask, { .model = &_gSoldierCBody } };
 
 /// Soldier C's clip bank, borrowed by his rig while this package remains loaded.
 ///

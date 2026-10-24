@@ -118,10 +118,8 @@ enum {
 
 #include "assets/rooms/dryfield/night_water_tank/pierce_clips_1.inc"
 
-enum { ACTOR146300_HANDOVER_TASK_PRIORITY = 192 };
-
 TaskDesc gActor146300IceBagHandoverTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = ACTOR146300_HANDOVER_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },
     .callback = _actor146300IceBagHandoverTask,
     .data     = { .value = 0 },
 };
@@ -911,16 +909,14 @@ static TaskMessageEntry _gActor146300FigureMessages[] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-enum { ACTOR146300_FIGURE_TASK_PRIORITY = 192 };
-
 TaskDesc gActor146300FigureTasks[ACTOR146300_TASK_COUNT] = {
     {
-        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR146300_FIGURE_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _actor146300ScriptedFigureTask,
         .data     = { .model = &_gPierceBody2 },
     },
     {
-        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR146300_FIGURE_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _actor146300AttachmentTask,
         .data     = { .model = &_gPierceGlasses },
     },

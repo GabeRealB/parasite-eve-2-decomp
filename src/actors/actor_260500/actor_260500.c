@@ -650,7 +650,7 @@ static TaskMessageEntry _gFootstepWalkMsgTable[] = {
 };
 
 TaskDesc gActor260500JodieTask = {
-    .header   = { .fields = { TASK_BODY_TMD, 192 } },
+    .header   = { .fields = { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } },
     .callback = _actor260500Task,
     .data     = { .model = &_gJodieBody2 },
 };

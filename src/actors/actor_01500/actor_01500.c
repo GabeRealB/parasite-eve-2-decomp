@@ -317,7 +317,7 @@ static u16 _gActor01500AdvanceDistances[16] = {
     1600,
 };
 
-TaskDesc gActor01500MindSucklerTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor01500Task, { .model = &_gSucklerMindBody } };
+TaskDesc gActor01500MindSucklerTaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor01500Task, { .model = &_gSucklerMindBody } };
 
 /// Mind Suckler clip bank indexed by `ACTOR_01500_ANIM_*`.
 ///

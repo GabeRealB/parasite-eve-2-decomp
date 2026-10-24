@@ -236,30 +236,28 @@ static TmdSource _gMistParkingHandBillboard;
 static TmdSource _gPierceGlasses;
 static TmdSource _gPierceIdBadge;
 
-enum { ACTOR_113100_PIERCE_TASK_PRIORITY = 192 };
-
 TaskDesc gActor113100PierceCarradineTaskDescriptors[4] = {
     // 0: body.
     {
-        .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_113100_PIERCE_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = TASK_PRIORITY_CONTROL } },
         .callback = _actor113100PierceCarradineTask,
         .data     = { .model = &_gPierceBody },
     },
     // 1: billboard.
     {
-        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_113100_PIERCE_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _actor113100BillboardTask,
         .data     = { .model = &_gMistParkingHandBillboard },
     },
     // 2: part-4 attachment.
     {
-        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_113100_PIERCE_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _actor113100AttachedModelTask,
         .data     = { .model = &_gPierceGlasses },
     },
     // 3: part-2 attachment.
     {
-        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_113100_PIERCE_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _actor113100AttachedModelTask,
         .data     = { .model = &_gPierceIdBadge },
     },

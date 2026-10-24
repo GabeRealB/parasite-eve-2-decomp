@@ -115,8 +115,8 @@ static void _neoArkAltarPlayMovieTask(Task* task);
 static void _neoArkAltarLaunchMovieTask(Task* task);
 
 TaskDesc gNeoArkAltarMovieTaskDescs[2] = {
-    { { { TASK_BODY_NONE, 192 } }, _neoArkAltarLaunchMovieTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _neoArkAltarPlayMovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _neoArkAltarLaunchMovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _neoArkAltarPlayMovieTask, { .value = 0 } },
 };
 
 /// Inclusive world-space walk-on rectangles for altar pads 1..4, followed by END.
@@ -188,10 +188,8 @@ static s16 _gNeoArkAltarSecondTileSolution[16] = {
     4,
 };
 
-enum { NEO_ARK_ALTAR_TILE_SEQUENCE_TASK_PRIORITY = 32 };
-
 TaskDesc gNeoArkAltarTileSequenceTaskDesc = {
-    { { TASK_BODY_NONE, NEO_ARK_ALTAR_TILE_SEQUENCE_TASK_PRIORITY } }, _neoArkAltarTileSequenceTask, { .value = 0 }
+    { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _neoArkAltarTileSequenceTask, { .value = 0 }
 };
 
 WorldCollisionRoomResources gNeoArkAltarRoomCollisionResources[3] = {

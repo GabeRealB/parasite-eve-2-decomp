@@ -89,8 +89,7 @@ static void _actor535700BlackoutTask(Task* task);
 
 /// Scheduler order and whole-frame pose transition used by this scene's records.
 enum {
-    ACTOR_535700_SCENE_TASK_PRIORITY = 192,
-    ACTOR_535700_SCENE_BLEND_FRAMES  = 8
+    ACTOR_535700_SCENE_BLEND_FRAMES = 8
 };
 
 /// Native scene clip keys without an established action name.
@@ -112,7 +111,7 @@ enum { ACTOR_535700_SCENE_EVE_COMMAND_TURN = 0 };
 /// Spawn at index zero with priority 192. The callback emits a full-screen
 /// black tile; all live copies consume the same package-local signed countdown.
 static TaskDesc _gActor535700BlackoutTaskDesc = {
-    .header   = { .fields = { TASK_BODY_NONE, ACTOR_535700_SCENE_TASK_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } },
     .callback = _actor535700BlackoutTask,
     .data     = { .value = 0 }
 };
@@ -692,7 +691,7 @@ static TaskMessageEntry _gFootstepWalkMessageTable[6] = {
 };
 
 TaskDesc gActor535700EveWalkerTaskDesc = {
-    .header   = { .fields = { TASK_BODY_TMD, ACTOR_535700_SCENE_TASK_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } },
     .callback = _actor535700FootstepWalkerTask,
     .data     = { .model = &_gEveBody }
 };
@@ -726,8 +725,8 @@ static TaskMessageEntry _gPairWalkMessages[6] = {
 };
 
 TaskDesc gActor535700PawnGolemTasks[PAIR_WALK_TASK_COUNT] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), PAIR_WALK_TASK_PRIORITY } }, _actor535700PairWalkerTask, { .model = &_gGolemPawnBody } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), PAIR_WALK_TASK_PRIORITY } }, _pairWalkSubModelTask, { .model = &_gGolemBeamSword } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_ACTOR } }, _actor535700PairWalkerTask, { .model = &_gGolemPawnBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_ACTOR } }, _pairWalkSubModelTask, { .model = &_gGolemBeamSword } },
 };
 
 /// Six-entry clip bank borrowed by this carrier's pair-walker animation context.

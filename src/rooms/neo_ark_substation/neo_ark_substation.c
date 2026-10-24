@@ -82,14 +82,12 @@ static TaskMessageEntry _gNeoArkSubstationRoomMessages[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-enum { NEO_ARK_SUBSTATION_AMBIENCE_PRIORITY = 32 };
-
 /// Bodyless priority-32 ambience task recipe, selected at index zero.
 ///
 /// Spawn arguments are zero. The room starts it only before Power Plant 2
 /// clearance; it retunes independently until teardown. No END record is stored.
 static TaskDesc _gNeoArkSubstationAmbienceTaskDescs[1] = {
-    { { { TASK_BODY_NONE, NEO_ARK_SUBSTATION_AMBIENCE_PRIORITY } }, _neoArkSubstationAmbienceTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _neoArkSubstationAmbienceTask, { .value = 0 } },
 };
 
 /// Ambience pan offsets and attenuation for logical view slots 0..8.

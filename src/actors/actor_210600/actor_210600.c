@@ -129,10 +129,8 @@ static TaskMessageEntry _gActor210600GrinningStrangerMessages[4] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-enum { ACTOR_210600_STRANGER_TASK_PRIORITY = 96 };
-
 TaskDesc gActor210600GrinningStrangerTaskDesc = {
-    .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = ACTOR_210600_STRANGER_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = TASK_PRIORITY_ACTOR } },
     .callback = _actor210600Task,
     .data     = { .model = &_gStrangerGrinningBody },
 };

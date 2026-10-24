@@ -106,10 +106,6 @@ enum {
 };
 
 /// Execution-list priorities for the room's model leaves and exit controller.
-enum {
-    SHELTER_B2_ELEVATOR_DOOR_LEAF_PRIORITY = 192,
-    SHELTER_B2_ELEVATOR_EXIT_PRIORITY      = 32,
-};
 
 /// View slots used by the arrival endpoint and the two directed boundaries.
 enum {
@@ -201,9 +197,9 @@ static TmdSource _gShelterB2ElevatorModel00884 = {
 /// geometry for their task lifetimes. The bodyless exit controller has priority
 /// 32, ahead of the priority-192 leaves on the ascending execution list.
 static TaskDesc _gShelterB2ElevatorTaskDescriptors[4] = {
-    { { { TASK_BODY_TMD, SHELTER_B2_ELEVATOR_DOOR_LEAF_PRIORITY } }, _shelterB2ElevatorDoorLeafTask, { .model = &_gShelterB2ElevatorModel00688 } },
-    { { { TASK_BODY_TMD, SHELTER_B2_ELEVATOR_DOOR_LEAF_PRIORITY } }, _shelterB2ElevatorDoorLeafTask, { .model = &_gShelterB2ElevatorModel00884 } },
-    { { { TASK_BODY_NONE, SHELTER_B2_ELEVATOR_EXIT_PRIORITY } }, _shelterB2ElevatorExitTask, { .value = 0 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _shelterB2ElevatorDoorLeafTask, { .model = &_gShelterB2ElevatorModel00688 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _shelterB2ElevatorDoorLeafTask, { .model = &_gShelterB2ElevatorModel00884 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelterB2ElevatorExitTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

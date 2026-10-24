@@ -273,7 +273,6 @@ enum {
 enum { ACTOR_136100_RESET_HEAD_ROTATION = 1 };
 
 /// Execution priority shared by this package's scene and model/fade tasks.
-enum { ACTOR_136100_TASK_PRIORITY = 192 };
 
 /// Sticky cancellation latch for this load of the street scene's fade-out.
 ///
@@ -771,12 +770,12 @@ static EvsCommand _gActor136100BeforeBurnerRepeatFollowUpScript[11] = {
 };
 
 TaskDesc gActor136100SceneTaskDescriptors[6] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_136100_TASK_PRIORITY } }, _actor136100SceneTask, { .model = &_gGaryBody } },
-    { { { TASK_BODY_NONE, ACTOR_136100_TASK_PRIORITY } }, NULL, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_136100_TASK_PRIORITY } }, _actor136100HeadTask, { .model = &_gGaryHeadHat } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_136100_TASK_PRIORITY } }, _actor136100RifleTask, { .model = &_gGaryShotgun } },
-    { { { TASK_BODY_NONE, ACTOR_136100_TASK_PRIORITY } }, _screenFadeInTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ACTOR_136100_TASK_PRIORITY } }, _actor136100FadeOutTask, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor136100SceneTask, { .model = &_gGaryBody } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, NULL, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor136100HeadTask, { .model = &_gGaryHeadHat } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor136100RifleTask, { .model = &_gGaryShotgun } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _screenFadeInTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor136100FadeOutTask, { .value = 0 } },
 };
 
 /// Borrowed singleton task running Gary Douglas's night Main Street scenes.

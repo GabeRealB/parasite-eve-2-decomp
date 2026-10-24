@@ -179,10 +179,8 @@ TaskMessageEntry gMineCavernRoomMessages[7] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-enum { MINE_CAVERN_CAPTION_PROGRESS_PRIORITY = 32 };
-
 TaskDesc gMineCavernCaptionProgressTasks[2] = {
-    { .header = { .fields = { TASK_BODY_NONE, MINE_CAVERN_CAPTION_PROGRESS_PRIORITY } }, .callback = mineCavernCommitCaptionProgressTask, .data = { .value = 0 } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = mineCavernCommitCaptionProgressTask, .data = { .value = 0 } },
     { .header = { .fields = { TASK_DESC_END, 0 } }, .callback = NULL, .data = { .value = 0 } },
 };
 

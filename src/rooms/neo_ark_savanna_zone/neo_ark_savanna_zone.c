@@ -79,10 +79,10 @@ enum { NEO_ARK_SAVANNA_ZONE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 /// Bodyless staged-departure task recipe for the savanna room.
 ///
-/// Spawns entry 0 at `ROOM_EVENT_TASK_PRIORITY` with zero metadata and payloads.
+/// Spawns entry 0 at `TASK_PRIORITY_SCENE` with zero metadata and payloads.
 /// The descriptor is read synchronously; the room-owned destination/event
 /// snapshots and callback code remain loaded through deferred scene reload.
-static TaskDesc _gNeoArkSavannaZoneStagedEventTaskDesc = { .header = { .fields = { .flags = TASK_BODY_NONE, .priority = ROOM_EVENT_TASK_PRIORITY } }, .callback = roomEventStagedTask, .data = { .value = 0 } };
+static TaskDesc _gNeoArkSavannaZoneStagedEventTaskDesc = { .header = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_SCENE } }, .callback = roomEventStagedTask, .data = { .value = 0 } };
 
 /// Message routes borrowed by the savanna room controller.
 ///

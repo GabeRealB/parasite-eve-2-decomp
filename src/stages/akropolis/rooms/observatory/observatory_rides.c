@@ -37,10 +37,10 @@ static void _akropolisObservatorySkipFadeOutTask(Task* task);
 static void _akropolisObservatorySkipFadeInTask(Task* task);
 
 TaskDesc gAkropolisObservatoryArrivalTaskDescs[4] = {
-    { { { TASK_BODY_NONE, 192 } }, _akropolisObservatoryForkedRoadArrivalMoviePathTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _akropolisObservatoryPromenadeArrivalMoviePathTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _akropolisObservatorySkipFadeOutTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _akropolisObservatorySkipFadeInTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _akropolisObservatoryForkedRoadArrivalMoviePathTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _akropolisObservatoryPromenadeArrivalMoviePathTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _akropolisObservatorySkipFadeOutTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _akropolisObservatorySkipFadeInTask, { .value = 0 } },
 };
 
 /// Player-root XYZ samples for the movie arrival from the forked road.

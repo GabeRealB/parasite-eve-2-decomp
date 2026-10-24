@@ -854,10 +854,8 @@ static EvsCommand _gActor161500ParkingVisitorDepartureScript[] = {
 
 #include "assets/characters/soldier_b/shop_clips_2.inc"
 
-enum { ACTOR_161500_COMPANION_REQUEST_TASK_PRIORITY = 32 };
-
 TaskDesc gActor161500CompleteCompanionRequestTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = ACTOR_161500_COMPANION_REQUEST_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_SCENE } },
     .callback = _actor161500CompleteCompanionRequestTask,
     .data     = { .value = 0 },
 };
@@ -1336,18 +1334,16 @@ static TaskMessageEntry _gStrideWalkMessages[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-enum { ACTOR_161500_SOLDIER_TASK_PRIORITY = 96 };
-
 TaskDesc gActor161500SoldierBTasks[2] = {
     {
         .header   = { .fields = { .flags    = TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER,
-                                  .priority = ACTOR_161500_SOLDIER_TASK_PRIORITY } },
+                                  .priority = TASK_PRIORITY_ACTOR } },
         .callback = _actor161500StrideWalkerTask,
         .data     = { .model = &_gSoldierBBody },
     },
     {
         .header   = { .fields = { .flags    = TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER,
-                                  .priority = ACTOR_161500_SOLDIER_TASK_PRIORITY } },
+                                  .priority = TASK_PRIORITY_ACTOR } },
         .callback = _strideWalkSubModelTask,
         .data     = { .model = &_gSoldierBRifle },
     },

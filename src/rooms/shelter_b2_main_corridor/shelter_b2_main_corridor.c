@@ -153,10 +153,6 @@ enum {
 };
 
 /// Execution priorities of the corridor's bodyless event and water tasks.
-enum {
-    SHELTER_B2_MAIN_CORRIDOR_EVENT_TASK_PRIORITY = 32,
-    SHELTER_B2_MAIN_CORRIDOR_WATER_TASK_PRIORITY = 96,
-};
 
 /// Departure-task recipe following four zero bytes of unproven role.
 ///
@@ -164,7 +160,7 @@ enum {
 /// destination has been published. The task takes no spawn payloads and
 /// borrows the published departure through session reload.
 static _ShelterB2MainCorridorDepartureTaskDescStorage _gShelterB2MainCorridorDepartureTaskDescriptorStorage = {
-    { 0 }, { { { TASK_BODY_NONE, SHELTER_B2_MAIN_CORRIDOR_EVENT_TASK_PRIORITY } }, roomEventDepartureTask, { .value = 0 } }
+    { 0 }, { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventDepartureTask, { .value = 0 } }
 };
 
 static AnimationPackedPose _gShelterB2MainCorridorAnimation05620Bank1[2] = {
@@ -193,7 +189,7 @@ static AnimationSet _gShelterB2MainCorridorAnimation05620 = {
 ///
 /// Spawn at index zero with no payloads after copying the room's event and
 /// destination snapshots; both snapshots must remain stable until reload.
-static TaskDesc _gShelterB2MainCorridorStagedEventTaskDescriptor = { { { TASK_BODY_NONE, SHELTER_B2_MAIN_CORRIDOR_EVENT_TASK_PRIORITY } }, roomEventStagedTask, { .value = 0 } };
+static TaskDesc _gShelterB2MainCorridorStagedEventTaskDescriptor = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventStagedTask, { .value = 0 } };
 
 /// Message protocol of the corridor's registered room task, followed by END.
 ///
@@ -217,8 +213,8 @@ static TaskMessageEntry _gShelterB2MainCorridorRoomMessages[6] = {
 /// slot 1 takes a game-flag nibble index and records the current CAP outcome.
 /// Both ignore spawnArg2. Keep this overlay loaded until their tasks finish.
 static TaskDesc _gShelterB2MainCorridorActionTaskDescriptors[2] = {
-    { { { TASK_BODY_NONE, SHELTER_B2_MAIN_CORRIDOR_EVENT_TASK_PRIORITY } }, _shelterB2MainCorridorStagedDepartureTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, SHELTER_B2_MAIN_CORRIDOR_EVENT_TASK_PRIORITY } }, _shelterB2MainCorridorRecordCapCompletionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelterB2MainCorridorStagedDepartureTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelterB2MainCorridorRecordCapCompletionTask, { .value = 0 } },
 };
 
 /// One room-owned player clip copied into the equipped weapon bank's first extension slot.
@@ -282,7 +278,7 @@ static EvsCommand _gShelterB2MainCorridorAccessSceneScript[13] = {
 ///
 /// Spawn at index zero with unused payloads. The task borrows room water data
 /// and a reserved actor-load packet arena for the corridor's lifetime.
-static TaskDesc _gShelterB2MainCorridorWaterTaskDescriptor = { { { TASK_BODY_NONE, SHELTER_B2_MAIN_CORRIDOR_WATER_TASK_PRIORITY } }, _shelterB2MainCorridorWaterTask, { .value = 0 } };
+static TaskDesc _gShelterB2MainCorridorWaterTaskDescriptor = { { { TASK_BODY_NONE, TASK_PRIORITY_ACTOR } }, _shelterB2MainCorridorWaterTask, { .value = 0 } };
 
 /// Four water rectangles rendered as Z-running wave strips, followed by the list end.
 static RoomWaterSurface _gShelterB2MainCorridorWaterWaveSurfaces[] = {

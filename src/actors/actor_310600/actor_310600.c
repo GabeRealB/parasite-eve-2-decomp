@@ -278,11 +278,10 @@ static ActorCommand _gActor310600StrangerFollowupCommand __attribute__((aligned(
 };
 
 /// Execution priority shared by Rupert's body and attached Mongoose.
-enum { ACTOR_310600_TASK_PRIORITY = 192 };
 
 TaskDesc gActor310600RupertBroderickTasks[2] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_310600_TASK_PRIORITY } }, _actor310600BodyTask, { .model = &_gRupertBody } },
-    { { { TASK_BODY_TMD, ACTOR_310600_TASK_PRIORITY } }, _actor310600MongooseTask, { .model = &_gRupertMongoose } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor310600BodyTask, { .model = &_gRupertBody } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _actor310600MongooseTask, { .model = &_gRupertMongoose } },
 };
 
 /// Rupert body messages: animation request, Euler placement, draw mode and retained walk.

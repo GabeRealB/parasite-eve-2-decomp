@@ -318,14 +318,13 @@ static const u16* _gActor205200SitePartHeadings[4] = {
 };
 
 /// Execution priority of the controller's screen-wave grid task.
-enum { ACTOR_205200_SCREEN_WAVE_TASK_PRIORITY = 192 };
 
 /// Bodyless screen-wave task recipe at priority 192, followed by an end marker.
 ///
 /// Spawn only entry zero with the persistent ramp context in spawn argument 2.
 /// The wave borrows that context through its final draw.
 static TaskDesc _gActor205200ScreenWaveTasks[2] = {
-    { { { TASK_BODY_NONE, ACTOR_205200_SCREEN_WAVE_TASK_PRIORITY } }, _screenWaveGridTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _screenWaveGridTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -336,8 +335,8 @@ static TaskDesc _gActor205200ScreenWaveTasks[2] = {
 static s32 _gScreenWaveAmplitude = 256;
 
 TaskDesc gActor205200ControllerPartTasks[2] = {
-    { { { TASK_BODY_COORD, ACTOR_205200_ENEMY_TASK_PRIORITY } }, _actor205200ControllerTask, { .value = 0 } },
-    { { { TASK_BODY_COORD, ACTOR_205200_ENEMY_TASK_PRIORITY } }, _actor205200PartTask, { .value = 0 } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, _actor205200ControllerTask, { .value = 0 } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, _actor205200PartTask, { .value = 0 } },
 };
 
 /// Controller messages for latching a stop from a nonzero actor command.

@@ -44,7 +44,7 @@ extern RoomEventReq gRoomEventReq;
 /// Runs at priority 32 with zero spawn payloads and unused metadata. The gate
 /// reads the recipe synchronously after latching the request and destination;
 /// keep those snapshots and the room callback code live through session reload.
-static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
+static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventTask, { .value = 0 } };
 
 /// Spawn recipe for the operator-panel session's polling owner, followed by TASK_DESC_END.
 ///
@@ -52,7 +52,7 @@ static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIO
 /// panel and polls its exit. It borrows the room-owned panel-task slot; the
 /// terminal entry is retained but is never spawned by the command handler.
 static TaskDesc _gFactoryPanelSessionDesc[2] = {
-    { { { TASK_BODY_NONE, FACTORY_PANEL_SESSION_PRIORITY } }, factoryPanelSpawn, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, factoryPanelSpawn, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

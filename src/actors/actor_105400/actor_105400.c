@@ -237,8 +237,8 @@ static GeneratorPulseFrame _gGeneratorHitPulse[4] = {
 };
 
 TaskDesc GENERATOR_TASK_TABLE[GENERATOR_TASK_DESC_COUNT] = {
-    [GENERATOR_BODY_TASK_INDEX]         = { { { TASK_BODY_TMD, GENERATOR_TASK_PRIORITY } }, _generatorTask, { .model = &_gNeoArkPowerPlant1ProtoGeneratorBody } },
-    [GENERATOR_LIFE_SUPPORT_TASK_INDEX] = { { { TASK_BODY_COORD, GENERATOR_TASK_PRIORITY } }, _generatorLifeSupportTask, { .value = 0 } },
+    [GENERATOR_BODY_TASK_INDEX]         = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _generatorTask, { .model = &_gNeoArkPowerPlant1ProtoGeneratorBody } },
+    [GENERATOR_LIFE_SUPPORT_TASK_INDEX] = { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, _generatorLifeSupportTask, { .value = 0 } },
 };
 
 /// Body animation sets indexed by `GENERATOR_ANIM_*`, with an empty entry 0.

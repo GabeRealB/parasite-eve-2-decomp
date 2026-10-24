@@ -101,9 +101,7 @@ enum { SHELTER_B2_OPERATING_ROOM_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 /// then reload the session. Spawn payloads and metadata are unused. The gate
 /// reads the recipe synchronously; room snapshots and callback code must remain
 /// live through the deferred transition.
-static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
-
-enum { SHELTER_B2_OPERATING_ROOM_STAGED_EVENT_PRIORITY = 32 };
+static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventTask, { .value = 0 } };
 
 /// Bodyless controller for a latched south-walkway or laboratory departure scene.
 ///
@@ -111,7 +109,7 @@ enum { SHELTER_B2_OPERATING_ROOM_STAGED_EVENT_PRIORITY = 32 };
 /// event into room-owned storage. The room overlay, CAP data and sound resources
 /// must remain loaded until the controller requests the destination reload.
 static TaskDesc _gShelterB2OperatingRoomStagedEventTaskDesc = {
-    { { TASK_BODY_NONE, SHELTER_B2_OPERATING_ROOM_STAGED_EVENT_PRIORITY } }, roomEventStagedTask, { .value = 0 }
+    { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventStagedTask, { .value = 0 }
 };
 
 /// Synchronous departure, key-item, interaction and CAP-command handlers.

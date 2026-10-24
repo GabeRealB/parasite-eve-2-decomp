@@ -235,25 +235,23 @@ static TaskMessageEntry _gMadChaserMsgTable[3] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-enum { ACTOR_342400_MAD_CHASER_TASK_PRIORITY = 96 };
-
 TaskDesc gActor342400MadChaserTaskDescs[2] = {
-    { { { TASK_BODY_TMD, ACTOR_342400_MAD_CHASER_TASK_PRIORITY } }, _madChaserTask, { .model = &gChaserMadBody } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_342400_MAD_CHASER_TASK_PRIORITY } }, _madChaserHiddenTask, { .model = &gChaserMadBody } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _madChaserTask, { .model = &gChaserMadBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_ACTOR } }, _madChaserHiddenTask, { .model = &gChaserMadBody } },
 };
 
 /// Unreferenced coordinate-body recipe that kills its task on its first callback.
 ///
 /// Priority 96; the spawn code ignores data for coordinate bodies. No current
 /// consumer selects this recipe, and its intended placement role is unproven.
-static TaskDesc _gActor342400CoordKillTaskDesc = { { { TASK_BODY_COORD, ACTOR_342400_MAD_CHASER_TASK_PRIORITY } }, taskKill, { .value = 0 } };
+static TaskDesc _gActor342400CoordKillTaskDesc = { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, taskKill, { .value = 0 } };
 
 /// Unreferenced scripted Mad Chaser recipe with automatic model buffers enabled.
 ///
 /// Creates the nine-part model at priority 96 and waits for emergence, using
 /// a live Enemy in spawnArg2. No current consumer selects this recipe; its
 /// intended placement role and relationship to the exported table are unproven.
-static TaskDesc _gActor342400MadChaserBufferedHiddenTaskDesc = { { { TASK_BODY_TMD, ACTOR_342400_MAD_CHASER_TASK_PRIORITY } }, _madChaserHiddenTask, { .model = &gChaserMadBody } };
+static TaskDesc _gActor342400MadChaserBufferedHiddenTaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _madChaserHiddenTask, { .model = &gChaserMadBody } };
 
 /// Interrupted-clip stance used by recoil, knockdown and pull selection.
 ///

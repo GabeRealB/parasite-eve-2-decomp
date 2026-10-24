@@ -361,7 +361,7 @@ static TaskMessageEntry _gActor123200Messages[4] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc gActor123200BoneSucklerTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor123200Task, { .model = &_gSucklerBoneBody } };
+TaskDesc gActor123200BoneSucklerTaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor123200Task, { .model = &_gSucklerBoneBody } };
 
 static SVECTOR ActorContact_ScratchPosition;
 

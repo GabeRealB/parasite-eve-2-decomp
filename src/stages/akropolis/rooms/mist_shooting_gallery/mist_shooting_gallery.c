@@ -250,7 +250,7 @@ UiObjectDesc gMistShootingGalleryWeaponSelectPanelDesc = {
 
 /// Bodyless priority-192 inventory-menu session used for the gallery weapon picker.
 static TaskDesc _gMistShootingGalleryWeaponMenuTaskDesc = {
-    .header   = { .fields = { TASK_BODY_NONE, 192 } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } },
     .callback = menuRootTask,
     .data     = { .value = 0 },
 };
@@ -331,14 +331,14 @@ static UiObjectDesc _gMistShootingGalleryModeChildPanelDescs[3] = {
 
 /// Bodyless priority-192 display session for selecting and applying run-mode carryover.
 static TaskDesc _gMistShootingGalleryCarryoverModeSessionDesc = {
-    .header   = { .fields = { TASK_BODY_NONE, 192 } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } },
     .callback = _mistShootingGalleryCarryoverModeSessionTask,
     .data     = { .value = 0 },
 };
 
 /// Bodyless priority-192 task recipe for the gallery's room CAP commands.
 static TaskDesc _gMistShootingGalleryCapPlaybackTaskDesc = {
-    .header   = { .fields = { TASK_BODY_NONE, 192 } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } },
     .callback = _mistShootingGalleryCapPlaybackTask,
     .data     = { .value = 0 },
 };
@@ -383,24 +383,24 @@ static UiObjectDesc _gJukeboxPanelDesc = {
 
 /// Bodyless priority-192 display session for this gallery's jukebox panel.
 static TaskDesc _gMistShootingGalleryJukeboxSessionDesc = {
-    .header   = { .fields = { TASK_BODY_NONE, 192 } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } },
     .callback = _jukeboxHostTask,
     .data     = { .value = 0 },
 };
 
 TaskDesc gMistShootingGalleryMovieTaskDescs[MIST_SHOOTING_GALLERY_MOVIE_TASK_COUNT] = {
     {
-        .header   = { .fields = { TASK_BODY_NONE, 192 } },
+        .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } },
         .callback = _mistShootingGalleryMovieSessionTask,
         .data     = { .value = 0 },
     },
     {
-        .header   = { .fields = { TASK_BODY_NONE, 192 } },
+        .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } },
         .callback = _mistShootingGalleryClearMovieTask,
         .data     = { .value = 0 },
     },
     {
-        .header   = { .fields = { TASK_BODY_NONE, 192 } },
+        .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } },
         .callback = _mistShootingGalleryModeSplashTask,
         .data     = { .value = 0 },
     },

@@ -754,12 +754,10 @@ static TaskMessageEntry _gActor00400Messages[3] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-enum { ACTOR_00400_TASK_PRIORITY = 96 };
-
 TaskDesc gActor00400Tasks[ACTOR_00400_TASK_DESCRIPTOR_COUNT] = {
-    [ACTOR_00400_BODY_TASK_INDEX]  = { { { TASK_BODY_TMD, ACTOR_00400_TASK_PRIORITY } }, _actor00400BodyTask, { .model = &_gDiverBody } },
-    [ACTOR_00400_SHOT_TASK_INDEX]  = { { { TASK_BODY_COORD, ACTOR_00400_TASK_PRIORITY } }, _actor00400ShotTask, { .value = 0 } },
-    [ACTOR_00400_STAIN_DESCRIPTOR] = { { { TASK_BODY_COORD, ACTOR_00400_TASK_PRIORITY } }, _actor00400GroundStainTask, { .value = 0 } },
+    [ACTOR_00400_BODY_TASK_INDEX]  = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor00400BodyTask, { .model = &_gDiverBody } },
+    [ACTOR_00400_SHOT_TASK_INDEX]  = { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, _actor00400ShotTask, { .value = 0 } },
+    [ACTOR_00400_STAIN_DESCRIPTOR] = { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, _actor00400GroundStainTask, { .value = 0 } },
 };
 
 /// Indices into the Bog Diver body animation bank; playback requires 1..19.

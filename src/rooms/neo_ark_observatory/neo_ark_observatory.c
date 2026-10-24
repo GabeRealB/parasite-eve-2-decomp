@@ -128,11 +128,9 @@ static void _neoArkObservatoryCapEventTask(Task* task);
 
 #include "../../shared/room/planar_reflection_data.inc.c"
 
-enum { NEO_ARK_OBSERVATORY_REFLECTION_PRIORITY = 112 };
-
 TaskDesc gNeoArkObservatoryReflectionTaskDescs[2] = {
-    { { { TASK_BODY_NONE, NEO_ARK_OBSERVATORY_REFLECTION_PRIORITY } }, _neoArkObservatoryPlayerReflectionTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, NEO_ARK_OBSERVATORY_REFLECTION_PRIORITY } }, _planarReflectionAttachmentTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_EFFECT } }, _neoArkObservatoryPlayerReflectionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_EFFECT } }, _planarReflectionAttachmentTask, { .value = 0 } },
 };
 
 /// Borrows this overlay's two reflection task descriptors.
@@ -146,16 +144,14 @@ static inline TaskDesc* _planarReflectionGetTaskTable(void)
 }
 
 enum {
-    NEO_ARK_OBSERVATORY_DEPARTURE_PRIORITY = 32,
-    NEO_ARK_OBSERVATORY_CAP_EVENT_PRIORITY = 192,
-    NEO_ARK_OBSERVATORY_SCENE_CAP_COMMAND  = 12,
+    NEO_ARK_OBSERVATORY_SCENE_CAP_COMMAND = 12,
 };
 
 /// Bodyless departure recipe consuming the room's staged destination at priority 32.
 ///
 /// Spawning uses descriptor index 0 and no payload. The departure record and
 /// room overlay must remain live until the departure task completes.
-static TaskDesc _gNeoArkObservatoryDepartureTaskDesc = { { { TASK_BODY_NONE, NEO_ARK_OBSERVATORY_DEPARTURE_PRIORITY } }, roomEventDepartureTask, { .value = 0 } };
+static TaskDesc _gNeoArkObservatoryDepartureTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventDepartureTask, { .value = 0 } };
 
 static AnimationPackedPose _gNeoArkObservatoryAnimation03BC4Bank1[6] = {
 #include "assets/neo_ark_observatory_animation_03BC4_bank1.inc"
@@ -184,7 +180,7 @@ static AnimationSet _gNeoArkObservatoryAnimation03BC4 = {
 /// Descriptor index 0 accepts the command index in spawn argument 1. Playback
 /// uses the room's second CAP resource, then restores player control and the
 /// default CAP resources. Keep the room loaded through completion.
-static TaskDesc _gNeoArkObservatoryCapEventTaskDesc = { { { TASK_BODY_NONE, NEO_ARK_OBSERVATORY_CAP_EVENT_PRIORITY } }, _neoArkObservatoryCapEventTask, { .value = 0 } };
+static TaskDesc _gNeoArkObservatoryCapEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _neoArkObservatoryCapEventTask, { .value = 0 } };
 
 /// Message routes installed by the room task, including the end marker.
 ///

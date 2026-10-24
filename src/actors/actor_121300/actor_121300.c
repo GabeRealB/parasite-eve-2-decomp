@@ -207,7 +207,6 @@ static void      _actor121300QueueScenePlayback(void);
 static void      _actor121300FinishScene(void);
 
 /// Execution priority of the scene double and its effect children.
-enum { ACTOR_121300_SCENE_TASK_PRIORITY = 192 };
 
 /// Full-rate percentage used by debris gravity, translation and spin.
 enum { ACTOR_121300_DEBRIS_FULL_SPEED_PERCENT = 100 };
@@ -396,7 +395,7 @@ static TmdSource _gActor121300Model08768 = {
 /// Keep the context and this overlay live through the wave's final draw; waves
 /// must not overlap because they share the renderer's oscillator storage.
 static TaskDesc _gActor121300ScreenWaveTasks[2] = {
-    { { { TASK_BODY_NONE, ACTOR_121300_SCENE_TASK_PRIORITY } }, _screenWaveTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _screenWaveTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -665,17 +664,17 @@ static EvsCommand _gActor121300SceneSkipScript[7] = {
 };
 
 TaskDesc gActor121300SceneTasks[11] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_121300_SCENE_TASK_PRIORITY } }, _actor121300EveSceneTask, { .model = &_gEveBody } },
-    { { { TASK_BODY_NONE, ACTOR_121300_SCENE_TASK_PRIORITY } }, _actor121300FadeInTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ACTOR_121300_SCENE_TASK_PRIORITY } }, _actor121300FadeOutTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ACTOR_121300_SCENE_TASK_PRIORITY } }, _actor121300SpawnLampDebrisTask, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_121300_SCENE_TASK_PRIORITY } }, _actor121300LampDebrisTask, { .model = &_gActor121300Model07E84 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_121300_SCENE_TASK_PRIORITY } }, _actor121300LampDebrisTask, { .model = &_gActor121300Model080F0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_121300_SCENE_TASK_PRIORITY } }, _actor121300LampDebrisTask, { .model = &_gActor121300Model0834C } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_121300_SCENE_TASK_PRIORITY } }, _actor121300LampDebrisTask, { .model = &_gActor121300Model08580 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_121300_SCENE_TASK_PRIORITY } }, _actor121300LampDebrisTask, { .model = &_gActor121300Model08768 } },
-    { { { TASK_BODY_NONE, ACTOR_121300_SCENE_TASK_PRIORITY } }, _actor121300BlackoutTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ACTOR_121300_SCENE_TASK_PRIORITY } }, _actor121300UploadTexturesTask, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor121300EveSceneTask, { .model = &_gEveBody } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor121300FadeInTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor121300FadeOutTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor121300SpawnLampDebrisTask, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor121300LampDebrisTask, { .model = &_gActor121300Model07E84 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor121300LampDebrisTask, { .model = &_gActor121300Model080F0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor121300LampDebrisTask, { .model = &_gActor121300Model0834C } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor121300LampDebrisTask, { .model = &_gActor121300Model08580 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor121300LampDebrisTask, { .model = &_gActor121300Model08768 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor121300BlackoutTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor121300UploadTexturesTask, { .value = 0 } },
 };
 
 /// Borrowed context of this renderer's active wave task.

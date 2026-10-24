@@ -133,12 +133,11 @@ static void                  _dryfieldGasStationRestorePlayerAndShow(void);
 enum { DRYFIELD_GAS_STATION_CUTSCENE_TASK_FADE_IN = 1 };
 
 /// Execution priority shared by the arrival, movie, cutscene and fade recipes.
-enum { DRYFIELD_GAS_STATION_ARRIVAL_TASK_PRIORITY = 192 };
 
 TaskDesc gDryfieldGasStationArrivalTaskDescs[3] = {
-    { { { TASK_BODY_NONE, DRYFIELD_GAS_STATION_ARRIVAL_TASK_PRIORITY } }, dryfieldGasStationArrivalTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, DRYFIELD_GAS_STATION_ARRIVAL_TASK_PRIORITY } }, dryfieldGasStationArrivalMovieTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, DRYFIELD_GAS_STATION_ARRIVAL_TASK_PRIORITY } }, screenFadeInTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, dryfieldGasStationArrivalTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, dryfieldGasStationArrivalMovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, screenFadeInTask, { .value = 0 } },
 };
 
 static AnimationPackedPose _gDryfieldGasStationAnimation04A70Bank1[2] = {
@@ -308,8 +307,8 @@ static EvsCommand _gDryfieldGasStationArrivalSkipScript[10] = {
 };
 
 TaskDesc gDryfieldGasStationArrivalCutsceneTaskDescs[2] = {
-    { { { TASK_BODY_NONE, DRYFIELD_GAS_STATION_ARRIVAL_TASK_PRIORITY } }, _dryfieldGasStationArrivalCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, DRYFIELD_GAS_STATION_ARRIVAL_TASK_PRIORITY } }, _screenFadeInTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _dryfieldGasStationArrivalCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _screenFadeInTask, { .value = 0 } },
 };
 
 /// Fixed cyan-glow centre in the effect coordinate's local game units.

@@ -174,20 +174,19 @@ static void _shelterB6NurseryAmbienceTask(Task* task);
 /// Both run at priority 32. Keep callback code and the scene record loaded
 /// until completion; spawning copies the recipe and retains no table pointer.
 static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
-    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 /// Execution priority of the nursery's bodyless positional sound task.
-enum { SHELTER_B6_NURSERY_AMBIENCE_TASK_PRIORITY = 32 };
 
 /// Single spawn recipe for nursery ambience, with no body or resource payload.
 ///
 /// Only index zero is valid; this is not a terminated descriptor list. Spawning
 /// copies the recipe. The nursery callback must remain loaded until teardown.
 static TaskDesc _gShelterB6NurseryAmbienceTaskDesc = {
-    { { TASK_BODY_NONE, SHELTER_B6_NURSERY_AMBIENCE_TASK_PRIORITY } }, _shelterB6NurseryAmbienceTask, { .value = 0 }
+    { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelterB6NurseryAmbienceTask, { .value = 0 }
 };
 
 /// Values shared by nursery entry and command-driven story progression.

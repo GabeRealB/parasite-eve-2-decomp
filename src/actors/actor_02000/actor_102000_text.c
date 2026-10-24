@@ -53,7 +53,6 @@
 #include "../../shared/creatures/golem/golem_pawn_rook.h"
 
 /// Execution priority shared by the Pawn body and attached sword descriptors.
-enum { ACTOR_02000_TASK_PRIORITY = 96 };
 
 /// Area sound selector that suppresses the group-10 file request and animation cues.
 enum { ACTOR_02000_SOUND_SET_NONE = 0 };
@@ -607,8 +606,8 @@ static u16* _gActor02000StageAreaSoundSets[6] = {
 };
 
 TaskDesc gActor02000PawnGolemTasks[2] = {
-    { { { TASK_BODY_TMD, ACTOR_02000_TASK_PRIORITY } }, _actor02000BodyTask, { .model = &_gGolemPawnBody } },
-    { { { TASK_BODY_TMD, ACTOR_02000_TASK_PRIORITY } }, _actor02000SwordTask, { .model = &_gGolemBeamSword } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor02000BodyTask, { .model = &_gGolemPawnBody } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor02000SwordTask, { .model = &_gGolemBeamSword } },
 };
 
 /// Animation request bank borrowed by the Beam Sword Pawn GOLEM body rig.

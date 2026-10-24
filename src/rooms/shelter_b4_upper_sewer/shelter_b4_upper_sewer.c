@@ -136,8 +136,8 @@ static TaskMessageEntry _gShelterB4UpperSewerRoomMessages[6] = {
 /// Indexed directly without a terminator. Exit transit takes its confirmation
 /// CAP command in spawn argument 1; the opening scene ignores both arguments.
 static TaskDesc _gShelterB4UpperSewerInteractionTasks[2] = {
-    { { { TASK_BODY_NONE, 32 } }, _shelterB4UpperSewerOpenWaterHoleTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, _shelterB4UpperSewerExitTransitTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelterB4UpperSewerOpenWaterHoleTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelterB4UpperSewerExitTransitTask, { .value = 0 } },
 };
 
 enum {
@@ -170,7 +170,7 @@ s16 gShelterB4UpperSewerWaterY = -1600;
 
 /// Single bodyless priority-96 water task recipe, indexed at zero without a terminator.
 static TaskDesc _gShelterB4UpperSewerWaterTasks[1] = {
-    { { { TASK_BODY_NONE, 96 } }, _shelterB4UpperSewerWaterTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_ACTOR } }, _shelterB4UpperSewerWaterTask, { .value = 0 } },
 };
 
 enum {

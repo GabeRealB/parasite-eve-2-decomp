@@ -56,8 +56,8 @@ static const UiObjectDesc _gSceneBattleRewardNoticePanels[2] __attribute__((sect
     { SCENE_BATTLE_REWARD_NOTICE_PANEL_STYLE, { -80, 16, 160, 20 }, 28, 0, TASK_BODY_NONE, 0xC0, itemPickupNoticeTask, 0 },
     { SCENE_BATTLE_REWARD_NOTICE_PANEL_STYLE, { 16, 24, 160, 20 }, 24, 0, TASK_BODY_NONE, 0xC0, itemPickupNoticeTask, 0 },
 };
-TaskDesc gSceneBattleStartTransitionTaskDesc = { { { TASK_BODY_NONE, 0xC0 } }, sceneBattleStartTransitionTask };
-TaskDesc gSceneBattleResultTaskDesc          = { { { TASK_BODY_NONE, 0xC0 } }, _sceneBattleResultTask };
+TaskDesc gSceneBattleStartTransitionTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, sceneBattleStartTransitionTask };
+TaskDesc gSceneBattleResultTaskDesc          = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _sceneBattleResultTask };
 
 /// Presents battle gains or an escape result, restores area music and exits the transition.
 ///

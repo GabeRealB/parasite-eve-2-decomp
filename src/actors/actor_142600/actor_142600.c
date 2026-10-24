@@ -13,15 +13,14 @@
 // word, before the data, is written by the link (tools/splat_ext/pkgid.py).
 
 enum {
-    ACTOR_142600_RETAINED_TASK_PRIORITY = 192,
-    ACTOR_142600_ARRIVAL_CAP_COMMAND    = 2,
-    ACTOR_142600_EXIT_VIEW              = 5,
-    ACTOR_142600_WEAPON_SELECTION_BOTH  = 2,
-    ACTOR_142600_RESUME_NORMAL_CONTROL  = 0,
-    ACTOR_142600_FADE_DEFAULT_RAMP      = 0,
-    ACTOR_142600_FADE_KEEP_RAMP         = 0,
-    ACTOR_142600_IDLE_ANIMATION         = 1,
-    ACTOR_142600_SCENE_ANIMATION_47     = ANIMATION_BANK_BASE_SET_COUNT,
+    ACTOR_142600_ARRIVAL_CAP_COMMAND   = 2,
+    ACTOR_142600_EXIT_VIEW             = 5,
+    ACTOR_142600_WEAPON_SELECTION_BOTH = 2,
+    ACTOR_142600_RESUME_NORMAL_CONTROL = 0,
+    ACTOR_142600_FADE_DEFAULT_RAMP     = 0,
+    ACTOR_142600_FADE_KEEP_RAMP        = 0,
+    ACTOR_142600_IDLE_ANIMATION        = 1,
+    ACTOR_142600_SCENE_ANIMATION_47    = ANIMATION_BANK_BASE_SET_COUNT,
     ACTOR_142600_SCENE_ANIMATION_48,
     ACTOR_142600_SCENE_ANIMATION_49,
     ACTOR_142600_SCENE_ANIMATION_50,
@@ -39,7 +38,7 @@ enum {
 
 TaskDesc gActor142600TaskDescriptors[1] = {
     // Retain the unspawned descriptor's original, incompatible callback address.
-    { { { TASK_BODY_NONE, ACTOR_142600_RETAINED_TASK_PRIORITY } }, (TaskFunc)enemyDestroy, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, (TaskFunc)enemyDestroy, { .value = 0 } },
 };
 
 /// Companion scene clips installed at extended bank indices 47..53.

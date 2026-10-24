@@ -36,11 +36,9 @@
 static void _mistParkingPlayDepartureMovieTask(Task* task);
 static void _mistParkingStartDepartureMovieTask(Task* task);
 
-enum { MIST_PARKING_DEPARTURE_MOVIE_TASK_PRIORITY = 192 };
-
 TaskDesc gMistParkingDepartureMovieTaskDescs[2] = {
-    { { { TASK_BODY_NONE, MIST_PARKING_DEPARTURE_MOVIE_TASK_PRIORITY } }, _mistParkingStartDepartureMovieTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, MIST_PARKING_DEPARTURE_MOVIE_TASK_PRIORITY } }, _mistParkingPlayDepartureMovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _mistParkingStartDepartureMovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _mistParkingPlayDepartureMovieTask, { .value = 0 } },
 };
 
 #define ROOM_PART _gMistParkingCutsceneModelPlacement

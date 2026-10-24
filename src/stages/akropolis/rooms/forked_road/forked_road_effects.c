@@ -65,14 +65,12 @@ static void _akropolisForkedRoadSkipFadeInTask(Task* task);
 
 static void _akropolisForkedRoadReleaseMaggotCaterpillarEntrance(void);
 
-enum { AKROPOLIS_FORKED_ROAD_MOVIE_TASK_PRIORITY = 192 };
-
 TaskDesc gAkropolisForkedRoadMovieTaskDescriptors[AKROPOLIS_FORKED_ROAD_MOVIE_TASK_COUNT] = {
-    [AKROPOLIS_FORKED_ROAD_TASK_OUTBOUND_MOVIE] = { { { TASK_BODY_NONE, AKROPOLIS_FORKED_ROAD_MOVIE_TASK_PRIORITY } }, _akropolisForkedRoadOutboundMoviePathTask, { .value = 0 } },
-    [AKROPOLIS_FORKED_ROAD_TASK_UNUSED_MOVIE]   = { { { TASK_BODY_NONE, AKROPOLIS_FORKED_ROAD_MOVIE_TASK_PRIORITY } }, NULL, { .value = 0 } },
-    [AKROPOLIS_FORKED_ROAD_TASK_RETURN_MOVIE]   = { { { TASK_BODY_NONE, AKROPOLIS_FORKED_ROAD_MOVIE_TASK_PRIORITY } }, _akropolisForkedRoadReturnMoviePathTask, { .value = 0 } },
-    [AKROPOLIS_FORKED_ROAD_TASK_SKIP_FADE_OUT]  = { { { TASK_BODY_NONE, AKROPOLIS_FORKED_ROAD_MOVIE_TASK_PRIORITY } }, _akropolisForkedRoadSkipFadeOutTask, { .value = 0 } },
-    [AKROPOLIS_FORKED_ROAD_TASK_SKIP_FADE_IN]   = { { { TASK_BODY_NONE, AKROPOLIS_FORKED_ROAD_MOVIE_TASK_PRIORITY } }, _akropolisForkedRoadSkipFadeInTask, { .value = 0 } },
+    [AKROPOLIS_FORKED_ROAD_TASK_OUTBOUND_MOVIE] = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _akropolisForkedRoadOutboundMoviePathTask, { .value = 0 } },
+    [AKROPOLIS_FORKED_ROAD_TASK_UNUSED_MOVIE]   = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, NULL, { .value = 0 } },
+    [AKROPOLIS_FORKED_ROAD_TASK_RETURN_MOVIE]   = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _akropolisForkedRoadReturnMoviePathTask, { .value = 0 } },
+    [AKROPOLIS_FORKED_ROAD_TASK_SKIP_FADE_OUT]  = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _akropolisForkedRoadSkipFadeOutTask, { .value = 0 } },
+    [AKROPOLIS_FORKED_ROAD_TASK_SKIP_FADE_IN]   = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _akropolisForkedRoadSkipFadeInTask, { .value = 0 } },
 };
 
 /// Player-root translations sampled along the observatory route's movie path.

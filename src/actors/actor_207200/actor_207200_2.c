@@ -271,7 +271,7 @@ static EnemyParams _gActor207200CreepingStrangerParams = { gActor207200CreepingS
 
 #include "assets/encounters/skull_stalker_and_creeping_stranger/package_2_clips_2.inc"
 
-TaskDesc gActor207200CreepingStrangerTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor207200CreepingStrangerTask, { .model = &_gSkullStalkerAndCreepingStrangerCreepingStrangerBody } };
+TaskDesc gActor207200CreepingStrangerTaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor207200CreepingStrangerTask, { .model = &_gSkullStalkerAndCreepingStrangerCreepingStrangerBody } };
 
 /// Creeping Stranger body clips indexed by `ACTOR_207200_ANIM_*`.
 ///

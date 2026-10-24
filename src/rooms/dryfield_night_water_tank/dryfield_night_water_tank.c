@@ -157,7 +157,7 @@ static TaskMessageEntry _gDryfieldNightWaterTankRoomMessages[5] = {
 /// Entry 0 runs at priority 32; TASK_DESC_END follows. Spawning consumes the
 /// descriptor synchronously, and the callback stays loaded through teardown.
 static TaskDesc _gDryfieldNightWaterTankBattleAftermathTasks[2] = {
-    { .header = { .fields = { TASK_BODY_NONE, 32 } }, .callback = _dryfieldNightWaterTankBattleAftermathTask, .data = { .value = 0 } },
+    { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = _dryfieldNightWaterTankBattleAftermathTask, .data = { .value = 0 } },
     { .header = { .fields = { TASK_DESC_END, 0 } }, .callback = NULL, .data = { .model = NULL } },
 };
 
@@ -253,7 +253,7 @@ static TmdSource _gDryfieldNightWaterTankModel00FF8 = {
 /// Entry 0 attaches the one-part TMD at priority 192. Its borrowed geometry and
 /// callback must stay loaded for the spawned task's lifetime.
 static TaskDesc _gDryfieldNightWaterTankSwayTasks[2] = {
-    { .header = { .fields = { TASK_BODY_TMD, 192 } }, .callback = waterTankSwayTask, .data = { .model = &_gDryfieldNightWaterTankModel00FF8 } },
+    { .header = { .fields = { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, .callback = waterTankSwayTask, .data = { .model = &_gDryfieldNightWaterTankModel00FF8 } },
     { .header = { .fields = { TASK_DESC_END, 0 } }, .callback = NULL, .data = { .model = NULL } },
 };
 

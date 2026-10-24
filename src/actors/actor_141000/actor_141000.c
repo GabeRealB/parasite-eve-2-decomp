@@ -324,21 +324,19 @@ static SVECTOR _gActor141000CappedBeamEndCapOffsets[ARRAY_SIZE(_gActor141000Capp
     { 10, 0, 0, 0 },
 };
 
-enum { ACTOR_141000_TASK_PRIORITY = 192 };
-
 TaskDesc gActor141000FlightTasks[3] = {
     {
-        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_141000_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _actor141000FlightControllerTask,
         .data     = { .model = &_gShelterB1PodAccessTunnelFlame },
     },
     {
-        .header   = { .fields = { .flags = TASK_BODY_COORD, .priority = ACTOR_141000_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_COORD, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _actor141000CappedBeamTask,
         .data     = { .value = 0 },
     },
     {
-        .header   = { .fields = { .flags = TASK_BODY_COORD, .priority = ACTOR_141000_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_COORD, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _actor141000SmokeTrailTask,
         .data     = { .value = 0 },
     },
@@ -460,7 +458,7 @@ static AnimationSet** const _gActorMotionAnimBanks19[1] SECTION(".data") = {
 
 TaskDesc gActor141000EveWalkerTaskDesc = {
     .header   = { .fields = { .flags    = TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER,
-                              .priority = ACTOR_141000_TASK_PRIORITY } },
+                              .priority = TASK_PRIORITY_CONTROL } },
     .callback = _actor141000EveWalkerTask,
     .data     = { .model = &_gEveBody },
 };

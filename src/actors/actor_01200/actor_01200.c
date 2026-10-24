@@ -408,9 +408,7 @@ static TaskMessageEntry _gActor01200Messages[4] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-enum { ACTOR_01200_TASK_PRIORITY = 96 };
-
-TaskDesc gActor01200BoneSucklerTaskDesc = { { { TASK_BODY_TMD, ACTOR_01200_TASK_PRIORITY } }, _actor01200Task, { .model = &_gSucklerBoneBody } };
+TaskDesc gActor01200BoneSucklerTaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor01200Task, { .model = &_gSucklerBoneBody } };
 
 SVECTOR ActorContact_ScratchPosition = { 0 };
 

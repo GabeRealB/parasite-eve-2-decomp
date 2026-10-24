@@ -1015,11 +1015,10 @@ static u16 D_actor_110600_80148660[8] = {
     1,
 };
 
-enum { ACTOR_110600_TASK_PRIORITY = 96 };
-TaskDesc gActor110600TaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_110600_TASK_PRIORITY } }, _actor110600Task, { .model = &_gAkropolisCafeteriaBossStrangerBody } };
+TaskDesc gActor110600TaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_ACTOR } }, _actor110600Task, { .model = &_gAkropolisCafeteriaBossStrangerBody } };
 
 /// Unreferenced copy of the actor's task recipe; no recovered resource selects it.
-static TaskDesc _gActor110600UnusedTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_110600_TASK_PRIORITY } }, _actor110600Task, { .model = &_gAkropolisCafeteriaBossStrangerBody } };
+static TaskDesc _gActor110600UnusedTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_ACTOR } }, _actor110600Task, { .model = &_gAkropolisCafeteriaBossStrangerBody } };
 
 /// Overlay-wide shudder step: reset on entry, 0..4 jolt the root, 5 resumes CHASE.
 static s16 _gActor110600ShudderStep;

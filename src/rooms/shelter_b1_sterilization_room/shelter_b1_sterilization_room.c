@@ -120,7 +120,6 @@ enum {
 enum { SHELTER_B1_STERILIZATION_ROOM_FIRST_DOOR_ACTION = 3 };
 
 /// Priority of the room's bodyless event and presentation tasks.
-enum { SHELTER_B1_STERILIZATION_ROOM_EVENT_TASK_PRIORITY = 192 };
 
 /// Actor 0's command word for latching its smoking behavior.
 enum { SHELTER_B1_STERILIZATION_ROOM_ACTOR_START_SMOKING = 1 };
@@ -179,8 +178,8 @@ TmdSource gShelterB1SterilizationRoomAkropolisSanctuaryModel090F0 = {
 /// Both run at priority 32. Keep callback code and the scene record loaded
 /// until completion; spawning copies the recipe and retains no table pointer.
 static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
-    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -201,7 +200,7 @@ static TaskMessageEntry _gShelterB1SterilizationRoomMessageTable[] = {
 ///
 /// Spawn at index zero with the CAP command in spawnArg1 and player control held.
 static TaskDesc _gShelterB1SterilizationRoomScriptedPresentationTaskDesc = {
-    .header   = { .fields = { TASK_BODY_NONE, SHELTER_B1_STERILIZATION_ROOM_EVENT_TASK_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } },
     .callback = _shelterB1SterilizationRoomScriptedPresentationTask,
     .data     = { .value = 0 },
 };
@@ -425,15 +424,15 @@ static AnimationSet _gShelterB1SterilizationRoomAnimation0AF1C = {
 };
 
 TaskDesc gShelterB1SterilizationRoomEventTaskDescs[SHELTER_B1_STERILIZATION_ROOM_EVENT_TASK_DESC_COUNT] = {
-    { { { TASK_BODY_NONE, SHELTER_B1_STERILIZATION_ROOM_EVENT_TASK_PRIORITY } }, _shelterB1SterilizationRoomCrossfadeTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, SHELTER_B1_STERILIZATION_ROOM_EVENT_TASK_PRIORITY } }, shelterB1SterilizationRoomTrapEscapePromptTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, SHELTER_B1_STERILIZATION_ROOM_EVENT_TASK_PRIORITY } }, _shelterB1SterilizationRoomDoorPassageTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, SHELTER_B1_STERILIZATION_ROOM_EVENT_TASK_PRIORITY } }, shelterB1SterilizationRoomSwitchRoomTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, SHELTER_B1_STERILIZATION_ROOM_EVENT_TASK_PRIORITY } }, shelterB1SterilizationRoomDoorNoticeTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, SHELTER_B1_STERILIZATION_ROOM_EVENT_TASK_PRIORITY } }, _shelterB1SterilizationRoomTrapDamageTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, SHELTER_B1_STERILIZATION_ROOM_EVENT_TASK_PRIORITY } }, shelterB1SterilizationRoomResetSpawnMaskTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, SHELTER_B1_STERILIZATION_ROOM_EVENT_TASK_PRIORITY } }, shelterB1SterilizationRoomTrapDialogueTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, SHELTER_B1_STERILIZATION_ROOM_EVENT_TASK_PRIORITY } }, shelterB1SterilizationRoomSceneDialogueTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _shelterB1SterilizationRoomCrossfadeTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, shelterB1SterilizationRoomTrapEscapePromptTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _shelterB1SterilizationRoomDoorPassageTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, shelterB1SterilizationRoomSwitchRoomTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, shelterB1SterilizationRoomDoorNoticeTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _shelterB1SterilizationRoomTrapDamageTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, shelterB1SterilizationRoomResetSpawnMaskTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, shelterB1SterilizationRoomTrapDialogueTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, shelterB1SterilizationRoomSceneDialogueTask, { .value = 0 } },
 };
 
 /// Null clip 47 followed by the trap-entry, escape and damage clips 48..54.

@@ -111,8 +111,8 @@ static void _akropolisFireEscapeAmbienceTask(Task* task);
 
 /// This carrier's bodyless scene runner and timed sound task, followed by END.
 static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
-    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -125,12 +125,10 @@ static TaskMessageEntry _gAkropolisFireEscapeRoomMessages[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-enum { AKROPOLIS_FIRE_ESCAPE_AMBIENCE_TASK_PRIORITY = 32 };
-
 /// Bodyless view-dependent ambience recipe at index 0, followed by END.
 static TaskDesc _gAkropolisFireEscapeAmbienceTaskDescriptors[2] = {
     {
-        .header   = { .fields = { TASK_BODY_NONE, AKROPOLIS_FIRE_ESCAPE_AMBIENCE_TASK_PRIORITY } },
+        .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } },
         .callback = _akropolisFireEscapeAmbienceTask,
         .data     = { .value = 0 },
     },

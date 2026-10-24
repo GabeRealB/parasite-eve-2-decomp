@@ -36,7 +36,7 @@ static TaskMessageEntry _gMistR21RoomMessages[5] = {
 
 /// Bodyless priority-192 recipe for the persistent idle task started on room entry.
 static TaskDesc _gMistR21IdleTaskDesc = {
-    { { TASK_BODY_NONE, 192 } }, _mistR21IdleAuxiliaryTask, { .value = 0 }
+    { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _mistR21IdleAuxiliaryTask, { .value = 0 }
 };
 
 static void _mistR21InitializeRoomTask(Task* task);

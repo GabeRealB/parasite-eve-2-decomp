@@ -79,7 +79,6 @@ static void _dryfieldNightGarageDialogueTask(Task* task);
 static void _dryfieldNightGarageCommitRefuelingProgress(void);
 
 /// Priority shared by the garage's bodyless dialogue, movie and blackout tasks.
-enum { DRYFIELD_NIGHT_GARAGE_TASK_PRIORITY = 192 };
 
 /// Gary Douglas's garage command namespace, interpreted by his actor task.
 enum {
@@ -108,8 +107,8 @@ enum {
 };
 
 TaskDesc gDryfieldNightGarageDialogueTasks[2] = {
-    { { { TASK_BODY_NONE, DRYFIELD_NIGHT_GARAGE_TASK_PRIORITY } }, _dryfieldNightGarageDialogueTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, DRYFIELD_NIGHT_GARAGE_TASK_PRIORITY } }, dryfieldNightGarageShopDialogueTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _dryfieldNightGarageDialogueTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, dryfieldNightGarageShopDialogueTask, { .value = 0 } },
 };
 
 /// The five words installed in the player's animation bank for the refueling scene.
@@ -291,15 +290,15 @@ EvsCommand gDryfieldNightGarageSkipRefuelingScript[19] = {
 };
 
 TaskDesc gDryfieldNightGarageMovieTasks[2] = {
-    { { { TASK_BODY_NONE, DRYFIELD_NIGHT_GARAGE_TASK_PRIORITY } }, _dryfieldNightGarageStartMovieTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, DRYFIELD_NIGHT_GARAGE_TASK_PRIORITY } }, _dryfieldNightGaragePlayMovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _dryfieldNightGarageStartMovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _dryfieldNightGaragePlayMovieTask, { .value = 0 } },
 };
 
 /// Bodyless priority-192 task holding the frame black for 64 callback ticks.
 ///
 /// Starts with killCountdown zero; uses no work or spawn arguments. No spawn
 /// consumer of this retained descriptor is established.
-static TaskDesc _gDryfieldNightGarageBlackoutTaskDesc = { { { TASK_BODY_NONE, DRYFIELD_NIGHT_GARAGE_TASK_PRIORITY } }, _dryfieldNightGarageBlackoutTask, { .value = 0 } };
+static TaskDesc _gDryfieldNightGarageBlackoutTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _dryfieldNightGarageBlackoutTask, { .value = 0 } };
 
 /// The first three grey-capsule endpoint pairs, in whole world-coordinate units.
 ///

@@ -128,7 +128,6 @@ static void _dryfieldNightMotelLobbyCashRegisterTask(Task* task);
 
 /// Execution priority and first command-menu row of the register's task recipes and keys.
 enum {
-    DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_TASK_PRIORITY  = 192,
     DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_PROMPT_EXAMINE = 0,
 };
 
@@ -138,7 +137,7 @@ enum {
 /// both ports. The controller retains and kills the independent child;
 /// its callbacks and cursor graphics require the lobby and gameplay to stay loaded.
 static TaskDesc _gDryfieldNightMotelLobbyCashRegisterCursorTaskDesc = {
-    .header   = { .fields = { TASK_BODY_NONE, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_TASK_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } },
     .callback = _dryfieldNightMotelLobbyCashRegisterCursorTask,
     .data     = { .value = 0 },
 };
@@ -162,7 +161,7 @@ ActionPromptHotspot gDryfieldNightMotelLobbyCashRegisterHotspots[15] = {
 };
 
 TaskDesc gDryfieldNightMotelLobbyCashRegisterTaskDesc = {
-    .header   = { .fields = { TASK_BODY_NONE, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_TASK_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } },
     .callback = _dryfieldNightMotelLobbyCashRegisterTask,
     .data     = { .value = 0 },
 };

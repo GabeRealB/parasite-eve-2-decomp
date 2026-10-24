@@ -111,7 +111,6 @@ enum {
     AKROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR    = 0,
     AKROPOLIS_HELICOPTER_LANDING_PAD_LIFT_CHILD         = 40,
     // The encounter receiver treats this authored value as nonzero/show.
-    AKROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_PRIORITY = 192,
 };
 
 TaskMessageEntry gAkropolisHelicopterLandingPadRoomMessages[5] = {
@@ -148,18 +147,17 @@ static AnimationSet* _gAkropolisHelicopterLandingPadDeparturePlayerAnimationSets
 s32 gAkropolisHelicopterLandingPadEncounterPhase = AKROPOLIS_HELICOPTER_LANDING_PAD_PHASE_WAITING;
 
 enum {
-    AKROPOLIS_HELICOPTER_LANDING_PAD_SCRIPT_TASK_PRIORITY = 32,
-    AKROPOLIS_HELICOPTER_LANDING_PAD_PITCH_TASK_PRIORITY  = 97,
+    AKROPOLIS_HELICOPTER_LANDING_PAD_PITCH_TASK_PRIORITY = 97,
 };
 
 TaskDesc gAkropolisHelicopterLandingPadScriptTasks[AKROPOLIS_HELICOPTER_LANDING_PAD_TASK_COUNT + 1] = {
-    { { { TASK_BODY_NONE, AKROPOLIS_HELICOPTER_LANDING_PAD_SCRIPT_TASK_PRIORITY } }, akropolisHelicopterLandingPadPrepareDepartureTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, AKROPOLIS_HELICOPTER_LANDING_PAD_SCRIPT_TASK_PRIORITY } }, akropolisHelicopterLandingPadMovePlayerToSceneMarkTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, AKROPOLIS_HELICOPTER_LANDING_PAD_SCRIPT_TASK_PRIORITY } }, akropolisHelicopterLandingPadScreenShakeTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, AKROPOLIS_HELICOPTER_LANDING_PAD_SCRIPT_TASK_PRIORITY } }, akropolisHelicopterLandingPadDepartureShakeTimelineTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, AKROPOLIS_HELICOPTER_LANDING_PAD_SCRIPT_TASK_PRIORITY } }, akropolisHelicopterLandingPadConfirmDepartureTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, AKROPOLIS_HELICOPTER_LANDING_PAD_SCRIPT_TASK_PRIORITY } }, akropolisHelicopterLandingPadReturnToMistTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, AKROPOLIS_HELICOPTER_LANDING_PAD_SCRIPT_TASK_PRIORITY } }, akropolisHelicopterLandingPadTurnPlayerYawTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, akropolisHelicopterLandingPadPrepareDepartureTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, akropolisHelicopterLandingPadMovePlayerToSceneMarkTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, akropolisHelicopterLandingPadScreenShakeTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, akropolisHelicopterLandingPadDepartureShakeTimelineTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, akropolisHelicopterLandingPadConfirmDepartureTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, akropolisHelicopterLandingPadReturnToMistTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, akropolisHelicopterLandingPadTurnPlayerYawTask, { .value = 0 } },
     { { { TASK_BODY_NONE, AKROPOLIS_HELICOPTER_LANDING_PAD_PITCH_TASK_PRIORITY } }, akropolisHelicopterLandingPadPlayerPitchPulseTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
@@ -180,8 +178,8 @@ static s32 _gAkropolisHelicopterLandingPadUnusedWords[6] = {
 #include "assets/rooms/akropolis/helicopter_landing_pad/events.inc"
 
 TaskDesc gAkropolisHelicopterLandingPadMovieTasks[2] = {
-    { .header = { .fields = { .flags = TASK_BODY_NONE, .priority = AKROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_PRIORITY } }, .callback = _akropolisHelicopterLandingPadStartMovieTask, .data = { .value = 0 } },
-    { .header = { .fields = { .flags = TASK_BODY_NONE, .priority = AKROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_PRIORITY } }, .callback = _akropolisHelicopterLandingPadMovieTask, .data = { .value = 0 } },
+    { .header = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } }, .callback = _akropolisHelicopterLandingPadStartMovieTask, .data = { .value = 0 } },
+    { .header = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } }, .callback = _akropolisHelicopterLandingPadMovieTask, .data = { .value = 0 } },
 };
 #include "assets/rooms/akropolis/helicopter_landing_pad/markers.inc"
 #include "assets/rooms/akropolis/helicopter_landing_pad/view_masks.inc"

@@ -103,15 +103,15 @@ static AnimationSet _gDryfieldDrivewayAnimation00D08 = {
 ///
 /// Spawns state 0 with unused arguments. The room-owned destination and event
 /// snapshots must remain stable until the callback requests session reload.
-static TaskDesc _gRoomEventStagedTaskDesc = { { { TASK_BODY_NONE, DRIVEWAY_SCENE_TASK_PRIORITY } }, roomEventStagedTask, { .value = 0 } };
+static TaskDesc _gRoomEventStagedTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventStagedTask, { .value = 0 } };
 
 /// Driveway scene recipes: slot 0 wire-rope blackout, slot 1 bat encounter, slot 2 end.
 ///
 /// Both live recipes are bodyless priority-32 tasks with unused spawn arguments.
 /// The controllers borrow this overlay's scripts and resources through completion.
 static TaskDesc _gDryfieldDrivewaySceneTasks[3] = {
-    { { { TASK_BODY_NONE, DRIVEWAY_SCENE_TASK_PRIORITY } }, _drivewayBlackoutTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, DRIVEWAY_SCENE_TASK_PRIORITY } }, _drivewayCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _drivewayBlackoutTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _drivewayCutsceneTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

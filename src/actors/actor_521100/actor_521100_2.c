@@ -195,7 +195,7 @@ static TaskMessageEntry _gActor521100AnmcWomanMessages[6] = {
 
 TaskDesc gActor521100AnmcWomanTaskDescs[2] = {
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor521100AnmcWomanTask, { .model = &_gAnmcWoman3Body } },
-    { { { TASK_BODY_NONE, 192 } }, _actor521100AnmcWomanEffectTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor521100AnmcWomanEffectTask, { .value = 0 } },
 };
 
 /// Scripted ANMC-woman clips: empty entry 0, then ten request-addressable sets.

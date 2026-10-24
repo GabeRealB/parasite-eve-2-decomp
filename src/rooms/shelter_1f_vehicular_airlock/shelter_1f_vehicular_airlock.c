@@ -118,7 +118,7 @@ TmdSource gShelter1fVehicularAirlockModel03A58 = {
 /// Bodyless priority-32 task recipe for a latched departure's CAP, sound and reload.
 ///
 /// Borrows the room's singleton event records and fade storage until reload.
-static TaskDesc _gShelter1fVehicularAirlockStagedEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
+static TaskDesc _gShelter1fVehicularAirlockStagedEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventStagedTask, { .value = 0 } };
 
 /// Room receiver's transition, key-item, direction-action and CAP-command handlers.
 ///

@@ -132,15 +132,10 @@ enum { DRYFIELD_NIGHT_MOTEL_ROOM_6_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 #include "../../shared/room/planar_reflection_data.inc.c"
 
 /// Execution priorities for this room's reflection and rest recipes.
-enum {
-    DRYFIELD_NIGHT_MOTEL_ROOM_6_REFLECTION_PRIORITY     = 112,
-    DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_PRIORITY           = 32,
-    DRYFIELD_NIGHT_MOTEL_ROOM_6_ALTERNATE_REST_PRIORITY = 192,
-};
 
 TaskDesc gDryfieldNightMotelRoom6ReflectionTaskDescs[2] = {
-    { { { TASK_BODY_NONE, DRYFIELD_NIGHT_MOTEL_ROOM_6_REFLECTION_PRIORITY } }, dryfieldNightMotelRoom6PlayerReflectionTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, DRYFIELD_NIGHT_MOTEL_ROOM_6_REFLECTION_PRIORITY } }, _planarReflectionAttachmentTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_EFFECT } }, dryfieldNightMotelRoom6PlayerReflectionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_EFFECT } }, _planarReflectionAttachmentTask, { .value = 0 } },
 };
 
 /// Borrows this overlay's two reflection task descriptors.
@@ -160,8 +155,8 @@ static inline TaskDesc* _planarReflectionGetTaskTable(void)
 /// Both run at priority 32. Keep callback code and the scene record loaded
 /// until completion; spawning copies the recipe and retains no table pointer.
 static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
-    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -184,7 +179,7 @@ static const TaskMessageEntry _gDryfieldNightMotelRoom6RoomMessages[6] SECTION("
 /// Command 6 spawns this single entry at slot zero. Spawn payloads are ignored;
 /// keep the room callback loaded until the rest task completes.
 static TaskDesc _gDryfieldNightMotelRoom6RestTaskDesc = {
-    .header   = { .fields = { TASK_BODY_NONE, DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } },
     .callback = _dryfieldNightMotelRoom6RestTask,
     .data     = { .value = 0 },
 };
@@ -194,7 +189,7 @@ static TaskDesc _gDryfieldNightMotelRoom6RestTaskDesc = {
 /// No current caller selects this retained descriptor; its intended dispatch
 /// path is unproven. Payloads would be ignored by the callback.
 static TaskDesc _gDryfieldNightMotelRoom6RestPriority192TaskDesc = {
-    .header   = { .fields = { TASK_BODY_NONE, DRYFIELD_NIGHT_MOTEL_ROOM_6_ALTERNATE_REST_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } },
     .callback = _dryfieldNightMotelRoom6RestTask,
     .data     = { .value = 0 },
 };

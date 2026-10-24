@@ -85,7 +85,6 @@ enum {
     ACTOR_450900_COMPANION_BLEND_FRAMES                    = 10,
     ACTOR_450900_PLAYER_RESPONSE_BLEND_FRAMES              = 12,
     ACTOR_450900_PLAYER_CHOICE_BLEND_FRAMES                = 8,
-    ACTOR_450900_SCENE_TASK_PRIORITY                       = 192,
     ACTOR_450900_HEAD_AIM_TASK_PRIORITY                    = 97,
 };
 
@@ -147,11 +146,11 @@ static s8 _gActor450900CompanionDistressStarted = false;
 static s32 _gActor450900PostChoiceConversationStarted = false;
 
 TaskDesc gActor450900Tasks[ACTOR_450900_TASK_COUNT] = {
-    { { { TASK_BODY_NONE, ACTOR_450900_SCENE_TASK_PRIORITY } }, taskKill, { .value = 0 } },
-    { { { TASK_BODY_NONE, ACTOR_450900_SCENE_TASK_PRIORITY } }, _actor450900CompanionDistressTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ACTOR_450900_SCENE_TASK_PRIORITY } }, _actor450900PlayerReactionTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ACTOR_450900_SCENE_TASK_PRIORITY } }, _actor450900GrowthRoomActionTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ACTOR_450900_SCENE_TASK_PRIORITY } }, _actor450900DepartureTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor450900CompanionDistressTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor450900PlayerReactionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor450900GrowthRoomActionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor450900DepartureTask, { .value = 0 } },
     { { { TASK_BODY_NONE, ACTOR_450900_HEAD_AIM_TASK_PRIORITY } }, _actor450900HeadAimTask, { .value = 0 } },
 };
 

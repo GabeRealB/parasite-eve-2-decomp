@@ -114,14 +114,12 @@ static s32 _shelterB6CorridorHandlePartCommand(Task* unusedTask, s32 unusedMessa
 static s32 _shelterB6CorridorIgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, DirectionActionRequest* unusedRequest, s32 unusedArg);
 static s32 _shelterB6CorridorStartBattleEndScene(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
-enum { SHELTER_B6_CORRIDOR_SCREEN_WAVE_PRIORITY = 192 };
-
 /// Retained bodyless screen-wave recipe at priority 192, followed by a terminator.
 ///
 /// No recovered caller spawns this table. Entry 0 requires a persistent
 /// `ScreenWaveCtx` in spawn argument 2; entry 1 must never be spawned.
 static TaskDesc _gShelterB6CorridorScreenWaveTasks[2] = {
-    { { { TASK_BODY_NONE, SHELTER_B6_CORRIDOR_SCREEN_WAVE_PRIORITY } }, _screenWaveGridTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _screenWaveGridTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

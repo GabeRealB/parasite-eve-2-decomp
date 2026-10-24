@@ -91,12 +91,11 @@ static s32 _dryfieldNightGarageIgnoreCommand(Task* unusedTask, s32 unusedMessage
 #include "../../shared/room/shop_data.inc.c"
 
 enum {
-    DRYFIELD_NIGHT_GARAGE_SHOP_TASK_PRIORITY  = 192,
     DRYFIELD_NIGHT_GARAGE_COMPANION_POSE_CLIP = 1,
 };
 
 TaskDesc gDryfieldNightGarageShopSessionTaskDesc = {
-    .header   = { .fields = { TASK_BODY_NONE, DRYFIELD_NIGHT_GARAGE_SHOP_TASK_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } },
     .callback = _shopSessionTask,
     .data     = { .value = 0 },
 };

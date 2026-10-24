@@ -922,15 +922,14 @@ static _Actor403000RingCellMap _gActor403000RingCellMap = {
 };
 
 enum {
-    ACTOR_403000_TASK_PRIORITY = 96,
-    ACTOR_403000_TASK_SPAWN    = 0,
-    ACTOR_403000_TASK_UPDATE   = 1,
-    ACTOR_403000_TASK_DESTROY  = 2,
+    ACTOR_403000_TASK_SPAWN   = 0,
+    ACTOR_403000_TASK_UPDATE  = 1,
+    ACTOR_403000_TASK_DESTROY = 2,
 };
 
 TaskDesc gActor403000TaskDesc = {
     .header   = { .fields = { .flags    = TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER,
-                              .priority = ACTOR_403000_TASK_PRIORITY } },
+                              .priority = TASK_PRIORITY_ACTOR } },
     .callback = _actor403000Task,
     .data     = { .model = &_gMineCavernBlizzardChaserBody },
 };
@@ -3277,7 +3276,6 @@ static inline void _actor403000AlignGrabCatch(Task* actorTask, Task* player, _Ac
 static void _actor403000GrabState(Task* actorTask)
 {
     enum {
-
         ACTOR_403000_GRAB_RUSH_DISTANCE           = 0xDAC,
         ACTOR_403000_GRAB_RUSH_TRAVEL_TICKS       = 15,
         ACTOR_403000_GRAB_BEFORE_FIRST_FRAME      = -1,
@@ -3488,7 +3486,6 @@ static void _actor403000GrabCatchState(Task* actorTask)
 static void _actor403000LungeState(Task* actorTask)
 {
     enum {
-
         ACTOR_403000_LUNGE_STOP_DISTANCE       = 900,
         ACTOR_403000_LUNGE_TRAVEL_TICKS        = 20,
         ACTOR_403000_LUNGE_MOVE_START_FRAME    = 5,
@@ -4349,7 +4346,6 @@ static void _actor403000TurnState(Task* actorTask)
 static void _actor403000DropState(Task* actorTask)
 {
     enum {
-
         ACTOR_403000_DROP_ORIGIN_X       = 0x2134,
         ACTOR_403000_DROP_HEIGHT         = 0x1518,
         ACTOR_403000_DROP_ORIGIN_Z       = 0x1194,

@@ -105,10 +105,6 @@ static void _actionPromptResetDefault(Task* task);
 static s32  _roomVariantResolveNeoArk(RoomEventMsg* request, RoomEventMsg* reply);
 
 /// Ascending execution priorities of this room's bodyless tasks.
-enum {
-    SHELTER_B1_UNDERGROUND_PARKING_TASK_PRIORITY      = 32,
-    SHELTER_B1_UNDERGROUND_PARKING_LATE_TASK_PRIORITY = 192,
-};
 
 /// View, CAP and frame-count operands of the room's two event scenes.
 enum {
@@ -354,12 +350,12 @@ static void                       _shelterB1UndergroundParkingPanelTask(Task* ta
 
 #include "../../shared/room/shop_data.inc.c"
 
-ShelterB1UndergroundParkingShopSessionTaskDescStorage gShelterB1UndergroundParkingShopSessionTaskDescStorage = { { { { TASK_BODY_NONE, SHELTER_B1_UNDERGROUND_PARKING_LATE_TASK_PRIORITY } }, _shopSessionTask, { .value = 0 } }, { 0 } };
+ShelterB1UndergroundParkingShopSessionTaskDescStorage gShelterB1UndergroundParkingShopSessionTaskDescStorage = { { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _shopSessionTask, { .value = 0 } }, { 0 } };
 
 /// Bodyless task recipe that carries the staged departure to the 1F garage.
 ///
 /// Spawn only after publishing `gRoomDeparture`; arguments are unused.
-static TaskDesc _gShelterB1UndergroundParkingDepartureTaskDesc = { { { TASK_BODY_NONE, SHELTER_B1_UNDERGROUND_PARKING_TASK_PRIORITY } }, roomEventDepartureTask, { .value = 0 } };
+static TaskDesc _gShelterB1UndergroundParkingDepartureTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventDepartureTask, { .value = 0 } };
 
 /// This carrier's bodyless scene runner and timed sound task, followed by END.
 ///
@@ -368,8 +364,8 @@ static TaskDesc _gShelterB1UndergroundParkingDepartureTaskDesc = { { { TASK_BODY
 /// Both run at priority 32. Keep callback code and the scene record loaded
 /// until completion; spawning copies the recipe and retains no table pointer.
 static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
-    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _roomCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -390,7 +386,7 @@ static TaskMessageEntry _gShelterB1UndergroundParkingRoomMessages[6] = {
 ///
 /// Command 22 starts this after holding player control. The room and CAP
 /// resources must remain loaded until the loop's exit choice resumes control.
-static TaskDesc _gShelterB1UndergroundParkingDialogueLoopTaskDesc = { { { TASK_BODY_NONE, SHELTER_B1_UNDERGROUND_PARKING_TASK_PRIORITY } }, _capDialogueLoopTask, { .value = 0 } };
+static TaskDesc _gShelterB1UndergroundParkingDialogueLoopTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _capDialogueLoopTask, { .value = 0 } };
 
 /// Seven indexed recipes for the room's auxiliary bodyless tasks.
 ///
@@ -399,13 +395,13 @@ static TaskDesc _gShelterB1UndergroundParkingDialogueLoopTaskDesc = { { { TASK_B
 /// no terminator. Alternate playback takes command 1..5 in spawnArg1; the
 /// other slots ignore spawn arguments. Callback code must remain loaded.
 static TaskDesc _gShelterB1UndergroundParkingTaskDescs[SHELTER_B1_UNDERGROUND_PARKING_TASK_DESCRIPTOR_COUNT] = {
-    { { { TASK_BODY_NONE, SHELTER_B1_UNDERGROUND_PARKING_TASK_PRIORITY } }, _shelterB1UndergroundParkingPanelSessionTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, SHELTER_B1_UNDERGROUND_PARKING_TASK_PRIORITY } }, _shelterB1UndergroundParkingResolveRoom6ChoiceTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, SHELTER_B1_UNDERGROUND_PARKING_TASK_PRIORITY } }, _shelterB1UndergroundParkingStartRoom7SceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, SHELTER_B1_UNDERGROUND_PARKING_TASK_PRIORITY } }, _shelterB1UndergroundParkingGarageDepartureTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, SHELTER_B1_UNDERGROUND_PARKING_TASK_PRIORITY } }, _shelterB1UndergroundParkingResumePlayerAfterCaptionTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, SHELTER_B1_UNDERGROUND_PARKING_TASK_PRIORITY } }, _shelterB1UndergroundParkingAmbienceTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, SHELTER_B1_UNDERGROUND_PARKING_LATE_TASK_PRIORITY } }, _shelterB1UndergroundParkingAlternateCapTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelterB1UndergroundParkingPanelSessionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelterB1UndergroundParkingResolveRoom6ChoiceTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelterB1UndergroundParkingStartRoom7SceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelterB1UndergroundParkingGarageDepartureTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelterB1UndergroundParkingResumePlayerAfterCaptionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelterB1UndergroundParkingAmbienceTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _shelterB1UndergroundParkingAlternateCapTask, { .value = 0 } },
 };
 
 /// Player placement used when the accepted parking choice reveals room 6.
@@ -502,13 +498,13 @@ static RoomAmbienceEntry _gShelterB1UndergroundParkingAmbienceMixByView[9] = {
 ///
 /// The panel passes spawnArg1 == 1 for port 0 and owns the child's lifetime.
 /// Priority 192 updates the cursor after the priority-32 panel each frame.
-static TaskDesc _gShelterB1UndergroundParkingActionPromptTaskDesc = { { { TASK_BODY_NONE, SHELTER_B1_UNDERGROUND_PARKING_LATE_TASK_PRIORITY } }, _shelterB1UndergroundParkingActionPromptTask, { .value = 0 } };
+static TaskDesc _gShelterB1UndergroundParkingActionPromptTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _shelterB1UndergroundParkingActionPromptTask, { .value = 0 } };
 
 /// Bodyless selector-panel recipe, spawned and polled by the panel session.
 ///
 /// Spawn arguments are unused; the panel owns allocated work and a cursor child.
 /// Its requested exit is completed by the session's poll. Keep this overlay loaded.
-static TaskDesc _gShelterB1UndergroundParkingPanelTaskDesc = { { { TASK_BODY_NONE, SHELTER_B1_UNDERGROUND_PARKING_TASK_PRIORITY } }, _shelterB1UndergroundParkingPanelTask, { .value = 0 } };
+static TaskDesc _gShelterB1UndergroundParkingPanelTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelterB1UndergroundParkingPanelTask, { .value = 0 } };
 
 /// Selector-panel switches and Enter button, followed by the hotspot terminator.
 ///
@@ -2150,7 +2146,6 @@ static inline void _shelterB1UndergroundParkingStartPanelSession(void)
 static s32 _shelterB1UndergroundParkingHandleCommand(Task* roomTask, s32 messageId, s32 commandId, s32 unused)
 {
     enum {
-
         SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_5 = 5,
 
         SHELTER_B1_UNDERGROUND_PARKING_SCENE_VIEW                  = 20,

@@ -579,9 +579,9 @@ static const u16* _gActor02300StageAreaSoundSets[GAME_STAGE_SHELTER_NEO_ARK + 1]
 };
 
 TaskDesc gActor02300RookGolemTasks[3] = {
-    { { { TASK_BODY_TMD, 96 } }, _actor02300BodyTask, { .model = &_gGolemRookBody } },
-    { { { TASK_BODY_TMD, 96 } }, _actor02300SwordTask, { .model = &_gGolemBeamSword } },
-    { { { TASK_BODY_TMD, 96 } }, _actor02300ShieldTask, { .model = &_gGolemRookShield } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor02300BodyTask, { .model = &_gGolemRookBody } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor02300SwordTask, { .model = &_gGolemBeamSword } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor02300ShieldTask, { .model = &_gGolemRookShield } },
 };
 
 /// Beam Sword Rook GOLEM body animation-set directory.

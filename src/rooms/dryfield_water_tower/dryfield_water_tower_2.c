@@ -399,7 +399,7 @@ enum { DRYFIELD_WATER_TOWER_SKIP_SOUND_FADE_TICKS = 10 };
 
 static s32 _dryfieldWaterTowerApplyPropCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedSecondArg);
 
-TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
+TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry gDryfieldWaterTowerRoomMessages[7] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantWaterTowerMsg },
@@ -412,7 +412,7 @@ TaskMessageEntry gDryfieldWaterTowerRoomMessages[7] = {
 };
 
 TaskDesc gDryfieldWaterTowerMechanismPromptTasks[2] = {
-    { { { TASK_BODY_NONE, 32 } }, dryfieldWaterTowerMechanismPromptTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, dryfieldWaterTowerMechanismPromptTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -755,7 +755,7 @@ static TaskMessageEntry _gDryfieldWaterTowerPropSceneMessages[2] = {
 };
 
 TaskDesc gDryfieldWaterTowerPropSceneTasks[3] = {
-    { { { TASK_BODY_NONE, 192 } }, _dryfieldWaterTowerPropSceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _dryfieldWaterTowerPropSceneTask, { .value = 0 } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _dryfieldWaterTowerSlidingPropTask, { .model = &_gDryfieldWaterTowerDryfieldWaterTankModel020D4 } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _dryfieldWaterTowerFallingPropTask, { .model = &_gDryfieldWaterTowerModel03D14 } },
 };
@@ -868,9 +868,9 @@ static EvsCommand _gDryfieldWaterTowerActorSceneSkipScript[11] = {
 /// is stored. The scene spawns slot 2 with an eight-frame fade; slot 1 has no
 /// recovered spawn. Tasks borrow this room's callbacks through teardown.
 static TaskDesc _gDryfieldWaterTowerActorSceneTasks[3] = {
-    { { { TASK_BODY_NONE, 192 } }, _dryfieldWaterTowerActorSceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _screenFadeOutTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _screenFadeInTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _dryfieldWaterTowerActorSceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _screenFadeOutTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _screenFadeInTask, { .value = 0 } },
 };
 
 /// Ambient-effect gates for mapped views 1..21, indexed by view minus one.

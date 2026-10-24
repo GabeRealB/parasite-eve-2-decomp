@@ -954,9 +954,7 @@ s32 gActor503500ArmParentParts[ACTOR_503500_SIDE_COUNT] = {
     ACTOR_503500_BOSS_ARM_MOUNT_PART_SIDE_1,
 };
 
-enum { ACTOR_503500_KNOCKBACK_TASK_PRIORITY = 192 };
-
-TaskDesc gActor503500KnockbackTaskDesc = { { { TASK_BODY_NONE, ACTOR_503500_KNOCKBACK_TASK_PRIORITY } }, actor503500KnockbackTask, { .value = 0 } };
+TaskDesc gActor503500KnockbackTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, actor503500KnockbackTask, { .value = 0 } };
 
 const SVECTOR gActor503500ArmRootOffset SECTION(".data") = { 0 };
 
@@ -1132,9 +1130,7 @@ static AnimationSet** const _gActorMotionAnimBanks19[1] SECTION(".data") = {
     _gActor503500TentacleAnimationSets,
 };
 
-enum { ACTOR_503500_TENTACLE_TASK_PRIORITY = 192 };
-
-TaskDesc gActor503500TentacleTaskDesc = { { { TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER, ACTOR_503500_TENTACLE_TASK_PRIORITY } }, _actor503500TentacleTask, { .model = &_gBrahmanTentacle } };
+TaskDesc gActor503500TentacleTaskDesc = { { { TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER, TASK_PRIORITY_CONTROL } }, _actor503500TentacleTask, { .model = &_gBrahmanTentacle } };
 
 /// Scripted tentacle messages for animation, placement, model draw mode and commands.
 ///

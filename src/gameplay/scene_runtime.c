@@ -541,9 +541,8 @@ static _CdCmdSceneSoundBankBit _gCdCmdSceneSoundBankBits[] = {
     { CD_COMMAND_SCENE_SOUND_ALL, SOUND_BANK_TYPE_ALL_NON_AMBIENT },
     { CD_COMMAND_SCENE_SOUND_END, 0 },
 };
-enum { LOADING_RESTART_PRESENTATION_PRIORITY = 192 };
 
-TaskDesc gLoadingRestartPresentationTaskDesc = { { { TASK_BODY_NONE, LOADING_RESTART_PRESENTATION_PRIORITY } }, _loadingRestartPresentationTask, { NULL } };
+TaskDesc gLoadingRestartPresentationTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _loadingRestartPresentationTask, { NULL } };
 
 /// Blends Euler pitch/yaw and clamps them without pulling an existing pose inward.
 ///

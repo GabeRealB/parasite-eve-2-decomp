@@ -2537,12 +2537,11 @@ static AnimationSet _gActor560800Animation3CBE0 = {
 
 enum {
     ACTOR_560800_MOVIE_TASK_PLAYBACK = 1,
-    ACTOR_560800_SCENE_TASK_PRIORITY = 192,
 };
 
 TaskDesc gActor560800MovieTaskDescriptors[2] = {
-    { { { TASK_BODY_NONE, ACTOR_560800_SCENE_TASK_PRIORITY } }, _actor560800StartMovieTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ACTOR_560800_SCENE_TASK_PRIORITY } }, _actor560800MovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor560800StartMovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor560800MovieTask, { .value = 0 } },
 };
 
 /// Scene animation bank borrowed by Aya's player task.
@@ -3790,23 +3789,21 @@ static EvsCommand _gActor560800CutsceneSkipScript[10] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-enum { ACTOR_560800_CUTSCENE_TASK_PRIORITY = 192 };
-
 TaskDesc gActor560800CutsceneTaskDescriptors[14] = {
-    { { { TASK_BODY_NONE, ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800CutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800DiscardTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800FadeInTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800FadeOutTask, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800EveBodyTask, { .model = &gEveMaskedBody } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800KyleBodyTask, { .model = &gKyleBody } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800No9BodyTask, { .model = &_gGolemNo9BodyDryfield } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800CastAttachmentTask, { .model = &gKyleHandLeft2 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800CastAttachmentTask, { .model = &gKyleHandRight } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800CastAttachmentTask, { .model = &gKyleP229 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800CastAttachmentTask, { .model = &_gGolemNo9Gunblade } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800EveBodyTask, { .model = &_gEveBody } },
-    { { { TASK_BODY_NONE, ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800ReplaceEveBodyTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ACTOR_560800_CUTSCENE_TASK_PRIORITY } }, _actor560800AwaitScenePlaybackTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor560800CutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor560800DiscardTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor560800FadeInTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor560800FadeOutTask, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor560800EveBodyTask, { .model = &gEveMaskedBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor560800KyleBodyTask, { .model = &gKyleBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor560800No9BodyTask, { .model = &_gGolemNo9BodyDryfield } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor560800CastAttachmentTask, { .model = &gKyleHandLeft2 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor560800CastAttachmentTask, { .model = &gKyleHandRight } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor560800CastAttachmentTask, { .model = &gKyleP229 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor560800CastAttachmentTask, { .model = &_gGolemNo9Gunblade } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor560800EveBodyTask, { .model = &_gEveBody } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor560800ReplaceEveBodyTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor560800AwaitScenePlaybackTask, { .value = 0 } },
 };
 
 static TmdBone _gActor560800Model40064Skeleton[7] = {
@@ -4265,10 +4262,10 @@ static TaskMessageEntry _gActor560800CarrierMessages[3] = {
 /// teardown tree. Intact chains and the carrier skip automatic model buffering;
 /// falling copies use it.
 static TaskDesc _gActor560800PropTaskDescriptors[4] = {
-    { { { TASK_BODY_COORD, ACTOR_560800_SCENE_TASK_PRIORITY } }, _actor560800ChainGroupTask, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_SCENE_TASK_PRIORITY } }, _actor560800IntactChainTask, { .model = &_gActor560800Model40064 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_SCENE_TASK_PRIORITY } }, _actor560800CarrierTask, { .model = &_gActor560800Model41AC4 } },
-    { { { TASK_BODY_TMD, ACTOR_560800_SCENE_TASK_PRIORITY } }, _actor560800FallingChainTask, { .model = &_gActor560800Model40E78 } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_CONTROL } }, _actor560800ChainGroupTask, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor560800IntactChainTask, { .model = &_gActor560800Model40064 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor560800CarrierTask, { .model = &_gActor560800Model41AC4 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _actor560800FallingChainTask, { .model = &_gActor560800Model40E78 } },
 };
 
 /// Borrowed singleton task controlling the scene and owning its cast/props.

@@ -108,10 +108,9 @@ enum { SHELTER_B2_ELEVATOR_HALL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 /// then reload the session. Spawn payloads and metadata are unused. The gate
 /// reads the recipe synchronously; room snapshots and callback code must remain
 /// live through the deferred transition.
-static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
+static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventTask, { .value = 0 } };
 
 /// Scheduler priority for the hall's bodyless elevator-selection task.
-enum { SHELTER_B2_ELEVATOR_HALL_ELEVATOR_TASK_PRIORITY = 32 };
 
 /// Spawns the hall's elevator floor-selection and ride-wait task at index zero.
 ///
@@ -121,7 +120,7 @@ enum { SHELTER_B2_ELEVATOR_HALL_ELEVATOR_TASK_PRIORITY = 32 };
 /// Spawning reads this recipe synchronously; its callback must remain loaded
 /// until the task finishes or requests the selected hall's reload.
 static TaskDesc _gShelterB2ElevatorHallElevatorTaskDesc = {
-    .header   = { .fields = { TASK_BODY_NONE, SHELTER_B2_ELEVATOR_HALL_ELEVATOR_TASK_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } },
     .callback = shelterElevatorTask,
     .data     = { .value = 0 },
 };

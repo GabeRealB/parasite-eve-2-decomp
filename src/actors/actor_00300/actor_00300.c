@@ -434,7 +434,6 @@ enum {
 enum { ACTOR_00300_FIREBALL_NO_ATTACK = 0 };
 
 /// Execution priority shared by the enemy, drain attachment and fireball.
-enum { ACTOR_00300_TASK_PRIORITY = 96 };
 
 /// Collision attacks: drain with silence, then poison, paralysis and darkness fireballs.
 ///
@@ -747,9 +746,9 @@ static SVECTOR* _gActor00300PatrolRoutes[15][2] = {
 };
 
 TaskDesc gActor00300Tasks[3] = {
-    { { { TASK_BODY_TMD, ACTOR_00300_TASK_PRIORITY } }, _actor00300EnemyTask, { .model = &_gStingerBody } },
-    { { { TASK_BODY_TMD, ACTOR_00300_TASK_PRIORITY } }, _actor00300DrainModelTask, { .model = &_gStingerBrainDrainArm } },
-    { { { TASK_BODY_COORD, ACTOR_00300_TASK_PRIORITY } }, _actor00300FireballTask, { .value = 0 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor00300EnemyTask, { .model = &_gStingerBody } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor00300DrainModelTask, { .model = &_gStingerBrainDrainArm } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, _actor00300FireballTask, { .value = 0 } },
 };
 
 /// Enemy animation, placement, drawing and command messages with an end sentinel.

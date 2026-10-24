@@ -109,7 +109,6 @@ extern AnimationSet gAyaOnMyWayClip;
 enum { ACTOR_260400_PLAYER_BLEND_FRAMES = 8 };
 
 /// Execution priority shared by the wounded Rupert body and its revolver.
-enum { ACTOR_260400_TASK_PRIORITY = 192 };
 
 /// Commands granting or revoking the scripted walker's Mongoose draw permission.
 enum { ACTOR_260400_COMMAND_ENABLE_MONGOOSE  = 1,
@@ -755,12 +754,12 @@ static TaskMessageEntry _gActor260400ScriptedWalkerMessages[6] = {
 
 TaskDesc gActor260400RupertBroderickTasks[2] = {
     {
-        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_260400_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _actor260400ScriptedWalkerTask,
         .data     = { .model = &_gRupertHurtBody },
     },
     {
-        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_260400_TASK_PRIORITY } },
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _actor260400MongooseTask,
         .data     = { .model = &_gRupertHurtMongoose },
     },

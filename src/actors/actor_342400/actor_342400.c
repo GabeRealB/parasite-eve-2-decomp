@@ -140,12 +140,11 @@ static void _actor342400WaveSlouchTask(Task* waveTask);
 static void _actor342400WavePairTask(Task* waveTask);
 
 enum {
-    ACTOR_342400_ENCOUNTER_CONTROLLER_PRIORITY = 32,
-    ACTOR_342400_ENCOUNTER_SPAWNER_PRIORITY    = 97,
+    ACTOR_342400_ENCOUNTER_SPAWNER_PRIORITY = 97,
 };
 
 TaskDesc gActor342400EncounterTaskDescs[ACTOR_342400_ENCOUNTER_DESCRIPTOR_COUNT] = {
-    { { { TASK_BODY_NONE, ACTOR_342400_ENCOUNTER_CONTROLLER_PRIORITY } }, _actor342400WaveControllerTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _actor342400WaveControllerTask, { .value = 0 } },
     { { { TASK_BODY_NONE, ACTOR_342400_ENCOUNTER_SPAWNER_PRIORITY } }, _actor342400WaveMadChaserTask, { .value = 0 } },
     { { { TASK_BODY_NONE, ACTOR_342400_ENCOUNTER_SPAWNER_PRIORITY } }, _actor342400WaveSlouchTask, { .value = 0 } },
     { { { TASK_BODY_NONE, ACTOR_342400_ENCOUNTER_SPAWNER_PRIORITY } }, _actor342400WavePairTask, { .value = 0 } },

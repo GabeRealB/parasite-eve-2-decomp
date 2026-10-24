@@ -181,9 +181,7 @@ static s16 _gRatAttackRepeatChance[RAT_PLACEMENT_ROW_COUNT] = {
     16,
 };
 
-enum { ACTOR_300700_RAT_TASK_PRIORITY = 96 };
-
-TaskDesc gActor300700RatTaskDesc = { { { TASK_BODY_TMD, ACTOR_300700_RAT_TASK_PRIORITY } }, _ratTask, { .model = &gRatAndMothRatBody } };
+TaskDesc gActor300700RatTaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _ratTask, { .model = &gRatAndMothRatBody } };
 
 #include "assets/encounters/rat_and_moth/rat_bank_2.inc"
 

@@ -115,8 +115,7 @@ enum {
 
 /// Execution priority shared by the encounter cue and retained drop-in recipes.
 enum {
-    DRYFIELD_GENERAL_STORE_ENCOUNTER_TASK_PRIORITY = 192,
-    DRYFIELD_GENERAL_STORE_ENTRANCE_WAIT_FRAMES    = 70,
+    DRYFIELD_GENERAL_STORE_ENTRANCE_WAIT_FRAMES = 70,
 };
 
 /// Bodyless transition task spawned by this room's event gate at priority 32.
@@ -125,9 +124,7 @@ enum {
 /// then reload the session. Spawn payloads and metadata are unused. The gate
 /// reads the recipe synchronously; room snapshots and callback code must remain
 /// live through the deferred transition.
-static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
-
-enum { GENERAL_STORE_TASK_PRIORITY = 32 };
+static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventTask, { .value = 0 } };
 
 /// General Store prompt recipes: flag toggle at slot 0, underpass departure at slot 1.
 ///
@@ -135,8 +132,8 @@ enum { GENERAL_STORE_TASK_PRIORITY = 32 };
 /// payloads are a flag index and CAP command, while departure payloads are unused.
 /// Spawn reads these recipes synchronously; callbacks and latched state stay loaded.
 static TaskDesc _gGeneralStoreTaskDescriptors[3] = {
-    { { { TASK_BODY_NONE, GENERAL_STORE_TASK_PRIORITY } }, _generalStoreToggleFlagTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, GENERAL_STORE_TASK_PRIORITY } }, _generalStoreUnderpassTransitionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _generalStoreToggleFlagTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _generalStoreUnderpassTransitionTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -194,7 +191,7 @@ static AnimationSet _gDryfieldGeneralStoreAnimation00ED8 = {
 /// code must remain live through the spawned task.
 /// Direction action 1 starts it once before the encounter script.
 static TaskDesc _gDryfieldGeneralStoreSceneCueTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = DRYFIELD_GENERAL_STORE_ENCOUNTER_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },
     .callback = _dryfieldGeneralStorePlaySceneCueTask,
     .data     = { .value = 0 },
 };
@@ -206,7 +203,7 @@ static TaskDesc _gDryfieldGeneralStoreSceneCueTaskDesc = {
 /// code must remain live through the spawned task.
 /// No C, assembly or import consumer of this retained recipe is established.
 static TaskDesc _gDryfieldGeneralStoreDropInActorsTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = DRYFIELD_GENERAL_STORE_ENCOUNTER_TASK_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },
     .callback = _dryfieldGeneralStoreDropInActorsTask,
     .data     = { .value = 0 },
 };

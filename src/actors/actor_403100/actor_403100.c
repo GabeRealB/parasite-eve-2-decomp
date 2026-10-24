@@ -625,11 +625,9 @@ static GpuImageUpload _gActor403100LowHealthTextureUploads[2] = {
     { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-enum { ACTOR_403100_TASK_PRIORITY = 96 };
-
 TaskDesc gActor403100TaskDescriptors[2] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_403100_TASK_PRIORITY } }, _actor403100Task, { .model = &_gBurnerBody } },
-    { { { TASK_BODY_COORD, ACTOR_403100_TASK_PRIORITY } }, _actor403100FloorPuffEmitterTask, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_ACTOR } }, _actor403100Task, { .model = &_gBurnerBody } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, _actor403100FloorPuffEmitterTask, { .value = 0 } },
 };
 
 /// Retained spawn recipe for a coordinate-body drift-puff emitter.
@@ -638,7 +636,7 @@ TaskDesc gActor403100TaskDescriptors[2] = {
 /// and advances setup, emission and expiration. No spawn consumer is established;
 /// the descriptor and callback remain stored in this overlay.
 static TaskDesc _gActor403100DriftPuffEmitterTaskDesc = {
-    .header   = { .fields = { TASK_BODY_COORD, ACTOR_403100_TASK_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } },
     .callback = _actor403100DriftPuffEmitterTask,
     .data     = { .value = 0 },
 };

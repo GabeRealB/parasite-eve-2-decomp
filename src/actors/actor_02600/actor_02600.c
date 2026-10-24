@@ -62,8 +62,6 @@
 #include "../../shared/creatures/maggot_caterpillar/maggot_caterpillar.h"
 #undef MAGGOT_CATERPILLAR_KIND
 
-enum { MAGGOT_CATERPILLAR_BODY_PRIORITY = 96 };
-
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
@@ -316,7 +314,7 @@ static s16 _gMaggotCaterpillarPuffRadius[14] = {
 };
 
 TaskDesc gActor02600MaggotCaterpillarBodyTask = {
-    .header   = { .fields = { TASK_BODY_TMD, MAGGOT_CATERPILLAR_BODY_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } },
     .callback = _maggotCaterpillarTask,
     .data     = { .model = &_gCrawlerBody },
 };
@@ -328,7 +326,7 @@ TaskDesc gActor02600MaggotCaterpillarBodyTask = {
 /// descriptor data is ignored for coordinate bodies. Keep it immediately after
 /// the body recipe: the retained spawn table reaches it at index 1.
 static TaskDesc _gMaggotCaterpillarPuffTaskDesc = {
-    .header   = { .fields = { TASK_BODY_COORD, MAGGOT_CATERPILLAR_BODY_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } },
     .callback = _maggotCaterpillarPuffTask,
     .data     = { .value = 0 },
 };

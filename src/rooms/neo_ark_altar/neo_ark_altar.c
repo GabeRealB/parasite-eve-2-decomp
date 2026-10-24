@@ -44,15 +44,13 @@ static s32  _neoArkAltarResolveRoomVariant(Task* unusedTask, s32 unusedMessageId
 static s32  _neoArkAltarIgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 unusedCommandId, s32 unusedCommandArg);
 static s32  _neoArkAltarHandleActionMessage(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
-enum { NEO_ARK_ALTAR_SWITCH_SCENE_TASK_PRIORITY = 32 };
-
 /// Bodyless priority-32 recipe for the altar switch choice and its movie sequence.
 ///
 /// One descriptor, addressed at index 0 with zero spawn arguments; no terminator.
 /// Spawning copies the recipe. Its callback borrows altar/CAP/movie resources
 /// until the task restores presentation and releases itself.
 static TaskDesc _gNeoArkAltarSwitchSceneTaskDesc = {
-    { { TASK_BODY_NONE, NEO_ARK_ALTAR_SWITCH_SCENE_TASK_PRIORITY } }, _neoArkAltarSwitchSceneTask, { .value = 0 }
+    { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _neoArkAltarSwitchSceneTask, { .value = 0 }
 };
 
 /// Altar transition, key-item refusal, switch-action and ignored command handlers, then END.

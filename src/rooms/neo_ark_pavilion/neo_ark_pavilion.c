@@ -102,24 +102,20 @@ static WorldCollisionTrigger  _gNeoArkPavilionRoom2ActionTriggers[4];
 static WorldCoordRoomLights   _gNeoArkPavilionRoomLights;
 
 /// Scheduler priorities of the bodyless water drawers and staged room controller.
-enum {
-    NEO_ARK_PAVILION_WATER_TASK_PRIORITY = 192,
-    NEO_ARK_PAVILION_EVENT_TASK_PRIORITY = 32
-};
 
-TaskDesc gNeoArkPavilionWaterRefractionTaskDesc = { { { TASK_BODY_NONE, NEO_ARK_PAVILION_WATER_TASK_PRIORITY } }, waterRefractionTask, { .value = 0 } };
+TaskDesc gNeoArkPavilionWaterRefractionTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, waterRefractionTask, { .value = 0 } };
 
 /// Retained bodyless, priority-192 water-band distortion recipe without a caller.
 ///
 /// Its callback draws only submarine-tunnel and submarine-gallery views;
 /// pavilion setup spawns the separate refraction recipe at index 0.
-static TaskDesc _gNeoArkPavilionWaterDistortionTaskDesc = { { { TASK_BODY_NONE, NEO_ARK_PAVILION_WATER_TASK_PRIORITY } }, waterDistortBandTask, { .value = 0 } };
+static TaskDesc _gNeoArkPavilionWaterDistortionTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, waterDistortBandTask, { .value = 0 } };
 
 /// Bodyless, priority-32 controller for the latched pavilion departure scene.
 ///
 /// Spawn index 0 with zero arguments after storing the destination and event.
 /// The snapshots, CAP resources and room overlay remain live through reload.
-static TaskDesc _gNeoArkPavilionStagedEventTaskDesc = { { { TASK_BODY_NONE, NEO_ARK_PAVILION_EVENT_TASK_PRIORITY } }, roomEventStagedTask, { .value = 0 } };
+static TaskDesc _gNeoArkPavilionStagedEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventStagedTask, { .value = 0 } };
 
 /// Room-message dispatch for transition resolution, key items, actions and CAP commands.
 ///

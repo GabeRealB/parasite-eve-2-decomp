@@ -74,13 +74,12 @@
 #include "rooms/room_common.h"
 
 /// Ascending execution priority of the gate's bodyless transition task.
-enum { ROOM_EVENT_TASK_PRIORITY = 32 };
 
 #ifndef ROOM_EVENT_TASK_DESC
 /// Selects the room-owned descriptor for the gate's deferred transition task.
 ///
 /// Bind an addressable `TaskDesc` lvalue, declared before including the gate
-/// fragment. Its recipe uses `TASK_BODY_NONE`, `ROOM_EVENT_TASK_PRIORITY` and
+/// fragment. Its recipe uses `TASK_BODY_NONE`, `TASK_PRIORITY_SCENE` and
 /// `roomEventTask`; its zero metadata is unused. The gate takes its address
 /// and selects index 0 with two unused zero payloads after latching the request
 /// and destination. The address expression is evaluated once per spawn.

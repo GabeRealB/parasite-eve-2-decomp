@@ -94,8 +94,8 @@ static TaskMessageEntry _gAkropolisPatioRoomMessages[] = {
 
 /// Scene tasks: the CAP choice (0), the cafeteria door (1) and the opening's head aim (2).
 static TaskDesc _gAkropolisPatioSceneTaskDescs[] = {
-    { { { TASK_BODY_NONE, AKROPOLIS_PATIO_SCENE_TASK_PRIORITY } }, _akropolisPatioRecordSceneChoiceTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, AKROPOLIS_PATIO_SCENE_TASK_PRIORITY } }, _akropolisPatioCafeteriaDoorSceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _akropolisPatioRecordSceneChoiceTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _akropolisPatioCafeteriaDoorSceneTask, { .value = 0 } },
     { { { TASK_BODY_NONE, AKROPOLIS_PATIO_HEAD_AIM_TASK_PRIORITY } }, _akropolisPatioPlayerHeadAimTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
@@ -113,7 +113,7 @@ static TaskDesc _gAkropolisPatioSceneTaskDescs[] = {
 #define ROOM_PART _gAkropolisPatioAmbushPlayerBankCopyRequest
 #include "assets/rooms/akropolis/patio/events.inc"
 /// The player's scripted half turn left.
-static TaskDesc _gAkropolisPatioPlayerTurnLeftTaskDesc = { { { TASK_BODY_NONE, AKROPOLIS_PATIO_SCENE_TASK_PRIORITY } }, _akropolisPatioPlayerTurnLeftTask, { .value = 0 } };
+static TaskDesc _gAkropolisPatioPlayerTurnLeftTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _akropolisPatioPlayerTurnLeftTask, { .value = 0 } };
 #define ROOM_PART _gAkropolisPatioAmbushScript
 #include "assets/rooms/akropolis/patio/events.inc"
 #include "assets/rooms/akropolis/patio/markers.inc"

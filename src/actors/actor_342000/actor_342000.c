@@ -457,19 +457,18 @@ static EvsCommand _gActor342000IncineratorSkipScript[19] = {
 };
 
 /// Execution priority shared by the incinerator event's controller and children.
-enum { ACTOR_342000_EVENT_TASK_PRIORITY = 192 };
 
 TaskDesc gActor342000IncineratorEventTaskDescs[ACTOR_342000_EVENT_TASK_COUNT] = {
-    { { { TASK_BODY_NONE, ACTOR_342000_EVENT_TASK_PRIORITY } }, _actor342000IncineratorEventTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, ACTOR_342000_EVENT_TASK_PRIORITY } }, _actor342000FadeInTask, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_342000_EVENT_TASK_PRIORITY } }, _actor342000GluttonBodyTask, { .model = &gGluttonBody } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_342000_EVENT_TASK_PRIORITY } }, _actor342000GluttonPartTask, { .model = &gGluttonLegRight } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_342000_EVENT_TASK_PRIORITY } }, _actor342000GluttonPartTask, { .model = &gGluttonLegLeft } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_342000_EVENT_TASK_PRIORITY } }, _actor342000GluttonPartTask, { .model = &gGluttonActor403200Model12884 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_342000_EVENT_TASK_PRIORITY } }, _actor342000GluttonPartTask, { .model = &gGluttonActor403200Model13774 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_342000_EVENT_TASK_PRIORITY } }, _actor342000GluttonPartTask, { .model = &gGluttonActor403200Model18BE4 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_342000_EVENT_TASK_PRIORITY } }, _actor342000IncineratorDoorTask, { .model = &gActor444000Model1C814 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_342000_EVENT_TASK_PRIORITY } }, _actor342000IncineratorDoorTask, { .model = &gActor444000Model1D36C } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor342000IncineratorEventTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor342000FadeInTask, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor342000GluttonBodyTask, { .model = &gGluttonBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor342000GluttonPartTask, { .model = &gGluttonLegRight } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor342000GluttonPartTask, { .model = &gGluttonLegLeft } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor342000GluttonPartTask, { .model = &gGluttonActor403200Model12884 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor342000GluttonPartTask, { .model = &gGluttonActor403200Model13774 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor342000GluttonPartTask, { .model = &gGluttonActor403200Model18BE4 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor342000IncineratorDoorTask, { .model = &gActor444000Model1C814 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor342000IncineratorDoorTask, { .model = &gActor444000Model1D36C } },
 };
 
 /// Borrowed live incinerator event task used by script callbacks without a task argument.

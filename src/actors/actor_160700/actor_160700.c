@@ -70,8 +70,6 @@ enum {
     ACTOR_160700_PIERCE_CLIP_18            = 18,
     ACTOR_160700_PIERCE_CLIP_19            = 19,
     ACTOR_160700_PIERCE_CLIP_20            = 20,
-    ACTOR_160700_PIERCE_TASK_PRIORITY      = 96,
-    ACTOR_160700_CARRIED_MODEL_PRIORITY    = 192,
 };
 
 /// Player meeting clips, bank ids 47..65, then four NULL entries; borrowed by all four Pierce meeting scripts.
@@ -619,8 +617,8 @@ static TaskMessageEntry _gActor160700PierceMessages[] = {
 };
 
 TaskDesc gActor160700PierceCarradineTasks[ACTOR_160700_TASK_COUNT] = {
-    { { { TASK_BODY_TMD, ACTOR_160700_PIERCE_TASK_PRIORITY } }, _actor160700PacedWalkerTask, { .model = &_gPierceBody } },
-    { { { TASK_BODY_TMD, ACTOR_160700_CARRIED_MODEL_PRIORITY } }, _pacedWalkSubModelTask, { .model = &_gPierceGlasses } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor160700PacedWalkerTask, { .model = &_gPierceBody } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _pacedWalkSubModelTask, { .model = &_gPierceGlasses } },
 };
 
 /// Pierce's twenty-five-entry animation-set bank, indexed by clip ID.

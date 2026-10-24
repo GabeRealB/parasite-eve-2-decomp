@@ -89,20 +89,14 @@ static void _shelter1fBulwarkPlayDepartureMovieTask(Task* movieTask);
 static void _shelter1fBulwarkReloadAfterDepartureMovieTask(Task* task);
 
 /// Execution priorities for the room's staged transition and movie handoff tasks.
-enum {
-    SHELTER_1F_BULWARK_STAGED_EVENT_PRIORITY    = 0x20,
-    SHELTER_1F_BULWARK_DEPARTURE_MOVIE_PRIORITY = 0xC0,
-};
 
 /// Bodyless recipe for the latched CAP/sound/fade transition and saved-location reload.
 ///
 /// Spawn entry 0 with zero payloads after filling the room's staged message and
 /// latched event. The room globals and callback must remain live through reload.
 static TaskDesc _gShelter1fBulwarkStagedEventTaskDesc = {
-    { { TASK_BODY_NONE, SHELTER_1F_BULWARK_STAGED_EVENT_PRIORITY } }, roomEventStagedTask, { .value = 0 }
+    { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventStagedTask, { .value = 0 }
 };
-
-enum { SHELTER_1F_BULWARK_HELIPORT_DEPARTURE_PRIORITY = 32 };
 
 /// Bulwark handlers for exit events, key-item refusal and ignored actions/commands.
 ///
@@ -122,7 +116,7 @@ static const TaskMessageEntry _gShelter1fBulwarkRoomMessages[5] SECTION(".data")
 /// One descriptor with no terminator. The callback hands CAP/fade playback to
 /// the movie coordinator; keep the room loaded until the final session reload.
 static TaskDesc _gShelter1fBulwarkHeliportDepartureTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = SHELTER_1F_BULWARK_HELIPORT_DEPARTURE_PRIORITY } },
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_SCENE } },
     .callback = _shelter1fBulwarkHeliportDepartureTask,
     .data     = { .value = 0 },
 };
@@ -133,8 +127,8 @@ static TaskDesc _gShelter1fBulwarkHeliportDepartureTaskDesc = {
 /// then reloads at Neo Ark area 26 after playback and game-resource restoration.
 /// There is no terminator; keep this room's callback code loaded while they run.
 static TaskDesc _gShelter1fBulwarkDepartureMovieTaskDescs[2] = {
-    { { { TASK_BODY_NONE, SHELTER_1F_BULWARK_DEPARTURE_MOVIE_PRIORITY } }, _shelter1fBulwarkReloadAfterDepartureMovieTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, SHELTER_1F_BULWARK_DEPARTURE_MOVIE_PRIORITY } }, _shelter1fBulwarkPlayDepartureMovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _shelter1fBulwarkReloadAfterDepartureMovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _shelter1fBulwarkPlayDepartureMovieTask, { .value = 0 } },
 };
 
 /// Fixed world-space glow centres for mapped view 2, in world-coordinate units.

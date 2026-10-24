@@ -392,14 +392,14 @@ WorldCollisionGrid gFactoryLiftTurnedTemplate = {
 
 /// This package's own task table; room setup picks it or the other package's by stage.
 TaskDesc FACTORY_OWN_SPAWN_TABLE[8] = {
-    { { { TASK_BODY_NONE, FACTORY_TASK_PRIORITY } }, factoryPowerScene, { .value = 0 } },
-    { { { TASK_BODY_NONE, FACTORY_TASK_PRIORITY } }, factoryLampScene, { .value = 0 } },
-    { { { TASK_BODY_NONE, FACTORY_TASK_PRIORITY } }, factoryCapScene, { .value = 0 } },
-    { { { TASK_BODY_NONE, FACTORY_TASK_PRIORITY } }, factoryBarrierTransitionScene, { .value = 0 } },
-    { { { TASK_BODY_TMD, FACTORY_TASK_PRIORITY } }, factoryLiftRun, { .model = &_gDryfieldFactoryModel06604 } },
-    { { { TASK_BODY_COORD, FACTORY_TASK_PRIORITY } }, factoryBarrierCollision, { .value = 0 } },
-    { { { TASK_BODY_NONE, FACTORY_TASK_PRIORITY } }, factoryHatchScene, { .value = 0 } },
-    { { { TASK_BODY_TMD, FACTORY_TASK_PRIORITY } }, factoryHatchRun, { .model = &_gDryfieldFactoryModel093E4 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, factoryPowerScene, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, factoryLampScene, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, factoryCapScene, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, factoryBarrierTransitionScene, { .value = 0 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, factoryLiftRun, { .model = &_gDryfieldFactoryModel06604 } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_CONTROL } }, factoryBarrierCollision, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, factoryHatchScene, { .value = 0 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, factoryHatchRun, { .model = &_gDryfieldFactoryModel093E4 } },
 };
 
 /// Initializes the lift model, its motion work, collision footprint and hatch.

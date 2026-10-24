@@ -390,6 +390,19 @@ enum {
     TASK_DESC_END                    = 0xFFFF // Complete flags halfword ending a walked descriptor table; never spawn it
 };
 
+/// The priorities tasks are spawned at, in the order they run each frame: scene logic (the event interpreter, room,
+/// map, cutscene and event tasks) ahead of what it moves; the player's and model objects' bodies; the actors and the
+/// world they move in (actor bodies, the scene manager); the tasks a redraw runs again; the effects; and last the
+/// controllers and presentation (menus, dialogs, fades, sequences, stage music).
+enum {
+    TASK_PRIORITY_SCENE   = 0x20,
+    TASK_PRIORITY_MODEL   = 0x50,
+    TASK_PRIORITY_ACTOR   = 0x60,
+    TASK_PRIORITY_REDRAW  = 0x62,
+    TASK_PRIORITY_EFFECT  = 0x70,
+    TASK_PRIORITY_CONTROL = 0xC0,
+};
+
 /// A 12-byte spawn recipe supplying a task's body, execution priority and initial callback.
 ///
 /// Bank spawns index a descriptor table; direct spawns accept an entry or a table
