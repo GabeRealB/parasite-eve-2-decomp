@@ -635,13 +635,13 @@ acropolisSanctuaryMosaicShardTask = 0x8017EC90; // type:func absolute:True owner
 
 acropolisSanctuaryFlameTask = 0x8017F4E8; // type:func absolute:True owner=acropolis_sanctuary
 
-acropolisSecurityRoomMonitorFeedsTask = 0x801805A4; // type:func absolute:True owner=acropolis_security_room
+akropolisSecurityRoomLockLampsTask = 0x801805A4; // type:func absolute:True owner=akropolis_security_room
 
-acropolisSecurityRoomMonitorFeedTask = 0x80180E34; // type:func absolute:True owner=acropolis_security_room
+akropolisSecurityRoomLockLampTask = 0x80180E34; // type:func absolute:True owner=akropolis_security_room
 
-acropolisSecurityRoomFallingQuadTask = 0x80181108; // type:func absolute:True owner=acropolis_security_room
+akropolisSecurityRoomFallingQuadTask = 0x80181108; // type:func absolute:True owner=akropolis_security_room
 
-acropolisSecurityRoomMonitorGlowTask = 0x801817A4; // type:func absolute:True owner=acropolis_security_room
+akropolisSecurityRoomLockLampGlowTask = 0x801817A4; // type:func absolute:True owner=akropolis_security_room
 
 akropolisSquareRoomEffectTask = 0x801823DC; // type:func absolute:True owner=akropolis_square
 
@@ -1417,7 +1417,7 @@ gAcropolisRoofGardenAreaVariants = 0x80185934; // absolute:True owner=acropolis_
 
 gAcropolisSanctuaryAreaVariants = 0x8018402C; // absolute:True owner=acropolis_sanctuary shared=rooms
 
-gAcropolisSecurityRoomAreaVariants = 0x80184088; // absolute:True owner=acropolis_security_room
+gAkropolisSecurityRoomAreaVariants = 0x80184088; // absolute:True owner=akropolis_security_room
 
 gAkropolisSquareAreaVariants = 0x80185E50; // absolute:True owner=akropolis_square
 

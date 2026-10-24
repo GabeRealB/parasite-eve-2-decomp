@@ -52,7 +52,7 @@
 
 #include "rooms/acropolis_sanctuary.h"
 
-#include "rooms/acropolis_security_room.h"
+#include "rooms/akropolis_security_room.h"
 
 #include "rooms/akropolis_square.h"
 
@@ -412,7 +412,7 @@ static const AreaRecord _gAreaAcropolisRecords[GAME_AREA_MIST_SHOOTING_GALLERY +
     [GAME_AREA_AKROPOLIS_PATIO]                  = { gAkropolisPatioAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[2].state },
     [GAME_AREA_AKROPOLIS_CAFETERIA]              = { gAkropolisCafeteriaAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[3].state },
     [GAME_AREA_AKROPOLIS_PLAZA]                  = { gAkropolisPlazaAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[4].state },
-    [GAME_AREA_AKROPOLIS_SECURITY_ROOM]          = { gAcropolisSecurityRoomAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[5].state },
+    [GAME_AREA_AKROPOLIS_SECURITY_ROOM]          = { gAkropolisSecurityRoomAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[5].state },
     [GAME_AREA_AKROPOLIS_HALLWAY]                = { gAcropolisHallwayAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[6].state },
     [GAME_AREA_AKROPOLIS_FOUNTAIN]               = { gAcropolisFountainAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[7].state },
     [GAME_AREA_AKROPOLIS_FORKED_ROAD]            = { gAcropolisForkedRoadAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[8].state },

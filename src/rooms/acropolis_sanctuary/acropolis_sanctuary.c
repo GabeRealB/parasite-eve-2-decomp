@@ -48,12 +48,13 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/event_flags.h"
 #include "main/gameflag.h"
-#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
 #include "main/mem.h"
+#include "main/random.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
@@ -692,7 +693,7 @@ static void _acropolisSanctuaryUpdateRoomProgress(Task* unusedTask)
         evsStartScriptWithSkip(_gAcropolisSanctuaryArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAcropolisSanctuaryArrivalSkipScript);
         areaApplySavedUpdates(_gAcropolisSanctuaryArrivalAreaUpdates);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ACROPOLIS_SANCTUARY_ARRIVAL_SCENE_EVENT;
-        gameFlagSetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, ACROPOLIS_SANCTUARY_OBSERVATORY_ROUTE_COMPLETE);
+        gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_SANCTUARY_ROUTE_PROGRESS, ACROPOLIS_SANCTUARY_OBSERVATORY_ROUTE_COMPLETE);
         gameFlagSetNibble(GAME_FLAG_OBSERVATORY_EXIT_USED, 1);
         gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, ACROPOLIS_SANCTUARY_ARRIVAL_OBJECTIVE);
         gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);

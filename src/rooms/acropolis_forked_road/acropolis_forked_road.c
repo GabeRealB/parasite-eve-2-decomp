@@ -15,6 +15,7 @@
 
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/event_flags.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -122,7 +123,7 @@ static s32 _acropolisForkedRoadResolveTransitionMessage(Task* unusedTask, s32 me
         }
     }
     if (request->areaId == GAME_AREA_AKROPOLIS_OBSERVATORY) {
-        if (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) < ACROPOLIS_FORKED_ROAD_ROUTE_MOVIE_READY) {
+        if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SANCTUARY_ROUTE_PROGRESS) < ACROPOLIS_FORKED_ROAD_ROUTE_MOVIE_READY) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 gameFlagSetNibbleIfPresent(request->flagId, ACROPOLIS_FORKED_ROAD_MAP_MARKER_SEEN);
                 capRunCommandWithTransition(ACROPOLIS_FORKED_ROAD_ROUTE_CAP_COMMAND);
@@ -134,13 +135,13 @@ static s32 _acropolisForkedRoadResolveTransitionMessage(Task* unusedTask, s32 me
                 return 1;
             }
             reply->warp = ACROPOLIS_FORKED_ROAD_OBSERVATORY_NORMAL_WARP;
-        } else if (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) == ACROPOLIS_FORKED_ROAD_ROUTE_MOVIE_READY) {
+        } else if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SANCTUARY_ROUTE_PROGRESS) == ACROPOLIS_FORKED_ROAD_ROUTE_MOVIE_READY) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 // Select the movie view before starting the controller that owns the departure.
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACROPOLIS_FORKED_ROAD_OUTBOUND_MOVIE_VIEW;
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 taskSpawnFromTable(gAcropolisForkedRoadMovieTaskDescriptors, ACROPOLIS_FORKED_ROAD_TASK_OUTBOUND_MOVIE, 0, 0);
-                gameFlagSetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, ACROPOLIS_FORKED_ROAD_ROUTE_MOVIE_STARTED);
+                gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_SANCTUARY_ROUTE_PROGRESS, ACROPOLIS_FORKED_ROAD_ROUTE_MOVIE_STARTED);
             }
             return 0;
         } else {

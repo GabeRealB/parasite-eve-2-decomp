@@ -65,6 +65,12 @@ enum {
     /// fountain door is unlocked. The square refuses both elevators from 2; the
     /// patio, hallway, cafeteria, fountain and forked-road doors answer by it.
     EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS = 0x000,
+    /// Akropolis route through the observatory to the sanctuary. State: 1 the
+    /// observatory's lock has been found, 2 the security room's blue key has unlocked
+    /// the escalator, 3 the forked road's scene to the observatory has played, 4 the
+    /// promenade has been entered from the observatory, 5 the sanctuary has been
+    /// reached. The security room's SWAT member (actor_311900) is gone from 3.
+    EVENT_FLAG_AKROPOLIS_SANCTUARY_ROUTE_PROGRESS = 0x001,
     /// Telephone dialogue. Counter of the story call's CAP command (16 +
     /// `EVENT_FLAG_STORY_DIALOGUE_INDEX`), incremented each time the phone is used;
     /// it picks the call's variant, so a repeat plays a shorter one. Cleared whenever the story index changes - a
@@ -81,11 +87,14 @@ enum {
     /// opened and the warp to the cafeteria has started.
     EVENT_FLAG_AKROPOLIS_PATIO_CAFETERIA_DOOR_STATE = 0x008,
     /// Akropolis security-room panel. Bits: 0 the blue key (item 0x104) is inserted,
-    /// which also sets `GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS` to 2; 1 the red key
+    /// which also sets `EVENT_FLAG_AKROPOLIS_SANCTUARY_ROUTE_PROGRESS` to 2; 1 the red key
     /// (item 0x103). Doors that lead to a room's second variant once a key is in:
     /// bit 0 the fountain/observatory and the square's forked-road door, bit 1 the
     /// hallway, patio and forked road.
     EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_PANEL_KEYS = 0x009,
+    /// Akropolis security-room monitor. Bits: 0 the SWAT member's scene has played
+    /// (camera 0xB, CAP 0xD), 1 Rupert's (camera 0xA; actor_311900 sets it).
+    EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_MONITOR_SCENES_SEEN = 0x00A,
     /// Akropolis, the report to MIST after the cafeteria boss. State: 1 the boss
     /// scene has played and queued the report (story dialogue 4, "A new species..."),
     /// 4 the report has been made from the square's telephone (`_roomCutsceneTask`).
@@ -118,6 +127,9 @@ enum {
     /// Akropolis patio. Marker: the ambush scene has played - on the way back from the
     /// cafeteria; while clear, entering the patio in that variant sends placed actors 2 and 3 their command 0.
     EVENT_FLAG_AKROPOLIS_PATIO_AMBUSH_SCENE_SEEN = 0x026,
+    /// Akropolis security-room monitor. Counter: the brightness detent (0..4) it was
+    /// left at, saved on leaving it; it reopens at that level.
+    EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_MONITOR_BRIGHTNESS = 0x02A,
 
     // ---- Not reserved for flags ---------------------------------------------
 
@@ -135,6 +147,9 @@ enum {
 
     // ---- From 0x100: not divided yet -----------------------------------------
 
+    /// Akropolis security-room monitor. Marker: Rupert's scene on camera 0xA has
+    /// played (actor_311900, after 0x5A frames); while clear, the camera starts CAP 0xC.
+    EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_MONITOR_RUPERT_SCENE_SEEN = 0x102,
     /// Akropolis square. Marker: the hint by the ammo box has been shown.
     EVENT_FLAG_AKROPOLIS_SQUARE_AMMO_BOX_HINT_SEEN = 0x124,
     /// Story dialogue. Index (0..0xF) of the telephone call to play next: the call is
@@ -151,6 +166,9 @@ enum {
     // Neo Ark from about 0x1AC, Dryfield from 0x1CE, Akropolis 0x1EA..0x1F7.
     // Values: `EVENT_FLAG_MAP_DOOR_*`.
 
+    /// Door between the Akropolis forked road and the observatory. The security room
+    /// unmarks it when the blue key unlocks the escalator.
+    EVENT_FLAG_MAP_DOOR_AKROPOLIS_FORKED_ROAD_OBSERVATORY = 0x1EE,
     /// Door between the Akropolis square and the east elevator hall.
     EVENT_FLAG_MAP_DOOR_AKROPOLIS_SQUARE_EAST_ELEVATOR = 0x1F6,
     /// Door between the Akropolis square and the west elevator hall.

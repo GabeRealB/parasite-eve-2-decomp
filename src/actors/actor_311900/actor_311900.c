@@ -16,6 +16,7 @@
 #include "gameplay/scene_runtime.h"
 
 #include "main/coord.h"
+#include "main/event_flags.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
@@ -367,7 +368,7 @@ static void _actor311900InitRupert(Enemy* enemy, Task* task)
 
     model     = task->extra.tmd;
     rootCoord = model->coords;
-    if ((gameFlagGetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN) & ACTOR_311900_RUPERT_SEEN) ||
+    if ((gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_MONITOR_SCENES_SEEN) & ACTOR_311900_RUPERT_SEEN) ||
         (work = memCalloc(sizeof(_Actor311900Work), 0), task->work = work, work == NULL)) {
         enemyDestroy(enemy, task);
         return;
@@ -416,7 +417,7 @@ static void _actor311900UpdateRupert(Enemy* enemy, Task* task)
     rootCoord = model->coords;
     _actor311900TickPaletteGreying(task, ACTOR_311900_RUPERT_CLUT_ROW_OFFSET, ACTOR_311900_RUPERT_PALETTE_ROW);
     if ((viewGetMappedIndex() & 0xFF) == ACTOR_311900_RUPERT_VIEW) {
-        gameFlagSetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN, gameFlagGetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN) | ACTOR_311900_RUPERT_SEEN);
+        gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_MONITOR_SCENES_SEEN, gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_MONITOR_SCENES_SEEN) | ACTOR_311900_RUPERT_SEEN);
         model->flags    = 0;
         work->advancing = 1;
     } else {
@@ -429,7 +430,7 @@ static void _actor311900UpdateRupert(Enemy* enemy, Task* task)
     }
     _actor311900UpdateAnimation(task);
     if (work->advanceFrames >= ACTOR_311900_ADVANCE_FRAMES) {
-        gameFlagSetNibble(GAME_FLAG_SECURITY_MONITOR_CAM_A_SCENE_DONE, 1);
+        gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_MONITOR_RUPERT_SCENE_SEEN, 1);
         task->state++;
     }
 }
@@ -463,7 +464,7 @@ static void _actor311900InitSwat(Enemy* enemy, Task* task)
 
     model     = task->extra.tmd;
     rootCoord = model->coords;
-    if (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) >= ACTOR_311900_SWAT_ROUTE_LIMIT ||
+    if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SANCTUARY_ROUTE_PROGRESS) >= ACTOR_311900_SWAT_ROUTE_LIMIT ||
         (work = memCalloc(sizeof(_Actor311900Work), 0), task->work = work, work == NULL)) {
         enemyDestroy(enemy, task);
         return;

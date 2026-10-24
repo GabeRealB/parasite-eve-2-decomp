@@ -43,7 +43,7 @@
 
 #include "rooms/acropolis_helicopter_landing_pad.h"
 
-#include "rooms/acropolis_security_room.h"
+#include "rooms/akropolis_security_room.h"
 
 #include "weapons/as12.h"
 
@@ -274,8 +274,8 @@ TaskDesc gTaskBank2Descs[TASK_BANK2_DESCRIPTOR_COUNT] = {
     { { { TASK_BODY_NONE, 0x70 } }, effectBurstModelPartTask },
     { { { TASK_BODY_NONE, 0x80 } }, capPlaybackTask },
     { { { TASK_BODY_NONE, 0xC0 } }, acropolisBridgeKeypadTask },
-    { { { TASK_BODY_NONE, 0xC0 } }, acropolisSecurityRoomMonitorTask },
-    { { { TASK_BODY_NONE, 0xC0 } }, acropolisSecurityRoomPowerSupplyTask },
+    { { { TASK_BODY_NONE, 0xC0 } }, akropolisSecurityRoomMonitorTask },
+    { { { TASK_BODY_NONE, 0xC0 } }, akropolisSecurityRoomPowerSupplyTask },
     { { { TASK_BODY_NONE, 0xC0 } }, padScriptBinaryMotorHoldTask },
     { { { TASK_BODY_NONE, 0xC0 } }, padScriptVariableMotorRampTask },
     { { { TASK_BODY_NONE, 0xC0 } }, padScriptTask },

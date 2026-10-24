@@ -13,7 +13,8 @@ and an 8-bit portrait among 4-bit sprites), and its page stores zero outside the
 the file says where it is uploaded and places the sprites' palettes. An image chunk may store palettes in its pages
 too, placed by its entry's `palettes` (the credits font's eight, the last two rows of its page), and a page may hold
 nothing else (the credits logos' palette image). A texture whose palettes an executable uploads names that embedded palette as `palettes_from`, its
-variants in order (the UI font's fill and outlines, ui/font/glyph_palettes in main); one nothing is found to draw
+variants in order (the UI font's fill and outlines, ui/font/glyph_palettes in main), or a table naming each such variant's
+own palette where the others come from its file (the security room's lamps, lit by palettes its code blends); one nothing is found to draw
 states `no_palette` and is written with a gray ramp. A texture's `cells` name the parts its code samples one at a
 time (animation frames, icons): a `grid` of [w, h] read row by row, with `names` or numbered, or named [x, y, w, h].
 A font's texture takes its cells from its fonts instead (`font` records, font/), each glyph's record one cell. A palette chunk may also place colors no known texture is drawn
@@ -309,8 +310,12 @@ def check_texture(key: str, rec: dict[str, Any]) -> list[str]:
         problems.append(f"{key}: height must be 1..256 rows")
     if "no_palette" in rec and not (rec["no_palette"] is True and rec.get("variants") == ["default"] and bpp in PALETTE_ENTRIES):
         problems.append(f"{key}: no_palette is true, on an indexed texture whose one variant is default")
-    if "palettes_from" in rec and not (isinstance(rec["palettes_from"], str) and bpp in PALETTE_ENTRIES):
-        problems.append(f"{key}: palettes_from names the embedded palette its variants are, in order, at 4 or 8 bits")
+    source = rec.get("palettes_from")
+    if source is not None and not (bpp in PALETTE_ENTRIES and (isinstance(source, str) or (
+            isinstance(source, dict) and source and all(isinstance(p, str) for p in source.values())
+            and set(source) <= set(rec.get("variants") or ())))):
+        problems.append(f"{key}: palettes_from names the embedded palette its variants are, in order, or a table of "
+                        "variants and their own, at 4 or 8 bits")
     if "cells" in rec:
         problems += [f"{key}: {p}" for p in check_cells(rec["cells"], width, height)]
     variants = rec.get("variants")
@@ -440,9 +445,9 @@ def check_file(key: str, rec: dict[str, Any], assets: dict[str, dict[str, Any]])
               if "texture" in p}
     for name in sorted(paged):
         tex = assets.get(name, {})
-        if tex.get("bpp") not in PALETTE_ENTRIES or "palettes_from" in tex or tex.get("no_palette"):
+        if tex.get("bpp") not in PALETTE_ENTRIES or isinstance(tex.get("palettes_from"), str) or tex.get("no_palette"):
             continue
         for variant in tex.get("variants", ()):
-            if (name, variant) not in listed:
+            if (name, variant) not in listed and variant not in tex.get("palettes_from", {}):
                 problems.append(f"{key}: uploads no palette for {name}.{variant}")
     return problems

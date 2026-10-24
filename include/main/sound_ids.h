@@ -186,23 +186,23 @@ enum {
     /// Played when key item 0x104 or 0x103 is used on the security room panel and
     /// consumed, setting the bit in flag nibble 9 that records which of the two
     /// shutters has been opened.
-    SOUND_ACROPOLIS_SECURITY_ROOM_SHUTTER_UNLOCK = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SECURITY_ROOM, 1),
+    SOUND_AKROPOLIS_SECURITY_ROOM_SHUTTER_UNLOCK = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SECURITY_ROOM, 1),
     /// Click when the highlighted row of the security monitor's camera list changes the
     /// displayed camera view.
-    SOUND_ACROPOLIS_SECURITY_ROOM_MONITOR_SELECT = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SECURITY_ROOM, 3),
+    SOUND_AKROPOLIS_SECURITY_ROOM_MONITOR_SELECT = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SECURITY_ROOM, 3),
     /// Click when the security monitor's grey wash steps one detent brighter.
-    SOUND_ACROPOLIS_SECURITY_ROOM_MONITOR_BRIGHTER = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SECURITY_ROOM, 6),
+    SOUND_AKROPOLIS_SECURITY_ROOM_MONITOR_BRIGHTER = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SECURITY_ROOM, 6),
     /// Click when the security monitor's grey wash steps one detent darker.
-    SOUND_ACROPOLIS_SECURITY_ROOM_MONITOR_DARKER = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SECURITY_ROOM, 7),
+    SOUND_AKROPOLIS_SECURITY_ROOM_MONITOR_DARKER = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SECURITY_ROOM, 7),
     /// Loop started with the security room's streamed cutscene and faded out (0x14) at
     /// movie frame 0x46 or when the player skips.
-    SOUND_ACROPOLIS_SECURITY_ROOM_MOVIE_LOOP = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SECURITY_ROOM, 8),
+    SOUND_AKROPOLIS_SECURITY_ROOM_MOVIE_LOOP = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SECURITY_ROOM, 8),
     /// Played by `itemPickupContainerLidTask` in the security room when the item container's part
     /// starts tilting open for a pickup.
-    SOUND_ACROPOLIS_SECURITY_ROOM_ITEM_LID_OPEN = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SECURITY_ROOM, 9),
+    SOUND_AKROPOLIS_SECURITY_ROOM_ITEM_LID_OPEN = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SECURITY_ROOM, 9),
     /// Played by `itemPickupContainerLidTask` in the security room when the tilted part swings
     /// back after the pickup result.
-    SOUND_ACROPOLIS_SECURITY_ROOM_ITEM_LID_CLOSE = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SECURITY_ROOM, 0x0A),
+    SOUND_AKROPOLIS_SECURITY_ROOM_ITEM_LID_CLOSE = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SECURITY_ROOM, 0x0A),
     /// The fountain's waterfall loop, (re)started or re-panned per camera view while
     /// the streamed fountain video is in its playing window and faded out at movie
     /// frame 0xF0.

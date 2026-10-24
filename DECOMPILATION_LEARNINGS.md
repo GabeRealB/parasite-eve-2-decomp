@@ -43637,7 +43637,7 @@ callee-saved register. That costs an extra saved register (`$s2` appears,
 (`li v0,2; sw v0` vs `sw s0`), so cross-jumping merges three of four arms
 instead of all four.
 
-`_acropolisSecurityRoomPowerSupplyUseLeftLock` is the example. Duplicating the call
+`_akropolisSecurityRoomPowerSupplyUseLeftLock` is the example. Duplicating the call
 *and* the store scored 89%:
 
 ```c
@@ -44068,7 +44068,7 @@ When an `if`/`else` picks between two static symbols and passes the result to
 one call, writing it as a temporary
 
 ```c
-if (cond) { recs = _gAcropolisSecurityRoomRightUnlockEarlyStoryAreaUpdates; } else { recs = _gAcropolisSecurityRoomRightUnlockLateStoryAreaUpdates; }
+if (cond) { recs = _gAkropolisSecurityRoomRightUnlockEarlyStoryAreaUpdates; } else { recs = _gAkropolisSecurityRoomRightUnlockLateStoryAreaUpdates; }
 areaApplySavedUpdates(recs);
 ```
 
@@ -44076,8 +44076,8 @@ gives GCC 2.8.1 a pseudo-register for the address, and the pseudo is copied into
 the argument register at the join:
 
 ```
-lui   v0,%hi(_gAcropolisSecurityRoomRightUnlockEarlyStoryAreaUpdates)
-addiu a0,v0,%lo(_gAcropolisSecurityRoomRightUnlockEarlyStoryAreaUpdates)
+lui   v0,%hi(_gAkropolisSecurityRoomRightUnlockEarlyStoryAreaUpdates)
+addiu a0,v0,%lo(_gAkropolisSecurityRoomRightUnlockEarlyStoryAreaUpdates)
 ```
 
 The target instead forms the address directly in `$a0`
@@ -44085,7 +44085,7 @@ The target instead forms the address directly in `$a0`
 in each arm compiles to — cross-jumping then merges the two `jal`s back into
 one, so the instruction count is unchanged and only the register differs.
 Writing `areaApplySavedUpdates(...)` inside both arms took
-`_acropolisSecurityRoomPowerSupplyUseRightLock` from 99.79% (`regs=4`) to 100%.
+`_akropolisSecurityRoomPowerSupplyUseRightLock` from 99.79% (`regs=4`) to 100%.
 
 That `lui`-into-a-scratch-register pair is the diagnostic: it is the same rule
 as "duplicate the call in each branch when only one argument differs" above, but
@@ -44395,12 +44395,12 @@ so the object emits the block byte for byte:
 static const struct {
     char text[sizeof("power supply\n")];
     u8 retainedBytes[2];
-} _gAcropolisSecurityRoomPowerSupplyDebugText = {
+} _gAkropolisSecurityRoomPowerSupplyDebugText = {
     .text = "power supply\n",
     .retainedBytes = { 0x40, 0x11 },
 };
 ...
-printf(_gAcropolisSecurityRoomPowerSupplyDebugText.text);
+printf(_gAkropolisSecurityRoomPowerSupplyDebugText.text);
 ```
 
 GCC 2.8.1 emits a file-scope `static const` at its declaration point, after the
@@ -44408,7 +44408,7 @@ preceding function's own literal pool, so placing the declaration where the
 function sits in the file keeps the `.rodata` order. `INCLUDE_RODATA` plus an
 `extern` reference also matches, but loses the readable string.
 
-`_acropolisSecurityRoomOpenPowerSupplyTask` is the example.
+`_akropolisSecurityRoomOpenPowerSupplyTask` is the example.
 
 ## Extra `&&label` use blocks jump.c's then/else swap
 
@@ -47329,7 +47329,7 @@ alias information has a second, easier-to-miss symptom: the function comes out
 **one instruction shorter** than the target, and every later function in the
 overlay -- plus every `%lo` of its `.data` -- shifts by 4.
 
-`_acropolisSecurityRoomPowerSupplyRestoreRoomView` is two statements:
+`_akropolisSecurityRoomPowerSupplyRestoreRoomView` is two statements:
 
 ```c
 D_8007216C  = 3;            /* bare extern s8 */
@@ -48376,7 +48376,7 @@ new units and retarget the path strings - so the rodata set is preserved by
 construction.
 
 The head half keeps the file's non-chunk text; the tail half may take only its
-*declarations*. Carrying the initialized `_gAcropolisSecurityRoomPowerSupplyDebugText` record
+*declarations*. Carrying the initialized `_gAkropolisSecurityRoomPowerSupplyDebugText` record
 into both halves of `acropolis_security_room` emitted the string twice, and the
 16 extra bytes moved the whole `.text` down: it compiled, it linked, and only
 the checksum said so. Classify by content, not by keyword - a top-level line
@@ -48877,7 +48877,7 @@ Renaming a parameter by copying it into a local is the standard tidy-up after
 m2c, and it is not free. The copy is coalesced, so the reference count is
 unchanged, but the pseudo now starts at the copy rather than at function entry
 and `reg_live_length` drops sharply -- in
-`_acropolisSecurityRoomRightUnlockSoundTask` (a three-state task handler) from 110
+`_akropolisSecurityRoomRightUnlockSoundTask` (a three-state task handler) from 110
 insns to 56. Global alloc sorts by roughly `log2(refs) * refs / live_length`,
 so the shorter range *raised* the task pointer's priority from 0.27 to 0.54,
 above the 0.38 of the `Task::work` pointer it should have lost to. The two
@@ -51788,7 +51788,7 @@ done:
 This is the counterpart of "A `move` duplicated in a delay slot *and* before
 the label": there the duplicate is `fill_slots_from_thread` stealing the join
 block's first insn, here it is two real call sites that never got merged.
-`_acropolisSecurityRoomMonitorClose`.
+`_akropolisSecurityRoomMonitorClose`.
 
 ### The `(s16)` cast only folds into `lh` if the local is `int`-wide
 
@@ -51804,8 +51804,8 @@ s32 cam = (s16)work->screenLevel;   /* lh                        */
 
 Both spellings compare identically afterwards, so the leftover `sll`/`sra` pair
 is the only signal. Widen the local before reaching for a struct-field type
-change — `_AcropolisSecurityRoomMonitorWork::screenLevel` has to stay `u16` for the `lhu` in
-`_acropolisSecurityRoomMonitorOpenPrompt`.
+change — `_AkropolisSecurityRoomMonitorWork::screenLevel` has to stay `u16` for the `lhu` in
+`_akropolisSecurityRoomMonitorOpenPrompt`.
 
 ### A stack-copied dispatch table whose `.rodata` is longer than the copy
 
@@ -51815,7 +51815,7 @@ Occasionally the `.rodata` block is one word longer than what the function
 copies — seven `lw`/`sw` pairs, but eight words in the data, the last one zero:
 
 ```
-dlabel _gAcropolisSecurityRoomMonitorStates
+dlabel _gAkropolisSecurityRoomMonitorStates
     .word func_..._8017D9DC     /* 7 handlers */
     ...
     .word 0x00000000            /* copied by nobody */
@@ -51830,10 +51830,10 @@ a plain seven-entry `TaskFuncTable7`, and the eighth word appears by itself once
 the table and the jump table are emitted from the same object:
 
 ```c
-static const TaskFuncTable7 _gAcropolisSecurityRoomMonitorStates = { { f0, ..., f6 } };
+static const TaskFuncTable7 _gAkropolisSecurityRoomMonitorStates = { { f0, ..., f6 } };
 
 TaskFuncTable7 sp;
-sp = _gAcropolisSecurityRoomMonitorStates;   /* 28 bytes; the pad word follows */
+sp = _gAkropolisSecurityRoomMonitorStates;   /* 28 bytes; the pad word follows */
 sp.funcs[task->state](task);
 ```
 
@@ -51845,8 +51845,8 @@ Placement matters as much as the bytes. The block sat *before* an earlier
 function's compiler-generated jump table in `.rodata`, so it cannot be emitted
 from the dispatcher's own position at the end of the unit. Defining it as a
 file-scope `static const` at the point the `INCLUDE_RODATA` line occupied keeps
-GCC's emission order right — the same trick `_gAcropolisSecurityRoomPowerSupplyDebugText` uses in that file.
-`acropolisSecurityRoomMonitorTask`.
+GCC's emission order right — the same trick `_gAkropolisSecurityRoomPowerSupplyDebugText` uses in that file.
+`akropolisSecurityRoomMonitorTask`.
 
 ### m2c reads the frame-table dispatch as a ten-argument call through `sp`
 
@@ -51884,7 +51884,7 @@ to byte-identical code, reordering is not the lever: GCC 2.8.1 has already
 rebuilt the block from the dependence graph, and the leftover is a list-scheduler
 decision inside one basic block.
 
-In `_acropolisSecurityRoomPowerSupplyInit` the target fills the load-delay slot
+In `_akropolisSecurityRoomPowerSupplyInit` the target fills the load-delay slot
 of `lw $v0, 0x30($s1)` (`task->state`) with the `li $a0, 9` argument of the
 following `gameFlagGetNibble(9)`; GCC instead hoists that `li` ten instructions
 earlier, right behind the previous `jal`, which then costs `$a1` for a `%hi` and
@@ -51898,7 +51898,7 @@ D_8007216C = 6;
 SOFT_BARRIER();          /* sched1 stops here; the li stays with its call */
 task->state++;
 ...
-_acropolisSecurityRoomShowReleasedLocks(gameFlagGetNibble(9) & 0xFF);
+_akropolisSecurityRoomShowReleasedLocks(gameFlagGetNibble(9) & 0xFF);
 ```
 
 Any boundary works — `SCHED_BARRIER()`, `COMPILER_BARRIER()` and a
@@ -51910,7 +51910,7 @@ barrier instead.)
 
 ### An `sb` whose `%hi` and immediate registers are swapped is a qty-set problem in the *other* arm
 
-`_acropolisSecurityRoomMonitorInit` sat at 99.765% (`regs=4`, everything
+`_akropolisSecurityRoomMonitorInit` sat at 99.765% (`regs=4`, everything
 else zero) with a diff confined to the `else` arm of one `if`:
 
 ```
@@ -52014,7 +52014,7 @@ addiu $v1, $a0, 0xC     ; DR_MODE / DR_TWIN  (tag + u_long code[2])
 addiu $v1, $a0, 0x8     ; DR_TPAGE           (tag + u_long code[1])
 ```
 
-`_acropolisSecurityRoomDrawMonitorSweep` scored 99.93% with a single leftover,
+`_akropolisSecurityRoomDrawMonitorSweep` scored 99.93% with a single leftover,
 `addiu v1,a0,8` against the target's `addiu v1,a0,0xc`; swapping `DR_TPAGE` for
 `DR_MODE` — same two stores, only `code[]` is longer — took it to 100%. The
 second `code` word is simply left uninitialised, which is why nothing else in
@@ -52053,7 +52053,7 @@ worse (76% in this function). The two macros are chosen independently.
 
 ## Colour `sb` stores of arguments go last in a prim-fill block
 
-**Problem.** `_acropolisSecurityRoomOutlinePromptRect` fills four `LINE_F2`
+**Problem.** `_akropolisSecurityRoomOutlinePromptRect` fills four `LINE_F2`
 packets in a row from a `u16` rectangle. Writing the block in the order m2c
 prints it — `x0`, `y0`, `x1`, `r0`, `g0`, `b0`, `y1` — scored 92.0% with
 `reorder=9 insert=2 delete=4`. The `sb $a1/$a2/$a3` trio landed in the middle
@@ -52084,15 +52084,15 @@ rather than between two of them.
 
 ## A shared base address kept in a callee-saved register means a pointer local
 
-**Problem.** `acropolisSecurityRoomMonitorFeedsTask` runs four `for (colorIndex = 0; colorIndex <
+**Problem.** `akropolisSecurityRoomLockLampsTask` runs four `for (colorIndex = 0; colorIndex <
 0x100; colorIndex += 0x10)` loops in a row, each blending one CLUT against the same
 unlit palette. Written with the arrays named directly —
-`gpuBlendRgb555ClutRow(&_gAcropolisSecurityRoomLeftLockedPalette[colorIndex], &_gAcropolisSecurityRoomLockIndicatorOffPalette[colorIndex], 0, &_gAcropolisSecurityRoomLeftLockedClut[colorIndex])` — every
-loop preheader re-materialises `&_gAcropolisSecurityRoomLockIndicatorOffPalette` with its own `lui` / `addiu`
+`gpuBlendRgb555ClutRow(&_gAkropolisSecurityRoomLeftLockedPalette[colorIndex], &_gAkropolisSecurityRoomLockIndicatorOffPalette[colorIndex], 0, &_gAkropolisSecurityRoomLeftLockedClut[colorIndex])` — every
+loop preheader re-materialises `&_gAkropolisSecurityRoomLockIndicatorOffPalette` with its own `lui` / `addiu`
 (75.8%). The target computes it once and starts each preheader with
 `move $s2, $s4`.
 
-**Cause.** With a bare `&_gAcropolisSecurityRoomLockIndicatorOffPalette[colorIndex]` the address is a constant *inside* the
+**Cause.** With a bare `&_gAkropolisSecurityRoomLockIndicatorOffPalette[colorIndex]` the address is a constant *inside* the
 address expression, so strength reduction initialises the giv from the constant
 itself and there is no invariant pseudo left to share; each loop gets its own
 `lui`/`addiu`. Give the base a pointer local and the giv is initialised from a
@@ -52104,15 +52104,15 @@ back into inline `lui`/`addiu` — which is why only the shared base shows a
 `move`.
 
 ```c
-u16* offPalette     = _gAcropolisSecurityRoomLockIndicatorOffPalette;
-u16* litPalette     = _gAcropolisSecurityRoomLeftLockedPalette;
-u16* blendedPalette = _gAcropolisSecurityRoomLeftLockedClut;
+u16* offPalette     = _gAkropolisSecurityRoomLockIndicatorOffPalette;
+u16* litPalette     = _gAkropolisSecurityRoomLeftLockedPalette;
+u16* blendedPalette = _gAkropolisSecurityRoomLeftLockedClut;
 
 for (colorIndex = 0; colorIndex < 0x100; colorIndex += 0x10) {
     gpuBlendRgb555ClutRow(&litPalette[colorIndex], &offPalette[colorIndex], 0, &blendedPalette[colorIndex]);
 }
-litPalette     = _gAcropolisSecurityRoomLeftReleasedPalette;
-blendedPalette = _gAcropolisSecurityRoomLeftReleasedClut;
+litPalette     = _gAkropolisSecurityRoomLeftReleasedPalette;
+blendedPalette = _gAkropolisSecurityRoomLeftReleasedClut;
 for (colorIndex = 0; colorIndex < 0x100; colorIndex += 0x10) {
     gpuBlendRgb555ClutRow(&litPalette[colorIndex], &offPalette[colorIndex], 0, &blendedPalette[colorIndex]);
 }
@@ -52120,7 +52120,7 @@ for (colorIndex = 0; colorIndex < 0x100; colorIndex += 0x10) {
 
 **The same base in two hard registers means two variables.** This function
 blends the same four palettes in `case 0` and again in `case 1`, and the target
-holds `&_gAcropolisSecurityRoomLockIndicatorOffPalette` in `$s4` for one and `$s6` for the other. One C variable is
+holds `&_gAkropolisSecurityRoomLockIndicatorOffPalette` in `$s4` for one and `$s6` for the other. One C variable is
 one pseudo and gets one hard register for the whole function, so a single
 `offPalette` declared at function scope cannot produce that. Declaring it inside each
 `case` / `if` block gives two pseudos and the two registers fall out. Whenever
@@ -52159,7 +52159,7 @@ local is a single pseudo and cannot reproduce that.
 
 ## Primitive field store order: interleave vertices, do not group by constant
 
-**Problem.** `_acropolisSecurityRoomDrawMonitorWash` fills three `POLY_F4`
+**Problem.** `_akropolisSecurityRoomDrawMonitorWash` fills three `POLY_F4`
 packets whose eight coordinates are two distinct constants each (`x` is
 `-0x66` or `0x6C`, `y` is `-0x5F` or `0x3C`). The object dump stores them
 grouped — `sh` to `x0`, `x2`, then `x1`, `x3` — so the obvious source is
@@ -52245,7 +52245,7 @@ latency, but it will not lift one across it, so source order decides which
 happens. Emit the long statement first and the cheap constant stores after it:
 
 ```c
-line           = SCRATCH_STACK_RESERVE_BLOCK(_AcropolisSecurityRoomSweepLineScratch);
+line           = SCRATCH_STACK_RESERVE_BLOCK(_AkropolisSecurityRoomSweepLineScratch);
 line->start.vx = -0x427;
 line->start.vy = (gDisplayState.animFrame * 6) % 406 + 0xF633;
 line->start.vz = 0x9AF;
@@ -52255,7 +52255,7 @@ The pointer publish needs no placement of its own: written first, as the
 reservation, its `sw` is sunk into the same shadow.
 
 The same rule settled the second half of
-`_acropolisSecurityRoomDrawSweepLine`: three `+=` of a `MATRIX`'s translation
+`_akropolisSecurityRoomDrawSweepLine`: three `+=` of a `MATRIX`'s translation
 row have to be written back to back, with the *next* block's constant store
 following them, or the scheduler fills the wrong load-delay slot with it.
 
@@ -52386,10 +52386,10 @@ it non-`static` and `extern`-declare it in the new unit:
 ```c
 /* unit 1 - owns .rodata 0x2C..0x4C, so this must be emitted even though
    nothing in this file reads it any more. */
-const TaskFuncTable7 _gAcropolisSecurityRoomMonitorStates = { ... };
+const TaskFuncTable7 _gAkropolisSecurityRoomMonitorStates = { ... };
 
 /* unit 2 */
-extern const TaskFuncTable7 _gAcropolisSecurityRoomMonitorStates;
+extern const TaskFuncTable7 _gAkropolisSecurityRoomMonitorStates;
 ```
 
 The codegen is unchanged: `%hi`/`%lo` of a global resolves to the same address
@@ -53018,7 +53018,7 @@ reads and writes back (`gGpuPrimCursor = prim + 1`) is a move-insn with life 3
 (`high`, `lw`, `addiu`, `sw`): 29 × 3 = 87. It hoists into a callee-saved
 register when the loop has ≤ 87 RTL insns and stays inside — reloaded in the
 delay slot of the back edge — at 88 or more. Two otherwise identical loops can
-therefore differ only by their size. `acropolisSecurityRoomMonitorGlowTask`
+therefore differ only by their size. `akropolisSecurityRoomLockLampGlowTask`
 has both loops at 88+ in the ROM (in-loop `lui v1`) while the natural C gives
 81 and 87; padding with `USE_REG` reproduces the ROM's allocation (92.1% →
 94.5%), so the count is the whole difference, but no source construct that
@@ -53042,7 +53042,7 @@ the pseudos that *won* the registers.
 
 ## The `u16` flag's pre-loop product must use the `s32` value, not the `u16` copy
 
-`acropolisSecurityRoomMonitorGlowTask` stores `(spawnArg1 >> 1) & 1` as a
+`akropolisSecurityRoomLockLampGlowTask` stores `(spawnArg1 >> 1) & 1` as a
 spilled `u16` (`sh a1, 0x18(sp)`, `lhu` inside loop 2) yet multiplies it before
 loop 1 straight from the `andi` result (`mult s3, a1`, no `lhu`, no
 `andi 0xffff`). `combine` will not fold `zero_extend (reg:HI)` back to the
@@ -66404,7 +66404,7 @@ number-formatting strings begin.
 
 ## A shared brightness needs two preserved copies; a touched literal can load too early
 
-`acropolisSecurityRoomMonitorGlowTask` matched in `base_40.c`, without hard
+`akropolisSecurityRoomLockLampGlowTask` matched in `base_40.c`, without hard
 register pins. Its raw random brightness is computed into `$v0`, copied to
 `$s3` for the quad loop and independently copied to `$fp` for the line loop.
 `raw = expr; SOFT_TOUCH_REG(raw); quad = raw; saved = raw;` preserves the
@@ -84366,7 +84366,7 @@ mutually dependent, which anchors the `lui`/`sw` pair after the state store in
 sinks the pair back to the tail. A wrong register can therefore be a scheduling
 consequence rather than an allocation one: before reaching for a pin, compile a
 matched function with the same tail shape alone under the scratch flags and read
-its `.lreg` — `_acropolisSecurityRoomRegisterRoomMessages` and
+its `.lreg` — `_akropolisSecurityRoomInitializeRoomTask` and
 `_acropolisRoofGardenAmbienceTask` both have this tail and both show `mem/s`
 on the state access. Inputs: `base_2.i`
 `ac93762280d36b4b90feac3c58c9539259752988e10bca28f4740e15ec38f830` (99.83%),
@@ -86636,7 +86636,7 @@ id at first glance; it is the *payload*. `itemMenuUseKeyItemTask`
 (`src/gameplay/item_stats.c`) sends `taskMessageDispatch(roomTask, ROOM_MESSAGE_USE_KEY_ITEM, itemId, 0)` with the
 highlighted key item third, so the handler answers "is the highlighted item
 0x11B?", not "am I message 0x11B?". The matched C of the same query,
-`_acropolisSecurityRoomPowerSupplyUseKeyItem`, is the shape to copy.
+`_akropolisSecurityRoomPowerSupplyUseKeyItem`, is the shape to copy.
 
 The m2c seed wrote that same body with the condition inverted
 (`if (arg2 != 0x11B)`), which is not merely cosmetic: it blocks the delay-slot
@@ -87343,7 +87343,7 @@ Nothing merges the two calls early either — every `jump_optimize` call before
 where the store-flag block is already disabled by `! reload_completed`. So the
 merge happens late and lands exactly on the ROM's `beqz` + delay-slot constant.
 The idiom is everywhere in this project (`menuMapNavigateTask`,
-`_acropolisSecurityRoomRegisterRoomMessages`, `_acropolisRoofGardenAmbienceTask`),
+`_akropolisSecurityRoomInitializeRoomTask`, `_acropolisRoofGardenAmbienceTask`),
 so a branchy 0/1 argument is a signal to look for the two-call form rather than
 to fight the scheduler. `_mineCavernInitRoom`. Inputs: `base_1.i`
 `d071dc9b40e5ce0f52dfd28e943d210037645ba7843fc647d81c70fc0493f526` (else-form,
@@ -119848,7 +119848,7 @@ writes *is* the psyq type - identify the packet from the offsets and use it:
 `setlen`/`setcode` are byte-aligned `P_TAG` bitfields, so they emit exactly the
 two `sb`s, and `addPrim` is `setaddr(p, getaddr(ot)), setaddr(ot, p)` - the
 masked read-modify-write of both tags. The whole family is already written this
-way in matched code: `_acropolisSecurityRoomDrawMonitorWash`
+way in matched code: `_akropolisSecurityRoomDrawMonitorWash`
 (`src/rooms/acropolis_security_room/acropolis_security_room.c`) is the same
 semi-transparent `POLY_F4` + `0xE100004A` drawing-mode pair over a different
 rect, so read it before writing the seed by hand.
@@ -142550,7 +142550,7 @@ is also why a `* 0xC0` argument in the same function matched from the start.
 release path written once behind a `goto`: each state that releases calling
 `effectKillTask(effect, task)` itself adds the references that rank `task`
 first, and cross-jumping merges the calls back into one tail.
-## The OT slot spelling moves loop.c's hoisting threshold: `&ot[(z << shift) >> 4 & 0x3FF]` is one RTL insn longer than `((z << shift) >> 2 & 0xFFC) + ot` (acropolisSecurityRoomMonitorGlowTask, 2026-09-26)
+## The OT slot spelling moves loop.c's hoisting threshold: `&ot[(z << shift) >> 4 & 0x3FF]` is one RTL insn longer than `((z << shift) >> 2 & 0xFFC) + ot` (akropolisSecurityRoomLockLampGlowTask, 2026-09-26)
 
 **Symptom.** Two draw loops, each with a call, where the target leaves some
 invariants inside the loop (`lui %hi(gGpuPrimCursor)`, `lui 0xFF00`, a colour
@@ -149245,7 +149245,7 @@ It fails in two ways:
   earlier store, across a call (`li s4,1`), where the shared block reloads
   it. A label with two users ends the cse path; a duplicated block does not.
 
-## Typed indirect member stores can preserve separate store and GTE addresses (_acropolisSecurityRoomTransformQuadCorner, 2026-10-06)
+## Typed indirect member stores can preserve separate store and GTE addresses (_akropolisSecurityRoomTransformQuadCorner, 2026-10-06)
 
 An indexed `SVECTOR` used for both halfword stores and GTE operands does not
 always need a byte-offset alias. In this helper, keep the X store as
@@ -149256,7 +149256,7 @@ These typed expressions preserve the target's separate store and GTE address
 calculations without a cached corner pointer or register constraint.
 
 A cached typed element pointer reduced the containing
-`acropolisSecurityRoomFallingQuadTask` from 1692 to 1688 bytes. Moving its
+`akropolisSecurityRoomFallingQuadTask` from 1692 to 1688 bytes. Moving its
 initialization after the X store and applying `SOFT_TOUCH_REG` restored 1692
 bytes but left one address-add instruction different. Repeated indirect member
 accesses matched all 1692 bytes and removed both pointer conversions. The
@@ -149680,7 +149680,7 @@ attempts; left as it was.
   with the trailing `else` arm's `state = 2`. Then all three jumps go to the
   switch's end label from the start and the last copy survives.
 - **A scan `L: if (key != *p) { i++; p++; if (i >= 5) { f(FLAG, 0); goto done; }
-  goto L; } f(FLAG, i); done:`** (`_acropolisSecurityRoomMonitorClose`) is a
+  goto L; } f(FLAG, i); done:`** (`_akropolisSecurityRoomMonitorClose`) is a
   `static inline void` with `for (i = 0; i < 5; i++) { if (key == tbl[i]) {
   f(FLAG, i); return; } } f(FLAG, 0);`. The image's signature is the first
   argument loaded twice (`li a0,FLAG` in the hit branch's delay slot and again

@@ -97,7 +97,7 @@
 
 #include "rooms/acropolis_sanctuary.h"
 
-#include "rooms/acropolis_security_room.h"
+#include "rooms/akropolis_security_room.h"
 
 #include "rooms/akropolis_square.h"
 
@@ -605,8 +605,8 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, actor510900FlameSpriteTask45, { NULL } },                                           // 0x045
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask46, { NULL } },                                                     // 0x046
     { { { TASK_BODY_COORD, 0x70 } }, akropolisSquareTelephoneLightTask, { NULL } },                                      // 0x047
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisSecurityRoomMonitorFeedsTask, { NULL } },                                  // 0x048
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisSecurityRoomMonitorFeedTask, { NULL } },                                   // 0x049
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisSecurityRoomLockLampsTask, { NULL } },                                     // 0x048
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisSecurityRoomLockLampTask, { NULL } },                                      // 0x049
     { { { TASK_BODY_COORD, 0x70 } }, acropolisPromenadeRoomEffectTask, { NULL } },                                       // 0x04A
     { { { TASK_BODY_COORD, 0x70 } }, acropolisPromenadeGlowStarTask, { NULL } },                                         // 0x04B
     { { { TASK_BODY_COORD, 0x70 } }, actor510900FlameSpriteTask4C, { NULL } },                                           // 0x04C
@@ -656,7 +656,7 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, acropolisSanctuaryMosaicTask, { NULL } },                                           // 0x078
     { { { TASK_BODY_COORD, 0x70 } }, acropolisSanctuaryMosaicTileTask, { NULL } },                                       // 0x079
     { { { TASK_BODY_COORD, 0x70 } }, acropolisSanctuaryMosaicShardTask, { NULL } },                                      // 0x07A
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisSecurityRoomFallingQuadTask, { NULL } },                                   // 0x07B
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisSecurityRoomFallingQuadTask, { NULL } },                                   // 0x07B
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask7C, { NULL } },                                                     // 0x07C
     { { { TASK_BODY_NONE, 0x70 } }, taskKill, { NULL } },                                                                // 0x07D
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelBalconyFlameTask, { NULL } },                                     // 0x07E
@@ -693,7 +693,7 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, akropolisCafeteriaPuffEmitterTask, { NULL } },                                      // 0x09D
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask9E, { NULL } },                                                     // 0x09E
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldToiletJetPuffTask, { NULL } },                                              // 0x09F
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisSecurityRoomMonitorGlowTask, { NULL } },                                   // 0x0A0
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisSecurityRoomLockLampGlowTask, { NULL } },                                  // 0x0A0
     { { { TASK_BODY_COORD, 0x70 } }, effectControlTaskA1, { NULL } },                                                    // 0x0A1
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldToiletSprayEmitterTask, { NULL } },                                         // 0x0A2
     { { { TASK_BODY_COORD, 0x70 } }, effectLineTaskA3, { NULL } },                                                       // 0x0A3

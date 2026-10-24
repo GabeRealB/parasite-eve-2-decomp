@@ -21,7 +21,7 @@ chunk = "palette"
 sha1 = "ae879f1d2b055de10a045a730b6f54c4d2ad6b5d"
 
 [[file.contents.palettes]]
-texture = "monitor_glow_page_1"
+texture = "lock_lamps_left"
 variant = "row_270"
 region = "engine/vram/effect_palettes"
 offset = [0x00000, 0x00009]
@@ -51,7 +51,7 @@ region = "engine/vram/effect_palettes"
 offset = [0x00130, 0x00009]
 
 [[file.contents.palettes]]
-texture = "monitor_glow_page_1"
+texture = "lock_lamps_left"
 variant = "row_271"
 region = "engine/vram/effect_palettes"
 offset = [0x00000, 0x0000A]
@@ -84,8 +84,8 @@ offset = [0x00130, 0x0000A]
 chunk = "image_2"
 sha1 = "2751dd04724884f1175fd9fbb2ef6dcff263d715"
 pages = [
-    { texture = "monitor_glow_page_1", region = "engine/vram/effect_sheet", offset = [0x000C0, 0x00000] },
-    { texture = "monitor_glow_page_2", region = "engine/vram/room_sprite_sheet", offset = [0x00000, 0x00000] },
+    { texture = "lock_lamps_left", region = "engine/vram/effect_sheet", offset = [0x000C0, 0x00000] },
+    { texture = "lock_lamps_right", region = "engine/vram/room_sprite_sheet", offset = [0x00000, 0x00000] },
 ]
 
 [[file.contents]]
@@ -120,12 +120,12 @@ sha1 = "0000774ccddd05b446721d8b10b4a0f8d7b719a3"
 [package]
 type = "room"
 embedded = [
-    "acropolis_security_room_clut_05358",
-    "acropolis_security_room_clut_05558",
-    "acropolis_security_room_clut_05758",
-    "acropolis_security_room_clut_05958",
+    "rooms/akropolis/security_room/lamp_left_locked",
+    "rooms/akropolis/security_room/lamp_left_released",
+    "rooms/akropolis/security_room/lamp_right_locked",
+    "rooms/akropolis/security_room/lamp_right_released",
 ]
-package_name = "acropolis_security_room"
+package_name = "akropolis_security_room"
 required = true
 sha1 = "e0f563a5df845e45721bcf02a30ddee1283ed722"
 
@@ -902,6 +902,28 @@ no_palette = true
 variants = ["default"]
 width = 256
 
+[lock_lamps_left]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["row_270", "row_271", "locked", "released"]
+width = 128
+
+[lock_lamps_left.palettes_from]
+locked = "rooms/akropolis/security_room/lamp_left_locked"
+released = "rooms/akropolis/security_room/lamp_left_released"
+
+[lock_lamps_right]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["locked", "released"]
+width = 128
+
+[lock_lamps_right.palettes_from]
+locked = "rooms/akropolis/security_room/lamp_right_locked"
+released = "rooms/akropolis/security_room/lamp_right_released"
+
 [view1_background]
 type = "bs"
 sha1 = "2b2147794bc6db4e9c01a9dc10c56478318ab25e"
@@ -985,18 +1007,3 @@ sha1 = "48bc773ed8ee409cb95aeee0c0487832a62f8c61"
 [view16_background]
 type = "bs"
 sha1 = "43dd169de686e3afd1cd983faa1fed17ef2f73a1"
-
-[monitor_glow_page_1]
-type = "texture"
-bpp = 8
-height = 256
-variants = ["row_270", "row_271"]
-width = 128
-
-[monitor_glow_page_2]
-type = "texture"
-bpp = 8
-height = 256
-no_palette = true
-variants = ["default"]
-width = 128

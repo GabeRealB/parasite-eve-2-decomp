@@ -703,7 +703,9 @@ class AssetStore:
         # A font's glyph table is decoded as its UFO, and a palette a texture takes as `palettes_from` as the
         # texture's variants; neither keeps a copy of its bytes beside them.
         shaped_outputs |= {rec["table"] for rec in ASSETS.values() if rec.get("type") == "font" and "table" in rec}
-        shaped_outputs |= {rec["palettes_from"] for rec in ASSETS.values() if "palettes_from" in rec}
+        shaped_outputs |= {source for rec in ASSETS.values() if "palettes_from" in rec
+                           for source in ((rec["palettes_from"],) if isinstance(rec["palettes_from"], str)
+                                          else rec["palettes_from"].values())}
         work: list[dict] = []
         for stem, raw_rel in sorted(self._names.items(), key=lambda kv: asset_name_key(kv[0])):
             type_dir, _raw_stem, ext = self._unique_raw[raw_rel]

@@ -10,6 +10,7 @@
 
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/event_flags.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/session_types.h"
@@ -90,8 +91,8 @@ static s32 _acropolisObservatoryResolveRoomTransition(Task* unusedTask, s32 mess
             }
         }
         if (request->queryOnly == ROOM_EVENT_EXECUTE) {
-            if (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) == ACROPOLIS_OBSERVATORY_ROUTE_ARRIVED) {
-                gameFlagSetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, ACROPOLIS_OBSERVATORY_ROUTE_DEPARTED);
+            if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SANCTUARY_ROUTE_PROGRESS) == ACROPOLIS_OBSERVATORY_ROUTE_ARRIVED) {
+                gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_SANCTUARY_ROUTE_PROGRESS, ACROPOLIS_OBSERVATORY_ROUTE_DEPARTED);
             } else {
                 reply->warp = ACROPOLIS_OBSERVATORY_PROMENADE_ALTERNATE_ARRIVAL;
             }

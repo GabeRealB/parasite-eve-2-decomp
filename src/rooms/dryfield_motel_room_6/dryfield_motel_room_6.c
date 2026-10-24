@@ -2273,7 +2273,7 @@ static s32 _dryfieldMotelRoom6GateWaterTowerExit(Task* task, s32 messageId, cons
 /// spawn is not retried. Other actions and repeated requests still return one.
 /// The receiver, message ID and zero second payload are unused. Requires the
 /// room and actor_120500 resources to remain loaded through the spawned event.
-/// The sibling `_acropolisSecurityRoomHandleAction` leaves its reply unspecified;
+/// The sibling `_akropolisSecurityRoomHandleRoomAction` leaves its reply unspecified;
 /// `_acropolisSanctuaryHandleRoomAction` answers zero.
 static s32 _dryfieldMotelRoom6HandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {

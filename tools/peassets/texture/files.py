@@ -117,14 +117,25 @@ def stray(words: bytes) -> str | None:
 
 
 def embedded_palettes(texture: str, assets: dict, assets_root: Path) -> dict[str, list[int]]:
-    """A texture's variants that an executable uploads: its `palettes_from` palette, cut into them in order."""
+    """A texture's variants that an executable uploads: its `palettes_from` palette, cut into them in order, or the
+    variants its table names, each its own palette."""
     import struct
 
     import asset_data
+
+    def colors_of(source: str) -> list[int]:
+        data = (assets_root / asset_schema.raw_rel(source, asset_data.EMBEDDED_ASSETS[source])).read_bytes()
+        return list(struct.unpack(f"<{len(data) // 2}H", data))
+
     source = assets[texture]["palettes_from"]
-    data = (assets_root / asset_schema.raw_rel(source, asset_data.EMBEDDED_ASSETS[source])).read_bytes()
-    colors = list(struct.unpack(f"<{len(data) // 2}H", data))
     n = PALETTE_ENTRIES[assets[texture]["bpp"]]
+    if isinstance(source, dict):
+        out = {v: colors_of(s) for v, s in source.items()}
+        for v, colors in out.items():
+            if len(colors) != n:
+                raise SystemExit(f"{texture}.{v}: {source[v]} holds {len(colors)} colors, not {n}")
+        return out
+    colors = colors_of(source)
     variants = assets[texture]["variants"]
     if len(colors) != n * len(variants):
         raise SystemExit(f"{texture}: {source} holds {len(colors)} colors, {len(variants)} variants need {n * len(variants)}")
@@ -408,10 +419,11 @@ def check_file(name: str, assets: dict, assets_root: Path) -> list[str]:
         problems += cell_problems(texture, assets, assets_root)
     for texture in sorted(t for t in textures if "palettes_from" in assets[t]):
         stored = embedded_palettes(texture, assets, assets_root)
-        for v in assets[texture]["variants"]:
+        for v in stored:
             _texels, colors = read_variant(variant_path(assets_root, assets, texture, v), assets[texture])
             if colors != stored[v]:
-                problems.append(f"{texture}.{v}: its palette differs from {assets[texture]['palettes_from']}'s")
+                source = assets[texture]["palettes_from"]
+                problems.append(f"{texture}.{v}: its palette differs from {source[v] if isinstance(source, dict) else source}'s")
     for chunk, data in encode_file(name, assets, assets_root).items():
         stored = chunk_path(assets_root, assets, chunk).read_bytes()
         if assets[chunk]["type"] == "pe2img":

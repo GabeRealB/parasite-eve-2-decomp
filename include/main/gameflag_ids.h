@@ -15,12 +15,6 @@
 /// `GAME_FLAG_<HHH>` are placeholders for flags whose meaning is not yet known,
 /// named by the room that uses them where it is a single one.
 enum {
-    /// Akropolis progress along the security room -> forked road -> observatory ->
-    /// promenade route: 2 after the security-room panel releases its first lock, 3 when
-    /// the forked-road cutscene to the observatory plays, 4 when leaving the
-    /// observatory for the promenade, 5 on reaching the promenade/sanctuary. The
-    /// security-room enemy (actor_311900) is removed from 3 on.
-    GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS = 0x001,
     /// Sanctuary/bridge progress: 0 until the sanctuary is entered from the promenade
     /// (warp 3), then 2; 3 once the bridge cutscene completes and the bridge room
     /// switches to room 2. The promenade's bridge door is refused while 0 and leads to
@@ -36,10 +30,6 @@ enum {
     /// promenade or reaches the roof garden first (also raising bit-2 flag 0x13), which
     /// suppresses the event.
     GAME_FLAG_SANCTUARY_EVENT_LATCH = 0x007,
-    /// Bitmask of one-shot security-monitor events: bit 0 once camera view 0xB has been
-    /// shown (starts CAP slot 0xD), bit 1 once camera view 0xA's enemy scene has played
-    /// (actor_311900 sets it, and is torn down on later loads).
-    GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN = 0x00A,
     /// Unidentified. Written every tick by enemy actor_510900 with a value from its
     /// table `_gActor510900HelipadStatusFlagValues` indexed by source phase and light-2 status; no reader found.
     GAME_FLAG_00D = 0x00D,
@@ -69,10 +59,6 @@ enum {
     /// trailer coach scene (sets 0x3A=1, 0x4B=1), 3 after a later trailer coach scene.
     /// Junk yard plays a one-shot scene once it reaches 2.
     GAME_FLAG_TRAILER_COACH_PROGRESS = 0x028,
-    /// Index (0-4) into the security-room camera table
-    /// _gAcropolisSecurityRoomMonitorWashDetents of the feed on screen when the monitor was
-    /// last left (0 if not in the table); the monitor reopens on that camera.
-    GAME_FLAG_SECURITY_MONITOR_LAST_CAMERA = 0x02A,
     /// Unidentified. Set to 1 by the factory's first action-1 hotspot use (starts CAP
     /// 0xB) and by the garage Gary cutscene actor; no other reader found.
     GAME_FLAG_02C = 0x02C,
@@ -837,10 +823,6 @@ enum {
     /// Conversation counter (0-3) for the companion in the Neo Ark observatory
     /// (actor_450200), advanced each time action 3 is used in view 2.
     GAME_FLAG_OBSERVATORY_COMPANION_TALK_COUNT = 0x101,
-    /// Set to 1 by actor_311900 once its scripted movement (seen on the Akropolis
-    /// security-room monitor, view 0xA) has run for 0x5A frames; while clear, selecting
-    /// monitor view 0xA in the security room starts CAP slot 0xC.
-    GAME_FLAG_SECURITY_MONITOR_CAM_A_SCENE_DONE = 0x102,
     /// Dialogue counter of the soldier actor actor_161500 (soldier_b model), first
     /// conversation set: selects the line (separate tables for variant 1) and
     /// increments 0..3, staying at 3.
@@ -1300,11 +1282,6 @@ enum {
     /// the table entry carries bit 0x800), 0 hides it. Shelter entry 0 (forced to the
     /// 0x800 sprite while 0x7A is 6); set to 2 at first arrival in the Shelter 1F tent.
     GAME_FLAG_MAP_MARK_SHELTER_1CD = 0x1CD,
-    /// Map marker: listed in the stage map-marker tables read by menuMapGetMarkerState;
-    /// _menuMapDrawFlagMarkers draws a marker icon while the value is 2 (alternate sprite when
-    /// the table entry carries bit 0x800), 0 hides it. Akropolis entry 4; cleared in
-    /// the Akropolis security room's event task.
-    GAME_FLAG_MAP_MARK_SECURITY_ROOM = 0x1EE,
 };
 
 #endif // MAIN_GAMEFLAG_IDS_H

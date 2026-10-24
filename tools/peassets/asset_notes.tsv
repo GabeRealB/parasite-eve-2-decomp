@@ -65,11 +65,11 @@ acropolis_sanctuary_collision_04C8C	Template of a four-sided collision box (4 fa
 acropolis_sanctuary_collision_052F4	Collision grid of the Akropolis sanctuary (3x3 cells, 85 faces); its leading records are zero placeholders the room overwrites with the blocker box.	
 acropolis_sanctuary_model_090F0	Three-part item container with a hinged lid, embedded in several room packages: spawned as a placed object in the Dryfield trailer coach and three Shelter rooms, never placed in the two Akropolis rooms.	
 rooms/akropolis/sanctuary/acropolis_sanctuary_model_09584	Red Key model, placed in the Akropolis sanctuary as object 28 by map_akropolis and hidden in two mapped views and once collected.	
-acropolis_security_room_clut_05358	Lit 256-colour palette of lamp picture 0 in the Akropolis security room, blended against black by the lamp's brightness and uploaded to VRAM row 270 by the monitor-feeds task.	
-acropolis_security_room_clut_05558	Lit 256-colour palette of lamp picture 1 in the Akropolis security room, blended against black by lamp brightness and uploaded to VRAM row 271 by the monitor-feeds task.	
-acropolis_security_room_clut_05758	Lit 256-colour palette of lamp picture 2 in the Akropolis security room, blended against black by lamp brightness and uploaded to VRAM row 263 by the monitor-feeds task.	
-acropolis_security_room_clut_05958	Lit 256-colour palette of lamp picture 3 in the Akropolis security room, blended against black by lamp brightness and uploaded to VRAM row 264 by the monitor-feeds task.	
-acropolis_security_room_collision_06468	Collision grid of the Akropolis security room (1x2 cells, 24 faces), used for the whole stay.	
+akropolis_security_room_clut_05358	Lit 256-colour palette of lamp picture 0 in the Akropolis security room, blended against black by the lamp's brightness and uploaded to VRAM row 270 by the monitor-feeds task.	
+akropolis_security_room_clut_05558	Lit 256-colour palette of lamp picture 1 in the Akropolis security room, blended against black by lamp brightness and uploaded to VRAM row 271 by the monitor-feeds task.	
+akropolis_security_room_clut_05758	Lit 256-colour palette of lamp picture 2 in the Akropolis security room, blended against black by lamp brightness and uploaded to VRAM row 263 by the monitor-feeds task.	
+akropolis_security_room_clut_05958	Lit 256-colour palette of lamp picture 3 in the Akropolis security room, blended against black by lamp brightness and uploaded to VRAM row 264 by the monitor-feeds task.	
+akropolis_security_room_collision_06468	Collision grid of the Akropolis security room (1x2 cells, 24 faces), used for the whole stay.	
 akropolis_square_collision_06784	Collision grid of the Akropolis square (4x4 cells, 115 faces), walked by gameplay's collision code for the player and actors.	
 acropolis_west_elevator_hall_animation_031E0	The player's walk out of the lift: one clip the west elevator hall's arrival script installs as weapon-bank clip 47 and plays after the door opens.	
 acropolis_west_elevator_hall_clut_07644	Lit 256-colour palette of the west elevator hall's bay light glow, faded up from black into VRAM row 270 by the bay lighting task during the arrival scene's view 5.	
@@ -473,7 +473,7 @@ bs_1045..bs_1051	View backgrounds 1-7 of mine_forked_tunnel: views 2-5 are the p
 bs_1052	No reached use found: background of mine_secret_passage view 1, the plan view, with no selector in the shipped game.	
 bs_1052..bs_1059	View backgrounds 1-8 of mine_secret_passage: views 2-7 are the walking views and view 8 is selected by a caption text code.	
 bs_1059	Background of mine_secret_passage view 8, shown with player, companion and HUD hidden while the departure prompt before the elevator hall is drawn.	
-rooms/akropolis/security_room/view1_background..rooms/akropolis/security_room/view14_background	View backgrounds of acropolis_security_room (views 1-14 and 16): walking views 2-4, the monitor, the power-supply close-up and text-selected views; view 1 is the plan view.	
+rooms/akropolis/security_room/view1_background..rooms/akropolis/security_room/view14_background	View backgrounds of akropolis_security_room (views 1-14 and 16): walking views 2-4, the monitor, the power-supply close-up and text-selected views; view 1 is the plan view.	
 bs_1060..bs_1068	View backgrounds 1-9 of shelter_b1_elevator_hall: play views 2-5, 7 and 8 via warps and boundary triggers, view 6 selected by the text of CAP command 4.	
 bs_1069..bs_1073	View backgrounds 1-5 of shelter_b1_south_maintenance_walkway; views 2-5 are walked, view 1 is the unselected plan view.	
 bs_1074..bs_1081	View backgrounds 1-8 of shelter_b1_storeroom: views 2-7 form a ring of boundary-triggered walking views, view 8 is selected by caption text, view 1 is the plan view.	
@@ -514,7 +514,7 @@ bs_1197	No reached use found: background of shelter_b1_golem_freezer_1 view 4; t
 bs_1198	Background of shelter_b1_golem_freezer_1 view 5, the arrival view of the room's only warp endpoint, also reached by a boundary trigger from view 2.	
 bs_1199	Background of shelter_b1_golem_freezer_1 view 6, selected by the first scene step of caption commands 3 and 4: the conversation with Pierce (variant 21 only).	
 load_screens/mine_refuge_chapter_4/background	Load-screen picture for the Mine/Shelter stage with destination Mine Refuge (chapter 4 or any other than 5), shown under the Mine boot caption; what lands on it is open.	
-rooms/akropolis/security_room/view15_background	No reached use found: background of acropolis_security_room view 15, which has a camera but no sprites and is selected by none of the nine checked paths.	
+rooms/akropolis/security_room/view15_background	No reached use found: background of akropolis_security_room view 15, which has a camera but no sprites and is selected by none of the nine checked paths.	
 bs_1200	Background of shelter_b1_golem_freezer_1 view 7, selected by a scene step in the middle of caption command 4, the second meeting (variant 21 only).	
 bs_1201..bs_1214	View backgrounds of shelter_b2_pod_bottom (views 1-14, plus rooms/akropolis/square/view15_background for views 15 and 16): walking views 2-10, and views 11, 12 and 14 for the entry script and command 2.	
 bs_1215	No reached use in this room: view backgrounds in shelter_r47's folder (views 1, 22-35, 42, 43, 45, 46) of the view set shared with the pod service gantry; inert here, live there.	
@@ -3705,13 +3705,13 @@ rooms/akropolis/cafeteria/view23_image	8-bit sheet of the 16 room sprites of akr
 rooms/akropolis/cafeteria/view24_image	8-bit image holding the single room sprite of akropolis_cafeteria's mapped view 24.	
 rooms/akropolis/plaza/dialogue_0_atlas	4-bit caption glyph atlas of akropolis_plaza's dialogue with AYA and police name plates, drawn by gameplay's caption code.	
 rooms/akropolis/plaza/image	No reached use found: an akropolis_plaza image whose rows say it cannot survive the room because the movie buffers are staged over it.	
-rooms/akropolis/security_room/image	4-bit caption glyph atlas of acropolis_security_room's dialogue, drawn by gameplay's caption code whenever the room shows text.	
-rooms/akropolis/security_room/image_2	8-bit page of four 128x128 pictures of round lamps, drawn additively by acropolis_security_room's monitor feed task in the power-supply close-up (view 6) according to the lock flags.	
-rooms/akropolis/security_room/view2_image	8-bit sheet of the 18 depth-sorted occluder sprites of acropolis_security_room's mapped view 2.	
-rooms/akropolis/security_room/view5_image	8-bit sheet of the room sprites shared by acropolis_security_room's seven monitor views (mapped views 5 and 8-13).	
-rooms/akropolis/security_room/view6_image	8-bit image of the two released-lock sprites shown in acropolis_security_room's power-supply close-up (mapped view 6) once the left or right lock is released.	
+rooms/akropolis/security_room/image	4-bit caption glyph atlas of akropolis_security_room's dialogue, drawn by gameplay's caption code whenever the room shows text.	
+rooms/akropolis/security_room/image_2	8-bit page of four 128x128 pictures of round lamps, drawn additively by akropolis_security_room's monitor feed task in the power-supply close-up (view 6) according to the lock flags.	
+rooms/akropolis/security_room/view2_image	8-bit sheet of the 18 depth-sorted occluder sprites of akropolis_security_room's mapped view 2.	
+rooms/akropolis/security_room/view5_image	8-bit sheet of the room sprites shared by akropolis_security_room's seven monitor views (mapped views 5 and 8-13).	
+rooms/akropolis/security_room/view6_image	8-bit image of the two released-lock sprites shown in akropolis_security_room's power-supply close-up (mapped view 6) once the left or right lock is released.	
 weapons/p08/preview_image	Item preview picture of weapon 0x83, the P08, drawn in gameplay's item menu panels when that weapon is selected.	
-rooms/akropolis/fountain/view4_image	Three-page 8-bit occluder sprite sheet shared by acropolis_fountain's mapped view 4 (room index 1) and acropolis_security_room's mapped view 16.	
+rooms/akropolis/fountain/view4_image	Three-page 8-bit occluder sprite sheet shared by acropolis_fountain's mapped view 4 (room index 1) and akropolis_security_room's mapped view 16.	
 rooms/akropolis/hallway/dialogue_0_atlas	4-bit caption glyph atlas of acropolis_hallway's dialogue, drawn by gameplay's caption code for caption commands 1-6.	
 rooms/akropolis/hallway/image	8-bit texture of the Blue Key pickup model in acropolis_hallway, drawn in mapped view 5 until the key is collected.	
 rooms/akropolis/fountain/dialogue_0_atlas	4-bit caption glyph atlas of acropolis_fountain's dialogue, drawn by gameplay's caption code whenever the room shows text.	
@@ -4631,7 +4631,7 @@ rooms/akropolis/cafeteria/sounds_1	Acropolis cafeteria room sound bank: door sou
 weapons/m4a1_javelin/sounds	M4A1 Javelin weapon sound bank (weapon 29): rifle burst round, guide beam sound, empty-chamber click and reload cue.	
 rooms/akropolis/plaza/sounds_0	Footstep bank of akropolis_plaza: walk, scripted-jump and run step sounds on surface classes 0 and 1 of the plaza grid.	
 rooms/akropolis/plaza/sounds_1	Acropolis plaza room sound bank: ambience loops and voices mixed frame by frame against the traversal movie, final-scene one-shots, and the officers' step sounds (actor_310100).	
-rooms/akropolis/security_room/sounds_0	Footstep bank of acropolis_security_room: walk, scripted-jump and run step sounds on surface class 4, the room's only class.	
+rooms/akropolis/security_room/sounds_0	Footstep bank of akropolis_security_room: walk, scripted-jump and run step sounds on surface class 4, the room's only class.	
 rooms/akropolis/security_room/sounds_1	Acropolis security room sound bank: door sounds of its one warp, monitor panel select/brighter/darker clicks, shutter unlock and release sounds, and the right-lock scene's movie loop.	
 rooms/akropolis/hallway/sounds_0	Footstep bank of acropolis_hallway: walk, scripted-jump and run step sounds while the player stands on surface class 1 or 4.	
 rooms/akropolis/hallway/sounds_1	Acropolis hallway room sound bank: arrival/departure sounds of warp endpoints 1-4 and two caption-cue sounds of the Blue Key caption.	

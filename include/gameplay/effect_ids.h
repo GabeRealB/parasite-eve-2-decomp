@@ -220,10 +220,10 @@ enum {
     /// The Akropolis square telephone's light: pulsing red-or-cyan gouraud glow quads
     /// (and optional line) at the phone in the views that show it, spawned by the room task.
     EFFECT_AKROPOLIS_SQUARE_TELEPHONE_LIGHT = EFFECT_ID(EFFECT_TASK_BANK, 0x047),
-    /// One security-camera monitor feed: a single-frame 128x128 screen-space textured
-    /// quad picked by spawnArg (4 feeds); the security room respawns all four each
-    /// frame after re-blending their CLUTs.
-    EFFECT_ACROPOLIS_SECURITY_MONITOR_FEED = EFFECT_ID(EFFECT_TASK_BANK, 0x049),
+    /// One lock lamp of the Akropolis security room's power supply: a single-frame 128x128
+    /// screen-space textured quad picked by spawnArg (4 lamps); the room respawns all four
+    /// each frame in the power supply's view after re-blending their CLUTs.
+    EFFECT_AKROPOLIS_SECURITY_ROOM_LOCK_LAMP = EFFECT_ID(EFFECT_TASK_BANK, 0x049),
     /// One-frame flickering star glow (animated core quad and rotating flare) at
     /// the Akropolis promenade lamps; respawned each frame by the room spawner for
     /// views that see it.
@@ -500,9 +500,9 @@ enum {
     /// part 6).
     EFFECT_DRYFIELD_TOILET_JET_PUFF = EFFECT_ID(EFFECT_TASK_BANK, 0x09F),
     /// Single-frame flash of two gouraud quads and two lines at a projected point, red
-    /// and/or green by spawnArg1 bits; spawned for each lit monitor feed by the
-    /// security room's monitor task.
-    EFFECT_ACROPOLIS_SECURITY_MONITOR_GLOW = EFFECT_ID(EFFECT_TASK_BANK, 0x0A0),
+    /// and/or green by spawnArg1 bits; spawned for each lit lock lamp, seen from the
+    /// Akropolis security room's other views, by its lock-lamp task.
+    EFFECT_AKROPOLIS_SECURITY_ROOM_LOCK_LAMP_GLOW = EFFECT_ID(EFFECT_TASK_BANK, 0x0A0),
     /// Muzzle flash controller for shotguns (AS12, PA3, gunblade shot) and
     /// actor_335800: reddish point light, flare 0x60034, sparks, smoke and pellet
     /// effects 0x600A3/0x600A4.

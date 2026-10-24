@@ -1617,7 +1617,7 @@ void itemPickupContainerLidTask(Task* task)
                 task->killCountdown = 0;
                 switch (stageAreaKey) {
                     case GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SECURITY_ROOM, 0, 0): {
-                        _itemPickupPlayLidSound(task, SOUND_ACROPOLIS_SECURITY_ROOM_ITEM_LID_OPEN);
+                        _itemPickupPlayLidSound(task, SOUND_AKROPOLIS_SECURITY_ROOM_ITEM_LID_OPEN);
                         break;
                     }
                     case GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SANCTUARY, 0, 0): {
@@ -1666,7 +1666,7 @@ void itemPickupContainerLidTask(Task* task)
         if (task->state == ITEM_PICKUP_LID_BEGIN_CLOSING) {
             switch (stageAreaKey) {
                 case GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SECURITY_ROOM, 0, 0): {
-                    _itemPickupPlayLidSound(task, SOUND_ACROPOLIS_SECURITY_ROOM_ITEM_LID_CLOSE);
+                    _itemPickupPlayLidSound(task, SOUND_AKROPOLIS_SECURITY_ROOM_ITEM_LID_CLOSE);
                     break;
                 }
                 case GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SANCTUARY, 0, 0): {

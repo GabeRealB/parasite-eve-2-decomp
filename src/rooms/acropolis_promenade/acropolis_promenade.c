@@ -38,16 +38,17 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/event_flags.h"
 #include "main/fs.h"
 #include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
-#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
 #include "main/mem.h"
 #include "main/pad.h"
+#include "main/random.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
@@ -330,8 +331,8 @@ static s32 _acropolisPromenadeResolveRoomTransition(Task* unusedTask, s32 unused
         if (gDisplayState.debugMode < 0 || gStreamInterFile.startSector == 0) {
             reply->warp = ACROPOLIS_PROMENADE_OBSERVATORY_BLOCKED_ARRIVAL;
         }
-        if (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) == ACROPOLIS_PROMENADE_ROUTE_FROM_OBSERVATORY) {
-            gameFlagSetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, ACROPOLIS_PROMENADE_ROUTE_AT_SANCTUARY);
+        if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SANCTUARY_ROUTE_PROGRESS) == ACROPOLIS_PROMENADE_ROUTE_FROM_OBSERVATORY) {
+            gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_SANCTUARY_ROUTE_PROGRESS, ACROPOLIS_PROMENADE_ROUTE_AT_SANCTUARY);
         } else {
             reply->warp = ACROPOLIS_PROMENADE_OBSERVATORY_BLOCKED_ARRIVAL;
         }
