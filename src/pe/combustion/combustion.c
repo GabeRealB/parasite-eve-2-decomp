@@ -382,7 +382,7 @@ static void _combustionDrawSmallFlame(const GfxCoord* coord, s16 animationFrame,
         // Size the axis-aligned quad in pixels using the biased projection depth.
         scratch->screenExtent = (sizeFactor * COMBUSTION_SMALL_FLAME_UV_SPAN) / scratch->depth;
         _combustionSetBillboardCorners(quad, scratch);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
@@ -557,7 +557,7 @@ static void _combustionDrawEmber(const GfxCoord* coord, s32 animationFrame, s16 
         // Size the axis-aligned quad in pixels using the biased projection depth.
         scratch->screenExtent = (sizeFactor * COMBUSTION_EMBER_UV_SPAN) / scratch->depth;
         _combustionSetBillboardCorners(quad, scratch);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
@@ -680,7 +680,7 @@ static void _combustionDrawLargeFlame(const GfxCoord* coord, s16 animationFrame,
         // Size the axis-aligned quad in pixels using the biased projection depth.
         scratch->screenExtent = (sizeFactor * COMBUSTION_LARGE_FLAME_UV_SPAN) / scratch->depth;
         _combustionSetBillboardCorners(quad, scratch);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);

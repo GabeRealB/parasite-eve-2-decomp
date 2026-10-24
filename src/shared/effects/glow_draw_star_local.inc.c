@@ -85,7 +85,7 @@ static void _glowDrawStarLocal(GfxCoord* coord, const SVECTOR* localPoint, s32 p
             prim->y0 = prim->y2 = prim->y3 = block->screenPos.vy;
             verticalSide                   = partIndex << 1;
             prim->y1                       = (block->screenPos.vy - block->halfExtent) + block->halfExtent * verticalSide;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
             partIndex++;

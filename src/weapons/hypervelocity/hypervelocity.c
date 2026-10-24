@@ -703,7 +703,7 @@ static void _hypervelocityDrawDischargeCone(const GfxCoord* coord, s16 ageFrames
             wall->v3    = HYPERVELOCITY_DISCHARGE_CONE_TEXTURE_TOP_V + HYPERVELOCITY_DISCHARGE_CONE_TEXTURE_CELL_SIZE - 1;
             setXY4(wall, scratch->sxy0.vx, scratch->sxy0.vy, scratch->sxy1.vx, scratch->sxy1.vy, scratch->sxy2.vx, scratch->sxy2.vy, scratch->sxy3.vx,
                    scratch->sxy3.vy);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), wall);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->otz), wall);
         }
         cornerIndex++;
     } while (cornerIndex < HYPERVELOCITY_DISCHARGE_CONE_WALL_COUNT);

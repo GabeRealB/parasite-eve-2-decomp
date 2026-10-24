@@ -944,7 +944,7 @@ static void _dryfieldNightParkingLotDrawGreyCapsule(const SVECTOR* startWorldPoi
             quad->y2  = projection->sy0;
             quad->x3  = projection->sx0 + ((projection->radius0 * rsin(nextAngle)) >> GLOW_TRIG_SHIFT);
             quad->y3  = projection->sy0 + ((projection->radius0 * rcos(nextAngle)) >> GLOW_TRIG_SHIFT);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->otz0),
                     quad);
             gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, projection->otz0);
 
@@ -963,7 +963,7 @@ static void _dryfieldNightParkingLotDrawGreyCapsule(const SVECTOR* startWorldPoi
             quad->y2 = projection->sy0;
             quad->x3 = projection->sx1;
             quad->y3 = projection->sy1;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->otz0),
                     quad);
             gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, projection->otz0);
 
@@ -985,7 +985,7 @@ static void _dryfieldNightParkingLotDrawGreyCapsule(const SVECTOR* startWorldPoi
             quad->x3     = projection->sx1 + ((projection->radius1 * rsin(endRimAngle)) >> GLOW_TRIG_SHIFT);
             quad->y3     = projection->sy1 + ((projection->radius1 * rcos(endRimAngle)) >> GLOW_TRIG_SHIFT);
             angle        = nextAngle;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->otz1),
                     quad);
             gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, projection->otz1);
         } while (angle < GLOW_HALF_TURN);

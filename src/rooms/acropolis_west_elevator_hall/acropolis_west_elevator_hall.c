@@ -801,7 +801,7 @@ static inline void _acropolisWestElevatorHallDrawLightGlow(const GfxCoord* effec
         setShadeTex(glowQuad, 1);
         glowScratch->halfExtent = ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_SIZE_FACTOR / glowScratch->otz;
         _acropolisWestElevatorHallSetLightGlowBounds(glowQuad, glowScratch);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)glowScratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(glowScratch->otz),
                 glowQuad);
     }
 }

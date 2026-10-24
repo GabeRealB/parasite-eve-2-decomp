@@ -285,7 +285,7 @@ static void _golemPawnRookDrawLaserBeam(Task* actor, const SVECTOR* farEnd, cons
             setRGB1(ribbon, 0xFF, 0, 0);
             setRGB2(ribbon, 0, 0, 0);
             setRGB3(ribbon, 0, 0, 0);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((u32)(segmentDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK), ribbon);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(segmentDepth), ribbon);
         }
         line           = gGpuPrimCursor;
         gGpuPrimCursor = line + 1;
@@ -296,12 +296,12 @@ static void _golemPawnRookDrawLaserBeam(Task* actor, const SVECTOR* farEnd, cons
         line->x1 = scratch->screen;
         line->y1 = scratch->screen >> 16;
         setRGB0(line, 0xFF, 0, 0);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((u32)(segmentDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK), line);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(segmentDepth), line);
         drawMode       = gGpuPrimCursor;
         gGpuPrimCursor = drawMode + 1;
         setlen(drawMode, 1);
         drawMode->code[0] = GOLEM_PAWN_ROOK_LASER_DRAW_MODE;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((u32)(segmentDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK), drawMode);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(segmentDepth), drawMode);
         scratch->prevScreen = scratch->screen;
         scratch->prevDepth  = scratch->depth;
     }

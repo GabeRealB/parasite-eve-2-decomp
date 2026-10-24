@@ -98,7 +98,7 @@ void glowDrawFlameCone(const GfxCoord* coord, s16 innerRadius, s16 intensity)
             prim->y2 = (u16)block->sxy2.vy;
             prim->x3 = (u16)block->sxy3.vx;
             prim->y3 = (u16)block->sxy3.vy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
         }
@@ -164,7 +164,7 @@ void glowDrawFlameDisc(const GfxCoord* coord, s16 radiusScale, s16 intensity)
             prim->y2 = block->screenY;
             prim->x3 = block->screenX + ((block->screenExtent * rsin(angle + GLOW_FLAME_DISC_WEDGE_ANGLE)) >> GLOW_FLAME_DISC_TRIG_SHIFT);
             prim->y3 = block->screenY + ((block->screenExtent * rcos(angle + GLOW_FLAME_DISC_WEDGE_ANGLE)) >> GLOW_FLAME_DISC_TRIG_SHIFT);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
         }

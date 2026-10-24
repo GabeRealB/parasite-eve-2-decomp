@@ -100,22 +100,22 @@ static void _glowDrawCappedBeam(Task* task, const SVECTOR screenPoints[24], s32 
     colors = scaledColors;
     for (index = 0; index < GLOW_CAPPED_BEAM_CORE_QUAD_COUNT; index++) {
         GLOW_CAPPED_BEAM_ALLOC_QUAD(quad, *quadIndices, colors, screenPoints);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(sortingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + GLOW_CAPPED_BEAM_ORDERING_TABLE_TAG_BIAS, quad);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(sortingDepth) + GLOW_CAPPED_BEAM_ORDERING_TABLE_TAG_BIAS, quad);
         drawMode       = gGpuPrimCursor;
         gGpuPrimCursor = drawMode + 1;
         setlen(drawMode, ARRAY_SIZE(drawMode->code));
         drawMode->code[0] = GLOW_CAPPED_BEAM_CORE_DRAW_MODE;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(sortingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + GLOW_CAPPED_BEAM_ORDERING_TABLE_TAG_BIAS, drawMode);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(sortingDepth) + GLOW_CAPPED_BEAM_ORDERING_TABLE_TAG_BIAS, drawMode);
         quadIndices++;
     }
     for (index = GLOW_CAPPED_BEAM_CORE_QUAD_COUNT; index < (s32)ARRAY_SIZE(_gGlowCappedBeamQuadIndices); index++) {
         GLOW_CAPPED_BEAM_ALLOC_QUAD(quad, *quadIndices, colors, screenPoints);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(sortingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + GLOW_CAPPED_BEAM_ORDERING_TABLE_TAG_BIAS, quad);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(sortingDepth) + GLOW_CAPPED_BEAM_ORDERING_TABLE_TAG_BIAS, quad);
         drawMode       = gGpuPrimCursor;
         gGpuPrimCursor = drawMode + 1;
         setlen(drawMode, ARRAY_SIZE(drawMode->code));
         drawMode->code[0] = GLOW_CAPPED_BEAM_HALO_DRAW_MODE;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(sortingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + GLOW_CAPPED_BEAM_ORDERING_TABLE_TAG_BIAS, drawMode);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(sortingDepth) + GLOW_CAPPED_BEAM_ORDERING_TABLE_TAG_BIAS, drawMode);
         quadIndices++;
     }
 #undef GLOW_CAPPED_BEAM_ALLOC_QUAD

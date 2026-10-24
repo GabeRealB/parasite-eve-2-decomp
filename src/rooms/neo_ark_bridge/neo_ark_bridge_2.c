@@ -1209,7 +1209,7 @@ static void _neoArkBridgeDrawPulsingRedStar(const SVECTOR* worldPoint, s16 pulse
             diamondHalf->y0 = screenY;
             verticalSide    = partIndex * 2;
             diamondHalf->y1 = (projection->sy - (u16)projection->radius) + (projection->radius * verticalSide);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->otz),
                     diamondHalf);
             gpuSetPrimitiveBlendMode(diamondHalf, GPU_BLEND_ADD, projection->otz);
             partIndex++;

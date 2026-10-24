@@ -1285,7 +1285,7 @@ void acropolisSanctuaryMosaicTileTask(Task* task)
                        _gAcropolisSanctuaryMosaicTiles[task->spawnArg1.value].extentU;
         tileQuad->v3 = _gAcropolisSanctuaryMosaicTiles[task->spawnArg1.value].originV +
                        _gAcropolisSanctuaryMosaicTiles[task->spawnArg1.value].extentV;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)tileScratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(tileScratch->otz),
                 tileQuad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(_AcropolisSanctuaryMosaicTileScratch);
@@ -1447,7 +1447,7 @@ void acropolisSanctuaryMosaicShardTask(Task* task)
         shardTriangle->u2 = _gAcropolisSanctuaryMosaicTiles[task->spawnArg1.value].originU;
         shardTriangle->v2 = _gAcropolisSanctuaryMosaicTiles[task->spawnArg1.value].originV +
                             ((_gAcropolisSanctuaryMosaicTiles[task->spawnArg1.value].extentV * shardWork->angle) >> ACROPOLIS_SANCTUARY_MOSAIC_SHARD_SIZE_FRACTION_BITS);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)shardScratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(shardScratch->otz),
                 shardTriangle);
     }
     shardCoord->coord.t[0] += shardWork->move.vx;
@@ -1566,7 +1566,7 @@ void acropolisSanctuaryFlameTask(Task* task)
             flameQuad->v3            = ACROPOLIS_SANCTUARY_FLAME_TEXTURE_EXTENT;
             flameScratch->halfExtent = (flameWork->scale * ACROPOLIS_SANCTUARY_FLAME_TEXTURE_EXTENT) / flameScratch->otz;
             _acropolisSanctuarySetFlameQuadBounds(flameQuad, flameScratch);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)flameScratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(flameScratch->otz),
                     flameQuad);
         }
         SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);

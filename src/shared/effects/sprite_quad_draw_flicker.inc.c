@@ -124,7 +124,7 @@ static void _spriteQuadDrawFlicker(const GfxCoord* coord, s16 frame, s16 sizeFac
             SPRITE_QUAD_CONFIGURE_FLICKER_EVEN_PACKET(prim);
         }
         _spriteQuadSetFlickerCorners(block, prim, sizeFactor, spinAngle);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth),
                 prim);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);

@@ -45,13 +45,13 @@ static void _waterHoleDrawSurfaces(Task* task)
     /// Depth is SZ3 / 4; its unsigned shift/mask computes an OT byte offset.
     /// Prepending the mode last makes it execute before the quad; both remain
     /// live until GPU completion. No capacity or ordering-table check is made.
-#define WATER_HOLE_QUEUE_QUAD()                                                                                                                \
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
-            quad);                                                                                                                             \
-    drawMode              = (DR_MODE*)_gWaterHolePrimCursor;                                                                                   \
-    _gWaterHolePrimCursor = (u8*)(drawMode + 1);                                                                                               \
-    setDrawTPage(drawMode, 0, 0, getTPage(0, GPU_BLEND_SUBTRACT, 640, 0));                                                                     \
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
+#define WATER_HOLE_QUEUE_QUAD()                                            \
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(depth),                      \
+            quad);                                                         \
+    drawMode              = (DR_MODE*)_gWaterHolePrimCursor;               \
+    _gWaterHolePrimCursor = (u8*)(drawMode + 1);                           \
+    setDrawTPage(drawMode, 0, 0, getTPage(0, GPU_BLEND_SUBTRACT, 640, 0)); \
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(depth),                      \
             drawMode);
 
     surface = _gWaterHoleSurfaces;

@@ -62,7 +62,7 @@ static void _roomVisualEffectsDrawFlyingSpark(const GfxCoord* coord, s32 animati
         quad->y3                 = screenEdge;
         quad->y2                 = screenEdge;
         displayState             = &gDisplayState;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << displayState->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH_SCALED(projection->depth, displayState->otDepthShift),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
@@ -117,7 +117,7 @@ static void _roomVisualEffectsDrawFlyingRing(const GfxCoord* coord, s32 blackRad
             quad->y2  = projection->screenY + ((projection->extent.ring.outer * rcos(angle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
             quad->x3  = projection->screenX + ((projection->extent.ring.outer * rsin(nextAngle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
             quad->y3  = projection->screenY + ((projection->extent.ring.outer * rcos(nextAngle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->depth),
                     quad);
             gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, projection->depth);
         }
@@ -168,7 +168,7 @@ static void _roomVisualEffectsDrawFlyingDisc(const GfxCoord* coord, s32 radius, 
             quad->y2 = projection->screenY;
             quad->x3 = projection->screenX + ((projection->screenExtent * rsin(angle + 0x200)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
             quad->y3 = projection->screenY + ((projection->screenExtent * rcos(angle + 0x200)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->depth),
                     quad);
             gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, projection->depth);
         }

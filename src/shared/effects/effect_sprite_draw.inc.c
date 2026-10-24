@@ -76,7 +76,7 @@ static void _effectSpriteDrawChip(const GfxCoord* coord, u16 frame, s16 size, s1
         quad->x2               = block->screenX - (u16)block->extent.corner.x;
         quad->y1               = block->screenY - (u16)block->extent.corner.y;
         quad->y2               = block->screenY + (u16)block->extent.corner.y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK_AT(scratchSlot, EffectShapeScratch);
@@ -145,7 +145,7 @@ static void _effectSpriteDrawBillboard(const GfxCoord* coord, s32 frame, s32 siz
         quad->x1 = quad->x3 = block->screenX + block->screenExtent;
         quad->y0 = quad->y1 = block->screenY - block->screenExtent - (block->screenExtent >> 1);
         quad->y2 = quad->y3 = block->screenY + (block->screenExtent >> 1);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);

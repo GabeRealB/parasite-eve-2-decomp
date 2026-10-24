@@ -587,7 +587,7 @@ static void _lifedrainDrawMoteBillboards(const GfxCoord* coord, s16 animationFra
         quad->v1              = 0;
         scratch->screenExtent = (sizeFactor * LIFEDRAIN_MOTE_CORE_UV_SPAN) / scratch->depth;
         _lifedrainSetMoteBillboardBounds(quad, scratch);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                 quad);
 
         // The halo alternates palettes while retaining a fixed texture cell.
@@ -608,7 +608,7 @@ static void _lifedrainDrawMoteBillboards(const GfxCoord* coord, s16 animationFra
         quad->u3              = LIFEDRAIN_MOTE_HALO_LEFT_U + LIFEDRAIN_MOTE_HALO_UV_SPAN;
         scratch->screenExtent = ((s16)((sizeFactor * 2) / 3) * LIFEDRAIN_MOTE_HALO_UV_SPAN) / scratch->depth;
         _lifedrainSetMoteBillboardBounds(quad, scratch);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);

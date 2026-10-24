@@ -103,7 +103,7 @@ void glowDrawDisc(const SVECTOR* worldPoint, s32 radiusScale, s32 packedColor)
             prim->x3      = block->sx + ((block->radius * rsin(nextAngle)) >> GLOW_DISC_TRIG_SHIFT);
             prim->y3      = block->sy + ((block->radius * rcos(nextAngle)) >> GLOW_DISC_TRIG_SHIFT);
             angle         = nextAngle;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
         } while (angle < GLOW_DISC_FULL_TURN);

@@ -392,7 +392,7 @@ static void _healingDrawSparkle(const GfxCoord* coord, s16 frame, s16 sizeFactor
         quad->v1              = 0;
         scratch->screenExtent = (sizeFactor * HEALING_SPARKLE_UV_SPAN) / scratch->depth;
         _healingSetSparkleScreenBounds(quad, scratch);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                 quad);
 
         // The glow shares the centre and depth, but halves size and modulation.
@@ -410,7 +410,7 @@ static void _healingDrawSparkle(const GfxCoord* coord, s16 frame, s16 sizeFactor
                HEALING_SPARKLE_GLOW_LEFT_U + HEALING_SPARKLE_GLOW_UV_SPAN, HEALING_SPARKLE_GLOW_TOP_V + HEALING_SPARKLE_GLOW_UV_SPAN);
         scratch->screenExtent = ((sizeFactor >> 1) * HEALING_SPARKLE_GLOW_UV_SPAN) / scratch->depth;
         _healingSetSparkleScreenBounds(quad, scratch);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);

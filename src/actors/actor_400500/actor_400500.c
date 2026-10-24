@@ -986,34 +986,34 @@ static void _actor400500DrawLimbShadow(Task* task, s16 firstJoint, s16 secondJoi
     /// X/Y words, sorting Z/4 and byte-range modulation. Requires the loaded
     /// texture and one free POLY_FT4 in the frame arena. Advances the cursor
     /// without a bounds check; packet storage must survive frame DMA.
-#define ACTOR_400500_QUEUE_LIMB_SHADOW()                                                                                                                \
-    {                                                                                                                                                   \
-        poly           = gGpuPrimCursor;                                                                                                                \
-        gGpuPrimCursor = poly + 1;                                                                                                                      \
-        setPolyFT4(poly);                                                                                                                               \
-        setSemiTrans(poly, true);                                                                                                                       \
-        GPU_PRIMITIVE_XY_WORD(poly, 0) = screen0;                                                                                                       \
-        GPU_PRIMITIVE_XY_WORD(poly, 1) = screen1;                                                                                                       \
-        GPU_PRIMITIVE_XY_WORD(poly, 2) = screen2;                                                                                                       \
-        GPU_PRIMITIVE_XY_WORD(poly, 3) = screen3;                                                                                                       \
-        setUV4(poly, ACTOR_400500_SHADOW_U_MIN, ACTOR_400500_SHADOW_V_MIN,                                                                              \
-               ACTOR_400500_SHADOW_U_MAX, ACTOR_400500_SHADOW_V_MIN,                                                                                    \
-               ACTOR_400500_SHADOW_U_MIN, ACTOR_400500_SHADOW_V_MAX,                                                                                    \
-               ACTOR_400500_SHADOW_U_MAX, ACTOR_400500_SHADOW_V_MAX);                                                                                   \
-        poly->tpage = getTPage(ACTOR_400500_SHADOW_TEXTURE_4_BIT, GPU_BLEND_SUBTRACT,                                                                   \
-                               ACTOR_400500_SHADOW_PAGE_X, ACTOR_400500_SHADOW_PAGE_Y);                                                                 \
-        poly->clut  = getClut(ACTOR_400500_SHADOW_CLUT_X, ACTOR_400500_SHADOW_CLUT_Y);                                                                  \
-        room        = gGameSession->location.roomState;                                                                                                 \
-        if ((room == 1) || (room == 3) || (room == 5) || (room == 6)) {                                                                                 \
-            poly->r0 = modulation;                                                                                                                      \
-            poly->g0 = modulation;                                                                                                                      \
-            poly->b0 = modulation;                                                                                                                      \
-        } else {                                                                                                                                        \
-            poly->r0 = shade;                                                                                                                           \
-            poly->g0 = modulation >> 1;                                                                                                                 \
-            poly->b0 = shade;                                                                                                                           \
-        }                                                                                                                                               \
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((u32)(depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK), poly); \
+#define ACTOR_400500_QUEUE_LIMB_SHADOW()                                                \
+    {                                                                                   \
+        poly           = gGpuPrimCursor;                                                \
+        gGpuPrimCursor = poly + 1;                                                      \
+        setPolyFT4(poly);                                                               \
+        setSemiTrans(poly, true);                                                       \
+        GPU_PRIMITIVE_XY_WORD(poly, 0) = screen0;                                       \
+        GPU_PRIMITIVE_XY_WORD(poly, 1) = screen1;                                       \
+        GPU_PRIMITIVE_XY_WORD(poly, 2) = screen2;                                       \
+        GPU_PRIMITIVE_XY_WORD(poly, 3) = screen3;                                       \
+        setUV4(poly, ACTOR_400500_SHADOW_U_MIN, ACTOR_400500_SHADOW_V_MIN,              \
+               ACTOR_400500_SHADOW_U_MAX, ACTOR_400500_SHADOW_V_MIN,                    \
+               ACTOR_400500_SHADOW_U_MIN, ACTOR_400500_SHADOW_V_MAX,                    \
+               ACTOR_400500_SHADOW_U_MAX, ACTOR_400500_SHADOW_V_MAX);                   \
+        poly->tpage = getTPage(ACTOR_400500_SHADOW_TEXTURE_4_BIT, GPU_BLEND_SUBTRACT,   \
+                               ACTOR_400500_SHADOW_PAGE_X, ACTOR_400500_SHADOW_PAGE_Y); \
+        poly->clut  = getClut(ACTOR_400500_SHADOW_CLUT_X, ACTOR_400500_SHADOW_CLUT_Y);  \
+        room        = gGameSession->location.roomState;                                 \
+        if ((room == 1) || (room == 3) || (room == 5) || (room == 6)) {                 \
+            poly->r0 = modulation;                                                      \
+            poly->g0 = modulation;                                                      \
+            poly->b0 = modulation;                                                      \
+        } else {                                                                        \
+            poly->r0 = shade;                                                           \
+            poly->g0 = modulation >> 1;                                                 \
+            poly->b0 = shade;                                                           \
+        }                                                                               \
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(depth), poly);                        \
     }
     modulation  = shade;
     partCoords  = task->extra.tmd->coords;

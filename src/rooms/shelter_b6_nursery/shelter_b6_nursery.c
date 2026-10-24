@@ -1792,7 +1792,7 @@ static void _shelterB6NurseryDrawParticleFrame(const GfxCoord* coord, u16 animat
             quad->x2 = projection->screenX - (u16)projection->extent.corner.x;
             quad->y1 = projection->screenY - (u16)projection->extent.corner.y;
             quad->y2 = projection->screenY + (u16)projection->extent.corner.y;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->depth),
                     quad);
         }
     }
@@ -1980,7 +1980,7 @@ static void _shelterB6NurseryDrawSparkShowerShard(const GfxCoord* coord, s16 rad
     if (projection->projectionFlags >= 0) {
         gte_stszotz(&projection->otz);
         setRGB0(triangle, shade, shade, shade);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(projection->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->otz),
                 triangle);
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         gpuSetPrimitiveBlendMode(triangle, (gRandomLcgState >> 16) & 1, projection->otz);

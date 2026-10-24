@@ -1326,7 +1326,7 @@ static void _actor511000DrawHelicopterSearchlightGlow(Task* task, const CVECTOR*
         unitOffset++;
     }
     // Pack the fan first, then prepend its additive draw mode to the same OT chain.
-    orderingTag = GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((u32)(sortDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK) + OT_DISPLACEMENT;
+    orderingTag = GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(sortDepth) + OT_DISPLACEMENT;
     rimPoint    = screenRim;
     for (pointIndex = 0; pointIndex < ARRAY_SIZE(screenRim) - 1; pointIndex++, rimPoint++) {
         ACTOR_511000_EMIT_SEARCHLIGHT_TRIANGLE(rimPoint[1]);

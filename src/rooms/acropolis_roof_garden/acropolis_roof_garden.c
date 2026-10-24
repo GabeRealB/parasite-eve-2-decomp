@@ -793,7 +793,7 @@ void acropolisRoofGardenLightGlowTask(Task* task)
 
                 projection->halfExtent = (work->scale * GLOW_FLARE_CELL_LAST_TEXEL) / projection->otz;
                 _acropolisGlowSetSpriteBounds(quad, projection);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->otz),
                         quad);
             }
             SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
@@ -827,10 +827,7 @@ static inline void _acropolisRoofGardenInitFlareStreak(LINE_G3* streak, u8 centr
 /// contain the selected tag; both packets must live until GPU completion.
 static inline void _acropolisRoofGardenQueueFlare(void* primitive, const s32* depthWord)
 {
-    enum { ACROPOLIS_ROOF_GARDEN_FLARE_DEPTH_TO_BYTE_OFFSET_SHIFT = 2 };
-
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(
-                ((((u32)*depthWord << gDisplayState.otDepthShift) >> ACROPOLIS_ROOF_GARDEN_FLARE_DEPTH_TO_BYTE_OFFSET_SHIFT) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(*depthWord),
             primitive);
     // Prepending the draw mode after the primitive makes the GPU apply it first.
     gpuSetPrimitiveBlendMode(primitive, GPU_BLEND_ADD, *depthWord);

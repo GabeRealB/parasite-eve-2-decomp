@@ -229,7 +229,7 @@ static void _muzzleFlashDrawCore(const GfxCoord* muzzleCoord, s16 worldSize, s16
         quad->x2 = block->screenPos.vx - block->cornerDx;
         quad->y1 = block->screenPos.vy - block->cornerDy;
         quad->y2 = block->screenPos.vy + block->cornerDy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(OverlaySpriteScratch);
@@ -324,7 +324,7 @@ static void _muzzleFlashDrawStreak(const GfxCoord* muzzleCoord, s16 directionAng
         setRGB1(quad, 0, 0, 0);
         setRGB2(quad, brightness >> 1, brightness >> 1, brightness);
         setRGB3(quad, 0, 0, 0);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth),
                 quad);
         gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, block->depth);
     }

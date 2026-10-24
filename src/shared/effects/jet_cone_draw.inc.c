@@ -165,7 +165,7 @@ static void _jetConeDraw(const GfxCoord* coord, s16 ageFrames, s16 baseLength, s
             setUV4(prim, textureU, JET_CONE_TEXTURE_V_TOP, textureU + JET_CONE_TEXTURE_UV_SPAN, JET_CONE_TEXTURE_V_TOP, textureU, JET_CONE_TEXTURE_V_TOP + JET_CONE_TEXTURE_UV_SPAN, textureU + JET_CONE_TEXTURE_UV_SPAN, JET_CONE_TEXTURE_V_TOP + JET_CONE_TEXTURE_UV_SPAN);
             setXY4(prim, coneScratch->sxy0.vx, coneScratch->sxy0.vy, coneScratch->sxy1.vx, coneScratch->sxy1.vy, coneScratch->sxy2.vx, coneScratch->sxy2.vy, coneScratch->sxy3.vx,
                    coneScratch->sxy3.vy);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)coneScratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(coneScratch->otz), prim);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectBandScratch);

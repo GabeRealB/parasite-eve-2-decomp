@@ -615,7 +615,7 @@ void acropolisCafeteriaPuffTask(Task* task)
             quad->x2          = scratch->screenPos.vx - scratch->cornerDx;
             quad->y1          = scratch->screenPos.vy - scratch->cornerDy;
             quad->y2          = scratch->screenPos.vy + scratch->cornerDy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->otz),
                     quad);
             SCRATCH_STACK_RELEASE_BLOCK(OverlaySpriteScratch);
             // Move toward the Z boundary first, then descend along positive Y.

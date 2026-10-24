@@ -341,7 +341,7 @@ static void _apobiosisDrawScreenFlash(s16 brightness)
     setXY4(quad, -APOBIOSIS_FLASH_HALF_WIDTH, -APOBIOSIS_FLASH_HALF_HEIGHT - gDisplayState.vramYOffset, APOBIOSIS_FLASH_HALF_WIDTH,
            -APOBIOSIS_FLASH_HALF_HEIGHT - gDisplayState.vramYOffset, -APOBIOSIS_FLASH_HALF_WIDTH, APOBIOSIS_FLASH_HALF_HEIGHT - gDisplayState.vramYOffset,
            APOBIOSIS_FLASH_HALF_WIDTH, APOBIOSIS_FLASH_HALF_HEIGHT - gDisplayState.vramYOffset);
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(APOBIOSIS_FLASH_DEPTH << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(APOBIOSIS_FLASH_DEPTH),
             quad);
     gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, APOBIOSIS_FLASH_DEPTH);
 }
@@ -554,7 +554,7 @@ static void _apobiosisDrawShardSprite(const GfxCoord* coord, s16 textureFrame, s
         quad->x2 = scratch->screenX - scratch->extent.corner.x;
         quad->y1 = scratch->screenY - scratch->extent.corner.y;
         quad->y2 = scratch->screenY + scratch->extent.corner.y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
@@ -643,7 +643,7 @@ static void _apobiosisDrawShardStrip(const GfxCoord* coord, const SVECTOR* endOf
             quad->x2               = scratch->screenStart.vx - scratch->cornerOffsetX;
             quad->y1               = scratch->screenEnd.vy - scratch->cornerOffsetY;
             quad->y2               = scratch->screenStart.vy + scratch->cornerOffsetY;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                     quad);
         }
     }

@@ -2353,8 +2353,7 @@ static void _acropolisSecurityRoomDrawSweepLine(Task* task)
         gte_stszotz(&line->depth);
         if (line->depth >= ACROPOLIS_SECURITY_ROOM_SWEEP_MIN_DEPTH) {
             setRGB0(prim, ACROPOLIS_SECURITY_ROOM_SWEEP_INTENSITY, ACROPOLIS_SECURITY_ROOM_SWEEP_INTENSITY, ACROPOLIS_SECURITY_ROOM_SWEEP_INTENSITY);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(
-                        ((((u32)line->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(line->depth),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_SUBTRACT, line->depth);
         }
@@ -2416,7 +2415,7 @@ void acropolisSecurityRoomMonitorFeedTask(Task* task)
     edgeY       = centreYBits + (ACROPOLIS_SECURITY_ROOM_FEED_SIZE / 2 - 1);
     quad->y3    = edgeY;
     quad->y2    = edgeY;
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)ACROPOLIS_SECURITY_ROOM_FEED_SORT_DEPTH << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), quad);
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(ACROPOLIS_SECURITY_ROOM_FEED_SORT_DEPTH), quad);
     effectKillTask(work, task);
 }
 
@@ -2483,7 +2482,7 @@ void acropolisSecurityRoomFallingQuadTask(Task* task)
         quad->tpage = getTPage(0, GPU_BLEND_ADD, 832, 0);
         quad->clut  = getClut(256, 270);
         setShadeTex(quad, true);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)quadScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), quad);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(quadScratch->depth), quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectQuadCornersScratch);
 

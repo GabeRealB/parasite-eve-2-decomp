@@ -73,7 +73,7 @@ static void _roomVisualEffectsDrawFlashRing(const GfxCoord* coord, s32 blackRadi
             quad->x3  = projection->screenX + ((projection->radii.tint * rsin(nextAngle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
             quad->y3  = projection->screenY + ((projection->radii.tint * rcos(nextAngle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
             angle     = nextAngle;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->depth),
                     quad);
             gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, projection->depth);
         } while (angle < ROOM_VISUAL_EFFECTS_FULL_TURN);
@@ -127,7 +127,7 @@ static void _roomVisualEffectsDrawFlashDisc(const GfxCoord* coord, s16 radius, c
             quad->y2 = projection->screenY;
             quad->x3 = projection->screenX + ((projection->radius * rsin(angle + 0x200)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
             quad->y3 = projection->screenY + ((projection->radius * rcos(angle + 0x200)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->depth),
                     quad);
             gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, projection->depth);
         }

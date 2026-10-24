@@ -88,7 +88,7 @@ static void _roomVisualEffectsDrawFlyingBurstGlow(const GfxCoord* coord, s16 hal
         quad->y3                 = bottom;
         quad->y2                 = bottom;
         addPrim(
-            GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)projection->depth << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->depth),
             quad);
         quad           = gGpuPrimCursor;
         gGpuPrimCursor = quad + 1;
@@ -113,7 +113,7 @@ static void _roomVisualEffectsDrawFlyingBurstGlow(const GfxCoord* coord, s16 hal
         quad->y3                 = outerBottom;
         quad->y2                 = outerBottom;
         addPrim(
-            GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)projection->depth << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->depth),
             quad);
         if (worldCollisionProjectGroundCoord(coord, &ground) == 1) {
             _roomVisualEffectsDrawFlyingBurstGroundQuad(&ground, outerHalfExtent);
@@ -194,7 +194,7 @@ static void _roomVisualEffectsDrawFlyingBurstGroundQuad(const GfxCoord* coord, s
         quad->y2    = quadScratch->screenCorners[2].vy;
         quad->x3    = quadScratch->screenCorners[3].vx;
         quad->y3    = quadScratch->screenCorners[3].vy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)quadScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(quadScratch->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectQuadScratch);

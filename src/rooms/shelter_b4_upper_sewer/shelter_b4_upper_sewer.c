@@ -1530,25 +1530,25 @@ static void _shelterB4UpperSewerDrawWaterSurfaces(Task* task, const _ShelterB4Up
     /// projected depth + 96. Head insertion makes the mode execute before the
     /// quad. Packed XY words contain signed pixel halfwords; no vector overlay
     /// is implied by those word stores. Packets stay live through GPU consumption.
-#define SHELTER_B4_UPPER_SEWER_EMIT_WATER_QUAD()                                                                                                                                                   \
-    waterQuad                              = (POLY_F4*)_gShelterB4UpperSewerWaterPacketCursor;                                                                                                     \
-    _gShelterB4UpperSewerWaterPacketCursor = (u8*)(waterQuad + 1);                                                                                                                                 \
-    setlen(waterQuad, sizeof(*waterQuad) / sizeof(u32) - 1);                                                                                                                                       \
-    setcode(waterQuad, SHELTER_B4_UPPER_SEWER_WATER_QUAD_CODE);                                                                                                                                    \
-    GPU_PRIMITIVE_XY_WORD(waterQuad, 0) = screenXY0;                                                                                                                                               \
-    GPU_PRIMITIVE_XY_WORD(waterQuad, 1) = screenXY1;                                                                                                                                               \
-    GPU_PRIMITIVE_XY_WORD(waterQuad, 2) = screenXY2;                                                                                                                                               \
-    GPU_PRIMITIVE_XY_WORD(waterQuad, 3) = screenXY3;                                                                                                                                               \
-    waterQuad->r0                       = 0;                                                                                                                                                       \
-    waterQuad->g0                       = blueIntensity >> 2;                                                                                                                                      \
-    waterQuad->b0                       = blueIntensity;                                                                                                                                           \
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(orderingDepth + SHELTER_B4_UPPER_SEWER_WATER_DEPTH_BIAS) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
-            waterQuad);                                                                                                                                                                            \
-    drawMode                               = (DR_MODE*)_gShelterB4UpperSewerWaterPacketCursor;                                                                                                     \
-    _gShelterB4UpperSewerWaterPacketCursor = (u8*)(drawMode + 1);                                                                                                                                  \
-    setlen(drawMode, SHELTER_B4_UPPER_SEWER_WATER_DRAW_MODE_WORDS);                                                                                                                                \
-    drawMode->code[0] = SHELTER_B4_UPPER_SEWER_WATER_DRAW_MODE;                                                                                                                                    \
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(orderingDepth + SHELTER_B4_UPPER_SEWER_WATER_DEPTH_BIAS) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
+#define SHELTER_B4_UPPER_SEWER_EMIT_WATER_QUAD()                                                        \
+    waterQuad                              = (POLY_F4*)_gShelterB4UpperSewerWaterPacketCursor;          \
+    _gShelterB4UpperSewerWaterPacketCursor = (u8*)(waterQuad + 1);                                      \
+    setlen(waterQuad, sizeof(*waterQuad) / sizeof(u32) - 1);                                            \
+    setcode(waterQuad, SHELTER_B4_UPPER_SEWER_WATER_QUAD_CODE);                                         \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 0) = screenXY0;                                                    \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 1) = screenXY1;                                                    \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 2) = screenXY2;                                                    \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 3) = screenXY3;                                                    \
+    waterQuad->r0                       = 0;                                                            \
+    waterQuad->g0                       = blueIntensity >> 2;                                           \
+    waterQuad->b0                       = blueIntensity;                                                \
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(orderingDepth + SHELTER_B4_UPPER_SEWER_WATER_DEPTH_BIAS), \
+            waterQuad);                                                                                 \
+    drawMode                               = (DR_MODE*)_gShelterB4UpperSewerWaterPacketCursor;          \
+    _gShelterB4UpperSewerWaterPacketCursor = (u8*)(drawMode + 1);                                       \
+    setlen(drawMode, SHELTER_B4_UPPER_SEWER_WATER_DRAW_MODE_WORDS);                                     \
+    drawMode->code[0] = SHELTER_B4_UPPER_SEWER_WATER_DRAW_MODE;                                         \
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(orderingDepth + SHELTER_B4_UPPER_SEWER_WATER_DEPTH_BIAS), \
             drawMode);
 
     SVECTOR           corner0, corner1, corner2, corner3;

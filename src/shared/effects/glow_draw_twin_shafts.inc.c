@@ -105,7 +105,7 @@ static void _glowDrawTwinShafts(const GfxCoord* coord)
             setRGB3(primitive, 0, 0, 0);
             setRGB0(primitive, intensity, intensity, intensity);
             setRGB1(primitive, intensity, intensity, intensity);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth),
                     primitive);
             gpuSetPrimitiveBlendMode(primitive, GPU_BLEND_ADD, block->depth);
         }

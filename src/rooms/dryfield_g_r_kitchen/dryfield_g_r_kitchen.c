@@ -546,7 +546,7 @@ static void _dryfieldGRKitchenDrawDimTaperedBeam(const GfxCoord* coord, const SV
             quad->y2 = scratch->sy0;
             quad->x3 = scratch->sx0 + ((scratch->radius0 * rsin(angle)) >> GLOW_TRIG_SHIFT);
             quad->y3 = scratch->sy0 + ((scratch->radius0 * rcos(angle)) >> GLOW_TRIG_SHIFT);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->otz0),
                     quad);
             gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz0);
 
@@ -565,7 +565,7 @@ static void _dryfieldGRKitchenDrawDimTaperedBeam(const GfxCoord* coord, const SV
             quad->y2 = scratch->sy0;
             quad->x3 = scratch->sx1;
             quad->y3 = scratch->sy1;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->otz0),
                     quad);
             gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz0);
 
@@ -581,7 +581,7 @@ static void _dryfieldGRKitchenDrawDimTaperedBeam(const GfxCoord* coord, const SV
             quad->x3 = scratch->sx1 + ((scratch->radius1 * rsin(GLOW_HALF_TURN - angle)) >> GLOW_TRIG_SHIFT);
             quad->y3 = scratch->sy1 + ((scratch->radius1 * rcos(GLOW_HALF_TURN - angle)) >> GLOW_TRIG_SHIFT);
             angle   += GLOW_QUARTER_TURN;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->otz1),
                     quad);
             gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz1);
         } while (angle < GLOW_HALF_TURN);

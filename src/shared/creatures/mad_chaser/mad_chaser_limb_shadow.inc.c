@@ -35,7 +35,7 @@ static inline void _madChaserQueueLimbShadow(const MadChaserLimbShadowScratch* s
     quad->tpage = getTPage(MAD_CHASER_SHADOW_TEXTURE_4_BIT, GPU_BLEND_SUBTRACT, MAD_CHASER_SHADOW_PAGE_X, MAD_CHASER_SHADOW_PAGE_Y);
     quad->clut  = getClut(MAD_CHASER_SHADOW_CLUT_X, MAD_CHASER_SHADOW_CLUT_Y);
     setRGB0(quad, shade, shade, shade);
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK), quad);
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth), quad);
 }
 
 /// Draws a horizontal subtractive limb shadow between two model coordinates.

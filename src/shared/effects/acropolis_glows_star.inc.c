@@ -90,7 +90,7 @@ void GLOW_STAR_TASK(Task* task)
         quad->x1 = quad->x3 = block->screenPos.vx + block->cornerDx;
         quad->y0 = quad->y1 = block->screenPos.vy - GLOW_STAR_CORE_HALF_HEIGHT;
         quad->y2 = quad->y3 = block->screenPos.vy + GLOW_STAR_CORE_HALF_HEIGHT;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
                 quad);
 
         // Tint and rotate the larger flare in Q12, keeping the halfword phase wrap.
@@ -125,7 +125,7 @@ void GLOW_STAR_TASK(Task* task)
         quad->x2        = block->screenPos.vx - block->cornerDx;
         quad->y1        = block->screenPos.vy - block->cornerDy;
         quad->y2        = block->screenPos.vy + block->cornerDy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
                 quad);
     }
     // A clipped core still consumes its packet; every path releases this one-shot effect.

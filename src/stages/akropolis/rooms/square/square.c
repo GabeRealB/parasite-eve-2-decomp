@@ -717,11 +717,7 @@ void akropolisSquareRoomEffectTask(Task* task)
 /// Queues one primitive of the telephone light, blended additively.
 static inline void _akropolisSquareQueueTelephoneLight(void* primitive, const s32* sortingDepth)
 {
-    // Sixteen depth units per tag, expressed as four-byte table offsets.
-    enum { AKROPOLIS_SQUARE_GLOW_DEPTH_TO_BYTE_OFFSET_SHIFT = 2 };
-
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(
-                ((((u32)*sortingDepth << gDisplayState.otDepthShift) >> AKROPOLIS_SQUARE_GLOW_DEPTH_TO_BYTE_OFFSET_SHIFT) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(*sortingDepth),
             primitive);
     // Prepending the draw mode after the primitive makes the GPU apply it first.
     gpuSetPrimitiveBlendMode(primitive, GPU_BLEND_ADD, *sortingDepth);

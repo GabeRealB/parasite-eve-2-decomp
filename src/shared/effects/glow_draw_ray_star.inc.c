@@ -96,7 +96,7 @@ static void _glowDrawRayStar(GfxCoord* coord, const SVECTOR* localPoint, s16 pul
             primitive->y2 = block->screenPos.vy;
             primitive->x3 = block->screenPos.vx + ((block->outerRadius * rsin(nextAngle)) >> GLOW_TRIG_SHIFT);
             primitive->y3 = block->screenPos.vy + ((block->outerRadius * rcos(nextAngle)) >> GLOW_TRIG_SHIFT);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
                     primitive);
             gpuSetPrimitiveBlendMode(primitive, GPU_BLEND_ADD, block->otz);
 
@@ -116,7 +116,7 @@ static void _glowDrawRayStar(GfxCoord* coord, const SVECTOR* localPoint, s16 pul
             primitive->x3 = block->screenPos.vx + ((block->outerRadius * rsin(nextAngle)) >> (GLOW_TRIG_SHIFT + 1));
             primitive->y3 = block->screenPos.vy + ((block->outerRadius * rcos(nextAngle)) >> (GLOW_TRIG_SHIFT + 1));
             angle         = nextAngle;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
                     primitive);
             gpuSetPrimitiveBlendMode(primitive, GPU_BLEND_ADD, block->otz);
         } while (angle < GLOW_FULL_TURN);
@@ -149,7 +149,7 @@ static void _glowDrawRayStar(GfxCoord* coord, const SVECTOR* localPoint, s16 pul
             primitive->y2 = block->screenPos.vy;
             primitive->x3 = block->screenPos.vx + ((block->innerRadius * rsin(adjacentAngle)) >> (GLOW_TRIG_SHIFT + 1));
             primitive->y3 = block->screenPos.vy + ((block->innerRadius * rcos(adjacentAngle)) >> (GLOW_TRIG_SHIFT + 1));
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
                     primitive);
             gpuSetPrimitiveBlendMode(primitive, GPU_BLEND_ADD, block->otz);
 
@@ -170,7 +170,7 @@ static void _glowDrawRayStar(GfxCoord* coord, const SVECTOR* localPoint, s16 pul
             primitive->x3 = block->screenPos.vx + ((block->innerRadius * rsin(adjacentAngle)) >> GLOW_TRIG_SHIFT);
             primitive->y3 = block->screenPos.vy + ((block->innerRadius * rcos(adjacentAngle)) >> GLOW_TRIG_SHIFT);
             angle         = adjacentAngle;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
                     primitive);
             gpuSetPrimitiveBlendMode(primitive, GPU_BLEND_ADD, block->otz);
         } while (angle < GLOW_FULL_TURN);

@@ -2097,7 +2097,7 @@ static inline void _actor00400QueueGroundStain(const _Actor00400GroundStainScrat
     quad->tpage = getTPage(ACTOR_00400_GROUND_STAIN_TEXTURE_4_BIT, GPU_BLEND_SUBTRACT, 512, 0);
     quad->clut  = getClut(48, 266);
     setRGB0(quad, intensity >> 1, intensity, intensity);
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK), quad);
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth), quad);
 }
 
 /// Queues a subtractive blob-texture quad for the diver's ground stain.

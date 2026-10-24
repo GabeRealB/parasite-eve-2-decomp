@@ -95,7 +95,7 @@ static void _glowDrawBitDisc(const SVECTOR* worldPoint, s32 radiusScale, s32 pac
             prim->x3      = block->sx + ((block->radius * rsin(nextAngle)) >> GLOW_TRIG_SHIFT);
             prim->y3      = block->sy + ((block->radius * rcos(nextAngle)) >> GLOW_TRIG_SHIFT);
             angle         = nextAngle;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << display->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH_SCALED(block->otz, display->otDepthShift),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
         } while (angle < GLOW_FULL_TURN);

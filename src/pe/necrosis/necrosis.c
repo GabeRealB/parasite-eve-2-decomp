@@ -559,7 +559,7 @@ static void _necrosisDrawMistPuff(const GfxCoord* coord, s16 frameAndBlend, s16 
                uEnd, NECROSIS_PUFF_TOP_V + (NECROSIS_PUFF_SMALL_CELL_WIDTH - 1));
         // Scale the rotated corners by projection depth, then queue the raw textured quad.
         _necrosisSetMistPuffCorners(scratch, quad, size, angle);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
@@ -619,7 +619,7 @@ static void _necrosisDrawLargeMistPuff(const GfxCoord* coord, s16 frameAndBlend,
                uEnd, NECROSIS_PUFF_TOP_V + (NECROSIS_PUFF_LARGE_CELL_WIDTH - 1));
         // Scale the rotated corners by projection depth, then queue the raw textured quad.
         _necrosisSetLargeMistPuffCorners(scratch, quad, size, angle);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);

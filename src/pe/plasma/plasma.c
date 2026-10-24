@@ -363,7 +363,7 @@ static void _plasmaDrawRingBand(const EffectWork* effect, const GfxCoord* coord,
             quad->y2 = (u16)scratch->sxy2.vy;
             quad->x3 = (u16)scratch->sxy3.vx;
             quad->y3 = (u16)scratch->sxy3.vy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->otz),
                     quad);
         }
     }

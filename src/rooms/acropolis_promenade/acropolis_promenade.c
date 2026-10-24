@@ -956,7 +956,7 @@ void acropolisPromenadeGroundGlowTask(Task* task)
         quad->g0        = grey;
         quad->b0        = grey;
         setSemiTrans(quad, 1);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)quadScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(quadScratch->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectQuadCornersScratch);

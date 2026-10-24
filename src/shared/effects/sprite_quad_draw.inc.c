@@ -207,7 +207,7 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_
             prim->x2               = block->screenX - (u16)block->extent.corner.x;
             prim->y1               = block->screenY - (u16)block->extent.corner.y;
             prim->y2               = block->screenY + (u16)block->extent.corner.y;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth),
                     prim);
         }
     }

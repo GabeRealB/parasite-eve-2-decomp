@@ -237,9 +237,9 @@ static void _spriteEmitBatch(const SpriteSource* sourceElements, const SpriteBat
             spriteIndex++;
             spritePacket->packed.size = source->size.packed;
             texturePageSource++;
-            drawPacket->drawMode.tag = (drawPacket->drawMode.tag & packetLengthMask) | (*GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)source->depth << display->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) & linkAddressMask);
-            *GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)source->depth << display->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) =
-                (*GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)source->depth << display->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) & packetLengthMask) | ((u32)drawPacket & linkAddressMask);
+            drawPacket->drawMode.tag = (drawPacket->drawMode.tag & packetLengthMask) | (*GPU_ORDERING_TABLE_ENTRY_AT_DEPTH_SCALED(source->depth, display->otDepthShift) & linkAddressMask);
+            *GPU_ORDERING_TABLE_ENTRY_AT_DEPTH_SCALED(source->depth, display->otDepthShift) =
+                (*GPU_ORDERING_TABLE_ENTRY_AT_DEPTH_SCALED(source->depth, display->otDepthShift) & packetLengthMask) | ((u32)drawPacket & linkAddressMask);
             drawPacket++;
             source++;
         } while (spriteIndex < batch->spriteCount);
@@ -540,7 +540,7 @@ static void _spriteQueueViewDrawAreas(void)
             rect.w         = SPRITE_VIEW_WIDTH_PIXELS;
             rect.h         = SPRITE_VIEW_HEIGHT_PIXELS;
             drawAreaPacket = _spriteCreateDrawAreaPacket(&rect);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)drawArea->restoreDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK), drawAreaPacket);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(drawArea->restoreDepth), drawAreaPacket);
         }
     }
 }

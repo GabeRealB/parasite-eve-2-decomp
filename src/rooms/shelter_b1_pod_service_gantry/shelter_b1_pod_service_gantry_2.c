@@ -291,7 +291,7 @@ static void _shelterB1PodServiceGantryDrawBankedDriftSprite(const GfxCoord* coor
         quad->y1 = projection->screenY - (u16)projection->extent.corner.y;
         quad->y2 = projection->screenY + (u16)projection->extent.corner.y;
         // Sort by projection depth; the GPU consumes a complete textured-quad packet.
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
@@ -382,7 +382,7 @@ static void _shelterB1PodServiceGantryDrawAlternateDriftSprite(const GfxCoord* c
         quad->y1 = projection->screenY - (u16)projection->extent.corner.y;
         quad->y2 = projection->screenY + (u16)projection->extent.corner.y;
         // Sort by projection depth; the GPU consumes a complete textured-quad packet.
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
@@ -507,7 +507,7 @@ static void _waterDrawSpinU16(const GfxCoord* coord, u16 textureColumn, s16 radi
         quad->x2 = projection->screenX - (u16)projection->cornerOffsetX;
         quad->y1 = projection->screenY - (u16)projection->cornerOffsetY;
         quad->y2 = projection->screenY + (u16)projection->cornerOffsetY;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)*depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(*depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK_AT(scratchCursor, _ShelterB1PodServiceGantrySpinScratch);
@@ -591,7 +591,7 @@ static void _waterDrawTileU16(const GfxCoord* coord, u16 textureCell, s16 radius
         setUV4(quad, firstU, firstV, lastU, firstV, firstU, lastV, lastU, lastV);
         projection->screenExtent = (radiusScale * WATER_TILE_U16_PERSPECTIVE_SCALE) / projection->depth;
         _waterSetUprightSpriteCorners(quad, projection);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK_AT(scratchCursor, EffectCentreScratch);
@@ -674,29 +674,29 @@ void shelterB1PodServiceGantryDrawChainGlow(const GfxCoord* coord, s32 chainNumb
         /// and sine/cosine are Q12. Geometry narrows to s16, RGB to bytes.
         /// Requires quad and blend-mode packet capacity and a positive depth;
         /// packets outlive this frame's scratch, whose pointer is not retained.
-#define SHELTER_B1_POD_SERVICE_GANTRY_DRAW_GLOW_WEDGE()                                                                                                        \
-    {                                                                                                                                                          \
-        wedge          = gGpuPrimCursor;                                                                                                                       \
-        gGpuPrimCursor = wedge + 1;                                                                                                                            \
-        setPolyG4(wedge);                                                                                                                                      \
-        setRGB0(wedge, 0, 0, 0);                                                                                                                               \
-        setRGB1(wedge, 0, 0, 0);                                                                                                                               \
-        setRGB2(wedge, red, green, blue);                                                                                                                      \
-        setRGB3(wedge, 0, 0, 0);                                                                                                                               \
-        wedge->x0     = projection->screenX + ((projection->screenExtent * rsin(startAngle)) >> SHELTER_B1_POD_SERVICE_GANTRY_GLOW_TRIG_FRACTION_BITS);        \
-        midpointAngle = startAngle + SHELTER_B1_POD_SERVICE_GANTRY_GLOW_EIGHTH_TURN;                                                                           \
-        wedge->y0     = projection->screenY + ((projection->screenExtent * rcos(startAngle)) >> SHELTER_B1_POD_SERVICE_GANTRY_GLOW_TRIG_FRACTION_BITS);        \
-        wedge->x1     = projection->screenX + ((projection->screenExtent * rsin(midpointAngle)) >> SHELTER_B1_POD_SERVICE_GANTRY_GLOW_TRIG_FRACTION_BITS);     \
-        wedge->y1     = projection->screenY + ((projection->screenExtent * rcos(midpointAngle)) >> SHELTER_B1_POD_SERVICE_GANTRY_GLOW_TRIG_FRACTION_BITS);     \
-        endAngle      = startAngle + SHELTER_B1_POD_SERVICE_GANTRY_GLOW_QUARTER_TURN;                                                                          \
-        wedge->x2     = projection->screenX;                                                                                                                   \
-        wedge->y2     = projection->screenY;                                                                                                                   \
-        wedge->x3     = projection->screenX + ((projection->screenExtent * rsin(endAngle)) >> SHELTER_B1_POD_SERVICE_GANTRY_GLOW_TRIG_FRACTION_BITS);          \
-        wedge->y3     = projection->screenY + ((projection->screenExtent * rcos(endAngle)) >> SHELTER_B1_POD_SERVICE_GANTRY_GLOW_TRIG_FRACTION_BITS);          \
-        startAngle    = endAngle;                                                                                                                              \
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
-                wedge);                                                                                                                                        \
-        gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, projection->depth);                                                                                     \
+#define SHELTER_B1_POD_SERVICE_GANTRY_DRAW_GLOW_WEDGE()                                                                                                    \
+    {                                                                                                                                                      \
+        wedge          = gGpuPrimCursor;                                                                                                                   \
+        gGpuPrimCursor = wedge + 1;                                                                                                                        \
+        setPolyG4(wedge);                                                                                                                                  \
+        setRGB0(wedge, 0, 0, 0);                                                                                                                           \
+        setRGB1(wedge, 0, 0, 0);                                                                                                                           \
+        setRGB2(wedge, red, green, blue);                                                                                                                  \
+        setRGB3(wedge, 0, 0, 0);                                                                                                                           \
+        wedge->x0     = projection->screenX + ((projection->screenExtent * rsin(startAngle)) >> SHELTER_B1_POD_SERVICE_GANTRY_GLOW_TRIG_FRACTION_BITS);    \
+        midpointAngle = startAngle + SHELTER_B1_POD_SERVICE_GANTRY_GLOW_EIGHTH_TURN;                                                                       \
+        wedge->y0     = projection->screenY + ((projection->screenExtent * rcos(startAngle)) >> SHELTER_B1_POD_SERVICE_GANTRY_GLOW_TRIG_FRACTION_BITS);    \
+        wedge->x1     = projection->screenX + ((projection->screenExtent * rsin(midpointAngle)) >> SHELTER_B1_POD_SERVICE_GANTRY_GLOW_TRIG_FRACTION_BITS); \
+        wedge->y1     = projection->screenY + ((projection->screenExtent * rcos(midpointAngle)) >> SHELTER_B1_POD_SERVICE_GANTRY_GLOW_TRIG_FRACTION_BITS); \
+        endAngle      = startAngle + SHELTER_B1_POD_SERVICE_GANTRY_GLOW_QUARTER_TURN;                                                                      \
+        wedge->x2     = projection->screenX;                                                                                                               \
+        wedge->y2     = projection->screenY;                                                                                                               \
+        wedge->x3     = projection->screenX + ((projection->screenExtent * rsin(endAngle)) >> SHELTER_B1_POD_SERVICE_GANTRY_GLOW_TRIG_FRACTION_BITS);      \
+        wedge->y3     = projection->screenY + ((projection->screenExtent * rcos(endAngle)) >> SHELTER_B1_POD_SERVICE_GANTRY_GLOW_TRIG_FRACTION_BITS);      \
+        startAngle    = endAngle;                                                                                                                          \
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->depth),                                                                                      \
+                wedge);                                                                                                                                    \
+        gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, projection->depth);                                                                                 \
     }
 
         do {

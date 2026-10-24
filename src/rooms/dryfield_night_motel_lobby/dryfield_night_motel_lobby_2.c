@@ -1369,7 +1369,7 @@ static void _dryfieldNightMotelLobbyDrawFlare(const SVECTOR* worldPoint, s32 tex
         // Perspective-size the square and sort it at the light's projected depth.
         projection->radius = ((s16)radiusScale * GLOW_FLARE_CELL_LAST_TEXEL) / projection->otz;
         _dryfieldNightMotelLobbySetFlareBounds(flare, projection);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->otz),
                 flare);
     }
     // Preserve the extra reservation above the projection, including on rejection.

@@ -3528,11 +3528,11 @@ static void _dryfieldNightGasStationDrawTrackRedStreak(s32 frameIndex)
         setRGB0(core, 0x80, 0, 0);
         core->w = 3;
         core->h = 3;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)drawValue << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), core);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(drawValue), core);
         drawMode       = gGpuPrimCursor;
         gGpuPrimCursor = drawMode + 1;
         setDrawTPage(drawMode, 1, 0, getTPage(0, GPU_BLEND_ADD, 320, 0));
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)drawValue << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), drawMode);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(drawValue), drawMode);
         centrePixel    = gGpuPrimCursor;
         gGpuPrimCursor = centrePixel + 1;
         setTile1(centrePixel);
@@ -3540,7 +3540,7 @@ static void _dryfieldNightGasStationDrawTrackRedStreak(s32 frameIndex)
         centrePixel->x0 = coreX;
         centrePixel->y0 = coreY;
         setRGB0(centrePixel, 0xFF, 0, 0);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)drawValue << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), centrePixel);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(drawValue), centrePixel);
 
         // Reproject the tip and retain its Y for the screen-space streak tail.
         gfxSetRotIdentity(&trackRotation);
@@ -3566,11 +3566,11 @@ static void _dryfieldNightGasStationDrawTrackRedStreak(s32 frameIndex)
         setRGB1(streak, rand() % 60 + 0x50, 0, 0);
         drawValue = DRYFIELD_NIGHT_GAS_STATION_RED_STREAK_OT_DEPTH;
         setRGB0(streak, 0, 0, 0);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)drawValue << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), streak);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(drawValue), streak);
         drawMode       = gGpuPrimCursor;
         gGpuPrimCursor = drawMode + 1;
         setDrawTPage(drawMode, 1, 0, getTPage(0, GPU_BLEND_ADD, 320, 0));
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)drawValue << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), drawMode);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(drawValue), drawMode);
     }
 }
 
@@ -3642,11 +3642,11 @@ static void _dryfieldNightGasStationDrawCompanionRedStreak(s32 unusedFrame)
         // The negative red value deliberately wraps when stored in the GPU byte.
         setRGB0(streak, rand() % 100 - 0x7E, 0, 0);
         setRGB1(streak, 0, 0, 0);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)DRYFIELD_NIGHT_GAS_STATION_RED_STREAK_OT_DEPTH << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), streak);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(DRYFIELD_NIGHT_GAS_STATION_RED_STREAK_OT_DEPTH), streak);
         drawMode       = gGpuPrimCursor;
         gGpuPrimCursor = drawMode + 1;
         setDrawTPage(drawMode, 1, 0, getTPage(0, GPU_BLEND_ADD, 320, 0));
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)DRYFIELD_NIGHT_GAS_STATION_RED_STREAK_OT_DEPTH << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), drawMode);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(DRYFIELD_NIGHT_GAS_STATION_RED_STREAK_OT_DEPTH), drawMode);
     }
 }
 

@@ -2902,7 +2902,7 @@ static void _shelterB3GarbageIncineratorDrawPulsingDisc(const SVECTOR* worldPoin
             wedge->x3     = block->sx + ((block->radius * rsin(nextAngle)) >> GLOW_TRIG_SHIFT);
             wedge->y3     = block->sy + ((block->radius * rcos(nextAngle)) >> GLOW_TRIG_SHIFT);
             angle         = nextAngle;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
                     wedge);
             gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, block->otz);
         } while (angle < GLOW_FULL_TURN);
@@ -3016,7 +3016,7 @@ static void _shelterB3GarbageIncineratorDrawLayeredGlow(const SVECTOR* worldPoin
             wedge->y2     = block->sy;
             wedge->x3     = block->sx + ((block->outerRadius * rsin(nextAngle)) >> GLOW_TRIG_SHIFT);
             wedge->y3     = block->sy + ((block->outerRadius * rcos(nextAngle)) >> GLOW_TRIG_SHIFT);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
                     wedge);
             gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, block->otz);
 
@@ -3031,7 +3031,7 @@ static void _shelterB3GarbageIncineratorDrawLayeredGlow(const SVECTOR* worldPoin
             wedge->y2 = block->sy;
             wedge->x3 = block->sx + ((block->outerRadius * rsin(nextAngle)) >> (GLOW_TRIG_SHIFT + 1));
             wedge->y3 = block->sy + ((block->outerRadius * rcos(nextAngle)) >> (GLOW_TRIG_SHIFT + 1));
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
                     wedge);
             gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, block->otz);
         }
@@ -3054,7 +3054,7 @@ static void _shelterB3GarbageIncineratorDrawLayeredGlow(const SVECTOR* worldPoin
             wedge->y2      = block->sy;
             wedge->x3      = block->sx + ((block->innerRadius * rsin(nextBladeAngle)) >> (GLOW_TRIG_SHIFT + 1));
             wedge->y3      = block->sy + ((block->innerRadius * rcos(nextBladeAngle)) >> (GLOW_TRIG_SHIFT + 1));
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
                     wedge);
             gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, block->otz);
 
@@ -3070,7 +3070,7 @@ static void _shelterB3GarbageIncineratorDrawLayeredGlow(const SVECTOR* worldPoin
             wedge->y2          = block->sy;
             wedge->x3          = block->sx + ((block->innerRadius * rsin(oppositeBladeAngle)) >> GLOW_TRIG_SHIFT);
             wedge->y3          = block->sy + ((block->innerRadius * rcos(oppositeBladeAngle)) >> GLOW_TRIG_SHIFT);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
                     wedge);
             gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, block->otz);
         }

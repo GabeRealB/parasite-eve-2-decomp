@@ -48,7 +48,7 @@ void glowDrawFlareClipped(const SVECTOR* worldPoint, s32 textureIndex, s32 radiu
         setSemiTrans(prim, 1);
         block->radius = ((s16)radiusScale * GLOW_FLARE_CELL_LAST_TEXEL) / block->otz;
         _glowSetClippedFlareBounds(prim, block);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz), prim);
     }
     SCRATCH_STACK_RELEASE_BLOCK(GlowCentreRadiusScratch);
 }

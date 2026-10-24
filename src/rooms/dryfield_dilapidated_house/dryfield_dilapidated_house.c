@@ -4455,12 +4455,12 @@ static void _dryfieldDilapidatedHouseDrawMorphCone(Task* task, const SVECTOR* ri
             screenWord[4] = screenPositions[2 * CONE_RING_VERTEX_COUNT - 1];
             screenWord[6] = screenPositions[CONE_RING_VERTEX_COUNT];
         }
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)depths[segmentIndex] << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + CONE_OT_OFFSET, quad);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(depths[segmentIndex]) + CONE_OT_OFFSET, quad);
         drawMode       = gGpuPrimCursor;
         gGpuPrimCursor = drawMode + 1;
         setlen(drawMode, 1);
         drawMode->code[0] = CONE_DRAW_MODE_COMMAND | getTPage(0, GPU_BLEND_ADD_QUARTER, 320, 0);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)depths[segmentIndex] << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + CONE_OT_OFFSET, drawMode);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(depths[segmentIndex]) + CONE_OT_OFFSET, drawMode);
     }
 }
 
@@ -5008,7 +5008,7 @@ static void _dryfieldDilapidatedHouseDrawLightPrism(GfxCoord* coord, s16 firstVe
         setRGB1(quad, intensity, intensity, intensity);
         setRGB2(quad, 0, 0, 0);
         setRGB3(quad, 0, 0, 0);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                 quad);
         gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->depth);
     }
@@ -5036,7 +5036,7 @@ static void _dryfieldDilapidatedHouseDrawLightPrism(GfxCoord* coord, s16 firstVe
     setRGB1(quad, intensity, intensity, intensity);
     setRGB2(quad, intensity, intensity, intensity);
     setRGB3(quad, intensity, intensity, intensity);
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), quad);
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth), quad);
     gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->depth);
     SCRATCH_STACK_RELEASE_BLOCK(EffectQuadCornersScratch);
 #undef DRYFIELD_DILAPIDATED_HOUSE_TRANSFORM_PRISM_CORNER
@@ -5220,7 +5220,7 @@ static void _dryfieldDilapidatedHouseDrawTwinTrail(s16 newestSlot, s16 colorMult
             setRGB1(quad, newerIntensity * (colorMultipliers >> 8), newerIntensity * ((colorMultipliers >> 4) & TRAIL_COLOR_CHANNEL_MASK), newerIntensity * (colorMultipliers & TRAIL_COLOR_CHANNEL_MASK));
             setRGB2(quad, olderIntensity * (colorMultipliers >> 8), olderIntensity * ((colorMultipliers >> 4) & TRAIL_COLOR_CHANNEL_MASK), olderIntensity * (colorMultipliers & TRAIL_COLOR_CHANNEL_MASK));
             setRGB3(quad, olderIntensity * (colorMultipliers >> 8), olderIntensity * ((colorMultipliers >> 4) & TRAIL_COLOR_CHANNEL_MASK), olderIntensity * (colorMultipliers & TRAIL_COLOR_CHANNEL_MASK));
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->otz),
                     quad);
             gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz);
         }

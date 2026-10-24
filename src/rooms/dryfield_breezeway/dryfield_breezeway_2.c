@@ -1517,7 +1517,7 @@ static void _dryfieldBreezewayDrawRedDiamondGlow(GfxCoord* coord, const SVECTOR*
             quad->y0 = quad->y2 = quad->y3 = block->screenPos.vy;
             verticalSide                   = partIndex << 1;
             quad->y1                       = (block->screenPos.vy - block->halfExtent) + block->halfExtent * verticalSide;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
                     quad);
             gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, block->otz);
             partIndex++;
@@ -1791,7 +1791,7 @@ static void _dryfieldBreezewayDrawBouncingParticle(Task* task, const u8 rgb[3])
         sprite->x2             = block->screenX - block->extent.corner.x;
         sprite->y1             = block->screenY - block->extent.corner.y;
         sprite->y2             = block->screenY + block->extent.corner.y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), sprite);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth), sprite);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }

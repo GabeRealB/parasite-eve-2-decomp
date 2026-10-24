@@ -38,7 +38,7 @@ static inline void _limbShadowQueueSegment(const ActorLimbShadowScratch* scratch
     quad->tpage = getTPage(LIMB_SHADOW_TEXTURE_4_BIT, GPU_BLEND_SUBTRACT, LIMB_SHADOW_TEXTURE_PAGE_X, LIMB_SHADOW_TEXTURE_PAGE_Y);
     quad->clut  = getClut(LIMB_SHADOW_TEXTURE_CLUT_X, LIMB_SHADOW_TEXTURE_CLUT_Y);
     setRGB0(quad, shade, shade, shade);
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK), quad);
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth), quad);
 }
 
 /// Queues a horizontal limb-shadow quad between two model parts.

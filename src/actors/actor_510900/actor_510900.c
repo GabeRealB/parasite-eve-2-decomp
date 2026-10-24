@@ -1393,7 +1393,7 @@ void actor510900FlameSpriteTask45(Task* task)
             screenEdge               = scratch->screenY + (u16)scratch->extent.corner.y;
             sprite->y3               = screenEdge;
             sprite->y2               = screenEdge;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                     sprite);
             // Every other frame, put the glow on Y=0 in the same parent frame.
             if (coord->coord.t[1] < 0 && (effect->age & 1)) {
@@ -1496,7 +1496,7 @@ void actor510900FlameSpriteTask4C(Task* task)
             screenEdge               = scratch->screenY + (u16)scratch->extent.corner.y;
             sprite->y3               = screenEdge;
             sprite->y2               = screenEdge;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                     sprite);
         }
         SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
@@ -1602,7 +1602,7 @@ void actor510900FlameSpriteTask52(Task* task)
             screenEdge                 = scratch->screenY + (u16)scratch->extent.corner.y;
             sprite->y3                 = screenEdge;
             sprite->y2                 = screenEdge;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                     sprite);
         }
         SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
@@ -1698,7 +1698,7 @@ void actor510900FlameSpriteTask59(Task* task)
             screenEdge               = scratch->screenY + (u16)scratch->extent.corner.y;
             sprite->y3               = screenEdge;
             sprite->y2               = screenEdge;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                     sprite);
         }
         SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
@@ -1856,7 +1856,7 @@ void actor510900DebrisStreakTask(Task* task)
             line->y0   = scratch->screenEndpoints[0].vy;
             line->x1   = scratch->screenEndpoints[1].vx;
             line->y1   = scratch->screenEndpoints[1].vy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((scratch->depths[0] + scratch->depths[1]) >> 1) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH((scratch->depths[0] + scratch->depths[1]) >> 1),
                     line);
             gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, (scratch->depths[0] + scratch->depths[1]) >> 1);
         }

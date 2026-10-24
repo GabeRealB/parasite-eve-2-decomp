@@ -947,7 +947,7 @@ void dryfieldToiletJetPuffTask(Task* task)
         setUVWH(quad, (work->age / work->period) << PUFF_TEXTURE_CELL_SHIFT, PUFF_TEXTURE_ROW,
                 PUFF_TEXTURE_CELL_LAST, PUFF_TEXTURE_CELL_LAST);
         _dryfieldToiletSetJetPuffCorners(quad, projection, &work->scale, &work->angle);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->otz),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(OverlaySpriteScratch);

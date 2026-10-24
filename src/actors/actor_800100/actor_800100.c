@@ -3353,7 +3353,7 @@ static void _actor800100DrawAimBeamLine(const GfxCoord* beamCoord, s16 contactDi
         line->r1 = line->r0 - ACTOR_800100_BEAM_LINE_TIP_FADE;
         line->g1 = 0;
         line->b1 = 0;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)reservedBlock->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), line);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(reservedBlock->otz), line);
         gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, reservedBlock->otz);
     }
     SCRATCH_STACK_RELEASE_BLOCK_AT(scratchCursor, _Actor800100AimBeamLineScratch);

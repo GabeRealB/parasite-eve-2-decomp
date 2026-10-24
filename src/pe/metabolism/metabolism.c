@@ -418,7 +418,7 @@ static void _metabolismDrawFanWedge(const GfxCoord* coord, s16 radius, s16 beari
         rightRimAngle        += METABOLISM_FAN_HALF_ANGLE;
         triangle->x2          = scratch->screenX + ((scratch->screenExtent * rsin(rightRimAngle)) >> METABOLISM_FAN_TRIG_FRACTION_BITS);
         triangle->y2          = scratch->screenY + ((scratch->screenExtent * rcos(rightRimAngle)) >> METABOLISM_FAN_TRIG_FRACTION_BITS);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                 triangle);
         gpuSetPrimitiveBlendMode(triangle, GPU_BLEND_ADD, scratch->depth);
     }

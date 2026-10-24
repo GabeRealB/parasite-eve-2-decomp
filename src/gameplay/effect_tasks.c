@@ -1173,7 +1173,7 @@ void effectSpriteTask34(Task* task)
             quad->x2               = block->screenX - (u16)block->extent.corner.x;
             quad->y1               = block->screenY - (u16)block->extent.corner.y;
             quad->y2               = block->screenY + (u16)block->extent.corner.y;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth),
                     quad);
         }
         SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
@@ -1251,7 +1251,7 @@ void effectSpriteTask72(Task* task)
             quad->x2               = block->screenX - (u16)block->extent.corner.x;
             quad->y1               = block->screenY - (u16)block->extent.corner.y;
             quad->y2               = block->screenY + (u16)block->extent.corner.y;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth),
                     quad);
         }
         SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
@@ -1341,7 +1341,7 @@ void effectLineTaskA3(Task* task)
                 line->y0   = block->screenEndpoints[0].vy;
                 line->x1   = block->screenEndpoints[1].vx;
                 line->y1   = block->screenEndpoints[1].vy;
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth),
                         line);
                 gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, block->depth);
             }
@@ -1404,7 +1404,7 @@ static void _effectDrawMuzzleFlash(const GfxCoord* coord, s32 size, s32 angle)
         quad->x2               = block->screenX - (u16)block->extent.corner.x;
         quad->y1               = block->screenY - (u16)block->extent.corner.y;
         quad->y2               = block->screenY + (u16)block->extent.corner.y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
@@ -1495,7 +1495,7 @@ void effectSpriteTask35(Task* task)
             quad->x2               = block->screenX - (u16)block->extent.corner.x;
             quad->y1               = block->screenY - (u16)block->extent.corner.y;
             quad->y2               = block->screenY + (u16)block->extent.corner.y;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth),
                     quad);
         }
         SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
@@ -1595,7 +1595,7 @@ void effectSpriteTask6F(Task* task)
             quad->x2               = block->screenX - (u16)block->extent.corner.x;
             quad->y1               = block->screenY - (u16)block->extent.corner.y;
             quad->y2               = block->screenY + (u16)block->extent.corner.y;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth),
                     quad);
         }
         SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
@@ -2018,7 +2018,7 @@ void effectTileTaskA4(Task* task)
         tile->b0   = brightness >> 3;
         tile->x0   = scratch->screenPoint.vx;
         tile->y0   = scratch->screenPoint.vy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                 tile);
         gpuSetPrimitiveBlendMode(tile, GPU_BLEND_ADD, scratch->depth);
     }
@@ -2130,7 +2130,7 @@ static void _effectDrawImpactSparkFlash(const GfxCoord* coord, u16 frame, s16 si
         quad->x2               = block->screenX - (u16)block->extent.corner.x;
         quad->y1               = block->screenY - (u16)block->extent.corner.y;
         quad->y2               = block->screenY + (u16)block->extent.corner.y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
@@ -2248,7 +2248,7 @@ void effectSpriteTask5C(Task* task)
             _effectSetExplosionTexture(quad, textureFrame);
             // Size the rotated billboard from its growing size and biased depth.
             EFFECT_SET_PUFF_CORNERS(quad, scratch, work, EFFECT_SPRITE_ATLAS_UV_SPAN);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                     quad);
         }
         SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
@@ -2444,7 +2444,7 @@ void effectSpriteTask70(Task* task)
             quad->u3   = ((work->age / work->period) << EFFECT_SMOKE_PUFF_CELL_SHIFT) + EFFECT_SMOKE_PUFF_UV_SPAN;
             quad->v3   = EFFECT_SMOKE_PUFF_TEXTURE_V + EFFECT_SMOKE_PUFF_UV_SPAN;
             EFFECT_SET_ROTATED_SPRITE_CORNERS(quad, scratch, work, EFFECT_SMOKE_PUFF_UV_SPAN);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                     quad);
         }
         SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
@@ -2519,7 +2519,7 @@ void effectSpriteTask76(Task* task)
         quad->u3    = _gEffectImpactFlashFrames[work->age].u + uvSpan;
         quad->v3    = _gEffectImpactFlashFrames[work->age].v + uvSpan;
         EFFECT_SET_ROTATED_SPRITE_CORNERS(quad, scratch, work, uvSpan);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
@@ -2643,7 +2643,7 @@ void effectSpriteTask7C(Task* task)
         quad->u3   = ((work->age / work->period) % EFFECT_BOUNCING_SPARK_FRAME_COUNT) * EFFECT_BOUNCING_SPARK_CELL_SIZE + (EFFECT_BOUNCING_SPARK_CELL_SIZE - 1);
         quad->v3   = EFFECT_BOUNCING_SPARK_TEXTURE_V + EFFECT_BOUNCING_SPARK_CELL_SIZE - 1;
         EFFECT_SET_ROTATED_SPRITE_CORNERS(quad, block, work, EFFECT_BOUNCING_SPARK_UV_SPAN);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
@@ -2981,7 +2981,7 @@ void effectLineTask92(Task* task)
             line->y0 = block->screenEndpoints[0].vy;
             line->x1 = block->screenEndpoints[1].vx;
             line->y1 = block->screenEndpoints[1].vy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth),
                     line);
             gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, block->depth);
             // Cache an endpoint only when both projections succeeded.
@@ -3093,7 +3093,7 @@ static void _effectDrawCriticalHitBurst(const GfxCoord* coord, s16 radius, s16 b
             quad->g3         = 0;
             quad->b3         = 0;
             nextSegmentAngle = _effectSetCriticalHitRingCorners(quad, block, segmentAngle);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth),
                     quad);
             segmentAngle = nextSegmentAngle;
             gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, block->depth);
@@ -3128,7 +3128,7 @@ static void _effectDrawCriticalHitBurst(const GfxCoord* coord, s16 radius, s16 b
                           ((block->extent.spike.halfWidth * rsin(spikeAngle + EFFECT_DRAW_QUARTER_TURN)) >> 12);
                 tri->y2 = block->screenY + ((block->extent.spike.radius * rcos(spikeAngle)) >> 12) +
                           ((block->extent.spike.halfWidth * rcos(spikeAngle + EFFECT_DRAW_QUARTER_TURN)) >> 12);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth),
                         tri);
                 segmentAngle += EFFECT_DRAW_QUARTER_TURN;
                 gpuSetPrimitiveBlendMode(tri, GPU_BLEND_ADD, block->depth);
@@ -3220,7 +3220,7 @@ void effectSpriteTask9E(Task* task)
         quad->y2    = quadScratch->screenCorners[2].vy;
         quad->x3    = quadScratch->screenCorners[3].vx;
         quad->y3    = quadScratch->screenCorners[3].vy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)quadScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(quadScratch->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectQuadScratch);
@@ -3311,7 +3311,7 @@ void effectSpriteTask54(Task* task)
         quad->v3   = (EFFECT_DUST_PUFF_TEXTURE_V + EFFECT_DUST_PUFF_CELL_SIZE - 1);
 
         _effectSetDustPuffCorners(quad, block, work);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
@@ -3387,7 +3387,7 @@ void effectDrawGroundGlow(const GfxCoord* coord, s32 halfSize, u32 brightness)
         quad->y2 = quadScratch->screenCorners[2].vy;
         quad->x3 = quadScratch->screenCorners[3].vx;
         quad->y3 = quadScratch->screenCorners[3].vy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)quadScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(quadScratch->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectQuadScratch);
@@ -3447,7 +3447,7 @@ void effectDrawGroundShadow(const VECTOR3* centre, s32 halfSize, s16 shade)
             quad->y2 = quadScratch->screenCorners[2].vy;
             quad->x3 = quadScratch->screenCorners[3].vx;
             quad->y3 = quadScratch->screenCorners[3].vy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)quadScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(quadScratch->depth),
                     quad);
         }
         SCRATCH_STACK_RELEASE_BLOCK(EffectQuadScratch);

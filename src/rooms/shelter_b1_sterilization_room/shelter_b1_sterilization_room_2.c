@@ -2004,7 +2004,7 @@ static void _shelterB1SterilizationRoomDrawPulsingGlow(const SVECTOR* worldPoint
             wedge->y2     = scratch->sy;
             wedge->x3     = scratch->sx + ((scratch->outerRadius * rsin(nextAngle)) >> GLOW_TRIG_SHIFT);
             wedge->y3     = scratch->sy + ((scratch->outerRadius * rcos(nextAngle)) >> GLOW_TRIG_SHIFT);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->otz),
                     wedge);
             gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, scratch->otz);
 
@@ -2020,7 +2020,7 @@ static void _shelterB1SterilizationRoomDrawPulsingGlow(const SVECTOR* worldPoint
             wedge->x3 = scratch->sx + ((scratch->outerRadius * rsin(nextAngle)) >> (GLOW_TRIG_SHIFT + 1));
             wedge->y3 = scratch->sy + ((scratch->outerRadius * rcos(nextAngle)) >> (GLOW_TRIG_SHIFT + 1));
             angle     = nextAngle;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->otz),
                     wedge);
             gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, scratch->otz);
         } while (angle < GLOW_FULL_TURN);
@@ -2042,7 +2042,7 @@ static void _shelterB1SterilizationRoomDrawPulsingGlow(const SVECTOR* worldPoint
             wedge->y2  = scratch->sy;
             wedge->x3  = scratch->sx + ((scratch->innerRadius * rsin(bladeAngle)) >> (GLOW_TRIG_SHIFT + 1));
             wedge->y3  = scratch->sy + ((scratch->innerRadius * rcos(bladeAngle)) >> (GLOW_TRIG_SHIFT + 1));
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->otz),
                     wedge);
             gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, scratch->otz);
 
@@ -2059,7 +2059,7 @@ static void _shelterB1SterilizationRoomDrawPulsingGlow(const SVECTOR* worldPoint
             wedge->x3  = scratch->sx + ((scratch->innerRadius * rsin(bladeAngle)) >> GLOW_TRIG_SHIFT);
             wedge->y3  = scratch->sy + ((scratch->innerRadius * rcos(bladeAngle)) >> GLOW_TRIG_SHIFT);
             angle      = bladeAngle;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->otz),
                     wedge);
             gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, scratch->otz);
         } while (angle < GLOW_FULL_TURN);

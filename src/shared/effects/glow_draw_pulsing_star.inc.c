@@ -70,7 +70,7 @@ void glowDrawPulsingStar(const SVECTOR* worldPoint, s16 pulseRate, s32 radiusSca
             prim->y0     = screenY;
             verticalSide = partIndex * 2;
             prim->y1     = (block->sy - block->radius) + (block->radius * verticalSide);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
             partIndex++;

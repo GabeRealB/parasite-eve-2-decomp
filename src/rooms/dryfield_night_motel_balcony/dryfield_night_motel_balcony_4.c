@@ -4762,7 +4762,7 @@ static void _dryfieldNightMotelBalconyDrawDebris(const Task* task, const u8* tin
         quad->x2                    = projection->screenX - projection->extent.corner.x;
         quad->y1                    = projection->screenY - projection->extent.corner.y;
         quad->y2                    = projection->screenY + projection->extent.corner.y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), quad);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->depth), quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
@@ -5044,7 +5044,7 @@ static void _dryfieldNightMotelBalconyDrawFallingParticle(const Task* task, cons
         quad->y3                 = screenEdge;
         quad->y2                 = screenEdge;
         display                  = &gDisplayState;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << display->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH_SCALED(projection->depth, display->otDepthShift),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
@@ -5330,7 +5330,7 @@ static void _dryfieldNightMotelBalconyDrawDriftPuff(const Task* task, s32 clutOr
         quad->y3                 = screenEdge;
         quad->y2                 = screenEdge;
         display                  = &gDisplayState;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << display->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH_SCALED(projection->depth, display->otDepthShift),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
@@ -5511,7 +5511,7 @@ static void _dryfieldNightMotelBalconyDrawFlame(const Task* task, const u8* tint
         quad->y3                   = screenEdge;
         quad->y2                   = screenEdge;
         display                    = &gDisplayState;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << display->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH_SCALED(projection->depth, display->otDepthShift),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);

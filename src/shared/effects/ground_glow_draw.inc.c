@@ -112,7 +112,7 @@ static void _groundGlowDraw(const GfxCoord* ground, s32 halfExtent)
         prim->y2 = quadScratch->screenCorners[2].vy;
         prim->x3 = quadScratch->screenCorners[3].vx;
         prim->y3 = quadScratch->screenCorners[3].vy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(depth), prim);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectGroundQuadScratch);
 }

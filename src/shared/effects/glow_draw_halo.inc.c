@@ -77,7 +77,7 @@ static void _glowDrawHalo(const GfxCoord* coord, s32 innerRadiusScale, s32 width
             setRGB2(quad, rgb[0], rgb[1], rgb[2]);
             setRGB3(quad, rgb[0], rgb[1], rgb[2]);
             nextAngle = _glowSetHaloQuadVertices(quad, block, angle);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth),
                     quad);
             gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, block->depth);
         }

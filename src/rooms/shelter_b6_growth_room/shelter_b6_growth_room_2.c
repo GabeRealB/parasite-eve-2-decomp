@@ -784,7 +784,7 @@ static void _shelterB6GrowthRoomDrawBottomGlow(s16 heightPixels, s16 brightness)
            SHELTER_B6_GROWTH_ROOM_BOTTOM_GLOW_HALF_WIDTH_PIXELS, SHELTER_B6_GROWTH_ROOM_BOTTOM_GLOW_BOTTOM_Y_PIXELS - heightPixels,
            -SHELTER_B6_GROWTH_ROOM_BOTTOM_GLOW_HALF_WIDTH_PIXELS, SHELTER_B6_GROWTH_ROOM_BOTTOM_GLOW_BOTTOM_Y_PIXELS,
            SHELTER_B6_GROWTH_ROOM_BOTTOM_GLOW_HALF_WIDTH_PIXELS, SHELTER_B6_GROWTH_ROOM_BOTTOM_GLOW_BOTTOM_Y_PIXELS);
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(SHELTER_B6_GROWTH_ROOM_BOTTOM_GLOW_SORT_DEPTH << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), gradient);
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(SHELTER_B6_GROWTH_ROOM_BOTTOM_GLOW_SORT_DEPTH), gradient);
     gpuSetPrimitiveBlendMode(gradient, GPU_BLEND_ADD, SHELTER_B6_GROWTH_ROOM_BOTTOM_GLOW_SORT_DEPTH);
 }
 
@@ -947,7 +947,7 @@ static void _shelterB6GrowthRoomDrawMist(const GfxCoord* coord, u16 frame, s16 s
             edgePixels             = block->screenY + (u16)block->extent.corner.y;
             quad->y3               = edgePixels;
             quad->y2               = edgePixels;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth),
                     quad);
         }
     }
@@ -1088,7 +1088,7 @@ static void _shelterB6GrowthRoomDrawDriftPuff(const GfxCoord* coord, u16 frame, 
             quad->x2               = block->screenX - (u16)block->extent.corner.x;
             quad->y1               = block->screenY - (u16)block->extent.corner.y;
             quad->y2               = block->screenY + (u16)block->extent.corner.y;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth),
                     quad);
         }
     }

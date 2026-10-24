@@ -94,7 +94,7 @@ static void _mainStreetDrawPuff(const GfxCoord* coord, u16 frame, s16 sizeFactor
             quad->x2 = projection->screenX - projection->cornerOffsetX;
             quad->y1 = projection->screenY - projection->cornerOffsetY;
             quad->y2 = projection->screenY + projection->cornerOffsetY;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->depth),
                     quad);
         }
     }

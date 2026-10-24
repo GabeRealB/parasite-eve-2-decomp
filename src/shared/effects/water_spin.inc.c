@@ -97,7 +97,7 @@ static void _waterDrawSpin(const GfxCoord* coord, s16 textureColumn, s16 radiusS
         quad->x2 = workspace->screenX - (u16)workspace->extent.corner.x;
         quad->y1 = workspace->screenY - (u16)workspace->extent.corner.y;
         quad->y2 = workspace->screenY + (u16)workspace->extent.corner.y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)workspace->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(workspace->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
@@ -188,7 +188,7 @@ static void _waterDrawTile(const GfxCoord* coord, s16 frameIndex, s16 radiusScal
         // Keep the animation's anchor below the quad's geometric centre.
         workspace->screenExtent = (radiusScale * WATER_TILE_UV_SPAN_TEXELS) / workspace->depth;
         _waterTileSetScreenCorners(quad, workspace);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)workspace->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(workspace->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);

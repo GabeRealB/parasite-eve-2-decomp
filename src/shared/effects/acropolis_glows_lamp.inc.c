@@ -80,7 +80,7 @@ void GLOW_LAMP_TASK(Task* task)
         quad->x1 = quad->x3 = projection->screenPos.vx + projection->halfExtent;
         quad->y0 = quad->y1 = projection->screenPos.vy - projection->halfExtent;
         quad->y2 = quad->y3 = projection->screenPos.vy + projection->halfExtent;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->otz),
                 quad);
     }
     // A clipped draw still consumes its packet and retires this counted one-shot effect.

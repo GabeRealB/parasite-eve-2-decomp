@@ -72,7 +72,7 @@ static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiu
             prim->y0     = screenY;
             verticalSide = partIndex * 2;
             prim->y1     = (block->sy - (u16)block->radius) + (block->radius * verticalSide);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
             partIndex++;
@@ -95,7 +95,7 @@ static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiu
             line->y1        = block->sy;
             line->x2        = block->sx - (block->radius * xRadiusMultiple);
             line->y2        = block->sy + (block->radius * yRadiusMultiple);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 4) & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK >> 2)) * sizeof(*gGpuCurrentOt)),
+            addPrim(&gGpuCurrentOt[(((u32)block->otz << gDisplayState.otDepthShift) >> 4) & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK >> 2)],
                     line);
             gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, block->otz);
             partIndex = yRadiusMultiple;

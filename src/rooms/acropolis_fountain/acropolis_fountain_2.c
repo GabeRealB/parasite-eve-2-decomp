@@ -388,10 +388,7 @@ void acropolisFountainSprayTask(Task* task)
             edgeY                  = projection->screenPos.vy + projection->halfExtent;
             sprite->y3             = edgeY;
             sprite->y2             = edgeY;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz
-                                                               << gDisplayState.otDepthShift) >>
-                                                              2) &
-                                                             GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->otz),
                     sprite);
         }
         SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);

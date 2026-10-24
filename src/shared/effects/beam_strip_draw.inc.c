@@ -164,7 +164,7 @@ static void _beamStripDraw(const GfxCoord* startCoord, const SVECTOR* worldEnd, 
             quad->y1               = (u16)scratch->screenEnd.vy - (u16)scratch->cornerOffsetY;
             quad->y2               = (u16)scratch->screenStart.vy + (u16)scratch->cornerOffsetY;
             // Sort by the start depth after the configured unit increments.
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                     quad);
         }
     }

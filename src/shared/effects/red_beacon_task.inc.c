@@ -74,7 +74,7 @@ void RED_BEACON_TASK(Task* task)
             setRGB2(beaconQuad, redLevel, 0, 0);
             setRGB3(beaconQuad, 0, 0, 0);
             _redBeaconSetHalfBounds(beaconQuad, glowScratch, halfIndex);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)glowScratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(glowScratch->otz),
                     beaconQuad);
             gpuSetPrimitiveBlendMode(beaconQuad, GPU_BLEND_ADD, glowScratch->otz);
         }

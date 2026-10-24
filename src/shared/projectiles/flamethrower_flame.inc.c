@@ -132,7 +132,7 @@ static void _flamethrowerFlameDrawNozzle(const VECTOR3* worldPosition, u16 anima
         screenY               = scratch->screenY + (u16)scratch->screenExtent;
         quad->y3              = screenY;
         quad->y2              = screenY;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
@@ -398,7 +398,7 @@ static void _flamethrowerFlameDrawBlob(const VECTOR3* worldPosition, u16 animati
         quad->x2                 = scratch->screenX - (u16)scratch->extent.corner.x;
         quad->y1                 = scratch->screenY - (u16)scratch->extent.corner.y;
         quad->y2                 = scratch->screenY + (u16)scratch->extent.corner.y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
@@ -483,7 +483,7 @@ static void _flamethrowerFlameDrawSplash(const VECTOR3* worldPosition, s32 halfS
         quad->y2 = scratch->screenCorners[2].vy;
         quad->x3 = scratch->screenCorners[3].vx;
         quad->y3 = scratch->screenCorners[3].vy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)orderingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(orderingDepth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectGroundQuadScratch);

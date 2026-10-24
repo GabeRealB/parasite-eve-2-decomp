@@ -1245,12 +1245,12 @@ static void _neoArkAltarDrawTileWallSide(const SVECTOR* floorStart, const SVECTO
             GPU_PRIMITIVE_XY_WORD(wallStrip, 3) = screenUpperEnd;
             upperShade                          = lowerShade - NEO_ARK_ALTAR_WALL_SHADE_STEP;
             _neoArkAltarShadeWallStrip(wallStrip, lowerShade, upperShade);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), wallStrip);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(depth), wallStrip);
             blendCommand   = gGpuPrimCursor;
             gGpuPrimCursor = blendCommand + 1;
             // Prepending the mode at the same depth makes it execute before the strip.
             setDrawTPage(blendCommand, false, false, getTPage(0, GPU_BLEND_ADD, 640, 0));
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), blendCommand);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(depth), blendCommand);
             lowerShade = upperShade;
         }
     }

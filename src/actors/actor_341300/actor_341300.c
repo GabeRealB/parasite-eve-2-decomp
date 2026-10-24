@@ -505,7 +505,7 @@ static void _actor341300DrawTexturedQuads(void)
             setRGB0(quad, ACTOR_341300_QUAD_NEUTRAL_RGB, ACTOR_341300_QUAD_NEUTRAL_RGB, ACTOR_341300_QUAD_NEUTRAL_RGB);
             quad->clut  = getClut(0, 248);
             quad->tpage = getTPage(1, 0, 448, 256);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(quadDepth[quadIndex] << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), quad);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(quadDepth[quadIndex]), quad);
         }
     }
 }

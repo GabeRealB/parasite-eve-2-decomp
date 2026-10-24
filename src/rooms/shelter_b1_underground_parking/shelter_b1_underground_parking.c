@@ -3200,7 +3200,7 @@ static void _shelterB1UndergroundParkingDrawPanelGlow(s16 screenX, s16 screenY, 
             prim->x3      = screenX + ((pixelRadius * rsin(nextAngle)) >> GLOW_TRIG_SHIFT);
             prim->y3      = screenY + ((pixelRadius * rcos(nextAngle)) >> GLOW_TRIG_SHIFT);
             sweepAngle    = nextAngle;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_DEPTH << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_DEPTH),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_DEPTH);
         } while (sweepAngle < GLOW_FULL_TURN);

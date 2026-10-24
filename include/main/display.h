@@ -61,8 +61,11 @@ enum { GPU_DMA_LINK_ADDRESS_MASK  = 0xFFFFFF,
 /// The ordering-table tag for a sorting depth: the depth scaled by `otDepthShift`, as one of the 1024
 /// depth-sorted tags (deeper values wrap into them). `depth` is evaluated once per expansion, and converted to
 /// `u32` as a whole.
-#define GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(depth) \
-    GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(depth) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)
+#define GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(depth) GPU_ORDERING_TABLE_ENTRY_AT_DEPTH_SCALED(depth, gDisplayState.otDepthShift)
+
+/// The same, with the scale read where the caller has it (a local pointer to the display state).
+#define GPU_ORDERING_TABLE_ENTRY_AT_DEPTH_SCALED(depth, otDepthShift) \
+    GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(depth) << (otDepthShift)) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)
 
 /// A writable `u32` view of a primitive's packed colour group.
 ///

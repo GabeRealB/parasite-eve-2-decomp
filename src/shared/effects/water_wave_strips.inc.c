@@ -226,12 +226,12 @@ static void WATER_WAVE_STRIPS_DRAW_FUNCTION(Task* task)
     /// initialized and sent. Depth is SZ3 / 4, shifted/masked as an unsigned
     /// OT byte offset; neither arena nor table bounds are checked. Both packets
     /// must survive GPU consumption. Invoke this statement list in a braced block.
-#define WATER_WAVE_STRIPS_QUEUE_QUAD()                                                                                                                \
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), quad); \
-    drawMode                        = (DR_MODE*)WATER_WAVE_STRIPS_PACKET_CURSOR;                                                                      \
-    WATER_WAVE_STRIPS_PACKET_CURSOR = (u8*)(drawMode + 1);                                                                                            \
-    setDrawTPage(drawMode, 0, 0, getTPage(0, GPU_BLEND_SUBTRACT, 640, 0));                                                                            \
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), drawMode)
+#define WATER_WAVE_STRIPS_QUEUE_QUAD()                                           \
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(depth), quad);                     \
+    drawMode                        = (DR_MODE*)WATER_WAVE_STRIPS_PACKET_CURSOR; \
+    WATER_WAVE_STRIPS_PACKET_CURSOR = (u8*)(drawMode + 1);                       \
+    setDrawTPage(drawMode, 0, 0, getTPage(0, GPU_BLEND_SUBTRACT, 640, 0));       \
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(depth), drawMode)
 
 #if WATER_WAVE_STRIPS_RESET_ACTOR_LOAD_CURSOR
     surface   = WATER_WAVE_STRIPS_SURFACES;

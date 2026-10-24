@@ -588,7 +588,7 @@ static void _energyballDrawGlowDisc(const GfxCoord* centreCoord, s16 radius, s16
             setRGB2(quad, brightness >> 1, brightness, brightness >> 1);
             setRGB3(quad, 0, 0, 0);
             _energyballSetGlowFanVertices(quad, scratch, rimAngle);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                     quad);
             gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->depth);
         }
@@ -777,7 +777,7 @@ static void _energyballDrawChargeBand(const GfxCoord* coord, s16 halfHeight, s16
             quad->y2 = scratch->sxy2.vy;
             quad->x3 = scratch->sxy3.vx;
             quad->y3 = scratch->sxy3.vy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->otz),
                     quad);
         }
     }

@@ -952,9 +952,8 @@ static inline void _acropolisPatioSetLightGlowBounds(POLY_FT4* glowQuad, const R
 static inline void _acropolisPatioDrawLightGlow(const GfxCoord* composedCoord, const EffectWork* glowWork, RoomGlowSpriteScratch* spriteScratch)
 {
     enum {
-        ACROPOLIS_PATIO_LIGHT_GLOW_CLUT_STRIDE             = 16,
-        ACROPOLIS_PATIO_LIGHT_GLOW_FRAME_PARITY_MASK       = 1,
-        ACROPOLIS_PATIO_LIGHT_GLOW_DEPTH_TO_OT_BYTES_SHIFT = 2
+        ACROPOLIS_PATIO_LIGHT_GLOW_CLUT_STRIDE       = 16,
+        ACROPOLIS_PATIO_LIGHT_GLOW_FRAME_PARITY_MASK = 1,
     };
 
     POLY_FT4* glowQuad;
@@ -986,8 +985,7 @@ static inline void _acropolisPatioDrawLightGlow(const GfxCoord* composedCoord, c
 
         spriteScratch->halfExtent = (glowWork->scale * (ACROPOLIS_PATIO_JET_CELL_SIZE - 1)) / spriteScratch->otz;
         _acropolisPatioSetLightGlowBounds(glowQuad, spriteScratch);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(
-                    (((u32)spriteScratch->otz << gDisplayState.otDepthShift) >> ACROPOLIS_PATIO_LIGHT_GLOW_DEPTH_TO_OT_BYTES_SHIFT) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(spriteScratch->otz),
                 glowQuad);
     }
 }
@@ -1049,8 +1047,7 @@ static const u8 _gAcropolisPatioLightGreyAlignmentByte = 0xF2;
 static inline void _acropolisPatioDrawLightMote(const GfxCoord* cachedCoord, EffectPointTileScratch* tileScratch)
 {
     enum {
-        ACROPOLIS_PATIO_LIGHT_MOTE_GREY_LEVELS             = 192,
-        ACROPOLIS_PATIO_LIGHT_MOTE_DEPTH_TO_OT_BYTES_SHIFT = 2
+        ACROPOLIS_PATIO_LIGHT_MOTE_GREY_LEVELS = 192,
     };
 
     TILE_1* moteTile;
@@ -1075,8 +1072,7 @@ static inline void _acropolisPatioDrawLightMote(const GfxCoord* cachedCoord, Eff
         greyLevel       = gRandomLcgState >> 16;
         greyLevel      %= ACROPOLIS_PATIO_LIGHT_MOTE_GREY_LEVELS;
         setRGB0(moteTile, greyLevel, greyLevel, greyLevel);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(
-                    (((u32)tileScratch->depth << gDisplayState.otDepthShift) >> ACROPOLIS_PATIO_LIGHT_MOTE_DEPTH_TO_OT_BYTES_SHIFT) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(tileScratch->depth),
                 moteTile);
         // Prepending at the same depth makes the GPU set blending before the tile.
         gpuSetPrimitiveBlendMode(moteTile, GPU_BLEND_AVERAGE, tileScratch->depth);

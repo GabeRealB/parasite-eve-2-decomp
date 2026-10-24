@@ -559,7 +559,7 @@ static void _acropolisHelicopterLandingPadDrawPerimeterLight(const SVECTOR* worl
                 nextAngle     = angle + ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_WEDGE_ANGLE;
                 wedge->x3     = block->sx + ((block->outerRadius * rsin(nextAngle)) >> ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS);
                 wedge->y3     = block->sy + ((block->outerRadius * rcos(nextAngle)) >> ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
                         wedge);
                 gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, block->otz);
 
@@ -574,7 +574,7 @@ static void _acropolisHelicopterLandingPadDrawPerimeterLight(const SVECTOR* worl
                 wedge->y2 = block->sy;
                 wedge->x3 = block->sx + ((block->outerRadius * rsin(nextAngle)) >> (ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS + 1));
                 wedge->y3 = block->sy + ((block->outerRadius * rcos(nextAngle)) >> (ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS + 1));
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
                         wedge);
                 gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, block->otz);
             }
@@ -595,7 +595,7 @@ static void _acropolisHelicopterLandingPadDrawPerimeterLight(const SVECTOR* worl
                 armEdgeAngle = angle + ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_QUARTER_TURN;
                 wedge->x3    = block->sx + ((block->innerRadius * rsin(armEdgeAngle)) >> (ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS + 1));
                 wedge->y3    = block->sy + ((block->innerRadius * rcos(armEdgeAngle)) >> (ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS + 1));
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
                         wedge);
                 gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, block->otz);
 
@@ -611,7 +611,7 @@ static void _acropolisHelicopterLandingPadDrawPerimeterLight(const SVECTOR* worl
                 armEdgeAngle = angle + ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_HALF_TURN;
                 wedge->x3    = block->sx + ((block->innerRadius * rsin(armEdgeAngle)) >> ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS);
                 wedge->y3    = block->sy + ((block->innerRadius * rcos(armEdgeAngle)) >> ACROPOLIS_HELICOPTER_LANDING_PAD_GLOW_TRIG_FRACTION_BITS);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
                         wedge);
                 gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, block->otz);
             }
@@ -748,7 +748,7 @@ void acropolisHelicopterLandingPadEmberTask(Task* task)
         sprite->x2                  = projection->screenX - (u16)projection->extent.corner.x;
         sprite->y1                  = projection->screenY - (u16)projection->extent.corner.y;
         sprite->y2                  = projection->screenY + (u16)projection->extent.corner.y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), sprite);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->depth), sprite);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
@@ -932,7 +932,7 @@ static void _acropolisHelicopterLandingPadDrawUpperSparkLine(GfxCoord* coord)
         spark->y0 = line->screenEndpoints[0].vy;
         spark->x1 = line->screenEndpoints[1].vx;
         spark->y1 = line->screenEndpoints[1].vy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)line->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), spark);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(line->depth), spark);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectLineScratch);
 }
@@ -984,7 +984,7 @@ void acropolisHelicopterLandingPadDrawLowerSparkLine(GfxCoord* coord)
         spark->y0 = line->screenEndpoints[0].vy;
         spark->x1 = line->screenEndpoints[1].vx;
         spark->y1 = line->screenEndpoints[1].vy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)line->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), spark);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(line->depth), spark);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectLineScratch);
 }
@@ -1160,7 +1160,7 @@ void acropolisHelicopterLandingPadLensFlareTask(Task* task)
         sprite->x2                  = projection->screenX - (u16)projection->extent.corner.x;
         sprite->y1                  = projection->screenY - (u16)projection->extent.corner.y;
         sprite->y2                  = projection->screenY + (u16)projection->extent.corner.y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), sprite);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->depth), sprite);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {

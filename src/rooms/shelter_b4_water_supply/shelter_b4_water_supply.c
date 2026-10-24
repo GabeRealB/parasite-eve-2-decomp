@@ -1357,12 +1357,12 @@ static void _shelterB4WaterSupplyDrawXWaveStrips(Task* task)
     /// quad is a completed POLY_G4 already reserved by the caller. The macro
     /// reserves a full 12-byte DR_MODE but submits one command word; the spare
     /// word is untouched. Both packets share the unbiased projected depth.
-#define SHELTER_B4_WATER_SUPPLY_QUEUE_WATER_QUAD()                                                                                                    \
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), quad); \
-    drawMode                                = (DR_MODE*)_gShelterB4WaterSupplyWaterPacketCursor;                                                      \
-    _gShelterB4WaterSupplyWaterPacketCursor = (u8*)(drawMode + 1);                                                                                    \
-    setDrawTPage(drawMode, 0, 0, getTPage(0, GPU_BLEND_SUBTRACT, 640, 0));                                                                            \
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), drawMode)
+#define SHELTER_B4_WATER_SUPPLY_QUEUE_WATER_QUAD()                                               \
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(depth), quad);                                     \
+    drawMode                                = (DR_MODE*)_gShelterB4WaterSupplyWaterPacketCursor; \
+    _gShelterB4WaterSupplyWaterPacketCursor = (u8*)(drawMode + 1);                               \
+    setDrawTPage(drawMode, 0, 0, getTPage(0, GPU_BLEND_SUBTRACT, 640, 0));                       \
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(depth), drawMode)
 
     surface                    = _gShelterB4WaterSupplyXWaterWaveSurfaces;
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;

@@ -365,7 +365,7 @@ static void _infernoDrawScreenWash(s16 intensity)
     quad->x3 = right;
     quad->y3 = bottom - display->vramYOffset;
     // Prepending the draw-mode packet makes additive blending active before the wash.
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sortingDepth << display->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), quad);
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH_SCALED(sortingDepth, display->otDepthShift), quad);
     gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, sortingDepth);
 }
 
@@ -591,7 +591,7 @@ static void _infernoDrawRisingFanBand(const EffectWork* work, const GfxCoord* co
             quad->y2 = scratch->sxy2 >> 16;
             quad->x3 = scratch->sxy3;
             quad->y3 = scratch->sxy3 >> 16;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sortingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(sortingDepth),
                     quad);
         }
     }
@@ -663,7 +663,7 @@ static void _infernoDrawConstantLiftFanBand(const EffectWork* work, const GfxCoo
             quad->y2 = scratch->sxy2 >> 16;
             quad->x3 = scratch->sxy3;
             quad->y3 = scratch->sxy3 >> 16;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sortingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(sortingDepth),
                     quad);
         }
     }

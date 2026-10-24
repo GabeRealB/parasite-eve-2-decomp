@@ -541,7 +541,7 @@ static void _antibodyDrawMoteStrip(const GfxCoord* coord, s16 textureFrame, s16 
             quad->x2               = scratch->screenStart.vx - scratch->cornerOffsetX;
             quad->y1               = scratch->screenEnd.vy - scratch->cornerOffsetY;
             quad->y2               = scratch->screenStart.vy + scratch->cornerOffsetY;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                     quad);
         }
     }

@@ -81,7 +81,7 @@ static void _waterDrawSpinU16(const GfxCoord* coord, u16 textureColumn, s16 radi
         quad->x2 = projection->screenX - (u16)projection->extent.corner.x;
         quad->y1 = projection->screenY - (u16)projection->extent.corner.y;
         quad->y2 = projection->screenY + (u16)projection->extent.corner.y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK_AT(scratchCursor, EffectShapeScratch);
@@ -162,7 +162,7 @@ static void _waterDrawTileU16(const GfxCoord* coord, u16 textureCell, s16 radius
         setUV4(quad, firstU, firstV, lastU, firstV, firstU, lastV, lastU, lastV);
         projection->screenExtent = (radiusScale * WATER_TILE_U16_PERSPECTIVE_SCALE) / projection->depth;
         _waterSetUprightSpriteCorners(quad, projection);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);

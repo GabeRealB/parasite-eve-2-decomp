@@ -61,7 +61,7 @@ void glowDrawWedge(const GfxCoord* coord, s32 radiusScale, s32 angle, const u8 r
         setRGB2(prim, 0, 0, 0);
         block->screenExtent = ((s16)radiusScale * GLOW_WEDGE_RADIUS_SCALE) / block->depth;
         _glowSetWedgeVertices(prim, block, angle);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth),
                 prim);
         gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
     }

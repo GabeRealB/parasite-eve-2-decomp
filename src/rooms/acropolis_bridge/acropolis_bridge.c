@@ -2945,7 +2945,7 @@ void acropolisBridgeGroundGlowTask(Task* task)
         grey            = (gRandomLcgState >> 16) & ACROPOLIS_BRIDGE_GROUND_GLOW_GREY_MASK;
         setRGB0(quad, grey, grey, grey);
         setSemiTrans(quad, 1);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)quadScratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(quadScratch->otz),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(_AcropolisBridgeQuadScratch);
@@ -3088,7 +3088,7 @@ void acropolisBridgeDustMoteTask(Task* task)
     gte_stszotz(&tileScratch->depth);
     if (tileScratch->depth >= EFFECT_POINT_TILE_MIN_DEPTH) {
         setRGB0(prim, work->scale >> 1, work->scale, work->scale);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)tileScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(tileScratch->depth),
                 prim);
         gpuSetPrimitiveBlendMode(prim, GPU_BLEND_AVERAGE, tileScratch->depth);
         work->move.vy += ACROPOLIS_BRIDGE_DUST_MOTE_GRAVITY_PER_UPDATE;
@@ -3209,7 +3209,7 @@ static void _acropolisBridgeDrawWaterRipple(const GfxCoord* coord, s32 halfSize,
         setRGB0(quad, brightness, brightness, brightness);
         quad->clut = getClut(272, 271);
         setSemiTrans(quad, 1);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)quadScratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(quadScratch->otz),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(OverlayFlaggedQuadScratch);
@@ -3299,7 +3299,7 @@ static void _effectSpriteDrawChip(const GfxCoord* coord, u16 frame, s16 size, s1
         quad->y1             = block->screenY - (u16)block->cornerOffsetY;
         quad->y2             = block->screenY + (u16)block->cornerOffsetY;
 
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BYTES_AT(scratchSlot, sizeof(*block));
@@ -3382,7 +3382,7 @@ static void _effectSpriteDrawBillboard(const GfxCoord* coord, u16 frame, s16 siz
         quad->y0 = quad->y1 = block->screenY - (u16)block->screenExtent - (block->screenExtent >> 1);
         quad->y2 = quad->y3 = block->screenY + (block->screenExtent >> 1);
 
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(scratchEnd - 1)->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH((scratchEnd - 1)->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BYTES_AT(scratchSlot, sizeof(_AcropolisBridgeBillboardScratch));

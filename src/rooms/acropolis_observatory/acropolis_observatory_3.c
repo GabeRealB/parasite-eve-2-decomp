@@ -388,7 +388,7 @@ void acropolisObservatoryAmbientGlowTask(Task* task)
         quad->v3                 = ACROPOLIS_OBSERVATORY_GLOW_TEXTURE_TOP_V + ACROPOLIS_OBSERVATORY_GLOW_TEXTURE_SPAN;
         projection->screenExtent = ACROPOLIS_OBSERVATORY_GLOW_HALF_EXTENT_DEPTH_PRODUCT / projection->depth;
         _acropolisObservatorySetGlowScreenBounds(quad, projection);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);

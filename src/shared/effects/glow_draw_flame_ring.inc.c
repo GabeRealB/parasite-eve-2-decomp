@@ -88,7 +88,7 @@ void glowDrawFlameRing(const GfxCoord* coord, s16 innerRadius, s32 width, s16 in
             prim->y2 = block->sxy2.vy;
             prim->x3 = block->sxy3.vx;
             prim->y3 = block->sxy3.vy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
         }

@@ -962,7 +962,7 @@ static void _dryfieldR08DrawBankedDriftSprite(const GfxCoord* coord, u16 frameAn
         quad->y1 = projection->screenY - (u16)projection->cornerOffsetY;
         quad->y2 = projection->screenY + (u16)projection->cornerOffsetY;
         // Sort by projection depth; the GPU consumes a complete textured-quad packet.
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectBillboardScratch);
@@ -1057,7 +1057,7 @@ static void _dryfieldR08DrawAlternateDriftSprite(const GfxCoord* coord, u16 fram
         quad->y1 = projection->screenY - projection->cornerOffsetY;
         quad->y2 = projection->screenY + projection->cornerOffsetY;
         // Sort by projection depth; the GPU consumes a complete textured-quad packet.
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectBillboardScratch);
@@ -1152,7 +1152,7 @@ static void _dryfieldR08DrawLampGlow(const SVECTOR* worldPoint, s32 radiusScale,
             wedge->x3     = projection->sx + ((projection->outerRadius * rsin(nextAngle)) >> GLOW_TRIG_SHIFT);
             wedge->y3     = projection->sy + ((projection->outerRadius * rcos(nextAngle)) >> GLOW_TRIG_SHIFT);
             angle         = nextAngle;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->otz),
                     wedge);
             gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, projection->otz);
         } while (angle < GLOW_FULL_TURN);
@@ -1176,7 +1176,7 @@ static void _dryfieldR08DrawLampGlow(const SVECTOR* worldPoint, s32 radiusScale,
             wedge->y2         = projection->sy;
             wedge->x3         = projection->sx + ((projection->innerRadius * rsin(nextShoulderAngle)) >> GLOW_TRIG_SHIFT);
             wedge->y3         = projection->sy + ((projection->innerRadius * rcos(nextShoulderAngle)) >> GLOW_TRIG_SHIFT);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->otz),
                     wedge);
             gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, projection->otz);
 
@@ -1193,7 +1193,7 @@ static void _dryfieldR08DrawLampGlow(const SVECTOR* worldPoint, s32 radiusScale,
             wedge->x3     = projection->sx + ((projection->innerRadius * rsin(oppositeAngle)) >> GLOW_TRIG_SHIFT);
             wedge->y3     = projection->sy + ((projection->innerRadius * rcos(oppositeAngle)) >> GLOW_TRIG_SHIFT);
             angle         = oppositeAngle;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->otz),
                     wedge);
             gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, projection->otz);
         } while (angle < GLOW_FULL_TURN);

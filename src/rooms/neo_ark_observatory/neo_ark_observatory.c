@@ -2426,7 +2426,7 @@ static void _neoArkObservatoryDrawLightBeam(const SVECTOR ringCenters[2], s32 ou
                 setRGB1(quad, intensity >> 1, intensity >> 1, intensity >> 1);
                 setRGB2(quad, 0, 0, 0);
                 setRGB3(quad, 0, 0, 0);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(quadScratch->depth << display->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH_SCALED(quadScratch->depth, display->otDepthShift),
                         quad);
                 quad->x0 = quadScratch->screenCorners[0].vx;
                 quad->y0 = quadScratch->screenCorners[0].vy;

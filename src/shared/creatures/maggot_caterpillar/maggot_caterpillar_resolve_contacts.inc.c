@@ -1454,7 +1454,7 @@ static void _maggotCaterpillarDrawPuff(Task* actor, s32 frame)
         quad->y2    = (u16)scratch->corners[2].vy;
         quad->x3    = (u16)scratch->corners[3].vx;
         quad->y3    = (u16)scratch->corners[3].vy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((u32)(scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK), quad);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->otz), quad);
     }
     SCRATCH_STACK_CURSOR(u8) += sizeof(ActorScreenQuadScratch);
 }
@@ -1537,12 +1537,12 @@ static void _maggotCaterpillarDrawThread(Task* actor)
         line->g1 = line->r1;
         line->b1 = line->r1;
     }
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK), line);
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth), line);
     // The draw mode is linked last so the GPU executes it before the line.
     drawMode       = gGpuPrimCursor;
     gGpuPrimCursor = drawMode + 1;
     setDrawTPage(drawMode, 1, 1, getTPage(0, 1, 0, 0));
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK), drawMode);
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth), drawMode);
     SCRATCH_STACK_RELEASE_BLOCK(MaggotCaterpillarLineScratch);
 #undef MAGGOT_CATERPILLAR_PROJECT_THREAD_END
 }

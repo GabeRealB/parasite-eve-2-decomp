@@ -213,12 +213,12 @@ static void _shelterB4LowerSewerDrawXWaveStrips(Task* task)
     /// consume it before the quad. Requires a word-aligned byte cursor with
     /// sizeof(DR_MODE) bytes available through GPU completion. The casts switch
     /// between packet and byte-arena views. Undefined after both drawers.
-#define SHELTER_B4_LOWER_SEWER_QUEUE_WATER_QUAD()                                                                                                                                              \
-    addPrim((GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + SHELTER_B4_LOWER_SEWER_WATER_OT_BIAS), quad); \
-    drawMode                              = (DR_MODE*)gShelterB4LowerSewerWaterPacketCursor;                                                                                                   \
-    gShelterB4LowerSewerWaterPacketCursor = (u8*)(drawMode + 1);                                                                                                                               \
-    setDrawTPage(drawMode, 0, 0, SHELTER_B4_LOWER_SEWER_WATER_TPAGE);                                                                                                                          \
-    addPrim((GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + SHELTER_B4_LOWER_SEWER_WATER_OT_BIAS), drawMode)
+#define SHELTER_B4_LOWER_SEWER_QUEUE_WATER_QUAD()                                                     \
+    addPrim((GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(depth) + SHELTER_B4_LOWER_SEWER_WATER_OT_BIAS), quad); \
+    drawMode                              = (DR_MODE*)gShelterB4LowerSewerWaterPacketCursor;          \
+    gShelterB4LowerSewerWaterPacketCursor = (u8*)(drawMode + 1);                                      \
+    setDrawTPage(drawMode, 0, 0, SHELTER_B4_LOWER_SEWER_WATER_TPAGE);                                 \
+    addPrim((GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(depth) + SHELTER_B4_LOWER_SEWER_WATER_OT_BIAS), drawMode)
 
     surface                    = _gShelterB4LowerSewerXWaveSurfaces;
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;

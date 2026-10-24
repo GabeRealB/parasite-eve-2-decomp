@@ -1559,7 +1559,7 @@ static void _actor403100TurnUpperArm(Task* task)
         GPU_PRIMITIVE_XY_WORD(shadowQuad, 3) = (screen3);                                                                                                                                                                                           \
         setUV4(shadowQuad, ACTOR_403100_SHADOW_U_MIN, ACTOR_403100_SHADOW_V_MIN, ACTOR_403100_SHADOW_U_MAX, ACTOR_403100_SHADOW_V_MIN, ACTOR_403100_SHADOW_U_MIN, ACTOR_403100_SHADOW_V_MAX, ACTOR_403100_SHADOW_U_MAX, ACTOR_403100_SHADOW_V_MAX); \
         setRGB0(shadowQuad, ACTOR_403100_SHADOW_MODULATION, ACTOR_403100_SHADOW_MODULATION, ACTOR_403100_SHADOW_MODULATION);                                                                                                                        \
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((u32)((depth) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK), shadowQuad);                                                                                     \
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(depth), shadowQuad);                                                                                                                                                                              \
     }
 
 /// Draws one elongated ground-shadow strip under two arm joints on the balcony.

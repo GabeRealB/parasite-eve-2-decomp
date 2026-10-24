@@ -720,7 +720,7 @@ static void _shelter1fVehicularAirlockDrawPulsingLight(const SVECTOR* worldPoint
             diamond->y0    = centerYBits;
             diamondYFactor = segmentIndex * 2;
             diamond->y1    = (projection->screenPos.vy - projection->halfExtent) + (projection->halfExtent * diamondYFactor);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->otz),
                     diamond);
             gpuSetPrimitiveBlendMode(diamond, GPU_BLEND_ADD, projection->otz);
             segmentIndex++;

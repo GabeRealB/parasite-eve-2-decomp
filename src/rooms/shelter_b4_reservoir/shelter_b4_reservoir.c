@@ -1960,25 +1960,25 @@ static void _shelterB4ReservoirDrawWaterTask(Task* task)
 /// Head insertion links the mode last so the GPU selects subtractive blending
 /// before drawing RGB (128, 0, 0). Packets stay live until GPU consumption.
 /// Expands to a statement list: invoke inside braces after a valid projection.
-#define SHELTER_B4_RESERVOIR_EMIT_RED_WATER_QUAD()                                                                                                                                               \
-    waterQuad                           = (POLY_F4*)_gShelterB4ReservoirWaterPrimCursor;                                                                                                         \
-    _gShelterB4ReservoirWaterPrimCursor = (u8*)(waterQuad + 1);                                                                                                                                  \
-    setlen(waterQuad, sizeof(*waterQuad) / sizeof(u32) - 1);                                                                                                                                     \
-    setcode(waterQuad, SHELTER_B4_RESERVOIR_WATER_QUAD_CODE);                                                                                                                                    \
-    GPU_PRIMITIVE_XY_WORD(waterQuad, 0) = screenXY0;                                                                                                                                             \
-    GPU_PRIMITIVE_XY_WORD(waterQuad, 1) = screenXY1;                                                                                                                                             \
-    GPU_PRIMITIVE_XY_WORD(waterQuad, 2) = screenXY2;                                                                                                                                             \
-    GPU_PRIMITIVE_XY_WORD(waterQuad, 3) = screenXY3;                                                                                                                                             \
-    waterQuad->r0                       = SHELTER_B4_RESERVOIR_WATER_RED_INTENSITY;                                                                                                              \
-    waterQuad->g0                       = 0;                                                                                                                                                     \
-    waterQuad->b0                       = 0;                                                                                                                                                     \
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(orderingDepth + SHELTER_B4_RESERVOIR_WATER_DEPTH_BIAS) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
-            waterQuad);                                                                                                                                                                          \
-    drawMode                            = (DR_MODE*)_gShelterB4ReservoirWaterPrimCursor;                                                                                                         \
-    _gShelterB4ReservoirWaterPrimCursor = (u8*)(drawMode + 1);                                                                                                                                   \
-    setlen(drawMode, SHELTER_B4_RESERVOIR_WATER_DRAW_MODE_WORDS);                                                                                                                                \
-    drawMode->code[0] = SHELTER_B4_RESERVOIR_WATER_DRAW_MODE;                                                                                                                                    \
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(orderingDepth + SHELTER_B4_RESERVOIR_WATER_DEPTH_BIAS) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
+#define SHELTER_B4_RESERVOIR_EMIT_RED_WATER_QUAD()                                                    \
+    waterQuad                           = (POLY_F4*)_gShelterB4ReservoirWaterPrimCursor;              \
+    _gShelterB4ReservoirWaterPrimCursor = (u8*)(waterQuad + 1);                                       \
+    setlen(waterQuad, sizeof(*waterQuad) / sizeof(u32) - 1);                                          \
+    setcode(waterQuad, SHELTER_B4_RESERVOIR_WATER_QUAD_CODE);                                         \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 0) = screenXY0;                                                  \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 1) = screenXY1;                                                  \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 2) = screenXY2;                                                  \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 3) = screenXY3;                                                  \
+    waterQuad->r0                       = SHELTER_B4_RESERVOIR_WATER_RED_INTENSITY;                   \
+    waterQuad->g0                       = 0;                                                          \
+    waterQuad->b0                       = 0;                                                          \
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(orderingDepth + SHELTER_B4_RESERVOIR_WATER_DEPTH_BIAS), \
+            waterQuad);                                                                               \
+    drawMode                            = (DR_MODE*)_gShelterB4ReservoirWaterPrimCursor;              \
+    _gShelterB4ReservoirWaterPrimCursor = (u8*)(drawMode + 1);                                        \
+    setlen(drawMode, SHELTER_B4_RESERVOIR_WATER_DRAW_MODE_WORDS);                                     \
+    drawMode->code[0] = SHELTER_B4_RESERVOIR_WATER_DRAW_MODE;                                         \
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(orderingDepth + SHELTER_B4_RESERVOIR_WATER_DEPTH_BIAS), \
             drawMode);
 
 /// Draws the changing main water rectangle as 32 flat quads along Z.
@@ -2194,25 +2194,25 @@ static void _shelterB4ReservoirDrawView10WaterStrips(Task* task)
     /// RGB is (0, blueIntensity / 4, blueIntensity). Head insertion makes the
     /// mode execute before the quad; the packed XY casts are intentional word
     /// views of adjacent signed pixel halfwords. Packets outlive this call.
-#define SHELTER_B4_RESERVOIR_EMIT_VIEW10_WATER_STRIPS_QUAD()                                                                                                                                     \
-    waterQuad                           = (POLY_F4*)_gShelterB4ReservoirWaterPrimCursor;                                                                                                         \
-    _gShelterB4ReservoirWaterPrimCursor = (u8*)(waterQuad + 1);                                                                                                                                  \
-    setlen(waterQuad, sizeof(*waterQuad) / sizeof(u32) - 1);                                                                                                                                     \
-    setcode(waterQuad, SHELTER_B4_RESERVOIR_WATER_QUAD_CODE);                                                                                                                                    \
-    GPU_PRIMITIVE_XY_WORD(waterQuad, 0) = screenXY0;                                                                                                                                             \
-    GPU_PRIMITIVE_XY_WORD(waterQuad, 1) = screenXY1;                                                                                                                                             \
-    GPU_PRIMITIVE_XY_WORD(waterQuad, 2) = screenXY2;                                                                                                                                             \
-    GPU_PRIMITIVE_XY_WORD(waterQuad, 3) = screenXY3;                                                                                                                                             \
-    waterQuad->r0                       = 0;                                                                                                                                                     \
-    waterQuad->g0                       = blueIntensity >> 2;                                                                                                                                    \
-    waterQuad->b0                       = blueIntensity;                                                                                                                                         \
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(orderingDepth + SHELTER_B4_RESERVOIR_WATER_DEPTH_BIAS) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
-            waterQuad);                                                                                                                                                                          \
-    drawMode                            = (DR_MODE*)_gShelterB4ReservoirWaterPrimCursor;                                                                                                         \
-    _gShelterB4ReservoirWaterPrimCursor = (u8*)(drawMode + 1);                                                                                                                                   \
-    setlen(drawMode, SHELTER_B4_RESERVOIR_WATER_DRAW_MODE_WORDS);                                                                                                                                \
-    drawMode->code[0] = SHELTER_B4_RESERVOIR_WATER_DRAW_MODE;                                                                                                                                    \
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(orderingDepth + SHELTER_B4_RESERVOIR_WATER_DEPTH_BIAS) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
+#define SHELTER_B4_RESERVOIR_EMIT_VIEW10_WATER_STRIPS_QUAD()                                          \
+    waterQuad                           = (POLY_F4*)_gShelterB4ReservoirWaterPrimCursor;              \
+    _gShelterB4ReservoirWaterPrimCursor = (u8*)(waterQuad + 1);                                       \
+    setlen(waterQuad, sizeof(*waterQuad) / sizeof(u32) - 1);                                          \
+    setcode(waterQuad, SHELTER_B4_RESERVOIR_WATER_QUAD_CODE);                                         \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 0) = screenXY0;                                                  \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 1) = screenXY1;                                                  \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 2) = screenXY2;                                                  \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 3) = screenXY3;                                                  \
+    waterQuad->r0                       = 0;                                                          \
+    waterQuad->g0                       = blueIntensity >> 2;                                         \
+    waterQuad->b0                       = blueIntensity;                                              \
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(orderingDepth + SHELTER_B4_RESERVOIR_WATER_DEPTH_BIAS), \
+            waterQuad);                                                                               \
+    drawMode                            = (DR_MODE*)_gShelterB4ReservoirWaterPrimCursor;              \
+    _gShelterB4ReservoirWaterPrimCursor = (u8*)(drawMode + 1);                                        \
+    setlen(drawMode, SHELTER_B4_RESERVOIR_WATER_DRAW_MODE_WORDS);                                     \
+    drawMode->code[0] = SHELTER_B4_RESERVOIR_WATER_DRAW_MODE;                                         \
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(orderingDepth + SHELTER_B4_RESERVOIR_WATER_DEPTH_BIAS), \
             drawMode);
 
     SVECTOR                 corner0, corner1, corner2, corner3;
@@ -2690,7 +2690,7 @@ static void _shelterB4ReservoirDrawBurstSprite(const GfxCoord* spriteCoord, u16 
         projection->screenExtent = (halfExtent * (SHELTER_B4_RESERVOIR_BURST_SPRITE_CELL_TEXELS - 1)) / projection->depth;
         _shelterB4ReservoirSetBurstSpriteBounds(quad, projection);
         displayState = &gDisplayState;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << displayState->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH_SCALED(projection->depth, displayState->otDepthShift),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);

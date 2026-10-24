@@ -138,7 +138,7 @@ static void _bladeTrailDraw(s16 newestSlot, s16 packedTint)
             newerBrightness = brightness & BLADE_TRAIL_BRIGHTNESS_BYTE_MASK;
             olderBrightness = (brightness - BLADE_TRAIL_FADE_STEP) & BLADE_TRAIL_BRIGHTNESS_BYTE_MASK;
             _bladeTrailTintQuad(quad, newerBrightness, olderBrightness, packedTint);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->otz),
                     quad);
             gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz);
         }

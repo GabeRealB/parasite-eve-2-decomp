@@ -206,7 +206,7 @@ static void _diverDrawSpark(const GfxCoord* coord, u16 frameIndex, u16 size, s32
         quad->x2 = block->screenX - (u16)block->cornerOffsetX;
         quad->y1 = block->screenY - (u16)block->cornerOffsetY;
         quad->y2 = block->screenY + (u16)block->cornerOffsetY;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BYTES_AT(scratch, sizeof(*block));

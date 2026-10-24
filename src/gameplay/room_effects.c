@@ -1839,10 +1839,9 @@ EffectWork* effectSpawn(s32 effectId, GfxCoord* parentCoord, TaskSpawnArg spawnA
 static inline void _gpuSetEffectPrimitiveBlendMode(void* primitive, s32 blendMode, s32 sortingDepth)
 {
     enum {
-        GPU_EFFECT_DRAW_TO_DISPLAY_DISABLED   = 0,
-        GPU_EFFECT_DITHER_ENABLED             = 1,
-        GPU_EFFECT_TEXTURE_PAGE_Y             = 0,
-        GPU_EFFECT_DEPTH_TO_BYTE_OFFSET_SHIFT = 2,
+        GPU_EFFECT_DRAW_TO_DISPLAY_DISABLED = 0,
+        GPU_EFFECT_DITHER_ENABLED           = 1,
+        GPU_EFFECT_TEXTURE_PAGE_Y           = 0,
     };
     DR_TPAGE* blendCommand;
 
@@ -1851,8 +1850,7 @@ static inline void _gpuSetEffectPrimitiveBlendMode(void* primitive, s32 blendMod
     gGpuPrimCursor = blendCommand + 1;
     setDrawTPage(blendCommand, GPU_EFFECT_DRAW_TO_DISPLAY_DISABLED, GPU_EFFECT_DITHER_ENABLED,
                  getTPage(GPU_EFFECT_TEXTURE_DEPTH_4BIT, blendMode, GPU_EFFECT_TEXTURE_PAGE_X, GPU_EFFECT_TEXTURE_PAGE_Y));
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(
-                ((((u32)sortingDepth << gDisplayState.otDepthShift) >> GPU_EFFECT_DEPTH_TO_BYTE_OFFSET_SHIFT) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(sortingDepth),
             blendCommand);
 }
 
@@ -1888,7 +1886,7 @@ void effectDrawScreenTint(const u8* rgb, s32 blendMode)
     quad->y2 = bottomY - gDisplayState.vramYOffset;
     quad->x3 = rightX;
     quad->y3 = bottomY - gDisplayState.vramYOffset;
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)EFFECT_SCREEN_SORTING_DEPTH << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), quad);
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(EFFECT_SCREEN_SORTING_DEPTH), quad);
 
     _gpuSetEffectPrimitiveBlendMode(quad, blendMode, EFFECT_SCREEN_SORTING_DEPTH);
 }
@@ -1932,7 +1930,7 @@ void effectDrawOuterGlowBand(const GfxCoord* centreCoord, s32 innerRadius, s32 w
             quad->y2 = scratch->screenY + ((scratch->extent.ring.outer * rcos(angle)) >> EFFECT_RADIAL_TRIG_FRACTION_BITS);
             quad->x3 = scratch->screenX + ((scratch->extent.ring.outer * rsin(angle + EFFECT_RADIAL_ANGLE_STEP)) >> EFFECT_RADIAL_TRIG_FRACTION_BITS);
             quad->y3 = scratch->screenY + ((scratch->extent.ring.outer * rcos(angle + EFFECT_RADIAL_ANGLE_STEP)) >> EFFECT_RADIAL_TRIG_FRACTION_BITS);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                     quad);
             sortingDepth = scratch->depth;
             _gpuSetEffectPrimitiveBlendMode(quad, GPU_BLEND_ADD, sortingDepth);
@@ -1979,7 +1977,7 @@ void effectDrawGouraudDisc(const GfxCoord* centreCoord, s32 radius, const u8* rg
             quad->y2 = scratch->screenY;
             quad->x3 = scratch->screenX + ((scratch->screenExtent * rsin(angle + (2 * EFFECT_RADIAL_ANGLE_STEP))) >> EFFECT_RADIAL_TRIG_FRACTION_BITS);
             quad->y3 = scratch->screenY + ((scratch->screenExtent * rcos(angle + (2 * EFFECT_RADIAL_ANGLE_STEP))) >> EFFECT_RADIAL_TRIG_FRACTION_BITS);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                     quad);
             sortingDepth = scratch->depth;
             _gpuSetEffectPrimitiveBlendMode(quad, GPU_BLEND_ADD, sortingDepth);
@@ -2069,7 +2067,7 @@ void effectDrawSpinningBillboard(const GfxCoord* coord, u16 frame, s16 size, u16
         quad->x2 = scratch->screenX - (u16)scratch->extent.corner.x;
         quad->y1 = scratch->screenY - (u16)scratch->extent.corner.y;
         quad->y2 = scratch->screenY + (u16)scratch->extent.corner.y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
@@ -2147,7 +2145,7 @@ void effectDrawModulatedBillboard(const GfxCoord* coord, u16 frame, u16 packedSi
         setUV4(quad, leftU, 0, rightU, 0, leftU, EFFECT_MODULATED_BILLBOARD_UV_SPAN, rightU, EFFECT_MODULATED_BILLBOARD_UV_SPAN);
         scratch->screenExtent = (packedSizeBank * EFFECT_MODULATED_BILLBOARD_UV_SPAN) / scratch->depth;
         _effectSetBillboardScreenBounds(quad, scratch);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
@@ -2243,7 +2241,7 @@ void effectDrawRaisedGlowBand(const GfxCoord* coord, s16 innerRadius, const u8* 
             quad->y2 = scratch->sxy2.vy;
             quad->x3 = scratch->sxy3.vx;
             quad->y3 = scratch->sxy3.vy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->otz),
                     quad);
             sortingDepth = scratch->otz;
             _gpuSetEffectPrimitiveBlendMode(quad, GPU_BLEND_ADD, sortingDepth);
@@ -2313,7 +2311,7 @@ void effectDrawInnerGlowBand(const GfxCoord* coord, s16 innerRadius, s32 width, 
             quad->y2 = scratch->sxy2.vy;
             quad->x3 = scratch->sxy3.vx;
             quad->y3 = scratch->sxy3.vy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->otz),
                     quad);
             sortingDepth = scratch->otz;
             _gpuSetEffectPrimitiveBlendMode(quad, GPU_BLEND_ADD, sortingDepth);
@@ -2579,8 +2577,7 @@ static inline void _gpuQueueBlendMode(s32 blendMode, s32 sortingDepth)
     // The fixed texture page is unused by untextured primitives; its ABR bits select blending.
     setDrawTPage(blendCommand, GPU_BLEND_DRAW_TO_DISPLAY_DISABLED, GPU_BLEND_DITHER_ENABLED,
                  getTPage(GPU_BLEND_TEXTURE_DEPTH_4BIT, blendMode, GPU_BLEND_TEXTURE_PAGE_X, GPU_BLEND_TEXTURE_PAGE_Y));
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(
-                ((((u32)sortingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(sortingDepth),
             blendCommand);
 }
 

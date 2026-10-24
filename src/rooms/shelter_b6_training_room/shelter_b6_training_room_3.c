@@ -847,7 +847,7 @@ void shelterB6TrainingRoomDrawSummonBeam(const GfxCoord* endCoord, s16 radiusSca
                         quad->y2 = scratch->pair.sy1;
                         quad->x3 = scratch->pair.sx1 + ((scratch->pair.radius1 * rsin(sweepAngle + (SHELTER_B6_TRAINING_ROOM_BEAM_HALF_TURN + SHELTER_B6_TRAINING_ROOM_BEAM_QUARTER_TURN))) >> SHELTER_B6_TRAINING_ROOM_BEAM_TRIG_SHIFT);
                         quad->y3 = scratch->pair.sy1 + ((scratch->pair.radius1 * rcos(sweepAngle + (SHELTER_B6_TRAINING_ROOM_BEAM_HALF_TURN + SHELTER_B6_TRAINING_ROOM_BEAM_QUARTER_TURN))) >> SHELTER_B6_TRAINING_ROOM_BEAM_TRIG_SHIFT);
-                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->pair.otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->pair.otz1),
                                 quad);
                         gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->pair.otz1);
 
@@ -863,7 +863,7 @@ void shelterB6TrainingRoomDrawSummonBeam(const GfxCoord* endCoord, s16 radiusSca
                         quad->y2       = scratch->pair.sy0;
                         quad->x3       = scratch->pair.sx0 + ((scratch->pair.radius0 * rsin(nextSweepAngle)) >> SHELTER_B6_TRAINING_ROOM_BEAM_TRIG_SHIFT);
                         quad->y3       = scratch->pair.sy0 + ((scratch->pair.radius0 * rcos(nextSweepAngle)) >> SHELTER_B6_TRAINING_ROOM_BEAM_TRIG_SHIFT);
-                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->pair.otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->pair.otz0),
                                 quad);
                         gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->pair.otz0);
 
@@ -883,7 +883,7 @@ void shelterB6TrainingRoomDrawSummonBeam(const GfxCoord* endCoord, s16 radiusSca
                         quad->y2 = scratch->pair.sy0;
                         quad->x3 = scratch->pair.sx1;
                         quad->y3 = scratch->pair.sy1;
-                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->pair.otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->pair.otz1),
                                 quad);
                         gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->pair.otz1);
                         sweepAngle = nextSweepAngle;
@@ -978,7 +978,7 @@ static void _shelterB6TrainingRoomDrawGroundBeam(const GfxCoord* startCoord, con
                     quad->y2 = scratch->pair.sy1;
                     quad->x3 = scratch->pair.sx1 + ((scratch->pair.radius1 * rsin(sweepAngle + (SHELTER_B6_TRAINING_ROOM_BEAM_HALF_TURN + SHELTER_B6_TRAINING_ROOM_BEAM_QUARTER_TURN))) >> SHELTER_B6_TRAINING_ROOM_BEAM_TRIG_SHIFT);
                     quad->y3 = scratch->pair.sy1 + ((scratch->pair.radius1 * rcos(sweepAngle + (SHELTER_B6_TRAINING_ROOM_BEAM_HALF_TURN + SHELTER_B6_TRAINING_ROOM_BEAM_QUARTER_TURN))) >> SHELTER_B6_TRAINING_ROOM_BEAM_TRIG_SHIFT);
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->pair.otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->pair.otz1),
                             quad);
                     gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->pair.otz1);
 
@@ -994,7 +994,7 @@ static void _shelterB6TrainingRoomDrawGroundBeam(const GfxCoord* startCoord, con
                     quad->y2       = scratch->pair.sy0;
                     quad->x3       = scratch->pair.sx0 + ((scratch->pair.radius0 * rsin(nextSweepAngle)) >> SHELTER_B6_TRAINING_ROOM_BEAM_TRIG_SHIFT);
                     quad->y3       = scratch->pair.sy0 + ((scratch->pair.radius0 * rcos(nextSweepAngle)) >> SHELTER_B6_TRAINING_ROOM_BEAM_TRIG_SHIFT);
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->pair.otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->pair.otz0),
                             quad);
                     gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->pair.otz0);
 
@@ -1014,7 +1014,7 @@ static void _shelterB6TrainingRoomDrawGroundBeam(const GfxCoord* startCoord, con
                     quad->y2 = scratch->pair.sy0;
                     quad->x3 = scratch->pair.sx1;
                     quad->y3 = scratch->pair.sy1;
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->pair.otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->pair.otz1),
                             quad);
                     gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->pair.otz1);
                     sweepAngle = nextSweepAngle;
@@ -1300,7 +1300,7 @@ static void _shelterB6TrainingRoomDrawRingBand(const EffectWork* work, const Gfx
             quad->y2 = (u16)scratch->sxy2.vy;
             quad->x3 = (u16)scratch->sxy3.vx;
             quad->y3 = (u16)scratch->sxy3.vy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->otz),
                     quad);
         }
     }
@@ -1490,7 +1490,7 @@ static void _shelterB6TrainingRoomDrawEnergyStrip(const GfxCoord* startCoord, co
             quad->x2             = (u16)block->screenStart.vx - (u16)block->cornerOffsetX;
             quad->y1             = (u16)block->screenEnd.vy - (u16)block->cornerOffsetY;
             quad->y2             = (u16)block->screenStart.vy + (u16)block->cornerOffsetY;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth),
                     quad);
         }
     }

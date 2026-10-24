@@ -122,25 +122,25 @@ enum {
 /// Q12 ring. Uses the current packet cursor, display depth shift and ordering
 /// table, and queues eight quads plus eight blend commands without bounds checks.
 /// Expands to a loop statement; invoke only in a braced block.
-#define ACROPOLIS_PLAZA_DRAW_LIGHT_GLOW_FAN(centre, radius, depth, primitive, sampleIndex, red, green, blue)                                                       \
-    for ((sampleIndex) = 0; (sampleIndex) < ACROPOLIS_PLAZA_LIGHT_FAN_SAMPLES; (sampleIndex) += 2) {                                                               \
-        (primitive)    = gGpuPrimCursor;                                                                                                                           \
-        gGpuPrimCursor = (primitive) + 1;                                                                                                                          \
-        setPolyG4((primitive));                                                                                                                                    \
-        setRGB0((primitive), 0, 0, 0);                                                                                                                             \
-        setRGB1((primitive), 0, 0, 0);                                                                                                                             \
-        setRGB2((primitive), (red), (green), (blue));                                                                                                              \
-        setRGB3((primitive), 0, 0, 0);                                                                                                                             \
-        (primitive)->x0 = (centre).vx + (((radius) * _gAcropolisPlazaLightRingSamples[(sampleIndex) + 4]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);                    \
-        (primitive)->y0 = (centre).vy + (((radius) * _gAcropolisPlazaLightRingSamples[(sampleIndex)]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);                        \
-        (primitive)->x1 = (centre).vx + (((radius) * _gAcropolisPlazaLightRingSamples[(sampleIndex) + 5]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);                    \
-        (primitive)->y1 = (centre).vy + (((radius) * _gAcropolisPlazaLightRingSamples[(sampleIndex) + 1]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);                    \
-        (primitive)->x2 = (centre).vx;                                                                                                                             \
-        (primitive)->y2 = (centre).vy;                                                                                                                             \
-        (primitive)->x3 = (centre).vx + (((radius) * _gAcropolisPlazaLightRingSamples[(sampleIndex) + 6]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);                    \
-        (primitive)->y3 = (centre).vy + (((radius) * _gAcropolisPlazaLightRingSamples[(sampleIndex) + 2]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);                    \
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(depth) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), (primitive)); \
-        gpuSetPrimitiveBlendMode((primitive), GPU_BLEND_ADD, (depth));                                                                                             \
+#define ACROPOLIS_PLAZA_DRAW_LIGHT_GLOW_FAN(centre, radius, depth, primitive, sampleIndex, red, green, blue)                                    \
+    for ((sampleIndex) = 0; (sampleIndex) < ACROPOLIS_PLAZA_LIGHT_FAN_SAMPLES; (sampleIndex) += 2) {                                            \
+        (primitive)    = gGpuPrimCursor;                                                                                                        \
+        gGpuPrimCursor = (primitive) + 1;                                                                                                       \
+        setPolyG4((primitive));                                                                                                                 \
+        setRGB0((primitive), 0, 0, 0);                                                                                                          \
+        setRGB1((primitive), 0, 0, 0);                                                                                                          \
+        setRGB2((primitive), (red), (green), (blue));                                                                                           \
+        setRGB3((primitive), 0, 0, 0);                                                                                                          \
+        (primitive)->x0 = (centre).vx + (((radius) * _gAcropolisPlazaLightRingSamples[(sampleIndex) + 4]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT); \
+        (primitive)->y0 = (centre).vy + (((radius) * _gAcropolisPlazaLightRingSamples[(sampleIndex)]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);     \
+        (primitive)->x1 = (centre).vx + (((radius) * _gAcropolisPlazaLightRingSamples[(sampleIndex) + 5]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT); \
+        (primitive)->y1 = (centre).vy + (((radius) * _gAcropolisPlazaLightRingSamples[(sampleIndex) + 1]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT); \
+        (primitive)->x2 = (centre).vx;                                                                                                          \
+        (primitive)->y2 = (centre).vy;                                                                                                          \
+        (primitive)->x3 = (centre).vx + (((radius) * _gAcropolisPlazaLightRingSamples[(sampleIndex) + 6]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT); \
+        (primitive)->y3 = (centre).vy + (((radius) * _gAcropolisPlazaLightRingSamples[(sampleIndex) + 2]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT); \
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(depth), (primitive));                                                                         \
+        gpuSetPrimitiveBlendMode((primitive), GPU_BLEND_ADD, (depth));                                                                          \
     }
 
 /// Index of one vertex in `_AcropolisPlazaBeamScratch`.
@@ -2361,7 +2361,7 @@ void acropolisPlazaSirenLightTask(Task* task)
             beamTriangle->y1 = (beam->vertexScreenPos[ACROPOLIS_PLAZA_BEAM_VERTEX_FAR_LEFT] >> 16);
             beamTriangle->x2 = (u16)beam->vertexScreenPos[ACROPOLIS_PLAZA_BEAM_VERTEX_FAR_RIGHT];
             beamTriangle->y2 = (beam->vertexScreenPos[ACROPOLIS_PLAZA_BEAM_VERTEX_FAR_RIGHT] >> 16);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)beam->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), beamTriangle);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(beam->otz), beamTriangle);
             gpuSetPrimitiveBlendMode(beamTriangle, GPU_BLEND_ADD, beam->otz);
             for (; index < 2; index++) {
                 primitive      = gGpuPrimCursor;
@@ -2379,7 +2379,7 @@ void acropolisPlazaSirenLightTask(Task* task)
                 primitive->y2 = (beam->vertexScreenPos[index + ACROPOLIS_PLAZA_BEAM_VERTEX_SIDE_LEFT] >> 16);
                 primitive->x3 = (u16)beam->vertexScreenPos[index + ACROPOLIS_PLAZA_BEAM_VERTEX_NEAR_LEFT];
                 primitive->y3 = (beam->vertexScreenPos[index + ACROPOLIS_PLAZA_BEAM_VERTEX_NEAR_LEFT] >> 16);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)beam->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), primitive);
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(beam->otz), primitive);
                 gpuSetPrimitiveBlendMode(primitive, GPU_BLEND_ADD, beam->otz);
             }
             beam->glowRadius = ACROPOLIS_PLAZA_SIREN_ORIGIN_GLOW_RADIUS_NUMERATOR / beam->otz;
@@ -2518,7 +2518,7 @@ void acropolisPlazaLightFlareTask(Task* task)
                 primitive->y2 = flare->screenPos.vy;
                 primitive->x3 = flare->screenPos.vx + ((flare->innerRadius * _gAcropolisPlazaLightRingSamples[index + 8]) >> (ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT - 1));
                 primitive->y3 = flare->screenPos.vy + ((flare->innerRadius * _gAcropolisPlazaLightRingSamples[index + 4]) >> (ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT - 1));
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)flare->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), primitive);
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(flare->otz), primitive);
                 gpuSetPrimitiveBlendMode(primitive, GPU_BLEND_ADD, flare->otz);
                 primitive      = gGpuPrimCursor;
                 gGpuPrimCursor = primitive + 1;
@@ -2535,7 +2535,7 @@ void acropolisPlazaLightFlareTask(Task* task)
                 primitive->y2 = flare->screenPos.vy;
                 primitive->x3 = flare->screenPos.vx + ((flare->innerRadius * _gAcropolisPlazaLightRingSamples[index + 12]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);
                 primitive->y3 = flare->screenPos.vy + ((flare->innerRadius * _gAcropolisPlazaLightRingSamples[index + 8]) >> ACROPOLIS_PLAZA_LIGHT_TRIG_SHIFT);
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)flare->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), primitive);
+                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(flare->otz), primitive);
                 gpuSetPrimitiveBlendMode(primitive, GPU_BLEND_ADD, flare->otz);
             }
         }

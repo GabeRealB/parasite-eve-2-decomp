@@ -98,7 +98,7 @@ static void _glowDrawTintedDisc(const SVECTOR* worldPoint, s32 radiusScale, s32 
             prim->y2      = block->sy;
             prim->x3      = block->sx + ((block->outerRadius * rsin(nextAngle)) >> GLOW_TRIG_SHIFT);
             prim->y3      = block->sy + ((block->outerRadius * rcos(nextAngle)) >> GLOW_TRIG_SHIFT);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
 
@@ -114,7 +114,7 @@ static void _glowDrawTintedDisc(const SVECTOR* worldPoint, s32 radiusScale, s32 
             prim->x3 = block->sx + ((block->outerRadius * rsin(nextAngle)) >> (GLOW_TRIG_SHIFT + 1));
             prim->y3 = block->sy + ((block->outerRadius * rcos(nextAngle)) >> (GLOW_TRIG_SHIFT + 1));
             angle    = nextAngle;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
         } while (angle < GLOW_FULL_TURN);
@@ -136,7 +136,7 @@ static void _glowDrawTintedDisc(const SVECTOR* worldPoint, s32 radiusScale, s32 
             prim->y2 = block->sy;
             prim->x3 = block->sx + ((block->innerRadius * rsin(angle + GLOW_QUARTER_TURN)) >> (GLOW_TRIG_SHIFT + 1));
             prim->y3 = block->sy + ((block->innerRadius * rcos(angle + GLOW_QUARTER_TURN)) >> (GLOW_TRIG_SHIFT + 1));
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
 
@@ -152,7 +152,7 @@ static void _glowDrawTintedDisc(const SVECTOR* worldPoint, s32 radiusScale, s32 
             prim->x3 = block->sx + ((block->innerRadius * rsin(angle + GLOW_HALF_TURN)) >> GLOW_TRIG_SHIFT);
             prim->y3 = block->sy + ((block->innerRadius * rcos(angle + GLOW_HALF_TURN)) >> GLOW_TRIG_SHIFT);
             angle   += GLOW_HALF_TURN;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
                     prim);
             gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
         } while (angle < GLOW_FULL_TURN);

@@ -66,7 +66,7 @@ static void _roomVisualEffectsDrawBurstStar(const GfxCoord* coord, s16 radius, c
             quad->y2  = projection->screenY;
             quad->x3  = projection->screenX + ((projection->radii.star.disc * rsin(nextAngle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
             quad->y3  = projection->screenY + ((projection->radii.star.disc * rcos(nextAngle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->depth),
                     quad);
             gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, projection->depth);
 
@@ -82,7 +82,7 @@ static void _roomVisualEffectsDrawBurstStar(const GfxCoord* coord, s16 radius, c
             quad->x3 = projection->screenX + ((projection->radii.star.disc * rsin(nextAngle)) >> (ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS + 1));
             quad->y3 = projection->screenY + ((projection->radii.star.disc * rcos(nextAngle)) >> (ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS + 1));
             angle    = nextAngle;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->depth),
                     quad);
             gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, projection->depth);
         } while (angle < ROOM_VISUAL_EFFECTS_FULL_TURN);
@@ -103,7 +103,7 @@ static void _roomVisualEffectsDrawBurstStar(const GfxCoord* coord, s16 radius, c
             quad->y2      = projection->screenY;
             quad->x3      = projection->screenX + ((projection->radii.star.spike * rsin(shoulderAngle)) >> (ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS + 1));
             quad->y3      = projection->screenY + ((projection->radii.star.spike * rcos(shoulderAngle)) >> (ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS + 1));
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->depth),
                     quad);
             gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, projection->depth);
 
@@ -120,7 +120,7 @@ static void _roomVisualEffectsDrawBurstStar(const GfxCoord* coord, s16 radius, c
             quad->x3      = projection->screenX + ((projection->radii.star.spike * rsin(shoulderAngle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
             quad->y3      = projection->screenY + ((projection->radii.star.spike * rcos(shoulderAngle)) >> ROOM_VISUAL_EFFECTS_TRIG_FRACTION_BITS);
             angle         = shoulderAngle;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->depth),
                     quad);
             gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, projection->depth);
         } while (angle < ROOM_VISUAL_EFFECTS_FULL_TURN);

@@ -332,7 +332,7 @@ static s32 _actor135600DrawHeldItemQuad(GfxCoord* itemRoot, s32 lengthScale12)
         quadPacket->y2 = screenCorners[2].vy;
         quadPacket->x3 = screenCorners[3].vx;
         quadPacket->y3 = screenCorners[3].vy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)orderingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) - 2, quadPacket);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(orderingDepth) - 2, quadPacket);
 
         // addPrim prepends: the draw mode must reach the GPU before the quad.
         drawModePacket = gGpuPrimCursor;
@@ -340,7 +340,7 @@ static s32 _actor135600DrawHeldItemQuad(GfxCoord* itemRoot, s32 lengthScale12)
         setlen(drawModePacket, sizeof(*drawModePacket) / sizeof(u32) - 1);
         // Quarter-source additive blending, drawing in the display area, no dithering.
         drawModePacket->code[0] = _get_mode(1, 0, getTPage(0, 3, 320, 0));
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)orderingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) - 2, drawModePacket);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(orderingDepth) - 2, drawModePacket);
     }
     return screenAngle;
 }

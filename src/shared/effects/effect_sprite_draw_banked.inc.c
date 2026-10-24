@@ -196,7 +196,7 @@ static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, 
         quad->x2 = scratch->screenX - (u16)scratch->extent.corner.x;
         quad->y1 = scratch->screenY - (u16)scratch->extent.corner.y;
         quad->y2 = scratch->screenY + (u16)scratch->extent.corner.y;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->depth),
                 quad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);

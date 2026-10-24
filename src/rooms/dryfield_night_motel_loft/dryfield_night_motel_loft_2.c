@@ -886,7 +886,7 @@ static void _dryfieldNightMotelLoftDrawShard(const GfxCoord* coord, s16 radius, 
     if (scratch->projectionFlags >= 0) {
         gte_stszotz(&scratch->otz);
         setRGB0(primitive, shade, shade, shade);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->otz),
                 primitive);
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         gpuSetPrimitiveBlendMode(primitive, (gRandomLcgState >> 16) & 1, scratch->otz);

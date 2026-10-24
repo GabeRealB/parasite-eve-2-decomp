@@ -107,7 +107,7 @@ static void _glowDrawPrism(const GfxCoord* coord, s16 firstCorner)
         setRGB1(prim, red, green, blue);
         setRGB2(prim, 0, 0, 0);
         setRGB3(prim, 0, 0, 0);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth),
                 prim);
         gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
     }
@@ -135,7 +135,7 @@ static void _glowDrawPrism(const GfxCoord* coord, s16 firstCorner)
     setRGB1(prim, red, green, blue);
     setRGB2(prim, red, green, blue);
     setRGB3(prim, red, green, blue);
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth),
             prim);
     gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
 #undef GLOW_PRISM_TRANSFORM_CORNER

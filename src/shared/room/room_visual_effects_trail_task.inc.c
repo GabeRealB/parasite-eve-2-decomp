@@ -196,7 +196,7 @@ static void _roomVisualEffectsDrawTwinTrail(const GfxCoord firstTrail[ROOM_VISUA
             quad->y2 = projection->screenY2;
             quad->x3 = projection->screenX3;
             quad->y3 = projection->screenY3;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->depth),
                     quad);
             gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, projection->depth);
         }

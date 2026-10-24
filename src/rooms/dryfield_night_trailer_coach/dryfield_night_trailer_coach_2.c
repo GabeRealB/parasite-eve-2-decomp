@@ -1221,7 +1221,7 @@ static void _dryfieldNightTrailerCoachDrawGlowCapsule(const SVECTOR worldPoints[
                     quad->y2       = block->sy0;
                     quad->x3       = block->sx0 + ((block->radius0 * rsin(nextSweepAngle)) >> GLOW_TRIG_SHIFT);
                     quad->y3       = block->sy0 + ((block->radius0 * rcos(nextSweepAngle)) >> GLOW_TRIG_SHIFT);
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz0),
                             quad);
                     gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, block->otz0);
 
@@ -1241,7 +1241,7 @@ static void _dryfieldNightTrailerCoachDrawGlowCapsule(const SVECTOR worldPoints[
                     quad->y2 = block->sy0;
                     quad->x3 = block->sx1;
                     quad->y3 = block->sy1;
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((block->otz1 + block->otz0) / 2) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH((block->otz1 + block->otz0) / 2),
                             quad);
                     gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, (block->otz1 + block->otz0) / 2);
 
@@ -1260,7 +1260,7 @@ static void _dryfieldNightTrailerCoachDrawGlowCapsule(const SVECTOR worldPoints[
                     quad->y2 = block->sy1;
                     quad->x3 = block->sx1 + ((block->radius1 * rsin(rimAngle)) >> GLOW_TRIG_SHIFT);
                     quad->y3 = block->sy1 + ((block->radius1 * rcos(rimAngle)) >> GLOW_TRIG_SHIFT);
-                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz1),
                             quad);
                     gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, block->otz1);
                     sweepAngle = nextSweepAngle;

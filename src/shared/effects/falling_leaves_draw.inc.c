@@ -80,7 +80,7 @@ static void _leafDraw(const GfxCoord* coord, s32 halfSize, s16 brightness)
         }
         primitive->tpage = LEAF_TEXTURE_PAGE;
         primitive->clut  = LEAF_TEXTURE_CLUT;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)quadScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(quadScratch->depth),
                 primitive);
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectQuadCornersScratch);
