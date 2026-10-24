@@ -37,7 +37,7 @@
 
 #include "rooms/acropolis_bridge.h"
 
-#include "rooms/acropolis_cafeteria.h"
+#include "rooms/akropolis_cafeteria.h"
 
 #include "rooms/acropolis_fountain.h"
 
@@ -445,10 +445,10 @@ TaskDesc gTaskBank7Descs[TASK_BANK7_DESCRIPTOR_COUNT] = {
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { .model = &gKyleM950 } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &gKyleM4a1 } },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
-    { { { TASK_BODY_TMD, 0x50 } }, acropolisCafeteriaLoosePropTask, { &gAcropolisCafeteriaModel07CA8 } },
-    { { { TASK_BODY_TMD, 0x50 } }, acropolisCafeteriaLoosePropTask, { &gAcropolisCafeteriaModel08638 } },
-    { { { TASK_BODY_TMD, 0x50 } }, acropolisCafeteriaLoosePropTask, { &gAcropolisCafeteriaModel09090 } },
-    { { { TASK_BODY_TMD, 0x50 } }, acropolisCafeteriaLoosePropTask, { &gAcropolisCafeteriaModel09A20 } },
+    { { { TASK_BODY_TMD, 0x50 } }, akropolisCafeteriaLoosePropTask, { &gAkropolisCafeteriaLooseProp1Model } },
+    { { { TASK_BODY_TMD, 0x50 } }, akropolisCafeteriaLoosePropTask, { &gAkropolisCafeteriaLooseProp2Model } },
+    { { { TASK_BODY_TMD, 0x50 } }, akropolisCafeteriaLoosePropTask, { &gAkropolisCafeteriaLooseProp3Model } },
+    { { { TASK_BODY_TMD, 0x50 } }, akropolisCafeteriaLoosePropTask, { &gAkropolisCafeteriaLooseProp4Model } },
 };
 
 /// Arm for one PAL timer audio update (0 idle, 1 count root-counter events).

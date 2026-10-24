@@ -296,12 +296,12 @@ enum {
     /// Akropolis cafeteria event billboard: a ten-cell 48px animated sprite drifting
     /// along Z then Y while the room's effect gate holds in view mode 9; sprayed by
     /// 0x6009D.
-    EFFECT_ACROPOLIS_CAFETERIA_PUFF = EFFECT_ID(EFFECT_TASK_BANK, 0x061),
+    EFFECT_AKROPOLIS_CAFETERIA_PUFF = EFFECT_ID(EFFECT_TASK_BANK, 0x061),
     /// One-frame lamp glow sprite (GLOW_LAMP_TASK: one of three flickering
     /// lamp cells); the promenade respawns it each frame at the lamps its view mask
     /// allows.
     EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW = EFFECT_ID(EFFECT_TASK_BANK, 0x062),
-    /// Unidentified. A small room model (gAkropolisCafeteriaAcropolisCafeteriaModel077D8) that wanders
+    /// Unidentified. A small room model (gAkropolisCafeteriaWanderingCreatureModel) that wanders
     /// with random turns and then runs off, playing a cafeteria sound in view 7;
     /// several are spawned by the Akropolis cafeteria event task.
     EFFECT_064 = EFFECT_ID(EFFECT_TASK_BANK, 0x064),
@@ -490,7 +490,7 @@ enum {
     /// Akropolis cafeteria emitter: on entering view mode 9 spawns 40 0x60061
     /// billboards, then two per tick, until the room's effect gate clears; spawned by
     /// the cafeteria event message.
-    EFFECT_ACROPOLIS_CAFETERIA_PUFF_EMITTER = EFFECT_ID(EFFECT_TASK_BANK, 0x09D),
+    EFFECT_AKROPOLIS_CAFETERIA_PUFF_EMITTER = EFFECT_ID(EFFECT_TASK_BANK, 0x09D),
     /// Long-lived additive red ground quad laid flat under the coordinate at a random
     /// yaw, slowly dimming over 1024 ticks; spawned at enemies' roots on death/hits
     /// (actor_04000, actor_01200, Sucklerceph, Skull Stalker).
@@ -2137,18 +2137,18 @@ enum {
     /// shrinking ring with a fade quad at its peak, then fades out through a star; the
     /// room stores it in slot gRoomEffectFlashId, which the Pawn/Rook golem library spawns at
     /// body part 4 for its scream (golemPawnRookSilenceScream).
-    EFFECT_ACROPOLIS_CAFETERIA_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x28D),
+    EFFECT_AKROPOLIS_CAFETERIA_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x28D),
     /// Twin trail (room_visual_effects_trail_task): two points offset from the anchor
     /// recorded in rings of eight and drawn as a fading beam; stored in gRoomEffectTwinTrailId,
     /// which the beam-sword golems (actor_02000/02300) spawn at model part 7.
-    EFFECT_ACROPOLIS_CAFETERIA_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x28E),
+    EFFECT_AKROPOLIS_CAFETERIA_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x28E),
     /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
     ///
     /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
     /// A nonzero argument selects jittered smoke; zero selects two bouncing
     /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
     /// Spawned effects are independent. Room control can pause or cancel it.
-    EFFECT_ACROPOLIS_CAFETERIA_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x28F),
+    EFFECT_AKROPOLIS_CAFETERIA_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x28F),
     /// acropolis_forked_road's copy of _roomVisualEffectsFlashTask (fans and a shrinking ring
     /// ramping to a coloured screen fade), stored in gRoomEffectFlashId, which the Pawn/Rook
     /// GOLEM's silence-scream state spawns on its part 4.

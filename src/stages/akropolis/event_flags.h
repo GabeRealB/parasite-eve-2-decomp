@@ -23,6 +23,12 @@ enum {
     AKROPOLIS_PATIO_CUTSCENE_DONE    = 4,
 };
 
+// Values of `EVENT_FLAG_AKROPOLIS_CAFETERIA_BOSS_REPORT`.
+enum {
+    AKROPOLIS_CAFETERIA_BOSS_REPORT_QUEUED = 1, // The boss scene has played; the report to MIST is pending
+    AKROPOLIS_CAFETERIA_BOSS_REPORT_MADE   = 4, // The report has been made from the square's telephone
+};
+
 // Values of `EVENT_FLAG_STORY_DIALOGUE_INDEX`: the next call from Baldwin.
 enum {
     AKROPOLIS_STORY_DIALOGUE_ARRIVAL           = 1, // "This is Baldwin."

@@ -43387,7 +43387,7 @@ switch (task->state) {
 
 The merged block survives at the **last** case that uses it, which is what puts
 the `state++` tail between the case-7 and case-8 bodies and the `taskKill` tail
-after case 8 in `_acropolisCafeteriaFollowUpSceneTask`. Hand-written `goto advance`
+after case 8 in `_akropolisCafeteriaFollowUpSceneTask`. Hand-written `goto advance`
 / `goto kill` labels put the tail wherever the label sits in the source and, far
 worse, free cross-jumping to merge something else: there it ate a
 `jal taskMessageDispatch` argument tail shared by two cases (97.2%, `branch`/`delete`
@@ -48943,7 +48943,7 @@ no input dependency. The target has it *after* the loads. Writing `composeStamp 
 **last** in the source still emits the store first (the stores are to distinct
 stack offsets, so they get reordered freely) but changes its scheduling
 priority, and the loads move up instead. This took
-`acropolisCafeteriaRoomVisualEffectsTwinTrailTask` from 99.32% to 100%; the only diff was one
+`akropolisCafeteriaRoomVisualEffectsTwinTrailTask` from 99.32% to 100%; the only diff was one
 `sw zero, 0x10(sp)` five instructions early, twice.
 
 ## `&arr[1]` as a pointer, not an index
@@ -66142,7 +66142,7 @@ GameFlow function-pointer tables in plain `gameflow_1` rodata.
 
 ## `D_80073B8C` is `gPlayerStatus.coordMtx`: correct aliasing also removes an extra saved register
 
-`_acropolisCafeteriaLoosePropUpdate` reached 96.138% with a typed debris work
+`_akropolisCafeteriaLoosePropUpdate` reached 96.138% with a typed debris work
 block, four-case switch, `MATRIX` assignment and `ABS()` checks. A bare
 `extern MATRIX* D_80073B8C` allowed its load and the direction address to
 move before the matrix copy. The overlapping pointer lifetimes then required
@@ -88018,7 +88018,7 @@ Isolating it: rebuilding m2c's own structure with only the *arity* corrected
 
 Writing each path as an early `return` is the whole fix, and it is what the
 matched family members already do (`_neoArkShrineResolveRoomEvent`,
-`_acropolisCafeteriaResolveRoomTransition`, `_shelterB3IncineratorControlRoomResolveRoomEvent`):
+`_akropolisCafeteriaResolveRoomTransition`, `_shelterB3IncineratorControlRoomResolveRoomEvent`):
 
 ```c
     if (in->msgId == 9) {
@@ -139981,7 +139981,7 @@ The digit-blanking loop in front of it is the reversed count-up loop from the
 byte for byte, but only because the early `textureU = 0xA` stretches the constant's
 live range as far as the reversal does. Look for the reversed form first.
 
-## A large constant in an if/else that allocates one register too high may be a variable shared by both arms (acropolisCafeteriaModelWanderTask, 2026-09-23)
+## A large constant in an if/else that allocates one register too high may be a variable shared by both arms (akropolisCafeteriaModelWanderTask, 2026-09-23)
 
 Each arm of `if (departureYaw > 0x400) { lcg; departureYaw -= 0x10; departureYaw -= rnd; } else { lcg; ... }`
 materialises `0x71357911` (`lui`/`ori`). Written as a literal, each arm's
@@ -140002,7 +140002,7 @@ That gives `departureYaw` `a1` and `randomIncrement` `a2`. The `.greg` conflict 
 if the arm-crossing pseudo lists a hard register that only a local constant
 occupies, making the constant global is the lever.
 
-### Duplicated arm stores that cross-jump still count as refs: they decide a callee-saved swap (acropolisCafeteriaPuffTask, 2026-09-23)
+### Duplicated arm stores that cross-jump still count as refs: they decide a callee-saved swap (akropolisCafeteriaPuffTask, 2026-09-23)
 
 Symptom: 99.9% with only `regs`, two long-lived pointers (`scratch`, a scratchpad
 block, and `quad`, a `POLY_FT4*`) on swapped `$s1`/`$s2`. Final instruction
@@ -145752,7 +145752,7 @@ only as one statement, `otIdx = panel->depth + 1`: split into a load and `+= 1`
 it is set twice and its load loses the birthing boost, pushing the stack-argument
 load behind it. The remaining `sb` order was the request fields in struct order.
 
-## A barrier keeping duplicated answer stores apart is an inline helper whose result the caller returns (_acropolisCafeteriaResolveRoomTransition, 2026-09-26)
+## A barrier keeping duplicated answer stores apart is an inline helper whose result the caller returns (_akropolisCafeteriaResolveRoomTransition, 2026-09-26)
 
 A room-transition handler selects patio area 3 twice with the same `if/else` block
 (`reply->room = 1` / `= 2` / `= destinationArea`), and the target keeps the first copy's
@@ -149234,7 +149234,7 @@ computes `pos` first).
 `goto shared;` into another arm is usually the tail written twice:
 cross-jumping (jump.c) merges two identical insn runs that end at the same
 label, and deletes the *earlier* copy. It matched in `effectThrownModelTask`,
-`acropolisCafeteriaPlayMovieTask`, `_dryfieldDilapidatedHouseEncounterFinishTask`.
+`akropolisCafeteriaPlayMovieTask`, `_dryfieldDilapidatedHouseEncounterFinishTask`.
 It fails in two ways:
 
 - the image keeps the *earlier* copy and jumps backward to it

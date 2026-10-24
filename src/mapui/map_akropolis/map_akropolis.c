@@ -38,7 +38,7 @@
 
 #include "rooms/acropolis_bridge.h"
 
-#include "rooms/acropolis_cafeteria.h"
+#include "rooms/akropolis_cafeteria.h"
 
 #include "rooms/akropolis_east_elevator_hall.h"
 
@@ -571,8 +571,8 @@ static AreaObjectSpawn _gMapAkropolisEastElevatorHallObjectSpawns[1] = {
 /// its placement list. Callbacks and borrowed models require their room
 /// overlay to remain loaded for the spawned task.
 static AreaObjectSpawn _gMapAkropolisCafeteriaObjectSpawns[3] = {
-    { MAP_AKROPOLIS_KIND_STIM, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, acropolisCafeteriaStimPickupTask, { &gAcropolisCafeteriaModel0F7A4 } } },
-    { INVENTORY_COLLECTION_ID_MENDEL_JOURNAL, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, acropolisCafeteriaMendelPickupTask, { &gAkropolisCafeteriaAcropolisCafeteriaModel0FDFC } } },
+    { MAP_AKROPOLIS_KIND_STIM, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, akropolisCafeteriaStimPickupTask, { &gAkropolisCafeteriaStimPickupModel } } },
+    { INVENTORY_COLLECTION_ID_MENDEL_JOURNAL, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), MAP_AKROPOLIS_OBJECT_TASK_PRIORITY } }, akropolisCafeteriaMendelPickupTask, { &gAkropolisCafeteriaMendelJournalModel } } },
     { AREA_OBJECT_SPAWN_END },
 };
 
@@ -700,7 +700,7 @@ TaskDesc gMapAkropolisRoomTaskDescriptors[21] = {
     { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, akropolisSquareRoomTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SQUARE, 0) } },
     { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, akropolisEastElevatorHallRoomTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_EAST_ELEVATOR_HALL, 0) } },
     { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, akropolisPatioRoomTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO, 0) } },
-    { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, acropolisCafeteriaRoomTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_CAFETERIA, 0) } },
+    { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, akropolisCafeteriaRoomTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_CAFETERIA, 0) } },
     { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, acropolisSecurityRoomMessageTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SECURITY_ROOM, 0) } },
     { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, acropolisHallwayRoomTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_HALLWAY, 0) } },
     { { { TASK_BODY_NONE, MAP_AKROPOLIS_ROOM_TASK_PRIORITY } }, acropolisFountainRoomTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_FOUNTAIN, 0) } },

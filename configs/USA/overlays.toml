@@ -1166,14 +1166,15 @@ objects = [
   { unit = "patio", rodata = "0x4", text = "0x2C", data = "0x172C", bss = "0x9AA0", tail = true },
 ]
 
-[rooms.overlays.acropolis_cafeteria]
+[rooms.overlays.akropolis_cafeteria]
 label = "code starts at 0xEC; GCC hoisted the gDisplayState.debugMode load above the stack prologue at 0xF4"
 id = 288
+src = "src/stages/akropolis/rooms/cafeteria"
 text = ["0xEC", "0x54E8"]
 objects = [
   { kind = "packageId" },
-  { unit = "acropolis_cafeteria/acropolis_cafeteria", rodata = "0x4", text = "0xEC", data = "0x54E8" },
-  { unit = "acropolis_cafeteria/acropolis_cafeteria_2", rodata = "0xB0", text = "0xEBC", data = "0xD458" },
+  { unit = "cafeteria", rodata = "0x4", text = "0xEC", data = "0x54E8" },
+  { unit = "cafeteria_effects", rodata = "0xB0", text = "0xEBC", data = "0xD458" },
   { kind = "model", at = "0x7740", in_c = true },
   { kind = "modelSource", at = "0x789C", in_c = true },
   { kind = "model", at = "0x78D0", in_c = true },
@@ -1190,7 +1191,7 @@ objects = [
   { kind = "modelSource", at = "0xFFBC", in_c = true },
   { kind = "animation", at = "0x6BDC", sets = ["0x7704"], in_c = true },
   { kind = "collision", at = "0xA0CC", in_c = true },
-  { kind = "collisionSource", at = "0xB1E8", in_c = true, cell_face_list_macro = "ACROPOLIS_CAFETERIA_CELL_FACE_LIST_AT_OFFSET" },
+  { kind = "collisionSource", at = "0xB1E8", in_c = true, cell_face_list_macro = "AKROPOLIS_CAFETERIA_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.acropolis_plaza]

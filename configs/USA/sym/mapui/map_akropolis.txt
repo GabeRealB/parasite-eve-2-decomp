@@ -33,19 +33,19 @@ gAkropolisPatioWarpEntries = 0x80182EEC; // absolute:True owner=akropolis_patio 
 gAkropolisPatioSpriteViews = 0x80186360; // absolute:True owner=akropolis_patio shared=rooms
 gAkropolisPatioViewCameras = 0x80186D5C; // absolute:True owner=akropolis_patio
 gAkropolisPatioSurfacePropertiesByClass = 0x8018703C; // absolute:True owner=akropolis_patio
-acropolisCafeteriaRoomTask = 0x8017E424; // type:func absolute:True owner=acropolis_cafeteria shared=rooms
-acropolisCafeteriaMendelPickupTask = 0x801827C4; // type:func absolute:True owner=acropolis_cafeteria
-acropolisCafeteriaStimPickupTask = 0x8018286C; // type:func absolute:True owner=acropolis_cafeteria
-gAcropolisCafeteriaCollisionRooms = 0x8018753C; // absolute:True owner=acropolis_cafeteria
-gAcropolisCafeteriaViewMaps = 0x801875AC; // absolute:True owner=acropolis_cafeteria
-gAcropolisCafeteriaViewCounts = 0x801875BC; // absolute:True owner=acropolis_cafeteria
-gAcropolisCafeteriaRoomLightingTable = 0x801875C4; // absolute:True owner=acropolis_cafeteria
-gAcropolisCafeteriaWarps = 0x801875E4; // absolute:True owner=acropolis_cafeteria shared=rooms
-gAcropolisCafeteriaSpriteViews = 0x8018C48C; // absolute:True owner=acropolis_cafeteria
-gAcropolisCafeteriaViewCameras = 0x8018C5AC; // absolute:True owner=acropolis_cafeteria
-gAcropolisCafeteriaSurfacePropertiesByClass = 0x8018CA2C; // absolute:True owner=acropolis_cafeteria
-gAcropolisCafeteriaModel0F7A4 = 0x8018D230; // absolute:True owner=acropolis_cafeteria
-gAkropolisCafeteriaAcropolisCafeteriaModel0FDFC = 0x8018D57C; // absolute:True owner=acropolis_cafeteria
+akropolisCafeteriaRoomTask = 0x8017E424; // type:func absolute:True owner=akropolis_cafeteria shared=rooms
+akropolisCafeteriaMendelPickupTask = 0x801827C4; // type:func absolute:True owner=akropolis_cafeteria
+akropolisCafeteriaStimPickupTask = 0x8018286C; // type:func absolute:True owner=akropolis_cafeteria
+gAkropolisCafeteriaCollisionRooms = 0x8018753C; // absolute:True owner=akropolis_cafeteria
+gAkropolisCafeteriaViewMaps = 0x801875AC; // absolute:True owner=akropolis_cafeteria
+gAkropolisCafeteriaViewCounts = 0x801875BC; // absolute:True owner=akropolis_cafeteria
+gAkropolisCafeteriaRoomLightingTable = 0x801875C4; // absolute:True owner=akropolis_cafeteria
+gAkropolisCafeteriaWarps = 0x801875E4; // absolute:True owner=akropolis_cafeteria shared=rooms
+gAkropolisCafeteriaSpriteViews = 0x8018C48C; // absolute:True owner=akropolis_cafeteria
+gAkropolisCafeteriaViewCameras = 0x8018C5AC; // absolute:True owner=akropolis_cafeteria
+gAkropolisCafeteriaSurfacePropertiesByClass = 0x8018CA2C; // absolute:True owner=akropolis_cafeteria
+gAkropolisCafeteriaStimPickupModel = 0x8018D230; // absolute:True owner=akropolis_cafeteria
+gAkropolisCafeteriaMendelJournalModel = 0x8018D57C; // absolute:True owner=akropolis_cafeteria
 gAcropolisPlazaRoomCollisionResources = 0x801988B8; // absolute:True owner=acropolis_plaza
 gAcropolisPlazaViewMaps = 0x801988C8; // absolute:True owner=acropolis_plaza
 gAcropolisPlazaViewCounts = 0x801988CC; // absolute:True owner=acropolis_plaza

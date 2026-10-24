@@ -218,11 +218,11 @@ acropolisSecurityRoomMonitorTask = 0x8017ED68; // type:func absolute:True owner=
 acropolisHelicopterLandingPadExitTask = 0x8017EF8C; // type:func absolute:True owner=acropolis_helicopter_landing_pad
 acropolisBridgeKeypadTask = 0x8017F788; // type:func absolute:True owner=acropolis_bridge
 acropolisSecurityRoomPowerSupplyTask = 0x80180294; // type:func absolute:True owner=acropolis_security_room
-acropolisCafeteriaLoosePropTask = 0x80181E70; // type:func absolute:True owner=acropolis_cafeteria
-gAcropolisCafeteriaModel07CA8 = 0x801858C4; // absolute:True owner=acropolis_cafeteria shared=rooms
-gAcropolisCafeteriaModel08638 = 0x8018625C; // absolute:True owner=acropolis_cafeteria
-gAcropolisCafeteriaModel09090 = 0x80186CAC; // absolute:True owner=acropolis_cafeteria
-gAcropolisCafeteriaModel09A20 = 0x80187518; // absolute:True owner=acropolis_cafeteria
+akropolisCafeteriaLoosePropTask = 0x80181E70; // type:func absolute:True owner=akropolis_cafeteria
+gAkropolisCafeteriaLooseProp1Model = 0x801858C4; // absolute:True owner=akropolis_cafeteria shared=rooms
+gAkropolisCafeteriaLooseProp2Model = 0x8018625C; // absolute:True owner=akropolis_cafeteria
+gAkropolisCafeteriaLooseProp3Model = 0x80186CAC; // absolute:True owner=akropolis_cafeteria
+gAkropolisCafeteriaLooseProp4Model = 0x80187518; // absolute:True owner=akropolis_cafeteria
 func_807011D8 = 0x807011D8; // type:func absolute:True
 func_80701400 = 0x80701400; // type:func absolute:True
 func_80701470 = 0x80701470; // type:func absolute:True

@@ -215,7 +215,7 @@ def analyze(source: str, db) -> tuple[dict, list[str]]:
         needed, missing = set(), {}
         for name in sorted(used):
             hs = {h for h in declared.get(name, ()) if h.endswith(".h") and owner_of(h) != owner
-                  and not h.startswith(carrier_dir)}
+                  and (owner == main or not h.startswith(carrier_dir))}   # a fragment's carrier binds those names
             if not hs:
                 continue
             if len(macros.get(name, ())) > 1:

@@ -8,7 +8,7 @@ _gActor310600Animation04ADCBank1 = 0x80162CF8; // size:0x4C8 defined:True
 _gActor310600Animation04ADCBank4 = 0x801631C0; // size:0x184C defined:True
 _gActor310600Animation04ADCRecords = 0x80164A0C; // size:0x1EC8 defined:True
 _gActor310600Animation04ADCIndices = 0x801668D4; // size:0x28 defined:True
-gAkropolisCafeteriaPlayerCafeteriaFollowUpStartClip = 0x801668FC; // size:0x28 defined:True
+gAkropolisCafeteriaPlayerFollowUpStartClip = 0x801668FC; // size:0x28 defined:True
 _gRupertBodySkeleton = 0x80166924; // size:0x2D0 defined:True
 _gRupertBodyPartVerts = 0x80166BF4; // size:0x50 defined:True
 _gRupertBodyVerts = 0x80166C44; // size:0xC10 defined:True
@@ -49,7 +49,7 @@ _gActor310600ReloadCueFrames = 0x8017965C; // size:0x4 defined:True
 _gActor310600AnimationCueFrames = 0x80179660; // size:0x2C defined:True
 D_actor_310600_8017968C = 0x8017968C; // size:0x8 defined:True
 
-gAcropolisCafeteriaSceneTasks = 0x80182AD8; // absolute:True owner=acropolis_cafeteria
+gAkropolisCafeteriaSceneTasks = 0x80182AD8; // absolute:True owner=akropolis_cafeteria
 _modelPlacementAttachChild = 0x801627A4; // type:func
 actorMsgPlaceEuler = 0x80162C18; // type:func
 _modelPlacementAttachPartTask = 0x80162948; // type:func

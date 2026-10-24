@@ -1,31 +1,26 @@
-#include "rooms/acropolis_cafeteria.h"
+#include "rooms/akropolis_cafeteria.h"
+#include "cafeteria_private.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/abs.h>
 #include <psyq/inline_c.h>
 #include <psyq/libgs.h>
+#include <psyq/abs.h>
 #include <psyq/rand.h>
 
 #include "common.h"
 #include "gte.h"
 
-#include "acropolis_cafeteria_private.h"
-
-#include "gameplay/display.h"
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
-#include "gameplay/area_flags.h"
+#include "gameplay/display.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/items.h"
-#include "gameplay/loading.h"
-#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
-#include "gameplay/sprites.h"
 #include "gameplay/view.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
@@ -37,10 +32,10 @@
 #include "main/fs.h"
 #include "main/fs_types.h"
 #include "main/gameflow.h"
-#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/pad.h"
+#include "main/random.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
@@ -58,38 +53,28 @@
 
 #include "rooms/room_common.h"
 
-/// Selects the cafeteria's twin-trail endpoint table defined in acropolis_cafeteria.c.
-///
-/// Empty presence flag needed only while including the shared header, which
-/// declares the external table of two SVECTOR entries and binds the task's accesses.
+/// The twin-trail endpoint table, defined in cafeteria.c.
 #define ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS
-#include "../../shared/room/room_visual_effects.h"
+#include "../../../../shared/room/room_visual_effects.h"
 #undef ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS
-#include "../../shared/actor/actor_contacts.h"
-#include "../../shared/room/streamed_scene.h"
+#include "../../../../shared/actor/actor_contacts.h"
+#include "../../../../shared/room/streamed_scene.h"
 
-#define ROOM_PART declarations_acropolis_cafeteria_2
+#define ROOM_PART declarations_cafeteria_effects
 #include "assets/rooms/akropolis/cafeteria/declarations.inc"
 
 /// Placed pickup state after collection, shared by this room's model hooks.
-enum { ACROPOLIS_CAFETERIA_PICKUP_COLLECTED = 2 };
+enum { AKROPOLIS_CAFETERIA_PICKUP_COLLECTED = 2 };
 
-/// Phases of the loose-prop task, held in `_AcropolisCafeteriaLoosePropWork::phase`.
+/// Phases of the loose-prop task, held in `_AkropolisCafeteriaLoosePropWork::phase`.
 enum {
-    ACROPOLIS_CAFETERIA_LOOSE_PROP_RESTING,  // Waiting for anything to touch the body
-    ACROPOLIS_CAFETERIA_LOOSE_PROP_HOPPING,  // Knocked upwards: the lift wears off while the prop spins and slides
-    ACROPOLIS_CAFETERIA_LOOSE_PROP_SLIDING,  // Horizontal speed decaying to a stop
-    ACROPOLIS_CAFETERIA_LOOSE_PROP_SETTLING, // Pitch and roll decaying to level, then resting again
+    AKROPOLIS_CAFETERIA_LOOSE_PROP_RESTING,  // Waiting for anything to touch the body
+    AKROPOLIS_CAFETERIA_LOOSE_PROP_HOPPING,  // Knocked upwards: the lift wears off while the prop spins and slides
+    AKROPOLIS_CAFETERIA_LOOSE_PROP_SLIDING,  // Horizontal speed decaying to a stop
+    AKROPOLIS_CAFETERIA_LOOSE_PROP_SETTLING, // Pitch and roll decaying to level, then resting again
 };
 
 /// Work block of the cafeteria's loose-prop task, kept at `Task::work`.
-///
-/// The prop is a small model set down above and ahead of the player. It sinks
-/// at a constant rate every frame, and whenever its collision sphere touches
-/// another body it is knocked away along the player's facing with a hop and a
-/// tumble, slides to a stop and levels out before it can be knocked again.
-/// The block owns the body and the contact table the body borrows, so the
-/// task's exit unlinks the body before the block is freed.
 typedef struct {
     WorldCollisionBody    body;          // Sphere linked into the world's collision lists
     WorldCollisionContact contacts[6];   // Contact table the body borrows; emptied after every update
@@ -97,197 +82,101 @@ typedef struct {
     VECTOR                velocity;      // World units added to the prop's position per frame; `vy` is the hop on top of the constant sink
     SVECTOR               rotation;      // Euler angles (4096 per turn) the model's rotation is rebuilt from every frame
     SVECTOR               kickDirection; // Player's forward axis at the contact, normalised to 4096
-    u16                   phase;         // An `ACROPOLIS_CAFETERIA_LOOSE_PROP_*` phase
-} _AcropolisCafeteriaLoosePropWork;
-STATIC_ASSERT_SIZEOF(_AcropolisCafeteriaLoosePropWork, 0xD8);
+    u16                   phase;         // An `AKROPOLIS_CAFETERIA_LOOSE_PROP_*` phase
+} _AkropolisCafeteriaLoosePropWork;
+STATIC_ASSERT_SIZEOF(_AkropolisCafeteriaLoosePropWork, 0xD8);
 
 extern SVECTOR ActorContact_ScratchPosition;
 
 /// Returns this carrier's persistent last contact-push correction.
-///
-/// Components are signed 16.16 corrections shifted right by 16 and narrowed
-/// to halfwords. Fractional X/Z add a further unit in the correction's sign;
-/// X/Z record the root correction, while Y is only recorded. No grid hit
-/// leaves the old value intact. The borrowed vector lives for the overlay's
-/// lifetime; `pad` is unused.
 static inline SVECTOR* _actorContactGetLastPushStep(void)
 {
     return &ActorContact_ScratchPosition;
 }
 
-static void _acropolisCafeteriaLoosePropExit(Task* task);
+static void _akropolisCafeteriaLoosePropExit(Task* task);
 
-static u32     _gAkropolisCafeteriaAcropolisCafeteriaModel0FDFCPartVerts[1];
-static SVECTOR _gAkropolisCafeteriaAcropolisCafeteriaModel0FDFCVerts[22];
-static SVECTOR _gAkropolisCafeteriaAcropolisCafeteriaModel0FDFCNormals[18];
-static TmdBone _gAkropolisCafeteriaAcropolisCafeteriaModel0FDFCSkeleton[1];
-static u32     _gAkropolisCafeteriaAcropolisCafeteriaModel0FDFCStream[112];
+static u32     _gAkropolisCafeteriaMendelJournalModelPartVerts[1];
+static SVECTOR _gAkropolisCafeteriaMendelJournalModelVerts[22];
+static SVECTOR _gAkropolisCafeteriaMendelJournalModelNormals[18];
+static TmdBone _gAkropolisCafeteriaMendelJournalModelSkeleton[1];
+static u32     _gAkropolisCafeteriaMendelJournalModelStream[112];
 
-/// Neutral colour modulation and an empty GPU sprite-code flag mask.
-enum {
-    ACROPOLIS_CAFETERIA_SPRITE_NEUTRAL_RGB = 128,
-    ACROPOLIS_CAFETERIA_SPRITE_OPAQUE      = 0,
-};
-
-/// Placement layout and low-policy-nibble map mark committed by the follow-up scene.
-enum {
-    ACROPOLIS_CAFETERIA_FOLLOW_UP_PLACEMENT_VARIANT = 2,
-    ACROPOLIS_CAFETERIA_FOLLOW_UP_SET_MAP_MARK      = 1,
-};
-
-/// Paired cue-2 bases in the loaded type-1 sound bank; cue 1 uses base + 1.
-enum {
-    ACROPOLIS_CAFETERIA_SURFACE1_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x2D,
-    ACROPOLIS_CAFETERIA_SURFACE1_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x2F,
-    ACROPOLIS_CAFETERIA_SURFACE2_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x11,
-    ACROPOLIS_CAFETERIA_SURFACE2_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x13,
-    ACROPOLIS_CAFETERIA_SURFACE3_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x01,
-    ACROPOLIS_CAFETERIA_SURFACE3_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x03,
-    ACROPOLIS_CAFETERIA_SURFACE3_JUMP_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x05,
-};
-
-#define ROOM_PART gAcropolisCafeteriaRoomLights
+#define ROOM_PART gAkropolisCafeteriaRoomLights
 #include "assets/rooms/akropolis/cafeteria/lights.inc"
 #include "assets/rooms/akropolis/cafeteria/sprites.inc"
 #include "assets/rooms/akropolis/cafeteria/cameras.inc"
 #include "assets/rooms/akropolis/cafeteria/ambient.inc"
 #include "assets/rooms/akropolis/cafeteria/updates.inc"
 #include "assets/rooms/akropolis/cafeteria/surfaces.inc"
+#include "assets/rooms/akropolis/cafeteria/stim_pickup.inc"
 
-static TmdBone _gAcropolisCafeteriaModel0F7A4Skeleton[1] = {
-#include "assets/acropolis_cafeteria_model_0F7A4_skeleton.inc"
-};
+#include "assets/rooms/akropolis/cafeteria/mendel_journal.inc"
 
-static u32 _gAcropolisCafeteriaModel0F7A4PartVerts[1] = {
-#include "assets/acropolis_cafeteria_model_0F7A4_partVerts.inc"
-};
-
-static SVECTOR _gAcropolisCafeteriaModel0F7A4Verts[41] = {
-#include "assets/acropolis_cafeteria_model_0F7A4_verts.inc"
-};
-
-static SVECTOR _gAcropolisCafeteriaModel0F7A4Normals[53] = {
-#include "assets/acropolis_cafeteria_model_0F7A4_normals.inc"
-};
-
-static u32 _gAcropolisCafeteriaModel0F7A4Stream[307] = {
-#include "assets/acropolis_cafeteria_model_0F7A4_stream.inc"
-};
-
-TmdSource gAcropolisCafeteriaModel0F7A4 = {
-    0,
-    2168,
-    0,
-    1,
-    _gAcropolisCafeteriaModel0F7A4PartVerts,
-    _gAcropolisCafeteriaModel0F7A4Verts,
-    _gAcropolisCafeteriaModel0F7A4Normals,
-    _gAcropolisCafeteriaModel0F7A4Skeleton,
-    _gAcropolisCafeteriaModel0F7A4Stream,
-};
-
-#include "assets/rooms/akropolis/cafeteria/acropolis_cafeteria_model_0FDFC.inc"
-
-/// Fixed light colours and ambient base for the Mendel pickup model.
-///
-/// All light-colour coefficients are one half in Q12; translation supplies the
-/// GTE background RGB at 128 byte levels (2048 raw units). The model borrows
-/// this SDK matrix while the cafeteria overlay is loaded.
-static MATRIX _gAcropolisCafeteriaMendelPickupColorMatrix = {
+/// Fixed light colors and ambient base for the Mendel pickup model.
+static MATRIX _gAkropolisCafeteriaMendelPickupColorMatrix = {
     .m = { { ONE / 2, ONE / 2, ONE / 2 }, { ONE / 2, ONE / 2, ONE / 2 }, { ONE / 2, ONE / 2, ONE / 2 } },
     .t = { ONE / 2, ONE / 2, ONE / 2 },
 };
 
 /// Fixed world-space light-direction rows for the Mendel pickup model.
-///
-/// Coefficients use Q12 (4096 for one); rows have equal XYZ values of 1/32,
-/// -1/2 and -1/2. TMD drawing combines them with view and part rotation, without
-/// using translation. The model borrows this matrix while the overlay is loaded.
-static MATRIX _gAcropolisCafeteriaMendelPickupLightMatrix = {
+static MATRIX _gAkropolisCafeteriaMendelPickupLightMatrix = {
     .m = { { ONE / 32, ONE / 32, ONE / 32 }, { -ONE / 2, -ONE / 2, -ONE / 2 }, { -ONE / 2, -ONE / 2, -ONE / 2 } },
     .t = { ONE / 2, ONE / 2, ONE / 2 },
 };
 
-/// Fixed light colours and ambient base for the stim pickup models.
-///
-/// Light-colour coefficients are one half in Q12; translation supplies the GTE
-/// background RGB at 256 byte levels (4096 raw units). Placements using the stim
-/// draw hook borrow this separate matrix while the cafeteria overlay is loaded.
-static MATRIX _gAcropolisCafeteriaStimPickupColorMatrix = {
+/// Fixed light colors and ambient base for the stim pickup models.
+static MATRIX _gAkropolisCafeteriaStimPickupColorMatrix = {
     .m = { { ONE / 2, ONE / 2, ONE / 2 }, { ONE / 2, ONE / 2, ONE / 2 }, { ONE / 2, ONE / 2, ONE / 2 } },
     .t = { ONE, ONE, ONE },
 };
 
 /// Fixed world-space light-direction rows for the stim pickup models.
-///
-/// Q12 rows have equal XYZ values of 1/32, -1/2 and -1/2. TMD drawing uses the
-/// rotation coefficients only. Placements using the stim draw hook borrow this
-/// separate matrix while the cafeteria overlay is loaded.
-static MATRIX _gAcropolisCafeteriaStimPickupLightMatrix = {
+static MATRIX _gAkropolisCafeteriaStimPickupLightMatrix = {
     .m = { { ONE / 32, ONE / 32, ONE / 32 }, { -ONE / 2, -ONE / 2, -ONE / 2 }, { -ONE / 2, -ONE / 2, -ONE / 2 } },
     .t = { ONE / 2, ONE / 2, ONE / 2 },
 };
 
-/// Fixed light colours and ambient base for the retained object-flag-10 draw hook.
-///
-/// Light-colour coefficients are one half in Q12; background RGB is 4096 raw
-/// GTE units (256 byte levels). The hook's model identity is unproven. Its model
-/// borrows this separate SDK matrix while the cafeteria overlay is loaded.
-static MATRIX _gAcropolisCafeteriaObject10ColorMatrix = {
+/// Fixed light colors and ambient base for the retained object-flag-10 draw hook.
+static MATRIX _gAkropolisCafeteriaObject10ColorMatrix = {
     .m = { { ONE / 2, ONE / 2, ONE / 2 }, { ONE / 2, ONE / 2, ONE / 2 }, { ONE / 2, ONE / 2, ONE / 2 } },
     .t = { ONE, ONE, ONE },
 };
 
 /// Fixed light-direction rows for the retained object-flag-10 draw hook.
-///
-/// World-space Q12 rows have equal XYZ values of 1/32, -1/2 and -1/2;
-/// translation is unused by TMD lighting. The hook's model identity is unproven.
-/// Its model borrows this separate matrix while the cafeteria overlay is loaded.
-static MATRIX _gAcropolisCafeteriaObject10LightMatrix = {
+static MATRIX _gAkropolisCafeteriaObject10LightMatrix = {
     .m = { { ONE / 32, ONE / 32, ONE / 32 }, { -ONE / 2, -ONE / 2, -ONE / 2 }, { -ONE / 2, -ONE / 2, -ONE / 2 } },
     .t = { ONE / 2, ONE / 2, ONE / 2 },
 };
 
-/// Fixed light colours and ambient base for the retained object-flag-11 draw hook.
-///
-/// Light-colour coefficients are one half in Q12; background RGB is 4096 raw
-/// GTE units (256 byte levels). The hook's model identity is unproven. Its model
-/// borrows this separate SDK matrix while the cafeteria overlay is loaded.
-static MATRIX _gAcropolisCafeteriaObject11ColorMatrix = {
+/// Fixed light colors and ambient base for the retained object-flag-11 draw hook.
+static MATRIX _gAkropolisCafeteriaObject11ColorMatrix = {
     .m = { { ONE / 2, ONE / 2, ONE / 2 }, { ONE / 2, ONE / 2, ONE / 2 }, { ONE / 2, ONE / 2, ONE / 2 } },
     .t = { ONE, ONE, ONE },
 };
 
 /// Fixed light-direction rows for the retained object-flag-11 draw hook.
-///
-/// World-space Q12 rows have equal XYZ values of 1/32, -1/2 and -1/2;
-/// translation is unused by TMD lighting. The hook's model identity is unproven.
-/// Its model borrows this separate matrix while the cafeteria overlay is loaded.
-static MATRIX _gAcropolisCafeteriaObject11LightMatrix = {
+static MATRIX _gAkropolisCafeteriaObject11LightMatrix = {
     .m = { { ONE / 32, ONE / 32, ONE / 32 }, { -ONE / 2, -ONE / 2, -ONE / 2 }, { -ONE / 2, -ONE / 2, -ONE / 2 } },
     .t = { ONE / 2, ONE / 2, ONE / 2 },
 };
 
-s32 gAcropolisCafeteriaStrangerRecoilVelocityX = 0;
+s32 gAkropolisCafeteriaStrangerRecoilVelocityX = 0;
 
-s32 gAcropolisCafeteriaStrangerRecoilVelocityY = 0;
+s32 gAkropolisCafeteriaStrangerRecoilVelocityY = 0;
 
-s32 gAcropolisCafeteriaStrangerRecoilVelocityZ = 0;
+s32 gAkropolisCafeteriaStrangerRecoilVelocityZ = 0;
 
 SVECTOR ActorContact_ScratchPosition = { 0 };
 
-static void _acropolisCafeteriaLoosePropInit(Task* task);
-static void _acropolisCafeteriaLoosePropUpdate(Task* task);
-static void _acropolisCafeteriaLoosePropRequestExit(Task* task);
-static void _acropolisCafeteriaObject10DrawTask(Task* task);
-static void _acropolisCafeteriaObject11DrawTask(Task* task);
+static void _akropolisCafeteriaLoosePropInit(Task* task);
+static void _akropolisCafeteriaLoosePropUpdate(Task* task);
+static void _akropolisCafeteriaLoosePropRequestExit(Task* task);
+static void _akropolisCafeteriaObject10DrawTask(Task* task);
+static void _akropolisCafeteriaObject11DrawTask(Task* task);
 
 /// Chooses a puff's local XYZ offset using three successive shared LCG draws.
-///
-/// Borrows writable effect work and preserves `move.pad`. Writes integer
-/// coordinates in the emitter's local frame: X 560..3179, five Y levels
-/// -1900..-300, Z 2816..3839. Advances the shared LCG exactly three times.
-static inline void _acropolisCafeteriaChoosePuffSpawnOffset(EffectWork* work)
+static inline void _akropolisCafeteriaChoosePuffSpawnOffset(EffectWork* work)
 {
     enum { PUFF_OFFSET_X_MIN         = 560,
            PUFF_OFFSET_X_SPAN        = 2620,
@@ -309,7 +198,7 @@ static inline void _acropolisCafeteriaChoosePuffSpawnOffset(EffectWork* work)
     work->move.vz = (randomWord & PUFF_OFFSET_Z_RANDOM_MASK) + PUFF_OFFSET_Z_MIN;
 }
 
-void acropolisCafeteriaPlayMovieTask(Task* movieTask)
+void akropolisCafeteriaPlayMovieTask(Task* movieTask)
 {
     enum {
         MOVIE_MUSIC_START_TICK = 1091,
@@ -388,7 +277,7 @@ void acropolisCafeteriaPlayMovieTask(Task* movieTask)
     }
 }
 
-void acropolisCafeteriaBlackoutTask(Task* task)
+void akropolisCafeteriaBlackoutTask(Task* task)
 {
     enum {
         BLACKOUT_INTENSITY    = 0xFF,
@@ -405,15 +294,15 @@ void acropolisCafeteriaBlackoutTask(Task* task)
     }
 }
 
-void acropolisCafeteriaStartMovieTask(Task* task)
+void akropolisCafeteriaStartMovieTask(Task* task)
 {
-    displaySpawnTaskFromTable(gAcropolisCafeteriaMovieTasks, ACROPOLIS_CAFETERIA_MOVIE_TASK_PLAYBACK, 0, 0);
+    displaySpawnTaskFromTable(gAkropolisCafeteriaMovieTasks, AKROPOLIS_CAFETERIA_MOVIE_TASK_PLAYBACK, 0, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     viewQueueCurrentCameraAndPackets();
     taskKill(task);
 }
 
-void acropolisCafeteriaInitRoomEffectsTask(Task* task)
+void akropolisCafeteriaInitRoomEffectsTask(Task* task)
 {
     enum { ROOM_EFFECTS_INITIALIZE = 0,
            MODEL_WANDER_TIMED      = 0,
@@ -427,10 +316,10 @@ void acropolisCafeteriaInitRoomEffectsTask(Task* task)
     if (task->state != ROOM_EFFECTS_INITIALIZE) {
         return;
     }
-    task->msgTable = gAcropolisCafeteriaRoomEffectMessages;
+    task->msgTable = gAkropolisCafeteriaRoomEffectMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
     spawnOffset                    = &work->move;
-    gAcropolisCafeteriaPuffEnabled = 0;
+    gAkropolisCafeteriaPuffEnabled = 0;
     work->move.vx                  = 0x220;
     work->move.vy                  = -0x12C;
     work->move.vz                  = -0x6A0;
@@ -453,11 +342,11 @@ void acropolisCafeteriaInitRoomEffectsTask(Task* task)
     work->move.vy = -0x834;
     work->move.vz = -0x900;
     effectSpawn(EFFECT_064, coord, MODEL_WANDER_AMBIENT, spawnOffset);
-    gRoomEffectFlashId      = EFFECT_ACROPOLIS_CAFETERIA_FLASH;
-    gRoomEffectTwinTrailId  = EFFECT_ACROPOLIS_CAFETERIA_TWIN_TRAIL;
-    gRoomEffectSparkBurstId = EFFECT_ACROPOLIS_CAFETERIA_SPARK_BURST;
+    gRoomEffectFlashId      = EFFECT_AKROPOLIS_CAFETERIA_FLASH;
+    gRoomEffectTwinTrailId  = EFFECT_AKROPOLIS_CAFETERIA_TWIN_TRAIL;
+    gRoomEffectSparkBurstId = EFFECT_AKROPOLIS_CAFETERIA_SPARK_BURST;
 }
-void acropolisCafeteriaPuffEmitterTask(Task* task)
+void akropolisCafeteriaPuffEmitterTask(Task* task)
 {
     enum {
         PUFF_EMITTER_ACTIVE_VIEW      = 9,
@@ -478,7 +367,7 @@ void acropolisCafeteriaPuffEmitterTask(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (gAcropolisCafeteriaPuffEnabled == 0) {
+    if (gAkropolisCafeteriaPuffEnabled == 0) {
         effectKillTask(work, task);
         return;
     }
@@ -494,25 +383,18 @@ void acropolisCafeteriaPuffEmitterTask(Task* task)
         }
         // Consume four successive LCG draws for X, Y, Z and perspective size, even on spawn failure.
         for (puffIndex = 0; puffIndex < puffCount; puffIndex++) {
-            _acropolisCafeteriaChoosePuffSpawnOffset(work);
+            _akropolisCafeteriaChoosePuffSpawnOffset(work);
             RANDOM_LCG_ADVANCE();
             randomWord    = RANDOM_LCG_DRAW();
             spawnSizeBase = spawnFlags + PUFF_EMITTER_SIZE_MIN;
-            effectSpawn(EFFECT_ACROPOLIS_CAFETERIA_PUFF, coord, (randomWord & PUFF_EMITTER_SIZE_RANDOM_MASK) + spawnSizeBase, &work->move);
+            effectSpawn(EFFECT_AKROPOLIS_CAFETERIA_PUFF, coord, (randomWord & PUFF_EMITTER_SIZE_RANDOM_MASK) + spawnSizeBase, &work->move);
         }
     }
     work->scale = gGameSession->location.view;
 }
 
 /// Sets the puff quad's UVs to its current 48 x 48 texel animation cell.
-///
-/// `work->age` is elapsed active ticks and `work->step` is ticks per cell.
-/// The period must be positive, with 0 <= age < 10 * period. Cells 0..9 run
-/// left to right across five columns, then continue on the second row.
-/// UV endpoints include the last texel (origin + 47), so U stays in 0..239
-/// and V in 0..95. The quad and work are distinct borrowed live objects;
-/// only the eight UV bytes are written, without advancing the animation.
-static inline void _acropolisCafeteriaSetPuffCellUvs(POLY_FT4* quad, const EffectWork* work)
+static inline void _akropolisCafeteriaSetPuffCellUvs(POLY_FT4* quad, const EffectWork* work)
 {
     enum { PUFF_SHEET_COLUMNS = 5,
            PUFF_CELL_TEXELS   = 48,
@@ -528,7 +410,7 @@ static inline void _acropolisCafeteriaSetPuffCellUvs(POLY_FT4* quad, const Effec
     quad->v3 = ((work->age / work->step) / PUFF_SHEET_COLUMNS) * PUFF_CELL_TEXELS + PUFF_UV_SPAN;
 }
 
-void acropolisCafeteriaPuffTask(Task* task)
+void akropolisCafeteriaPuffTask(Task* task)
 {
     enum {
         PUFF_ACTIVE_VIEW        = 9,
@@ -556,7 +438,7 @@ void acropolisCafeteriaPuffTask(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (gAcropolisCafeteriaPuffEnabled != 0) {
+    if (gAkropolisCafeteriaPuffEnabled != 0) {
         view = gGameSession->location.view;
         if (view == PUFF_ACTIVE_VIEW) {
             // Project the centre once; the billboard's rotation is in screen space.
@@ -602,7 +484,7 @@ void acropolisCafeteriaPuffTask(Task* task)
             quad->tpage = getTPage(0, GPU_BLEND_ADD, 704, 0);
             quad->clut  = getClut(0, 270);
             setSemiTrans(quad, 1);
-            _acropolisCafeteriaSetPuffCellUvs(quad, work);
+            _akropolisCafeteriaSetPuffCellUvs(quad, work);
             scratch->cornerDx = (((work->angle * PUFF_UV_SPAN) / scratch->otz) * rsin(work->scale)) >> PUFF_TRIG_FRACTION_BITS;
             scratch->cornerDy = (((work->angle * PUFF_UV_SPAN) / scratch->otz) * rcos(work->scale)) >> PUFF_TRIG_FRACTION_BITS;
             quad->x0          = scratch->screenPos.vx + scratch->cornerDx;
@@ -634,7 +516,7 @@ void acropolisCafeteriaPuffTask(Task* task)
     effectKillTask(work, task);
 }
 
-void acropolisCafeteriaModelWanderTask(Task* task)
+void akropolisCafeteriaModelWanderTask(Task* task)
 {
     enum {
         WANDER_INITIALIZE                    = 0,
@@ -788,50 +670,46 @@ void acropolisCafeteriaModelWanderTask(Task* task)
     }
 }
 
-s32 acropolisCafeteriaSetPuffEnabled(Task* task, s32 messageId, s32 enabled, s32 unused)
+s32 akropolisCafeteriaSetPuffEnabled(Task* task, s32 messageId, s32 enabled, s32 unused)
 {
     GfxCoord* coord;
 
     coord                          = task->extra.coordBody->coord;
-    gAcropolisCafeteriaPuffEnabled = enabled;
+    gAkropolisCafeteriaPuffEnabled = enabled;
     if (enabled != 0) {
-        effectSpawn(EFFECT_ACROPOLIS_CAFETERIA_PUFF_EMITTER, coord, 0, NULL);
+        effectSpawn(EFFECT_AKROPOLIS_CAFETERIA_PUFF_EMITTER, coord, 0, NULL);
     }
     return 0;
 }
 
-#include "../../shared/room/room_visual_effects.inc.c"
+#include "../../../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room/room_visual_effects_flash_task.inc.c"
+#include "../../../../shared/room/room_visual_effects_flash_task.inc.c"
 
-void acropolisCafeteriaRoomVisualEffectsFlashTask(Task* task)
+void akropolisCafeteriaRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room/room_visual_effects_trails.inc.c"
+#include "../../../../shared/room/room_visual_effects_trails.inc.c"
 
-void acropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task)
+void akropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room/room_visual_effects_trail_task.inc.c"
+#include "../../../../shared/room/room_visual_effects_trail_task.inc.c"
 
-    void acropolisCafeteriaRoomVisualEffectsSparkBurstTask(Task * task)
+    void akropolisCafeteriaRoomVisualEffectsSparkBurstTask(Task * task)
     {
         _roomVisualEffectsSparkBurstTask(task);
     }
 
-#include "../../shared/room/room_visual_effects_glow.inc.c"
+#include "../../../../shared/room/room_visual_effects_glow.inc.c"
 
     /// Places a loose model above the player with a positive-Z offset and links its sphere.
-    ///
-    /// Requires a fresh state-zero TMD task and a live player. Owns one primary-heap
-    /// work block with six contacts; allocation failure kills the uninitialized task.
-    /// The exit callback unlinks the sphere before task teardown frees the work.
-    static void _acropolisCafeteriaLoosePropInit(Task * task)
+    static void _akropolisCafeteriaLoosePropInit(Task * task)
     {
         TmdObject*                        model;
         GfxCoord*                         coord;
-        _AcropolisCafeteriaLoosePropWork* work;
+        _AkropolisCafeteriaLoosePropWork* work;
         GfxCoord*                         playerCoord;
 
         model = task->extra.tmd;
@@ -842,7 +720,7 @@ void acropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task)
             return;
         }
         task->work         = work;
-        task->exitCallback = _acropolisCafeteriaLoosePropExit;
+        task->exitCallback = _akropolisCafeteriaLoosePropExit;
         task->state        = task->state + 1;
         memFillBytes(work, 0, sizeof(*work));
         coord->parent       = &gGfxViewCoord;
@@ -869,12 +747,7 @@ void acropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task)
     }
 
     /// Dampens the loose prop's horizontal velocity and advances its motion phase at rest.
-    ///
-    /// Requires initialized task work in the hopping or sliding phase. X/Z velocity
-    /// is in integer world units per tick: retain 6/7, truncating toward zero, then
-    /// snap magnitudes below 9 to zero. Both axes stopping increments the current
-    /// phase once, including during a hop; vertical velocity is preserved.
-    static inline void _acropolisCafeteriaDampLoosePropSlide(_AcropolisCafeteriaLoosePropWork * work)
+    static inline void _akropolisCafeteriaDampLoosePropSlide(_AkropolisCafeteriaLoosePropWork * work)
     {
         enum { SLIDE_STOP_SPEED = 9 }; // Exclusive magnitude threshold after damping, in world units per tick.
 
@@ -892,14 +765,10 @@ void acropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task)
     }
 
     /// Sinks the loose prop and handles its contact-driven hop, slide and leveling.
-    ///
-    /// Requires initialized work and a linked sphere. Position increments are integer
-    /// world units per tick; Euler angles and the normalized kick direction use 4096
-    /// units per turn and per unit vector respectively. Every update clears contacts.
-    static void _acropolisCafeteriaLoosePropUpdate(Task * task)
+    static void _akropolisCafeteriaLoosePropUpdate(Task * task)
     {
         MATRIX*                           scratchEnd;
-        _AcropolisCafeteriaLoosePropWork* work;
+        _AkropolisCafeteriaLoosePropWork* work;
         GfxCoord*                         coord;
         SVECTOR*                          kickDirection;
         s32                               launchMagnitude;
@@ -913,7 +782,7 @@ void acropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task)
         coord->coord.t[1]  += 0x80;
         actorRenderComposeCoord(coord);
         switch (work->phase) {
-            case ACROPOLIS_CAFETERIA_LOOSE_PROP_RESTING:
+            case AKROPOLIS_CAFETERIA_LOOSE_PROP_RESTING:
                 if (worldCollisionFindContactIndex(work->body.context.contacts, WORLD_COLLISION_FIND_ANY_KEY)) {
                     work->phase++;
                     // The matrix snapshot is unused; the discarded random draw still advances rand().
@@ -930,7 +799,7 @@ void acropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task)
                     work->velocity.vz = (work->kickDirection.vz * launchMagnitude) >> 24;
                 }
                 break;
-            case ACROPOLIS_CAFETERIA_LOOSE_PROP_HOPPING:
+            case AKROPOLIS_CAFETERIA_LOOSE_PROP_HOPPING:
                 work->velocity.vy += 0x10;
                 if (work->velocity.vy > 0) {
                     work->velocity.vy = 0;
@@ -941,13 +810,13 @@ void acropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task)
                     work->rotation.vz += (work->kickStrength >> 6) + (rand() & 0x7F);
                 }
                 // Fall through: the hop also loses horizontal speed and applies velocity.
-            case ACROPOLIS_CAFETERIA_LOOSE_PROP_SLIDING:
-                _acropolisCafeteriaDampLoosePropSlide(work);
+            case AKROPOLIS_CAFETERIA_LOOSE_PROP_SLIDING:
+                _akropolisCafeteriaDampLoosePropSlide(work);
                 coord->coord.t[0] += work->velocity.vx;
                 coord->coord.t[1] += work->velocity.vy;
                 coord->coord.t[2] += work->velocity.vz;
                 break;
-            case ACROPOLIS_CAFETERIA_LOOSE_PROP_SETTLING:
+            case AKROPOLIS_CAFETERIA_LOOSE_PROP_SETTLING:
                 work->rotation.vx = (work->rotation.vx * 2) / 3;
                 if (ABS(work->rotation.vx) < 9) {
                     work->rotation.vx = 0;
@@ -957,7 +826,7 @@ void acropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task)
                     work->rotation.vz = 0;
                 }
                 if (((u16)work->rotation.vx | (u16)work->rotation.vz) == 0) {
-                    work->phase = ACROPOLIS_CAFETERIA_LOOSE_PROP_RESTING;
+                    work->phase = AKROPOLIS_CAFETERIA_LOOSE_PROP_RESTING;
                 }
                 break;
         }
@@ -967,16 +836,16 @@ void acropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task)
     }
 
     /// Selects the loose-prop exit handler for the next task dispatch.
-    static void _acropolisCafeteriaLoosePropRequestExit(Task * task)
+    static void _akropolisCafeteriaLoosePropRequestExit(Task * task)
     {
         enum { LOOSE_PROP_TASK_EXIT = 3 };
         task->state = LOOSE_PROP_TASK_EXIT;
     }
 
     /// Unlinks the initialized loose prop's sphere before teardown frees its work and model.
-    static void _acropolisCafeteriaLoosePropExit(Task * task)
+    static void _akropolisCafeteriaLoosePropExit(Task * task)
     {
-        _AcropolisCafeteriaLoosePropWork* work;
+        _AkropolisCafeteriaLoosePropWork* work;
 
         work = task->work;
         worldCollisionUnlinkBody(&work->body);
@@ -984,31 +853,26 @@ void acropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task)
     }
 
     /// Task-state dispatch for the cafeteria's loose prop.
-    ///
-    /// Slots 0..3 initialize, update motion, request exit and unlink/kill the task.
-    /// No terminator; the dispatcher copies all four callback pointers to the stack
-    /// before indexing by `Task::state`. The initialized work and model stay live
-    /// through slot 3; slot 0 may kill the task if allocation fails.
-    static const TaskFuncTable4 _gAcropolisCafeteriaLoosePropStates = { {
-        _acropolisCafeteriaLoosePropInit,
-        _acropolisCafeteriaLoosePropUpdate,
-        _acropolisCafeteriaLoosePropRequestExit,
-        _acropolisCafeteriaLoosePropExit,
+    static const TaskFuncTable4 _gAkropolisCafeteriaLoosePropStates = { {
+        _akropolisCafeteriaLoosePropInit,
+        _akropolisCafeteriaLoosePropUpdate,
+        _akropolisCafeteriaLoosePropRequestExit,
+        _akropolisCafeteriaLoosePropExit,
     } };
 
-    void acropolisCafeteriaLoosePropTask(Task * task)
+    void akropolisCafeteriaLoosePropTask(Task * task)
     {
         TaskFuncTable4 states;
 
-        states = _gAcropolisCafeteriaLoosePropStates;
+        states = _gAkropolisCafeteriaLoosePropStates;
         states.funcs[task->state](task);
     }
 
-#include "../../shared/actor/actor_contacts_push_contact.inc.c"
+#include "../../../../shared/actor/actor_contacts_push_contact.inc.c"
 
-#include "../../shared/actor/actor_contacts_push.inc.c"
+#include "../../../../shared/actor/actor_contacts_push.inc.c"
 
-    void acropolisCafeteriaMendelPickupTask(Task * task)
+    void akropolisCafeteriaMendelPickupTask(Task * task)
     {
         enum { MENDEL_VIEW_12            = 12,
                MENDEL_VIEW_24            = 24,
@@ -1020,9 +884,9 @@ void acropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task)
 
         placement = task->spawnArg2.pointer;
         model     = task->extra.tmd;
-        if (areaGetCurrentObjectState((u8)placement->placeKey) != ACROPOLIS_CAFETERIA_PICKUP_COLLECTED) {
-            model->lightMtx = &_gAcropolisCafeteriaMendelPickupLightMatrix;
-            model->colorMtx = &_gAcropolisCafeteriaMendelPickupColorMatrix;
+        if (areaGetCurrentObjectState((u8)placement->placeKey) != AKROPOLIS_CAFETERIA_PICKUP_COLLECTED) {
+            model->lightMtx = &_gAkropolisCafeteriaMendelPickupLightMatrix;
+            model->colorMtx = &_gAkropolisCafeteriaMendelPickupColorMatrix;
             model->flags    = 0;
         } else {
             model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -1040,7 +904,7 @@ void acropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task)
                 break;
         }
     }
-    void acropolisCafeteriaStimPickupTask(Task * task)
+    void akropolisCafeteriaStimPickupTask(Task * task)
     {
         enum { STIM_ACTIVE_VIEW  = 9,
                STIM_TILTED_PLACE = 10,
@@ -1059,10 +923,10 @@ void acropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task)
         if ((u8)placement->placeKey == STIM_TILTED_PLACE) {
             gfxRotMatrixX(&task->extra.tmd->coords->coord, STIM_QUARTER_TURN, GRAPHICS_ROTATION_REPLACE);
         }
-        model->lightMtx = &_gAcropolisCafeteriaStimPickupLightMatrix;
-        model->colorMtx = &_gAcropolisCafeteriaStimPickupColorMatrix;
+        model->lightMtx = &_gAkropolisCafeteriaStimPickupLightMatrix;
+        model->colorMtx = &_gAkropolisCafeteriaStimPickupColorMatrix;
         // Retire collected placements only in the active view; buffer allocation retries otherwise.
-        if (placeState == ACROPOLIS_CAFETERIA_PICKUP_COLLECTED) {
+        if (placeState == AKROPOLIS_CAFETERIA_PICKUP_COLLECTED) {
             model->flags &= (u16)~TMD_OBJECT_FLAGGED_PASS;
             taskCallExit(task);
         } else {
@@ -1072,11 +936,7 @@ void acropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task)
         }
     }
     /// Draws an unreferenced model hook in view 9 until placed-object flag 10 is collected.
-    ///
-    /// Requires a TMD body, a live auxiliary heap and cafeteria lighting storage.
-    /// Replaces X rotation with a quarter turn even when collection hides the model.
-    /// No spawn row or call references this retained hook; its model identity is unproven.
-    static void _acropolisCafeteriaObject10DrawTask(Task * task)
+    static void _akropolisCafeteriaObject10DrawTask(Task * task)
     {
         enum { OBJECT_ACTIVE_VIEW  = 9,
                OBJECT_FLAG_INDEX   = 10,
@@ -1088,9 +948,9 @@ void acropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task)
             model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         }
-        model->lightMtx = &_gAcropolisCafeteriaObject10LightMatrix;
-        model->colorMtx = &_gAcropolisCafeteriaObject10ColorMatrix;
-        if (areaGetCurrentObjectState(OBJECT_FLAG_INDEX) == ACROPOLIS_CAFETERIA_PICKUP_COLLECTED) {
+        model->lightMtx = &_gAkropolisCafeteriaObject10LightMatrix;
+        model->colorMtx = &_gAkropolisCafeteriaObject10ColorMatrix;
+        if (areaGetCurrentObjectState(OBJECT_FLAG_INDEX) == AKROPOLIS_CAFETERIA_PICKUP_COLLECTED) {
             model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         } else {
             model->flags    = TMD_OBJECT_FLAGGED_PASS;
@@ -1100,10 +960,7 @@ void acropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task)
         gfxRotMatrixX(&task->extra.tmd->coords->coord, OBJECT_QUARTER_TURN, GRAPHICS_ROTATION_REPLACE);
     }
     /// Draws an unreferenced model hook in views 6, 7 and 10 until object flag 11 is collected.
-    ///
-    /// Requires a TMD body, a live auxiliary heap and cafeteria lighting storage.
-    /// No spawn row or call references this retained hook; its model identity is unproven.
-    static void _acropolisCafeteriaObject11DrawTask(Task * task)
+    static void _akropolisCafeteriaObject11DrawTask(Task * task)
     {
         enum { OBJECT_VIEW_FIRST  = 6,
                OBJECT_VIEW_SECOND = 7,
@@ -1117,14 +974,14 @@ void acropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task)
             case OBJECT_VIEW_SECOND:
             case OBJECT_VIEW_THIRD:
                 model->flags    = TMD_OBJECT_FLAGGED_PASS;
-                model->lightMtx = &_gAcropolisCafeteriaObject11LightMatrix;
-                model->colorMtx = &_gAcropolisCafeteriaObject11ColorMatrix;
+                model->lightMtx = &_gAkropolisCafeteriaObject11LightMatrix;
+                model->colorMtx = &_gAkropolisCafeteriaObject11ColorMatrix;
                 break;
             default:
                 model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 return;
         }
-        if (areaGetCurrentObjectState(OBJECT_FLAG_INDEX) == ACROPOLIS_CAFETERIA_PICKUP_COLLECTED) {
+        if (areaGetCurrentObjectState(OBJECT_FLAG_INDEX) == AKROPOLIS_CAFETERIA_PICKUP_COLLECTED) {
             model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         } else {
             model->flags    = TMD_OBJECT_FLAGGED_PASS;

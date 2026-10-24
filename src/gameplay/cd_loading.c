@@ -26,7 +26,7 @@
 
 #include "rooms/acropolis_bridge.h"
 
-#include "rooms/acropolis_cafeteria.h"
+#include "rooms/akropolis_cafeteria.h"
 
 #include "rooms/akropolis_east_elevator_hall.h"
 
@@ -410,7 +410,7 @@ static const AreaRecord _gAreaAcropolisRecords[GAME_AREA_MIST_SHOOTING_GALLERY +
     [GAME_AREA_AKROPOLIS_SQUARE]                 = { gAkropolisSquareAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[0].state },
     [GAME_AREA_AKROPOLIS_EAST_ELEVATOR_HALL]     = { gAkropolisEastElevatorHallAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[1].state },
     [GAME_AREA_AKROPOLIS_PATIO]                  = { gAkropolisPatioAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[2].state },
-    [GAME_AREA_AKROPOLIS_CAFETERIA]              = { gAcropolisCafeteriaAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[3].state },
+    [GAME_AREA_AKROPOLIS_CAFETERIA]              = { gAkropolisCafeteriaAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[3].state },
     [GAME_AREA_AKROPOLIS_PLAZA]                  = { gAcropolisPlazaAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[4].state },
     [GAME_AREA_AKROPOLIS_SECURITY_ROOM]          = { gAcropolisSecurityRoomAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[5].state },
     [GAME_AREA_AKROPOLIS_HALLWAY]                = { gAcropolisHallwayAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[6].state },

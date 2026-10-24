@@ -357,11 +357,17 @@ def encode_file(name: str, assets: dict, assets_root: Path) -> dict[str, bytes]:
         elif "palettes" in e:
             block = assets[chunk]                 # the rectangle its palettes span (declaration.chunk_records)
             colors = [0] * (block["w"] * block["h"])
-            for p in e["palettes"]:
+            placed = [None] * len(colors)          # the palette that set each color, where one inside another
+            for p in sorted(e["palettes"], key=lambda p: -len(palette_colors(p, chunk))):   # the larger first
                 c = palette_colors(p, chunk)
                 px, py = place_at(p, assets)
                 at = (py - block["y"]) * block["w"] + px - block["x"]
-                colors[at:at + len(c)] = c
+                for i, color in enumerate(c):
+                    if placed[at + i] is not None and colors[at + i] != color:
+                        raise ValueError(f"{chunk}: {p.get('texture', p.get('name'))}.{p.get('variant', '')} differs from "
+                                         f"{placed[at + i]}, the palette it lies inside, at entry {i}")
+                    if placed[at + i] is None:
+                        colors[at + i], placed[at + i] = color, f"{p.get('texture', p.get('name'))}.{p.get('variant', '')}"
             out[chunk] = encode_palette(block["x"], block["y"], block["w"], block["h"], colors)
     return out
 

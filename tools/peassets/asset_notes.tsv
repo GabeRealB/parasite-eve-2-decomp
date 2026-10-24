@@ -16,14 +16,14 @@ acropolis_bridge_collision_0D300	Collision grid of the Akropolis bridge's room 2
 rooms/akropolis/bridge/acropolis_bridge_model_0AD9C	Flat textured plane (137 quads) parked at ground-glow height under the Akropolis bridge and promenade, read in the rows as the water surface; hidden in a few mapped views.	
 acropolis_bridge_model_13870	Four-part body of the Akropolis bridge enemy (collision id 0x29), spawned sunk at six placements in area variant 1 and animated by the bridge's own clips.	
 acropolis_bridge_path_0BC80	Per-movie-frame height track (190 samples, only Y read) that raises the Akropolis bridge enemies in step with the accepted-keypad-code movie.	
-acropolis_cafeteria_animation_06BDC	One player clip that the Akropolis cafeteria's follow-up scene script installs as a weapon-bank extension and plays after the battle, on the accepted talk with the Stranger.	
-rooms/akropolis/cafeteria/acropolis_cafeteria_model_077D8	One-part body of a small wandering creature; five are spawned by the cafeteria's room effect at room entry, run about at random and leave.	
-acropolis_cafeteria_model_07CA8	No reached use found: body of the cafeteria's loose-prop task (falls above the player, hops and slides when touched) in task bank 7 slot 160; no spawn of that slot was found.	
-acropolis_cafeteria_model_08638	No reached use found: second body of the cafeteria's loose-prop task (bank 7 slot 161); no spawn found.	
-acropolis_cafeteria_model_09090	No reached use found: third body of the cafeteria's loose-prop task (bank 7 slot 162); no spawn found.	
-acropolis_cafeteria_model_09A20	No reached use found: fourth body of the cafeteria's loose-prop task (bank 7 slot 163); no spawn found.	
-acropolis_cafeteria_model_0F7A4	Stim pickup model placed in the Akropolis cafeteria by map_akropolis's object table, drawn only in mapped view 9 until collected.	
-rooms/akropolis/cafeteria/acropolis_cafeteria_model_0FDFC	Mendel journal pickup model placed in the Akropolis cafeteria by map_akropolis's object table, hidden once collected.	
+akropolis_cafeteria_animation_06BDC	One player clip that the Akropolis cafeteria's follow-up scene script installs as a weapon-bank extension and plays after the battle, on the accepted talk with the Stranger.	
+rooms/akropolis/cafeteria/wandering_creature	One-part body of a small wandering creature; five are spawned by the cafeteria's room effect at room entry, run about at random and leave.	
+akropolis_cafeteria_model_07CA8	No reached use found: body of the cafeteria's loose-prop task (falls above the player, hops and slides when touched) in task bank 7 slot 160; no spawn of that slot was found.	
+akropolis_cafeteria_model_08638	No reached use found: second body of the cafeteria's loose-prop task (bank 7 slot 161); no spawn found.	
+akropolis_cafeteria_model_09090	No reached use found: third body of the cafeteria's loose-prop task (bank 7 slot 162); no spawn found.	
+akropolis_cafeteria_model_09A20	No reached use found: fourth body of the cafeteria's loose-prop task (bank 7 slot 163); no spawn found.	
+akropolis_cafeteria_model_0F7A4	Stim pickup model placed in the Akropolis cafeteria by map_akropolis's object table, drawn only in mapped view 9 until collected.	
+rooms/akropolis/cafeteria/mendel_journal	Mendel journal pickup model placed in the Akropolis cafeteria by map_akropolis's object table, hidden once collected.	
 akropolis_east_elevator_hall_animation_026E8	Three scripted player clips of the east elevator hall's first-visit opening event (short entry, long conversation with the SWAT member, closing), installed and played by the event script.	
 akropolis_east_elevator_hall_collision_08DB8	Collision grid of the Akropolis east elevator hall, read by gameplay's world collision for the whole stay.	
 acropolis_fire_escape_collision_048B4	Collision grid of the Akropolis fire escape; its first normal, four vertices and face are overwritten by the placed Stranger enemies/stranger/lesser/package as a barrier and cleared when it dies.	
@@ -806,7 +806,7 @@ load_screens/dryfield_night_lobby_chapter_3/background	Load-screen picture for D
 bs_807..bs_814	View backgrounds of dryfield_night_water_tower (views 1-8 and 10): views 2-8 and 10 are walked via boundary triggers and four warps, view 1 is the plan view.	
 bs_815	No reached use found: background of dryfield_night_water_tower view 9; a caption scene step names it but nothing starts that command in the night room.	
 bs_817..bs_822	View backgrounds of dryfield_night_water_tank (6 files; session views 6-10 all show file 6): walked views 2 and 3, view 4 by warp and script, view 5 by a CAP scene step.	
-rooms/akropolis/cafeteria/view1_background..rooms/akropolis/cafeteria/view24_background	View backgrounds 1-24 of acropolis_cafeteria over four rooms, the later ones showing files 21, 14, 22 and 15 in place of views 3, 4 and 5.	
+rooms/akropolis/cafeteria/view1_background..rooms/akropolis/cafeteria/view24_background	View backgrounds 1-24 of akropolis_cafeteria over four rooms, the later ones showing files 21, 14, 22 and 15 in place of views 3, 4 and 5.	
 bs_823..bs_828	View backgrounds 1-6 of dryfield_night_breezeway: walked views 2-4 and view 5 selected by a caption text code of command 1 with actors hidden.	
 bs_829..bs_847	View backgrounds 1-19 of dryfield_night_factory: walked views 2-4 and 6-9, operator panel views 12 or 5, and barrier views 18 or 19.	
 bs_841..bs_845	No reached use found: backgrounds of dryfield_night_factory views 13-17, the files the day room's second view map swaps in, which nothing selects at night.	
@@ -830,7 +830,7 @@ bs_894	Backgrounds of dryfield_night_motel_room_5 files 7-11: the same five walk
 bs_899	No reached use found: background of dryfield_night_motel_balcony view 1, the straight-down plan view, with no selector in the shipped game.	
 bs_899..bs_921	View backgrounds of dryfield_night_motel_balcony (39 files) over three rooms with their own view maps: walked views 2-6 plus the many scene views of actor_335800's scripts.	
 load_screens/dryfield_night_trailer_chapter_3/background	Load-screen picture for Dryfield night with destination Trailer Coach (chapter 3 or other than 4 and 5), under the Dryfield boot caption; what lands on it is open.	
-rooms/akropolis/cafeteria/view10_background	No reached use found: backgrounds of acropolis_cafeteria views 10 and 13, ordinary cameras with no sprites that none of the nine checked paths selects.	
+rooms/akropolis/cafeteria/view10_background	No reached use found: backgrounds of akropolis_cafeteria views 10 and 13, ordinary cameras with no sprites that none of the nine checked paths selects.	
 bs_911	No reached use found: backgrounds of dryfield_night_motel_balcony logical views 13-16, 27, 28, 30 and 38, for which no selector was found.	
 bs_937..bs_948	View backgrounds 1-12 of dryfield_night_motel_room_6: walked views 2-5, 7, 8, view 12 by the cutscene record of room command 22, view 9 by a caption text code.	
 bs_942	No reached use found: backgrounds of dryfield_night_motel_room_6 views 6, 10 and 11; the captions naming 10 and 11 are day-room scenes that cannot run here.	
@@ -3687,22 +3687,22 @@ rooms/akropolis/patio/view8_image	8-bit sheet (two pages) of the 56 depth-sorted
 rooms/akropolis/patio/view9_image	8-bit sheet (two pages) of the 47 depth-sorted occluder sprites of akropolis_patio's mapped view 9.	
 rooms/akropolis/patio/view18_image	8-bit sheet of the 20 occluder sprites of akropolis_patio's mapped view 18, used in the second-visit scene.	
 rooms/akropolis/patio/view19_image	8-bit sheet of the 30 occluder sprites of akropolis_patio's mapped view 19, selected by a scene step of the second-visit scene.	
-rooms/akropolis/cafeteria/dialogue_0_atlas	4-bit caption glyph atlas of acropolis_cafeteria's dialogue with AYA, RUPERT and KYLE name plates, drawn by gameplay's caption code.	
+rooms/akropolis/cafeteria/dialogue_0_atlas	4-bit caption glyph atlas of akropolis_cafeteria's dialogue with AYA, RUPERT and KYLE name plates, drawn by gameplay's caption code.	
 weapons/m93r/preview_image	Item preview picture of weapon 0x81, the M93R, drawn in gameplay's item menu panels when that weapon is selected.	
 rooms/akropolis/cafeteria/image	Shared 4-bit item-pickup texture sheet: textures the Stim pickup in the cafeteria and the item container lid in the trailer coaches and Shelter rooms; unread in the heliport and parking.	
-rooms/akropolis/cafeteria/image_2	Two-column acropolis_cafeteria sheet: a 4-bit column with ten 48x48 puff cells and the wandering model's texture, and an 8-bit column texturing the Mendel journal and four loose props.	
-rooms/akropolis/cafeteria/view2_image	8-bit sheet of the 40 depth-sorted occluder sprites of acropolis_cafeteria's mapped view 2.	
-rooms/akropolis/cafeteria/view3_image	8-bit sheet (two pages) of the 67 room sprites of acropolis_cafeteria's mapped view 3, used in room 1 only.	
-rooms/akropolis/cafeteria/view6_image	8-bit sheet (three pages) of the 39 room sprites of acropolis_cafeteria's mapped view 6.	
-rooms/akropolis/cafeteria/view11_image	8-bit sheet of the 7 room sprites of acropolis_cafeteria's mapped view 11.	
-rooms/akropolis/cafeteria/view12_image	8-bit sheet of the 2 room sprites of acropolis_cafeteria's mapped view 12.	
-rooms/akropolis/cafeteria/view14_image	8-bit sheet of the 31 room sprites shared by acropolis_cafeteria's mapped views 14 and 22, which use one table and one camera.	
-rooms/akropolis/cafeteria/view15_image	8-bit sheet (two pages) of the 12 room sprites of acropolis_cafeteria's mapped view 15.	
-rooms/akropolis/cafeteria/view16_image	8-bit creature texture brought in by view 16's file in acropolis_cafeteria and copied by MoveImage to actor bucket 1's first texture page in the post-battle scene.	
+rooms/akropolis/cafeteria/image_2	Two-column akropolis_cafeteria sheet: a 4-bit column with ten 48x48 puff cells and the wandering model's texture, and an 8-bit column texturing the Mendel journal and four loose props.	
+rooms/akropolis/cafeteria/view2_image	8-bit sheet of the 40 depth-sorted occluder sprites of akropolis_cafeteria's mapped view 2.	
+rooms/akropolis/cafeteria/view3_image	8-bit sheet (two pages) of the 67 room sprites of akropolis_cafeteria's mapped view 3, used in room 1 only.	
+rooms/akropolis/cafeteria/view6_image	8-bit sheet (three pages) of the 39 room sprites of akropolis_cafeteria's mapped view 6.	
+rooms/akropolis/cafeteria/view11_image	8-bit sheet of the 7 room sprites of akropolis_cafeteria's mapped view 11.	
+rooms/akropolis/cafeteria/view12_image	8-bit sheet of the 2 room sprites of akropolis_cafeteria's mapped view 12.	
+rooms/akropolis/cafeteria/view14_image	8-bit sheet of the 31 room sprites shared by akropolis_cafeteria's mapped views 14 and 22, which use one table and one camera.	
+rooms/akropolis/cafeteria/view15_image	8-bit sheet (two pages) of the 12 room sprites of akropolis_cafeteria's mapped view 15.	
+rooms/akropolis/cafeteria/view16_image	8-bit creature texture brought in by view 16's file in akropolis_cafeteria and copied by MoveImage to actor bucket 1's first texture page in the post-battle scene.	
 weapons/m950/preview_image	Item preview picture of weapon 0x82, the M950, drawn in gameplay's item menu panels when that weapon is selected.	
-rooms/akropolis/cafeteria/view21_image	8-bit sheet (two pages) of the room sprites of acropolis_cafeteria's mapped view 21, which is also view 3 in rooms 2-4.	
-rooms/akropolis/cafeteria/view23_image	8-bit sheet of the 16 room sprites of acropolis_cafeteria's mapped view 23.	
-rooms/akropolis/cafeteria/view24_image	8-bit image holding the single room sprite of acropolis_cafeteria's mapped view 24.	
+rooms/akropolis/cafeteria/view21_image	8-bit sheet (two pages) of the room sprites of akropolis_cafeteria's mapped view 21, which is also view 3 in rooms 2-4.	
+rooms/akropolis/cafeteria/view23_image	8-bit sheet of the 16 room sprites of akropolis_cafeteria's mapped view 23.	
+rooms/akropolis/cafeteria/view24_image	8-bit image holding the single room sprite of akropolis_cafeteria's mapped view 24.	
 rooms/akropolis/plaza/dialogue_0_atlas	4-bit caption glyph atlas of acropolis_plaza's dialogue with AYA and police name plates, drawn by gameplay's caption code.	
 rooms/akropolis/plaza/image	No reached use found: an acropolis_plaza image whose rows say it cannot survive the room because the movie buffers are staged over it.	
 rooms/akropolis/security_room/image	4-bit caption glyph atlas of acropolis_security_room's dialogue, drawn by gameplay's caption code whenever the room shows text.	
@@ -4626,7 +4626,7 @@ rooms/akropolis/east_elevator_hall/sounds_0	Footstep bank of akropolis_east_elev
 rooms/akropolis/east_elevator_hall/sounds_1	Acropolis east elevator hall room sound bank: arrival and departure sounds of the room's only warp and one three-sample sound started by the first-visit opening event.	
 rooms/akropolis/patio/sounds_0	Footstep bank of akropolis_patio: walk, run and stair-climb step sounds on surface class 4 and the patio's stair flights.	
 rooms/akropolis/patio/sounds_1	Acropolis patio room sound bank: door sounds of warps 1 and 2, the cafeteria door unlock, a caption sound, opening and follow-up scene sounds, and the Strangers' dormant loop (actor packages).	
-rooms/akropolis/cafeteria/sounds_0	Footstep bank of acropolis_cafeteria: walk, jump and run step sounds for surface classes 1, 2, 3 and 4 of the room.	
+rooms/akropolis/cafeteria/sounds_0	Footstep bank of akropolis_cafeteria: walk, jump and run step sounds for surface classes 1, 2, 3 and 4 of the room.	
 rooms/akropolis/cafeteria/sounds_1	Acropolis cafeteria room sound bank: door sounds of warps 0, 1 and 2, a caption cue sound, the post-battle scene sound and the woman's (actor_202900) animation cue in room variant 1.	
 weapons/m4a1_javelin/sounds	M4A1 Javelin weapon sound bank (weapon 29): rifle burst round, guide beam sound, empty-chamber click and reload cue.	
 rooms/akropolis/plaza/sounds_0	Footstep bank of acropolis_plaza: walk, scripted-jump and run step sounds on surface classes 0 and 1 of the plaza grid.	

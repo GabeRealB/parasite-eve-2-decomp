@@ -268,7 +268,7 @@ static void _actor202900UpdateState(Enemy* unusedEnemy, Task* task)
     _actor202900RelightModel(model);
     _actor202900StepAnim(task);
     if (_gActor202900Work->st.animId == ACTOR_202900_SOUND_ANIM && _actor202900LatchSoundCue()) {
-        sndEvtRequestScriptStart(SOUND_ACROPOLIS_CAFETERIA_WOMAN_CUE, 0, 0);
+        sndEvtRequestScriptStart(SOUND_AKROPOLIS_CAFETERIA_WOMAN_CUE, 0, 0);
     }
 }
 

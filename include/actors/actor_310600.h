@@ -6,7 +6,7 @@
 #include "main/task_types.h"
 
 // Native animation sets referenced by room script banks.
-extern AnimationSet gAkropolisCafeteriaPlayerCafeteriaFollowUpStartClip;
+extern AnimationSet gAkropolisCafeteriaPlayerFollowUpStartClip;
 
 /// Rupert Broderick spawn recipes: 0 twenty-part body, 1 one-part Mongoose.
 ///

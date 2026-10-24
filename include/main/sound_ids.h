@@ -177,7 +177,7 @@ enum {
     SOUND_AKROPOLIS_PATIO_STRANGER_DORMANT = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO, 8),
     /// Played by the cafeteria woman actor (anmc_woman_cafeteria_body) each time her
     /// animation 1 reaches the frame cue 0x15; what the sound is is not shown.
-    SOUND_ACROPOLIS_CAFETERIA_WOMAN_CUE = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_CAFETERIA, 0x0D),
+    SOUND_AKROPOLIS_CAFETERIA_WOMAN_CUE = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_CAFETERIA, 0x0D),
     /// Police officer actor's step sound on animation cue 2 (when not on display id
     /// 0x6C, which uses the 0x51050008..A table instead).
     SOUND_ACROPOLIS_PLAZA_POLICE_STEP_1 = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PLAZA, 6),

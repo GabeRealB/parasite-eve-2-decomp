@@ -17,8 +17,9 @@ chunk = "dialogue_0_atlas"
 chunk = "palette"
 sha1 = "8185f05dc401ff3c20eefa98bb339ba00a7e3b56"
 palettes = [
+    { texture = "model", variant = "loose_prop", region = "engine/vram/effect_palettes", offset = [0x00000, 0x00000] },
     { name = "unread_261_0", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00000, 0x00000] },
-    { name = "unread_261_16", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00010, 0x00000] },
+    { texture = "container", variant = "stim", region = "engine/vram/effect_palettes", offset = [0x00010, 0x00000] },
     { name = "unread_261_32", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00020, 0x00000] },
     { name = "unread_261_48", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00030, 0x00000] },
     { name = "unread_261_64", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00040, 0x00000] },
@@ -117,7 +118,7 @@ puff_row_2_4 = [192, 48, 48, 48]
 type = "texture"
 bpp = 8
 height = 256
-variants = ["default"]
+variants = ["default", "loose_prop"]
 width = 128
 
 [bundle]
@@ -154,7 +155,7 @@ sha1 = "b7283539bb95856fe65b35796f55b891941cb839"
 [rupert]
 type = "pe2pkg"
 embedded = [
-    { name = "player_cafeteria_follow_up_start", offset = 0x00ED8, size = 0x3C2C, address = 0x80162CF8 },
+    { name = "player_follow_up_start", offset = 0x00ED8, size = 0x3C2C, address = 0x80162CF8 },
     { asset = "characters/rupert/mongoose", offset = 0x0A9FC, size = 0x558, address = 0x8016C81C },
     { name = "rupert_shoot", offset = 0x0AF54, size = 0x3784, address = 0x8016CD74 },
     { name = "rupert_arrive", offset = 0x0E6D8, size = 0x4D4, address = 0x801704F8 },
@@ -169,16 +170,16 @@ sha1 = "6dc5ccea0c7b5f38c42bd34dbdcacadb368602c5"
 [package]
 type = "room"
 embedded = [
-    { name = "acropolis_cafeteria_follow_up_player_anim_01", offset = 0x06BDC, size = 0xB50, address = 0x8018419C },
-    { name = "acropolis_cafeteria_model_077D8", offset = 0x07740, size = 0x180, address = 0x80184D00 },
-    "acropolis_cafeteria_model_07CA8",
-    "acropolis_cafeteria_model_08638",
-    "acropolis_cafeteria_model_09090",
-    "acropolis_cafeteria_model_09A20",
-    "acropolis_cafeteria_model_0F7A4",
-    { name = "acropolis_cafeteria_model_0FDFC", offset = 0x0FC94, size = 0x34C, address = 0x8018D254 },
+    { name = "follow_up_player", offset = 0x06BDC, size = 0xB50, address = 0x8018419C },
+    { name = "wandering_creature", offset = 0x07740, size = 0x180, address = 0x80184D00 },
+    { name = "loose_prop_1", offset = 0x078D0, size = 0xA58, address = 0x80184E90 },
+    { name = "loose_prop_2", offset = 0x08328, size = 0x998, address = 0x801858E8 },
+    { name = "loose_prop_3", offset = 0x08CC0, size = 0xA50, address = 0x80186280 },
+    { name = "loose_prop_4", offset = 0x09710, size = 0x86C, address = 0x80186CD0 },
+    { name = "stim_pickup", offset = 0x0F48C, size = 0x808, address = 0x8018CA4C },
+    { name = "mendel_journal", offset = 0x0FC94, size = 0x34C, address = 0x8018D254 },
 ]
-package_name = "acropolis_cafeteria"
+package_name = "akropolis_cafeteria"
 required = true
 sha1 = "0a43c68c82490299076973953db45213ed28437d"
 
@@ -262,8 +263,8 @@ woman_cue = 13
 [stranger]
 type = "pe2pkg"
 embedded = [
-    { name = "player_cafeteria_rupert_talk", offset = 0x03108, size = 0x4E14, address = 0x8014CF28 },
-    { name = "player_cafeteria_follow_up_end", offset = 0x07F1C, size = 0x215C, address = 0x80151D3C },
+    { name = "player_rupert_talk", offset = 0x03108, size = 0x4E14, address = 0x8014CF28 },
+    { name = "player_follow_up_end", offset = 0x07F1C, size = 0x215C, address = 0x80151D3C },
     { name = "grinning_stranger_appear", offset = 0x0F6DC, size = 0xF9C, address = 0x801594FC },
     { name = "grinning_stranger_bank", offset = 0x10694, size = 0x18, address = 0x8015A4B4 },
     { name = "boss_stranger_collapse", offset = 0x106D8, size = 0x18AC, address = 0x8015A4F8 },
@@ -288,7 +289,7 @@ sha1 = "5197b3538c40c9ed3da0ec52ce10308450459cbb"
 type = "texture"
 bpp = 4
 height = 256
-variants = ["default"]
+variants = ["default", "stim"]
 width = 256
 
 [woman_cue]
@@ -298,7 +299,7 @@ sha1 = "70ec17f614d59bea372533411cc00473ced3905b"
 [anmc_woman]
 type = "pe2pkg"
 embedded = [
-    { name = "player_cafeteria_opening", offset = 0x0068C, size = 0x5A34, address = 0x8014A4AC },
+    { name = "player_opening", offset = 0x0068C, size = 0x5A34, address = 0x8014A4AC },
     { asset = "characters/anmc_woman_2/body", offset = 0x060C0, size = 0x5AEC, address = 0x8014FEE0 },
     { asset = "characters/anmc_woman_2/glasses", offset = 0x0BBAC, size = 0x1A0, address = 0x801559CC },
     { name = "woman_opening", offset = 0x0BD4C, size = 0x1090, address = 0x80155B6C },
@@ -526,6 +527,12 @@ shoot = "rooms/akropolis/cafeteria/rupert_shoot"
 arrive = "rooms/akropolis/cafeteria/rupert_arrive"
 reload = "rooms/akropolis/cafeteria/rupert_reload"
 depart = "rooms/akropolis/cafeteria/rupert_depart"
+
+[stim_pickup]
+type = "model"
+slots = ["model"]
+symbol = "gAkropolisCafeteriaStimPickupModel"
+sha1 = "fbbeaad538775e565e8cc338ae5ea030c460042b"
 
 [view11_file]
 type = "file"
@@ -1047,6 +1054,30 @@ type = "clip"
 rig = "enemies/stranger/rig"
 symbol = "gAkropolisCafeteriaExtraAnim7Clip"
 
+[loose_prop_1]
+type = "model"
+slots = ["model"]
+symbol = "gAkropolisCafeteriaLooseProp1Model"
+sha1 = "c213b2bafe2920fcc4639defd0443336e7f9fe64"
+
+[loose_prop_2]
+type = "model"
+slots = ["model"]
+symbol = "gAkropolisCafeteriaLooseProp2Model"
+sha1 = "56a76af06757aa9d933255d19d21029247e90fd3"
+
+[loose_prop_3]
+type = "model"
+slots = ["model"]
+symbol = "gAkropolisCafeteriaLooseProp3Model"
+sha1 = "3057c541b0af97896974d1c83d7148894a5d8892"
+
+[loose_prop_4]
+type = "model"
+slots = ["model"]
+symbol = "gAkropolisCafeteriaLooseProp4Model"
+sha1 = "66a4cd2b07f9c5de87c2310b33a48859e2d00bc2"
+
 [rupert_shoot]
 type = "clip"
 rig = "characters/rupert/rig"
@@ -1190,6 +1221,17 @@ width = 128
 type = "clip"
 rig = "characters/anmc_woman_2/rig"
 
+[mendel_journal]
+type = "model"
+slots = ["model"]
+symbol = "gAkropolisCafeteriaMendelJournalModel"
+sha1 = "477fb43fb413da624ac5ba84065755ccfa50fc5a"
+
+[player_opening]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisCafeteriaPlayerOpeningClip"
+
 [run_surface_3_1]
 type = "sound"
 sha1 = "85fef7c50dedd805c86faa806b010771d06c4daa"
@@ -1207,6 +1249,10 @@ w = 64
 x = 384
 y = 0
 sha1 = "87a5562b992863c3184e193b91f1c01beff9633b"
+
+[follow_up_player]
+type = "clip"
+rig = "characters/aya/rig"
 
 [view1_background]
 type = "bs"
@@ -1384,6 +1430,17 @@ height = 256
 variants = ["default"]
 width = 128
 
+[player_rupert_talk]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisCafeteriaPlayerRupertTalkClip"
+
+[wandering_creature]
+type = "model"
+slots = ["puff"]
+symbol = "gAkropolisCafeteriaWanderingCreatureModel"
+sha1 = "891eb5d56aaae937caa7a7b80a74f403cee8123d"
+
 [boss_stranger_alert]
 type = "sound"
 sha1 = "d2a97ab93570e8da7e7e6f3446c757fc883ec3ce"
@@ -1408,6 +1465,11 @@ sha1 = "9be70d0862a70e88cdde2921f3824d922ca94bb4"
 type = "sound"
 sha1 = "b2b275fb041d16738ddae4f2365bf2bea160c620"
 
+[stim_pickup_binding]
+type = "binding"
+model = "rooms/akropolis/cafeteria/stim_pickup"
+textures = { model = "rooms/akropolis/cafeteria/container.stim" }
+
 [boss_stranger_sounds]
 type = "sound_bank"
 samples = [
@@ -1430,6 +1492,31 @@ alert = 6
 hurt = 7
 strike = 12
 attack_hit = 13
+
+[loose_prop_1_binding]
+type = "binding"
+model = "rooms/akropolis/cafeteria/loose_prop_1"
+textures = { model = "rooms/akropolis/cafeteria/model.loose_prop" }
+
+[loose_prop_2_binding]
+type = "binding"
+model = "rooms/akropolis/cafeteria/loose_prop_2"
+textures = { model = "rooms/akropolis/cafeteria/model.loose_prop" }
+
+[loose_prop_3_binding]
+type = "binding"
+model = "rooms/akropolis/cafeteria/loose_prop_3"
+textures = { model = "rooms/akropolis/cafeteria/model.loose_prop" }
+
+[loose_prop_4_binding]
+type = "binding"
+model = "rooms/akropolis/cafeteria/loose_prop_4"
+textures = { model = "rooms/akropolis/cafeteria/model.loose_prop" }
+
+[player_follow_up_end]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisCafeteriaPlayerFollowUpEndClip"
 
 [hallway_door_a_arrive]
 type = "sound"
@@ -1466,6 +1553,16 @@ clips = { appear = "rooms/akropolis/cafeteria/grinning_stranger_appear" }
 schema = "rooms/akropolis/cafeteria/grinning_stranger_schema"
 symbol = "_gActor210600GrinningStrangerAnimationSets"
 
+[mendel_journal_binding]
+type = "binding"
+model = "rooms/akropolis/cafeteria/mendel_journal"
+textures = { model = "rooms/akropolis/cafeteria/model.default" }
+
+[player_follow_up_start]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisCafeteriaPlayerFollowUpStartClip"
+
 [grinning_stranger_appear]
 type = "clip"
 rig = "enemies/stranger/rig"
@@ -1473,11 +1570,6 @@ rig = "enemies/stranger/rig"
 [grinning_stranger_schema]
 type = "animation_schema"
 slots = ["", "appear"]
-
-[player_cafeteria_opening]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisCafeteriaPlayerCafeteriaOpeningClip"
 
 [boss_stranger_follow_up_3]
 type = "clip"
@@ -1500,6 +1592,11 @@ model = "rooms/akropolis/cafeteria/boss_stranger_body"
 boss_stranger_texture_page_1 = "rooms/akropolis/cafeteria/boss_stranger_texture_page_1.default"
 boss_stranger_texture_page_2 = "rooms/akropolis/cafeteria/boss_stranger_texture_page_2.default"
 
+[wandering_creature_binding]
+type = "binding"
+model = "rooms/akropolis/cafeteria/wandering_creature"
+textures = { puff = "rooms/akropolis/cafeteria/puff.default" }
+
 [boss_stranger_texture_page_1]
 type = "texture"
 bpp = 8
@@ -1513,44 +1610,3 @@ bpp = 8
 height = 256
 variants = ["default"]
 width = 128
-
-[player_cafeteria_rupert_talk]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisCafeteriaPlayerCafeteriaRupertTalkClip"
-
-[player_cafeteria_follow_up_end]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisCafeteriaPlayerCafeteriaFollowUpEndClip"
-
-[acropolis_cafeteria_model_077D8]
-type = "model"
-slots = ["puff"]
-symbol = "gAkropolisCafeteriaAcropolisCafeteriaModel077D8"
-sha1 = "891eb5d56aaae937caa7a7b80a74f403cee8123d"
-
-[acropolis_cafeteria_model_0FDFC]
-type = "model"
-slots = ["model"]
-symbol = "gAkropolisCafeteriaAcropolisCafeteriaModel0FDFC"
-sha1 = "477fb43fb413da624ac5ba84065755ccfa50fc5a"
-
-[player_cafeteria_follow_up_start]
-type = "clip"
-rig = "characters/aya/rig"
-symbol = "gAkropolisCafeteriaPlayerCafeteriaFollowUpStartClip"
-
-[acropolis_cafeteria_model_077D8_binding]
-type = "binding"
-model = "rooms/akropolis/cafeteria/acropolis_cafeteria_model_077D8"
-textures = { puff = "rooms/akropolis/cafeteria/puff.default" }
-
-[acropolis_cafeteria_model_0FDFC_binding]
-type = "binding"
-model = "rooms/akropolis/cafeteria/acropolis_cafeteria_model_0FDFC"
-textures = { model = "rooms/akropolis/cafeteria/model.default" }
-
-[acropolis_cafeteria_follow_up_player_anim_01]
-type = "clip"
-rig = "characters/aya/rig"

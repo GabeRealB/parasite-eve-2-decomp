@@ -49,7 +49,9 @@ enum {
 
 /// Values of `EVENT_FLAG_CURRENT_OBJECTIVE`, in story order.
 enum {
-    EVENT_FLAG_OBJECTIVE_AKROPOLIS_CAFETERIA_KEY_RECEIVED = 0x02, // "Civilian evac."; set as the east elevator hall scene starts
+    EVENT_FLAG_OBJECTIVE_AKROPOLIS_CAFETERIA_KEY_RECEIVED  = 0x02, // "Civilian evac."; set as the east elevator hall scene starts
+    EVENT_FLAG_OBJECTIVE_AKROPOLIS_CAFETERIA_BOSS_KILLED   = 0x03, // "I've never seen this kind of NMC."; after the cafeteria battle
+    EVENT_FLAG_OBJECTIVE_AKROPOLIS_CAFETERIA_BOSS_EXAMINED = 0x04, // "I have to contact MIST!"; after the cafeteria's follow-up
 };
 
 // The IDs come in blocks. The boundaries below are the ones seen so far; the

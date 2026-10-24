@@ -17,7 +17,9 @@ variants in order (the UI font's fill and outlines, ui/font/glyph_palettes in ma
 states `no_palette` and is written with a gray ramp. A texture's `cells` name the parts its code samples one at a
 time (animation frames, icons): a `grid` of [w, h] read row by row, with `names` or numbered, or named [x, y, w, h].
 A font's texture takes its cells from its fonts instead (`font` records, font/), each glyph's record one cell. A palette chunk may also place colors no known texture is drawn
-with, by `name` and `entries` (the dialogue's text palettes, one only dead code selects). A palette chunk stores the rectangle its palettes span, or the whole region its
+with, by `name` and `entries` (the dialogue's text palettes, one only dead code selects). A palette may lie inside
+another: a model's 8-bit palette is a whole row whose 16-color slices other textures are drawn with (the cafeteria's
+loose props and its container); the slices are the same colors, and encoding requires them to agree. A palette chunk stores the rectangle its palettes span, or the whole region its
 entry names as `upload` (the title's palette chunk clears six rows and fills one), zero where no palette is placed.
 
 A file declares its image and palette chunks itself (the sha1 of the stored bytes and what each uploads where), so
@@ -330,8 +332,11 @@ def check_file(key: str, rec: dict[str, Any], assets: dict[str, dict[str, Any]])
                 continue                        # a palette its image chunk stores in this page
             if inside and other.startswith("page ") and (x, y) >= (ox, oy) and x + w <= ox + ow and y + h <= oy + oh:
                 continue
-            if (x, y, w, h) == (ox, oy, ow, oh) and what.startswith("palette") and other.startswith("palette"):
-                continue                        # one palette several textures are drawn with (the title chrome's pages)
+            if what.startswith("palette") and other.startswith("palette") and (
+                    (ox <= x and x + w <= ox + ow and oy <= y and y + h <= oy + oh)
+                    or (x <= ox and ox + ow <= x + w and y <= oy and oy + oh <= y + h)):
+                continue                        # one palette several textures are drawn with (the title chrome's
+                                                # pages), or one inside another: a 4-bit palette in an 8-bit one's row
             if x < ox + ow and ox < x + w and y < oy + oh and oy < y + h:
                 problems.append(f"{key}: {what} overlaps {other}")
         rects.append((what, (x, y, w, h)))

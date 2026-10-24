@@ -4,9 +4,9 @@
 #include "gameplay/animation.h"
 
 // Native animation sets referenced by room script banks.
-extern AnimationSet gAkropolisCafeteriaPlayerCafeteriaRupertTalkClip;
+extern AnimationSet gAkropolisCafeteriaPlayerRupertTalkClip;
 
-extern AnimationSet gAkropolisCafeteriaPlayerCafeteriaFollowUpEndClip;
+extern AnimationSet gAkropolisCafeteriaPlayerFollowUpEndClip;
 
 extern AnimationSet gAkropolisCafeteriaBossStrangerCollapseClip;
 
