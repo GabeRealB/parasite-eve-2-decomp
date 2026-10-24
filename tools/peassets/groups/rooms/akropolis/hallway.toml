@@ -41,10 +41,10 @@ sha1 = "92423036ef88e01be88b40f8691a15d95e36714a"
 [package]
 type = "room"
 embedded = [
-    { name = "acropolis_hallway_model_01AE0", offset = 0x017A0, size = 0xB20, address = 0x8017ED60 },
-    "acropolis_hallway_model_023C0",
+    { name = "blue_key_pickup", offset = 0x017A0, size = 0xB20, address = 0x8017ED60 },
+    "akropolis_hallway_model_023C0",
 ]
-package_name = "acropolis_hallway"
+package_name = "akropolis_hallway"
 required = true
 sha1 = "61c66d02ac5846016b72779cd0bd9dd5fe6a4b44"
 
@@ -103,6 +103,12 @@ sha1 = "6aa8aade9c0d6240f9bd692f45b3af97e085d856"
 type = "sound"
 sha1 = "24e3526a540f5cf5e52756dd14d036781ff124d6"
 
+[blue_key_pickup]
+type = "model"
+slots = ["blue_key"]
+symbol = "gAkropolisHallwayBlueKeyPickupModel"
+sha1 = "fff6f28ce9a4e8511f7a36e1df9f84da24e761c2"
+
 [dialogue_0_atlas]
 type = "font_atlas"
 bpp = 4
@@ -133,13 +139,7 @@ sha1 = "cfc371e33ffad2b33c3c60823cfaac580ece6ee2"
 type = "bs"
 sha1 = "4fe03700fe59be7f6e71f20f3e8f75baa7b6b864"
 
-[acropolis_hallway_model_01AE0]
-type = "model"
-slots = ["blue_key"]
-symbol = "gAkropolisHallwayAcropolisHallwayModel01AE0"
-sha1 = "fff6f28ce9a4e8511f7a36e1df9f84da24e761c2"
-
-[acropolis_hallway_model_01AE0_binding]
+[blue_key_pickup_binding]
 type = "binding"
-model = "rooms/akropolis/hallway/acropolis_hallway_model_01AE0"
+model = "rooms/akropolis/hallway/blue_key_pickup"
 textures = { blue_key = "rooms/akropolis/hallway/blue_key.default" }

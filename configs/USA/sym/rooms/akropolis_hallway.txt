@@ -1,0 +1,66 @@
+// Overlay-local symbols for akropolis_hallway.
+ActorContact_ScratchPosition = 0x8017FA4C; // size:0x8 defined:True
+_gAkropolisHallwayModel023C0 = 0x8017FA28; // size:0x24 defined:True
+_gAkropolisHallwayRoomMessages = 0x8017E238; // size:0x20 defined:True
+gAkropolisHallwayRoomCollisionResources = 0x8017E258; // size:0x10 defined:True
+gAkropolisHallwayViewMaps = 0x8017E268; // size:0x4 defined:True
+gAkropolisHallwayViewCounts = 0x8017E26C; // size:0x2 defined:True
+gAkropolisHallwayRoomLightingTable = 0x8017E270; // size:0x8 defined:True
+gAkropolisHallwayWarpEntries = 0x8017E278; // size:0xE0 defined:True
+_gAkropolisHallwayCollisionGridNormals = 0x8017E358; // size:0x50 defined:True
+_gAkropolisHallwayCollisionGridVerts = 0x8017E3A8; // size:0x118 defined:True
+_gAkropolisHallwayCollisionGridFaces = 0x8017E4C0; // size:0xCC defined:True
+_gAkropolisHallwayCollisionGridCells = 0x8017E58C; // size:0x3C defined:True
+_gAkropolisHallwayCollisionGridTable = 0x8017E5C8; // size:0x8 defined:True
+_gAkropolisHallwayCollisionGrid = 0x8017E5D0; // size:0x24 defined:True
+_gAkropolisHallwayViewBoundaryTriggers = 0x8017E5F4; // size:0x130 defined:True
+_gAkropolisHallwayActionTriggers = 0x8017E724; // size:0x2AC defined:True
+_gAkropolisHallwayVariant1Resources = 0x8017E9D0; // size:0x18 defined:True
+_gAkropolisHallwayVariant2Resources = 0x8017E9E8; // size:0x18 defined:True
+_gAkropolisHallwayVariant3Resources = 0x8017EA00; // size:0x18 defined:True
+_gAkropolisHallwayVariant4Resources = 0x8017EA18; // size:0x24 defined:True
+gAkropolisHallwayAreaVariants = 0x8017EA3C; // size:0x68 defined:True
+_gAkropolisHallwayPointLights = 0x8017EAA4; // size:0x120 defined:True
+_gAkropolisHallwayRoomLights = 0x8017EBC4; // size:0x18 defined:True
+_gAkropolisHallwayView1SpriteBatches = 0x8017EBDC; // size:0x10 defined:True
+_gAkropolisHallwayView2SpriteBatches = 0x8017EBEC; // size:0x10 defined:True
+_gAkropolisHallwayView3SpriteBatches = 0x8017EBFC; // size:0x10 defined:True
+_gAkropolisHallwayView4SpriteBatches = 0x8017EC0C; // size:0x10 defined:True
+_gAkropolisHallwayView5SpriteBatches = 0x8017EC1C; // size:0x10 defined:True
+gAkropolisHallwaySpriteViews = 0x8017EC2C; // size:0x3C defined:True
+gAkropolisHallwayViewCameras = 0x8017EC68; // size:0xB4 defined:True
+_gAkropolisHallwayFootstepSounds = 0x8017ED1C; // size:0xC defined:True
+_gAkropolisHallwaySilentBlockingSurface = 0x8017ED28; // size:0x8 defined:True
+_gAkropolisHallwayWalkablePassThroughSurface = 0x8017ED30; // size:0x8 defined:True
+_gAkropolisHallwayWalkableBlockingSurface = 0x8017ED38; // size:0x8 defined:True
+gAkropolisHallwaySurfacePropertiesByClass = 0x8017ED40; // size:0x20 defined:True
+_gAkropolisHallwayBlueKeyPickupModelSkeleton = 0x8017ED60; // size:0x24 defined:True
+_gAkropolisHallwayBlueKeyPickupModelPartVerts = 0x8017ED84; // size:0x4 defined:True
+_gAkropolisHallwayBlueKeyPickupModelVerts = 0x8017ED88; // size:0x318 defined:True
+_gAkropolisHallwayBlueKeyPickupModelStream = 0x8017F0A0; // size:0x7BC defined:True
+gAkropolisHallwayBlueKeyPickupModel = 0x8017F85C; // size:0x24 defined:True
+_gAkropolisHallwayModel023C0Skeleton = 0x8017F880; // size:0x24 defined:True
+_gAkropolisHallwayModel023C0PartVerts = 0x8017F8A4; // size:0x4 defined:True
+_gAkropolisHallwayModel023C0Verts = 0x8017F8A8; // size:0xA8 defined:True
+_gAkropolisHallwayModel023C0Normals = 0x8017F950; // size:0x30 defined:True
+_gAkropolisHallwayModel023C0Stream = 0x8017F980; // size:0xA8 defined:True
+gViewIdentityMap = 0x8010CAF8; // absolute:True
+gActor401800OddStrangerTaskDesc = 0x80155AC4; // absolute:True owner=actor_401800
+gActor300700RatTaskDesc = 0x801693AC; // absolute:True owner=actor_300700
+gMapAkropolisHallwayVariant1Placements = 0x8017B04C; // absolute:True owner=map_akropolis
+gMapAkropolisHallwayVariant2Placements = 0x8017B0DC; // absolute:True owner=map_akropolis
+gMapAkropolisHallwayVariant3Placements = 0x8017B0FC; // absolute:True owner=map_akropolis
+gMapAkropolisHallwayVariant4Placements = 0x8017B11C; // absolute:True owner=map_akropolis
+
+akropolisHallwayEffectControlTask84 = 0x8017D828; // type:func
+_actorContactApplyGridPushback = 0x8017D830; // type:func
+_actorContactApplyBearingPushback = 0x8017D9D4; // type:func
+_akropolisHallwayRejectKeyItemUse = 0x8017d72c; // type:func
+_akropolisHallwayIdleRoomTask = 0x8017d7c8; // type:func
+_akropolisHallwayHandleSoundCue = 0x8017d734; // type:func
+_akropolisHallwayInitializeRoomTask = 0x8017d784; // type:func
+akropolisHallwayRoomTask = 0x8017d7d0; // type:func
+_akropolisHallwayResolveRoomTransition = 0x8017d5d0; // type:func
+akropolisHallwayBlueKeyPickupTask = 0x8017e120; // type:func
+_akropolisHallwayUnusedObjectVisibilityTask = 0x8017e1c0; // type:func
+_gAkropolisHallwayRoomTaskStates = 0x8017d5c4;

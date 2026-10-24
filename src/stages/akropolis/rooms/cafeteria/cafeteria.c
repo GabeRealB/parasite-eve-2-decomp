@@ -334,7 +334,7 @@ static void _akropolisCafeteriaBattleSceneTask(Task* task)
             break;
         case AKROPOLIS_CAFETERIA_BATTLE_SELECT_BATTLE_ROOM:
             drawBlackout                     = 1;
-            gGameSession->location.roomState = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = 2;
+            gGameSession->location.roomState = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = AKROPOLIS_ROOM_STATE_CAFETERIA_BATTLE;
             gGameSession->roomObjsDirty                                                                    = 1;
             task->state                                                                                   += 1;
             break;

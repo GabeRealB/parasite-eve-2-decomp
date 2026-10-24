@@ -1403,7 +1403,7 @@ gAcropolisForkedRoadAreaVariants = 0x801831C4; // absolute:True owner=acropolis_
 
 gAcropolisFountainAreaVariants = 0x8017FC9C; // absolute:True owner=acropolis_fountain
 
-gAcropolisHallwayAreaVariants = 0x8017EA3C; // absolute:True owner=acropolis_hallway
+gAkropolisHallwayAreaVariants = 0x8017EA3C; // absolute:True owner=akropolis_hallway
 
 gAcropolisHelicopterLandingPadAreaVariants = 0x801861E8; // absolute:True owner=acropolis_helicopter_landing_pad
 
@@ -1761,7 +1761,7 @@ acropolisFireEscapeLightEmitterTask = 0x8017FF7C; // type:func absolute:True own
 
 akropolisCafeteriaPuffTask = 0x8017EA90; // type:func absolute:True owner=akropolis_cafeteria shared=rooms
 
-acropolisHallwayEffectControlTask84 = 0x8017D828; // type:func absolute:True owner=acropolis_hallway
+akropolisHallwayEffectControlTask84 = 0x8017D828; // type:func absolute:True owner=akropolis_hallway
 
 dryfieldToiletSprayEmitterTask = 0x8017DCF0; // type:func absolute:True owner=dryfield_toilet
 

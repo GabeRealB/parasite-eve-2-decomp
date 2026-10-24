@@ -31,9 +31,9 @@ acropolis_forked_road_animation_04320	Two player clips the forked road's lock-re
 acropolis_forked_road_collision_04DE0	Collision grid of the Akropolis forked road, bound for all three room indices with its view-boundary and action triggers.	
 acropolis_forked_road_path_039C0	Per-movie-frame player path (300 samples) for the forked road's observatory movies: read forwards when leaving and backwards when arriving; samples 121-299 are never read.	
 acropolis_fountain_collision_013C0	Collision grid of the Akropolis fountain (4x4 cells, 66 faces), shared by both room indices.	
-acropolis_hallway_collision_00D98	Collision grid of the Akropolis hallway (two cells, 17 faces), used in every variant.	
-rooms/akropolis/hallway/acropolis_hallway_model_01AE0	Blue Key model, spawned in the Akropolis hallway as placed object 11 and drawn only during the examine close-up before pickup.	
-acropolis_hallway_model_023C0	No reached use found: a one-part 21-vertex model in the Akropolis hallway package that no code references.	
+akropolis_hallway_collision_00D98	Collision grid of the Akropolis hallway (two cells, 17 faces), used in every variant.	
+rooms/akropolis/hallway/blue_key_pickup	Blue Key model, spawned in the Akropolis hallway as placed object 11 and drawn only during the examine close-up before pickup.	
+akropolis_hallway_model_023C0	No reached use found: a one-part 21-vertex model in the Akropolis hallway package that no code references.	
 acropolis_helicopter_landing_pad_collision_07A34	Collision grid of the Akropolis helicopter landing pad (6x6 cells); the golem enemies/golem/no_9/package_akropolis patches three faces into it while present.	
 rooms/akropolis/helicopter_landing_pad/acropolis_helicopter_landing_pad_model_0547C	Model of the helicopter landing pad's lift, spawned as a room object at its upper stop and raised or lowered by the ending and departure scenes.	
 acropolis_helicopter_landing_pad_model_0A8E8	No reached use found: a pickup model in the landing pad package whose map_akropolis spawn descriptor (kind 0xA4) is selected by no place record.	
@@ -520,7 +520,7 @@ bs_1201..bs_1214	View backgrounds of shelter_b2_pod_bottom (views 1-14, plus roo
 bs_1215	No reached use in this room: view backgrounds in shelter_r47's folder (views 1, 22-35, 42, 43, 45, 46) of the view set shared with the pod service gantry; inert here, live there.	
 bs_1215..bs_1255	View backgrounds of the 46-view set shared by shelter_r47 (walk, console and scene views) and shelter_b1_pod_service_gantry (entry view 2 and the views of its two cutscenes).	
 bs_1217..bs_1219	No reached use in this room: backgrounds of views 3-5, 7-19, 36-41 and 44 in the pod service gantry's folder, the part of the shared view set that is live only in shelter_r47.	
-rooms/akropolis/hallway/view1_background..rooms/akropolis/hallway/view5_background	View backgrounds 1-5 of acropolis_hallway: views 2-4 via warp arrivals and boundary triggers, view 5 selected by a caption text line; view 1 is the plan view.	
+rooms/akropolis/hallway/view1_background..rooms/akropolis/hallway/view5_background	View backgrounds 1-5 of akropolis_hallway: views 2-4 via warp arrivals and boundary triggers, view 5 selected by a caption text line; view 1 is the plan view.	
 bs_1220	No reached use found: background of view 6 of the view set shared by shelter_r47 and the pod service gantry; nothing selects it in either room.	
 bs_1231	Background of shelter_b2_main_corridor view 8, reached by boundary triggers from views 7 and 11, with water strips drawn over it.	
 bs_1256..bs_1259	View backgrounds 1-4 of shelter_b1_transfer_tunnel; views 2-4 are the play views via two warps and boundary triggers, view 1 is the unselected plan view.	
@@ -1257,7 +1257,7 @@ weapons/pa3/bank	Aya's animation bank while the PA3 shotgun is equipped: ready a
 weapons/pa3/model	One-part PA3 shotgun model spawned by gameplay as the player's held weapon; its coord parents the shotgun muzzle flash and the reload effects.	
 enemies/golem/pawn/body	19-part body of the Pawn GOLEM, with beam sword (actors 102000/202000/302000) or grenade launcher (105600/205600), kept as a persistent corpse; also a scene walker in the nursery and night r08.	
 ending/bundle	Ending bundle loaded for the ending credits: slot 0 is the STF credits document (417 rows of glyph, palette, column and picture commands) and slots 1-19 are MDEC bitstreams of the credits pictures.	
-rooms/akropolis/hallway/bundle	Resource bundle of acropolis_hallway holding one used slot, the room's dialogue file, with no view palettes; loaded for the whole stay.	
+rooms/akropolis/hallway/bundle	Resource bundle of akropolis_hallway holding one used slot, the room's dialogue file, with no view palettes; loaded for the whole stay.	
 shelter_b1_storeroom_bundle	Resource bundle of shelter_b1_storeroom: view palettes in slots 1-6 and the room's dialogue file in slot 8, loaded for the whole stay.	
 shelter_b1_storeroom_view2	Palette rows of view 2 of shelter_b1_storeroom, uploaded on each change to that view; row 255 is read by all its sprites (pe2img_993).	
 shelter_b1_storeroom_view3	Palette rows of view 3 of shelter_b1_storeroom, uploaded on each change to that view; row 255 is read by all its sprites (pe2img_994).	
@@ -1335,7 +1335,7 @@ shelter_b1_underground_parking_view17	Palette rows of mapped view 17 of shelter_
 shelter_b1_underground_parking_dialogue_0	Default dialogue (CAP) file of shelter_b1_underground_parking with 29 commands, including the panel texts and Soldier B's five remarks and after-shop line that actor_161500's scripts run in variant 21.	
 dryfield_night_motel_lobby_dialogue_2	Telephone dialogue (CAP) file of shelter_b1_underground_parking with 28 commands, selected as data file 1 on room command 13 and stepped by the story dialogue index.	
 shelter_b1_underground_parking_dialogue_2	Third dialogue (CAP) file of shelter_b1_underground_parking with six commands, selected as data file 2 for the first use of room command 13 and other room commands; command 5 has no sender.	
-rooms/akropolis/hallway/dialogue_0	Dialogue (CAP) file of acropolis_hallway with commands 1-6: a refused-exit message, the Blue Key pickup and examine texts with counter variants.	
+rooms/akropolis/hallway/dialogue_0	Dialogue (CAP) file of akropolis_hallway with commands 1-6: a refused-exit message, the Blue Key pickup and examine texts with counter variants.	
 rooms/akropolis/fountain/bundle	Resource bundle of acropolis_fountain: 13 view palettes (slots 2-19) and the room's dialogue file in slot 22, loaded for the whole stay.	
 shelter_b1_golem_freezer_1_bundle	Resource bundle of shelter_b1_golem_freezer_1: view 2's sprite palette in slot 1 and the dialogue file in slot 7, whose commands 3-6 actor_160700's meeting scripts start.	
 shelter_b1_golem_freezer_1_view2	Palette rows of view 2 of shelter_b1_golem_freezer_1; row 255 is read by the view's thirty foreground sprites while that view is current.	
@@ -3712,8 +3712,8 @@ rooms/akropolis/security_room/view5_image	8-bit sheet of the room sprites shared
 rooms/akropolis/security_room/view6_image	8-bit image of the two released-lock sprites shown in akropolis_security_room's power-supply close-up (mapped view 6) once the left or right lock is released.	
 weapons/p08/preview_image	Item preview picture of weapon 0x83, the P08, drawn in gameplay's item menu panels when that weapon is selected.	
 rooms/akropolis/fountain/view4_image	Three-page 8-bit occluder sprite sheet shared by acropolis_fountain's mapped view 4 (room index 1) and akropolis_security_room's mapped view 16.	
-rooms/akropolis/hallway/dialogue_0_atlas	4-bit caption glyph atlas of acropolis_hallway's dialogue, drawn by gameplay's caption code for caption commands 1-6.	
-rooms/akropolis/hallway/image	8-bit texture of the Blue Key pickup model in acropolis_hallway, drawn in mapped view 5 until the key is collected.	
+rooms/akropolis/hallway/dialogue_0_atlas	4-bit caption glyph atlas of akropolis_hallway's dialogue, drawn by gameplay's caption code for caption commands 1-6.	
+rooms/akropolis/hallway/image	8-bit texture of the Blue Key pickup model in akropolis_hallway, drawn in mapped view 5 until the key is collected.	
 rooms/akropolis/fountain/dialogue_0_atlas	4-bit caption glyph atlas of acropolis_fountain's dialogue, drawn by gameplay's caption code whenever the room shows text.	
 rooms/akropolis/fountain/view3_image	8-bit sheet (two pages) of the 95 occluder sprites of acropolis_fountain's mapped view 3 (room index 1, logical view 3).	
 rooms/akropolis/fountain/view5_image	8-bit sheet (two pages) of the 73 occluder sprites of acropolis_fountain's mapped view 5 (room index 1, logical view 5).	
@@ -4633,7 +4633,7 @@ rooms/akropolis/plaza/sounds_0	Footstep bank of akropolis_plaza: walk, scripted-
 rooms/akropolis/plaza/sounds_1	Acropolis plaza room sound bank: ambience loops and voices mixed frame by frame against the traversal movie, final-scene one-shots, and the officers' step sounds (actor_310100).	
 rooms/akropolis/security_room/sounds_0	Footstep bank of akropolis_security_room: walk, scripted-jump and run step sounds on surface class 4, the room's only class.	
 rooms/akropolis/security_room/sounds_1	Acropolis security room sound bank: door sounds of its one warp, monitor panel select/brighter/darker clicks, shutter unlock and release sounds, and the right-lock scene's movie loop.	
-rooms/akropolis/hallway/sounds_0	Footstep bank of acropolis_hallway: walk, scripted-jump and run step sounds while the player stands on surface class 1 or 4.	
+rooms/akropolis/hallway/sounds_0	Footstep bank of akropolis_hallway: walk, scripted-jump and run step sounds while the player stands on surface class 1 or 4.	
 rooms/akropolis/hallway/sounds_1	Acropolis hallway room sound bank: arrival/departure sounds of warp endpoints 1-4 and two caption-cue sounds of the Blue Key caption.	
 rooms/akropolis/fountain/sounds_0	Footstep bank of acropolis_fountain: walk, jump and run step sounds on surface classes 4 and 5.	
 rooms/akropolis/fountain/sounds_1	Acropolis fountain room sound bank: the fountain water loop mixed per view, door sounds of warps 0-4, and caption cue sounds of CAP command 5.	

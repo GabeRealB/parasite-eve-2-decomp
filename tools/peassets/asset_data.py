@@ -4199,7 +4199,7 @@ ASSETS = {
     'shelter_r47_dialogue_2_atlas': {"sha1": "bde611ee175a806ad6bca79f6d5f1fee7382b195", "type": "font_atlas", 'bpp': 4, 'generated_by': 'shelter_r47_dialogue_2', 'h': 256, 'w': 64, 'x': 320, 'y': 256},
     'shelter_r48_dialogue_0_atlas': {"sha1": "50ddeb1c1b2acdbcd2bad46688d8143309e3365e", "type": "font_atlas", 'bpp': 4, 'generated_by': 'shelter_r48_dialogue_0', 'h': 256, 'w': 64, 'x': 384, 'y': 0},
     'shelter_r49_dialogue_0_atlas': {"sha1": "856b583b758e2eb0599a76feb9ddcad4ff2aaf4f", "type": "font_atlas", 'bpp': 4, 'generated_by': 'shelter_r49_dialogue_0', 'h': 256, 'w': 64, 'x': 384, 'y': 0},
-    'acropolis_hallway_model_023C0': {"sha1": "1f2445a31271b7351839c109a2cb4f745c1ca6c5", "type": "tmd", 'textures': [[21, 16704]]},
+    'akropolis_hallway_model_023C0': {"sha1": "1f2445a31271b7351839c109a2cb4f745c1ca6c5", "type": "tmd", 'textures': [[21, 16704]]},
     'dryfield_breezeway_dialogue_0': {"sha1": "611a3c8d2fca794b6567249c8dbcc72982e919d3", "type": "cap"},
     'dryfield_general_store_bundle': {"sha1": "67fe47eaff4c8291064c38cbfeec414e87ab319e", "type": "pe2bundle", 'resources': [None, 'dryfield_general_store_view2', 'dryfield_general_store_view3', 'dryfield_general_store_view4', 'dryfield_general_store_view5', 'dryfield_general_store_view6', 'dryfield_general_store_view7', 'dryfield_general_store_view8', 'dryfield_general_store_view9', 'dryfield_general_store_view10', 'dryfield_general_store_view11', 'dryfield_general_store_view12', 'dryfield_general_store_view13', 'dryfield_general_store_view14', None, None, 'dryfield_general_store_dialogue_0']},
     'dryfield_general_store_view10': {"sha1": "c80e7b8ec62528525551be9b0a7369bdc8723792", "type": "pe2clut", 'h': 6, 'w': 256, 'x': 0, 'y': 255},
@@ -5439,7 +5439,7 @@ EMBEDDED_ASSETS = {
     'dryfield_factory_model_093E4': {"source": 'dryfield_factory.pe2pkg', "vram": 0x801869A4, "size": 0x22C, "type": 'tmd'},
     'rooms/shelter/b2_pod_bottom/ending_figure_rotation_track': {"source": 'actor_303600.pe2pkg', "vram": 0x8016A408, "size": 0xAF0, "type": 'motion_curve', "group": 'rooms/shelter/b2_pod_bottom', "include": 'u16'},
     'rooms/akropolis/helicopter_landing_pad/helicopter_translation_track': {"source": 'actor_511000.pe2pkg', "vram": 0x80147704, "size": 0x3C0, "type": 'motion_curve', "group": 'rooms/akropolis/helicopter_landing_pad', "include": 'u16'},
-    'acropolis_hallway_model_023C0': {"source": 'acropolis_hallway.pe2pkg', "vram": 0x8017F980, "size": 0xA8, "type": 'tmd'},
+    'akropolis_hallway_model_023C0': {"source": 'akropolis_hallway.pe2pkg', "vram": 0x8017F980, "size": 0xA8, "type": 'tmd'},
     'dryfield_breezeway_clut_05984': {"source": 'dryfield_breezeway.pe2pkg', "vram": 0x80182F44, "size": 0x200, "type": 'clut', "h": 1, "include": 'u32', "w": 256, "x": 0, "y": 256},
     'acropolis_promenade_path_03BC4': {"source": 'acropolis_promenade.pe2pkg', "vram": 0x80181184, "size": 0x960, "type": 'movie_path', "include": 'u16'},
     'dryfield_breezeway_image_05864': {"source": 'dryfield_breezeway.pe2pkg', "vram": 0x80182E24, "size": 0x100, "type": 'image', "h": 16, "include": 'u32', "w": 8, "x": 896, "y": 0},
@@ -6506,8 +6506,8 @@ TREE = {
                 'file15': {"id": 15, "chunks": {'bs_120': 'rooms/akropolis/security_room/view15_background'}},
                 'file16': {"id": 16, "chunks": {'pe2img_350': 'rooms/akropolis/fountain/view4_image', 'bs_121': 'rooms/akropolis/security_room/view16_background'}},
             }},
-            'acropolis_hallway': {"id": 701, "files": {
-                'file0': {"id": 0, "chunks": {'spk_164': 'rooms/akropolis/hallway/sounds_0', 'spk_165': 'rooms/akropolis/hallway/sounds_1', 'acropolis_hallway_dialogue_0_atlas': 'rooms/akropolis/hallway/dialogue_0_atlas', 'pe2clut_316': 'rooms/akropolis/hallway/palette', 'pe2img_352': 'rooms/akropolis/hallway/image', 'package': 'rooms/akropolis/hallway/package', 'bundle': 'rooms/akropolis/hallway/bundle'}},
+            'akropolis_hallway': {"id": 701, "files": {
+                'file0': {"id": 0, "chunks": {'spk_164': 'rooms/akropolis/hallway/sounds_0', 'spk_165': 'rooms/akropolis/hallway/sounds_1', 'akropolis_hallway_dialogue_0_atlas': 'rooms/akropolis/hallway/dialogue_0_atlas', 'pe2clut_316': 'rooms/akropolis/hallway/palette', 'pe2img_352': 'rooms/akropolis/hallway/image', 'package': 'rooms/akropolis/hallway/package', 'bundle': 'rooms/akropolis/hallway/bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_122': 'rooms/akropolis/hallway/view1_background'}},
                 'file2': {"id": 2, "chunks": {'bs_123': 'rooms/akropolis/hallway/view2_background'}},
                 'file3': {"id": 3, "chunks": {'bs_124': 'rooms/akropolis/hallway/view3_background'}},

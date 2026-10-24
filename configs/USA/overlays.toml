@@ -1219,17 +1219,18 @@ objects = [
   { kind = "collisionSource", at = "0x67D4", in_c = true, cell_face_list_macro = "AKROPOLIS_SECURITY_ROOM_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
-[rooms.overlays.acropolis_hallway]
+[rooms.overlays.akropolis_hallway]
 id = 291
+src = "src/stages/akropolis/rooms/hallway"
 objects = [
   { kind = "packageId" },
-  { unit = "acropolis_hallway/acropolis_hallway", rodata = "0x4", text = "0x10", data = "0xC78" },
+  { unit = "hallway", rodata = "0x4", text = "0x10", data = "0xC78" },
   { kind = "model", at = "0x22C0", in_c = true },
   { kind = "modelSource", at = "0x2468", in_c = true },
   { kind = "model", at = "0x17A0", in_c = true },
   { kind = "modelSource", at = "0x229C", in_c = true },
   { kind = "collision", at = "0xD98", in_c = true },
-  { kind = "collisionSource", at = "0x1010", in_c = true, cell_face_list_macro = "ACROPOLIS_HALLWAY_CELL_FACE_LIST_AT_OFFSET" },
+  { kind = "collisionSource", at = "0x1010", in_c = true, cell_face_list_macro = "AKROPOLIS_HALLWAY_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.acropolis_fountain]

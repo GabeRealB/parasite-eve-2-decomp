@@ -53059,7 +53059,7 @@ m2c gives up on the pair with `M2C_ERROR(/* Unable to handle lwr; missing a
 corresponding lwl */)` and invents `M2C_UNALIGNED32` field writes, which cannot
 be written in C. The source is much simpler: a struct assignment `*out = *in`
 where the struct's alignment is smaller than its size, so `expand_block_move`
-cannot use `lw`/`sw`. `_acropolisHallwayResolveRoomTransition` copies an 8-byte
+cannot use `lw`/`sw`. `_akropolisHallwayResolveRoomTransition` copies an 8-byte
 `RoomEventMsg` (alignment 2, because its widest member is `u16`) and compiles to
 exactly the ROM's
 
@@ -91627,7 +91627,7 @@ separate: every `beq` compared `$a0` where the target compares `$a2`. m2c names
 parameters by register and drops the leading ones the body never reads, so the
 live switch value came out as the first parameter. Restoring the family's arity
 - `s32 f(s32 index, s32 value, s32 arg2)`, matching
-`_acropolisHallwayHandleSoundCue` and the other sound-key handlers - moves it to
+`_akropolisHallwayHandleSoundCue` and the other sound-key handlers - moves it to
 `$a2`. Both fixes together scored 100.00% with every penalty zero on the first
 build.
 
@@ -91902,7 +91902,7 @@ if (msgId == 0xF) {
 ```
 
 The sibling room gates cache the destination area for their later compares
-(`RoomsShared8017d8bc`, `_acropolisHallwayResolveRoomTransition`; the latter now
+(`RoomsShared8017d8bc`, `_akropolisHallwayResolveRoomTransition`; the latter now
 spells it `destinationArea = request->areaId`), which is what makes the fresh
 area comparison recognisable rather than a re-read invented to fit the assembly.
 
