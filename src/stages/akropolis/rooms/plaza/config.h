@@ -18,11 +18,16 @@
 
 /// Entries of the plaza's area bank.
 enum {
-    AKROPOLIS_PLAZA_SOUND_OFFICER_AMBIENCE   = 1,  // Under the traversal's officer shots
-    AKROPOLIS_PLAZA_SOUND_ENTRY_AMBIENCE     = 2,  // The traversal's opening, faded out early
-    AKROPOLIS_PLAZA_SOUND_ENTERING_TOWER_CUE = 3,  // The final scene's cue
-    AKROPOLIS_PLAZA_SOUND_APPROACH_AMBIENCE  = 4,  // The traversal's approach
-    AKROPOLIS_PLAZA_SOUND_WALK_AMBIENCE      = 5,  // The whole traversal
+    AKROPOLIS_PLAZA_SOUND_OFFICER_AMBIENCE   = 1, // Under the traversal's officer shots
+    AKROPOLIS_PLAZA_SOUND_ENTRY_AMBIENCE     = 2, // The traversal's opening, faded out early
+    AKROPOLIS_PLAZA_SOUND_ENTERING_TOWER_CUE = 3, // The final scene's cue
+    AKROPOLIS_PLAZA_SOUND_APPROACH_AMBIENCE  = 4, // The traversal's approach
+    AKROPOLIS_PLAZA_SOUND_WALK_AMBIENCE      = 5, // The whole traversal
+    AKROPOLIS_PLAZA_SOUND_POLICE_STEP_1      = 6, // An officer's step, on his clip's second cue
+    AKROPOLIS_PLAZA_SOUND_POLICE_STEP_2      = 7, // An officer's step, on his clip's first cue
+    AKROPOLIS_PLAZA_SOUND_ROOKIE_STEP_1      = 8, // The rookie's steps in turn; unreachable (police_officers.c)
+    AKROPOLIS_PLAZA_SOUND_ROOKIE_STEP_2      = 9,
+    AKROPOLIS_PLAZA_SOUND_ROOKIE_STEP_3      = 10,
     AKROPOLIS_PLAZA_SOUND_OFFICERS_WALK_IN   = 11, // The officers walk in, in the final scene
 };
 

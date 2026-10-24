@@ -163,9 +163,9 @@ approach_ambience = 4
 walk_ambience = 5
 police_step_1 = 6
 police_step_2 = 7
-officer_step_1 = 8
-officer_step_2 = 9
-officer_step_3 = 10
+rookie_step_1 = 8
+rookie_step_2 = 9
+rookie_step_3 = 10
 officers_walk_in = 11
 
 [dialogue_0]
@@ -238,22 +238,6 @@ sha1 = "9820ab79577a80ea37e77c6c0eb9c5065df47dc4"
 type = "sound"
 sha1 = "2b9be465630c96e2aeec7634e6887f639df6a48f"
 
-[approach_ambience_2]
-type = "sound"
-sha1 = "2d5ddc388392301e1f44b6a1fccba63a2e6cb2d3"
-
-[approach_ambience_3]
-type = "sound"
-sha1 = "af35569f3546bfbd2d9079af3b3dfcfaf95659b8"
-
-[approach_ambience_4]
-type = "sound"
-sha1 = "96abe57ab41aa3f6fcd951eeb9b9380ad2840a48"
-
-[approach_ambience_5]
-type = "sound"
-sha1 = "bee2bb2b5cf420c2104a662346775aa6bea85f7a"
-
 [police_rookie_bank]
 type = "animation_bank"
 borrows = ["akropolis_plaza"]
@@ -275,6 +259,43 @@ talk_idle = "characters/police_rookie/talk_idle"
 ask_sergeant = "characters/police_rookie/ask_sergeant"
 report_agent = "characters/police_rookie/report_agent"
 turn_away = "characters/police_rookie/turn_away"
+
+[approach_ambience_2]
+type = "sound"
+sha1 = "2d5ddc388392301e1f44b6a1fccba63a2e6cb2d3"
+
+[approach_ambience_3]
+type = "sound"
+sha1 = "af35569f3546bfbd2d9079af3b3dfcfaf95659b8"
+
+[approach_ambience_4]
+type = "sound"
+sha1 = "96abe57ab41aa3f6fcd951eeb9b9380ad2840a48"
+
+[approach_ambience_5]
+type = "sound"
+sha1 = "bee2bb2b5cf420c2104a662346775aa6bea85f7a"
+
+[police_rookie_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "stand",
+    "look_at_badge",
+    "shift_stance",
+    "idle",
+    "explain_swat",
+    "step_aside",
+    "aside_idle",
+    "watch_aya_enter",
+    "walk_to_sergeant",
+    "halt",
+    "talk_idle",
+    "ask_sergeant",
+    "report_agent",
+    "turn_away",
+    "",
+]
 
 [police_sergeant_bank]
 type = "animation_bank"
@@ -302,27 +323,6 @@ damn_rookies = "characters/police_sergeant/damn_rookies"
 turn_away = "characters/police_sergeant/turn_away"
 hunter_from_mist = "characters/police_sergeant/hunter_from_mist"
 idle = "characters/police_sergeant/idle"
-
-[police_rookie_schema]
-type = "animation_schema"
-slots = [
-    "",
-    "stand",
-    "look_at_badge",
-    "shift_stance",
-    "idle",
-    "explain_swat",
-    "step_aside",
-    "aside_idle",
-    "watch_aya_enter",
-    "walk_to_sergeant",
-    "halt",
-    "talk_idle",
-    "ask_sergeant",
-    "report_agent",
-    "turn_away",
-    "",
-]
 
 [police_sergeant_schema]
 type = "animation_schema"
