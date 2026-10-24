@@ -69,7 +69,7 @@
 
 #include "pe/pyrokinesis.h"
 
-#include "rooms/acropolis_bridge.h"
+#include "rooms/akropolis_bridge.h"
 
 #include "rooms/akropolis_cafeteria.h"
 
@@ -709,19 +709,19 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, lifedrainRisingSparkTask, { NULL } },                                               // 0x0AD
     { { { TASK_BODY_COORD, 0x70 } }, effectControlTaskAE, { NULL } },                                                    // 0x0AE
     { { { TASK_BODY_COORD, 0x70 } }, lifedrainMoteTask, { NULL } },                                                      // 0x0AF
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeAmbientEffectsTask, { NULL } },                                      // 0x0B0
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeGlowStarTask, { NULL } },                                            // 0x0B1
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeGroundGlowTask, { NULL } },                                          // 0x0B2
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeGlowLampTask, { NULL } },                                            // 0x0B3
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeFallingStreakTask, { NULL } },                                       // 0x0B4
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeMidDustStreakTask, { NULL } },                                       // 0x0B5
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeLowDustStreakTask, { NULL } },                                       // 0x0B6
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeTallDustStreakTask, { NULL } },                                      // 0x0B7
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeParticleStreakTask, { NULL } },                                      // 0x0B8
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeWaterRippleTask, { NULL } },                                         // 0x0B9
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeEffectSpriteDebrisTask, { NULL } },                                  // 0x0BA
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisBridgeAmbientEffectsTask, { NULL } },                                      // 0x0B0
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisBridgeGlowStarTask, { NULL } },                                            // 0x0B1
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisBridgeGroundGlowTask, { NULL } },                                          // 0x0B2
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisBridgeGlowLampTask, { NULL } },                                            // 0x0B3
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisBridgeFallingStreakTask, { NULL } },                                       // 0x0B4
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisBridgeMidDustStreakTask, { NULL } },                                       // 0x0B5
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisBridgeLowDustStreakTask, { NULL } },                                       // 0x0B6
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisBridgeTallDustStreakTask, { NULL } },                                      // 0x0B7
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisBridgeParticleStreakTask, { NULL } },                                      // 0x0B8
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisBridgeWaterRippleTask, { NULL } },                                         // 0x0B9
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisBridgeEffectSpriteDebrisTask, { NULL } },                                  // 0x0BA
     { { { TASK_BODY_COORD, 0x70 } }, func_8011D1E0, { NULL } },                                                          // 0x0BB
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeDustMoteTask, { NULL } },                                            // 0x0BC
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisBridgeDustMoteTask, { NULL } },                                            // 0x0BC
     { { { TASK_BODY_COORD, 0x70 } }, func_8011D1E0, { NULL } },                                                          // 0x0BD
     { { { TASK_BODY_COORD, 0x70 } }, infernoCastTask, { NULL } },                                                        // 0x0BE
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldUnderpassDrawFlaresTask, { NULL } },                                        // 0x0BF

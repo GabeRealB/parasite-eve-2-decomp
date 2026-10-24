@@ -548,45 +548,45 @@ enum {
     EFFECT_LIFE_DRAIN_MOTE = EFFECT_ID(EFFECT_TASK_BANK, 0x0AF),
     /// One-frame twinkling star glow with an animated core and rotating random-grey
     /// flare, respawned at the bridge lights.
-    EFFECT_ACROPOLIS_BRIDGE_STAR_GLOW = EFFECT_ID(EFFECT_TASK_BANK, 0x0B1),
+    EFFECT_AKROPOLIS_BRIDGE_STAR_GLOW = EFFECT_ID(EFFECT_TASK_BANK, 0x0B1),
     /// One-frame random-grey quad built like the promenade ground glow (unit quad
     /// scaled 0x300 by workm, corners collapsed onto the origin), spawned beside each
     /// bridge star glow 0x600B1.
-    EFFECT_ACROPOLIS_BRIDGE_GROUND_GLOW = EFFECT_ID(EFFECT_TASK_BANK, 0x0B2),
+    EFFECT_AKROPOLIS_BRIDGE_GROUND_GLOW = EFFECT_ID(EFFECT_TASK_BANK, 0x0B2),
     /// Single-frame camera-facing glow sprite (shared acropolis_glows_lamp, three
     /// cell/brightness variants by spawnArg1); the bridge driver respawns it each frame
     /// at each placed emitter the current view can see.
-    EFFECT_ACROPOLIS_BRIDGE_LAMP_GLOW = EFFECT_ID(EFFECT_TASK_BANK, 0x0B3),
+    EFFECT_AKROPOLIS_BRIDGE_LAMP_GLOW = EFFECT_ID(EFFECT_TASK_BANK, 0x0B3),
     /// One-pixel DR_MOVE smear streak falling down the screen buffer; spawned 30 at a
     /// time on view change and continually outside battle by the Acropolis bridge room
     /// task.
-    EFFECT_ACROPOLIS_BRIDGE_FALLING_STREAK = EFFECT_ID(EFFECT_TASK_BANK, 0x0B4),
+    EFFECT_AKROPOLIS_BRIDGE_FALLING_STREAK = EFFECT_ID(EFFECT_TASK_BANK, 0x0B4),
     /// Akropolis bridge falling dust streak (mid variant): a one-pixel DR_MOVE screen
     /// smear falling down the screen; one of the bridge's per-view looping ambience
     /// effects.
-    EFFECT_ACROPOLIS_BRIDGE_MID_DUST_STREAK = EFFECT_ID(EFFECT_TASK_BANK, 0x0B5),
+    EFFECT_AKROPOLIS_BRIDGE_MID_DUST_STREAK = EFFECT_ID(EFFECT_TASK_BANK, 0x0B5),
     /// Falling dust streak: a one-pixel DR_MOVE frame-buffer smear over the lower part
     /// of the drop while the view holds; the bridge spawns 0x1E on a view change and
     /// more each frame.
-    EFFECT_ACROPOLIS_BRIDGE_LOW_DUST_STREAK = EFFECT_ID(EFFECT_TASK_BANK, 0x0B6),
+    EFFECT_AKROPOLIS_BRIDGE_LOW_DUST_STREAK = EFFECT_ID(EFFECT_TASK_BANK, 0x0B6),
     /// Tallest variant of the Akropolis bridge falling dust streak (DR_MOVE smear down
     /// the whole screen), one of the per-view ambience effects 0x600B4..0x600B8.
-    EFFECT_ACROPOLIS_BRIDGE_TALL_DUST_STREAK = EFFECT_ID(EFFECT_TASK_BANK, 0x0B7),
+    EFFECT_AKROPOLIS_BRIDGE_TALL_DUST_STREAK = EFFECT_ID(EFFECT_TASK_BANK, 0x0B7),
     /// Falling streak drawn as a DR_MOVE that smears a one-pixel strip of the frame
     /// buffer down each frame at a random column/row; one of the bridge's five per-view
     /// looping ambience effects (0x600B4..0x600B8), burst 30 on entering the view.
-    EFFECT_ACROPOLIS_BRIDGE_PARTICLE_STREAK = EFFECT_ID(EFFECT_TASK_BANK, 0x0B8),
+    EFFECT_AKROPOLIS_BRIDGE_PARTICLE_STREAK = EFFECT_ID(EFFECT_TASK_BANK, 0x0B8),
     /// acropolis_bridge's expanding, fading water ripple uses the same texture as
     /// `_waterDrawSplash`; the room stores it in gRoomEffectWaterRippleId (water-
     /// ripple slot, spawned at the water surface by wading actors).
-    EFFECT_ACROPOLIS_BRIDGE_WATER_RIPPLE = EFFECT_ID(EFFECT_TASK_BANK, 0x0B9),
-    /// Akropolis bridge tumbling debris piece (acropolisBridgeEffectSpriteDebrisTask, gravity, eight
+    EFFECT_AKROPOLIS_BRIDGE_WATER_RIPPLE = EFFECT_ID(EFFECT_TASK_BANK, 0x0B9),
+    /// Akropolis bridge tumbling debris piece (akropolisBridgeEffectSpriteDebrisTask, gravity, eight
     /// cells); stored in gRoomEffectWaterSprayId and trailed off the two moving joints by the bridge
     /// task.
-    EFFECT_ACROPOLIS_BRIDGE_WATER_SPRAY = EFFECT_ID(EFFECT_TASK_BANK, 0x0BA),
+    EFFECT_AKROPOLIS_BRIDGE_WATER_SPRAY = EFFECT_ID(EFFECT_TASK_BANK, 0x0BA),
     /// Falling dust mote: a 1x1 tile drifting and falling for 0x1F ticks; spawned in
     /// bursts of 0x20/8 at random points by the bridge.
-    EFFECT_ACROPOLIS_BRIDGE_DUST_MOTE = EFFECT_ID(EFFECT_TASK_BANK, 0x0BC),
+    EFFECT_AKROPOLIS_BRIDGE_DUST_MOTE = EFFECT_ID(EFFECT_TASK_BANK, 0x0BC),
     /// An expanding, fading coloured band (effectDrawInnerGlowBand) at a Z angle from the spawn
     /// argument, with colour from _gEffectExpandingBandColors; spawned three at a time 120 degrees apart
     /// by effectAntibodyAuraTask and the gunblade.

@@ -10,12 +10,12 @@ actor_142600	Clip data for the incinerator cutscene, always resident in the inci
 0/file40182	No reached use found: Neo Ark battle-music entry 9, written under scene-music override 2 after leaving the Shelter B1 parking; a stage-5 battle start after that is not shown.	
 0/file40193	No reached use found: Neo Ark battle-music entry 8; no code writes the value 8 to the scene-music entry.	
 0/file401NN:	The stage sequence (music) files as a group: picked by sequence id from each map overlay's area and countdown music tables and by the Dryfield night saloon jukebox menu.	
-acropolis_bridge_animation_13C00	Five clips of the Akropolis bridge's sunken enemy (patrol, chase, bob, reaction, collapse), ticked on its rig by the room's enemy animation update.	
-acropolis_bridge_collision_0C564	Collision grid of the Akropolis bridge's room 1, bound by gameplay while that room is current (before the keypad movie).	
-acropolis_bridge_collision_0D300	Collision grid of the Akropolis bridge's room 2, with its own action triggers, bound after the keypad movie and on later visits.	
-rooms/akropolis/bridge/acropolis_bridge_model_0AD9C	Flat textured plane (137 quads) parked at ground-glow height under the Akropolis bridge and promenade, read in the rows as the water surface; hidden in a few mapped views.	
-acropolis_bridge_model_13870	Four-part body of the Akropolis bridge enemy (collision id 0x29), spawned sunk at six placements in area variant 1 and animated by the bridge's own clips.	
-acropolis_bridge_path_0BC80	Per-movie-frame height track (190 samples, only Y read) that raises the Akropolis bridge enemies in step with the accepted-keypad-code movie.	
+akropolis_bridge_animation_13C00	Five clips of the Akropolis bridge's sunken enemy (patrol, chase, bob, reaction, collapse), ticked on its rig by the room's enemy animation update.	
+akropolis_bridge_collision_0C564	Collision grid of the Akropolis bridge's room 1, bound by gameplay while that room is current (before the keypad movie).	
+akropolis_bridge_collision_0D300	Collision grid of the Akropolis bridge's room 2, with its own action triggers, bound after the keypad movie and on later visits.	
+rooms/akropolis/bridge/water_surface	Flat textured plane (137 quads) parked at ground-glow height under the Akropolis bridge and promenade, read in the rows as the water surface; hidden in a few mapped views.	
+akropolis_bridge_model_13870	Four-part body of the Akropolis bridge enemy (collision id 0x29), spawned sunk at six placements in area variant 1 and animated by the bridge's own clips.	
+rooms/akropolis/bridge/keypad_movie_enemy_heights	Per-movie-frame height track (190 samples, only Y read) that raises the Akropolis bridge enemies in step with the accepted-keypad-code movie.	
 akropolis_cafeteria_animation_06BDC	One player clip that the Akropolis cafeteria's follow-up scene script installs as a weapon-bank extension and plays after the battle, on the accepted talk with the Stranger.	
 rooms/akropolis/cafeteria/wandering_creature	One-part body of a small wandering creature; five are spawned by the cafeteria's room effect at room entry, run about at random and leave.	
 akropolis_cafeteria_model_07CA8	No reached use found: body of the cafeteria's loose-prop task (falls above the player, hops and slides when touched) in task bank 7 slot 160; no spawn of that slot was found.	
@@ -673,7 +673,7 @@ load_screens/mine_refuge_chapter_5/background	Load-screen picture for the Mine/S
 rooms/akropolis/roof_garden/view1_background..rooms/akropolis/roof_garden/view7_background	View backgrounds 1-7 of akropolis_roof_garden: walked views 2-5, view 6 shown only by CAP command 1's arrival scene; view 1 is the plan view.	
 load_screens/acropolis_square/background	Load-screen picture for the Acropolis stage with destination Acropolis Square, shown under the Akropolis boot caption; which save or event lands on it is open.	
 load_screens/shelter_sterilization_chapter_5/background	Load-screen picture for the Mine/Shelter stage with destination B1 Sterilization Room in story chapter 5, under the Shelter dwelling boot caption; what lands on it is open.	
-rooms/akropolis/bridge/view1_background..rooms/akropolis/bridge/view10_background	View backgrounds 1-10 of acropolis_bridge; room 2, set when the keypad movie finishes, maps the same walked views onto files 5, 3 and 4 instead of 2, 6 and 7.	
+rooms/akropolis/bridge/view1_background..rooms/akropolis/bridge/view10_background	View backgrounds 1-10 of akropolis_bridge; room 2, set when the keypad movie finishes, maps the same walked views onto files 5, 3 and 4 instead of 2, 6 and 7.	
 load_screens/shelter_incinerator_chapter_5/background	Load-screen picture for the Mine/Shelter stage with destination B3 Incinerator Control Room in story chapter 5, under the Shelter waste boot caption; what lands on it is open.	
 rooms/akropolis/fire_escape/view1_background..rooms/akropolis/fire_escape/view10_background	View backgrounds 1-10 of acropolis_fire_escape: views 2-6 are walked between the bridge and landing-pad warps, view 7 is selected by caption text.	
 load_screens/dryfield_night_lobby_chapter_5/background	Load-screen picture for Dryfield night with destination Motel Lobby in story chapter 5, shown under the Dryfield-return boot caption; what lands on it is open.	
@@ -3779,22 +3779,22 @@ rooms/akropolis/roof_garden/view3_image	8-bit sheet (two pages) of the 57 occlud
 rooms/akropolis/roof_garden/view4_image	8-bit sheet (two pages) of the 21 occluder sprites of akropolis_roof_garden's mapped view 4.	
 weapons/sp12/preview_image	Item preview picture of weapon 0x8D, the SP12, drawn in gameplay's item menu panels when that weapon is selected.	
 rooms/akropolis/roof_garden/view5_image	8-bit sheet of the 47 occluder sprites of akropolis_roof_garden's mapped view 5, the last batch being 34 8x8 tiles.	
-rooms/akropolis/bridge/dialogue_0_atlas	4-bit caption glyph atlas of acropolis_bridge's dialogue, drawn by gameplay's caption code for commands 7-9.	
-rooms/akropolis/bridge/image	4-bit acropolis_bridge light sheet: star-glow cores, a rotating flare and ground glow cell, and three lamp cells, drawn additively by the room's star and lamp glow tasks.	
-rooms/akropolis/bridge/view2_image	8-bit sheet (three pages) of the occluder sprites of acropolis_bridge's mapped view 2; one batch is hidden once the arrival scene has been seen.	
-rooms/akropolis/bridge/view3_image	8-bit page at (768,0) holding 34 of the occluder sprites of acropolis_bridge's mapped view 3.	
-rooms/akropolis/bridge/view3_image_2	8-bit sheet (three pages) holding the rest of the occluder sprites of acropolis_bridge's mapped view 3.	
-rooms/akropolis/bridge/view4_image	8-bit page at (768,0) holding 60 of the occluder sprites of acropolis_bridge's mapped view 4.	
-rooms/akropolis/bridge/view4_image_2	8-bit sheet (three pages) holding the rest of the occluder sprites of acropolis_bridge's mapped view 4.	
-rooms/akropolis/bridge/view5_image	8-bit page at (768,0) holding 4 of the occluder sprites of acropolis_bridge's mapped view 5.	
-rooms/akropolis/bridge/view5_image_2	8-bit sheet (three pages) holding the rest of the occluder sprites of acropolis_bridge's mapped view 5; one batch is hidden after the arrival scene.	
+rooms/akropolis/bridge/dialogue_0_atlas	4-bit caption glyph atlas of akropolis_bridge's dialogue, drawn by gameplay's caption code for commands 7-9.	
+rooms/akropolis/bridge/image	4-bit akropolis_bridge light sheet: star-glow cores, a rotating flare and ground glow cell, and three lamp cells, drawn additively by the room's star and lamp glow tasks.	
+rooms/akropolis/bridge/view2_image	8-bit sheet (three pages) of the occluder sprites of akropolis_bridge's mapped view 2; one batch is hidden once the arrival scene has been seen.	
+rooms/akropolis/bridge/view3_image	8-bit page at (768,0) holding 34 of the occluder sprites of akropolis_bridge's mapped view 3.	
+rooms/akropolis/bridge/view3_image_2	8-bit sheet (three pages) holding the rest of the occluder sprites of akropolis_bridge's mapped view 3.	
+rooms/akropolis/bridge/view4_image	8-bit page at (768,0) holding 60 of the occluder sprites of akropolis_bridge's mapped view 4.	
+rooms/akropolis/bridge/view4_image_2	8-bit sheet (three pages) holding the rest of the occluder sprites of akropolis_bridge's mapped view 4.	
+rooms/akropolis/bridge/view5_image	8-bit page at (768,0) holding 4 of the occluder sprites of akropolis_bridge's mapped view 5.	
+rooms/akropolis/bridge/view5_image_2	8-bit sheet (three pages) holding the rest of the occluder sprites of akropolis_bridge's mapped view 5; one batch is hidden after the arrival scene.	
 weapons/as12/preview_image	Item preview picture of weapon 0x8E, the AS12, drawn in gameplay's item menu panels when that weapon is selected.	
-rooms/akropolis/bridge/view6_image	8-bit sheet (three pages) of the occluder sprites of acropolis_bridge's mapped view 6.	
-rooms/akropolis/bridge/view7_image	8-bit page at (768,0) holding 43 of the occluder sprites of acropolis_bridge's mapped view 7.	
-rooms/akropolis/bridge/view7_image_2	8-bit sheet (three pages) holding the rest of the occluder sprites of acropolis_bridge's mapped view 7.	
-rooms/akropolis/bridge/view8_image	8-bit sheet (two pages) of the digit sprites of acropolis_bridge's keypad display, shown in mapped view 8 as the three-digit code is typed.	
-rooms/akropolis/bridge/view10_image	8-bit page holding the large sprite of arrival frame 1 in acropolis_bridge's arrival scene (mapped view 10).	
-rooms/akropolis/bridge/view10_image_2	8-bit sheet (three pages) of the three-frame sprite animation that acropolis_bridge's arrival scene script steps through.	
+rooms/akropolis/bridge/view6_image	8-bit sheet (three pages) of the occluder sprites of akropolis_bridge's mapped view 6.	
+rooms/akropolis/bridge/view7_image	8-bit page at (768,0) holding 43 of the occluder sprites of akropolis_bridge's mapped view 7.	
+rooms/akropolis/bridge/view7_image_2	8-bit sheet (three pages) holding the rest of the occluder sprites of akropolis_bridge's mapped view 7.	
+rooms/akropolis/bridge/view8_image	8-bit sheet (two pages) of the digit sprites of akropolis_bridge's keypad display, shown in mapped view 8 as the three-digit code is typed.	
+rooms/akropolis/bridge/view10_image	8-bit page holding the large sprite of arrival frame 1 in akropolis_bridge's arrival scene (mapped view 10).	
+rooms/akropolis/bridge/view10_image_2	8-bit sheet (three pages) of the three-frame sprite animation that akropolis_bridge's arrival scene script steps through.	
 rooms/akropolis/fire_escape/dialogue_0_atlas	4-bit caption glyph atlas of acropolis_fire_escape's default dialogue file (slot 10), drawn by gameplay's caption code outside the telephone cutscene.	
 rooms/akropolis/fire_escape/view3_image	8-bit sheet (two pages) of the 13 occluder sprites of acropolis_fire_escape's view 3.	
 rooms/akropolis/fire_escape/view5_image	8-bit sheet (two pages) of the 5 room sprites of acropolis_fire_escape's view 5.	
@@ -4575,7 +4575,7 @@ enemies/bat/sounds	Character sound bank 0x25 of the bat enemy (enemies/bat/packa
 enemies/black_beetle/sounds	Character sound bank 0x26 of the enemy in enemies/black_beetle/package_1 and enemies/black_beetle/package_2: footstep every 12 ticks while its step timer runs; entry 0 and the enemies/black_beetle/package_3 copy have no use found.	
 weapons/m4a1/p2_sounds	Weapon sound bank of the M4A1 with two attachments (weapons/m4a1/p2_package): fire sound per round and the reload cue; one entry has no use found.	
 enemies/suckler/blood/sounds	Character sound bank 0x28 of the enemy in enemies/suckler/blood/package_1, enemies/suckler/blood/package_2 and enemies/suckler/blood/package_3: footfalls on walk clip cues and a sound for each player attack that lands; entry 2 is unused.	
-spk_111	Character sound bank 0x29 carried by actor_104100 and copies: contact and fall sounds requested by acropolis_bridge's enemy code, but these packages' files are never requested.	
+spk_111	Character sound bank 0x29 carried by actor_104100 and copies: contact and fall sounds requested by akropolis_bridge's enemy code, but these packages' files are never requested.	
 enemies/chaser/mad/sounds_1	Mad Chaser sound bank 0x402C in its first file (0/file104401), queued by the first Mad Chaser to spawn: scuttle, alert cry, hurt cry, plus landing sounds for dropped-in enemies.	
 enemies/chaser/mad/sounds_2	Mad Chaser sound bank 0x402C in its second file (0/file104402), queued by summoned Mad Chasers in shelter_b3_dumping_hole and garbage incinerator; its hurt-cry entry is empty.	
 enemies/chaser/mad/sounds_3	Mad Chaser sound bank 0x402C in its third file (0/file104403), queued in shelter_b3_dumping_hole area variant 2: scuttle and alert cry; its hurt-cry entry is empty.	
@@ -4648,7 +4648,7 @@ rooms/akropolis/sanctuary/sounds_1	Acropolis sanctuary room sound bank: door sou
 rooms/akropolis/roof_garden/sounds_0	Type-3 scene sound bank of akropolis_roof_garden: five sounds started by the arrival scene's event script after caption cues, all stopped when the scene is skipped.	
 rooms/akropolis/roof_garden/sounds_1	Footstep bank of akropolis_roof_garden: walk, scripted-jump and run step sounds on surface classes 1 and 2.	
 rooms/akropolis/roof_garden/sounds_2	Acropolis roof garden room sound bank: warp 0 door sounds, a caption sound, the view-mixed ambience, timed arrival-scene sounds, the view figure's cues (actor_110800) and Caterpillar drop-ins.	
-rooms/akropolis/bridge/sounds_0	Footstep bank of acropolis_bridge: walk, scripted-jump and run step sounds on surface classes 2 and 4.	
+rooms/akropolis/bridge/sounds_0	Footstep bank of akropolis_bridge: walk, scripted-jump and run step sounds on surface classes 2 and 4.	
 rooms/akropolis/bridge/sounds_1	Acropolis bridge room sound bank: door sounds of warps 0 and 1 and the keypad's key beep, code-rejected and code-accepted sounds.	
 weapons/mp5a5/p1_sounds	MP5A5 P1 weapon sound bank (weapon 31): primary shot, secondary flash fire, empty-chamber click, reload start and reload load cues.	
 rooms/akropolis/fire_escape/sounds_0	Footstep bank of acropolis_fire_escape: walk and run step sounds on the floor and stair-climb steps on the two stair flights.	

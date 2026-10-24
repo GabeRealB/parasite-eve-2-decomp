@@ -104,7 +104,7 @@ enum {
     AKROPOLIS_PROMENADE_MOVIE_SCENE_FADE_TASK = 4,
 };
 
-#include "assets/rooms/akropolis/bridge/acropolis_bridge_model_0AD9C.inc"
+#include "assets/rooms/akropolis/bridge/water_surface.inc"
 
 /// Room-message handlers for exits, CAP commands, actions, key items and sounds.
 static TaskMessageEntry _gAkropolisPromenadeRoomMessages[6] = {
@@ -118,7 +118,7 @@ static TaskMessageEntry _gAkropolisPromenadeRoomMessages[6] = {
 
 /// Spawn recipe for the fixed translucent plane, followed by TASK_DESC_END.
 static TaskDesc _gAkropolisPromenadeTranslucentPlaneTaskDescriptors[2] = {
-    { { { TASK_BODY_TMD, AKROPOLIS_PROMENADE_PLANE_TASK_PRIORITY } }, _akropolisPromenadeTranslucentPlaneTask, { .model = &_gAkropolisBridgeAcropolisBridgeModel0AD9C } },
+    { { { TASK_BODY_TMD, AKROPOLIS_PROMENADE_PLANE_TASK_PRIORITY } }, _akropolisPromenadeTranslucentPlaneTask, { .model = &_gAkropolisBridgeWaterSurfaceModel } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

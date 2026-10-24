@@ -37859,7 +37859,7 @@ col -= drift;                          /* addiu t2,t2,0x20; subu t2,t2,t4 */
 w->field_10.vx = col;
 ```
 
-Seen while matching `acropolisBridgeLowDustStreakTask` (rooms): 99.58% → 100%.
+Seen while matching `akropolisBridgeLowDustStreakTask` (rooms): 99.58% → 100%.
 
 ## Caching `p->field` in a local vs. repeating it changes the caller-save temp
 
@@ -46732,7 +46732,7 @@ same in the frame size but not in the instruction stream.
 
 ## A filler local can precede the live one: aggregates sit below scalars
 
-`_acropolisBridgeFinishKeypadMovie` scored 99.2% with the whole body correct and
+`_akropolisBridgeFinishKeypadMovie` scored 99.2% with the whole body correct and
 only the frame wrong: `addiu $sp,$sp,-0x20` with the `taskPollKill` out-param
 at `sp+0x10`, against the target's `-0x28` with it at `sp+0x18`. The extra
 eight bytes are an unused aggregate, as in "An unreferenced aggregate local
@@ -54752,7 +54752,7 @@ uses. `_akropolisSquareResolveRoomTransition` is the example; the permuter found
 
 ## Duplicate the join store in every arm to win the lower callee-saved register
 
-**Problem.** `_acropolisBridgeKeypadCheckCode` matched at 99.2% with every
+**Problem.** `_akropolisBridgeKeypadCheckCode` matched at 99.2% with every
 penalty but `regs` at zero: the target keeps the incoming `Task*` in `$s1` and
 the `&gActionPromptSlots` pointer in `$s2`, and the build had them swapped. The other
 two saved registers (`$s0` for the work block, `$s3` for the hotspot table)
@@ -54816,7 +54816,7 @@ sb    $v0, 0x12($sp)
 and never reads those bytes or takes the address of anything on the stack. m2c
 drops them entirely. They are a leftover `GameLocationKey key; key.stage = 1;
 key.area = 4;` — the sibling rooms follow it with
-`areaSetPlacementVariant(&key, …)` (`_acropolisBridgeResolveRoomTransition`,
+`areaSetPlacementVariant(&key, …)` (`_akropolisBridgeResolveRoomTransition`,
 `_akropolisRoofGardenStartArrivalScene`), this room does not. GCC 2.8.1 does not
 dead-store-eliminate stores to a stack *aggregate*, so writing the same dead
 struct back reproduces them exactly; the offsets in the asm give the field
@@ -57501,7 +57501,7 @@ register, so `local_alloc` gives it the first free caller-saved one. After a
 call whose result is still in `$v0`, that is `$v1` — and `$v1` is exactly the
 register a preceding `p->field++` has just released.
 
-`_acropolisBridgeStartKeypadMovie` is the whole pattern in five instructions: the
+`_akropolisBridgeStartKeypadMovie` is the whole pattern in five instructions: the
 target wants
 
 ```
@@ -57516,10 +57516,10 @@ the increment and moving the global store between its two halves keeps that
 pseudo live across the `lui`, which pushes the address to `$a0`:
 
 ```c
-Task* task = taskSpawnFromTable(&_gAcropolisBridgeKeypadMovieTaskDesc, 0, 0, 0);
+Task* task = taskSpawnFromTable(&_gAkropolisBridgeKeypadMovieTaskDesc, 0, 0, 0);
 s32   next = arg0->state + 1;
 
-_gAcropolisBridgeKeypadMovieTask = task;
+_gAkropolisBridgeKeypadMovieTask = task;
 arg0->state                 = next;
 ```
 
@@ -57535,7 +57535,7 @@ pointer — it has no way to prove they do not alias — so the *source* order o
 store and an unrelated pointer chase is what decides which one fills the load
 delay slot.
 
-`_acropolisBridgeEnemyInactive` is the minimal case. m2c emits the second
+`_akropolisBridgeEnemyInactive` is the minimal case. m2c emits the second
 pointer inline in the assignment that uses it, after the store:
 
 ```c
@@ -57576,7 +57576,7 @@ The "local 2-func table: use an initializer so the prologue saves come first"
 rule is not specific to function-pointer tables — it applies to any small
 stack record built before the first `jal` and passed by address.
 
-`_acropolisBridgeWaitForKeypadResult` fills a three-field payload and hands it to
+`_akropolisBridgeWaitForKeypadResult` fills a three-field payload and hands it to
 `taskMessageDispatch` as `arg2`. Written as separate assignments:
 
 ```c
@@ -57584,7 +57584,7 @@ ActorCommand movieCommand;
 
 movieCommand.context.loc.stage = GAME_STAGE_AKROPOLIS;
 movieCommand.context.loc.area = GAME_AREA_AKROPOLIS_PROMENADE;
-movieCommand.command = ACROPOLIS_BRIDGE_COMMAND_SHOW_MOVIE_ENEMIES;
+movieCommand.command = AKROPOLIS_BRIDGE_COMMAND_SHOW_MOVIE_ENEMIES;
 ```
 
 the `sb`/`sb`/`sh` block is a plain RTL sequence the scheduler may interleave
@@ -57594,7 +57594,7 @@ prologue first, then the stores:
 
 ```c
 ActorCommand movieCommand = { { { GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PROMENADE } },
-                                 ACROPOLIS_BRIDGE_COMMAND_SHOW_MOVIE_ENEMIES };
+                                 AKROPOLIS_BRIDGE_COMMAND_SHOW_MOVIE_ENEMIES };
 ```
 
 100% with no other change. A lone `reorder=1` that is only the position of
@@ -57620,13 +57620,13 @@ TaskFuncTable9 states = D_overlay_8017D614;  /* copy from a named global that
 ```
 
 The assembly cannot tell them apart, but the *address* of the table can.
-`acropolisBridgeKeypadTask` lives in text unit `acropolis_bridge_7`, and
+`akropolisBridgeKeypadTask` lives in text unit `acropolis_bridge_7`, and
 its table sits at rodata offset `0x54` — ahead of the jump table at `0x7C`
 owned by `acropolis_bridge_6`, an *earlier* text unit. Rodata is emitted in
 object order, so a table belonging to `_7` cannot precede one belonging to
 `_6`: the table is a const global defined back in the first unit, and the
 function only copies it. The local-initializer version scores 99.7% with the
-only diff being `%hi(.rodata)` against `%hi(_gAcropolisBridgeKeypadStates)` —
+only diff being `%hi(.rodata)` against `%hi(_gAkropolisBridgeKeypadStates)` —
 that lone symbol-name diff is the tell.
 
 Taking the initializer at face value costs a manifest change that then cannot
@@ -57683,7 +57683,7 @@ the live ranges do not overlap.
 ## Mask a call result at the *use*, not at the assignment
 
 Where the byte mask on a function's return value is written decides where GCC
-2.8.1 schedules the `andi`. `_acropolisBridgeKeypadOpen` calls
+2.8.1 schedules the `andi`. `_akropolisBridgeKeypadOpen` calls
 `viewGetMappedIndex()` and then indexes a three-level sprite table with the low
 byte; masking at the assignment leaves exactly one instruction misplaced
 (99.4%, `reorder=1`), because the `andi` becomes part of the call's own value
@@ -57715,7 +57715,7 @@ single tail block and reaches it with a `j`. Which arm of the local `if` gets
 that `j` — and therefore the branch polarity — follows the source: the *then*
 arm falls through, the *else* arm is the one merged into the shared tail.
 
-`acropolisBridgeWaterRippleTask` ends its state-1 case with a decrement or a
+`akropolisBridgeWaterRippleTask` ends its state-1 case with a decrement or a
 `effectKillTask` that the early `gRoomEffectState->effectControl >= 4` path also
 reaches. Writing the release as the *then* arm inlines the `jal` in the middle
 of the function (`branch=1 insert=6 delete=5`, 84%):
@@ -57744,7 +57744,7 @@ into another `u16` field — the load keeps its HImode type and the switch pays
 for an extra `andi $x, $x, 0xffff` before the comparison chain, shifting every
 branch target by 4.
 
-`_acropolisBridgeEnemyDeathEffect` reads a frame counter and echoes it into the
+`_akropolisBridgeEnemyDeathEffect` reads a frame counter and echoes it into the
 model flags on one of the cases. With m2c's `u16` local (`insert=4 delete=2
 branch=6`, 93.8%):
 
@@ -57779,7 +57779,7 @@ register: writing the constants into a pseudo makes that pseudo live across the
 register local-alloc gave that constant — usually `$v0` — and global-alloc
 pushes both the temp and the compared value one register along.
 
-`_acropolisBridgeEnemyApplyHit` ends by stepping a state halfword: 4 and 8
+`_akropolisBridgeEnemyApplyHit` ends by stepping a state halfword: 4 and 8
 advance to 6, 5 and 6 stay put, anything else resets to 5. The temp spelling
 reaches 99.6% with control flow already exact and `regs=8`:
 
@@ -57843,7 +57843,7 @@ with the C body left in the slot its `INCLUDE_ASM` line occupied, lands the
 	.rdata
 	.align	2
 $LC0:
-	.word	_acropolisBridgeStartKeypadCaption
+	.word	_akropolisBridgeStartKeypadCaption
 	…
 ```
 
@@ -57858,7 +57858,7 @@ emits the case **bodies** in the order they appear in the C source. The two are
 independent, so a target whose bodies run out of numeric order is reproduced by
 writing the cases in that same out-of-order sequence.
 
-`_acropolisBridgeEnemyCollapse` has cases 10, 22, 28, 34. Writing them in
+`_akropolisBridgeEnemyCollapse` has cases 10, 22, 28, 34. Writing them in
 numeric order scored 98.4% with `branch=2 reorder=3`: the case-28 body (a
 `lw`/`li`/`sh` tail shared with case 34 by cross-jumping) landed after the
 case-22 `jal`, so the two `j`-to-common-tail edges pointed at the wrong blocks.
@@ -57872,7 +57872,7 @@ layout and write the C in that order, rather than sorting the labels.
 ## Duplicating a store per switch case is how a pointer wins the lower register
 
 A 100%-shaped function can still miss on nothing but which hard register each
-pointer local got. `_acropolisBridgeEnemyApplyCommand` reached 99.2% with
+pointer local got. `_akropolisBridgeEnemyApplyCommand` reached 99.2% with
 `branch=insert=delete=reorder=0` and only `regs=11`: the target put the work
 block in `$a1`, the enemy in `$a3` and the TMD in `$t0`, while the attempt
 produced `$t0`, `$a1`, `$a3` — the same three registers, rotated.
@@ -57893,11 +57893,11 @@ of once after the switch:
 ```c
 case 0:
     if (gSceneCombatState.battleRefs != 0) break;
-    work->state = ACROPOLIS_BRIDGE_ENEMY_STATE_INACTIVE;      /* one ref per case … */
+    work->state = AKROPOLIS_BRIDGE_ENEMY_STATE_INACTIVE;      /* one ref per case … */
     goto hide;
 case 1:
     if (gSceneCombatState.battleRefs >= 2) break;
-    work->state = ACROPOLIS_BRIDGE_ENEMY_STATE_INACTIVE;
+    work->state = AKROPOLIS_BRIDGE_ENEMY_STATE_INACTIVE;
     goto hide;
 …
 hide:
@@ -57920,7 +57920,7 @@ case 2:
     break;
 …
 reset:
-    work->state = ACROPOLIS_BRIDGE_ENEMY_STATE_INACTIVE;                /* … that falls into `hide:` */
+    work->state = AKROPOLIS_BRIDGE_ENEMY_STATE_INACTIVE;                /* … that falls into `hide:` */
 hide:
     task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
 ```
@@ -57930,12 +57930,12 @@ earlier copy and cost `branch=4 insert=1 delete=2`.
 
 ## A `u16` parameter in the caller's prototype adds a zero-extension the target does not have
 
-`_acropolisBridgeEnemyUpdateAnimation` passes the same `s16` work field both as an
+`_akropolisBridgeEnemyUpdateAnimation` passes the same `s16` work field both as an
 argument and as an array index:
 
 ```c
 animationSeekSlotWithBlend(&blendWork->rig.anim, blendSlot, blendWork->animId, 0,
-              _gAcropolisBridgeEnemyAnimationBlendFrames[blendWork->prevAnimId][blendWork->animId]);
+              _gAkropolisBridgeEnemyAnimationBlendFrames[blendWork->prevAnimId][blendWork->animId]);
 ```
 
 The target loads it once with `lh` and uses that one register for both. With
@@ -58054,7 +58054,7 @@ drops the `andi` as redundant via `nonzero_bits`, leaving exactly the target's
 shift pair. Odd divisors need no pre-shift and so never show the problem:
 `% 1536` in the same function matches without the cast.
 
-`_acropolisBridgeSpawnArrivalDust` also shows the constant-form tell for a loop
+`_akropolisBridgeSpawnArrivalDust` also shows the constant-form tell for a loop
 body: 63536 and 63036 are materialised with `ori $s4, $zero, 0xF830` /
 `ori $s6, $zero, 0xF63C` in the 0x20-iteration loop but appear as
 `addiu $t2, $t2, -0x7D0` / `addiu $t3, $t3, -0x9C4` in the 8-iteration loop.
@@ -58106,7 +58106,7 @@ if (done != 0) {
 ```
 
 `SCHED_BARRIER()` works too; the barrier in the *other* arm does not.
-`_acropolisBridgeEnemyChase` is the example — this was the last three
+`_akropolisBridgeEnemyChase` is the example — this was the last three
 instructions at 97.7%. The `||` route in "Write a dead `||` as one expression"
 is the same mechanism with a real second operand.
 
@@ -58136,7 +58136,7 @@ not evidence against the local.
 Which of the two competing caller-saved registers a constant lands in follows
 from *when the other value is born*: reading the halfword into a temp before
 `enemy->node.flags = 1` (rather than inline at its store) flipped `1` from
-`$a2` to `$a3` and took `_acropolisBridgeEnemyChase` from 94.0% to 97.7%.
+`$a2` to `$a3` and took `_akropolisBridgeEnemyChase` from 94.0% to 97.7%.
 
 ## `addiu s0, sp, 0x10` mid-block means the address of the local was taken *there*
 
@@ -58172,7 +58172,7 @@ The split point matters: moving `displacementPtr = &displacement` above the `vx`
 fields go through `displacementPtr`) drops the score back, because the first store then also
 wants the register. m2c prints the tell — the first field as the bare local and
 the later ones as `M2C_FIELD(&local, T, 2)`. This took
-`_acropolisBridgeEnemyDefeatedBob` from 96.7% to 100%.
+`_akropolisBridgeEnemyDefeatedBob` from 96.7% to 100%.
 
 ### Two `SCRATCH_STACK_CURSOR_SLOT` alloc/release pairs in one function: put each in its own `static inline` helper
 
@@ -58204,7 +58204,7 @@ allocation with it. It is not about how many accesses the function has — a
 block with the same two accesses as a known-good sibling still CSE'd. What
 stops it is putting the sequence in a `static inline` helper of its own:
 after inlining the accesses stay separate `mem`s with constant addresses and
-each one keeps its `lui`. `_acropolisBridgeEnemyRetreat` borrows a scratch
+each one keeps its `lui`. `_akropolisBridgeEnemyRetreat` borrows a scratch
 `VECTOR` twice, in two different `if` arms, and went 80% -> 96% purely by
 moving each borrow into its own helper.
 
@@ -58218,7 +58218,7 @@ constant address freely. That last move was the difference between 96% and
 100%.
 
 Two inlined copies of the same helper can also need two different statement
-orders. Both scratch borrows in `_acropolisBridgeEnemyRetreat` reset the same
+orders. Both scratch borrows in `_akropolisBridgeEnemyRetreat` reset the same
 matrix, but one writes the zeroed off-diagonal before the `0x1000` diagonal and
 the other after; the scheduler reorders stores that share a register base and
 differ only in constant offset, so the emitted order is a register-pressure
@@ -58238,7 +58238,7 @@ h = *(u8**)(h + 0x3FC);
 
 `volatile` is doing two jobs there, and the second one is a liability. It
 blocks CSE, but it is also a scheduling barrier, so nothing may cross it. In
-`_acropolisBridgeEnemySetup` the target loads the `actorRenderComposeCoord`
+`_akropolisBridgeEnemySetup` the target loads the `actorRenderComposeCoord`
 argument *before* the `lui`:
 
 ```
@@ -58335,7 +58335,7 @@ mode, which is where a stray `move $v0, $s1` before two `sh`s comes from.
 
 ## Factor a store to the join so its value stays in a register
 
-`_acropolisBridgeEnemyFrame` scans three `WorldCollisionContact` records for a hit and
+`_akropolisBridgeEnemyFrame` scans three `WorldCollisionContact` records for a hit and
 stages the result in a scratch block. The target emits, on the miss path,
 
 ```
@@ -58536,7 +58536,7 @@ slot far from either use — is not a colouring accident to be pinned away. GCC
 overlap, so a surviving `move` between two callee-saved registers means the
 source held the same value in two variables that are *both* live afterwards.
 
-`acropolisBridgeDustMoteTask` takes a 0xC-byte block off the scratchpad and
+`akropolisBridgeDustMoteTask` takes a 0xC-byte block off the scratchpad and
 uses it twice: the `SVECTOR` stores go through one pointer and
 `gte_stszotz(&block->depth)` through another. One local scores 96.9% with
 `regs=26`; adding the second, assigned right where the copy appears, is 100%:
@@ -58581,16 +58581,16 @@ addressed from, so it becomes a one-instruction derivation inside the loop:
 addiu  $a0, $a1, 0xC        # $a1 is the `block + 8*i` giv, disp 0xC
 ```
 
-`acropolisBridgeGroundGlowTask` needs *both* in one loop — `2($a0)`/`4($a0)`
+`akropolisBridgeGroundGlowTask` needs *both* in one loop — `2($a0)`/`4($a0)`
 for the `vy`/`vz` stores and `addu $v0, $t1, $a3` for the GTE operands — which
 only happens if the two occurrences are separate expressions that CSE cannot
 merge. Direct stores through a dereferenced element address give the first,
 while the plain element address passed to the GTE gives the second:
 
 ```c
-(&quadScratch->vertices[cornerIndex])->vx = unitCorners[cornerIndex].axis0Sign * ACROPOLIS_BRIDGE_GROUND_GLOW_HALF_EXTENT;
+(&quadScratch->vertices[cornerIndex])->vx = unitCorners[cornerIndex].axis0Sign * AKROPOLIS_BRIDGE_GROUND_GLOW_HALF_EXTENT;
 (&quadScratch->vertices[cornerIndex])->vy = 0;
-(&quadScratch->vertices[cornerIndex])->vz = unitCorners[cornerIndex].axis1Sign * ACROPOLIS_BRIDGE_GROUND_GLOW_HALF_EXTENT;
+(&quadScratch->vertices[cornerIndex])->vz = unitCorners[cornerIndex].axis1Sign * AKROPOLIS_BRIDGE_GROUND_GLOW_HALF_EXTENT;
 gte_SetRotMatrix(worldMatrix);
 gte_ldv0(&quadScratch->vertices[cornerIndex]);  /* separate giv: addu $v0, $t1, $a3 */
 gte_rtv0();
@@ -58654,7 +58654,7 @@ means index form, an `addiu $a0, $v0, -0x20` preheader init means a pointer.
 `setUV4(p, u0,v0,u1,v1,u2,v2,u3,v3)` assigns in `u0,v0,u1,v1,…` order, and the
 scheduler then reorders the `sb`s freely because they are distinct MEMs. Eight
 hand-written assignments in the *emitted* order look equivalent and are not:
-in `acropolisBridgeGroundGlowTask` the hand-written form serialised the two
+in `akropolisBridgeGroundGlowTask` the hand-written form serialised the two
 constants through `$v0` (`li 0x10` … `li 0x27` … `li 0x37`), while the macro
 let the first pass hoist `li $v1, 0x27` above the `0x10` stores so the
 allocator gave it its own register. Same store order, 96.1% vs 98.0%. When the
@@ -58663,7 +58663,7 @@ setter macro rather than reordering assignments by hand.
 
 ## An in-place accumulate chain is one variable, not one expression
 
-`_acropolisBridgeEnemyAnimateAtPlacement` builds a sound id as
+`_akropolisBridgeEnemyAnimateAtPlacement` builds a sound id as
 `lhu $s0,8($s4); srl $s0,$s0,0xc; sll $s0,$s0,8; or $s0,$s0,$v1` — every
 instruction writes the same callee-saved register. The obvious C,
 
@@ -58702,7 +58702,7 @@ emits the target's `sll $s1,$v0,24; sra $s1,$s1,24`. Read the destination of the
 
 ## Block-scope the local that has to win `$s0`
 
-Two values in `_acropolisBridgeEnemyAnimateAtPlacement` are live across the same pair of
+Two values in `_akropolisBridgeEnemyAnimateAtPlacement` are live across the same pair of
 calls in four sibling blocks: the sound id and the pan. The target puts the id
 in `$s0` and the pan in `$s1`; declaring both at function scope produced the
 reverse, and no rewrite of either expression changed it.
@@ -58955,7 +58955,7 @@ the target's preheader has a register copy that no local of yours explains.
 
 ## A value defined before the compare can never be allocated `$v0`
 
-`_acropolisBridgeEnemyFollowMovie` computes a scale from the model's fall depth.
+`_akropolisBridgeEnemyFollowMovie` computes a scale from the model's fall depth.
 The target keeps the running value in `$v0` and the depth in `$v1`:
 
 ```
@@ -59074,7 +59074,7 @@ fix a constant's `li`, even when the store it feeds is not the one that moved.
 
 ## A flag used twice becomes an extra `move`; re-test the expression instead
 
-`acropolisBridgeParticleStreakTask` guards a draw block on a screen-bounds test and
+`akropolisBridgeParticleStreakTask` guards a draw block on a screen-bounds test and
 then re-uses the same answer in the release check after the call, so the flag has
 to survive in a callee-saved register. Written the obvious way,
 
@@ -59119,7 +59119,7 @@ whatever `base.c` produced on the first run.
 
 ## Two values in one hard register means one local in the C, not two
 
-`acropolisBridgeFallingStreakTask` sat at 99.80% with `regs=8` and every other
+`akropolisBridgeFallingStreakTask` sat at 99.80% with `regs=8` and every other
 penalty at zero: two live ranges were coloured `$a0`/`$t0` where the target used
 `$a3`/`$t4`. The permuter ran 12k iterations without improving on it, which is
 the tell that this is not a scheduling or shortening problem.
@@ -59577,7 +59577,7 @@ first, copy propagation reaches the store anyway.
 
 `tools/bulk/overlay_dup_index.py find` groups on exact disassembly-text equality, so
 a function that another overlay already has *almost* verbatim is reported as
-having no copies. `acropolisBridgeGlowStarTask` (437 insns) and the already
+having no copies. `akropolisBridgeGlowStarTask` (437 insns) and the already
 matched `akropolisPromenadeGlowStarTask` (452 insns) are the same task with
 the same scratch layout and the same two `POLY_FT4`s; they differ only by a
 handful of redundant stores, which is enough for the index to list each as
@@ -59599,7 +59599,7 @@ written this?) — they answer different questions.
 
 ## `t = cond; if (t)` is a register-allocation nudge that costs no instruction
 
-`acropolisBridgeAmbientEffectsTask` sat at 99.5% for a long time with `regs` as the
+`akropolisBridgeAmbientEffectsTask` sat at 99.5% for a long time with `regs` as the
 only leftover: one basic block had `$a0` and `$a1` swapped between two
 temporaries, which then flipped `$v0` / `$v1` through the rest of the loop.
 No arrangement of the C statements moved it.
@@ -59636,13 +59636,13 @@ The same function needed `$a1` to hold `vy` and then `vz`, and `$v0` to hold
 variable reused across its roles is what produced that allocation:
 
 ```c
-prev = _gAcropolisBridgePlayerWaterPartPositions[i].vy;      /* $a1 */
+prev = _gAkropolisBridgePlayerWaterPartPositions[i].vy;      /* $a1 */
 axis = prev - part->workm.t[1];                /* $v0 */
 if (axis < 0) {
     axis = part->workm.t[1] - prev;
 }
 dist = delta + axis;                           /* $a0 */
-prev = _gAcropolisBridgePlayerWaterPartPositions[i].vz;      /* $a1 again */
+prev = _gAkropolisBridgePlayerWaterPartPositions[i].vz;      /* $a1 again */
 axis = part->workm.t[2];                       /* $v0 again */
 ```
 
@@ -66042,8 +66042,8 @@ penalties and no pins or empty asm.
 
 ## Near-matched siblings can preserve an entire state handler's codegen
 
-`_acropolisBridgeEnemyAnimateAtPlacement` reached 100% on its first structured attempt
-by adapting the already-matched `_acropolisBridgeEnemyFollowMovie` in the same TU.
+`_akropolisBridgeEnemyAnimateAtPlacement` reached 100% on its first structured attempt
+by adapting the already-matched `_akropolisBridgeEnemyFollowMovie` in the same TU.
 Only remove the spawn-variant position switch and the per-frame height setter;
 the typed work block, scale calculation, sound helper and collision scan all
 carry over unchanged. The duplicate index reports no other exact body, so
@@ -96960,7 +96960,7 @@ rather than the ranking: the temp does not have to outrank the allocno, it only
 has to be live across it.
 
 **Open.** A local D-address temp can end up in `$a0` (acropolis_bridge's
-`_acropolisBridgeWaitForKeypadResult`, same `%hi(D_8007216C)` shape) even with no
+`_akropolisBridgeWaitForKeypadResult`, same `%hi(D_8007216C)` shape) even with no
 allocno in the picture and with the GS load hoisted above the store, which the
 model above does not yet account for. When a `%hi` temp's register is the
 sticking point, compare against that function before assuming the C shape is
@@ -125812,7 +125812,7 @@ own -
 - ends `reseedWork` at the shared advance, leaves `work` with the later last use, and
   100.000% with nothing else moved. `playbackWork` is still allocated `$s1`, the register
   `reseedWork` frees, so the step-3 loop is untouched. The three-alias shape is the
-  one this family already writes (`_acropolisBridgeEnemyUpdateAnimation`'s
+  one this family already writes (`_akropolisBridgeEnemyUpdateAnimation`'s
   `blendWork`/`resetWork`/`playbackWork`, `actor_110300`'s step machine), and the reason to keep
   it is this allocation, not style.
 
@@ -127983,9 +127983,9 @@ Two things about the same function worth carrying forward. The 0x886 rate
 `u16` / `u8` union. It is a plain halfword: the reads are assignments to the
 `s8` `AnimationSlot.rate`, and GCC narrows a halfword load whose value is only
 stored to a byte into `lbu` by itself. And the body is one of a family
-(`_actor311900UpdateAnimation`, `_acropolisBridgeEnemyUpdateAnimation`) whose C is
+(`_actor311900UpdateAnimation`, `_akropolisBridgeEnemyUpdateAnimation`) whose C is
 written out: `work` plus a per-branch alias (`blendWork`/`resetWork`/`playbackWork`
-in `_acropolisBridgeEnemyUpdateAnimation`), each re-loading `task->work`, the `for (i = 1; i < N; i++)` seeding loop, and the
+in `_akropolisBridgeEnemyUpdateAnimation`), each re-loading `task->work`, the `for (i = 1; i < N; i++)` seeding loop, and the
 `advance:` label sitting *inside* the second branch. Copying that shape rather
 than m2c's `goto`-ified version is what took the baseline's 76.441% to 97.819%
 in one build; the remaining gap was the cast above.
@@ -145763,7 +145763,7 @@ jump2 cross-jump the first copy's stores into the second (95.9%). Making the
 helper return the handler result (`return 1` inside it) and calling it as
 `return helper(request, reply);` changes the jumps' targets, so jump2 picks the
 partners the target shows and it matches with no barrier.
-### A pin on a copy of a parameter usually means the original used the parameter itself (_acropolisBridgeDrawWaterRipple, 2026-09-26)
+### A pin on a copy of a parameter usually means the original used the parameter itself (_akropolisBridgeDrawWaterRipple, 2026-09-26)
 
 `register GfxCoord* coord asm("t7"); coord = index; SOFT_TOUCH_REG(coord);` held
 the incoming pointer in `$t7`, the last free register after the GTE macros'
@@ -146974,7 +146974,7 @@ and swap their callee-saved registers. A `SOFT_USE_REG(coord)` was compensating
 by adding a reference to the other side. When two long-lived pointers have
 swapped registers, and a guard's body is repeated, write the guard the way its
 sibling cases do (one condition, one body) before touching anything else.
-## A 0/1 flag kept as `li 1` / `move zero` branches is a narrow-typed inline helper's return (_acropolisBridgeEnemyChase, 2026-09-27)
+## A 0/1 flag kept as `li 1` / `move zero` branches is a narrow-typed inline helper's return (_akropolisBridgeEnemyChase, 2026-09-27)
 
 The target materialises a flag with branches - `bnez v0,L; li v0,1; move v0,zero;
 L: beqz v0,...` - and then tests it. Writing `done = 0` / `done = 1` in an
@@ -147351,7 +147351,7 @@ follow:
   splat refuses the duplicate, and `owner=` on the absolute one, or
   `check_symbols.py` reports the name as naming two things.
 
-## `&blk->arr[i]` and a store to `blk->arr[i].f` associate the same address differently (_acropolisBridgeDrawWaterRipple, 2026-10-03)
+## `&blk->arr[i]` and a store to `blk->arr[i].f` associate the same address differently (_akropolisBridgeDrawWaterRipple, 2026-10-03)
 
 **Problem.** A loop over a scratch block's `SVECTOR corners[4]` at +8 keeps two
 address registers in the target: `addiu a0,a3,8` with `a3 = quadScratch + cornerIndex*8` for the
@@ -149735,7 +149735,7 @@ attempts; left as it was.
   copies, including the one whose three arms each stored `result = 0xA`
   before `goto children`).
 - **A view dispatch with `goto drop` from one case into the next and `goto
-  draw` into the default** (`_acropolisBridgeEnemyFrame`) is each tail
+  draw` into the default** (`_akropolisBridgeEnemyFrame`) is each tail
   written in each case; with the mode ladder as `switch` (cases 1 and 2
   return, the scan follows the switch) and the contact scan as the counted
   find-hit inline, 13 gotos went on the first build.
@@ -149744,7 +149744,7 @@ attempts; left as it was.
   `_actorAngleTurnToOffset(coords, x, z)`; all seven sites of `_desertChaserRoam`,
   `_desertChaserTurnRightState` and `_desertChaserTurnLeftState` matched with the
   call, and 22 locals went.
-- Not converted: `_acropolisBridgeEnemyApplyCommand`. Its switch has
+- Not converted: `_akropolisBridgeEnemyApplyCommand`. Its switch has
   `if (enough) break; state = 0; goto hide;` in cases 0 and 1,
   `if (!enough) goto reset; break;` in case 2, the wake code after the switch
   and `reset: state = 0; hide: flags = SKIP;` after that. The image keeps a

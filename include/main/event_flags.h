@@ -112,6 +112,9 @@ enum {
     /// 4 the report has been made from the square's telephone (`_roomCutsceneTask`).
     /// The cafeteria's patio door sets 2 when it holds 3, which nothing writes.
     EVENT_FLAG_AKROPOLIS_CAFETERIA_BOSS_REPORT = 0x00E,
+    /// Akropolis bridge. Marker: the scene at the fire escape's door has played - the
+    /// first time the door is tried; it also means Rupert has left the sanctuary.
+    EVENT_FLAG_AKROPOLIS_BRIDGE_FIRE_ESCAPE_DOOR_SCENE_SEEN = 0x010,
     /// Akropolis fountain. Marker: the hidden path has been found (room command 4,
     /// CAP 4): its climb trigger is enabled, and stays enabled on later entries.
     EVENT_FLAG_AKROPOLIS_FOUNTAIN_HIDDEN_PATH_FOUND = 0x012,

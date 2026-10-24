@@ -18,7 +18,7 @@
 #include "main/session.h"
 #include "main/task.h"
 
-#include "rooms/acropolis_bridge.h"
+#include "rooms/akropolis_bridge.h"
 
 #include "rooms/akropolis_fountain.h"
 
@@ -81,7 +81,7 @@ static u8 _gDirectionWaterHoleStairDescentSurfaces[8] = {
 /// row must cover the trigger's step count plus the landing. Borrowed room
 /// rows must remain loaded through the climb; the water-hole rows live here.
 static _DirectionStairSurfaces _gDirectionStairSurfaceFlights[5] = {
-    { gAcropolisBridgeStairSurfaceRows[0], gAcropolisBridgeStairSurfaceRows[1] },
+    { gAkropolisBridgeStairSurfaceRows[0], gAkropolisBridgeStairSurfaceRows[1] },
     { _gDirectionWaterHoleStairAscentSurfaces, _gDirectionWaterHoleStairDescentSurfaces },
     { gShelterB4WaterSupplyStairSurfaceRows[0], gShelterB4WaterSupplyStairSurfaceRows[1] },
     { gShelterB4WaterSupplyStairSurfaceRows[2], gShelterB4WaterSupplyStairSurfaceRows[3] },

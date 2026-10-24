@@ -18,10 +18,6 @@ enum {
     /// Unidentified. Written every tick by enemy actor_510900 with a value from its
     /// table `_gActor510900HelipadStatusFlagValues` indexed by source phase and light-2 status; no reader found.
     GAME_FLAG_00D = 0x00D,
-    /// Set to 1 the first time the bridge is entered from the fire escape, which plays
-    /// the bridge's arrival scene (and also sets flag 6); passed to the bridge's view-
-    /// sprite helper on entry.
-    GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN = 0x010,
     /// Unidentified. Set to 1 together with 0x18 and other story flags in a shelter B2
     /// laboratory story sequence; no reader found.
     GAME_FLAG_SHELTER_B2_LABORATORY_017 = 0x017,

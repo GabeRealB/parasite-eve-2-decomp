@@ -1317,20 +1317,21 @@ objects = [
   { kind = "collisionSource", at = "0x7EE4", in_c = true, cell_face_list_macro = "AKROPOLIS_ROOF_GARDEN_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
-[rooms.overlays.acropolis_bridge]
+[rooms.overlays.akropolis_bridge]
 id = 298
+src = "src/stages/akropolis/rooms/bridge"
 objects = [
   { kind = "packageId" },
-  { unit = "acropolis_bridge/acropolis_bridge", rodata = "0x4", text = "0x134", data = "0xA81C", bss = "0x141E8" },
+  { unit = "bridge", rodata = "0x4", text = "0x134", data = "0xA81C", bss = "0x141E8" },
   { kind = "model", at = "0x136AC", in_c = true },
   { kind = "modelSource", at = "0x13BDC", in_c = true },
   { kind = "model", at = "0xA81C", in_c = true },
   { kind = "modelSource", at = "0xB868", in_c = true },
   { kind = "animation", at = "0x13C00", sets = ["0x13CD8", "0x13DD8", "0x13E48", "0x13F60", "0x13FE0"], in_c = true },
   { kind = "collision", at = "0xC564", in_c = true },
-  { kind = "collisionSource", at = "0xD2DC", in_c = true, cell_face_list_macro = "ACROPOLIS_BRIDGE_CELL_FACE_LIST_AT_OFFSET" },
+  { kind = "collisionSource", at = "0xD2DC", in_c = true, cell_face_list_macro = "AKROPOLIS_BRIDGE_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0xD300", in_c = true },
-  { kind = "collisionSource", at = "0xE0D4", in_c = true, cell_face_list_macro = "ACROPOLIS_BRIDGE_CELL_FACE_LIST_AT_OFFSET" },
+  { kind = "collisionSource", at = "0xE0D4", in_c = true, cell_face_list_macro = "AKROPOLIS_BRIDGE_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.acropolis_fire_escape]
