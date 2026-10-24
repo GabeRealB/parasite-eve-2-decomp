@@ -32,12 +32,13 @@
 
 #include "main/areas.h"
 #include "main/display.h"
+#include "main/event_flags.h"
 #include "main/fs.h"
+#include "main/game_debug.h"
 #include "main/gameflag.h"
 #include "main/loadui.h"
 #include "main/mc.h"
 #include "main/mem.h"
-#include "main/game_debug.h"
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/sound.h"
@@ -505,7 +506,7 @@ void loadingInitializeAreaMemoryAndAudioTask(Task* task)
         // Retain scheduled companion sounds before resetting the area's sound context.
         companionConfigureSoundBankRetention();
         sndScriptResetForArea(gGameSession->location.stage, gGameSession->location.area);
-        if (gGameSession->location.stage == GAME_STAGE_DRYFIELD_NIGHT && gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= LOADING_NIGHT_MUSIC_FIRST_CHAPTER) {
+        if (gGameSession->location.stage == GAME_STAGE_DRYFIELD_NIGHT && gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER) >= LOADING_NIGHT_MUSIC_FIRST_CHAPTER) {
             gStageCountdownMusicEntry = LOADING_SCENE_MUSIC_NIGHT;
         } else {
             gStageCountdownMusicEntry = LOADING_SCENE_MUSIC_DEFAULT;

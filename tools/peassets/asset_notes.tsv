@@ -71,11 +71,11 @@ akropolis_security_room_clut_05758	Lit 256-colour palette of lamp picture 2 in t
 akropolis_security_room_clut_05958	Lit 256-colour palette of lamp picture 3 in the Akropolis security room, blended against black by lamp brightness and uploaded to VRAM row 264 by the monitor-feeds task.	
 akropolis_security_room_collision_06468	Collision grid of the Akropolis security room (1x2 cells, 24 faces), used for the whole stay.	
 akropolis_square_collision_06784	Collision grid of the Akropolis square (4x4 cells, 115 faces), walked by gameplay's collision code for the player and actors.	
-acropolis_west_elevator_hall_animation_031E0	The player's walk out of the lift: one clip the west elevator hall's arrival script installs as weapon-bank clip 47 and plays after the door opens.	
-acropolis_west_elevator_hall_clut_07644	Lit 256-colour palette of the west elevator hall's bay light glow, faded up from black into VRAM row 270 by the bay lighting task during the arrival scene's view 5.	
-acropolis_west_elevator_hall_collision_07AF4	Collision grid of the Akropolis west elevator hall (3x2 cells, 14 faces): its floor and walls.	
-rooms/akropolis/west_elevator_hall/acropolis_west_elevator_hall_model_02DE8	One leaf of the west elevator hall's sliding lift door (retracts toward -X), opened and closed by the arrival script's messages and drawn only in view 5.	
-rooms/akropolis/west_elevator_hall/acropolis_west_elevator_hall_model_03058	The other leaf of the west elevator hall's sliding lift door (retracts toward +X), opened and closed by the arrival script's messages and drawn only in view 5.	
+akropolis_west_elevator_hall_animation_031E0	The player's walk out of the lift: one clip the west elevator hall's arrival script installs as weapon-bank clip 47 and plays after the door opens.	
+rooms/akropolis/west_elevator_hall/bay_lit_palette	Lit 256-colour palette of the west elevator hall's bay light glow, faded up from black into VRAM row 270 by the bay lighting task during the arrival scene's view 5.	
+akropolis_west_elevator_hall_collision_07AF4	Collision grid of the Akropolis west elevator hall (3x2 cells, 14 faces): its floor and walls.	
+rooms/akropolis/west_elevator_hall/door_leaf_left	One leaf of the west elevator hall's sliding lift door (retracts toward -X), opened and closed by the arrival script's messages and drawn only in view 5.	
+rooms/akropolis/west_elevator_hall/door_leaf_right	The other leaf of the west elevator hall's sliding lift door (retracts toward +X), opened and closed by the arrival script's messages and drawn only in view 5.	
 actor_100300_animation_0C2E8	Clip bank of the Stinger enemy actor_00300 (stand, move, turn, charge, release, drain, flinches, knock-downs, buildup) plus three event clips sent only by the Shelter B2 north maintenance walkway scene.	
 enemies/stinger/brain/drain_arm	One-part drain attachment of the Stinger (enemies/stinger/brain/package_1/200300), parented to body part 7 and stretched toward the player only during its drain attack.	
 enemies/stinger/brain/burst_part_1	Burst fragment 2 of 5 of the Stinger (enemies/stinger/brain/package_1/200300), handed to gameplay's body-part burst effect on a burst or explosion death.	
@@ -682,7 +682,7 @@ load_screens/dryfield_night_trailer_chapter_5/background	Load-screen picture for
 rooms/akropolis/helicopter_landing_pad/view11_background	No reached use found: background of the helicopter landing pad's view 11, the initial view of warp entry 1 (the pad top), for which no arriving warp was found.	
 rooms/akropolis/helicopter_landing_pad/view12_background	No reached use found: backgrounds of the helicopter landing pad's views 12, 13, 14 and 26, selected by none of the nine checked paths.	
 load_screens/shelter_laboratory_chapter_5/background	Load-screen picture for the Mine/Shelter stage with destination B2 Laboratory in story chapter 5, shown under the Shelter laboratory boot caption; what lands on it is open.	
-rooms/akropolis/west_elevator_hall/view1_background..rooms/akropolis/west_elevator_hall/view5_background	View backgrounds 1-5 of acropolis_west_elevator_hall: view 5 is the lift bay shown on arrival, views 2-4 are walked; view 1 is the unselected plan view.	
+rooms/akropolis/west_elevator_hall/view1_background..rooms/akropolis/west_elevator_hall/view5_background	View backgrounds 1-5 of akropolis_west_elevator_hall: view 5 is the lift bay shown on arrival, views 2-4 are walked; view 1 is the unselected plan view.	
 load_screens/shelter_pod_chapter_5/background	Load-screen picture for Mine/Shelter destinations without their own case in story chapter 5, shown under the Shelter pod boot caption; what lands on it is open.	
 rooms/mist/r18/view1_background	No reached use found: background of mist_r18 view 1, the straight-down plan view, with no selector in the shipped game.	
 rooms/mist/r18/view1_background..rooms/mist/r18/view10_background	View backgrounds of mist_r18 (views 1-7 and 10): arrival view 2, views selected by script SET_VIEW (2-5, 10) and by caption scene steps (4-7).	
@@ -1097,7 +1097,7 @@ mappic_s1_00_model_00564	Face stream of the flat outline of akropolis_fountain o
 mappic_s1_00_model_00650	Face stream of the flat outline of akropolis_forked_road on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
 mappic_s1_00_model_00718	Face stream of the flat outline of akropolis_observatory on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
 mappic_s1_00_model_007E8	Face stream of the flat outline of akropolis_promenade on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
-mappic_s1_00_model_00B48	Face stream of the flat outline of acropolis_west_elevator_hall on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
+mappic_s1_00_model_00B48	Face stream of the flat outline of akropolis_west_elevator_hall on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
 mappic_s1_02	The single area-outline model record of the stage 1 page 2 map picture package, drawn by gameplay's map menu over that page's picture.	
 mappic_s2_00	Five area-outline model records of the stage 2 (Dryfield day) page 1 map picture package, drawn by gameplay's map menu over that page's picture.	
 mappic_s2_00_model_0011C	Face stream of the flat map outline of the Dryfield motel balcony, drawn on page 1 of the day (stage 2) and night (stage 3) Dryfield maps.	
@@ -3819,13 +3819,13 @@ rooms/akropolis/helicopter_landing_pad/view21_image	8-bit sheet of the 6 occlude
 rooms/akropolis/helicopter_landing_pad/view24_image	8-bit texture of actor_511000's helicopter hull, rotors and searchlight in the landing pad's departure scene, brought in by view 24's file.	
 rooms/akropolis/helicopter_landing_pad/view24_image_2	Second texture page of actor_511000's helicopter hull (view 24), mixing 8-bit faces with a 4-bit patch that the actor's palette flash recolours.	
 rooms/akropolis/helicopter_landing_pad/view27_image	8-bit golem skin uploaded by view 27's file over No. 9's texture for the helicopter landing pad's ending scene; whether the departure scene's golem reads it is open.	
-rooms/akropolis/west_elevator_hall/dialogue_0_atlas	4-bit caption glyph atlas of acropolis_west_elevator_hall's dialogue, drawn by gameplay's caption code for the room's four commands.	
-rooms/akropolis/west_elevator_hall/image_2	Two-column 8-bit acropolis_west_elevator_hall sheet: the lift bay's light glow drawn additively in view 5, and the texture of both door leaves.	
+rooms/akropolis/west_elevator_hall/dialogue_0_atlas	4-bit caption glyph atlas of akropolis_west_elevator_hall's dialogue, drawn by gameplay's caption code for the room's four commands.	
+rooms/akropolis/west_elevator_hall/image_2	Two-column 8-bit akropolis_west_elevator_hall sheet: the lift bay's light glow drawn additively in view 5, and the texture of both door leaves.	
 weapons/tonfa_baton/preview_image	Item preview picture of weapon 0x92, the Tonfa Baton, drawn in gameplay's item menu panels when that weapon is selected.	
-rooms/akropolis/west_elevator_hall/view2_image	8-bit sheet of the 26 occluder sprites of acropolis_west_elevator_hall's view 2.	
-rooms/akropolis/west_elevator_hall/view3_image	8-bit sheet of the 63 room sprites of acropolis_west_elevator_hall's view 3.	
-rooms/akropolis/west_elevator_hall/view4_image	8-bit sheet (two pages) of the 60 room sprites of acropolis_west_elevator_hall's view 4.	
-rooms/akropolis/west_elevator_hall/view5_image	8-bit sheet whose two right columns hold the 26 room sprites of acropolis_west_elevator_hall's view 5 (arrival scene only); its left column has no use found.	
+rooms/akropolis/west_elevator_hall/view2_image	8-bit sheet of the 26 occluder sprites of akropolis_west_elevator_hall's view 2.	
+rooms/akropolis/west_elevator_hall/view3_image	8-bit sheet of the 63 room sprites of akropolis_west_elevator_hall's view 3.	
+rooms/akropolis/west_elevator_hall/view4_image	8-bit sheet (two pages) of the 60 room sprites of akropolis_west_elevator_hall's view 4.	
+rooms/akropolis/west_elevator_hall/view5_image	8-bit sheet whose two right columns hold the 26 room sprites of akropolis_west_elevator_hall's view 5 (arrival scene only); its left column has no use found.	
 rooms/mist/r18/dialogue_0_atlas	4-bit caption glyph atlas of mist_r18's dialogue with BALDWIN, AYA and RUPERT name plates, drawn by gameplay's caption code for commands 1-5.	
 rooms/mist/r18/image	Two-column mist_r18 sheet: a 4-bit font for the intro's date-and-place caption, and an 8-bit page texturing the models actor_213000 holds.	
 rooms/mist/r18/view4_image	8-bit sheet of the 10 occluder sprites of mist_r18's mapped view 4.	
@@ -4655,7 +4655,7 @@ rooms/akropolis/fire_escape/sounds_0	Footstep bank of akropolis_fire_escape: wal
 rooms/akropolis/fire_escape/sounds_1	Acropolis fire escape room sound bank: bridge door sounds, a view-levelled ambience loop, the flickering lamp's one-shot, and the telephone cutscene's start/scene/after/end sounds.	
 rooms/akropolis/helicopter_landing_pad/sounds_0	Footstep bank of akropolis_helicopter_landing_pad: walk, run and scripted-stairs step sounds on surface classes 2 and 3.	
 rooms/akropolis/helicopter_landing_pad/sounds_1	Helicopter landing pad room sound bank: room ambience until the No. 9 encounter, intro sound, lift travel, light sparks, and enemies/golem/no_9/package_akropolis's blast, light-break and grenade sounds in the fight.	
-rooms/akropolis/west_elevator_hall/sounds_0	Footstep bank of acropolis_west_elevator_hall: walk, scripted-jump and run step sounds anywhere in the hall.	
+rooms/akropolis/west_elevator_hall/sounds_0	Footstep bank of akropolis_west_elevator_hall: walk, scripted-jump and run step sounds anywhere in the hall.	
 rooms/akropolis/west_elevator_hall/sounds_1	Acropolis west elevator hall room sound bank: two arrival-scene sounds (by position the lift arriving and its door closing) and arrival/departure sounds of warp 2 to Acropolis Square.	
 rooms/mist/r18/sounds_0	Footstep bank of mist_r18: walk, jump and run step entries requested on the player's animation cues; the use is recorded as open (mechanism only).	
 rooms/mist/r18/sounds_1	mist_r18 room sound bank: two sounds started by the intro script during Eric Baldwin's clip 3, the second as his first held model is shown.	

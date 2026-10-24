@@ -12,6 +12,7 @@
 #include "gameplay/items.h"
 #include "gameplay/message.h"
 
+#include "main/event_flags.h"
 #include "main/gameflag.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -134,7 +135,7 @@ static s32 _shelterB1SleepingQuartersResolveRoomEvent(Task* task, s32 messageId,
     if (request->areaId != GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY) {
         return SHELTER_B1_SLEEPING_QUARTERS_DEPARTURE_ALLOWED;
     }
-    if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < SHELTER_B1_SLEEPING_QUARTERS_WALKWAY_CAP_CHAPTER) {
+    if (gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER) < SHELTER_B1_SLEEPING_QUARTERS_WALKWAY_CAP_CHAPTER) {
         return SHELTER_B1_SLEEPING_QUARTERS_DEPARTURE_ALLOWED;
     }
     if (request->queryOnly != ROOM_EVENT_EXECUTE) {

@@ -1,5 +1,7 @@
 /* Part of the room variants library; see room_variants.h. */
 
+#include "main/event_flags.h"
+
 #ifndef ROOM_VARIANT_RESOLVE_SHELTER
 #error Include room_variants.h and retain its resolver binding through this fragment.
 #endif
@@ -78,7 +80,7 @@ s32 ROOM_VARIANT_RESOLVE_SHELTER(RoomEventMsg* request, RoomEventMsg* reply)
                 reply->roomState = gameFlagGetNibble(GAME_FLAG_MINE_GORGE_TRIGGER_EVENT_DONE) + 1;
                 break;
             case GAME_AREA_SHELTER_B1_STERILIZATION_ROOM:
-                if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= ROOM_VARIANT_BULWARK_STORY_CHAPTER) {
+                if (gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER) >= ROOM_VARIANT_BULWARK_STORY_CHAPTER) {
                     reply->roomState = ROOM_VARIANT_STERILIZATION_LATE_ROOM;
                 }
                 break;

@@ -47,7 +47,7 @@
 
 #include "rooms/akropolis_square.h"
 
-#include "rooms/acropolis_west_elevator_hall.h"
+#include "rooms/akropolis_west_elevator_hall.h"
 
 #include "rooms/dryfield_motel_room_6.h"
 
@@ -1106,7 +1106,7 @@ void planarReflectionDispatchPlayerTask(Task* reflectionTask)
             akropolisEastElevatorHallPlayerReflectionTask(reflectionTask);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_WEST_ELEVATOR_HALL, 0, 0):
-            acropolisWestElevatorHallPlayerReflectionTask(reflectionTask);
+            akropolisWestElevatorHallPlayerReflectionTask(reflectionTask);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MOTEL_ROOM_6, 0, 0):
             dryfieldMotelRoom6PlayerReflectionTask(reflectionTask);

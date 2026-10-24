@@ -26,6 +26,7 @@
 
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/event_flags.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
@@ -1149,7 +1150,7 @@ static void _dryfieldNightTrailerCoachTalkTask(Task* task)
                 task->state++;
                 break;
             }
-            if (gameFlagGetNibble(GAME_FLAG_NIGHT_TRAILER_COACH_CHAPTER4_SCENE_SEEN) == 0 && gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= DRYFIELD_NIGHT_TRAILER_COACH_LATE_CHAPTER) {
+            if (gameFlagGetNibble(GAME_FLAG_NIGHT_TRAILER_COACH_CHAPTER4_SCENE_SEEN) == 0 && gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER) >= DRYFIELD_NIGHT_TRAILER_COACH_LATE_CHAPTER) {
                 gameFlagSetNibble(GAME_FLAG_NIGHT_TRAILER_COACH_CHAPTER4_SCENE_SEEN, 1);
                 evsStartScript(_gDryfieldNightTrailerCoachChapter4ShopGreetingScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             } else {
@@ -1245,7 +1246,7 @@ static inline void _dryfieldNightTrailerCoachQueueCutscene(void)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_WARP;
     gDryfieldNightTrailerCoachCutscene.view                = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_VIEW;
     gDryfieldNightTrailerCoachCutscene.capSlot             = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_CAP_SLOT;
-    if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < DRYFIELD_NIGHT_TRAILER_COACH_LATE_CHAPTER) {
+    if (gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER) < DRYFIELD_NIGHT_TRAILER_COACH_LATE_CHAPTER) {
         gDryfieldNightTrailerCoachCutscene.capTPageX = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_TPAGE_X_EARLY;
         gDryfieldNightTrailerCoachCutscene.capFile   = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_CAP_FILE_EARLY;
     } else {

@@ -46,17 +46,18 @@
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
 
-#include "main/coord.h"
 #include "main/areas.h"
+#include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/event_flags.h"
 #include "main/gameflag.h"
-#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
 #include "main/mem.h"
+#include "main/random.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
@@ -3343,7 +3344,7 @@ static void _mineCavernUpdateTargetEffects(void)
 
     viewId        = viewGetMappedIndex() & 0xFF;
     destroyedMask = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
-    for (targetIndex = 0; targetIndex < ARRAY_SIZE(gMineCavernTargetEffectPoints) && gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < MINE_CAVERN_TARGET_EFFECTS_STOP_CHAPTER; targetIndex++) {
+    for (targetIndex = 0; targetIndex < ARRAY_SIZE(gMineCavernTargetEffectPoints) && gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER) < MINE_CAVERN_TARGET_EFFECTS_STOP_CHAPTER; targetIndex++) {
         if (!((destroyedMask >> targetIndex) & 1)) {
             continue;
         }

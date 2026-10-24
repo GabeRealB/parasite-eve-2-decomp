@@ -382,8 +382,8 @@ chunk = "bundle"
 type = "texture"
 bpp = 8
 height = 256
-no_palette = true
-variants = ["default"]
+palettes_from = { lit = "rooms/akropolis/west_elevator_hall/bay_lit_palette" }
+variants = ["lit"]
 width = 128
 
 [doors]
@@ -416,13 +416,13 @@ sha1 = "3d8da6bfd747f2aa9c38c586fdc8764c4646df1e"
 [package]
 type = "room"
 embedded = [
-    { name = "acropolis_west_elevator_hall_model_02DE8", offset = 0x02D00, size = 0x270, address = 0x801802C0 },
-    { name = "acropolis_west_elevator_hall_model_03058", offset = 0x02F70, size = 0x270, address = 0x80180530 },
-    { name = "acropolis_west_elevator_hall_arrival_anim_00", offset = 0x031E0, size = 0x3DC8, address = 0x801807A0 },
-    { name = "acropolis_west_elevator_hall_arrival_bank", offset = 0x06FCC, size = 0x4, address = 0x8018458C },
-    "acropolis_west_elevator_hall_clut_07644",
+    { name = "door_leaf_left", offset = 0x02D00, size = 0x270, address = 0x801802C0 },
+    { name = "door_leaf_right", offset = 0x02F70, size = 0x270, address = 0x80180530 },
+    { name = "arrival_anim_00", offset = 0x031E0, size = 0x3DC8, address = 0x801807A0 },
+    { name = "arrival_bank", offset = 0x06FCC, size = 0x4, address = 0x8018458C },
+    "rooms/akropolis/west_elevator_hall/bay_lit_palette",
 ]
-package_name = "acropolis_west_elevator_hall"
+package_name = "akropolis_west_elevator_hall"
 required = true
 sha1 = "73c92323301b410f55e6d5b25d07f178016ffed9"
 
@@ -683,6 +683,12 @@ entries = 256
 region = "engine/vram/room_sprite_palettes"
 offset = [0x00000, 0x00005]
 
+[arrival_bank]
+type = "animation_bank"
+clips = { slot_0 = "rooms/akropolis/west_elevator_hall/arrival_anim_00" }
+schema = "rooms/akropolis/west_elevator_hall/arrival_schema"
+symbol = "_gAkropolisWestElevatorHallArrivalAnimationSets"
+
 [view2_page_1]
 type = "texture"
 bpp = 8
@@ -749,6 +755,26 @@ no_palette = true
 variants = ["default"]
 width = 256
 
+[arrival_schema]
+type = "animation_schema"
+slots = ["slot_0"]
+
+[door_leaf_left]
+type = "model"
+slots = ["doors"]
+symbol = "_gAkropolisWestElevatorHallDoorLeafLeftModel"
+sha1 = "3fdd51c88e7d897ad7ed99c9afa08cd49683fab7"
+
+[arrival_anim_00]
+type = "clip"
+rig = "characters/aya/rig"
+
+[door_leaf_right]
+type = "model"
+slots = ["doors"]
+symbol = "_gAkropolisWestElevatorHallDoorLeafRightModel"
+sha1 = "dd8d3b0ec9503bc78955392162272b0322346dac"
+
 [dialogue_0_atlas]
 type = "font_atlas"
 bpp = 4
@@ -787,38 +813,12 @@ sha1 = "d58bc9b2f08192a79a311fa3477c896c100adc5f"
 type = "sound"
 sha1 = "98db3a25afd13d836f2c2423de779cd54f25ead1"
 
-[acropolis_west_elevator_hall_model_02DE8]
-type = "model"
-slots = ["doors"]
-symbol = "_gAkropolisWestElevatorHallAcropolisWestElevatorHallModel02DE8"
-sha1 = "3fdd51c88e7d897ad7ed99c9afa08cd49683fab7"
-
-[acropolis_west_elevator_hall_model_03058]
-type = "model"
-slots = ["doors"]
-symbol = "_gAkropolisWestElevatorHallAcropolisWestElevatorHallModel03058"
-sha1 = "dd8d3b0ec9503bc78955392162272b0322346dac"
-
-[acropolis_west_elevator_hall_arrival_bank]
-type = "animation_bank"
-clips = { slot_0 = "rooms/akropolis/west_elevator_hall/acropolis_west_elevator_hall_arrival_anim_00" }
-schema = "rooms/akropolis/west_elevator_hall/acropolis_west_elevator_hall_arrival_schema"
-symbol = "_gAcropolisWestElevatorHallArrivalAnimationSets"
-
-[acropolis_west_elevator_hall_arrival_schema]
-type = "animation_schema"
-slots = ["slot_0"]
-
-[acropolis_west_elevator_hall_arrival_anim_00]
-type = "clip"
-rig = "characters/aya/rig"
-
-[acropolis_west_elevator_hall_model_02DE8_binding]
+[door_leaf_left_binding]
 type = "binding"
-model = "rooms/akropolis/west_elevator_hall/acropolis_west_elevator_hall_model_02DE8"
+model = "rooms/akropolis/west_elevator_hall/door_leaf_left"
 textures = { doors = "rooms/akropolis/west_elevator_hall/doors.default" }
 
-[acropolis_west_elevator_hall_model_03058_binding]
+[door_leaf_right_binding]
 type = "binding"
-model = "rooms/akropolis/west_elevator_hall/acropolis_west_elevator_hall_model_03058"
+model = "rooms/akropolis/west_elevator_hall/door_leaf_right"
 textures = { doors = "rooms/akropolis/west_elevator_hall/doors.default" }

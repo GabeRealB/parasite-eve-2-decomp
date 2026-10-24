@@ -1,5 +1,7 @@
 /* Part of the room variants library; see room_variants.h. */
 
+#include "main/event_flags.h"
+
 /// Resolves the night motel rooms' destination on main street from story progress.
 ///
 /// Handles `ROOM_EVENT_MESSAGE_RESOLVE`; `task` and `messageId` are unused.
@@ -13,7 +15,7 @@ static s32 _roomVariantMainStreetMsg(Task* task, s32 messageId, const RoomEventM
 
     *reply = *request;
     if (request->areaId == GAME_AREA_DRYFIELD_NIGHT_MAIN_STREET && request->queryOnly == ROOM_EVENT_EXECUTE) {
-        storyChapter = gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER);
+        storyChapter = gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER);
         if (storyChapter >= ROOM_VARIANT_DRYFIELD_FINAL_CHAPTER) {
             destinationRoom = ROOM_VARIANT_MAIN_STREET_FINAL_ROOM;
         } else {

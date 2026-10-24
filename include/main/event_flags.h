@@ -47,6 +47,17 @@ enum {
     EVENT_FLAG_TELEPHONE_DIALOGUE_LOOP_DONE   = 2, // Dialogue 0xE: the looping choice has been left
 };
 
+/// Values of `EVENT_FLAG_STORY_CHAPTER`, in story order.
+enum {
+    EVENT_FLAG_STORY_CHAPTER_MIST_ARRIVAL       = 0, // The start: the MIST arrival caption
+    EVENT_FLAG_STORY_CHAPTER_AKROPOLIS          = 1, // From the Akropolis west elevator hall's scene
+    EVENT_FLAG_STORY_CHAPTER_DRYFIELD           = 2, // From the Dryfield gas station's arrival
+    EVENT_FLAG_STORY_CHAPTER_DRYFIELD_NIGHT     = 3, // From the night dilapidated house
+    EVENT_FLAG_STORY_CHAPTER_DRYFIELD_NIGHT_END = 4, // The end of the Dryfield night (actor_136300's event)
+    EVENT_FLAG_STORY_CHAPTER_SHELTER            = 5, // From the shelter B2 main corridor
+    EVENT_FLAG_STORY_CHAPTER_SHELTER_1F_BULWARK = 6, // From the shelter 1F bulwark
+};
+
 /// Values of `EVENT_FLAG_CURRENT_OBJECTIVE`, in story order.
 enum {
     EVENT_FLAG_OBJECTIVE_AKROPOLIS_CAFETERIA_KEY_RECEIVED  = 0x02, // "Civilian evac."; set as the east elevator hall scene starts
@@ -162,6 +173,12 @@ enum {
     /// positions (`GameFlagNibbleBank::payload.state.playTimeMark`).
     EVENT_FLAG_RESERVED_PLAY_TIME_FIRST = 0x068,
     EVENT_FLAG_RESERVED_PLAY_TIME_LAST  = 0x06B,
+
+    // ---- The story chapter, 0x07A -------------------------------------------
+
+    /// The story chapter, set as each stage begins: what the boot captions, the music,
+    /// room variants and cutscene choices go by. Values: `EVENT_FLAG_STORY_CHAPTER_*`.
+    EVENT_FLAG_STORY_CHAPTER = 0x07A,
 
     // ---- The current objective, 0x0A2..0x0A3 --------------------------------
 

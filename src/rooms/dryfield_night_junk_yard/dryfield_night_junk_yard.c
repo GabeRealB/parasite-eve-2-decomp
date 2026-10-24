@@ -14,8 +14,9 @@
 #include "gameplay/world_targets.h"
 #include "gameplay/scene_combat.h"
 
-#include "main/gameflag.h"
 #include "main/areas.h"
+#include "main/event_flags.h"
+#include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
 #include "main/session.h"
@@ -152,7 +153,7 @@ static s32 _roomVariantNightJunkYardMsg(Task* unusedTask, s32 unusedMessageId, c
 
     // Preserve the pre-copy store: aliased request/reply retains this room choice.
     if (request->areaId == GAME_AREA_DRYFIELD_NIGHT_GARAGE && request->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= DRYFIELD_NIGHT_JUNK_YARD_GARAGE_CHAPTER) {
+        if (gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER) >= DRYFIELD_NIGHT_JUNK_YARD_GARAGE_CHAPTER) {
             reply->roomState = 2;
         } else {
             reply->roomState = 1;
@@ -184,7 +185,7 @@ static s32 _roomVariantNightJunkYardMsg(Task* unusedTask, s32 unusedMessageId, c
     if (gameFlagGetNibble(GAME_FLAG_TRAILER_COACH_NIGHT_EVENT_ENTRY) != 0) {
         return 1;
     }
-    storyChapter = gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER);
+    storyChapter = gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER);
     if (storyChapter != DRYFIELD_NIGHT_JUNK_YARD_EVENT_CHAPTER) {
         return 1;
     }

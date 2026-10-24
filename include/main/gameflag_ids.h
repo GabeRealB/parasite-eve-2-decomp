@@ -303,11 +303,6 @@ enum {
     /// Latched (1) when the night parking lot's action point 1 on variant 3 plays its
     /// script; once set the room entry sets actor01600Wave to 2.
     GAME_FLAG_NIGHT_PARKING_LOT_EVENT_SEEN = 0x079,
-    /// Global story chapter: 0 start (MIST arrival caption); 1 Akropolis west elevator
-    /// hall scene; 2 Dryfield gas station arrival; 3 night dilapidated house; 4 end of
-    /// Dryfield night (actor_136300 event); 5 shelter B2 main corridor; 6 shelter 1F
-    /// bulwark. Drives boot captions, music, room variants and cutscene choices.
-    GAME_FLAG_STORY_CHAPTER = 0x07A,
     /// Set to 2 at the end of the night water tank event; then 3, 4 and 5 as the item
     /// with collected bit 0x119 is handed to actor_146300's character (bit cleared each
     /// time). >=2 enables the main street talk.

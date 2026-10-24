@@ -37,6 +37,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/event_flags.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
@@ -531,7 +532,7 @@ static s32 _shelter1fVehicularAirlockHandleRoomCommand(Task* task, s32 messageId
         RESPONSE_LATE_CAP_EVENT = 5
     };
     if (commandId == COMMAND_RESPONSE) {
-        if (areaGetCurrentObjectState(RESPONSE_OBJECT_FLAG) == RESPONSE_OBJECT_STATE && gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= RESPONSE_LATE_CHAPTER) {
+        if (areaGetCurrentObjectState(RESPONSE_OBJECT_FLAG) == RESPONSE_OBJECT_STATE && gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER) >= RESPONSE_LATE_CHAPTER) {
             commandId = RESPONSE_LATE_CAP_EVENT;
         }
         capSpawnEventIfIdle(commandId, CAP_EVENT_NO_FLAGS);

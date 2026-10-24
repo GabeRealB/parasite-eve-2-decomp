@@ -32,6 +32,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/event_flags.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -2188,7 +2189,7 @@ static s32 _dryfieldJunkYardResolveRoomTransition(Task* unusedTask, s32 unusedMe
 
     *reply = *request;
     if (request->areaId == GAME_AREA_DRYFIELD_GARAGE && request->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= GARAGE_LATE_CHAPTER) {
+        if (gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER) >= GARAGE_LATE_CHAPTER) {
             reply->roomState = GARAGE_LATE_ROOM;
         } else {
             reply->roomState = GARAGE_DEFAULT_ROOM;

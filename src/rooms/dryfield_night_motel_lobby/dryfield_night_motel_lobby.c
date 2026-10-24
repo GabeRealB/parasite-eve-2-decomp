@@ -24,6 +24,7 @@
 
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/event_flags.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
@@ -150,7 +151,7 @@ static inline void _dryfieldNightMotelLobbyPrepareRevisitCutscene(void)
            LATE_CAP_FILE         = 2 };
     gDryfieldNightMotelLobbyRevisitCutscene.view    = REVISIT_VIEW;
     gDryfieldNightMotelLobbyRevisitCutscene.capSlot = REVISIT_CAP_SLOT;
-    if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < REVISIT_CHAPTER_SPLIT) {
+    if (gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER) < REVISIT_CHAPTER_SPLIT) {
         gDryfieldNightMotelLobbyRevisitCutscene.capTPageX = EARLY_CAP_TPAGE_X;
         gDryfieldNightMotelLobbyRevisitCutscene.capFile   = EARLY_CAP_FILE;
     } else {

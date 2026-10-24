@@ -1,5 +1,7 @@
 /* Part of the motel room 6 library; see motel_room_6.h. */
 
+#include "main/event_flags.h"
+
 #ifndef MOTEL_ROOM_6_HANDLE_OTHER_COMMAND
 #error "Bind MOTEL_ROOM_6_HANDLE_OTHER_COMMAND to the carrier's non-cutscene command handler"
 #endif
@@ -32,7 +34,7 @@ static s32 _motelRoom6CutsceneMessage(Task* task, s32 messageId, s32 command, s3
     if (command == MOTEL_ROOM_6_COMMAND_CUTSCENE) {
         _gMotelRoom6CutsceneRec.view    = MOTEL_ROOM_6_CUTSCENE_VIEW;
         _gMotelRoom6CutsceneRec.capSlot = MOTEL_ROOM_6_CUTSCENE_CAP_SLOT;
-        switch (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER)) {
+        switch (gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER)) {
             case 0 ... 3:
                 if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
                     followUpCommand                   = MOTEL_ROOM_6_CAP_DAY_FOLLOW_UP;

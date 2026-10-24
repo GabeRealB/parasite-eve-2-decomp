@@ -45,6 +45,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/event_flags.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
@@ -1544,7 +1545,7 @@ static s32 _shelterB1PodAccessTunnelResolveRoomEvent(Task* task, s32 messageId, 
             }
             return SHELTER_B1_POD_ACCESS_TUNNEL_EVENT_HANDLED;
         }
-        if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= STORY_CHAPTER_GANTRY_TRANSIT) {
+        if (gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER) >= STORY_CHAPTER_GANTRY_TRANSIT) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 taskSpawnFromTable(_gShelterB1PodAccessTunnelTravelTaskDescs, SHELTER_B1_POD_ACCESS_TUNNEL_TRAVEL_TO_GANTRY, 0, 0);

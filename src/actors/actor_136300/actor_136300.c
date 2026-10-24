@@ -24,6 +24,7 @@
 
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/event_flags.h"
 #include "main/fs.h"
 #include "main/fs_types.h"
 #include "main/gameflag.h"
@@ -1101,7 +1102,7 @@ static void _actor136300GarageDepartureTask(Task* task)
         case ACTOR_136300_DEPART_RELOAD:
             SetDispMask(1);
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-            gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, ACTOR_136300_DEPART_STORY_CHAPTER);
+            gameFlagSetNibble(EVENT_FLAG_STORY_CHAPTER, ACTOR_136300_DEPART_STORY_CHAPTER);
             gameFlagSetNibble(GAME_FLAG_097, 0);
             gameFlagSetNibble(GAME_FLAG_098, 1);
             gameFlagSetNibble(GAME_FLAG_09A, 1);

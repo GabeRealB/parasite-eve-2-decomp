@@ -4,6 +4,8 @@
  * singleton values must remain unchanged until the pending prompt finishes.
  */
 
+#include "main/event_flags.h"
+
 /// Selects the General Store's underpass destination from event and switch state.
 ///
 /// Borrows a writable reply and changes only its room selector. Before the
@@ -65,7 +67,7 @@ static s32 _roomVariantGeneralStoreMsg(Task* unusedTask, s32 unusedMessageId, co
         if (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) == 0) {
             reply->roomState = areaId;
         } else {
-            if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= ROOM_VARIANT_DRYFIELD_FINAL_CHAPTER) {
+            if (gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER) >= ROOM_VARIANT_DRYFIELD_FINAL_CHAPTER) {
                 destinationRoom = GENERAL_STORE_GAS_STATION_FINAL_ROOM;
             } else {
                 destinationRoom = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + GENERAL_STORE_GAS_STATION_BASE_ROOM;

@@ -1,5 +1,7 @@
 /* Part of the parking lot library; see parking_lot.h. */
 
+#include "main/event_flags.h"
+
 s32 parkingLotResolveMessage(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
     enum {
@@ -22,7 +24,7 @@ s32 parkingLotResolveMessage(Task* task, s32 messageId, const RoomEventMsg* requ
     // The gate must latch the resolved destination, including an aliased reply.
     *reply = *request;
     if ((request->areaId == GAME_AREA_DRYFIELD_MAIN_STREET) && (request->queryOnly == ROOM_EVENT_EXECUTE)) {
-        storyChapter = gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER);
+        storyChapter = gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER);
         if (storyChapter >= 4) {
             roomVariant = 3;
         } else {

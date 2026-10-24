@@ -101,7 +101,7 @@
 
 #include "rooms/akropolis_square.h"
 
-#include "rooms/acropolis_west_elevator_hall.h"
+#include "rooms/akropolis_west_elevator_hall.h"
 
 #include "rooms/dryfield_back_street.h"
 
@@ -563,14 +563,14 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, combustionFlameEmitterTask, { NULL } },                                             // 0x01B
     { { { TASK_BODY_COORD, 0x70 } }, combustionFlameTask, { NULL } },                                                    // 0x01C
     { { { TASK_BODY_COORD, 0x70 } }, akropolisHelicopterLandingPadPerimeterLightsTask, { NULL } },                       // 0x01D
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisWestElevatorHallViewEffectsTask, { NULL } },                               // 0x01E
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisWestElevatorHallRedBeaconTask, { NULL } },                                 // 0x01F
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisWestElevatorHallScanlineDistortionTask, { NULL } },                        // 0x020
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisWestElevatorHallViewEffectsTask, { NULL } },                               // 0x01E
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisWestElevatorHallRedBeaconTask, { NULL } },                                 // 0x01F
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisWestElevatorHallScanlineDistortionTask, { NULL } },                        // 0x020
     { { { TASK_BODY_COORD, 0x70 } }, akropolisEastElevatorHallReflectionsAndBeaconsTask, { NULL } },                     // 0x021
     { { { TASK_BODY_COORD, 0x70 } }, akropolisEastElevatorHallRedBeaconTask, { NULL } },                                 // 0x022
     { { { TASK_BODY_COORD, 0x70 } }, akropolisEastElevatorHallPointTileTask, { NULL } },                                 // 0x023
     { { { TASK_BODY_COORD, 0x70 } }, hypervelocityChargeEffectTask, { NULL } },                                          // 0x024
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisWestElevatorHallLightGlowTask, { NULL } },                                 // 0x025
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisWestElevatorHallLightGlowTask, { NULL } },                                 // 0x025
     { { { TASK_BODY_COORD, 0x70 } }, akropolisFountainViewEffectsTask, { NULL } },                                       // 0x026
     { { { TASK_BODY_COORD, 0x70 } }, akropolisObservatoryLensFlareEmitterTask, { NULL } },                               // 0x027
     { { { TASK_BODY_COORD, 0x70 } }, akropolisObservatoryAmbientGlowTask, { NULL } },                                    // 0x028
@@ -584,7 +584,7 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, effectGravityParticleTask, { NULL } },                                              // 0x030
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { NULL } },                                                                // 0x031
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask32, { NULL } },                                                     // 0x032
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisWestElevatorHallBayLightingTask, { NULL } },                               // 0x033
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisWestElevatorHallBayLightingTask, { NULL } },                               // 0x033
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask34, { NULL } },                                                     // 0x034
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask35, { NULL } },                                                     // 0x035
     { { { TASK_BODY_TMD, 0x70 } }, effectThrownModelTask, { &gEffectBulletCasingModel } },                               // 0x036

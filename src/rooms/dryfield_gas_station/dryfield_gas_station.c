@@ -22,6 +22,7 @@
 
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/event_flags.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
@@ -218,7 +219,7 @@ static void _dryfieldGasStationInitRoomTask(Task* task)
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp == ARRIVAL_WARP) {
         taskSpawnFromTable(_gDryfieldGasStationArrivalSupervisorTaskDescs, 0, 0, 0);
-        gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, ARRIVAL_STORY_CHAPTER);
+        gameFlagSetNibble(EVENT_FLAG_STORY_CHAPTER, ARRIVAL_STORY_CHAPTER);
         gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
         gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, 0);
     } else {

@@ -1360,18 +1360,19 @@ objects = [
   { kind = "collisionSource", at = "0x83D8", in_c = true, cell_face_list_macro = "AKROPOLIS_HELICOPTER_LANDING_PAD_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
-[rooms.overlays.acropolis_west_elevator_hall]
+[rooms.overlays.akropolis_west_elevator_hall]
 id = 301
+src = "src/stages/akropolis/rooms/west_elevator_hall"
 objects = [
   { kind = "packageId" },
-  { unit = "acropolis_west_elevator_hall/acropolis_west_elevator_hall", rodata = "0x4", text = "0x3C", data = "0x2CE4" },
+  { unit = "west_elevator_hall", rodata = "0x4", text = "0x3C", data = "0x2CE4" },
   { kind = "model", at = "0x2D00", in_c = true },
   { kind = "modelSource", at = "0x2F4C", in_c = true },
   { kind = "model", at = "0x2F70", in_c = true },
   { kind = "modelSource", at = "0x31BC", in_c = true },
   { kind = "animation", at = "0x31E0", sets = ["0x6F80"], in_c = true },
   { kind = "collision", at = "0x7AF4", in_c = true },
-  { kind = "collisionSource", at = "0x7D3C", in_c = true, cell_face_list_macro = "ACROPOLIS_WEST_ELEVATOR_HALL_CELL_FACE_LIST_AT_OFFSET" },
+  { kind = "collisionSource", at = "0x7D3C", in_c = true, cell_face_list_macro = "AKROPOLIS_WEST_ELEVATOR_HALL_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.mist_r18]

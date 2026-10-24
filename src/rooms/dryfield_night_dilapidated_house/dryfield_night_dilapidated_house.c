@@ -22,6 +22,7 @@
 #include "main/areas.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/event_flags.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
@@ -29,8 +30,8 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/sound.h"
-#include "main/task.h"
 #include "main/sound_types.h"
+#include "main/task.h"
 #include "main/task_types.h"
 
 #include "mapui/map_dryfield_full.h"
@@ -303,7 +304,7 @@ static inline void _dryfieldNightDilapidatedHouseStartFirstVisitEvent(void)
         }
         // Progress advances even when the companion is absent and no scene starts.
         gameFlagSetNibble(GAME_FLAG_NIGHT_DILAPIDATED_HOUSE_EVENT_SEEN, DRYFIELD_NIGHT_DILAPIDATED_HOUSE_EVENT_SEEN);
-        gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, DRYFIELD_NIGHT_DILAPIDATED_HOUSE_STORY_CHAPTER);
+        gameFlagSetNibble(EVENT_FLAG_STORY_CHAPTER, DRYFIELD_NIGHT_DILAPIDATED_HOUSE_STORY_CHAPTER);
         gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, DRYFIELD_NIGHT_DILAPIDATED_HOUSE_GAS_STATION_OBJECTIVE);
     }
 }

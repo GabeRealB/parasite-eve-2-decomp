@@ -30368,7 +30368,7 @@ void (*callbacks[])(s32 parameter0, s32 parameter1) = { akropolisFountainStartCl
 
 ## An oversized frame with dead stack slots is an unused local array
 
-`_acropolisWestElevatorHallUpdateArrivalEvent` opens with a 0x230 frame that only
+`_akropolisWestElevatorHallUpdateArrivalEvent` opens with a 0x230 frame that only
 ever touches `0x10` and `0x14` (`sw $zero`, `sw 4`) and `$ra` at `0x228`; the
 rest is never read or written. The two live slots are leftover dispatch
 arguments in the style of `s32 args[2]` elsewhere in `rooms`, and the 0x210
@@ -48333,7 +48333,7 @@ shared span's end.
 splat writes an `INCLUDE_ASM` for each one and the matched bodies get pasted
 back over them. Nothing else survives: a `static inline` helper
 (`Asr_LocalToWorld` in `acropolis_security_room_3`), a file-local `#define`
-or `#include` (such as `gte.h`), a `typedef` used only by that unit (`_AcropolisWestElevatorHallDoorLeafWork`) have no
+or `#include` (such as `gte.h`), a `typedef` used only by that unit (`_AkropolisWestElevatorHallDoorLeafWork`) have no
 symbol for splat to emit, so they simply vanish and the next build fails on an
 undefined reference or an unknown type. Carry them back with the functions, and
 take each declaration from *its own* unit: `gAkropolisHelicopterLandingPadScriptTasks`
@@ -54515,7 +54515,7 @@ inside it — an explicit local is not const-equivalent and ranks *higher*),
 `and`s into separate variables (cse1 merges equal `const_int`s in a basic
 block unconditionally; there is no `volatile` or barrier that stops it).
 
-`acropolisWestElevatorHallScanlineDistortionTask` is the worked example: a
+`akropolisWestElevatorHallScanlineDistortionTask` is the worked example: a
 0x52-iteration `SetDrawMove` loop whose body sits right at the cut. The
 threshold there is exactly 14 after five earlier moves (`14 * 5 = 70`), so the
 span-5 mask is hoisted at 70 loop insns and left in the loop at 71. What it
@@ -54553,7 +54553,7 @@ row givs still combine, but reduction is rejected as `not worth while, -2790
 vs 71`; flow then deletes the initial copy. The 71-insn loop also keeps the
 tag mask unhoisted. Scratch `base_5.c` scores 100.000% with all penalties zero,
 versus 83.522% for simply removing the asm. Evidence:
-`nonmatchings/acropolisWestElevatorHallScanlineDistortionTask-dehack/base_5.i`
+`nonmatchings/akropolisWestElevatorHallScanlineDistortionTask-dehack/base_5.i`
 (`.cse`, `.loop`, `.flow`), SHA-256
 `72b4ddd3b3b596e877b398d68b40549d0f13a598d2a2a484f5a40a152291d989`.
 
@@ -54566,7 +54566,7 @@ the call after the `if`, and the `if` body still reads a pointer that landed in
 `$a0`, the steal is illegal and GCC falls back to filling from the fall-through
 side — one instruction short of the target, with the branch offset off by 8.
 
-`acropolisWestElevatorHallLightGlowTask` is the worked example. The block
+`akropolisWestElevatorHallLightGlowTask` is the worked example. The block
 pointer is used throughout the body, so it wants an early register, and the
 only other user of the value is a `gte_stszotz` operand that dies immediately:
 
@@ -95554,7 +95554,7 @@ the scheduler emits `[a0=s1][store][call]` and the store is taken instead. Two
 correct codes, one original.
 
 The idiom is in the matched corpus, which is what settled it in two builds:
-`_acropolisWestElevatorHallUpdateDoorLeaf`, `_shelterB2ElevatorDoorLeafTask`
+`_akropolisWestElevatorHallUpdateDoorLeaf`, `_shelterB2ElevatorDoorLeafTask`
 and `_neoArkShrineUpdateFallingPropLighting` all write `coord->composeStamp = 0;` on the line before
 `actorRenderComposeCoord(coord);` and all compile to `addu $a0,$sX,$zero` / `jal` /
 `sw $zero,0x0($sX)`. When a function belongs to a family, grep the matched corpus
@@ -141671,7 +141671,7 @@ cse can equate with the constant (100%):
 ```c
 if (commandId == COMMAND_RESPONSE) {
     if (areaGetCurrentObjectState(RESPONSE_OBJECT_FLAG) == RESPONSE_OBJECT_STATE &&
-        gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= RESPONSE_LATE_CHAPTER) {
+        gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER) >= RESPONSE_LATE_CHAPTER) {
         commandId = RESPONSE_LATE_CAP_EVENT;
     }
     capSpawnEventIfIdle(commandId, CAP_EVENT_NO_FLAGS);
@@ -147826,7 +147826,7 @@ no free slot left, gets a new one after it. A lone table read at two sites does
 not therefore prove a named global: try the repeated local initializer before
 keeping a `static const`.
 
-## A loop-constant OT slot held in a register (`li s7, 0x1C8` ... `addu a0, s7, a0`): assign the index inside the loop (acropolisWestElevatorHallScanlineDistortionTask, 2026-10-05)
+## A loop-constant OT slot held in a register (`li s7, 0x1C8` ... `addu a0, s7, a0`): assign the index inside the loop (akropolisWestElevatorHallScanlineDistortionTask, 2026-10-05)
 
 The target keeps the scaled slot in a callee-saved register and adds the table
 pointer to it, instead of folding it into `lw 0x1C8(a0)`. The matched source

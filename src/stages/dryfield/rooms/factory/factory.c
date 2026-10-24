@@ -12,6 +12,7 @@
 #include "gameplay/sound.h"
 
 #include "main/display.h"
+#include "main/event_flags.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mc.h"
@@ -131,7 +132,7 @@ s32 roomVariantFactoryMsg(Task* unusedTask, s32 unusedMessageId, const RoomEvent
     }
     if (request->areaId == GAME_AREA_DRYFIELD_GARAGE) {
         if (request->queryOnly == ROOM_EVENT_EXECUTE) {
-            if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < FACTORY_GARAGE_FINAL_CHAPTER) {
+            if (gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER) < FACTORY_GARAGE_FINAL_CHAPTER) {
                 reply->roomState = FACTORY_GARAGE_EARLY_ROOM;
             } else {
                 reply->roomState = FACTORY_GARAGE_LATE_ROOM;

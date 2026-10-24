@@ -35,6 +35,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/event_flags.h"
 #include "main/fs.h"
 #include "main/fs_types.h"
 #include "main/gameflag.h"
@@ -497,9 +498,9 @@ static s32 _shelter1fBulwarkResolveRoomEvent(Task* unusedTask, s32 unusedMessage
             capSpawnEventIfIdle(SHELTER_1F_BULWARK_CAP_HELIPORT, CAP_EVENT_NO_FLAGS);
             return ROOM_VARIANT_TRANSITION_HANDLED;
         }
-        if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < SHELTER_1F_BULWARK_HELIPORT_CHAPTER) {
+        if (gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER) < SHELTER_1F_BULWARK_HELIPORT_CHAPTER) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
-                gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, SHELTER_1F_BULWARK_HELIPORT_CHAPTER);
+                gameFlagSetNibble(EVENT_FLAG_STORY_CHAPTER, SHELTER_1F_BULWARK_HELIPORT_CHAPTER);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 taskSpawnFromTable(&_gShelter1fBulwarkHeliportDepartureTaskDesc, 0, 0, 0);
             }
@@ -604,7 +605,7 @@ static void _shelter1fBulwarkHeliportDepartureTask(Task* task)
             break;
         case SHELTER_1F_BULWARK_DEPARTURE_START_MOVIE:
             // The coordinator owns the movie and the eventual saved-location reload.
-            gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, SHELTER_1F_BULWARK_DEPARTURE_CHAPTER);
+            gameFlagSetNibble(EVENT_FLAG_STORY_CHAPTER, SHELTER_1F_BULWARK_DEPARTURE_CHAPTER);
             taskSpawnFromTable(_gShelter1fBulwarkDepartureMovieTaskDescs, 0, 0, 0);
             /* fallthrough */
         case SHELTER_1F_BULWARK_DEPARTURE_BEFORE_MOVIE:

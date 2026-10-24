@@ -123,7 +123,7 @@ enum {
     EFFECT_COMBUSTION_FLAME = EFFECT_ID(EFFECT_TASK_BANK, 0x01C),
     /// Pulsing red gradient-quad beacon glow (red_beacon_task) placed at fixed points
     /// in view 2 of the Akropolis west elevator hall by its room task.
-    EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_RED_BEACON = EFFECT_ID(EFFECT_TASK_BANK, 0x01F),
+    EFFECT_AKROPOLIS_WEST_ELEVATOR_HALL_RED_BEACON = EFFECT_ID(EFFECT_TASK_BANK, 0x01F),
     /// Pulsing red warning light: one frame of a pair of red gradient quads whose level
     /// pulses with animFrame (`akropolisEastElevatorHallRedBeaconTask`); respawned at fixed points by the
     /// Acropolis east elevator hall in view 2.
@@ -131,7 +131,7 @@ enum {
     /// One-frame soft light billboard (semi-transparent POLY_FT4 shrinking with
     /// distance) in the Akropolis west elevator hall, respawned while camera view 5 is
     /// active.
-    EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_LIGHT = EFFECT_ID(EFFECT_TASK_BANK, 0x025),
+    EFFECT_AKROPOLIS_WEST_ELEVATOR_HALL_LIGHT = EFFECT_ID(EFFECT_TASK_BANK, 0x025),
     /// Flickering lens-flare POLY_FT4 (tpage 0x2B, CLUT alternating per frame) at the
     /// projected model position; respawned per camera view by the observatory's
     /// ambient-effect task.

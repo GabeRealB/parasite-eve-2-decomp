@@ -23,8 +23,9 @@
 #include "gameplay/view.h"
 #include "world_collision.h"
 
-#include "main/gameflag.h"
 #include "main/areas.h"
+#include "main/event_flags.h"
+#include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/mc.h"
 #include "main/session.h"
@@ -517,7 +518,7 @@ s16 menuMapGetMarkerState(s16 markerIndex)
             if (markerIndex >= MENU_MAP_SHELTER_MARKER_COUNT) {
                 break;
             }
-            if (markerIndex == 0 && gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) == MENU_MAP_SHELTER_ALTERNATE_PICTURE_CHAPTER) {
+            if (markerIndex == 0 && gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER) == MENU_MAP_SHELTER_ALTERNATE_PICTURE_CHAPTER) {
                 return gameFlagGetNibble(gMapShelterMarkerFlags[0] & MENU_MAP_MARKER_FLAG_ID_MASK) + MENU_MAP_MARKER_ALTERNATE_PICTURE;
             }
             return _menuMapReadMarkerState(gMapShelterMarkerFlags, markerIndex);

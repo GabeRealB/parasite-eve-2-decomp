@@ -21,10 +21,11 @@
 #include "gameplay/model_objects.h"
 #include "gameplay/scene_runtime.h"
 
-#include "main/coord.h"
 #include "main/areas.h"
+#include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/event_flags.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mc.h"
@@ -825,7 +826,7 @@ static s32 _shelterB1ControlRoomHandleCapCommand(Task* task, s32 messageId, s32 
             }
             break;
         case SHELTER_B1_CONTROL_ROOM_CHAPTER_SIX_CAP:
-            if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) == SHELTER_B1_CONTROL_ROOM_CAP_CHAPTER) {
+            if (gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER) == SHELTER_B1_CONTROL_ROOM_CAP_CHAPTER) {
                 capRunCommandWithTransition(SHELTER_B1_CONTROL_ROOM_CHAPTER_SIX_CAP);
             }
             break;

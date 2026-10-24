@@ -17,14 +17,15 @@
 
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/event_flags.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/sound.h"
-#include "main/task.h"
 #include "main/sound_types.h"
+#include "main/task.h"
 #include "main/task_types.h"
 
 #include "mapui/map_shelter.h"
@@ -212,7 +213,7 @@ s32 shelterB2PodAccessTunnelResolveRoomEventMessage(Task* unusedTask, s32 messag
         if (gameFlagGetNibble(GAME_FLAG_B2_POD_TUNNEL_R48_DOOR_UNLOCKED) == 0) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 gameFlagSetNibbleIfPresent(request->flagId, REFUSAL_FLAG_VALUE);
-                capRunCommandWithTransition(gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < LATE_STORY_CHAPTER ? CAP_R48_LOCKED_EARLY : CAP_R48_LOCKED_LATE);
+                capRunCommandWithTransition(gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER) < LATE_STORY_CHAPTER ? CAP_R48_LOCKED_EARLY : CAP_R48_LOCKED_LATE);
             }
             return DEPARTURE_BLOCKED;
         }

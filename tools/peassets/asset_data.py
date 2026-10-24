@@ -5246,6 +5246,7 @@ EMBEDDED_ASSETS = {
     'pe/plasma/level3_catalog': {"source": 'gameplay.pe2pkg', "vram": 0x80094620, "size": 0x39, "type": 'txt'},
     'pe/pyrokinesis/level3_catalog': {"source": 'gameplay.pe2pkg', "vram": 0x800943A0, "size": 0x3B, "type": 'txt'},
     'mc_save_header': {"source": 'main.exe', "vram": 0x80060EFC, "size": 0x200, "type": 'mcsave', "include": 'layout', "layout": '4B 64B 28B 16H 384B'},
+    'rooms/akropolis/west_elevator_hall/bay_lit_palette': {"source": 'akropolis_west_elevator_hall.pe2pkg', "vram": 0x80184C04, "size": 0x200, "type": 'clut', "group": 'rooms/akropolis/west_elevator_hall', "include": 'u16'},
     'inventory/key_descriptors': {"source": 'gameplay.pe2pkg', "vram": 0x8010DE38, "size": 0x400, "type": 'item_descriptor_table'},
     'spu_voice_block': {"source": 'main.exe', "vram": 0x80068184, "size": 0x30, "type": 'spusample', "include": 'u8'},
     'thrown_model_91': {"source": 'gameplay.pe2pkg', "vram": 0x801123F8, "size": 0xC0, "type": 'tmd'},
@@ -5513,7 +5514,6 @@ EMBEDDED_ASSETS = {
     'dryfield_general_store_animation_00BFC': {"source": 'dryfield_general_store.pe2pkg', "vram": 0x8017E1BC, "size": 0x304, "type": 'animation', "clips": 1},
     'dryfield_trailer_coach_animation_072D8': {"source": 'dryfield_trailer_coach.pe2pkg', "vram": 0x80184898, "size": 0x6E4, "type": 'animation', "clips": 2},
     'shelter_b2_septic_tank_animation_055B4': {"source": 'shelter_b2_septic_tank.pe2pkg', "vram": 0x80182B74, "size": 0x3CC, "type": 'animation', "clips": 1},
-    'acropolis_west_elevator_hall_clut_07644': {"source": 'acropolis_west_elevator_hall.pe2pkg', "vram": 0x80184C04, "size": 0x200, "type": 'clut', "include": 'u16'},
     'dryfield_night_driveway_animation_010C4': {"source": 'dryfield_night_driveway.pe2pkg', "vram": 0x8017E684, "size": 0xCC8, "type": 'animation', "clips": 4},
     'dryfield_night_gas_station_motion_0AFC0': {"source": 'dryfield_night_gas_station.pe2pkg', "vram": 0x80188580, "size": 0x320, "type": 'motion_curve', "include": 'u16'},
     'shelter_b3_dumping_hole_animation_0A7D8': {"source": 'shelter_b3_dumping_hole.pe2pkg', "vram": 0x80187D98, "size": 0x304, "type": 'animation', "clips": 1},
@@ -6666,8 +6666,8 @@ TREE = {
                 'file26': {"id": 26, "chunks": {'bs_248': 'rooms/akropolis/helicopter_landing_pad/view26_background'}},
                 'file27': {"id": 27, "chunks": {'pe2clut_329': 'rooms/akropolis/helicopter_landing_pad/view27_file_palette', 'pe2clut_330': 'rooms/akropolis/helicopter_landing_pad/view27_file_palette_2', 'pe2img_447': 'rooms/akropolis/helicopter_landing_pad/view27_image', 'bs_239': 'rooms/akropolis/helicopter_landing_pad/view15_background'}},
             }},
-            'acropolis_west_elevator_hall': {"id": 1701, "files": {
-                'file0': {"id": 0, "chunks": {'spk_184': 'rooms/akropolis/west_elevator_hall/sounds_0', 'spk_185': 'rooms/akropolis/west_elevator_hall/sounds_1', 'acropolis_west_elevator_hall_dialogue_0_atlas': 'rooms/akropolis/west_elevator_hall/dialogue_0_atlas', 'pe2img_302': 'rooms/akropolis/west_elevator_hall/image', 'pe2clut_307': 'rooms/akropolis/west_elevator_hall/palette', 'pe2clut_331': 'rooms/akropolis/west_elevator_hall/palette_2', 'pe2img_449': 'rooms/akropolis/west_elevator_hall/image_2', 'package': 'rooms/akropolis/west_elevator_hall/package', 'bundle': 'rooms/akropolis/west_elevator_hall/bundle'}},
+            'akropolis_west_elevator_hall': {"id": 1701, "files": {
+                'file0': {"id": 0, "chunks": {'spk_184': 'rooms/akropolis/west_elevator_hall/sounds_0', 'spk_185': 'rooms/akropolis/west_elevator_hall/sounds_1', 'akropolis_west_elevator_hall_dialogue_0_atlas': 'rooms/akropolis/west_elevator_hall/dialogue_0_atlas', 'pe2img_302': 'rooms/akropolis/west_elevator_hall/image', 'pe2clut_307': 'rooms/akropolis/west_elevator_hall/palette', 'pe2clut_331': 'rooms/akropolis/west_elevator_hall/palette_2', 'pe2img_449': 'rooms/akropolis/west_elevator_hall/image_2', 'package': 'rooms/akropolis/west_elevator_hall/package', 'bundle': 'rooms/akropolis/west_elevator_hall/bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_249': 'rooms/akropolis/west_elevator_hall/view1_background'}},
                 'file2': {"id": 2, "chunks": {'pe2img_450': 'rooms/akropolis/west_elevator_hall/view2_image', 'bs_250': 'rooms/akropolis/west_elevator_hall/view2_background'}},
                 'file3': {"id": 3, "chunks": {'pe2img_451': 'rooms/akropolis/west_elevator_hall/view3_image', 'bs_251': 'rooms/akropolis/west_elevator_hall/view3_background'}},

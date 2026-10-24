@@ -647,13 +647,13 @@ akropolisSquareRoomEffectTask = 0x801823DC; // type:func absolute:True owner=akr
 
 akropolisSquareTelephoneLightTask = 0x801825DC; // type:func absolute:True owner=akropolis_square
 
-acropolisWestElevatorHallBayLightingTask = 0x8017F990; // type:func absolute:True owner=acropolis_west_elevator_hall
+akropolisWestElevatorHallBayLightingTask = 0x8017F990; // type:func absolute:True owner=akropolis_west_elevator_hall
 
-acropolisWestElevatorHallRedBeaconTask = 0x8017FAE8; // type:func absolute:True owner=acropolis_west_elevator_hall
+akropolisWestElevatorHallRedBeaconTask = 0x8017FAE8; // type:func absolute:True owner=akropolis_west_elevator_hall
 
-acropolisWestElevatorHallScanlineDistortionTask = 0x8017FE18; // type:func absolute:True owner=acropolis_west_elevator_hall
+akropolisWestElevatorHallScanlineDistortionTask = 0x8017FE18; // type:func absolute:True owner=akropolis_west_elevator_hall
 
-acropolisWestElevatorHallLightGlowTask = 0x8017FFE4; // type:func absolute:True owner=acropolis_west_elevator_hall shared=rooms
+akropolisWestElevatorHallLightGlowTask = 0x8017FFE4; // type:func absolute:True owner=akropolis_west_elevator_hall shared=rooms
 
 dryfieldBackStreetRoomVisualEffectsFlashTask = 0x8017D9D0; // type:func absolute:True owner=dryfield_back_street shared=rooms
 
@@ -1731,7 +1731,7 @@ akropolisSquarePlayerReflectionTask = 0x8017F41C; // type:func absolute:True own
 
 akropolisEastElevatorHallPlayerReflectionTask = 0x8017F2F8; // type:func absolute:True owner=akropolis_east_elevator_hall
 
-acropolisWestElevatorHallPlayerReflectionTask = 0x8017F304; // type:func absolute:True owner=acropolis_west_elevator_hall
+akropolisWestElevatorHallPlayerReflectionTask = 0x8017F304; // type:func absolute:True owner=akropolis_west_elevator_hall
 
 dryfieldMotelRoom6PlayerReflectionTask = 0x80181184; // type:func absolute:True owner=dryfield_motel_room_6
 
@@ -1749,7 +1749,7 @@ gShelter1fParkingGarageAreaVariants = 0x801818D8; // absolute:True owner=shelter
 
 gShelterB1UndergroundParkingShopSessionTaskDescStorage = 0x801871F0; // absolute:True owner=shelter_b1_underground_parking
 
-acropolisWestElevatorHallViewEffectsTask = 0x8017F7D4; // type:func absolute:True owner=acropolis_west_elevator_hall shared=rooms
+akropolisWestElevatorHallViewEffectsTask = 0x8017F7D4; // type:func absolute:True owner=akropolis_west_elevator_hall shared=rooms
 
 akropolisFountainViewEffectsTask = 0x8017E014; // type:func absolute:True owner=akropolis_fountain
 

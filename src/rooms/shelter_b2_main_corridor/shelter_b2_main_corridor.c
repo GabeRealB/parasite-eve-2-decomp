@@ -44,6 +44,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/event_flags.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
@@ -2101,7 +2102,7 @@ static void _shelterB2MainCorridorStagedDepartureTask(Task* task)
                 }
                 if (gameFlagGetNibble(GAME_FLAG_SHELTER_B2_MAIN_CORRIDOR_0DA) == 0) {
                     gameFlagSetNibble(GAME_FLAG_SHELTER_B2_MAIN_CORRIDOR_0DA, SHELTER_B2_MAIN_CORRIDOR_FLAG_SET);
-                    gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, SHELTER_B2_MAIN_CORRIDOR_NEO_ARK_CHAPTER);
+                    gameFlagSetNibble(EVENT_FLAG_STORY_CHAPTER, SHELTER_B2_MAIN_CORRIDOR_NEO_ARK_CHAPTER);
                 }
             }
             if (_gShelterB2MainCorridorStagedDeparture.area == GAME_AREA_NEO_ARK_EVE_ACCESS_TUNNEL) {

@@ -29,6 +29,7 @@
 
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/event_flags.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
@@ -355,7 +356,7 @@ static void _mistParkingSelectChapterRoom(s32 roomId)
 {
     enum { MIST_PARKING_LATER_CHAPTER_ROOM_OFFSET = 2 };
 
-    if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) != 0) {
+    if (gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER) != 0) {
         roomId += MIST_PARKING_LATER_CHAPTER_ROOM_OFFSET;
     }
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = roomId;

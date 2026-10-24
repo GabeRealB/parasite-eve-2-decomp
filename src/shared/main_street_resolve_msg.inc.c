@@ -1,5 +1,7 @@
 /* Part of the Dryfield main street library; see main_street.h. */
 
+#include "main/event_flags.h"
+
 /// Records masterkey use by retiring the room-6 and lobby keys.
 ///
 /// Requires live saved inventory after an executing masterkey door start request.
@@ -93,7 +95,7 @@ static s32 _mainStreetResolveMessage(Task* task, s32 messageId, const RoomEventM
     if (request->areaId == GAME_AREA_DRYFIELD_GAS_STATION && request->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) == 0) {
             reply->roomState = 1;
-        } else if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= 4) {
+        } else if (gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER) >= 4) {
             reply->roomState = 4;
         } else {
             reply->roomState = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 2;

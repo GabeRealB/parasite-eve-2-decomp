@@ -39,6 +39,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/event_flags.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
@@ -1020,7 +1021,7 @@ static s32 _shelterB1MainCorridorResolveRoomTransition(Task* task, s32 messageId
         SHELTER_B1_MAIN_CORRIDOR_START_DEPARTURE_SCENE(event, reply, CAP_COMMAND_DEPART_STERILIZATION, GAME_FLAG_B1_CORRIDOR_TO_STERILIZATION_SCENE);
     }
     if (request->areaId == GAME_AREA_SHELTER_B1_ELEVATOR_HALL) {
-        if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= ELEVATOR_HALL_BLOCKED_CHAPTER) {
+        if (gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER) >= ELEVATOR_HALL_BLOCKED_CHAPTER) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 capRunCommandWithTransition(CAP_COMMAND_LATE_ELEVATOR_HALL);
             }
