@@ -5650,7 +5650,6 @@ void playerActorTickAnimationState(Task* task)
         PLAYER_ACTOR_ANIMATION_BOUNDARY_RETURN_TO_LOCOMOTION  = 8,
         PLAYER_ACTOR_ANIMATION_PARASITE_ENERGY_PHASE          = 9,
         PLAYER_ACTOR_ANIMATION_MARK_ACTION_COMPLETE           = 10,
-        PLAYER_ACTOR_ANIMATION_AIM_HOLD_SET                   = 9,
         PLAYER_ACTOR_ANIMATION_AIM_HOLD_BLEND_FRAMES          = 5,
         PLAYER_ACTOR_ANIMATION_RETURN_TO_AIM_BLEND_FRAMES     = 3,
         PLAYER_ACTOR_ANIMATION_PHASE_COMPLETE                 = 1000,
@@ -5676,7 +5675,7 @@ void playerActorTickAnimationState(Task* task)
                 break;
             }
             // Keep clip, blend and slot locals live across the phase update.
-            setIndex           = PLAYER_ACTOR_ANIMATION_AIM_HOLD_SET;
+            setIndex           = PLAYER_ANIMATION_AIM_IDLE;
             blendFrames        = PLAYER_ACTOR_ANIMATION_AIM_HOLD_BLEND_FRAMES;
             slotIndex          = 1;
             actor->statePhase += slotIndex;
@@ -7417,9 +7416,7 @@ s32 playerActorPlace(Task* task, s32 unusedMessageId, const ActorTransform* tran
 s32 playerActorTurnToYaw(Task* task, s32 unusedMessageId, const ActorTransform* transform, s32 unusedSecondArg)
 {
     enum {
-        PLAYER_ACTOR_TURN_SCRATCH_BYTES   = 16,
-        PLAYER_ACTOR_TURN_NEGATIVE_SET    = 5,
-        PLAYER_ACTOR_TURN_NONNEGATIVE_SET = 6,
+        PLAYER_ACTOR_TURN_SCRATCH_BYTES = 16,
     };
     GameActor* actor;
     s32*       turnScratch;
@@ -7438,9 +7435,9 @@ s32 playerActorTurnToYaw(Task* task, s32 unusedMessageId, const ActorTransform* 
     turnDelta                      = playerActorShortestTurn(actor->rotation.vy, targetYaw);
     // The binary retains the turn word in this 16-byte reservation.
     turnScratch[0] = turnDelta;
-    setIndex       = PLAYER_ACTOR_TURN_NONNEGATIVE_SET;
+    setIndex       = PLAYER_ANIMATION_TURN_RIGHT;
     if (turnDelta < 0) {
-        setIndex = PLAYER_ACTOR_TURN_NEGATIVE_SET;
+        setIndex = PLAYER_ANIMATION_TURN_LEFT;
     }
     playerActorPlayChildSlots(task, setIndex, 0);
     SCRATCH_STACK_RELEASE_BYTES(PLAYER_ACTOR_TURN_SCRATCH_BYTES);
@@ -8309,16 +8306,12 @@ static void _playerActorUpdateNormalLocomotion(Task* task)
 /// the clip table, starting playback or retaining a pointer.
 static inline s32 _playerActorSelectLocomotionWalkSet(GameActor* actor, s32 movementMode)
 {
-    enum {
-        PLAYER_ACTOR_LOCOMOTION_SET_WALK         = 2,
-        PLAYER_ACTOR_LOCOMOTION_SET_UNARMED_WALK = 19,
-    };
     s32 setIndex;
 
-    setIndex            = PLAYER_ACTOR_LOCOMOTION_SET_WALK;
+    setIndex            = PLAYER_ANIMATION_WALK;
     actor->movementMode = movementMode;
     if (actor->equipmentTasks[1] == NULL) {
-        setIndex = PLAYER_ACTOR_LOCOMOTION_SET_UNARMED_WALK;
+        setIndex = PLAYER_ANIMATION_UNARMED_WALK;
     }
     return setIndex;
 }
@@ -8326,16 +8319,11 @@ static inline s32 _playerActorSelectLocomotionWalkSet(GameActor* actor, s32 move
 void playerActorEnterLocomotion(Task* task, s16 resetAnimation)
 {
     enum {
-        PLAYER_ACTOR_LOCOMOTION_STATE             = 0,
-        PLAYER_ACTOR_LOCOMOTION_CONTROLLER        = 0,
-        PLAYER_ACTOR_LOCOMOTION_TURN_MOVING       = 1,
-        PLAYER_ACTOR_LOCOMOTION_TURN_IDLE         = 3,
-        PLAYER_ACTOR_LOCOMOTION_SET_IDLE          = 1,
-        PLAYER_ACTOR_LOCOMOTION_SET_BACKWARD      = 3,
-        PLAYER_ACTOR_LOCOMOTION_SET_RUN           = 4,
-        PLAYER_ACTOR_LOCOMOTION_SET_NEGATIVE_TURN = 5,
-        PLAYER_ACTOR_LOCOMOTION_SET_POSITIVE_TURN = 6,
-        PLAYER_ACTOR_LOCOMOTION_BLEND_FRAMES      = 4,
+        PLAYER_ACTOR_LOCOMOTION_STATE        = 0,
+        PLAYER_ACTOR_LOCOMOTION_CONTROLLER   = 0,
+        PLAYER_ACTOR_LOCOMOTION_TURN_MOVING  = 1,
+        PLAYER_ACTOR_LOCOMOTION_TURN_IDLE    = 3,
+        PLAYER_ACTOR_LOCOMOTION_BLEND_FRAMES = 4,
     };
     GameActor* actor;
     s32        setIndex;
@@ -8349,12 +8337,12 @@ void playerActorEnterLocomotion(Task* task, s16 resetAnimation)
     if (movement == 0) {
         if (actor->turnSign != 0) {
             if (actor->turnSign == 1) {
-                setIndex = PLAYER_ACTOR_LOCOMOTION_SET_POSITIVE_TURN;
+                setIndex = PLAYER_ANIMATION_TURN_RIGHT;
             } else {
-                setIndex = PLAYER_ACTOR_LOCOMOTION_SET_NEGATIVE_TURN;
+                setIndex = PLAYER_ANIMATION_TURN_LEFT;
             }
         } else {
-            setIndex = PLAYER_ACTOR_LOCOMOTION_SET_IDLE;
+            setIndex = PLAYER_ANIMATION_IDLE;
         }
         actor->movementMode  = GAME_ACTOR_MOVEMENT_STOPPED;
         actor->turnRateIndex = PLAYER_ACTOR_LOCOMOTION_TURN_IDLE;
@@ -8363,7 +8351,7 @@ void playerActorEnterLocomotion(Task* task, s16 resetAnimation)
         actor->turnRateIndex = movement;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode == 0 && actor->restrictRunAndAim == 0) {
             actor->movementMode = GAME_ACTOR_MOVEMENT_RUN;
-            setIndex            = PLAYER_ACTOR_LOCOMOTION_SET_RUN;
+            setIndex            = PLAYER_ANIMATION_RUN;
         } else {
             setIndex = _playerActorSelectLocomotionWalkSet(actor, movement);
         }
@@ -8372,13 +8360,13 @@ void playerActorEnterLocomotion(Task* task, s16 resetAnimation)
         if (actor->movementSign == 1) {
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode != 0 && actor->restrictRunAndAim == 0) {
                 actor->movementMode = GAME_ACTOR_MOVEMENT_RUN;
-                setIndex            = PLAYER_ACTOR_LOCOMOTION_SET_RUN;
+                setIndex            = PLAYER_ANIMATION_RUN;
             } else {
                 setIndex = _playerActorSelectLocomotionWalkSet(actor, GAME_ACTOR_MOVEMENT_WALK);
             }
         } else {
             actor->movementMode = GAME_ACTOR_MOVEMENT_BACKWARD_WALK;
-            setIndex            = PLAYER_ACTOR_LOCOMOTION_SET_BACKWARD;
+            setIndex            = PLAYER_ANIMATION_BACKWARD_WALK;
         }
     }
     actor->mode       = GAME_ACTOR_MODE_NORMAL;
@@ -8614,9 +8602,6 @@ static void _playerActorNormalState5(Task* task)
         PLAYER_ACTOR_RELOAD_TIMER_EXPIRED            = -1,
         PLAYER_ACTOR_MONGOOSE_RELOAD_DELAY_TICKS     = 10,
         PLAYER_ACTOR_RELOAD_CANCEL_AIM_STATE         = 2,
-        PLAYER_ACTOR_RELOAD_CANCEL_IDLE_SET          = 9,
-        PLAYER_ACTOR_RELOAD_CANCEL_FORWARD_SET       = 12,
-        PLAYER_ACTOR_RELOAD_CANCEL_TURN_SET          = 13,
         PLAYER_ACTOR_RELOAD_CANCEL_BLEND_FRAMES      = 6,
         PLAYER_ACTOR_RELOAD_SOUND_WEAPON_SHIFT       = 16,
         PLAYER_ACTOR_RELOAD_SOUND_VARIANT_SHIFT      = 24,
@@ -8688,17 +8673,17 @@ static void _playerActorNormalState5(Task* task)
         movementSign = aimActor->movementSign;
         if (movementSign == 0) {
             if (aimActor->turnSign != 0) {
-                setIndex = PLAYER_ACTOR_RELOAD_CANCEL_TURN_SET;
+                setIndex = PLAYER_ANIMATION_AIM_BACKWARD;
             } else {
-                setIndex = PLAYER_ACTOR_RELOAD_CANCEL_IDLE_SET;
+                setIndex = PLAYER_ANIMATION_AIM_IDLE;
             }
         } else if (movementSign == 1) {
-            setIndex                   = PLAYER_ACTOR_RELOAD_CANCEL_FORWARD_SET;
+            setIndex                   = PLAYER_ANIMATION_AIM_FORWARD;
             aimActor->movementMode     = GAME_ACTOR_MOVEMENT_RUN;
             aimActor->aimTrackingState = movementSign;
         } else {
             aimActor->movementMode = GAME_ACTOR_MOVEMENT_BACKWARD_WALK;
-            setIndex               = PLAYER_ACTOR_RELOAD_CANCEL_TURN_SET;
+            setIndex               = PLAYER_ANIMATION_AIM_BACKWARD;
         }
         playerActorPlayChildSlotsWithBlend(task, setIndex, 0, PLAYER_ACTOR_RELOAD_CANCEL_BLEND_FRAMES);
         return;
@@ -8918,9 +8903,6 @@ static inline void _playerActorResumeAimLocomotion(Task* task, s32 blendFrames)
         PLAYER_ACTOR_AIM_LOCOMOTION_CONTROLLER = 0,
         PLAYER_ACTOR_AIM_TURN_MOVING           = 1,
         PLAYER_ACTOR_AIM_TURN_IDLE             = 3,
-        PLAYER_ACTOR_AIM_SET_IDLE              = 9,
-        PLAYER_ACTOR_AIM_SET_FORWARD           = 12,
-        PLAYER_ACTOR_AIM_SET_BACKWARD_OR_TURN  = 13,
     };
     GameActor* actor;
     s32        setIndex;
@@ -8948,17 +8930,17 @@ static inline void _playerActorResumeAimLocomotion(Task* task, s32 blendFrames)
     movementSign = actor->movementSign;
     if (movementSign == 0) {
         if (actor->turnSign != 0) {
-            setIndex = PLAYER_ACTOR_AIM_SET_BACKWARD_OR_TURN;
+            setIndex = PLAYER_ANIMATION_AIM_BACKWARD;
         } else {
-            setIndex = PLAYER_ACTOR_AIM_SET_IDLE;
+            setIndex = PLAYER_ANIMATION_AIM_IDLE;
         }
     } else if (movementSign == 1) {
-        setIndex                = PLAYER_ACTOR_AIM_SET_FORWARD;
+        setIndex                = PLAYER_ANIMATION_AIM_FORWARD;
         actor->movementMode     = GAME_ACTOR_MOVEMENT_RUN;
         actor->aimTrackingState = movementSign;
     } else {
         actor->movementMode = GAME_ACTOR_MOVEMENT_BACKWARD_WALK;
-        setIndex            = PLAYER_ACTOR_AIM_SET_BACKWARD_OR_TURN;
+        setIndex            = PLAYER_ANIMATION_AIM_BACKWARD;
     }
     if (blendFrames == 0) {
         playerActorResetChildSlots(task, setIndex);
@@ -9005,15 +8987,6 @@ static void _playerActorNormalState6(Task* task)
         PLAYER_ACTOR_PE_PHASE_RESUME            = 5,
         PLAYER_ACTOR_PE_ANIMATION_IDLE          = 0,
         PLAYER_ACTOR_PE_ANIMATION_ADVANCE_PHASE = 9,
-        PLAYER_ACTOR_PE_RELEASE_SET_VARIANT0    = 26,
-        PLAYER_ACTOR_PE_RELEASE_SET_VARIANT1    = 29,
-        PLAYER_ACTOR_PE_RELEASE_SET_OTHER       = 42,
-        PLAYER_ACTOR_PE_CHARGE_SET_VARIANT0     = 27,
-        PLAYER_ACTOR_PE_CHARGE_SET_VARIANT1     = 30,
-        PLAYER_ACTOR_PE_CHARGE_SET_OTHER        = 43,
-        PLAYER_ACTOR_PE_CAST_SET_VARIANT0       = 28,
-        PLAYER_ACTOR_PE_CAST_SET_VARIANT1       = 31,
-        PLAYER_ACTOR_PE_CAST_SET_OTHER          = 44,
         PLAYER_ACTOR_PE_RELEASE_BLEND_FRAMES    = 6,
         PLAYER_ACTOR_PE_PREVIOUS_LOCOMOTION     = 0,
         PLAYER_ACTOR_PE_PREVIOUS_AIM_ENTRY      = 1,
@@ -9035,14 +9008,14 @@ static void _playerActorNormalState6(Task* task)
             actor->animationState   = PLAYER_ACTOR_PE_ANIMATION_ADVANCE_PHASE;
             actor->statePhase      += 1;
             gAttachmentState.flags |= ATTACHMENT_FLAG_START_CAST;
-            setIndex                = _playerActorSelectPeSet(actor, PLAYER_ACTOR_PE_RELEASE_SET_VARIANT0, PLAYER_ACTOR_PE_RELEASE_SET_VARIANT1, PLAYER_ACTOR_PE_RELEASE_SET_OTHER);
+            setIndex                = _playerActorSelectPeSet(actor, PLAYER_ANIMATION_PARASITE_ENERGY_BEGIN_0, PLAYER_ANIMATION_PARASITE_ENERGY_BEGIN_1, PLAYER_ANIMATION_PARASITE_ENERGY_BEGIN_2);
             playerActorPlayChildSlotsWithBlend(task, setIndex, 0, PLAYER_ACTOR_PE_RELEASE_BLEND_FRAMES);
             sceneLatchActionSignal(SCENE_COMBAT_ACTION_SIGNAL_PE_ACTIVE);
             break;
         case PLAYER_ACTOR_PE_PHASE_CHARGE:
             actor->animationState = PLAYER_ACTOR_PE_ANIMATION_IDLE;
             actor->statePhase    += 1;
-            setIndex              = _playerActorSelectPeSet(actor, PLAYER_ACTOR_PE_CHARGE_SET_VARIANT0, PLAYER_ACTOR_PE_CHARGE_SET_VARIANT1, PLAYER_ACTOR_PE_CHARGE_SET_OTHER);
+            setIndex              = _playerActorSelectPeSet(actor, PLAYER_ANIMATION_PARASITE_ENERGY_CHARGE_0, PLAYER_ANIMATION_PARASITE_ENERGY_CHARGE_1, PLAYER_ANIMATION_PARASITE_ENERGY_CHARGE_2);
             playerActorResetChildSlots(task, setIndex);
             // Check the countdown on the same tick that starts the charge clip.
         case PLAYER_ACTOR_PE_PHASE_WAIT_CHARGE:
@@ -9054,7 +9027,7 @@ static void _playerActorNormalState6(Task* task)
                     actionSignal = SCENE_COMBAT_ACTION_SIGNAL_PE_CAST_OTHER;
                 }
                 sceneLatchActionSignal(actionSignal);
-                setIndex = _playerActorSelectPeSet(actor, PLAYER_ACTOR_PE_CAST_SET_VARIANT0, PLAYER_ACTOR_PE_CAST_SET_VARIANT1, PLAYER_ACTOR_PE_CAST_SET_OTHER);
+                setIndex = _playerActorSelectPeSet(actor, PLAYER_ANIMATION_PARASITE_ENERGY_CAST_0, PLAYER_ANIMATION_PARASITE_ENERGY_CAST_1, PLAYER_ANIMATION_PARASITE_ENERGY_CAST_2);
                 playerActorResetChildSlots(task, setIndex);
                 break;
             }
@@ -9166,8 +9139,6 @@ static void _playerActorTickScriptedStairClimb(Task* task)
         PLAYER_ACTOR_STAIR_ASCENT_FINISH_TICKS      = 8,
         PLAYER_ACTOR_STAIR_DESCENT_STRIDE_TICKS     = 9,
         PLAYER_ACTOR_STAIR_DESCENT_EDGE_TICKS       = 5,
-        PLAYER_ACTOR_STAIR_ASCENT_FINISH_EVEN_SET   = 38,
-        PLAYER_ACTOR_STAIR_ASCENT_FINISH_ODD_SET    = 39,
         PLAYER_ACTOR_STAIR_FINISH_BLEND_FRAMES      = 3,
         PLAYER_ACTOR_STAIR_IDLE_BLEND_FRAMES        = 5,
     };
@@ -9225,10 +9196,10 @@ static void _playerActorTickScriptedStairClimb(Task* task)
                         VectorNormalSS(&scratch->direction, &scratch->direction);
                         actor->velocity.vx = (s16)(scratch->direction.vx / PLAYER_ACTOR_STAIR_ASCENT_FINISH_DIVISOR);
                         actor->velocity.vy = (s16)(scratch->direction.vy / PLAYER_ACTOR_STAIR_ASCENT_FINISH_DIVISOR);
-                        setIndex           = PLAYER_ACTOR_STAIR_ASCENT_FINISH_EVEN_SET;
+                        setIndex           = PLAYER_ANIMATION_STAIR_ASCENT_FINISH_EVEN;
                         actor->velocity.vz = (s16)(scratch->direction.vz / PLAYER_ACTOR_STAIR_ASCENT_FINISH_DIVISOR);
                         if (actor->actionValue != 0) {
-                            setIndex = PLAYER_ACTOR_STAIR_ASCENT_FINISH_ODD_SET;
+                            setIndex = PLAYER_ANIMATION_STAIR_ASCENT_FINISH_ODD;
                         }
                         playerActorPlayChildSlotsWithBlend(task, setIndex, 0, PLAYER_ACTOR_STAIR_FINISH_BLEND_FRAMES);
                     }
@@ -9312,17 +9283,12 @@ static inline void _playerActorStepMoveToYaw(GameActor* actor, const GfxCoord* r
 void playerActorTickScriptedMoveTo(Task* task)
 {
     enum {
-        PLAYER_ACTOR_MOVE_TO_START_PHASE      = 0,
-        PLAYER_ACTOR_MOVE_TO_TURN_PHASE       = 1,
-        PLAYER_ACTOR_MOVE_TO_TRAVEL_PHASE     = 2,
-        PLAYER_ACTOR_MOVE_TO_FORWARD          = 1,
-        PLAYER_ACTOR_MOVE_TO_IDLE_SET         = 1,
-        PLAYER_ACTOR_MOVE_TO_WALK_SET         = 2,
-        PLAYER_ACTOR_MOVE_TO_UNARMED_WALK_SET = 19,
-        PLAYER_ACTOR_MOVE_TO_TURN_LEFT_SET    = 5,
-        PLAYER_ACTOR_MOVE_TO_TURN_RIGHT_SET   = 6,
-        PLAYER_ACTOR_MOVE_TO_BLEND_FRAMES     = 5,
-        PLAYER_ACTOR_MOVE_TO_ARRIVAL_LIMIT    = 105,
+        PLAYER_ACTOR_MOVE_TO_START_PHASE   = 0,
+        PLAYER_ACTOR_MOVE_TO_TURN_PHASE    = 1,
+        PLAYER_ACTOR_MOVE_TO_TRAVEL_PHASE  = 2,
+        PLAYER_ACTOR_MOVE_TO_FORWARD       = 1,
+        PLAYER_ACTOR_MOVE_TO_BLEND_FRAMES  = 5,
+        PLAYER_ACTOR_MOVE_TO_ARRIVAL_LIMIT = 105,
     };
     PlayerActorApproachScratch* scratch;
     GfxCoord*                   rootCoord;
@@ -9338,9 +9304,9 @@ void playerActorTickScriptedMoveTo(Task* task)
     switch (actor->statePhase) {
         case PLAYER_ACTOR_MOVE_TO_START_PHASE:
             actor->statePhase = PLAYER_ACTOR_MOVE_TO_TURN_PHASE;
-            animationId       = PLAYER_ACTOR_MOVE_TO_TURN_RIGHT_SET;
+            animationId       = PLAYER_ANIMATION_TURN_RIGHT;
             if (scratch->turnStep < 0) {
-                animationId = PLAYER_ACTOR_MOVE_TO_TURN_LEFT_SET;
+                animationId = PLAYER_ANIMATION_TURN_LEFT;
             }
             playerActorPlayChildSlots(task, animationId, 1);
             // Continue turning on the same tick that starts the turn clip.
@@ -9349,9 +9315,9 @@ void playerActorTickScriptedMoveTo(Task* task)
                 actor->movementMode = GAME_ACTOR_MOVEMENT_WALK;
                 actor->statePhase++;
                 if (actor->actionArgument == 0) {
-                    animationId = PLAYER_ACTOR_MOVE_TO_WALK_SET;
+                    animationId = PLAYER_ANIMATION_WALK;
                     if (actor->equipmentTasks[1] == NULL) {
-                        animationId = PLAYER_ACTOR_MOVE_TO_UNARMED_WALK_SET;
+                        animationId = PLAYER_ANIMATION_UNARMED_WALK;
                     }
                 } else {
                     animationId = actor->actionArgument;
@@ -9365,7 +9331,7 @@ void playerActorTickScriptedMoveTo(Task* task)
                 if (abs(rootCoord->coord.t[2] - actor->destination.vz) < PLAYER_ACTOR_MOVE_TO_ARRIVAL_LIMIT) {
                     actor->scriptedMotionPending = 0;
                     actor->state                 = PLAYER_ACTOR_SCRIPTED_ANIMATION_STATE;
-                    animationId                  = PLAYER_ACTOR_MOVE_TO_IDLE_SET;
+                    animationId                  = PLAYER_ANIMATION_IDLE;
                     if (actor->actionValue != 0) {
                         animationId = actor->actionValue;
                     }
@@ -9628,9 +9594,6 @@ static void _playerActorUpdateIdleTurnAnimation(Task* task)
     enum {
         PLAYER_ACTOR_IDLE_TURN_CONTROLLER   = 0,
         PLAYER_ACTOR_IDLE_TURN_RATE_INDEX   = 3,
-        PLAYER_ACTOR_IDLE_TURN_SET_IDLE     = 1,
-        PLAYER_ACTOR_IDLE_TURN_SET_NEGATIVE = 5,
-        PLAYER_ACTOR_IDLE_TURN_SET_POSITIVE = 6,
         PLAYER_ACTOR_IDLE_TURN_BLEND_FRAMES = 5,
     };
     GameActor* actor;
@@ -9644,11 +9607,11 @@ static void _playerActorUpdateIdleTurnAnimation(Task* task)
     actor->statePhase     = 0;
     actor->idleTicks      = 0;
     if (actor->turnSign == 0) {
-        setIndex = PLAYER_ACTOR_IDLE_TURN_SET_IDLE;
+        setIndex = PLAYER_ANIMATION_IDLE;
     } else if (actor->turnSign == 1) {
-        setIndex = PLAYER_ACTOR_IDLE_TURN_SET_POSITIVE;
+        setIndex = PLAYER_ANIMATION_TURN_RIGHT;
     } else {
-        setIndex = PLAYER_ACTOR_IDLE_TURN_SET_NEGATIVE;
+        setIndex = PLAYER_ANIMATION_TURN_LEFT;
     }
     playerActorPlayChildSlotsWithBlend(task, setIndex, 0, PLAYER_ACTOR_IDLE_TURN_BLEND_FRAMES);
 }
@@ -9666,9 +9629,6 @@ static void _playerActorUpdateAimTurnAnimation(Task* task)
         PLAYER_ACTOR_AIM_TURN_RATE_MOVING  = 1,
         PLAYER_ACTOR_AIM_TURN_RATE_IDLE    = 3,
         PLAYER_ACTOR_AIM_TURN_CONTROLLER   = 0,
-        PLAYER_ACTOR_AIM_TURN_SET_IDLE     = 9,
-        PLAYER_ACTOR_AIM_TURN_SET_FORWARD  = 12,
-        PLAYER_ACTOR_AIM_TURN_SET_OTHER    = 13,
         PLAYER_ACTOR_AIM_TURN_BLEND_FRAMES = 5,
     };
     GameActor* actor;
@@ -9686,17 +9646,17 @@ static void _playerActorUpdateAimTurnAnimation(Task* task)
         } else {
             movementMode = GAME_ACTOR_MOVEMENT_BACKWARD_WALK;
         }
-        setIndex             = PLAYER_ACTOR_AIM_TURN_SET_OTHER;
+        setIndex             = PLAYER_ANIMATION_AIM_BACKWARD;
         actor->movementMode  = movementMode;
         actor->turnRateIndex = PLAYER_ACTOR_AIM_TURN_RATE_MOVING;
         if (actor->movementSign == 1) {
-            setIndex = PLAYER_ACTOR_AIM_TURN_SET_FORWARD;
+            setIndex = PLAYER_ANIMATION_AIM_FORWARD;
         }
     } else {
-        setIndex             = PLAYER_ACTOR_AIM_TURN_SET_OTHER;
+        setIndex             = PLAYER_ANIMATION_AIM_BACKWARD;
         actor->turnRateIndex = PLAYER_ACTOR_AIM_TURN_RATE_IDLE;
         if (actor->turnSign == 0) {
-            setIndex = PLAYER_ACTOR_AIM_TURN_SET_IDLE;
+            setIndex = PLAYER_ANIMATION_AIM_IDLE;
         }
     }
     playerActorPlayChildSlotsWithBlend(task, setIndex, 0, PLAYER_ACTOR_AIM_TURN_BLEND_FRAMES);
@@ -9741,9 +9701,6 @@ static void _playerActorEnterAimLocomotion(Task* task, s32 blendFrames)
         PLAYER_ACTOR_AIM_LOCOMOTION_CONTROLLER = 0,
         PLAYER_ACTOR_AIM_TURN_MOVING           = 1,
         PLAYER_ACTOR_AIM_TURN_IDLE             = 3,
-        PLAYER_ACTOR_AIM_SET_IDLE              = 9,
-        PLAYER_ACTOR_AIM_SET_FORWARD           = 12,
-        PLAYER_ACTOR_AIM_SET_BACKWARD_OR_TURN  = 13,
     };
     GameActor* actor;
     s32        setIndex;
@@ -9772,17 +9729,17 @@ static void _playerActorEnterAimLocomotion(Task* task, s32 blendFrames)
     movementSign = actor->movementSign;
     if (movementSign == 0) {
         if (actor->turnSign != 0) {
-            setIndex = PLAYER_ACTOR_AIM_SET_BACKWARD_OR_TURN;
+            setIndex = PLAYER_ANIMATION_AIM_BACKWARD;
         } else {
-            setIndex = PLAYER_ACTOR_AIM_SET_IDLE;
+            setIndex = PLAYER_ANIMATION_AIM_IDLE;
         }
     } else if (movementSign == 1) {
-        setIndex                = PLAYER_ACTOR_AIM_SET_FORWARD;
+        setIndex                = PLAYER_ANIMATION_AIM_FORWARD;
         actor->movementMode     = GAME_ACTOR_MOVEMENT_RUN;
         actor->aimTrackingState = movementSign;
     } else {
         actor->movementMode = GAME_ACTOR_MOVEMENT_BACKWARD_WALK;
-        setIndex            = PLAYER_ACTOR_AIM_SET_BACKWARD_OR_TURN;
+        setIndex            = PLAYER_ANIMATION_AIM_BACKWARD;
     }
     if (blendFrames == 0) {
         playerActorResetChildSlots(task, setIndex);
@@ -9818,8 +9775,6 @@ void playerActorEnterReload(Task* task, s32 loadSelection, s32 reloadSource)
         PLAYER_ACTOR_RELOAD_STATE                    = 5,
         PLAYER_ACTOR_RELOAD_RETURN_TO_AIM_CONTROLLER = 5,
         PLAYER_ACTOR_RELOAD_FINISH_CONTROLLER        = 10,
-        PLAYER_ACTOR_RELOAD_SET_PRIMARY              = 14,
-        PLAYER_ACTOR_RELOAD_SET_BATTLE_END           = 20,
         PLAYER_ACTOR_RELOAD_BLEND_FRAMES             = 3,
         PLAYER_ACTOR_RELOAD_PHASE_COMPLETE           = 1000,
     };
@@ -9835,7 +9790,7 @@ void playerActorEnterReload(Task* task, s32 loadSelection, s32 reloadSource)
             }
         }
         actor->animationState = PLAYER_ACTOR_RELOAD_FINISH_CONTROLLER;
-        setIndex              = PLAYER_ACTOR_RELOAD_SET_BATTLE_END;
+        setIndex              = PLAYER_ANIMATION_RELOAD_BATTLE_END;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 1) {
             actor800100EnterReload(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0);
         }
@@ -9846,7 +9801,7 @@ void playerActorEnterReload(Task* task, s32 loadSelection, s32 reloadSource)
             }
         }
         actor->animationState = PLAYER_ACTOR_RELOAD_RETURN_TO_AIM_CONTROLLER;
-        setIndex              = loadSelection + PLAYER_ACTOR_RELOAD_SET_PRIMARY;
+        setIndex              = loadSelection + PLAYER_ANIMATION_RELOAD;
     }
 
     // State 5 applies the selected load when its weapon-specific cue completes.
@@ -9978,7 +9933,6 @@ void playerActorMode2State2(Task* task)
 {
     enum {
         PLAYER_ACTOR_SCRIPTED_TURN_STEP       = 0x40,
-        PLAYER_ACTOR_SCRIPTED_TURN_IDLE_SET   = 1,
         PLAYER_ACTOR_SCRIPTED_TURN_IDLE_BLEND = 5,
     };
     GameActor* actor;
@@ -10000,7 +9954,7 @@ void playerActorMode2State2(Task* task)
     }
     // Check the stored target and its lower one-turn image before stepping.
     if (yawDistance < PLAYER_ACTOR_SCRIPTED_TURN_STEP + 1 || (wrappedTargetYaw = targetYaw - ACTOR_TRANSFORM_ANGLE_TURN, yawDistance = currentYaw - wrappedTargetYaw, yawDistance = ABS(yawDistance), yawDistance < PLAYER_ACTOR_SCRIPTED_TURN_STEP + 1)) {
-        idleStateAndSet              = PLAYER_ACTOR_SCRIPTED_TURN_IDLE_SET;
+        idleStateAndSet              = PLAYER_ANIMATION_IDLE;
         actor->rotation.vy           = storedTargetYaw;
         actor->scriptedMotionPending = 0;
         actor->state                 = idleStateAndSet;
@@ -10030,7 +9984,6 @@ static void _playerActorTickScriptedRunTo(Task* task)
         PLAYER_ACTOR_RUN_TO_START_PHASE  = 0,
         PLAYER_ACTOR_RUN_TO_TURN_PHASE   = 1,
         PLAYER_ACTOR_RUN_TO_TRAVEL_PHASE = 2,
-        PLAYER_ACTOR_RUN_TO_SET          = 4,
         PLAYER_ACTOR_RUN_TO_BLEND_FRAMES = 5,
     };
     GameActor* actor;
@@ -10043,7 +9996,7 @@ static void _playerActorTickScriptedRunTo(Task* task)
             playerActorTickScriptedMoveTo(task);
             if (actor->statePhase == PLAYER_ACTOR_RUN_TO_TRAVEL_PHASE) {
                 actor->movementMode = GAME_ACTOR_MOVEMENT_RUN;
-                setIndex            = PLAYER_ACTOR_RUN_TO_SET;
+                setIndex            = PLAYER_ANIMATION_RUN;
                 if (actor->actionArgument != 0) {
                     setIndex = actor->actionArgument;
                 }
@@ -10501,8 +10454,6 @@ static void _playerActorTickScriptedWalkSteps(Task* task)
         PLAYER_ACTOR_WALK_STEPS_START_PHASE = 0,
         PLAYER_ACTOR_WALK_STEPS_WALK_PHASE  = 1,
         PLAYER_ACTOR_WALK_STEPS_FORWARD     = 1,
-        PLAYER_ACTOR_WALK_STEPS_WALK_SET    = 2,
-        PLAYER_ACTOR_WALK_STEPS_UNARMED_SET = 19,
         PLAYER_ACTOR_WALK_STEPS_IDLE_BLEND  = 5,
     };
     GameActor* actor;
@@ -10513,12 +10464,12 @@ static void _playerActorTickScriptedWalkSteps(Task* task)
     actor = task->work;
     switch (actor->statePhase) {
         case PLAYER_ACTOR_WALK_STEPS_START_PHASE:
-            setIndex            = PLAYER_ACTOR_WALK_STEPS_WALK_SET;
+            setIndex            = PLAYER_ANIMATION_WALK;
             walkingPhaseAndMode = PLAYER_ACTOR_WALK_STEPS_WALK_PHASE;
             actor->statePhase   = walkingPhaseAndMode;
             actor->movementMode = walkingPhaseAndMode;
             if (actor->equipmentTasks[1] == NULL) {
-                setIndex = PLAYER_ACTOR_WALK_STEPS_UNARMED_SET;
+                setIndex = PLAYER_ANIMATION_UNARMED_WALK;
             }
             unusedPlaybackArgument = 1;
             if (actor->stateTimer == 0) {
@@ -10594,8 +10545,6 @@ static void _playerActorTickScriptedPresentation(Task* task)
     enum {
         PLAYER_ACTOR_PRESENTATION_START_PHASE = 0,
         PLAYER_ACTOR_PRESENTATION_PLAY_PHASE  = 1,
-        PLAYER_ACTOR_PRESENTATION_ZERO_SET    = 32,
-        PLAYER_ACTOR_PRESENTATION_NONZERO_SET = 33,
     };
     GameActor* actor;
     s32        setIndex;
@@ -10604,11 +10553,11 @@ static void _playerActorTickScriptedPresentation(Task* task)
     actor = task->work;
     switch (actor->statePhase) {
         case PLAYER_ACTOR_PRESENTATION_START_PHASE:
-            setIndex          = PLAYER_ACTOR_PRESENTATION_ZERO_SET;
+            setIndex          = PLAYER_ANIMATION_EXAMINE_ENTER;
             playbackPhase     = PLAYER_ACTOR_PRESENTATION_PLAY_PHASE;
             actor->statePhase = playbackPhase;
             if (actor->stateTimer != 0) {
-                setIndex = PLAYER_ACTOR_PRESENTATION_NONZERO_SET;
+                setIndex = PLAYER_ANIMATION_EXAMINE_EXIT;
             }
             playerActorPlayChildSlots(task, setIndex, 1);
             // Advance the new clip on the entry tick as well as later ticks.
