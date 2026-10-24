@@ -3,7 +3,7 @@ outside the room it points to, so a generated file compiles wherever it is inclu
 only what its own code uses.
 
 A type or symbol is looked up in the project's headers by its definition - a typedef's name, a declaration with
-`extern` - and spelled as the build's include path finds it (`gameplay/collision.h`, `types.h`). Sony's headers
+`extern`, a function's prototype - and spelled as the build's include path finds it (`gameplay/collision.h`, `types.h`). Sony's headers
 include nothing themselves, so a psyq header comes with the ones it needs before it, in Sony's order. A name no
 header declares is the including source's own (a label, a callback), and needs nothing.
 """
@@ -22,6 +22,8 @@ BASIC = {"u8", "s8", "u16", "s16", "u32", "s32", "u64", "s64", "f32", "NULL"}
 TYPEDEF_CLOSE = re.compile(r"^\}\s*(\w+)\s*;", re.M)
 TYPEDEF_SIMPLE = re.compile(r"^typedef\s+[^;{}()]*?\b(\w+)\s*;", re.M)
 EXTERN = re.compile(r"^extern\s+[^;()]*?\b(\w+)\s*(?:\[[^\]]*\]\s*)*;", re.M)
+# a function prototype at file scope: a return type, the name and its parameters (a script operand names one)
+PROTOTYPE = re.compile(r"^(?!static\b|typedef\b|#)[A-Za-z_][\w \t\*]*?\b(\w+)\s*\([^;{}()]*\)\s*;", re.M)
 
 
 def _spelling(path: Path) -> str:
@@ -42,6 +44,8 @@ def _index() -> tuple[dict[str, str], dict[str, str]]:
         for m in list(TYPEDEF_CLOSE.finditer(text)) + list(TYPEDEF_SIMPLE.finditer(text)):
             types.setdefault(m.group(1), _spelling(h))
         for m in EXTERN.finditer(text):
+            symbols.setdefault(m.group(1), _spelling(h))
+        for m in PROTOTYPE.finditer(text):
             symbols.setdefault(m.group(1), _spelling(h))
     return types, symbols
 
