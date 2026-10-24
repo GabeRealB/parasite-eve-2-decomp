@@ -270,7 +270,7 @@ static s32 _mistParkingHandleCommand(Task* task, s32 messageId, s32 commandId, s
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                     taskSpawnFromTable(gMistParkingConversationTaskDescs, MIST_PARKING_DEPARTURE_MENU_DESCRIPTOR, 0, 0);
                 }
-            } else if (gameFlagGetNibble(GAME_FLAG_0ED) == MIST_PARKING_DEPARTURE_TALK_ENABLED) {
+            } else if (gameFlagGetNibble(EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT) == MIST_PARKING_DEPARTURE_TALK_ENABLED) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 taskSpawnFromTable(gMistParkingShopTaskDescriptors, MIST_PARKING_SHOP_DEPARTURE_MENU_DESCRIPTOR, 0, 0);
             }
@@ -343,7 +343,7 @@ static s32 _mistParkingHandleDirectionAction(Task* task, s32 messageId, const Di
     }
     if (request->actionId == MIST_PARKING_ACTION_SELECT_ROOM_1) {
         evsStartScript(_gMistParkingSelectRoom1Script, EVENT_SCRIPT_HUD_KEEP);
-        gameFlagSetNibble(GAME_FLAG_0ED, MIST_PARKING_TALK_ENABLED);
+        gameFlagSetNibble(EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT, MIST_PARKING_TALK_ENABLED);
     }
     return 1;
 }

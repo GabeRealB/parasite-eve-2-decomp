@@ -1,5 +1,8 @@
 #include "rooms/mist_shooting_gallery.h"
 
+#include "config.h"
+#include "../../event_flags.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -12,24 +15,22 @@
 
 #include "actors/actor_215100.h"
 
+#include "gameplay/actor_presentation.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
-#include "gameplay/actor_presentation.h"
-#include "gameplay/gameflag.h"
-#include "gameplay/scene_runtime.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
-#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
+#include "gameplay/gameflag.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/inventory.h"
 #include "gameplay/item_menu.h"
 #include "gameplay/items.h"
-#include "gameplay/loading.h"
 #include "gameplay/message.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
+#include "gameplay/scene_runtime.h"
 #include "gameplay/view.h"
 
 #include "main/coord.h"
@@ -40,7 +41,6 @@
 #include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
-#include "main/loadui.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
 #include "main/mem.h"
@@ -64,12 +64,10 @@
 #include "rooms/room_common.h"
 
 #include "rooms/rooms_shared_8018055c.h"
-/// This room's `glowDrawDisc` stores the on-screen half-extent ahead of the
-/// GTE flag word. Defined before `glow_draw.h`, which otherwise selects
-/// `GlowCentreScratch`.
+/// This room's `glowDrawDisc` stores the on-screen half-extent ahead of the GTE flag word.
 #define GLOW_DRAW_DISC_SCRATCH GlowCentreRadiusFirstScratch
-#include "../../shared/effects/glow_draw.h"
-#include "../../shared/room/jukebox.h"
+#include "../../../../shared/effects/glow_draw.h"
+#include "../../../../shared/room/jukebox.h"
 
 #define ROOM_PART declarations_mist_shooting_gallery
 #include "assets/rooms/mist/shooting_gallery/declarations.inc"
@@ -83,8 +81,6 @@ enum {
 };
 
 // Key-item use requests carry an item ID and an unused second argument word.
-enum { MIST_SHOOTING_GALLERY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 // Colours of the mode-selection panels, packed with red in the low byte.
 enum {
     MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR         = 0x606060,
@@ -132,9 +128,9 @@ static const char _gMistShootingGalleryJukeboxRow4LazingAwayTheMorningLabel[];
 static const char _gMistShootingGalleryJukeboxRow3OutOfPhase2Label[18];
 static const char _gMistShootingGalleryJukeboxRow2TheVagrantsLabel[16];
 static const char _gMistShootingGalleryJukeboxRow1TowerRendezvousLabel[20];
-static s32        _mistShootingGalleryRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
-static s32        _mistShootingGalleryResolveRoomEvent(Task* unusedTask, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
-static s32        _mistShootingGalleryHandleCommand(Task* task, s32 messageId, s32 commandIndex, s32 unusedSecondArg);
+static s32        _mistShootingGalleryRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+static s32        _mistShootingGalleryResolveRoomTransition(Task* unusedTask, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32        _mistShootingGalleryHandleRoomCommand(Task* task, s32 messageId, s32 commandIndex, s32 unusedSecondArg);
 static s32        _mistShootingGalleryHandleRoomAction(Task* unusedTask, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 static void       _mistShootingGalleryResultPanelTask(Task* task);
 static void       _mistShootingGalleryBonusPanelTask(Task* task);
@@ -187,8 +183,6 @@ static char _gMistShootingGalleryNightmareModeDescription[84] =
     "worse in this most difficult mode.";
 
 /// NUL-terminated DATA-panel gauge text for rating level 1; each { glyph draws one mark.
-///
-/// The unused level-zero table entry also points here.
 static char _gMistShootingGalleryGaugeOneMarkText[4] = "{";
 
 /// NUL-terminated DATA-panel gauge text for rating level 2; each { glyph draws one mark.
@@ -219,10 +213,6 @@ enum {
 };
 
 /// Weapon-picker catalog in offer order, with no terminator.
-///
-/// Signed halfwords hold inventory item IDs. Entries without saved ownership
-/// are skipped; M4A1 and MP5A5 ownership includes their upgraded variants.
-/// Displayed row indices address that filtered order, not these ten slots.
 static s16 _gMistShootingGalleryWeaponItemIds[MIST_SHOOTING_GALLERY_WEAPON_COUNT] = {
     MIST_SHOOTING_GALLERY_WEAPON_ITEM_M93R,
     MIST_SHOOTING_GALLERY_WEAPON_ITEM_M950,
@@ -242,10 +232,6 @@ static UiListRowCallback _gMistShootingGalleryWeaponRowCallbacks[1] = {
 };
 
 /// Mutable singleton weapon-picker list with clamped navigation and 15-pixel rows.
-///
-/// Initialization replaces the one-row seed with the owned-weapon count and
-/// enables shared-row dispatch. At most ten rows are drawn. The gallery must
-/// remain loaded, and only one weapon picker may use this state at a time.
 static UiList _gMistShootingGalleryWeaponList = {
     .rowCallbacks    = _gMistShootingGalleryWeaponRowCallbacks,
     .itemCount       = 1,
@@ -263,10 +249,6 @@ UiObjectDesc gMistShootingGalleryWeaponSelectPanelDesc = {
 };
 
 /// Bodyless priority-192 inventory-menu session used for the gallery weapon picker.
-///
-/// The display queue supplies request 0x44 in the first spawn argument and zero
-/// in the second. The gallery recipe and its callback must stay loaded until
-/// the inventory-menu session closes.
 static TaskDesc _gMistShootingGalleryWeaponMenuTaskDesc = {
     .header   = { .fields = { TASK_BODY_NONE, 192 } },
     .callback = menuRootTask,
@@ -284,10 +266,6 @@ UiObjectDesc gMistShootingGalleryResultPanelDesc = {
 };
 
 /// BONUS child-panel recipe for a course's total score and earned BP.
-///
-/// Spawning copies centered pixel bounds (-72, -48, 144, 56), OT base 24 and a
-/// bodyless priority-192 task. The first spawn argument is the signed total
-/// score. Keep the gallery and controller work live until the child closes.
 static UiObjectDesc _gMistShootingGalleryBonusPanelDesc = {
     .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
     .bounds          = { -72, -48, 144, 56 },
@@ -303,10 +281,6 @@ static UiListRowCallback _gMistShootingGalleryModeRowCallbacks[1] = {
 };
 
 /// Mutable singleton list for carryover run modes 0..3, with wrapping navigation.
-///
-/// The selector limits the four initial rows to the unlocked modes and enables
-/// the shared row callback before dispatch. Rows are 15 pixels apart. Only one
-/// carryover menu may use this state at a time while the gallery stays loaded.
 static UiList _gMistShootingGalleryModeList = {
     .rowCallbacks    = _gMistShootingGalleryModeRowCallbacks,
     .itemCount       = 4,
@@ -316,9 +290,6 @@ static UiList _gMistShootingGalleryModeList = {
 };
 
 /// SELECT panel recipe for carryover run modes, with STATUS, help and DATA children.
-///
-/// Bounds are screen-centered pixels; the bodyless priority-192 task uses OT
-/// base 32. Spawning copies the recipe; its callback stays live with the gallery.
 static UiObjectDesc _gMistShootingGalleryModeSelectPanelDesc = {
     .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
     .bounds          = { -144, -96, 176, 64 },
@@ -331,10 +302,6 @@ static UiObjectDesc _gMistShootingGalleryModeSelectPanelDesc = {
 enum { MIST_SHOOTING_GALLERY_MODE_HELP_UNTITLED_STYLE = 3 };
 
 /// Carryover selector child recipes in STATUS, untitled help, DATA order.
-///
-/// Bounds are screen-centered pixels; OT bases 28, 24 and 20 order the children.
-/// Every task is bodyless at priority 192 and borrows the live run mode 0..3.
-/// Spawning copies each recipe; its callback must stay loaded until teardown.
 static UiObjectDesc _gMistShootingGalleryModeChildPanelDescs[3] = {
     {
         .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
@@ -363,10 +330,6 @@ static UiObjectDesc _gMistShootingGalleryModeChildPanelDescs[3] = {
 };
 
 /// Bodyless priority-192 display session for selecting and applying run-mode carryover.
-///
-/// The display queue borrows this descriptor asynchronously; it and its callback
-/// must stay loaded through session completion. Both spawn arguments are unused
-/// initially; the session later owns the selector object through its second argument.
 static TaskDesc _gMistShootingGalleryCarryoverModeSessionDesc = {
     .header   = { .fields = { TASK_BODY_NONE, 192 } },
     .callback = _mistShootingGalleryCarryoverModeSessionTask,
@@ -374,10 +337,6 @@ static TaskDesc _gMistShootingGalleryCarryoverModeSessionDesc = {
 };
 
 /// Bodyless priority-192 task recipe for the gallery's room CAP commands.
-///
-/// The first spawn argument is a command index; the second selects loaded file
-/// slot 1 for commands 5..8 or slot 3 for commands 33..34. Playback holds player
-/// control until completion. The gallery and selected CAP resources stay loaded.
 static TaskDesc _gMistShootingGalleryCapPlaybackTaskDesc = {
     .header   = { .fields = { TASK_BODY_NONE, 192 } },
     .callback = _mistShootingGalleryCapPlaybackTask,
@@ -385,15 +344,11 @@ static TaskDesc _gMistShootingGalleryCapPlaybackTaskDesc = {
 };
 
 /// Borrowed room-task message dispatch, terminated by TASK_MESSAGE_TABLE_END.
-///
-/// Handles transition request/reply records, key-item ID words, room-action
-/// requests and CAP-command index words. Payloads live only for the synchronous
-/// call; the table and callback code stay loaded throughout the room task.
 static TaskMessageEntry _gMistShootingGalleryRoomMessages[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, _mistShootingGalleryResolveRoomEvent },
-    { MIST_SHOOTING_GALLERY_MESSAGE_USE_KEY_ITEM, _mistShootingGalleryRejectKeyItemMessage },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _mistShootingGalleryResolveRoomTransition },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _mistShootingGalleryRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _mistShootingGalleryHandleRoomAction },
-    { ROOM_MESSAGE_COMMAND, _mistShootingGalleryHandleCommand },
+    { ROOM_MESSAGE_COMMAND, _mistShootingGalleryHandleRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -407,10 +362,6 @@ static UiListRowCallback _gMistShootingGalleryJukeboxRowCallbacks[1] = {
 };
 
 /// Mutable singleton jukebox list with clamped navigation and 17-pixel rows.
-///
-/// Initialization replaces the one-row seed with three training or four regular
-/// tracks, resets selection/scroll origin and enables the shared callback.
-/// Only one jukebox panel may use this state while the gallery stays loaded.
 static UiList _gMistShootingGalleryJukeboxList = {
     .rowCallbacks    = _gMistShootingGalleryJukeboxRowCallbacks,
     .itemCount       = 1,
@@ -419,11 +370,6 @@ static UiList _gMistShootingGalleryJukeboxList = {
 };
 
 /// Recipe for this overlay's SELECT jukebox panel and track-picker task.
-///
-/// Bounds are pixels relative to screen centre; the 224-by-128 panel uses
-/// ordering-table base 48 and a bodyless priority-192 task. Spawning reads the
-/// recipe synchronously and retains its content callback for the panel's
-/// lifetime, so this overlay must remain loaded until the panel closes.
 static UiObjectDesc _gJukeboxPanelDesc = {
     .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
     .bounds          = { -112, -64, 224, 128 },
@@ -436,9 +382,6 @@ static UiObjectDesc _gJukeboxPanelDesc = {
 };
 
 /// Bodyless priority-192 display session for this gallery's jukebox panel.
-///
-/// Queued with both spawn arguments zero. The shared host borrows the gallery
-/// panel until it closes, then restores frame timing and exits the display mode.
 static TaskDesc _gMistShootingGalleryJukeboxSessionDesc = {
     .header   = { .fields = { TASK_BODY_NONE, 192 } },
     .callback = _jukeboxHostTask,
@@ -465,19 +408,7 @@ TaskDesc gMistShootingGalleryMovieTaskDescs[MIST_SHOOTING_GALLERY_MOVIE_TASK_COU
 #include "assets/rooms/mist/shooting_gallery/header.inc"
 #include "assets/rooms/mist/shooting_gallery/markers.inc"
 
-enum { MIST_SHOOTING_GALLERY_LOGICAL_VIEW_COUNT = 18 };
-
-// Arrival/departure script entries in the gallery's area sound bank.
-enum {
-    MIST_SHOOTING_GALLERY_WARP_1_DEPARTURE_SOUND   = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 1),
-    MIST_SHOOTING_GALLERY_WARP_1_ARRIVAL_SOUND     = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 2),
-    MIST_SHOOTING_GALLERY_WARP_2_4_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 3),
-    MIST_SHOOTING_GALLERY_WARP_2_4_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 4),
-    MIST_SHOOTING_GALLERY_WARP_5_6_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 5),
-    MIST_SHOOTING_GALLERY_WARP_5_6_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 6),
-};
-
-static void _mistShootingGalleryInitRoomTask(Task* task);
+static void _mistShootingGalleryInitializeRoomTask(Task* task);
 static void _mistShootingGalleryUpdateRoomTask(Task* unusedTask);
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
@@ -542,10 +473,6 @@ void mistShootingGalleryPrepareTrainingLoadout(s32 courseLevel)
     equipmentInitializeWeaponSupplies();
 }
 /// Draws an owned weapon row and handles its training-loadout and help commands.
-///
-/// Borrows the picker object and list. The current row indexes only the owned
-/// entries, in weapon-table order. Confirm replaces carried items with the weapon,
-/// training armour and 999 ammunition units; Triangle suspends input for item help.
 static void _mistShootingGalleryWeaponRow(UiList* list, UiObject* object)
 {
     enum {
@@ -641,10 +568,6 @@ static const char _gMistShootingGalleryBearTargetLabel[8] = "Bear";
 static const char _gMistShootingGalleryBacteriumTargetLabel[12] = "Bacterium";
 
 /// Updates the centered weapon picker and returns input from its item-help child.
-///
-/// Borrows the task-owned UI object and singleton list. Initialization identifies
-/// and counts owned weapons; the row callback maps displayed rows to that same
-/// filtered table. Completed child panels close before input returns to the picker.
 static void _mistShootingGalleryWeaponSelectPanelTask(Task* task)
 {
     enum { MIST_SHOOTING_GALLERY_WEAPON_MAX_VISIBLE_ROWS = 10 };
@@ -702,20 +625,12 @@ static void _mistShootingGalleryWeaponSelectPanelTask(Task* task)
 static const u8 _gMistShootingGalleryTotalScoreCaption[] = "TOTAL SCORE";
 
 /// Draws course kill scores and records its first earned BP/prize result.
-///
-/// Borrows the task-owned object and live controller work. Nonzero kill counts
-/// form the rows; negative per-kind points deduct from the total. A pending battle
-/// reset suppresses a second panel. Confirm/cancel opens an unclaimed bonus child
-/// or completes the panel; the child credits BP and reports confirmation.
 static void _mistShootingGalleryResultPanelTask(Task* task)
 {
     enum {
-        MIST_SHOOTING_GALLERY_RESULT_INIT             = 0,
-        MIST_SHOOTING_GALLERY_RESULT_SUPPRESSED       = 0x100,
-        MIST_SHOOTING_GALLERY_RESULT_TEXT_COLOR       = 0x606060,
-        MIST_SHOOTING_GALLERY_COURSE_PRIZE_FLAG_FIRST = GAME_FLAG_SHOOTING_GALLERY_PRIZE_4_STATE - 4,
-        MIST_SHOOTING_GALLERY_COURSE_BP_ONLY          = 1,
-        MIST_SHOOTING_GALLERY_COURSE_PRIZE_WAITING    = 2,
+        MIST_SHOOTING_GALLERY_RESULT_INIT       = 0,
+        MIST_SHOOTING_GALLERY_RESULT_SUPPRESSED = 0x100,
+        MIST_SHOOTING_GALLERY_RESULT_TEXT_COLOR = 0x606060,
     };
     u8                       numberText[0x20];
     MistShootingGalleryWork* work;
@@ -738,12 +653,7 @@ static void _mistShootingGalleryResultPanelTask(Task* task)
     s32                      totalValueBaseline;
     Task*                    bonusTask;
 
-    /// Sets a result line's colour, font and draw style above its owning panel.
-    ///
-    /// `request` is a writable TextDrawReq lvalue, evaluated five times; its X/Y
-    /// placement is retained. `panelObject` is a live UiObject pointer, evaluated
-    /// once. Selector arguments are evaluated once in field order and narrow to
-    /// signed bytes. Arguments must be stable and side-effect-free; no captures.
+    /// Sets a result line's color, font and draw style above its owning panel.
 #define MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(request, panelObject, glyph, align, mode) \
     {                                                                                         \
         (request).otIndex    = (panelObject)->panel.otIndex.signedValue + 1;                  \
@@ -869,12 +779,12 @@ static void _mistShootingGalleryResultPanelTask(Task* task)
         panelPhase = task->state;
         if (panelPhase == panelControl) {
             if (bonusBp > 0) {
-                prizeFlag = work->course + MIST_SHOOTING_GALLERY_COURSE_PRIZE_FLAG_FIRST;
+                prizeFlag = work->course + EVENT_FLAG_MIST_SHOOTING_GALLERY_PRIZE_FIRST;
                 if (gameFlagGetNibble(prizeFlag) == 0) {
                     if (mistShootingGalleryQualifiesForPrize(bonusBp) == panelPhase) {
-                        gameFlagSetNibble(prizeFlag, MIST_SHOOTING_GALLERY_COURSE_PRIZE_WAITING);
+                        gameFlagSetNibble(prizeFlag, MIST_SHOOTING_GALLERY_PRIZE_WAITING);
                     } else {
-                        gameFlagSetNibble(prizeFlag, MIST_SHOOTING_GALLERY_COURSE_BP_ONLY);
+                        gameFlagSetNibble(prizeFlag, MIST_SHOOTING_GALLERY_PRIZE_BP_ONLY);
                     }
                     uiSpawnObject(&_gMistShootingGalleryBonusPanelDesc, totalScore, USER_INTERFACE_PANEL_ACTIVE, 1, object);
                     object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -901,10 +811,6 @@ static void _mistShootingGalleryResultPanelTask(Task* task)
 }
 
 /// Credits the course's bonus BP once and draws its score and reward panel.
-///
-/// The first spawn argument is the score; the second borrows the task-owned UI
-/// object. Requires live controller work for course selection. BP is capped at
-/// 999999. Confirm or cancel completes the panel when input is active.
 static void _mistShootingGalleryBonusPanelTask(Task* task)
 {
     enum {
@@ -1008,15 +914,9 @@ static const char _gMistShootingGalleryScavengerModeLabel[] = "Scavenger Mode";
 static const char _gMistShootingGalleryNightmareModeLabel[] = "Nightmare Mode";
 
 /// Menu labels indexed by run mode (0 Replay, 1 Bounty, 2 Scavenger, 3 Nightmare).
-///
-/// Borrowed text stays live with the gallery; the reader copies these four pointers.
 static const _MistShootingGalleryModeTexts _gMistShootingGalleryModeNames = { { _gMistShootingGalleryReplayModeLabel, _gMistShootingGalleryBountyModeLabel, _gMistShootingGalleryScavengerModeLabel, _gMistShootingGalleryNightmareModeLabel } };
 
 /// Offers the unlocked carryover modes with status, help and difficulty children.
-///
-/// Borrows the task-owned object and singleton list. Rank zero offers two modes,
-/// rank one three, and higher ranks four; demo scene one exposes all four. The row
-/// callback updates the live mode as selection moves; this panel confirms it.
 static void _mistShootingGalleryModeSelectPanelTask(Task* task)
 {
     enum {
@@ -1066,11 +966,6 @@ static void _mistShootingGalleryModeSelectPanelTask(Task* task)
     }
 }
 /// Converts an accumulated EXP or BP total to the selected run mode's carryover.
-///
-/// Reads the live save's mode: Replay divides by 10, Bounty by 20, Scavenger
-/// by 100, and Nightmare returns zero. Other mode values use Replay's divisor.
-/// Signed division truncates toward zero; only the upper limit of 999999 is
-/// clamped. The STATUS panel and the closing sequence use the same result.
 static inline s32 _mistShootingGalleryScaleReward(s32 unscaledTotal)
 {
     enum {
@@ -1104,10 +999,6 @@ static inline s32 _mistShootingGalleryScaleReward(s32 unscaledTotal)
 }
 
 /// Draws the selected run mode's starting HP/MP and scaled EXP/BP carryover.
-///
-/// Borrows the task-owned UI object. The live mode must be 0..3; HP below the
-/// normal starting 100 or MP below 30 uses the warning colour. EXP/BP use the
-/// captured totals, rather than the player totals being changed by the session.
 static void _mistShootingGalleryModeStatusPanelTask(Task* task)
 {
     enum { MIST_SHOOTING_GALLERY_BASE_HP_WARNING_THRESHOLD = 100,
@@ -1125,11 +1016,6 @@ static void _mistShootingGalleryModeStatusPanelTask(Task* task)
     s32         rowY;
 
     /// Draws one left-aligned outlined STATUS caption at the current row.
-    ///
-    /// Captures object, captionX and rowY in panel-relative pixels. caption
-    /// must be a plain writable TextDrawReq local, evaluated repeatedly;
-    /// captionText is evaluated once and borrowed through the draw call.
-    /// Invoke inside a braced caller context; expansion is a compound statement.
 #define MIST_SHOOTING_GALLERY_DRAW_STATUS_CAPTION(caption, captionText)                                                                \
     {                                                                                                                                  \
         enum { MIST_SHOOTING_GALLERY_STATUS_BASELINE_INSET = 8,                                                                        \
@@ -1188,14 +1074,9 @@ static void _mistShootingGalleryModeStatusPanelTask(Task* task)
 #undef MIST_SHOOTING_GALLERY_DRAW_STATUS_CAPTION
 }
 /// Three-line help text indexed by run mode (0 Replay, 1 Bounty, 2 Scavenger, 3 Nightmare).
-///
-/// Borrowed text stays live with the gallery; the reader copies these four pointers.
 static const _MistShootingGalleryModeTexts _gMistShootingGalleryModeDescriptions = { { _gMistShootingGalleryReplayModeDescription, _gMistShootingGalleryBountyModeDescription, _gMistShootingGalleryScavengerModeDescription, _gMistShootingGalleryNightmareModeDescription } };
 
 /// Draws the selected run mode's mission, condition, enemy and supply ratings.
-///
-/// Borrows the task-owned UI object and reads the live mode in 0..3. The local
-/// tables supply levels 1..5 and their names; each gauge contains that many marks.
 static void _mistShootingGalleryModeDataPanelTask(Task* task)
 {
     UiObject* object = task->spawnArg2.pointer;
@@ -1249,13 +1130,6 @@ static void _mistShootingGalleryModeDataPanelTask(Task* task)
     s32                               rowY;
 
     /// Draws a positioned mode caption, its rating word and a level gauge.
-    ///
-    /// Captures object, rowY, rating and gaugeByLevel. Requests must be plain
-    /// writable TextDrawReq locals; caption X/Y are already set. ratings is a
-    /// four-entry table indexed by live gameMode 0..3; levels 1..5 select the
-    /// six-entry gauge table. Table/text arguments are evaluated once, requests
-    /// repeatedly. Text uses the font's byte view, borrowed through each draw.
-    /// Invoke inside a braced caller context; expansion is a compound statement.
 #define MIST_SHOOTING_GALLERY_DRAW_MODE_RATING(caption, ratingText, ratings, captionText)                                                                                                                       \
     {                                                                                                                                                                                                           \
         enum { MIST_SHOOTING_GALLERY_RATING_RIGHT_X        = 65,                                                                                                                                                \
@@ -1310,11 +1184,6 @@ static void _mistShootingGalleryModeDataPanelTask(Task* task)
 #undef MIST_SHOOTING_GALLERY_DRAW_MODE_RATING
 }
 /// Runs carryover-mode selection and commits its previewed EXP/BP conversion.
-///
-/// Captures the live totals after creating SELECT and before row callbacks change
-/// the mode. Confirmation recalculates maximum HP/MP, commits scaled carryover and
-/// restores HP/MP. Once the closing countdown becomes negative it restores
-/// 30 Hz display timing and ends the session. The overlay must stay loaded.
 static void _mistShootingGalleryCarryoverModeSessionTask(Task* task)
 {
     enum {
@@ -1368,9 +1237,6 @@ s32 mistShootingGalleryOpenWeaponMenu(s32 unused)
 }
 
 /// Draws a run-mode row and selects its mode whenever the row has input.
-///
-/// The borrowed list's current row must be 0..3. Selection writes the live save
-/// immediately as the cursor moves; the enclosing panel handles confirmation.
 static void _mistShootingGalleryModeRow(UiList* list, UiObject* object)
 {
     _MistShootingGalleryModeTexts modeNames;
@@ -1383,17 +1249,11 @@ static void _mistShootingGalleryModeRow(UiList* list, UiObject* object)
     }
 }
 /// Retained out-of-line copy of the EXP/BP carryover conversion.
-///
-/// Uses `_mistShootingGalleryScaleReward`'s contract. Nothing calls this copy;
-/// its instructions remain part of the room overlay.
 static s32 _mistShootingGalleryScaleRewardOutOfLine(s32 unscaledTotal)
 {
     return _mistShootingGalleryScaleReward(unscaledTotal);
 }
 /// Draws the three-line description of the selected run mode below its menu.
-///
-/// Borrows the task-owned UI object. The live mode must be 0..3; initialization
-/// sizes and anchors the panel, and every tick reflects the mode row's selection.
 static void _mistShootingGalleryModeHelpPanelTask(Task* task)
 {
     UiObject*                     object           = task->spawnArg2.pointer;
@@ -1416,14 +1276,7 @@ void mistShootingGalleryOpenCarryoverModeMenu(void)
     }
 }
 /// Registers the gallery room task and prepares captions, barriers and entry events.
-///
-/// Initial state of the room controller: installs its borrowed message table,
-/// selects loaded caption resource 2 at VRAM word X 832 and sets story-barrier
-/// visibility. Demo scene 7 starts course 0; otherwise arrival 7 starts the
-/// carryover actor task. Arrival 6 with the story flag set queues its CAP entry
-/// command. Replaces flow flags with the area-music skip flag and advances state.
-/// Requires both the gallery and actor-215100 overlays and caption resources live.
-static void _mistShootingGalleryInitRoomTask(Task* task)
+static void _mistShootingGalleryInitializeRoomTask(Task* task)
 {
     enum {
         MIST_SHOOTING_GALLERY_CAPTION_TEXTURE_X      = 832,
@@ -1438,7 +1291,7 @@ static void _mistShootingGalleryInitRoomTask(Task* task)
     task->msgTable = _gMistShootingGalleryRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     actor215100SelectCaptionResource(MIST_SHOOTING_GALLERY_CAPTION_TEXTURE_X, 0, MIST_SHOOTING_GALLERY_CAPTION_RESOURCE_INDEX);
-    if (gameFlagGetNibble(GAME_FLAG_0ED) != 0) {
+    if (gameFlagGetNibble(EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT) != 0) {
         sceneSetPlacedActorDrawMode(1, 0);
         storyBarrierLowered = 1;
     } else {
@@ -1450,7 +1303,7 @@ static void _mistShootingGalleryInitRoomTask(Task* task)
     } else if (gGameSession->location.warp == MIST_SHOOTING_GALLERY_CARRYOVER_WARP) {
         taskSpawnFromTable(gActor215100GalleryTaskDescs, ACTOR_215100_GALLERY_INTRO_TASK, 0, 0);
     }
-    if ((gGameSession->location.warp == MIST_SHOOTING_GALLERY_TRAINING_WARP) && (gameFlagGetNibble(GAME_FLAG_0ED) != 0)) {
+    if ((gGameSession->location.warp == MIST_SHOOTING_GALLERY_TRAINING_WARP) && (gameFlagGetNibble(EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT) != 0)) {
         capRunCommandWithTransition(MIST_SHOOTING_GALLERY_STORY_ENTRY_COMMAND);
     }
     gGameSession->flowFlags = GAME_SESSION_FLOW_SKIP_AREA_MUSIC;
@@ -1458,11 +1311,6 @@ static void _mistShootingGalleryInitRoomTask(Task* task)
 }
 
 /// Updates the gallery story actor visibility and checks training-exit input.
-///
-/// In variant 1 outside a session event, hides placed actor 1 in views 3, 9 and
-/// 18; other views show it only while the story flag is clear. Checks exit input
-/// every tick regardless of that visibility gate. The task argument is unused;
-/// requires the live gallery, actor-215100 and player resources.
 static void _mistShootingGalleryUpdateRoomTask(Task* unusedTask)
 {
     enum {
@@ -1477,18 +1325,13 @@ static void _mistShootingGalleryUpdateRoomTask(Task* unusedTask)
         viewIndex = gGameSession->location.view;
         if ((viewIndex == MIST_SHOOTING_GALLERY_HIDE_ACTOR_VIEW_3) || (viewIndex == MIST_SHOOTING_GALLERY_HIDE_ACTOR_VIEW_9) || (viewIndex == MIST_SHOOTING_GALLERY_HIDE_ACTOR_VIEW_18)) {
             sceneSetPlacedActorDrawMode(1, 0);
-        } else if (gameFlagGetNibble(GAME_FLAG_0ED) == 0) {
+        } else if (gameFlagGetNibble(EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT) == 0) {
             sceneSetPlacedActorDrawMode(1, 1);
         }
     }
     actor215100CheckGalleryExitInput();
 }
 /// Plays one room CAP command, then restores player control and releases itself.
-///
-/// State 0 selects loaded CAP slot 3 when spawnArg2 is 3, otherwise slot 1;
-/// spawnArg1 is that file's command index. State 1 waits for playback to finish,
-/// and state 2 resumes the player, resets CAP state and kills the task.
-/// The selected file and textures must remain loaded throughout playback.
 static void _mistShootingGalleryCapPlaybackTask(Task* task)
 {
     enum {
@@ -1528,32 +1371,17 @@ static void _mistShootingGalleryCapPlaybackTask(Task* task)
 }
 
 /// Caption for the DATA panel's supply rating.
-///
-/// The three bytes after the NUL retain the overlay's fixed rodata layout.
 static const char _gMistShootingGallerySupplyLevelCaption[16] = "SUPPLY LEVEL\0\xD0\x0E\xF0";
 
-/// Rejects every key-item use request without changing room or inventory state.
-///
-/// Handles `MIST_SHOOTING_GALLERY_MESSAGE_USE_KEY_ITEM`; all arguments are
-/// ignored. Returns zero, which makes the item menu show its unavailable-use
-/// notice. The receiver and its message table must belong to this loaded room.
-static s32 _mistShootingGalleryRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
+/// No key item can be used here.
+static s32 _mistShootingGalleryRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg)
 {
-    enum { MIST_SHOOTING_GALLERY_KEY_ITEM_UNUSABLE = 0 };
-
-    return MIST_SHOOTING_GALLERY_KEY_ITEM_UNUSABLE;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// Resolves gallery transitions and selects the training or carried loadout.
-///
-/// Handles `ROOM_EVENT_MESSAGE_RESOLVE` with borrowed eight-byte request and
-/// writable reply records, which may alias. Copies the request; executing a
-/// parking destination after chapter 0 adds two to its room. Gallery warp 5 can
-/// return 2 through actor-owned confirmation, before any loadout change. Other
-/// requests return 1. Executing gallery warp 6 initializes training equipment;
-/// warp 5 restores carried equipment. Both select scene/player resources and
-/// hide the HUD. Queries suppress those changes, and no payload is retained here.
-static s32 _mistShootingGalleryResolveRoomEvent(Task* unusedTask, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
+/// The doors: the parking lot's leads to its story state once the story has begun; the gallery's warp 5 waits for
+/// Pierce's confirmation and restores the carried loadout, warp 6 hands out the training loadout.
+static s32 _mistShootingGalleryResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
     enum {
         MIST_SHOOTING_GALLERY_CARRIED_LOADOUT_WARP      = 5,
@@ -1565,12 +1393,12 @@ static s32 _mistShootingGalleryResolveRoomEvent(Task* unusedTask, s32 messageId,
         MIST_SHOOTING_GALLERY_PARKING_STORY_ROOM_OFFSET = 2,
     };
     *reply = *request;
-    if (request->areaId == GAME_AREA_MIST_PARKING && request->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER) != 0) {
+    if (request->areaId == AKROPOLIS_ROOM_ID_MIST_PARKING && request->queryOnly == ROOM_EVENT_EXECUTE) {
+        if (gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER) != EVENT_FLAG_STORY_CHAPTER_MIST_ARRIVAL) {
             reply->roomState += MIST_SHOOTING_GALLERY_PARKING_STORY_ROOM_OFFSET;
         }
     }
-    if (request->areaId == GAME_AREA_MIST_SHOOTING_GALLERY) {
+    if (request->areaId == AKROPOLIS_ROOM_ID_MIST_SHOOTING_GALLERY) {
         if (reply->warp == MIST_SHOOTING_GALLERY_CARRIED_LOADOUT_WARP && actor215100ResolveGalleryExit(request) == ACTOR_215100_GALLERY_EXIT_DEFER) {
             return ACTOR_215100_GALLERY_EXIT_DEFER;
         }
@@ -1592,13 +1420,8 @@ static s32 _mistShootingGalleryResolveRoomEvent(Task* unusedTask, s32 messageId,
     return ACTOR_215100_GALLERY_EXIT_ALLOW;
 }
 
-/// Handles room command requests for CAP commands 5..8 and 33..34.
-///
-/// Holds player control and starts the matching CAP playback task: commands
-/// 5..8 use loaded file slot 1, commands 33..34 slot 3. Other indices do nothing.
-/// The receiver and second payload are unused. Returns the room-command reply 0,
-/// including when task creation fails; control is resumed by the playback task.
-static s32 _mistShootingGalleryHandleCommand(Task* task, s32 messageId, s32 commandIndex, s32 unusedSecondArg)
+/// Room commands 5..8 and 33..34 play that CAP command, from file slot 1 or 3, with the player held.
+static s32 _mistShootingGalleryHandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg)
 {
     enum {
         MIST_SHOOTING_GALLERY_LOW_COMMAND_FIRST  = 5,
@@ -1608,31 +1431,24 @@ static s32 _mistShootingGalleryHandleCommand(Task* task, s32 messageId, s32 comm
     };
 
     // Keep the nested bounds: their separate signed comparisons match dispatch.
-    if (commandIndex >= MIST_SHOOTING_GALLERY_LOW_COMMAND_FIRST) {
-        if (commandIndex >= MIST_SHOOTING_GALLERY_LOW_COMMAND_END) {
-            if (commandIndex < MIST_SHOOTING_GALLERY_HIGH_COMMAND_END) {
-                if (commandIndex >= MIST_SHOOTING_GALLERY_HIGH_COMMAND_FIRST) {
+    if (command >= MIST_SHOOTING_GALLERY_LOW_COMMAND_FIRST) {
+        if (command >= MIST_SHOOTING_GALLERY_LOW_COMMAND_END) {
+            if (command < MIST_SHOOTING_GALLERY_HIGH_COMMAND_END) {
+                if (command >= MIST_SHOOTING_GALLERY_HIGH_COMMAND_FIRST) {
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                    taskSpawnFromTable(&_gMistShootingGalleryCapPlaybackTaskDesc, 0, commandIndex, MIST_SHOOTING_GALLERY_CAP_FILE_HIGH_COMMANDS);
+                    taskSpawnFromTable(&_gMistShootingGalleryCapPlaybackTaskDesc, 0, command, MIST_SHOOTING_GALLERY_CAP_FILE_HIGH_COMMANDS);
                 }
             }
         } else {
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(&_gMistShootingGalleryCapPlaybackTaskDesc, 0, commandIndex, MIST_SHOOTING_GALLERY_CAP_FILE_LOW_COMMANDS);
+            taskSpawnFromTable(&_gMistShootingGalleryCapPlaybackTaskDesc, 0, command, MIST_SHOOTING_GALLERY_CAP_FILE_LOW_COMMANDS);
         }
     }
     return 0;
 }
 
-/// Dispatches the gallery course-menu, Pierce-talk, training and story action points.
-///
-/// Handles `DIRECTION_MESSAGE_ROOM_ACTION` with a borrowed typed request. Action
-/// 1 holds player control and queues the course menu while training is inactive;
-/// 2 starts Pierce talk before the story flag; 3 signals the training interaction;
-/// 4 starts its story event once and sets objective 59. Menu action rearms input
-/// for ten ticks. Ignores the other payload fields and arguments, retains no
-/// request and returns zero. Requires both loaded gallery and actor overlays.
-static s32 _mistShootingGalleryHandleRoomAction(Task* unusedTask, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
+/// Room actions: 1 the course menu, 2 talking to Pierce, 3 the training point, 4 the control room's scene, once.
+static s32 _mistShootingGalleryHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
     enum {
         MIST_SHOOTING_GALLERY_ACTION_REARM_TICKS = 10,
@@ -1643,27 +1459,23 @@ static s32 _mistShootingGalleryHandleRoomAction(Task* unusedTask, s32 messageId,
         taskSpawnFromTable(gActor215100GalleryTaskDescs, ACTOR_215100_GALLERY_MENU_TASK, 1, 0);
         gDirectionInteractionRearmUpdates = MIST_SHOOTING_GALLERY_ACTION_REARM_TICKS;
     }
-    if ((request->actionId == MIST_SHOOTING_GALLERY_ACTION_TALK_TO_PIERCE) && (gameFlagGetNibble(GAME_FLAG_0ED) == 0)) {
+    if ((request->actionId == MIST_SHOOTING_GALLERY_ACTION_TALK_TO_PIERCE) && (gameFlagGetNibble(EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT) == 0)) {
         actor215100StartPierceConversation();
     }
     if (request->actionId == MIST_SHOOTING_GALLERY_ACTION_TRAINING_POINT) {
         actor215100HandleGalleryAction();
     }
-    if ((request->actionId == MIST_SHOOTING_GALLERY_ACTION_STORY_EVENT) && (gameFlagGetNibble(GAME_FLAG_SHOOTING_GALLERY_ACTION_4_SEEN) == 0)) {
+    if ((request->actionId == MIST_SHOOTING_GALLERY_ACTION_STORY_EVENT) && (gameFlagGetNibble(EVENT_FLAG_MIST_SHOOTING_GALLERY_CONTROL_ROOM_SCENE_SEEN) == 0)) {
         gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, MIST_SHOOTING_GALLERY_STORY_OBJECTIVE);
-        gameFlagSetNibble(GAME_FLAG_SHOOTING_GALLERY_ACTION_4_SEEN, 1);
+        gameFlagSetNibble(EVENT_FLAG_MIST_SHOOTING_GALLERY_CONTROL_ROOM_SCENE_SEEN, 1);
         evsStartScriptWithSkip(gActor215100PierceStoryScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor215100PierceStorySkipScript);
     }
     return 0;
 }
 
 /// Room task handlers in state order: initialization, running, then teardown.
-///
-/// Dispatch copies all three callback pointers to the stack before indexing
-/// with task state 0..2. There is no terminator or bounds check; handlers and
-/// the table belong to the loaded gallery overlay.
 static const TaskFuncTable3 _gMistShootingGalleryRoomStates = {
-    { _mistShootingGalleryInitRoomTask, _mistShootingGalleryUpdateRoomTask, taskKill },
+    { _mistShootingGalleryInitializeRoomTask, _mistShootingGalleryUpdateRoomTask, taskKill },
 };
 
 /// Numbered jukebox row 3 label for MIDI sequence 49.
@@ -1740,10 +1552,6 @@ void mistShootingGalleryRoomTask(Task* task)
 }
 
 /// Restores the story-controlled barrier, then lowers it by 3000 room Y units.
-///
-/// Zero leaves the template position; nonzero lowers it below the floor.
-/// Borrows the loaded collision grid's first three normals/faces and eight
-/// vertices. The entry handler chooses the lowered position after the story flag.
 static void _mistShootingGallerySetStoryBarrierLowered(s32 lowered)
 {
     enum { MIST_SHOOTING_GALLERY_STORY_BARRIER_FACE_COUNT   = 3,
@@ -1831,19 +1639,11 @@ void mistShootingGallerySetTrainingBarrierLowered(s32 lowered)
 #define ROOM_PART _gJukeboxTrackLists
 #include "assets/rooms/mist/shooting_gallery/jukebox.inc"
 /// SELECT title for the jukebox panel, ending at its first NUL.
-///
-/// The eighth stored byte is 0xE1 and is not rendered; its role is unproven.
 static const char _gMistShootingGalleryJukeboxTitle[8] = "SELECT\0\xE1";
 
-#include "../../shared/room/jukebox_row.inc.c"
+#include "../../../../shared/room/jukebox_row.inc.c"
 
 /// Updates the gallery jukebox's track picker and asynchronous music change.
-///
-/// Borrows the task-owned UI object and singleton track list (three training
-/// rows, four regular rows). The row callback supplies a pending sequence ID;
-/// phase 1 waits for MIDI to stop, phase 2 waits for its file load, then starts it.
-/// A cancel during loading hides the panel until playback starts. The initial
-/// training sentinel keeps the panel open until a track has been selected.
 static void _mistShootingGalleryJukeboxPanelTask(Task* task)
 {
     enum {
@@ -1955,7 +1755,7 @@ static void _mistShootingGalleryJukeboxPanelTask(Task* task)
     }
 }
 
-#include "../../shared/room/jukebox_host.inc.c"
+#include "../../../../shared/room/jukebox_host.inc.c"
 
 s32 mistShootingGalleryOpenJukebox(s32 unused)
 {
@@ -1964,12 +1764,6 @@ s32 mistShootingGalleryOpenJukebox(s32 unused)
 }
 
 /// Queues a 320x240 subtractive tile for the mode splash's current ramp tick.
-///
-/// Nonzero `fadeIn` complements the low countdown byte; zero uses it directly
-/// for all RGB channels. Requires a live frame packet arena with room for a TILE
-/// and DR_TPAGE at ordering-table entry 0. The current draw origin is retained,
-/// including shake; packets live until GPU completion. Prepending the mode
-/// after the tile makes subtractive blending and dithering active before drawing.
 static inline void _mistShootingGalleryDrawSplashFade(const Task* task, s32 fadeIn)
 {
     enum {
@@ -2003,11 +1797,6 @@ static inline void _mistShootingGalleryDrawSplashFade(const Task* task, s32 fade
 }
 
 /// Displays the cleared run's mode splash with a fade in, hold and fade out.
-///
-/// The live mode must be 0..3, selecting stage-zero image file 41..44. Borrows
-/// the serialized CD/display session and frame arena. Ramp steps are 8 per tick;
-/// the hold ends after 151 ticks or Start. Completion blanks the display, clears
-/// the complete image buffer and resumes the game loop after killing this task.
 static void _mistShootingGalleryModeSplashTask(Task* task)
 {
     enum {
@@ -2114,11 +1903,6 @@ static void _mistShootingGalleryModeSplashTask(Task* task)
 }
 
 /// Plays the gallery's post-clear movie and restores game graphics afterwards.
-///
-/// The current room must have a loaded view-100, sub-ID-zero movie slot. The
-/// display/CD session must be serialized; this task reserves movie workspace,
-/// waits for startup, accepts Start to cancel, then waits for CD idle and game
-/// restoration. Completion clears the full image buffer and resumes the loop.
 static void _mistShootingGalleryClearMovieTask(Task* task)
 {
     enum {
@@ -2192,10 +1976,6 @@ static void _mistShootingGalleryClearMovieTask(Task* task)
 }
 
 /// Sequences the optional cleared-run mode splash before the gallery movie.
-///
-/// The three states start presentation, resume after the splash, then queue the
-/// movie. The splash is skipped without a clear. Display children serialize both
-/// presentations; the movie child restores graphics and resumes the game loop.
 static void _mistShootingGalleryMovieSessionTask(Task* task)
 {
     enum {
@@ -2310,6 +2090,6 @@ void mistShootingGalleryDrawLightGlowsTask(Task* unused)
     }
 }
 
-#include "../../shared/effects/glow_draw_capsule.inc.c"
+#include "../../../../shared/effects/glow_draw_capsule.inc.c"
 
-#include "../../shared/effects/glow_draw_disc.inc.c"
+#include "../../../../shared/effects/glow_draw_disc.inc.c"

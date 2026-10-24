@@ -33,6 +33,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/event_flags.h"
 #include "main/fs.h"
 #include "main/fs_types.h"
 #include "main/gameflag.h"
@@ -1789,7 +1790,7 @@ void actor215100GalleryExitDecisionTask(Task* task)
                 break;
             }
             if (task->spawnArg1.value != 0) {
-                if (gameFlagGetNibble(GAME_FLAG_0ED) != 0) {
+                if (gameFlagGetNibble(EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT) != 0) {
                     capRunCommandWithTransition(ACTOR_215100_GALLERY_EXIT_TRANSITION_COMMAND);
                 }
                 gGameSession->battleResetPending = 1;
@@ -1923,7 +1924,7 @@ s32 actor215100ResolveGalleryExit(const RoomEventMsg* request)
     } else {
         // Keep the one-shot scope for the original query branch's delay-slot layout.
         do {
-            if (gameFlagGetNibble(GAME_FLAG_0ED) == 0) {
+            if (gameFlagGetNibble(EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT) == 0) {
                 return ACTOR_215100_GALLERY_EXIT_ALLOW;
             }
             if (request->queryOnly != ROOM_EVENT_EXECUTE) {

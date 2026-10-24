@@ -202,13 +202,27 @@ enum {
     /// maggot/caterpillar is in its other placement.
     EVENT_FLAG_AKROPOLIS_FORKED_ROAD_AMBUSH_SEEN = 0x0CC,
 
+    // ---- MIST ---------------------------------------------------------------
+
+    /// MIST. Marker: Pierce has gone to the parking lot - set on leaving the firearms
+    /// room (the parking lot's room action 2); the shooting gallery and Pierce's
+    /// actors go by it.
+    EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT = 0x0ED,
+
     // ---- From 0x100: not divided yet -----------------------------------------
 
     /// Akropolis security-room monitor. Marker: Rupert's scene on camera 0xA has
     /// played (actor_311900, after 0x5A frames); while clear, the camera starts CAP 0xC.
     EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_MONITOR_RUPERT_SCENE_SEEN = 0x102,
+    /// MIST shooting gallery. Marker: the control room's scene has played (room
+    /// action 4).
+    EVENT_FLAG_MIST_SHOOTING_GALLERY_CONTROL_ROOM_SCENE_SEEN = 0x106,
     /// Akropolis square. Marker: the hint by the ammo box has been shown.
     EVENT_FLAG_AKROPOLIS_SQUARE_AMMO_BOX_HINT_SEEN = 0x124,
+    /// MIST shooting gallery, a prize per course: levels 1..5 are FIRST..LAST, read as
+    /// FIRST + the course. Values: `MIST_SHOOTING_GALLERY_PRIZE_*` (src/stages/akropolis/event_flags.h).
+    EVENT_FLAG_MIST_SHOOTING_GALLERY_PRIZE_FIRST = 0x125,
+    EVENT_FLAG_MIST_SHOOTING_GALLERY_PRIZE_LAST  = 0x129,
     /// Story dialogue. Index (0..0xF) of the telephone call to play next: the call is
     /// CAP command 16 + index in the call file (`_roomCutsceneTask`). Story beats in
     /// every stage raise it, each clearing `EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER`;

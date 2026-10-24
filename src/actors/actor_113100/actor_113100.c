@@ -26,6 +26,7 @@
 #include "gameplay/world_coords.h"
 
 #include "main/coord.h"
+#include "main/event_flags.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -903,7 +904,7 @@ static void _actor113100CheckPierceAppearance(Task* task)
     s32                              appearFlag;
 
     work       = task->work;
-    appearFlag = gameFlagGetNibble(GAME_FLAG_0ED);
+    appearFlag = gameFlagGetNibble(EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT);
     if (appearFlag > 0 && work->lastAppearFlag == 0) {
         _actor113100SetModelDraw(task, 0, ACTOR_113100_DRAW_SHOW, 0);
         mistParkingSetPierceCollisionPatchLowered(MIST_PARKING_PIERCE_PATCH_RESTORED);

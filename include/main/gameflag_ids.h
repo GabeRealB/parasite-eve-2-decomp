@@ -699,10 +699,6 @@ enum {
     /// sets the quad angle, and at 4 the closing sound and cap 2 play and the puzzle is
     /// complete.
     GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT = 0x0EC,
-    /// Unidentified. Set to 1 by the MIST parking action 2 scene; afterwards the
-    /// shooting gallery switches Pierce's (actor_215100/113100) scripts and slot-4
-    /// chain, and parking event 15 spawns a task.
-    GAME_FLAG_0ED = 0x0ED,
     /// Shelter B1 main corridor: the first transition to the armory plays CAP 3. Set to
     /// 1 when the latched one-shot event starts; while set the transition goes through
     /// with no event.
@@ -788,10 +784,6 @@ enum {
     /// actor_161500 (0: D_801352A8, non-zero: D_801354B8). No writer found by direct
     /// gameFlagSetNibble.
     GAME_FLAG_105 = 0x105,
-    /// Set to 1 the first time directed action 4 in the MIST shooting gallery is used,
-    /// which runs its one-shot scene (and sets caption state 0xA2 to 0x3B); later uses
-    /// do nothing.
-    GAME_FLAG_SHOOTING_GALLERY_ACTION_4_SEEN = 0x106,
     /// Dryfield night garage: 0 until the garage CAP sequence's second step has run
     /// once, then 1; the step starts its CAP slot at entry flag+1, so the first run
     /// plays entry 1 and later runs entry 2.
@@ -899,10 +891,6 @@ enum {
     /// Unidentified. Set once in the B1 underground parking room setup when progress
     /// 0x7A is at least 6, triggering a one-time room update (func_8018390C).
     GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_123 = 0x123,
-    /// Prize state of shooting-gallery difficulty 4 (flags 0x125+difficulty): 1 or 2
-    /// when earned, 2 meaning it waits at MIST parking; collecting it there gives item
-    /// 0x6C and sets 3.
-    GAME_FLAG_SHOOTING_GALLERY_PRIZE_4_STATE = 0x129,
     /// Shelter room R48 (Brahman) scene state: 1 on room setup, 2 after the follow-up
     /// script or 3 after spawning the three tasks, 4 when the trigger ends the fight
     /// phase (with 0x100 = 2). actor_503500's effect task fades differently by state.

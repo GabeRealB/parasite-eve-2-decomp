@@ -23,6 +23,7 @@
 
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/event_flags.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
@@ -66,7 +67,7 @@ enum {
 /// The five course prizes occupy consecutive saved flags and placed-item states.
 enum {
     MIST_PARKING_SHOP_PRIZE_COUNT            = 5,
-    MIST_PARKING_SHOP_PRIZE_FLAG_FIRST       = GAME_FLAG_SHOOTING_GALLERY_PRIZE_4_STATE - 4,
+    MIST_PARKING_SHOP_PRIZE_FLAG_FIRST       = EVENT_FLAG_MIST_SHOOTING_GALLERY_PRIZE_FIRST,
     MIST_PARKING_SHOP_PRIZE_WAITING          = 2,
     MIST_PARKING_SHOP_PRIZE_CLOSED           = 3,
     MIST_PARKING_SHOP_PRIZE_OBJECT_FIRST     = 0x20,

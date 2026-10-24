@@ -20,6 +20,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/event_flags.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
@@ -104,7 +105,7 @@ enum {
 
 /// The five course prizes share consecutive saved flags and placed-item states.
 enum {
-    MIST_PARKING_PRIZE_FLAG_FIRST       = GAME_FLAG_SHOOTING_GALLERY_PRIZE_4_STATE - 4,
+    MIST_PARKING_PRIZE_FLAG_FIRST       = EVENT_FLAG_MIST_SHOOTING_GALLERY_PRIZE_FIRST,
     MIST_PARKING_PRIZE_WAITING          = 2,
     MIST_PARKING_PRIZE_CLOSED           = 3,
     MIST_PARKING_PRIZE_OBJECT_FIRST     = 0x20,
@@ -533,9 +534,9 @@ static void _mistParkingJodiePrizeAndShopTalkTask(Task* task)
                             areaSetCurrentObjectState(courseIndex + MIST_PARKING_PRIZE_OBJECT_FIRST, MIST_PARKING_PRIZE_OBJECT_COLLECTED);
                         }
                     }
-                    if (gameFlagGetNibble(GAME_FLAG_SHOOTING_GALLERY_PRIZE_4_STATE) == MIST_PARKING_PRIZE_WAITING && inventoryIsItemLimitReached(MIST_PARKING_PRIZE_SHOULDER_HOLSTER_ITEM_ID) == 0) {
+                    if (gameFlagGetNibble(EVENT_FLAG_MIST_SHOOTING_GALLERY_PRIZE_LAST) == MIST_PARKING_PRIZE_WAITING && inventoryIsItemLimitReached(MIST_PARKING_PRIZE_SHOULDER_HOLSTER_ITEM_ID) == 0) {
                         if (inventoryGiveItem(gInventoryContainerRanges[MIST_PARKING_PRIZE_STORAGE_RANGE], MIST_PARKING_PRIZE_SHOULDER_HOLSTER_ITEM_ID, MIST_PARKING_PRIZE_ARMOR_QUANTITY) != 0) {
-                            gameFlagSetNibble(GAME_FLAG_SHOOTING_GALLERY_PRIZE_4_STATE, MIST_PARKING_PRIZE_CLOSED);
+                            gameFlagSetNibble(EVENT_FLAG_MIST_SHOOTING_GALLERY_PRIZE_LAST, MIST_PARKING_PRIZE_CLOSED);
                             areaSetCurrentObjectState(MIST_PARKING_PRIZE_OBJECT_FIRST + MIST_PARKING_PRIZE_COUNT - 1, MIST_PARKING_PRIZE_OBJECT_COLLECTED);
                         }
                     }

@@ -2408,7 +2408,7 @@ own `extern` (take `main/gameflag.h` instead — if the extern still returns
 directly and 100.000% with every penalty zero:
 
 ```c
-s32 appearFlag = gameFlagGetNibble(GAME_FLAG_0ED);
+s32 appearFlag = gameFlagGetNibble(EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT);
 if (appearFlag > 0 && work->lastAppearFlag == 0) { ... }
 work->lastAppearFlag = appearFlag;   /* sb: the store truncates, no cast needed */
 ```
@@ -49866,7 +49866,7 @@ if (commandIndex < 0x23) {
 
 Same shape as the `if (x != 0)` nesting above, but the trigger is the pair of
 bounds itself rather than a redundant zero test.
-`_mistShootingGalleryHandleCommand` is the example.
+`_mistShootingGalleryHandleRoomCommand` is the example.
 
 ## A result flag pre-set before a call lands in a callee-saved register
 

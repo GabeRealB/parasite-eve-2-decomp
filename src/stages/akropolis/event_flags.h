@@ -61,6 +61,13 @@ enum {
     AKROPOLIS_STORY_DIALOGUE_STILL_HERE        = 7, // Back from the landing pad
 };
 
+// Values of the shooting gallery's prizes, `EVENT_FLAG_MIST_SHOOTING_GALLERY_PRIZE_FIRST` + the course.
+enum {
+    MIST_SHOOTING_GALLERY_PRIZE_BP_ONLY = 1, // The course earned BP, not its prize
+    MIST_SHOOTING_GALLERY_PRIZE_WAITING = 2, // The prize waits at the parking lot, with Jodie
+    MIST_SHOOTING_GALLERY_PRIZE_CLAIMED = 3,
+};
+
 // Bits of `EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_PANEL_KEYS`.
 enum {
     AKROPOLIS_SECURITY_ROOM_PANEL_KEY_BLUE_INSERTED = 1 << 0,

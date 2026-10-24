@@ -1416,10 +1416,11 @@ objects = [
 
 [rooms.overlays.mist_shooting_gallery]
 id = 304
+src = "src/stages/akropolis/rooms/mist_shooting_gallery"
 objects = [
   { kind = "packageId" },
-  { unit = "mist_shooting_gallery/mist_shooting_gallery", rodata = "0x4", text = "0x6EC", data = "0x7814" },
-  { unit = "mist_shooting_gallery/mist_shooting_gallery_2", rodata = "0x5C0", text = "0x4AA4", data = "0x80F8", bss = "0x10B00" },
+  { unit = "mist_shooting_gallery", rodata = "0x4", text = "0x6EC", data = "0x7814" },
+  { unit = "mist_shooting_gallery_courses", rodata = "0x5C0", text = "0x4AA4", data = "0x80F8", bss = "0x10B00" },
   { kind = "model", at = "0x9354", in_c = true },
   { kind = "modelSource", at = "0x9520", in_c = true },
   { kind = "model", at = "0x9544", in_c = true },

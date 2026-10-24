@@ -97,7 +97,7 @@ void actor215100RequestGalleryAbort(void);
 /// Resolves a gallery exit request, deferring it through confirmation when needed.
 ///
 /// Used for arrival warp 5. Returns `ACTOR_215100_GALLERY_EXIT_ALLOW` when no
-/// training session is active and `GAME_FLAG_0ED` is clear; otherwise returns
+/// training session is active and `EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT` is clear; otherwise returns
 /// `ACTOR_215100_GALLERY_EXIT_DEFER`. Query mode has no effects. Deferred
 /// execution copies the complete request into overlay-owned pending
 /// storage and queues the exit decision task, with a confirmation during training
