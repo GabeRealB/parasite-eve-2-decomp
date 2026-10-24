@@ -983,7 +983,7 @@ static void _maggotCaterpillarEntranceState(Task* actor)
                     randomZ         = RANDOM_LCG_NEXT(gRandomLcgState);
                     gRandomLcgState = randomZ;
                     spawnOffset->vz = -((coord->coord.m[2][2] * (s32)(((randomZ >> 16) & 0x3F) + 0xAF)) >> 12);
-                    effectSpawn(EFFECT_ACROPOLIS_FORKED_ROAD_FALLING_LEAF, coord, 0, spawnOffset);
+                    effectSpawn(EFFECT_AKROPOLIS_FORKED_ROAD_FALLING_LEAF, coord, 0, spawnOffset);
                     loopIndex++;
                 } while (loopIndex < MAGGOT_CATERPILLAR_ENTRANCE_LEAP_LEAVES);
                 loopIndex = 0;

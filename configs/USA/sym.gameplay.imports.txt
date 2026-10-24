@@ -569,15 +569,15 @@ acropolisFireEscapeFlickerLightTask = 0x80180154; // type:func absolute:True own
 
 acropolisFireEscapeFlareTask = 0x80180B20; // type:func absolute:True owner=acropolis_fire_escape
 
-acropolisForkedRoadInitializeRoomEffectsTask = 0x8017E298; // type:func absolute:True owner=acropolis_forked_road
+akropolisForkedRoadInitializeRoomEffectsTask = 0x8017E298; // type:func absolute:True owner=akropolis_forked_road
 
-acropolisForkedRoadWallLampTask = 0x8017E410; // type:func absolute:True owner=acropolis_forked_road
+akropolisForkedRoadWallLampTask = 0x8017E410; // type:func absolute:True owner=akropolis_forked_road
 
-acropolisForkedRoadRoomVisualEffectsFlashTask = 0x8017EF80; // type:func absolute:True owner=acropolis_forked_road
+akropolisForkedRoadRoomVisualEffectsFlashTask = 0x8017EF80; // type:func absolute:True owner=akropolis_forked_road
 
-acropolisForkedRoadRoomVisualEffectsTwinTrailTask = 0x8017F9E4; // type:func absolute:True owner=acropolis_forked_road
+akropolisForkedRoadRoomVisualEffectsTwinTrailTask = 0x8017F9E4; // type:func absolute:True owner=akropolis_forked_road
 
-acropolisForkedRoadRoomVisualEffectsSparkBurstTask = 0x801802CC; // type:func absolute:True owner=acropolis_forked_road
+akropolisForkedRoadRoomVisualEffectsSparkBurstTask = 0x801802CC; // type:func absolute:True owner=akropolis_forked_road
 
 akropolisFountainSprayTask = 0x8017DD44; // type:func absolute:True owner=akropolis_fountain shared=rooms
 
@@ -1399,7 +1399,7 @@ gAkropolisEastElevatorHallAreaVariants = 0x80186C50; // absolute:True owner=akro
 
 gAcropolisFireEscapeAreaVariants = 0x8018294C; // absolute:True owner=acropolis_fire_escape
 
-gAcropolisForkedRoadAreaVariants = 0x801831C4; // absolute:True owner=acropolis_forked_road
+gAkropolisForkedRoadAreaVariants = 0x801831C4; // absolute:True owner=akropolis_forked_road
 
 gAkropolisFountainAreaVariants = 0x8017FC9C; // absolute:True owner=akropolis_fountain
 
@@ -1945,7 +1945,7 @@ shelterB1SleepingQuartersRoomVisualEffectsFlyingSparkTask = 0x8017EC34; // type:
 
 shelterB1ElevatorHallRoomVisualEffectsHaloOrangeBurstTask = 0x8017F7D4; // type:func absolute:True owner=shelter_b1_elevator_hall shared=rooms
 
-acropolisForkedRoadLeafFallTask = 0x8017E81C; // type:func absolute:True owner=acropolis_forked_road shared=rooms
+akropolisForkedRoadLeafFallTask = 0x8017E81C; // type:func absolute:True owner=akropolis_forked_road shared=rooms
 
 acropolisHelicopterLandingPadDamagedLightSparksTask = 0x801802E0; // type:func absolute:True owner=acropolis_helicopter_landing_pad
 

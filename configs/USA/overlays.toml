@@ -1244,15 +1244,16 @@ objects = [
   { kind = "collisionSource", at = "0x204C", in_c = true, cell_face_list_macro = "AKROPOLIS_FOUNTAIN_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
-[rooms.overlays.acropolis_forked_road]
+[rooms.overlays.akropolis_forked_road]
 id = 293
+src = "src/stages/akropolis/rooms/forked_road"
 objects = [
   { kind = "packageId" },
-  { unit = "acropolis_forked_road/acropolis_forked_road", rodata = "0x4", text = "0x2C", data = "0x3954" },
-  { unit = "acropolis_forked_road/acropolis_forked_road_2", rodata = "0x10", text = "0x464", data = "0x3984" },
+  { unit = "forked_road", rodata = "0x4", text = "0x2C", data = "0x3954" },
+  { unit = "forked_road_effects", rodata = "0x10", text = "0x464", data = "0x3984" },
   { kind = "animation", at = "0x4320", sets = ["0x45FC", "0x4A6C"], in_c = true },
   { kind = "collision", at = "0x4DE0", in_c = true },
-  { kind = "collisionSource", at = "0x5630", in_c = true, cell_face_list_macro = "ACROPOLIS_FORKED_ROAD_CELL_FACE_LIST_AT_OFFSET" },
+  { kind = "collisionSource", at = "0x5630", in_c = true, cell_face_list_macro = "AKROPOLIS_FORKED_ROAD_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.acropolis_observatory]

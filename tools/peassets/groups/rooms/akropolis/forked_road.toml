@@ -94,12 +94,12 @@ sha1 = "38a9fa90e79dbc78940f8ddabc84ce35a7fc18bf"
 [package]
 type = "room"
 embedded = [
-    "acropolis_forked_road_path_039C0",
+    "rooms/akropolis/forked_road/movie_player_path",
     { asset = "characters/aya/stand", offset = 0x04320, size = 0x304, address = 0x801818E0 },
     { asset = "rooms/shelter/b2_north_maintenance_walkway/player_turn_to_stinger", offset = 0x04624, size = 0x470, address = 0x80181BE4 },
-    { name = "acropolis_forked_road_lock_release_bank", offset = 0x04A94, size = 0xC, address = 0x80182054 },
+    { name = "akropolis_forked_road_lock_release_bank", offset = 0x04A94, size = 0xC, address = 0x80182054 },
 ]
-package_name = "acropolis_forked_road"
+package_name = "akropolis_forked_road"
 required = true
 sha1 = "0cc59b82e4c8116da25d79f5cf06274f0c8ee331"
 
@@ -749,12 +749,12 @@ samples = [
 sounds = { idle = 1, hurt = 2, burst = 3, appear = 6, pop = 8 }
 sha1 = "f961e1a46f07de84ddf45baf0da18e961fb0f0c5"
 
-[acropolis_forked_road_lock_release_bank]
+[akropolis_forked_road_lock_release_bank]
 type = "animation_bank"
-schema = "rooms/akropolis/forked_road/acropolis_forked_road_lock_release_schema"
-symbol = "_gAcropolisForkedRoadLockReleaseAnimationSets"
+schema = "rooms/akropolis/forked_road/akropolis_forked_road_lock_release_schema"
+symbol = "_gAkropolisForkedRoadLockReleaseAnimationSets"
 
-[acropolis_forked_road_lock_release_bank.clips]
+[akropolis_forked_road_lock_release_bank.clips]
 slot_1 = "characters/aya/stand"
 slot_2 = "rooms/shelter/b2_north_maintenance_walkway/player_turn_to_stinger"
 
@@ -765,6 +765,6 @@ height = 256
 variants = ["default"]
 width = 128
 
-[acropolis_forked_road_lock_release_schema]
+[akropolis_forked_road_lock_release_schema]
 type = "animation_schema"
 slots = ["", "slot_1", "slot_2"]

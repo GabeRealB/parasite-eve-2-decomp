@@ -151,6 +151,17 @@ enum {
     /// Values: `EVENT_FLAG_OBJECTIVE_*`.
     EVENT_FLAG_CURRENT_OBJECTIVE = 0x0A2,
 
+    // ---- Akropolis ambushes, from 0x0CA -------------------------------------
+
+    /// Akropolis observatory. Marker: the bat ambush has played - entering from the
+    /// forked road after the red key; while clear, the forked road leads to the
+    /// observatory's second state.
+    EVENT_FLAG_AKROPOLIS_OBSERVATORY_BAT_AMBUSH_SEEN = 0x0CA,
+    /// Akropolis forked road. Marker: the ambush has played - back on the road after
+    /// the red key (room action 1, placement variants 4 and 8); from then on the
+    /// maggot/caterpillar is in its other placement.
+    EVENT_FLAG_AKROPOLIS_FORKED_ROAD_AMBUSH_SEEN = 0x0CC,
+
     // ---- From 0x100: not divided yet -----------------------------------------
 
     /// Akropolis security-room monitor. Marker: Rupert's scene on camera 0xA has

@@ -77,7 +77,7 @@
 
 #include "rooms/acropolis_fire_escape.h"
 
-#include "rooms/acropolis_forked_road.h"
+#include "rooms/akropolis_forked_road.h"
 
 #include "rooms/akropolis_fountain.h"
 
@@ -614,7 +614,7 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, acropolisFireEscapeLightEmitterTask, { NULL } },                                    // 0x04E
     { { { TASK_BODY_COORD, 0x70 } }, acropolisFireEscapeFlareTask, { NULL } },                                           // 0x04F
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelBalconyBreakBurstTask, { NULL } },                                // 0x050
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisForkedRoadLeafFallTask, { NULL } },                                        // 0x051
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisForkedRoadLeafFallTask, { NULL } },                                        // 0x051
     { { { TASK_BODY_COORD, 0x70 } }, actor510900FlameSpriteTask52, { NULL } },                                           // 0x052
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask53, { NULL } },                                                     // 0x053
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask54, { NULL } },                                                     // 0x054
@@ -666,11 +666,11 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_NONE, 0x70 } }, taskKill, { NULL } },                                                                // 0x082
     { { { TASK_BODY_COORD, 0x70 } }, akropolisPatioSpawnLightEffectsTask, { NULL } },                                    // 0x083
     { { { TASK_BODY_COORD, 0x70 } }, akropolisHallwayEffectControlTask84, { NULL } },                                    // 0x084
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisForkedRoadInitializeRoomEffectsTask, { NULL } },                           // 0x085
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisForkedRoadInitializeRoomEffectsTask, { NULL } },                           // 0x085
     { { { TASK_BODY_COORD, 0x70 } }, acropolisRoofGardenAmbientEffectsTask, { NULL } },                                  // 0x086
     { { { TASK_BODY_COORD, 0x70 } }, akropolisPatioLightGlowTask, { NULL } },                                            // 0x087
     { { { TASK_BODY_COORD, 0x70 } }, akropolisFountainSprayTask, { NULL } },                                             // 0x088
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisForkedRoadWallLampTask, { NULL } },                                        // 0x089
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisForkedRoadWallLampTask, { NULL } },                                        // 0x089
     { { { TASK_BODY_COORD, 0x70 } }, acropolisRoofGardenLightGlowTask, { NULL } },                                       // 0x08A
     { { { TASK_BODY_COORD, 0x70 } }, acropolisSanctuaryFlameTask, { NULL } },                                            // 0x08B
     { { { TASK_BODY_COORD, 0x70 } }, acropolisFireEscapeFlickerLightTask, { NULL } },                                    // 0x08C
@@ -1189,9 +1189,9 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, akropolisCafeteriaRoomVisualEffectsFlashTask, { NULL } },                           // 0x28D
     { { { TASK_BODY_COORD, 0x70 } }, akropolisCafeteriaRoomVisualEffectsTwinTrailTask, { NULL } },                       // 0x28E
     { { { TASK_BODY_COORD, 0x70 } }, akropolisCafeteriaRoomVisualEffectsSparkBurstTask, { NULL } },                      // 0x28F
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisForkedRoadRoomVisualEffectsFlashTask, { NULL } },                          // 0x290
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisForkedRoadRoomVisualEffectsTwinTrailTask, { NULL } },                      // 0x291
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisForkedRoadRoomVisualEffectsSparkBurstTask, { NULL } },                     // 0x292
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisForkedRoadRoomVisualEffectsFlashTask, { NULL } },                          // 0x290
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisForkedRoadRoomVisualEffectsTwinTrailTask, { NULL } },                      // 0x291
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisForkedRoadRoomVisualEffectsSparkBurstTask, { NULL } },                     // 0x292
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldMainStreetRoomVisualEffectsFlashTask, { NULL } },                           // 0x293
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldMainStreetRoomVisualEffectsTwinTrailTask, { NULL } },                       // 0x294
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldMainStreetRoomVisualEffectsSparkBurstTask, { NULL } },                      // 0x295

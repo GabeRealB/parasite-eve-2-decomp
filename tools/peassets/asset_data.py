@@ -5291,6 +5291,7 @@ EMBEDDED_ASSETS = {
     'pe/necrosis/level3_descriptor': {"source": 'gameplay.pe2pkg', "vram": 0x8010D908, "size": 0x8, "type": 'item_descriptor'},
     'pe/plasma/level3_descriptor': {"source": 'gameplay.pe2pkg', "vram": 0x8010D920, "size": 0x8, "type": 'item_descriptor'},
     'pe/pyrokinesis/level3_descriptor': {"source": 'gameplay.pe2pkg', "vram": 0x8010D8C0, "size": 0x8, "type": 'item_descriptor'},
+    'rooms/akropolis/forked_road/movie_player_path': {"source": 'akropolis_forked_road.pe2pkg', "vram": 0x80180F80, "size": 0x960, "type": 'movie_path', "group": 'rooms/akropolis/forked_road', "include": 'u16'},
     'rooms/akropolis/security_room/lamp_left_released': {"source": 'akropolis_security_room.pe2pkg', "vram": 0x80182B18, "size": 0x200, "type": 'clut', "group": 'rooms/akropolis/security_room', "include": 'u16'},
     'rooms/shelter/b2_pod_bottom/ending_camera_track': {"source": 'actor_303600.pe2pkg', "vram": 0x8016AEF8, "size": 0x3570, "type": 'camera_path', "group": 'rooms/shelter/b2_pod_bottom', "include": 'u16'},
     'characters/rupert/hurt_eyes_half_open': {"source": 'actor_113000.pe2pkg', "vram": 0x8013A34C, "size": 0x400, "type": 'image', "group": 'characters/rupert', "h": 16, "include": 'u32', "w": 32},
@@ -5457,7 +5458,6 @@ EMBEDDED_ASSETS = {
     'shelter_b2_elevator_model_00688': {"source": 'shelter_b2_elevator.pe2pkg', "vram": 0x8017DC48, "size": 0x108, "type": 'tmd'},
     'shelter_b2_elevator_model_00884': {"source": 'shelter_b2_elevator.pe2pkg', "vram": 0x8017DE44, "size": 0x108, "type": 'tmd'},
     'acropolis_bridge_animation_13C00': {"source": 'acropolis_bridge.pe2pkg', "vram": 0x801911C0, "size": 0x408, "type": 'animation', "clips": 5},
-    'acropolis_forked_road_path_039C0': {"source": 'acropolis_forked_road.pe2pkg', "vram": 0x80180F80, "size": 0x960, "type": 'movie_path', "include": 'u16'},
     'acropolis_observatory_path_0124C': {"source": 'acropolis_observatory.pe2pkg', "vram": 0x8017E80C, "size": 0x960, "type": 'movie_path', "include": 'u16'},
     'acropolis_observatory_path_01BAC': {"source": 'acropolis_observatory.pe2pkg', "vram": 0x8017F16C, "size": 0x960, "type": 'movie_path', "include": 'u16'},
     'dryfield_water_tank_motion_06F70': {"source": 'dryfield_water_tank.pe2pkg', "vram": 0x80184530, "size": 0x290, "type": 'motion_curve', "include": 'u16'},
@@ -6539,8 +6539,8 @@ TREE = {
                 'file21': {"id": 21, "chunks": {'bs_147': 'rooms/akropolis/fountain/view21_background'}},
                 'file22': {"id": 22, "chunks": {'bs_148': 'rooms/akropolis/fountain/view22_background'}},
             }},
-            'acropolis_forked_road': {"id": 901, "files": {
-                'file0': {"id": 0, "chunks": {'spk_168': 'rooms/akropolis/forked_road/sounds_0', 'spk_169': 'rooms/akropolis/forked_road/sounds_1', 'acropolis_forked_road_dialogue_0_atlas': 'rooms/akropolis/forked_road/dialogue_0_atlas', 'pe2clut_317': 'rooms/akropolis/forked_road/palette', 'pe2img_366': 'rooms/akropolis/forked_road/image', 'package': 'rooms/akropolis/forked_road/package', 'bundle': 'rooms/akropolis/forked_road/bundle'}},
+            'akropolis_forked_road': {"id": 901, "files": {
+                'file0': {"id": 0, "chunks": {'spk_168': 'rooms/akropolis/forked_road/sounds_0', 'spk_169': 'rooms/akropolis/forked_road/sounds_1', 'akropolis_forked_road_dialogue_0_atlas': 'rooms/akropolis/forked_road/dialogue_0_atlas', 'pe2clut_317': 'rooms/akropolis/forked_road/palette', 'pe2img_366': 'rooms/akropolis/forked_road/image', 'package': 'rooms/akropolis/forked_road/package', 'bundle': 'rooms/akropolis/forked_road/bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_149': 'rooms/akropolis/forked_road/view1_background'}},
                 'file2': {"id": 2, "chunks": {'pe2img_367': 'rooms/akropolis/forked_road/view2_image', 'bs_150': 'rooms/akropolis/forked_road/view2_background'}},
                 'file3': {"id": 3, "chunks": {'pe2img_368': 'rooms/akropolis/forked_road/view3_image', 'bs_151': 'rooms/akropolis/forked_road/view3_background'}},

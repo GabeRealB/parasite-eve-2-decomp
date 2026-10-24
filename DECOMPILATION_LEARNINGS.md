@@ -61349,7 +61349,7 @@ covers the opposite case, where the target merges and the source does not.
 A message handler with several `if (guard) { side effects } return N;` blocks
 compiles two different ways depending on whether the guards are written as an
 early return or as a plain `if`. Mixing the two forms cost one instruction in
-`_acropolisForkedRoadResolveTransitionMessage`:
+`_akropolisForkedRoadResolveRoomTransition`:
 
 ```c
 if (request->queryOnly != 0) {     /* early-return form */
@@ -61398,7 +61398,7 @@ whole function before reaching for anything else.
 
 ## A scalar global and a struct-member load reorder; the same address named as a struct field does not
 
-`_acropolisForkedRoadOutboundMoviePathTask` stores a flag and then fills a work block
+`_akropolisForkedRoadOutboundMoviePathTask` stores a flag and then fills a work block
 from `Task::work`:
 
 ```c
@@ -61475,7 +61475,7 @@ rodata = [{ start = "0x10", unit = "acropolis_forked_road_2" },
 ```
 
 then re-split and delete the `INCLUDE_RODATA` line the earlier unit used to
-carry. `acropolisForkedRoadWallLampTask` is the worked example.
+carry. `akropolisForkedRoadWallLampTask` is the worked example.
 
 A non-zero leftover byte in the word's fourth slot does not change this, and
 does not call for a 3-byte struct copied from a named `static const`. The

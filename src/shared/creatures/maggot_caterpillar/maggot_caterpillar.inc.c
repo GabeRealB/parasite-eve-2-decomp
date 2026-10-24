@@ -1,5 +1,7 @@
 /* Part of the Maggot/Caterpillar library; see maggot_caterpillar.h. */
 
+#include "main/event_flags.h"
+
 /// Allocates the enemy's body work, initializes its rig and links four collision spheres.
 ///
 /// Takes the live enemy/task pair with a TMD body and placement record. Modes
@@ -134,7 +136,7 @@ static void _maggotCaterpillarSpawn(Enemy* enemy, Task* actor)
         entranceDigit      = placementMode - modeTens * MAGGOT_CATERPILLAR_PLACE_SCRIPTED_BASE;
         switch (entranceDigit) {
             case MAGGOT_CATERPILLAR_ENTRANCE_LEAP:
-                if (gameFlagGetNibble(GAME_FLAG_FORKED_ROAD_EVENT_SEEN) == 1) {
+                if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_FORKED_ROAD_AMBUSH_SEEN) == 1) {
                     work->animId         = MAGGOT_CATERPILLAR_ANIM_DORMANT;
                     work->behaviour      = MAGGOT_CATERPILLAR_BEHAVIOUR_WAIT;
                     work->fallSpeed      = MAGGOT_CATERPILLAR_GROUND_FALL_STEP;

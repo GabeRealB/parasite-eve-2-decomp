@@ -84,15 +84,15 @@ gAkropolisFountainWarpEntries = 0x8017E868; // absolute:True owner=akropolis_fou
 gAkropolisFountainSpriteViews = 0x8018375C; // absolute:True owner=akropolis_fountain
 gAkropolisFountainViewCameras = 0x80183864; // absolute:True owner=akropolis_fountain
 gAkropolisFountainSurfacePropertiesByClass = 0x80183B90; // absolute:True owner=akropolis_fountain
-acropolisForkedRoadRoomTask = 0x8017D9CC; // type:func absolute:True owner=acropolis_forked_road
-gAcropolisForkedRoadRoomCollisionResources = 0x80182214; // absolute:True owner=acropolis_forked_road
-gAcropolisForkedRoadViewMaps = 0x8018225C; // absolute:True owner=acropolis_forked_road
-gAcropolisForkedRoadViewCounts = 0x80182268; // absolute:True owner=acropolis_forked_road
-gAcropolisForkedRoadRoomLightingTable = 0x80182270; // absolute:True owner=acropolis_forked_road
-gAcropolisForkedRoadWarpEntries = 0x80182288; // absolute:True owner=acropolis_forked_road
-gAcropolisForkedRoadSpriteViews = 0x801844E0; // absolute:True owner=acropolis_forked_road shared=rooms
-gAcropolisForkedRoadViewCameras = 0x80184E88; // absolute:True owner=acropolis_forked_road
-gAcropolisForkedRoadSurfacePropertiesByClass = 0x801850A4; // absolute:True owner=acropolis_forked_road
+akropolisForkedRoadRoomTask = 0x8017D9CC; // type:func absolute:True owner=akropolis_forked_road
+gAkropolisForkedRoadRoomCollisionResources = 0x80182214; // absolute:True owner=akropolis_forked_road
+gAkropolisForkedRoadViewMaps = 0x8018225C; // absolute:True owner=akropolis_forked_road
+gAkropolisForkedRoadViewCounts = 0x80182268; // absolute:True owner=akropolis_forked_road
+gAkropolisForkedRoadRoomLightingTable = 0x80182270; // absolute:True owner=akropolis_forked_road
+gAkropolisForkedRoadWarpEntries = 0x80182288; // absolute:True owner=akropolis_forked_road
+gAkropolisForkedRoadSpriteViews = 0x801844E0; // absolute:True owner=akropolis_forked_road shared=rooms
+gAkropolisForkedRoadViewCameras = 0x80184E88; // absolute:True owner=akropolis_forked_road
+gAkropolisForkedRoadSurfacePropertiesByClass = 0x801850A4; // absolute:True owner=akropolis_forked_road
 acropolisObservatoryRoomTask = 0x8017D950; // type:func absolute:True owner=acropolis_observatory shared=rooms
 gAcropolisObservatoryRoomCollisionResources = 0x8017FEC8; // absolute:True owner=acropolis_observatory shared=rooms
 gAcropolisObservatoryViewMaps = 0x8017FEF0; // absolute:True owner=acropolis_observatory

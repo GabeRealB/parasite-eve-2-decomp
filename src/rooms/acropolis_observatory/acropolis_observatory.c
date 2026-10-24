@@ -135,8 +135,8 @@ static s32 _acropolisObservatoryHandleRoomAction(Task* unusedTask, s32 messageId
 
     if ((request->actionId == ACROPOLIS_OBSERVATORY_ACTION_START_EVENT) &&
         (gGameSession->location.roomState == ACROPOLIS_OBSERVATORY_EVENT_ROOM) &&
-        (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_OBSERVATORY_EVENT_SEEN) == ACROPOLIS_OBSERVATORY_EVENT_UNSEEN)) {
-        gameFlagSetNibble(GAME_FLAG_AKROPOLIS_OBSERVATORY_EVENT_SEEN, ACROPOLIS_OBSERVATORY_EVENT_SEEN);
+        (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_OBSERVATORY_BAT_AMBUSH_SEEN) == ACROPOLIS_OBSERVATORY_EVENT_UNSEEN)) {
+        gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_OBSERVATORY_BAT_AMBUSH_SEEN, ACROPOLIS_OBSERVATORY_EVENT_SEEN);
         taskSpawnFromTable(&gAcropolisObservatoryScriptedBattleTaskDesc, 0, 0, 0);
     }
     return 0;
@@ -158,7 +158,7 @@ static void _acropolisObservatoryInitializeRoomTask(Task* task)
     task->msgTable = _gAcropolisObservatoryRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if ((gGameSession->location.roomState == ACROPOLIS_OBSERVATORY_ENCOUNTER_ROOM) &&
-        (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_OBSERVATORY_EVENT_SEEN) == ACROPOLIS_OBSERVATORY_EVENT_UNSEEN)) {
+        (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_OBSERVATORY_BAT_AMBUSH_SEEN) == ACROPOLIS_OBSERVATORY_EVENT_UNSEEN)) {
         gSceneCombatState.actor03700Wave = ACROPOLIS_OBSERVATORY_WAVES_ACTIVATED;
     }
     task->state = task->state + 1;

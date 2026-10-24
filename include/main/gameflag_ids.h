@@ -599,18 +599,10 @@ enum {
     /// arrival 1 (script plays). Once set, the underpass resolves to rooms 1-4 from
     /// switch nibbles 0x53/0x51, otherwise to 5 or 6.
     GAME_FLAG_UNDERPASS_EVENT_SEEN = 0x0C9,
-    /// Set to 1 when the observatory's sub-id 1 trigger spawns its event task on room
-    /// 2; while clear room-2 entries set combat wave 1, and the forked road's path-back
-    /// message answers room 2.
-    GAME_FLAG_AKROPOLIS_OBSERVATORY_EVENT_SEEN = 0x0CA,
     /// Roof garden scene progress on places 1/7: 0 -> 1 on arrival 1, 1 -> 2 on arrival
     /// 2 (plays its script); at 2 the maggot/caterpillar actor spawns in its alternate
     /// placement.
     GAME_FLAG_ROOF_GARDEN_PROGRESS = 0x0CB,
-    /// Set to 1 when the forked road's action-1 script plays on place 4 or 8 (after
-    /// nibble 9 bit 1); at 1 the maggot/caterpillar actor spawns in its alternate
-    /// placement.
-    GAME_FLAG_FORKED_ROAD_EVENT_SEEN = 0x0CC,
     /// Unidentified. One-shot mine mesa event on variant 1 with the companion present:
     /// the actor-event handler sets it to 1 (and raises the attachment event lock in `gAttachmentState.flags`),
     /// and the room tick then plays a scripted scene once the fight state clears.

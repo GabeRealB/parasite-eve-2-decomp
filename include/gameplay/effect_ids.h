@@ -242,7 +242,7 @@ enum {
     EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK = EFFECT_ID(EFFECT_TASK_BANK, 0x050),
     /// Falling leaf (`_leafFallTask`) of the Acropolis forked road; three are knocked
     /// loose by the Maggot Caterpillar entrance.
-    EFFECT_ACROPOLIS_FORKED_ROAD_FALLING_LEAF = EFFECT_ID(EFFECT_TASK_BANK, 0x051),
+    EFFECT_AKROPOLIS_FORKED_ROAD_FALLING_LEAF = EFFECT_ID(EFFECT_TASK_BANK, 0x051),
     /// A 12-frame animated 32x48 billboard with cycling CLUT that optionally falls,
     /// spawned in bursts by No.9 golem (Akropolis) fire controller 0x60043 under an
     /// orange point light.
@@ -413,7 +413,7 @@ enum {
     EFFECT_AKROPOLIS_FOUNTAIN_SPRAY = EFFECT_ID(EFFECT_TASK_BANK, 0x088),
     /// Akropolis forked-road wall lamp: a flickering screen-aligned sprite per placed
     /// lamp, skipped on days whose bit is clear; spawned by the room task.
-    EFFECT_ACROPOLIS_FORKED_ROAD_WALL_LAMP = EFFECT_ID(EFFECT_TASK_BANK, 0x089),
+    EFFECT_AKROPOLIS_FORKED_ROAD_WALL_LAMP = EFFECT_ID(EFFECT_TASK_BANK, 0x089),
     /// Roof-garden glow sprite: a flickering, distance-scaled semi-transparent
     /// billboard in one of three cells, drawn only in the views its mask allows; ten
     /// are placed at fixed points by the roof-garden task.
@@ -2152,20 +2152,20 @@ enum {
     /// acropolis_forked_road's copy of _roomVisualEffectsFlashTask (fans and a shrinking ring
     /// ramping to a coloured screen fade), stored in gRoomEffectFlashId, which the Pawn/Rook
     /// GOLEM's silence-scream state spawns on its part 4.
-    EFFECT_ACROPOLIS_FORKED_ROAD_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x290),
+    EFFECT_AKROPOLIS_FORKED_ROAD_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x290),
     /// The acropolis_forked_road instance of the room-effect library's
     /// room_visual_effects_trail_task.inc.c: a twin-trail beam: two rings of eight
     /// frames recording two points offset from the anchor, drawn as a beam between
     /// them; the room stores it in slot gRoomEffectTwinTrailId. The Pawn/Rook
     /// Beam Sword tick (`_golemPawnRookSwordTick`) spawns it at body part 7.
-    EFFECT_ACROPOLIS_FORKED_ROAD_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x291),
+    EFFECT_AKROPOLIS_FORKED_ROAD_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x291),
     /// Impact flash followed by smoke puffs or orange rings and bouncing sparks.
     ///
     /// `_roomVisualEffectsSparkBurstTask`, selected through `gRoomEffectSparkBurstId`.
     /// A nonzero argument selects jittered smoke; zero selects two bouncing
     /// sparks and fixed/expanding rings. Ages 1..7 act; age 8 releases the work.
     /// Spawned effects are independent. Room control can pause or cancel it.
-    EFFECT_ACROPOLIS_FORKED_ROAD_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x292),
+    EFFECT_AKROPOLIS_FORKED_ROAD_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x292),
     /// Flash (_roomVisualEffectsFlashTask): fans and an inward ring ramping up, a fade quad at the
     /// peak, then a star fade-out; stored in gRoomEffectFlashId, which golems
     /// (actor_02300/05700) spawn at part 4 in their scream sequence.
