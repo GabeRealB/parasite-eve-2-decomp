@@ -2208,7 +2208,11 @@ def main():
     )
 
     if objdiff_config_option:
-        subprocess.call([PYTHON, "-m", "ninja", "-f", "objdiff.ninja"])
+        # The target objects and objdiff.json: a failure here is the step's, not the report's that finds no
+        # configuration later.
+        status = subprocess.call([PYTHON, "-m", "ninja", "-f", "objdiff.ninja"])
+        if status:
+            sys.exit(status)
 
 
 if __name__ == "__main__":

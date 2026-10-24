@@ -480,7 +480,7 @@ def has_stored_bss(name: str, objects: list[dict], data: bytes) -> bool:
     return True
 
 
-RECORD_SIZE = {"model": 0x24}        # a declared model's symbol names its TmdSource record, its last 0x24 bytes
+RECORD_SIZE = {"model": 0x24, "clip": 0x28}   # a model's symbol names its TmdSource record, a clip's its AnimationClip: the last bytes
 _ASSET_TABLES: list = []
 
 
