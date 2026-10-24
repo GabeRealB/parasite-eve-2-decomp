@@ -19,6 +19,7 @@
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
+#include "gameplay/game_debug.h"
 #include "gameplay/items.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
@@ -44,11 +45,6 @@
 #include "mapui/map_dryfield.h"
 
 static s32 _junkYardCommandMessage(Task* task, s32 messageId, s32 command, s32 unusedSecondArg);
-
-/// Resident routine at the fixed address `0x80724608`, outside every image
-/// the build links. The room hands it the slot-0xA game pointer, two
-/// constants and the `"DOG"` name below; what it does with them is unproven.
-void func_80724608(void* owner, s32 arg1, s32 arg2, void* name);
 
 static void _dryfieldJunkYardDrawModelGroundShadow(Task* task);
 static void _dryfieldJunkYardInitRoomTask(Task* task);

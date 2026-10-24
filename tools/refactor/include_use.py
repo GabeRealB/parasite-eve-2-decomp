@@ -7,7 +7,9 @@
 Arguments are C sources or directories of them (found through compile_commands.json). Each source is parsed with
 libclang, and its files are split into owners - files that should state their own includes:
 
-* the source itself, with its sibling `config.h` and the generated asset includes (`build/include/assets/`) it pulls in;
+* the source itself, with its sibling `config.h`;
+* each generated asset include (`build/include/assets/`), which states the includes its declarations need
+  (tools/peassets/room/c_headers.py); what one lacks is reported, never edited - its generator is the place to fix it;
 * every other file under `src/` the source includes: a shared fragment or library header. Names the carrier's own
   directory declares are the fragment's contract (its binding macros, the carrier's data), not missing includes.
 
@@ -49,6 +51,7 @@ INCLUDE = re.compile(r'^[ \t]*#[ \t]*include[ \t]*([<"])([^>"]+)[>"]', re.M)
 INCLUDE_LINE = re.compile(r'^[ \t]*#[ \t]*include[ \t]*([<"])([^>"]+)[>"].*$')
 IDENT = re.compile(r"[A-Za-z_]\w*")
 ASSETS = "build/include/assets/"
+CARRY_FRAGMENTS = False  # --only-sources: fragments state no includes of their own, so their uses are the source's
 # Sony's headers in the order they have to come; each needs the ones listed before it
 PSYQ = ["psyq/sys/types.h", "psyq/libgte.h", "psyq/libgpu.h", "psyq/inline_c.h", "psyq/gtemac.h", "psyq/libgs.h"]
 PSYQ_NEEDS = {"psyq/libgs.h": PSYQ[:3], "psyq/gtemac.h": [PSYQ[0], PSYQ[1], PSYQ[3]], "psyq/libgpu.h": PSYQ[:2],
@@ -148,10 +151,12 @@ def analyze(source: str, db) -> tuple[dict, list[str]]:
             bodies.setdefault(m.group(1), set()).update(IDENT.findall(m.group(2)))
 
     def owner_of(f):
-        if f == main or f == carrier_dir + "config.h" or f.startswith(ASSETS):
+        if f == main or f == carrier_dir + "config.h":
             return main
+        if f.startswith(ASSETS):
+            return f                                    # a generated include states its own includes
         if f.startswith("src/") and not f.startswith(carrier_dir):
-            return f
+            return main if CARRY_FRAGMENTS else f           # --only-sources: the source keeps what its fragments use
         return None
 
     def record_of(c):
@@ -346,8 +351,13 @@ def main() -> int:
     ap.add_argument("mode", choices=["report", "apply"])
     ap.add_argument("paths", nargs="+", help="C sources, or directories of them")
     ap.add_argument("--json", action="store_true", help="report as JSON")
+    ap.add_argument("--only-sources", action="store_true",
+                    help="apply: edit only the named sources, not the fragments they include (a fragment's includes "
+                         "are judged against every source including it: run over all of them for those)")
     args = ap.parse_args()
     db = cref.load_db(ROOT)
+    global CARRY_FRAGMENTS
+    CARRY_FRAGMENTS = args.only_sources
     unused, missing, implicit = collect(args.paths, db)
     if args.mode == "report":
         if args.json:
@@ -365,12 +375,15 @@ def main() -> int:
         return 0
     by_file = {}
     for (m, t) in unused:
-        by_file.setdefault(m, set()).add(t)
+        if not m.startswith(ASSETS) and (not args.only_sources or m.endswith(".c") and not m.endswith(".inc.c")):
+            by_file.setdefault(m, set()).add(t)          # generated: its generator is the place to change
     for f, ts in sorted(by_file.items()):
         remove_includes(f, ts)
-    for o, hs in sorted(missing.items()):
+    fragments = {} if args.only_sources else {o: hs for o, hs in missing.items() if not o.startswith(ASSETS)}
+    for o, hs in sorted(fragments.items()):
         add_includes(o, set(hs))
-    print(f"removed {len(unused)} includes from {len(by_file)} files; added includes to {len(missing)} fragments")
+    removed = sum(len(ts) for ts in by_file.values())
+    print(f"removed {removed} includes from {len(by_file)} files; added includes to {len(fragments)} fragments")
     return 0
 
 

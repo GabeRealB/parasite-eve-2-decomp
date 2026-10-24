@@ -323,7 +323,7 @@ static void _shelterB3DumpingHoleInitializeRoomTask(Task* task)
                 evsStartScriptWithSkip(gShelterB3DumpingHoleArrivalEventScript, EVENT_SCRIPT_HUD_HIDE_RESTORE,
                                        gShelterB3DumpingHoleArrivalEventSkipScript);
             }
-            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, DUMPING_HOLE_ARRIVAL_OBJECTIVE);
+            gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, DUMPING_HOLE_ARRIVAL_OBJECTIVE);
             gameFlagSetNibble(GAME_FLAG_DUMPING_HOLE_ARRIVAL_SEEN, DUMPING_HOLE_ARRIVAL_SEEN);
         }
     }

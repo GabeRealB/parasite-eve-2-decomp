@@ -427,7 +427,7 @@ s32 mineCavernAdvanceEvent(Task* task, s32 msgId, s32 unusedEventId, s32 unusedA
         gameFlagSetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS, MINE_CAVERN_EVENT_FIRST_STAGE);
         _gMineCavernFirstSceneRequestState = MINE_CAVERN_FIRST_SCENE_REQUEST_ARMED;
     } else if (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == MINE_CAVERN_EVENT_FIRST_STAGE) {
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, MINE_CAVERN_POST_EVENT_OBJECTIVE);
+        gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, MINE_CAVERN_POST_EVENT_OBJECTIVE);
         evsStartScriptWithSkip(gMineCavernSecondEventScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gMineCavernSecondEventSkipScript);
         gameFlagSetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS, MINE_CAVERN_EVENT_SECOND_STAGE);
     }

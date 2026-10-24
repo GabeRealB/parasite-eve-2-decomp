@@ -422,11 +422,11 @@ static s32 _acropolisPatioResolveRoomTransition(Task* unusedTask, s32 messageId,
         }
     }
     if (request->areaId == GAME_AREA_AKROPOLIS_CAFETERIA) {
-        if (gameFlagGetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE) < ACROPOLIS_PATIO_DOOR_UNLOCKED) {
+        if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_PATIO_CAFETERIA_DOOR_STATE) < ACROPOLIS_PATIO_DOOR_UNLOCKED) {
             transitionResult = ACROPOLIS_PATIO_TRANSITION_BLOCKED;
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 capRunCommandWithTransition(3);
-                gameFlagSetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE, ACROPOLIS_PATIO_DOOR_ATTEMPTED);
+                gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_PATIO_CAFETERIA_DOOR_STATE, ACROPOLIS_PATIO_DOOR_ATTEMPTED);
                 gameFlagSetNibbleIfPresent(request->flagId, 2);
                 return ACROPOLIS_PATIO_TRANSITION_BLOCKED;
             }
@@ -445,7 +445,7 @@ static s32 _acropolisPatioResolveRoomTransition(Task* unusedTask, s32 messageId,
             }
             return transitionResult;
         }
-        if (gameFlagGetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE) == ACROPOLIS_PATIO_DOOR_UNLOCKED) {
+        if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_PATIO_CAFETERIA_DOOR_STATE) == ACROPOLIS_PATIO_DOOR_UNLOCKED) {
             transitionResult = ACROPOLIS_PATIO_TRANSITION_DEFERRED;
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 // Save the requested arrival for the deferred cafeteria reload.
@@ -541,7 +541,7 @@ static void _acropolisPatioCafeteriaDoorSceneTask(Task* task)
             return;
         case ACROPOLIS_PATIO_DOOR_RESOLVE_CHOICE:
             if (capGetVariantKey() == state) {
-                gameFlagSetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE, ACROPOLIS_PATIO_DOOR_OPEN);
+                gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_PATIO_CAFETERIA_DOOR_STATE, ACROPOLIS_PATIO_DOOR_OPEN);
                 sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO, ACROPOLIS_PATIO_DOOR_SOUND_CUE), 0, 0);
                 task->state = task->state + 1;
                 return;

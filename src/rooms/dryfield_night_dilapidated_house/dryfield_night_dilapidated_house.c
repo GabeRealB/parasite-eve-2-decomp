@@ -304,7 +304,7 @@ static inline void _dryfieldNightDilapidatedHouseStartFirstVisitEvent(void)
         // Progress advances even when the companion is absent and no scene starts.
         gameFlagSetNibble(GAME_FLAG_NIGHT_DILAPIDATED_HOUSE_EVENT_SEEN, DRYFIELD_NIGHT_DILAPIDATED_HOUSE_EVENT_SEEN);
         gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, DRYFIELD_NIGHT_DILAPIDATED_HOUSE_STORY_CHAPTER);
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, DRYFIELD_NIGHT_DILAPIDATED_HOUSE_GAS_STATION_OBJECTIVE);
+        gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, DRYFIELD_NIGHT_DILAPIDATED_HOUSE_GAS_STATION_OBJECTIVE);
     }
 }
 

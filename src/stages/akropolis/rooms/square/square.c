@@ -8,41 +8,31 @@
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/gtemac.h>
 #include <psyq/inline_c.h>
+#include <psyq/gtemac.h>
 #include <psyq/libgs.h>
 
 #include "common.h"
 #include "gte.h"
 
-#include "actors/task_tables.h"
-
 #include "gameplay/direction_input.h"
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
-#include "gameplay/area.h"
-#include "gameplay/area_flags.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
 #include "gameplay/actor_presentation.h"
 #include "gameplay/gameflag.h"
 #include "gameplay/player_actor.h"
-#include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effects.h"
-#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/item_menu.h"
 #include "gameplay/items.h"
-#include "gameplay/light.h"
 #include "gameplay/message.h"
 #include "gameplay/model_objects.h"
-#include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
 #include "gameplay/world_coords.h"
 
 #include "main/coord.h"
@@ -69,8 +59,6 @@
 #include "main/ui_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
-
-#include "mapui/map_akropolis.h"
 
 #include "rooms/room.h"
 

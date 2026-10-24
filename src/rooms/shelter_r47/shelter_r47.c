@@ -877,7 +877,7 @@ static s32 _shelterR47HandleDirectionAction(Task* unusedTask, s32 unusedMessageI
                 break;
             case SHELTER_R47_ACTION_BEGIN_TERMINAL_TOUR:
                 if ((gameFlagGetNibble(GAME_FLAG_083) == 1) && (gameFlagGetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS) == SHELTER_R47_TOUR_NOT_STARTED)) {
-                    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_R47_OBJECTIVE_TERMINAL_TOUR);
+                    gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, SHELTER_R47_OBJECTIVE_TERMINAL_TOUR);
                     gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
                     gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, SHELTER_R47_DIALOGUE_TERMINAL_TOUR);
                     evsStartScriptWithSkip(gActor443500TourOpeningScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor443500TourOpeningSkipScript);
@@ -915,7 +915,7 @@ static s32 _shelterR47HandleDirectionAction(Task* unusedTask, s32 unusedMessageI
                     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
                         evsStartScriptWithSkip(gActor143400CompanionEntryScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor143400CompanionEntrySkipScript);
                     }
-                    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_R47_OBJECTIVE_COMPANION_ENTRY);
+                    gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, SHELTER_R47_OBJECTIVE_COMPANION_ENTRY);
                     gameFlagSetNibble(GAME_FLAG_SHELTER_R47_080, 1);
                     gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, SHELTER_R47_COMPANION_SCHEDULE_AFTER_ENTRY);
                     gameFlagSetNibble(GAME_FLAG_0D1, SHELTER_R47_COMPANION_PROGRESS_AFTER_ENTRY);

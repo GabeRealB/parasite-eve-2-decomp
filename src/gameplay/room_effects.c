@@ -73,7 +73,7 @@
 
 #include "rooms/acropolis_cafeteria.h"
 
-#include "rooms/acropolis_east_elevator_hall.h"
+#include "rooms/akropolis_east_elevator_hall.h"
 
 #include "rooms/acropolis_fire_escape.h"
 
@@ -566,9 +566,9 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, acropolisWestElevatorHallViewEffectsTask, { NULL } },                                    // 0x01E
     { { { TASK_BODY_COORD, 0x70 } }, acropolisWestElevatorHallRedBeaconTask, { NULL } },                                      // 0x01F
     { { { TASK_BODY_COORD, 0x70 } }, acropolisWestElevatorHallScanlineDistortionTask, { NULL } },                             // 0x020
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisEastElevatorHallReflectionsAndBeaconsTask, { NULL } },                          // 0x021
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisEastElevatorHallRedBeaconTask, { NULL } },                                      // 0x022
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisEastElevatorHallPointTileTask, { NULL } },                                      // 0x023
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisEastElevatorHallReflectionsAndBeaconsTask, { NULL } },                          // 0x021
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisEastElevatorHallRedBeaconTask, { NULL } },                                      // 0x022
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisEastElevatorHallPointTileTask, { NULL } },                                      // 0x023
     { { { TASK_BODY_COORD, 0x70 } }, hypervelocityChargeEffectTask, { NULL } },                                               // 0x024
     { { { TASK_BODY_COORD, 0x70 } }, acropolisWestElevatorHallLightGlowTask, { NULL } },                                      // 0x025
     { { { TASK_BODY_COORD, 0x70 } }, acropolisFountainViewEffectsTask, { NULL } },                                            // 0x026

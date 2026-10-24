@@ -1026,7 +1026,7 @@ s32 shelterB2NorthMaintenanceWalkwayHandleRoomAction(Task* unusedTask, s32 unuse
 
     if (actionId == SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_ACTION_ENTRY_SCENE && gameFlagGetNibble(GAME_FLAG_B2_NORTH_WALKWAY_SCENE_SEEN) == 0 && gGameSession->location.variant == actionId) {
         evsStartScriptWithSkip(gActor341300WalkwaySceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor341300WalkwaySceneSkipScript);
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_OBJECTIVE_AFTER_SCENE);
+        gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_OBJECTIVE_AFTER_SCENE);
         gameFlagSetNibble(GAME_FLAG_B2_NORTH_WALKWAY_SCENE_SEEN, SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_SCENE_SEEN);
         areaApplySavedUpdates(_gShelterB2NorthMaintenanceWalkwaySceneAreaUpdates);
     }

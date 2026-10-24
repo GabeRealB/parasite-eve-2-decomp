@@ -423,8 +423,12 @@ def c_files(name: str, assets: dict, embedded: dict, assets_root: Path) -> dict[
     grids = {s: r["value"] for s, (m, r) in objects.items() if r["kind"] == "WorldCollisionGrid"}
     part_grid = {v[f]: g for g, v in grids.items() for f in ("normals", "vertices", "faces", "cellFaceIds")}
 
+    uses: dict[str, set[str]] = {"types": set(), "symbols": set()}    # what the file being written needs declared
+
     def pointer(ref: str) -> str:
         m = re.fullmatch(r"(\w+)(?:\[(\d+)\])?", ref)
+        if m.group(1) not in objects:
+            uses["symbols"].add(m.group(1))
         if m.group(2):
             return f"&{m.group(1)}[{m.group(2)}]"
         if m.group(1) in objects:
@@ -440,6 +444,7 @@ def c_files(name: str, assets: dict, embedded: dict, assets_root: Path) -> dict[
             dims = f"[{len(r['values'])}][{len(r['values'][0])}]"
         else:
             dims = f"[{count[s]}]"
+        uses["types"].add(LAYOUTS[r["kind"]][0])
         return f"{storage}{LAYOUTS[r['kind']][0]} {s}{dims}"
 
     def definition(s: str) -> list[str]:
@@ -484,8 +489,14 @@ def c_files(name: str, assets: dict, embedded: dict, assets_root: Path) -> dict[
                 runs[-1].append(s)
             else:
                 runs.append([s])
+    def with_includes(lines: list[str]) -> list[str]:
+        """The file's lines after the header, with the includes its declarations and pointers need first."""
+        needed = c_headers.include_lines(uses["types"], uses["symbols"] | ({"NULL"} if any("NULL" in l for l in lines) else set()))
+        uses["types"], uses["symbols"] = set(), set()
+        return list(header) + ([""] + needed if needed else []) + lines
+
     for module, runs in parts.items():
-        out = list(header)
+        out = []
         for run in runs:
             body = [line for s in run for line in definition(s)]
             if len(runs) == 1:
@@ -493,8 +504,8 @@ def c_files(name: str, assets: dict, embedded: dict, assets_root: Path) -> dict[
             else:
                 out += ["", f"#define ROOM_IS_{run[0]} 1", f"#if ROOM_CAT(ROOM_IS_, ROOM_PART) == 1"] + body + \
                        ["#endif", f"#undef ROOM_IS_{run[0]}"]
-        files[f"{module}.inc"] = out + ([] if len(runs) == 1 else ["#undef ROOM_PART"])
-    out = list(header)
+        files[f"{module}.inc"] = with_includes(out + ([] if len(runs) == 1 else ["#undef ROOM_PART"]))
+    out = []
     for unit, mine in decl.items():
         lines = [f"{'extern ' if not s.startswith('_') else ''}{declarator(s)};" for s in mine]
         if len(decl) == 1:
@@ -502,7 +513,7 @@ def c_files(name: str, assets: dict, embedded: dict, assets_root: Path) -> dict[
         else:
             out += ["", f"#define ROOM_IS_declarations_{unit} 1", "#if ROOM_CAT(ROOM_IS_, ROOM_PART) == 1"] + lines + \
                    ["#endif", f"#undef ROOM_IS_declarations_{unit}"]
-    files["declarations.inc"] = out + ([] if len(decl) == 1 else ["#undef ROOM_PART"])
+    files["declarations.inc"] = with_includes(out + ([] if len(decl) == 1 else ["#undef ROOM_PART"]))
     return {f: "\n".join(lines) + "\n" for f, lines in files.items()}
 
 
@@ -520,4 +531,4 @@ def _is_rows(r: dict) -> bool:
     return bool(r.get("values")) and isinstance(r["values"][0], list)
 
 
-from . import sync_c  # noqa: E402  (bringing a room's C in line: sync_c.py)
+from . import c_headers, sync_c  # noqa: E402  (bringing a room's C in line: sync_c.py)

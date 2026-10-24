@@ -9,6 +9,13 @@ enum {
     AKROPOLIS_CAFETERIA_ROUTE_FOUNTAIN_UNLOCKED = 5,
 };
 
+// Values of `EVENT_FLAG_AKROPOLIS_PATIO_CAFETERIA_DOOR_STATE`.
+enum {
+    AKROPOLIS_PATIO_CAFETERIA_DOOR_LOCKED   = 1, // The player has found it locked
+    AKROPOLIS_PATIO_CAFETERIA_DOOR_UNLOCKED = 2, // The east elevator hall scene has unlocked it
+    AKROPOLIS_PATIO_CAFETERIA_DOOR_OPENED   = 3, // Opened: the warp to the cafeteria has started
+};
+
 // Values of `EVENT_FLAG_AKROPOLIS_PATIO_CUTSCENE_PROGRESS`.
 enum {
     AKROPOLIS_PATIO_CUTSCENE_START   = 1,

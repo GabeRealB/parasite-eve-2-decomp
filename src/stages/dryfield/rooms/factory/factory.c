@@ -257,7 +257,7 @@ s32 factoryRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActi
     if ((request->actionId == FACTORY_ACTION_START_SCENE) && (gameFlagGetNibble(GAME_FLAG_02C) == 0)) {
         capSpawnEventIfIdle(FACTORY_START_SCENE_CAP, CAP_EVENT_PAUSE_ACTORS);
         gameFlagSetNibble(GAME_FLAG_02C, 1);
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, FACTORY_START_SCENE_OBJECTIVE);
+        gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, FACTORY_START_SCENE_OBJECTIVE);
         sndEvtRequestScriptStart(FACTORY_DAY_SOUND(FACTORY_SOUND_START_SCENE), 0, 0);
     }
     return 0;

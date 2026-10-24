@@ -391,7 +391,7 @@ static void _mistParkingInitializeRoomTask(Task* task)
         (gameFlagGetNibble(GAME_FLAG_0F1) == MIST_PARKING_CONVERSATION_INTRO_PENDING)) {
         // Arrival has a skip path; other entries use the shorter room-entry script.
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp == MIST_PARKING_ARRIVAL_TALK_WARP) {
-            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, MIST_PARKING_ARRIVAL_TALK_OBJECTIVE);
+            gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, MIST_PARKING_ARRIVAL_TALK_OBJECTIVE);
             mistParkingResetCutsceneTaskHandles(0);
             evsStartScriptWithSkip(gMistParkingArrivalConversationScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gMistParkingArrivalSkipScript);
         } else {

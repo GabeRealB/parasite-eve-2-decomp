@@ -1834,10 +1834,10 @@ static void _shelterB1PodAccessTunnelInitializeRoomTask(Task* task)
         // Consume the gantry return before considering the one-time entry scene.
         taskSpawnFromTable(&_gShelterB1PodAccessTunnelPostGantryDialogueTaskDesc, 0, 0, 0);
         gameFlagSetNibble(GAME_FLAG_118, SHELTER_B1_POD_ACCESS_TUNNEL_GANTRY_RETURN_COMPLETE);
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, OBJECTIVE_AFTER_GANTRY);
+        gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, OBJECTIVE_AFTER_GANTRY);
     } else if (gameFlagGetNibble(GAME_FLAG_POD_ACCESS_TUNNEL_SCENE_SEEN) == 0) {
         evsStartScriptWithSkip(_gShelterB1PodAccessTunnelEntrySceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gShelterB1PodAccessTunnelEntrySceneSkipScript);
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, OBJECTIVE_FIRST_POD_ENTRY);
+        gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, OBJECTIVE_FIRST_POD_ENTRY);
         gameFlagSetNibble(GAME_FLAG_POD_ACCESS_TUNNEL_SCENE_SEEN, ENTRY_SCENE_RECORDED);
     }
     task->state = task->state + ROOM_IDLE;

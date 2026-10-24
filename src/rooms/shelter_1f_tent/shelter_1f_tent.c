@@ -146,7 +146,7 @@ static void _shelter1fTentInitializeRoom(Task* task)
         gameFlagSetNibble(GAME_FLAG_SHELTER_ELEVATOR_ENABLED, 0);
         gameFlagSetNibble(GAME_FLAG_SHELTER_1F_TENT_1BA, 2);
         gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHELTER_1BB, MAP_MARK_SHOWN);
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ARRIVAL_OBJECTIVE);
+        gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, ARRIVAL_OBJECTIVE);
         playerStateRestoreFullHpMp();
         areaApplySavedUpdates(gShelter1fTentFirstArrivalAreaUpdates);
         evsStartScriptWithSkip(gActor460200TentArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor460200TentArrivalSkipScript);

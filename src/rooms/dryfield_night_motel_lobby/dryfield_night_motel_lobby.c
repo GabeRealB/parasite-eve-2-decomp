@@ -280,7 +280,7 @@ static void _dryfieldNightMotelLobbyUpdateMasterkeyObjective(Task* unusedTask)
 
     masterkeyCollected = inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_BRONCO_MASTERKEY);
     if ((masterkeyCollected != 0) && (gDryfieldNightMotelLobbyPreviousMasterkeyCollected == 0)) {
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, MASTERKEY_COLLECTED_OBJECTIVE);
+        gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, MASTERKEY_COLLECTED_OBJECTIVE);
     }
     gDryfieldNightMotelLobbyPreviousMasterkeyCollected = masterkeyCollected;
 }

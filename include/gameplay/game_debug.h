@@ -24,4 +24,10 @@
 /// restores live input; exceeding the cursor limit only restores live input.
 void gameDebugApplyInputOverride(s32 overrideMode, u16* buttons);
 
+/// Development-kit routines, at fixed addresses outside every image the build links, which rooms call only while
+/// `gDisplayState.debugMode` is set. The first takes an actor; the second prints a label for one at a screen
+/// position ("Player", "DOG", "AUNT"). What else they do is unproven.
+void func_807245E4(void* actor);
+void func_80724608(void* actor, s32 x, s32 y, const char* label);
+
 #endif // GAMEPLAY_GAME_DEBUG_H

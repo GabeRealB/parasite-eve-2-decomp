@@ -498,7 +498,7 @@ static void _shelterB2ElevatorRoomInitState(Task* task)
         if (gameFlagGetNibble(GAME_FLAG_0CF) == 0) {
             gameFlagSetNibble(GAME_FLAG_0CF, SHELTER_B2_ELEVATOR_FIRST_VISIT_RECORDED);
             evsStartScriptWithSkip(gActor142900ElevatorFirstVisitScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor142900ElevatorFirstVisitSkipScript);
-            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_B2_ELEVATOR_OBJECTIVE_AFTER_ENTRY);
+            gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, SHELTER_B2_ELEVATOR_OBJECTIVE_AFTER_ENTRY);
         } else {
             gGameSession->hideHud    = SHELTER_B2_ELEVATOR_HUD_HIDDEN;
             gGameSession->eventState = SHELTER_B2_ELEVATOR_EVENT_ACTIVE;

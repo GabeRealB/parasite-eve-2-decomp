@@ -1951,7 +1951,7 @@ static void _actor136100SceneTask(Task* task)
             break;
         case ACTOR_136100_SCENE_STAGE_OPENING:
             if (work->scene == ACTOR_136100_SCENE_AFTER_BURNER) {
-                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACTOR_136100_SCENE_AFTER_BURNER_OBJECTIVE);
+                gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, ACTOR_136100_SCENE_AFTER_BURNER_OBJECTIVE);
                 taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
                 taskMessageDispatch(work->headTask, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
                 taskMessageDispatch(work->rifleTask, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
@@ -1963,7 +1963,7 @@ static void _actor136100SceneTask(Task* task)
                 _actor136100ResetBodyTracks(task, ACTOR_136100_BODY_AFTER_BURNER_START);
                 ACTOR_136100_RESET_COMPANION_ANIMATION(task, ACTOR_136100_SCENE_AFTER_COMPANION_CLIP, message.animation);
             } else {
-                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACTOR_136100_SCENE_BEFORE_BURNER_OBJECTIVE);
+                gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, ACTOR_136100_SCENE_BEFORE_BURNER_OBJECTIVE);
                 taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
                 taskMessageDispatch(work->headTask, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
                 taskMessageDispatch(work->rifleTask, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);

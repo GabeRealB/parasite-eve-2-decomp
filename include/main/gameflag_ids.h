@@ -36,11 +36,6 @@ enum {
     /// promenade or reaches the roof garden first (also raising bit-2 flag 0x13), which
     /// suppresses the event.
     GAME_FLAG_SANCTUARY_EVENT_LATCH = 0x007,
-    /// Patio door to the cafeteria: 0/1 locked (trying it plays CAP 3 and sets 1), 2
-    /// once the east elevator hall scene has run (door can be opened: spawns the
-    /// opening task and marks item 0x101 seen), 3 after the opening CAP reports key 2
-    /// and the warp to the cafeteria starts.
-    GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE = 0x008,
     /// Bitmask of one-shot security-monitor events: bit 0 once camera view 0xB has been
     /// shown (starts CAP slot 0xD), bit 1 once camera view 0xA's enemy scene has played
     /// (actor_311900 sets it, and is torn down on later loads).

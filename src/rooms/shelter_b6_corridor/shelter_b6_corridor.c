@@ -898,7 +898,7 @@ static s32 _shelterB6CorridorStartBattleEndScene(Task* unusedTask, s32 unusedMes
     enum { SHELTER_B6_CORRIDOR_OBJECTIVE_AFTER_BATTLE = 0x2F };
 
     evsStartScriptWithSkip(_gShelterB6CorridorBattleEndScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gShelterB6CorridorBattleEndSkipScript);
-    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_B6_CORRIDOR_OBJECTIVE_AFTER_BATTLE);
+    gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, SHELTER_B6_CORRIDOR_OBJECTIVE_AFTER_BATTLE);
     return 0;
 }
 

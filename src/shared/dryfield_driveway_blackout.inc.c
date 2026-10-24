@@ -16,7 +16,7 @@ static void _drivewayBlackoutTask(Task* task)
         gGameSession->hideHud     = 1;
         gPlayerActorStateTickHeld = PLAYER_ACTOR_STATE_TICK_HELD;
         SetDispMask(0);
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, DRIVEWAY_BLACKOUT_OBJECTIVE_BYTE);
+        gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, DRIVEWAY_BLACKOUT_OBJECTIVE_BYTE);
         evsStartScriptWithSkip(DRIVEWAY_BLACKOUT_SCRIPT, EVENT_SCRIPT_HUD_HIDE_RESTORE, DRIVEWAY_BLACKOUT_SKIP_SCRIPT);
     } else {
         taskKill(task);

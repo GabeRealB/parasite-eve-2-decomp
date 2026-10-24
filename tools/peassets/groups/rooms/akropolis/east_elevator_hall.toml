@@ -17,45 +17,17 @@ sha1 = "8ef57e20d7dfa9e5261af5d4e0243599b32e86ca"
 
 [package]
 type = "room"
-package_name = "acropolis_east_elevator_hall"
+embedded = [
+    { name = "opening_player_lead_in", offset = 0x026E8, size = 0x7F8, address = 0x8017FCA8 },
+    { name = "opening_player_main", offset = 0x02EE0, size = 0x496C, address = 0x801804A0 },
+    { name = "opening_player_exit", offset = 0x0784C, size = 0xDDC, address = 0x80184E0C },
+    { name = "opening_player_main_bank", offset = 0x08628, size = 0x8, address = 0x80185BE8 },
+    { name = "opening_player_lead_in_bank", offset = 0x08630, size = 0x8, address = 0x80185BF0 },
+    { name = "opening_player_exit_bank", offset = 0x08638, size = 0x8, address = 0x80185BF8 },
+]
+package_name = "akropolis_east_elevator_hall"
 required = true
 sha1 = "6978f029f6cf48bf1eb3c954976f25a1140dd2be"
-
-[[package.embedded]]
-name = "acropolis_east_elevator_hall_opening_player_lead_in_anim_01"
-offset = 0x026E8
-size = 0x7F8
-address = 0x8017FCA8
-
-[[package.embedded]]
-name = "acropolis_east_elevator_hall_opening_player_main_anim_01"
-offset = 0x02EE0
-size = 0x496C
-address = 0x801804A0
-
-[[package.embedded]]
-name = "acropolis_east_elevator_hall_opening_player_exit_anim_01"
-offset = 0x0784C
-size = 0xDDC
-address = 0x80184E0C
-
-[[package.embedded]]
-name = "acropolis_east_elevator_hall_opening_player_main_bank"
-offset = 0x08628
-size = 0x8
-address = 0x80185BE8
-
-[[package.embedded]]
-name = "acropolis_east_elevator_hall_opening_player_lead_in_bank"
-offset = 0x08630
-size = 0x8
-address = 0x80185BF0
-
-[[package.embedded]]
-name = "acropolis_east_elevator_hall_opening_player_exit_bank"
-offset = 0x08638
-size = 0x8
-address = 0x80185BF8
 
 [package.entries]
 markers = [{ at = 0x00028, single = true }]
@@ -479,48 +451,48 @@ sha1 = "2240fc6a02da69be9bd08ca02f3514171bc7a08a"
 type = "clip"
 rig = "characters/swat_member_2/rig"
 
+[opening_player_exit]
+type = "clip"
+rig = "characters/aya/rig"
+
+[opening_player_main]
+type = "clip"
+rig = "characters/aya/rig"
+
 [swat_watch_your_back]
 type = "clip"
 rig = "characters/swat_member_2/rig"
 
-[acropolis_east_elevator_hall_opening_player_exit_bank]
-type = "animation_bank"
-clips = { slot_1 = "rooms/akropolis/east_elevator_hall/acropolis_east_elevator_hall_opening_player_exit_anim_01" }
-schema = "rooms/akropolis/east_elevator_hall/acropolis_east_elevator_hall_opening_player_exit_schema"
-symbol = "_gAcropolisEastElevatorHallOpeningPlayerExitAnimationSets"
-
-[acropolis_east_elevator_hall_opening_player_main_bank]
-type = "animation_bank"
-clips = { slot_1 = "rooms/akropolis/east_elevator_hall/acropolis_east_elevator_hall_opening_player_main_anim_01" }
-schema = "rooms/akropolis/east_elevator_hall/acropolis_east_elevator_hall_opening_player_main_schema"
-symbol = "_gAcropolisEastElevatorHallOpeningPlayerMainAnimationSets"
-
-[acropolis_east_elevator_hall_opening_player_exit_schema]
-type = "animation_schema"
-slots = ["", "slot_1"]
-
-[acropolis_east_elevator_hall_opening_player_main_schema]
-type = "animation_schema"
-slots = ["", "slot_1"]
-
-[acropolis_east_elevator_hall_opening_player_exit_anim_01]
+[opening_player_lead_in]
 type = "clip"
 rig = "characters/aya/rig"
 
-[acropolis_east_elevator_hall_opening_player_lead_in_bank]
+[opening_player_exit_bank]
 type = "animation_bank"
-clips = { slot_1 = "rooms/akropolis/east_elevator_hall/acropolis_east_elevator_hall_opening_player_lead_in_anim_01" }
-schema = "rooms/akropolis/east_elevator_hall/acropolis_east_elevator_hall_opening_player_lead_in_schema"
-symbol = "_gAcropolisEastElevatorHallOpeningPlayerLeadInAnimationSets"
+clips = { slot_1 = "rooms/akropolis/east_elevator_hall/opening_player_exit" }
+schema = "rooms/akropolis/east_elevator_hall/opening_player_exit_schema"
+symbol = "_gAkropolisEastElevatorHallOpeningPlayerExitAnimationSets"
 
-[acropolis_east_elevator_hall_opening_player_main_anim_01]
-type = "clip"
-rig = "characters/aya/rig"
+[opening_player_main_bank]
+type = "animation_bank"
+clips = { slot_1 = "rooms/akropolis/east_elevator_hall/opening_player_main" }
+schema = "rooms/akropolis/east_elevator_hall/opening_player_main_schema"
+symbol = "_gAkropolisEastElevatorHallOpeningPlayerMainAnimationSets"
 
-[acropolis_east_elevator_hall_opening_player_lead_in_schema]
+[opening_player_exit_schema]
 type = "animation_schema"
 slots = ["", "slot_1"]
 
-[acropolis_east_elevator_hall_opening_player_lead_in_anim_01]
-type = "clip"
-rig = "characters/aya/rig"
+[opening_player_main_schema]
+type = "animation_schema"
+slots = ["", "slot_1"]
+
+[opening_player_lead_in_bank]
+type = "animation_bank"
+clips = { slot_1 = "rooms/akropolis/east_elevator_hall/opening_player_lead_in" }
+schema = "rooms/akropolis/east_elevator_hall/opening_player_lead_in_schema"
+symbol = "_gAkropolisEastElevatorHallOpeningPlayerLeadInAnimationSets"
+
+[opening_player_lead_in_schema]
+type = "animation_schema"
+slots = ["", "slot_1"]

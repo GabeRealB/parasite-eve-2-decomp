@@ -370,7 +370,7 @@ gMapDryfieldHardBattleRewards = 0x8017BD80; // absolute:True owner=map_dryfield 
 gMapDryfieldFullHardBattleRewards = 0x8017D1CC; // absolute:True owner=map_dryfield_full
 gMapShelterHardBattleRewards = 0x8017BD8C; // absolute:True owner=map_shelter shared=mapui
 gMapNeoArkHardBattleRewards = 0x8017CB0C; // absolute:True owner=map_neo_ark
-acropolisEastElevatorHallPointTileTask = 0x8017FAAC; // type:func absolute:True owner=acropolis_east_elevator_hall shared=rooms
+akropolisEastElevatorHallPointTileTask = 0x8017FAAC; // type:func absolute:True owner=akropolis_east_elevator_hall shared=rooms
 func_8011D1E0 = 0x8011D1E0; // type:func absolute:True shared=weapons effect-bank slots 0xBB/0xBD, owner unproven
 gMapAkropolisRoomTaskDescriptors = 0x8017A8AC; // absolute:True owner=map_akropolis
 gMapDryfieldRoomTaskDescriptors = 0x8017A6A4; // absolute:True owner=map_dryfield
@@ -561,9 +561,9 @@ acropolisCafeteriaRoomVisualEffectsTwinTrailTask = 0x801803AC; // type:func abso
 
 acropolisCafeteriaRoomVisualEffectsSparkBurstTask = 0x80180C94; // type:func absolute:True owner=acropolis_cafeteria
 
-acropolisEastElevatorHallReflectionsAndBeaconsTask = 0x8017F5B4; // type:func absolute:True owner=acropolis_east_elevator_hall
+akropolisEastElevatorHallReflectionsAndBeaconsTask = 0x8017F5B4; // type:func absolute:True owner=akropolis_east_elevator_hall
 
-acropolisEastElevatorHallRedBeaconTask = 0x8017F77C; // type:func absolute:True owner=acropolis_east_elevator_hall shared=rooms
+akropolisEastElevatorHallRedBeaconTask = 0x8017F77C; // type:func absolute:True owner=akropolis_east_elevator_hall shared=rooms
 
 acropolisFireEscapeFlickerLightTask = 0x80180154; // type:func absolute:True owner=acropolis_fire_escape
 
@@ -1395,7 +1395,7 @@ gShelterB1ArmoryShopSessionTaskDesc = 0x801824D0; // absolute:True owner=shelter
 
 gAcropolisCafeteriaAreaVariants = 0x80189DCC; // absolute:True owner=acropolis_cafeteria
 
-gAcropolisEastElevatorHallAreaVariants = 0x80186C50; // absolute:True owner=acropolis_east_elevator_hall
+gAkropolisEastElevatorHallAreaVariants = 0x80186C50; // absolute:True owner=akropolis_east_elevator_hall
 
 gAcropolisFireEscapeAreaVariants = 0x8018294C; // absolute:True owner=acropolis_fire_escape
 
@@ -1729,7 +1729,7 @@ mistShootingGalleryOpenCarryoverModeMenu = 0x8017FBD8; // type:func absolute:Tru
 
 akropolisSquarePlayerReflectionTask = 0x8017F41C; // type:func absolute:True owner=akropolis_square
 
-acropolisEastElevatorHallPlayerReflectionTask = 0x8017F2F8; // type:func absolute:True owner=acropolis_east_elevator_hall
+akropolisEastElevatorHallPlayerReflectionTask = 0x8017F2F8; // type:func absolute:True owner=akropolis_east_elevator_hall
 
 acropolisWestElevatorHallPlayerReflectionTask = 0x8017F304; // type:func absolute:True owner=acropolis_west_elevator_hall
 

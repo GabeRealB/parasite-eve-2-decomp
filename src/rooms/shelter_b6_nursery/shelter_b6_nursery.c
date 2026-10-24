@@ -1085,7 +1085,7 @@ static s32 _shelterB6NurseryHandleRoomCommand(Task* unusedTask, s32 messageId, s
             if (gameFlagGetNibble(GAME_FLAG_083) != 0) {
                 areaSetObjectState(SHELTER_B6_NURSERY_PROGRESS_OBJECT_ID, SHELTER_B6_NURSERY_PROGRESS_OBJECT_STATE, GAME_STAGE_MINE_SHELTER);
             }
-            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_B6_NURSERY_OBJECTIVE_AFTER_COMMAND);
+            gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, SHELTER_B6_NURSERY_OBJECTIVE_AFTER_COMMAND);
             gameFlagSetNibble(GAME_FLAG_B6_NURSERY_PROGRESS, SHELTER_B6_NURSERY_PROGRESS_ADVANCED);
             _shelterB6NurseryStartCommandScene(&_gShelterB6NurseryCutsceneRec.rec,
                                                SHELTER_B6_NURSERY_INITIAL_SCENE_CAP_SLOT,
@@ -1246,7 +1246,7 @@ static void _shelterB6NurseryInitializeRoomTask(Task* task)
         gameFlagSetNibble(GAME_FLAG_B6_NURSERY_PROGRESS, SHELTER_B6_NURSERY_PROGRESS_ENTERED);
         evsStartScriptWithSkip(gActor450800NurseryIntroScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor450800NurseryIntroSkipScript);
         gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_B6_NURSERY_OBJECTIVE_ON_ENTRY);
+        gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, SHELTER_B6_NURSERY_OBJECTIVE_ON_ENTRY);
     } else if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == SHELTER_B6_NURSERY_PROGRESS_ENTERED) {
         evsStartScript(gActor450800NurseryReentryScript, EVENT_SCRIPT_HUD_KEEP);
     } else {

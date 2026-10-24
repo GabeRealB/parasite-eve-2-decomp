@@ -1976,7 +1976,7 @@ static void _actor215100GalleryIntroTask(Task* task)
             gGameSession->hideHud = 1;
             if (gameFlagGetNibble(GAME_FLAG_SHOOTING_GALLERY_INTRO_SEEN) == 0) {
                 gameFlagSetNibble(GAME_FLAG_SHOOTING_GALLERY_INTRO_SEEN, 1);
-                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACTOR_215100_GALLERY_INTRO_OBJECTIVE);
+                gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, ACTOR_215100_GALLERY_INTRO_OBJECTIVE);
                 evsStartScriptWithSkip(_gActor215100GalleryIntroScript, EVENT_SCRIPT_HUD_KEEP, _gActor215100GalleryIntroSkipScript);
                 task->state++;
             } else {

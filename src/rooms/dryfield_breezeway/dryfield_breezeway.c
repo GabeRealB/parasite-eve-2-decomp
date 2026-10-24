@@ -533,7 +533,7 @@ s32 dryfieldBreezewayResolveRoomEventMessage(Task* unusedTask, s32 unusedMessage
             result                     = _roomEventGate(&eventRequest, reply);
             if (gRoomEventActive != 0) {
                 gameFlagSetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS, DRYFIELD_BREEZEWAY_DOOR_UNLOCKED);
-                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, DRYFIELD_BREEZEWAY_OBJECTIVE_AFTER_FACTORY_UNLOCK);
+                gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, DRYFIELD_BREEZEWAY_OBJECTIVE_AFTER_FACTORY_UNLOCK);
             }
             return result;
         }

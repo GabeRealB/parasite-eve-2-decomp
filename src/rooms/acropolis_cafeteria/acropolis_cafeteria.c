@@ -24,6 +24,7 @@
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
 #include "gameplay/actor_presentation.h"
+#include "gameplay/game_debug.h"
 #include "gameplay/gameflag.h"
 #include "gameplay/collision.h"
 #include "gameplay/companion_load.h"
@@ -68,9 +69,6 @@
 
 #define ROOM_PART declarations_acropolis_cafeteria
 #include "assets/rooms/akropolis/cafeteria/declarations.inc"
-
-extern void func_807245E4(void*);
-extern void func_80724608(void*, s32, s32, void*);
 
 static void       _acropolisCafeteriaTickPlayerDebug(Task* task);
 static void       _acropolisCafeteriaInitRoom(Task* task);
@@ -702,7 +700,7 @@ static void _acropolisCafeteriaBattleSceneTask(Task* task)
             break;
         case ACROPOLIS_CAFETERIA_BATTLE_WAIT_PLAYER_ANIMATION:
             if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
-                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 3);
+                gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, 3);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 taskKill(task);
             }
@@ -734,7 +732,7 @@ static inline void _acropolisCafeteriaCommitFollowUpDeparture(Task* task)
     gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_BOSS_REPORT, 1);
     areaApplySavedUpdates(gAcropolisCafeteriaFollowUpAreaUpdates);
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ACROPOLIS_CAFETERIA_FOLLOW_UP_SCENE_EVENT;
-    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACROPOLIS_CAFETERIA_FOLLOW_UP_OBJECTIVE);
+    gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, ACROPOLIS_CAFETERIA_FOLLOW_UP_OBJECTIVE);
     func_800ABFF8();
     func_800AC000();
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);

@@ -301,7 +301,7 @@ void acropolisHelicopterLandingPadUpdateEncounterPhase(Task* unusedTask)
                 gAcropolisHelicopterLandingPadEncounterPhase = ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_FINISHED;
                 evsStartScriptWithSkip(gAcropolisHelicopterLandingPadEncounterEndingScript, EVENT_SCRIPT_HUD_HIDE_RESTORE,
                                        gAcropolisHelicopterLandingPadEncounterEndingSkipScript);
-                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACROPOLIS_HELICOPTER_LANDING_PAD_POST_ENCOUNTER_OBJECTIVE);
+                gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, ACROPOLIS_HELICOPTER_LANDING_PAD_POST_ENCOUNTER_OBJECTIVE);
             }
         }
     }

@@ -1649,7 +1649,7 @@ static s32 _mistShootingGalleryHandleRoomAction(Task* unusedTask, s32 messageId,
         actor215100HandleGalleryAction();
     }
     if ((request->actionId == MIST_SHOOTING_GALLERY_ACTION_STORY_EVENT) && (gameFlagGetNibble(GAME_FLAG_SHOOTING_GALLERY_ACTION_4_SEEN) == 0)) {
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, MIST_SHOOTING_GALLERY_STORY_OBJECTIVE);
+        gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, MIST_SHOOTING_GALLERY_STORY_OBJECTIVE);
         gameFlagSetNibble(GAME_FLAG_SHOOTING_GALLERY_ACTION_4_SEEN, 1);
         evsStartScriptWithSkip(gActor215100PierceStoryScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor215100PierceStorySkipScript);
     }

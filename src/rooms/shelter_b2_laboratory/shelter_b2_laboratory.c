@@ -1294,9 +1294,9 @@ static s32 _shelterB2LaboratoryCommandMessage(Task* unusedTask, s32 messageId, s
             gameFlagSetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_017, SHELTER_B2_LABORATORY_PROGRESS_FLAG_SET);
             gameFlagSetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_018, SHELTER_B2_LABORATORY_PROGRESS_FLAG_SET);
             if (gameFlagGetNibble(GAME_FLAG_083) != 0) {
-                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_B2_LABORATORY_OBJECTIVE_ROUTE_SET);
+                gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, SHELTER_B2_LABORATORY_OBJECTIVE_ROUTE_SET);
             } else {
-                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_B2_LABORATORY_OBJECTIVE_ROUTE_CLEAR);
+                gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, SHELTER_B2_LABORATORY_OBJECTIVE_ROUTE_CLEAR);
             }
             _gShelterB2LaboratoryConsoleCutsceneRec.rec.view      = SHELTER_B2_LABORATORY_SCENE_VIEW;
             _gShelterB2LaboratoryConsoleCutsceneRec.rec.capSlot   = SHELTER_B2_LABORATORY_CAP_COMPLETED_SCENE_SLOT;

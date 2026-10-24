@@ -6435,8 +6435,8 @@ TREE = {
                 'file14': {"id": 14, "chunks": {'view14_background': 'rooms/akropolis/square/view14_background'}},
                 'file15': {"id": 15, "chunks": {'view15_image': 'rooms/akropolis/square/view15_image', 'view15_clut': 'rooms/akropolis/square/view15_clut', 'bs_55': 'rooms/akropolis/square/view15_background'}},
             }},
-            'acropolis_east_elevator_hall': {"id": 201, "files": {
-                'file0': {"id": 0, "chunks": {'spk_154': 'rooms/akropolis/east_elevator_hall/sounds_0', 'spk_155': 'rooms/akropolis/east_elevator_hall/sounds_1', 'acropolis_east_elevator_hall_dialogue_0_atlas': 'rooms/akropolis/east_elevator_hall/dialogue_0_atlas', 'package': 'rooms/akropolis/east_elevator_hall/package', 'bundle': 'rooms/akropolis/east_elevator_hall/bundle'}},
+            'akropolis_east_elevator_hall': {"id": 201, "files": {
+                'file0': {"id": 0, "chunks": {'spk_154': 'rooms/akropolis/east_elevator_hall/sounds_0', 'spk_155': 'rooms/akropolis/east_elevator_hall/sounds_1', 'akropolis_east_elevator_hall_dialogue_0_atlas': 'rooms/akropolis/east_elevator_hall/dialogue_0_atlas', 'package': 'rooms/akropolis/east_elevator_hall/package', 'bundle': 'rooms/akropolis/east_elevator_hall/bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_56': 'rooms/akropolis/east_elevator_hall/view1_background'}},
                 'file2': {"id": 2, "chunks": {'pe2img_313': 'rooms/akropolis/east_elevator_hall/view2_image', 'bs_57': 'rooms/akropolis/east_elevator_hall/view2_background'}},
                 'file3': {"id": 3, "chunks": {'pe2img_314': 'rooms/akropolis/east_elevator_hall/view3_image', 'bs_58': 'rooms/akropolis/east_elevator_hall/view3_background'}},

@@ -1637,7 +1637,7 @@ s32 dryfieldWaterTankHandleRoomAction(Task* task, s32 messageId, const Direction
     }
     if ((request->actionId == DRYFIELD_WATER_TANK_ACTION_PLAYER_PATH_SCENE) && (gameFlagGetNibble(GAME_FLAG_WATER_TANK_SCENE_SEEN) == 0)) {
         gameFlagSetNibble(GAME_FLAG_WATER_TANK_SCENE_SEEN, 1);
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, DRYFIELD_WATER_TANK_PLAYER_PATH_SCENE_OBJECTIVE);
+        gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, DRYFIELD_WATER_TANK_PLAYER_PATH_SCENE_OBJECTIVE);
         gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
         gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, DRYFIELD_WATER_TANK_PLAYER_PATH_SCENE_DIALOGUE);
         areaApplySavedUpdates(_gDryfieldWaterTankPlayerPathSceneAreaUpdates);

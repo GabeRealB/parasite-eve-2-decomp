@@ -1266,7 +1266,7 @@ static void _actor335800StopStageMusic(s32 fadeTicks)
 static void _actor335800SetPostSceneObjective(void)
 {
     enum { ACTOR_335800_POST_SCENE_OBJECTIVE = 24 };
-    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACTOR_335800_POST_SCENE_OBJECTIVE);
+    gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, ACTOR_335800_POST_SCENE_OBJECTIVE);
 }
 
 /// Locks attachment commands for the scene and requests cancellation of room effects.

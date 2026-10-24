@@ -1143,14 +1143,15 @@ objects = [
   { kind = "collisionSource", at = "0x7BDC", in_c = true, cell_face_list_macro = "AKROPOLIS_SQUARE_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
-[rooms.overlays.acropolis_east_elevator_hall]
+[rooms.overlays.akropolis_east_elevator_hall]
 id = 286
+src = "src/stages/akropolis/rooms/east_elevator_hall"
 objects = [
   { kind = "packageId" },
-  { unit = "acropolis_east_elevator_hall/acropolis_east_elevator_hall", rodata = "0x4", text = "0x30", data = "0x26CC" },
+  { unit = "east_elevator_hall", rodata = "0x4", text = "0x30", data = "0x26CC" },
   { kind = "animation", at = "0x26E8", sets = ["0x2EB8", "0x7824", "0x8600"], in_c = true },
   { kind = "collision", at = "0x8DB8", in_c = true },
-  { kind = "collisionSource", at = "0x9278", in_c = true, cell_face_list_macro = "ACROPOLIS_EAST_ELEVATOR_HALL_CELL_FACE_LIST_AT_OFFSET" },
+  { kind = "collisionSource", at = "0x9278", in_c = true, cell_face_list_macro = "AKROPOLIS_EAST_ELEVATOR_HALL_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.acropolis_patio]

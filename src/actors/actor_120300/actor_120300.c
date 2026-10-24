@@ -1461,7 +1461,7 @@ static void _actor120300BodyTask(Task* task)
                     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &scratch.playerAnimationRequest, 0);
                     gameFlagSetNibble(GAME_FLAG_02C, 1);
                     gameFlagSetNibble(GAME_FLAG_GARAGE_GARY_SCENE_SEEN, 1);
-                    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0xB);
+                    gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, 0xB);
                     evsStartScriptWithSkip(_gActor120300OpeningScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gActor120300OpeningSkipScript);
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 2;
                     task->state                                        += 1;

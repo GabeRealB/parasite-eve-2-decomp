@@ -608,7 +608,7 @@ static void _actor120500SceneTask(Task* task)
 
                 _actor120500InitBody(task);
                 _actor120500BlendPlayerWeaponPose();
-                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACTOR_120500_SCENE_OBJECTIVE);
+                gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, ACTOR_120500_SCENE_OBJECTIVE);
                 evsStartScriptWithSkip(_gActor120500MotelSceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gActor120500MotelSceneSkipScript);
                 task->state += 1;
                 break;

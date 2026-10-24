@@ -232,7 +232,7 @@ extern UiList gItemMenuPeElementLists[4];
 
 /// Current-objective byte latched as the map Help display-resource file index.
 ///
-/// Starts at 1; opening Help replaces it with `GAME_FLAG_CURRENT_OBJECTIVE`'s
+/// Starts at 1; opening Help replaces it with `EVENT_FLAG_CURRENT_OBJECTIVE`'s
 /// whole byte. Resource group 8 loads file 20800 + this byte, which must exist.
 /// It remains valid throughout the child's asynchronous load; no resource-range
 /// check is made.

@@ -145,8 +145,8 @@ static s32 _shelterB2BreedingRoomCommandMessage(Task* task, s32 messageId, s32 c
         } else {
             // Bookkeeping precedes playback and is retained if the completion spawn fails.
             gameFlagSetNibble(GAME_FLAG_BREEDING_ROOM_FIRST_SCENE_SEEN, SHELTER_B2_BREEDING_ROOM_FIRST_SCENE_SEEN);
-            if (gameFlagGetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE) == SHELTER_B2_BREEDING_ROOM_OBJECTIVE_BEFORE_SCENE) {
-                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_B2_BREEDING_ROOM_OBJECTIVE_AFTER_SCENE);
+            if (gameFlagGetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE) == SHELTER_B2_BREEDING_ROOM_OBJECTIVE_BEFORE_SCENE) {
+                gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, SHELTER_B2_BREEDING_ROOM_OBJECTIVE_AFTER_SCENE);
             }
             gCapFile = NULL;
             capSelectLoadedFile(SHELTER_B2_BREEDING_ROOM_CAP_FILE);

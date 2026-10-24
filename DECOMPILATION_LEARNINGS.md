@@ -7540,7 +7540,7 @@ each half. The source is a whole-struct assignment of an `SVECTOR`-shaped
 type (four `s16`, so alignment 2), *not* four field stores:
 
 ```c
-SVECTOR vec = _gAcropolisEastElevatorHallFirstBeaconOffset;
+SVECTOR vec = _gAkropolisEastElevatorHallFirstBeaconOffset;
 ```
 
 An aggregate initializer (`SVECTOR vec = { 0x1600, -0x964, 0x540, 0 };`)
@@ -7552,7 +7552,7 @@ Referencing the existing symbol as an `extern` avoids the cut entirely, and
 matches how these overlays already reference their compiler-generated
 string literals.
 
-`acropolisEastElevatorHallReflectionsAndBeaconsTask` is the example.
+`akropolisEastElevatorHallReflectionsAndBeaconsTask` is the example.
 
 ## A `MATRIX` struct assignment is a rotating 4-register block move, not 8 scalar copies
 
@@ -53326,7 +53326,7 @@ order before reshaping the ranges.
 
 ## `local_alloc` and `global_alloc` rank by the same formula, in the same direction
 
-`acropolisEastElevatorHallPointTileTask` projects one view-space point through
+`akropolisEastElevatorHallPointTileTask` projects one view-space point through
 `GsWSMATRIX` into a 0xC-byte `SCRATCH_STACK_CURSOR_SLOT` block and links a `TILE_1` into
 the OT. The unpinned C scored 99.6% with `regs=9`, and the whole diff was two
 block-local pointers trading registers: the scratch pointer wanted `$v1` and got
@@ -91730,7 +91730,7 @@ move   a2,a1                           move   a2,a1
 `Penalties: regs=1`, structure match, 0 of 12 instructions differing otherwise.
 Spelling out the two leading parameters the body never reads -
 `s32 f(s32 index, s32 value, s32 arg2)`, the shape the sibling
-`_acropolisEastElevatorHallHandleCommandMessage` already uses, whose asm is
+`_akropolisEastElevatorHallHandleCommandMessage` already uses, whose asm is
 instruction-for-instruction the same modulo the callee - moves the compare to
 `$a2` and scores 100.000% with no other change. The `move a0,v0` / `move a2,a1`
 argument setup is not a hint that the source reuses a variable: cse is reusing

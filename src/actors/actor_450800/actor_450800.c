@@ -1933,7 +1933,7 @@ void actor450800StartNurseryInteraction(void)
                 } else {
                     evsStartScript(_gActor450800NurseryFirstVisitDialogue7Script, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                 }
-                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACTOR_450800_NURSERY_OBJECTIVE);
+                gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, ACTOR_450800_NURSERY_OBJECTIVE);
             } else {
                 evsStartScript(_gActor450800NurseryLaterVisitDialogueScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             }

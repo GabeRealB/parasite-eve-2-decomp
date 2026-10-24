@@ -505,7 +505,7 @@ static void _actor143000TerminalSessionTask(Task* task)
         case ACTOR_143000_TERMINAL_STATE_WAIT_SUCCESS:
             if (capIsBusy() == 0) {
                 capReset();
-                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACTOR_143000_TERMINAL_COMPLETE_OBJECTIVE);
+                gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, ACTOR_143000_TERMINAL_COMPLETE_OBJECTIVE);
                 gameFlagSetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS, ACTOR_143000_TERMINAL_PROGRESS_COMPLETE);
                 gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 0);
                 areaApplySavedUpdates(gShelterB2LaboratoryQuizCompletionAreaUpdates);

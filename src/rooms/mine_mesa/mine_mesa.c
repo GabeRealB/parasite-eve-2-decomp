@@ -3554,7 +3554,7 @@ static void _mineMesaUpdateRoomEventsState(Task* task)
             if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
                 evsStartScriptWithSkip(_gMineMesaArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gMineMesaArrivalSkipScript);
             }
-            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, OBJECTIVE_MESA_ARRIVAL);
+            gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, OBJECTIVE_MESA_ARRIVAL);
             gameFlagSetNibble(GAME_FLAG_MINE_MESA_ARRIVAL_SEEN, ARRIVAL_SEEN);
             return;
         }
@@ -3683,7 +3683,7 @@ static s32 _mineMesaRoomActionMsg(Task* task, s32 messageId, const DirectionActi
                 if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
                     evsStartScript(_gMineMesaBeginBattleScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                 }
-                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, OBJECTIVE_MESA_BATTLE);
+                gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, OBJECTIVE_MESA_BATTLE);
                 gameFlagSetNibble(GAME_FLAG_MINE_MESA_TRIGGER_1_SEEN, EVENT_SEEN);
                 _mineMesaUnlinkBattleTriggers();
             }

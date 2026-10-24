@@ -1069,7 +1069,7 @@ static void _dryfieldGasStationArrivalCutsceneTask(Task* task)
                     _gDryfieldGasStationArrivalCutsceneTask = task;
                 }
                 _dryfieldGasStationInstallInitialPlayerAnimation(task);
-                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, DRYFIELD_GAS_STATION_ARRIVAL_OBJECTIVE);
+                gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, DRYFIELD_GAS_STATION_ARRIVAL_OBJECTIVE);
                 evsStartScriptWithSkip(_gDryfieldGasStationArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE,
                                        _gDryfieldGasStationArrivalSkipScript);
                 task->state = task->state + 1;

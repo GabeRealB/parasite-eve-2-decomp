@@ -1213,7 +1213,7 @@ static void _neoArkPowerPlant2UpdateRoom(Task* unusedTask)
                 areaApplySavedUpdates(_gNeoArkPowerPlant2GeneratorClearExtraAreaUpdates);
             }
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = GENERATOR_CLEAR_SCENE_EVENT;
-            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, OBJECTIVE_AFTER_CLEAR);
+            gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, OBJECTIVE_AFTER_CLEAR);
             gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
             gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, DIALOGUE_AFTER_CLEAR);
             evsStartScriptWithSkip(_gNeoArkPowerPlant2GeneratorClearScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gNeoArkPowerPlant2GeneratorClearSkipScript);

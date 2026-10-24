@@ -224,7 +224,7 @@ static void _shelterB1ElevatorHallInitRoomTask(Task* task)
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_ELEVATOR_HALL_VISITED) == ROOM_UNVISITED) {
         gameFlagSetNibble(GAME_FLAG_SHELTER_B1_ELEVATOR_HALL_VISITED, ROOM_VISITED);
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, FIRST_VISIT_OBJECTIVE);
+        gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, FIRST_VISIT_OBJECTIVE);
     }
     task->state++;
 }

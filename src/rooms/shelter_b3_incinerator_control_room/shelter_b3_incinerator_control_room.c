@@ -253,7 +253,7 @@ static void _shelterB3IncineratorControlRoomInitializeRoom(Task* task)
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
     if (gGameSession->location.warp == SHELTER_B3_INCINERATOR_CONTROL_ROOM_INCINERATOR_ARRIVAL) {
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_ARRIVAL_OBJECTIVE);
+        gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_ARRIVAL_OBJECTIVE);
         areaApplySavedUpdates(gShelterB3IncineratorControlRoomArrivalSavedUpdates);
         companionRestoreFullHp();
         evsStartScriptWithSkip(gActor142600IncineratorArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor142600IncineratorArrivalSkipScript);

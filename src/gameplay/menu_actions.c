@@ -43,7 +43,7 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-#include "rooms/acropolis_east_elevator_hall.h"
+#include "rooms/akropolis_east_elevator_hall.h"
 
 #include "rooms/akropolis_square.h"
 
@@ -1103,7 +1103,7 @@ void planarReflectionDispatchPlayerTask(Task* reflectionTask)
             akropolisSquarePlayerReflectionTask(reflectionTask);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_EAST_ELEVATOR_HALL, 0, 0):
-            acropolisEastElevatorHallPlayerReflectionTask(reflectionTask);
+            akropolisEastElevatorHallPlayerReflectionTask(reflectionTask);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_WEST_ELEVATOR_HALL, 0, 0):
             acropolisWestElevatorHallPlayerReflectionTask(reflectionTask);
@@ -1253,7 +1253,7 @@ void menuMapNavigateTask(Task* mapTask)
         }
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             // Latch the objective text selector before its child starts loading.
-            gMenuMapHelpFileIndex = gameFlagGetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE);
+            gMenuMapHelpFileIndex = gameFlagGetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE);
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             uiSpawnObject(&gMenuMapHelpPanelDesc, 0, USER_INTERFACE_PANEL_ACTIVE, MENU_MAP_HELP_OPEN_DELAY_TICKS, mapObject);
             mapObject->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -1721,7 +1721,7 @@ static s32 _menuMapDrawAreaIcons(const Task* task, u8 area, u8 unvisited)
             break;
         }
         if (icons[iconIndex].kind == MENU_MAP_ICON_KIND_OBJECTIVE) {
-            if (icons[iconIndex].condition != gameFlagGetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE)) {
+            if (icons[iconIndex].condition != gameFlagGetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE)) {
                 iconIndex++;
                 continue;
             }

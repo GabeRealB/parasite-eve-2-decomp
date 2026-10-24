@@ -3202,7 +3202,7 @@ static void _dryfieldNightGasStationInitializeRoomTask(Task* task)
     }
     if (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_FIRST_VISIT) == 0) {
         gameFlagSetNibble(GAME_FLAG_NIGHT_GAS_STATION_FIRST_VISIT, 1);
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, DRYFIELD_NIGHT_GAS_STATION_INTRO_OBJECTIVE);
+        gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, DRYFIELD_NIGHT_GAS_STATION_INTRO_OBJECTIVE);
         gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, DRYFIELD_NIGHT_GAS_STATION_COMPANION_INTRO_SCHEDULE);
         _dryfieldNightGasStationClearCutsceneTaskHandles();
         if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
@@ -3359,7 +3359,7 @@ static void _dryfieldNightGasStationStartJerryCanCutsceneTask(Task* task)
     SetDispMask(0);
     inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_JERRY_CAN);
     evsStartScriptWithSkip(_gDryfieldNightGasStationJerryCanScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gDryfieldNightGasStationJerryCanSkipScript);
-    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, DRYFIELD_NIGHT_GAS_STATION_JERRY_CAN_OBJECTIVE);
+    gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, DRYFIELD_NIGHT_GAS_STATION_JERRY_CAN_OBJECTIVE);
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = DRYFIELD_NIGHT_GAS_STATION_JERRY_CAN_AUDIO_EVENT;
     taskKill(task);
 }

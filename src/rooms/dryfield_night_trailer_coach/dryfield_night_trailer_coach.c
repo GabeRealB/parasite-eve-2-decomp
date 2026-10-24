@@ -1109,8 +1109,8 @@ static void _dryfieldNightTrailerCoachInitRoomTask(Task* task)
         evsStartScriptWithSkip(gDryfieldNightTrailerCoachWarp3ArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gDryfieldNightTrailerCoachWarp3ArrivalSkipScript);
         areaSetCurrentObjectState(DRYFIELD_NIGHT_TRAILER_COACH_ARRIVAL_OBJECT, 1);
     }
-    if (gameFlagGetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE) == DRYFIELD_NIGHT_TRAILER_COACH_OBJECTIVE_BEFORE_ENTRY) {
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, DRYFIELD_NIGHT_TRAILER_COACH_OBJECTIVE_AFTER_ENTRY);
+    if (gameFlagGetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE) == DRYFIELD_NIGHT_TRAILER_COACH_OBJECTIVE_BEFORE_ENTRY) {
+        gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, DRYFIELD_NIGHT_TRAILER_COACH_OBJECTIVE_AFTER_ENTRY);
     }
     gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_8X;
     // The indirect state store keeps the initial depth-scale write ordered.
@@ -1170,7 +1170,7 @@ static void _dryfieldNightTrailerCoachTalkTask(Task* task)
                     areaApplySavedUpdates(gDryfieldNightTrailerCoachStoryAreaUpdates);
                     evsStartScriptWithSkip(gDryfieldNightTrailerCoachStoryScript, EVENT_SCRIPT_HUD_KEEP,
                                            gDryfieldNightTrailerCoachStorySkipScript);
-                    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, DRYFIELD_NIGHT_TRAILER_COACH_STORY_OBJECTIVE);
+                    gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, DRYFIELD_NIGHT_TRAILER_COACH_STORY_OBJECTIVE);
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = DRYFIELD_NIGHT_TRAILER_COACH_STORY_SOUND_EVENT;
                 } else {
                     evsStartScript(gDryfieldNightTrailerCoachStoryRepeatScript, EVENT_SCRIPT_HUD_KEEP);

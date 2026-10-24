@@ -95,7 +95,7 @@ s32 ROOM_VARIANT_MOTEL_BALCONY_DOORS_MSG(Task* task, s32 messageId, const RoomEv
         if (ROOM_EVENT_ACTIVE != 0) {
             gameFlagSetNibble(GAME_FLAG_030, 1);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ROOM_VARIANT_MOTEL_ROOM_6_SCENE_EVENT;
-            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ROOM_VARIANT_MOTEL_ROOM_6_OBJECTIVE);
+            gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, ROOM_VARIANT_MOTEL_ROOM_6_OBJECTIVE);
         }
     } else {
         return ROOM_VARIANT_TRANSITION_DIRECT;

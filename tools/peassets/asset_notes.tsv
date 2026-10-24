@@ -24,8 +24,8 @@ acropolis_cafeteria_model_09090	No reached use found: third body of the cafeteri
 acropolis_cafeteria_model_09A20	No reached use found: fourth body of the cafeteria's loose-prop task (bank 7 slot 163); no spawn found.	
 acropolis_cafeteria_model_0F7A4	Stim pickup model placed in the Akropolis cafeteria by map_akropolis's object table, drawn only in mapped view 9 until collected.	
 rooms/akropolis/cafeteria/acropolis_cafeteria_model_0FDFC	Mendel journal pickup model placed in the Akropolis cafeteria by map_akropolis's object table, hidden once collected.	
-acropolis_east_elevator_hall_animation_026E8	Three scripted player clips of the east elevator hall's first-visit opening event (short entry, long conversation with the SWAT member, closing), installed and played by the event script.	
-acropolis_east_elevator_hall_collision_08DB8	Collision grid of the Akropolis east elevator hall, read by gameplay's world collision for the whole stay.	
+akropolis_east_elevator_hall_animation_026E8	Three scripted player clips of the east elevator hall's first-visit opening event (short entry, long conversation with the SWAT member, closing), installed and played by the event script.	
+akropolis_east_elevator_hall_collision_08DB8	Collision grid of the Akropolis east elevator hall, read by gameplay's world collision for the whole stay.	
 acropolis_fire_escape_collision_048B4	Collision grid of the Akropolis fire escape; its first normal, four vertices and face are overwritten by the placed Stranger enemies/stranger/lesser/package as a barrier and cleared when it dies.	
 acropolis_forked_road_animation_04320	Two player clips the forked road's lock-release event installs as a weapon-bank extension; one is played just before the caterpillars are released, the other has no use found.	
 acropolis_forked_road_collision_04DE0	Collision grid of the Akropolis forked road, bound for all three room indices with its view-boundary and action triggers.	
@@ -770,7 +770,7 @@ rooms/akropolis/square/view15_background	No reached use found: the copy in shelt
 bs_550	No reached use found: background of dryfield_motel_room_5 view 1, the plan view, with no selector in the shipped game.	
 bs_551	Backgrounds of dryfield_motel_room_5 views 2-6, reached from the arrival view 2 through eight boundary triggers; the views have no sprites.	
 bs_556..bs_577	View backgrounds 1-22 of dryfield_motel_balcony: views 2-6 are walked, view 1 is the plan view and views 7-22 have no selector.	
-rooms/akropolis/east_elevator_hall/view1_background..rooms/akropolis/east_elevator_hall/view7_background	View backgrounds 1-7 of acropolis_east_elevator_hall: walked views 2-5, and scene-only views 6 and 7 from caption command 1's opening event.	
+rooms/akropolis/east_elevator_hall/view1_background..rooms/akropolis/east_elevator_hall/view7_background	View backgrounds 1-7 of akropolis_east_elevator_hall: walked views 2-5, and scene-only views 6 and 7 from caption command 1's opening event.	
 bs_562..bs_577	No reached use found: backgrounds of dryfield_motel_balcony views 7-22, sixteen ordinary cameras (ten with sprites) that none of the nine checked paths selects.	
 bs_578..bs_582	View backgrounds of dryfield_motel_room_6 (views 1-5 and 7-12): walked views 2-5, 7, 8, Kyle-scene views 11 and 10, and view 9 by a caption text code.	
 bs_583	No reached use found: background of dryfield_motel_room_6 view 6, which has a camera but no sprites and no selector.	
@@ -1091,7 +1091,7 @@ enemies/chaser/mad/burst_arm	One-part Mad Chaser chunk thrown from body part 8 a
 enemies/chaser/mad/burst_head	One-part Mad Chaser chunk always thrown from body part 6 as a flying body chunk when the enemy dies to a lethal blast.	
 enemies/chaser/mad/burst_tail	One-part Mad Chaser chunk thrown from body part 2 as the alternative second flying body chunk on a lethal blast, when the arm is not thrown.	
 mappic_s1_00	Fifteen flat area-outline model records of the stage 1 page 1 map picture package, drawn by gameplay's map menu over the picture as patterned, dimmed or tinted room shapes.	
-mappic_s1_00_model_00174	Face stream of the flat outline of acropolis_east_elevator_hall on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
+mappic_s1_00_model_00174	Face stream of the flat outline of akropolis_east_elevator_hall on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
 mappic_s1_00_model_00294	Face stream of the flat outline of acropolis_patio on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
 mappic_s1_00_model_00564	Face stream of the flat outline of acropolis_fountain on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
 mappic_s1_00_model_00650	Face stream of the flat outline of acropolis_forked_road on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
@@ -3669,12 +3669,12 @@ rooms/akropolis/square/view8_image	8-bit sheet of the 53 depth-sorted occluder s
 pe2img_31	Two-page 8-bit body and hand texture of the player model in aya_10400 (resource variant 1, set on leaving for the Acropolis); a head rectangle is overwritten by the texture sequences.	
 rooms/akropolis/story_calls_atlas	4-bit caption glyph atlas with name plates for the telephone cutscene's dialogue, brought in as view 9's image in akropolis_square, acropolis_fire_escape and mist_parking.	
 rooms/akropolis/square/view15_image	640x240 8-bit panorama of the square, panned across the screen as three strips by akropolis_square's scrolling backdrop task during the arrival scene (view 15).	
-rooms/akropolis/east_elevator_hall/dialogue_0_atlas	4-bit caption glyph atlas of acropolis_east_elevator_hall's dialogue, drawn by gameplay's caption code whenever the room shows text.	
-rooms/akropolis/east_elevator_hall/view2_image	8-bit sheet of the 39 depth-sorted occluder sprites of acropolis_east_elevator_hall's mapped view 2.	
-rooms/akropolis/east_elevator_hall/view3_image	8-bit sheet of the 41 depth-sorted occluder sprites of acropolis_east_elevator_hall's mapped view 3.	
-rooms/akropolis/east_elevator_hall/view4_image	8-bit sheet of the 38 depth-sorted occluder sprites of acropolis_east_elevator_hall's mapped view 4, the room's arrival view.	
-rooms/akropolis/east_elevator_hall/view5_image	8-bit sheet of the 28 depth-sorted occluder sprites of acropolis_east_elevator_hall's mapped view 5.	
-rooms/akropolis/east_elevator_hall/view7_image	No reached use found: an 8-bit page uploaded with view 7's file in acropolis_east_elevator_hall during the opening event, but nothing in the room references it.	
+rooms/akropolis/east_elevator_hall/dialogue_0_atlas	4-bit caption glyph atlas of akropolis_east_elevator_hall's dialogue, drawn by gameplay's caption code whenever the room shows text.	
+rooms/akropolis/east_elevator_hall/view2_image	8-bit sheet of the 39 depth-sorted occluder sprites of akropolis_east_elevator_hall's mapped view 2.	
+rooms/akropolis/east_elevator_hall/view3_image	8-bit sheet of the 41 depth-sorted occluder sprites of akropolis_east_elevator_hall's mapped view 3.	
+rooms/akropolis/east_elevator_hall/view4_image	8-bit sheet of the 38 depth-sorted occluder sprites of akropolis_east_elevator_hall's mapped view 4, the room's arrival view.	
+rooms/akropolis/east_elevator_hall/view5_image	8-bit sheet of the 28 depth-sorted occluder sprites of akropolis_east_elevator_hall's mapped view 5.	
+rooms/akropolis/east_elevator_hall/view7_image	No reached use found: an 8-bit page uploaded with view 7's file in akropolis_east_elevator_hall during the opening event, but nothing in the room references it.	
 rooms/akropolis/patio/dialogue_0_atlas	4-bit caption glyph atlas of acropolis_patio's dialogue, drawn by gameplay's caption code whenever the room shows text.	
 rooms/akropolis/flare_image	Shared 4-bit sheet of three 40x40 light-glow cells, drawn as flickering additive lamp flares by the room effect tasks of many Acropolis, Dryfield, mine, Neo Ark and Shelter rooms.	
 weapons/p08/snail_preview_image	Item preview picture of weapon 0x80, the P08 with snail magazine, drawn in gameplay's item menu panels when that weapon is selected.	
@@ -4622,7 +4622,7 @@ characters/flint/sounds	Companion actor_800200 sound bank: footsteps for several
 spk_151	Stage ambience bank of map_dryfield_full: one looping outdoor ambience sample started on view loads when the area's music row asks for it; not in the other stage map files.	
 rooms/akropolis/square/sounds_0	Footstep bank of akropolis_square: walk, scripted-jump and run step sounds while the player stands on surface class 4 of the square.	
 rooms/akropolis/square/sounds_1	Acropolis square room sound bank: door sounds of warps 1, 2 and 7, the room cutscene's start/scene/after/end sounds, caption cue sounds and the telephone's rings.	
-rooms/akropolis/east_elevator_hall/sounds_0	Footstep bank of acropolis_east_elevator_hall: walk and run steps (same two samples) while the player is on surface class 0 or 3 of the hall.	
+rooms/akropolis/east_elevator_hall/sounds_0	Footstep bank of akropolis_east_elevator_hall: walk and run steps (same two samples) while the player is on surface class 0 or 3 of the hall.	
 rooms/akropolis/east_elevator_hall/sounds_1	Acropolis east elevator hall room sound bank: arrival and departure sounds of the room's only warp and one three-sample sound started by the first-visit opening event.	
 rooms/akropolis/patio/sounds_0	Footstep bank of acropolis_patio: walk, run and stair-climb step sounds on surface class 4 and the patio's stair flights.	
 rooms/akropolis/patio/sounds_1	Acropolis patio room sound bank: door sounds of warps 1 and 2, the cafeteria door unlock, a caption sound, opening and follow-up scene sounds, and the Strangers' dormant loop (actor packages).	

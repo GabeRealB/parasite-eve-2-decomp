@@ -26,6 +26,7 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/game_debug.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/player_state.h"
 #include "gameplay/collision.h"
@@ -129,8 +130,6 @@ typedef struct {
     s32 rimPhase[16]; // Ripple phase of each outer-ring vertex, wrapped to one period
 } _DryfieldDilapidatedHouseConeWork;
 STATIC_ASSERT_SIZEOF(_DryfieldDilapidatedHouseConeWork, 0x40);
-
-extern void func_80724608(void* owner, s32 arg1, s32 arg2, void* name);
 
 static s32 _gScreenWaveAmplitude;
 

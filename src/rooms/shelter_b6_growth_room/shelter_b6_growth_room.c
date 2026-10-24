@@ -133,7 +133,7 @@ static void _shelterB6GrowthRoomInitializeTask(Task* task)
     evsStartScriptWithSkip(gActor450900EntryScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor450900EntrySkipScript);
     taskSpawnFromTable(gActor450900Tasks, ACTOR_450900_TASK_COMPANION_DISTRESS, 0, 0);
     taskSpawnFromTable(gActor450900Tasks, ACTOR_450900_TASK_PLAYER_REACTION, 0, 0);
-    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_B6_GROWTH_ROOM_OBJECTIVE_ON_ENTRY);
+    gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, SHELTER_B6_GROWTH_ROOM_OBJECTIVE_ON_ENTRY);
     task->state++;
 }
 

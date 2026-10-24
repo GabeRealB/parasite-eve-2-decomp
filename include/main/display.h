@@ -58,6 +58,12 @@ enum { GPU_DMA_LINK_ADDRESS_MASK  = 0xFFFFFF,
 /// effects and their table base must remain stable while linking the packet.
 #define GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(byteOffset) (&gGpuCurrentOt[(byteOffset) / sizeof(*gGpuCurrentOt)])
 
+/// The ordering-table tag for a sorting depth: the depth scaled by `otDepthShift`, as one of the 1024
+/// depth-sorted tags (deeper values wrap into them). `depth` is evaluated once per expansion, and converted to
+/// `u32` as a whole.
+#define GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(depth) \
+    GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(depth) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)
+
 /// A writable `u32` view of a primitive's packed colour group.
 ///
 /// On PlayStation, bits 0..7, 8..15 and 16..23 hold red, green and blue.

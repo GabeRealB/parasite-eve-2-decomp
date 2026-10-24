@@ -1982,10 +1982,10 @@ static s32 _neoArkObservatoryRoomActionMessage(Task* unusedTask, s32 unusedMessa
     if (actionRequest->actionId == ACTION_COMPANION_ARRIVAL_SCENE && gameFlagGetNibble(GAME_FLAG_0D7) == 0) {
         gameFlagSetNibble(GAME_FLAG_0D7, true);
         if (gameFlagGetNibble(GAME_FLAG_083) != 0) {
-            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, COMPANION_FIRST_BRANCH_OBJECTIVE);
+            gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, COMPANION_FIRST_BRANCH_OBJECTIVE);
             evsStartScriptWithSkip(gActor450200SoloSceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor450200SoloSceneSkipScript);
         } else {
-            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, COMPANION_SECOND_BRANCH_OBJECTIVE);
+            gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, COMPANION_SECOND_BRANCH_OBJECTIVE);
             gameFlagSetNibble(GAME_FLAG_0D1, COMPANION_ROUTE_AT_OBSERVATORY);
             evsStartScriptWithSkip(gActor450200CompanionSceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor450200CompanionSceneSkipScript);
         }

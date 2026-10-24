@@ -47,6 +47,11 @@ enum {
     EVENT_FLAG_TELEPHONE_DIALOGUE_LOOP_DONE   = 2, // Dialogue 0xE: the looping choice has been left
 };
 
+/// Values of `EVENT_FLAG_CURRENT_OBJECTIVE`, in story order.
+enum {
+    EVENT_FLAG_OBJECTIVE_AKROPOLIS_CAFETERIA_KEY_RECEIVED = 0x02, // "Civilian evac."; set as the east elevator hall scene starts
+};
+
 // The IDs come in blocks. The boundaries below are the ones seen so far; the
 // gaps between listed IDs are still in `main/gameflag_ids.h`.
 enum {
@@ -69,6 +74,10 @@ enum {
     /// ("A SWAT ammunition box..."): the CAP interpreter keeps the command's
     /// counter here (doc/CAP_FORMAT.md §6), 0 before the box is examined, 1 after.
     EVENT_FLAG_AKROPOLIS_SQUARE_AMMO_BOX_DIALOG_SEEN = 0x004,
+    /// Akropolis patio, its door to the cafeteria. State: 1 the player has found it
+    /// locked (CAP 3), 2 the east elevator hall scene has unlocked it, 3 it has been
+    /// opened and the warp to the cafeteria has started.
+    EVENT_FLAG_AKROPOLIS_PATIO_CAFETERIA_DOOR_STATE = 0x008,
     /// Akropolis security-room panel. Bits: 0 the blue key (item 0x104) is inserted,
     /// which also sets `GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS` to 2; 1 the red key
     /// (item 0x103). Doors that lead to a room's second variant once a key is in:
@@ -107,6 +116,13 @@ enum {
     /// positions (`GameFlagNibbleBank::payload.state.playTimeMark`).
     EVENT_FLAG_RESERVED_PLAY_TIME_FIRST = 0x068,
     EVENT_FLAG_RESERVED_PLAY_TIME_LAST  = 0x06B,
+
+    // ---- The current objective, 0x0A2..0x0A3 --------------------------------
+
+    /// The current objective, a whole byte (`gameFlagSetPackedByte`): what the map
+    /// marks and what its Help panel says (stage-zero file 20800 + the objective).
+    /// Values: `EVENT_FLAG_OBJECTIVE_*`.
+    EVENT_FLAG_CURRENT_OBJECTIVE = 0x0A2,
 
     // ---- From 0x100: not divided yet -----------------------------------------
 

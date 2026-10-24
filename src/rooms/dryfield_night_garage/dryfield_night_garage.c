@@ -463,7 +463,7 @@ static s32 _dryfieldNightGarageHandleRoomAction(Task* task, s32 messageId, const
                     evsStartScriptWithSkip(gDryfieldNightGarageRefuelingScript, EVENT_SCRIPT_HUD_HIDE_RESTORE,
                                            gDryfieldNightGarageSkipRefuelingScript);
                     gameFlagSetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS, REFUELING_STARTED);
-                    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, REFUELED_OBJECTIVE);
+                    gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, REFUELED_OBJECTIVE);
                     inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_GASOLINE);
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = REFUELED_SCENE_EVENT;
                 }

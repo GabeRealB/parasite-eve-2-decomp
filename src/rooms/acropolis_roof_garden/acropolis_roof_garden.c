@@ -494,7 +494,7 @@ static s32 _acropolisRoofGardenHandleCommandMessage(Task* unusedTask, s32 messag
         }
         gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
         capRunCommand(ACROPOLIS_ROOF_GARDEN_COMMAND_STORY, CAP_PLAYBACK_IN_PLACE);
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACROPOLIS_ROOF_GARDEN_STORY_OBJECTIVE);
+        gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, ACROPOLIS_ROOF_GARDEN_STORY_OBJECTIVE);
     }
     return 0;
 }
