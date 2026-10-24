@@ -34,7 +34,6 @@ enum {
     CAP_CAPTION_TEXT_ICON_WIDTH       = 16,
     CAP_CAPTION_TEXT_LINE_GAP         = 2,
     CAP_CAPTION_TEXT_END_LINE_ADVANCE = 13,
-    CAP_CAPTION_TEXT_SCREEN_WIDTH     = 320,
     CAP_CAPTION_TEXT_LEFT_BIAS        = 5
 };
 
@@ -606,7 +605,7 @@ static s16 _capCaptionGetTextBlockLeftX(const u16* text)
             code = text[++textIndex];
         }
     }
-    return (CAP_CAPTION_TEXT_SCREEN_WIDTH - maxWidth) / 2 - CAP_CAPTION_TEXT_LEFT_BIAS;
+    return (DISPLAY_SCREEN_WIDTH - maxWidth) / 2 - CAP_CAPTION_TEXT_LEFT_BIAS;
 }
 
 /// Returns the biased screen-space left X of one zero-based caption line.
@@ -651,7 +650,7 @@ static s16 _capCaptionGetTextLineLeftX(const u16* text, s32 selectedLineIndex)
             code = text[++textIndex];
         }
     }
-    return (CAP_CAPTION_TEXT_SCREEN_WIDTH - selectedWidth) / 2 - CAP_CAPTION_TEXT_LEFT_BIAS;
+    return (DISPLAY_SCREEN_WIDTH - selectedWidth) / 2 - CAP_CAPTION_TEXT_LEFT_BIAS;
 }
 
 /// Returns the pixel height accumulated at caption line-break tokens.

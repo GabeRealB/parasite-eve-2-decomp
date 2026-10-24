@@ -313,8 +313,6 @@ static void _planarReflectionUpdatePlayer(Task* reflectionTask)
         PLANAR_REFLECTION_CAPTURE_X                = 448,
         PLANAR_REFLECTION_NEO_ARK_CAPTURE_X        = 320,
         PLANAR_REFLECTION_CAPTURE_Y                = 256,
-        PLANAR_REFLECTION_SCREEN_WIDTH             = 320,
-        PLANAR_REFLECTION_SCREEN_HEIGHT            = 240,
         PLANAR_REFLECTION_SCREEN_HALF_WIDTH        = 160,
         PLANAR_REFLECTION_SCREEN_HALF_HEIGHT       = 120,
         PLANAR_REFLECTION_FRAMEBUFFER_Y_STRIDE     = 272,
@@ -587,8 +585,8 @@ static void _planarReflectionUpdatePlayer(Task* reflectionTask)
         gGpuPrimCursor          = (u8*)gGpuPrimCursor + sizeof(DR_AREA);
         drawRect.x              = 0;
         drawRect.y              = gDisplayState.drawBuffer * PLANAR_REFLECTION_FRAMEBUFFER_Y_STRIDE;
-        drawRect.w              = PLANAR_REFLECTION_SCREEN_WIDTH;
-        drawRect.h              = PLANAR_REFLECTION_SCREEN_HEIGHT;
+        drawRect.w              = DISPLAY_SCREEN_WIDTH;
+        drawRect.h              = DISPLAY_SCREEN_HEIGHT;
         SetDrawArea(drawArea, &drawRect);
         addPrim(&gGpuCurrentOt[PLANAR_REFLECTION_COPY_OT_INDEX], drawArea);
 
@@ -609,7 +607,7 @@ static void _planarReflectionUpdatePlayer(Task* reflectionTask)
         copySprite->x0 = -PLANAR_REFLECTION_SCREEN_HALF_WIDTH;
         copySprite->y0 = -PLANAR_REFLECTION_SCREEN_HALF_HEIGHT;
         copySprite->w  = PLANAR_REFLECTION_SCREEN_HALF_WIDTH;
-        copySprite->h  = PLANAR_REFLECTION_SCREEN_HEIGHT;
+        copySprite->h  = DISPLAY_SCREEN_HEIGHT;
         copySprite->u0 = 0;
         copySprite->v0 = gDisplayState.drawBuffer << PLANAR_REFLECTION_FRAMEBUFFER_V_SHIFT;
         setSprt(copySprite);
@@ -626,7 +624,7 @@ static void _planarReflectionUpdatePlayer(Task* reflectionTask)
         copySprite->x0 = 0;
         copySprite->y0 = -PLANAR_REFLECTION_SCREEN_HALF_HEIGHT;
         copySprite->w  = PLANAR_REFLECTION_SCREEN_HALF_WIDTH;
-        copySprite->h  = PLANAR_REFLECTION_SCREEN_HEIGHT;
+        copySprite->h  = DISPLAY_SCREEN_HEIGHT;
         copySprite->u0 = PLANAR_REFLECTION_COPY_RIGHT_U;
         copySprite->v0 = gDisplayState.drawBuffer << PLANAR_REFLECTION_FRAMEBUFFER_V_SHIFT;
         setSprt(copySprite);
@@ -645,8 +643,8 @@ static void _planarReflectionUpdatePlayer(Task* reflectionTask)
         captureClear->y0 = -PLANAR_REFLECTION_SCREEN_HALF_HEIGHT;
         captureClear->r0 = captureClear->g0 = PLANAR_REFLECTION_CAPTURE_CLEAR_COLOR;
         captureClear->b0                    = PLANAR_REFLECTION_CAPTURE_CLEAR_COLOR;
-        captureClear->w                     = PLANAR_REFLECTION_SCREEN_WIDTH;
-        captureClear->h                     = PLANAR_REFLECTION_SCREEN_HEIGHT;
+        captureClear->w                     = DISPLAY_SCREEN_WIDTH;
+        captureClear->h                     = DISPLAY_SCREEN_HEIGHT;
         addPrim(&gGpuCurrentOt[PLANAR_REFLECTION_COPY_OT_INDEX], captureClear);
 
         maskBitMode    = gGpuPrimCursor;
@@ -665,8 +663,8 @@ static void _planarReflectionUpdatePlayer(Task* reflectionTask)
         gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_AREA);
         drawRect.x     = captureX;
         drawRect.y     = PLANAR_REFLECTION_CAPTURE_Y;
-        drawRect.w     = PLANAR_REFLECTION_SCREEN_WIDTH;
-        drawRect.h     = PLANAR_REFLECTION_SCREEN_HEIGHT;
+        drawRect.w     = DISPLAY_SCREEN_WIDTH;
+        drawRect.h     = DISPLAY_SCREEN_HEIGHT;
         SetDrawArea(drawArea, &drawRect);
         addPrim(&gGpuCurrentOt[PLANAR_REFLECTION_COPY_OT_INDEX], drawArea);
     }

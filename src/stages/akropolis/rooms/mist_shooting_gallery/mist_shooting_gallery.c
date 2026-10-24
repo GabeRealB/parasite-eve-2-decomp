@@ -1767,8 +1767,6 @@ s32 mistShootingGalleryOpenJukebox(s32 unused)
 static inline void _mistShootingGalleryDrawSplashFade(const Task* task, s32 fadeIn)
 {
     enum {
-        MIST_SHOOTING_GALLERY_SPLASH_FADE_WIDTH_PIXELS       = 320,
-        MIST_SHOOTING_GALLERY_SPLASH_FADE_HEIGHT_PIXELS      = 240,
         MIST_SHOOTING_GALLERY_SPLASH_FADE_TEXTURE_DEPTH_4BIT = 0,
     };
     TILE*     tile;
@@ -1783,10 +1781,10 @@ static inline void _mistShootingGalleryDrawSplashFade(const Task* task, s32 fade
     tile->r0 = intensity;
     tile->g0 = intensity;
     tile->b0 = intensity;
-    tile->x0 = -MIST_SHOOTING_GALLERY_SPLASH_FADE_WIDTH_PIXELS / 2;
-    tile->y0 = -MIST_SHOOTING_GALLERY_SPLASH_FADE_HEIGHT_PIXELS / 2;
-    tile->w  = MIST_SHOOTING_GALLERY_SPLASH_FADE_WIDTH_PIXELS;
-    tile->h  = MIST_SHOOTING_GALLERY_SPLASH_FADE_HEIGHT_PIXELS;
+    tile->x0 = -DISPLAY_SCREEN_WIDTH / 2;
+    tile->y0 = -DISPLAY_SCREEN_HEIGHT / 2;
+    tile->w  = DISPLAY_SCREEN_WIDTH;
+    tile->h  = DISPLAY_SCREEN_HEIGHT;
 
     addPrim(gGpuCurrentOt, tile);
     // Insertion prepends, so the mode queued last runs before the tile.

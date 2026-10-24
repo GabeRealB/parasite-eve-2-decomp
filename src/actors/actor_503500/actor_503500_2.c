@@ -1019,10 +1019,10 @@ static void _actor503500DriftSpriteEmitterTask(Task* task)
 /// leaves subtractive blending active afterward.
 static inline void _actor503500DrawBlackOverlay(u8 red, u8 green, u8 blue)
 {
-    enum { BLACK_OVERLAY_WIDTH          = 320,
-           BLACK_OVERLAY_HEIGHT         = 240,
-           BLACK_OVERLAY_OT_SLOT        = 3,
-           BLACK_OVERLAY_TEXTURE_PAGE_X = 320 };
+    enum {
+        BLACK_OVERLAY_OT_SLOT        = 3,
+        BLACK_OVERLAY_TEXTURE_PAGE_X = 320
+    };
     TILE*     tile;
     DR_TPAGE* drawMode;
 
@@ -1030,10 +1030,10 @@ static inline void _actor503500DrawBlackOverlay(u8 red, u8 green, u8 blue)
     gGpuPrimCursor = tile + 1;
     setTile(tile);
     SetSemiTrans(tile, 1);
-    tile->x0 = -BLACK_OVERLAY_WIDTH / 2;
-    tile->y0 = -BLACK_OVERLAY_HEIGHT / 2;
-    tile->w  = BLACK_OVERLAY_WIDTH;
-    tile->h  = BLACK_OVERLAY_HEIGHT;
+    tile->x0 = -DISPLAY_SCREEN_WIDTH / 2;
+    tile->y0 = -DISPLAY_SCREEN_HEIGHT / 2;
+    tile->w  = DISPLAY_SCREEN_WIDTH;
+    tile->h  = DISPLAY_SCREEN_HEIGHT;
     setRGB0(tile, red, green, blue);
     addPrim(gGpuCurrentOt + BLACK_OVERLAY_OT_SLOT, tile);
     drawMode       = gGpuPrimCursor;

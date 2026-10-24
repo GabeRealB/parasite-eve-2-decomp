@@ -343,7 +343,6 @@ static s16 _gFootstepWalkMode;
 static inline void _actor151000DrawBlackoutTile(void)
 {
     enum {
-        ACTOR_151000_BLACKOUT_WIDTH_PIXELS  = 320,
         ACTOR_151000_BLACKOUT_HEIGHT_PIXELS = 256,
         ACTOR_151000_BLACKOUT_OT_TAG        = 10
     };
@@ -356,9 +355,9 @@ static inline void _actor151000DrawBlackoutTile(void)
     tile->r0 = 0;
     tile->g0 = 0;
     tile->b0 = 0;
-    tile->x0 = -ACTOR_151000_BLACKOUT_WIDTH_PIXELS / 2;
+    tile->x0 = -DISPLAY_SCREEN_WIDTH / 2;
     tile->y0 = -ACTOR_151000_BLACKOUT_HEIGHT_PIXELS / 2;
-    tile->w  = ACTOR_151000_BLACKOUT_WIDTH_PIXELS;
+    tile->w  = DISPLAY_SCREEN_WIDTH;
     tile->h  = ACTOR_151000_BLACKOUT_HEIGHT_PIXELS;
     addPrim(gGpuCurrentOt + ACTOR_151000_BLACKOUT_OT_TAG, tile);
 }

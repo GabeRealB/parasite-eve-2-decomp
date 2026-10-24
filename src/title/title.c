@@ -383,8 +383,6 @@ static void _titleUpdateScreenTask(Task* task)
     /// Menu input waits for that endpoint; prompt confirmation need not wait.
     enum { TITLE_CHROME_BRIGHTNESS_STEP_PER_TICK = 8 };
     enum {
-        TITLE_SCREEN_WIDTH_PIXELS          = 320,
-        TITLE_SCREEN_HEIGHT_PIXELS         = 240,
         TITLE_SCREEN_FADE_BRIGHTNESS_STEP  = 16,
         TITLE_SCREEN_FADE_BRIGHTNESS_SHIFT = 4,
         TITLE_SCREEN_BRIGHTNESS_PER_PIXEL  = 8,
@@ -408,10 +406,10 @@ static void _titleUpdateScreenTask(Task* task)
                 gGpuPrimCursor = tile + 1;
                 setTile(tile);
                 tile->r0 = tile->g0 = tile->b0 = (idleFrames - TITLE_SCREEN_IDLE_TIMEOUT_TICKS) * TITLE_SCREEN_FADE_BRIGHTNESS_STEP - 1;
-                tile->x0                       = -TITLE_SCREEN_WIDTH_PIXELS / 2;
-                tile->y0                       = -TITLE_SCREEN_HEIGHT_PIXELS / 2;
-                tile->w                        = TITLE_SCREEN_WIDTH_PIXELS;
-                tile->h                        = TITLE_SCREEN_HEIGHT_PIXELS;
+                tile->x0                       = -DISPLAY_SCREEN_WIDTH / 2;
+                tile->y0                       = -DISPLAY_SCREEN_HEIGHT / 2;
+                tile->w                        = DISPLAY_SCREEN_WIDTH;
+                tile->h                        = DISPLAY_SCREEN_HEIGHT;
                 setSemiTrans(tile, 1);
                 addPrim(gGpuCurrentOt, tile);
 
@@ -443,10 +441,10 @@ static void _titleUpdateScreenTask(Task* task)
         setlen(tile, (sizeof(*tile) - sizeof(tile->tag)) / sizeof(u_long));
         setcode(tile, TITLE_SCREEN_TILE_SEMITRANSPARENT);
         fadeBrightness = ~(work->idleFrames << TITLE_SCREEN_FADE_BRIGHTNESS_SHIFT);
-        tile->x0       = -TITLE_SCREEN_WIDTH_PIXELS / 2;
-        tile->y0       = -TITLE_SCREEN_HEIGHT_PIXELS / 2;
-        tile->w        = TITLE_SCREEN_WIDTH_PIXELS;
-        tile->h        = TITLE_SCREEN_HEIGHT_PIXELS;
+        tile->x0       = -DISPLAY_SCREEN_WIDTH / 2;
+        tile->y0       = -DISPLAY_SCREEN_HEIGHT / 2;
+        tile->w        = DISPLAY_SCREEN_WIDTH;
+        tile->h        = DISPLAY_SCREEN_HEIGHT;
         tile->b0       = fadeBrightness;
         tile->g0       = fadeBrightness;
         tile->r0       = fadeBrightness;

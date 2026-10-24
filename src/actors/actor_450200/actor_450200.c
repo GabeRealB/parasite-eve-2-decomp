@@ -1227,7 +1227,6 @@ static void _actor450200DrawBackdropLayer(s32 screenX, s32 textureX, s32 palette
     enum {
         ACTOR_450200_BACKDROP_SPRITES       = 2,
         ACTOR_450200_BACKDROP_SPRITE_WIDTH  = 256,
-        ACTOR_450200_BACKDROP_HEIGHT        = 240,
         ACTOR_450200_BACKDROP_SCREEN_HALF_X = 160,
         ACTOR_450200_BACKDROP_SCREEN_HALF_Y = 120,
         ACTOR_450200_BACKDROP_PAGE_WORDS    = 128,
@@ -1249,7 +1248,7 @@ static void _actor450200DrawBackdropLayer(s32 screenX, s32 textureX, s32 palette
         sprite->w    = ACTOR_450200_BACKDROP_SPRITE_WIDTH;
         sprite->u0   = 0;
         sprite->v0   = 0;
-        sprite->h    = ACTOR_450200_BACKDROP_HEIGHT;
+        sprite->h    = DISPLAY_SCREEN_HEIGHT;
         sprite->r0   = brightness;
         sprite->g0   = brightness;
         sprite->b0   = brightness;

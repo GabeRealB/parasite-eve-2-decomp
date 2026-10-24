@@ -72,14 +72,13 @@ enum {
     CAP_TEXT_ICON_WIDTH        = 16,
     CAP_TEXT_LINE_GAP          = 2,
     CAP_TEXT_END_LINE_ADVANCE  = 13,
-    CAP_TEXT_SCREEN_WIDTH      = 320,
     CAP_TEXT_CENTER_LEFT_BIAS  = 5,
     CAP_TEXT_BOTTOM_BASELINE_Y = 208
 };
 
 /// Screen-centre and box-edge pixel offsets shared by CAP text drawing.
 enum {
-    CAP_TEXT_SCREEN_CENTER_X    = CAP_TEXT_SCREEN_WIDTH / 2,
+    CAP_TEXT_SCREEN_CENTER_X    = DISPLAY_SCREEN_WIDTH / 2,
     CAP_TEXT_SCREEN_CENTER_Y    = 120,
     CAP_TEXT_BOX_LEFT_X_OFFSET  = CAP_TEXT_SCREEN_CENTER_X + 7,
     CAP_TEXT_BOX_RIGHT_X_OFFSET = CAP_TEXT_SCREEN_CENTER_X + 14,
@@ -1132,7 +1131,7 @@ static s16 _capGetTextBlockLeftX(const u16* text)
             code = text[++codeIndex];
         }
     }
-    return (CAP_TEXT_SCREEN_WIDTH - maxWidth) / 2 - CAP_TEXT_CENTER_LEFT_BIAS;
+    return (DISPLAY_SCREEN_WIDTH - maxWidth) / 2 - CAP_TEXT_CENTER_LEFT_BIAS;
 }
 
 /// Returns the screen X of a centred CAP line's left pen, in pixels.
@@ -1175,7 +1174,7 @@ static s16 _capGetTextLineLeftX(const u16* text, s32 selectedLineIndex)
             code = text[++codeIndex];
         }
     }
-    return (CAP_TEXT_SCREEN_WIDTH - selectedLineWidth) / 2 - CAP_TEXT_CENTER_LEFT_BIAS;
+    return (DISPLAY_SCREEN_WIDTH - selectedLineWidth) / 2 - CAP_TEXT_CENTER_LEFT_BIAS;
 }
 
 s16 capGetTextBlockHeight(const u16* text)

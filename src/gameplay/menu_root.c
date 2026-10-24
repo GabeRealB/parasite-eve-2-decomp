@@ -681,16 +681,14 @@ UiObjectDesc gItemMenuPanelDescriptors[ITEM_MENU_DESCRIPTOR_COUNT] = {
 static inline void _menuClearAlternateFrameBuffer(const DisplayState* display)
 {
     enum {
-        ITEM_MENU_ROOT_CLEAR_WIDTH_PIXELS         = 320,
-        ITEM_MENU_ROOT_CLEAR_HEIGHT_PIXELS        = 240,
         ITEM_MENU_ROOT_FRAME_BUFFER_STRIDE_PIXELS = 272
     };
     RECT clearRect;
 
     clearRect.y = (display->frameBuffer ^ 1) * ITEM_MENU_ROOT_FRAME_BUFFER_STRIDE_PIXELS;
-    clearRect.w = ITEM_MENU_ROOT_CLEAR_WIDTH_PIXELS;
+    clearRect.w = DISPLAY_SCREEN_WIDTH;
     clearRect.x = 0;
-    clearRect.h = ITEM_MENU_ROOT_CLEAR_HEIGHT_PIXELS;
+    clearRect.h = DISPLAY_SCREEN_HEIGHT;
     ClearImage(&clearRect, 0, 0, 0);
     DrawSync(0);
 }

@@ -14,14 +14,13 @@
 
 #include "types.h"
 
+#include "main/display.h"
 #include "main/task_types.h"
 
 /// Ordering tag, RGB modulation scale and captured-frame geometry for crossfades.
 enum {
     CROSSFADE_ORDERING_TABLE_SLOT = 8,
     CROSSFADE_SHADE_UNITY         = 0x80, // Textured RGB modulation at original brightness
-    CROSSFADE_BACKDROP_WIDTH      = 320,  // Full captured frame, in pixels
-    CROSSFADE_BACKDROP_HEIGHT     = 240,
     CROSSFADE_BACKDROP_LEFT_WIDTH = 192,  // Split keeps each strip within one texture page
 };
 

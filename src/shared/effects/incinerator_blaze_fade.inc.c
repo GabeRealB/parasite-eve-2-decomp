@@ -14,10 +14,8 @@
 static inline void _blazeQueueWhiteout(void)
 {
     enum {
-        BLAZE_FADE_CHANNEL_MAX   = 255,
-        BLAZE_FADE_WIDTH_PIXELS  = 320,
-        BLAZE_FADE_HEIGHT_PIXELS = 240,
-        BLAZE_FADE_OT_INDEX      = -16,
+        BLAZE_FADE_CHANNEL_MAX = 255,
+        BLAZE_FADE_OT_INDEX    = -16,
     };
     TILE*     tile;
     DR_TPAGE* drawMode;
@@ -26,8 +24,8 @@ static inline void _blazeQueueWhiteout(void)
     gGpuPrimCursor = tile + 1;
     setTile(tile);
     setRGB0(tile, BLAZE_FADE_CHANNEL_MAX, BLAZE_FADE_CHANNEL_MAX, BLAZE_FADE_CHANNEL_MAX);
-    setXY0(tile, -BLAZE_FADE_WIDTH_PIXELS / 2, -BLAZE_FADE_HEIGHT_PIXELS / 2);
-    setWH(tile, BLAZE_FADE_WIDTH_PIXELS, BLAZE_FADE_HEIGHT_PIXELS);
+    setXY0(tile, -DISPLAY_SCREEN_WIDTH / 2, -DISPLAY_SCREEN_HEIGHT / 2);
+    setWH(tile, DISPLAY_SCREEN_WIDTH, DISPLAY_SCREEN_HEIGHT);
     addPrim(gGpuCurrentOt + BLAZE_FADE_OT_INDEX, tile);
 
     // OT insertion prepends: the draw mode must execute before the tile.

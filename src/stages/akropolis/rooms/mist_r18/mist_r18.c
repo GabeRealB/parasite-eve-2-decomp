@@ -527,7 +527,7 @@ static void _mistR18CaptureBackdropState(Task* task)
     sourceRect.x   = frameX;
     sourceRect.y   = frameY;
     sourceRect.w   = CROSSFADE_BACKDROP_LEFT_WIDTH;
-    sourceRect.h   = CROSSFADE_BACKDROP_HEIGHT;
+    sourceRect.h   = DISPLAY_SCREEN_HEIGHT;
     SetDrawMove(copyCommand, &sourceRect, MIST_R18_BACKDROP_LEFT_VRAM_X, 0);
     addPrim(gGpuCurrentOt + CROSSFADE_ORDERING_TABLE_SLOT, copyCommand);
 
@@ -535,8 +535,8 @@ static void _mistR18CaptureBackdropState(Task* task)
     gGpuPrimCursor = copyCommand + 1;
     sourceRect.x   = frameX + CROSSFADE_BACKDROP_LEFT_WIDTH;
     sourceRect.y   = frameY;
-    sourceRect.w   = CROSSFADE_BACKDROP_WIDTH - CROSSFADE_BACKDROP_LEFT_WIDTH;
-    sourceRect.h   = CROSSFADE_BACKDROP_HEIGHT;
+    sourceRect.w   = DISPLAY_SCREEN_WIDTH - CROSSFADE_BACKDROP_LEFT_WIDTH;
+    sourceRect.h   = DISPLAY_SCREEN_HEIGHT;
     SetDrawMove(copyCommand, &sourceRect, MIST_R18_BACKDROP_RIGHT_VRAM_X, MIST_R18_BACKDROP_RIGHT_VRAM_Y);
     addPrim(gGpuCurrentOt + CROSSFADE_ORDERING_TABLE_SLOT, copyCommand);
 
@@ -572,11 +572,11 @@ static void _crossfadeDrawBackdrop(s32 shade)
     CROSSFADE_ALLOCATE_BACKDROP_SPRITE(sprite, shade);
     sprite->u0   = 0;
     sprite->v0   = 0;
-    sprite->x0   = -CROSSFADE_BACKDROP_WIDTH / 2;
-    sprite->y0   = -CROSSFADE_BACKDROP_HEIGHT / 2;
+    sprite->x0   = -DISPLAY_SCREEN_WIDTH / 2;
+    sprite->y0   = -DISPLAY_SCREEN_HEIGHT / 2;
     sprite->clut = 0;
     sprite->w    = CROSSFADE_BACKDROP_LEFT_WIDTH;
-    sprite->h    = CROSSFADE_BACKDROP_HEIGHT;
+    sprite->h    = DISPLAY_SCREEN_HEIGHT;
     addPrim(gGpuCurrentOt + CROSSFADE_ORDERING_TABLE_SLOT, sprite);
     _crossfadeSetTpage(MIST_R18_BACKDROP_LEFT_VRAM_X, 0);
 
@@ -584,11 +584,11 @@ static void _crossfadeDrawBackdrop(s32 shade)
     CROSSFADE_ALLOCATE_BACKDROP_SPRITE(sprite, shade);
     sprite->u0   = 0;
     sprite->v0   = 0;
-    sprite->x0   = CROSSFADE_BACKDROP_LEFT_WIDTH - CROSSFADE_BACKDROP_WIDTH / 2;
-    sprite->y0   = -CROSSFADE_BACKDROP_HEIGHT / 2;
+    sprite->x0   = CROSSFADE_BACKDROP_LEFT_WIDTH - DISPLAY_SCREEN_WIDTH / 2;
+    sprite->y0   = -DISPLAY_SCREEN_HEIGHT / 2;
     sprite->clut = 0;
-    sprite->w    = CROSSFADE_BACKDROP_WIDTH - CROSSFADE_BACKDROP_LEFT_WIDTH;
-    sprite->h    = CROSSFADE_BACKDROP_HEIGHT;
+    sprite->w    = DISPLAY_SCREEN_WIDTH - CROSSFADE_BACKDROP_LEFT_WIDTH;
+    sprite->h    = DISPLAY_SCREEN_HEIGHT;
     addPrim(gGpuCurrentOt + CROSSFADE_ORDERING_TABLE_SLOT, sprite);
     _crossfadeSetTpage(MIST_R18_BACKDROP_RIGHT_VRAM_X, MIST_R18_BACKDROP_RIGHT_VRAM_Y);
 #undef CROSSFADE_ALLOCATE_BACKDROP_SPRITE

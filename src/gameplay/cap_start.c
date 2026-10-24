@@ -59,7 +59,6 @@ static inline void _capInitializeSequencePlayback(CapSequenceRecord* sequence, s
         CAP_FIRST_PLAYBACK_RECORD_INDEX     = 1,
         CAP_TEXT_INITIAL_LEFT_X             = 48,
         CAP_TEXT_INITIAL_BASELINE_Y         = 192,
-        CAP_TEXT_SCREEN_WIDTH               = 320,
         CAP_TEXT_INITIAL_REVEAL_DELAY_LIMIT = 7, // Advancement after eight eligible updates from a zero counter.
         CAP_DEFAULT_CHOICE_ROW_STRIDE       = 1,
         CAP_VIEW_CHANGE_NONE                = 0,
@@ -76,7 +75,7 @@ static inline void _capInitializeSequencePlayback(CapSequenceRecord* sequence, s
     gCapTextBlockLeftX   = CAP_TEXT_INITIAL_LEFT_X;
     gCapFirstBaselineY   = CAP_TEXT_INITIAL_BASELINE_Y;
     gCapRevealDelayLimit = CAP_TEXT_INITIAL_REVEAL_DELAY_LIMIT;
-    gCapTextBlockLeftX   = CAP_TEXT_SCREEN_WIDTH;
+    gCapTextBlockLeftX   = DISPLAY_SCREEN_WIDTH;
 
     // Clear progress and pending transitions; record-specific timing follows.
     D_80115664                       = 0;

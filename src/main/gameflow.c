@@ -300,9 +300,7 @@ static inline void _fadeQueueBlendMode(s32 blendMode, s32 otTagOffset)
 void fadeDrawOverlay(u8 red, u8 green, u8 blue, s32 blendMode)
 {
     enum {
-        FADE_OVERLAY_WIDTH_PIXELS  = 320,
-        FADE_OVERLAY_HEIGHT_PIXELS = 240,
-        FADE_OVERLAY_OT_INDEX      = -16,
+        FADE_OVERLAY_OT_INDEX = -16,
     };
     TILE* tile;
     s8    shakeY;
@@ -311,15 +309,15 @@ void fadeDrawOverlay(u8 red, u8 green, u8 blue, s32 blendMode)
     gGpuPrimCursor = tile + 1;
     setTile(tile);
     setSemiTrans(tile, true);
-    tile->x0 = -FADE_OVERLAY_WIDTH_PIXELS / 2;
+    tile->x0 = -DISPLAY_SCREEN_WIDTH / 2;
     tile->r0 = red;
     tile->g0 = green;
     tile->b0 = blue;
     shakeY   = gDisplayState.vramYOffset;
-    tile->w  = FADE_OVERLAY_WIDTH_PIXELS;
-    tile->h  = FADE_OVERLAY_HEIGHT_PIXELS;
+    tile->w  = DISPLAY_SCREEN_WIDTH;
+    tile->h  = DISPLAY_SCREEN_HEIGHT;
     // Cancel the draw environment's shake so the overlay stays fixed on screen.
-    tile->y0 = -FADE_OVERLAY_HEIGHT_PIXELS / 2 - shakeY;
+    tile->y0 = -DISPLAY_SCREEN_HEIGHT / 2 - shakeY;
     addPrim(gGpuCurrentOt + FADE_OVERLAY_OT_INDEX, tile);
 
     // OT insertion prepends: queue the blend command last so it executes first.

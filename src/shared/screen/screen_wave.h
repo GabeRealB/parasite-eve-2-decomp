@@ -41,6 +41,7 @@
 #ifndef SRC_SHARED_SCREEN_WAVE_H
 #define SRC_SHARED_SCREEN_WAVE_H
 
+#include "main/display.h"
 #include "main/task_types.h"
 
 #include "overlay.h"

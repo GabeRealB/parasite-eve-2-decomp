@@ -3464,7 +3464,6 @@ static inline void _dryfieldDilapidatedHouseDrawBlackout(void)
 {
     enum { COVER_LEFT_PIXELS   = -160,
            COVER_TOP_PIXELS    = -128,
-           COVER_WIDTH_PIXELS  = 320,
            COVER_HEIGHT_PIXELS = 256 };
     TILE* tile;
 
@@ -3473,7 +3472,7 @@ static inline void _dryfieldDilapidatedHouseDrawBlackout(void)
     SetTile(tile);
     tile->x0 = COVER_LEFT_PIXELS;
     tile->y0 = COVER_TOP_PIXELS;
-    tile->w  = COVER_WIDTH_PIXELS;
+    tile->w  = DISPLAY_SCREEN_WIDTH;
     tile->h  = COVER_HEIGHT_PIXELS;
     tile->r0 = 0;
     tile->g0 = 0;

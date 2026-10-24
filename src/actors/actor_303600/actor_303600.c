@@ -453,9 +453,9 @@ static void _actor303600ScrollShaft(Task* task);
 /// stop it when the cover is no longer needed.
 static void _actor303600DrawBlackCoverTask(Task* task)
 {
-    enum { ACTOR_303600_BLACK_COVER_WIDTH     = 320,
-           ACTOR_303600_BLACK_COVER_HEIGHT    = 240,
-           ACTOR_303600_BLACK_COVER_OT_OFFSET = 15 };
+    enum {
+        ACTOR_303600_BLACK_COVER_OT_OFFSET = 15
+    };
 
     TILE*     tile;
     DR_TPAGE* drawMode;
@@ -466,10 +466,10 @@ static void _actor303600DrawBlackCoverTask(Task* task)
     tile->r0 = 0;
     tile->g0 = 0;
     tile->b0 = 0;
-    tile->x0 = -ACTOR_303600_BLACK_COVER_WIDTH / 2;
-    tile->y0 = -ACTOR_303600_BLACK_COVER_HEIGHT / 2;
-    tile->w  = ACTOR_303600_BLACK_COVER_WIDTH;
-    tile->h  = ACTOR_303600_BLACK_COVER_HEIGHT;
+    tile->x0 = -DISPLAY_SCREEN_WIDTH / 2;
+    tile->y0 = -DISPLAY_SCREEN_HEIGHT / 2;
+    tile->w  = DISPLAY_SCREEN_WIDTH;
+    tile->h  = DISPLAY_SCREEN_HEIGHT;
     addPrim(gGpuCurrentOt - ACTOR_303600_BLACK_COVER_OT_OFFSET, tile);
 
     // OT links prepend: the later draw-mode packet runs before the tile.

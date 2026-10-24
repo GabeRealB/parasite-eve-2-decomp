@@ -19,8 +19,6 @@
 static inline void _screenFadeDrawTileOverlay(const ScreenFadeWork* fade)
 {
     enum {
-        SCREEN_FADE_TILE_WIDTH_PIXELS       = 320,
-        SCREEN_FADE_TILE_HEIGHT_PIXELS      = 240,
         SCREEN_FADE_TILE_FOREGROUND_TAG     = -16,
         SCREEN_FADE_TILE_TEXTURE_DEPTH_4BIT = 0,
     };
@@ -38,10 +36,10 @@ static inline void _screenFadeDrawTileOverlay(const ScreenFadeWork* fade)
     tile->r0 = red;
     tile->g0 = green;
     tile->b0 = red;
-    tile->x0 = -SCREEN_FADE_TILE_WIDTH_PIXELS / 2;
-    tile->y0 = -SCREEN_FADE_TILE_HEIGHT_PIXELS / 2;
-    tile->w  = SCREEN_FADE_TILE_WIDTH_PIXELS;
-    tile->h  = SCREEN_FADE_TILE_HEIGHT_PIXELS;
+    tile->x0 = -DISPLAY_SCREEN_WIDTH / 2;
+    tile->y0 = -DISPLAY_SCREEN_HEIGHT / 2;
+    tile->w  = DISPLAY_SCREEN_WIDTH;
+    tile->h  = DISPLAY_SCREEN_HEIGHT;
     addPrim(gGpuCurrentOt + SCREEN_FADE_TILE_FOREGROUND_TAG, tile);
 
     // Insertion prepends: queue the mode last so the GPU applies it to the tile.

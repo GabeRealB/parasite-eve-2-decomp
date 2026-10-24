@@ -1251,35 +1251,33 @@ static void _actor403600PlaceDistortionVertex(_Actor403600GridQuad* quad, s32 co
     /// byte UV relative to it. gridVertex points to a live writable grid corner.
     /// Arguments repeat: use side-effect-free pointers and distinct writable
     /// s32 pixel lvalues. Invoke as a standalone statement in a braced block.
-#define ACTOR_403600_CLAMP_DISTORTION_VERTEX(gridVertex, pageOffset, pixelX, pixelY)   \
-    {                                                                                  \
-        enum {                                                                         \
-            ACTOR_403600_DISTORTION_SCREEN_WIDTH  = 320,                               \
-            ACTOR_403600_DISTORTION_SCREEN_HEIGHT = 240,                               \
-            ACTOR_403600_DISTORTION_PAGE_PIXELS   = 256,                               \
-            ACTOR_403600_DISTORTION_PAGE_SHIFT    = 64,                                \
-        };                                                                             \
-        /* Fold edge clamping back into geometry, then sample the capture page. */     \
-        if ((pixelY) >= ACTOR_403600_DISTORTION_SCREEN_HEIGHT) {                       \
-            (gridVertex)->y += (ACTOR_403600_DISTORTION_SCREEN_HEIGHT - 1) - (pixelY); \
-            (pixelY)         = ACTOR_403600_DISTORTION_SCREEN_HEIGHT - 1;              \
-        } else if ((pixelY) < 0) {                                                     \
-            (gridVertex)->y -= (pixelY);                                               \
-            (pixelY)         = 0;                                                      \
-        }                                                                              \
-        if ((pixelX) >= ACTOR_403600_DISTORTION_SCREEN_WIDTH) {                        \
-            (gridVertex)->x += (ACTOR_403600_DISTORTION_SCREEN_WIDTH - 1) - (pixelX);  \
-            (pixelX)         = ACTOR_403600_DISTORTION_SCREEN_WIDTH - 1;               \
-        } else if ((pixelX) < 0) {                                                     \
-            (gridVertex)->x -= (pixelX);                                               \
-            (pixelX)         = 0;                                                      \
-        }                                                                              \
-        *(pageOffset) = 0;                                                             \
-        if ((pixelX) >= ACTOR_403600_DISTORTION_PAGE_PIXELS) {                         \
-            *(pageOffset) = ACTOR_403600_DISTORTION_PAGE_SHIFT;                        \
-        }                                                                              \
-        (gridVertex)->u = (pixelX) - *(pageOffset);                                    \
-        (gridVertex)->v = (pixelY);                                                    \
+#define ACTOR_403600_CLAMP_DISTORTION_VERTEX(gridVertex, pageOffset, pixelX, pixelY) \
+    {                                                                                \
+        enum {                                                                       \
+            ACTOR_403600_DISTORTION_PAGE_PIXELS = 256,                               \
+            ACTOR_403600_DISTORTION_PAGE_SHIFT  = 64,                                \
+        };                                                                           \
+        /* Fold edge clamping back into geometry, then sample the capture page. */   \
+        if ((pixelY) >= DISPLAY_SCREEN_HEIGHT) {                                     \
+            (gridVertex)->y += (DISPLAY_SCREEN_HEIGHT - 1) - (pixelY);               \
+            (pixelY)         = DISPLAY_SCREEN_HEIGHT - 1;                            \
+        } else if ((pixelY) < 0) {                                                   \
+            (gridVertex)->y -= (pixelY);                                             \
+            (pixelY)         = 0;                                                    \
+        }                                                                            \
+        if ((pixelX) >= DISPLAY_SCREEN_WIDTH) {                                      \
+            (gridVertex)->x += (DISPLAY_SCREEN_WIDTH - 1) - (pixelX);                \
+            (pixelX)         = DISPLAY_SCREEN_WIDTH - 1;                             \
+        } else if ((pixelX) < 0) {                                                   \
+            (gridVertex)->x -= (pixelX);                                             \
+            (pixelX)         = 0;                                                    \
+        }                                                                            \
+        *(pageOffset) = 0;                                                           \
+        if ((pixelX) >= ACTOR_403600_DISTORTION_PAGE_PIXELS) {                       \
+            *(pageOffset) = ACTOR_403600_DISTORTION_PAGE_SHIFT;                      \
+        }                                                                            \
+        (gridVertex)->u = (pixelX) - *(pageOffset);                                  \
+        (gridVertex)->v = (pixelY);                                                  \
     }
     ACTOR_403600_CLAMP_DISTORTION_VERTEX(vertex, pageShift, screenX, screenY);
 #undef ACTOR_403600_CLAMP_DISTORTION_VERTEX

@@ -327,21 +327,17 @@ static inline s32 _gameMainPauseBlocked(void)
 /// synchronously, leaving both packets reusable and average blending active.
 static inline void _gameMainDrawPauseBackdrop(TILE* tile, DR_TPAGE* drawMode)
 {
-    enum {
-        GAME_MAIN_PAUSE_WIDTH_PIXELS  = 320,
-        GAME_MAIN_PAUSE_HEIGHT_PIXELS = 240,
-    };
 
     setDrawTPage(drawMode, true, true, getTPage(0, GPU_BLEND_AVERAGE, 0, 0));
     DrawPrim(drawMode);
-    tile->x0 = -GAME_MAIN_PAUSE_WIDTH_PIXELS / 2;
-    tile->w  = GAME_MAIN_PAUSE_WIDTH_PIXELS;
-    tile->h  = GAME_MAIN_PAUSE_HEIGHT_PIXELS;
+    tile->x0 = -DISPLAY_SCREEN_WIDTH / 2;
+    tile->w  = DISPLAY_SCREEN_WIDTH;
+    tile->h  = DISPLAY_SCREEN_HEIGHT;
     // The packed black colour clears the command byte; install the tile code next.
     GPU_PRIMITIVE_COLOR_WORD(tile, 0) = 0;
     setTile(tile);
     setSemiTrans(tile, true);
-    tile->y0 = -GAME_MAIN_PAUSE_HEIGHT_PIXELS / 2 - gDisplayState.vramYOffset;
+    tile->y0 = -DISPLAY_SCREEN_HEIGHT / 2 - gDisplayState.vramYOffset;
     DrawPrim(tile);
 }
 

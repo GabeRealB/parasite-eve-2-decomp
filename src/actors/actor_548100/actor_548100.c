@@ -115,8 +115,6 @@ enum {
     ACTOR_548100_WIRE_ORIGIN_Y        = 118,
     ACTOR_548100_SCREEN_CENTER_X      = 160,
     ACTOR_548100_SCREEN_CENTER_Y      = 120,
-    ACTOR_548100_SCREEN_WIDTH         = 320,
-    ACTOR_548100_SCREEN_HEIGHT        = 240,
     ACTOR_548100_DRAW_BUFFER_STRIDE_Y = 272,
     ACTOR_548100_PANEL_TEXTURE_PAGE   = 0x116, // 15-bit texels at VRAM (384, 256)
 };
@@ -1775,7 +1773,7 @@ static void _actor548100DrawEdge(const _Actor548100Edge* edge)
             fromY          = _gActor548100DiagramNodes[fromNode].vy - ACTOR_548100_WIRE_ORIGIN_Y;
             toX            = _gActor548100DiagramNodes[toNode].vx - ACTOR_548100_WIRE_ORIGIN_X;
             toY            = _gActor548100DiagramNodes[toNode].vy - ACTOR_548100_WIRE_ORIGIN_Y;
-            setRECT(&rect, 0, 0, ACTOR_548100_SCREEN_WIDTH, ACTOR_548100_SCREEN_HEIGHT);
+            setRECT(&rect, 0, 0, DISPLAY_SCREEN_WIDTH, DISPLAY_SCREEN_HEIGHT);
             rect.y += gDisplayState.drawBuffer * ACTOR_548100_DRAW_BUFFER_STRIDE_Y;
             SetDrawArea(area, &rect);
             addPrim(&gGpuCurrentOt[ACTOR_548100_OT_WIRES], area);
@@ -1789,9 +1787,9 @@ static void _actor548100DrawEdge(const _Actor548100Edge* edge)
                 area           = gGpuPrimCursor;
                 gGpuPrimCursor = area + 1;
                 if (fromX < toX) {
-                    setRECT(&rect, 0, 0, splitCoord + ACTOR_548100_SCREEN_CENTER_X, ACTOR_548100_SCREEN_HEIGHT);
+                    setRECT(&rect, 0, 0, splitCoord + ACTOR_548100_SCREEN_CENTER_X, DISPLAY_SCREEN_HEIGHT);
                 } else {
-                    setRECT(&rect, splitCoord + ACTOR_548100_SCREEN_CENTER_X, 0, ACTOR_548100_SCREEN_CENTER_X - splitCoord, ACTOR_548100_SCREEN_HEIGHT);
+                    setRECT(&rect, splitCoord + ACTOR_548100_SCREEN_CENTER_X, 0, ACTOR_548100_SCREEN_CENTER_X - splitCoord, DISPLAY_SCREEN_HEIGHT);
                 }
                 rect.y += gDisplayState.drawBuffer * ACTOR_548100_DRAW_BUFFER_STRIDE_Y;
                 SetDrawArea(area, &rect);
@@ -1800,9 +1798,9 @@ static void _actor548100DrawEdge(const _Actor548100Edge* edge)
                 area           = gGpuPrimCursor;
                 gGpuPrimCursor = area + 1;
                 if (fromX < toX) {
-                    setRECT(&rect, splitCoord + ACTOR_548100_SCREEN_CENTER_X, 0, ACTOR_548100_SCREEN_CENTER_X - splitCoord, ACTOR_548100_SCREEN_HEIGHT);
+                    setRECT(&rect, splitCoord + ACTOR_548100_SCREEN_CENTER_X, 0, ACTOR_548100_SCREEN_CENTER_X - splitCoord, DISPLAY_SCREEN_HEIGHT);
                 } else {
-                    setRECT(&rect, 0, 0, splitCoord + ACTOR_548100_SCREEN_CENTER_X, ACTOR_548100_SCREEN_HEIGHT);
+                    setRECT(&rect, 0, 0, splitCoord + ACTOR_548100_SCREEN_CENTER_X, DISPLAY_SCREEN_HEIGHT);
                 }
             } else {
                 direction = 1;
@@ -1814,9 +1812,9 @@ static void _actor548100DrawEdge(const _Actor548100Edge* edge)
                 area           = gGpuPrimCursor;
                 gGpuPrimCursor = area + 1;
                 if (fromY < toY) {
-                    setRECT(&rect, 0, 0, ACTOR_548100_SCREEN_WIDTH, splitCoord + ACTOR_548100_SCREEN_CENTER_Y);
+                    setRECT(&rect, 0, 0, DISPLAY_SCREEN_WIDTH, splitCoord + ACTOR_548100_SCREEN_CENTER_Y);
                 } else {
-                    setRECT(&rect, 0, splitCoord + ACTOR_548100_SCREEN_CENTER_Y, ACTOR_548100_SCREEN_WIDTH, ACTOR_548100_SCREEN_CENTER_Y - splitCoord);
+                    setRECT(&rect, 0, splitCoord + ACTOR_548100_SCREEN_CENTER_Y, DISPLAY_SCREEN_WIDTH, ACTOR_548100_SCREEN_CENTER_Y - splitCoord);
                 }
                 rect.y += gDisplayState.drawBuffer * ACTOR_548100_DRAW_BUFFER_STRIDE_Y;
                 SetDrawArea(area, &rect);
@@ -1825,9 +1823,9 @@ static void _actor548100DrawEdge(const _Actor548100Edge* edge)
                 area           = gGpuPrimCursor;
                 gGpuPrimCursor = area + 1;
                 if (fromY < toY) {
-                    setRECT(&rect, 0, splitCoord + ACTOR_548100_SCREEN_CENTER_Y, ACTOR_548100_SCREEN_WIDTH, ACTOR_548100_SCREEN_CENTER_Y - splitCoord);
+                    setRECT(&rect, 0, splitCoord + ACTOR_548100_SCREEN_CENTER_Y, DISPLAY_SCREEN_WIDTH, ACTOR_548100_SCREEN_CENTER_Y - splitCoord);
                 } else {
-                    setRECT(&rect, 0, 0, ACTOR_548100_SCREEN_WIDTH, splitCoord + ACTOR_548100_SCREEN_CENTER_Y);
+                    setRECT(&rect, 0, 0, DISPLAY_SCREEN_WIDTH, splitCoord + ACTOR_548100_SCREEN_CENTER_Y);
                 }
             }
             rect.y += gDisplayState.drawBuffer * ACTOR_548100_DRAW_BUFFER_STRIDE_Y;

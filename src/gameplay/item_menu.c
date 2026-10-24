@@ -112,8 +112,6 @@ enum {
 
 /// Fixed extent and counter-to-grey conversion of the display transition overlay.
 enum {
-    FADE_DISPLAY_WIDTH_PIXELS    = 320,
-    FADE_DISPLAY_HEIGHT_PIXELS   = 240,
     FADE_DISPLAY_STEPS           = 8,
     FADE_DISPLAY_INTENSITY_SHIFT = 5,
     FADE_DISPLAY_MIN_GREY        = (1 << FADE_DISPLAY_INTENSITY_SHIFT) - 1,
@@ -1947,10 +1945,10 @@ static inline void _fadeQueueDisplayTransitionOverlay(const s16* fadeStep, s32 y
     gGpuPrimCursor = fadeTile + 1;
     setTile(fadeTile);
     setSemiTrans(fadeTile, true);
-    fadeTile->x0 = -FADE_DISPLAY_WIDTH_PIXELS / 2;
-    fadeTile->y0 = -FADE_DISPLAY_HEIGHT_PIXELS / 2 - yOffsetPixels;
-    fadeTile->w  = FADE_DISPLAY_WIDTH_PIXELS;
-    fadeTile->h  = FADE_DISPLAY_HEIGHT_PIXELS;
+    fadeTile->x0 = -DISPLAY_SCREEN_WIDTH / 2;
+    fadeTile->y0 = -DISPLAY_SCREEN_HEIGHT / 2 - yOffsetPixels;
+    fadeTile->w  = DISPLAY_SCREEN_WIDTH;
+    fadeTile->h  = DISPLAY_SCREEN_HEIGHT;
     if (*fadeStep < FADE_DISPLAY_STEPS) {
         darkness     = (*fadeStep << FADE_DISPLAY_INTENSITY_SHIFT) + FADE_DISPLAY_MIN_GREY;
         fadeTile->b0 = darkness;

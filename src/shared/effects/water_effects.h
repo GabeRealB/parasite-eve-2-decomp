@@ -25,6 +25,7 @@
 
 #include "main/areas.h"
 #include "main/coord.h"
+#include "main/display.h"
 #include "main/task_types.h"
 
 static void _waterDrawSplash(const GfxCoord* coord, s32 halfSize, s32 brightness);

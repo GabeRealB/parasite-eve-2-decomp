@@ -10,6 +10,8 @@
 
 #include "types.h"
 
+#include "main/display.h"
+
 /// Selects this carrier's `void(s32)` frame-capture function identifier.
 ///
 /// Defaults to the overlay-private `frameCaptureQueue` used across the two

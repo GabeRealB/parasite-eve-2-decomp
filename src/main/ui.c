@@ -234,8 +234,6 @@ enum {
     USER_INTERFACE_FRAME_CLUT               = 0x3C03,
     USER_INTERFACE_FRAME_ATLAS_TOP          = 0x50,
     USER_INTERFACE_FRAME_CORNER_PIXELS      = 8,
-    USER_INTERFACE_PANEL_DRAW_VIEW_WIDTH    = 320,
-    USER_INTERFACE_PANEL_DRAW_VIEW_HEIGHT   = 240,
     USER_INTERFACE_PANEL_DRAW_VIEW_CENTER_X = 160,
     USER_INTERFACE_PANEL_DRAW_VIEW_CENTER_Y = 120,
     USER_INTERFACE_PANEL_DRAW_BUFFER_STRIDE = 272,
@@ -1049,8 +1047,8 @@ static void _uiDrawPanelFrame(const UiPanel* panel, RECT* outer, const RECT* inn
         screenDimTile->r0 = screenDimLevel;
         screenDimTile->x0 = -USER_INTERFACE_PANEL_DRAW_VIEW_CENTER_X;
         screenDimTile->y0 = -USER_INTERFACE_PANEL_DRAW_VIEW_CENTER_Y;
-        screenDimTile->w  = USER_INTERFACE_PANEL_DRAW_VIEW_WIDTH;
-        screenDimTile->h  = USER_INTERFACE_PANEL_DRAW_VIEW_HEIGHT;
+        screenDimTile->w  = DISPLAY_SCREEN_WIDTH;
+        screenDimTile->h  = DISPLAY_SCREEN_HEIGHT;
         setTile(screenDimTile);
         setSemiTrans(screenDimTile, 1);
         addPrim(gGpuCurrentOt + panel->otIndex.signedValue + USER_INTERFACE_FRAME_OT_OFFSET, screenDimTile);
@@ -1098,7 +1096,7 @@ static void _uiDrawPanel(const UiPanel* panel, RECT* outerRect, const RECT* inne
 
             areaCommand    = gGpuPrimCursor;
             gGpuPrimCursor = areaCommand + 1;
-            setRECT(&fullScreenDrawArea, 0, gDisplayState.drawBuffer * USER_INTERFACE_PANEL_DRAW_BUFFER_STRIDE, USER_INTERFACE_PANEL_DRAW_VIEW_WIDTH, USER_INTERFACE_PANEL_DRAW_VIEW_HEIGHT);
+            setRECT(&fullScreenDrawArea, 0, gDisplayState.drawBuffer * USER_INTERFACE_PANEL_DRAW_BUFFER_STRIDE, DISPLAY_SCREEN_WIDTH, DISPLAY_SCREEN_HEIGHT);
             SetDrawArea(areaCommand, &fullScreenDrawArea);
             addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 1, areaCommand);
         }
@@ -1146,8 +1144,6 @@ static void _uiLayoutHiddenPanel(UiPanel* panel)
 {
     enum {
         USER_INTERFACE_HIDDEN_CLIP_OT_OFFSET     = 3,
-        USER_INTERFACE_HIDDEN_CLIP_VIEW_WIDTH    = 320,
-        USER_INTERFACE_HIDDEN_CLIP_VIEW_HEIGHT   = 240,
         USER_INTERFACE_HIDDEN_CLIP_BUFFER_STRIDE = 272
     };
     RECT     drawArea;
@@ -1169,8 +1165,8 @@ static void _uiLayoutHiddenPanel(UiPanel* panel)
     areaCommand    = gGpuPrimCursor;
     gGpuPrimCursor = areaCommand + 1;
     drawArea.x     = 0;
-    drawArea.w     = USER_INTERFACE_HIDDEN_CLIP_VIEW_WIDTH;
-    drawArea.h     = USER_INTERFACE_HIDDEN_CLIP_VIEW_HEIGHT;
+    drawArea.w     = DISPLAY_SCREEN_WIDTH;
+    drawArea.h     = DISPLAY_SCREEN_HEIGHT;
     drawArea.y     = gDisplayState.drawBuffer * USER_INTERFACE_HIDDEN_CLIP_BUFFER_STRIDE;
     SetDrawArea(areaCommand, &drawArea);
     addPrim(gGpuCurrentOt + panel->otIndex.signedValue, areaCommand);
@@ -1331,8 +1327,6 @@ static void _uiQueueListDrawArea(const UiList* list, const UiPanel* panel, s32 f
     enum {
         USER_INTERFACE_LIST_DRAW_AREA_LAYERS    = 2,
         USER_INTERFACE_LIST_DRAW_AREA_OT_OFFSET = 1,
-        USER_INTERFACE_LIST_VIEW_WIDTH          = 320,
-        USER_INTERFACE_LIST_VIEW_HEIGHT         = 240,
         USER_INTERFACE_LIST_VIEW_CENTER_X       = 160,
         USER_INTERFACE_LIST_VIEW_CENTER_Y       = 120,
         USER_INTERFACE_LIST_DRAW_BUFFER_STRIDE  = 272
@@ -1362,9 +1356,9 @@ static void _uiQueueListDrawArea(const UiList* list, const UiPanel* panel, s32 f
         for (layer = 0; layer < USER_INTERFACE_LIST_DRAW_AREA_LAYERS; layer++) {
             areaCommand    = gGpuPrimCursor;
             gGpuPrimCursor = areaCommand + 1;
-            drawArea.w     = USER_INTERFACE_LIST_VIEW_WIDTH;
+            drawArea.w     = DISPLAY_SCREEN_WIDTH;
             drawArea.x     = 0;
-            drawArea.h     = USER_INTERFACE_LIST_VIEW_HEIGHT;
+            drawArea.h     = DISPLAY_SCREEN_HEIGHT;
             drawArea.y     = gDisplayState.drawBuffer * USER_INTERFACE_LIST_DRAW_BUFFER_STRIDE;
             SetDrawArea(areaCommand, &drawArea);
             addPrim(gGpuCurrentOt + (layer + panel->otIndex.signedValue) + USER_INTERFACE_LIST_DRAW_AREA_OT_OFFSET, areaCommand);

@@ -1584,8 +1584,6 @@ static void _actor121300EveSceneTask(Task* task)
         ACTOR_121300_SCENE_WAIT_SCRIPT    = 2,
         ACTOR_121300_SCENE_RELOAD         = 3,
         ACTOR_121300_SCENE_END_TASK       = 9,
-        ACTOR_121300_SCENE_FRAME_WIDTH    = 320,
-        ACTOR_121300_SCENE_FRAME_HEIGHT   = 240,
         ACTOR_121300_SCENE_SECOND_FRAME_Y = 272,
         ACTOR_121300_SCENE_RETURN_WARP    = 3,
         ACTOR_121300_SCENE_LIGHT_COUNT    = 3,
@@ -1630,8 +1628,8 @@ static void _actor121300EveSceneTask(Task* task)
 
             rect.x = 0;
             rect.y = 0;
-            rect.w = ACTOR_121300_SCENE_FRAME_WIDTH;
-            rect.h = ACTOR_121300_SCENE_FRAME_HEIGHT;
+            rect.w = DISPLAY_SCREEN_WIDTH;
+            rect.h = DISPLAY_SCREEN_HEIGHT;
             ClearImage(&rect, 0, 0, 0);
             rect.y = ACTOR_121300_SCENE_SECOND_FRAME_Y;
             ClearImage(&rect, 0, 0, 0);

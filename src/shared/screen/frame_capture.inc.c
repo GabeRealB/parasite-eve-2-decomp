@@ -23,8 +23,6 @@ STATIC_ASSERT_SIZEOF(_FrameCaptureScratch, 0x14);
 
 /// Pixel geometry and packet encoding for the fixed game-frame capture layout.
 enum {
-    FRAME_CAPTURE_WIDTH_PIXELS           = 320,
-    FRAME_CAPTURE_HEIGHT_PIXELS          = 240,
     FRAME_CAPTURE_BUFFER_Y_STRIDE        = 272,
     FRAME_CAPTURE_VRAM_X                 = 448,
     FRAME_CAPTURE_VRAM_Y                 = 256,
@@ -65,9 +63,9 @@ void FRAME_CAPTURE_QUEUE(s32 orderingTableSlot)
         copySprite     = gGpuPrimCursor;                                                                                                                                                    \
         gGpuPrimCursor = copySprite + 1;                                                                                                                                                    \
         copySprite->x0 = (screenX);                                                                                                                                                         \
-        copySprite->y0 = -FRAME_CAPTURE_HEIGHT_PIXELS / 2;                                                                                                                                  \
-        copySprite->w  = FRAME_CAPTURE_WIDTH_PIXELS / 2;                                                                                                                                    \
-        copySprite->h  = FRAME_CAPTURE_HEIGHT_PIXELS;                                                                                                                                       \
+        copySprite->y0 = -DISPLAY_SCREEN_HEIGHT / 2;                                                                                                                                        \
+        copySprite->w  = DISPLAY_SCREEN_WIDTH / 2;                                                                                                                                          \
+        copySprite->h  = DISPLAY_SCREEN_HEIGHT;                                                                                                                                             \
         copySprite->u0 = (textureU);                                                                                                                                                        \
         copySprite->v0 = gDisplayState.drawBuffer * FRAME_CAPTURE_LOWER_BUFFER_TEXTURE_V;                                                                                                   \
         setlen(copySprite, FRAME_CAPTURE_SPRITE_PACKET_WORDS);                                                                                                                              \
@@ -92,8 +90,8 @@ void FRAME_CAPTURE_QUEUE(s32 orderingTableSlot)
     } else {
         scratch->drawArea.x = 0;
         scratch->drawArea.y = gDisplayState.drawBuffer * FRAME_CAPTURE_BUFFER_Y_STRIDE;
-        scratch->drawArea.w = FRAME_CAPTURE_WIDTH_PIXELS;
-        scratch->drawArea.h = FRAME_CAPTURE_HEIGHT_PIXELS;
+        scratch->drawArea.w = DISPLAY_SCREEN_WIDTH;
+        scratch->drawArea.h = DISPLAY_SCREEN_HEIGHT;
     }
     clipRect = &scratch->drawArea;
     SetDrawArea(drawAreaPacket, clipRect);
@@ -107,14 +105,14 @@ void FRAME_CAPTURE_QUEUE(s32 orderingTableSlot)
     drawOffset             = scratch->drawOffset;
     offsetPacket           = gGpuPrimCursor;
     gGpuPrimCursor         = offsetPacket + 1;
-    scratch->drawOffset[0] = FRAME_CAPTURE_WIDTH_PIXELS / 2;
-    scratch->drawOffset[1] = gDisplayState.drawBuffer * FRAME_CAPTURE_BUFFER_Y_STRIDE + FRAME_CAPTURE_HEIGHT_PIXELS / 2;
+    scratch->drawOffset[0] = DISPLAY_SCREEN_WIDTH / 2;
+    scratch->drawOffset[1] = gDisplayState.drawBuffer * FRAME_CAPTURE_BUFFER_Y_STRIDE + DISPLAY_SCREEN_HEIGHT / 2;
     SetDrawOffset(offsetPacket, drawOffset);
     addPrim(&gGpuCurrentOt[scratch->otz], offsetPacket);
 
     // Each 160-pixel half fits a 256-texel page; the right page starts at x=128.
-    FRAME_CAPTURE_QUEUE_COPY_STRIP(-FRAME_CAPTURE_WIDTH_PIXELS / 2, 0, 0);
-    FRAME_CAPTURE_QUEUE_COPY_STRIP(0, FRAME_CAPTURE_WIDTH_PIXELS / 2 - FRAME_CAPTURE_RIGHT_SOURCE_PAGE_X, FRAME_CAPTURE_RIGHT_SOURCE_PAGE_X);
+    FRAME_CAPTURE_QUEUE_COPY_STRIP(-DISPLAY_SCREEN_WIDTH / 2, 0, 0);
+    FRAME_CAPTURE_QUEUE_COPY_STRIP(0, DISPLAY_SCREEN_WIDTH / 2 - FRAME_CAPTURE_RIGHT_SOURCE_PAGE_X, FRAME_CAPTURE_RIGHT_SOURCE_PAGE_X);
 
     // Fill the capture with nonzero, masked texels before copying the scene.
     clearTile      = gGpuPrimCursor;
@@ -123,10 +121,10 @@ void FRAME_CAPTURE_QUEUE(s32 orderingTableSlot)
     clearTile->b0 = FRAME_CAPTURE_CLEAR_SHADE;
     clearTile->g0 = FRAME_CAPTURE_CLEAR_SHADE;
     clearTile->r0 = FRAME_CAPTURE_CLEAR_SHADE;
-    clearTile->x0 = -FRAME_CAPTURE_WIDTH_PIXELS / 2;
-    clearTile->y0 = -FRAME_CAPTURE_HEIGHT_PIXELS / 2;
-    clearTile->w  = FRAME_CAPTURE_WIDTH_PIXELS;
-    clearTile->h  = FRAME_CAPTURE_HEIGHT_PIXELS;
+    clearTile->x0 = -DISPLAY_SCREEN_WIDTH / 2;
+    clearTile->y0 = -DISPLAY_SCREEN_HEIGHT / 2;
+    clearTile->w  = DISPLAY_SCREEN_WIDTH;
+    clearTile->h  = DISPLAY_SCREEN_HEIGHT;
     addPrim(&gGpuCurrentOt[scratch->otz], clearTile);
 
     maskPacket     = gGpuPrimCursor;
@@ -136,8 +134,8 @@ void FRAME_CAPTURE_QUEUE(s32 orderingTableSlot)
 
     offsetPacket           = gGpuPrimCursor;
     gGpuPrimCursor         = offsetPacket + 1;
-    scratch->drawOffset[0] = FRAME_CAPTURE_VRAM_X + FRAME_CAPTURE_WIDTH_PIXELS / 2;
-    scratch->drawOffset[1] = FRAME_CAPTURE_VRAM_Y + FRAME_CAPTURE_HEIGHT_PIXELS / 2;
+    scratch->drawOffset[0] = FRAME_CAPTURE_VRAM_X + DISPLAY_SCREEN_WIDTH / 2;
+    scratch->drawOffset[1] = FRAME_CAPTURE_VRAM_Y + DISPLAY_SCREEN_HEIGHT / 2;
     SetDrawOffset(offsetPacket, drawOffset);
     addPrim(&gGpuCurrentOt[scratch->otz], offsetPacket);
 
@@ -145,8 +143,8 @@ void FRAME_CAPTURE_QUEUE(s32 orderingTableSlot)
     gGpuPrimCursor      = drawAreaPacket + 1;
     scratch->drawArea.x = FRAME_CAPTURE_VRAM_X;
     scratch->drawArea.y = FRAME_CAPTURE_VRAM_Y;
-    scratch->drawArea.w = FRAME_CAPTURE_WIDTH_PIXELS;
-    scratch->drawArea.h = FRAME_CAPTURE_HEIGHT_PIXELS;
+    scratch->drawArea.w = DISPLAY_SCREEN_WIDTH;
+    scratch->drawArea.h = DISPLAY_SCREEN_HEIGHT;
     SetDrawArea(drawAreaPacket, clipRect);
     addPrim(&gGpuCurrentOt[scratch->otz], drawAreaPacket);
 

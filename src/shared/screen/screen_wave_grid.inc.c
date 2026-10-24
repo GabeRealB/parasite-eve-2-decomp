@@ -40,7 +40,6 @@ static void _screenWaveGridTask(Task* task)
         SCREEN_WAVE_ROW_WAVES           = ARRAY_SIZE(SCREEN_WAVE_GRID[0]),
         SCREEN_WAVE_CELL_WIDTH          = 40,
         SCREEN_WAVE_CELL_HEIGHT         = 8,
-        SCREEN_WAVE_CAPTURE_WIDTH       = 320,
         SCREEN_WAVE_RIGHT_PAGE_X        = 128,
         SCREEN_WAVE_FRAMEBUFFER_Y_SHIFT = 8,
         SCREEN_WAVE_BUFFER_V_OFFSET     = 16,
@@ -128,8 +127,8 @@ static void _screenWaveGridTask(Task* task)
                         }
                         leftU  = quadColumn * SCREEN_WAVE_CELL_WIDTH;
                         rightU = (quadColumn + 1) * SCREEN_WAVE_CELL_WIDTH;
-                        if (rightU == SCREEN_WAVE_CAPTURE_WIDTH) {
-                            rightU = SCREEN_WAVE_CAPTURE_WIDTH - 1;
+                        if (rightU == DISPLAY_SCREEN_WIDTH) {
+                            rightU = DISPLAY_SCREEN_WIDTH - 1;
                         }
                         if (leftU < SCREEN_WAVE_RIGHT_PAGE_X) {
                             quad->tpage = leftTexturePage;

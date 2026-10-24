@@ -549,7 +549,6 @@ static inline void _actor461800QueueSceneFade(const Task* fadeTask)
 {
     enum {
         ACTOR_461800_SCENE_FADE_MAX_INTENSITY      = 255,
-        ACTOR_461800_SCENE_FADE_WIDTH_PIXELS       = 320,
         ACTOR_461800_SCENE_FADE_HEIGHT_PIXELS      = 256,
         ACTOR_461800_SCENE_FADE_OT_TAG             = 5,
         ACTOR_461800_SCENE_FADE_TEXTURE_DEPTH_4BIT = 0,
@@ -563,9 +562,9 @@ static inline void _actor461800QueueSceneFade(const Task* fadeTask)
     intensity      = (fadeTask->killCountdown * ACTOR_461800_SCENE_FADE_MAX_INTENSITY) / ACTOR_461800_SCENE_FADE_RAMP_UPDATES;
     setTile(tile);
     setSemiTrans(tile, true);
-    tile->x0 = -ACTOR_461800_SCENE_FADE_WIDTH_PIXELS / 2;
+    tile->x0 = -DISPLAY_SCREEN_WIDTH / 2;
     tile->y0 = -ACTOR_461800_SCENE_FADE_HEIGHT_PIXELS / 2;
-    tile->w  = ACTOR_461800_SCENE_FADE_WIDTH_PIXELS;
+    tile->w  = DISPLAY_SCREEN_WIDTH;
     tile->h  = ACTOR_461800_SCENE_FADE_HEIGHT_PIXELS;
     tile->r0 = intensity;
     tile->g0 = intensity;

@@ -10,6 +10,7 @@
 #ifndef SRC_SHARED_SCREEN_FADE_H
 #define SRC_SHARED_SCREEN_FADE_H
 
+#include "main/display.h"
 #include "main/task_types.h"
 
 /// The range of a fade's channels: a fade in starts at full intensity, and a fade out is complete once its red channel

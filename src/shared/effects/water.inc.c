@@ -42,7 +42,6 @@ void waterRefractionTask(Task* task)
         WATER_REFRACTION_RAW_FT4_CODE              = 0x2C | 0x01,
         WATER_REFRACTION_HALF_WIDTH                = 160,
         WATER_REFRACTION_HALF_HEIGHT               = 120,
-        WATER_REFRACTION_FRAME_HEIGHT              = 240,
         WATER_REFRACTION_LAST_SAMPLE_ROW           = 239,
         WATER_REFRACTION_SAMPLE_REFLECTION_SUM     = 476,
         WATER_REFRACTION_SPLIT_AFTER_FRAME         = 1000,
@@ -115,31 +114,31 @@ void waterRefractionTask(Task* task)
         switch (gGameSession->location.view) {
             case 2:
                 firstRow   = 127;
-                rowEnd     = WATER_REFRACTION_FRAME_HEIGHT;
+                rowEnd     = DISPLAY_SCREEN_HEIGHT;
                 splitRow   = 159;
                 splitWidth = 35;
                 break;
             case 3:
                 firstRow   = 74;
-                rowEnd     = WATER_REFRACTION_FRAME_HEIGHT;
+                rowEnd     = DISPLAY_SCREEN_HEIGHT;
                 splitRow   = 104;
                 splitWidth = 85;
                 break;
             case 4:
                 firstRow   = 1;
-                rowEnd     = WATER_REFRACTION_FRAME_HEIGHT;
+                rowEnd     = DISPLAY_SCREEN_HEIGHT;
                 splitRow   = 116;
                 splitWidth = -211;
                 break;
             case 5:
                 firstRow   = 102;
-                rowEnd     = WATER_REFRACTION_FRAME_HEIGHT;
+                rowEnd     = DISPLAY_SCREEN_HEIGHT;
                 splitRow   = 107;
                 splitWidth = 194;
                 break;
             case 6:
                 firstRow   = 147;
-                rowEnd     = WATER_REFRACTION_FRAME_HEIGHT;
+                rowEnd     = DISPLAY_SCREEN_HEIGHT;
                 splitRow   = 161;
                 splitWidth = 188;
                 break;
@@ -150,19 +149,19 @@ void waterRefractionTask(Task* task)
         switch (gGameSession->location.view) {
             case 2:
                 firstRow   = 119;
-                rowEnd     = WATER_REFRACTION_FRAME_HEIGHT;
+                rowEnd     = DISPLAY_SCREEN_HEIGHT;
                 splitRow   = 161;
                 splitWidth = -44;
                 break;
             case 3:
                 firstRow   = 76;
-                rowEnd     = WATER_REFRACTION_FRAME_HEIGHT;
+                rowEnd     = DISPLAY_SCREEN_HEIGHT;
                 splitRow   = 104;
                 splitWidth = -78;
                 break;
             case 4:
                 firstRow     = 1;
-                rowEnd       = WATER_REFRACTION_FRAME_HEIGHT;
+                rowEnd       = DISPLAY_SCREEN_HEIGHT;
                 splitRow     = WATER_REFRACTION_SPLIT_AFTER_FRAME;
                 clipMode     = WATER_REFRACTION_CLIP_ISLAND_CENTRE_GAP;
                 otIndexBias  = 10;
@@ -175,7 +174,7 @@ void waterRefractionTask(Task* task)
         if (gGameSession->location.view == 2) {
             splitRow     = WATER_REFRACTION_SPLIT_AFTER_FRAME;
             firstRow     = 132;
-            rowEnd       = WATER_REFRACTION_FRAME_HEIGHT;
+            rowEnd       = DISPLAY_SCREEN_HEIGHT;
             splitWidth   = 75;
             waveScaleQ12 = WATER_REFRACTION_WAVE_SCALE_HALF;
         } else {
@@ -187,7 +186,7 @@ void waterRefractionTask(Task* task)
             case 2:
             case 4:
                 firstRow     = 82;
-                rowEnd       = WATER_REFRACTION_FRAME_HEIGHT;
+                rowEnd       = DISPLAY_SCREEN_HEIGHT;
                 clipMode     = WATER_REFRACTION_CLIP_PAVILION_LEFT_FIRST;
                 splitRow     = WATER_REFRACTION_SPLIT_AFTER_FRAME;
                 waveScaleQ12 = WATER_REFRACTION_WAVE_SCALE_HALF;
@@ -195,14 +194,14 @@ void waterRefractionTask(Task* task)
             case 3:
             case 5:
                 firstRow     = 76;
-                rowEnd       = WATER_REFRACTION_FRAME_HEIGHT;
+                rowEnd       = DISPLAY_SCREEN_HEIGHT;
                 clipMode     = WATER_REFRACTION_CLIP_PAVILION_RIGHT_FIRST;
                 splitRow     = WATER_REFRACTION_SPLIT_AFTER_FRAME;
                 waveScaleQ12 = WATER_REFRACTION_WAVE_SCALE_HALF;
                 break;
             case 6:
                 firstRow     = 99;
-                rowEnd       = WATER_REFRACTION_FRAME_HEIGHT;
+                rowEnd       = DISPLAY_SCREEN_HEIGHT;
                 splitRow     = 0;
                 waveScaleQ12 = WATER_REFRACTION_WAVE_SCALE_HALF;
                 if (gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
@@ -211,7 +210,7 @@ void waterRefractionTask(Task* task)
                 break;
             case 7:
                 firstRow     = 53;
-                rowEnd       = WATER_REFRACTION_FRAME_HEIGHT;
+                rowEnd       = DISPLAY_SCREEN_HEIGHT;
                 clipMode     = WATER_REFRACTION_CLIP_PAVILION_LEFT_EDGE;
                 waveScaleQ12 = WATER_REFRACTION_WAVE_SCALE_HALF;
                 if (gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
@@ -252,7 +251,7 @@ void waterRefractionTask(Task* task)
                 break;
             case 5:
                 firstRow    = 161;
-                rowEnd      = WATER_REFRACTION_FRAME_HEIGHT;
+                rowEnd      = DISPLAY_SCREEN_HEIGHT;
                 splitLeftX  = -138;
                 splitWidth  = 276;
                 splitRow    = 172;
@@ -266,12 +265,12 @@ void waterRefractionTask(Task* task)
         switch (gGameSession->location.view) {
             case 6:
                 firstRow = 165;
-                rowEnd   = WATER_REFRACTION_FRAME_HEIGHT;
+                rowEnd   = DISPLAY_SCREEN_HEIGHT;
                 splitRow = 0;
                 break;
             case 7:
                 firstRow = 164;
-                rowEnd   = WATER_REFRACTION_FRAME_HEIGHT;
+                rowEnd   = DISPLAY_SCREEN_HEIGHT;
                 splitRow = 0;
                 break;
             default:

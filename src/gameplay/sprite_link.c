@@ -512,8 +512,6 @@ static s32 _spriteViewUsesImageStrips(void)
 static void _spriteQueueViewDrawAreas(void)
 {
     enum {
-        SPRITE_VIEW_WIDTH_PIXELS    = 320,
-        SPRITE_VIEW_HEIGHT_PIXELS   = 240,
         SPRITE_VIEW_BUFFER_Y_STRIDE = 272
     };
     RECT            rect;
@@ -537,8 +535,8 @@ static void _spriteQueueViewDrawAreas(void)
                 rect.y = 0;
             }
             rect.x         = 0;
-            rect.w         = SPRITE_VIEW_WIDTH_PIXELS;
-            rect.h         = SPRITE_VIEW_HEIGHT_PIXELS;
+            rect.w         = DISPLAY_SCREEN_WIDTH;
+            rect.h         = DISPLAY_SCREEN_HEIGHT;
             drawAreaPacket = _spriteCreateDrawAreaPacket(&rect);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(drawArea->restoreDepth), drawAreaPacket);
         }

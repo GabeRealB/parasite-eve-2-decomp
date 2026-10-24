@@ -396,8 +396,6 @@ static const char _gAnimationUnsupportedPoseDiagnostic[24];
 static const TaskFuncTable3 _gDisplayPreviousFrameBlendStates;
 
 /// Pixel extent of the fixed gameplay screen effects.
-enum { DISPLAY_EFFECT_WIDTH  = 320,
-       DISPLAY_EFFECT_HEIGHT = 240 };
 
 /// Fixed pulse counter and the shift from counter steps to byte intensity.
 enum { FADE_PULSE_STEPS           = 32,
@@ -1967,12 +1965,12 @@ static inline void _fadeDrawPulse(Task* task, u8 intensity)
     gGpuPrimCursor = tile + 1;
     setlen(tile, sizeof(*tile) / sizeof(u32) - 1);
     setcode(tile, GPU_SCREEN_SEMITRANSPARENT_TILE);
-    setXY0(tile, -DISPLAY_EFFECT_WIDTH / 2, -DISPLAY_EFFECT_HEIGHT / 2);
+    setXY0(tile, -DISPLAY_SCREEN_WIDTH / 2, -DISPLAY_SCREEN_HEIGHT / 2);
     tile->y0 -= gDisplayState.vramYOffset;
     tile->b0  = intensity;
     tile->g0  = intensity;
     tile->r0  = intensity;
-    setWH(tile, DISPLAY_EFFECT_WIDTH, DISPLAY_EFFECT_HEIGHT);
+    setWH(tile, DISPLAY_SCREEN_WIDTH, DISPLAY_SCREEN_HEIGHT);
 
     blendCommand   = gGpuPrimCursor;
     gGpuPrimCursor = blendCommand + 1;
@@ -2146,15 +2144,15 @@ void fadeScreenTask(Task* task)
     // Emit this frame's coverage before advancing the ramp counter.
     intensity      = (task->killCountdown * FADE_SCREEN_PEAK_INTENSITY) / fade->rampFrames;
     tile           = gGpuPrimCursor;
-    topY           = -DISPLAY_EFFECT_HEIGHT / 2;
+    topY           = -DISPLAY_SCREEN_HEIGHT / 2;
     tile->y0       = topY;
     gGpuPrimCursor = tile + 1;
     setlen(tile, sizeof(*tile) / sizeof(u32) - 1);
     setcode(tile, GPU_SCREEN_SEMITRANSPARENT_TILE);
-    tile->x0     = -DISPLAY_EFFECT_WIDTH / 2;
+    tile->x0     = -DISPLAY_SCREEN_WIDTH / 2;
     shakeY       = gDisplayState.vramYOffset;
-    tile->w      = DISPLAY_EFFECT_WIDTH;
-    tile->h      = DISPLAY_EFFECT_HEIGHT;
+    tile->w      = DISPLAY_SCREEN_WIDTH;
+    tile->h      = DISPLAY_SCREEN_HEIGHT;
     intensity    = intensity >> FADE_SCREEN_INTENSITY_FRACTION_BITS;
     tile->b0     = intensity;
     tile->g0     = intensity;
@@ -3778,25 +3776,25 @@ static inline void _displaySetPreviousFrameTextures(POLY_FT4* leftQuad, POLY_FT4
     if (drawBufferIndex) {
         leftQuad->tpage = getTPage(DISPLAY_FRAME_REDRAW_TEXTURE_DEPTH, GPU_BLEND_AVERAGE, 0, 0);
         leftQuad->u0 = leftQuad->u2 = 0;
-        leftQuad->u1 = leftQuad->u3 = DISPLAY_EFFECT_WIDTH / 2;
+        leftQuad->u1 = leftQuad->u3 = DISPLAY_SCREEN_WIDTH / 2;
         leftQuad->v0 = leftQuad->v1 = 0;
-        leftQuad->v2 = leftQuad->v3 = DISPLAY_EFFECT_HEIGHT - 1;
+        leftQuad->v2 = leftQuad->v3 = DISPLAY_SCREEN_HEIGHT - 1;
         rightQuad->tpage            = getTPage(DISPLAY_FRAME_REDRAW_TEXTURE_DEPTH, GPU_BLEND_AVERAGE, DISPLAY_FRAME_REDRAW_RIGHT_PAGE_X, 0);
         rightQuad->u0 = rightQuad->u2 = DISPLAY_FRAME_REDRAW_RIGHT_U;
-        rightQuad->u1 = rightQuad->u3 = DISPLAY_FRAME_REDRAW_RIGHT_U + DISPLAY_EFFECT_WIDTH / 2 - 1;
+        rightQuad->u1 = rightQuad->u3 = DISPLAY_FRAME_REDRAW_RIGHT_U + DISPLAY_SCREEN_WIDTH / 2 - 1;
         rightQuad->v0 = rightQuad->v1 = 0;
-        rightQuad->v2 = rightQuad->v3 = DISPLAY_EFFECT_HEIGHT - 1;
+        rightQuad->v2 = rightQuad->v3 = DISPLAY_SCREEN_HEIGHT - 1;
     } else {
         leftQuad->tpage = getTPage(DISPLAY_FRAME_REDRAW_TEXTURE_DEPTH, GPU_BLEND_AVERAGE, 0, DISPLAY_FRAME_REDRAW_LOWER_PAGE_Y);
         leftQuad->u0 = leftQuad->u2 = 0;
-        leftQuad->u1 = leftQuad->u3 = DISPLAY_EFFECT_WIDTH / 2;
+        leftQuad->u1 = leftQuad->u3 = DISPLAY_SCREEN_WIDTH / 2;
         leftQuad->v0 = leftQuad->v1 = DISPLAY_FRAME_REDRAW_LOWER_BUFFER_V;
-        leftQuad->v2 = leftQuad->v3 = DISPLAY_FRAME_REDRAW_LOWER_BUFFER_V + DISPLAY_EFFECT_HEIGHT - 1;
+        leftQuad->v2 = leftQuad->v3 = DISPLAY_FRAME_REDRAW_LOWER_BUFFER_V + DISPLAY_SCREEN_HEIGHT - 1;
         rightQuad->tpage            = getTPage(DISPLAY_FRAME_REDRAW_TEXTURE_DEPTH, GPU_BLEND_AVERAGE, DISPLAY_FRAME_REDRAW_RIGHT_PAGE_X, DISPLAY_FRAME_REDRAW_LOWER_PAGE_Y);
         rightQuad->u0 = rightQuad->u2 = DISPLAY_FRAME_REDRAW_RIGHT_U;
-        rightQuad->u1 = rightQuad->u3 = DISPLAY_FRAME_REDRAW_RIGHT_U + DISPLAY_EFFECT_WIDTH / 2 - 1;
+        rightQuad->u1 = rightQuad->u3 = DISPLAY_FRAME_REDRAW_RIGHT_U + DISPLAY_SCREEN_WIDTH / 2 - 1;
         rightQuad->v0 = rightQuad->v1 = DISPLAY_FRAME_REDRAW_LOWER_BUFFER_V;
-        rightQuad->v2 = rightQuad->v3 = DISPLAY_FRAME_REDRAW_LOWER_BUFFER_V + DISPLAY_EFFECT_HEIGHT - 1;
+        rightQuad->v2 = rightQuad->v3 = DISPLAY_FRAME_REDRAW_LOWER_BUFFER_V + DISPLAY_SCREEN_HEIGHT - 1;
     }
 }
 
@@ -3852,10 +3850,10 @@ static void _displayRedrawPreviousFrame(Task* task)
             if (fadeIntensity >= 0x100) {
                 fadeIntensity = 0xFF;
             }
-            fadeTile->x0 = -DISPLAY_EFFECT_WIDTH / 2;
-            fadeTile->y0 = -DISPLAY_EFFECT_HEIGHT / 2;
-            fadeTile->w  = DISPLAY_EFFECT_WIDTH;
-            fadeTile->h  = DISPLAY_EFFECT_HEIGHT;
+            fadeTile->x0 = -DISPLAY_SCREEN_WIDTH / 2;
+            fadeTile->y0 = -DISPLAY_SCREEN_HEIGHT / 2;
+            fadeTile->w  = DISPLAY_SCREEN_WIDTH;
+            fadeTile->h  = DISPLAY_SCREEN_HEIGHT;
             fadeTile->b0 = fadeIntensity;
             fadeTile->g0 = fadeIntensity;
             fadeTile->r0 = fadeIntensity;
@@ -3890,17 +3888,17 @@ static void _displayRedrawPreviousFrame(Task* task)
         setcode(leftQuad, GPU_SCREEN_RAW_SEMITRANSPARENT_QUAD);
         setlen(rightQuad, 9);
         setcode(rightQuad, GPU_SCREEN_RAW_SEMITRANSPARENT_QUAD);
-        leftQuad->x0 = leftQuad->x2 = centerX - (DISPLAY_EFFECT_WIDTH / 2 + borderSize);
+        leftQuad->x0 = leftQuad->x2 = centerX - (DISPLAY_SCREEN_WIDTH / 2 + borderSize);
         leftQuad->x1 = leftQuad->x3 = centerX;
-        leftQuad->y0 = leftQuad->y1 = -DISPLAY_EFFECT_HEIGHT / 2 - borderSize;
-        leftQuad->y2 = leftQuad->y3 = borderSize + DISPLAY_EFFECT_HEIGHT / 2 - 1;
-        rightEdge                   = rightEdgeBase + DISPLAY_EFFECT_WIDTH / 2 - 1;
+        leftQuad->y0 = leftQuad->y1 = -DISPLAY_SCREEN_HEIGHT / 2 - borderSize;
+        leftQuad->y2 = leftQuad->y3 = borderSize + DISPLAY_SCREEN_HEIGHT / 2 - 1;
+        rightEdge                   = rightEdgeBase + DISPLAY_SCREEN_WIDTH / 2 - 1;
         rightQuad->x0 = rightQuad->x2 = centerX;
         rightQuad->x1 = rightQuad->x3 = rightEdge;
         drawBufferByte                = drawBuffer;
         drawBufferHalfword            = drawBufferByte;
-        rightQuad->y0 = rightQuad->y1 = -DISPLAY_EFFECT_HEIGHT / 2 - borderSize;
-        rightQuad->y2 = rightQuad->y3 = borderSize + DISPLAY_EFFECT_HEIGHT / 2 - 1;
+        rightQuad->y0 = rightQuad->y1 = -DISPLAY_SCREEN_HEIGHT / 2 - borderSize;
+        rightQuad->y2 = rightQuad->y3 = borderSize + DISPLAY_SCREEN_HEIGHT / 2 - 1;
         _displaySetPreviousFrameTextures(leftQuad, rightQuad, drawBufferHalfword);
         addPrim(&gGpuCurrentOt[0], leftQuad);
         addPrim(&gGpuCurrentOt[0], rightQuad);

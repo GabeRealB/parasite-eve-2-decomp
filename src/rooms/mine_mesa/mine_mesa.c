@@ -4003,10 +4003,10 @@ static void _mineMesaCompanionHeadAimTask(Task* task)
 /// for a TILE and a DR_TPAGE; both packets remain live until GPU drawing ends.
 static inline void _mineMesaDrawBlackOverlay(u8 red, u8 green, u8 blue)
 {
-    enum { OVERLAY_WIDTH        = 320,
-           OVERLAY_HEIGHT       = 240,
-           OVERLAY_OT_INDEX     = 3,
-           OVERLAY_BLEND_PAGE_X = 320 };
+    enum {
+        OVERLAY_OT_INDEX     = 3,
+        OVERLAY_BLEND_PAGE_X = 320
+    };
     TILE*     tile;
     DR_TPAGE* drawMode;
 
@@ -4014,10 +4014,10 @@ static inline void _mineMesaDrawBlackOverlay(u8 red, u8 green, u8 blue)
     gGpuPrimCursor = tile + 1;
     setTile(tile);
     SetSemiTrans(tile, 1);
-    tile->x0 = -OVERLAY_WIDTH / 2;
-    tile->y0 = -OVERLAY_HEIGHT / 2;
-    tile->w  = OVERLAY_WIDTH;
-    tile->h  = OVERLAY_HEIGHT;
+    tile->x0 = -DISPLAY_SCREEN_WIDTH / 2;
+    tile->y0 = -DISPLAY_SCREEN_HEIGHT / 2;
+    tile->w  = DISPLAY_SCREEN_WIDTH;
+    tile->h  = DISPLAY_SCREEN_HEIGHT;
     setRGB0(tile, red, green, blue);
     addPrim(gGpuCurrentOt + OVERLAY_OT_INDEX, tile);
     drawMode       = gGpuPrimCursor;

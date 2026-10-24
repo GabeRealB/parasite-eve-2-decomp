@@ -13,8 +13,6 @@
 static void _crossfadeDrawLive(s32 shade)
 {
     enum {
-        CROSSFADE_FRAME_WIDTH_PIXELS      = 320,
-        CROSSFADE_FRAME_HEIGHT_PIXELS     = 240,
         CROSSFADE_LEFT_STRIP_WIDTH_PIXELS = 192,
         CROSSFADE_LOWER_BUFFER_PAGE_Y     = 256,
         CROSSFADE_LOWER_BUFFER_TEXTURE_V  = 16,
@@ -56,22 +54,22 @@ static void _crossfadeDrawLive(s32 shade)
     CROSSFADE_ALLOCATE_LIVE_SPRITE(sprite, shade);
     sprite->u0   = textureU;
     sprite->v0   = textureV;
-    sprite->x0   = -CROSSFADE_FRAME_WIDTH_PIXELS / 2;
-    sprite->y0   = -CROSSFADE_FRAME_HEIGHT_PIXELS / 2;
+    sprite->x0   = -DISPLAY_SCREEN_WIDTH / 2;
+    sprite->y0   = -DISPLAY_SCREEN_HEIGHT / 2;
     sprite->clut = 0;
     sprite->w    = CROSSFADE_LEFT_STRIP_WIDTH_PIXELS;
-    sprite->h    = CROSSFADE_FRAME_HEIGHT_PIXELS;
+    sprite->h    = DISPLAY_SCREEN_HEIGHT;
     addPrim(gGpuCurrentOt + CROSSFADE_ORDERING_TABLE_SLOT, sprite);
     _crossfadeSetTpage(0, pageOriginY);
 
     CROSSFADE_ALLOCATE_LIVE_SPRITE(sprite, shade);
-    sprite->x0   = CROSSFADE_LEFT_STRIP_WIDTH_PIXELS - CROSSFADE_FRAME_WIDTH_PIXELS / 2;
+    sprite->x0   = CROSSFADE_LEFT_STRIP_WIDTH_PIXELS - DISPLAY_SCREEN_WIDTH / 2;
     sprite->u0   = textureU;
     sprite->v0   = textureV;
-    sprite->y0   = -CROSSFADE_FRAME_HEIGHT_PIXELS / 2;
+    sprite->y0   = -DISPLAY_SCREEN_HEIGHT / 2;
     sprite->clut = 0;
-    sprite->w    = CROSSFADE_FRAME_WIDTH_PIXELS - CROSSFADE_LEFT_STRIP_WIDTH_PIXELS;
-    sprite->h    = CROSSFADE_FRAME_HEIGHT_PIXELS;
+    sprite->w    = DISPLAY_SCREEN_WIDTH - CROSSFADE_LEFT_STRIP_WIDTH_PIXELS;
+    sprite->h    = DISPLAY_SCREEN_HEIGHT;
     addPrim(gGpuCurrentOt + CROSSFADE_ORDERING_TABLE_SLOT, sprite);
     _crossfadeSetTpage(CROSSFADE_LEFT_STRIP_WIDTH_PIXELS, pageOriginY);
 #undef CROSSFADE_ALLOCATE_LIVE_SPRITE
