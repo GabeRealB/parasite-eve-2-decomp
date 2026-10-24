@@ -34,9 +34,9 @@ akropolis_fountain_collision_013C0	Collision grid of the Akropolis fountain (4x4
 akropolis_hallway_collision_00D98	Collision grid of the Akropolis hallway (two cells, 17 faces), used in every variant.	
 rooms/akropolis/hallway/blue_key_pickup	Blue Key model, spawned in the Akropolis hallway as placed object 11 and drawn only during the examine close-up before pickup.	
 akropolis_hallway_model_023C0	No reached use found: a one-part 21-vertex model in the Akropolis hallway package that no code references.	
-acropolis_helicopter_landing_pad_collision_07A34	Collision grid of the Akropolis helicopter landing pad (6x6 cells); the golem enemies/golem/no_9/package_akropolis patches three faces into it while present.	
-rooms/akropolis/helicopter_landing_pad/acropolis_helicopter_landing_pad_model_0547C	Model of the helicopter landing pad's lift, spawned as a room object at its upper stop and raised or lowered by the ending and departure scenes.	
-acropolis_helicopter_landing_pad_model_0A8E8	No reached use found: a pickup model in the landing pad package whose map_akropolis spawn descriptor (kind 0xA4) is selected by no place record.	
+akropolis_helicopter_landing_pad_collision_07A34	Collision grid of the Akropolis helicopter landing pad (6x6 cells); the golem enemies/golem/no_9/package_akropolis patches three faces into it while present.	
+rooms/akropolis/helicopter_landing_pad/akropolis_helicopter_landing_pad_model_0547C	Model of the helicopter landing pad's lift, spawned as a room object at its upper stop and raised or lowered by the ending and departure scenes.	
+akropolis_helicopter_landing_pad_model_0A8E8	No reached use found: a pickup model in the landing pad package whose map_akropolis spawn descriptor (kind 0xA4) is selected by no place record.	
 akropolis_observatory_animation_0250C	Aya's scripted reaction clip in the Akropolis observatory, installed and played once on the player when she crosses the trigger that starts the bat battle.	
 akropolis_observatory_collision_02A2C	Collision grid of the Akropolis observatory, published identically for both room indices.	
 rooms/akropolis/observatory/forked_road_arrival_player_path	Per-movie-frame player path (300 samples) for arriving at the observatory from the forked road, copied into the player's root while the movie plays.	
@@ -677,7 +677,7 @@ rooms/akropolis/bridge/view1_background..rooms/akropolis/bridge/view10_backgroun
 load_screens/shelter_incinerator_chapter_5/background	Load-screen picture for the Mine/Shelter stage with destination B3 Incinerator Control Room in story chapter 5, under the Shelter waste boot caption; what lands on it is open.	
 rooms/akropolis/fire_escape/view1_background..rooms/akropolis/fire_escape/view10_background	View backgrounds 1-10 of akropolis_fire_escape: views 2-6 are walked between the bridge and landing-pad warps, view 7 is selected by caption text.	
 load_screens/dryfield_night_lobby_chapter_5/background	Load-screen picture for Dryfield night with destination Motel Lobby in story chapter 5, shown under the Dryfield-return boot caption; what lands on it is open.	
-rooms/akropolis/helicopter_landing_pad/view1_background..rooms/akropolis/helicopter_landing_pad/view23_background	View backgrounds of acropolis_helicopter_landing_pad (27 view files): the walked ring 2-10 around the pad, plus intro, ending, lift-ride and departure scene views.	
+rooms/akropolis/helicopter_landing_pad/view1_background..rooms/akropolis/helicopter_landing_pad/view23_background	View backgrounds of akropolis_helicopter_landing_pad (27 view files): the walked ring 2-10 around the pad, plus intro, ending, lift-ride and departure scene views.	
 load_screens/dryfield_night_trailer_chapter_5/background	Load-screen picture for Dryfield night with destination Trailer Coach in story chapter 5, shown under the Dryfield-return boot caption; what lands on it is open.	
 rooms/akropolis/helicopter_landing_pad/view11_background	No reached use found: background of the helicopter landing pad's view 11, the initial view of warp entry 1 (the pad top), for which no arriving warp was found.	
 rooms/akropolis/helicopter_landing_pad/view12_background	No reached use found: backgrounds of the helicopter landing pad's views 12, 13, 14 and 26, selected by none of the nine checked paths.	
@@ -3800,22 +3800,22 @@ rooms/akropolis/fire_escape/view3_image	8-bit sheet (two pages) of the 13 occlud
 rooms/akropolis/fire_escape/view5_image	8-bit sheet (two pages) of the 5 room sprites of akropolis_fire_escape's view 5.	
 rooms/akropolis/fire_escape/view7_image	8-bit sheet (two pages) of the 5 room sprites of akropolis_fire_escape's view 7, a view only caption command 1 selects.	
 weapons/m4a1/preview_image	Item preview picture of weapon 0x8F, the M4A1 Rifle, drawn in gameplay's item menu panels when that weapon is selected.	
-rooms/akropolis/helicopter_landing_pad/dialogue_0_atlas	4-bit caption glyph atlas of acropolis_helicopter_landing_pad's dialogue, drawn by gameplay's caption code.	
-rooms/akropolis/helicopter_landing_pad/image	Effect sheet of acropolis_helicopter_landing_pad: additive blast and drifting flare billboards drawn by the room's effects and by enemies/golem/no_9/package_akropolis's blast source.	
-rooms/akropolis/helicopter_landing_pad/view2_image	8-bit sheet of the 17 occluder sprites of acropolis_helicopter_landing_pad's mapped view 2.	
-rooms/akropolis/helicopter_landing_pad/view4_image	8-bit sheet (two pages) of the 5 occluder sprites of acropolis_helicopter_landing_pad's mapped view 4.	
-rooms/akropolis/helicopter_landing_pad/view5_image	8-bit sheet (two pages) of the 8 occluder sprites of acropolis_helicopter_landing_pad's mapped view 5.	
-rooms/akropolis/helicopter_landing_pad/view6_image	8-bit sheet of the 10 occluder sprites of acropolis_helicopter_landing_pad's mapped view 6.	
-rooms/akropolis/helicopter_landing_pad/view7_image	8-bit sheet (three pages) of the occluder sprites of acropolis_helicopter_landing_pad's mapped view 7, including a 7x2 grid of 48x48 cells.	
-rooms/akropolis/helicopter_landing_pad/view8_image	8-bit sheet of the 10 occluder sprites of acropolis_helicopter_landing_pad's mapped view 8.	
-rooms/akropolis/helicopter_landing_pad/view9_image	8-bit sheet (two pages) of the 12 occluder sprites of acropolis_helicopter_landing_pad's mapped view 9.	
-rooms/akropolis/helicopter_landing_pad/view10_image	8-bit sheet (two pages) of the 27 occluder sprites of acropolis_helicopter_landing_pad's mapped view 10.	
+rooms/akropolis/helicopter_landing_pad/dialogue_0_atlas	4-bit caption glyph atlas of akropolis_helicopter_landing_pad's dialogue, drawn by gameplay's caption code.	
+rooms/akropolis/helicopter_landing_pad/image	Effect sheet of akropolis_helicopter_landing_pad: additive blast and drifting flare billboards drawn by the room's effects and by enemies/golem/no_9/package_akropolis's blast source.	
+rooms/akropolis/helicopter_landing_pad/view2_image	8-bit sheet of the 17 occluder sprites of akropolis_helicopter_landing_pad's mapped view 2.	
+rooms/akropolis/helicopter_landing_pad/view4_image	8-bit sheet (two pages) of the 5 occluder sprites of akropolis_helicopter_landing_pad's mapped view 4.	
+rooms/akropolis/helicopter_landing_pad/view5_image	8-bit sheet (two pages) of the 8 occluder sprites of akropolis_helicopter_landing_pad's mapped view 5.	
+rooms/akropolis/helicopter_landing_pad/view6_image	8-bit sheet of the 10 occluder sprites of akropolis_helicopter_landing_pad's mapped view 6.	
+rooms/akropolis/helicopter_landing_pad/view7_image	8-bit sheet (three pages) of the occluder sprites of akropolis_helicopter_landing_pad's mapped view 7, including a 7x2 grid of 48x48 cells.	
+rooms/akropolis/helicopter_landing_pad/view8_image	8-bit sheet of the 10 occluder sprites of akropolis_helicopter_landing_pad's mapped view 8.	
+rooms/akropolis/helicopter_landing_pad/view9_image	8-bit sheet (two pages) of the 12 occluder sprites of akropolis_helicopter_landing_pad's mapped view 9.	
+rooms/akropolis/helicopter_landing_pad/view10_image	8-bit sheet (two pages) of the 27 occluder sprites of akropolis_helicopter_landing_pad's mapped view 10.	
 weapons/m249/preview_image	Item preview picture of weapon 0x90, the M249, drawn in gameplay's item menu panels when that weapon is selected.	
-rooms/akropolis/helicopter_landing_pad/view15_image	8-bit image holding the occluder sprite of acropolis_helicopter_landing_pad's mapped view 15.	
-rooms/akropolis/helicopter_landing_pad/view17_image	8-bit sheet of the 3 occluder sprites of acropolis_helicopter_landing_pad's mapped view 17.	
+rooms/akropolis/helicopter_landing_pad/view15_image	8-bit image holding the occluder sprite of akropolis_helicopter_landing_pad's mapped view 15.	
+rooms/akropolis/helicopter_landing_pad/view17_image	8-bit sheet of the 3 occluder sprites of akropolis_helicopter_landing_pad's mapped view 17.	
 rooms/akropolis/helicopter_landing_pad/view18_image	4-bit texture of the handset Rupert holds (actor_511000's second held model) in the helicopter landing pad's departure scene, brought in by view 18's file.	
-rooms/akropolis/helicopter_landing_pad/view18_image_2	8-bit sheet (two pages) of the 4 occluder sprites of acropolis_helicopter_landing_pad's mapped view 18, the lift ride of the departure.	
-rooms/akropolis/helicopter_landing_pad/view21_image	8-bit sheet of the 6 occluder sprites of acropolis_helicopter_landing_pad's mapped view 21.	
+rooms/akropolis/helicopter_landing_pad/view18_image_2	8-bit sheet (two pages) of the 4 occluder sprites of akropolis_helicopter_landing_pad's mapped view 18, the lift ride of the departure.	
+rooms/akropolis/helicopter_landing_pad/view21_image	8-bit sheet of the 6 occluder sprites of akropolis_helicopter_landing_pad's mapped view 21.	
 rooms/akropolis/helicopter_landing_pad/view24_image	8-bit texture of actor_511000's helicopter hull, rotors and searchlight in the landing pad's departure scene, brought in by view 24's file.	
 rooms/akropolis/helicopter_landing_pad/view24_image_2	Second texture page of actor_511000's helicopter hull (view 24), mixing 8-bit faces with a 4-bit patch that the actor's palette flash recolours.	
 rooms/akropolis/helicopter_landing_pad/view27_image	8-bit golem skin uploaded by view 27's file over No. 9's texture for the helicopter landing pad's ending scene; whether the departure scene's golem reads it is open.	
@@ -4653,7 +4653,7 @@ rooms/akropolis/bridge/sounds_1	Acropolis bridge room sound bank: door sounds of
 weapons/mp5a5/p1_sounds	MP5A5 P1 weapon sound bank (weapon 31): primary shot, secondary flash fire, empty-chamber click, reload start and reload load cues.	
 rooms/akropolis/fire_escape/sounds_0	Footstep bank of akropolis_fire_escape: walk and run step sounds on the floor and stair-climb steps on the two stair flights.	
 rooms/akropolis/fire_escape/sounds_1	Acropolis fire escape room sound bank: bridge door sounds, a view-levelled ambience loop, the flickering lamp's one-shot, and the telephone cutscene's start/scene/after/end sounds.	
-rooms/akropolis/helicopter_landing_pad/sounds_0	Footstep bank of acropolis_helicopter_landing_pad: walk, run and scripted-stairs step sounds on surface classes 2 and 3.	
+rooms/akropolis/helicopter_landing_pad/sounds_0	Footstep bank of akropolis_helicopter_landing_pad: walk, run and scripted-stairs step sounds on surface classes 2 and 3.	
 rooms/akropolis/helicopter_landing_pad/sounds_1	Helicopter landing pad room sound bank: room ambience until the No. 9 encounter, intro sound, lift travel, light sparks, and enemies/golem/no_9/package_akropolis's blast, light-break and grenade sounds in the fight.	
 rooms/akropolis/west_elevator_hall/sounds_0	Footstep bank of acropolis_west_elevator_hall: walk, scripted-jump and run step sounds anywhere in the hall.	
 rooms/akropolis/west_elevator_hall/sounds_1	Acropolis west elevator hall room sound bank: two arrival-scene sounds (by position the lift arriving and its door closing) and arrival/departure sounds of warp 2 to Acropolis Square.	

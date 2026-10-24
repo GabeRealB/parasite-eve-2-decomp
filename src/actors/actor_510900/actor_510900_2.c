@@ -54,7 +54,7 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-#include "rooms/acropolis_helicopter_landing_pad.h"
+#include "rooms/akropolis_helicopter_landing_pad.h"
 #include "../../shared/actor/actor_messages.h"
 
 static void _no9GolemAimHead(const Task* actor);
@@ -2122,7 +2122,7 @@ static void _actor510900TickLethalAttack(Task* task)
                 }
             }
             if (work->animationFrame == ACTOR_510900_LETHAL_VIBRATION_FRAME) {
-                padScriptSpawn(gAcropolisHelicopterLandingPadLethalStrikeVibrationCommands, &gAcropolisHelicopterLandingPadLethalStrikeVibrationSegment);
+                padScriptSpawn(gAkropolisHelicopterLandingPadLethalStrikeVibrationCommands, &gAkropolisHelicopterLandingPadLethalStrikeVibrationSegment);
             }
             if (work->animationFrame == ACTOR_510900_LETHAL_ATTACK_OFF_FRAME) {
                 work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -3560,10 +3560,10 @@ static void _actor510900TickHelipadLightBreak(Task* task)
                 work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
             worldCollisionClearContacts(work->blastContacts);
-            acropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[9]);
-            acropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[8]);
-            acropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[7]);
-            acropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[6]);
+            akropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[9]);
+            akropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[8]);
+            akropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[7]);
+            akropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[6]);
             work->sparkFrames--;
             doneState = ACTOR_510900_HELIPAD_LIGHT_DONE;
             if (work->sparkFrames <= 0) {

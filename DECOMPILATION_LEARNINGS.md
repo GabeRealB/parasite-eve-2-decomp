@@ -30353,14 +30353,14 @@ those saves (96% — only the prologue order differs):
 ```c
 void (*callbacks[2])(s32 parameter0, s32 parameter1);
 callbacks[0] = akropolisFountainStartClimb;
-callbacks[1] = acropolisHelicopterLandingPadStartExit;
+callbacks[1] = akropolisHelicopterLandingPadStartExit;
 ```
 
 An initializer is a distinct RTL block, so GCC emits the full prologue
 then the two address stores — the same shape as `spriteViewTask`:
 
 ```c
-void (*callbacks[])(s32 parameter0, s32 parameter1) = { akropolisFountainStartClimb, acropolisHelicopterLandingPadStartExit };
+void (*callbacks[])(s32 parameter0, s32 parameter1) = { akropolisFountainStartClimb, akropolisHelicopterLandingPadStartExit };
 ```
 
 `directionDispatchCallbackAction` is the example. Index `(u16 >> 8) & 0x7F` is what produces
@@ -48336,7 +48336,7 @@ back over them. Nothing else survives: a `static inline` helper
 or `#include` (such as `gte.h`), a `typedef` used only by that unit (`_AcropolisWestElevatorHallDoorLeafWork`) have no
 symbol for splat to emit, so they simply vanish and the next build fails on an
 undefined reference or an unknown type. Carry them back with the functions, and
-take each declaration from *its own* unit: `gAcropolisHelicopterLandingPadScriptTasks`
+take each declaration from *its own* unit: `gAkropolisHelicopterLandingPadScriptTasks`
 was `extern TaskDesc x;` in one unit and `extern TaskDesc x[];` in another, and
 merging the two files' preambles silently gave one of them the wrong form.
 
@@ -52548,7 +52548,7 @@ descriptor that built it) is what decides which type is in hand.
 
 ## `andi 0x7F` narrowed to `0x7C`: an `s16` local's `(phase & K)` is folded into HImode and re-extended
 
-`acropolisHelicopterLandingPadPerimeterLightsTask` stores a frame counter times
+`akropolisHelicopterLandingPadPerimeterLightsTask` stores a frame counter times
 four into an `s16` field, then folds it into a triangle wave:
 
 ```c
@@ -52579,7 +52579,7 @@ showed the `move`.
 
 ## Immediate stores to stack slots nothing reads are dead struct-field writes; their position fixes the statement, the frame fixes the padding
 
-`acropolisHelicopterLandingPadPlayerPitchPulseTask` stores `-0x249`, `0xB8` and
+`akropolisHelicopterLandingPadPlayerPitchPulseTask` stores `-0x249`, `0xB8` and
 `0` to `sp+0x28 / 0x30 / 0x2C` right after `gameGetTaskSlot` returns, never
 reads them back, and reserves a 0x78 frame (0x50 bytes of locals) for a body
 that otherwise lives in registers. GCC 2.8.1 does not delete dead stores to
@@ -52621,7 +52621,7 @@ call; `VECTOR pos; pos.vx = ...; pos.vy = ...; pos.vz = ...;` followed by the
 
 ### A lone `move aN,vN` copy of a loaded pointer: deref the field inline once, then name it
 
-`_acropolisHelicopterLandingPadLiftUpdate` opens with `lw v1,0x2C(a0)` /
+`_akropolisHelicopterLandingPadLiftUpdate` opens with `lw v1,0x2C(a0)` /
 `lw a0,8(v1)` and then `addu a2,v1,zero` in a delay slot, with `$a2` used only
 much later for the `lhu/sh 0xC` flag update. A single `TmdObject* liftModel =
 task->extra.tmd;` local used for both accesses keeps the pointer in one register
@@ -52641,7 +52641,7 @@ whether the target has it.
 
 ### A ported matched body scoring far below m2c: check that `ABS` is a macro, not a `jal`
 
-`acropolisHelicopterLandingPadScreenShakeTask` is a byte-for-byte copy of
+`akropolisHelicopterLandingPadScreenShakeTask` is a byte-for-byte copy of
 gameplay's matched `evsScreenShakeTask`. Pasting that body into the m2c scratch seed
 scored **68%**, below the 90% m2c baseline, with `regs=40 insert=15`. The
 object dump had `jal ABS` three times: the seed's include list (`common.h`,
@@ -52658,7 +52658,7 @@ include when the body is ported.
 
 ### A raw `D_8011xxxx` import can be an interior slot of a named gameplay array
 
-`acropolisHelicopterLandingPadFlareEmitterTask` writes through
+`akropolisHelicopterLandingPadFlareEmitterTask` writes through
 `D_801150C0` (rooms.imports.txt), which has no declaration anywhere in
 `include/`. `sym.gameplay.txt` places it inside `gWorldCoordTransientPointLights`
 (`0x80114F30`, size `0x320`): `0x801150C0 - 0x80114F30 = 0x190 = 4 * 0x64`,
@@ -52678,7 +52678,7 @@ of chasing that last tenth in the scratch.
 
 ### A block-local `slt` temp cannot be re-ranked; assign the compare to the local whose register it must take
 
-`acropolisHelicopterLandingPadTurnPlayerYawTask` compares two abs distances
+`akropolisHelicopterLandingPadTurnPlayerYawTask` compares two abs distances
 and the target wants `slt $v1, $v1, $v0` / `beqz $v1` — the result lands in
 the register of the first operand (`d1`). Plain `if (d1 < d2)` gives
 `slt $v0, $v1, $v0` at 99.9% with `regs=2` and nothing else, and no
@@ -52710,7 +52710,7 @@ look at the other cases for a local the original evidently recycled.
 
 ### A bare `extern u8` inside `gMcSaveData` lets its load hoist over a struct store; name the member
 
-`acropolisHelicopterLandingPadPrepareDepartureTask` state 7 decrements a
+`akropolisHelicopterLandingPadPrepareDepartureTask` state 7 decrements a
 countdown and then tests the visit counter:
 
 ```asm
@@ -52791,7 +52791,7 @@ bytes, so the scratch diff shows only the symbol name once the order is right.
 
 ## Store the scratch push temp before naming it, or CSE folds the `move` into the block pointer
 
-`_acropolisHelicopterLandingPadDrawPerimeterLight` pushes a 0x14 block and wants
+`_akropolisHelicopterLandingPadDrawPerimeterLight` pushes a 0x14 block and wants
 
 ```asm
 lw    a0,0(v1)
@@ -52862,7 +52862,7 @@ MEM) applies to the *loads* as much as the stores, and it decides where the
 scheduler may put a `+=` on a scratch-block field relative to a chain of
 `gRandomLcgState = gRandomLcgState * 5 + K;` stores.
 
-`acropolisHelicopterLandingPadDrawLowerSparkLine` adds the coord translation to
+`akropolisHelicopterLandingPadDrawLowerSparkLine` adds the coord translation to
 a rotated `SVECTOR` and then rolls three more LCG draws into a second vector.
 The target interleaves them:
 
@@ -52938,14 +52938,14 @@ setRGB0(spark, colorSample >> 1, greenIntensity, 0xFF);
 The byte store of a `u16` is `(subreg:QI (reg:HI greenIntensity))`; that source is not a
 bare REG, so `cse_insn` does not swap it for `colorSample`'s subreg, and `canon_reg`
 leaves `greenIntensity` alone because it is the first register of its own class. 99.88%
-→ 100% in `acropolisHelicopterLandingPadDrawLowerSparkLine`.
+→ 100% in `akropolisHelicopterLandingPadDrawLowerSparkLine`.
 
 ## `GsWSMATRIX` (0x80071138) and `gGfxViewCoord.workm` (0x80070F34) are different matrices
 
 Both are loaded with `gte_SetTransMatrix` / `gte_SetRotMatrix` before an
-`rtps`, and both appear in the same room TU: `_acropolisHelicopterLandingPadDrawPerimeterLight`
+`rtps`, and both appear in the same room TU: `_akropolisHelicopterLandingPadDrawPerimeterLight`
 projects through `gGfxViewCoord.workm`, its sibling
-`acropolisHelicopterLandingPadDrawLowerSparkLine` through `GsWSMATRIX`. The
+`akropolisHelicopterLandingPadDrawLowerSparkLine` through `GsWSMATRIX`. The
 scratch diff shows the symbol name in the `lui`/`addiu` relocation, and that
 line is the *only* leftover once codegen matches. Read the name off the target
 asm rather than copying the neighbour's; `GsWSMATRIX` needs
@@ -52986,7 +52986,7 @@ if (work->age > work->step * 6 - 1) {   /* store + extend first */
 ```
 
 `a > b` still becomes `slt v0, b, a`, so the operand swap costs nothing.
-Last leftover in `acropolisHelicopterLandingPadLensFlareTask`.
+Last leftover in `akropolisHelicopterLandingPadLensFlareTask`.
 
 ## `move_movables` by the numbers: threshold 29, `insn_count` includes the movables, forcing doubles `savings`
 
@@ -93205,7 +93205,7 @@ No pointer local is needed for the fix here. A member access on a global whose
 *type* has the field - `extern WorldCollisionTrigger D_x;` then `D_x.flags &= 0xBF;` -
 leaves the symbol bare and puts the displacement in the memory operand. That is
 what the sibling rooms do for the same clear (`_akropolisFireEscapeDisableAbsentActorInteraction`,
-`_dryfieldNightMotelLoftUpdateRoom`, `_acropolisHelicopterLandingPadInitRoom`,
+`_dryfieldNightMotelLoftUpdateRoom`, `_akropolisHelicopterLandingPadInitializeRoomTask`,
 all `extern WorldCollisionTrigger`), so it is also the shape the original source had. One
 build, 100.000%, all penalties zero.
 

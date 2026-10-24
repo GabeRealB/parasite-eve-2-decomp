@@ -581,13 +581,13 @@ akropolisForkedRoadRoomVisualEffectsSparkBurstTask = 0x801802CC; // type:func ab
 
 akropolisFountainSprayTask = 0x8017DD44; // type:func absolute:True owner=akropolis_fountain shared=rooms
 
-acropolisHelicopterLandingPadEmberTask = 0x8017FA30; // type:func absolute:True owner=acropolis_helicopter_landing_pad
+akropolisHelicopterLandingPadEmberTask = 0x8017FA30; // type:func absolute:True owner=akropolis_helicopter_landing_pad
 
-acropolisHelicopterLandingPadFlareEmitterTask = 0x80180E40; // type:func absolute:True owner=acropolis_helicopter_landing_pad
+akropolisHelicopterLandingPadFlareEmitterTask = 0x80180E40; // type:func absolute:True owner=akropolis_helicopter_landing_pad
 
-acropolisHelicopterLandingPadLensFlareTask = 0x80181064; // type:func absolute:True owner=acropolis_helicopter_landing_pad
+akropolisHelicopterLandingPadLensFlareTask = 0x80181064; // type:func absolute:True owner=akropolis_helicopter_landing_pad
 
-acropolisHelicopterLandingPadPerimeterLightsTask = 0x801818F0; // type:func absolute:True owner=acropolis_helicopter_landing_pad
+akropolisHelicopterLandingPadPerimeterLightsTask = 0x801818F0; // type:func absolute:True owner=akropolis_helicopter_landing_pad
 
 akropolisObservatoryAmbientGlowTask = 0x8017E424; // type:func absolute:True owner=akropolis_observatory shared=rooms
 
@@ -1405,7 +1405,7 @@ gAkropolisFountainAreaVariants = 0x8017FC9C; // absolute:True owner=akropolis_fo
 
 gAkropolisHallwayAreaVariants = 0x8017EA3C; // absolute:True owner=akropolis_hallway
 
-gAcropolisHelicopterLandingPadAreaVariants = 0x801861E8; // absolute:True owner=acropolis_helicopter_landing_pad
+gAkropolisHelicopterLandingPadAreaVariants = 0x801861E8; // absolute:True owner=akropolis_helicopter_landing_pad
 
 gAkropolisObservatoryAreaVariants = 0x80181264; // absolute:True owner=akropolis_observatory
 
@@ -1739,7 +1739,7 @@ dryfieldNightMotelRoom6PlayerReflectionTask = 0x801811A0; // type:func absolute:
 
 akropolisFountainStartClimb = 0x8017DA78; // type:func absolute:True owner=akropolis_fountain
 
-acropolisHelicopterLandingPadStartExit = 0x8017EF60; // type:func absolute:True owner=acropolis_helicopter_landing_pad
+akropolisHelicopterLandingPadStartExit = 0x8017EF60; // type:func absolute:True owner=akropolis_helicopter_landing_pad
 
 gMistShootingGalleryWeaponSelectPanelDesc = 0x80184F70; // absolute:True owner=mist_shooting_gallery
 
@@ -1947,7 +1947,7 @@ shelterB1ElevatorHallRoomVisualEffectsHaloOrangeBurstTask = 0x8017F7D4; // type:
 
 akropolisForkedRoadLeafFallTask = 0x8017E81C; // type:func absolute:True owner=akropolis_forked_road shared=rooms
 
-acropolisHelicopterLandingPadDamagedLightSparksTask = 0x801802E0; // type:func absolute:True owner=acropolis_helicopter_landing_pad
+akropolisHelicopterLandingPadDamagedLightSparksTask = 0x801802E0; // type:func absolute:True owner=akropolis_helicopter_landing_pad
 
 neoArkForestZoneLeafFallTask = 0x8017DC20; // type:func absolute:True owner=neo_ark_forest_zone shared=rooms
 

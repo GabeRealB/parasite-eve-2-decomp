@@ -139,10 +139,10 @@ flash_5 = [200, 72, 40, 40]
 [package]
 type = "room"
 embedded = [
-    { name = "acropolis_helicopter_landing_pad_model_0547C", offset = 0x04E04, size = 0x134C, address = 0x801823C4 },
-    "acropolis_helicopter_landing_pad_model_0A8E8",
+    { name = "akropolis_helicopter_landing_pad_model_0547C", offset = 0x04E04, size = 0x134C, address = 0x801823C4 },
+    "akropolis_helicopter_landing_pad_model_0A8E8",
 ]
-package_name = "acropolis_helicopter_landing_pad"
+package_name = "akropolis_helicopter_landing_pad"
 required = true
 sha1 = "dc29089521da635762fcffefbbf44f6e4914266a"
 
@@ -1481,13 +1481,13 @@ type = "clip"
 rig = "characters/aya/rig"
 symbol = "gAkropolisHelicopterLandingPadPlayerHelipadDetonatorTalkClip"
 
-[acropolis_helicopter_landing_pad_model_0547C]
+[akropolis_helicopter_landing_pad_model_0547C]
 type = "model"
 slots = ["lift"]
-symbol = "gAkropolisHelicopterLandingPadAcropolisHelicopterLandingPadModel0547C"
+symbol = "gAkropolisHelicopterLandingPadAkropolisHelicopterLandingPadModel0547C"
 sha1 = "88e26b362ce7871a986f0dfe7b2bce392e56cc33"
 
-[acropolis_helicopter_landing_pad_model_0547C_binding]
+[akropolis_helicopter_landing_pad_model_0547C_binding]
 type = "binding"
-model = "rooms/akropolis/helicopter_landing_pad/acropolis_helicopter_landing_pad_model_0547C"
+model = "rooms/akropolis/helicopter_landing_pad/akropolis_helicopter_landing_pad_model_0547C"
 textures = { lift = "rooms/akropolis/helicopter_landing_pad/lift.default" }

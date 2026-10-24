@@ -4880,7 +4880,7 @@ ASSETS = {
     'shelter_b1_south_maintenance_walkway_bundle': {"sha1": "1e156eb10f042531c8dc96155f00bc6e58781a1b", "type": "pe2bundle", 'resources': [None, None, None, 'shelter_b1_south_maintenance_walkway_view4', None, 'shelter_b1_south_maintenance_walkway_dialogue_0']},
     'shelter_b2_north_maintenance_walkway_bundle': {"sha1": "5a7cf69fe979c428cc3b89a14f1decc4dbd4f2fe", "type": "pe2bundle", 'resources': [None, None, 'shelter_b2_north_maintenance_walkway_view3', 'shelter_b2_north_maintenance_walkway_view4', None, None, 'shelter_b2_north_maintenance_walkway_view7', 'shelter_b2_north_maintenance_walkway_view8', 'shelter_b2_north_maintenance_walkway_dialogue_0']},
     'shelter_b2_south_maintenance_walkway_bundle': {"sha1": "6d22525bd15327388dc3821330c4091765536b25", "type": "pe2bundle", 'resources': [None, None, 'shelter_b2_south_maintenance_walkway_view3', None, None, 'shelter_b2_south_maintenance_walkway_dialogue_0']},
-    'acropolis_helicopter_landing_pad_model_0A8E8': {"sha1": "30d9f3dadabae696080df398431a5f10883751d3", "type": "tmd", 'textures': [[21, 16710]]},
+    'akropolis_helicopter_landing_pad_model_0A8E8': {"sha1": "30d9f3dadabae696080df398431a5f10883751d3", "type": "tmd", 'textures': [[21, 16710]]},
     'dryfield_night_trailer_coach_animation_07A48': {"sha1": "8a42c120834f4ccc6ec6461142d87c1662e45754", "type": "animation"},
     'shelter_b1_control_room_access_tunnel_bundle': {"sha1": "9afae02da23a9e08e652b9f61dee292db292382c", "type": "pe2bundle", 'resources': ['shelter_b1_transfer_tunnel_dialogue_0']},
     'shelter_b1_pod_access_tunnel_animation_03C14': {"sha1": "a0ad43dc975b39d7475be890c387eb9fad193b71", "type": "animation"},
@@ -5528,7 +5528,7 @@ EMBEDDED_ASSETS = {
     'dryfield_night_gas_station_animation_06DD8': {"source": 'dryfield_night_gas_station.pe2pkg', "vram": 0x80184398, "size": 0x41E8, "type": 'animation', "clips": 15},
     'dryfield_night_parking_lot_animation_01224': {"source": 'dryfield_night_parking_lot.pe2pkg', "vram": 0x8017E7E4, "size": 0x470, "type": 'animation', "clips": 1},
     'shelter_b3_garbage_incinerator_model_081E4': {"source": 'shelter_b3_garbage_incinerator.pe2pkg', "vram": 0x801857A4, "size": 0x378, "type": 'tmd'},
-    'acropolis_helicopter_landing_pad_model_0A8E8': {"source": 'acropolis_helicopter_landing_pad.pe2pkg', "vram": 0x80187EA8, "size": 0xA8, "type": 'tmd'},
+    'akropolis_helicopter_landing_pad_model_0A8E8': {"source": 'akropolis_helicopter_landing_pad.pe2pkg', "vram": 0x80187EA8, "size": 0xA8, "type": 'tmd'},
     'dryfield_night_trailer_coach_animation_07A48': {"source": 'dryfield_night_trailer_coach.pe2pkg', "vram": 0x80185008, "size": 0x2944, "type": 'animation', "clips": 11},
     'shelter_b1_pod_access_tunnel_animation_03C14': {"source": 'shelter_b1_pod_access_tunnel.pe2pkg', "vram": 0x801811D4, "size": 0x1B58, "type": 'animation', "clips": 7},
     'shelter_b1_sterilization_room_animation_0798C': {"source": 'shelter_b1_sterilization_room.pe2pkg', "vram": 0x80184F4C, "size": 0x35B8, "type": 'animation', "clips": 7},
@@ -6636,8 +6636,8 @@ TREE = {
                 'file9': {"id": 9, "chunks": {'akropolis_square_dialogue_1_atlas': 'rooms/akropolis/story_calls_atlas', 'bs_223': 'rooms/akropolis/fire_escape/view9_background'}},
                 'file10': {"id": 10, "chunks": {'bs_224': 'rooms/akropolis/fire_escape/view10_background'}},
             }},
-            'acropolis_helicopter_landing_pad': {"id": 1601, "files": {
-                'file0': {"id": 0, "chunks": {'spk_182': 'rooms/akropolis/helicopter_landing_pad/sounds_0', 'spk_183': 'rooms/akropolis/helicopter_landing_pad/sounds_1', 'acropolis_helicopter_landing_pad_dialogue_0_atlas': 'rooms/akropolis/helicopter_landing_pad/dialogue_0_atlas', 'pe2clut_325': 'rooms/akropolis/helicopter_landing_pad/palette', 'pe2clut_326': 'rooms/akropolis/helicopter_landing_pad/palette_2', 'pe2img_431': 'rooms/akropolis/helicopter_landing_pad/image', 'package': 'rooms/akropolis/helicopter_landing_pad/package', 'bundle': 'rooms/akropolis/helicopter_landing_pad/bundle'}},
+            'akropolis_helicopter_landing_pad': {"id": 1601, "files": {
+                'file0': {"id": 0, "chunks": {'spk_182': 'rooms/akropolis/helicopter_landing_pad/sounds_0', 'spk_183': 'rooms/akropolis/helicopter_landing_pad/sounds_1', 'akropolis_helicopter_landing_pad_dialogue_0_atlas': 'rooms/akropolis/helicopter_landing_pad/dialogue_0_atlas', 'pe2clut_325': 'rooms/akropolis/helicopter_landing_pad/palette', 'pe2clut_326': 'rooms/akropolis/helicopter_landing_pad/palette_2', 'pe2img_431': 'rooms/akropolis/helicopter_landing_pad/image', 'package': 'rooms/akropolis/helicopter_landing_pad/package', 'bundle': 'rooms/akropolis/helicopter_landing_pad/bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_225': 'rooms/akropolis/helicopter_landing_pad/view1_background'}},
                 'file2': {"id": 2, "chunks": {'pe2img_432': 'rooms/akropolis/helicopter_landing_pad/view2_image', 'bs_226': 'rooms/akropolis/helicopter_landing_pad/view2_background'}},
                 'file3': {"id": 3, "chunks": {'bs_227': 'rooms/akropolis/helicopter_landing_pad/view3_background'}},

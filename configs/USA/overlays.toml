@@ -1344,19 +1344,20 @@ objects = [
   { kind = "collisionSource", at = "0x4CE8", in_c = true, cell_face_list_macro = "AKROPOLIS_FIRE_ESCAPE_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
-[rooms.overlays.acropolis_helicopter_landing_pad]
+[rooms.overlays.akropolis_helicopter_landing_pad]
 id = 300
+src = "src/stages/akropolis/rooms/helicopter_landing_pad"
 objects = [
   { kind = "packageId" },
-  { unit = "acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad", rodata = "0x4", text = "0x98", data = "0x4D68" },
-  { unit = "acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_2", rodata = "0x10", text = "0x4DC", data = "0x88BC" },
-  { unit = "acropolis_helicopter_landing_pad/acropolis_helicopter_landing_pad_3", rodata = "0x6C", text = "0x1598", data = "0x6150" },
+  { unit = "helicopter_landing_pad", rodata = "0x4", text = "0x98", data = "0x4D68" },
+  { unit = "helicopter_landing_pad_departure", rodata = "0x10", text = "0x4DC", data = "0x88BC" },
+  { unit = "helicopter_landing_pad_effects", rodata = "0x6C", text = "0x1598", data = "0x6150" },
   { kind = "model", at = "0x4E04", in_c = true },
   { kind = "modelSource", at = "0x612C", in_c = true },
   { kind = "model", at = "0xA828", in_c = true },
   { kind = "modelSource", at = "0xA990", in_c = true },
   { kind = "collision", at = "0x7A34", in_c = true },
-  { kind = "collisionSource", at = "0x83D8", in_c = true, cell_face_list_macro = "ACROPOLIS_HELICOPTER_LANDING_PAD_CELL_FACE_LIST_AT_OFFSET" },
+  { kind = "collisionSource", at = "0x83D8", in_c = true, cell_face_list_macro = "AKROPOLIS_HELICOPTER_LANDING_PAD_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.acropolis_west_elevator_hall]

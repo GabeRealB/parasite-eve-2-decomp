@@ -41,7 +41,7 @@
 
 #include "rooms/akropolis_fountain.h"
 
-#include "rooms/acropolis_helicopter_landing_pad.h"
+#include "rooms/akropolis_helicopter_landing_pad.h"
 
 #include "rooms/akropolis_security_room.h"
 
@@ -280,7 +280,7 @@ TaskDesc gTaskBank2Descs[TASK_BANK2_DESCRIPTOR_COUNT] = {
     { { { TASK_BODY_NONE, 0xC0 } }, padScriptVariableMotorRampTask },
     { { { TASK_BODY_NONE, 0xC0 } }, padScriptTask },
     { { { TASK_BODY_NONE, 0xC0 } }, akropolisFountainClimbTask },
-    { { { TASK_BODY_NONE, 0xC0 } }, acropolisHelicopterLandingPadExitTask },
+    { { { TASK_BODY_NONE, 0xC0 } }, akropolisHelicopterLandingPadExitTask },
     { { { TASK_BODY_TMD, 0x60 } }, effectBurstModelPartTask },
 };
 
