@@ -62,9 +62,16 @@ Choose the owner before composing the name:
   Do not abbreviate package keys; dropping a leading word can cause collisions.
   This rule applies to room, actor, weapon and other package-specific routines,
   not to every subsystem implemented in the gameplay overlay.
-- **Actors** — the actor id, until the packages are identified:
-  `actor00300UpdateTransform`. One body serves that actor's several RAM slots,
-  so the id, not a load address, is its identity.
+- **Actors** — once identified, an actor overlay is named for what it is, and
+  that name is its manifest key and prefix: `police_officers` →
+  `policeOfficers…`. A general actor takes its kind (`desert_chaser`); a stage's
+  local variant of a general kind says where it plays (`water_tower_desert_chaser`);
+  a stage actor that is one of a kind needs nothing more (`police_officers`). The
+  disc id stays the entry's `id`. One source built for several packages or
+  slots keeps one name; its packages state the slot or the place. Until the
+  packages are identified, the actor id is the name: `actor00300UpdateTransform`.
+  One body serves that actor's several RAM slots, so the id, not a load address,
+  is its identity.
 - **Included shared source** — use the shared subsystem's identity, such as
   `actorContact`, `capCaption`, `planarReflection`, `roomEffect`, `shop`,
   `telephone` or `water`. Static instances retain `_`; an externally linked overlay
@@ -196,6 +203,46 @@ Two things decide this, and only one of them is visible from C:
   trial on five private functions changed no output. It can still affect
   register allocation where the compiler now sees every call site, so add it a
   subsystem at a time and let the checksum decide.
+
+### Names local to a file
+
+A prefix names an owner where a name is seen beyond its own scope. Functions
+and data are symbols - the symbol maps and the tooling identify an overlay by a
+function's name - so a static keeps its package or subsystem prefix and its `_`
+marker. Anything a public header or a room's `config.h` declares keeps its
+prefix too: other files see it.
+
+Names nothing outside one `.c` can see take none:
+
+| Kind | Name | Example (the Akropolis plaza) |
+|---|---|---|
+| static function | prefixed, `_` | `_akropolisPlazaTraversalTask` |
+| static data | prefixed, `_g` | `_gAkropolisPlazaTraversalCameraSamples` |
+| type in a `.c` | `_` and its role | `_TraversalWork` |
+| constant in a `.c` | its role | `EDGE_WALK` |
+| constant inside a function | its role in that function | `WAIT_OFFICERS_SCRIPT` |
+| `config.h`, public header | prefixed | `AKROPOLIS_PLAZA_MOVIE_OPENING` |
+
+A local constant takes no `_`: an underscore and a capital is the spelling
+compilers and Sony's headers use for their own names. A clash with an included
+name fails to compile rather than changing meaning. A shared fragment
+(`.inc.c`) is pasted into its carrier's file, so its constants and types share
+the carrier's scope: fragments keep their subsystem prefixes on everything.
+
+### Source layout
+
+A source folder is one overlay: a room's several units share its folder
+because they link into one image, and nothing else does. Stage content lives
+under its stage - `src/stages/<stage>/rooms/<room>/`, and
+`src/stages/<stage>/actors/<actor>/` for actors only that stage loads (their
+packages sit in a room's disc folder). General actors mirror their asset
+families: `src/enemies/<kind>/`, `src/encounters/<pair>/`,
+`src/characters/<character>/`, as `enemies/chaser/desert` → `src/enemies/chaser/desert/`.
+Public headers mirror the sources (`include/stages/akropolis/rooms/plaza.h`,
+`include/stages/akropolis/actors/police_officers.h`); the engine's actor API
+stays in `include/actors/`. The manifest family `actors` is a load-slot family,
+not a folder: an entry's `src` states where its source lives. Shared libraries
+carried by several overlays stay in `src/shared/`.
 
 ### File layout
 
