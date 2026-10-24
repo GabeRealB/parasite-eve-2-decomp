@@ -1290,7 +1290,14 @@ def ninja_build(
             writer.build(outputs=str(inc), rule="shape-inc", inputs=str(instance), implicit=shape_deps + instances,
                          variables={"name": name})
         ASSET_INC_OUTPUTS.append(str(inc))
-    room_deps = [str(GEN_ROOM_INC), str(peassets / "asset_data.py"), str(peassets / "asset_schema.py"),
+    # The includes a room's generated files name come from an index of include/ (room/c_headers.py): a stamp of the
+    # headers' paths, rewritten only when the set changes, regenerates them when a header moves or appears.
+    header_stamp = BUILD_DIR / "include_headers.txt"
+    header_list = "".join(f"{h.as_posix()}\n" for h in sorted(Path("include").rglob("*.h")))
+    if not header_stamp.is_file() or header_stamp.read_text() != header_list:
+        header_stamp.parent.mkdir(parents=True, exist_ok=True)
+        header_stamp.write_text(header_list)
+    room_deps = [str(header_stamp), str(GEN_ROOM_INC), str(peassets / "asset_data.py"), str(peassets / "asset_schema.py"),
                  *sorted(str(p) for p in (peassets / "room").glob("*.py")), str(peassets / "shape" / "__init__.py"),
                  str(CONFIG_DIR / version / "overlays.toml"),
                  *sorted(str(p) for p in (peassets / "groups").rglob("*.toml"))]
