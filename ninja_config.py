@@ -1910,7 +1910,7 @@ def extract_files(
         cmd.append("--raw-only")
     elif minimal_inflate:
         cmd.append("--minimal-inflate")
-    subprocess.call(cmd)
+    subprocess.check_call(cmd)   # a failed extraction has already removed the old assets: fail loudly
 
 
 def main():
