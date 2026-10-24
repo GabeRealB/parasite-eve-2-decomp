@@ -17,6 +17,7 @@
 #include "gameplay/display.h"
 #include "gameplay/effects.h"
 #include "gameplay/message.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
 #include "gameplay/scene_combat.h"
@@ -90,30 +91,22 @@ u16 gAkropolisObservatoryUnusedHalfwords[4] = {
 #include "assets/rooms/akropolis/observatory/vibrations.inc"
 #include "assets/rooms/akropolis/observatory/surfaces.inc"
 
-/// GPU page and palette encodings for the view sprites' 8-bit texture atlas.
-enum {
-    AKROPOLIS_OBSERVATORY_SPRITE_TEXTURE_DEPTH_8BIT = 1,
-};
-
 /// Runs the observatory's scripted player pose and enemy-entrance battle handoff.
 static void _akropolisObservatoryScriptedBattleTask(Task* task)
 {
     enum {
-        AKROPOLIS_OBSERVATORY_SCENE_INITIALIZE                 = 0,
-        AKROPOLIS_OBSERVATORY_SCENE_DEFER_FIRST                = 1,
-        AKROPOLIS_OBSERVATORY_SCENE_DEFER_SECOND               = 2,
-        AKROPOLIS_OBSERVATORY_SCENE_WAIT_ENTRANCE              = 3,
-        AKROPOLIS_OBSERVATORY_SCENE_DEFER_BATTLE               = 4,
-        AKROPOLIS_OBSERVATORY_SCENE_RESTORE_PLAYER             = 5,
-        AKROPOLIS_OBSERVATORY_SCENE_RELEASE_PLAYER             = 6,
-        AKROPOLIS_OBSERVATORY_SCENE_CLIP                       = 1,
-        AKROPOLIS_OBSERVATORY_SCENE_HOLD_ENTRANCE              = 0,
-        AKROPOLIS_OBSERVATORY_SCENE_FIRST_WAVE                 = 2,
-        AKROPOLIS_OBSERVATORY_SCENE_PRIMARY_CHARACTER          = 1,
-        AKROPOLIS_OBSERVATORY_SCENE_PRIMARY_WEAPON_BANK_BASE   = 1,
-        AKROPOLIS_OBSERVATORY_SCENE_ALTERNATE_WEAPON_BANK_BASE = 34,
-        AKROPOLIS_OBSERVATORY_SCENE_FIELD_ROOM                 = 1,
-        AKROPOLIS_OBSERVATORY_SCENE_FOLLOW_UP_BLEND_FRAMES     = 10
+        AKROPOLIS_OBSERVATORY_SCENE_INITIALIZE             = 0,
+        AKROPOLIS_OBSERVATORY_SCENE_DEFER_FIRST            = 1,
+        AKROPOLIS_OBSERVATORY_SCENE_DEFER_SECOND           = 2,
+        AKROPOLIS_OBSERVATORY_SCENE_WAIT_ENTRANCE          = 3,
+        AKROPOLIS_OBSERVATORY_SCENE_DEFER_BATTLE           = 4,
+        AKROPOLIS_OBSERVATORY_SCENE_RESTORE_PLAYER         = 5,
+        AKROPOLIS_OBSERVATORY_SCENE_RELEASE_PLAYER         = 6,
+        AKROPOLIS_OBSERVATORY_SCENE_CLIP                   = 1,
+        AKROPOLIS_OBSERVATORY_SCENE_HOLD_ENTRANCE          = 0,
+        AKROPOLIS_OBSERVATORY_SCENE_FIRST_WAVE             = 2,
+        AKROPOLIS_OBSERVATORY_SCENE_FIELD_ROOM             = 1,
+        AKROPOLIS_OBSERVATORY_SCENE_FOLLOW_UP_BLEND_FRAMES = 10
     };
     AnimationPlayRequest            playbackRequest;
     AnimationPlayRequest            followUpRequest;
@@ -169,7 +162,7 @@ static void _akropolisObservatoryScriptedBattleTask(Task* task)
         case AKROPOLIS_OBSERVATORY_SCENE_RESTORE_PLAYER:
             // Restore the equipped weapon bank before returning to the field room.
             weaponIndex                          = gPlayerStatus.weapon;
-            animationBankIndex                   = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == AKROPOLIS_OBSERVATORY_SCENE_PRIMARY_CHARACTER) ? weaponIndex + AKROPOLIS_OBSERVATORY_SCENE_PRIMARY_WEAPON_BANK_BASE : weaponIndex + AKROPOLIS_OBSERVATORY_SCENE_ALTERNATE_WEAPON_BANK_BASE;
+            animationBankIndex                   = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponIndex);
             playbackRequest.source.index         = animationBankIndex;
             playbackRequest.animationId          = AKROPOLIS_OBSERVATORY_SCENE_CLIP;
             playbackRequest.blend                = ANIMATION_BLEND_RESET;

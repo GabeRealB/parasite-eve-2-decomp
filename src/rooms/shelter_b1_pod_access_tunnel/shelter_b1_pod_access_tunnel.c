@@ -1872,11 +1872,8 @@ static void _shelterB1PodAccessTunnelPostGantryDialogueTask(Task* task)
 {
     enum { DIALOGUE_START,
            DIALOGUE_WAIT_SCRIPT,
-           DIALOGUE_PRIMARY_CHARACTER         = 1,
-           DIALOGUE_PRIMARY_WEAPON_SET_BASE   = 1,
-           DIALOGUE_ALTERNATE_WEAPON_SET_BASE = 0x22,
-           DIALOGUE_WEAPON_POSE               = 1,
-           DIALOGUE_MUSIC_EVENT               = 29 };
+           DIALOGUE_WEAPON_POSE = 1,
+           DIALOGUE_MUSIC_EVENT = 29 };
 
     AnimationPlayRequest poseRequest;
     s32                  state;
@@ -1889,9 +1886,7 @@ static void _shelterB1PodAccessTunnelPostGantryDialogueTask(Task* task)
             if (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 // The arrival script holds a weapon pose until normal control resumes.
                 weaponId                         = gPlayerStatus.weapon;
-                weaponSetIndex                   = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == DIALOGUE_PRIMARY_CHARACTER)
-                                                       ? weaponId + DIALOGUE_PRIMARY_WEAPON_SET_BASE
-                                                       : weaponId + DIALOGUE_ALTERNATE_WEAPON_SET_BASE;
+                weaponSetIndex                   = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
                 poseRequest.source.index         = weaponSetIndex;
                 poseRequest.animationId          = DIALOGUE_WEAPON_POSE;
                 poseRequest.blend                = ANIMATION_BLEND_RESET;

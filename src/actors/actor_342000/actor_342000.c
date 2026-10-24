@@ -871,19 +871,16 @@ static void _actor342000UpdatePlayerAction(Task* eventTask)
     }
 
     enum {
-        ACTOR_342000_PLAYER_WALK_SEND           = 0,
-        ACTOR_342000_PLAYER_WALK_WAIT           = 1,
-        ACTOR_342000_PLAYER_WALK_DELAY          = 2,
-        ACTOR_342000_PLAYER_WALK_DELAY_TICKS    = 11,
-        ACTOR_342000_PLAYER_BLEND_FRAMES        = 10,
-        ACTOR_342000_PRIMARY_CHARACTER          = 1,
-        ACTOR_342000_PRIMARY_WEAPON_BANK_BASE   = 1,
-        ACTOR_342000_ALTERNATE_WEAPON_BANK_BASE = 34,
-        ACTOR_342000_PLAYER_EVENT_CLIP_AT_MARK  = 0,
-        ACTOR_342000_PLAYER_EVENT_CLIP_1        = 1,
-        ACTOR_342000_PLAYER_WEAPON_CLIP         = 1,
-        ACTOR_342000_PLAYER_EVENT_CLIP_2        = 2,
-        ACTOR_342000_PLAYER_EVENT_CLIP_ALERT    = 3,
+        ACTOR_342000_PLAYER_WALK_SEND          = 0,
+        ACTOR_342000_PLAYER_WALK_WAIT          = 1,
+        ACTOR_342000_PLAYER_WALK_DELAY         = 2,
+        ACTOR_342000_PLAYER_WALK_DELAY_TICKS   = 11,
+        ACTOR_342000_PLAYER_BLEND_FRAMES       = 10,
+        ACTOR_342000_PLAYER_EVENT_CLIP_AT_MARK = 0,
+        ACTOR_342000_PLAYER_EVENT_CLIP_1       = 1,
+        ACTOR_342000_PLAYER_WEAPON_CLIP        = 1,
+        ACTOR_342000_PLAYER_EVENT_CLIP_2       = 2,
+        ACTOR_342000_PLAYER_EVENT_CLIP_ALERT   = 3,
     };
     _Actor342000EventWork* work;
     _Actor342000EventWork* publishedEventWork;
@@ -934,7 +931,7 @@ static void _actor342000UpdatePlayerAction(Task* eventTask)
             s32 animationBankIndex;
 
             weaponId                              = gPlayerStatus.weapon;
-            animationBankIndex                    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_342000_PRIMARY_CHARACTER) ? weaponId + ACTOR_342000_PRIMARY_WEAPON_BANK_BASE : weaponId + ACTOR_342000_ALTERNATE_WEAPON_BANK_BASE;
+            animationBankIndex                    = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
             animationRequest.source.index         = animationBankIndex;
             animationRequest.animationId          = ACTOR_342000_PLAYER_WEAPON_CLIP;
             animationRequest.blend                = ANIMATION_BLEND_RESET;
@@ -951,7 +948,7 @@ static void _actor342000UpdatePlayerAction(Task* eventTask)
             s32 animationBankIndex;
 
             weaponId                              = gPlayerStatus.weapon;
-            animationBankIndex                    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_342000_PRIMARY_CHARACTER) ? weaponId + ACTOR_342000_PRIMARY_WEAPON_BANK_BASE : weaponId + ACTOR_342000_ALTERNATE_WEAPON_BANK_BASE;
+            animationBankIndex                    = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
             animationRequest.source.index         = animationBankIndex;
             animationRequest.animationId          = ACTOR_342000_PLAYER_WEAPON_CLIP;
             animationRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
@@ -1713,10 +1710,7 @@ static void _actor342000SetPlayerDrawMode(s32 drawMode)
 static void _actor342000RestorePlayerAfterSkip(void)
 {
     enum {
-        ACTOR_342000_PRIMARY_CHARACTER          = 1,
-        ACTOR_342000_PRIMARY_WEAPON_BANK_BASE   = 1,
-        ACTOR_342000_ALTERNATE_WEAPON_BANK_BASE = 34,
-        ACTOR_342000_WEAPON_CLIP                = 1,
+        ACTOR_342000_WEAPON_CLIP = 1,
     };
     _Actor342000EventWork* work;
     AnimationPlayRequest   animationRequest;
@@ -1728,9 +1722,7 @@ static void _actor342000RestorePlayerAfterSkip(void)
     shelterB3GarbageIncineratorSetExitCollisionWalls();
     // Resume clip 1 in the current character's equipped-weapon bank.
     weaponId                              = gPlayerStatus.weapon;
-    animationBankIndex                    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_342000_PRIMARY_CHARACTER)
-                                                ? weaponId + ACTOR_342000_PRIMARY_WEAPON_BANK_BASE
-                                                : weaponId + ACTOR_342000_ALTERNATE_WEAPON_BANK_BASE;
+    animationBankIndex                    = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
     animationRequest.source.index         = animationBankIndex;
     animationRequest.animationId          = ACTOR_342000_WEAPON_CLIP;
     animationRequest.blend                = ANIMATION_BLEND_RESET;

@@ -851,22 +851,19 @@ static void _actor120300RunPlayerRequest(Task* task)
 /// Arguments are evaluated once in request-fill/dispatch order. Every expansion
 /// owns a separate stack request, borrowed synchronously by dispatch. Invoke
 /// within braces; captures the current saved character and equipped weapon.
-#define ACTOR_120300_PLAY_PLAYER_WEAPON_ANIMATION(target, blendChoice, frames)                                                                                                                                                                  \
-    {                                                                                                                                                                                                                                           \
-        AnimationPlayRequest request;                                                                                                                                                                                                           \
-        s32                  weaponId;                                                                                                                                                                                                          \
-        enum { ACTOR_120300_WEAPON_PRIMARY_CHARACTER   = 1,                                                                                                                                                                                     \
-               ACTOR_120300_WEAPON_PRIMARY_BANK_BASE   = 1,                                                                                                                                                                                     \
-               ACTOR_120300_WEAPON_ALTERNATE_BANK_BASE = 34,                                                                                                                                                                                    \
-               ACTOR_120300_WEAPON_ANIMATION           = 1 };                                                                                                                                                                                             \
-                                                                                                                                                                                                                                                \
-        weaponId                     = gPlayerStatus.weapon;                                                                                                                                                                                    \
-        request.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_120300_WEAPON_PRIMARY_CHARACTER) ? weaponId + ACTOR_120300_WEAPON_PRIMARY_BANK_BASE : weaponId + ACTOR_120300_WEAPON_ALTERNATE_BANK_BASE; \
-        request.animationId          = ACTOR_120300_WEAPON_ANIMATION;                                                                                                                                                                           \
-        request.blend                = (blendChoice);                                                                                                                                                                                           \
-        request.blendFrames          = (frames);                                                                                                                                                                                                \
-        request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                                                                                                                                                       \
-        TASK_MESSAGE_DISPATCH_POINTER((target), ANIMATION_MESSAGE_PLAY, &request, 0);                                                                                                                                                           \
+#define ACTOR_120300_PLAY_PLAYER_WEAPON_ANIMATION(target, blendChoice, frames)        \
+    {                                                                                 \
+        AnimationPlayRequest request;                                                 \
+        s32                  weaponId;                                                \
+        enum { ACTOR_120300_WEAPON_ANIMATION = 1 };                                   \
+                                                                                      \
+        weaponId                     = gPlayerStatus.weapon;                          \
+        request.source.index         = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);      \
+        request.animationId          = ACTOR_120300_WEAPON_ANIMATION;                 \
+        request.blend                = (blendChoice);                                 \
+        request.blendFrames          = (frames);                                      \
+        request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;             \
+        TASK_MESSAGE_DISPATCH_POINTER((target), ANIMATION_MESSAGE_PLAY, &request, 0); \
     }
 
     enum {
@@ -1232,7 +1229,7 @@ static void _actor120300PrepareRoomPlay(s32 preservePlayer)
     TASK_MESSAGE_DISPATCH_POINTER(work->rifleTask, ACTOR_MESSAGE_PLACE, &_gActor120300ScenePlacements[ACTOR_120300_PLACEMENT_RIFLE_ROOM_PLAY], 0);
     if (preservePlayer == 0) {
         weaponId                                    = gPlayerStatus.weapon;
-        weaponBank                                  = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_120300_PRIMARY_CHARACTER) ? weaponId + ACTOR_120300_PRIMARY_WEAPON_BANK_BASE : weaponId + ACTOR_120300_ALTERNATE_WEAPON_BANK_BASE;
+        weaponBank                                  = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
         playerAnimationRequest.source.index         = weaponBank;
         playerAnimationRequest.animationId          = ACTOR_120300_WEAPON_ANIMATION;
         playerAnimationRequest.blend                = ANIMATION_BLEND_RESET;

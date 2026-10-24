@@ -137,14 +137,11 @@ enum {
 
 /// Bank selection and playback defaults of this package's street scenes.
 enum {
-    ACTOR_136100_PRIMARY_CHARACTER          = 1,
-    ACTOR_136100_PRIMARY_WEAPON_BANK_BASE   = 1,
-    ACTOR_136100_ALTERNATE_WEAPON_BANK_BASE = 0x22,
-    ACTOR_136100_PLAYER_WEAPON_ANIMATION    = 1,
-    ACTOR_136100_BODY_AFTER_BURNER_START    = 1,
-    ACTOR_136100_BODY_BEFORE_BURNER_START   = 3,
-    ACTOR_136100_ANIMATION_BLEND_FRAMES     = 10,
-    ACTOR_136100_REQUEST_NONE               = 0,
+    ACTOR_136100_PLAYER_WEAPON_ANIMATION  = 1,
+    ACTOR_136100_BODY_AFTER_BURNER_START  = 1,
+    ACTOR_136100_BODY_BEFORE_BURNER_START = 3,
+    ACTOR_136100_ANIMATION_BLEND_FRAMES   = 10,
+    ACTOR_136100_REQUEST_NONE             = 0,
 };
 
 /// Opening-scene cue classifications and the room actions selecting street scenes.
@@ -835,7 +832,7 @@ static s32 _actor136100AdvancePlayerAnimation(Task* task)
 
                 requestWork                  = task->work;
                 weaponId                     = gPlayerStatus.weapon;
-                selection                    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_136100_PRIMARY_CHARACTER) ? weaponId + ACTOR_136100_PRIMARY_WEAPON_BANK_BASE : weaponId + ACTOR_136100_ALTERNATE_WEAPON_BANK_BASE;
+                selection                    = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
                 request.source.index         = selection;
                 requestWork->playerAnimation = nextAnimationId;
                 request.animationId          = nextAnimationId;
@@ -1047,26 +1044,21 @@ static void _actor136100RifleTask(Task* task)
 /// Bank selection is weapon+1 for saved character 1, weapon+34 otherwise;
 /// backing banks for the alternate range are unproven. Loaded clip data must
 /// outlive playback. Expands to a standalone block with its own work reload.
-#define ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(controllerTask, clipId, blendMode, blendDuration, request)                      \
-    {                                                                                                                             \
-        enum { ACTOR_136100_PRIMARY_CHARACTER          = 1,                                                                       \
-               ACTOR_136100_PRIMARY_WEAPON_BANK_BASE   = 1,                                                                       \
-               ACTOR_136100_ALTERNATE_WEAPON_BANK_BASE = 34 };                                                                    \
-        _Actor136100Work* animationWork;                                                                                          \
-        s32               weaponId;                                                                                               \
-        s32               bankIndex;                                                                                              \
-        animationWork                  = (controllerTask)->work;                                                                  \
-        weaponId                       = gPlayerStatus.weapon;                                                                    \
-        bankIndex                      = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_136100_PRIMARY_CHARACTER) \
-                                             ? weaponId + ACTOR_136100_PRIMARY_WEAPON_BANK_BASE                                   \
-                                             : weaponId + ACTOR_136100_ALTERNATE_WEAPON_BANK_BASE;                                \
-        (request).source.index         = bankIndex;                                                                               \
-        animationWork->playerAnimation = (clipId);                                                                                \
-        (request).animationId          = (clipId);                                                                                \
-        (request).blend                = (blendMode);                                                                             \
-        (request).blendFrames          = (blendDuration);                                                                         \
-        (request).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                                       \
-        TASK_MESSAGE_DISPATCH_POINTER(animationWork->playerTask, ANIMATION_MESSAGE_PLAY, &(request), 0);                          \
+#define ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(controllerTask, clipId, blendMode, blendDuration, request) \
+    {                                                                                                        \
+        _Actor136100Work* animationWork;                                                                     \
+        s32               weaponId;                                                                          \
+        s32               bankIndex;                                                                         \
+        animationWork                  = (controllerTask)->work;                                             \
+        weaponId                       = gPlayerStatus.weapon;                                               \
+        bankIndex                      = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);                           \
+        (request).source.index         = bankIndex;                                                          \
+        animationWork->playerAnimation = (clipId);                                                           \
+        (request).animationId          = (clipId);                                                           \
+        (request).blend                = (blendMode);                                                        \
+        (request).blendFrames          = (blendDuration);                                                    \
+        (request).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                  \
+        TASK_MESSAGE_DISPATCH_POINTER(animationWork->playerTask, ANIMATION_MESSAGE_PLAY, &(request), 0);     \
     }
 
 /// Places the player at a scene entrance and starts its scripted walk.
@@ -1629,7 +1621,7 @@ static void _actor136100ResetAfterBurnerScene(void)
     // Re-read work after placement dispatch before caching the player clip.
     requestWork                  = task->work;
     weaponId                     = gPlayerStatus.weapon;
-    bankIndex                    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_136100_PRIMARY_CHARACTER) ? weaponId + ACTOR_136100_PRIMARY_WEAPON_BANK_BASE : weaponId + ACTOR_136100_ALTERNATE_WEAPON_BANK_BASE;
+    bankIndex                    = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
     request.source.index         = bankIndex;
     requestWork->playerAnimation = ACTOR_136100_PLAYER_WEAPON_ANIMATION;
     request.animationId          = ACTOR_136100_PLAYER_WEAPON_ANIMATION;
@@ -1671,7 +1663,7 @@ static void _actor136100ResetBeforeBurnerScene(s32 resetHeadRotation)
     // Re-read work after placement dispatch before caching the player clip.
     requestWork                  = task->work;
     weaponId                     = gPlayerStatus.weapon;
-    bankIndex                    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_136100_PRIMARY_CHARACTER) ? weaponId + ACTOR_136100_PRIMARY_WEAPON_BANK_BASE : weaponId + ACTOR_136100_ALTERNATE_WEAPON_BANK_BASE;
+    bankIndex                    = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
     request.source.index         = bankIndex;
     requestWork->playerAnimation = ACTOR_136100_PLAYER_WEAPON_ANIMATION;
     request.animationId          = ACTOR_136100_PLAYER_WEAPON_ANIMATION;
@@ -2109,7 +2101,7 @@ static void _actor136100ResetPlayerWeaponAnimation(void)
     s32                  bankIndex;
 
     weaponId                     = gPlayerStatus.weapon;
-    bankIndex                    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_136100_PRIMARY_CHARACTER) ? weaponId + ACTOR_136100_PRIMARY_WEAPON_BANK_BASE : weaponId + ACTOR_136100_ALTERNATE_WEAPON_BANK_BASE;
+    bankIndex                    = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
     request.source.index         = bankIndex;
     request.animationId          = ACTOR_136100_PLAYER_WEAPON_ANIMATION;
     request.blend                = ANIMATION_BLEND_RESET;

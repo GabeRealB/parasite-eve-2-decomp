@@ -9,6 +9,7 @@
 #include "gameplay/message.h"
 #include "gameplay/pad_input.h"
 #include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/scene_combat.h"
 #include "gameplay/view.h"
 
@@ -56,19 +57,17 @@ static SVECTOR _gAkropolisObservatoryPromenadeArrivalPlayerPath[300] = {
 
 /// Phases and sampling units shared by the two observatory arrival controllers.
 enum {
-    AKROPOLIS_OBSERVATORY_MOVIE_INITIALIZE                 = 0,
-    AKROPOLIS_OBSERVATORY_MOVIE_WAIT_READY                 = 1,
-    AKROPOLIS_OBSERVATORY_MOVIE_FOLLOW_PATH                = 2,
-    AKROPOLIS_OBSERVATORY_MOVIE_WAIT_PLAYER                = 3,
-    AKROPOLIS_OBSERVATORY_MOVIE_RESTORE                    = 4,
-    AKROPOLIS_OBSERVATORY_MOVIE_FRAME_ORIGIN               = 168,
-    AKROPOLIS_OBSERVATORY_MOVIE_WALK_HANDOFF_INDEX         = 230,
-    AKROPOLIS_OBSERVATORY_MOVIE_PROMENADE_Z_OFFSET         = 200,
-    AKROPOLIS_OBSERVATORY_MOVIE_PRIMARY_CHARACTER          = 1,
-    AKROPOLIS_OBSERVATORY_MOVIE_ALTERNATE_WEAPON_BANK_BASE = 34,
-    AKROPOLIS_OBSERVATORY_MOVIE_SKIP_FADE_OUT_TASK         = 2,
-    AKROPOLIS_OBSERVATORY_MOVIE_SKIP_FADE_IN_TASK          = 3,
-    AKROPOLIS_OBSERVATORY_MOVIE_EXIT_YAW                   = 1024
+    AKROPOLIS_OBSERVATORY_MOVIE_INITIALIZE         = 0,
+    AKROPOLIS_OBSERVATORY_MOVIE_WAIT_READY         = 1,
+    AKROPOLIS_OBSERVATORY_MOVIE_FOLLOW_PATH        = 2,
+    AKROPOLIS_OBSERVATORY_MOVIE_WAIT_PLAYER        = 3,
+    AKROPOLIS_OBSERVATORY_MOVIE_RESTORE            = 4,
+    AKROPOLIS_OBSERVATORY_MOVIE_FRAME_ORIGIN       = 168,
+    AKROPOLIS_OBSERVATORY_MOVIE_WALK_HANDOFF_INDEX = 230,
+    AKROPOLIS_OBSERVATORY_MOVIE_PROMENADE_Z_OFFSET = 200,
+    AKROPOLIS_OBSERVATORY_MOVIE_SKIP_FADE_OUT_TASK = 2,
+    AKROPOLIS_OBSERVATORY_MOVIE_SKIP_FADE_IN_TASK  = 3,
+    AKROPOLIS_OBSERVATORY_MOVIE_EXIT_YAW           = 1024
 };
 
 /// Copies one movie-path XYZ sample into the borrowed player root, in room units.
@@ -102,7 +101,7 @@ static void _akropolisObservatoryForkedRoadArrivalMoviePathTask(Task* task)
             ((RoomMoviePathWork*)task->work)->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             ((RoomMoviePathWork*)task->work)->playerMtx  = gPlayerStatus.coordMtx;
             weaponId                                     = gPlayerStatus.weapon;
-            animationRequest.source.index                = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == AKROPOLIS_OBSERVATORY_MOVIE_PRIMARY_CHARACTER) ? weaponId + 1 : weaponId + AKROPOLIS_OBSERVATORY_MOVIE_ALTERNATE_WEAPON_BANK_BASE;
+            animationRequest.source.index                = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
             animationRequest.animationId                 = 1;
             animationRequest.blend                       = ANIMATION_BLEND_RESET;
             animationRequest.blendFrames                 = 0;
@@ -194,7 +193,7 @@ static void _akropolisObservatoryPromenadeArrivalMoviePathTask(Task* task)
             ((RoomMoviePathWork*)task->work)->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             ((RoomMoviePathWork*)task->work)->playerMtx  = gPlayerStatus.coordMtx;
             weaponId                                     = gPlayerStatus.weapon;
-            animationRequest.source.index                = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == AKROPOLIS_OBSERVATORY_MOVIE_PRIMARY_CHARACTER) ? weaponId + 1 : weaponId + AKROPOLIS_OBSERVATORY_MOVIE_ALTERNATE_WEAPON_BANK_BASE;
+            animationRequest.source.index                = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
             animationRequest.animationId                 = 1;
             animationRequest.blend                       = ANIMATION_BLEND_RESET;
             animationRequest.blendFrames                 = 0;

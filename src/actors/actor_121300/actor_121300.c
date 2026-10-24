@@ -10,16 +10,17 @@
 
 #include "actors/actor.h"
 
-#include "gameplay/companion_load.h"
-#include "gameplay/captions.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
+#include "gameplay/companion_load.h"
+#include "gameplay/captions.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
@@ -1576,20 +1577,17 @@ static void _actor121300InitBody(Task* task)
 static void _actor121300EveSceneTask(Task* task)
 {
     enum {
-        ACTOR_121300_SCENE_INITIALIZE          = 0,
-        ACTOR_121300_SCENE_START_SCRIPT        = 1,
-        ACTOR_121300_SCENE_WAIT_SCRIPT         = 2,
-        ACTOR_121300_SCENE_RELOAD              = 3,
-        ACTOR_121300_SCENE_PRIMARY_CHARACTER   = 1,
-        ACTOR_121300_SCENE_PRIMARY_BANK_BASE   = 1,
-        ACTOR_121300_SCENE_ALTERNATE_BANK_BASE = 34,
-        ACTOR_121300_SCENE_WEAPON_CLIP         = 1,
-        ACTOR_121300_SCENE_END_TASK            = 9,
-        ACTOR_121300_SCENE_FRAME_WIDTH         = 320,
-        ACTOR_121300_SCENE_FRAME_HEIGHT        = 240,
-        ACTOR_121300_SCENE_SECOND_FRAME_Y      = 272,
-        ACTOR_121300_SCENE_RETURN_WARP         = 3,
-        ACTOR_121300_SCENE_LIGHT_COUNT         = 3,
+        ACTOR_121300_SCENE_INITIALIZE     = 0,
+        ACTOR_121300_SCENE_START_SCRIPT   = 1,
+        ACTOR_121300_SCENE_WAIT_SCRIPT    = 2,
+        ACTOR_121300_SCENE_RELOAD         = 3,
+        ACTOR_121300_SCENE_WEAPON_CLIP    = 1,
+        ACTOR_121300_SCENE_END_TASK       = 9,
+        ACTOR_121300_SCENE_FRAME_WIDTH    = 320,
+        ACTOR_121300_SCENE_FRAME_HEIGHT   = 240,
+        ACTOR_121300_SCENE_SECOND_FRAME_Y = 272,
+        ACTOR_121300_SCENE_RETURN_WARP    = 3,
+        ACTOR_121300_SCENE_LIGHT_COUNT    = 3,
     };
     TmdObject* model;
     s32        sceneState;
@@ -1603,7 +1601,7 @@ static void _actor121300EveSceneTask(Task* task)
 
             if ((gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 weaponId                     = gPlayerStatus.weapon;
-                animationBank                = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_121300_SCENE_PRIMARY_CHARACTER) ? weaponId + ACTOR_121300_SCENE_PRIMARY_BANK_BASE : weaponId + ACTOR_121300_SCENE_ALTERNATE_BANK_BASE;
+                animationBank                = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
                 request.source.index         = animationBank;
                 request.animationId          = ACTOR_121300_SCENE_WEAPON_CLIP;
                 request.blend                = ANIMATION_BLEND_RESET;

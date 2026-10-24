@@ -3273,9 +3273,7 @@ static void _shelterB3DumpingHoleDebrisEventHandlePlayerCommand(Task* directorTa
         _ShelterB3DumpingHoleDebrisEventWork* animationWork = (directorTaskValue)->work;                                              \
         s32                                   weaponId      = gPlayerStatus.weapon;                                                   \
         (animationRequest)->source.index =                                                                                            \
-            (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == SHELTER_B3_DUMPING_HOLE_PRIMARY_CHARACTER)                       \
-                ? weaponId + SHELTER_B3_DUMPING_HOLE_PRIMARY_ANIMATION_BANK_OFFSET                                                    \
-                : weaponId + SHELTER_B3_DUMPING_HOLE_NONPRIMARY_ANIMATION_BANK_OFFSET;                                                \
+            PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);                                                                                 \
         (animationRequest)->animationId          = (clipId);                                                                          \
         (animationRequest)->blend                = (blendMode);                                                                       \
         (animationRequest)->blendFrames          = (blendFrameCount);                                                                 \
@@ -3603,7 +3601,7 @@ static void _shelterB3DumpingHoleDebrisEventTask(Task* directorTask)
             TASK_MESSAGE_DISPATCH_POINTER(animationWork->player, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &bankCopyRequest, 0);
             weaponId                       = gPlayerStatus.weapon;
             animationRequest               = &animation;
-            animation.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == SHELTER_B3_DUMPING_HOLE_PRIMARY_CHARACTER) ? weaponId + SHELTER_B3_DUMPING_HOLE_PRIMARY_ANIMATION_BANK_OFFSET : weaponId + SHELTER_B3_DUMPING_HOLE_NONPRIMARY_ANIMATION_BANK_OFFSET;
+            animation.source.index         = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
             animationRequest->animationId  = SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_IDLE_CLIP;
             animationRequest->blend        = ANIMATION_BLEND_INTERPOLATE;
             animationRequest->blendFrames  = SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_BLEND_FRAMES;
@@ -4048,7 +4046,6 @@ static void _shelterB3DumpingHoleCollapseEventHandleCommand(Task* task)
         SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLASH_SIZE               = 0x200,
         SHELTER_B3_DUMPING_HOLE_COLLAPSE_STEP_SETUP               = 0,
         SHELTER_B3_DUMPING_HOLE_COLLAPSE_STEP_SHAKE               = 1,
-        SHELTER_B3_DUMPING_HOLE_COLLAPSE_STEP_FALL                = 2,
         SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLICKER_SHOW_FIRST       = 0,
         SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLICKER_HIDE_FIRST       = 1,
         SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLICKER_SHOW_SECOND      = 2,

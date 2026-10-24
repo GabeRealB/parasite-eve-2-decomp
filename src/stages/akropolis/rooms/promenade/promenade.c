@@ -24,6 +24,7 @@
 #include "gameplay/message.h"
 #include "gameplay/pad_input.h"
 #include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
 #include "gameplay/scene_combat.h"
@@ -379,8 +380,6 @@ static void _akropolisPromenadeMoviePathTask(Task* task)
         AKROPOLIS_PROMENADE_MOVIE_EXIT_YAW             = 3072,
         AKROPOLIS_PROMENADE_MOVIE_EXIT_VIEW            = 2,
         AKROPOLIS_PROMENADE_MOVIE_WALK_HANDOFF_SAMPLES = 6,
-        AKROPOLIS_PROMENADE_PRIMARY_WEAPON_BANK_BASE   = 1,
-        AKROPOLIS_PROMENADE_ALTERNATE_WEAPON_BANK_BASE = 34,
     };
     AnimationPlayRequest animationRequest;
     ActorTransform       playerPlacement;
@@ -403,7 +402,7 @@ static void _akropolisPromenadeMoviePathTask(Task* task)
             ((RoomMoviePathWork*)task->work)->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             ((RoomMoviePathWork*)task->work)->playerMtx  = gPlayerStatus.coordMtx;
             equippedWeapon                               = gPlayerStatus.weapon;
-            animationRequest.source.index                = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? equippedWeapon + AKROPOLIS_PROMENADE_PRIMARY_WEAPON_BANK_BASE : equippedWeapon + AKROPOLIS_PROMENADE_ALTERNATE_WEAPON_BANK_BASE;
+            animationRequest.source.index                = PLAYER_ACTOR_SCENE_WEAPON_BANK(equippedWeapon);
             animationRequest.animationId                 = 1;
             animationRequest.blend                       = ANIMATION_BLEND_RESET;
             animationRequest.blendFrames                 = 0;

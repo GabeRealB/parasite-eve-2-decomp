@@ -167,8 +167,6 @@ enum {
 
 /// State selectors used by the key-item event's seven-entry dispatch table.
 enum {
-    DRYFIELD_BREEZEWAY_KEY_ITEM_STATE_INITIALIZE    = 0,
-    DRYFIELD_BREEZEWAY_KEY_ITEM_STATE_ARM_PROMPT    = 1,
     DRYFIELD_BREEZEWAY_KEY_ITEM_STATE_SELECT_MODEL  = 2,
     DRYFIELD_BREEZEWAY_KEY_ITEM_STATE_OPEN_PROMPT   = 3,
     DRYFIELD_BREEZEWAY_KEY_ITEM_STATE_WAIT_FOR_ITEM = 4,
@@ -492,16 +490,13 @@ static inline void _dryfieldBreezewayBroadcastActorCommand(u16 command)
 /// the animation resources remain borrowed through playback.
 static inline void _dryfieldBreezewayPlayPlayerAnimation(u16 animationId, u16 blend, u16 blendFrames)
 {
-    enum { DRYFIELD_BREEZEWAY_PLAYER_PRIMARY_CHARACTER    = 1,
-           DRYFIELD_BREEZEWAY_PRIMARY_WEAPON_BANK_FIRST   = 1,
-           DRYFIELD_BREEZEWAY_OTHER_CHARACTER_BANK_OFFSET = 0x22 };
 
     AnimationPlayRequest request;
     s32                  weapon;
 
     // Character 1 selects the equipped-weapon bank; the retained other-character offset is unproven.
     weapon                       = gPlayerStatus.weapon;
-    request.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == DRYFIELD_BREEZEWAY_PLAYER_PRIMARY_CHARACTER) ? weapon + DRYFIELD_BREEZEWAY_PRIMARY_WEAPON_BANK_FIRST : weapon + DRYFIELD_BREEZEWAY_OTHER_CHARACTER_BANK_OFFSET;
+    request.source.index         = PLAYER_ACTOR_SCENE_WEAPON_BANK(weapon);
     request.animationId          = animationId;
     request.blend                = blend;
     request.blendFrames          = blendFrames;

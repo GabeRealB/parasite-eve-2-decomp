@@ -1287,15 +1287,12 @@ static inline void _dryfieldMotelRoom1BroadcastActorCommand(u16 command)
 /// remain borrowed through playback.
 static inline void _dryfieldMotelRoom1PlayPlayerAnimation(u16 animationId, u16 blend, u16 blendFrames)
 {
-    enum { DRYFIELD_MOTEL_ROOM_1_PLAYER_PRIMARY_CHARACTER    = 1,
-           DRYFIELD_MOTEL_ROOM_1_PRIMARY_WEAPON_BANK_FIRST   = 1,
-           DRYFIELD_MOTEL_ROOM_1_OTHER_CHARACTER_BANK_OFFSET = 0x22 };
 
     AnimationPlayRequest request;
     s32                  weaponSlot;
 
     weaponSlot                   = gPlayerStatus.weapon;
-    request.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == DRYFIELD_MOTEL_ROOM_1_PLAYER_PRIMARY_CHARACTER) ? weaponSlot + DRYFIELD_MOTEL_ROOM_1_PRIMARY_WEAPON_BANK_FIRST : weaponSlot + DRYFIELD_MOTEL_ROOM_1_OTHER_CHARACTER_BANK_OFFSET;
+    request.source.index         = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponSlot);
     request.animationId          = animationId;
     request.blend                = blend;
     request.blendFrames          = blendFrames;

@@ -3109,10 +3109,7 @@ static void _dryfieldWaterTowerPropSceneTask(Task* task)
 static void _dryfieldWaterTowerRestorePlayerWeaponAnimation(s32 blendFrames)
 {
     enum {
-        DRYFIELD_WATER_TOWER_PRIMARY_CHARACTER          = 1,
-        DRYFIELD_WATER_TOWER_PRIMARY_WEAPON_BANK_BASE   = 1,
-        DRYFIELD_WATER_TOWER_ALTERNATE_WEAPON_BANK_BASE = 0x22,
-        DRYFIELD_WATER_TOWER_WEAPON_ANIMATION_SET       = 1
+        DRYFIELD_WATER_TOWER_WEAPON_ANIMATION_SET = 1
     };
 
     AnimationPlayRequest request;
@@ -3121,7 +3118,7 @@ static void _dryfieldWaterTowerRestorePlayerWeaponAnimation(s32 blendFrames)
     s32                  durationFrames;
 
     weaponId                     = gPlayerStatus.weapon;
-    bankIndex                    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == DRYFIELD_WATER_TOWER_PRIMARY_CHARACTER) ? weaponId + DRYFIELD_WATER_TOWER_PRIMARY_WEAPON_BANK_BASE : weaponId + DRYFIELD_WATER_TOWER_ALTERNATE_WEAPON_BANK_BASE;
+    bankIndex                    = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
     durationFrames               = blendFrames & 0xFFFF;
     request.source.index         = bankIndex;
     request.animationId          = DRYFIELD_WATER_TOWER_WEAPON_ANIMATION_SET;
@@ -3362,18 +3359,15 @@ static void _dryfieldWaterTowerDispatchActorSceneRequest(Task* task)
 static inline void _dryfieldWaterTowerStartActorSceneWeaponPose(void)
 {
     enum {
-        DRYFIELD_WATER_TOWER_ACTOR_SCENE_PRIMARY_CHARACTER          = 1,
-        DRYFIELD_WATER_TOWER_ACTOR_SCENE_PRIMARY_WEAPON_BANK_BASE   = 1,
-        DRYFIELD_WATER_TOWER_ACTOR_SCENE_ALTERNATE_WEAPON_BANK_BASE = 0x22,
-        DRYFIELD_WATER_TOWER_ACTOR_SCENE_WEAPON_ANIMATION_SET       = 1,
-        DRYFIELD_WATER_TOWER_ACTOR_SCENE_WEAPON_BLEND_FRAMES        = 10,
+        DRYFIELD_WATER_TOWER_ACTOR_SCENE_WEAPON_ANIMATION_SET = 1,
+        DRYFIELD_WATER_TOWER_ACTOR_SCENE_WEAPON_BLEND_FRAMES  = 10,
     };
     AnimationPlayRequest animationRequest;
     s32                  weaponIndex;
     s32                  bankIndex;
 
     weaponIndex                           = gPlayerStatus.weapon;
-    bankIndex                             = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == DRYFIELD_WATER_TOWER_ACTOR_SCENE_PRIMARY_CHARACTER) ? weaponIndex + DRYFIELD_WATER_TOWER_ACTOR_SCENE_PRIMARY_WEAPON_BANK_BASE : weaponIndex + DRYFIELD_WATER_TOWER_ACTOR_SCENE_ALTERNATE_WEAPON_BANK_BASE;
+    bankIndex                             = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponIndex);
     animationRequest.source.index         = bankIndex;
     animationRequest.animationId          = DRYFIELD_WATER_TOWER_ACTOR_SCENE_WEAPON_ANIMATION_SET;
     animationRequest.blend                = ANIMATION_BLEND_INTERPOLATE;

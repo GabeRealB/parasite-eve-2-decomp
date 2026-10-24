@@ -21,6 +21,7 @@
 #include "gameplay/hud_sprites.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
 #include "gameplay/sprites.h"
@@ -810,10 +811,7 @@ static inline void _dryfieldWaterTankResumeAfterMovie(Task* task)
 static inline void _dryfieldWaterTankRestoreWeaponStance(void)
 {
     enum {
-        DRYFIELD_WATER_TANK_PRIMARY_CHARACTER_ID        = 1,
-        DRYFIELD_WATER_TANK_PRIMARY_WEAPON_BANK_BASE    = 1,
-        DRYFIELD_WATER_TANK_OTHER_CHARACTER_BANK_OFFSET = 0x22,
-        DRYFIELD_WATER_TANK_WEAPON_STANCE_CLIP          = 1,
+        DRYFIELD_WATER_TANK_WEAPON_STANCE_CLIP = 1,
     };
 
     AnimationPlayRequest stance;
@@ -821,7 +819,7 @@ static inline void _dryfieldWaterTankRestoreWeaponStance(void)
     s32                  animationBank;
 
     weaponId                    = gPlayerStatus.weapon;
-    animationBank               = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == DRYFIELD_WATER_TANK_PRIMARY_CHARACTER_ID) ? weaponId + DRYFIELD_WATER_TANK_PRIMARY_WEAPON_BANK_BASE : weaponId + DRYFIELD_WATER_TANK_OTHER_CHARACTER_BANK_OFFSET;
+    animationBank               = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
     stance.source.index         = animationBank;
     stance.animationId          = DRYFIELD_WATER_TANK_WEAPON_STANCE_CLIP;
     stance.blend                = ANIMATION_BLEND_RESET;
@@ -1080,9 +1078,6 @@ static void _dryfieldWaterTankExecuteEventCommand(Task* task)
 static inline void _dryfieldWaterTankBlendPlayerWeaponStance(void)
 {
     enum {
-        DRYFIELD_WATER_TANK_EVENT_PRIMARY_CHARACTER   = 1,
-        DRYFIELD_WATER_TANK_EVENT_PRIMARY_WEAPON_BANK = 1,
-        DRYFIELD_WATER_TANK_EVENT_OTHER_WEAPON_BANK   = 34,
         DRYFIELD_WATER_TANK_EVENT_STANCE_CLIP         = 1,
         DRYFIELD_WATER_TANK_EVENT_STANCE_BLEND_FRAMES = 10,
     };
@@ -1091,7 +1086,7 @@ static inline void _dryfieldWaterTankBlendPlayerWeaponStance(void)
     s32                  animationBank;
 
     weaponId                    = gPlayerStatus.weapon;
-    animationBank               = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == DRYFIELD_WATER_TANK_EVENT_PRIMARY_CHARACTER) ? weaponId + DRYFIELD_WATER_TANK_EVENT_PRIMARY_WEAPON_BANK : weaponId + DRYFIELD_WATER_TANK_EVENT_OTHER_WEAPON_BANK;
+    animationBank               = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
     stance.source.index         = animationBank;
     stance.animationId          = DRYFIELD_WATER_TANK_EVENT_STANCE_CLIP;
     stance.blend                = ANIMATION_BLEND_INTERPOLATE;

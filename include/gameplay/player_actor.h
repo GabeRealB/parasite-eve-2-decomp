@@ -92,6 +92,11 @@ extern u16 gPlayerActorWeaponReaches[33];
 /// storage for event selectors that instead add 34; bank 0 is NULL.
 extern u16 gPlayerActorWeaponAnimationBankBases[2];
 
+/// The player animation bank a scripted scene plays the equipped weapon's clips from: the weapon's own bank (1 + its
+/// id) for the primary character, `McGameState::characterId` 1, and the alternate banks from 34 for any other.
+#define PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId) \
+    ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? (weaponId) + 1 : (weaponId) + 34)
+
 /// Native player animation banks selected by character and equipped weapon.
 ///
 /// Slot 0 is NULL; slots 1..33 supply character-1 weapon ids 0..32, using

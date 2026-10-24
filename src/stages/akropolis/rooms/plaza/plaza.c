@@ -1010,16 +1010,11 @@ found:
 /// Plays a clip from the player's equipped-weapon bank with world collision disabled.
 static inline void _akropolisPlazaPlayPlayerAnimation(u16 animationId, u16 blend, u16 blendFrames)
 {
-    enum {
-        AKROPOLIS_PLAZA_PRIMARY_CHARACTER          = 1,
-        AKROPOLIS_PLAZA_PRIMARY_WEAPON_BANK_BASE   = 1,
-        AKROPOLIS_PLAZA_ALTERNATE_WEAPON_BANK_BASE = 34
-    };
     AnimationPlayRequest request;
     s32                  weaponIndex;
 
     weaponIndex                  = gPlayerStatus.weapon;
-    request.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == AKROPOLIS_PLAZA_PRIMARY_CHARACTER) ? weaponIndex + AKROPOLIS_PLAZA_PRIMARY_WEAPON_BANK_BASE : weaponIndex + AKROPOLIS_PLAZA_ALTERNATE_WEAPON_BANK_BASE;
+    request.source.index         = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponIndex);
     request.animationId          = animationId;
     request.blend                = blend;
     request.blendFrames          = blendFrames;

@@ -22,6 +22,7 @@
 #include "gameplay/message.h"
 #include "gameplay/pad_input.h"
 #include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
 #include "gameplay/scene_combat.h"
@@ -214,18 +215,16 @@ static void _akropolisForkedRoadOutboundMoviePathTask(Task* task)
 static void _akropolisForkedRoadReturnMoviePathTask(Task* task)
 {
     enum {
-        AKROPOLIS_FORKED_ROAD_RETURN_INITIALIZE          = 0,
-        AKROPOLIS_FORKED_ROAD_RETURN_WAIT_MOVIE          = 1,
-        AKROPOLIS_FORKED_ROAD_RETURN_FOLLOW_PATH         = 2,
-        AKROPOLIS_FORKED_ROAD_RETURN_WAIT_EXIT           = 3,
-        AKROPOLIS_FORKED_ROAD_RETURN_FRAME_ORIGIN        = 59,
-        AKROPOLIS_FORKED_ROAD_RETURN_WALK_EXIT_INDEX     = 11,
-        AKROPOLIS_FORKED_ROAD_RETURN_REVEAL_TICK         = 3,
-        AKROPOLIS_FORKED_ROAD_RETURN_YAW                 = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4,
-        AKROPOLIS_FORKED_ROAD_RETURN_LOGICAL_VIEW        = 5,
-        AKROPOLIS_FORKED_ROAD_PRIMARY_CHARACTER_ID       = 1,
-        AKROPOLIS_FORKED_ROAD_ALTERNATE_WEAPON_BANK_BASE = 0x22,
-        AKROPOLIS_FORKED_ROAD_RETURN_IDLE_ANIMATION      = 1
+        AKROPOLIS_FORKED_ROAD_RETURN_INITIALIZE      = 0,
+        AKROPOLIS_FORKED_ROAD_RETURN_WAIT_MOVIE      = 1,
+        AKROPOLIS_FORKED_ROAD_RETURN_FOLLOW_PATH     = 2,
+        AKROPOLIS_FORKED_ROAD_RETURN_WAIT_EXIT       = 3,
+        AKROPOLIS_FORKED_ROAD_RETURN_FRAME_ORIGIN    = 59,
+        AKROPOLIS_FORKED_ROAD_RETURN_WALK_EXIT_INDEX = 11,
+        AKROPOLIS_FORKED_ROAD_RETURN_REVEAL_TICK     = 3,
+        AKROPOLIS_FORKED_ROAD_RETURN_YAW             = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4,
+        AKROPOLIS_FORKED_ROAD_RETURN_LOGICAL_VIEW    = 5,
+        AKROPOLIS_FORKED_ROAD_RETURN_IDLE_ANIMATION  = 1
     };
     AnimationPlayRequest animationRequest;
     ActorTransform       exitPose;
@@ -247,7 +246,7 @@ static void _akropolisForkedRoadReturnMoviePathTask(Task* task)
             ((RoomMoviePathWork*)task->work)->playerMtx  = gPlayerStatus.coordMtx;
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
             weaponId                              = gPlayerStatus.weapon;
-            animationRequest.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == AKROPOLIS_FORKED_ROAD_PRIMARY_CHARACTER_ID) ? weaponId + 1 : weaponId + AKROPOLIS_FORKED_ROAD_ALTERNATE_WEAPON_BANK_BASE;
+            animationRequest.source.index         = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
             animationRequest.animationId          = AKROPOLIS_FORKED_ROAD_RETURN_IDLE_ANIMATION;
             animationRequest.blend                = ANIMATION_BLEND_RESET;
             animationRequest.blendFrames          = 0;

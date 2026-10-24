@@ -838,14 +838,11 @@ static void _actor341900GluttonBodyTask(Task* task)
 static void _actor341900UpdatePlayerAction(Task* eventTask)
 {
     enum {
-        ACTOR_341900_PRIMARY_CHARACTER_ID       = 1,
-        ACTOR_341900_PRIMARY_WEAPON_BANK_BASE   = 1,
-        ACTOR_341900_ALTERNATE_WEAPON_BANK_BASE = 0x22,
-        ACTOR_341900_OPENING_WEAPON_CLIP        = 1,
-        ACTOR_341900_END_WEAPON_CLIP            = 9,
-        ACTOR_341900_EVENT_START_CLIP           = 0,
-        ACTOR_341900_EVENT_NEXT_CLIP            = 1,
-        ACTOR_341900_PLAYER_BLEND_FRAMES        = 10,
+        ACTOR_341900_OPENING_WEAPON_CLIP = 1,
+        ACTOR_341900_END_WEAPON_CLIP     = 9,
+        ACTOR_341900_EVENT_START_CLIP    = 0,
+        ACTOR_341900_EVENT_NEXT_CLIP     = 1,
+        ACTOR_341900_PLAYER_BLEND_FRAMES = 10,
     };
     _Actor341900EventWork* work;
     _Actor341900EventWork* actionWork;
@@ -859,19 +856,17 @@ static void _actor341900UpdatePlayerAction(Task* eventTask)
 /// weapon+0x22. Disables collision and expands as a standalone compound statement.
 /// Dispatch requires character 1, weapon 0..32 and its loaded bank; backing
 /// storage for the retained alternate +34 selector is unproven.
-#define ACTOR_341900_BUILD_WEAPON_PLAY_REQUEST(playRequest, clipId)                                                                      \
-    {                                                                                                                                    \
-        s32 weaponId;                                                                                                                    \
-        s32 animationBankIndex;                                                                                                          \
-        weaponId                           = gPlayerStatus.weapon;                                                                       \
-        animationBankIndex                 = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_341900_PRIMARY_CHARACTER_ID) \
-                                                 ? weaponId + ACTOR_341900_PRIMARY_WEAPON_BANK_BASE                                      \
-                                                 : weaponId + ACTOR_341900_ALTERNATE_WEAPON_BANK_BASE;                                   \
-        (playRequest).source.index         = animationBankIndex;                                                                         \
-        (playRequest).animationId          = (clipId);                                                                                   \
-        (playRequest).blend                = ANIMATION_BLEND_RESET;                                                                      \
-        (playRequest).blendFrames          = 0;                                                                                          \
-        (playRequest).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                                          \
+#define ACTOR_341900_BUILD_WEAPON_PLAY_REQUEST(playRequest, clipId)                    \
+    {                                                                                  \
+        s32 weaponId;                                                                  \
+        s32 animationBankIndex;                                                        \
+        weaponId                           = gPlayerStatus.weapon;                     \
+        animationBankIndex                 = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId); \
+        (playRequest).source.index         = animationBankIndex;                       \
+        (playRequest).animationId          = (clipId);                                 \
+        (playRequest).blend                = ANIMATION_BLEND_RESET;                    \
+        (playRequest).blendFrames          = 0;                                        \
+        (playRequest).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;        \
     }
 
     work = eventTask->work;
@@ -1348,10 +1343,7 @@ static void _actor341900SetStagingMode(s16 stagingMode)
 static void _actor341900FinishSkippedScene(void)
 {
     enum {
-        ACTOR_341900_PRIMARY_CHARACTER_ID       = 1,
-        ACTOR_341900_PRIMARY_WEAPON_BANK_BASE   = 1,
-        ACTOR_341900_ALTERNATE_WEAPON_BANK_BASE = 0x22,
-        ACTOR_341900_END_WEAPON_CLIP            = 9,
+        ACTOR_341900_END_WEAPON_CLIP = 9,
     };
     _Actor341900EventWork* work;
     AnimationPlayRequest   request;
@@ -1362,20 +1354,18 @@ static void _actor341900FinishSkippedScene(void)
 /// Requires initialized live save/player status and the four function-local
 /// ACTOR_341900 constants above. Character 1 selects bank weapon+1, otherwise
 /// weapon+0x22; the complete request resets playback and disables collision.
-#define ACTOR_341900_BUILD_END_WEAPON_PLAY_REQUEST(playRequest)                                         \
-    {                                                                                                   \
-        s32 weaponId;                                                                                   \
-        s32 animationBankIndex;                                                                         \
-        weaponId = gPlayerStatus.weapon;                                                                \
-        animationBankIndex =                                                                            \
-            (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_341900_PRIMARY_CHARACTER_ID) \
-                ? weaponId + ACTOR_341900_PRIMARY_WEAPON_BANK_BASE                                      \
-                : weaponId + ACTOR_341900_ALTERNATE_WEAPON_BANK_BASE;                                   \
-        (playRequest).source.index         = animationBankIndex;                                        \
-        (playRequest).animationId          = ACTOR_341900_END_WEAPON_CLIP;                              \
-        (playRequest).blend                = ANIMATION_BLEND_RESET;                                     \
-        (playRequest).blendFrames          = 0;                                                         \
-        (playRequest).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                         \
+#define ACTOR_341900_BUILD_END_WEAPON_PLAY_REQUEST(playRequest)                 \
+    {                                                                           \
+        s32 weaponId;                                                           \
+        s32 animationBankIndex;                                                 \
+        weaponId = gPlayerStatus.weapon;                                        \
+        animationBankIndex =                                                    \
+            PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);                           \
+        (playRequest).source.index         = animationBankIndex;                \
+        (playRequest).animationId          = ACTOR_341900_END_WEAPON_CLIP;      \
+        (playRequest).blend                = ANIMATION_BLEND_RESET;             \
+        (playRequest).blendFrames          = 0;                                 \
+        (playRequest).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE; \
     }
 
     work = _gActor341900EventTask->work;

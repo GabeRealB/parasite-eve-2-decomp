@@ -60,13 +60,6 @@ enum {
     ACTOR_342100_BLAZE_SCENE_RUNNING = 1, // Event script playing; the scene ends when the session's event state clears
 };
 
-/// Weapon-bank selectors computed from the saved character and equipped weapon.
-enum {
-    ACTOR_342100_BLAZE_PRIMARY_CHARACTER      = 1,
-    ACTOR_342100_BLAZE_PRIMARY_BANK_OFFSET    = 1,
-    ACTOR_342100_BLAZE_OTHER_CHARACTER_OFFSET = 0x22,
-};
-
 /// Fade phases selected by this package's burn script.
 enum {
     ACTOR_342100_BLAZE_FADE_FAST_RED = 2,
@@ -382,7 +375,7 @@ static s32 _actor342100AdvanceBlazeAnimation(Task* controller)
                 animationId  = _gActor342100BlazeClipSuccessors[work->animationId - ANIMATION_BANK_BASE_SET_COUNT] + ANIMATION_BANK_BASE_SET_COUNT;
                 dispatchWork = controller->work;
                 weaponId     = gPlayerStatus.weapon;
-                bankIndex    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_342100_BLAZE_PRIMARY_CHARACTER) ? weaponId + ACTOR_342100_BLAZE_PRIMARY_BANK_OFFSET : weaponId + ACTOR_342100_BLAZE_OTHER_CHARACTER_OFFSET;
+                bankIndex    = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
                 ACTOR_342100_SEND_BLAZE_ANIMATION(dispatchWork, request, animationId, bankIndex, ACTOR_342100_BLAZE_CHAIN_BLEND_FRAMES);
             }
         }
@@ -742,7 +735,7 @@ static void _actor342100PlayBlazeAnimation(s32 clipIndex)
     work        = _gActor342100BlazeControllerTask->work;
     animationId = clipIndex + ANIMATION_BANK_BASE_SET_COUNT;
     weaponId    = gPlayerStatus.weapon;
-    bankIndex   = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_342100_BLAZE_PRIMARY_CHARACTER) ? weaponId + ACTOR_342100_BLAZE_PRIMARY_BANK_OFFSET : weaponId + ACTOR_342100_BLAZE_OTHER_CHARACTER_OFFSET;
+    bankIndex   = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
     ACTOR_342100_SEND_BLAZE_ANIMATION(work, request, animationId, bankIndex, ACTOR_342100_BLAZE_SCRIPT_BLEND_FRAMES);
 }
 

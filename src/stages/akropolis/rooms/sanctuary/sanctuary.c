@@ -687,8 +687,6 @@ static void _akropolisSanctuaryCutsceneTask(Task* task)
         AKROPOLIS_SANCTUARY_CUTSCENE_INITIAL             = 0,
         AKROPOLIS_SANCTUARY_CUTSCENE_RUNNING             = 1,
         AKROPOLIS_SANCTUARY_CUTSCENE_WEAPON_BLEND_FRAMES = 15,
-        AKROPOLIS_SANCTUARY_PRIMARY_WEAPON_BANK_BASE     = 1,
-        AKROPOLIS_SANCTUARY_ALTERNATE_WEAPON_BANK_BASE   = 34,
         AKROPOLIS_SANCTUARY_CUTSCENE_EXIT_WARP           = 2,
         AKROPOLIS_SANCTUARY_CUTSCENE_EXIT_ROOM           = 1,
     };
@@ -713,7 +711,7 @@ static void _akropolisSanctuaryCutsceneTask(Task* task)
                 }
                 animationWork   = task->work;
                 equippedWeapon  = gPlayerStatus.weapon;
-                weaponBankIndex = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? equippedWeapon + AKROPOLIS_SANCTUARY_PRIMARY_WEAPON_BANK_BASE : equippedWeapon + AKROPOLIS_SANCTUARY_ALTERNATE_WEAPON_BANK_BASE;
+                weaponBankIndex = PLAYER_ACTOR_SCENE_WEAPON_BANK(equippedWeapon);
 
                 request.source.index         = weaponBankIndex;
                 request.animationId          = 1;

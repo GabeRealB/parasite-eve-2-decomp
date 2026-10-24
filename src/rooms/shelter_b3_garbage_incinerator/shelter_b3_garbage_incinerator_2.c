@@ -1280,9 +1280,7 @@ static inline void _shelterB3GarbageIncineratorPlayBlazeAnimation(Task* controll
     _ShelterB3GarbageIncineratorBlazeWork* work = controller->work;
     AnimationPlayRequest                   request;
     s32                                    weaponId  = gPlayerStatus.weapon;
-    s32                                    bankIndex = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1)
-                                                           ? weaponId + SHELTER_B3_GARBAGE_INCINERATOR_PRIMARY_ANIMATION_BANK_BASE
-                                                           : weaponId + SHELTER_B3_GARBAGE_INCINERATOR_ALTERNATE_ANIMATION_BANK_BASE;
+    s32                                    bankIndex = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
 
     request.source.index         = bankIndex;
     work->animationId            = animationId;

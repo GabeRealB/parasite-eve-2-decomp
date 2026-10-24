@@ -5207,16 +5207,11 @@ static inline void _actor560800BlendPlayerAnimation(Task* task, u16 animationId,
 /// unchanged; the five-word request is borrowed only during dispatch.
 static inline void _actor560800RestartPlayerWeaponAnimation(s16 animationId)
 {
-    enum {
-        ACTOR_560800_PRIMARY_CHARACTER          = 1,
-        ACTOR_560800_PRIMARY_WEAPON_BANK_BASE   = 1,
-        ACTOR_560800_ALTERNATE_WEAPON_BANK_BASE = 0x22,
-    };
     AnimationPlayRequest request;
     s32                  weaponId;
 
     weaponId                     = gPlayerStatus.weapon;
-    request.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_560800_PRIMARY_CHARACTER) ? weaponId + ACTOR_560800_PRIMARY_WEAPON_BANK_BASE : weaponId + ACTOR_560800_ALTERNATE_WEAPON_BANK_BASE;
+    request.source.index         = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
     request.animationId          = animationId;
     request.blend                = ANIMATION_BLEND_RESET;
     request.blendFrames          = 0;
@@ -5232,16 +5227,11 @@ static inline void _actor560800RestartPlayerWeaponAnimation(s16 animationId)
 /// cutscene's scene-clip id or hold count.
 static inline void _actor560800BlendPlayerWeaponAnimation(s32 animationId)
 {
-    enum {
-        ACTOR_560800_PRIMARY_CHARACTER          = 1,
-        ACTOR_560800_PRIMARY_WEAPON_BANK_BASE   = 1,
-        ACTOR_560800_ALTERNATE_WEAPON_BANK_BASE = 0x22,
-    };
     AnimationPlayRequest request;
     s32                  weaponId;
 
     weaponId                     = gPlayerStatus.weapon;
-    request.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_560800_PRIMARY_CHARACTER) ? weaponId + ACTOR_560800_PRIMARY_WEAPON_BANK_BASE : weaponId + ACTOR_560800_ALTERNATE_WEAPON_BANK_BASE;
+    request.source.index         = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
     request.animationId          = animationId;
     request.blend                = ANIMATION_BLEND_INTERPOLATE;
     request.blendFrames          = ACTOR_560800_ANIMATION_BLEND_FRAMES;
@@ -5973,13 +5963,10 @@ static void _actor560800InitializeCutscene(Task* task)
 static void _actor560800CutsceneTask(Task* task)
 {
     enum {
-        ACTOR_560800_SCENE_WAIT_PRESENTATION    = 0,
-        ACTOR_560800_SCENE_START_SCRIPT         = 1,
-        ACTOR_560800_SCENE_RUN_SCRIPT           = 2,
-        ACTOR_560800_SCENE_CUE_REPLACE_EVE      = 1,
-        ACTOR_560800_PRIMARY_CHARACTER          = 1,
-        ACTOR_560800_PRIMARY_WEAPON_BANK_BASE   = 1,
-        ACTOR_560800_ALTERNATE_WEAPON_BANK_BASE = 0x22,
+        ACTOR_560800_SCENE_WAIT_PRESENTATION = 0,
+        ACTOR_560800_SCENE_START_SCRIPT      = 1,
+        ACTOR_560800_SCENE_RUN_SCRIPT        = 2,
+        ACTOR_560800_SCENE_CUE_REPLACE_EVE   = 1,
     };
     AnimationPlayRequest      request;
     _Actor560800CutsceneWork* work;
@@ -6007,7 +5994,7 @@ static void _actor560800CutsceneTask(Task* task)
                 gRandomLcgState = _gActor560800SavedRandomState;
                 roomEffectRequestCancelAll();
                 weaponId                     = gPlayerStatus.weapon;
-                request.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_560800_PRIMARY_CHARACTER) ? weaponId + ACTOR_560800_PRIMARY_WEAPON_BANK_BASE : weaponId + ACTOR_560800_ALTERNATE_WEAPON_BANK_BASE;
+                request.source.index         = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponId);
                 request.animationId          = 1;
                 request.blend                = ANIMATION_BLEND_RESET;
                 request.blendFrames          = 0;
