@@ -180,9 +180,9 @@ enum {
     SOUND_AKROPOLIS_CAFETERIA_WOMAN_CUE = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_CAFETERIA, 0x0D),
     /// Police officer actor's step sound on animation cue 2 (when not on display id
     /// 0x6C, which uses the 0x51050008..A table instead).
-    SOUND_ACROPOLIS_PLAZA_POLICE_STEP_1 = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PLAZA, 6),
+    SOUND_AKROPOLIS_PLAZA_POLICE_STEP_1 = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PLAZA, 6),
     /// Police officer actor's step sound on animation cue 1, the partner of 0x51050006.
-    SOUND_ACROPOLIS_PLAZA_POLICE_STEP_2 = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PLAZA, 7),
+    SOUND_AKROPOLIS_PLAZA_POLICE_STEP_2 = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PLAZA, 7),
     /// Played when key item 0x104 or 0x103 is used on the security room panel and
     /// consumed, setting the bit in flag nibble 9 that records which of the two
     /// shutters has been opened.

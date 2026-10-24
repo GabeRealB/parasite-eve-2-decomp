@@ -44,14 +44,14 @@ acropolis_observatory_path_01BAC	Per-movie-frame player path (300 samples) for a
 akropolis_patio_animation_0172C	Six player clips of the Akropolis patio's follow-up scene, copied into the weapon bank as clips 47-52 and played by its event script; the second (clip 48) has no use found.	
 akropolis_patio_animation_039F4	No reached use found: four player clips the patio's second-visit script copies into the weapon bank as clips 48-51 but never plays.	
 akropolis_patio_collision_05A0C	Collision grid of the Akropolis patio (7x4 cells, 70 faces), shared by all three room indices.	
-acropolis_plaza_animation_144C4	Scene clips of the Akropolis plaza: the two officers' clips and the clips installed on the player, bound through actor_310100's tables and requested by the plaza's first, repeat and final scene scripts.	
-acropolis_plaza_collision_1B4E0	Collision grid of the Akropolis plaza; its first eight vertices are rewritten every tick into two walls that follow the traversal movie's shot position.	
-acropolis_plaza_path_062F8	Camera track of the plaza's traversal movie: 400 frames of two view samples, applied forward or in reverse as the player's progress scrubs the movie.	
-acropolis_plaza_path_0D378	Camera track (120 frames) of the plaza's stream scene, movie sub-id 2.	
-acropolis_plaza_path_0F53C	Camera track (150 frames) of the tail and closing shots of the plaza's final scene, movie sub-id 3.	
-acropolis_plaza_path_11F70	Camera track (16 frames) of the first shot of the plaza's final scene, movie sub-id 4.	
-acropolis_plaza_path_123F4	Camera track (50 frames) of the officer shot in the plaza's final scene, movie sub-id 5.	
-acropolis_plaza_path_13204	Per-frame shot position of the plaza's traversal movie (400 points): compared with the player's X to advance or reverse the movie and used to place the moving collision walls.	
+akropolis_plaza_animation_144C4	Scene clips of the Akropolis plaza: the two officers' clips and the clips installed on the player, bound through actor_310100's tables and requested by the plaza's first, repeat and final scene scripts.	
+akropolis_plaza_collision_1B4E0	Collision grid of the Akropolis plaza; its first eight vertices are rewritten every tick into two walls that follow the traversal movie's shot position.	
+akropolis_plaza_path_062F8	Camera track of the plaza's traversal movie: 400 frames of two view samples, applied forward or in reverse as the player's progress scrubs the movie.	
+akropolis_plaza_path_0D378	Camera track (120 frames) of the plaza's stream scene, movie sub-id 2.	
+akropolis_plaza_path_0F53C	Camera track (150 frames) of the tail and closing shots of the plaza's final scene, movie sub-id 3.	
+akropolis_plaza_path_11F70	Camera track (16 frames) of the first shot of the plaza's final scene, movie sub-id 4.	
+akropolis_plaza_path_123F4	Camera track (50 frames) of the officer shot in the plaza's final scene, movie sub-id 5.	
+akropolis_plaza_path_13204	Per-frame shot position of the plaza's traversal movie (400 points): compared with the player's X to advance or reverse the movie and used to place the moving collision walls.	
 acropolis_promenade_collision_04734	Collision grid of the Akropolis promenade's room 1 (bridge progress 0).	
 acropolis_promenade_collision_04E40	Collision grid of the Akropolis promenade's room 2 (bridge progress non-zero), eight faces more than room 1's.	
 acropolis_promenade_path_03BC4	Per-movie-frame player path for the promenade's arrival movie from the observatory; 70 of 300 samples are read, backwards.	
@@ -3703,8 +3703,8 @@ weapons/m950/preview_image	Item preview picture of weapon 0x82, the M950, drawn 
 rooms/akropolis/cafeteria/view21_image	8-bit sheet (two pages) of the room sprites of akropolis_cafeteria's mapped view 21, which is also view 3 in rooms 2-4.	
 rooms/akropolis/cafeteria/view23_image	8-bit sheet of the 16 room sprites of akropolis_cafeteria's mapped view 23.	
 rooms/akropolis/cafeteria/view24_image	8-bit image holding the single room sprite of akropolis_cafeteria's mapped view 24.	
-rooms/akropolis/plaza/dialogue_0_atlas	4-bit caption glyph atlas of acropolis_plaza's dialogue with AYA and police name plates, drawn by gameplay's caption code.	
-rooms/akropolis/plaza/image	No reached use found: an acropolis_plaza image whose rows say it cannot survive the room because the movie buffers are staged over it.	
+rooms/akropolis/plaza/dialogue_0_atlas	4-bit caption glyph atlas of akropolis_plaza's dialogue with AYA and police name plates, drawn by gameplay's caption code.	
+rooms/akropolis/plaza/image	No reached use found: an akropolis_plaza image whose rows say it cannot survive the room because the movie buffers are staged over it.	
 rooms/akropolis/security_room/image	4-bit caption glyph atlas of acropolis_security_room's dialogue, drawn by gameplay's caption code whenever the room shows text.	
 rooms/akropolis/security_room/image_2	8-bit page of four 128x128 pictures of round lamps, drawn additively by acropolis_security_room's monitor feed task in the power-supply close-up (view 6) according to the lock flags.	
 rooms/akropolis/security_room/view2_image	8-bit sheet of the 18 depth-sorted occluder sprites of acropolis_security_room's mapped view 2.	
@@ -4629,7 +4629,7 @@ rooms/akropolis/patio/sounds_1	Acropolis patio room sound bank: door sounds of w
 rooms/akropolis/cafeteria/sounds_0	Footstep bank of akropolis_cafeteria: walk, jump and run step sounds for surface classes 1, 2, 3 and 4 of the room.	
 rooms/akropolis/cafeteria/sounds_1	Acropolis cafeteria room sound bank: door sounds of warps 0, 1 and 2, a caption cue sound, the post-battle scene sound and the woman's (actor_202900) animation cue in room variant 1.	
 weapons/m4a1_javelin/sounds	M4A1 Javelin weapon sound bank (weapon 29): rifle burst round, guide beam sound, empty-chamber click and reload cue.	
-rooms/akropolis/plaza/sounds_0	Footstep bank of acropolis_plaza: walk, scripted-jump and run step sounds on surface classes 0 and 1 of the plaza grid.	
+rooms/akropolis/plaza/sounds_0	Footstep bank of akropolis_plaza: walk, scripted-jump and run step sounds on surface classes 0 and 1 of the plaza grid.	
 rooms/akropolis/plaza/sounds_1	Acropolis plaza room sound bank: ambience loops and voices mixed frame by frame against the traversal movie, final-scene one-shots, and the officers' step sounds (actor_310100).	
 rooms/akropolis/security_room/sounds_0	Footstep bank of acropolis_security_room: walk, scripted-jump and run step sounds on surface class 4, the room's only class.	
 rooms/akropolis/security_room/sounds_1	Acropolis security room sound bank: door sounds of its one warp, monitor panel select/brighter/darker clicks, shutter unlock and release sounds, and the right-lock scene's movie loop.	

@@ -496,7 +496,7 @@ shelterB6NurserySparkShowerShardTask = 0x80182730; // type:func absolute:True ow
 
 gShelterB2BreedingRoomAreaVariants = 0x80183EEC; // absolute:True owner=shelter_b2_breeding_room shared=rooms
 
-gAcropolisPlazaAreaVariants = 0x80199390; // absolute:True owner=acropolis_plaza
+gAkropolisPlazaAreaVariants = 0x80199390; // absolute:True owner=akropolis_plaza
 
 gDryfieldMotelRoom6ReflectionTaskDescs = 0x80182D0C; // absolute:True owner=dryfield_motel_room_6
 
@@ -599,13 +599,13 @@ akropolisPatioLightGlowTask = 0x8017E324; // type:func absolute:True owner=akrop
 
 akropolisPatioLightMoteTask = 0x8017E730; // type:func absolute:True owner=akropolis_patio
 
-acropolisPlazaSirenLightTask = 0x801802C0; // type:func absolute:True owner=acropolis_plaza shared=rooms
+akropolisPlazaSirenLightTask = 0x801802C0; // type:func absolute:True owner=akropolis_plaza shared=rooms
 
-acropolisPlazaLightFlareTask = 0x801811D0; // type:func absolute:True owner=acropolis_plaza
+akropolisPlazaLightFlareTask = 0x801811D0; // type:func absolute:True owner=akropolis_plaza
 
-acropolisPlazaLightGlowTask = 0x80182054; // type:func absolute:True owner=acropolis_plaza
+akropolisPlazaLightGlowTask = 0x80182054; // type:func absolute:True owner=akropolis_plaza
 
-acropolisPlazaSpawnAmbientLightsTask = 0x8018251C; // type:func absolute:True owner=acropolis_plaza
+akropolisPlazaSpawnAmbientLightsTask = 0x8018251C; // type:func absolute:True owner=akropolis_plaza
 
 acropolisPromenadeRoomEffectTask = 0x8017E03C; // type:func absolute:True owner=acropolis_promenade
 
@@ -1379,7 +1379,7 @@ gAcropolisBridgeStairSurfaceRows = 0x80189A9C; // absolute:True owner=acropolis_
 
 gShelterB4WaterSupplyStairSurfaceRows = 0x801826FC; // absolute:True owner=shelter_b4_water_supply
 
-gAcropolisPlazaSequenceTaskDescriptors = 0x80183824; // absolute:True owner=acropolis_plaza
+gAkropolisPlazaSequenceTaskDescriptors = 0x80183824; // absolute:True owner=akropolis_plaza
 
 gDryfieldNightGarageShopSessionTaskDesc = 0x80181C2C; // absolute:True owner=dryfield_night_garage
 

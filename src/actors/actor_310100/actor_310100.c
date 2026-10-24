@@ -30,7 +30,7 @@
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 
-#include "rooms/acropolis_plaza.h"
+#include "rooms/akropolis_plaza.h"
 
 /// Area placement entries the two police officers are spawned from; the same
 /// IDs select each officer's placement record in the plaza's nested layout.
@@ -657,10 +657,10 @@ static s32 _actor310100TickOfficerAnimation(Task* task)
                 }
             } else {
                 if (cueRecord->flags & ANIMATION_RECORD_CUE_2) {
-                    sndEvtRequestScriptStart(SOUND_ACROPOLIS_PLAZA_POLICE_STEP_1, worldCoordGetOriginAudioPan(rootCoord), 0);
+                    sndEvtRequestScriptStart(SOUND_AKROPOLIS_PLAZA_POLICE_STEP_1, worldCoordGetOriginAudioPan(rootCoord), 0);
                 }
                 if (cueRecord->flags & ANIMATION_RECORD_CUE_1) {
-                    sndEvtRequestScriptStart(SOUND_ACROPOLIS_PLAZA_POLICE_STEP_2, worldCoordGetOriginAudioPan(rootCoord), 0);
+                    sndEvtRequestScriptStart(SOUND_AKROPOLIS_PLAZA_POLICE_STEP_2, worldCoordGetOriginAudioPan(rootCoord), 0);
                 }
             }
         }

@@ -89,7 +89,7 @@
 
 #include "rooms/akropolis_patio.h"
 
-#include "rooms/acropolis_plaza.h"
+#include "rooms/akropolis_plaza.h"
 
 #include "rooms/acropolis_promenade.h"
 
@@ -610,7 +610,7 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, acropolisPromenadeRoomEffectTask, { NULL } },                                       // 0x04A
     { { { TASK_BODY_COORD, 0x70 } }, acropolisPromenadeGlowStarTask, { NULL } },                                         // 0x04B
     { { { TASK_BODY_COORD, 0x70 } }, actor510900FlameSpriteTask4C, { NULL } },                                           // 0x04C
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisPlazaSpawnAmbientLightsTask, { NULL } },                                   // 0x04D
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisPlazaSpawnAmbientLightsTask, { NULL } },                                   // 0x04D
     { { { TASK_BODY_COORD, 0x70 } }, acropolisFireEscapeLightEmitterTask, { NULL } },                                    // 0x04E
     { { { TASK_BODY_COORD, 0x70 } }, acropolisFireEscapeFlareTask, { NULL } },                                           // 0x04F
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelBalconyBreakBurstTask, { NULL } },                                // 0x050
@@ -683,10 +683,10 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelBalconyFallingParticleTask, { NULL } },                           // 0x093
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelBalconyLampBurstTask, { NULL } },                                 // 0x094
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelBalconyDriftPuffTask, { NULL } },                                 // 0x095
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisPlazaLightGlowTask, { NULL } },                                            // 0x096
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisPlazaLightGlowTask, { NULL } },                                            // 0x096
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightBackStreetRoomVisualEffectsTwinTrailTask, { NULL } },                  // 0x097
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisPlazaSirenLightTask, { NULL } },                                           // 0x098
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisPlazaLightFlareTask, { NULL } },                                           // 0x099
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisPlazaSirenLightTask, { NULL } },                                           // 0x098
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisPlazaLightFlareTask, { NULL } },                                           // 0x099
     { { { TASK_BODY_COORD, 0x70 } }, effectHitPuffEmitterTask, { NULL } },                                               // 0x09A
     { { { TASK_BODY_COORD, 0x70 } }, effectHitSplatterSprayTask, { NULL } },                                             // 0x09B
     { { { TASK_BODY_COORD, 0x70 } }, effectPolyTask9C, { NULL } },                                                       // 0x09C

@@ -56,7 +56,7 @@
 
 #include "rooms/akropolis_patio.h"
 
-#include "rooms/acropolis_plaza.h"
+#include "rooms/akropolis_plaza.h"
 
 #include "rooms/acropolis_promenade.h"
 

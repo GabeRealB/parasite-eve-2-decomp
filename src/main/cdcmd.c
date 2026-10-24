@@ -31,7 +31,7 @@
 
 #include "mapui/map_neo_ark.h"
 
-#include "rooms/acropolis_plaza.h"
+#include "rooms/akropolis_plaza.h"
 
 /// Retained auxiliary-heap reservation for the current location's movie workspace.
 ///
@@ -758,7 +758,7 @@ static void _cdCmdHandleRequestCancellation(void)
         case CD_COMMAND_OFFSET_MOVIE_FAMILY:
             if (queue->cdOperationPending != 0) {
                 if ((queue->activeRequest.entry.cmd >> 4) == CD_COMMAND_OFFSET_MOVIE_FAMILY) {
-                    acropolisPlazaPollStreamCommands();
+                    akropolisPlazaPollStreamCommands();
                     return;
                 }
                 _cdCmdHandleMoviePlayback();
@@ -907,7 +907,7 @@ static void _cdCmdHandleRequestSuspension(void)
             // Keep playback moving until its current seek/read/pause can be stopped.
             if (queue->cdOperationPending != 0) {
                 if ((queue->activeRequest.entry.cmd >> 4) == CD_COMMAND_OFFSET_MOVIE_FAMILY) {
-                    acropolisPlazaPollStreamCommands();
+                    akropolisPlazaPollStreamCommands();
                 } else {
                     _cdCmdHandleMoviePlayback();
                 }
@@ -1474,7 +1474,7 @@ void cdCmdDispatch(void)
                         _cdCmdHandleMoviePlayback();
                         break;
                     case CD_COMMAND_FAMILY_MOVIE_OFFSET:
-                        acropolisPlazaPollStreamCommands();
+                        akropolisPlazaPollStreamCommands();
                         break;
                     case CD_COMMAND_FAMILY_STAGE_MOUNT:
                         _cdCmdHandleStageMount();

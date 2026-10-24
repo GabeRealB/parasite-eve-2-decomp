@@ -2472,7 +2472,7 @@ at all.
 
 A single-value guard in the same idiom stays an `if`: the sibling
 `_actor310100Officer1CulledBodyTask` is `if (work->playState == 0)` → `lhu` + `bnez`.
-`_acropolisPlazaUpdateSceneAmbience` is the same `{0, 1}` cluster reached from a
+`_akropolisPlazaUpdateSceneAmbience` is the same `{0, 1}` cluster reached from a
 3-case switch, emitted as `bltz` / `slti`+`bnez` (the `node->right` form at line
 ~6485).
 
@@ -43134,7 +43134,7 @@ a unit whose switch generates the unit's last jump table: the object's
 `.rodata` then ends on the table, gas does not round it up to the `.align 3`,
 and every later unit — and the whole overlay image — comes out 4 bytes short,
 which reads as an unrelated `nop` going missing early in the *first* unit when
-you byte-diff the overlay against the package. `_acropolisPlazaStreamedSceneTask`
+you byte-diff the overlay against the package. `_akropolisPlazaStreamedSceneTask`
 is the worked example: its 7-entry table closes `acropolis_plaza_3.o`, so that
 unit needs its own
 
@@ -43712,7 +43712,7 @@ otherwise alphabetical after the header comment.
 
 ## Two identical switch arms that both `j` to the same label *are* cross-jumped
 
-The room-load state machine in `_acropolisPlazaMovieDisplayTask` has case 3 and
+The room-load state machine in `_akropolisPlazaMovieDisplayTask` has case 3 and
 case 4 both ending in the same three insns:
 
 ```
@@ -58618,7 +58618,7 @@ preheader (`addiu $a1, $v1, -0x20`). Keeping the member access at each store
 avoids that pointer-local obstruction.
 
 A read-modify-write has the same typed spelling, with no pointer local.
-`acropolisPlazaSirenLightTask` adds a translation to each rotated
+`akropolisPlazaSirenLightTask` adds a translation to each rotated
 vertex after the same pair of GTE operands, and the target is the same split:
 `0x24($a2)` for `vx`, then `addiu $a0, $a2, 0x24` and `2($a0)` / `4($a0)`.
 Dereferencing the element's address in each compound assignment produces it:
@@ -60369,7 +60369,7 @@ Fix: index the global directly (`D_sym[0].vx = …`). The address is then
 rematerialised at first use, which is where the ROM puts it. This is the
 opposite of the usual "hoist a repeated base into a local" advice, and it costs
 nothing in readability when the array name is already the subject of every
-statement. `_acropolisPlazaUpdateSceneCollisionWalls` is the worked example.
+statement. `_akropolisPlazaUpdateSceneCollisionWalls` is the worked example.
 
 ## Duplicate a switch's shared tail; a `goto` label lets cross-jumping eat the call
 
@@ -60489,7 +60489,7 @@ four bytes.
 
 ## A global re-read while still live in a register means `volatile` — but read the compare temp non-volatile
 
-`_acropolisPlazaUpdateSceneAmbience` loads `gCdCmdQueue.sceneFrame` once, uses it for
+`_akropolisPlazaUpdateSceneAmbience` loads `gCdCmdQueue.sceneFrame` once, uses it for
 two comparisons, and then **loads it again** in each arm of the inner
 `if`/`else`, even though the first load's register is untouched:
 
@@ -60510,7 +60510,7 @@ lhu   $v0, 0x1EE($a1)        # reload
 GCC 2.8.1's CSE does reach into both arms, so a plain non-volatile read is
 carried in a register and you get `move`/reuse instead of the reloads (85%
 here). The reloads only appear when the read is `volatile`. Sibling
-`_acropolisPlazaUpdateAmbienceVoice` shows the same tell — a reload on a
+`_akropolisPlazaUpdateAmbienceVoice` shows the same tell — a reload on a
 *fall-through* path where the value is still live — so treat "re-read of a
 global that is provably still in a register" as a `volatile` marker, not as a
 register-allocation accident.
@@ -60561,7 +60561,7 @@ constant" gives: `sched1` may reorder stores that provably do not alias. What
 the source order does decide is *which constant pseudo is born first*, and that
 is what the register allocation falls out of.
 
-`_acropolisPlazaSequenceTask` state 5 stores `0x11` to `area` and `1` to
+`_akropolisPlazaSequenceTask` state 5 stores `0x11` to `area` and `1` to
 `stage`, `warp` and `room`. Writing them in dump order (area, stage, warp, room)
 scores 97.6% with `regs=13`: the `0x11` pseudo dies before the `1` pseudo is
 born, so both get `$v0` and the base address is pushed to `$v1`. The target has
@@ -60629,7 +60629,7 @@ a shared buffer is a `static inline` helper's frame" below. Try that form
 first; the union here is the fallback that reproduces the bytes without
 recovering the helpers.
 
-`_acropolisPlazaStreamSceneTask` sends three payloads from the same frame
+`_akropolisPlazaStreamSceneTask` sends three payloads from the same frame
 region: a three-byte CD slot triple at `sp+0x58`, an `AnimationPlayRequest` at `sp+0x60`, and
 an `ActorTransform` at `sp+0x58` that runs to `sp+0x6F`. Declaring them as three
 locals in three nested blocks scores 98.4% with `stack=0` but a 0xA0 frame
@@ -60638,8 +60638,8 @@ instead of 0x88: each one got its own slot (`0x58`, `0x60`, `0x78`).
 It was first matched by making the overlap explicit - one function-scope union
 with a view per payload, the request wrapped in a struct that put it eight
 bytes in. That union is gone: the three payloads are the locals of three
-`static inline` helpers (`_acropolisPlazaQueueStreamAtStart`,
-`_acropolisPlazaPlayPlayerAnimation`, `_acropolisPlazaPlacePlayerAtModelRoot`),
+`static inline` helpers (`_akropolisPlazaQueueStreamAtStart`,
+`_akropolisPlazaPlayPlayerAnimation`, `_akropolisPlazaPlacePlayerAtModelRoot`),
 whose frames of 8, 0x18 and 0x18 bytes land at `0x58`, `0x60` and `0x58` by the
 slot arithmetic in the entry named above. A wrapper struct whose only job is to
 offset one view inside such a union is the sign that the helper form has not
@@ -60667,12 +60667,12 @@ or in a callee-saved register is decided by the *call* that follows: passing
 `$s0` and the argument becomes `move $a2, $s0`; passing the address expression
 `(s32)&rec` ends the pointer's live range at its last store, so it stays in
 `$a1` and the argument is recomputed as `addiu $a2, $sp, 0x60`. That one
-substitution was the last 1% of `_acropolisPlazaStreamSceneTask` as first
+substitution was the last 1% of `_akropolisPlazaStreamSceneTask` as first
 matched.
 
 The mix itself is not something the source wrote. It is what an inlined
 helper's frame base compiles to (next entry), and the plaza now gets it from
-`_acropolisPlazaPlayPlayerAnimation` with no pointer local at all. Reach for
+`_akropolisPlazaPlayPlayerAnimation` with no pointer local at all. Reach for
 the hand-written mix only after the helper form has failed.
 
 ## A stack record shifted 8 bytes inside a shared buffer is a `static inline` helper's frame (_dryfieldMotelRoom1ExecuteEventAction, 2026-10-03)
@@ -60747,7 +60747,7 @@ store of that parameter is not the constant store `try_constants` has to
 cancel, and it folds to the frame like a computed field. (Measured for the
 three widths below; how the narrower parameter's value becomes a known
 constant again inside the body was not traced.)
-`_acropolisPlazaStreamSceneTask`'s placement helper writes a `0xEAA` yaw into
+`_akropolisPlazaStreamSceneTask`'s placement helper writes a `0xEAA` yaw into
 an `ActorTransform` at `sp+0x58`: the target has `li v0,0xEAA` /
 `sh v0,0x6A(sp)`, which `s32 yaw` reproduces, while `s16` and `u16` both give
 `addiu a2,sp,0x58` / `sh v0,0x12(a2)` and a function one instruction longer.
@@ -60798,7 +60798,7 @@ source order, is the signature; so is a 4-byte payload sharing offset 0 with a
 
 Two records of *different* types at one offset past every named local are the
 same thing with equal frames: the second helper's request is an exact fit for
-the slot the first released. `_acropolisPlazaFinalSceneTask` builds a
+the slot the first released. `_akropolisPlazaFinalSceneTask` builds a
 `GameLocationKey` twice and a stream-slot triple once at `sp+0x78`, which had
 been a union of the two; a lookup helper and a play-stream helper, each with an
 8-byte frame, reproduce it with no union.
@@ -60871,7 +60871,7 @@ the first only. (Measured; why the offset-0 address folds was not traced.)
 
 "Duplicate a switch's shared tail" above says each duplicated copy merges with
 the *last* one. That holds when the copies live in the same case, and it is
-what `_acropolisPlazaUpdateSequenceEvent` does for its two `case 2` arms — but not
+what `_akropolisPlazaUpdateSequenceEvent` does for its two `case 2` arms — but not
 when a copy sits in an *earlier* case. That function spawns from the same
 table in three places (`case 0` kind 1, `case 2` kind 0, `case 2` kind 2) and
 all three tails are identical from `move a2,zero` on. Written as three plain
@@ -60914,7 +60914,7 @@ The shape that first reproduced the layout above used variables for the two
 arguments that differ, with the whole call behind the label:
 
 ```c
-    desc = &gAcropolisPlazaSequenceTaskDescriptors; entry = 4; goto spawn;
+    desc = &gAkropolisPlazaSequenceTaskDescriptors; entry = 4; goto spawn;
     ...
 spawn:
     work->eventTask = taskSpawnFromTable(desc, entry, 0, (s32)work);
@@ -60934,7 +60934,7 @@ call instead.
 
 ## The emitted order of stores at distinct constant offsets is not the source order
 
-`_acropolisPlazaUpdateSequenceEvent` copies three fields out of one event into the
+`_akropolisPlazaUpdateSequenceEvent` copies three fields out of one event into the
 work block, and the target emits `sb 0x18 / sh 0x16 / sb 0x19` with the second
 load hoisted into the first load's delay slot. Writing the assignments in that
 order compiles to `sb 0x18 / sh 0x16 / sb 0x19` too, but with a `nop`; the
@@ -60994,7 +60994,7 @@ as `latchedKind16 == 2` re-merges them and drops back to 98%.
 
 ## A 0xFF-terminated table search: count the loads to pick the loop spelling
 
-`_acropolisPlazaFinalSceneTask` walks the nested area records looking for id
+`_akropolisPlazaFinalSceneTask` walks the nested area records looking for id
 `0x6C` and keeps the index it stopped at. The target loop is
 
 ```
@@ -61062,12 +61062,12 @@ So: count the loads of the terminator byte in the target. Two means a pointer
 
 ## A switch whose cases end in the same call: repeat the call, don't hoist it
 
-Six of the sixteen cases in `_acropolisPlazaFinalSceneTask` end by calling
-`_acropolisPlazaApplyStreamCamera(n)` with three different `n`. Hoisting that into
+Six of the sixteen cases in `_akropolisPlazaFinalSceneTask` end by calling
+`_akropolisPlazaApplyStreamCamera(n)` with three different `n`. Hoisting that into
 `arg = n; break;` plus one call after the switch looks like the same code and
 compiles to the same instruction count, but it cross-jumps differently: GCC
 merges the two `li a0, 7` blocks into one and the ROM keeps them apart, so the
-`j`/delay-slot layout of both cases is wrong. Writing `_acropolisPlazaApplyStreamCamera(7);
+`j`/delay-slot layout of both cases is wrong. Writing `_akropolisPlazaApplyStreamCamera(7);
 return;` out in each case reproduces it — jump2 merges the shared `jal` +
 epilogue tail, and the delay-slot pass then pulls each `li a0, n` into its own
 jump. Worth 99.03% → 99.27% here, with `reorder` going to zero.
@@ -61146,7 +61146,7 @@ prim->y0 = blk->sxy[i] >> 16;           /* sign-extending extract -> lh  2(p) */
 `>> 16` on a *signed* word is what produces `lh`; an unsigned word would give
 `lhu` again. This shape is common for `gte_stsxy` / `getScratchAddr` blocks,
 where the GTE writes one word and the C reads the two screen coordinates back
-out of it. In `acropolisPlazaSirenLightTask` this alone was worth ~1.5%.
+out of it. In `akropolisPlazaSirenLightTask` this alone was worth ~1.5%.
 
 ## Put the loop increment before the call, or `i` never reaches a callee-saved register
 
@@ -61179,7 +61179,7 @@ for (i = 0; i < 2;) {
 
 leaves `i` live across the call, so it takes `$s1` and one more long-lived
 pointer gets spilled instead. That is not cosmetic: it decides *which* pseudo
-loses. In `acropolisPlazaSirenLightTask` the target spills the
+loses. In `akropolisPlazaSirenLightTask` the target spills the
 `&gWorldCoordTransientPointLights[n]` pointer to `0x10($sp)`; with the increment in the default
 place a colour component spilled instead and the whole `$s0`-`$s8` assignment
 came out shifted. The single edit moved the score 88.99% -> 90.57% and dropped
@@ -61286,19 +61286,19 @@ arm of the `if` that keeps the temp distinct from both colours.
 Six ring-vertex reads out of the same 16-entry sine table,
 
 ```c
-primitive->x0 = flare->screenPos.vx + ((flare->outerRadius * _gAcropolisPlazaLightRingSamples[i + 4]) >> 12);
-primitive->y0 = flare->screenPos.vy + ((flare->outerRadius * _gAcropolisPlazaLightRingSamples[i]) >> 12);
-primitive->x1 = flare->screenPos.vx + ((flare->outerRadius * _gAcropolisPlazaLightRingSamples[i + 5]) >> 12);
+primitive->x0 = flare->screenPos.vx + ((flare->outerRadius * _gAkropolisPlazaLightRingSamples[i + 4]) >> 12);
+primitive->y0 = flare->screenPos.vy + ((flare->outerRadius * _gAkropolisPlazaLightRingSamples[i]) >> 12);
+primitive->x1 = flare->screenPos.vx + ((flare->outerRadius * _gAkropolisPlazaLightRingSamples[i + 5]) >> 12);
 ...
 ```
 
 compile to the naive per-access address the target has —
 `addiu $v0,$s4,K; sll $v0,$v0,1; addu $v0,$v0,$s1; lh $v1,0($v0)` — with the
 table's `lui`/`addiu` hoisted into the loop preheader. Copy the symbol into a
-local first (`s16* tbl = _gAcropolisPlazaLightRingSamples;`) and GCC 2.8.1 computes
+local first (`s16* tbl = _gAkropolisPlazaLightRingSamples;`) and GCC 2.8.1 computes
 `i * 2 + tbl` once and folds every `+ K` into the load displacement
 (`lh $v1, 8($a0)`), rematerialising the symbol *inside* the loop. On
-`acropolisPlazaLightFlareTask` that one difference is 71.2% against 98.6%.
+`akropolisPlazaLightFlareTask` that one difference is 71.2% against 98.6%.
 
 The loop spelling does not matter here — `for (i = 0; i < 0x10; i += 2)` and
 `do { … i = i + 2; } while (i < 0x10)` both give the unfolded form as long as
@@ -65820,7 +65820,7 @@ order from the scheduled assembly.
 
 ## Cached frame comparisons with fresh arithmetic reads: barrier placement matters
 
-`_acropolisPlazaUpdateAmbienceVoice` uses one `u32 sceneFrame` loaded from
+`_akropolisPlazaUpdateAmbienceVoice` uses one `u32 sceneFrame` loaded from
 `gCdCmdQueue.sceneFrame` for every comparison, then reloads the same field for
 volume arithmetic. An `u8 volume` local and complete division expressions in
 each arm reproduce the target's register allocation and the mode-1 shared
@@ -66796,7 +66796,7 @@ was never going to be hoisted anyway.
 
 ## Signed-halfword pulse locals can restore color register priority
 
-`acropolisPlazaLightGlowTask` reached 99.837% with only `regs=10` left.
+`akropolisPlazaLightGlowTask` reached 99.837% with only `regs=10` left.
 The three RGB locals were `s16`, but the triangular pulse result feeding red
 was `s32`. `.lreg` showed all three channels had four references; `.greg`
 ranked blue, green, red by live length. CSE also shifted the wider pulse
@@ -67159,7 +67159,7 @@ were dead and removed.
 
 ## Flare scratch copies: an empty asm can occupy the load-delay scheduler slot
 
-`acropolisPlazaLightFlareTask` needs `addiu v0,head,-0x4C; lhu v1,56(coord);
+`akropolisPlazaLightFlareTask` needs `addiu v0,head,-0x4C; lhu v1,56(coord);
 move s5,v0; sh v1,32(s5)`. With `SOFT_TOUCH_REG(raw); flare = raw`, `.lreg`
 puts the load before the empty asm, but reload inserts the `move` before the
 load. `.sched2` treats the empty asm as the intervening instruction; the final
@@ -80067,7 +80067,7 @@ One `lbu`, one `addiu` per arm, and with it the remaining distance closes:
 
 **The delay slot is the same fix.** The shared-variable ternary still emits the
 four-block form with a `j` over the else arm, which is what the matched sibling
-`_acropolisPlazaStreamSceneTask` has -- same payload shape, same
+`_akropolisPlazaStreamSceneTask` has -- same payload shape, same
 `weaponId`/`id` pair, and retail keeps its `j` there. Retail's
 `_actor341900FinishSkippedScene` instead has the else arm in the `bne` delay slot and
 no `j` at all. That collapse is reorg's: `mostly_true_jump` reads the `ne`
@@ -81307,7 +81307,7 @@ hoists it. Two builds apart: `47.679%` (regs=13 insert=6 delete=8) -> `100.000%`
 (all-zero). Same lesson as m2c's split scalars: the payload is the real struct
 (`AnimationPlayRequest`), so the frame is `0x30` rather than the `0x20` the separate locals
 produce. `_actor136100ResetPlayerWeaponAnimation` is the worked example; the same ternary
-appears inlined in `_acropolisPlazaRepeatSceneTask` (state 0).
+appears inlined in `_akropolisPlazaRepeatSceneTask` (state 0).
 
 Preprocessed SHA256:
 
@@ -90881,7 +90881,7 @@ work->stagedSucklerTasks[1] = sceneFindEnemyByPlaceKey(placeKey)->task;
 ```
 
 The same shape appears with `(idx << 12) | (field_3 << 8) | field_2` in
-`_acropolisPlazaFinalSceneTask`, where the matched target also puts the plain
+`_akropolisPlazaFinalSceneTask`, where the matched target also puts the plain
 byte load first - the caller's own source order is preserved only while the
 argument stays SImode. Inputs: `base_2.i`
 `4077955e23b9e1bc2d8d4fdf0bd97cb489eef5c15f207e47b5626192eaf8b14e` (99.118%),
@@ -91879,7 +91879,7 @@ bne  $v0, $s0, .LDD64
 ```
 
 "A re-read while the value is still live in a register means `volatile`" is the
-rule in the `_acropolisPlazaUpdateSceneAmbience` entry above, and here it would be
+rule in the `_akropolisPlazaUpdateSceneAmbience` entry above, and here it would be
 the wrong call. The re-read happens on a path where no call was made at all, so
 the compiler looks like it declined to reuse a live register. It did not: the
 call in the *other* arm kills the load's availability before the join, so CSE
@@ -92129,7 +92129,7 @@ matches each arm's `jal` + delay `nop` against the exit block and leaves the
 survivor in the block that falls through, which is the arm written last.
 
 This is the positive direction of the two `SOFT_BARRIER` entries above
-(`_acropolisPlazaMovieDisplayTask`, `_akropolisSquareCapViewSequenceTask`): there the
+(`_akropolisPlazaMovieDisplayTask`, `_akropolisSquareCapViewSequenceTask`): there the
 merge had to be *prevented* because the ROM keeps both copies; here it must be
 allowed to happen, and a seed that hand-writes the shared block prevents it
 landing where the ROM puts it.
@@ -113238,7 +113238,7 @@ the second read is spelled:
 the table and never replaced; `movhi` still picks the width the *use* wants, so
 the arm stays a bare `lhu` + `andi` — unlike assigning a `volatile u16` to an
 `s32` local, which pays a separate `zero_extendhisi2` (see the
-`_acropolisPlazaUpdateSceneAmbience` entry).
+`_akropolisPlazaUpdateSceneAmbience` entry).
 
 ```c
 if ((u32)((u16)work->stateTimer - 0x2E) < 4U) {
@@ -145777,7 +145777,7 @@ local is only ever assigned from an argument.
 
 Target: the usual push pair `addiu v0,head,-K` / `move s2,v0`, but `sw s2,0(scratch)` only after the reads of `value[0..2]`, and `move v0,v1` in place of a reload of a field just stored from `$v1`. The seed used `SOFT_TOUCH_REG` on the carve plus a late `SCRATCH_STACK_CURSOR = scratch`, and `TOUCH_REG` on a copy of the first coordinate. `scratch = SCRATCH_STACK_RESERVE_BLOCK(T)` gives the copy but pins the head store early. That store is a scalar MEM, and so were the `s16* endOffset` reads, so sched1 kept them in order. The callers pass `&mem->pos`, so the parameter is a `const SVECTOR*`. With `endOffset->vx` the reads are in-struct MEMs, which cannot alias a scalar store, and sched1 sinks the store past them. With the store gone from between them, `scratch->worldEnd.vx += endOffset->vx` becomes `move v0,v1`: `reload_cse` sees `$v1` still holds the value stored at `8(s2)`. The other two fields are reloaded because their registers were reused.
 
-### Nested `goto`s storing one field in several arms are a threshold ternary, and its orientation matters (acropolisPlazaSirenLightTask, 2026-09-26)
+### Nested `goto`s storing one field in several arms are a threshold ternary, and its orientation matters (akropolisPlazaSirenLightTask, 2026-09-26)
 
 A `sh` of `0x200` or `0x800` reached through an abs-style split (`x >= 0` then
 `x <= lim`, else `-x <= lim`) with a store in the delay slot of a `j` and
@@ -147108,7 +147108,7 @@ and ordinary assembly are identical. Preprocessed SHA-256: `base_1.i`
 `859e4dd8af3ae482eb922fadac7318ef685028ca19f68211385dfa79e35dd07b`.
 
 
-### A startup statement macro preserves reloads by changing CSE's bypass path (_acropolisPlazaUpdateAmbienceVoice, 2026-09-27)
+### A startup statement macro preserves reloads by changing CSE's bypass path (_akropolisPlazaUpdateAmbienceVoice, 2026-09-27)
 
 Removing a memory barrier before the voice-state check let CSE replace six
 frame-counter reloads with the initial snapshot (85.642%). A `do { ... } while
@@ -147122,7 +147122,7 @@ This differs from merely ending cse1's forward scan at a loop note: both CSE
 dumps retain all seven frame loads. An inline boolean startup helper instead
 retains its result join and call-crossing lifetimes (76.275%).
 
-Scratch: `nonmatchings/_acropolisPlazaUpdateAmbienceVoice-dehack/base_12.c`;
+Scratch: `nonmatchings/_akropolisPlazaUpdateAmbienceVoice-dehack/base_12.c`;
 input SHA256 `069b7a8b40d803626611f3608ea77e6f4f87bd5d9cd7a20ac22a3d6cf755832c`.
 
 ### Distinct overlay callees at one address preserve stage branches (func_dryfield_factory_8017D9CC, 2026-09-27)
@@ -149326,13 +149326,13 @@ nest normally, and `kind = 0x16` was not needed (10 gotos -> 5).
   `move v0,zero` is local to the arm and reorg puts it in the jump's delay
   slot (`sh; j epilogue; move v0,zero`); with `break` the jump goes to the
   shared `move v0,zero` and the store fills the slot (`j; sh`), which is what
-  the image has (`_acropolisPlazaUpdateSequenceEvent`; every `return 0;` at a case
+  the image has (`_akropolisPlazaUpdateSequenceEvent`; every `return 0;` at a case
   end could then be `break` as well).
 - **Which copy of a duplicated tail survives depends on how the copies end.**
   When one copy falls through into the join, that copy (the later one) is
   kept. When *both* copies end in a jump to the same label, the *earlier* one
   was kept and the later arm jumps backward into it: the two arms of
-  `_acropolisPlazaStreamedSceneTask`'s same-direction seek, written out in full
+  `_akropolisPlazaStreamedSceneTask`'s same-direction seek, written out in full
   as `if (side == 0) { if (fwd == WALK) { ... } } else if (side == 1) { ... }`,
   reproduce `view = ...; L_eqShared:` with its backward `j`, because both end
   by jumping to the `frameStep = FINE` store that cross-jumping had already
@@ -149342,17 +149342,17 @@ nest normally, and `kind = 0x16` was not needed (10 gotos -> 5).
 - **`case 4: tbl = A; goto common; ... case 7: tbl = D; default: common:
   <shared code>`** next to a case with its own code is a switch that only
   picks the table, the shared code after it, and the odd case ending in the
-  final call and a `return` (`_acropolisPlazaApplyStreamCamera`). An inline
+  final call and a `return` (`_akropolisPlazaApplyStreamCamera`). An inline
   holding the shared code, called per case, did not merge (registers differ).
 - **A cancel guard `if (control != RUNNING) { if (control < CANCEL_MIN) return;
   goto release; }` with `release:` on the last `effectKillTask` of the
   function** is `effectKillTask(work, task); return;` in the guard; seven room
   effect tasks, first try each.
-- Not converted: `_acropolisPlazaFindPlacedEnemy`'s scan. Every `break` form
+- Not converted: `_akropolisPlazaFindPlacedEnemy`'s scan. Every `break` form
   (`while (a && b)`, `while` + `break`, guarded `do` + `break`, an index helper
   with `for` + `return`) either rotates on the wrong test or keeps the entry
   test's load for the first compare of the body; the image reloads the byte at
-  the loop top. `_acropolisPlazaStreamedSceneTask` keeps one `goto` from state 5
+  the loop top. `_akropolisPlazaStreamedSceneTask` keeps one `goto` from state 5
   back into state 2 (an inline for state 2's body would need its own `slot[]`).
 
 ## Removing `goto`: switch trees with no-op cases, real loops under constant locals (main and gameplay, 2026-10-06)

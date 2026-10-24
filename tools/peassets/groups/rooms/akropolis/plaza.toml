@@ -62,12 +62,12 @@ sha1 = "aeb19f6425491cab36f2759ebecf8903c2e2a4dd"
 [package]
 type = "room"
 embedded = [
-    "acropolis_plaza_path_062F8",
-    "acropolis_plaza_path_0D378",
-    "acropolis_plaza_path_0F53C",
-    "acropolis_plaza_path_11F70",
-    "acropolis_plaza_path_123F4",
-    "acropolis_plaza_path_13204",
+    "akropolis_plaza_path_062F8",
+    "akropolis_plaza_path_0D378",
+    "akropolis_plaza_path_0F53C",
+    "akropolis_plaza_path_11F70",
+    "akropolis_plaza_path_123F4",
+    "akropolis_plaza_path_13204",
     { name = "extra_anim", offset = 0x144C4, size = 0x420, address = 0x80191A84 },
     { name = "extra_anim_2", offset = 0x148E4, size = 0xDF8, address = 0x80191EA4 },
     { name = "extra_anim_3", offset = 0x156DC, size = 0x1B0, address = 0x80192C9C },
@@ -104,7 +104,7 @@ embedded = [
     { name = "extra_anim_33", offset = 0x1AE2C, size = 0x1A0, address = 0x801983EC },
     { name = "extra_anim_34", offset = 0x1AFCC, size = 0x254, address = 0x8019858C },
 ]
-package_name = "acropolis_plaza"
+package_name = "akropolis_plaza"
 required = true
 sha1 = "b62d1232be576a30edc6636ecacb2b53e8867f12"
 

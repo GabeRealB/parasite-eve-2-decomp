@@ -462,7 +462,7 @@ enum {
     /// Persistent additive glow disc of eight POLY_G4 wedges at a plaza anchor: warm
     /// random flicker for slots below 0x10, a slow red pulse for 0x10+; the plaza
     /// ambient spawner places seven (slots 0xC-0x12).
-    EFFECT_ACROPOLIS_PLAZA_LIGHT_GLOW = EFFECT_ID(EFFECT_TASK_BANK, 0x096),
+    EFFECT_AKROPOLIS_PLAZA_LIGHT_GLOW = EFFECT_ID(EFFECT_TASK_BANK, 0x096),
     /// dryfield_night_back_street's copy of the shared twin trail
     /// (room_visual_effects_trail_task): two rings of eight frames drawn as a fading
     /// gouraud beam; the room stores it in gRoomEffectTwinTrailId (twin-trail slot, spawned by the
@@ -470,11 +470,11 @@ enum {
     EFFECT_DRYFIELD_NIGHT_BACK_STREET_TWIN_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x097),
     /// Akropolis plaza rotating flickering light (blue for slots 1-4, red for 5-6) with
     /// a transient point light and glow cone; six placed by the plaza ambient spawner.
-    EFFECT_ACROPOLIS_PLAZA_SIREN_LIGHT = EFFECT_ID(EFFECT_TASK_BANK, 0x098),
+    EFFECT_AKROPOLIS_PLAZA_SIREN_LIGHT = EFFECT_ID(EFFECT_TASK_BANK, 0x098),
     /// Plaza light flare: an eight-spoke POLY_G4 star around the projected point,
     /// pulsing with animFrame, blue for spawn index below 9 and red from 9 up; spawned
     /// at fixed plaza points with indices 7..10.
-    EFFECT_ACROPOLIS_PLAZA_LIGHT_FLARE = EFFECT_ID(EFFECT_TASK_BANK, 0x099),
+    EFFECT_AKROPOLIS_PLAZA_LIGHT_FLARE = EFFECT_ID(EFFECT_TASK_BANK, 0x099),
     /// Emitter that for a set time spawns 0x60055 particles at random offsets within a
     /// cube around a hit point; spawned by the weapon hit-effect dispatcher
     /// effectSpawnHit (kind 4).

@@ -1,5 +1,5 @@
 #include "gameplay/companion_load.h"
-#include "rooms/acropolis_plaza.h"
+#include "rooms/akropolis_plaza.h"
 
 #include "common.h"
 
@@ -541,7 +541,7 @@ void loadingFinishSessionLoadTask(Task* task)
     enum {
         FADE_SESSION_RESUME_TASK_BANK      = 0,
         FADE_SESSION_RESUME_TASK_SLOT      = 0x21,
-        ACROPOLIS_PLAZA_OPENING_TASK_INDEX = ACROPOLIS_PLAZA_TASK_SEQUENCE,
+        AKROPOLIS_PLAZA_OPENING_TASK_INDEX = AKROPOLIS_PLAZA_TASK_SEQUENCE,
     };
     if (gCdCmdQueue.bootLoadActive == 0) {
         // Retire loading before room startup can reuse its task storage.
@@ -559,7 +559,7 @@ void loadingFinishSessionLoadTask(Task* task)
         displayAcquireMenuHold();
         taskSpawn(FADE_SESSION_RESUME_TASK_BANK, FADE_SESSION_RESUME_TASK_SLOT, 0, 0);
         if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PLAZA, 0, 0)) {
-            taskSpawnFromTable(gAcropolisPlazaSequenceTaskDescriptors, ACROPOLIS_PLAZA_OPENING_TASK_INDEX, 0, 0);
+            taskSpawnFromTable(gAkropolisPlazaSequenceTaskDescriptors, AKROPOLIS_PLAZA_OPENING_TASK_INDEX, 0, 0);
             cdCmdReservePlaybackBuffers();
             cdCmdSelectMovieWorkspace();
         }
