@@ -32,7 +32,7 @@ sha1 = "c21a43de0467cd29377607d88d2196c1e4ba4dc0"
 
 [package]
 type = "room"
-package_name = "acropolis_fountain"
+package_name = "akropolis_fountain"
 required = true
 sha1 = "588e1219c3d1cdd079a9ce083670e94eaa0f12cf"
 

@@ -1233,14 +1233,15 @@ objects = [
   { kind = "collisionSource", at = "0x1010", in_c = true, cell_face_list_macro = "AKROPOLIS_HALLWAY_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
-[rooms.overlays.acropolis_fountain]
+[rooms.overlays.akropolis_fountain]
 id = 292
+src = "src/stages/akropolis/rooms/fountain"
 objects = [
   { kind = "packageId" },
-  { unit = "acropolis_fountain/acropolis_fountain", rodata = "0x4", text = "0x44", data = "0x11A4" },
-  { unit = "acropolis_fountain/acropolis_fountain_2", rodata = "0x10", text = "0x45C", data = "0x11E4" },
+  { unit = "fountain", rodata = "0x4", text = "0x44", data = "0x11A4" },
+  { unit = "fountain_water", rodata = "0x10", text = "0x45C", data = "0x11E4" },
   { kind = "collision", at = "0x13C0", in_c = true },
-  { kind = "collisionSource", at = "0x204C", in_c = true, cell_face_list_macro = "ACROPOLIS_FOUNTAIN_CELL_FACE_LIST_AT_OFFSET" },
+  { kind = "collisionSource", at = "0x204C", in_c = true, cell_face_list_macro = "AKROPOLIS_FOUNTAIN_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.acropolis_forked_road]

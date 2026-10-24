@@ -6514,8 +6514,8 @@ TREE = {
                 'file4': {"id": 4, "chunks": {'bs_125': 'rooms/akropolis/hallway/view4_background'}},
                 'file5': {"id": 5, "chunks": {'bs_126': 'rooms/akropolis/hallway/view5_background'}},
             }},
-            'acropolis_fountain': {"id": 801, "files": {
-                'file0': {"id": 0, "chunks": {'spk_166': 'rooms/akropolis/fountain/sounds_0', 'spk_167': 'rooms/akropolis/fountain/sounds_1', 'acropolis_fountain_dialogue_0_atlas': 'rooms/akropolis/fountain/dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'rooms/akropolis/fountain/package', 'bundle': 'rooms/akropolis/fountain/bundle'}},
+            'akropolis_fountain': {"id": 801, "files": {
+                'file0': {"id": 0, "chunks": {'spk_166': 'rooms/akropolis/fountain/sounds_0', 'spk_167': 'rooms/akropolis/fountain/sounds_1', 'akropolis_fountain_dialogue_0_atlas': 'rooms/akropolis/fountain/dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'rooms/akropolis/fountain/package', 'bundle': 'rooms/akropolis/fountain/bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_127': 'rooms/akropolis/fountain/view1_background'}},
                 'file2': {"id": 2, "chunks": {'bs_128': 'rooms/akropolis/fountain/view2_background'}},
                 'file3': {"id": 3, "chunks": {'pe2img_354': 'rooms/akropolis/fountain/view3_image', 'bs_129': 'rooms/akropolis/fountain/view3_background'}},

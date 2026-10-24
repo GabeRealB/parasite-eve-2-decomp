@@ -579,7 +579,7 @@ acropolisForkedRoadRoomVisualEffectsTwinTrailTask = 0x8017F9E4; // type:func abs
 
 acropolisForkedRoadRoomVisualEffectsSparkBurstTask = 0x801802CC; // type:func absolute:True owner=acropolis_forked_road
 
-acropolisFountainSprayTask = 0x8017DD44; // type:func absolute:True owner=acropolis_fountain shared=rooms
+akropolisFountainSprayTask = 0x8017DD44; // type:func absolute:True owner=akropolis_fountain shared=rooms
 
 acropolisHelicopterLandingPadEmberTask = 0x8017FA30; // type:func absolute:True owner=acropolis_helicopter_landing_pad
 
@@ -1401,7 +1401,7 @@ gAcropolisFireEscapeAreaVariants = 0x8018294C; // absolute:True owner=acropolis_
 
 gAcropolisForkedRoadAreaVariants = 0x801831C4; // absolute:True owner=acropolis_forked_road
 
-gAcropolisFountainAreaVariants = 0x8017FC9C; // absolute:True owner=acropolis_fountain
+gAkropolisFountainAreaVariants = 0x8017FC9C; // absolute:True owner=akropolis_fountain
 
 gAkropolisHallwayAreaVariants = 0x8017EA3C; // absolute:True owner=akropolis_hallway
 
@@ -1737,7 +1737,7 @@ dryfieldMotelRoom6PlayerReflectionTask = 0x80181184; // type:func absolute:True 
 
 dryfieldNightMotelRoom6PlayerReflectionTask = 0x801811A0; // type:func absolute:True owner=dryfield_night_motel_room_6
 
-acropolisFountainStartClimb = 0x8017DA78; // type:func absolute:True owner=acropolis_fountain
+akropolisFountainStartClimb = 0x8017DA78; // type:func absolute:True owner=akropolis_fountain
 
 acropolisHelicopterLandingPadStartExit = 0x8017EF60; // type:func absolute:True owner=acropolis_helicopter_landing_pad
 
@@ -1751,7 +1751,7 @@ gShelterB1UndergroundParkingShopSessionTaskDescStorage = 0x801871F0; // absolute
 
 acropolisWestElevatorHallViewEffectsTask = 0x8017F7D4; // type:func absolute:True owner=acropolis_west_elevator_hall shared=rooms
 
-acropolisFountainViewEffectsTask = 0x8017E014; // type:func absolute:True owner=acropolis_fountain
+akropolisFountainViewEffectsTask = 0x8017E014; // type:func absolute:True owner=akropolis_fountain
 
 neoArkSubstationDrawLightGlowsTask = 0x8017D874; // type:func absolute:True owner=neo_ark_substation
 

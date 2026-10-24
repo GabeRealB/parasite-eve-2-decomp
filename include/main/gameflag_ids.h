@@ -37,14 +37,6 @@ enum {
     /// the bridge's arrival scene (and also sets flag 6); passed to the bridge's view-
     /// sprite helper on entry.
     GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN = 0x010,
-    /// Unidentified. Set to 1 when fountain point 4 is examined (CAP slot 4 starts and
-    /// a collision trigger is swapped in); the swap is reapplied on later entries while
-    /// set.
-    GAME_FLAG_AKROPOLIS_FOUNTAIN_012 = 0x012,
-    /// Set to 1 the first time the path between the fountain and the forked road is
-    /// used (from the fountain side, or from the forked road after flag 0 reaches 3,
-    /// which plays CAP slot 1 step 3 once).
-    GAME_FLAG_FOUNTAIN_FORKED_ROAD_PATH_USED = 0x013,
     /// Unidentified. Set to 1 together with 0x18 and other story flags in a shelter B2
     /// laboratory story sequence; no reader found.
     GAME_FLAG_SHELTER_B2_LABORATORY_017 = 0x017,

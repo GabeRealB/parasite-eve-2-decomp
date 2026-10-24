@@ -100,6 +100,12 @@ enum {
     /// 4 the report has been made from the square's telephone (`_roomCutsceneTask`).
     /// The cafeteria's patio door sets 2 when it holds 3, which nothing writes.
     EVENT_FLAG_AKROPOLIS_CAFETERIA_BOSS_REPORT = 0x00E,
+    /// Akropolis fountain. Marker: the hidden path has been found (room command 4,
+    /// CAP 4): its climb trigger is enabled, and stays enabled on later entries.
+    EVENT_FLAG_AKROPOLIS_FOUNTAIN_HIDDEN_PATH_FOUND = 0x012,
+    /// Akropolis fountain. Marker: the door to the forked road has been opened once,
+    /// from either side; the forked road plays CAP 1 step 3 the first time it is.
+    EVENT_FLAG_AKROPOLIS_FOUNTAIN_FORKED_ROAD_DOOR_OPENED = 0x013,
 
     // ---- Map pages, 0x015..0x01A: one per map, read by the map menu ---------
     // 0x016 Dryfield, 0x017 Shelter mine and B1, 0x018 Shelter B2..B4,
@@ -169,6 +175,12 @@ enum {
     /// Door between the Akropolis forked road and the observatory. The security room
     /// unmarks it when the blue key unlocks the escalator.
     EVENT_FLAG_MAP_DOOR_AKROPOLIS_FORKED_ROAD_OBSERVATORY = 0x1EE,
+    /// Door between the Akropolis forked road and the fountain.
+    EVENT_FLAG_MAP_DOOR_AKROPOLIS_FORKED_ROAD_FOUNTAIN = 0x1EF,
+    /// Door between the Akropolis patio and the fountain.
+    EVENT_FLAG_MAP_DOOR_AKROPOLIS_PATIO_FOUNTAIN = 0x1F0,
+    /// Door between the Akropolis hallway and the fountain.
+    EVENT_FLAG_MAP_DOOR_AKROPOLIS_HALLWAY_FOUNTAIN = 0x1F1,
     /// Door between the Akropolis square and the east elevator hall.
     EVENT_FLAG_MAP_DOOR_AKROPOLIS_SQUARE_EAST_ELEVATOR = 0x1F6,
     /// Door between the Akropolis square and the west elevator hall.

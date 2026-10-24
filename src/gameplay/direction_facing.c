@@ -20,7 +20,7 @@
 
 #include "rooms/acropolis_bridge.h"
 
-#include "rooms/acropolis_fountain.h"
+#include "rooms/akropolis_fountain.h"
 
 #include "rooms/acropolis_helicopter_landing_pad.h"
 
@@ -208,7 +208,7 @@ void directionDispatchCallbackAction(void)
         DIRECTION_CALLBACK_INDEX_SHIFT = 8,
         DIRECTION_CALLBACK_INDEX_MASK  = 0x7F,
     };
-    void (*callbacks[])(s32 parameter0, s32 parameter1) = { acropolisFountainStartClimb, acropolisHelicopterLandingPadStartExit };
+    void (*callbacks[])(s32 parameter0, s32 parameter1) = { akropolisFountainStartClimb, acropolisHelicopterLandingPadStartExit };
 
     if (gGameSession->eventState != 0) {
         _directionClearRequest();

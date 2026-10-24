@@ -206,7 +206,7 @@ enum {
     /// The fountain's waterfall loop, (re)started or re-panned per camera view while
     /// the streamed fountain video is in its playing window and faded out at movie
     /// frame 0xF0.
-    SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_FOUNTAIN, 1),
+    SOUND_AKROPOLIS_FOUNTAIN_WATER_LOOP = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_FOUNTAIN, 1),
     /// Played by `itemPickupContainerLidTask` in the sanctuary when the item container's part
     /// starts tilting open (case falls through and also queues 0x521B000B).
     SOUND_ACROPOLIS_SANCTUARY_ITEM_LID_OPEN = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SANCTUARY, 5),

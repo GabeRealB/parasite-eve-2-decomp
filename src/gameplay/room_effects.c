@@ -79,7 +79,7 @@
 
 #include "rooms/acropolis_forked_road.h"
 
-#include "rooms/acropolis_fountain.h"
+#include "rooms/akropolis_fountain.h"
 
 #include "rooms/akropolis_hallway.h"
 
@@ -571,7 +571,7 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, akropolisEastElevatorHallPointTileTask, { NULL } },                                 // 0x023
     { { { TASK_BODY_COORD, 0x70 } }, hypervelocityChargeEffectTask, { NULL } },                                          // 0x024
     { { { TASK_BODY_COORD, 0x70 } }, acropolisWestElevatorHallLightGlowTask, { NULL } },                                 // 0x025
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisFountainViewEffectsTask, { NULL } },                                       // 0x026
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisFountainViewEffectsTask, { NULL } },                                       // 0x026
     { { { TASK_BODY_COORD, 0x70 } }, acropolisObservatoryLensFlareEmitterTask, { NULL } },                               // 0x027
     { { { TASK_BODY_COORD, 0x70 } }, acropolisObservatoryAmbientGlowTask, { NULL } },                                    // 0x028
     { { { TASK_BODY_COORD, 0x70 } }, m4a1HammerGlowTask, { NULL } },                                                     // 0x029
@@ -669,7 +669,7 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, acropolisForkedRoadInitializeRoomEffectsTask, { NULL } },                           // 0x085
     { { { TASK_BODY_COORD, 0x70 } }, acropolisRoofGardenAmbientEffectsTask, { NULL } },                                  // 0x086
     { { { TASK_BODY_COORD, 0x70 } }, akropolisPatioLightGlowTask, { NULL } },                                            // 0x087
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisFountainSprayTask, { NULL } },                                             // 0x088
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisFountainSprayTask, { NULL } },                                             // 0x088
     { { { TASK_BODY_COORD, 0x70 } }, acropolisForkedRoadWallLampTask, { NULL } },                                        // 0x089
     { { { TASK_BODY_COORD, 0x70 } }, acropolisRoofGardenLightGlowTask, { NULL } },                                       // 0x08A
     { { { TASK_BODY_COORD, 0x70 } }, acropolisSanctuaryFlameTask, { NULL } },                                            // 0x08B

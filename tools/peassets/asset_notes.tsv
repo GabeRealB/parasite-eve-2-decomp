@@ -30,7 +30,7 @@ acropolis_fire_escape_collision_048B4	Collision grid of the Akropolis fire escap
 acropolis_forked_road_animation_04320	Two player clips the forked road's lock-release event installs as a weapon-bank extension; one is played just before the caterpillars are released, the other has no use found.	
 acropolis_forked_road_collision_04DE0	Collision grid of the Akropolis forked road, bound for all three room indices with its view-boundary and action triggers.	
 acropolis_forked_road_path_039C0	Per-movie-frame player path (300 samples) for the forked road's observatory movies: read forwards when leaving and backwards when arriving; samples 121-299 are never read.	
-acropolis_fountain_collision_013C0	Collision grid of the Akropolis fountain (4x4 cells, 66 faces), shared by both room indices.	
+akropolis_fountain_collision_013C0	Collision grid of the Akropolis fountain (4x4 cells, 66 faces), shared by both room indices.	
 akropolis_hallway_collision_00D98	Collision grid of the Akropolis hallway (two cells, 17 faces), used in every variant.	
 rooms/akropolis/hallway/blue_key_pickup	Blue Key model, spawned in the Akropolis hallway as placed object 11 and drawn only during the examine close-up before pickup.	
 akropolis_hallway_model_023C0	No reached use found: a one-part 21-vertex model in the Akropolis hallway package that no code references.	
@@ -532,7 +532,7 @@ bs_1266	No reached use found: background of shelter_b2_elevator_hall view 1, the
 bs_1267	Background of shelter_b2_elevator_hall view 2, the west end of the hall and arrival view from the main corridor, with four lamp capsules drawn in it.	
 bs_1268	Background of shelter_b2_elevator_hall view 3, reached by boundary triggers from views 2 and 4.	
 bs_1269	Background of shelter_b2_elevator_hall view 4, reached by boundary triggers from views 3 and 5; it has foreground sprites.	
-rooms/akropolis/fountain/view1_background..rooms/akropolis/fountain/view8_background	View backgrounds of acropolis_fountain (15 of its 22 view files); room index 2, entered once the second security-room lock is released, shows files 10-14 in place of 2-6.	
+rooms/akropolis/fountain/view1_background..rooms/akropolis/fountain/view8_background	View backgrounds of akropolis_fountain (15 of its 22 view files); room index 2, entered once the second security-room lock is released, shows files 10-14 in place of 2-6.	
 bs_1270	Background of shelter_b2_elevator_hall view 5, the arrival view from the elevator, with foreground sprites and the walkway door's status lamp.	
 bs_1271	Background of shelter_b2_elevator_hall view 6, the arrival view from the south maintenance walkway.	
 bs_1272	Background of shelter_b2_elevator_hall view 7, selected by the text code of caption command 5 with actors hidden while the elevator menu is open.	
@@ -559,7 +559,7 @@ bs_1328..bs_1333	View backgrounds 1-6 of shelter_b2_septic_tank: views 2-5 are w
 bs_1334..bs_1340	View backgrounds of shelter_b2_pod_access_tunnel (7 files); room index 2, entered only by the pod ride from B1, remaps the logical views onto other files.	
 bs_1341..bs_1350	View backgrounds of shelter_r36 (views 1-10, plus rooms/akropolis/square/view15_background for view 11): view 2 on arrival, views 3-11 full-screen stills shown under the room's scenes and narration.	
 bs_1344	No reached use found: backgrounds behind shelter_r36's ten view-boundary triggers (views 5/4, 2/4, 3/2, 6/2), which sit outside the floor and are not reached as far as the code shows.	
-rooms/akropolis/fountain/view9_background	No reached use found: backgrounds of acropolis_fountain view files 9, 15, 16, 19, 20 and 22, none of which is selected by any of the nine checked paths.	
+rooms/akropolis/fountain/view9_background	No reached use found: backgrounds of akropolis_fountain view files 9, 15, 16, 19, 20 and 22, none of which is selected by any of the nine checked paths.	
 bs_1351	No reached use found: plan-view (view 1) background shared by shelter_1f_bulwark and shelter_r37, a flat-shaded top-down render of a placeholder room; nothing selects it.	
 bs_1352	No reached use found: background of shelter_r37 view 2, the arrival view of a room no warp leads to; a flat-shaded placeholder render (orange floor, grey walls, white sky).	
 bs_1353	No reached use found: background of shelter_r37 view 3, the same placeholder room seen from above at an angle; the room is unreachable in the shipped game.	
@@ -572,7 +572,7 @@ bs_1359..bs_1374	View backgrounds of shelter_b3_dumping_hole (33 of its 36 chunk
 bs_1375	No reached use found: backgrounds of shelter_b3_dumping_hole views 17, 20 and 22, which have cameras and glow cases but are selected by none of the nine checked paths.	
 bs_1395..bs_1434	View backgrounds 1-40 of shelter_b3_garbage_incinerator across seven room indices with five view maps: walked views 2-9, 14 and 15, the rest scene views chosen by captions and scripts.	
 load_screens/shelter_incinerator_chapter_4/background	Load-screen picture for the Mine/Shelter stage with destination B3 Incinerator Control Room, shown under the Shelter waste boot caption; which save or event lands on it is open.	
-rooms/akropolis/fountain/view17_background	No reached use found: background of acropolis_fountain view 17, the initial view of warp entries 3 and 4, for which no arriving warp path was found.	
+rooms/akropolis/fountain/view17_background	No reached use found: background of akropolis_fountain view 17, the initial view of warp entries 3 and 4, for which no arriving warp path was found.	
 bs_1435..bs_1442	View backgrounds 1-8 of shelter_b3_incinerator_control_room: play views 3-5, and views 6 and 7 for the arrival scene's caption steps.	
 bs_1436	No reached use found: background of shelter_b3_incinerator_control_room view 2, whose camera is identical to view 3's and which nothing selects.	
 bs_1443..bs_1449	View backgrounds 1-7 of shelter_b3_elevator_hall; views 2-6 are walked via three arrival endpoints and boundary triggers.	
@@ -1093,7 +1093,7 @@ enemies/chaser/mad/burst_tail	One-part Mad Chaser chunk thrown from body part 2 
 mappic_s1_00	Fifteen flat area-outline model records of the stage 1 page 1 map picture package, drawn by gameplay's map menu over the picture as patterned, dimmed or tinted room shapes.	
 mappic_s1_00_model_00174	Face stream of the flat outline of akropolis_east_elevator_hall on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
 mappic_s1_00_model_00294	Face stream of the flat outline of akropolis_patio on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
-mappic_s1_00_model_00564	Face stream of the flat outline of acropolis_fountain on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
+mappic_s1_00_model_00564	Face stream of the flat outline of akropolis_fountain on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
 mappic_s1_00_model_00650	Face stream of the flat outline of acropolis_forked_road on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
 mappic_s1_00_model_00718	Face stream of the flat outline of acropolis_observatory on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
 mappic_s1_00_model_007E8	Face stream of the flat outline of acropolis_promenade on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
@@ -1336,7 +1336,7 @@ shelter_b1_underground_parking_dialogue_0	Default dialogue (CAP) file of shelter
 dryfield_night_motel_lobby_dialogue_2	Telephone dialogue (CAP) file of shelter_b1_underground_parking with 28 commands, selected as data file 1 on room command 13 and stepped by the story dialogue index.	
 shelter_b1_underground_parking_dialogue_2	Third dialogue (CAP) file of shelter_b1_underground_parking with six commands, selected as data file 2 for the first use of room command 13 and other room commands; command 5 has no sender.	
 rooms/akropolis/hallway/dialogue_0	Dialogue (CAP) file of akropolis_hallway with commands 1-6: a refused-exit message, the Blue Key pickup and examine texts with counter variants.	
-rooms/akropolis/fountain/bundle	Resource bundle of acropolis_fountain: 13 view palettes (slots 2-19) and the room's dialogue file in slot 22, loaded for the whole stay.	
+rooms/akropolis/fountain/bundle	Resource bundle of akropolis_fountain: 13 view palettes (slots 2-19) and the room's dialogue file in slot 22, loaded for the whole stay.	
 shelter_b1_golem_freezer_1_bundle	Resource bundle of shelter_b1_golem_freezer_1: view 2's sprite palette in slot 1 and the dialogue file in slot 7, whose commands 3-6 actor_160700's meeting scripts start.	
 shelter_b1_golem_freezer_1_view2	Palette rows of view 2 of shelter_b1_golem_freezer_1; row 255 is read by the view's thirty foreground sprites while that view is current.	
 shelter_b1_golem_freezer_1_dialogue_0	Dialogue (CAP) file of shelter_b1_golem_freezer_1: examine captions 1, 2 and 7 and the four conversations with Pierce (commands 3-6, variant 21) with their view steps.	
@@ -1391,20 +1391,20 @@ shelter_b2_north_maintenance_walkway_view4	Palette rows of view 4 of shelter_b2_
 shelter_b2_north_maintenance_walkway_view7	Palette rows of view 7 of shelter_b2_north_maintenance_walkway, a scene view; row 255 is read by its sprites (pe2img_1103).	
 shelter_b2_north_maintenance_walkway_view8	Palette rows of view 8 of shelter_b2_north_maintenance_walkway, a scene view; row 255 is read by its sprites (pe2img_1104).	
 shelter_b2_north_maintenance_walkway_dialogue_0	Dialogue (CAP) file of shelter_b2_north_maintenance_walkway with four commands, starting with the refusal at the operating-room door.	
-rooms/akropolis/fountain/view3_palette	Palette rows of the acropolis_fountain view mapped to file 3 (logical view 3 in room index 1); row 255 is read by every sprite (rooms/akropolis/fountain/view3_image).	
-rooms/akropolis/security_room/view16_palette	Palette rows of the acropolis_fountain view mapped to file 4 (logical view 4 in room index 1); row 255 is read by every sprite (rooms/akropolis/fountain/view4_image).	
-rooms/akropolis/fountain/view5_palette	Palette rows of the acropolis_fountain view mapped to file 5 (logical view 5 in room index 1); row 255 is read by every sprite (rooms/akropolis/fountain/view5_image).	
-rooms/akropolis/fountain/view6_palette	Palette rows of the acropolis_fountain view mapped to file 6 (logical view 6 in room index 1); row 255 is read by every sprite (rooms/akropolis/fountain/view6_image).	
-rooms/akropolis/fountain/view7_palette	Palette rows of the acropolis_fountain view mapped to file 7 (logical view 7 in both room indices); row 255 is read by every sprite (rooms/akropolis/fountain/view7_image).	
-rooms/akropolis/fountain/view8_palette	Palette rows of the acropolis_fountain view mapped to file 8 (logical view 8 in both room indices); row 255 is read by every sprite (rooms/akropolis/fountain/view8_image).	
-rooms/akropolis/fountain/view11_palette	Palette rows of the acropolis_fountain view mapped to file 11, the room index 2 alternate of view 3; row 255 is read by every sprite (rooms/akropolis/fountain/view11_image).	
-rooms/akropolis/fountain/view12_palette	Palette rows of the acropolis_fountain view mapped to file 12, the room index 2 alternate of view 4; row 255 is read by every sprite (rooms/akropolis/fountain/view12_image).	
-rooms/akropolis/fountain/view13_palette	Palette rows of the acropolis_fountain view mapped to file 13, the room index 2 alternate of view 5; row 255 is read by every sprite (rooms/akropolis/fountain/view13_image).	
-rooms/akropolis/fountain/view14_palette	Palette rows of the acropolis_fountain view mapped to file 14, the room index 2 alternate of view 6; row 255 is read by every sprite (rooms/akropolis/fountain/view14_image).	
-rooms/akropolis/fountain/view7_palette	No reached use found: palette rows of the acropolis_fountain view mapped to file 15 (rooms/akropolis/fountain/view7_image); what selects view 15 was not found.	
-rooms/akropolis/fountain/view17_palette	No established use: palette rows of the acropolis_fountain view mapped to file 17 (rooms/akropolis/fountain/view17_image), a view also named in the water-movie task's view mask; the use is still open.	
-rooms/akropolis/fountain/view20_palette	No reached use found: palette rows of the acropolis_fountain view mapped to file 20 (rooms/akropolis/fountain/view20_image); what selects view 20 was not found.	
-rooms/akropolis/fountain/dialogue_0	Dialogue (CAP) file of acropolis_fountain with seven commands, run from the patio departure and the room's action triggers; command 7 has no starter.	
+rooms/akropolis/fountain/view3_palette	Palette rows of the akropolis_fountain view mapped to file 3 (logical view 3 in room index 1); row 255 is read by every sprite (rooms/akropolis/fountain/view3_image).	
+rooms/akropolis/security_room/view16_palette	Palette rows of the akropolis_fountain view mapped to file 4 (logical view 4 in room index 1); row 255 is read by every sprite (rooms/akropolis/fountain/view4_image).	
+rooms/akropolis/fountain/view5_palette	Palette rows of the akropolis_fountain view mapped to file 5 (logical view 5 in room index 1); row 255 is read by every sprite (rooms/akropolis/fountain/view5_image).	
+rooms/akropolis/fountain/view6_palette	Palette rows of the akropolis_fountain view mapped to file 6 (logical view 6 in room index 1); row 255 is read by every sprite (rooms/akropolis/fountain/view6_image).	
+rooms/akropolis/fountain/view7_palette	Palette rows of the akropolis_fountain view mapped to file 7 (logical view 7 in both room indices); row 255 is read by every sprite (rooms/akropolis/fountain/view7_image).	
+rooms/akropolis/fountain/view8_palette	Palette rows of the akropolis_fountain view mapped to file 8 (logical view 8 in both room indices); row 255 is read by every sprite (rooms/akropolis/fountain/view8_image).	
+rooms/akropolis/fountain/view11_palette	Palette rows of the akropolis_fountain view mapped to file 11, the room index 2 alternate of view 3; row 255 is read by every sprite (rooms/akropolis/fountain/view11_image).	
+rooms/akropolis/fountain/view12_palette	Palette rows of the akropolis_fountain view mapped to file 12, the room index 2 alternate of view 4; row 255 is read by every sprite (rooms/akropolis/fountain/view12_image).	
+rooms/akropolis/fountain/view13_palette	Palette rows of the akropolis_fountain view mapped to file 13, the room index 2 alternate of view 5; row 255 is read by every sprite (rooms/akropolis/fountain/view13_image).	
+rooms/akropolis/fountain/view14_palette	Palette rows of the akropolis_fountain view mapped to file 14, the room index 2 alternate of view 6; row 255 is read by every sprite (rooms/akropolis/fountain/view14_image).	
+rooms/akropolis/fountain/view7_palette	No reached use found: palette rows of the akropolis_fountain view mapped to file 15 (rooms/akropolis/fountain/view7_image); what selects view 15 was not found.	
+rooms/akropolis/fountain/view17_palette	No established use: palette rows of the akropolis_fountain view mapped to file 17 (rooms/akropolis/fountain/view17_image), a view also named in the water-movie task's view mask; the use is still open.	
+rooms/akropolis/fountain/view20_palette	No reached use found: palette rows of the akropolis_fountain view mapped to file 20 (rooms/akropolis/fountain/view20_image); what selects view 20 was not found.	
+rooms/akropolis/fountain/dialogue_0	Dialogue (CAP) file of akropolis_fountain with seven commands, run from the patio departure and the room's action triggers; command 7 has no starter.	
 rooms/akropolis/forked_road/bundle	Resource bundle of acropolis_forked_road: six view palettes (slots 1, 2, 4, 6, 7, 11) and one dialogue file in slot 12, loaded for the whole stay.	
 shelter_b2_laboratory_bundle	Resource bundle of shelter_b2_laboratory: view palettes in slots 1-4, 6-8 and 14 and four dialogue files in slots 15-18, loaded for the whole stay.	
 shelter_b2_laboratory_view2	Palette rows of view 2 of shelter_b2_laboratory, uploaded on each change to that view; row 255 is read by every sprite (pe2img_1107).	
@@ -3711,22 +3711,22 @@ rooms/akropolis/security_room/view2_image	8-bit sheet of the 18 depth-sorted occ
 rooms/akropolis/security_room/view5_image	8-bit sheet of the room sprites shared by akropolis_security_room's seven monitor views (mapped views 5 and 8-13).	
 rooms/akropolis/security_room/view6_image	8-bit image of the two released-lock sprites shown in akropolis_security_room's power-supply close-up (mapped view 6) once the left or right lock is released.	
 weapons/p08/preview_image	Item preview picture of weapon 0x83, the P08, drawn in gameplay's item menu panels when that weapon is selected.	
-rooms/akropolis/fountain/view4_image	Three-page 8-bit occluder sprite sheet shared by acropolis_fountain's mapped view 4 (room index 1) and akropolis_security_room's mapped view 16.	
+rooms/akropolis/fountain/view4_image	Three-page 8-bit occluder sprite sheet shared by akropolis_fountain's mapped view 4 (room index 1) and akropolis_security_room's mapped view 16.	
 rooms/akropolis/hallway/dialogue_0_atlas	4-bit caption glyph atlas of akropolis_hallway's dialogue, drawn by gameplay's caption code for caption commands 1-6.	
 rooms/akropolis/hallway/image	8-bit texture of the Blue Key pickup model in akropolis_hallway, drawn in mapped view 5 until the key is collected.	
-rooms/akropolis/fountain/dialogue_0_atlas	4-bit caption glyph atlas of acropolis_fountain's dialogue, drawn by gameplay's caption code whenever the room shows text.	
-rooms/akropolis/fountain/view3_image	8-bit sheet (two pages) of the 95 occluder sprites of acropolis_fountain's mapped view 3 (room index 1, logical view 3).	
-rooms/akropolis/fountain/view5_image	8-bit sheet (two pages) of the 73 occluder sprites of acropolis_fountain's mapped view 5 (room index 1, logical view 5).	
-rooms/akropolis/fountain/view6_image	8-bit sheet of the 16 occluder sprites of acropolis_fountain's mapped view 6 (room index 1, logical view 6).	
-rooms/akropolis/fountain/view7_image	8-bit sheet (three pages) of the room sprites shared by acropolis_fountain's mapped views 7 and 15; only view 7 is shown to be selected.	
-rooms/akropolis/fountain/view8_image	8-bit sheet (three pages) of the 99 occluder sprites of acropolis_fountain's mapped view 8.	
-rooms/akropolis/fountain/view11_image	8-bit sheet (two pages) of the 54 occluder sprites of acropolis_fountain's mapped view 11, room index 2's version of logical view 3.	
+rooms/akropolis/fountain/dialogue_0_atlas	4-bit caption glyph atlas of akropolis_fountain's dialogue, drawn by gameplay's caption code whenever the room shows text.	
+rooms/akropolis/fountain/view3_image	8-bit sheet (two pages) of the 95 occluder sprites of akropolis_fountain's mapped view 3 (room index 1, logical view 3).	
+rooms/akropolis/fountain/view5_image	8-bit sheet (two pages) of the 73 occluder sprites of akropolis_fountain's mapped view 5 (room index 1, logical view 5).	
+rooms/akropolis/fountain/view6_image	8-bit sheet of the 16 occluder sprites of akropolis_fountain's mapped view 6 (room index 1, logical view 6).	
+rooms/akropolis/fountain/view7_image	8-bit sheet (three pages) of the room sprites shared by akropolis_fountain's mapped views 7 and 15; only view 7 is shown to be selected.	
+rooms/akropolis/fountain/view8_image	8-bit sheet (three pages) of the 99 occluder sprites of akropolis_fountain's mapped view 8.	
+rooms/akropolis/fountain/view11_image	8-bit sheet (two pages) of the 54 occluder sprites of akropolis_fountain's mapped view 11, room index 2's version of logical view 3.	
 weapons/p229/preview_image	Item preview picture of weapon 0x84, the P229, drawn in gameplay's item menu panels when that weapon is selected.	
-rooms/akropolis/fountain/view12_image	8-bit sheet (three pages) of the 92 occluder sprites of acropolis_fountain's mapped view 12, room index 2's version of logical view 4.	
-rooms/akropolis/fountain/view13_image	8-bit sheet (two pages) of the 39 occluder sprites of acropolis_fountain's mapped view 13, room index 2's version of logical view 5.	
-rooms/akropolis/fountain/view14_image	8-bit sheet of the 8 occluder sprites of acropolis_fountain's mapped view 14, room index 2's version of logical view 6.	
-rooms/akropolis/fountain/view17_image	No reached use found: 8-bit sheet of the 28 occluder sprites of acropolis_fountain's mapped view 17, for which no path selecting the view was found.	
-rooms/akropolis/fountain/view20_image	No reached use found: 8-bit sheet of the 9 occluder sprites of acropolis_fountain's mapped view 20, for which nothing selecting the view was found.	
+rooms/akropolis/fountain/view12_image	8-bit sheet (three pages) of the 92 occluder sprites of akropolis_fountain's mapped view 12, room index 2's version of logical view 4.	
+rooms/akropolis/fountain/view13_image	8-bit sheet (two pages) of the 39 occluder sprites of akropolis_fountain's mapped view 13, room index 2's version of logical view 5.	
+rooms/akropolis/fountain/view14_image	8-bit sheet of the 8 occluder sprites of akropolis_fountain's mapped view 14, room index 2's version of logical view 6.	
+rooms/akropolis/fountain/view17_image	No reached use found: 8-bit sheet of the 28 occluder sprites of akropolis_fountain's mapped view 17, for which no path selecting the view was found.	
+rooms/akropolis/fountain/view20_image	No reached use found: 8-bit sheet of the 9 occluder sprites of akropolis_fountain's mapped view 20, for which nothing selecting the view was found.	
 rooms/akropolis/forked_road/dialogue_0_atlas	4-bit caption glyph atlas of acropolis_forked_road's dialogue (two rows of letters), drawn by gameplay's caption code.	
 rooms/akropolis/forked_road/image	4-bit acropolis_forked_road effect sheet: wall-lamp glow cells drawn additively by the wall lamp task and an 8x8 leaf cell for the leaves shed when a caterpillar leaps in.	
 rooms/akropolis/forked_road/view2_image	8-bit sheet (two pages) of the 85 occluder sprites of acropolis_forked_road's mapped view 2; a second table for view 11 is attributed by position only and has no path found.	
@@ -4635,7 +4635,7 @@ rooms/akropolis/security_room/sounds_0	Footstep bank of akropolis_security_room:
 rooms/akropolis/security_room/sounds_1	Acropolis security room sound bank: door sounds of its one warp, monitor panel select/brighter/darker clicks, shutter unlock and release sounds, and the right-lock scene's movie loop.	
 rooms/akropolis/hallway/sounds_0	Footstep bank of akropolis_hallway: walk, scripted-jump and run step sounds while the player stands on surface class 1 or 4.	
 rooms/akropolis/hallway/sounds_1	Acropolis hallway room sound bank: arrival/departure sounds of warp endpoints 1-4 and two caption-cue sounds of the Blue Key caption.	
-rooms/akropolis/fountain/sounds_0	Footstep bank of acropolis_fountain: walk, jump and run step sounds on surface classes 4 and 5.	
+rooms/akropolis/fountain/sounds_0	Footstep bank of akropolis_fountain: walk, jump and run step sounds on surface classes 4 and 5.	
 rooms/akropolis/fountain/sounds_1	Acropolis fountain room sound bank: the fountain water loop mixed per view, door sounds of warps 0-4, and caption cue sounds of CAP command 5.	
 rooms/akropolis/forked_road/sounds_0	Footstep bank of acropolis_forked_road: walk and run step sounds on surface class 4, the room's only walkable class.	
 rooms/akropolis/forked_road/sounds_1	Acropolis forked road room sound bank: fountain-exit door sounds, the leap-in sound of the scripted Caterpillars (enemies/caterpillar/package_1/102600) and the dormant Grinning Stranger's two random sounds.	

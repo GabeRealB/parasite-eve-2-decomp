@@ -10889,7 +10889,7 @@ So: dispatch that is one contiguous block at the top of the function is a
 form also lets the delay slot of the first `bne` preload the *next* case's
 constant, which a later `jal` can then reuse (`move a0,v0` instead of
 `li a0,9`) — that reused constant is a reliable tell on its own.
-(`_acropolisFountainResolveTransitionMessage`)
+(`_akropolisFountainResolveRoomTransition`)
 
 ### A `u16` local re-truncates; use `s32` when the source is `lhu`
 
@@ -10906,7 +10906,7 @@ s32 msgId = in->msgId;   /* lhu s0,0(s1) */
 
 `lhu` already zero-extends, so `s32` (or `int`) is the type that matches when
 the value is only compared and stored back to a narrower field.
-(`_acropolisFountainResolveTransitionMessage`)
+(`_akropolisFountainResolveRoomTransition`)
 
 ## Force prologue moves before the first load (delay-slot fill)
 
@@ -30352,7 +30352,7 @@ those saves (96% — only the prologue order differs):
 
 ```c
 void (*callbacks[2])(s32 parameter0, s32 parameter1);
-callbacks[0] = acropolisFountainStartClimb;
+callbacks[0] = akropolisFountainStartClimb;
 callbacks[1] = acropolisHelicopterLandingPadStartExit;
 ```
 
@@ -30360,7 +30360,7 @@ An initializer is a distinct RTL block, so GCC emits the full prologue
 then the two address stores — the same shape as `spriteViewTask`:
 
 ```c
-void (*callbacks[])(s32 parameter0, s32 parameter1) = { acropolisFountainStartClimb, acropolisHelicopterLandingPadStartExit };
+void (*callbacks[])(s32 parameter0, s32 parameter1) = { akropolisFountainStartClimb, acropolisHelicopterLandingPadStartExit };
 ```
 
 `directionDispatchCallbackAction` is the example. Index `(u16 >> 8) & 0x7F` is what produces
@@ -53075,7 +53075,7 @@ reproduce the byte-lane instructions by hand.
 When every emitted instruction already matches and the only diff is the frame
 size (`addiu $sp,$sp,-0x28` against the ROM's `-0x30`, with the `$s0`/`$ra`
 slots shifted to match), the stack local handed to `taskMessageDispatch` as `arg2`
-is bigger than the fields the function writes. `_acropolisFountainClimbMovePlayer`
+is bigger than the fields the function writes. `_akropolisFountainClimbMovePlayer`
 stores only three words at `sp+0x10`/`0x14`/`0x18` yet reserves 0x18 bytes of
 locals: the payload is the 0x18-byte `ActorTransform` (`include/gameplay/message.h`),
 and msg `0x3F2` fills its position `pos` while leaving the angles `rot`
@@ -53106,7 +53106,7 @@ and the branch condition is the ternary's condition unnegated. If your attempt
 has the two constants swapped and the branch polarity flipped (`beqz`+3/6
 against the ROM's `bnez`+6/3), the fix is to negate the condition *and* swap the
 arms — `(x & 2) ? 6 : 3` becomes `((x & 2) == 0) ? 3 : 6`, which is the same
-value but the codegen the ROM has. `_acropolisFountainHandleCommandMessage` went from
+value but the codegen the ROM has. `_akropolisFountainHandleRoomCommand` went from
 92% to 99% on that rewrite alone; writing it as a two-armed `if`/`else` around
 the call instead emits the call twice.
 
@@ -53159,19 +53159,19 @@ side in a register defeats it. Which side you pick also decides the register
 assignment, and the two are not interchangeable:
 
 ```c
-mask = ACROPOLIS_FOUNTAIN_WATER_MOVIE_MAPPED_VIEWS; /* mask in $v0, the 1 in $a0 */
+mask = AKROPOLIS_FOUNTAIN_WATER_MOVIE_MAPPED_VIEWS; /* mask in $v0, the 1 in $a0 */
 bit  = 1 << (effectWork->scale - 1);
 if (bit & mask) { … }
 
 one = 1;                         /* the 1 in $v0, mask in $a0 */
 bit = one << (latchedViewIndex - 1);
-if (bit & ACROPOLIS_FOUNTAIN_WATER_MOVIE_MAPPED_VIEWS) { … }
+if (bit & AKROPOLIS_FOUNTAIN_WATER_MOVIE_MAPPED_VIEWS) { … }
 ```
 
 Local-alloc gives `$v0` to whichever quantity is allocated first, and that is
 the *shift base* when the `1` is the local and the *mask* when the mask is the
 local — not simply the earlier-declared one. The earlier matching form of
-`acropolisFountainViewEffectsTask` used both forms in the same function: its
+`akropolisFountainViewEffectsTask` used both forms in the same function: its
 `case 1` put the mask in a local and its `case 2` put the `1` in a local,
 matching the two `and` operand registers in the ROM. Swapping the source
 operand order (`mask & (1 << k)`) did not flip them; it brought the bit extract
@@ -53204,13 +53204,13 @@ move the `switch` expression below the call rather than pinning registers.
 When a local is written once from an `s8`-returning callee and then read only
 through `(u16)` conversions, `s32` and `s16` produce the *same* instructions and
 differ only in where `sched1` puts the argument setup. In
-`_acropolisFountainWaterMovieTask`:
+`_akropolisFountainWaterMovieTask`:
 
 ```c
 s16 logicalViewIndex;                            /* s32 scores 99.72% */
 
 logicalViewIndex = viewFindLogicalIndex((u8)gGameSession->location.view);
-_acropolisFountainUpdateWaterLoop(task, logicalViewIndex);
+_akropolisFountainUpdateWaterLoop(task, logicalViewIndex);
 switch ((u16)logicalViewIndex) { … }
 ```
 
@@ -53231,7 +53231,7 @@ the ROM does.
 
 ## A `move` between two registers holding the same pointer is a pin, not `TOUCH_REG`
 
-`acropolisFountainSprayTask` takes a 0x14-byte block off
+`akropolisFountainSprayTask` takes a 0x14-byte block off
 `SCRATCH_STACK_CURSOR_SLOT`, keeps it in `$a1`, and copies it to `$a0` for one use — the
 `gte_stszotz` operand:
 
@@ -53914,7 +53914,7 @@ right child 5 and emits `beq ==3` first. Three nodes are rebalanced around the
 middle one, which is what produces `root 5, left 3, right X` — and the root's
 missing high bound is exactly the `slti index, 6` test. So a `slti` bound one
 past a case value is evidence of a *further* case above it. The already-matched
-`_acropolisFountainHandleSoundCue` (`{3, 4, 9}` -> root 4, `slti 5`, left 3) is
+`_akropolisFountainHandleSoundCue` (`{3, 4, 9}` -> root 4, `slti 5`, left 3) is
 the same tree with every arm populated.
 
 **Empty arms disappear later, in jump optimisation, and only where the branch

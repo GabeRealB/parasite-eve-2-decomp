@@ -112,10 +112,10 @@ static s32 _acropolisForkedRoadResolveTransitionMessage(Task* unusedTask, s32 me
                 return 0;
             }
             if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) >= ACROPOLIS_FORKED_ROAD_FOUNTAIN_READY_PROGRESS) {
-                if (gameFlagGetNibble(GAME_FLAG_FOUNTAIN_FORKED_ROAD_PATH_USED) == 0) {
+                if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_FOUNTAIN_FORKED_ROAD_DOOR_OPENED) == 0) {
                     if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                         capStartSequenceSlot(ACROPOLIS_FORKED_ROAD_FOUNTAIN_CAP_SEQUENCE, CAP_PLAYBACK_DISPLAY_TRANSITION, ACROPOLIS_FORKED_ROAD_FIRST_PATH_CAP_VARIANT);
-                        gameFlagSetNibble(GAME_FLAG_FOUNTAIN_FORKED_ROAD_PATH_USED, 1);
+                        gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_FOUNTAIN_FORKED_ROAD_DOOR_OPENED, 1);
                     }
                 }
                 return 1;

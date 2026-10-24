@@ -410,7 +410,7 @@ enum {
     EFFECT_AKROPOLIS_PATIO_LIGHT_GLOW = EFFECT_ID(EFFECT_TASK_BANK, 0x087),
     /// Flickering water-spray sprite of the Acropolis fountain, drawn only in the eight
     /// views that see it.
-    EFFECT_ACROPOLIS_FOUNTAIN_SPRAY = EFFECT_ID(EFFECT_TASK_BANK, 0x088),
+    EFFECT_AKROPOLIS_FOUNTAIN_SPRAY = EFFECT_ID(EFFECT_TASK_BANK, 0x088),
     /// Akropolis forked-road wall lamp: a flickering screen-aligned sprite per placed
     /// lamp, skipped on days whose bit is clear; spawned by the room task.
     EFFECT_ACROPOLIS_FORKED_ROAD_WALL_LAMP = EFFECT_ID(EFFECT_TASK_BANK, 0x089),
