@@ -182,7 +182,8 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     # like an embedded asset, a bank is defined in C as `AnimationSet* symbol[N]` by the build
     # (gen_animation_source.py), N its placement's size in words, entries past the slots NULL. Unplaced, it is a
     # layer only other banks use: Aya's own clips, a carry style's locomotion, a weapon family's combat clips.
-    "animation_bank": {"payload": (), "stored": ("schema", "base", "clips", "symbol")},
+    # `borrows` names packages resident with the bank's own whose placed clips it binds as well.
+    "animation_bank": {"payload": (), "stored": ("schema", "base", "clips", "symbol", "borrows")},
     # A dialogue's glyph atlas: an on-disc image chunk, stored and decoded as a pe2img, but not drawn by anyone - the
     # tool that built the dialogue laid it out from its text and the font (doc/CAP_FORMAT.md §9). `generated_by` names
     # that dialogue, or one per page where the image holds several pages side by side (the shooting gallery's two);
@@ -955,6 +956,12 @@ def validate(assets: dict, embedded: dict) -> list[str]:
                 problems.append(f"{key}: states the schema {stated[0]}, its base {schema_name}")
             if "symbol" in rec and key not in embedded:
                 problems.append(f"{key}: only a placed bank is a table in C, with a symbol")
+            if "borrows" in rec and key not in embedded:
+                problems.append(f"{key}: only a placed bank binds clips other packages place")
+            packages = {r.get("package_name", k) for k, r in assets.items() if r.get("type") in ("pe2pkg", "room", "stage")}
+            for package in rec.get("borrows", ()):
+                if package not in packages:
+                    problems.append(f"{key}: borrows {package!r}, which is not a package")
             for slot, clip in rec.get("clips", {}).items():
                 if slot not in schema.get("slots", ()):
                     problems.append(f"{key}: binds slot {slot!r}, which {schema_name} does not have")
