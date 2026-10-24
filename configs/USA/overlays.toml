@@ -4399,12 +4399,13 @@ objects = [
   { unit = "actor_107600/actor_107600", rodata = "0x4", text = "0xF0", data = "0x3160", tail = true },
 ]
 
-[actors.overlays.actor_310100]
+[actors.overlays.police_officers]
 slot = 3
 id = 199
+src = "src/stages/akropolis/actors/police_officers"
 objects = [
   { kind = "packageId" },
-  { unit = "actor_310100/actor_310100", rodata = "0x4", text = "0x4", data = "0x159C" },
+  { unit = "police_officers", rodata = "0x4", text = "0x4", data = "0x159C" },
   { kind = "model", at = "0x159C", in_c = true },
   { kind = "modelSource", at = "0x6DE0", in_c = true },
   { kind = "model", at = "0x6E04", in_c = true },

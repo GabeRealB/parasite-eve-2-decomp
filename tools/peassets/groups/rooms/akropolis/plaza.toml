@@ -87,11 +87,11 @@ embedded = [
     { asset = "characters/police_sergeant/turn_away", offset = 0x17A28, size = 0x268, address = 0x80194FE8 },
     { asset = "characters/police_sergeant/hunter_from_mist", offset = 0x17C90, size = 0x1EC, address = 0x80195250 },
     { asset = "characters/police_sergeant/idle", offset = 0x17E7C, size = 0x1A0, address = 0x8019543C },
-    { asset = "characters/police_officer/stand", offset = 0x1801C, size = 0x1D8, address = 0x801955DC },
-    { asset = "characters/police_officer/look_at_badge", offset = 0x181F4, size = 0x1EC, address = 0x801957B4 },
-    { asset = "characters/police_officer/shift_stance", offset = 0x183E0, size = 0x25C, address = 0x801959A0 },
-    { asset = "characters/police_officer/idle", offset = 0x1863C, size = 0x2F0, address = 0x80195BFC },
-    { asset = "characters/police_officer/explain_swat", offset = 0x1892C, size = 0x4DC, address = 0x80195EEC },
+    { asset = "characters/police_rookie/stand", offset = 0x1801C, size = 0x1D8, address = 0x801955DC },
+    { asset = "characters/police_rookie/look_at_badge", offset = 0x181F4, size = 0x1EC, address = 0x801957B4 },
+    { asset = "characters/police_rookie/shift_stance", offset = 0x183E0, size = 0x25C, address = 0x801959A0 },
+    { asset = "characters/police_rookie/idle", offset = 0x1863C, size = 0x2F0, address = 0x80195BFC },
+    { asset = "characters/police_rookie/explain_swat", offset = 0x1892C, size = 0x4DC, address = 0x80195EEC },
     { asset = "characters/aya/idle", offset = 0x18E08, size = 0x1B8, address = 0x801963C8 },
     { asset = "characters/aya/show_badge", offset = 0x18FC0, size = 0x678, address = 0x80196580 },
     { asset = "characters/aya/put_away_badge", offset = 0x19638, size = 0x4C8, address = 0x80196BF8 },
@@ -191,24 +191,24 @@ sha1 = "8a58cf384757c161094f3ac856f7cdc466b9a94a"
 [police_officers]
 type = "pe2pkg"
 embedded = [
-    { asset = "characters/police_officer/body", offset = 0x0159C, size = 0x5868, address = 0x801633BC },
-    { asset = "characters/police_officer/culled_body", offset = 0x06E04, size = 0x488C, address = 0x80168C24 },
+    { asset = "characters/police_rookie/body", offset = 0x0159C, size = 0x5868, address = 0x801633BC },
+    { asset = "characters/police_rookie/culled_body", offset = 0x06E04, size = 0x488C, address = 0x80168C24 },
     { asset = "characters/police_sergeant/body", offset = 0x0B690, size = 0x5C24, address = 0x8016D4B0 },
     { asset = "characters/police_sergeant/culled_body", offset = 0x112B4, size = 0x48FC, address = 0x801730D4 },
-    { asset = "characters/police_officer/step_aside", offset = 0x15BB0, size = 0x470, address = 0x801779D0 },
-    { asset = "characters/police_officer/aside_idle", offset = 0x16020, size = 0x214, address = 0x80177E40 },
-    { asset = "characters/police_officer/watch_aya_enter", offset = 0x16234, size = 0x2AC, address = 0x80178054 },
-    { asset = "characters/police_officer/walk_to_sergeant", offset = 0x164E0, size = 0x830, address = 0x80178300 },
-    { asset = "characters/police_officer/halt", offset = 0x16D10, size = 0x27C, address = 0x80178B30 },
-    { asset = "characters/police_officer/talk_idle", offset = 0x16F8C, size = 0x1E4, address = 0x80178DAC },
-    { asset = "characters/police_officer/ask_sergeant", offset = 0x17170, size = 0x304, address = 0x80178F90 },
-    { asset = "characters/police_officer/report_agent", offset = 0x17474, size = 0x1EC, address = 0x80179294 },
-    { asset = "characters/police_officer/turn_away", offset = 0x17660, size = 0x2D4, address = 0x80179480 },
-    { name = "police_officer_bank", offset = 0x17934, size = 0x40, address = 0x80179754 },
+    { asset = "characters/police_rookie/step_aside", offset = 0x15BB0, size = 0x470, address = 0x801779D0 },
+    { asset = "characters/police_rookie/aside_idle", offset = 0x16020, size = 0x214, address = 0x80177E40 },
+    { asset = "characters/police_rookie/watch_aya_enter", offset = 0x16234, size = 0x2AC, address = 0x80178054 },
+    { asset = "characters/police_rookie/walk_to_sergeant", offset = 0x164E0, size = 0x830, address = 0x80178300 },
+    { asset = "characters/police_rookie/halt", offset = 0x16D10, size = 0x27C, address = 0x80178B30 },
+    { asset = "characters/police_rookie/talk_idle", offset = 0x16F8C, size = 0x1E4, address = 0x80178DAC },
+    { asset = "characters/police_rookie/ask_sergeant", offset = 0x17170, size = 0x304, address = 0x80178F90 },
+    { asset = "characters/police_rookie/report_agent", offset = 0x17474, size = 0x1EC, address = 0x80179294 },
+    { asset = "characters/police_rookie/turn_away", offset = 0x17660, size = 0x2D4, address = 0x80179480 },
+    { name = "police_rookie_bank", offset = 0x17934, size = 0x40, address = 0x80179754 },
     { name = "police_sergeant_bank", offset = 0x17974, size = 0x68, address = 0x80179794 },
     { name = "police_scene_player_bank", offset = 0x179DC, size = 0x34, address = 0x801797FC },
 ]
-package_name = "actor_310100"
+package_name = "police_officers"
 required = true
 sha1 = "f9b3a4b29e62b743444b4c28ff43cf71aa73b871"
 
@@ -254,33 +254,33 @@ sha1 = "96abe57ab41aa3f6fcd951eeb9b9380ad2840a48"
 type = "sound"
 sha1 = "bee2bb2b5cf420c2104a662346775aa6bea85f7a"
 
-[police_officer_bank]
+[police_rookie_bank]
 type = "animation_bank"
 borrows = ["akropolis_plaza"]
-schema = "rooms/akropolis/plaza/police_officer_schema"
-symbol = "_gActor310100OfficerAnimationSets"
+schema = "rooms/akropolis/plaza/police_rookie_schema"
+symbol = "_gPoliceOfficersRookieAnimSets"
 
-[police_officer_bank.clips]
-stand = "characters/police_officer/stand"
-look_at_badge = "characters/police_officer/look_at_badge"
-shift_stance = "characters/police_officer/shift_stance"
-idle = "characters/police_officer/idle"
-explain_swat = "characters/police_officer/explain_swat"
-step_aside = "characters/police_officer/step_aside"
-aside_idle = "characters/police_officer/aside_idle"
-watch_aya_enter = "characters/police_officer/watch_aya_enter"
-walk_to_sergeant = "characters/police_officer/walk_to_sergeant"
-halt = "characters/police_officer/halt"
-talk_idle = "characters/police_officer/talk_idle"
-ask_sergeant = "characters/police_officer/ask_sergeant"
-report_agent = "characters/police_officer/report_agent"
-turn_away = "characters/police_officer/turn_away"
+[police_rookie_bank.clips]
+stand = "characters/police_rookie/stand"
+look_at_badge = "characters/police_rookie/look_at_badge"
+shift_stance = "characters/police_rookie/shift_stance"
+idle = "characters/police_rookie/idle"
+explain_swat = "characters/police_rookie/explain_swat"
+step_aside = "characters/police_rookie/step_aside"
+aside_idle = "characters/police_rookie/aside_idle"
+watch_aya_enter = "characters/police_rookie/watch_aya_enter"
+walk_to_sergeant = "characters/police_rookie/walk_to_sergeant"
+halt = "characters/police_rookie/halt"
+talk_idle = "characters/police_rookie/talk_idle"
+ask_sergeant = "characters/police_rookie/ask_sergeant"
+report_agent = "characters/police_rookie/report_agent"
+turn_away = "characters/police_rookie/turn_away"
 
 [police_sergeant_bank]
 type = "animation_bank"
 borrows = ["akropolis_plaza"]
 schema = "rooms/akropolis/plaza/police_sergeant_schema"
-symbol = "_gActor310100SergeantAnimationSets"
+symbol = "_gPoliceOfficersSergeantAnimSets"
 
 [police_sergeant_bank.clips]
 cleared_for_entry = "characters/police_sergeant/cleared_for_entry"
@@ -303,7 +303,7 @@ turn_away = "characters/police_sergeant/turn_away"
 hunter_from_mist = "characters/police_sergeant/hunter_from_mist"
 idle = "characters/police_sergeant/idle"
 
-[police_officer_schema]
+[police_rookie_schema]
 type = "animation_schema"
 slots = [
     "",
@@ -359,7 +359,7 @@ slots = [
 type = "animation_bank"
 borrows = ["akropolis_plaza"]
 schema = "rooms/akropolis/plaza/police_scene_player_schema"
-symbol = "gActor310100PlayerAnimationSets"
+symbol = "gPoliceOfficersPlayerAnimSets"
 
 [police_scene_player_bank.clips]
 idle = "characters/aya/idle"

@@ -1,0 +1,99 @@
+// Overlay-local symbols for police_officers.
+_gPoliceOfficersRookieStepSounds = 0x801798A8; // size:0xC defined:True
+_gPoliceOfficersFollowUps = 0x8017989C; // size:0xC defined:True
+_gPoliceOfficersMessages = 0x801798B4; // size:0x30 defined:True
+_gPoliceOfficersBodySwapTaskDescriptor = 0x801798E4; // size:0xC defined:True
+_gPoliceOfficersCulledBodySwapTaskDescriptor = 0x801798F0; // size:0xC defined:True
+gPoliceOfficersRookieTaskDescriptors = 0x801798FC; // size:0x24 defined:True
+gPoliceOfficersSergeantTaskDescriptors = 0x80179920; // size:0x24 defined:True
+gPoliceRookieStandClip = 0x8019578C; // absolute:True
+gPoliceRookieLookAtBadgeClip = 0x80195978; // absolute:True
+gPoliceRookieShiftStanceClip = 0x80195BD4; // absolute:True
+gPoliceRookieIdleClip = 0x80195EC4; // absolute:True
+gPoliceRookieExplainSwatClip = 0x801963A0; // absolute:True
+gPoliceSergeantClearedForEntryClip = 0x80191E7C; // absolute:True owner=akropolis_plaza
+gPoliceSergeantGoRightInClip = 0x80192C74; // absolute:True owner=akropolis_plaza
+gPoliceSergeantTalkIdleClip = 0x80192E24; // absolute:True owner=akropolis_plaza
+gPoliceSergeantOuttaControlClip = 0x80193288; // absolute:True owner=akropolis_plaza
+gPoliceSergeantOuttaControlGestureClip = 0x80193538; // absolute:True owner=akropolis_plaza
+gPoliceSergeantHelicopterDownClip = 0x801937EC; // absolute:True owner=akropolis_plaza
+gPoliceSergeantSomethingBigClip = 0x801939FC; // absolute:True owner=akropolis_plaza
+gPoliceSergeantWatchYourselfClip = 0x80193BD0; // absolute:True owner=akropolis_plaza
+gPoliceSergeantRaiseArmClip = 0x80193EBC; // absolute:True owner=akropolis_plaza
+gPoliceSergeantLowerArmClip = 0x801942C0; // absolute:True owner=akropolis_plaza
+gPoliceSergeantListenClip = 0x801944A4; // absolute:True owner=akropolis_plaza
+gPoliceSergeantTurnHeadClip = 0x80194680; // absolute:True owner=akropolis_plaza
+gPoliceSergeantTurnHeadBackClip = 0x80194858; // absolute:True owner=akropolis_plaza
+gPoliceSergeantHeardOfThemClip = 0x80194B0C; // absolute:True owner=akropolis_plaza
+gPoliceSergeantTurnedIdleClip = 0x80194DD8; // absolute:True owner=akropolis_plaza
+gPoliceSergeantDamnRookiesClip = 0x80194FC0; // absolute:True owner=akropolis_plaza
+gPoliceSergeantTurnAwayClip = 0x80195228; // absolute:True owner=akropolis_plaza
+gPoliceSergeantHunterFromMistClip = 0x80195414; // absolute:True
+gPoliceSergeantIdleClip = 0x801955B4; // absolute:True
+gAyaIdleClip = 0x80196558; // absolute:True
+gAyaShowBadgeClip = 0x80196BD0; // absolute:True
+gAyaPutAwayBadgeClip = 0x80197098; // absolute:True
+gAyaTurnToSergeantClip = 0x80197324; // absolute:True
+gAyaFaceSergeantClip = 0x8019753C; // absolute:True
+gAyaAskSituationClip = 0x80197AB8; // absolute:True
+gAyaTurnFromSergeantClip = 0x80197D44; // absolute:True
+gAyaAskAboutCiviliansClip = 0x8019806C; // absolute:True
+gAyaThankOfficerClip = 0x801983C4; // absolute:True
+gAyaAskAboutRoofClip = 0x80198564; // absolute:True
+gAyaLookAtWreckClip = 0x801987B8; // absolute:True
+_gPoliceRookieBodySkeleton = 0x801633BC; // size:0x2AC defined:True
+_gPoliceRookieBodyPartVerts = 0x80163668; // size:0x4C defined:True
+_gPoliceRookieBodyVerts = 0x801636B4; // size:0xAF8 defined:True
+_gPoliceRookieBodyNormals = 0x801641AC; // size:0xD50 defined:True
+_gPoliceRookieBodyStream = 0x80164EFC; // size:0x3D04 defined:True
+_gPoliceRookieBody = 0x80168C00; // size:0x24 defined:True
+_gPoliceRookieCulledBodySkeleton = 0x80168C24; // size:0x2AC defined:True
+_gPoliceRookieCulledBodyPartVerts = 0x80168ED0; // size:0x4C defined:True
+_gPoliceRookieCulledBodyVerts = 0x80168F1C; // size:0xA68 defined:True
+_gPoliceRookieCulledBodyNormals = 0x80169984; // size:0xB48 defined:True
+_gPoliceRookieCulledBodyStream = 0x8016A4CC; // size:0x2FC0 defined:True
+_gPoliceRookieCulledBody = 0x8016D48C; // size:0x24 defined:True
+_gPoliceSergeantBodySkeleton = 0x8016D4B0; // size:0x2AC defined:True
+_gPoliceSergeantBodyPartVerts = 0x8016D75C; // size:0x4C defined:True
+_gPoliceSergeantBodyVerts = 0x8016D7A8; // size:0xB48 defined:True
+_gPoliceSergeantBodyNormals = 0x8016E2F0; // size:0xD90 defined:True
+_gPoliceSergeantBodyStream = 0x8016F080; // size:0x4030 defined:True
+_gPoliceSergeantBody = 0x801730B0; // size:0x24 defined:True
+_gPoliceSergeantCulledBodySkeleton = 0x801730D4; // size:0x2AC defined:True
+_gPoliceSergeantCulledBodyPartVerts = 0x80173380; // size:0x4C defined:True
+_gPoliceSergeantCulledBodyVerts = 0x801733CC; // size:0xA08 defined:True
+_gPoliceSergeantCulledBodyNormals = 0x80173DD4; // size:0xC28 defined:True
+_gPoliceSergeantCulledBodyStream = 0x801749FC; // size:0x2FB0 defined:True
+_gPoliceSergeantCulledBody = 0x801779AC; // size:0x24 defined:True
+_gPoliceRookieStepAsideClip = 0x80177E18; // size:0x28 defined:True
+_gPoliceRookieAsideIdleClip = 0x8017802C; // size:0x28 defined:True
+_gPoliceRookieWatchAyaEnterClip = 0x801782D8; // size:0x28 defined:True
+_gPoliceRookieWalkToSergeantClip = 0x80178B08; // size:0x28 defined:True
+_gPoliceRookieHaltClip = 0x80178D84; // size:0x28 defined:True
+_gPoliceRookieTalkIdleClip = 0x80178F68; // size:0x28 defined:True
+_gPoliceRookieAskSergeantClip = 0x8017926C; // size:0x28 defined:True
+_gPoliceRookieReportAgentClip = 0x80179458; // size:0x28 defined:True
+_gPoliceRookieTurnAwayClip = 0x8017972C; // size:0x28 defined:True
+_gPoliceOfficersRookieAnimSets = 0x80179754; // size:0x40 defined:True
+_gPoliceOfficersSergeantAnimSets = 0x80179794; // size:0x68 defined:True
+gPoliceOfficersPlayerAnimSets = 0x801797FC; // size:0x34 defined:True
+_gPoliceOfficersPlayerFollowUps = 0x80179830; // size:0x18 defined:True
+_gPoliceOfficersRookieFollowUps = 0x80179848; // size:0x20 defined:True
+_gPoliceOfficersSergeantFollowUps = 0x80179868; // size:0x34 defined:True
+_policeOfficersTickAnimation = 0x80161e24; // type:func
+_policeOfficersUpdateAnimation = 0x80161f80; // type:func
+_policeOfficersInitBody = 0x80162414; // type:func
+_policeOfficersInitCulledBody = 0x801625e4; // type:func
+_policeOfficersSwapBodyTask = 0x801620fc; // type:func
+_policeOfficersSwapCulledBodyTask = 0x80162284; // type:func
+_policeOfficersSetBody = 0x80162c64; // type:func
+_policeOfficersSetCulledBody = 0x80162cdc; // type:func
+_policeOfficersPlayAnimation = 0x80162d50; // type:func
+_policeOfficersPlace = 0x80162ec8; // type:func
+_policeOfficersStopController = 0x80162f34; // type:func
+_policeOfficersRookieControllerTask = 0x801627bc; // type:func
+_policeOfficersSergeantControllerTask = 0x801629fc; // type:func
+_policeOfficersRookieBodyTask = 0x80162f88; // type:func
+_policeOfficersSergeantBodyTask = 0x8016309c; // type:func
+_policeOfficersRookieCulledBodyTask = 0x801631b0; // type:func
+_policeOfficersSergeantCulledBodyTask = 0x801632b0; // type:func

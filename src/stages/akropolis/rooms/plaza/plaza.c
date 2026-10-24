@@ -14,7 +14,7 @@
 #include "common.h"
 #include "gte.h"
 
-#include "actors/actor_310100.h"
+#include "stages/akropolis/actors/police_officers.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
@@ -69,7 +69,7 @@
 #include "../../../../shared/screen/screen_fade_tile_overlay.inc.c"
 
 #include "assets/engine/animation/player_schema.h"
-#include "assets/rooms/akropolis/plaza/police_officer_schema.h"
+#include "assets/rooms/akropolis/plaza/police_rookie_schema.h"
 #include "assets/rooms/akropolis/plaza/police_scene_player_schema.h"
 
 #include "assets/rooms/akropolis/plaza/declarations.inc"
@@ -1120,7 +1120,7 @@ static void _akropolisPlazaHelicopterWreckSceneTask(Task* task)
             if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
                 return;
             }
-            animationRequest.source.sets          = gActor310100PlayerAnimationSets;
+            animationRequest.source.sets          = gPoliceOfficersPlayerAnimSets;
             animationRequest.animationId          = POLICE_SCENE_PLAYER_ANIMATION_LOOK_AT_WRECK;
             animationRequest.blend                = ANIMATION_BLEND_RESET;
             animationRequest.blendFrames          = 0;
@@ -1279,12 +1279,12 @@ static void _akropolisPlazaEntranceSceneTask(Task* task)
             insideDestination.pos.vz = AKROPOLIS_PLAZA_INSIDE_SPOT_Z;
             TASK_MESSAGE_DISPATCH_POINTER(
                 ((_EventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, &insideDestination, 0);
-            officerAnimation.source.index         = ACTOR_310100_FOLLOW_UP_OFFICER;
-            officerAnimation.animationId          = POLICE_OFFICER_ANIMATION_WATCH_AYA_ENTER;
+            officerAnimation.source.index         = POLICE_OFFICERS_FOLLOW_UP_ROOKIE;
+            officerAnimation.animationId          = POLICE_ROOKIE_ANIMATION_WATCH_AYA_ENTER;
             officerAnimation.blend                = ANIMATION_BLEND_RESET;
             officerAnimation.blendFrames          = OFFICER_BLEND_FRAMES;
             officerAnimation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(_akropolisPlazaFindPlacedEnemy(ACTOR_310100_PLACEMENT_OFFICER)->task, ACTOR_MESSAGE_PLAY_ANIMATION, &officerAnimation, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(_akropolisPlazaFindPlacedEnemy(POLICE_OFFICERS_PLACEMENT_ROOKIE)->task, ACTOR_MESSAGE_PLAY_ANIMATION, &officerAnimation, 0);
             task->state         = task->state + 1;
             work->elapsedFrames = 0;
             return;
@@ -1303,7 +1303,7 @@ static void _akropolisPlazaEntranceSceneTask(Task* task)
         // released, and the room's image memory is laid out again.
         case REBUILD_GRAPHICS:
             if (cdCmdIsIdle() != 0) {
-                taskMessageDispatch(_akropolisPlazaFindPlacedEnemy(ACTOR_310100_PLACEMENT_OFFICER)->task, ACTOR_310100_MESSAGE_SET_CULLED_BODY, ACTOR_310100_CULLED_BODY_OFFICER, 0);
+                taskMessageDispatch(_akropolisPlazaFindPlacedEnemy(POLICE_OFFICERS_PLACEMENT_ROOKIE)->task, POLICE_OFFICERS_MESSAGE_SET_CULLED_BODY, POLICE_OFFICERS_CULLED_BODY_ROOKIE, 0);
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE, 0);
                 gpuResetAndInvalidateModelBuffers();
                 memConfigureImageMemory(gGameSession->location.stage, gGameSession->location.area);

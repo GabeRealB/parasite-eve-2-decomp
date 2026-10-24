@@ -635,8 +635,8 @@ mapShelterRoomVariantResolve = 0x80179A04; // type:func absolute:True owner=map_
 
 mapNeoArkResolveRoomVariant = 0x80179B14; // type:func absolute:True owner=map_neo_ark
 
-gActor310100PlayerAnimationSets = 0x801797FC; // absolute:True owner=actor_310100
+gPoliceOfficersPlayerAnimSets = 0x801797FC; // absolute:True owner=police_officers
 
-gActor310100OfficerTaskDescriptors = 0x801798FC; // absolute:True owner=actor_310100
+gPoliceOfficersRookieTaskDescriptors = 0x801798FC; // absolute:True owner=police_officers
 
-gActor310100SergeantTaskDescriptors = 0x80179920; // absolute:True owner=actor_310100
+gPoliceOfficersSergeantTaskDescriptors = 0x80179920; // absolute:True owner=police_officers

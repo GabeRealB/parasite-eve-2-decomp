@@ -1,4 +1,4 @@
-# The assets of the group characters/police_officer, each named characters/police_officer/<table name>.
+# The assets of the group characters/police_rookie, each named characters/police_rookie/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
 [rig]
@@ -27,9 +27,9 @@ joints = [
 
 [body]
 type = "model"
-rig = "characters/police_officer/rig"
+rig = "characters/police_rookie/rig"
 slots = ["page_2", "page_1"]
-symbol = "_gPoliceOfficerBody"
+symbol = "_gPoliceRookieBody"
 sha1 = "003b3c8b93ee3c2d2ce65d07af75e7c6bf9a6775"
 
 [file]
@@ -62,71 +62,71 @@ slots = 6
 
 [halt]
 type = "clip"
-rig = "characters/police_officer/rig"
+rig = "characters/police_rookie/rig"
 
 [idle]
 type = "clip"
-rig = "characters/police_officer/rig"
-symbol = "gPoliceOfficerIdleClip"
+rig = "characters/police_rookie/rig"
+symbol = "gPoliceRookieIdleClip"
 
 [stand]
 type = "clip"
-rig = "characters/police_officer/rig"
-symbol = "gPoliceOfficerStandClip"
+rig = "characters/police_rookie/rig"
+symbol = "gPoliceRookieStandClip"
 
 [talk_idle]
 type = "clip"
-rig = "characters/police_officer/rig"
+rig = "characters/police_rookie/rig"
 
 [turn_away]
 type = "clip"
-rig = "characters/police_officer/rig"
+rig = "characters/police_rookie/rig"
 
 [aside_idle]
 type = "clip"
-rig = "characters/police_officer/rig"
+rig = "characters/police_rookie/rig"
 
 [step_aside]
 type = "clip"
-rig = "characters/police_officer/rig"
+rig = "characters/police_rookie/rig"
 
 [culled_body]
 type = "model"
-rig = "characters/police_officer/rig"
+rig = "characters/police_rookie/rig"
 slots = ["page_2", "page_1"]
-symbol = "_gPoliceOfficerCulledBody"
+symbol = "_gPoliceRookieCulledBody"
 sha1 = "2aaabff253c9376e4e6e8146545f0e5fa5ffa3b9"
 
 [ask_sergeant]
 type = "clip"
-rig = "characters/police_officer/rig"
+rig = "characters/police_rookie/rig"
 
 [body_binding]
 type = "binding"
-model = "characters/police_officer/body"
+model = "characters/police_rookie/body"
 
 [body_binding.textures]
-page_2 = "characters/police_officer/texture_page_2.default"
-page_1 = "characters/police_officer/texture_page_1.default"
+page_2 = "characters/police_rookie/texture_page_2.default"
+page_1 = "characters/police_rookie/texture_page_1.default"
 
 [explain_swat]
 type = "clip"
-rig = "characters/police_officer/rig"
-symbol = "gPoliceOfficerExplainSwatClip"
+rig = "characters/police_rookie/rig"
+symbol = "gPoliceRookieExplainSwatClip"
 
 [report_agent]
 type = "clip"
-rig = "characters/police_officer/rig"
+rig = "characters/police_rookie/rig"
 
 [shift_stance]
 type = "clip"
-rig = "characters/police_officer/rig"
-symbol = "gPoliceOfficerShiftStanceClip"
+rig = "characters/police_rookie/rig"
+symbol = "gPoliceRookieShiftStanceClip"
 
 [look_at_badge]
 type = "clip"
-rig = "characters/police_officer/rig"
-symbol = "gPoliceOfficerLookAtBadgeClip"
+rig = "characters/police_rookie/rig"
+symbol = "gPoliceRookieLookAtBadgeClip"
 
 [texture_page_1]
 type = "texture"
@@ -144,16 +144,16 @@ width = 128
 
 [watch_aya_enter]
 type = "clip"
-rig = "characters/police_officer/rig"
+rig = "characters/police_rookie/rig"
 
 [walk_to_sergeant]
 type = "clip"
-rig = "characters/police_officer/rig"
+rig = "characters/police_rookie/rig"
 
 [culled_body_binding]
 type = "binding"
-model = "characters/police_officer/culled_body"
+model = "characters/police_rookie/culled_body"
 
 [culled_body_binding.textures]
-page_2 = "characters/police_officer/texture_page_2.default"
-page_1 = "characters/police_officer/texture_page_1.default"
+page_2 = "characters/police_rookie/texture_page_2.default"
+page_1 = "characters/police_rookie/texture_page_1.default"

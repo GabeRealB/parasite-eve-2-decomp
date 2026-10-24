@@ -12,15 +12,15 @@
 
 #include "main/task_types.h"
 
-// The clips the plaza places for its scenes, which actor_310100's banks bind: the rookie officer's at the tower's
+// The clips the plaza places for its scenes, which police_officers's banks bind: the rookie officer's at the tower's
 // entrance, the sergeant's at the barricade, and Aya's. Each is named for the line or step it plays on.
 
-/// The officer's clips; the rest of his are actor_310100's own.
-extern AnimationSet gPoliceOfficerStandClip;
-extern AnimationSet gPoliceOfficerLookAtBadgeClip;
-extern AnimationSet gPoliceOfficerShiftStanceClip;
-extern AnimationSet gPoliceOfficerIdleClip;
-extern AnimationSet gPoliceOfficerExplainSwatClip;
+/// The officer's clips; the rest of his are police_officers's own.
+extern AnimationSet gPoliceRookieStandClip;
+extern AnimationSet gPoliceRookieLookAtBadgeClip;
+extern AnimationSet gPoliceRookieShiftStanceClip;
+extern AnimationSet gPoliceRookieIdleClip;
+extern AnimationSet gPoliceRookieExplainSwatClip;
 
 /// The sergeant's clips.
 extern AnimationSet gPoliceSergeantClearedForEntryClip;

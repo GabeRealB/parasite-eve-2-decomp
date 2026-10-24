@@ -2471,12 +2471,12 @@ costs a second, sign-extending load. A `switch` never reaches `fold_range_test`
 at all.
 
 A single-value guard in the same idiom stays an `if`: the sibling
-`_actor310100Officer1CulledBodyTask` is `if (work->playState == 0)` → `lhu` + `bnez`.
+`_policeOfficersRookieCulledBodyTask` is `if (work->playState == 0)` → `lhu` + `bnez`.
 `_akropolisPlazaUpdateTraversalAmbience` is the same `{0, 1}` cluster reached from a
 3-case switch, emitted as `bltz` / `slti`+`bnez` (the `node->right` form at line
 ~6485).
 
-Example: `_actor310100Officer2CulledBodyTask` — `&&` form 93.9%, nested switch 100% with
+Example: `_policeOfficersSergeantCulledBodyTask` — `&&` form 93.9%, nested switch 100% with
 a zero penalty mix. Inputs: `base_2.i`
 `233b3fc41cff3b6b6d64acea062a9777c9cf3a785aece9408c480d7dc0fcd293` (`&&`),
 `base_3.i`
@@ -3486,7 +3486,7 @@ allocation. Inputs: `base_1.i`
 
 ### The same weighting, used the other way: promote a constant local to the first `$sN`
 
-`_actor310100SwapOfficerCulledBodyModelTask` (second spawn tick of `actor_310100`) differed from
+`_policeOfficersSwapCulledBodyTask` (second spawn tick of `police_officers`) differed from
 its target in nothing but the **cyclic rotation** of its four callee-saved
 assignments:
 
@@ -3512,14 +3512,14 @@ if (task->spawnArg1 == 0) {
     do {
         mode = 0x6D;              /* depth 1: def counts 2 */
     } while (0);
-    work->modelTask = taskSpawnFromTableOnDefaultList(gActor310100Officer2TaskDescriptors, 2, 5, 0);
+    work->modelTask = taskSpawnFromTableOnDefaultList(gPoliceOfficersSergeantTaskDescriptors, 2, 5, 0);
 } else if (task->spawnArg1 == 1) {
     do {
         do {
             mode = 0x6C;          /* depth 2: def counts 3 */
         } while (0);
     } while (0);
-    work->modelTask = taskSpawnFromTableOnDefaultList(gActor310100Officer1TaskDescriptors, 2, 7, 0);
+    work->modelTask = taskSpawnFromTableOnDefaultList(gPoliceOfficersRookieTaskDescriptors, 2, 7, 0);
 }
 ```
 
@@ -3530,7 +3530,7 @@ calls), so the first one it can use is now `$s0`, and the other three shift up
 one - the target's assignment exactly. **0 differences, no added instructions**:
 the `while (0)` is folded away and only the `REG_N_REFS` bookkeeping survives.
 
-Note the sibling `_actor310100SwapOfficerBodyModelTask` already carried this shape (one
+Note the sibling `_policeOfficersSwapBodyTask` already carried this shape (one
 wrapper in each arm - its `work` rival there has different refs), which is what
 gave the form away; the wrapper is load-bearing, not a decomp artifact.
 Diagnose the rotation first: when the penalised diff is a pure permutation of
@@ -53942,7 +53942,7 @@ message ids the sibling handlers in the overlay use, and do not read the
 constant back out of the assembly — it is not there.
 
 **The hidden case's *arm* can survive after its test is gone.** The same tree
-over `_Actor310100PoliceOfficerWork::playState` in `_actor310100Officer2BodyTask` — root 1, left
+over `_OfficerWork::playState` in `_policeOfficersSergeantBodyTask` — root 1, left
 0, right 2 — whose default arm is a `return` rather than a `break`:
 
 ```
@@ -53963,8 +53963,8 @@ the hidden arm is the switch's end label too; otherwise expect a bare `j` to the
 arm, and still no `li` of the hidden value.
 
 Choose that value from the overlay's own evidence rather than guessing: here
-`_actor310100SetOfficerCulledBodyModel` parks `playState` at 2 and the sibling handler
-`_actor310100Officer2CulledBodyTask` groups `case 0: case 1:`, so the state the hidden
+`_policeOfficersSetCulledBody` parks `playState` at 2 and the sibling handler
+`_policeOfficersSergeantCulledBodyTask` groups `case 0: case 1:`, so the state the hidden
 arm returns on is the 2 the overlay already names — and the `slti` bound
 coinciding with it is a coincidence of that choice, not a reading of it. Written
 as the two-node `case 0: break; case 1: call(); break; default: return;` instead
@@ -82239,7 +82239,7 @@ Evidence: scratch `nonmatchings/_actor113100FaceBillboardToCamera-vacuum/`, base
 `.rtl` identical to target; no pins, no permuter, no tracer.
 ## A `stack` penalty with `regs=0` is `a0`–`a3` read as hex: check the parameter slots, not the frame
 
-**Problem.** The m2c seed of `_actor310100PlaceOfficerModel` scored 95.407% with
+**Problem.** The m2c seed of `_policeOfficersPlace` scored 95.407% with
 `stack=4 branch=0 regs=0 reorder=2 insert=0 delete=0`. Against the brief's table
 that mix reads as "extra locals / frame" plus a scheduler problem, and `regs=0`
 looks like the allocation is already right — but the seed's whole diff was
@@ -82290,7 +82290,7 @@ in `$a2`, forcing the `lh` before the zeroing, so the zeroing becomes the last
 insn before the call and `dbr` takes it:
 
 ```c
-static s32 _actor310100PlaceOfficerModel(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedSecondArg)
+static s32 _policeOfficersPlace(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedSecondArg)
 ```
 
 `base_1.c` 100.000%, every penalty zero, no pins. The dumps agree with that
@@ -82301,7 +82301,7 @@ where to look for it.
 
 ## `regs=2` alone, where the only diffs are two argument `move`s, is m2c dropping a *middle* parameter
 
-**Problem.** The archived seed of `_actor310100SetOfficerBodyModel`, the 0x7D5
+**Problem.** The archived seed of `_policeOfficersSetBody`, the 0x7D5
 handler in the same overlay, scored 99.667% — `distance=10`,
 `stack=0 branch=0 regs=2 reorder=0 insert=0 delete=0` — and its entire diff was
 two instructions:
@@ -82315,7 +82315,7 @@ Everything else matched, including both callee-saved homes. The function takes
 four arguments and uses the first, third and fourth; m2c emitted
 
 ```c
-void _actor310100SetOfficerBodyModel(void *arg0, M2C_UNK arg2, void *arg3)
+void _policeOfficersSetBody(void *arg0, M2C_UNK arg2, void *arg3)
 ```
 
 — it dropped the unused `value` and renumbered, so `arg2` landed in `$a1` and
@@ -82338,7 +82338,7 @@ reorder=1 insert=3 delete=1`).
 
 ## Assigning a `long` field into a `u16` narrows the load at *expand* time, so an `lhu` proves nothing about the source field
 
-**Problem.** The target for `_actor310100SetOfficerBodyModel` has
+**Problem.** The target for `_policeOfficersSetBody` has
 `lhu $v0,0x4($s1)` feeding `sh $v0,0x506($s0)`. Read as evidence about the
 payload struct, that says the field at `+4` is 16-bit — and it would be wrong.
 
@@ -82362,13 +82362,13 @@ destination's declared width is what selects the load, and `.rtl` shows it
 already settled at expansion. And the reverse inference is unfounded — typing
 the source field `s16` because the load is `lhu` would have been wrong here. A
 32-bit field read into a `long` loads as a full word: the sibling 0x7D4 handler in
-this overlay, `_actor310100PlaceOfficerModel`, has `lw $v0,0x4($a2)` for exactly
+this overlay, `_policeOfficersPlace`, has `lw $v0,0x4($a2)` for exactly
 its `ActorTransform::pos.vy`, into `rootCoord->coord.t[1]`. Two 32-bit payload
 fields at the same offset, with the load width decided by the destination each time.
 
 ## A load the target issues *before* a branch must be unconditional in the source
 
-**Problem.** `_actor310100SetOfficerCulledBodyModel` (message 0x7D7 handler) dereferences a
+**Problem.** `_policeOfficersSetCulledBody` (message 0x7D7 handler) dereferences a
 pointer chain that the target computes in the entry block, ahead of the branch
 that guards its only use:
 
@@ -82386,9 +82386,9 @@ The natural spelling — chase inside the arm that uses it — scores **71.303%*
 with 33 instructions against the target's 29:
 
 ```c
-    work = (_Actor310100PoliceOfficerWork*)task->work;
+    work = (_OfficerWork*)task->work;
     if (arg2 == 3) {
-        ((_Actor310100PoliceOfficerWork*)work->modelTask->work)->playState = 2;
+        ((_OfficerWork*)work->modelTask->work)->playState = 2;
         return;
     }
     if (work->modelTask != NULL) { taskKill(work->modelTask); }
@@ -82404,10 +82404,10 @@ expression in the first place — there is no join where it is available.
 in the entry block's RTL to begin with:
 
 ```c
-    controllerWork = (_Actor310100PoliceOfficerWork*)task->work;
-    modelWork = (_Actor310100PoliceOfficerWork*)controllerWork->modelTask->work;
-    if (mode == ACTOR_310100_MODEL_FREEZE) {
-        modelWork->playState = ACTOR_310100_PLAY_STATE_FROZEN;
+    controllerWork = (_OfficerWork*)task->work;
+    modelWork = (_OfficerWork*)controllerWork->modelTask->work;
+    if (mode == MODEL_FREEZE) {
+        modelWork->playState = PLAY_STATE_FROZEN;
     } else {
         if (controllerWork->modelTask != NULL) { taskKill(controllerWork->modelTask); }
     }
@@ -82425,7 +82425,7 @@ the real signature `(Task*, s32 msgId, s32 arg2)`.
 
 ## Count a field's loads to count the source's mentions — a temp hides on the call's argument register
 
-`_actor310100Officer1CulledBodyTask`'s spawn tick reads the model's part-1 frame three
+`_policeOfficersRookieCulledBodyTask`'s spawn tick reads the model's part-1 frame three
 times and hands the model to `worldCoordSetModelLighting`. Written the plain way, five
 `lw 0x2C($s0)` (the `task->extra` chain, once per mention) reach the object and
 the call comes out as `lw a0,0x2C(s0)` / `jal`, with the argument setup rotated
@@ -82486,7 +82486,7 @@ pin the temp to the first mention alone.
 
 ## A reload that lands in a different `$sN` than the value it copies is a *second local*, not a second mention
 
-`_actor310100InitOfficerBodyModel` sat at 99.138% with `stack=0 branch=0 regs=20
+`_policeOfficersInitBody` sat at 99.138% with `stack=0 branch=0 regs=20
 reorder=0 insert=0 delete=0`, and the whole diff was a swap of two call-saved
 registers plus the register of one `u8`:
 
@@ -82507,8 +82507,8 @@ do not overlap, so they are two pseudos: the source held the reloaded pointer in
 its own variable.
 
 ```c
-    slotWork = (_Actor310100PoliceOfficerWork*)task->work;
-    _actor310100ResetOfficerSlots(slotWork, spawnAnimationId);
+    slotWork = (_OfficerWork*)task->work;
+    _policeOfficersResetSlots(slotWork, spawnAnimationId);
 ```
 
 99.914% on that one line (`regs` 20 → 2). The house style already does this —
@@ -82516,15 +82516,15 @@ its own variable.
 artefact here.
 
 **A near-identical sibling is not evidence about this function's source.**
-`_actor310100InitOfficerCulledBodyModel` is the same body at a different display id and keeps
+`_policeOfficersInitCulledBody` is the same body at a different display id and keeps
 both the malloc result and the reload in `$s1` (one pseudo, `sw $s1,0x1C($s4)` /
 `lw $s1,0x1C($s4)`); matching it against this target's register split is what
 identified the difference. Compare the two siblings' objects before concluding a
 shape is shared.
 
 **Writing the reload as a second mention does not merge.** The loop's other
-option — `((_Actor310100PoliceOfficerWork*)task->work)->rig.slots[…]` then
-`&((_Actor310100PoliceOfficerWork*)task->work)->rig.anim`, the form the `memFillBytes(task->work, …)`
+option — `((_OfficerWork*)task->work)->rig.slots[…]` then
+`&((_OfficerWork*)task->work)->rig.anim`, the form the `memFillBytes(task->work, …)`
 line above already uses — scored 6 branches and `regs=52`: the `sb` to `slots`
 sits between the two loads, CSE will not carry a memory value across a store it
 cannot prove disjoint, so each iteration loads the pointer twice.
@@ -82557,7 +82557,7 @@ for a pin.**
 
 ## A field written and then read back keeps the copy: `cse` folds the reload, `local-alloc` refuses to tie a pseudo that spans a block
 
-`_actor310100InitOfficerCulledBodyModel` sat at 99.076% with exactly one instruction of
+`_policeOfficersInitCulledBody` sat at 99.076% with exactly one instruction of
 difference — the target materialises the payload load through `$v0` and copies it
 into `$s2`, where the source had the load land straight in `$s2`:
 
@@ -82605,22 +82605,22 @@ The same experiment rules out the cheap explanations: writing the expression
 twice does not produce the copy but a *second load*, and storing the variable
 (`work->spawnAnimationId = active;`) collapses the chain to the single `lhu` at
 99.076%. A near-identical sibling is not evidence here either —
-`_actor310100InitOfficerBodyModel` has the same body at one fewer store and compiles to
+`_policeOfficersInitBody` has the same body at one fewer store and compiles to
 the plain `lhu` into `active`.
 
 ## Two branches, two allocation requirements: a duplicated call ties the `%hi` scratch, nested `do{}while(0)` orders the `$sN`
 
-`_actor310100SwapOfficerBodyModelTask` needed both halves of its register allocation changed
+`_policeOfficersSwapBodyTask` needed both halves of its register allocation changed
 at once, and each had its own lever. Retail (target): `$s0` = the display id
 `mode` (0x6D / 0x6C), `$s1` = the work pointer `work`, and the symbol addresses in
 the two spawn branches materialise as `lui $a0` + `addiu $a0,$a0` — the `%hi`
 scratch in the *same* register as the `lo_sum` destination:
 
 ```asm
-0x36C lui   $a0,%hi(gActor310100Officer2TaskDescriptors)
-0x374 addiu $a0,$a0,%lo(gActor310100Officer2TaskDescriptors)
-0x384 lui   $a0,%hi(gActor310100Officer1TaskDescriptors)
-0x388 addiu $a0,$a0,%lo(gActor310100Officer1TaskDescriptors)
+0x36C lui   $a0,%hi(gPoliceOfficersSergeantTaskDescriptors)
+0x374 addiu $a0,$a0,%lo(gPoliceOfficersSergeantTaskDescriptors)
+0x384 lui   $a0,%hi(gPoliceOfficersRookieTaskDescriptors)
+0x388 addiu $a0,$a0,%lo(gPoliceOfficersRookieTaskDescriptors)
 ```
 
 **The scratch register is decided by `combine_regs`, and it ties only a local
@@ -82656,10 +82656,10 @@ each extra constant-false loop around a single set is worth one more reference:
 ```c
 if (task->spawnArg1 == 0) {
     do { mode = 0x6D; } while (0);                                   /* depth 2 -> +2 */
-    work->modelTask = taskSpawnFromTableOnDefaultList(gActor310100Officer2TaskDescriptors, 1, work->bodyAnimationId, 0);
+    work->modelTask = taskSpawnFromTableOnDefaultList(gPoliceOfficersSergeantTaskDescriptors, 1, work->bodyAnimationId, 0);
 } else if (task->spawnArg1 == 1) {
     do { do { mode = 0x6C; } while (0); } while (0);                 /* depth 3 -> +3 */
-    work->modelTask = taskSpawnFromTableOnDefaultList(gActor310100Officer1TaskDescriptors, 1, work->bodyAnimationId, 0);
+    work->modelTask = taskSpawnFromTableOnDefaultList(gPoliceOfficersRookieTaskDescriptors, 1, work->bodyAnimationId, 0);
 } else {
     goto skip;
 }
@@ -82692,25 +82692,25 @@ assembly `967b21f7a862343fe04a0411f283e4165ce2fbf59f9d55f150fd2c53bf7636ed`).
 
 ## One local reused in two sibling branches is one allocno spanning both: give each branch its own
 
-`_actor310100PlayOfficerOrPlayerAnimation` reached 98.777% on its first real attempt with
+`_policeOfficersPlayAnimation` reached 98.777% on its first real attempt with
 `stack=0 branch=0 regs=11 reorder=1 insert=0 delete=0`, and the diff was three
 instructions: a pointer that should have been caller-saved sat in `$s1`, and the
 two halfword locals beside it had swapped `$v1` / `$a0`. The branches are
 disjoint, so nothing in the source looked shared — but the *names* were:
 
 ```c
-    _Actor310100PoliceOfficerWork* disp2;          /* one declaration ... */
+    _OfficerWork* disp2;          /* one declaration ... */
     u16              vy;
     u16              vz;
     ...
     if (animation->source.index == 0) {
-        disp2 = (_Actor310100PoliceOfficerWork*)modelTask->work;   /* ... used here */
+        disp2 = (_OfficerWork*)modelTask->work;   /* ... used here */
         vy    = animation->animationId;
         vz    = animation->blend;
         ...
     } else {
         vz    = animation->blend;                  /* ... and here */
-        disp2 = (_Actor310100PoliceOfficerWork*)modelTask->work;
+        disp2 = (_OfficerWork*)modelTask->work;
 ```
 
 A name is a pseudo, and its live range is the union of its assignments, so the
@@ -93756,7 +93756,7 @@ The helpers' locals need not share a type. A 16-byte slot written as a `VECTOR`
 in one arm and as an `SVECTOR` in another had been matched with a union of the
 two; it is a light-position helper followed by a ground-shadow helper, the
 smaller frame taking the front of the freed larger one
-(`_actor310100Officer1CulledBodyTask`, `_dryfieldWaterTowerFallingPropTask`,
+(`_policeOfficersRookieCulledBodyTask`, `_dryfieldWaterTowerFallingPropTask`,
 2026-10-04). Order decides it: with the 8-byte helper expanded first the
 16-byte one cannot reuse its slot and the two stack, which is the frame two
 function-scope locals give as well.
@@ -94202,7 +94202,7 @@ Actor100400Ctx*  ctx    = arg0->field_2C;            /* CSE -> move s6, v0 */
 ```
 
 The later `->field_8` reference is rewritten onto the copy's destination, which
-is why the load reads `0x8($s6)` and not `0x8($v0)`. `_actor310100InitOfficerCulledBodyModel`
+is why the load reads `0x8($s6)` and not `0x8($v0)`. `_policeOfficersInitCulledBody`
 (`rootCoord = task->extra.coordBody->coord; model = task->extra.tmd;`)
 is the already-matched worked example of the same shape.
 
@@ -97978,7 +97978,7 @@ the branch — so it cannot share `$v0` with the condition and takes `$a1`. A
 register like `$a1` on a value whose only use is far below the branch is the
 tell that the load was hoisted at the C level, not by the scheduler.
 
-This is the mirror of the `_actor310100Officer1CulledBodyTask` entry above (a chase that
+This is the mirror of the `_policeOfficersRookieCulledBodyTask` entry above (a chase that
 must move *out* of an arm for the same reason). Before reconstructing it by hand,
 check the family's shared bodies: `_actor01900StateRise` in
 `src/actors/lib/actor_101900_text_tail.c` is this body one actor over, and its
@@ -100403,8 +100403,8 @@ case value needs a fourth, empty case node" for the node arithmetic.
 One build later this is 100.000%, so when a seed's switch has a `default:`
 carrying what the case above it also does, suspect the fallthrough before
 anything else. The same body is already matched in another overlay -
-`_actor310100SwapOfficerBodyModelTask` / `_actor310100SwapOfficerCulledBodyModelTask` in
-`src/actors/actor_310100/actor_310100.c` - with a comment spelling the shape
+`_policeOfficersSwapBodyTask` / `_policeOfficersSwapCulledBodyTask` in
+`src/stages/akropolis/actors/police_officers/police_officers.c` - with a comment spelling the shape
 out; a sibling overlay is faster than re-deriving the labels from the tree.
 
 **The rect.** The seed declares `s16 sp10, sp12, sp14, sp16;` and passes
@@ -100502,7 +100502,7 @@ That is 100.000% with every penalty zero, and it is the shape to reach for
 whenever an object has `andi` + `sll` + `sltiu` around one counter:
 `_actor560800ChainGroupTask` in the same overlay writes its slot array with
 a `u16` counter, producing the same instructions; the matched
-`_actor310100PlaceOfficerModel` uses the explicit-mask form.
+`_policeOfficersPlace` uses the explicit-mask form.
 
 Two things follow from the split that are *not* source differences. The single
 `i += 1;` appears twice in the object - once at the join (`addiu a0,a0,1`) and
@@ -123805,7 +123805,7 @@ Inputs: scratch `nonmatchings/dryfieldSaloonGRDrawLightEffectsTask-vacuum`,
 (`insert=7`). Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## A predicate repeated in two switch cases can be one function-level local, not an inline: the shared pseudo outranks the switch value (_actor310100Officer1ControllerTask, 2026-09-17)
+## A predicate repeated in two switch cases can be one function-level local, not an inline: the shared pseudo outranks the switch value (_policeOfficersRookieControllerTask, 2026-09-17)
 
 Cases 1 and 2 of a `switch (task->state)` compute the same `u16` flag from
 `gCdCmdQueue` (`modelVisible = 1; if (..<2) modelVisible = ..>=0xE6; if (..==2 && ..) modelVisible = 0;`).
@@ -150136,7 +150136,7 @@ attempts; left as it was.
   the `table`/`idx` form but gives each early exit its own `move v0,zero` in a
   delay slot; with the call per case the cross-jump leaves `j; li a1,K` and the
   exits share the zero.
-- **`else { goto skip; } skip:`** is an empty `else` (`_actor310100SwapOfficerBodyModelTask`);
+- **`else { goto skip; } skip:`** is an empty `else` (`_policeOfficersSwapBodyTask`);
   its fake `do { mode = K; } while (0)` wrappers are still needed (`work`,
   `task` and `mode` trade saved registers without them).
 - A scoped `build-and-verify.sh --only` prints no per-image line on success.
