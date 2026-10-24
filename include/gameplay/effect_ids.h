@@ -227,7 +227,7 @@ enum {
     /// One-frame flickering star glow (animated core quad and rotating flare) at
     /// the Akropolis promenade lamps; respawned each frame by the room spawner for
     /// views that see it.
-    EFFECT_ACROPOLIS_PROMENADE_GLOW_STAR = EFFECT_ID(EFFECT_TASK_BANK, 0x04B),
+    EFFECT_AKROPOLIS_PROMENADE_GLOW_STAR = EFFECT_ID(EFFECT_TASK_BANK, 0x04B),
     /// Unidentified. Eight-frame additive sprite (tpage 0x2B, v 0x70) whose CLUT steps
     /// with age and which rises by a random amount; spawned alongside 0x60045 by
     /// actor_510900's fire controller (0x60043).
@@ -262,10 +262,10 @@ enum {
     /// Screen-space drip: a DR_MOVE that smears a one-pixel strip of the frame buffer
     /// down a row at a time while the camera stays on its view; the promenade spawns
     /// 0x28 on a view change and two per frame after.
-    EFFECT_ACROPOLIS_PROMENADE_SCREEN_DRIP = EFFECT_ID(EFFECT_TASK_BANK, 0x056),
+    EFFECT_AKROPOLIS_PROMENADE_SCREEN_DRIP = EFFECT_ID(EFFECT_TASK_BANK, 0x056),
     /// One-frame flickering glow quad lying flat on the ground under the promenade
     /// lamp; respawned each frame by the room spawner.
-    EFFECT_ACROPOLIS_PROMENADE_GROUND_GLOW = EFFECT_ID(EFFECT_TASK_BANK, 0x057),
+    EFFECT_AKROPOLIS_PROMENADE_GROUND_GLOW = EFFECT_ID(EFFECT_TASK_BANK, 0x057),
     /// Expanding, fading splash quad (_waterRippleTask, _waterDrawSplash); stored in
     /// gRoomEffectWaterRippleId, which several actors (actor_800100, 401300, 400600, 01100) spawn as
     /// water ripples.
@@ -300,7 +300,7 @@ enum {
     /// One-frame lamp glow sprite (GLOW_LAMP_TASK: one of three flickering
     /// lamp cells); the promenade respawns it each frame at the lamps its view mask
     /// allows.
-    EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW = EFFECT_ID(EFFECT_TASK_BANK, 0x062),
+    EFFECT_AKROPOLIS_PROMENADE_LAMP_GLOW = EFFECT_ID(EFFECT_TASK_BANK, 0x062),
     /// Unidentified. A small room model (gAkropolisCafeteriaWanderingCreatureModel) that wanders
     /// with random turns and then runs off, playing a cafeteria sound in view 7;
     /// several are spawned by the Akropolis cafeteria event task.

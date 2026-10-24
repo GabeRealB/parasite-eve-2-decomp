@@ -5293,6 +5293,7 @@ EMBEDDED_ASSETS = {
     'pe/pyrokinesis/level3_descriptor': {"source": 'gameplay.pe2pkg', "vram": 0x8010D8C0, "size": 0x8, "type": 'item_descriptor'},
     'rooms/akropolis/forked_road/movie_player_path': {"source": 'akropolis_forked_road.pe2pkg', "vram": 0x80180F80, "size": 0x960, "type": 'movie_path', "group": 'rooms/akropolis/forked_road', "include": 'u16'},
     'rooms/akropolis/security_room/lamp_left_released': {"source": 'akropolis_security_room.pe2pkg', "vram": 0x80182B18, "size": 0x200, "type": 'clut', "group": 'rooms/akropolis/security_room', "include": 'u16'},
+    'rooms/akropolis/promenade/arrival_player_path': {"source": 'akropolis_promenade.pe2pkg', "vram": 0x80181184, "size": 0x960, "type": 'movie_path', "group": 'rooms/akropolis/promenade', "include": 'u16'},
     'rooms/shelter/b2_pod_bottom/ending_camera_track': {"source": 'actor_303600.pe2pkg', "vram": 0x8016AEF8, "size": 0x3570, "type": 'camera_path', "group": 'rooms/shelter/b2_pod_bottom', "include": 'u16'},
     'characters/rupert/hurt_eyes_half_open': {"source": 'actor_113000.pe2pkg', "vram": 0x8013A34C, "size": 0x400, "type": 'image', "group": 'characters/rupert', "h": 16, "include": 'u32', "w": 32},
     'rooms/akropolis/security_room/lamp_right_released': {"source": 'akropolis_security_room.pe2pkg', "vram": 0x80182F18, "size": 0x200, "type": 'clut', "group": 'rooms/akropolis/security_room', "include": 'u16'},
@@ -5443,7 +5444,6 @@ EMBEDDED_ASSETS = {
     'akropolis_hallway_model_023C0': {"source": 'akropolis_hallway.pe2pkg', "vram": 0x8017F980, "size": 0xA8, "type": 'tmd'},
     'dryfield_breezeway_clut_05984': {"source": 'dryfield_breezeway.pe2pkg', "vram": 0x80182F44, "size": 0x200, "type": 'clut', "h": 1, "include": 'u32', "w": 256, "x": 0, "y": 256},
     'rooms/akropolis/observatory/promenade_arrival_player_path': {"source": 'akropolis_observatory.pe2pkg', "vram": 0x8017F16C, "size": 0x960, "type": 'movie_path', "group": 'rooms/akropolis/observatory', "include": 'u16'},
-    'acropolis_promenade_path_03BC4': {"source": 'acropolis_promenade.pe2pkg', "vram": 0x80181184, "size": 0x960, "type": 'movie_path', "include": 'u16'},
     'dryfield_breezeway_image_05864': {"source": 'dryfield_breezeway.pe2pkg', "vram": 0x80182E24, "size": 0x100, "type": 'image', "h": 16, "include": 'u32', "w": 8, "x": 896, "y": 0},
     'dryfield_breezeway_model_04E8C': {"source": 'dryfield_breezeway.pe2pkg', "vram": 0x8018244C, "size": 0x950, "type": 'tmd'},
     'dryfield_junk_yard_model_01378': {"source": 'dryfield_junk_yard.pe2pkg', "vram": 0x8017E938, "size": 0x3A8, "type": 'tmd'},
@@ -6565,8 +6565,8 @@ TREE = {
                 'file7': {"id": 7, "chunks": {'pe2img_377': 'rooms/akropolis/observatory/view7_image', 'bs_167': 'rooms/akropolis/observatory/view7_background'}},
                 'file8': {"id": 8, "chunks": {'pe2img_378': 'rooms/akropolis/observatory/view8_image', 'bs_168': 'rooms/akropolis/observatory/view8_background'}},
             }},
-            'acropolis_promenade': {"id": 1101, "files": {
-                'file0': {"id": 0, "chunks": {'spk_171': 'rooms/akropolis/promenade/sounds_0', 'spk_172': 'rooms/akropolis/promenade/sounds_1', 'acropolis_promenade_dialogue_0_atlas': 'rooms/akropolis/promenade/dialogue_0_atlas', 'pe2clut_319': 'rooms/akropolis/bridge_model_palette', 'pe2clut_320': 'rooms/akropolis/promenade/palette_2', 'pe2img_380': 'rooms/akropolis/promenade/image', 'package': 'rooms/akropolis/promenade/package', 'bundle': 'rooms/akropolis/promenade/bundle'}},
+            'akropolis_promenade': {"id": 1101, "files": {
+                'file0': {"id": 0, "chunks": {'spk_171': 'rooms/akropolis/promenade/sounds_0', 'spk_172': 'rooms/akropolis/promenade/sounds_1', 'akropolis_promenade_dialogue_0_atlas': 'rooms/akropolis/promenade/dialogue_0_atlas', 'pe2clut_319': 'rooms/akropolis/bridge_model_palette', 'pe2clut_320': 'rooms/akropolis/promenade/palette_2', 'pe2img_380': 'rooms/akropolis/promenade/image', 'package': 'rooms/akropolis/promenade/package', 'bundle': 'rooms/akropolis/promenade/bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_169': 'rooms/akropolis/promenade/view1_background'}},
                 'file2': {"id": 2, "chunks": {'pe2img_381': 'rooms/akropolis/promenade/view2_image', 'bs_170': 'rooms/akropolis/promenade/view2_background'}},
                 'file3': {"id": 3, "chunks": {'pe2img_382': 'rooms/akropolis/promenade/view3_image', 'bs_171': 'rooms/akropolis/promenade/view3_background'}},

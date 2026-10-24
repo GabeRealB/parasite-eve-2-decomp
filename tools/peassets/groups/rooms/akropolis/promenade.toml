@@ -220,8 +220,8 @@ sha1 = "1ceb2f1ae9e72ee0ef98691aa0d48b0507bb7ea6"
 
 [package]
 type = "room"
-embedded = ["acropolis_promenade_path_03BC4"]
-package_name = "acropolis_promenade"
+embedded = ["rooms/akropolis/promenade/arrival_player_path"]
+package_name = "akropolis_promenade"
 required = true
 sha1 = "61de7cf0d94d0b266b70a85befb299273b7b42ac"
 

@@ -1269,19 +1269,20 @@ objects = [
   { kind = "collisionSource", at = "0x3490", in_c = true, cell_face_list_macro = "AKROPOLIS_OBSERVATORY_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
-[rooms.overlays.acropolis_promenade]
-label = "code starts at 0x24; GCC hoisted the lui/lw for _gAcropolisPromenadeArrivalMovieStarted above the addiu $sp prologue, so the span detector starts 8 bytes late"
+[rooms.overlays.akropolis_promenade]
+label = "code starts at 0x24; GCC hoisted the lui/lw for _gAkropolisPromenadeArrivalMovieStarted above the addiu $sp prologue, so the span detector starts 8 bytes late"
 id = 295
+src = "src/stages/akropolis/rooms/promenade"
 text = ["0x24", "0x2844"]
 objects = [
   { kind = "packageId" },
-  { unit = "acropolis_promenade/acropolis_promenade", rodata = "0x4", text = "0x24", data = "0x2844", bss = "0x8D10" },
+  { unit = "promenade", rodata = "0x4", text = "0x24", data = "0x2844", bss = "0x8D10" },
   { kind = "model", at = "0x2844", in_c = true },
   { kind = "modelSource", at = "0x3890", in_c = true },
   { kind = "collision", at = "0x4734", in_c = true },
-  { kind = "collisionSource", at = "0x4E1C", in_c = true, cell_face_list_macro = "ACROPOLIS_PROMENADE_CELL_FACE_LIST_AT_OFFSET" },
+  { kind = "collisionSource", at = "0x4E1C", in_c = true, cell_face_list_macro = "AKROPOLIS_PROMENADE_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0x4E40", in_c = true },
-  { kind = "collisionSource", at = "0x5610", in_c = true, cell_face_list_macro = "ACROPOLIS_PROMENADE_CELL_FACE_LIST_AT_OFFSET" },
+  { kind = "collisionSource", at = "0x5610", in_c = true, cell_face_list_macro = "AKROPOLIS_PROMENADE_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.acropolis_sanctuary]

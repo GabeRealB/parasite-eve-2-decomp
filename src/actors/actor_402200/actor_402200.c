@@ -321,7 +321,7 @@ static u16 _gGolemKnightBishopCounterattackStepOffsets[16] = {
 static GolemKnightBishopRegion _gActor402200ShelterB1SleepingQuartersRegions[8];
 static GolemKnightBishopRegion _gActor402200ShelterB1AccessTunnelRegions[5];
 static GolemKnightBishopRegion _gActor402200Shelter1fAirlockRegions[2];
-static GolemKnightBishopRegion _gActor402200AcropolisPromenadeRegions[5];
+static GolemKnightBishopRegion _gActor402200AkropolisPromenadeRegions[5];
 static GolemKnightBishopRegion _gActor402200DryfieldParkingLotRegions[3];
 static GolemKnightBishopRegion _gActor402200DryfieldNightUnderpassRegions[8];
 static GolemKnightBishopRegion _gActor402200ShelterB1MainCorridorRegions[4];
@@ -336,7 +336,7 @@ static GolemKnightBishopRoomRegions _gGolemKnightBishopRoomRegions[10] = {
     { 1, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS, ARRAY_SIZE(_gActor402200ShelterB1SleepingQuartersRegions) },
     { 2, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, ARRAY_SIZE(_gActor402200ShelterB1AccessTunnelRegions) },
     { 3, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_AIRLOCK, ARRAY_SIZE(_gActor402200Shelter1fAirlockRegions) },
-    { 4, GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PROMENADE, ARRAY_SIZE(_gActor402200AcropolisPromenadeRegions) },
+    { 4, GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PROMENADE, ARRAY_SIZE(_gActor402200AkropolisPromenadeRegions) },
     { 5, GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_PARKING_LOT, ARRAY_SIZE(_gActor402200DryfieldParkingLotRegions) },
     { 6, GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_UNDERPASS, ARRAY_SIZE(_gActor402200DryfieldNightUnderpassRegions) },
     { 7, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, ARRAY_SIZE(_gActor402200ShelterB1MainCorridorRegions) },
@@ -373,7 +373,7 @@ static GolemKnightBishopRegion _gActor402200Shelter1fAirlockRegions[2] = {
 };
 
 /// Knight GOLEM activation regions for `GAME_AREA_AKROPOLIS_PROMENADE`, in room X/Z units.
-static GolemKnightBishopRegion _gActor402200AcropolisPromenadeRegions[5] = {
+static GolemKnightBishopRegion _gActor402200AkropolisPromenadeRegions[5] = {
     { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 2000 }, -3000, -2000, 0, 0, 0, 0 },
     { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 1000 }, -1500, -7500, 0, 0, 0, 0 },
     { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 2000 }, -100, 2600, 0, 0, 0, 0 },
@@ -436,7 +436,7 @@ static GolemKnightBishopRegion* _gGolemKnightBishopRegionTables[10] = {
     _gActor402200ShelterB1SleepingQuartersRegions,
     _gActor402200ShelterB1AccessTunnelRegions,
     _gActor402200Shelter1fAirlockRegions,
-    _gActor402200AcropolisPromenadeRegions,
+    _gActor402200AkropolisPromenadeRegions,
     _gActor402200DryfieldParkingLotRegions,
     _gActor402200DryfieldNightUnderpassRegions,
     _gActor402200ShelterB1MainCorridorRegions,

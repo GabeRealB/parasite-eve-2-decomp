@@ -52,9 +52,9 @@ akropolis_plaza_path_0F53C	Camera track (150 frames) of the tail and closing sho
 akropolis_plaza_path_11F70	Camera track (16 frames) of the first shot of the plaza's final scene, movie sub-id 4.	
 akropolis_plaza_path_123F4	Camera track (50 frames) of the officer shot in the plaza's final scene, movie sub-id 5.	
 akropolis_plaza_path_13204	Per-frame shot position of the plaza's traversal movie (400 points): compared with the player's X to advance or reverse the movie and used to place the moving collision walls.	
-acropolis_promenade_collision_04734	Collision grid of the Akropolis promenade's room 1 (bridge progress 0).	
-acropolis_promenade_collision_04E40	Collision grid of the Akropolis promenade's room 2 (bridge progress non-zero), eight faces more than room 1's.	
-acropolis_promenade_path_03BC4	Per-movie-frame player path for the promenade's arrival movie from the observatory; 70 of 300 samples are read, backwards.	
+akropolis_promenade_collision_04734	Collision grid of the Akropolis promenade's room 1 (bridge progress 0).	
+akropolis_promenade_collision_04E40	Collision grid of the Akropolis promenade's room 2 (bridge progress non-zero), eight faces more than room 1's.	
+rooms/akropolis/promenade/arrival_player_path	Per-movie-frame player path for the promenade's arrival movie from the observatory; 70 of 300 samples are read, backwards.	
 acropolis_roof_garden_animation_02C20	Three player clips of the Akropolis roof garden's arrival scene, installed as weapon-bank clips 47-49 and played in turn by the arrival script.	
 acropolis_roof_garden_animation_06D70	Two player clips of the roof garden's entrance script (variants 1 and 7), played as the creatures are released just before the battle engages.	
 acropolis_roof_garden_collision_0775C	Collision grid of the Akropolis roof garden, read by gameplay's world collision for the whole stay.	
@@ -642,7 +642,7 @@ bs_1686	Background of shelter_b6_growth_room view 3, reached by boundaries from 
 bs_1687	Background of shelter_b6_growth_room view 4, the arrival warp's initial view (replaced almost at once by the entry scene's view 7) and reached by boundary 6->4.	
 bs_1688	Background of shelter_b6_growth_room view 5, reached by two boundary records from view 3.	
 bs_1689	Background of shelter_b6_growth_room view 6, reached by boundaries from views 4 and 2.	
-rooms/akropolis/promenade/view1_background..rooms/akropolis/promenade/view13_background	View backgrounds 1-13 of acropolis_promenade; room 2 exchanges files for views 4/8 and 5/9, with caption-text views 6, 10, 11, scene view 13 and movie-arrival view 7.	
+rooms/akropolis/promenade/view1_background..rooms/akropolis/promenade/view13_background	View backgrounds 1-13 of akropolis_promenade; room 2 exchanges files for views 4/8 and 5/9, with caption-text views 6, 10, 11, scene view 13 and movie-arrival view 7.	
 bs_1690	Background of shelter_b6_growth_room view 7, set by the entry scene on every entry until its first caption cue, then faded to view 2.	
 bs_1691	Background of shelter_b6_growth_room view 8, selected with actors and HUD hidden by the choice scene's confirmed-choice caption line.	
 bs_1692	No reached use found: background of shelter_b6_corridor view 1, the plan view, with no selector in the shipped game.	
@@ -667,7 +667,7 @@ bs_1744	Background of neo_ark_pyramid view 2, shown from arrival at warp endpoin
 bs_1749	No reached use found: background of neo_ark_pyramid file 7 (logical view 7 in both room indices), a camera of its own that nothing selects.	
 bs_1751..bs_1758	View backgrounds 1-8 of neo_ark_substation; views 2-8 are a boundary chain between the Garden and Power Plant 2 arrivals, view 1 is the unselected plan view.	
 load_screens/shelter_pod_chapter_4/background	Load-screen picture for Mine/Shelter destinations without their own case (chapter 4 or other than 5), shown under the Shelter pod boot caption; what lands on it is open.	
-rooms/akropolis/promenade/view12_background	No reached use found: background of acropolis_promenade view 12, a steep downward camera selected by none of the nine checked paths.	
+rooms/akropolis/promenade/view12_background	No reached use found: background of akropolis_promenade view 12, a steep downward camera selected by none of the nine checked paths.	
 rooms/akropolis/sanctuary/view1_background..rooms/akropolis/sanctuary/view16_background	View backgrounds 1-16 of acropolis_sanctuary: play views 2-8, views 9-13, 15 and 16 shown by caption command 1 in the arrival scene, view 14 set by the cutscene task.	
 load_screens/mine_refuge_chapter_5/background	Load-screen picture for the Mine/Shelter stage with destination Mine Refuge in story chapter 5, shown under the Mine boot caption; what lands on it is open.	
 rooms/akropolis/roof_garden/view1_background..rooms/akropolis/roof_garden/view7_background	View backgrounds 1-7 of acropolis_roof_garden: walked views 2-5, view 6 shown only by CAP command 1's arrival scene; view 1 is the plan view.	
@@ -1096,7 +1096,7 @@ mappic_s1_00_model_00294	Face stream of the flat outline of akropolis_patio on s
 mappic_s1_00_model_00564	Face stream of the flat outline of akropolis_fountain on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
 mappic_s1_00_model_00650	Face stream of the flat outline of akropolis_forked_road on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
 mappic_s1_00_model_00718	Face stream of the flat outline of akropolis_observatory on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
-mappic_s1_00_model_007E8	Face stream of the flat outline of acropolis_promenade on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
+mappic_s1_00_model_007E8	Face stream of the flat outline of akropolis_promenade on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
 mappic_s1_00_model_00B48	Face stream of the flat outline of acropolis_west_elevator_hall on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
 mappic_s1_02	The single area-outline model record of the stage 1 page 2 map picture package, drawn by gameplay's map menu over that page's picture.	
 mappic_s2_00	Five area-outline model records of the stage 2 (Dryfield day) page 1 map picture package, drawn by gameplay's map menu over that page's picture.	
@@ -3742,17 +3742,17 @@ rooms/akropolis/observatory/view4_image	8-bit sheet (two pages) of the 67 occlud
 rooms/akropolis/observatory/view6_image	8-bit sheet (three pages) of the occluder sprites of akropolis_observatory's mapped view 6, the arrival view from the forked road.	
 rooms/akropolis/observatory/view7_image	8-bit sheet (three pages) of the occluder sprites of akropolis_observatory's mapped view 7, the arrival view from the promenade.	
 rooms/akropolis/observatory/view8_image	8-bit sheet (two pages) of the 81 occluder sprites of akropolis_observatory's mapped view 8, which is logical view 2 in room index 2.	
-rooms/akropolis/promenade/dialogue_0_atlas	4-bit caption glyph atlas of acropolis_promenade's dialogue, drawn by gameplay's caption code whenever the room shows text.	
+rooms/akropolis/promenade/dialogue_0_atlas	4-bit caption glyph atlas of akropolis_promenade's dialogue, drawn by gameplay's caption code whenever the room shows text.	
 weapons/grenade_pistol/preview_image	Item preview picture of weapon 0x8A, the Grenade Pistol, drawn in gameplay's item menu panels when that weapon is selected.	
-rooms/akropolis/promenade/image	4-bit acropolis_promenade light sheet: star-glow cores, a rotating flare and ground glow cell, and three lamp cells, drawn additively by the room's star and lamp glow tasks.	
-rooms/akropolis/promenade/view2_image	8-bit sheet (three pages) of the occluder sprites of acropolis_promenade's mapped view 2, 18 of them semi-transparent.	
-rooms/akropolis/promenade/view3_image	8-bit sheet (two pages) of the 17 occluder sprites of acropolis_promenade's mapped view 3.	
-rooms/akropolis/promenade/view4_image	8-bit sheet (two pages) of the 56 occluder sprites of acropolis_promenade's mapped view 4.	
-rooms/akropolis/promenade/view5_image	8-bit sheet (three pages) of the occluder sprites of acropolis_promenade's mapped view 5.	
-rooms/akropolis/promenade/view6_image	8-bit sheet (three pages) of the occluder sprites of acropolis_promenade's mapped view 6, the view of the star glows and screen drips.	
-rooms/akropolis/promenade/view7_image	8-bit sheet (three pages) of the occluder sprites of acropolis_promenade's mapped view 7, five of them semi-transparent.	
-rooms/akropolis/promenade/view8_image	8-bit sheet (two pages) of the 46 occluder sprites of acropolis_promenade's mapped view 8.	
-rooms/akropolis/promenade/view9_image	8-bit sheet (three pages) of the occluder sprites of acropolis_promenade's mapped view 9.	
+rooms/akropolis/promenade/image	4-bit akropolis_promenade light sheet: star-glow cores, a rotating flare and ground glow cell, and three lamp cells, drawn additively by the room's star and lamp glow tasks.	
+rooms/akropolis/promenade/view2_image	8-bit sheet (three pages) of the occluder sprites of akropolis_promenade's mapped view 2, 18 of them semi-transparent.	
+rooms/akropolis/promenade/view3_image	8-bit sheet (two pages) of the 17 occluder sprites of akropolis_promenade's mapped view 3.	
+rooms/akropolis/promenade/view4_image	8-bit sheet (two pages) of the 56 occluder sprites of akropolis_promenade's mapped view 4.	
+rooms/akropolis/promenade/view5_image	8-bit sheet (three pages) of the occluder sprites of akropolis_promenade's mapped view 5.	
+rooms/akropolis/promenade/view6_image	8-bit sheet (three pages) of the occluder sprites of akropolis_promenade's mapped view 6, the view of the star glows and screen drips.	
+rooms/akropolis/promenade/view7_image	8-bit sheet (three pages) of the occluder sprites of akropolis_promenade's mapped view 7, five of them semi-transparent.	
+rooms/akropolis/promenade/view8_image	8-bit sheet (two pages) of the 46 occluder sprites of akropolis_promenade's mapped view 8.	
+rooms/akropolis/promenade/view9_image	8-bit sheet (three pages) of the occluder sprites of akropolis_promenade's mapped view 9.	
 rooms/akropolis/sanctuary/dialogue_0_atlas	4-bit caption glyph atlas of acropolis_sanctuary's dialogue, drawn by gameplay's caption code whenever the room shows text.	
 weapons/mm1/preview_image	Item preview picture of weapon 0x8B, the MM1, drawn in gameplay's item menu panels when that weapon is selected.	
 rooms/akropolis/sanctuary/image	Two-column acropolis_sanctuary sheet: 4-bit flame cells drawn as additive billboards by the flame task (large and small flames; a third variant is never spawned), plus a mosaic column.	
@@ -4641,7 +4641,7 @@ rooms/akropolis/forked_road/sounds_0	Footstep bank of akropolis_forked_road: wal
 rooms/akropolis/forked_road/sounds_1	Acropolis forked road room sound bank: fountain-exit door sounds, the leap-in sound of the scripted Caterpillars (enemies/caterpillar/package_1/102600) and the dormant Grinning Stranger's two random sounds.	
 weapons/mp5a5/sounds	MP5A5 weapon sound bank (weapon 30): primary shot, secondary flash fire, empty-chamber click, reload start and reload load cues.	
 rooms/akropolis/observatory/sounds_0	Footstep bank of akropolis_observatory: walk, scripted-jump and run step sounds on surface class 1.	
-rooms/akropolis/promenade/sounds_0	Footstep bank of acropolis_promenade: walk, stair-climb and run step sounds on surface classes 1, 2 and 4.	The third footstep base is selected for scripted stair climbing (actor mode 2, state 3).
+rooms/akropolis/promenade/sounds_0	Footstep bank of akropolis_promenade: walk, stair-climb and run step sounds on surface classes 1, 2 and 4.	The third footstep base is selected for scripted stair climbing (actor mode 2, state 3).
 rooms/akropolis/promenade/sounds_1	Acropolis promenade room sound bank: door sounds of the sanctuary and bridge warps, two caption-cue one-shots and two sounds of the post-battle scene.	
 rooms/akropolis/sanctuary/sounds_0	Footstep bank of acropolis_sanctuary: walk, scripted-jump and run step sounds on surface classes 1 and 2.	
 rooms/akropolis/sanctuary/sounds_1	Acropolis sanctuary room sound bank: door sounds of the promenade and roof-garden warps and the two sounds of the room's automatic cutscene; the item-lid entries are not reached.	

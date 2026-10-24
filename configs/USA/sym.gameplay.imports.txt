@@ -607,15 +607,15 @@ akropolisPlazaLightGlowTask = 0x80182054; // type:func absolute:True owner=akrop
 
 akropolisPlazaSpawnAmbientLightsTask = 0x8018251C; // type:func absolute:True owner=akropolis_plaza
 
-acropolisPromenadeRoomEffectTask = 0x8017E03C; // type:func absolute:True owner=acropolis_promenade
+akropolisPromenadeRoomEffectTask = 0x8017E03C; // type:func absolute:True owner=akropolis_promenade
 
-acropolisPromenadeScreenDripTask = 0x8017E394; // type:func absolute:True owner=acropolis_promenade shared=rooms
+akropolisPromenadeScreenDripTask = 0x8017E394; // type:func absolute:True owner=akropolis_promenade shared=rooms
 
-acropolisPromenadeGlowStarTask = 0x8017E634; // type:func absolute:True owner=acropolis_promenade
+akropolisPromenadeGlowStarTask = 0x8017E634; // type:func absolute:True owner=akropolis_promenade
 
-acropolisPromenadeGroundGlowTask = 0x8017ED44; // type:func absolute:True owner=acropolis_promenade
+akropolisPromenadeGroundGlowTask = 0x8017ED44; // type:func absolute:True owner=akropolis_promenade
 
-acropolisPromenadeGlowLampTask = 0x8017F0BC; // type:func absolute:True owner=acropolis_promenade
+akropolisPromenadeGlowLampTask = 0x8017F0BC; // type:func absolute:True owner=akropolis_promenade
 
 acropolisRoofGardenAmbientEffectsTask = 0x8017DCDC; // type:func absolute:True owner=acropolis_roof_garden
 
@@ -1411,7 +1411,7 @@ gAkropolisObservatoryAreaVariants = 0x80181264; // absolute:True owner=akropolis
 
 gAkropolisPatioAreaVariants = 0x80184A90; // absolute:True owner=akropolis_patio
 
-gAcropolisPromenadeAreaVariants = 0x80183020; // absolute:True owner=acropolis_promenade shared=rooms
+gAkropolisPromenadeAreaVariants = 0x80183020; // absolute:True owner=akropolis_promenade shared=rooms
 
 gAcropolisRoofGardenAreaVariants = 0x80185934; // absolute:True owner=acropolis_roof_garden
 

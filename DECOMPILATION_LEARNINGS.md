@@ -40610,7 +40610,7 @@ work->scale = (u32)randomBits % 90 + 0x1E;   /* srl; srl, no re-materialised srl
 
 The `(u32)` cast on the use is required: `(u16)` promotes to `int`, which turns
 the divide into the signed `mult 0x5B05B05B` sequence.
-`acropolisPromenadeScreenDripTask` is the example (94.6% -> 99.6%). This is
+`akropolisPromenadeScreenDripTask` is the example (94.6% -> 99.6%). This is
 the same family as "Split an unsigned `%` across two statements to tie the
 remainder to the dividend", but that one only controls which register the
 remainder lands in; this one controls whether the dividend survives at all.
@@ -55155,12 +55155,12 @@ acropolis_promenade = { text = [0x24, 0x2844], ... }
 ```
 
 The function is then named for its real entry point
-(`_acropolisPromenadeUpdateRoomProgress`), ignores its task argument, and reads the global
+(`_akropolisPromenadeUpdateRoomProgress`), ignores its task argument, and reads the global
 the hoisted `lw` was loading.
 
 ## `overlay_dup_index find` reporting no copies does not mean there is no twin
 
-**Problem.** `_acropolisPromenadeMoviePathTask` is a 246-instruction streamed
+**Problem.** `_akropolisPromenadeMoviePathTask` is a 246-instruction streamed
 scene driver. `python3 tools/bulk/overlay_dup_index.py find` reported one body, no
 copies, so the vacuum treated it as a fresh 246-instruction match.
 
@@ -55196,15 +55196,15 @@ back as four separate `dlabel`s. Reading the target asm literally then suggests
 four source arrays, which is wrong and pushes you toward adding symbols to
 `configs/USA/sym/…` that the original never had.
 
-`acropolisPromenadeRoomEffectTask` walks one twelve-entry `SVECTOR` array at
+`akropolisPromenadeRoomEffectTask` walks one twelve-entry `SVECTOR` array at
 `0x80181B14` alongside a twelve-entry `u16` mask table at `0x80181B78`, but the
 disassembly names `D_acropolis_promenade_80181B34` (`+0x20`),
 `_80181B44` (`+0x30`), `_80181B6C` (`+0x58`) and `_80181B8E` (`+0x16` into the
 mask table). Declaring the two arrays once and indexing them,
 
 ```c
-if (_gAcropolisPromenadeLampGlowViewMasks[placementIndex + 4] & viewMask) {
-    effectSpawn(EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW, roomCoord, 1, &_gAcropolisPromenadeLampGlowPositions[placementIndex + 4]);
+if (_gAkropolisPromenadeLampGlowViewMasks[placementIndex + 4] & viewMask) {
+    effectSpawn(EFFECT_AKROPOLIS_PROMENADE_LAMP_GLOW, roomCoord, 1, &_gAkropolisPromenadeLampGlowPositions[placementIndex + 4]);
 }
 ```
 
@@ -55228,7 +55228,7 @@ whether that pseudo needs a copy into the long-lived block register and where
 any unrelated store nearby lands. Both are decided by which of the three
 statements an unrelated store is written between.
 
-`acropolisPromenadeGroundGlowTask` reserves 0x24 bytes and also copies
+`akropolisPromenadeGroundGlowTask` reserves 0x24 bytes and also copies
 `task->spawnArg1.value` into `work->age`. The target is
 
 ```
@@ -55260,7 +55260,7 @@ the copy to survive.
 
 ## An `int` expression stored into a `u16` field narrows its own source load
 
-`acropolisPromenadeGlowLampTask` builds a clut word from a `s32` task field:
+`akropolisPromenadeGlowLampTask` builds a clut word from a `s32` task field:
 
 ```c
 quad->clut = ((task->spawnArg1.value + 2) & 0x3F) | 0x4380;   /* lhu 0x34(s1) */
@@ -55331,7 +55331,7 @@ depthOutput = &block->otz;      /* own pseudo: emits `move $v1, $s6`   */
 gte_stszotz(depthOutput);
 ```
 
-`acropolisPromenadeGlowStarTask` needed exactly this (97.60% -> 98.87%, and
+`akropolisPromenadeGlowStarTask` needed exactly this (97.60% -> 98.87%, and
 `branch` 19 -> 0, since the missing `move` shifted every later branch by 4). The
 pin was not an option there: the target recycles `$v1` for a dozen temps after
 the store, and a function-scope pin would have pushed all of them elsewhere.
@@ -55347,7 +55347,7 @@ When a `POLY_FT4`'s `sb`s come out of the target grouped by value
 C in that order. Do not: that order is the *output* of `sched1`, and feeding it
 back in re-times when each literal is materialised.
 
-`acropolisPromenadeGlowStarTask` stalled at 98.87% written value-grouped —
+`akropolisPromenadeGlowStarTask` stalled at 98.87% written value-grouped —
 the `li 0x10` was hoisted so early that it took `$v0`, which then forced the
 `0xAAAAAAAB` division magic to be materialised after the two `sb`s instead of
 before the `sll`/`addu` LCG chain. Writing the plain `u0, v0, u1, v1, u2, v2,
@@ -59095,7 +59095,7 @@ using the *temp*. The temp lives and dies inside one basic block, so `local_allo
 grabs a call-clobbered register for it before `global_alloc` ever sees that it is
 tied to the variable, and the copy survives. Whether that happens is sensitive to
 unrelated pressure elsewhere in the function — the same tail matched in
-`acropolisPromenadeScreenDripTask`, and deleting an `if`/`else` diamond earlier in
+`akropolisPromenadeScreenDripTask`, and deleting an `if`/`else` diamond earlier in
 this function made it match too.
 
 The fix is to stop the variable from being read a second time: spell the second
@@ -59578,7 +59578,7 @@ first, copy propagation reaches the store anyway.
 `tools/bulk/overlay_dup_index.py find` groups on exact disassembly-text equality, so
 a function that another overlay already has *almost* verbatim is reported as
 having no copies. `acropolisBridgeGlowStarTask` (437 insns) and the already
-matched `acropolisPromenadeGlowStarTask` (452 insns) are the same task with
+matched `akropolisPromenadeGlowStarTask` (452 insns) are the same task with
 the same scratch layout and the same two `POLY_FT4`s; they differ only by a
 handful of redundant stores, which is enough for the index to list each as
 unique.

@@ -91,7 +91,7 @@
 
 #include "rooms/akropolis_plaza.h"
 
-#include "rooms/acropolis_promenade.h"
+#include "rooms/akropolis_promenade.h"
 
 #include "rooms/acropolis_roof_garden.h"
 
@@ -607,8 +607,8 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, akropolisSquareTelephoneLightTask, { NULL } },                                      // 0x047
     { { { TASK_BODY_COORD, 0x70 } }, akropolisSecurityRoomLockLampsTask, { NULL } },                                     // 0x048
     { { { TASK_BODY_COORD, 0x70 } }, akropolisSecurityRoomLockLampTask, { NULL } },                                      // 0x049
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisPromenadeRoomEffectTask, { NULL } },                                       // 0x04A
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisPromenadeGlowStarTask, { NULL } },                                         // 0x04B
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisPromenadeRoomEffectTask, { NULL } },                                       // 0x04A
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisPromenadeGlowStarTask, { NULL } },                                         // 0x04B
     { { { TASK_BODY_COORD, 0x70 } }, actor510900FlameSpriteTask4C, { NULL } },                                           // 0x04C
     { { { TASK_BODY_COORD, 0x70 } }, akropolisPlazaSpawnAmbientLightsTask, { NULL } },                                   // 0x04D
     { { { TASK_BODY_COORD, 0x70 } }, acropolisFireEscapeLightEmitterTask, { NULL } },                                    // 0x04E
@@ -619,8 +619,8 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask53, { NULL } },                                                     // 0x053
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask54, { NULL } },                                                     // 0x054
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask55, { NULL } },                                                     // 0x055
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisPromenadeScreenDripTask, { NULL } },                                       // 0x056
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisPromenadeGroundGlowTask, { NULL } },                                       // 0x057
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisPromenadeScreenDripTask, { NULL } },                                       // 0x056
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisPromenadeGroundGlowTask, { NULL } },                                       // 0x057
     { { { TASK_BODY_COORD, 0x70 } }, neoArkWoodlandPathWaterRippleTask, { NULL } },                                      // 0x058
     { { { TASK_BODY_COORD, 0x70 } }, actor510900FlameSpriteTask59, { NULL } },                                           // 0x059
     { { { TASK_BODY_COORD, 0x70 } }, acropolisHelicopterLandingPadEmberTask, { NULL } },                                 // 0x05A
@@ -631,7 +631,7 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, acropolisHelicopterLandingPadFlareEmitterTask, { NULL } },                          // 0x05F
     { { { TASK_BODY_COORD, 0x70 } }, akropolisCafeteriaInitRoomEffectsTask, { NULL } },                                  // 0x060
     { { { TASK_BODY_COORD, 0x70 } }, akropolisCafeteriaPuffTask, { NULL } },                                             // 0x061
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisPromenadeGlowLampTask, { NULL } },                                         // 0x062
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisPromenadeGlowLampTask, { NULL } },                                         // 0x062
     { { { TASK_BODY_NONE, 0x70 } }, taskKill, { NULL } },                                                                // 0x063
     { { { TASK_BODY_TMD, 0x70 } }, akropolisCafeteriaModelWanderTask, { &gAkropolisCafeteriaWanderingCreatureModel } },  // 0x064
     { { { TASK_BODY_COORD, 0x70 } }, actor510900DebrisStreakTask, { NULL } },                                            // 0x065
