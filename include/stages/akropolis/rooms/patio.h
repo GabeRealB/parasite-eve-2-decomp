@@ -1,5 +1,5 @@
-#ifndef INCLUDE_ROOMS_AKROPOLIS_PATIO_H
-#define INCLUDE_ROOMS_AKROPOLIS_PATIO_H
+#ifndef INCLUDE_STAGES_AKROPOLIS_ROOMS_PATIO_H
+#define INCLUDE_STAGES_AKROPOLIS_ROOMS_PATIO_H
 
 #include "types.h"
 
@@ -60,4 +60,4 @@ void akropolisPatioLightMoteTask(Task* task);
 /// The patio's room task: installs its messages and sets its actors up for the story so far.
 void akropolisPatioRoomTask(Task* task);
 
-#endif // INCLUDE_ROOMS_AKROPOLIS_PATIO_H
+#endif // INCLUDE_STAGES_AKROPOLIS_ROOMS_PATIO_H

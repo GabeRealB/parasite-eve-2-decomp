@@ -1,5 +1,5 @@
-#ifndef INCLUDE_ROOMS_AKROPOLIS_SECURITY_ROOM_H
-#define INCLUDE_ROOMS_AKROPOLIS_SECURITY_ROOM_H
+#ifndef INCLUDE_STAGES_AKROPOLIS_ROOMS_SECURITY_ROOM_H
+#define INCLUDE_STAGES_AKROPOLIS_ROOMS_SECURITY_ROOM_H
 
 #include "types.h"
 
@@ -65,4 +65,4 @@ void akropolisSecurityRoomPowerSupplyTask(Task* task);
 /// Keeps the security room's transition, action and key-item messages available.
 void akropolisSecurityRoomMessageTask(Task* task);
 
-#endif // INCLUDE_ROOMS_AKROPOLIS_SECURITY_ROOM_H
+#endif // INCLUDE_STAGES_AKROPOLIS_ROOMS_SECURITY_ROOM_H

@@ -1,5 +1,5 @@
-#ifndef INCLUDE_ROOMS_AKROPOLIS_SANCTUARY_H
-#define INCLUDE_ROOMS_AKROPOLIS_SANCTUARY_H
+#ifndef INCLUDE_STAGES_AKROPOLIS_ROOMS_SANCTUARY_H
+#define INCLUDE_STAGES_AKROPOLIS_ROOMS_SANCTUARY_H
 
 #include "types.h"
 
@@ -64,4 +64,4 @@ void akropolisSanctuaryRoomTask(Task* task);
 /// Updates the sanctuary placed item's model visibility from its saved state and view.
 void akropolisSanctuaryItemVisibilityTask(Task* task);
 
-#endif // INCLUDE_ROOMS_AKROPOLIS_SANCTUARY_H
+#endif // INCLUDE_STAGES_AKROPOLIS_ROOMS_SANCTUARY_H

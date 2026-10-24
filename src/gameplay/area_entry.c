@@ -1,5 +1,5 @@
 #include "gameplay/area_entry.h"
-#include "rooms/mist_shooting_gallery.h"
+#include "stages/akropolis/rooms/mist_shooting_gallery.h"
 
 #include "types.h"
 

@@ -56,7 +56,7 @@
 
 #include "overlay.h"
 
-#include "rooms/mist_shooting_gallery.h"
+#include "stages/akropolis/rooms/mist_shooting_gallery.h"
 #include "../../shared/walk/paced_walk.h"
 #include "../../shared/room/cap_captions_types.h"
 

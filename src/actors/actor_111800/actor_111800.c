@@ -32,7 +32,7 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-#include "rooms/akropolis_square.h"
+#include "stages/akropolis/rooms/square.h"
 #include "../../shared/actor/actor_contacts.h"
 
 /// Steps of `_Actor111800Work::sequenceStep`, in the order the sequence runs

@@ -1,5 +1,5 @@
-#ifndef INCLUDE_ROOMS_AKROPOLIS_BRIDGE_H
-#define INCLUDE_ROOMS_AKROPOLIS_BRIDGE_H
+#ifndef INCLUDE_STAGES_AKROPOLIS_ROOMS_BRIDGE_H
+#define INCLUDE_STAGES_AKROPOLIS_ROOMS_BRIDGE_H
 
 #include "types.h"
 
@@ -90,4 +90,4 @@ void akropolisBridgeKeypadTask(Task* task);
 /// Runs the bridge room's setup, message-waiting idle state or teardown.
 void akropolisBridgeRoomTask(Task* task);
 
-#endif // INCLUDE_ROOMS_AKROPOLIS_BRIDGE_H
+#endif // INCLUDE_STAGES_AKROPOLIS_ROOMS_BRIDGE_H

@@ -54,7 +54,7 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-#include "rooms/akropolis_helicopter_landing_pad.h"
+#include "stages/akropolis/rooms/helicopter_landing_pad.h"
 #include "../../shared/actor/actor_messages.h"
 
 static void _no9GolemAimHead(const Task* actor);

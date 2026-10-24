@@ -37,7 +37,7 @@
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 
-#include "rooms/mist_parking.h"
+#include "stages/akropolis/rooms/mist_parking.h"
 #include "../../shared/actor/model_placement.h"
 #include "../../shared/actor/actor_messages.h"
 #include "../../shared/actor/actor_motion_walk_helpers.h"

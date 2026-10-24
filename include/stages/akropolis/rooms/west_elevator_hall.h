@@ -1,5 +1,5 @@
-#ifndef INCLUDE_ROOMS_AKROPOLIS_WEST_ELEVATOR_HALL_H
-#define INCLUDE_ROOMS_AKROPOLIS_WEST_ELEVATOR_HALL_H
+#ifndef INCLUDE_STAGES_AKROPOLIS_ROOMS_WEST_ELEVATOR_HALL_H
+#define INCLUDE_STAGES_AKROPOLIS_ROOMS_WEST_ELEVATOR_HALL_H
 
 #include "types.h"
 
@@ -55,4 +55,4 @@ void akropolisWestElevatorHallViewEffectsTask(Task* task);
 /// Runs the west elevator hall's room messages, door leaves and arrival event.
 void akropolisWestElevatorHallRoomTask(Task* task);
 
-#endif // INCLUDE_ROOMS_AKROPOLIS_WEST_ELEVATOR_HALL_H
+#endif // INCLUDE_STAGES_AKROPOLIS_ROOMS_WEST_ELEVATOR_HALL_H

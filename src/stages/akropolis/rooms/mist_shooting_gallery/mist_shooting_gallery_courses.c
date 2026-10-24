@@ -3,7 +3,7 @@
 /* GCC orders BSS by first declaration; keep this prologue before the API headers. */
 s32 gMistShootingGalleryUnscaledBp;
 
-#include "rooms/mist_shooting_gallery.h"
+#include "stages/akropolis/rooms/mist_shooting_gallery.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>

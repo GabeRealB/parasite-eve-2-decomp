@@ -1,4 +1,4 @@
-#include "rooms/akropolis_forked_road.h"
+#include "stages/akropolis/rooms/forked_road.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>

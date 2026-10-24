@@ -1,4 +1,4 @@
-#include "rooms/akropolis_fountain.h"
+#include "stages/akropolis/rooms/fountain.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>

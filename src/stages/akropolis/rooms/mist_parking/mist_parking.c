@@ -1,4 +1,4 @@
-#include "rooms/mist_parking.h"
+#include "stages/akropolis/rooms/mist_parking.h"
 
 #include "config.h"
 
@@ -48,8 +48,6 @@
 #include "main/ui_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
-
-#include "rooms/akropolis_square.h"
 
 #include "rooms/room.h"
 

@@ -60,8 +60,6 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-#include "rooms/akropolis_square.h"
-
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"

@@ -1,4 +1,4 @@
-#include "rooms/akropolis_forked_road.h"
+#include "stages/akropolis/rooms/forked_road.h"
 
 #include "config.h"
 #include "../../event_flags.h"

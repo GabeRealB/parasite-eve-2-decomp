@@ -30,7 +30,7 @@
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 
-#include "rooms/akropolis_plaza.h"
+#include "stages/akropolis/rooms/plaza.h"
 
 #include "assets/rooms/akropolis/plaza/police_officer_schema.h"
 #include "assets/rooms/akropolis/plaza/police_sergeant_schema.h"

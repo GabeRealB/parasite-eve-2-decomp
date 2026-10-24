@@ -1,4 +1,4 @@
-#include "rooms/mist_parking.h"
+#include "stages/akropolis/rooms/mist_parking.h"
 
 #include "../../room_ids.h"
 

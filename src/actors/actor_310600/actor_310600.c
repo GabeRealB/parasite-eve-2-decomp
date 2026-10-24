@@ -31,7 +31,7 @@
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 
-#include "rooms/akropolis_cafeteria.h"
+#include "stages/akropolis/rooms/cafeteria.h"
 #include "../../shared/actor/actor_motion_walk_helpers.h"
 #include "../../shared/actor/model_placement.h"
 #include "../../shared/actor/actor_messages.h"

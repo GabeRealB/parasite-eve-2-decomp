@@ -1,4 +1,4 @@
-#include "rooms/mist_r18.h"
+#include "stages/akropolis/rooms/mist_r18.h"
 
 #include "config.h"
 

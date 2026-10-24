@@ -15,9 +15,9 @@
 #include "main/task_types.h"
 #include "main/wipsys.h"
 
-#include "rooms/akropolis_fire_escape.h"
+#include "stages/akropolis/rooms/fire_escape.h"
 
-#include "rooms/akropolis_square.h"
+#include "stages/akropolis/rooms/square.h"
 
 #include "rooms/dryfield_gas_station.h"
 
@@ -37,7 +37,7 @@
 
 #include "rooms/mine_refuge.h"
 
-#include "rooms/mist_parking.h"
+#include "stages/akropolis/rooms/mist_parking.h"
 
 #include "rooms/shelter_1f_tent.h"
 

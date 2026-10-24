@@ -1,5 +1,5 @@
-#ifndef INCLUDE_ROOMS_AKROPOLIS_HALLWAY_H
-#define INCLUDE_ROOMS_AKROPOLIS_HALLWAY_H
+#ifndef INCLUDE_STAGES_AKROPOLIS_ROOMS_HALLWAY_H
+#define INCLUDE_STAGES_AKROPOLIS_ROOMS_HALLWAY_H
 
 #include "types.h"
 
@@ -50,4 +50,4 @@ void akropolisHallwayRoomTask(Task* task);
 /// Shows the hallway Blue Key pickup only in mapped view 5 until collected.
 void akropolisHallwayBlueKeyPickupTask(Task* task);
 
-#endif // INCLUDE_ROOMS_AKROPOLIS_HALLWAY_H
+#endif // INCLUDE_STAGES_AKROPOLIS_ROOMS_HALLWAY_H

@@ -44,7 +44,7 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-#include "rooms/mist_shooting_gallery.h"
+#include "stages/akropolis/rooms/mist_shooting_gallery.h"
 
 /* The package holds two tasks. The gallery's controller spawns a mount, which
  * counts as one of its live targets; the mount spawns the target it carries as

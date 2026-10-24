@@ -1,4 +1,4 @@
-#include "rooms/akropolis_observatory.h"
+#include "stages/akropolis/rooms/observatory.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>

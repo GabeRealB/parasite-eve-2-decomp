@@ -18,11 +18,11 @@
 #include "main/session.h"
 #include "main/task.h"
 
-#include "rooms/akropolis_bridge.h"
+#include "stages/akropolis/rooms/bridge.h"
 
-#include "rooms/akropolis_fountain.h"
+#include "stages/akropolis/rooms/fountain.h"
 
-#include "rooms/akropolis_helicopter_landing_pad.h"
+#include "stages/akropolis/rooms/helicopter_landing_pad.h"
 
 #include "rooms/shelter_b4_reservoir.h"
 

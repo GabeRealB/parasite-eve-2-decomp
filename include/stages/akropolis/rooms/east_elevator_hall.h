@@ -1,5 +1,5 @@
-#ifndef INCLUDE_ROOMS_AKROPOLIS_EAST_ELEVATOR_HALL_H
-#define INCLUDE_ROOMS_AKROPOLIS_EAST_ELEVATOR_HALL_H
+#ifndef INCLUDE_STAGES_AKROPOLIS_ROOMS_EAST_ELEVATOR_HALL_H
+#define INCLUDE_STAGES_AKROPOLIS_ROOMS_EAST_ELEVATOR_HALL_H
 
 #include "types.h"
 
@@ -60,4 +60,4 @@ void akropolisEastElevatorHallPointTileTask(Task* task);
 /// The hall's room task: installs its messages and starts the placed figure.
 void akropolisEastElevatorHallRoomTask(Task* task);
 
-#endif // INCLUDE_ROOMS_AKROPOLIS_EAST_ELEVATOR_HALL_H
+#endif // INCLUDE_STAGES_AKROPOLIS_ROOMS_EAST_ELEVATOR_HALL_H

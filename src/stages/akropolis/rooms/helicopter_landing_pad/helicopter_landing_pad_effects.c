@@ -1,4 +1,4 @@
-#include "rooms/akropolis_helicopter_landing_pad.h"
+#include "stages/akropolis/rooms/helicopter_landing_pad.h"
 
 #include "../../room_ids.h"
 

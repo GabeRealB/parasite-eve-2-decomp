@@ -1,5 +1,5 @@
-#ifndef INCLUDE_ROOMS_AKROPOLIS_HELICOPTER_LANDING_PAD_H
-#define INCLUDE_ROOMS_AKROPOLIS_HELICOPTER_LANDING_PAD_H
+#ifndef INCLUDE_STAGES_AKROPOLIS_ROOMS_HELICOPTER_LANDING_PAD_H
+#define INCLUDE_STAGES_AKROPOLIS_ROOMS_HELICOPTER_LANDING_PAD_H
 
 #include "types.h"
 
@@ -95,4 +95,4 @@ void akropolisHelicopterLandingPadRoomTask(Task* task);
 /// Selects the placed pickup model's draw and buffer policy from its saved object state.
 void akropolisHelicopterLandingPadPickupModelTask(Task* task);
 
-#endif // INCLUDE_ROOMS_AKROPOLIS_HELICOPTER_LANDING_PAD_H
+#endif // INCLUDE_STAGES_AKROPOLIS_ROOMS_HELICOPTER_LANDING_PAD_H

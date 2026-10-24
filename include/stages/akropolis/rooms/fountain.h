@@ -1,5 +1,5 @@
-#ifndef INCLUDE_ROOMS_AKROPOLIS_FOUNTAIN_H
-#define INCLUDE_ROOMS_AKROPOLIS_FOUNTAIN_H
+#ifndef INCLUDE_STAGES_AKROPOLIS_ROOMS_FOUNTAIN_H
+#define INCLUDE_STAGES_AKROPOLIS_ROOMS_FOUNTAIN_H
 
 #include "types.h"
 
@@ -62,4 +62,4 @@ void akropolisFountainClimbTask(Task* task);
 /// Runs the fountain's room-message receiver and restores its climb interaction.
 void akropolisFountainRoomTask(Task* task);
 
-#endif // INCLUDE_ROOMS_AKROPOLIS_FOUNTAIN_H
+#endif // INCLUDE_STAGES_AKROPOLIS_ROOMS_FOUNTAIN_H

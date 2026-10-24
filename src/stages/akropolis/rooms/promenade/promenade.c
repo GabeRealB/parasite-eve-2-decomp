@@ -1,4 +1,4 @@
-#include "rooms/akropolis_promenade.h"
+#include "stages/akropolis/rooms/promenade.h"
 
 #include "config.h"
 #include "../../event_flags.h"

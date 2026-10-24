@@ -1,5 +1,5 @@
 #include "gameplay/companion_load.h"
-#include "rooms/akropolis_plaza.h"
+#include "stages/akropolis/rooms/plaza.h"
 
 #include "common.h"
 

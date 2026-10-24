@@ -1,5 +1,5 @@
-#ifndef INCLUDE_ROOMS_AKROPOLIS_SQUARE_H
-#define INCLUDE_ROOMS_AKROPOLIS_SQUARE_H
+#ifndef INCLUDE_STAGES_AKROPOLIS_ROOMS_SQUARE_H
+#define INCLUDE_STAGES_AKROPOLIS_ROOMS_SQUARE_H
 
 #include "types.h"
 
@@ -63,4 +63,4 @@ void akropolisSquarePlayerReflectionTask(Task* reflectionTask);
 /// The square's room task: installs its messages and starts the arrival scene.
 void akropolisSquareRoomTask(Task* task);
 
-#endif // INCLUDE_ROOMS_AKROPOLIS_SQUARE_H
+#endif // INCLUDE_STAGES_AKROPOLIS_ROOMS_SQUARE_H

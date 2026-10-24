@@ -70,7 +70,7 @@
 
 #include "rooms/dryfield_night_motel_room_6.h"
 
-#include "rooms/mist_shooting_gallery.h"
+#include "stages/akropolis/rooms/mist_shooting_gallery.h"
 
 #include "rooms/neo_ark_bridge.h"
 

@@ -1,4 +1,4 @@
-#include "rooms/akropolis_sanctuary.h"
+#include "stages/akropolis/rooms/sanctuary.h"
 
 #include "config.h"
 #include "../../event_flags.h"

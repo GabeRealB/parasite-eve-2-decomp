@@ -1,4 +1,4 @@
-#include "rooms/akropolis_plaza.h"
+#include "stages/akropolis/rooms/plaza.h"
 
 #include "config.h"
 #include "../../room_ids.h"

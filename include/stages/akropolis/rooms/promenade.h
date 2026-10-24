@@ -1,5 +1,5 @@
-#ifndef INCLUDE_ROOMS_AKROPOLIS_PROMENADE_H
-#define INCLUDE_ROOMS_AKROPOLIS_PROMENADE_H
+#ifndef INCLUDE_STAGES_AKROPOLIS_ROOMS_PROMENADE_H
+#define INCLUDE_STAGES_AKROPOLIS_ROOMS_PROMENADE_H
 
 #include "types.h"
 
@@ -56,4 +56,4 @@ void akropolisPromenadeGlowLampTask(Task* task);
 /// Runs the promenade's room messages, arrival scene and battle follow-up.
 void akropolisPromenadeRoomTask(Task* task);
 
-#endif // INCLUDE_ROOMS_AKROPOLIS_PROMENADE_H
+#endif // INCLUDE_STAGES_AKROPOLIS_ROOMS_PROMENADE_H

@@ -35,15 +35,15 @@
 
 #include "kyle/kyle_800102.h"
 
-#include "rooms/akropolis_bridge.h"
+#include "stages/akropolis/rooms/bridge.h"
 
-#include "rooms/akropolis_cafeteria.h"
+#include "stages/akropolis/rooms/cafeteria.h"
 
-#include "rooms/akropolis_fountain.h"
+#include "stages/akropolis/rooms/fountain.h"
 
-#include "rooms/akropolis_helicopter_landing_pad.h"
+#include "stages/akropolis/rooms/helicopter_landing_pad.h"
 
-#include "rooms/akropolis_security_room.h"
+#include "stages/akropolis/rooms/security_room.h"
 
 #include "weapons/as12.h"
 

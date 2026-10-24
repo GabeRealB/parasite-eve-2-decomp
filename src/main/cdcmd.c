@@ -31,7 +31,7 @@
 
 #include "mapui/map_neo_ark.h"
 
-#include "rooms/akropolis_plaza.h"
+#include "stages/akropolis/rooms/plaza.h"
 
 /// Retained auxiliary-heap reservation for the current location's movie workspace.
 ///

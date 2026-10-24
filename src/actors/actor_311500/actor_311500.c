@@ -47,7 +47,7 @@
 
 #include "overlay.h"
 
-#include "rooms/akropolis_fire_escape.h"
+#include "stages/akropolis/rooms/fire_escape.h"
 #include "../../shared/actor/actor_contacts.h"
 
 /// Task phases of this package's stationary enemy.

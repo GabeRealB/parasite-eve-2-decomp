@@ -1,5 +1,5 @@
-#ifndef INCLUDE_ROOMS_AKROPOLIS_CAFETERIA_H
-#define INCLUDE_ROOMS_AKROPOLIS_CAFETERIA_H
+#ifndef INCLUDE_STAGES_AKROPOLIS_ROOMS_CAFETERIA_H
+#define INCLUDE_STAGES_AKROPOLIS_ROOMS_CAFETERIA_H
 
 #include "types.h"
 
@@ -94,4 +94,4 @@ void akropolisCafeteriaMendelPickupTask(Task* task);
 /// Draws the placed Stim pickup in mapped view 9 and retires it after collection.
 void akropolisCafeteriaStimPickupTask(Task* task);
 
-#endif // INCLUDE_ROOMS_AKROPOLIS_CAFETERIA_H
+#endif // INCLUDE_STAGES_AKROPOLIS_ROOMS_CAFETERIA_H

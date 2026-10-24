@@ -1,4 +1,4 @@
-#include "rooms/akropolis_cafeteria.h"
+#include "stages/akropolis/rooms/cafeteria.h"
 #include "cafeteria_private.h"
 
 #include <psyq/sys/types.h>

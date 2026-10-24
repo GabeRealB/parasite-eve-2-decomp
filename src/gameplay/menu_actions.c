@@ -43,11 +43,11 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-#include "rooms/akropolis_east_elevator_hall.h"
+#include "stages/akropolis/rooms/east_elevator_hall.h"
 
-#include "rooms/akropolis_square.h"
+#include "stages/akropolis/rooms/square.h"
 
-#include "rooms/akropolis_west_elevator_hall.h"
+#include "stages/akropolis/rooms/west_elevator_hall.h"
 
 #include "rooms/dryfield_motel_room_6.h"
 
@@ -59,7 +59,7 @@
 
 #include "rooms/dryfield_trailer_coach.h"
 
-#include "rooms/mist_parking.h"
+#include "stages/akropolis/rooms/mist_parking.h"
 
 #include "rooms/shelter_1f_heliport.h"
 

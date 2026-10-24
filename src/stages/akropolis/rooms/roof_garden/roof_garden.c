@@ -1,4 +1,4 @@
-#include "rooms/akropolis_roof_garden.h"
+#include "stages/akropolis/rooms/roof_garden.h"
 
 #include "config.h"
 #include "../../event_flags.h"

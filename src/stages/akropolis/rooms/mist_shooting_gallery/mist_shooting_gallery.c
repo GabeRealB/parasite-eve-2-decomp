@@ -1,4 +1,4 @@
-#include "rooms/mist_shooting_gallery.h"
+#include "stages/akropolis/rooms/mist_shooting_gallery.h"
 
 #include "config.h"
 #include "../../event_flags.h"

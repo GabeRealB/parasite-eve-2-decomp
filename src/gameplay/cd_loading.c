@@ -24,37 +24,37 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
-#include "rooms/akropolis_bridge.h"
+#include "stages/akropolis/rooms/bridge.h"
 
-#include "rooms/akropolis_cafeteria.h"
+#include "stages/akropolis/rooms/cafeteria.h"
 
-#include "rooms/akropolis_east_elevator_hall.h"
+#include "stages/akropolis/rooms/east_elevator_hall.h"
 
-#include "rooms/akropolis_fire_escape.h"
+#include "stages/akropolis/rooms/fire_escape.h"
 
-#include "rooms/akropolis_forked_road.h"
+#include "stages/akropolis/rooms/forked_road.h"
 
-#include "rooms/akropolis_fountain.h"
+#include "stages/akropolis/rooms/fountain.h"
 
-#include "rooms/akropolis_hallway.h"
+#include "stages/akropolis/rooms/hallway.h"
 
-#include "rooms/akropolis_helicopter_landing_pad.h"
+#include "stages/akropolis/rooms/helicopter_landing_pad.h"
 
-#include "rooms/akropolis_observatory.h"
+#include "stages/akropolis/rooms/observatory.h"
 
-#include "rooms/akropolis_patio.h"
+#include "stages/akropolis/rooms/patio.h"
 
-#include "rooms/akropolis_plaza.h"
+#include "stages/akropolis/rooms/plaza.h"
 
-#include "rooms/akropolis_promenade.h"
+#include "stages/akropolis/rooms/promenade.h"
 
-#include "rooms/akropolis_roof_garden.h"
+#include "stages/akropolis/rooms/roof_garden.h"
 
-#include "rooms/akropolis_sanctuary.h"
+#include "stages/akropolis/rooms/sanctuary.h"
 
-#include "rooms/akropolis_security_room.h"
+#include "stages/akropolis/rooms/security_room.h"
 
-#include "rooms/akropolis_square.h"
+#include "stages/akropolis/rooms/square.h"
 
 #include "rooms/dryfield_back_street.h"
 
@@ -188,11 +188,11 @@
 
 #include "rooms/mine_tunnel_entrance.h"
 
-#include "rooms/mist_parking.h"
+#include "stages/akropolis/rooms/mist_parking.h"
 
-#include "rooms/mist_r18.h"
+#include "stages/akropolis/rooms/mist_r18.h"
 
-#include "rooms/mist_shooting_gallery.h"
+#include "stages/akropolis/rooms/mist_shooting_gallery.h"
 
 #include "rooms/neo_ark_bridge.h"
 

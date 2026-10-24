@@ -1,5 +1,5 @@
-#ifndef INCLUDE_ROOMS_AKROPOLIS_OBSERVATORY_H
-#define INCLUDE_ROOMS_AKROPOLIS_OBSERVATORY_H
+#ifndef INCLUDE_STAGES_AKROPOLIS_ROOMS_OBSERVATORY_H
+#define INCLUDE_STAGES_AKROPOLIS_ROOMS_OBSERVATORY_H
 
 #include "types.h"
 
@@ -55,4 +55,4 @@ void akropolisObservatoryAmbientGlowTask(Task* task);
 /// Runs the observatory's room messages and arrival scene gates.
 void akropolisObservatoryRoomTask(Task* task);
 
-#endif // INCLUDE_ROOMS_AKROPOLIS_OBSERVATORY_H
+#endif // INCLUDE_STAGES_AKROPOLIS_ROOMS_OBSERVATORY_H

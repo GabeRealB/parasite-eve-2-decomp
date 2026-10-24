@@ -49,8 +49,6 @@
 
 #include "mapui/map_dryfield_full.h"
 
-#include "rooms/akropolis_square.h"
-
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"

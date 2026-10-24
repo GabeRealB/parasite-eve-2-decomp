@@ -1,5 +1,5 @@
-#ifndef INCLUDE_ROOMS_AKROPOLIS_FORKED_ROAD_H
-#define INCLUDE_ROOMS_AKROPOLIS_FORKED_ROAD_H
+#ifndef INCLUDE_STAGES_AKROPOLIS_ROOMS_FORKED_ROAD_H
+#define INCLUDE_STAGES_AKROPOLIS_ROOMS_FORKED_ROAD_H
 
 #include "types.h"
 
@@ -59,4 +59,4 @@ void akropolisForkedRoadLeafFallTask(Task* task);
 /// Runs the forked road's room messages and return-arrival scene gate.
 void akropolisForkedRoadRoomTask(Task* task);
 
-#endif // INCLUDE_ROOMS_AKROPOLIS_FORKED_ROAD_H
+#endif // INCLUDE_STAGES_AKROPOLIS_ROOMS_FORKED_ROAD_H

@@ -1,4 +1,4 @@
-#include "rooms/akropolis_fire_escape.h"
+#include "stages/akropolis/rooms/fire_escape.h"
 
 #include "config.h"
 #include "../../event_flags.h"
@@ -55,8 +55,6 @@
 #include "main/text.h"
 #include "main/ui.h"
 #include "main/ui_types.h"
-
-#include "rooms/akropolis_square.h"
 
 #include "rooms/room.h"
 

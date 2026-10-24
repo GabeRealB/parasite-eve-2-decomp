@@ -1,5 +1,5 @@
-#ifndef INCLUDE_ROOMS_AKROPOLIS_FIRE_ESCAPE_H
-#define INCLUDE_ROOMS_AKROPOLIS_FIRE_ESCAPE_H
+#ifndef INCLUDE_STAGES_AKROPOLIS_ROOMS_FIRE_ESCAPE_H
+#define INCLUDE_STAGES_AKROPOLIS_ROOMS_FIRE_ESCAPE_H
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
@@ -77,4 +77,4 @@ void akropolisFireEscapeLightEmitterTask(Task* task);
 /// Runs the fire escape's room messages and actor interaction check.
 void akropolisFireEscapeRoomTask(Task* task);
 
-#endif // INCLUDE_ROOMS_AKROPOLIS_FIRE_ESCAPE_H
+#endif // INCLUDE_STAGES_AKROPOLIS_ROOMS_FIRE_ESCAPE_H

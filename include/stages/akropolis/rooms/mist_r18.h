@@ -1,5 +1,5 @@
-#ifndef INCLUDE_ROOMS_MIST_R18_H
-#define INCLUDE_ROOMS_MIST_R18_H
+#ifndef INCLUDE_STAGES_AKROPOLIS_ROOMS_MIST_R18_H
+#define INCLUDE_STAGES_AKROPOLIS_ROOMS_MIST_R18_H
 
 #include "types.h"
 
@@ -41,4 +41,4 @@ extern WorldCollisionSurfaceProperties* gMistR18SurfacePropertiesByClass[8];
 /// Runs the MIST briefing and its key-item menu before departure to Dryfield.
 void mistR18BriefingTask(Task* task);
 
-#endif // INCLUDE_ROOMS_MIST_R18_H
+#endif // INCLUDE_STAGES_AKROPOLIS_ROOMS_MIST_R18_H

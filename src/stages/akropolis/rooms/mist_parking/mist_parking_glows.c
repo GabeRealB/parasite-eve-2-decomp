@@ -1,4 +1,4 @@
-#include "rooms/mist_parking.h"
+#include "stages/akropolis/rooms/mist_parking.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>

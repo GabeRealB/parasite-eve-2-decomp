@@ -1,5 +1,5 @@
-#ifndef INCLUDE_ROOMS_MIST_PARKING_H
-#define INCLUDE_ROOMS_MIST_PARKING_H
+#ifndef INCLUDE_STAGES_AKROPOLIS_ROOMS_MIST_PARKING_H
+#define INCLUDE_STAGES_AKROPOLIS_ROOMS_MIST_PARKING_H
 
 #include "types.h"
 
@@ -73,4 +73,4 @@ void mistParkingDrawGlowsTask(Task* unused);
 /// Runs the parking-lot room's message receiver and arrival conversation setup.
 void mistParkingRoomTask(Task* task);
 
-#endif // INCLUDE_ROOMS_MIST_PARKING_H
+#endif // INCLUDE_STAGES_AKROPOLIS_ROOMS_MIST_PARKING_H

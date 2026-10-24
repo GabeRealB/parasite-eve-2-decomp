@@ -1,5 +1,5 @@
-#ifndef INCLUDE_ROOMS_AKROPOLIS_ROOF_GARDEN_H
-#define INCLUDE_ROOMS_AKROPOLIS_ROOF_GARDEN_H
+#ifndef INCLUDE_STAGES_AKROPOLIS_ROOMS_ROOF_GARDEN_H
+#define INCLUDE_STAGES_AKROPOLIS_ROOMS_ROOF_GARDEN_H
 
 #include "types.h"
 
@@ -62,4 +62,4 @@ void akropolisRoofGardenRoomTask(Task* task);
 /// Selects the roof-garden pickup model's visibility from its saved state and view.
 void akropolisRoofGardenPickupModelTask(Task* task);
 
-#endif // INCLUDE_ROOMS_AKROPOLIS_ROOF_GARDEN_H
+#endif // INCLUDE_STAGES_AKROPOLIS_ROOMS_ROOF_GARDEN_H

@@ -4,7 +4,7 @@
 
 #include "types.h"
 
-#include "rooms/mist_parking.h"
+#include "stages/akropolis/rooms/mist_parking.h"
 
 #include "gameplay/actor_presentation.h"
 #include "gameplay/animation.h"

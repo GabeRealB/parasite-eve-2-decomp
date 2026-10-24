@@ -1,5 +1,5 @@
-#ifndef INCLUDE_ROOMS_AKROPOLIS_PLAZA_H
-#define INCLUDE_ROOMS_AKROPOLIS_PLAZA_H
+#ifndef INCLUDE_STAGES_AKROPOLIS_ROOMS_PLAZA_H
+#define INCLUDE_STAGES_AKROPOLIS_ROOMS_PLAZA_H
 
 #include "types.h"
 
@@ -134,4 +134,4 @@ void akropolisPlazaLightFlareTask(Task* task);
 /// at a saved position, then polls it. Only the plaza issues these, so main calls into this overlay for them.
 void akropolisPlazaPollStreamCommands(void);
 
-#endif // INCLUDE_ROOMS_AKROPOLIS_PLAZA_H
+#endif // INCLUDE_STAGES_AKROPOLIS_ROOMS_PLAZA_H

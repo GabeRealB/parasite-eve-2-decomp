@@ -19,7 +19,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 
-#include "rooms/mist_shooting_gallery.h"
+#include "stages/akropolis/rooms/mist_shooting_gallery.h"
 
 TaskDesc gActor215100GalleryDecisionTaskDescs[2] = {
     { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, actor215100GalleryExitDecisionTask, { .value = 0 } },
