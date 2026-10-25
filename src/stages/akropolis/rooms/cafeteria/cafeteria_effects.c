@@ -64,9 +64,9 @@
 #include "assets/rooms/akropolis/cafeteria/declarations.inc"
 
 /// Placed pickup state after collection, shared by this room's model hooks.
-enum { AKROPOLIS_CAFETERIA_PICKUP_COLLECTED = 2 };
+enum { PICKUP_COLLECTED = 2 };
 
-/// Phases of the loose-prop task, held in `_AkropolisCafeteriaLoosePropWork::phase`.
+/// Phases of the loose-prop task, held in `_LoosePropWork::phase`.
 enum {
     AKROPOLIS_CAFETERIA_LOOSE_PROP_RESTING,  // Waiting for anything to touch the body
     AKROPOLIS_CAFETERIA_LOOSE_PROP_HOPPING,  // Knocked upwards: the lift wears off while the prop spins and slides
@@ -83,8 +83,8 @@ typedef struct {
     SVECTOR               rotation;      // Euler angles (4096 per turn) the model's rotation is rebuilt from every frame
     SVECTOR               kickDirection; // Player's forward axis at the contact, normalised to 4096
     u16                   phase;         // An `AKROPOLIS_CAFETERIA_LOOSE_PROP_*` phase
-} _AkropolisCafeteriaLoosePropWork;
-STATIC_ASSERT_SIZEOF(_AkropolisCafeteriaLoosePropWork, 0xD8);
+} _LoosePropWork;
+STATIC_ASSERT_SIZEOF(_LoosePropWork, 0xD8);
 
 extern SVECTOR ActorContact_ScratchPosition;
 
@@ -707,10 +707,10 @@ void akropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task)
     /// Places a loose model above the player with a positive-Z offset and links its sphere.
     static void _akropolisCafeteriaLoosePropInit(Task * task)
     {
-        TmdObject*                        model;
-        GfxCoord*                         coord;
-        _AkropolisCafeteriaLoosePropWork* work;
-        GfxCoord*                         playerCoord;
+        TmdObject*      model;
+        GfxCoord*       coord;
+        _LoosePropWork* work;
+        GfxCoord*       playerCoord;
 
         model = task->extra.tmd;
         coord = model->coords;
@@ -747,7 +747,7 @@ void akropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task)
     }
 
     /// Dampens the loose prop's horizontal velocity and advances its motion phase at rest.
-    static inline void _akropolisCafeteriaDampLoosePropSlide(_AkropolisCafeteriaLoosePropWork * work)
+    static inline void _akropolisCafeteriaDampLoosePropSlide(_LoosePropWork * work)
     {
         enum { SLIDE_STOP_SPEED = 9 }; // Exclusive magnitude threshold after damping, in world units per tick.
 
@@ -767,11 +767,11 @@ void akropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task)
     /// Sinks the loose prop and handles its contact-driven hop, slide and leveling.
     static void _akropolisCafeteriaLoosePropUpdate(Task * task)
     {
-        MATRIX*                           scratchEnd;
-        _AkropolisCafeteriaLoosePropWork* work;
-        GfxCoord*                         coord;
-        SVECTOR*                          kickDirection;
-        s32                               launchMagnitude;
+        MATRIX*         scratchEnd;
+        _LoosePropWork* work;
+        GfxCoord*       coord;
+        SVECTOR*        kickDirection;
+        s32             launchMagnitude;
 
         scratchEnd                   = SCRATCH_STACK_CURSOR(MATRIX);
         SCRATCH_STACK_CURSOR(MATRIX) = scratchEnd - 1;
@@ -845,7 +845,7 @@ void akropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task)
     /// Unlinks the initialized loose prop's sphere before teardown frees its work and model.
     static void _akropolisCafeteriaLoosePropExit(Task * task)
     {
-        _AkropolisCafeteriaLoosePropWork* work;
+        _LoosePropWork* work;
 
         work = task->work;
         worldCollisionUnlinkBody(&work->body);
@@ -884,7 +884,7 @@ void akropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task)
 
         placement = task->spawnArg2.pointer;
         model     = task->extra.tmd;
-        if (areaGetCurrentObjectState((u8)placement->placeKey) != AKROPOLIS_CAFETERIA_PICKUP_COLLECTED) {
+        if (areaGetCurrentObjectState((u8)placement->placeKey) != PICKUP_COLLECTED) {
             model->lightMtx = &_gAkropolisCafeteriaMendelPickupLightMatrix;
             model->colorMtx = &_gAkropolisCafeteriaMendelPickupColorMatrix;
             model->flags    = 0;
@@ -926,7 +926,7 @@ void akropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task)
         model->lightMtx = &_gAkropolisCafeteriaStimPickupLightMatrix;
         model->colorMtx = &_gAkropolisCafeteriaStimPickupColorMatrix;
         // Retire collected placements only in the active view; buffer allocation retries otherwise.
-        if (placeState == AKROPOLIS_CAFETERIA_PICKUP_COLLECTED) {
+        if (placeState == PICKUP_COLLECTED) {
             model->flags &= (u16)~TMD_OBJECT_FLAGGED_PASS;
             taskCallExit(task);
         } else {
@@ -950,7 +950,7 @@ void akropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task)
         }
         model->lightMtx = &_gAkropolisCafeteriaObject10LightMatrix;
         model->colorMtx = &_gAkropolisCafeteriaObject10ColorMatrix;
-        if (areaGetCurrentObjectState(OBJECT_FLAG_INDEX) == AKROPOLIS_CAFETERIA_PICKUP_COLLECTED) {
+        if (areaGetCurrentObjectState(OBJECT_FLAG_INDEX) == PICKUP_COLLECTED) {
             model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         } else {
             model->flags    = TMD_OBJECT_FLAGGED_PASS;
@@ -981,7 +981,7 @@ void akropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task)
                 model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 return;
         }
-        if (areaGetCurrentObjectState(OBJECT_FLAG_INDEX) == AKROPOLIS_CAFETERIA_PICKUP_COLLECTED) {
+        if (areaGetCurrentObjectState(OBJECT_FLAG_INDEX) == PICKUP_COLLECTED) {
             model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         } else {
             model->flags    = TMD_OBJECT_FLAGGED_PASS;

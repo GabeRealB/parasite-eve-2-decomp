@@ -1,5 +1,5 @@
-#ifndef SRC_ROOMS_AKROPOLIS_CAFETERIA_AKROPOLIS_CAFETERIA_PRIVATE_H
-#define SRC_ROOMS_AKROPOLIS_CAFETERIA_AKROPOLIS_CAFETERIA_PRIVATE_H
+#ifndef STAGES_AKROPOLIS_ROOMS_CAFETERIA_PRIVATE_H
+#define STAGES_AKROPOLIS_ROOMS_CAFETERIA_PRIVATE_H
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
@@ -69,4 +69,4 @@ enum { AKROPOLIS_CAFETERIA_MESSAGE_SET_PUFF_ENABLED = 3000 };
 /// Sets the cafeteria puff gate and creates an emitter for each nonzero request.
 s32 akropolisCafeteriaSetPuffEnabled(Task* task, s32 messageId, s32 enabled, s32 unused);
 
-#endif // SRC_ROOMS_AKROPOLIS_CAFETERIA_AKROPOLIS_CAFETERIA_PRIVATE_H
+#endif // STAGES_AKROPOLIS_ROOMS_CAFETERIA_PRIVATE_H
