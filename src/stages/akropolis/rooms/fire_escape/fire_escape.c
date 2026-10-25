@@ -587,6 +587,8 @@ void akropolisFireEscapeFlickerLightTask(Task* task)
     }
 }
 
+/// The pulsing flare of `pulsing_flare.inc.c`, in the copy the fire escape kept: the diamond's height is the inner
+/// radius, and the streaks queue the last quad again instead of themselves.
 void akropolisFireEscapeFlareTask(Task* task)
 {
     enum {

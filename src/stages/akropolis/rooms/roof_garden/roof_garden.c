@@ -74,13 +74,6 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
 }
 
 /// Initializes a flare quad's command and colors, with vertex 2 lit and a black rim.
-#define AKROPOLIS_ROOF_GARDEN_INIT_FLARE_QUAD(quad, red, green) \
-    ((void)(setPolyG4((quad)),                                  \
-            setRGB0((quad), 0, 0, 0),                           \
-            setRGB1((quad), 0, 0, 0),                           \
-            setRGB2((quad), (red), (green), 0),                 \
-            setRGB3((quad), 0, 0, 0)))
-
 static void _akropolisRoofGardenInitializeRoomTask(Task* task);
 static void _akropolisRoofGardenStartArrivalScene(Task* task);
 
@@ -590,177 +583,12 @@ void akropolisRoofGardenLightGlowTask(Task* task)
     }
 }
 
-/// Initializes a two-segment Gouraud flare streak fading from its center to black.
-static inline void _akropolisRoofGardenInitFlareStreak(LINE_G3* streak, u8 centerRed, u8 centerGreen)
-{
-    setLineG3(streak);
-    setRGB0(streak, 0, 0, 0);
-    setRGB1(streak, centerRed, centerGreen, 0);
-    setRGB2(streak, 0, 0, 0);
-}
-
-/// Queues a flare packet and prepends its additive draw mode at the same depth.
-static inline void _akropolisRoofGardenQueueFlare(void* primitive, const s32* depthWord)
-{
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(*depthWord),
-            primitive);
-    // Prepending the draw mode after the primitive makes the GPU apply it first.
-    gpuSetPrimitiveBlendMode(primitive, GPU_BLEND_ADD, *depthWord);
-}
-
-void akropolisRoofGardenFlareTask(Task* task)
-{
-    enum {
-        AKROPOLIS_ROOF_GARDEN_FLARE_PULSE_RATE_MASK      = 0xFF,
-        AKROPOLIS_ROOF_GARDEN_FLARE_RADIUS_SHIFT         = 8,
-        AKROPOLIS_ROOF_GARDEN_FLARE_RADIUS_MASK          = 0xFF,
-        AKROPOLIS_ROOF_GARDEN_FLARE_GREEN_SHIFT          = 16,
-        AKROPOLIS_ROOF_GARDEN_FLARE_STREAKS              = 0x10000000,
-        AKROPOLIS_ROOF_GARDEN_FLARE_PULSE_FALLING        = 0x80,
-        AKROPOLIS_ROOF_GARDEN_FLARE_PULSE_LEVEL_MASK     = 0x7F,
-        AKROPOLIS_ROOF_GARDEN_FLARE_OUTER_RADIUS_SHIFT   = 10,
-        AKROPOLIS_ROOF_GARDEN_FLARE_INNER_RADIUS_SHIFT   = 7,
-        AKROPOLIS_ROOF_GARDEN_FLARE_DIAMOND_RADIUS_SHIFT = 9,
-        AKROPOLIS_ROOF_GARDEN_FLARE_CIRCLE_STEPS         = 16,
-        AKROPOLIS_ROOF_GARDEN_FLARE_DEPTH_TO_TAG_SHIFT   = 4,
-        AKROPOLIS_ROOF_GARDEN_FLARE_DEPTH_TAG_MASK       = GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*gGpuCurrentOt),
-    };
-    GfxCoord*             coord;
-    EffectWork*           work;
-    RoomGlowRadiiScratch* projection;
-    POLY_G4*              quad;
-    LINE_G3*              streak;
-    s32                   partIndex;
-    s32                   pulsePhase;
-    s32                   pulseOrOptions; // Folded pulse level, then packed spawn options.
-    s32                   radiusScale;
-    s16                   intensity;
-    s16                   green;
-    s16                   halfIntensity;
-
-    coord = task->extra.coordBody->coord;
-    work  = task->spawnArg2.pointer;
-    // Draw one projected frame before retiring the counted work and task.
-    actorRenderComposeCoord(coord);
-    projection              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowRadiiScratch);
-    projection->worldPos.vx = coord->workm.t[0];
-    projection->worldPos.vy = coord->workm.t[1];
-    projection->worldPos.vz = coord->workm.t[2];
-
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&projection->worldPos);
-    gte_rtps();
-    gte_stsxy(&projection->screenPos);
-    gte_stszotz(&projection->otz);
-    if (projection->otz >= GLOW_MIN_DEPTH) {
-        // Fold the phase into a 0..127 triangle wave, then select red or green.
-        pulsePhase  = gDisplayState.animFrame;
-        pulsePhase *= task->spawnArg1.value & AKROPOLIS_ROOF_GARDEN_FLARE_PULSE_RATE_MASK;
-        green       = (task->spawnArg1.value >> AKROPOLIS_ROOF_GARDEN_FLARE_GREEN_SHIFT) & 1;
-        if (pulsePhase & AKROPOLIS_ROOF_GARDEN_FLARE_PULSE_FALLING) {
-            pulseOrOptions = ~pulsePhase & AKROPOLIS_ROOF_GARDEN_FLARE_PULSE_LEVEL_MASK;
-        } else {
-            pulseOrOptions = pulsePhase & AKROPOLIS_ROOF_GARDEN_FLARE_PULSE_LEVEL_MASK;
-        }
-        intensity      = pulseOrOptions * 2;
-        pulseOrOptions = task->spawnArg1.value;
-        if (pulseOrOptions < 0) {
-            // Layer two concentric wedge fans and four half-bright rays.
-            radiusScale             = (pulseOrOptions >> AKROPOLIS_ROOF_GARDEN_FLARE_RADIUS_SHIFT) & AKROPOLIS_ROOF_GARDEN_FLARE_RADIUS_MASK;
-            projection->outerRadius = (radiusScale << AKROPOLIS_ROOF_GARDEN_FLARE_OUTER_RADIUS_SHIFT) / projection->otz;
-            projection->innerRadius = (radiusScale << AKROPOLIS_ROOF_GARDEN_FLARE_INNER_RADIUS_SHIFT) / projection->otz;
-            for (partIndex = 0; partIndex < AKROPOLIS_ROOF_GARDEN_FLARE_CIRCLE_STEPS; partIndex += 2) {
-                quad           = gGpuPrimCursor;
-                gGpuPrimCursor = quad + 1;
-                AKROPOLIS_ROOF_GARDEN_INIT_FLARE_QUAD(quad, (intensity * (green ^ 1)) >> 1, (green * intensity) >> 1);
-                quad->x0 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisRoofGardenFlareSineSamples[partIndex + 4]) >> GLOW_TRIG_SHIFT);
-                quad->y0 = projection->screenPos.vy + ((projection->outerRadius * _gAkropolisRoofGardenFlareSineSamples[partIndex]) >> GLOW_TRIG_SHIFT);
-                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisRoofGardenFlareSineSamples[partIndex + 5]) >> GLOW_TRIG_SHIFT);
-                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * _gAkropolisRoofGardenFlareSineSamples[partIndex + 1]) >> GLOW_TRIG_SHIFT);
-                quad->x2 = projection->screenPos.vx;
-                quad->y2 = projection->screenPos.vy;
-                quad->x3 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisRoofGardenFlareSineSamples[partIndex + 6]) >> GLOW_TRIG_SHIFT);
-                quad->y3 = projection->screenPos.vy + ((projection->outerRadius * _gAkropolisRoofGardenFlareSineSamples[partIndex + 2]) >> GLOW_TRIG_SHIFT);
-                _akropolisRoofGardenQueueFlare(quad, &projection->otz);
-
-                quad           = gGpuPrimCursor;
-                gGpuPrimCursor = quad + 1;
-                AKROPOLIS_ROOF_GARDEN_INIT_FLARE_QUAD(quad, intensity * (green ^ 1), green * intensity);
-                quad->x0 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisRoofGardenFlareSineSamples[partIndex + 4]) >> (GLOW_TRIG_SHIFT + 1));
-                quad->y0 = projection->screenPos.vy + ((projection->outerRadius * _gAkropolisRoofGardenFlareSineSamples[partIndex]) >> (GLOW_TRIG_SHIFT + 1));
-                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisRoofGardenFlareSineSamples[partIndex + 5]) >> (GLOW_TRIG_SHIFT + 1));
-                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * _gAkropolisRoofGardenFlareSineSamples[partIndex + 1]) >> (GLOW_TRIG_SHIFT + 1));
-                quad->x2 = projection->screenPos.vx;
-                quad->y2 = projection->screenPos.vy;
-                quad->x3 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisRoofGardenFlareSineSamples[partIndex + 6]) >> (GLOW_TRIG_SHIFT + 1));
-                quad->y3 = projection->screenPos.vy + ((projection->outerRadius * _gAkropolisRoofGardenFlareSineSamples[partIndex + 2]) >> (GLOW_TRIG_SHIFT + 1));
-                _akropolisRoofGardenQueueFlare(quad, &projection->otz);
-            }
-            // The first ray fetches light-view mask 8 (16) through sine index -2.
-            halfIntensity = intensity >> 1;
-            for (partIndex = 2; partIndex < AKROPOLIS_ROOF_GARDEN_FLARE_CIRCLE_STEPS; partIndex += 8) {
-                quad           = gGpuPrimCursor;
-                gGpuPrimCursor = quad + 1;
-                AKROPOLIS_ROOF_GARDEN_INIT_FLARE_QUAD(quad, halfIntensity * (green ^ 1), green * halfIntensity);
-                quad->x0 = projection->screenPos.vx + ((projection->innerRadius * _gAkropolisRoofGardenFlareSineSamples[partIndex]) >> GLOW_TRIG_SHIFT);
-                quad->y0 = projection->screenPos.vy + ((projection->innerRadius * _gAkropolisRoofGardenFlareSineSamples[partIndex - 4]) >> GLOW_TRIG_SHIFT);
-                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisRoofGardenFlareSineSamples[partIndex + 4]) >> (GLOW_TRIG_SHIFT - 1));
-                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * _gAkropolisRoofGardenFlareSineSamples[partIndex]) >> (GLOW_TRIG_SHIFT - 1));
-                quad->x2 = projection->screenPos.vx;
-                quad->y2 = projection->screenPos.vy;
-                quad->x3 = projection->screenPos.vx + ((projection->innerRadius * _gAkropolisRoofGardenFlareSineSamples[partIndex + 8]) >> GLOW_TRIG_SHIFT);
-                quad->y3 = projection->screenPos.vy + ((projection->innerRadius * _gAkropolisRoofGardenFlareSineSamples[partIndex + 4]) >> GLOW_TRIG_SHIFT);
-                _akropolisRoofGardenQueueFlare(quad, &projection->otz);
-
-                quad           = gGpuPrimCursor;
-                gGpuPrimCursor = quad + 1;
-                AKROPOLIS_ROOF_GARDEN_INIT_FLARE_QUAD(quad, halfIntensity * (green ^ 1), green * halfIntensity);
-                quad->x0 = projection->screenPos.vx + ((projection->innerRadius * _gAkropolisRoofGardenFlareSineSamples[partIndex + 4]) >> (GLOW_TRIG_SHIFT + 1));
-                quad->y0 = projection->screenPos.vy + ((projection->innerRadius * _gAkropolisRoofGardenFlareSineSamples[partIndex]) >> (GLOW_TRIG_SHIFT + 1));
-                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisRoofGardenFlareSineSamples[partIndex + 8]) >> GLOW_TRIG_SHIFT);
-                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * _gAkropolisRoofGardenFlareSineSamples[partIndex + 4]) >> GLOW_TRIG_SHIFT);
-                quad->x2 = projection->screenPos.vx;
-                quad->y2 = projection->screenPos.vy;
-                quad->x3 = projection->screenPos.vx + ((projection->innerRadius * _gAkropolisRoofGardenFlareSineSamples[partIndex + 12]) >> (GLOW_TRIG_SHIFT + 1));
-                quad->y3 = projection->screenPos.vy + ((projection->innerRadius * _gAkropolisRoofGardenFlareSineSamples[partIndex + 8]) >> (GLOW_TRIG_SHIFT + 1));
-                _akropolisRoofGardenQueueFlare(quad, &projection->otz);
-            }
-        } else {
-            projection->outerRadius = (((pulseOrOptions >> AKROPOLIS_ROOF_GARDEN_FLARE_RADIUS_SHIFT) & AKROPOLIS_ROOF_GARDEN_FLARE_RADIUS_MASK) << AKROPOLIS_ROOF_GARDEN_FLARE_DIAMOND_RADIUS_SHIFT) / projection->otz;
-            for (partIndex = 0; partIndex < 2; partIndex++) {
-                quad           = gGpuPrimCursor;
-                gGpuPrimCursor = quad + 1;
-                AKROPOLIS_ROOF_GARDEN_INIT_FLARE_QUAD(quad, intensity * (green ^ 1), green * intensity);
-                quad->x0 = projection->screenPos.vx - projection->outerRadius;
-                quad->x1 = quad->x2 = projection->screenPos.vx;
-                quad->x3            = projection->screenPos.vx + projection->outerRadius;
-                quad->y0 = quad->y2 = quad->y3 = projection->screenPos.vy;
-                quad->y1                       = (projection->screenPos.vy - projection->outerRadius) + projection->outerRadius * (partIndex + partIndex);
-                addPrim((&gGpuCurrentOt[((u32)projection->otz << gDisplayState.otDepthShift) >> AKROPOLIS_ROOF_GARDEN_FLARE_DEPTH_TO_TAG_SHIFT & AKROPOLIS_ROOF_GARDEN_FLARE_DEPTH_TAG_MASK]),
-                        quad);
-                gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, projection->otz);
-            }
-            // Optional streaks cross at the diamond center.
-            if (task->spawnArg1.value & AKROPOLIS_ROOF_GARDEN_FLARE_STREAKS) {
-                for (partIndex = 0; partIndex < 2; partIndex++) {
-                    streak         = gGpuPrimCursor;
-                    gGpuPrimCursor = streak + 1;
-                    _akropolisRoofGardenInitFlareStreak(streak, intensity * (green ^ 1), green * intensity);
-                    streak->x0 = projection->screenPos.vx + projection->outerRadius * (partIndex * 3 - 1);
-                    streak->y0 = projection->screenPos.vy - projection->outerRadius * (partIndex + 1);
-                    streak->x1 = projection->screenPos.vx;
-                    streak->y1 = projection->screenPos.vy;
-                    streak->x2 = projection->screenPos.vx - projection->outerRadius * (partIndex * 3 - 1);
-                    streak->y2 = projection->screenPos.vy + projection->outerRadius * (partIndex + 1);
-                    _akropolisRoofGardenQueueFlare(streak, &projection->otz);
-                }
-            }
-        }
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomGlowRadiiScratch);
-    effectKillTask(work, task);
-}
+#define PULSING_FLARE_TASK                         akropolisRoofGardenFlareTask
+#define PULSING_FLARE_SINE_SAMPLES                 _gAkropolisRoofGardenFlareSineSamples
+#define PULSING_FLARE_BLUE(level)                  0 // The second color is green
+#define PULSING_FLARE_OUTER_RADIUS(scale, options) ((scale) << 10)
+#define PULSING_FLARE_INNER_RADIUS(scale, options) ((scale) << 7)
+#include "../../../../shared/effects/pulsing_flare.inc.c"
 
 #undef AKROPOLIS_ROOF_GARDEN_INIT_FLARE_QUAD
 
