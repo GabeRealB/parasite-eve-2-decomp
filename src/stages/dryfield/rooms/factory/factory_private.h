@@ -20,8 +20,8 @@
  * `DRYFIELD_DAY` or `DRYFIELD_NIGHT` for each.
  */
 
-#ifndef STAGES_DRYFIELD_ROOMS_FACTORY_PRIVATE_H
-#define STAGES_DRYFIELD_ROOMS_FACTORY_PRIVATE_H
+#ifndef STAGES_DRYFIELD_ROOMS_FACTORY_FACTORY_PRIVATE_H
+#define STAGES_DRYFIELD_ROOMS_FACTORY_FACTORY_PRIVATE_H
 
 #include "types.h"
 
@@ -410,4 +410,4 @@ static s32 _factoryHatchOpen(Task* task);
 static s32 _factoryHatchClose(Task* task);
 static s32 _factoryHatchWatch(Task* task);
 
-#endif /* STAGES_DRYFIELD_ROOMS_FACTORY_PRIVATE_H */
+#endif /* STAGES_DRYFIELD_ROOMS_FACTORY_FACTORY_PRIVATE_H */

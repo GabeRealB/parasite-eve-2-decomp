@@ -1,5 +1,5 @@
-#ifndef SRC_ROOMS_AKROPOLIS_FORKED_ROAD_AKROPOLIS_FORKED_ROAD_PRIVATE_H
-#define SRC_ROOMS_AKROPOLIS_FORKED_ROAD_AKROPOLIS_FORKED_ROAD_PRIVATE_H
+#ifndef STAGES_AKROPOLIS_ROOMS_FORKED_ROAD_FORKED_ROAD_PRIVATE_H
+#define STAGES_AKROPOLIS_ROOMS_FORKED_ROAD_FORKED_ROAD_PRIVATE_H
 
 #include "gameplay/evs.h"
 
@@ -21,4 +21,4 @@ extern TaskDesc gAkropolisForkedRoadMovieTaskDescriptors[AKROPOLIS_FORKED_ROAD_M
 /// Once-only encounter sequence after the second security lock is released.
 extern EvsCommand gAkropolisForkedRoadLockReleaseScript[8];
 
-#endif // SRC_ROOMS_AKROPOLIS_FORKED_ROAD_AKROPOLIS_FORKED_ROAD_PRIVATE_H
+#endif // STAGES_AKROPOLIS_ROOMS_FORKED_ROAD_FORKED_ROAD_PRIVATE_H

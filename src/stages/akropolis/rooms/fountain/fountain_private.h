@@ -1,5 +1,5 @@
-#ifndef SRC_ROOMS_AKROPOLIS_FOUNTAIN_AKROPOLIS_FOUNTAIN_PRIVATE_H
-#define SRC_ROOMS_AKROPOLIS_FOUNTAIN_AKROPOLIS_FOUNTAIN_PRIVATE_H
+#ifndef STAGES_AKROPOLIS_ROOMS_FOUNTAIN_FOUNTAIN_PRIVATE_H
+#define STAGES_AKROPOLIS_ROOMS_FOUNTAIN_FOUNTAIN_PRIVATE_H
 
 #include "types.h"
 
@@ -12,4 +12,4 @@ extern u8 gAkropolisFountainPatioRequestedRoom;
 /// Replaces the fountain's inspection trigger with its enabled climb interaction.
 void akropolisFountainEnableClimbTrigger(void);
 
-#endif // SRC_ROOMS_AKROPOLIS_FOUNTAIN_AKROPOLIS_FOUNTAIN_PRIVATE_H
+#endif // STAGES_AKROPOLIS_ROOMS_FOUNTAIN_FOUNTAIN_PRIVATE_H

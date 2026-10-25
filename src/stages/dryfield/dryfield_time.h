@@ -1,5 +1,5 @@
-#ifndef SRC_SHARED_DRYFIELD_TIME_H
-#define SRC_SHARED_DRYFIELD_TIME_H
+#ifndef STAGES_DRYFIELD_DRYFIELD_TIME_H
+#define STAGES_DRYFIELD_DRYFIELD_TIME_H
 
 /// Selects the daytime Dryfield instance of included room code.
 ///
@@ -43,4 +43,4 @@
 #define DRYFIELD_STAGE_SOUND(id) (0x53000000 | (id))
 #endif
 
-#endif /* SRC_SHARED_DRYFIELD_TIME_H */
+#endif /* STAGES_DRYFIELD_DRYFIELD_TIME_H */

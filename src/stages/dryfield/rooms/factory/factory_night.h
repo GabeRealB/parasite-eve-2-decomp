@@ -1,5 +1,5 @@
-#ifndef SRC_STAGES_DRYFIELD_ROOMS_FACTORY_NIGHT_H
-#define SRC_STAGES_DRYFIELD_ROOMS_FACTORY_NIGHT_H
+#ifndef STAGES_DRYFIELD_ROOMS_FACTORY_FACTORY_NIGHT_H
+#define STAGES_DRYFIELD_ROOMS_FACTORY_FACTORY_NIGHT_H
 
 #include "gameplay/collision.h"
 #include "gameplay/room.h"
@@ -241,4 +241,4 @@ extern SpriteBatch gDryfieldNightFactoryView18And19SpriteBatches[6];
 
 // Callbacks referenced by the overlay's shared data tables.
 
-#endif // SRC_STAGES_DRYFIELD_ROOMS_FACTORY_NIGHT_H
+#endif // STAGES_DRYFIELD_ROOMS_FACTORY_FACTORY_NIGHT_H

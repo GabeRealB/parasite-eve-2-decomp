@@ -1,5 +1,5 @@
-#ifndef SRC_ROOMS_MIST_PARKING_MIST_PARKING_PRIVATE_H
-#define SRC_ROOMS_MIST_PARKING_MIST_PARKING_PRIVATE_H
+#ifndef STAGES_AKROPOLIS_ROOMS_MIST_PARKING_MIST_PARKING_PRIVATE_H
+#define STAGES_AKROPOLIS_ROOMS_MIST_PARKING_MIST_PARKING_PRIVATE_H
 
 #include "common.h"
 
@@ -246,4 +246,4 @@ void mistParkingSetConversationProgress(s32 progress);
 /// Runs the arrival conversation's delayed model-pitch animation while actors are running.
 void mistParkingCutsceneModelPitchTask(Task* task);
 
-#endif // SRC_ROOMS_MIST_PARKING_MIST_PARKING_PRIVATE_H
+#endif // STAGES_AKROPOLIS_ROOMS_MIST_PARKING_MIST_PARKING_PRIVATE_H
