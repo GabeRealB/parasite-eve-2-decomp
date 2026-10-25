@@ -39,7 +39,7 @@ enum {
 /// and its task moves on to its teardown.
 enum { ADVANCE_FRAMES = 0x5A };
 
-/// Mapped camera indices and the seen bit for the security-monitor figures.
+/// The mapped views of the two figures' monitors.
 enum {
     RUPERT_VIEW = 0xA,
     SWAT_VIEW   = 0xB,
@@ -62,7 +62,7 @@ typedef struct {
     MATRIX         color;         // Light-colour matrix lent to the model object
     s16            advanceFrames; // Ticks the figure has moved forward for; reaching `ADVANCE_FRAMES` ends its scene
     s16            advancing;     // Set once the figure's view has been shown, never cleared (0 standing where it was placed, 1 moving forward every tick)
-    u8             clutGreyStep;  // Step of the palette greying (`SECURITY_MONITORS_CLUT_GREY_*`)
+    u8             clutGreyStep;  // Step of the palette greying (`CLUT_GREY_*`)
 } _Work;
 STATIC_ASSERT_SIZEOF(_Work, 0x4CC);
 
@@ -73,7 +73,7 @@ static void _securityMonitorsUpdateSwat(Enemy* enemy, Task* task);
 static s32  _actorMovementStepForwardNonzero(GfxCoord* coord, s16 stepDistance);
 static void _securityMonitorsInitRupertLighting(Task* task);
 static void _securityMonitorsInitSwatLighting(Task* task);
-static void _securityMonitorsTickPaletteGreying(Task* task, s32 clutRowOffset, s16 firstPaletteRow);
+static void _securityMonitorsTickPaletteGreying(Task* task, s32 clutRowOffset, s16 workspaceRow);
 static void _securityMonitorsUpdateAnimation(Task* task);
 
 static TmdSource _gRupertBody;
@@ -105,18 +105,18 @@ TaskDesc gSecurityMonitorsRupertTaskDesc = {
     .data     = { .model = &_gRupertBody },
 };
 
-/// Palette read-back and greying workspace shared by this package's two figures.
+/// Palette read-back and greying workspace: rows 0-1 Rupert's, 2-3 the SWAT member's.
 static u16 _gSecurityMonitorsGreyPaletteRows[4][256];
 
-/// Greys a figure's two adjacent texture palettes over three calls.
-static void _securityMonitorsTickPaletteGreying(Task* task, s32 clutRowOffset, s16 firstPaletteRow)
+/// Greys a figure's two palette rows over three calls, through two rows of the shared workspace.
+static void _securityMonitorsTickPaletteGreying(Task* task, s32 clutRowOffset, s16 workspaceRow)
 {
     enum {
-        BASE_Y       = 0xF5,
-        CHANNEL_MASK = 0x1F,
-        GREEN_SHIFT  = 5,
-        BLUE_SHIFT   = 10,
-        CLUT_STP     = 0x8000,
+        FIRST_ACTOR_PALETTE_ROW = 0xF5, // Row 245, before the placement's row offset
+        CHANNEL_MASK            = 0x1F,
+        GREEN_SHIFT             = 5,
+        BLUE_SHIFT              = 10,
+        CLUT_STP                = 0x8000,
     };
     RECT   rect;
     _Work* work;
@@ -153,36 +153,36 @@ static void _securityMonitorsTickPaletteGreying(Task* task, s32 clutRowOffset, s
     // Separate GPU read-back, CPU conversion and upload across successive ticks.
     if (work->clutGreyStep == CLUT_GREY_READ) {
         rect.x = 0;
-        rect.y = clutRowOffset + BASE_Y;
+        rect.y = clutRowOffset + FIRST_ACTOR_PALETTE_ROW;
         rect.w = ARRAY_SIZE(_gSecurityMonitorsGreyPaletteRows[0]);
         rect.h = 1;
-        StoreImage2(&rect, (u_long*)_gSecurityMonitorsGreyPaletteRows[firstPaletteRow]);
+        StoreImage2(&rect, (u_long*)_gSecurityMonitorsGreyPaletteRows[workspaceRow]);
         rect.x = 0;
-        rect.y = clutRowOffset + BASE_Y + 1;
+        rect.y = clutRowOffset + FIRST_ACTOR_PALETTE_ROW + 1;
         rect.w = ARRAY_SIZE(_gSecurityMonitorsGreyPaletteRows[0]);
         rect.h = 1;
-        StoreImage2(&rect, (u_long*)_gSecurityMonitorsGreyPaletteRows[firstPaletteRow + 1]);
+        StoreImage2(&rect, (u_long*)_gSecurityMonitorsGreyPaletteRows[workspaceRow + 1]);
         work->clutGreyStep = CLUT_GREY_CONVERT;
     } else if (work->clutGreyStep == CLUT_GREY_CONVERT) {
         for (entryIndex = 0; entryIndex < ARRAY_SIZE(_gSecurityMonitorsGreyPaletteRows[0]); entryIndex++) {
-            GREY_CLUT_ENTRY(_gSecurityMonitorsGreyPaletteRows[firstPaletteRow][entryIndex]);
+            GREY_CLUT_ENTRY(_gSecurityMonitorsGreyPaletteRows[workspaceRow][entryIndex]);
         }
         for (entryIndex = 0; entryIndex < ARRAY_SIZE(_gSecurityMonitorsGreyPaletteRows[0]); entryIndex++) {
-            GREY_CLUT_ENTRY(_gSecurityMonitorsGreyPaletteRows[firstPaletteRow + 1][entryIndex]);
+            GREY_CLUT_ENTRY(_gSecurityMonitorsGreyPaletteRows[workspaceRow + 1][entryIndex]);
         }
 #undef GREY_CLUT_ENTRY
         work->clutGreyStep = CLUT_GREY_UPLOAD;
     } else if (work->clutGreyStep == CLUT_GREY_UPLOAD) {
         rect.x = 0;
-        rect.y = clutRowOffset + BASE_Y;
+        rect.y = clutRowOffset + FIRST_ACTOR_PALETTE_ROW;
         rect.w = ARRAY_SIZE(_gSecurityMonitorsGreyPaletteRows[0]);
         rect.h = 1;
-        LoadImage2(&rect, (u_long*)_gSecurityMonitorsGreyPaletteRows[firstPaletteRow]);
+        LoadImage2(&rect, (u_long*)_gSecurityMonitorsGreyPaletteRows[workspaceRow]);
         rect.x = 0;
-        rect.y = clutRowOffset + BASE_Y + 1;
+        rect.y = clutRowOffset + FIRST_ACTOR_PALETTE_ROW + 1;
         rect.w = ARRAY_SIZE(_gSecurityMonitorsGreyPaletteRows[0]);
         rect.h = 1;
-        LoadImage2(&rect, (u_long*)_gSecurityMonitorsGreyPaletteRows[firstPaletteRow + 1]);
+        LoadImage2(&rect, (u_long*)_gSecurityMonitorsGreyPaletteRows[workspaceRow + 1]);
         work->clutGreyStep = CLUT_GREY_DONE;
     }
 }
@@ -315,7 +315,7 @@ static void _securityMonitorsUpdateRupert(Enemy* enemy, Task* task)
     enum {
         ADVANCE_DISTANCE = 0x24, // Parent-coordinate units per tick
         CLUT_ROW_OFFSET  = 2,
-        PALETTE_ROW      = 0,
+        WORKSPACE_ROW    = 0,
     };
     _Work*     work;
     GfxCoord*  rootCoord;
@@ -324,7 +324,7 @@ static void _securityMonitorsUpdateRupert(Enemy* enemy, Task* task)
     model     = task->extra.tmd;
     work      = task->work;
     rootCoord = model->coords;
-    _securityMonitorsTickPaletteGreying(task, CLUT_ROW_OFFSET, PALETTE_ROW);
+    _securityMonitorsTickPaletteGreying(task, CLUT_ROW_OFFSET, WORKSPACE_ROW);
     if ((viewGetMappedIndex() & 0xFF) == RUPERT_VIEW) {
         gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_MONITOR_SCENES_SEEN, gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_MONITOR_SCENES_SEEN) | AKROPOLIS_MONITOR_RUPERT_SCENE_SEEN);
         model->flags    = 0;
@@ -385,12 +385,12 @@ static void _securityMonitorsUpdateSwat(Enemy* enemy, Task* task)
 {
     enum {
         CLUT_ROW_OFFSET = 4,
-        PALETTE_ROW     = 2,
+        WORKSPACE_ROW   = 2,
     };
     TmdObject* model;
 
     model = task->extra.tmd;
-    _securityMonitorsTickPaletteGreying(task, CLUT_ROW_OFFSET, PALETTE_ROW);
+    _securityMonitorsTickPaletteGreying(task, CLUT_ROW_OFFSET, WORKSPACE_ROW);
     if ((viewGetMappedIndex() & 0xFF) == SWAT_VIEW) {
         model->flags = 0;
     } else {
