@@ -64,6 +64,7 @@
 
 #include "rooms/room_common.h"
 #include "../../../../shared/room/room_cutscene.h"
+#include "../../../../shared/effects/glow_draw.h"
 
 #include "assets/rooms/akropolis/square/declarations.inc"
 
@@ -91,7 +92,7 @@ static s32  _akropolisSquareHandleSoundCue(Task* unusedTask, s32 unusedMessageId
 static s32  _akropolisSquareSetTelephoneLightMode(Task* unusedTask, s32 unusedMessageId, s32 glowMode, s32 unusedSecondArg);
 static void _akropolisSquareTelephoneRingTask(Task* task);
 static void _akropolisSquareScrollingBackdropTask(Task* task);
-static void _akropolisSquareCapViewSequenceTask(Task* task);
+static void _akropolisSquareMapBoardSequenceTask(Task* task);
 static void _akropolisSquareControlScrollingBackdrop(s32 action);
 
 #include "../../../../shared/room/planar_reflection_data.inc.c"
@@ -129,11 +130,11 @@ static TaskMessageEntry _gAkropolisSquareRoomMessages[6] = {
 
 #define ROOM_PART _gAkropolisSquareArrivalWeaponAnimation
 #include "assets/rooms/akropolis/square/events.inc"
-/// Room tasks: the telephone ring (0), the CAP view sequence (1, never spawned)
+/// Room tasks: the telephone ring (0), the map board sequence (1, never spawned)
 /// and the scrolling backdrop (2).
 static TaskDesc _gAkropolisSquareSequenceTaskDescs[3] = {
     { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _akropolisSquareTelephoneRingTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _akropolisSquareCapViewSequenceTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _akropolisSquareMapBoardSequenceTask, { .value = 0 } },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _akropolisSquareScrollingBackdropTask, { .value = 0 } },
 };
 
@@ -145,8 +146,8 @@ static s32 _gAkropolisSquareArrivalEventStarted = 0;
 
 /// Actions of the scrolling backdrop, sent by the arrival scene's script.
 enum {
-    AKROPOLIS_SQUARE_BACKDROP_ACTION_START = 0,
-    AKROPOLIS_SQUARE_BACKDROP_ACTION_STOP  = 1,
+    BACKDROP_ACTION_START = 0,
+    BACKDROP_ACTION_STOP  = 1,
 };
 
 #define ROOM_PART _gAkropolisSquareTelephoneSceneScript
@@ -158,10 +159,10 @@ static s32 _gAkropolisSquareSoundCueScripts[9] = {
     SOUND_SCRIPT_REQUEST_NO_OP,
     SOUND_SCRIPT_REQUEST_NO_OP,
     SOUND_SCRIPT_REQUEST_NO_OP,
-    AKROPOLIS_SQUARE_SOUND(AKROPOLIS_SQUARE_SOUND_SCRIPT_CUE_5),
+    AKROPOLIS_SQUARE_SOUND(AKROPOLIS_SQUARE_SOUND_AMMO_BOX_OPEN),
     AKROPOLIS_SQUARE_SOUND(AKROPOLIS_SQUARE_SOUND_CALL_SCENE),
     AKROPOLIS_SQUARE_SOUND(AKROPOLIS_SQUARE_SOUND_CALL_END),
-    AKROPOLIS_SQUARE_SOUND(AKROPOLIS_SQUARE_SOUND_SCRIPT_CUE_8),
+    AKROPOLIS_SQUARE_SOUND(AKROPOLIS_SQUARE_SOUND_AMMO_BOX_CLOSE),
 };
 
 /// Messages of the room effect task. The first glow ray reads this table's
@@ -240,6 +241,21 @@ static const TaskFuncTable3 _gAkropolisSquareRoomStates = {
     },
 };
 
+/// Misses the call: it goes unheard, and the story's dialogue moves on.
+static inline void _akropolisSquareMarkCallMissed(void)
+{
+    gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
+    gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, AKROPOLIS_STORY_DIALOGUE_LATE);
+}
+
+/// Leaving while the phone rings misses the call.
+static inline void _akropolisSquareMissCall(const RoomEventMsg* request)
+{
+    if (_gAkropolisSquareTelephoneCallPending && !request->queryOnly) {
+        _akropolisSquareMarkCallMissed();
+    }
+}
+
 /// Resolves the square's exits. Leaving by the forked road or the east elevator
 /// while the phone rings misses the call; the elevators are closed once the
 /// cafeteria boss is dead; the forked road and the patio pick their room state.
@@ -253,10 +269,8 @@ static s32 _akropolisSquareResolveRoomTransition(Task* unusedTask, s32 unusedMes
     *reply                 = *request;
 
     if (request->areaId == AKROPOLIS_ROOM_ID_FORKED_ROAD) {
-        if (_gAkropolisSquareTelephoneCallPending && !request->queryOnly) {
-            gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
-            gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, AKROPOLIS_STORY_DIALOGUE_LATE);
-        }
+        _akropolisSquareMissCall(request);
+        // The repeated test is the original's; the code needs it.
         if (request->areaId == AKROPOLIS_ROOM_ID_FORKED_ROAD) {
             if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_PANEL_KEYS) & AKROPOLIS_SECURITY_ROOM_PANEL_KEY_BLUE_INSERTED) {
                 reply->roomState = AKROPOLIS_ROOM_STATE_FORKED_ROAD_ESCALATOR_OPERATIONAL;
@@ -266,16 +280,14 @@ static s32 _akropolisSquareResolveRoomTransition(Task* unusedTask, s32 unusedMes
     }
 
     if (request->areaId == AKROPOLIS_ROOM_ID_EAST_ELEVATOR_HALL) {
-        if (_gAkropolisSquareTelephoneCallPending && !request->queryOnly) {
-            gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
-            gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, AKROPOLIS_STORY_DIALOGUE_LATE);
-        }
+        _akropolisSquareMissCall(request);
+        // Both elevators repeat this check inline; a shared helper does not keep the original's branches.
         if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) < AKROPOLIS_CAFETERIA_ROUTE_BOSS_DEFEATED) {
             return ROOM_EVENT_DEPART;
         }
         if ((gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) == AKROPOLIS_CAFETERIA_ROUTE_BOSS_DEFEATED) || (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) >= AKROPOLIS_CAFETERIA_ROUTE_MIST_CONTACTED)) {
             if (!request->queryOnly) {
-                // Mark the map and show the blocked-exit caption, retaining the exit.
+                // Mark the map and say "It won't open!", keeping the player in the square.
                 do {
                     gameFlagSetNibbleIfPresent(request->flagId, EVENT_FLAG_MAP_DOOR_LOCKED);
                     capRunCommandWithTransition(AKROPOLIS_SQUARE_ELEVATOR_BLOCKED_CAP_COMMAND);
@@ -291,7 +303,7 @@ static s32 _akropolisSquareResolveRoomTransition(Task* unusedTask, s32 unusedMes
         }
         if ((gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) == AKROPOLIS_CAFETERIA_ROUTE_BOSS_DEFEATED) || (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) >= AKROPOLIS_CAFETERIA_ROUTE_MIST_CONTACTED)) {
             if (!request->queryOnly) {
-                // Mark the map and show the blocked-exit caption, retaining the exit.
+                // Mark the map and say "It won't open!", keeping the player in the square.
                 do {
                     gameFlagSetNibbleIfPresent(request->flagId, EVENT_FLAG_MAP_DOOR_LOCKED);
                     capRunCommandWithTransition(AKROPOLIS_SQUARE_ELEVATOR_BLOCKED_CAP_COMMAND);
@@ -335,7 +347,7 @@ static inline void _akropolisSquareStartRoomCutscene(void)
     taskSpawnFromTable(_gRoomCutsceneTaskDescs, AKROPOLIS_SQUARE_CUTSCENE_TASK_ENTRY, AKROPOLIS_SQUARE_CUTSCENE_FOLLOWUP, &_gAkropolisSquareCutsceneRec.rec);
 }
 
-/// Room commands: 2 answers the telephone, 14 and 16 show one-time hints.
+/// Room commands: 2 answers the telephone; 14 (near the ammo box) and 16 (at the stairs) show one-time hints.
 static s32 _akropolisSquareHandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg)
 {
     s32 hintCommand;
@@ -343,20 +355,21 @@ static s32 _akropolisSquareHandleRoomCommand(Task* unusedTask, s32 unusedMessage
     if (command == AKROPOLIS_SQUARE_ROOM_COMMAND_CUTSCENE) {
         _akropolisSquareStartRoomCutscene();
     }
-    if ((command == AKROPOLIS_SQUARE_ROOM_COMMAND_HINT_14) && (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SQUARE_AMMO_BOX_HINT_SEEN) == 0)) {
+    if ((command == AKROPOLIS_SQUARE_ROOM_COMMAND_AMMO_BOX_HINT) && (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SQUARE_AMMO_BOX_HINT_SEEN) == 0)) {
         gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_SQUARE_AMMO_BOX_HINT_SEEN, 1);
-        capSpawnEventIfIdle(AKROPOLIS_SQUARE_ROOM_COMMAND_HINT_14, CAP_EVENT_PAUSE_ACTORS);
+        capSpawnEventIfIdle(AKROPOLIS_SQUARE_ROOM_COMMAND_AMMO_BOX_HINT, CAP_EVENT_PAUSE_ACTORS);
     }
-    if ((command == AKROPOLIS_SQUARE_ROOM_COMMAND_CONTROLS_HINT) && (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SQUARE_STAIRS_HINT_SEEN) == 0)) {
+    if ((command == AKROPOLIS_SQUARE_ROOM_COMMAND_STAIRS_HINT) && (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SQUARE_STAIRS_HINT_SEEN) == 0)) {
         gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_SQUARE_STAIRS_HINT_SEEN, 1);
-        hintCommand = AKROPOLIS_SQUARE_CONTROLS_HINT_ALTERNATE_COMMAND;
+        hintCommand = AKROPOLIS_SQUARE_STAIRS_HINT_ALTERNATE_COMMAND;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != 1) {
-            hintCommand = AKROPOLIS_SQUARE_ROOM_COMMAND_CONTROLS_HINT;
+            hintCommand = AKROPOLIS_SQUARE_ROOM_COMMAND_STAIRS_HINT;
         }
         capSpawnEventIfIdle(hintCommand, CAP_EVENT_PAUSE_ACTORS);
     }
     return 0;
 }
+
 /// Rings the telephone once, from its position.
 static inline void _akropolisSquareRingTelephone(s32 resetRepeatFrames)
 {
@@ -380,17 +393,17 @@ static inline void _akropolisSquareRingTelephone(s32 resetRepeatFrames)
 static void _akropolisSquareTelephoneRingTask(Task* task)
 {
     enum {
-        AKROPOLIS_SQUARE_TELEPHONE_START          = 0,
-        AKROPOLIS_SQUARE_TELEPHONE_STARTUP_TICK_1 = 1,
-        AKROPOLIS_SQUARE_TELEPHONE_STARTUP_TICK_2 = 2,
-        AKROPOLIS_SQUARE_TELEPHONE_FIRST_RING     = 3,
-        AKROPOLIS_SQUARE_TELEPHONE_WAIT_EVENT     = 4,
-        AKROPOLIS_SQUARE_TELEPHONE_WAIT_HANDOFF   = 5,
+        START          = 0,
+        STARTUP_TICK_1 = 1,
+        STARTUP_TICK_2 = 2,
+        FIRST_RING     = 3,
+        WAIT_EVENT     = 4,
+        WAIT_HANDOFF   = 5,
     };
     s32 repeatFrames;
 
     switch (task->state) {
-        case AKROPOLIS_SQUARE_TELEPHONE_START:
+        case START:
             // Hold the player while the opening camera and telephone scene script runs.
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             _gAkropolisSquareTelephoneCallPending = 1;
@@ -399,12 +412,12 @@ static void _akropolisSquareTelephoneRingTask(Task* task)
             task->state += 1;
             return;
 
-        case AKROPOLIS_SQUARE_TELEPHONE_FIRST_RING:
+        case FIRST_RING:
             _akropolisSquareRingTelephone(0);
             task->state += 1;
             return;
 
-        case AKROPOLIS_SQUARE_TELEPHONE_WAIT_EVENT:
+        case WAIT_EVENT:
             repeatFrames                         = _gAkropolisSquareTelephoneRingFrames + 1;
             _gAkropolisSquareTelephoneRingFrames = repeatFrames;
             if (repeatFrames >= AKROPOLIS_SQUARE_TELEPHONE_RING_FRAMES) {
@@ -416,19 +429,18 @@ static void _akropolisSquareTelephoneRingTask(Task* task)
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             /* fallthrough */
 
-        case AKROPOLIS_SQUARE_TELEPHONE_STARTUP_TICK_1:
-        case AKROPOLIS_SQUARE_TELEPHONE_STARTUP_TICK_2:
+        case STARTUP_TICK_1:
+        case STARTUP_TICK_2:
             task->state += 1;
             return;
 
-        case AKROPOLIS_SQUARE_TELEPHONE_WAIT_HANDOFF:
+        case WAIT_HANDOFF:
             // Stop ringing after leaving views 5..7/9 or once the call is answered.
             if (((u32)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view - AKROPOLIS_SQUARE_TELEPHONE_FIRST_FOLLOWUP_VIEW) >= (u32)AKROPOLIS_SQUARE_TELEPHONE_FOLLOWUP_VIEW_COUNT &&
                  gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view != AKROPOLIS_SQUARE_TELEPHONE_SCENE_VIEW) ||
                 _gAkropolisSquareTelephoneCallPending == 0) {
                 if (_gAkropolisSquareTelephoneCallPending != 0) {
-                    gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
-                    gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, AKROPOLIS_STORY_DIALOGUE_LATE);
+                    _akropolisSquareMarkCallMissed();
                     _gAkropolisSquareTelephoneCallPending = 0;
                 }
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM_EFFECT), AKROPOLIS_SQUARE_MESSAGE_SET_TELEPHONE_LIGHT_MODE, 0, 0);
@@ -444,18 +456,22 @@ static void _akropolisSquareTelephoneRingTask(Task* task)
             break;
     }
 }
+
 /// The arrival scene's backdrop: pans a 640-pixel image by 320, then cuts to view 13.
 static void _akropolisSquareScrollingBackdropTask(Task* task)
 {
     enum {
-        AKROPOLIS_SQUARE_BACKDROP_START          = 0,
-        AKROPOLIS_SQUARE_BACKDROP_DELAY          = 1,
-        AKROPOLIS_SQUARE_BACKDROP_SCROLL         = 2,
-        AKROPOLIS_SQUARE_BACKDROP_HOLD           = 3,
-        AKROPOLIS_SQUARE_BACKDROP_FINISH         = 4,
-        AKROPOLIS_SQUARE_BACKDROP_STRIP_COUNT    = 3,
-        AKROPOLIS_SQUARE_BACKDROP_ORDERING_DEPTH = 4,
-        AKROPOLIS_SQUARE_BACKDROP_TEXTURE_8_BIT  = 1,
+        START          = 0,
+        DELAY          = 1,
+        SCROLL         = 2,
+        HOLD           = 3,
+        FINISH         = 4,
+        STRIP_COUNT    = 3,    // 640 pixels: two 256-pixel strips and a 128-pixel one
+        STRIP_WIDTH    = 256,  // One 8-bit texture page
+        LAST_WIDTH     = 128,
+        PAGE_COLUMNS   = 0x80, // VRAM columns of one 8-bit page
+        ORDERING_DEPTH = 4,
+        TEXTURE_8_BIT  = 1,
     };
     SPRT*     sprite;
     DR_TPAGE* drawMode;
@@ -467,13 +483,13 @@ static void _akropolisSquareScrollingBackdropTask(Task* task)
     s32       scrollX;
 
     switch (task->state) {
-        case AKROPOLIS_SQUARE_BACKDROP_START:
-            _gAkropolisSquareBackdropScrollX     = -0x140;
+        case START:
+            _gAkropolisSquareBackdropScrollX     = -DISPLAY_SCREEN_WIDTH;
             _gAkropolisSquareBackdropPhaseFrames = 0;
             task->state                         += 1;
             break;
 
-        case AKROPOLIS_SQUARE_BACKDROP_DELAY:
+        case DELAY:
             delayFrames                          = _gAkropolisSquareBackdropPhaseFrames + 1;
             _gAkropolisSquareBackdropPhaseFrames = delayFrames;
             if (delayFrames >= AKROPOLIS_SQUARE_BACKDROP_DELAY_FRAMES) {
@@ -481,7 +497,7 @@ static void _akropolisSquareScrollingBackdropTask(Task* task)
             }
             break;
 
-        case AKROPOLIS_SQUARE_BACKDROP_SCROLL:
+        case SCROLL:
             scrollX                          = _gAkropolisSquareBackdropScrollX + 1;
             _gAkropolisSquareBackdropScrollX = scrollX;
             if (scrollX >= 0) {
@@ -490,7 +506,7 @@ static void _akropolisSquareScrollingBackdropTask(Task* task)
             }
             break;
 
-        case AKROPOLIS_SQUARE_BACKDROP_HOLD:
+        case HOLD:
             holdFrames                           = _gAkropolisSquareBackdropPhaseFrames + 1;
             _gAkropolisSquareBackdropPhaseFrames = holdFrames;
             if (holdFrames >= AKROPOLIS_SQUARE_BACKDROP_HOLD_FRAMES) {
@@ -498,7 +514,7 @@ static void _akropolisSquareScrollingBackdropTask(Task* task)
             }
             break;
 
-        case AKROPOLIS_SQUARE_BACKDROP_FINISH:
+        case FINISH:
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = AKROPOLIS_SQUARE_BACKDROP_FINISH_VIEW;
             taskKill(task);
             break;
@@ -506,42 +522,42 @@ static void _akropolisSquareScrollingBackdropTask(Task* task)
 
     // Draw even on the final tick; prepend each texture page before its sprite.
     screenX = _gAkropolisSquareBackdropScrollX;
-    for (stripIndex = 0; stripIndex < AKROPOLIS_SQUARE_BACKDROP_STRIP_COUNT; stripIndex++) {
-        texturePageX   = 0x1C0 + stripIndex * 0x80;
+    for (stripIndex = 0; stripIndex < STRIP_COUNT; stripIndex++) {
+        texturePageX   = AKROPOLIS_SQUARE_PANORAMA_VRAM_X + stripIndex * PAGE_COLUMNS;
         sprite         = gGpuPrimCursor;
         gGpuPrimCursor = sprite + 1;
         setSprt(sprite);
         setShadeTex(sprite, 1);
-        sprite->x0 = screenX - 0xA0;
-        sprite->y0 = -0x78;
+        sprite->x0 = screenX - DISPLAY_SCREEN_WIDTH / 2;
+        sprite->y0 = -DISPLAY_SCREEN_HEIGHT / 2;
         sprite->u0 = 0;
         sprite->v0 = 0;
-        if (stripIndex == AKROPOLIS_SQUARE_BACKDROP_STRIP_COUNT - 1) {
-            sprite->w = 0x80;
-            sprite->h = 0xF0;
+        if (stripIndex == STRIP_COUNT - 1) {
+            sprite->w = LAST_WIDTH;
+            sprite->h = DISPLAY_SCREEN_HEIGHT;
         } else {
-            sprite->w = 0x100;
-            sprite->h = 0xF0;
+            sprite->w = STRIP_WIDTH;
+            sprite->h = DISPLAY_SCREEN_HEIGHT;
         }
-        sprite->clut = GetClut(0, 0xFF);
-        addPrim(&gGpuCurrentOt[AKROPOLIS_SQUARE_BACKDROP_ORDERING_DEPTH], sprite);
+        sprite->clut = GetClut(0, AKROPOLIS_SQUARE_PANORAMA_CLUT_Y);
+        addPrim(&gGpuCurrentOt[ORDERING_DEPTH], sprite);
 
         drawMode       = gGpuPrimCursor;
         gGpuPrimCursor = drawMode + 1;
-        setDrawTPage(drawMode, 0, 1, GetTPage(AKROPOLIS_SQUARE_BACKDROP_TEXTURE_8_BIT, GPU_BLEND_AVERAGE, texturePageX, 0x100));
-        addPrim(&gGpuCurrentOt[AKROPOLIS_SQUARE_BACKDROP_ORDERING_DEPTH], drawMode);
+        setDrawTPage(drawMode, 0, 1, GetTPage(TEXTURE_8_BIT, GPU_BLEND_AVERAGE, texturePageX, AKROPOLIS_SQUARE_PANORAMA_VRAM_Y));
+        addPrim(&gGpuCurrentOt[ORDERING_DEPTH], drawMode);
 
-        screenX += 0x100;
+        screenX += STRIP_WIDTH;
     }
 }
 
 #include "../../../../shared/room/room_cutscene_sound_task.inc.c"
 
-/// Room action 0 plays CAP 5.
+/// Room action 0, the map board, shows the rooftop map (CAP 5).
 static s32 _akropolisSquareHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    if (request->actionId == AKROPOLIS_SQUARE_ACTION_START_EVENT) {
-        capSpawnEventIfIdle(AKROPOLIS_SQUARE_ACTION_CAP_EVENT, CAP_EVENT_NO_FLAGS);
+    if (request->actionId == AKROPOLIS_SQUARE_ACTION_MAP_BOARD) {
+        capSpawnEventIfIdle(AKROPOLIS_SQUARE_MAP_BOARD_CAP_COMMAND, CAP_EVENT_NO_FLAGS);
     }
     return 0;
 }
@@ -559,44 +575,44 @@ static s32 _akropolisSquareHandleSoundCue(Task* unusedTask, s32 unusedMessageId,
     return 0;
 }
 
-/// Plays CAP 5 over views 7 and 8, then makes the Akropolis map available.
+/// Shows the map board (CAP 5) over views 7 and 8, then makes the Akropolis map available.
 /// Never spawned.
-static void _akropolisSquareCapViewSequenceTask(Task* task)
+static void _akropolisSquareMapBoardSequenceTask(Task* task)
 {
     enum {
-        AKROPOLIS_SQUARE_CAP_VIEW_FIRST_START    = 0,
-        AKROPOLIS_SQUARE_CAP_VIEW_FIRST_SELECT   = 1,
-        AKROPOLIS_SQUARE_CAP_VIEW_FIRST_FINISH   = 2,
-        AKROPOLIS_SQUARE_CAP_VIEW_SECOND_START   = 3,
-        AKROPOLIS_SQUARE_CAP_VIEW_SECOND_DELAY_1 = 4,
-        AKROPOLIS_SQUARE_CAP_VIEW_SECOND_DELAY_2 = 5,
-        AKROPOLIS_SQUARE_CAP_VIEW_SECOND_SELECT  = 6,
-        AKROPOLIS_SQUARE_CAP_VIEW_SECOND_FINISH  = 7,
+        FIRST_START    = 0,
+        FIRST_SELECT   = 1,
+        FIRST_FINISH   = 2,
+        SECOND_START   = 3,
+        SECOND_DELAY_1 = 4,
+        SECOND_DELAY_2 = 5,
+        SECOND_SELECT  = 6,
+        SECOND_FINISH  = 7,
     };
     switch (task->state) {
-        case AKROPOLIS_SQUARE_CAP_VIEW_FIRST_START:
-            capRunCommandWithTransition(AKROPOLIS_SQUARE_CAP_VIEW_COMMAND);
+        case FIRST_START:
+            capRunCommandWithTransition(AKROPOLIS_SQUARE_MAP_BOARD_CAP_COMMAND);
             task->state++;
             return;
-        case AKROPOLIS_SQUARE_CAP_VIEW_FIRST_SELECT:
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = AKROPOLIS_SQUARE_CAP_VIEW_FIRST;
+        case FIRST_SELECT:
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = AKROPOLIS_SQUARE_MAP_BOARD_FIRST_VIEW;
             task->state++;
             return;
-        case AKROPOLIS_SQUARE_CAP_VIEW_SECOND_START:
-            capRunCommandWithTransition(AKROPOLIS_SQUARE_CAP_VIEW_COMMAND);
+        case SECOND_START:
+            capRunCommandWithTransition(AKROPOLIS_SQUARE_MAP_BOARD_CAP_COMMAND);
             task->state++;
             return;
-        case AKROPOLIS_SQUARE_CAP_VIEW_SECOND_DELAY_1:
-        case AKROPOLIS_SQUARE_CAP_VIEW_SECOND_DELAY_2:
+        case SECOND_DELAY_1:
+        case SECOND_DELAY_2:
             task->state++;
             return;
-        case AKROPOLIS_SQUARE_CAP_VIEW_SECOND_SELECT:
-            capRunCommandWithTransition(AKROPOLIS_SQUARE_CAP_VIEW_COMMAND);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = AKROPOLIS_SQUARE_CAP_VIEW_SECOND;
+        case SECOND_SELECT:
+            capRunCommandWithTransition(AKROPOLIS_SQUARE_MAP_BOARD_CAP_COMMAND);
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = AKROPOLIS_SQUARE_MAP_BOARD_SECOND_VIEW;
             task->state++;
             return;
-        case AKROPOLIS_SQUARE_CAP_VIEW_FIRST_FINISH:
-        case AKROPOLIS_SQUARE_CAP_VIEW_SECOND_FINISH:
+        case FIRST_FINISH:
+        case SECOND_FINISH:
             gameFlagSetNibble(EVENT_FLAG_MAP_AKROPOLIS_AVAILABLE, 1);
             taskKill(task);
             return;
@@ -607,10 +623,10 @@ static void _akropolisSquareCapViewSequenceTask(Task* task)
 static void _akropolisSquareControlScrollingBackdrop(s32 action)
 {
     switch (action) {
-        case AKROPOLIS_SQUARE_BACKDROP_ACTION_START:
+        case BACKDROP_ACTION_START:
             _gAkropolisSquareBackdropTask = taskSpawnFromTable(_gAkropolisSquareSequenceTaskDescs, AKROPOLIS_SQUARE_BACKDROP_TASK_INDEX, 0, 0);
             return;
-        case AKROPOLIS_SQUARE_BACKDROP_ACTION_STOP:
+        case BACKDROP_ACTION_STOP:
             taskKill(_gAkropolisSquareBackdropTask);
             return;
     }
@@ -648,8 +664,8 @@ void akropolisSquareRoomTask(Task* task)
 s32 akropolisSquareStartTelephoneScene(s32 unused)
 {
     enum {
-        AKROPOLIS_SQUARE_TELEPHONE_NEWLY_ARMED   = 0,
-        AKROPOLIS_SQUARE_TELEPHONE_ALREADY_ARMED = 1,
+        STARTED        = 0,
+        ALREADY_PLAYED = 1,
     };
 
     GameLocationKey key;
@@ -661,16 +677,16 @@ s32 akropolisSquareStartTelephoneScene(s32 unused)
         areaSetPlacementVariant(&key, AKROPOLIS_SQUARE_TELEPHONE_PLACEMENT_VARIANT, AREA_VARIANT_RESET_ALWAYS);
         gGameSession->eventState = 1;
         taskSpawnFromTable(_gAkropolisSquareSequenceTaskDescs, AKROPOLIS_SQUARE_TELEPHONE_TASK_INDEX, 0, 0);
-        return AKROPOLIS_SQUARE_TELEPHONE_NEWLY_ARMED;
+        return STARTED;
     }
-    return AKROPOLIS_SQUARE_TELEPHONE_ALREADY_ARMED;
+    return ALREADY_PLAYED;
 }
 
 void akropolisSquareRoomEffectTask(Task* task)
 {
     enum {
-        AKROPOLIS_SQUARE_ROOM_EFFECT_INITIAL = 0,
-        AKROPOLIS_SQUARE_ROOM_EFFECT_ACTIVE  = 1,
+        INITIAL = 0,
+        ACTIVE  = 1,
     };
     EffectWork* work;
     GfxCoord*   roomCoord;
@@ -678,7 +694,7 @@ void akropolisSquareRoomEffectTask(Task* task)
     roomCoord = task->extra.coordBody->coord;
     work      = task->spawnArg2.pointer;
     switch (task->state) {
-        case AKROPOLIS_SQUARE_ROOM_EFFECT_INITIAL:
+        case INITIAL:
             // Install the effect receiver before starting both reflection modes.
             task->msgTable = _gAkropolisSquareRoomEffectMessages;
             gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
@@ -687,8 +703,8 @@ void akropolisSquareRoomEffectTask(Task* task)
             taskSpawn(AKROPOLIS_SQUARE_REFLECTION_TASK_BANK, AKROPOLIS_SQUARE_REFLECTION_TASK_SLOT, AKROPOLIS_SQUARE_REFLECTION_PLANE, 0);
             task->state++;
             return;
-        case AKROPOLIS_SQUARE_ROOM_EFFECT_ACTIVE:
-            // Each view of the phone uses its own packed pulse/radius/colour/shape preset.
+        case ACTIVE:
+            // Each view of the phone uses its own packed pulse, radius, color and shape preset.
             if ((AKROPOLIS_SQUARE_TELEPHONE_LIGHT_VIEW_MASK >> (gGameSession->location.view - 1)) & 1) {
                 work->move.vx = AKROPOLIS_SQUARE_TELEPHONE_X;
                 work->move.vy = AKROPOLIS_SQUARE_TELEPHONE_Y;
@@ -697,16 +713,16 @@ void akropolisSquareRoomEffectTask(Task* task)
                             &work->move);
             }
             if (gGameSession->location.view == AKROPOLIS_SQUARE_TELEPHONE_LIGHT_SIDE_VIEW) {
-                work->move.vx = 0x18D2;
-                work->move.vy = -0x100B;
-                work->move.vz = 0x8AB;
+                work->move.vx = AKROPOLIS_SQUARE_TELEPHONE_LIGHT_SIDE_X;
+                work->move.vy = AKROPOLIS_SQUARE_TELEPHONE_LIGHT_SIDE_Y;
+                work->move.vz = AKROPOLIS_SQUARE_TELEPHONE_LIGHT_SIDE_Z;
                 effectSpawn(EFFECT_AKROPOLIS_SQUARE_TELEPHONE_LIGHT, roomCoord, _gAkropolisSquareTelephoneLightMode * AKROPOLIS_SQUARE_TELEPHONE_LIGHT_SIDE_MODE_DELTA + AKROPOLIS_SQUARE_TELEPHONE_LIGHT_SIDE_BASE,
                             &work->move);
             }
             if (gGameSession->location.view == AKROPOLIS_SQUARE_TELEPHONE_LIGHT_ROUND_VIEW) {
-                work->move.vx = 0x19AA;
-                work->move.vy = -0xF96;
-                work->move.vz = 0x8E8;
+                work->move.vx = AKROPOLIS_SQUARE_TELEPHONE_LIGHT_ROUND_X;
+                work->move.vy = AKROPOLIS_SQUARE_TELEPHONE_LIGHT_ROUND_Y;
+                work->move.vz = AKROPOLIS_SQUARE_TELEPHONE_LIGHT_ROUND_Z;
                 effectSpawn(EFFECT_AKROPOLIS_SQUARE_TELEPHONE_LIGHT, roomCoord, _gAkropolisSquareTelephoneLightMode * AKROPOLIS_SQUARE_TELEPHONE_LIGHT_ROUND_MODE_DELTA + AKROPOLIS_SQUARE_TELEPHONE_LIGHT_ROUND_BASE,
                             &work->move);
             }
@@ -726,18 +742,16 @@ static inline void _akropolisSquareQueueTelephoneLight(void* primitive, const s3
 void akropolisSquareTelephoneLightTask(Task* task)
 {
     enum {
-        AKROPOLIS_SQUARE_GLOW_MIN_DEPTH            = 17,
-        AKROPOLIS_SQUARE_GLOW_PULSE_RATE_MASK      = 0xFF,
-        AKROPOLIS_SQUARE_GLOW_RADIUS_SHIFT         = 8,
-        AKROPOLIS_SQUARE_GLOW_RADIUS_MASK          = 0xFF,
-        AKROPOLIS_SQUARE_GLOW_CYAN_SHIFT           = 16,
-        AKROPOLIS_SQUARE_GLOW_STREAKS              = 0x10000000,
-        AKROPOLIS_SQUARE_GLOW_PULSE_FALLING        = 0x80,
-        AKROPOLIS_SQUARE_GLOW_PULSE_RAMP_MASK      = 0x7F,
-        AKROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS   = 12,
-        AKROPOLIS_SQUARE_GLOW_FAN_RADIUS_FACTOR    = 0x600,
-        AKROPOLIS_SQUARE_GLOW_RAY_RADIUS_FACTOR    = 0xC0,
-        AKROPOLIS_SQUARE_GLOW_DIAMOND_RADIUS_SHIFT = 9
+        PULSE_RATE_MASK      = 0xFF,
+        RADIUS_SHIFT         = 8,
+        RADIUS_MASK          = 0xFF,
+        CYAN_SHIFT           = 16,
+        STREAKS              = 0x10000000,
+        PULSE_FALLING        = 0x80,
+        PULSE_RAMP_MASK      = 0x7F,
+        FAN_RADIUS_FACTOR    = 0x600,
+        RAY_RADIUS_FACTOR    = 0xC0,
+        DIAMOND_RADIUS_SHIFT = 9
     };
     RoomGlowRadiiScratch* projection;
     POLY_G4*              quad;
@@ -767,23 +781,23 @@ void akropolisSquareTelephoneLightTask(Task* task)
     gte_rtps();
     gte_stsxy(&projection->screenPos);
     gte_stszotz(&projection->otz);
-    if (projection->otz >= AKROPOLIS_SQUARE_GLOW_MIN_DEPTH) {
+    if (projection->otz >= GLOW_MIN_DEPTH) {
         // Fold the frame phase into a triangular red or cyan brightness ramp.
         pulsePhase  = gDisplayState.animFrame;
-        pulsePhase *= task->spawnArg1.value & AKROPOLIS_SQUARE_GLOW_PULSE_RATE_MASK;
-        cyan        = (task->spawnArg1.value >> AKROPOLIS_SQUARE_GLOW_CYAN_SHIFT) & 1;
-        if (pulsePhase & AKROPOLIS_SQUARE_GLOW_PULSE_FALLING) {
-            glowValue = ~pulsePhase & AKROPOLIS_SQUARE_GLOW_PULSE_RAMP_MASK;
+        pulsePhase *= task->spawnArg1.value & PULSE_RATE_MASK;
+        cyan        = (task->spawnArg1.value >> CYAN_SHIFT) & 1;
+        if (pulsePhase & PULSE_FALLING) {
+            glowValue = ~pulsePhase & PULSE_RAMP_MASK;
         } else {
-            glowValue = pulsePhase & AKROPOLIS_SQUARE_GLOW_PULSE_RAMP_MASK;
+            glowValue = pulsePhase & PULSE_RAMP_MASK;
         }
         intensity = glowValue * 2;
         glowValue = task->spawnArg1.value;
         // The sign bit selects the round fan; the other form is a flat diamond.
         if (glowValue < 0) {
-            radiusScale             = (glowValue >> AKROPOLIS_SQUARE_GLOW_RADIUS_SHIFT) & AKROPOLIS_SQUARE_GLOW_RADIUS_MASK;
-            projection->outerRadius = (radiusScale * AKROPOLIS_SQUARE_GLOW_FAN_RADIUS_FACTOR) / projection->otz;
-            projection->innerRadius = (radiusScale * AKROPOLIS_SQUARE_GLOW_RAY_RADIUS_FACTOR) / projection->otz;
+            radiusScale             = (glowValue >> RADIUS_SHIFT) & RADIUS_MASK;
+            projection->outerRadius = (radiusScale * FAN_RADIUS_FACTOR) / projection->otz;
+            projection->innerRadius = (radiusScale * RAY_RADIUS_FACTOR) / projection->otz;
             for (segmentIndex = 0; segmentIndex < 0x10; segmentIndex += 2) {
                 quad           = gGpuPrimCursor;
                 gGpuPrimCursor = quad + 1;
@@ -792,14 +806,14 @@ void akropolisSquareTelephoneLightTask(Task* task)
                 setRGB1(quad, 0, 0, 0);
                 setRGB2(quad, (intensity * (cyan ^ 1)) >> 1, (cyan * intensity) >> 1, (cyan * intensity) >> 1);
                 setRGB3(quad, 0, 0, 0);
-                quad->x0 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 4]) >> AKROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS);
-                quad->y0 = projection->screenPos.vy + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex]) >> AKROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS);
-                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 5]) >> AKROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS);
-                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 1]) >> AKROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS);
+                quad->x0 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 4]) >> GLOW_TRIG_SHIFT);
+                quad->y0 = projection->screenPos.vy + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex]) >> GLOW_TRIG_SHIFT);
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 5]) >> GLOW_TRIG_SHIFT);
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 1]) >> GLOW_TRIG_SHIFT);
                 quad->x2 = projection->screenPos.vx;
                 quad->y2 = projection->screenPos.vy;
-                quad->x3 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 6]) >> AKROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS);
-                quad->y3 = projection->screenPos.vy + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 2]) >> AKROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS);
+                quad->x3 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 6]) >> GLOW_TRIG_SHIFT);
+                quad->y3 = projection->screenPos.vy + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 2]) >> GLOW_TRIG_SHIFT);
                 _akropolisSquareQueueTelephoneLight(quad, &projection->otz);
 
                 quad           = gGpuPrimCursor;
@@ -809,14 +823,14 @@ void akropolisSquareTelephoneLightTask(Task* task)
                 setRGB1(quad, 0, 0, 0);
                 setRGB2(quad, intensity * (cyan ^ 1), cyan * intensity, cyan * intensity);
                 setRGB3(quad, 0, 0, 0);
-                quad->x0 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 4]) >> (AKROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS + 1));
-                quad->y0 = projection->screenPos.vy + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex]) >> (AKROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS + 1));
-                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 5]) >> (AKROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS + 1));
-                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 1]) >> (AKROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS + 1));
+                quad->x0 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 4]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y0 = projection->screenPos.vy + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 5]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 1]) >> (GLOW_TRIG_SHIFT + 1));
                 quad->x2 = projection->screenPos.vx;
                 quad->y2 = projection->screenPos.vy;
-                quad->x3 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 6]) >> (AKROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS + 1));
-                quad->y3 = projection->screenPos.vy + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 2]) >> (AKROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS + 1));
+                quad->x3 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 6]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y3 = projection->screenPos.vy + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 2]) >> (GLOW_TRIG_SHIFT + 1));
                 _akropolisSquareQueueTelephoneLight(quad, &projection->otz);
             }
             // Add two opposing pairs of long rays over the circular fan.
@@ -829,15 +843,15 @@ void akropolisSquareTelephoneLightTask(Task* task)
                 setRGB1(quad, 0, 0, 0);
                 setRGB2(quad, halfIntensity * (cyan ^ 1), cyan * halfIntensity, cyan * halfIntensity);
                 setRGB3(quad, 0, 0, 0);
-                quad->x0 = projection->screenPos.vx + ((projection->innerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex]) >> AKROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS);
+                quad->x0 = projection->screenPos.vx + ((projection->innerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex]) >> GLOW_TRIG_SHIFT);
                 // The first ray samples the preceding message terminator's zero callback halfword.
-                quad->y0 = projection->screenPos.vy + ((projection->innerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex - 4]) >> AKROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS);
-                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 4]) >> (AKROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS - 1));
-                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex]) >> (AKROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS - 1));
+                quad->y0 = projection->screenPos.vy + ((projection->innerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex - 4]) >> GLOW_TRIG_SHIFT);
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 4]) >> (GLOW_TRIG_SHIFT - 1));
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex]) >> (GLOW_TRIG_SHIFT - 1));
                 quad->x2 = projection->screenPos.vx;
                 quad->y2 = projection->screenPos.vy;
-                quad->x3 = projection->screenPos.vx + ((projection->innerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 8]) >> AKROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS);
-                quad->y3 = projection->screenPos.vy + ((projection->innerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 4]) >> AKROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS);
+                quad->x3 = projection->screenPos.vx + ((projection->innerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 8]) >> GLOW_TRIG_SHIFT);
+                quad->y3 = projection->screenPos.vy + ((projection->innerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 4]) >> GLOW_TRIG_SHIFT);
                 _akropolisSquareQueueTelephoneLight(quad, &projection->otz);
 
                 quad           = gGpuPrimCursor;
@@ -847,18 +861,18 @@ void akropolisSquareTelephoneLightTask(Task* task)
                 setRGB1(quad, 0, 0, 0);
                 setRGB2(quad, halfIntensity * (cyan ^ 1), cyan * halfIntensity, cyan * halfIntensity);
                 setRGB3(quad, 0, 0, 0);
-                quad->x0 = projection->screenPos.vx + ((projection->innerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 4]) >> (AKROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS + 1));
-                quad->y0 = projection->screenPos.vy + ((projection->innerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex]) >> (AKROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS + 1));
-                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 8]) >> AKROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS);
-                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 4]) >> AKROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS);
+                quad->x0 = projection->screenPos.vx + ((projection->innerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 4]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y0 = projection->screenPos.vy + ((projection->innerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 8]) >> GLOW_TRIG_SHIFT);
+                quad->y1 = projection->screenPos.vy + ((projection->outerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 4]) >> GLOW_TRIG_SHIFT);
                 quad->x2 = projection->screenPos.vx;
                 quad->y2 = projection->screenPos.vy;
-                quad->x3 = projection->screenPos.vx + ((projection->innerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 0xC]) >> (AKROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS + 1));
-                quad->y3 = projection->screenPos.vy + ((projection->innerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 8]) >> (AKROPOLIS_SQUARE_GLOW_TRIG_FRACTION_BITS + 1));
+                quad->x3 = projection->screenPos.vx + ((projection->innerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 0xC]) >> (GLOW_TRIG_SHIFT + 1));
+                quad->y3 = projection->screenPos.vy + ((projection->innerRadius * _gAkropolisSquareGlowSineSamples[segmentIndex + 8]) >> (GLOW_TRIG_SHIFT + 1));
                 _akropolisSquareQueueTelephoneLight(quad, &projection->otz);
             }
         } else {
-            projection->outerRadius = (((glowValue >> AKROPOLIS_SQUARE_GLOW_RADIUS_SHIFT) & AKROPOLIS_SQUARE_GLOW_RADIUS_MASK) << AKROPOLIS_SQUARE_GLOW_DIAMOND_RADIUS_SHIFT) / projection->otz;
+            projection->outerRadius = (((glowValue >> RADIUS_SHIFT) & RADIUS_MASK) << DIAMOND_RADIUS_SHIFT) / projection->otz;
             for (segmentIndex = 0; segmentIndex < 2; segmentIndex++) {
                 quad           = gGpuPrimCursor;
                 gGpuPrimCursor = quad + 1;
@@ -876,7 +890,7 @@ void akropolisSquareTelephoneLightTask(Task* task)
                         quad);
                 gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, projection->otz);
             }
-            if (task->spawnArg1.value & AKROPOLIS_SQUARE_GLOW_STREAKS) {
+            if (task->spawnArg1.value & STREAKS) {
                 for (segmentIndex = 0; segmentIndex < 2; segmentIndex++) {
                     streak         = gGpuPrimCursor;
                     gGpuPrimCursor = streak + 1;

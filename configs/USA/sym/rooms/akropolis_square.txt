@@ -151,6 +151,6 @@ _akropolisSquareIdleRoomTask = 0x801822a4; // type:func
 akropolisSquareRoomTask = 0x80182308; // type:func
 _akropolisSquareResolveRoomTransition = 0x80181794; // type:func
 _akropolisSquareHandleRoomCommand = 0x801819bc; // type:func
-_akropolisSquareCapViewSequenceTask = 0x80182148; // type:func
+_akropolisSquareMapBoardSequenceTask = 0x80182148; // type:func
 _akropolisSquareControlScrollingBackdrop = 0x80182200; // type:func
 _gAkropolisSquareRoomStates = 0x8017d6b4;
