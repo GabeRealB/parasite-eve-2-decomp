@@ -157,7 +157,7 @@ enum {
     /// Ramps the lift bay CLUT from its unlit to its lit palette (gpuBlendRgb555ClutRow)
     /// and keeps it lit only in camera view 5; spawned by a west-elevator-hall
     /// message handler.
-    EFFECT_ACROPOLIS_WEST_ELEVATOR_BAY_LIGHTS = EFFECT_ID(EFFECT_TASK_BANK, 0x033),
+    EFFECT_AKROPOLIS_WEST_ELEVATOR_HALL_BAY_LIGHTING = EFFECT_ID(EFFECT_TASK_BANK, 0x033),
     /// Two-frame rotated textured flare sprite (tpage 0x2A) at a muzzle; spawned by the
     /// muzzle flash controllers 0x2B/0x6A/0x6B/0xA1 and by Actor02100.
     EFFECT_MUZZLE_FLARE = EFFECT_ID(EFFECT_TASK_BANK, 0x034),

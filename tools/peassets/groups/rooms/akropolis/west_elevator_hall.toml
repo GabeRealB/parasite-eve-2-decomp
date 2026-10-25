@@ -418,7 +418,7 @@ type = "room"
 embedded = [
     { name = "door_leaf_left", offset = 0x02D00, size = 0x270, address = 0x801802C0 },
     { name = "door_leaf_right", offset = 0x02F70, size = 0x270, address = 0x80180530 },
-    { name = "arrival_anim_00", offset = 0x031E0, size = 0x3DC8, address = 0x801807A0 },
+    { name = "player_step_out", offset = 0x031E0, size = 0x3DC8, address = 0x801807A0 },
     { name = "arrival_bank", offset = 0x06FCC, size = 0x4, address = 0x8018458C },
     "rooms/akropolis/west_elevator_hall/bay_lit_palette",
 ]
@@ -685,7 +685,7 @@ offset = [0x00000, 0x00005]
 
 [arrival_bank]
 type = "animation_bank"
-clips = { slot_0 = "rooms/akropolis/west_elevator_hall/arrival_anim_00" }
+clips = { step_out = "rooms/akropolis/west_elevator_hall/player_step_out" }
 schema = "rooms/akropolis/west_elevator_hall/arrival_schema"
 symbol = "_gAkropolisWestElevatorHallArrivalAnimationSets"
 
@@ -757,7 +757,7 @@ width = 256
 
 [arrival_schema]
 type = "animation_schema"
-slots = ["slot_0"]
+slots = ["step_out"]
 
 [door_leaf_left]
 type = "model"
@@ -765,15 +765,15 @@ slots = ["doors"]
 symbol = "_gAkropolisWestElevatorHallDoorLeafLeftModel"
 sha1 = "3fdd51c88e7d897ad7ed99c9afa08cd49683fab7"
 
-[arrival_anim_00]
-type = "clip"
-rig = "characters/aya/rig"
-
 [door_leaf_right]
 type = "model"
 slots = ["doors"]
 symbol = "_gAkropolisWestElevatorHallDoorLeafRightModel"
 sha1 = "dd8d3b0ec9503bc78955392162272b0322346dac"
+
+[player_step_out]
+type = "clip"
+rig = "characters/aya/rig"
 
 [dialogue_0_atlas]
 type = "font_atlas"

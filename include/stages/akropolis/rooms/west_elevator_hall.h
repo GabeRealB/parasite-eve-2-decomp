@@ -10,49 +10,51 @@
 
 #include "main/task_types.h"
 
-/// Collision resources for the west elevator hall's single room.
+/// Collision of the hall's one room state.
 extern WorldCollisionRoomResources gAkropolisWestElevatorHallCollisionRoomResources[1];
 
-/// Logical-view map directory for the hall's single room.
+/// View map of the hall's one room state: every view is its own camera.
 extern u8* gAkropolisWestElevatorHallViewMaps[1];
 
-/// Number of logical views in room 1: five, matching the sprite and camera arrays.
+/// Number of views: 5.
 extern ViewCount gAkropolisWestElevatorHallViewCounts[1];
 
-/// Room-1 model lighting, with the hall's point lights and default ambient minima.
+/// Lighting of the hall's one room state.
 extern WorldCoordRoomLighting gAkropolisWestElevatorHallRoomLightingTable[1];
 
-/// Hall warp endpoints 1 (elevator arrival) and 2 (the square's doorway).
+/// Arrival points by warp: 1 the elevator, which the arrival scene comes in by, and 2 the square's door.
 extern DirectionWarpEntry gAkropolisWestElevatorHallWarpEntries[2];
 
-/// Foreground sprite resources for mapped views 1..5, indexed by view minus one.
+/// Occlusion sprites of each view: pieces of the background drawn over the models behind them.
 extern SpriteView gAkropolisWestElevatorHallSpriteViews[5];
 
-/// Cameras for mapped hall views 1..5, indexed by view minus one.
+/// Cameras of each view.
 extern ViewCamera gAkropolisWestElevatorHallViewCameras[5];
 
-/// Hall collision policies and footstep cues indexed by surface class 0..7.
+/// Surface properties by collision class.
 extern WorldCollisionSurfaceProperties* gAkropolisWestElevatorHallSurfacePropertiesByClass[8];
 
-/// Draws one frame of a pulsing additive red diamond, then ends the counted effect.
+/// Draws one frame of a pulsing red beacon.
 void akropolisWestElevatorHallRedBeaconTask(Task* task);
 
-/// Distorts an 82-row, 120-pixel strip of the drawing framebuffer for one frame.
+/// Shimmers an 82-row, 120-pixel strip of the frame for one frame, each row shifted along a wave. Nothing spawns it.
 void akropolisWestElevatorHallScanlineDistortionTask(Task* task);
 
-/// Draws one frame of the hall's additive light billboard, then retires its effect.
+/// Draws one frame of the elevator bay's light.
 void akropolisWestElevatorHallLightGlowTask(Task* task);
 
-/// Lights the elevator bay's palette over two updates and holds it in view 5.
+/// Lights the elevator bay as the elevator arrives: ramps its palette from black over two frames, and keeps it lit
+/// until the view leaves the bay.
 void akropolisWestElevatorHallBayLightingTask(Task* task);
 
-/// Runs this room's player-model floor or mirror-plane reflection.
+/// The player's reflection on the floor (0) or the room's mirror plane (1).
 void akropolisWestElevatorHallPlayerReflectionTask(Task* reflectionTask);
 
-/// Registers the hall's room effects and emits lights for the current view.
+/// The room's effects: player reflections, the three red beacons in view 2 and the bay's light in view 5.
 void akropolisWestElevatorHallViewEffectsTask(Task* task);
 
-/// Runs the west elevator hall's room messages, door leaves and arrival event.
+/// The hall's room task: installs its messages, spawns the elevator door's two leaves and plays the arrival scene
+/// (the elevator arrives and Aya steps out) the first time she comes in by it.
 void akropolisWestElevatorHallRoomTask(Task* task);
 
 #endif // INCLUDE_STAGES_AKROPOLIS_ROOMS_WEST_ELEVATOR_HALL_H
