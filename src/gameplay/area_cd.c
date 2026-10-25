@@ -154,6 +154,12 @@ u16 loadingPollAreaPlacementFiles(void)
 /// low index is zero. Offsets retain their low signed byte: X counts 64-word
 /// VRAM pages and CLUT Y counts rows. `cdCmdEnqueue` copies the request before
 /// returning; its ring-capacity contract applies and its slot result is ignored.
+///
+/// A resource may name a file the disc does not have: a package holding several
+/// spawn kinds lists each kind as a resource, the later ones with file numbers
+/// of their own (Akropolis's forked road encounters 47, 71 and 73, the landing
+/// pad departure's Rupert and helicopter). The load finds no sector and reads
+/// nothing; the kind's task table is in the package an earlier resource loads.
 static inline void _loadingQueueAreaResource(const AreaResource* resource, s16 texturePageOffset, s16 clutRowOffset)
 {
     u8  fileKey[4];
