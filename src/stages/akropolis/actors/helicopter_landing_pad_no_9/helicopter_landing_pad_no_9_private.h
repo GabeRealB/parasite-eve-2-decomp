@@ -51,7 +51,10 @@ enum {
     HELICOPTER_LANDING_PAD_NO_9_FLAME_RELEASED = 4, // The golem has let go of the effect, which ends itself once room effects stop running
 };
 
-/// Work block of the Akropolis No.
+/// Work block of the Akropolis No. 9 golem, at `Task::work` of its body: its walk round the pad's square lap
+/// (`lapDistance` from the first corner, sides `HELICOPTER_LANDING_PAD_NO_9_LAP_SIDE_LENGTH`), and the latches its
+/// children - the weapon, chest piece and prop on its parts, the stun grenade, the helipad lights and the blast
+/// source - reach through `Task::parent`. The part-riding models borrow `color` and `light`.
 typedef struct {
     ActorAnimRig19        rig;                // Playback storage of the nineteen-part body model; slots 1..18 are driven
     MATRIX                color;              // Colour matrix lent to the body model and to the three part-riding models

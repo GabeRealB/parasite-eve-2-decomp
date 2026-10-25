@@ -1,7 +1,7 @@
 // Overlay-local symbols for sanctuary_no_9.
-_gSanctuaryNo9No9GolemAnimationSets = 0x8013BFC0; // size:0x18 defined:True
-gSanctuaryNo9No9GolemTaskDesc = 0x8013BF94; // size:0xC defined:True
-_gSanctuaryNo9No9GolemMessages = 0x8013BFA0; // size:0x20 defined:True
+_gSanctuaryNo9AnimationSets = 0x8013BFC0; // size:0x18 defined:True
+gSanctuaryNo9TaskDesc = 0x8013BF94; // size:0xC defined:True
+_gSanctuaryNo9Messages = 0x8013BFA0; // size:0x20 defined:True
 _gGolemNo9BodyAkropolisSkeleton = 0x80132120; // size:0x2AC defined:True
 _gGolemNo9BodyAkropolisPartVerts = 0x801323CC; // size:0x4C defined:True
 _gGolemNo9BodyAkropolisVerts = 0x80132418; // size:0xB30 defined:True
@@ -34,8 +34,8 @@ _gSanctuaryNo9Animation0A14CRecords = 0x8013B290; // size:0xCB4 defined:True
 _gSanctuaryNo9Animation0A14CIndices = 0x8013BF44; // size:0x28 defined:True
 _gAkropolisSanctuaryNo9GolemAnim05Clip = 0x8013BF6C; // size:0x28 defined:True
 actorMsgPlaceRotMatrix = 0x80132074; // type:func
-_sanctuaryNo9No9GolemSetup = 0x80131e78; // type:func
-_sanctuaryNo9No9GolemUpdate = 0x80131f44; // type:func
-_sanctuaryNo9No9GolemPlayAnimation = 0x8013201c; // type:func
-_sanctuaryNo9No9GolemSetModelDraw = 0x801320d8; // type:func
-_sanctuaryNo9No9GolemTask = 0x80131e24; // type:func
+_sanctuaryNo9Setup = 0x80131e78; // type:func
+_sanctuaryNo9Update = 0x80131f44; // type:func
+_sanctuaryNo9PlayAnimation = 0x8013201c; // type:func
+_sanctuaryNo9SetModelDraw = 0x801320d8; // type:func
+_sanctuaryNo9Task = 0x80131e24; // type:func

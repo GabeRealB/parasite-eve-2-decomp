@@ -209,7 +209,7 @@ radio_click = 8
 [no_9_bank]
 type = "animation_bank"
 schema = "rooms/akropolis/sanctuary/no_9_schema"
-symbol = "_gSanctuaryNo9No9GolemAnimationSets"
+symbol = "_gSanctuaryNo9AnimationSets"
 
 [no_9_bank.clips]
 attack_rupert = "rooms/akropolis/sanctuary/no_9_attack_rupert"

@@ -2026,7 +2026,7 @@ for (slotIndex = SANCTUARY_NO_9_FIRST_ANIMATED_PART; slotIndex < ARRAY_SIZE(work
 }
 ```
 
-`_sanctuaryNo9No9GolemPlayAnimation`, through `_sanctuaryNo9No9GolemRestartTracks`.
+`_sanctuaryNo9PlayAnimation`, through `_sanctuaryNo9RestartTracks`.
 Distinct from "m2c's split counter + offset
 accumulator suppresses loop strength reduction" (that was a scaled index
 inside the body). Inputs: `base_1.i`

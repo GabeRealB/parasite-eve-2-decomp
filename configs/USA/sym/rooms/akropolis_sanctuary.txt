@@ -74,7 +74,7 @@ _gAkropolisSanctuarySurfaceClass1Properties = 0x801863E8; // size:0x8 defined:Tr
 _gAkropolisSanctuarySurfaceClass2Properties = 0x801863F0; // size:0x8 defined:True
 gAkropolisSanctuarySurfacePropertiesByClass = 0x801863F8; // size:0x20 defined:True
 _gAkropolisSanctuaryArrivalAreaUpdates = 0x80186418; // size:0x2C defined:True
-gSanctuaryNo9No9GolemTaskDesc = 0x8013BF94; // absolute:True owner=sanctuary_no_9
+gSanctuaryNo9TaskDesc = 0x8013BF94; // absolute:True owner=sanctuary_no_9
 gActor210700RupertBroderickTaskDesc = 0x801585CC; // absolute:True owner=actor_210700
 gMapAkropolisSanctuaryNo9AndRupertPlacements = 0x8017BA5C; // absolute:True owner=map_akropolis
 gMapAkropolisSanctuaryRupertPlacements = 0x8017BA8C; // absolute:True owner=map_akropolis
