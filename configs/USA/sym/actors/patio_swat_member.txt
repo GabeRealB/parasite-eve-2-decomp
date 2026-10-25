@@ -2,7 +2,7 @@
 _gPatioSwatMemberAnimationBlendFrames = 0x80169F28; // size:0x19 defined:True
 _gPatioSwatMemberAnimationSets = 0x80169F44; // size:0x18 defined:True
 _gPatioSwatMemberMessages = 0x80169F5C; // size:0x20 defined:True
-gPatioSwatMemberSwatMember1TaskDesc = 0x80169F7C; // size:0xC defined:True
+gPatioSwatMemberTaskDesc = 0x80169F7C; // size:0xC defined:True
 ActorContact_ScratchPosition = 0x80169F88; // size:0x8 defined:True
 _gSwatMember1BodySkeleton = 0x801638B0; // size:0x2AC defined:True
 _gSwatMember1BodyPartVerts = 0x80163B5C; // size:0x4C defined:True
@@ -43,4 +43,4 @@ _patioSwatMemberSetModelDraw = 0x80163510; // type:func
 _patioSwatMemberPlace = 0x801635cc; // type:func
 _patioSwatMemberApplyCommand = 0x801636cc; // type:func
 _patioSwatMemberTask = 0x80163854; // type:func
-_gPatioSwatMemberSwatTaskStates = 0x80161e24;
+_gPatioSwatMemberStates = 0x80161e24;

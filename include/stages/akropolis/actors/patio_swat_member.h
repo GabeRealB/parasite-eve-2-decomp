@@ -4,6 +4,6 @@
 #include "main/task_types.h"
 
 /// Scripted SWAT member 1 spawn recipe for the Akropolis patio.
-extern TaskDesc gPatioSwatMemberSwatMember1TaskDesc;
+extern TaskDesc gPatioSwatMemberTaskDesc;
 
 #endif // INCLUDE_STAGES_AKROPOLIS_ACTORS_PATIO_SWAT_MEMBER_H
