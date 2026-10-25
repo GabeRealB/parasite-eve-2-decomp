@@ -88,11 +88,11 @@ RoomCutsceneRec _gAkropolisFireEscapeRepeatScene;
 #include "../../../../shared/room/telephone.h"
 
 /// Initializes a glow quad with RGB at vertex 2 and a black rim elsewhere.
-#define AKROPOLIS_FIRE_ESCAPE_INIT_GLOW_QUAD(quad, red, green, blue) \
-    ((void)(setPolyG4((quad)),                                       \
-            setRGB0((quad), 0, 0, 0),                                \
-            setRGB1((quad), 0, 0, 0),                                \
-            setRGB2((quad), (red), (green), (blue)),                 \
+#define INIT_GLOW_QUAD(quad, red, green, blue)       \
+    ((void)(setPolyG4((quad)),                       \
+            setRGB0((quad), 0, 0, 0),                \
+            setRGB1((quad), 0, 0, 0),                \
+            setRGB2((quad), (red), (green), (blue)), \
             setRGB3((quad), 0, 0, 0)))
 
 static void _akropolisFireEscapeInitializeRoomTask(Task* task);
@@ -173,38 +173,39 @@ static const TaskFuncTable3 _gAkropolisFireEscapeRoomStateHandlers = {
 static inline void _akropolisFireEscapeStartRepeatScene(void)
 {
     enum {
-        AKROPOLIS_FIRE_ESCAPE_SCENE_VIEW              = 9,
-        AKROPOLIS_FIRE_ESCAPE_SCENE_CAP_SLOT          = 1,
-        AKROPOLIS_FIRE_ESCAPE_SCENE_CAP_FILE          = 1,
-        AKROPOLIS_FIRE_ESCAPE_SCENE_PLAY              = 0,
-        AKROPOLIS_FIRE_ESCAPE_SCENE_TASK              = 0,
-        AKROPOLIS_FIRE_ESCAPE_SCENE_FOLLOW_UP_COMMAND = 3,
-        AKROPOLIS_FIRE_ESCAPE_SCENE_START_SOUND       = AKROPOLIS_FIRE_ESCAPE_SOUND(AKROPOLIS_FIRE_ESCAPE_SOUND_SCENE_START),
-        AKROPOLIS_FIRE_ESCAPE_SCENE_END_SOUND         = AKROPOLIS_FIRE_ESCAPE_SOUND(AKROPOLIS_FIRE_ESCAPE_SOUND_SCENE_END),
-        AKROPOLIS_FIRE_ESCAPE_SCENE_PLAYBACK_SOUND    = AKROPOLIS_FIRE_ESCAPE_SOUND(AKROPOLIS_FIRE_ESCAPE_SOUND_SCENE_PLAYBACK),
-        AKROPOLIS_FIRE_ESCAPE_SCENE_AFTER_SOUND       = AKROPOLIS_FIRE_ESCAPE_SOUND(AKROPOLIS_FIRE_ESCAPE_SOUND_SCENE_AFTER),
+        VIEW              = 9,
+        CAP_SLOT          = 1,
+        CAP_FILE          = 1,
+        PLAY              = 0,
+        TASK              = 0,
+        FOLLOW_UP_COMMAND = 3,
+        START_SOUND       = AKROPOLIS_FIRE_ESCAPE_SOUND(AKROPOLIS_FIRE_ESCAPE_SOUND_SCENE_START),
+        END_SOUND         = AKROPOLIS_FIRE_ESCAPE_SOUND(AKROPOLIS_FIRE_ESCAPE_SOUND_SCENE_END),
+        PLAYBACK_SOUND    = AKROPOLIS_FIRE_ESCAPE_SOUND(AKROPOLIS_FIRE_ESCAPE_SOUND_SCENE_PLAYBACK),
+        AFTER_SOUND       = AKROPOLIS_FIRE_ESCAPE_SOUND(AKROPOLIS_FIRE_ESCAPE_SOUND_SCENE_AFTER),
     };
 
-    _gAkropolisFireEscapeRepeatScene.view            = AKROPOLIS_FIRE_ESCAPE_SCENE_VIEW;
-    _gAkropolisFireEscapeRepeatScene.capSlot         = AKROPOLIS_FIRE_ESCAPE_SCENE_CAP_SLOT;
-    _gAkropolisFireEscapeRepeatScene.capFile         = AKROPOLIS_FIRE_ESCAPE_SCENE_CAP_FILE;
-    _gAkropolisFireEscapeRepeatScene.skipScene       = AKROPOLIS_FIRE_ESCAPE_SCENE_PLAY;
-    _gAkropolisFireEscapeRepeatScene.startSound      = AKROPOLIS_FIRE_ESCAPE_SCENE_START_SOUND;
-    _gAkropolisFireEscapeRepeatScene.endSound        = AKROPOLIS_FIRE_ESCAPE_SCENE_END_SOUND;
-    _gAkropolisFireEscapeRepeatScene.sceneSound      = AKROPOLIS_FIRE_ESCAPE_SCENE_PLAYBACK_SOUND;
-    _gAkropolisFireEscapeRepeatScene.afterSceneSound = AKROPOLIS_FIRE_ESCAPE_SCENE_AFTER_SOUND;
-    taskSpawnFromTable(_gRoomCutsceneTaskDescs, AKROPOLIS_FIRE_ESCAPE_SCENE_TASK, AKROPOLIS_FIRE_ESCAPE_SCENE_FOLLOW_UP_COMMAND, &_gAkropolisFireEscapeRepeatScene);
+    _gAkropolisFireEscapeRepeatScene.view            = VIEW;
+    _gAkropolisFireEscapeRepeatScene.capSlot         = CAP_SLOT;
+    _gAkropolisFireEscapeRepeatScene.capFile         = CAP_FILE;
+    _gAkropolisFireEscapeRepeatScene.skipScene       = PLAY;
+    _gAkropolisFireEscapeRepeatScene.startSound      = START_SOUND;
+    _gAkropolisFireEscapeRepeatScene.endSound        = END_SOUND;
+    _gAkropolisFireEscapeRepeatScene.sceneSound      = PLAYBACK_SOUND;
+    _gAkropolisFireEscapeRepeatScene.afterSceneSound = AFTER_SOUND;
+    taskSpawnFromTable(_gRoomCutsceneTaskDescs, TASK, FOLLOW_UP_COMMAND, &_gAkropolisFireEscapeRepeatScene);
 }
 
-/// Room commands: 4 the telephone, 3 the dialogue moving the story on, 1 the dialogue by whether its actor is here.
+/// Room commands: 4 the telephone; 3 the bomb, which moves the story on; 1 the gate, "It's closed... Someone activated
+/// the emergency lockout!" (CAP 1), or "Wait... It's still alive." (CAP 9) while the creature lying there is present.
 static s32 _akropolisFireEscapeHandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg)
 {
     enum {
-        AKROPOLIS_FIRE_ESCAPE_FIRST_SCENE_CAP_COMMAND   = 11,
-        AKROPOLIS_FIRE_ESCAPE_DIALOGUE_CAP_COMMAND      = 3,
-        AKROPOLIS_FIRE_ESCAPE_DIALOGUE_ACTOR_PLACEMENT  = 0,
-        AKROPOLIS_FIRE_ESCAPE_ACTOR_ABSENT_CAP_COMMAND  = 1,
-        AKROPOLIS_FIRE_ESCAPE_ACTOR_PRESENT_CAP_COMMAND = 9,
+        TELEPHONE_CAP_COMMAND      = 11,
+        BOMB_CAP_COMMAND           = 3,
+        CREATURE_ACTOR             = 0,
+        GATE_CAP_COMMAND           = 1,
+        CREATURE_ALIVE_CAP_COMMAND = 9,
     };
     Task* actorTask;
     s32   capCommand;
@@ -213,29 +214,29 @@ static s32 _akropolisFireEscapeHandleRoomCommand(Task* unusedTask, s32 unusedMes
     if (command == AKROPOLIS_FIRE_ESCAPE_ROOM_COMMAND_TELEPHONE) {
         if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_FIRE_ESCAPE_TELEPHONE_INSPECTED) == 0) {
             gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_FIRE_ESCAPE_TELEPHONE_INSPECTED, 1);
-            capRunCommandWithTransition(AKROPOLIS_FIRE_ESCAPE_FIRST_SCENE_CAP_COMMAND);
+            capRunCommandWithTransition(TELEPHONE_CAP_COMMAND);
             return 0;
         }
         _akropolisFireEscapeStartRepeatScene();
     }
-    if (command == AKROPOLIS_FIRE_ESCAPE_ROOM_COMMAND_ADVANCE_DIALOGUE) {
+    if (command == AKROPOLIS_FIRE_ESCAPE_ROOM_COMMAND_BOMB) {
         // Advancing dialogue rearms its follow-up without lowering later progress.
         if (gameFlagGetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX) < AKROPOLIS_STORY_DIALOGUE_HELICOPTER) {
             gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
             gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, AKROPOLIS_STORY_DIALOGUE_HELICOPTER);
         }
-        capSpawnEventIfIdle(AKROPOLIS_FIRE_ESCAPE_DIALOGUE_CAP_COMMAND, CAP_EVENT_PAUSE_ACTORS);
+        capSpawnEventIfIdle(BOMB_CAP_COMMAND, CAP_EVENT_PAUSE_ACTORS);
         gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, EVENT_FLAG_OBJECTIVE_AKROPOLIS_ROOF_GARDEN_BOMB_SEEN);
     }
-    if (command == AKROPOLIS_FIRE_ESCAPE_ROOM_COMMAND_ACTOR_DIALOGUE) {
-        actorTask  = sceneFindPlacedActor(AKROPOLIS_FIRE_ESCAPE_DIALOGUE_ACTOR_PLACEMENT);
-        capCommand = AKROPOLIS_FIRE_ESCAPE_ACTOR_ABSENT_CAP_COMMAND;
+    if (command == AKROPOLIS_FIRE_ESCAPE_ROOM_COMMAND_GATE) {
+        actorTask  = sceneFindPlacedActor(CREATURE_ACTOR);
+        capCommand = GATE_CAP_COMMAND;
         if (actorTask != NULL) {
             // Retain the original zero output payload; this actor also writes through it.
             actorPresent = taskMessageDispatch(actorTask, ACTOR_MESSAGE_IS_PRESENT, 0, 0);
-            capCommand   = AKROPOLIS_FIRE_ESCAPE_ACTOR_PRESENT_CAP_COMMAND;
+            capCommand   = CREATURE_ALIVE_CAP_COMMAND;
             if (actorPresent == 0) {
-                capCommand = AKROPOLIS_FIRE_ESCAPE_ACTOR_ABSENT_CAP_COMMAND;
+                capCommand = GATE_CAP_COMMAND;
             }
         }
         capSpawnEventIfIdle(capCommand, CAP_EVENT_PAUSE_ACTORS);
@@ -247,26 +248,26 @@ static s32 _akropolisFireEscapeHandleRoomCommand(Task* unusedTask, s32 unusedMes
 static void _akropolisFireEscapeAmbienceTask(Task* task)
 {
     enum {
-        AKROPOLIS_FIRE_ESCAPE_AMBIENCE_INIT            = 0,
-        AKROPOLIS_FIRE_ESCAPE_AMBIENCE_UPDATE          = 1,
-        AKROPOLIS_FIRE_ESCAPE_AMBIENCE_SILENT          = 0,
-        AKROPOLIS_FIRE_ESCAPE_AMBIENCE_FULL_PERCENT    = 100,
-        AKROPOLIS_FIRE_ESCAPE_AMBIENCE_VIEWS23_PERCENT = 30,
-        AKROPOLIS_FIRE_ESCAPE_AMBIENCE_VIEWS45_PERCENT = 15,
-        AKROPOLIS_FIRE_ESCAPE_AMBIENCE_ATTENUATION_MAX = 127,
-        AKROPOLIS_FIRE_ESCAPE_AMBIENCE_FADE_TICKS      = 30,
-        AKROPOLIS_FIRE_ESCAPE_ENTRY_MUSIC_EVENT        = 5,
-        AKROPOLIS_FIRE_ESCAPE_VIEW8_MUSIC_EVENT        = 7,
+        AMBIENCE_INIT            = 0,
+        AMBIENCE_UPDATE          = 1,
+        AMBIENCE_SILENT          = 0,
+        AMBIENCE_FULL_PERCENT    = 100,
+        AMBIENCE_VIEWS23_PERCENT = 30,
+        AMBIENCE_VIEWS45_PERCENT = 15,
+        AMBIENCE_ATTENUATION_MAX = 127,
+        AMBIENCE_FADE_TICKS      = 30,
+        ENTRY_MUSIC_EVENT        = 5,
+        VIEW8_MUSIC_EVENT        = 7,
     };
     s32 levelPercent;
     s32 previousLevelPercent;
 
     switch (task->state) {
-        case AKROPOLIS_FIRE_ESCAPE_AMBIENCE_INIT:
-            _gAkropolisFireEscapeRequestedAmbiencePercent = AKROPOLIS_FIRE_ESCAPE_AMBIENCE_SILENT;
+        case AMBIENCE_INIT:
+            _gAkropolisFireEscapeRequestedAmbiencePercent = AMBIENCE_SILENT;
             task->state                                   = task->state + 1;
             return;
-        case AKROPOLIS_FIRE_ESCAPE_AMBIENCE_UPDATE:
+        case AMBIENCE_UPDATE:
             break;
         default:
             return;
@@ -274,10 +275,10 @@ static void _akropolisFireEscapeAmbienceTask(Task* task)
 
     switch (gGameSession->location.view) {
         case 8:
-            levelPercent = AKROPOLIS_FIRE_ESCAPE_AMBIENCE_FULL_PERCENT;
+            levelPercent = AMBIENCE_FULL_PERCENT;
             // Commit the music column before queuing its asynchronous loader.
-            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == AKROPOLIS_FIRE_ESCAPE_ENTRY_MUSIC_EVENT) {
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = AKROPOLIS_FIRE_ESCAPE_VIEW8_MUSIC_EVENT;
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == ENTRY_MUSIC_EVENT) {
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = VIEW8_MUSIC_EVENT;
                 gStageMusicParams.fadeOutTicks                      = 1;
                 gStageMusicParams.field_2                           = 1;
                 taskSpawnFromTable(&gStageMusicTaskDesc, 0, STAGE_MUSIC_REQUEST_ORDINARY, 0);
@@ -286,14 +287,14 @@ static void _akropolisFireEscapeAmbienceTask(Task* task)
             break;
         case 2:
         case 3:
-            levelPercent = AKROPOLIS_FIRE_ESCAPE_AMBIENCE_VIEWS23_PERCENT;
+            levelPercent = AMBIENCE_VIEWS23_PERCENT;
             break;
         case 4:
         case 5:
-            levelPercent = AKROPOLIS_FIRE_ESCAPE_AMBIENCE_VIEWS45_PERCENT;
+            levelPercent = AMBIENCE_VIEWS45_PERCENT;
             break;
         default:
-            levelPercent = AKROPOLIS_FIRE_ESCAPE_AMBIENCE_SILENT;
+            levelPercent = AMBIENCE_SILENT;
             break;
     }
 
@@ -301,12 +302,12 @@ static void _akropolisFireEscapeAmbienceTask(Task* task)
     if (levelPercent == previousLevelPercent) {
         return;
     }
-    if (previousLevelPercent == AKROPOLIS_FIRE_ESCAPE_AMBIENCE_SILENT) {
-        sndEvtRequestScriptStart(SOUND_AKROPOLIS_FIRE_ESCAPE_AMBIENCE, 0, (s8)(((AKROPOLIS_FIRE_ESCAPE_AMBIENCE_FULL_PERCENT - levelPercent) * AKROPOLIS_FIRE_ESCAPE_AMBIENCE_ATTENUATION_MAX) / AKROPOLIS_FIRE_ESCAPE_AMBIENCE_FULL_PERCENT));
-    } else if (levelPercent == AKROPOLIS_FIRE_ESCAPE_AMBIENCE_SILENT) {
-        sndEvtRequestScriptStop(SOUND_AKROPOLIS_FIRE_ESCAPE_AMBIENCE, AKROPOLIS_FIRE_ESCAPE_AMBIENCE_FADE_TICKS);
+    if (previousLevelPercent == AMBIENCE_SILENT) {
+        sndEvtRequestScriptStart(SOUND_AKROPOLIS_FIRE_ESCAPE_AMBIENCE, 0, (s8)(((AMBIENCE_FULL_PERCENT - levelPercent) * AMBIENCE_ATTENUATION_MAX) / AMBIENCE_FULL_PERCENT));
+    } else if (levelPercent == AMBIENCE_SILENT) {
+        sndEvtRequestScriptStop(SOUND_AKROPOLIS_FIRE_ESCAPE_AMBIENCE, AMBIENCE_FADE_TICKS);
     } else {
-        sndEvtRequestScriptMix(SOUND_AKROPOLIS_FIRE_ESCAPE_AMBIENCE, 0, (s8)(((AKROPOLIS_FIRE_ESCAPE_AMBIENCE_FULL_PERCENT - levelPercent) * AKROPOLIS_FIRE_ESCAPE_AMBIENCE_ATTENUATION_MAX) / AKROPOLIS_FIRE_ESCAPE_AMBIENCE_FULL_PERCENT));
+        sndEvtRequestScriptMix(SOUND_AKROPOLIS_FIRE_ESCAPE_AMBIENCE, 0, (s8)(((AMBIENCE_FULL_PERCENT - levelPercent) * AMBIENCE_ATTENUATION_MAX) / AMBIENCE_FULL_PERCENT));
     }
     _gAkropolisFireEscapeRequestedAmbiencePercent = levelPercent;
 }
@@ -316,11 +317,11 @@ static void _akropolisFireEscapeAmbienceTask(Task* task)
 /// Leaving fades the ambience out; the bridge's door leads to the bridge's state.
 static s32 _akropolisFireEscapeResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    enum { AKROPOLIS_FIRE_ESCAPE_DEPARTURE_FADE_TICKS = 15 };
+    enum { DEPARTURE_FADE_TICKS = 15 };
 
     *reply = *request;
     if (request->queryOnly == ROOM_EVENT_EXECUTE) {
-        sndEvtRequestScriptStop(SOUND_AKROPOLIS_FIRE_ESCAPE_AMBIENCE, AKROPOLIS_FIRE_ESCAPE_DEPARTURE_FADE_TICKS);
+        sndEvtRequestScriptStop(SOUND_AKROPOLIS_FIRE_ESCAPE_AMBIENCE, DEPARTURE_FADE_TICKS);
     }
     if (request->areaId == AKROPOLIS_ROOM_ID_BRIDGE && request->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_BRIDGE_PROGRESS) == AKROPOLIS_BRIDGE_RAISED) {
@@ -348,14 +349,14 @@ static s32 _akropolisFireEscapeIgnoreSoundCue(Task* unusedTask, s32 unusedMessag
 static void _akropolisFireEscapeInitializeRoomTask(Task* task)
 {
     enum {
-        AKROPOLIS_FIRE_ESCAPE_INITIAL_AMBIENCE_TASK = 0,
-        AKROPOLIS_FIRE_ESCAPE_ENTRY_MUSIC_EVENT     = 5,
+        INITIAL_AMBIENCE_TASK = 0,
+        ENTRY_MUSIC_EVENT     = 5,
     };
 
     task->msgTable = _gAkropolisFireEscapeRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    taskSpawnFromTable(_gAkropolisFireEscapeAmbienceTaskDescriptors, AKROPOLIS_FIRE_ESCAPE_INITIAL_AMBIENCE_TASK, 0, 0);
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == AKROPOLIS_FIRE_ESCAPE_ENTRY_MUSIC_EVENT) {
+    taskSpawnFromTable(_gAkropolisFireEscapeAmbienceTaskDescriptors, INITIAL_AMBIENCE_TASK, 0, 0);
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == ENTRY_MUSIC_EVENT) {
         gGameSession->flowFlags = GAME_SESSION_FLOW_LOAD_AREA_MUSIC_ONLY;
     }
     task->state = task->state + 1;
@@ -364,12 +365,12 @@ static void _akropolisFireEscapeInitializeRoomTask(Task* task)
 /// Disables the placed actor's interaction when the actor is absent.
 static void _akropolisFireEscapeDisableAbsentActorInteraction(Task* unusedTask)
 {
-    enum { AKROPOLIS_FIRE_ESCAPE_ACTOR_INTERACTION_TRIGGER = 5 };
+    enum { ACTOR_INTERACTION_TRIGGER = 5 };
     Task* actorTask;
 
     actorTask = sceneFindPlacedActor(0);
     if (actorTask == NULL || taskMessageDispatch(actorTask, ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) {
-        WorldCollisionTrigger* interaction = &_gAkropolisFireEscapeActionTriggers[AKROPOLIS_FIRE_ESCAPE_ACTOR_INTERACTION_TRIGGER];
+        WorldCollisionTrigger* interaction = &_gAkropolisFireEscapeActionTriggers[ACTOR_INTERACTION_TRIGGER];
         interaction->flags                &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
     }
 }
@@ -393,20 +394,20 @@ static inline void _akropolisFireEscapeSpawnFlare(EffectWork* emitterWork, GfxCo
 void akropolisFireEscapeLightEmitterTask(Task* task)
 {
     enum {
-        AKROPOLIS_FIRE_ESCAPE_LIGHT_EMITTER_INITIALIZE = 0,
-        AKROPOLIS_FIRE_ESCAPE_LIGHT_EMITTER_EMIT       = 1,
+        LIGHT_EMITTER_INITIALIZE = 0,
+        LIGHT_EMITTER_EMIT       = 1,
         // Radius byte 32; the lamp does not read the retained upper bits.
-        AKROPOLIS_FIRE_ESCAPE_FLICKER_SPAWN_OPTIONS = 0x42000,
-        AKROPOLIS_FIRE_ESCAPE_RED_DIAMOND_VIEW      = 3,
-        AKROPOLIS_FIRE_ESCAPE_RED_RADIAL_VIEW       = 8,
-        AKROPOLIS_FIRE_ESCAPE_CYAN_DIAMOND_VIEW     = 6,
-        AKROPOLIS_FIRE_ESCAPE_CYAN_RADIAL_VIEW      = 9,
-        AKROPOLIS_FIRE_ESCAPE_RED_PULSE_RATE        = 14,
-        AKROPOLIS_FIRE_ESCAPE_CYAN_PULSE_RATE       = 8,
-        AKROPOLIS_FIRE_ESCAPE_RED_DIAMOND_RADIUS    = 6,
-        AKROPOLIS_FIRE_ESCAPE_RED_RADIAL_RADIUS     = 3,
-        AKROPOLIS_FIRE_ESCAPE_CYAN_DIAMOND_RADIUS   = 4,
-        AKROPOLIS_FIRE_ESCAPE_CYAN_RADIAL_RADIUS    = 2,
+        FLICKER_SPAWN_OPTIONS = 0x42000,
+        RED_DIAMOND_VIEW      = 3,
+        RED_RADIAL_VIEW       = 8,
+        CYAN_DIAMOND_VIEW     = 6,
+        CYAN_RADIAL_VIEW      = 9,
+        RED_PULSE_RATE        = 14,
+        CYAN_PULSE_RATE       = 8,
+        RED_DIAMOND_RADIUS    = 6,
+        RED_RADIAL_RADIUS     = 3,
+        CYAN_DIAMOND_RADIUS   = 4,
+        CYAN_RADIAL_RADIUS    = 2,
     };
     EffectWork* emitterWork;
     GfxCoord*   emitterCoord;
@@ -414,32 +415,32 @@ void akropolisFireEscapeLightEmitterTask(Task* task)
     emitterWork  = task->spawnArg2.pointer;
     emitterCoord = task->extra.coordBody->coord;
     switch (task->state) {
-        case AKROPOLIS_FIRE_ESCAPE_LIGHT_EMITTER_INITIALIZE:
+        case LIGHT_EMITTER_INITIALIZE:
             // The persistent lamp snapshots this local placement once.
             emitterWork->move.vx = 2904;
             emitterWork->move.vy = -2082;
             emitterWork->move.vz = -229;
-            effectSpawn(EFFECT_AKROPOLIS_FIRE_ESCAPE_FLICKER_LIGHT, emitterCoord, AKROPOLIS_FIRE_ESCAPE_FLICKER_SPAWN_OPTIONS, &emitterWork->move);
+            effectSpawn(EFFECT_AKROPOLIS_FIRE_ESCAPE_FLICKER_LIGHT, emitterCoord, FLICKER_SPAWN_OPTIONS, &emitterWork->move);
             task->state = task->state + 1;
             break;
-        case AKROPOLIS_FIRE_ESCAPE_LIGHT_EMITTER_EMIT:
+        case LIGHT_EMITTER_EMIT:
             // Actor pause/hide modes still emit; a cancellation update suppresses emission.
             if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-                if (gGameSession->location.view == AKROPOLIS_FIRE_ESCAPE_RED_DIAMOND_VIEW) {
+                if (gGameSession->location.view == RED_DIAMOND_VIEW) {
                     _akropolisFireEscapeSpawnFlare(emitterWork, emitterCoord, 1167, -913, 1670,
-                                                   (AKROPOLIS_FIRE_ESCAPE_RED_DIAMOND_RADIUS << AKROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | AKROPOLIS_FIRE_ESCAPE_RED_PULSE_RATE);
+                                                   (RED_DIAMOND_RADIUS << AKROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | RED_PULSE_RATE);
                 }
-                if (gGameSession->location.view == AKROPOLIS_FIRE_ESCAPE_RED_RADIAL_VIEW) {
+                if (gGameSession->location.view == RED_RADIAL_VIEW) {
                     _akropolisFireEscapeSpawnFlare(emitterWork, emitterCoord, 1167, -913, 1670,
-                                                   AKROPOLIS_FIRE_ESCAPE_FLARE_RADIAL | (AKROPOLIS_FIRE_ESCAPE_RED_RADIAL_RADIUS << AKROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | AKROPOLIS_FIRE_ESCAPE_RED_PULSE_RATE);
+                                                   AKROPOLIS_FIRE_ESCAPE_FLARE_RADIAL | (RED_RADIAL_RADIUS << AKROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | RED_PULSE_RATE);
                 }
-                if (gGameSession->location.view == AKROPOLIS_FIRE_ESCAPE_CYAN_DIAMOND_VIEW) {
+                if (gGameSession->location.view == CYAN_DIAMOND_VIEW) {
                     _akropolisFireEscapeSpawnFlare(emitterWork, emitterCoord, -3103, -3344, 2272,
-                                                   AKROPOLIS_FIRE_ESCAPE_FLARE_CYAN | (AKROPOLIS_FIRE_ESCAPE_CYAN_DIAMOND_RADIUS << AKROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | AKROPOLIS_FIRE_ESCAPE_CYAN_PULSE_RATE);
+                                                   AKROPOLIS_FIRE_ESCAPE_FLARE_CYAN | (CYAN_DIAMOND_RADIUS << AKROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | CYAN_PULSE_RATE);
                 }
-                if (gGameSession->location.view == AKROPOLIS_FIRE_ESCAPE_CYAN_RADIAL_VIEW) {
+                if (gGameSession->location.view == CYAN_RADIAL_VIEW) {
                     _akropolisFireEscapeSpawnFlare(emitterWork, emitterCoord, -3103, -3344, 2272,
-                                                   AKROPOLIS_FIRE_ESCAPE_FLARE_RADIAL | AKROPOLIS_FIRE_ESCAPE_FLARE_CYAN | (AKROPOLIS_FIRE_ESCAPE_CYAN_RADIAL_RADIUS << AKROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | AKROPOLIS_FIRE_ESCAPE_CYAN_PULSE_RATE);
+                                                   AKROPOLIS_FIRE_ESCAPE_FLARE_RADIAL | AKROPOLIS_FIRE_ESCAPE_FLARE_CYAN | (CYAN_RADIAL_RADIUS << AKROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | CYAN_PULSE_RATE);
                 }
             }
             break;
@@ -449,9 +450,9 @@ void akropolisFireEscapeLightEmitterTask(Task* task)
 /// Queues an initialized fire-escape glow quad with additive blending.
 static inline void _akropolisFireEscapeQueueGlow(POLY_G4* quad, const s32* sortingDepth)
 {
-    enum { AKROPOLIS_FIRE_ESCAPE_GLOW_DEPTH_TO_TAG_INDEX_SHIFT = 4 };
+    enum { GLOW_DEPTH_TO_TAG_INDEX_SHIFT = 4 };
 
-    addPrim(&gGpuCurrentOt[((u32)*sortingDepth << gDisplayState.otDepthShift) >> AKROPOLIS_FIRE_ESCAPE_GLOW_DEPTH_TO_TAG_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*gGpuCurrentOt))],
+    addPrim(&gGpuCurrentOt[((u32)*sortingDepth << gDisplayState.otDepthShift) >> GLOW_DEPTH_TO_TAG_INDEX_SHIFT & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*gGpuCurrentOt))],
             quad);
     // Prepending the draw mode after the quad makes the GPU apply it first.
     gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, *sortingDepth);
@@ -460,23 +461,23 @@ static inline void _akropolisFireEscapeQueueGlow(POLY_G4* quad, const s32* sorti
 void akropolisFireEscapeFlickerLightTask(Task* task)
 {
     enum {
-        AKROPOLIS_FIRE_ESCAPE_FLICKER_VIEW_MASK           = (1 << (2 - 1)) | (1 << (3 - 1)) | (1 << (7 - 1)),
-        AKROPOLIS_FIRE_ESCAPE_FLICKER_DEPTH_BIAS          = 32,
-        AKROPOLIS_FIRE_ESCAPE_FLICKER_MODE_FRAME_MASK     = 31,
-        AKROPOLIS_FIRE_ESCAPE_FLICKER_MODE_MASK           = 3,
-        AKROPOLIS_FIRE_ESCAPE_FLICKER_RADIUS_SHIFT        = 8,
-        AKROPOLIS_FIRE_ESCAPE_FLICKER_RADIUS_MASK         = 0xFF,
-        AKROPOLIS_FIRE_ESCAPE_FLICKER_DIM_MAX             = 16,
-        AKROPOLIS_FIRE_ESCAPE_FLICKER_SOUND_MIN           = 32,
-        AKROPOLIS_FIRE_ESCAPE_FLICKER_BRIGHTNESS_MASK     = 0x30,
-        AKROPOLIS_FIRE_ESCAPE_FLICKER_LOW_BRIGHTNESS_MASK = 0x10,
-        AKROPOLIS_FIRE_ESCAPE_FLICKER_RANDOM              = 0,
-        AKROPOLIS_FIRE_ESCAPE_FLICKER_RANDOM_ODD_FRAMES   = 1,
-        AKROPOLIS_FIRE_ESCAPE_FLICKER_STEADY              = 2,
-        AKROPOLIS_FIRE_ESCAPE_FLICKER_DIM_RANDOM          = 3,
-        AKROPOLIS_FIRE_ESCAPE_FLICKER_RADIUS_SCALE        = 0x600,
-        AKROPOLIS_FIRE_ESCAPE_FLICKER_INNER_RADIUS_SCALE  = 0xC0,
-        AKROPOLIS_FIRE_ESCAPE_GLOW_CIRCLE_STEPS           = 16,
+        FLICKER_VIEW_MASK           = (1 << (2 - 1)) | (1 << (3 - 1)) | (1 << (7 - 1)),
+        FLICKER_DEPTH_BIAS          = 32,
+        FLICKER_MODE_FRAME_MASK     = 31,
+        FLICKER_MODE_MASK           = 3,
+        FLICKER_RADIUS_SHIFT        = 8,
+        FLICKER_RADIUS_MASK         = 0xFF,
+        FLICKER_DIM_MAX             = 16,
+        FLICKER_SOUND_MIN           = 32,
+        FLICKER_BRIGHTNESS_MASK     = 0x30,
+        FLICKER_LOW_BRIGHTNESS_MASK = 0x10,
+        FLICKER_RANDOM              = 0,
+        FLICKER_RANDOM_ODD_FRAMES   = 1,
+        FLICKER_STEADY              = 2,
+        FLICKER_DIM_RANDOM          = 3,
+        FLICKER_RADIUS_SCALE        = 0x600,
+        FLICKER_INNER_RADIUS_SCALE  = 0xC0,
+        GLOW_CIRCLE_STEPS           = 16,
     };
 
     EffectWork*           effectWork;
@@ -491,7 +492,7 @@ void akropolisFireEscapeFlickerLightTask(Task* task)
     coord      = task->extra.coordBody->coord;
     wasDim     = 0;
     // The installed room has 1-based view IDs; only views 2, 3 and 7 show the lamp.
-    if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN && ((AKROPOLIS_FIRE_ESCAPE_FLICKER_VIEW_MASK >> (gGameSession->location.view - 1)) & 1)) {
+    if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN && ((FLICKER_VIEW_MASK >> (gGameSession->location.view - 1)) & 1)) {
         // Project the lamp and pull its sorting depth forward before sizing it.
         actorRenderComposeCoord(coord);
         projection              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowRadiiScratch);
@@ -504,47 +505,47 @@ void akropolisFireEscapeFlickerLightTask(Task* task)
         gte_rtps();
         gte_stsxy(&projection->screenPos);
         gte_stszotz(&projection->otz);
-        projection->otz -= AKROPOLIS_FIRE_ESCAPE_FLICKER_DEPTH_BIAS;
+        projection->otz -= FLICKER_DEPTH_BIAS;
         if (projection->otz >= GLOW_MIN_DEPTH) {
-            if (!(gDisplayState.animFrame & AKROPOLIS_FIRE_ESCAPE_FLICKER_MODE_FRAME_MASK)) {
+            if (!(gDisplayState.animFrame & FLICKER_MODE_FRAME_MASK)) {
                 RANDOM_LCG_ADVANCE();
-                effectWork->index = RANDOM_LCG_DRAW() & AKROPOLIS_FIRE_ESCAPE_FLICKER_MODE_MASK;
+                effectWork->index = RANDOM_LCG_DRAW() & FLICKER_MODE_MASK;
             }
             // Choose flicker brightness, then sound only a dim-to-bright transition.
             brightness = effectWork->scale;
-            if (effectWork->scale <= AKROPOLIS_FIRE_ESCAPE_FLICKER_DIM_MAX) {
+            if (effectWork->scale <= FLICKER_DIM_MAX) {
                 wasDim = 1;
             }
             switch (effectWork->index) {
-                case AKROPOLIS_FIRE_ESCAPE_FLICKER_RANDOM:
+                case FLICKER_RANDOM:
                     RANDOM_LCG_ADVANCE();
-                    effectWork->scale = RANDOM_LCG_DRAW() & AKROPOLIS_FIRE_ESCAPE_FLICKER_BRIGHTNESS_MASK;
+                    effectWork->scale = RANDOM_LCG_DRAW() & FLICKER_BRIGHTNESS_MASK;
                     break;
-                case AKROPOLIS_FIRE_ESCAPE_FLICKER_RANDOM_ODD_FRAMES:
+                case FLICKER_RANDOM_ODD_FRAMES:
                     if (gDisplayState.animFrame & 1) {
                         RANDOM_LCG_ADVANCE();
-                        brightness = RANDOM_LCG_DRAW() & AKROPOLIS_FIRE_ESCAPE_FLICKER_BRIGHTNESS_MASK;
+                        brightness = RANDOM_LCG_DRAW() & FLICKER_BRIGHTNESS_MASK;
                     }
                     effectWork->scale = brightness;
                     break;
-                case AKROPOLIS_FIRE_ESCAPE_FLICKER_STEADY:
-                    effectWork->scale = AKROPOLIS_FIRE_ESCAPE_FLICKER_BRIGHTNESS_MASK;
+                case FLICKER_STEADY:
+                    effectWork->scale = FLICKER_BRIGHTNESS_MASK;
                     break;
-                case AKROPOLIS_FIRE_ESCAPE_FLICKER_DIM_RANDOM:
+                case FLICKER_DIM_RANDOM:
                     RANDOM_LCG_ADVANCE();
-                    effectWork->scale = RANDOM_LCG_DRAW() & AKROPOLIS_FIRE_ESCAPE_FLICKER_LOW_BRIGHTNESS_MASK;
+                    effectWork->scale = RANDOM_LCG_DRAW() & FLICKER_LOW_BRIGHTNESS_MASK;
                     break;
             }
-            if (wasDim && effectWork->scale >= AKROPOLIS_FIRE_ESCAPE_FLICKER_SOUND_MIN) {
+            if (wasDim && effectWork->scale >= FLICKER_SOUND_MIN) {
                 sndEvtRequestScriptStart(SOUND_AKROPOLIS_FIRE_ESCAPE_LIGHT_FLICKER, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
-            projection->outerRadius = (((task->spawnArg1.value >> AKROPOLIS_FIRE_ESCAPE_FLICKER_RADIUS_SHIFT) & AKROPOLIS_FIRE_ESCAPE_FLICKER_RADIUS_MASK) * AKROPOLIS_FIRE_ESCAPE_FLICKER_RADIUS_SCALE) / projection->otz;
-            projection->innerRadius = (((task->spawnArg1.value >> AKROPOLIS_FIRE_ESCAPE_FLICKER_RADIUS_SHIFT) & AKROPOLIS_FIRE_ESCAPE_FLICKER_RADIUS_MASK) * AKROPOLIS_FIRE_ESCAPE_FLICKER_INNER_RADIUS_SCALE) / projection->otz;
+            projection->outerRadius = (((task->spawnArg1.value >> FLICKER_RADIUS_SHIFT) & FLICKER_RADIUS_MASK) * FLICKER_RADIUS_SCALE) / projection->otz;
+            projection->innerRadius = (((task->spawnArg1.value >> FLICKER_RADIUS_SHIFT) & FLICKER_RADIUS_MASK) * FLICKER_INNER_RADIUS_SCALE) / projection->otz;
             // Eight wedges in each of three concentric intensity layers.
-            for (cornerIndex = 0; cornerIndex < AKROPOLIS_FIRE_ESCAPE_GLOW_CIRCLE_STEPS; cornerIndex += 2) {
+            for (cornerIndex = 0; cornerIndex < GLOW_CIRCLE_STEPS; cornerIndex += 2) {
                 quad           = gGpuPrimCursor;
                 gGpuPrimCursor = quad + 1;
-                AKROPOLIS_FIRE_ESCAPE_INIT_GLOW_QUAD(quad, effectWork->scale >> 1, effectWork->scale >> 1, effectWork->scale >> 1);
+                INIT_GLOW_QUAD(quad, effectWork->scale >> 1, effectWork->scale >> 1, effectWork->scale >> 1);
                 quad->x0 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisFireEscapeGlowCircleSamples[cornerIndex + 4]) >> GLOW_TRIG_SHIFT);
                 quad->y0 = projection->screenPos.vy + ((projection->outerRadius * _gAkropolisFireEscapeGlowCircleSamples[cornerIndex]) >> GLOW_TRIG_SHIFT);
                 quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisFireEscapeGlowCircleSamples[cornerIndex + 5]) >> GLOW_TRIG_SHIFT);
@@ -557,7 +558,7 @@ void akropolisFireEscapeFlickerLightTask(Task* task)
 
                 quad           = gGpuPrimCursor;
                 gGpuPrimCursor = quad + 1;
-                AKROPOLIS_FIRE_ESCAPE_INIT_GLOW_QUAD(quad, effectWork->scale, effectWork->scale, effectWork->scale);
+                INIT_GLOW_QUAD(quad, effectWork->scale, effectWork->scale, effectWork->scale);
                 quad->x0 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisFireEscapeGlowCircleSamples[cornerIndex + 4]) >> (GLOW_TRIG_SHIFT + 1));
                 quad->y0 = projection->screenPos.vy + ((projection->outerRadius * _gAkropolisFireEscapeGlowCircleSamples[cornerIndex]) >> (GLOW_TRIG_SHIFT + 1));
                 quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisFireEscapeGlowCircleSamples[cornerIndex + 5]) >> (GLOW_TRIG_SHIFT + 1));
@@ -570,7 +571,7 @@ void akropolisFireEscapeFlickerLightTask(Task* task)
 
                 quad           = gGpuPrimCursor;
                 gGpuPrimCursor = quad + 1;
-                AKROPOLIS_FIRE_ESCAPE_INIT_GLOW_QUAD(quad, (u8)effectWork->scale * 4, (u8)effectWork->scale * 4, (u8)effectWork->scale * 4);
+                INIT_GLOW_QUAD(quad, (u8)effectWork->scale * 4, (u8)effectWork->scale * 4, (u8)effectWork->scale * 4);
                 quad->x0 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisFireEscapeGlowCircleSamples[cornerIndex + 4]) >> (GLOW_TRIG_SHIFT + 3));
                 quad->y0 = projection->screenPos.vy + ((projection->outerRadius * _gAkropolisFireEscapeGlowCircleSamples[cornerIndex]) >> (GLOW_TRIG_SHIFT + 3));
                 quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisFireEscapeGlowCircleSamples[cornerIndex + 5]) >> (GLOW_TRIG_SHIFT + 3));
@@ -591,12 +592,12 @@ void akropolisFireEscapeFlickerLightTask(Task* task)
 void akropolisFireEscapeFlareTask(Task* task)
 {
     enum {
-        AKROPOLIS_FIRE_ESCAPE_FLARE_PULSE_FALLING_BIT    = 0x80,
-        AKROPOLIS_FIRE_ESCAPE_FLARE_PULSE_LEVEL_MASK     = 0x7F,
-        AKROPOLIS_FIRE_ESCAPE_FLARE_RADIAL_RADIUS_SHIFT  = 10,
-        AKROPOLIS_FIRE_ESCAPE_FLARE_INNER_RADIUS_SHIFT   = 7,
-        AKROPOLIS_FIRE_ESCAPE_FLARE_DIAMOND_RADIUS_SHIFT = 9,
-        AKROPOLIS_FIRE_ESCAPE_GLOW_CIRCLE_STEPS          = 16,
+        FLARE_PULSE_FALLING_BIT    = 0x80,
+        FLARE_PULSE_LEVEL_MASK     = 0x7F,
+        FLARE_RADIAL_RADIUS_SHIFT  = 10,
+        FLARE_INNER_RADIUS_SHIFT   = 7,
+        FLARE_DIAMOND_RADIUS_SHIFT = 9,
+        GLOW_CIRCLE_STEPS          = 16,
     };
 
     RoomGlowRadiiScratch* projection;
@@ -632,21 +633,21 @@ void akropolisFireEscapeFlareTask(Task* task)
         pulsePhase  = gDisplayState.animFrame;
         pulsePhase *= task->spawnArg1.value & AKROPOLIS_FIRE_ESCAPE_FLARE_PULSE_RATE_MASK;
         cyan        = (task->spawnArg1.value >> AKROPOLIS_FIRE_ESCAPE_FLARE_CYAN_SHIFT) & 1;
-        if (pulsePhase & AKROPOLIS_FIRE_ESCAPE_FLARE_PULSE_FALLING_BIT) {
-            pulseOrOptions = ~pulsePhase & AKROPOLIS_FIRE_ESCAPE_FLARE_PULSE_LEVEL_MASK;
+        if (pulsePhase & FLARE_PULSE_FALLING_BIT) {
+            pulseOrOptions = ~pulsePhase & FLARE_PULSE_LEVEL_MASK;
         } else {
-            pulseOrOptions = pulsePhase & AKROPOLIS_FIRE_ESCAPE_FLARE_PULSE_LEVEL_MASK;
+            pulseOrOptions = pulsePhase & FLARE_PULSE_LEVEL_MASK;
         }
         intensity      = pulseOrOptions * 2;
         pulseOrOptions = task->spawnArg1.value;
         if (pulseOrOptions < 0) {
             radiusScale             = (pulseOrOptions >> AKROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) & AKROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_MASK;
-            projection->outerRadius = (radiusScale << AKROPOLIS_FIRE_ESCAPE_FLARE_RADIAL_RADIUS_SHIFT) / projection->otz;
-            projection->innerRadius = (((task->spawnArg1.value >> AKROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) & AKROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_MASK) << AKROPOLIS_FIRE_ESCAPE_FLARE_INNER_RADIUS_SHIFT) / projection->otz;
-            for (partIndex = 0; partIndex < AKROPOLIS_FIRE_ESCAPE_GLOW_CIRCLE_STEPS; partIndex += 2) {
+            projection->outerRadius = (radiusScale << FLARE_RADIAL_RADIUS_SHIFT) / projection->otz;
+            projection->innerRadius = (((task->spawnArg1.value >> AKROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) & AKROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_MASK) << FLARE_INNER_RADIUS_SHIFT) / projection->otz;
+            for (partIndex = 0; partIndex < GLOW_CIRCLE_STEPS; partIndex += 2) {
                 quad           = gGpuPrimCursor;
                 gGpuPrimCursor = quad + 1;
-                AKROPOLIS_FIRE_ESCAPE_INIT_GLOW_QUAD(quad, (intensity * (cyan ^ 1)) >> 1, (cyan * intensity) >> 1, (cyan * intensity) >> 1);
+                INIT_GLOW_QUAD(quad, (intensity * (cyan ^ 1)) >> 1, (cyan * intensity) >> 1, (cyan * intensity) >> 1);
                 quad->x0 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisFireEscapeGlowCircleSamples[partIndex + 4]) >> GLOW_TRIG_SHIFT);
                 quad->y0 = projection->screenPos.vy + ((projection->outerRadius * _gAkropolisFireEscapeGlowCircleSamples[partIndex]) >> GLOW_TRIG_SHIFT);
                 quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisFireEscapeGlowCircleSamples[partIndex + 5]) >> GLOW_TRIG_SHIFT);
@@ -659,7 +660,7 @@ void akropolisFireEscapeFlareTask(Task* task)
 
                 quad           = gGpuPrimCursor;
                 gGpuPrimCursor = quad + 1;
-                AKROPOLIS_FIRE_ESCAPE_INIT_GLOW_QUAD(quad, intensity * (cyan ^ 1), cyan * intensity, cyan * intensity);
+                INIT_GLOW_QUAD(quad, intensity * (cyan ^ 1), cyan * intensity, cyan * intensity);
                 quad->x0 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisFireEscapeGlowCircleSamples[partIndex + 4]) >> (GLOW_TRIG_SHIFT + 1));
                 quad->y0 = projection->screenPos.vy + ((projection->outerRadius * _gAkropolisFireEscapeGlowCircleSamples[partIndex]) >> (GLOW_TRIG_SHIFT + 1));
                 quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisFireEscapeGlowCircleSamples[partIndex + 5]) >> (GLOW_TRIG_SHIFT + 1));
@@ -673,10 +674,10 @@ void akropolisFireEscapeFlareTask(Task* task)
             // Overlay four half-bright rays on the concentric disc.
             // Retain the first ray's pre-array read of the preceding descriptor's zero halfword.
             halfIntensity = intensity >> 1;
-            for (partIndex = 2; partIndex < AKROPOLIS_FIRE_ESCAPE_GLOW_CIRCLE_STEPS; partIndex += 8) {
+            for (partIndex = 2; partIndex < GLOW_CIRCLE_STEPS; partIndex += 8) {
                 quad           = gGpuPrimCursor;
                 gGpuPrimCursor = quad + 1;
-                AKROPOLIS_FIRE_ESCAPE_INIT_GLOW_QUAD(quad, halfIntensity * (cyan ^ 1), cyan * halfIntensity, cyan * halfIntensity);
+                INIT_GLOW_QUAD(quad, halfIntensity * (cyan ^ 1), cyan * halfIntensity, cyan * halfIntensity);
                 quad->x0 = projection->screenPos.vx + ((projection->innerRadius * _gAkropolisFireEscapeGlowCircleSamples[partIndex]) >> GLOW_TRIG_SHIFT);
                 quad->y0 = projection->screenPos.vy + ((projection->innerRadius * _gAkropolisFireEscapeGlowCircleSamples[partIndex - 4]) >> GLOW_TRIG_SHIFT);
                 quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisFireEscapeGlowCircleSamples[partIndex + 4]) >> (GLOW_TRIG_SHIFT - 1));
@@ -689,7 +690,7 @@ void akropolisFireEscapeFlareTask(Task* task)
 
                 quad           = gGpuPrimCursor;
                 gGpuPrimCursor = quad + 1;
-                AKROPOLIS_FIRE_ESCAPE_INIT_GLOW_QUAD(quad, halfIntensity * (cyan ^ 1), cyan * halfIntensity, cyan * halfIntensity);
+                INIT_GLOW_QUAD(quad, halfIntensity * (cyan ^ 1), cyan * halfIntensity, cyan * halfIntensity);
                 quad->x0 = projection->screenPos.vx + ((projection->innerRadius * _gAkropolisFireEscapeGlowCircleSamples[partIndex + 4]) >> (GLOW_TRIG_SHIFT + 1));
                 quad->y0 = projection->screenPos.vy + ((projection->innerRadius * _gAkropolisFireEscapeGlowCircleSamples[partIndex]) >> (GLOW_TRIG_SHIFT + 1));
                 quad->x1 = projection->screenPos.vx + ((projection->outerRadius * _gAkropolisFireEscapeGlowCircleSamples[partIndex + 8]) >> GLOW_TRIG_SHIFT);
@@ -701,12 +702,12 @@ void akropolisFireEscapeFlareTask(Task* task)
                 _akropolisFireEscapeQueueGlow(quad, &projection->otz);
             }
         } else {
-            projection->outerRadius = (((pulseOrOptions >> AKROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) & AKROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_MASK) << AKROPOLIS_FIRE_ESCAPE_FLARE_DIAMOND_RADIUS_SHIFT) / projection->otz;
-            projection->innerRadius = (((task->spawnArg1.value >> AKROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) & AKROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_MASK) << AKROPOLIS_FIRE_ESCAPE_FLARE_DIAMOND_RADIUS_SHIFT) / projection->otz;
+            projection->outerRadius = (((pulseOrOptions >> AKROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) & AKROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_MASK) << FLARE_DIAMOND_RADIUS_SHIFT) / projection->otz;
+            projection->innerRadius = (((task->spawnArg1.value >> AKROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) & AKROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_MASK) << FLARE_DIAMOND_RADIUS_SHIFT) / projection->otz;
             for (partIndex = 0; partIndex < 2; partIndex++) {
                 quad           = gGpuPrimCursor;
                 gGpuPrimCursor = quad + 1;
-                AKROPOLIS_FIRE_ESCAPE_INIT_GLOW_QUAD(quad, intensity * (cyan ^ 1), cyan * intensity, cyan * intensity);
+                INIT_GLOW_QUAD(quad, intensity * (cyan ^ 1), cyan * intensity, cyan * intensity);
                 quad->x0 = projection->screenPos.vx - projection->outerRadius;
                 quad->x1 = quad->x2 = projection->screenPos.vx;
                 quad->x3            = projection->screenPos.vx + projection->outerRadius;
@@ -738,4 +739,4 @@ void akropolisFireEscapeFlareTask(Task* task)
     effectKillTask(effectWork, task);
 }
 
-#undef AKROPOLIS_FIRE_ESCAPE_INIT_GLOW_QUAD
+#undef INIT_GLOW_QUAD

@@ -30,9 +30,9 @@ enum {
 
 /// Room commands.
 enum {
-    AKROPOLIS_FIRE_ESCAPE_ROOM_COMMAND_ACTOR_DIALOGUE   = 1,
-    AKROPOLIS_FIRE_ESCAPE_ROOM_COMMAND_ADVANCE_DIALOGUE = 3,
-    AKROPOLIS_FIRE_ESCAPE_ROOM_COMMAND_TELEPHONE        = 4, // CAP 11 the first time, the call's scene after
+    AKROPOLIS_FIRE_ESCAPE_ROOM_COMMAND_GATE      = 1, // The locked-out gate, by the creature lying there
+    AKROPOLIS_FIRE_ESCAPE_ROOM_COMMAND_BOMB      = 3, // "A bomb...and it's armed!"
+    AKROPOLIS_FIRE_ESCAPE_ROOM_COMMAND_TELEPHONE = 4, // "An emergency phone." (CAP 11) the first time, the call's scene after
 };
 
 #endif
