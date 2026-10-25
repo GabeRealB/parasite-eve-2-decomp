@@ -229,7 +229,7 @@ static s32 _akropolisPromenadeResolveRoomTransition(Task* unusedTask, s32 unused
             reply->warp = AKROPOLIS_PROMENADE_OBSERVATORY_STAIRS_WARP;
         }
     }
-    if (request->areaId == AKROPOLIS_ROOM_ID_SANCTUARY && gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_BRIDGE_PROGRESS) == 0) {
+    if (request->areaId == AKROPOLIS_ROOM_ID_SANCTUARY && gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_BRIDGE_PROGRESS) == AKROPOLIS_BRIDGE_NOT_STARTED) {
         if (request->queryOnly == ROOM_EVENT_EXECUTE) {
             reply->warp                                         = AKROPOLIS_PROMENADE_SANCTUARY_SCENE_WARP;
             _gAkropolisPromenadeSanctuaryExitReply              = *reply;
@@ -239,7 +239,7 @@ static s32 _akropolisPromenadeResolveRoomTransition(Task* unusedTask, s32 unused
     }
     destinationArea = request->areaId;
     if (destinationArea == AKROPOLIS_ROOM_ID_BRIDGE) {
-        if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_BRIDGE_PROGRESS) == 0) {
+        if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_BRIDGE_PROGRESS) == AKROPOLIS_BRIDGE_NOT_STARTED) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 capSpawnEventIfIdle(AKROPOLIS_PROMENADE_BRIDGE_REFUSED_CAP_COMMAND, CAP_EVENT_PAUSE_ACTORS);
                 gameFlagSetNibbleIfPresent(request->flagId, EVENT_FLAG_MAP_DOOR_LOCKED);

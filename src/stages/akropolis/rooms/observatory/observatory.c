@@ -78,7 +78,7 @@ static s32 _akropolisObservatoryResolveRoomTransition(Task* unusedTask, s32 unus
         }
         if (request->areaId == AKROPOLIS_ROOM_ID_PROMENADE && request->queryOnly == ROOM_EVENT_EXECUTE) {
             destinationRoom = gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_BRIDGE_PROGRESS);
-            if (destinationRoom == 0) {
+            if (destinationRoom == AKROPOLIS_BRIDGE_NOT_STARTED) {
                 destinationRoom = AKROPOLIS_ROOM_STATE_PROMENADE_BEFORE_SANCTUARY;
             } else {
                 destinationRoom = AKROPOLIS_ROOM_STATE_PROMENADE_AFTER_SANCTUARY;
@@ -110,13 +110,13 @@ static s32 _akropolisObservatoryHandleRoomAction(Task* unusedTask, s32 unusedMes
 /// Installs the room's messages; in the bat ambush's state, before it has played, its waves are armed.
 static void _akropolisObservatoryInitializeRoomTask(Task* task)
 {
-    enum { AKROPOLIS_OBSERVATORY_WAVES_ACTIVATED = 1 };
+    enum { WAVES_ACTIVATED = 1 };
 
     task->msgTable = _gAkropolisObservatoryRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if ((gGameSession->location.roomState == AKROPOLIS_ROOM_STATE_OBSERVATORY_BAT_AMBUSH) &&
         (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_OBSERVATORY_BAT_AMBUSH_SEEN) == 0)) {
-        gSceneCombatState.actor03700Wave = AKROPOLIS_OBSERVATORY_WAVES_ACTIVATED;
+        gSceneCombatState.actor03700Wave = WAVES_ACTIVATED;
     }
     task->state = task->state + 1;
 }

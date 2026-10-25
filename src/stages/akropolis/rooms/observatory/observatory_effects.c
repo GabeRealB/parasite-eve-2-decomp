@@ -45,21 +45,21 @@ typedef struct {
     Task* playerTask;    // Player task the scene's animation and release messages are sent to (NULL when the player slot is empty)
     u16   field_4;       // Never accessed; role unproven
     u16   followUpIndex; // Entry of the follow-up clip table to start once the player's current animation has ended
-} _AkropolisObservatorySceneWork;
-STATIC_ASSERT_SIZEOF(_AkropolisObservatorySceneWork, 8);
+} _SceneWork;
+STATIC_ASSERT_SIZEOF(_SceneWork, 8);
 
 static void _akropolisObservatoryScriptedBattleTask(Task* task);
 
 /// Clip-table values of the scripted battle controller.
 enum {
-    AKROPOLIS_OBSERVATORY_SCENE_NO_FOLLOW_UP   = -1,
-    AKROPOLIS_OBSERVATORY_SCENE_FOLLOW_UP_CLIP = 1,
+    SCENE_NO_FOLLOW_UP   = -1,
+    SCENE_FOLLOW_UP_CLIP = 1,
 };
 
 /// Player follow-up clip IDs indexed by the scene work's `followUpIndex`.
 static s16 _gAkropolisObservatorySceneFollowUpClips[2] = {
-    AKROPOLIS_OBSERVATORY_SCENE_NO_FOLLOW_UP,
-    AKROPOLIS_OBSERVATORY_SCENE_FOLLOW_UP_CLIP,
+    SCENE_NO_FOLLOW_UP,
+    SCENE_FOLLOW_UP_CLIP,
 };
 
 TaskDesc gAkropolisObservatoryScriptedBattleTaskDesc = {
@@ -95,35 +95,35 @@ u16 gAkropolisObservatoryUnusedHalfwords[4] = {
 static void _akropolisObservatoryScriptedBattleTask(Task* task)
 {
     enum {
-        AKROPOLIS_OBSERVATORY_SCENE_INITIALIZE             = 0,
-        AKROPOLIS_OBSERVATORY_SCENE_DEFER_FIRST            = 1,
-        AKROPOLIS_OBSERVATORY_SCENE_DEFER_SECOND           = 2,
-        AKROPOLIS_OBSERVATORY_SCENE_WAIT_ENTRANCE          = 3,
-        AKROPOLIS_OBSERVATORY_SCENE_DEFER_BATTLE           = 4,
-        AKROPOLIS_OBSERVATORY_SCENE_RESTORE_PLAYER         = 5,
-        AKROPOLIS_OBSERVATORY_SCENE_RELEASE_PLAYER         = 6,
-        AKROPOLIS_OBSERVATORY_SCENE_CLIP                   = 1,
-        AKROPOLIS_OBSERVATORY_SCENE_HOLD_ENTRANCE          = 0,
-        AKROPOLIS_OBSERVATORY_SCENE_FIRST_WAVE             = 2,
-        AKROPOLIS_OBSERVATORY_SCENE_FIELD_ROOM             = 1,
-        AKROPOLIS_OBSERVATORY_SCENE_FOLLOW_UP_BLEND_FRAMES = 10
+        INITIALIZE             = 0,
+        DEFER_FIRST            = 1,
+        DEFER_SECOND           = 2,
+        WAIT_ENTRANCE          = 3,
+        DEFER_BATTLE           = 4,
+        RESTORE_PLAYER         = 5,
+        RELEASE_PLAYER         = 6,
+        CLIP                   = 1,
+        HOLD_ENTRANCE          = 0,
+        FIRST_WAVE             = 2,
+        FIELD_ROOM             = 1,
+        FOLLOW_UP_BLEND_FRAMES = 10
     };
-    AnimationPlayRequest            playbackRequest;
-    AnimationPlayRequest            followUpRequest;
-    AnimationPlayRequest*           followUpMessage;
-    _AkropolisObservatorySceneWork* sceneWork;
-    _AkropolisObservatorySceneWork* idleWork;
-    _AkropolisObservatorySceneWork* playbackWork;
-    _AkropolisObservatorySceneWork* allocatedWork;
-    s16*                            followUpEntry;
-    u16                             followUpAnimationId;
-    s32                             allocationCheckOrClip;
-    s32                             weaponIndex;
-    s32                             animationBankIndex;
+    AnimationPlayRequest  playbackRequest;
+    AnimationPlayRequest  followUpRequest;
+    AnimationPlayRequest* followUpMessage;
+    _SceneWork*           sceneWork;
+    _SceneWork*           idleWork;
+    _SceneWork*           playbackWork;
+    _SceneWork*           allocatedWork;
+    s16*                  followUpEntry;
+    u16                   followUpAnimationId;
+    s32                   allocationCheckOrClip;
+    s32                   weaponIndex;
+    s32                   animationBankIndex;
 
     sceneWork = task->work;
     switch (task->state) {
-        case AKROPOLIS_OBSERVATORY_SCENE_INITIALIZE:
+        case INITIALIZE:
             if (gAttachmentState.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
@@ -140,26 +140,26 @@ static void _akropolisObservatoryScriptedBattleTask(Task* task)
             sceneWork = task->work;
             if (sceneWork->playerTask != NULL) {
                 playbackRequest.source.sets          = gAkropolisObservatoryPlayerAnimationSets;
-                playbackRequest.animationId          = AKROPOLIS_OBSERVATORY_SCENE_CLIP;
+                playbackRequest.animationId          = CLIP;
                 playbackRequest.blend                = ANIMATION_BLEND_RESET;
                 playbackRequest.blendFrames          = 0;
                 playbackRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
                 TASK_MESSAGE_DISPATCH_POINTER(sceneWork->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &playbackRequest, 0);
             }
-            gSceneCombatState.actor03700Wave = AKROPOLIS_OBSERVATORY_SCENE_HOLD_ENTRANCE;
+            gSceneCombatState.actor03700Wave = HOLD_ENTRANCE;
             /* fallthrough */
-        case AKROPOLIS_OBSERVATORY_SCENE_DEFER_FIRST:
-        case AKROPOLIS_OBSERVATORY_SCENE_DEFER_SECOND:
-        case AKROPOLIS_OBSERVATORY_SCENE_DEFER_BATTLE:
+        case DEFER_FIRST:
+        case DEFER_SECOND:
+        case DEFER_BATTLE:
             task->state = task->state + 1;
             break;
-        case AKROPOLIS_OBSERVATORY_SCENE_WAIT_ENTRANCE:
-            if (gSceneCombatState.actor03700Wave == AKROPOLIS_OBSERVATORY_SCENE_FIRST_WAVE) {
+        case WAIT_ENTRANCE:
+            if (gSceneCombatState.actor03700Wave == FIRST_WAVE) {
                 sceneEngageBattle(1);
                 task->state = task->state + 1;
             }
             break;
-        case AKROPOLIS_OBSERVATORY_SCENE_RESTORE_PLAYER:
+        case RESTORE_PLAYER:
             // Restore the equipped weapon bank before returning to the field room.
             weaponIndex                          = gPlayerStatus.weapon;
             animationBankIndex                   = PLAYER_ACTOR_SCENE_WEAPON_BANK(weaponIndex);
@@ -169,13 +169,13 @@ static void _akropolisObservatoryScriptedBattleTask(Task* task)
             playbackRequest.blendFrames          = 0;
             playbackRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
             TASK_MESSAGE_DISPATCH_POINTER(sceneWork->playerTask, ANIMATION_MESSAGE_PLAY, &playbackRequest, 0);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = AKROPOLIS_OBSERVATORY_SCENE_FIELD_ROOM;
-            gGameSession->location.roomState                            = AKROPOLIS_OBSERVATORY_SCENE_FIELD_ROOM;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = FIELD_ROOM;
+            gGameSession->location.roomState                            = FIELD_ROOM;
             gGameSession->roomObjsDirty                                 = 1;
             gGameSession->viewDirty                                     = 1;
             task->state                                                 = task->state + 1;
             break;
-        case AKROPOLIS_OBSERVATORY_SCENE_RELEASE_PLAYER:
+        case RELEASE_PLAYER:
             taskMessageDispatch(sceneWork->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
             taskKill(task);
             break;
@@ -194,7 +194,7 @@ static void _akropolisObservatoryScriptedBattleTask(Task* task)
                 followUpRequest.source.sets           = gAkropolisObservatoryPlayerAnimationSets;
                 followUpRequest.animationId           = followUpAnimationId;
                 followUpMessage->blend                = ANIMATION_BLEND_INTERPOLATE;
-                followUpMessage->blendFrames          = AKROPOLIS_OBSERVATORY_SCENE_FOLLOW_UP_BLEND_FRAMES;
+                followUpMessage->blendFrames          = FOLLOW_UP_BLEND_FRAMES;
                 followUpMessage->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
                 TASK_MESSAGE_DISPATCH_POINTER(playbackWork->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, followUpMessage, 0);
             }
@@ -214,18 +214,18 @@ static inline void _akropolisObservatorySetGlowScreenBounds(POLY_FT4* quad, cons
 void akropolisObservatoryAmbientGlowTask(Task* task)
 {
     enum {
-        AKROPOLIS_OBSERVATORY_GLOW_DEPTH_BIAS                = 0x40,
-        AKROPOLIS_OBSERVATORY_GLOW_MIN_DEPTH                 = 0x10,
-        AKROPOLIS_OBSERVATORY_GLOW_HALF_EXTENT_DEPTH_PRODUCT = 0x5D00,
-        AKROPOLIS_OBSERVATORY_GLOW_TEXTURE_DEPTH_4BIT        = 0,
-        AKROPOLIS_OBSERVATORY_GLOW_TEXTURE_PAGE_X            = 704,
-        AKROPOLIS_OBSERVATORY_GLOW_TEXTURE_PAGE_Y            = 0,
-        AKROPOLIS_OBSERVATORY_GLOW_CLUT_X                    = 0xE0,
-        AKROPOLIS_OBSERVATORY_GLOW_CLUT_Y                    = 0x10F,
-        AKROPOLIS_OBSERVATORY_GLOW_PALETTE_STRIDE            = 16,
-        AKROPOLIS_OBSERVATORY_GLOW_PALETTE_COUNT             = 2,
-        AKROPOLIS_OBSERVATORY_GLOW_TEXTURE_TOP_V             = 0xA0,
-        AKROPOLIS_OBSERVATORY_GLOW_TEXTURE_SPAN              = 31,
+        DEPTH_BIAS                = 0x40,
+        MIN_DEPTH                 = 0x10,
+        HALF_EXTENT_DEPTH_PRODUCT = 0x5D00,
+        TEXTURE_DEPTH_4BIT        = 0,
+        TEXTURE_PAGE_X            = 704,
+        TEXTURE_PAGE_Y            = 0,
+        CLUT_X                    = 0xE0,
+        CLUT_Y                    = 0x10F,
+        PALETTE_STRIDE            = 16,
+        PALETTE_COUNT             = 2,
+        TEXTURE_TOP_V             = 0xA0,
+        TEXTURE_SPAN              = 31,
     };
 
     void**               scratchCursor;
@@ -262,29 +262,29 @@ void akropolisObservatoryAmbientGlowTask(Task* task)
     if (projection->projectionFlags >= 0) {
         // Bias SZ3 / 4 towards the camera and cap the glow's growth at close range.
         gte_stszotz(&projection->depth);
-        projection->depth -= AKROPOLIS_OBSERVATORY_GLOW_DEPTH_BIAS;
-        if (projection->depth < AKROPOLIS_OBSERVATORY_GLOW_MIN_DEPTH) {
-            projection->depth = AKROPOLIS_OBSERVATORY_GLOW_MIN_DEPTH;
+        projection->depth -= DEPTH_BIAS;
+        if (projection->depth < MIN_DEPTH) {
+            projection->depth = MIN_DEPTH;
         }
         quad           = gGpuPrimCursor;
         gGpuPrimCursor = quad + 1;
         setPolyFT4(quad);
         setSemiTrans(quad, true);
         setShadeTex(quad, true);
-        quad->tpage              = getTPage(AKROPOLIS_OBSERVATORY_GLOW_TEXTURE_DEPTH_4BIT, GPU_BLEND_ADD,
-                                            AKROPOLIS_OBSERVATORY_GLOW_TEXTURE_PAGE_X, AKROPOLIS_OBSERVATORY_GLOW_TEXTURE_PAGE_Y);
-        quad->clut               = getClut(AKROPOLIS_OBSERVATORY_GLOW_CLUT_X +
-                                               (u32)(gDisplayState.animFrame & (AKROPOLIS_OBSERVATORY_GLOW_PALETTE_COUNT - 1)) * AKROPOLIS_OBSERVATORY_GLOW_PALETTE_STRIDE,
-                                           AKROPOLIS_OBSERVATORY_GLOW_CLUT_Y);
+        quad->tpage              = getTPage(TEXTURE_DEPTH_4BIT, GPU_BLEND_ADD,
+                                            TEXTURE_PAGE_X, TEXTURE_PAGE_Y);
+        quad->clut               = getClut(CLUT_X +
+                                               (u32)(gDisplayState.animFrame & (PALETTE_COUNT - 1)) * PALETTE_STRIDE,
+                                           CLUT_Y);
         quad->u0                 = 0;
-        quad->v0                 = AKROPOLIS_OBSERVATORY_GLOW_TEXTURE_TOP_V;
-        quad->u1                 = AKROPOLIS_OBSERVATORY_GLOW_TEXTURE_SPAN;
-        quad->v1                 = AKROPOLIS_OBSERVATORY_GLOW_TEXTURE_TOP_V;
+        quad->v0                 = TEXTURE_TOP_V;
+        quad->u1                 = TEXTURE_SPAN;
+        quad->v1                 = TEXTURE_TOP_V;
         quad->u2                 = 0;
-        quad->v2                 = AKROPOLIS_OBSERVATORY_GLOW_TEXTURE_TOP_V + AKROPOLIS_OBSERVATORY_GLOW_TEXTURE_SPAN;
-        quad->u3                 = AKROPOLIS_OBSERVATORY_GLOW_TEXTURE_SPAN;
-        quad->v3                 = AKROPOLIS_OBSERVATORY_GLOW_TEXTURE_TOP_V + AKROPOLIS_OBSERVATORY_GLOW_TEXTURE_SPAN;
-        projection->screenExtent = AKROPOLIS_OBSERVATORY_GLOW_HALF_EXTENT_DEPTH_PRODUCT / projection->depth;
+        quad->v2                 = TEXTURE_TOP_V + TEXTURE_SPAN;
+        quad->u3                 = TEXTURE_SPAN;
+        quad->v3                 = TEXTURE_TOP_V + TEXTURE_SPAN;
+        projection->screenExtent = HALF_EXTENT_DEPTH_PRODUCT / projection->depth;
         _akropolisObservatorySetGlowScreenBounds(quad, projection);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->depth),
                 quad);
