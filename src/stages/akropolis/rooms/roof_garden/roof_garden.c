@@ -120,13 +120,11 @@ static TaskMessageEntry _gAkropolisRoofGardenRoomMessages[6] = {
 /// Borrowed handle of the arrival scene's active opening or closing sound task.
 static Task* _gAkropolisRoofGardenCutsceneSoundTask = NULL;
 
-enum { AKROPOLIS_ROOF_GARDEN_SOUND_TASK_PRIORITY = 32 };
-
 /// Bodyless sound-task recipes: 0 ambience, 1 arrival opening, 2 arrival closing.
 static TaskDesc _gAkropolisRoofGardenSoundTaskDescriptors[4] = {
-    { { { TASK_BODY_NONE, AKROPOLIS_ROOF_GARDEN_SOUND_TASK_PRIORITY } }, _akropolisRoofGardenAmbienceTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, AKROPOLIS_ROOF_GARDEN_SOUND_TASK_PRIORITY } }, _akropolisRoofGardenCutsceneOpeningSoundTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, AKROPOLIS_ROOF_GARDEN_SOUND_TASK_PRIORITY } }, _akropolisRoofGardenCutsceneClosingSoundTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _akropolisRoofGardenAmbienceTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _akropolisRoofGardenCutsceneOpeningSoundTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _akropolisRoofGardenCutsceneClosingSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

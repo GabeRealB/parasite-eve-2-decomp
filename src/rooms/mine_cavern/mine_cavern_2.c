@@ -536,15 +536,13 @@ static AnimationSet _gMineCavernAnimation0A38C = {
     { NULL, _gMineCavernAnimation0A38CBank1, NULL, NULL, _gMineCavernAnimation0A38CBank4, NULL, NULL, NULL },
 };
 
-enum { MINE_CAVERN_TIMED_SOUND_PRIORITY = 192 };
-
 /// Unused bodyless, priority-192 recipe for the cavern's timed sound task.
 ///
 /// A single descriptor with no list terminator. The callback requires its live
 /// task's elapsed-tick counter to start at zero and releases the task on skip
 /// or expiry; this recipe carries no additional spawn data.
 static TaskDesc _gMineCavernTimedSoundTaskDescriptor = {
-    .header   = { .fields = { TASK_BODY_NONE, MINE_CAVERN_TIMED_SOUND_PRIORITY } },
+    .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } },
     .callback = mineCavernTimedSoundTask,
     .data     = { .value = 0 }
 };

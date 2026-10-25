@@ -146,12 +146,8 @@ enum {
     DRYFIELD_DILAPIDATED_HOUSE_ENCOUNTER_FINISH_REQUESTED = 3,
 };
 
-/// Execution priorities of the room's script effects and encounter helpers.
-enum {
-    DRYFIELD_DILAPIDATED_HOUSE_PRIORITY_NEGATIVE_CAPTURE = 32,
-    DRYFIELD_DILAPIDATED_HOUSE_PRIORITY_HEAD_TRACK       = 97,
-    DRYFIELD_DILAPIDATED_HOUSE_PRIORITY_EFFECT           = 192,
-};
+/// Execution priority of the encounter's head tracking, after the actors'.
+enum { DRYFIELD_DILAPIDATED_HOUSE_PRIORITY_HEAD_TRACK = 97 };
 
 enum {
     DRYFIELD_DILAPIDATED_HOUSE_BEAM_CAP_POINT_COUNT = 6,
@@ -239,7 +235,7 @@ static void                             _dryfieldDilapidatedHouseMorphConeTask(T
 /// Argument 2 borrows the room's writable ramp context through the final draw.
 /// Only one wave may use the package's shared ramp and oscillators at a time.
 static TaskDesc _gDryfieldDilapidatedHouseScreenWaveTaskDescriptors[2] = {
-    { { { TASK_BODY_NONE, DRYFIELD_DILAPIDATED_HOUSE_PRIORITY_EFFECT } }, _screenWaveTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _screenWaveTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -254,7 +250,7 @@ static s32 _gScreenWaveAmplitude = 256;
 /// Argument 2 borrows the room's writable duration/completion block. Capture
 /// runs before the priority-192 blackout helper; only one capture may be active.
 static TaskDesc _gDryfieldDilapidatedHouseNegativeCaptureTaskDescriptors[2] = {
-    { { { TASK_BODY_NONE, DRYFIELD_DILAPIDATED_HOUSE_PRIORITY_NEGATIVE_CAPTURE } }, _dryfieldDilapidatedHouseNegativeCaptureTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _dryfieldDilapidatedHouseNegativeCaptureTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -285,9 +281,9 @@ static const TaskMessageEntry _gDryfieldDilapidatedHouseRoomMessageTable[] SECTI
 /// count; the other entries start with zero payloads and use room-owned state.
 static TaskDesc _gDryfieldDilapidatedHouseEncounterTaskDescriptors[4] = {
     { { { TASK_BODY_NONE, DRYFIELD_DILAPIDATED_HOUSE_PRIORITY_HEAD_TRACK } }, _dryfieldDilapidatedHouseHeadTrackTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, DRYFIELD_DILAPIDATED_HOUSE_PRIORITY_EFFECT } }, _dryfieldDilapidatedHouseShakeYTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, DRYFIELD_DILAPIDATED_HOUSE_PRIORITY_EFFECT } }, _dryfieldDilapidatedHouseBlackoutTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, DRYFIELD_DILAPIDATED_HOUSE_PRIORITY_EFFECT } }, _dryfieldDilapidatedHouseEncounterFinishTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _dryfieldDilapidatedHouseShakeYTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _dryfieldDilapidatedHouseBlackoutTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _dryfieldDilapidatedHouseEncounterFinishTask, { .value = 0 } },
 };
 
 /// Retained stage-exit countdown recipe at index 0, followed by a non-spawnable terminator.
@@ -295,7 +291,7 @@ static TaskDesc _gDryfieldDilapidatedHouseEncounterTaskDescriptors[4] = {
 /// No room code spawns it. Argument 1 is a signed tick count; a nonnegative
 /// count exits after count + 2 updates. Argument 2 is unused.
 static TaskDesc _gDryfieldDilapidatedHouseModeExitCountdownTaskDescriptors[] = {
-    { { { TASK_BODY_NONE, DRYFIELD_DILAPIDATED_HOUSE_PRIORITY_EFFECT } }, _dryfieldDilapidatedHouseModeExitCountdownTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _dryfieldDilapidatedHouseModeExitCountdownTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -1434,10 +1430,10 @@ static SVECTOR _gDryfieldDilapidatedHouseConeRingCenters[] = {
 /// beams take a mirror selector and cones an initial phase advance in frames.
 /// Entry 1 is retained but never spawned by this room. Each model has 40 vertices.
 static TaskDesc _gDryfieldDilapidatedHouseMorphTaskDescriptors[4] = {
-    { { { TASK_BODY_TMD, DRYFIELD_DILAPIDATED_HOUSE_PRIORITY_EFFECT } }, _dryfieldDilapidatedHouseMorphAttachmentTask, { .model = &_gDryfieldDilapidatedHouseModel08794 } },
-    { { { TASK_BODY_TMD, DRYFIELD_DILAPIDATED_HOUSE_PRIORITY_EFFECT } }, _dryfieldDilapidatedHouseCurveDebugTask, { .model = &_gDryfieldDilapidatedHouseModel08D0C } },
-    { { { TASK_BODY_COORD, DRYFIELD_DILAPIDATED_HOUSE_PRIORITY_EFFECT } }, _dryfieldDilapidatedHouseCappedBeamTask, { .value = 0 } },
-    { { { TASK_BODY_COORD, DRYFIELD_DILAPIDATED_HOUSE_PRIORITY_EFFECT } }, _dryfieldDilapidatedHouseMorphConeTask, { .value = 0 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _dryfieldDilapidatedHouseMorphAttachmentTask, { .model = &_gDryfieldDilapidatedHouseModel08794 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _dryfieldDilapidatedHouseCurveDebugTask, { .model = &_gDryfieldDilapidatedHouseModel08D0C } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_CONTROL } }, _dryfieldDilapidatedHouseCappedBeamTask, { .value = 0 } },
+    { { { TASK_BODY_COORD, TASK_PRIORITY_CONTROL } }, _dryfieldDilapidatedHouseMorphConeTask, { .value = 0 } },
 };
 
 /// Corners of the left, middle and right room light prisms, in local game units.
