@@ -86,9 +86,9 @@ static void _akropolisRoofGardenReleaseMaggotCaterpillarEntrance(void);
 
 /// Sound-task actions passed by the arrival scene and its skip script.
 enum {
-    AKROPOLIS_ROOF_GARDEN_CUTSCENE_SOUND_OPENING = 0,
-    AKROPOLIS_ROOF_GARDEN_CUTSCENE_SOUND_CLOSING = 1,
-    AKROPOLIS_ROOF_GARDEN_CUTSCENE_SOUND_CANCEL  = 2,
+    CUTSCENE_SOUND_OPENING = 0,
+    CUTSCENE_SOUND_CLOSING = 1,
+    CUTSCENE_SOUND_CANCEL  = 2,
 };
 static void _akropolisRoofGardenControlCutsceneSound(s32 soundAction);
 
@@ -173,24 +173,24 @@ SVECTOR ActorContact_ScratchPosition;
 static void _akropolisRoofGardenAmbienceTask(Task* task)
 {
     enum {
-        AKROPOLIS_ROOF_GARDEN_AMBIENCE_INITIALIZE      = 0,
-        AKROPOLIS_ROOF_GARDEN_AMBIENCE_UPDATE          = 1,
-        AKROPOLIS_ROOF_GARDEN_AMBIENCE_SILENT          = 0,
-        AKROPOLIS_ROOF_GARDEN_AMBIENCE_VIEW5_PERCENT   = 30,
-        AKROPOLIS_ROOF_GARDEN_AMBIENCE_FULL_PERCENT    = 100,
-        AKROPOLIS_ROOF_GARDEN_AMBIENCE_MAX_ATTENUATION = 127,
-        AKROPOLIS_ROOF_GARDEN_AMBIENCE_FADE_UPDATES    = 30,
+        INITIALIZE      = 0,
+        UPDATE          = 1,
+        SILENT          = 0,
+        VIEW5_PERCENT   = 30,
+        FULL_PERCENT    = 100,
+        MAX_ATTENUATION = 127,
+        FADE_UPDATES    = 30,
     };
     s32 volumePercent;
     u8  view;
     s32 previousPercent;
 
     switch (task->state) {
-        case AKROPOLIS_ROOF_GARDEN_AMBIENCE_INITIALIZE:
-            _gAkropolisRoofGardenRequestedAmbiencePercent = AKROPOLIS_ROOF_GARDEN_AMBIENCE_SILENT;
+        case INITIALIZE:
+            _gAkropolisRoofGardenRequestedAmbiencePercent = SILENT;
             task->state                                   = task->state + 1;
             return;
-        case AKROPOLIS_ROOF_GARDEN_AMBIENCE_UPDATE:
+        case UPDATE:
             break;
         default:
             return;
@@ -198,12 +198,12 @@ static void _akropolisRoofGardenAmbienceTask(Task* task)
 
     view = gGameSession->location.view;
     if (view != 5) {
-        volumePercent = AKROPOLIS_ROOF_GARDEN_AMBIENCE_SILENT;
+        volumePercent = SILENT;
         if (view == 7) {
-            volumePercent = AKROPOLIS_ROOF_GARDEN_AMBIENCE_FULL_PERCENT;
+            volumePercent = FULL_PERCENT;
         }
     } else {
-        volumePercent = AKROPOLIS_ROOF_GARDEN_AMBIENCE_VIEW5_PERCENT;
+        volumePercent = VIEW5_PERCENT;
     }
 
     previousPercent = _gAkropolisRoofGardenRequestedAmbiencePercent;
@@ -211,12 +211,12 @@ static void _akropolisRoofGardenAmbienceTask(Task* task)
         return;
     }
     // Convert the requested percentage to the driver's signed attenuation byte.
-    if (previousPercent == AKROPOLIS_ROOF_GARDEN_AMBIENCE_SILENT) {
-        sndEvtRequestScriptStart(SOUND_AKROPOLIS_ROOF_GARDEN_AMBIENCE, 0, (s8)(((AKROPOLIS_ROOF_GARDEN_AMBIENCE_FULL_PERCENT - volumePercent) * AKROPOLIS_ROOF_GARDEN_AMBIENCE_MAX_ATTENUATION) / AKROPOLIS_ROOF_GARDEN_AMBIENCE_FULL_PERCENT));
-    } else if (volumePercent == AKROPOLIS_ROOF_GARDEN_AMBIENCE_SILENT) {
-        sndEvtRequestScriptStop(SOUND_AKROPOLIS_ROOF_GARDEN_AMBIENCE, AKROPOLIS_ROOF_GARDEN_AMBIENCE_FADE_UPDATES);
+    if (previousPercent == SILENT) {
+        sndEvtRequestScriptStart(SOUND_AKROPOLIS_ROOF_GARDEN_AMBIENCE, 0, (s8)(((FULL_PERCENT - volumePercent) * MAX_ATTENUATION) / FULL_PERCENT));
+    } else if (volumePercent == SILENT) {
+        sndEvtRequestScriptStop(SOUND_AKROPOLIS_ROOF_GARDEN_AMBIENCE, FADE_UPDATES);
     } else {
-        sndEvtRequestScriptMix(SOUND_AKROPOLIS_ROOF_GARDEN_AMBIENCE, 0, (s8)(((AKROPOLIS_ROOF_GARDEN_AMBIENCE_FULL_PERCENT - volumePercent) * AKROPOLIS_ROOF_GARDEN_AMBIENCE_MAX_ATTENUATION) / AKROPOLIS_ROOF_GARDEN_AMBIENCE_FULL_PERCENT));
+        sndEvtRequestScriptMix(SOUND_AKROPOLIS_ROOF_GARDEN_AMBIENCE, 0, (s8)(((FULL_PERCENT - volumePercent) * MAX_ATTENUATION) / FULL_PERCENT));
     }
     _gAkropolisRoofGardenRequestedAmbiencePercent = volumePercent;
 }
@@ -242,27 +242,27 @@ static s32 _akropolisRoofGardenRejectKeyItemUse(Task* unusedTask, s32 unusedMess
 static s32 _akropolisRoofGardenHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
     enum {
-        AKROPOLIS_ROOF_GARDEN_ACTION_ARM_ENTRANCE       = 1,
-        AKROPOLIS_ROOF_GARDEN_ACTION_START_ENTRANCE     = 2,
-        AKROPOLIS_ROOF_GARDEN_ENTRANCE_PROGRESS_CLEAR   = 0,
-        AKROPOLIS_ROOF_GARDEN_ENTRANCE_PROGRESS_ARMED   = 1,
-        AKROPOLIS_ROOF_GARDEN_ENTRANCE_PROGRESS_STARTED = 2,
-        AKROPOLIS_ROOF_GARDEN_ACTION_REPLY              = 1,
+        ACTION_ARM_ENTRANCE       = 1,
+        ACTION_START_ENTRANCE     = 2,
+        ENTRANCE_PROGRESS_CLEAR   = 0,
+        ENTRANCE_PROGRESS_ARMED   = 1,
+        ENTRANCE_PROGRESS_STARTED = 2,
+        ACTION_REPLY              = 1,
     };
     switch (request->actionId) {
-        case AKROPOLIS_ROOF_GARDEN_ACTION_ARM_ENTRANCE:
-            if (((gGameSession->location.variant == 1) || (gGameSession->location.variant == 7)) && (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_ROOF_GARDEN_ENEMY_DROP_STATE) == AKROPOLIS_ROOF_GARDEN_ENTRANCE_PROGRESS_CLEAR)) {
-                gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_ROOF_GARDEN_ENEMY_DROP_STATE, AKROPOLIS_ROOF_GARDEN_ENTRANCE_PROGRESS_ARMED);
+        case ACTION_ARM_ENTRANCE:
+            if (((gGameSession->location.variant == 1) || (gGameSession->location.variant == 7)) && (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_ROOF_GARDEN_ENEMY_DROP_STATE) == ENTRANCE_PROGRESS_CLEAR)) {
+                gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_ROOF_GARDEN_ENEMY_DROP_STATE, ENTRANCE_PROGRESS_ARMED);
             }
             break;
-        case AKROPOLIS_ROOF_GARDEN_ACTION_START_ENTRANCE:
-            if (((gGameSession->location.variant == 1) || (gGameSession->location.variant == 7)) && (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_ROOF_GARDEN_ENEMY_DROP_STATE) == AKROPOLIS_ROOF_GARDEN_ENTRANCE_PROGRESS_ARMED)) {
+        case ACTION_START_ENTRANCE:
+            if (((gGameSession->location.variant == 1) || (gGameSession->location.variant == 7)) && (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_ROOF_GARDEN_ENEMY_DROP_STATE) == ENTRANCE_PROGRESS_ARMED)) {
                 evsStartScript(_gAkropolisRoofGardenMaggotCaterpillarEntranceScript, EVENT_SCRIPT_HUD_KEEP);
-                gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_ROOF_GARDEN_ENEMY_DROP_STATE, AKROPOLIS_ROOF_GARDEN_ENTRANCE_PROGRESS_STARTED);
+                gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_ROOF_GARDEN_ENEMY_DROP_STATE, ENTRANCE_PROGRESS_STARTED);
             }
             break;
     }
-    return AKROPOLIS_ROOF_GARDEN_ACTION_REPLY;
+    return ACTION_REPLY;
 }
 
 /// Plays room sound cue 3, the door locked; cues 5 and 9 do nothing.
@@ -280,31 +280,33 @@ static s32 _akropolisRoofGardenHandleSoundCue(Task* unusedTask, s32 unusedMessag
     return 0;
 }
 
-/// Room command 2 captions the pickup, by its object's state; 4 plays CAP 4 and moves the story to the helicopter.
+/// Room command 2 is the locked door, with a pickup on the ground before it: "There's something on the ground!" (CAP 5)
+/// while the pickup is there, "It won't open..." (CAP 2) after; 4 is the bomb ("Someone planted a bomb!", CAP 4), which
+/// moves the story to the helicopter.
 static s32 _akropolisRoofGardenHandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg)
 {
     enum {
-        AKROPOLIS_ROOF_GARDEN_COMMAND_PICKUP           = 2,
-        AKROPOLIS_ROOF_GARDEN_COMMAND_STORY            = 4,
-        AKROPOLIS_ROOF_GARDEN_COMMAND_PICKUP_AVAILABLE = 5,
-        AKROPOLIS_ROOF_GARDEN_PICKUP_CAP_SLOT          = 2,
-        AKROPOLIS_ROOF_GARDEN_PICKUP_CAP_VARIANT       = 0,
+        COMMAND_LOCKED_DOOR    = 2,
+        COMMAND_BOMB           = 4,
+        LOCKED_DOOR_PICKUP_CAP = 5,
+        LOCKED_DOOR_CAP        = 2,
+        LOCKED_DOOR_CAP_KEY    = 0,
     };
-    if (command == AKROPOLIS_ROOF_GARDEN_COMMAND_PICKUP) {
+    if (command == COMMAND_LOCKED_DOOR) {
         // Retain the separate reads of the saved two-bit object state.
         if ((areaGetCurrentObjectState(AKROPOLIS_ROOF_GARDEN_PICKUP_OBJECT) == AKROPOLIS_ROOF_GARDEN_PICKUP_STATE_UNSET) || (areaGetCurrentObjectState(AKROPOLIS_ROOF_GARDEN_PICKUP_OBJECT) == AKROPOLIS_ROOF_GARDEN_PICKUP_STATE_PRESENT)) {
-            capRunCommandWithTransition(AKROPOLIS_ROOF_GARDEN_COMMAND_PICKUP_AVAILABLE);
+            capRunCommandWithTransition(LOCKED_DOOR_PICKUP_CAP);
         } else {
-            capStartSequenceSlot(AKROPOLIS_ROOF_GARDEN_PICKUP_CAP_SLOT, CAP_PLAYBACK_DISPLAY_TRANSITION, AKROPOLIS_ROOF_GARDEN_PICKUP_CAP_VARIANT);
+            capStartSequenceSlot(LOCKED_DOOR_CAP, CAP_PLAYBACK_DISPLAY_TRANSITION, LOCKED_DOOR_CAP_KEY);
         }
     }
-    if (command == AKROPOLIS_ROOF_GARDEN_COMMAND_STORY) {
+    if (command == COMMAND_BOMB) {
         if (gameFlagGetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX) < AKROPOLIS_STORY_DIALOGUE_HELICOPTER) {
             gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
             gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, AKROPOLIS_STORY_DIALOGUE_HELICOPTER);
         }
         gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-        capRunCommand(AKROPOLIS_ROOF_GARDEN_COMMAND_STORY, CAP_PLAYBACK_IN_PLACE);
+        capRunCommand(COMMAND_BOMB, CAP_PLAYBACK_IN_PLACE);
         gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, EVENT_FLAG_OBJECTIVE_AKROPOLIS_ROOF_GARDEN_BOMB_SEEN);
     }
     return 0;
@@ -314,26 +316,26 @@ static s32 _akropolisRoofGardenHandleRoomCommand(Task* unusedTask, s32 unusedMes
 static void _akropolisRoofGardenCutsceneOpeningSoundTask(Task* task)
 {
     enum {
-        AKROPOLIS_ROOF_GARDEN_OPENING_CUE6_TICK  = 20,
-        AKROPOLIS_ROOF_GARDEN_OPENING_CUE7_TICK  = 39,
-        AKROPOLIS_ROOF_GARDEN_OPENING_CUE8_TICK  = 57,
-        AKROPOLIS_ROOF_GARDEN_OPENING_CUE9_TICK  = 99,
-        AKROPOLIS_ROOF_GARDEN_OPENING_FINAL_TICK = 114,
+        CUE6_TICK  = 20,
+        CUE7_TICK  = 39,
+        CUE8_TICK  = 57,
+        CUE9_TICK  = 99,
+        FINAL_TICK = 114,
     };
     switch (task->state) {
-        case AKROPOLIS_ROOF_GARDEN_OPENING_CUE6_TICK:
+        case CUE6_TICK:
             sndEvtRequestScriptStart(AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_ARRIVAL_MOVEMENT_1), 0, 0);
             break;
-        case AKROPOLIS_ROOF_GARDEN_OPENING_CUE7_TICK:
+        case CUE7_TICK:
             sndEvtRequestScriptStart(AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_ARRIVAL_MOVEMENT_2), 0, 0);
             break;
-        case AKROPOLIS_ROOF_GARDEN_OPENING_CUE8_TICK:
+        case CUE8_TICK:
             sndEvtRequestScriptStart(AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_ARRIVAL_MOVEMENT_3), 0, 0);
             break;
-        case AKROPOLIS_ROOF_GARDEN_OPENING_CUE9_TICK:
+        case CUE9_TICK:
             sndEvtRequestScriptStart(AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_ARRIVAL_MOVEMENT_4), 0, 0);
             break;
-        case AKROPOLIS_ROOF_GARDEN_OPENING_FINAL_TICK:
+        case FINAL_TICK:
             sndEvtRequestScriptStart(AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_ARRIVAL_MOVEMENT_5), 0, 0);
             _gAkropolisRoofGardenCutsceneSoundTask = NULL;
             taskKill(task);
@@ -346,14 +348,14 @@ static void _akropolisRoofGardenCutsceneOpeningSoundTask(Task* task)
 static void _akropolisRoofGardenCutsceneClosingSoundTask(Task* task)
 {
     enum {
-        AKROPOLIS_ROOF_GARDEN_CLOSING_CUE15_TICK = 76,
-        AKROPOLIS_ROOF_GARDEN_CLOSING_FINAL_TICK = 100,
+        CUE15_TICK = 76,
+        FINAL_TICK = 100,
     };
     switch (task->state) {
-        case AKROPOLIS_ROOF_GARDEN_CLOSING_CUE15_TICK:
+        case CUE15_TICK:
             sndEvtRequestScriptStart(AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_STEP_1), 0, 0);
             break;
-        case AKROPOLIS_ROOF_GARDEN_CLOSING_FINAL_TICK:
+        case FINAL_TICK:
             sndEvtRequestScriptStart(AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_STEP_2), 0, 0);
             _gAkropolisRoofGardenCutsceneSoundTask = NULL;
             taskKill(task);
@@ -366,17 +368,17 @@ static void _akropolisRoofGardenCutsceneClosingSoundTask(Task* task)
 static void _akropolisRoofGardenControlCutsceneSound(s32 soundAction)
 {
     enum {
-        AKROPOLIS_ROOF_GARDEN_OPENING_SOUND_TASK_INDEX = 1,
-        AKROPOLIS_ROOF_GARDEN_CLOSING_SOUND_TASK_INDEX = 2,
+        OPENING_SOUND_TASK_INDEX = 1,
+        CLOSING_SOUND_TASK_INDEX = 2,
     };
     switch (soundAction) {
-        case AKROPOLIS_ROOF_GARDEN_CUTSCENE_SOUND_OPENING:
-            _gAkropolisRoofGardenCutsceneSoundTask = taskSpawnFromTable(_gAkropolisRoofGardenSoundTaskDescriptors, AKROPOLIS_ROOF_GARDEN_OPENING_SOUND_TASK_INDEX, 0, 0);
+        case CUTSCENE_SOUND_OPENING:
+            _gAkropolisRoofGardenCutsceneSoundTask = taskSpawnFromTable(_gAkropolisRoofGardenSoundTaskDescriptors, OPENING_SOUND_TASK_INDEX, 0, 0);
             break;
-        case AKROPOLIS_ROOF_GARDEN_CUTSCENE_SOUND_CLOSING:
-            _gAkropolisRoofGardenCutsceneSoundTask = taskSpawnFromTable(_gAkropolisRoofGardenSoundTaskDescriptors, AKROPOLIS_ROOF_GARDEN_CLOSING_SOUND_TASK_INDEX, 0, 0);
+        case CUTSCENE_SOUND_CLOSING:
+            _gAkropolisRoofGardenCutsceneSoundTask = taskSpawnFromTable(_gAkropolisRoofGardenSoundTaskDescriptors, CLOSING_SOUND_TASK_INDEX, 0, 0);
             break;
-        case AKROPOLIS_ROOF_GARDEN_CUTSCENE_SOUND_CANCEL:
+        case CUTSCENE_SOUND_CANCEL:
             if (_gAkropolisRoofGardenCutsceneSoundTask != NULL) {
                 taskKill(_gAkropolisRoofGardenCutsceneSoundTask);
                 _gAkropolisRoofGardenCutsceneSoundTask = NULL;
@@ -389,16 +391,16 @@ static void _akropolisRoofGardenControlCutsceneSound(s32 soundAction)
 static void _akropolisRoofGardenInitializeRoomTask(Task* task)
 {
     enum {
-        AKROPOLIS_ROOF_GARDEN_ARRIVAL_MUSIC_EVENT = 6,
-        AKROPOLIS_ROOF_GARDEN_ROOM_MUSIC_EVENT    = 5,
-        AKROPOLIS_ROOF_GARDEN_AMBIENCE_TASK_INDEX = 0,
+        ARRIVAL_MUSIC_EVENT = 6,
+        ROOM_MUSIC_EVENT    = 5,
+        AMBIENCE_TASK_INDEX = 0,
     };
     task->msgTable = _gAkropolisRoofGardenRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == AKROPOLIS_ROOF_GARDEN_ARRIVAL_MUSIC_EVENT) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = AKROPOLIS_ROOF_GARDEN_ROOM_MUSIC_EVENT;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == ARRIVAL_MUSIC_EVENT) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ROOM_MUSIC_EVENT;
     }
-    taskSpawnFromTable(_gAkropolisRoofGardenSoundTaskDescriptors, AKROPOLIS_ROOF_GARDEN_AMBIENCE_TASK_INDEX, 0, 0);
+    taskSpawnFromTable(_gAkropolisRoofGardenSoundTaskDescriptors, AMBIENCE_TASK_INDEX, 0, 0);
     task->state += 1;
 }
 
@@ -406,13 +408,13 @@ static void _akropolisRoofGardenInitializeRoomTask(Task* task)
 static void _akropolisRoofGardenStartArrivalScene(Task* task)
 {
     enum {
-        AKROPOLIS_ROOF_GARDEN_CUTSCENE_NOT_STARTED = 0,
-        AKROPOLIS_ROOF_GARDEN_CUTSCENE_STARTED     = 1,
+        NOT_STARTED = 0,
+        STARTED     = 1,
     };
     GameLocationKey sanctuary;
 
-    if ((gGameSession->location.warp == AKROPOLIS_ROOF_GARDEN_ARRIVAL_SCENE_WARP) && (_gAkropolisRoofGardenArrivalSceneStarted == AKROPOLIS_ROOF_GARDEN_CUTSCENE_NOT_STARTED)) {
-        _gAkropolisRoofGardenArrivalSceneStarted = AKROPOLIS_ROOF_GARDEN_CUTSCENE_STARTED;
+    if ((gGameSession->location.warp == AKROPOLIS_ROOF_GARDEN_ARRIVAL_SCENE_WARP) && (_gAkropolisRoofGardenArrivalSceneStarted == NOT_STARTED)) {
+        _gAkropolisRoofGardenArrivalSceneStarted = STARTED;
         evsStartScriptWithSkip(_gAkropolisRoofGardenArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAkropolisRoofGardenArrivalSkipScript);
         gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_SANCTUARY_RUPERT_LEFT, 1);
         sanctuary.stage = GAME_STAGE_AKROPOLIS;
@@ -432,9 +434,9 @@ void akropolisRoofGardenRoomTask(Task* task)
 /// Releases the Maggot/Caterpillar scripted entrance for the roof garden encounter.
 static void _akropolisRoofGardenReleaseMaggotCaterpillarEntrance(void)
 {
-    enum { AKROPOLIS_ROOF_GARDEN_ENTRANCE_RELEASED = 1 };
+    enum { ENTRANCE_RELEASED = 1 };
 
-    gSceneCombatState.maggotCaterpillarEntranceReady = AKROPOLIS_ROOF_GARDEN_ENTRANCE_RELEASED;
+    gSceneCombatState.maggotCaterpillarEntranceReady = ENTRANCE_RELEASED;
 }
 
 /// Spawns a one-frame flare at (-4770, -220, -3865) in the emitter's local space.
@@ -449,22 +451,22 @@ static inline void _akropolisRoofGardenEmitFlare(EffectWork* emitterWork, GfxCoo
 void akropolisRoofGardenAmbientEffectsTask(Task* task)
 {
     enum {
-        AKROPOLIS_ROOF_GARDEN_EFFECT_INITIALIZE   = 0,
-        AKROPOLIS_ROOF_GARDEN_GLOW_SCALE_SHIFT    = 16,
-        AKROPOLIS_ROOF_GARDEN_GLOW_CELL_SHIFT     = 8,
-        AKROPOLIS_ROOF_GARDEN_LARGE_GLOW_COUNT    = 2,
-        AKROPOLIS_ROOF_GARDEN_UPPER_GLOW_INDEX    = 2,
-        AKROPOLIS_ROOF_GARDEN_SMALL_GLOW_FIRST    = 3,
-        AKROPOLIS_ROOF_GARDEN_LARGE_GLOW_SCALE    = 512,
-        AKROPOLIS_ROOF_GARDEN_UPPER_GLOW_SCALE    = 1024,
-        AKROPOLIS_ROOF_GARDEN_UPPER_GLOW_CELL     = 1,
-        AKROPOLIS_ROOF_GARDEN_SMALL_GLOW_CELL     = 2,
-        AKROPOLIS_ROOF_GARDEN_FLARE_DIAMOND_VIEWS = (1 << (5 - 1)) | (1 << (6 - 1)),
-        AKROPOLIS_ROOF_GARDEN_FLARE_PULSE_STEPS   = 14,
-        AKROPOLIS_ROOF_GARDEN_FLARE_RADIUS_SHIFT  = 8,
-        AKROPOLIS_ROOF_GARDEN_FLARE_DIAMOND_SCALE = 6,
-        AKROPOLIS_ROOF_GARDEN_FLARE_DISC_SCALE    = 3,
-        AKROPOLIS_ROOF_GARDEN_FLARE_DISC_SHAPE    = 0x80000000,
+        EFFECT_INITIALIZE   = 0,
+        GLOW_SCALE_SHIFT    = 16,
+        GLOW_CELL_SHIFT     = 8,
+        LARGE_GLOW_COUNT    = 2,
+        UPPER_GLOW_INDEX    = 2,
+        SMALL_GLOW_FIRST    = 3,
+        LARGE_GLOW_SCALE    = 512,
+        UPPER_GLOW_SCALE    = 1024,
+        UPPER_GLOW_CELL     = 1,
+        SMALL_GLOW_CELL     = 2,
+        FLARE_DIAMOND_VIEWS = (1 << (5 - 1)) | (1 << (6 - 1)),
+        FLARE_PULSE_STEPS   = 14,
+        FLARE_RADIUS_SHIFT  = 8,
+        FLARE_DIAMOND_SCALE = 6,
+        FLARE_DISC_SCALE    = 3,
+        FLARE_DISC_SHAPE    = 0x80000000,
     };
     EffectWork* work;
     GfxCoord*   coord;
@@ -473,25 +475,25 @@ void akropolisRoofGardenAmbientEffectsTask(Task* task)
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (task->state == AKROPOLIS_ROOF_GARDEN_EFFECT_INITIALIZE) {
+    if (task->state == EFFECT_INITIALIZE) {
         // Place ten persistent glows, keeping one index across both table walks.
-        for (lightIndex = 0; lightIndex < AKROPOLIS_ROOF_GARDEN_LARGE_GLOW_COUNT; lightIndex++) {
-            effectSpawn(EFFECT_AKROPOLIS_ROOF_GARDEN_LIGHT_GLOW, coord, lightIndex + (AKROPOLIS_ROOF_GARDEN_LARGE_GLOW_SCALE << AKROPOLIS_ROOF_GARDEN_GLOW_SCALE_SHIFT), &_gAkropolisRoofGardenLightOffsets[lightIndex]);
+        for (lightIndex = 0; lightIndex < LARGE_GLOW_COUNT; lightIndex++) {
+            effectSpawn(EFFECT_AKROPOLIS_ROOF_GARDEN_LIGHT_GLOW, coord, lightIndex + (LARGE_GLOW_SCALE << GLOW_SCALE_SHIFT), &_gAkropolisRoofGardenLightOffsets[lightIndex]);
         }
         lightOffsets = _gAkropolisRoofGardenLightOffsets;
-        effectSpawn(EFFECT_AKROPOLIS_ROOF_GARDEN_LIGHT_GLOW, coord, (AKROPOLIS_ROOF_GARDEN_UPPER_GLOW_SCALE << AKROPOLIS_ROOF_GARDEN_GLOW_SCALE_SHIFT) | (AKROPOLIS_ROOF_GARDEN_UPPER_GLOW_CELL << AKROPOLIS_ROOF_GARDEN_GLOW_CELL_SHIFT) | AKROPOLIS_ROOF_GARDEN_UPPER_GLOW_INDEX, &lightOffsets[AKROPOLIS_ROOF_GARDEN_UPPER_GLOW_INDEX]);
-        for (lightIndex = AKROPOLIS_ROOF_GARDEN_SMALL_GLOW_FIRST; lightIndex < ARRAY_SIZE(_gAkropolisRoofGardenLightOffsets); lightIndex++) {
-            effectSpawn(EFFECT_AKROPOLIS_ROOF_GARDEN_LIGHT_GLOW, coord, lightIndex + (AKROPOLIS_ROOF_GARDEN_SMALL_GLOW_CELL << AKROPOLIS_ROOF_GARDEN_GLOW_CELL_SHIFT), &lightOffsets[lightIndex]);
+        effectSpawn(EFFECT_AKROPOLIS_ROOF_GARDEN_LIGHT_GLOW, coord, (UPPER_GLOW_SCALE << GLOW_SCALE_SHIFT) | (UPPER_GLOW_CELL << GLOW_CELL_SHIFT) | UPPER_GLOW_INDEX, &lightOffsets[UPPER_GLOW_INDEX]);
+        for (lightIndex = SMALL_GLOW_FIRST; lightIndex < ARRAY_SIZE(_gAkropolisRoofGardenLightOffsets); lightIndex++) {
+            effectSpawn(EFFECT_AKROPOLIS_ROOF_GARDEN_LIGHT_GLOW, coord, lightIndex + (SMALL_GLOW_CELL << GLOW_CELL_SHIFT), &lightOffsets[lightIndex]);
         }
         task->state = task->state + 1;
     }
     // Emit one-frame flares only while room effects accept new spawns.
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-        if ((AKROPOLIS_ROOF_GARDEN_FLARE_DIAMOND_VIEWS >> (gGameSession->location.view - 1)) & 1) {
-            _akropolisRoofGardenEmitFlare(work, coord, (AKROPOLIS_ROOF_GARDEN_FLARE_DIAMOND_SCALE << AKROPOLIS_ROOF_GARDEN_FLARE_RADIUS_SHIFT) | AKROPOLIS_ROOF_GARDEN_FLARE_PULSE_STEPS);
+        if ((FLARE_DIAMOND_VIEWS >> (gGameSession->location.view - 1)) & 1) {
+            _akropolisRoofGardenEmitFlare(work, coord, (FLARE_DIAMOND_SCALE << FLARE_RADIUS_SHIFT) | FLARE_PULSE_STEPS);
         }
         if (gGameSession->location.view == 7) {
-            _akropolisRoofGardenEmitFlare(work, coord, AKROPOLIS_ROOF_GARDEN_FLARE_DISC_SHAPE | (AKROPOLIS_ROOF_GARDEN_FLARE_DISC_SCALE << AKROPOLIS_ROOF_GARDEN_FLARE_RADIUS_SHIFT) | AKROPOLIS_ROOF_GARDEN_FLARE_PULSE_STEPS);
+            _akropolisRoofGardenEmitFlare(work, coord, FLARE_DISC_SHAPE | (FLARE_DISC_SCALE << FLARE_RADIUS_SHIFT) | FLARE_PULSE_STEPS);
         }
     }
 }
@@ -501,17 +503,17 @@ void akropolisRoofGardenAmbientEffectsTask(Task* task)
 void akropolisRoofGardenLightGlowTask(Task* task)
 {
     enum {
-        AKROPOLIS_ROOF_GARDEN_LIGHT_INITIALIZE    = 0,
-        AKROPOLIS_ROOF_GARDEN_LIGHT_INDEX_MASK    = 0xF,
-        AKROPOLIS_ROOF_GARDEN_LIGHT_CELL_SHIFT    = 8,
-        AKROPOLIS_ROOF_GARDEN_LIGHT_CELL_MASK     = 3,
-        AKROPOLIS_ROOF_GARDEN_LIGHT_CELL_COUNT    = 3,
-        AKROPOLIS_ROOF_GARDEN_LIGHT_SCALE_SHIFT   = 16,
-        AKROPOLIS_ROOF_GARDEN_LIGHT_SCALE_MASK    = 0xFFF,
-        AKROPOLIS_ROOF_GARDEN_LIGHT_DEFAULT_SCALE = 640,
-        AKROPOLIS_ROOF_GARDEN_LIGHT_FLICKER_STEP  = 16,
-        AKROPOLIS_ROOF_GARDEN_LIGHT_CLUT_X_STRIDE = 16,
-        AKROPOLIS_ROOF_GARDEN_LIGHT_CLUT_Y        = 270,
+        INITIALIZE    = 0,
+        INDEX_MASK    = 0xF,
+        CELL_SHIFT    = 8,
+        CELL_MASK     = 3,
+        CELL_COUNT    = 3,
+        SCALE_SHIFT   = 16,
+        SCALE_MASK    = 0xFFF,
+        DEFAULT_SCALE = 640,
+        FLICKER_STEP  = 16,
+        CLUT_X_STRIDE = 16,
+        CLUT_Y        = 270,
     };
     EffectWork*            work;
     GfxCoord*              coord;
@@ -523,21 +525,21 @@ void akropolisRoofGardenLightGlowTask(Task* task)
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
-        if ((_gAkropolisRoofGardenLightViewMasks[task->spawnArg1.value & AKROPOLIS_ROOF_GARDEN_LIGHT_INDEX_MASK] >> (gGameSession->location.view - 1)) & 1) {
+        if ((_gAkropolisRoofGardenLightViewMasks[task->spawnArg1.value & INDEX_MASK] >> (gGameSession->location.view - 1)) & 1) {
             actorRenderComposeCoord(coord);
             projection = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
-            if (task->state == AKROPOLIS_ROOF_GARDEN_LIGHT_INITIALIZE) {
+            if (task->state == INITIALIZE) {
                 // Resting grey of each sheet cell; the room only spawns cells 0..2.
-                u8 restingLevels[AKROPOLIS_ROOF_GARDEN_LIGHT_CELL_COUNT] = { 0x40, 0x60, 0x10 };
+                u8 restingLevels[CELL_COUNT] = { 0x40, 0x60, 0x10 };
 
                 // Decode once, retaining only the view-mask index in the spawn argument.
-                if (task->spawnArg1.value & (AKROPOLIS_ROOF_GARDEN_LIGHT_SCALE_MASK << AKROPOLIS_ROOF_GARDEN_LIGHT_SCALE_SHIFT)) {
-                    work->scale = (task->spawnArg1.value >> AKROPOLIS_ROOF_GARDEN_LIGHT_SCALE_SHIFT) & AKROPOLIS_ROOF_GARDEN_LIGHT_SCALE_MASK;
+                if (task->spawnArg1.value & (SCALE_MASK << SCALE_SHIFT)) {
+                    work->scale = (task->spawnArg1.value >> SCALE_SHIFT) & SCALE_MASK;
                 } else {
-                    work->scale = AKROPOLIS_ROOF_GARDEN_LIGHT_DEFAULT_SCALE;
+                    work->scale = DEFAULT_SCALE;
                 }
-                work->angle           = (task->spawnArg1.value >> AKROPOLIS_ROOF_GARDEN_LIGHT_CELL_SHIFT) & AKROPOLIS_ROOF_GARDEN_LIGHT_CELL_MASK;
-                task->spawnArg1.value = task->spawnArg1.value & AKROPOLIS_ROOF_GARDEN_LIGHT_INDEX_MASK;
+                work->angle           = (task->spawnArg1.value >> CELL_SHIFT) & CELL_MASK;
+                task->spawnArg1.value = task->spawnArg1.value & INDEX_MASK;
                 work->period          = restingLevels[work->angle];
                 task->state++;
             }
@@ -555,12 +557,12 @@ void akropolisRoofGardenLightGlowTask(Task* task)
             gte_stsxy(&projection->screenPos);
             gte_stszotz(&projection->otz);
             if (projection->otz >= GLOW_MIN_DEPTH) {
-                flickerLevel = ((u8)gDisplayState.animFrame & 1) * AKROPOLIS_ROOF_GARDEN_LIGHT_FLICKER_STEP;
+                flickerLevel = ((u8)gDisplayState.animFrame & 1) * FLICKER_STEP;
                 greyLevel    = (u8)work->period + flickerLevel;
                 quad->tpage  = GLOW_FLARE_TEXTURE_PAGE;
                 setRGB0(quad, greyLevel, greyLevel, greyLevel);
                 setSemiTrans(quad, true);
-                quad->clut = getClut(work->angle * AKROPOLIS_ROOF_GARDEN_LIGHT_CLUT_X_STRIDE, AKROPOLIS_ROOF_GARDEN_LIGHT_CLUT_Y);
+                quad->clut = getClut(work->angle * CLUT_X_STRIDE, CLUT_Y);
                 quad->u0   = work->angle * GLOW_FLARE_CELL_STRIDE;
                 quad->v0   = 0;
                 quad->u1   = work->angle * GLOW_FLARE_CELL_STRIDE + GLOW_FLARE_CELL_LAST_TEXEL;
@@ -605,9 +607,9 @@ void akropolisRoofGardenLeafFallTask(Task* task)
 void akropolisRoofGardenPickupModelTask(Task* task)
 {
     enum {
-        AKROPOLIS_ROOF_GARDEN_PICKUP_FIRST_VIEW = 5,
-        AKROPOLIS_ROOF_GARDEN_PICKUP_VIEW_LIMIT = 8,
-        AKROPOLIS_ROOF_GARDEN_PICKUP_HIDDEN     = 2,
+        FIRST_VIEW = 5,
+        VIEW_LIMIT = 8,
+        HIDDEN     = 2,
     };
     Enemy*     enemy;
     TmdObject* tmd;
@@ -620,11 +622,11 @@ void akropolisRoofGardenPickupModelTask(Task* task)
     objectState = areaGetCurrentObjectState((u8)enemy->placeKey);
     mappedView  = viewGetMappedIndex();
     // Separate view tests preserve the two comparisons in the compiled draw gate.
-    if (mappedView >= AKROPOLIS_ROOF_GARDEN_PICKUP_VIEW_LIMIT) {
+    if (mappedView >= VIEW_LIMIT) {
         tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    } else if (mappedView < AKROPOLIS_ROOF_GARDEN_PICKUP_FIRST_VIEW) {
+    } else if (mappedView < FIRST_VIEW) {
         tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    } else if (objectState == AKROPOLIS_ROOF_GARDEN_PICKUP_HIDDEN) {
+    } else if (objectState == HIDDEN) {
         tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         tmd->flags    = TMD_OBJECT_FLAGGED_PASS;
