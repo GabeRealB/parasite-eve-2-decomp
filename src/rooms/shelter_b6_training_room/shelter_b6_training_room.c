@@ -26,7 +26,9 @@ static Task* _gShelterB6TrainingRoomPlayerHeadAimTask;
 
 #include "shelter_b6_training_room_private.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_105100.h"
+#include "actors/actor_205200.h"
+#include "actors/actor_350700.h"
 
 #include "gameplay/companion_load.h"
 #include "gameplay/area.h"

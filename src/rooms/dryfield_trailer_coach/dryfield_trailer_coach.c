@@ -11,7 +11,7 @@
 
 #include "actors/actor_420700.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_420700.h"
 
 #include "gameplay/direction_input.h"
 #include "gameplay/display.h"

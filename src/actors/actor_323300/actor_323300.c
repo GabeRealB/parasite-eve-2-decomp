@@ -1,4 +1,4 @@
-#include "actors/task_tables.h"
+#include "actors/actor_323300.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>

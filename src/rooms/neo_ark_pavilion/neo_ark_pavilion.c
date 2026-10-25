@@ -11,7 +11,9 @@
 #include "gte.h"
 
 #include "actors/actor_00400.h"
-#include "actors/task_tables.h"
+#include "actors/actor_01100.h"
+#include "actors/actor_03800.h"
+#include "actors/actor_05700.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"

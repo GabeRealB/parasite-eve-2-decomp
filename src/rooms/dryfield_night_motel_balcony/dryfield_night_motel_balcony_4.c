@@ -12,7 +12,11 @@
 
 #include "dryfield_night_motel_balcony_private.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_01500.h"
+#include "actors/actor_01600.h"
+#include "actors/actor_335800.h"
+#include "actors/actor_400600.h"
+#include "actors/actor_403100.h"
 
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"

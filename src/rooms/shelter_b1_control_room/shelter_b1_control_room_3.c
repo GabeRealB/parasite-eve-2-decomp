@@ -1,4 +1,6 @@
-#include "actors/task_tables.h"
+#include "actors/actor_02100.h"
+#include "actors/actor_02400.h"
+#include "actors/actor_150400.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/display.h"

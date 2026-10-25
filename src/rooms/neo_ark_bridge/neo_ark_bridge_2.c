@@ -10,7 +10,9 @@
 #include "common.h"
 
 #include "actors/actor_00400.h"
-#include "actors/task_tables.h"
+#include "actors/actor_01100.h"
+#include "actors/actor_02300.h"
+#include "actors/actor_03800.h"
 
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"

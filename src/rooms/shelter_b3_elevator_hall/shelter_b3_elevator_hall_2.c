@@ -12,7 +12,9 @@
 #include "shelter_b3_elevator_hall_private.h"
 
 #include "actors/actor_04400.h"
-#include "actors/task_tables.h"
+#include "actors/actor_00300.h"
+#include "actors/actor_01100.h"
+#include "actors/actor_02400.h"
 
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"

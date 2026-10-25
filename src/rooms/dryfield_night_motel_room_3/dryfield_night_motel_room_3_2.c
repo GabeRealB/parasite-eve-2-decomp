@@ -8,7 +8,9 @@
 #include "common.h"
 #include "gte.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_01600.h"
+#include "actors/actor_04000.h"
+#include "actors/actor_401800.h"
 
 #include "gameplay/area.h"
 #include "gameplay/collision.h"

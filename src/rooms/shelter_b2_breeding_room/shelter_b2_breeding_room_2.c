@@ -10,8 +10,6 @@
 
 #include "shelter_b2_breeding_room_private.h"
 
-#include "actors/task_tables.h"
-
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"

@@ -8,7 +8,6 @@
 #include "common.h"
 
 #include "actors/actor_143000.h"
-#include "actors/task_tables.h"
 
 #include "gameplay/animation.h"
 #include "gameplay/display.h"

@@ -1,4 +1,4 @@
-#include "actors/task_tables.h"
+#include "stages/akropolis/actors/roof_garden_swat_member.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>

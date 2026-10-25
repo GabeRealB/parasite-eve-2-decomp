@@ -9,7 +9,6 @@
 #include "gte.h"
 
 #include "actors/actor_161500.h"
-#include "actors/task_tables.h"
 
 #include "gameplay/action_prompt.h"
 #include "gameplay/area.h"

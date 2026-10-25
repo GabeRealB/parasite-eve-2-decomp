@@ -6,7 +6,8 @@
 #include "common.h"
 
 #include "actors/actor_120300.h"
-#include "actors/task_tables.h"
+#include "actors/actor_00100.h"
+#include "actors/actor_01500.h"
 
 #include "gameplay/area.h"
 #include "gameplay/area_flags.h"

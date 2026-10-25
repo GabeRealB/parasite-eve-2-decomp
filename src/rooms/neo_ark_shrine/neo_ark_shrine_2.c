@@ -11,7 +11,11 @@
 
 #include "neo_ark_shrine_private.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_02000.h"
+#include "actors/actor_02500.h"
+#include "actors/actor_03800.h"
+#include "actors/actor_402200.h"
+#include "actors/actor_403900.h"
 
 #include "gameplay/display.h"
 #include "gameplay/action_prompt.h"

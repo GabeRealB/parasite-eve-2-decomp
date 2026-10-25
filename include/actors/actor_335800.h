@@ -1,6 +1,8 @@
 #ifndef ACTORS_ACTOR_335800_H
 #define ACTORS_ACTOR_335800_H
 
+#include "main/task_types.h"
+
 #include "gameplay/evs.h"
 
 /// Night-balcony entry scene introducing the Burner, Douglas and Flint.
@@ -42,5 +44,20 @@ extern EvsCommand gActor335800BurnerRetreatSceneScript[9];
 /// ending, then ends the event. Keep this package and borrowed clips loaded
 /// through playback; both subscript calls return before END.
 extern EvsCommand gActor335800BurnerDefeatSceneScript[10];
+
+/// Gary Douglas's body, attached head-and-hat and gun spawn recipes (indices 0..2).
+///
+/// The night motel balcony resource selects body 0. Body initialization spawns
+/// head 1 on part 4 and gun 2 on part 8, borrowing the body's lighting and
+/// lifetime. All run at priority `TASK_PRIORITY_CONTROL`; only the body skips automatic model buffers.
+/// The actor package's code and model data must remain loaded for all three tasks.
+extern TaskDesc gActor335800GaryDouglasTasks[3];
+
+/// Spawn recipe for the night motel balcony's independently placed Flint model.
+///
+/// The room resource addresses this single nineteen-part TMD recipe directly.
+/// It runs at priority `TASK_PRIORITY_CONTROL` and skips automatic model buffers; actor_335800's
+/// code and geometry must stay loaded until Flint's task is released.
+extern TaskDesc gActor335800FlintTaskDesc;
 
 #endif // ACTORS_ACTOR_335800_H

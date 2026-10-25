@@ -13,7 +13,9 @@
 
 #include "actors/actor_04400.h"
 #include "actors/actor_00400.h"
-#include "actors/task_tables.h"
+#include "actors/actor_02400.h"
+#include "actors/actor_07000.h"
+#include "actors/actor_207200.h"
 
 #include "gameplay/companion_load.h"
 #include "gameplay/actor_render.h"

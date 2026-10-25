@@ -1,6 +1,8 @@
 #ifndef ACTORS_ACTOR_451100_H
 #define ACTORS_ACTOR_451100_H
 
+#include "main/task_types.h"
+
 #include "gameplay/evs.h"
 
 /// Submarine-tunnel story scene, synchronized with CAP command 2 and scene audio.
@@ -30,5 +32,19 @@ extern EvsCommand gActor451100SubmarineTunnelSceneSkipScript[];
 /// scripted control. Requires this actor package, the room's CAP/sound resources
 /// and the player task to remain loaded until the borrowed stream ends.
 extern EvsCommand gActor451100SubmarineTunnelEntryScript[];
+
+/// Quiet scene-walker spawn descriptor using the Eve body at priority 192.
+///
+/// Creates a TMD task with automatic primitive buffers and singleton message
+/// handlers. Keep the actor_451100 code, geometry and clip data loaded.
+extern TaskDesc gActor451100QuietWalkTaskDesc;
+
+/// Spawn descriptors for the No. 9 GOLEM scene walker and its carried model.
+///
+/// Index 0 spawns the paired walker; it spawns index 1 as its child and
+/// attaches that model to part 8. Both run at priority `TASK_PRIORITY_ACTOR`; only the child
+/// skips automatic primitive buffers. Keep actor_451100's borrowed assets
+/// and callbacks loaded while either task is live.
+extern TaskDesc gActor451100PairWalkTaskDescs[2];
 
 #endif // ACTORS_ACTOR_451100_H

@@ -1,4 +1,4 @@
-#include "actors/task_tables.h"
+#include "stages/akropolis/actors/security_monitors.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>

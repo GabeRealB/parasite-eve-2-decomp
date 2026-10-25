@@ -11,7 +11,7 @@
 
 #include "shelter_b1_sterilization_room_private.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_160600.h"
 
 #include "gameplay/companion_load.h"
 #include "gameplay/display.h"

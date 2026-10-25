@@ -10,7 +10,7 @@
 
 #include "shelter_r47_private.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_443500.h"
 
 #include "gameplay/action_prompt.h"
 #include "gameplay/captions.h"

@@ -12,7 +12,10 @@
 #include "neo_ark_garden_private.h"
 
 #include "actors/actor_151000.h"
-#include "actors/task_tables.h"
+#include "actors/actor_01100.h"
+#include "actors/actor_02400.h"
+#include "actors/actor_03800.h"
+#include "actors/actor_151000.h"
 
 #include "gameplay/area.h"
 #include "gameplay/area_flags.h"

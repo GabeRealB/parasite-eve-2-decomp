@@ -9,7 +9,9 @@
 #include "common.h"
 #include "gte.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_01600.h"
+#include "actors/actor_04000.h"
+#include "actors/actor_135600.h"
 
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"

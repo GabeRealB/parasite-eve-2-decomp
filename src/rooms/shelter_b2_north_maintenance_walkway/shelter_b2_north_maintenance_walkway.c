@@ -9,7 +9,12 @@
 
 #include "actors/actor_04400.h"
 #include "actors/actor_341300.h"
-#include "actors/task_tables.h"
+#include "actors/actor_00300.h"
+#include "actors/actor_01100.h"
+#include "actors/actor_02000.h"
+#include "actors/actor_02100.h"
+#include "actors/actor_07000.h"
+#include "actors/actor_207200.h"
 
 #include "gameplay/area.h"
 #include "gameplay/area_flags.h"

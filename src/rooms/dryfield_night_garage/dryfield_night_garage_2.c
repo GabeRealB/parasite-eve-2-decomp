@@ -10,7 +10,9 @@
 
 #include "dryfield_night_garage_private.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_01600.h"
+#include "actors/actor_135400.h"
+#include "actors/actor_400600.h"
 #include "actors/actor_136300.h"
 
 #include "gameplay/animation.h"

@@ -1,5 +1,10 @@
 #include "actors/actor_04400.h"
-#include "actors/task_tables.h"
+#include "actors/actor_02400.h"
+#include "actors/actor_207200.h"
+#include "actors/actor_300700.h"
+#include "actors/actor_401800.h"
+#include "actors/actor_402200.h"
+#include "actors/actor_403900.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/display.h"

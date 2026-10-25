@@ -11,7 +11,10 @@
 
 #include "dryfield_toilet_private.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_01200.h"
+#include "actors/actor_02400.h"
+#include "actors/actor_323300.h"
+#include "actors/actor_401000.h"
 
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"

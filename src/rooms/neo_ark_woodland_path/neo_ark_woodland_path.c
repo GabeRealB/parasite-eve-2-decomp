@@ -11,7 +11,7 @@
 
 #include "neo_ark_woodland_path_private.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_401300.h"
 
 #include "gameplay/area.h"
 #include "gameplay/collision.h"

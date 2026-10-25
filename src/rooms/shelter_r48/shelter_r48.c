@@ -9,7 +9,7 @@
 #include "gte.h"
 #include "common.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_503500.h"
 #include "actors/actor_403600.h"
 #include "actors/actor_503500.h"
 

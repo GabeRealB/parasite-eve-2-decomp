@@ -1,5 +1,5 @@
 #include "actors/actor_202900.h"
-#include "actors/task_tables.h"
+#include "actors/actor_202900.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>

@@ -11,7 +11,9 @@
 
 #include "mine_secret_passage_private.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_00300.h"
+#include "actors/actor_400600.h"
+#include "actors/actor_405800.h"
 
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"

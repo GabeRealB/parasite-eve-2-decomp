@@ -105,4 +105,10 @@ void actor503500ClearFadeFromBlackHandle(s32 unused);
 /// completion. Player control resumes with the default scripted-end mode.
 extern EvsCommand gActor503500BossDefeatSkipScript[28];
 
+/// Scripted tentacle used by Shelter R48 resource slot 45.
+///
+/// Creates the nineteen-part actor_361100 model with explicit primitive-buffer
+/// control, then handles placement, animation, translation and a burning collapse.
+extern TaskDesc gActor503500TentacleTaskDesc;
+
 #endif // INCLUDE_ACTORS_ACTOR_503500_H

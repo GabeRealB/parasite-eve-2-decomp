@@ -99,4 +99,10 @@ extern TmdSource gActor444000Model1E14C;
 /// live player through event completion; the descriptor is borrowed during spawn.
 extern TaskDesc gActor444000IncineratorEventTaskDesc;
 
+/// TMD host recipe for the garbage-incinerator Glutton, at execution priority 96.
+///
+/// The room borrows this descriptor from the loaded actor_444000 overlay.
+/// Its model source and callback must remain loaded for the host's lifetime.
+extern TaskDesc gActor444000GluttonHostTaskDesc;
+
 #endif // INCLUDE_ACTORS_ACTOR_444000_H

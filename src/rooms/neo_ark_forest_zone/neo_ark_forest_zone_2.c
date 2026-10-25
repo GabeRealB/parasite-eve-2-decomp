@@ -10,7 +10,11 @@
 #include "neo_ark_forest_zone_private.h"
 
 #include "actors/actor.h"
-#include "actors/task_tables.h"
+#include "actors/actor_02000.h"
+#include "actors/actor_03800.h"
+#include "actors/actor_05600.h"
+#include "actors/actor_356100.h"
+#include "actors/actor_401300.h"
 
 #include "gameplay/animation.h"
 #include "gameplay/captions.h"

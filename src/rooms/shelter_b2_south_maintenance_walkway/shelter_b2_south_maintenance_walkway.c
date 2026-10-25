@@ -10,7 +10,12 @@
 #include "gte.h"
 
 #include "actors/actor_04400.h"
-#include "actors/task_tables.h"
+#include "actors/actor_01100.h"
+#include "actors/actor_02100.h"
+#include "actors/actor_02300.h"
+#include "actors/actor_02400.h"
+#include "actors/actor_05500.h"
+#include "actors/actor_207200.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"

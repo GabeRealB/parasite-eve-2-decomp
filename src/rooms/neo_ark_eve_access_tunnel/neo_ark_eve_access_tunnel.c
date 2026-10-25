@@ -7,7 +7,8 @@
 
 #include "neo_ark_eve_access_tunnel_private.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_02100.h"
+#include "actors/actor_205200.h"
 
 #include "gameplay/companion_load.h"
 #include "gameplay/area.h"

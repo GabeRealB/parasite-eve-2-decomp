@@ -11,7 +11,13 @@
 
 #include "shelter_b1_north_maintenance_walkway_private.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_00300.h"
+#include "actors/actor_01100.h"
+#include "actors/actor_02100.h"
+#include "actors/actor_02400.h"
+#include "actors/actor_04600.h"
+#include "actors/actor_05700.h"
+#include "actors/actor_07000.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"

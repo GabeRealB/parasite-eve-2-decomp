@@ -12,7 +12,7 @@
 #include "neo_ark_submarine_gallery_private.h"
 
 #include "actors/actor_00400.h"
-#include "actors/task_tables.h"
+#include "actors/actor_206100.h"
 
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"

@@ -22,7 +22,7 @@ static u16 _gShelterB3GarbageIncineratorSwitchNoticeTicks;
 #include "shelter_b3_garbage_incinerator_private.h"
 
 #include "actors/actor_444000.h"
-#include "actors/task_tables.h"
+#include "actors/actor_342400.h"
 
 #include "gameplay/companion_load.h"
 #include "gameplay/captions.h"

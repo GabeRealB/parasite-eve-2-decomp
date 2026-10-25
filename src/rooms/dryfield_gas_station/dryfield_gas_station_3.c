@@ -2,7 +2,7 @@
 
 #include "types.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_00100.h"
 
 #include "main/task_types.h"
 #include "../../shared/effects/glow_draw.h"

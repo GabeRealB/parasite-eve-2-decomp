@@ -8,7 +8,11 @@
 #include "gte.h"
 #include "common.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_01100.h"
+#include "actors/actor_01500.h"
+#include "actors/actor_01600.h"
+#include "actors/actor_400500.h"
+#include "actors/actor_402200.h"
 
 #include "gameplay/area.h"
 #include "gameplay/captions.h"

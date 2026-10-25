@@ -8,7 +8,9 @@
 
 #include "dryfield_night_motel_room_5_private.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_01600.h"
+#include "actors/actor_300700.h"
+#include "actors/actor_401800.h"
 
 #include "gameplay/area.h"
 #include "gameplay/collision.h"

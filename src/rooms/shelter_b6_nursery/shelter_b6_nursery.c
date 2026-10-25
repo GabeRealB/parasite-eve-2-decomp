@@ -10,7 +10,7 @@
 #include "gte.h"
 
 #include "actors/actor_450800.h"
-#include "actors/task_tables.h"
+#include "actors/actor_450800.h"
 
 #include "gameplay/direction_input.h"
 #include "gameplay/display.h"

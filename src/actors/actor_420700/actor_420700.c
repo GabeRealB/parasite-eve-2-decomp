@@ -1,4 +1,4 @@
-#include "actors/task_tables.h"
+#include "actors/actor_420700.h"
 
 #include "actors/actor_420700.h"
 

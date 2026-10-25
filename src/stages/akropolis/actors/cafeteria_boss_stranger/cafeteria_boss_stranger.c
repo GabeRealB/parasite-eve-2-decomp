@@ -10,7 +10,7 @@
 
 #include "actors/actor.h"
 #include "actors/hit_effect.h"
-#include "actors/task_tables.h"
+#include "stages/akropolis/actors/cafeteria_boss_stranger.h"
 
 #include "actors/actor_210600.h"
 

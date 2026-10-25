@@ -4,7 +4,9 @@
 
 #include "dryfield_night_dilapidated_house_private.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_01600.h"
+#include "actors/actor_02500.h"
+#include "actors/actor_04000.h"
 
 #include "gameplay/area.h"
 #include "gameplay/captions.h"

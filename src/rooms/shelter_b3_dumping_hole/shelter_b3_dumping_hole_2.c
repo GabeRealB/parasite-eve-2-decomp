@@ -15,7 +15,8 @@
 #include "actors/actor_04400.h"
 #include "actors/actor_341700.h"
 #include "actors/actor_403200.h"
-#include "actors/task_tables.h"
+#include "actors/actor_07000.h"
+#include "actors/actor_342100.h"
 
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"

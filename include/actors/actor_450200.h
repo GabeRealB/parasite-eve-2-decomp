@@ -1,6 +1,8 @@
 #ifndef INCLUDE_ACTORS_ACTOR_450200_H
 #define INCLUDE_ACTORS_ACTOR_450200_H
 
+#include "main/task_types.h"
+
 #include "gameplay/evs.h"
 
 /// Observatory companion scene played by arrival action 1 when `GAME_FLAG_083` is zero.
@@ -73,5 +75,13 @@ void actor450200InitializeObservatoryCompanion(void);
 /// and companion models, and their talk/head-aim setup to remain live through
 /// playback. The room caller permits this only in view 2 with a companion.
 void actor450200StartCompanionTalk(void);
+
+/// Bodyless observatory scene tasks: 0 immediate stop, 1 companion puffs, 2 player head aim.
+///
+/// Loaded with the actor_450200 package through the observatory's area resources.
+/// Direct spawns use entries 1 and 2; entry 0 kills its task on first dispatch.
+/// The table has no terminator, and the task callbacks require the scene's actors
+/// and room resources to remain loaded while they run.
+extern TaskDesc gActor450200SceneTaskDescs[3];
 
 #endif // INCLUDE_ACTORS_ACTOR_450200_H

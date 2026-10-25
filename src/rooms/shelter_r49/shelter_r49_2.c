@@ -6,7 +6,7 @@
 
 #include "common.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_143900.h"
 
 #include "gameplay/companion_load.h"
 #include "gameplay/area.h"

@@ -10,7 +10,10 @@
 
 #include "neo_ark_power_plant_1_private.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_02100.h"
+#include "actors/actor_02500.h"
+#include "actors/actor_03800.h"
+#include "actors/actor_105400.h"
 
 #include "gameplay/animation.h"
 #include "gameplay/area.h"

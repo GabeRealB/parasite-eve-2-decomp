@@ -1,6 +1,10 @@
 #ifndef INCLUDE_ACTORS_ACTOR_450800_H
 #define INCLUDE_ACTORS_ACTOR_450800_H
 
+#include "main/task_types.h"
+
+#include "actors/pair_walk.h"
+
 #include "gameplay/evs.h"
 
 /// First-entry nursery scene, synchronized to CAP sequence 1.
@@ -74,5 +78,35 @@ void actor450800StartNurseryCompanionDialogue(void);
 /// a live model and animation rig. Both messages consume package-owned records
 /// synchronously; the animation request precedes placement.
 void actor450800PrepareNurseryKyleMadigan(void);
+
+/// Entry indices of `gActor450800NurseryActorTasks`; every entry is live.
+enum {
+    ACTOR_450800_NURSERY_ACTOR_TASK_KYLE        = 0,
+    ACTOR_450800_NURSERY_ACTOR_TASK_LEFT_HAND   = 1,
+    ACTOR_450800_NURSERY_ACTOR_TASK_RIGHT_HAND  = 2,
+    ACTOR_450800_NURSERY_ACTOR_TASK_SECOND_BODY = 3,
+    ACTOR_450800_NURSERY_ACTOR_TASK_GUN         = 4,
+    ACTOR_450800_NURSERY_ACTOR_TASK_COUNT       = 5,
+};
+
+/// Nursery actor recipes: Kyle, left hand, right hand, second body and gun.
+///
+/// Five indexed TMD entries at priority `TASK_PRIORITY_CONTROL`, without a terminator. Only the
+/// second body skips automatic primitive-buffer allocation. Body spawns take
+/// a live owning `Enemy` in argument 2; the signed high half of argument 1
+/// selects initial visibility (1 shown, otherwise hidden). Both bodies create
+/// the same hand and gun helpers. Helper argument 1 selects the parent's model
+/// coordinate (8 left hand/gun, 12 right hand); set their parent before dispatch.
+/// Keep the parent body alive through helper use, and this package's code and
+/// borrowed model/animation data loaded through teardown.
+extern TaskDesc gActor450800NurseryActorTasks[ACTOR_450800_NURSERY_ACTOR_TASK_COUNT];
+
+/// Nursery's scripted Pawn GOLEM spawn descriptors: body 0, carried Beam Sword 1.
+///
+/// Both create TMD bodies at priority `TASK_PRIORITY_ACTOR` with automatic model buffers disabled.
+/// The body creates and owns the sword child, which follows part 7 and borrows
+/// the body's lighting. Spawn the body through its room placement; keep
+/// actor_450800's callbacks, models and animation data loaded until teardown.
+extern TaskDesc gActor450800PawnGolemTasks[PAIR_WALK_TASK_COUNT];
 
 #endif // INCLUDE_ACTORS_ACTOR_450800_H

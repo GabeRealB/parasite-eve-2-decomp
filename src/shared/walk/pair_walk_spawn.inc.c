@@ -2,7 +2,7 @@
 
 // actor_450800 and actor_535700 bind PAIR_WALK_TASK_TABLE to their public
 // TaskDesc[PAIR_WALK_TASK_COUNT] before including this fragment and undefine it
-// afterwards. The indices are declared in actors/task_tables.h: body at
+// afterwards. The indices are declared in actors/pair_walk.h: body at
 // PAIR_WALK_TASK_BODY, carried TMD model at PAIR_WALK_TASK_CARRIED_MODEL.
 // The binding is one identifier, with no arguments or captured locals.
 

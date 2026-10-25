@@ -7,7 +7,7 @@
 #include "common.h"
 
 #include "actors/actor.h"
-#include "actors/task_tables.h"
+#include "actors/actor_535700.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"

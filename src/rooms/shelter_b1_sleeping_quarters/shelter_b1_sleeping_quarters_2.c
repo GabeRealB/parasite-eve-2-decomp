@@ -10,8 +10,6 @@
 
 #include "shelter_b1_sleeping_quarters_private.h"
 
-#include "actors/task_tables.h"
-
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"

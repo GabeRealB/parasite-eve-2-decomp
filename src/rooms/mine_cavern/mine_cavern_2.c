@@ -12,7 +12,10 @@
 
 #include "mine_cavern_private.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_00300.h"
+#include "actors/actor_400600.h"
+#include "actors/actor_402200.h"
+#include "actors/actor_403000.h"
 #include "actors/actor.h"
 
 #include "gameplay/display.h"

@@ -1,6 +1,8 @@
 #ifndef INCLUDE_ACTORS_ACTOR_160600_H
 #define INCLUDE_ACTORS_ACTOR_160600_H
 
+#include "main/task_types.h"
+
 #include "gameplay/evs.h"
 
 /// Sterilization-room entry event when no companion is present.
@@ -32,5 +34,12 @@ extern EvsCommand gActor160600SceneWithCompanionScript[52];
 /// this actor package and the same live room/player resources as the event.
 /// The complete skip path has 16 commands.
 extern EvsCommand gActor160600SceneSkipScript[16];
+
+/// Twenty-part model task for the sterilization room's placed scene actor.
+///
+/// Creates a TMD body at priority `TASK_PRIORITY_ACTOR` and runs the paced walker's spawn/frame
+/// states. Scene placement supplies a live owning `Enemy` through `spawnArg2.pointer`.
+/// The `actor_160600` model, clips and callbacks must remain loaded until teardown.
+extern TaskDesc gActor160600PlacedActorTask;
 
 #endif // INCLUDE_ACTORS_ACTOR_160600_H

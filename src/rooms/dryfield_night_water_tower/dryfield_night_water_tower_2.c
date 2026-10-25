@@ -11,7 +11,10 @@
 #include "dryfield_night_water_tower_private.h"
 
 #include "actors/actor_04400.h"
-#include "actors/task_tables.h"
+#include "actors/actor_01600.h"
+#include "actors/actor_02500.h"
+#include "actors/actor_300700.h"
+#include "actors/actor_400600.h"
 
 #include "gameplay/area.h"
 #include "gameplay/collision.h"

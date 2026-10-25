@@ -5,7 +5,8 @@
 
 #include "common.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_07000.h"
+#include "actors/actor_342400.h"
 
 #include "gameplay/area_entry.h"
 #include "gameplay/collision.h"

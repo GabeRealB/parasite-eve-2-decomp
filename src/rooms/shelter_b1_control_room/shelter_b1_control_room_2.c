@@ -10,8 +10,6 @@
 
 #include "shelter_b1_control_room_private.h"
 
-#include "actors/task_tables.h"
-
 #include "gameplay/area.h"
 #include "gameplay/area_flags.h"
 #include "gameplay/areaplace.h"

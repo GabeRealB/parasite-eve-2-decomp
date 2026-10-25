@@ -5,7 +5,8 @@
 
 #include "common.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_00100.h"
+#include "actors/actor_02500.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/actor_render_shadow_types.h"

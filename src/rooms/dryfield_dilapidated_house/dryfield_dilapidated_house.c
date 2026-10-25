@@ -14,7 +14,7 @@
 
 #include "actors/actor_521100.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_521100.h"
 
 #include "gameplay/companion_load.h"
 #include "gameplay/display.h"

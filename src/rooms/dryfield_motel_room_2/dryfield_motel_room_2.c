@@ -5,7 +5,10 @@
 
 #include "common.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_01200.h"
+#include "actors/actor_01500.h"
+#include "actors/actor_04000.h"
+#include "actors/actor_401800.h"
 
 #include "gameplay/area.h"
 #include "gameplay/collision.h"

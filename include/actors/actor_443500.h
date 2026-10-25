@@ -1,6 +1,8 @@
 #ifndef INCLUDE_ACTORS_ACTOR_443500_H
 #define INCLUDE_ACTORS_ACTOR_443500_H
 
+#include "main/task_types.h"
+
 #include "gameplay/evs.h"
 
 /// Opens Pierce's guided terminal tour in Shelter R47.
@@ -81,5 +83,15 @@ extern EvsCommand gActor443500MapFollowupSkipScript[17];
 /// scripting. Keep R47, the actor overlay and borrowed resources live through
 /// execution and clip playback.
 extern EvsCommand gActor443500PowerPlantProgressDialogueScript[10];
+
+/// Spawn recipes for Pierce in shelter room 47 and his attached held model.
+///
+/// Entry 0 creates the twenty-part body without an automatic primitive buffer;
+/// its second spawn argument must point to the live owning `Enemy`. Entry 1
+/// creates the held model: first argument is the parent part index (Pierce uses
+/// 4), second argument is the live parent `Task*`. Both run at priority 192.
+/// The table has two entries and no terminator. Keep `actor_443500` loaded for
+/// the tasks' callbacks and borrowed model/animation resources.
+extern TaskDesc gActor443500PierceTaskDescs[2];
 
 #endif // INCLUDE_ACTORS_ACTOR_443500_H

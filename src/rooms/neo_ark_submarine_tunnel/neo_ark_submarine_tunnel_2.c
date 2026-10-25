@@ -12,7 +12,8 @@
 #include "neo_ark_submarine_tunnel_private.h"
 
 #include "actors/actor_00400.h"
-#include "actors/task_tables.h"
+#include "actors/actor_02400.h"
+#include "actors/actor_451100.h"
 
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"

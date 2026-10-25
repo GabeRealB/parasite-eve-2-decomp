@@ -8,7 +8,9 @@
 
 #include "dryfield_water_tower_private.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_00100.h"
+#include "actors/actor_02500.h"
+#include "actors/actor_421600.h"
 
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"

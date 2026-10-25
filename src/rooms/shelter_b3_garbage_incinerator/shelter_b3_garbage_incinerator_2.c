@@ -11,7 +11,7 @@
 
 #include "shelter_b3_garbage_incinerator_private.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_342000.h"
 
 #include "gameplay/animation.h"
 #include "gameplay/area_transitions.h"

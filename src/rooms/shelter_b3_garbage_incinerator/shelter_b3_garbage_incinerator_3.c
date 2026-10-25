@@ -11,7 +11,10 @@
 
 #include "shelter_b3_garbage_incinerator_private.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_07000.h"
+#include "actors/actor_341900.h"
+#include "actors/actor_342400.h"
+#include "actors/actor_444000.h"
 
 #include "gameplay/display.h"
 #include "gameplay/area.h"

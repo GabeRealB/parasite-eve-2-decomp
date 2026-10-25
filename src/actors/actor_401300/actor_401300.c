@@ -9,7 +9,7 @@
 
 #include "actors/actor.h"
 #include "actors/hit_effect.h"
-#include "actors/task_tables.h"
+#include "actors/actor_401300.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"

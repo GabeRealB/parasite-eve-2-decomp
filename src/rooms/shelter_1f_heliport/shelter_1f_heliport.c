@@ -10,7 +10,6 @@
 #include "actors/actor_161500.h"
 #include "actors/actor_260400.h"
 #include "actors/actor_260500.h"
-#include "actors/task_tables.h"
 
 #include "gameplay/area.h"
 #include "gameplay/captions.h"

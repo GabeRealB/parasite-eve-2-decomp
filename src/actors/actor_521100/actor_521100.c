@@ -11,7 +11,7 @@
 #include "actor_521100_private.h"
 
 #include "actors/actor.h"
-#include "actors/task_tables.h"
+#include "actors/actor_521100.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"

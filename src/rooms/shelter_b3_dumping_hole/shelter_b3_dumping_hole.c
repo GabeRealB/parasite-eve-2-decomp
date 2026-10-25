@@ -9,7 +9,7 @@
 
 #include "actors/actor_403200.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_342100.h"
 
 #include "gameplay/animation.h"
 #include "gameplay/captions.h"

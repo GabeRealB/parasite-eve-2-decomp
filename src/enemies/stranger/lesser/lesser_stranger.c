@@ -1,4 +1,4 @@
-#include "actors/task_tables.h"
+#include "enemies/stranger/lesser.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>

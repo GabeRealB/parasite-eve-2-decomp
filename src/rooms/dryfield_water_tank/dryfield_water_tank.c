@@ -28,7 +28,7 @@ static Task* _gDryfieldWaterTankPropSceneTask;
 
 #include "dryfield_water_tank_private.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_120400.h"
 
 #include "gameplay/animation.h"
 #include "gameplay/area.h"

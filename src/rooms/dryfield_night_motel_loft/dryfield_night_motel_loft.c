@@ -4,7 +4,8 @@
 
 #include "dryfield_night_motel_loft_private.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_01600.h"
+#include "actors/actor_400600.h"
 
 #include "gameplay/area.h"
 #include "gameplay/captions.h"

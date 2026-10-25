@@ -10,7 +10,7 @@
 
 #include "dryfield_night_trailer_coach_private.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_420700.h"
 
 #include "gameplay/area.h"
 #include "gameplay/area_flags.h"

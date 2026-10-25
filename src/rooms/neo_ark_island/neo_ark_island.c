@@ -12,7 +12,8 @@
 #include "neo_ark_island_private.h"
 
 #include "actors/actor_00400.h"
-#include "actors/task_tables.h"
+#include "actors/actor_01100.h"
+#include "actors/actor_05700.h"
 
 #include "gameplay/companion_load.h"
 #include "gameplay/area.h"
