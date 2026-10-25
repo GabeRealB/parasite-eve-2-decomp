@@ -38,22 +38,22 @@
 
 /// Packet placement and storage layout of this room's captions and captured backdrop.
 enum {
-    MIST_R18_CAPTION_SPRITE_OT_SLOT = 4,
-    MIST_R18_CAPTION_PLATE_OT_SLOT  = 5,
-    MIST_R18_TEXTURE_DEPTH_4BIT     = 0,
-    MIST_R18_TEXTURE_SHADE_UNITY    = 0x80,
-    MIST_R18_BACKDROP_LEFT_VRAM_X   = 832,
-    MIST_R18_BACKDROP_RIGHT_VRAM_X  = 640,
-    MIST_R18_BACKDROP_RIGHT_VRAM_Y  = 256,
+    CAPTION_SPRITE_OT_SLOT = 4,
+    CAPTION_PLATE_OT_SLOT  = 5,
+    TEXTURE_DEPTH_4BIT     = 0,
+    TEXTURE_SHADE_UNITY    = 0x80,
+    BACKDROP_LEFT_VRAM_X   = 832,
+    BACKDROP_RIGHT_VRAM_X  = 640,
+    BACKDROP_RIGHT_VRAM_Y  = 256,
 };
 
 /// Next briefing script to start after the current event and menu have finished.
 enum {
-    MIST_R18_BRIEFING_PLACE_PROP         = 1,
-    MIST_R18_BRIEFING_FIRST_HELD_MODEL   = 2,
-    MIST_R18_BRIEFING_OPEN_KEY_ITEMS     = 3,
-    MIST_R18_BRIEFING_CHECK_DRYFIELD_MAP = 4,
-    MIST_R18_BRIEFING_DEPARTING          = 5,
+    BRIEFING_PLACE_PROP         = 1,
+    BRIEFING_FIRST_HELD_MODEL   = 2,
+    BRIEFING_OPEN_KEY_ITEMS     = 3,
+    BRIEFING_CHECK_DRYFIELD_MAP = 4,
+    BRIEFING_DEPARTING          = 5,
 };
 
 static void _modelPlacementAttachPartTask(Task* childTask);
@@ -99,9 +99,9 @@ static const TaskFuncTable4 _gMistR18CrossfadeStates = {
 
 /// Attached-model selectors passed by the briefing scripts and their parent part.
 enum {
-    MIST_R18_ATTACHMENT_MODEL_FIRST  = 0,
-    MIST_R18_ATTACHMENT_MODEL_SECOND = 1,
-    MIST_R18_ATTACHMENT_PLAYER_PART  = 8,
+    ATTACHMENT_MODEL_FIRST  = 0,
+    ATTACHMENT_MODEL_SECOND = 1,
+    ATTACHMENT_PLAYER_PART  = 8,
 };
 static void _mistR18SpawnAttachedModel(s32 modelIndex);
 static void _mistR18KillAttachedModel(s32 modelIndex);
@@ -251,17 +251,17 @@ static TaskDesc _gMistR18TaskDescs[8] = {
 
 /// Encoded 8-bit sprite texture page at (960, 0), with its CLUT at (0, 255).
 enum {
-    MIST_R18_SPRITE_TEXTURE_DEPTH_8BIT = 1,
+    SPRITE_TEXTURE_DEPTH_8BIT = 1,
 };
 
 /// Reveals a glyph-script caption over a translucent black plate during an event.
 static void _mistR18CaptionTask(Task* task)
 {
     enum {
-        MIST_R18_CAPTION_INITIALIZE = 0,
-        MIST_R18_CAPTION_REVEAL     = 1,
-        MIST_R18_CAPTION_FINISHED   = -1,
-        MIST_R18_FONT_PAGE_U_MASK   = 0x3F,
+        CAPTION_INITIALIZE = 0,
+        CAPTION_REVEAL     = 1,
+        CAPTION_FINISHED   = -1,
+        FONT_PAGE_U_MASK   = 0x3F,
     };
     PrimDrawParams draw;
     TextStream*    stream;
@@ -269,11 +269,11 @@ static void _mistR18CaptionTask(Task* task)
 
     stream = task->spawnArg2.pointer;
     if (gGameSession->eventState == 0) {
-        task->state = MIST_R18_CAPTION_FINISHED;
+        task->state = CAPTION_FINISHED;
     }
 
     switch (task->state) {
-        case MIST_R18_CAPTION_INITIALIZE:
+        case CAPTION_INITIALIZE:
             // Reset reveal timing; a negative delay exposes the complete script.
             stream->cursor = 0;
             if (stream->charDelay < 0) {
@@ -291,15 +291,15 @@ static void _mistR18CaptionTask(Task* task)
             task->state++;
             return;
 
-        case MIST_R18_CAPTION_REVEAL:
+        case CAPTION_REVEAL:
             // Redraw the revealed prefix, then advance its byte cursor on expiry.
             draw.x         = stream->x;
             draw.y         = stream->y;
             draw.u         = stream->tpageX;
             draw.v         = stream->tpageY;
-            draw.r         = MIST_R18_TEXTURE_SHADE_UNITY;
-            draw.g         = MIST_R18_TEXTURE_SHADE_UNITY;
-            draw.b         = MIST_R18_TEXTURE_SHADE_UNITY;
+            draw.r         = TEXTURE_SHADE_UNITY;
+            draw.g         = TEXTURE_SHADE_UNITY;
+            draw.b         = TEXTURE_SHADE_UNITY;
             draw.semiTrans = 0;
             draw.unused_12 = ONE;
 
@@ -311,7 +311,7 @@ static void _mistR18CaptionTask(Task* task)
                             draw.x  = stream->x;
                             draw.y += stream->lineHeight;
                         } else {
-                            draw.u = stream->glyphs[stream->chars[byteIndex]].u + (stream->tpageX & MIST_R18_FONT_PAGE_U_MASK);
+                            draw.u = stream->glyphs[stream->chars[byteIndex]].u + (stream->tpageX & FONT_PAGE_U_MASK);
                             draw.v = stream->glyphs[stream->chars[byteIndex]].v + (u8)stream->tpageY;
                             draw.w = stream->glyphs[stream->chars[byteIndex]].width;
                             draw.h = stream->glyphs[stream->chars[byteIndex]].height;
@@ -323,7 +323,7 @@ static void _mistR18CaptionTask(Task* task)
                     }
                 }
 
-                _mistR18SetTexturePage(GPU_BLEND_ADD, stream->tpageX, stream->tpageY, MIST_R18_CAPTION_SPRITE_OT_SLOT);
+                _mistR18SetTexturePage(GPU_BLEND_ADD, stream->tpageX, stream->tpageY, CAPTION_SPRITE_OT_SLOT);
 
                 if (--task->killCountdown < 0) {
                     stream->cursor++;
@@ -344,7 +344,7 @@ static void _mistR18CaptionTask(Task* task)
                 draw.r         = 0;
                 draw.semiTrans = 1;
                 _mistR18DrawTile(&draw);
-                _mistR18SetTexturePage(GPU_BLEND_AVERAGE, 0, 0, MIST_R18_CAPTION_PLATE_OT_SLOT);
+                _mistR18SetTexturePage(GPU_BLEND_AVERAGE, 0, 0, CAPTION_PLATE_OT_SLOT);
                 return;
             }
             task->state++;
@@ -366,29 +366,29 @@ static inline void _mistR18StartSkippableBriefingStep(EvsCommand* script, EvsCom
 /// Advances the briefing scripts and repeats the key-item menu until the Dryfield map is opened.
 static void _mistR18AdvanceBriefingState(Task* unusedTask)
 {
-    enum { MIST_R18_EVENT_IDLE = 0 };
+    enum { EVENT_IDLE = 0 };
     s32 briefingStep;
 
     // Event completion and menu teardown must finish before another script starts.
-    if ((gGameSession->eventState == MIST_R18_EVENT_IDLE) && (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
+    if ((gGameSession->eventState == EVENT_IDLE) && (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
         briefingStep = _gMistR18BriefingStep;
-        if (briefingStep == MIST_R18_BRIEFING_PLACE_PROP) {
-            _mistR18StartSkippableBriefingStep(_gMistR18PlacePropScript, _gMistR18SkipPlacePropScript, MIST_R18_BRIEFING_FIRST_HELD_MODEL);
-        } else if (briefingStep == MIST_R18_BRIEFING_FIRST_HELD_MODEL) {
+        if (briefingStep == BRIEFING_PLACE_PROP) {
+            _mistR18StartSkippableBriefingStep(_gMistR18PlacePropScript, _gMistR18SkipPlacePropScript, BRIEFING_FIRST_HELD_MODEL);
+        } else if (briefingStep == BRIEFING_FIRST_HELD_MODEL) {
             evsStartScriptWithSkip(_gMistR18FirstHeldModelScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gMistR18SkipFirstHeldModelScript);
             _gMistR18RetainKeyItemMenuState = false;
-            _gMistR18BriefingStep           = MIST_R18_BRIEFING_OPEN_KEY_ITEMS;
-        } else if (briefingStep == MIST_R18_BRIEFING_OPEN_KEY_ITEMS) {
+            _gMistR18BriefingStep           = BRIEFING_OPEN_KEY_ITEMS;
+        } else if (briefingStep == BRIEFING_OPEN_KEY_ITEMS) {
             evsStartScript(_gMistR18OpenKeyItemsScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            _gMistR18BriefingStep = MIST_R18_BRIEFING_CHECK_DRYFIELD_MAP;
-        } else if (briefingStep == MIST_R18_BRIEFING_CHECK_DRYFIELD_MAP) {
+            _gMistR18BriefingStep = BRIEFING_CHECK_DRYFIELD_MAP;
+        } else if (briefingStep == BRIEFING_CHECK_DRYFIELD_MAP) {
             // Reopen the reminder menu without resetting its map-opened latch.
             if (mapAkropolisWasDryfieldMapSelected() != true) {
                 evsStartScript(_gMistR18DryfieldMapReminderScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                 _gMistR18RetainKeyItemMenuState = true;
                 return;
             }
-            _mistR18StartSkippableBriefingStep(_gMistR18DepartureScript, _gMistR18SkipDepartureScript, MIST_R18_BRIEFING_DEPARTING);
+            _mistR18StartSkippableBriefingStep(_gMistR18DepartureScript, _gMistR18SkipDepartureScript, BRIEFING_DEPARTING);
         }
     }
 }
@@ -397,38 +397,38 @@ static void _mistR18AdvanceBriefingState(Task* unusedTask)
 static void _mistR18TextureFadeTask(Task* task)
 {
     enum {
-        MIST_R18_TEXTURE_FADE_INITIALIZE = 0,
-        MIST_R18_TEXTURE_FADE_IN         = 1,
-        MIST_R18_TEXTURE_FADE_HOLD       = 2,
-        MIST_R18_TEXTURE_FADE_OUT        = 3,
-        MIST_R18_TEXTURE_FADE_STEP       = 21,
+        INITIALIZE        = 0,
+        IN                = 1,
+        HOLD              = 2,
+        OUT               = 3,
+        TEXTURE_FADE_STEP = 21,
     };
     s32 fadeActive;
 
     fadeActive = 1;
     switch (task->state) {
-        case MIST_R18_TEXTURE_FADE_INITIALIZE:
+        case INITIALIZE:
             task->killCountdown = 0;
             _mistR18DrawFadeSprites(1, 0);
             task->state++;
             break;
-        case MIST_R18_TEXTURE_FADE_IN:
-            task->killCountdown += MIST_R18_TEXTURE_FADE_STEP;
-            if (task->killCountdown >= MIST_R18_TEXTURE_SHADE_UNITY + 1) {
+        case IN:
+            task->killCountdown += TEXTURE_FADE_STEP;
+            if (task->killCountdown >= TEXTURE_SHADE_UNITY + 1) {
                 fadeActive = 0;
                 task->state++;
             }
             break;
-        case MIST_R18_TEXTURE_FADE_HOLD:
+        case HOLD:
             fadeActive = 0;
             task->spawnArg1.value--;
             if ((task->spawnArg1.value <= 0) || (gGameSession->evtSkipped != 0)) {
                 task->state++;
             }
             break;
-        case MIST_R18_TEXTURE_FADE_OUT:
-            task->killCountdown -= MIST_R18_TEXTURE_FADE_STEP;
-            if (task->killCountdown < MIST_R18_TEXTURE_FADE_STEP + 1) {
+        case OUT:
+            task->killCountdown -= TEXTURE_FADE_STEP;
+            if (task->killCountdown < TEXTURE_FADE_STEP + 1) {
                 task->state++;
             }
             break;
@@ -443,11 +443,11 @@ static void _mistR18TextureFadeTask(Task* task)
 static void _mistR18DrawFadeSprites(s32 fadeActive, s32 shade)
 {
     enum {
-        MIST_R18_SPRITE_RAW_OPAQUE_CODE      = 0x65,
-        MIST_R18_SPRITE_MODULATED_BLEND_CODE = 0x66,
-        MIST_R18_FADE_FIRST_CLUT             = getClut(0, 271),
-        MIST_R18_FADE_SECOND_CLUT            = getClut(16, 271),
-        MIST_R18_FADE_TEXTURE_PAGE           = getTPage(MIST_R18_TEXTURE_DEPTH_4BIT, GPU_BLEND_ADD, 704, 0),
+        SPRITE_RAW_OPAQUE_CODE      = 0x65,
+        SPRITE_MODULATED_BLEND_CODE = 0x66,
+        FADE_FIRST_CLUT             = getClut(0, 271),
+        FADE_SECOND_CLUT            = getClut(16, 271),
+        FADE_TEXTURE_PAGE           = getTPage(TEXTURE_DEPTH_4BIT, GPU_BLEND_ADD, 704, 0),
     };
     SPRT*     sprite;
     DR_TPAGE* pageCommand;
@@ -460,16 +460,16 @@ static void _mistR18DrawFadeSprites(s32 fadeActive, s32 shade)
     gGpuPrimCursor = sprite + 1;
     setSprt(sprite);
     if (fadeActive == 0) {
-        sprite->code = MIST_R18_SPRITE_RAW_OPAQUE_CODE;
+        sprite->code = SPRITE_RAW_OPAQUE_CODE;
     } else {
-        sprite->code = MIST_R18_SPRITE_MODULATED_BLEND_CODE;
+        sprite->code = SPRITE_MODULATED_BLEND_CODE;
     }
     setXY0(sprite, screenX, screenY);
-    sprite->clut = MIST_R18_FADE_FIRST_CLUT;
+    sprite->clut = FADE_FIRST_CLUT;
     setWH(sprite, 0xCF, 0x23);
     setRGB0(sprite, shade, shade, shade);
     setUV0(sprite, 0, 0);
-    addPrim(gGpuCurrentOt + MIST_R18_CAPTION_SPRITE_OT_SLOT, sprite);
+    addPrim(gGpuCurrentOt + CAPTION_SPRITE_OT_SLOT, sprite);
 
     screenX        = -0x22;
     screenY        = 0x36;
@@ -477,21 +477,21 @@ static void _mistR18DrawFadeSprites(s32 fadeActive, s32 shade)
     gGpuPrimCursor = sprite + 1;
     setSprt(sprite);
     if (fadeActive == 0) {
-        sprite->code = MIST_R18_SPRITE_RAW_OPAQUE_CODE;
+        sprite->code = SPRITE_RAW_OPAQUE_CODE;
     } else {
-        sprite->code = MIST_R18_SPRITE_MODULATED_BLEND_CODE;
+        sprite->code = SPRITE_MODULATED_BLEND_CODE;
     }
     setXY0(sprite, screenX, screenY);
     setRGB0(sprite, shade, shade, shade);
     setUV0(sprite, 0, 0x24);
-    sprite->clut = MIST_R18_FADE_SECOND_CLUT;
+    sprite->clut = FADE_SECOND_CLUT;
     setWH(sprite, 0xB7, 0x23);
-    addPrim(gGpuCurrentOt + MIST_R18_CAPTION_SPRITE_OT_SLOT, sprite);
+    addPrim(gGpuCurrentOt + CAPTION_SPRITE_OT_SLOT, sprite);
 
     pageCommand    = gGpuPrimCursor;
     gGpuPrimCursor = pageCommand + 1;
-    setDrawTPage(pageCommand, true, false, MIST_R18_FADE_TEXTURE_PAGE);
-    addPrim(gGpuCurrentOt + MIST_R18_CAPTION_SPRITE_OT_SLOT, pageCommand);
+    setDrawTPage(pageCommand, true, false, FADE_TEXTURE_PAGE);
+    addPrim(gGpuCurrentOt + CAPTION_SPRITE_OT_SLOT, pageCommand);
 }
 
 /// Captures the current 320x240 draw framebuffer as the crossfade's saved backdrop.
@@ -522,7 +522,7 @@ static void _mistR18CaptureBackdropState(Task* task)
     sourceRect.y   = frameY;
     sourceRect.w   = CROSSFADE_BACKDROP_LEFT_WIDTH;
     sourceRect.h   = DISPLAY_SCREEN_HEIGHT;
-    SetDrawMove(copyCommand, &sourceRect, MIST_R18_BACKDROP_LEFT_VRAM_X, 0);
+    SetDrawMove(copyCommand, &sourceRect, BACKDROP_LEFT_VRAM_X, 0);
     addPrim(gGpuCurrentOt + CROSSFADE_ORDERING_TABLE_SLOT, copyCommand);
 
     copyCommand    = gGpuPrimCursor;
@@ -531,7 +531,7 @@ static void _mistR18CaptureBackdropState(Task* task)
     sourceRect.y   = frameY;
     sourceRect.w   = DISPLAY_SCREEN_WIDTH - CROSSFADE_BACKDROP_LEFT_WIDTH;
     sourceRect.h   = DISPLAY_SCREEN_HEIGHT;
-    SetDrawMove(copyCommand, &sourceRect, MIST_R18_BACKDROP_RIGHT_VRAM_X, MIST_R18_BACKDROP_RIGHT_VRAM_Y);
+    SetDrawMove(copyCommand, &sourceRect, BACKDROP_RIGHT_VRAM_X, BACKDROP_RIGHT_VRAM_Y);
     addPrim(gGpuCurrentOt + CROSSFADE_ORDERING_TABLE_SLOT, copyCommand);
 
     // Head insertion executes mask-on, right copy, left copy, then mask-off.
@@ -572,7 +572,7 @@ static void _crossfadeDrawBackdrop(s32 shade)
     sprite->w    = CROSSFADE_BACKDROP_LEFT_WIDTH;
     sprite->h    = DISPLAY_SCREEN_HEIGHT;
     addPrim(gGpuCurrentOt + CROSSFADE_ORDERING_TABLE_SLOT, sprite);
-    _crossfadeSetTpage(MIST_R18_BACKDROP_LEFT_VRAM_X, 0);
+    _crossfadeSetTpage(BACKDROP_LEFT_VRAM_X, 0);
 
     // Each prepended texture-page command executes before its sprite.
     CROSSFADE_ALLOCATE_BACKDROP_SPRITE(sprite, shade);
@@ -584,7 +584,7 @@ static void _crossfadeDrawBackdrop(s32 shade)
     sprite->w    = DISPLAY_SCREEN_WIDTH - CROSSFADE_BACKDROP_LEFT_WIDTH;
     sprite->h    = DISPLAY_SCREEN_HEIGHT;
     addPrim(gGpuCurrentOt + CROSSFADE_ORDERING_TABLE_SLOT, sprite);
-    _crossfadeSetTpage(MIST_R18_BACKDROP_RIGHT_VRAM_X, MIST_R18_BACKDROP_RIGHT_VRAM_Y);
+    _crossfadeSetTpage(BACKDROP_RIGHT_VRAM_X, BACKDROP_RIGHT_VRAM_Y);
 #undef CROSSFADE_ALLOCATE_BACKDROP_SPRITE
 }
 
@@ -607,13 +607,13 @@ static void _mistR18AttachedModelIdleState(Task* task)
 /// Draws a translucent black rectangle until its callback countdown expires.
 static void _mistR18FadeTileTask(Task* task)
 {
-    enum { MIST_R18_FADE_TILE_DRAW = 0 };
+    enum { FADE_TILE_DRAW = 0 };
     PrimDrawParams draw;
     const RECT*    rect;
 
     rect = task->spawnArg2.pointer;
 
-    if (task->state == MIST_R18_FADE_TILE_DRAW) {
+    if (task->state == FADE_TILE_DRAW) {
         draw.x         = rect->x;
         draw.y         = rect->y;
         draw.w         = rect->w;
@@ -623,7 +623,7 @@ static void _mistR18FadeTileTask(Task* task)
         draw.r         = 0;
         draw.semiTrans = 1;
         _mistR18DrawTile(&draw);
-        _mistR18SetTexturePage(GPU_BLEND_AVERAGE, 0, 0, MIST_R18_CAPTION_PLATE_OT_SLOT);
+        _mistR18SetTexturePage(GPU_BLEND_AVERAGE, 0, 0, CAPTION_PLATE_OT_SLOT);
 
         if (--task->spawnArg1.value > 0) {
             return;
@@ -654,7 +654,7 @@ static void _mistR18DrawTile(const PrimDrawParams* draw)
     tile->y0 = draw->y;
     tile->w  = draw->w - 1;
     tile->h  = draw->h - 1;
-    AddPrim(gGpuCurrentOt + MIST_R18_CAPTION_PLATE_OT_SLOT, tile);
+    AddPrim(gGpuCurrentOt + CAPTION_PLATE_OT_SLOT, tile);
 }
 
 /// Queues a caption sprite with the palette at VRAM `clutX`/`clutY`.
@@ -684,7 +684,7 @@ static void _mistR18DrawSprite(const PrimDrawParams* draw, u32 clutX, s32 clutY)
     sprite->v0   = textureV;
     sprite->w    = draw->w - 1;
     sprite->h    = draw->h - 1;
-    AddPrim(gGpuCurrentOt + MIST_R18_CAPTION_SPRITE_OT_SLOT, sprite);
+    AddPrim(gGpuCurrentOt + CAPTION_SPRITE_OT_SLOT, sprite);
 }
 
 /// Queues a 4-bit texture-page command before sprites in the selected OT slot.
@@ -694,7 +694,7 @@ static void _mistR18SetTexturePage(s16 blendMode, s16 vramX, s16 vramY, s32 orde
 
     pageCommand    = gGpuPrimCursor;
     gGpuPrimCursor = pageCommand + 1;
-    SetDrawTPage(pageCommand, true, false, GetTPage(MIST_R18_TEXTURE_DEPTH_4BIT, blendMode, vramX, vramY));
+    SetDrawTPage(pageCommand, true, false, GetTPage(TEXTURE_DEPTH_4BIT, blendMode, vramX, vramY));
     AddPrim(gGpuCurrentOt + orderingTableSlot, pageCommand);
 }
 
@@ -705,10 +705,10 @@ static void _mistR18SpawnAttachedModel(s32 modelIndex)
     Task*  modelTask;
 
     switch (modelIndex) {
-        case MIST_R18_ATTACHMENT_MODEL_FIRST:
+        case ATTACHMENT_MODEL_FIRST:
             modelTaskSlot = &_gMistR18FirstAttachedModelTask;
             break;
-        case MIST_R18_ATTACHMENT_MODEL_SECOND:
+        case ATTACHMENT_MODEL_SECOND:
             modelTaskSlot = &_gMistR18SecondAttachedModelTask;
             break;
         default:
@@ -717,7 +717,7 @@ static void _mistR18SpawnAttachedModel(s32 modelIndex)
     }
 
     if ((modelTaskSlot != NULL) && (*modelTaskSlot == NULL)) {
-        modelTask      = taskSpawnFromTable(_gMistR18TaskDescs, modelIndex, MIST_R18_ATTACHMENT_PLAYER_PART, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER));
+        modelTask      = taskSpawnFromTable(_gMistR18TaskDescs, modelIndex, ATTACHMENT_PLAYER_PART, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER));
         *modelTaskSlot = modelTask;
         if (modelTask != NULL) {
             modelTask->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -729,15 +729,15 @@ static void _mistR18SpawnAttachedModel(s32 modelIndex)
 static void _mistR18KillAttachedModel(s32 modelIndex)
 {
     enum {
-        MIST_R18_ATTACHED_FIRST_MODEL  = 0,
-        MIST_R18_ATTACHED_SECOND_MODEL = 1,
+        FIRST_MODEL  = 0,
+        SECOND_MODEL = 1,
     };
-    if (modelIndex == MIST_R18_ATTACHED_FIRST_MODEL) {
+    if (modelIndex == FIRST_MODEL) {
         if (_gMistR18FirstAttachedModelTask != NULL) {
             taskKill(_gMistR18FirstAttachedModelTask);
         }
         _gMistR18FirstAttachedModelTask = NULL;
-    } else if (modelIndex == MIST_R18_ATTACHED_SECOND_MODEL) {
+    } else if (modelIndex == SECOND_MODEL) {
         if (_gMistR18SecondAttachedModelTask != NULL) {
             taskKill(_gMistR18SecondAttachedModelTask);
         }
@@ -748,17 +748,17 @@ static void _mistR18KillAttachedModel(s32 modelIndex)
 /// Starts the briefing's glyph-script caption over its translucent plate.
 static void _mistR18SpawnBriefingCaption(void)
 {
-    enum { MIST_R18_BRIEFING_CAPTION_TASK_INDEX = 5 };
+    enum { BRIEFING_CAPTION_TASK_INDEX = 5 };
 
-    taskSpawnFromTable(_gMistR18TaskDescs, MIST_R18_BRIEFING_CAPTION_TASK_INDEX, 0, &_gMistR18BriefingCaptionStream);
+    taskSpawnFromTable(_gMistR18TaskDescs, BRIEFING_CAPTION_TASK_INDEX, 0, &_gMistR18BriefingCaptionStream);
 }
 
 /// Starts the briefing's captured-backdrop transition to the next view.
 static void _mistR18StartBackdropCrossfade(void)
 {
-    enum { MIST_R18_BACKDROP_CROSSFADE_TASK_INDEX = 3 };
+    enum { BACKDROP_CROSSFADE_TASK_INDEX = 3 };
 
-    taskSpawnFromTable(_gMistR18TaskDescs, MIST_R18_BACKDROP_CROSSFADE_TASK_INDEX, 0, NULL);
+    taskSpawnFromTable(_gMistR18TaskDescs, BACKDROP_CROSSFADE_TASK_INDEX, 0, NULL);
 }
 
 /// Dispatches the room's captured-backdrop crossfade.
@@ -774,18 +774,18 @@ static void _mistR18CrossfadeTask(Task* task)
 static void _mistR18WaitForCrossfadeViewState(Task* task)
 {
     enum {
-        MIST_R18_CROSSFADE_WAIT_STEP  = 8,
-        MIST_R18_CROSSFADE_WAIT_SHADE = 64,
-        MIST_R18_CROSSFADE_WAIT_VIEW  = 2,
+        CROSSFADE_WAIT_STEP = 8,
+        SHADE               = 64,
+        VIEW                = 2,
     };
     u16 shade;
 
-    shade               = (u16)task->killCountdown + MIST_R18_CROSSFADE_WAIT_STEP;
+    shade               = (u16)task->killCountdown + CROSSFADE_WAIT_STEP;
     task->killCountdown = shade;
-    if ((s16)shade >= MIST_R18_CROSSFADE_WAIT_SHADE) {
-        task->killCountdown = MIST_R18_CROSSFADE_WAIT_SHADE;
+    if ((s16)shade >= SHADE) {
+        task->killCountdown = SHADE;
     }
-    if ((gGameSession->viewReady != 0) || (gGameSession->location.view != MIST_R18_CROSSFADE_WAIT_VIEW)) {
+    if ((gGameSession->viewReady != 0) || (gGameSession->location.view != VIEW)) {
         task->killCountdown = CROSSFADE_SHADE_UNITY;
         task->state++;
     }
@@ -796,9 +796,9 @@ static void _mistR18WaitForCrossfadeViewState(Task* task)
 /// Spawns the briefing's separately placed prop and saves its task handle.
 static void _mistR18SpawnPlacedProp(void)
 {
-    enum { MIST_R18_PLACED_PROP_TASK_INDEX = 4 };
+    enum { PLACED_PROP_TASK_INDEX = 4 };
 
-    _gMistR18PlacedPropTask = taskSpawnFromTable(_gMistR18TaskDescs, MIST_R18_PLACED_PROP_TASK_INDEX, 0, 0);
+    _gMistR18PlacedPropTask = taskSpawnFromTable(_gMistR18TaskDescs, PLACED_PROP_TASK_INDEX, 0, 0);
 }
 
 /// Kills the room's separately placed prop task and clears its saved handle.
@@ -814,13 +814,13 @@ static void _mistR18KillPlacedProp(void)
 static void _mistR18PlacePropTask(Task* task)
 {
     enum {
-        MIST_R18_PROP_PLACE_INITIALIZE = 0,
-        MIST_R18_PROP_ORDERING_BIAS    = -8,
+        PLACE_INITIALIZE = 0,
+        ORDERING_BIAS    = -8,
     };
     GfxCoord*  root;
     TmdObject* model;
 
-    if (task->state == MIST_R18_PROP_PLACE_INITIALIZE) {
+    if (task->state == PLACE_INITIALIZE) {
         root               = task->extra.tmd->coords;
         root->coord.t[0]   = -0x1496;
         root->coord.t[1]   = -0x2DA;
@@ -831,7 +831,7 @@ static void _mistR18PlacePropTask(Task* task)
         RotMatrixZYX(&root->param.rot, &root->coord);
         root->composeStamp = GRAPHICS_COORD_DIRTY;
         model              = task->extra.tmd;
-        model->otOffset    = MIST_R18_PROP_ORDERING_BIAS;
+        model->otOffset    = ORDERING_BIAS;
         model->flags      &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         task->state++;
     }
@@ -841,14 +841,14 @@ static void _mistR18PlacePropTask(Task* task)
 static void _mistR18ReloadParkingWithStarterLoadout(void)
 {
     enum {
-        MIST_R18_PARKING_SPRITE_VARIANT = 1,
+        PARKING_SPRITE_VARIANT = 1,
     };
     inventoryInitializeStarterLoadout();
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage     = GAME_STAGE_AKROPOLIS;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = AKROPOLIS_ROOM_ID_MIST_PARKING;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = MIST_R18_PARKING_ENTRY_WARP;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = MIST_R18_PARKING_ENTRY_ROOM;
-    gDisplayState.spriteVariant                                 = MIST_R18_PARKING_SPRITE_VARIANT;
+    gDisplayState.spriteVariant                                 = PARKING_SPRITE_VARIANT;
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
 }
@@ -857,21 +857,21 @@ static void _mistR18ReloadParkingWithStarterLoadout(void)
 static void _mistR18PrepareBriefingScene(void)
 {
     enum {
-        MIST_R18_BRIEFING_SCENE_GROUP     = 1,
-        MIST_R18_BRIEFING_SCENE_STREAM_ID = 30,
-        MIST_R18_BRIEFING_SCENE_SUB_ID    = 11,
+        GROUP     = 1,
+        STREAM_ID = 30,
+        SUB_ID    = 11,
     };
     gGameSession->viewDirty = true;
-    cdCmdSelectScene(MIST_R18_BRIEFING_SCENE_GROUP, MIST_R18_BRIEFING_SCENE_STREAM_ID, MIST_R18_BRIEFING_SCENE_SUB_ID);
+    cdCmdSelectScene(GROUP, STREAM_ID, SUB_ID);
     cdCmdStageSceneAudioStart();
 }
 
 /// Pauses the briefing script after starting its scene-view monitor.
 static void _mistR18StartSceneScriptPause(void)
 {
-    enum { MIST_R18_SCENE_SCRIPT_PAUSE_TASK_INDEX = 7 };
+    enum { SCENE_SCRIPT_PAUSE_TASK_INDEX = 7 };
 
-    if (taskSpawnFromTable(_gMistR18TaskDescs, MIST_R18_SCENE_SCRIPT_PAUSE_TASK_INDEX, 0, NULL) != NULL) {
+    if (taskSpawnFromTable(_gMistR18TaskDescs, SCENE_SCRIPT_PAUSE_TASK_INDEX, 0, NULL) != NULL) {
         gEvsPlaybackPaused = true;
     }
 }
@@ -923,7 +923,7 @@ static void _mistR18InitBriefingState(Task* task)
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     evsStartScriptWithSkip(_gMistR18IntroScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gMistR18SkipIntroScript);
     task->state++;
-    _gMistR18BriefingStep = MIST_R18_BRIEFING_PLACE_PROP;
+    _gMistR18BriefingStep = BRIEFING_PLACE_PROP;
 }
 
 void mistR18BriefingTask(Task* task)

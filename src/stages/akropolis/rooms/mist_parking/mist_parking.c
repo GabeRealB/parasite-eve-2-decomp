@@ -152,53 +152,53 @@ void mistParkingTelephoneMenuTask(Task* task)
 static inline void _mistParkingStartCommandCutscene(void)
 {
     enum {
-        MIST_PARKING_CUTSCENE_DESCRIPTOR = 0,
-        MIST_PARKING_CUTSCENE_COMMAND    = 4,
-        MIST_PARKING_CUTSCENE_VIEW       = 9,
-        MIST_PARKING_CUTSCENE_CAP_SLOT   = 1,
-        MIST_PARKING_CUTSCENE_CAP_FILE   = 3,
-        MIST_PARKING_CUTSCENE_PLAY       = 0,
-        MIST_PARKING_CUTSCENE_WARP       = 2
+        DESCRIPTOR = 0,
+        COMMAND    = 4,
+        VIEW       = 9,
+        CAP_SLOT   = 1,
+        CAP_FILE   = 3,
+        PLAY       = 0,
+        WARP       = 2
     };
     GameSession* session;
 
     // Configure playback before queuing the task that borrows the record.
-    gMistParkingCommandCutscene.view            = MIST_PARKING_CUTSCENE_VIEW;
-    gMistParkingCommandCutscene.capSlot         = MIST_PARKING_CUTSCENE_CAP_SLOT;
-    gMistParkingCommandCutscene.capFile         = MIST_PARKING_CUTSCENE_CAP_FILE;
-    gMistParkingCommandCutscene.skipScene       = MIST_PARKING_CUTSCENE_PLAY;
+    gMistParkingCommandCutscene.view            = VIEW;
+    gMistParkingCommandCutscene.capSlot         = CAP_SLOT;
+    gMistParkingCommandCutscene.capFile         = CAP_FILE;
+    gMistParkingCommandCutscene.skipScene       = PLAY;
     gMistParkingCommandCutscene.startSound      = MIST_PARKING_SOUND(MIST_PARKING_SOUND_CUTSCENE_START);
     gMistParkingCommandCutscene.endSound        = MIST_PARKING_SOUND(MIST_PARKING_SOUND_CUTSCENE_END);
     gMistParkingCommandCutscene.sceneSound      = MIST_PARKING_SOUND(MIST_PARKING_SOUND_CUTSCENE_PLAYBACK);
     gMistParkingCommandCutscene.afterSceneSound = MIST_PARKING_SOUND(MIST_PARKING_SOUND_CUTSCENE_AFTER);
-    taskSpawnFromTable(_gRoomCutsceneTaskDescs, MIST_PARKING_CUTSCENE_DESCRIPTOR, MIST_PARKING_CUTSCENE_COMMAND, &gMistParkingCommandCutscene);
+    taskSpawnFromTable(_gRoomCutsceneTaskDescs, DESCRIPTOR, COMMAND, &gMistParkingCommandCutscene);
     session                                                = gGameSession;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = MIST_PARKING_CUTSCENE_WARP;
-    session->location.warp                                 = MIST_PARKING_CUTSCENE_WARP;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = WARP;
+    session->location.warp                                 = WARP;
 }
 
 /// Room commands: 15 the follow-ups and the departure menu, 18 Jodie's talk, 8 the cutscene, 1 its script.
 static s32 _mistParkingHandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg)
 {
     enum {
-        MIST_PARKING_COMMAND_SCRIPT                 = 1,
-        MIST_PARKING_COMMAND_CUTSCENE               = 8,
-        MIST_PARKING_COMMAND_DEPARTURE_MENU         = 15,
-        MIST_PARKING_COMMAND_SHOP_TALK              = 18,
-        MIST_PARKING_FOLLOWUP_VARIANT               = 2,
-        MIST_PARKING_SHOP_VARIANT                   = 1,
-        MIST_PARKING_DEPARTURE_TALK_ENABLED         = 1,
-        MIST_PARKING_DEPARTURE_MENU_DESCRIPTOR      = 8,
-        MIST_PARKING_SHOP_DEPARTURE_MENU_DESCRIPTOR = 4,
-        MIST_PARKING_SHOP_TALK_DESCRIPTOR           = 3,
-        MIST_PARKING_JODIE_TALK_DESCRIPTOR          = 7
+        COMMAND_SCRIPT                 = 1,
+        COMMAND_CUTSCENE               = 8,
+        COMMAND_DEPARTURE_MENU         = 15,
+        COMMAND_SHOP_TALK              = 18,
+        FOLLOWUP_VARIANT               = 2,
+        SHOP_VARIANT                   = 1,
+        DEPARTURE_TALK_ENABLED         = 1,
+        DEPARTURE_MENU_DESCRIPTOR      = 8,
+        SHOP_DEPARTURE_MENU_DESCRIPTOR = 4,
+        SHOP_TALK_DESCRIPTOR           = 3,
+        JODIE_TALK_DESCRIPTOR          = 7
     };
     u8 areaVariant;
 
     switch (command) {
-        case MIST_PARKING_COMMAND_DEPARTURE_MENU:
+        case COMMAND_DEPARTURE_MENU:
             areaVariant = gGameSession->location.variant;
-            if (areaVariant == MIST_PARKING_FOLLOWUP_VARIANT) {
+            if (areaVariant == FOLLOWUP_VARIANT) {
                 if (gameFlagGetNibble(EVENT_FLAG_MIST_PARKING_DRYFIELD_DEPARTURE_STATE) == MIST_PARKING_CONVERSATION_INTRO_COMPLETE) {
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                     evsStartScript(gMistParkingFirstFollowupScript, EVENT_SCRIPT_HUD_KEEP);
@@ -209,25 +209,25 @@ static s32 _mistParkingHandleRoomCommand(Task* unusedTask, s32 unusedMessageId, 
                     gameFlagSetNibble(EVENT_FLAG_MIST_PARKING_DRYFIELD_DEPARTURE_STATE, MIST_PARKING_CONVERSATION_SECOND_FOLLOWUP_STARTED);
                 } else if (gameFlagGetNibble(EVENT_FLAG_MIST_PARKING_DRYFIELD_DEPARTURE_STATE) == MIST_PARKING_CONVERSATION_SECOND_FOLLOWUP_STARTED) {
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                    taskSpawnFromTable(gMistParkingConversationTaskDescs, MIST_PARKING_DEPARTURE_MENU_DESCRIPTOR, 0, 0);
+                    taskSpawnFromTable(gMistParkingConversationTaskDescs, DEPARTURE_MENU_DESCRIPTOR, 0, 0);
                 }
-            } else if (gameFlagGetNibble(EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT) == MIST_PARKING_DEPARTURE_TALK_ENABLED) {
+            } else if (gameFlagGetNibble(EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT) == DEPARTURE_TALK_ENABLED) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                taskSpawnFromTable(gMistParkingShopTaskDescriptors, MIST_PARKING_SHOP_DEPARTURE_MENU_DESCRIPTOR, 0, 0);
+                taskSpawnFromTable(gMistParkingShopTaskDescriptors, SHOP_DEPARTURE_MENU_DESCRIPTOR, 0, 0);
             }
             break;
-        case MIST_PARKING_COMMAND_CUTSCENE:
+        case COMMAND_CUTSCENE:
             _mistParkingStartCommandCutscene();
             break;
-        case MIST_PARKING_COMMAND_SHOP_TALK:
+        case COMMAND_SHOP_TALK:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            if (gGameSession->location.variant == MIST_PARKING_SHOP_VARIANT) {
-                taskSpawnFromTable(gMistParkingShopTaskDescriptors, MIST_PARKING_SHOP_TALK_DESCRIPTOR, 0, 0);
+            if (gGameSession->location.variant == SHOP_VARIANT) {
+                taskSpawnFromTable(gMistParkingShopTaskDescriptors, SHOP_TALK_DESCRIPTOR, 0, 0);
             } else {
-                taskSpawnFromTable(gMistParkingConversationTaskDescs, MIST_PARKING_JODIE_TALK_DESCRIPTOR, 0, 0);
+                taskSpawnFromTable(gMistParkingConversationTaskDescs, JODIE_TALK_DESCRIPTOR, 0, 0);
             }
             break;
-        case MIST_PARKING_COMMAND_SCRIPT:
+        case COMMAND_SCRIPT:
             evsStartScript(_gMistParkingCommand1Script, EVENT_SCRIPT_HUD_KEEP);
             break;
     }
@@ -262,17 +262,17 @@ static s32 _mistParkingResolveRoomTransition(Task* unusedTask, s32 unusedMessage
 static s32 _mistParkingHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
     enum {
-        MIST_PARKING_ACTION_SELECT_ROOM_2 = 1,
-        MIST_PARKING_ACTION_SELECT_ROOM_1 = 2,
-        MIST_PARKING_TALK_ENABLED         = 1
+        ACTION_SELECT_ROOM_2 = 1,
+        ACTION_SELECT_ROOM_1 = 2,
+        TALK_ENABLED         = 1
     };
 
-    if (request->actionId == MIST_PARKING_ACTION_SELECT_ROOM_2) {
+    if (request->actionId == ACTION_SELECT_ROOM_2) {
         evsStartScript(_gMistParkingSelectRoom2Script, EVENT_SCRIPT_HUD_KEEP);
     }
-    if (request->actionId == MIST_PARKING_ACTION_SELECT_ROOM_1) {
+    if (request->actionId == ACTION_SELECT_ROOM_1) {
         evsStartScript(_gMistParkingSelectRoom1Script, EVENT_SCRIPT_HUD_KEEP);
-        gameFlagSetNibble(EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT, MIST_PARKING_TALK_ENABLED);
+        gameFlagSetNibble(EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT, TALK_ENABLED);
     }
     return 1;
 }
@@ -280,10 +280,10 @@ static s32 _mistParkingHandleRoomAction(Task* unusedTask, s32 unusedMessageId, c
 /// Selects the parking room for the current story chapter and requests its objects again.
 static void _mistParkingSelectChapterRoom(s32 roomId)
 {
-    enum { MIST_PARKING_LATER_CHAPTER_ROOM_OFFSET = 2 };
+    enum { LATER_CHAPTER_ROOM_OFFSET = 2 };
 
     if (gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER) != EVENT_FLAG_STORY_CHAPTER_MIST_ARRIVAL) {
-        roomId += MIST_PARKING_LATER_CHAPTER_ROOM_OFFSET;
+        roomId += LATER_CHAPTER_ROOM_OFFSET;
     }
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = roomId;
     gGameSession->location.roomState                            = roomId;
@@ -300,16 +300,16 @@ static void _mistParkingSpawnCapEventIfIdle(s32 commandIndex)
 static void _mistParkingInitializeRoomTask(Task* task)
 {
     enum {
-        MIST_PARKING_ARRIVAL_TALK_VARIANT = 2,
-        MIST_PARKING_ARRIVAL_TALK_WARP    = 3,
+        VARIANT = 2,
+        WARP    = 3,
     };
 
     task->msgTable = _gMistParkingRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if ((gGameSession->location.variant == MIST_PARKING_ARRIVAL_TALK_VARIANT) &&
+    if ((gGameSession->location.variant == VARIANT) &&
         (gameFlagGetNibble(EVENT_FLAG_MIST_PARKING_DRYFIELD_DEPARTURE_STATE) == MIST_PARKING_CONVERSATION_INTRO_PENDING)) {
         // Arrival has a skip path; other entries use the shorter room-entry script.
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp == MIST_PARKING_ARRIVAL_TALK_WARP) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp == WARP) {
             gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, EVENT_FLAG_OBJECTIVE_MIST_RETURNED);
             mistParkingResetCutsceneTaskHandles(0);
             evsStartScriptWithSkip(gMistParkingArrivalConversationScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gMistParkingArrivalSkipScript);

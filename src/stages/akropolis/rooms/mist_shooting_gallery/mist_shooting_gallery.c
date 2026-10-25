@@ -74,17 +74,17 @@
 
 // Relocated CAP file slots selected by commands 5..8 and 0x21..0x22.
 enum {
-    MIST_SHOOTING_GALLERY_CAP_FILE_LOW_COMMANDS       = 1,
-    MIST_SHOOTING_GALLERY_CAP_FILE_HIGH_COMMANDS      = 3,
-    MIST_SHOOTING_GALLERY_CAP_TEXTURE_X_LOW_COMMANDS  = 0x300,
-    MIST_SHOOTING_GALLERY_CAP_TEXTURE_X_HIGH_COMMANDS = 0x2C0
+    CAP_FILE_LOW_COMMANDS       = 1,
+    CAP_FILE_HIGH_COMMANDS      = 3,
+    CAP_TEXTURE_X_LOW_COMMANDS  = 0x300,
+    CAP_TEXTURE_X_HIGH_COMMANDS = 0x2C0
 };
 
 // Key-item use requests carry an item ID and an unused second argument word.
 // Colours of the mode-selection panels, packed with red in the low byte.
 enum {
-    MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR         = 0x606060,
-    MIST_SHOOTING_GALLERY_MODE_WARNING_TEXT_COLOR = 0x0D287F
+    MODE_TEXT_COLOR         = 0x606060,
+    MODE_WARNING_TEXT_COLOR = 0x0D287F
 };
 
 static const char _gMistShootingGallerySupplyLevelCaption[];
@@ -199,31 +199,31 @@ static char _gMistShootingGalleryGaugeFiveMarksText[8] = "{{{{{";
 
 // Inventory item IDs offered by this picker, rather than equipped-weapon selectors.
 enum {
-    MIST_SHOOTING_GALLERY_WEAPON_ITEM_M93R     = 0x81,
-    MIST_SHOOTING_GALLERY_WEAPON_ITEM_M950     = 0x82,
-    MIST_SHOOTING_GALLERY_WEAPON_ITEM_MP5A5    = 0x9D,
-    MIST_SHOOTING_GALLERY_WEAPON_ITEM_M4A1     = 0x8F,
-    MIST_SHOOTING_GALLERY_WEAPON_ITEM_MONGOOSE = 0x88,
-    MIST_SHOOTING_GALLERY_WEAPON_ITEM_P229     = 0x84,
-    MIST_SHOOTING_GALLERY_WEAPON_ITEM_M249     = 0x90,
-    MIST_SHOOTING_GALLERY_WEAPON_ITEM_PA3      = 0x8C,
-    MIST_SHOOTING_GALLERY_WEAPON_ITEM_SP12     = 0x8D,
-    MIST_SHOOTING_GALLERY_WEAPON_ITEM_AS12     = 0x8E,
-    MIST_SHOOTING_GALLERY_WEAPON_COUNT         = 10,
+    WEAPON_ITEM_M93R     = 0x81,
+    WEAPON_ITEM_M950     = 0x82,
+    WEAPON_ITEM_MP5A5    = 0x9D,
+    WEAPON_ITEM_M4A1     = 0x8F,
+    WEAPON_ITEM_MONGOOSE = 0x88,
+    WEAPON_ITEM_P229     = 0x84,
+    WEAPON_ITEM_M249     = 0x90,
+    WEAPON_ITEM_PA3      = 0x8C,
+    WEAPON_ITEM_SP12     = 0x8D,
+    WEAPON_ITEM_AS12     = 0x8E,
+    WEAPON_COUNT         = 10,
 };
 
 /// Weapon-picker catalog in offer order, with no terminator.
-static s16 _gMistShootingGalleryWeaponItemIds[MIST_SHOOTING_GALLERY_WEAPON_COUNT] = {
-    MIST_SHOOTING_GALLERY_WEAPON_ITEM_M93R,
-    MIST_SHOOTING_GALLERY_WEAPON_ITEM_M950,
-    MIST_SHOOTING_GALLERY_WEAPON_ITEM_MP5A5,
-    MIST_SHOOTING_GALLERY_WEAPON_ITEM_M4A1,
-    MIST_SHOOTING_GALLERY_WEAPON_ITEM_MONGOOSE,
-    MIST_SHOOTING_GALLERY_WEAPON_ITEM_P229,
-    MIST_SHOOTING_GALLERY_WEAPON_ITEM_M249,
-    MIST_SHOOTING_GALLERY_WEAPON_ITEM_PA3,
-    MIST_SHOOTING_GALLERY_WEAPON_ITEM_SP12,
-    MIST_SHOOTING_GALLERY_WEAPON_ITEM_AS12,
+static s16 _gMistShootingGalleryWeaponItemIds[WEAPON_COUNT] = {
+    WEAPON_ITEM_M93R,
+    WEAPON_ITEM_M950,
+    WEAPON_ITEM_MP5A5,
+    WEAPON_ITEM_M4A1,
+    WEAPON_ITEM_MONGOOSE,
+    WEAPON_ITEM_P229,
+    WEAPON_ITEM_M249,
+    WEAPON_ITEM_PA3,
+    WEAPON_ITEM_SP12,
+    WEAPON_ITEM_AS12,
 };
 
 /// Single row handler used for every owned weapon through shared-row dispatch.
@@ -299,7 +299,7 @@ static UiObjectDesc _gMistShootingGalleryModeSelectPanelDesc = {
     .contentCallback = _mistShootingGalleryModeSelectPanelTask,
 };
 
-enum { MIST_SHOOTING_GALLERY_MODE_HELP_UNTITLED_STYLE = 3 };
+enum { MODE_HELP_UNTITLED_STYLE = 3 };
 
 /// Carryover selector child recipes in STATUS, untitled help, DATA order.
 static UiObjectDesc _gMistShootingGalleryModeChildPanelDescs[3] = {
@@ -312,7 +312,7 @@ static UiObjectDesc _gMistShootingGalleryModeChildPanelDescs[3] = {
         .contentCallback = _mistShootingGalleryModeStatusPanelTask,
     },
     {
-        .style           = MIST_SHOOTING_GALLERY_MODE_HELP_UNTITLED_STYLE,
+        .style           = MODE_HELP_UNTITLED_STYLE,
         .bounds          = { -144, 32, 288, 48 },
         .otIndexSeed     = 24,
         .taskFlags       = TASK_BODY_NONE,
@@ -416,14 +416,14 @@ static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 
 void mistShootingGalleryPrepareTrainingLoadout(s32 courseLevel)
 {
     enum {
-        MIST_SHOOTING_GALLERY_TRAINING_GPS_ITEM              = 0x40,
-        MIST_SHOOTING_GALLERY_TRAINING_RECOVERY1_ITEM        = 1,
-        MIST_SHOOTING_GALLERY_TRAINING_COLA_ITEM             = 5,
-        MIST_SHOOTING_GALLERY_TRAINING_MP_BOOST1_ITEM        = 6,
-        MIST_SHOOTING_GALLERY_TRAINING_COMBUSTION_INDEX      = 1,
-        MIST_SHOOTING_GALLERY_TRAINING_GPS_ATTACHMENT_SLOT   = 2,
-        MIST_SHOOTING_GALLERY_TRAINING_COLA_ATTACHMENT_SLOT1 = 3,
-        MIST_SHOOTING_GALLERY_TRAINING_COLA_ATTACHMENT_SLOT2 = 4
+        GPS_ITEM              = 0x40,
+        RECOVERY1_ITEM        = 1,
+        COLA_ITEM             = 5,
+        MP_BOOST1_ITEM        = 6,
+        COMBUSTION_INDEX      = 1,
+        GPS_ATTACHMENT_SLOT   = 2,
+        COLA_ATTACHMENT_SLOT1 = 3,
+        COLA_ATTACHMENT_SLOT2 = 4
     };
     InventoryItemRange* carriedInventory;
     s32                 spellRow;
@@ -443,30 +443,30 @@ void mistShootingGalleryPrepareTrainingLoadout(s32 courseLevel)
         case 2:
             break;
         case 3:
-            itemSetIdentified(MIST_SHOOTING_GALLERY_TRAINING_GPS_ITEM, 1);
-            inventoryGiveItem(carriedInventory, MIST_SHOOTING_GALLERY_TRAINING_GPS_ITEM, 1);
+            itemSetIdentified(GPS_ITEM, 1);
+            inventoryGiveItem(carriedInventory, GPS_ITEM, 1);
             break;
         case 4:
-            itemSetIdentified(MIST_SHOOTING_GALLERY_TRAINING_GPS_ITEM, 1);
-            itemSetIdentified(MIST_SHOOTING_GALLERY_TRAINING_COLA_ITEM, 1);
-            inventoryGiveItem(carriedInventory, MIST_SHOOTING_GALLERY_TRAINING_GPS_ITEM, 1)->attachSlot  = MIST_SHOOTING_GALLERY_TRAINING_GPS_ATTACHMENT_SLOT;
-            inventoryGiveItem(carriedInventory, MIST_SHOOTING_GALLERY_TRAINING_COLA_ITEM, 1)->attachSlot = MIST_SHOOTING_GALLERY_TRAINING_COLA_ATTACHMENT_SLOT1;
-            inventoryGiveItem(carriedInventory, MIST_SHOOTING_GALLERY_TRAINING_COLA_ITEM, 1)->attachSlot = MIST_SHOOTING_GALLERY_TRAINING_COLA_ATTACHMENT_SLOT2;
-            gAttachmentTrainingLevels[ATTACHMENT_INDEX_ENERGY_SHOT]                                      = 1;
-            gAttachmentTrainingLevels[MIST_SHOOTING_GALLERY_TRAINING_COMBUSTION_INDEX]                   = 1;
+            itemSetIdentified(GPS_ITEM, 1);
+            itemSetIdentified(COLA_ITEM, 1);
+            inventoryGiveItem(carriedInventory, GPS_ITEM, 1)->attachSlot  = GPS_ATTACHMENT_SLOT;
+            inventoryGiveItem(carriedInventory, COLA_ITEM, 1)->attachSlot = COLA_ATTACHMENT_SLOT1;
+            inventoryGiveItem(carriedInventory, COLA_ITEM, 1)->attachSlot = COLA_ATTACHMENT_SLOT2;
+            gAttachmentTrainingLevels[ATTACHMENT_INDEX_ENERGY_SHOT]       = 1;
+            gAttachmentTrainingLevels[COMBUSTION_INDEX]                   = 1;
             break;
         case 5:
-            itemSetIdentified(MIST_SHOOTING_GALLERY_TRAINING_GPS_ITEM, 1);
-            itemSetIdentified(MIST_SHOOTING_GALLERY_TRAINING_RECOVERY1_ITEM, 1);
-            itemSetIdentified(MIST_SHOOTING_GALLERY_TRAINING_MP_BOOST1_ITEM, 1);
-            inventoryGiveItem(carriedInventory, MIST_SHOOTING_GALLERY_TRAINING_GPS_ITEM, 1);
-            inventoryGiveItem(carriedInventory, MIST_SHOOTING_GALLERY_TRAINING_RECOVERY1_ITEM, 1);
-            inventoryGiveItem(carriedInventory, MIST_SHOOTING_GALLERY_TRAINING_RECOVERY1_ITEM, 1);
-            inventoryGiveItem(carriedInventory, MIST_SHOOTING_GALLERY_TRAINING_RECOVERY1_ITEM, 1);
-            inventoryGiveItem(carriedInventory, MIST_SHOOTING_GALLERY_TRAINING_MP_BOOST1_ITEM, 1);
-            inventoryGiveItem(carriedInventory, MIST_SHOOTING_GALLERY_TRAINING_MP_BOOST1_ITEM, 1);
-            gAttachmentTrainingLevels[ATTACHMENT_INDEX_ENERGY_SHOT]                    = 1;
-            gAttachmentTrainingLevels[MIST_SHOOTING_GALLERY_TRAINING_COMBUSTION_INDEX] = 1;
+            itemSetIdentified(GPS_ITEM, 1);
+            itemSetIdentified(RECOVERY1_ITEM, 1);
+            itemSetIdentified(MP_BOOST1_ITEM, 1);
+            inventoryGiveItem(carriedInventory, GPS_ITEM, 1);
+            inventoryGiveItem(carriedInventory, RECOVERY1_ITEM, 1);
+            inventoryGiveItem(carriedInventory, RECOVERY1_ITEM, 1);
+            inventoryGiveItem(carriedInventory, RECOVERY1_ITEM, 1);
+            inventoryGiveItem(carriedInventory, MP_BOOST1_ITEM, 1);
+            inventoryGiveItem(carriedInventory, MP_BOOST1_ITEM, 1);
+            gAttachmentTrainingLevels[ATTACHMENT_INDEX_ENERGY_SHOT] = 1;
+            gAttachmentTrainingLevels[COMBUSTION_INDEX]             = 1;
             break;
     }
     equipmentRestoreHpMp();
@@ -476,9 +476,9 @@ void mistShootingGalleryPrepareTrainingLoadout(s32 courseLevel)
 static void _mistShootingGalleryWeaponRow(UiList* list, UiObject* object)
 {
     enum {
-        MIST_SHOOTING_GALLERY_TRAINING_ARMOR_ITEM = 0x6C,
-        MIST_SHOOTING_GALLERY_TRAINING_AMMO_UNITS = 999,
-        MIST_SHOOTING_GALLERY_WEAPON_HELP_PANEL   = 45,
+        TRAINING_ARMOR_ITEM = 0x6C,
+        TRAINING_AMMO_UNITS = 999,
+        WEAPON_HELP_PANEL   = 45,
     };
     s32                               weaponItemId;
     s32                               weaponTableIndex;
@@ -524,16 +524,16 @@ static void _mistShootingGalleryWeaponRow(UiList* list, UiObject* object)
             inventoryResetCarriedRange();
             inventoryClearItems(carriedInventory);
             inventoryGiveItem(carriedInventory, weaponItemId, 1);
-            inventoryGiveItem(carriedInventory, MIST_SHOOTING_GALLERY_TRAINING_ARMOR_ITEM, 1);
-            equipmentEquipCarriedArmor(MIST_SHOOTING_GALLERY_TRAINING_ARMOR_ITEM);
-            inventoryGiveItem(carriedInventory, ammoItemId, MIST_SHOOTING_GALLERY_TRAINING_AMMO_UNITS)->attachSlot = rowInputMode;
+            inventoryGiveItem(carriedInventory, TRAINING_ARMOR_ITEM, 1);
+            equipmentEquipCarriedArmor(TRAINING_ARMOR_ITEM);
+            inventoryGiveItem(carriedInventory, ammoItemId, TRAINING_AMMO_UNITS)->attachSlot = rowInputMode;
             equipmentLoadWeaponConsumable(carriedInventory, weaponItemId, ammoItemId, EQUIPMENT_WEAPON_LOAD_TO_CAPACITY);
             equipmentRestoreHpMp();
             object->result = USER_INTERFACE_RESULT_CONFIRM;
             sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            uiSpawnObject(&gItemMenuPanelDescriptors[MIST_SHOOTING_GALLERY_WEAPON_HELP_PANEL], weaponItemId, 1, 1, object);
+            uiSpawnObject(&gItemMenuPanelDescriptors[WEAPON_HELP_PANEL], weaponItemId, 1, 1, object);
             object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
@@ -570,7 +570,7 @@ static const char _gMistShootingGalleryBacteriumTargetLabel[12] = "Bacterium";
 /// Updates the centered weapon picker and returns input from its item-help child.
 static void _mistShootingGalleryWeaponSelectPanelTask(Task* task)
 {
-    enum { MIST_SHOOTING_GALLERY_WEAPON_MAX_VISIBLE_ROWS = 10 };
+    enum { WEAPON_MAX_VISIBLE_ROWS = 10 };
     UiObject*  object;
     UiList*    list;
     Task*      child;
@@ -597,8 +597,8 @@ static void _mistShootingGalleryWeaponSelectPanelTask(Task* task)
         } while (weaponIndex < (s32)ARRAY_SIZE(_gMistShootingGalleryWeaponItemIds));
 
         list->itemCount = ownedWeaponCount;
-        if ((u8)ownedWeaponCount > MIST_SHOOTING_GALLERY_WEAPON_MAX_VISIBLE_ROWS) {
-            list->visibleRowCount.unsignedValue = MIST_SHOOTING_GALLERY_WEAPON_MAX_VISIBLE_ROWS;
+        if ((u8)ownedWeaponCount > WEAPON_MAX_VISIBLE_ROWS) {
+            list->visibleRowCount.unsignedValue = WEAPON_MAX_VISIBLE_ROWS;
         } else {
             list->visibleRowCount.unsignedValue = ownedWeaponCount;
         }
@@ -628,9 +628,9 @@ static const u8 _gMistShootingGalleryTotalScoreCaption[] = "TOTAL SCORE";
 static void _mistShootingGalleryResultPanelTask(Task* task)
 {
     enum {
-        MIST_SHOOTING_GALLERY_RESULT_INIT       = 0,
-        MIST_SHOOTING_GALLERY_RESULT_SUPPRESSED = 0x100,
-        MIST_SHOOTING_GALLERY_RESULT_TEXT_COLOR = 0x606060,
+        INIT       = 0,
+        SUPPRESSED = 0x100,
+        TEXT_COLOR = 0x606060,
     };
     u8                       numberText[0x20];
     MistShootingGalleryWork* work;
@@ -654,13 +654,13 @@ static void _mistShootingGalleryResultPanelTask(Task* task)
     Task*                    bonusTask;
 
     /// Sets a result line's color, font and draw style above its owning panel.
-#define MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(request, panelObject, glyph, align, mode) \
-    {                                                                                         \
-        (request).otIndex    = (panelObject)->panel.otIndex.signedValue + 1;                  \
-        (request).colorRgb   = MIST_SHOOTING_GALLERY_RESULT_TEXT_COLOR;                       \
-        (request).glyphTable = (glyph);                                                       \
-        (request).alignment  = (align);                                                       \
-        (request).drawMode   = (mode);                                                        \
+#define SET_RESULT_TEXT_STYLE(request, panelObject, glyph, align, mode)      \
+    {                                                                        \
+        (request).otIndex    = (panelObject)->panel.otIndex.signedValue + 1; \
+        (request).colorRgb   = TEXT_COLOR;                                   \
+        (request).glyphTable = (glyph);                                      \
+        (request).alignment  = (align);                                      \
+        (request).drawMode   = (mode);                                       \
     }
 
     targetKind   = 0;
@@ -685,23 +685,23 @@ static void _mistShootingGalleryResultPanelTask(Task* task)
 
                 nameText.x = object->panel.contentOriginX.unsignedValue + contentInset;
                 nameText.y = object->panel.contentOriginY.unsignedValue + rowY;
-                MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(nameText, object, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+                SET_RESULT_TEXT_STYLE(nameText, object, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
                 textDrawString(&nameText, _gMistShootingGalleryTargetScores[targetKind].name);
 
                 pointsText.x = object->panel.contentOriginX.unsignedValue + 0x6E + contentInset;
                 pointsText.y = object->panel.contentOriginY.unsignedValue + rowY;
-                MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(pointsText, object, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+                SET_RESULT_TEXT_STYLE(pointsText, object, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
                 textDrawString(&pointsText, textItoaSigned(numberText, pointsPerKill));
 
                 killsText.x = object->panel.contentOriginX.unsignedValue + 0x91 + contentInset;
                 killsText.y = object->panel.contentOriginY.unsignedValue + rowY;
-                MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(killsText, object, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+                SET_RESULT_TEXT_STYLE(killsText, object, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
                 textDrawString(&killsText, textItoaSigned(numberText, killCount));
                 kindScore = killCount * pointsPerKill;
 
                 subtotalText.x = object->panel.contentOriginX.unsignedValue - 5 - contentInset;
                 subtotalText.y = object->panel.contentOriginY.unsignedValue + rowY;
-                MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(subtotalText, object, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+                SET_RESULT_TEXT_STYLE(subtotalText, object, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
                 textDrawString(&subtotalText, textItoaSigned(numberText, kindScore));
                 totalScore += kindScore;
                 rowY       += 0xB;
@@ -723,13 +723,13 @@ static void _mistShootingGalleryResultPanelTask(Task* task)
         totalCaption.x       = object->panel.contentOriginX.unsignedValue + 0x78 + contentInset;
         totalCaptionBaseline = object->panel.contentOriginY.unsignedValue - 6;
         totalCaption.y       = object->panel.contentBottom.unsignedValue + totalCaptionBaseline;
-        MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(totalCaption, object, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_OUTLINED);
+        SET_RESULT_TEXT_STYLE(totalCaption, object, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_OUTLINED);
         textDrawString(&totalCaption, _gMistShootingGalleryTotalScoreCaption);
 
         totalText.x        = object->panel.contentOriginX.unsignedValue - 5 - contentInset;
         totalValueBaseline = object->panel.contentOriginY.unsignedValue - 4;
         totalText.y        = object->panel.contentBottom.unsignedValue + totalValueBaseline;
-        MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(totalText, object, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+        SET_RESULT_TEXT_STYLE(totalText, object, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
         textDrawString(&totalText, textItoaSigned(numberText, totalScore));
 
         uiDrawHorizontalSeparator(&object->panel, contentInset, -contentInset, object->panel.contentTop.signedValue + 0xA);
@@ -737,33 +737,33 @@ static void _mistShootingGalleryResultPanelTask(Task* task)
         rowY          = object->panel.contentTop.signedValue + 6;
         nameHeading.x = object->panel.contentOriginX.unsignedValue + 0x1E + contentInset;
         nameHeading.y = object->panel.contentOriginY.unsignedValue + rowY;
-        MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(nameHeading, object, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_CENTER, TEXT_DRAW_OUTLINED);
+        SET_RESULT_TEXT_STYLE(nameHeading, object, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_CENTER, TEXT_DRAW_OUTLINED);
         textDrawString(&nameHeading, "NMC");
 
         pointsHeading.x = object->panel.contentOriginX.unsignedValue + 0x73 + contentInset;
         pointsHeading.y = object->panel.contentOriginY.unsignedValue + rowY;
-        MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(pointsHeading, object, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_OUTLINED);
+        SET_RESULT_TEXT_STYLE(pointsHeading, object, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_OUTLINED);
         textDrawString(&pointsHeading, "SCORE");
 
         killsHeading.x = object->panel.contentOriginX.unsignedValue + 0x96 + contentInset;
         killsHeading.y = object->panel.contentOriginY.unsignedValue + rowY;
-        MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(killsHeading, object, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_OUTLINED);
+        SET_RESULT_TEXT_STYLE(killsHeading, object, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_OUTLINED);
         textDrawString(&killsHeading, "KILL");
 
         subtotalHeading.x = object->panel.contentOriginX.unsignedValue - contentInset;
         subtotalHeading.y = object->panel.contentOriginY.unsignedValue + rowY;
-        MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(subtotalHeading, object, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_OUTLINED);
+        SET_RESULT_TEXT_STYLE(subtotalHeading, object, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_OUTLINED);
         textDrawString(&subtotalHeading, "TOTAL");
     }
 
     object->result = USER_INTERFACE_RESULT_NONE;
     uiDrawPanelLabel(&object->panel, "Result");
 
-    if (task->state == MIST_SHOOTING_GALLERY_RESULT_INIT) {
+    if (task->state == INIT) {
         if (gGameSession->battleResetPending == 1) {
             uiStartPanelHiding(object, object->owner);
             object->result = USER_INTERFACE_RESULT_CONFIRM;
-            task->state    = MIST_SHOOTING_GALLERY_RESULT_SUPPRESSED;
+            task->state    = SUPPRESSED;
             return;
         }
         gGameSession->battleResetPending = 1;
@@ -807,17 +807,17 @@ static void _mistShootingGalleryResultPanelTask(Task* task)
             object->result = bonusResult;
         }
     }
-#undef MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE
+#undef SET_RESULT_TEXT_STYLE
 }
 
 /// Credits the course's bonus BP once and draws its score and reward panel.
 static void _mistShootingGalleryBonusPanelTask(Task* task)
 {
     enum {
-        MIST_SHOOTING_GALLERY_BONUS_INIT        = 0,
-        MIST_SHOOTING_GALLERY_BONUS_BP_MAX      = 999999,
-        MIST_SHOOTING_GALLERY_BONUS_TEXT_COLOR  = 0x606060,
-        MIST_SHOOTING_GALLERY_BONUS_VALUE_COLOR = 0x037A78,
+        INIT        = 0,
+        BP_MAX      = 999999,
+        TEXT_COLOR  = 0x606060,
+        VALUE_COLOR = 0x037A78,
     };
     u8            numberText[0x20];
     TextDrawReq   scoreCaption;
@@ -840,20 +840,20 @@ static void _mistShootingGalleryBonusPanelTask(Task* task)
     object->result = USER_INTERFACE_RESULT_NONE;
     uiDrawPanelLabel(&object->panel, "BONUS");
     // Credit the reward only on the first tick; later ticks redraw the amount.
-    if (task->state == MIST_SHOOTING_GALLERY_BONUS_INIT) {
+    if (task->state == INIT) {
         bonusBp = mistShootingGalleryGetBonusBp(score);
         player  = &gPlayerStatus;
         if (bonusBp > 0) {
             newBp      = player->bp + bonusBp;
             player->bp = newBp;
-            if (newBp > MIST_SHOOTING_GALLERY_BONUS_BP_MAX) {
-                player->bp = MIST_SHOOTING_GALLERY_BONUS_BP_MAX;
+            if (newBp > BP_MAX) {
+                player->bp = BP_MAX;
             }
         }
         task->state = task->state + 1;
     }
 
-    captionColor = MIST_SHOOTING_GALLERY_BONUS_TEXT_COLOR;
+    captionColor = TEXT_COLOR;
     contentInset = object->panel.contentLeft.signedValue + 2;
     contentTop   = object->panel.contentTop.signedValue;
     rowY         = contentTop + 0xB;
@@ -891,7 +891,7 @@ static void _mistShootingGalleryBonusPanelTask(Task* task)
     bonusText.x          = object->panel.contentOriginX.unsignedValue - contentInset;
     bonusText.y          = object->panel.contentOriginY.unsignedValue + rowY;
     bonusText.otIndex    = object->panel.otIndex.signedValue + 1;
-    bonusText.colorRgb   = MIST_SHOOTING_GALLERY_BONUS_VALUE_COLOR;
+    bonusText.colorRgb   = VALUE_COLOR;
     bonusText.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     bonusText.alignment  = TEXT_ALIGNMENT_RIGHT;
     bonusText.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
@@ -920,15 +920,15 @@ static const _MistShootingGalleryModeTexts _gMistShootingGalleryModeNames = { { 
 static void _mistShootingGalleryModeSelectPanelTask(Task* task)
 {
     enum {
-        MIST_SHOOTING_GALLERY_MODE_SELECT_INIT           = 0,
-        MIST_SHOOTING_GALLERY_MODE_COUNT_BASE            = 2,
-        MIST_SHOOTING_GALLERY_MODE_COUNT_RANK_ONE        = 3,
-        MIST_SHOOTING_GALLERY_MODE_COUNT_ALL             = 4,
-        MIST_SHOOTING_GALLERY_MODE_UNLOCK_NIGHTMARE_RANK = 2,
-        MIST_SHOOTING_GALLERY_MODE_DEMO_SCENE            = 1,
-        MIST_SHOOTING_GALLERY_MODE_STATUS_PANEL          = 0,
-        MIST_SHOOTING_GALLERY_MODE_HELP_PANEL            = 1,
-        MIST_SHOOTING_GALLERY_MODE_DATA_PANEL            = 2,
+        SELECT_INIT           = 0,
+        COUNT_BASE            = 2,
+        COUNT_RANK_ONE        = 3,
+        COUNT_ALL             = 4,
+        UNLOCK_NIGHTMARE_RANK = 2,
+        DEMO_SCENE            = 1,
+        STATUS_PANEL          = 0,
+        HELP_PANEL            = 1,
+        DATA_PANEL            = 2,
     };
     UiObject* object = task->spawnArg2.pointer;
     UiList*   list   = &_gMistShootingGalleryModeList;
@@ -936,27 +936,27 @@ static void _mistShootingGalleryModeSelectPanelTask(Task* task)
     object->result = USER_INTERFACE_RESULT_NONE;
     uiDrawPanelLabel(&object->panel, "SELECT");
     // Replay rank unlocks the extra rows; the demo exposes every mode.
-    if (task->state == MIST_SHOOTING_GALLERY_MODE_SELECT_INIT) {
+    if (task->state == SELECT_INIT) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.replayRank == 0) {
-            list->itemCount                     = MIST_SHOOTING_GALLERY_MODE_COUNT_BASE;
-            list->visibleRowCount.unsignedValue = MIST_SHOOTING_GALLERY_MODE_COUNT_BASE;
-        } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.replayRank < MIST_SHOOTING_GALLERY_MODE_UNLOCK_NIGHTMARE_RANK) {
-            list->itemCount                     = MIST_SHOOTING_GALLERY_MODE_COUNT_RANK_ONE;
-            list->visibleRowCount.unsignedValue = MIST_SHOOTING_GALLERY_MODE_COUNT_RANK_ONE;
+            list->itemCount                     = COUNT_BASE;
+            list->visibleRowCount.unsignedValue = COUNT_BASE;
+        } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.replayRank < UNLOCK_NIGHTMARE_RANK) {
+            list->itemCount                     = COUNT_RANK_ONE;
+            list->visibleRowCount.unsignedValue = COUNT_RANK_ONE;
         } else {
-            list->itemCount                     = MIST_SHOOTING_GALLERY_MODE_COUNT_ALL;
-            list->visibleRowCount.unsignedValue = MIST_SHOOTING_GALLERY_MODE_COUNT_ALL;
+            list->itemCount                     = COUNT_ALL;
+            list->visibleRowCount.unsignedValue = COUNT_ALL;
         }
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == MIST_SHOOTING_GALLERY_MODE_DEMO_SCENE) {
-            list->itemCount                     = MIST_SHOOTING_GALLERY_MODE_COUNT_ALL;
-            list->visibleRowCount.unsignedValue = MIST_SHOOTING_GALLERY_MODE_COUNT_ALL;
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == DEMO_SCENE) {
+            list->itemCount                     = COUNT_ALL;
+            list->visibleRowCount.unsignedValue = COUNT_ALL;
         }
         list->selectedItemIndex = 0;
         uiFitPanelToList(list, &object->panel);
         list->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-        uiSpawnObject(&_gMistShootingGalleryModeChildPanelDescs[MIST_SHOOTING_GALLERY_MODE_STATUS_PANEL], 0, 0, 1, object);
-        uiSpawnObject(&_gMistShootingGalleryModeChildPanelDescs[MIST_SHOOTING_GALLERY_MODE_HELP_PANEL], 0, 0, 1, object);
-        uiSpawnObject(&_gMistShootingGalleryModeChildPanelDescs[MIST_SHOOTING_GALLERY_MODE_DATA_PANEL], 0, 0, 1, object);
+        uiSpawnObject(&_gMistShootingGalleryModeChildPanelDescs[STATUS_PANEL], 0, 0, 1, object);
+        uiSpawnObject(&_gMistShootingGalleryModeChildPanelDescs[HELP_PANEL], 0, 0, 1, object);
+        uiSpawnObject(&_gMistShootingGalleryModeChildPanelDescs[DATA_PANEL], 0, 0, 1, object);
         task->state = task->state + 1;
     }
     uiUpdateList(list, &object->panel);
@@ -969,31 +969,31 @@ static void _mistShootingGalleryModeSelectPanelTask(Task* task)
 static inline s32 _mistShootingGalleryScaleReward(s32 unscaledTotal)
 {
     enum {
-        MIST_SHOOTING_GALLERY_REWARD_MODE_BOUNTY       = 1,
-        MIST_SHOOTING_GALLERY_REWARD_MODE_SCAVENGER    = 2,
-        MIST_SHOOTING_GALLERY_REWARD_MODE_NIGHTMARE    = 3,
-        MIST_SHOOTING_GALLERY_REPLAY_REWARD_DIVISOR    = 10,
-        MIST_SHOOTING_GALLERY_BOUNTY_REWARD_DIVISOR    = 20,
-        MIST_SHOOTING_GALLERY_SCAVENGER_REWARD_DIVISOR = 100,
-        MIST_SHOOTING_GALLERY_CARRYOVER_REWARD_MAX     = 999999
+        REWARD_MODE_BOUNTY       = 1,
+        REWARD_MODE_SCAVENGER    = 2,
+        REWARD_MODE_NIGHTMARE    = 3,
+        REPLAY_REWARD_DIVISOR    = 10,
+        BOUNTY_REWARD_DIVISOR    = 20,
+        SCAVENGER_REWARD_DIVISOR = 100,
+        CARRYOVER_REWARD_MAX     = 999999
     };
     s32 reward;
 
     switch (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode) {
-        case MIST_SHOOTING_GALLERY_REWARD_MODE_NIGHTMARE:
+        case REWARD_MODE_NIGHTMARE:
             return 0;
-        case MIST_SHOOTING_GALLERY_REWARD_MODE_SCAVENGER:
-            reward = unscaledTotal / MIST_SHOOTING_GALLERY_SCAVENGER_REWARD_DIVISOR;
+        case REWARD_MODE_SCAVENGER:
+            reward = unscaledTotal / SCAVENGER_REWARD_DIVISOR;
             break;
-        case MIST_SHOOTING_GALLERY_REWARD_MODE_BOUNTY:
-            reward = unscaledTotal / MIST_SHOOTING_GALLERY_BOUNTY_REWARD_DIVISOR;
+        case REWARD_MODE_BOUNTY:
+            reward = unscaledTotal / BOUNTY_REWARD_DIVISOR;
             break;
         default:
-            reward = unscaledTotal / MIST_SHOOTING_GALLERY_REPLAY_REWARD_DIVISOR;
+            reward = unscaledTotal / REPLAY_REWARD_DIVISOR;
             break;
     }
-    if (reward > MIST_SHOOTING_GALLERY_CARRYOVER_REWARD_MAX) {
-        reward = MIST_SHOOTING_GALLERY_CARRYOVER_REWARD_MAX;
+    if (reward > CARRYOVER_REWARD_MAX) {
+        reward = CARRYOVER_REWARD_MAX;
     }
     return reward;
 }
@@ -1001,8 +1001,8 @@ static inline s32 _mistShootingGalleryScaleReward(s32 unscaledTotal)
 /// Draws the selected run mode's starting HP/MP and scaled EXP/BP carryover.
 static void _mistShootingGalleryModeStatusPanelTask(Task* task)
 {
-    enum { MIST_SHOOTING_GALLERY_BASE_HP_WARNING_THRESHOLD = 100,
-           MIST_SHOOTING_GALLERY_BASE_MP_WARNING_THRESHOLD = 30 };
+    enum { HP_WARNING_THRESHOLD = 100,
+           MP_WARNING_THRESHOLD = 30 };
     u8          numberText[0x20];
     TextDrawReq hpCaption;
     TextDrawReq mpCaption;
@@ -1016,18 +1016,18 @@ static void _mistShootingGalleryModeStatusPanelTask(Task* task)
     s32         rowY;
 
     /// Draws one left-aligned outlined STATUS caption at the current row.
-#define MIST_SHOOTING_GALLERY_DRAW_STATUS_CAPTION(caption, captionText)                                                                \
-    {                                                                                                                                  \
-        enum { MIST_SHOOTING_GALLERY_STATUS_BASELINE_INSET = 8,                                                                        \
-               MIST_SHOOTING_GALLERY_STATUS_TEXT_OT_BIAS   = 1 };                                                                        \
-        (caption).x          = object->panel.contentOriginX.unsignedValue + captionX;                                                  \
-        (caption).y          = (s16)(object->panel.contentOriginY.unsignedValue - MIST_SHOOTING_GALLERY_STATUS_BASELINE_INSET) + rowY; \
-        (caption).otIndex    = object->panel.otIndex.signedValue + MIST_SHOOTING_GALLERY_STATUS_TEXT_OT_BIAS;                          \
-        (caption).colorRgb   = MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR;                                                                  \
-        (caption).glyphTable = TEXT_GLYPH_TABLE_SMALL;                                                                                 \
-        (caption).alignment  = TEXT_ALIGNMENT_LEFT;                                                                                    \
-        (caption).drawMode   = TEXT_DRAW_OUTLINED;                                                                                     \
-        textDrawString(&(caption), captionText);                                                                                       \
+#define DRAW_STATUS_CAPTION(caption, captionText)                                                         \
+    {                                                                                                     \
+        enum { BASELINE_INSET = 8,                                                                        \
+               TEXT_OT_BIAS   = 1 };                                                                        \
+        (caption).x          = object->panel.contentOriginX.unsignedValue + captionX;                     \
+        (caption).y          = (s16)(object->panel.contentOriginY.unsignedValue - BASELINE_INSET) + rowY; \
+        (caption).otIndex    = object->panel.otIndex.signedValue + TEXT_OT_BIAS;                          \
+        (caption).colorRgb   = MODE_TEXT_COLOR;                                                           \
+        (caption).glyphTable = TEXT_GLYPH_TABLE_SMALL;                                                    \
+        (caption).alignment  = TEXT_ALIGNMENT_LEFT;                                                       \
+        (caption).drawMode   = TEXT_DRAW_OUTLINED;                                                        \
+        textDrawString(&(caption), captionText);                                                          \
     }
 
     object = task->spawnArg2.pointer;
@@ -1038,40 +1038,40 @@ static void _mistShootingGalleryModeStatusPanelTask(Task* task)
         task->state = task->state + 1;
     }
 
-    valueColor     = MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR;
+    valueColor     = MODE_TEXT_COLOR;
     contentTop     = object->panel.contentTop.signedValue;
     rowY           = contentTop + 0xF;
     displayedValue = gEquipmentModeBaseStats[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode].baseHp.hpWord;
     captionX       = object->panel.contentLeft.signedValue + 6;
-    if (displayedValue < MIST_SHOOTING_GALLERY_BASE_HP_WARNING_THRESHOLD) {
-        valueColor = MIST_SHOOTING_GALLERY_MODE_WARNING_TEXT_COLOR;
+    if (displayedValue < HP_WARNING_THRESHOLD) {
+        valueColor = MODE_WARNING_TEXT_COLOR;
     }
 
-    MIST_SHOOTING_GALLERY_DRAW_STATUS_CAPTION(hpCaption, "HP");
+    DRAW_STATUS_CAPTION(hpCaption, "HP");
     textDrawUiLine(object, -captionX, rowY, textItoaSigned(numberText, displayedValue), valueColor, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     rowY           = contentTop + 0x1E;
     displayedValue = gEquipmentModeBaseStats[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode].baseMp;
-    valueColor     = MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR;
-    if (displayedValue < MIST_SHOOTING_GALLERY_BASE_MP_WARNING_THRESHOLD) {
-        valueColor = MIST_SHOOTING_GALLERY_MODE_WARNING_TEXT_COLOR;
+    valueColor     = MODE_TEXT_COLOR;
+    if (displayedValue < MP_WARNING_THRESHOLD) {
+        valueColor = MODE_WARNING_TEXT_COLOR;
     }
 
-    MIST_SHOOTING_GALLERY_DRAW_STATUS_CAPTION(mpCaption, "MP");
+    DRAW_STATUS_CAPTION(mpCaption, "MP");
     textDrawUiLine(object, -captionX, rowY, textItoaSigned(numberText, displayedValue), valueColor, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     rowY           = contentTop + 0x2D;
     displayedValue = _mistShootingGalleryScaleReward(gMistShootingGalleryUnscaledExp);
 
-    MIST_SHOOTING_GALLERY_DRAW_STATUS_CAPTION(expCaption, "EXP");
-    textDrawUiLine(object, -captionX, rowY, textItoaSigned(numberText, displayedValue), MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    DRAW_STATUS_CAPTION(expCaption, "EXP");
+    textDrawUiLine(object, -captionX, rowY, textItoaSigned(numberText, displayedValue), MODE_TEXT_COLOR, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     rowY          += 0xF;
     displayedValue = _mistShootingGalleryScaleReward(gMistShootingGalleryUnscaledBp);
 
-    MIST_SHOOTING_GALLERY_DRAW_STATUS_CAPTION(bpCaption, "BP");
-    textDrawUiLine(object, -captionX, rowY, textItoaSigned(numberText, displayedValue), MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
-#undef MIST_SHOOTING_GALLERY_DRAW_STATUS_CAPTION
+    DRAW_STATUS_CAPTION(bpCaption, "BP");
+    textDrawUiLine(object, -captionX, rowY, textItoaSigned(numberText, displayedValue), MODE_TEXT_COLOR, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+#undef DRAW_STATUS_CAPTION
 }
 /// Three-line help text indexed by run mode (0 Replay, 1 Bounty, 2 Scavenger, 3 Nightmare).
 static const _MistShootingGalleryModeTexts _gMistShootingGalleryModeDescriptions = { { _gMistShootingGalleryReplayModeDescription, _gMistShootingGalleryBountyModeDescription, _gMistShootingGalleryScavengerModeDescription, _gMistShootingGalleryNightmareModeDescription } };
@@ -1130,29 +1130,29 @@ static void _mistShootingGalleryModeDataPanelTask(Task* task)
     s32                               rowY;
 
     /// Draws a positioned mode caption, its rating word and a level gauge.
-#define MIST_SHOOTING_GALLERY_DRAW_MODE_RATING(caption, ratingText, ratings, captionText)                                                                                                                       \
-    {                                                                                                                                                                                                           \
-        enum { MIST_SHOOTING_GALLERY_RATING_RIGHT_X        = 65,                                                                                                                                                \
-               MIST_SHOOTING_GALLERY_RATING_BASELINE_INSET = 3,                                                                                                                                                 \
-               MIST_SHOOTING_GALLERY_RATING_GAUGE_X        = 70,                                                                                                                                                \
-               MIST_SHOOTING_GALLERY_RATING_TEXT_OT_BIAS   = 1 };                                                                                                                                                 \
-        (caption).otIndex    = object->panel.otIndex.signedValue + MIST_SHOOTING_GALLERY_RATING_TEXT_OT_BIAS;                                                                                                   \
-        rating               = &(ratings)[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode];                                                                                                                   \
-        (caption).colorRgb   = MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR;                                                                                                                                           \
-        (caption).glyphTable = TEXT_GLYPH_TABLE_SMALL;                                                                                                                                                          \
-        (caption).alignment  = TEXT_ALIGNMENT_LEFT;                                                                                                                                                             \
-        (caption).drawMode   = TEXT_DRAW_OUTLINED;                                                                                                                                                              \
-        textDrawString(&(caption), captionText);                                                                                                                                                                \
-                                                                                                                                                                                                                \
-        (ratingText).x          = object->panel.contentOriginX.unsignedValue + MIST_SHOOTING_GALLERY_RATING_RIGHT_X;                                                                                            \
-        (ratingText).y          = (s16)(object->panel.contentOriginY.unsignedValue - MIST_SHOOTING_GALLERY_RATING_BASELINE_INSET) + rowY;                                                                       \
-        (ratingText).otIndex    = object->panel.otIndex.signedValue + MIST_SHOOTING_GALLERY_RATING_TEXT_OT_BIAS;                                                                                                \
-        (ratingText).colorRgb   = MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR;                                                                                                                                        \
-        (ratingText).glyphTable = TEXT_GLYPH_TABLE_MEDIUM;                                                                                                                                                      \
-        (ratingText).alignment  = TEXT_ALIGNMENT_RIGHT;                                                                                                                                                         \
-        (ratingText).drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;                                                                                                                                               \
-        textDrawString(&(ratingText), rating->name);                                                                                                                                                            \
-        textDrawUiLine(object, MIST_SHOOTING_GALLERY_RATING_GAUGE_X, rowY, (const u8*)gaugeByLevel[rating->level], MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT); \
+#define DRAW_MODE_RATING(caption, ratingText, ratings, captionText)                                                                                          \
+    {                                                                                                                                                        \
+        enum { RIGHT_X        = 65,                                                                                                                          \
+               BASELINE_INSET = 3,                                                                                                                           \
+               GAUGE_X        = 70,                                                                                                                          \
+               TEXT_OT_BIAS   = 1 };                                                                                                                           \
+        (caption).otIndex    = object->panel.otIndex.signedValue + TEXT_OT_BIAS;                                                                             \
+        rating               = &(ratings)[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode];                                                                \
+        (caption).colorRgb   = MODE_TEXT_COLOR;                                                                                                              \
+        (caption).glyphTable = TEXT_GLYPH_TABLE_SMALL;                                                                                                       \
+        (caption).alignment  = TEXT_ALIGNMENT_LEFT;                                                                                                          \
+        (caption).drawMode   = TEXT_DRAW_OUTLINED;                                                                                                           \
+        textDrawString(&(caption), captionText);                                                                                                             \
+                                                                                                                                                             \
+        (ratingText).x          = object->panel.contentOriginX.unsignedValue + RIGHT_X;                                                                      \
+        (ratingText).y          = (s16)(object->panel.contentOriginY.unsignedValue - BASELINE_INSET) + rowY;                                                 \
+        (ratingText).otIndex    = object->panel.otIndex.signedValue + TEXT_OT_BIAS;                                                                          \
+        (ratingText).colorRgb   = MODE_TEXT_COLOR;                                                                                                           \
+        (ratingText).glyphTable = TEXT_GLYPH_TABLE_MEDIUM;                                                                                                   \
+        (ratingText).alignment  = TEXT_ALIGNMENT_RIGHT;                                                                                                      \
+        (ratingText).drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;                                                                                            \
+        textDrawString(&(ratingText), rating->name);                                                                                                         \
+        textDrawUiLine(object, GAUGE_X, rowY, (const u8*)gaugeByLevel[rating->level], MODE_TEXT_COLOR, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT); \
     }
 
     uiDrawTitle(&(object)->panel, "DATA");
@@ -1164,37 +1164,37 @@ static void _mistShootingGalleryModeDataPanelTask(Task* task)
     missionCaption.x = object->panel.contentOriginX.unsignedValue + captionX;
     rowY             = contentTop + 0xB;
     missionCaption.y = (s16)(object->panel.contentOriginY.unsignedValue - 6) + rowY;
-    MIST_SHOOTING_GALLERY_DRAW_MODE_RATING(missionCaption, missionRatingText, missionLevels, (const u8*)"MISSION LEVEL");
+    DRAW_MODE_RATING(missionCaption, missionRatingText, missionLevels, (const u8*)"MISSION LEVEL");
     uiDrawHorizontalSeparator(&(object)->panel, contentLeft + 6, -captionX + 5, contentTop + 0xD);
 
     rowY               = contentTop + 0x1E;
     conditionCaption.x = object->panel.contentOriginX.unsignedValue + captionX;
     conditionCaption.y = (s16)(object->panel.contentOriginY.unsignedValue - 6) + rowY;
-    MIST_SHOOTING_GALLERY_DRAW_MODE_RATING(conditionCaption, conditionRatingText, conditions, (const u8*)"CONDITION");
+    DRAW_MODE_RATING(conditionCaption, conditionRatingText, conditions, (const u8*)"CONDITION");
 
     rowY           = contentTop + 0x2D;
     enemyCaption.x = object->panel.contentOriginX.unsignedValue + captionX;
     enemyCaption.y = (s16)(object->panel.contentOriginY.unsignedValue - 6) + rowY;
-    MIST_SHOOTING_GALLERY_DRAW_MODE_RATING(enemyCaption, enemyRatingText, enemyLevels, (const u8*)"ENEMY LEVEL");
+    DRAW_MODE_RATING(enemyCaption, enemyRatingText, enemyLevels, (const u8*)"ENEMY LEVEL");
 
     rowY            = contentTop + 0x3C;
     supplyCaption.x = object->panel.contentOriginX.unsignedValue + captionX;
     supplyCaption.y = (s16)(object->panel.contentOriginY.unsignedValue - 6) + rowY;
-    MIST_SHOOTING_GALLERY_DRAW_MODE_RATING(supplyCaption, supplyRatingText, supplyLevels, (const u8*)_gMistShootingGallerySupplyLevelCaption);
-#undef MIST_SHOOTING_GALLERY_DRAW_MODE_RATING
+    DRAW_MODE_RATING(supplyCaption, supplyRatingText, supplyLevels, (const u8*)_gMistShootingGallerySupplyLevelCaption);
+#undef DRAW_MODE_RATING
 }
 /// Runs carryover-mode selection and commits its previewed EXP/BP conversion.
 static void _mistShootingGalleryCarryoverModeSessionTask(Task* task)
 {
     enum {
-        MIST_SHOOTING_GALLERY_CARRYOVER_OPEN            = 0,
-        MIST_SHOOTING_GALLERY_CARRYOVER_SELECT          = 1,
-        MIST_SHOOTING_GALLERY_CARRYOVER_CLOSE_COUNTDOWN = 10,
+        OPEN             = 0,
+        CARRYOVER_SELECT = 1,
+        CLOSE_COUNTDOWN  = 10,
     };
     UiObject*     object;
     PlayerStatus* player = &gPlayerStatus;
 
-    if (task->state == MIST_SHOOTING_GALLERY_CARRYOVER_OPEN) {
+    if (task->state == OPEN) {
         object = uiSpawnObject(&_gMistShootingGalleryModeSelectPanelDesc, 0, 1, 1, NULL);
         if (object != NULL) {
             // Capture before the row callback starts changing the selected run mode.
@@ -1204,10 +1204,10 @@ static void _mistShootingGalleryCarryoverModeSessionTask(Task* task)
             task->spawnArg2.pointer = object;
             task->state             = task->state + 1;
         }
-    } else if (task->state == MIST_SHOOTING_GALLERY_CARRYOVER_SELECT) {
+    } else if (task->state == CARRYOVER_SELECT) {
         object = task->spawnArg2.pointer;
         if (object->result == USER_INTERFACE_RESULT_CONFIRM) {
-            task->killCountdown = MIST_SHOOTING_GALLERY_CARRYOVER_CLOSE_COUNTDOWN;
+            task->killCountdown = CLOSE_COUNTDOWN;
             uiStartTreeClosing(object, object->owner);
             equipmentRecalculateMaxHp();
             equipmentRecalculateMaxMp();
@@ -1230,9 +1230,9 @@ static void _mistShootingGalleryCarryoverModeSessionTask(Task* task)
 }
 s32 mistShootingGalleryOpenWeaponMenu(s32 unused)
 {
-    enum { MIST_SHOOTING_GALLERY_WEAPON_MENU_REQUEST = 0x44 };
+    enum { WEAPON_MENU_REQUEST = 0x44 };
 
-    displayQueueModeTask(&_gMistShootingGalleryWeaponMenuTaskDesc, MIST_SHOOTING_GALLERY_WEAPON_MENU_REQUEST, 0, STAGE_ENTRY_RELOAD);
+    displayQueueModeTask(&_gMistShootingGalleryWeaponMenuTaskDesc, WEAPON_MENU_REQUEST, 0, STAGE_ENTRY_RELOAD);
     return 1;
 }
 
@@ -1265,13 +1265,13 @@ static void _mistShootingGalleryModeHelpPanelTask(Task* task)
         object->panel.bounds.unsignedRect.y = 0x68 - object->panel.bounds.unsignedRect.h;
         task->state                         = task->state + 1;
     }
-    textDrawUiLines(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, (const u8*)modeDescriptions.byMode[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode], MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLines(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, (const u8*)modeDescriptions.byMode[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode], MODE_TEXT_COLOR, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 void mistShootingGalleryOpenCarryoverModeMenu(void)
 {
-    enum { MIST_SHOOTING_GALLERY_CARRYOVER_ENTRY_WARP = 7 };
+    enum { CARRYOVER_ENTRY_WARP = 7 };
 
-    if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) && (gGameSession->location.warp == MIST_SHOOTING_GALLERY_CARRYOVER_ENTRY_WARP)) {
+    if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) && (gGameSession->location.warp == CARRYOVER_ENTRY_WARP)) {
         displayQueueModeTask(&_gMistShootingGalleryCarryoverModeSessionDesc, 0, 0, STAGE_ENTRY_RELOAD);
     }
 }
@@ -1279,18 +1279,18 @@ void mistShootingGalleryOpenCarryoverModeMenu(void)
 static void _mistShootingGalleryInitializeRoomTask(Task* task)
 {
     enum {
-        MIST_SHOOTING_GALLERY_CAPTION_TEXTURE_X      = 832,
-        MIST_SHOOTING_GALLERY_CAPTION_RESOURCE_INDEX = 2,
-        MIST_SHOOTING_GALLERY_DEMO_SCENE             = 7,
-        MIST_SHOOTING_GALLERY_CARRYOVER_WARP         = 7,
-        MIST_SHOOTING_GALLERY_TRAINING_WARP          = 6,
-        MIST_SHOOTING_GALLERY_STORY_ENTRY_COMMAND    = 22,
+        CAPTION_TEXTURE_X      = 832,
+        CAPTION_RESOURCE_INDEX = 2,
+        DEMO_SCENE             = 7,
+        CARRYOVER_WARP         = 7,
+        TRAINING_WARP          = 6,
+        STORY_ENTRY_COMMAND    = 22,
     };
     s32 storyBarrierLowered;
 
     task->msgTable = _gMistShootingGalleryRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    actor215100SelectCaptionResource(MIST_SHOOTING_GALLERY_CAPTION_TEXTURE_X, 0, MIST_SHOOTING_GALLERY_CAPTION_RESOURCE_INDEX);
+    actor215100SelectCaptionResource(CAPTION_TEXTURE_X, 0, CAPTION_RESOURCE_INDEX);
     if (gameFlagGetNibble(EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT) != 0) {
         sceneSetPlacedActorDrawMode(1, ACTOR_MESSAGE_DRAW_HIDE);
         storyBarrierLowered = 1;
@@ -1298,13 +1298,13 @@ static void _mistShootingGalleryInitializeRoomTask(Task* task)
         storyBarrierLowered = 0;
     }
     _mistShootingGallerySetStoryBarrierLowered(storyBarrierLowered);
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == MIST_SHOOTING_GALLERY_DEMO_SCENE) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == DEMO_SCENE) {
         taskSpawnFromTable(gMistShootingGalleryTaskDescs, MIST_SHOOTING_GALLERY_TASK_COURSE_CONTROLLER, 0, 0);
-    } else if (gGameSession->location.warp == MIST_SHOOTING_GALLERY_CARRYOVER_WARP) {
+    } else if (gGameSession->location.warp == CARRYOVER_WARP) {
         taskSpawnFromTable(gActor215100GalleryTaskDescs, ACTOR_215100_GALLERY_INTRO_TASK, 0, 0);
     }
-    if ((gGameSession->location.warp == MIST_SHOOTING_GALLERY_TRAINING_WARP) && (gameFlagGetNibble(EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT) != 0)) {
-        capRunCommandWithTransition(MIST_SHOOTING_GALLERY_STORY_ENTRY_COMMAND);
+    if ((gGameSession->location.warp == TRAINING_WARP) && (gameFlagGetNibble(EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT) != 0)) {
+        capRunCommandWithTransition(STORY_ENTRY_COMMAND);
     }
     gGameSession->flowFlags = GAME_SESSION_FLOW_SKIP_AREA_MUSIC;
     task->state             = task->state + 1;
@@ -1314,16 +1314,16 @@ static void _mistShootingGalleryInitializeRoomTask(Task* task)
 static void _mistShootingGalleryUpdateRoomTask(Task* unusedTask)
 {
     enum {
-        MIST_SHOOTING_GALLERY_STORY_VARIANT      = 1,
-        MIST_SHOOTING_GALLERY_HIDE_ACTOR_VIEW_3  = 3,
-        MIST_SHOOTING_GALLERY_HIDE_ACTOR_VIEW_9  = 9,
-        MIST_SHOOTING_GALLERY_HIDE_ACTOR_VIEW_18 = 18,
+        STORY_VARIANT      = 1,
+        HIDE_ACTOR_VIEW_3  = 3,
+        HIDE_ACTOR_VIEW_9  = 9,
+        HIDE_ACTOR_VIEW_18 = 18,
     };
     u8 viewIndex;
 
-    if ((gGameSession->location.variant == MIST_SHOOTING_GALLERY_STORY_VARIANT) && (gGameSession->eventState == 0)) {
+    if ((gGameSession->location.variant == STORY_VARIANT) && (gGameSession->eventState == 0)) {
         viewIndex = gGameSession->location.view;
-        if ((viewIndex == MIST_SHOOTING_GALLERY_HIDE_ACTOR_VIEW_3) || (viewIndex == MIST_SHOOTING_GALLERY_HIDE_ACTOR_VIEW_9) || (viewIndex == MIST_SHOOTING_GALLERY_HIDE_ACTOR_VIEW_18)) {
+        if ((viewIndex == HIDE_ACTOR_VIEW_3) || (viewIndex == HIDE_ACTOR_VIEW_9) || (viewIndex == HIDE_ACTOR_VIEW_18)) {
             sceneSetPlacedActorDrawMode(1, ACTOR_MESSAGE_DRAW_HIDE);
         } else if (gameFlagGetNibble(EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT) == 0) {
             sceneSetPlacedActorDrawMode(1, ACTOR_MESSAGE_DRAW_SHOW);
@@ -1335,34 +1335,34 @@ static void _mistShootingGalleryUpdateRoomTask(Task* unusedTask)
 static void _mistShootingGalleryCapPlaybackTask(Task* task)
 {
     enum {
-        MIST_SHOOTING_GALLERY_CAP_PLAYBACK_START = 0,
-        MIST_SHOOTING_GALLERY_CAP_PLAYBACK_WAIT  = 1,
-        MIST_SHOOTING_GALLERY_CAP_PLAYBACK_EXIT  = 2,
+        START = 0,
+        WAIT  = 1,
+        EXIT  = 2,
     };
     s16 texturePageX;
 
     switch (task->state) {
-        case MIST_SHOOTING_GALLERY_CAP_PLAYBACK_START:
+        case START:
             gCapFile = NULL;
             // Select the relocated CAP file and its VRAM texture-page origin.
-            if (task->spawnArg2.value == MIST_SHOOTING_GALLERY_CAP_FILE_HIGH_COMMANDS) {
-                capSelectLoadedFile(MIST_SHOOTING_GALLERY_CAP_FILE_HIGH_COMMANDS);
-                texturePageX = MIST_SHOOTING_GALLERY_CAP_TEXTURE_X_HIGH_COMMANDS;
+            if (task->spawnArg2.value == CAP_FILE_HIGH_COMMANDS) {
+                capSelectLoadedFile(CAP_FILE_HIGH_COMMANDS);
+                texturePageX = CAP_TEXTURE_X_HIGH_COMMANDS;
             } else {
-                capSelectLoadedFile(MIST_SHOOTING_GALLERY_CAP_FILE_LOW_COMMANDS);
-                texturePageX = MIST_SHOOTING_GALLERY_CAP_TEXTURE_X_LOW_COMMANDS;
+                capSelectLoadedFile(CAP_FILE_LOW_COMMANDS);
+                texturePageX = CAP_TEXTURE_X_LOW_COMMANDS;
             }
             capSetTexturePage(texturePageX, 0);
             capRunCommand(task->spawnArg1.value, CAP_PLAYBACK_IN_PLACE);
             task->state += 1;
             return;
-        case MIST_SHOOTING_GALLERY_CAP_PLAYBACK_WAIT:
+        case WAIT:
             if (capIsBusy() != 0) {
                 return;
             }
             task->state += 1;
             return;
-        case MIST_SHOOTING_GALLERY_CAP_PLAYBACK_EXIT:
+        case EXIT:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             capReset();
             taskKill(task);
@@ -1384,34 +1384,34 @@ static s32 _mistShootingGalleryRejectKeyItemUse(Task* unusedTask, s32 unusedMess
 static s32 _mistShootingGalleryResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
     enum {
-        MIST_SHOOTING_GALLERY_CARRIED_LOADOUT_WARP      = 5,
-        MIST_SHOOTING_GALLERY_TRAINING_LOADOUT_WARP     = 6,
-        MIST_SHOOTING_GALLERY_SCENE_CARRIED_LOADOUT     = 1,
-        MIST_SHOOTING_GALLERY_SCENE_TRAINING_LOADOUT    = 2,
-        MIST_SHOOTING_GALLERY_CARRIED_RESOURCE_VARIANT  = 3,
-        MIST_SHOOTING_GALLERY_TRAINING_RESOURCE_VARIANT = 4,
-        MIST_SHOOTING_GALLERY_PARKING_STORY_ROOM_OFFSET = 2,
+        CARRIED_LOADOUT_WARP      = 5,
+        TRAINING_LOADOUT_WARP     = 6,
+        SCENE_CARRIED_LOADOUT     = 1,
+        SCENE_TRAINING_LOADOUT    = 2,
+        CARRIED_RESOURCE_VARIANT  = 3,
+        TRAINING_RESOURCE_VARIANT = 4,
+        PARKING_STORY_ROOM_OFFSET = 2,
     };
     *reply = *request;
     if (request->areaId == AKROPOLIS_ROOM_ID_MIST_PARKING && request->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER) != EVENT_FLAG_STORY_CHAPTER_MIST_ARRIVAL) {
-            reply->roomState += MIST_SHOOTING_GALLERY_PARKING_STORY_ROOM_OFFSET;
+            reply->roomState += PARKING_STORY_ROOM_OFFSET;
         }
     }
     if (request->areaId == AKROPOLIS_ROOM_ID_MIST_SHOOTING_GALLERY) {
-        if (reply->warp == MIST_SHOOTING_GALLERY_CARRIED_LOADOUT_WARP && actor215100ResolveGalleryExit(request) == ACTOR_215100_GALLERY_EXIT_DEFER) {
+        if (reply->warp == CARRIED_LOADOUT_WARP && actor215100ResolveGalleryExit(request) == ACTOR_215100_GALLERY_EXIT_DEFER) {
             return ACTOR_215100_GALLERY_EXIT_DEFER;
         }
         if (request->queryOnly == ROOM_EVENT_EXECUTE) {
-            if (reply->warp == MIST_SHOOTING_GALLERY_TRAINING_LOADOUT_WARP) {
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = MIST_SHOOTING_GALLERY_SCENE_TRAINING_LOADOUT;
-                gPlayerStatus.resourceVariant                       = MIST_SHOOTING_GALLERY_TRAINING_RESOURCE_VARIANT;
+            if (reply->warp == TRAINING_LOADOUT_WARP) {
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = SCENE_TRAINING_LOADOUT;
+                gPlayerStatus.resourceVariant                       = TRAINING_RESOURCE_VARIANT;
                 gGameSession->hideHud                               = 1;
                 inventoryInitializeShootingGalleryLoadout();
             }
-            if (reply->warp == MIST_SHOOTING_GALLERY_CARRIED_LOADOUT_WARP) {
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = MIST_SHOOTING_GALLERY_SCENE_CARRIED_LOADOUT;
-                gPlayerStatus.resourceVariant                       = MIST_SHOOTING_GALLERY_CARRIED_RESOURCE_VARIANT;
+            if (reply->warp == CARRIED_LOADOUT_WARP) {
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = SCENE_CARRIED_LOADOUT;
+                gPlayerStatus.resourceVariant                       = CARRIED_RESOURCE_VARIANT;
                 gGameSession->hideHud                               = 1;
                 inventoryRestoreCarriedLoadout();
             }
@@ -1424,24 +1424,24 @@ static s32 _mistShootingGalleryResolveRoomTransition(Task* unusedTask, s32 unuse
 static s32 _mistShootingGalleryHandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg)
 {
     enum {
-        MIST_SHOOTING_GALLERY_LOW_COMMAND_FIRST  = 5,
-        MIST_SHOOTING_GALLERY_LOW_COMMAND_END    = 9,
-        MIST_SHOOTING_GALLERY_HIGH_COMMAND_FIRST = 33,
-        MIST_SHOOTING_GALLERY_HIGH_COMMAND_END   = 35,
+        LOW_COMMAND_FIRST  = 5,
+        LOW_COMMAND_END    = 9,
+        HIGH_COMMAND_FIRST = 33,
+        HIGH_COMMAND_END   = 35,
     };
 
     // Keep the nested bounds: their separate signed comparisons match dispatch.
-    if (command >= MIST_SHOOTING_GALLERY_LOW_COMMAND_FIRST) {
-        if (command >= MIST_SHOOTING_GALLERY_LOW_COMMAND_END) {
-            if (command < MIST_SHOOTING_GALLERY_HIGH_COMMAND_END) {
-                if (command >= MIST_SHOOTING_GALLERY_HIGH_COMMAND_FIRST) {
+    if (command >= LOW_COMMAND_FIRST) {
+        if (command >= LOW_COMMAND_END) {
+            if (command < HIGH_COMMAND_END) {
+                if (command >= HIGH_COMMAND_FIRST) {
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                    taskSpawnFromTable(&_gMistShootingGalleryCapPlaybackTaskDesc, 0, command, MIST_SHOOTING_GALLERY_CAP_FILE_HIGH_COMMANDS);
+                    taskSpawnFromTable(&_gMistShootingGalleryCapPlaybackTaskDesc, 0, command, CAP_FILE_HIGH_COMMANDS);
                 }
             }
         } else {
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(&_gMistShootingGalleryCapPlaybackTaskDesc, 0, command, MIST_SHOOTING_GALLERY_CAP_FILE_LOW_COMMANDS);
+            taskSpawnFromTable(&_gMistShootingGalleryCapPlaybackTaskDesc, 0, command, CAP_FILE_LOW_COMMANDS);
         }
     }
     return 0;
@@ -1451,12 +1451,12 @@ static s32 _mistShootingGalleryHandleRoomCommand(Task* unusedTask, s32 unusedMes
 static s32 _mistShootingGalleryHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
     enum {
-        MIST_SHOOTING_GALLERY_ACTION_REARM_TICKS = 10,
+        ACTION_REARM_TICKS = 10,
     };
     if ((request->actionId == MIST_SHOOTING_GALLERY_ACTION_OPEN_COURSE_MENU) && (gActor215100GalleryTrainingActive == 0)) {
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         taskSpawnFromTable(gActor215100GalleryTaskDescs, ACTOR_215100_GALLERY_MENU_TASK, 1, 0);
-        gDirectionInteractionRearmUpdates = MIST_SHOOTING_GALLERY_ACTION_REARM_TICKS;
+        gDirectionInteractionRearmUpdates = ACTION_REARM_TICKS;
     }
     if ((request->actionId == MIST_SHOOTING_GALLERY_ACTION_TALK_TO_PIERCE) && (gameFlagGetNibble(EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT) == 0)) {
         actor215100StartPierceConversation();
@@ -1553,21 +1553,21 @@ void mistShootingGalleryRoomTask(Task* task)
 /// Restores the story-controlled barrier, then lowers it by 3000 room Y units.
 static void _mistShootingGallerySetStoryBarrierLowered(s32 lowered)
 {
-    enum { MIST_SHOOTING_GALLERY_STORY_BARRIER_FACE_COUNT   = 3,
-           MIST_SHOOTING_GALLERY_STORY_BARRIER_VERTEX_COUNT = 8,
-           MIST_SHOOTING_GALLERY_STORY_BARRIER_LOWER_Y      = 3000 };
+    enum { FACE_COUNT   = 3,
+           VERTEX_COUNT = 8,
+           LOWER_Y      = 3000 };
     WorldCollisionGrid*       liveGrid     = &gMistShootingGalleryCollisionGrid;
     const WorldCollisionGrid* templateGrid = &_gMistShootingGalleryStoryBarrierCollisionTemplate;
     SVECTOR                   offset;
     s32                       index;
 
-    for (index = 0; index < MIST_SHOOTING_GALLERY_STORY_BARRIER_FACE_COUNT; index++) {
+    for (index = 0; index < FACE_COUNT; index++) {
         liveGrid->normals[index].vx = templateGrid->normals[index].vx;
         liveGrid->normals[index].vy = templateGrid->normals[index].vy;
         liveGrid->normals[index].vz = templateGrid->normals[index].vz;
         liveGrid->faces[index]      = templateGrid->faces[index];
     }
-    for (index = 0; index < MIST_SHOOTING_GALLERY_STORY_BARRIER_VERTEX_COUNT; index++) {
+    for (index = 0; index < VERTEX_COUNT; index++) {
         liveGrid->vertices[index].vx = templateGrid->vertices[index].vx;
         liveGrid->vertices[index].vy = templateGrid->vertices[index].vy;
         liveGrid->vertices[index].vz = templateGrid->vertices[index].vz;
@@ -1577,10 +1577,10 @@ static void _mistShootingGallerySetStoryBarrierLowered(s32 lowered)
         offset.vy = 0;
     } else {
         offset.vx = 0;
-        offset.vy = MIST_SHOOTING_GALLERY_STORY_BARRIER_LOWER_Y;
+        offset.vy = LOWER_Y;
     }
     offset.vz = 0;
-    for (index = 0; index < MIST_SHOOTING_GALLERY_STORY_BARRIER_VERTEX_COUNT; index++) {
+    for (index = 0; index < VERTEX_COUNT; index++) {
         liveGrid->vertices[index].vx += offset.vx;
         liveGrid->vertices[index].vy += offset.vy;
         liveGrid->vertices[index].vz += offset.vz;
@@ -1589,49 +1589,49 @@ static void _mistShootingGallerySetStoryBarrierLowered(s32 lowered)
 
 void mistShootingGallerySetTrainingBarrierLowered(s32 lowered)
 {
-    enum { MIST_SHOOTING_GALLERY_TRAINING_BARRIER_NORMAL_OFFSET = 3,
-           MIST_SHOOTING_GALLERY_TRAINING_BARRIER_VERTEX_OFFSET = 8,
-           MIST_SHOOTING_GALLERY_TRAINING_BARRIER_VERTEX_COUNT  = 4,
-           MIST_SHOOTING_GALLERY_TRAINING_BARRIER_OFFSET_COUNT  = 8,
-           MIST_SHOOTING_GALLERY_TRAINING_BARRIER_LOWER_Y       = 4000 };
+    enum { NORMAL_OFFSET = 3,
+           VERTEX_OFFSET = 8,
+           VERTEX_COUNT  = 4,
+           OFFSET_COUNT  = 8,
+           LOWER_Y       = 4000 };
     WorldCollisionGrid*       liveGrid     = &gMistShootingGalleryCollisionGrid;
     const WorldCollisionGrid* templateGrid = &_gMistShootingGalleryTrainingBarrierCollisionTemplate;
-    WorldCollisionGridFace*   liveFace     = &gMistShootingGalleryCollisionGrid.faces[MIST_SHOOTING_GALLERY_TRAINING_BARRIER_NORMAL_OFFSET];
+    WorldCollisionGridFace*   liveFace     = &gMistShootingGalleryCollisionGrid.faces[NORMAL_OFFSET];
     WorldCollisionGridFace*   templateFace = _gMistShootingGalleryTrainingBarrierCollisionTemplate.faces;
     SVECTOR                   offset;
     s32                       index;
     s32                       corner;
 
     for (index = 0; index < (s32)ARRAY_SIZE(_gMistShootingGalleryTrainingBarrierCollisionTemplateFaces); index++) {
-        liveGrid->normals[index + MIST_SHOOTING_GALLERY_TRAINING_BARRIER_NORMAL_OFFSET].vx = templateGrid->normals[index].vx;
-        liveGrid->normals[index + MIST_SHOOTING_GALLERY_TRAINING_BARRIER_NORMAL_OFFSET].vy = templateGrid->normals[index].vy;
-        liveGrid->normals[index + MIST_SHOOTING_GALLERY_TRAINING_BARRIER_NORMAL_OFFSET].vz = templateGrid->normals[index].vz;
+        liveGrid->normals[index + NORMAL_OFFSET].vx = templateGrid->normals[index].vx;
+        liveGrid->normals[index + NORMAL_OFFSET].vy = templateGrid->normals[index].vy;
+        liveGrid->normals[index + NORMAL_OFFSET].vz = templateGrid->normals[index].vz;
         for (corner = 0; corner < ARRAY_SIZE(liveFace->vertexIndices); corner++) {
-            liveFace->vertexIndices[corner] = templateFace->vertexIndices[corner] + MIST_SHOOTING_GALLERY_TRAINING_BARRIER_VERTEX_OFFSET;
+            liveFace->vertexIndices[corner] = templateFace->vertexIndices[corner] + VERTEX_OFFSET;
         }
-        liveFace->normalIndex  = templateFace->normalIndex + MIST_SHOOTING_GALLERY_TRAINING_BARRIER_NORMAL_OFFSET;
+        liveFace->normalIndex  = templateFace->normalIndex + NORMAL_OFFSET;
         liveFace->surfaceClass = templateFace->surfaceClass;
         liveFace++;
         templateFace++;
     }
-    for (index = 0; index < MIST_SHOOTING_GALLERY_TRAINING_BARRIER_VERTEX_COUNT; index++) {
-        liveGrid->vertices[index + MIST_SHOOTING_GALLERY_TRAINING_BARRIER_VERTEX_OFFSET].vx = templateGrid->vertices[index].vx;
-        liveGrid->vertices[index + MIST_SHOOTING_GALLERY_TRAINING_BARRIER_VERTEX_OFFSET].vy = templateGrid->vertices[index].vy;
-        liveGrid->vertices[index + MIST_SHOOTING_GALLERY_TRAINING_BARRIER_VERTEX_OFFSET].vz = templateGrid->vertices[index].vz;
+    for (index = 0; index < VERTEX_COUNT; index++) {
+        liveGrid->vertices[index + VERTEX_OFFSET].vx = templateGrid->vertices[index].vx;
+        liveGrid->vertices[index + VERTEX_OFFSET].vy = templateGrid->vertices[index].vy;
+        liveGrid->vertices[index + VERTEX_OFFSET].vz = templateGrid->vertices[index].vz;
     }
     if (lowered == 0) {
         offset.vx = 0;
         offset.vy = 0;
     } else {
         offset.vx = 0;
-        offset.vy = MIST_SHOOTING_GALLERY_TRAINING_BARRIER_LOWER_Y;
+        offset.vy = LOWER_Y;
     }
     offset.vz = 0;
     // Preserve the eight-vertex offset pass: only the first four were restored.
-    for (index = 0; index < MIST_SHOOTING_GALLERY_TRAINING_BARRIER_OFFSET_COUNT; index++) {
-        liveGrid->vertices[index + MIST_SHOOTING_GALLERY_TRAINING_BARRIER_VERTEX_OFFSET].vx += offset.vx;
-        liveGrid->vertices[index + MIST_SHOOTING_GALLERY_TRAINING_BARRIER_VERTEX_OFFSET].vy += offset.vy;
-        liveGrid->vertices[index + MIST_SHOOTING_GALLERY_TRAINING_BARRIER_VERTEX_OFFSET].vz += offset.vz;
+    for (index = 0; index < OFFSET_COUNT; index++) {
+        liveGrid->vertices[index + VERTEX_OFFSET].vx += offset.vx;
+        liveGrid->vertices[index + VERTEX_OFFSET].vy += offset.vy;
+        liveGrid->vertices[index + VERTEX_OFFSET].vz += offset.vz;
     }
 }
 
@@ -1646,15 +1646,15 @@ static const char _gMistShootingGalleryJukeboxTitle[8] = "SELECT\0\xE1";
 static void _mistShootingGalleryJukeboxPanelTask(Task* task)
 {
     enum {
-        MIST_SHOOTING_GALLERY_JUKEBOX_INITIALIZE          = 0,
-        MIST_SHOOTING_GALLERY_JUKEBOX_WAIT_MIDI           = 1,
-        MIST_SHOOTING_GALLERY_JUKEBOX_TRACK_ID_LIMIT      = 0xF1,
-        MIST_SHOOTING_GALLERY_JUKEBOX_TRAINING_UNSELECTED = 0xFE,
-        MIST_SHOOTING_GALLERY_JUKEBOX_IDLE                = 0xFF,
-        MIST_SHOOTING_GALLERY_JUKEBOX_NO_ROW              = -1,
-        MIST_SHOOTING_GALLERY_JUKEBOX_MAX_VISIBLE_ROWS    = 10,
-        MIST_SHOOTING_GALLERY_JUKEBOX_FILE_GROUP          = 4,
-        MIST_SHOOTING_GALLERY_JUKEBOX_FILE_ID_HUNDREDS    = 1
+        INITIALIZE          = 0,
+        WAIT_MIDI           = 1,
+        TRACK_ID_LIMIT      = 0xF1,
+        TRAINING_UNSELECTED = 0xFE,
+        IDLE                = 0xFF,
+        NO_ROW              = -1,
+        MAX_VISIBLE_ROWS    = 10,
+        FILE_GROUP          = 4,
+        FILE_ID_HUNDREDS    = 1
     };
     u8        fileKey[4];
     u8        loadArgs[4];
@@ -1670,15 +1670,15 @@ static void _mistShootingGalleryJukeboxPanelTask(Task* task)
 
     object->result = USER_INTERFACE_RESULT_NONE;
     uiDrawPanelLabel(&(object)->panel, _gMistShootingGalleryJukeboxTitle);
-    if (task->state == MIST_SHOOTING_GALLERY_JUKEBOX_INITIALIZE) {
-        task->spawnArg1.value = MIST_SHOOTING_GALLERY_JUKEBOX_NO_ROW;
+    if (task->state == INITIALIZE) {
+        task->spawnArg1.value = NO_ROW;
         if (attachmentIsTrainingMode() == 0) {
             list->itemCount = ARRAY_SIZE(_gMistShootingGalleryJukeboxRegularReplayTracks);
         } else {
             list->itemCount = ARRAY_SIZE(_gMistShootingGalleryJukeboxTrainingReplayTracks);
         }
-        if (list->itemCount > MIST_SHOOTING_GALLERY_JUKEBOX_MAX_VISIBLE_ROWS) {
-            list->visibleRowCount.unsignedValue = MIST_SHOOTING_GALLERY_JUKEBOX_MAX_VISIBLE_ROWS;
+        if (list->itemCount > MAX_VISIBLE_ROWS) {
+            list->visibleRowCount.unsignedValue = MAX_VISIBLE_ROWS;
         } else {
             list->visibleRowCount.unsignedValue = list->itemCount;
         }
@@ -1690,23 +1690,23 @@ static void _mistShootingGalleryJukeboxPanelTask(Task* task)
         object->panel.bounds.unsignedRect.x = -((s16)object->panel.bounds.unsignedRect.w / 2);
         object->panel.bounds.unsignedRect.y = -((s16)object->panel.bounds.unsignedRect.h / 2);
         if (attachmentIsTrainingMode() == 0) {
-            task->status = MIST_SHOOTING_GALLERY_JUKEBOX_IDLE;
+            task->status = IDLE;
         } else {
-            task->status = MIST_SHOOTING_GALLERY_JUKEBOX_TRAINING_UNSELECTED;
+            task->status = TRAINING_UNSELECTED;
         }
         task->state += 1;
     }
     uiUpdateList(list, &object->panel);
     sequenceId = task->status;
-    if (sequenceId < MIST_SHOOTING_GALLERY_JUKEBOX_TRACK_ID_LIMIT) {
+    if (sequenceId < TRACK_ID_LIMIT) {
         // Stop the old sequence before loading its replacement; start after CD idle.
         phase = task->state;
-        if (phase == MIST_SHOOTING_GALLERY_JUKEBOX_WAIT_MIDI) {
+        if (phase == WAIT_MIDI) {
             if (midiIsSequenceBusy(0) == 0) {
                 fileKey[3]  = 0;
-                fileKey[2]  = MIST_SHOOTING_GALLERY_JUKEBOX_FILE_GROUP;
+                fileKey[2]  = FILE_GROUP;
                 fileKey[0]  = sequenceId;
-                loadArgs[0] = MIST_SHOOTING_GALLERY_JUKEBOX_FILE_ID_HUNDREDS;
+                loadArgs[0] = FILE_ID_HUNDREDS;
                 loadArgs[3] = 0;
                 loadArgs[2] = 0;
                 loadArgs[1] = 0;
@@ -1728,8 +1728,8 @@ static void _mistShootingGalleryJukeboxPanelTask(Task* task)
                 sequenceStarted = 0;
             }
             if (sequenceStarted == 1) {
-                task->state  = MIST_SHOOTING_GALLERY_JUKEBOX_WAIT_MIDI;
-                task->status = MIST_SHOOTING_GALLERY_JUKEBOX_IDLE;
+                task->state  = WAIT_MIDI;
+                task->status = IDLE;
                 if (attachmentIsTrainingMode() == 0) {
                     gGameSession->flowFlags |= (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
                 }
@@ -1742,8 +1742,8 @@ static void _mistShootingGalleryJukeboxPanelTask(Task* task)
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask | gPadCancelButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_SYSTEM_CANCEL, 0, 0);
-            if (task->status != MIST_SHOOTING_GALLERY_JUKEBOX_TRAINING_UNSELECTED) {
-                if (task->status == MIST_SHOOTING_GALLERY_JUKEBOX_IDLE) {
+            if (task->status != TRAINING_UNSELECTED) {
+                if (task->status == IDLE) {
                     object->result = USER_INTERFACE_RESULT_CONFIRM;
                 } else {
                     uiStartPanelHiding(object, object->owner);
@@ -1766,7 +1766,7 @@ s32 mistShootingGalleryOpenJukebox(s32 unused)
 static inline void _mistShootingGalleryDrawSplashFade(const Task* task, s32 fadeIn)
 {
     enum {
-        MIST_SHOOTING_GALLERY_SPLASH_FADE_TEXTURE_DEPTH_4BIT = 0,
+        SPLASH_FADE_TEXTURE_DEPTH_4BIT = 0,
     };
     TILE*     tile;
     DR_TPAGE* drawMode;
@@ -1789,7 +1789,7 @@ static inline void _mistShootingGalleryDrawSplashFade(const Task* task, s32 fade
     // Insertion prepends, so the mode queued last runs before the tile.
     drawMode       = gGpuPrimCursor;
     gGpuPrimCursor = drawMode + 1;
-    setDrawTPage(drawMode, false, true, getTPage(MIST_SHOOTING_GALLERY_SPLASH_FADE_TEXTURE_DEPTH_4BIT, GPU_BLEND_SUBTRACT, 0, 0));
+    setDrawTPage(drawMode, false, true, getTPage(SPLASH_FADE_TEXTURE_DEPTH_4BIT, GPU_BLEND_SUBTRACT, 0, 0));
     addPrim(gGpuCurrentOt, drawMode);
 }
 
@@ -1797,26 +1797,26 @@ static inline void _mistShootingGalleryDrawSplashFade(const Task* task, s32 fade
 static void _mistShootingGalleryModeSplashTask(Task* task)
 {
     enum {
-        MIST_SHOOTING_GALLERY_SPLASH_QUEUE_FILE               = 0,
-        MIST_SHOOTING_GALLERY_SPLASH_WAIT_FILE                = 1,
-        MIST_SHOOTING_GALLERY_SPLASH_FADE_IN                  = 2,
-        MIST_SHOOTING_GALLERY_SPLASH_HOLD                     = 3,
-        MIST_SHOOTING_GALLERY_SPLASH_FADE_OUT                 = 4,
-        MIST_SHOOTING_GALLERY_SPLASH_FINISH                   = 5,
-        MIST_SHOOTING_GALLERY_SPLASH_REPLAY_FILE              = 41,
-        MIST_SHOOTING_GALLERY_SPLASH_BOUNTY_FILE              = 42,
-        MIST_SHOOTING_GALLERY_SPLASH_SCAVENGER_FILE           = 43,
-        MIST_SHOOTING_GALLERY_SPLASH_NIGHTMARE_FILE           = 44,
-        MIST_SHOOTING_GALLERY_SPLASH_INTENSITY_STEP           = 8,
-        MIST_SHOOTING_GALLERY_SPLASH_INTENSITY_END            = 256,
-        MIST_SHOOTING_GALLERY_SPLASH_DISPLAY_ENABLE_THRESHOLD = 17,
-        MIST_SHOOTING_GALLERY_SPLASH_HOLD_TICKS               = 151
+        QUEUE_FILE               = 0,
+        WAIT_FILE                = 1,
+        FADE_IN                  = 2,
+        HOLD                     = 3,
+        FADE_OUT                 = 4,
+        FINISH                   = 5,
+        REPLAY_FILE              = 41,
+        BOUNTY_FILE              = 42,
+        SCAVENGER_FILE           = 43,
+        NIGHTMARE_FILE           = 44,
+        INTENSITY_STEP           = 8,
+        INTENSITY_END            = 256,
+        DISPLAY_ENABLE_THRESHOLD = 17,
+        HOLD_TICKS               = 151
     };
     u8 fileKey[4];
     u8 loadArgs[4];
 
     switch (task->state) {
-        case MIST_SHOOTING_GALLERY_SPLASH_QUEUE_FILE:
+        case QUEUE_FILE:
             fileKey[3]  = 0;
             fileKey[2]  = 0;
             loadArgs[0] = 0;
@@ -1825,23 +1825,23 @@ static void _mistShootingGalleryModeSplashTask(Task* task)
             loadArgs[3] = 0;
             switch (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode) {
                 case 0:
-                    fileKey[0] = MIST_SHOOTING_GALLERY_SPLASH_REPLAY_FILE;
+                    fileKey[0] = REPLAY_FILE;
                     break;
                 case 1:
-                    fileKey[0] = MIST_SHOOTING_GALLERY_SPLASH_BOUNTY_FILE;
+                    fileKey[0] = BOUNTY_FILE;
                     break;
                 case 2:
-                    fileKey[0] = MIST_SHOOTING_GALLERY_SPLASH_SCAVENGER_FILE;
+                    fileKey[0] = SCAVENGER_FILE;
                     break;
                 case 3:
-                    fileKey[0] = MIST_SHOOTING_GALLERY_SPLASH_NIGHTMARE_FILE;
+                    fileKey[0] = NIGHTMARE_FILE;
                     break;
             }
             cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKey, loadArgs);
             task->state++;
             return;
 
-        case MIST_SHOOTING_GALLERY_SPLASH_WAIT_FILE:
+        case WAIT_FILE:
             if (cdCmdIsIdle() & 0xFFFF) {
                 gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
                 task->killCountdown                     = 0;
@@ -1850,15 +1850,15 @@ static void _mistShootingGalleryModeSplashTask(Task* task)
             }
             return;
 
-        case MIST_SHOOTING_GALLERY_SPLASH_FADE_IN: {
+        case FADE_IN: {
             // Keep display blank until the initial black overlay has started fading.
             _mistShootingGalleryDrawSplashFade(task, true);
 
-            task->killCountdown += MIST_SHOOTING_GALLERY_SPLASH_INTENSITY_STEP;
-            if (task->killCountdown >= MIST_SHOOTING_GALLERY_SPLASH_DISPLAY_ENABLE_THRESHOLD) {
+            task->killCountdown += INTENSITY_STEP;
+            if (task->killCountdown >= DISPLAY_ENABLE_THRESHOLD) {
                 SetDispMask(1);
             }
-            if (task->killCountdown < MIST_SHOOTING_GALLERY_SPLASH_INTENSITY_END) {
+            if (task->killCountdown < INTENSITY_END) {
                 return;
             }
             task->killCountdown = 0;
@@ -1866,20 +1866,20 @@ static void _mistShootingGalleryModeSplashTask(Task* task)
             return;
         }
 
-        case MIST_SHOOTING_GALLERY_SPLASH_HOLD:
+        case HOLD:
             task->killCountdown += 1;
-            if (task->killCountdown < MIST_SHOOTING_GALLERY_SPLASH_HOLD_TICKS && padIsStartPressed() == 0) {
+            if (task->killCountdown < HOLD_TICKS && padIsStartPressed() == 0) {
                 return;
             }
             task->killCountdown = 0;
             task->state++;
             return;
 
-        case MIST_SHOOTING_GALLERY_SPLASH_FADE_OUT: {
+        case FADE_OUT: {
             _mistShootingGalleryDrawSplashFade(task, false);
 
-            task->killCountdown += MIST_SHOOTING_GALLERY_SPLASH_INTENSITY_STEP;
-            if (task->killCountdown < MIST_SHOOTING_GALLERY_SPLASH_INTENSITY_END) {
+            task->killCountdown += INTENSITY_STEP;
+            if (task->killCountdown < INTENSITY_END) {
                 return;
             }
             memFillBytes(gFsImageWorkspacePtr, 0, sizeof(*gFsImageWorkspacePtr));
@@ -1888,7 +1888,7 @@ static void _mistShootingGalleryModeSplashTask(Task* task)
             return;
         }
 
-        case MIST_SHOOTING_GALLERY_SPLASH_FINISH:
+        case FINISH:
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
             taskKill(task);
             displayResumeGameLoop();
@@ -1903,13 +1903,13 @@ static void _mistShootingGalleryModeSplashTask(Task* task)
 static void _mistShootingGalleryClearMovieTask(Task* task)
 {
     enum {
-        MIST_SHOOTING_GALLERY_MOVIE_PREPARE    = 0,
-        MIST_SHOOTING_GALLERY_MOVIE_QUEUE      = 1,
-        MIST_SHOOTING_GALLERY_MOVIE_WAIT_READY = 2,
-        MIST_SHOOTING_GALLERY_MOVIE_PLAY       = 3,
-        MIST_SHOOTING_GALLERY_MOVIE_WAIT_STOP  = 4,
-        MIST_SHOOTING_GALLERY_MOVIE_RESTORE    = 5,
-        MIST_SHOOTING_GALLERY_CLEAR_MOVIE_VIEW = 100
+        MOVIE_PREPARE    = 0,
+        MOVIE_QUEUE      = 1,
+        MOVIE_WAIT_READY = 2,
+        MOVIE_PLAY       = 3,
+        MOVIE_WAIT_STOP  = 4,
+        MOVIE_RESTORE    = 5,
+        CLEAR_MOVIE_VIEW = 100
     };
     u8              streamArgs[4];
     GameLocationKey movieLocation;
@@ -1918,28 +1918,28 @@ static void _mistShootingGalleryClearMovieTask(Task* task)
 
     cdQueue = &gCdCmdQueue;
     switch (task->state) {
-        case MIST_SHOOTING_GALLERY_MOVIE_PREPARE:
+        case MOVIE_PREPARE:
             SetDispMask(0);
             streamPrepareMovieWorkspace(1);
             task->state = task->state + 1;
             break;
-        case MIST_SHOOTING_GALLERY_MOVIE_QUEUE:
+        case MOVIE_QUEUE:
             movieLocation      = gGameSession->location;
-            movieLocation.view = MIST_SHOOTING_GALLERY_CLEAR_MOVIE_VIEW;
+            movieLocation.view = CLEAR_MOVIE_VIEW;
             movieSlot          = streamFindMovieSlot(&movieLocation, 0, 0);
             streamArgs[0]      = movieSlot;
             // This opcode consumes only the slot byte; its other bytes are retained.
             cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, streamArgs);
             task->state = task->state + 1;
             break;
-        case MIST_SHOOTING_GALLERY_MOVIE_WAIT_READY:
+        case MOVIE_WAIT_READY:
             if (cdQueue->movieReady == 0) {
                 break;
             }
             SetDispMask(1);
             task->state = task->state + 1;
             break;
-        case MIST_SHOOTING_GALLERY_MOVIE_PLAY:
+        case MOVIE_PLAY:
             if (cdCmdIsIdle() & 0xFFFF) {
                 SetDispMask(0);
                 task->state = task->state + 1;
@@ -1952,7 +1952,7 @@ static void _mistShootingGalleryClearMovieTask(Task* task)
             cdCmdRequestCancel();
             task->state = task->state + 1;
             break;
-        case MIST_SHOOTING_GALLERY_MOVIE_WAIT_STOP:
+        case MOVIE_WAIT_STOP:
             // Do not release the decoder workspace until playback/cancellation ends.
             if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 break;
@@ -1960,7 +1960,7 @@ static void _mistShootingGalleryClearMovieTask(Task* task)
             streamResetGameRestore();
             task->state = task->state + 1;
             break;
-        case MIST_SHOOTING_GALLERY_MOVIE_RESTORE:
+        case MOVIE_RESTORE:
             if ((streamPollGameRestore(0, 1) & 0xFFFF) == 0) {
                 break;
             }
@@ -1976,28 +1976,28 @@ static void _mistShootingGalleryClearMovieTask(Task* task)
 static void _mistShootingGalleryMovieSessionTask(Task* task)
 {
     enum {
-        MIST_SHOOTING_GALLERY_MOVIE_SESSION_START       = 0,
-        MIST_SHOOTING_GALLERY_MOVIE_SESSION_WAIT_SPLASH = 1,
-        MIST_SHOOTING_GALLERY_MOVIE_SESSION_PLAY        = 2,
-        MIST_SHOOTING_GALLERY_MOVIE_TASK_INDEX          = 1,
-        MIST_SHOOTING_GALLERY_MODE_SPLASH_TASK_INDEX    = 2,
+        MOVIE_SESSION_START       = 0,
+        MOVIE_SESSION_WAIT_SPLASH = 1,
+        MOVIE_SESSION_PLAY        = 2,
+        MOVIE_TASK_INDEX          = 1,
+        MODE_SPLASH_TASK_INDEX    = 2,
     };
     switch (task->state) {
-        case MIST_SHOOTING_GALLERY_MOVIE_SESSION_START:
+        case MOVIE_SESSION_START:
             SetDispMask(0);
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount == 0) {
-                task->state = MIST_SHOOTING_GALLERY_MOVIE_SESSION_PLAY;
+                task->state = MOVIE_SESSION_PLAY;
                 return;
             }
             // The display child owns the splash before this session runs again.
-            displaySpawnTaskFromTable(gMistShootingGalleryMovieTaskDescs, MIST_SHOOTING_GALLERY_MODE_SPLASH_TASK_INDEX, 0, 0);
+            displaySpawnTaskFromTable(gMistShootingGalleryMovieTaskDescs, MODE_SPLASH_TASK_INDEX, 0, 0);
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_FULL;
             viewQueueCurrentCameraAndPackets();
-        case MIST_SHOOTING_GALLERY_MOVIE_SESSION_WAIT_SPLASH:
+        case MOVIE_SESSION_WAIT_SPLASH:
             task->state = task->state + 1;
             return;
-        case MIST_SHOOTING_GALLERY_MOVIE_SESSION_PLAY:
-            displaySpawnTaskFromTable(gMistShootingGalleryMovieTaskDescs, MIST_SHOOTING_GALLERY_MOVIE_TASK_INDEX, 0, 0);
+        case MOVIE_SESSION_PLAY:
+            displaySpawnTaskFromTable(gMistShootingGalleryMovieTaskDescs, MOVIE_TASK_INDEX, 0, 0);
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
             viewQueueCurrentCameraAndPackets();
             taskKill(task);
@@ -2017,10 +2017,10 @@ void mistShootingGallerySelectRoomLights(s16 useAlternate)
 void mistShootingGalleryDrawLightGlowsTask(Task* unused)
 {
     enum {
-        MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE = 0x200,
-        MIST_SHOOTING_GALLERY_CAPSULE_COLOR        = 0x222,
-        MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE    = 0x300,
-        MIST_SHOOTING_GALLERY_DISC_COLOR           = 0x111
+        CAPSULE_RADIUS_SCALE = 0x200,
+        CAPSULE_COLOR        = 0x222,
+        DISC_RADIUS_SCALE    = 0x300,
+        DISC_COLOR           = 0x111
     };
     u8 mappedView;
 
@@ -2028,61 +2028,61 @@ void mistShootingGalleryDrawLightGlowsTask(Task* unused)
     mappedView = viewGetMappedIndex();
     switch (mappedView) {
         case 2:
-            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[0], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[8], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[10], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[0], CAPSULE_RADIUS_SCALE, CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[8], CAPSULE_RADIUS_SCALE, CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[10], CAPSULE_RADIUS_SCALE, CAPSULE_COLOR);
             break;
         case 3:
-            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[4], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[6], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[14], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[16], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[18], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[4], CAPSULE_RADIUS_SCALE, CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[6], CAPSULE_RADIUS_SCALE, CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[14], CAPSULE_RADIUS_SCALE, CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[16], CAPSULE_RADIUS_SCALE, CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[18], CAPSULE_RADIUS_SCALE, CAPSULE_COLOR);
             break;
         case 7:
-            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[14], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[16], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[18], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[20], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[14], CAPSULE_RADIUS_SCALE, CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[16], CAPSULE_RADIUS_SCALE, CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[18], CAPSULE_RADIUS_SCALE, CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[20], CAPSULE_RADIUS_SCALE, CAPSULE_COLOR);
             break;
         case 8:
-            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[24], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[24], CAPSULE_RADIUS_SCALE, CAPSULE_COLOR);
             break;
         case 9:
         case 18:
-            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[20], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[22], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[26], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[28], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[36], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[44], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[20], CAPSULE_RADIUS_SCALE, CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[22], CAPSULE_RADIUS_SCALE, CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[26], CAPSULE_RADIUS_SCALE, CAPSULE_COLOR);
+            _glowDrawCapsule(&_gMistShootingGalleryLightGlowPoints[28], CAPSULE_RADIUS_SCALE, CAPSULE_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[36], DISC_RADIUS_SCALE, DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[44], DISC_RADIUS_SCALE, DISC_COLOR);
             break;
         case 10:
-            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[37], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[39], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[41], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[43], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[37], DISC_RADIUS_SCALE, DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[39], DISC_RADIUS_SCALE, DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[41], DISC_RADIUS_SCALE, DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[43], DISC_RADIUS_SCALE, DISC_COLOR);
             break;
         case 11:
-            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[38], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[39], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[41], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[42], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[38], DISC_RADIUS_SCALE, DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[39], DISC_RADIUS_SCALE, DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[41], DISC_RADIUS_SCALE, DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[42], DISC_RADIUS_SCALE, DISC_COLOR);
             break;
         case 12:
-            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[40], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[41], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[40], DISC_RADIUS_SCALE, DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[41], DISC_RADIUS_SCALE, DISC_COLOR);
             break;
         case 13:
-            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[39], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[39], DISC_RADIUS_SCALE, DISC_COLOR);
             break;
         case 14:
-            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[36], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[37], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[39], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[41], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[43], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[44], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[36], DISC_RADIUS_SCALE, DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[37], DISC_RADIUS_SCALE, DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[39], DISC_RADIUS_SCALE, DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[41], DISC_RADIUS_SCALE, DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[43], DISC_RADIUS_SCALE, DISC_COLOR);
+            glowDrawDisc(&_gMistShootingGalleryLightGlowPoints[44], DISC_RADIUS_SCALE, DISC_COLOR);
             break;
     }
 }

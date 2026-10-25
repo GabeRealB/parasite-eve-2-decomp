@@ -87,9 +87,9 @@ static void _mistParkingAdvanceCutsceneModelPitch(Task* task);
 
 /// Pitch progression in actor-angle units, advanced once per active callback.
 enum {
-    MIST_PARKING_CUTSCENE_MODEL_PITCH_START = -120,
-    MIST_PARKING_CUTSCENE_MODEL_PITCH_STEP  = 15,
-    MIST_PARKING_CUTSCENE_MODEL_PITCH_LIMIT = ACTOR_TRANSFORM_ANGLE_TURN / 8
+    CUTSCENE_MODEL_PITCH_START = -120,
+    CUTSCENE_MODEL_PITCH_STEP  = 15,
+    CUTSCENE_MODEL_PITCH_LIMIT = ACTOR_TRANSFORM_ANGLE_TURN / 8
 };
 
 /// Applies the previous shared placement while recording this callback's pitch.
@@ -122,9 +122,9 @@ void mistParkingControlPlayerHeadAim(s32 mode)
 
 void mistParkingQueueDelayedDisplayModeExit(s32 delayTicks)
 {
-    enum { MIST_PARKING_DISPLAY_EXIT_DESCRIPTOR_INDEX = 5 };
+    enum { DISPLAY_EXIT_DESCRIPTOR_INDEX = 5 };
 
-    displayQueueModeTask(taskGetDescAt(gMistParkingConversationTaskDescs, MIST_PARKING_DISPLAY_EXIT_DESCRIPTOR_INDEX), delayTicks, 0, STAGE_ENTRY_RELOAD);
+    displayQueueModeTask(taskGetDescAt(gMistParkingConversationTaskDescs, DISPLAY_EXIT_DESCRIPTOR_INDEX), delayTicks, 0, STAGE_ENTRY_RELOAD);
 }
 
 #include "mist_parking_display_mode_exit.inc.c"
@@ -137,10 +137,10 @@ void mistParkingDelayDisplayModeExitTask(Task* task)
 void mistParkingSelectDialogueResource(s32 resourceOrdinal)
 {
     enum {
-        MIST_PARKING_DEPARTURE_FONT_VRAM_X = 320,
-        MIST_PARKING_DEPARTURE_FONT_VRAM_Y = 256,
-        MIST_PARKING_PRIZE_FONT_VRAM_X     = 704,
-        MIST_PARKING_PRIZE_FONT_VRAM_Y     = 0
+        DEPARTURE_FONT_VRAM_X = 320,
+        DEPARTURE_FONT_VRAM_Y = 256,
+        PRIZE_FONT_VRAM_X     = 704,
+        PRIZE_FONT_VRAM_Y     = 0
     };
 
     capReset();
@@ -148,12 +148,12 @@ void mistParkingSelectDialogueResource(s32 resourceOrdinal)
         case MIST_PARKING_DIALOGUE_DEPARTURE_MENU:
             gCapFile = NULL;
             capSelectLoadedFile(MIST_PARKING_DIALOGUE_DEPARTURE_MENU);
-            capSetTexturePage(MIST_PARKING_DEPARTURE_FONT_VRAM_X, MIST_PARKING_DEPARTURE_FONT_VRAM_Y);
+            capSetTexturePage(DEPARTURE_FONT_VRAM_X, DEPARTURE_FONT_VRAM_Y);
             break;
         case MIST_PARKING_DIALOGUE_PRIZES:
             gCapFile = NULL;
             capSelectLoadedFile(MIST_PARKING_DIALOGUE_PRIZES);
-            capSetTexturePage(MIST_PARKING_PRIZE_FONT_VRAM_X, MIST_PARKING_PRIZE_FONT_VRAM_Y);
+            capSetTexturePage(PRIZE_FONT_VRAM_X, PRIZE_FONT_VRAM_Y);
             break;
     }
 }
@@ -173,15 +173,15 @@ void mistParkingResetCutsceneTaskHandles(s32 unused)
 static void _mistParkingPlayDepartureMovieTask(Task* task)
 {
     enum {
-        MIST_PARKING_MOVIE_PREPARE                = 0,
-        MIST_PARKING_MOVIE_QUEUE                  = 1,
-        MIST_PARKING_MOVIE_WAIT_READY             = 2,
-        MIST_PARKING_MOVIE_PLAY                   = 3,
-        MIST_PARKING_MOVIE_WAIT_IDLE              = 4,
-        MIST_PARKING_MOVIE_RESTORE                = 5,
-        MIST_PARKING_DEPARTURE_MOVIE_ID           = 100,
-        MIST_PARKING_ALTERNATE_DEPARTURE_MOVIE_ID = 101,
-        MIST_PARKING_MOVIE_MUSIC_FADE_TICKS       = 10
+        MOVIE_PREPARE                = 0,
+        MOVIE_QUEUE                  = 1,
+        MOVIE_WAIT_READY             = 2,
+        MOVIE_PLAY                   = 3,
+        MOVIE_WAIT_IDLE              = 4,
+        MOVIE_RESTORE                = 5,
+        DEPARTURE_MOVIE_ID           = 100,
+        ALTERNATE_DEPARTURE_MOVIE_ID = 101,
+        MOVIE_MUSIC_FADE_TICKS       = 10
     };
     u8              commandArgs[4];
     GameLocationKey movieKey;
@@ -190,19 +190,19 @@ static void _mistParkingPlayDepartureMovieTask(Task* task)
 
     cdQueue = &gCdCmdQueue;
     switch (task->state) {
-        case MIST_PARKING_MOVIE_PREPARE:
+        case MOVIE_PREPARE:
             // Save the displaced VRAM images before reserving movie workspace.
-            stageMusicRequestAreaStop(MIST_PARKING_MOVIE_MUSIC_FADE_TICKS);
+            stageMusicRequestAreaStop(MOVIE_MUSIC_FADE_TICKS);
             SetDispMask(0);
             streamPrepareMovieWorkspace(1);
             task->state = task->state + 1;
             return;
-        case MIST_PARKING_MOVIE_QUEUE:
+        case MOVIE_QUEUE:
             movieKey = gGameSession->location;
             if (task->spawnArg1.value != 0) {
-                movieKey.view = MIST_PARKING_ALTERNATE_DEPARTURE_MOVIE_ID;
+                movieKey.view = ALTERNATE_DEPARTURE_MOVIE_ID;
             } else {
-                movieKey.view = MIST_PARKING_DEPARTURE_MOVIE_ID;
+                movieKey.view = DEPARTURE_MOVIE_ID;
             }
             movieSlot = streamFindMovieSlot(&movieKey, 0, 0);
             // PLAY_STREAM uses byte zero; the other argument bytes are left untouched.
@@ -210,14 +210,14 @@ static void _mistParkingPlayDepartureMovieTask(Task* task)
             cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, commandArgs);
             task->state = task->state + 1;
             return;
-        case MIST_PARKING_MOVIE_WAIT_READY:
+        case MOVIE_WAIT_READY:
             if (cdQueue->movieReady == 0) {
                 return;
             }
             SetDispMask(1);
             task->state = task->state + 1;
             return;
-        case MIST_PARKING_MOVIE_PLAY:
+        case MOVIE_PLAY:
             if (cdCmdIsIdle()) {
                 SetDispMask(0);
                 task->state = task->state + 1;
@@ -230,14 +230,14 @@ static void _mistParkingPlayDepartureMovieTask(Task* task)
             cdCmdRequestCancel();
             task->state = task->state + 1;
             return;
-        case MIST_PARKING_MOVIE_WAIT_IDLE:
+        case MOVIE_WAIT_IDLE:
             if (cdCmdIsIdle() == 0) {
                 return;
             }
             streamResetGameRestore();
             task->state = task->state + 1;
             return;
-        case MIST_PARKING_MOVIE_RESTORE:
+        case MOVIE_RESTORE:
             // Restore before giving the image workspace and display back to gameplay.
             if (streamPollGameRestore(0, 0) == 0) {
                 return;
@@ -265,7 +265,7 @@ static void _mistParkingInitCutsceneModelPitch(Task* task)
     TmdObject* model = task->extra.tmd;
 
     model->flags       &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    task->killCountdown = MIST_PARKING_CUTSCENE_MODEL_PITCH_START;
+    task->killCountdown = CUTSCENE_MODEL_PITCH_START;
     actorMsgPlaceEulerZyx(task, 0, &_gMistParkingCutsceneModelPlacement, 0);
     task->state = task->state + 1;
 }
@@ -279,10 +279,10 @@ static void _mistParkingAdvanceCutsceneModelPitch(Task* task)
     }
 
     // The negative angular seed delays movement; it is not a frame countdown.
-    if (task->killCountdown < MIST_PARKING_CUTSCENE_MODEL_PITCH_LIMIT) {
-        task->killCountdown = task->killCountdown + MIST_PARKING_CUTSCENE_MODEL_PITCH_STEP;
+    if (task->killCountdown < CUTSCENE_MODEL_PITCH_LIMIT) {
+        task->killCountdown = task->killCountdown + CUTSCENE_MODEL_PITCH_STEP;
     } else {
-        task->killCountdown = MIST_PARKING_CUTSCENE_MODEL_PITCH_LIMIT;
+        task->killCountdown = CUTSCENE_MODEL_PITCH_LIMIT;
     }
 }
 
@@ -291,14 +291,14 @@ static void _mistParkingAdvanceCutsceneModelPitch(Task* task)
 void mistParkingCutsceneModelPitchTask(Task* task)
 {
     enum {
-        MIST_PARKING_CUTSCENE_MODEL_INITIALIZE = 0,
-        MIST_PARKING_CUTSCENE_MODEL_PITCH      = 1,
-        MIST_PARKING_CUTSCENE_MODEL_RELEASE    = 2
+        INITIALIZE = 0,
+        PITCH      = 1,
+        RELEASE    = 2
     };
     TaskFunc stateHandlers[] = {
-        [MIST_PARKING_CUTSCENE_MODEL_INITIALIZE] = _mistParkingInitCutsceneModelPitch,
-        [MIST_PARKING_CUTSCENE_MODEL_PITCH]      = _mistParkingAdvanceCutsceneModelPitch,
-        [MIST_PARKING_CUTSCENE_MODEL_RELEASE]    = taskKill
+        [INITIALIZE] = _mistParkingInitCutsceneModelPitch,
+        [PITCH]      = _mistParkingAdvanceCutsceneModelPitch,
+        [RELEASE]    = taskKill
     };
 
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {

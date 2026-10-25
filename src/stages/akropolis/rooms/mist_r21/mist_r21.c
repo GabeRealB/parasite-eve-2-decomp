@@ -70,24 +70,24 @@ static s32 _mistR21IgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, const
 /// Installs the room's messages and starts the idle auxiliary task.
 static void _mistR21InitializeRoomTask(Task* task)
 {
-    enum { MIST_R21_AUXILIARY_TASK_INDEX = 0 };
+    enum { AUXILIARY_TASK_INDEX = 0 };
 
     task->msgTable = _gMistR21RoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    taskSpawnFromTable(&_gMistR21IdleTaskDesc, MIST_R21_AUXILIARY_TASK_INDEX, 0, NULL);
+    taskSpawnFromTable(&_gMistR21IdleTaskDesc, AUXILIARY_TASK_INDEX, 0, NULL);
     task->state = task->state + 1;
 }
 
 /// A debug shortcut: holding L3 and pressing Cross reloads into the Akropolis plaza.
 static void _mistR21CheckPlazaReloadShortcut(Task* task)
 {
-    enum { MIST_R21_PLAZA_SHORTCUT_WARP = 1,
-           MIST_R21_PLAZA_SHORTCUT_VIEW = 2 };
+    enum { WARP = 1,
+           VIEW = 2 };
 
     if ((padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_L3) != 0) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_CROSS) != 0)) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = AKROPOLIS_ROOM_ID_PLAZA;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = MIST_R21_PLAZA_SHORTCUT_WARP;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = MIST_R21_PLAZA_SHORTCUT_VIEW;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = WARP;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = VIEW;
         gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location, GAME_FLOW_LOAD_CAPTION_NORMAL);
         taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_BLANK_DISPLAY, 0);
         taskKill(task);
