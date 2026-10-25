@@ -65,4 +65,7 @@ void shootingGalleryPierceGalleryExitDecisionTask(Task* task);
 /// Resolves abort confirmation for courses 1 and 2, then restores view and control.
 void shootingGalleryPierceGalleryAbortDecisionTask(Task* task);
 
+/// Pierce's index among the gallery's placed actors, which scripts and the menu address him by.
+enum { PIERCE_PLACE_INDEX = 1 };
+
 #endif // STAGES_AKROPOLIS_ACTORS_SHOOTING_GALLERY_PIERCE_SHOOTING_GALLERY_PIERCE_PRIVATE_H

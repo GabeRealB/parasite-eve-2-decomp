@@ -19,17 +19,18 @@
 
 #include "stages/akropolis/rooms/mist_shooting_gallery.h"
 
+#include "assets/engine/animation/player_schema.h"
+#include "assets/rooms/mist/shooting_gallery/pierce_schema.h"
+
 TaskDesc gShootingGalleryPierceGalleryDecisionTaskDescs[2] = {
     { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, shootingGalleryPierceGalleryExitDecisionTask, { .value = 0 } },
     { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, shootingGalleryPierceGalleryAbortDecisionTask, { .value = 0 } },
 };
 
-enum { LEVEL_PROMPT_PLAYER_CLIP = 9 };
-
-/// Resets player clip 9 as the gallery course-level prompt begins.
-static AnimationPlayRequest _gShootingGalleryPierceGalleryLevelPromptPlayerAnimation9Request = {
+/// Puts the player in aim idle as the gallery course-level prompt begins.
+static AnimationPlayRequest _gShootingGalleryPierceGalleryLevelPromptPlayerRequest = {
     .source               = { .index = 1 },
-    .animationId          = LEVEL_PROMPT_PLAYER_CLIP,
+    .animationId          = PLAYER_ANIMATION_AIM_IDLE,
     .blend                = ANIMATION_BLEND_RESET,
     .blendFrames          = 0,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
@@ -44,15 +45,10 @@ static const AnimationPlayRequest _gShootingGalleryPierceRetainedBank1Clip0Reset
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-enum {
-    LEVEL_REPLY_FIRST_CLIP  = 24,
-    LEVEL_REPLY_SECOND_CLIP = 18,
-};
-
-/// Resets Pierce to clip 18 twenty-two updates after the course-level reply's first clip.
-static AnimationPlayRequest _gShootingGalleryPierceGalleryLevelReplyAnimation18Request = {
+/// Returns Pierce to his gallery idle twenty-two updates after the course-level reply's clip.
+static AnimationPlayRequest _gShootingGalleryPierceGalleryLevelReplyIdleRequest = {
     .source               = { .index = 1 },
-    .animationId          = LEVEL_REPLY_SECOND_CLIP,
+    .animationId          = PIERCE_ANIMATION_GALLERY_IDLE,
     .blend                = ANIMATION_BLEND_RESET,
     .blendFrames          = 0,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
@@ -66,21 +62,19 @@ static const AnimationPlayRequest _gShootingGalleryPierceRetainedBank1Clip19To22
     { .source = { .index = 1 }, .animationId = 22, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-enum { LEVEL_PROMPT_PIERCE_CLIP = 23 };
-
-/// Resets Pierce to clip 23 as the gallery course-level prompt begins.
-static const AnimationPlayRequest _gShootingGalleryPierceGalleryLevelPromptPierceAnimation23Request SECTION(".data") = {
+/// Starts Pierce's level prompt as the gallery course-level prompt begins.
+static const AnimationPlayRequest _gShootingGalleryPierceGalleryLevelPromptPierceRequest SECTION(".data") = {
     .source               = { .index = 1 },
-    .animationId          = LEVEL_PROMPT_PIERCE_CLIP,
+    .animationId          = PIERCE_ANIMATION_LEVEL_PROMPT,
     .blend                = ANIMATION_BLEND_RESET,
     .blendFrames          = 0,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Resets Pierce to clip 24 when the course-level reply countdown reaches zero.
-static AnimationPlayRequest _gShootingGalleryPierceGalleryLevelReplyAnimation24Request = {
+/// Starts Pierce's level reply when the course-level reply countdown reaches zero.
+static AnimationPlayRequest _gShootingGalleryPierceGalleryLevelReplyRequest = {
     .source               = { .index = 1 },
-    .animationId          = LEVEL_REPLY_FIRST_CLIP,
+    .animationId          = PIERCE_ANIMATION_LEVEL_REPLY,
     .blend                = ANIMATION_BLEND_RESET,
     .blendFrames          = 0,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
@@ -106,10 +100,10 @@ static inline void _shootingGalleryPierceUpdateLevelReplyAnimations(Task* task)
         task->killCountdown--;
     }
     if (task->killCountdown == 0) {
-        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(1), ACTOR_MESSAGE_PLAY_ANIMATION, &_gShootingGalleryPierceGalleryLevelReplyAnimation24Request, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(PIERCE_PLACE_INDEX), ACTOR_MESSAGE_PLAY_ANIMATION, &_gShootingGalleryPierceGalleryLevelReplyRequest, 0);
     }
     if (task->killCountdown == SECOND_ANIMATION_TICK) {
-        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(1), ACTOR_MESSAGE_PLAY_ANIMATION, &_gShootingGalleryPierceGalleryLevelReplyAnimation18Request, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(PIERCE_PLACE_INDEX), ACTOR_MESSAGE_PLAY_ANIMATION, &_gShootingGalleryPierceGalleryLevelReplyIdleRequest, 0);
     }
 }
 
@@ -231,9 +225,9 @@ void shootingGalleryPierceGalleryTrainingMenuTask(Task* task)
             task->state = LEVEL_CAPTION;
             break;
         case LEVEL_CAPTION:
-            playerActorWriteWeaponAnimationBankIndex(&_gShootingGalleryPierceGalleryLevelPromptPlayerAnimation9Request.source.index);
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &_gShootingGalleryPierceGalleryLevelPromptPlayerAnimation9Request, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(1), ACTOR_MESSAGE_PLAY_ANIMATION, &_gShootingGalleryPierceGalleryLevelPromptPierceAnimation23Request, 0);
+            playerActorWriteWeaponAnimationBankIndex(&_gShootingGalleryPierceGalleryLevelPromptPlayerRequest.source.index);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &_gShootingGalleryPierceGalleryLevelPromptPlayerRequest, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(PIERCE_PLACE_INDEX), ACTOR_MESSAGE_PLAY_ANIMATION, &_gShootingGalleryPierceGalleryLevelPromptPierceRequest, 0);
             task->killCountdown = ANIMATION_DELAY;
             capStartSequenceSlot(LEVEL_CAPTION_BASE, 0, 0);
             task->state++;
