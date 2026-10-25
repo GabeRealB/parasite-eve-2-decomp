@@ -30,7 +30,7 @@
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 
-#include "stages/akropolis/rooms/plaza.h"
+#include "stages/akropolis/rooms/plaza.h" // The plaza's clips, which the banks bind
 
 // The officers are the plaza's: its movies time them and its sound bank holds their steps.
 #include "../../rooms/plaza/config.h"
@@ -38,30 +38,38 @@
 #include "assets/rooms/akropolis/plaza/police_rookie_schema.h"
 #include "assets/rooms/akropolis/plaza/police_sergeant_schema.h"
 
-/// Ground shadow of an officer model, in the units of its part-1 frame.
+/* The Akropolis plaza's two police officers: the rookie at the tower's entrance and the sergeant at the barricade.
+ *
+ * Each officer is two tasks. His controller is the actor the plaza's placements spawn: it shows a posed model while the
+ * plaza's movies have him in shot, and releases it otherwise. His model task is that model - his culled body, posed
+ * and never animated, or his body, which plays the clips the scenes ask for. The scenes swap one for the other by
+ * message, with a display hold between, and play his clips and the player's (Aya's clips in the officers' scenes) by
+ * message too; each clip settles into a follow-up when it ends. His clips, and the player's, are the plaza's - its
+ * package places them - except the rookie's later ones, which are this overlay's.
+ */
+
+/// The ground shadow under an officer: a square, in the units of his part-1 frame.
 enum {
     SHADOW_SIDE = 0x300, // Side of the shadow square
     SHADOW_DROP = 0x380, // Distance from the frame's origin down to the shadow
 };
 
-/// Values of `_OfficerWork::playState`.
-///
-/// The body model draws its floor quad in every state. The culled-body model
-/// never steps its animation after spawn; the rookie's draws its floor quad
-/// only while posed, the sergeant's until frozen.
+/// What an officer's model is doing (`_OfficerWork::playState`): holding its spawn pose, playing the clips the
+/// scenes request, or frozen. A body draws its shadow in every state; a culled body, which never animates, while posed
+/// (the rookie's) or until frozen (the sergeant's).
 enum {
     PLAY_STATE_POSED   = 0, // Holding the spawn pose: relit each frame, animation not stepped
     PLAY_STATE_PLAYING = 1, // A play request arrived: the body model steps its animation and follow-ups
     PLAY_STATE_FROZEN  = 2, // Neither stepped nor relit
 };
 
-/// Officer selected by a model-swap request.
+/// Which officer a model swap is for (its `spawnArg1`); the same values as `POLICE_OFFICERS_CULLED_BODY_*`.
 enum {
     MODEL_SELECT_SERGEANT = 0,
     MODEL_SELECT_ROOKIE   = 1,
 };
 
-/// Model entries in each officer's task descriptor table.
+/// The model entries of an officer's task descriptors, after the controller at 0.
 enum {
     MODEL_TASK_BODY        = 1,
     MODEL_TASK_CULLED_BODY = 2,
@@ -78,7 +86,7 @@ enum {
     MODEL_READY        = 1,
 };
 
-/// Presentation hold preceding installation of a replacement model.
+/// A model swap's states: it holds the display for three frames, then installs the new model.
 enum {
     SWAP_STATE_HOLD    = 0,
     SWAP_STATE_WAIT_1  = 1,
@@ -86,24 +94,15 @@ enum {
     SWAP_STATE_INSTALL = 3,
 };
 
-/// Fixed animation transition durations in normal-rate frames.
+/// How many frames an officer's and the player's clips blend over.
 enum {
     OFFICER_BLEND_FRAMES = 8,
     PLAYER_BLEND_FRAMES  = 10,
 };
 
-/// Work block of one of the plaza's police officers, kept at `Task::work` by
-/// both of his tasks.
-///
-/// The controller task is the placed actor the room's messages reach. It shows
-/// and hides the officer's model as the plaza movie advances and uses only
-/// `modelTask`, `spawnAnimationId` and `bodyAnimationId`. It allocates the
-/// block without clearing it, so those members are indeterminate until written.
-/// The model task clears its own block at spawn and uses the rig, the matrices
-/// and the playback members; its `modelTask` stays `NULL`.
-///
-/// No access to the `pad_` runs has been observed; whether they are unused
-/// members or padding is unproven.
+/// Work of one officer's task, his controller's or his model's - the same layout, each using its own members. The
+/// controller allocates it uncleared and uses only `modelTask`, `spawnAnimationId` and `bodyAnimationId`; the model
+/// clears it and uses the rest. No access to the `pad_` runs is known.
 typedef struct {
     ActorAnimRig19         rig;               // Model: playback storage of the nineteen-part officer model
     MATRIX                 light;             // Model: light matrix lent to the model object
@@ -166,10 +165,8 @@ static void      _policeOfficersSergeantCulledBodyTask(Task* task);
 /// A follow-up entry that ends the chain.
 enum { NO_FOLLOW_UP_ANIMATION = -1 };
 
-/// The player's clip successors in the officers' scenes, indexed by `POLICE_SCENE_PLAYER_ANIMATION_*`.
-///
-/// All twelve entries end the chain. The paired player bank has thirteen slots;
-/// only IDs 0..11 are supported here, and consumers do not check that bound.
+/// The player's follow-ups in the officers' scenes, by `POLICE_SCENE_PLAYER_ANIMATION_*`: none, so a player clip
+/// ends where it ends. Slot 12 of the bank has no entry; no scene plays it.
 static s16 _gPoliceOfficersPlayerFollowUps[12] = {
     NO_FOLLOW_UP_ANIMATION,
     NO_FOLLOW_UP_ANIMATION,
@@ -185,11 +182,8 @@ static s16 _gPoliceOfficersPlayerFollowUps[12] = {
     NO_FOLLOW_UP_ANIMATION,
 };
 
-/// The rookie's clip successors, indexed by `POLICE_ROOKIE_ANIMATION_*`: the clip a clip ends on.
-///
-/// A nonnegative entry selects the next clip when slot 1 reaches its boundary;
-/// NO_FOLLOW_UP_ANIMATION ends the chain. Storage is borrowed by
-/// the follow-up table directory for the overlay's lifetime.
+/// The rookie's follow-ups, by `POLICE_ROOKIE_ANIMATION_*`: the clip each clip settles into when it ends - his
+/// idle, his idle aside, or his talk idle in the officers' talk.
 static s16 _gPoliceOfficersRookieFollowUps[16] = {
     0,
     NO_FOLLOW_UP_ANIMATION,
@@ -209,11 +203,8 @@ static s16 _gPoliceOfficersRookieFollowUps[16] = {
     0,
 };
 
-/// The sergeant's clip successors, indexed by `POLICE_SERGEANT_ANIMATION_*`: the clip a clip ends on.
-///
-/// A nonnegative entry selects the next clip when slot 1 reaches its boundary;
-/// NO_FOLLOW_UP_ANIMATION ends the chain. Storage is borrowed by
-/// the follow-up table directory for the overlay's lifetime.
+/// The sergeant's follow-ups, by `POLICE_SERGEANT_ANIMATION_*`: the clip each clip settles into when it ends - his
+/// idle at the barricade, his talk idle, or a turn of the head back.
 static s16 _gPoliceOfficersSergeantFollowUps[26] = {
     0,
     NO_FOLLOW_UP_ANIMATION,
@@ -243,34 +234,23 @@ static s16 _gPoliceOfficersSergeantFollowUps[26] = {
     0,
 };
 
-/// The follow-up tables, by `POLICE_OFFICERS_ANIMATION_PLAYER` and `POLICE_OFFICERS_FOLLOW_UP_*`.
-///
-/// Selectors 0/1/2 choose player/rookie/sergeant, with animation ID domains
-/// 0..11, 0..15 and 0..25 respectively. A signed -1 entry ends the chain.
-/// Slot-1 boundaries advance officer clips; stopped playback advances the player.
-/// The directory borrows its child tables for the overlay's lifetime.
+/// The follow-up tables, by a request's source index: the player's, the rookie's, the sergeant's.
 static const s16* _gPoliceOfficersFollowUps[3] = {
     _gPoliceOfficersPlayerFollowUps,
     _gPoliceOfficersRookieFollowUps,
     _gPoliceOfficersSergeantFollowUps,
 };
 
-/// The rookie's step-sound sequence for newly entered slot-1 cue-2 records.
-///
-/// The index starts at zero and saturates at entry 2, repeating the final sound.
-/// This branch requires the rookie's placement ID; current model initializers
-/// store that ID before clearing the work, so they leave the branch unreachable.
+/// The rookie's steps, in turn, one a clip's second cue, the last repeating. Unreachable: his model's placement id,
+/// which selects them, is cleared at spawn (`_policeOfficersInitModel`), so he steps like the sergeant.
 static s32 _gPoliceOfficersRookieStepSounds[3] = {
     AKROPOLIS_PLAZA_SOUND(AKROPOLIS_PLAZA_SOUND_ROOKIE_STEP_1),
     AKROPOLIS_PLAZA_SOUND(AKROPOLIS_PLAZA_SOUND_ROOKIE_STEP_2),
     AKROPOLIS_PLAZA_SOUND(AKROPOLIS_PLAZA_SOUND_ROOKIE_STEP_3),
 };
 
-/// The officers' messages: animation, placement and model control.
-///
-/// Terminated by TASK_MESSAGE_TABLE_END. Control callbacks require a controller
-/// with a live model where appropriate; the same table is also installed on
-/// model tasks. Senders discard the callbacks' unset result word.
+/// The officers' messages, answered by the controller and installed on the model too: play a clip, place, swap
+/// in the body or the culled body (or freeze), and stop.
 static TaskMessageEntry _gPoliceOfficersMessages[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _policeOfficersPlayAnimation },
     { ACTOR_MESSAGE_PLACE, _policeOfficersPlace },
@@ -280,24 +260,14 @@ static TaskMessageEntry _gPoliceOfficersMessages[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// Bodyless display-task recipe for a delayed police-officer body-model swap.
-///
-/// Spawn argument 1 selects the sergeant with 0 or
-/// the rookie with 1; argument 2 borrows the live controller. After three display
-/// ticks the replacement uses its saved body animation and area placement,
-/// then resumes the game loop. The old model is released before scheduling.
+/// The display task that swaps an officer's model for his body.
 static TaskDesc _gPoliceOfficersBodySwapTaskDescriptor = {
     .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },
     .callback = _policeOfficersSwapBodyTask,
     .data     = { .value = 0 },
 };
 
-/// Bodyless display-task recipe for a delayed police-officer culled-body swap.
-///
-/// It holds display flipping for three ticks.
-/// Spawn argument 1 selects the sergeant with 0 (his talk idle) or the rookie with 1
-/// (his idle aside); argument 2 borrows the live controller. Requires its area placement
-/// and loaded model/clip data. Replacement is posed before the game loop resumes.
+/// The display task that swaps an officer's model for his culled body.
 static TaskDesc _gPoliceOfficersCulledBodySwapTaskDescriptor = {
     .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },
     .callback = _policeOfficersSwapCulledBodyTask,
@@ -346,15 +316,9 @@ TaskDesc gPoliceOfficersSergeantTaskDescriptors[3] = {
     },
 };
 
-/// Emits newly entered slot-1 sound cues, advances the eighteen non-root slots,
-/// and returns slot 1's `ANIMATION_SLOT_REACHED_BOUNDARY` bit.
-///
-/// The initialized model rig borrows its animation sets. Cue identity is the
-/// record pointer, so a held record sounds once. Both model initializers clear
-/// `placementId` after storing it; their models therefore use the fixed sound
-/// pair. The rookie's retained sequence branch requires a placement ID those
-/// initializers do not preserve.
-static s32 _policeOfficersTickAnimation(Task* task)
+/// Advances an officer's clip one frame: plays the steps on a record's cues as it enters it, ticks the 18 non-root
+/// slots, and returns whether slot 1 reached the clip's end.
+static u16 _policeOfficersTickAnimation(Task* task)
 {
     _OfficerWork*          work;
     const AnimationRecord* cueRecord;
@@ -395,10 +359,31 @@ static s32 _policeOfficersTickAnimation(Task* task)
     return work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY;
 }
 
-/// Reports whether the borrowed player task is absent or has finished its clip.
-///
-/// Returns 1 when the work has no player task or the player answers
-/// `ANIMATION_MESSAGE_IS_PLAYING` with zero, otherwise 0.
+/// Places a model task's root at a placement record: its position, and its yaw (4096 units a turn).
+static inline void _policeOfficersPlaceAt(Task* modelTask, const AreaPlacement* placement)
+{
+    GfxCoord* rootCoord;
+
+    rootCoord             = modelTask->extra.tmd->coords;
+    rootCoord->coord.t[0] = placement->x;
+    rootCoord->coord.t[1] = placement->y;
+    rootCoord->coord.t[2] = placement->z;
+    gfxRotMatrixY(&rootCoord->coord, placement->yaw, 0);
+}
+
+/// The current area's placement record of an officer, or its list's end if absent.
+static inline AreaPlacement* _policeOfficersFindPlacement(u8 placementId)
+{
+    AreaPlacement* placement;
+
+    placement = areaGetVariant(&gGameSession->location)->placements;
+    while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != placementId) {
+        placement++;
+    }
+    return placement;
+}
+
+/// Whether the player has no task or has finished its clip.
 static inline u16 _policeOfficersIsPlayerAnimationStopped(Task* task)
 {
     Task* playerTask;
@@ -410,15 +395,8 @@ static inline u16 _policeOfficersIsPlayerAnimationStopped(Task* task)
     return 0;
 }
 
-/// Advances an officer and chains his and the player's follow-up clips.
-///
-/// The initialized rig and borrowed player task must remain live. Follow-up
-/// selector 0 uses the twelve-entry player table, 1 the sixteen-entry rookie's
-/// table, and 2 the twenty-six-entry sergeant's table; cached animation IDs must
-/// fit their selected tables. A negative table entry ends that chain.
-/// Officer transitions blend for eight frames; player transitions use ten
-/// frames and enable world collision. A missing player still advances its
-/// cached chain. The player table currently contains only end markers.
+/// Advances an officer's clip and moves him and the player on to their follow-ups as their clips end; the player's
+/// runs in the player's own bank and enables world collision.
 static void _policeOfficersUpdateAnimation(Task* task)
 {
     AnimationPlayRequest playerRequest;
@@ -429,13 +407,15 @@ static void _policeOfficersUpdateAnimation(Task* task)
     s32                  slotIndex;
 
     work = (_OfficerWork*)task->work;
-    if (_policeOfficersTickAnimation(task) & 0xFFFF) {
+    if (_policeOfficersTickAnimation(task)) {
         followUpAnimationId = _gPoliceOfficersFollowUps[work->followUpTable][work->animationId];
         if (_gPoliceOfficersFollowUps[work->followUpTable][work->animationId] >= 0) {
+            // Blend every non-root slot into the follow-up. This loop and the play handler's stay written out: as a
+            // helper they allocate differently.
             officerWork = (_OfficerWork*)task->work;
             slotIndex   = 1;
             do {
-                animationSeekSlotWithBlend(&officerWork->rig.anim, slotIndex & 0xFFFF, followUpAnimationId & 0xFFFF, 0, OFFICER_BLEND_FRAMES);
+                animationSeekSlotWithBlend(&officerWork->rig.anim, slotIndex & 0xFFFF, followUpAnimationId, 0, OFFICER_BLEND_FRAMES);
                 slotIndex += 1;
             } while ((u32)(slotIndex & 0xFFFF) < ARRAY_SIZE(officerWork->rig.slots));
             work->animationId = followUpAnimationId;
@@ -459,123 +439,76 @@ static void _policeOfficersUpdateAnimation(Task* task)
     }
 }
 
-/// Places the replacement officer model, holds its pose and releases the display handoff.
-///
-/// The live controller must own an initialized model and the area must contain
-/// `placementId`. XYZ use the root's parent frame; yaw uses 4096 units per turn.
-/// The replacement is already on the default task list. Holds its pose, kills
-/// the temporary display task, then resumes the game loop; retains no pointer.
+/// Finishes a swap: places the new model at the officer's placement, posed, ends the display task and gives the
+/// display back to the game loop.
 static inline void _policeOfficersFinishModelSwap(Task* displayTask, const _OfficerWork* controllerWork, u8 placementId)
 {
     _OfficerWork*        modelWork;
     Task*                modelTask;
-    TmdObject*           model;
-    GfxCoord*            rootCoord;
     const AreaPlacement* placement;
 
     modelTask = controllerWork->modelTask;
-    placement = areaGetVariant(&gGameSession->location)->placements;
-    while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != placementId) {
-        placement++;
-    }
-    model                 = modelTask->extra.tmd;
-    rootCoord             = model->coords;
-    rootCoord->coord.t[0] = placement->x;
-    rootCoord->coord.t[1] = placement->y;
-    rootCoord->coord.t[2] = placement->z;
-    gfxRotMatrixY(&rootCoord->coord, placement->yaw, 0);
+    placement = _policeOfficersFindPlacement(placementId);
+    _policeOfficersPlaceAt(modelTask, placement);
     modelWork            = controllerWork->modelTask->work;
     modelWork->playState = PLAY_STATE_POSED;
     taskKill(displayTask);
     displayResumeGameLoop();
 }
 
-/// Replaces the controller's officer model with its body model after a three-tick display hold.
-///
-/// `spawnArg2` borrows the live controller task. `spawnArg1` selects the sergeant
-/// with 0 or the rookie with 1; other selectors are unsupported. The area's
-/// placement table must contain that officer's record. The replacement starts
-/// posed on the default task list, then this temporary display task releases
-/// presentation back to the game loop. Its clip is the controller's `bodyAnimationId`.
+/// Swaps the controller's officer model after a three-tick display hold: spawns his body on the controller's
+/// `bodyAnimationId`, or his culled body (`culled`) on his posed clip - the sergeant's talk idle, the rookie's idle
+/// aside - places it at his area placement, posed, and hands the display back to the game loop. `spawnArg1` selects
+/// the sergeant (`MODEL_SELECT_SERGEANT`) or the rookie; `spawnArg2` is the live controller task.
+static inline void _policeOfficersSwapModel(Task* task, s32 culled)
+{
+    _OfficerWork* controllerWork;
+    u8            placementId;
+
+    controllerWork = (_OfficerWork*)((Task*)task->spawnArg2.pointer)->work;
+    switch (task->state) {
+        case SWAP_STATE_HOLD:
+            gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
+            /* fallthrough */
+        case SWAP_STATE_WAIT_1:
+        case SWAP_STATE_WAIT_2:
+            task->state++;
+            return;
+        case SWAP_STATE_INSTALL:
+            // The loops around the placement ids are the original's: they weight the allocation it has.
+            if (task->spawnArg1.value == MODEL_SELECT_SERGEANT) {
+                do {
+                    placementId = POLICE_OFFICERS_PLACEMENT_SERGEANT;
+                } while (0);
+                controllerWork->modelTask = taskSpawnFromTableOnDefaultList(gPoliceOfficersSergeantTaskDescriptors, culled ? MODEL_TASK_CULLED_BODY : MODEL_TASK_BODY,
+                                                                            culled ? POLICE_SERGEANT_ANIMATION_TALK_IDLE : (s32)controllerWork->bodyAnimationId, 0);
+            } else if (task->spawnArg1.value == MODEL_SELECT_ROOKIE) {
+                do {
+                    do {
+                        placementId = POLICE_OFFICERS_PLACEMENT_ROOKIE;
+                    } while (0);
+                } while (0);
+                controllerWork->modelTask = taskSpawnFromTableOnDefaultList(gPoliceOfficersRookieTaskDescriptors, culled ? MODEL_TASK_CULLED_BODY : MODEL_TASK_BODY,
+                                                                            culled ? POLICE_ROOKIE_ANIMATION_ASIDE_IDLE : (s32)controllerWork->bodyAnimationId, 0);
+            }
+            _policeOfficersFinishModelSwap(task, controllerWork, placementId);
+            break;
+    }
+}
+
+/// Swaps in an officer's animated body.
 static void _policeOfficersSwapBodyTask(Task* task)
 {
-    _OfficerWork* controllerWork;
-    u8            placementId;
-
-    controllerWork = (_OfficerWork*)((Task*)task->spawnArg2.pointer)->work;
-    switch (task->state) {
-        case SWAP_STATE_HOLD:
-            gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
-            /* fallthrough */
-        case SWAP_STATE_WAIT_1:
-        case SWAP_STATE_WAIT_2:
-            task->state++;
-            return;
-        case SWAP_STATE_INSTALL:
-            if (task->spawnArg1.value == MODEL_SELECT_SERGEANT) {
-                do {
-                    placementId = POLICE_OFFICERS_PLACEMENT_SERGEANT;
-                } while (0);
-                controllerWork->modelTask = taskSpawnFromTableOnDefaultList(gPoliceOfficersSergeantTaskDescriptors, MODEL_TASK_BODY, (s32)controllerWork->bodyAnimationId, 0);
-            } else if (task->spawnArg1.value == MODEL_SELECT_ROOKIE) {
-                do {
-                    do {
-                        placementId = POLICE_OFFICERS_PLACEMENT_ROOKIE;
-                    } while (0);
-                } while (0);
-                controllerWork->modelTask = taskSpawnFromTableOnDefaultList(gPoliceOfficersRookieTaskDescriptors, MODEL_TASK_BODY, (s32)controllerWork->bodyAnimationId, 0);
-            }
-            _policeOfficersFinishModelSwap(task, controllerWork, placementId);
-            break;
-    }
+    _policeOfficersSwapModel(task, false);
 }
 
-/// Replaces the controller's officer model with its culled-body model after a three-tick display hold.
-///
-/// `spawnArg2` borrows the live controller task. `spawnArg1` selects the sergeant
-/// with 0 or the rookie with 1; other selectors are unsupported. The area's
-/// placement table must contain that officer's record. The replacement starts
-/// posed on the default task list, then this temporary display task releases
-/// presentation back to the game loop. The sergeant starts on his talk idle, the officer on his idle aside.
+/// Swaps in an officer's culled body.
 static void _policeOfficersSwapCulledBodyTask(Task* task)
 {
-    _OfficerWork* controllerWork;
-    u8            placementId;
-
-    controllerWork = (_OfficerWork*)((Task*)task->spawnArg2.pointer)->work;
-    switch (task->state) {
-        case SWAP_STATE_HOLD:
-            gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
-            /* fallthrough */
-        case SWAP_STATE_WAIT_1:
-        case SWAP_STATE_WAIT_2:
-            task->state++;
-            return;
-        case SWAP_STATE_INSTALL:
-            if (task->spawnArg1.value == MODEL_SELECT_SERGEANT) {
-                do {
-                    placementId = POLICE_OFFICERS_PLACEMENT_SERGEANT;
-                } while (0);
-                controllerWork->modelTask = taskSpawnFromTableOnDefaultList(gPoliceOfficersSergeantTaskDescriptors, MODEL_TASK_CULLED_BODY, POLICE_SERGEANT_ANIMATION_TALK_IDLE, 0);
-            } else if (task->spawnArg1.value == MODEL_SELECT_ROOKIE) {
-                do {
-                    do {
-                        placementId = POLICE_OFFICERS_PLACEMENT_ROOKIE;
-                    } while (0);
-                } while (0);
-                controllerWork->modelTask = taskSpawnFromTableOnDefaultList(gPoliceOfficersRookieTaskDescriptors, MODEL_TASK_CULLED_BODY, POLICE_ROOKIE_ANIMATION_ASIDE_IDLE, 0);
-            }
-            _policeOfficersFinishModelSwap(task, controllerWork, placementId);
-            break;
-    }
+    _policeOfficersSwapModel(task, true);
 }
 
-/// Restarts every non-root officer slot at unit rate on the selected clip.
-///
-/// Requires an initialized nineteen-part rig and a loaded `animationId` with
-/// tracks 1..18 in its bound table. Resets slot timing, track endpoints and
-/// playback flags without ticking a pose; slot 0 and coordinates are untouched.
-/// Clip data must remain live during playback. Borrows work without allocating.
+/// Restarts the 18 non-root slots on a clip at its start, at the normal rate.
 static inline void _policeOfficersResetSlots(_OfficerWork* slotWork, u16 animationId)
 {
     u16 slotIndex;
@@ -588,134 +521,77 @@ static inline void _policeOfficersResetSlots(_OfficerWork* slotWork, u16 animati
     } while (slotIndex < ARRAY_SIZE(slotWork->rig.slots));
 }
 
-/// Initializes an officer's body-model rig, primitive buffer and placement textures.
-///
-/// `placementId` is `POLICE_OFFICERS_PLACEMENT_ROOKIE` or
-/// `POLICE_OFFICERS_PLACEMENT_SERGEANT` and must have an area placement record.
-/// The task already owns the nineteen-part model and its coordinates. This
-/// allocates task-owned work, borrows the live player task and the selected
-/// animation sets, parents the root to the view, and starts slots 1..18 on
-/// the low halfword of `spawnArg1`. Allocation failure kills the task.
-/// Clearing the work erases the preceding placement-ID store. It then runs one
-/// animation/follow-up update before installing its message table.
+/// Initializes an officer's model: allocates and clears its work (the placement id stored just before the clear is
+/// lost, see `_policeOfficersTickAnimation`), takes the player's task, parents the model to the view, binds the
+/// officer's bank and starts slots 1..18 on the spawn clip (`spawnArg1`), runs one animation update, installs the
+/// officers' messages and applies its placement's texture offsets. A culled body keeps its spawn clip, which the
+/// controller restores when it shows him again. Allocation failure kills the task.
+static inline void _policeOfficersInitModel(Task* task, s32 placementId, s32 keepSpawnClip)
+{
+    _OfficerWork*  work;
+    _OfficerWork*  slotWork;
+    TmdObject*     model;
+    GfxCoord*      rootCoord;
+    AreaPlacement* placement;
+    u16            officerPlacementId;
+    u16            spawnAnimationId;
+    u8             texturePlacementId;
+
+    rootCoord          = task->extra.tmd->coords;
+    model              = task->extra.tmd;
+    work               = memMalloc(sizeof(*work), false);
+    officerPlacementId = placementId;
+    task->work         = work;
+    if (work == NULL) {
+        taskKill(task);
+        return;
+    }
+    work->placementId = placementId;
+    // Retain the store-before-clear order: placementId becomes zero.
+    memFillBytes(task->work, 0U, sizeof(*work));
+    work->playerTask  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    rootCoord->parent = &gGfxViewCoord;
+    tmdAllocPrimitiveBuffer(model);
+    model->lightMtx = &work->light;
+    model->colorMtx = &work->color;
+    model->flags    = 0;
+    if (officerPlacementId == POLICE_OFFICERS_PLACEMENT_ROOKIE) {
+        animationInitContext(&work->rig.anim, _gPoliceOfficersRookieAnimSets, model, work->rig.poses,
+                             &work->rig.slots[0]);
+    } else {
+        animationInitContext(&work->rig.anim, _gPoliceOfficersSergeantAnimSets, model, work->rig.poses,
+                             &work->rig.slots[0]);
+    }
+    if (keepSpawnClip) {
+        work->spawnAnimationId = task->spawnArg1.value;
+        spawnAnimationId       = work->spawnAnimationId;
+    } else {
+        spawnAnimationId = task->spawnArg1.value;
+    }
+    slotWork = (_OfficerWork*)task->work;
+    _policeOfficersResetSlots(slotWork, spawnAnimationId);
+    _policeOfficersUpdateAnimation(task);
+    task->msgTable     = _gPoliceOfficersMessages;
+    texturePlacementId = officerPlacementId;
+    placement          = _policeOfficersFindPlacement(texturePlacementId);
+    tmdSetTextureOffsets(model, placement->texturePageOffset, placement->clutRowOffset);
+}
+
+/// Initializes an officer's animated body.
 static void _policeOfficersInitBody(Task* task, s32 placementId)
 {
-    _OfficerWork*  work;
-    _OfficerWork*  slotWork;
-    TmdObject*     model;
-    GfxCoord*      rootCoord;
-    AreaPlacement* placement;
-    u16            officerPlacementId;
-    u16            spawnAnimationId;
-    u8             texturePlacementId;
-
-    rootCoord          = task->extra.tmd->coords;
-    model              = task->extra.tmd;
-    work               = memMalloc(sizeof(*work), false);
-    officerPlacementId = placementId;
-    task->work         = work;
-    if (work == NULL) {
-        taskKill(task);
-        return;
-    }
-    work->placementId = placementId;
-    // Retain the store-before-clear order: placementId becomes zero.
-    memFillBytes(task->work, 0U, sizeof(*work));
-    work->playerTask  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    rootCoord->parent = &gGfxViewCoord;
-    tmdAllocPrimitiveBuffer(model);
-    model->lightMtx = &work->light;
-    model->colorMtx = &work->color;
-    model->flags    = 0;
-    if (officerPlacementId == POLICE_OFFICERS_PLACEMENT_ROOKIE) {
-        animationInitContext(&work->rig.anim, _gPoliceOfficersRookieAnimSets, model, work->rig.poses,
-                             &work->rig.slots[0]);
-    } else {
-        animationInitContext(&work->rig.anim, _gPoliceOfficersSergeantAnimSets, model, work->rig.poses,
-                             &work->rig.slots[0]);
-    }
-    spawnAnimationId = task->spawnArg1.value;
-    slotWork         = (_OfficerWork*)task->work;
-    _policeOfficersResetSlots(slotWork, spawnAnimationId);
-    _policeOfficersUpdateAnimation(task);
-    task->msgTable     = _gPoliceOfficersMessages;
-    texturePlacementId = officerPlacementId;
-    placement          = areaGetVariant(&gGameSession->location)->placements;
-    while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != texturePlacementId) {
-        placement++;
-    }
-    tmdSetTextureOffsets(model, placement->texturePageOffset, placement->clutRowOffset);
+    _policeOfficersInitModel(task, placementId, false);
 }
 
-/// Initializes an officer's culled-body rig, primitive buffer and placement textures.
-///
-/// `placementId` is `POLICE_OFFICERS_PLACEMENT_ROOKIE` or
-/// `POLICE_OFFICERS_PLACEMENT_SERGEANT` and must have an area placement record.
-/// The task already owns the nineteen-part model and its coordinates. This
-/// allocates task-owned work, borrows the live player task and the selected
-/// animation sets, parents the root to the view, and starts slots 1..18 on
-/// the low halfword of `spawnArg1`. Allocation failure kills the task.
-/// Clearing the work erases the preceding placement-ID store. The spawn clip
-/// is retained for the controller to restore when this model is hidden. It runs
-/// one animation/follow-up update; its frame handlers hold the resulting pose.
+/// Initializes an officer's culled body, keeping its spawn clip.
 static void _policeOfficersInitCulledBody(Task* task, s32 placementId)
 {
-    _OfficerWork*  work;
-    _OfficerWork*  slotWork;
-    TmdObject*     model;
-    GfxCoord*      rootCoord;
-    AreaPlacement* placement;
-    u16            officerPlacementId;
-    u16            spawnAnimationId;
-    u8             texturePlacementId;
-
-    rootCoord          = task->extra.tmd->coords;
-    model              = task->extra.tmd;
-    work               = memMalloc(sizeof(*work), false);
-    officerPlacementId = placementId;
-    task->work         = work;
-    if (work == NULL) {
-        taskKill(task);
-        return;
-    }
-    work->placementId = placementId;
-    // Retain the store-before-clear order: placementId becomes zero.
-    memFillBytes(task->work, 0U, sizeof(*work));
-    work->playerTask  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    rootCoord->parent = &gGfxViewCoord;
-    tmdAllocPrimitiveBuffer(model);
-    model->lightMtx = &work->light;
-    model->colorMtx = &work->color;
-    model->flags    = 0;
-    if (officerPlacementId == POLICE_OFFICERS_PLACEMENT_ROOKIE) {
-        animationInitContext(&work->rig.anim, _gPoliceOfficersRookieAnimSets, model, work->rig.poses,
-                             &work->rig.slots[0]);
-    } else {
-        animationInitContext(&work->rig.anim, _gPoliceOfficersSergeantAnimSets, model, work->rig.poses,
-                             &work->rig.slots[0]);
-    }
-    work->spawnAnimationId = task->spawnArg1.value;
-    spawnAnimationId       = work->spawnAnimationId;
-    slotWork               = (_OfficerWork*)task->work;
-    _policeOfficersResetSlots(slotWork, spawnAnimationId);
-    _policeOfficersUpdateAnimation(task);
-    task->msgTable     = _gPoliceOfficersMessages;
-    texturePlacementId = officerPlacementId;
-    placement          = areaGetVariant(&gGameSession->location)->placements;
-    while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != texturePlacementId) {
-        placement++;
-    }
-    tmdSetTextureOffsets(model, placement->texturePageOffset, placement->clutRowOffset);
+    _policeOfficersInitModel(task, placementId, true);
 }
 
-/// Shows or releases the rookie's posed model as the plaza's movies play.
-///
-/// Allocates uncleared controller work and installs the scene-message table.
-/// The officers' talk stops the controller without releasing its current model.
-/// The traversal shows him from movie frame 230; the helicopter wreck's movie hides him at its frames 7..107;
-/// the others show him. Requires his area placement and successful model-task creation. Hidden-to-shown
-/// transitions restart his culled body standing;
-/// placement uses parent-frame game units and yaw at 4096 units per turn.
+/// The rookie's controller: the placed actor, which shows his posed culled body while the plaza's movies show him -
+/// in the traversal from frame 230 on, in every other movie but the helicopter wreck's frames 7..107 - and releases
+/// it otherwise. The officers' talk stops it; the scenes then drive his model by messages.
 static void _policeOfficersRookieControllerTask(Task* task)
 {
     enum {
@@ -766,18 +642,11 @@ static void _policeOfficersRookieControllerTask(Task* task)
             // Keep the model lifetime synchronized with its movie visibility window:
             ROOKIE_MOVIE_VISIBLE(modelVisible);
             if (modelVisible) {
-                work      = task->work;
-                placement = areaGetVariant(&gGameSession->location)->placements;
-                while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != POLICE_OFFICERS_PLACEMENT_ROOKIE) {
-                    placement++;
-                }
-                modelTask             = taskSpawnFromTable(gPoliceOfficersRookieTaskDescriptors, MODEL_TASK_CULLED_BODY, POLICE_ROOKIE_ANIMATION_STAND, 0);
-                work->modelTask       = modelTask;
-                rootCoord             = modelTask->extra.tmd->coords;
-                rootCoord->coord.t[0] = placement->x;
-                rootCoord->coord.t[1] = placement->y;
-                rootCoord->coord.t[2] = placement->z;
-                gfxRotMatrixY(&rootCoord->coord, placement->yaw, 0);
+                work            = task->work;
+                placement       = _policeOfficersFindPlacement(POLICE_OFFICERS_PLACEMENT_ROOKIE);
+                modelTask       = taskSpawnFromTable(gPoliceOfficersRookieTaskDescriptors, MODEL_TASK_CULLED_BODY, POLICE_ROOKIE_ANIMATION_STAND, 0);
+                work->modelTask = modelTask;
+                _policeOfficersPlaceAt(modelTask, placement);
                 task->state++;
             }
             break;
@@ -794,14 +663,9 @@ static void _policeOfficersRookieControllerTask(Task* task)
 #undef ROOKIE_MOVIE_VISIBLE
 }
 
-/// Shows or releases the sergeant's posed model as the plaza movie advances.
-///
-/// Allocates uncleared controller work, installs scene messages and seeds his idle. The officers' talk stops the
-/// controller without releasing its current model. The traversal shows him at movie frames 75..195; the helicopter
-/// wreck's, the badge scene's and the entering tower's movies hide him; the others show him.
-/// Requires the sergeant's area placement and successful model-task creation.
-/// Saves the model's spawn clip before hiding and reuses it on the next spawn.
-/// Placement uses parent-frame game units and yaw at 4096 units per turn.
+/// The sergeant's controller: shows his posed culled body in the traversal at frames 75..195 and releases it
+/// in the helicopter wreck's, the badge scene's and the entering tower's movies, keeping the clip it was on for the next
+/// time. The officers' talk stops it; the scenes then drive his model by messages.
 static void _policeOfficersSergeantControllerTask(Task* task)
 {
     enum {
@@ -856,17 +720,10 @@ static void _policeOfficersSergeantControllerTask(Task* task)
         case CONTROLLER_HIDDEN:
             SERGEANT_MOVIE_VISIBLE(modelVisible);
             if (modelVisible) {
-                placement = areaGetVariant(&gGameSession->location)->placements;
-                while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != POLICE_OFFICERS_PLACEMENT_SERGEANT) {
-                    placement++;
-                }
-                modelTask             = taskSpawnFromTable(gPoliceOfficersSergeantTaskDescriptors, MODEL_TASK_CULLED_BODY, (s32)work->spawnAnimationId, 0);
-                work->modelTask       = modelTask;
-                rootCoord             = modelTask->extra.tmd->coords;
-                rootCoord->coord.t[0] = placement->x;
-                rootCoord->coord.t[1] = placement->y;
-                rootCoord->coord.t[2] = placement->z;
-                gfxRotMatrixY(&rootCoord->coord, placement->yaw, 0);
+                placement       = _policeOfficersFindPlacement(POLICE_OFFICERS_PLACEMENT_SERGEANT);
+                modelTask       = taskSpawnFromTable(gPoliceOfficersSergeantTaskDescriptors, MODEL_TASK_CULLED_BODY, (s32)work->spawnAnimationId, 0);
+                work->modelTask = modelTask;
+                _policeOfficersPlaceAt(modelTask, placement);
                 task->state++;
             }
             break;
@@ -883,13 +740,7 @@ static void _policeOfficersSergeantControllerTask(Task* task)
 #undef SERGEANT_MOVIE_VISIBLE
 }
 
-/// Handles `ACTOR_MESSAGE_SET_MODEL_DRAW` by scheduling an officer body-model swap.
-///
-/// The receiver is the live officer controller; selector 0 chooses the sergeant,
-/// 1 the rookie. This receiver requires a non-null, synchronously
-/// borrowed `AnimationPlayRequest` as the second payload and copies only its
-/// animation ID's low halfword. It releases any old model before the delayed
-/// swap. The callback leaves the result word unset; senders must discard it.
+/// `ACTOR_MESSAGE_SET_MODEL_DRAW`: a scene swaps in the officer's (`MODEL_SELECT_*`) body, on the request's clip.
 static s32 _policeOfficersSetBody(Task* task, s32 messageId, s32 officerSelector, const AnimationPlayRequest* animation)
 {
     _OfficerWork* controllerWork;
@@ -902,13 +753,7 @@ static s32 _policeOfficersSetBody(Task* task, s32 messageId, s32 officerSelector
     displaySpawnTaskFromTable(&_gPoliceOfficersBodySwapTaskDescriptor, 0, officerSelector, task);
 }
 
-/// Handles the culled-body message by freezing the model or scheduling its replacement.
-///
-/// The controller must have live model work before every mode, including a
-/// replacement request. Mode 3 freezes that model without replacing it; mode
-/// 0 replaces it with the sergeant's culled body, mode 1 with the rookie's.
-/// The second payload is unused. The callback leaves the result word unset;
-/// senders must discard it.
+/// `POLICE_OFFICERS_MESSAGE_SET_CULLED_BODY`: swaps in the officer's culled body, posed, or freezes his model.
 static s32 _policeOfficersSetCulledBody(Task* task, s32 messageId, s32 mode, s32 unusedSecondArg)
 {
     _OfficerWork* controllerWork;
@@ -926,17 +771,9 @@ static s32 _policeOfficersSetCulledBody(Task* task, s32 messageId, s32 mode, s32
     }
 }
 
-/// Handles `ACTOR_MESSAGE_PLAY_ANIMATION` for the officer or its paired player.
-///
-/// The controller must have an initialized live model. `animation` is borrowed
-/// for this dispatch: its source index is `POLICE_OFFICERS_ANIMATION_PLAYER`, a clip of the player's bank, or else a
-/// `POLICE_OFFICERS_FOLLOW_UP_*` table, the clip being one of the receiving officer's own bank. IDs must fit the
-/// twelve-entry player or sixteen-/twenty-six-entry officer follow-up table. ID and blend
-/// values narrow to unsigned halfwords. Officer reset requests restore unit
-/// rates; nonzero blends use eight frames. Player requests use ten frames and
-/// enable world collision, ignoring the corresponding incoming fields.
-/// Both routes enable model playback. The second payload is unused; senders
-/// must discard the unset callback result.
+/// `ACTOR_MESSAGE_PLAY_ANIMATION`: plays a clip on the player (`POLICE_OFFICERS_ANIMATION_PLAYER`, from the player's
+/// bank) or on the officer (from his own bank, blended in or restarted), whose follow-ups then come from the table the
+/// request names.
 static s32 _policeOfficersPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* animation, s32 unusedSecondArg)
 {
     AnimationPlayRequest playerRequest;
@@ -987,12 +824,7 @@ static s32 _policeOfficersPlayAnimation(Task* task, s32 messageId, const Animati
     }
 }
 
-/// Handles `ACTOR_MESSAGE_PLACE` by placing the controller's live officer model.
-///
-/// Borrows `placement` through dispatch. Translation is in the root's parent
-/// coordinate units; only Y rotation is used, at 4096 angle units per turn.
-/// Rebuilds the root's yaw and marks composition dirty. The second payload is
-/// unused; senders must discard the unset callback result.
+/// `ACTOR_MESSAGE_PLACE`: places the officer's model, at a position and a yaw.
 static s32 _policeOfficersPlace(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedSecondArg)
 {
     _OfficerWork* controllerWork;
@@ -1007,11 +839,8 @@ static s32 _policeOfficersPlace(Task* task, s32 messageId, const ActorTransform*
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Handles the stop message by releasing the model and stopping the officer controller.
-///
-/// The receiver's controller work must be initialized. Both payloads are
-/// unused. The controller task remains alive, stopped, so a later scene
-/// message can install another model; senders must discard the unset result.
+/// `POLICE_OFFICERS_MESSAGE_STOP_CONTROLLER`: releases the officer's model and stops his controller, which then waits
+/// for a scene to swap a model in.
 static s32 _policeOfficersStopController(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
     _OfficerWork* controllerWork;
@@ -1024,12 +853,7 @@ static s32 _policeOfficersStopController(Task* task, s32 messageId, s32 unusedFi
     task->state = CONTROLLER_STOPPED;
 }
 
-/// Rebuilds an officer model's full lighting at the origin of its part-1 frame.
-///
-/// Requires a live nineteen-part model with writable light and color matrices.
-/// Samples its cached signed world translation without composing it; the part
-/// and view must already be current. The lighting query borrows nested scratch
-/// storage and changes GTE state; no pointer to this local sample is retained.
+/// Lights an officer's model at the origin of his part-1 frame.
 static inline void _policeOfficersLightModel(Task* task)
 {
     VECTOR     position;
@@ -1042,12 +866,7 @@ static inline void _policeOfficersLightModel(Task* task)
     worldCoordSetModelLighting(model, &position, 0, ARRAY_SIZE(model->colorMtx->m[0]));
 }
 
-/// Draws an officer model's ground shadow: a square in the XZ plane of its
-/// part-1 frame, centered at positive local Y `SHADOW_DROP`.
-///
-/// Requires the task's live nineteen-part model and coordinate hierarchy.
-/// The side and center offset use that part's integer coordinate units; the
-/// ground-shadow drawer composes the frame and borrows a packet for this frame.
+/// Draws an officer's ground shadow, `SHADOW_DROP` below his part-1 frame.
 static inline void _policeOfficersDrawShadow(Task* modelTask)
 {
     SVECTOR offset;
@@ -1058,83 +877,58 @@ static inline void _policeOfficersDrawShadow(Task* modelTask)
     actorRenderDrawGroundShadow(&modelTask->extra.tmd->coords[1], SHADOW_SIDE, &offset);
 }
 
-/// Initializes and updates the rookie's animated body, lighting and ground shadow.
-///
-/// Requires a nineteen-part model; ready ticks require initialized work.
-/// Initialization binds the rookie's rig and falls through to ready processing.
-/// Every ready tick draws the shadow first. Playing advances animation and
-/// follow-ups; posed holds the rig. Frozen or unhandled playback states return
-/// after the shadow, before animation and lighting.
+/// An officer's animated body: initializes on its first frame, then each frame draws the shadow and, unless frozen,
+/// advances its clip while playing and relights.
+static inline void _policeOfficersUpdateBody(Task* task, s32 placementId)
+{
+    _OfficerWork* work;
+
+    // Retain the incoming work pointer across the spawn tick's initialization.
+    work = task->work;
+    switch (task->state) {
+        case MODEL_INIT:
+            _policeOfficersInitBody(task, placementId);
+            task->state++;
+            /* fallthrough */
+        case MODEL_READY:
+            _policeOfficersDrawShadow(task);
+            switch (work->playState) {
+                case PLAY_STATE_POSED:
+                    break;
+                case PLAY_STATE_PLAYING:
+                    _policeOfficersUpdateAnimation(task);
+                    break;
+                case PLAY_STATE_FROZEN:
+                default:
+                    return;
+            }
+            _policeOfficersLightModel(task);
+            break;
+    }
+}
+
+/// The rookie's animated body.
 static void _policeOfficersRookieBodyTask(Task* task)
 {
-    _OfficerWork* work;
-
-    // Retain the incoming work pointer across the spawn tick's initialization.
-    work = task->work;
-    switch (task->state) {
-        case MODEL_INIT:
-            _policeOfficersInitBody(task, POLICE_OFFICERS_PLACEMENT_ROOKIE);
-            task->state++;
-            /* fallthrough */
-        case MODEL_READY:
-            _policeOfficersDrawShadow(task);
-            switch (work->playState) {
-                case PLAY_STATE_POSED:
-                    break;
-                case PLAY_STATE_PLAYING:
-                    _policeOfficersUpdateAnimation(task);
-                    break;
-                case PLAY_STATE_FROZEN:
-                default:
-                    return;
-            }
-            _policeOfficersLightModel(task);
-            break;
-    }
+    _policeOfficersUpdateBody(task, POLICE_OFFICERS_PLACEMENT_ROOKIE);
 }
 
-/// Initializes and updates the sergeant's animated body, lighting and ground shadow.
-///
-/// Requires a nineteen-part model; ready ticks require initialized work.
-/// Initialization binds the sergeant's rig and falls through to ready processing.
-/// Every ready tick draws the shadow first. Playing advances animation and
-/// follow-ups; posed holds the rig. Frozen or unhandled playback states return
-/// after the shadow, before animation and lighting.
+/// The sergeant's animated body.
 static void _policeOfficersSergeantBodyTask(Task* task)
 {
-    _OfficerWork* work;
-
-    // Retain the incoming work pointer across the spawn tick's initialization.
-    work = task->work;
-    switch (task->state) {
-        case MODEL_INIT:
-            _policeOfficersInitBody(task, POLICE_OFFICERS_PLACEMENT_SERGEANT);
-            task->state++;
-            /* fallthrough */
-        case MODEL_READY:
-            _policeOfficersDrawShadow(task);
-            switch (work->playState) {
-                case PLAY_STATE_POSED:
-                    break;
-                case PLAY_STATE_PLAYING:
-                    _policeOfficersUpdateAnimation(task);
-                    break;
-                case PLAY_STATE_FROZEN:
-                default:
-                    return;
-            }
-            _policeOfficersLightModel(task);
-            break;
-    }
+    _policeOfficersUpdateBody(task, POLICE_OFFICERS_PLACEMENT_SERGEANT);
 }
 
-/// Initializes the rookie's culled body and draws its shadow while posed.
-///
-/// Requires a nineteen-part model; ready ticks require initialized work.
-/// The spawn tick binds
-/// the selected pose, composes part 1 and samples lighting once. Ready ticks
-/// never advance animation or lighting; only the posed playback state draws
-/// the shadow. Playing, frozen and unhandled states draw no shadow.
+/// Spawns an officer's culled body in its pose: binds the clip, composes part 1 and samples lighting once. The pose
+/// never moves or relights afterwards.
+static inline void _policeOfficersPoseCulledBody(Task* task, s32 placementId)
+{
+    _policeOfficersInitCulledBody(task, placementId);
+    actorRenderComposeCoord(&task->extra.tmd->coords[1]);
+    _policeOfficersLightModel(task);
+}
+
+/// The rookie's culled body: posed on its first frame, then its shadow while it holds the pose.
 static void _policeOfficersRookieCulledBodyTask(Task* task)
 {
     _OfficerWork* work;
@@ -1142,9 +936,7 @@ static void _policeOfficersRookieCulledBodyTask(Task* task)
     work = task->work;
     switch (task->state) {
         case MODEL_INIT:
-            _policeOfficersInitCulledBody(task, POLICE_OFFICERS_PLACEMENT_ROOKIE);
-            actorRenderComposeCoord(&task->extra.tmd->coords[1]);
-            _policeOfficersLightModel(task);
+            _policeOfficersPoseCulledBody(task, POLICE_OFFICERS_PLACEMENT_ROOKIE);
             task->state++;
             break;
         case MODEL_READY:
@@ -1155,13 +947,7 @@ static void _policeOfficersRookieCulledBodyTask(Task* task)
     }
 }
 
-/// Initializes the sergeant's culled body and draws its shadow until frozen.
-///
-/// Requires a nineteen-part model; ready ticks require initialized work.
-/// The spawn tick binds
-/// the selected pose, composes part 1 and samples lighting once. Ready ticks
-/// never advance animation or lighting; posed and playing states draw the
-/// shadow. Frozen and unhandled states draw no shadow.
+/// The sergeant's culled body: posed on its first frame, then its shadow until it is frozen.
 static void _policeOfficersSergeantCulledBodyTask(Task* task)
 {
     _OfficerWork* work;
@@ -1169,9 +955,7 @@ static void _policeOfficersSergeantCulledBodyTask(Task* task)
     work = task->work;
     switch (task->state) {
         case MODEL_INIT:
-            _policeOfficersInitCulledBody(task, POLICE_OFFICERS_PLACEMENT_SERGEANT);
-            actorRenderComposeCoord(&task->extra.tmd->coords[1]);
-            _policeOfficersLightModel(task);
+            _policeOfficersPoseCulledBody(task, POLICE_OFFICERS_PLACEMENT_SERGEANT);
             task->state++;
             break;
         case MODEL_READY:

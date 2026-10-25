@@ -40,28 +40,12 @@ enum {
 /// requests, and the plaza for the helicopter wreck; the clips are the plaza's, so both overlays stay loaded.
 extern AnimationSet* gPoliceOfficersPlayerAnimSets[13];
 
-/// The rookie's spawn recipes: 0 movie controller, 1 animated body, 2 culled body.
-///
-/// All at `TASK_PRIORITY_CONTROL`. Indices 0..2 have no terminator.
-/// Both TMD model entries skip automatic primitive buffers.
-/// The controller has no body; its room spawn carries a live `Enemy` in
-/// `Task::spawnArg2`. Model entries use `Task::spawnArg1` as a body animation id and ignore
-/// `Task::spawnArg2`. Their work is owned by the model task; model swaps release
-/// the previous model before starting another.
-/// Keep police_officers callbacks and borrowed model/animation resources loaded
-/// while the spawned tasks use them.
+/// The rookie's tasks: his controller, the actor the plaza's placements spawn (its `Task::spawnArg2` the
+/// live `Enemy`), and his body and culled body, spawned on the clip in `Task::spawnArg1`.
 extern TaskDesc gPoliceOfficersRookieTaskDescriptors[3];
 
-/// The sergeant's spawn recipes: 0 movie controller, 1 animated body, 2 culled body.
-///
-/// All at `TASK_PRIORITY_CONTROL`. Indices 0..2 have no terminator.
-/// Both TMD model entries skip automatic primitive buffers.
-/// The controller has no body; its room spawn carries a live `Enemy` in
-/// `Task::spawnArg2`. Model entries use `Task::spawnArg1` as a body animation id and ignore
-/// `Task::spawnArg2`. Their work is owned by the model task; model swaps release
-/// the previous model before starting another.
-/// Keep police_officers callbacks and borrowed model/animation resources loaded
-/// while the spawned tasks use them.
+/// The sergeant's tasks: his controller, the actor the plaza's placements spawn (its `Task::spawnArg2` the
+/// live `Enemy`), and his body and culled body, spawned on the clip in `Task::spawnArg1`.
 extern TaskDesc gPoliceOfficersSergeantTaskDescriptors[3];
 
 #endif // INCLUDE_STAGES_AKROPOLIS_ACTORS_POLICE_OFFICERS_H
