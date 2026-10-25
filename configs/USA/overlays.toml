@@ -4517,7 +4517,7 @@ src = "src/stages/akropolis/actors/helicopter_landing_pad_no_9"
 objects = [
   { kind = "packageId" },
   { unit = "helicopter_landing_pad_no_9", rodata = "0x4", text = "0x104", data = "0xA66C" },
-  { unit = "helicopter_landing_pad_no_9_2", rodata = "0x30", text = "0x3924", data = "0x35B4C" },
+  { unit = "helicopter_landing_pad_no_9_combat", rodata = "0x30", text = "0x3924", data = "0x35B4C" },
   { kind = "model", at = "0xA69C", in_c = true },
   { kind = "modelSource", at = "0xFD44", in_c = true },
   { kind = "model", at = "0xFD68", in_c = true },
@@ -4688,7 +4688,7 @@ src = "src/stages/akropolis/actors/shooting_gallery_pierce"
 objects = [
   { kind = "packageId" },
   { unit = "shooting_gallery_pierce", rodata = "0x4", text = "0x10C", data = "0x314C" },
-  { unit = "shooting_gallery_pierce_2", rodata = "0xD8", text = "0x578", data = "0x431C", bss = "0x14850" },
+  { unit = "shooting_gallery_pierce_gallery", rodata = "0xD8", text = "0x578", data = "0x431C", bss = "0x14850" },
   { kind = "model", at = "0xA7CC", in_c = true },
   { kind = "modelSource", at = "0x109C4", in_c = true },
   { kind = "model", at = "0x109E8", in_c = true },
