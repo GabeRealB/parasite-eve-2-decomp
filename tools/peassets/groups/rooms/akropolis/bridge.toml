@@ -110,8 +110,13 @@ type = "room"
 embedded = [
     { name = "water_surface", offset = 0x0A81C, size = 0x1070, address = 0x80187DDC },
     "rooms/akropolis/bridge/keypad_movie_enemy_heights",
-    "akropolis_bridge_model_13870",
-    "akropolis_bridge_animation_13C00",
+    { asset = "enemies/bass/body", offset = 0x136AC, size = 0x554, address = 0x80190C6C },
+    { asset = "enemies/bass/patrol", offset = 0x13C00, size = 0x100, address = 0x801911C0 },
+    { asset = "enemies/bass/chase", offset = 0x13D00, size = 0x100, address = 0x801912C0 },
+    { asset = "enemies/bass/bob", offset = 0x13E00, size = 0x70, address = 0x801913C0 },
+    { asset = "enemies/bass/fall", offset = 0x13E70, size = 0x118, address = 0x80191430 },
+    { asset = "enemies/bass/collapse", offset = 0x13F88, size = 0x80, address = 0x80191548 },
+    { asset = "enemies/bass/bank", offset = 0x14008, size = 0x1C, address = 0x801915C8 },
 ]
 package_name = "akropolis_bridge"
 required = true

@@ -1,6 +1,37 @@
 # The assets of the group enemies/bass, each named enemies/bass/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
+[bob]
+type = "clip"
+rig = "enemies/bass/rig"
+
+[rig]
+type = "rig"
+joints = ["root", "head", "body", "tail"]
+
+[bank]
+type = "animation_bank"
+schema = "enemies/bass/schema"
+symbol = "_gBassAnimationSets"
+
+[bank.clips]
+patrol = "enemies/bass/patrol"
+chase = "enemies/bass/chase"
+bob = "enemies/bass/bob"
+fall = "enemies/bass/fall"
+collapse = "enemies/bass/collapse"
+
+[body]
+type = "model"
+rig = "enemies/bass/rig"
+slots = ["body"]
+symbol = "_gBassBody"
+sha1 = "66f634dd6a76cc4bc781e708479d80aaeb275753"
+
+[fall]
+type = "clip"
+rig = "enemies/bass/rig"
+
 [file]
 type = "file"
 
@@ -17,9 +48,93 @@ pages = [{ texture = "preview", region = "engine/vram/preview_sheet" }]
 [[file.contents]]
 asset = "txt_82"
 
+[chase]
+type = "clip"
+rig = "enemies/bass/rig"
+
+[patrol]
+type = "clip"
+rig = "enemies/bass/rig"
+
+[schema]
+type = "animation_schema"
+slots = ["", "patrol", "chase", "bob", "fall", "collapse", ""]
+
+[sounds]
+type = "sound_bank"
+samples = ["enemies/bass/unused_1", "enemies/bass/contact", "enemies/bass/fall_sound"]
+sounds = { contact = 2, fall = 3 }
+sha1 = "a11575900fb1848e011ed0bea778b88937df9dd0"
+
+[contact]
+type = "sound"
+sha1 = "f2672ab9f8b86de3b47e24c582dc9fd89110ac47"
+
 [preview]
 type = "texture"
 bpp = 8
 height = 128
 variants = ["default"]
 width = 128
+
+[texture]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[collapse]
+type = "clip"
+rig = "enemies/bass/rig"
+
+[unused_1]
+type = "sound"
+sha1 = "2709e9c612d7ee8e92cc064705334b922f796e56"
+
+[package_1]
+type = "pe2pkg"
+package_name = "actor_104100"
+required = true
+sha1 = "499595fabe8f892cfcb8fb51350d6c8a4983206e"
+
+[package_2]
+type = "pe2pkg"
+package_name = "actor_204100"
+required = true
+sha1 = "871817a5b463610319f03f255c8b3a623c298af2"
+
+[package_3]
+type = "pe2pkg"
+package_name = "actor_304100"
+required = true
+sha1 = "f97047813c0ed0345080da85bd66e0bf20134119"
+
+[fall_sound]
+type = "sound"
+sha1 = "ab39cc7100e22e49823aacf669148abe15d2bd0d"
+
+[body_binding]
+type = "binding"
+model = "enemies/bass/body"
+textures = { body = "enemies/bass/texture.default" }
+
+[package_file]
+type = "file"
+
+[[package_file.contents]]
+chunk = "sounds"
+
+[[package_file.contents]]
+chunk = "image"
+sha1 = "2fc4f3ed999d8bf236b66fc3567d22b8e7c5481e"
+pages = [{ texture = "texture", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] }]
+slots = 6
+
+[[package_file.contents]]
+chunk = "palette"
+sha1 = "852234bb3d2a63cbd07314a10ddf7622513fee52"
+palettes = [
+    { texture = "texture", variant = "default", region = "engine/vram/actor_palettes", offset = [0x00000, 0x00000] },
+    { name = "unread_row_2", entries = 256, region = "engine/vram/actor_palettes", offset = [0x00000, 0x00001] },
+]

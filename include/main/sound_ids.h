@@ -73,6 +73,7 @@ enum {
     SOUND_BANK_ACTOR_356100    = 0x0D, // actor_356100 and actor_401300
     SOUND_BANK_ACTOR_800100    = 0x65, // companion actor_800100
     SOUND_BANK_ACTOR_800200    = 0x72, // companion actor_800200 and actor_136100
+    SOUND_BANK_BASS            = 0x29, // Bass (the Akropolis bridge's)
     SOUND_BANK_BRAHMAN         = 0x23, // Brahman
     SOUND_BANK_BURNER          = 0x1F, // Burner
     SOUND_BANK_DESERT_CHASER   = 0x01, // Desert Chaser; also played by actor_00100 and actor_323400

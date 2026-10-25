@@ -208,10 +208,10 @@ enum {
     ENEMY_ANIM_PATROL          = 1,
     ENEMY_ANIM_CHASE           = 2,
     ENEMY_ANIM_BOB             = 3,
-    ENEMY_ANIM_REACTION        = 4,
+    ENEMY_ANIM_FALL            = 4,
     ENEMY_ANIM_YAW_REROLL_TICK = 5,
     ENEMY_ANIM_YAW_REROLL_WORD = (ENEMY_ANIM_YAW_REROLL_TICK << 16) |
-                                 ENEMY_ANIM_REACTION
+                                 ENEMY_ANIM_FALL
 };
 
 /// Root Y thresholds in game-coordinate units; the two chase gates retain their different values.
@@ -601,159 +601,12 @@ static EnemyParams _gAkropolisBridgeEnemyParams = {
     .damageOverTimeTicks  = 0,
 };
 
-static TmdBone _gAkropolisBridgeModel13870Skeleton[4] = {
-#include "assets/akropolis_bridge_model_13870_skeleton.inc"
-};
+#include "assets/enemies/bass/body.inc"
 
-static u32 _gAkropolisBridgeModel13870PartVerts[4] = {
-#include "assets/akropolis_bridge_model_13870_partVerts.inc"
-};
+#include "assets/rooms/akropolis/bridge/clips.inc"
 
-static SVECTOR _gAkropolisBridgeModel13870Verts[18] = {
-#include "assets/akropolis_bridge_model_13870_verts.inc"
-};
-
-static SVECTOR _gAkropolisBridgeModel13870Normals[18] = {
-#include "assets/akropolis_bridge_model_13870_normals.inc"
-};
-
-static u32 _gAkropolisBridgeModel13870Stream[220] = {
-#include "assets/akropolis_bridge_model_13870_stream.inc"
-};
-
-static TmdSource _gAkropolisBridgeModel13870 = {
-    0,
-    1008,
-    416,
-    4,
-    _gAkropolisBridgeModel13870PartVerts,
-    _gAkropolisBridgeModel13870Verts,
-    _gAkropolisBridgeModel13870Normals,
-    _gAkropolisBridgeModel13870Skeleton,
-    _gAkropolisBridgeModel13870Stream,
-};
-
-static AnimationPackedPose _gAkropolisBridgeAnimation13CD8Bank1[6] = {
-#include "assets/akropolis_bridge_animation_13CD8_bank1.inc"
-};
-
-static AnimationPackedRotation _gAkropolisBridgeAnimation13CD8Bank4[9] = {
-#include "assets/akropolis_bridge_animation_13CD8_bank4.inc"
-};
-
-static AnimationRecord _gAkropolisBridgeAnimation13CD8Records[25] = {
-#include "assets/akropolis_bridge_animation_13CD8_records.inc"
-};
-
-static u16 _gAkropolisBridgeAnimation13CD8Indices[4] = {
-#include "assets/akropolis_bridge_animation_13CD8_indices.inc"
-};
-
-static AnimationSet _gAkropolisBridgeAnimation13CD8 = {
-    _gAkropolisBridgeAnimation13CD8Records,
-    _gAkropolisBridgeAnimation13CD8Indices,
-    { NULL, _gAkropolisBridgeAnimation13CD8Bank1, NULL, NULL, _gAkropolisBridgeAnimation13CD8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gAkropolisBridgeAnimation13DD8Bank1[6] = {
-#include "assets/akropolis_bridge_animation_13DD8_bank1.inc"
-};
-
-static AnimationPackedRotation _gAkropolisBridgeAnimation13DD8Bank4[9] = {
-#include "assets/akropolis_bridge_animation_13DD8_bank4.inc"
-};
-
-static AnimationRecord _gAkropolisBridgeAnimation13DD8Records[25] = {
-#include "assets/akropolis_bridge_animation_13DD8_records.inc"
-};
-
-static u16 _gAkropolisBridgeAnimation13DD8Indices[4] = {
-#include "assets/akropolis_bridge_animation_13DD8_indices.inc"
-};
-
-static AnimationSet _gAkropolisBridgeAnimation13DD8 = {
-    _gAkropolisBridgeAnimation13DD8Records,
-    _gAkropolisBridgeAnimation13DD8Indices,
-    { NULL, _gAkropolisBridgeAnimation13DD8Bank1, NULL, NULL, _gAkropolisBridgeAnimation13DD8Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gAkropolisBridgeAnimation13E48Bank1[2] = {
-#include "assets/akropolis_bridge_animation_13E48_bank1.inc"
-};
-
-static AnimationPackedRotation _gAkropolisBridgeAnimation13E48Bank4[2] = {
-#include "assets/akropolis_bridge_animation_13E48_bank4.inc"
-};
-
-static AnimationRecord _gAkropolisBridgeAnimation13E48Records[8] = {
-#include "assets/akropolis_bridge_animation_13E48_records.inc"
-};
-
-static u16 _gAkropolisBridgeAnimation13E48Indices[4] = {
-#include "assets/akropolis_bridge_animation_13E48_indices.inc"
-};
-
-static AnimationSet _gAkropolisBridgeAnimation13E48 = {
-    _gAkropolisBridgeAnimation13E48Records,
-    _gAkropolisBridgeAnimation13E48Indices,
-    { NULL, _gAkropolisBridgeAnimation13E48Bank1, NULL, NULL, _gAkropolisBridgeAnimation13E48Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gAkropolisBridgeAnimation13F60Bank1[6] = {
-#include "assets/akropolis_bridge_animation_13F60_bank1.inc"
-};
-
-static AnimationPackedRotation _gAkropolisBridgeAnimation13F60Bank4[10] = {
-#include "assets/akropolis_bridge_animation_13F60_bank4.inc"
-};
-
-static AnimationRecord _gAkropolisBridgeAnimation13F60Records[30] = {
-#include "assets/akropolis_bridge_animation_13F60_records.inc"
-};
-
-static u16 _gAkropolisBridgeAnimation13F60Indices[4] = {
-#include "assets/akropolis_bridge_animation_13F60_indices.inc"
-};
-
-static AnimationSet _gAkropolisBridgeAnimation13F60 = {
-    _gAkropolisBridgeAnimation13F60Records,
-    _gAkropolisBridgeAnimation13F60Indices,
-    { NULL, _gAkropolisBridgeAnimation13F60Bank1, NULL, NULL, _gAkropolisBridgeAnimation13F60Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gAkropolisBridgeAnimation13FE0Bank1[2] = {
-#include "assets/akropolis_bridge_animation_13FE0_bank1.inc"
-};
-
-static AnimationPackedRotation _gAkropolisBridgeAnimation13FE0Bank4[2] = {
-#include "assets/akropolis_bridge_animation_13FE0_bank4.inc"
-};
-
-static AnimationRecord _gAkropolisBridgeAnimation13FE0Records[12] = {
-#include "assets/akropolis_bridge_animation_13FE0_records.inc"
-};
-
-static u16 _gAkropolisBridgeAnimation13FE0Indices[4] = {
-#include "assets/akropolis_bridge_animation_13FE0_indices.inc"
-
-};
-
-static AnimationSet _gAkropolisBridgeAnimation13FE0 = {
-    _gAkropolisBridgeAnimation13FE0Records,
-    _gAkropolisBridgeAnimation13FE0Indices,
-    { NULL, _gAkropolisBridgeAnimation13FE0Bank1, NULL, NULL, _gAkropolisBridgeAnimation13FE0Bank4, NULL, NULL, NULL },
-};
-
-/// Animation-set bank borrowed by every embedded bridge enemy's rig.
-static AnimationSet* _gAkropolisBridgeEnemyAnimationSets[7] = {
-    NULL,
-    &_gAkropolisBridgeAnimation13CD8,
-    &_gAkropolisBridgeAnimation13DD8,
-    &_gAkropolisBridgeAnimation13E48,
-    &_gAkropolisBridgeAnimation13F60,
-    &_gAkropolisBridgeAnimation13FE0,
-    NULL,
-};
+/// The Bass's clips by slot, borrowed by every bridge enemy's rig.
+#include "assets/enemies/bass/bank.inc"
 
 /// Enemy animation transition durations, indexed by previous clip then new clip.
 static s16 _gAkropolisBridgeEnemyAnimationBlendFrames[6][6] = {
@@ -947,7 +800,7 @@ static TaskFunc _gAkropolisBridgeEnemyStateHandlers[9] = {
 
 /// One bridge-enemy spawn recipe with its retained, uninterpreted storage tail.
 static _EnemyTaskDescStorage _gAkropolisBridgeEnemyTaskDescStorage = {
-    .desc      = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _akropolisBridgeEnemyTask, { .model = &_gAkropolisBridgeModel13870 } },
+    .desc      = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _akropolisBridgeEnemyTask, { .model = &_gBassBody } },
     .unknown_C = { 0 },
 };
 
@@ -980,8 +833,8 @@ static inline s16  _akropolisBridgeAttackLanded(const Task* task);
 static inline s32  _akropolisBridgeEnemyHasPlayerContact(const WorldCollisionContact* contacts);
 /// Base requests for the bridge enemy's fall animation and player-body contact.
 enum {
-    ENEMY_CONTACT_SOUND        = SOUND_CHARACTER(0x29, 2),
-    ENEMY_FALL_ANIMATION_SOUND = SOUND_CHARACTER(0x29, 3)
+    ENEMY_CONTACT_SOUND        = SOUND_CHARACTER(SOUND_BANK_BASS, 2),
+    ENEMY_FALL_ANIMATION_SOUND = SOUND_CHARACTER(SOUND_BANK_BASS, 3)
 };
 
 static inline void _akropolisBridgePlayEnemySound(Task* task, Enemy* enemy, s32 baseSoundId);
@@ -3055,7 +2908,7 @@ static void _akropolisBridgeEnemySetup(Enemy* enemy, Task* task)
     enemy->hpMax            = work->hp;
     enemy->hp               = enemy->hpMax;
     // Bind the rig and both collision spheres before enabling the walker.
-    animationInitContext(&work->rig.anim, _gAkropolisBridgeEnemyAnimationSets, model, work->rig.poses,
+    animationInitContext(&work->rig.anim, _gBassAnimationSets, model, work->rig.poses,
                          work->rig.slots);
     work->animRate         = ANIMATION_RATE_ONE;
     body                   = &work->body;
@@ -3534,19 +3387,19 @@ static void _akropolisBridgeEnemyFollowMovie(Task* task)
     }
     _akropolisBridgeUpdateMovieEnemyTransform(task, work);
     if (task->extra.tmd->coords->coord.t[1] < ENEMY_PRESENTATION_SCALE_START_Y &&
-        work->animId != ENEMY_ANIM_REACTION) {
+        work->animId != ENEMY_ANIM_FALL) {
         work->animRequest = ENEMY_ANIM_REQUEST_RESET;
-        work->animId      = ENEMY_ANIM_REACTION;
+        work->animId      = ENEMY_ANIM_FALL;
         _akropolisBridgePlayEnemySound(task, enemy, ENEMY_FALL_ANIMATION_SOUND);
     }
-    if (work->animId == ENEMY_ANIM_REACTION) {
+    if (work->animId == ENEMY_ANIM_FALL) {
         if (task->extra.tmd->coords->coord.t[1] >= ENEMY_PRESENTATION_RETRY_MIN_Y &&
             (s32)((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) + ENEMY_PRESENTATION_RETRY_TICKS) < work->animFrame) {
             RANDOM_LCG_ADVANCE();
             if ((RANDOM_LCG_DRAW() & 0xF) == 0) {
                 work->animRate    = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) * 2) + ANIMATION_RATE_ONE;
                 work->animRequest = ENEMY_ANIM_REQUEST_RESET;
-                work->animId      = ENEMY_ANIM_REACTION;
+                work->animId      = ENEMY_ANIM_FALL;
                 _akropolisBridgePlayEnemySound(task, enemy, ENEMY_FALL_ANIMATION_SOUND);
             }
         }
@@ -3558,7 +3411,7 @@ static void _akropolisBridgeEnemyFollowMovie(Task* task)
             if ((RANDOM_LCG_DRAW() & 0x1F) == 0) {
                 work->animRate    = ANIMATION_RATE_ONE;
                 work->animRequest = ENEMY_ANIM_REQUEST_RESET;
-                work->animId      = ENEMY_ANIM_REACTION;
+                work->animId      = ENEMY_ANIM_FALL;
                 _akropolisBridgePlayEnemySound(task, enemy, ENEMY_FALL_ANIMATION_SOUND);
             }
         }
@@ -3628,19 +3481,19 @@ static void _akropolisBridgeEnemyAnimateAtPlacement(Task* task)
     gfxRotMatrixY(&task->extra.tmd->coords->coord, work->yaw, 1);
     ScaleMatrix(&task->extra.tmd->coords->coord, &scale);
     if (task->extra.tmd->coords->coord.t[1] < ENEMY_PRESENTATION_SCALE_START_Y &&
-        work->animId != ENEMY_ANIM_REACTION) {
+        work->animId != ENEMY_ANIM_FALL) {
         work->animRequest = ENEMY_ANIM_REQUEST_RESET;
-        work->animId      = ENEMY_ANIM_REACTION;
+        work->animId      = ENEMY_ANIM_FALL;
         _akropolisBridgePlayEnemySound(task, enemy, ENEMY_FALL_ANIMATION_SOUND);
     }
-    if (work->animId == ENEMY_ANIM_REACTION) {
+    if (work->animId == ENEMY_ANIM_FALL) {
         if (task->extra.tmd->coords->coord.t[1] >= ENEMY_PRESENTATION_RETRY_MIN_Y &&
             (s32)((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) + ENEMY_PRESENTATION_RETRY_TICKS) < work->animFrame) {
             RANDOM_LCG_ADVANCE();
             if ((RANDOM_LCG_DRAW() & 0xF) == 0) {
                 work->animRate    = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) * 2) + ANIMATION_RATE_ONE;
                 work->animRequest = ENEMY_ANIM_REQUEST_RESET;
-                work->animId      = ENEMY_ANIM_REACTION;
+                work->animId      = ENEMY_ANIM_FALL;
                 _akropolisBridgePlayEnemySound(task, enemy, ENEMY_FALL_ANIMATION_SOUND);
             }
         }
@@ -3652,7 +3505,7 @@ static void _akropolisBridgeEnemyAnimateAtPlacement(Task* task)
             if ((RANDOM_LCG_DRAW() & 0x1F) == 0) {
                 work->animRate    = ANIMATION_RATE_ONE;
                 work->animRequest = ENEMY_ANIM_REQUEST_RESET;
-                work->animId      = ENEMY_ANIM_REACTION;
+                work->animId      = ENEMY_ANIM_FALL;
                 _akropolisBridgePlayEnemySound(task, enemy, ENEMY_FALL_ANIMATION_SOUND);
             }
         }
