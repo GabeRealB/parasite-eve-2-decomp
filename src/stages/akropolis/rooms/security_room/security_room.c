@@ -97,9 +97,9 @@ enum {
     MONITOR_SWEEP_PERIOD = 0x97,
 };
 
-/// CAP slot started once for the enemy's camera view.
+/// CAP slot started once for the camera view that shows Rupert ("Hey, there's Rupert.").
 enum {
-    MONITOR_ENEMY_CAP_SLOT = 0xC,
+    MONITOR_RUPERT_CAP_SLOT = 0xC,
 };
 
 /// Prompt and exit states selected by the monitor's hotspot scan.
@@ -901,7 +901,7 @@ static void _akropolisSecurityRoomMonitorHandlePrompt(Task* task)
         if (((u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view == MONITOR_VIEW_ENEMY) &&
             ((s16)work->screenLevel != MONITOR_SCREEN_DARKEST) && (work->enemySceneArmed != 0) &&
             (work->enemyCaptionStarted == 0) && (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_MONITOR_RUPERT_SCENE_SEEN) == 0)) {
-            capStartSequenceSlot(MONITOR_ENEMY_CAP_SLOT, CAP_PLAYBACK_IN_PLACE, 0);
+            capStartSequenceSlot(MONITOR_RUPERT_CAP_SLOT, CAP_PLAYBACK_IN_PLACE, 0);
             work->enemyCaptionStarted = 1;
         }
     }
@@ -1134,10 +1134,11 @@ static void _akropolisSecurityRoomMonitorClose(Task* task)
     taskRequestKill(task, 0);
 }
 
-/// Scans the restricted monitor without changing its camera or brightness.
+/// Scans the monitor while the power is off, without changing its camera or brightness: any hotspot says "What?
+/// The power's off." (CAP 14).
 static void _akropolisSecurityRoomMonitorScanRestrictedHotspots(Task* task)
 {
-    enum { MONITOR_RESTRICTED_CAP_COMMAND = 14 };
+    enum { MONITOR_POWER_OFF_CAP_COMMAND = 14 };
     ActionPrompt*        prompt  = gActionPromptSlots;
     ActionPromptHotspot* hotspot = _gAkropolisSecurityRoomMonitorHotspots;
 
@@ -1156,7 +1157,7 @@ static void _akropolisSecurityRoomMonitorScanRestrictedHotspots(Task* task)
                 if (hotspot->hit != 0) {
                     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
                     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-                    capRunCommand(MONITOR_RESTRICTED_CAP_COMMAND, CAP_PLAYBACK_IN_PLACE);
+                    capRunCommand(MONITOR_POWER_OFF_CAP_COMMAND, CAP_PLAYBACK_IN_PLACE);
                     return;
                 }
             }
