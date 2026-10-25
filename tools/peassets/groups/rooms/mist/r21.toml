@@ -3,18 +3,7 @@
 
 [file]
 type = "file"
-
-[[file.contents]]
-chunk = "image"
-sha1 = "ea5c88b21e2aff916b0f955295687e5c2270110c"
-pages = [{ texture = "dialogue_glyphs", region = "engine/vram/dialogue_glyph_page", offset = [0x00000, 0x00000] }]
-slots = 2
-
-[[file.contents]]
-chunk = "package"
-
-[[file.contents]]
-chunk = "bundle"
+contents = [{ chunk = "dialogue_0_atlas" }, { chunk = "package" }, { chunk = "bundle" }]
 
 [bundle]
 type = "pe2bundle"
@@ -31,13 +20,15 @@ sha1 = "6575257434c123c3f4aefff45ab31fe4a0777874"
 type = "cap"
 sha1 = "b08ec751fa5e8644564cde615f782305e9788256"
 
-[dialogue_glyphs]
-type = "texture"
+[dialogue_0_atlas]
+type = "font_atlas"
 bpp = 4
-height = 256
-no_palette = true
-variants = ["default"]
-width = 256
+generated_by = "rooms/mist/r21/dialogue_0"
+h = 256
+w = 64
+x = 384
+y = 0
+sha1 = "ea5c88b21e2aff916b0f955295687e5c2270110c"
 
 [view1_background]
 type = "bs"

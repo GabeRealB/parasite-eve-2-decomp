@@ -11,10 +11,7 @@ chunk = "sounds_0"
 chunk = "sounds_1"
 
 [[file.contents]]
-chunk = "image"
-sha1 = "5360b94da1bb881aa13d21ca02fd7a13a0377e73"
-pages = [{ texture = "dialogue_glyphs", region = "engine/vram/dialogue_glyph_page", offset = [0x00000, 0x00000] }]
-slots = 2
+chunk = "dialogue_0_atlas"
 
 [[file.contents]]
 chunk = "palette"
@@ -894,14 +891,6 @@ sha1 = "5afa5a3bf7cdb5c6e898f7350b464c6811ee8d95"
 type = "sound"
 sha1 = "0bb4f6a89d03f455cc4b274168d4b14b809a6b91"
 
-[dialogue_glyphs]
-type = "texture"
-bpp = 4
-height = 256
-no_palette = true
-variants = ["default"]
-width = 256
-
 [lock_lamps_left]
 type = "texture"
 bpp = 8
@@ -912,6 +901,16 @@ width = 128
 [lock_lamps_left.palettes_from]
 locked = "rooms/akropolis/security_room/lamp_left_locked"
 released = "rooms/akropolis/security_room/lamp_left_released"
+
+[dialogue_0_atlas]
+type = "font_atlas"
+bpp = 4
+generated_by = "rooms/akropolis/security_room/dialogue_0"
+h = 256
+w = 64
+x = 384
+y = 0
+sha1 = "5360b94da1bb881aa13d21ca02fd7a13a0377e73"
 
 [lock_lamps_right]
 type = "texture"
