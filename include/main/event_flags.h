@@ -64,6 +64,14 @@ enum {
     EVENT_FLAG_OBJECTIVE_AKROPOLIS_CAFETERIA_KEY_RECEIVED  = 0x02, // "Civilian evac."; set as the east elevator hall scene starts
     EVENT_FLAG_OBJECTIVE_AKROPOLIS_CAFETERIA_BOSS_KILLED   = 0x03, // "I've never seen this kind of NMC."; after the cafeteria battle
     EVENT_FLAG_OBJECTIVE_AKROPOLIS_CAFETERIA_BOSS_EXAMINED = 0x04, // "I have to contact MIST!"; after the cafeteria's follow-up
+    EVENT_FLAG_OBJECTIVE_MIST_CONTACTED                    = 0x05, // "Warn Rupert"; set by the square's call
+    EVENT_FLAG_OBJECTIVE_AKROPOLIS_SANCTUARY_ENTERED       = 0x06, // "Find No. 9"; set as the sanctuary's arrival starts
+    EVENT_FLAG_OBJECTIVE_AKROPOLIS_ROOF_GARDEN_BOMB_SEEN   = 0x07, // "Bomb, how to escape"; the roof garden's and fire escape's dialogue
+    EVENT_FLAG_OBJECTIVE_AKROPOLIS_NO9_DEFEATED            = 0x08, // "Follow No. 9"; after the helicopter landing pad's encounter
+    EVENT_FLAG_OBJECTIVE_DRYFIELD_ARRIVED                  = 0x09, // "Fact finding"; set at the Dryfield gas station's arrival
+    EVENT_FLAG_OBJECTIVE_MIST_SHOOTING_GALLERY_START       = 0x3A, // The first: the shooting gallery's introduction
+    EVENT_FLAG_OBJECTIVE_MIST_SHOOTING_GALLERY_BRIEFED     = 0x3B, // "Akropolis"; after the gallery's control room scene
+    EVENT_FLAG_OBJECTIVE_MIST_RETURNED                     = 0x3C, // "Go to the desert"; after returning to MIST
 };
 
 // The IDs come in blocks. The boundaries below are the ones seen so far; the

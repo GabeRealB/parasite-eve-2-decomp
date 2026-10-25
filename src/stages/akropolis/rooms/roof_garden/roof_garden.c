@@ -291,7 +291,6 @@ static s32 _akropolisRoofGardenHandleRoomCommand(Task* unusedTask, s32 unusedMes
         AKROPOLIS_ROOF_GARDEN_COMMAND_PICKUP_AVAILABLE = 5,
         AKROPOLIS_ROOF_GARDEN_PICKUP_CAP_SLOT          = 2,
         AKROPOLIS_ROOF_GARDEN_PICKUP_CAP_VARIANT       = 0,
-        AKROPOLIS_ROOF_GARDEN_STORY_OBJECTIVE          = 7,
     };
     if (command == AKROPOLIS_ROOF_GARDEN_COMMAND_PICKUP) {
         // Retain the separate reads of the saved two-bit object state.
@@ -308,7 +307,7 @@ static s32 _akropolisRoofGardenHandleRoomCommand(Task* unusedTask, s32 unusedMes
         }
         gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
         capRunCommand(AKROPOLIS_ROOF_GARDEN_COMMAND_STORY, CAP_PLAYBACK_IN_PLACE);
-        gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, AKROPOLIS_ROOF_GARDEN_STORY_OBJECTIVE);
+        gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, EVENT_FLAG_OBJECTIVE_AKROPOLIS_ROOF_GARDEN_BOMB_SEEN);
     }
     return 0;
 }

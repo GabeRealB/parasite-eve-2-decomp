@@ -240,11 +240,10 @@ void akropolisHelicopterLandingPadLiftTask(Task* task)
 void akropolisHelicopterLandingPadUpdateEncounterPhase(Task* unusedTask)
 {
     enum {
-        AKROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_STARTED        = 1,
-        AKROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_FINISHED       = 2,
-        AKROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR          = 0,
-        AKROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ARM_VIEW       = 5,
-        AKROPOLIS_HELICOPTER_LANDING_PAD_POST_ENCOUNTER_OBJECTIVE = 8,
+        AKROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_STARTED  = 1,
+        AKROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_FINISHED = 2,
+        AKROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR    = 0,
+        AKROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ARM_VIEW = 5,
     };
     s32 phase = gAkropolisHelicopterLandingPadEncounterPhase;
 
@@ -255,7 +254,7 @@ void akropolisHelicopterLandingPadUpdateEncounterPhase(Task* unusedTask)
                 gAkropolisHelicopterLandingPadEncounterPhase = AKROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_FINISHED;
                 evsStartScriptWithSkip(gAkropolisHelicopterLandingPadEncounterEndingScript, EVENT_SCRIPT_HUD_HIDE_RESTORE,
                                        gAkropolisHelicopterLandingPadEncounterEndingSkipScript);
-                gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, AKROPOLIS_HELICOPTER_LANDING_PAD_POST_ENCOUNTER_OBJECTIVE);
+                gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, EVENT_FLAG_OBJECTIVE_AKROPOLIS_NO9_DEFEATED);
             }
         }
     }

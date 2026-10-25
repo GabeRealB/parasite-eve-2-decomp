@@ -1963,7 +1963,6 @@ static void _actor215100GalleryIntroTask(Task* task)
         ACTOR_215100_GALLERY_MENU_REPLY_WAIT     = 11,
         ACTOR_215100_GALLERY_MENU_REPLY_SEQUENCE = 7,
         ACTOR_215100_GALLERY_EXIT_REPLY_SEQUENCE = 8,
-        ACTOR_215100_GALLERY_INTRO_OBJECTIVE     = 0x3A,
     };
 
     switch (task->state) {
@@ -1972,7 +1971,7 @@ static void _actor215100GalleryIntroTask(Task* task)
             gGameSession->hideHud = 1;
             if (gameFlagGetNibble(GAME_FLAG_SHOOTING_GALLERY_INTRO_SEEN) == 0) {
                 gameFlagSetNibble(GAME_FLAG_SHOOTING_GALLERY_INTRO_SEEN, 1);
-                gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, ACTOR_215100_GALLERY_INTRO_OBJECTIVE);
+                gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, EVENT_FLAG_OBJECTIVE_MIST_SHOOTING_GALLERY_START);
                 evsStartScriptWithSkip(_gActor215100GalleryIntroScript, EVENT_SCRIPT_HUD_KEEP, _gActor215100GalleryIntroSkipScript);
                 task->state++;
             } else {

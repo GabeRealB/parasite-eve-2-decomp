@@ -1452,7 +1452,6 @@ static s32 _mistShootingGalleryHandleRoomAction(Task* unusedTask, s32 unusedMess
 {
     enum {
         MIST_SHOOTING_GALLERY_ACTION_REARM_TICKS = 10,
-        MIST_SHOOTING_GALLERY_STORY_OBJECTIVE    = 59,
     };
     if ((request->actionId == MIST_SHOOTING_GALLERY_ACTION_OPEN_COURSE_MENU) && (gActor215100GalleryTrainingActive == 0)) {
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
@@ -1466,7 +1465,7 @@ static s32 _mistShootingGalleryHandleRoomAction(Task* unusedTask, s32 unusedMess
         actor215100HandleGalleryAction();
     }
     if ((request->actionId == MIST_SHOOTING_GALLERY_ACTION_STORY_EVENT) && (gameFlagGetNibble(EVENT_FLAG_MIST_SHOOTING_GALLERY_CONTROL_ROOM_SCENE_SEEN) == 0)) {
-        gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, MIST_SHOOTING_GALLERY_STORY_OBJECTIVE);
+        gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, EVENT_FLAG_OBJECTIVE_MIST_SHOOTING_GALLERY_BRIEFED);
         gameFlagSetNibble(EVENT_FLAG_MIST_SHOOTING_GALLERY_CONTROL_ROOM_SCENE_SEEN, 1);
         evsStartScriptWithSkip(gActor215100PierceStoryScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor215100PierceStorySkipScript);
     }

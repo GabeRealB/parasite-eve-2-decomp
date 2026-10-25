@@ -49,7 +49,6 @@ static void _roomCutsceneTask(Task* task)
         ROOM_CUTSCENE_ACROPOLIS_PROGRESS_BEFORE = 2,
         ROOM_CUTSCENE_ACROPOLIS_PROGRESS_AFTER  = 3,
         ROOM_CUTSCENE_POST_SCENE_FLAG_VALUE     = 4,
-        ROOM_CUTSCENE_SQUARE_OBJECTIVE          = 5,
         ROOM_CUTSCENE_DEFAULT_TPAGE_X           = 960,
         ROOM_CUTSCENE_SCENE_VARIANT             = 99,
         ROOM_CUTSCENE_DIALOGUE_COMMAND_BASE     = 16,
@@ -189,7 +188,7 @@ static void _roomCutsceneTask(Task* task)
                     gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_BOSS_REPORT, ROOM_CUTSCENE_POST_SCENE_FLAG_VALUE);
                     if ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SQUARE, 0, 0)) {
                         areaApplySavedUpdates(gAkropolisSquarePostCutsceneAreaUpdates);
-                        gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, ROOM_CUTSCENE_SQUARE_OBJECTIVE);
+                        gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, EVENT_FLAG_OBJECTIVE_MIST_CONTACTED);
                     }
                 }
             }
