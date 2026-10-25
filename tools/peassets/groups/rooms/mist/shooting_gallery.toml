@@ -36,7 +36,7 @@ resources = [
 sha1 = "0ab39bbd5fdc175783a2a9eae165d2182205bb20"
 
 [pierce]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { name = "player_gallery_accept", offset = 0x03228, size = 0x2E4, address = 0x8014D048 },
     { name = "player_gallery_idle", offset = 0x0350C, size = 0x270, address = 0x8014D32C },
@@ -89,8 +89,11 @@ embedded = [
     { name = "pierce_level_reply", offset = 0x145B8, size = 0x1C8, address = 0x8015E3D8 },
     { name = "pierce_bank", offset = 0x147C8, size = 0x64, address = 0x8015E5E8 },
 ]
+exports = { tasks = { at = 0x147B0, symbol = "gShootingGalleryPiercePierceTaskDescs" } }
+load = { slot = "actor_2" }
 package_name = "shooting_gallery_pierce"
 required = true
+requires = ["gameplay"]
 sha1 = "fc0d6b8a1a0678e4a2b988b10995b7bf502a9563"
 
 [pierce.entries]
@@ -115,7 +118,7 @@ scripts = [
 ]
 
 [package]
-type = "room"
+type = "package"
 embedded = [
     { name = "creature_target_1", offset = 0x09354, size = 0x1F0, address = 0x80186914 },
     { name = "creature_target_2", offset = 0x09544, size = 0x1F0, address = 0x80186B04 },
@@ -137,8 +140,11 @@ embedded = [
     { name = "bullseye_3", offset = 0x0B408, size = 0x1F0, address = 0x801889C8 },
     { name = "demonstration_target", offset = 0x0B5F8, size = 0x1F0, address = 0x80188BB8 },
 ]
+load = { slot = "room" }
 package_name = "mist_shooting_gallery"
 required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
+slots = { pierce = "rooms/mist/shooting_gallery/pierce", targets = "rooms/mist/shooting_gallery/targets" }
 sha1 = "57df52b9e88832b4ecfd2898406c57ca89827ed7"
 
 [package.entries]
@@ -151,9 +157,12 @@ view_counts = 2
 wave_scripts = [0x0811C, 0x083EC, 0x08704, 0x08A88, 0x08F80]
 
 [targets]
-type = "pe2pkg"
+type = "package"
+exports = { tasks = { at = 0x03174, symbol = "gShootingGalleryTargetsTaskDescriptors" } }
+load = { slot = "actor_1" }
 package_name = "shooting_gallery_targets"
 required = true
+requires = ["gameplay"]
 sha1 = "ee6e6aba8227822c577ad915a2116932fdcbd056"
 
 [sounds_0]

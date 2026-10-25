@@ -16,7 +16,7 @@ resources = [
 sha1 = "8ef57e20d7dfa9e5261af5d4e0243599b32e86ca"
 
 [package]
-type = "room"
+type = "package"
 embedded = [
     { name = "opening_player_lead_in", offset = 0x026E8, size = 0x7F8, address = 0x8017FCA8 },
     { name = "opening_player_main", offset = 0x02EE0, size = 0x496C, address = 0x801804A0 },
@@ -25,8 +25,11 @@ embedded = [
     { name = "opening_player_lead_in_bank", offset = 0x08630, size = 0x8, address = 0x80185BF0 },
     { name = "opening_player_exit_bank", offset = 0x08638, size = 0x8, address = 0x80185BF8 },
 ]
+load = { slot = "room" }
 package_name = "akropolis_east_elevator_hall"
 required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
+slots = { swat_member = "rooms/akropolis/east_elevator_hall/swat_member" }
 sha1 = "6978f029f6cf48bf1eb3c954976f25a1140dd2be"
 
 [package.entries]
@@ -338,7 +341,7 @@ type = "clip"
 rig = "characters/swat_member_2/rig"
 
 [swat_member]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { asset = "characters/swat_member_2/body", offset = 0x0052C, size = 0x57C8, address = 0x8013234C },
     { asset = "characters/swat_member_2/submachine_gun", offset = 0x05CF4, size = 0x408, address = 0x80137B14 },
@@ -349,8 +352,11 @@ embedded = [
     { name = "swat_urge_hurry", offset = 0x0800C, size = 0x228, address = 0x80139E2C },
     { name = "swat_bank", offset = 0x08264, size = 0x1C, address = 0x8013A084 },
 ]
+exports = { tasks = { at = 0x0824C, symbol = "gEastElevatorHallSwatMemberViewFigureTasks" } }
+load = { slot = "actor_1" }
 package_name = "east_elevator_hall_swat_member"
 required = true
+requires = ["gameplay"]
 sha1 = "a91d070619df6d567bb0700b391d7d6f40ef7763"
 
 [swat_schema]

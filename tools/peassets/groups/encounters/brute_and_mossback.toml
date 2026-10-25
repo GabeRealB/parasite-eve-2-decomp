@@ -190,7 +190,7 @@ type = "clip"
 rig = "encounters/brute_and_mossback/rig"
 
 [package_1]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { name = "body", offset = 0x07520, size = 0x562C, address = 0x80139340 },
     { name = "burst_leg", offset = 0x0CB4C, size = 0x524, address = 0x8013E96C },
@@ -220,8 +220,11 @@ embedded = [
     { name = "stunned_back", offset = 0x1526C, size = 0x374, address = 0x8014708C },
     { name = "bank", offset = 0x15604, size = 0x5C, address = 0x80147424 },
 ]
+exports = { tasks = { at = 0x155E0, symbol = "gActor101100Tasks" } }
+load = { slot = "actor_1" }
 package_name = "actor_101100"
 required = true
+requires = ["gameplay"]
 sha1 = "4a21eb9797530b7d1a7ba4a2e9f4468c65cff4aa"
 
 [package_2]
@@ -256,7 +259,7 @@ required = true
 sha1 = "820dd3b8560e6ccfdb6121875720ddc7ede40a28"
 
 [package_3]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { name = "idle", offset = 0x0E500, size = 0x3F4, address = 0x80170320 },
     { name = "swing_left", offset = 0x0E8F4, size = 0x564, address = 0x80170714 },
@@ -282,8 +285,11 @@ embedded = [
     { name = "stunned_back", offset = 0x1526C, size = 0x374, address = 0x8017708C },
     { name = "bank", offset = 0x15604, size = 0x5C, address = 0x80177424 },
 ]
+exports = { tasks = { at = 0x155E0, symbol = "gActor301100Tasks" } }
+load = { slot = "actor_3" }
 package_name = "actor_301100"
 required = true
+requires = ["gameplay"]
 sha1 = "b24315c047a029e874f042656e7401165bda96f0"
 
 [rise_back]
@@ -496,7 +502,7 @@ page_1 = "encounters/brute_and_mossback/texture_page_1.default"
 page_2 = "encounters/brute_and_mossback/texture_page_2.default"
 
 [recolor_package_1]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { name = "idle", offset = 0x0E500, size = 0x3F4, address = 0x80140320 },
     { name = "swing_left", offset = 0x0E8F4, size = 0x564, address = 0x80140714 },
@@ -521,8 +527,11 @@ embedded = [
     { name = "stunned_front", offset = 0x14F34, size = 0x338, address = 0x80146D54 },
     { name = "stunned_back", offset = 0x1526C, size = 0x374, address = 0x8014708C },
 ]
+exports = { tasks = { at = 0x155E0, symbol = "gActor01100Tasks" } }
+load = { slot = "actor_1" }
 package_name = "actor_104900"
 required = true
+requires = ["gameplay"]
 sha1 = "2d082936af3892c31908e671418049ef1944ee14"
 
 [recolor_package_2]

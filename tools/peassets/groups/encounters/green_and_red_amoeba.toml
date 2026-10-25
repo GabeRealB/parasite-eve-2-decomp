@@ -44,10 +44,13 @@ variants = ["default"]
 width = 128
 
 [package_1]
-type = "pe2pkg"
+type = "package"
 embedded = [{ name = "body", offset = 0x03448, size = 0x115C, address = 0x80135268 }]
+exports = { tasks = { at = 0x0465C, symbol = "gActor102400Tasks" } }
+load = { slot = "actor_1" }
 package_name = "actor_102400"
 required = true
+requires = ["gameplay"]
 sha1 = "776093f52c7f70c1241551fb4445df2c4b2431b6"
 
 [package_2]

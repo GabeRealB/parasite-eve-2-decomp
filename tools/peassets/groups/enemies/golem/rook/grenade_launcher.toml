@@ -86,7 +86,7 @@ type = "clip"
 rig = "enemies/golem/rig"
 
 [package_1]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { asset = "enemies/golem/idle", offset = 0x0AE9C, size = 0xC38, address = 0x8013CCBC },
     { asset = "enemies/golem/walk", offset = 0x0BAD4, size = 0x968, address = 0x8013D8F4 },
@@ -115,8 +115,11 @@ embedded = [
     { name = "back_away", offset = 0x16968, size = 0x78C, address = 0x80148788 },
     { name = "bank", offset = 0x17408, size = 0x7C, address = 0x80149228 },
 ]
+exports = { tasks = { at = 0x173D8, symbol = "gActor05700RookGolemTasks" } }
+load = { slot = "actor_1" }
 package_name = "actor_105700"
 required = true
+requires = ["gameplay"]
 sha1 = "0139f4cbd03a0fc52e61000537f3a48fd9beca86"
 
 [package_2]

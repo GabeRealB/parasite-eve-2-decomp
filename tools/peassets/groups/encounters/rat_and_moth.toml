@@ -80,7 +80,7 @@ symbol = "_gRatAndMothMothBody"
 sha1 = "43f917a2adc7ac90f2a77c24640eb7256252a591"
 
 [package_1]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { name = "rat_body", offset = 0x03670, size = 0x1868, address = 0x80135490 },
     { name = "rat_idle", offset = 0x04ED8, size = 0x510, address = 0x80136CF8 },
@@ -98,12 +98,18 @@ embedded = [
     { name = "moth_rest_pose", offset = 0x07508, size = 0x7C, address = 0x80139328 },
     { name = "moth_bank", offset = 0x075B4, size = 0x8, address = 0x801393D4 },
 ]
+load = { slot = "actor_1" }
 package_name = "actor_100700"
 required = true
+requires = ["gameplay"]
 sha1 = "52acdedb3c93a9ba077407129b988957473f19d6"
 
+[package_1.exports]
+moth_tasks = { at = 0x075A8, symbol = "gActor00700MothTaskDesc" }
+rat_tasks = { at = 0x06E60, symbol = "gActor00700RatTaskDesc" }
+
 [package_2]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { name = "rat_idle", offset = 0x04ED8, size = 0x510, address = 0x8014ECF8 },
     { name = "rat_run", offset = 0x053E8, size = 0x2BC, address = 0x8014F208 },
@@ -119,12 +125,18 @@ embedded = [
     { name = "moth_rest_pose", offset = 0x07508, size = 0x7C, address = 0x80151328 },
     { name = "moth_bank", offset = 0x075B4, size = 0x8, address = 0x801513D4 },
 ]
+load = { slot = "actor_2" }
 package_name = "actor_200700"
 required = true
+requires = ["gameplay"]
 sha1 = "6e801162769bc06ad795ef2fb8ded79a05b59677"
 
+[package_2.exports]
+moth_tasks = { at = 0x075A8, symbol = "gActor00700MothTaskDesc" }
+rat_tasks = { at = 0x06E60, symbol = "gActor200700RatTaskDesc" }
+
 [package_3]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { name = "moth_rest_pose", offset = 0x03CC8, size = 0x7C, address = 0x80165AE8 },
     { name = "moth_bank", offset = 0x03D74, size = 0x8, address = 0x80165B94 },
@@ -140,9 +152,15 @@ embedded = [
     { name = "rat_stagger", offset = 0x071C4, size = 0x344, address = 0x80168FE4 },
     { name = "rat_bank_2", offset = 0x07598, size = 0x2C, address = 0x801693B8 },
 ]
+load = { slot = "actor_3" }
 package_name = "actor_300700"
 required = true
+requires = ["gameplay"]
 sha1 = "35df38b05476b011a540ef69c959aeecf787f279"
+
+[package_3.exports]
+moth_tasks = { at = 0x03D68, symbol = "gActor300700MothTaskDesc" }
+rat_tasks = { at = 0x0758C, symbol = "gActor300700RatTaskDesc" }
 
 [rat_alert]
 type = "sound"

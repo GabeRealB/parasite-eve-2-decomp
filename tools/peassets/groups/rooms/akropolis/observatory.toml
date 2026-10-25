@@ -77,21 +77,35 @@ resources = [
 sha1 = "124a633a4fd8c3acec02cb25f7328ae847b10a8d"
 
 [package]
-type = "room"
+type = "package"
 embedded = [
     "rooms/akropolis/observatory/forked_road_arrival_player_path",
     "rooms/akropolis/observatory/promenade_arrival_player_path",
     { asset = "rooms/dryfield/trailer_coach/player_event_58", offset = 0x0250C, size = 0x394, address = 0x8017FACC },
     { name = "akropolis_observatory_player_bank", offset = 0x028A0, size = 0x8, address = 0x8017FE60 },
 ]
+load = { slot = "room" }
 package_name = "akropolis_observatory"
 required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
 sha1 = "68dd1721f0677347cfcdbd4ef610e125572ef4fd"
 
 [package.entries]
 markers = [0x028B8]
 vibrations = [{ commands = 0x05EC0, segments = 0x05ED8 }, { commands = 0x05EE0, segments = 0x05EF8 }]
 view_masks = [0x028F8]
+
+[package.slots]
+brute_and_mossback_1 = "encounters/brute_and_mossback/package_1"
+brute_and_mossback_recolor_1 = "encounters/brute_and_mossback/recolor_package_1"
+bat_1 = "enemies/bat/package_1"
+stranger_grinning_1 = "enemies/stranger/grinning/package_1"
+stranger_grinning_3 = "enemies/stranger/grinning/package_3"
+stranger_horned_4 = "enemies/stranger/horned/package_4"
+stranger_odd_4 = "enemies/stranger/odd/package_4"
+stranger_odd_b_4 = "enemies/stranger/odd/package_b_4"
+suckler_blood_1 = "enemies/suckler/blood/package_1"
+suckler_bone_1 = "enemies/suckler/bone/package_1"
 
 [sounds_0]
 type = "sound_bank"

@@ -20,10 +20,13 @@ resources = [
 sha1 = "bba4b123b927b03dded77bf32902642f029eb7a2"
 
 [package]
-type = "room"
+type = "package"
 entries = { samples = [0x047BC], spare_batches = [0x05848] }
+load = { slot = "room" }
 package_name = "akropolis_fire_escape"
 required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
+slots = { stranger_lesser = "enemies/stranger/lesser/package" }
 sha1 = "b7511004662cffe54763d3d29b6dce61614e4451"
 
 [sounds_0]

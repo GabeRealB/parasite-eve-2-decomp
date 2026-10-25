@@ -621,10 +621,13 @@ type = "animation_schema"
 slots = ["", "walk", "slot_2", "slot_3", "slot_4", "slot_5", "slot_6", "slot_7", "slot_8", "slot_9", "slot_10"]
 
 [package_akropolis]
-type = "pe2pkg"
+type = "package"
+exports = { tasks = { at = 0x35BF8, symbol = "gHelicopterLandingPadNo9TaskDescriptors" } }
+load = { slot = "actor_1" }
 package_name = "helicopter_landing_pad_no_9"
 parent = "rooms/akropolis/helicopter_landing_pad/package"
 required = true
+requires = ["gameplay"]
 sha1 = "91bc20bb98fc6653a2729859fef0014c3366bfa1"
 
 [[package_akropolis.embedded]]

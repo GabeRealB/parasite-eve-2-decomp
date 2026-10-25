@@ -12,7 +12,7 @@ required = true
 sha1 = "cfcd6416220980b15efafa2e25daaae461110b4a"
 
 [package_2]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { asset = "rooms/akropolis/forked_road/skull_stalker_idle", offset = 0x046CC, size = 0x64, address = 0x8014E4EC },
     { asset = "rooms/akropolis/forked_road/skull_stalker_alert", offset = 0x04730, size = 0x254, address = 0x8014E550 },
@@ -35,9 +35,15 @@ embedded = [
     { name = "creeping_stranger_anim_12", offset = 0x0A00C, size = 0x9C, address = 0x80153E2C },
     { name = "creeping_stranger_bank", offset = 0x0A0B4, size = 0x34, address = 0x80153ED4 },
 ]
+load = { slot = "actor_2" }
 package_name = "actor_207200"
 required = true
+requires = ["gameplay"]
 sha1 = "5126cccfb0accc7fcf11a030a4768daac2dba189"
+
+[package_2.exports]
+creeping_stranger_tasks = { at = 0x0A0A8, symbol = "gActor207200CreepingStrangerTaskDesc" }
+skull_stalker_tasks = { at = 0x04984, symbol = "gActor207200SkullStalkerTaskDesc" }
 
 [package_3]
 type = "pe2pkg"

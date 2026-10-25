@@ -91,7 +91,7 @@ type = "sound"
 sha1 = "672f7f643b7060e60303f61ec2400c270e3cc8cf"
 
 [package_1]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { name = "body", offset = 0x02D28, size = 0x1588, address = 0x80134B48 },
     { name = "burst_head", offset = 0x042B0, size = 0x300, address = 0x801360D0 },
@@ -114,8 +114,11 @@ embedded = [
     { name = "grounded", offset = 0x09BE8, size = 0x3CC, address = 0x8013BA08 },
     { name = "bank", offset = 0x0A014, size = 0x3C, address = 0x8013BE34 },
 ]
+exports = { tasks = { at = 0x0A008, symbol = "gActor01500MindSucklerTaskDesc" } }
+load = { slot = "actor_1" }
 package_name = "actor_101500"
 required = true
+requires = ["gameplay"]
 sha1 = "a84e21ee6968cb4d51ea61e1941aab55cf105738"
 
 [package_2]

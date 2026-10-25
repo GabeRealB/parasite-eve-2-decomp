@@ -65,7 +65,7 @@ variants = ["default"]
 width = 128
 
 [package_1]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { asset = "enemies/crawler/body", offset = 0x03FDC, size = 0x17B4, address = 0x80135DFC },
     { asset = "enemies/crawler/husk", offset = 0x05790, size = 0x7A4, address = 0x801375B0 },
@@ -84,12 +84,15 @@ embedded = [
     { asset = "enemies/crawler/stun", offset = 0x087A0, size = 0x1B0, address = 0x8013A5C0 },
     { name = "bank", offset = 0x08ACC, size = 0x3C, address = 0x8013A8EC },
 ]
+exports = { tasks = { at = 0x08AB4, symbol = "gActor02600MaggotCaterpillarBodyTask" } }
+load = { slot = "actor_1" }
 package_name = "actor_102600"
 required = true
+requires = ["gameplay"]
 sha1 = "500b6cb123acf985110012852212cf862611169c"
 
 [package_2]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { asset = "enemies/crawler/idle", offset = 0x05F34, size = 0x28C, address = 0x8014FD54 },
     { asset = "enemies/crawler/crawl", offset = 0x061C0, size = 0x2B4, address = 0x8014FFE0 },
@@ -106,8 +109,11 @@ embedded = [
     { asset = "enemies/crawler/stun", offset = 0x087A0, size = 0x1B0, address = 0x801525C0 },
     { name = "bank", offset = 0x08ACC, size = 0x3C, address = 0x801528EC },
 ]
+exports = { tasks = { at = 0x08AB4, symbol = "gActor202600MaggotCaterpillarBodyTask" } }
+load = { slot = "actor_2" }
 package_name = "actor_202600"
 required = true
+requires = ["gameplay"]
 sha1 = "7b728cbc9b3a15e07418c57c6a0d7283979c7035"
 
 [package_3]

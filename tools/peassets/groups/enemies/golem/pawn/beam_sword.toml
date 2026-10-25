@@ -74,7 +74,7 @@ slots = [
 ]
 
 [package_1]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { asset = "enemies/golem/pawn/body", offset = 0x037C4, size = 0x5308, address = 0x801355E4 },
     { asset = "enemies/golem/beam_sword", offset = 0x08ACC, size = 0x544, address = 0x8013A8EC },
@@ -102,8 +102,11 @@ embedded = [
     { asset = "enemies/golem/lie_front", offset = 0x15B20, size = 0x1DC, address = 0x80147940 },
     { name = "bank", offset = 0x15FE8, size = 0x7C, address = 0x80147E08 },
 ]
+exports = { tasks = { at = 0x15FD0, symbol = "gActor102000PawnGolemTasks" } }
+load = { slot = "actor_1" }
 package_name = "actor_102000"
 required = true
+requires = ["gameplay"]
 sha1 = "2baa3a5ff4f9455289a02bb69fe1b14bf749bca0"
 
 [package_2]

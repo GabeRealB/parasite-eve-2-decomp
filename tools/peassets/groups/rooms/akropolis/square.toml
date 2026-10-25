@@ -709,7 +709,7 @@ embedded = [
     { asset = "enemies/stranger/leap_start", offset = 0x07FD4, size = 0x654, address = 0x80139DF4 },
     { name = "grinning_stranger_bank", offset = 0x08628, size = 0x20, address = 0x8013A448 },
 ]
-exports = { task_desc = { at = 0x08648, symbol = "gSquareGrinningStrangerTaskDesc" } }
+exports = { tasks = { at = 0x08648, symbol = "gSquareGrinningStrangerTaskDesc" } }
 load = { slot = "actor_1" }
 package_name = "square_grinning_stranger"
 required = true

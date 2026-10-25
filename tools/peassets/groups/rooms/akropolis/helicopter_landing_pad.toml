@@ -412,13 +412,15 @@ tongue_6 = [192, 112, 32, 48]
 tongue_7 = [224, 112, 32, 48]
 
 [package]
-type = "room"
+type = "package"
 embedded = [
     { name = "akropolis_helicopter_landing_pad_model_0547C", offset = 0x04E04, size = 0x134C, address = 0x801823C4 },
     { name = "ammunition_pickup", offset = 0x0A828, size = 0x18C, address = 0x80187DE8 },
 ]
+load = { slot = "room" }
 package_name = "akropolis_helicopter_landing_pad"
 required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
 sha1 = "dc29089521da635762fcffefbbf44f6e4914266a"
 
 [package.entries]
@@ -436,6 +438,10 @@ vibrations = [
     { commands = 0x0A7A8, segments = 0x0A7B8 },
 ]
 wide_view_masks = [0x07920]
+
+[package.slots]
+golem_no_9_akropolis = "enemies/golem/no_9/package_akropolis"
+helicopter_departure = "rooms/akropolis/helicopter_landing_pad/helicopter_departure"
 
 [ambience]
 type = "sound"
@@ -1732,7 +1738,7 @@ model = "rooms/akropolis/helicopter_landing_pad/searchlight"
 textures = { helicopter_page_1 = "rooms/akropolis/helicopter_landing_pad/helicopter_page_1.default" }
 
 [helicopter_departure]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { name = "player_helipad_report_escape", offset = 0x02350, size = 0x29A0, address = 0x80134170 },
     { name = "player_helipad_detonator_talk", offset = 0x04CF0, size = 0x2E14, address = 0x80136B10 },
@@ -1757,10 +1763,17 @@ embedded = [
     { name = "no_9_leap_away", offset = 0x21EE4, size = 0x136C, address = 0x80153D04 },
     { name = "no_9_bank", offset = 0x232A0, size = 0x10, address = 0x801550C0 },
 ]
+load = { slot = "actor_1" }
 package_name = "helicopter_departure"
 parent = "rooms/akropolis/helicopter_landing_pad/package"
 required = true
+requires = ["gameplay"]
 sha1 = "e742256cbd375eff51b21ed26f4631946ba06139"
+
+[helicopter_departure.exports]
+no_9_tasks = { at = 0x23250, symbol = "gHelicopterDepartureNo9GolemTaskDescriptors" }
+rupert_tasks = { at = 0x154C8, symbol = "gHelicopterDepartureRupertTaskDescriptors" }
+helicopter_tasks = { at = 0x07B04, symbol = "gHelicopterDepartureHelicopterTaskDescriptors" }
 
 [rupert_detonator_talk]
 type = "clip"

@@ -40,7 +40,7 @@ chunk = "package"
 chunk = "bundle"
 
 [jodie]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { asset = "characters/jodie/body", offset = 0x006E0, size = 0x5D08, address = 0x8014A500 },
     { asset = "characters/aya/stand", offset = 0x065E0, size = 0x304, address = 0x80150400 },
@@ -54,8 +54,11 @@ embedded = [
     { asset = "characters/aya/anim_08", offset = 0x08198, size = 0x1C4, address = 0x80151FB8 },
     { name = "jodie_bank", offset = 0x0835C, size = 0x28, address = 0x8015217C },
 ]
+exports = { tasks = { at = 0x08388, symbol = "gActor213100JodieBouquetTaskDescriptors" } }
+load = { slot = "actor_2" }
 package_name = "actor_213100"
 required = true
+requires = ["gameplay"]
 sha1 = "a0a2a0caf5972a7735dd424f246e1a2b7b42e0bd"
 
 [props]
@@ -96,7 +99,7 @@ resources = [
 sha1 = "01596c2f977b874beb385b68b9927f32f6517838"
 
 [pierce]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { asset = "characters/pierce/body", offset = 0x0164C, size = 0x621C, address = 0x8013346C },
     { asset = "characters/pierce/glasses", offset = 0x07868, size = 0x1FC, address = 0x80139688 },
@@ -139,15 +142,21 @@ embedded = [
     { asset = "characters/pierce/anim_35", offset = 0x11DF8, size = 0x638, address = 0x80143C18 },
     { name = "pierce_bank", offset = 0x12430, size = 0x90, address = 0x80144250 },
 ]
+exports = { tasks = { at = 0x124E8, symbol = "gParkingPierceTaskDescs" } }
+load = { slot = "actor_1" }
 package_name = "parking_pierce"
 parent = "rooms/mist/parking/package"
 required = true
+requires = ["gameplay"]
 sha1 = "5e87c8524e5c2a3924655335b7b17dcac281a669"
 
 [package]
-type = "room"
+type = "package"
+load = { slot = "room" }
 package_name = "mist_parking"
 required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
+slots = { jodie = "rooms/mist/parking/jodie", pierce = "rooms/mist/parking/pierce" }
 sha1 = "4f3789fd1543af7836b09e6cee5c09472fd0852e"
 
 [[package.embedded]]

@@ -2,7 +2,7 @@
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
 [eric]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { asset = "characters/eric/body", offset = 0x00C2C, size = 0x5BA8, address = 0x8014AA4C },
     { asset = "characters/eric/arm_right", offset = 0x067D4, size = 0x634, address = 0x801505F4 },
@@ -21,9 +21,12 @@ embedded = [
     { name = "eric_reminder", offset = 0x0D74C, size = 0x844, address = 0x8015756C },
     { name = "eric_bank", offset = 0x0DF90, size = 0x2C, address = 0x80157DB0 },
 ]
+exports = { tasks = { at = 0x0DFC0, symbol = "gActor213000EricBaldwinTaskDescriptors" } }
+load = { slot = "actor_2" }
 package_name = "actor_213000"
 parent = "rooms/mist/r18/package"
 required = true
+requires = ["gameplay"]
 sha1 = "ea8273b7341dd67f06108625be31c177a12ec40d"
 
 [file]
@@ -221,7 +224,7 @@ symbol = "_gMistR18Laptop"
 sha1 = "8a7112673f699d4bb7908e7a7e72e15485f60111"
 
 [rupert]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { asset = "characters/rupert/hurt_body", offset = 0x00714, size = 0x53D0, address = 0x80132534 },
     { name = "rupert_rest", offset = 0x05AE4, size = 0x2D8, address = 0x80137904 },
@@ -237,8 +240,11 @@ embedded = [
     "characters/rupert/hurt_eyes_closed",
     { name = "rupert_bank", offset = 0x08D6C, size = 0x24, address = 0x8013AB8C },
 ]
+exports = { tasks = { at = 0x08D94, symbol = "gMistRupertTaskDesc" } }
+load = { slot = "actor_1" }
 package_name = "mist_rupert"
 required = true
+requires = ["gameplay"]
 sha1 = "7da2ff08b25be9f5b909f550f8e9c9287e0e87cc"
 
 [caption]
@@ -249,7 +255,7 @@ variants = ["default"]
 width = 256
 
 [package]
-type = "room"
+type = "package"
 embedded = [
     { name = "player_briefing_anim_01", offset = 0x01CC0, size = 0x5DC, address = 0x8017F280 },
     { name = "player_briefing_anim_02", offset = 0x0229C, size = 0xE74, address = 0x8017F85C },
@@ -263,8 +269,11 @@ embedded = [
     { name = "player_briefing_anim_10", offset = 0x075F4, size = 0x2F4, address = 0x80184BB4 },
     { name = "player_briefing_bank", offset = 0x079A4, size = 0x2C, address = 0x80184F64 },
 ]
+load = { slot = "room" }
 package_name = "mist_r18"
 required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
+slots = { eric = "rooms/mist/r18/eric", rupert = "rooms/mist/r18/rupert" }
 sha1 = "72d08008a6f9c1f371d03dc8d79a70aea31c66c7"
 
 [package.entries]

@@ -194,7 +194,7 @@ type = "clip"
 rig = "enemies/scavenger/rig"
 
 [package_1]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { name = "body", offset = 0x07114, size = 0x1E84, address = 0x80138F34 },
     { name = "burst_head", offset = 0x08F98, size = 0x7C8, address = 0x8013ADB8 },
@@ -236,8 +236,11 @@ embedded = [
     { name = "grab_target_bank", offset = 0x127C8, size = 0x10, address = 0x801445E8 },
     { name = "body_bank", offset = 0x127EC, size = 0x7C, address = 0x8014460C },
 ]
+exports = { tasks = { at = 0x127BC, symbol = "gActor101600ScavengerTaskDesc" } }
+load = { slot = "actor_1" }
 package_name = "actor_101600"
 required = true
+requires = ["gameplay"]
 sha1 = "ea653b77eb62a4d0b7ea993c22f9fb37c54f196e"
 
 [package_2]

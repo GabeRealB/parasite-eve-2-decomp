@@ -207,7 +207,7 @@ required = true
 sha1 = "ffc9c2486078d46939f8aa0fa157e678087d86a8"
 
 [package_4]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { name = "body", offset = 0x0C904, size = 0x5218, address = 0x8013E724 },
     { name = "burst_arm", offset = 0x11B1C, size = 0x584, address = 0x8014393C },
@@ -246,8 +246,11 @@ embedded = [
     { name = "alternate_player_grab_bank", offset = 0x23BD0, size = 0x8, address = 0x801559F0 },
     { name = "player_grab_bank_2", offset = 0x23BD8, size = 0x14, address = 0x801559F8 },
 ]
+exports = { tasks = { at = 0x23CA4, symbol = "gActor401800OddStrangerTaskDesc" } }
+load = { slot = "actor_1" }
 package_name = "actor_401800"
 required = true
+requires = ["gameplay"]
 sha1 = "5890aeeaef2d11c0ae8948a5bdf297acb8c22f2e"
 
 [rise_back]
@@ -305,7 +308,7 @@ required = true
 sha1 = "aad025de37e89ea86eb935d833da7e06be2b4ed2"
 
 [package_b_4]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { name = "b_burst_leg", offset = 0x120B8, size = 0x97C, address = 0x80143ED8 },
     { name = "b_burst_head", offset = 0x12A34, size = 0x116C, address = 0x80144854 },
@@ -339,8 +342,11 @@ embedded = [
     { name = "b_bank", offset = 0x23028, size = 0xB8, address = 0x80154E48 },
     { name = "player_grab_bank", offset = 0x230E0, size = 0x1C, address = 0x80154F00 },
 ]
+exports = { tasks = { at = 0x231E4, symbol = "gActor401000StrangerTaskDesc" } }
+load = { slot = "actor_1" }
 package_name = "actor_401000"
 required = true
+requires = ["gameplay"]
 sha1 = "cc6b40d227a82d1e02f95d4b77dde324a407df33"
 
 [b_burst_head]

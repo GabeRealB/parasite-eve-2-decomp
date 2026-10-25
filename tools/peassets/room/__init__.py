@@ -268,8 +268,11 @@ def decode_room(name: str, assets: dict, embedded: dict, assets_root: Path) -> d
             if o.kind == "AreaResource":                    # the actor it spawns: an export of the package bound to it
                 for v in vals:
                     if isinstance(v.get("taskTable"), int) and v["taskTable"]:
-                        ref = package_decl.resolve_export(name, assets, v["taskTable"],
-                                                          package_decl.resource_file_id(v["fileNumber"], v["fileGroupIndex"]))
+                        file = package_decl.resource_file_id(v["fileNumber"], v["fileGroupIndex"])
+                        # an entry whose file is no package of its own (a texture, a file not on the disc) spawns
+                        # from a package another entry loads: the one export of any binding at that address
+                        ref = (package_decl.resolve_export(name, assets, v["taskTable"], file)
+                               or package_decl.resolve_export(name, assets, v["taskTable"]))
                         v["taskTable"] = ref or v["taskTable"]
             if o.kind.startswith("AreaTable") and all(
                     v == _ROOM_ROLES.get((im.stage, i + 1), {}).get(_table_role(o.kind), 0) for i, v in enumerate(vals)):

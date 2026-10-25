@@ -107,7 +107,7 @@ type = "sound"
 sha1 = "7024e96ad8e0591cafc94d815d999dfff001a735"
 
 [package_1]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { name = "body", offset = 0x0405C, size = 0x18FC, address = 0x80135E7C },
     { name = "hang", offset = 0x05958, size = 0x164, address = 0x80137778 },
@@ -122,8 +122,11 @@ embedded = [
     { name = "burst", offset = 0x06DC0, size = 0x1D8, address = 0x80138BE0 },
     { name = "bank", offset = 0x06F98, size = 0x4C, address = 0x80138DB8 },
 ]
+exports = { tasks = { at = 0x07078, symbol = "gActor101200BoneSucklerTaskDesc" } }
+load = { slot = "actor_1" }
 package_name = "actor_101200"
 required = true
+requires = ["gameplay"]
 sha1 = "8c512e7b19fadcdfc55e178ff41756c22f595b60"
 
 [package_2]

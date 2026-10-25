@@ -128,7 +128,7 @@ variants = ["default"]
 width = 128
 
 [package_1]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { name = "body", offset = 0x02914, size = 0x1630, address = 0x80134734 },
     { name = "burst_head", offset = 0x03F44, size = 0x528, address = 0x80135D64 },
@@ -144,8 +144,11 @@ embedded = [
     { name = "buildup", offset = 0x059C0, size = 0x170, address = 0x801377E0 },
     { name = "bank", offset = 0x05BA0, size = 0x30, address = 0x801379C0 },
 ]
+exports = { tasks = { at = 0x05B88, symbol = "gActor102500Tasks" } }
+load = { slot = "actor_1" }
 package_name = "actor_102500"
 required = true
+requires = ["gameplay"]
 sha1 = "ef573b42d32dbbe7deac16398b00d2eb27d89804"
 
 [package_2]

@@ -106,7 +106,7 @@ resources = [
 sha1 = "cf461a73a92f5a7d0f35bf2efe4e3bb7659308d1"
 
 [package]
-type = "room"
+type = "package"
 embedded = [
     { name = "water_surface", offset = 0x0A81C, size = 0x1070, address = 0x80187DDC },
     "rooms/akropolis/bridge/keypad_movie_enemy_heights",
@@ -118,8 +118,10 @@ embedded = [
     { asset = "enemies/bass/collapse", offset = 0x13F88, size = 0x80, address = 0x80191548 },
     { asset = "enemies/bass/bank", offset = 0x14008, size = 0x1C, address = 0x801915C8 },
 ]
+load = { slot = "room" }
 package_name = "akropolis_bridge"
 required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
 sha1 = "c24f91488b8fd9a1555870bbd30bb4e08d72bb8a"
 
 [package.entries]

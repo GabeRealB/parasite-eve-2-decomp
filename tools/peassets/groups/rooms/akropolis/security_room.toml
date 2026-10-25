@@ -115,7 +115,7 @@ resources = [
 sha1 = "0000774ccddd05b446721d8b10b4a0f8d7b719a3"
 
 [package]
-type = "room"
+type = "package"
 embedded = [
     "rooms/akropolis/security_room/lamp_left_locked",
     "rooms/akropolis/security_room/lamp_left_released",
@@ -123,8 +123,11 @@ embedded = [
     "rooms/akropolis/security_room/lamp_right_released",
     { asset = "rooms/item_box/model", offset = 0x07A00, size = 0x5E8, address = 0x80184FC0 },
 ]
+load = { slot = "room" }
 package_name = "akropolis_security_room"
 required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
+slots = { security_monitors = "rooms/akropolis/security_room/security_monitors" }
 sha1 = "e0f563a5df845e45721bcf02a30ddee1283ed722"
 
 [package.entries]
@@ -961,16 +964,22 @@ type = "bs"
 sha1 = "7927558d027eaf61b49ecb46d41e6ba6d1bfacdb"
 
 [security_monitors]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { asset = "characters/rupert/walk", offset = 0x0C150, size = 0x880, address = 0x8016DF70 },
     { name = "swat_monitor_idle", offset = 0x0C9D0, size = 0x3F8, address = 0x8016E7F0 },
     { name = "rupert_bank", offset = 0x0CDC8, size = 0xC, address = 0x8016EBE8 },
     { name = "swat_bank", offset = 0x0CDD4, size = 0xC, address = 0x8016EBF4 },
 ]
+load = { slot = "actor_3" }
 package_name = "security_monitors"
 required = true
+requires = ["gameplay"]
 sha1 = "bf71732d3698d13e9081cbae18002b7a03b4e28b"
+
+[security_monitors.exports]
+rupert_tasks = { at = 0x0CDEC, symbol = "gSecurityMonitorsRupertTaskDesc" }
+swat_tasks = { at = 0x0CDE0, symbol = "gSecurityMonitorsSwatTaskDesc" }
 
 [swat_monitor_idle]
 type = "clip"

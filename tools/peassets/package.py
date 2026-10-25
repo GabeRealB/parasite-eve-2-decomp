@@ -75,9 +75,14 @@ def slot_of(name: str, assets: dict[str, dict[str, Any]]) -> str | None:
         return "gameplay"
     if rec.get("type") in LEGACY_SLOTS:
         return LEGACY_SLOTS[rec["type"]]
-    actors = tomllib.loads((ROOT / "configs" / "USA" / "overlays.toml").read_text())["actors"]["overlays"]
-    entry = actors.get(rec.get("package_name", name))
-    return f"actor_{entry['slot']}" if entry else None
+    package = rec.get("package_name", name)
+    for overlay, entry in tomllib.loads((ROOT / "configs" / "USA" / "overlays.toml").read_text())["actors"]["overlays"].items():
+        if overlay == package and "slot" in entry:
+            return f"actor_{entry['slot']}"
+        for variant in entry.get("slots", ()):          # a variant entry's packages: one source, several builds
+            if variant.get("package") == package:
+                return f"actor_{variant['slot']}"
+    return None
 
 
 def load_address(name: str, assets: dict[str, dict[str, Any]]) -> int:

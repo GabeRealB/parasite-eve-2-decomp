@@ -134,7 +134,7 @@ type = "sound"
 sha1 = "784d6eddd11c7e62fd1b836e8b7cf97bf91c21f7"
 
 [package_1]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { name = "body", offset = 0x038D0, size = 0xAF4, address = 0x801356F0 },
     { name = "burst_fragment_1", offset = 0x043C4, size = 0x1FC, address = 0x801361E4 },
@@ -155,8 +155,11 @@ embedded = [
     { name = "flinch", offset = 0x05E3C, size = 0x104, address = 0x80137C5C },
     { name = "bank", offset = 0x05F60, size = 0x30, address = 0x80137D80 },
 ]
+exports = { tasks = { at = 0x05F54, symbol = "gActor103800BlackBeetleTaskDesc" } }
+load = { slot = "actor_1" }
 package_name = "actor_103800"
 required = true
+requires = ["gameplay"]
 sha1 = "66c3122ec9e930a624e41dea6e65c74f26ecea70"
 
 [package_2]

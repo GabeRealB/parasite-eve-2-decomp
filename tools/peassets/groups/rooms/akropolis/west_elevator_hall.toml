@@ -496,7 +496,7 @@ resources = [
 sha1 = "3d8da6bfd747f2aa9c38c586fdc8764c4646df1e"
 
 [package]
-type = "room"
+type = "package"
 embedded = [
     { name = "door_leaf_left", offset = 0x02D00, size = 0x270, address = 0x801802C0 },
     { name = "door_leaf_right", offset = 0x02F70, size = 0x270, address = 0x80180530 },
@@ -504,8 +504,10 @@ embedded = [
     { name = "arrival_bank", offset = 0x06FCC, size = 0x4, address = 0x8018458C },
     "rooms/akropolis/west_elevator_hall/bay_lit_palette",
 ]
+load = { slot = "room" }
 package_name = "akropolis_west_elevator_hall"
 required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
 sha1 = "73c92323301b410f55e6d5b25d07f178016ffed9"
 
 [package.entries]

@@ -73,7 +73,7 @@ type = "sound"
 sha1 = "fac62eedd448e3b7dde533cd086d1a611b289963"
 
 [package]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { asset = "enemies/golem/body", offset = 0x06658, size = 0x5780, address = 0x80138478 },
     { asset = "enemies/golem/grab_start", offset = 0x0BDD8, size = 0x698, address = 0x8013DBF8 },
@@ -104,8 +104,11 @@ embedded = [
     { name = "player_grab_bank", offset = 0x2233C, size = 0x14, address = 0x8015415C },
     { name = "bank", offset = 0x22374, size = 0x58, address = 0x80154194 },
 ]
+exports = { tasks = { at = 0x22368, symbol = "gActor402200GolemTaskDesc" } }
+load = { slot = "actor_1" }
 package_name = "actor_402200"
 required = true
+requires = ["gameplay"]
 sha1 = "f1a4bd7f318becfa268ff9914fe42e6df2c50992"
 
 [texture]

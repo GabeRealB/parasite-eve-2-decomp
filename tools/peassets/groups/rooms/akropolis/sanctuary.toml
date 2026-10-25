@@ -63,7 +63,7 @@ chunk = "package"
 chunk = "bundle"
 
 [no_9]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { asset = "enemies/golem/no_9/body_akropolis", offset = 0x00300, size = 0x56CC, address = 0x80132120 },
     { name = "no_9_attack_rupert", offset = 0x059CC, size = 0x3C0, address = 0x801377EC },
@@ -73,8 +73,11 @@ embedded = [
     { name = "no9_golem_anim_05", offset = 0x0873C, size = 0x1A38, address = 0x8013A55C },
     { name = "no_9_bank", offset = 0x0A1A0, size = 0x18, address = 0x8013BFC0 },
 ]
+exports = { tasks = { at = 0x0A174, symbol = "gSanctuaryNo9TaskDesc" } }
+load = { slot = "actor_1" }
 package_name = "sanctuary_no_9"
 required = true
+requires = ["gameplay"]
 sha1 = "0e9e9b3f5609545a85e397e98152df642939551e"
 
 [bundle]
@@ -109,7 +112,7 @@ variants = ["flame_0", "flame_1", "flame_2"]
 width = 256
 
 [rupert]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { name = "player_sanctuary_arrival_7", offset = 0x00750, size = 0x1704, address = 0x8014A570 },
     { name = "player_sanctuary_arrival_11", offset = 0x01E54, size = 0x9CC, address = 0x8014BC74 },
@@ -131,12 +134,15 @@ embedded = [
     "characters/rupert/eyes_closed",
     { name = "rupert_bank", offset = 0x0E78C, size = 0x1C, address = 0x801585AC },
 ]
+exports = { tasks = { at = 0x0E7AC, symbol = "gActor210700RupertBroderickTaskDesc" } }
+load = { slot = "actor_2" }
 package_name = "actor_210700"
 required = true
+requires = ["gameplay"]
 sha1 = "672c188bf5dd3c02d031ea77ad11c6cacddd23e4"
 
 [package]
-type = "room"
+type = "package"
 embedded = [
     { asset = "rooms/akropolis/cafeteria/rupert_arrive", offset = 0x02D88, size = 0x4D4, address = 0x80180348 },
     { name = "cutscene_player_anim_00", offset = 0x0435C, size = 0x3D4, address = 0x8018191C },
@@ -145,8 +151,11 @@ embedded = [
     { asset = "rooms/item_box/model", offset = 0x08E84, size = 0x5E8, address = 0x80186444 },
     { name = "red_key_pickup", offset = 0x0946C, size = 0x260, address = 0x80186A2C },
 ]
+load = { slot = "room" }
 package_name = "akropolis_sanctuary"
 required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
+slots = { no_9 = "rooms/akropolis/sanctuary/no_9", rupert = "rooms/akropolis/sanctuary/rupert" }
 sha1 = "a3feb1e2773f95a09666e3065547f31d41ed53a3"
 
 [package.entries]

@@ -241,7 +241,7 @@ resources = [
 sha1 = "b7283539bb95856fe65b35796f55b891941cb839"
 
 [rupert]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { name = "player_follow_up_start", offset = 0x00ED8, size = 0x3C2C, address = 0x80162CF8 },
     { asset = "characters/rupert/mongoose", offset = 0x0A9FC, size = 0x558, address = 0x8016C81C },
@@ -251,12 +251,15 @@ embedded = [
     { name = "rupert_depart", offset = 0x15690, size = 0x217C, address = 0x801774B0 },
     { name = "rupert_bank", offset = 0x1780C, size = 0x14, address = 0x8017962C },
 ]
+exports = { tasks = { at = 0x17884, symbol = "gActor310600RupertBroderickTasks" } }
+load = { slot = "actor_3" }
 package_name = "actor_310600"
 required = true
+requires = ["gameplay"]
 sha1 = "6dc5ccea0c7b5f38c42bd34dbdcacadb368602c5"
 
 [package]
-type = "room"
+type = "package"
 embedded = [
     { name = "follow_up_player", offset = 0x06BDC, size = 0xB50, address = 0x8018419C },
     { name = "wandering_creature", offset = 0x07740, size = 0x180, address = 0x80184D00 },
@@ -267,8 +270,10 @@ embedded = [
     { name = "stim_pickup", offset = 0x0F48C, size = 0x808, address = 0x8018CA4C },
     { name = "mendel_journal", offset = 0x0FC94, size = 0x34C, address = 0x8018D254 },
 ]
+load = { slot = "room" }
 package_name = "akropolis_cafeteria"
 required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
 sha1 = "0a43c68c82490299076973953db45213ed28437d"
 
 [package.entries]
@@ -279,6 +284,15 @@ scripts = [0x058B4, 0x05BFC, 0x05D4C, 0x05F14, 0x0607C, 0x067FC, 0x068EC, 0x0697
 spare_batches = [0x0DDC4, 0x0ED28]
 transforms = [0x05654]
 updates = [0x0F414]
+
+[package.slots]
+golem_rook_grenade_launcher_1 = "enemies/golem/rook/grenade_launcher/package_1"
+stranger_odd_4 = "enemies/stranger/odd/package_4"
+suckler_bone_1 = "enemies/suckler/bone/package_1"
+anmc_woman = "rooms/akropolis/cafeteria/anmc_woman"
+boss_stranger = "rooms/akropolis/cafeteria/boss_stranger"
+rupert = "rooms/akropolis/cafeteria/rupert"
+stranger = "rooms/akropolis/cafeteria/stranger"
 
 [sounds_0]
 type = "sound_bank"
@@ -349,7 +363,7 @@ post_battle_scene = 12
 woman_cue = 13
 
 [stranger]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { name = "player_rupert_talk", offset = 0x03108, size = 0x4E14, address = 0x8014CF28 },
     { name = "player_follow_up_end", offset = 0x07F1C, size = 0x215C, address = 0x80151D3C },
@@ -361,8 +375,11 @@ embedded = [
     { name = "extra_anim_6", offset = 0x12B58, size = 0x5DC, address = 0x8015C978 },
     { name = "extra_anim_7", offset = 0x13134, size = 0x3BC, address = 0x8015CF54 },
 ]
+exports = { tasks = { at = 0x106CC, symbol = "gActor210600GrinningStrangerTaskDesc" } }
+load = { slot = "actor_2" }
 package_name = "actor_210600"
 required = true
+requires = ["gameplay"]
 sha1 = "367774e983c09e4c9e372851335e0290d5505211"
 
 [unused_1]
@@ -385,7 +402,7 @@ type = "sound"
 sha1 = "70ec17f614d59bea372533411cc00473ced3905b"
 
 [anmc_woman]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { name = "player_opening", offset = 0x0068C, size = 0x5A34, address = 0x8014A4AC },
     { asset = "characters/anmc_woman_2/body", offset = 0x060C0, size = 0x5AEC, address = 0x8014FEE0 },
@@ -394,8 +411,11 @@ embedded = [
     { name = "woman_idle", offset = 0x0CDDC, size = 0x210, address = 0x80156BFC },
     { name = "woman_bank", offset = 0x0D01C, size = 0x18, address = 0x80156E3C },
 ]
+exports = { tasks = { at = 0x0D004, symbol = "gActor202900WomanTaskDescriptors" } }
+load = { slot = "actor_2" }
 package_name = "actor_202900"
 required = true
+requires = ["gameplay"]
 sha1 = "50d3502915840cf76757c4f7abed9cc944321754"
 
 [dialogue_0]
@@ -1217,7 +1237,7 @@ type = "animation_schema"
 slots = ["", "opening", "", "", "idle"]
 
 [boss_stranger]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { name = "boss_stranger_body", offset = 0x07138, size = 0x5568, address = 0x80138F58 },
     { asset = "enemies/stranger/strike", offset = 0x0C6A0, size = 0xFC4, address = 0x8013E4C0 },
@@ -1242,8 +1262,11 @@ embedded = [
     { name = "boss_stranger_walk", offset = 0x14528, size = 0x19D8, address = 0x80146348 },
     { name = "boss_stranger_bank", offset = 0x166EC, size = 0xB8, address = 0x8014850C },
 ]
+exports = { tasks = { at = 0x16850, symbol = "gCafeteriaBossStrangerTaskDesc" } }
+load = { slot = "actor_1" }
 package_name = "cafeteria_boss_stranger"
 required = true
+requires = ["gameplay"]
 sha1 = "74f1ae3aafbb1b7d92790dc2afab1a15becb8a25"
 
 [rupert_arrive]

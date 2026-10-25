@@ -219,10 +219,12 @@ resources = [
 sha1 = "1ceb2f1ae9e72ee0ef98691aa0d48b0507bb7ea6"
 
 [package]
-type = "room"
+type = "package"
 embedded = ["rooms/akropolis/promenade/arrival_player_path"]
+load = { slot = "room" }
 package_name = "akropolis_promenade"
 required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
 sha1 = "61de7cf0d94d0b266b70a85befb299273b7b42ac"
 
 [package.entries]
@@ -232,6 +234,13 @@ spare_batches = [0x089E4]
 transforms = [0x03910]
 vibrations = [{ commands = 0x08C64, segments = 0x08C7C }]
 view_masks = [{ at = 0x045B4, single = true }, { at = 0x045B6, single = true }, 0x045B8]
+
+[package.slots]
+brute_and_mossback_3 = "encounters/brute_and_mossback/package_3"
+rat_and_moth_2 = "encounters/rat_and_moth/package_2"
+crawler_caterpillar_1 = "enemies/crawler/caterpillar/package_1"
+crawler_maggot_1 = "enemies/crawler/maggot/package_1"
+golem_knight = "enemies/golem/knight/package"
 
 [sounds_0]
 type = "sound_bank"

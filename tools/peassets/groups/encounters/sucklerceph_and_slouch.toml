@@ -34,7 +34,7 @@ type = "sound"
 sha1 = "52e8e63bd4f8424548a0c70a49809b3f354232f2"
 
 [package_1]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { asset = "rooms/akropolis/forked_road/sucklerceph_idle", offset = 0x079EC, size = 0x358, address = 0x8013980C },
     { asset = "rooms/akropolis/forked_road/sucklerceph_crawl", offset = 0x07D44, size = 0x148, address = 0x80139B64 },
@@ -58,9 +58,15 @@ embedded = [
     { name = "slouch_death", offset = 0x0D6A4, size = 0xD8, address = 0x8013F4C4 },
     { name = "slouch_bank", offset = 0x0D77C, size = 0x34, address = 0x8013F59C },
 ]
+load = { slot = "actor_1" }
 package_name = "actor_107000"
 required = true
+requires = ["gameplay"]
 sha1 = "733d0fc72a5ecc669376d513a1276f387ff7b7a0"
+
+[package_1.exports]
+slouch_tasks = { at = 0x0D7D0, symbol = "gActor107000SlouchTaskDescs" }
+sucklerceph_tasks = { at = 0x08040, symbol = "gActor107000SucklercephTaskDescs" }
 
 [package_2]
 type = "pe2pkg"

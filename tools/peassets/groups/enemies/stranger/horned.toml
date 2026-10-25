@@ -184,9 +184,12 @@ required = true
 sha1 = "65ba3540ac8cf3d479c58e48a8e49d1310bbbbed"
 
 [package_4]
-type = "pe2pkg"
+type = "package"
+exports = { tasks = { at = 0x26BF8, symbol = "gActor401300HornedStrangerTaskDesc" } }
+load = { slot = "actor_1" }
 package_name = "actor_401300"
 required = true
+requires = ["gameplay"]
 sha1 = "a4ce43e3dfd15c991531dc6ac76860fd2ffa7734"
 
 [[package_4.embedded]]

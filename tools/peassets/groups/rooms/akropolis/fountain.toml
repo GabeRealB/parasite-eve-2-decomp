@@ -31,15 +31,21 @@ resources = [
 sha1 = "c21a43de0467cd29377607d88d2196c1e4ba4dc0"
 
 [package]
-type = "room"
+type = "package"
+load = { slot = "room" }
 package_name = "akropolis_fountain"
 required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
 sha1 = "588e1219c3d1cdd079a9ce083670e94eaa0f12cf"
 
 [package.entries]
 action_triggers = [{ at = 0x011E4, single = true }]
 markers = [{ at = 0x01230, single = true }]
 spare_batches = [0x05E20]
+
+[package.slots]
+brute_and_mossback_3 = "encounters/brute_and_mossback/package_3"
+brute_and_mossback_recolor_1 = "encounters/brute_and_mossback/recolor_package_1"
 
 [sounds_0]
 type = "sound_bank"

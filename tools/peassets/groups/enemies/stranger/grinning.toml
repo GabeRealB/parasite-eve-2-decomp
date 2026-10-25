@@ -93,7 +93,7 @@ type = "clip"
 rig = "enemies/stranger/rig"
 
 [package_1]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { name = "body", offset = 0x0AC88, size = 0x5664, address = 0x8013CAA8 },
     { asset = "enemies/stranger/burst_hand", offset = 0x102EC, size = 0x8A0, address = 0x8014210C },
@@ -112,8 +112,11 @@ embedded = [
     { name = "scripted_dormant", offset = 0x15F48, size = 0xA40, address = 0x80147D68 },
     { name = "bank", offset = 0x17174, size = 0xB8, address = 0x80148F94 },
 ]
+exports = { tasks = { at = 0x17300, symbol = "gActor101900GrinningStrangerTaskDesc" } }
+load = { slot = "actor_1" }
 package_name = "actor_101900"
 required = true
+requires = ["gameplay"]
 sha1 = "cebcd8f9f838f684d81d3919f2b0bf0d0310dc1e"
 
 [package_2]
@@ -123,7 +126,7 @@ required = true
 sha1 = "3d1b86aee037f5fcee88839df0b17533531a2af8"
 
 [package_3]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { name = "strike", offset = 0x10B8C, size = 0xA84, address = 0x801729AC },
     { name = "flinch", offset = 0x11610, size = 0x404, address = 0x80173430 },
@@ -140,8 +143,11 @@ embedded = [
     { name = "scripted_dormant", offset = 0x15F48, size = 0xA40, address = 0x80177D68 },
     { name = "bank", offset = 0x17174, size = 0xB8, address = 0x80178F94 },
 ]
+exports = { tasks = { at = 0x17300, symbol = "gActor301900GrinningStrangerTaskDesc" } }
+load = { slot = "actor_3" }
 package_name = "actor_301900"
 required = true
+requires = ["gameplay"]
 sha1 = "b98c6d4767d77c054e91e6e66948cd573db712bf"
 
 [step_back]

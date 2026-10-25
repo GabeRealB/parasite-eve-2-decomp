@@ -39,13 +39,16 @@ resources = ["rooms/akropolis/hallway/dialogue_0"]
 sha1 = "92423036ef88e01be88b40f8691a15d95e36714a"
 
 [package]
-type = "room"
+type = "package"
 embedded = [
     { name = "blue_key_pickup", offset = 0x017A0, size = 0xB20, address = 0x8017ED60 },
     { name = "pain_reliever_pickup", offset = 0x022C0, size = 0x1CC, address = 0x8017F880 },
 ]
+load = { slot = "room" }
 package_name = "akropolis_hallway"
 required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
+slots = { rat_and_moth_3 = "encounters/rat_and_moth/package_3", stranger_odd_4 = "enemies/stranger/odd/package_4" }
 sha1 = "61c66d02ac5846016b72779cd0bd9dd5fe6a4b44"
 
 [blue_key]

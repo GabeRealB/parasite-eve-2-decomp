@@ -11,9 +11,11 @@ resources = ["", "", "rooms/mist/r21/dialogue_0"]
 sha1 = "30a33ddb1879c0e24ef3d9cb6c06f7de6223c548"
 
 [package]
-type = "room"
+type = "package"
+load = { slot = "room" }
 package_name = "mist_r21"
 required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
 sha1 = "6575257434c123c3f4aefff45ab31fe4a0777874"
 
 [dialogue_0]

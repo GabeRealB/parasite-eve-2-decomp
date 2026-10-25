@@ -60,7 +60,7 @@ resources = ["rooms/akropolis/plaza/dialogue_0"]
 sha1 = "aeb19f6425491cab36f2759ebecf8903c2e2a4dd"
 
 [package]
-type = "room"
+type = "package"
 embedded = [
     "rooms/akropolis/plaza/traversal_camera_path",
     "rooms/akropolis/plaza/helicopter_wreck_camera_path",
@@ -104,8 +104,11 @@ embedded = [
     { asset = "characters/aya/ask_about_roof", offset = 0x1AE2C, size = 0x1A0, address = 0x801983EC },
     { asset = "characters/aya/look_at_wreck", offset = 0x1AFCC, size = 0x254, address = 0x8019858C },
 ]
+load = { slot = "room" }
 package_name = "akropolis_plaza"
 required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
+slots = { police_officers = "rooms/akropolis/plaza/police_officers" }
 sha1 = "b62d1232be576a30edc6636ecacb2b53e8867f12"
 
 [package.entries]
@@ -189,7 +192,7 @@ type = "sound"
 sha1 = "8a58cf384757c161094f3ac856f7cdc466b9a94a"
 
 [police_officers]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { asset = "characters/police_rookie/body", offset = 0x0159C, size = 0x5868, address = 0x801633BC },
     { asset = "characters/police_rookie/culled_body", offset = 0x06E04, size = 0x488C, address = 0x80168C24 },
@@ -208,9 +211,15 @@ embedded = [
     { name = "police_sergeant_bank", offset = 0x17974, size = 0x68, address = 0x80179794 },
     { name = "police_scene_player_bank", offset = 0x179DC, size = 0x34, address = 0x801797FC },
 ]
+load = { slot = "actor_3" }
 package_name = "police_officers"
 required = true
+requires = ["gameplay"]
 sha1 = "f9b3a4b29e62b743444b4c28ff43cf71aa73b871"
+
+[police_officers.exports]
+rookie_tasks = { at = 0x17ADC, symbol = "gPoliceOfficersRookieTaskDescriptors" }
+sergeant_tasks = { at = 0x17B00, symbol = "gPoliceOfficersSergeantTaskDescriptors" }
 
 [dialogue_0_atlas]
 type = "font_atlas"

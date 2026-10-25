@@ -92,15 +92,17 @@ resources = [
 sha1 = "38a9fa90e79dbc78940f8ddabc84ce35a7fc18bf"
 
 [package]
-type = "room"
+type = "package"
 embedded = [
     "rooms/akropolis/forked_road/movie_player_path",
     { asset = "characters/aya/stand", offset = 0x04320, size = 0x304, address = 0x801818E0 },
     { asset = "rooms/shelter/b2_north_maintenance_walkway/player_turn_to_stinger", offset = 0x04624, size = 0x470, address = 0x80181BE4 },
     { name = "ambush_player_bank", offset = 0x04A94, size = 0xC, address = 0x80182054 },
 ]
+load = { slot = "room" }
 package_name = "akropolis_forked_road"
 required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
 sha1 = "0cc59b82e4c8116da25d79f5cf06274f0c8ee331"
 
 [package.entries]
@@ -110,6 +112,26 @@ scripts = [0x04AF8]
 spare_batches = [0x06518, 0x06F10]
 vibrations = [{ commands = 0x07A78, segments = 0x07A90 }, { commands = 0x07A98, segments = 0x07AB0 }]
 view_masks = [0x04C28]
+
+[package.slots]
+green_and_red_amoeba_1 = "encounters/green_and_red_amoeba/package_1"
+rat_and_moth_1 = "encounters/rat_and_moth/package_1"
+rat_and_moth_2 = "encounters/rat_and_moth/package_2"
+rat_and_moth_3 = "encounters/rat_and_moth/package_3"
+skull_stalker_and_creeping_stranger_2 = "encounters/skull_stalker_and_creeping_stranger/package_2"
+sucklerceph_and_slouch_1 = "encounters/sucklerceph_and_slouch/package_1"
+bat_1 = "enemies/bat/package_1"
+black_beetle_1 = "enemies/black_beetle/package_1"
+crawler_caterpillar_1 = "enemies/crawler/caterpillar/package_1"
+crawler_maggot_1 = "enemies/crawler/maggot/package_1"
+golem_pawn_beam_sword_1 = "enemies/golem/pawn/beam_sword/package_1"
+scavenger_1 = "enemies/scavenger/package_1"
+scorpion_1 = "enemies/scorpion/package_1"
+stranger_grinning_3 = "enemies/stranger/grinning/package_3"
+stranger_odd_4 = "enemies/stranger/odd/package_4"
+stranger_odd_b_4 = "enemies/stranger/odd/package_b_4"
+suckler_mind_1 = "enemies/suckler/mind/package_1"
+sucklerceph_and_skull_stalker_1 = "rooms/akropolis/forked_road/sucklerceph_and_skull_stalker_1"
 
 [sounds_0]
 type = "sound_bank"
@@ -678,7 +700,7 @@ model = "rooms/akropolis/forked_road/skull_stalker_body"
 sucklerceph_and_skull_stalker_1_texture = "rooms/akropolis/forked_road/sucklerceph_and_skull_stalker_1_texture.default"
 
 [sucklerceph_and_skull_stalker_1]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { name = "sucklerceph_body", offset = 0x04188, size = 0x109C, address = 0x80135FA8 },
     { name = "sucklerceph_idle", offset = 0x05224, size = 0x358, address = 0x80137044 },
@@ -690,9 +712,15 @@ embedded = [
     { name = "skull_stalker_alert", offset = 0x06248, size = 0x254, address = 0x80138068 },
     { name = "skull_stalker_bank", offset = 0x064A8, size = 0xC, address = 0x801382C8 },
 ]
+load = { slot = "actor_1" }
 package_name = "actor_104600"
 required = true
+requires = ["gameplay"]
 sha1 = "dac44b4749eec1505f8b0e53ca7e6a23fcfd43f7"
+
+[sucklerceph_and_skull_stalker_1.exports]
+sucklerceph_tasks = { at = 0x05878, symbol = "gActor104600SucklercephTaskDesc" }
+skull_stalker_tasks = { at = 0x0649C, symbol = "gActor104600SkullStalkerTaskDesc" }
 
 [sucklerceph_and_skull_stalker_2]
 type = "pe2pkg"

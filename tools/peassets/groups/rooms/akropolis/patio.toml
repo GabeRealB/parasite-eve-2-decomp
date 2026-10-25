@@ -224,9 +224,11 @@ resources = [
 sha1 = "2ec25d6eb4b1f8e0073974773035a09958547451"
 
 [package]
-type = "room"
+type = "package"
+load = { slot = "room" }
 package_name = "akropolis_patio"
 required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
 sha1 = "a1d21b9d3d98c6ee720aa24c2f879af7387fd92a"
 
 [[package.embedded]]
@@ -309,6 +311,14 @@ scripts = [0x02EC4, 0x030EC, 0x0326C, 0x036A4, 0x0382C, 0x0391C, 0x0524C, 0x0562
 spare_batches = [0x08938, 0x08978]
 transforms = [0x05088]
 view_masks = [0x0588C]
+
+[package.slots]
+rat_and_moth_1 = "encounters/rat_and_moth/package_1"
+rat_and_moth_3 = "encounters/rat_and_moth/package_3"
+stranger_grinning_1 = "enemies/stranger/grinning/package_1"
+stranger_odd_b_4 = "enemies/stranger/odd/package_b_4"
+leaping_strangers = "rooms/akropolis/patio/leaping_strangers"
+swat_member = "rooms/akropolis/patio/swat_member"
 
 [sounds_0]
 type = "sound_bank"
@@ -913,7 +923,7 @@ type = "sound"
 sha1 = "ad42e5ff4334046d245ab3b2f9b2f6b8c35baf3f"
 
 [swat_member]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { asset = "characters/swat_member_1/body", offset = 0x01A90, size = 0x48BC, address = 0x801638B0 },
     { name = "swat_dormant", offset = 0x0634C, size = 0x1044, address = 0x8016816C },
@@ -922,8 +932,11 @@ embedded = [
     { name = "swat_rest", offset = 0x07DA0, size = 0x368, address = 0x80169BC0 },
     { name = "swat_bank", offset = 0x08124, size = 0x18, address = 0x80169F44 },
 ]
+exports = { tasks = { at = 0x0815C, symbol = "gPatioSwatMemberTaskDesc" } }
+load = { slot = "actor_3" }
 package_name = "patio_swat_member"
 required = true
+requires = ["gameplay"]
 sha1 = "274783de5c0be610bc1e70593693de58b74ea6fb"
 
 [swat_schema]
@@ -1262,7 +1275,7 @@ type = "sound"
 sha1 = "5fefeb1801ad6037f42a5e37d84c5f2b0993a183"
 
 [leaping_strangers]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { asset = "enemies/stranger/react", offset = 0x065A8, size = 0x41C, address = 0x801683C8 },
     { asset = "enemies/stranger/odd/b_walk", offset = 0x069C4, size = 0xB24, address = 0x801687E4 },
@@ -1274,8 +1287,11 @@ embedded = [
     { name = "stranger_land", offset = 0x0A9B4, size = 0x748, address = 0x8016C7D4 },
     { name = "stranger_bank", offset = 0x0B0FC, size = 0x24, address = 0x8016CF1C },
 ]
+exports = { tasks = { at = 0x0B124, symbol = "gPatioLeapingStrangersTaskDesc" } }
+load = { slot = "actor_3" }
 package_name = "patio_leaping_strangers"
 required = true
+requires = ["gameplay"]
 sha1 = "1622e6d8e0ef76461aa05280b2f39570008a5802"
 
 [view10_background]

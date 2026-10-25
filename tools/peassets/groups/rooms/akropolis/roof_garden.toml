@@ -108,9 +108,11 @@ resources = [
 sha1 = "47316332c72fd1509886d58fe74ce23a02511beb"
 
 [package]
-type = "room"
+type = "package"
+load = { slot = "room" }
 package_name = "akropolis_roof_garden"
 required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
 sha1 = "2217089fcd1f4f7bc3c77434cf461ce6644a824b"
 
 [[package.embedded]]
@@ -170,6 +172,14 @@ scene_keys = [0x067AC]
 scripts = [0x067B4, 0x06BD4, 0x07548]
 transforms = [0x066C8]
 view_masks = [0x07688]
+
+[package.slots]
+rat_and_moth_2 = "encounters/rat_and_moth/package_2"
+crawler_caterpillar_1 = "enemies/crawler/caterpillar/package_1"
+crawler_caterpillar_2 = "enemies/crawler/caterpillar/package_2"
+crawler_maggot_1 = "enemies/crawler/maggot/package_1"
+crawler_maggot_2 = "enemies/crawler/maggot/package_2"
+swat_member = "rooms/akropolis/roof_garden/swat_member"
 
 [ambience]
 type = "sound"
@@ -495,7 +505,7 @@ region = "engine/vram/room_sprite_palettes"
 offset = [0x00000, 0x00005]
 
 [swat_member]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { name = "swat_member_radio", offset = 0x05F98, size = 0x2B4, address = 0x80137DB8 },
     { name = "swat_radio_call_1", offset = 0x0624C, size = 0x4CC, address = 0x8013806C },
@@ -505,9 +515,12 @@ embedded = [
     { name = "swat_radio_call_5", offset = 0x07734, size = 0x970, address = 0x80139554 },
     { name = "swat_bank", offset = 0x080D4, size = 0x1C, address = 0x80139EF4 },
 ]
+exports = { tasks = { at = 0x080BC, symbol = "gRoofGardenSwatMemberViewFigureTasks" } }
+load = { slot = "actor_1" }
 package_name = "roof_garden_swat_member"
 parent = "rooms/akropolis/roof_garden/package"
 required = true
+requires = ["gameplay"]
 sha1 = "9af3abc89cf5e9fef33ffd375426c6fa19634630"
 
 [swat_schema]

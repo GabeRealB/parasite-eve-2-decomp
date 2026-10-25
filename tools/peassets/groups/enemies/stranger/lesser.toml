@@ -24,14 +24,17 @@ type = "animation_schema"
 slots = ["idle", "hit"]
 
 [package]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { asset = "enemies/stranger/down_back", offset = 0x06DFC, size = 0x3B4, address = 0x80168C1C },
     { name = "idle", offset = 0x071B0, size = 0x2E8, address = 0x80168FD0 },
     { name = "bank", offset = 0x074D4, size = 0x8, address = 0x801692F4 },
 ]
+exports = { tasks = { at = 0x07518, symbol = "gLesserStrangerTaskDesc" } }
+load = { slot = "actor_3" }
 package_name = "lesser_stranger"
 required = true
+requires = ["gameplay"]
 sha1 = "b6b94075f3abcdbfd2f57b4977e4230c27622dd0"
 
 [body_binding]

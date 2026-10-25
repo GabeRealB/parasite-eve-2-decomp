@@ -120,7 +120,7 @@ type = "clip"
 rig = "enemies/suckler/rig"
 
 [package_1]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { name = "body", offset = 0x070AC, size = 0x1690, address = 0x80138ECC },
     { asset = "enemies/suckler/bone/hang", offset = 0x0873C, size = 0x164, address = 0x8013A55C },
@@ -148,8 +148,11 @@ embedded = [
     { name = "player_left_latch_bank", offset = 0x0C510, size = 0x10, address = 0x8013E330 },
     { name = "player_right_latch_bank", offset = 0x0C520, size = 0x10, address = 0x8013E340 },
 ]
+exports = { tasks = { at = 0x0C6E0, symbol = "gActor04000BloodSucklerTaskDesc" } }
+load = { slot = "actor_1" }
 package_name = "actor_104000"
 required = true
+requires = ["gameplay"]
 sha1 = "7f8954da5b594573b930e9fbb1eb4724d9fb5cb8"
 
 [package_2]
