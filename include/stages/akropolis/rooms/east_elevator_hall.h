@@ -18,7 +18,7 @@ enum {
     AKROPOLIS_EAST_ELEVATOR_HALL_WARP_COUNT = 1,
 };
 
-/// Placement variants: 1 has the placed figure and the SWAT members.
+/// Placement variants: 1 has the wounded SWAT member.
 extern AreaVariant gAkropolisEastElevatorHallAreaVariants[3];
 
 /// Collision of the hall's one room state.
@@ -57,7 +57,7 @@ void akropolisEastElevatorHallPlayerReflectionTask(Task* reflectionTask);
 /// Draws one frame of a gray point of light.
 void akropolisEastElevatorHallPointTileTask(Task* task);
 
-/// The hall's room task: installs its messages and starts the placed figure.
+/// The hall's room task: installs its messages and shows the wounded SWAT member.
 void akropolisEastElevatorHallRoomTask(Task* task);
 
 #endif // INCLUDE_STAGES_AKROPOLIS_ROOMS_EAST_ELEVATOR_HALL_H

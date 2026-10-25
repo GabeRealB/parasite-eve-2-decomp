@@ -143,7 +143,7 @@ static inline void _akropolisEastElevatorHallRecordOpeningProgress(void)
 static s32 _akropolisEastElevatorHallHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
     if (request->actionId == AKROPOLIS_EAST_ELEVATOR_HALL_OPENING_ACTION &&
-        gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) == 0 &&
+        gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) == AKROPOLIS_CAFETERIA_ROUTE_NOT_STARTED &&
         _gAkropolisEastElevatorHallOpeningEventStarted == 0) {
         evsStartScriptWithSkip(_gAkropolisEastElevatorHallOpeningScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAkropolisEastElevatorHallOpeningSkipScript);
         _akropolisEastElevatorHallRecordOpeningProgress();
@@ -151,28 +151,28 @@ static s32 _akropolisEastElevatorHallHandleRoomAction(Task* unusedTask, s32 unus
     return 0;
 }
 
-/// Room command 2 plays the room's second event script.
+/// Room command 2, talking to the SWAT member again: "Go! Hurry...".
 static s32 _akropolisEastElevatorHallHandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg)
 {
-    if (command == AKROPOLIS_EAST_ELEVATOR_HALL_ROOM_COMMAND_SCENE) {
-        evsStartScript(_gAkropolisEastElevatorHallCommand2Script, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+    if (command == AKROPOLIS_EAST_ELEVATOR_HALL_ROOM_COMMAND_URGE_HURRY) {
+        evsStartScript(_gAkropolisEastElevatorHallUrgeHurryScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
     return 0;
 }
 
-/// Ends the opening's skip script with its CAP sequence.
+/// Ends the opening's skip script with the opening's last CAP step.
 static void _akropolisEastElevatorHallStartSkipCapSequence(void)
 {
     capStartSequenceSlot(AKROPOLIS_EAST_ELEVATOR_HALL_SKIP_CAP_SEQUENCE, CAP_PLAYBACK_DISPLAY_TRANSITION, 0);
 }
 
-/// Installs the room's messages and starts the placed figure's animation.
+/// Installs the room's messages and shows the SWAT member at rest.
 static void _akropolisEastElevatorHallInitializeRoomTask(Task* task)
 {
     task->msgTable = _gAkropolisEastElevatorHallRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    sceneSetPlacedActorDrawMode(AKROPOLIS_EAST_ELEVATOR_HALL_FIGURE_ACTOR, 1);
-    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(AKROPOLIS_EAST_ELEVATOR_HALL_FIGURE_ACTOR), ACTOR_MESSAGE_PLAY_ANIMATION, &_gAkropolisEastElevatorHallViewFigureDefaultAnimationRequest, 0);
+    sceneSetPlacedActorDrawMode(AKROPOLIS_EAST_ELEVATOR_HALL_SWAT_MEMBER_ACTOR, 1);
+    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(AKROPOLIS_EAST_ELEVATOR_HALL_SWAT_MEMBER_ACTOR), ACTOR_MESSAGE_PLAY_ANIMATION, &_gAkropolisEastElevatorHallSwatRestAnimationRequest, 0);
     task->state++;
 }
 
@@ -206,42 +206,42 @@ void akropolisEastElevatorHallRoomTask(Task* task)
 void akropolisEastElevatorHallReflectionsAndBeaconsTask(Task* task)
 {
     enum {
-        AKROPOLIS_EAST_ELEVATOR_HALL_EFFECTS_INITIALIZE = 0,
-        AKROPOLIS_EAST_ELEVATOR_HALL_EFFECTS_UPDATE     = 1,
+        INITIALIZE = 0,
+        UPDATE     = 1,
     };
     GfxCoord* parentCoord;
 
     parentCoord = task->extra.coordBody->coord;
     switch (task->state) {
-        case AKROPOLIS_EAST_ELEVATOR_HALL_EFFECTS_INITIALIZE:
+        case INITIALIZE:
             taskSpawn(AKROPOLIS_EAST_ELEVATOR_HALL_REFLECTION_TASK_BANK, AKROPOLIS_EAST_ELEVATOR_HALL_REFLECTION_TASK_SLOT, AKROPOLIS_EAST_ELEVATOR_HALL_REFLECTION_FLOOR, 0);
             taskSpawn(AKROPOLIS_EAST_ELEVATOR_HALL_REFLECTION_TASK_BANK, AKROPOLIS_EAST_ELEVATOR_HALL_REFLECTION_TASK_SLOT, AKROPOLIS_EAST_ELEVATOR_HALL_REFLECTION_PLANE, 0);
             task->state++;
             /* fallthrough */
-        case AKROPOLIS_EAST_ELEVATOR_HALL_EFFECTS_UPDATE:
+        case UPDATE:
             if (gGameSession->location.view == AKROPOLIS_EAST_ELEVATOR_HALL_BEACON_VIEW) {
                 SVECTOR spawnOffset = _gAkropolisEastElevatorHallFirstBeaconOffset;
 
                 effectSpawn(EFFECT_AKROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, parentCoord, BEACON_SMALL, &spawnOffset);
-                spawnOffset.vx = 0x1600;
-                spawnOffset.vy = -0x985;
-                spawnOffset.vz = 0x55;
+                spawnOffset.vx = AKROPOLIS_EAST_ELEVATOR_HALL_BEACON_WALL_X;
+                spawnOffset.vy = -2437;
+                spawnOffset.vz = 85;
                 effectSpawn(EFFECT_AKROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, parentCoord, BEACON_SMALL, &spawnOffset);
-                spawnOffset.vx = 0x1600;
-                spawnOffset.vy = -0xA81;
-                spawnOffset.vz = -0x1CA;
+                spawnOffset.vx = AKROPOLIS_EAST_ELEVATOR_HALL_BEACON_WALL_X;
+                spawnOffset.vy = -2689;
+                spawnOffset.vz = -458;
                 effectSpawn(EFFECT_AKROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, parentCoord, BEACON_LARGE, &spawnOffset);
-                spawnOffset.vx = 0x1600;
-                spawnOffset.vy = -0xA93;
-                spawnOffset.vz = -0x61C;
+                spawnOffset.vx = AKROPOLIS_EAST_ELEVATOR_HALL_BEACON_WALL_X;
+                spawnOffset.vy = -2707;
+                spawnOffset.vz = -1564;
                 effectSpawn(EFFECT_AKROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, parentCoord, BEACON_LARGE, &spawnOffset);
-                spawnOffset.vx = 0x1600;
-                spawnOffset.vy = -0x460;
-                spawnOffset.vz = -0x1A1;
+                spawnOffset.vx = AKROPOLIS_EAST_ELEVATOR_HALL_BEACON_WALL_X;
+                spawnOffset.vy = -1120;
+                spawnOffset.vz = -417;
                 effectSpawn(EFFECT_AKROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, parentCoord, BEACON_LARGE, &spawnOffset);
-                spawnOffset.vx = 0x1600;
-                spawnOffset.vy = -0x449;
-                spawnOffset.vz = -0x635;
+                spawnOffset.vx = AKROPOLIS_EAST_ELEVATOR_HALL_BEACON_WALL_X;
+                spawnOffset.vy = -1097;
+                spawnOffset.vz = -1589;
                 effectSpawn(EFFECT_AKROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, parentCoord, BEACON_LARGE, &spawnOffset);
             }
             break;

@@ -36,17 +36,18 @@ enum { AKROPOLIS_EAST_ELEVATOR_HALL_TRIGGER_SQUARE_WARPS = (1 << 4) | 2 };
 // ---------------------------------------------------------------------------
 // The opening
 
-/// The room action that starts the opening.
+/// The room action that starts the opening: the wounded SWAT member's "Freeze!", his plea to save the civilian in
+/// the cafeteria, and his "Watch your back!" (CAP 1).
 enum { AKROPOLIS_EAST_ELEVATOR_HALL_OPENING_ACTION = 0 };
 
 /// Room commands and CAP sequences.
 enum {
-    AKROPOLIS_EAST_ELEVATOR_HALL_ROOM_COMMAND_SCENE = 2,  // Plays the room's second event script
-    AKROPOLIS_EAST_ELEVATOR_HALL_SKIP_CAP_SEQUENCE  = 16, // Started when the opening is skipped
+    AKROPOLIS_EAST_ELEVATOR_HALL_ROOM_COMMAND_URGE_HURRY = 2,  // Talking to him again: "Go! Hurry..." (CAP 2)
+    AKROPOLIS_EAST_ELEVATOR_HALL_SKIP_CAP_SEQUENCE       = 16, // The opening's last step, when it is skipped
 };
 
-/// The placed figure: actor 0, drawn from the start.
-enum { AKROPOLIS_EAST_ELEVATOR_HALL_FIGURE_ACTOR = 0 };
+/// The wounded SWAT member: placed actor 0.
+enum { AKROPOLIS_EAST_ELEVATOR_HALL_SWAT_MEMBER_ACTOR = 0 };
 
 // ---------------------------------------------------------------------------
 // Tasks and messages
@@ -65,9 +66,11 @@ enum {
 // ---------------------------------------------------------------------------
 // Tuning
 
-/// The view the six red beacons show in, and their pulse rates and sizes.
+/// The view the six red beacons show in, the wall they sit on (the first's position is a marker), and their pulse
+/// rates and sizes.
 enum {
     AKROPOLIS_EAST_ELEVATOR_HALL_BEACON_VIEW       = 2,
+    AKROPOLIS_EAST_ELEVATOR_HALL_BEACON_WALL_X     = 5632,
     AKROPOLIS_EAST_ELEVATOR_HALL_BEACON_SMALL_RATE = 3,
     AKROPOLIS_EAST_ELEVATOR_HALL_BEACON_SMALL_SIZE = 12,
     AKROPOLIS_EAST_ELEVATOR_HALL_BEACON_LARGE_RATE = 4,
