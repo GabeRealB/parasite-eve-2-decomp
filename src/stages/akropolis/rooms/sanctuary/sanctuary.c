@@ -75,8 +75,8 @@ typedef struct {
     u16   phase;            // Script phase (0 initial, 1 hold, 2 place player)
     u16   placementApplied; // Player setup status (0 pending, 1 applied)
     u8    field_8[4];       // Cleared at creation; role and field boundaries unproven
-} _AkropolisSanctuaryCutsceneWork;
-STATIC_ASSERT_SIZEOF(_AkropolisSanctuaryCutsceneWork, 0xC);
+} _CutsceneWork;
+STATIC_ASSERT_SIZEOF(_CutsceneWork, 0xC);
 
 /// One tile of the sanctuary's mosaic: the piece of the mosaic sheet it shows and how it comes away from the wall.
 typedef struct {
@@ -87,45 +87,45 @@ typedef struct {
     s16 thrown;     // How the tile leaves (0 works loose slowly and sheds shards, 1 thrown clear)
     s16 holdFrames; // Frames the tile stays in place before it moves; 0 when thrown
     s16 sizeClass;  // Tile size (0 one 15 x 16 texel cell, 1 a 30 x 32 block)
-} _AkropolisSanctuaryMosaicTile;
+} _MosaicTile;
 
-STATIC_ASSERT_SIZEOF(_AkropolisSanctuaryMosaicTile, 0xE);
+STATIC_ASSERT_SIZEOF(_MosaicTile, 0xE);
 
 /// Views selected by player placement and the mosaic's retained cleanup latch.
 enum {
-    AKROPOLIS_SANCTUARY_VIEW_MOSAIC_LATCH_SET = 16,
+    VIEW_MOSAIC_LATCH_SET = 16,
 };
 
 /// Packed shard arguments, projection resources and mosaic motion limits.
 enum {
-    AKROPOLIS_SANCTUARY_MOSAIC_MESSAGE_START     = 3101,
-    AKROPOLIS_SANCTUARY_MOSAIC_MIN_DEPTH         = 17,
-    AKROPOLIS_SANCTUARY_MOSAIC_TEXTURE_PAGE      = getTPage(1, GPU_BLEND_AVERAGE, 768, 0),
-    AKROPOLIS_SANCTUARY_MOSAIC_PALETTE           = getClut(0, 264),
-    AKROPOLIS_SANCTUARY_MOSAIC_GRAVITY           = 3,
-    AKROPOLIS_SANCTUARY_MOSAIC_DRIFT_FRAMES      = 60,
-    AKROPOLIS_SANCTUARY_MOSAIC_SPLIT_PERIOD      = 60U,
-    AKROPOLIS_SANCTUARY_MOSAIC_SPLIT_HEIGHT      = -3071,
-    AKROPOLIS_SANCTUARY_MOSAIC_BOUNCE_X          = -10048,
-    AKROPOLIS_SANCTUARY_MOSAIC_BOUNCE_Y          = -3799,
-    AKROPOLIS_SANCTUARY_MOSAIC_CLEAR_X           = -10432,
-    AKROPOLIS_SANCTUARY_MOSAIC_SHARD_DRIFT_SHIFT = 12,
-    AKROPOLIS_SANCTUARY_MOSAIC_SHARD_AIRBORNE    = 1 << AKROPOLIS_SANCTUARY_MOSAIC_SHARD_DRIFT_SHIFT,
+    MOSAIC_MESSAGE_START     = 3101,
+    MOSAIC_MIN_DEPTH         = 17,
+    MOSAIC_TEXTURE_PAGE      = getTPage(1, GPU_BLEND_AVERAGE, 768, 0),
+    MOSAIC_PALETTE           = getClut(0, 264),
+    MOSAIC_GRAVITY           = 3,
+    MOSAIC_DRIFT_FRAMES      = 60,
+    MOSAIC_SPLIT_PERIOD      = 60U,
+    MOSAIC_SPLIT_HEIGHT      = -3071,
+    MOSAIC_BOUNCE_X          = -10048,
+    MOSAIC_BOUNCE_Y          = -3799,
+    MOSAIC_CLEAR_X           = -10432,
+    MOSAIC_SHARD_DRIFT_SHIFT = 12,
+    MOSAIC_SHARD_AIRBORNE    = 1 << MOSAIC_SHARD_DRIFT_SHIFT,
 };
 
 /// Script requests are distinct from the cutscene work's stored phases.
 enum {
-    AKROPOLIS_SANCTUARY_CUTSCENE_CUE_HOLD         = 0,
-    AKROPOLIS_SANCTUARY_CUTSCENE_CUE_PLACE_PLAYER = 1,
-    AKROPOLIS_SANCTUARY_CUTSCENE_CUE_CHANGE_SOUND = 2,
+    CUTSCENE_CUE_HOLD         = 0,
+    CUTSCENE_CUE_PLACE_PLAYER = 1,
+    CUTSCENE_CUE_CHANGE_SOUND = 2,
 };
 
 /// Script-selected phases and placement status of the sanctuary cutscene.
 enum {
-    AKROPOLIS_SANCTUARY_CUTSCENE_PHASE_INITIAL      = 0,
-    AKROPOLIS_SANCTUARY_CUTSCENE_PHASE_HOLD         = 1,
-    AKROPOLIS_SANCTUARY_CUTSCENE_PHASE_PLACE_PLAYER = 2,
-    AKROPOLIS_SANCTUARY_CUTSCENE_PLACEMENT_PENDING  = 0,
+    CUTSCENE_PHASE_INITIAL      = 0,
+    CUTSCENE_PHASE_HOLD         = 1,
+    CUTSCENE_PHASE_PLACE_PLAYER = 2,
+    CUTSCENE_PLACEMENT_PENDING  = 0,
 };
 
 /// Scratch-stack block one mosaic shard's triangle is drawn from.
@@ -133,22 +133,22 @@ typedef struct {
     s32     otz;         // SZ3 / 4 of the projection, a quarter of the last corner's depth; draw threshold and ordering-table depth
     SVECTOR corners[3];  // Local corner workspace, then the world positions supplied to the projection
     u8      field_1C[4]; // Reserved with the block but never read or written; role and field boundaries unproven
-} _AkropolisSanctuaryMosaicShardScratch;
-STATIC_ASSERT_SIZEOF(_AkropolisSanctuaryMosaicShardScratch, 0x20);
+} _MosaicShardScratch;
+STATIC_ASSERT_SIZEOF(_MosaicShardScratch, 0x20);
 
 /// Scratch-stack block one whole mosaic tile's quad is drawn from.
 typedef struct {
     s32     otz;         // SZ3 / 4 of the projection, a quarter of the last corner's depth; draw threshold and ordering-table depth
     SVECTOR corners[4];  // Local corner workspace, then the world positions supplied to the projection
     u8      field_24[4]; // Reserved with the block but never read or written; role and field boundaries unproven
-} _AkropolisSanctuaryMosaicTileScratch;
-STATIC_ASSERT_SIZEOF(_AkropolisSanctuaryMosaicTileScratch, 0x28);
+} _MosaicTileScratch;
+STATIC_ASSERT_SIZEOF(_MosaicTileScratch, 0x28);
 
 /// Gray levels of the sanctuary flame sprite, one byte per variant.
 typedef struct {
     u8 gray[3]; // 0..255, written to R, G and B; variants 0 and 1 bright, 2 dim
-} _AkropolisSanctuaryFlameGray;
-STATIC_ASSERT_SIZEOF(_AkropolisSanctuaryFlameGray, 3);
+} _FlameGray;
+STATIC_ASSERT_SIZEOF(_FlameGray, 3);
 
 /// `gPlayerStatus.weapon` is the equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
 /// `gDisplayState.pendingMode` and `gAttachmentState.mode` gate the cutscene task's setup (the latter is 1 while the
@@ -171,8 +171,8 @@ static void _akropolisSanctuarySelectViewSpriteBatch(s32 useSecondBatch, s32 vie
 
 /// Unsigned byte fields in a script's packed view-sprite selection.
 enum {
-    AKROPOLIS_SANCTUARY_SCRIPT_SPRITE_FIELD_MASK  = 0xFF,
-    AKROPOLIS_SANCTUARY_SCRIPT_SPRITE_BATCH_SHIFT = 8,
+    SCRIPT_SPRITE_FIELD_MASK  = 0xFF,
+    SCRIPT_SPRITE_BATCH_SHIFT = 8,
 };
 
 /// Sets a flame billboard's square screen bounds around its projected center.
@@ -205,9 +205,9 @@ static const TaskFuncTable3 _gAkropolisSanctuaryRoomTaskStates = {
 #include "assets/rooms/akropolis/sanctuary/markers.inc"
 
 /// Resting flame gray for texture/palette variants 0..2.
-static const _AkropolisSanctuaryFlameGray _gAkropolisSanctuaryFlameBaseGray = { { 0x60, 0x60, 0x10 } };
+static const _FlameGray _gAkropolisSanctuaryFlameBaseGray = { { 0x60, 0x60, 0x10 } };
 /// Flame gray added on odd display frames for texture/palette variants 0..2.
-static const _AkropolisSanctuaryFlameGray _gAkropolisSanctuaryFlameFlickerGray = { { 0x10, 0x10, 0x08 } };
+static const _FlameGray _gAkropolisSanctuaryFlameFlickerGray = { { 0x10, 0x10, 0x08 } };
 /// Unread; its role is unproven.
 static const u8 _gAkropolisSanctuaryUnusedByte = 0xF1;
 
@@ -272,107 +272,107 @@ static TaskDesc _gAkropolisSanctuaryCutsceneTaskDesc = {
 
 /// Mosaic-start route borrowed by the sanctuary room-effect task.
 static TaskMessageEntry _gAkropolisSanctuaryRoomEffectMessages[] = {
-    { AKROPOLIS_SANCTUARY_MOSAIC_MESSAGE_START, _akropolisSanctuaryStartMosaic },
+    { MOSAIC_MESSAGE_START, _akropolisSanctuaryStartMosaic },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 /// Row selectors shared with each mosaic tile's sizeClass.
 enum {
-    AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL = 0,
-    AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE = 1,
+    MOSAIC_TILE_SMALL = 0,
+    MOSAIC_TILE_LARGE = 1,
 };
 
 /// Authored tile release modes; crumbling tiles add 0..7 random hold frames.
 enum {
-    AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE = 0,
-    AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN  = 1,
+    MOSAIC_TILE_CRUMBLE = 0,
+    MOSAIC_TILE_THROWN  = 1,
 };
 
 /// States stored in the mosaic debris cleanup latch.
 enum {
-    AKROPOLIS_SANCTUARY_MOSAIC_CLEANUP_CLEAR   = 0,
-    AKROPOLIS_SANCTUARY_MOSAIC_CLEANUP_LATCHED = 1,
+    MOSAIC_CLEANUP_CLEAR   = 0,
+    MOSAIC_CLEANUP_LATCHED = 1,
 };
 
 /// Seventy-two mosaic fragments, indexed by tile and shard spawn IDs 0..71.
-static _AkropolisSanctuaryMosaicTile _gAkropolisSanctuaryMosaicTiles[] = {
-    { 29, 31, 0, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 24, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 29, 31, 30, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 16, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 14, 15, 60, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 16, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 14, 15, 75, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 16, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 14, 15, 90, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 16, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 14, 15, 105, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 16, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 29, 31, 120, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 16, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 29, 31, 150, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 24, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 29, 31, 60, 16, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 8, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 29, 31, 90, 16, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 8, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 29, 31, 0, 32, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 16, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 29, 31, 30, 32, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 8, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 29, 31, 120, 32, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 8, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 29, 31, 150, 32, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 16, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 29, 31, 60, 48, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 29, 31, 90, 48, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 29, 31, 0, 64, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 8, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 29, 31, 30, 64, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 29, 31, 120, 64, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 29, 31, 150, 64, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 8, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 14, 15, 60, 80, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 29, 31, 75, 80, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 14, 15, 105, 80, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 14, 15, 0, 96, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 8, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 29, 31, 15, 96, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 14, 15, 45, 96, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 14, 15, 60, 96, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 14, 15, 105, 96, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 14, 15, 120, 96, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 29, 31, 135, 96, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 14, 15, 165, 96, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 8, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 14, 15, 0, 112, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 16, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 29, 31, 45, 112, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 14, 15, 75, 112, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 14, 15, 90, 112, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 29, 31, 105, 112, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 14, 15, 165, 112, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 16, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 14, 15, 0, 128, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 24, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 29, 31, 15, 128, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 14, 15, 75, 128, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 14, 15, 90, 128, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 29, 31, 135, 128, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 14, 15, 165, 128, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 24, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 14, 15, 0, 144, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 16, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 14, 15, 45, 144, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 14, 15, 60, 144, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 29, 31, 75, 144, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 14, 15, 105, 144, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 14, 15, 120, 144, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 14, 15, 165, 144, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 16, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 29, 31, 0, 160, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 8, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 29, 31, 30, 160, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 14, 15, 60, 160, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 14, 15, 105, 160, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 29, 31, 120, 160, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 29, 31, 150, 160, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 8, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 29, 31, 60, 178, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 29, 31, 90, 178, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 29, 31, 0, 192, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 16, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 29, 31, 30, 192, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 29, 31, 120, 192, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 29, 31, 150, 192, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 16, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 29, 31, 60, 208, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 29, 31, 90, 208, AKROPOLIS_SANCTUARY_MOSAIC_TILE_THROWN, 0, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 29, 31, 0, 224, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 24, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 29, 31, 30, 224, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 8, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 29, 31, 120, 224, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 8, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 29, 31, 150, 224, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 24, AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE },
-    { 14, 15, 60, 240, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 8, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 14, 15, 75, 240, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 16, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 14, 15, 90, 240, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 16, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
-    { 14, 15, 105, 240, AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE, 8, AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL },
+static _MosaicTile _gAkropolisSanctuaryMosaicTiles[] = {
+    { 29, 31, 0, 0, MOSAIC_TILE_CRUMBLE, 24, MOSAIC_TILE_LARGE },
+    { 29, 31, 30, 0, MOSAIC_TILE_CRUMBLE, 16, MOSAIC_TILE_LARGE },
+    { 14, 15, 60, 0, MOSAIC_TILE_CRUMBLE, 16, MOSAIC_TILE_SMALL },
+    { 14, 15, 75, 0, MOSAIC_TILE_CRUMBLE, 16, MOSAIC_TILE_SMALL },
+    { 14, 15, 90, 0, MOSAIC_TILE_CRUMBLE, 16, MOSAIC_TILE_SMALL },
+    { 14, 15, 105, 0, MOSAIC_TILE_CRUMBLE, 16, MOSAIC_TILE_SMALL },
+    { 29, 31, 120, 0, MOSAIC_TILE_CRUMBLE, 16, MOSAIC_TILE_LARGE },
+    { 29, 31, 150, 0, MOSAIC_TILE_CRUMBLE, 24, MOSAIC_TILE_LARGE },
+    { 29, 31, 60, 16, MOSAIC_TILE_CRUMBLE, 8, MOSAIC_TILE_LARGE },
+    { 29, 31, 90, 16, MOSAIC_TILE_CRUMBLE, 8, MOSAIC_TILE_LARGE },
+    { 29, 31, 0, 32, MOSAIC_TILE_CRUMBLE, 16, MOSAIC_TILE_LARGE },
+    { 29, 31, 30, 32, MOSAIC_TILE_CRUMBLE, 8, MOSAIC_TILE_LARGE },
+    { 29, 31, 120, 32, MOSAIC_TILE_CRUMBLE, 8, MOSAIC_TILE_LARGE },
+    { 29, 31, 150, 32, MOSAIC_TILE_CRUMBLE, 16, MOSAIC_TILE_LARGE },
+    { 29, 31, 60, 48, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_LARGE },
+    { 29, 31, 90, 48, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_LARGE },
+    { 29, 31, 0, 64, MOSAIC_TILE_CRUMBLE, 8, MOSAIC_TILE_LARGE },
+    { 29, 31, 30, 64, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_LARGE },
+    { 29, 31, 120, 64, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_LARGE },
+    { 29, 31, 150, 64, MOSAIC_TILE_CRUMBLE, 8, MOSAIC_TILE_LARGE },
+    { 14, 15, 60, 80, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_SMALL },
+    { 29, 31, 75, 80, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_LARGE },
+    { 14, 15, 105, 80, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_SMALL },
+    { 14, 15, 0, 96, MOSAIC_TILE_CRUMBLE, 8, MOSAIC_TILE_SMALL },
+    { 29, 31, 15, 96, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_LARGE },
+    { 14, 15, 45, 96, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_SMALL },
+    { 14, 15, 60, 96, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_SMALL },
+    { 14, 15, 105, 96, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_SMALL },
+    { 14, 15, 120, 96, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_SMALL },
+    { 29, 31, 135, 96, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_LARGE },
+    { 14, 15, 165, 96, MOSAIC_TILE_CRUMBLE, 8, MOSAIC_TILE_SMALL },
+    { 14, 15, 0, 112, MOSAIC_TILE_CRUMBLE, 16, MOSAIC_TILE_SMALL },
+    { 29, 31, 45, 112, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_LARGE },
+    { 14, 15, 75, 112, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_SMALL },
+    { 14, 15, 90, 112, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_SMALL },
+    { 29, 31, 105, 112, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_LARGE },
+    { 14, 15, 165, 112, MOSAIC_TILE_CRUMBLE, 16, MOSAIC_TILE_SMALL },
+    { 14, 15, 0, 128, MOSAIC_TILE_CRUMBLE, 24, MOSAIC_TILE_SMALL },
+    { 29, 31, 15, 128, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_LARGE },
+    { 14, 15, 75, 128, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_SMALL },
+    { 14, 15, 90, 128, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_SMALL },
+    { 29, 31, 135, 128, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_LARGE },
+    { 14, 15, 165, 128, MOSAIC_TILE_CRUMBLE, 24, MOSAIC_TILE_SMALL },
+    { 14, 15, 0, 144, MOSAIC_TILE_CRUMBLE, 16, MOSAIC_TILE_SMALL },
+    { 14, 15, 45, 144, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_SMALL },
+    { 14, 15, 60, 144, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_SMALL },
+    { 29, 31, 75, 144, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_LARGE },
+    { 14, 15, 105, 144, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_SMALL },
+    { 14, 15, 120, 144, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_SMALL },
+    { 14, 15, 165, 144, MOSAIC_TILE_CRUMBLE, 16, MOSAIC_TILE_SMALL },
+    { 29, 31, 0, 160, MOSAIC_TILE_CRUMBLE, 8, MOSAIC_TILE_LARGE },
+    { 29, 31, 30, 160, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_LARGE },
+    { 14, 15, 60, 160, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_SMALL },
+    { 14, 15, 105, 160, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_SMALL },
+    { 29, 31, 120, 160, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_LARGE },
+    { 29, 31, 150, 160, MOSAIC_TILE_CRUMBLE, 8, MOSAIC_TILE_LARGE },
+    { 29, 31, 60, 178, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_LARGE },
+    { 29, 31, 90, 178, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_LARGE },
+    { 29, 31, 0, 192, MOSAIC_TILE_CRUMBLE, 16, MOSAIC_TILE_LARGE },
+    { 29, 31, 30, 192, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_LARGE },
+    { 29, 31, 120, 192, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_LARGE },
+    { 29, 31, 150, 192, MOSAIC_TILE_CRUMBLE, 16, MOSAIC_TILE_LARGE },
+    { 29, 31, 60, 208, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_LARGE },
+    { 29, 31, 90, 208, MOSAIC_TILE_THROWN, 0, MOSAIC_TILE_LARGE },
+    { 29, 31, 0, 224, MOSAIC_TILE_CRUMBLE, 24, MOSAIC_TILE_LARGE },
+    { 29, 31, 30, 224, MOSAIC_TILE_CRUMBLE, 8, MOSAIC_TILE_LARGE },
+    { 29, 31, 120, 224, MOSAIC_TILE_CRUMBLE, 8, MOSAIC_TILE_LARGE },
+    { 29, 31, 150, 224, MOSAIC_TILE_CRUMBLE, 24, MOSAIC_TILE_LARGE },
+    { 14, 15, 60, 240, MOSAIC_TILE_CRUMBLE, 8, MOSAIC_TILE_SMALL },
+    { 14, 15, 75, 240, MOSAIC_TILE_CRUMBLE, 16, MOSAIC_TILE_SMALL },
+    { 14, 15, 90, 240, MOSAIC_TILE_CRUMBLE, 16, MOSAIC_TILE_SMALL },
+    { 14, 15, 105, 240, MOSAIC_TILE_CRUMBLE, 8, MOSAIC_TILE_SMALL },
 };
 /// Centre-relative corners of the mosaic's two tile sizes, in local room units.
 static SVECTOR _gAkropolisSanctuaryMosaicTileCorners[2][4] = {
-    [AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL] = { { 0, -72, 63, 0 }, { 0, -72, -62, 0 }, { 0, 71, 63, 0 }, { 0, 71, -62, 0 } },
-    [AKROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE] = { { 0, -143, 126, 0 }, { 0, -143, -125, 0 }, { 0, 143, 126, 0 }, { 0, 143, -125, 0 } },
+    [MOSAIC_TILE_SMALL] = { { 0, -72, 63, 0 }, { 0, -72, -62, 0 }, { 0, 71, 63, 0 }, { 0, 71, -62, 0 } },
+    [MOSAIC_TILE_LARGE] = { { 0, -143, 126, 0 }, { 0, -143, -125, 0 }, { 0, 143, 126, 0 }, { 0, 143, -125, 0 } },
 };
 /// Sixteen mosaic tile IDs receiving a second whole-tile effect.
 static s16 _gAkropolisSanctuaryMosaicRepeatedTileIndices[] = {
@@ -394,7 +394,7 @@ static s16 _gAkropolisSanctuaryMosaicRepeatedTileIndices[] = {
     53,
 };
 /// View-driven latch accelerating cleanup of mosaic debris outside view 16.
-static s32 _gAkropolisSanctuaryMosaicCleanupLatched = AKROPOLIS_SANCTUARY_MOSAIC_CLEANUP_CLEAR;
+static s32 _gAkropolisSanctuaryMosaicCleanupLatched = MOSAIC_CLEANUP_CLEAR;
 
 #define ROOM_PART _gAkropolisSanctuaryFlamePositions
 #include "assets/rooms/akropolis/sanctuary/markers.inc"
@@ -494,8 +494,8 @@ static inline void _akropolisSanctuaryDisableWeaponTriggers(void)
 static void _akropolisSanctuaryUpdateRoomProgress(Task* unusedTask)
 {
     enum {
-        AKROPOLIS_SANCTUARY_WEAPON_INTERACTION_OBJECT   = 28,
-        AKROPOLIS_SANCTUARY_WEAPON_INTERACTION_COMPLETE = 2,
+        OBJECT   = 28,
+        COMPLETE = 2,
     };
 
     if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_BRIDGE_PROGRESS) == AKROPOLIS_BRIDGE_NOT_STARTED && gGameSession->location.warp == AKROPOLIS_SANCTUARY_SCENE_ARRIVAL_WARP) {
@@ -509,7 +509,7 @@ static void _akropolisSanctuaryUpdateRoomProgress(Task* unusedTask)
         gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
         gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, AKROPOLIS_STORY_DIALOGUE_ARMORED_ASSAILANT);
     }
-    if (areaGetCurrentObjectState(AKROPOLIS_SANCTUARY_WEAPON_INTERACTION_OBJECT) == AKROPOLIS_SANCTUARY_WEAPON_INTERACTION_COMPLETE) {
+    if (areaGetCurrentObjectState(OBJECT) == COMPLETE) {
         _akropolisSanctuaryDisableWeaponTriggers();
     }
 }
@@ -519,22 +519,22 @@ static void _akropolisSanctuaryUpdateRoomProgress(Task* unusedTask)
 static s32 _akropolisSanctuaryResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
     enum {
-        AKROPOLIS_SANCTUARY_PROMENADE_EXIT_OBJECT_INDEX = 0x13,
-        AKROPOLIS_SANCTUARY_PROMENADE_EXIT_OBJECT_STATE = 2,
+        INDEX = 0x13,
+        STATE = 2,
     };
     s32 destinationRoom;
 
     *reply = *request;
     if (request->areaId == AKROPOLIS_ROOM_ID_PROMENADE) {
         if (request->queryOnly == ROOM_EVENT_EXECUTE) {
-            if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SANCTUARY_BOMB_SCENE_STATE) == 0) {
+            if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SANCTUARY_BOMB_SCENE_STATE) == AKROPOLIS_SANCTUARY_BOMB_SCENE_NOT_PLAYED) {
                 gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_SANCTUARY_BOMB_SCENE_STATE, AKROPOLIS_SANCTUARY_BOMB_SCENE_PASSED_BY);
-                areaSetCurrentObjectState(AKROPOLIS_SANCTUARY_PROMENADE_EXIT_OBJECT_INDEX, AKROPOLIS_SANCTUARY_PROMENADE_EXIT_OBJECT_STATE);
+                areaSetCurrentObjectState(INDEX, STATE);
             }
         }
         if (request->areaId == AKROPOLIS_ROOM_ID_PROMENADE && request->queryOnly == ROOM_EVENT_EXECUTE) {
             destinationRoom = gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_BRIDGE_PROGRESS);
-            if (destinationRoom == 0) {
+            if (destinationRoom == AKROPOLIS_BRIDGE_NOT_STARTED) {
                 destinationRoom = AKROPOLIS_ROOM_STATE_PROMENADE_BEFORE_SANCTUARY;
             } else {
                 destinationRoom = AKROPOLIS_ROOM_STATE_PROMENADE_AFTER_SANCTUARY;
@@ -563,7 +563,7 @@ static s32 _akropolisSanctuaryHandleRoomCommand(Task* unusedTask, s32 unusedMess
 /// Room action 1 starts the bomb scene once.
 static s32 _akropolisSanctuaryHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    if (request->actionId == AKROPOLIS_SANCTUARY_ROOM_ACTION_BOMB_SCENE && gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SANCTUARY_BOMB_SCENE_STATE) == 0) {
+    if (request->actionId == AKROPOLIS_SANCTUARY_ROOM_ACTION_BOMB_SCENE && gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SANCTUARY_BOMB_SCENE_STATE) == AKROPOLIS_SANCTUARY_BOMB_SCENE_NOT_PLAYED) {
         gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_SANCTUARY_BOMB_SCENE_STATE, AKROPOLIS_SANCTUARY_BOMB_SCENE_PLAYED);
         taskSpawnFromTable(&_gAkropolisSanctuaryCutsceneTaskDesc, 0, 0, 0);
     }
@@ -574,16 +574,16 @@ static s32 _akropolisSanctuaryHandleRoomAction(Task* unusedTask, s32 unusedMessa
 static void _akropolisSanctuaryApplyScriptSpriteSelection(u32 packedSelection)
 {
     _akropolisSanctuarySelectViewSpriteBatch(
-        (packedSelection >> AKROPOLIS_SANCTUARY_SCRIPT_SPRITE_BATCH_SHIFT) & AKROPOLIS_SANCTUARY_SCRIPT_SPRITE_FIELD_MASK,
-        packedSelection & AKROPOLIS_SANCTUARY_SCRIPT_SPRITE_FIELD_MASK);
+        (packedSelection >> SCRIPT_SPRITE_BATCH_SHIFT) & SCRIPT_SPRITE_FIELD_MASK,
+        packedSelection & SCRIPT_SPRITE_FIELD_MASK);
 }
 
 /// Restores the player weapon animation after the scripted sanctuary poses.
 static void _akropolisSanctuaryRestorePlayerWeaponAnimation(void)
 {
-    enum { AKROPOLIS_SANCTUARY_WEAPON_SPECIAL_RESTORE = 2 };
+    enum { WEAPON_SPECIAL_RESTORE = 2 };
 
-    if (gPlayerStatus.weapon == AKROPOLIS_SANCTUARY_WEAPON_SPECIAL_RESTORE) {
+    if (gPlayerStatus.weapon == WEAPON_SPECIAL_RESTORE) {
         playerActorWriteWeaponAnimationBankIndex(&_gAkropolisSanctuaryPlayerSpecialWeaponRestoreRequest.source.index);
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &_gAkropolisSanctuaryPlayerSpecialWeaponRestoreRequest, 0);
     } else {
@@ -623,23 +623,23 @@ void akropolisSanctuaryRoomTask(Task* task)
 /// Installs the cutscene animation set and resets the player's first clip.
 static inline void _akropolisSanctuaryCutsceneInstallPlayerAnimation(Task* task)
 {
-    enum { AKROPOLIS_SANCTUARY_CUTSCENE_ANIMATION_BLEND_FRAMES = 15 };
-    AnimationPlayRequest             request;
-    _AkropolisSanctuaryCutsceneWork* work;
+    enum { CUTSCENE_ANIMATION_BLEND_FRAMES = 15 };
+    AnimationPlayRequest request;
+    _CutsceneWork*       work;
 
     work = task->work;
     if (work->playerTask != NULL) {
         request.source.sets          = _gAkropolisSanctuaryCutscenePlayerAnimationSets;
         request.animationId          = 0;
         request.blend                = ANIMATION_BLEND_RESET;
-        request.blendFrames          = AKROPOLIS_SANCTUARY_CUTSCENE_ANIMATION_BLEND_FRAMES;
+        request.blendFrames          = CUTSCENE_ANIMATION_BLEND_FRAMES;
         request.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
         TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &request, 0);
     }
 }
 
 /// Places the player at the sanctuary cutscene mark with zero Euler angles.
-static inline void _akropolisSanctuaryCutscenePlacePlayer(_AkropolisSanctuaryCutsceneWork* work)
+static inline void _akropolisSanctuaryCutscenePlacePlayer(_CutsceneWork* work)
 {
     ActorTransform placement;
 
@@ -656,21 +656,21 @@ static inline void _akropolisSanctuaryCutscenePlacePlayer(_AkropolisSanctuaryCut
 static inline void _akropolisSanctuaryCutsceneApplyPlacement(Task* task)
 {
     enum {
-        AKROPOLIS_SANCTUARY_VIEW_CUTSCENE_PLAYER = 14,
+        VIEW_CUTSCENE_PLAYER = 14,
     };
-    _AkropolisSanctuaryCutsceneWork* work;
+    _CutsceneWork* work;
 
     work = task->work;
     switch (work->phase) {
-        case AKROPOLIS_SANCTUARY_CUTSCENE_PHASE_INITIAL:
-        case AKROPOLIS_SANCTUARY_CUTSCENE_PHASE_HOLD:
+        case CUTSCENE_PHASE_INITIAL:
+        case CUTSCENE_PHASE_HOLD:
             break;
-        case AKROPOLIS_SANCTUARY_CUTSCENE_PHASE_PLACE_PLAYER:
-            if (work->placementApplied == AKROPOLIS_SANCTUARY_CUTSCENE_PLACEMENT_PENDING) {
+        case CUTSCENE_PHASE_PLACE_PLAYER:
+            if (work->placementApplied == CUTSCENE_PLACEMENT_PENDING) {
                 playerActorRemoveEquipment();
                 _akropolisSanctuaryCutsceneInstallPlayerAnimation(task);
                 _akropolisSanctuaryCutscenePlacePlayer(work);
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = AKROPOLIS_SANCTUARY_VIEW_CUTSCENE_PLAYER;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = VIEW_CUTSCENE_PLAYER;
                 work->placementApplied                                 = work->placementApplied + 1;
             }
             break;
@@ -681,20 +681,20 @@ static inline void _akropolisSanctuaryCutsceneApplyPlacement(Task* task)
 static void _akropolisSanctuaryCutsceneTask(Task* task)
 {
     enum {
-        AKROPOLIS_SANCTUARY_CUTSCENE_INITIAL             = 0,
-        AKROPOLIS_SANCTUARY_CUTSCENE_RUNNING             = 1,
-        AKROPOLIS_SANCTUARY_CUTSCENE_WEAPON_BLEND_FRAMES = 15,
-        AKROPOLIS_SANCTUARY_CUTSCENE_EXIT_WARP           = 2,
-        AKROPOLIS_SANCTUARY_CUTSCENE_EXIT_ROOM           = 1,
+        INITIAL             = 0,
+        RUNNING             = 1,
+        WEAPON_BLEND_FRAMES = 15,
+        EXIT_WARP           = 2,
+        EXIT_ROOM           = 1,
     };
-    AnimationPlayRequest             request;
-    _AkropolisSanctuaryCutsceneWork* allocatedWork;
-    _AkropolisSanctuaryCutsceneWork* animationWork;
-    s32                              weaponBankIndex;
-    s32                              equippedWeapon;
+    AnimationPlayRequest request;
+    _CutsceneWork*       allocatedWork;
+    _CutsceneWork*       animationWork;
+    s32                  weaponBankIndex;
+    s32                  equippedWeapon;
 
     switch (task->state) {
-        case AKROPOLIS_SANCTUARY_CUTSCENE_INITIAL:
+        case INITIAL:
             if (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 allocatedWork = memCalloc(sizeof(*allocatedWork), 0);
                 task->work    = allocatedWork;
@@ -713,7 +713,7 @@ static void _akropolisSanctuaryCutsceneTask(Task* task)
                 request.source.index         = weaponBankIndex;
                 request.animationId          = PLAYER_ANIMATION_IDLE;
                 request.blend                = ANIMATION_BLEND_INTERPOLATE;
-                request.blendFrames          = AKROPOLIS_SANCTUARY_CUTSCENE_WEAPON_BLEND_FRAMES;
+                request.blendFrames          = WEAPON_BLEND_FRAMES;
                 request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                 // Keep the reloaded work alias separate for the animation dispatch.
                 TASK_MESSAGE_DISPATCH_POINTER(animationWork->playerTask, ANIMATION_MESSAGE_PLAY, &request, 0);
@@ -723,14 +723,14 @@ static void _akropolisSanctuaryCutsceneTask(Task* task)
             }
             break;
 
-        case AKROPOLIS_SANCTUARY_CUTSCENE_RUNNING:
+        case RUNNING:
             // Event completion takes precedence over pending placement cues.
             if (gGameSession->eventState == 0) {
                 sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = AKROPOLIS_ROOM_ID_ROOF_GARDEN;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage     = GAME_STAGE_AKROPOLIS;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = AKROPOLIS_SANCTUARY_CUTSCENE_EXIT_WARP;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = AKROPOLIS_SANCTUARY_CUTSCENE_EXIT_ROOM;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = EXIT_WARP;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = EXIT_ROOM;
                 gDisplayState.spriteVariant                                 = 1;
                 taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
                 taskKill(task);
@@ -744,18 +744,18 @@ static void _akropolisSanctuaryCutsceneTask(Task* task)
 /// Accepts a script cue for player placement or the cutscene sound transition.
 static void _akropolisSanctuaryRequestCutsceneCue(s32 cue)
 {
-    _AkropolisSanctuaryCutsceneWork* work = _gAkropolisSanctuaryCutsceneTask->work;
+    _CutsceneWork* work = _gAkropolisSanctuaryCutsceneTask->work;
 
     switch (cue) {
-        case AKROPOLIS_SANCTUARY_CUTSCENE_CUE_HOLD:
-            work->phase            = AKROPOLIS_SANCTUARY_CUTSCENE_PHASE_HOLD;
-            work->placementApplied = AKROPOLIS_SANCTUARY_CUTSCENE_PLACEMENT_PENDING;
+        case CUTSCENE_CUE_HOLD:
+            work->phase            = CUTSCENE_PHASE_HOLD;
+            work->placementApplied = CUTSCENE_PLACEMENT_PENDING;
             return;
-        case AKROPOLIS_SANCTUARY_CUTSCENE_CUE_PLACE_PLAYER:
-            work->phase            = AKROPOLIS_SANCTUARY_CUTSCENE_PHASE_PLACE_PLAYER;
-            work->placementApplied = AKROPOLIS_SANCTUARY_CUTSCENE_PLACEMENT_PENDING;
+        case CUTSCENE_CUE_PLACE_PLAYER:
+            work->phase            = CUTSCENE_PHASE_PLACE_PLAYER;
+            work->placementApplied = CUTSCENE_PLACEMENT_PENDING;
             return;
-        case AKROPOLIS_SANCTUARY_CUTSCENE_CUE_CHANGE_SOUND:
+        case CUTSCENE_CUE_CHANGE_SOUND:
             sndEvtRequestScriptStop(AKROPOLIS_SANCTUARY_SOUND(AKROPOLIS_SANCTUARY_SOUND_RADIO_CHATTER), SOUND_SCRIPT_STOP_NO_FADE);
             sndEvtRequestScriptStart(AKROPOLIS_SANCTUARY_SOUND(AKROPOLIS_SANCTUARY_SOUND_RADIO_CLICK), 0, 0);
             return;
@@ -766,7 +766,7 @@ static void _akropolisSanctuaryRequestCutsceneCue(s32 cue)
 static void _akropolisSanctuaryPlaceBlockerCollision(void)
 {
     enum {
-        AKROPOLIS_SANCTUARY_BLOCKER_SURFACE_CLASS = 1,
+        BLOCKER_SURFACE_CLASS = 1,
     };
     WorldCollisionGrid* roomGrid        = &_gAkropolisSanctuaryCollisionGrid;
     WorldCollisionGrid* blockerTemplate = &_gAkropolisSanctuaryBlockerCollisionGrid;
@@ -785,7 +785,7 @@ static void _akropolisSanctuaryPlaceBlockerCollision(void)
         roomGrid->vertices[(elementIndex * 2) + 1].vy = blockerTemplate->vertices[(elementIndex * 2) + 1].vy;
         roomGrid->vertices[(elementIndex * 2) + 1].vz = blockerTemplate->vertices[(elementIndex * 2) + 1].vz;
         roomGrid->faces[elementIndex]                 = blockerTemplate->faces[elementIndex];
-        roomGrid->faces[elementIndex].surfaceClass    = AKROPOLIS_SANCTUARY_BLOCKER_SURFACE_CLASS;
+        roomGrid->faces[elementIndex].surfaceClass    = BLOCKER_SURFACE_CLASS;
     }
 
     if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SANCTUARY_RUPERT_LEFT) == 0) {
@@ -812,8 +812,8 @@ static void _akropolisSanctuarySelectViewSpriteBatch(s32 useSecondBatch, s32 vie
     GameLocationKey* location = &session->location;
     SpriteBatch*     batches;
 
-    batches = gSpriteAreaTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1][(viewId & AKROPOLIS_SANCTUARY_SCRIPT_SPRITE_FIELD_MASK) - 1].batches;
-    if ((useSecondBatch & AKROPOLIS_SANCTUARY_SCRIPT_SPRITE_FIELD_MASK) == 0) {
+    batches = gSpriteAreaTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1][(viewId & SCRIPT_SPRITE_FIELD_MASK) - 1].batches;
+    if ((useSecondBatch & SCRIPT_SPRITE_FIELD_MASK) == 0) {
         batches[1].hidden = 0;
         batches[2].hidden = 1;
     } else {
@@ -825,110 +825,110 @@ static void _akropolisSanctuarySelectViewSpriteBatch(s32 useSecondBatch, s32 vie
 void akropolisSanctuaryRoomEffectTask(Task* task)
 {
     enum {
-        AKROPOLIS_SANCTUARY_VIEW_MOSAIC_LATCH_HOLD = 12,
+        VIEW_MOSAIC_LATCH_HOLD = 12,
     };
     enum {
-        AKROPOLIS_SANCTUARY_ROOM_EFFECT_INITIAL  = 0,
-        AKROPOLIS_SANCTUARY_FLAME_DIM_ARGUMENT   = 2 << 8,
-        AKROPOLIS_SANCTUARY_FLAME_SMALL_ARGUMENT = 160 << 16,
-        AKROPOLIS_SANCTUARY_FLAME_DIM_COUNT      = 6,
+        ROOM_EFFECT_INITIAL  = 0,
+        FLAME_DIM_ARGUMENT   = 2 << 8,
+        FLAME_SMALL_ARGUMENT = 160 << 16,
+        FLAME_DIM_COUNT      = 6,
     };
     GfxCoord*        roomCoord;
     GameLocationKey* location;
     s32              placementIndex;
 
     roomCoord = task->extra.coordBody->coord;
-    if (task->state == AKROPOLIS_SANCTUARY_ROOM_EFFECT_INITIAL) {
-        for (placementIndex = 0; placementIndex < AKROPOLIS_SANCTUARY_FLAME_DIM_COUNT; placementIndex++) {
-            effectSpawn(EFFECT_AKROPOLIS_SANCTUARY_FLAME, roomCoord, placementIndex + AKROPOLIS_SANCTUARY_FLAME_DIM_ARGUMENT, &_gAkropolisSanctuaryFlamePositions[placementIndex]);
+    if (task->state == ROOM_EFFECT_INITIAL) {
+        for (placementIndex = 0; placementIndex < FLAME_DIM_COUNT; placementIndex++) {
+            effectSpawn(EFFECT_AKROPOLIS_SANCTUARY_FLAME, roomCoord, placementIndex + FLAME_DIM_ARGUMENT, &_gAkropolisSanctuaryFlamePositions[placementIndex]);
         }
-        for (placementIndex = AKROPOLIS_SANCTUARY_FLAME_DIM_COUNT; placementIndex < ARRAY_SIZE(_gAkropolisSanctuaryFlamePositions); placementIndex++) {
-            effectSpawn(EFFECT_AKROPOLIS_SANCTUARY_FLAME, roomCoord, placementIndex + AKROPOLIS_SANCTUARY_FLAME_SMALL_ARGUMENT, &_gAkropolisSanctuaryFlamePositions[placementIndex]);
+        for (placementIndex = FLAME_DIM_COUNT; placementIndex < ARRAY_SIZE(_gAkropolisSanctuaryFlamePositions); placementIndex++) {
+            effectSpawn(EFFECT_AKROPOLIS_SANCTUARY_FLAME, roomCoord, placementIndex + FLAME_SMALL_ARGUMENT, &_gAkropolisSanctuaryFlamePositions[placementIndex]);
         }
         task->msgTable = _gAkropolisSanctuaryRoomEffectMessages;
         gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
-        _gAkropolisSanctuaryMosaicCleanupLatched = AKROPOLIS_SANCTUARY_MOSAIC_CLEANUP_CLEAR;
+        _gAkropolisSanctuaryMosaicCleanupLatched = MOSAIC_CLEANUP_CLEAR;
         task->state                              = task->state + 1;
     }
     location = &gGameSession->location;
-    if (location->view == AKROPOLIS_SANCTUARY_VIEW_MOSAIC_LATCH_SET) {
-        _gAkropolisSanctuaryMosaicCleanupLatched = AKROPOLIS_SANCTUARY_MOSAIC_CLEANUP_LATCHED;
-    } else if (location->view != AKROPOLIS_SANCTUARY_VIEW_MOSAIC_LATCH_HOLD) {
-        _gAkropolisSanctuaryMosaicCleanupLatched = AKROPOLIS_SANCTUARY_MOSAIC_CLEANUP_CLEAR;
+    if (location->view == VIEW_MOSAIC_LATCH_SET) {
+        _gAkropolisSanctuaryMosaicCleanupLatched = MOSAIC_CLEANUP_LATCHED;
+    } else if (location->view != VIEW_MOSAIC_LATCH_HOLD) {
+        _gAkropolisSanctuaryMosaicCleanupLatched = MOSAIC_CLEANUP_CLEAR;
     }
 }
 
 void akropolisSanctuaryMosaicTask(Task* task)
 {
-    enum { AKROPOLIS_SANCTUARY_MOSAIC_INITIAL = 0 };
-    EffectWork*                    mosaicWork;
-    GfxCoord*                      mosaicCoord;
-    _AkropolisSanctuaryMosaicTile* tile;
-    s32                            sizeClass;
-    s32                            spawnIndex;
-    s32                            tileIndex;
+    enum { MOSAIC_INITIAL = 0 };
+    EffectWork*  mosaicWork;
+    GfxCoord*    mosaicCoord;
+    _MosaicTile* tile;
+    s32          sizeClass;
+    s32          spawnIndex;
+    s32          tileIndex;
 
 /// Places a mosaic tile's center from its texture origin and attempts its spawn.
-#define AKROPOLIS_SANCTUARY_SPAWN_MOSAIC_TILE(tileIndex)                                                                                                                                              \
-    {                                                                                                                                                                                                 \
-        enum {                                                                                                                                                                                        \
-            AKROPOLIS_SANCTUARY_MOSAIC_V_TO_Y_SCALE_Q7 = 1145,                                                                                                                                        \
-            AKROPOLIS_SANCTUARY_MOSAIC_V_FRACTION_BITS = 7,                                                                                                                                           \
-            AKROPOLIS_SANCTUARY_MOSAIC_U_TO_Z_SCALE_Q8 = 2147,                                                                                                                                        \
-            AKROPOLIS_SANCTUARY_MOSAIC_U_FRACTION_BITS = 8                                                                                                                                            \
-        };                                                                                                                                                                                            \
-        sizeClass           = tile->sizeClass;                                                                                                                                                        \
-        mosaicWork->move.vx = 0;                                                                                                                                                                      \
-        mosaicWork->move.vy = ((tile->originV * AKROPOLIS_SANCTUARY_MOSAIC_V_TO_Y_SCALE_Q7) >> AKROPOLIS_SANCTUARY_MOSAIC_V_FRACTION_BITS) - _gAkropolisSanctuaryMosaicTileCorners[sizeClass][0].vy;  \
-        mosaicWork->move.vz = -((tile->originU * AKROPOLIS_SANCTUARY_MOSAIC_U_TO_Z_SCALE_Q8) >> AKROPOLIS_SANCTUARY_MOSAIC_U_FRACTION_BITS) - _gAkropolisSanctuaryMosaicTileCorners[sizeClass][0].vz; \
-        effectSpawn(EFFECT_AKROPOLIS_SANCTUARY_MOSAIC_TILE, mosaicCoord, (tileIndex), &mosaicWork->move);                                                                                             \
+#define SPAWN_MOSAIC_TILE(tileIndex)                                                                                                            \
+    {                                                                                                                                           \
+        enum {                                                                                                                                  \
+            V_TO_Y_SCALE_Q7 = 1145,                                                                                                             \
+            V_FRACTION_BITS = 7,                                                                                                                \
+            U_TO_Z_SCALE_Q8 = 2147,                                                                                                             \
+            U_FRACTION_BITS = 8                                                                                                                 \
+        };                                                                                                                                      \
+        sizeClass           = tile->sizeClass;                                                                                                  \
+        mosaicWork->move.vx = 0;                                                                                                                \
+        mosaicWork->move.vy = ((tile->originV * V_TO_Y_SCALE_Q7) >> V_FRACTION_BITS) - _gAkropolisSanctuaryMosaicTileCorners[sizeClass][0].vy;  \
+        mosaicWork->move.vz = -((tile->originU * U_TO_Z_SCALE_Q8) >> U_FRACTION_BITS) - _gAkropolisSanctuaryMosaicTileCorners[sizeClass][0].vz; \
+        effectSpawn(EFFECT_AKROPOLIS_SANCTUARY_MOSAIC_TILE, mosaicCoord, (tileIndex), &mosaicWork->move);                                       \
     }
 
     mosaicWork  = task->spawnArg2.pointer;
     mosaicCoord = task->extra.coordBody->coord;
-    if (task->state != AKROPOLIS_SANCTUARY_MOSAIC_INITIAL) {
+    if (task->state != MOSAIC_INITIAL) {
         effectKillTask(mosaicWork, task);
         return;
     }
     for (spawnIndex = 0; spawnIndex < ARRAY_SIZE(_gAkropolisSanctuaryMosaicTiles); spawnIndex++) {
         tile = &_gAkropolisSanctuaryMosaicTiles[spawnIndex];
-        AKROPOLIS_SANCTUARY_SPAWN_MOSAIC_TILE(spawnIndex);
+        SPAWN_MOSAIC_TILE(spawnIndex);
     }
     for (spawnIndex = 0; spawnIndex < ARRAY_SIZE(_gAkropolisSanctuaryMosaicRepeatedTileIndices); spawnIndex++) {
         tileIndex = _gAkropolisSanctuaryMosaicRepeatedTileIndices[spawnIndex];
         tile      = &_gAkropolisSanctuaryMosaicTiles[tileIndex];
-        AKROPOLIS_SANCTUARY_SPAWN_MOSAIC_TILE(tileIndex);
+        SPAWN_MOSAIC_TILE(tileIndex);
     }
     task->state = task->state + 1;
 
-#undef AKROPOLIS_SANCTUARY_SPAWN_MOSAIC_TILE
+#undef SPAWN_MOSAIC_TILE
 }
 
 void akropolisSanctuaryMosaicTileTask(Task* task)
 {
     enum {
-        AKROPOLIS_SANCTUARY_MOSAIC_TILE_SPLIT_AGE = 100,
+        MOSAIC_TILE_SPLIT_AGE = 100,
     };
-    EffectWork*                           tileWork;
-    GfxCoord*                             tileCoord;
-    _AkropolisSanctuaryMosaicTileScratch* tileScratch;
-    POLY_FT4*                             tileQuad;
-    SVECTOR*                              scratchCorner;
-    s32                                   sizeClass;
-    s32                                   cornerIndex;
-    s32                                   shardCount;
+    EffectWork*         tileWork;
+    GfxCoord*           tileCoord;
+    _MosaicTileScratch* tileScratch;
+    POLY_FT4*           tileQuad;
+    SVECTOR*            scratchCorner;
+    s32                 sizeClass;
+    s32                 cornerIndex;
+    s32                 shardCount;
 
     tileWork  = task->spawnArg2.pointer;
     sizeClass = _gAkropolisSanctuaryMosaicTiles[task->spawnArg1.value].sizeClass;
     tileCoord = task->extra.coordBody->coord;
     actorRenderComposeCoord(tileCoord);
-    tileScratch = SCRATCH_STACK_RESERVE_BLOCK(_AkropolisSanctuaryMosaicTileScratch);
+    tileScratch = SCRATCH_STACK_RESERVE_BLOCK(_MosaicTileScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     // Transform the size-class corners into narrowed world positions.
     for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(tileScratch->corners); cornerIndex++) {
         tileScratch->corners[cornerIndex].vx = _gAkropolisSanctuaryMosaicTileCorners[sizeClass][cornerIndex].vx;
         // Byte addressing preserves separate store and GTE operand registers.
-        scratchCorner     = (SVECTOR*)((u8*)tileScratch + cornerIndex * sizeof(SVECTOR) + OFFSET_OF(_AkropolisSanctuaryMosaicTileScratch, corners));
+        scratchCorner     = (SVECTOR*)((u8*)tileScratch + cornerIndex * sizeof(SVECTOR) + OFFSET_OF(_MosaicTileScratch, corners));
         scratchCorner->vy = _gAkropolisSanctuaryMosaicTileCorners[sizeClass][cornerIndex].vy;
         scratchCorner->vz = _gAkropolisSanctuaryMosaicTileCorners[sizeClass][cornerIndex].vz;
         gte_SetRotMatrix(&tileCoord->workm);
@@ -950,11 +950,11 @@ void akropolisSanctuaryMosaicTileTask(Task* task)
     gte_rtpt();
     gte_stsxy3(&tileQuad->x1, &tileQuad->x2, &tileQuad->x3);
     gte_stszotz(&tileScratch->otz);
-    if (tileScratch->otz >= AKROPOLIS_SANCTUARY_MOSAIC_MIN_DEPTH) {
+    if (tileScratch->otz >= MOSAIC_MIN_DEPTH) {
         // Seed motion only on an accepted projection at age zero.
         if (tileWork->age == 0) {
             tileWork->scale = _gAkropolisSanctuaryMosaicTiles[task->spawnArg1.value].thrown;
-            if (tileWork->scale != AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE) {
+            if (tileWork->scale != MOSAIC_TILE_CRUMBLE) {
                 RANDOM_LCG_ADVANCE();
                 tileWork->move.vx = -(RANDOM_LCG_DRAW() & 0xFF);
                 RANDOM_LCG_ADVANCE();
@@ -986,8 +986,8 @@ void akropolisSanctuaryMosaicTileTask(Task* task)
                                   (RANDOM_LCG_DRAW() & 7);
             }
         }
-        tileQuad->tpage = AKROPOLIS_SANCTUARY_MOSAIC_TEXTURE_PAGE;
-        tileQuad->clut  = AKROPOLIS_SANCTUARY_MOSAIC_PALETTE;
+        tileQuad->tpage = MOSAIC_TEXTURE_PAGE;
+        tileQuad->clut  = MOSAIC_PALETTE;
         setShadeTex(tileQuad, 1);
         setSemiTrans(tileQuad, 1);
         tileQuad->u0 = _gAkropolisSanctuaryMosaicTiles[task->spawnArg1.value].originU;
@@ -1005,8 +1005,8 @@ void akropolisSanctuaryMosaicTileTask(Task* task)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(tileScratch->otz),
                 tileQuad);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(_AkropolisSanctuaryMosaicTileScratch);
-    if (tileWork->angle + AKROPOLIS_SANCTUARY_MOSAIC_DRIFT_FRAMES < tileWork->age) {
+    SCRATCH_STACK_RELEASE_BLOCK(_MosaicTileScratch);
+    if (tileWork->angle + MOSAIC_DRIFT_FRAMES < tileWork->age) {
         effectKillTask(tileWork, task);
         return;
     }
@@ -1017,21 +1017,21 @@ void akropolisSanctuaryMosaicTileTask(Task* task)
         tileCoord->coord.t[2] += tileWork->move.vz;
         gfxRotMatrixYXZ(&tileCoord->coord, &tileWork->pos, GRAPHICS_ROTATION_COMPOSE);
         tileCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-        tileWork->move.vy       = tileWork->move.vy + AKROPOLIS_SANCTUARY_MOSAIC_GRAVITY;
-        if (tileWork->scale == AKROPOLIS_SANCTUARY_MOSAIC_TILE_CRUMBLE) {
+        tileWork->move.vy       = tileWork->move.vy + MOSAIC_GRAVITY;
+        if (tileWork->scale == MOSAIC_TILE_CRUMBLE) {
             RANDOM_LCG_ADVANCE();
-            if ((u16)(RANDOM_LCG_DRAW() % (u32)AKROPOLIS_SANCTUARY_MOSAIC_SPLIT_PERIOD) == 0 || tileCoord->coord.t[1] >= AKROPOLIS_SANCTUARY_MOSAIC_SPLIT_HEIGHT) {
+            if ((u16)(RANDOM_LCG_DRAW() % (u32)MOSAIC_SPLIT_PERIOD) == 0 || tileCoord->coord.t[1] >= MOSAIC_SPLIT_HEIGHT) {
                 RANDOM_LCG_ADVANCE();
                 shardCount = (RANDOM_LCG_DRAW() & 3) + 1;
                 for (cornerIndex = 0; cornerIndex < shardCount; cornerIndex++) {
-                    effectSpawn(EFFECT_AKROPOLIS_SANCTUARY_MOSAIC_SHARD, tileCoord, task->spawnArg1.value | AKROPOLIS_SANCTUARY_MOSAIC_SHARD_AIRBORNE, NULL);
+                    effectSpawn(EFFECT_AKROPOLIS_SANCTUARY_MOSAIC_SHARD, tileCoord, task->spawnArg1.value | MOSAIC_SHARD_AIRBORNE, NULL);
                 }
-                tileWork->age = tileWork->age + AKROPOLIS_SANCTUARY_MOSAIC_TILE_SPLIT_AGE;
+                tileWork->age = tileWork->age + MOSAIC_TILE_SPLIT_AGE;
             }
         }
     }
-    if (tileCoord->coord.t[0] < AKROPOLIS_SANCTUARY_MOSAIC_BOUNCE_X && tileCoord->coord.t[1] >= AKROPOLIS_SANCTUARY_MOSAIC_BOUNCE_Y) {
-        if (sizeClass != AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL) {
+    if (tileCoord->coord.t[0] < MOSAIC_BOUNCE_X && tileCoord->coord.t[1] >= MOSAIC_BOUNCE_Y) {
+        if (sizeClass != MOSAIC_TILE_SMALL) {
             RANDOM_LCG_ADVANCE();
             // Retain this temporary for the later shard count to preserve allocation.
             sizeClass = RANDOM_LCG_DRAW() & 3;
@@ -1040,7 +1040,7 @@ void akropolisSanctuaryMosaicTileTask(Task* task)
                 for (cornerIndex = 0; cornerIndex < sizeClass; cornerIndex++) {
                     effectSpawn(EFFECT_AKROPOLIS_SANCTUARY_MOSAIC_SHARD, tileCoord, task->spawnArg1.value, NULL);
                 }
-                tileWork->age = tileWork->age + AKROPOLIS_SANCTUARY_MOSAIC_TILE_SPLIT_AGE;
+                tileWork->age = tileWork->age + MOSAIC_TILE_SPLIT_AGE;
             } else {
                 tileCoord->coord.t[1] -= tileWork->move.vy * 2;
                 tileWork->move.vy      = -(tileWork->move.vy >> 1);
@@ -1050,10 +1050,10 @@ void akropolisSanctuaryMosaicTileTask(Task* task)
             tileWork->move.vy      = -(tileWork->move.vy >> 1);
         }
     }
-    if (gGameSession->location.view != AKROPOLIS_SANCTUARY_VIEW_MOSAIC_LATCH_SET && _gAkropolisSanctuaryMosaicCleanupLatched != AKROPOLIS_SANCTUARY_MOSAIC_CLEANUP_CLEAR &&
-        (tileCoord->coord.t[0] < AKROPOLIS_SANCTUARY_MOSAIC_CLEAR_X ||
-         (tileCoord->coord.t[0] < AKROPOLIS_SANCTUARY_MOSAIC_BOUNCE_X && tileCoord->coord.t[1] >= AKROPOLIS_SANCTUARY_MOSAIC_BOUNCE_Y))) {
-        tileWork->age = tileWork->age + AKROPOLIS_SANCTUARY_MOSAIC_DRIFT_FRAMES;
+    if (gGameSession->location.view != VIEW_MOSAIC_LATCH_SET && _gAkropolisSanctuaryMosaicCleanupLatched != MOSAIC_CLEANUP_CLEAR &&
+        (tileCoord->coord.t[0] < MOSAIC_CLEAR_X ||
+         (tileCoord->coord.t[0] < MOSAIC_BOUNCE_X && tileCoord->coord.t[1] >= MOSAIC_BOUNCE_Y))) {
+        tileWork->age = tileWork->age + MOSAIC_DRIFT_FRAMES;
     }
     tileWork->age = tileWork->age + 1;
 }
@@ -1061,45 +1061,45 @@ void akropolisSanctuaryMosaicTileTask(Task* task)
 void akropolisSanctuaryMosaicShardTask(Task* task)
 {
     enum {
-        AKROPOLIS_SANCTUARY_MOSAIC_TILE_INDEX_MASK          = 0xFFF,
-        AKROPOLIS_SANCTUARY_MOSAIC_SHARD_DRIFT_MASK         = 0xF,
-        AKROPOLIS_SANCTUARY_MOSAIC_SHARD_SIZE_SHIFT         = 16,
-        AKROPOLIS_SANCTUARY_MOSAIC_SHARD_SIZE_ONE           = 1 << 12,
-        AKROPOLIS_SANCTUARY_MOSAIC_SHARD_SIZE_FRACTION_BITS = 12,
-        AKROPOLIS_SANCTUARY_MOSAIC_SHARD_MIN_SPLIT_SIZE     = (AKROPOLIS_SANCTUARY_MOSAIC_SHARD_SIZE_ONE / 4) + 1,
-        AKROPOLIS_SANCTUARY_MOSAIC_SHARD_CHILD_SIZE_SHIFT   = AKROPOLIS_SANCTUARY_MOSAIC_SHARD_SIZE_SHIFT - 1,
-        AKROPOLIS_SANCTUARY_MOSAIC_SHARD_MAX_BOUNCES        = 2,
+        TILE_INDEX_MASK          = 0xFFF,
+        SHARD_DRIFT_MASK         = 0xF,
+        SHARD_SIZE_SHIFT         = 16,
+        SHARD_SIZE_ONE           = 1 << 12,
+        SHARD_SIZE_FRACTION_BITS = 12,
+        SHARD_MIN_SPLIT_SIZE     = (SHARD_SIZE_ONE / 4) + 1,
+        SHARD_CHILD_SIZE_SHIFT   = SHARD_SIZE_SHIFT - 1,
+        SHARD_MAX_BOUNCES        = 2,
     };
-    EffectWork*                            shardWork;
-    GfxCoord*                              shardCoord;
-    _AkropolisSanctuaryMosaicShardScratch* shardScratch;
-    POLY_FT3*                              shardTriangle;
-    SVECTOR*                               baseCorners;
-    s32                                    sizeFactor;
-    s32                                    packedSize;
-    s32                                    cornerIndex;
-    s32                                    shardCount;
-    s32                                    childParams;
-    SVECTOR*                               scratchCorner;
+    EffectWork*          shardWork;
+    GfxCoord*            shardCoord;
+    _MosaicShardScratch* shardScratch;
+    POLY_FT3*            shardTriangle;
+    SVECTOR*             baseCorners;
+    s32                  sizeFactor;
+    s32                  packedSize;
+    s32                  cornerIndex;
+    s32                  shardCount;
+    s32                  childParams;
+    SVECTOR*             scratchCorner;
 
     shardWork  = task->spawnArg2.pointer;
     shardCoord = task->extra.coordBody->coord;
-    if (shardWork->age >= AKROPOLIS_SANCTUARY_MOSAIC_DRIFT_FRAMES + 1 || shardWork->index >= AKROPOLIS_SANCTUARY_MOSAIC_SHARD_MAX_BOUNCES) {
+    if (shardWork->age >= MOSAIC_DRIFT_FRAMES + 1 || shardWork->index >= SHARD_MAX_BOUNCES) {
         effectKillTask(shardWork, task);
         return;
     }
     actorRenderComposeCoord(shardCoord);
-    shardScratch = SCRATCH_STACK_RESERVE_BLOCK(_AkropolisSanctuaryMosaicShardScratch);
+    shardScratch = SCRATCH_STACK_RESERVE_BLOCK(_MosaicShardScratch);
     // Unpack once, preserving signed size and the unsigned zero test.
     if (shardWork->age == 0) {
-        shardWork->scale = (task->spawnArg1.value >> AKROPOLIS_SANCTUARY_MOSAIC_SHARD_DRIFT_SHIFT) & AKROPOLIS_SANCTUARY_MOSAIC_SHARD_DRIFT_MASK;
-        packedSize       = (s16)(task->spawnArg1.value >> AKROPOLIS_SANCTUARY_MOSAIC_SHARD_SIZE_SHIFT);
-        sizeFactor       = AKROPOLIS_SANCTUARY_MOSAIC_SHARD_SIZE_ONE;
+        shardWork->scale = (task->spawnArg1.value >> MOSAIC_SHARD_DRIFT_SHIFT) & SHARD_DRIFT_MASK;
+        packedSize       = (s16)(task->spawnArg1.value >> SHARD_SIZE_SHIFT);
+        sizeFactor       = SHARD_SIZE_ONE;
         if ((u16)packedSize != 0) {
             sizeFactor = packedSize;
         }
         shardWork->angle      = sizeFactor;
-        task->spawnArg1.value = task->spawnArg1.value & AKROPOLIS_SANCTUARY_MOSAIC_TILE_INDEX_MASK;
+        task->spawnArg1.value = task->spawnArg1.value & TILE_INDEX_MASK;
         if (shardWork->scale != 0) {
             RANDOM_LCG_ADVANCE();
             shardWork->move.vx = 8 - (RANDOM_LCG_DRAW() & 0xF);
@@ -1123,12 +1123,12 @@ void akropolisSanctuaryMosaicShardTask(Task* task)
         shardWork->pos.vz = 0x80 - (RANDOM_LCG_DRAW() & 0xFF);
     }
     gte_SetTransMatrix(&GsWSMATRIX);
-    baseCorners = _gAkropolisSanctuaryMosaicTileCorners[AKROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL];
+    baseCorners = _gAkropolisSanctuaryMosaicTileCorners[MOSAIC_TILE_SMALL];
     // Scale and transform the three shard corners before projecting them together.
     for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(shardScratch->corners); cornerIndex++) {
         shardScratch->corners[cornerIndex].vx = baseCorners[cornerIndex].vx;
         // Byte addressing preserves separate store and GTE operand registers.
-        scratchCorner     = (SVECTOR*)((u8*)shardScratch + cornerIndex * sizeof(SVECTOR) + OFFSET_OF(_AkropolisSanctuaryMosaicShardScratch, corners));
+        scratchCorner     = (SVECTOR*)((u8*)shardScratch + cornerIndex * sizeof(SVECTOR) + OFFSET_OF(_MosaicShardScratch, corners));
         scratchCorner->vy = baseCorners[cornerIndex].vy;
         scratchCorner->vz = baseCorners[cornerIndex].vz;
         gte_lddp(shardWork->angle);
@@ -1151,58 +1151,58 @@ void akropolisSanctuaryMosaicShardTask(Task* task)
     setPolyFT3(shardTriangle);
     gte_stsxy3(&shardTriangle->x0, &shardTriangle->x1, &shardTriangle->x2);
     gte_stszotz(&shardScratch->otz);
-    if (shardScratch->otz >= AKROPOLIS_SANCTUARY_MOSAIC_MIN_DEPTH) {
-        shardTriangle->tpage = AKROPOLIS_SANCTUARY_MOSAIC_TEXTURE_PAGE;
-        shardTriangle->clut  = AKROPOLIS_SANCTUARY_MOSAIC_PALETTE;
+    if (shardScratch->otz >= MOSAIC_MIN_DEPTH) {
+        shardTriangle->tpage = MOSAIC_TEXTURE_PAGE;
+        shardTriangle->clut  = MOSAIC_PALETTE;
         setShadeTex(shardTriangle, 1);
         setSemiTrans(shardTriangle, 1);
         shardTriangle->u0 = _gAkropolisSanctuaryMosaicTiles[task->spawnArg1.value].originU;
         shardTriangle->v0 = _gAkropolisSanctuaryMosaicTiles[task->spawnArg1.value].originV;
         shardTriangle->u1 = _gAkropolisSanctuaryMosaicTiles[task->spawnArg1.value].originU +
-                            ((_gAkropolisSanctuaryMosaicTiles[task->spawnArg1.value].extentU * shardWork->angle) >> AKROPOLIS_SANCTUARY_MOSAIC_SHARD_SIZE_FRACTION_BITS);
+                            ((_gAkropolisSanctuaryMosaicTiles[task->spawnArg1.value].extentU * shardWork->angle) >> SHARD_SIZE_FRACTION_BITS);
         shardTriangle->v1 = _gAkropolisSanctuaryMosaicTiles[task->spawnArg1.value].originV;
         shardTriangle->u2 = _gAkropolisSanctuaryMosaicTiles[task->spawnArg1.value].originU;
         shardTriangle->v2 = _gAkropolisSanctuaryMosaicTiles[task->spawnArg1.value].originV +
-                            ((_gAkropolisSanctuaryMosaicTiles[task->spawnArg1.value].extentV * shardWork->angle) >> AKROPOLIS_SANCTUARY_MOSAIC_SHARD_SIZE_FRACTION_BITS);
+                            ((_gAkropolisSanctuaryMosaicTiles[task->spawnArg1.value].extentV * shardWork->angle) >> SHARD_SIZE_FRACTION_BITS);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(shardScratch->otz),
                 shardTriangle);
     }
     shardCoord->coord.t[0] += shardWork->move.vx;
     shardCoord->coord.t[1] += shardWork->move.vy;
-    SCRATCH_STACK_RELEASE_BLOCK(_AkropolisSanctuaryMosaicShardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_MosaicShardScratch);
     shardCoord->coord.t[2] += shardWork->move.vz;
     gfxRotMatrixYXZ(&shardCoord->coord, &shardWork->pos, GRAPHICS_ROTATION_COMPOSE);
     shardCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-    shardWork->move.vy       = shardWork->move.vy + AKROPOLIS_SANCTUARY_MOSAIC_GRAVITY;
+    shardWork->move.vy       = shardWork->move.vy + MOSAIC_GRAVITY;
     // Bounce at the floor region or split into children with half the encoded size.
-    if (shardCoord->coord.t[0] < AKROPOLIS_SANCTUARY_MOSAIC_BOUNCE_X && shardCoord->coord.t[1] >= AKROPOLIS_SANCTUARY_MOSAIC_BOUNCE_Y) {
+    if (shardCoord->coord.t[0] < MOSAIC_BOUNCE_X && shardCoord->coord.t[1] >= MOSAIC_BOUNCE_Y) {
         RANDOM_LCG_ADVANCE();
         shardCount = RANDOM_LCG_DRAW() & 1;
-        if (shardWork->angle >= AKROPOLIS_SANCTUARY_MOSAIC_SHARD_MIN_SPLIT_SIZE && shardCount != 0) {
+        if (shardWork->angle >= SHARD_MIN_SPLIT_SIZE && shardCount != 0) {
             shardCount = shardCount + 1;
             for (cornerIndex = 0; cornerIndex < shardCount; cornerIndex++) {
-                effectSpawn(EFFECT_AKROPOLIS_SANCTUARY_MOSAIC_SHARD, shardCoord, task->spawnArg1.value | (shardWork->angle << AKROPOLIS_SANCTUARY_MOSAIC_SHARD_CHILD_SIZE_SHIFT), NULL);
+                effectSpawn(EFFECT_AKROPOLIS_SANCTUARY_MOSAIC_SHARD, shardCoord, task->spawnArg1.value | (shardWork->angle << SHARD_CHILD_SIZE_SHIFT), NULL);
             }
-            shardWork->age = shardWork->age + AKROPOLIS_SANCTUARY_MOSAIC_DRIFT_FRAMES;
+            shardWork->age = shardWork->age + MOSAIC_DRIFT_FRAMES;
         } else {
             shardCoord->coord.t[1] -= shardWork->move.vy * 2;
             shardWork->move.vy      = -(shardWork->move.vy >> 1);
             shardWork->index        = shardWork->index + 1;
         }
-    } else if (shardWork->angle >= AKROPOLIS_SANCTUARY_MOSAIC_SHARD_MIN_SPLIT_SIZE) {
+    } else if (shardWork->angle >= SHARD_MIN_SPLIT_SIZE) {
         RANDOM_LCG_ADVANCE();
-        if ((u16)(RANDOM_LCG_DRAW() % (u32)AKROPOLIS_SANCTUARY_MOSAIC_SPLIT_PERIOD) == 0 || shardCoord->coord.t[1] >= AKROPOLIS_SANCTUARY_MOSAIC_SPLIT_HEIGHT) {
+        if ((u16)(RANDOM_LCG_DRAW() % (u32)MOSAIC_SPLIT_PERIOD) == 0 || shardCoord->coord.t[1] >= MOSAIC_SPLIT_HEIGHT) {
             for (cornerIndex = 0; cornerIndex < 2; cornerIndex++) {
-                childParams = (shardWork->angle << AKROPOLIS_SANCTUARY_MOSAIC_SHARD_CHILD_SIZE_SHIFT) | AKROPOLIS_SANCTUARY_MOSAIC_SHARD_AIRBORNE;
+                childParams = (shardWork->angle << SHARD_CHILD_SIZE_SHIFT) | MOSAIC_SHARD_AIRBORNE;
                 effectSpawn(EFFECT_AKROPOLIS_SANCTUARY_MOSAIC_SHARD, shardCoord, task->spawnArg1.value | childParams, NULL);
             }
-            shardWork->age = shardWork->age + AKROPOLIS_SANCTUARY_MOSAIC_DRIFT_FRAMES;
+            shardWork->age = shardWork->age + MOSAIC_DRIFT_FRAMES;
         }
     }
-    if (gGameSession->location.view != AKROPOLIS_SANCTUARY_VIEW_MOSAIC_LATCH_SET && _gAkropolisSanctuaryMosaicCleanupLatched != AKROPOLIS_SANCTUARY_MOSAIC_CLEANUP_CLEAR &&
-        (shardCoord->coord.t[0] < AKROPOLIS_SANCTUARY_MOSAIC_CLEAR_X ||
-         (shardCoord->coord.t[0] < AKROPOLIS_SANCTUARY_MOSAIC_BOUNCE_X && shardCoord->coord.t[1] >= AKROPOLIS_SANCTUARY_MOSAIC_BOUNCE_Y))) {
-        shardWork->age = shardWork->age + AKROPOLIS_SANCTUARY_MOSAIC_DRIFT_FRAMES;
+    if (gGameSession->location.view != VIEW_MOSAIC_LATCH_SET && _gAkropolisSanctuaryMosaicCleanupLatched != MOSAIC_CLEANUP_CLEAR &&
+        (shardCoord->coord.t[0] < MOSAIC_CLEAR_X ||
+         (shardCoord->coord.t[0] < MOSAIC_BOUNCE_X && shardCoord->coord.t[1] >= MOSAIC_BOUNCE_Y))) {
+        shardWork->age = shardWork->age + MOSAIC_DRIFT_FRAMES;
     }
     shardWork->age = shardWork->age + 1;
 }
@@ -1210,45 +1210,45 @@ void akropolisSanctuaryMosaicShardTask(Task* task)
 void akropolisSanctuaryFlameTask(Task* task)
 {
     enum {
-        AKROPOLIS_SANCTUARY_FLAME_STATE_INITIAL    = 0,
-        AKROPOLIS_SANCTUARY_FLAME_PLACEMENT_MASK   = 0xF,
-        AKROPOLIS_SANCTUARY_FLAME_VARIANT_SHIFT    = 8,
-        AKROPOLIS_SANCTUARY_FLAME_VARIANT_MASK     = 3,
-        AKROPOLIS_SANCTUARY_FLAME_SIZE_SHIFT       = 16,
-        AKROPOLIS_SANCTUARY_FLAME_SIZE_MASK        = 0xFFF,
-        AKROPOLIS_SANCTUARY_FLAME_SIZE_BITS        = AKROPOLIS_SANCTUARY_FLAME_SIZE_MASK << AKROPOLIS_SANCTUARY_FLAME_SIZE_SHIFT,
-        AKROPOLIS_SANCTUARY_FLAME_DEFAULT_SIZE     = 640,
-        AKROPOLIS_SANCTUARY_FLAME_MIN_DEPTH        = 17,
-        AKROPOLIS_SANCTUARY_FLAME_TEXTURE_PAGE     = getTPage(0, GPU_BLEND_ADD, 704, 0),
-        AKROPOLIS_SANCTUARY_FLAME_PALETTE_WORDS    = 16,
-        AKROPOLIS_SANCTUARY_FLAME_PALETTE_Y        = 270,
-        AKROPOLIS_SANCTUARY_FLAME_TEXTURE_STRIDE_U = 40,
-        AKROPOLIS_SANCTUARY_FLAME_TEXTURE_EXTENT   = 39,
+        STATE_INITIAL    = 0,
+        PLACEMENT_MASK   = 0xF,
+        VARIANT_SHIFT    = 8,
+        VARIANT_MASK     = 3,
+        SIZE_SHIFT       = 16,
+        SIZE_MASK        = 0xFFF,
+        SIZE_BITS        = SIZE_MASK << SIZE_SHIFT,
+        DEFAULT_SIZE     = 640,
+        MIN_DEPTH        = 17,
+        TEXTURE_PAGE     = getTPage(0, GPU_BLEND_ADD, 704, 0),
+        PALETTE_WORDS    = 16,
+        PALETTE_Y        = 270,
+        TEXTURE_STRIDE_U = 40,
+        TEXTURE_EXTENT   = 39,
     };
-    EffectWork*                  flameWork;
-    GfxCoord*                    flameCoord;
-    RoomGlowSpriteScratch*       flameScratch;
-    POLY_FT4*                    flameQuad;
-    _AkropolisSanctuaryFlameGray baseGray;
-    _AkropolisSanctuaryFlameGray flickerGray;
-    s32                          spawnParams;
-    s32                          grayLevel;
+    EffectWork*            flameWork;
+    GfxCoord*              flameCoord;
+    RoomGlowSpriteScratch* flameScratch;
+    POLY_FT4*              flameQuad;
+    _FlameGray             baseGray;
+    _FlameGray             flickerGray;
+    s32                    spawnParams;
+    s32                    grayLevel;
 
     flameWork  = task->spawnArg2.pointer;
     flameCoord = task->extra.coordBody->coord;
-    if ((_gAkropolisSanctuaryFlameViewMasks[task->spawnArg1.value & AKROPOLIS_SANCTUARY_FLAME_PLACEMENT_MASK] >> (gGameSession->location.view - 1)) & 1) {
+    if ((_gAkropolisSanctuaryFlameViewMasks[task->spawnArg1.value & PLACEMENT_MASK] >> (gGameSession->location.view - 1)) & 1) {
         actorRenderComposeCoord(flameCoord);
         flameScratch = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
-        if (task->state == AKROPOLIS_SANCTUARY_FLAME_STATE_INITIAL) {
+        if (task->state == STATE_INITIAL) {
             // Initialize on the first visible update, then retain only the placement index.
             baseGray              = _gAkropolisSanctuaryFlameBaseGray;
             flickerGray           = _gAkropolisSanctuaryFlameFlickerGray;
             spawnParams           = task->spawnArg1.value;
-            flameWork->scale      = (spawnParams & AKROPOLIS_SANCTUARY_FLAME_SIZE_BITS)
-                                        ? ((spawnParams >> AKROPOLIS_SANCTUARY_FLAME_SIZE_SHIFT) & AKROPOLIS_SANCTUARY_FLAME_SIZE_MASK)
-                                        : AKROPOLIS_SANCTUARY_FLAME_DEFAULT_SIZE;
-            flameWork->angle      = (task->spawnArg1.value >> AKROPOLIS_SANCTUARY_FLAME_VARIANT_SHIFT) & AKROPOLIS_SANCTUARY_FLAME_VARIANT_MASK;
-            task->spawnArg1.value = task->spawnArg1.value & AKROPOLIS_SANCTUARY_FLAME_PLACEMENT_MASK;
+            flameWork->scale      = (spawnParams & SIZE_BITS)
+                                        ? ((spawnParams >> SIZE_SHIFT) & SIZE_MASK)
+                                        : DEFAULT_SIZE;
+            flameWork->angle      = (task->spawnArg1.value >> VARIANT_SHIFT) & VARIANT_MASK;
+            task->spawnArg1.value = task->spawnArg1.value & PLACEMENT_MASK;
             flameWork->period     = baseGray.gray[flameWork->angle];
             flameWork->step       = flickerGray.gray[flameWork->angle];
             task->state++;
@@ -1267,21 +1267,21 @@ void akropolisSanctuaryFlameTask(Task* task)
         setPolyFT4(flameQuad);
         gte_stsxy(&flameScratch->screenPos);
         gte_stszotz(&flameScratch->otz);
-        if (flameScratch->otz >= AKROPOLIS_SANCTUARY_FLAME_MIN_DEPTH) {
+        if (flameScratch->otz >= MIN_DEPTH) {
             grayLevel        = (u8)flameWork->period + (gDisplayState.animFrame & 1) * flameWork->step;
-            flameQuad->tpage = AKROPOLIS_SANCTUARY_FLAME_TEXTURE_PAGE;
+            flameQuad->tpage = TEXTURE_PAGE;
             setSemiTrans(flameQuad, 1);
             setRGB0(flameQuad, grayLevel, grayLevel, grayLevel);
-            flameQuad->clut          = getClut(flameWork->angle * AKROPOLIS_SANCTUARY_FLAME_PALETTE_WORDS, AKROPOLIS_SANCTUARY_FLAME_PALETTE_Y);
-            flameQuad->u0            = flameWork->angle * AKROPOLIS_SANCTUARY_FLAME_TEXTURE_STRIDE_U;
+            flameQuad->clut          = getClut(flameWork->angle * PALETTE_WORDS, PALETTE_Y);
+            flameQuad->u0            = flameWork->angle * TEXTURE_STRIDE_U;
             flameQuad->v0            = 0;
-            flameQuad->u1            = flameWork->angle * AKROPOLIS_SANCTUARY_FLAME_TEXTURE_STRIDE_U + AKROPOLIS_SANCTUARY_FLAME_TEXTURE_EXTENT;
+            flameQuad->u1            = flameWork->angle * TEXTURE_STRIDE_U + TEXTURE_EXTENT;
             flameQuad->v1            = 0;
-            flameQuad->u2            = flameWork->angle * AKROPOLIS_SANCTUARY_FLAME_TEXTURE_STRIDE_U;
-            flameQuad->v2            = AKROPOLIS_SANCTUARY_FLAME_TEXTURE_EXTENT;
-            flameQuad->u3            = flameWork->angle * AKROPOLIS_SANCTUARY_FLAME_TEXTURE_STRIDE_U + AKROPOLIS_SANCTUARY_FLAME_TEXTURE_EXTENT;
-            flameQuad->v3            = AKROPOLIS_SANCTUARY_FLAME_TEXTURE_EXTENT;
-            flameScratch->halfExtent = (flameWork->scale * AKROPOLIS_SANCTUARY_FLAME_TEXTURE_EXTENT) / flameScratch->otz;
+            flameQuad->u2            = flameWork->angle * TEXTURE_STRIDE_U;
+            flameQuad->v2            = TEXTURE_EXTENT;
+            flameQuad->u3            = flameWork->angle * TEXTURE_STRIDE_U + TEXTURE_EXTENT;
+            flameQuad->v3            = TEXTURE_EXTENT;
+            flameScratch->halfExtent = (flameWork->scale * TEXTURE_EXTENT) / flameScratch->otz;
             _akropolisSanctuarySetFlameQuadBounds(flameQuad, flameScratch);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(flameScratch->otz),
                     flameQuad);
@@ -1307,9 +1307,9 @@ static s32 _akropolisSanctuaryStartMosaic(Task* task, s32 messageId, s32 unusedF
 void akropolisSanctuaryItemVisibilityTask(Task* task)
 {
     enum {
-        AKROPOLIS_SANCTUARY_ITEM_HIDDEN_VIEW_FIRST  = 11,
-        AKROPOLIS_SANCTUARY_ITEM_HIDDEN_VIEW_SECOND = 13,
-        AKROPOLIS_SANCTUARY_ITEM_STATE_HIDDEN       = 2,
+        HIDDEN_VIEW_FIRST  = 11,
+        HIDDEN_VIEW_SECOND = 13,
+        STATE_HIDDEN       = 2,
     };
     Enemy*     placedItem = task->spawnArg2.pointer;
     TmdObject* itemModel  = task->extra.tmd;
@@ -1318,7 +1318,7 @@ void akropolisSanctuaryItemVisibilityTask(Task* task)
 
     objectState = areaGetCurrentObjectState((u8)placedItem->placeKey);
     viewIndex   = viewGetMappedIndex();
-    if (viewIndex == AKROPOLIS_SANCTUARY_ITEM_HIDDEN_VIEW_FIRST || viewIndex == AKROPOLIS_SANCTUARY_ITEM_HIDDEN_VIEW_SECOND || objectState == AKROPOLIS_SANCTUARY_ITEM_STATE_HIDDEN) {
+    if (viewIndex == HIDDEN_VIEW_FIRST || viewIndex == HIDDEN_VIEW_SECOND || objectState == STATE_HIDDEN) {
         itemModel->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         itemModel->flags    = TMD_OBJECT_FLAGGED_PASS;
@@ -1330,7 +1330,7 @@ void akropolisSanctuaryItemVisibilityTask(Task* task)
 static void _akropolisSanctuaryUpdateUnusedPlacedObjectVisibility(Task* task)
 {
     enum {
-        AKROPOLIS_SANCTUARY_UNUSED_OBJECT_HIDDEN = 2,
+        UNUSED_OBJECT_HIDDEN = 2,
     };
     Enemy*     placedObject;
     TmdObject* objectModel;
@@ -1340,7 +1340,7 @@ static void _akropolisSanctuaryUpdateUnusedPlacedObjectVisibility(Task* task)
     objectModel  = task->extra.tmd;
     objectState  = areaGetCurrentObjectState((u8)placedObject->placeKey);
     viewGetMappedIndex();
-    if (objectState == AKROPOLIS_SANCTUARY_UNUSED_OBJECT_HIDDEN) {
+    if (objectState == UNUSED_OBJECT_HIDDEN) {
         objectModel->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         objectModel->flags    = TMD_OBJECT_FLAGGED_PASS;
