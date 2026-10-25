@@ -912,7 +912,7 @@ static void _actor120300RunPlayerRequest(Task* task)
             _actor120300BlendPlayerAnimation(task, 2);
             break;
         case 5:
-            taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO, 0);
             dispatchWork = task->work;
             TASK_MESSAGE_DISPATCH_POINTER(dispatchWork->playerTask, GAME_ACTOR_MESSAGE_PLACE, &_gActor120300ScenePlacements[ACTOR_120300_PLACEMENT_PLAYER_CLIP3], 0);
             _actor120300BlendPlayerAnimation(task, 3);
@@ -1536,13 +1536,13 @@ static void _actor120300SetModelsVisible(s32 visible)
     _Actor120300Work* work = _gActor120300BodyTask->work;
 
     if (visible == 0) {
-        taskMessageDispatch(_gActor120300BodyTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
-        taskMessageDispatch(work->headTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
-        taskMessageDispatch(work->rifleTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
+        taskMessageDispatch(_gActor120300BodyTask, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE, 0);
+        taskMessageDispatch(work->headTask, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE, 0);
+        taskMessageDispatch(work->rifleTask, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE, 0);
     } else if (visible == 1) {
-        taskMessageDispatch(_gActor120300BodyTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-        taskMessageDispatch(work->headTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-        taskMessageDispatch(work->rifleTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+        taskMessageDispatch(_gActor120300BodyTask, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
+        taskMessageDispatch(work->headTask, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
+        taskMessageDispatch(work->rifleTask, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
     }
 }
 

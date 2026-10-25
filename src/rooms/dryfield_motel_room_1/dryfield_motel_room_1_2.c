@@ -1329,7 +1329,7 @@ static void _dryfieldMotelRoom1ExecuteEventAction(Task* task)
             break;
         case DRYFIELD_MOTEL_ROOM_1_EVENT_ACTION_SECOND_STAGING:
             _dryfieldMotelRoom1BroadcastActorCommand(DRYFIELD_MOTEL_ROOM_1_ACTOR_COMMAND_SECOND_STAGING);
-            taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, true, 0);
+            taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO, 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->stagedSucklerTasks[0], ACTOR_MESSAGE_PLACE, &_gDryfieldMotelRoom1SecondStagingPlacements[0], 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->stagedSucklerTasks[1], ACTOR_MESSAGE_PLACE, &_gDryfieldMotelRoom1SecondStagingPlacements[1], 0);
             break;

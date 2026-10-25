@@ -171,7 +171,7 @@ static void _akropolisEastElevatorHallInitializeRoomTask(Task* task)
 {
     task->msgTable = _gAkropolisEastElevatorHallRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    sceneSetPlacedActorDrawMode(AKROPOLIS_EAST_ELEVATOR_HALL_SWAT_MEMBER_ACTOR, 1);
+    sceneSetPlacedActorDrawMode(AKROPOLIS_EAST_ELEVATOR_HALL_SWAT_MEMBER_ACTOR, ACTOR_MESSAGE_DRAW_SHOW);
     TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(AKROPOLIS_EAST_ELEVATOR_HALL_SWAT_MEMBER_ACTOR), ACTOR_MESSAGE_PLAY_ANIMATION, &_gAkropolisEastElevatorHallSwatRestAnimationRequest, 0);
     task->state++;
 }

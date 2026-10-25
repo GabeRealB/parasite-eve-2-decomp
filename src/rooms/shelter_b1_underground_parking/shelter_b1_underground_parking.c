@@ -2669,7 +2669,7 @@ static void _shelterB1UndergroundParkingRoomInitialize(Task* roomTask)
     gameSetTaskSlot(roomTask, GAME_TASK_SLOT_ROOM);
     _shelterB1UndergroundParkingPanelResetSelection();
     if (gGameSession->location.variant == SHELTER_B1_UNDERGROUND_PARKING_VARIANT_SOLDIER_B) {
-        sceneSetPlacedActorDrawMode(0, 1);
+        sceneSetPlacedActorDrawMode(0, ACTOR_MESSAGE_DRAW_SHOW);
     }
     if ((gameFlagGetNibble(EVENT_FLAG_STORY_CHAPTER) >= SHELTER_B1_UNDERGROUND_PARKING_FINAL_CHAPTER) && (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_123) == 0)) {
         gameFlagSetNibble(GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_123, 1);

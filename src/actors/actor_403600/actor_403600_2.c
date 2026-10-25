@@ -4535,7 +4535,7 @@ static s32 _actor403600ApplySceneCommand(Task* task, s32 unusedMessageId, const 
         case ACTOR_403600_COMMAND_SPAWN_SCENE_FIGURE:
             // The figure and shaft controller take over presentation from both actors.
             _gActor403600SceneShaftTask = taskSpawnFromTable(gActor303600ShaftTaskDescriptors, ACTOR_303600_SHAFT_ROOT_DESCRIPTOR, 0, 0);
-            taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
+            taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE, 0);
             task->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             task->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             work->childEnemy        = enemySpawnFromTable(gActor403600TaskTable, ACTOR_403600_SCENE_FIGURE_TASK, 0, 0);
@@ -4756,7 +4756,7 @@ static void _actor403600UpdateSceneFigure(Enemy* enemy, Task* task)
             }
         }
         if (work->phaseFrame == ACTOR_403600_SCENE_SHOW_PLAYER_FRAME) {
-            taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO, 0);
         }
         if (work->phaseFrame >= ACTOR_403600_SCENE_SHOW_PLAYER_FRAME && work->phaseFrame < ACTOR_403600_SCENE_EFFECT_END_FRAME && (work->phaseFrame & 3) == 3) {
             effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_RISING_SPRITE, &work->worldCoord, (ACTOR_403600_SCENE_REVERSE_SPRITE_Y | ACTOR_403600_SCENE_RISING_SPRITE_SIZE), NULL);

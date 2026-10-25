@@ -145,7 +145,7 @@ static void _akropolisPatioInitializeRoomTask(Task* task)
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState == AKROPOLIS_ROOM_STATE_PATIO_PRE_SWAT_CUTSCENE) {
             TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(AKROPOLIS_PATIO_SWAT_ACTOR), ACTOR_MESSAGE_PLACE, &_gAkropolisPatioRestoredSwatPlacement, 0);
             TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(AKROPOLIS_PATIO_SWAT_ACTOR), ACTOR_COMMAND_MESSAGE_APPLY, &_gAkropolisPatioSwatAnimation3Command, 0);
-            taskMessageDispatch(sceneFindPlacedActor(AKROPOLIS_PATIO_SWAT_ACTOR), ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            taskMessageDispatch(sceneFindPlacedActor(AKROPOLIS_PATIO_SWAT_ACTOR), ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
             _gAkropolisPatioPlayerHeadAimTask = taskSpawnFromTable(_gAkropolisPatioSceneTaskDescs, AKROPOLIS_PATIO_HEAD_AIM_TASK_ENTRY, 0, 0);
         }
         placedActor = sceneFindPlacedActor(AKROPOLIS_PATIO_STRANGER_ACTOR);

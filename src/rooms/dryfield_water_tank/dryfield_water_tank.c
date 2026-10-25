@@ -1903,7 +1903,7 @@ static inline void _dryfieldWaterTankStartPropSlide(const _DryfieldWaterTankProp
     ActorCommand slideCommand;
 
     taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE, 0);
-    taskMessageDispatch(work->propTask, ACTOR_MESSAGE_SET_MODEL_DRAW, true, 0);
+    taskMessageDispatch(work->propTask, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
     slideCommand.command = DRYFIELD_WATER_TANK_PROP_STATE_SLIDING;
     TASK_MESSAGE_DISPATCH_POINTER(work->propTask, ACTOR_COMMAND_MESSAGE_APPLY, &slideCommand, 0);
 }
@@ -1960,7 +1960,7 @@ void dryfieldWaterTankPropSceneTask(Task* task)
         case DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_SHOW_PLAYER:
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = viewFindLogicalIndex(DRYFIELD_WATER_TANK_PROP_SCENE_RESTORE_VIEW);
             gGameSession->viewDirty                                = 1;
-            taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, true, 0);
+            taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO, 0);
             break;
         case DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_PLAY_SOUNDS:
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, DRYFIELD_WATER_TANK_PROP_SCENE_SLIDE_SOUND), 0, 0);
@@ -2017,7 +2017,7 @@ void dryfieldWaterTankSkipPropScene(void)
 
     work                                                   = _gDryfieldWaterTankPropSceneTask->work;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = viewFindLogicalIndex(DRYFIELD_WATER_TANK_PROP_SCENE_RESTORE_VIEW);
-    taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, true, 0);
+    taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO, 0);
     gGameSession->viewDirty = 1;
     sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, DRYFIELD_WATER_TANK_PROP_SCENE_SOUND_ENTRY), DRYFIELD_WATER_TANK_PROP_SCENE_SKIP_FADE_TICKS);
 }

@@ -351,7 +351,7 @@ enum {
 static EvsCommand _gShelterB4ReservoirWaterEventScript[48] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = SHELTER_B4_RESERVOIR_WATER_EVENT_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_HIDE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB4ReservoirCancelEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _screenWaveRun }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB4ReservoirSetEventModelState }, { .value = SHELTER_B4_RESERVOIR_EVENT_MODEL_RESET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -387,7 +387,7 @@ static EvsCommand _gShelterB4ReservoirWaterEventScript[48] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB4ReservoirWaterCommand }, { .value = SHELTER_B4_RESERVOIR_WATER_RESET_VIEW10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = SHELTER_B4_RESERVOIR_WATER_EVENT_RETURN_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_SHOW }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gShelterB4ReservoirDiverStrandCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
@@ -414,7 +414,7 @@ static EvsCommand _gShelterB4ReservoirWaterEventSkipScript[18] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _screenWaveRun }, { .value = SCREEN_WAVE_RAMP_FINISHED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB4ReservoirWaterCommand }, { .value = SHELTER_B4_RESERVOIR_WATER_FINISH_MAIN_RAMP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB4ReservoirSetBurstChance }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_SHOW }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gShelterB4ReservoirDiverStrandCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB4ReservoirCancelEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
@@ -1442,7 +1442,6 @@ static void _shelterB4ReservoirWaterEventTask(Task* task)
         SHELTER_B4_RESERVOIR_CAP_RETAIN_ACTOR_CONTROL = 1,
         SHELTER_B4_RESERVOIR_CAP_CHOICE_ROW_STRIDE    = 5,
         SHELTER_B4_RESERVOIR_EVENT_PLACED_ACTOR       = 0,
-        SHELTER_B4_RESERVOIR_EVENT_ACTOR_HIDE         = 0,
         SHELTER_B4_RESERVOIR_EVENT_DONE               = 1,
         SHELTER_B4_RESERVOIR_EVENT_MAP_MARK           = 2,
         SHELTER_B4_RESERVOIR_CONTROL_ROOM_AFTER_EVENT = 1,
@@ -1476,7 +1475,7 @@ static void _shelterB4ReservoirWaterEventTask(Task* task)
                 gDirectionInteractionRearmUpdates = SHELTER_B4_RESERVOIR_INTERACTION_REARM_UPDATES;
                 break;
             }
-            sceneSetPlacedActorDrawMode(SHELTER_B4_RESERVOIR_EVENT_PLACED_ACTOR, SHELTER_B4_RESERVOIR_EVENT_ACTOR_HIDE);
+            sceneSetPlacedActorDrawMode(SHELTER_B4_RESERVOIR_EVENT_PLACED_ACTOR, ACTOR_MESSAGE_DRAW_HIDE);
             evsStartScriptWithSkip(_gShelterB4ReservoirWaterEventScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gShelterB4ReservoirWaterEventSkipScript);
             task->state++;
             break;

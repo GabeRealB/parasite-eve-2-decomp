@@ -597,7 +597,6 @@ static void _akropolisSanctuaryRestorePlayerWeaponAnimation(void)
 /// played; places the cage's collision.
 static void _akropolisSanctuaryInitializeRoomTask(Task* task)
 {
-    enum { AKROPOLIS_SANCTUARY_RUPERT_DRAW = 1 };
     Task* placedActor;
 
     task->msgTable = _gAkropolisSanctuaryRoomMessages;
@@ -605,7 +604,7 @@ static void _akropolisSanctuaryInitializeRoomTask(Task* task)
     task->state = task->state + 1;
     if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SANCTUARY_RUPERT_LEFT) != 1) {
         placedActor = sceneFindPlacedActor(AKROPOLIS_SANCTUARY_RUPERT_ACTOR);
-        sceneSetPlacedActorDrawMode(AKROPOLIS_SANCTUARY_RUPERT_ACTOR, AKROPOLIS_SANCTUARY_RUPERT_DRAW);
+        sceneSetPlacedActorDrawMode(AKROPOLIS_SANCTUARY_RUPERT_ACTOR, ACTOR_MESSAGE_DRAW_SHOW);
         if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_BRIDGE_PROGRESS) != 0 && placedActor != NULL) {
             TASK_MESSAGE_DISPATCH_POINTER(placedActor, ACTOR_MESSAGE_PLAY_ANIMATION, &_gAkropolisSanctuaryRupertRestoredClip3Request, 0);
             TASK_MESSAGE_DISPATCH_POINTER(placedActor, ACTOR_MESSAGE_PLACE, &_gAkropolisSanctuaryRupertRestoredPlacement, 0);

@@ -1174,7 +1174,7 @@ static void _shelterB3GarbageIncineratorLiftTask(Task* task)
                     taskKill(task);
                     return;
             }
-            taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
             break;
         case SHELTER_B3_GARBAGE_INCINERATOR_LIFT_TASK_WAIT_ACTION:
             if (worldCollisionReadActionHit(&triggerControl, &actionId, &actionArgument) == 0) {

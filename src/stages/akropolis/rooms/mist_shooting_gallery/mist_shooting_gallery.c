@@ -1292,7 +1292,7 @@ static void _mistShootingGalleryInitializeRoomTask(Task* task)
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     actor215100SelectCaptionResource(MIST_SHOOTING_GALLERY_CAPTION_TEXTURE_X, 0, MIST_SHOOTING_GALLERY_CAPTION_RESOURCE_INDEX);
     if (gameFlagGetNibble(EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT) != 0) {
-        sceneSetPlacedActorDrawMode(1, 0);
+        sceneSetPlacedActorDrawMode(1, ACTOR_MESSAGE_DRAW_HIDE);
         storyBarrierLowered = 1;
     } else {
         storyBarrierLowered = 0;
@@ -1324,9 +1324,9 @@ static void _mistShootingGalleryUpdateRoomTask(Task* unusedTask)
     if ((gGameSession->location.variant == MIST_SHOOTING_GALLERY_STORY_VARIANT) && (gGameSession->eventState == 0)) {
         viewIndex = gGameSession->location.view;
         if ((viewIndex == MIST_SHOOTING_GALLERY_HIDE_ACTOR_VIEW_3) || (viewIndex == MIST_SHOOTING_GALLERY_HIDE_ACTOR_VIEW_9) || (viewIndex == MIST_SHOOTING_GALLERY_HIDE_ACTOR_VIEW_18)) {
-            sceneSetPlacedActorDrawMode(1, 0);
+            sceneSetPlacedActorDrawMode(1, ACTOR_MESSAGE_DRAW_HIDE);
         } else if (gameFlagGetNibble(EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT) == 0) {
-            sceneSetPlacedActorDrawMode(1, 1);
+            sceneSetPlacedActorDrawMode(1, ACTOR_MESSAGE_DRAW_SHOW);
         }
     }
     actor215100CheckGalleryExitInput();

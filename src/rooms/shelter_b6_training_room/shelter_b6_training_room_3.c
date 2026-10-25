@@ -117,8 +117,6 @@ enum {
 
 // Draw modes used by the scene walkers; mode 2 also schedules buffer release.
 enum {
-    SHELTER_B6_TRAINING_ROOM_SCENE_DRAW_HIDE    = 0,
-    SHELTER_B6_TRAINING_ROOM_SCENE_DRAW_SHOW    = 1,
     SHELTER_B6_TRAINING_ROOM_SCENE_DRAW_RELEASE = 2
 };
 
@@ -363,11 +361,11 @@ EvsCommand gShelterB6TrainingRoomDefeatScript[58] = {
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShelterB6TrainingRoomDefeatPlayerInitialTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_EVE_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = SHELTER_B6_TRAINING_ROOM_SCENE_DRAW_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_EVE_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_SHOW }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_EVE_ACTOR }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShelterB6TrainingRoomDefeatEveInitialTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_KYLE_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = SHELTER_B6_TRAINING_ROOM_SCENE_DRAW_HIDE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_KYLE_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_HIDE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_KYLE_ACTOR }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShelterB6TrainingRoomDefeatKyleTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_BATTLE_BODY_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = SHELTER_B6_TRAINING_ROOM_SCENE_DRAW_HIDE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_BATTLE_BODY_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_HIDE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = shelterB6TrainingRoomStartPlayerHeadAim }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShelterB6TrainingRoomDefeatPlayerClip49Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_KYLE_ACTOR }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShelterB6TrainingRoomDefeatKyleClip1Request } }, { .value = 0 } },
@@ -381,7 +379,7 @@ EvsCommand gShelterB6TrainingRoomDefeatScript[58] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShelterB6TrainingRoomDefeatPlayerFinalTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShelterB6TrainingRoomDefeatPlayerClip50Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_KYLE_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = SHELTER_B6_TRAINING_ROOM_SCENE_DRAW_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_KYLE_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_SHOW }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_KYLE_ACTOR }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShelterB6TrainingRoomDefeatKyleClip2Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SHELTER_B6_TRAINING_ROOM_SOUND_SCRIPT_4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

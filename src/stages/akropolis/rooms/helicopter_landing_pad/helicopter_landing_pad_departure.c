@@ -178,7 +178,6 @@ void akropolisHelicopterLandingPadPrepareDepartureTask(Task* task)
         AKROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_DELAY_FRAMES     = 120,
         AKROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_SOUND_REMAINING  = 90,
         AKROPOLIS_HELICOPTER_LANDING_PAD_REVISIT_HIDDEN_ACTOR       = 1,
-        AKROPOLIS_HELICOPTER_LANDING_PAD_ACTOR_HIDE_MODEL           = 0,
         AKROPOLIS_HELICOPTER_LANDING_PAD_CD_FILE_KEY_BYTES          = 4,
     };
     u8        fileKey[AKROPOLIS_HELICOPTER_LANDING_PAD_CD_FILE_KEY_BYTES];
@@ -214,7 +213,7 @@ void akropolisHelicopterLandingPadPrepareDepartureTask(Task* task)
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             task->state += 1;
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.variant >= AKROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_VARIANT) {
-                taskMessageDispatch(sceneFindPlacedActor(AKROPOLIS_HELICOPTER_LANDING_PAD_REVISIT_HIDDEN_ACTOR), ACTOR_MESSAGE_SET_MODEL_DRAW, AKROPOLIS_HELICOPTER_LANDING_PAD_ACTOR_HIDE_MODEL, 0);
+                taskMessageDispatch(sceneFindPlacedActor(AKROPOLIS_HELICOPTER_LANDING_PAD_REVISIT_HIDDEN_ACTOR), ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE, 0);
             }
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = AKROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_VIEW;
             ambientColor.vx                                        = 1200;

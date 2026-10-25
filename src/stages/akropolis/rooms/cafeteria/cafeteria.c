@@ -680,8 +680,6 @@ static void _akropolisCafeteriaPreparePostBattleScene(void)
 static void _akropolisCafeteriaInitializeRoomTask(Task* task)
 {
     enum {
-        AKROPOLIS_CAFETERIA_DRAW_HIDE    = 0,
-        AKROPOLIS_CAFETERIA_DRAW_SHOW    = 1,
         AKROPOLIS_CAFETERIA_DRAW_SUSPEND = 2,
     };
     WorldCollisionTrigger* disabledTrigger;
@@ -689,12 +687,12 @@ static void _akropolisCafeteriaInitializeRoomTask(Task* task)
     task->msgTable = _gAkropolisCafeteriaRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) == AKROPOLIS_CAFETERIA_ROUTE_ENTERED_AKROPOLIS) {
-        sceneSetPlacedActorDrawMode(AKROPOLIS_CAFETERIA_STRANGER_ACTOR, AKROPOLIS_CAFETERIA_DRAW_HIDE);
-        sceneSetPlacedActorDrawMode(AKROPOLIS_CAFETERIA_SCRIPTED_FORM_ACTOR, AKROPOLIS_CAFETERIA_DRAW_SHOW);
+        sceneSetPlacedActorDrawMode(AKROPOLIS_CAFETERIA_STRANGER_ACTOR, ACTOR_MESSAGE_DRAW_HIDE);
+        sceneSetPlacedActorDrawMode(AKROPOLIS_CAFETERIA_SCRIPTED_FORM_ACTOR, ACTOR_MESSAGE_DRAW_SHOW);
     } else if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) == AKROPOLIS_CAFETERIA_ROUTE_BOSS_DEFEATED) {
-        sceneSetPlacedActorDrawMode(AKROPOLIS_CAFETERIA_STRANGER_ACTOR, AKROPOLIS_CAFETERIA_DRAW_SHOW);
+        sceneSetPlacedActorDrawMode(AKROPOLIS_CAFETERIA_STRANGER_ACTOR, ACTOR_MESSAGE_DRAW_SHOW);
         sceneSetPlacedActorDrawMode(AKROPOLIS_CAFETERIA_SCRIPTED_FORM_ACTOR, AKROPOLIS_CAFETERIA_DRAW_SUSPEND);
-        sceneSetPlacedActorDrawMode(AKROPOLIS_CAFETERIA_RUPERT_ACTOR, AKROPOLIS_CAFETERIA_DRAW_SHOW);
+        sceneSetPlacedActorDrawMode(AKROPOLIS_CAFETERIA_RUPERT_ACTOR, ACTOR_MESSAGE_DRAW_SHOW);
         disabledTrigger         = &_gAkropolisCafeteriaRoom1ActionTriggers[AKROPOLIS_CAFETERIA_CAP_20_TRIGGER];
         disabledTrigger->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
         TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(AKROPOLIS_CAFETERIA_RUPERT_ACTOR), ACTOR_MESSAGE_PLACE, &_gAkropolisCafeteriaRupertConversationPlacement, 0);

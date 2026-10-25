@@ -735,7 +735,7 @@ static void _shelterR47AdvanceTerminalTour(Task* unusedTask)
                 gShelterR47TerminalTask = taskSpawnFromTable(&_gShelterR47ConsoleTaskDesc, 0, 1, 0);
                 playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                sceneSetPlacedActorDrawMode(0, 0);
+                sceneSetPlacedActorDrawMode(0, ACTOR_MESSAGE_DRAW_HIDE);
                 gameFlagSetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS, SHELTER_R47_TOUR_CONSOLE_FOLLOWUP);
             }
             break;
@@ -750,7 +750,7 @@ static void _shelterR47AdvanceTerminalTour(Task* unusedTask)
                 gShelterR47TerminalTask = taskSpawnFromTable(&gShelterR47MapTerminalTaskDesc, 0, SHELTER_R47_MAP_MODE_TOUR, 0);
                 playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                sceneSetPlacedActorDrawMode(0, 0);
+                sceneSetPlacedActorDrawMode(0, ACTOR_MESSAGE_DRAW_HIDE);
                 gameFlagSetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS, SHELTER_R47_TOUR_MAP_FOLLOWUP);
             }
             break;
@@ -792,12 +792,11 @@ static inline void _shelterR47HideActorsForTourTerminal(void)
 {
     enum {
         SHELTER_R47_TOUR_PLACED_ACTOR_INDEX = 0,
-        SHELTER_R47_PLACED_ACTOR_DRAW_HIDE  = 0
     };
 
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-    sceneSetPlacedActorDrawMode(SHELTER_R47_TOUR_PLACED_ACTOR_INDEX, SHELTER_R47_PLACED_ACTOR_DRAW_HIDE);
+    sceneSetPlacedActorDrawMode(SHELTER_R47_TOUR_PLACED_ACTOR_INDEX, ACTOR_MESSAGE_DRAW_HIDE);
     taskSpawnFromTable(_gShelterR47AuxiliaryTaskDescs, SHELTER_R47_RESTORE_ACTORS_TASK_INDEX, 0, 0);
 }
 
@@ -1157,7 +1156,7 @@ static void _shelterR47RestoreActorsAfterTerminalTask(Task* task)
         playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
         if (gGameSession->location.variant == 1) {
-            sceneSetPlacedActorDrawMode(0, 1);
+            sceneSetPlacedActorDrawMode(0, ACTOR_MESSAGE_DRAW_SHOW);
         }
         if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
             companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);

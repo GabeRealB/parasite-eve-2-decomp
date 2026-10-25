@@ -75,8 +75,6 @@ enum {
     NEO_ARK_R26_ENTRY_CAP_COMMAND = 1,
     NEO_ARK_R26_FIRST_WALKER      = 0,
     NEO_ARK_R26_SECOND_WALKER     = 1,
-    NEO_ARK_R26_WALKER_HIDE       = 0,
-    NEO_ARK_R26_WALKER_SHOW       = 1,
     NEO_ARK_R26_FADE_OT_TAG       = 5,
     NEO_ARK_R26_PLAYER_WEAPONS    = 0,
 };
@@ -315,7 +313,7 @@ static EvsCommand _gNeoArkR26EntryScript[57] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gNeoArkR26PlayerEntryTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = NEO_ARK_R26_SECOND_WALKER }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gNeoArkR26ShowWalkerAttachment1Command } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = NEO_ARK_R26_SECOND_WALKER }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gNeoArkR26SecondWalkerEntryTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = NEO_ARK_R26_SECOND_WALKER }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = NEO_ARK_R26_WALKER_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = NEO_ARK_R26_SECOND_WALKER }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_SHOW }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = NEO_ARK_R26_SECOND_WALKER }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gNeoArkR26SecondWalkerEntryAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -355,7 +353,7 @@ static EvsCommand _gNeoArkR26EntryScript[57] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = NEO_ARK_R26_FIRST_WALKER }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gNeoArkR26FirstWalkerClip5Animation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     // Hide the second walker, fade out and reload the tent.
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = NEO_ARK_R26_SECOND_WALKER }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = NEO_ARK_R26_WALKER_HIDE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = NEO_ARK_R26_SECOND_WALKER }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_HIDE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 100 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 60 }, { .value = NEO_ARK_R26_FADE_OT_TAG }, { .value = 0 }, { .value = 0 } },

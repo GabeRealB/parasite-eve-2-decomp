@@ -487,6 +487,12 @@ enum {
     ACTOR_MESSAGE_RELEASE_HOLD = 0x7DE,
 };
 
+/// Draw modes of `ACTOR_MESSAGE_SET_MODEL_DRAW` every receiver accepts; a receiver may define more.
+enum {
+    ACTOR_MESSAGE_DRAW_HIDE = 0,
+    ACTOR_MESSAGE_DRAW_SHOW = 1,
+};
+
 /// A borrowed command interpreted in an actor's stage/area command namespace.
 ///
 /// `ACTOR_COMMAND_MESSAGE_APPLY` delivers the record directly. The scene

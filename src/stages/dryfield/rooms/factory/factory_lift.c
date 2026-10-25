@@ -6,6 +6,7 @@
 #include "gameplay/actor_presentation.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/captions.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/sound.h"
 #include "gameplay/world_coords.h"
 
@@ -1098,7 +1099,7 @@ void factoryPowerScene(Task* task)
                 } else {
                     dryfieldNightFactorySetView11SpriteVisible(false);
                 }
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE, 0);
             }
             task->state++;
             /* fallthrough */
@@ -1131,7 +1132,7 @@ void factoryPowerScene(Task* task)
         default:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO, 0);
             taskKill(task);
             break;
     }
@@ -1516,7 +1517,7 @@ void factoryLampScene(Task* task)
             return;
         case FACTORY_LAMP_SCENE_HIDE_PLAYER:
             if (gameFlagGetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS) < FACTORY_LAMP_PROGRESS_SECOND) {
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE, 0);
             }
             task->state++;
             /* fallthrough */
@@ -1532,7 +1533,7 @@ void factoryLampScene(Task* task)
             }
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO, 0);
             taskKill(task);
             break;
     }
