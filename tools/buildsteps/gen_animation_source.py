@@ -121,9 +121,11 @@ def bank_source(name: str) -> str:
 
 def schema_source(name: str) -> str:
     """A schema's slots as C constants, `<PREFIX>_ANIMATION_<SLOT> = index`, the prefix its local name less `_schema`
-    (engine/animation/player_schema: PLAYER_ANIMATION_AIM_IDLE): the indices code plays a bank's clips by."""
+    (engine/animation/player_schema: PLAYER_ANIMATION_AIM_IDLE), or the group's own name for a group's `schema`
+    (enemies/stranger/lesser/schema: LESSER_ANIMATION_IDLE): the indices code plays a bank's clips by."""
     slots = asset_data.ASSETS[name]["slots"]
-    prefix = name.rsplit("/", 1)[-1].removesuffix("_schema").upper() + "_ANIMATION_"
+    local = name.rsplit("/", 1)[-1]
+    prefix = (name.rsplit("/", 2)[-2] if local == "schema" else local.removesuffix("_schema")).upper() + "_ANIMATION_"
     guard = "ASSETS_" + name.upper().replace("/", "_") + "_H"
     rows = [f"    {prefix}{slot.upper()} = {i}," for i, slot in enumerate(slots) if slot]
     head = HEADER.format(what=f"the animation schema {name}").split("\n\n#include")[0]
