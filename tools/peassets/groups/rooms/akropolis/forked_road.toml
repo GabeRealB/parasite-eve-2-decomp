@@ -602,6 +602,15 @@ sha1 = "85a2624858797c51b0b23e4a7e3596f6c2bb4d4c"
 type = "bs"
 sha1 = "01a8d04e050a7d69d7802c3994be2fc2ba135798"
 
+[ambush_player_bank]
+type = "animation_bank"
+schema = "rooms/akropolis/forked_road/ambush_player_schema"
+symbol = "_gAkropolisForkedRoadAmbushPlayerAnimationSets"
+
+[ambush_player_bank.clips]
+stand = "characters/aya/stand"
+turn_to_stinger = "rooms/shelter/b2_north_maintenance_walkway/player_turn_to_stinger"
+
 [skull_stalker_bank]
 type = "animation_bank"
 schema = "rooms/akropolis/forked_road/skull_stalker_schema"
@@ -641,6 +650,10 @@ rig = "rooms/akropolis/forked_road/skull_stalker_rig"
 [sucklerceph_anim_03]
 type = "clip"
 rig = "rooms/akropolis/forked_road/sucklerceph_rig"
+
+[ambush_player_schema]
+type = "animation_schema"
+slots = ["", "stand", "turn_to_stinger"]
 
 [skull_stalker_appear]
 type = "sound"
@@ -749,22 +762,9 @@ samples = [
 sounds = { idle = 1, hurt = 2, burst = 3, appear = 6, pop = 8 }
 sha1 = "f961e1a46f07de84ddf45baf0da18e961fb0f0c5"
 
-[ambush_player_bank]
-type = "animation_bank"
-schema = "rooms/akropolis/forked_road/ambush_player_schema"
-symbol = "_gAkropolisForkedRoadAmbushPlayerAnimationSets"
-
-[ambush_player_bank.clips]
-stand = "characters/aya/stand"
-turn_to_stinger = "rooms/shelter/b2_north_maintenance_walkway/player_turn_to_stinger"
-
 [sucklerceph_and_skull_stalker_1_texture]
 type = "texture"
 bpp = 8
 height = 256
 variants = ["default"]
 width = 128
-
-[ambush_player_schema]
-type = "animation_schema"
-slots = ["", "stand", "turn_to_stinger"]

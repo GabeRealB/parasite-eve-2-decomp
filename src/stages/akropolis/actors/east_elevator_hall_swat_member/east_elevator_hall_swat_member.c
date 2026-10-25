@@ -20,8 +20,8 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
-#include "../../shared/actor/actor_messages.h"
-#include "../../shared/actor/view_figure.h"
+#include "../../../../shared/actor/actor_messages.h"
+#include "../../../../shared/actor/view_figure.h"
 
 static s32 _viewFigurePlayMessage(Task* unusedTask, s32 unusedMessageId, const AnimationPlayRequest* request, s32 unusedSecondArg);
 
@@ -40,7 +40,7 @@ static ViewFigureWork* _gViewFigureWork;
 /// and model attachments. The body has 20 coordinates. Only the current live
 /// instance may be used: a later spawn replaces the pointer, and teardown
 /// leaves it dangling rather than clearing it. This cache owns no task.
-static Task* _gActor110300BodyTask;
+static Task* _gEastElevatorHallSwatMemberBodyTask;
 
 /// Borrowed helper-model task paired with this carrier's published body task.
 ///
@@ -49,12 +49,12 @@ static Task* _gActor110300BodyTask;
 /// published handle is cleared. Consumers require the current pair to be live.
 static Task* _gActorMsgHelperTask;
 
-static void _actor110300UpdateViewFigure(Enemy* unusedEnemy, Task* task);
+static void _eastElevatorHallSwatMemberUpdateViewFigure(Enemy* unusedEnemy, Task* task);
 
 static TmdSource _gSwatMember2Body;
 static TmdSource _gSwatMember2SubmachineGun;
-static void      _actor110300ViewFigureTask(Task* task);
-static void      _actor110300AttachModelTask(Task* task);
+static void      _eastElevatorHallSwatMemberViewFigureTask(Task* task);
+static void      _eastElevatorHallSwatMemberAttachModelTask(Task* task);
 
 #include "assets/characters/swat_member_2/body.inc"
 
@@ -73,9 +73,9 @@ static TaskMessageEntry _gViewFigureMessages[3] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc gActor110300ViewFigureTasks[VIEW_FIGURE_TASK_COUNT] = {
-    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _actor110300ViewFigureTask, { .model = &_gSwatMember2Body } },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _actor110300AttachModelTask, { .model = &_gSwatMember2SubmachineGun } },
+TaskDesc gEastElevatorHallSwatMemberViewFigureTasks[VIEW_FIGURE_TASK_COUNT] = {
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _eastElevatorHallSwatMemberViewFigureTask, { .model = &_gSwatMember2Body } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _eastElevatorHallSwatMemberAttachModelTask, { .model = &_gSwatMember2SubmachineGun } },
 };
 
 /// Body animation-set bank for this carrier's camera-parented scripted figure.
@@ -94,14 +94,14 @@ TaskDesc gActor110300ViewFigureTasks[VIEW_FIGURE_TASK_COUNT] = {
 /// fragment includes. Pair visibility also requires the matching live helper
 /// in `_gActorMsgHelperTask`. The pointer borrows the current body; a later spawn
 /// replaces it and teardown leaves it uncleared, so no read may follow teardown.
-#define ACTOR_MESSAGE_BODY_TASK _gActor110300BodyTask
+#define ACTOR_MESSAGE_BODY_TASK _gEastElevatorHallSwatMemberBodyTask
 
 /// Selects this package's public TaskDesc array for the shared spawn state.
 ///
 /// Requires a live two-entry array with the body at VIEW_FIGURE_TASK_BODY and
 /// its attached model at VIEW_FIGURE_TASK_HELPER. Only this inclusion uses it.
-#define VIEW_FIGURE_TASK_DESCS gActor110300ViewFigureTasks
-#include "../../shared/actor/view_figure_spawn.inc.c"
+#define VIEW_FIGURE_TASK_DESCS gEastElevatorHallSwatMemberViewFigureTasks
+#include "../../../../shared/actor/view_figure_spawn.inc.c"
 #undef VIEW_FIGURE_TASK_DESCS
 
 /// Dispatches spawn or animation/lighting updates for the view-parented figure.
@@ -109,11 +109,11 @@ TaskDesc gActor110300ViewFigureTasks[VIEW_FIGURE_TASK_COUNT] = {
 /// Task state must be 0 (spawn) or 1 (update), with a live model and Enemy in
 /// spawnArg2. Publishes the task work for the singleton message/animation helpers;
 /// spawn owns allocation and teardown of the work and attached model task.
-static void _actor110300ViewFigureTask(Task* task)
+static void _eastElevatorHallSwatMemberViewFigureTask(Task* task)
 {
     EnemyTaskFunc stateHandlers[2] = {
         _viewFigureSpawnState,
-        _actor110300UpdateViewFigure,
+        _eastElevatorHallSwatMemberUpdateViewFigure,
     };
 
     _gViewFigureWork = task->work;
@@ -125,17 +125,17 @@ static void _actor110300ViewFigureTask(Task* task)
 /// Both tasks must have live TMD models; the body provides twenty coordinates.
 /// The helper keeps its local transform and borrows the body's part coordinate
 /// until helper teardown, which precedes body teardown in `_viewFigureExit`.
-static void _actor110300AttachModelTask(Task* task)
+static void _eastElevatorHallSwatMemberAttachModelTask(Task* task)
 {
-    enum { ACTOR_110300_HELPER_PARENT_PART = 8 };
+    enum { EAST_ELEVATOR_HALL_SWAT_MEMBER_HELPER_PARENT_PART = 8 };
 
     GfxCoord* bodyCoords;
     GfxCoord* helperRoot;
 
-    bodyCoords               = _gActor110300BodyTask->extra.tmd->coords;
+    bodyCoords               = _gEastElevatorHallSwatMemberBodyTask->extra.tmd->coords;
     helperRoot               = task->extra.tmd->coords;
     helperRoot->composeStamp = GRAPHICS_COORD_DIRTY;
-    helperRoot->parent       = &bodyCoords[ACTOR_110300_HELPER_PARENT_PART];
+    helperRoot->parent       = &bodyCoords[EAST_ELEVATOR_HALL_SWAT_MEMBER_HELPER_PARENT_PART];
 }
 
 /// Advances the figure animation and refreshes lighting at its cached root.
@@ -143,10 +143,10 @@ static void _actor110300AttachModelTask(Task* task)
 /// Requires the live twenty-part model and its initialized singleton work.
 /// The root cache supplies view-frame XYZ without a new composition here.
 /// All three model-light rows are updated; unusedEnemy is ignored.
-static void _actor110300UpdateViewFigure(Enemy* unusedEnemy, Task* task)
+static void _eastElevatorHallSwatMemberUpdateViewFigure(Enemy* unusedEnemy, Task* task)
 {
     enum {
-        ACTOR_110300_LIGHT_COUNT = 3,
+        EAST_ELEVATOR_HALL_SWAT_MEMBER_LIGHT_COUNT = 3,
     };
 
     TmdObject* model;
@@ -159,12 +159,12 @@ static void _actor110300UpdateViewFigure(Enemy* unusedEnemy, Task* task)
     lightPosition.vx = rootCoord->workm.t[0];
     lightPosition.vy = rootCoord->workm.t[1];
     lightPosition.vz = rootCoord->workm.t[2];
-    worldCoordSetModelLighting(model, &lightPosition, 0, ACTOR_110300_LIGHT_COUNT);
+    worldCoordSetModelLighting(model, &lightPosition, 0, EAST_ELEVATOR_HALL_SWAT_MEMBER_LIGHT_COUNT);
 }
 
-#include "../../shared/actor/view_figure_exit.inc.c"
+#include "../../../../shared/actor/view_figure_exit.inc.c"
 
-#include "../../shared/actor/view_figure.inc.c"
+#include "../../../../shared/actor/view_figure.inc.c"
 
-#include "../../shared/actor/actor_messages_pair_visibility.inc.c"
+#include "../../../../shared/actor/actor_messages_pair_visibility.inc.c"
 #undef ACTOR_MESSAGE_BODY_TASK

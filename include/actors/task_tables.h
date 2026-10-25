@@ -246,7 +246,7 @@ enum {
 /// either task lives; the message and animation helpers support one live figure.
 extern TaskDesc gActor110800ViewFigureTasks[VIEW_FIGURE_TASK_COUNT];
 
-/// Camera-parented SWAT figure spawn descriptors for actor_110300.
+/// Camera-parented SWAT figure spawn descriptors for east_elevator_hall_swat_member.
 ///
 /// Slots are `VIEW_FIGURE_TASK_BODY` and `VIEW_FIGURE_TASK_HELPER`, with no
 /// terminator. Both allocate TMD bodies with automatic primitive buffers and
@@ -255,7 +255,7 @@ extern TaskDesc gActor110800ViewFigureTasks[VIEW_FIGURE_TASK_COUNT];
 /// The helper borrows body part 8 until body teardown kills it. Keep this
 /// package's callbacks and geometry loaded while either task lives; the message
 /// and animation helpers support one live figure.
-extern TaskDesc gActor110300ViewFigureTasks[VIEW_FIGURE_TASK_COUNT];
+extern TaskDesc gEastElevatorHallSwatMemberViewFigureTasks[VIEW_FIGURE_TASK_COUNT];
 
 /// Grinning Stranger spawn recipe for the Acropolis Square departure sequence.
 ///

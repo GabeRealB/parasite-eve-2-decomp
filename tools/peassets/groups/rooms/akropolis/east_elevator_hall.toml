@@ -349,7 +349,7 @@ embedded = [
     { name = "swat_urge_hurry", offset = 0x0800C, size = 0x228, address = 0x80139E2C },
     { name = "swat_bank", offset = 0x08264, size = 0x1C, address = 0x8013A084 },
 ]
-package_name = "actor_110300"
+package_name = "east_elevator_hall_swat_member"
 required = true
 sha1 = "a91d070619df6d567bb0700b391d7d6f40ef7763"
 

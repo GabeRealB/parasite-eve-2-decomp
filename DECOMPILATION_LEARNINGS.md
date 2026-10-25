@@ -5097,7 +5097,7 @@ global is reloaded there through `$s0` - which is why the prologue keeps
 `_gActor202900Work` in `$s0` across the calls. Collapsing the two stores
 into one shared statement by hand (the `goto block_4` m2c produced) reaches the
 same target but leaves the block where the first user sits and loses the
-reload's home. The same body exists at 0x474 in `actor_110300` and 0x4B4 in
+reload's home. The same body exists at 0x474 in `east_elevator_hall_swat_member` and 0x4B4 in
 `actor_420700`; porting one to the next is a field-offset rename.
 
 ## `SCHED_BARRIER` after an inlined helper's `jal` so its post-call `lui` / `move` survive a larger block
@@ -65012,7 +65012,7 @@ and fails the checksum inside the shared span, four bytes into the first `lui`.
 `overlay_dup_index.py promote` refuses any body whose refs start with
 `func_<unit>_`, `D_<unit>_` or `jtbl_<unit>_`, and its docstring reads that as
 "cannot be shared". For *code* refs the workaround is the `<Sym>Sub0` aliasing
-above; the same trick works on data. `_actor110300ViewFigureTask` is the
+above; the same trick works on data. `_eastElevatorHallSwatMemberViewFigureTask` is the
 `ActorsShared80131e24` dispatcher plus one store of `Task::work` into an
 overlay-local global, and all eleven carriers were promoted by adding a third
 alias to each `configs/USA/sym/actors/<overlay>.txt`:
@@ -65045,7 +65045,7 @@ Two things to get right around it:
 
 The block behind `ActorsShared80131f9cWork` is one layout in the family, but
 where it *starts* differs: `actor_143900`, `actor_151000` and `actor_461800`
-put a 0x40-byte state prefix ahead of `AnimationContext anim`, while `actor_110300`
+put a 0x40-byte state prefix ahead of `AnimationContext anim`, while `east_elevator_hall_swat_member`
 and `actor_110800` start with `anim` at offset 0. Every field name shifts with
 it rather than changing - the animation-id pair is 0x4B6/0x4B8 in
 `_Actor143900Work`/`FootstepWalkWork` and 0x476/0x478 here, exactly 0x40 lower -
@@ -65060,12 +65060,12 @@ Two things follow, and both cost a build if missed:
   the C of one is not portable to the other and the dup index is right to
   separate them.
 * **A shared body can only be promoted into carriers that agree on the offset.**
-  `src/actors/lib/actors_shared_80132138.c` serves `actor_110300` and
+  `src/actors/lib/actors_shared_80132138.c` serves `east_elevator_hall_swat_member` and
   `actor_110800` because both are prefix-free; the same body dropped into a
   prefixed carrier would build 4 bytes long. Check the offset in every carrier
   before promoting a block-reading body, and name it in the shared header (each
   carrier's own header carries the fuller layout -
-  `include/actors/actor_110300.h` against `include/actors/actor_143900.h`).
+  `include/actors/east_elevator_hall_swat_member.h` against `include/actors/actor_143900.h`).
 
 ## A shared name has many carriers, and the brief's "C file" line picks one of them arbitrarily
 
@@ -65075,10 +65075,10 @@ an `INCLUDE_ASM(<folder>, <name>)` matching the function - it unpacks the folder
 and then ignores it, so nothing ties the file it returns to the overlay the asm
 path named. In a family where one name has many carriers that is arbitrary.
 
-`ActorsShared80131f9cSub0` has eleven carriers: `actor_110300`, `actor_110800`,
+`ActorsShared80131f9cSub0` has eleven carriers: `east_elevator_hall_swat_member`, `actor_110800`,
 `actor_143900`, `actor_146300`, `actor_151000`, `actor_202900`, `actor_260400`,
 `actor_260500`, `actor_420700`, `actor_451100` and `actor_535700`. Asked for the
-`actor_110300` copy the tool answered `src/actors/actor_260400/actor_260400.c`
+`east_elevator_hall_swat_member` copy the tool answered `src/actors/actor_260400/actor_260400.c`
 and the brief printed that file's INCLUDE_ASM site - and 260400's copy is a
 different function, allocating `memCalloc(0x4F8, 0)` where this one allocates
 `0x55C`. Landing the matched body there would have replaced another overlay's
@@ -65106,16 +65106,16 @@ says nothing about the *source*, and the source is what is costly to redo:
 ```
 $ python3 tools/bulk/overlay_dup_index.py promote ActorsShared80131f9cSub0
 ActorsShared80131f9cSub0: cannot be shared - the body references its own
-overlay's code or data (USA/actors/actor_110300, USA/actors/actor_110800).
+overlay's code or data (USA/actors/east_elevator_hall_swat_member, USA/actors/actor_110800).
 ```
 
 That is the tool's normal answer - 39 of the 42 clusters it measured - and the
 tempting reading, "so this body has to be matched again", is wrong. The
-`actor_110300` body copied into `src/actors/actor_110800/actor_110800.c` with
+`east_elevator_hall_swat_member` body copied into `src/actors/actor_110800/actor_110800.c` with
 only its overlay-local names swapped scored **100.000% on its first build**, all
 penalties zero:
 
-| `actor_110300` | `actor_110800` |
+| `east_elevator_hall_swat_member` | `actor_110800` |
 |---|---|
 | `D_actor_110300_8013A054` (msg table) | `D_actor_110800_80139EC4` |
 | `D_actor_110300_8013A06C` (spawn desc) | `D_actor_110800_80139EDC` |
@@ -86510,7 +86510,7 @@ a front-end conversion, not a `combine` or peephole fold.
 
 Pick the width from the *store* and leave the load alone: declaring the source
 `u16` kills the `lw`/`slti` pair, and declaring the destination `s32` kills the
-`lhu`. `actor_110300`'s handler reads `AnimationPlayRequest` into `ViewFigureWork` the
+`lhu`. `east_elevator_hall_swat_member`'s handler reads `AnimationPlayRequest` into `ViewFigureWork` the
 same way, one animation id apart.
 
 Inputs: `base_1.i` (100.000%)
@@ -102328,7 +102328,7 @@ measured were refused "because the body references its own overlay's data", and
 that not one was promotable - which reads as "any overlay-local reference kills a
 promotion". It does not. `func_actor_110300_80132180` reads
 `ActorsShared80131f9cWork`, a genuinely overlay-local pointer global that
-resolves to `0x8013A0A0` in `actor_110300` and `0x80139F10` in `actor_110800`,
+resolves to `0x8013A0A0` in `east_elevator_hall_swat_member` and `0x80139F10` in `actor_110800`,
 and it promoted cleanly: both carriers checksum with the one shared object.
 
 The guard that implements the refusal (`localref`) only tests whether a
@@ -125667,7 +125667,7 @@ The same brief's `Similar matched bodies` line printed "(none above 0.80)" for
 this function. It is not evidence of absence: that line renders the fuzzy
 `similar` tier, while `python3 tools/bulk/overlay_dup_index.py find
 ActorsShared80131f9cSub0` reported a byte-identical copy already matched in
-`actor_110300`. Porting that body with this overlay's symbol names (`D_actor_110300_*`
+`east_elevator_hall_swat_member`. Porting that body with this overlay's symbol names (`D_actor_110300_*`
 → `D_actor_110800_*`, `func_actor_110300_*` → `func_actor_110800_*`, plus the
 work-struct typedef) scored 100.000% on the first build, against an m2c baseline
 of 93.776% whose whole `base_diff` was the deleted VECTOR copy and the register
@@ -125813,7 +125813,7 @@ own -
   100.000% with nothing else moved. `playbackWork` is still allocated `$s1`, the register
   `reseedWork` frees, so the step-3 loop is untouched. The three-alias shape is the
   one this family already writes (`_akropolisBridgeEnemyUpdateAnimation`'s
-  `blendWork`/`resetWork`/`playbackWork`, `actor_110300`'s step machine), and the reason to keep
+  `blendWork`/`resetWork`/`playbackWork`, `east_elevator_hall_swat_member`'s step machine), and the reason to keep
   it is this allocation, not style.
 
 **Reading it.** A leftover that is only the *base register* of a walking pointer
@@ -126907,12 +126907,12 @@ after it, but each carrier compiles its own handler. The sym files say so -
 overlay-local callee" - and eleven actor overlays define it at eleven addresses
 in six sizes, sharing almost no code:
 
-    USA/actors/actor_110300  0x68   jal func_actor_110300_801320C4, worldCoordSetModelLighting
+    USA/actors/east_elevator_hall_swat_member  0x68   jal func_actor_110300_801320C4, worldCoordSetModelLighting
     USA/actors/actor_146300  0x7C   jal actorRenderComposeCoord, worldCoordSetModelLighting, _actor146300UpdateAnimation
     USA/actors/actor_260400  0x84   jal actorRenderComposeCoord, worldCoordSetModelLighting, func_actor_260400_8014A200, ...
     USA/actors/actor_110800  0x304  jal func_actor_110800_80132368, sndEvtRequestScriptStart (x7), ...
 
-The scratch env for the actor_110300 body that day was handed
+The scratch env for the east_elevator_hall_swat_member body that day was handed
 `src/actors/actor_260400/actor_260400_2.c` as its host - whose same-named
 function is the 0x84-byte `actorRenderComposeCoord` variant. `overlay_dup_index.py find`
 is the check that settles it, because it compares bodies (disassembly text) and
@@ -127173,7 +127173,7 @@ inputs target `bbfcb9e9…`, compiler `60d886cd…`.
 The 2026-09-16 entry above covers the case where the router hands back the
 agent's own already-matched file, so there is nothing to explain. The same
 `no PERMUTER_ANALYSIS.md` branch also arrives when the candidate is a **port of
-another overlay's matched body**: here `base_1.c` is the matched `actor_110300`
+another overlay's matched body**: here `base_1.c` is the matched `east_elevator_hall_swat_member`
 copy of `ActorsShared80131f9cSub0` with this overlay's relocation names, and the
 m2c seed (`base.c`, 93.777%, regs=37 delete=4) differs from it in several ways at
 once. Reducing the delta to one variable settles it — `base_2.c` is `base.c` with

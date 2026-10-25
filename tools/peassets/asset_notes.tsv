@@ -110,8 +110,8 @@ actor_105700_animation_0AE9C	Clip bank of the grenade-launcher Rook golem enemie
 actor_107000_animation_079EC	The Sucklerceph's clips in encounters/sucklerceph_and_slouch/package_1 on a two-slot rig: idle rocking and crawl; a third set has no use found.	
 actor_107000_animation_0B754	Clips of the Slouch enemy in encounters/sucklerceph_and_slouch/package_1 on its six-slot rig: idle, fidget, spit, strike, status flinch, flinch, recoil, watch and death; sets 8, 10, 11 unused.	
 encounters/sucklerceph_and_slouch/slouch_body	Seven-part body of the Slouch enemy (encounters/sucklerceph_and_slouch/package_1/207000), spawned by room placements in the Shelter sewer and operating rooms and as hidden wave spawns; flattened and faded on death.	
-actor_110300_animation_060FC	Five clips of the SWAT view figure actor_110300 in the Akropolis east elevator hall: idle, two opening-event clips, the resting clip set at every room entry, and a caption-command clip.	
-characters/swat_member_2/submachine_gun	One-part object carried on part 8 of the SWAT figure actor_110300, spawned as a helper task and shown or hidden with the body.	
+east_elevator_hall_swat_member_animation_060FC	Five clips of the SWAT view figure east_elevator_hall_swat_member in the Akropolis east elevator hall: idle, two opening-event clips, the resting clip set at every room entry, and a caption-command clip.	
+characters/swat_member_2/submachine_gun	One-part object carried on part 8 of the SWAT figure east_elevator_hall_swat_member, spawned as a helper task and shown or hidden with the body.	
 actor_110600_animation_0C6A0	Clip bank of the cafeteria's enemy rooms/akropolis/cafeteria/boss_stranger: walk/chase, two attacks, hit overlay, enrage, alert and two follow-up-scene clips; several fall/rise/death clips are not reached and eight sets unused.	
 actor_110700_animation_059CC	Clips of the No. 9 golem figure actor_110700 in the Akropolis sanctuary's arrival scene: clips 1-4 are requested by the room's script, the fifth set is never requested.	
 actor_110800_animation_0624C	Five clips of the view figure actor_110800 in the Akropolis roof garden cutscene: an idle and four clips requested at successive caption cues.	
@@ -2718,7 +2718,7 @@ characters/pierce/palette	Two 256-colour palette rows of Pierce Carradine's body
 characters/rupert/bloodied_palette	Two 256-colour palette rows of Rupert Broderick's body models: body_1 in the Acropolis sanctuary and body_2 in the helicopter landing pad departure scene.	
 characters/swat_member_2/palette	Two 256-colour palette rows, one per page, of the SWAT member body; in the security room's monitor view the rows are greyed and re-uploaded after spawn.	
 weapons/m4a1_hammer/palette	16-colour palette row (0,243) of the M4A1 hammer weapon model: every face of weapons/m4a1_hammer/model names it, loaded with the weapon's image.	
-characters/swat_member_2/submachine_gun_palette	16-colour palette at row 244 for the faces of the helper model that accompanies the SWAT member in actor_110300.	
+characters/swat_member_2/submachine_gun_palette	16-colour palette at row 244 for the faces of the helper model that accompanies the SWAT member in east_elevator_hall_swat_member.	
 rooms/akropolis/cafeteria/boss_stranger_palette	Two 256-colour palette rows of the stranger body in the Acropolis cafeteria battle (rooms/akropolis/cafeteria/boss_stranger); the room's post-battle copy overwrites the first row in video memory.	
 enemies/golem/no_9/palette_akropolis	Two 256-colour palette rows of the No. 9 GOLEM body's two pages, in the Acropolis sanctuary and the helicopter landing pad encounter.	
 enemies/golem/no_9/palette_akropolis_2	256-colour palette row of the No. 9 GOLEM's weapon, chest and prop models and its grenade on the helicopter landing pad; no reader of it in the sanctuary.	
@@ -3592,7 +3592,7 @@ characters/pierce/image	Two-page 8-bit texture of Pierce Carradine: his body and
 weapons/gunblade/image	4-bit texture of the Gunblade weapon model, loaded with the equipped weapon's resources and drawn whenever the model is.	
 characters/rupert/bloodied_image	Two-page 8-bit texture of Rupert Broderick's body in the Acropolis sanctuary and the landing pad departure scene; an eye patch on it has an overwrite handler no caption step triggers.	
 characters/swat_member_2/image	Two-page 8-bit texture of the SWAT member 2 body, used by the figures in the Acropolis east elevator hall and roof garden actor packages.	
-characters/swat_member_2/submachine_gun_image	4-bit texture of the helper model of actor_110300 (the SWAT member's figure in the Acropolis east elevator hall), read from the weapon cell at page (448,0).	
+characters/swat_member_2/submachine_gun_image	4-bit texture of the helper model of east_elevator_hall_swat_member (the SWAT member's figure in the Acropolis east elevator hall), read from the weapon cell at page (448,0).	
 rooms/akropolis/cafeteria/boss_stranger_image	Two-page 8-bit texture of the Stranger body in the Acropolis cafeteria (rooms/akropolis/cafeteria/boss_stranger); its first page is overwritten in video memory by the room's post-battle copy.	
 enemies/golem/no_9/image_akropolis	Three-page 8-bit texture of the No. 9 golem (Akropolis): two pages for the body in the sanctuary and landing pad, the third for the attached and thrown models of the landing pad fight.	
 enemies/stranger/odd/image_2	Two-page 8-bit texture of the Grinning Stranger body in the Acropolis square (actor_111800); the copies in files 201800 and 301800 have no use found.	

@@ -4417,12 +4417,13 @@ objects = [
   { kind = "animation", at = "0x15BB0", sets = ["0x15FF8", "0x1620C", "0x164B8", "0x16CE8", "0x16F64", "0x17148", "0x1744C", "0x17638", "0x1790C"], in_c = true },
 ]
 
-[actors.overlays.actor_110300]
+[actors.overlays.east_elevator_hall_swat_member]
 slot = 1
 id = 133
+src = "src/stages/akropolis/actors/east_elevator_hall_swat_member"
 objects = [
   { kind = "packageId" },
-  { unit = "actor_110300/actor_110300", rodata = "0x4", text = "0x4", data = "0x52C", bss = "0x8280" },
+  { unit = "east_elevator_hall_swat_member", rodata = "0x4", text = "0x4", data = "0x52C", bss = "0x8280" },
   { kind = "model", at = "0x52C", in_c = true },
   { kind = "modelSource", at = "0x5CD0", in_c = true },
   { kind = "model", at = "0x5CF4", in_c = true },

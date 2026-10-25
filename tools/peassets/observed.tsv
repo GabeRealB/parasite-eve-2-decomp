@@ -394,13 +394,13 @@ actor_107600	main memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x8
 actor_107600	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x80131e20-0x80135769	0/file107600	0	2	0		
 actor_107600	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x80131e20-0x80135769	0/file107600	0	2	0		overwritten by actor_107600 of 0/file107600 at event 8518
 actor_107600	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x80131e20-0x80135769	0/file107600	0	2	0		overwritten by actor_107600 of 0/file107600 at event 9825
-actor_110300	main memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0x80131e20-0x8013a0ab	0/file110300	-1	2	0		
-actor_110300	main memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	2		0x80131e20-0x8013a0ab	0/file110300	-1	2	0		
-actor_110300	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	1		0x80131e20-0x8013a0ab	0/file110300	-1	2	0		
-actor_110300	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	2		0x80131e20-0x8013a0ab	0/file110300	-1	2	0		
-actor_110300	main memory	trace-20261012-152043	session 1	1	akropolis_patio	1	2		0x80131e20-0x8013a0ab	0/file110300	-1	2	0		overwritten by enemies/stranger/grinning/package_1 of 0/file101900 at event 1672
-actor_110300	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		0x80131e20-0x8013a0ab	0/file110300	-1	2	0		
-actor_110300	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0x80131e20-0x8013a0ab	0/file110300	-1	2	0		
+east_elevator_hall_swat_member	main memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0x80131e20-0x8013a0ab	0/file110300	-1	2	0		
+east_elevator_hall_swat_member	main memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	2		0x80131e20-0x8013a0ab	0/file110300	-1	2	0		
+east_elevator_hall_swat_member	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	1		0x80131e20-0x8013a0ab	0/file110300	-1	2	0		
+east_elevator_hall_swat_member	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	2		0x80131e20-0x8013a0ab	0/file110300	-1	2	0		
+east_elevator_hall_swat_member	main memory	trace-20261012-152043	session 1	1	akropolis_patio	1	2		0x80131e20-0x8013a0ab	0/file110300	-1	2	0		overwritten by enemies/stranger/grinning/package_1 of 0/file101900 at event 1672
+east_elevator_hall_swat_member	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		0x80131e20-0x8013a0ab	0/file110300	-1	2	0		
+east_elevator_hall_swat_member	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0x80131e20-0x8013a0ab	0/file110300	-1	2	0		
 rooms/akropolis/cafeteria/boss_stranger	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	1		0x80131e20-0x8014869f	0/file110600	0	2	0		
 rooms/akropolis/cafeteria/boss_stranger	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	2	1		0x80131e20-0x8014869f	0/file110600	0	2	0		
 rooms/akropolis/cafeteria/boss_stranger	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	2	2		0x80131e20-0x8014869f	0/file110600	0	2	0		
