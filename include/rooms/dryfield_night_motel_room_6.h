@@ -13,7 +13,7 @@
 
 /// Player and held-model reflection recipes for nighttime motel room 6.
 ///
-/// Slots 0 and 1 start bodyless tasks at priority 112, without a terminator.
+/// Slots 0 and 1 start bodyless tasks at priority `TASK_PRIORITY_EFFECT`, without a terminator.
 /// Player `spawnArg1.value` = 1 selects the room mirror plane; attachment
 /// `spawnArg1.value` selects player-held slot 0..3 and `spawnArg2.pointer` borrows
 /// the player reflection task. Spawning reads the recipe synchronously; keep

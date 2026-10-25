@@ -272,8 +272,6 @@ enum {
 /// Exactly this argument requests the before-Burner skip's head-rotation reset.
 enum { ACTOR_136100_RESET_HEAD_ROTATION = 1 };
 
-/// Execution priority shared by this package's scene and model/fade tasks.
-
 /// Sticky cancellation latch for this load of the street scene's fade-out.
 ///
 /// Zero until display restoration sets it to 1; it is never cleared during the

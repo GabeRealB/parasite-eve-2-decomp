@@ -283,7 +283,7 @@ enum {
 
 /// TMD recipes for the rolling area-object parent (0) and its tilting child (1).
 ///
-/// Both run at priority 192; there is no terminator. The child's spawnArg2
+/// Both run at priority `TASK_PRIORITY_CONTROL`; there is no terminator. The child's spawnArg2
 /// borrows the live parent task, whose coordinate and lighting it shares.
 /// Spawning copies a recipe; model resources and callbacks remain room-owned.
 static TaskDesc _gMineForkedTunnelAreaObjectTaskDescs[2] = {
@@ -464,7 +464,7 @@ static AnimationSet _gMineForkedTunnelAnimation05B1C = {
 
 /// Bodyless interaction tasks: slot 0 operates the switch, slot 1 prompts for the oak board.
 ///
-/// Both run at priority 192 with zero descriptor payloads. Spawning borrows
+/// Both run at priority `TASK_PRIORITY_CONTROL` with zero descriptor payloads. Spawning borrows
 /// callbacks from this room overlay; there is no terminator.
 static TaskDesc _gMineForkedTunnelInteractionTaskDescriptors[2] = {
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _mineForkedTunnelSwitchInteractionTask, { .value = 0 } },

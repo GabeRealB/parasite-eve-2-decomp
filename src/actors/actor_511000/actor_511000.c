@@ -276,8 +276,6 @@ static void      _actor511000HelicopterSearchlightTask(Task* task);
 
 #include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_departure_clips_1.inc"
 
-/// Execution priorities of the package's scene models and GOLEM models.
-
 TaskDesc gActor511000HelicopterTaskDescriptors[4] = {
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor511000HelicopterTask, { .model = &_gActor511000HelicopterBase } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor511000HelicopterRotorTask, { .model = &_gAkropolisHelicopterLandingPadMainRotor } },

@@ -102,8 +102,6 @@ static void _roomCutsceneSoundTask(Task* task);
 static void _actionPromptResetDefault(Task* task);
 static s32  _roomVariantResolveNeoArk(RoomEventMsg* request, RoomEventMsg* reply);
 
-/// Ascending execution priorities of this room's bodyless tasks.
-
 /// View, CAP and frame-count operands of the room's two event scenes.
 enum {
     SHELTER_B1_UNDERGROUND_PARKING_ROOM6_ARRIVAL_VIEW                 = 3,
@@ -495,7 +493,7 @@ static RoomAmbienceEntry _gShelterB1UndergroundParkingAmbienceMixByView[9] = {
 /// Bodyless action-cursor child recipe used by the selector panel.
 ///
 /// The panel passes spawnArg1 == 1 for port 0 and owns the child's lifetime.
-/// Priority 192 updates the cursor after the priority-32 panel each frame.
+/// Priority `TASK_PRIORITY_CONTROL` updates the cursor after the priority-32 panel each frame.
 static TaskDesc _gShelterB1UndergroundParkingActionPromptTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _shelterB1UndergroundParkingActionPromptTask, { .value = 0 } };
 
 /// Bodyless selector-panel recipe, spawned and polled by the panel session.

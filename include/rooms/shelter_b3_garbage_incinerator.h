@@ -45,7 +45,7 @@ enum {
     SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_SKIP_ALERT      = 1,
 };
 
-/// Four bodyless countdown/burn-scene recipes, all at priority 192, with no END entry.
+/// Four bodyless countdown/burn-scene recipes, all at priority `TASK_PRIORITY_CONTROL`, with no END entry.
 ///
 /// Slot 0 watches the scene clock; spawnArg1 selects PLAY_ALERT or SKIP_ALERT.
 /// Slot 1 releases its new task immediately. Slot 2 borrows the controller

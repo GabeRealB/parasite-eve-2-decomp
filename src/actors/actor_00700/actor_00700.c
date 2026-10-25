@@ -82,8 +82,6 @@ static void _mothTask(Task* task);
 static void _mothSquash(Task* task);
 static void _mothUpdateColor(Task* task);
 
-/// Execution priority of this package's two enemy model tasks.
-
 /// Task-state callbacks: 0 spawn, 1 living update, 2 death; copied before dispatch.
 ///
 /// Indexed by `Task::state` in 0..2, with no terminator or bounds check.

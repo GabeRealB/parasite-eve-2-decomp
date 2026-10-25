@@ -11,7 +11,7 @@ enum {
 
 /// Glutton entrance recipes: event 0, fade 1, body 2, five attached parts 3..7, doors 8..9.
 ///
-/// All run at priority 192, without a terminator. The event and fade are
+/// All run at priority `TASK_PRIORITY_CONTROL`, without a terminator. The event and fade are
 /// bodyless; model entries skip automatic primitive-buffer allocation. The
 /// incinerator room starts entry 0 with unused zero spawn arguments. Internally,
 /// body argument 1 is part id 0 and argument 2 is the event parent; child parts
@@ -29,7 +29,7 @@ enum {
 
 /// Incinerator exit recipes: event 0, fade 1, Glutton body 2, parts 3..7, doors 8..9.
 ///
-/// All run at priority 192, without a terminator. Event and fade are bodyless;
+/// All run at priority `TASK_PRIORITY_CONTROL`, without a terminator. Event and fade are bodyless;
 /// model entries skip automatic primitive-buffer allocation. Start entry 0 at
 /// state zero with zero spawn arguments and the room's placed encounter actor
 /// live. Body argument 1 is part id 0 and argument 2 is the event parent; parts
@@ -42,7 +42,7 @@ extern TaskDesc gActor342000IncineratorEventTaskDescs[ACTOR_342000_EVENT_TASK_CO
 
 /// Night water-hole scene spawn table: unused entry 0, scene controller at entry 1.
 ///
-/// Both entries are bodyless, without a terminator. Entry 1 runs at priority 32
+/// Both entries are bodyless, without a terminator. Entry 1 runs at priority `TASK_PRIORITY_SCENE`
 /// with unused spawn arguments and selects the burner-dependent scene before
 /// reloading the night driveway. Keep actor_146000 and its room/CAP resources
 /// loaded through handoff. The empty room placement never spawns entry 0, whose
@@ -51,13 +51,13 @@ extern TaskDesc gActor146000WaterHoleSceneTasks[2];
 
 /// Bone Suckler TMD descriptor shared by the three actor-slot builds.
 ///
-/// Priority 96 with automatic model buffers; spawn at index 0. Room imports
+/// Priority `TASK_PRIORITY_ACTOR` with automatic model buffers; spawn at index 0. Room imports
 /// use the corresponding slot alias and must keep that slot's resources loaded.
 extern TaskDesc gActor01200BoneSucklerTaskDesc;
 
 /// Motel scene spawn recipes: 0 empty placement, 1 Kyle Madigan's view-parented body.
 ///
-/// Both run at priority 192 with unused spawn arguments and no terminator.
+/// Both run at priority `TASK_PRIORITY_CONTROL` with unused spawn arguments and no terminator.
 /// Entry 0 has no body and ends on first dispatch. Entry 1 creates the
 /// twenty-part TMD with automatic buffers disabled; choreography allocates
 /// them when the double appears. Keep actor_120500 and the motel room/CAP
@@ -66,7 +66,7 @@ extern TaskDesc gActor120500EmptyPlacementTaskDesc[2];
 
 /// Dumping-hole spawn recipes: 0 encounter/blaze controller, 1 kill placeholder, 2 fade, 3 body fire, 4 fire emitter.
 ///
-/// All run at priority 192; only entry 4 has a coordinate body, the others are
+/// All run at priority `TASK_PRIORITY_CONTROL`; only entry 4 has a coordinate body, the others are
 /// bodyless. Indices 0..4 have no terminator. Fade argument 2 borrows the live
 /// controller; emitter argument 1 carries its start delay. Keep actor_342100 and
 /// the dumping-hole resources loaded through the encounter and burn sequence.
@@ -107,22 +107,22 @@ extern TaskDesc gActor207000SucklercephTaskDescs[2];
 /// Slot export of `gActor07000SlouchTaskDescs` from actor_207000, with the same descriptor contract.
 extern TaskDesc gActor207000SlouchTaskDescs[3];
 
-/// Standing Sucklerceph TMD spawn descriptor; priority 96 with automatic model buffers.
+/// Standing Sucklerceph TMD spawn descriptor; priority `TASK_PRIORITY_ACTOR` with automatic model buffers.
 ///
 /// Spawn at index 0. Keep the callback and borrowed model geometry loaded.
 extern TaskDesc gActor04600SucklercephTaskDesc;
 
-/// Skull Stalker TMD spawn descriptor; priority 96 with automatic model buffers.
+/// Skull Stalker TMD spawn descriptor; priority `TASK_PRIORITY_ACTOR` with automatic model buffers.
 ///
 /// Spawn at index 0. Keep the callback and borrowed model geometry loaded.
 extern TaskDesc gActor04600SkullStalkerTaskDesc;
 
-/// Black Beetle TMD spawn descriptor; priority 96 with automatic model buffers.
+/// Black Beetle TMD spawn descriptor; priority `TASK_PRIORITY_ACTOR` with automatic model buffers.
 ///
 /// Spawn at index 0. Keep the callback and borrowed model geometry loaded.
 extern TaskDesc gActor03800BlackBeetleTaskDesc;
 
-/// Bat TMD spawn descriptor; priority 96, with automatic model buffers disabled.
+/// Bat TMD spawn descriptor; priority `TASK_PRIORITY_ACTOR`, with automatic model buffers disabled.
 ///
 /// Spawn at index 0. Keep the callback and borrowed model geometry loaded.
 extern TaskDesc gActor03700BatTaskDesc;
@@ -139,7 +139,7 @@ extern TaskDesc gActor02400Tasks[2];
 /// borrowed model geometry loaded while their tasks are in use.
 extern TaskDesc gActor02300RookGolemTasks[3];
 
-/// Watcher TMD spawn descriptor; priority 96 with automatic model buffers.
+/// Watcher TMD spawn descriptor; priority `TASK_PRIORITY_ACTOR` with automatic model buffers.
 ///
 /// Spawn at index 0. Keep the callback and borrowed model geometry loaded.
 extern TaskDesc gActor02100WatcherTaskDesc;
@@ -150,7 +150,7 @@ extern TaskDesc gActor02100WatcherTaskDesc;
 /// borrowed model geometry loaded while their tasks are in use.
 extern TaskDesc gActor01100Tasks[3];
 
-/// Desert Chaser TMD spawn descriptor; priority 96, with automatic model buffers disabled.
+/// Desert Chaser TMD spawn descriptor; priority `TASK_PRIORITY_ACTOR`, with automatic model buffers disabled.
 ///
 /// Spawn at index 0. Keep the callback and borrowed model geometry loaded.
 extern TaskDesc gActor00100DesertChaserTaskDesc;
@@ -169,14 +169,14 @@ extern TaskDesc gActor102400Tasks[2];
 
 /// Spawn recipe for the staged Bone Suckler used by the motel-room event.
 ///
-/// Index 0 creates a six-part TMD body at priority 96 with automatic buffers.
+/// Index 0 creates a six-part TMD body at priority `TASK_PRIORITY_ACTOR` with automatic buffers.
 /// Spawn through the enemy API with a live owned `Enemy` in spawn argument 2.
 /// Keep actor_123200's callbacks and borrowed geometry loaded until teardown.
 extern TaskDesc gActor123200BoneSucklerTaskDesc;
 
 /// Elevator scene spawn table: unused entry 0, vertical screen shake at entry 1.
 ///
-/// Both entries are bodyless at priority 192, with unused spawn arguments and
+/// Both entries are bodyless at priority `TASK_PRIORITY_CONTROL`, with unused spawn arguments and
 /// no terminator. Keep actor_142900 loaded while the shake task runs, with at
 /// most one live instance. The room loads this table with an empty placement
 /// list. Entry 0 retains a two-argument enemy callback; do not spawn it.
@@ -211,7 +211,7 @@ extern TaskDesc gActor00700RatTaskDesc;
 
 /// Bone Suckler TMD spawn descriptor exported by actor slot 1.
 ///
-/// Spawn at index 0; priority 96 with automatic model buffers. Keep the
+/// Spawn at index 0; priority `TASK_PRIORITY_ACTOR` with automatic model buffers. Keep the
 /// slot's callback and borrowed model geometry loaded while its tasks run.
 extern TaskDesc gActor101200BoneSucklerTaskDesc;
 
@@ -268,7 +268,7 @@ extern TaskDesc gActor111800GrinningStrangerTaskDesc;
 
 /// Gary Douglas spawn recipes: 0 body, 1 head and hat, 2 carried model.
 ///
-/// All three create TMD bodies at priority 192; there is no terminator. Entry 0
+/// All three create TMD bodies at priority `TASK_PRIORITY_CONTROL`; there is no terminator. Entry 0
 /// skips automatic model buffers and expects a live owned `Enemy` in spawn
 /// argument 2. The body spawns entries 1 and 2 with itself in argument 2 and
 /// parent coordinate indices 4 and 8 respectively in argument 1. The children
@@ -277,7 +277,7 @@ extern TaskDesc gActor135400GaryDouglasTasks[3];
 
 /// Caterpillar body and puff spawn descriptors: indices 0 and 1, no terminator.
 ///
-/// Both run at priority 96; the body allocates an eight-part TMD with
+/// Both run at priority `TASK_PRIORITY_ACTOR`; the body allocates an eight-part TMD with
 /// automatic model buffers, and the puff has one coordinate. Spawn through
 /// the enemy API with a live owning `Enemy` in `Task::spawnArg2.pointer`.
 /// The body retains the table for child spawns. Keep the package callbacks
@@ -307,7 +307,7 @@ extern TaskDesc gActor113000RupertBroderickHurtTaskDesc;
 /// while the spawned tasks use them.
 extern TaskDesc gActor135600KyleMadiganTaskDescriptors[4];
 
-/// Mind Suckler TMD spawn descriptor; priority 96 with automatic model buffers.
+/// Mind Suckler TMD spawn descriptor; priority `TASK_PRIORITY_ACTOR` with automatic model buffers.
 ///
 /// Spawn at index 0. Keep this package loaded while its callback and borrowed
 /// model geometry are in use.
@@ -345,14 +345,14 @@ enum {
 ///
 /// Entry `GENERATOR_BODY_TASK_INDEX` creates the TMD body; entry
 /// `GENERATOR_LIFE_SUPPORT_TASK_INDEX` creates its coordinate-only child.
-/// Both execute at priority 96 and receive a live `Enemy` in spawn argument 2
+/// Both execute at priority `TASK_PRIORITY_ACTOR` and receive a live `Enemy` in spawn argument 2
 /// through `enemySpawnFromTable`. The child requires its body task as parent.
 /// The actor overlay and the body's borrowed model data must remain loaded.
 extern TaskDesc gActor105400GeneratorTasks[GENERATOR_TASK_DESC_COUNT];
 
 /// Garden variant-2 spawn recipe for the sound-enabled nineteen-part scene walker.
 ///
-/// Creates a TMD body from the Eve model at priority 192 with automatic
+/// Creates a TMD body from the Eve model at priority `TASK_PRIORITY_CONTROL` with automatic
 /// primitive buffers. Spawn at index 0 through the enemy spawner: argument 2
 /// must be its live `Enemy`. The task owns its model and work and publishes
 /// singleton message state. Keep actor_151000 code, model and clip data loaded
@@ -363,7 +363,7 @@ extern TaskDesc gActor151000WalkerTaskDesc;
 ///
 /// Indices 0..10 are the double, fade in, fade out, debris spawner, five debris
 /// models, blackout and texture uploader. There is no terminal descriptor.
-/// All run at priority 192; the body and debris defer automatic model buffers.
+/// All run at priority `TASK_PRIORITY_CONTROL`; the body and debris defer automatic model buffers.
 /// The room loads actor_121300 as resource 132 before spawning the double at 0.
 /// Debris arguments select lamp 0..11 and placement 0..14; texture uploads
 /// borrow their live double in argument 2. Keep the actor and room resources
@@ -374,7 +374,7 @@ extern TaskDesc gActor121300SceneTasks[11];
 ///
 /// Entry `GENERATOR_BODY_TASK_INDEX` creates the TMD body; entry
 /// `GENERATOR_LIFE_SUPPORT_TASK_INDEX` creates its coordinate-only child.
-/// Both execute at priority 96 and receive a live `Enemy` in spawn argument 2
+/// Both execute at priority `TASK_PRIORITY_ACTOR` and receive a live `Enemy` in spawn argument 2
 /// through `enemySpawnFromTable`. The child requires its body task as parent.
 /// The actor overlay and the body's borrowed model data must remain loaded.
 extern TaskDesc gActor105300GeneratorTasks[GENERATOR_TASK_DESC_COUNT];
@@ -390,7 +390,7 @@ extern TaskDesc gActor141000FlightTasks[3];
 
 /// Scripted nineteen-part Eve walker with manual model-buffer recovery.
 ///
-/// Creates a TMD body at priority 192, initially skipping automatic primitive
+/// Creates a TMD body at priority `TASK_PRIORITY_CONTROL`, initially skipping automatic primitive
 /// buffer allocation. Area placement supplies the task-owned `Enemy` in spawn
 /// argument 2. Initialization installs animation, placement, visibility, walk,
 /// pace and facial-texture messages. Keep actor_141000 loaded until teardown.
@@ -399,7 +399,7 @@ extern TaskDesc gActor141000EveWalkerTaskDesc;
 /// Scene Eve's nineteen-part TMD walker with optional footstep sounds.
 ///
 /// Spawn at index zero through the enemy spawner with a live owning `Enemy`
-/// in argument 2. Priority 192 uses automatic model primitive buffers. The
+/// in argument 2. Priority `TASK_PRIORITY_CONTROL` uses automatic model primitive buffers. The
 /// task owns its model and work and publishes singleton message state.
 /// Keep actor_535700's code, model and clips loaded until task teardown;
 /// singleton messages require that original task and work to remain live.
@@ -407,12 +407,12 @@ extern TaskDesc gActor535700EveWalkerTaskDesc;
 
 /// Twenty-part model task for the sterilization room's placed scene actor.
 ///
-/// Creates a TMD body at priority 96 and runs the paced walker's spawn/frame
+/// Creates a TMD body at priority `TASK_PRIORITY_ACTOR` and runs the paced walker's spawn/frame
 /// states. Scene placement supplies a live owning `Enemy` through `spawnArg2.pointer`.
 /// The `actor_160600` model, clips and callbacks must remain loaded until teardown.
 extern TaskDesc gActor160600PlacedActorTask;
 
-/// Blood Suckler TMD spawn descriptor; priority 96 with automatic model buffers.
+/// Blood Suckler TMD spawn descriptor; priority `TASK_PRIORITY_ACTOR` with automatic model buffers.
 ///
 /// Spawn at index 0. Keep this package loaded while its callback and borrowed
 /// model geometry are in use.
@@ -438,7 +438,7 @@ extern TaskDesc gActor120400KyleMadiganTaskDescriptors[3];
 
 /// Trailer-coach Gary Douglas spawn recipes: 0 body, 1 head-and-hat, 2 shotgun.
 ///
-/// All are TMD bodies at priority 192, without a terminator. Body placement
+/// All are TMD bodies at priority `TASK_PRIORITY_CONTROL`, without a terminator. Body placement
 /// supplies a live Enemy in spawn argument 2; attachment spawns use zero
 /// arguments and borrow the published singleton body. Keep actor_420700 loaded.
 extern TaskDesc gActor420700GaryDouglasTaskDescriptors[3];
@@ -463,7 +463,7 @@ extern TaskDesc gActor135400FlintTaskDesc;
 
 /// Gary Douglas night Main Street spawn recipes: body, unused, head, rifle, fade-in, fade-out.
 ///
-/// All six slots have priority 192 and no terminator; never spawn unused slot 1.
+/// All six slots have priority `TASK_PRIORITY_CONTROL` and no terminator; never spawn unused slot 1.
 /// Slots 0, 2 and 3 create TMD bodies with manually allocated primitive buffers.
 /// Head/rifle argument 2 borrows a live parent coordinate; nonzero rifle argument
 /// 1 selects its attached pose. Fade slots 4/5 are bodyless and take an unsigned
@@ -472,7 +472,7 @@ extern TaskDesc gActor135400FlintTaskDesc;
 /// these tasks run; head and rifle initialization require the live body singleton.
 extern TaskDesc gActor136100SceneTaskDescriptors[6];
 
-/// First scripted walker TMD recipe, priority 192 with automatic model buffers.
+/// First scripted walker TMD recipe, priority `TASK_PRIORITY_CONTROL` with automatic model buffers.
 ///
 /// Spawn at index 0 with its live Enemy owner in spawn argument 2. Keep
 /// actor_143900 geometry, clips and callbacks loaded throughout the singleton walker's life.
@@ -480,7 +480,7 @@ extern TaskDesc gActor143900ScriptedWalkerTaskDesc;
 
 /// Stinger spawn recipes: 0 enemy TMD body, 1 fireball coordinate body, 2 beam coordinate body.
 ///
-/// All execute at priority 96; indices 0..2 have no terminator. Enemy spawns
+/// All execute at priority `TASK_PRIORITY_ACTOR`; indices 0..2 have no terminator. Enemy spawns
 /// supply a live Enemy in spawn argument 2. Keep this package loaded until
 /// the body and its coordinate children are released.
 extern TaskDesc gActor105100TaskDescriptors[3];
@@ -521,7 +521,7 @@ extern TaskDesc gActor100300Tasks[3];
 /// Slot export of `gActor05600PawnGolemTasks` from actor_105600, with the same descriptor contract.
 extern TaskDesc gActor105600PawnGolemTasks[3];
 
-/// Boss Stranger task recipe: nineteen-part TMD body, priority 96 and actor-managed buffers.
+/// Boss Stranger task recipe: nineteen-part TMD body, priority `TASK_PRIORITY_ACTOR` and actor-managed buffers.
 ///
 /// The callback and model data belong to actor_110600 and must stay loaded
 /// while its tasks live. Area resources select this descriptor at task index 0.
@@ -530,7 +530,7 @@ extern TaskDesc gActor110600TaskDesc;
 /// Grinning Stranger TMD spawn descriptor shared by actor_101900 and actor_301900.
 ///
 /// Spawn at index 0 with a live owning `Enemy` in `Task::spawnArg2.pointer`.
-/// Priority 96 attaches the nineteen-part body and automatic model buffers.
+/// Priority `TASK_PRIORITY_ACTOR` attaches the nineteen-part body and automatic model buffers.
 /// Placement entry 19 selects it; keep the package callbacks and borrowed
 /// model geometry loaded through enemy teardown.
 extern TaskDesc gActor01900GrinningStrangerTaskDesc;
@@ -546,7 +546,7 @@ extern TaskDesc gActor05600PawnGolemTasks[3];
 
 /// Second scripted walker spawn recipes: 0 body, 1 attachment 1, 2 attachment 2.
 ///
-/// All are TMD bodies at priority 192, without a terminator. Body placement
+/// All are TMD bodies at priority `TASK_PRIORITY_CONTROL`, without a terminator. Body placement
 /// supplies a live Enemy in spawn argument 2. Attachment spawn argument 1
 /// names the borrowed body part (1 or 12); both attachment tasks and the
 /// singleton body require actor_143900 resources to remain loaded.
@@ -564,7 +564,7 @@ enum {
 
 /// Nursery actor recipes: Kyle, left hand, right hand, second body and gun.
 ///
-/// Five indexed TMD entries at priority 192, without a terminator. Only the
+/// Five indexed TMD entries at priority `TASK_PRIORITY_CONTROL`, without a terminator. Only the
 /// second body skips automatic primitive-buffer allocation. Body spawns take
 /// a live owning `Enemy` in argument 2; the signed high half of argument 1
 /// selects initial visibility (1 shown, otherwise hidden). Both bodies create
@@ -576,7 +576,7 @@ extern TaskDesc gActor450800NurseryActorTasks[ACTOR_450800_NURSERY_ACTOR_TASK_CO
 
 /// Coordinate-body recipes: 0 destructible-part controller, 1 child part.
 ///
-/// Both execute at priority 96; the two live entries have no end marker. Enemy
+/// Both execute at priority `TASK_PRIORITY_ACTOR`; the two live entries have no end marker. Enemy
 /// spawns supply a live `Enemy` in spawn argument 2. Controller placement modes
 /// 1..3 select the tunnel, corridor or training room. The parent controller and
 /// its work must outlive each child task. Keep actor_205200 and room resources loaded.
@@ -591,12 +591,12 @@ extern TaskDesc gActor202400Tasks[2];
 /// Spawn descriptors for the No. 9 GOLEM scene walker and its carried model.
 ///
 /// Index 0 spawns the paired walker; it spawns index 1 as its child and
-/// attaches that model to part 8. Both run at priority 96; only the child
+/// attaches that model to part 8. Both run at priority `TASK_PRIORITY_ACTOR`; only the child
 /// skips automatic primitive buffers. Keep actor_451100's borrowed assets
 /// and callbacks loaded while either task is live.
 extern TaskDesc gActor451100PairWalkTaskDescs[2];
 
-/// Skull Stalker TMD spawn descriptor; priority 96 with automatic model buffers.
+/// Skull Stalker TMD spawn descriptor; priority `TASK_PRIORITY_ACTOR` with automatic model buffers.
 ///
 /// Spawn at index 0. Keep the callback and borrowed model geometry loaded.
 extern TaskDesc gActor207200SkullStalkerTaskDesc;
@@ -630,17 +630,17 @@ extern TaskDesc gActor200700RatTaskDesc;
 
 /// Bone Suckler TMD spawn descriptor exported by actor slot 2.
 ///
-/// Spawn at index 0; priority 96 with automatic model buffers. Keep the
+/// Spawn at index 0; priority `TASK_PRIORITY_ACTOR` with automatic model buffers. Keep the
 /// slot's callback and borrowed model geometry loaded while its tasks run.
 extern TaskDesc gActor201200BoneSucklerTaskDesc;
 
-/// Water Tower Desert Chaser spawn recipe; priority 96, automatic model buffers disabled.
+/// Water Tower Desert Chaser spawn recipe; priority `TASK_PRIORITY_ACTOR`, automatic model buffers disabled.
 ///
 /// Spawn at index 0 with the owning Enemy in spawnArg2. The TMD body, animation
 /// resources and actor_421600 callbacks must remain loaded through enemy teardown.
 extern TaskDesc gActor421600DesertChaserTaskDesc;
 
-/// Ivory Stalker body spawn recipe; priority 96 with automatic model buffers.
+/// Ivory Stalker body spawn recipe; priority `TASK_PRIORITY_ACTOR` with automatic model buffers.
 ///
 /// Spawn at index 0 with the owning Enemy in spawnArg2. The body initializes
 /// its attached arms; keep actor_405800 callbacks and borrowed geometry loaded.
@@ -682,26 +682,26 @@ extern TaskDesc gActor205500MaggotCaterpillarTasks[2];
 /// its geometry must remain loaded throughout the body and child-arm lifetimes.
 extern TaskDesc gActor400500TaskDesc;
 
-/// Creeping Stranger TMD spawn descriptor; priority 96 with automatic model buffers.
+/// Creeping Stranger TMD spawn descriptor; priority `TASK_PRIORITY_ACTOR` with automatic model buffers.
 ///
 /// Spawn at index 0. Keep this package loaded while its callback and borrowed
 /// model geometry are in use.
 extern TaskDesc gActor207200CreepingStrangerTaskDesc;
 
-/// GOLEM TMD spawn descriptor; priority 96 with automatic model buffers.
+/// GOLEM TMD spawn descriptor; priority `TASK_PRIORITY_ACTOR` with automatic model buffers.
 ///
 /// Spawn at index 0. Keep the callback and borrowed model geometry loaded.
 extern TaskDesc gActor403900GolemTaskDesc;
 
 /// Knight GOLEM model-task descriptor exported to room resource tables.
 ///
-/// Attaches the nineteen-part GOLEM body at task priority 96; the second spawn
+/// Attaches the nineteen-part GOLEM body at task priority `TASK_PRIORITY_ACTOR`; the second spawn
 /// argument borrows the live Enemy through spawn, living frames and corpse frames.
 extern TaskDesc gActor402200GolemTaskDesc;
 
 /// Odd Stranger spawn recipe exported by actor_401000 to room resources.
 ///
-/// Uses a TMD body at priority 96 and defers primitive-buffer allocation
+/// Uses a TMD body at priority `TASK_PRIORITY_ACTOR` and defers primitive-buffer allocation
 /// until the chosen opening state needs drawing. Borrows a live `Enemy` as
 /// spawn argument 2; the actor overlay and its model data must remain loaded.
 extern TaskDesc gActor401000StrangerTaskDesc;
@@ -714,7 +714,7 @@ extern TaskDesc gActor401000StrangerTaskDesc;
 /// throughout either task's lifetime.
 extern TaskDesc gActor403100TaskDescriptors[2];
 
-/// Odd Stranger TMD spawn descriptor; priority 96, with automatic model buffers disabled.
+/// Odd Stranger TMD spawn descriptor; priority `TASK_PRIORITY_ACTOR`, with automatic model buffers disabled.
 ///
 /// Spawn at index 0. Keep this package loaded while its callback and borrowed
 /// model geometry are in use.
@@ -723,7 +723,7 @@ extern TaskDesc gActor401800OddStrangerTaskDesc;
 /// Slot export of `gActor04000BloodSucklerTaskDesc` from actor_204000, with the same descriptor contract.
 extern TaskDesc gActor204000BloodSucklerTaskDesc;
 
-/// Stationary masked Eve TMD recipe at priority 96 with automatic model buffers.
+/// Stationary masked Eve TMD recipe at priority `TASK_PRIORITY_ACTOR` with automatic model buffers.
 ///
 /// Spawn at index zero with a live `Enemy` in spawn argument 2. Placement mode
 /// 0 selects the Shelter B6 corridor, 1 the training room. Keep actor_205200,
@@ -772,7 +772,7 @@ extern TaskDesc gActor210700RupertBroderickTaskDesc;
 /// the tasks' callbacks and borrowed model/animation resources.
 extern TaskDesc gActor443500PierceTaskDescs[2];
 
-/// Horned Stranger TMD spawn descriptor; priority 96 with automatic model buffers.
+/// Horned Stranger TMD spawn descriptor; priority `TASK_PRIORITY_ACTOR` with automatic model buffers.
 ///
 /// Spawn at index 0. Keep the callback and borrowed model geometry loaded.
 extern TaskDesc gActor401300HornedStrangerTaskDesc;
@@ -804,7 +804,7 @@ extern TaskDesc gActor403000TaskDesc;
 /// while the spawned tasks use them.
 extern TaskDesc gActor210600GrinningStrangerTaskDesc;
 
-/// Scavenger TMD spawn descriptor; priority 96, with automatic model buffers disabled.
+/// Scavenger TMD spawn descriptor; priority `TASK_PRIORITY_ACTOR`, with automatic model buffers disabled.
 ///
 /// Spawn at index 0. Keep this package loaded while its callback and borrowed
 /// model geometry are in use.
@@ -815,7 +815,7 @@ extern TaskDesc gActor201100Tasks[3];
 
 /// Dryfield No. 9 GOLEM spawn recipes (0 body, 1 attached gunblade).
 ///
-/// Both are TMD bodies at priority 96 with automatic model buffers; no terminator.
+/// Both are TMD bodies at priority `TASK_PRIORITY_ACTOR` with automatic model buffers; no terminator.
 /// Area placement selects the body; its initializer spawns the gunblade with the
 /// parent Enemy in spawnArg2. The child borrows the body's work and lighting.
 /// Keep actor_521100 and its model/animation resources loaded until both are gone.
@@ -839,7 +839,7 @@ extern TaskDesc gActor205600PawnGolemTasks[3];
 /// Its model source and callback must remain loaded for the host's lifetime.
 extern TaskDesc gActor444000GluttonHostTaskDesc;
 
-/// Moth TMD spawn descriptor; priority 96 with automatic model buffers.
+/// Moth TMD spawn descriptor; priority `TASK_PRIORITY_ACTOR` with automatic model buffers.
 ///
 /// Spawn at index 0. Keep this package loaded while its callback and borrowed
 /// model geometry are in use.
@@ -856,13 +856,13 @@ extern TaskDesc gActor510900TaskDescriptors[7];
 
 /// Bone Suckler TMD spawn descriptor exported by actor slot 3.
 ///
-/// Spawn at index 0; priority 96 with automatic model buffers. Keep the
+/// Spawn at index 0; priority `TASK_PRIORITY_ACTOR` with automatic model buffers. Keep the
 /// slot's callback and borrowed model geometry loaded while its tasks run.
 extern TaskDesc gActor301200BoneSucklerTaskDesc;
 
 /// Masked Eve Brea reversing-walker spawn recipe for the B6 corridor.
 ///
-/// Nineteen-part TMD body at priority 192, with automatic model buffers disabled.
+/// Nineteen-part TMD body at priority `TASK_PRIORITY_CONTROL`, with automatic model buffers disabled.
 /// Spawn at index 0 with the owning Enemy in spawnArg2. Keep actor_350500 and
 /// its borrowed model/animation resources loaded until the task is destroyed.
 extern TaskDesc gActor350500MaskedEveReverseWalkTaskDesc;
@@ -887,21 +887,21 @@ extern TaskDesc gActor300700RatTaskDesc;
 
 /// Masked Eve Brea reversing-walker spawn recipe for the B6 training room.
 ///
-/// Nineteen-part TMD body at priority 192, with automatic model buffers disabled.
+/// Nineteen-part TMD body at priority `TASK_PRIORITY_CONTROL`, with automatic model buffers disabled.
 /// Spawn at index 0 with the owning Enemy in spawnArg2. Keep actor_350700 and
 /// its borrowed model/animation resources loaded until the task is destroyed.
 extern TaskDesc gActor350700MaskedEveReverseWalkTaskDesc;
 
 /// Scripted SWAT member 1 spawn recipe for the Akropolis patio.
 ///
-/// TMD body at priority 96 with automatic model buffers disabled. Spawn at index
+/// TMD body at priority `TASK_PRIORITY_ACTOR` with automatic model buffers disabled. Spawn at index
 /// 0 with the owning Enemy in spawnArg2. Keep actor_312200 callbacks and borrowed
 /// model/animation resources loaded through teardown.
 extern TaskDesc gActor312200SwatMember1TaskDesc;
 
 /// Scripted ANMC-woman spawn recipes: 0 nineteen-part model, 1 periodic splatter emitter.
 ///
-/// Both run at priority 192, with no terminator. Entry 0 skips automatic model
+/// Both run at priority `TASK_PRIORITY_CONTROL`, with no terminator. Entry 0 skips automatic model
 /// buffers and borrows its Enemy through spawn argument 2. Entry 1 has no body;
 /// argument 1 selects the woman (0) or player (1), and argument 2 borrows the
 /// live woman task. Keep actor_521100 and the selected models loaded through use.
@@ -909,7 +909,7 @@ extern TaskDesc gActor521100AnmcWomanTaskDescs[2];
 
 /// Scripted Grinning Stranger spawn recipe for the Akropolis patio.
 ///
-/// TMD body at priority 192 with automatic model buffers disabled. Spawn at index
+/// TMD body at priority `TASK_PRIORITY_CONTROL` with automatic model buffers disabled. Spawn at index
 /// 0 with the owning Enemy in spawnArg2. Keep actor_317000 callbacks and borrowed
 /// model/animation resources loaded through the scripted leap and teardown.
 extern TaskDesc gActor317000GrinningStrangerTaskDesc;
@@ -921,7 +921,7 @@ extern TaskDesc gActor304000BloodSucklerTaskDesc;
 ///
 /// The night motel balcony resource selects body 0. Body initialization spawns
 /// head 1 on part 4 and gun 2 on part 8, borrowing the body's lighting and
-/// lifetime. All run at priority 192; only the body skips automatic model buffers.
+/// lifetime. All run at priority `TASK_PRIORITY_CONTROL`; only the body skips automatic model buffers.
 /// The actor package's code and model data must remain loaded for all three tasks.
 extern TaskDesc gActor335800GaryDouglasTasks[3];
 
@@ -979,13 +979,13 @@ extern TaskDesc gActor323300WomanStrangerTaskDescriptors[2];
 /// Spawn recipe for the night motel balcony's independently placed Flint model.
 ///
 /// The room resource addresses this single nineteen-part TMD recipe directly.
-/// It runs at priority 192 and skips automatic model buffers; actor_335800's
+/// It runs at priority `TASK_PRIORITY_CONTROL` and skips automatic model buffers; actor_335800's
 /// code and geometry must stay loaded until Flint's task is released.
 extern TaskDesc gActor335800FlintTaskDesc;
 
 /// Horned Stranger spawn recipe for Neo Ark's forest zone.
 ///
-/// TMD body at priority 96 with automatic model buffers. Spawn at index 0 with
+/// TMD body at priority `TASK_PRIORITY_ACTOR` with automatic model buffers. Spawn at index 0 with
 /// the owning Enemy in spawnArg2. Keep actor_356100 callbacks and borrowed
 /// model/animation resources loaded through enemy teardown.
 extern TaskDesc gActor356100HornedStrangerTaskDesc;
@@ -1011,7 +1011,7 @@ enum {
 
 /// Bodyless tasks driving the incinerator's mixed-enemy encounter.
 ///
-/// Index 0 starts the controller at priority 32; 1 Mad Chaser, 2 Slouch and
+/// Index 0 starts the controller at priority `TASK_PRIORITY_SCENE`; 1 Mad Chaser, 2 Slouch and
 /// 3 Sucklerceph-pair spawners run at priority 97. Spawner spawnArg1 packs a row
 /// 0..16 in the high halfword and an appear command in the low halfword.
 /// There is no terminator. Keep actor_342400 and the selected enemy/room
@@ -1048,7 +1048,7 @@ extern TaskDesc gActor301900GrinningStrangerTaskDesc;
 
 /// Launcher Rook GOLEM spawn descriptors: 0 body, 1 launcher, 2 grenade, 3 shield.
 ///
-/// All four recipes create TMD bodies at priority 96 with automatic model
+/// All four recipes create TMD bodies at priority `TASK_PRIORITY_ACTOR` with automatic model
 /// buffers. Indices address live entries; there is no terminator. Room
 /// placements spawn entry 0, whose work borrows this table for its children.
 /// Keep the actor package loaded while any spawned task, including a detached
@@ -1073,7 +1073,7 @@ enum {
 
 /// Nursery's scripted Pawn GOLEM spawn descriptors: body 0, carried Beam Sword 1.
 ///
-/// Both create TMD bodies at priority 96 with automatic model buffers disabled.
+/// Both create TMD bodies at priority `TASK_PRIORITY_ACTOR` with automatic model buffers disabled.
 /// The body creates and owns the sword child, which follows part 7 and borrows
 /// the body's lighting. Spawn the body through its room placement; keep
 /// actor_450800's callbacks, models and animation data loaded until teardown.
@@ -1081,7 +1081,7 @@ extern TaskDesc gActor450800PawnGolemTasks[PAIR_WALK_TASK_COUNT];
 
 /// Dryfield night R08's scripted Pawn GOLEM spawn descriptors: body 0, carried Beam Sword 1.
 ///
-/// Both create TMD bodies at priority 96 with automatic model buffers disabled.
+/// Both create TMD bodies at priority `TASK_PRIORITY_ACTOR` with automatic model buffers disabled.
 /// The body creates and owns the sword child, which follows part 7 and borrows
 /// the body's lighting. Spawn the body through its room placement; keep
 /// actor_535700's callbacks, models and animation data loaded until teardown.

@@ -40,8 +40,6 @@ enum {
 /// Parent-coordinate units per travel tick of the model-step variant.
 enum { PAIR_WALK_MODEL_STEP_UNITS = 12 };
 
-/// Execution priority of the scripted Pawn GOLEM body and carried-model tasks.
-
 /// Work block of a pair walker, allocated zeroed at its full size by the
 /// walker's spawn state and kept at `Task::work`.
 ///

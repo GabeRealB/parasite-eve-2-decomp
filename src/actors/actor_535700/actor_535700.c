@@ -87,7 +87,7 @@ static void _actor535700FinishScene(void);
 
 static void _actor535700BlackoutTask(Task* task);
 
-/// Scheduler order and whole-frame pose transition used by this scene's records.
+/// Whole-frame pose transition used by this scene's records.
 enum {
     ACTOR_535700_SCENE_BLEND_FRAMES = 8
 };

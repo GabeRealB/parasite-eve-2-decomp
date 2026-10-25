@@ -168,7 +168,7 @@ static TaskMessageEntry _gDryfieldNightSaloonGRRoomMessages[] = {
 /// Bodyless task recipe for the jukebox's caption, view switch and restoration.
 ///
 /// Spawn at index 0 with zero payloads after holding scripted player control.
-/// Priority 192; the task uses the room's singleton saved view, so scenes must
+/// Priority `TASK_PRIORITY_CONTROL`; the task uses the room's singleton saved view, so scenes must
 /// not overlap. Spawning copies the recipe; keep this room loaded through exit.
 static TaskDesc _gDryfieldNightSaloonGRJukeboxSceneTaskDesc = {
     .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },

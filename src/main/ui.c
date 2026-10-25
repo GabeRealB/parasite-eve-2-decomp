@@ -158,7 +158,7 @@ static u8 _gMcSavePointTitleTentText[2 * 4 + 1];
 
 static u8 _gMcSavePointTitleWhereAmIText[2 * 11 + 1];
 
-/// Option-dialog row pitch in pixels, ordering-table seed in tags and task priority.
+/// Option-dialog row pitch in pixels and ordering-table seed in tags.
 enum {
     USER_INTERFACE_OPTION_DIALOG_ROW_HEIGHT_PIXELS = 15,
     USER_INTERFACE_OPTION_DIALOG_OT_INDEX          = 32,

@@ -85,7 +85,7 @@ enum {
     SHELTER_1F_PARKING_GARAGE_KEY_ITEM_UNUSABLE = 0,
 };
 
-/// Bodyless resolved-departure recipe, priority 32 and zero metadata/payloads.
+/// Bodyless resolved-departure recipe, priority `TASK_PRIORITY_SCENE` and zero metadata/payloads.
 ///
 /// One descriptor with no terminator. Starts after the underground destination
 /// has been stored in `gRoomDeparture`; that singleton and the callback must
@@ -114,7 +114,7 @@ static const TaskMessageEntry _gShelter1fParkingGarageRoomMessages[5] SECTION(".
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// Bodyless underground-travel choice recipe, priority 32 and zero metadata/payloads.
+/// Bodyless underground-travel choice recipe, priority `TASK_PRIORITY_SCENE` and zero metadata/payloads.
 ///
 /// One descriptor with no terminator. Starts after action 10 holds the player
 /// and opens CAP command 2; confirmation fades and stages the underground

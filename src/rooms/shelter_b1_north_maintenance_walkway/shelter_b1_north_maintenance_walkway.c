@@ -69,8 +69,6 @@ static TaskMessageEntry _gShelterB1NorthMaintenanceWalkwayRoomMessages[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// Scheduler priority byte of the bodyless scene task.
-
 /// Bodyless post-battle scene watcher spawned on entry to placement variant 2.
 ///
 /// A single priority-32 descriptor, spawned at index 0 with zero payloads.

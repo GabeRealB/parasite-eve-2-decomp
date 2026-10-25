@@ -255,7 +255,7 @@ static s32 _mineMesaActorEventMsg(Task* task, s32 messageId, s32 slotIndex, s32 
 
 /// Bodyless task recipe for a latched departure's CAP, sound and session reload.
 ///
-/// Priority 32 runs the staged transition on the ordinary task list. Spawning
+/// Priority `TASK_PRIORITY_SCENE` runs the staged transition on the ordinary task list. Spawning
 /// consumes the descriptor synchronously; the room's destination, event and
 /// fade storage must remain loaded until the old session is discarded.
 static TaskDesc _gMineMesaStagedEventTaskDesc = {
@@ -596,7 +596,7 @@ static void _mineMesaRunSoundCuesTask(Task* task);
 ///
 /// Entries select player path, retained player head aim, retained companion
 /// head aim, direct player head blend, fade from black and run sound cues.
-/// All run at priority 192, start at state zero and receive both launcher
+/// All run at priority `TASK_PRIORITY_CONTROL`, start at state zero and receive both launcher
 /// arguments unchanged. Callbacks and borrowed scene resources must stay loaded.
 static TaskDesc _gMineMesaSceneTaskDescriptors[MINE_MESA_SCENE_TASK_COUNT] = {
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _mineMesaPlayerPathTask, { .value = 0 } },
@@ -3428,7 +3428,7 @@ static TaskMessageEntry _gMineMesaEnemyWaveMessages[2] = {
 
 /// Bodyless task recipe for the room's two-slot, ten-kill enemy-wave controller.
 ///
-/// Priority 32 puts the controller on the ordinary task list. Spawn arguments
+/// Priority `TASK_PRIORITY_SCENE` puts the controller on the ordinary task list. Spawn arguments
 /// are unused; descriptor storage is consumed synchronously. The callback and
 /// room/actor resources must remain loaded until the controller and enemies retire.
 static TaskDesc _gMineMesaEnemyWaveTaskDesc = {

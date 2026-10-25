@@ -50,7 +50,7 @@ STATIC_ASSERT_SIZEOF(_AkropolisObservatorySceneWork, 8);
 
 static void _akropolisObservatoryScriptedBattleTask(Task* task);
 
-/// Clip-table values and scheduler priority of the scripted battle controller.
+/// Clip-table values of the scripted battle controller.
 enum {
     AKROPOLIS_OBSERVATORY_SCENE_NO_FOLLOW_UP   = -1,
     AKROPOLIS_OBSERVATORY_SCENE_FOLLOW_UP_CLIP = 1,

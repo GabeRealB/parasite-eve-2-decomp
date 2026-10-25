@@ -53,8 +53,6 @@ static WorldCollisionTrigger _gNeoArkGardenViewBoundaries[6];
 static WorldCollisionTrigger _gNeoArkGardenActionTriggers[7];
 static WorldCoordRoomLights  _gNeoArkGardenRoomLights;
 
-/// Execution priority of the garden's framebuffer water tasks.
-
 TaskDesc gNeoArkGardenWaterRefractionTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, waterRefractionTask, { .value = 0 } };
 
 /// Retained bodyless water-band spawn recipe with no garden caller.

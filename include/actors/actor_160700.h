@@ -13,7 +13,7 @@ enum {
 /// Spawn recipes for Pierce Carradine's meeting actor and its carried model.
 ///
 /// Entry 0 creates the twenty-part paced walker at priority 96. Entry 1 creates
-/// its carried model at priority 192; the walker adopts that task and attaches
+/// its carried model at priority `TASK_PRIORITY_CONTROL`; the walker adopts that task and attaches
 /// its root to body part 4. There is no terminator. Keep this actor overlay and
 /// its model and animation resources loaded for the spawned tasks' lifetimes.
 extern TaskDesc gActor160700PierceCarradineTasks[ACTOR_160700_TASK_COUNT];

@@ -342,7 +342,7 @@ TaskDesc gShelterB3GarbageIncineratorLiftTaskDesc = { { { (TASK_BODY_TMD | TASK_
 
 /// Burn-scene heat-haze mesh recipe followed by a descriptor terminator.
 ///
-/// Entry 0 is bodyless, priority 192, with zero metadata. Its second spawn
+/// Entry 0 is bodyless, priority `TASK_PRIORITY_CONTROL`, with zero metadata. Its second spawn
 /// argument borrows the controller's embedded ScreenWaveCtx ramp through the
 /// final draw; keep that work and this overlay loaded until the mesh exits.
 static TaskDesc _gShelterB3GarbageIncineratorBlazeHeatHazeTaskDescs[2] = {

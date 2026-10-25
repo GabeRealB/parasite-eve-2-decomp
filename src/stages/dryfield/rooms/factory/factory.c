@@ -41,7 +41,7 @@ extern RoomEventReq gRoomEventReq;
 
 /// Bodyless transition-task recipe shared by this overlay's gate and event task.
 ///
-/// Runs at priority 32 with zero spawn payloads and unused metadata. The gate
+/// Runs at priority `TASK_PRIORITY_SCENE` with zero spawn payloads and unused metadata. The gate
 /// reads the recipe synchronously after latching the request and destination;
 /// keep those snapshots and the room callback code live through session reload.
 static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventTask, { .value = 0 } };

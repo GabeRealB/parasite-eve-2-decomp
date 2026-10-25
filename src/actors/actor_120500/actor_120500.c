@@ -233,7 +233,7 @@ static TaskMessageEntry _gActor120500KyleMadiganMessages[2] = {
 
 /// Bodyless motel scene recipes: 0 movie, 1 fade from black, 2 fade to black.
 ///
-/// All run at priority 192; indices 0..2 have no terminator. Movie arguments
+/// All run at priority `TASK_PRIORITY_CONTROL`; indices 0..2 have no terminator. Movie arguments
 /// are unused and playback requires the room's loaded view-100 stream. Fade
 /// argument 1 is an unsigned-halfword intensity step per update, normally 8;
 /// argument 2 is unused. Keep the actor package loaded until each task ends.

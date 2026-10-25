@@ -14,7 +14,7 @@
 
 /// Bodyless shop-session recipe selected when opening the armory shop.
 ///
-/// Runs at priority 192 with the stock selector in spawnArg1 and zero in
+/// Runs at priority `TASK_PRIORITY_CONTROL` with the stock selector in spawnArg1 and zero in
 /// spawnArg2. The session owns its UI tree and shared drawing buffer until
 /// closure; keep this room's shop code and stock tables loaded throughout.
 extern TaskDesc gShelterB1ArmoryShopSessionTaskDesc;

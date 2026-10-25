@@ -123,7 +123,7 @@ enum {
 /// Progress value installed by both normal and skipped Shelter R48 entry scripts.
 enum { ACTOR_503500_STAFF_CARD_USE_READY = 1 };
 
-/// Execution order and hit presentations of this translation unit's spawn recipes.
+/// Hit presentations of this translation unit's spawn recipes.
 enum {
     ACTOR_503500_ATTACK_REACTION_BODY_BLAST      = 6,
     ACTOR_503500_ATTACK_REACTION_SPARK_AND_PUFFS = 7,

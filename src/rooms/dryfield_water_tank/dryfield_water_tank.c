@@ -834,7 +834,7 @@ static TmdSource _gDryfieldWaterTankDryfieldNightWaterTankModel00FF8 = {
 
 /// Spawn recipe for the room's swaying tank model, followed by TASK_DESC_END.
 ///
-/// Entry 0 uses a TMD body at priority 192 and the shared waterTank sway task.
+/// Entry 0 uses a TMD body at priority `TASK_PRIORITY_CONTROL` and the shared waterTank sway task.
 /// Room initialization spawns it with zero arguments; the task borrows the
 /// room's one-part model geometry until teardown. Never spawn the final row.
 static TaskDesc _gDryfieldWaterTankSwayTaskDescs[2] = {

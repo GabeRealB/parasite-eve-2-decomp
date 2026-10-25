@@ -49,7 +49,7 @@ UiObject* gItemMenuDestinationPanes[ITEM_MENU_DESTINATION_PANE_COUNT];
 
 s32 gItemMenuConsumableChoiceItemIds[6];
 
-/// Menu task priorities and the equipped-bank stationary aiming clip.
+/// The equipped bank's stationary aiming clip.
 enum {
     MENU_GALLERY_WEAPON_HOLD_ANIMATION = 9,
 };

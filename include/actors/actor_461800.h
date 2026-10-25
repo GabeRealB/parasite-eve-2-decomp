@@ -27,7 +27,7 @@ extern EvsCommand gActor461800NeoArkSceneSkipScript[8];
 
 /// Kyle scripted-walker recipes: body at index 0, left/right hand models at 1/2.
 ///
-/// Three TMD entries run at priority 192 with automatic primitive buffers and
+/// Three TMD entries run at priority `TASK_PRIORITY_CONTROL` with automatic primitive buffers and
 /// no terminator. Spawn entry 0 with its live Enemy in spawn argument 2.
 /// It spawns entries 1/2 with body-coordinate indices 8/12 in spawn argument 1.
 /// Attachments borrow the twenty-part body until its teardown kills them.

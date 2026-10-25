@@ -114,7 +114,7 @@ static s32 _shelterB6CorridorHandlePartCommand(Task* unusedTask, s32 unusedMessa
 static s32 _shelterB6CorridorIgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, DirectionActionRequest* unusedRequest, s32 unusedArg);
 static s32 _shelterB6CorridorStartBattleEndScene(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
-/// Retained bodyless screen-wave recipe at priority 192, followed by a terminator.
+/// Retained bodyless screen-wave recipe at priority `TASK_PRIORITY_CONTROL`, followed by a terminator.
 ///
 /// No recovered caller spawns this table. Entry 0 requires a persistent
 /// `ScreenWaveCtx` in spawn argument 2; entry 1 must never be spawned.

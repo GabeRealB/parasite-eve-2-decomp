@@ -38,7 +38,7 @@ extern s16 gNeoArkSubmarineTunnelDiverWaterY;
 
 /// Two bodyless water recipes: index 0 refraction, index 1 band distortion.
 ///
-/// Both use priority 192 and zero metadata; there is no terminator. Room-entry
+/// Both use priority `TASK_PRIORITY_CONTROL` and zero metadata; there is no terminator. Room-entry
 /// dispatch selects index 1. Spawning reads the recipe synchronously; both
 /// callbacks borrow the loaded tunnel overlay throughout their task lifetime.
 extern TaskDesc gNeoArkSubmarineTunnelWaterRefractionTaskDesc[2];

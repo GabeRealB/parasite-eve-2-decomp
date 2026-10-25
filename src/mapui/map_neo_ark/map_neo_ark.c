@@ -175,8 +175,6 @@ enum {
     MAP_NEO_ARK_OBJECT_SLOT_TENT_SAVE_POINT                 = 46,
 };
 
-/// Priority of the saved-object model task.
-
 /// Resource-entry selectors in the rooms' variant-1 GOLEM recipes.
 enum {
     MAP_NEO_ARK_RESOURCE_PAWN_BEAM_SWORD       = 20,
@@ -431,8 +429,6 @@ enum {
     MAP_NEO_ARK_MARKER_FLAG_EVE_ACCESS_TUNNEL_SHELTER = 0x1AF,
     MAP_NEO_ARK_MARKER_FLAG_VEHICULAR_AIRLOCK_BULWARK = 0x1AC,
 };
-
-/// Execution priority of this stage's area-default room tasks.
 
 /// Catalog IDs used only by this stage's battle-reward lists.
 enum {

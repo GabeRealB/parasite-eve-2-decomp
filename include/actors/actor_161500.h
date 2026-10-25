@@ -5,7 +5,7 @@
 
 /// Bodyless one-shot task recipe for completing the companion's heliport item request.
 ///
-/// Spawn the single descriptor at index 0, priority 32, with unused zero spawn
+/// Spawn the single descriptor at index 0, priority `TASK_PRIORITY_SCENE`, with unused zero spawn
 /// arguments. The room first requires pending request state, item 0x124, a live
 /// companion and the nearby action trigger. The task identifies the item, marks
 /// the request complete, starts the handover scene and kills itself. Keep this
@@ -16,7 +16,7 @@ extern TaskDesc gActor161500CompleteCompanionRequestTaskDesc;
 ///
 /// Rooms spawn descriptor 0 with a live Enemy in the second spawn payload.
 /// A nonzero first payload creates descriptor 1 as its child, attached to body
-/// part 7 and borrowing the body's lighting. Both use priority 96 and suppress
+/// part 7 and borrowing the body's lighting. Both use priority `TASK_PRIORITY_ACTOR` and suppress
 /// automatic model buffers. Keep this overlay's code, models and clips loaded
 /// until the tasks are released. The two-entry table has no terminator.
 extern TaskDesc gActor161500SoldierBTasks[2];

@@ -59,7 +59,7 @@ static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE 
 
 /// General Store prompt recipes: flag toggle at slot 0, underpass departure at slot 1.
 ///
-/// Both are bodyless at priority 32; slot 2 is a task-bank end marker. Toggle
+/// Both are bodyless at priority `TASK_PRIORITY_SCENE`; slot 2 is a task-bank end marker. Toggle
 /// payloads are a flag index and CAP command, while departure payloads are unused.
 /// Spawn reads these recipes synchronously; callbacks and latched state stay loaded.
 static TaskDesc _gGeneralStoreTaskDescriptors[3] = {

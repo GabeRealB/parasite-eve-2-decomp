@@ -108,7 +108,7 @@ extern s16 gNeoArkShrinePuzzleCellTiles[NEO_ARK_SHRINE_PUZZLE_CELL_COUNT];
 /// Requires the room storage loaded throughout the puzzle session.
 extern NeoArkShrineTileOrigin gNeoArkShrinePuzzleDrawnOrigins[NEO_ARK_SHRINE_PUZZLE_TILE_COUNT];
 
-/// Bodyless sliding-tile puzzle cursor recipe, priority 192 and zero metadata.
+/// Bodyless sliding-tile puzzle cursor recipe, priority `TASK_PRIORITY_CONTROL` and zero metadata.
 ///
 /// Exactly one descriptor, with no terminator. Entry 0 takes spawnArg1 1 for
 /// controller port 0 and a NULL second argument. The puzzle session retains the

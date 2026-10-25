@@ -20,7 +20,7 @@ extern s32 gNeoArkR31FramebufferShiftPixels;
 
 /// Bodyless shifted-framebuffer overlay task recipe started on room entry.
 ///
-/// One descriptor, priority 192, zero metadata, with no terminator. Spawn at
+/// One descriptor, priority `TASK_PRIORITY_CONTROL`, zero metadata, with no terminator. Spawn at
 /// index 0 with zero arguments; the callback borrows the loaded room overlay.
 extern TaskDesc gNeoArkR31FramebufferShiftTaskDesc;
 

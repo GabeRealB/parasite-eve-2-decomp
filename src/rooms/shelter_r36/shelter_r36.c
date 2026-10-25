@@ -470,7 +470,7 @@ static ActorTransform _gShelterR36ArrivalPlayerTransform = {
 
 /// Zero-body task recipes for warp 1's arrival scene and warp 2's movie ending.
 ///
-/// Indices 0 and 1 use priority 32 and receive zero spawn words. The controller
+/// Indices 0 and 1 use priority `TASK_PRIORITY_SCENE` and receive zero spawn words. The controller
 /// borrows this two-entry table; its callbacks require the room's loaded resources.
 static TaskDesc _gShelterR36ArrivalTasks[2] = {
     { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shelterR36ArrivalSceneTask, { .value = 0 } },

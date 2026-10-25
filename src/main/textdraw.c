@@ -279,7 +279,7 @@ static _FontGlyph _gFontGlyphsSmall[FONT_GLYPH_SMALL_COUNT] = {
 #include "assets/ui/font/small_glyphs.inc"
 };
 
-/// Ordering-table tag seed and task priority of the resident vibration panel.
+/// Ordering-table tag seed of the resident vibration panel.
 enum {
     USER_INTERFACE_VIBRATION_OPTIONS_OT_INDEX = 56,
 };

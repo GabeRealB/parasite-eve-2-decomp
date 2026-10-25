@@ -7,7 +7,7 @@
 
 /// Two bodyless spawn recipes for title startup (0) and intro playback (1).
 ///
-/// Both run at priority 0xC0 and ignore their spawn payloads. There is no
+/// Both run at priority `TASK_PRIORITY_CONTROL` and ignore their spawn payloads. There is no
 /// terminator. The resident boot flow spawns entry 0 on the normal task list;
 /// startup spawns entry 1 on the display-owned list while the movie controls
 /// presentation. Requires the title overlay to remain loaded while either

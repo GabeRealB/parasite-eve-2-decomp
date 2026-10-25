@@ -55,7 +55,7 @@ static void      _pacedWalkSubModelTask(Task* task);
 
 #include "assets/rooms/shelter/b1_golem_freezer_1/pierce_clips_1.inc"
 
-/// Meeting clip counts, serialized playback choices and task priorities.
+/// Meeting clip counts and serialized playback choices.
 enum {
     ACTOR_160700_PLAYER_MEETING_CLIP_COUNT = 19,
     ACTOR_160700_PLAYER_MEETING_NULL_COUNT = 4,

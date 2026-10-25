@@ -119,8 +119,6 @@ enum {
     DRYFIELD_JUNK_YARD_TRAILER_WARP_SLOTS      = (2 << 4) | 1,
 };
 
-/// Execution-list priority of the room's bodyless companion controller.
-
 static WorldCollisionGrid         _gDryfieldJunkYardCollisionGrid;
 static WorldCollisionOccluder     _gDryfieldJunkYardSightOccluders[1];
 static WorldCollisionTrigger      _gDryfieldJunkYardViewBoundaryTriggers[10];

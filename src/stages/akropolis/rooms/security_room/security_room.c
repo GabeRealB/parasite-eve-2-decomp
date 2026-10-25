@@ -404,8 +404,6 @@ static TaskMessageEntry _gAkropolisSecurityRoomRoomMessages[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// Ascending execution priorities of the panel openers and their cursor/scene children.
-
 #include "assets/rooms/akropolis/security_room/events.inc"
 
 /// Bodyless opener recipes: index 0 monitor, index 1 power supply, index 2 end.

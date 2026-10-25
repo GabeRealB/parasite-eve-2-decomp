@@ -584,8 +584,6 @@ enum {
     MAP_SHELTER_OBJECT_SLOT_MINE_FORKED_TUNNEL_PROP                   = 0x37,
 };
 
-/// Execution priority of this stage's generic placed-model tasks.
-
 /// Empty generic spawn list shared by areas with flag-only object placements.
 ///
 /// The single terminator keeps the spawn pointer non-NULL and stops every kind
@@ -728,7 +726,7 @@ AreaObjectRoom gMapShelterObjectRooms[GAME_AREA_SHELTER_R49 + 2] = {
     [GAME_AREA_SHELTER_R49 + 1]                       = { .places = { .sentinel = AREA_OBJECT_ROOM_END }, .spawns = NULL },
 };
 
-/// Priority and default-room selector for the Mine/Shelter room recipes.
+/// Default-room selector for the Mine/Shelter room recipes.
 enum {
     MAP_SHELTER_ROOM_TASK_AREA_DEFAULT = 0,
 };

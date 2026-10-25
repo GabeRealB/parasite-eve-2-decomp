@@ -95,8 +95,6 @@ enum {
 /// One game-coordinate unit in the approach vectors' signed 16.16 velocity.
 enum { ACTOR_335800_WALK_VELOCITY_ONE = 0x10000 };
 
-/// Execution priority shared by the body, attached-part and scene spawn recipes.
-
 /// Balcony Z ranges, placement-table entries and ordinary views used by the scenes.
 enum {
     ACTOR_335800_BALCONY_LOW_SCENE_Z         = 1001,

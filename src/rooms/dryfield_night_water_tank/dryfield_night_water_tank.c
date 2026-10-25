@@ -154,7 +154,7 @@ static TaskMessageEntry _gDryfieldNightWaterTankRoomMessages[5] = {
 
 /// Bodyless battle-aftermath controller recipe for placement variant 10.
 ///
-/// Entry 0 runs at priority 32; TASK_DESC_END follows. Spawning consumes the
+/// Entry 0 runs at priority `TASK_PRIORITY_SCENE`; TASK_DESC_END follows. Spawning consumes the
 /// descriptor synchronously, and the callback stays loaded through teardown.
 static TaskDesc _gDryfieldNightWaterTankBattleAftermathTasks[2] = {
     { .header = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, .callback = _dryfieldNightWaterTankBattleAftermathTask, .data = { .value = 0 } },

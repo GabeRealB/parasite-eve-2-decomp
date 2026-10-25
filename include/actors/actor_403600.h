@@ -11,7 +11,7 @@
 /// Enemy task descriptors for this package (0 boss, 1 translucent double, 2 scene figure).
 ///
 /// The rooms load actor_403600 for resource 36 and borrow this table while the
-/// overlay is live. All three entries attach TMD models at priority 96; the
+/// overlay is live. All three entries attach TMD models at priority `TASK_PRIORITY_ACTOR`; the
 /// boss and scene figure defer automatic primitive-buffer allocation.
 extern TaskDesc gActor403600TaskTable[3];
 

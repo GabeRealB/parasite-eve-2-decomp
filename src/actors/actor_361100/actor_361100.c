@@ -138,8 +138,6 @@ enum {
     ACTOR_361100_SHAKE_TASK_INDEX    = 1,
 };
 
-/// Execution priority of the package's water, control and scripted model tasks.
-
 /// Player clip indices: scene pointers extend the equipped bank after its base sets.
 ///
 /// The initial bank word is retained in the authored requests; event playback

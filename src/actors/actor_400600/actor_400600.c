@@ -628,8 +628,6 @@ static TaskMessageEntry _gActor400600MessageHandlers[3] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// Execution priority of the Stalker body and its separately drawn arms.
-
 /// Attached-arm model spawn recipes, indexed 0 left and 1 right.
 ///
 /// The parent supplies transforms, textures and lighting after each spawn,

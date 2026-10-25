@@ -140,7 +140,7 @@ enum {
 
 /// Bodyless staged motel-scene recipe, using the room's latched event and destination.
 ///
-/// Priority 32; spawn payloads and metadata are unused. Spawn reads the recipe
+/// Priority `TASK_PRIORITY_SCENE`; spawn payloads and metadata are unused. Spawn reads the recipe
 /// synchronously, and the callback and singleton snapshots stay live through reload.
 static TaskDesc _gMainStreetStagedSceneTaskDescriptor = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventStagedTask, { .value = 0 } };
 
@@ -228,7 +228,7 @@ static AnimationSet _gDryfieldMainStreetAnimation03F84 = {
 
 /// Bodyless first-visit scene helpers: slot 0 turns the player, slot 1 aims their head.
 ///
-/// Both run at priority 192 and borrow the live player and placement-zero actor.
+/// Both run at priority `TASK_PRIORITY_CONTROL` and borrow the live player and placement-zero actor.
 /// Only slot 1 is spawned here; the descriptor is read synchronously at spawn.
 static TaskDesc _gDryfieldMainStreetCutsceneTaskDescriptors[2] = {
     { .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } },

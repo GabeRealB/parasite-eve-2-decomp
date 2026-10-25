@@ -198,8 +198,6 @@ enum {
     MAP_DRYFIELD_MARKER_FLAG_BASE = 0x1CE,
 };
 
-/// Priority of each bodyless default room task, including the ending descriptor.
-
 /// Page value closing this map's marker and icon lists.
 enum { MAP_DRYFIELD_MAP_LIST_END_PAGE = 0 };
 

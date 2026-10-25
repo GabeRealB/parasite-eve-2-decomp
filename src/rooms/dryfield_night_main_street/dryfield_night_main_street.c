@@ -156,7 +156,7 @@ static WorldCoordRoomLights       _gDryfieldNightMainStreetRoomLights;
 
 /// Bodyless staged motel-scene recipe, using the room's latched event and destination.
 ///
-/// Priority 32; spawn payloads and metadata are unused. Spawn reads the recipe
+/// Priority `TASK_PRIORITY_SCENE`; spawn payloads and metadata are unused. Spawn reads the recipe
 /// synchronously, and the callback and singleton snapshots stay live through reload.
 static TaskDesc _gMainStreetStagedSceneTaskDescriptor = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventStagedTask, { .value = 0 } };
 

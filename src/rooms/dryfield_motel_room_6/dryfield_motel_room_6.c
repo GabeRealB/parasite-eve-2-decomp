@@ -136,10 +136,6 @@ enum { DRYFIELD_MOTEL_ROOM_6_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 #include "../../shared/room/planar_reflection_data.inc.c"
 
-/// Execution priority shared by this carrier's two reflection recipes.
-
-/// Execution priority of this room's bodyless actor-event runner.
-
 TaskDesc gDryfieldMotelRoom6ReflectionTaskDescs[2] = {
     { { { TASK_BODY_NONE, TASK_PRIORITY_EFFECT } }, dryfieldMotelRoom6PlayerReflectionTask, { .value = 0 } },
     { { { TASK_BODY_NONE, TASK_PRIORITY_EFFECT } }, _planarReflectionAttachmentTask, { .value = 0 } },
@@ -183,7 +179,7 @@ static TaskMessageEntry _gDryfieldMotelRoom6MessageTable[6] = {
 
 /// Bodyless actor-event runner recipe, followed by TASK_DESC_END.
 ///
-/// Entry 0 runs at priority 32 with unused spawn arguments. The action-zero
+/// Entry 0 runs at priority `TASK_PRIORITY_SCENE` with unused spawn arguments. The action-zero
 /// receiver spawns it once, after latching progress. Spawning copies the recipe;
 /// keep this room and actor_120500 loaded until the event's stop handshake ends.
 static TaskDesc _gDryfieldMotelRoom6ActorEventTaskDescs[2] = {

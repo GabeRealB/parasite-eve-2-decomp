@@ -47,7 +47,7 @@ extern WorldCollisionTrigger gNeoArkIslandActionTriggers[3];
 /// controller borrows this table; keep the overlay loaded while it receives messages.
 extern TaskMessageEntry gNeoArkIslandRoomMessages[6];
 
-/// Bodyless gallery-departure prompt recipe, priority 32 and zero metadata.
+/// Bodyless gallery-departure prompt recipe, priority `TASK_PRIORITY_SCENE` and zero metadata.
 ///
 /// One descriptor with no terminator. Spawn at index 0 with zero arguments
 /// after staging a destination and holding player control. The prompt borrows

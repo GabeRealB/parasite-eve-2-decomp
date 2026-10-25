@@ -28,7 +28,7 @@ enum {
 /// Bodyless controllers for playing the room movie and entering Neo Ark's observatory.
 ///
 /// Slot 0 starts the movie and then reloads the destination; slot 1 owns movie
-/// presentation and restoration. Both start in state 0 at priority 192 and use
+/// presentation and restoration. Both start in state 0 at priority `TASK_PRIORITY_CONTROL` and use
 /// neither descriptor data nor spawn payloads. Spawning copies the descriptor;
 /// keep this overlay and the movie resources loaded until the tasks finish.
 extern TaskDesc gShelterR49ObservatoryTransitionTasks[SHELTER_R49_OBSERVATORY_TASK_COUNT];

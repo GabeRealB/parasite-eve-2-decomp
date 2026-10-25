@@ -55,7 +55,7 @@ extern DirectionWarpEntry gDryfieldFactoryWarpEntries[3];
 ///
 /// Slots 0..7 create the power, lamp, barrier-dialogue, barrier-transition,
 /// lift-model, barrier-collision, hatch-scene and hatch-model tasks. All run at
-/// priority 192; scene spawns carry CAP commands in spawnArg1, the lift borrows
+/// priority `TASK_PRIORITY_CONTROL`; scene spawns carry CAP commands in spawnArg1, the lift borrows
 /// the panel-task slot in spawnArg2, and the hatch borrows its lift parent there.
 /// Runtime selection may reach this table from either compiled factory room;
 /// its callbacks and borrowed TMD sources require the daytime overlay loaded.

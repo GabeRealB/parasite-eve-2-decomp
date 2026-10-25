@@ -77,8 +77,6 @@ static TaskMessageEntry _gShelterB1SleepingQuartersRoomMessages[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// Scheduler priority byte of the bodyless scene task.
-
 /// Bodyless task recipe for alternate-resource CAP playback and control restoration.
 ///
 /// A single priority-192 descriptor, spawned at index 0. The first argument

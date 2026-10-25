@@ -113,7 +113,7 @@ enum {
     DRYFIELD_GENERAL_STORE_STAGED_BLOOD_SUCKLER_ENTRY = 140,
 };
 
-/// Execution priority shared by the encounter cue and retained drop-in recipes.
+/// Frames the encounter script waits after the actors' entrance before the battle starts.
 enum {
     DRYFIELD_GENERAL_STORE_ENTRANCE_WAIT_FRAMES = 70,
 };
@@ -128,7 +128,7 @@ static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE 
 
 /// General Store prompt recipes: flag toggle at slot 0, underpass departure at slot 1.
 ///
-/// Both are bodyless at priority 32; slot 2 is a task-bank end marker. Toggle
+/// Both are bodyless at priority `TASK_PRIORITY_SCENE`; slot 2 is a task-bank end marker. Toggle
 /// payloads are a flag index and CAP command, while departure payloads are unused.
 /// Spawn reads these recipes synchronously; callbacks and latched state stay loaded.
 static TaskDesc _gGeneralStoreTaskDescriptors[3] = {
@@ -186,7 +186,7 @@ static AnimationSet _gDryfieldGeneralStoreAnimation00ED8 = {
 
 /// Bodyless recipe for the encounter sound cue and its timed wait.
 ///
-/// Priority 192, no owned body, unused metadata and ignored spawn payloads.
+/// Priority `TASK_PRIORITY_CONTROL`, no owned body, unused metadata and ignored spawn payloads.
 /// Spawning reads the recipe synchronously; actor/player resources and callback
 /// code must remain live through the spawned task.
 /// Direction action 1 starts it once before the encounter script.
@@ -198,7 +198,7 @@ static TaskDesc _gDryfieldGeneralStoreSceneCueTaskDesc = {
 
 /// Retained bodyless recipe for the staged actor drop-in and player hold.
 ///
-/// Priority 192, no owned body, unused metadata and ignored spawn payloads.
+/// Priority `TASK_PRIORITY_CONTROL`, no owned body, unused metadata and ignored spawn payloads.
 /// Spawning reads the recipe synchronously; actor/player resources and callback
 /// code must remain live through the spawned task.
 /// No C, assembly or import consumer of this retained recipe is established.

@@ -456,8 +456,6 @@ static EvsCommand _gActor342000IncineratorSkipScript[19] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-/// Execution priority shared by the incinerator event's controller and children.
-
 TaskDesc gActor342000IncineratorEventTaskDescs[ACTOR_342000_EVENT_TASK_COUNT] = {
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor342000IncineratorEventTask, { .value = 0 } },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor342000FadeInTask, { .value = 0 } },

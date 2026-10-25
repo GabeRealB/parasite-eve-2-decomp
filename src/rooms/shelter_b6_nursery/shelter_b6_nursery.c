@@ -177,8 +177,6 @@ static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-/// Execution priority of the nursery's bodyless positional sound task.
-
 /// Single spawn recipe for nursery ambience, with no body or resource payload.
 ///
 /// Only index zero is valid; this is not a terminated descriptor list. Spawning

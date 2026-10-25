@@ -63,8 +63,6 @@ enum {
                               (GENERATOR_KIND == GENERATOR_BETA ? GENERATOR_BETA_COLLISION_BODY_ID : GENERATOR_PROTO_COLLISION_BODY_ID)
 };
 
-/// Execution-list priority shared by the generator body and Life Support part.
-
 /// State indices of the body and Life Support task dispatchers.
 enum {
     GENERATOR_TASK_SPAWN    = 0,

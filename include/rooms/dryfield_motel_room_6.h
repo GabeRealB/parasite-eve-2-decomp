@@ -13,7 +13,7 @@
 
 /// Player and held-model reflection recipes for daytime motel room 6.
 ///
-/// Slots 0 and 1 are bodyless tasks at priority 112, without a terminator.
+/// Slots 0 and 1 are bodyless tasks at priority `TASK_PRIORITY_EFFECT`, without a terminator.
 /// Player spawnArg1.value = 1 selects the room mirror plane; attachment
 /// spawnArg2.pointer borrows the player reflection task. Spawning copies
 /// the descriptor; its callbacks and borrowed geometry must remain loaded.

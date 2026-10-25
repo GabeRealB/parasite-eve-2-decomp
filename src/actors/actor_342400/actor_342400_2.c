@@ -242,13 +242,13 @@ TaskDesc gActor342400MadChaserTaskDescs[2] = {
 
 /// Unreferenced coordinate-body recipe that kills its task on its first callback.
 ///
-/// Priority 96; the spawn code ignores data for coordinate bodies. No current
+/// Priority `TASK_PRIORITY_ACTOR`; the spawn code ignores data for coordinate bodies. No current
 /// consumer selects this recipe, and its intended placement role is unproven.
 static TaskDesc _gActor342400CoordKillTaskDesc = { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, taskKill, { .value = 0 } };
 
 /// Unreferenced scripted Mad Chaser recipe with automatic model buffers enabled.
 ///
-/// Creates the nine-part model at priority 96 and waits for emergence, using
+/// Creates the nine-part model at priority `TASK_PRIORITY_ACTOR` and waits for emergence, using
 /// a live Enemy in spawnArg2. No current consumer selects this recipe; its
 /// intended placement role and relationship to the exported table are unproven.
 static TaskDesc _gActor342400MadChaserBufferedHiddenTaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _madChaserHiddenTask, { .model = &gChaserMadBody } };

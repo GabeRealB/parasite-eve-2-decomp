@@ -73,8 +73,6 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
-/// Ascending execution priority of the gate's bodyless transition task.
-
 #ifndef ROOM_EVENT_TASK_DESC
 /// Selects the room-owned descriptor for the gate's deferred transition task.
 ///

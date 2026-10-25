@@ -57,8 +57,6 @@ static void _screenFadeOutTask(Task* task);
 /// Gary Douglas's texture resource in the garage area-placement table.
 enum { ACTOR_120300_TEXTURE_RESOURCE_ENTRY_ID = 0x6A };
 
-/// Execution priority shared by all five task recipes.
-
 /// Fade-in duration for the current area's music, in gameplay ticks.
 enum { ACTOR_120300_AREA_MUSIC_FADE_TICKS = 10 };
 

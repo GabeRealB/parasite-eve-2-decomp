@@ -2444,8 +2444,6 @@ static TmdSource _gGluttonLimb;
 extern TmdSource gGluttonActor403200Model18BE4;
 static TmdSource _gActor444000GluttonEscort6ModelSource;
 
-/// Execution priority shared by the host and its attached-part recipes.
-
 /// Recipes indexed by the host's seven attached-part slots.
 ///
 /// Slots 0/1 are the animated right/left legs; 2..5 are additional attached

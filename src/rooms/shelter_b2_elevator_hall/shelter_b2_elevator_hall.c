@@ -110,11 +110,9 @@ enum { SHELTER_B2_ELEVATOR_HALL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 /// live through the deferred transition.
 static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, roomEventTask, { .value = 0 } };
 
-/// Scheduler priority for the hall's bodyless elevator-selection task.
-
 /// Spawns the hall's elevator floor-selection and ride-wait task at index zero.
 ///
-/// Bodyless, priority 32, with no descriptor terminator. The first spawn word
+/// Bodyless, priority `TASK_PRIORITY_SCENE`, with no descriptor terminator. The first spawn word
 /// is the resolved sound-script ID to wait for; the second is unused. Requires
 /// the hall's floor-selection CAP command and loaded map/session resources.
 /// Spawning reads this recipe synchronously; its callback must remain loaded

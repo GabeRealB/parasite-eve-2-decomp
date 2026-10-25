@@ -152,8 +152,6 @@ enum {
     SHELTER_B2_MAIN_CORRIDOR_FLARE_RADIUS_SCALE   = 0x300,
 };
 
-/// Execution priorities of the corridor's bodyless event and water tasks.
-
 /// Departure-task recipe following four zero bytes of unproven role.
 ///
 /// Only `desc` is passed to spawning, at index zero after the resolved

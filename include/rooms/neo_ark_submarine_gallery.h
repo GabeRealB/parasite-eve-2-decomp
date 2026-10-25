@@ -68,7 +68,7 @@ extern const AreaApplyRec gNeoArkSubmarineGallerySeaDiverDefeatAreaUpdates[4];
 
 /// Bodyless water-refraction and band-distortion recipes, in slots 0 and 1.
 ///
-/// Both have execution priority 192 and receive zero payload words. Gameplay
+/// Both have execution priority `TASK_PRIORITY_CONTROL` and receive zero payload words. Gameplay
 /// starts both for this room; their callbacks borrow the loaded room's drawing
 /// resources. This is an indexed two-entry table with no terminator.
 extern TaskDesc gNeoArkSubmarineGalleryWaterTaskDescriptors[2];

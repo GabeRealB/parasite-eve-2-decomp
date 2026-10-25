@@ -220,7 +220,7 @@ static TaskMessageEntry _gShelterB2LaboratoryRoomMessages[6] = {
 /// loaded until it is cleared. Spawn failure is not handled by the waiter.
 static Task* _gShelterB2LaboratoryKeypadTask = NULL;
 
-/// Descriptor indices and execution priority for laboratory background tasks.
+/// Descriptor indices of the laboratory's background tasks.
 enum {
     SHELTER_B2_LABORATORY_TASK_CONSOLE_KEYPAD       = 0,
     SHELTER_B2_LABORATORY_TASK_AMBIENCE             = 1,
@@ -230,7 +230,7 @@ enum {
 
 /// Spawn recipes for the console keypad waiter, ambience and post-scene follow-up.
 ///
-/// Three bodyless tasks at priority 32, with unused spawn payloads and models.
+/// Three bodyless tasks at priority `TASK_PRIORITY_SCENE`, with unused spawn payloads and models.
 /// No end marker: callers select only the named descriptor indices. Spawning
 /// copies the recipe; this overlay's callback code must outlive each task.
 static TaskDesc _gShelterB2LaboratoryTaskDescriptors[SHELTER_B2_LABORATORY_TASK_COUNT] = {

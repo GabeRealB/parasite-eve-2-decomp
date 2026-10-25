@@ -68,8 +68,6 @@ static TaskMessageEntry _gShelterB2BreedingRoomMessages[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// Scheduler priority byte of the bodyless scene task.
-
 /// Bodyless watcher restoring CAP and player control after first-entry playback.
 ///
 /// A single priority-32 descriptor, spawned at index 0 with zero payloads

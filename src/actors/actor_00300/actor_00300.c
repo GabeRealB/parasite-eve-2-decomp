@@ -433,8 +433,6 @@ enum {
 /// Zero in the fireball draw table skips the attack after its MP cost is paid.
 enum { ACTOR_00300_FIREBALL_NO_ATTACK = 0 };
 
-/// Execution priority shared by the enemy, drain attachment and fireball.
-
 /// Collision attacks: drain with silence, then poison, paralysis and darkness fireballs.
 ///
 /// Rows are `ACTOR_00300_ATTACK_*`; powers precede the player's HP-band damage scale.

@@ -766,7 +766,7 @@ static UiObjectDesc _gMapAkropolisKeyItemPanelDescriptor = {
 
 /// Bodyless display-mode host for the briefing's key-item UI tree.
 ///
-/// Runs at priority 192; spawning copies this map-owned recipe.
+/// Runs at priority `TASK_PRIORITY_CONTROL`; spawning copies this map-owned recipe.
 static TaskDesc _gMapAkropolisKeyItemMenuTaskDescriptor = {
     .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } },
     .callback = _mapAkropolisKeyItemMenuTask,

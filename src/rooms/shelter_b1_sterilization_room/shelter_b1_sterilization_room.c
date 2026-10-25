@@ -117,8 +117,6 @@ enum {
 /// Door room actions 3..10 map to zero-based destination entries 0..7.
 enum { SHELTER_B1_STERILIZATION_ROOM_FIRST_DOOR_ACTION = 3 };
 
-/// Priority of the room's bodyless event and presentation tasks.
-
 /// Actor 0's command word for latching its smoking behavior.
 enum { SHELTER_B1_STERILIZATION_ROOM_ACTOR_START_SMOKING = 1 };
 

@@ -75,8 +75,6 @@ enum {
     SHELTER_B1_ELEVATOR_HALL_SURFACE2_RUN_CUE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5F,
 };
 
-/// Priority shared by the two bodyless departure controllers.
-
 /// One-based endpoint IDs used by the warp table and the action triggers.
 enum {
     SHELTER_B1_ELEVATOR_HALL_WARP_MINE_PASSAGE  = 1,

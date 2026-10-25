@@ -564,8 +564,6 @@ static TaskMessageEntry _gActor400500RoomCommandMessages[2] = {
 /// The table and its clip records remain live for the rig's entire lifetime.
 #include "assets/enemies/stalker/gray/bank.inc"
 
-/// Execution priority shared by the Stalker's body and attached strike-arm tasks.
-
 /// Attached strike-arm spawn recipes, indexed by `ACTOR_400500_ARM_LEFT/RIGHT`.
 ///
 /// Each creates an owned TMD body from borrowed package geometry at priority 96.

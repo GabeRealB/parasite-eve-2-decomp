@@ -145,7 +145,7 @@ static Task* _gActor461800SceneDistortionTask = NULL;
 
 /// Bodyless scene-effect recipes: fade at index 0, distortion at index 1.
 ///
-/// Both run at priority 32 with unused spawn arguments; there is no terminator.
+/// Both run at priority `TASK_PRIORITY_SCENE` with unused spawn arguments; there is no terminator.
 static TaskDesc _gActor461800SceneEffectTasks[2] = {
     { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _actor461800SceneFadeTask, { .value = 0 } },
     { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _actor461800SceneDistortionTask, { .value = 0 } },

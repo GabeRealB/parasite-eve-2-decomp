@@ -115,8 +115,6 @@ enum {
     SHELTER_R47_MAP_STATE_FADE_OUT       = 10,
 };
 
-/// Scheduling priority shared by the terminal and its separately spawned cursor.
-
 /// Room-bank sounds of the sole warp endpoint.
 enum {
     SHELTER_R47_WARP_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 0xB),

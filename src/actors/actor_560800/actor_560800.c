@@ -4253,7 +4253,7 @@ static TaskMessageEntry _gActor560800CarrierMessages[3] = {
 
 /// Task recipes for the cutscene's chain group, chains and carrier.
 ///
-/// Four entries without a terminator, at priority 192: 0 coordinate-body group,
+/// Four entries without a terminator, at priority `TASK_PRIORITY_CONTROL`: 0 coordinate-body group,
 /// 1 intact chain, 2 carrier, 3 falling chain copy. The group and carrier borrow
 /// the cutscene Task* in spawnArg2. Chains borrow their coordinate-body group
 /// in spawnArg2 and use spawnArg1 = 1..8 as their number. A falling copy receives

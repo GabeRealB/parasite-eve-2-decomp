@@ -138,7 +138,7 @@ extern s32 gMapNeoArkCompanionDistressTicks;
 ///
 /// The 33 live records use `OBJECT_TASK_ROOM_LOCATION_KEY(stage, area, 0)`, supplying an area
 /// default for every room. Records are searched in stored order, not indexed
-/// by area ID. Tasks have no body and priority 32; the final `TASK_DESC_END` record
+/// by area ID. Tasks have no body and priority `TASK_PRIORITY_SCENE`; the final `TASK_DESC_END` record
 /// is never spawned. Keep the map and selected room overlays loaded through
 /// selection; the room's callback must remain loaded throughout its task.
 extern TaskDesc gMapNeoArkRoomTaskDescriptors[MAP_NEO_ARK_AREA_ID_LIMIT + 1];

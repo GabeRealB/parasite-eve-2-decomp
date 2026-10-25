@@ -827,7 +827,7 @@ static EvsCommand _gShelterB3DumpingHoleDebrisEventSkipScript[14] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-/// Execution priority and direct sprite-recipe indices for the debris event's effects.
+/// Direct sprite-recipe indices of the debris event's effects.
 enum {
     SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITE_TASK_INDEX = 0,
     SHELTER_B3_DUMPING_HOLE_ACTOR_SPRITE_TASK_INDEX  = 1,

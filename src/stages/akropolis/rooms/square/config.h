@@ -104,8 +104,6 @@ enum {
     AKROPOLIS_SQUARE_CUTSCENE_TASK_ENTRY  = 0, // In the room cutscene table
 };
 
-/// Scheduler priorities of the square's tasks.
-
 /// Player reflections: their task and its two modes.
 enum {
     AKROPOLIS_SQUARE_REFLECTION_TASK_BANK = 1,

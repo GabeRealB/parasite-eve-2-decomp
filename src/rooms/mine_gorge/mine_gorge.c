@@ -94,7 +94,7 @@ static TaskMessageEntry _gMineGorgeRoomMessageTable[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// Bodyless oak-board cutscene task at priority 32, followed by the table end.
+/// Bodyless oak-board cutscene task at priority `TASK_PRIORITY_SCENE`, followed by the table end.
 ///
 /// The default-list spawner reads entry zero synchronously. The task uses no
 /// descriptor metadata or spawn payload and releases itself on its second tick.

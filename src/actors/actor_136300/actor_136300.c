@@ -104,12 +104,10 @@ static void _actor136300PlayCompanionDialogueAnimation(void);
 static void _actor136300QueueStageExitCountdown(s32 countdownTicks);
 static void _actor136300SelectSceneCaptions(s32 restoreDefaults);
 
-/// Scheduler priorities of the screen effect and this package's task recipes.
-
 /// Workless screen-wave task recipe, followed by the descriptor terminator.
 ///
 /// Entry 0 borrows the package's persistent ramp context through its final draw.
-/// It runs at priority 192 and uses the package's singleton wave storage.
+/// It runs at priority `TASK_PRIORITY_CONTROL` and uses the package's singleton wave storage.
 static TaskDesc _gActor136300ScreenWaveTaskTable[] = {
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _screenWaveTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },

@@ -5,7 +5,7 @@
 
 /// Aya/Kyle cutscene spawn recipes used by the pod service gantry.
 ///
-/// Eight live entries, without a terminator, all at priority 192: 0 cutscene,
+/// Eight live entries, without a terminator, all at priority `TASK_PRIORITY_CONTROL`: 0 cutscene,
 /// 1 reveal fade, 2 darkening fade, 3 Kyle body, 4 handgun, 5 gun hand,
 /// 6 free hand, 7 light quad. Entry 0 takes unused spawn arguments. Fades use
 /// argument 1's low unsigned halfword as intensity units per update. Models

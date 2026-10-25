@@ -438,8 +438,6 @@ static EvsCommand _gActor341900GluttonEntranceSkipScript[20] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-/// Execution priority of the entrance controller and all its display tasks.
-
 TaskDesc gActor341900GluttonEntranceTaskDescs[ACTOR_341900_ENTRANCE_TASK_COUNT] = {
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor341900EventTask, { .value = 0 } },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _actor341900FadeInTask, { .value = 0 } },

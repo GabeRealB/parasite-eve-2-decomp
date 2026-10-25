@@ -9,8 +9,6 @@
 
 #include "overlay.h"
 
-/// Execution priority of this package's controller, parts and stationary body.
-
 extern TmdSource gEveMaskedBody;
 
 /// Borrowed context of this renderer's active wave task.

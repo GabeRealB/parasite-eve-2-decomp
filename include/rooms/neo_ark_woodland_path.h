@@ -14,7 +14,7 @@
 
 /// Spawn recipe for the woodland path's water-plane refraction task.
 ///
-/// Creates a no-body task at priority 192 with zero descriptor metadata.
+/// Creates a no-body task at priority `TASK_PRIORITY_CONTROL` with zero descriptor metadata.
 /// Gameplay starts it on room entry; it draws water in logical views 6 and 7
 /// at world Y=140. The room overlay must stay loaded while the task runs.
 extern TaskDesc gNeoArkWoodlandPathWaterRefractionTaskDesc;

@@ -30,7 +30,7 @@ enum {
     ITEM_MENU_NOTICE_ITEM_COLOR_RGB  = 0x037A78
 };
 
-/// Task priority and untitled panel style used by these item-menu recipes.
+/// Untitled panel style used by these item-menu recipes.
 enum {
     ITEM_MENU_HOTSPOT_PANEL_STYLE = 3
 };

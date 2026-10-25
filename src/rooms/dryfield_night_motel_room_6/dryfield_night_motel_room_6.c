@@ -129,8 +129,6 @@ enum { DRYFIELD_NIGHT_MOTEL_ROOM_6_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 #include "../../shared/room/planar_reflection_data.inc.c"
 
-/// Execution priorities for this room's reflection and rest recipes.
-
 TaskDesc gDryfieldNightMotelRoom6ReflectionTaskDescs[2] = {
     { { { TASK_BODY_NONE, TASK_PRIORITY_EFFECT } }, dryfieldNightMotelRoom6PlayerReflectionTask, { .value = 0 } },
     { { { TASK_BODY_NONE, TASK_PRIORITY_EFFECT } }, _planarReflectionAttachmentTask, { .value = 0 } },

@@ -52,8 +52,6 @@
 #include "../../shared/actor/player_detection.h"
 #include "../../shared/creatures/golem/golem_pawn_rook.h"
 
-/// Execution priority shared by the Pawn body and attached sword descriptors.
-
 /// Area sound selector that suppresses the group-10 file request and animation cues.
 enum { ACTOR_02000_SOUND_SET_NONE = 0 };
 

@@ -5,7 +5,7 @@
 
 #include "rooms/room.h"
 
-/// Two bodyless arrival-cutscene recipes at priority 192, without an end record.
+/// Two bodyless arrival-cutscene recipes at priority `TASK_PRIORITY_CONTROL`, without an end record.
 ///
 /// Entry 0 starts the in-room controller with ignored spawn arguments; entry 1
 /// starts its fade-in using the unsigned low halfword of spawnArg1 as intensity
@@ -13,7 +13,7 @@
 /// callbacks and borrowed scene resources loaded until exit.
 extern TaskDesc gDryfieldGasStationArrivalCutsceneTaskDescs[2];
 
-/// Bodyless warp-1 arrival recipes at priority 192, without an end record.
+/// Bodyless warp-1 arrival recipes at priority `TASK_PRIORITY_CONTROL`, without an end record.
 ///
 /// Entry 0 owns the movie/cutscene sequence; entry 1 runs the arrival movie on
 /// the display list; both ignore initial spawn arguments. Entry 2 removes

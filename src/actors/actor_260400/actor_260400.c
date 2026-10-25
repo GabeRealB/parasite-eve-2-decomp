@@ -108,8 +108,6 @@ extern AnimationSet gAyaOnMyWayClip;
 /// Player-pose transition duration in whole normal-rate animation frames.
 enum { ACTOR_260400_PLAYER_BLEND_FRAMES = 8 };
 
-/// Execution priority shared by the wounded Rupert body and its revolver.
-
 /// Commands granting or revoking the scripted walker's Mongoose draw permission.
 enum { ACTOR_260400_COMMAND_ENABLE_MONGOOSE  = 1,
        ACTOR_260400_COMMAND_DISABLE_MONGOOSE = 2 };

@@ -73,7 +73,7 @@ s16 gShelterB4LowerSewerWaterY = -1700;
 
 /// Bodyless water-surface task recipe started after the reservoir event.
 ///
-/// Runs at priority 96 with zero spawn arguments. State 0 prepares a borrowed
+/// Runs at priority `TASK_PRIORITY_ACTOR` with zero spawn arguments. State 0 prepares a borrowed
 /// actor-load buffer; state 1 draws the surfaces. Keep the room and buffer
 /// live through drawing and GPU consumption; this single recipe has no END.
 static TaskDesc _gShelterB4LowerSewerWaterTaskDesc = {

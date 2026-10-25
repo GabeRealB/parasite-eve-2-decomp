@@ -20,7 +20,7 @@ extern TaskDesc gActor460200SoldierATaskDesc;
 /// payload, leaving him unarmed. A nonzero first payload creates descriptor 1
 /// as his child, attached to body part 7 and borrowing the body's lighting.
 /// Spawn the body through the enemy spawner, which supplies its live Enemy in
-/// the second payload. Both entries use priority 96 and suppress automatic
+/// the second payload. Both entries use priority `TASK_PRIORITY_ACTOR` and suppress automatic
 /// model buffers. Keep this package's code, models and clips loaded until the
 /// tasks are released. The two-entry table has no terminator.
 extern TaskDesc gActor460200SoldierBTasks[2];

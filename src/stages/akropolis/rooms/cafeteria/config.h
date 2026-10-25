@@ -65,7 +65,7 @@ enum { AKROPOLIS_CAFETERIA_FOLLOW_UP_SCENE_EVENT = 4 };
 // ---------------------------------------------------------------------------
 // Tasks, messages and actors
 
-/// Entries of the scene task table, and the scene and movie tasks' scheduler priorities.
+/// Entries of the scene task table.
 enum {
     AKROPOLIS_CAFETERIA_BATTLE_TASK_ENTRY    = 0,
     AKROPOLIS_CAFETERIA_FOLLOW_UP_TASK_ENTRY = 1,

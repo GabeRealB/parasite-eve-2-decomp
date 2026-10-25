@@ -7,7 +7,7 @@
 
 /// Task descriptor for the Shelter B3 dumping-hole Glutton host.
 ///
-/// A single TMD-body task at priority 96 owns the host model, combat work and
+/// A single TMD-body task at priority `TASK_PRIORITY_ACTOR` owns the host model, combat work and
 /// lifecycle dispatcher. Room resource rows borrow this descriptor from
 /// actor_403200 after loading its package.
 extern TaskDesc gActor403200GluttonHostTaskDesc;

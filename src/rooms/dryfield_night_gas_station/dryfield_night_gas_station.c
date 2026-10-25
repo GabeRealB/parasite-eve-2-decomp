@@ -710,11 +710,9 @@ static void _dryfieldNightGasStationTrackRedStreakTask(Task* task);
 static void _dryfieldNightGasStationSpriteFlickerTask(Task* task);
 static void _dryfieldNightGasStationCompanionRedStreakTask(Task* task);
 
-/// Authored execution priority shared by the four room-local cutscene tasks.
-
 /// Indexed recipes for head aim toward the companion, track streak, sprite flicker and companion streak.
 ///
-/// Slots 0..3 have priority 192 and no terminator. Only the streaks allocate
+/// Slots 0..3 have priority `TASK_PRIORITY_CONTROL` and no terminator. Only the streaks allocate
 /// coordinate bodies. Spawning borrows a recipe synchronously; callbacks and
 /// the actor models or sprite resources they borrow must remain loaded.
 static TaskDesc _gDryfieldNightGasStationCutsceneTaskDescriptors[4] = {

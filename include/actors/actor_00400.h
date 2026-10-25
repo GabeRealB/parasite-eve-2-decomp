@@ -13,7 +13,7 @@ enum {
 
 /// Bog Diver spawn recipes: TMD body, coordinate-body shot and ground stain.
 ///
-/// All three have priority 96; the body has automatic model buffers. It receives
+/// All three have priority `TASK_PRIORITY_ACTOR`; the body has automatic model buffers. It receives
 /// a live Enemy in the second spawn payload; the first payload selects its
 /// placement behavior. Body initialization owns its work and may spawn the
 /// wounded-ground stain. The body spawns and initializes each shot's work;

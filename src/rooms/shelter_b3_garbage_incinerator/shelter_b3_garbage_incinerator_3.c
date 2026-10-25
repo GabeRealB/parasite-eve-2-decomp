@@ -101,7 +101,7 @@ typedef struct {
 } _ShelterB3GarbageIncineratorWallEdge;
 STATIC_ASSERT_SIZEOF(_ShelterB3GarbageIncineratorWallEdge, 8);
 
-/// Indices and byte priority of the room-owned bodyless resource recipes.
+/// Indices of the room-owned bodyless resource recipes.
 enum {
     SHELTER_B3_GARBAGE_INCINERATOR_RESOURCE_TASK_ENTRANCE = 0,
     SHELTER_B3_GARBAGE_INCINERATOR_RESOURCE_TASK_DISCARD  = 1,
@@ -2300,7 +2300,7 @@ AreaVariant gShelterB3GarbageIncineratorAreaVariants[13] = {
 /// Bodyless task recipes for the incinerator's Glutton entrance resources.
 ///
 /// Resource entry 103 selects the entrance controller at index 0; entry 44
-/// selects immediate teardown at index 1. Both run at byte priority 192
+/// selects immediate teardown at index 1. Both run at byte priority `TASK_PRIORITY_CONTROL`
 /// without an attached body. The two-entry table has no terminator and
 /// borrows this overlay's lifetime during area spawning.
 static TaskDesc _gShelterB3GarbageIncineratorResourceTaskDescs[SHELTER_B3_GARBAGE_INCINERATOR_RESOURCE_TASK_COUNT] = {

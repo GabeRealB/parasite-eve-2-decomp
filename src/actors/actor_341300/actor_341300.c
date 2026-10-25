@@ -122,8 +122,6 @@ static void _actor341300TexturedQuadsTask(Task* task);
 
 #include "assets/rooms/shelter/b2_north_maintenance_walkway/stinger_scene_clips.inc"
 
-/// Priority of the scene's temporary tasks and placed-resource exit recipe.
-
 /// Scene-local script choices; music durations count audio updates.
 enum {
     ACTOR_341300_SCENE_VIEW               = 4,

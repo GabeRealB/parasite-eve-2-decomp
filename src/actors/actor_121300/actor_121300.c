@@ -206,8 +206,6 @@ static void      _actor121300StageSceneAudioStart(void);
 static void      _actor121300QueueScenePlayback(void);
 static void      _actor121300FinishScene(void);
 
-/// Execution priority of the scene double and its effect children.
-
 /// Full-rate percentage used by debris gravity, translation and spin.
 enum { ACTOR_121300_DEBRIS_FULL_SPEED_PERCENT = 100 };
 

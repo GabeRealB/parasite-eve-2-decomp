@@ -31,7 +31,7 @@
 
 CapActionRequest gCapActionRequest;
 
-/// Descriptor priority and indexed animation defaults for CAP helper tasks.
+/// Indexed animation defaults for CAP helper tasks.
 enum {
     CAP_ANIMATION_BANK_PLACEHOLDER      = 1,
     CAP_WEAPON_EVENT_ENTRY_ANIMATION_ID = 32,

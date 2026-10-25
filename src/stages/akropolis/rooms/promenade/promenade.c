@@ -91,7 +91,7 @@ enum {
     AKROPOLIS_PROMENADE_BATTLE_FOLLOWUP_PENDING   = 2,
 };
 
-/// Fixed plane scheduling priority and roles of the glow group's position slots.
+/// Roles of the glow group's position slots.
 enum {
     AKROPOLIS_PROMENADE_GLOW_DISC_POSITION = 0,
     AKROPOLIS_PROMENADE_GLOW_FIRST_STAR    = 1,

@@ -14,7 +14,7 @@
 
 /// Bodyless movie launcher and display-controller recipes, in slots 0 and 1.
 ///
-/// Both run at priority 192 with zero spawn payloads. The launcher hands display
+/// Both run at priority `TASK_PRIORITY_CONTROL` with zero spawn payloads. The launcher hands display
 /// ownership to the controller; the controller plays the disc-selected movie
 /// and restores game presentation. Keep this overlay loaded through restoration.
 extern TaskDesc gDryfieldNightDilapidatedHouseMovieTaskDescriptors[2];
@@ -51,7 +51,7 @@ extern WorldCoordRoomAmbientEntry gDryfieldNightDilapidatedHouseAmbientByView[12
 
 /// Bodyless transition-task recipe shared by this overlay's gate and event task.
 ///
-/// Runs at priority 32 with zero spawn payloads and unused metadata. The gate
+/// Runs at priority `TASK_PRIORITY_SCENE` with zero spawn payloads and unused metadata. The gate
 /// reads the recipe synchronously after latching the request and destination;
 /// keep those snapshots and the room callback code live through session reload.
 extern TaskDesc gRoomEventTaskDesc;

@@ -132,8 +132,6 @@ static void                  _dryfieldGasStationRestorePlayerAndShow(void);
 /// Fade-in callback slot in the cutscene task descriptor table.
 enum { DRYFIELD_GAS_STATION_CUTSCENE_TASK_FADE_IN = 1 };
 
-/// Execution priority shared by the arrival, movie, cutscene and fade recipes.
-
 TaskDesc gDryfieldGasStationArrivalTaskDescs[3] = {
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, dryfieldGasStationArrivalTask, { .value = 0 } },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, dryfieldGasStationArrivalMovieTask, { .value = 0 } },

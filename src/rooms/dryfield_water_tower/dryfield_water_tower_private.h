@@ -10,7 +10,7 @@
 
 /// Prop-scene tasks: the driver, sliding prop and falling prop, in slots 0..2.
 ///
-/// All use priority 192; the props use TMD bodies and allocate their primitive
+/// All use priority `TASK_PRIORITY_CONTROL`; the props use TMD bodies and allocate their primitive
 /// buffers themselves. Slot 2 also spawns the free-falling copy with argument 1.
 /// No TASK_DESC_END is stored: callers must select a slot in 0..2. The room
 /// owns the recipes and models and must remain loaded through task teardown.
@@ -31,12 +31,12 @@ extern Task* gDryfieldWaterTowerActorSceneTask;
 
 /// Bodyless transition-task recipe shared by this overlay's gate and event task.
 ///
-/// Runs at priority 32 with zero spawn payloads and unused metadata. The gate
+/// Runs at priority `TASK_PRIORITY_SCENE` with zero spawn payloads and unused metadata. The gate
 /// reads the recipe synchronously after latching the request and destination;
 /// keep those snapshots and the room callback code live through session reload.
 extern TaskDesc gRoomEventTaskDesc;
 
-/// Bodyless mechanism-prompt task at priority 32, followed by TASK_DESC_END.
+/// Bodyless mechanism-prompt task at priority `TASK_PRIORITY_SCENE`, followed by TASK_DESC_END.
 ///
 /// CAP room command 7 spawns slot 0 with zero arguments. The room owns the
 /// descriptor and callback and must remain loaded until the prompt task ends.

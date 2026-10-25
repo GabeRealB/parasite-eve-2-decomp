@@ -39,14 +39,14 @@ extern TaskDesc gActor361100StreamWaterTaskDesc;
 
 /// Spawn recipe of the pod scene's nineteen-part tentacle, room resource 45.
 ///
-/// Runs at priority 192 with a TMD body and deferred primitive-buffer allocation.
+/// Runs at priority `TASK_PRIORITY_CONTROL` with a TMD body and deferred primitive-buffer allocation.
 /// The scene supplies a live Enemy in spawnArg2; the task owns its rig/work and
 /// borrows this package's model and animation data until teardown.
 extern TaskDesc gActor361100TentacleTaskDesc;
 
 /// Spawn recipe of Eve's nineteen-part scripted body, room resource 132.
 ///
-/// Runs at priority 192 with a TMD body and deferred primitive-buffer allocation.
+/// Runs at priority `TASK_PRIORITY_CONTROL` with a TMD body and deferred primitive-buffer allocation.
 /// The scene supplies a live Enemy in spawnArg2; the task owns its rig/work and
 /// borrows this package's model and animation data until teardown.
 extern TaskDesc gActor361100EveTaskDesc;

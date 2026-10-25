@@ -105,8 +105,6 @@ enum {
     SHELTER_B2_ELEVATOR_TASK_EXIT            = 2,
 };
 
-/// Execution-list priorities for the room's model leaves and exit controller.
-
 /// View slots used by the arrival endpoint and the two directed boundaries.
 enum {
     SHELTER_B2_ELEVATOR_ENTRY_VIEW = 2,

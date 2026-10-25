@@ -126,7 +126,7 @@ static WorldCoordRoomLights       _gDryfieldNightMotelLobbyRoomLights;
 static void _dryfieldNightMotelLobbyCashRegisterCursorTask(Task* task);
 static void _dryfieldNightMotelLobbyCashRegisterTask(Task* task);
 
-/// Execution priority and first command-menu row of the register's task recipes and keys.
+/// First command-menu row of the register's keys.
 enum {
     DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_PROMPT_EXAMINE = 0,
 };

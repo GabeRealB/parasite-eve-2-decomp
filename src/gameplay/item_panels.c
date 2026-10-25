@@ -285,7 +285,7 @@ static const UiObjectDesc _gItemPickupChildPanelDescs[ITEM_PICKUP_CHILD_PANEL_CO
     { .style = USER_INTERFACE_PANEL_TITLE_STYLE, .bounds = { -144, 32, 288, 48 }, .otIndexSeed = 44, .taskFlags = TASK_BODY_NONE, .taskPriority = 192, .contentCallback = _itemPickupInventoryFullTask },
 };
 
-/// Style and task priority seeds for the pickup's child panels.
+/// Style seed for the pickup's child panels.
 enum {
     ITEM_PICKUP_PREVIEW_PANEL_STYLE = 0,
 };
@@ -582,7 +582,7 @@ const char* const gItemMenuPeElementTitles[4] __attribute__((section(".data"))) 
     _gItemMenuPeEarthTitle,
 };
 
-/// Style selector and execution priority of the Item command panel recipe.
+/// Style selector of the Item command panel recipe.
 enum {
     ITEM_MENU_ITEM_COMMAND_PANEL_UNTITLED_STYLE = 3,
 };

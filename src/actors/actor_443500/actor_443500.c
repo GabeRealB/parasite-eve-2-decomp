@@ -56,8 +56,6 @@ enum {
 /// Tick of each pass of the default clip on which the clip's sound is started.
 enum { ACTOR_443500_PIERCE_CARRADINE_LOOP_SOUND_TICK = 15 };
 
-/// Execution priority of this package's actor and fade tasks.
-
 /// Pierce's playback bank, fallback clip and room placement index.
 ///
 /// The bank drives slots 1..19. His playback handler ignores the requests'

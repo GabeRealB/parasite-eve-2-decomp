@@ -375,8 +375,6 @@ static EnemyParams _gActor107600MountParams = {
     .critChance = 255,
 };
 
-/// Execution priority shared by the gallery mount and its carried target.
-
 TaskDesc gActor107600TaskDescriptors[ACTOR_107600_TASK_COUNT] = {
     { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600MountTask, { .model = &gMistShootingGalleryModel0A81C } },
     { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel093FC } },

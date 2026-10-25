@@ -40,7 +40,7 @@
 // The cutscene task applies the square's post-cutscene area updates when it runs in the square.
 #include "stages/akropolis/rooms/square.h"
 
-/// Indices and ascending execution priority of each carrier's bodyless cutscene tasks.
+/// Indices of each carrier's bodyless cutscene tasks.
 ///
 /// Only SCENE and SOUND can be spawned; the third descriptor terminates the list.
 enum {

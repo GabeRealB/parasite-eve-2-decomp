@@ -98,7 +98,7 @@ static void      _dryfieldWaterTankMovieTask(Task* task);
 static void      _dryfieldWaterTankSetEventCommand(s16 command);
 static void      _dryfieldWaterTankRestorePlayerAfterSkip(void);
 
-/// Timing, CAP slots and execution priorities of the room's placement and scene tables.
+/// Timing and CAP slots of the room's placement and scene tables.
 enum {
     DRYFIELD_WATER_TANK_PLACEMENT_STANCE_CLIP   = 1,
     DRYFIELD_WATER_TANK_PLACEMENT_FADE_FRAMES   = 32,

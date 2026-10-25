@@ -63,8 +63,6 @@ static WorldCollisionTrigger  _gShelterB2PodAccessTunnelRoom1ActionTriggers[3];
 static WorldCollisionTrigger  _gShelterB2PodAccessTunnelRoom2ActionTriggers[3];
 static WorldCoordRoomLights   _gShelterB2PodAccessTunnelLightCollection;
 
-/// Execution priority shared by the room's two departure-event tasks.
-
 TaskDesc gShelterB2PodAccessTunnelStagedEventTaskDesc = {
     .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_SCENE } },
     .callback = roomEventStagedTask,

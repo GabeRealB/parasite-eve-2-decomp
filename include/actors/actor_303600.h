@@ -80,7 +80,7 @@ extern TmdSource gActor303600Model02DD0;
 
 /// Shaft cutscene recipes: 0 scene controller, 1 white flash, 2 fade to white, 3 black cover.
 ///
-/// All four are bodyless tasks at priority 192, with no terminator. Controller
+/// All four are bodyless tasks at priority `TASK_PRIORITY_CONTROL`, with no terminator. Controller
 /// and cover arguments are unused. Fade argument 1 supplies unsigned-halfword
 /// intensity units per update, normally 4 or 8; argument 2 is unused. The Eve
 /// package loads actor_303600 before spawning entry 0 after its death sequence.

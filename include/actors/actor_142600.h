@@ -9,7 +9,7 @@
 ///
 /// The control room loads the package through this one-entry resource table,
 /// with no terminator. Its empty placement list spawns nothing. Entry 0 has
-/// priority 192 and retains a two-argument enemy destructor address, which is
+/// priority `TASK_PRIORITY_CONTROL` and retains a two-argument enemy destructor address, which is
 /// incompatible with task dispatch; it must not be spawned.
 extern TaskDesc gActor142600TaskDescriptors[1];
 

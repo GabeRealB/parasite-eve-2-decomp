@@ -224,7 +224,7 @@ static void                   _shelterB4ReservoirCancelEffects(void);
 
 /// Bodyless screen-wave recipe in slot 0, followed by TASK_DESC_END.
 ///
-/// Runs at priority 192 and borrows a ScreenWaveCtx through spawnArg2.
+/// Runs at priority `TASK_PRIORITY_CONTROL` and borrows a ScreenWaveCtx through spawnArg2.
 /// Only one wave may be active; its context and this carrier's code/storage
 /// must remain live through the final draw. The spawner copies the recipe.
 static TaskDesc _gScreenWaveTaskDescs[2] = {

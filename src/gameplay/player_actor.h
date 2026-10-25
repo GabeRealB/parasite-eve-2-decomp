@@ -43,7 +43,7 @@ extern u8 gCompanionVariantUsesTorsoPitch[8];
 
 /// Two bodyless player-hit visual tasks, selected by `EFFECT_PLAYER_BODY_HIT_*`.
 ///
-/// Blast is index 0 and puff index 1. Both run at priority 192; the table
+/// Blast is index 0 and puff index 1. Both run at priority `TASK_PRIORITY_CONTROL`; the table
 /// has exactly two descriptors and no sentinel.
 extern TaskDesc gEffectPlayerBodyHitTaskDescriptors[2];
 

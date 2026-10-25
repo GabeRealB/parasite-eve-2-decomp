@@ -137,8 +137,6 @@ STATIC_ASSERT(OFFSET_OF(_McCardFileHeader, title) == 4, mc_card_title_offset);
 STATIC_ASSERT(OFFSET_OF(_McCardFileHeader, iconClut) == 0x60, mc_card_clut_offset);
 STATIC_ASSERT(OFFSET_OF(_McCardFileHeader, iconPixels) == 0x80, mc_card_icons_offset);
 
-/// Scheduling priority of memory-card dialog and file-list content tasks.
-
 /// Backing extent of each mutable filename, including three retained bytes after NUL.
 enum { MEMORY_CARD_FILENAME_BUFFER_BYTES = 24 };
 

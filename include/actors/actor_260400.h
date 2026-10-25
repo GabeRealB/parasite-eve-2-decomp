@@ -5,7 +5,7 @@
 
 /// Wounded Rupert Broderick spawn recipes: 0 body walker, 1 attached Mongoose.
 ///
-/// Both create TMD bodies at priority 192 with automatic model buffers enabled.
+/// Both create TMD bodies at priority `TASK_PRIORITY_CONTROL` with automatic model buffers enabled.
 /// Entry 0 borrows a live Enemy placement owner in spawn argument 2; entry 1
 /// borrows the published walker and takes its attachment part in spawn argument 1
 /// (the body spawns it at part 8). Indices are 0..1 with no terminator.

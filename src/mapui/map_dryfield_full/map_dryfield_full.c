@@ -97,7 +97,7 @@
  * pictures' marker models.
  */
 
-/// Flag-bank kind and task execution priority of this map's model-backed objects.
+/// Flag-bank kind of this map's model-backed objects.
 enum {
     MAP_DRYFIELD_FULL_OBJECT_KIND_M950 = 0x82,
 };
@@ -177,7 +177,7 @@ enum {
     MAP_DRYFIELD_FULL_BAT_TURN_RATE_44_ROW          = 5,
 };
 
-/// Map-page gating, fixed icon kind and room-task priority used by these tables.
+/// Map-page gating and fixed icon kind used by these tables.
 enum {
     MAP_DRYFIELD_FULL_PAGE_UNLOCK_FLAG_ID   = 0x16,
     MAP_DRYFIELD_FULL_ICON_FIXED_PICTURE    = 0,

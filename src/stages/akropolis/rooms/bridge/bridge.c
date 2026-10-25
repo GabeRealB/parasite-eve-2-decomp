@@ -402,7 +402,7 @@ static TaskMessageEntry _gAkropolisBridgeRoomMessageTable[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// Indices of the two room-owned task recipes and their scheduler priority.
+/// Indices of the two room-owned task recipes.
 enum {
     AKROPOLIS_BRIDGE_ROOM_TASK_MODEL           = 0,
     AKROPOLIS_BRIDGE_ROOM_TASK_KEYPAD_SEQUENCE = 1,
@@ -927,8 +927,6 @@ static TaskFunc _gAkropolisBridgeEnemyStateHandlers[9] = {
     _akropolisBridgeEnemyDeathEffect,
     _akropolisBridgeEnemyAnimateAtPlacement,
 };
-
-/// Scheduler priority of the bridge enemy's TMD task recipe.
 
 /// One bridge-enemy spawn recipe with its retained, uninterpreted storage tail.
 static _AkropolisBridgeEnemyTaskDescStorage _gAkropolisBridgeEnemyTaskDescStorage = {

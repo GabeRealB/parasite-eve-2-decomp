@@ -277,8 +277,6 @@ static ActorCommand _gActor310600StrangerFollowupCommand __attribute__((aligned(
     ACTOR_310600_STRANGER_COMMAND_FOLLOWUP_RECOIL,
 };
 
-/// Execution priority shared by Rupert's body and attached Mongoose.
-
 TaskDesc gActor310600RupertBroderickTasks[2] = {
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _actor310600BodyTask, { .model = &_gRupertBody } },
     { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _actor310600MongooseTask, { .model = &_gRupertMongoose } },

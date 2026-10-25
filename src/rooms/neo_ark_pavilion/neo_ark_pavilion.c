@@ -101,8 +101,6 @@ static WorldCollisionTrigger  _gNeoArkPavilionRoom1ActionTriggers[4];
 static WorldCollisionTrigger  _gNeoArkPavilionRoom2ActionTriggers[4];
 static WorldCoordRoomLights   _gNeoArkPavilionRoomLights;
 
-/// Scheduler priorities of the bodyless water drawers and staged room controller.
-
 TaskDesc gNeoArkPavilionWaterRefractionTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, waterRefractionTask, { .value = 0 } };
 
 /// Retained bodyless, priority-192 water-band distortion recipe without a caller.

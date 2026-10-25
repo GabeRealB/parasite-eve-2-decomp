@@ -135,7 +135,7 @@ enum {
     ACTOR_548100_CHOICE_GATE_LOCKS  = 9,
 };
 
-/// Pulse phases stored in a byte, and the exported panel task's scheduling priority.
+/// Pulse phases stored in a byte.
 enum {
     ACTOR_548100_PULSE_RISING  = 0,
     ACTOR_548100_PULSE_FALLING = 1,

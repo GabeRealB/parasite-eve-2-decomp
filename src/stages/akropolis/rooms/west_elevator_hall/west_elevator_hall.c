@@ -134,8 +134,6 @@ static void         _akropolisWestElevatorHallDoorLeafTask(Task* task);
 
 #include "../../../../shared/room/planar_reflection_data.inc.c"
 
-/// Execution priority shared by the hall's reflected player and held models.
-
 /// Spawn recipes for the hall's player reflection and its attachment reflections.
 static TaskDesc _gAkropolisWestElevatorHallReflectionTaskTable[2] = {
     { { { TASK_BODY_NONE, TASK_PRIORITY_EFFECT } }, akropolisWestElevatorHallPlayerReflectionTask, { .value = 0 } },

@@ -10,7 +10,7 @@ enum { ACTOR_560800_TASK_CUTSCENE = 0 };
 
 /// Cast and presentation task recipes for the pod service gantry cutscene.
 ///
-/// Fourteen live entries, without a terminator, at priority 192: 0 controller,
+/// Fourteen live entries, without a terminator, at priority `TASK_PRIORITY_CONTROL`: 0 controller,
 /// 1 discard task, 2 reveal fade, 3 darkening fade, 4 masked Eve body, 5 Kyle
 /// body, 6 No. 9 body, 7 Kyle gun hand, 8 Kyle free hand, 9 handgun,
 /// 10 No. 9 gunblade, 11 replacement Eve body, 12 Eve replacement/display
@@ -30,7 +30,7 @@ enum { ACTOR_560800_MOVIE_TASK_LAUNCH = 0 };
 
 /// Task recipes for handing display control to movie playback and restoring play.
 ///
-/// Two entries without a terminator, both with no body at priority 192:
+/// Two entries without a terminator, both with no body at priority `TASK_PRIORITY_CONTROL`:
 /// 0 launches the display task and immediately dies; 1 owns playback,
 /// cancellation and game-resource restoration. Spawn argument 1 selects
 /// movie 100 when zero, 101 otherwise, in the current location; argument 2

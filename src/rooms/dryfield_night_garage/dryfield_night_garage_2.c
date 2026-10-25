@@ -78,8 +78,6 @@ static void _dryfieldNightGarageStartMovieTask(Task* task);
 static void _dryfieldNightGarageDialogueTask(Task* task);
 static void _dryfieldNightGarageCommitRefuelingProgress(void);
 
-/// Priority shared by the garage's bodyless dialogue, movie and blackout tasks.
-
 /// Gary Douglas's garage command namespace, interpreted by his actor task.
 enum {
     DRYFIELD_NIGHT_GARAGE_GARY_SHOW_CARRIED      = 0,

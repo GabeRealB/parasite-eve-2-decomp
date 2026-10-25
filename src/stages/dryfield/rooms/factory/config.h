@@ -182,8 +182,6 @@ enum {
     FACTORY_SPAWN_HATCH                    = 7,
 };
 
-/// Scheduler priorities of factory interaction tasks and their session poller.
-
 /// Messages the operator panel task receives.
 enum {
     /// The lift has finished the movement the panel asked for, whether it ran

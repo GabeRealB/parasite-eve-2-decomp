@@ -88,8 +88,6 @@ static void _shelter1fBulwarkHeliportDepartureTask(Task* task);
 static void _shelter1fBulwarkPlayDepartureMovieTask(Task* movieTask);
 static void _shelter1fBulwarkReloadAfterDepartureMovieTask(Task* task);
 
-/// Execution priorities for the room's staged transition and movie handoff tasks.
-
 /// Bodyless recipe for the latched CAP/sound/fade transition and saved-location reload.
 ///
 /// Spawn entry 0 with zero payloads after filling the room's staged message and
@@ -110,7 +108,7 @@ static const TaskMessageEntry _gShelter1fBulwarkRoomMessages[5] SECTION(".data")
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// Bodyless first-heliport-departure recipe, priority 32 and zero metadata/payloads.
+/// Bodyless first-heliport-departure recipe, priority `TASK_PRIORITY_SCENE` and zero metadata/payloads.
 ///
 /// Spawn entry 0 after accepting the chapter-6 departure and holding the player.
 /// One descriptor with no terminator. The callback hands CAP/fade playback to

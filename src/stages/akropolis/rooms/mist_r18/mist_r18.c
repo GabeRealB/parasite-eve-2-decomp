@@ -226,8 +226,6 @@ static TextStream _gMistR18BriefingCaptionStream = {
     .boxHeight   = 29,
 };
 
-/// Execution priority shared by the briefing's directly spawned child tasks.
-
 /// Spawn recipes for the briefing's held models, prop and presentation tasks.
 static TaskDesc _gMistR18TaskDescs[8] = {
     { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _mistR18AttachedModelTask, { .model = &_gMistR18BriefingFile } },

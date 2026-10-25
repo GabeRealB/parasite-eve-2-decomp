@@ -317,9 +317,7 @@ static const u16* _gActor205200SitePartHeadings[4] = {
     [ACTOR_205200_SITE_B6_TRAINING_ROOM]  = _gActor205200B6TrainingRoomPartHeadings,
 };
 
-/// Execution priority of the controller's screen-wave grid task.
-
-/// Bodyless screen-wave task recipe at priority 192, followed by an end marker.
+/// Bodyless screen-wave task recipe at priority `TASK_PRIORITY_CONTROL`, followed by an end marker.
 ///
 /// Spawn only entry zero with the persistent ramp context in spawn argument 2.
 /// The wave borrows that context through its final draw.
