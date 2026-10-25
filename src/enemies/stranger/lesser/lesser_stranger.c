@@ -46,6 +46,8 @@
 #include "overlay.h"
 
 #include "stages/akropolis/rooms/fire_escape.h"
+
+#include "assets/enemies/stranger/lesser/schema.h"
 #include "../../../shared/actor/actor_contacts.h"
 
 /// Task phases of this package's stationary enemy.
@@ -64,15 +66,17 @@ enum {
     HIT_REACTION_FINISHED = 1
 };
 
-/// Animation-set indices, the hit-body part and the area-placement identity.
+/// The lesser Stranger's id: its placement entry, its body's collision key and its battle reward (and its sound
+/// bank's, `SOUND_BANK_LESSER_STRANGER`).
+enum { LESSER_STRANGER_ID = 10 };
+
+/// The parts it is lit from (the pelvis) and targeted and hit at (the chest).
 enum {
-    ANIMATION_IDLE = 0,
-    ANIMATION_HIT  = 1,
-    BODY_PART      = 2,
-    PLACEMENT_ID   = 10
+    PELVIS_PART = 1,
+    CHEST_PART  = 2,
 };
 
-/// Values of `_Work::step`, the stage of the phase `Task::state`
+/// Values of `_Work::step`, the stage of the phase `Task::state`.
 enum {
     IDLE_STEP_CHOOSE = 0, // draws between a pause and a replay of animation 0; two replays in a row force the pause
     IDLE_STEP_PAUSE  = 1, // holds the pose for 32 ticks
@@ -83,7 +87,7 @@ enum {
     DEATH_STEP_BURN  = 1  // runs the burn-away sequence that `stepFrame` times
 };
 
-/// Work block of the package's enemy task.
+/// Work block of the fire escape's lesser Stranger.
 typedef struct {
     ActorAnimRig19        rig;              // playback of the model's parts; slot 1 reaching a boundary ends an idle replay and the hit reaction
     WorldCollisionBody    hitBody;          // sphere of radius 400 at model part 2 that takes the hits; unlinked when the death sequence begins
@@ -93,7 +97,7 @@ typedef struct {
     Task*                 playerTask;       // the player's task as the spawn found it; never read
     MATRIX*               playerCoordMtx;   // the player's root coordinate matrix as the spawn found it; never read
     u32                   savedModelFlags;  // the model's `TmdObject::flags` as actor control 2 found them before hiding it; written back when the control returns to 0 from any other value
-    s16                   step;             // `LESSER_STRANGER_*_STEP_*` of the running phase; every phase change restarts it at 0
+    s16                   step;             // `*_STEP_*` of the running phase; every phase change restarts it at 0
     byte                  pad_4C2[2];       // never accessed
     s16                   stepFrame;        // ticks counted by the idle pause and by the burn-away sequence, each of which restarts it at 0
     byte                  pad_4C6[2];       // never accessed
@@ -119,14 +123,14 @@ static s32          _lesserStrangerIsPresentMessage(Task* actorTask, s32 message
 enum { PLAYER_REACTION_SPARK_AND_PUFFS = 7 };
 
 /// Retained attack rows of the fire-escape Stranger, borrowed by its parameters.
-static DamageAttack _gLesserStrangerStrangerAttacks[2] = {
+static DamageAttack _gLesserStrangerAttacks[2] = {
     { 18, PLAYER_REACTION_SPARK_AND_PUFFS },
     { 18, GAME_ACTOR_REACTION_ORDINARY },
 };
 
 /// Health, rewards and hit-reaction parameters of the fire-escape Stranger.
-static EnemyParams _gLesserStrangerStrangerParams = {
-    .attacks              = _gLesserStrangerStrangerAttacks,
+static EnemyParams _gLesserStrangerParams = {
+    .attacks              = _gLesserStrangerAttacks,
     .hpMax                = 30,
     .exp                  = 42,
     .bp                   = 82,
@@ -135,8 +139,8 @@ static EnemyParams _gLesserStrangerStrangerParams = {
     .damageOverTimeChance = 100,
 };
 
-/// Retained eighteen-halfword block with no recovered consumer; its role is unproven.
-static u16 D_actor_311500_801692D0[18] = {
+/// Eighteen halfwords, three rows of six, that nothing reads; their role is unproven.
+static u16 _gLesserStrangerUnusedTable[18] = {
     20,
     900,
     12,
@@ -157,7 +161,7 @@ static u16 D_actor_311500_801692D0[18] = {
     0,
 };
 
-/// Fire-escape Stranger's two body clips, indexed by `LESSER_STRANGER_ANIMATION_*`.
+/// The fire-escape Stranger's two body clips, indexed by `LESSER_ANIMATION_*`.
 #include "assets/enemies/stranger/lesser/bank.inc"
 
 /// Barrier patch's single Q12 +Z normal, copied into the fire-escape grid.
@@ -176,11 +180,11 @@ static WorldCollisionGridFace _gLesserStrangerBarrierPatchFaces[1] = {
 };
 
 /// Fire-escape Stranger's sole supported message, `ACTOR_MESSAGE_IS_PRESENT`.
-static TaskMessageEntry _gLesserStrangerStrangerMessages[1] = {
+static TaskMessageEntry _gLesserStrangerMessages[1] = {
     { ACTOR_MESSAGE_IS_PRESENT, _lesserStrangerIsPresentMessage },
 };
 
-TaskDesc gLesserStrangerStrangerTaskDesc = {
+TaskDesc gLesserStrangerTaskDesc = {
     .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = TASK_PRIORITY_CONTROL } },
     .callback = _lesserStrangerTask,
     .data     = { .model = &_gAkropolisCafeteriaBossStrangerBody },
@@ -207,7 +211,7 @@ static inline void _lesserStrangerResetAnim(ActorAnimRig19* rig, u8 requestedRat
 {
     do {
         rig->slots[slotIndex & 0xFFFF].rate = requestedRate;
-        animationResetSlot(&rig->anim, slotIndex & 0xFFFF, ANIMATION_IDLE);
+        animationResetSlot(&rig->anim, slotIndex & 0xFFFF, LESSER_ANIMATION_IDLE);
         slotIndex += 1;
     } while ((u32)(slotIndex & 0xFFFF) < ARRAY_SIZE(rig->slots));
 }
@@ -245,7 +249,7 @@ static void _lesserStrangerInit(Task* actorTask)
     model->lightMtx = &work->lightMtx;
     model->colorMtx = &work->colorMtx;
     model->flags    = 0;
-    animationInitContext(&work->rig.anim, _gLesserStrangerStrangerAnimationSets, model, work->rig.poses,
+    animationInitContext(&work->rig.anim, _gLesserStrangerAnimationSets, model, work->rig.poses,
                          &work->rig.slots[0]);
     work->playerTask     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     work->playerCoordMtx = gPlayerStatus.coordMtx;
@@ -253,33 +257,33 @@ static void _lesserStrangerInit(Task* actorTask)
     slotIndex            = 1;
     animationWork        = actorTask->work;
     _lesserStrangerResetAnim(&animationWork->rig, rate, slotIndex);
-    // The target and collision body share model part 2; this body retains one hit.
+    // The target and the collision body share the chest; this body retains one hit.
     enemy->field_48   = 0;
     enemy->bodyPos.vx = 0;
     enemy->bodyPos.vy = 0;
     enemy->bodyPos.vz = 0;
-    enemy->coord      = &actorTask->extra.tmd->coords[BODY_PART];
+    enemy->coord      = &actorTask->extra.tmd->coords[CHEST_PART];
     worldTargetLinkNode(&enemy->node);
     enemy->hp                      = INITIAL_HP;
     enemy->node.state.parts.flags  = 0;
     enemy->reactionFlags           = 0;
-    enemy->param                   = &_gLesserStrangerStrangerParams;
-    work->hitBody.coord            = &actorTask->extra.tmd->coords[BODY_PART];
+    enemy->param                   = &_gLesserStrangerParams;
+    work->hitBody.coord            = &actorTask->extra.tmd->coords[CHEST_PART];
     work->hitBody.context.contacts = &work->hitContacts[0];
     work->hitBody.pos.vx           = 0;
     work->hitBody.pos.vy           = 0;
     work->hitBody.pos.vz           = 0;
-    work->hitBody.key              = WORLD_COLLISION_CONTACT_ENEMY_BODY | PLACEMENT_ID;
+    work->hitBody.key              = WORLD_COLLISION_CONTACT_ENEMY_BODY | LESSER_STRANGER_ID;
     work->hitBody.radius           = HIT_RADIUS;
     work->hitBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->hitBody);
     work->hitBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldCollisionInitContacts(&work->hitContacts[0], ARRAY_SIZE(work->hitContacts), 0);
     enemy->recs         = &work->hitContacts[0];
-    actorTask->msgTable = _gLesserStrangerStrangerMessages;
+    actorTask->msgTable = _gLesserStrangerMessages;
     work->present       = 1;
     placement           = areaGetVariant(&gGameSession->location)->placements;
-    while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != PLACEMENT_ID) {
+    while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != LESSER_STRANGER_ID) {
         placement++;
     }
     tmdSetTextureOffsets(model, placement->texturePageOffset, placement->clutRowOffset);
@@ -403,7 +407,7 @@ static inline void _lesserStrangerBlendHitAnimation(Task* task)
 
     slotIndex = 1;
     do {
-        animationSeekSlotWithBlend(&work->rig.anim, slotIndex & 0xFFFF, ANIMATION_HIT, 0, HIT_BLEND_FRAMES);
+        animationSeekSlotWithBlend(&work->rig.anim, slotIndex & 0xFFFF, LESSER_ANIMATION_HIT, 0, HIT_BLEND_FRAMES);
         slotIndex += 1;
     } while ((u32)(slotIndex & 0xFFFF) < ARRAY_SIZE(work->rig.slots));
 }
@@ -417,13 +421,13 @@ static inline void _lesserStrangerSpawnHitEffect(Task* task)
     SVECTOR        localOffset;
     EffectSpawnArg spawnArgs;
 
-    spawnArgs.coord      = &task->extra.tmd->coords[BODY_PART];
+    spawnArgs.coord      = &task->extra.tmd->coords[CHEST_PART];
     spawnArgs.spawnArgLo = MAGNITUDE;
     spawnArgs.spawnArgHi = COUNT;
     localOffset.vx       = 0x3C;
     localOffset.vy       = -0xC;
     localOffset.vz       = 0x1E;
-    effectSpawnHit(damageGetPlayerAttackEffectId(work->lastHitKey), &task->extra.tmd->coords[BODY_PART], &localOffset, &spawnArgs);
+    effectSpawnHit(damageGetPlayerAttackEffectId(work->lastHitKey), &task->extra.tmd->coords[CHEST_PART], &localOffset, &spawnArgs);
 }
 
 /// Starts or advances the hit reaction, returning -1 for death, 1 for a boundary, or 0.
@@ -518,14 +522,14 @@ static s32 _lesserStrangerTickDeath(Task* actorTask)
         case DEATH_STEP_BURN:
             switch (work->stepFrame) {
                 case 0:
-                    sceneReleaseBattleRefWithRewards(actorTask, 0xA);
+                    sceneReleaseBattleRefWithRewards(actorTask, LESSER_STRANGER_ID);
                     enemy->recs = NULL;
                     worldCollisionUnlinkBody(&work->hitBody);
                     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
                     break;
 
                 case BURN_FRAME:
-                    effectSpawn(EFFECT_CORPSE_BURN, &actorTask->extra.tmd->coords[BODY_PART], FLAME_BURSTS, NULL);
+                    effectSpawn(EFFECT_CORPSE_BURN, &actorTask->extra.tmd->coords[CHEST_PART], FLAME_BURSTS, NULL);
                     worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                     break;
 
@@ -577,7 +581,7 @@ static inline void _lesserStrangerUpdatePresentation(Task* actor)
     VECTOR viewPosition;
 
     enemy = actor->spawnArg2.pointer;
-    actorRenderComposeCoord(&actor->extra.tmd->coords[1]);
+    actorRenderComposeCoord(&actor->extra.tmd->coords[PELVIS_PART]);
     viewPosition.vx = actor->extra.tmd->coords->workm.t[0];
     viewPosition.vy = actor->extra.tmd->coords->workm.t[1];
     viewPosition.vz = actor->extra.tmd->coords->workm.t[2];

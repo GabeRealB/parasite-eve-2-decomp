@@ -5,7 +5,7 @@
 type = "animation_bank"
 clips = { idle = "enemies/stranger/lesser/idle", hit = "enemies/stranger/down_back" }
 schema = "enemies/stranger/lesser/schema"
-symbol = "_gLesserStrangerStrangerAnimationSets"
+symbol = "_gLesserStrangerAnimationSets"
 
 [body]
 type = "model"

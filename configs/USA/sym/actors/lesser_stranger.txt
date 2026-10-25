@@ -1,6 +1,6 @@
 // Overlay-local symbols for lesser_stranger.
-_gLesserStrangerStrangerAttacks = 0x801692B8; // size:0x8 defined:True
-_gLesserStrangerStrangerParams = 0x801692C0; // size:0x10 defined:True
+_gLesserStrangerAttacks = 0x801692B8; // size:0x8 defined:True
+_gLesserStrangerParams = 0x801692C0; // size:0x10 defined:True
 _gAkropolisCafeteriaBossStrangerBodySkeleton = 0x801636B4; // size:0x2AC defined:True
 _gAkropolisCafeteriaBossStrangerBodyPartVerts = 0x80163960; // size:0x4C defined:True
 _gAkropolisCafeteriaBossStrangerBodyVerts = 0x801639AC; // size:0x9B8 defined:True
@@ -17,13 +17,13 @@ _gLesserStrangerAnimation07470Bank4 = 0x8016900C; // size:0xD0 defined:True
 _gLesserStrangerAnimation07470Records = 0x801690DC; // size:0x18C defined:True
 _gLesserStrangerAnimation07470Indices = 0x80169268; // size:0x28 defined:True
 gStrangerLesserIdleClip = 0x80169290; // size:0x28 defined:True
-D_actor_311500_801692D0 = 0x801692D0; // size:0x24 defined:True
-_gLesserStrangerStrangerAnimationSets = 0x801692F4; // size:0x8 defined:True
+_gLesserStrangerUnusedTable = 0x801692D0; // size:0x24 defined:True
+_gLesserStrangerAnimationSets = 0x801692F4; // size:0x8 defined:True
 _gLesserStrangerBarrierPatchNormals = 0x801692FC; // size:0x8 defined:True
 _gLesserStrangerBarrierPatchVerts = 0x80169304; // size:0x20 defined:True
 _gLesserStrangerBarrierPatchFaces = 0x80169324; // size:0xC defined:True
-_gLesserStrangerStrangerMessages = 0x80169330; // size:0x8 defined:True
-gLesserStrangerStrangerTaskDesc = 0x80169338; // size:0xC defined:True
+_gLesserStrangerMessages = 0x80169330; // size:0x8 defined:True
+gLesserStrangerTaskDesc = 0x80169338; // size:0xC defined:True
 
 gAkropolisFireEscapeCollisionGridNormals = 0x80181E74; // absolute:True owner=akropolis_fire_escape
 

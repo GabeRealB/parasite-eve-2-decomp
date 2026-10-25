@@ -4,6 +4,6 @@
 #include "main/task_types.h"
 
 /// Stranger spawn recipe for the fire-escape barrier encounter.
-extern TaskDesc gLesserStrangerStrangerTaskDesc;
+extern TaskDesc gLesserStrangerTaskDesc;
 
 #endif // INCLUDE_ENEMIES_STRANGER_LESSER_H
