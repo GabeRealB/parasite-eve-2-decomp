@@ -53,7 +53,8 @@
  * its child. The two signal each other through the target task's spawn
  * argument. */
 
-/// Mount/target handshake bits in the child target's spawn argument.
+/// Mount/target handshake bits in the child target's spawn argument: the mount raises MOUNT_READY once it has settled,
+/// the target STANDING once it has unfolded; either may raise STOP, and FINISHED lets the mount shrink away.
 enum {
     TARGET_SIGNAL_MOUNT_READY = 0x10,
     TARGET_SIGNAL_STANDING    = 0x20,
@@ -118,10 +119,18 @@ enum {
     TARGET_KILL_SOUND_KINDS_10_UP  = MIST_SHOOTING_GALLERY_SOUND(MIST_SHOOTING_GALLERY_SOUND_TARGET_KILL_KIND_10_UP),
 };
 
-/// Gallery face-effect atlas bindings, ordering-depth units and hit-mark limit.
+/// Height of a target's aim point above its root, where the player's lock-on looks.
+enum { TARGET_AIM_Y = -0x244 };
+
+/// The face effects' texture: target page 4 and its palette, row 248 loaded two rows down by the file's placement;
+/// its `death_burst` and `hit_mark` cells; ordering-depth units and the hit-mark limit.
 enum {
     TARGET_EFFECT_TPAGE     = getTPage(1, 0, 576, 256),
     TARGET_EFFECT_CLUT      = getClut(0, 250),
+    DEATH_BURST_U           = 0x40,
+    DEATH_BURST_SIZE        = 40,
+    HIT_MARK_U              = 0x68,
+    HIT_MARK_SIZE           = 16,
     TARGET_EFFECT_MIN_DEPTH = 0x40,
     TARGET_EFFECT_OT_SHIFT  = 4,
     TARGET_HIT_MARK_COUNT   = 8,
@@ -131,7 +140,7 @@ enum {
 /// its target keeps in `_TargetWork::mountBehaviour`.
 enum {
     MOUNT_STANDING = 0, // Rises at floor height and follows its path
-    MOUNT_HANGING  = 1, // Turned half a revolution about Z and raised 0xF3C above the floor; follows its path
+    MOUNT_HANGING  = 1, // Turned half a revolution about Z and raised `HANGING_MOUNT_HEIGHT` above the floor; follows its path
     MOUNT_FIXED    = 2, // Stays where it is placed; not one of the gallery's live targets
 };
 
@@ -167,9 +176,9 @@ typedef struct {
     s16    timer;            // Frames: counts the settling bob, then counts down the hold of a stationary path
     byte   unknown_13C[2];   // No field access established; role unproven
     s16    state;            // Update routine (0 lets the spawn frame pass, 1 runs `behaviour`)
-    s16    step;             // Progress through `behaviour`: `SHOOTING_GALLERY_TARGETS_MOUNT_STEP_*` on a path-following mount, `SHOOTING_GALLERY_TARGETS_MOUNT_FIXED_STEP_*` on a fixed one
+    s16    step;             // Progress through `behaviour`: `MOUNT_STEP_*` on a path-following mount, `MOUNT_FIXED_STEP_*` on a fixed one
     byte   unknown_142[2];   // No field access established; role unproven
-    s16    behaviour;        // `SHOOTING_GALLERY_TARGETS_MOUNT_*`
+    s16    behaviour;        // `MOUNT_*`
     s16    path;             // Path the mount follows, from bits 16-23 of the spawn argument
     s16    waypoint;         // Stop of `path` the mount is closing on
     u8     rotating;         // Nonzero while the mount turns about Y: set once the target stands when bit 28 of the spawn argument asks for it, cleared when the path ends
@@ -218,12 +227,12 @@ typedef struct {
     byte                  unknown_152[2]; // No field access established; role unproven
     s16                   timer;          // Frame counter of the current state's step
     s16                   hitTaken;       // 1 when the last hit check found a damaging hit, 0 otherwise
-    s16                   state;          // `SHOOTING_GALLERY_TARGETS_TARGET_STATE_*`
+    s16                   state;          // `TARGET_STATE_*`
     s16                   step;           // Progress through `state`; cleared on entering one
     s16                   field_15C;      // Cleared when the target leaves or is destroyed. Nothing reads it; role unproven
-    u16                   hitReaction;    // `SHOOTING_GALLERY_TARGETS_HIT_REACTION_*`, consumed by the active state
+    u16                   hitReaction;    // `HIT_REACTION_*`, consumed by the active state
     s16                   hitDamage;      // Damage of the last hit; sizes the flinch
-    s16                   mountBehaviour; // `SHOOTING_GALLERY_TARGETS_MOUNT_*` of the mount carrying the target
+    s16                   mountBehaviour; // `MOUNT_*` of the mount carrying the target
     byte                  unknown_164[2]; // No field access established; role unproven
     s16                   attackTimer;    // Frames since an attacking target last fired: it charges at 120 and fires at 210
     u8                    widthPercent;   // Scale of the model root across its width, in percent
@@ -348,7 +357,8 @@ TaskDesc gShootingGalleryTargetsTaskDescriptors[SHOOTING_GALLERY_TARGETS_TASK_CO
     { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _shootingGalleryTargetsTargetTask, { .model = &gMistShootingGalleryHalfTarget4Model } },
 };
 
-/// Mount path 0: hold at the spawn position for the spawn argument's hold time.
+/// Mount path 0: hold at the spawn position for the spawn argument's hold time, in seconds of 30 ticks (0 until the
+/// target finishes).
 static _Waypoint _gShootingGalleryTargetsMountPath0[] = {
     { 0, 3000, 0 },
     { PATH_END, 0, 0 },
@@ -824,7 +834,7 @@ static _Waypoint _gShootingGalleryTargetsMountPath61[] = {
     { PATH_END, 0, 0 },
 };
 
-/// Sentinel-terminated routes selected by the gallery mount's spawn path byte.
+/// Sentinel-terminated routes selected by the gallery mount's spawn path byte (bits 16-23), which is not range-checked.
 static const _Waypoint* _gShootingGalleryTargetsMountPaths[] = {
     _gShootingGalleryTargetsMountPath0,
     _gShootingGalleryTargetsMountPath1,
@@ -912,7 +922,8 @@ static DVECTOR _gShootingGalleryTargetsTargetHitMarkOffsets[TARGET_HIT_MARK_COUN
     { 0, 0 },
 };
 
-/// Starting hit points indexed by the gallery target's spawn-kind nibble.
+/// Starting hit points indexed by the gallery target's spawn-kind nibble, for kinds 0..12. The demonstration's kind 13
+/// reads one entry past the table, the original program's overrun; what health it gets is unproven.
 static u16 _gShootingGalleryTargetsTargetHitPoints[13] = { 32, 24, 16, 12, 60, 36, 28, 20, 12, 1, 12, 20, 28 };
 
 static void _shootingGalleryTargetsRemapTargetColor(Enemy* unusedEnemy, MATRIX* colorMatrix, s32 colorMode);
@@ -1112,16 +1123,24 @@ static inline void _shootingGalleryTargetsUpdateMountPath(Task* task, s32 bobY, 
     }
 }
 
+/// How far a hanging mount hangs above the floor, how high every mount bobs above where it rests, and how fast a
+/// rotating mount turns.
+enum {
+    HANGING_MOUNT_HEIGHT = 0xF3C,
+    MOUNT_BOB_HEIGHT     = 0x10,
+    MOUNT_TURN_STEP      = 0x20,
+};
+
 /// Runs a standing gallery mount along its selected path, then shrinks it away.
 static void _shootingGalleryTargetsUpdateStandingMountPath(Task* task)
 {
-    _shootingGalleryTargetsUpdateMountPath(task, -0x10, 0);
+    _shootingGalleryTargetsUpdateMountPath(task, -MOUNT_BOB_HEIGHT, 0);
 }
 
 /// Runs a hanging gallery mount along its selected path, then shrinks it away.
 static void _shootingGalleryTargetsUpdateHangingMountPath(Task* task)
 {
-    _shootingGalleryTargetsUpdateMountPath(task, -0xF4C, -0xF3C);
+    _shootingGalleryTargetsUpdateMountPath(task, -HANGING_MOUNT_HEIGHT - MOUNT_BOB_HEIGHT, -HANGING_MOUNT_HEIGHT);
 }
 
 /// Gallery target task callbacks: 0 initialize, 1 update, 2 hide, 3 destroy.
@@ -1134,7 +1153,7 @@ static const TaskFuncTable4 _gShootingGalleryTargetsTargetTaskStates = {
     },
 };
 
-/// Gallery target behavior callbacks indexed by `SHOOTING_GALLERY_TARGETS_TARGET_STATE_*`.
+/// Gallery target behavior callbacks indexed by `TARGET_STATE_*`.
 static const TaskFuncTable10 _gShootingGalleryTargetsTargetStateHandlers = {
     .funcs = {
         _shootingGalleryTargetsBeginTargetBehaviour,
@@ -1283,7 +1302,7 @@ static void _shootingGalleryTargetsUpdateMountBehaviour(Task* task)
     handlers = _gShootingGalleryTargetsMountBehaviourHandlers;
     handlers.funcs[work->behaviour](task);
     if (work->rotating != 0) {
-        work->yaw += 0x20;
+        work->yaw += MOUNT_TURN_STEP;
     }
 }
 
@@ -1383,7 +1402,7 @@ static void _shootingGalleryTargetsInitTarget(Task* task)
     _shootingGalleryTargetsInitTargetCollision(task);
     worldTargetLinkNode(&enemy->node);
     enemy->field_4                = &rootCoord->workm;
-    enemy->bodyPos.vy             = -0x244;
+    enemy->bodyPos.vy             = TARGET_AIM_Y;
     enemy->field_48               = 0;
     enemy->bodyPos.vx             = 0;
     enemy->bodyPos.vz             = 0;
@@ -1913,7 +1932,8 @@ static void _shootingGalleryTargetsDrawTargetDeathBurst(const GfxCoord* rootCoor
     gte_rtpt();
     packet->tpage = TARGET_EFFECT_TPAGE;
     packet->clut  = TARGET_EFFECT_CLUT;
-    setUV4(packet, 0x40, 0, 0x67, 0, 0x40, 0x27, 0x67, 0x27);
+    setUV4(packet, DEATH_BURST_U, 0, DEATH_BURST_U + DEATH_BURST_SIZE - 1, 0, DEATH_BURST_U, DEATH_BURST_SIZE - 1,
+           DEATH_BURST_U + DEATH_BURST_SIZE - 1, DEATH_BURST_SIZE - 1);
     setShadeTex(packet, 1);
     gte_stsxy3(&projection->screenCorners[1], &projection->screenCorners[2], &projection->screenCorners[3]);
     gte_stszotz(&projection->depth);
@@ -1974,7 +1994,8 @@ static void _shootingGalleryTargetsDrawTargetHitMark(const GfxCoord* rootCoord, 
     gte_rtpt();
     packet->tpage = TARGET_EFFECT_TPAGE;
     packet->clut  = TARGET_EFFECT_CLUT;
-    setUV4(packet, 0x68, 0, 0x77, 0, 0x68, 0xF, 0x77, 0xF);
+    setUV4(packet, HIT_MARK_U, 0, HIT_MARK_U + HIT_MARK_SIZE - 1, 0, HIT_MARK_U, HIT_MARK_SIZE - 1, HIT_MARK_U + HIT_MARK_SIZE - 1,
+           HIT_MARK_SIZE - 1);
     setShadeTex(packet, 1);
     gte_stsxy3(&projection->screenCorners[1], &projection->screenCorners[2], &projection->screenCorners[3]);
     gte_stszotz(&projection->depth);
@@ -2125,7 +2146,12 @@ static void _shootingGalleryTargetsDestroyTarget(Task* task)
 /// Links the gallery target's shot-contact sphere and initializes its eight contacts.
 static void _shootingGalleryTargetsInitTargetCollision(Task* task)
 {
-    enum { TARGET_COLLISION_KEY = WORLD_COLLISION_CONTACT_ENEMY_BODY | 0x4C };
+    enum {
+        TARGET_COLLISION_KEY = WORLD_COLLISION_CONTACT_ENEMY_BODY | 0x4C,
+        SPHERE_CENTER_Y      = -0x250, // Above the root, at the face's centre
+        HANGING_RADIUS       = 0x220,
+        STANDING_RADIUS      = 0x190,
+    };
 
     _TargetWork*           work      = task->work;
     GfxCoord*              rootCoord = task->extra.tmd->coords;
@@ -2134,10 +2160,10 @@ static void _shootingGalleryTargetsInitTargetCollision(Task* task)
     work->body.coord            = rootCoord;
     work->body.context.contacts = contacts;
     work->body.pos.vx           = 0;
-    work->body.pos.vy           = -0x250;
+    work->body.pos.vy           = SPHERE_CENTER_Y;
     work->body.pos.vz           = 0;
     work->body.key              = TARGET_COLLISION_KEY;
-    work->body.radius           = (work->mountBehaviour == MOUNT_HANGING) ? 0x220 : 0x190;
+    work->body.radius           = (work->mountBehaviour == MOUNT_HANGING) ? HANGING_RADIUS : STANDING_RADIUS;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
     worldCollisionInitContacts(contacts, ARRAY_SIZE(work->contacts), 0);

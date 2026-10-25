@@ -296,10 +296,10 @@ typedef struct {
     WorldCollisionBody    blast;                                  // Sphere of radius 0x15E on the same part, on list 8, keyed 0x50002; enabled from the break until its first contact or the end of the sparks
     WorldCollisionContact blastContacts[1];                       // Contact of `blast`
     Task*                 sparksTask;                             // Spark effect started at the break and adopted as a child of the light's task; `NULL` before the break, if it did not spawn, or once it has been told to stop
-    s16                   state;                                  // `HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_*`
+    s16                   state;                                  // `HELIPAD_LIGHT_*`
     s16                   sparkFrames;                            // Frames of sparks left, 0x78 at the break; a frame the camera spends in another view also takes one off
     s16                   lightIndex;                             // Which of the three lights this is (0..2), from the spawn argument; picks its place, facing and views
-    s16                   status;                                 // `HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_STATUS_*`, published every frame in view: by lights 0 and 1 to game-flag nibbles 0xB and 0xC, by light 2 to `HelicopterLandingPadNo9Work::light2Status`
+    s16                   status;                                 // `HELIPAD_LIGHT_STATUS_*`, published every frame in view: by lights 0 and 1 to game-flag nibbles 0xB and 0xC, by light 2 to `HelicopterLandingPadNo9Work::light2Status`
 } _HelipadLightWork;
 STATIC_ASSERT_SIZEOF(_HelipadLightWork, 0x338);
 
@@ -334,8 +334,8 @@ typedef struct {
     WorldCollisionCapsule gridProbeCapsule;     // Shape of `gridProbe`: 0x1F4 along the grenade's Y axis from its origin, radius 1
     WorldCollisionContact gridProbeContacts[1]; // Contact of `gridProbe`; any contact bursts the grenade
     u16                   frames;               // Frames counted in the current phase; in flight, frames since the last smoke puff of the trail (one every third frame)
-    s16                   phase;                // `HELICOPTER_LANDING_PAD_NO_9_GRENADE_FLIGHT_*` in flight, `HELICOPTER_LANDING_PAD_NO_9_GRENADE_BURST_*` after the burst
-    s16                   holdStep;             // `HELICOPTER_LANDING_PAD_NO_9_GRENADE_HOLD_*`
+    s16                   phase;                // `GRENADE_FLIGHT_*` in flight, `GRENADE_BURST_*` after the burst
+    s16                   holdStep;             // `GRENADE_HOLD_*`
     s16                   phaseCounter;         // In flight, the pitch added each frame (4096 a turn); during the hold, frames spent in `holdStep`
 } _GrenadeWork;
 STATIC_ASSERT_SIZEOF(_GrenadeWork, 0xD0);
@@ -358,7 +358,7 @@ typedef struct {
     WorldCollisionBody    blast;            // Sphere of radius 0x200 raised 0x200 above the source, on list 8; keyed 0x50003 or 0x50004 by the shot and enabled from it until its first contact or the end of the flare
     WorldCollisionContact blastContacts[1]; // Contact of `blast`
     Task*                 flareTask;        // Flare effect started by the shot and adopted as a child of the source's task; `NULL` before the shot, if it did not spawn, or once it has been released
-    s16                   state;            // `HELICOPTER_LANDING_PAD_NO_9_BLAST_SOURCE_*`
+    s16                   state;            // `BLAST_SOURCE_*`
     s16                   flareFrames;      // Frames the flare still burns, 0x3C at the shot; a frame the camera spends in another view also takes one off
     s16                   flareTaskState;   // `Task::state` the flare starts in, chosen at the shot (1 if light 2 was already spent, 0 if it was still sparking)
     byte                  pad_7A[0x2];

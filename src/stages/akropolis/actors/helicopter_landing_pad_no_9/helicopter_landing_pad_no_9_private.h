@@ -78,10 +78,10 @@ typedef struct {
     s16                   seededAnimationId;  // Animation the slots were last started on; a difference from `animationId` restarts them
     s16                   animationFrame;     // Frames the current animation has been stepped since it was started
     s16                   hitCooldown;        // Frames left during which attack hits are ignored, set by the hit that landed
-    s16                   state;              // `HELICOPTER_LANDING_PAD_NO_9_STATE_*`
+    s16                   state;              // `STATE_*`
     s16                   subState;           // Step within `state`, numbered separately by each state
     s16                   present;            // 1 from spawn until death; the answer to `ACTOR_MESSAGE_IS_PRESENT`, and 0 tells the children to stop
-    s16                   flameMode;          // `HELICOPTER_LANDING_PAD_NO_9_FLAME_*` the flame jet should be in
+    s16                   flameMode;          // `FLAME_*` the flame jet should be in
     s16                   sentFlameMode;      // `flameMode` as last written to the flame jet's task
     s16                   flameFrames;        // Frames the flame still burns; reaching zero puts it out and disables the attack spheres
     u16                   lastCueFlags;       // `ANIMATION_RECORD_CUE_MASK` bits of slot 1's record on the previous frame; a step sound plays when one drops

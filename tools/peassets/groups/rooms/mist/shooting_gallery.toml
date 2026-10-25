@@ -1210,6 +1210,7 @@ width = 128
 [target_page_4]
 type = "texture"
 bpp = 8
+cells = { death_burst = [64, 0, 40, 40], hit_mark = [104, 0, 16, 16] }
 height = 256
 variants = ["default"]
 width = 128

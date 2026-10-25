@@ -130,7 +130,7 @@ enum { PREV_STATE_NONE = -1 };
 
 /// Work block of the Boss Stranger task.
 typedef struct {
-    s16                   state;                // `CAFETERIA_BOSS_STRANGER_STATE_*`
+    s16                   state;                // `STATE_*`
     s16                   prevState;            // `state` the tick last ran; -1 makes the next tick enter `state` afresh
     s16                   stateEntered;         // 1 on the first tick of a state, when the handler sets itself up (0 otherwise)
     s16                   downFrames;           // ticks `DOWN` has left to wait; a random 0..31 on entry
@@ -141,14 +141,14 @@ typedef struct {
     ActorAnimRig19        rig;                  // playback of the model's parts; slot 1's status and cue index time the states
     ActorAnimRig19        blendRig;             // second playback of the same model, mixed into slots 1 to 10 while `blendActive`
     s32                   lastFootstepCueIndex; // slot 1's cue index on the last `CHASE` tick, so each footstep starts its shake once
-    s16                   animRequest;          // `CAFETERIA_BOSS_STRANGER_ANIM_REQUEST_*` for `rig`
+    s16                   animRequest;          // `ANIM_REQUEST_*` for `rig`
     s16                   blendActive;          // 1 while `blendRig`'s animation is mixed in; cleared when its slot 1 reaches its boundary
     s16                   appliedAnim;          // animation `rig` was last started on; the row of the transition table a blend request reads
     s16                   animId;               // animation requested of `rig`
     s16                   animFrames;           // ticks since `animRequest` was last applied; `DEATH_THRASH` ends its first animation at 31
     s16                   animRate;             // playback rate of `rig`'s slots; negative plays backward
     s16                   baseRate;             // `animRate` most states start on: 20 or 16 by variant, 0x38 once `ENRAGE` has run
-    s16                   blendRequest;         // `CAFETERIA_BOSS_STRANGER_ANIM_REQUEST_*` for `blendRig`
+    s16                   blendRequest;         // `ANIM_REQUEST_*` for `blendRig`
     s16                   blendAnimId;          // animation requested of `blendRig`; a hit asks for 0xB
     s16                   blendRate;            // playback rate of `blendRig`'s slots, 0x30 from each restart
     s16                   blendWeight;          // share of `blendRig`'s pose in the mix, of 0x1000; 0xB78 from each restart
