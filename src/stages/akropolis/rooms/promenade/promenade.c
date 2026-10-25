@@ -85,24 +85,24 @@ static void _akropolisPromenadeTranslucentPlaneTask(Task* task);
 
 /// Overlay-lifetime arrival latch and battle follow-up states, stored as s32.
 enum {
-    AKROPOLIS_PROMENADE_ARRIVAL_MOVIE_NOT_STARTED = 0,
-    AKROPOLIS_PROMENADE_ARRIVAL_MOVIE_STARTED     = 1,
-    AKROPOLIS_PROMENADE_BATTLE_FOLLOWUP_INACTIVE  = 0,
-    AKROPOLIS_PROMENADE_BATTLE_FOLLOWUP_PENDING   = 2,
+    ARRIVAL_MOVIE_NOT_STARTED = 0,
+    ARRIVAL_MOVIE_STARTED     = 1,
+    BATTLE_FOLLOWUP_INACTIVE  = 0,
+    BATTLE_FOLLOWUP_PENDING   = 2,
 };
 
 /// Roles of the glow group's position slots.
 enum {
-    AKROPOLIS_PROMENADE_GLOW_DISC_POSITION = 0,
-    AKROPOLIS_PROMENADE_GLOW_FIRST_STAR    = 1,
-    AKROPOLIS_PROMENADE_GLOW_SECOND_STAR   = 2,
+    GLOW_DISC_POSITION = 0,
+    GLOW_FIRST_STAR    = 1,
+    GLOW_SECOND_STAR   = 2,
 };
 
 /// Live indices in the movie task descriptor table; slots 0 and 1 are unused.
 enum {
-    AKROPOLIS_PROMENADE_MOVIE_PATH_TASK       = 2,
-    AKROPOLIS_PROMENADE_MOVIE_SKIP_FADE_TASK  = 3,
-    AKROPOLIS_PROMENADE_MOVIE_SCENE_FADE_TASK = 4,
+    MOVIE_PATH_TASK       = 2,
+    MOVIE_SKIP_FADE_TASK  = 3,
+    MOVIE_SCENE_FADE_TASK = 4,
 };
 
 #include "assets/rooms/akropolis/bridge/water_surface.inc"
@@ -125,10 +125,10 @@ static TaskDesc _gAkropolisPromenadeTranslucentPlaneTaskDescriptors[2] = {
 
 #include "assets/rooms/akropolis/promenade/events.inc"
 /// Warp-4 arrival movie latch (0 not started, 1 spawn already attempted).
-static s32 _gAkropolisPromenadeArrivalMovieStarted = AKROPOLIS_PROMENADE_ARRIVAL_MOVIE_NOT_STARTED;
+static s32 _gAkropolisPromenadeArrivalMovieStarted = ARRIVAL_MOVIE_NOT_STARTED;
 
 /// Battle follow-up phase (0 inactive, 1 engaged observed, 2 awaiting reset).
-static s32 _gAkropolisPromenadeBattleFollowupState = AKROPOLIS_PROMENADE_BATTLE_FOLLOWUP_INACTIVE;
+static s32 _gAkropolisPromenadeBattleFollowupState = BATTLE_FOLLOWUP_INACTIVE;
 
 /// Bodyless movie-path and skip-fade spawn recipes, indexed by MOVIE_*_TASK.
 static TaskDesc _gAkropolisPromenadeMovieTaskDescriptors[5] = {
@@ -174,37 +174,37 @@ static Task* _gAkropolisPromenadeTranslucentPlaneTask;
 static void _akropolisPromenadeUpdateRoomProgress(Task* unusedTask)
 {
     enum {
-        AKROPOLIS_PROMENADE_SCENE_EVENT_SANCTUARY  = 6,
-        AKROPOLIS_PROMENADE_SCENE_EVENT_PROMENADE  = 5,
-        AKROPOLIS_PROMENADE_BATTLE_VARIANT         = 1,
-        AKROPOLIS_PROMENADE_ALL_MIDI_SEQUENCES     = 0,
-        AKROPOLIS_PROMENADE_BATTLE_MIDI_FADE_TICKS = 60,
+        SCENE_EVENT_SANCTUARY  = 6,
+        SCENE_EVENT_PROMENADE  = 5,
+        BATTLE_VARIANT         = 1,
+        ALL_MIDI_SEQUENCES     = 0,
+        BATTLE_MIDI_FADE_TICKS = 60,
     };
     u8 placementVariant;
     u8 battlePhase;
 
-    if (_gAkropolisPromenadeArrivalMovieStarted == AKROPOLIS_PROMENADE_ARRIVAL_MOVIE_NOT_STARTED) {
+    if (_gAkropolisPromenadeArrivalMovieStarted == ARRIVAL_MOVIE_NOT_STARTED) {
         if (gGameSession->location.warp == AKROPOLIS_PROMENADE_RIDE_ARRIVAL_WARP) {
-            _gAkropolisPromenadeArrivalMovieStarted = AKROPOLIS_PROMENADE_ARRIVAL_MOVIE_STARTED;
-            taskSpawnFromTable(_gAkropolisPromenadeMovieTaskDescriptors, AKROPOLIS_PROMENADE_MOVIE_PATH_TASK, 0, 0);
+            _gAkropolisPromenadeArrivalMovieStarted = ARRIVAL_MOVIE_STARTED;
+            taskSpawnFromTable(_gAkropolisPromenadeMovieTaskDescriptors, MOVIE_PATH_TASK, 0, 0);
         }
     }
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == AKROPOLIS_PROMENADE_SCENE_EVENT_SANCTUARY) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = AKROPOLIS_PROMENADE_SCENE_EVENT_PROMENADE;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == SCENE_EVENT_SANCTUARY) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = SCENE_EVENT_PROMENADE;
     }
     placementVariant = gGameSession->location.variant;
-    if (placementVariant == AKROPOLIS_PROMENADE_BATTLE_VARIANT) {
+    if (placementVariant == BATTLE_VARIANT) {
         gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_AREA_MUSIC | GAME_SESSION_FLOW_LOAD_AREA_MUSIC_ONLY);
         battlePhase             = gSceneCombatState.signals.bytes.battlePhase;
         if (battlePhase == placementVariant) {
             _gAkropolisPromenadeBattleFollowupState = battlePhase;
         }
         if ((_gAkropolisPromenadeBattleFollowupState == placementVariant) && (battlePhase != _gAkropolisPromenadeBattleFollowupState)) {
-            _gAkropolisPromenadeBattleFollowupState = AKROPOLIS_PROMENADE_BATTLE_FOLLOWUP_PENDING;
-            sndEvtRequestMidiStop(AKROPOLIS_PROMENADE_ALL_MIDI_SEQUENCES, AKROPOLIS_PROMENADE_BATTLE_MIDI_FADE_TICKS);
+            _gAkropolisPromenadeBattleFollowupState = BATTLE_FOLLOWUP_PENDING;
+            sndEvtRequestMidiStop(ALL_MIDI_SEQUENCES, BATTLE_MIDI_FADE_TICKS);
         }
-        if ((_gAkropolisPromenadeBattleFollowupState == AKROPOLIS_PROMENADE_BATTLE_FOLLOWUP_PENDING) && (gGameSession->battleResetPending != 0)) {
-            _gAkropolisPromenadeBattleFollowupState = AKROPOLIS_PROMENADE_BATTLE_FOLLOWUP_INACTIVE;
+        if ((_gAkropolisPromenadeBattleFollowupState == BATTLE_FOLLOWUP_PENDING) && (gGameSession->battleResetPending != 0)) {
+            _gAkropolisPromenadeBattleFollowupState = BATTLE_FOLLOWUP_INACTIVE;
             evsStartScriptWithSkip(_gAkropolisPromenadeBattleFollowupScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAkropolisPromenadeBattleFollowupSkipScript);
         }
     }
@@ -265,21 +265,22 @@ static s32 _akropolisPromenadeRejectKeyItemUse(Task* unusedTask, s32 unusedMessa
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// Room command 5 plays CAP sequence 5, or CAP 9 once object 21 is in state 2.
+/// Room command 5, the dead SWAT member: "His body armor is shredded..." (CAP 5) until his armor is taken, then "A red
+/// leaf on his body armor..." (CAP 9).
 static s32 _akropolisPromenadeHandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg)
 {
     enum {
-        AKROPOLIS_PROMENADE_ROOM_COMMAND_CAP_5    = 5,
-        AKROPOLIS_PROMENADE_CAP_OBJECT_INDEX      = 21,
-        AKROPOLIS_PROMENADE_CAP_OBJECT_COMPLETE   = 2,
-        AKROPOLIS_PROMENADE_CAP_SLOT              = 5,
-        AKROPOLIS_PROMENADE_CAP_COMPLETED_COMMAND = 9,
+        ROOM_COMMAND_DEAD_SWAT = 5,
+        DEAD_SWAT_OBJECT       = 21,
+        DEAD_SWAT_ARMOR_TAKEN  = 2,
+        DEAD_SWAT_CAP          = 5,
+        DEAD_SWAT_AFTER_CAP    = 9,
     };
-    if (command == AKROPOLIS_PROMENADE_ROOM_COMMAND_CAP_5) {
-        if (areaGetCurrentObjectState(AKROPOLIS_PROMENADE_CAP_OBJECT_INDEX) != AKROPOLIS_PROMENADE_CAP_OBJECT_COMPLETE) {
-            capStartSequenceSlot(AKROPOLIS_PROMENADE_CAP_SLOT, CAP_PLAYBACK_DISPLAY_TRANSITION, 0);
+    if (command == ROOM_COMMAND_DEAD_SWAT) {
+        if (areaGetCurrentObjectState(DEAD_SWAT_OBJECT) != DEAD_SWAT_ARMOR_TAKEN) {
+            capStartSequenceSlot(DEAD_SWAT_CAP, CAP_PLAYBACK_DISPLAY_TRANSITION, 0);
         } else {
-            capRunCommandWithTransition(AKROPOLIS_PROMENADE_CAP_COMPLETED_COMMAND);
+            capRunCommandWithTransition(DEAD_SWAT_AFTER_CAP);
         }
     }
     return 0;
@@ -324,12 +325,12 @@ static void _akropolisPromenadeTranslucentPlaneTask(Task* task)
 /// Registers the promenade room receiver and spawns its translucent plane.
 static void _akropolisPromenadeInitializeRoomTask(Task* task)
 {
-    enum { AKROPOLIS_PROMENADE_CAP_COMPLETION_SOUNDS_ENABLED = 1 };
+    enum { CAP_COMPLETION_SOUNDS_ENABLED = 1 };
     task->msgTable = _gAkropolisPromenadeRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     _gAkropolisPromenadeTranslucentPlaneTask = taskSpawnFromTable(_gAkropolisPromenadeTranslucentPlaneTaskDescriptors, 0, 0, 0);
     task->state                              = task->state + 1;
-    gCapRoomCompletionSoundsEnabled          = AKROPOLIS_PROMENADE_CAP_COMPLETION_SOUNDS_ENABLED;
+    gCapRoomCompletionSoundsEnabled          = CAP_COMPLETION_SOUNDS_ENABLED;
 }
 
 void akropolisPromenadeRoomTask(Task* task)
@@ -343,13 +344,13 @@ void akropolisPromenadeRoomTask(Task* task)
 /// Hides the bridge model in promenade view 5 and enables it in the other views.
 static void _akropolisPromenadeUpdateBridgeVisibility(Task* task)
 {
-    enum { AKROPOLIS_PROMENADE_BRIDGE_HIDDEN_VIEW = 5 };
+    enum { BRIDGE_HIDDEN_VIEW = 5 };
     TmdObject* bridge;
     GfxCoord*  coord;
 
     bridge = task->extra.tmd;
     coord  = bridge->coords;
-    if (viewGetMappedIndex() == AKROPOLIS_PROMENADE_BRIDGE_HIDDEN_VIEW) {
+    if (viewGetMappedIndex() == BRIDGE_HIDDEN_VIEW) {
         bridge->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         bridge->flags = 0;
@@ -358,7 +359,7 @@ static void _akropolisPromenadeUpdateBridgeVisibility(Task* task)
 }
 
 /// Copies a movie-path sample into the player root, with the promenade Z offset.
-#define AKROPOLIS_PROMENADE_APPLY_MOVIE_PATH_POSITION(movieWork, pathIndex, zOffset)                                \
+#define APPLY_MOVIE_PATH_POSITION(movieWork, pathIndex, zOffset)                                                    \
     {                                                                                                               \
         (movieWork)->playerMtx->t[0] = _gAkropolisPromenadeArrivalMoviePlayerPositions[(pathIndex)].vx;             \
         (movieWork)->playerMtx->t[1] = _gAkropolisPromenadeArrivalMoviePlayerPositions[(pathIndex)].vy;             \
@@ -369,17 +370,17 @@ static void _akropolisPromenadeUpdateBridgeVisibility(Task* task)
 static void _akropolisPromenadeMoviePathTask(Task* task)
 {
     enum {
-        AKROPOLIS_PROMENADE_MOVIE_INITIAL              = 0,
-        AKROPOLIS_PROMENADE_MOVIE_WAIT_READY           = 1,
-        AKROPOLIS_PROMENADE_MOVIE_FOLLOW_PATH          = 2,
-        AKROPOLIS_PROMENADE_MOVIE_WAIT_PLAYER          = 3,
-        AKROPOLIS_PROMENADE_MOVIE_FRAME_ORIGIN         = 69,
-        AKROPOLIS_PROMENADE_MOVIE_Z_OFFSET             = 200,
-        AKROPOLIS_PROMENADE_MOVIE_EXIT_X               = 642,
-        AKROPOLIS_PROMENADE_MOVIE_EXIT_Y               = 41,
-        AKROPOLIS_PROMENADE_MOVIE_EXIT_YAW             = 3072,
-        AKROPOLIS_PROMENADE_MOVIE_EXIT_VIEW            = 2,
-        AKROPOLIS_PROMENADE_MOVIE_WALK_HANDOFF_SAMPLES = 6,
+        INITIAL              = 0,
+        WAIT_READY           = 1,
+        FOLLOW_PATH          = 2,
+        WAIT_PLAYER          = 3,
+        FRAME_ORIGIN         = 69,
+        Z_OFFSET             = 200,
+        EXIT_X               = 642,
+        EXIT_Y               = 41,
+        EXIT_YAW             = 3072,
+        EXIT_VIEW            = 2,
+        WALK_HANDOFF_SAMPLES = 6,
     };
     AnimationPlayRequest animationRequest;
     ActorTransform       playerPlacement;
@@ -391,7 +392,7 @@ static void _akropolisPromenadeMoviePathTask(Task* task)
     cdQueue = &gCdCmdQueue;
     work    = task->work;
     switch (task->state) {
-        case AKROPOLIS_PROMENADE_MOVIE_INITIAL:
+        case INITIAL:
             // Capture the new work through task->work; the early local predates allocation.
             task->work = memCalloc(sizeof(RoomMoviePathWork), 0);
             if (task->work == NULL) {
@@ -413,7 +414,7 @@ static void _akropolisPromenadeMoviePathTask(Task* task)
             task->state                    = task->state + 1;
             break;
 
-        case AKROPOLIS_PROMENADE_MOVIE_WAIT_READY:
+        case WAIT_READY:
             if (cdQueue->movieReady != 0) {
                 work->padScriptTask           = padScriptSpawn(_gAkropolisPromenadeArrivalMovieVibrationCommands,
                                                                _gAkropolisPromenadeArrivalMovieVibrationSegments);
@@ -423,42 +424,42 @@ static void _akropolisPromenadeMoviePathTask(Task* task)
             }
             break;
 
-        case AKROPOLIS_PROMENADE_MOVIE_FOLLOW_PATH:
+        case FOLLOW_PATH:
             // Follow decoded movie frames, giving a completed skip fade priority over walking.
-            AKROPOLIS_PROMENADE_APPLY_MOVIE_PATH_POSITION(work, AKROPOLIS_PROMENADE_MOVIE_FRAME_ORIGIN - cdQueue->movieFrame, AKROPOLIS_PROMENADE_MOVIE_Z_OFFSET);
+            APPLY_MOVIE_PATH_POSITION(work, FRAME_ORIGIN - cdQueue->movieFrame, Z_OFFSET);
             if (work->skipFadeStarted != 0) {
                 if (taskPollKill(work->skipFadeTask, &skipFadeResult) != 0) {
-                    playerPlacement.pos.vx = AKROPOLIS_PROMENADE_MOVIE_EXIT_X;
-                    playerPlacement.pos.vy = AKROPOLIS_PROMENADE_MOVIE_EXIT_Y;
-                    playerPlacement.pos.vz = _gAkropolisPromenadeArrivalMoviePlayerPositions[AKROPOLIS_PROMENADE_MOVIE_FRAME_ORIGIN - cdQueue->movieFrame].vz - AKROPOLIS_PROMENADE_MOVIE_Z_OFFSET;
+                    playerPlacement.pos.vx = EXIT_X;
+                    playerPlacement.pos.vy = EXIT_Y;
+                    playerPlacement.pos.vz = _gAkropolisPromenadeArrivalMoviePlayerPositions[FRAME_ORIGIN - cdQueue->movieFrame].vz - Z_OFFSET;
                     playerPlacement.rot.vz = 0;
                     playerPlacement.rot.vx = 0;
-                    playerPlacement.rot.vy = AKROPOLIS_PROMENADE_MOVIE_EXIT_YAW;
+                    playerPlacement.rot.vy = EXIT_YAW;
                     TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_PLACE, &playerPlacement, 0);
-                    taskSpawnFromTable(_gAkropolisPromenadeMovieTaskDescriptors, AKROPOLIS_PROMENADE_MOVIE_SCENE_FADE_TASK, 0, 0);
+                    taskSpawnFromTable(_gAkropolisPromenadeMovieTaskDescriptors, MOVIE_SCENE_FADE_TASK, 0, 0);
                     task->state = task->state + 1;
                     break;
                 }
             } else if (padIsStartPressed() != 0) {
-                work->skipFadeTask    = taskSpawnFromTable(_gAkropolisPromenadeMovieTaskDescriptors, AKROPOLIS_PROMENADE_MOVIE_SKIP_FADE_TASK, 0, 0);
+                work->skipFadeTask    = taskSpawnFromTable(_gAkropolisPromenadeMovieTaskDescriptors, MOVIE_SKIP_FADE_TASK, 0, 0);
                 work->skipFadeStarted = 1;
             }
             // The walk handler reads XYZ only; rotation need not be initialized here.
-            if ((AKROPOLIS_PROMENADE_MOVIE_FRAME_ORIGIN - cdQueue->movieFrame) < AKROPOLIS_PROMENADE_MOVIE_WALK_HANDOFF_SAMPLES) {
-                playerPlacement.pos.vx = AKROPOLIS_PROMENADE_MOVIE_EXIT_X;
-                playerPlacement.pos.vy = AKROPOLIS_PROMENADE_MOVIE_EXIT_Y;
-                playerPlacement.pos.vz = _gAkropolisPromenadeArrivalMoviePlayerPositions[AKROPOLIS_PROMENADE_MOVIE_FRAME_ORIGIN - cdQueue->movieFrame].vz - AKROPOLIS_PROMENADE_MOVIE_Z_OFFSET;
+            if ((FRAME_ORIGIN - cdQueue->movieFrame) < WALK_HANDOFF_SAMPLES) {
+                playerPlacement.pos.vx = EXIT_X;
+                playerPlacement.pos.vy = EXIT_Y;
+                playerPlacement.pos.vz = _gAkropolisPromenadeArrivalMoviePlayerPositions[FRAME_ORIGIN - cdQueue->movieFrame].vz - Z_OFFSET;
                 TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, &playerPlacement, 0);
                 task->state = task->state + 1;
             }
             break;
 
-        case AKROPOLIS_PROMENADE_MOVIE_WAIT_PLAYER:
+        case WAIT_PLAYER:
             // Release scene holds only after the scripted player motion finishes.
             if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_SHOW_HUD, 0, 0);
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = AKROPOLIS_PROMENADE_MOVIE_EXIT_VIEW;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = EXIT_VIEW;
                 padInputChangeSuppression(PAD_INPUT_SUPPRESSION_CLEAR_ALIAS, PAD_INPUT_SUPPRESS_ACTIONS_AND_MENU);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 gGameSession->padScriptFlags  &= (0xFF ^ GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE);
@@ -468,23 +469,23 @@ static void _akropolisPromenadeMoviePathTask(Task* task)
     }
 }
 
-#undef AKROPOLIS_PROMENADE_APPLY_MOVIE_PATH_POSITION
+#undef APPLY_MOVIE_PATH_POSITION
 
 /// Darkens the promenade movie before its skip transition.
 static void _akropolisPromenadeMovieSkipFadeOutTask(Task* task)
 {
     enum {
-        AKROPOLIS_PROMENADE_MOVIE_SKIP_FADE_STEP = 32,
-        AKROPOLIS_PROMENADE_MOVIE_SKIP_FADE_END  = 256
+        FADE_STEP = 32,
+        FADE_END  = 256
     };
     u8  darkness;
     s16 nextFadeCounter;
 
     darkness = (u8)task->killCountdown;
     fadeDrawOverlay(darkness, darkness, darkness, GPU_BLEND_SUBTRACT);
-    nextFadeCounter     = (u16)task->killCountdown + AKROPOLIS_PROMENADE_MOVIE_SKIP_FADE_STEP;
+    nextFadeCounter     = (u16)task->killCountdown + FADE_STEP;
     task->killCountdown = nextFadeCounter;
-    if (nextFadeCounter >= AKROPOLIS_PROMENADE_MOVIE_SKIP_FADE_END) {
+    if (nextFadeCounter >= FADE_END) {
         taskRequestKill(task, 0);
     }
 }
@@ -493,17 +494,17 @@ static void _akropolisPromenadeMovieSkipFadeOutTask(Task* task)
 static void _akropolisPromenadeSceneFadeInTask(Task* task)
 {
     enum {
-        AKROPOLIS_PROMENADE_FADE_STEP = 32,
-        AKROPOLIS_PROMENADE_FADE_END  = 256
+        FADE_STEP = 32,
+        FADE_END  = 256
     };
     u8  darkness;
     s16 nextFadeCounter;
 
     darkness = ~(u8)task->killCountdown;
     fadeDrawOverlay(darkness, darkness, darkness, GPU_BLEND_SUBTRACT);
-    nextFadeCounter     = (u16)task->killCountdown + AKROPOLIS_PROMENADE_FADE_STEP;
+    nextFadeCounter     = (u16)task->killCountdown + FADE_STEP;
     task->killCountdown = nextFadeCounter;
-    if (nextFadeCounter >= AKROPOLIS_PROMENADE_FADE_END) {
+    if (nextFadeCounter >= FADE_END) {
         taskKill(task);
     }
 }
@@ -511,13 +512,13 @@ static void _akropolisPromenadeSceneFadeInTask(Task* task)
 void akropolisPromenadeRoomEffectTask(Task* task)
 {
     enum {
-        AKROPOLIS_PROMENADE_EFFECTS_SUPPRESSED_VIEW = 7,
-        AKROPOLIS_PROMENADE_LAMP_SINGLE_END         = 3,
-        AKROPOLIS_PROMENADE_LAMP_GROUP_FIRST        = 3,
-        AKROPOLIS_PROMENADE_LAMP_GROUP_END          = 5,
-        AKROPOLIS_PROMENADE_DRIP_VIEW_ENTRY_COUNT   = 40,
-        AKROPOLIS_PROMENADE_DISC_RADIUS_SCALE       = 256,
-        AKROPOLIS_PROMENADE_DISC_PACKED_COLOR       = 0x5C40,
+        EFFECTS_SUPPRESSED_VIEW = 7,
+        LAMP_SINGLE_END         = 3,
+        LAMP_GROUP_FIRST        = 3,
+        LAMP_GROUP_END          = 5,
+        DRIP_VIEW_ENTRY_COUNT   = 40,
+        DISC_RADIUS_SCALE       = 256,
+        DISC_PACKED_COLOR       = 0x5C40,
     };
     GfxCoord*   roomCoord;
     EffectWork* work;
@@ -533,23 +534,23 @@ void akropolisPromenadeRoomEffectTask(Task* task)
         return;
     }
     work->age++;
-    if (mappedView == AKROPOLIS_PROMENADE_EFFECTS_SUPPRESSED_VIEW) {
+    if (mappedView == EFFECTS_SUPPRESSED_VIEW) {
         return;
     }
     viewMask = 1 << (mappedView - 1);
     if (_gAkropolisPromenadeGlowViewMask & viewMask) {
-        effectSpawn((EFFECT_AKROPOLIS_PROMENADE_GLOW_STAR | EFFECT_SPAWN_UNLIMITED), roomCoord, (s32)(work->age), &_gAkropolisPromenadeGlowPositions[AKROPOLIS_PROMENADE_GLOW_FIRST_STAR]);
-        effectSpawn((EFFECT_AKROPOLIS_PROMENADE_GLOW_STAR | EFFECT_SPAWN_UNLIMITED), roomCoord, (s32)(work->age), &_gAkropolisPromenadeGlowPositions[AKROPOLIS_PROMENADE_GLOW_SECOND_STAR]);
+        effectSpawn((EFFECT_AKROPOLIS_PROMENADE_GLOW_STAR | EFFECT_SPAWN_UNLIMITED), roomCoord, (s32)(work->age), &_gAkropolisPromenadeGlowPositions[GLOW_FIRST_STAR]);
+        effectSpawn((EFFECT_AKROPOLIS_PROMENADE_GLOW_STAR | EFFECT_SPAWN_UNLIMITED), roomCoord, (s32)(work->age), &_gAkropolisPromenadeGlowPositions[GLOW_SECOND_STAR]);
         effectSpawn(EFFECT_AKROPOLIS_PROMENADE_GROUND_GLOW, roomCoord, (s32)(work->age), &_gAkropolisPromenadeGroundGlowPosition);
-        glowDrawTintedDiscNoBias(&_gAkropolisPromenadeGlowPositions[AKROPOLIS_PROMENADE_GLOW_DISC_POSITION], AKROPOLIS_PROMENADE_DISC_RADIUS_SCALE, AKROPOLIS_PROMENADE_DISC_PACKED_COLOR);
+        glowDrawTintedDiscNoBias(&_gAkropolisPromenadeGlowPositions[GLOW_DISC_POSITION], DISC_RADIUS_SCALE, DISC_PACKED_COLOR);
     }
     // The grouped pairs cover lamp placements 3..10; placement 11 follows separately.
-    for (placementIndex = 0; placementIndex < AKROPOLIS_PROMENADE_LAMP_SINGLE_END; placementIndex++) {
+    for (placementIndex = 0; placementIndex < LAMP_SINGLE_END; placementIndex++) {
         if (_gAkropolisPromenadeLampGlowViewMasks[placementIndex] & viewMask) {
             effectSpawn(EFFECT_AKROPOLIS_PROMENADE_LAMP_GLOW, roomCoord, 0, &_gAkropolisPromenadeLampGlowPositions[placementIndex]);
         }
     }
-    for (placementIndex = AKROPOLIS_PROMENADE_LAMP_GROUP_FIRST; placementIndex < AKROPOLIS_PROMENADE_LAMP_GROUP_END; placementIndex++) {
+    for (placementIndex = LAMP_GROUP_FIRST; placementIndex < LAMP_GROUP_END; placementIndex++) {
         if (_gAkropolisPromenadeLampGlowViewMasks[placementIndex] & viewMask) {
             effectSpawn(EFFECT_AKROPOLIS_PROMENADE_LAMP_GLOW, roomCoord, 1, &_gAkropolisPromenadeLampGlowPositions[placementIndex]);
         }
@@ -570,7 +571,7 @@ void akropolisPromenadeRoomEffectTask(Task* task)
     if (_gAkropolisPromenadeDripViewMask & viewMask) {
         previousView = work->scale;
         if (previousView != mappedView) {
-            for (placementIndex = 0; placementIndex < AKROPOLIS_PROMENADE_DRIP_VIEW_ENTRY_COUNT; placementIndex++) {
+            for (placementIndex = 0; placementIndex < DRIP_VIEW_ENTRY_COUNT; placementIndex++) {
                 effectSpawn(EFFECT_AKROPOLIS_PROMENADE_SCREEN_DRIP, roomCoord, (s32)(mappedView), NULL);
             }
         } else {
@@ -585,39 +586,39 @@ void akropolisPromenadeRoomEffectTask(Task* task)
 static inline void _akropolisPromenadeInitializeScreenDrip(Task* task, EffectWork* work)
 {
     enum {
-        AKROPOLIS_PROMENADE_DRIP_COLUMN_COUNT          = 240,
-        AKROPOLIS_PROMENADE_DRIP_FIRST_ROW             = 176,
-        AKROPOLIS_PROMENADE_DRIP_ROW_RANGE             = 64,
-        AKROPOLIS_PROMENADE_DRIP_MIN_LIFETIME_FRAMES   = 30,
-        AKROPOLIS_PROMENADE_DRIP_LIFETIME_RANGE_FRAMES = 90,
-        AKROPOLIS_PROMENADE_DRIP_MIN_WIDTH_PIXELS      = 16,
-        AKROPOLIS_PROMENADE_DRIP_WIDTH_RANGE_PIXELS    = 64,
-        AKROPOLIS_PROMENADE_DRIP_MAX_FRAMES_PER_ROW    = 4
+        COLUMN_COUNT          = 240,
+        FIRST_ROW             = 176,
+        ROW_RANGE             = 64,
+        MIN_LIFETIME_FRAMES   = 30,
+        LIFETIME_RANGE_FRAMES = 90,
+        MIN_WIDTH_PIXELS      = 16,
+        WIDTH_RANGE_PIXELS    = 64,
+        MAX_FRAMES_PER_ROW    = 4
     };
     u16 randomBits;
 
     RANDOM_LCG_ADVANCE();
-    work->move.vx = RANDOM_LCG_DRAW() % AKROPOLIS_PROMENADE_DRIP_COLUMN_COUNT;
+    work->move.vx = RANDOM_LCG_DRAW() % COLUMN_COUNT;
     RANDOM_LCG_ADVANCE();
-    work->move.vy = (RANDOM_LCG_DRAW() & (AKROPOLIS_PROMENADE_DRIP_ROW_RANGE - 1)) + AKROPOLIS_PROMENADE_DRIP_FIRST_ROW;
+    work->move.vy = (RANDOM_LCG_DRAW() & (ROW_RANGE - 1)) + FIRST_ROW;
     RANDOM_LCG_ADVANCE();
     randomBits  = RANDOM_LCG_DRAW();
-    work->scale = (u32)randomBits % AKROPOLIS_PROMENADE_DRIP_LIFETIME_RANGE_FRAMES + AKROPOLIS_PROMENADE_DRIP_MIN_LIFETIME_FRAMES;
+    work->scale = (u32)randomBits % LIFETIME_RANGE_FRAMES + MIN_LIFETIME_FRAMES;
     RANDOM_LCG_ADVANCE();
-    work->angle = (RANDOM_LCG_DRAW() & (AKROPOLIS_PROMENADE_DRIP_WIDTH_RANGE_PIXELS - 1)) + AKROPOLIS_PROMENADE_DRIP_MIN_WIDTH_PIXELS;
+    work->angle = (RANDOM_LCG_DRAW() & (WIDTH_RANGE_PIXELS - 1)) + MIN_WIDTH_PIXELS;
     RANDOM_LCG_ADVANCE();
-    work->period = (RANDOM_LCG_DRAW() & (AKROPOLIS_PROMENADE_DRIP_MAX_FRAMES_PER_ROW - 1)) + 1;
+    work->period = (RANDOM_LCG_DRAW() & (MAX_FRAMES_PER_ROW - 1)) + 1;
     task->state++;
 }
 
 void akropolisPromenadeScreenDripTask(Task* task)
 {
     enum {
-        AKROPOLIS_PROMENADE_DRIP_DEPTH_FIRST_ROW = 176,
-        AKROPOLIS_PROMENADE_DRIP_LAST_SOURCE_ROW = 239,
-        AKROPOLIS_PROMENADE_DRIP_START_DEPTH     = 0x500,
-        AKROPOLIS_PROMENADE_DRIP_DEPTH_PER_ROW   = 10,
-        AKROPOLIS_PROMENADE_DRIP_OT_DEPTH_SHIFT  = 4
+        DEPTH_FIRST_ROW = 176,
+        LAST_SOURCE_ROW = 239,
+        START_DEPTH     = 0x500,
+        DEPTH_PER_ROW   = 10,
+        OT_DEPTH_SHIFT  = 4
     };
     EffectWork* work;
     RECT        sourceStrip;
@@ -637,8 +638,8 @@ void akropolisPromenadeScreenDripTask(Task* task)
         }
         y        = work->move.vy + work->age / work->period;
         x        = work->move.vx;
-        depth    = AKROPOLIS_PROMENADE_DRIP_START_DEPTH - (y - AKROPOLIS_PROMENADE_DRIP_DEPTH_FIRST_ROW) * AKROPOLIS_PROMENADE_DRIP_DEPTH_PER_ROW;
-        onScreen = y < AKROPOLIS_PROMENADE_DRIP_LAST_SOURCE_ROW;
+        depth    = START_DEPTH - (y - DEPTH_FIRST_ROW) * DEPTH_PER_ROW;
+        onScreen = y < LAST_SOURCE_ROW;
         // Copy one row down within the current buffer, sorting by its screen row.
         if (onScreen) {
             sourceStrip.x  = x;
@@ -648,7 +649,7 @@ void akropolisPromenadeScreenDripTask(Task* task)
             movePacket     = gGpuPrimCursor;
             gGpuPrimCursor = movePacket + 1;
             SetDrawMove(movePacket, &sourceStrip, x, y + bufferY + 1);
-            addPrim(gGpuCurrentOt + (depth >> AKROPOLIS_PROMENADE_DRIP_OT_DEPTH_SHIFT), movePacket);
+            addPrim(gGpuCurrentOt + (depth >> OT_DEPTH_SHIFT), movePacket);
         }
         work->age++;
         if (work->age <= work->scale && onScreen) {
@@ -667,10 +668,10 @@ void akropolisPromenadeScreenDripTask(Task* task)
 /// Places one corner of the ground glow in the task's composed coordinate space.
 static inline void _akropolisPromenadeTransformGroundGlowCorner(EffectQuadCornersScratch* quadScratch, s32 cornerIndex, const GfxCoord* coord)
 {
-    enum { AKROPOLIS_PROMENADE_GROUND_GLOW_HALF_SIDE = 768 };
-    quadScratch->vertices[cornerIndex].vx     = _gAkropolisPromenadeGroundGlowUnitCorners[cornerIndex].axis0Sign * AKROPOLIS_PROMENADE_GROUND_GLOW_HALF_SIDE;
+    enum { GROUND_GLOW_HALF_SIDE = 768 };
+    quadScratch->vertices[cornerIndex].vx     = _gAkropolisPromenadeGroundGlowUnitCorners[cornerIndex].axis0Sign * GROUND_GLOW_HALF_SIDE;
     (&quadScratch->vertices[cornerIndex])->vy = 0;
-    (&quadScratch->vertices[cornerIndex])->vz = _gAkropolisPromenadeGroundGlowUnitCorners[cornerIndex].axis1Sign * AKROPOLIS_PROMENADE_GROUND_GLOW_HALF_SIDE;
+    (&quadScratch->vertices[cornerIndex])->vz = _gAkropolisPromenadeGroundGlowUnitCorners[cornerIndex].axis1Sign * GROUND_GLOW_HALF_SIDE;
     // Rotate the local corner before adding the composition-root translation.
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(&quadScratch->vertices[cornerIndex]);
@@ -695,13 +696,12 @@ static inline POLY_FT4* _akropolisPromenadeReserveGroundGlowQuad(void)
 void akropolisPromenadeGroundGlowTask(Task* task)
 {
     enum {
-        AKROPOLIS_PROMENADE_GROUND_GLOW_DEPTH_BIAS       = 32,
-        AKROPOLIS_PROMENADE_GROUND_GLOW_MIN_DEPTH        = 17,
-        AKROPOLIS_PROMENADE_GROUND_GLOW_TEXTURE_V        = 16,
-        AKROPOLIS_PROMENADE_GROUND_GLOW_LAST_TEXEL       = 39,
-        AKROPOLIS_PROMENADE_GROUND_GLOW_TEXTURE_PAGE     = getTPage(0, GPU_BLEND_ADD, 704, 0),
-        AKROPOLIS_PROMENADE_GROUND_GLOW_TEXTURE_CLUT     = getClut(16, 270),
-        AKROPOLIS_PROMENADE_GROUND_GLOW_GREY_LEVEL_COUNT = 16
+        DEPTH_BIAS       = 32,
+        TEXTURE_V        = 16,
+        LAST_TEXEL       = 39,
+        TEXTURE_PAGE     = getTPage(0, GPU_BLEND_ADD, 704, 0),
+        TEXTURE_CLUT     = getClut(16, 270),
+        GREY_LEVEL_COUNT = 16
     };
     GfxCoord*                 coord;
     EffectWork*               work;
@@ -729,21 +729,21 @@ void akropolisPromenadeGroundGlowTask(Task* task)
     gte_ldv3(&quadScratch->vertices[1], &quadScratch->vertices[2], &quadScratch->vertices[3]);
     gte_rtpt();
     quad->u0 = 0;
-    quad->v0 = AKROPOLIS_PROMENADE_GROUND_GLOW_TEXTURE_V;
-    quad->u1 = AKROPOLIS_PROMENADE_GROUND_GLOW_LAST_TEXEL;
-    quad->v1 = AKROPOLIS_PROMENADE_GROUND_GLOW_TEXTURE_V;
+    quad->v0 = TEXTURE_V;
+    quad->u1 = LAST_TEXEL;
+    quad->v1 = TEXTURE_V;
     quad->u2 = 0;
-    quad->v2 = AKROPOLIS_PROMENADE_GROUND_GLOW_TEXTURE_V + AKROPOLIS_PROMENADE_GROUND_GLOW_LAST_TEXEL;
-    quad->u3 = AKROPOLIS_PROMENADE_GROUND_GLOW_LAST_TEXEL;
-    quad->v3 = AKROPOLIS_PROMENADE_GROUND_GLOW_TEXTURE_V + AKROPOLIS_PROMENADE_GROUND_GLOW_LAST_TEXEL;
+    quad->v2 = TEXTURE_V + LAST_TEXEL;
+    quad->u3 = LAST_TEXEL;
+    quad->v3 = TEXTURE_V + LAST_TEXEL;
     gte_stsxy3(&quad->x1, &quad->x2, &quad->x3);
     gte_stszotz(&quadScratch->depth);
-    quadScratch->depth += AKROPOLIS_PROMENADE_GROUND_GLOW_DEPTH_BIAS;
-    if (quadScratch->depth >= AKROPOLIS_PROMENADE_GROUND_GLOW_MIN_DEPTH) {
-        quad->tpage = AKROPOLIS_PROMENADE_GROUND_GLOW_TEXTURE_PAGE;
-        quad->clut  = AKROPOLIS_PROMENADE_GROUND_GLOW_TEXTURE_CLUT;
+    quadScratch->depth += DEPTH_BIAS;
+    if (quadScratch->depth >= GLOW_MIN_DEPTH) {
+        quad->tpage = TEXTURE_PAGE;
+        quad->clut  = TEXTURE_CLUT;
         RANDOM_LCG_ADVANCE();
-        grey     = RANDOM_LCG_DRAW() & (AKROPOLIS_PROMENADE_GROUND_GLOW_GREY_LEVEL_COUNT - 1);
+        grey     = RANDOM_LCG_DRAW() & (GREY_LEVEL_COUNT - 1);
         quad->r0 = grey;
         quad->g0 = grey;
         quad->b0 = grey;
