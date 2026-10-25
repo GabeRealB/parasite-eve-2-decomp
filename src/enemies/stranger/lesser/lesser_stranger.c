@@ -2,8 +2,8 @@
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include <psyq/abs.h>
 #include <psyq/memory.h>
 
 #include "common.h"
@@ -11,7 +11,6 @@
 
 #include "actors/actor.h"
 
-#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
@@ -21,7 +20,6 @@
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/enemy_params.h"
-#include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
@@ -75,9 +73,6 @@ enum {
 };
 
 /// Values of `_Work::step`, the stage of the phase `Task::state`
-/// selects.
-///
-/// Every phase starts at step 0 and gives the steps its own meaning.
 enum {
     IDLE_STEP_CHOOSE = 0, // draws between a pause and a replay of animation 0; two replays in a row force the pause
     IDLE_STEP_PAUSE  = 1, // holds the pose for 32 ticks
@@ -89,16 +84,6 @@ enum {
 };
 
 /// Work block of the package's enemy task.
-///
-/// The spawn handler allocates it zeroed and keeps it at `Task::work`. It
-/// holds the animation rig, the body that takes the hits with its one contact
-/// record, storage for the model's matrices and the state of the idle, hit and
-/// death phases.
-///
-/// Animation numbers are indices into the package's animation-set table, and
-/// only slots 1 to 18 of the rig are driven. A contact key is a
-/// `WorldCollisionContact` key: its category in the high half and the
-/// identity of what made the contact in the low half.
 typedef struct {
     ActorAnimRig19        rig;              // playback of the model's parts; slot 1 reaching a boundary ends an idle replay and the hit reaction
     WorldCollisionBody    hitBody;          // sphere of radius 400 at model part 2 that takes the hits; unlinked when the death sequence begins
@@ -134,21 +119,12 @@ static s32          _lesserStrangerIsPresentMessage(Task* actorTask, s32 message
 enum { PLAYER_REACTION_SPARK_AND_PUFFS = 7 };
 
 /// Retained attack rows of the fire-escape Stranger, borrowed by its parameters.
-///
-/// Both rows carry base damage 18: row 0 selects spark-and-puffs presentation
-/// and row 1 the ordinary reaction, without status effects. No recovered
-/// actor behavior packs either row into an outgoing collision key.
 static DamageAttack _gLesserStrangerStrangerAttacks[2] = {
     { 18, PLAYER_REACTION_SPARK_AND_PUFFS },
     { 18, GAME_ACTOR_REACTION_ORDINARY },
 };
 
 /// Health, rewards and hit-reaction parameters of the fire-escape Stranger.
-///
-/// The live enemy borrows this record and its attacks. Nominal maximum health
-/// is 30, although initialization separately assigns 50 current HP. Rewards
-/// are 42 experience, 82 battle points and 4 magic points; critical chance is
-/// 250 percent. Buildup steps and damage-over-time pulse count remain zero.
 static EnemyParams _gLesserStrangerStrangerParams = {
     .attacks              = _gLesserStrangerStrangerAttacks,
     .hpMax                = 30,
@@ -182,41 +158,24 @@ static u16 D_actor_311500_801692D0[18] = {
 };
 
 /// Fire-escape Stranger's two body clips, indexed by `LESSER_STRANGER_ANIMATION_*`.
-///
-/// Slot 0 is the idle clip and slot 1 the hit reaction. Live rigs borrow this
-/// table and both sets until task teardown; no null terminator is required.
 #include "assets/enemies/stranger/lesser/bank.inc"
 
 /// Barrier patch's single Q12 +Z normal, copied into the fire-escape grid.
-///
-/// Initialization replaces normal 0; a killing hit clears that complete live
-/// normal together with the barrier's vertices and face. This template stays intact.
 static SVECTOR _gLesserStrangerBarrierPatchNormals[1] = {
 #include "assets/lesser_stranger_collision_074DC.inc"
 };
 
 /// Barrier patch's four room-coordinate vertices, copied into grid vertices 0..3.
-///
-/// They span X 1000..3000 and Y -300..0 at Z -1000. A killing hit clears the
-/// complete four-vertex prefix; the template and remaining grid geometry stay intact.
 static SVECTOR _gLesserStrangerBarrierPatchVerts[4] = {
 #include "assets/lesser_stranger_collision_074E4.inc"
 };
 
 /// Barrier patch's one quad, copied into fire-escape grid face 0.
-///
-/// Uses vertices 0..3, normal 0 and surface class 6. A killing hit clears the
-/// complete live face; all twelve bytes are transferred together.
 static WorldCollisionGridFace _gLesserStrangerBarrierPatchFaces[1] = {
 #include "assets/lesser_stranger_collision_07504.inc"
 };
 
 /// Fire-escape Stranger's sole supported message, `ACTOR_MESSAGE_IS_PRESENT`.
-///
-/// Borrowed by the live task and has no end marker: send only this ID. The
-/// first payload is ignored; the second must point to one writable u32, also
-/// receiving the returned presence flag (1 live, 0 once a killing hit lands).
-/// Existing room queries pass zero instead; their valid output backing is unproven.
 static TaskMessageEntry _gLesserStrangerStrangerMessages[1] = {
     { ACTOR_MESSAGE_IS_PRESENT, _lesserStrangerIsPresentMessage },
 };
@@ -244,11 +203,6 @@ static s32         _lesserStrangerTickDeath(Task* actorTask);
 #include "../../../shared/actor/actor_contacts_turn_joint.inc.c"
 
 /// Restarts the remaining idle tracks of the package rig at normal playback rate.
-///
-/// `slotIndex` is in 1..18; its low 16 bits select that slot through slot 18.
-/// The initialized rig, model and clip data must remain live. `requestedRate`
-/// is in sixteenths of a frame and is written before each reset, which
-/// overwrites it with `ANIMATION_RATE_ONE`.
 static inline void _lesserStrangerResetAnim(ActorAnimRig19* rig, u8 requestedRate, s32 slotIndex)
 {
     do {
@@ -259,10 +213,6 @@ static inline void _lesserStrangerResetAnim(ActorAnimRig19* rig, u8 requestedRat
 }
 
 /// Initializes the stationary enemy's playback, targeting and single-contact hit body.
-///
-/// Requires the package model, enemy spawn argument and fire-escape placement data.
-/// The task owns the allocated work and primitive buffer; model and clip data must
-/// stay loaded while it is live. Allocation failure kills the task.
 static void _lesserStrangerInit(Task* actorTask)
 {
     enum { INITIAL_HP = 50,
@@ -336,9 +286,6 @@ static void _lesserStrangerInit(Task* actorTask)
 }
 
 /// Advances model slots 1..18 and reports whether slot 1 reached a playback boundary.
-///
-/// Requires initialized package playback with live model and clip data. Returns
-/// 1 for `ANIMATION_SLOT_REACHED_BOUNDARY`, otherwise 0; this need not mean a stop.
 static inline u16 _lesserStrangerTickAnim(Task* task)
 {
     _Work* work = task->work;
@@ -356,8 +303,6 @@ static inline u16 _lesserStrangerTickAnim(Task* task)
 }
 
 /// Chooses a 32-tick pause or an idle replay, forcing a pause after two replays.
-///
-/// The replay's requested double rate is overwritten by the slot reset.
 static void _lesserStrangerTickIdle(Task* actorTask)
 {
     enum { PAUSE_FRAMES = 32,
@@ -405,11 +350,6 @@ static void _lesserStrangerTickIdle(Task* actorTask)
 }
 
 /// Finds the first attack contact before an empty record or the contact limit.
-///
-/// `contactCount` is a nonnegative element count within the readable `contacts`
-/// array. A hit writes only signed game-coordinate XYZ of `contactPoint` in the
-/// contact's frame
-/// and returns its packed key; no hit returns 0 and leaves the point untouched.
 static inline s32 _lesserStrangerFindHit(SVECTOR* contactPoint, const WorldCollisionContact* contacts, s16 contactCount)
 {
     s16 contactIndex;
@@ -429,9 +369,6 @@ static inline s32 _lesserStrangerFindHit(SVECTOR* contactPoint, const WorldColli
 }
 
 /// Applies the queued attack's HP damage, critical effect and target readout.
-///
-/// Consumes the single hit contact and remembers its full key for the reaction
-/// effect. Returns the key's signed low halfword, or 0 when there is no attack.
 static s16 _lesserStrangerApplyHit(Task* actorTask)
 {
     enum { CRITICAL_DAMAGE_MULTIPLIER = 5 };
@@ -458,9 +395,6 @@ static s16 _lesserStrangerApplyHit(Task* actorTask)
 }
 
 /// Blends model slots 1..18 into the hit clip over ten normal-rate frames.
-///
-/// Captures their advanced poses first. Requires initialized package playback;
-/// its transition buffers, clip data and model must remain live through the blend.
 static inline void _lesserStrangerBlendHitAnimation(Task* task)
 {
     enum { HIT_BLEND_FRAMES = 10 };
@@ -475,9 +409,6 @@ static inline void _lesserStrangerBlendHitAnimation(Task* task)
 }
 
 /// Spawns the last attack's hit effect at the body's fixed local offset.
-///
-/// The offset (60, -12, 30) is in model part 2's coordinate frame. Effect selection
-/// comes from the full saved attack key; the borrowed spawn record is synchronous.
 static inline void _lesserStrangerSpawnHitEffect(Task* task)
 {
     enum { MAGNITUDE = 256,
@@ -496,9 +427,6 @@ static inline void _lesserStrangerSpawnHitEffect(Task* task)
 }
 
 /// Starts or advances the hit reaction, returning -1 for death, 1 for a boundary, or 0.
-///
-/// A lethal start blends and spawns the hit effect without advancing the step;
-/// another call repeats those effects. A boundary returns the actor to idle.
 static s32 _lesserStrangerTickHitReaction(Task* actorTask)
 {
     _Work* work;
@@ -527,20 +455,9 @@ static s32 _lesserStrangerTickHitReaction(Task* actorTask)
 }
 
 /// Runs the death sound, reward release and timed burn-away of the model.
-///
-/// Stops targeting and hit collection at the burn step's first tick. The root
-/// retains its translation while its yaw basis is rebuilt with vertical Q12
-/// scale. Returns 1 at burn tick 260, otherwise 0; the task stays allocated.
 static s32 _lesserStrangerTickDeath(Task* actorTask)
 {
 /// Installs the corpse root's nine scaled Q12 basis coefficients.
-///
-/// Requires a live writable GfxCoord rootCoord, a readable MATRIX rotation
-/// lvalue and a writable u16 matrixElement temporary. All occur repeatedly and
-/// must be side-effect-free. Each source halfword passes through the unsigned
-/// temporary before the signed matrix store, preserving its bits. Translation
-/// is retained; composition becomes dirty before the last coefficient is stored.
-/// Invoke within a braced statement body.
 #define INSTALL_ROOT_ROTATION(rootCoord, rotation, matrixElement) \
     {                                                             \
         (matrixElement)            = (u16)(rotation).m[0][0];     \
@@ -654,9 +571,6 @@ static s32 _lesserStrangerTickDeath(Task* actorTask)
 #undef INSTALL_ROOT_ROTATION
 
 /// Composes the body coordinate and refreshes lighting from the root's cached view position.
-///
-/// Requires the live model and enemy spawn argument. Marks the root dirty for
-/// the next composition; the task's model renderer emits the primitives.
 static inline void _lesserStrangerUpdatePresentation(Task* actor)
 {
     Enemy* enemy;
@@ -672,10 +586,6 @@ static inline void _lesserStrangerUpdatePresentation(Task* actor)
 }
 
 /// Updates the fire-escape enemy's idle, hit and death phases and presentation.
-///
-/// Scene actor controls pause updates or hide the model. The fire-escape grid
-/// must be loaded: initialization installs its barrier patch and death clears
-/// that patch before marking the enemy absent. The done phase keeps the task live.
 static void _lesserStrangerTask(Task* actorTask)
 {
     _Work*     work;
@@ -761,10 +671,6 @@ static void _lesserStrangerTask(Task* actorTask)
 }
 
 /// Reports whether the enemy is present, both as the result and through the output word.
-///
-/// Handles `ACTOR_MESSAGE_IS_PRESENT`; the first payload is unused and the second
-/// must point to one writable `u32`. Requires initialized package work. Presence
-/// is 1 until the killing hit starts the death phase, then 0.
 static s32 _lesserStrangerIsPresentMessage(Task* actorTask, s32 messageId, s32 unusedArg, u32* presenceResult)
 {
     _Work* work    = actorTask->work;

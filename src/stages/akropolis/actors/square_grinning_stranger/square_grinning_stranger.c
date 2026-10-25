@@ -35,11 +35,7 @@
 #include "stages/akropolis/rooms/square.h"
 #include "../../../../shared/actor/actor_contacts.h"
 
-/// Steps of `_Work::sequenceStep`, in the order the sequence runs
-/// them.
-///
-/// Each step advances to the next by incrementing the field; the last one
-/// repeats until the task is killed.
+/// Steps of `_Work::sequenceStep`, in the order the sequence runs them.
 enum {
     STEP_START      = 0, // Cross-fades the body slots to animation set 0 over 15 frames
     STEP_TURN       = 1, // Lowers `part5Yaw` and `part5Pitch` by 0x10 a tick each, until both are below -0x154
@@ -50,20 +46,8 @@ enum {
     STEP_DEPART     = 6  // Moves the model's root 0x96 along -Z every tick
 };
 
-/// Work block of the Grinning Stranger that Acropolis Square stages: a model
-/// with no collision that waits for the player, runs one scripted sequence
-/// and leaves.
-///
-/// The task's setup allocates it zeroed and keeps it at `Task::work` for the
-/// task's life. The model object borrows `light` and `color` for as long as
-/// the block lives. Slots 1 to 18 of the rig are driven; slot 0, the root's,
-/// is never started.
-///
-/// The actor idles on animation set 5 until the player's position crosses the
-/// room's trigger line, then runs `sequenceStep` from its first step. Model
-/// part 5 is turned on top of the animation every tick, by `part5Pitch` about
-/// its X axis and then `part5Yaw` about the world's Y axis. Angles are 4096ths
-/// of a turn.
+/// Work block of the Grinning Stranger that Acropolis Square stages: a model with no collision that waits for the
+/// player, runs one scripted sequence and leaves.
 typedef struct {
     ActorAnimRig19 rig;              // Playback storage of the nineteen-part body model; slots 1 to 18 are driven
     MATRIX         light;            // Light-direction matrix lent to the model object
@@ -89,10 +73,6 @@ static void      _squareGrinningStrangerGrinningStrangerTask(Task* task);
 #include "assets/rooms/akropolis/square/grinning_stranger_clips.inc"
 
 /// Grinning Stranger body clips for its staged turn and departure sequence.
-///
-/// Loaded entries are 0, 1, 2, 5 and 6; 3, 4 and 7 are unplayable NULL holes, and 1 and 6 are never played.
-/// Setup starts 5, the idle; the sequence blends to 0, the reaction, and then 2, running off. Sets and tracks remain
-/// borrowed by the body rig while the overlay is loaded.
 #include "assets/rooms/akropolis/square/grinning_stranger_bank.inc"
 
 TaskDesc gSquareGrinningStrangerGrinningStrangerTaskDesc = {
@@ -109,11 +89,6 @@ static void        _squareGrinningStrangerInitBody(Task* task);
 #include "../../../../shared/actor/actor_contacts_turn_joint.inc.c"
 
 /// Ticks the eighteen non-root body tracks and records slot 1's keyframe index.
-///
-/// Requires initialized nineteen-part rig storage and live clip data. Each slot
-/// advances at its existing rate and writes its pose; slot 0 is untouched. The
-/// cached unsigned record index narrows into the signed halfword work field.
-/// Borrows task/model storage and uses animation playback's scratch/GTE state.
 static inline void _squareGrinningStrangerTickAnim(Task* task)
 {
     _Work* work = task->work;
@@ -126,14 +101,6 @@ static inline void _squareGrinningStrangerTickAnim(Task* task)
 }
 
 /// Captures the current body poses and blends tracks 1..18 to a selected set's start.
-///
-/// work, animationId and blendFrames must have no side effects and are evaluated
-/// on every iteration; sizeof inspects work unevaluated for the bound. Requires live slots,
-/// loaded clip data and pose buffers through the transition. Retains playback
-/// rates and slot 0; capture ticks consume the existing rate and retain flags.
-/// blendFrames counts normal-rate frames (0 immediate, 0..2047 without signed-time
-/// wrapping). Captures no caller identifiers and forms one statement with its
-/// own u16 slotIndex; arguments must not refer to that local.
 #define BLEND_BODY_SLOTS(work, animationId, blendFrames)                                               \
     do {                                                                                               \
         u16 slotIndex;                                                                                 \
@@ -143,13 +110,6 @@ static inline void _squareGrinningStrangerTickAnim(Task* task)
     } while (0)
 
 /// Blends the eighteen non-root body tracks to the selected animation's start.
-///
-/// Requires an initialized rig and a loaded `animationId` with tracks 1..18.
-/// Clears the cached slot-1 record before capturing/ticking each current pose.
-/// Retains each slot's playback rate; slot 0 is untouched. `blendFrames` counts
-/// whole normal-rate frames (0 immediate, 0..2047 without signed-time wrapping).
-/// Pose buffers and clip data must remain live through the transition; uses
-/// animation playback's scratch stack and GTE state.
 static inline void _squareGrinningStrangerBlendBodyAnimation(Task* task, u16 animationId, u16 blendFrames)
 {
     _Work* work = task->work;
@@ -160,10 +120,6 @@ static inline void _squareGrinningStrangerBlendBodyAnimation(Task* task, u16 ani
 #undef BLEND_BODY_SLOTS
 
 /// Ticks the body animation and advances the staged Stranger sequence.
-///
-/// Requires initialized work and a live model. Steps blend clips, lower part 5
-/// in pitch/yaw, hold, swing its yaw, then depart along parent-frame negative Z
-/// by 150 units per update. Angles use 4096 units per turn; holds count updates.
 static void _squareGrinningStrangerRunSequence(Task* task)
 {
     enum {
@@ -248,9 +204,6 @@ static void _squareGrinningStrangerRunSequence(Task* task)
 }
 
 /// Restarts the eighteen body tracks at the idle clip's normal playback rate.
-///
-/// Requires an initialized nineteen-part rig. Slot zero is untouched and the
-/// cached slot-1 record is cleared. Clip 5 and its model tracks remain loaded.
 static inline void _squareGrinningStrangerStartIdleTracks(Task* task)
 {
     enum {
@@ -271,11 +224,6 @@ static inline void _squareGrinningStrangerStartIdleTracks(Task* task)
 }
 
 /// Initializes the staged Stranger body and its eighteen non-root animation tracks.
-///
-/// Allocates zeroed task-owned work, killing the task on failure. The model borrows
-/// its lighting matrices and the loaded clip bank. Parents the root to the view,
-/// starts clip 5 and sets part-5 pitch to 341/4096 turns. Texture offsets come from
-/// placement entry 19, or the end record when absent. Setup does not advance task state.
 static void _squareGrinningStrangerInitBody(Task* task)
 {
     enum {
@@ -316,14 +264,6 @@ static void _squareGrinningStrangerInitBody(Task* task)
 }
 
 /// Stages the Grinning Stranger's trigger, scripted departure and joint lighting.
-///
-/// State 0 waits for the attachment wheel and pending display change to clear,
-/// then initializes the body; state 1 ticks tracks 1..18 until the player crosses
-/// the room trigger; state 2 runs the sequence until session event state is 0.
-/// The common tail applies part 5's pitch and world yaw in 4096-turn units,
-/// samples three lights at part 1, and scales colour by truncated Q12 one-third.
-/// The tail retains entry-time work after initialization and continues after
-/// a kill request; no lifetime guard is present.
 static void _squareGrinningStrangerGrinningStrangerTask(Task* task)
 {
     enum {

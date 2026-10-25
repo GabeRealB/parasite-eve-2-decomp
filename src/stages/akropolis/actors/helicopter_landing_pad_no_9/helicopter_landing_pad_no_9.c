@@ -14,11 +14,8 @@
 #include "actors/actor.h"
 
 #include "gameplay/display.h"
-#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
-#include "gameplay/area.h"
-#include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
@@ -38,15 +35,12 @@
 #include "main/display_types.h"
 #include "main/random.h"
 #include "main/gfx.h"
-#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
-#include "main/session.h"
 #include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/task_types.h"
-#include "main/tmd.h"
 #include "main/tmd_types.h"
 #include "../../../../shared/effects/sprite_quad.h"
 
@@ -72,20 +66,6 @@ enum {
 };
 
 /// Scratch-stack block one frame's segment of a debris streak is drawn from.
-///
-/// A streak, `EFFECT_NO9_GOLEM_DEBRIS_STREAK`, is a point that drifts a little
-/// every frame. `endpoints` holds its world position before and after the
-/// frame's drift, narrowed to signed 16-bit coordinate units, and the line
-/// between the two is that frame's segment. Endpoints, depths and screen
-/// positions share indices 0..1, the order of the line packet's vertices.
-///
-/// Each end is projected by an RTPS of its own. `projectionFlags` holds the
-/// most recently stored GTE FLAG word, and a negative word after either
-/// projection drops the segment. Unlike `EffectLineScratch`, the block keeps
-/// a depth per end: the segment is sorted and blended at their mean.
-///
-/// Reserve one complete, word-aligned block and release it in scratch-stack
-/// order after drawing; no pointer into the block survives release.
 typedef struct {
     SVECTOR endpoints[2];       // World positions of the segment's two ends: before the frame's drift, then after it
     s32     depths[2];          // SZ3 / 4 of each end, stored once that end's projection is accepted; their mean is the ordering and blend depth
@@ -95,10 +75,6 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_DebrisStreakScratch, 0x24);
 
 /// VRAM coordinates of one palette for actor 510900's explosion fireball.
-///
-/// Each entry is the unencoded input of `getClut`: X in words, Y in scanlines.
-/// The fireball drawer pairs entry `frame` with the same index of
-/// `gEffectSpriteAtlasFrames`.
 typedef struct {
     u16 clutX; // Palette X in VRAM words, aligned to 16 words.
     u16 clutY; // Palette Y in VRAM scanlines.
@@ -106,11 +82,6 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_SpritePalette, 4);
 
 /// Twelve fireball palettes, one per frame of `gEffectSpriteAtlasFrames`.
-///
-/// Every entry sits on scanline 270. X runs from 80 through 256 in steps of
-/// 16 words, one 16-colour palette per atlas frame. The fireball drawer in
-/// this file is the only reader. The table stays in initialized data so that
-/// drawer can address it at its image offset.
 static const _SpritePalette _gHelicopterLandingPadNo9FireballFramePalettes[12] __attribute__((section(".data"))) = {
     { 80, 270 },
     { 96, 270 },
@@ -150,14 +121,6 @@ DamageAttack gHelicopterLandingPadNo9Attacks[6] = {
 };
 
 /// Chooses a flame-jet particle's local velocity and draws its subsequent size bits.
-///
-/// Requires live EffectWork and side-effect-free arguments; effect is evaluated
-/// repeatedly, horizontalRange and verticalStep once. horizontalRange is positive
-/// (640 or 704 here), verticalStep fits s16, and XYZ use emitter-local game units
-/// per particle tick. X lies in [-horizontalRange-127,-128], Y is verticalStep,
-/// and Z is zero. Advances the shared LCG twice: the first draw selects X and the
-/// second is left in gRandomLcgState for the following spawn's size. The block
-/// retains no pointer and leaves the vector pad untouched.
 #define PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, horizontalRange, verticalStep)            \
     {                                                                                         \
         enum { FLAME_JET_MIN_X_SPEED = 128 };                                                 \
@@ -425,14 +388,6 @@ void helicopterLandingPadNo9FlameSpriteTask45(Task* task)
     s32                 fadeBrightness;
 
 /// Draws a half-scale flame glow at Y zero in the flame's parent frame.
-///
-/// Requires stable live flameCoord/flameEffect pointers, a separate writable
-/// GfxCoord groundCoord lvalue and a brightness value. Coordinate arguments are
-/// evaluated repeatedly; all arguments must be side-effect-free. Composes the
-/// new translation beneath flameCoord's parent, then draws at scale >> 1. Only
-/// the composed translation is consumed; this helper does not initialize a basis
-/// or query a collision floor. It retains no caller-owned storage.
-/// Statement-only GNU expression; its value is not part of the interface.
 #define DRAW_FLAME_GROUND_GLOW(flameCoord, groundCoord, flameEffect, brightness)       \
     ({                                                                                 \
         (groundCoord).parent       = (flameCoord)->parent;                             \
@@ -864,7 +819,6 @@ void helicopterLandingPadNo9MuzzleFlashTask44(Task* task)
         LIGHT_RED          = 3 * ONE / 4,
         LIGHT_GREEN        = ONE / 2,
         LIGHT_BLUE         = ONE / 4,
-        PARTICLE_PAIRS     = 6,
         LIGHT_FRAMES       = 4,
         LIGHT_INNER_RADIUS = 4000,
         LIGHT_OUTER_RADIUS = 4800,
@@ -1068,16 +1022,6 @@ void helicopterLandingPadNo9ExplosionTask185(Task* task)
 }
 
 /// Builds the fireball's random drift and rotates it from the borrowed parent basis.
-///
-/// Requires live EffectWork, writable move XYZ and a live parent coordinate.
-/// Advances the shared LCG three times, drawing each component in [-15,16].
-/// Applies successive GTE Q12 factors scale<<3 and index<<12, storing s16
-/// results after each operation, then rotates by parent->coord without adding
-/// translation. Retains GTE saturation and IR0 narrowing at each scale rather
-/// than combining the factors. Captures the enclosing task's two shift constants
-/// and clobbers the GTE rotation matrix, vector/MAC registers, flags and colour
-/// FIFO. effect is evaluated repeatedly and must be side-effect-free; the block
-/// leaves move.pad untouched and retains no pointer.
 #define MAKE_FIREBALL_DRIFT(effect)                              \
     {                                                            \
         enum { CENTRE = 16,                                      \
@@ -1204,36 +1148,14 @@ void helicopterLandingPadNo9ExplosionFireballTask184(Task* task)
 /// Packed additive texture page for the shared effect atlas, with this actor's palettes.
 #define SPRITE_QUAD_TEXTURE_PAGE EFFECT_SPRITE_ATLAS_TEXTURE_PAGE
 /// Fireball palette for atlas frame `frame`, packed as a GPU CLUT word.
-///
-/// X is in VRAM words and Y in scanlines. The drawer assigns the word once per
-/// emitted quad. `frame` must be a nonnegative index into the twelve-entry
-/// table; the subscript is evaluated for each coordinate.
 #define SPRITE_QUAD_CLUT getClut(_gHelicopterLandingPadNo9FireballFramePalettes[frame].clutX, _gHelicopterLandingPadNo9FireballFramePalettes[frame].clutY)
 /// UV-origin table for the next included sprite-quad drawer.
-///
-/// Bind an array or side-effect-free pointer expression with
-/// `EffectSpriteTextureFrame` elements before `sprite_quad_draw.inc.c`.
-/// The drawer borrows the table for the call and reads only `u` and `v`, in
-/// texels relative to `SPRITE_QUAD_TEXTURE_PAGE`; palettes come from
-/// `SPRITE_QUAD_CLUT`. Each cell is square with `SPRITE_QUAD_CELL_WIDTH`
-/// texels per side, and its inclusive endpoints narrow to GPU bytes.
-///
-/// Defining this binding replaces arithmetic UV selection. The drawer's
-/// `frame` parameter indexes it directly, without wrapping or clamping, and
-/// must be nonnegative and in range for both this table and any frame-indexed
-/// CLUT table. The table expression is evaluated once for an emitted quad;
-/// no pointer is retained. The fragment undefines the binding after inclusion.
-///
-/// Actor 510900 is the sole table-mode carrier: it borrows the gameplay
-/// image's twelve atlas origins and selects twelve actor-specific palettes.
 #define SPRITE_QUAD_UV_TABLE gEffectSpriteAtlasFrames
 STATIC_ASSERT(ARRAY_SIZE(SPRITE_QUAD_UV_TABLE) == ARRAY_SIZE(_gHelicopterLandingPadNo9FireballFramePalettes), sprite_quad_uv_palette_frame_counts_match);
 
 /// Texel width and height of the shared atlas cells used with this actor's palettes.
 #define SPRITE_QUAD_CELL_WIDTH EFFECT_SPRITE_ATLAS_CELL_SIZE
 /// Perspective-sizing multiplier for the shared atlas sprite.
-///
-/// Uses the atlas's inclusive 39-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
 #define SPRITE_QUAD_SCALE EFFECT_SPRITE_ATLAS_UV_SPAN
 #include "../../../../shared/effects/sprite_quad_draw.inc.c"
 

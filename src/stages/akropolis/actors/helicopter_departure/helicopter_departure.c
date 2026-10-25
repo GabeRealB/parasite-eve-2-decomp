@@ -22,7 +22,6 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/view.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -41,16 +40,6 @@
 #include "../../../../shared/actor/actor_messages.h"
 
 /// Work block of the No. 9 golem, the package's enemy.
-///
-/// The enemy's spawn state allocates it zeroed and keeps it at `Task::work`
-/// for the task's life. The golem's model and the three models chained under
-/// its parts borrow `light` and `color` for as long as the block lives, which
-/// is what lets one fade darken all four.
-///
-/// While the clip is below 3 the golem is lit from the area at its position
-/// and casts a ground shadow. A clip from 3 up is its exit: the lighting is no
-/// longer refreshed, both matrices are scaled by 15/16 every third tick, and
-/// the enemy is destroyed once `animTicks` passes 96.
 typedef struct {
     ActorAnimRig19 rig;            // Playback storage of the nineteen-part body model; slots 1 to 18 are driven
     MATRIX         color;          // Light-colour matrix lent to the golem's model and its attached models
@@ -65,37 +54,15 @@ STATIC_ASSERT_SIZEOF(_No9GolemWork, 0x488);
 #define PALETTE_COLORS 16
 
 /// Byte extent of the helicopter's flashing palette row.
-///
-/// Each VRAM colour occupies one 16-bit RGB555/STP word, serialized low byte
-/// first. Byte arrays retain that representation without requiring halfword alignment.
 #define PALETTE_BYTES (PALETTE_COLORS * sizeof(u16))
 
 /// Dark-palette weight at full fade, in the GTE's twelve-fractional-bit scale.
-///
-/// Zero selects the lit palette; this value selects the dark palette and starts
-/// consuming the hold counter. The complementary lit weight uses the same scale.
 #define PALETTE_FADE_FULL ONE
 
 /// Update ticks spent at the dark palette before snapping back to the lit palette.
-///
-/// The update reaching full fade counts as the first held tick. The following
-/// update after the counter reaches zero restores the lit palette and rearms it.
 #define PALETTE_HOLD_TICKS 30
 
 /// Work block of the helicopter.
-///
-/// The task's spawn state allocates it zeroed and keeps it at `Task::work`
-/// for the task's life. The helicopter's model, and through it the three
-/// models chained under it, borrow `light` and `color` for as long as the
-/// block lives.
-///
-/// While the helicopter is drawn, one sixteen-colour row of video memory is
-/// rewritten every tick from `palette`, a blend of the package's two stored
-/// palettes. The blend snaps to the first palette, fades to the second over
-/// three ticks, holds there for `PALETTE_HOLD_TICKS` and snaps
-/// back, so whatever is textured with that row flashes once a cycle. The
-/// upload record borrows `palette`, which has to stay live while the task
-/// runs.
 typedef struct {
     byte   unknown_0[8];           // Allocated but never accessed; role unproven
     s32    freeCountdown;          // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
@@ -108,11 +75,7 @@ typedef struct {
 } _HelicopterWork;
 STATIC_ASSERT_SIZEOF(_HelicopterWork, 0x70);
 
-/// `_RupertBroderickWork::blinkStep`: the eye image the blink
-/// posts next.
-///
-/// The command that starts a blink posts the half-open eyes itself; the steps
-/// then post the closed, half-open and open eyes in turn.
+/// `_RupertBroderickWork::blinkStep`: the eye image the blink posts next.
 enum {
     BLINK_NONE   = 0, // No blink in progress
     BLINK_CLOSED = 1, // The closed eyes are posted next
@@ -121,17 +84,6 @@ enum {
 };
 
 /// Work block of Rupert Broderick's body.
-///
-/// The task's spawn state allocates it zeroed and keeps it at `Task::work`
-/// for the task's life. The model object borrows `light` and `color` for as
-/// long as the block lives; the lighting is taken at model part 1, not at the
-/// root coordinate.
-///
-/// A play request rebinds the rig when its bank differs from `bank` and
-/// reseeds the slots when its clip differs from `animId`; both start as
-/// `ACTOR_MOTION_ANIMATION_INDEX_NONE`, so the first request does both. The rest is the
-/// two models the body carries, the blink that swaps the eye texture of the
-/// face, and the delayed free of the model's buffers once it has been hidden.
 typedef struct {
     ActorAnimRig20 rig;             // Playback storage of the twenty-part body model; slots 1 to 19 are driven
     s32            ticking;         // Set once a clip has been applied, never cleared: the slots are ticked each frame
@@ -179,8 +131,6 @@ static void _helicopterDepartureAttachNo9GolemPart12Model(Enemy* enemy, Task* ta
 static void _helicopterDepartureTickNo9GolemPart12Model(Enemy* enemy, Task* task);
 
 /// Rupert's revolver states: 0 attach at body part 8, 1 idle, 2 kill.
-///
-/// Indexed by `Task::state` without a terminator or bounds check.
 static const TaskFuncTable3 _gHelicopterDepartureRupertRevolverStates = {
     _modelPlacementAttachPartTask,
     _helicopterDepartureIdleRupertRevolver,
@@ -188,8 +138,6 @@ static const TaskFuncTable3 _gHelicopterDepartureRupertRevolverStates = {
 };
 
 /// Rupert's second prop states: 0 attach at part 12, 1 mirror draw policy, 2 kill.
-///
-/// Indexed by `Task::state` without a terminator or bounds check.
 static const TaskFuncTable3 _gHelicopterDepartureRupertPropStates = {
     _modelPlacementAttachChild,
     _modelPlacementMirrorParentDrawFlags,
@@ -197,8 +145,6 @@ static const TaskFuncTable3 _gHelicopterDepartureRupertPropStates = {
 };
 
 /// Rupert's body states: 0 initialize work and children, 1 update, 2 enemy exit.
-///
-/// Indexed by `Task::state`; exit requires the owning enemy in spawn argument 2.
 static const TaskFuncTable3 _gHelicopterDepartureRupertBodyStates = {
     _helicopterDepartureInitRupert,
     _helicopterDepartureTickRupert,
@@ -206,8 +152,6 @@ static const TaskFuncTable3 _gHelicopterDepartureRupertBodyStates = {
 };
 
 /// Helicopter hull states: 0 initialize work and pose, 1 update, 2 kill.
-///
-/// Indexed by `Task::state` without a terminator or bounds check.
 static const TaskFuncTable3 _gHelicopterDepartureHelicopterStates = {
     _helicopterDepartureInitHelicopter,
     _helicopterDepartureTickHelicopter,
@@ -215,8 +159,6 @@ static const TaskFuncTable3 _gHelicopterDepartureHelicopterStates = {
 };
 
 /// Main and tail rotor states: 0 attach to the hull, 1 spin, 2 kill.
-///
-/// Indexed by `Task::state`; spawn argument 1 selects rotor 1 or 2.
 static const TaskFuncTable3 _gHelicopterDepartureHelicopterRotorStates = {
     _helicopterDepartureAttachHelicopterRotor,
     _helicopterDepartureTickHelicopterRotor,
@@ -224,8 +166,6 @@ static const TaskFuncTable3 _gHelicopterDepartureHelicopterRotorStates = {
 };
 
 /// Helicopter searchlight states: 0 attach, 1 aim and draw the glow, 2 kill.
-///
-/// Indexed by `Task::state`; aiming follows the parent's sequence frame 0..119.
 static const TaskFuncTable3 _gHelicopterDepartureHelicopterSearchlightStates = {
     _helicopterDepartureAttachHelicopterSearchlight,
     _helicopterDepartureTickHelicopterSearchlight,
@@ -233,8 +173,6 @@ static const TaskFuncTable3 _gHelicopterDepartureHelicopterSearchlightStates = {
 };
 
 /// No. 9 GOLEM body states: 0 initialize work and children, 1 update, 2 destroy.
-///
-/// Indexed by `Task::state`; each handler receives the owning enemy and task.
 static const EnemyTaskFuncTable3 _gHelicopterDepartureNo9GolemStates = {
     _helicopterDepartureSpawnNo9Golem,
     _helicopterDepartureTickNo9Golem,
@@ -306,66 +244,42 @@ enum {
 };
 
 /// Packed open-eye pixels for Rupert's face texture.
-///
-/// Two VRAM words per `u_long`; the GPU borrows this word-aligned storage until
-/// transfer completion. The patch covers 24 VRAM words by 16 rows.
 static u_long _gHelicopterDepartureRupertEyesOpenPixels[EYE_TEXTURE_WIDTH_WORDS * EYE_TEXTURE_HEIGHT_ROWS / 2] = {
 #include "assets/characters/rupert/eyes_open.inc"
 };
 
 /// Writable COPY/END list restoring Rupert's open-eye texture patch.
-///
-/// Actor uploads relocate the first destination to the model's texture page
-/// at local Y 40; the pixel storage stays borrowed until GPU completion.
 static GpuImageUpload _gHelicopterDepartureRupertEyesOpenUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, EYE_TEXTURE_WIDTH_WORDS, EYE_TEXTURE_HEIGHT_ROWS }, _gHelicopterDepartureRupertEyesOpenPixels },
     { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 /// Packed half-open-eye pixels for Rupert's face texture.
-///
-/// Two VRAM words per `u_long`; the 24-word by 16-row patch remains borrowed
-/// until GPU transfer completion.
 static u_long _gHelicopterDepartureRupertEyesHalfOpenPixels[EYE_TEXTURE_WIDTH_WORDS * EYE_TEXTURE_HEIGHT_ROWS / 2] = {
 #include "assets/characters/rupert/eyes_half_open.inc"
 };
 
 /// Writable COPY/END list for Rupert's half-open blink image.
-///
-/// Used at blink start and between closed and open eyes. Actor uploads relocate
-/// the first destination; the pixels remain borrowed until GPU completion.
 static GpuImageUpload _gHelicopterDepartureRupertEyesHalfOpenUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, EYE_TEXTURE_WIDTH_WORDS, EYE_TEXTURE_HEIGHT_ROWS }, _gHelicopterDepartureRupertEyesHalfOpenPixels },
     { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 /// Packed closed-eye pixels for Rupert's face texture.
-///
-/// Two VRAM words per `u_long`; the 24-word by 16-row patch remains borrowed
-/// until GPU transfer completion.
 static u_long _gHelicopterDepartureRupertEyesClosedPixels[EYE_TEXTURE_WIDTH_WORDS * EYE_TEXTURE_HEIGHT_ROWS / 2] = {
 #include "assets/characters/rupert/eyes_closed.inc"
 };
 
 /// Writable COPY/END list for Rupert's closed-eye image.
-///
-/// Used by the closed-eye command and the first timed blink step. Actor uploads
-/// relocate the first destination; pixels remain borrowed until GPU completion.
 static GpuImageUpload _gHelicopterDepartureRupertEyesClosedUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, EYE_TEXTURE_WIDTH_WORDS, EYE_TEXTURE_HEIGHT_ROWS }, _gHelicopterDepartureRupertEyesClosedPixels },
     { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 /// Rupert's bank-0 clip sources, with NULL at 0 and loaded sets at IDs 1..3.
-///
-/// Playback borrows this table and its clip data while the package is loaded.
-/// Clip indices are unchecked and must select one of the loaded sets.
 #include "assets/rooms/akropolis/helicopter_landing_pad/rupert_bank.inc"
 
 /// Animation-bank selector for Rupert's body; only bank index 0 is valid.
-///
-/// A bank change binds its clip table into the live playback context. Requests
-/// must keep this package and the selected clip data loaded until playback ends.
 static AnimationSet** _gHelicopterDepartureRupertAnimationBanks[1] = {
     _gHelicopterDepartureRupertAnimationSets,
 };
@@ -380,9 +294,6 @@ TaskDesc gHelicopterDepartureRupertTaskDescriptors[3] = {
 enum { RUPERT_MESSAGE_SET_EYES = 0x7E0 };
 
 /// Terminated message table for Rupert's animation, placement, drawing and props.
-///
-/// The eye entry selects an image or starts a blink. Payload types belong to
-/// each handler; the final END entry makes unsupported messages return zero.
 static TaskMessageEntry _gHelicopterDepartureRupertMessages[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _helicopterDeparturePlayRupertAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
@@ -393,42 +304,27 @@ static TaskMessageEntry _gHelicopterDepartureRupertMessages[6] = {
 };
 
 /// Muzzle-flash position relative to Rupert's revolver root, in game units.
-///
-/// The shot effect snapshots the placement and retains this borrowed offset;
-/// keep the package loaded while the effect lives.
 static SVECTOR _gHelicopterDepartureRupertMuzzleFlashOffset = { -30, 440, 140, 0 };
 
 /// Synchronized hull, camera and searchlight frames of the view-24 sequence.
 enum { HELICOPTER_SEQUENCE_FRAME_COUNT = 120 };
 
 /// Helicopter hull Euler rotations for sequence frames 0..119.
-///
-/// Angles use 4096 units per turn in the root's parent coordinate frame.
-/// Shares the clamped playback cursor with the translations, camera and lamp.
 static SVECTOR _gHelicopterDepartureHelicopterSequenceRotations[HELICOPTER_SEQUENCE_FRAME_COUNT] = {
 #include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_rotation_track.inc"
 };
 
 /// Helicopter hull positions for sequence frames 0..119, in parent game units.
-///
-/// Applied with the corresponding rotation; initialization uses frame 0 and
-/// view-24 updates advance the shared cursor through the repeated final frame.
 static SVECTOR _gHelicopterDepartureHelicopterSequenceTranslations[HELICOPTER_SEQUENCE_FRAME_COUNT] = {
 #include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_translation_track.inc"
 };
 
 /// Searchlight Euler aim relative to the hull for sequence frames 0..119.
-///
-/// Angles use 4096 units per turn. Attachment applies frame 0; view-24 updates
-/// use the parent helicopter's clamped sequence cursor.
 static SVECTOR _gHelicopterDepartureHelicopterSearchlightRotations[HELICOPTER_SEQUENCE_FRAME_COUNT] = {
 #include "assets/rooms/akropolis/helicopter_landing_pad/searchlight_rotation_track.inc"
 };
 
 /// Lit red-ramp endpoint of the helicopter's sixteen-colour flashing palette.
-///
-/// RGB555/STP halfwords are stored low byte first for byte-pair blending. The
-/// fade discards STP; the initial upload source borrows this word-aligned row.
 static u8 _gHelicopterDepartureHelicopterFlashLitPalette[PALETTE_BYTES] = {
 #include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_palette_lit.inc"
 };
@@ -437,29 +333,17 @@ static u8 _gHelicopterDepartureHelicopterFlashLitPalette[PALETTE_BYTES] = {
 enum { HELICOPTER_FLASH_CLUT_ROW = 264 };
 
 /// Writable COPY/END list for the helicopter's flashing VRAM palette row.
-///
-/// Copies sixteen VRAM words to row 264. Hull initialization replaces `pixels`
-/// with its work-owned blended byte row; that hull and its pending GPU transfers
-/// must finish before the work is released. The list supports one live hull.
 static GpuImageUpload _gHelicopterDepartureHelicopterFlashPaletteUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, HELICOPTER_FLASH_CLUT_ROW, PALETTE_COLORS, 1 }, (u_long*)_gHelicopterDepartureHelicopterFlashLitPalette },
     { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 /// Dark endpoint of the helicopter's sixteen-colour flashing palette.
-///
-/// RGB555/STP halfwords stored low byte first: white and black endpoints are
-/// retained around fourteen 0x8421 dark-grey entries. The fade discards STP.
 static u8 _gHelicopterDepartureHelicopterFlashDarkPalette[PALETTE_BYTES] = {
 #include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_palette_dark.inc"
 };
 
 /// Camera frames synchronized with the helicopter's view-24 hull and lamp poses.
-///
-/// Frames 0..119 share a fixed world-to-camera rotation and 447-pixel projection
-/// distance; the negated world-space camera origin changes each frame. Playback
-/// advances before queuing and repeats frame 119. Each queued camera task borrows
-/// its entry, so the package must remain loaded through that task's dispatch.
 static ViewCamera _gHelicopterDepartureHelicopterSequenceCameras[HELICOPTER_SEQUENCE_FRAME_COUNT] = {
     { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5598, 5926, 124 } }, 447 },
     { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5599, 5926, 122 } }, 447 },
@@ -584,10 +468,6 @@ static ViewCamera _gHelicopterDepartureHelicopterSequenceCameras[HELICOPTER_SEQU
 };
 
 /// Terminated helicopter messages for sequence restart, placement and drawing.
-///
-/// PLAY_ANIMATION resets the shared sequence cursor without reading its payload.
-/// PLACE borrows an `ActorTransform`; SET_MODEL_DRAW takes an integer mode.
-/// The final END entry makes unsupported messages return zero.
 static TaskMessageEntry _gHelicopterDepartureHelicopterMessages[4] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _helicopterDepartureRestartHelicopterSequence },
     { ACTOR_MESSAGE_PLACE, _helicopterDeparturePlaceHelicopter },
@@ -596,9 +476,6 @@ static TaskMessageEntry _gHelicopterDepartureHelicopterMessages[4] = {
 };
 
 /// Hull-relative translations of helicopter parts, in game units.
-///
-/// Spawn argument 1 indexes 1 main rotor, 2 tail rotor or 3 searchlight.
-/// Entry 0's downward offset is retained but none of these spawns selects it.
 static SVECTOR _gHelicopterDepartureHelicopterPartOffsets[4] = {
     { 0, -0x3A98, 0, 0 },
     { 0, -1350, 1360, 0 },
@@ -607,8 +484,6 @@ static SVECTOR _gHelicopterDepartureHelicopterPartOffsets[4] = {
 };
 
 /// Searchlight glow centre colours at frame distances 0..3 from peak frame 89.
-///
-/// The ramp is symmetric over frames 86..92; rim RGB channels are each 30 lower.
 static CVECTOR _gHelicopterDepartureHelicopterSearchlightGlowColors[4] = {
     { 255, 255, 255, 0 },
     { 200, 200, 200, 0 },
@@ -620,9 +495,6 @@ static CVECTOR _gHelicopterDepartureHelicopterSearchlightGlowColors[4] = {
 enum { SEARCHLIGHT_DIRECTION_ONE = 4096 };
 
 /// Sixteen equally spaced screen-XY unit directions for the searchlight glow rim.
-///
-/// Signed 4.12 samples start at +X and turn toward +Y. Scaling by the 300-pixel
-/// radius produces the triangle fan's rim; the final triangle wraps to sample 0.
 static DVECTOR _gHelicopterDepartureHelicopterSearchlightRimDirections[16] = {
     { SEARCHLIGHT_DIRECTION_ONE, 0 },
     { 3784, 1567 },
@@ -650,10 +522,6 @@ enum {
 };
 
 /// Descriptor indices spawned on the helicopter hull's first show request.
-///
-/// Ordered main rotor, tail rotor, searchlight. Spawn argument 1 is the entry's
-/// one-based position, selecting the corresponding hull-relative part offset;
-/// spawn argument 2 borrows the hull task.
 static s32 _gHelicopterDepartureHelicopterChildDescriptorIndices[3] = {
     HELICOPTER_MAIN_ROTOR_DESCRIPTOR,
     HELICOPTER_TAIL_ROTOR_DESCRIPTOR,
@@ -678,11 +546,6 @@ TaskDesc gHelicopterDepartureNo9GolemTaskDescriptors[4] = {
 };
 
 /// No. 9 GOLEM playback, matrix-placement and draw messages, with an end marker.
-///
-/// Installed on the initialized body. Playback borrows an `AnimationPlayRequest`
-/// selecting clip 1..3; placement borrows an `ActorTransform`, and draw takes
-/// show/skip-buffer flag bits. Unknown ids return zero. The task borrows this
-/// table and its callback code until teardown; keep this overlay loaded.
 static TaskMessageEntry _gHelicopterDepartureNo9GolemMessages[4] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _helicopterDeparturePlayNo9GolemAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceRotMatrix },
@@ -691,21 +554,11 @@ static TaskMessageEntry _gHelicopterDepartureNo9GolemMessages[4] = {
 };
 
 /// No. 9 GOLEM's fixed clip bank: zero is absent, clips 1..3 drive slots 1..18.
-///
-/// Spawn binds the context without playing clip zero. Messages reset clips
-/// 1..3; clip 3 also starts the body's fade and teardown. The context borrows
-/// this table and its descriptor/pose data for the initialized body's lifetime.
 #include "assets/rooms/akropolis/helicopter_landing_pad/no_9_bank.inc"
 
 static void _helicopterDepartureTickHelicopterPaletteFlash(_HelicopterWork* work);
 
 /// Advances Rupert's animation, shot cues, lighting, blink and buffer-release delay.
-///
-/// Requires initialized twenty-part model/work and live held-model tasks. Slots
-/// 1..19 advance once playback starts; clip 1 fires its sound and revolver-root
-/// muzzle flash on tick 16. Visible models receive a ground shadow; ready views
-/// refresh part-1 lighting. Buffer countdown -1 is inactive; a call finding zero
-/// frees the primitive buffer before decrementing the countdown.
 static void _helicopterDepartureTickRupert(Task* task)
 {
     enum {
@@ -759,15 +612,6 @@ static void _helicopterDepartureTickRupert(Task* task)
 }
 
 /// Posts the next timed blink image and restarts its display interval.
-///
-/// Requires a live Rupert TMD task and its initialized work in CLOSED or HALF.
-/// Resets the signed countdown from blinkFrameDelay and advances to the next
-/// step; a nonnegative delay lasts that many later blink ticks plus one.
-/// The writable, terminated upload list and rectangle are borrowed through the call; image
-/// pixels remain live until GPU transfer completes. Rectangle units follow
-/// `actorRenderUploadTexture`. The caller expires the countdown; this does not
-/// test it. The upload rewrites the first list entry's destination.
-/// Upload results are ignored; this does not wait for the GPU.
 static inline void _helicopterDepartureAdvanceRupertBlinkImage(Task* task, _RupertBroderickWork* work,
                                                                GpuImageUpload* uploadList, const RECT* eyeRect)
 {
@@ -777,13 +621,6 @@ static inline void _helicopterDepartureAdvanceRupertBlinkImage(Task* task, _Rupe
 }
 
 /// Advances Rupert's closed, half-open and open eye sequence by one tick.
-///
-/// Requires a live TMD body and initialized work. Active steps decrement the
-/// signed-halfword countdown and post their image when it becomes negative.
-/// Closed and half-open restart the countdown from `blinkFrameDelay`; open
-/// ends the blink without resetting it. Other steps do nothing. The eye patch
-/// spans 24 VRAM words by 16 rows at local Y 40. Pixel storage remains borrowed
-/// until GPU transfer completes; uploads do not wait and their results are ignored.
 static void _helicopterDepartureTickRupertBlink(Task* task)
 {
     enum { Y_ROWS      = 40,
@@ -822,12 +659,6 @@ static void _helicopterDepartureTickRupertBlink(Task* task)
 }
 
 /// Runs Rupert Broderick's revolver attachment states.
-///
-/// `task->state` is 0 attach, 1 idle or 2 kill. At attachment,
-/// `spawnArg2.pointer` borrows the live parent TMD task and `spawnArg1.value`
-/// selects its model coordinate (part 8 in the body descriptor's spawn).
-/// The child's local transform and draw policy are retained. Attachment joins
-/// the parent's teardown tree; its coordinate and lighting must outlive the child.
 static void _helicopterDepartureRupertRevolverTask(Task* task)
 {
     TaskFuncTable3 states;
@@ -839,20 +670,11 @@ static void _helicopterDepartureRupertRevolverTask(Task* task)
 #include "../../../../shared/actor/model_placement_attach_part.inc.c"
 
 /// Leaves the revolver attachment unchanged between attachment and teardown.
-///
-/// Its chained coordinate follows the parent model part without a task update.
 static void _helicopterDepartureIdleRupertRevolver(Task* task)
 {
 }
 
 /// Runs the states of Rupert Broderick's second held model.
-///
-/// `task->state` is 0 attach, 1 mirror parent draw policy or 2 kill.
-/// `spawnArg2.pointer` borrows the live parent TMD task; `spawnArg1.value`
-/// selects its model coordinate (part 12 in the body descriptor's spawn).
-/// The child borrows the parent's coordinate and lighting, joins its teardown
-/// tree and sorts two OT entries earlier. Missing buffers are requested when
-/// the parent permits automatic allocation, including while drawing is hidden.
 static void _helicopterDepartureRupertPropTask(Task* task)
 {
     TaskFuncTable3 states;
@@ -866,11 +688,6 @@ static void _helicopterDepartureRupertPropTask(Task* task)
 #include "../../../../shared/actor/model_placement_mirror_parent.inc.c"
 
 /// Runs Rupert Broderick's body initialization, frame update or teardown.
-///
-/// Requires the live descriptor-created twenty-part TMD body and state 0
-/// initialize, 1 update or 2 exit. State is not bounds-checked. Initialization
-/// creates the work and two held-model children; later states require them live.
-/// `spawnArg2.pointer` borrows the owning enemy used by the exit handler.
 static void _helicopterDepartureRupertBodyTask(Task* task)
 {
     TaskFuncTable3 states;
@@ -880,12 +697,6 @@ static void _helicopterDepartureRupertBodyTask(Task* task)
 }
 
 /// Initializes Rupert's hidden body and its revolver and prop attachments.
-///
-/// Requires the descriptor-created twenty-part body. Allocates zeroed primary
-/// work owned by the task and exits the enemy on failure. Child descriptors 1/2
-/// attach to parts 8/12; their model roots and borrowed lighting must stay live
-/// until teardown. Initializes animation sentinels, disables drawing, installs
-/// messages/exit handling and advances to frame state 1.
 static void _helicopterDepartureInitRupert(Task* task)
 {
     enum {
@@ -929,10 +740,6 @@ static void _helicopterDepartureInitRupert(Task* task)
 }
 
 /// Binds Rupert's body lighting matrices and relights it at model part 1.
-///
-/// Requires live body work and a model with part 1 under a composable hierarchy.
-/// The model borrows the work's light and colour matrices until teardown.
-/// Invalidates and composes part 1 before sampling all three light directions.
 static void _helicopterDepartureBindRupertLighting(Task* task)
 {
     enum {
@@ -955,14 +762,6 @@ static void _helicopterDepartureBindRupertLighting(Task* task)
 }
 
 /// Reseeds Rupert's driven slots, updates their poses and enables ticking.
-///
-/// Requires the work's rig bound to a live twenty-part TMD body and a set table
-/// containing the requested clip. Slots 1..19 are driven; slot 0 is retained.
-/// A nonzero blend requires previously initialized slots, captures each slot's
-/// existing pose and blends to the selected track's start over six normal-rate
-/// frames; reset initializes the slots instead. Each slot is ticked before
-/// future frame updates are enabled. Only clip and blend choice are read from
-/// the request, through this call; bank data and playback storage remain borrowed.
 static inline void _helicopterDepartureReseedRupertAnimation(_RupertBroderickWork* work, const AnimationPlayRequest* request)
 {
     enum { RUPERT_BLEND_FRAMES = 6 };
@@ -985,13 +784,6 @@ static inline void _helicopterDepartureReseedRupertAnimation(_RupertBroderickWor
 }
 
 /// Applies an animation request to Rupert Broderick's twenty-part body.
-///
-/// Requires a live TMD body and initialized work. The borrowed request selects
-/// bank 0 and a valid clip in that bank's four-entry set table. A bank change
-/// rebinds the rig; a clip change reseeds and immediately ticks slots 1..19.
-/// Nonzero blend uses six frames, ignoring the requested duration. Repeating the
-/// current bank and clip leaves playback alone. The ID and second payload are
-/// ignored; returns 0. Bank resources must outlive playback.
 static s32 _helicopterDeparturePlayRupertAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg)
 {
     _RupertBroderickWork* work;
@@ -1015,13 +807,6 @@ static s32 _helicopterDeparturePlayRupertAnimation(Task* task, s32 messageId, co
 #include "../../../../shared/actor/actor_messages_place_euler.inc.c"
 
 /// Changes Rupert's drawing and primitive-buffer policy.
-///
-/// Requires a live TMD body and initialized work. Mode 0 hides and enables
-/// automatic buffer recovery; 1 shows, attempts missing-buffer allocation and
-/// enables recovery; 2 hides, disables recovery and schedules release on the
-/// third update; 3 shows with recovery disabled. Other flags are preserved.
-/// Showing does not cancel a pending release. The ID and second payload are
-/// ignored. Returns 0 for modes 0..3 even if allocation fails, otherwise 1.
 static s32 _helicopterDepartureSetRupertModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg)
 {
     enum { DRAW_SHOW_SKIP_AUTO_BUFFER = 3 };
@@ -1061,12 +846,6 @@ static s32 _helicopterDepartureSetRupertModelDraw(Task* task, s32 messageId, s32
 }
 
 /// Selects Rupert's held model for an actor command.
-///
-/// Command 0 shows the revolver; 1 hides it and shows the second prop. Context
-/// tags, the message ID and second payload are ignored. Missing child tasks are
-/// skipped, other model flags are retained, and other commands change nothing.
-/// Requires initialized body work and a borrowed command live through dispatch.
-/// Returns 0 for both handled and ignored commands.
 static s32 _helicopterDepartureApplyRupertCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg)
 {
     enum { REVOLVER = 0,
@@ -1100,14 +879,6 @@ static s32 _helicopterDepartureApplyRupertCommand(Task* task, s32 messageId, con
 }
 
 /// Sets Rupert's eye image or starts a timed blink for message 0x7E0.
-///
-/// Requires a live TMD body and initialized work. Modes 0 and 2 post open eyes,
-/// 1 closed eyes, and 3 half-open eyes followed by closed, half-open and open on
-/// subsequent updates. Closed and the following half-open each last two ticks.
-/// Starting a blink retains the current countdown; a static image does not cancel
-/// a blink. Pixel data stays borrowed through the GPU transfer. The message ID
-/// and second payload are ignored. Returns the upload result (0 for these lists);
-/// unknown modes change nothing and return 0.
 static s32 _helicopterDepartureSetRupertEyes(Task* task, s32 messageId, s32 eyeMode, s32 unusedArg)
 {
     enum { EYES_OPEN           = 0,
@@ -1159,11 +930,6 @@ static s32 _helicopterDepartureSetRupertEyes(Task* task, s32 messageId, s32 eyeM
 }
 
 /// Mirrors helicopter visibility and aims its searchlight during view 24.
-///
-/// `spawnArg2.pointer` borrows the parent TMD task. Its `killCountdown` is
-/// the sequence frame, constrained to 0..119 by the parent's update. Other
-/// views retain the searchlight's last pose. The glow spans frames 86..92,
-/// peaking at 89; its rim channels are 30 darker than the centre (30..225).
 static void _helicopterDepartureTickHelicopterSearchlight(Task* task)
 {
     enum { SEQUENCE_VIEW   = 0x18,
@@ -1211,12 +977,6 @@ static void _helicopterDepartureTickHelicopterSearchlight(Task* task)
 }
 
 /// Draws the helicopter searchlight's additive, 300-pixel-radius screen glow.
-///
-/// Borrows a live TMD task, one centre colour and three unsigned rim channels
-/// for the call. Projects the model origin and emits 16 Gouraud triangles plus
-/// a draw-mode packet. The caller must provide primitive space for all packets;
-/// the current OT must contain the masked depth entry displaced by -30 tags.
-/// Projection flags are deliberately not used to clip or suppress the glow.
 static void _helicopterDepartureDrawHelicopterSearchlightGlow(Task* task, const CVECTOR* centerColor, const u8* rimRgb)
 {
     enum { RIM_POINT_COUNT    = 16,
@@ -1242,13 +1002,6 @@ static void _helicopterDepartureDrawHelicopterSearchlightGlow(Task* task, const 
     DVECTOR*  unitOffset;
 
 /// Allocates and links one semitransparent Gouraud triangle in the searchlight fan.
-///
-/// endPoint is a stable DVECTOR lvalue evaluated twice. Captures triangle
-/// (overwritten), rimPoint, centerX/centerY in pixels, centerColor, the three-byte
-/// rimRgb and orderingTag. Advances gGpuPrimCursor by one POLY_G3; requires aligned
-/// packet space and a live OT tag. Centre colour applies to vertex 0 and rim colour
-/// to vertices 1/2. The caller supplies additive draw mode for the complete fan.
-/// Statement-only GNU expression; its value is not part of the interface.
 #define EMIT_SEARCHLIGHT_TRIANGLE(endPoint) \
     ({                                      \
         triangle       = gGpuPrimCursor;    \
@@ -1304,11 +1057,6 @@ static void _helicopterDepartureDrawHelicopterSearchlightGlow(Task* task, const 
 }
 
 /// Blends one little-endian RGB555 palette colour through the GTE.
-///
-/// Both sources provide two readable bytes and the destination two writable bytes;
-/// no halfword alignment is needed, and the destination may alias either source.
-/// Weights use twelve fractional bits, each in 0..4096 and summing to 4096.
-/// Bit 15 is discarded. Changes GTE interpolation state and retains no pointers.
 static inline void _helicopterDepartureBlendPaletteColor(u8* destination, const u8* firstColor, const u8* secondColor, s32 firstWeight, s32 secondWeight)
 {
     enum { PALETTE_CHANNEL_MASK = 0x1F };
@@ -1330,14 +1078,6 @@ static inline void _helicopterDepartureBlendPaletteColor(u8* destination, const 
 }
 
 /// Advances and uploads the helicopter's sixteen-colour palette flash.
-///
-/// Requires initialized helicopter work with a 4.12 fade weight in 0..4096
-/// and a nonnegative hold counter. The weight rises by 1365 per tick, reaching
-/// the dark palette on its fourth increment; full-weight ticks consume the
-/// hold, then the next tick snaps back to the lit palette and rearms it.
-/// Reads and writes RGB555 colours as little-endian byte pairs, discarding bit
-/// 15. The upload record must already borrow `work->palette`, whose storage must
-/// remain live and unchanged until GPU transfer completes. Clobbers GTE state.
 static void _helicopterDepartureTickHelicopterPaletteFlash(_HelicopterWork* work)
 {
     enum { PALETTE_FADE_STEP = 0x555 };
@@ -1373,12 +1113,6 @@ static void _helicopterDepartureTickHelicopterPaletteFlash(_HelicopterWork* work
 }
 
 /// Initializes the helicopter's owned work, hidden hull and first sequence pose.
-///
-/// State 0 requires a live TMD hull, pose tables and primary heap. Allocation
-/// failure kills the task. The hull and attached models borrow work-owned
-/// lighting matrices; the upload list borrows its 32-byte, sixteen-colour
-/// palette until teardown and pending GPU transfers finish. No primitive-buffer
-/// release is pending initially. Installs messages and advances to state 1.
 static void _helicopterDepartureInitHelicopter(Task* task)
 {
     enum { HELICOPTER_FREE_NONE = -1 };
@@ -1403,15 +1137,6 @@ static void _helicopterDepartureInitHelicopter(Task* task)
 }
 
 /// Advances the helicopter's synchronized camera and hull-pose playback by one frame.
-///
-/// Requires a live helicopter task, `rootCoord` equal to its model root and
-/// `killCountdown` holding a frame index in 0..119. The camera, rotation and
-/// translation tables each contain 120 frames. Increments through a signed
-/// halfword, then clamps at 119; later calls repeat that final frame.
-/// Queues the camera before applying the hull pose and invalidating the root.
-/// The queued task borrows its camera entry until it runs, so the table must
-/// remain loaded. Camera allocation failure does not stop pose playback.
-/// Euler angles use 4096 units per turn; translation uses parent coordinates.
 static inline void _helicopterDepartureAdvanceHelicopterSequence(Task* task, GfxCoord* rootCoord)
 {
     s16 nextFrame;
@@ -1427,14 +1152,6 @@ static inline void _helicopterDepartureAdvanceHelicopterSequence(Task* task, Gfx
 }
 
 /// Updates the drawable helicopter's lighting and flash, and advances its scene pose.
-///
-/// Requires initialized hull/work and loaded camera and pose tables. In view 24,
-/// killCountdown is a sequence cursor: normally 0..119, incremented as a signed
-/// halfword and clamped at 119 even while hidden. Each tick queues that camera
-/// and applies its hull pose. Other views retain the cursor and pose. Drawing
-/// enabled refreshes lighting and the palette before any scene-pose change.
-/// Independently, freeCountdown releases primitive buffers when a tick sees
-/// zero, then becomes -1; any negative value means no release is pending.
 static void _helicopterDepartureTickHelicopter(Task* task)
 {
     enum { HELICOPTER_SEQUENCE_VIEW = 24 };
@@ -1474,11 +1191,6 @@ static void _helicopterDepartureKillHelicopter(Task* task)
 }
 
 /// Attaches a helicopter rotor to the hull and inherits its lighting and visibility.
-///
-/// Both TMD tasks must be live. `spawnArg2.pointer` borrows the helicopter;
-/// `spawnArg1.value` is 1 for the main rotor or 2 for the tail rotor. The
-/// placement is local to the hull root. Joins the parent's teardown tree and
-/// advances from state 0 to 1; borrowed coordinates and matrices must remain live.
 static void _helicopterDepartureAttachHelicopterRotor(Task* task)
 {
     Task*      parentTask;
@@ -1506,11 +1218,6 @@ static void _helicopterDepartureAttachHelicopterRotor(Task* task)
 }
 
 /// Spins a drawable helicopter's main or tail rotor and mirrors its visibility.
-///
-/// `spawnArg2.pointer` borrows the live helicopter TMD task. Part index 1
-/// advances yaw by 660 units per tick; index 2 advances pitch by 1000, with
-/// 4096 units per turn. Other indices only rebuild the matrix. A hidden parent
-/// hides the child and freezes its angles. Automatic-buffer policy is retained.
 static void _helicopterDepartureTickHelicopterRotor(Task* task)
 {
     enum { MAIN_ROTOR      = 1,
@@ -1554,12 +1261,6 @@ static void _helicopterDepartureKillHelicopterRotor(Task* task)
 }
 
 /// Attaches the searchlight beneath the helicopter with the sequence's initial aim.
-///
-/// Both TMD tasks must be live. `spawnArg2.pointer` borrows the helicopter;
-/// `spawnArg1.value` is 3 for the searchlight's hull-relative translation.
-/// Borrows its root coordinate and lighting, inherits visibility and joins its
-/// teardown tree. Applies sequence frame 0 in 4096-unit Euler angles and
-/// advances to state 1. The parent resources must outlive the attached model.
 static void _helicopterDepartureAttachHelicopterSearchlight(Task* task)
 {
     Task*      parentTask;
@@ -1598,10 +1299,6 @@ static void _helicopterDepartureKillHelicopterSearchlight(Task* task)
 }
 
 /// Resets the helicopter's sequence cursor to frame zero.
-///
-/// Installed for `ACTOR_MESSAGE_PLAY_ANIMATION`, but reads neither payload nor
-/// the message ID. The next view-24 update advances the cursor before applying
-/// its hull pose, camera and searchlight frame. Returns 0.
 static s32 _helicopterDepartureRestartHelicopterSequence(Task* task, s32 messageId, s32 unusedRequest, s32 unusedArg)
 {
     task->killCountdown = 0;
@@ -1609,12 +1306,6 @@ static s32 _helicopterDepartureRestartHelicopterSequence(Task* task, s32 message
 }
 
 /// Places the helicopter's root model and enables its active drawing.
-///
-/// Requires a live TMD body and a borrowed transform through dispatch. Position
-/// uses parent-coordinate units and Euler angles use 4096 units per turn.
-/// Copies all XYZ components, rebuilds rotation and invalidates composition.
-/// Other draw and buffer flags are retained. The ID and second payload are
-/// ignored; returns 0.
 static s32 _helicopterDeparturePlaceHelicopter(Task* task, s32 messageId, const ActorTransform* transform, s32 unusedArg)
 {
     GfxCoord*  root;
@@ -1635,14 +1326,6 @@ static s32 _helicopterDeparturePlaceHelicopter(Task* task, s32 messageId, const 
 }
 
 /// Selects hull drawing and buffer policy, spawning its three parts on the first show.
-///
-/// Requires a live hull and initialized helicopter work. Modes 0/1 hide/show
-/// with automatic buffers; mode 1 also allocates a primitive buffer. Mode 2
-/// hides, disables automatic buffers and arms release after two full ticks,
-/// on the third tick. Mode 3 shows with automatic buffers disabled. Later modes
-/// do not cancel an armed release. The first mode-1 request attempts each rotor
-/// and searchlight spawn once, latching completion even if a spawn fails.
-/// Ignores messageId and unusedArgument. Returns 0 for modes 0..3, otherwise 1.
 static s32 _helicopterDepartureSetHelicopterModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArgument)
 {
     enum { HELICOPTER_DRAW_SHOW_SKIP_AUTO_BUFFER = 3 };
@@ -1691,12 +1374,6 @@ static s32 _helicopterDepartureSetHelicopterModelDraw(Task* task, s32 messageId,
 }
 
 /// Applies a table frame's rotation and translation to the helicopter root.
-///
-/// Requires a live TMD body and readable rotation and translation entries at the
-/// signed low sixteen bits of `frameIndex`. Callers use frames 0..119 of both
-/// 120-entry tables. Euler angles use 4096 units per turn; translations are in
-/// parent-coordinate units. Rebuilds local rotation and invalidates composition;
-/// does not retain either table or change ancestry, lighting or drawing.
 static void _helicopterDeparturePoseHelicopterSequenceFrame(Task* task, const SVECTOR* rotations, const SVECTOR* translations, s32 frameIndex)
 {
     GfxCoord* root;
@@ -1715,11 +1392,6 @@ static void _helicopterDeparturePoseHelicopterSequenceFrame(Task* task, const SV
 }
 
 /// Sets a helicopter part's hull-relative translation and resets its Euler angles.
-///
-/// Requires a live TMD body and an unchecked `spawnArg1.value` in 0..3;
-/// the attachment callers use 1 main rotor, 2 tail rotor or 3 searchlight.
-/// Rebuilds the local rotation and invalidates the composed transform without
-/// changing coordinate ancestry, task links, visibility or lighting.
 static void _helicopterDeparturePlaceHelicopterPart(Task* task)
 {
     GfxCoord* root;
@@ -1736,10 +1408,6 @@ static void _helicopterDeparturePlaceHelicopterPart(Task* task)
 }
 
 /// Binds the helicopter hull's lighting matrices and relights it at the root.
-///
-/// Requires live helicopter work and a model under a composable hierarchy.
-/// The hull borrows the work's light and colour matrices until teardown.
-/// Invalidates and composes the root before sampling all three light directions.
 static void _helicopterDepartureBindHelicopterLighting(Task* task)
 {
     enum {
@@ -1760,11 +1428,6 @@ static void _helicopterDepartureBindHelicopterLighting(Task* task)
 }
 
 /// Runs the helicopter's initialization, frame update or teardown state.
-///
-/// Requires its live descriptor-created TMD hull and state 0 initialize,
-/// 1 update or 2 kill; state is not bounds-checked. Initialization creates the
-/// work and binds its lighting and palette storage. Attached children borrow
-/// the hull and work until teardown. Frame updates require that storage live.
 static void _helicopterDepartureHelicopterTask(Task* task)
 {
     TaskFuncTable3 states;
@@ -1774,10 +1437,6 @@ static void _helicopterDepartureHelicopterTask(Task* task)
 }
 
 /// Runs the helicopter rotor states: 0 attach, 1 spin and 2 kill.
-///
-/// The descriptor selects the main or tail rotor model. Attachment borrows
-/// the helicopter task through `spawnArg2.pointer`; `spawnArg1.value` is
-/// 1 main rotor or 2 tail rotor. The parent must outlive its attached child.
 static void _helicopterDepartureHelicopterRotorTask(Task* task)
 {
     TaskFuncTable3 states;
@@ -1787,10 +1446,6 @@ static void _helicopterDepartureHelicopterRotorTask(Task* task)
 }
 
 /// Runs the helicopter searchlight states: 0 attach, 1 aim and glow, 2 kill.
-///
-/// Attachment requires a live helicopter TMD task in `spawnArg2.pointer`
-/// and part index 3 in `spawnArg1.value`. Its pose follows sequence frames
-/// 0..119 in view 24; the parent must outlive the attached model.
 static void _helicopterDepartureHelicopterSearchlightTask(Task* task)
 {
     TaskFuncTable3 states;
@@ -1800,16 +1455,6 @@ static void _helicopterDepartureHelicopterSearchlightTask(Task* task)
 }
 
 /// Initializes the No. 9 golem's hidden body, playback storage and three children.
-///
-/// Requires its owning enemy and live nineteen-part TMD task in state 0.
-/// The zeroed work is owned by the task; body and child models borrow its
-/// lighting matrices. No clip is played until an animation message arrives.
-/// Children attached at parts 8 and 3 receive the parent's area-placement
-/// texture-page and CLUT-row offsets, rebuilding existing buffers; part 12
-/// retains its own offsets. The parent's upper placement-key nibble must select
-/// an existing placement in the synchronized location variant. Advances to
-/// update state 1, or destroys the enemy if work allocation fails. The first
-/// two child spawns are assumed to succeed, matching their unchecked use.
 static void _helicopterDepartureSpawnNo9Golem(Enemy* enemy, Task* task)
 {
     enum { GOLEM_UPDATE_STATE = 1,
@@ -1900,14 +1545,6 @@ static void _helicopterDepartureSpawnNo9Golem(Enemy* enemy, Task* task)
 }
 
 /// Advances the No. 9 golem's pose, lighting, ground shadow and exit fade.
-///
-/// Requires its owning enemy, live nineteen-part TMD body and initialized work.
-/// Nonzero clip IDs tick slots 1..18. Clips below 3 refresh actor lighting and
-/// draw a shadow at part 1; clips 3 and up instead fade the nine coefficients of
-/// both borrowed matrices by 15/16 every third tick, retaining ambient terms.
-/// An exit tick beginning above 96 enters destroy state 2. The signed halfword
-/// tick counter advances on every call. Uses two SDK VECTOR slots (32 scratch
-/// bytes), including across nested lighting and ground queries.
 static void _helicopterDepartureTickNo9Golem(Enemy* enemy, Task* task)
 {
     enum { FIRST_EXIT_CLIP    = 3,
@@ -1928,12 +1565,6 @@ static void _helicopterDepartureTickNo9Golem(Enemy* enemy, Task* task)
     s32            animationId;
 
 /// Scales the golem's shared light and colour bases by 15/16 for one fade step.
-///
-/// Captures the live `_No9GolemWork*` work and writable s32 counters
-/// loopIndex and column, leaving both counters at three. Requires the two
-/// HELICOPTER_DEPARTURE_GOLEM_FADE_* constants in scope. Signed products are shifted
-/// arithmetically; all nine coefficients change while translation and alignment
-/// bytes remain intact. Attached models borrow these same matrices.
 #define FADE_GOLEM_LIGHTING()                                                                                                 \
     do {                                                                                                                      \
         for (loopIndex = 0; loopIndex < ARRAY_SIZE(work->color.m); loopIndex++) {                                             \
@@ -1986,11 +1617,6 @@ static void _helicopterDepartureTickNo9Golem(Enemy* enemy, Task* task)
 }
 
 /// Runs the No. 9 golem's initialization, frame update or destroy state.
-///
-/// Requires its live nineteen-part TMD task and owning enemy in
-/// `spawnArg2.pointer`. State is 0 initialize, 1 update or 2 destroy and is not
-/// bounds-checked. Update requires initialized work; destroy releases the task
-/// and its enemy. The enemy and borrowed body resources must remain live.
 static void _helicopterDepartureNo9GolemTask(Task* task)
 {
     EnemyTaskFuncTable3 states;
@@ -2000,13 +1626,6 @@ static void _helicopterDepartureNo9GolemTask(Task* task)
 }
 
 /// Restarts the No. 9 golem's body animation and exit timer.
-///
-/// Requires a live nineteen-part TMD body and initialized work. The borrowed,
-/// read-only request selects a loaded clip 1..3 from the fixed set table;
-/// source bank, blend choice and duration are ignored. Always resets slots
-/// 1..18 and `animTicks`, including repeated clips, without immediately posing
-/// the model. Slot 0 is retained. Bank data must outlive playback. The message
-/// ID and second payload are ignored; returns 0.
 static s32 _helicopterDeparturePlayNo9GolemAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg)
 {
     _No9GolemWork* work;
@@ -2026,12 +1645,6 @@ static s32 _helicopterDeparturePlayNo9GolemAnimation(Task* task, s32 messageId, 
 #include "../../../../shared/actor/actor_messages_place_rot_matrix.inc.c"
 
 /// Replaces the No. 9 golem body's drawing and automatic-buffer flags.
-///
-/// Requires a live TMD body. Bit 0 shows the model; clear hides it. Bit 1
-/// disables automatic missing-buffer allocation. Other request bits are ignored
-/// and all other model flags are cleared. No buffers are allocated or released,
-/// and the actor state is retained. The message ID and second payload are
-/// ignored; returns 0.
 static s32 _helicopterDepartureSetNo9GolemModelDraw(Task* task, s32 messageId, s32 drawFlags, s32 unusedArg)
 {
     enum { SHOW             = 1 << 0,
@@ -2051,11 +1664,6 @@ static s32 _helicopterDepartureSetNo9GolemModelDraw(Task* task, s32 messageId, s
 }
 
 /// Runs the No. 9 golem's part-8 attachment states.
-///
-/// State 0 attaches and state 1 composes its root each tick; no other state is
-/// valid. The descriptor supplies the child model and the spawner establishes
-/// `task->parent` and the borrowed enemy in `spawnArg2.pointer`. The parent must
-/// own a live nineteen-part body and work block that outlive the child.
 static void _helicopterDepartureNo9GolemPart8Task(Task* task)
 {
     EnemyTaskFunc states[2] = { _helicopterDepartureAttachNo9GolemPart8Model, _helicopterDepartureTickNo9GolemPart8Model };
@@ -2064,12 +1672,6 @@ static void _helicopterDepartureNo9GolemPart8Task(Task* task)
 }
 
 /// Attaches the No. 9 golem's part-8 model and shows it with the body's lighting.
-///
-/// The task's existing parent must own the live nineteen-part TMD body and
-/// its `_No9GolemWork`. Borrows coordinate 8 and both work matrices,
-/// retains the child's local transform and advances from state 0 to 1.
-/// Parent coordinate and work storage must outlive the child. The enemy callback
-/// argument is unused; task parenting was established by the spawner.
 static void _helicopterDepartureAttachNo9GolemPart8Model(Enemy* enemy, Task* task)
 {
     enum { PARENT_PART  = 8,
@@ -2094,9 +1696,6 @@ static void _helicopterDepartureAttachNo9GolemPart8Model(Enemy* enemy, Task* tas
 }
 
 /// Invalidates and composes the golem's part-8 attachment transform each tick.
-///
-/// Requires a live child TMD root and its borrowed parent-coordinate chain.
-/// The enemy callback argument is unused; lighting and task state are retained.
 static void _helicopterDepartureTickNo9GolemPart8Model(Enemy* enemy, Task* task)
 {
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -2104,11 +1703,6 @@ static void _helicopterDepartureTickNo9GolemPart8Model(Enemy* enemy, Task* task)
 }
 
 /// Runs the No. 9 golem's part-3 attachment states.
-///
-/// State 0 attaches and state 1 composes its root each tick; no other state is
-/// valid. The descriptor supplies the child model and the spawner establishes
-/// `task->parent` and the borrowed enemy in `spawnArg2.pointer`. The parent must
-/// own a live nineteen-part body and work block that outlive the child.
 static void _helicopterDepartureNo9GolemPart3Task(Task* task)
 {
     EnemyTaskFunc states[2] = { _helicopterDepartureAttachNo9GolemPart3Model, _helicopterDepartureTickNo9GolemPart3Model };
@@ -2117,12 +1711,6 @@ static void _helicopterDepartureNo9GolemPart3Task(Task* task)
 }
 
 /// Attaches the No. 9 golem's part-3 model and shows it with the body's lighting.
-///
-/// The task's existing parent must own the live nineteen-part TMD body and
-/// its `_No9GolemWork`. Borrows coordinate 3 and both work matrices,
-/// retains the child's local transform and advances from state 0 to 1.
-/// Parent coordinate and work storage must outlive the child. The enemy callback
-/// argument is unused; task parenting was established by the spawner.
 static void _helicopterDepartureAttachNo9GolemPart3Model(Enemy* enemy, Task* task)
 {
     enum { PARENT_PART  = 3,
@@ -2147,9 +1735,6 @@ static void _helicopterDepartureAttachNo9GolemPart3Model(Enemy* enemy, Task* tas
 }
 
 /// Invalidates and composes the golem's part-3 attachment transform each tick.
-///
-/// Requires a live child TMD root and its borrowed parent-coordinate chain.
-/// The enemy callback argument is unused; lighting and task state are retained.
 static void _helicopterDepartureTickNo9GolemPart3Model(Enemy* enemy, Task* task)
 {
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -2157,11 +1742,6 @@ static void _helicopterDepartureTickNo9GolemPart3Model(Enemy* enemy, Task* task)
 }
 
 /// Runs the No. 9 golem's part-12 attachment states.
-///
-/// State 0 attaches and state 1 composes its root each tick; no other state is
-/// valid. The descriptor supplies the child model and the spawner establishes
-/// `task->parent` and the borrowed enemy in `spawnArg2.pointer`. The parent must
-/// own a live nineteen-part body and work block that outlive the child.
 static void _helicopterDepartureNo9GolemPart12Task(Task* task)
 {
     EnemyTaskFunc states[2] = { _helicopterDepartureAttachNo9GolemPart12Model, _helicopterDepartureTickNo9GolemPart12Model };
@@ -2170,12 +1750,6 @@ static void _helicopterDepartureNo9GolemPart12Task(Task* task)
 }
 
 /// Attaches the No. 9 golem's part-12 model with the body's lighting.
-///
-/// The task's existing parent must own a live nineteen-part TMD body and its
-/// `_No9GolemWork`. Borrows coordinate 12 and both work matrices,
-/// retains the child's local transform, clears its model flags and advances
-/// from state 0 to 1. Parent coordinate and work storage must outlive the child.
-/// The enemy callback argument is unused; the spawner established task parenting.
 static void _helicopterDepartureAttachNo9GolemPart12Model(Enemy* enemy, Task* task)
 {
     enum { GOLEM_PARENT_PART  = 12,
@@ -2200,9 +1774,6 @@ static void _helicopterDepartureAttachNo9GolemPart12Model(Enemy* enemy, Task* ta
 }
 
 /// Invalidates and composes the golem's part-12 attachment transform each tick.
-///
-/// Requires a live child TMD root and its borrowed parent-coordinate chain.
-/// The enemy callback argument is unused; lighting and task state are retained.
 static void _helicopterDepartureTickNo9GolemPart12Model(Enemy* enemy, Task* task)
 {
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;

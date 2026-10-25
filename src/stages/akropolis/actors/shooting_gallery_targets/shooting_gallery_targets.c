@@ -44,9 +44,9 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-#include "../../rooms/mist_shooting_gallery/config.h"
-
 #include "stages/akropolis/rooms/mist_shooting_gallery.h"
+
+#include "../../rooms/mist_shooting_gallery/config.h"
 
 /* The package holds two tasks. The gallery's controller spawns a mount, which
  * counts as one of its live targets; the mount spawns the target it carries as
@@ -54,10 +54,6 @@
  * argument. */
 
 /// Mount/target handshake bits in the child target's spawn argument.
-///
-/// Both tasks keep the argument for their lifetime. The mount raises READY
-/// after settling; the target raises STANDING after unfolding. Either can
-/// request STOP, and FINISHED lets the mount shrink after the target leaves.
 enum {
     TARGET_SIGNAL_MOUNT_READY = 0x10,
     TARGET_SIGNAL_STANDING    = 0x20,
@@ -131,9 +127,8 @@ enum {
     TARGET_HIT_MARK_COUNT   = 8,
 };
 
-/// How a mount behaves, from bits 12-15 of its spawn argument: the value of
-/// `_MountWork::behaviour`, and of the copy its target keeps in
-/// `_TargetWork::mountBehaviour`.
+/// How a mount behaves, from bits 12-15 of its spawn argument: the value of `_MountWork::behaviour`, and of the copy
+/// its target keeps in `_TargetWork::mountBehaviour`.
 enum {
     MOUNT_STANDING = 0, // Rises at floor height and follows its path
     MOUNT_HANGING  = 1, // Turned half a revolution about Z and raised 0xF3C above the floor; follows its path
@@ -156,12 +151,8 @@ enum {
     MOUNT_FIXED_STEP_LEAVE = 1, // Wait for the target to finish, then shrink away
 };
 
-/// Work block of a gallery target's mount: the stand that rises where the
-/// gallery places it, carries its target along a path and shrinks away once the
-/// target has gone.
-///
-/// The mount's spawn state allocates it zeroed and the mount's task owns it.
-/// Angles are 4096 to the turn, wrapped to one turn every frame.
+/// Work block of a gallery target's mount: the stand that rises where the gallery places it, carries its target along
+/// a path and shrinks away once the target has gone.
 typedef struct {
     MATRIX colorMatrix;      // Colour matrix the mount's model is lit through, in place of the scene's shared one
     MATRIX lightMatrix;      // Light matrix of the same
@@ -187,11 +178,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_MountWork, 0x14C);
 
 /// Behaviour states of a target, in `_TargetWork::state`.
-///
-/// States 4 to 6 answer hit reactions nothing in the package requests; each
-/// returns to `TARGET_STATE_ACTIVE` at once.
 enum {
-    TARGET_STATE_INIT         = 0, // Choose the first state from the mount's behaviour
     TARGET_STATE_ACTIVE       = 1, // Unfold, then stand - attacking if the spawn argument says so - until the mount stops
     TARGET_STATE_LIGHT_FLINCH = 2, // Swing back from a hit and recover
     TARGET_STATE_HEAVY_FLINCH = 3, // The same routine, for a hit of 20 damage or more
@@ -207,12 +194,7 @@ enum {
     HIT_REACTION_HEAVY = 2,
 };
 
-/// Work block of a gallery target: the object the player shoots at, carried by
-/// its mount.
-///
-/// The target's spawn state allocates it zeroed and the target's task owns it;
-/// the collision body stays linked until the task exits. Angles are 4096 to the
-/// turn, wrapped to one turn every frame. Timers count frames.
+/// Work block of a gallery target: the object the player shoots at, carried by its mount.
 typedef struct {
     MATRIX                colorMatrix;    // Colour matrix the target's model is lit through, in place of the scene's shared one
     MATRIX                lightMatrix;    // Light matrix of the same
@@ -255,18 +237,6 @@ STATIC_ASSERT_SIZEOF(_TargetWork, 0x16C);
 enum { PATH_END = -1 };
 
 /// One stop on a movement path of the gallery target's mount.
-///
-/// A path is an array of these closed by a record whose `x` is
-/// `PATH_END`; a target's spawn argument selects the path. The
-/// mount closes on the current stop along X and Z independently, `speed` units
-/// a frame on each, and moves on to the next record whenever either axis
-/// arrives. A leg that changes both coordinates therefore lists its stop
-/// twice, one record per arrival. Coordinates are in the space the mount is
-/// spawned in.
-///
-/// A path whose first record has no speed is stationary: the mount stays where
-/// it was spawned for the hold time in its spawn argument, and that record's
-/// coordinates are not read.
 typedef struct {
     s16 x;     // Stop position, or `PATH_END`
     s16 z;
@@ -274,17 +244,8 @@ typedef struct {
 } _Waypoint;
 STATIC_ASSERT_SIZEOF(_Waypoint, 6);
 
-/// Scratch-stack workspace for one textured quad drawn on a target's face: a
-/// hit mark, or the burst that replaces the last one on a destroyed target.
-///
-/// `vertices` holds the four corners in the space of the target's root
-/// coordinate. One RTPS projects corner 0 and one RTPT corners 1..3 through
-/// that coordinate's composed matrix, and the drawer splits each resulting
-/// screen word onto the packet. A quad whose `depth` falls below the nearest
-/// ordering bucket it may use is dropped.
-///
-/// Reserve the whole block and release it before the drawer returns. Pointers
-/// into the block must not survive release.
+/// Scratch-stack workspace for one textured quad drawn on a target's face: a hit mark, or the burst that replaces the
+/// last one on a destroyed target.
 typedef struct {
     s32     screenCorners[4]; // Projected corners, one GTE screen word each: X in the low half, Y in the high
     s32     depth;            // Last projected corner's SZ3 / 4, less the drawer's ordering bias
@@ -339,9 +300,6 @@ static void _shootingGalleryTargetsUpdateMount(Task* task);
 static void _shootingGalleryTargetsApplyTargetHits(Task* task);
 
 /// Gallery mount task callbacks: 0 initialize, 1 update, 2 retire, 3 destroy.
-///
-/// The mount owns work and its carried target. Retirement updates the gallery's
-/// live-target count before destruction releases the mount and its child.
 static const TaskFuncTable4 _gShootingGalleryTargetsMountTaskStates = {
     .funcs = {
         _shootingGalleryTargetsInitMount,
@@ -352,8 +310,6 @@ static const TaskFuncTable4 _gShootingGalleryTargetsMountTaskStates = {
 };
 
 /// Gallery mount behavior callbacks, copied before dispatch by behavior 0..2.
-///
-/// Standing and hanging mounts follow paths; fixed mounts serve demonstrations.
 static const TaskFuncTable3 _gShootingGalleryTargetsMountBehaviourHandlers = { {
     [MOUNT_STANDING] = _shootingGalleryTargetsUpdateStandingMountPath,
     [MOUNT_HANGING]  = _shootingGalleryTargetsUpdateHangingMountPath,
@@ -361,16 +317,9 @@ static const TaskFuncTable3 _gShootingGalleryTargetsMountBehaviourHandlers = { {
 } };
 
 /// The gallery mount's single zero-power, ordinary-reaction attack row.
-///
-/// This is an actual attack entry: packing it produces category 4, not the
-/// zero/no-contact key. It remains live with the mount's enemy parameters.
 static DamageAttack _gShootingGalleryTargetsMountAttacks[1] = { { .power = 0, .reaction = 0 } };
 
 /// Gallery mount enemy parameters, borrowed by each initialized mount.
-///
-/// Nominal maximum health is 50; the zero-power attack has an ordinary reaction.
-/// Rewards and buildup/damage-over-time counts are zero; base critical chance is
-/// 255 percent. Mount initialization does not copy this maximum into current HP.
 static EnemyParams _gShootingGalleryTargetsMountParams = {
     .attacks    = _gShootingGalleryTargetsMountAttacks,
     .hpMax      = 50,
@@ -400,9 +349,6 @@ TaskDesc gShootingGalleryTargetsTaskDescriptors[SHOOTING_GALLERY_TARGETS_TASK_CO
 };
 
 /// Mount path 0: hold at the spawn position for the spawn argument's hold time.
-///
-/// The first record's coordinates are unused. Hold time is seconds at 30 ticks
-/// per second; zero holds until the child target finishes.
 static _Waypoint _gShootingGalleryTargetsMountPath0[] = {
     { 0, 3000, 0 },
     { PATH_END, 0, 0 },
@@ -652,8 +598,7 @@ static _Waypoint _gShootingGalleryTargetsMountPath36[] = {
     { PATH_END, 0, 0 },
 };
 
-/// Mount path 37: increasing X through Z 4500/6000 steps, at 30, 40, 50 then
-/// 70 world units per frame.
+/// Mount path 37: increasing X through Z 4500/6000 steps, at 30, 40, 50 then 70 world units per frame.
 static _Waypoint _gShootingGalleryTargetsMountPath37[] = {
     { 0, 6000, 30 },
     { 0, 4500, 30 },
@@ -665,8 +610,7 @@ static _Waypoint _gShootingGalleryTargetsMountPath37[] = {
     { PATH_END, 0, 0 },
 };
 
-/// Mount path 38: increasing X through Z 0/1500 steps, at 30, 40, 50 then
-/// 70 world units per frame.
+/// Mount path 38: increasing X through Z 0/1500 steps, at 30, 40, 50 then 70 world units per frame.
 static _Waypoint _gShootingGalleryTargetsMountPath38[] = {
     { 0, 0, 30 },
     { 0, 1500, 30 },
@@ -678,8 +622,7 @@ static _Waypoint _gShootingGalleryTargetsMountPath38[] = {
     { PATH_END, 0, 0 },
 };
 
-/// Mount path 39: increasing X with alternating Z 0/6000 crossings, at 40, 50,
-/// 70 then 100 world units per frame.
+/// Mount path 39: increasing X with alternating Z 0/6000 crossings, at 40, 50, 70 then 100 world units per frame.
 static _Waypoint _gShootingGalleryTargetsMountPath39[] = {
     { -1500, 0, 40 },
     { 0, 0, 40 },
@@ -693,8 +636,7 @@ static _Waypoint _gShootingGalleryTargetsMountPath39[] = {
     { PATH_END, 0, 0 },
 };
 
-/// Mount path 40: decreasing X from 9000 to -3000 through Z 4500/6000 steps,
-/// at 40, 50 then 70 world units per frame.
+/// Mount path 40: decreasing X from 9000 to -3000 through Z 4500/6000 steps, at 40, 50 then 70 world units per frame.
 static _Waypoint _gShootingGalleryTargetsMountPath40[] = {
     { 9000, 6000, 40 },
     { 9000, 4500, 40 },
@@ -705,8 +647,7 @@ static _Waypoint _gShootingGalleryTargetsMountPath40[] = {
     { PATH_END, 0, 0 },
 };
 
-/// Mount path 41: decreasing X from 9000 to -3000 through Z 0/1500 steps,
-/// at 40, 50 then 70 world units per frame.
+/// Mount path 41: decreasing X from 9000 to -3000 through Z 0/1500 steps, at 40, 50 then 70 world units per frame.
 static _Waypoint _gShootingGalleryTargetsMountPath41[] = {
     { 9000, 0, 40 },
     { 9000, 1500, 40 },
@@ -717,8 +658,7 @@ static _Waypoint _gShootingGalleryTargetsMountPath41[] = {
     { PATH_END, 0, 0 },
 };
 
-/// Mount path 42: decreasing Z at X 9000, then returning to Z 3000 at X 12000,
-/// at 40 world units per frame.
+/// Mount path 42: decreasing Z at X 9000, then returning to Z 3000 at X 12000, at 40 world units per frame.
 static _Waypoint _gShootingGalleryTargetsMountPath42[] = {
     { 9000, 6000, 40 },
     { 9000, 3000, 40 },
@@ -728,8 +668,8 @@ static _Waypoint _gShootingGalleryTargetsMountPath42[] = {
     { PATH_END, 0, 0 },
 };
 
-/// Mount path 43: reach XZ (7500, 4500) at 40 world units per frame, then
-/// detour through Z 6000 to (12000, 4500) at 70.
+/// Mount path 43: reach XZ (7500, 4500) at 40 world units per frame, then detour through Z 6000 to (12000, 4500) at
+/// 70.
 static _Waypoint _gShootingGalleryTargetsMountPath43[] = {
     { 7500, 4500, 40 },
     { 7500, 6000, 70 },
@@ -738,8 +678,7 @@ static _Waypoint _gShootingGalleryTargetsMountPath43[] = {
     { PATH_END, 0, 0 },
 };
 
-/// Mount path 44: reach XZ (7500, 1500) at 40 world units per frame, then
-/// detour through Z 0 to (12000, 1500) at 70.
+/// Mount path 44: reach XZ (7500, 1500) at 40 world units per frame, then detour through Z 0 to (12000, 1500) at 70.
 static _Waypoint _gShootingGalleryTargetsMountPath44[] = {
     { 7500, 1500, 40 },
     { 7500, 0, 70 },
@@ -748,8 +687,7 @@ static _Waypoint _gShootingGalleryTargetsMountPath44[] = {
     { PATH_END, 0, 0 },
 };
 
-/// Mount path 45: cross between X -3000/7500 and Z 0/6000, ending at
-/// XZ (7500, 3000), at 140 world units per frame.
+/// Mount path 45: cross between X -3000/7500 and Z 0/6000, ending at XZ (7500, 3000), at 140 world units per frame.
 static _Waypoint _gShootingGalleryTargetsMountPath45[] = {
     { 4500, 6000, 140 },
     { 4500, 4500, 140 },
@@ -764,8 +702,7 @@ static _Waypoint _gShootingGalleryTargetsMountPath45[] = {
     { PATH_END, 0, 0 },
 };
 
-/// Mount path 46: increasing X from -3000 to 7500 through Z 1500/4500 steps,
-/// at 50 world units per frame.
+/// Mount path 46: increasing X from -3000 to 7500 through Z 1500/4500 steps, at 50 world units per frame.
 static _Waypoint _gShootingGalleryTargetsMountPath46[] = {
     { -3000, 1500, 50 },
     { 0, 1500, 50 },
@@ -776,8 +713,7 @@ static _Waypoint _gShootingGalleryTargetsMountPath46[] = {
     { PATH_END, 0, 0 },
 };
 
-/// Mount path 47: increasing X from 1500 to 7500 with a Z 6000-to-4500 step
-/// at X 4500, at 40 world units per frame.
+/// Mount path 47: increasing X from 1500 to 7500 with a Z 6000-to-4500 step at X 4500, at 40 world units per frame.
 static _Waypoint _gShootingGalleryTargetsMountPath47[] = {
     { 1500, 6000, 40 },
     { 4500, 6000, 40 },
@@ -786,10 +722,7 @@ static _Waypoint _gShootingGalleryTargetsMountPath47[] = {
     { PATH_END, 0, 0 },
 };
 
-/// Mount path 48: XZ (1500, 0) to (4500, 1500), then (7500, 1500), at 40
-/// world units per axis per frame.
-///
-/// The diagonal stop repeats so that either axis arrival can advance a record.
+/// Mount path 48: XZ (1500, 0) to (4500, 1500), then (7500, 1500), at 40 world units per axis per frame.
 static _Waypoint _gShootingGalleryTargetsMountPath48[] = {
     { 1500, 0, 40 },
     { 4500, 1500, 40 },
@@ -798,8 +731,7 @@ static _Waypoint _gShootingGalleryTargetsMountPath48[] = {
     { PATH_END, 0, 0 },
 };
 
-/// Mount path 49: Z stops 0, 6000, 0 then 6000 at X 12000, at 40 world units
-/// per frame.
+/// Mount path 49: Z stops 0, 6000, 0 then 6000 at X 12000, at 40 world units per frame.
 static _Waypoint _gShootingGalleryTargetsMountPath49[] = {
     { 12000, 0, 40 },
     { 12000, 6000, 40 },
@@ -893,14 +825,6 @@ static _Waypoint _gShootingGalleryTargetsMountPath61[] = {
 };
 
 /// Sentinel-terminated routes selected by the gallery mount's spawn path byte.
-///
-/// Bits 16..23 of the mount's spawn argument must be below
-/// `ARRAY_SIZE(_gShootingGalleryTargetsMountPaths)` (62); no range check is performed.
-/// Each route ends with `PATH_END` in its final record's X.
-/// Coordinates use the mount root's parent frame; speed is world units per
-/// axis per active frame. A zero-speed first record holds at the spawn position.
-/// Standing and hanging mounts borrow these records without writing or freeing
-/// them; the actor image must remain loaded until the mounts exit.
 static const _Waypoint* _gShootingGalleryTargetsMountPaths[] = {
     _gShootingGalleryTargetsMountPath0,
     _gShootingGalleryTargetsMountPath1,
@@ -967,16 +891,9 @@ static const _Waypoint* _gShootingGalleryTargetsMountPaths[] = {
 };
 
 /// Retained zero-power, ordinary-reaction attack row in the gallery target parameters.
-///
-/// The target borrows this row through its enemy record. Its direct player
-/// strike supplies damage separately rather than packing this row into a key.
 static DamageAttack _gShootingGalleryTargetsTargetAttacks[1] = { { 0, GAME_ACTOR_REACTION_ORDINARY } };
 
 /// Gallery target parameters, borrowed by each live target enemy.
-///
-/// Retains nominal maximum health 50 and a zero-power attack row. Spawn health
-/// comes separately from the target-kind table. Rewards and status pulse counts
-/// are zero; the base critical chance is 255 percent.
 static EnemyParams _gShootingGalleryTargetsTargetParams = {
     .attacks    = _gShootingGalleryTargetsTargetAttacks,
     .hpMax      = 50,
@@ -984,10 +901,6 @@ static EnemyParams _gShootingGalleryTargetsTargetParams = {
 };
 
 /// Eight cyclic hit-mark offsets on a gallery target's face.
-///
-/// Signed X/Y use target-local model coordinates; Z is zero at drawing.
-/// The first-mark cursor plus mark index wraps with a count-minus-one mask.
-/// A dead target substitutes a death burst for its last mark without reading this row.
 static DVECTOR _gShootingGalleryTargetsTargetHitMarkOffsets[TARGET_HIT_MARK_COUNT] = {
     { 0, -0x120 },
     { 0x60, -0xA0 },
@@ -1000,24 +913,11 @@ static DVECTOR _gShootingGalleryTargetsTargetHitMarkOffsets[TARGET_HIT_MARK_COUN
 };
 
 /// Starting hit points indexed by the gallery target's spawn-kind nibble.
-///
-/// Serialized entries cover kinds 0..12. The fixed demonstration uses kind 13
-/// and retains a read beyond this table at the package end; its live backing
-/// and resulting health are unproven. No entries for kinds 13..15 are stored here.
 static u16 _gShootingGalleryTargetsTargetHitPoints[13] = { 32, 24, 16, 12, 60, 36, 28, 20, 12, 1, 12, 20, 28 };
 
 static void _shootingGalleryTargetsRemapTargetColor(Enemy* unusedEnemy, MATRIX* colorMatrix, s32 colorMode);
 
 /// Initializes a gallery mount and spawns the target it carries.
-///
-/// The kind nibble selects target descriptor kind + 1 (0..15); behaviour must
-/// be standing, hanging or fixed (0..2), and the path byte must be in 0..61.
-/// Bits 24..27 hold a stationary path in seconds; bit 28 requests rotation,
-/// bit 29 lets the child attack, and bit 30 bypasses the 1024-unit XZ exclusion.
-/// A low byte of 0xFF or failed work allocation also rejects the spawn.
-/// Counted mounts require a live controller parent; rejection returns its count.
-/// The task owns its zeroed work and child, and nonfixed mounts own a battle
-/// reference until exit. Requires initialized scratch storage for one VECTOR.
 static void _shootingGalleryTargetsInitMount(Task* task)
 {
     enum {
@@ -1098,10 +998,6 @@ static void _shootingGalleryTargetsInitMount(Task* task)
 }
 
 /// Stops a mount path and asks its live child target to leave.
-///
-/// Enemy must belong to the work-owning mount and keep its first child alive.
-/// Moves the mount to its leave step and clears rotation. The stop signal does
-/// not finish the child; the mount waits for its separate FINISHED signal.
 static inline void _shootingGalleryTargetsStopMountPath(_MountWork* work, Enemy* enemy)
 {
     work->step                                = MOUNT_STEP_LEAVE;
@@ -1110,14 +1006,6 @@ static inline void _shootingGalleryTargetsStopMountPath(_MountWork* work, Enemy*
 }
 
 /// Advances a path-following mount at the supplied bob and resting Y heights.
-///
-/// Heights and path coordinates use the root's parent frame. The task owns
-/// mount work and requires a live enemy, model and first-child target. Its path
-/// index must select one of 62 sentinel-terminated paths. Axis differences
-/// narrow to s16; either axis arrival advances the waypoint, so diagonal legs
-/// repeat their destination. A zero-speed first waypoint holds for the spawn
-/// nibble in seconds at 30 ticks per second; zero waits until the target ends.
-/// The target finishes before the mount shrinks and advances its task state.
 static inline void _shootingGalleryTargetsUpdateMountPath(Task* task, s32 bobY, s32 restingY)
 {
     enum {
@@ -1225,33 +1113,18 @@ static inline void _shootingGalleryTargetsUpdateMountPath(Task* task, s32 bobY, 
 }
 
 /// Runs a standing gallery mount along its selected path, then shrinks it away.
-///
-/// The mount settles at floor height before its child target unfolds.
-/// Requires a live first-child target and a spawn-selected path in 0..61.
-/// A zero-speed first stop holds for the spawn nibble in seconds (30 ticks
-/// per second); zero seconds holds until the target finishes. Coordinates
-/// and speeds use the mount root's parent frame; axis deltas narrow to s16.
 static void _shootingGalleryTargetsUpdateStandingMountPath(Task* task)
 {
     _shootingGalleryTargetsUpdateMountPath(task, -0x10, 0);
 }
 
 /// Runs a hanging gallery mount along its selected path, then shrinks it away.
-///
-/// The mount settles at ceiling height before its child target unfolds.
-/// Requires a live first-child target and a spawn-selected path in 0..61.
-/// A zero-speed first stop holds for the spawn nibble in seconds (30 ticks
-/// per second); zero seconds holds until the target finishes. Coordinates
-/// and speeds use the mount root's parent frame; axis deltas narrow to s16.
 static void _shootingGalleryTargetsUpdateHangingMountPath(Task* task)
 {
     _shootingGalleryTargetsUpdateMountPath(task, -0xF4C, -0xF3C);
 }
 
 /// Gallery target task callbacks: 0 initialize, 1 update, 2 hide, 3 destroy.
-///
-/// The hidden target waits for its owning mount's teardown. Destruction unlinks
-/// its collision body before releasing target work, Enemy and Task.
 static const TaskFuncTable4 _gShootingGalleryTargetsTargetTaskStates = {
     .funcs = {
         _shootingGalleryTargetsInitTarget,
@@ -1262,10 +1135,6 @@ static const TaskFuncTable4 _gShootingGalleryTargetsTargetTaskStates = {
 };
 
 /// Gallery target behavior callbacks indexed by `SHOOTING_GALLERY_TARGETS_TARGET_STATE_*`.
-///
-/// Slots 0..9 select initialization, active behavior, two flinch strengths, three
-/// immediate active-state resumptions, folding, fixed demonstration or destroyed
-/// tumbling. The three resume slots' original reaction meanings remain unproven.
 static const TaskFuncTable10 _gShootingGalleryTargetsTargetStateHandlers = {
     .funcs = {
         _shootingGalleryTargetsBeginTargetBehaviour,
@@ -1282,10 +1151,6 @@ static const TaskFuncTable10 _gShootingGalleryTargetsTargetStateHandlers = {
 };
 
 /// Dispatches one gallery mount tick through its four task lifecycle states.
-///
-/// Task state must be in 0..3: initialize, update, retire, destroy. The exported
-/// actor descriptor selects this private callback; initialization owns work
-/// allocation and installs teardown only after that allocation succeeds.
 static void _shootingGalleryTargetsMountTask(Task* task)
 {
     TaskFuncTable4 handlers;
@@ -1295,12 +1160,6 @@ static void _shootingGalleryTargetsMountTask(Task* task)
 }
 
 /// Updates a gallery mount's behaviour, transform, lighting and draw visibility.
-///
-/// Requires live mount work, enemy and model. Running ticks dispatch work
-/// state 0..1, rebuild the rotation and scale its vertical coefficient by
-/// heightPercent. Running and paused ticks refresh lighting and enable drawing;
-/// hidden ticks disable drawing. Angles use 4096 units per turn. Scaling divides
-/// the coefficient by 100 before multiplication, retaining integer truncation.
 static void _shootingGalleryTargetsUpdateMount(Task* task)
 {
     enum { MOUNT_FULL_HEIGHT_PERCENT = 100 };
@@ -1332,10 +1191,6 @@ static void _shootingGalleryTargetsUpdateMount(Task* task)
 }
 
 /// Removes a finished gallery mount from its controller's live-target count.
-///
-/// Fixed demonstration mounts were never counted and need no controller.
-/// Other mounts require the spawning controller to remain alive; the task
-/// advances to its destruction state after releasing the count.
 static void _shootingGalleryTargetsRetireMount(Task* task)
 {
     Task*       controllerTask;
@@ -1352,9 +1207,6 @@ static void _shootingGalleryTargetsRetireMount(Task* task)
 }
 
 /// Releases a gallery mount's battle reference and destroys its enemy and task.
-///
-/// Installed only after mount work allocation succeeds. Fixed mounts do not
-/// own a battle reference. Task teardown releases the work and child target.
 static void _shootingGalleryTargetsDestroyMount(Task* task)
 {
     _MountWork* work = task->work;
@@ -1366,11 +1218,6 @@ static void _shootingGalleryTargetsDestroyMount(Task* task)
 }
 
 /// Refreshes the mount's lighting and colour from its model root position.
-///
-/// Requires a live enemy/model and a current composed root matrix. Its cached
-/// translation follows the resident lighting query's coordinate-space contract.
-/// One scratch VECTOR survives the nested query and is released before return;
-/// only XYZ are initialized or read, and no pointer to it is retained.
 static void _shootingGalleryTargetsUpdateMountColor(Task* task)
 {
     GfxCoord* rootCoord;
@@ -1393,11 +1240,6 @@ static void _shootingGalleryTargetsUpdateMountColor(Task* task)
 }
 
 /// Rebuilds a gallery mount's local rotation from its wrapped Euler angles.
-///
-/// Angles use 4096 units per turn. Composes Z, X, then Y on the fixed-point
-/// identity and copies only the nine rotation elements, preserving translation.
-/// Requires initialized scratch storage for one MATRIX and nested axis-helper
-/// reservations. The caller dirties coordinate composition.
 static void _shootingGalleryTargetsUpdateMountRotation(Task* task)
 {
     _MountWork* work      = task->work;
@@ -1419,17 +1261,12 @@ static void _shootingGalleryTargetsUpdateMountRotation(Task* task)
 }
 
 /// Copies the nine rotation elements used by the gallery mount model.
-///
-/// Source and destination must provide live `MATRIX` objects. Translation
-/// and alignment bytes are preserved; copying a matrix onto itself is valid.
 static void _shootingGalleryTargetsCopyMountRotation(const MATRIX* source, MATRIX* destination)
 {
     gfxCopyRotation(destination, source);
 }
 
 /// Advances a newly spawned mount to its behaviour dispatcher after one tick.
-///
-/// Requires live mount work in state 0; movement begins on the following tick.
 static void _shootingGalleryTargetsBeginMountBehaviour(Task* task)
 {
     _MountWork* work = task->work;
@@ -1438,10 +1275,6 @@ static void _shootingGalleryTargetsBeginMountBehaviour(Task* task)
 }
 
 /// Updates the gallery mount's selected behaviour and optional yaw spin.
-///
-/// The live work selects standing, hanging or fixed behaviour (0..2). Path
-/// behaviours require a live first-child target. While rotating, yaw advances
-/// 32 angle units per tick, with 4096 units per turn; the rotation builder wraps it.
 static void _shootingGalleryTargetsUpdateMountBehaviour(Task* task)
 {
     TaskFuncTable3 handlers;
@@ -1455,9 +1288,6 @@ static void _shootingGalleryTargetsUpdateMountBehaviour(Task* task)
 }
 
 /// Places a fixed demonstration mount and shrinks it after its target finishes.
-///
-/// Requires its live first-child target. The first tick places the root at
-/// Y = 0 and full height; completion advances the mount's task state.
 static void _shootingGalleryTargetsUpdateFixedMount(Task* task)
 {
     _MountWork* work      = task->work;
@@ -1483,13 +1313,6 @@ static void _shootingGalleryTargetsUpdateFixedMount(Task* task)
 }
 
 /// Spawns a target as both a task child and a coordinate child of its mount.
-///
-/// `mountEnemy` must own a live task/model and outlive the child. `targetKind`
-/// selects descriptor kind + 1; the sole caller supplies a nibble (0..15).
-/// `targetFlags` carries mount behaviour in bits 0..3 and attack enable in bit 13;
-/// shifting it into the high half leaves the child's low byte for kind/signals.
-/// Kinds 0..9 use CLUT-row offset 2, later kinds use 0. Both primitive-buffer
-/// halves are rebuilt. Spawn failure leaves the mount unchanged, without retry.
 static void _shootingGalleryTargetsSpawnTarget(Enemy* mountEnemy, s32 targetKind, s32 targetFlags)
 {
     enum {
@@ -1521,12 +1344,6 @@ static void _shootingGalleryTargetsSpawnTarget(Enemy* mountEnemy, s32 targetKind
 }
 
 /// Allocates and registers the gallery target carried by a mount.
-///
-/// The task owns the zeroed work; the enemy and collision body borrow its
-/// matrices and contacts until teardown. A low spawn byte of 0xFF or failed
-/// allocation destroys the enemy before installing the exit callback. The
-/// kind nibble indexes 13 HP entries; the demonstration kind 13 also reads
-/// past that serialized table, whose runtime backing is unproven.
 static void _shootingGalleryTargetsInitTarget(Task* task)
 {
     _TargetWork* work;
@@ -1579,14 +1396,6 @@ static void _shootingGalleryTargetsInitTarget(Task* task)
 }
 
 /// Advances a gallery target's behaviour, hit handling and face effects.
-///
-/// Requires live target work/Enemy/model and a state-table index in 0..9.
-/// Running combat dispatches behaviour and accepts hits before the leave state;
-/// paused combat still refreshes colour, while hidden combat suppresses drawing.
-/// Every mode updates rotation/scale and face effects. Non-fixed targets publish
-/// their lock mask to the live gallery controller. Hit offsets cycle through
-/// eight entries; a dead target replaces its last mark with a death burst.
-/// Borrows one scratch SVECTOR across state dispatch and releases it on return.
 static void _shootingGalleryTargetsUpdateTarget(Task* task)
 {
     TaskFuncTable10 states;
@@ -1654,16 +1463,6 @@ static void _shootingGalleryTargetsUpdateTarget(Task* task)
 }
 
 /// Unfolds a gallery target and runs its optional repeating player attack.
-///
-/// Requires initialized active-target work and the mount/target handshake in
-/// spawnArg1. Width grows before height by 32 percentage points while below 100,
-/// so the final step can overshoot; pitch uses 4096 units per turn. Four bob ticks
-/// enable locking/pair collision and signal STANDING. STOP requests folding.
-/// Attack-enabled ticks charge at 120 and fire at 210, then restart the timer.
-/// Requires a live player model through part 4. A hit outside damage mode requests
-/// ten HP and descending-part hit flashes; at ten HP or less the gallery instead
-/// receives a lethal-hit latch and pending damage is zero. Hit reactions preempt
-/// these phases, and disabled attacks retain their elapsed timer.
 static void _shootingGalleryTargetsUpdateActiveTarget(Task* task)
 {
     enum {
@@ -1791,10 +1590,6 @@ static void _shootingGalleryTargetsUpdateActiveTarget(Task* task)
 }
 
 /// Swings a hit gallery target back, settles it and resumes its standing motion.
-///
-/// Both light and heavy hit states use this body. Damage scales the six-tick
-/// pitch swing in 4096 units per turn; the settling phase counts timer values
-/// 0..4 before resuming the active stand-up step.
 static void _shootingGalleryTargetsUpdateTargetFlinch(Task* task)
 {
     enum { TARGET_FLINCH_ANGLE_LIMIT = ANGLE_TURN / 8 };
@@ -1845,11 +1640,6 @@ static void _shootingGalleryTargetsUpdateTargetFlinch(Task* task)
 }
 
 /// Folds an undestroyed gallery target away and releases its mount to shrink.
-///
-/// Disables target tracking and pair collision first, then waits seven ticks,
-/// folds through a quarter turn and shrinks height before width. The collision
-/// body stays linked until the task exits. The finished signal is raised only
-/// after both scales reach at most 20 percent.
 static void _shootingGalleryTargetsFoldTarget(Task* task)
 {
     _TargetWork* work  = task->work;
@@ -1903,10 +1693,6 @@ static void _shootingGalleryTargetsFoldTarget(Task* task)
 }
 
 /// Draws one target tumble spin in 4096-per-turn angle units per tick.
-///
-/// Advances the shared LCG once. Even magnitudes are negated and odd ones stay
-/// positive, producing -126..127. The output is a live target work spin field,
-/// separate from the shared generator state.
 static inline void _shootingGalleryTargetsRollTargetSpin(s16* spinAngle)
 {
     enum { TARGET_SPIN_MAGNITUDE_MASK = 0x7F };
@@ -1924,12 +1710,6 @@ static inline void _shootingGalleryTargetsRollTargetSpin(s16* spinAngle)
 }
 
 /// Scores a destroyed gallery target, detaches it and tumbles it out of play.
-///
-/// Requires the live gallery controller and mounted root. Kind 0..12 selects
-/// the kill counter and cue. Random spin is in 4096 units per turn; the last
-/// shot direction becomes a clamped vertical velocity in parent units per
-/// tick. At tick 16 the target signals completion and enters the hidden task
-/// state; its mount's teardown later destroys it.
 static void _shootingGalleryTargetsTumbleDestroyedTarget(Task* task)
 {
     _TargetWork*             work      = task->work;
@@ -2030,10 +1810,6 @@ static void _shootingGalleryTargetsTumbleDestroyedTarget(Task* task)
 }
 
 /// Adds a hit mark and its sound cue until the target's eight marks are filled.
-///
-/// Task must own the supplied live target work and model. At the eight-mark
-/// limit neither the count nor the cue changes. Each accepted mark sounds at
-/// the root's composed origin; pan and attenuation narrow to signed bytes.
 static inline void _shootingGalleryTargetsAddTargetHitMark(Task* task, _TargetWork* work)
 {
     GfxCoord* rootCoord;
@@ -2048,17 +1824,6 @@ static inline void _shootingGalleryTargetsAddTargetHitMark(Task* task, _TargetWo
 }
 
 /// Applies attack contacts to a gallery target and queues its hit reaction.
-///
-/// Requires live target work, enemy, model and initialized eight-entry contacts.
-/// Each category-2 contact copies a 4096-per-unit direction, measures the player
-/// distance and computes damage, narrowed to signed 16-bit HP. Cooldowns narrow
-/// to s16 frames; a cooldown started here does not stop subsequent contacts in
-/// this scan. HP clamps at zero. Positive damage adds at most eight marks and
-/// requests a heavy flinch at 20 HP, otherwise a light one.
-///
-/// Each attack overwrites hitTaken and hitDamage; nonpositive damage clears hitTaken
-/// without clearing an earlier queued reaction. All contacts are cleared before
-/// returning.
 static void _shootingGalleryTargetsApplyTargetHits(Task* task)
 {
     enum {
@@ -2113,9 +1878,6 @@ static void _shootingGalleryTargetsApplyTargetHits(Task* task)
 enum { TARGET_DEATH_BURST_HALF_EXTENT = 256 };
 
 /// Four X/Y offsets of the target death-burst quad, in game-coordinate units.
-///
-/// Corners span 512 units and follow GPU corner order. They are added to the
-/// mark centre and root translation before signed-halfword projection.
 static const DVECTOR _gShootingGalleryTargetsTargetDeathBurstCorners[4] = {
     { -TARGET_DEATH_BURST_HALF_EXTENT, -TARGET_DEATH_BURST_HALF_EXTENT },
     { -TARGET_DEATH_BURST_HALF_EXTENT, TARGET_DEATH_BURST_HALF_EXTENT },
@@ -2124,14 +1886,6 @@ static const DVECTOR _gShootingGalleryTargetsTargetDeathBurstCorners[4] = {
 };
 
 /// Draws the 512-unit burst replacing the final hit mark on a dead target.
-///
-/// Borrows the root and centerOffset; offsets are added to the local root
-/// translation, narrowed to s16, then projected through its cached workm. The
-/// caller must refresh that cache, initialize scratch storage and provide space
-/// for one POLY_FT4 in the primitive arena. Accepted buckets are 4..1013
-/// in the normal 1024-tag ordering table. A packet is consumed even when its
-/// biased depth is too near to queue; no arena bounds check runs.
-/// Depth is the last corner's SZ3/4, biased by 160, and shifted four more bits for the ordering bucket.
 static void _shootingGalleryTargetsDrawTargetDeathBurst(const GfxCoord* rootCoord, const SVECTOR* centerOffset)
 {
     enum { TARGET_DEATH_BURST_DEPTH_BIAS = 0xA0 };
@@ -2184,9 +1938,6 @@ static void _shootingGalleryTargetsDrawTargetDeathBurst(const GfxCoord* rootCoor
 enum { TARGET_HIT_MARK_HALF_EXTENT = 96 };
 
 /// Four X/Y offsets of a target hit-mark quad, followed by an unused zero record.
-///
-/// Corners span 192 game-coordinate units and follow GPU corner order. They
-/// are added to the mark centre and root translation before projection.
 static const DVECTOR _gShootingGalleryTargetsTargetHitMarkCorners[5] = {
     { -TARGET_HIT_MARK_HALF_EXTENT, -TARGET_HIT_MARK_HALF_EXTENT },
     { -TARGET_HIT_MARK_HALF_EXTENT, TARGET_HIT_MARK_HALF_EXTENT },
@@ -2196,14 +1947,6 @@ static const DVECTOR _gShootingGalleryTargetsTargetHitMarkCorners[5] = {
 };
 
 /// Draws one 192-unit hit mark on a gallery target's face.
-///
-/// Borrows the root and centerOffset; offsets are added to the local root
-/// translation, narrowed to s16, then projected through its cached workm. The
-/// caller must refresh that cache, initialize scratch storage and provide space
-/// for one POLY_FT4 in the primitive arena. Accepted buckets are 4..1019
-/// in the normal 1024-tag ordering table. A packet is consumed even when its
-/// biased depth is too near to queue; no arena bounds check runs.
-/// Depth is the last corner's SZ3/4, biased by 64, and shifted four more bits for the ordering bucket.
 static void _shootingGalleryTargetsDrawTargetHitMark(const GfxCoord* rootCoord, const SVECTOR* centerOffset)
 {
     enum { TARGET_HIT_MARK_DEPTH_BIAS = 0x40 };
@@ -2254,12 +1997,6 @@ static void _shootingGalleryTargetsDrawTargetHitMark(const GfxCoord* rootCoord, 
 }
 
 /// Remaps a gallery target's lighting color matrix, including its sine pulse.
-///
-/// Default and unhandled modes preserve the matrix; black clears only its 3x3
-/// coefficients. Weighted mode replicates (7R + 6G + 3B)/33 down each column,
-/// then adds rsin(loopCount * 198) + ONE. Both stages narrow to s16, so the
-/// intermediate truncation is retained. Translation and alignment bytes stay
-/// intact. unusedEnemy is ignored; callers pass the target's live Enemy.
 static void _shootingGalleryTargetsRemapTargetColor(Enemy* unusedEnemy, MATRIX* colorMatrix, s32 colorMode)
 {
     enum { TARGET_COLOR_PULSE_ANGLE_STEP = 198 };
@@ -2295,9 +2032,6 @@ static void _shootingGalleryTargetsRemapTargetColor(Enemy* unusedEnemy, MATRIX* 
 }
 
 /// Copies the nine directional-light colour coefficients for a target's blend.
-///
-/// Both arrays must be disjoint. Copies signed Q12 coefficients without the
-/// enclosing matrices' alignment bytes or ambient translation.
 static inline void _shootingGalleryTargetsCopyTargetLightColor(s16 destination[3][3], const s16 source[3][3])
 {
     destination[0][0] = source[0][0];
@@ -2312,18 +2046,6 @@ static inline void _shootingGalleryTargetsCopyTargetLightColor(s16 destination[3
 }
 
 /// Rebuilds a gallery target's lighting and applies or blends its colour modes.
-///
-/// Requires a live enemy/model with writable light and colour matrices.
-/// `worldPosition` supplies three word-aligned signed 32-bit world coordinates;
-/// only those 12 bytes are read, following `worldCoordSetModelLighting`'s frame
-/// contract. Neither it nor the ignored trailing arguments are retained.
-/// With scene updates paused exactly at 1, only actively drawn models with a
-/// buffer update. A positive signed-byte countdown weights the previous mode
-/// by countdown/16; weighted mode includes the target's sine pulse. Only the
-/// nine light coefficients are blended, preserving the sampled ambient term.
-/// The countdown decreases only while actors run. Borrows and releases one
-/// `WorldCoordActorColorScratch` plus the query's nested scratch; changes GTE
-/// state. Input and output storage must be disjoint from those reservations.
 static void _shootingGalleryTargetsUpdateTargetColor(Enemy* enemy, const void* worldPosition, s32 unusedArg2, s32 unusedArg3)
 {
     enum {
@@ -2375,11 +2097,6 @@ static void _shootingGalleryTargetsUpdateTargetColor(Enemy* enemy, const void* w
 }
 
 /// Dispatches one gallery target tick through its four task lifecycle states.
-///
-/// Task state must be in 0..3: initialize, update, hide, destroy. The exported
-/// actor descriptors select this private callback. The hide state waits for
-/// mount teardown; the installed exit callback unlinks collision before the
-/// owned work is freed.
 static void _shootingGalleryTargetsTargetTask(Task* task)
 {
     TaskFuncTable4 handlers;
@@ -2389,8 +2106,6 @@ static void _shootingGalleryTargetsTargetTask(Task* task)
 }
 
 /// Hides a finished target while its mount keeps ownership of the task.
-///
-/// Requires a live model; this state waits for parent teardown without advancing.
 static void _shootingGalleryTargetsHideTarget(Task* task)
 {
     TmdObject* model = task->extra.tmd;
@@ -2399,9 +2114,6 @@ static void _shootingGalleryTargetsHideTarget(Task* task)
 }
 
 /// Unlinks a gallery target's collision body and destroys its enemy and task.
-///
-/// Installed after work allocation succeeds. Unlinking precedes task teardown,
-/// which releases the work containing the body and its contact table.
 static void _shootingGalleryTargetsDestroyTarget(Task* task)
 {
     _TargetWork* work = task->work;
@@ -2411,11 +2123,6 @@ static void _shootingGalleryTargetsDestroyTarget(Task* task)
 }
 
 /// Links the gallery target's shot-contact sphere and initializes its eight contacts.
-///
-/// The sphere borrows the live root coordinate and work-owned contact table,
-/// which also supplies the enemy's contacts. Its local Y is -592 parent units;
-/// radius is 544 for hanging targets and 400 otherwise. Linking alone leaves
-/// pair testing disabled until the target stands.
 static void _shootingGalleryTargetsInitTargetCollision(Task* task)
 {
     enum { TARGET_COLLISION_KEY = WORLD_COLLISION_CONTACT_ENEMY_BODY | 0x4C };
@@ -2437,10 +2144,6 @@ static void _shootingGalleryTargetsInitTargetCollision(Task* task)
 }
 
 /// Refreshes a gallery target's lighting and hit tint from its composed root.
-///
-/// Requires live target work, Enemy and model with a current root matrix.
-/// Borrows one scratch VECTOR across the colour query; only XYZ are initialized,
-/// in the query's world-coordinate units, and no pointer is retained.
 static void _shootingGalleryTargetsUpdateTargetRootColor(Task* task)
 {
     GfxCoord* rootCoord;
@@ -2463,11 +2166,6 @@ static void _shootingGalleryTargetsUpdateTargetRootColor(Task* task)
 }
 
 /// Rebuilds a gallery target's local rotation from its wrapped Euler angles.
-///
-/// Angles use 4096 units per turn. Compose Z, X, then Y rotations on the
-/// fixed-point identity and copy only the nine matrix elements, preserving
-/// root translation. Requires initialized scratch storage for one MATRIX
-/// plus the axis helpers' nested reservations. The caller dirties composition.
 static void _shootingGalleryTargetsUpdateTargetRotation(Task* task)
 {
     _TargetWork* work      = task->work;
@@ -2489,18 +2187,12 @@ static void _shootingGalleryTargetsUpdateTargetRotation(Task* task)
 }
 
 /// Copies the nine rotation elements used by the gallery target model.
-///
-/// Source and destination must provide live `MATRIX` objects. Translation
-/// and alignment bytes are preserved; copying a matrix onto itself is valid.
 static void _shootingGalleryTargetsCopyTargetRotation(const MATRIX* source, MATRIX* destination)
 {
     gfxCopyRotation(destination, source);
 }
 
 /// Enters a gallery target behaviour state and restarts it at step zero.
-///
-/// State is an `SHOOTING_GALLERY_TARGETS_TARGET_STATE_*` dispatch value stored as s16.
-/// The live task must own a target work block; this does not change `Task::state`.
 static void _shootingGalleryTargetsSetTargetState(Task* task, s16 state)
 {
     _TargetWork* work = task->work;
@@ -2510,11 +2202,6 @@ static void _shootingGalleryTargetsSetTargetState(Task* task, s16 state)
 }
 
 /// Enters a hit-selected target state and restarts its step sequence.
-///
-/// Requires live gallery-target work in task. state is a signed-halfword
-/// SHOOTING_GALLERY_TARGETS_TARGET_STATE_* behaviour index; callers select flinch or resume
-/// states. Resets only the behaviour step, leaving Task::state and the queued
-/// hit request unchanged. Retains no pointer.
 static inline void _shootingGalleryTargetsEnterTargetHitState(Task* task, s16 state)
 {
     _TargetWork* reactionWork = task->work;
@@ -2524,13 +2211,6 @@ static inline void _shootingGalleryTargetsEnterTargetHitState(Task* task, s16 st
 }
 
 /// Consumes a gallery target's queued reaction when its last hit was damaging.
-///
-/// Returns 1 exactly when hitTaken is 1, including a zero or unrecognized
-/// request; in that case hitReaction is cleared. Other hitTaken values return
-/// 0 and preserve the request. Requests 1 and 2 restart light/heavy flinch;
-/// retained requests 3..5 select immediate-resume slots 4, 6 and 5. The package
-/// never produces those three requests, whose intended effects are unproven.
-/// Requires live target work; it changes work state and step, not task state.
 static s16 _shootingGalleryTargetsConsumeTargetHitReaction(Task* task)
 {
     enum {
@@ -2570,11 +2250,6 @@ static s16 _shootingGalleryTargetsConsumeTargetHitReaction(Task* task)
 }
 
 /// Starts the gallery target's behaviour according to its mount kind.
-///
-/// Standing and hanging targets start active, folded flat at 10 percent scale
-/// and black lighting; one random draw chooses the first of eight hit marks.
-/// Fixed demonstration targets start their exit behaviour at full scale.
-/// Requires live target work, enemy and model; no other work fields are reset.
 static void _shootingGalleryTargetsBeginTargetBehaviour(Task* task)
 {
     enum {
@@ -2607,36 +2282,24 @@ static void _shootingGalleryTargetsBeginTargetBehaviour(Task* task)
 }
 
 /// Resumes active target behaviour from state-table slot 4.
-///
-/// Restarts at step zero. The package's hit handler does not request this state;
-/// its original reaction meaning is unproven.
 static void _shootingGalleryTargetsResumeTargetState4(Task* task)
 {
     _shootingGalleryTargetsSetTargetState(task, TARGET_STATE_ACTIVE);
 }
 
 /// Resumes active target behaviour from state-table slot 5.
-///
-/// Restarts at step zero. The package's hit handler does not request this state;
-/// its original reaction meaning is unproven.
 static void _shootingGalleryTargetsResumeTargetState5(Task* task)
 {
     _shootingGalleryTargetsSetTargetState(task, TARGET_STATE_ACTIVE);
 }
 
 /// Resumes active target behaviour from state-table slot 6.
-///
-/// Restarts at step zero. The package's hit handler does not request this state;
-/// its original reaction meaning is unproven.
 static void _shootingGalleryTargetsResumeTargetState6(Task* task)
 {
     _shootingGalleryTargetsSetTargetState(task, TARGET_STATE_ACTIVE);
 }
 
 /// Shows three hit marks on a fixed demonstration target and starts its exit.
-///
-/// Requires live target work. The fold-away state starts at step zero; these
-/// marks are set without applying damage or registering a player hit.
 static void _shootingGalleryTargetsBeginFixedTargetExit(Task* task)
 {
     enum { FIXED_TARGET_HIT_MARKS = 3 };
@@ -2648,13 +2311,6 @@ static void _shootingGalleryTargetsBeginFixedTargetExit(Task* task)
 }
 
 /// Stores the XZ distance between the target and player root translations.
-///
-/// Reads coord.t directly, without transforming differing parent frames or
-/// refreshing composition. The stored value is in coordinate units and supplies
-/// the weapon damage distance scale. A missing player leaves the cache intact.
-/// Requires live target work/model and initialized scratch storage for one VECTOR;
-/// Y is staged but does not enter the length. XZ differences and their sum of
-/// squares must fit s32.
 static void _shootingGalleryTargetsMeasureTargetPlayerDistance(Task* task)
 {
     _TargetWork* work;
@@ -2687,10 +2343,6 @@ static void _shootingGalleryTargetsMeasureTargetPlayerDistance(Task* task)
 }
 
 /// Places a target root at its rotated local offset (0, -384, 0).
-///
-/// Uses the root's rotation, without adding its previous translation; the
-/// result replaces all three parent-frame translation components. Requires
-/// initialized scratch storage for one VECTOR. The caller dirties composition.
 static void _shootingGalleryTargetsPlaceTargetOffset(GfxCoord* rootCoord)
 {
     void**  scratchSlot;
@@ -2713,11 +2365,6 @@ static void _shootingGalleryTargetsPlaceTargetOffset(GfxCoord* rootCoord)
 }
 
 /// Applies the target's width and folded-height percentages to its root matrix.
-///
-/// Requires live target work/model and a freshly rebuilt root rotation: repeated
-/// application compounds the scale. Only m[0][0] and m[2][1] change. Coefficients
-/// are signed Q12; division by 100 precedes multiplication and truncates towards
-/// zero, then the result narrows back to s16. Translation is preserved.
 static void _shootingGalleryTargetsApplyTargetScale(Task* task)
 {
     enum { TARGET_FULL_SCALE_PERCENT = 100 };

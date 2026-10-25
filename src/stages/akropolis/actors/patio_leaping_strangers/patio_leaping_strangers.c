@@ -26,25 +26,8 @@
 #include "../../../../shared/actor/actor_motion.h"
 #include "../../../../shared/actor/actor_messages.h"
 
-/// Work block of the overlay's actor, allocated zeroed by its spawn state and
-/// kept at `Task::work` for the task's life.
-///
-/// It opens with the head `_actorMotionPlayAnim19` runs on
-/// (`ActorMotion19PlayWork`) and keeps a scripted walker's walk state
-/// directly after it, so the room script plays the actor's clips and sends it
-/// to a placement with the same messages as any scripted walker. The model
-/// object borrows `model.light` and `model.color` for as long as the block
-/// lives.
-///
-/// What a walk request starts here is a leap rather than a walk: the actor
-/// turns to the placement's yaw, launches forward and up along its own axes,
-/// falls under gravity while `airborne` until it is back near the floor, and
-/// then turns to face the player. The placement's position is recorded in
-/// `walk.target` and never read, and nothing measures an arrival.
-///
-/// What follows `walk` is the package's own: the leap's gravity switch, the
-/// weight of the head turn toward the player, and the delayed free of the
-/// model's buffers once the model has been hidden.
+/// Work block of the overlay's actor, allocated zeroed by its spawn state and kept at `Task::work` for the task's
+/// life.
 typedef struct {
     ActorAnimRig19  rig;              // Playback storage of the nineteen-part body model; slots 1 to 18 are driven
     ActorModelState model;            // Clip and bank the rig plays, and the matrices the model is lit with
@@ -91,10 +74,6 @@ enum {
 };
 
 /// Scripted leap actor lifecycle handlers: 0 initialize, 1 update, 2 exit.
-///
-/// Copied by value and indexed by `Task::state` in 0..2, without a terminator
-/// or bounds check. Callbacks require a live task; update requires setup
-/// work, and teardown may release both the task and its owned `Enemy`.
 static const TaskFuncTable3 _gPatioLeapingStrangersLeapTaskStates = {
     .funcs = {
         [LEAP_TASK_INITIALIZE] = _patioLeapingStrangersInit,
@@ -104,8 +83,6 @@ static const TaskFuncTable3 _gPatioLeapingStrangersLeapTaskStates = {
 };
 
 /// Grinning Stranger leap phases: turn to launch yaw, launch, land, face the player.
-///
-/// walk.motionStep 0..3 indexes a complete stack copy, without a bounds check.
 static const TaskFuncTable4 _gPatioLeapingStrangersLeapStepHandlers = { {
     _patioLeapingStrangersTurnToLaunchYaw,
     _patioLeapingStrangersLaunchLeap,
@@ -116,9 +93,6 @@ static const TaskFuncTable4 _gPatioLeapingStrangersLeapStepHandlers = { {
 enum { VELOCITY_ONE = 0x10000 };
 
 /// Leap launch velocity in local model axes, in signed 16.16 units per tick.
-///
-/// Y is -128 (up) and Z is +64 (forward); the root rotation transforms it
-/// into parent-coordinate velocity before gravity starts. The fourth word is unused.
 static const VECTOR _gPatioLeapingStrangersLeapLaunchVelocity = { 0, -(128 * VELOCITY_ONE), 64 * VELOCITY_ONE, 0 };
 
 static TmdSource _gStrangerGrinningBody;
@@ -131,16 +105,9 @@ static void      _patioLeapingStrangersTask(Task* task);
 #include "assets/rooms/akropolis/patio/leaping_strangers_clips.inc"
 
 /// Grinning Stranger body animation sets for bank 0: clip 0 absent, clips 1..8 loaded.
-///
-/// `AnimationPlayRequest::animationId` selects a clip; `source.index` selects
-/// the outer bank. Playback borrows this table and its sets while the package
-/// is loaded, including the launch and landing clips of a leap.
 #include "assets/rooms/akropolis/patio/stranger_bank.inc"
 
 /// Carrier-local banks for nineteen-part playback: only bank 0, clips 1..8.
-///
-/// `AnimationPlayRequest::source.index` selects the bank; `animationId` selects
-/// an entry of its clip table. Playback borrows that table and loaded clip data.
 static AnimationSet** const _gActorMotionAnimBanks19[1] SECTION(".data") = {
     _gPatioLeapingStrangersBodyAnimSets,
 };
@@ -148,11 +115,6 @@ static AnimationSet** const _gActorMotionAnimBanks19[1] SECTION(".data") = {
 TaskDesc gPatioLeapingStrangersGrinningStrangerTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _patioLeapingStrangersTask, { .model = &_gStrangerGrinningBody } };
 
 /// Message map for the script-controlled Grinning Stranger and its leap sequence.
-///
-/// Playback borrows an `AnimationPlayRequest`, placement an `ActorTransform`,
-/// and commands an `ActorCommand`; drawing takes a scalar mode. The walk message
-/// borrows a launch placement and an optional `ActorMotionWalkAnim` clip pair.
-/// The task borrows this terminated map and its callbacks until teardown.
 static const TaskMessageEntry _gPatioLeapingStrangersMessages[6] __attribute__((section(".data"))) = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim19 },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
@@ -163,14 +125,6 @@ static const TaskMessageEntry _gPatioLeapingStrangersMessages[6] __attribute__((
 };
 
 /// Applies one frame of leap displacement and advances the airborne velocity.
-///
-/// Requires initialized writable work and a live root coordinate in separate
-/// storage. Velocity uses signed 16.16 units per frame in the root's parent
-/// coordinate frame; carry holds the previous frame's unsigned fractions.
-/// While airborne, positive Y gravity adds 18 whole units per frame to the
-/// next frame's velocity. Signed integer halves move the root, and carry words
-/// finish in 0..0xFFFF. Composition is invalidated even when stationary.
-/// Performs no collision or floor correction and retains no pointers.
 static inline void _patioLeapingStrangersIntegrateLeapVelocity(_Work* work, GfxCoord* rootCoord)
 {
     enum { LEAP_GRAVITY = 18 << 16 }; // Signed 16.16 units per tick squared
@@ -193,13 +147,6 @@ static inline void _patioLeapingStrangersIntegrateLeapVelocity(_Work* work, GfxC
 }
 
 /// Updates the leap, animation, head turn, lighting and delayed buffer release.
-///
-/// Requires a live nineteen-part TMD model and initialized `_Work`.
-/// `walk.motion` must be 0 (idle) or 1 (leaping). Displacement uses signed
-/// 16.16 root-frame units; gravity changes the next tick's vertical velocity.
-/// Slots 1..18 tick while playback is active. Lighting refresh requires a ready
-/// view, but motion and head turning run every tick. The update finding a zero
-/// release counter frees the primitive buffer, then disables the counter.
 static void _patioLeapingStrangersUpdate(Task* task)
 {
     enum { HEAD_WEIGHT_RISE = 0x40,
@@ -248,12 +195,6 @@ static void _patioLeapingStrangersUpdate(Task* task)
 }
 
 /// Ends the leap by turning the root toward the player's position.
-///
-/// Requires a live player TMD task in `GAME_TASK_SLOT_PLAYER`, with both roots
-/// in the same coordinate frame. Turns by 64 of 4096 angle units per tick.
-/// A yaw gap of at most one step returns motion to idle without snapping the
-/// matrix to the target yaw. The desired yaw is also stored in `param.rot`.
-/// The signed-halfword yaw difference is retained without half-turn wrapping.
 static void _patioLeapingStrangersFacePlayerAfterLeap(Task* task)
 {
     _Work*    work;
@@ -303,14 +244,6 @@ static void _patioLeapingStrangersFacePlayerAfterLeap(Task* task)
 }
 
 /// Turns the head toward a target model and shares some rotation with part 3.
-///
-/// Requires live subject coordinates 0..5 and target coordinates 0..4, with
-/// current composed matrices in the same frame. Uses the head at part 5 and
-/// target part 4, expressing their separation through part 2's transposed
-/// rotation. Angles use 4096 units per turn; additions narrow to halfwords.
-/// Part 3 receives one eighth of the resulting head Euler angles, and the head
-/// keeps five eighths. `maxYaw`, `maxPitch` and the 1/4096 `blendWeight` are
-/// accepted but ignored. Leaves composition stamps unchanged; retains no pointers.
 static void _patioLeapingStrangersTurnHeadToTarget(Task* task, Task* targetTask, s32 maxYaw, s32 maxPitch, s32 blendWeight)
 {
     enum {
@@ -372,19 +305,6 @@ static void _patioLeapingStrangersTurnHeadToTarget(Task* task, Task* targetTask,
 }
 
 /// Applies the leap's requested start clip without restarting repeated clips.
-///
-/// Requires a live nineteen-part TMD task and initialized `_Work`,
-/// with `model.bank` initially `ACTOR_MOTION_ANIMATION_INDEX_NONE`. The readable request
-/// must not overlap playback storage: `source.index` selects bank 0 and
-/// `animationId` selects a loaded clip 1..8; stored IDs narrow to signed bytes.
-/// A bank change binds the rig and invalidates the old clip. An unchanged clip
-/// in the same bank leaves playback alone, including its blend and cursor.
-/// Slots 1..18 blend when requested and already ticking, otherwise reset.
-/// Blending captures an advanced pose before a final tick of the new clip;
-/// `blendFrames` counts whole normal-rate frames (0..2047). Slot 0 and the
-/// collision choice are unused. The request may expire on return; work-owned
-/// slots/poses, model coordinates and bank/clip data stay live during playback.
-/// Scratch-stack and GTE requirements follow `animationTickSlotPose`.
 static inline void _patioLeapingStrangersApplyLeapStartAnimation(Task* task, const AnimationPlayRequest* request)
 {
     enum { FIRST_DRIVEN_SLOT = 1 };
@@ -421,15 +341,6 @@ static inline void _patioLeapingStrangersApplyLeapStartAnimation(Task* task, con
 }
 
 /// Handles a walk-to message by starting this actor's scripted leap.
-///
-/// Requires initialized work and a live nineteen-part model. Borrows a readable
-/// placement and optional clip pair through dispatch; records the position
-/// without using it as an arrival target. The placement yaw selects the launch
-/// heading. An absent clip pair selects clips 2 and 1; supplied IDs must index
-/// bank 0's loaded clips. The start clip blends for five frames when already
-/// ticking, otherwise its slots reset. Returns 0; ignores the message ID.
-/// Keeps the current step, velocity and fractional carry, so a fresh sequence
-/// requires the idle step left by initialization or completion.
 static s32 _patioLeapingStrangersBeginLeap(Task* task, s32 messageId, const ActorTransform* launchPlacement, const ActorMotionWalkAnim* animationRequest)
 {
     enum { DEFAULT_LANDING_ANIMATION = 1 };
@@ -462,10 +373,6 @@ static s32 _patioLeapingStrangersBeginLeap(Task* task, s32 messageId, const Acto
 }
 
 /// Runs this actor's initialization, update or exit state.
-///
-/// Requires a live TMD task with `state` 0, 1 or 2 respectively; the stack-copied
-/// dispatch table has no bounds check. The actor package and its descriptor's
-/// model data must remain loaded for the task's lifetime.
 static void _patioLeapingStrangersTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
@@ -475,11 +382,6 @@ static void _patioLeapingStrangersTask(Task* task)
 }
 
 /// Allocates the actor's playback and leap work and installs its callbacks.
-///
-/// The zeroed block belongs to the task and remains live until enemy teardown.
-/// Seeds unbound bank/clip IDs and a disabled buffer-release counter, lends the
-/// work's light and colour matrices to the TMD object, and starts hidden with
-/// automatic buffer handling. Allocation failure tears down the task.
 static void _patioLeapingStrangersInit(Task* task)
 {
     enum { BUFFER_FREE_NONE = -1 };
@@ -508,18 +410,12 @@ static void _patioLeapingStrangersInit(Task* task)
 }
 
 /// Tears down the actor through the enemy task lifecycle.
-///
-/// Used both as state 2 and as the exit callback; the task and its owned work
-/// must not be used after this call.
 static void _patioLeapingStrangersExit(Task* task)
 {
     enemyTaskExit(task);
 }
 
 /// Lends the work-owned light and colour matrices to the actor's TMD object.
-///
-/// Requires initialized live work and model storage. Both matrices must remain
-/// live while the model borrows them; no matrix contents are changed here.
 static void _patioLeapingStrangersBindLighting(Task* task)
 {
     TmdObject* bodyModel;
@@ -537,10 +433,6 @@ static void _patioLeapingStrangersIdle(Task* task)
 }
 
 /// Dispatches the current leap phase from a stack copy of the package's table.
-///
-/// Requires initialized work with `walk.motionStep` 0..3: turn to launch yaw,
-/// launch, land, face the player. Initialization and the final phase establish
-/// step 0; each intervening phase advances once. Dispatch has no bounds check.
 static void _patioLeapingStrangersRunLeapStep(Task* task)
 {
     TaskFuncTable4 handlers;
@@ -552,11 +444,6 @@ static void _patioLeapingStrangersRunLeapStep(Task* task)
 }
 
 /// Turns to the requested launch yaw and selects the leap animation.
-///
-/// Requires initialized work and root coordinate. Angles use 4096 units per
-/// turn; moves at most 64 per tick, then snaps within that gap, selects clip 2
-/// with a five-frame blend, disables gravity and advances to launch.
-/// The signed-halfword yaw subtraction has no half-turn wrap correction.
 static void _patioLeapingStrangersTurnToLaunchYaw(Task* task)
 {
     _Work*               work;
@@ -596,10 +483,6 @@ static void _patioLeapingStrangersTurnToLaunchYaw(Task* task)
 }
 
 /// Launches the actor by rotating its signed 16.16 local velocity into the root frame.
-///
-/// Requires an initialized root rotation and leap work. The package vector
-/// provides -128 Y and +64 Z coordinate units per tick before rotation.
-/// Enables gravity and advances to the landing check; retains fractional carry.
 static void _patioLeapingStrangersLaunchLeap(Task* task)
 {
     _Work*    work;
@@ -616,11 +499,6 @@ static void _patioLeapingStrangersLaunchLeap(Task* task)
 }
 
 /// Stops the leap near floor height, plays the queued clip and sounds the landing.
-///
-/// Requires initialized work and root coordinate. Waits while root Y is below
-/// -48 coordinate units, then blends to `model.nextAnimId` for five frames,
-/// plays the positional actor sound, clears velocity and gravity, and advances
-/// to face the player. It neither snaps root Y to the floor nor clears carry.
 static void _patioLeapingStrangersLandLeap(Task* task)
 {
     enum {
@@ -658,13 +536,6 @@ static void _patioLeapingStrangersLandLeap(Task* task)
 #include "../../../../shared/actor/actor_messages_place_euler.inc.c"
 
 /// Handles the actor's draw mode and primitive-buffer ownership choice.
-///
-/// Requires initialized work and a live TMD object. Modes: 0 hides with automatic
-/// buffers; 1 shows and allocates a buffer with automatic handling; 2 hides,
-/// schedules release on the third following update and disables automatic handling;
-/// 3 shows with manual buffers. Mode 3 requires a usable buffer already present.
-/// Other values return 1 unchanged; supported modes return 0. Message ID and
-/// fourth argument are ignored. Changing modes does not cancel a pending release.
 static s32 _patioLeapingStrangersSetDrawMode(Task* task, s32 messageId, s32 mode, s32 unusedArg)
 {
     TmdObject* bodyModel;
@@ -701,12 +572,6 @@ static s32 _patioLeapingStrangersSetDrawMode(Task* task, s32 messageId, s32 mode
 }
 
 /// Selects the head-turn weight ramp or prints the actor's root transform.
-///
-/// Borrows a readable command through dispatch and ignores its context tags.
-/// Commands 0 and 1 lower or raise the 1/4096 weight; all other values print root
-/// position in coordinate units and Euler rotation in 4096 units per turn.
-/// The head-turn routine currently ignores that weight. Requires initialized
-/// work and a live root; ignores message ID and fourth argument. Returns 0.
 static s32 _patioLeapingStrangersApplyCommand(Task* task, s32 messageId, const ActorCommand* commandRequest, s32 unusedArg)
 {
     enum { LOWER_HEAD_WEIGHT = 0,

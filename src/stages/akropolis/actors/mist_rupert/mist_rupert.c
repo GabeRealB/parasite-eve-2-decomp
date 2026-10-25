@@ -16,9 +16,7 @@
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
-#include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
-#include "gameplay/world_targets.h"
 
 #include "main/coord.h"
 #include "main/gfx.h"
@@ -37,10 +35,6 @@ enum {
 };
 
 /// `_Work::blinkStep`: the eye image the blink posts next.
-///
-/// A blink posts the closed, half-open and open eyes in turn, so the eyes are
-/// seen opening. The request that starts one posts the half-open eyes itself,
-/// which is the closing half of the blink.
 enum {
     BLINK_NONE   = 0, // No blink in progress
     BLINK_CLOSED = 1, // The closed eyes are posted next
@@ -48,20 +42,7 @@ enum {
     BLINK_OPEN   = 3, // The open eyes are posted next, which ends the blink
 };
 
-/// Work block of the package's one actor, the hurt Rupert Broderick body a
-/// room script places and plays clips on.
-///
-/// The task's spawn state allocates it zeroed at its full size and keeps it at
-/// `Task::work` for the task's life. It opens with the rig of the twenty-part
-/// body model and what that rig is playing, kept as words: a play request
-/// rebinds the rig when its bank differs from `bank`, seeds the slots with its
-/// clip and records it in `animId`. The spawn sets both ids to
-/// `ACTOR_MOTION_ANIMATION_INDEX_NONE`, so the first request always binds its bank. The
-/// model object borrows `light` and `color` for as long as the block lives.
-///
-/// What follows the matrices is the blink that swaps the eye band of the
-/// face texture, and the delayed free of the model's buffers once the model
-/// has been hidden.
+/// Work block of the package's one actor, the hurt Rupert Broderick body a room script places and plays clips on.
 typedef struct {
     ActorAnimRig20 rig;             // Playback storage of the twenty-part body model; slots 1 to 19 are driven
     s32            ticking;         // Set once a clip has been applied, never cleared: the slots are ticked each frame from then on
@@ -82,9 +63,6 @@ static void _mistRupertUpdate(Task* task);
 static void _mistRupertInitLighting(Task* task);
 
 /// Task-state callbacks for the hurt Rupert Broderick actor.
-///
-/// `Task::state` selects 0 spawn, 1 frame update or 2 enemy teardown.
-/// All three entries take the live task; there is no terminator or bounds check.
 static const TaskFuncTable3 _gMistRupertRupertBroderickHurtStates = { {
     _mistRupertSpawn,
     _mistRupertUpdate,
@@ -110,69 +88,42 @@ static void         _mistRupertTask(Task* task);
 #include "assets/rooms/mist/r18/rupert_clips.inc"
 
 /// Packed open-eye texture pixels for the actor's face band.
-///
-/// 32 VRAM halfwords per row by 16 rows (256 packed 32-bit words).
-/// The upload list borrows this word-aligned storage until GPU transfer completion.
 static u_long _gMistRupertOpenEyesPixels[256] = {
 #include "assets/characters/rupert/hurt_eyes_open.inc"
 };
 
 /// Writable COPY/END list for the open-eye texture band.
-///
-/// One copy covers 32 VRAM halfwords by 16 rows. Actor uploads rewrite
-/// its destination relative to the model texture; pixel storage is borrowed
-/// until the queued GPU transfer completes. The list lives with the package.
 static GpuImageUpload _gMistRupertOpenEyesUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, EYES_WIDTH_WORDS, EYES_HEIGHT_ROWS }, _gMistRupertOpenEyesPixels },
     { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 /// Packed half-open-eye pixels for the actor's face texture band.
-///
-/// 32 VRAM halfwords by 16 rows fill all 256 packed words.
-/// This word-aligned package storage stays live through GPU transfer.
 static u_long _gMistRupertHalfOpenEyesPixels[256] = {
 #include "assets/characters/rupert/hurt_eyes_half_open.inc"
 };
 
 /// Writable COPY/END list for the half-open-eye texture band.
-///
-/// One copy covers 32 VRAM halfwords by 16 rows. Actor uploads rewrite
-/// its destination relative to the model texture; pixel storage is borrowed
-/// until the queued GPU transfer completes. The list lives with the package.
 static GpuImageUpload _gMistRupertHalfOpenEyesUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, EYES_WIDTH_WORDS, EYES_HEIGHT_ROWS }, _gMistRupertHalfOpenEyesPixels },
     { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 /// Packed closed-eye pixels for the actor's face texture band.
-///
-/// 32 VRAM halfwords by 16 rows fill all 256 packed words.
-/// This word-aligned package storage stays live through GPU transfer.
 static u_long _gMistRupertClosedEyesPixels[256] = {
 #include "assets/characters/rupert/hurt_eyes_closed.inc"
 };
 
 /// Writable COPY/END list for the closed-eye texture band.
-///
-/// One copy covers 32 VRAM halfwords by 16 rows. Actor uploads rewrite
-/// its destination relative to the model texture; pixel storage is borrowed
-/// until the queued GPU transfer completes. The list lives with the package.
 static GpuImageUpload _gMistRupertClosedEyesUploads[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, EYES_WIDTH_WORDS, EYES_HEIGHT_ROWS }, _gMistRupertClosedEyesPixels },
     { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
 /// Loaded animation sets for bank 0: clip IDs 1..8, with NULL at 0.
-///
-/// Playback borrows this table and the package's clip descriptors; requests
-/// must select a loaded clip and keep the package live until teardown.
 #include "assets/rooms/mist/r18/rupert_bank.inc"
 
 /// Indexed animation banks; `AnimationPlayRequest.source.index` must be 0.
-///
-/// A bank change binds its borrowed clip table into the live animation rig.
-/// The table and clips remain loaded for the duration of playback.
 static AnimationSet** _gMistRupertAnimationBanks[1] = {
     _gMistRupertAnimationSets,
 };
@@ -187,9 +138,6 @@ TaskDesc gMistRupertRupertBroderickHurtTaskDesc = {
 enum { MESSAGE_SET_EYES = 2016 };
 
 /// Hurt Rupert message dispatch: animation, Euler placement, drawing and eye images.
-///
-/// The spawned actor borrows this terminated table and its callbacks until teardown.
-/// Eye mode 0/2 opens the eyes, 1 closes them, and 3 starts a blink.
 static TaskMessageEntry _gMistRupertMessages[5] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _mistRupertPlayAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
@@ -199,19 +147,6 @@ static TaskMessageEntry _gMistRupertMessages[5] = {
 };
 
 /// Queues a closed or half-open eye image, restarts its dwell and advances the blink.
-///
-/// Requires a live TMD `actorTask` and its writable `work`, with `blinkStep`
-/// equal to `BLINK_CLOSED` or `BLINK_HALF`. Resets
-/// `blinkCountdown` to `blinkFrameDelay` and selects the following step. A
-/// nonnegative delay makes that step due after that many blink ticks plus one;
-/// the caller performs the countdown, and this helper does not test it.
-///
-/// `uploadList` must be non-NULL, writable and terminated, with the eye image
-/// in its first copy entry. That destination is replaced using `eyeRect` and
-/// the model's texture page. Rectangle units and transfer bounds follow
-/// `actorRenderUploadTexture`. The rectangle and records
-/// are borrowed only for this call; pixel storage must remain valid and unchanged
-/// until GPU transfer completes. Upload results are ignored; this does not wait.
 static inline void _mistRupertAdvanceBlinkImage(Task* actorTask, _Work* work,
                                                 GpuImageUpload* uploadList, const RECT* eyeRect)
 {
@@ -221,12 +156,6 @@ static inline void _mistRupertAdvanceBlinkImage(Task* actorTask, _Work* work,
 }
 
 /// Advances the actor's timed closed, half-open and open eye sequence by one tick.
-///
-/// Requires the live TMD task and its initialized work block. Each active step
-/// decrements the signed-halfword countdown and posts its image when that value
-/// becomes negative. Closed and half-open last `blinkFrameDelay + 1` ticks;
-/// open ends the sequence without resetting the countdown. Inactive or unknown
-/// steps do nothing. Eye pixel storage remains borrowed through the GPU transfer.
 static void _mistRupertTickBlink(Task* task)
 {
     _Work* work;
@@ -262,10 +191,6 @@ static void _mistRupertTickBlink(Task* task)
 }
 
 /// Dispatches the hurt Rupert actor's initialization, update or teardown state.
-///
-/// `task` must be live with state 0 (initialize), 1 (update) or 2 (exit), and
-/// the descriptor-created twenty-part TMD body. The state is not bounds-checked.
-/// `spawnArg2.pointer` must hold the task-owned live `Enemy` released on exit.
 static void _mistRupertTask(Task* task)
 {
     TaskFuncTable3 states;
@@ -275,12 +200,6 @@ static void _mistRupertTask(Task* task)
 }
 
 /// Initializes the hurt Rupert actor as a hidden, script-controlled model.
-///
-/// Requires the descriptor-created TMD body and its task-owned live `Enemy` in
-/// `spawnArg2.pointer`. Owns a zeroed work block until
-/// task teardown; the model borrows its lighting matrices for that lifetime.
-/// Starts with no animation or pending buffer release, installs the message
-/// handlers and advances to the update state. Allocation failure exits the task.
 static void _mistRupertSpawn(Task* task)
 {
     enum {
@@ -318,11 +237,6 @@ static void _mistRupertSpawn(Task* task)
 }
 
 /// Updates the hurt Rupert actor's animation, shadow, lighting, eyes and pending buffer release.
-///
-/// Requires the live twenty-part TMD body and initialized work; animation slots
-/// 1..19 must be seeded once playback starts. Lighting refreshes while the view
-/// is ready, independently of visibility. A release countdown of 2 frees the
-/// primitive buffer on the third update, then becomes inactive at -1.
 static void _mistRupertUpdate(Task* task)
 {
     enum { SHADOW_HALF_SIZE = 768 };
@@ -362,10 +276,6 @@ static void _mistRupertUpdate(Task* task)
 }
 
 /// Binds the actor's lighting matrices and samples room lighting at model part 1.
-///
-/// Requires the initialized work and twenty-part model. The model borrows both
-/// matrices until teardown. Refreshes part 1's composed transform before passing
-/// its three translation words to the lighting query; no shadow is drawn here.
 static void _mistRupertInitLighting(Task* task)
 {
     _Work*     work;
@@ -383,15 +293,6 @@ static void _mistRupertInitLighting(Task* task)
 }
 
 /// Starts a requested clip on the hurt Rupert actor's nineteen animated parts.
-///
-/// Requires initialized work and a request readable through this call, with
-/// `source.index` 0 and `animationId` 1..8 for this package's loaded bank.
-/// Zero blend resets slots; any nonzero blend uses six normal-rate frames,
-/// ignoring `blendFrames` and collision settings. Blending requires previously
-/// seeded slots. Every request advances each slot once immediately, enables
-/// subsequent ticking and leaves root slot zero alone. The request is not
-/// retained; bank data remains borrowed during playback. The message ID and
-/// second payload are ignored. Returns 0; indices are not bounds-checked.
 static s32 _mistRupertPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg)
 {
     enum { ANIMATION_BLEND_FRAMES = 6 };
@@ -428,13 +329,6 @@ static s32 _mistRupertPlayAnimation(Task* task, s32 messageId, const AnimationPl
 #include "../../../../shared/actor/actor_messages_place_euler.inc.c"
 
 /// Changes the hurt Rupert actor's drawing and primitive-buffer policy.
-///
-/// Requires its live TMD body and initialized work. Mode 0 hides and enables
-/// automatic buffer recovery; 1 shows, attempts missing-buffer allocation and
-/// enables recovery; 2 hides, disables recovery and schedules release on the
-/// third update; 3 shows with recovery disabled. Other flags are preserved.
-/// Showing does not cancel a pending release. The message ID and second payload
-/// are ignored. Returns 0 for modes 0..3, even if allocation fails; otherwise 1.
 static s32 _mistRupertSetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg)
 {
     enum { DRAW_SHOW_SKIP_AUTO_BUFFER = 3 };
@@ -473,14 +367,6 @@ static s32 _mistRupertSetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 
 }
 
 /// Sets the hurt Rupert actor's eye image or starts a timed blink for message 0x7E0.
-///
-/// Requires its live TMD body and initialized work. Modes 0 and 2 post open
-/// eyes, 1 closed eyes, and 3 half-open eyes followed by closed, half-open and
-/// open on subsequent updates. Closed and the following half-open each last two ticks.
-/// Starting a blink retains the current countdown; setting a static image does
-/// not cancel a blink. Pixel data stays borrowed until the GPU transfer finishes.
-/// The message ID and second payload are ignored. Returns the upload result (0
-/// for these present lists); unknown modes change nothing and also return 0.
 static s32 _mistRupertSetEyes(Task* task, s32 messageId, s32 eyeMode, s32 unusedArg)
 {
     enum {

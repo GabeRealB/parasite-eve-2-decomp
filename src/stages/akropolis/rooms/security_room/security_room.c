@@ -827,8 +827,6 @@ static void _akropolisSecurityRoomMonitorHandlePrompt(Task* task)
         STATE_SCAN_HOTSPOTS = 2,
         VIEW_SWAT           = 11,
         SWAT_CAP_SLOT       = 13,
-        SWAT_SEEN           = 1 << 0,
-        ENEMY_SEEN          = 1 << 1,
     };
     _MonitorWork* work;
     McSaveData*   save;
@@ -846,7 +844,7 @@ static void _akropolisSecurityRoomMonitorHandlePrompt(Task* task)
                 save->state.location.view = work->hotspotId;
                 sndEvtRequestScriptStart(SOUND_AKROPOLIS_SECURITY_ROOM_MONITOR_SELECT, 0, 0);
                 // Arm the enemy caption when this confirm is what first shows that view.
-                if ((work->hotspotId == MONITOR_VIEW_ENEMY) && !(gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_MONITOR_SCENES_SEEN) & ENEMY_SEEN)) {
+                if ((work->hotspotId == MONITOR_VIEW_ENEMY) && !(gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_MONITOR_SCENES_SEEN) & AKROPOLIS_MONITOR_RUPERT_SCENE_SEEN)) {
                     work->enemySceneArmed = 1;
                 }
             }
@@ -865,9 +863,9 @@ static void _akropolisSecurityRoomMonitorHandlePrompt(Task* task)
         }
         // One-shot captions become eligible only above the darkest wash detent.
         if (((u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view == VIEW_SWAT) &&
-            ((s16)work->screenLevel != MONITOR_SCREEN_DARKEST) && !(gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_MONITOR_SCENES_SEEN) & SWAT_SEEN)) {
+            ((s16)work->screenLevel != MONITOR_SCREEN_DARKEST) && !(gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_MONITOR_SCENES_SEEN) & AKROPOLIS_MONITOR_SWAT_SCENE_SEEN)) {
             capStartSequenceSlot(SWAT_CAP_SLOT, CAP_PLAYBACK_IN_PLACE, 0);
-            gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_MONITOR_SCENES_SEEN, gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_MONITOR_SCENES_SEEN) | SWAT_SEEN);
+            gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_MONITOR_SCENES_SEEN, gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_MONITOR_SCENES_SEEN) | AKROPOLIS_MONITOR_SWAT_SCENE_SEEN);
         }
         if (((u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view == MONITOR_VIEW_ENEMY) &&
             ((s16)work->screenLevel != MONITOR_SCREEN_DARKEST) && (work->enemySceneArmed != 0) &&

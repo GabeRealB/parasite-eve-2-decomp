@@ -9,7 +9,6 @@
 
 #include "actors/actor.h"
 
-#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
@@ -23,12 +22,9 @@
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/hud_sprites.h"
-#include "gameplay/loading.h"
 #include "gameplay/message.h"
-#include "gameplay/model_objects.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/enemy_params.h"
-#include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
@@ -41,7 +37,6 @@
 #include "main/gameflag.h"
 #include "main/random.h"
 #include "main/gfx.h"
-#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
@@ -61,9 +56,6 @@ static void _no9GolemAimHead(const Task* actor);
 static void _no9GolemDrawShadow(const Task* task);
 
 /// Body animation slots selected by the handlers below.
-///
-/// Event requests use their request index plus 0x1B. Slots 0x1C and 0x1D
-/// leave the prop's previous visibility intact; 0x1E reveals it and 0x1F tosses it.
 enum {
     ANIM_PATROL_IDLE            = 1,
     ANIM_WALK_START             = 2,
@@ -204,7 +196,6 @@ enum {
 
 /// The three attached models have initialization and update states only.
 enum {
-    ATTACHMENT_INIT        = 0,
     ATTACHMENT_UPDATE      = 1,
     ATTACHMENT_STATE_COUNT = 2,
     WEAPON_PART            = 8,
@@ -265,34 +256,21 @@ enum {
 };
 
 /// Mapped camera-view IDs that enable each helipad light's active update.
-///
-/// Rows belong to light indices 0..2. A match with any entry enables the light;
-/// repeated IDs are allowed. The blast source shares the first entry of light 2.
-/// The table remains live for the actor overlay lifetime. The final two stored
-/// bytes have no observed access and their role is unproven.
 typedef struct {
     u16  lightViews[HELIPAD_LIGHT_COUNT][HELIPAD_VIEWS_PER_LIGHT]; // Mapped camera-view IDs per light; compared with the current view's low byte
     byte field_12[2];                                              // Unaccessed zero bytes; original type and role unproven
 } _HelipadViews;
 STATIC_ASSERT_SIZEOF(_HelipadViews, 0x14);
 
-/// Scratch block of the step that carries the golem's three wall faces in the
-/// room's collision grid to where the golem stands.
-///
-/// The faces are stored as twelve corners around an origin of their own, which
-/// lies at a fixed offset from the golem in the golem's axes. The step turns
-/// that offset by the golem's facing to place the origin in the world, then
-/// turns each corner the same way and adds the origin to it. Reserve one
-/// complete block and release it when the step is done. The fourth halfword of
-/// either vector is never written.
+/// Scratch block of the step that carries the golem's three wall faces in the room's collision grid to where the golem
+/// stands.
 typedef struct {
     SVECTOR origin;  // The faces' origin: first its offset from the golem in the golem's axes, then its world position, held within 0x1770 of the world origin in X and Z
     SVECTOR rotated; // Latest vector turned by the golem's facing: the origin's offset, then each corner in turn
 } _GridFacesScratch;
 STATIC_ASSERT_SIZEOF(_GridFacesScratch, 0x10);
 
-/// Values of `_HelipadLightWork::state`. Light 2 also copies its
-/// state to `HelicopterLandingPadNo9Work::light2State` every frame.
+/// Values of `_HelipadLightWork::state`.
 enum {
     HELIPAD_LIGHT_INTACT   = 0, // Whole: a shot or the golem's slash breaks it
     HELIPAD_LIGHT_SPARKING = 1, // Broken and throwing sparks; its blast can strike once
@@ -301,23 +279,12 @@ enum {
 
 /// Values of `_HelipadLightWork::status`.
 enum {
-    HELIPAD_LIGHT_STATUS_INTACT   = 0, // Not broken yet
     HELIPAD_LIGHT_STATUS_SPARKING = 1, // Broken, sparks still running
     HELIPAD_LIGHT_STATUS_SPENT    = 2, // Broken, sparks over
     HELIPAD_LIGHT_STATUS_STOPPED  = 3, // Never broken: the golem was gone first
 };
 
-/// Work block of one of the three helipad lights, kept at `Task::work` of the
-/// light model's task.
-///
-/// A light stands intact until the player shoots it or the golem's slash
-/// reaches it. It then breaks: the model changes to its second animation, a
-/// spark effect starts, and for as long as the sparks last a blast sphere
-/// around the light can strike the golem, which drives it back in a shower of
-/// sparks. The blast is switched off at its first contact. A light runs only
-/// while the camera is in one of its three views.
-///
-/// The block is cleared at allocation.
+/// Work block of one of the three helipad lights, kept at `Task::work` of the light model's task.
 typedef struct {
     AnimationContext      anim;                                   // Context bound to `slots`, `poses` and the model's part coordinates
     AnimationSlot         slots[11];                              // Playback state of the model part at the same index; slots 1..10 are driven
@@ -357,18 +324,7 @@ enum {
     GRENADE_HOLD_RECOVER = 2, // 0x14 frames, then waits for the animation to end and releases the player
 };
 
-/// Work block of the golem's stun grenade, kept at `Task::work` of the
-/// grenade model's task.
-///
-/// The grenade leaves the golem's chest pitching forward a fixed step every
-/// frame while it moves along its own axis, so the step sets how far the arc
-/// carries; it is chosen from the distance to the player at the throw. It
-/// bursts when it comes back down through height 0x514, touches the player or
-/// meets the room's collision grid. The burst then spreads into a wider sphere
-/// that holds a player it catches until they have pressed enough buttons, the
-/// hold times out or the golem is gone.
-///
-/// The block is cleared at allocation.
+/// Work block of the golem's stun grenade, kept at `Task::work` of the grenade model's task.
 typedef struct {
     MATRIX                colorMtx;             // Colour matrix lent to the grenade's model
     MATRIX                lightMtx;             // Light matrix lent to the same model
@@ -394,18 +350,8 @@ enum {
     BLAST_SOURCE_STOPPED = 5, // The golem is gone and the flare released
 };
 
-/// Work block of the blast source beside helipad light 2, kept at
-/// `Task::work` of a task that has a coordinate and no model.
-///
-/// The source lies dormant until light 2 breaks. A shot then sets it off: a
-/// flare starts, and for as long as it burns a blast sphere can strike the
-/// golem once - stunning it in a shower of sparks while light 2 is still
-/// sparking, driving it back along the lap once the light is spent. The
-/// source runs in one view only and gives off embers there the whole time.
-/// What the source is in the scene is unproven.
-///
-/// The block is cleared at allocation. No access to `pad_7A` has been
-/// observed; whether it is a member or tail padding is unproven.
+/// Work block of the blast source beside helipad light 2, kept at `Task::work` of a task that has a coordinate and no
+/// model.
 typedef struct {
     WorldCollisionBody    body;             // Sphere of radius 0x12C at the source on list 2, receiving attacks; enabled only while armed and in view
     WorldCollisionContact bodyContacts[1];  // Contact of `body`, read and cleared every frame the source is armed
@@ -419,29 +365,22 @@ typedef struct {
 } _BlastSourceWork;
 STATIC_ASSERT_SIZEOF(_BlastSourceWork, 0x7C);
 
-/// One corner of the square lap the golem walks, in world X and Z. A side of
-/// the lap starts at its corner.
+/// One corner of the square lap the golem walks, in world X and Z.
 typedef struct {
     s16 x; // World X of the corner
     s16 z; // World Z of the corner
 } _LapCorner;
 STATIC_ASSERT_SIZEOF(_LapCorner, 0x4);
 
-/// The direction one side of the lap runs in, from its corner to the next:
-/// the world X and Z the golem covers per unit of distance along the side.
-/// Every side is parallel to an axis, so one member is 1 or -1 and the other 0.
+/// The direction one side of the lap runs in, from its corner to the next; every side is parallel to an axis.
 typedef struct {
     s8 x; // World X covered per unit of distance along the side
     s8 z; // World Z covered per unit of distance along the side
 } _LapDirection;
 STATIC_ASSERT_SIZEOF(_LapDirection, 0x2);
 
-/// The strip of the landing pad that runs along one side of the lap, as a
-/// world-space rectangle; all four edges are exclusive.
-///
-/// The golem finds the side the player is on by testing the player's position
-/// against the four strips in order. The strips overlap at the pad's corners,
-/// where the first one that holds the player counts.
+/// The strip of the landing pad that runs along one side of the lap, as a world-space rectangle; all four edges are
+/// exclusive.
 typedef struct {
     s16 minX; // Edge of the strip towards negative X
     s16 maxX; // Edge towards positive X
@@ -450,8 +389,8 @@ typedef struct {
 } _LapStrip;
 STATIC_ASSERT_SIZEOF(_LapStrip, 0x8);
 
-/// The three face normals `helicopterLandingPadNo9RestoreGridFaces` copies into
-/// `gWorldCollisionActiveGrid->normals`, restoring the collision grid this actor edited.
+/// The three face normals `helicopterLandingPadNo9RestoreGridFaces` copies into `gWorldCollisionActiveGrid->normals`,
+/// restoring the collision grid this actor edited.
 static SVECTOR _gHelicopterLandingPadNo9Collision35DA4[3];
 
 /// The twelve face corners `helicopterLandingPadNo9RestoreGridFaces` copies into
@@ -491,8 +430,6 @@ static void _helicopterLandingPadNo9BlastSourceTask(Task* task);
 EnemyParams gHelicopterLandingPadNo9EnemyParams = { gHelicopterLandingPadNo9Attacks, 1600, 500, 800, 30, 50, 3, 0, 0 };
 
 /// Walk distances in world units, sampled with bits 16..19 of a fresh LCG draw.
-///
-/// Normal and shotgun-response walks subtract 29 world units per frame.
 static s16 _gHelicopterLandingPadNo9PatrolWalkDistances[16] = {
     2000,
     2100,
@@ -533,8 +470,6 @@ static s16 _gHelicopterLandingPadNo9PatrolWaitFrames[16] = {
 };
 
 /// Patrol waiting times in frames after a missed or completed attack.
-///
-/// Slash, lunge, grenade, dash and lethal-strike exits sample LCG bits 16..19.
 static u16 _gHelicopterLandingPadNo9PostAttackWaitFrames[16] = {
     5,
     5,
@@ -555,8 +490,6 @@ static u16 _gHelicopterLandingPadNo9PostAttackWaitFrames[16] = {
 };
 
 /// Patrol waiting times in frames after a damage reaction, sampled by LCG bits 16..19.
-///
-/// Also used when simultaneous player death cancels the golem's death state.
 static u16 _gHelicopterLandingPadNo9ReactionWaitFrames[16] = {
     15,
     15,
@@ -577,10 +510,6 @@ static u16 _gHelicopterLandingPadNo9ReactionWaitFrames[16] = {
 };
 
 /// Slash continuation thresholds indexed by the completed-stroke counter 0..3.
-///
-/// A fresh four-bit random sample strictly greater than the entry ends the
-/// sequence. The second-stroke exit also stops at the final entry regardless
-/// of the sample; entry 3 is not followed by another first stroke.
 static s16 _gHelicopterLandingPadNo9SlashContinuationThresholds[4] = {
     14,
     12,
@@ -611,15 +540,9 @@ TaskMessageEntry gHelicopterLandingPadNo9BodyMessages[7] = {
 #include "assets/enemies/golem/no_9/helipad/body_bank.inc"
 
 /// Player clips borrowed during the stun grenade's hold: 0 unused, 1 stunned, 2 recovery.
-///
-/// The player retains this bank for playback; keep this overlay loaded until
-/// the hold returns the player to ordinary control.
 #include "assets/enemies/golem/no_9/helipad/player_grenade_bank.inc"
 
 /// Whole-frame transition durations indexed by the body's animation ID 0..33.
-///
-/// Uses the same slot order as `gHelicopterLandingPadNo9BodyAnimationSets`; zero starts
-/// without a transition pose.
 static s16 _gHelicopterLandingPadNo9BodyAnimationBlendFrames[34] = {
     0,
     8,
@@ -658,10 +581,6 @@ static s16 _gHelicopterLandingPadNo9BodyAnimationBlendFrames[34] = {
 };
 
 /// Reusable splatter-spray argument for the lethal strike's repeated player hit effect.
-///
-/// The player root coordinate is refreshed before each spawn and borrowed by
-/// the effects. Low half 300 sets initial speed to floor(300 * 3 / 16);
-/// high half 1 gives four emission frames. The record itself is not retained.
 static EffectSpawnArg _gHelicopterLandingPadNo9LethalHitEffectArg = { NULL, 300, 1 };
 
 /// World X/Z origins of lap sides 0..3, in walking order.
@@ -681,10 +600,6 @@ static _LapDirection _gHelicopterLandingPadNo9LapDirections[4] = {
 };
 
 /// Facing angles of lap sides 0..3, in units of 4096 per turn.
-///
-/// A moving golem targets the next entry within 1000 world units of a corner.
-/// On side 3 the terminal distance clamp leaves at least 6100 units, so that
-/// lookahead never indexes past the four headings.
 static u16 _gHelicopterLandingPadNo9LapYaws[4] = {
     ACTOR_TRANSFORM_ANGLE_TURN / 4,
     0,
@@ -693,9 +608,6 @@ static u16 _gHelicopterLandingPadNo9LapYaws[4] = {
 };
 
 /// Exclusive world X/Z rectangles assigning the player to lap sides 0..3.
-///
-/// The first containing strip wins where rectangles overlap. Outside them
-/// all, the player's preceding side is retained.
 static _LapStrip _gHelicopterLandingPadNo9LapStrips[4] = {
     { -7200, 7200, -7200, -6000 },
     { 6000, 7200, -6000, 7200 },
@@ -726,18 +638,11 @@ static SVECTOR _gHelicopterLandingPadNo9ExtraGridVertices[4] = {
 };
 
 /// Extra landing-pad face linking vertices 12..15 to normal 3.
-///
-/// Enabling copies this record; disabling collapses its vertices and normal
-/// without changing these indices.
 static WorldCollisionGridFace _gHelicopterLandingPadNo9ExtraGridFaces[1] = {
 #include "assets/helicopter_landing_pad_no_9_collision_35E68.inc"
 };
 
 /// Grenade pitch-step magnitudes per flight frame, in angle units of 4096 per turn.
-///
-/// Index by horizontal launch-to-player distance divided by 1000 world units;
-/// distances of 11000 or more use the final entry of this twelve-entry bank.
-/// Flight rotates the launch basis by the negative of the selected step.
 static u16 _gHelicopterLandingPadNo9GrenadePitchStepsByRange[12] = {
     25,
     20,
@@ -754,8 +659,6 @@ static u16 _gHelicopterLandingPadNo9GrenadePitchStepsByRange[12] = {
 };
 
 /// Helipad-light animation bank: 0 unused, 1 intact, 2 breaking.
-///
-/// Light-owned animation contexts borrow the bank for the light task's lifetime.
 #include "assets/enemies/golem/no_9/helipad/light_bank.inc"
 
 /// Root positions of helipad lights 0..2, in room-coordinate units beneath `gGfxViewCoord`.
@@ -766,8 +669,6 @@ static SVECTOR _gHelicopterLandingPadNo9HelipadLightPositions[3] = {
 };
 
 /// Root Y rotations of helipad lights 0..2, in angle units of 4096 per turn.
-///
-/// The fourth stored entry is unread; its role is unproven.
 static u16 _gHelicopterLandingPadNo9HelipadLightYaws[4] = {
     ACTOR_TRANSFORM_ANGLE_HALF_TURN,
     ACTOR_TRANSFORM_ANGLE_TURN / 4,
@@ -792,10 +693,6 @@ enum {
 };
 
 /// Game-flag nibble values combining blast-source phase with light-2 status.
-///
-/// Rows 0..5 are `HELICOPTER_LANDING_PAD_NO_9_BLAST_SOURCE_*`; columns are intact, sparking,
-/// spent and stopped. Row 6 is stored but has no observed state selecting it.
-/// The consumer of the published flag and the unused row's role are unproven.
 static u16 _gHelicopterLandingPadNo9HelipadStatusFlagValues[7][4] = {
     { HELIPAD_FLAG_LIGHT_INTACT, HELIPAD_FLAG_LIGHT_SPARKING, HELIPAD_FLAG_LIGHT_SPENT, HELIPAD_FLAG_LIGHT_STOPPED },
     { HELIPAD_FLAG_LIGHT_INTACT, HELIPAD_FLAG_LIGHT_SPARKING, HELIPAD_FLAG_LIGHT_SPENT, HELIPAD_FLAG_LIGHT_STOPPED },
@@ -850,9 +747,6 @@ static void _helicopterLandingPadNo9InitBlastSource(Enemy* enemy, Task* task);
 static void _helicopterLandingPadNo9TickBlastSource(Enemy* enemy, Task* task);
 
 /// Enables the weapon and forearm attack spheres with the same damage-table key.
-///
-/// `work` must be the live body work; `attackIndex` is 0..5 in this
-/// golem's attack table. Neither sphere's contacts are cleared here.
 static inline void _helicopterLandingPadNo9ArmAttack(HelicopterLandingPadNo9Work* work, s32 attackIndex)
 {
     s32 attackKey;
@@ -865,9 +759,6 @@ static inline void _helicopterLandingPadNo9ArmAttack(HelicopterLandingPadNo9Work
 }
 
 /// Attaches the prop at the off-hand origin with identity local rotation.
-///
-/// Both coordinates must be live; the hand remains the prop's borrowed parent
-/// until it is tossed or reattached. Composition is invalidated by the caller.
 static inline void _helicopterLandingPadNo9AttachProp(GfxCoord* propCoord, GfxCoord* handCoord)
 {
     gfxSetRotIdentity(&propCoord->coord);
@@ -878,10 +769,6 @@ static inline void _helicopterLandingPadNo9AttachProp(GfxCoord* propCoord, GfxCo
 }
 
 /// Spawns a flash burst along the body's negative Y axis at a masked random offset.
-///
-/// Advances the shared random sequence once. `offset` is a live scratch
-/// vector; this effect copies its position at spawn and does not follow the
-/// retained offset pointer on later frames. The fourth halfword is unused.
 static inline void _helicopterLandingPadNo9SpawnReactionSpark(GfxCoord* bodyCoord, SVECTOR* offset)
 {
     enum {
@@ -897,11 +784,6 @@ static inline void _helicopterLandingPadNo9SpawnReactionSpark(GfxCoord* bodyCoor
 }
 
 /// Ends grenade catching when the golem parent disappears.
-///
-/// Requires the live grenade model and its owned work. Disables its attack,
-/// unlinks the grid probe and resets the ending-frame counter while keeping the
-/// grenade task alive for delayed teardown. Grid unlink is safe after flight
-/// already removed the probe.
 static inline void _helicopterLandingPadNo9CancelGrenadeCatch(Task* task, _GrenadeWork* work)
 {
     work->attack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -913,10 +795,6 @@ static inline void _helicopterLandingPadNo9CancelGrenadeCatch(Task* task, _Grena
 }
 
 /// Places a grenade at the chest's launch offset in the view coordinate's frame.
-///
-/// Both coordinates must be live and distinct; `placement` is caller-owned scratch.
-/// Uses (-165, -565, 160) chest-axis units and pitch -352 (4096 units per turn).
-/// Refreshes both source caches and borrows the view coordinate as the new parent.
 static inline void _helicopterLandingPadNo9PlaceGrenade(GfxCoord* grenadeCoord, GfxCoord* launchCoord, ActorChildPlaceScratch* placement)
 {
     enum {
@@ -953,20 +831,12 @@ static inline void _helicopterLandingPadNo9PlaceGrenade(GfxCoord* grenadeCoord, 
 }
 
 /// Post-multiplies the chest's local rotation by its residual hit twist.
-///
-/// Both matrices must be word-aligned and distinct, with 12 fractional bits
-/// per coefficient. Preserves translation and changes the GTE rotation state;
-/// the enclosing animation update owns coordinate-cache validity.
 static inline void _helicopterLandingPadNo9ComposeHitRotation(MATRIX* chestRotation, const MATRIX* hitRotation)
 {
     gte_MulMatrix0(chestRotation, hitRotation, chestRotation);
 }
 
 /// Seeds the chest's residual pitch and yaw for a hit twist.
-///
-/// Requires live body work. One LCG draw chooses signed pitch and yaw magnitudes
-/// of 64..191 angle units (4096 per turn); the yaw uses the draw's signed upper byte.
-/// Replaces any preceding residuals and marks the twist active; roll is unchanged.
 static inline void _helicopterLandingPadNo9StartHitTwist(HelicopterLandingPadNo9Work* work)
 {
     enum {
@@ -997,12 +867,6 @@ static inline void _helicopterLandingPadNo9StartHitTwist(HelicopterLandingPadNo9
 }
 
 /// Selects the lethal strike's forward and retreat movement from its frame windows.
-///
-/// Requires live boss work. Callers pass the unsigned low half of the animation
-/// frame: 75..90 advances at 60, 143..157 uses `retreatSpeed`, and other frames
-/// stop. Positive speed follows the lap and negative speed retreats, in game
-/// coordinate units per running update. The first subtraction is compared as
-/// an unsigned word; the retreat-window subtraction wraps to sixteen bits.
 static inline void _helicopterLandingPadNo9SetLethalLapSpeed(HelicopterLandingPadNo9Work* work, s32 frame, s32 retreatSpeed)
 {
     enum {
@@ -1022,12 +886,6 @@ static inline void _helicopterLandingPadNo9SetLethalLapSpeed(HelicopterLandingPa
 }
 
 /// Applies incoming attack and helipad-hazard contacts and latches outgoing hits.
-///
-/// Requires the live body model, owned work and enemy. Weapon attacks respect the
-/// hit cooldown; hazard rows 2..4 apply fixed damage without that gate. Damage and
-/// cooldown results narrow to signed halfwords. Once the lethal strike starts,
-/// damage leaves at least one HP. Clears body contacts and occupied attack contacts;
-/// hit effects use the chest, with consecutive equal attack keys sharing one effect.
 static void _helicopterLandingPadNo9ResolveBodyContacts(Task* task)
 {
     enum {
@@ -1251,9 +1109,6 @@ static void _helicopterLandingPadNo9ResolveBodyContacts(Task* task)
 }
 
 /// Runs the fight's opening slash pair and hands off to the flame charge.
-///
-/// The opening uses attack index 2. A player hit interrupts either slash into
-/// slash recovery; otherwise the flame-lunge state starts directly at its charge.
 static void _helicopterLandingPadNo9TickOpening(Task* task)
 {
     HelicopterLandingPadNo9Work* work;
@@ -1339,10 +1194,6 @@ static void _helicopterLandingPadNo9TickOpening(Task* task)
 }
 
 /// Walks the lap, fires from the weapon and selects attacks between walks.
-///
-/// `stateCounter` counts waiting frames or remaining walk distance, depending
-/// on the step. A targeted player using shotgun ammunition triggers the separate
-/// response walk. Catch-up and backstep movement remain inside the current side.
 static void _helicopterLandingPadNo9TickPatrol(Task* task)
 {
     enum {
@@ -1523,11 +1374,6 @@ static void _helicopterLandingPadNo9TickPatrol(Task* task)
 }
 
 /// Selects an attack from lap progress, player range and relative facing.
-///
-/// Returns 1 after setting the next state, step and animation, or 0 to continue
-/// patrolling. The light-slash latch permits one scripted light slash until the
-/// light consumes it. Range choices apply only on the player's side of the lap;
-/// the end-of-lap lethal attack takes precedence over them.
 static s32 _helicopterLandingPadNo9TrySelectAttack(Task* task)
 {
     enum { ATTACK_INITIAL_STEP = 0 };
@@ -1635,10 +1481,6 @@ static s32 _helicopterLandingPadNo9TrySelectAttack(Task* task)
 }
 
 /// Advances alternating slash cycles and their recovery after a player hit.
-///
-/// Movement is confined to each slash's animation window. The first stroke
-/// also signals a selected helipad light. Random continuation thresholds are
-/// indexed by cycle count 0..3, after which the golem returns to patrol.
 static void _helicopterLandingPadNo9TickSlash(Task* task)
 {
     HelicopterLandingPadNo9Work* work;
@@ -1754,10 +1596,6 @@ static void _helicopterLandingPadNo9TickSlash(Task* task)
 }
 
 /// Ignites the weapon, charges toward the player and recovers into patrol.
-///
-/// The charge speed is (min(player distance, 5000) - 1200) / 24 world units
-/// per frame, narrowed to `stateCounter`. A player hit selects patrol's backstep;
-/// a miss selects its wait. Both exits disable the weapon and forearm attacks.
 static void _helicopterLandingPadNo9TickFlameLunge(Task* task)
 {
     HelicopterLandingPadNo9Work* work;
@@ -1836,11 +1674,6 @@ static void _helicopterLandingPadNo9TickFlameLunge(Task* task)
 }
 
 /// Throws the stun grenade, then chooses a dash or a return to patrol.
-///
-/// Requires the live body and enemy with an existing area placement. Frame 20
-/// spawns descriptor 4 and lends it the body's placement textures; frame 70
-/// chooses a dash with 12/16 probability when the player is at least 3751 units
-/// away. The grenade joins the body's task tree and clears its live latch on exit.
 static void _helicopterLandingPadNo9TickGrenadeThrow(Task* task)
 {
     enum {
@@ -1915,10 +1748,6 @@ static void _helicopterLandingPadNo9TickGrenadeThrow(Task* task)
 }
 
 /// Dashes along the lap until the player is close enough for a strike.
-///
-/// The run consumes a distance budget at 132 world units per frame and aborts
-/// near a corner. A completed strike enters patrol's backstep; an aborted run
-/// returns to its wait. Both exits disable the two attack spheres.
 static void _helicopterLandingPadNo9TickDash(Task* task)
 {
     HelicopterLandingPadNo9Work* work;
@@ -1981,11 +1810,6 @@ static void _helicopterLandingPadNo9TickDash(Task* task)
 }
 
 /// Runs the lap-ending ignition, lethal strike and player-death sequence.
-///
-/// Requires the live body, player and landing-pad resources. The strike holds the
-/// death sound and restart timers, kills the player on a latched contact, then
-/// spawns splatter every six updates and loads the death sound. A missed strike
-/// returns to patrol; angle, frame and damage storage keep their halfword widths.
 static void _helicopterLandingPadNo9TickLethalAttack(Task* task)
 {
     enum {
@@ -2143,10 +1967,6 @@ static void _helicopterLandingPadNo9TickLethalAttack(Task* task)
 }
 
 /// Steps the hit-recoil animation backward along the current lap side.
-///
-/// Retreat requires at least 200 world units already travelled on the player's
-/// side. At the animation's end, zero HP selects death; otherwise patrol resumes
-/// with a random waiting time in frames.
 static void _helicopterLandingPadNo9TickRecoil(Task* task)
 {
     HelicopterLandingPadNo9Work* work;
@@ -2199,10 +2019,6 @@ static void _helicopterLandingPadNo9TickRecoil(Task* task)
 }
 
 /// Steps the helipad-blast recoil, trailing sparks and retreating along the lap.
-///
-/// Retreat occurs only on the player's side with at least 200 world units
-/// behind the golem. Sparks occur on odd animation frames and the loop sound's
-/// spatial mix updates every third tick. Death or a random patrol wait follows.
 static void _helicopterLandingPadNo9TickSparkRecoil(Task* task)
 {
     enum {
@@ -2277,10 +2093,6 @@ static void _helicopterLandingPadNo9TickSparkRecoil(Task* task)
 }
 
 /// Plays the stationary spark stun, followed by its recovery animation.
-///
-/// Sparks occur on odd animation frames; the loop sound follows the body every
-/// third tick and stops at recovery. Recovery selects death or a random patrol
-/// wait. Requires a live body task and its enemy and work records.
 static void _helicopterLandingPadNo9TickSparkStun(Task* task)
 {
     enum {
@@ -2348,10 +2160,6 @@ static void _helicopterLandingPadNo9TickSparkStun(Task* task)
 }
 
 /// Silences the dying golem, removes its target and marks it absent.
-///
-/// If the player has already died, restores one enemy HP and resumes patrol.
-/// Otherwise the death animation's frame 112 queues the flame-strike sound.
-/// Model and collision teardown remain the task's responsibility.
 static void _helicopterLandingPadNo9TickDeath(Task* task)
 {
     enum {
@@ -2402,11 +2210,6 @@ static void _helicopterLandingPadNo9TickDeath(Task* task)
 }
 
 /// Updates the player's lap side and the horizontal ranges used by combat.
-///
-/// The first strip containing the player's world X/Z wins; if none contains
-/// them, the previous side is retained. Distances use world units and the body
-/// root's local translation, which is in the same world frame here. Side
-/// ranges refer to the current lap position before this frame's movement.
 static void _helicopterLandingPadNo9UpdatePlayerRange(Task* task)
 {
     HelicopterLandingPadNo9Work* work;
@@ -2444,11 +2247,6 @@ static void _helicopterLandingPadNo9UpdatePlayerRange(Task* task)
 }
 
 /// Turns a moving golem towards its current or approaching lap side's heading.
-///
-/// Within 1000 world units of a corner, targets the following side. Turns by
-/// at most 30 angle units per frame (4096 per turn), wrapping across zero.
-/// The lap's terminal clamp keeps the following-side index within four entries.
-/// Replaces root rotation only; the caller invalidates coordinate composition.
 static void _helicopterLandingPadNo9TurnAlongLap(Task* task)
 {
     enum {
@@ -2512,10 +2310,6 @@ static void _helicopterLandingPadNo9TurnAlongLap(Task* task)
 }
 
 /// Advances the body along its square lap and writes its world position.
-///
-/// Adds the signed speed modulo 65536, then clamps distance to 200..46700
-/// world units. The quotient and remainder by the 13200-unit side length select
-/// side 0..3 and the distance from its corner. Height is reset to zero.
 static void _helicopterLandingPadNo9AdvanceAlongLap(Task* task)
 {
     HelicopterLandingPadNo9Work* work;
@@ -2547,10 +2341,6 @@ static void _helicopterLandingPadNo9AdvanceAlongLap(Task* task)
 }
 
 /// Plays step sounds when slot 1's animation cue bits fall.
-///
-/// Cue 2 and cue 1 select separate placement-keyed scripts, spatially mixed at
-/// the body coordinate. Saves the current cue mask only when a record exists;
-/// a missing record preserves the preceding frame's latch.
 static void _helicopterLandingPadNo9PlayStepSounds(Task* task)
 {
     s32                          soundKey;
@@ -2581,10 +2371,6 @@ static void _helicopterLandingPadNo9PlayStepSounds(Task* task)
 #include "../../../../shared/creatures/golem/no9_golem_aim_head.inc.c"
 
 /// Applies the residual hit rotation to the chest and relaxes pitch and yaw.
-///
-/// Post-multiplies model part 3's animated rotation, then moves each residual
-/// angle up to 32 units towards zero (4096 per turn). Clears `hitTwistActive`
-/// when both residuals have reached zero. Requires the live body animation pose.
 static void _helicopterLandingPadNo9ApplyHitTwist(Task* task)
 {
     enum {
@@ -2646,11 +2432,6 @@ static void _helicopterLandingPadNo9ApplyHitTwist(Task* task)
 }
 
 /// Carries the golem's three wall faces to its current position and facing.
-///
-/// The room grid must provide the first twelve vertices and three normals.
-/// Rotates the faces' local origin offset, translates it by the body and clamps
-/// its world X/Z to +/-6000. Writes rotated corners around that origin and
-/// rotated normals; face indices and vector fourth halfwords stay intact.
 static void _helicopterLandingPadNo9UpdateGridFaces(Task* task)
 {
     enum {
@@ -2714,13 +2495,6 @@ static void _helicopterLandingPadNo9UpdateGridFaces(Task* task)
 }
 
 /// Handles message 2007: show (0), start the fight (1), or hide (2).
-///
-/// Requires the live body, weapon and chest-model tasks and the helipad grid.
-/// Showing acquires a battle reference. Starting resets the lap and animation
-/// and ignites the flame only if it has never burned. Hiding releases the flame
-/// task, disables the three spheres and restores the grid's first three faces,
-/// then clears the fourth face's normal and corners. Other commands do nothing.
-/// The message ID and second payload are unused. Returns 0.
 static s32 _helicopterLandingPadNo9SetActivation(Task* task, s32 messageId, s32 command, s32 unusedArg)
 {
     enum {
@@ -2845,12 +2619,6 @@ static s32 _helicopterLandingPadNo9SetActivation(Task* task, s32 messageId, s32 
 }
 
 /// Reveals and tosses the off-hand prop during the parent's event animations.
-///
-/// `task->parent` must own a live nineteen-part golem model and work block.
-/// The prop borrows that work without allocating its own. Each 40-frame toss
-/// captures the hand transform relative to the view at frame 14, follows a
-/// parabola in that frame, then reattaches to the hand. The enemy argument is
-/// unused but retains the two-argument enemy-state callback contract.
 static void _helicopterLandingPadNo9UpdateProp(Enemy* enemy, Task* task)
 {
     // The reserved 32-byte scratch frame has no directly accessed object here.
@@ -2913,12 +2681,6 @@ static void _helicopterLandingPadNo9UpdateProp(Enemy* enemy, Task* task)
 }
 
 /// Initializes the golem's chest-launched stun grenade and its collision bodies.
-///
-/// Requires a live parent body and player. Allocates cleared grenade-owned work
-/// and lighting, then selects its pitch step from horizontal player distance in
-/// 1000-unit buckets, clamped to the final table entry. Failure destroys the
-/// grenade enemy and task. Successful initialization starts flight. The body
-/// remains its task parent; burst effects are adopted as grenade children.
 static void _helicopterLandingPadNo9InitGrenade(Enemy* enemy, Task* task)
 {
     enum {
@@ -3004,13 +2766,6 @@ static void _helicopterLandingPadNo9InitGrenade(Enemy* enemy, Task* task)
 }
 
 /// Flies the grenade along its pitching launch axis until it bursts.
-///
-/// Requires the live grenade model, owned work and body parent; the enemy argument
-/// is unused. Moves 150 coordinate units per update, emitting smoke every third
-/// update. Descending through the height threshold, a player contact or a grid
-/// contact hides the model and starts spreading or holding. The impact effect is
-/// adopted beneath the grenade. Parent disappearance starts delayed teardown;
-/// paused combat refreshes colour and hidden combat only hides the model.
 static void _helicopterLandingPadNo9TickGrenadeFlight(Enemy* enemy, Task* task)
 {
     enum {
@@ -3117,12 +2872,6 @@ static void _helicopterLandingPadNo9TickGrenadeFlight(Enemy* enemy, Task* task)
 }
 
 /// Steps the hidden grenade's spreading blast, player hold and delayed teardown.
-///
-/// Runs only while scene actors are running. After sixteen frames the sphere
-/// widens to radius 600, then gets 31 frames to catch the player. A player contact
-/// starts the button-press hold; the ending phase waits 31 frames before unlinking
-/// the attack and destroying the grenade. Requires the body parent and its
-/// work to remain live through teardown; the burst effects are grenade children.
 static void _helicopterLandingPadNo9TickGrenadeBurst(Enemy* enemy, Task* task)
 {
     enum {
@@ -3190,12 +2939,6 @@ static void _helicopterLandingPadNo9TickGrenadeBurst(Enemy* enemy, Task* task)
 }
 
 /// Steps the stun grenade's button-press hold and recovery of the player.
-///
-/// Requires a live grenade task, body parent and player. Requests twelve button
-/// presses, deals grenade damage and installs the stunned clip on acceptance.
-/// A refused request ends the burst. Escape, loss of the golem or the 61st held
-/// tick starts recovery; after 21 ticks, its animation must finish before release.
-/// Message payloads borrow scratch storage only during synchronous dispatch.
 static void _helicopterLandingPadNo9TickGrenadeHold(Task* task)
 {
     enum {
@@ -3275,12 +3018,6 @@ static void _helicopterLandingPadNo9TickGrenadeHold(Task* task)
 }
 
 /// Initializes one of the three destructible helipad lights and its blast sphere.
-///
-/// `task->spawnArg1.value` must be a light index 0..2. Allocates cleared owned
-/// animation and lighting storage, places the model from the index tables, and
-/// registers a target and two collision bodies at part 10. Both bodies start
-/// with pair tests disabled; the frame handler enables them in the appropriate
-/// phase and view. Allocation failure destroys the light enemy and task.
 static void _helicopterLandingPadNo9InitHelipadLight(Enemy* enemy, Task* task)
 {
     enum {
@@ -3363,12 +3100,6 @@ static void _helicopterLandingPadNo9InitHelipadLight(Enemy* enemy, Task* task)
 }
 
 /// Advances a helipad light's animation, break state and published status.
-///
-/// Requires its initialized eleven-part model/work and live parent body work.
-/// Running lights outside their selected views tick only slots 1..10. In view,
-/// break processing publishes lights 0/1 to saved flag nibbles 11/12 and light 2
-/// to the parent, then composes the root and refreshes lighting. Paused actors
-/// refresh lighting alone; hidden actors hide the model and target.
 static void _helicopterLandingPadNo9TickHelipadLight(Enemy* enemy, Task* task)
 {
     enum {
@@ -3424,12 +3155,6 @@ static void _helicopterLandingPadNo9TickHelipadLight(Enemy* enemy, Task* task)
 }
 
 /// Breaks a shot or slashed helipad light and runs its sparks and one-hit blast.
-///
-/// Requires the live light model, enemy and body parent. A targeted damaging shot
-/// or the parent's slash latch starts animation 2 and 120 frames of sparks. Blast
-/// contacts disable further hits. Expiry leaves intermittent bursts; loss of the
-/// parent releases the adopted spark controller. Light 2 publishes its phase to
-/// the parent for the blast source beside it.
 static void _helicopterLandingPadNo9TickHelipadLightBreak(Task* task)
 {
     enum {
@@ -3565,11 +3290,6 @@ static void _helicopterLandingPadNo9TickHelipadLightBreak(Task* task)
 }
 
 /// Initializes the coordinate-only blast source beside helipad light 2.
-///
-/// Requires a live parent body. Allocates cleared owned work, places the source
-/// at (-6100, -1110, 380) in the view coordinate's frame, and registers a target,
-/// a radius-300 receiving sphere and a radius-512 blast raised 512 units above it.
-/// Pair tests start disabled; allocation failure destroys the enemy and task.
 static void _helicopterLandingPadNo9InitBlastSource(Enemy* enemy, Task* task)
 {
     GfxCoord*         sourceCoord;
@@ -3623,12 +3343,6 @@ static void _helicopterLandingPadNo9InitBlastSource(Enemy* enemy, Task* task)
 }
 
 /// Updates the helipad blast source only while its view and combat are active.
-///
-/// Requires the initialized coordinate-body task and its live body parent. Leaving
-/// the source's mapped view disables both collision spheres and releases its flare,
-/// while taking one frame from its burn timer. In view, steps the shot phases,
-/// publishes the source/light status flag and emits an ember with 1/3 probability.
-/// Paused or hidden combat does not advance the source.
 static void _helicopterLandingPadNo9TickBlastSource(Enemy* enemy, Task* task)
 {
     _BlastSourceWork*            work;
@@ -3673,20 +3387,11 @@ static void _helicopterLandingPadNo9TickBlastSource(Enemy* enemy, Task* task)
 }
 
 /// Grenade task-state callbacks: 0 initialize, 1 flight, 2 hidden burst and player hold.
-///
-/// Copied as a complete three-pointer value before dispatch; no terminator.
-/// The live enemy and task are lent to the selected handler, which may release
-/// them. The grenade and its adopted effects require the overlay to stay loaded.
 static const EnemyTaskFuncTable3 _gHelicopterLandingPadNo9GrenadeTaskStates = {
     { _helicopterLandingPadNo9InitGrenade, _helicopterLandingPadNo9TickGrenadeFlight, _helicopterLandingPadNo9TickGrenadeBurst },
 };
 
 /// Arms the helipad blast source after light 2 breaks, then runs its shot flare.
-///
-/// Requires the live coordinate body, owned enemy/work and golem parent. A targeted
-/// damaging shot starts a 60-frame flare and one-hit hazard blast: row 4 while the
-/// light sparks, row 3 once it is done. The flare is adopted beneath the source;
-/// expiry switches it to embers and parent disappearance releases it.
 static void _helicopterLandingPadNo9TickBlastSourcePhases(Task* task)
 {
     enum {
@@ -3806,10 +3511,6 @@ static void _helicopterLandingPadNo9TickBlastSourcePhases(Task* task)
 }
 
 /// Dispatches the Akropolis No. 9 GOLEM body's initialization and frame update.
-///
-/// Task state must be 0 (initialize) or 1 (update), with a live enemy in
-/// spawnArg2.pointer and the nineteen-part descriptor model. The handlers
-/// own body work, collision registrations, attachments and adopted effects.
 static void _helicopterLandingPadNo9BodyTask(Task* task)
 {
     EnemyTaskFunc handlers[2] = { helicopterLandingPadNo9InitBody, _helicopterLandingPadNo9TickBody };
@@ -3870,10 +3571,6 @@ void helicopterLandingPadNo9ExitBody(Task* task)
 }
 
 /// Selects event playback or combat for the initialized No. 9 golem body.
-///
-/// Requires live body work, model and enemy. Any nonzero session event state
-/// runs scripted animation/flame playback; zero selects combat, whose own
-/// activation and actor-control gates determine whether it advances.
 static void _helicopterLandingPadNo9TickBody(Enemy* enemy, Task* task)
 {
     if (gGameSession->eventState != 0) {
@@ -3884,12 +3581,6 @@ static void _helicopterLandingPadNo9TickBody(Enemy* enemy, Task* task)
 }
 
 /// Runs the active golem's combat, motion, animation and presentation update.
-///
-/// Requires the initialized body model, owned work and enemy. Activation zero
-/// skips the update; paused combat updates shadow and lighting, hidden combat
-/// hides the model and target. Running combat consumes reactions and contacts
-/// before selecting movement, then composes the rig and refreshes shadow,
-/// lighting, collision-grid faces and flame state.
 static void _helicopterLandingPadNo9TickCombat(Enemy* enemy, Task* task)
 {
     GfxCoord*                    bodyCoord;
@@ -3939,10 +3630,6 @@ static void _helicopterLandingPadNo9TickCombat(Enemy* enemy, Task* task)
 }
 
 /// Consumes enemy reaction requests and enters the golem's buildup stun.
-///
-/// Requires the live body task and enemy. Clears stagger and damage-over-time
-/// requests without starting those reactions; buildup sets the stun state and
-/// its latch. Other reaction bits remain intact.
 static void _helicopterLandingPadNo9ConsumeReactionFlags(Task* task)
 {
     HelicopterLandingPadNo9Work* work;
@@ -3968,9 +3655,6 @@ static void _helicopterLandingPadNo9ConsumeReactionFlags(Task* task)
 }
 
 /// Dispatches the golem's thirteen combat states to their per-frame handlers.
-///
-/// Requires live body work with a state in OPENING..DEATH; other values do nothing.
-/// Each handler owns its substate and selects this frame's movement and animation.
 static void _helicopterLandingPadNo9TickCombatState(Task* task)
 {
     HelicopterLandingPadNo9Work* work = task->work;
@@ -4022,9 +3706,6 @@ static void _helicopterLandingPadNo9TickCombatState(Task* task)
 }
 
 /// Holds the golem still until status buildup expires, then plays recovery.
-///
-/// Recovery clears the buildup latch and ends at animation frame 59, resuming
-/// patrol with a random waiting time. Requires the live body work and enemy.
 static void _helicopterLandingPadNo9TickBuildupStun(Task* task)
 {
     HelicopterLandingPadNo9Work* work;
@@ -4057,9 +3738,6 @@ static void _helicopterLandingPadNo9TickBuildupStun(Task* task)
 }
 
 /// Plays the stationary flinch and selects death or patrol when it finishes.
-///
-/// At animation frame 80, zero enemy HP selects death; otherwise patrol resumes
-/// with a random wait. Requires the live body work and enemy record.
 static void _helicopterLandingPadNo9TickFlinch(Task* task)
 {
     enum {
@@ -4099,11 +3777,6 @@ static void _helicopterLandingPadNo9TickFlinch(Task* task)
 }
 
 /// Restarts the body slots on an animation change, otherwise advances their poses.
-///
-/// Requires the initialized body rig and an animation ID present in both its
-/// set table and the per-animation blend-duration table. Drives slots 1..18;
-/// the root slot is skipped. A restart resets the frame counter, while an
-/// unchanged animation advances the stored signed-halfword counter by one.
 static void _helicopterLandingPadNo9UpdateBodyAnimation(Task* task)
 {
     HelicopterLandingPadNo9Work* work;
@@ -4139,11 +3812,6 @@ void helicopterLandingPadNo9UpdateLighting(Task* task, const GfxCoord* coord)
 }
 
 /// Expires the golem's flame attack and forwards mode changes to its flame jet.
-///
-/// Requires live body work. Burning and blast modes count down frames; expiry
-/// stops both flame sounds and disables the paired attack spheres. Sends each
-/// changed mode through the borrowed effect task's first payload when it exists;
-/// a missing effect still updates the last-sent mode.
 static void _helicopterLandingPadNo9UpdateFlameJet(Task* task)
 {
     HelicopterLandingPadNo9Work* work = task->work;
@@ -4173,9 +3841,6 @@ static void _helicopterLandingPadNo9UpdateFlameJet(Task* task)
 }
 
 /// Latches an early release of the grenade hold while the player is alive.
-///
-/// Handles `ACTOR_MESSAGE_RELEASE_HOLD` on the live body task. Both payloads
-/// are unused. The grenade hold consumes the latch later; returns zero.
 static s32 _helicopterLandingPadNo9ReleaseGrenadeHold(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
     HelicopterLandingPadNo9Work* work;
@@ -4188,12 +3853,6 @@ static s32 _helicopterLandingPadNo9ReleaseGrenadeHold(Task* task, s32 messageId,
 }
 
 /// Starts the golem's event animation selected by a borrowed playback request.
-///
-/// Handles `ACTOR_MESSAGE_PLAY_ANIMATION`; script IDs 1..6 select body sets
-/// 28..33 by adding 27. The resulting ID must select a loaded body set. Resets slots 1..18 at record zero, using zero
-/// blend frames for RESET and eight for any other choice. Ignores the request's
-/// source, blend duration and collision choice, and leaves the seeded animation
-/// ID unchanged. Borrows the request through dispatch; returns zero.
 static s32 _helicopterLandingPadNo9PlayEventAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedSecondArg)
 {
     enum {
@@ -4218,10 +3877,6 @@ static s32 _helicopterLandingPadNo9PlayEventAnimation(Task* task, s32 messageId,
 #include "../../../../shared/actor/actor_messages_place_rot_matrix.inc.c"
 
 /// Sets whether the body model participates in active drawing.
-///
-/// Handles `ACTOR_MESSAGE_SET_MODEL_DRAW` on a live TMD body task. A zero
-/// first payload replaces all model flags with SKIP_ACTIVE_DRAW; any nonzero
-/// payload replaces them with zero. The second payload is unused; returns zero.
 static s32 _helicopterLandingPadNo9SetModelDraw(Task* task, s32 messageId, s32 drawEnabled, s32 unusedSecondArg)
 {
     TmdObject* bodyModel;
@@ -4236,9 +3891,6 @@ static s32 _helicopterLandingPadNo9SetModelDraw(Task* task, s32 messageId, s32 d
 }
 
 /// Returns the body work's presence latch for `ACTOR_MESSAGE_IS_PRESENT`.
-///
-/// Requires the live body task and work. Both payloads are unused. Presence
-/// lasts from initialization until death and is independent of model drawing.
 static s32 _helicopterLandingPadNo9IsPresent(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
     const HelicopterLandingPadNo9Work* work = task->work;
@@ -4247,9 +3899,6 @@ static s32 _helicopterLandingPadNo9IsPresent(Task* task, s32 messageId, s32 unus
 }
 
 /// Dispatches initialization or update of the golem's off-hand prop model.
-///
-/// `task->state` must be 0 (initialize) or 1 (update). The parent model and its
-/// work block must remain live; the child borrows their coordinate and lighting.
 static void _helicopterLandingPadNo9PropTask(Task* task)
 {
     EnemyTaskFunc states[ATTACHMENT_STATE_COUNT] = { _helicopterLandingPadNo9InitProp, _helicopterLandingPadNo9UpdateProp };
@@ -4258,9 +3907,6 @@ static void _helicopterLandingPadNo9PropTask(Task* task)
 }
 
 /// Attaches the initially hidden prop to the off hand and borrows body lighting.
-///
-/// Advances its palette by two rows and rebuilds both model buffer halves.
-/// Requires the live parent golem model and work block. The enemy argument is unused.
 static void _helicopterLandingPadNo9InitProp(Enemy* enemy, Task* task)
 {
     TmdObject*                   propModel;
@@ -4282,9 +3928,6 @@ static void _helicopterLandingPadNo9InitProp(Enemy* enemy, Task* task)
 }
 
 /// Dispatches initialization or update of the golem's attached weapon model.
-///
-/// `task->state` must be 0 (initialize) or 1 (update). The parent model and work
-/// block must remain live; the weapon borrows their coordinate and lighting.
 static void _helicopterLandingPadNo9WeaponTask(Task* task)
 {
     EnemyTaskFunc states[ATTACHMENT_STATE_COUNT] = { _helicopterLandingPadNo9InitWeapon, _helicopterLandingPadNo9UpdateWeapon };
@@ -4293,9 +3936,6 @@ static void _helicopterLandingPadNo9WeaponTask(Task* task)
 }
 
 /// Attaches the hidden weapon to body part 8 and borrows body lighting.
-///
-/// Requires the live parent golem model and work block. No child work is allocated;
-/// the enemy argument is unused. The task advances to the attachment update state.
 static void _helicopterLandingPadNo9InitWeapon(Enemy* enemy, Task* task)
 {
     TmdObject*                   weaponModel;
@@ -4311,9 +3951,6 @@ static void _helicopterLandingPadNo9InitWeapon(Enemy* enemy, Task* task)
 }
 
 /// Copies body visibility to the weapon and composes its attached coordinate.
-///
-/// Requires the live parent model established at initialization; the enemy
-/// argument is unused. All model flags are copied, not just the hidden bit.
 static void _helicopterLandingPadNo9UpdateWeapon(Enemy* enemy, Task* task)
 {
     task->extra.tmd->flags                = task->parent->extra.tmd->flags;
@@ -4322,9 +3959,6 @@ static void _helicopterLandingPadNo9UpdateWeapon(Enemy* enemy, Task* task)
 }
 
 /// Dispatches initialization or update of the golem's attached chest model.
-///
-/// `task->state` must be 0 (initialize) or 1 (update). The parent model and work
-/// block must remain live; the child borrows their coordinate and lighting.
 static void _helicopterLandingPadNo9ChestModelTask(Task* task)
 {
     EnemyTaskFunc states[ATTACHMENT_STATE_COUNT] = { _helicopterLandingPadNo9InitChestModel, _helicopterLandingPadNo9UpdateChestModel };
@@ -4333,9 +3967,6 @@ static void _helicopterLandingPadNo9ChestModelTask(Task* task)
 }
 
 /// Attaches the hidden chest model to body part 3 and borrows body lighting.
-///
-/// Requires the live parent golem model and work block. No child work is allocated;
-/// the enemy argument is unused. The task advances to the attachment update state.
 static void _helicopterLandingPadNo9InitChestModel(Enemy* enemy, Task* task)
 {
     TmdObject*                   chestModel;
@@ -4351,9 +3982,6 @@ static void _helicopterLandingPadNo9InitChestModel(Enemy* enemy, Task* task)
 }
 
 /// Copies body visibility to the chest model and composes its attached coordinate.
-///
-/// Requires the live parent model established at initialization; the enemy
-/// argument is unused. All model flags are copied, not just the hidden bit.
 static void _helicopterLandingPadNo9UpdateChestModel(Enemy* enemy, Task* task)
 {
     task->extra.tmd->flags                = task->parent->extra.tmd->flags;
@@ -4362,10 +3990,6 @@ static void _helicopterLandingPadNo9UpdateChestModel(Enemy* enemy, Task* task)
 }
 
 /// Dispatches the grenade's initialization, flight and hidden burst phases.
-///
-/// Requires task state 0..2 and the live enemy in the second spawn argument.
-/// Copies the three callback pointers before dispatch; burst/ending may destroy
-/// the grenade and its adopted effects.
 static void _helicopterLandingPadNo9GrenadeTask(Task* task)
 {
     EnemyTaskFuncTable3 states;
@@ -4375,11 +3999,6 @@ static void _helicopterLandingPadNo9GrenadeTask(Task* task)
 }
 
 /// Dispatches a destructible helipad light's initialization and frame update.
-///
-/// Task state must be 0 (initialize) or 1 (update), with a live light enemy in
-/// spawnArg2.pointer, its descriptor model and the parent GOLEM task. The first
-/// spawn argument is the light index 0..2. Work, collision bodies and adopted
-/// sparks remain owned by the light task until teardown.
 static void _helicopterLandingPadNo9HelipadLightTask(Task* task)
 {
     EnemyTaskFunc handlers[2] = {
@@ -4391,11 +4010,6 @@ static void _helicopterLandingPadNo9HelipadLightTask(Task* task)
 }
 
 /// Returns one when a helipad light runs in the current mapped camera view.
-///
-/// Requires the light model, work and enemy with light index 0..2. Checks its three
-/// view IDs. Outside those views, hides it, disables both collision spheres,
-/// releases the adopted sparks, decrements a nonzero spark timer and returns zero.
-/// The caller then advances animation without running the break state machine.
 static s32 _helicopterLandingPadNo9CheckHelipadLightView(Task* task)
 {
     TmdObject*         model;
@@ -4435,9 +4049,6 @@ static s32 _helicopterLandingPadNo9CheckHelipadLightView(Task* task)
 }
 
 /// Refreshes helipad-light model lighting at its composed root position.
-///
-/// Requires a live light model and current root work matrix. Uses composed-coordinate
-/// translation in game units and leaves composition to the caller.
 static void _helicopterLandingPadNo9UpdateHelipadLightLighting(Task* task, const GfxCoord* rootCoord)
 {
     VECTOR composedPosition;
@@ -4449,10 +4060,6 @@ static void _helicopterLandingPadNo9UpdateHelipadLightLighting(Task* task, const
 }
 
 /// Unregisters the helipad light's target and collision bodies, then destroys it.
-///
-/// Requires the successfully initialized light task and its live enemy and work.
-/// Target unlink precedes body unlink and enemy-owned work/task destruction;
-/// adopted spark effects follow the task tree's teardown.
 static void _helicopterLandingPadNo9ExitHelipadLight(Task* task)
 {
     Enemy*             enemy = task->spawnArg2.pointer;
@@ -4465,9 +4072,6 @@ static void _helicopterLandingPadNo9ExitHelipadLight(Task* task)
 }
 
 /// Dispatches the coordinate-only helipad blast source's initialization and update.
-///
-/// Requires task state 0..1 and the live enemy in the second spawn argument.
-/// Initialization allocates the source work; the update runs its view-gated phases.
 static void _helicopterLandingPadNo9BlastSourceTask(Task* task)
 {
     EnemyTaskFunc states[2] = {
@@ -4479,10 +4083,6 @@ static void _helicopterLandingPadNo9BlastSourceTask(Task* task)
 }
 
 /// Unregisters the blast source's target and collision bodies, then destroys it.
-///
-/// Requires the successfully initialized source task and its live enemy and work.
-/// Target unlink precedes body unlink and enemy-owned work/task destruction;
-/// adopted flare effects follow the task tree's teardown.
 static void _helicopterLandingPadNo9ExitBlastSource(Task* task)
 {
     Enemy*            enemy = task->spawnArg2.pointer;

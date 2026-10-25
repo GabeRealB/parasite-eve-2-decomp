@@ -13,13 +13,11 @@
 #include "gameplay/animation.h"
 #include "gameplay/enemy.h"
 #include "gameplay/loading.h"
-#include "gameplay/scene_runtime.h"
 
 #include "main/coord.h"
 #include "main/event_flags.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
-#include "main/gfx_types.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
 #include "main/mem.h"
@@ -27,12 +25,9 @@
 #include "main/session_types.h"
 #include "main/tmd_types.h"
 
-#include "overlay.h"
+#include "../../event_flags.h"
 
 /// Steps of the palette greying, kept in `_Work::clutGreyStep`.
-///
-/// A figure's tick performs one step a frame and moves on to the next, so the
-/// read-back, the conversion and the upload fall on three successive frames.
 enum {
     CLUT_GREY_READ    = 0, // Read the figure's two CLUT rows back from VRAM
     CLUT_GREY_CONVERT = 1, // Raise the three channels of every entry to its brightest one
@@ -40,38 +35,21 @@ enum {
     CLUT_GREY_DONE    = 3, // Greyed; the tick leaves the rows alone
 };
 
-/// Ticks the advancing figure moves forward for, counted in
-/// `_Work::advanceFrames`, before its scene is flagged done and its
-/// task moves on to its teardown.
+/// Ticks the advancing figure moves forward for, counted in `_Work::advanceFrames`, before its scene is flagged done
+/// and its task moves on to its teardown.
 enum { ADVANCE_FRAMES = 0x5A };
 
 /// Mapped camera indices and the seen bit for the security-monitor figures.
 enum {
     RUPERT_VIEW = 0xA,
     SWAT_VIEW   = 0xB,
-    RUPERT_SEEN = 1 << 1,
 };
 
 /// Both figures play the only populated entry of their animation set tables.
 enum { ANIMATION_SET = 1 };
 
-/// Work block of either figure the package shows, allocated zeroed at its full
-/// size by the figure's spawn state and kept at `Task::work` for the task's
-/// life.
-///
-/// It opens with the rig of the figure's twenty-part body model and the
-/// animation request its update serves, in the steps an enemy's animation
-/// takes (`ACTOR_ENEMY_ANIM_BLEND`, `_RESET`, `_TICK`). Each spawn requests
-/// clip 1 from its start and nothing requests another, so the blended step is
-/// served but never asked for. The model object borrows `light` and `color`
-/// for as long as the block lives.
-///
-/// What follows the matrices is the figures' own. Each is drawn only while its
-/// own view of the room is up and greys its texture palette over its first
-/// three ticks. The figure of the package's first state table also moves
-/// forward along its own Z axis once its view has been shown, and ends its
-/// scene after `ADVANCE_FRAMES` ticks of that; the other figure
-/// leaves `advanceFrames` and `advancing` zero.
+/// Work block of either figure the package shows, allocated zeroed at its full size by the figure's spawn state and
+/// kept at `Task::work` for the task's life.
 typedef struct {
     ActorAnimRig20 rig;           // Playback storage of the twenty-part body model; slots 1 to 19 are driven
     s16            animState;     // Step of the animation (0 none, else `ACTOR_ENEMY_ANIM_BLEND`, `_RESET` or `_TICK`)
@@ -110,15 +88,9 @@ static void      _securityMonitorsSwatTask(Task* task);
 #include "assets/rooms/akropolis/security_room/security_monitors_clips.inc"
 
 /// Rupert's animation-set table for the security-monitor scene.
-///
-/// Only index 1 is playable; indices 0 and 2 are null slots, not terminators.
-/// The rig borrows this word-aligned table and its loaded set until teardown.
 #include "assets/rooms/akropolis/security_room/rupert_bank.inc"
 
 /// The SWAT figure's animation-set table for the security-monitor scene.
-///
-/// Only index 1 is playable; indices 0 and 2 are null slots, not terminators.
-/// The rig borrows this word-aligned table and its loaded set until teardown.
 #include "assets/rooms/akropolis/security_room/swat_bank.inc"
 
 TaskDesc gSecurityMonitorsSwatTaskDesc = {
@@ -134,21 +106,9 @@ TaskDesc gSecurityMonitorsRupertTaskDesc = {
 };
 
 /// Palette read-back and greying workspace shared by this package's two figures.
-///
-/// Rows 0/1 belong to Rupert and 2/3 to the SWAT figure; each contains
-/// 256 RGB555/STP entries. Keep each pair intact across the three-tick
-/// read, convert and upload sequence and until its GPU transfer completes.
-/// SDK word-pointer casts pack two palette halfwords per transfer word.
 static u16 _gSecurityMonitorsGreyPaletteRows[4][256];
 
 /// Greys a figure's two adjacent texture palettes over three calls.
-///
-/// `task->work` must hold a live `_Work`. `clutRowOffset` selects
-/// VRAM rows 245 + offset and 246 + offset, each 256 RGB555 entries at X = 0.
-/// `firstPaletteRow` selects two rows of `_gSecurityMonitorsGreyPaletteRows`: 0 for
-/// Rupert (offset 2), or 2 for the SWAT figure (offset 4). Keep that pair
-/// unchanged through read-back, conversion and upload; later calls do nothing.
-/// Conversion raises all channels to their maximum and forces the STP bit on.
 static void _securityMonitorsTickPaletteGreying(Task* task, s32 clutRowOffset, s16 firstPaletteRow)
 {
     enum {
@@ -163,10 +123,6 @@ static void _securityMonitorsTickPaletteGreying(Task* task, s32 clutRowOffset, s
     s32    entryIndex;
 
     /// Raises one RGB555 palette entry's channels to their maximum and sets STP.
-    ///
-    /// `entry` must be a writable u16 lvalue without side effects: it is evaluated
-    /// four times. Uses this function's `SECURITY_MONITORS_CLUT_*` format constants;
-    /// the entry expression must not refer to the temporary names red, green or blue.
 #define GREY_CLUT_ENTRY(entry)                                                    \
     do {                                                                          \
         u16 red;                                                                  \
@@ -232,13 +188,6 @@ static void _securityMonitorsTickPaletteGreying(Task* task, s32 clutRowOffset, s
 }
 
 /// Completes a clip reseed and schedules playback with a fresh tick count.
-///
-/// `playbackWork` and `reseedWork` must alias the same live writable figure
-/// work block, with its animated slots already reseeded for `animId`.
-/// `appliedAnimId` records that signed 16-bit animation-set table index.
-/// Entering `ACTOR_ENEMY_ANIM_TICK` clears `animFrames`, the wrapping 16-bit
-/// driver-tick count; the caller first advances the slots on its next update.
-/// Both pointers are borrowed for this call.
 static inline void _securityMonitorsCommitAnimationRequest(_Work* playbackWork, _Work* reseedWork)
 {
     reseedWork->appliedAnimId = reseedWork->animId;
@@ -247,15 +196,6 @@ static inline void _securityMonitorsCommitAnimationRequest(_Work* playbackWork, 
 }
 
 /// Applies an animation request or advances the figure's nineteen animated parts.
-///
-/// The live work block must have its context bound to the twenty-part model,
-/// matching slots, pose buffers and loaded set table. Slot 0 is the root and
-/// is left alone. Reset and blend requests select `animId`, record it in
-/// `appliedAnimId`, clear the update count and enter `ACTOR_ENEMY_ANIM_TICK`.
-/// Blend starts at the track's first record with zero transition frames.
-/// Tick increments the wrapping 16-bit count and advances slots 1 through 19;
-/// it does not end the task when a track reaches its end.
-/// Other request states leave the work block untouched.
 static void _securityMonitorsUpdateAnimation(Task* task)
 {
     _Work* work;
@@ -301,11 +241,6 @@ enum {
 };
 
 /// Rupert security-monitor lifecycle handlers: 0 initialize, 1 walk/playback, 2 destroy.
-///
-/// Copied by value and indexed by `Task::state` in 0..2, without a terminator
-/// or bounds check. Callbacks require a live task; update requires setup
-/// work, and teardown may release both the task and its owned `Enemy`.
-/// Each callback receives the owned `Enemy` from `Task::spawnArg2` and the task.
 static const EnemyTaskFuncTable3 _gSecurityMonitorsRupertTaskStates = {
     .funcs = {
         [RUPERT_TASK_INITIALIZE] = _securityMonitorsInitRupert,
@@ -321,11 +256,6 @@ enum {
 };
 
 /// SWAT security-monitor lifecycle handlers: 0 initialize, 1 playback, 2 destroy.
-///
-/// Copied by value and indexed by `Task::state` in 0..2, without a terminator
-/// or bounds check. Callbacks require a live task; update requires setup
-/// work, and teardown may release both the task and its owned `Enemy`.
-/// Each callback receives the owned `Enemy` from `Task::spawnArg2` and the task.
 static const EnemyTaskFuncTable3 _gSecurityMonitorsSwatTaskStates = {
     .funcs = {
         [SWAT_TASK_INITIALIZE] = _securityMonitorsInitSwat,
@@ -335,10 +265,6 @@ static const EnemyTaskFuncTable3 _gSecurityMonitorsSwatTaskStates = {
 };
 
 /// Dispatches Rupert's security-monitor task through initialization, playback and teardown.
-///
-/// `task->state` must be 0, 1 or 2, with a live owned `Enemy` in
-/// `spawnArg2.pointer`. Initialization allocates the task's work; playback
-/// requires that allocation. The selected handler may release both objects.
 static void _securityMonitorsRupertTask(Task* task)
 {
     Enemy*              enemy;
@@ -350,12 +276,6 @@ static void _securityMonitorsRupertTask(Task* task)
 }
 
 /// Initializes Rupert's animated model for his one-shot security-monitor scene.
-///
-/// `enemy` and its owning TMD `task` must be live, with the twenty-part model
-/// loaded. An already-seen scene or failed work allocation destroys them.
-/// Otherwise the model borrows lighting and animation storage from the zeroed
-/// work block until task teardown, and its root is parented to the view frame.
-/// Playback starts on set 1; only Rupert's mapped camera draws the figure.
 static void _securityMonitorsInitRupert(Enemy* enemy, Task* task)
 {
     _Work*     work;
@@ -364,7 +284,7 @@ static void _securityMonitorsInitRupert(Enemy* enemy, Task* task)
 
     model     = task->extra.tmd;
     rootCoord = model->coords;
-    if ((gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_MONITOR_SCENES_SEEN) & RUPERT_SEEN) ||
+    if ((gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_MONITOR_SCENES_SEEN) & AKROPOLIS_MONITOR_RUPERT_SCENE_SEEN) ||
         (work = memCalloc(sizeof(_Work), 0), task->work = work, work == NULL)) {
         enemyDestroy(enemy, task);
         return;
@@ -390,13 +310,6 @@ static void _securityMonitorsInitRupert(Enemy* enemy, Task* task)
 }
 
 /// Advances Rupert's security-monitor scene and completes it after ninety walking updates.
-///
-/// Requires the initialized task and its live work and model. Viewing Rupert
-/// records the seen bit and permanently starts his forward walk; later camera
-/// changes hide the model without stopping playback or the walk counter.
-/// Each walking tick requests 36 parent-coordinate units along local Z.
-/// Actor freezing suppresses displacement, but the counter still advances.
-/// Completion records the scene-done flag and selects teardown for the next call.
 static void _securityMonitorsUpdateRupert(Enemy* enemy, Task* task)
 {
     enum {
@@ -413,7 +326,7 @@ static void _securityMonitorsUpdateRupert(Enemy* enemy, Task* task)
     rootCoord = model->coords;
     _securityMonitorsTickPaletteGreying(task, CLUT_ROW_OFFSET, PALETTE_ROW);
     if ((viewGetMappedIndex() & 0xFF) == RUPERT_VIEW) {
-        gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_MONITOR_SCENES_SEEN, gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_MONITOR_SCENES_SEEN) | RUPERT_SEEN);
+        gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_MONITOR_SCENES_SEEN, gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_MONITOR_SCENES_SEEN) | AKROPOLIS_MONITOR_RUPERT_SCENE_SEEN);
         model->flags    = 0;
         work->advancing = 1;
     } else {
@@ -432,10 +345,6 @@ static void _securityMonitorsUpdateRupert(Enemy* enemy, Task* task)
 }
 
 /// Dispatches the SWAT figure's security-monitor task through initialization, playback and teardown.
-///
-/// `task->state` must be 0, 1 or 2, with a live owned `Enemy` in
-/// `spawnArg2.pointer`. Playback requires initialization's work allocation.
-/// The selected handler may release both objects; playback stays in state 1.
 static void _securityMonitorsSwatTask(Task* task)
 {
     EnemyTaskFuncTable3 stateHandlers;
@@ -445,22 +354,15 @@ static void _securityMonitorsSwatTask(Task* task)
 }
 
 /// Initializes the stationary SWAT figure shown on its security-monitor camera.
-///
-/// `enemy` and its owning TMD `task` must be live, with the twenty-part model
-/// loaded. Route progress at or beyond 3, or a failed work allocation, destroys
-/// them. Otherwise the model borrows the zeroed work block's lighting and
-/// animation storage until teardown. Its root is parented to the view frame,
-/// and set 1 begins playback; camera visibility is applied on the next tick.
 static void _securityMonitorsInitSwat(Enemy* enemy, Task* task)
 {
-    enum { SWAT_ROUTE_LIMIT = 3 };
     _Work*     work;
     GfxCoord*  rootCoord;
     TmdObject* model;
 
     model     = task->extra.tmd;
     rootCoord = model->coords;
-    if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SANCTUARY_ROUTE_PROGRESS) >= SWAT_ROUTE_LIMIT ||
+    if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SANCTUARY_ROUTE_PROGRESS) >= AKROPOLIS_SANCTUARY_ROUTE_OBSERVATORY_ENTERED ||
         (work = memCalloc(sizeof(_Work), 0), task->work = work, work == NULL)) {
         enemyDestroy(enemy, task);
         return;
@@ -479,9 +381,6 @@ static void _securityMonitorsInitSwat(Enemy* enemy, Task* task)
 }
 
 /// Greys and animates the stationary SWAT figure, drawing it only on its mapped camera.
-///
-/// Requires the initialized task and its live work and model. Palette processing
-/// and animation continue on other views. This handler does not advance task state.
 static void _securityMonitorsUpdateSwat(Enemy* enemy, Task* task)
 {
     enum {
@@ -501,14 +400,6 @@ static void _securityMonitorsUpdateSwat(Enemy* enemy, Task* task)
 }
 
 /// Translates a coordinate along its normalized local Z axis for a nonzero signed step.
-///
-/// `coord` must be live and writable. `stepDistance` is in parent-coordinate
-/// units; negative steps move backward. Normalization removes matrix scale,
-/// then GTE fixed-point scaling narrows the displacement to signed halfwords.
-/// The initialized scratch stack must have room for one aligned `SVECTOR`.
-/// It is released before return; GTE state is overwritten and no pointer retained.
-/// Returns the requested step, or 0 when live `actorsFrozen` equals 1.
-/// A zero step reserves and releases scratch without dirtying the coordinate.
 static s32 _actorMovementStepForwardNonzero(GfxCoord* coord, s16 stepDistance)
 {
     enum { ACTOR_MOVEMENT_FROZEN = 1 };
@@ -541,11 +432,6 @@ static s32 _actorMovementStepForwardNonzero(GfxCoord* coord, s16 stepDistance)
 }
 
 /// Installs Rupert's fixed monochrome lighting matrices on his monitor model.
-///
-/// The task must own a live zeroed work block and TMD model. All three colour
-/// rows sum the light channels with unit coefficients. The direction matrix
-/// has unit coefficients except zero at [1][0] and [2][2]. The renderer borrows
-/// both matrices until work release; their zero translations give no background colour.
 static void _securityMonitorsInitRupertLighting(Task* task)
 {
     TmdObject* model;
@@ -584,11 +470,6 @@ static void _securityMonitorsInitRupertLighting(Task* task)
 }
 
 /// Installs the SWAT figure's fixed monochrome lighting matrices on its monitor model.
-///
-/// The task must own a live zeroed work block and TMD model. All three colour
-/// rows sum the light channels with unit coefficients. The direction matrix
-/// is all unit coefficients except negative unity at [0][0]. The renderer
-/// borrows both matrices until work release; their translations stay zero.
 static void _securityMonitorsInitSwatLighting(Task* task)
 {
     TmdObject* model;

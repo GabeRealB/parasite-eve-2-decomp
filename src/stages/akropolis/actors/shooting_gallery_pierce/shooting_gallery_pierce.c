@@ -4,12 +4,10 @@
 
 #include "stages/akropolis/actors/shooting_gallery_pierce.h"
 
-#include "gameplay/animation.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
 #include "gameplay/actor_presentation.h"
-#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
@@ -29,10 +27,6 @@ TaskDesc gShootingGalleryPierceGalleryDecisionTaskDescs[2] = {
 enum { LEVEL_PROMPT_PLAYER_CLIP = 9 };
 
 /// Resets player clip 9 as the gallery course-level prompt begins.
-///
-/// The menu rewrites source.index to the equipped weapon bank before each
-/// synchronous dispatch. Drops player grid participation; reset ignores the
-/// zero blend duration. Keep the live player and its weapon clips loaded.
 static AnimationPlayRequest _gShootingGalleryPierceGalleryLevelPromptPlayerAnimation9Request = {
     .source               = { .index = 1 },
     .animationId          = LEVEL_PROMPT_PLAYER_CLIP,
@@ -42,9 +36,6 @@ static AnimationPlayRequest _gShootingGalleryPierceGalleryLevelPromptPlayerAnima
 };
 
 /// Retained bank-index-1 reset request for clip 0, with no playback consumer.
-///
-/// Its recipient and intended use are unproven. The collision selector is
-/// disabled and the reset choice ignores the zero blend duration.
 static const AnimationPlayRequest _gShootingGalleryPierceRetainedBank1Clip0ResetRequest SECTION(".data") = {
     .source               = { .index = 1 },
     .animationId          = 0,
@@ -59,9 +50,6 @@ enum {
 };
 
 /// Resets Pierce to clip 18 twenty-two updates after the course-level reply's first clip.
-///
-/// Sent synchronously at reply countdown -22; the live actor and clip bank
-/// must remain loaded. Pierce ignores the stored bank and collision selectors.
 static AnimationPlayRequest _gShootingGalleryPierceGalleryLevelReplyAnimation18Request = {
     .source               = { .index = 1 },
     .animationId          = LEVEL_REPLY_SECOND_CLIP,
@@ -71,9 +59,6 @@ static AnimationPlayRequest _gShootingGalleryPierceGalleryLevelReplyAnimation18R
 };
 
 /// Four retained bank-index-1 reset requests for clips 19..22 in that order.
-///
-/// No consumer establishes a recipient or an indexing contract. Each complete
-/// five-word request disables collision and ignores its zero blend duration.
 static const AnimationPlayRequest _gShootingGalleryPierceRetainedBank1Clip19To22ResetRequests[4] SECTION(".data") = {
     { .source = { .index = 1 }, .animationId = 19, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
     { .source = { .index = 1 }, .animationId = 20, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
@@ -84,9 +69,6 @@ static const AnimationPlayRequest _gShootingGalleryPierceRetainedBank1Clip19To22
 enum { LEVEL_PROMPT_PIERCE_CLIP = 23 };
 
 /// Resets Pierce to clip 23 as the gallery course-level prompt begins.
-///
-/// Placed actor 1 borrows this request during synchronous dispatch and ignores
-/// the stored bank and collision selectors. Keep Pierce and his clips loaded.
 static const AnimationPlayRequest _gShootingGalleryPierceGalleryLevelPromptPierceAnimation23Request SECTION(".data") = {
     .source               = { .index = 1 },
     .animationId          = LEVEL_PROMPT_PIERCE_CLIP,
@@ -96,9 +78,6 @@ static const AnimationPlayRequest _gShootingGalleryPierceGalleryLevelPromptPierc
 };
 
 /// Resets Pierce to clip 24 when the course-level reply countdown reaches zero.
-///
-/// The borrowed request is consumed synchronously; Pierce ignores its stored
-/// bank and collision selectors. The live actor and clip bank must stay loaded.
 static AnimationPlayRequest _gShootingGalleryPierceGalleryLevelReplyAnimation24Request = {
     .source               = { .index = 1 },
     .animationId          = LEVEL_REPLY_FIRST_CLIP,
@@ -112,11 +91,6 @@ s32 gShootingGalleryPierceGalleryTrainingActive = 0;
 s32 gShootingGalleryPierceGalleryExitInputBlocked = 0;
 
 /// Courses staged since this gallery overlay was loaded.
-///
-/// Incremented when course startup is staged, before its script completes.
-/// Zero selects the first-course offer, acceptance and decline captions;
-/// any nonzero value selects their repeat variants. This remains a signed
-/// word counter, rather than a completion flag or a persistent save tally.
 static s32 _gShootingGalleryPierceGalleryCoursesStagedCount = 0;
 
 s32 gShootingGalleryPierceGalleryExitInputCooldownTicks = 0;
@@ -124,11 +98,6 @@ s32 gShootingGalleryPierceGalleryExitInputCooldownTicks = 0;
 #include "assets/rooms/mist/shooting_gallery/pierce_clips_1.inc"
 
 /// Advances the caption-reply animation timer without going below -1000.
-///
-/// killCountdown counts callback updates, beginning at 27 in the caller. The
-/// comparisons use its value after decrementing. Requires the loaded gallery
-/// actor at placement 1; sends borrowed static requests at 0 and -22. A value
-/// already below -1000 stays unchanged. Caption completion remains with the caller.
 static inline void _shootingGalleryPierceUpdateLevelReplyAnimations(Task* task)
 {
     enum { LAST_DECREMENT        = -999,

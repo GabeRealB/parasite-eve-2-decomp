@@ -54,11 +54,9 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-#include "../../rooms/mist_shooting_gallery/config.h"
-
-#include "overlay.h"
-
 #include "stages/akropolis/rooms/mist_shooting_gallery.h"
+
+#include "../../rooms/mist_shooting_gallery/config.h"
 #include "../../../../shared/walk/paced_walk.h"
 #include "../../../../shared/room/cap_captions_types.h"
 
@@ -88,33 +86,12 @@ static void _pacedWalkExit(Task* task);
 
 static void _shootingGalleryPierceShowTimedCaption(s16 commandIndex, s16 key, s16 durationTicks);
 /// Gives this actor's caption record selector external linkage for the gallery.
-///
-/// The empty replacement supplies no storage-class specifier to the shared
-/// prototype and definition. Define before the first `cap_captions.h` inclusion
-/// and retain through `cap_captions.inc.c`. `CAP_CAPTION_SELECT_RECORD` names the
-/// s32(s16, s16, s32) export declared in `actors/shooting_gallery_pierce.h`; the gallery uses
-/// this actor's loaded CAP state. This object-like binding has no arguments,
-/// captured identifiers, runtime evaluation or token construction.
 #define CAP_CAPTION_SELECT_RECORD_LINKAGE
 /// Binds shared record selection to this actor's exported selector.
-///
-/// Define before `cap_captions.h` and retain through both caption source fragments.
-/// The empty linkage binding exports the s32(s16, s16, s32) instance declared in
-/// `actors/shooting_gallery_pierce.h`. This object-like alias captures no arguments and
-/// constructs no tokens.
 #define CAP_CAPTION_SELECT_RECORD shootingGalleryPierceCapCaptionSelectRecord
 /// Exports this actor's current-caption drawer to the shooting-gallery room.
-///
-/// Supplies `extern` to the shared void(void) prototype and definition selected
-/// by `CAP_CAPTION_DRAW_CURRENT`, matching `actors/shooting_gallery_pierce.h`. Define before
-/// `cap_captions.h` and retain through `cap_captions.inc.c`. This object-like
-/// binding has no arguments, captured identifiers or token construction.
 #define CAP_CAPTION_DRAW_CURRENT_LINKAGE extern
 /// Binds shared caption drawing to this actor's exported void(void) instance.
-///
-/// Define before cap_captions.h and retain through cap_captions.inc.c. The
-/// linkage binding exports the copy called by mist_shooting_gallery.
-/// This object-like alias captures no arguments and constructs no tokens.
 #define CAP_CAPTION_DRAW_CURRENT shootingGalleryPierceCapCaptionDrawCurrent
 #include "../../../../shared/room/cap_captions.h"
 
@@ -218,18 +195,9 @@ TaskDesc gShootingGalleryPierceGalleryTaskDescs[SHOOTING_GALLERY_PIERCE_GALLERY_
 };
 
 /// Player animation extension for the gallery's introduction and course menus.
-///
-/// Entries map to player clip IDs 47..57; 53..56 are NULL and 57 is retained
-/// without a live request. Scripts play only 47..52. The native pointer table
-/// occupies eleven words; the bank-copy request reads a larger raw image span.
-/// Keep these borrowed clips loaded while the equipped weapon bank uses them.
 #include "assets/rooms/mist/shooting_gallery/player_gallery_bank.inc"
 
 /// Retained clip-zero request at the start of the gallery's Pierce requests.
-///
-/// No script plays it, and Pierce's bank slot zero is NULL. The player-bank
-/// extension transfer reads all five words as raw data after the clip table;
-/// keep this record in its native position without treating it as a set pointer.
 static AnimationPlayRequest _gShootingGalleryPierceGalleryPierceClip0Request = {
     .source               = { .index = 1 },
     .animationId          = 0,
@@ -239,10 +207,6 @@ static AnimationPlayRequest _gShootingGalleryPierceGalleryPierceClip0Request = {
 };
 
 /// Gallery reset request for Pierce's body clip 18.
-///
-/// The placed-actor handler reseeds tracks 1..19 without moving the root.
-/// It ignores the stored bank selector and collision choice; the actor
-/// overlay and its clip data must remain loaded during playback.
 static AnimationPlayRequest _gShootingGalleryPiercePierceClip18Request = {
     .source               = { .index = 1 },
     .animationId          = 18,
@@ -252,10 +216,6 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceClip18Request = {
 };
 
 /// Gallery reset request for Pierce's body clip 19.
-///
-/// The placed-actor handler reseeds tracks 1..19 without moving the root.
-/// It ignores the stored bank selector and collision choice; the actor
-/// overlay and its clip data must remain loaded during playback.
 static AnimationPlayRequest _gShootingGalleryPiercePierceClip19Request = {
     .source               = { .index = 1 },
     .animationId          = 19,
@@ -265,10 +225,6 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceClip19Request = {
 };
 
 /// Gallery reset request for Pierce's body clip 20.
-///
-/// The placed-actor handler reseeds tracks 1..19 without moving the root.
-/// It ignores the stored bank selector and collision choice; the actor
-/// overlay and its clip data must remain loaded during playback.
 static AnimationPlayRequest _gShootingGalleryPiercePierceClip20Request = {
     .source               = { .index = 1 },
     .animationId          = 20,
@@ -278,12 +234,6 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceClip20Request = {
 };
 
 /// Gallery request for Pierce's body clip 21 with a reset.
-///
-/// Reseeds body tracks 1..19 without moving the root. The bank selector
-/// and collision word are unused by this receiver; the request is consumed
-/// during dispatch, and the actor's clip data must stay loaded for playback.
-/// The gallery bank-extension transfer also copies this record's first word;
-/// retain its native position after the preceding four body requests.
 static AnimationPlayRequest _gShootingGalleryPiercePierceClip21Request = {
     .source               = { .index = 1 },
     .animationId          = 21,
@@ -293,10 +243,6 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceClip21Request = {
 };
 
 /// Gallery request for Pierce's body clip 22 with a reset.
-///
-/// Reseeds body tracks 1..19 without moving the root. The bank selector
-/// and collision word are unused by this receiver; the request is consumed
-/// during dispatch, and the actor's clip data must stay loaded for playback.
 static AnimationPlayRequest _gShootingGalleryPiercePierceClip22Request = {
     .source               = { .index = 1 },
     .animationId          = 22,
@@ -306,9 +252,6 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceClip22Request = {
 };
 
 /// Retained reset request for Pierce body clip 23, with no playback consumer.
-///
-/// Follows the live body requests and selects a loaded Pierce bank entry.
-/// Keep its five-word record separate from the following player request.
 static AnimationPlayRequest _gShootingGalleryPiercePierceClip23Request = {
     .source               = { .index = 1 },
     .animationId          = 23,
@@ -318,9 +261,6 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceClip23Request = {
 };
 
 /// Retained reset preset for Pierce's loaded body clip 24.
-///
-/// This separate image record has no playback consumer. Reset ignores the
-/// zero blend duration; the body receiver ignores bank and collision selectors.
 static const AnimationPlayRequest _gShootingGalleryPiercePierceClip24Request SECTION(".data") = {
     .source               = { .index = 1 },
     .animationId          = 24,
@@ -330,11 +270,6 @@ static const AnimationPlayRequest _gShootingGalleryPiercePierceClip24Request SEC
 };
 
 /// Retained reset preset for the first gallery player extension clip.
-///
-/// Clip 47 follows the native bank's clips and selects gallery extension entry
-/// zero. This separate image record has no playback consumer; the live gallery
-/// request for the same clip uses a six-frame blend. Reset ignores the zero
-/// blend duration, and the stored collision choice disables grid participation.
 static const AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerClip47ResetRequest SECTION(".data") = {
     .source               = { .index = 1 },
     .animationId          = ANIMATION_BANK_BASE_SET_COUNT,
@@ -346,11 +281,6 @@ static const AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerClip47Rese
 enum { GALLERY_MENU_BLEND_FRAMES = 6 };
 
 /// Gallery player clip 47 request with a 6-frame blend.
-///
-/// The event interpreter copies the record and selects the equipped weapon
-/// bank. Playback takes scripted control and disables world collision.
-/// Keep the weapon bank and its borrowed clip data loaded through playback.
-/// Requires the extension installed by `_gShootingGalleryPierceGalleryPlayerBankCopyRequest`.
 static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerClip47Request = {
     .source               = { .index = 1 },
     .animationId          = 47,
@@ -360,11 +290,6 @@ static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerClip47Request = 
 };
 
 /// Gallery player clip 48 request with a reset.
-///
-/// The event interpreter copies this record and resolves the current weapon
-/// bank before dispatch. Playback takes scripted control and disables world
-/// collision. Keep the weapon bank and any copied clip data loaded.
-/// Requires the extension installed by `_gShootingGalleryPierceGalleryPlayerBankCopyRequest`.
 static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerClip48Request = {
     .source               = { .index = 1 },
     .animationId          = 48,
@@ -374,11 +299,6 @@ static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerClip48Request = 
 };
 
 /// Gallery player clip 49 request with a reset.
-///
-/// The event interpreter copies the record and selects the equipped weapon
-/// bank. Playback takes scripted control and disables world collision.
-/// Keep the weapon bank and its borrowed clip data loaded through playback.
-/// Requires the extension installed by `_gShootingGalleryPierceGalleryPlayerBankCopyRequest`.
 static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerClip49Request = {
     .source               = { .index = 1 },
     .animationId          = 49,
@@ -388,11 +308,6 @@ static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerClip49Request = 
 };
 
 /// Gallery player clip 50 request with a reset.
-///
-/// The event interpreter copies the record and selects the equipped weapon
-/// bank. Playback takes scripted control and disables world collision.
-/// Keep the weapon bank and its borrowed clip data loaded through playback.
-/// Requires the extension installed by `_gShootingGalleryPierceGalleryPlayerBankCopyRequest`.
 static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerClip50Request = {
     .source               = { .index = 1 },
     .animationId          = 50,
@@ -402,11 +317,6 @@ static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerClip50Request = 
 };
 
 /// Gallery player clip 51 request with a reset.
-///
-/// The event interpreter copies the record and selects the equipped weapon
-/// bank. Playback takes scripted control and disables world collision.
-/// Keep the weapon bank and its borrowed clip data loaded through playback.
-/// Requires the extension installed by `_gShootingGalleryPierceGalleryPlayerBankCopyRequest`.
 static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerClip51Request = {
     .source               = { .index = 1 },
     .animationId          = 51,
@@ -416,11 +326,6 @@ static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerClip51Request = 
 };
 
 /// Gallery player clip 52 request with a reset.
-///
-/// The event interpreter copies this record and resolves the current weapon
-/// bank before dispatch. Playback takes scripted control and disables world
-/// collision. Keep the weapon bank and any copied clip data loaded.
-/// Requires the extension installed by `_gShootingGalleryPierceGalleryPlayerBankCopyRequest`.
 static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerClip52Request = {
     .source               = { .index = 1 },
     .animationId          = 52,
@@ -430,21 +335,12 @@ static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerClip52Request = 
 };
 
 /// Installs the gallery's player clips and retained adjacent words into the weapon bank.
-///
-/// Copies 32 raw words to bank indices 47..78, without starting playback.
-/// The first eleven are the clip table; the next 21 cover four complete
-/// five-word Pierce requests and the first word of the next request.
-/// Their native order and contents are part of this transfer. Those trailing
-/// words are not playable clips. The source overlay must stay loaded through
-/// dispatch and through playback of the copied pointers.
 static AnimationBankCopyRequest _gShootingGalleryPierceGalleryPlayerBankCopyRequest = {
     .sets  = _gShootingGalleryPierceGalleryPlayerAnimationSets,
     .count = ANIMATION_BANK_EXTENSION_CAPACITY,
 };
 
 /// Retained reset request for gallery player extension clip 57.
-///
-/// The gallery extension supplies the clip, but no script dispatches this record.
 static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerClip57Request = {
     .source               = { .index = 1 },
     .animationId          = 57,
@@ -454,10 +350,6 @@ static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerClip57Request = 
 };
 
 /// Gallery player clip 1 request with a reset.
-///
-/// The event interpreter copies this record and resolves the current weapon
-/// bank before dispatch. Playback takes scripted control and disables world
-/// collision. Keep the weapon bank and any copied clip data loaded.
 static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerClip1Request = {
     .source               = { .index = 1 },
     .animationId          = 1,
@@ -467,10 +359,6 @@ static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerClip1Request = {
 };
 
 /// Gallery player clip 9 request with a reset.
-///
-/// The event interpreter copies this record and resolves the current weapon
-/// bank before dispatch. Playback takes scripted control and disables world
-/// collision. Keep the weapon bank and any copied clip data loaded.
 static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerClip9Request = {
     .source               = { .index = 1 },
     .animationId          = 9,
@@ -480,9 +368,6 @@ static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerClip9Request = {
 };
 
 /// Retained gallery animation request for clip 7 with a reset.
-///
-/// No source or assembly consumer establishes its receiver or visible motion.
-/// The stored bank selector is 1 and world-collision choice is disabled.
 static AnimationPlayRequest _gShootingGalleryPierceGalleryClip7Request = {
     .source               = { .index = 1 },
     .animationId          = 7,
@@ -492,47 +377,30 @@ static AnimationPlayRequest _gShootingGalleryPierceGalleryClip7Request = {
 };
 
 /// Pierce's placement during the gallery briefing and course-menu scenes.
-///
-/// XYZ are whole room-coordinate units; yaw is a positive quarter turn.
-/// The placed-actor handler applies XYZ and yaw without retaining the record.
 static ActorTransform _gShootingGalleryPierceGalleryPiercePlacement = {
     .pos = { -0x27CE, 0, 4100, 0 },
     .rot = { 0, ONE / 4, 0, 0 },
 };
 
 /// Pierce's placement for the later gallery-demonstration dialogue cues.
-///
-/// XYZ are whole room-coordinate units; yaw is a positive quarter turn.
-/// The actor applies XYZ and yaw during dispatch without retaining the record.
 static ActorTransform _gShootingGalleryPierceGalleryPierceDemoPlacement = {
     .pos = { -10140, 0, 4720, 0 },
     .rot = { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 },
 };
 
 /// Player placement for gallery briefings and course-menu selection.
-///
-/// XYZ are whole world-coordinate units; yaw is a positive quarter turn.
-/// The player applies XYZ and all three angles during synchronous dispatch.
 static ActorTransform _gShootingGalleryPierceGalleryPlayerMenuPlacement = {
     .pos = { -6550, 0, 2950, 0 },
     .rot = { 0, ONE / 4, 0, 0 },
 };
 
 /// Player placement for starting a fixed-view course or declining the gallery offer.
-///
-/// XYZ are whole world-coordinate units; yaw is a positive quarter turn.
-/// The player applies XYZ and all three angles during synchronous dispatch.
 static ActorTransform _gShootingGalleryPierceGalleryPlayerCoursePlacement = {
     .pos = { -6800, 0, 2950, 0 },
     .rot = { 0, ONE / 4, 0, 0 },
 };
 
 /// First-visit gallery movie and CAP-cued training demonstration.
-///
-/// Fifty-nine commands include END. Installs gallery player clips, starts the
-/// movie and CAP command 5, and stages the target, red flashes and both actors.
-/// Leaves menu view 15 ready for the offer. Uses `EVENT_SCRIPT_HUD_KEEP`;
-/// the actor/gallery overlays, callbacks and borrowed data stay loaded.
 static EvsCommand _gShootingGalleryPierceGalleryIntroScript[59] = {
     // Install player clips and start the movie before the CAP-cued demonstration.
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_HIDE_HUD }, { .value = 0 }, { .value = 0 } },
@@ -597,10 +465,6 @@ static EvsCommand _gShootingGalleryPierceGalleryIntroScript[59] = {
 };
 
 /// Skip path restoring the gallery introduction's menu staging under a fade.
-///
-/// Seventeen commands include END. Cleans up playback, requests view respawn,
-/// stops red flashes and restores actor placement/animation in view 15.
-/// Runs with the introduction's resources loaded and keeps the HUD suppressed.
 static EvsCommand _gShootingGalleryPierceGalleryIntroSkipScript[17] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -622,10 +486,6 @@ static EvsCommand _gShootingGalleryPierceGalleryIntroSkipScript[17] = {
 };
 
 /// Starts the training-offer caption after the gallery introduction.
-///
-/// Five commands include END. CAP command 6 supplies the reply examined by
-/// the introduction task. Retains ambient/HUD setup through the next handoff;
-/// CAP and both overlays must remain loaded until the cue and wait complete.
 static EvsCommand _gShootingGalleryPierceGalleryTrainingOfferScript[5] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = GALLERY_TRAINING_OFFER_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = GALLERY_AMBIENT_COMPONENT }, { .value = GALLERY_AMBIENT_COMPONENT }, { .value = GALLERY_AMBIENT_COMPONENT }, { .value = 0 }, { .value = 0 } },
@@ -635,10 +495,6 @@ static EvsCommand _gShootingGalleryPierceGalleryTrainingOfferScript[5] = {
 };
 
 /// Plays the accepted introduction offer and prepares the player's menu pose.
-///
-/// Six commands include END. Starts CAP command 7, installs gallery player
-/// clips and blends into clip 47 before waiting for the cue. Requires live
-/// gallery/player/CAP resources and keeps the HUD suppressed for the menu.
 static EvsCommand _gShootingGalleryPierceGalleryIntroAcceptTrainingScript[6] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = GALLERY_TRAINING_ACCEPT_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gShootingGalleryPierceGalleryPlayerBankCopyRequest } }, { .value = 0 } },
@@ -741,18 +597,9 @@ EvsCommand gShootingGalleryPierceGalleryConfirmCourseScript[6] = {
 #include "assets/rooms/mist/shooting_gallery/pierce_clips_2.inc"
 
 /// Player animation extension for Pierce's story and conversation scenes.
-///
-/// Entries map to player clip IDs 47..66; 57..58 are NULL and 59 is retained
-/// without a live request. Scripts play 47..56 or 60..66. The native pointer
-/// table occupies twenty words; the bank-copy request reads a larger raw image
-/// span. Keep these borrowed clips loaded while the weapon bank uses them.
 #include "assets/rooms/mist/shooting_gallery/player_conversation_bank.inc"
 
 /// Retained clip-zero request at the start of the conversation's Pierce requests.
-///
-/// No script plays it, and Pierce's bank slot zero is NULL. The conversation
-/// bank-extension transfer reads all five words as raw data after the clip table;
-/// retain this record's native position without treating it as a set pointer.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPierceClip0Request = {
     .source               = { .index = 1 },
     .animationId          = 0,
@@ -762,12 +609,6 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPierceClip0Reques
 };
 
 /// Conversation request for Pierce's body clip 1 with a reset.
-///
-/// Reseeds body tracks 1..19 without moving the root. The bank selector
-/// and collision word are unused by this receiver; the request is consumed
-/// during dispatch, and the actor's clip data must stay loaded for playback.
-/// The conversation bank-extension transfer also copies this complete record;
-/// retain its native position after the player clip table and prior request.
 static AnimationPlayRequest _gShootingGalleryPiercePierceClip1Request = {
     .source               = { .index = 1 },
     .animationId          = 1,
@@ -777,12 +618,6 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceClip1Request = {
 };
 
 /// Conversation request for Pierce's body clip 2 with a reset.
-///
-/// Reseeds body tracks 1..19 without moving the root. The bank selector
-/// and collision word are unused by this receiver; the request is consumed
-/// during dispatch, and the actor's clip data must stay loaded for playback.
-/// The conversation bank-extension transfer also copies the first two words;
-/// retain its native position after the player clip table and prior request.
 static AnimationPlayRequest _gShootingGalleryPiercePierceClip2Request = {
     .source               = { .index = 1 },
     .animationId          = 2,
@@ -792,10 +627,6 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceClip2Request = {
 };
 
 /// Conversation reset request for Pierce's body clip 3.
-///
-/// The placed-actor handler reseeds tracks 1..19 without moving the root.
-/// It ignores the stored bank selector and collision choice; the actor
-/// overlay and its clip data must remain loaded during playback.
 static AnimationPlayRequest _gShootingGalleryPiercePierceClip3Request = {
     .source               = { .index = 1 },
     .animationId          = 3,
@@ -805,10 +636,6 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceClip3Request = {
 };
 
 /// Conversation request for Pierce's body clip 4 with a reset.
-///
-/// Reseeds body tracks 1..19 without moving the root. The bank selector
-/// and collision word are unused by this receiver; the request is consumed
-/// during dispatch, and the actor's clip data must stay loaded for playback.
 static AnimationPlayRequest _gShootingGalleryPiercePierceClip4Request = {
     .source               = { .index = 1 },
     .animationId          = 4,
@@ -818,10 +645,6 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceClip4Request = {
 };
 
 /// Conversation request for Pierce's body clip 5 with a reset.
-///
-/// Reseeds body tracks 1..19 without moving the root. The bank selector
-/// and collision word are unused by this receiver; the request is consumed
-/// during dispatch, and the actor's clip data must stay loaded for playback.
 static AnimationPlayRequest _gShootingGalleryPiercePierceClip5Request = {
     .source               = { .index = 1 },
     .animationId          = 5,
@@ -831,10 +654,6 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceClip5Request = {
 };
 
 /// Conversation request for Pierce's body clip 6 with a reset.
-///
-/// Reseeds body tracks 1..19 without moving the root. The bank selector
-/// and collision word are unused by this receiver; the request is consumed
-/// during dispatch, and the actor's clip data must stay loaded for playback.
 static AnimationPlayRequest _gShootingGalleryPiercePierceClip6Request = {
     .source               = { .index = 1 },
     .animationId          = 6,
@@ -844,10 +663,6 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceClip6Request = {
 };
 
 /// Conversation request for Pierce's body clip 7 with a reset.
-///
-/// Reseeds body tracks 1..19 without moving the root. The bank selector
-/// and collision word are unused by this receiver; the request is consumed
-/// during dispatch, and the actor's clip data must stay loaded for playback.
 static AnimationPlayRequest _gShootingGalleryPiercePierceClip7Request = {
     .source               = { .index = 1 },
     .animationId          = 7,
@@ -857,10 +672,6 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceClip7Request = {
 };
 
 /// Conversation request for Pierce's body clip 8 with a reset.
-///
-/// Reseeds body tracks 1..19 without moving the root. The bank selector
-/// and collision word are unused by this receiver; the request is consumed
-/// during dispatch, and the actor's clip data must stay loaded for playback.
 static AnimationPlayRequest _gShootingGalleryPiercePierceClip8Request = {
     .source               = { .index = 1 },
     .animationId          = 8,
@@ -872,10 +683,6 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceClip8Request = {
 enum { PIERCE_CONVERSATION_BLEND_FRAMES = 8 };
 
 /// Conversation request for Pierce's body clip 9 with an 8-frame blend.
-///
-/// Reseeds body tracks 1..19 without moving the root. The bank selector
-/// and collision word are unused by this receiver; the request is consumed
-/// during dispatch, and the actor's clip data must stay loaded for playback.
 static AnimationPlayRequest _gShootingGalleryPiercePierceClip9BlendRequest = {
     .source               = { .index = 1 },
     .animationId          = 9,
@@ -885,10 +692,6 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceClip9BlendRequest = {
 };
 
 /// Conversation request for Pierce's body clip 10 with an 8-frame blend.
-///
-/// Reseeds body tracks 1..19 without moving the root. The bank selector
-/// and collision word are unused by this receiver; the request is consumed
-/// during dispatch, and the actor's clip data must stay loaded for playback.
 static AnimationPlayRequest _gShootingGalleryPiercePierceClip10BlendRequest = {
     .source               = { .index = 1 },
     .animationId          = 10,
@@ -898,10 +701,6 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceClip10BlendRequest = {
 };
 
 /// Conversation request for Pierce's body clip 11 with an 8-frame blend.
-///
-/// Reseeds body tracks 1..19 without moving the root. The bank selector
-/// and collision word are unused by this receiver; the request is consumed
-/// during dispatch, and the actor's clip data must stay loaded for playback.
 static AnimationPlayRequest _gShootingGalleryPiercePierceClip11BlendRequest = {
     .source               = { .index = 1 },
     .animationId          = 11,
@@ -911,10 +710,6 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceClip11BlendRequest = {
 };
 
 /// Conversation reset request for Pierce's body clip 12.
-///
-/// The placed-actor handler reseeds tracks 1..19 without moving the root.
-/// It ignores the stored bank selector and collision choice; the actor
-/// overlay and its clip data must remain loaded during playback.
 static AnimationPlayRequest _gShootingGalleryPiercePierceClip12Request = {
     .source               = { .index = 1 },
     .animationId          = 12,
@@ -924,10 +719,6 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceClip12Request = {
 };
 
 /// Conversation request for Pierce's body clip 12 with a 10-frame blend.
-///
-/// Reseeds body tracks 1..19 without moving the root. The bank selector
-/// and collision word are unused by this receiver; the request is consumed
-/// during dispatch, and the actor's clip data must stay loaded for playback.
 static AnimationPlayRequest _gShootingGalleryPiercePierceClip12BlendRequest = {
     .source               = { .index = 1 },
     .animationId          = 12,
@@ -937,10 +728,6 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceClip12BlendRequest = {
 };
 
 /// Conversation reset request for Pierce's body clip 13.
-///
-/// The placed-actor handler reseeds tracks 1..19 without moving the root.
-/// It ignores the stored bank selector and collision choice; the actor
-/// overlay and its clip data must remain loaded during playback.
 static AnimationPlayRequest _gShootingGalleryPiercePierceClip13Request = {
     .source               = { .index = 1 },
     .animationId          = 13,
@@ -950,10 +737,6 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceClip13Request = {
 };
 
 /// Conversation reset request for Pierce's body clip 14.
-///
-/// The placed-actor handler reseeds tracks 1..19 without moving the root.
-/// It ignores the stored bank selector and collision choice; the actor
-/// overlay and its clip data must remain loaded during playback.
 static AnimationPlayRequest _gShootingGalleryPiercePierceClip14Request = {
     .source               = { .index = 1 },
     .animationId          = 14,
@@ -963,10 +746,6 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceClip14Request = {
 };
 
 /// Conversation request for Pierce's body clip 15 with a reset.
-///
-/// Reseeds body tracks 1..19 without moving the root. The bank selector
-/// and collision word are unused by this receiver; the request is consumed
-/// during dispatch, and the actor's clip data must stay loaded for playback.
 static AnimationPlayRequest _gShootingGalleryPiercePierceClip15Request = {
     .source               = { .index = 1 },
     .animationId          = 15,
@@ -976,9 +755,6 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceClip15Request = {
 };
 
 /// Retained duplicate reset request for conversation player extension clip 47.
-///
-/// No script dispatches this record; the following live request has identical
-/// contents. They are distinct storage and remain separate in the native image.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip47RetainedRequest = {
     .source               = { .index = 1 },
     .animationId          = 47,
@@ -988,11 +764,6 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip47Retai
 };
 
 /// Conversation player clip 47 request with a reset.
-///
-/// The event interpreter copies the record and selects the equipped weapon
-/// bank. Playback takes scripted control and disables world collision.
-/// Keep the weapon bank and its borrowed clip data loaded through playback.
-/// Requires the extension installed by `_gShootingGalleryPierceConversationPlayerBankCopyRequest`.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip47Request = {
     .source               = { .index = 1 },
     .animationId          = 47,
@@ -1002,11 +773,6 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip47Reque
 };
 
 /// Conversation player clip 48 request with a reset.
-///
-/// The event interpreter copies the record and selects the equipped weapon
-/// bank. Playback takes scripted control and disables world collision.
-/// Keep the weapon bank and its borrowed clip data loaded through playback.
-/// Requires the extension installed by `_gShootingGalleryPierceConversationPlayerBankCopyRequest`.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip48Request = {
     .source               = { .index = 1 },
     .animationId          = 48,
@@ -1016,11 +782,6 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip48Reque
 };
 
 /// Conversation player clip 49 request with a reset.
-///
-/// The event interpreter copies the record and selects the equipped weapon
-/// bank. Playback takes scripted control and disables world collision.
-/// Keep the weapon bank and its borrowed clip data loaded through playback.
-/// Requires the extension installed by `_gShootingGalleryPierceConversationPlayerBankCopyRequest`.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip49Request = {
     .source               = { .index = 1 },
     .animationId          = 49,
@@ -1030,11 +791,6 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip49Reque
 };
 
 /// Conversation player clip 50 request with a reset.
-///
-/// The event interpreter copies the record and selects the equipped weapon
-/// bank. Playback takes scripted control and disables world collision.
-/// Keep the weapon bank and its borrowed clip data loaded through playback.
-/// Requires the extension installed by `_gShootingGalleryPierceConversationPlayerBankCopyRequest`.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip50Request = {
     .source               = { .index = 1 },
     .animationId          = 50,
@@ -1044,11 +800,6 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip50Reque
 };
 
 /// Conversation player clip 51 request with a reset.
-///
-/// The event interpreter copies the record and selects the equipped weapon
-/// bank. Playback takes scripted control and disables world collision.
-/// Keep the weapon bank and its borrowed clip data loaded through playback.
-/// Requires the extension installed by `_gShootingGalleryPierceConversationPlayerBankCopyRequest`.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip51Request = {
     .source               = { .index = 1 },
     .animationId          = 51,
@@ -1058,11 +809,6 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip51Reque
 };
 
 /// Conversation player clip 52 request with a reset.
-///
-/// The event interpreter copies the record and selects the equipped weapon
-/// bank. Playback takes scripted control and disables world collision.
-/// Keep the weapon bank and its borrowed clip data loaded through playback.
-/// Requires the extension installed by `_gShootingGalleryPierceConversationPlayerBankCopyRequest`.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip52Request = {
     .source               = { .index = 1 },
     .animationId          = 52,
@@ -1072,11 +818,6 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip52Reque
 };
 
 /// Conversation player clip 53 request with a reset.
-///
-/// The event interpreter copies the record and selects the equipped weapon
-/// bank. Playback takes scripted control and disables world collision.
-/// Keep the weapon bank and its borrowed clip data loaded through playback.
-/// Requires the extension installed by `_gShootingGalleryPierceConversationPlayerBankCopyRequest`.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip53Request = {
     .source               = { .index = 1 },
     .animationId          = 53,
@@ -1086,11 +827,6 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip53Reque
 };
 
 /// Conversation player clip 54 request with a reset.
-///
-/// The event interpreter copies the record and selects the equipped weapon
-/// bank. Playback takes scripted control and disables world collision.
-/// Keep the weapon bank and its borrowed clip data loaded through playback.
-/// Requires the extension installed by `_gShootingGalleryPierceConversationPlayerBankCopyRequest`.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip54Request = {
     .source               = { .index = 1 },
     .animationId          = 54,
@@ -1100,10 +836,6 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip54Reque
 };
 
 /// Story-scene reset request for conversation player extension clip 55.
-///
-/// Event playback copies it and resolves the equipped weapon bank before
-/// dispatch, taking scripted control and disabling world collision. The
-/// conversation extension and borrowed clip data must remain loaded.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip55Request = {
     .source               = { .index = 1 },
     .animationId          = 55,
@@ -1113,10 +845,6 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip55Reque
 };
 
 /// Story-scene reset request for conversation player extension clip 56.
-///
-/// Event playback copies it and resolves the equipped weapon bank before
-/// dispatch, taking scripted control and disabling world collision. The
-/// conversation extension and borrowed clip data must remain loaded.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip56Request = {
     .source               = { .index = 1 },
     .animationId          = 56,
@@ -1126,8 +854,6 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip56Reque
 };
 
 /// Retained conversation player clip 59 request with a ten-frame blend.
-///
-/// The conversation extension supplies this clip, but no script dispatches it.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip59Request = {
     .source               = { .index = 1 },
     .animationId          = 59,
@@ -1137,11 +863,6 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip59Reque
 };
 
 /// Conversation player clip 60 request with a 10-frame blend.
-///
-/// The event interpreter copies this record and resolves the current weapon
-/// bank before dispatch. Playback takes scripted control and disables world
-/// collision. Keep the weapon bank and any copied clip data loaded.
-/// Requires the extension installed by `_gShootingGalleryPierceConversationPlayerBankCopyRequest`.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip60Request = {
     .source               = { .index = 1 },
     .animationId          = 60,
@@ -1151,11 +872,6 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip60Reque
 };
 
 /// Conversation player clip 61 request with a 10-frame blend.
-///
-/// The event interpreter copies this record and resolves the current weapon
-/// bank before dispatch. Playback takes scripted control and disables world
-/// collision. Keep the weapon bank and any copied clip data loaded.
-/// Requires the extension installed by `_gShootingGalleryPierceConversationPlayerBankCopyRequest`.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip61Request = {
     .source               = { .index = 1 },
     .animationId          = 61,
@@ -1165,11 +881,6 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip61Reque
 };
 
 /// Conversation player clip 62 request with a 10-frame blend.
-///
-/// The event interpreter copies this record and resolves the current weapon
-/// bank before dispatch. Playback takes scripted control and disables world
-/// collision. Keep the weapon bank and any copied clip data loaded.
-/// Requires the extension installed by `_gShootingGalleryPierceConversationPlayerBankCopyRequest`.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip62Request = {
     .source               = { .index = 1 },
     .animationId          = 62,
@@ -1179,11 +890,6 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip62Reque
 };
 
 /// Conversation player clip 63 request with a 10-frame blend.
-///
-/// The event interpreter copies this record and resolves the current weapon
-/// bank before dispatch. Playback takes scripted control and disables world
-/// collision. Keep the weapon bank and any copied clip data loaded.
-/// Requires the extension installed by `_gShootingGalleryPierceConversationPlayerBankCopyRequest`.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip63Request = {
     .source               = { .index = 1 },
     .animationId          = 63,
@@ -1193,11 +899,6 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip63Reque
 };
 
 /// Conversation player clip 64 request with a 10-frame blend.
-///
-/// The event interpreter copies this record and resolves the current weapon
-/// bank before dispatch. Playback takes scripted control and disables world
-/// collision. Keep the weapon bank and any copied clip data loaded.
-/// Requires the extension installed by `_gShootingGalleryPierceConversationPlayerBankCopyRequest`.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip64Request = {
     .source               = { .index = 1 },
     .animationId          = 64,
@@ -1207,11 +908,6 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip64Reque
 };
 
 /// Conversation player clip 65 request with a 10-frame blend.
-///
-/// The event interpreter copies this record and resolves the current weapon
-/// bank before dispatch. Playback takes scripted control and disables world
-/// collision. Keep the weapon bank and any copied clip data loaded.
-/// Requires the extension installed by `_gShootingGalleryPierceConversationPlayerBankCopyRequest`.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip65Request = {
     .source               = { .index = 1 },
     .animationId          = 65,
@@ -1221,11 +917,6 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip65Reque
 };
 
 /// Conversation player clip 66 request with a 10-frame blend.
-///
-/// The event interpreter copies this record and resolves the current weapon
-/// bank before dispatch. Playback takes scripted control and disables world
-/// collision. Keep the weapon bank and any copied clip data loaded.
-/// Requires the extension installed by `_gShootingGalleryPierceConversationPlayerBankCopyRequest`.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip66Request = {
     .source               = { .index = 1 },
     .animationId          = 66,
@@ -1235,68 +926,42 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip66Reque
 };
 
 /// Installs the conversation's player clips and retained adjacent words into the weapon bank.
-///
-/// Copies 32 raw words to bank indices 47..78, without starting playback.
-/// The first twenty are the clip table; the next twelve cover two complete
-/// five-word Pierce requests and the first two words of the next request.
-/// Their native order and contents are part of this transfer. Those trailing
-/// words are not playable clips. The source overlay must stay loaded through
-/// dispatch and through playback of the copied pointers.
 static AnimationBankCopyRequest _gShootingGalleryPierceConversationPlayerBankCopyRequest = {
     .sets  = _gShootingGalleryPierceConversationPlayerAnimationSets,
     .count = ANIMATION_BANK_EXTENSION_CAPACITY,
 };
 
 /// Pierce's opening placement in the gallery story scene.
-///
-/// XYZ are whole room units; yaw is a positive quarter turn. The placed-actor
-/// receiver applies XYZ and yaw during dispatch without retaining the record.
 static ActorTransform _gShootingGalleryPierceStoryPierceOpeningPlacement = {
     .pos = { -10230, 0, 4640, 0 },
     .rot = { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 },
 };
 
 /// Pierce's placement for the story scene's exchange with the player.
-///
-/// XYZ are whole room units; signed yaw uses 4096 units per turn. The actor
-/// applies XYZ and yaw during dispatch without retaining the record.
 static ActorTransform _gShootingGalleryPierceStoryPierceDialoguePlacement = {
     .pos = { -11200, 0, 3000, 0 },
     .rot = { 0, -2218, 0, 0 },
 };
 
 /// Pierce's placement after the full or skipped story conversation.
-///
-/// XYZ are whole room-coordinate units; yaw is a negative half turn.
-/// The actor applies XYZ and yaw during dispatch without retaining the record.
 static ActorTransform _gShootingGalleryPierceConversationPierceReturnPlacement = {
     .pos = { -10230, 0, 5000, 0 },
     .rot = { 0, -ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0 },
 };
 
 /// Player placement for the story scene's exchange with Pierce.
-///
-/// XYZ are whole world units and signed Euler angles use 4096 units per turn.
-/// The player applies both vectors synchronously without retaining the record.
 static ActorTransform _gShootingGalleryPierceStoryPlayerDialoguePlacement = {
     .pos = { -10590, 0, 2100, 0 },
     .rot = { 0, -56, 0, 0 },
 };
 
 /// Player placement after the full or skipped story conversation.
-///
-/// XYZ are whole world-coordinate units and all Euler angles are zero.
-/// The player consumes both vectors during dispatch before scripted control ends.
 static ActorTransform _gShootingGalleryPierceConversationPlayerReturnPlacement = {
     .pos = { -10746, 0, 3972, 0 },
     .rot = { 0, 0, 0, 0 },
 };
 
 /// Conversation player clip 1 request with a reset.
-///
-/// The event interpreter copies the record and selects the equipped weapon
-/// bank. Playback takes scripted control and disables world collision.
-/// Keep the weapon bank and its borrowed clip data loaded through playback.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip1Request = {
     .source               = { .index = 1 },
     .animationId          = 1,
@@ -1306,10 +971,6 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip1Reques
 };
 
 /// Conversation player clip 1 request with a 8-frame blend.
-///
-/// The event interpreter copies this record and resolves the current weapon
-/// bank before dispatch. Playback takes scripted control and disables world
-/// collision. Keep the weapon bank and any copied clip data loaded.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip1BlendRequest = {
     .source               = { .index = 1 },
     .animationId          = 1,
@@ -1459,10 +1120,6 @@ EvsCommand gShootingGalleryPiercePierceStorySkipScript[15] = {
 };
 
 /// First optional Pierce conversation, using the alternate CAP resource's command 2.
-///
-/// Eleven commands include END. Blends the player to clip 1, sequences Pierce
-/// clips 13/14/12 at the caption cue, then ends scripted control and resets CAP.
-/// Start with `EVENT_SCRIPT_HUD_HIDE_RESTORE` and keep both overlays loaded.
 static EvsCommand _gShootingGalleryPiercePierceFirstTalkScript[11] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shootingGalleryPierceSetConversationCap }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = PIERCE_FIRST_TALK_CAP_COMMAND }, { .value = 0 } },
@@ -1478,11 +1135,6 @@ static EvsCommand _gShootingGalleryPiercePierceFirstTalkScript[11] = {
 };
 
 /// Second optional Pierce conversation with the conversation player clip extension.
-///
-/// Forty-three commands include END. Starts alternate CAP command 3 and
-/// sequences player clips 60..66 with Pierce's replies. Ends scripted control
-/// and resets CAP; `EVENT_SCRIPT_HUD_HIDE_RESTORE` restores the HUD. Both
-/// overlays and the weapon bank's borrowed clip data stay loaded.
 static EvsCommand _gShootingGalleryPiercePierceSecondTalkScript[43] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shootingGalleryPierceSetConversationCap }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gShootingGalleryPierceConversationPlayerBankCopyRequest } }, { .value = 0 } },
@@ -1530,10 +1182,6 @@ static EvsCommand _gShootingGalleryPiercePierceSecondTalkScript[43] = {
 };
 
 /// Repeat optional Pierce conversation, using the alternate CAP resource's command 4.
-///
-/// Eleven commands include END. Blends the player to clip 1, sequences Pierce
-/// clips 13/14/12 at the caption cue, then ends scripted control and resets CAP.
-/// Start with `EVENT_SCRIPT_HUD_HIDE_RESTORE` and keep both overlays loaded.
 static EvsCommand _gShootingGalleryPiercePierceRepeatTalkScript[11] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shootingGalleryPierceSetConversationCap }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = PIERCE_REPEAT_TALK_CAP_COMMAND }, { .value = 0 } },
@@ -1551,12 +1199,6 @@ static EvsCommand _gShootingGalleryPiercePierceRepeatTalkScript[11] = {
 #include "../../../../shared/room/cap_captions_settings.inc.c"
 
 /// Retained bodyless task recipe for the scene-clock caption schedule.
-///
-/// No code spawns it. The first spawn argument's low signed halfword would
-/// select the bottom text baseline in screen pixels; the second is unused.
-/// It needs a loaded caption file with every scheduled command/key, which the
-/// gallery's selected caption resource does not provide. The owner must kill
-/// the task before releasing that file or this overlay; it never ends itself.
 static TaskDesc _gCapCaptionScheduleTaskDesc = {
     { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _capCaptionRunSchedule, { .value = 0 }
 };
@@ -1570,14 +1212,6 @@ static TaskDesc _gCapCaptionScheduleTaskDesc = {
 #include "assets/rooms/mist/shooting_gallery/pierce_clips_3.inc"
 
 /// Pierce's synchronous animation, paired-draw, placement, command and walk messages.
-///
-/// Five handlers followed by `TASK_MESSAGE_TABLE_END`. Installed on the body task
-/// after its work and paired model exist; borrowed for that task's lifetime.
-/// Animation IDs must name loaded body clips (1..15 or 18..24). Draw requests
-/// use `ACTOR_MESSAGE_PAIR_`* bits. Placement applies XYZ and yaw; a walk target
-/// records heading/travel in work without starting a clip. Both take borrowed
-/// `ActorTransform` payloads in whole room units, with 4096 angle units per turn.
-/// Actor commands are accepted without action; unsupported IDs return zero.
 static TaskMessageEntry _gShootingGalleryPiercePierceMessageTable[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _pacedWalkPlayAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _pacedWalkSetPairModelDraw },
@@ -1593,104 +1227,50 @@ TaskDesc gShootingGalleryPiercePierceTaskDescs[SHOOTING_GALLERY_PIERCE_PIERCE_TA
 };
 
 /// Pierce's body animation bank, indexed directly by scripted clip ID.
-///
-/// Clips 1..15 and 18..24 are loaded; 0, 16 and 17 are NULL. Spawn starts
-/// clip 12, and message playback rejects only IDs >=25, so callers must also
-/// exclude negative and unloaded IDs. The context and slots borrow this table
-/// and its twenty-track clips for the lifetime of Pierce's task.
 #include "assets/rooms/mist/shooting_gallery/pierce_bank.inc"
 
 /// Owned handle of the gallery introduction's repeated red-flash task.
-///
-/// NULL means no published loop. Stop kills the published task and clears this
-/// pointer; another start overwrites it without killing an existing task.
-/// Keep both actor and gallery overlays loaded until the owner stops the loop.
 static Task* _gShootingGalleryPierceGalleryRedFlashLoopTask = NULL;
 
 /// Borrowed relocated command-reference entries of the loaded CAP resource.
-///
-/// Indexed by a nonnegative signed-halfword command index below the file count.
-/// The file owns the entries and all referenced sequences through caption use.
 static const CapCommandRef* _gCapCaptionCommandRefs = NULL;
 
 /// Glyph and title cells borrowed read-only from the selected loaded CAP file.
-///
-/// Text uses low-ten-bit indices; titles use low-byte selectors minus one.
-/// Every used index must exist in the file, which must remain loaded while
-/// captions are measured or drawn. Relocation republishes this pointer.
 static const TextGlyphCell* _gCapCaptionGlyphCells = NULL;
 
 /// Selected CAP sequence command and its following text records.
-///
-/// Borrowed from the loaded CAP file, which must remain live through selection
-/// and drawing. Slot zero is the sequence command; text records start at one
-/// and end at a record whose text reference is `CAP_TEXT_REF_END`. NULL hides
-/// captions. Selection requires a matching nonterminal key for measurement.
 static CapSequenceRecord* _gCapCaptionSequence = NULL;
 
 /// Biased left X of the selected caption's widest closed line, in screen pixels.
-///
-/// Cached as a signed halfword from (320 - width) / 2 - 5. Drawing uses its low
-/// halfword for packet coordinates; long lines may place it left of the screen.
 static s16 _gCapCaptionBlockLeftX = 0;
 
 /// First baseline of the selected caption block, in screen pixels.
-///
-/// Cached as a signed halfword from the bottom baseline minus subsequent
-/// closed-line heights. Drawing subtracts the caption draw-origin Y.
 static s16 _gCapCaptionFirstBaselineY = 0;
 
 /// Selected caption's bottom baseline in screen pixels.
-///
-/// Selection narrows the caller's word to a signed halfword. This anchors the
-/// first-baseline calculation and the caption box's bottom edge.
 static s16 _gCapCaptionBottomBaselineY = 0;
 
 /// Selected text-record slot within the current CAP sequence.
-///
-/// A signed-halfword index counting twelve-byte records; slot zero is the
-/// command, so selected text starts at one. The selected key must exist before
-/// the terminal slot and its index must fit in 1..32767 for metric calculation.
 static s16 _gCapCaptionRecordIndex = 0;
 
 /// Height of the selected caption's closed lines, in screen pixels.
-///
-/// Each line break commits its tallest nonnegative glyph height plus two,
-/// or two pixels for an empty line. The cached sum narrows to a signed halfword;
-/// an unfinished last line contributes nothing. Used to size the caption box.
 static s16 _gCapCaptionBlockHeight = 0;
 
 /// Selected caption variant key, compared with each record's unsigned byte key.
-///
-/// Valid text selections use 0..255; the signed-halfword input is retained.
 static s16 _gCapCaptionSelectedKey = 0;
 
 /// Continuation triangle's left X, retaining the low halfword of draw-coordinate pixels.
-///
-/// Updated at each text line break to the preceding pen X plus four. The
-/// triangle spans seven pixels to its right; no position is updated without a break.
 static u16 _gCapCaptionCaretLeftX = 0;
 
 /// Continuation triangle's tip Y, retaining the low halfword of draw-coordinate pixels.
-///
-/// Updated at each text line break to the preceding baseline minus two.
-/// Its upper edge is seven pixels above this tip; no VRAM Y offset is applied.
 static u16 _gCapCaptionCaretTipY = 0;
 
 /// Per-instance caret countdown and its uninterpreted retained bytes.
-///
-/// Selection resets `drawsLeft` to `CAP_CAPTION_CARET_DELAY_DRAWS`. Only eligible
-/// caret calls consume it; all initializer bytes remain stored verbatim.
 static CapCaptionCaretDelayStorage _gCapCaptionCaretDelayStorage = { 0, { 35, 192, 0 } };
 
 s32 gShootingGalleryPierceGallerySelectedCourseLevel;
 
 /// Owned copy of the deferred gallery room-exit request.
-///
-/// Executing exit requests replace all eight bytes before confirmation or
-/// transition playback. The queued room-exit decision uses area, warp and
-/// room once CAP finishes; queries never replace this copy. Its destination
-/// is valid only for that pending decision, while this actor overlay is loaded.
 RoomEventMsg _gShootingGalleryPierceGalleryPendingExitRequest;
 
 /// Holds the training scene through its exit reply and queues the decision task.
@@ -1948,11 +1528,6 @@ void shootingGalleryPierceHandleGalleryAction(void)
 }
 
 /// Runs the first-visit gallery introduction and hands control to its menu or exit scene.
-///
-/// Spawned on gallery entry with a live room overlay. Hides the HUD immediately;
-/// an already-seen introduction goes straight to the menu. Otherwise the task
-/// waits for each event script, uses the CAP reply to choose the menu or exit,
-/// and kills itself after the handoff. Event scripts own HUD/control restoration.
 static void _shootingGalleryPierceGalleryIntroTask(Task* task)
 {
     enum {
@@ -2019,11 +1594,6 @@ static void _shootingGalleryPierceGalleryIntroTask(Task* task)
 }
 
 /// Spawns a gallery red flash whenever its elapsed counter is divisible by 48.
-///
-/// Includes the first tick. Uses the task's zero-initialized signed-halfword
-/// counter as elapsed ticks;
-/// increments retain halfword wrapping. Requires the gallery flash table to
-/// remain loaded. No work is allocated; the event callback kills this task.
 static void _shootingGalleryPierceGalleryRedFlashLoopTask(Task* task)
 {
     enum {
@@ -2037,8 +1607,6 @@ static void _shootingGalleryPierceGalleryRedFlashLoopTask(Task* task)
 }
 
 /// Starts the gallery introduction's movie session, including the cleared-run splash.
-///
-/// Event-script callback; the gallery overlay must stay loaded through the session.
 static void _shootingGalleryPierceStartGalleryMovie(void)
 {
     enum { GALLERY_MOVIE_SESSION_TASK = 0 };
@@ -2047,8 +1615,6 @@ static void _shootingGalleryPierceStartGalleryMovie(void)
 }
 
 /// Spawns the introduction's demonstration target for a nonzero enable word.
-///
-/// Zero does nothing. Requires the gallery and target actor overlays and scene root.
 static void _shootingGalleryPierceSpawnGalleryDemoTargetIfEnabled(s32 enabled)
 {
     if (enabled != 0) {
@@ -2057,11 +1623,6 @@ static void _shootingGalleryPierceSpawnGalleryDemoTargetIfEnabled(s32 enabled)
 }
 
 /// Starts or stops the repeated red flashes used during the gallery introduction.
-///
-/// Nonzero spawns and publishes a loop task; zero kills the published task and
-/// clears its handle. The script must stop an existing loop before starting
-/// another: a repeated start overwrites the handle without killing its task.
-/// Both actor and gallery overlays must remain loaded until the loop is stopped.
 static void _shootingGalleryPierceSetGalleryRedFlashLoop(s32 enabled)
 {
     if (enabled != 0) {
@@ -2075,26 +1636,18 @@ static void _shootingGalleryPierceSetGalleryRedFlashLoop(s32 enabled)
 }
 
 /// Selects default room lights for zero, or alternate lights for a nonzero halfword.
-///
-/// Event-script callback; the gallery overlay must be loaded.
 static void _shootingGalleryPierceSelectGalleryRoomLights(s16 useAlternate)
 {
     mistShootingGallerySelectRoomLights(useAlternate);
 }
 
 /// Sets the deferred view-respawn request when the introduction is skipped.
-///
-/// Stores the signed halfword unchanged; nonzero asks gameplay to respawn the
-/// saved view when scene loading permits, and zero clears the request.
 static void _shootingGalleryPierceSetViewRespawnPending(s16 pending)
 {
     gGameSession->viewDirty = pending;
 }
 
 /// Selects the CAP resource and texture page for Pierce's conversation scenes.
-///
-/// Nonzero selects data-resource ordinal 1 and VRAM origin (768, 0); zero
-/// restores the bundle's default CAP selection. Requires those resources loaded.
 static void _shootingGalleryPierceSetConversationCap(s32 enabled)
 {
     enum {
@@ -2138,10 +1691,6 @@ void shootingGalleryPierceStartPierceConversation(void)
 #include "../../../../shared/room/cap_captions.inc.c"
 
 /// Selects a keyed caption and spawns its drawing task for signed tick duration.
-///
-/// Retained out-of-line wrapper with no callers. A valid loaded command/key and
-/// font storage must outlive the task. Zero or negative duration still draws once;
-/// later selections replace its text because caption state is shared per overlay.
 static void _shootingGalleryPierceShowTimedCaption(s16 commandIndex, s16 key, s16 durationTicks)
 {
     _capCaptionShowTimed(commandIndex, key, durationTicks);
@@ -2155,9 +1704,6 @@ void shootingGalleryPierceSelectCaptionResource(s16 texturePageX, s16 texturePag
 }
 
 /// Spawns and adopts Pierce's paired model with the parent's placement textures.
-///
-/// Requires a live parent and successful child allocation. The task tree owns
-/// the returned child; the helper preserves the retained unchecked failure path.
 static inline Task* _shootingGalleryPierceSpawnPiercePair(Enemy* enemy, Task* task)
 {
     Enemy* pairedEnemy;
@@ -2169,11 +1715,6 @@ static inline Task* _shootingGalleryPierceSpawnPiercePair(Enemy* enemy, Task* ta
 }
 
 /// Allocates Pierce's paced-walk state, adopts his paired model and starts clip 12.
-///
-/// Requires the loaded twenty-part body, 25-slot clip bank and pair descriptor.
-/// Work-allocation failure destroys the owning enemy/task. The retained child
-/// spawn path requires allocation to succeed before it dereferences the child.
-/// The task owns the work and child; model lighting matrices borrow that work.
 static void _shootingGalleryPierceSpawnPierce(Enemy* enemy, Task* task)
 {
     enum {
@@ -2222,10 +1763,6 @@ static void _shootingGalleryPierceSpawnPierce(Enemy* enemy, Task* task)
 #include "../../../../shared/walk/paced_walk_update.inc.c"
 
 /// Dispatches Pierce's spawn state or paced movement, animation, lighting and shadow.
-///
-/// State must be 0 or 1; spawn increments it once and the frame handler retains 1.
-/// The second spawn payload is the live owning Enemy. The actor resources and
-/// task model stay loaded; spawn failure may destroy both before dispatch returns.
 static void _shootingGalleryPiercePierceTask(Task* task)
 {
     EnemyTaskFunc stateHandlers[] = {
@@ -2237,16 +1774,8 @@ static void _shootingGalleryPiercePierceTask(Task* task)
 }
 
 /// Selects this carrier's private walker frame state for one fragment inclusion.
-///
-/// Bind to a static void(Enemy*, Task*) function declared in the prologue.
-/// This identifier alias evaluates no arguments; undefine after the fragment.
 #define ACTOR_RENDER_WALKER_FRAME _actorRenderWalkerFrame
 /// Selects this frame instance's motion and animation update.
-///
-/// Bind to a declared static void(Task*) function for the same task and work.
-/// The frame calls it once after lighting and before drawing the shadow.
-/// This object-like identifier alias captures no locals or constructed tokens;
-/// undefine it after each inclusion of walker_frame.inc.c.
 #define ACTOR_RENDER_UPDATE_WALKER _pacedWalkUpdate
 /// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
@@ -2256,10 +1785,6 @@ static void _shootingGalleryPiercePierceTask(Task* task)
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 /// Releases the walker's enemy record and tears down its task tree.
-///
-/// Installed after the walker allocates its work. `spawnArg2.pointer` must
-/// retain the live owning enemy through this callback; task teardown releases
-/// the work, model and carried child. Neither pointer survives teardown.
 static void _pacedWalkExit(Task* task)
 {
     enemyDestroy(task->spawnArg2.pointer, task);
@@ -2278,15 +1803,6 @@ static void _pacedWalkExit(Task* task)
 #include "../../../../shared/walk/paced_walk_apply_animation_request.inc.c"
 
 /// Immediately reseeds the walker's non-root tracks from a scripted play request.
-///
-/// Requires a spawned TMD walker with live `PacedWalkWork`. The bank has loaded
-/// clips 1..15 and 18..24; entries 0, 16 and 17 are NULL. The signed check rejects
-/// only IDs >=25, so callers must exclude negative and unloaded IDs. The request
-/// is borrowed through dispatch; clip storage must outlive playback on parts 1..19.
-/// Nonzero blend captures old poses and narrows the duration to a signed halfword
-/// in normal-rate frames; 0..2047 keeps blend time nonnegative. Reset ignores it.
-/// Ignores the bank selector, collision choice, message ID and second payload.
-/// Returns 0 after reseeding or -1 for a rejected ID without changing playback.
 static s32 _pacedWalkPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument)
 {
     enum {
@@ -2306,10 +1822,6 @@ static s32 _pacedWalkPlayAnimation(Task* task, s32 messageId, const AnimationPla
 }
 
 /// Replaces both model flags from paired-draw request bits, in receiver-first order.
-///
-/// Both TMD objects must be live and writable; pointers may alias. SHOW clears
-/// all flags, its absence excludes active drawing, and SKIP_AUTO_BUFFER adds
-/// automatic-buffer suppression. Other bits are ignored; no buffers are changed.
 static inline void _pacedWalkReplacePairDrawFlags(TmdObject* walkerModel, TmdObject* pairModel, s32 requestFlags)
 {
     enum { PACED_WALK_PAIR_MODEL_NO_FLAGS = 0 };
@@ -2328,12 +1840,6 @@ static inline void _pacedWalkReplacePairDrawFlags(TmdObject* walkerModel, TmdObj
 }
 
 /// Replaces the walker and its carried model's draw flags together.
-///
-/// Requires live TMD models on the receiver and its `PacedWalkWork::pairTask`,
-/// regardless of spawn arguments. Uses `ACTOR_MESSAGE_PAIR_*` request bits:
-/// SHOW clears all flags; without it, both exclude active drawing. The separate
-/// SKIP_AUTO_BUFFER bit adds that object flag. Other bits are ignored. Does not
-/// allocate or release buffers. Ignores the message ID and second payload; returns 0.
 static s32 _pacedWalkSetPairModelDraw(Task* task, s32 messageId, s32 requestFlags, s32 unusedArgument)
 {
     PacedWalkWork* work;
@@ -2350,9 +1856,6 @@ static s32 _pacedWalkSetPairModelDraw(Task* task, s32 messageId, s32 requestFlag
 #include "../../../../shared/walk/paced_walk_place.inc.c"
 
 /// Ignores actor commands without changing the walker.
-///
-/// Retains the four-word ABI of `ACTOR_COMMAND_MESSAGE_APPLY`. The receiver,
-/// borrowed command and other argument words are never read or retained; returns 0.
 static s32 _shootingGalleryPierceIgnoreCommand(Task* task, s32 messageId, const ActorCommand* unusedCommand, s32 unusedArgument)
 {
     return 0;
@@ -2363,12 +1866,6 @@ static s32 _shootingGalleryPierceIgnoreCommand(Task* task, s32 messageId, const 
 #include "../../../../shared/walk/paced_walk_attach_carried_model.inc.c"
 
 /// Attaches the carried model to walker part 4 and refreshes its root composition.
-///
-/// Requires a live TMD child task under a spawned walker with `PacedWalkWork`
-/// and at least five model coordinates. State 0 borrows part 4 and the parent's
-/// light matrices, clears all flags and enters state 1. Both states mark the
-/// root dirty; other states do nothing. The parent's model and work must outlive
-/// this child, which belongs to the parent's task teardown tree.
 static void _pacedWalkSubModelTask(Task* task)
 {
     enum {

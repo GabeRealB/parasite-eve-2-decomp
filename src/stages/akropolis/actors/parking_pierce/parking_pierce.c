@@ -8,11 +8,8 @@
 
 #include "actors/actor.h"
 
-#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
-#include "gameplay/area.h"
-#include "gameplay/areaplace.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/enemy.h"
 #include "gameplay/hud_sprites.h"
@@ -37,9 +34,9 @@
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 
-#include "../../rooms/mist_parking/config.h"
-
 #include "stages/akropolis/rooms/mist_parking.h"
+
+#include "../../rooms/mist_parking/config.h"
 #include "../../../../shared/actor/model_placement.h"
 #include "../../../../shared/actor/actor_messages.h"
 #include "../../../../shared/actor/actor_motion_walk_helpers.h"
@@ -66,18 +63,6 @@ enum {
 static void _modelPlacementMirrorParentDrawFlags(Task* childTask);
 
 /// Work block of Pierce Carradine's body, the package's scripted walker.
-///
-/// The task's spawn state allocates it zeroed and keeps it at `Task::work`
-/// for the task's life. It opens with the twenty-part rig and the model
-/// state, and the model object borrows `model.light` and `model.color` for as
-/// long as the block lives.
-///
-/// The actor has a collision sphere of its own, which the spawn state links
-/// and the exit callback unlinks, so `body` and the table it borrows sit
-/// between the model state and the walk a room script sends the actor on.
-/// What follows the walk is the package's own: the model that faces the
-/// camera, the heading the walk opens on, the head turn toward the player and
-/// the delayed free of the model's buffers once the model has been hidden.
 typedef struct {
     ActorAnimRig20        rig;            // Playback storage of the twenty-part body model; slots 1 to 19 are driven
     ActorModelState       model;          // Clip and bank the rig plays, and the matrices the model is lit with
@@ -114,9 +99,6 @@ static void _parkingPierceBillboardTask(Task* task);
 static void _parkingPierceAttachedModelTask(Task* task);
 
 /// Task-state callbacks for Pierce Carradine's camera-facing billboard child.
-///
-/// `Task::state` selects 0 attach, 1 face the camera or 2 kill the child.
-/// Attachment borrows a parent model part through the child's active lifetime.
 static const TaskFuncTable3 _gParkingPierceBillboardStates = { {
     _parkingPierceAttachBillboard,
     _parkingPierceFaceBillboardToCamera,
@@ -124,9 +106,6 @@ static const TaskFuncTable3 _gParkingPierceBillboardStates = { {
 } };
 
 /// Task-state callbacks shared by Pierce Carradine's two attached models.
-///
-/// `Task::state` selects 0 attach, 1 inherit the parent's drawing and buffer
-/// policy or 2 kill the child. Parent coordinates and lighting remain borrowed.
 static const TaskFuncTable3 _gParkingPierceAttachedModelStates = { {
     _modelPlacementAttachChild,
     _modelPlacementMirrorParentDrawFlags,
@@ -134,9 +113,6 @@ static const TaskFuncTable3 _gParkingPierceAttachedModelStates = { {
 } };
 
 /// Pierce Carradine body callbacks: 0 initialize, 1 update, 2 exit.
-///
-/// The task owns its body work and attached models; exit unlinks collision before
-/// releasing the body and its descendants.
 static const TaskFuncTable3 _gParkingPiercePierceCarradineTaskStates = {
     .funcs = {
         _parkingPierceSpawnPierceCarradine,
@@ -146,8 +122,6 @@ static const TaskFuncTable3 _gParkingPiercePierceCarradineTaskStates = {
 };
 
 /// Pierce Carradine's four scripted-walk steps, copied before dispatch.
-///
-/// `walk.motionStep` must be in 0..3; the closing turn returns motion to idle.
 static const TaskFuncTable4 _gParkingPiercePierceCarradineWalkSteps = { {
     _parkingPierceQueueWalkHeading, // 0: queue destination heading and opening-turn clip
     _parkingPierceTurnAndBeginWalk, // 1: face the destination and begin forward motion
@@ -169,17 +143,9 @@ static void      _parkingPiercePierceCarradineTask(Task* task);
 #include "assets/rooms/mist/parking/pierce_clips.inc"
 
 /// Pierce Carradine's bank-0 clip table for his twenty-part body rig.
-///
-/// Clip IDs 1..35 borrow loaded sets; entry 0 is NULL and cannot be played.
-/// The outer bank selector supplies this table to the rig. The table and
-/// referenced animation resources must stay loaded throughout playback.
 #include "assets/rooms/mist/parking/pierce_bank.inc"
 
 /// Body animation banks for Pierce Carradine; bank 0 is the sole 36-entry clip table.
-///
-/// An animation request's source index selects this table, independently of
-/// its animationId. The context borrows the selected bank while the rig lives;
-/// callers must select bank 0 and a non-NULL clip in that bank.
 static AnimationSet** _gParkingPiercePierceAnimationBanks[1] = {
     _gParkingPiercePierceAnimationBank,
 };
@@ -191,10 +157,6 @@ enum {
 };
 
 /// Head-aim ramp direction for each of Pierce Carradine's 36 body-clip indices.
-///
-/// Values are 0 to lower the Q12 head-aim weight toward zero, or 1 to raise it
-/// toward full player tracking. Every play request selects its byte even when
-/// repeating a clip; later actor commands may override that direction.
 static u8 _gParkingPierceHeadTurnByClip[36] = {
     HEAD_TURN_RELEASE,
     HEAD_TURN_AIM,
@@ -266,10 +228,6 @@ TaskDesc gParkingPiercePierceCarradineTaskDescriptors[4] = {
 };
 
 /// Pierce Carradine's synchronous animation, placement, drawing, walk and command messages.
-///
-/// The five ID-selected callbacks borrow message payloads for dispatch; walk setup
-/// copies its destination. The sixth END/null entry terminates lookup.
-/// Installed on the initialized body task for that task's lifetime.
 static TaskMessageEntry _gParkingPiercePierceCarradineMessages[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _parkingPiercePlayAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
@@ -280,14 +238,6 @@ static TaskMessageEntry _gParkingPiercePierceCarradineMessages[6] = {
 };
 
 /// Creates Pierce Carradine's scripted body, attached models and collision sphere.
-///
-/// Requires a live twenty-part TMD and owning Enemy in `spawnArg2.pointer`.
-/// Owns zeroed work until exit; allocation failure exits the enemy task.
-/// Children borrow the parent task and model, and use its placement's textures.
-/// Child failures are independent. Variant 2 also creates the camera-facing
-/// model. Links an enemy-body sphere of radius 256 on part 1 with one contact
-/// slot, then hides the body and disables its sphere pair pass.
-/// Installs messages and teardown and advances from spawn state to update.
 static void _parkingPierceSpawnPierceCarradine(Task* task)
 {
     enum {
@@ -356,10 +306,6 @@ static void _parkingPierceSpawnPierceCarradine(Task* task)
 }
 
 /// Applies one frame of Pierce's signed 16.16 walk velocity to the root.
-///
-/// Borrows live writable work/root in the same parent frame. Signed integer
-/// carries move XYZ before composition is invalidated; unsigned fractional
-/// halves remain for the next tick. Preserves the target's 32-bit additions.
 static inline void _parkingPierceIntegrateWalkVelocity(_PierceCarradineWork* work, GfxCoord* rootCoord)
 {
     work->walk.carry[0].word += work->walk.velocity.vx;
@@ -375,10 +321,6 @@ static inline void _parkingPierceIntegrateWalkVelocity(_PierceCarradineWork* wor
 }
 
 /// Steps Pierce's head-aim weight toward zero or full aim.
-///
-/// Borrows work with a weight in 0..ONE. Selector 0 releases, 1 aims, and all
-/// other signed-byte selectors hold. Each add/subtract narrows to a signed
-/// halfword before saturation; the caller controls visibility and freeze gates.
 static inline void _parkingPierceStepHeadAimWeight(_PierceCarradineWork* work)
 {
     enum { WEIGHT_STEP  = ONE / 16,
@@ -408,16 +350,6 @@ static inline void _parkingPierceStepHeadAimWeight(_PierceCarradineWork* work)
 }
 
 /// Updates Pierce's scripted walk, animation cues, head aim and model presentation.
-///
-/// Requires initialized live body/work; walk.motion is 0 (idle) or 1 (walking).
-/// A drawn body casts its shadow even while scene actors are paused. Motion,
-/// slots 1..19, lighting and delayed buffer release advance only while actors
-/// run. Velocity is signed 16.16 parent-space units per update; its signed
-/// integer part moves the root and its unsigned low halfword stays as carry.
-/// Drawn bodies clear their one contact and ramp head weight by 1/16 per tick
-/// toward zero or full aim. View 16 selects the alternate first footstep cue
-/// and suppresses the second. The tick finding freeCountdown == 0 frees the
-/// primitive buffer and decrements the counter to its disabled value of -1.
 static void _parkingPierceUpdatePierceCarradine(Task* task)
 {
     enum {
@@ -488,10 +420,6 @@ static void _parkingPierceUpdatePierceCarradine(Task* task)
 }
 
 /// Applies Pierce's bank/clip transition and its clip-selected head-turn ramp.
-///
-/// Borrows initialized work, live model coordinates and a readable request with
-/// `_parkingPiercePlayAnimation`'s bank, clip and lifetime contract. Repeated clips retain
-/// their cursor. Slots 1..19 blend or reset and tick only for a changed clip.
 static inline void _parkingPierceApplyAnimationRequest(_PierceCarradineWork* work,
                                                        TmdObject* model, const AnimationPlayRequest* request)
 {
@@ -527,14 +455,6 @@ static inline void _parkingPierceApplyAnimationRequest(_PierceCarradineWork* wor
 }
 
 /// Turns to the queued heading, then starts the walk at 32 parent-space units per tick.
-///
-/// Requires initialized body work and a live model root. Angles use 4096 units
-/// per turn; the yaw difference narrows to a signed halfword without shortest-turn
-/// wrapping. Steps by 64 until within 64, then snaps to `walkYaw`, rotates a
-/// 16.16 forward velocity, seeds all arrival gaps and plays clip 2 with a
-/// four-frame blend. Advances the walk step only on completion. Rebuilds a pure
-/// Y rotation and invalidates composition, retaining translation and stored Euler
-/// parameters. The caller integrates velocity after this step.
 static void _parkingPierceTurnAndBeginWalk(Task* task)
 {
     _PierceCarradineWork* work;
@@ -585,13 +505,6 @@ static void _parkingPierceTurnAndBeginWalk(Task* task)
 }
 
 /// Stops Pierce's walk when neither horizontal arrival gap gets smaller.
-///
-/// Requires a live root and initialized walk work. Gaps use root-parent units:
-/// the full-word sign chooses a low-halfword subtraction, then each gap narrows
-/// to a signed halfword. Previous gaps hold their absolute values. Arrival plays
-/// the queued bank-0 clip with a five-frame blend, clears XYZ velocity and advances
-/// the walk step. The queued clip must be loaded; position and fractional carry
-/// are retained. Otherwise updates only the X/Z previous gaps.
 static void _parkingPierceCheckWalkArrival(Task* task)
 {
     _PierceCarradineWork* work;
@@ -626,14 +539,6 @@ static void _parkingPierceCheckWalkArrival(Task* task)
 }
 
 /// Sets Pierce's body drawing, sphere-pair participation and buffer policy.
-///
-/// Requires initialized body work and a live TMD task. Modes 0/2 hide and 1/3 show;
-/// every accepted mode disables the body's sphere-pair pass. Modes 0/1 permit
-/// automatic buffers, and 1 requests a missing buffer immediately. Mode 2 disables
-/// automatic buffers and seeds a countdown of 2; two eligible ticks consume it,
-/// then the tick reading zero frees the buffers. Mode 3 disables automatic buffers without allocating.
-/// Other modes leave any pending release countdown intact. Ignores message ID and
-/// second payload. Returns 0 for modes 0..3, or 1 without changes for another mode.
 static s32 _parkingPierceSetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg)
 {
     _PierceCarradineWork* work;
@@ -699,16 +604,6 @@ static s32 _parkingPierceSetModelDraw(Task* task, s32 messageId, s32 drawMode, s
 }
 
 /// Copies a walk destination and starts Pierce's four-stage walking sequence.
-///
-/// Requires initialized body work and a live root. Borrows a readable placement
-/// through the call; XYZ position is in the root parent's frame, and Euler angles
-/// use 4096 units per turn. Only the final yaw is used by the closing turn.
-/// An optional readable clip pair selects the initial and queued arrival clips
-/// in bank 0; NULL selects clips 2 and 1. Clip IDs must name loaded entries 1..35.
-/// Starts at heading selection, applies the initial clip with a five-frame blend
-/// when playback is ticking, and selects its head-turn ramp. Repeated clips keep
-/// their cursor. Velocity and fractional carry are retained until later walk steps
-/// replace them. Ignores message ID, retains no payload pointer, and returns 0.
 static s32 _parkingPierceStartWalk(Task* task, s32 messageId, const ActorTransform* placement, const ActorMotionWalkAnim* walkAnim)
 {
     _PierceCarradineWork* playWork;
@@ -746,11 +641,6 @@ static s32 _parkingPierceStartWalk(Task* task, s32 messageId, const ActorTransfo
 }
 
 /// Dispatches Pierce's billboard attachment, camera-facing tick or teardown.
-///
-/// Requires a live TMD task and state 0..2. Setup borrows the parent TMD task from
-/// `spawnArg2.pointer` and its coordinate index from `spawnArg1.value`; those
-/// resources must outlive the child. The selected callback may destroy the task.
-/// There is no bounds check or return value.
 static void _parkingPierceBillboardTask(Task* task)
 {
     TaskFuncTable3 states;
@@ -760,12 +650,6 @@ static void _parkingPierceBillboardTask(Task* task)
 }
 
 /// Attaches the billboard 100 units above the selected parent model part.
-///
-/// Setup requires live child and parent TMD tasks, child coordinate 0 and a valid
-/// parent coordinate index in `spawnArg1.value`. Borrows the parent from
-/// `spawnArg2.pointer` and joins its teardown tree; ancestry must remain acyclic.
-/// The coordinate parent remains borrowed until teardown. Initially shows the
-/// model only while game flag 0xF1 is zero, then advances to the camera-facing tick.
 static void _parkingPierceAttachBillboard(Task* task)
 {
     TmdObject* model;
@@ -798,13 +682,6 @@ static void _parkingPierceAttachBillboard(Task* task)
 }
 
 /// Cancels the parent and camera rotations to face Pierce's billboard toward the camera.
-///
-/// Requires an attached child root, a live parent part selected by `spawnArg1.value`
-/// and the active mapped camera. Uses transpose(parent world rotation) times
-/// transpose(camera rotation), then applies the parent part's extracted local yaw
-/// as an X rotation. Retains local translation and marks composition dirty.
-/// The parent world matrix must already be current; no coordinate composition is
-/// performed here.
 static void _parkingPierceFaceBillboardToCamera(Task* task)
 {
     Task*     parentTask;
@@ -831,13 +708,6 @@ static void _parkingPierceFaceBillboardToCamera(Task* task)
 }
 
 /// Dispatches an attached model's setup, inherited draw-policy tick or teardown.
-///
-/// Requires a live TMD task and state 0..2. Setup borrows the parent TMD task from
-/// `spawnArg2.pointer` and a valid coordinate index from `spawnArg1.value`; the
-/// parent coordinates and lighting must outlive the child. Setup joins the parent
-/// teardown tree. Each tick mirrors drawing and buffer policy, allocating a missing
-/// buffer when permitted. The selected callback may destroy the task. No bounds
-/// check or return value.
 static void _parkingPierceAttachedModelTask(Task* task)
 {
     TaskFuncTable3 states;
@@ -851,12 +721,6 @@ static void _parkingPierceAttachedModelTask(Task* task)
 #include "../../../../shared/actor/model_placement_mirror_parent.inc.c"
 
 /// Dispatches Pierce Carradine's body setup, frame update or teardown.
-///
-/// Requires the twenty-part TMD task created by this package's body descriptor
-/// and `state` in 0..2. Setup allocates owned work and collision storage; update
-/// moves and animates the body; teardown unlinks collision before releasing it.
-/// Dispatch continues independently of the scene's actor-control gate. A state
-/// callback may destroy the task. The state index is unchecked.
 static void _parkingPiercePierceCarradineTask(Task* task)
 {
     TaskFuncTable3 states;
@@ -866,10 +730,6 @@ static void _parkingPiercePierceCarradineTask(Task* task)
 }
 
 /// Unlinks Pierce's collision sphere before releasing his body task and work.
-///
-/// Requires a live initialized work block whose body is linked. The task exit
-/// releases its work and descendants; no borrowed lighting or coordinates may be
-/// used afterwards.
 static void _parkingPierceExit(Task* task)
 {
     _PierceCarradineWork* work = task->work;
@@ -879,9 +739,6 @@ static void _parkingPierceExit(Task* task)
 }
 
 /// Makes Pierce's model borrow the light and color matrices in its work block.
-///
-/// Requires a live TMD task with allocated body work. The matrices remain borrowed
-/// until the model is destroyed, so the work block must outlive rendering.
 static void _parkingPierceBindLighting(Task* task)
 {
     TmdObject*            model;
@@ -894,10 +751,6 @@ static void _parkingPierceBindLighting(Task* task)
 }
 
 /// Reveals Pierce when his appearance flag first becomes positive while he is idle.
-///
-/// Requires live body work. A positive flag after a recorded zero enables model
-/// drawing and restores the parking collision patch. Every idle update records
-/// the flag in its signed-byte latch, including updates that do not reveal him.
 static void _parkingPierceCheckPierceAppearance(Task* task)
 {
     _PierceCarradineWork* work;
@@ -913,11 +766,6 @@ static void _parkingPierceCheckPierceAppearance(Task* task)
 }
 
 /// Dispatches Pierce's heading, opening turn, arrival or closing-turn step.
-///
-/// Requires live initialized body work and a walk step in 0..3, in that order.
-/// The caller integrates the step's velocity after dispatch. The stack copy of
-/// the four callbacks is indexed without a bounds check; this is a motion-state
-/// index, independent of animation slot indices.
 static void _parkingPierceStepWalk(Task* task)
 {
     _PierceCarradineWork* work;
@@ -929,12 +777,6 @@ static void _parkingPierceStepWalk(Task* task)
 }
 
 /// Queues the destination heading and starts Pierce's opening-turn clip.
-///
-/// Requires initialized walk work and a live root coordinate. Normalizes the
-/// root-parent offset to `walk.target`, stores its yaw in `walkYaw` (4096 units per
-/// turn), and plays bank-0 clip 22 with a four-frame blend. Advances to the opening
-/// turn without changing the root rotation or velocity; that next step applies
-/// the queued heading.
 static void _parkingPierceQueueWalkHeading(Task* task)
 {
     _PierceCarradineWork* work;
@@ -964,13 +806,6 @@ static void _parkingPierceQueueWalkHeading(Task* task)
 }
 
 /// Turns Pierce's root to the destination yaw, then returns the walk to idle.
-///
-/// Requires initialized walk work and a live root. Angles use 4096 units per turn;
-/// the target-minus-current yaw narrows to a signed halfword without shortest-turn
-/// wrapping. Steps by 64 until within 64, then snaps, plays the queued bank-0 clip
-/// with a five-frame blend and resets both motion selectors. The queued clip must
-/// be loaded. Rebuilds rotation using the extracted pitch and roll, retaining
-/// translation and stored Euler parameters, and invalidates composition.
 static void _parkingPierceTurnToArrivalYaw(Task* task)
 {
     _PierceCarradineWork* work;
@@ -1011,17 +846,6 @@ static void _parkingPierceTurnToArrivalYaw(Task* task)
 }
 
 /// Applies a changed clip to Pierce's twenty-part rig and selects its head-turn ramp.
-///
-/// Requires live model coordinates and allocated body work with `model.bank`
-/// initially `ACTOR_MOTION_ANIMATION_INDEX_NONE`. Borrows a nonoverlapping readable request
-/// through the call. The loaded bank is 0; clip IDs 1..35 index both its sets and
-/// the head-turn table, and stored IDs narrow to signed bytes. A bank change binds
-/// the rig and invalidates the previous clip. A changed clip blends for whole
-/// `blendFrames` (normally 0..2047) when blend is nonzero and the rig is ticking, or resets otherwise;
-/// slots 1..19 tick once before subsequent frame ticks are enabled. A repeated
-/// clip in the same bank keeps its cursor, but still selects the head-turn ramp.
-/// Coordinates, slots, poses and loaded clip data remain borrowed for playback's
-/// lifetime. Ignores message ID, collision choice and second payload. Returns 0.
 static s32 _parkingPiercePlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg)
 {
     _PierceCarradineWork* work;
@@ -1036,12 +860,6 @@ static s32 _parkingPiercePlayAnimation(Task* task, s32 messageId, const Animatio
 #include "../../../../shared/actor/actor_messages_place_euler.inc.c"
 
 /// Shows or hides Pierce's billboard, or selects his head-turn ramp.
-///
-/// Requires initialized body work and a readable borrowed command through the call.
-/// Actions 0/1 show/hide the optional billboard; 2 ramps the head toward the player
-/// and 3 releases that turn. A later animation request can replace this ramp choice.
-/// Ignores the command context, message ID and second payload. Unknown actions and
-/// an absent billboard have no effect. Retains no payload pointer and returns 0.
 static s32 _parkingPierceApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg)
 {
     _PierceCarradineWork* work;

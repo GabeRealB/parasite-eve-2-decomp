@@ -1,7 +1,7 @@
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
-#include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include <psyq/abs.h>
 #include <psyq/memory.h>
 #include <psyq/stdio.h>
 
@@ -14,11 +14,8 @@
 
 #include "actors/actor_210600.h"
 
-#include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
-#include "gameplay/area.h"
-#include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
 #include "gameplay/damage.h"
 #include "gameplay/effect_tasks.h"
@@ -26,7 +23,6 @@
 #include "gameplay/enemy.h"
 #include "gameplay/message.h"
 #include "gameplay/enemy_params.h"
-#include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
 #include "gameplay/scene_combat.h"
@@ -58,14 +54,7 @@
 #include "../../../../shared/actor/actor_contacts.h"
 #include "../../../../shared/creatures/boss_stranger/boss_stranger.h"
 
-/// Scratch-stack block the patrol layout works in while it places the walker's
-/// nav nodes.
-///
-/// Node 0 is the walker's own position. Each node after it lies one further
-/// turn about Y round the walker: `rotation` is turned by the layout's angle
-/// once per node, and `offset` is its facing axis times the layout's scale, of
-/// 4096. One block serves one layout and is released before it returns.
-/// Angles are 4096ths of a turn.
+/// Scratch-stack block the patrol layout works in while it places the walker's nav nodes.
 typedef struct {
     SVECTOR offset;    // Node's offset from the walker: the facing axis of `rotation`, then that axis scaled; `pad` is never written
     MATRIX  rotation;  // Copy of the walker coordinate's matrix, turned about Y once more for each node; only its rotation is read
@@ -73,13 +62,7 @@ typedef struct {
 } _PatrolLayoutScratch;
 STATIC_ASSERT_SIZEOF(_PatrolLayoutScratch, 0x2C);
 
-/// Values of `_Work::state`: the index of the handler the per-frame
-/// tick runs.
-///
-/// Five numbers have no handler. `RESTORED` is the only one of them that is
-/// ever stored; what replaces it before the tick dispatches on it is not in
-/// this package. Nothing here stores the states marked "never selected",
-/// which leaves `RISE_BACK`, `RISE` and `DOWN` unreachable as well.
+/// Values of `_Work::state`: the index of the handler the per-frame tick runs.
 enum {
     STATE_HIDDEN       = 0x00,          // not drawn, not lockable, `attackBody` and `gridBody` off
     STATE_RESTORED     = 0x01,          // set at spawn for an enemy with a saved spawn state; has no handler
@@ -88,31 +71,22 @@ enum {
     STATE_ALERT        = 0x04,          // plays animation 0x15 with the look following the player, then chases
     STATE_ATTACK       = 0x05,          // swings at the player with `attackBody` enabled, then chases
     STATE_IDLE         = 0x06,          // stands on animation 0x18, now and then playing 0xE; a hit alerts it
-    STATE_FALL_BACK    = 0x07,          // backs away through animations 0x1D and 0x1E, then `DOWN` or, dead, `DEATH_BURN`; never selected
-    STATE_FALL         = 0x08,          // edges forward through animation 0xC, then `DOWN` or, dead, `DEATH_BURN`; never selected
     STATE_RISE_BACK    = 0x09,          // plays animation 0xF after a `DOWN` that followed `FALL_BACK`, then chases
     STATE_RISE         = 0x0A,          // plays animation 0x10 after a `DOWN` that followed `FALL`, then chases
     STATE_DOWN         = 0x0B,          // holds its pose for `downFrames`, then rises
     STATE_DEATH_BURN   = 0x0C,          // burns away: the corpse-burn effect, then the model flattens, fades and stops being drawn
     STATE_DEATH_BURST  = 0x0D,          // stops drawing the model and throws five body parts from it; never selected
     STATE_STATUS_HOLD  = 0x0E,          // twitches in place until the status buildup runs out, then chases
-    STATE_UNUSED_0F    = 0x0F,          // has no handler and is never selected
-    STATE_UNUSED_10    = 0x10,          // has no handler and is never selected
     STATE_SCRIPTED     = 0x11,          // plays the animation a room command or a play request put in `animId`
-    STATE_UNUSED_12    = 0x12,          // has no handler and is never selected
     STATE_DEATH_THRASH = 0x13,          // turns in random jerks through animation 0x16, plays 0x21, then `DEATH_BURN`; never selected
     STATE_LURK         = 0x14,          // holds animation 0x22 until the player comes within 3000 or a hit alerts it; entered by a patio command
     STATE_LURK_ALERT   = 0x15,          // the alert that ends `LURK`: not lockable, then chases
-    STATE_SHUDDER      = 0x16,          // jolts the root from side to side over five ticks, then chases; never selected
     STATE_ALERT_REWIND = 0x17,          // runs animation 0x15 forward 20 ticks on entry, then plays it backward until another state is set; entered by a cafeteria command
     STATE_ENRAGE       = 0x18,          // convulses while `enrageTint` builds, then chases at a faster `baseRate`; entered once, by the hit that takes it below half its hit points
     CAFETERIA_BOSS_STRANGER_STATE_COUNT // number of states, and of the handlers in `_StateTable`
 };
 
 /// Values of `_Work::animRequest` and `_Work::blendRequest`.
-///
-/// A zero-filled block holds 0, on which the driver only advances the slots.
-/// The blend rig is only ever asked to reset.
 enum {
     ANIM_REQUEST_BLEND   = 1, // seek the slots to the animation, blending over the frames its transition table gives
     ANIM_REQUEST_RESET   = 2, // restart the slots on the animation
@@ -121,9 +95,6 @@ enum {
 };
 
 /// Scripted clip slots in this actor's animation-set table.
-///
-/// Slots 34..37 are writable entries of `_gCafeteriaBossStrangerAnimationSets`; the
-/// commands below select their bindings. Slot 40 is play-request selector 4.
 enum {
     ANIM_SCRIPTED_SLOT0    = 0x22,
     ANIM_SCRIPTED_SLOT1    = 0x23,
@@ -158,17 +129,6 @@ enum {
 enum { PREV_STATE_NONE = -1 };
 
 /// Work block of the Boss Stranger task.
-///
-/// The spawn handler allocates it zeroed and keeps it at `Task::work`; the
-/// exit callback unlinks its three collision bodies. It holds the state
-/// machine, both animation rigs and their driver's state, the bodies with
-/// their contact records, storage for the model's matrices, the walker that
-/// moves the root and the two-node patrol it walks.
-///
-/// Angles are 4096ths of a turn. Animation ids index the package's animation
-/// bank; rates are sixteenths of a frame per tick. A cue index is the low ten
-/// bits of the record a slot's current pose names
-/// (`ANIMATION_POSE_CUE_INDEX_MASK`).
 typedef struct {
     s16                   state;                // `CAFETERIA_BOSS_STRANGER_STATE_*`
     s16                   prevState;            // `state` the tick last ran; -1 makes the next tick enter `state` afresh
@@ -233,17 +193,6 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_Work, 0xBEC);
 
 /// Stops steering and starts an idle speed ramp from the current step.
-///
-/// actorWork borrows live `_Work`; walkerAlias is a writable
-/// BossStrangerWalker* local and savedSpeed a disjoint writable u16 local.
-/// Arguments must have no side effects: actorWork and both outputs are evaluated
-/// repeatedly; targetValue and stepValue once each. Target narrows to unsigned
-/// halfword game units per tick and step to unsigned halfword speed change per tick.
-/// Saves current speed before exposing the embedded walker, selects IDLE and
-/// retains that speed while clearing turn/look. The movement core compares the
-/// speed gap as s16 and applies target 0xFFFE as a signed step of -2. No captured
-/// caller locals; output locals must not alias the work's members.
-/// Invoke as a standalone compound statement inside a braced context.
 #define ENTER_IDLE_WALKER(actorWork, walkerAlias, savedSpeed, targetValue, stepValue) \
     {                                                                                 \
         (savedSpeed)                  = (actorWork)->walker.speed;                    \
@@ -257,16 +206,8 @@ STATIC_ASSERT_SIZEOF(_Work, 0xBEC);
         (actorWork)->lookYawTarget    = 0;                                            \
     }
 
-/// Scratch-stack block of the damage step, which runs each tick the actor has
-/// health left and no hit cooldown running, and reserves a block only while
-/// the player is alive.
-///
-/// The step looks for a damaging contact, kind 0x20000, on the hit body and
-/// then on the grid body. When it finds one it rolls the damage for the
-/// player's range, scales it, takes it off the enemy's health and works out
-/// which way the hit lies from the facing. The damage-over-time tick that
-/// follows reuses `damage` alone. The block is released before the step
-/// returns. Angles are 4096ths of a turn.
+/// Scratch-stack block of the damage step, which runs each tick the actor has health left and no hit cooldown running,
+/// and reserves a block only while the player is alive.
 typedef struct {
     VECTOR  toPlayer;       // Player's position minus the root's; never read back, and `pad` is never written
     SVECTOR hitOffset;      // `hitPos` minus the root's composed translation; `vx` and `vz` give the hit's bearing, and `pad` is never written
@@ -279,12 +220,6 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_HitScratch, 0x30);
 
 /// The actor's state handlers, indexed by `_Work::state`.
-///
-/// The package defines one table. The per-frame tick copies it to the stack
-/// before calling the entry of the current state. The call is unconditional,
-/// so the `NULL` entries of `STATE_RESTORED` and the three
-/// `CAFETERIA_BOSS_STRANGER_STATE_UNUSED_*` values mark states the actor must not be in
-/// when the tick dispatches.
 typedef struct {
     TaskFunc handlers[CAFETERIA_BOSS_STRANGER_STATE_COUNT]; // Handler of each state, taking the actor's task
 } _StateTable;
@@ -333,8 +268,6 @@ MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 /// Applies a rotation of `angle` about Y to `matrix` (main executable).
 
 /// Diagnostic when the Boss Stranger's node-order plan finds no candidate slot pair.
-///
-/// Printed when `bestGap` remains `BOSS_STRANGER_PLAN_GAP_NONE` after the slot search.
 static const char _gBossStrangerNoPlanPairMessage[] = "s->root_cnt == 0xff about \n";
 
 static s32  _cafeteriaBossStrangerSetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 secondArg);
@@ -363,8 +296,6 @@ static DamageAttack _gCafeteriaBossStrangerUnusedAttacks[2] = {
 };
 
 /// Combat and reward parameters shared by the actor's live Enemy instances.
-///
-/// Each instance starts with 350 HP and enters ENRAGE below half that value.
 static EnemyParams _gCafeteriaBossStrangerEnemyParams = {
     .attacks              = _gCafeteriaBossStrangerAttacks,
     .hpMax                = 350,
@@ -417,9 +348,6 @@ static u16 D_actor_110600_80138F34[18] = {
 #include "assets/rooms/akropolis/cafeteria/boss_stranger_clips.inc"
 
 /// Signed blend durations in normal-rate frames, indexed [applied clip][requested clip].
-///
-/// Both IDs must be 0..44. Cafeteria command 3 changes the slot-36 to clip-30
-/// transition to six frames; the modified duration persists while the overlay is loaded.
 static s8 _gCafeteriaBossStrangerAnimBlendFrames[45][45] = {
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -469,17 +397,9 @@ static s8 _gCafeteriaBossStrangerAnimBlendFrames[45][45] = {
 };
 
 /// Animation-set bank borrowed by both nineteen-part rigs for the overlay's lifetime.
-///
-/// Only loaded non-NULL entries may be played. Blend requests also require
-/// IDs in 0..44. Slots 34..37 are writable cafeteria-command bindings; their
-/// clips borrow actor_210600, which must remain loaded through playback.
-/// Storage retains all 46 recovered pointer words; the final NULL has no known use.
 #include "assets/rooms/akropolis/cafeteria/boss_stranger_bank.inc"
 
 /// Hit-effect anchors grouped by yaw: front 0..4, rear 5..7, sides 8..11.
-///
-/// Front selection's default row 4 and rear row 6 are unreachable under the
-/// retained random masks. Each eight-byte record is copied intact to scratch.
 static ActorHitAnchor _gCafeteriaBossStrangerHitAnchors[12] = {
     { .anchor = { 60, -12, 30, 2 } },
     { .anchor = { -50, -130, 29, 2 } },
@@ -496,12 +416,6 @@ static ActorHitAnchor _gCafeteriaBossStrangerHitAnchors[12] = {
 };
 
 /// Messages accepted by the live actor: 2015, 2003, 2005, 2006, 2004, 2011 and 2007.
-///
-/// There is no end marker: every sender must select one of these seven IDs.
-/// 2003 borrows an AnimationPlayRequest, 2004 an ActorTransform and 2011 an
-/// ActorCommand; 2005 takes an integer draw mode. Other payloads are ignored.
-/// The 2015 callback returns void, so its dispatch result must be ignored.
-/// The task borrows this table and its callbacks until teardown.
 static TaskMessageEntry _gCafeteriaBossStrangerMessages[7] = {
     { MESSAGE_IGNORE, _cafeteriaBossStrangerIgnoreMessage2015 },
     { ACTOR_MESSAGE_PLAY_ANIMATION, _cafeteriaBossStrangerPlayScriptedAnimation },
@@ -513,9 +427,6 @@ static TaskMessageEntry _gCafeteriaBossStrangerMessages[7] = {
 };
 
 /// Overlay-wide footstep-shake phase, cycling 1..4 then 0 once per shake tick.
-///
-/// Zero is the initial phase and marks completion. Its low bit selects the
-/// vertical display shake; all actor instances share this signed-halfword counter.
 static s16 _gCafeteriaBossStrangerFootstepShakePhase = 0;
 
 /// Unreferenced halfwords matching two cafeteria VRAM rectangles; their use is unproven.
@@ -541,22 +452,12 @@ static s16 _gCafeteriaBossStrangerShudderStep;
 SVECTOR ActorContact_ScratchPosition;
 
 /// Returns this carrier's persistent last contact-push correction.
-///
-/// Components are signed 16.16 corrections shifted right by 16 and narrowed
-/// to halfwords. Fractional X/Z add a further unit in the correction's sign;
-/// X/Z record the root correction, while Y is only recorded. No grid hit
-/// leaves the old value intact. The borrowed vector lives for the overlay's
-/// lifetime; `pad` is unused.
 static inline SVECTOR* _actorContactGetLastPushStep(void)
 {
     return &ActorContact_ScratchPosition;
 }
 
 /// Reusable hit-effect arguments; each spawn path overwrites all three members.
-///
-/// Ordinary hits borrow model part 1; scripted hits borrow the root. Both set
-/// low argument 0x100 and high argument 3, whose interpretation belongs to the
-/// selected effect. The record owns no coordinate and lives with the overlay.
 EffectSpawnArg _gCafeteriaBossStrangerHitEffectArgs;
 
 /// Whole-unit step `_actorContactApplyGridPushback` last applied to its coordinate.
@@ -592,14 +493,6 @@ static void        _cafeteriaBossStrangerUpdate(Enemy* enemy, Task* task);
 #include "../../../../shared/creatures/boss_stranger/boss_stranger.inc.c"
 
 /// Lays out the spawn-time patrol around the walker's current position.
-///
-/// Node 0 is the root's translation. Each later node adds the matrix's Q12
-/// facing axis, turned by another `nodeYawStep`, times `radius` in coordinate
-/// units. Angles use 4096 units per turn. Navigation and route storage must
-/// provide `nodeCount` nodes/order entries and `nodeCount + 1` route bytes;
-/// this actor supplies two nodes and a terminated route. Counts below two leave
-/// all storage unchanged. Resets the route cursor, logs each added node and
-/// releases its scratch block before returning.
 static void _cafeteriaBossStrangerLayPatrolNodes(BossStrangerWalker* walker, s16 radius, s16 nodeYawStep)
 {
     _PatrolLayoutScratch* scratch;
@@ -639,11 +532,6 @@ static void _cafeteriaBossStrangerLayPatrolNodes(BossStrangerWalker* walker, s16
 #include "../../../../shared/creatures/boss_stranger/boss_stranger_inlines.inc.c"
 
 /// Rebuilds the actor root from its current yaw at a uniform signed Q12 scale.
-///
-/// Requires a live model root and initialized scratch storage. Discards pitch
-/// and roll, preserves translation and marks composition dirty. `ONE` is full
-/// scale; zero collapses the axes. The task-level stamp refreshes the root after
-/// the rotation copy.
 static inline void _cafeteriaBossStrangerRescaleRootYaw(Task* task, s16 uniformScale)
 {
     _actorRenderRescaleYaw(task->extra.tmd->coords, uniformScale);
@@ -651,12 +539,6 @@ static inline void _cafeteriaBossStrangerRescaleRootYaw(Task* task, s16 uniformS
 }
 
 /// Places the actor root and reapplies its walker's uniform scale.
-///
-/// Borrows a readable transform through synchronous dispatch: XYZ are in the
-/// root parent's coordinate frame and rotations use 4096 units per turn.
-/// Applies Rx * Ry * Rz, then keeps only the resulting yaw and records it in
-/// `placedYaw`. Requires live actor work/model and initialized scratch storage.
-/// Ignores the message ID and second payload; returns 1.
 static s32 _cafeteriaBossStrangerPlace(Task* task, s32 messageId, const ActorTransform* placement, s32 secondArg)
 {
     _Work* work;
@@ -676,13 +558,6 @@ static s32 _cafeteriaBossStrangerPlace(Task* task, s32 messageId, const ActorTra
 }
 
 /// Applies the actor's Acropolis patio or cafeteria command.
-///
-/// Borrows a readable four-byte command through dispatch and records its stage,
-/// area and low command byte even when rejected. Patio command 1 enters LURK.
-/// Cafeteria commands select a scripted clip/binding, ALERT_REWIND or DEATH_BURN;
-/// accepted cafeteria commands reset state entry. The writable animation slots
-/// and referenced clip data must stay loaded through playback. Ignores the ID
-/// and second payload; returns 1 when accepted, 0 otherwise.
 static s32 _cafeteriaBossStrangerApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 secondArg)
 {
     enum {
@@ -761,13 +636,6 @@ static s32 _cafeteriaBossStrangerApplyCommand(Task* task, s32 messageId, const A
 #include "../../../../shared/actor/player_detection_reach.inc.c"
 
 /// Advances both rigs and blends their rotations over model parts 1..10.
-///
-/// Main slots 1..18 run at `animRate - 3` sixteenths of a frame per tick;
-/// secondary slots 1..10 run at `blendRate`. Translation comes from the main
-/// pose. `blendWeight` weights the main rotation, with `ONE - blendWeight`
-/// weighting the secondary rotation, in Q12 units. Requires initialized rigs,
-/// loaded clips with those tracks, a live nineteen-part model and scratch
-/// storage for pose application. Slot 0 is untouched.
 static void _cafeteriaBossStrangerTickBlendedSlots(Task* task)
 {
     enum { PART_END       = 11,
@@ -798,13 +666,6 @@ static void _cafeteriaBossStrangerTickBlendedSlots(Task* task)
 }
 
 /// Returns the sound script due at the active animation's pose cue, or zero.
-///
-/// Requires live work and initialized slots. Selects cues by `animId`, then
-/// reads low-ten-bit pose record indices, not clip IDs. Patrol and most action
-/// cues suppress a held record using `lastCueIndex`; chase observes parts 14
-/// and 18, with part 18's separate suppression record retained. Returned IDs
-/// name the Stranger bank with a zero instance byte; the driver adds the
-/// enemy's placement index before requesting the sound.
 static s32 _cafeteriaBossStrangerPollAnimationSound(_Work* work)
 {
     enum {
@@ -911,10 +772,6 @@ static s32 _cafeteriaBossStrangerPollAnimationSound(_Work* work)
 }
 
 /// Advances main slots 1..18 at the actor's current sixteenth-frame rate.
-///
-/// Requires live actor work, an initialized rig and loaded referenced tracks.
-/// Rates use sixteenths of a frame per tick and narrow to each slot's signed
-/// byte. Borrows the task's work for this call and leaves slot 0 untouched.
 static inline void _cafeteriaBossStrangerTickMainSlots(Task* task)
 {
     _Work* work;
@@ -930,12 +787,6 @@ static inline void _cafeteriaBossStrangerTickMainSlots(Task* task)
 }
 
 /// Seeks main slots 1..18 to the requested clip using signed frame durations.
-///
-/// Both clip IDs must be in 0..44 and select loaded tracks and pose storage.
-/// Rates narrow to signed bytes in sixteenths of a frame per tick; table
-/// entries are signed whole normal-rate frames. Captures a ticked pose, seeks
-/// each existing track to its start with that duration, and records the applied
-/// clip. Slot 0 is untouched.
 static inline void _cafeteriaBossStrangerSeekRequestedAnimation(_Work* work)
 {
     _Work* seekWork;
@@ -954,10 +805,6 @@ static inline void _cafeteriaBossStrangerSeekRequestedAnimation(_Work* work)
 }
 
 /// Restarts main slots 1..18 on the requested loaded clip and records its ID.
-///
-/// Requires live work and loaded tracks for every driven slot. Reset replaces
-/// each preceding rate write with normal rate; the ordinary
-/// tick following this request reapplies `animRate`. Slot 0 is untouched.
 static inline void _cafeteriaBossStrangerResetRequestedAnimation(_Work* work)
 {
     _Work* resetWork;
@@ -974,11 +821,6 @@ static inline void _cafeteriaBossStrangerResetRequestedAnimation(_Work* work)
 }
 
 /// Restarts secondary slots 1..18 with the actor's default rotation mix.
-///
-/// Requires loaded `blendAnimId` tracks. The retained rate writes target the
-/// primary rig, while reset gives the secondary rig normal playback rate.
-/// Its next blended tick supplies three frames per tick; weight is Q12 and
-/// belongs to the primary rotation. Does not enable blending by itself.
 static inline void _cafeteriaBossStrangerResetBlendAnimation(Task* task)
 {
     enum {
@@ -1002,11 +844,6 @@ static inline void _cafeteriaBossStrangerResetBlendAnimation(Task* task)
 }
 
 /// Restarts a requested pose and runs it for 99 hidden ticks.
-///
-/// `work` must be the task's live work, with initialized rigs and a loaded
-/// requested clip. Resetting slots 1..18 uses normal rate; each hidden tick
-/// reapplies the current rate in sixteenths of a frame per tick.
-/// Slot 0 is untouched. The driver performs one ordinary tick afterwards.
 static inline void _cafeteriaBossStrangerSettleRequestedAnimation(Task* task, _Work* work)
 {
     enum { SETTLE_TICK_END = 100 };
@@ -1031,20 +868,6 @@ static inline void _cafeteriaBossStrangerSettleRequestedAnimation(Task* task, _W
 }
 
 /// Applies animation requests, advances the actor's poses and sounds their cues.
-///
-/// Requires live actor work, enemy and a nineteen-part model with both rigs
-/// bound to loaded clips. Slots 1..18 are driven; slot 0 is untouched. Blend
-/// requests index the signed-byte 45-by-45 duration table by previous/requested
-/// clip, both in 0..44, in normal-rate frames. Reset replaces slot rates before
-/// the tick reapplies `animRate`, in sixteenths of a frame. SETTLE resets the
-/// requested clip and advances it 99 ticks, then this call's ordinary tick.
-///
-/// A secondary RESET supplies three-frame playback and a Q12 main-pose weight
-/// of 0xB78. Its retained rate writes target the primary rig before resetting
-/// the secondary slots, as in actor_01900 and actor_403000. Active blending ends
-/// when secondary slot 1 reaches a boundary. Finally eases `lookYaw` by 0x100,
-/// clamps it to +/-0x400 and applies it to part 5 and one quarter to part 3;
-/// the cue sound receives this enemy's placement instance, pan and depth.
 static void _cafeteriaBossStrangerTickAnimation(Task* task)
 {
     enum {
@@ -1135,12 +958,6 @@ static void _cafeteriaBossStrangerTickAnimation(Task* task)
 }
 
 /// Initializes and links the actor's attack sphere on a model part.
-///
-/// The live body borrows `partCoord` and writable contacts until unlinking;
-/// `bodyFlags` must select the direct-contact sphere kind. XYZ of the borrowed
-/// position are copied in the part's local coordinate units, with radius 512.
-/// The caller owns contact initialization and the packed attack key. This
-/// actor supplies one contact and initially leaves pair testing disabled.
 static inline void _cafeteriaBossStrangerLinkAttackBody(WorldCollisionBody* body, GfxCoord* partCoord, WorldCollisionContact* contacts, const SVECTOR* localPosition, u16 bodyFlags)
 {
     enum { ATTACK_RADIUS = 512 };
@@ -1156,11 +973,6 @@ static inline void _cafeteriaBossStrangerLinkAttackBody(WorldCollisionBody* body
 }
 
 /// Initializes the walker's saved rotation to its uniform Q12 scale.
-///
-/// Requires live walker storage and initialized scratch space for one VECTOR.
-/// Clears translation and off-diagonal coefficients. Zero and `ONE` both
-/// leave the identity matrix; other signed scales replace its diagonal. The
-/// turning step later uses this matrix as the actor's scale baseline.
 static inline void _cafeteriaBossStrangerInitWalkerScale(BossStrangerWalker* walker)
 {
     VECTOR* scaleVector;
@@ -1179,14 +991,6 @@ static inline void _cafeteriaBossStrangerInitWalkerScale(BossStrangerWalker* wal
 }
 
 /// Binds the walker's two-node patrol to its actor-owned navigation storage.
-///
-/// Requires live work at a stable address for the walker's lifetime. Navigation
-/// and route metadata point into the work block, as do their borrowed arrays.
-/// Both live navigation counts are two; the layout supplies two route indices
-/// and an end marker in the four-byte route buffer. Does not clear contents or
-/// reset the route cursor, so spawn supplies zeroed work before layout.
-/// The route's otherwise unread byte retains its spawn value of 2; its role is
-/// unproven.
 static inline void _cafeteriaBossStrangerBindPatrolStorage(_Work* work)
 {
     work->walker.nav                   = &work->walker.navData;
@@ -1200,15 +1004,6 @@ static inline void _cafeteriaBossStrangerBindPatrolStorage(_Work* work)
 }
 
 /// Allocates the Boss Stranger work and binds its model, bodies and patrol.
-///
-/// Requires a live enemy/task pair, a nineteen-part model, the paired actor
-/// animation overlay and initialized collision, target and scratch services.
-/// Spawn-argument nibbles select movement tuning, notice ranges, patrol radius
-/// and initial behavior. Mode 2 skips primitive-buffer allocation. A saved
-/// spawn state selects RESTORED in modes 0/1; mode 3 retains zero-filled HIDDEN.
-/// Allocation failure destroys the enemy. Success installs the exit callback,
-/// links three work-backed collision bodies and advances the task state; work
-/// and model storage must remain live until teardown.
 static void _cafeteriaBossStrangerSpawn(Enemy* enemy, Task* task)
 {
     enum {
@@ -1466,12 +1261,6 @@ static void _cafeteriaBossStrangerSpawn(Enemy* enemy, Task* task)
 }
 
 /// Walks the patrol route until the player enters a notice range.
-///
-/// Requires live actor work/model/enemy and an initialized two-node patrol.
-/// Entry resets the patrol clip and disables attacks. Player offsets narrow to
-/// signed halfwords in the roots' common parent frame; yaw uses 4096 units per
-/// turn. The forward cone or the all-around range selects ALERT. Movement runs
-/// before the range tests, and animation advances last.
 static void _cafeteriaBossStrangerPatrolState(Task* task)
 {
     enum { PATROL_TURN_LIMIT = 16,
@@ -1516,11 +1305,6 @@ static void _cafeteriaBossStrangerPatrolState(Task* task)
 }
 
 /// Advances the shared five-tick footstep shake and reports its end.
-///
-/// The overlay-wide counter starts at zero and cycles through 1..4 then zero.
-/// Alternates vertical display shake between 1 and 0, leaving it at zero on
-/// completion. Returns 1 on that fifth tick, otherwise 0. All actors in this
-/// overlay share the counter.
 static inline s32 _cafeteriaBossStrangerTickFootstepShake(void)
 {
     enum { FOOTSTEP_SHAKE_TICKS = 5 };
@@ -1540,13 +1324,6 @@ static inline s32 _cafeteriaBossStrangerTickFootstepShake(void)
 }
 
 /// Chases the player and selects ATTACK when close enough.
-///
-/// Requires live actor work/model/enemy, player roots in a common parent frame
-/// and initialized walker/animation services. Entry blends to the patrol clip;
-/// movement uses the signed sixteenth-frame rate and a slower blended-hit step.
-/// An aligned player at XZ distance 500 <= distance < 1000 permits attack from
-/// tick 25; distance < 1000 permits it from tick 91. Look yaw follows the player,
-/// and slot-1 footstep cues drive the shared five-tick screen shake.
 static void _cafeteriaBossStrangerChaseState(Task* task)
 {
     enum {
@@ -1647,12 +1424,6 @@ static void _cafeteriaBossStrangerChaseState(Task* task)
 }
 
 /// Plays the alert clip while looking toward the player, then starts chasing.
-///
-/// Requires live actor work, enemy and loaded alert tracks. Entry restores the
-/// normal model/grid behavior and the variant playback rate. The look target
-/// is a signed yaw in 4096 units per turn, measured from halfword-truncated
-/// player/root offsets in their common parent frame. Main slot 1 reaching its
-/// boundary selects CHASE; this handler does not step the walker.
 static void _cafeteriaBossStrangerAlertState(Task* task)
 {
     _Work*     work;
@@ -1689,9 +1460,6 @@ static void _cafeteriaBossStrangerAlertState(Task* task)
 }
 
 /// Reports whether the attack sphere's one contact identifies a player body.
-///
-/// Requires one readable contact; a zero key reports false. The category also
-/// covers companion bodies. Reads no later entry and does not clear the contact.
 static inline s32 _cafeteriaBossStrangerHasPlayerBodyContact(const WorldCollisionContact* contacts)
 {
     enum { ATTACK_CONTACT_COUNT = 1 };
@@ -1709,14 +1477,6 @@ static inline s32 _cafeteriaBossStrangerHasPlayerBodyContact(const WorldCollisio
 }
 
 /// Runs an animation-timed swing and disables it after a player-body contact.
-///
-/// Requires live actor work, enemy, initialized attack contacts and the selected
-/// attack tracks. Enraged actors use attack 0/clip 4 at 26 sixteenths per tick;
-/// others use attack 1/clip 5 at normal rate. Entry ramps walker speed toward
-/// zero and clears look yaw; this handler configures movement without ticking
-/// the walker. Turn control stops at tick 11. Slot-1 cues delimit pair testing;
-/// its boundary returns to CHASE. A retained player/companion contact sounds the
-/// hit and disables pair testing without clearing that contact.
 static void _cafeteriaBossStrangerAttackState(Task* task)
 {
     enum {
@@ -1808,14 +1568,6 @@ static void _cafeteriaBossStrangerAttackState(Task* task)
 }
 
 /// Spawns the attack's hit effect at a model position selected by hit yaw.
-///
-/// `hitYaw` is the signed relative bearing in 4096 units per turn, normally
-/// -2048..2048; `attackKey` is the packed damaging-contact key. Front/rear hits
-/// use different random position groups; side hits use the yaw's sign. The
-/// position record's fourth halfword selects model part 2, 7 or 9. Requires a
-/// live model and loaded effect resources. Reuses the overlay's effect argument
-/// record and releases its scratch anchor after spawning. Placement copies
-/// XYZ during the call; the effect's retained offset pointer has no later C reader.
 static void _cafeteriaBossStrangerSpawnHitEffect(Task* task, s16 hitYaw, s32 attackKey)
 {
     enum {
@@ -1886,12 +1638,6 @@ static void _cafeteriaBossStrangerSpawnHitEffect(Task* task, s16 hitYaw, s32 att
 }
 
 /// Returns the first attack contact key and copies its world-space XYZ.
-///
-/// Scans at most `contactCount` readable elements, stopping at the first zero
-/// key. The nonnegative count is in contacts, not bytes; callers supply five
-/// hit-body or twelve grid-body contacts. A zero result leaves `hitPoint`
-/// unchanged; a hit preserves its unused fourth halfword. Contacts are borrowed
-/// and never changed.
 static inline s32 _cafeteriaBossStrangerFindAttackContact(SVECTOR* hitPoint, const WorldCollisionContact* contacts, s16 contactCount)
 {
     s16 contactIndex;
@@ -1909,9 +1655,6 @@ static inline s32 _cafeteriaBossStrangerFindAttackContact(SVECTOR* hitPoint, con
 }
 
 /// Credits Life Drain, subtracts narrowed HP and posts the attack's damage readout.
-///
-/// Requires a live enemy and populated, caller-owned scratch hit key/damage.
-/// HP arithmetic deliberately narrows both operands to unsigned halfwords.
 static inline void _cafeteriaBossStrangerAccountAttackDamage(Enemy* enemy, const _HitScratch* hit)
 {
     damageAccumulateLifeDrainHp(enemy, hit->hitKey, hit->damage, 0);
@@ -1920,12 +1663,6 @@ static inline void _cafeteriaBossStrangerAccountAttackDamage(Enemy* enemy, const
 }
 
 /// Applies player attack contacts and ongoing damage to the Stranger enemy.
-///
-/// Requires live actor work/model/enemy, current contact arrays, player state and
-/// scratch/GTE state. Takes the first attack among five hit contacts, falling back
-/// to twelve grid contacts. Updates HP, drain/readouts, reactions and hit cooldown;
-/// with a dead player it only disables the attack body. HP subtraction retains
-/// its unsigned-halfword narrowing. Scratch storage is released before returning.
 static void _cafeteriaBossStrangerApplyDamage(Task* task)
 {
     // These attribute codes select local behavior; their shared meanings are unproven.
@@ -2081,12 +1818,6 @@ static void _cafeteriaBossStrangerApplyDamage(Task* task)
 }
 
 /// Stops the walker and alternates the idle clip with an occasional variation.
-///
-/// Requires live actor work/model/enemy and loaded clips 24 and 14. Entry
-/// disables attacks, clears look/turning and ramps speed toward zero by eight
-/// units per tick. At an idle control jump, one in eight random draws requests
-/// the variation; its slot-1 boundary blends back to idle. Both the walker and
-/// animation advance each tick.
 static void _cafeteriaBossStrangerIdleState(Task* task)
 {
     enum { IDLE_DECELERATION = 8 };
@@ -2132,12 +1863,6 @@ static void _cafeteriaBossStrangerIdleState(Task* task)
 }
 
 /// Plays the backward fall and landing clips, then selects DOWN or DEATH_BURN.
-///
-/// Requires live actor work/model/enemy and loaded clips 29 and 30. Entry
-/// disables attacks and turning, and ramps the unsigned walker speed toward
-/// 0xFFFE, applied as a signed step of -2. The first slot-1 boundary restarts
-/// clip 30 and ramps toward zero; its boundary chooses DOWN while health is
-/// positive, otherwise DEATH_BURN. No recovered state writer selects FALL_BACK.
 static void _cafeteriaBossStrangerFallBackState(Task* task)
 {
     enum { SPEED      = 0xFFFE,
@@ -2186,13 +1911,6 @@ static void _cafeteriaBossStrangerFallBackState(Task* task)
 }
 
 /// Flattens the burning corpse around its current yaw at the current burn tick.
-///
-/// Requires live model/work and 0x58 free aligned scratch bytes for the yaw
-/// rebuild. Work is borrowed read-only; scratch is released before return.
-/// X/Z use the walker's signed Q12 scale; Y uses the supplied signed Q12 height
-/// minus two units per tick from tick 300, narrowed to a halfword. Earlier ticks
-/// therefore increase Y relative to the supplied height. Pitch/roll and prior
-/// scale are discarded, translation stays intact and composition becomes dirty.
 static inline void _cafeteriaBossStrangerShrinkBurnRootYaw(Task* task, const _Work* work, s16 heightScale)
 {
     enum { BURN_SHRINK_ORIGIN_TICK = 300 };
@@ -2221,11 +1939,6 @@ static inline void _cafeteriaBossStrangerShrinkBurnRootYaw(Task* task, const _Wo
 }
 
 /// Scales the saved corpse color matrix and its RGB translation for the burn fade.
-///
-/// colorScale supplies signed Q12 XYZ axis factors; Z also scales all three
-/// translation components through the GTE. The caller supplies a uniform scale.
-/// Starts from burnColorMtx on every call, so the fade does not compound. Work
-/// and the full VECTOR stay live through the transfer; negative factors are kept.
 static inline void _cafeteriaBossStrangerFadeBurnColor(_Work* work, VECTOR* colorScale)
 {
     work->colorMtx = work->burnColorMtx;
@@ -2237,14 +1950,6 @@ static inline void _cafeteriaBossStrangerFadeBurnColor(_Work* work, VECTOR* colo
 }
 
 /// Burns, flattens and fades the dead Stranger while its task remains alive.
-///
-/// Entry disables attack pairs, grid tests and lock-on and saves the walker Q12
-/// height. Burn effects use chest-local offsets at frames 200 and 400; frame 230
-/// captures color and starts the signed Q12 fade 3000-4*frame. The root flattens
-/// from frame 201 while saved height exceeds 2048; the yaw helper also applies its
-/// tick-dependent Y correction. Drawing stops at frame 600, while the counter
-/// continues to its cap of 1000. Requires live model/work and 0x58 free aligned
-/// scratch bytes for the root rebuild. Work is retained for the task's teardown.
 static void _cafeteriaBossStrangerDeathBurnState(Task* task)
 {
     enum {
@@ -2329,14 +2034,6 @@ static void _cafeteriaBossStrangerDeathBurnState(Task* task)
 }
 
 /// Hides the dying body and spawns five textured body-part effects on state entry.
-///
-/// Requires live work, enemy, nineteen-part model and current area placement.
-/// Disables attacks, grid correction and targeting, then spawns parts 6, 8, 10,
-/// 11 and 15. Each successful effect borrows the current placement texture
-/// offsets and rebuilds both existing primitive-buffer halves. Failed spawns
-/// are skipped independently. Later ticks leave the body and state unchanged.
-/// Bank 10 slot 5 must already have a live burst-model source. The low twelve
-/// argument bits select puff size 512 for parts 6/8/10 and 768 for parts 11/15.
 static void _cafeteriaBossStrangerDeathBurstState(Task* task)
 {
     enum {
@@ -2378,13 +2075,6 @@ static void _cafeteriaBossStrangerDeathBurstState(Task* task)
 static const SVECTOR _gCafeteriaBossStrangerScriptedHitOffset = { 0, 0, 100, 0 };
 
 /// Plays the script-selected clip and its cafeteria-command hit effects.
-///
-/// Requires live work, model, enemy and the selected loaded clip. Entry resets
-/// playback at one frame per tick, disables attacks and targeting, and clears
-/// look angles. Cafeteria command 6 chooses one of two part-local hit offsets
-/// with one random draw. Command 3 emits three hit requests on a new slot-1 cue
-/// 4 and blends to clip 30 on cue 11, setting that transition to six frames.
-/// Every tick clears hit blending and reapplies the walker's Q12 root scale.
 static void _cafeteriaBossStrangerScriptedState(Task* task)
 {
     enum {
@@ -2471,12 +2161,6 @@ static void _cafeteriaBossStrangerScriptedState(Task* task)
 }
 
 /// Thrashes through two clips before handing the corpse to DEATH_BURN.
-///
-/// Entry disables attacks and grid correction and makes the enemy un-lockable.
-/// Requires live actor work/model/enemy and clips 22 and 33. Clip 22 plays at
-/// two frames per tick while random signed yaw jerks mark the root dirty. At
-/// tick 31 it requests clip 33 at normal rate; that clip's slot-1 boundary
-/// selects DEATH_BURN. No local code selects this state.
 static void _cafeteriaBossStrangerDeathThrashState(Task* task)
 {
     enum {
@@ -2531,12 +2215,6 @@ static void _cafeteriaBossStrangerDeathThrashState(Task* task)
 }
 
 /// Holds the lurk pose until the player is within 3000 horizontal units.
-///
-/// Requires live actor work/model/enemy and the command-bound clip 34. Entry
-/// restores model/grid behavior, clears turning and starts normal playback.
-/// The range uses signed-halfword offsets in the roots' common parent frame;
-/// equality remains in LURK. Animation is ticked before range selection.
-/// Nearer players select LURK_ALERT; the damage handler can instead select ALERT.
 static void _cafeteriaBossStrangerLurkState(Task* task)
 {
     enum {
@@ -2578,12 +2256,6 @@ static void _cafeteriaBossStrangerLurkState(Task* task)
 }
 
 /// Plays the lurk wake-up alert while un-lockable, then starts chasing.
-///
-/// Requires live actor work/model/enemy and loaded alert tracks. Entry clears
-/// walker turning and look yaw and plays at normal rate. The player look target
-/// uses signed yaw in 4096 units per turn from halfword-truncated offsets in
-/// the common parent frame. Main slot 1 reaching its boundary selects CHASE;
-/// this handler does not step the walker.
 static void _cafeteriaBossStrangerLurkAlertState(Task* task)
 {
     _Work*     work;
@@ -2622,13 +2294,6 @@ static void _cafeteriaBossStrangerLurkAlertState(Task* task)
 }
 
 /// Jolts the root along its local X axis for five ticks, then starts chasing.
-///
-/// Requires live actor work/model/enemy and a nonzero root X axis suitable for
-/// normalization. Whole-unit displacements are 800, -1000, 400, -400 and 200;
-/// only parent-frame X/Z translation is applied. Clobbers GTE state and marks
-/// the root dirty after each push. The sixth call selects CHASE without a push.
-/// The step counter is shared by the overlay's actors; no local code selects
-/// this state.
 static void _cafeteriaBossStrangerShudderState(Task* task)
 {
     enum {
@@ -2660,12 +2325,6 @@ static void _cafeteriaBossStrangerShudderState(Task* task)
     gfxReadMatrixXAxis(&task->extra.tmd->coords->coord, &sideStep);
     VectorNormalSS(&sideStep, &sideStep);
 /// Scales a Q12 shudder direction by a signed parent-coordinate distance.
-///
-/// Requires a writable SVECTOR pointer and distance representable by the GTE's
-/// signed halfword IR0 register. Stable direction occurs twice, distance once;
-/// arguments must have no side effects. Overwrites XYZ as signed halfwords,
-/// preserves the vector's fourth halfword, and clobbers GTE state. Captures no
-/// caller identifiers; expands to one compound statement.
 #define SCALE_SHUDDER_STEP(direction, distance) \
     {                                           \
         gte_lddp(distance);                     \
@@ -2702,13 +2361,6 @@ static void _cafeteriaBossStrangerShudderState(Task* task)
 }
 
 /// Builds the enrage tint while oscillating the pose, then accelerates chase.
-///
-/// Requires live actor work/model/enemy and loaded clip 12. Entry starts slow
-/// playback and clears the two-stage sequence. Cue 4 reverses at normal rate;
-/// successive ticks halve the signed rate toward zero, replacing 1 with -12
-/// and -1 with 8. After 53 oscillation ticks both base and current rates become
-/// 56 sixteenths per tick and CHASE is selected. Each oscillation tick adds 39
-/// to the tint accumulator; the outer enemy tick applies that tint to lighting.
 static void _cafeteriaBossStrangerEnrageState(Task* task)
 {
     enum {
@@ -2781,9 +2433,6 @@ static void _cafeteriaBossStrangerEnrageState(Task* task)
 }
 
 /// State handlers indexed by `_Work::state`, copied before each dispatch.
-///
-/// Dispatch requires a non-NULL entry. State 1 is a restored-spawn handoff;
-/// states 15, 16 and 18 are never selected locally and also have no handler.
 static const _StateTable _gCafeteriaBossStrangerStateHandlers = { {
     _cafeteriaBossStrangerHiddenState,
     NULL,
@@ -2813,11 +2462,6 @@ static const _StateTable _gCafeteriaBossStrangerStateHandlers = { {
 } };
 
 /// Discards the Boss Stranger's grid, received-hit and outgoing-attack contacts.
-///
-/// Requires live work with all three contact tables initialized, including
-/// their final-entry markers. Clears occupied records in that order while
-/// retaining the markers and the tables borrowed by the collision bodies,
-/// enemy and walker. Does not unlink or disable those bodies.
 static inline void _cafeteriaBossStrangerClearTickContacts(_Work* work)
 {
     worldCollisionClearContacts(work->gridContacts);
@@ -2826,14 +2470,6 @@ static inline void _cafeteriaBossStrangerClearTickContacts(_Work* work)
 }
 
 /// Updates the Boss Stranger state, collision pose, damage and lighting each tick.
-///
-/// Requires live enemy/work/model and a valid non-NULL state-table entry.
-/// Paused or hidden actor control clears all three contact tables and returns;
-/// paused actors can still draw the shadow. Running updates publish entry state,
-/// dispatch the selected handler, then stage the grid point 292 parent units
-/// below the root. Damage, contact clearing, root recomposition and enrage tint
-/// follow. A dead enemy is given 1 HP while the player is also dead. Hit contact
-/// is disabled for hidden and death states. The shadow half-size is 640 units.
 static void _cafeteriaBossStrangerUpdate(Enemy* enemy, Task* task)
 {
     enum {
@@ -2923,17 +2559,11 @@ static void _cafeteriaBossStrangerUpdate(Enemy* enemy, Task* task)
 }
 
 /// Receives message 2015 without changing the actor.
-///
-/// Both payload words and the ID are ignored. This handler has no result;
-/// senders must not consume the dispatch result register.
 static void _cafeteriaBossStrangerIgnoreMessage2015(Task* task, s32 messageId, s32 firstArg, s32 secondArg)
 {
 }
 
 /// Enemy-task callbacks for states 0 spawn, 1 update and 2 destroy.
-///
-/// Copied before dispatch; all three entries require live Enemy and Task
-/// objects, and the destroy entry may release both. There is no end marker.
 static const EnemyTaskFuncTable3 _gCafeteriaBossStrangerTaskHandlers = {
     _cafeteriaBossStrangerSpawn,
     _cafeteriaBossStrangerUpdate,
@@ -2941,12 +2571,6 @@ static const EnemyTaskFuncTable3 _gCafeteriaBossStrangerTaskHandlers = {
 };
 
 /// Selects a scripted clip and restarts entry into the SCRIPTED state.
-///
-/// Borrows a readable request through dispatch. Selectors 0..4 map to clips
-/// 34, 35, 36, 37 and 40; 0 and 4 also save the current enemy pose with resume
-/// state 1. Other selectors keep the clip but still restart SCRIPTED. Only
-/// `animationId` is read; bank/blend fields, ID and second payload are ignored.
-/// Requires live actor work/model, enemy and loaded selected clip; returns 0.
 static s32 _cafeteriaBossStrangerPlayScriptedAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 secondArg)
 {
     enum { RESUME_SCRIPTED = 1 };
@@ -2985,12 +2609,6 @@ static s32 _cafeteriaBossStrangerPlayScriptedAnimation(Task* task, s32 messageId
 }
 
 /// Sets draw/buffer handling while respecting the enemy's saved resume state.
-///
-/// Requires live actor work/model and enemy. Mode 0 hides, allocates buffers
-/// and enters HIDDEN. Mode 1 shows and allocates unless resume state 4 keeps it
-/// hidden. Mode 2 disables automatic buffering and enters HIDDEN. Mode 3 sets
-/// visibility from resume state 4, enters HIDDEN and disables automatic
-/// buffering. Other modes do nothing. Ignores ID/second payload; returns 0.
 static s32 _cafeteriaBossStrangerSetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 secondArg)
 {
     enum {
@@ -3044,10 +2662,6 @@ static s32 _cafeteriaBossStrangerSetModelDraw(Task* task, s32 messageId, s32 dra
 }
 
 /// Returns 1 while the enemy is alive, otherwise clears its enrage effects.
-///
-/// Requires live actor work and enemy. A nonpositive health value clears the
-/// work's enrage tint/latch and the enemy's reaction flags before returning 0.
-/// The ID and both payloads are ignored.
 static s32 _cafeteriaBossStrangerIsPresent(Task* task, s32 messageId, s32 firstArg, s32 secondArg)
 {
     _Work* work;
@@ -3067,16 +2681,6 @@ static s32 _cafeteriaBossStrangerIsPresent(Task* task, s32 messageId, s32 firstA
 #include "../../../../shared/actor/coord_math_yaw_scale.inc.c"
 
 /// Replaces a coordinate's rotation with its current yaw and independent axis scales.
-///
-/// Requires a live writable word-aligned coordinate outside the scratch stack.
-/// Heading uses 4096 units per turn. The three factors are signed Q12 (`ONE`
-/// is unity); zero collapses an axis and a negative factor reverses it. Scaling
-/// narrows coefficients to halfwords without saturation. Discards pitch/roll
-/// and prior scale, preserves translation/parent/Euler angles and marks the
-/// composition cache dirty. No recovered caller uses this standalone helper.
-///
-/// The initialized scratch stack needs 0x58 free aligned bytes for the scale
-/// block and nested yaw workspace. Both are released before return.
 static void _actorRenderSetYawAxisScales(GfxCoord* coord, s16 scaleX, s16 scaleY, s16 scaleZ)
 {
     ActorScaleRotScratch* yawScratch;
@@ -3097,10 +2701,6 @@ static void _actorRenderSetYawAxisScales(GfxCoord* coord, s16 scaleX, s16 scaleY
 }
 
 /// Acquires a battle reference and switches the actor to ALERT.
-///
-/// Requires live actor work and scene combat state. Does not reset `prevState`;
-/// the enemy tick detects the state change. Repeated messages acquire another
-/// reference. Ignores the ID and both payloads; returns 1.
 static s32 _cafeteriaBossStrangerAlert(Task* task, s32 messageId, s32 firstArg, s32 secondArg)
 {
     _Work* work;
@@ -3112,12 +2712,6 @@ static s32 _cafeteriaBossStrangerAlert(Task* task, s32 messageId, s32 firstArg, 
 }
 
 /// Releases the actor's collision and child-task bindings before destroying it.
-///
-/// Installed as the task exit callback. Requires a live enemy and model task;
-/// work may be NULL after an allocation failure. When work exists, advances
-/// each present child task one state, unlinks the attack/hit/grid bodies and
-/// clears the enemy's borrowed contact table. Then stops screen shake and
-/// lets `enemyDestroy` release the enemy and task resources.
 static void _cafeteriaBossStrangerExit(Task* task)
 {
     _Work* work;
@@ -3147,10 +2741,6 @@ static void _cafeteriaBossStrangerExit(Task* task)
 }
 
 /// Hides the actor and disables targeting, attacks and grid correction on entry.
-///
-/// Requires live actor work/model/enemy. Retains the existing model flags while
-/// adding the skip-draw bit. Does not advance animation or the walker; later
-/// messages or spawn behavior must select another state.
 static void _cafeteriaBossStrangerHiddenState(Task* task)
 {
     TmdObject* model;
@@ -3169,21 +2759,12 @@ static void _cafeteriaBossStrangerHiddenState(Task* task)
 }
 
 /// Advances the overlay-wide five-tick vertical footstep shake and reports completion.
-///
-/// Cycles the shared counter through 1..4 then 0, alternating shake 1/0 and
-/// leaving it at 0 on completion. Returns 1 on wrap, otherwise 0. This retained
-/// standalone entry has no recovered callers; the chase uses the inline step.
 static s32 _cafeteriaBossStrangerStepFootstepShake(void)
 {
     return _cafeteriaBossStrangerTickFootstepShake();
 }
 
 /// Plays the forward fall while edging ahead, then selects DOWN or DEATH_BURN.
-///
-/// Requires live actor work/model/enemy and loaded clip 12. Entry disables
-/// attacks and turning and ramps toward a two-unit forward step by eight units
-/// per tick. The slot-1 boundary chooses DOWN while health is positive, otherwise
-/// DEATH_BURN. No recovered state writer selects FALL.
 static void _cafeteriaBossStrangerFallState(Task* task)
 {
     enum { FORWARD_SPEED = 2,
@@ -3218,10 +2799,6 @@ static void _cafeteriaBossStrangerFallState(Task* task)
 }
 
 /// Holds the fallen pose for a random delay before choosing its recovery clip.
-///
-/// Requires live actor work. Entry draws a delay of 0..31 ticks; decrementing
-/// below zero selects RISE_BACK after clip 30 or RISE after clip 12. Other clip
-/// IDs leave the state unchanged. Neither animation nor movement advances here.
 static void _cafeteriaBossStrangerDownState(Task* task)
 {
     enum { DOWN_DELAY_MASK = 31 };
@@ -3251,11 +2828,6 @@ static void _cafeteriaBossStrangerDownState(Task* task)
 }
 
 /// Plays the recovery from a backward fall, then resumes CHASE.
-///
-/// Requires live actor work/model/enemy and loaded clip 15. Entry resets
-/// the clip at the variant base rate, disables attacks/turning and ramps
-/// movement toward zero by eight units per tick. Walker and animation both
-/// advance; the slot-1 boundary selects CHASE.
 static void _cafeteriaBossStrangerRiseBackState(Task* task)
 {
     enum { RISE_DECELERATION = 8 };
@@ -3285,11 +2857,6 @@ static void _cafeteriaBossStrangerRiseBackState(Task* task)
 }
 
 /// Plays the recovery from a forward fall, then resumes CHASE.
-///
-/// Requires live actor work/model/enemy and loaded clip 16. Entry resets
-/// the clip at the variant base rate, disables attacks/turning and ramps
-/// movement toward zero by eight units per tick. Walker and animation both
-/// advance; the slot-1 boundary selects CHASE.
 static void _cafeteriaBossStrangerRiseState(Task* task)
 {
     enum { RISE_DECELERATION = 8 };
@@ -3321,11 +2888,6 @@ static void _cafeteriaBossStrangerRiseState(Task* task)
 #undef ENTER_IDLE_WALKER
 
 /// Seeds the alert pose ahead, then plays it backward at half rate.
-///
-/// Requires live actor work/model/enemy and loaded alert tracks. Entry makes
-/// the actor un-lockable, disables attacks and blending, applies the alert reset
-/// and advances twenty more normal-rate ticks. Every callback then advances at
-/// -8 sixteenths of a frame per tick. No automatic state transition ends rewind.
 static void _cafeteriaBossStrangerAlertRewindState(Task* task)
 {
     enum { WARMUP_TICKS = 20,
@@ -3363,10 +2925,6 @@ static void _cafeteriaBossStrangerAlertRewindState(Task* task)
 }
 
 /// Halves status-hold playback, reversing at +1 and restarting forward at -1.
-///
-/// The live work rate uses signed sixteenth-frame units. Division truncates
-/// toward zero; zero stays zero, and reaching either unit restarts the opposite
-/// direction at one full frame per tick. Does not advance animation.
 static inline void _cafeteriaBossStrangerOscillateStatusRate(_Work* work)
 {
     s16 halvedRate;
@@ -3382,12 +2940,6 @@ static inline void _cafeteriaBossStrangerOscillateStatusRate(_Work* work)
 }
 
 /// Oscillates the attack pose until the enemy status buildup expires.
-///
-/// Requires live actor work/model/enemy and loaded attack tracks. Entry shows
-/// and buffers the model, disables attacks and starts clip 5 at three frames
-/// per tick, advancing twice. Later ticks halve the signed rate toward zero;
-/// +1 restarts at -16 and -1 at +16, in sixteenth-frame units. Buildup completion
-/// clears its reaction bits and selects CHASE. Entry does not consume buildup.
 static void _cafeteriaBossStrangerStatusHoldState(Task* task)
 {
     enum { STATUS_INITIAL_RATE = 3 * ANIMATION_RATE_ONE };
@@ -3423,10 +2975,6 @@ static void _cafeteriaBossStrangerStatusHoldState(Task* task)
 }
 
 /// Dispatches the Boss Stranger task through spawn, update and teardown.
-///
-/// The task must be live with state 0..2 and its Enemy in spawnArg2. Copies the
-/// three callback pointers to a local table before dispatch; no bounds check is
-/// performed. The actor overlay must stay loaded, and teardown may free the task.
 static void _cafeteriaBossStrangerTask(Task* task)
 {
     EnemyTaskFuncTable3 handlers;

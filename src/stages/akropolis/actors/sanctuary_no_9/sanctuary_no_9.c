@@ -10,7 +10,6 @@
 #include "gameplay/animation.h"
 #include "gameplay/enemy.h"
 #include "gameplay/message.h"
-#include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
 #include "main/coord.h"
@@ -19,14 +18,7 @@
 #include "main/tmd_types.h"
 #include "../../../../shared/actor/actor_messages.h"
 
-/// Work block of the No. 9 golem as a room script poses it: what its body
-/// model plays and the matrices it is lit with.
-///
-/// The setup state allocates it zeroed and keeps it at `Task::work` for the
-/// task's life. The model object borrows `light` and `color`, and the
-/// animation context borrows the rig's slots and pose buffers, for as long as
-/// the block lives. Nothing is played until a script sends
-/// `ACTOR_MESSAGE_PLAY_ANIMATION`; each request restarts every driven slot.
+/// Work block of the No.
 typedef struct {
     ActorAnimRig19 rig;    // Playback storage of the nineteen-part body model; slots 1 to 18 are driven
     MATRIX         color;  // Light-colour matrix lent to the model object
@@ -66,10 +58,6 @@ TaskDesc gSanctuaryNo9No9GolemTaskDesc = {
 };
 
 /// Message map for the script-posed No. 9 golem.
-///
-/// Animation messages borrow an `AnimationPlayRequest` with clip ID 1..5;
-/// placement borrows an `ActorTransform`, and model drawing takes a flag word.
-/// The task borrows this terminated map and its callbacks until teardown.
 static const TaskMessageEntry _gSanctuaryNo9No9GolemMessages[4] __attribute__((section(".data"))) = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _sanctuaryNo9No9GolemPlayAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceRotMatrix },
@@ -78,16 +66,9 @@ static const TaskMessageEntry _gSanctuaryNo9No9GolemMessages[4] __attribute__((s
 };
 
 /// Animation sets of the script-posed No. 9 golem, indexed by clip ID.
-///
-/// Entry 0 denotes no requested clip and must not be played; IDs 1..5 are loaded
-/// sets. The rig borrows this word-aligned table and its sets until teardown.
 #include "assets/rooms/akropolis/sanctuary/no_9_bank.inc"
 
 /// Runs the script-posed No. 9 golem's setup or per-frame update.
-///
-/// Requires a live TMD task with its owning `Enemy` in `spawnArg2.pointer`.
-/// `state` must be `STATE_SETUP` or `STATE_UPDATE`;
-/// there is no bounds check. Setup failure may destroy both arguments.
 static void _sanctuaryNo9No9GolemTask(Task* task)
 {
     EnemyTaskFunc stateHandlers[] = {
@@ -99,12 +80,6 @@ static void _sanctuaryNo9No9GolemTask(Task* task)
 }
 
 /// Allocates the golem's animation and lighting storage and enables script messages.
-///
-/// Requires a newly spawned TMD task and its live owning `Enemy`. The task
-/// owns the primary-heap work block; its model borrows the lighting matrices
-/// until teardown. Playback remains inactive until a play request seeds the
-/// slots. Allocation failure destroys the enemy and task; success selects
-/// `STATE_UPDATE`.
 static void _sanctuaryNo9No9GolemSetup(Enemy* enemy, Task* task)
 {
     GfxCoord*      rootCoord;
@@ -131,12 +106,6 @@ static void _sanctuaryNo9No9GolemSetup(Enemy* enemy, Task* task)
 }
 
 /// Advances the golem's animation and samples lighting at its first animated part.
-///
-/// Requires completed setup and the live owning `Enemy`. Advances slots 1..18
-/// once per call only after a play request; slot 0 is the undriven model root.
-/// Samples coordinate 1's existing composed translation in world units.
-/// Reserves one `VECTOR` on the initialized scratch stack through playback
-/// and lighting; both callees require additional nested scratch space.
 static void _sanctuaryNo9No9GolemUpdate(Enemy* enemy, Task* task)
 {
     _No9GolemWork* work;
@@ -162,16 +131,6 @@ static void _sanctuaryNo9No9GolemUpdate(Enemy* enemy, Task* task)
 }
 
 /// Restarts all driven body tracks on the golem's requested animation set.
-///
-/// `work` must be live and its context bound to its rig and nineteen-part
-/// model. `work->animId` selects a loaded package set in 1..5; zero is invalid
-/// here, and no bounds are checked. The borrowed set table and clip data must
-/// remain live during subsequent playback.
-///
-/// Slots 1..18 restart at their same-numbered track starts with
-/// `ANIMATION_RATE_ONE` and cleared boundary state and result flags. Slot 0
-/// is the placement root and stays untouched. No model coordinates or pose
-/// buffer entries are written; the next tick establishes the new segment.
 static inline void _sanctuaryNo9No9GolemRestartTracks(_No9GolemWork* work)
 {
     s32 slotIndex;
@@ -182,13 +141,6 @@ static inline void _sanctuaryNo9No9GolemRestartTracks(_No9GolemWork* work)
 }
 
 /// Restarts the golem's body animation for `ACTOR_MESSAGE_PLAY_ANIMATION`.
-///
-/// Requires completed setup and a readable, word-aligned request through
-/// dispatch. `animationId` selects package set 1..5; zero has no set and is
-/// invalid here. Copies only that word and retains no payload pointer. Bank,
-/// blend and collision choices are ignored: every request restarts slots
-/// 1..18 without a transition from the old pose. Ignores `msgId` and the
-/// second argument. Returns 0.
 static s32 _sanctuaryNo9No9GolemPlayAnimation(Task* task, s32 msgId, const AnimationPlayRequest* request, s32 unusedArg)
 {
     _No9GolemWork* work;
@@ -202,12 +154,6 @@ static s32 _sanctuaryNo9No9GolemPlayAnimation(Task* task, s32 msgId, const Anima
 #include "../../../../shared/actor/actor_messages_place_rot_matrix.inc.c"
 
 /// Replaces the golem's model flags for `ACTOR_MESSAGE_SET_MODEL_DRAW`.
-///
-/// Requires a live TMD task. Bit 0 permits active drawing; without it the
-/// model is excluded. Bit 1 suppresses automatic missing-buffer allocation.
-/// All other request bits are ignored and all unrelated model flags are
-/// cleared. Allocates and frees no buffers. Ignores `msgId` and the second
-/// argument. Returns 0.
 static s32 _sanctuaryNo9No9GolemSetModelDraw(Task* task, s32 msgId, s32 drawFlags, s32 unusedArg)
 {
     enum {

@@ -23,14 +23,9 @@
 #include "main/tmd_types.h"
 
 /// Length of one No. 9 patrol-lap side, corner to corner in world X/Z units.
-///
-/// Divides lapDistance into a side index and distance along it; the four
-/// authored corners are separated by 13200 units. The 200..46700 distance
-/// clamp keeps quotient 0..3 and remainder 0..13199 within the route tables.
 #define HELICOPTER_LANDING_PAD_NO_9_LAP_SIDE_LENGTH 13200
 
-/// Values of `HelicopterLandingPadNo9Work::state`: the behaviour the fighting golem runs
-/// each frame. Each one steps through its own `subState` values.
+/// Values of `HelicopterLandingPadNo9Work::state`: the behaviour the fighting golem runs each frame.
 enum {
     HELICOPTER_LANDING_PAD_NO_9_STATE_OPENING       = 0,  // First moves after the fight starts: a slash pair that ends in the flame lunge's charge
     HELICOPTER_LANDING_PAD_NO_9_STATE_PATROL        = 1,  // Walks the lap, firing as it goes, and picks the next attack
@@ -47,8 +42,8 @@ enum {
     HELICOPTER_LANDING_PAD_NO_9_STATE_DEATH         = 12, // Hit points gone: silences its sounds and stops being present
 };
 
-/// Values of `HelicopterLandingPadNo9Work::flameMode`, which the flame-jet effect reads
-/// from its task's first payload word.
+/// Values of `HelicopterLandingPadNo9Work::flameMode`, which the flame-jet effect reads from its task's first payload
+/// word.
 enum {
     HELICOPTER_LANDING_PAD_NO_9_FLAME_OFF      = 0, // No flame; also the mode before the first ignition
     HELICOPTER_LANDING_PAD_NO_9_FLAME_BURNING  = 1, // Lit: the jet grows to full size and keeps throwing flame
@@ -57,27 +52,7 @@ enum {
     HELICOPTER_LANDING_PAD_NO_9_FLAME_RELEASED = 4, // The golem has let go of the effect, which ends itself once room effects stop running
 };
 
-/// Work block of the Akropolis No. 9 golem, kept at `Task::work` of the body
-/// model's task.
-///
-/// The golem fights on a lap: one pass around a square of side
-/// `HELICOPTER_LANDING_PAD_NO_9_LAP_SIDE_LENGTH` on the
-/// helicopter landing pad, measured by `lapDistance` from the first corner.
-/// Each frame the state handler picks the animation and the speed along the
-/// lap, and the common tail turns the body to the side's heading, places it,
-/// plays the step cues and keeps the flame jet and the pad's collision faces
-/// up to date.
-///
-/// The tasks spawned beside the body are its children and reach this block
-/// through `Task::parent`: three models that ride body parts (the weapon, a
-/// chest piece and a prop only event animations show), the stun grenade, the
-/// three helipad lights and a coordinate-only blast source beside light 2.
-/// The part-riding models borrow `color` and `light`; the others stop when
-/// `present` clears and exchange the latches at the end of the block with the
-/// golem.
-///
-/// The block is cleared at allocation. No access to `pad_5C6` has been
-/// observed; whether it is a member or tail padding is unproven.
+/// Work block of the Akropolis No.
 typedef struct {
     ActorAnimRig19        rig;                // Playback storage of the nineteen-part body model; slots 1..18 are driven
     MATRIX                color;              // Colour matrix lent to the body model and to the three part-riding models
@@ -134,17 +109,9 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(HelicopterLandingPadNo9Work, 0x5C8);
 
 /// Akropolis No. 9 GOLEM combat parameters, borrowed by its body enemy.
-///
-/// Six attack rows; starts with 1600 HP. Release awards 500 experience,
-/// 800 battle points and 30 magic points. Critical-hit chance is 50 percent;
-/// buildup lasts three base steps and damage over time is disabled.
 extern EnemyParams gHelicopterLandingPadNo9EnemyParams;
 
 /// Animation-set bank borrowed by the nineteen-part No. 9 body rig.
-///
-/// Slot 0 is NULL; combat and event clips occupy IDs 1..33. Event requests
-/// add 27 to their ID and must remain within this bank. Keep this overlay
-/// loaded for every animation context borrowing its sets.
 extern AnimationSet* gHelicopterLandingPadNo9BodyAnimationSets[34];
 
 extern TmdSource gGolemNo9BodyAkropolis;
@@ -202,64 +169,27 @@ extern AnimationSet gGolemNo9HelipadLightIntactClip;
 extern AnimationSet gGolemNo9HelipadLightBreakClip;
 
 /// No. 9's six collision attacks, borrowed by its enemy parameters and attack bodies.
-///
-/// Indices 0..5 are dash, flame lunge, slash, lethal strike, held grenade and
-/// ignition. Each row's power and player reaction are copied into a contact key.
 extern DamageAttack gHelicopterLandingPadNo9Attacks[6];
 
 /// No. 9 body messages for grenade release, animation, placement, draw, activation and presence.
-///
-/// Six callbacks followed by `TASK_MESSAGE_TABLE_END`. Activation message
-/// 2007 takes command 0 show, 1 start the fight, 2 hide. Pointer payloads are
-/// borrowed only during synchronous dispatch; the table lives in this overlay.
 extern TaskMessageEntry gHelicopterLandingPadNo9BodyMessages[7];
 
 /// Initializes the Akropolis No. 9 golem body, children and collision spheres.
-///
-/// Requires a live descriptor-created nineteen-part body and unlinked enemy.
-/// Owns zeroed primary-heap work; failed allocation destroys the enemy. The
-/// model borrows work-owned lighting and animation storage until teardown.
-/// Starts seven children: prop, weapon, chest model, three lights and a blast
-/// source, plus an optional adopted flame jet. Weapon/chest allocation must
-/// succeed: their returned enemy/task pointers are used without a NULL check.
-/// Incoming body tests start enabled; both attack spheres remain disabled.
-/// Restores the live helipad grid and advances to the frame-update state.
 void helicopterLandingPadNo9InitBody(Enemy* enemy, Task* task);
 
 /// Advances No. 9 event playback and its frame-triggered flame presentation.
-///
-/// Requires live initialized body work/model/enemy and an event-selected rig.
-/// Animation 32 at elapsed frame 210 starts 255 flame ticks and two sounds.
-/// Advances tracks 1..19, composes the root, refreshes lighting and publishes
-/// changed flame modes to the adopted jet without running combat behavior.
 void helicopterLandingPadNo9TickEvent(Enemy* enemy, Task* task);
 
 /// Installs or collapses the landing pad's extra collision-grid face.
-///
-/// Requires the active landing-pad grid with at least four normals/faces and
-/// sixteen vertices. `enabled == 1` copies the fourth face and vertices 12..15;
-/// every other value zeroes only their XYZ and the fourth normal's XYZ, leaving
-/// the face record and vector fourth halfwords unchanged.
 void helicopterLandingPadNo9SetExtraGridFace(s32 enabled);
 
 /// Restores the three landing-pad wall faces carried with the moving golem.
-///
-/// Requires the active grid with at least three normals/faces and twelve vertices.
-/// Copies complete vectors and face records from the rest-pose arrays. The task
-/// argument is unused; this function retains the spawn call's original interface.
 void helicopterLandingPadNo9RestoreGridFaces(Task* unusedTask);
 
 /// Unlinks the body's receiving sphere and both attack spheres, then destroys it.
-///
-/// Requires the successfully initialized body task and its live enemy/work.
-/// Enemy destruction handles the target record, owned work and task tree.
 void helicopterLandingPadNo9ExitBody(Task* task);
 
 /// Samples room lighting at the body's cached translation and applies its colour state.
-///
-/// `task` must borrow its live enemy through the second spawn argument, and
-/// `coord->workm` must already be composed. Its three translation words are
-/// passed unchanged as the lighting sample, borrowed only through the update.
 void helicopterLandingPadNo9UpdateLighting(Task* task, const GfxCoord* coord);
 
 #endif // STAGES_AKROPOLIS_ACTORS_HELICOPTER_LANDING_PAD_NO_9_HELICOPTER_LANDING_PAD_NO_9_PRIVATE_H
