@@ -47,8 +47,8 @@ typedef struct {
     s32            animId;         // Clip the last play request seeded the slots with (0 none yet: the slots are not ticked; 3 and up fade the model out)
     s16            animTicks;      // Ticks since the last play request; paces the fade and ends the enemy
     byte           unknown_482[6]; // Allocated but never accessed; role unproven
-} _No9GolemWork;
-STATIC_ASSERT_SIZEOF(_No9GolemWork, 0x488);
+} _No9Work;
+STATIC_ASSERT_SIZEOF(_No9Work, 0x488);
 
 /// RGB555/STP words in the helicopter's flashing palette row and VRAM upload.
 #define PALETTE_COLORS 16
@@ -75,7 +75,7 @@ typedef struct {
 } _HelicopterWork;
 STATIC_ASSERT_SIZEOF(_HelicopterWork, 0x70);
 
-/// `_RupertBroderickWork::blinkStep`: the eye image the blink posts next.
+/// `_RupertWork::blinkStep`: the eye image the blink posts next.
 enum {
     BLINK_NONE   = 0, // No blink in progress
     BLINK_CLOSED = 1, // The closed eyes are posted next
@@ -92,14 +92,14 @@ typedef struct {
     s32            freeCountdown;   // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
     MATRIX         light;           // Light-direction matrix lent to the model object
     MATRIX         color;           // Light-colour matrix lent to the model object
-    Task*          gunTask;         // Task of the revolver model chained under body part 8; the shot's sound and muzzle flash are placed at its root
-    Task*          propTask;        // Task of the second model, chained under body part 12; an actor command shows it as it hides the revolver
+    Task*          gunTask;         // Task of the Mongoose revolver chained under his right hand; the shot's sound and muzzle flash are placed at its root
+    Task*          radioTask;       // Task of his radio, chained under his left hand; an actor command shows it as it hides the revolver
     s16            blinkFrameDelay; // Value `blinkCountdown` restarts from after the closed and the half-open eyes: each is shown for this many ticks plus one
     s16            blinkCountdown;  // Ticks left before the blink posts its next eye image, which the tick taking it below 0 does; not reset as a blink starts or ends
     s16            blinkStep;       // Eye image the blink posts next (0 `BLINK_NONE`, else `_CLOSED`, `_HALF` or `_OPEN`)
     s16            shotTicks;       // Ticks spent playing clip 1; the sixteenth fires the revolver's sound and muzzle flash. Never reset
-} _RupertBroderickWork;
-STATIC_ASSERT_SIZEOF(_RupertBroderickWork, 0x4D4);
+} _RupertWork;
+STATIC_ASSERT_SIZEOF(_RupertWork, 0x4D4);
 
 static void _modelPlacementAttachPartTask(Task* childTask);
 static void _modelPlacementMirrorParentDrawFlags(Task* childTask);
@@ -123,22 +123,22 @@ static void _helicopterDeparturePlaceHelicopterPart(Task* task);
 static void _helicopterDepartureBindHelicopterLighting(Task* task);
 static void _helicopterDepartureSpawnNo9Golem(Enemy* enemy, Task* task);
 static void _helicopterDepartureTickNo9Golem(Enemy* enemy, Task* task);
-static void _helicopterDepartureAttachNo9GolemPart8Model(Enemy* enemy, Task* task);
-static void _helicopterDepartureTickNo9GolemPart8Model(Enemy* enemy, Task* task);
-static void _helicopterDepartureAttachNo9GolemPart3Model(Enemy* enemy, Task* task);
-static void _helicopterDepartureTickNo9GolemPart3Model(Enemy* enemy, Task* task);
-static void _helicopterDepartureAttachNo9GolemPart12Model(Enemy* enemy, Task* task);
-static void _helicopterDepartureTickNo9GolemPart12Model(Enemy* enemy, Task* task);
+static void _helicopterDepartureAttachNo9Sword(Enemy* enemy, Task* task);
+static void _helicopterDepartureTickNo9Sword(Enemy* enemy, Task* task);
+static void _helicopterDepartureAttachNo9ChestPiece(Enemy* enemy, Task* task);
+static void _helicopterDepartureTickNo9ChestPiece(Enemy* enemy, Task* task);
+static void _helicopterDepartureAttachNo9Prop(Enemy* enemy, Task* task);
+static void _helicopterDepartureTickNo9Prop(Enemy* enemy, Task* task);
 
-/// Rupert's revolver states: 0 attach at body part 8, 1 idle, 2 kill.
+/// Rupert's revolver states: 0 attach to his right hand, 1 idle, 2 kill.
 static const TaskFuncTable3 _gHelicopterDepartureRupertRevolverStates = {
     _modelPlacementAttachPartTask,
     _helicopterDepartureIdleRupertRevolver,
     taskKill,
 };
 
-/// Rupert's second prop states: 0 attach at part 12, 1 mirror draw policy, 2 kill.
-static const TaskFuncTable3 _gHelicopterDepartureRupertPropStates = {
+/// Rupert's radio states: 0 attach to his left hand, 1 mirror his drawing, 2 kill.
+static const TaskFuncTable3 _gHelicopterDepartureRupertRadioStates = {
     _modelPlacementAttachChild,
     _modelPlacementMirrorParentDrawFlags,
     taskKill,
@@ -187,7 +187,7 @@ static s32       _helicopterDepartureSetRupertModelDraw(Task* task, s32 messageI
 static s32       _helicopterDepartureApplyRupertCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
 static s32       _helicopterDepartureSetRupertEyes(Task* task, s32 messageId, s32 eyeMode, s32 unusedArg);
 static void      _helicopterDepartureRupertRevolverTask(Task* task);
-static void      _helicopterDepartureRupertPropTask(Task* task);
+static void      _helicopterDepartureRupertRadioTask(Task* task);
 static void      _helicopterDepartureRupertBodyTask(Task* task);
 
 static AnimationSet _gAkropolisHelicopterLandingPadRupertShootClip;
@@ -200,9 +200,9 @@ static s32  _helicopterDepartureSetHelicopterModelDraw(Task* task, s32 messageId
 static s32  _helicopterDeparturePlayNo9GolemAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
 static s32  _helicopterDepartureSetNo9GolemModelDraw(Task* task, s32 messageId, s32 drawFlags, s32 unusedArg);
 static void _helicopterDepartureNo9GolemTask(Task* task);
-static void _helicopterDepartureNo9GolemPart8Task(Task* task);
-static void _helicopterDepartureNo9GolemPart3Task(Task* task);
-static void _helicopterDepartureNo9GolemPart12Task(Task* task);
+static void _helicopterDepartureNo9SwordTask(Task* task);
+static void _helicopterDepartureNo9ChestPieceTask(Task* task);
+static void _helicopterDepartureNo9PropTask(Task* task);
 
 static TmdSource _gHelicopterDepartureHelicopterHullModel;
 static TmdSource _gAkropolisHelicopterLandingPadMainRotor;
@@ -237,10 +237,18 @@ TaskDesc gHelicopterDepartureHelicopterTaskDescriptors[4] = {
 
 #include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_departure_clips_2.inc"
 
-/// Eye-patch dimensions: width counts 16-bit VRAM words, height counts rows.
+/// Rupert's eye band in his face texture: its first row, its width in 16-bit VRAM words and its height in rows.
 enum {
+    EYE_TEXTURE_Y_ROWS      = 40,
     EYE_TEXTURE_WIDTH_WORDS = 24,
     EYE_TEXTURE_HEIGHT_ROWS = 16,
+};
+
+/// The parts of Rupert's body his shadow and lighting follow and his revolver and radio ride.
+enum {
+    RUPERT_PELVIS_PART     = 1,
+    RUPERT_RIGHT_HAND_PART = 8,  // The Mongoose revolver
+    RUPERT_LEFT_HAND_PART  = 12, // The radio
 };
 
 /// Packed open-eye pixels for Rupert's face texture.
@@ -287,7 +295,7 @@ static AnimationSet** _gHelicopterDepartureRupertAnimationBanks[1] = {
 TaskDesc gHelicopterDepartureRupertTaskDescriptors[3] = {
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _helicopterDepartureRupertBodyTask, { .model = &_gRupertBody2 } },
     { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _helicopterDepartureRupertRevolverTask, { .model = &_gRupertMongoose } },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _helicopterDepartureRupertPropTask, { .model = &_gRupertRadio } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _helicopterDepartureRupertRadioTask, { .model = &_gRupertRadio } },
 };
 
 /// Terminated message table for Rupert's animation, placement, drawing and props.
@@ -342,126 +350,7 @@ static u8 _gHelicopterDepartureHelicopterFlashDarkPalette[PALETTE_BYTES] = {
 
 /// Camera frames synchronized with the helicopter's view-24 hull and lamp poses.
 static ViewCamera _gHelicopterDepartureHelicopterSequenceCameras[HELICOPTER_SEQUENCE_FRAME_COUNT] = {
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5598, 5926, 124 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5599, 5926, 122 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5599, 5926, 118 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5601, 5927, 110 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5602, 5927, 100 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5605, 5928, 86 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5607, 5930, 70 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5610, 5931, 52 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5614, 5933, 30 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5617, 5934, 6 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5622, 5936, -19 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5626, 5938, -47 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5630, 5940, -78 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5635, 5943, -111 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5640, 5945, -146 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5645, 5947, -184 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5651, 5950, -223 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5656, 5953, -264 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5661, 5955, -306 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5667, 5958, -351 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5672, 5961, -397 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5677, 5963, -444 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5682, 5966, -493 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5688, 5969, -543 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5693, 5972, -595 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5697, 5975, -648 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5702, 5977, -702 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5707, 5980, -756 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5711, 5983, -812 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5715, 5985, -869 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5719, 5988, -926 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5722, 5990, -985 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5725, 5993, -1043 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5728, 5995, -1103 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5730, 5997, -1162 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5732, 5999, -1222 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5734, 6001, -1282 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5735, 6003, -1343 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5736, 6005, -1403 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5736, 6006, -1464 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5736, 6008, -1524 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5735, 6009, -1585 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5734, 6010, -1644 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5732, 6011, -1704 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5730, 6012, -1763 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5727, 6012, -1822 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5724, 6013, -1880 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5719, 6013, -1937 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5714, 6012, -1993 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5708, 6012, -2048 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5701, 6011, -2103 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5694, 6010, -2156 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5685, 6009, -2207 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5675, 6007, -2258 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5663, 6005, -2306 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5650, 6002, -2353 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5634, 5998, -2397 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5616, 5993, -2439 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5593, 5987, -2476 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5564, 5979, -2505 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5527, 5968, -2521 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5486, 5956, -2521 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5446, 5944, -2510 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5407, 5931, -2492 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5370, 5919, -2469 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5334, 5908, -2443 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5299, 5897, -2414 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5265, 5885, -2383 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5232, 5875, -2350 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5199, 5864, -2316 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5167, 5853, -2281 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5136, 5843, -2245 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5105, 5833, -2207 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5074, 5822, -2169 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5045, 5812, -2131 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5015, 5802, -2091 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4986, 5793, -2051 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4958, 5783, -2011 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4930, 5774, -1971 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4902, 5764, -1930 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4875, 5755, -1889 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4849, 5746, -1847 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4823, 5737, -1806 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4797, 5728, -1765 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4772, 5720, -1724 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4748, 5711, -1683 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4724, 5703, -1642 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4701, 5695, -1601 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4678, 5687, -1561 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4656, 5679, -1521 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4634, 5672, -1481 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4614, 5665, -1442 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4593, 5657, -1404 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4573, 5651, -1366 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4554, 5644, -1329 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4536, 5637, -1292 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4518, 5631, -1257 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4501, 5625, -1222 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4485, 5619, -1188 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4469, 5614, -1155 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4454, 5608, -1123 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4440, 5603, -1092 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4426, 5598, -1063 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4413, 5594, -1034 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4401, 5589, -1007 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4389, 5585, -981 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4379, 5581, -957 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4368, 5578, -934 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4359, 5574, -913 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4351, 5571, -893 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4343, 5568, -874 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4336, 5566, -858 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4330, 5564, -843 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4324, 5562, -830 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4320, 5560, -819 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4316, 5559, -810 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4313, 5558, -802 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4311, 5557, -797 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4309, 5556, -794 } }, 447 },
-    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4309, 5556, -793 } }, 447 },
+#include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_camera_track.inc"
 };
 
 /// Terminated helicopter messages for sequence restart, placement and drawing.
@@ -472,12 +361,12 @@ static TaskMessageEntry _gHelicopterDepartureHelicopterMessages[4] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// Hull-relative translations of helicopter parts, in game units.
+/// Hull-relative translations of helicopter parts, in game units, by their spawn argument.
 static SVECTOR _gHelicopterDepartureHelicopterPartOffsets[4] = {
-    { 0, -0x3A98, 0, 0 },
-    { 0, -1350, 1360, 0 },
-    { 340, -230, -5790, 0 },
-    { 0, 1520, 50, 0 },
+    { 0, -0x3A98, 0, 0 },    // No part spawns with argument 0
+    { 0, -1350, 1360, 0 },   // The main rotor
+    { 340, -230, -5790, 0 }, // The tail rotor
+    { 0, 1520, 50, 0 },      // The searchlight
 };
 
 /// Searchlight glow centre colours at frame distances 0..3 from peak frame 89.
@@ -537,9 +426,9 @@ static s32 _gHelicopterDepartureHelicopterChildDescriptorIndices[3] = {
 
 TaskDesc gHelicopterDepartureNo9GolemTaskDescriptors[4] = {
     { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _helicopterDepartureNo9GolemTask, { .model = &gGolemNo9BodyAkropolis } },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _helicopterDepartureNo9GolemPart8Task, { .model = &gGolemNo9AkropolisSword } },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _helicopterDepartureNo9GolemPart3Task, { .model = &gGolemNo9AkropolisChestPiece } },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _helicopterDepartureNo9GolemPart12Task, { .model = &gGolemNo9AkropolisProp } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _helicopterDepartureNo9SwordTask, { .model = &gGolemNo9AkropolisSword } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _helicopterDepartureNo9ChestPieceTask, { .model = &gGolemNo9AkropolisChestPiece } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _helicopterDepartureNo9PropTask, { .model = &gGolemNo9AkropolisProp } },
 };
 
 /// No. 9 GOLEM playback, matrix-placement and draw messages, with an end marker.
@@ -559,23 +448,26 @@ static void _helicopterDepartureTickHelicopterPaletteFlash(_HelicopterWork* work
 static void _helicopterDepartureTickRupert(Task* task)
 {
     enum {
-        RUPERT_SHOT_CLIP  = 1,
-        RUPERT_SHOT_TICK  = 16,
+        RUPERT_SHOT_CLIP = 1,
+        RUPERT_SHOT_TICK = 16,
+        // A bank-type 3 entry of bank 0x13A, which no bank on the disc is: the only type-3 bank is the roof garden's
+        // (0x3108), so this request finds nothing to play.
         SOUND_RUPERT_SHOT = 0x313A0003,
-        RUPERT_LIGHT_PART = 1,
+        SHADOW_HALF_SIZE  = 0x300,
+        LIGHT_COUNT       = 3,
     };
 
-    _RupertBroderickWork* work;
-    TmdObject*            model;
-    GfxCoord*             coord;
-    GfxCoord*             gunCoord;
-    VECTOR3               groundPoint;
-    s32                   slotIndex;
-    s32                   audioPan;
+    _RupertWork* work;
+    TmdObject*   model;
+    GfxCoord*    coord;
+    GfxCoord*    gunCoord;
+    VECTOR3      groundPoint;
+    s32          slotIndex;
+    s32          audioPan;
 
     model = task->extra.tmd;
     work  = task->work;
-    coord = &model->coords[RUPERT_LIGHT_PART];
+    coord = &model->coords[RUPERT_PELVIS_PART];
     if (work->ticking != 0) {
         for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
             animationTickSlot(&work->rig.anim, slotIndex);
@@ -590,14 +482,14 @@ static void _helicopterDepartureTickRupert(Task* task)
         }
     }
     if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[RUPERT_LIGHT_PART].workm), &groundPoint) != 0) {
-            effectDrawGroundShadow(&groundPoint, 0x300, gRoomEffectState->groundShadowShade);
+        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[RUPERT_PELVIS_PART].workm), &groundPoint) != 0) {
+            effectDrawGroundShadow(&groundPoint, SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
     }
     if (gGameSession->viewReady != 0) {
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(coord);
-        worldCoordSetModelLighting(model, coord->workm.t, 0, 3);
+        worldCoordSetModelLighting(model, coord->workm.t, 0, LIGHT_COUNT);
     }
     _helicopterDepartureTickRupertBlink(task);
     if (work->freeCountdown >= 0) {
@@ -609,7 +501,7 @@ static void _helicopterDepartureTickRupert(Task* task)
 }
 
 /// Posts the next timed blink image and restarts its display interval.
-static inline void _helicopterDepartureAdvanceRupertBlinkImage(Task* task, _RupertBroderickWork* work,
+static inline void _helicopterDepartureAdvanceRupertBlinkImage(Task* task, _RupertWork* work,
                                                                GpuImageUpload* uploadList, const RECT* eyeRect)
 {
     actorRenderUploadTexture(task, uploadList, eyeRect);
@@ -620,17 +512,14 @@ static inline void _helicopterDepartureAdvanceRupertBlinkImage(Task* task, _Rupe
 /// Advances Rupert's closed, half-open and open eye sequence by one tick.
 static void _helicopterDepartureTickRupertBlink(Task* task)
 {
-    enum { Y_ROWS      = 40,
-           WIDTH_WORDS = 24,
-           HEIGHT_ROWS = 16 };
-    _RupertBroderickWork* work;
-    RECT                  eyeRect;
+    _RupertWork* work;
+    RECT         eyeRect;
 
     work      = task->work;
     eyeRect.x = 0;
-    eyeRect.y = Y_ROWS;
-    eyeRect.w = WIDTH_WORDS;
-    eyeRect.h = HEIGHT_ROWS;
+    eyeRect.y = EYE_TEXTURE_Y_ROWS;
+    eyeRect.w = EYE_TEXTURE_WIDTH_WORDS;
+    eyeRect.h = EYE_TEXTURE_HEIGHT_ROWS;
 
     switch (work->blinkStep) {
         case BLINK_CLOSED:
@@ -671,12 +560,12 @@ static void _helicopterDepartureIdleRupertRevolver(Task* task)
 {
 }
 
-/// Runs the states of Rupert Broderick's second held model.
-static void _helicopterDepartureRupertPropTask(Task* task)
+/// Runs the states of Rupert's radio.
+static void _helicopterDepartureRupertRadioTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = _gHelicopterDepartureRupertPropStates;
+    states = _gHelicopterDepartureRupertRadioStates;
     states.funcs[task->state](task);
 }
 
@@ -693,21 +582,20 @@ static void _helicopterDepartureRupertBodyTask(Task* task)
     states.funcs[task->state](task);
 }
 
-/// Initializes Rupert's hidden body and its revolver and prop attachments.
+/// Initializes Rupert's hidden body and his revolver and radio.
 static void _helicopterDepartureInitRupert(Task* task)
 {
     enum {
-        NO_BUFFER_RELEASE = -1,
-        GUN_DESCRIPTOR    = 1,
-        GUN_PART          = 8,
-        PROP_DESCRIPTOR   = 2,
-        PROP_PART         = 12,
+        NO_BUFFER_RELEASE        = -1,
+        GUN_DESCRIPTOR           = 1,
+        RADIO_DESCRIPTOR         = 2,
+        INITIAL_SHADOW_HALF_SIZE = 0x200,
     };
 
-    _RupertBroderickWork* work;
-    TmdObject*            model;
-    VECTOR3               groundPoint;
-    u16                   flags;
+    _RupertWork* work;
+    TmdObject*   model;
+    VECTOR3      groundPoint;
+    u16          flags;
 
     model = task->extra.tmd;
     work  = memCalloc(sizeof(*work), false);
@@ -724,28 +612,25 @@ static void _helicopterDepartureInitRupert(Task* task)
     model->flags        = flags;
     // The target retains this shadow branch after setting the hidden flag.
     if (!(flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
-            effectDrawGroundShadow(&groundPoint, 0x200, gRoomEffectState->groundShadowShade);
+        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[RUPERT_PELVIS_PART].workm), &groundPoint) != 0) {
+            effectDrawGroundShadow(&groundPoint, INITIAL_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
     }
-    work->gunTask  = taskSpawnFromTable(gHelicopterDepartureRupertTaskDescriptors, GUN_DESCRIPTOR, GUN_PART, task);
-    work->propTask = taskSpawnFromTable(gHelicopterDepartureRupertTaskDescriptors, PROP_DESCRIPTOR, PROP_PART, task);
+    work->gunTask   = taskSpawnFromTable(gHelicopterDepartureRupertTaskDescriptors, GUN_DESCRIPTOR, RUPERT_RIGHT_HAND_PART, task);
+    work->radioTask = taskSpawnFromTable(gHelicopterDepartureRupertTaskDescriptors, RADIO_DESCRIPTOR, RUPERT_LEFT_HAND_PART, task);
     _helicopterDepartureBindRupertLighting(task);
     task->msgTable     = _gHelicopterDepartureRupertMessages;
     task->exitCallback = enemyTaskExit;
     task->state++;
 }
 
-/// Binds Rupert's body lighting matrices and relights it at model part 1.
+/// Binds Rupert's body lighting matrices and relights him at the pelvis.
 static void _helicopterDepartureBindRupertLighting(Task* task)
 {
-    enum {
-        SAMPLE_PART = 1,
-        COUNT       = 3,
-    };
-    _RupertBroderickWork* work;
-    GfxCoord*             partCoords;
-    TmdObject*            model;
+    enum { COUNT = 3 };
+    _RupertWork* work;
+    GfxCoord*    partCoords;
+    TmdObject*   model;
 
     work            = task->work;
     model           = task->extra.tmd;
@@ -753,13 +638,13 @@ static void _helicopterDepartureBindRupertLighting(Task* task)
     model->lightMtx = &work->light;
     model->colorMtx = &work->color;
 
-    partCoords[SAMPLE_PART].composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(&partCoords[SAMPLE_PART]);
-    worldCoordSetModelLighting(model, partCoords[SAMPLE_PART].workm.t, 0, COUNT);
+    partCoords[RUPERT_PELVIS_PART].composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(&partCoords[RUPERT_PELVIS_PART]);
+    worldCoordSetModelLighting(model, partCoords[RUPERT_PELVIS_PART].workm.t, 0, COUNT);
 }
 
 /// Reseeds Rupert's driven slots, updates their poses and enables ticking.
-static inline void _helicopterDepartureReseedRupertAnimation(_RupertBroderickWork* work, const AnimationPlayRequest* request)
+static inline void _helicopterDepartureReseedRupertAnimation(_RupertWork* work, const AnimationPlayRequest* request)
 {
     enum { RUPERT_BLEND_FRAMES = 6 };
     s32 slotIndex;
@@ -783,8 +668,8 @@ static inline void _helicopterDepartureReseedRupertAnimation(_RupertBroderickWor
 /// Applies an animation request to Rupert Broderick's twenty-part body.
 static s32 _helicopterDeparturePlayRupertAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg)
 {
-    _RupertBroderickWork* work;
-    TmdObject*            model;
+    _RupertWork* work;
+    TmdObject*   model;
 
     work  = task->work;
     model = task->extra.tmd;
@@ -806,9 +691,9 @@ static s32 _helicopterDeparturePlayRupertAnimation(Task* task, s32 messageId, co
 /// Changes Rupert's drawing and primitive-buffer policy.
 static s32 _helicopterDepartureSetRupertModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg)
 {
-    TmdObject*            model;
-    _RupertBroderickWork* work;
-    s32                   result;
+    TmdObject*   model;
+    _RupertWork* work;
+    s32          result;
 
     model  = task->extra.tmd;
     work   = task->work;
@@ -841,14 +726,14 @@ static s32 _helicopterDepartureSetRupertModelDraw(Task* task, s32 messageId, s32
     return result;
 }
 
-/// Selects Rupert's held model for an actor command.
+/// Shows Rupert's revolver, or hides it and shows his radio, for an actor command.
 static s32 _helicopterDepartureApplyRupertCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg)
 {
     enum { REVOLVER = 0,
-           PROP     = 1 };
-    _RupertBroderickWork* work;
-    Task*                 childTask;
-    u16                   commandId;
+           RADIO    = 1 };
+    _RupertWork* work;
+    Task*        childTask;
+    u16          commandId;
 
     commandId = command->command;
     work      = task->work;
@@ -860,12 +745,12 @@ static s32 _helicopterDepartureApplyRupertCommand(Task* task, s32 messageId, con
                 childTask->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             break;
-        case PROP:
+        case RADIO:
             childTask = work->gunTask;
             if (childTask != NULL) {
                 childTask->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
-            childTask = work->propTask;
+            childTask = work->radioTask;
             if (childTask != NULL) {
                 childTask->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
@@ -874,16 +759,13 @@ static s32 _helicopterDepartureApplyRupertCommand(Task* task, s32 messageId, con
     return 0;
 }
 
-/// Sets Rupert's eye image or starts a timed blink for message 0x7E0.
+/// Sets Rupert's eye image or starts a timed blink for `ACTOR_MESSAGE_SET_TEXTURE_MODE`.
 static s32 _helicopterDepartureSetRupertEyes(Task* task, s32 messageId, s32 eyeMode, s32 unusedArg)
 {
     enum { EYES_OPEN           = 0,
            EYES_CLOSED         = 1,
            EYES_OPEN_ALTERNATE = 2,
            EYES_BLINK          = 3,
-           EYES_Y_ROWS         = 40,
-           EYES_WIDTH_WORDS    = 24,
-           EYES_HEIGHT_ROWS    = 16,
            BLINK_FRAME_DELAY   = 1 };
     RECT            eyeRect;
     GpuImageUpload* uploadList;
@@ -891,9 +773,9 @@ static s32 _helicopterDepartureSetRupertEyes(Task* task, s32 messageId, s32 eyeM
 
     result    = 0;
     eyeRect.x = 0;
-    eyeRect.y = EYES_Y_ROWS;
-    eyeRect.w = EYES_WIDTH_WORDS;
-    eyeRect.h = EYES_HEIGHT_ROWS;
+    eyeRect.y = EYE_TEXTURE_Y_ROWS;
+    eyeRect.w = EYE_TEXTURE_WIDTH_WORDS;
+    eyeRect.h = EYE_TEXTURE_HEIGHT_ROWS;
 
     switch (eyeMode) {
         case EYES_CLOSED:
@@ -904,8 +786,8 @@ static s32 _helicopterDepartureSetRupertEyes(Task* task, s32 messageId, s32 eyeM
             uploadList = &_gHelicopterDepartureRupertEyesOpenUploads[0];
             break;
         case EYES_BLINK: {
-            _RupertBroderickWork* stepWork;
-            _RupertBroderickWork* delayWork;
+            _RupertWork* stepWork;
+            _RupertWork* delayWork;
 
             stepWork                   = task->work;
             stepWork->blinkStep        = BLINK_CLOSED;
@@ -1464,7 +1346,7 @@ static void _helicopterDepartureSpawnNo9Golem(Enemy* enemy, Task* task)
     AreaVariant*     layout;
     TmdObject*       model;
     GfxCoord*        bodyRoot;
-    _No9GolemWork*   work;
+    _No9Work*        work;
     TaskDesc*        childDescriptors;
     u32              placeIndex;
     u32              placeIndex2;
@@ -1549,15 +1431,15 @@ static void _helicopterDepartureTickNo9Golem(Enemy* enemy, Task* task)
            SHADOW_HALF_SIZE   = 1024,
            FADE_NUMERATOR     = 15,
            FADE_FRACTION_BITS = 4 };
-    TmdObject*     model;
-    VECTOR*        worldPosition;
-    VECTOR*        groundPoint;
-    _No9GolemWork* work;
-    GfxCoord*      modelCoords;
-    GfxCoord*      sampleCoord;
-    s32            loopIndex;
-    s32            column;
-    s32            animationId;
+    TmdObject* model;
+    VECTOR*    worldPosition;
+    VECTOR*    groundPoint;
+    _No9Work*  work;
+    GfxCoord*  modelCoords;
+    GfxCoord*  sampleCoord;
+    s32        loopIndex;
+    s32        column;
+    s32        animationId;
 
 /// Scales the golem's shared light and colour bases by 15/16 for one fade step.
 #define FADE_GOLEM_LIGHTING()                                                                                                 \
@@ -1623,8 +1505,8 @@ static void _helicopterDepartureNo9GolemTask(Task* task)
 /// Restarts the No. 9 golem's body animation and exit timer.
 static s32 _helicopterDeparturePlayNo9GolemAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg)
 {
-    _No9GolemWork* work;
-    s32            slotIndex;
+    _No9Work* work;
+    s32       slotIndex;
 
     work         = task->work;
     work->animId = request->animationId;
@@ -1642,12 +1524,11 @@ static s32 _helicopterDeparturePlayNo9GolemAnimation(Task* task, s32 messageId, 
 /// Replaces the No. 9 golem body's drawing and automatic-buffer flags.
 static s32 _helicopterDepartureSetNo9GolemModelDraw(Task* task, s32 messageId, s32 drawFlags, s32 unusedArg)
 {
-    enum { SHOW             = 1 << 0,
-           SKIP_AUTO_BUFFER = 1 << 1 };
+    enum { SKIP_AUTO_BUFFER = 1 << 1 };
     TmdObject* model;
 
     model = task->extra.tmd;
-    if (!(drawFlags & SHOW)) {
+    if (!(drawFlags & ACTOR_MESSAGE_DRAW_SHOW)) {
         model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         model->flags = 0;
@@ -1658,24 +1539,24 @@ static s32 _helicopterDepartureSetNo9GolemModelDraw(Task* task, s32 messageId, s
     return 0;
 }
 
-/// Runs the No. 9 golem's part-8 attachment states.
-static void _helicopterDepartureNo9GolemPart8Task(Task* task)
+/// Runs the states of the No. 9 golem's sword.
+static void _helicopterDepartureNo9SwordTask(Task* task)
 {
-    EnemyTaskFunc states[2] = { _helicopterDepartureAttachNo9GolemPart8Model, _helicopterDepartureTickNo9GolemPart8Model };
+    EnemyTaskFunc states[2] = { _helicopterDepartureAttachNo9Sword, _helicopterDepartureTickNo9Sword };
 
     states[task->state](task->spawnArg2.pointer, task);
 }
 
-/// Attaches the No. 9 golem's part-8 model and shows it with the body's lighting.
-static void _helicopterDepartureAttachNo9GolemPart8Model(Enemy* enemy, Task* task)
+/// Attaches the No. 9 golem's sword to its right hand and shows it with the body's lighting.
+static void _helicopterDepartureAttachNo9Sword(Enemy* enemy, Task* task)
 {
-    enum { PARENT_PART  = 8,
-           UPDATE_STATE = 1 };
-    Task*          parentTask;
-    TmdObject*     model;
-    _No9GolemWork* parentWork;
-    GfxCoord*      root;
-    GfxCoord*      parentCoords;
+    enum { RIGHT_HAND_PART = 8,
+           UPDATE_STATE    = 1 };
+    Task*      parentTask;
+    TmdObject* model;
+    _No9Work*  parentWork;
+    GfxCoord*  root;
+    GfxCoord*  parentCoords;
 
     parentTask   = task->parent;
     model        = task->extra.tmd;
@@ -1683,38 +1564,38 @@ static void _helicopterDepartureAttachNo9GolemPart8Model(Enemy* enemy, Task* tas
     root         = model->coords;
     parentWork   = parentTask->work;
 
-    root->parent    = &parentCoords[PARENT_PART];
+    root->parent    = &parentCoords[RIGHT_HAND_PART];
     model->lightMtx = &parentWork->light;
     model->flags    = 0;
     model->colorMtx = &parentWork->color;
     task->state     = UPDATE_STATE;
 }
 
-/// Invalidates and composes the golem's part-8 attachment transform each tick.
-static void _helicopterDepartureTickNo9GolemPart8Model(Enemy* enemy, Task* task)
+/// Composes the sword's attached transform each tick.
+static void _helicopterDepartureTickNo9Sword(Enemy* enemy, Task* task)
 {
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(task->extra.tmd->coords);
 }
 
-/// Runs the No. 9 golem's part-3 attachment states.
-static void _helicopterDepartureNo9GolemPart3Task(Task* task)
+/// Runs the states of the No. 9 golem's chest piece.
+static void _helicopterDepartureNo9ChestPieceTask(Task* task)
 {
-    EnemyTaskFunc states[2] = { _helicopterDepartureAttachNo9GolemPart3Model, _helicopterDepartureTickNo9GolemPart3Model };
+    EnemyTaskFunc states[2] = { _helicopterDepartureAttachNo9ChestPiece, _helicopterDepartureTickNo9ChestPiece };
 
     states[task->state](task->spawnArg2.pointer, task);
 }
 
-/// Attaches the No. 9 golem's part-3 model and shows it with the body's lighting.
-static void _helicopterDepartureAttachNo9GolemPart3Model(Enemy* enemy, Task* task)
+/// Attaches the No. 9 golem's chest piece to its chest and shows it with the body's lighting.
+static void _helicopterDepartureAttachNo9ChestPiece(Enemy* enemy, Task* task)
 {
-    enum { PARENT_PART  = 3,
+    enum { CHEST_PART   = 3,
            UPDATE_STATE = 1 };
-    Task*          parentTask;
-    TmdObject*     model;
-    _No9GolemWork* parentWork;
-    GfxCoord*      root;
-    GfxCoord*      parentCoords;
+    Task*      parentTask;
+    TmdObject* model;
+    _No9Work*  parentWork;
+    GfxCoord*  root;
+    GfxCoord*  parentCoords;
 
     parentTask   = task->parent;
     model        = task->extra.tmd;
@@ -1722,38 +1603,38 @@ static void _helicopterDepartureAttachNo9GolemPart3Model(Enemy* enemy, Task* tas
     root         = model->coords;
     parentWork   = parentTask->work;
 
-    root->parent    = &parentCoords[PARENT_PART];
+    root->parent    = &parentCoords[CHEST_PART];
     model->lightMtx = &parentWork->light;
     model->flags    = 0;
     model->colorMtx = &parentWork->color;
     task->state     = UPDATE_STATE;
 }
 
-/// Invalidates and composes the golem's part-3 attachment transform each tick.
-static void _helicopterDepartureTickNo9GolemPart3Model(Enemy* enemy, Task* task)
+/// Composes the chest piece's attached transform each tick.
+static void _helicopterDepartureTickNo9ChestPiece(Enemy* enemy, Task* task)
 {
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(task->extra.tmd->coords);
 }
 
-/// Runs the No. 9 golem's part-12 attachment states.
-static void _helicopterDepartureNo9GolemPart12Task(Task* task)
+/// Runs the states of the No. 9 golem's prop.
+static void _helicopterDepartureNo9PropTask(Task* task)
 {
-    EnemyTaskFunc states[2] = { _helicopterDepartureAttachNo9GolemPart12Model, _helicopterDepartureTickNo9GolemPart12Model };
+    EnemyTaskFunc states[2] = { _helicopterDepartureAttachNo9Prop, _helicopterDepartureTickNo9Prop };
 
     states[task->state](task->spawnArg2.pointer, task);
 }
 
-/// Attaches the No. 9 golem's part-12 model with the body's lighting.
-static void _helicopterDepartureAttachNo9GolemPart12Model(Enemy* enemy, Task* task)
+/// Attaches the No. 9 golem's prop to its left hand with the body's lighting.
+static void _helicopterDepartureAttachNo9Prop(Enemy* enemy, Task* task)
 {
-    enum { GOLEM_PARENT_PART  = 12,
-           GOLEM_UPDATE_STATE = 1 };
-    Task*          parentTask;
-    TmdObject*     model;
-    _No9GolemWork* parentWork;
-    GfxCoord*      root;
-    GfxCoord*      parentCoords;
+    enum { LEFT_HAND_PART = 12,
+           UPDATE_STATE   = 1 };
+    Task*      parentTask;
+    TmdObject* model;
+    _No9Work*  parentWork;
+    GfxCoord*  root;
+    GfxCoord*  parentCoords;
 
     parentTask   = task->parent;
     model        = task->extra.tmd;
@@ -1761,15 +1642,15 @@ static void _helicopterDepartureAttachNo9GolemPart12Model(Enemy* enemy, Task* ta
     root         = model->coords;
     parentWork   = parentTask->work;
 
-    root->parent    = &parentCoords[GOLEM_PARENT_PART];
+    root->parent    = &parentCoords[LEFT_HAND_PART];
     model->lightMtx = &parentWork->light;
     model->flags    = 0;
     model->colorMtx = &parentWork->color;
-    task->state     = GOLEM_UPDATE_STATE;
+    task->state     = UPDATE_STATE;
 }
 
-/// Invalidates and composes the golem's part-12 attachment transform each tick.
-static void _helicopterDepartureTickNo9GolemPart12Model(Enemy* enemy, Task* task)
+/// Composes the prop's attached transform each tick.
+static void _helicopterDepartureTickNo9Prop(Enemy* enemy, Task* task)
 {
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(task->extra.tmd->coords);

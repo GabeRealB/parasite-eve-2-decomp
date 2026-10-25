@@ -5277,6 +5277,7 @@ EMBEDDED_ASSETS = {
     'rooms/akropolis/plaza/traversal_camera_path': {"source": 'akropolis_plaza.pe2pkg', "vram": 0x801838B8, "size": 0x7080, "type": 'camera_path', "group": 'rooms/akropolis/plaza', "include": 'layout', "layout": '9h 2x 3i I'},
     'rooms/akropolis/helicopter_landing_pad/helicopter_palette_lit': {"source": 'helicopter_departure.pe2pkg', "vram": 0x80147E84, "size": 0x20, "type": 'clut', "group": 'rooms/akropolis/helicopter_landing_pad', "h": 1, "include": 'u8', "w": 16, "x": 0, "y": 264},
     'mine_mesa_motion_06BC4': {"source": 'mine_mesa.pe2pkg', "vram": 0x80184184, "size": 0x170, "type": 'motion_curve', "include": 'u16'},
+    'rooms/akropolis/helicopter_landing_pad/helicopter_camera_track': {"source": 'helicopter_departure.pe2pkg', "vram": 0x80147EE4, "size": 0x10E0, "type": 'camera_path', "group": 'rooms/akropolis/helicopter_landing_pad', "include": 'layout', "layout": '9h 2x 3i I'},
     'rooms/akropolis/helicopter_landing_pad/helicopter_palette_dark': {"source": 'helicopter_departure.pe2pkg', "vram": 0x80147EC4, "size": 0x20, "type": 'clut', "group": 'rooms/akropolis/helicopter_landing_pad', "include": 'u8'},
     'mine_cavern_model_10F60': {"source": 'mine_cavern.pe2pkg', "vram": 0x8018E520, "size": 0x1A0, "type": 'tmd'},
     'mine_cavern_model_11244': {"source": 'mine_cavern.pe2pkg', "vram": 0x8018E804, "size": 0x2B8, "type": 'tmd'},

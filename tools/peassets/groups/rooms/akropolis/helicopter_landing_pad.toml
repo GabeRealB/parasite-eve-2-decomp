@@ -1483,6 +1483,7 @@ embedded = [
     "rooms/akropolis/helicopter_landing_pad/searchlight_rotation_track",
     "rooms/akropolis/helicopter_landing_pad/helicopter_palette_lit",
     "rooms/akropolis/helicopter_landing_pad/helicopter_palette_dark",
+    "rooms/akropolis/helicopter_landing_pad/helicopter_camera_track",
     { name = "no_9_standoff", offset = 0x1D228, size = 0x36EC, address = 0x8014F048 },
     { name = "no_9_times_up", offset = 0x20914, size = 0x15D0, address = 0x80152734 },
     { name = "no_9_leap_away", offset = 0x21EE4, size = 0x136C, address = 0x80153D04 },
