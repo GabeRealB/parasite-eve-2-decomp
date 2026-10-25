@@ -44,13 +44,6 @@ _gAkropolisPatioView9SpriteBatches = 0x80185E50; // size:0x78 defined:True
 _gAkropolisPatioView10SpriteBatches = 0x80185EC8; // size:0x10 defined:True
 _gAkropolisPatioView11SpriteBatches = 0x80185ED8; // size:0x10 defined:True
 _gAkropolisPatioView12SpriteBatches = 0x80185EE8; // size:0x10 defined:True
-gActor00700RatTaskDesc = 0x80138C80; // absolute:True owner=actor_100700
-gActor00700MothTaskDesc = 0x801393C8; // absolute:True owner=actor_100700
-gActor101900GrinningStrangerTaskDesc = 0x80149120; // absolute:True owner=actor_101900
-gActor401000StrangerTaskDesc = 0x80155004; // absolute:True owner=actor_401000
-gActor300700MothTaskDesc = 0x80165B88; // absolute:True owner=actor_300700
-gPatioSwatMemberTaskDesc = 0x80169F7C; // absolute:True owner=patio_swat_member
-gPatioLeapingStrangersTaskDesc = 0x8016CF44; // absolute:True owner=patio_leaping_strangers
 gMapAkropolisPatioVariant1Placements = 0x8017ACFC; // absolute:True owner=map_akropolis
 gMapAkropolisPatioVariant2Placements = 0x8017AD2C; // absolute:True owner=map_akropolis
 gMapAkropolisPatioVariant3Placements = 0x8017AD7C; // absolute:True owner=map_akropolis
