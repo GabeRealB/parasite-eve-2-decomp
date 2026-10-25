@@ -528,8 +528,7 @@ static s32 _actor213000PlayAnimation(Task* actorTask, s32 messageId, const Anima
 static s32 _actor213000SetModelDraw(Task* actorTask, s32 messageId, s32 mode, s32 unusedSecondArg)
 {
     enum {
-        ACTOR_213000_DRAW_SHOW_SKIP_AUTO_BUFFER = 3,
-        ACTOR_213000_BUFFER_FREE_DELAY_TICKS    = 2,
+        ACTOR_213000_BUFFER_FREE_DELAY_TICKS = 2,
     };
 
     TmdObject*                   model;
@@ -555,7 +554,7 @@ static s32 _actor213000SetModelDraw(Task* actorTask, s32 messageId, s32 mode, s3
             work->freeCountdown = ACTOR_213000_BUFFER_FREE_DELAY_TICKS;
             model->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case ACTOR_213000_DRAW_SHOW_SKIP_AUTO_BUFFER:
+        case ACTOR_MESSAGE_DRAW_SHOW_SKIP_AUTO_BUFFER:
             model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;

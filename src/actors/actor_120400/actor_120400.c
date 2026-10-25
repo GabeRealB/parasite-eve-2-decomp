@@ -464,7 +464,6 @@ static void _actor120400BeginKyleMadiganWalk(Task* task)
 /// word; its counter store narrows to a halfword.
 static s32 _actor120400SetKyleMadiganDrawMode(Task* task, s32 msgId, s32 mode, s32 unusedArg)
 {
-    enum { ACTOR_120400_KYLE_DRAW_SHOW_SKIP_AUTO_BUFFER = 3 };
     TmdObject*                   bodyModel;
     _Actor120400KyleMadiganWork* work;
     s32                          result;
@@ -487,7 +486,7 @@ static s32 _actor120400SetKyleMadiganDrawMode(Task* task, s32 msgId, s32 mode, s
             work->freeCountdown = mode;
             bodyModel->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case ACTOR_120400_KYLE_DRAW_SHOW_SKIP_AUTO_BUFFER:
+        case ACTOR_MESSAGE_DRAW_SHOW_SKIP_AUTO_BUFFER:
             bodyModel->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             bodyModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;

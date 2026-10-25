@@ -1690,10 +1690,9 @@ static void _actor335800GaryDouglasBeginApproach(Task* task)
 static s32 _actor335800GaryDouglasSetDrawMode(Task* task, s32 messageId, s32 mode, s32 unusedArg)
 {
     enum {
-        ACTOR_335800_GARY_DOUGLAS_DRAW_HIDE                  = 0,
-        ACTOR_335800_GARY_DOUGLAS_DRAW_SHOW_ALLOCATE         = 1,
-        ACTOR_335800_GARY_DOUGLAS_DRAW_HIDE_RELEASE          = 2,
-        ACTOR_335800_GARY_DOUGLAS_DRAW_SHOW_SKIP_AUTO_BUFFER = 3
+        ACTOR_335800_GARY_DOUGLAS_DRAW_HIDE          = 0,
+        ACTOR_335800_GARY_DOUGLAS_DRAW_SHOW_ALLOCATE = 1,
+        ACTOR_335800_GARY_DOUGLAS_DRAW_HIDE_RELEASE  = 2,
     };
     _Actor335800GaryDouglasWork* work;
     TmdObject*                   bodyModel;
@@ -1722,7 +1721,7 @@ static s32 _actor335800GaryDouglasSetDrawMode(Task* task, s32 messageId, s32 mod
             work->freeCountdown = mode;
             bodyModel->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case ACTOR_335800_GARY_DOUGLAS_DRAW_SHOW_SKIP_AUTO_BUFFER:
+        case ACTOR_MESSAGE_DRAW_SHOW_SKIP_AUTO_BUFFER:
             bodyModel->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             bodyModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
@@ -2151,10 +2150,9 @@ static s32 _actor335800FlintPlayAnimation(Task* task, s32 messageId, const Anima
 static s32 _actor335800FlintSetDrawMode(Task* task, s32 messageId, s32 mode, s32 unusedArg)
 {
     enum {
-        ACTOR_335800_FLINT_DRAW_HIDE                  = 0,
-        ACTOR_335800_FLINT_DRAW_SHOW_ALLOCATE         = 1,
-        ACTOR_335800_FLINT_DRAW_HIDE_RELEASE          = 2,
-        ACTOR_335800_FLINT_DRAW_SHOW_SKIP_AUTO_BUFFER = 3
+        ACTOR_335800_FLINT_DRAW_HIDE          = 0,
+        ACTOR_335800_FLINT_DRAW_SHOW_ALLOCATE = 1,
+        ACTOR_335800_FLINT_DRAW_HIDE_RELEASE  = 2,
     };
     TmdObject* model;
     s32        result;
@@ -2180,7 +2178,7 @@ static s32 _actor335800FlintSetDrawMode(Task* task, s32 messageId, s32 mode, s32
             model->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         }
-        case ACTOR_335800_FLINT_DRAW_SHOW_SKIP_AUTO_BUFFER:
+        case ACTOR_MESSAGE_DRAW_SHOW_SKIP_AUTO_BUFFER:
             model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;

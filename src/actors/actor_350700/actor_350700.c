@@ -547,7 +547,6 @@ static void _actor350700KyleMadiganWalkerBeginMove(Task* task)
 /// payload are ignored; no payload storage is borrowed.
 static s32 _actor350700KyleMadiganWalkerSetDrawModeMsg(Task* task, s32 msgId, s32 mode, s32 unusedArg)
 {
-    enum { ACTOR_350700_KYLE_MADIGAN_DRAW_SHOW_SKIP_AUTO_BUFFER = 3 };
     KyleMadiganWalkerWork* work;
     TmdObject*             bodyModel;
     TmdObject*             leftHandModel;
@@ -577,7 +576,7 @@ static s32 _actor350700KyleMadiganWalkerSetDrawModeMsg(Task* task, s32 msgId, s3
             work->freeCountdown = mode;
             bodyModel->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case ACTOR_350700_KYLE_MADIGAN_DRAW_SHOW_SKIP_AUTO_BUFFER:
+        case ACTOR_MESSAGE_DRAW_SHOW_SKIP_AUTO_BUFFER:
             bodyModel->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             bodyModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;

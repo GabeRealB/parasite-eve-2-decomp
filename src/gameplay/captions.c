@@ -1424,10 +1424,9 @@ void capClearUnstartedSequenceTask(Task* task)
 static inline void _capDispatchTextureMessage(s32 recipient, s32 textureMode)
 {
     enum {
-        CAP_TEXTURE_RECIPIENT_PLAYER              = 0,
-        CAP_TEXTURE_RECIPIENT_COMPANION           = 1,
-        CAP_TEXTURE_RECIPIENT_PLACED_ACTOR_BASE   = 2,
-        CAP_TEXTURE_MESSAGE_SET_PLACED_ACTOR_MODE = 0x7E0
+        CAP_TEXTURE_RECIPIENT_PLAYER            = 0,
+        CAP_TEXTURE_RECIPIENT_COMPANION         = 1,
+        CAP_TEXTURE_RECIPIENT_PLACED_ACTOR_BASE = 2,
     };
     Task* targetTask;
 
@@ -1441,7 +1440,7 @@ static inline void _capDispatchTextureMessage(s32 recipient, s32 textureMode)
     } else {
         targetTask = sceneFindPlacedActor(recipient - CAP_TEXTURE_RECIPIENT_PLACED_ACTOR_BASE);
         if (targetTask != NULL) {
-            taskMessageDispatch(targetTask, CAP_TEXTURE_MESSAGE_SET_PLACED_ACTOR_MODE, textureMode, 0);
+            taskMessageDispatch(targetTask, ACTOR_MESSAGE_SET_TEXTURE_MODE, textureMode, 0);
         }
     }
 }

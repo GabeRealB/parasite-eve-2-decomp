@@ -12,7 +12,6 @@
 /// payload, and retains no payload storage.
 static s32 _reverseWalkSetDrawModeMsg(Task* task, s32 messageId, s32 mode, s32 unusedArg)
 {
-    enum { REVERSE_WALK_DRAW_SHOW_SKIP_AUTO_BUFFER = 3 };
     TmdObject* model;
     s32        result;
 
@@ -37,7 +36,7 @@ static s32 _reverseWalkSetDrawModeMsg(Task* task, s32 messageId, s32 mode, s32 u
             model->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         }
-        case REVERSE_WALK_DRAW_SHOW_SKIP_AUTO_BUFFER:
+        case ACTOR_MESSAGE_DRAW_SHOW_SKIP_AUTO_BUFFER:
             model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;

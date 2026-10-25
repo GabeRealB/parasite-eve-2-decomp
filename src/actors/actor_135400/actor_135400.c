@@ -58,9 +58,6 @@ enum {
     ACTOR_135400_GARY_DOUGLAS_SET_DOWN_CARRIED  = 5,
 };
 
-/// Fourth draw mode: show the model while disabling automatic buffer recovery.
-enum { ACTOR_135400_DRAW_SHOW_SKIP_AUTO_BUFFER = 3 };
-
 /// Flint's cycle visits clips 1 through 6; -1 means no deferred buffer release.
 enum {
     ACTOR_135400_FLINT_FIRST_CYCLE_CLIP     = 1,
@@ -639,7 +636,7 @@ static s32 _actor135400GaryDouglasSetDrawMode(Task* task, s32 messageId, s32 mod
             tmdFreePrimitiveBuffer(bodyModel);
             bodyModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case ACTOR_135400_DRAW_SHOW_SKIP_AUTO_BUFFER:
+        case ACTOR_MESSAGE_DRAW_SHOW_SKIP_AUTO_BUFFER:
             bodyModel->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             bodyModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
@@ -949,7 +946,7 @@ static s32 _actor135400FlintSetDrawMode(Task* task, s32 messageId, s32 mode, s32
             ((_Actor135400FlintWork*)task->work)->freeCountdown = mode;
             model->flags                                       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case ACTOR_135400_DRAW_SHOW_SKIP_AUTO_BUFFER:
+        case ACTOR_MESSAGE_DRAW_SHOW_SKIP_AUTO_BUFFER:
             model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;

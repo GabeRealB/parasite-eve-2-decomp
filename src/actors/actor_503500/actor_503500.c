@@ -319,10 +319,9 @@ static void _actor503500SliderBindLighting(Task* task)
 static s32 _actor503500SliderSetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg)
 {
     enum {
-        ACTOR_503500_SLIDER_DRAW_HIDE                  = 0,
-        ACTOR_503500_SLIDER_DRAW_SHOW                  = 1,
-        ACTOR_503500_SLIDER_DRAW_HIDE_AND_RELEASE      = 2,
-        ACTOR_503500_SLIDER_DRAW_SHOW_SKIP_AUTO_BUFFER = 3,
+        ACTOR_503500_SLIDER_DRAW_HIDE             = 0,
+        ACTOR_503500_SLIDER_DRAW_SHOW             = 1,
+        ACTOR_503500_SLIDER_DRAW_HIDE_AND_RELEASE = 2,
     };
     TmdObject*              model;
     _Actor503500SliderWork* work;
@@ -347,7 +346,7 @@ static s32 _actor503500SliderSetModelDraw(Task* task, s32 messageId, s32 drawMod
             work->freeCountdown = drawMode;
             model->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case ACTOR_503500_SLIDER_DRAW_SHOW_SKIP_AUTO_BUFFER:
+        case ACTOR_MESSAGE_DRAW_SHOW_SKIP_AUTO_BUFFER:
             model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;

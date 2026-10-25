@@ -164,9 +164,12 @@ enum {
 /// The receiver, message ID and second payload are ignored. Returns 0.
 s32 actorMsgSetPairVisibility(Task* task, s32 msgId, s32 flags, s32 unusedArg);
 
-/// The shared handlers' third draw mode, beside `ACTOR_MESSAGE_DRAW_HIDE` and `ACTOR_MESSAGE_DRAW_SHOW`: they change
-/// only the active-draw and automatic-buffer flags.
-enum { ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER = 2 };
+/// The draw modes most receivers add to `ACTOR_MESSAGE_DRAW_HIDE` and `ACTOR_MESSAGE_DRAW_SHOW`: hidden or shown,
+/// without an automatic primitive buffer.
+enum {
+    ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER = 2,
+    ACTOR_MESSAGE_DRAW_SHOW_SKIP_AUTO_BUFFER = 3,
+};
 
 /// Sets a live TMD task's draw mode while retaining all unrelated model flags.
 ///

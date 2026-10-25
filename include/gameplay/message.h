@@ -485,6 +485,9 @@ enum {
     /// Requests release of a player hold, after struggle completion or death.
     /// Takes no payload; each receiver decides whether its current hold responds.
     ACTOR_MESSAGE_RELEASE_HOLD = 0x7DE,
+    /// Sets the receiver's texture mode: an eye image or a blink, a face; each receiver defines its modes.
+    /// A caption's texture command sends it to a placed actor.
+    ACTOR_MESSAGE_SET_TEXTURE_MODE = 0x7E0,
 };
 
 /// Draw modes of `ACTOR_MESSAGE_SET_MODEL_DRAW` every receiver accepts; a receiver may define more.

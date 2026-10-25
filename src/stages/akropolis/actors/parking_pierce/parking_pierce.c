@@ -46,7 +46,6 @@ enum {
     DRAW_HIDE                  = 0,
     DRAW_SHOW                  = 1,
     DRAW_HIDE_AND_RELEASE      = 2,
-    DRAW_SHOW_SKIP_AUTO_BUFFER = 3,
     BUFFER_RELEASE_DELAY_TICKS = 2,
 };
 
@@ -587,7 +586,7 @@ static s32 _parkingPierceSetModelDraw(Task* task, s32 messageId, s32 drawMode, s
             drawWork->freeCountdown = BUFFER_RELEASE_DELAY_TICKS;
             model->flags           |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case DRAW_SHOW_SKIP_AUTO_BUFFER:
+        case ACTOR_MESSAGE_DRAW_SHOW_SKIP_AUTO_BUFFER:
             model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             bodyCursor    = &work->body;
             for (bodyIndex = 0; bodyIndex < COLLISION_BODY_COUNT; bodyIndex++) {

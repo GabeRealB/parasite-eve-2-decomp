@@ -40,9 +40,6 @@ enum {
     ACTOR_210700_BLINK_OPEN   = 3, // The open eyes are posted next, which ends the blink
 };
 
-/// Eye-texture command accepted by this actor's message table.
-enum { ACTOR_210700_MESSAGE_SET_EYES = 0x7E0 };
-
 /// Ground-shadow half extent in world-coordinate units.
 enum { ACTOR_210700_GROUND_SHADOW_HALF_SIZE = 0x400 };
 
@@ -200,7 +197,7 @@ static TaskMessageEntry _gActor210700Messages[5] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor210700PlayAnimation },
     { ACTOR_MESSAGE_PLACE, _actor210700Place },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor210700SetModelDraw },
-    { ACTOR_210700_MESSAGE_SET_EYES, _actor210700SetEyes },
+    { ACTOR_MESSAGE_SET_TEXTURE_MODE, _actor210700SetEyes },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

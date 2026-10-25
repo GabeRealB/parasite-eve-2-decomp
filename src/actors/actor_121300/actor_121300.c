@@ -179,8 +179,6 @@ ScreenWaveOscillator _gScreenWaveColumnWaves[13];
 
 ScreenWaveOscillator _gScreenWaveRowWaves[30];
 
-enum { ACTOR_121300_MESSAGE_SET_TEXTURE_SEQUENCE = 2016 };
-
 static s32 _actor121300SetTextureSequence(Task* task, s32 unusedMessageId, s32 textureSequence, s32 unusedArg);
 
 static TmdSource _gEveBody;
@@ -499,7 +497,7 @@ static _Actor121300Lamp _gActor121300Lamps[13] = {
 /// The double's placement, draw-mode and texture-sequence message handlers.
 ///
 /// Dispatch only `ACTOR_MESSAGE_PLACE`, `ACTOR_MESSAGE_SET_MODEL_DRAW` or
-/// `ACTOR_121300_MESSAGE_SET_TEXTURE_SEQUENCE`: this exact three-entry table
+/// `ACTOR_MESSAGE_SET_TEXTURE_MODE`: this exact three-entry table
 /// has no end marker. Placement borrows an `ActorTransform` during dispatch;
 /// draw modes use `ACTOR_MESSAGE_DRAW_*`. Texture sequences 0, 1, 2, 4 and 5
 /// upload patches; 3 and unsupported selectors retain an idle upload task.
@@ -508,7 +506,7 @@ static _Actor121300Lamp _gActor121300Lamps[13] = {
 static TaskMessageEntry _gActor121300DoubleMessages[3] = {
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceYawPitchRoll },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetDrawMode },
-    { ACTOR_121300_MESSAGE_SET_TEXTURE_SEQUENCE, _actor121300SetTextureSequence },
+    { ACTOR_MESSAGE_SET_TEXTURE_MODE, _actor121300SetTextureSequence },
 };
 
 /// The scene double's standing mark in its model root's parent frame.

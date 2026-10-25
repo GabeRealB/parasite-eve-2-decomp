@@ -734,8 +734,7 @@ static void _actor135600BeginKyleMadiganWalk(Task* task)
 static s32 _actor135600SetKyleMadiganDrawMode(Task* task, s32 msgId, s32 mode, s32 unusedArg)
 {
     enum {
-        ACTOR_135600_KYLE_DRAW_SHOW_SKIP_AUTO_BUFFER = 3,
-        ACTOR_135600_KYLE_BUFFER_RELEASE_DELAY       = 2,
+        ACTOR_135600_KYLE_BUFFER_RELEASE_DELAY = 2,
     };
     KyleMadiganWalkerWork* work;
     TmdObject*             bodyModel;
@@ -765,7 +764,7 @@ static s32 _actor135600SetKyleMadiganDrawMode(Task* task, s32 msgId, s32 mode, s
             work->freeCountdown = ACTOR_135600_KYLE_BUFFER_RELEASE_DELAY;
             bodyModel->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case ACTOR_135600_KYLE_DRAW_SHOW_SKIP_AUTO_BUFFER:
+        case ACTOR_MESSAGE_DRAW_SHOW_SKIP_AUTO_BUFFER:
             bodyModel->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             bodyModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;

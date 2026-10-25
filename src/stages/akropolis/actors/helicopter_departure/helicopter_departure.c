@@ -290,16 +290,13 @@ TaskDesc gHelicopterDepartureRupertTaskDescriptors[3] = {
     { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _helicopterDepartureRupertPropTask, { .model = &_gRupertRadio } },
 };
 
-/// Rupert's eye-image message; argument 1 selects 0/2 open, 1 closed, 3 blink.
-enum { RUPERT_MESSAGE_SET_EYES = 0x7E0 };
-
 /// Terminated message table for Rupert's animation, placement, drawing and props.
 static TaskMessageEntry _gHelicopterDepartureRupertMessages[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _helicopterDeparturePlayRupertAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _helicopterDepartureSetRupertModelDraw },
     { ACTOR_COMMAND_MESSAGE_APPLY, _helicopterDepartureApplyRupertCommand },
-    { RUPERT_MESSAGE_SET_EYES, _helicopterDepartureSetRupertEyes },
+    { ACTOR_MESSAGE_SET_TEXTURE_MODE, _helicopterDepartureSetRupertEyes },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -809,7 +806,6 @@ static s32 _helicopterDeparturePlayRupertAnimation(Task* task, s32 messageId, co
 /// Changes Rupert's drawing and primitive-buffer policy.
 static s32 _helicopterDepartureSetRupertModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg)
 {
-    enum { DRAW_SHOW_SKIP_AUTO_BUFFER = 3 };
     TmdObject*            model;
     _RupertBroderickWork* work;
     s32                   result;
@@ -834,7 +830,7 @@ static s32 _helicopterDepartureSetRupertModelDraw(Task* task, s32 messageId, s32
             work->freeCountdown = drawMode;
             model->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case DRAW_SHOW_SKIP_AUTO_BUFFER:
+        case ACTOR_MESSAGE_DRAW_SHOW_SKIP_AUTO_BUFFER:
             model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
@@ -1328,7 +1324,6 @@ static s32 _helicopterDeparturePlaceHelicopter(Task* task, s32 messageId, const 
 /// Selects hull drawing and buffer policy, spawning its three parts on the first show.
 static s32 _helicopterDepartureSetHelicopterModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArgument)
 {
-    enum { HELICOPTER_DRAW_SHOW_SKIP_AUTO_BUFFER = 3 };
     TmdObject*       model;
     _HelicopterWork* work;
     Task*            child;
@@ -1353,7 +1348,7 @@ static s32 _helicopterDepartureSetHelicopterModelDraw(Task* task, s32 messageId,
             work->freeCountdown = drawMode;
             model->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case HELICOPTER_DRAW_SHOW_SKIP_AUTO_BUFFER:
+        case ACTOR_MESSAGE_DRAW_SHOW_SKIP_AUTO_BUFFER:
             model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;

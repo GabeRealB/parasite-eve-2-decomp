@@ -134,15 +134,12 @@ TaskDesc gMistRupertRupertBroderickHurtTaskDesc = {
     .data     = { .model = &_gRupertHurtBody },
 };
 
-/// Eye-image selection or timed-blink message for the hurt Rupert body.
-enum { MESSAGE_SET_EYES = 2016 };
-
 /// Hurt Rupert message dispatch: animation, Euler placement, drawing and eye images.
 static TaskMessageEntry _gMistRupertMessages[5] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _mistRupertPlayAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _mistRupertSetModelDraw },
-    { MESSAGE_SET_EYES, _mistRupertSetEyes },
+    { ACTOR_MESSAGE_SET_TEXTURE_MODE, _mistRupertSetEyes },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -331,7 +328,6 @@ static s32 _mistRupertPlayAnimation(Task* task, s32 messageId, const AnimationPl
 /// Changes the hurt Rupert actor's drawing and primitive-buffer policy.
 static s32 _mistRupertSetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg)
 {
-    enum { DRAW_SHOW_SKIP_AUTO_BUFFER = 3 };
     TmdObject* model;
     _Work*     work;
     s32        result;
@@ -355,7 +351,7 @@ static s32 _mistRupertSetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 
             work->freeCountdown = drawMode;
             model->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case DRAW_SHOW_SKIP_AUTO_BUFFER:
+        case ACTOR_MESSAGE_DRAW_SHOW_SKIP_AUTO_BUFFER:
             model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;

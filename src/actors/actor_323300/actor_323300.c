@@ -122,13 +122,12 @@ STATIC_ASSERT_SIZEOF(_Actor323300StrangerWork, 0x6B0);
 
 /// Tuning for the toilet-event woman's turn, sound and delayed buffer release.
 enum {
-    ACTOR_323300_WOMAN_VIEW2_ATTENUATION          = 40, // Signed sound-script attenuation; pan stays zero
-    ACTOR_323300_WOMAN_TURN_STEP                  = ACTOR_TRANSFORM_ANGLE_TURN / 64,
-    ACTOR_323300_WOMAN_TURN_START                 = 0,
-    ACTOR_323300_WOMAN_TURN_RATE                  = ANIMATION_RATE_ONE / 2,
-    ACTOR_323300_WOMAN_IDLE_RATE                  = 22, // Sixteenths of a normal-rate animation frame per tick
-    ACTOR_323300_WOMAN_BUFFER_FREE_DELAY          = 2,  // Active actor ticks before freeing on the next zero-count tick
-    ACTOR_323300_WOMAN_DRAW_SHOW_SKIP_AUTO_BUFFER = 3,
+    ACTOR_323300_WOMAN_VIEW2_ATTENUATION = 40, // Signed sound-script attenuation; pan stays zero
+    ACTOR_323300_WOMAN_TURN_STEP         = ACTOR_TRANSFORM_ANGLE_TURN / 64,
+    ACTOR_323300_WOMAN_TURN_START        = 0,
+    ACTOR_323300_WOMAN_TURN_RATE         = ANIMATION_RATE_ONE / 2,
+    ACTOR_323300_WOMAN_IDLE_RATE         = 22, // Sixteenths of a normal-rate animation frame per tick
+    ACTOR_323300_WOMAN_BUFFER_FREE_DELAY = 2,  // Active actor ticks before freeing on the next zero-count tick
 };
 
 static void _actor323300WomanSpawn(Task* task);
@@ -478,7 +477,7 @@ static s32 _actor323300WomanSetModelDraw(Task* task, s32 messageId, s32 mode, s3
             work->freeCountdown = ACTOR_323300_WOMAN_BUFFER_FREE_DELAY;
             model->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case ACTOR_323300_WOMAN_DRAW_SHOW_SKIP_AUTO_BUFFER:
+        case ACTOR_MESSAGE_DRAW_SHOW_SKIP_AUTO_BUFFER:
             model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             bodyFlags     = &work->body.flags;
             for (bodyIndex = 0; bodyIndex < 1; bodyIndex++) {

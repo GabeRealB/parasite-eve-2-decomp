@@ -2102,7 +2102,6 @@ static s32 _actor443500PlayAnimation(Task* task, s32 messageId, const AnimationP
 /// and fourth argument. Unrelated flags and existing buffers remain intact.
 static s32 _actor443500SetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg)
 {
-    enum { ACTOR_443500_DRAW_SHOW_SKIP_AUTO_BUFFER = 3 };
     TmdObject*                       model;
     s32                              result;
     _Actor443500PierceCarradineWork* work;
@@ -2125,7 +2124,7 @@ static s32 _actor443500SetModelDraw(Task* task, s32 messageId, s32 drawMode, s32
             work->freeCountdown = drawMode;
             model->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case ACTOR_443500_DRAW_SHOW_SKIP_AUTO_BUFFER:
+        case ACTOR_MESSAGE_DRAW_SHOW_SKIP_AUTO_BUFFER:
             model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;

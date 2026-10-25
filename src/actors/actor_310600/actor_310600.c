@@ -41,7 +41,6 @@ enum {
     ACTOR_310600_DRAW_HIDE                  = 0,
     ACTOR_310600_DRAW_SHOW                  = 1,
     ACTOR_310600_DRAW_HIDE_AND_RELEASE      = 2,
-    ACTOR_310600_DRAW_SHOW_SKIP_AUTO_BUFFER = 3,
     ACTOR_310600_BUFFER_RELEASE_NONE        = -1,
     ACTOR_310600_BUFFER_RELEASE_DELAY_TICKS = 2,
 };
@@ -619,7 +618,7 @@ static s32 _actor310600SetModelDraw(Task* task, s32 messageId, s32 mode, s32 unu
             drawWork->freeCountdown = ACTOR_310600_BUFFER_RELEASE_DELAY_TICKS;
             model->flags           |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case ACTOR_310600_DRAW_SHOW_SKIP_AUTO_BUFFER:
+        case ACTOR_MESSAGE_DRAW_SHOW_SKIP_AUTO_BUFFER:
             model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             bodyCursor    = body;
             for (bodyIndex = 0; bodyIndex < ACTOR_310600_COLLISION_BODY_COUNT; bodyIndex++) {

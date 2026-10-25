@@ -74,9 +74,6 @@ enum {
 /// Four screen rings of six vertices, consumed together by the beam drawer.
 enum { ACTOR_141000_BEAM_SCREEN_POINT_COUNT = 24 };
 
-/// Actor-specific facial texture request, carried in the first message argument.
-enum { ACTOR_141000_MESSAGE_SET_TEXTURE_MODE = 0x7E0 };
-
 /// Work block of Eve's body, the package's scripted walker.
 ///
 /// The task's spawn state allocates it zeroed and keeps it at `Task::work`
@@ -475,7 +472,7 @@ static TaskMessageEntry _gActor141000EveMessages[7] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor141000SetEveDrawMode },
     { ACTOR_MESSAGE_WALK_TO, _actor141000StartEveWalk },
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor141000SetEveWalkPace },
-    { ACTOR_141000_MESSAGE_SET_TEXTURE_MODE, _actor141000SetEveTextureMode },
+    { ACTOR_MESSAGE_SET_TEXTURE_MODE, _actor141000SetEveTextureMode },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1383,7 +1380,6 @@ static void _actor141000TurnEveToYaw(Task* task)
 /// pending release. The message ID and second payload are ignored.
 static s32 _actor141000SetEveDrawMode(Task* task, s32 messageId, s32 mode, s32 unusedArg)
 {
-    enum { ACTOR_141000_DRAW_SHOW_SKIP_AUTO_BUFFER = 3 };
     TmdObject* model;
     s32        result;
 
@@ -1408,7 +1404,7 @@ static s32 _actor141000SetEveDrawMode(Task* task, s32 messageId, s32 mode, s32 u
             model->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         }
-        case ACTOR_141000_DRAW_SHOW_SKIP_AUTO_BUFFER:
+        case ACTOR_MESSAGE_DRAW_SHOW_SKIP_AUTO_BUFFER:
             model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
