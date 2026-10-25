@@ -60,10 +60,12 @@ def symbol_map(path: Path, owner: str | None = None) -> dict[int, str]:
 
 
 class Images:
-    """Gameplay, a stage overlay and a room, mapped at their load addresses, with the names the symbol maps give.
-    `own` is the image being decoded - the room's, or the stage overlay's where `room_name` is None - at `base`."""
+    """Gameplay, a stage overlay, a room and an actor package, mapped at their load addresses, with the names the
+    symbol maps give. `own` is the image being decoded at `base`: the actor's where there is one (`actor` is its
+    package, image and load address), else the room's, or the stage overlay's where `room_name` is None."""
 
-    def __init__(self, stage: int, stage_image: bytes, room_name: str | None, room: bytes, gameplay: bytes):
+    def __init__(self, stage: int, stage_image: bytes, room_name: str | None, room: bytes, gameplay: bytes,
+                 actor: tuple[str, bytes, int] | None = None):
         self.stage, (self.stage_name,) = stage, STAGES[stage]
         self.stage_image, self.room_name, self.room, self.gameplay = stage_image, room_name, room, gameplay
         self.own, self.base = (room, ROOM_LOAD) if room_name else (stage_image, STAGE_LOAD)
@@ -71,6 +73,10 @@ class Images:
         self.names = {**symbol_map(sym / "sym.main.txt"), **symbol_map(sym / "sym.gameplay.txt"),
                       **symbol_map(sym / "sym" / "mapui" / f"{self.stage_name}.txt", room_name or "-"),
                       **(symbol_map(sym / "sym" / "rooms" / f"{room_name}.txt") if room_name else {})}
+        self.package = None
+        if actor:
+            self.package, self.own, self.base = actor
+            self.names.update(symbol_map(sym / "sym" / "actors" / f"{self.package}.txt"))
         self.addresses = {n: a for a, n in self.names.items()}
         self.directories = self.stage_tables()
 
@@ -88,31 +94,13 @@ class Images:
     in_room = in_own
 
     def word(self, a: int) -> int:
-        for base, image in ((ROOM_LOAD, self.room), (GAMEPLAY_LOAD, self.gameplay), (STAGE_LOAD, self.stage_image)):
+        for base, image in ((self.base, self.own), (ROOM_LOAD, self.room), (GAMEPLAY_LOAD, self.gameplay),
+                            (STAGE_LOAD, self.stage_image)):
             if not image:
                 continue
             if base <= a < base + len(image):
                 return struct.unpack_from("<I", image, a - base)[0]
         raise SystemExit(f"0x{a:08X} is in no mapped image")
-
-
-class ActorImages(Images):
-    """An actor package at its load address, with gameplay, its stage overlay and its room mapped beside it: its
-    events point into all of them."""
-
-    def __init__(self, stage: int, stage_image: bytes, room_name: str, room: bytes, gameplay: bytes,
-                 package: str, image: bytes, base: int):
-        super().__init__(stage, stage_image, room_name, room, gameplay)
-        self.package, self.own, self.base = package, image, base
-        sym = ROOT / "configs" / "USA" / "sym"
-        for a, n in symbol_map(sym / "actors" / f"{package}.txt").items():
-            self.names[a] = n
-        self.addresses = {n: a for a, n in self.names.items()}
-
-    def word(self, a: int) -> int:
-        if self.in_own(a):
-            return struct.unpack_from("<I", self.own, a - self.base)[0]
-        return super().word(a)
 
 
 def _collision():

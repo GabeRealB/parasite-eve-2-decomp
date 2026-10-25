@@ -93,7 +93,7 @@ exports = { tasks = { at = 0x147B0, symbol = "gShootingGalleryPiercePierceTaskDe
 load = { slot = "actor_2" }
 package_name = "shooting_gallery_pierce"
 required = true
-requires = ["gameplay"]
+requires = ["gameplay", "rooms/mist/shooting_gallery/package"]
 sha1 = "fc0d6b8a1a0678e4a2b988b10995b7bf502a9563"
 
 [pierce.entries]

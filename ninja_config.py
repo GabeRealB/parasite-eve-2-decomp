@@ -295,7 +295,7 @@ def room_includes(version: str) -> list[tuple[str, Path, list[Path]]]:
     for key, rec in data.ASSETS.items():
         slot = str((rec.get("load") or {}).get("slot", "")) if rec.get("type") == "package" else ""
         kind = (rec.get("type") if rec.get("type") in ("room", "stage") else slot if slot in ("room", "stage")
-                else "actor" if "entries" in rec and (rec.get("type") == "pe2pkg" or slot.startswith("actor_")) else None)
+                else "actor" if "entries" in rec and slot.startswith("actor_") else None)
         if kind is None:
             continue
         own = f"{rec['group']}/{key.rsplit('/', 1)[1]}" if kind == "actor" else rec["group"]

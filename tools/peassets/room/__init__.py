@@ -34,7 +34,7 @@ from typing import Any
 from .layouts import GEOMETRY, LAYOUTS, c_value, decode_value, encode_value, named, pointer_targets, size
 from . import events as event_text
 import package as package_decl
-from .walk import ROLE_KINDS, ROOM_LOAD, STAGE_ROLE_KINDS, STAGES, ActorImages, Images, walk, walk_actor, walk_stage
+from .walk import ROLE_KINDS, ROOM_LOAD, STAGE_ROLE_KINDS, STAGES, Images, walk, walk_actor, walk_stage
 
 
 def walk_module():
@@ -56,8 +56,6 @@ def kind_of(name: str, assets: dict) -> str | None:
     kind = rec.get("type")
     if kind in ("room", "stage"):
         return kind
-    if kind == "pe2pkg":
-        return "actor" if "entries" in rec else None
     if kind == "package":
         slot = (rec.get("load") or {}).get("slot", "")
         if slot in ("room", "stage"):
@@ -88,13 +86,28 @@ def own_dir(name: str, assets: dict) -> str:
     return f"{group}/{name.rsplit('/', 1)[1]}" if is_actor(name, assets) else group
 
 
-def actor_room(name: str, assets: dict) -> str:
-    """The room an actor package belongs to: the room it requires, or (an older pe2pkg) the room of its group."""
-    required = [r for r in assets[name].get("requires", ()) if kind_of(r, assets) == "room"]
-    if required:
-        return required[0]
-    group = assets[name]["group"]
-    return next(k for k, r in assets.items() if kind_of(k, assets) == "room" and r.get("group") == group)
+def resident(name: str, assets: dict, kind: str) -> str | None:
+    """The package of a kind (room, stage) resident whenever `name` is: one its `requires` name, or theirs."""
+    seen, todo = set(), list(assets[name].get("requires", ()))
+    while todo:
+        r = todo.pop(0)
+        if r in seen:
+            continue
+        seen.add(r)
+        if kind_of(r, assets) == kind:
+            return r
+        todo += assets[r].get("requires", ())
+    return None
+
+
+def home(name: str, assets: dict) -> str:
+    """The room a package is placed by: itself, or for an actor the room it requires."""
+    if not is_actor(name, assets):
+        return name
+    room = resident(name, assets, "room")
+    if room is None:
+        raise SystemExit(f"{name}: an actor package with events requires the room they run in")
+    return room
 
 
 
@@ -144,26 +157,19 @@ def images(name: str, assets: dict, embedded: dict, assets_root: Path) -> tuple[
             for a, n in walk_module().symbol_map(ROOT / "configs" / "USA" / "sym" / "rooms" / f"{pkg}.txt").items():
                 im.addresses.setdefault(n, a)
         return im, 0
-    if is_actor(name, assets):
-        room = actor_room(name, assets)
-        stage, area = _place(room, asset_data.TREE)
-        overlay = next(k for k, r in assets.items() if r.get("type") in ("pe2pkg", "room", "stage", "package")
-                       and r.get("package_name", k) == STAGES[stage][0])
-        package = assets[name]["package_name"]
-        return ActorImages(stage, shape.stored_bytes(overlay, ctx), assets[room]["package_name"],
-                           shape.stored_bytes(room, ctx), shape.stored_bytes("gameplay", ctx), package,
-                           shape.stored_bytes(name, ctx), package_decl.load_address(name, assets)), area
-    stage, area = _place(name, asset_data.TREE)
-    required = [r for r in assets[name].get("requires", ()) if kind_of(r, assets) == "stage"]
-    if required:                                              # a package: the stage overlay it requires
-        overlay = required[0]
-        if package_decl.load_address(name, assets) != ROOM_LOAD:
-            raise SystemExit(f"{name}: a room loads at 0x{ROOM_LOAD:08X}")
+    room = home(name, assets)
+    stage, area = _place(room, asset_data.TREE)
+    overlay = resident(room, assets, "stage")                 # a package: the stage overlay it requires
+    if overlay is not None:
+        if package_decl.load_address(room, assets) != ROOM_LOAD:
+            raise SystemExit(f"{room}: a room loads at 0x{ROOM_LOAD:08X}")
     else:
         overlay = next(k for k, r in assets.items() if r.get("type") in ("pe2pkg", "room", "stage", "package")
                        and r.get("package_name", k) == STAGES[stage][0])   # the stage overlay's asset, by its package
-    return Images(stage, shape.stored_bytes(overlay, ctx), assets[name]["package_name"],
-                  shape.stored_bytes(name, ctx), shape.stored_bytes("gameplay", ctx)), area
+    actor = ((assets[name]["package_name"], shape.stored_bytes(name, ctx), package_decl.load_address(name, assets))
+             if room != name else None)
+    return Images(stage, shape.stored_bytes(overlay, ctx), assets[room]["package_name"],
+                  shape.stored_bytes(room, ctx), shape.stored_bytes("gameplay", ctx), actor), area
 
 
 # --- decode ----------------------------------------------------------------------------------------------------
@@ -411,7 +417,7 @@ def event_names(name: str, assets: dict, local: set[str]) -> "event_text.Names":
     """How the room's events text writes names: its prefix, its objects, and its own sound bank's slots by entry
     (the slots of all its sound banks, where no entry has two names)."""
     import asset_data
-    stage, area = _place(actor_room(name, assets) if is_actor(name, assets) else name, asset_data.TREE)
+    stage, area = _place(home(name, assets), asset_data.TREE)
     group = assets[name]["group"]
     slots: dict[int, set[str]] = {}
     for k, r in assets.items():
