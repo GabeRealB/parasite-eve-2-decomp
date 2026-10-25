@@ -77,7 +77,7 @@ static AnimationSet _gGolemGrabHoldClip;
 extern AnimationSet gGolemGrabKillClip;
 extern AnimationSet gGolemIdleClip;
 static AnimationSet _gGolemStrikeClip;
-static AnimationSet _gGolemAdvanceClip;
+extern AnimationSet gGolemAdvanceClip;
 static AnimationSet _gGolemChargeClip;
 extern AnimationSet gGolemStaggerClip;
 static AnimationSet _gGolemHeavyFlinchFrontClip;

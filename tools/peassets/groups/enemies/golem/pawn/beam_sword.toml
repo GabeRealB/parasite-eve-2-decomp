@@ -171,10 +171,12 @@ sha1 = "9ad17c879eb732d5aea170e5d80d3f087f09f8db"
 [charge_run]
 type = "clip"
 rig = "enemies/golem/rig"
+symbol = "gGolemPawnBeamSwordChargeRunClip"
 
 [charge_slash]
 type = "clip"
 rig = "enemies/golem/rig"
+symbol = "gGolemPawnBeamSwordChargeSlashClip"
 
 [sounds_set_1]
 type = "sound_bank"
@@ -303,3 +305,4 @@ fall_start_set_4 = 18
 [charge_windup]
 type = "clip"
 rig = "enemies/golem/rig"
+symbol = "gGolemPawnBeamSwordChargeWindupClip"

@@ -608,52 +608,13 @@ TaskMessageEntry gHelicopterLandingPadNo9BodyMessages[7] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-AnimationSet* gHelicopterLandingPadNo9BodyAnimationSets[34] = {
-    NULL,
-    &_gHelicopterLandingPadNo9Animation11CC0,
-    &_gHelicopterLandingPadNo9Animation11FB8,
-    &_gHelicopterLandingPadNo9Animation129B0,
-    &_gHelicopterLandingPadNo9Animation13884,
-    &_gHelicopterLandingPadNo9Animation142A0,
-    &_gHelicopterLandingPadNo9Animation14E4C,
-    &_gHelicopterLandingPadNo9Animation172DC,
-    &_gHelicopterLandingPadNo9Animation17CB8,
-    &_gHelicopterLandingPadNo9Animation186E0,
-    &_gHelicopterLandingPadNo9Animation18B5C,
-    &_gHelicopterLandingPadNo9Animation1A250,
-    &_gHelicopterLandingPadNo9Animation1A994,
-    &_gHelicopterLandingPadNo9Animation1BFA8,
-    &_gHelicopterLandingPadNo9Animation1CBA8,
-    &_gHelicopterLandingPadNo9Animation1D868,
-    &_gHelicopterLandingPadNo9Animation1E56C,
-    &_gHelicopterLandingPadNo9Animation1EF7C,
-    &_gHelicopterLandingPadNo9Animation2035C,
-    &_gHelicopterLandingPadNo9Animation2093C,
-    &_gHelicopterLandingPadNo9Animation213E4,
-    &_gHelicopterLandingPadNo9Animation217A4,
-    &_gHelicopterLandingPadNo9Animation22074,
-    &_gHelicopterLandingPadNo9Animation223F8,
-    &_gHelicopterLandingPadNo9Animation24128,
-    &_gHelicopterLandingPadNo9Animation24FE8,
-    &_gHelicopterLandingPadNo9Animation267A8,
-    &_gHelicopterLandingPadNo9Animation273B8,
-    &_gHelicopterLandingPadNo9Animation2A068,
-    &_gHelicopterLandingPadNo9Animation2B800,
-    &_gHelicopterLandingPadNo9Animation2E9DC,
-    &_gHelicopterLandingPadNo9Animation2BC04,
-    &_gHelicopterLandingPadNo9Animation324C0,
-    &_gHelicopterLandingPadNo9Animation353AC,
-};
+#include "assets/enemies/golem/no_9/helipad/body_bank.inc"
 
 /// Player clips borrowed during the stun grenade's hold: 0 unused, 1 stunned, 2 recovery.
 ///
 /// The player retains this bank for playback; keep this overlay loaded until
 /// the hold returns the player to ordinary control.
-static AnimationSet* _gHelicopterLandingPadNo9PlayerGrenadeAnimationSets[3] = {
-    NULL,
-    &gHelicopterLandingPadNo9Animation27994,
-    &gHelicopterLandingPadNo9Animation27FDC,
-};
+#include "assets/enemies/golem/no_9/helipad/player_grenade_bank.inc"
 
 /// Whole-frame transition durations indexed by the body's animation ID 0..33.
 ///
@@ -795,11 +756,7 @@ static u16 _gHelicopterLandingPadNo9GrenadePitchStepsByRange[12] = {
 /// Helipad-light animation bank: 0 unused, 1 intact, 2 breaking.
 ///
 /// Light-owned animation contexts borrow the bank for the light task's lifetime.
-static AnimationSet* _gHelicopterLandingPadNo9HelipadLightAnimationSets[3] = {
-    NULL,
-    &gHelicopterLandingPadNo9Animation35474,
-    &gHelicopterLandingPadNo9Animation35B20,
-};
+#include "assets/enemies/golem/no_9/helipad/light_bank.inc"
 
 /// Root positions of helipad lights 0..2, in room-coordinate units beneath `gGfxViewCoord`.
 static SVECTOR _gHelicopterLandingPadNo9HelipadLightPositions[3] = {

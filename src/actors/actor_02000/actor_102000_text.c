@@ -71,11 +71,11 @@ static AnimationSet _gGolemTurnClip;
 
 static AnimationSet _gGolemListenClip;
 
-static AnimationSet _gGolemPawnBeamSwordChargeWindupClip;
+extern AnimationSet gGolemPawnBeamSwordChargeWindupClip;
 
-static AnimationSet _gGolemPawnBeamSwordChargeRunClip;
+extern AnimationSet gGolemPawnBeamSwordChargeRunClip;
 
-static AnimationSet _gGolemPawnBeamSwordChargeSlashClip;
+extern AnimationSet gGolemPawnBeamSwordChargeSlashClip;
 
 extern AnimationSet gGolemSwingRecoverClip;
 
@@ -83,13 +83,13 @@ extern AnimationSet gGolemSwordSwingClip;
 
 extern AnimationSet gGolemStaggerClip;
 
-static AnimationSet _gGolemRecoilFrontClip;
+extern AnimationSet gGolemRecoilFrontClip;
 
-static AnimationSet _gGolemRecoilBehindClip;
+extern AnimationSet gGolemRecoilBehindClip;
 
-static AnimationSet _gGolemBuildupClip;
+extern AnimationSet gGolemBuildupClip;
 
-static AnimationSet _gGolemScreamRecoverClip;
+extern AnimationSet gGolemScreamRecoverClip;
 
 static AnimationSet _gGolemFallBehindClip;
 

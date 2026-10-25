@@ -69,10 +69,12 @@ rig = "enemies/golem/rig"
 [advance]
 type = "clip"
 rig = "enemies/golem/rig"
+symbol = "gGolemAdvanceClip"
 
 [buildup]
 type = "clip"
 rig = "enemies/golem/rig"
+symbol = "gGolemBuildupClip"
 
 [grenade]
 type = "model"
@@ -140,6 +142,7 @@ rig = "enemies/golem/rig"
 [recoil_front]
 type = "clip"
 rig = "enemies/golem/rig"
+symbol = "gGolemRecoilFrontClip"
 
 [writhe_front]
 type = "clip"
@@ -148,6 +151,7 @@ rig = "enemies/golem/rig"
 [recoil_behind]
 type = "clip"
 rig = "enemies/golem/rig"
+symbol = "gGolemRecoilBehindClip"
 
 [swing_recover]
 type = "clip"
@@ -169,6 +173,7 @@ sha1 = "7fbe1cd1d631700002dcb8eb9b0db8147299b0b7"
 [scream_recover]
 type = "clip"
 rig = "enemies/golem/rig"
+symbol = "gGolemScreamRecoverClip"
 
 [scream_release]
 type = "clip"

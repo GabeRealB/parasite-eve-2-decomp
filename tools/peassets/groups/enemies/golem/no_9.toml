@@ -332,6 +332,7 @@ sha1 = "36ea986442e0955160505cd9ad221fb915c75413"
 
 [helipad_light]
 type = "model"
+rig = "enemies/golem/no_9/helipad/light_rig"
 slots = ["light"]
 symbol = "gHelicopterLandingPadNo9HelipadLightModel"
 sha1 = "b34d4177cba6ecaff1b8cfb4c50e2e50f927c362"
@@ -628,17 +629,280 @@ slots = ["", "walk", "slot_2", "slot_3", "slot_4", "slot_5", "slot_6", "slot_7",
 
 [package_akropolis]
 type = "pe2pkg"
-embedded = [
-    { name = "akropolis_sword", offset = 0x0FD68, size = 0x2A4, address = 0x80141B88 },
-    { name = "akropolis_prop", offset = 0x1000C, size = 0x31C, address = 0x80141E2C },
-    { name = "akropolis_chest_piece", offset = 0x10328, size = 0x35C, address = 0x80142148 },
-    { name = "helipad_light", offset = 0x109B0, size = 0x990, address = 0x801427D0 },
-    "helicopter_landing_pad_no_9_animation_11340",
-]
 package_name = "helicopter_landing_pad_no_9"
 parent = "rooms/akropolis/helicopter_landing_pad/package"
 required = true
 sha1 = "91bc20bb98fc6653a2729859fef0014c3366bfa1"
+
+[[package_akropolis.embedded]]
+name = "akropolis_sword"
+offset = 0x0FD68
+size = 0x2A4
+address = 0x80141B88
+
+[[package_akropolis.embedded]]
+name = "akropolis_prop"
+offset = 0x1000C
+size = 0x31C
+address = 0x80141E2C
+
+[[package_akropolis.embedded]]
+name = "akropolis_chest_piece"
+offset = 0x10328
+size = 0x35C
+address = 0x80142148
+
+[[package_akropolis.embedded]]
+name = "helipad_light"
+offset = 0x109B0
+size = 0x990
+address = 0x801427D0
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/patrol_idle"
+offset = 0x11340
+size = 0x9A8
+address = 0x80143160
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/walk_start"
+offset = 0x11CE8
+size = 0x2F8
+address = 0x80143B08
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/walk"
+offset = 0x11FE0
+size = 0x9F8
+address = 0x80143E00
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/walk_fire"
+offset = 0x129D8
+size = 0xED4
+address = 0x801447F8
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/backstep"
+offset = 0x138AC
+size = 0xA1C
+address = 0x801456CC
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/advance"
+offset = 0x142C8
+size = 0xBAC
+address = 0x801460E8
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/lethal_strike"
+offset = 0x14E74
+size = 0x2490
+address = 0x80146C94
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/slash_first"
+offset = 0x17304
+size = 0x9DC
+address = 0x80149124
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/slash_second"
+offset = 0x17CE0
+size = 0xA28
+address = 0x80149B00
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/slash_windup"
+offset = 0x18708
+size = 0x47C
+address = 0x8014A528
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/pawn/beam_sword/charge_windup"
+offset = 0x18B84
+size = 0x16F4
+address = 0x8014A9A4
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/pawn/beam_sword/charge_run"
+offset = 0x1A278
+size = 0x744
+address = 0x8014C098
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/pawn/beam_sword/charge_slash"
+offset = 0x1A9BC
+size = 0x1614
+address = 0x8014C7DC
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/flame_windup"
+offset = 0x1BFD0
+size = 0xC00
+address = 0x8014DDF0
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/flame_lunge"
+offset = 0x1CBD0
+size = 0xCC0
+address = 0x8014E9F0
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/recoil"
+offset = 0x1D890
+size = 0xD04
+address = 0x8014F6B0
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/recoil_front"
+offset = 0x1E594
+size = 0xA10
+address = 0x801503B4
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/unused_1"
+offset = 0x1EFA4
+size = 0x6EC
+address = 0x80150DC4
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/scream_recover"
+offset = 0x1F690
+size = 0xCF4
+address = 0x801514B0
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/buildup"
+offset = 0x20384
+size = 0x5E0
+address = 0x801521A4
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/recoil_behind"
+offset = 0x20964
+size = 0xAA8
+address = 0x80152784
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/shotgun_response_start"
+offset = 0x2140C
+size = 0x3C0
+address = 0x8015322C
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/shotgun_response_walk"
+offset = 0x217CC
+size = 0x8D0
+address = 0x801535EC
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/shotgun_response_end"
+offset = 0x2209C
+size = 0x384
+address = 0x80153EBC
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/death"
+offset = 0x22420
+size = 0x1D30
+address = 0x80154240
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/slash_recover"
+offset = 0x24150
+size = 0xEC0
+address = 0x80155F70
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/fight_start"
+offset = 0x25010
+size = 0x17C0
+address = 0x80156E30
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/grenade_throw"
+offset = 0x267D0
+size = 0xC10
+address = 0x801585F0
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/player_grenade_stun"
+offset = 0x273E0
+size = 0x5DC
+address = 0x80159200
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/player_grenade_recover"
+offset = 0x279BC
+size = 0x648
+address = 0x801597DC
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/event_1"
+offset = 0x28004
+size = 0x208C
+address = 0x80159E24
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/event_2"
+offset = 0x2A090
+size = 0x1798
+address = 0x8015BEB0
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/prop_toss"
+offset = 0x2B828
+size = 0x404
+address = 0x8015D648
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/prop_reveal"
+offset = 0x2BC2C
+size = 0x2DD8
+address = 0x8015DA4C
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/event_5"
+offset = 0x2EA04
+size = 0x3AE4
+address = 0x80160824
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/event_6"
+offset = 0x324E8
+size = 0x2EEC
+address = 0x80164308
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/light_intact"
+offset = 0x353D4
+size = 0xC8
+address = 0x801671F4
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/light_break"
+offset = 0x3549C
+size = 0x6AC
+address = 0x801672BC
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/body_bank"
+offset = 0x35C84
+size = 0x88
+address = 0x80167AA4
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/player_grenade_bank"
+offset = 0x35D0C
+size = 0xC
+address = 0x80167B2C
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/no_9/helipad/light_bank"
+offset = 0x35E8C
+size = 0xC
+address = 0x80167CAC
 
 [player_hold_front]
 type = "clip"

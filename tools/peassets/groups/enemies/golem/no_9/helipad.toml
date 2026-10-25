@@ -1,0 +1,257 @@
+# The assets of the group enemies/golem/no_9/helipad, each named enemies/golem/no_9/helipad/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[walk]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadWalkClip"
+
+[death]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadDeathClip"
+
+[recoil]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadRecoilClip"
+
+[event_1]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadEvent1Clip"
+
+[event_2]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadEvent2Clip"
+
+[event_5]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadEvent5Clip"
+
+[event_6]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadEvent6Clip"
+
+[backstep]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadBackstepClip"
+
+[unused_1]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadUnused1Clip"
+
+[body_bank]
+type = "animation_bank"
+schema = "enemies/golem/no_9/helipad/body_schema"
+symbol = "gHelicopterLandingPadNo9BodyAnimationSets"
+
+[body_bank.clips]
+patrol_idle = "enemies/golem/no_9/helipad/patrol_idle"
+walk_start = "enemies/golem/no_9/helipad/walk_start"
+walk = "enemies/golem/no_9/helipad/walk"
+walk_fire = "enemies/golem/no_9/helipad/walk_fire"
+backstep = "enemies/golem/no_9/helipad/backstep"
+catch_up = "enemies/golem/advance"
+lethal_strike = "enemies/golem/no_9/helipad/lethal_strike"
+slash_first = "enemies/golem/no_9/helipad/slash_first"
+slash_second = "enemies/golem/no_9/helipad/slash_second"
+slash_windup = "enemies/golem/no_9/helipad/slash_windup"
+dash_start = "enemies/golem/pawn/beam_sword/charge_windup"
+dash_run = "enemies/golem/pawn/beam_sword/charge_run"
+dash_strike = "enemies/golem/pawn/beam_sword/charge_slash"
+flame_windup = "enemies/golem/no_9/helipad/flame_windup"
+flame_lunge = "enemies/golem/no_9/helipad/flame_lunge"
+recoil = "enemies/golem/no_9/helipad/recoil"
+flinch = "enemies/golem/recoil_front"
+spark_recoil = "enemies/golem/scream_recover"
+stun = "enemies/golem/buildup"
+stun_recover = "enemies/golem/recoil_behind"
+shotgun_response_start = "enemies/golem/no_9/helipad/shotgun_response_start"
+shotgun_response_walk = "enemies/golem/no_9/helipad/shotgun_response_walk"
+shotgun_response_end = "enemies/golem/no_9/helipad/shotgun_response_end"
+death = "enemies/golem/no_9/helipad/death"
+slash_recover = "enemies/golem/no_9/helipad/slash_recover"
+fight_start = "enemies/golem/no_9/helipad/fight_start"
+grenade_throw = "enemies/golem/no_9/helipad/grenade_throw"
+event_1 = "enemies/golem/no_9/helipad/event_1"
+event_2 = "enemies/golem/no_9/helipad/event_2"
+prop_reveal = "enemies/golem/no_9/helipad/prop_reveal"
+prop_toss = "enemies/golem/no_9/helipad/prop_toss"
+event_5 = "enemies/golem/no_9/helipad/event_5"
+event_6 = "enemies/golem/no_9/helipad/event_6"
+
+[light_rig]
+type = "rig"
+
+[prop_toss]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadPropTossClip"
+
+[walk_fire]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadWalkFireClip"
+
+[light_bank]
+type = "animation_bank"
+clips = { intact = "enemies/golem/no_9/helipad/light_intact", break = "enemies/golem/no_9/helipad/light_break" }
+schema = "enemies/golem/no_9/helipad/light_schema"
+symbol = "_gHelicopterLandingPadNo9HelipadLightAnimationSets"
+
+[walk_start]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadWalkStartClip"
+
+[body_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "patrol_idle",
+    "walk_start",
+    "walk",
+    "walk_fire",
+    "backstep",
+    "catch_up",
+    "lethal_strike",
+    "slash_first",
+    "slash_second",
+    "slash_windup",
+    "dash_start",
+    "dash_run",
+    "dash_strike",
+    "flame_windup",
+    "flame_lunge",
+    "recoil",
+    "flinch",
+    "spark_recoil",
+    "stun",
+    "stun_recover",
+    "shotgun_response_start",
+    "shotgun_response_walk",
+    "shotgun_response_end",
+    "death",
+    "slash_recover",
+    "fight_start",
+    "grenade_throw",
+    "event_1",
+    "event_2",
+    "prop_reveal",
+    "prop_toss",
+    "event_5",
+    "event_6",
+]
+
+[fight_start]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadFightStartClip"
+
+[flame_lunge]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadFlameLungeClip"
+
+[light_break]
+type = "clip"
+rig = "enemies/golem/no_9/helipad/light_rig"
+symbol = "gGolemNo9HelipadLightBreakClip"
+
+[patrol_idle]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadPatrolIdleClip"
+
+[prop_reveal]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadPropRevealClip"
+
+[slash_first]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadSlashFirstClip"
+
+[flame_windup]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadFlameWindupClip"
+
+[light_intact]
+type = "clip"
+rig = "enemies/golem/no_9/helipad/light_rig"
+symbol = "gGolemNo9HelipadLightIntactClip"
+
+[light_schema]
+type = "animation_schema"
+slots = ["", "intact", "break"]
+
+[slash_second]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadSlashSecondClip"
+
+[slash_windup]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadSlashWindupClip"
+
+[grenade_throw]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadGrenadeThrowClip"
+
+[lethal_strike]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadLethalStrikeClip"
+
+[slash_recover]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadSlashRecoverClip"
+
+[player_grenade_bank]
+type = "animation_bank"
+schema = "enemies/golem/no_9/helipad/player_grenade_schema"
+symbol = "_gHelicopterLandingPadNo9PlayerGrenadeAnimationSets"
+
+[player_grenade_bank.clips]
+stun = "enemies/golem/no_9/helipad/player_grenade_stun"
+recover = "enemies/golem/no_9/helipad/player_grenade_recover"
+
+[player_grenade_stun]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gGolemNo9HelipadPlayerGrenadeStunClip"
+
+[shotgun_response_end]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadShotgunResponseEndClip"
+
+[player_grenade_schema]
+type = "animation_schema"
+slots = ["", "stun", "recover"]
+
+[shotgun_response_walk]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadShotgunResponseWalkClip"
+
+[player_grenade_recover]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gGolemNo9HelipadPlayerGrenadeRecoverClip"
+
+[shotgun_response_start]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadShotgunResponseStartClip"
