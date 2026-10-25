@@ -62,28 +62,57 @@ typedef struct {
 } _PatrolLayoutScratch;
 STATIC_ASSERT_SIZEOF(_PatrolLayoutScratch, 0x2C);
 
-/// Values of `_Work::state`: the index of the handler the per-frame tick runs.
+/// Values of `_Work::state`: the index of the handler the per-frame tick runs. `RESTORED` is the only number without a
+/// handler that is ever stored; what replaces it before the tick dispatches is not in this package. Nothing here selects
+/// the states marked "never selected", which leaves `RISE_BACK`, `RISE` and `DOWN` unreachable as well.
 enum {
     STATE_HIDDEN       = 0x00,          // not drawn, not lockable, `attackBody` and `gridBody` off
     STATE_RESTORED     = 0x01,          // set at spawn for an enemy with a saved spawn state; has no handler
     STATE_PATROL       = 0x02,          // walks the two `navNodes` until the player comes within a notice range
     STATE_CHASE        = 0x03,          // walks at the player, each footstep shaking the screen; attacks when close
-    STATE_ALERT        = 0x04,          // plays animation 0x15 with the look following the player, then chases
+    STATE_ALERT        = 0x04,          // plays `alert` with the look following the player, then chases
     STATE_ATTACK       = 0x05,          // swings at the player with `attackBody` enabled, then chases
-    STATE_IDLE         = 0x06,          // stands on animation 0x18, now and then playing 0xE; a hit alerts it
-    STATE_RISE_BACK    = 0x09,          // plays animation 0xF after a `DOWN` that followed `FALL_BACK`, then chases
-    STATE_RISE         = 0x0A,          // plays animation 0x10 after a `DOWN` that followed `FALL`, then chases
+    STATE_IDLE         = 0x06,          // stands on `idle`, now and then playing `idle_variation`; a hit alerts it
+    STATE_FALL_BACK    = 0x07,          // plays `fall_back` and `fall_back_end`, then `DOWN` or, dead, `DEATH_BURN`; never selected
+    STATE_FALL         = 0x08,          // plays `fall` edging forward, then `DOWN` or, dead, `DEATH_BURN`; never selected
+    STATE_RISE_BACK    = 0x09,          // plays `rise_back` after a `DOWN` that followed `FALL_BACK`, then chases
+    STATE_RISE         = 0x0A,          // plays `rise` after a `DOWN` that followed `FALL`, then chases
     STATE_DOWN         = 0x0B,          // holds its pose for `downFrames`, then rises
     STATE_DEATH_BURN   = 0x0C,          // burns away: the corpse-burn effect, then the model flattens, fades and stops being drawn
     STATE_DEATH_BURST  = 0x0D,          // stops drawing the model and throws five body parts from it; never selected
     STATE_STATUS_HOLD  = 0x0E,          // twitches in place until the status buildup runs out, then chases
     STATE_SCRIPTED     = 0x11,          // plays the animation a room command or a play request put in `animId`
-    STATE_DEATH_THRASH = 0x13,          // turns in random jerks through animation 0x16, plays 0x21, then `DEATH_BURN`; never selected
-    STATE_LURK         = 0x14,          // holds animation 0x22 until the player comes within 3000 or a hit alerts it; entered by a patio command
+    STATE_DEATH_THRASH = 0x13,          // turns in random jerks through `thrash`, plays `thrash_end`, then `DEATH_BURN`; never selected
+    STATE_LURK         = 0x14,          // holds `scripted_0` until the player comes within 3000 or a hit alerts it; entered by a patio command
     STATE_LURK_ALERT   = 0x15,          // the alert that ends `LURK`: not lockable, then chases
-    STATE_ALERT_REWIND = 0x17,          // runs animation 0x15 forward 20 ticks on entry, then plays it backward until another state is set; entered by a cafeteria command
-    STATE_ENRAGE       = 0x18,          // convulses while `enrageTint` builds, then chases at a faster `baseRate`; entered once, by the hit that takes it below half its hit points
+    STATE_SHUDDER      = 0x16,          // jolts the root side to side for five ticks, then chases; never selected
+    STATE_ALERT_REWIND = 0x17,          // runs `alert` forward 20 ticks on entry, then plays it backward until another state is set; entered by a cafeteria command
+    STATE_ENRAGE       = 0x18,          // convulses on `fall` while `enrageTint` builds, then chases at a faster `baseRate`; entered once, by the hit that takes it below half its hit points
     CAFETERIA_BOSS_STRANGER_STATE_COUNT // number of states, and of the handlers in `_StateTable`
+};
+
+/// Parts of the Stranger rig the boss reaches; its aim point and attack sphere ride the lower neck.
+enum {
+    PELVIS_PART          = 1,
+    CHEST_PART           = 2,
+    LOWER_NECK_PART      = 3,
+    HEAD_PART            = 5,
+    JAW_PART             = 6,
+    RIGHT_UPPER_ARM_PART = 7,
+    RIGHT_FOREARM_PART   = 8,
+    LEFT_UPPER_ARM_PART  = 9,
+    LEFT_FOREARM_PART    = 10,
+    RIGHT_THIGH_PART     = 11,
+    RIGHT_FOOT_PART      = 14,
+    LEFT_THIGH_PART      = 15,
+    LEFT_FOOT_PART       = 18,
+};
+
+/// Cue indices on the pelvis track of `walk` where its two footsteps fall: each sounds its step and, in `CHASE`, shakes
+/// the screen.
+enum {
+    WALK_STEP_A_CUE = 0x26,
+    WALK_STEP_B_CUE = 0x33,
 };
 
 /// Values of `_Work::animRequest` and `_Work::blendRequest`.
@@ -94,36 +123,17 @@ enum {
     ANIM_REQUEST_SETTLE  = 6  // restart the slots on the animation and run them 99 ticks before it shows; never requested
 };
 
-/// Scripted clip slots in this actor's animation-set table.
-enum {
-    ANIM_SCRIPTED_SLOT0    = 0x22,
-    ANIM_SCRIPTED_SLOT1    = 0x23,
-    ANIM_SCRIPTED_SLOT2    = 0x24,
-    ANIM_SCRIPTED_SLOT3    = 0x25,
-    ANIM_SCRIPTED_REQUEST4 = 0x28,
-};
-
-/// Clip shared by the ordinary alert and the wake-up from lurk.
-enum { ANIM_ALERT = 21 };
-
-/// Clips used by the patrol, knockdown and status-hold states.
-enum {
-    ANIM_PATROL         = 2,
-    ANIM_ATTACK         = 5,
-    ANIM_FALL           = 12,
-    ANIM_IDLE_VARIATION = 14,
-    ANIM_RISE_BACK      = 15,
-    ANIM_RISE           = 16,
-    ANIM_IDLE           = 24,
-    ANIM_FALL_BACK      = 29,
-    ANIM_FALL_BACK_END  = 30,
-};
-
 /// Actor-specific message slots; both payload words are ignored.
 enum {
     MESSAGE_ALERT  = 2007,
     MESSAGE_IGNORE = 2015,
 };
+
+/// How far `gridBody` sits above the root.
+enum { GRID_BODY_HEIGHT = 292 };
+
+/// `baseRate` once `ENRAGE` has run, at which `CHASE` walks faster.
+enum { ENRAGED_BASE_RATE = 56 };
 
 /// Forces a message-selected state to run its entry setup on the next tick.
 enum { PREV_STATE_NONE = -1 };
@@ -147,27 +157,27 @@ typedef struct {
     s16                   animId;               // animation requested of `rig`
     s16                   animFrames;           // ticks since `animRequest` was last applied; `DEATH_THRASH` ends its first animation at 31
     s16                   animRate;             // playback rate of `rig`'s slots; negative plays backward
-    s16                   baseRate;             // `animRate` most states start on: 20 or 16 by variant, 0x38 once `ENRAGE` has run
+    s16                   baseRate;             // `animRate` most states start on: 20 or 16 by variant, `ENRAGED_BASE_RATE` once `ENRAGE` has run
     s16                   blendRequest;         // `ANIM_REQUEST_*` for `blendRig`
-    s16                   blendAnimId;          // animation requested of `blendRig`; a hit asks for 0xB
+    s16                   blendAnimId;          // animation requested of `blendRig`; a hit asks for `hit_reaction`
     s16                   blendRate;            // playback rate of `blendRig`'s slots, 0x30 from each restart
     s16                   blendWeight;          // share of `blendRig`'s pose in the mix, of 0x1000; 0xB78 from each restart
     s16                   lookYawTarget;        // bearing to the player relative to the facing, or 0
-    s16                   lookYaw;              // eased toward `lookYawTarget` by 0x100 a tick; within +-0x400, part 5 turns by it and part 3 by a quarter
+    s16                   lookYaw;              // eased toward `lookYawTarget` by 0x100 a tick; within +-0x400, the head turns by it and the lower neck by a quarter
     s16                   burnHeightScale;      // height scale `DEATH_BURN` flattens the root from: the walker's scale on entry, 8 less a tick from tick 201 while above 0x800
     byte                  pad_8A8[0x2];         // never accessed
     s16                   hitCooldown;          // ticks before another hit is taken; set from the hit's id parameter 2
-    s32                   lastCueIndex;         // slot 1's cue index (slot 14's or 18's on animation 3) as the sound cues last saw it, so a held cue fires once; 0 from each applied request
+    s32                   lastCueIndex;         // slot 1's cue index (the feet's on `run`) as the sound cues last saw it, so a held cue fires once; 0 from each applied request
     s8                    field_8B0;            // cleared at spawn and never accessed again; role unproven
     s8                    rootDirty;            // 1 when the tick left the root coordinate marked dirty, which a ready view forces; never read
     byte                  pad_8B2[0x2];         // never accessed
     s16                   flinchSpeedScale;     // sets the `CHASE` step while `blendActive`: this times `animRate` over 1520, halved, so 0 at the starting rates
     s16                   walkSpeed;            // forward step per tick at rate 16 (10, 8 or 14 by variant): `PATROL` walks at it, `CHASE` at it times `animRate` over 16
-    WorldCollisionBody    hitBody;              // sphere ahead of and above the root that takes the hits, off in `HIDDEN` and the death states; moved onto part 2 by the killing hit
+    WorldCollisionBody    hitBody;              // sphere ahead of and above the root that takes the hits, off in `HIDDEN` and the death states; moved onto the chest by the killing hit
     WorldCollisionContact hitContacts[5];       // contacts of `hitBody`; also the enemy's hit records and what the walker avoids
-    WorldCollisionBody    gridBody;             // sphere 0x124 above the root, in world space, that the room grid pushes the walker with; also takes hits
+    WorldCollisionBody    gridBody;             // sphere `GRID_BODY_HEIGHT` above the root, in world space, that the room grid pushes the walker with; also takes hits
     WorldCollisionContact gridContacts[12];     // contacts of `gridBody`, which the walker's ground step measures
-    WorldCollisionBody    attackBody;           // sphere on part 3 carrying the key of the attack in use; enabled only between two cue indices of `ATTACK`
+    WorldCollisionBody    attackBody;           // sphere on the lower neck carrying the key of the attack in use; enabled only between two cue indices of `ATTACK`
     WorldCollisionContact attackContacts[1];    // contact of `attackBody`; a kind-0x10000 record is a landed swing, which disables the body
     MATRIX                lightMtx;             // storage for the model's `TmdObject::lightMtx`
     MATRIX                colorMtx;             // storage for the model's `TmdObject::colorMtx`
@@ -186,7 +196,7 @@ typedef struct {
     s16  stateFrame;                            // tick counter of `CHASE`, `ATTACK`, `DEATH_BURN` and the second stage of `ENRAGE`, cleared as each begins
     s16  enrageStage;                           // 0 while `ENRAGE` plays up to cue index 4, 1 while it convulses
     s16  enrageTint;                            // taken off the green and blue background colour of `colorMtx` each tick, and two thirds of it off the red; grows by 0x27 a tick of `ENRAGE`'s second stage
-    s16  enraged;                               // 1 once `ENRAGE` has been entered: hits do half damage, and `ATTACK` plays animation 4 with attack 0 in place of animation 5 with attack 1; cleared with the tint when a dead actor is asked whether it is present
+    s16  enraged;                               // 1 once `ENRAGE` has been entered: hits do half damage, and `ATTACK` plays `enraged_attack` with attack 0 in place of `attack` with attack 1; cleared with the tint when a dead actor is asked whether it is present
     s16  footstepShake;                         // nonzero while a footstep's five-tick screen shake runs (1 or 2 by the cue index that started it)
     byte pad_BEA[0x2];                          // never accessed
 } _Work;
@@ -265,14 +275,12 @@ static void _cafeteriaBossStrangerExit(Task* task);
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
-/// Applies a rotation of `angle` about Y to `matrix` (main executable).
-
 /// Diagnostic when the Boss Stranger's node-order plan finds no candidate slot pair.
 static const char _gBossStrangerNoPlanPairMessage[] = "s->root_cnt == 0xff about \n";
 
 static s32  _cafeteriaBossStrangerSetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 secondArg);
 static s32  _cafeteriaBossStrangerIsPresent(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
-static void _cafeteriaBossStrangerIgnoreMessage2015(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
+static void _cafeteriaBossStrangerIgnoreMessage(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
 
 static TmdSource _gAkropolisCafeteriaBossStrangerBody;
 static void      _cafeteriaBossStrangerTask(Task* task);
@@ -343,11 +351,14 @@ static u16 D_actor_110600_80138F34[18] = {
     0,
 };
 
+#include "assets/rooms/akropolis/cafeteria/boss_stranger_schema.h"
+
 #include "assets/rooms/akropolis/cafeteria/boss_stranger_body.inc"
 
 #include "assets/rooms/akropolis/cafeteria/boss_stranger_clips.inc"
 
-/// Signed blend durations in normal-rate frames, indexed [applied clip][requested clip].
+/// Signed blend durations in normal-rate frames, indexed [applied clip][requested clip]. The triple-hit follow-up sets
+/// its `scripted_2` to `fall_back_end` entry to six frames, which stays while the overlay is loaded.
 static s8 _gCafeteriaBossStrangerAnimBlendFrames[45][45] = {
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -396,28 +407,31 @@ static s8 _gCafeteriaBossStrangerAnimBlendFrames[45][45] = {
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-/// Animation-set bank borrowed by both nineteen-part rigs for the overlay's lifetime.
+/// Animation-set bank borrowed by both nineteen-part rigs for the overlay's lifetime. Its `run`, `idle`,
+/// `idle_variation` and `thrash_end` slots are empty: the run steps' cues, `IDLE` and `DEATH_THRASH` are code this
+/// package carries without the clips.
 #include "assets/rooms/akropolis/cafeteria/boss_stranger_bank.inc"
 
-/// Hit-effect anchors grouped by yaw: front 0..4, rear 5..7, sides 8..11.
+/// Hit-effect anchors grouped by yaw: front 0..4 on the chest, rear 5..7, sides 8..11 on an upper arm or the chest. The
+/// random masks never pick the front's row 4 or the rear's row 6.
 static ActorHitAnchor _gCafeteriaBossStrangerHitAnchors[12] = {
-    { .anchor = { 60, -12, 30, 2 } },
-    { .anchor = { -50, -130, 29, 2 } },
-    { .anchor = { 20, -70, 25, 2 } },
-    { .anchor = { -30, -65, 25, 2 } },
-    { .anchor = { 60, -120, 30, 2 } },
-    { .anchor = { 20, -20, -5, 2 } },
-    { .anchor = { -15, -50, 0, 2 } },
-    { .anchor = { 2, 10, -15, 2 } },
-    { .anchor = { 14, 0, 0, 7 } },
-    { .anchor = { 25, 0, 0, 2 } },
-    { .anchor = { -14, 0, 0, 9 } },
-    { .anchor = { -25, 0, 0, 2 } },
+    { .anchor = { 60, -12, 30, CHEST_PART } },
+    { .anchor = { -50, -130, 29, CHEST_PART } },
+    { .anchor = { 20, -70, 25, CHEST_PART } },
+    { .anchor = { -30, -65, 25, CHEST_PART } },
+    { .anchor = { 60, -120, 30, CHEST_PART } },
+    { .anchor = { 20, -20, -5, CHEST_PART } },
+    { .anchor = { -15, -50, 0, CHEST_PART } },
+    { .anchor = { 2, 10, -15, CHEST_PART } },
+    { .anchor = { 14, 0, 0, RIGHT_UPPER_ARM_PART } },
+    { .anchor = { 25, 0, 0, CHEST_PART } },
+    { .anchor = { -14, 0, 0, LEFT_UPPER_ARM_PART } },
+    { .anchor = { -25, 0, 0, CHEST_PART } },
 };
 
-/// Messages accepted by the live actor: 2015, 2003, 2005, 2006, 2004, 2011 and 2007.
+/// Messages the live actor answers. The table has no end marker, so every sender must send one of these seven.
 static TaskMessageEntry _gCafeteriaBossStrangerMessages[7] = {
-    { MESSAGE_IGNORE, _cafeteriaBossStrangerIgnoreMessage2015 },
+    { MESSAGE_IGNORE, _cafeteriaBossStrangerIgnoreMessage },
     { ACTOR_MESSAGE_PLAY_ANIMATION, _cafeteriaBossStrangerPlayScriptedAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _cafeteriaBossStrangerSetModelDraw },
     { ACTOR_MESSAGE_IS_PRESENT, _cafeteriaBossStrangerIsPresent },
@@ -557,23 +571,26 @@ static s32 _cafeteriaBossStrangerPlace(Task* task, s32 messageId, const ActorTra
     return 1;
 }
 
+/// Actor commands the patio and the cafeteria send, in the cafeteria's own names (its `_gAkropolisCafeteriaStranger*Command`).
+enum {
+    PATIO_COMMAND_LURK                     = 1, // Holds `scripted_0` until the player comes near
+    CAFETERIA_COMMAND_START                = 1, // Runs `alert` forward, then backward: `ALERT_REWIND`
+    CAFETERIA_COMMAND_POST_BATTLE          = 2, // Plays the collapse in `scripted_1`
+    CAFETERIA_COMMAND_FOLLOW_UP_TRIPLE_HIT = 3, // Plays the collapse in `scripted_2`, three hits on its cue, then `fall_back_end`
+    CAFETERIA_COMMAND_RECOIL               = 4, // Plays the lesser Stranger's idle in `scripted_3`
+    CAFETERIA_COMMAND_FOLLOW_UP            = 5, // Plays the third follow-up in `scripted_0`
+    CAFETERIA_COMMAND_RANDOM_HIT           = 6, // Plays the room's seventh extra clip in `scripted_1`, one hit at random; never sent
+    CAFETERIA_COMMAND_SETTLE               = 7, // As `RECOIL`
+    CAFETERIA_COMMAND_FOLLOW_UP_BURN       = 8, // Burns away: `DEATH_BURN`
+    CAFETERIA_COMMAND_FOLLOW_UP_CLIP       = 9, // Plays `command_9`
+};
+
 /// Applies the actor's Acropolis patio or cafeteria command.
 static s32 _cafeteriaBossStrangerApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 secondArg)
 {
     enum {
-        CONTEXT_PATIO                      = GAME_STAGE_AKROPOLIS | (GAME_AREA_AKROPOLIS_PATIO << 8),
-        CONTEXT_CAFETERIA                  = GAME_STAGE_AKROPOLIS | (GAME_AREA_AKROPOLIS_CAFETERIA << 8),
-        PATIO_COMMAND_LURK                 = 1,
-        CAFETERIA_COMMAND_ALERT_REWIND     = 1,
-        CAFETERIA_COMMAND_PLAY_SLOT1       = 2,
-        CAFETERIA_COMMAND_PLAY_SLOT2       = 3,
-        CAFETERIA_COMMAND_PLAY_SLOT3       = 4,
-        CAFETERIA_COMMAND_PLAY_SLOT0       = 5,
-        CAFETERIA_COMMAND_PLAY_SLOT1_ALT   = 6,
-        CAFETERIA_COMMAND_PLAY_SLOT3_ALIAS = 7,
-        CAFETERIA_COMMAND_DEATH_BURN       = 8,
-        CAFETERIA_COMMAND_PLAY_CLIP17      = 9,
-        ANIM_COMMAND9                      = 0x11,
+        CONTEXT_PATIO     = GAME_STAGE_AKROPOLIS | (GAME_AREA_AKROPOLIS_PATIO << 8),
+        CONTEXT_CAFETERIA = GAME_STAGE_AKROPOLIS | (GAME_AREA_AKROPOLIS_CAFETERIA << 8),
     };
 
     _Work* work = task->work;
@@ -593,37 +610,37 @@ static s32 _cafeteriaBossStrangerApplyCommand(Task* task, s32 messageId, const A
         switch (command->command) {
             default:
                 return 0;
-            case CAFETERIA_COMMAND_ALERT_REWIND:
+            case CAFETERIA_COMMAND_START:
                 work->state     = STATE_ALERT_REWIND;
                 work->prevState = PREV_STATE_NONE;
                 return 1;
-            case CAFETERIA_COMMAND_PLAY_SLOT1:
-                work->animId                                              = ANIM_SCRIPTED_SLOT1;
-                _gCafeteriaBossStrangerAnimationSets[ANIM_SCRIPTED_SLOT1] = &gAkropolisCafeteriaBossStrangerCollapseClip;
+            case CAFETERIA_COMMAND_POST_BATTLE:
+                work->animId                                                             = BOSS_STRANGER_ANIMATION_SCRIPTED_1;
+                _gCafeteriaBossStrangerAnimationSets[BOSS_STRANGER_ANIMATION_SCRIPTED_1] = &gAkropolisCafeteriaBossStrangerCollapseClip;
                 break;
-            case CAFETERIA_COMMAND_PLAY_SLOT2:
-                work->animId                                              = ANIM_SCRIPTED_SLOT2;
-                _gCafeteriaBossStrangerAnimationSets[ANIM_SCRIPTED_SLOT2] = &gAkropolisCafeteriaBossStrangerCollapseClip;
+            case CAFETERIA_COMMAND_FOLLOW_UP_TRIPLE_HIT:
+                work->animId                                                             = BOSS_STRANGER_ANIMATION_SCRIPTED_2;
+                _gCafeteriaBossStrangerAnimationSets[BOSS_STRANGER_ANIMATION_SCRIPTED_2] = &gAkropolisCafeteriaBossStrangerCollapseClip;
                 break;
-            case CAFETERIA_COMMAND_PLAY_SLOT0:
-                work->animId                                              = ANIM_SCRIPTED_SLOT0;
-                _gCafeteriaBossStrangerAnimationSets[ANIM_SCRIPTED_SLOT0] = &gAkropolisCafeteriaBossStrangerFollowUp3Clip;
+            case CAFETERIA_COMMAND_FOLLOW_UP:
+                work->animId                                                             = BOSS_STRANGER_ANIMATION_SCRIPTED_0;
+                _gCafeteriaBossStrangerAnimationSets[BOSS_STRANGER_ANIMATION_SCRIPTED_0] = &gAkropolisCafeteriaBossStrangerFollowUp3Clip;
                 break;
-            case CAFETERIA_COMMAND_PLAY_SLOT1_ALT:
-                work->animId                                              = ANIM_SCRIPTED_SLOT1;
-                _gCafeteriaBossStrangerAnimationSets[ANIM_SCRIPTED_SLOT1] = &gAkropolisCafeteriaExtraAnim7Clip;
+            case CAFETERIA_COMMAND_RANDOM_HIT:
+                work->animId                                                             = BOSS_STRANGER_ANIMATION_SCRIPTED_1;
+                _gCafeteriaBossStrangerAnimationSets[BOSS_STRANGER_ANIMATION_SCRIPTED_1] = &gAkropolisCafeteriaExtraAnim7Clip;
                 break;
-            case CAFETERIA_COMMAND_PLAY_SLOT3:
-            case CAFETERIA_COMMAND_PLAY_SLOT3_ALIAS:
-                work->animId                                              = ANIM_SCRIPTED_SLOT3;
-                _gCafeteriaBossStrangerAnimationSets[ANIM_SCRIPTED_SLOT3] = &gStrangerLesserIdleClip;
+            case CAFETERIA_COMMAND_RECOIL:
+            case CAFETERIA_COMMAND_SETTLE:
+                work->animId                                                             = BOSS_STRANGER_ANIMATION_SCRIPTED_3;
+                _gCafeteriaBossStrangerAnimationSets[BOSS_STRANGER_ANIMATION_SCRIPTED_3] = &gStrangerLesserIdleClip;
                 break;
-            case CAFETERIA_COMMAND_DEATH_BURN:
+            case CAFETERIA_COMMAND_FOLLOW_UP_BURN:
                 work->state     = STATE_DEATH_BURN;
                 work->prevState = PREV_STATE_NONE;
                 return 1;
-            case CAFETERIA_COMMAND_PLAY_CLIP17:
-                work->animId = ANIM_COMMAND9;
+            case CAFETERIA_COMMAND_FOLLOW_UP_CLIP:
+                work->animId = BOSS_STRANGER_ANIMATION_COMMAND_9;
                 break;
         }
         work->state     = STATE_SCRIPTED;
@@ -665,33 +682,27 @@ static void _cafeteriaBossStrangerTickBlendedSlots(Task* task)
     }
 }
 
-/// Returns the sound script due at the active animation's pose cue, or zero.
+/// Returns the sound script due at the active animation's pose cue, or zero; the sounds are the Stranger bank's
+/// (`enemies/stranger/sounds`), named as its samples are.
 static s32 _cafeteriaBossStrangerPollAnimationSound(_Work* work)
 {
     enum {
-        CUE_CLIP_PATROL           = 2,
-        CUE_CLIP_CHASE            = 3,
-        CUE_CLIP_ENRAGED_ATTACK   = 4,
-        CUE_CLIP_ATTACK           = 5,
-        CUE_CLIP_ALERT            = 21,
-        CHASE_PART14_CUE          = 0xC5,
-        CHASE_PART18_CUE          = 0xFD,
-        CHASE_PART18_SUPPRESS_CUE = 0xFC,
-        PATROL_CUE_LATE           = 0x33,
-        PATROL_CUE_EARLY          = 0x26,
-        ALERT_CUE                 = 4,
-        ENRAGED_ATTACK_CUE        = 9,
-        ATTACK_CUE                = 11,
-        SOUND_CHASE_PART14        = SOUND_CHARACTER(SOUND_BANK_STRANGER, 4),
-        SOUND_CHASE_PART18        = SOUND_CHARACTER(SOUND_BANK_STRANGER, 3),
-        SOUND_PATROL_LATE         = SOUND_CHARACTER(SOUND_BANK_STRANGER, 2),
-        SOUND_PATROL_EARLY        = SOUND_CHARACTER(SOUND_BANK_STRANGER, 1),
-        SOUND_ALERT               = SOUND_CHARACTER(SOUND_BANK_STRANGER, 6),
-        SOUND_ATTACK              = SOUND_CHARACTER(SOUND_BANK_STRANGER, 12),
+        CHASE_RIGHT_FOOT_CUE         = 0xC5,
+        CHASE_LEFT_FOOT_CUE          = 0xFD,
+        CHASE_LEFT_FOOT_SUPPRESS_CUE = 0xFC,
+        ALERT_CUE                    = 4,
+        ENRAGED_ATTACK_CUE           = 9,
+        ATTACK_CUE                   = 11,
+        SOUND_RUN_STEP_B             = SOUND_CHARACTER(SOUND_BANK_STRANGER, 4),
+        SOUND_RUN_STEP_A             = SOUND_CHARACTER(SOUND_BANK_STRANGER, 3),
+        SOUND_WALK_STEP_B            = SOUND_CHARACTER(SOUND_BANK_STRANGER, 2),
+        SOUND_WALK_STEP_A            = SOUND_CHARACTER(SOUND_BANK_STRANGER, 1),
+        SOUND_ALERT                  = SOUND_CHARACTER(SOUND_BANK_STRANGER, 6),
+        SOUND_STRIKE                 = SOUND_CHARACTER(SOUND_BANK_STRANGER, 12),
     };
 
-    s32 part14CueIndex;
-    s32 part18CueIndex;
+    s32 rightFootCueIndex;
+    s32 leftFootCueIndex;
     s32 patrolCueIndex;
     s32 alertCueIndex;
     s32 enragedAttackCueIndex;
@@ -699,51 +710,51 @@ static s32 _cafeteriaBossStrangerPollAnimationSound(_Work* work)
     s32 previousCueIndex;
     s16 clipSelector;
 
-    clipSelector = (u16)work->animId - CUE_CLIP_PATROL;
+    clipSelector = (u16)work->animId - BOSS_STRANGER_ANIMATION_WALK;
     switch (clipSelector) {
-        case CUE_CLIP_CHASE - CUE_CLIP_PATROL:
-            part14CueIndex = work->rig.slots[14].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            if (part14CueIndex == CHASE_PART14_CUE) {
+        case BOSS_STRANGER_ANIMATION_RUN - BOSS_STRANGER_ANIMATION_WALK:
+            rightFootCueIndex = work->rig.slots[RIGHT_FOOT_PART].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            if (rightFootCueIndex == CHASE_RIGHT_FOOT_CUE) {
                 previousCueIndex = work->lastCueIndex;
-                if (previousCueIndex != part14CueIndex) {
-                    work->lastCueIndex = part14CueIndex;
-                    return SOUND_CHASE_PART14;
+                if (previousCueIndex != rightFootCueIndex) {
+                    work->lastCueIndex = rightFootCueIndex;
+                    return SOUND_RUN_STEP_B;
                 }
                 work->lastCueIndex = previousCueIndex;
                 return SOUND_SCRIPT_REQUEST_NO_OP;
             }
-            part18CueIndex = work->rig.slots[18].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            leftFootCueIndex = work->rig.slots[LEFT_FOOT_PART].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             // This cue suppresses against 0xFC, while the emitted cue stores 0xFD.
-            if (part18CueIndex == CHASE_PART18_CUE) {
-                if (work->lastCueIndex != CHASE_PART18_SUPPRESS_CUE) {
-                    work->lastCueIndex = part18CueIndex;
-                    return SOUND_CHASE_PART18;
+            if (leftFootCueIndex == CHASE_LEFT_FOOT_CUE) {
+                if (work->lastCueIndex != CHASE_LEFT_FOOT_SUPPRESS_CUE) {
+                    work->lastCueIndex = leftFootCueIndex;
+                    return SOUND_RUN_STEP_A;
                 }
-                work->lastCueIndex = part18CueIndex;
+                work->lastCueIndex = leftFootCueIndex;
                 break;
             }
             work->lastCueIndex = 0;
             break;
-        case CUE_CLIP_PATROL - CUE_CLIP_PATROL:
+        case BOSS_STRANGER_ANIMATION_WALK - BOSS_STRANGER_ANIMATION_WALK:
             patrolCueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            if (patrolCueIndex == PATROL_CUE_LATE) {
+            if (patrolCueIndex == WALK_STEP_B_CUE) {
                 if (work->lastCueIndex != patrolCueIndex) {
                     work->lastCueIndex = patrolCueIndex;
-                    return SOUND_PATROL_LATE;
+                    return SOUND_WALK_STEP_B;
                 }
                 work->lastCueIndex = patrolCueIndex;
-            } else if (patrolCueIndex == PATROL_CUE_EARLY) {
+            } else if (patrolCueIndex == WALK_STEP_A_CUE) {
                 previousCueIndex = work->lastCueIndex;
                 if (previousCueIndex != patrolCueIndex) {
                     work->lastCueIndex = patrolCueIndex;
-                    return SOUND_PATROL_EARLY;
+                    return SOUND_WALK_STEP_A;
                 }
                 work->lastCueIndex = previousCueIndex;
             } else {
                 work->lastCueIndex = 0;
             }
             break;
-        case CUE_CLIP_ALERT - CUE_CLIP_PATROL:
+        case BOSS_STRANGER_ANIMATION_ALERT - BOSS_STRANGER_ANIMATION_WALK:
             alertCueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             if (alertCueIndex == ALERT_CUE && work->lastCueIndex != alertCueIndex) {
                 work->lastCueIndex = alertCueIndex;
@@ -751,19 +762,19 @@ static s32 _cafeteriaBossStrangerPollAnimationSound(_Work* work)
             }
             work->lastCueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             break;
-        case CUE_CLIP_ENRAGED_ATTACK - CUE_CLIP_PATROL:
+        case BOSS_STRANGER_ANIMATION_ENRAGED_ATTACK - BOSS_STRANGER_ANIMATION_WALK:
             enragedAttackCueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             if (enragedAttackCueIndex == ENRAGED_ATTACK_CUE && work->lastCueIndex != enragedAttackCueIndex) {
                 work->lastCueIndex = enragedAttackCueIndex;
-                return SOUND_ATTACK;
+                return SOUND_STRIKE;
             }
             work->lastCueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             break;
-        case CUE_CLIP_ATTACK - CUE_CLIP_PATROL:
+        case BOSS_STRANGER_ANIMATION_ATTACK - BOSS_STRANGER_ANIMATION_WALK:
             attackCueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             if (attackCueIndex == ATTACK_CUE && work->lastCueIndex != attackCueIndex) {
                 work->lastCueIndex = attackCueIndex;
-                return SOUND_ATTACK;
+                return SOUND_STRIKE;
             }
             work->lastCueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             break;
@@ -945,8 +956,8 @@ static void _cafeteriaBossStrangerTickAnimation(Task* task)
         if (jointYaw < -LIMIT) {
             jointYawBits = -LIMIT;
         }
-        _actorRenderYawJointInWorld(&task->extra.tmd->coords[5], (s16)jointYawBits);
-        _actorRenderYawJointInWorld(&task->extra.tmd->coords[3], (s16)jointYawBits >> 2);
+        _actorRenderYawJointInWorld(&task->extra.tmd->coords[HEAD_PART], (s16)jointYawBits);
+        _actorRenderYawJointInWorld(&task->extra.tmd->coords[LOWER_NECK_PART], (s16)jointYawBits >> 2);
     }
     // Attribute the cue to this placed enemy before applying positional audio.
     cueSoundId = _cafeteriaBossStrangerPollAnimationSound(work);
@@ -1030,14 +1041,11 @@ static void _cafeteriaBossStrangerSpawn(Enemy* enemy, Task* task)
         PATROL_TUNING_MEDIUM     = 0x1000,
         PATROL_TUNING_LONG       = 0x2000,
         PATROL_NODE_YAW_STEP     = 0x764,
-        INITIAL_WALK_CLIP        = 2,
         GRID_BODY_ID             = 13,
         GRID_BODY_RADIUS         = 420,
-        GRID_BODY_HEIGHT         = 292,
         HIT_BODY_RADIUS          = 330,
         HIT_BODY_HEIGHT          = 700,
         HIT_BODY_FORWARD         = 400,
-        ATTACK_PART              = 3,
         INITIAL_TURN_LIMIT       = 0x20,
     };
 
@@ -1079,7 +1087,7 @@ static void _cafeteriaBossStrangerSpawn(Enemy* enemy, Task* task)
     enemy->bodyPos.vx       = 0;
     enemy->bodyPos.vy       = 0;
     enemy->bodyPos.vz       = 0;
-    enemy->coord            = task->extra.tmd->coords + ATTACK_PART;
+    enemy->coord            = task->extra.tmd->coords + LOWER_NECK_PART;
     worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->reactionFlags          = 0;
@@ -1091,7 +1099,7 @@ static void _cafeteriaBossStrangerSpawn(Enemy* enemy, Task* task)
     animationInitContext(&work->blendRig.anim, _gCafeteriaBossStrangerAnimationSets, model, work->blendRig.poses, work->blendRig.slots);
     work->animRequest   = ANIM_REQUEST_RESET;
     work->blendActive   = 0;
-    work->animId        = INITIAL_WALK_CLIP;
+    work->animId        = BOSS_STRANGER_ANIMATION_WALK;
     work->lookYaw       = 0;
     work->lookYawTarget = 0;
     _cafeteriaBossStrangerTickAnimation(task);
@@ -1131,7 +1139,7 @@ static void _cafeteriaBossStrangerSpawn(Enemy* enemy, Task* task)
     attackLocalPosition.vx = 0;
     attackLocalPosition.vy = 0;
     attackLocalPosition.vz = 0;
-    _cafeteriaBossStrangerLinkAttackBody(attackBody, task->extra.tmd->coords + ATTACK_PART, work->attackContacts, &attackLocalPosition, sphereKind);
+    _cafeteriaBossStrangerLinkAttackBody(attackBody, task->extra.tmd->coords + LOWER_NECK_PART, work->attackContacts, &attackLocalPosition, sphereKind);
     worldCollisionInitContacts(attackBody->context.contacts, ARRAY_SIZE(work->attackContacts), 0);
     task->msgTable          = _gCafeteriaBossStrangerMessages;
     work->childTask0        = 0;
@@ -1284,7 +1292,7 @@ static void _cafeteriaBossStrangerPatrolState(Task* task)
         work->gridBody.flags          = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         work->animRequest             = ANIM_REQUEST_RESET;
-        work->animId                  = ANIM_PATROL;
+        work->animId                  = BOSS_STRANGER_ANIMATION_WALK;
         work->walker.state            = BOSS_STRANGER_WALKER_PATROL;
         work->walker.turnLimit        = PATROL_TURN_LIMIT;
     }
@@ -1327,7 +1335,6 @@ static inline s32 _cafeteriaBossStrangerTickFootstepShake(void)
 static void _cafeteriaBossStrangerChaseState(Task* task)
 {
     enum {
-        ENRAGED_BASE_RATE    = 56,
         ENRAGED_TURN_LIMIT   = 48,
         CHASE_TURN_LIMIT     = 28,
         STOP_DISTANCE        = 420,
@@ -1338,10 +1345,8 @@ static void _cafeteriaBossStrangerChaseState(Task* task)
         ATTACK_FACING_LIMIT  = 128,
         ALIGNED_ATTACK_TICKS = 25,
         ATTACK_TIMEOUT_TICKS = 91,
-        FOOTSTEP_CUE_LATE    = 0x33,
-        FOOTSTEP_CUE_EARLY   = 0x26,
-        FOOTSTEP_SHAKE_LATE  = 1,
-        FOOTSTEP_SHAKE_EARLY = 2,
+        STEP_B_SHAKE         = 1,
+        STEP_A_SHAKE         = 2,
     };
 
     _Work*              work;
@@ -1353,8 +1358,8 @@ static void _cafeteriaBossStrangerChaseState(Task* task)
     SVECTOR             playerOffset;
     s16                 playerTurn;
     u16                 forwardSpeed;
-    s32                 lateCueIndex;
-    s32                 earlyCueIndex;
+    s32                 stepBCueIndex;
+    s32                 stepACueIndex;
 
     work  = task->work;
     model = task->extra.tmd;
@@ -1365,7 +1370,7 @@ static void _cafeteriaBossStrangerChaseState(Task* task)
         work->gridBody.flags         |= WORLD_COLLISION_BODY_GRID_ENABLED;
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         work->animRequest             = ANIM_REQUEST_BLEND;
-        work->animId                  = ANIM_PATROL;
+        work->animId                  = BOSS_STRANGER_ANIMATION_WALK;
         work->walker.state            = BOSS_STRANGER_WALKER_CHASE;
         work->animRate                = work->baseRate;
         if (work->baseRate == ENRAGED_BASE_RATE)
@@ -1408,13 +1413,13 @@ static void _cafeteriaBossStrangerChaseState(Task* task)
     work->lookYawTarget = playerTurn;
     _cafeteriaBossStrangerTickAnimation(task);
     // Start each footstep shake once when its slot-1 cue changes.
-    lateCueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-    if ((lateCueIndex == FOOTSTEP_CUE_LATE) && (work->lastFootstepCueIndex != lateCueIndex)) {
-        work->footstepShake = FOOTSTEP_SHAKE_LATE;
+    stepBCueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+    if ((stepBCueIndex == WALK_STEP_B_CUE) && (work->lastFootstepCueIndex != stepBCueIndex)) {
+        work->footstepShake = STEP_B_SHAKE;
     }
-    earlyCueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-    if ((earlyCueIndex == FOOTSTEP_CUE_EARLY) && (work->lastFootstepCueIndex != earlyCueIndex)) {
-        work->footstepShake = FOOTSTEP_SHAKE_EARLY;
+    stepACueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+    if ((stepACueIndex == WALK_STEP_A_CUE) && (work->lastFootstepCueIndex != stepACueIndex)) {
+        work->footstepShake = STEP_A_SHAKE;
     }
     work->lastFootstepCueIndex = (s32)(work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK);
     if (work->footstepShake != 0) {
@@ -1443,7 +1448,7 @@ static void _cafeteriaBossStrangerAlertState(Task* task)
         work->gridBody.flags          = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         work->animRequest             = ANIM_REQUEST_BLEND;
-        work->animId                  = ANIM_ALERT;
+        work->animId                  = BOSS_STRANGER_ANIMATION_ALERT;
         work->animRate                = work->baseRate;
     }
     rootCoord           = task->extra.tmd->coords;
@@ -1480,18 +1485,16 @@ static inline s32 _cafeteriaBossStrangerHasPlayerBodyContact(const WorldCollisio
 static void _cafeteriaBossStrangerAttackState(Task* task)
 {
     enum {
-        NORMAL            = 1,
-        ENRAGED           = 0,
-        CLIP              = 5,
-        ENRAGED_CLIP      = 4,
-        ENRAGED_RATE      = 26,
-        BRAKE_STEP        = 8,
-        TURN_LIMIT        = 0x10,
-        TURN_STOP_TICK    = 11,
-        ENRAGED_START_CUE = 15,
-        ENRAGED_END_CUE   = 21,
-        START_CUE         = 16,
-        END_CUE           = 19,
+        NORMAL              = 1,
+        ENRAGED             = 0,
+        ENRAGED_ATTACK_RATE = 26,
+        BRAKE_STEP          = 8,
+        TURN_LIMIT          = 0x10,
+        TURN_STOP_TICK      = 11,
+        ENRAGED_START_CUE   = 15,
+        ENRAGED_END_CUE     = 21,
+        START_CUE           = 16,
+        END_CUE             = 19,
     };
 
     _Work*              work;
@@ -1513,11 +1516,11 @@ static void _cafeteriaBossStrangerAttackState(Task* task)
         attackWork                    = task->work;
         if (attackWork->enraged != 0) {
             work->attackBody.key = damagePackEnemyAttackKey(enemy, ENRAGED);
-            work->animId         = ENRAGED_CLIP;
-            work->animRate       = ENRAGED_RATE;
+            work->animId         = BOSS_STRANGER_ANIMATION_ENRAGED_ATTACK;
+            work->animRate       = ENRAGED_ATTACK_RATE;
         } else {
             work->attackBody.key = damagePackEnemyAttackKey(enemy, NORMAL);
-            work->animId         = CLIP;
+            work->animId         = BOSS_STRANGER_ANIMATION_ATTACK;
             work->animRate       = ANIMATION_RATE_ONE;
         }
         work->walker.state     = BOSS_STRANGER_WALKER_CHASE;
@@ -1537,7 +1540,7 @@ static void _cafeteriaBossStrangerAttackState(Task* task)
     }
     _cafeteriaBossStrangerTickAnimation(task);
     // Arm pair testing only inside the selected swing's cue window.
-    if (work->animId == ENRAGED_CLIP) {
+    if (work->animId == BOSS_STRANGER_ANIMATION_ENRAGED_ATTACK) {
         switch (work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) {
             case ENRAGED_START_CUE:
                 work->attackBody.flags = (u16)(work->attackBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -1547,7 +1550,7 @@ static void _cafeteriaBossStrangerAttackState(Task* task)
                 break;
         }
     }
-    if (work->animId == CLIP) {
+    if (work->animId == BOSS_STRANGER_ANIMATION_ATTACK) {
         switch (work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) {
             case START_CUE:
                 work->attackBody.flags = (u16)(work->attackBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -1630,7 +1633,7 @@ static void _cafeteriaBossStrangerSpawnHitEffect(Task* task, s16 hitYaw, s32 att
             *hitAnchor = _gCafeteriaBossStrangerHitAnchors[11];
         }
     }
-    _gCafeteriaBossStrangerHitEffectArgs.coord      = &task->extra.tmd->coords[1];
+    _gCafeteriaBossStrangerHitEffectArgs.coord      = &task->extra.tmd->coords[PELVIS_PART];
     _gCafeteriaBossStrangerHitEffectArgs.spawnArgLo = EFFECT_ARGUMENT_LOW;
     _gCafeteriaBossStrangerHitEffectArgs.spawnArgHi = EFFECT_ARGUMENT_HIGH;
     effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), &task->extra.tmd->coords[hitAnchor->anchor.partIndex], &hitAnchor->position, &_gCafeteriaBossStrangerHitEffectArgs);
@@ -1673,10 +1676,8 @@ static void _cafeteriaBossStrangerApplyDamage(Task* task)
         REACTION_IGNORE_9              = 9,
         REACTION_ATTRIBUTE_MASK        = 0xFFFF,
         RETAINED_YAW_DAMAGE_MULTIPLIER = 2,
-        HIT_BODY_PART                  = 2,
         CRITICAL_DAMAGE_MULTIPLIER     = 5,
         RETAINED_YAW_BONUS_THRESHOLD   = 1281,
-        ANIM_HIT_REACTION              = 11,
     };
 
     _Work*        work;
@@ -1724,7 +1725,7 @@ static void _cafeteriaBossStrangerApplyDamage(Task* task)
         scratch->damage         = damageComputePlayerAttack(scratch->hitKey, playerDistance, 0, 0);
         if (damageRollCriticalHit(enemy, scratch->hitKey, 0) != 0) {
             scratch->damage *= CRITICAL_DAMAGE_MULTIPLIER;
-            effectSpawn(EFFECT_CRITICAL_HIT, task->extra.tmd->coords + HIT_BODY_PART, 0, NULL);
+            effectSpawn(EFFECT_CRITICAL_HIT, task->extra.tmd->coords + CHEST_PART, 0, NULL);
         }
         // Retained behavior: the bonus reads old scratch bytes before this hit
         // writes hitYaw below. Their source is unproven, not necessarily a prior hit.
@@ -1763,7 +1764,7 @@ static void _cafeteriaBossStrangerApplyDamage(Task* task)
             work->hitBody.pos.vy    = 0;
             work->hitBody.pos.vz    = 0;
             work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            work->hitBody.coord     = task->extra.tmd->coords + HIT_BODY_PART;
+            work->hitBody.coord     = task->extra.tmd->coords + CHEST_PART;
             work->lookYaw           = 0;
             work->lookYawTarget     = 0;
             displaySetShakeY(0);
@@ -1780,7 +1781,7 @@ static void _cafeteriaBossStrangerApplyDamage(Task* task)
             case DAMAGE_PLAYER_REACTION_EXPLOSION:
             case DAMAGE_PLAYER_REACTION_INCENDIARY:
                 work->blendActive  = 1;
-                work->blendAnimId  = ANIM_HIT_REACTION;
+                work->blendAnimId  = BOSS_STRANGER_ANIMATION_HIT_REACTION;
                 work->blendRequest = ANIM_REQUEST_RESET;
                 break;
             case DAMAGE_PLAYER_REACTION_STAGGER:
@@ -1807,10 +1808,10 @@ static void _cafeteriaBossStrangerApplyDamage(Task* task)
             worldTargetAddReadoutAmount(&enemy->node, scratch->damage, 0);
             if (work->state != STATE_STATUS_HOLD) {
                 work->blendActive  = 1;
-                work->blendAnimId  = ANIM_HIT_REACTION;
+                work->blendAnimId  = BOSS_STRANGER_ANIMATION_HIT_REACTION;
                 work->blendRequest = ANIM_REQUEST_RESET;
             } else {
-                work->prevState = -1;
+                work->prevState = PREV_STATE_NONE;
             }
         }
     }
@@ -1838,25 +1839,25 @@ static void _cafeteriaBossStrangerIdleState(Task* task)
         work->gridBody.flags          = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         work->animRequest             = ANIM_REQUEST_BLEND;
-        work->animId                  = ANIM_IDLE;
+        work->animId                  = BOSS_STRANGER_ANIMATION_IDLE;
         work->animRate                = work->baseRate;
         ENTER_IDLE_WALKER(work, walker, entrySpeed, 0, IDLE_DECELERATION);
     }
     _bossStrangerTick(&work->walker);
     _cafeteriaBossStrangerTickAnimation(task);
-    if (work->animId == ANIM_IDLE) {
+    if (work->animId == BOSS_STRANGER_ANIMATION_IDLE) {
         if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
             randomValue     = RANDOM_LCG_NEXT(gRandomLcgState);
             gRandomLcgState = randomValue;
             if (!((randomValue >> 16) & 7)) {
-                work->animId      = ANIM_IDLE_VARIATION;
+                work->animId      = BOSS_STRANGER_ANIMATION_IDLE_VARIATION;
                 work->animRequest = ANIM_REQUEST_BLEND;
                 _cafeteriaBossStrangerTickAnimation(task);
             }
         }
     }
-    if ((work->animId == ANIM_IDLE_VARIATION) && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
-        work->animId      = ANIM_IDLE;
+    if ((work->animId == BOSS_STRANGER_ANIMATION_IDLE_VARIATION) && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
+        work->animId      = BOSS_STRANGER_ANIMATION_IDLE;
         work->animRequest = ANIM_REQUEST_BLEND;
         _cafeteriaBossStrangerTickAnimation(task);
     }
@@ -1883,17 +1884,17 @@ static void _cafeteriaBossStrangerFallBackState(Task* task)
         work->gridBody.flags          = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         work->animRequest             = ANIM_REQUEST_RESET;
-        work->animId                  = ANIM_FALL_BACK;
+        work->animId                  = BOSS_STRANGER_ANIMATION_FALL_BACK;
         work->animRate                = ANIMATION_RATE_ONE;
         ENTER_IDLE_WALKER(work, walker, entrySpeed, SPEED, SPEED_STEP);
     }
     landingWalker = &work->walker;
     _bossStrangerTick(landingWalker);
     _cafeteriaBossStrangerTickAnimation(task);
-    if (work->animId == ANIM_FALL_BACK) {
+    if (work->animId == BOSS_STRANGER_ANIMATION_FALL_BACK) {
         if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
             landingSpeed               = work->walker.speed;
-            work->animId               = ANIM_FALL_BACK_END;
+            work->animId               = BOSS_STRANGER_ANIMATION_FALL_BACK_END;
             work->animRequest          = ANIM_REQUEST_RESET;
             landingWalker->speedTarget = 0;
             landingWalker->speedStep   = SPEED_STEP;
@@ -1901,7 +1902,7 @@ static void _cafeteriaBossStrangerFallBackState(Task* task)
             return;
         }
     }
-    if ((work->animId == ANIM_FALL_BACK_END) && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
+    if ((work->animId == BOSS_STRANGER_ANIMATION_FALL_BACK_END) && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
         if (enemy->hp > 0) {
             work->state = STATE_DOWN;
         } else {
@@ -1962,7 +1963,6 @@ static void _cafeteriaBossStrangerDeathBurnState(Task* task)
         REASSERT_TRANSLUCENT_FRAME = 253,
         HIDE_FRAME                 = 600,
         FLATTEN_START_FRAME        = 201,
-        CHEST_PART                 = 3,
         EFFECT_ARGUMENT            = 3,
         EFFECT_OFFSET              = 300,
         UNUSED_OFFSET              = 400,
@@ -2002,7 +2002,7 @@ static void _cafeteriaBossStrangerDeathBurnState(Task* task)
             effectOffset.vx = EFFECT_OFFSET;
             effectOffset.vy = 0;
             effectOffset.vz = 0;
-            effectSpawn(EFFECT_CORPSE_BURN, &task->extra.tmd->coords[CHEST_PART], EFFECT_ARGUMENT, &effectOffset);
+            effectSpawn(EFFECT_CORPSE_BURN, &task->extra.tmd->coords[LOWER_NECK_PART], EFFECT_ARGUMENT, &effectOffset);
             break;
         // These retail cue frames prepare an offset without spawning an effect.
         case UNUSED_OFFSET_FRAME_1:
@@ -2059,27 +2059,25 @@ static void _cafeteriaBossStrangerDeathBurstState(Task* task)
         bodyModel->flags              = TMD_OBJECT_SKIP_ACTIVE_DRAW;
 
         // Detach five parts; each successful spawn resolves the current placement anew.
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &task->extra.tmd->coords[6], SMALL_PUFF_SIZE, NULL), enemy);
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &task->extra.tmd->coords[JAW_PART], SMALL_PUFF_SIZE, NULL), enemy);
 
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &task->extra.tmd->coords[8], SMALL_PUFF_SIZE, NULL), enemy);
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &task->extra.tmd->coords[RIGHT_FOREARM_PART], SMALL_PUFF_SIZE, NULL), enemy);
 
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &task->extra.tmd->coords[10], SMALL_PUFF_SIZE, NULL), enemy);
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &task->extra.tmd->coords[LEFT_FOREARM_PART], SMALL_PUFF_SIZE, NULL), enemy);
 
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &task->extra.tmd->coords[11], LARGE_PUFF_SIZE, NULL), enemy);
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &task->extra.tmd->coords[RIGHT_THIGH_PART], LARGE_PUFF_SIZE, NULL), enemy);
 
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &task->extra.tmd->coords[15], LARGE_PUFF_SIZE, NULL), enemy);
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &task->extra.tmd->coords[LEFT_THIGH_PART], LARGE_PUFF_SIZE, NULL), enemy);
     }
 }
 
-/// Part-local offset for the scripted triple hit: 100 model units along part 6's Z axis.
+/// Part-local offset for the scripted triple hit: 100 model units along the jaw's Z axis.
 static const SVECTOR _gCafeteriaBossStrangerScriptedHitOffset = { 0, 0, 100, 0 };
 
 /// Plays the script-selected clip and its cafeteria-command hit effects.
 static void _cafeteriaBossStrangerScriptedState(Task* task)
 {
     enum {
-        COMMAND_RANDOM_HIT      = 6,
-        COMMAND_TRIPLE_HIT      = 3,
         HIT_ATTACK_KEY          = 0x1001,
         EFFECT_ARGUMENT         = 0x100,
         EFFECT_REPEATS          = 3,
@@ -2107,7 +2105,7 @@ static void _cafeteriaBossStrangerScriptedState(Task* task)
         work->animRate                = ANIMATION_RATE_ONE;
         work->lookYawTarget           = 0;
         work->lookYaw                 = 0;
-        if ((work->lastCommand.stage == GAME_STAGE_AKROPOLIS) && (work->lastCommand.area == GAME_AREA_AKROPOLIS_CAFETERIA) && (work->lastCommand.command == COMMAND_RANDOM_HIT)) {
+        if ((work->lastCommand.stage == GAME_STAGE_AKROPOLIS) && (work->lastCommand.area == GAME_AREA_AKROPOLIS_CAFETERIA) && (work->lastCommand.command == CAFETERIA_COMMAND_RANDOM_HIT)) {
             randomValue     = RANDOM_LCG_NEXT(gRandomLcgState);
             gRandomLcgState = randomValue;
             if ((randomValue >> 16) & 1) {
@@ -2118,7 +2116,7 @@ static void _cafeteriaBossStrangerScriptedState(Task* task)
                 _gCafeteriaBossStrangerHitEffectArgs.spawnArgLo = EFFECT_ARGUMENT;
                 _gCafeteriaBossStrangerHitEffectArgs.spawnArgHi = EFFECT_REPEATS;
                 _gCafeteriaBossStrangerHitEffectArgs.coord      = firstRootCoord;
-                effectSpawnHit(damageGetPlayerAttackEffectId(HIT_ATTACK_KEY), &task->extra.tmd->coords[9], &localHitOffset, &_gCafeteriaBossStrangerHitEffectArgs);
+                effectSpawnHit(damageGetPlayerAttackEffectId(HIT_ATTACK_KEY), &task->extra.tmd->coords[LEFT_UPPER_ARM_PART], &localHitOffset, &_gCafeteriaBossStrangerHitEffectArgs);
             } else {
                 alternateEffect             = &_gCafeteriaBossStrangerHitEffectArgs;
                 localHitOffset.vx           = -0x19;
@@ -2128,7 +2126,7 @@ static void _cafeteriaBossStrangerScriptedState(Task* task)
                 alternateEffect->spawnArgLo = EFFECT_ARGUMENT;
                 alternateEffect->spawnArgHi = EFFECT_REPEATS;
                 alternateEffect->coord      = alternateRootCoord;
-                effectSpawnHit(damageGetPlayerAttackEffectId(HIT_ATTACK_KEY), &task->extra.tmd->coords[2], &localHitOffset, &_gCafeteriaBossStrangerHitEffectArgs);
+                effectSpawnHit(damageGetPlayerAttackEffectId(HIT_ATTACK_KEY), &task->extra.tmd->coords[CHEST_PART], &localHitOffset, &_gCafeteriaBossStrangerHitEffectArgs);
             }
         }
     }
@@ -2138,13 +2136,13 @@ static void _cafeteriaBossStrangerScriptedState(Task* task)
 
     _actorRenderRescaleYaw(task->extra.tmd->coords, work->walker.scale);
 
-    if ((work->lastCommand.stage == GAME_STAGE_AKROPOLIS) && (work->lastCommand.area == GAME_AREA_AKROPOLIS_CAFETERIA) && (work->lastCommand.command == COMMAND_TRIPLE_HIT) && (work->animId != ANIM_FALL_BACK_END)) {
+    if ((work->lastCommand.stage == GAME_STAGE_AKROPOLIS) && (work->lastCommand.area == GAME_AREA_AKROPOLIS_CAFETERIA) && (work->lastCommand.command == CAFETERIA_COMMAND_FOLLOW_UP_TRIPLE_HIT) && (work->animId != BOSS_STRANGER_ANIMATION_FALL_BACK_END)) {
         if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == TRANSITION_CUE) {
-            _gCafeteriaBossStrangerAnimBlendFrames[ANIM_SCRIPTED_SLOT2][ANIM_FALL_BACK_END] = TRANSITION_BLEND_FRAMES;
-            work->animId                                                                    = ANIM_FALL_BACK_END;
-            work->animRequest                                                               = ANIM_REQUEST_BLEND;
+            _gCafeteriaBossStrangerAnimBlendFrames[BOSS_STRANGER_ANIMATION_SCRIPTED_2][BOSS_STRANGER_ANIMATION_FALL_BACK_END] = TRANSITION_BLEND_FRAMES;
+            work->animId                                                                                                      = BOSS_STRANGER_ANIMATION_FALL_BACK_END;
+            work->animRequest                                                                                                 = ANIM_REQUEST_BLEND;
         }
-        if (work->animId != ANIM_FALL_BACK_END) {
+        if (work->animId != BOSS_STRANGER_ANIMATION_FALL_BACK_END) {
             if (((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == TRIPLE_HIT_CUE) && (work->lastCueIndex != (work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK))) {
                 localHitOffset         = _gCafeteriaBossStrangerScriptedHitOffset;
                 tailEffect             = &_gCafeteriaBossStrangerHitEffectArgs;
@@ -2152,9 +2150,9 @@ static void _cafeteriaBossStrangerScriptedState(Task* task)
                 tailEffect->spawnArgLo = EFFECT_ARGUMENT;
                 tailEffect->spawnArgHi = EFFECT_REPEATS;
                 tailEffect->coord      = tripleRootCoord;
-                effectSpawnHit(damageGetPlayerAttackEffectId(HIT_ATTACK_KEY), &task->extra.tmd->coords[6], &localHitOffset, &_gCafeteriaBossStrangerHitEffectArgs);
-                effectSpawnHit(damageGetPlayerAttackEffectId(HIT_ATTACK_KEY), &task->extra.tmd->coords[6], &localHitOffset, &_gCafeteriaBossStrangerHitEffectArgs);
-                effectSpawnHit(damageGetPlayerAttackEffectId(HIT_ATTACK_KEY), &task->extra.tmd->coords[6], &localHitOffset, &_gCafeteriaBossStrangerHitEffectArgs);
+                effectSpawnHit(damageGetPlayerAttackEffectId(HIT_ATTACK_KEY), &task->extra.tmd->coords[JAW_PART], &localHitOffset, &_gCafeteriaBossStrangerHitEffectArgs);
+                effectSpawnHit(damageGetPlayerAttackEffectId(HIT_ATTACK_KEY), &task->extra.tmd->coords[JAW_PART], &localHitOffset, &_gCafeteriaBossStrangerHitEffectArgs);
+                effectSpawnHit(damageGetPlayerAttackEffectId(HIT_ATTACK_KEY), &task->extra.tmd->coords[JAW_PART], &localHitOffset, &_gCafeteriaBossStrangerHitEffectArgs);
             }
         }
     }
@@ -2164,8 +2162,6 @@ static void _cafeteriaBossStrangerScriptedState(Task* task)
 static void _cafeteriaBossStrangerDeathThrashState(Task* task)
 {
     enum {
-        THRASH_CLIP            = 22,
-        TRANSITION_CLIP        = 33,
         THRASH_TICKS           = 31,
         THRASH_RATE            = 2 * ANIMATION_RATE_ONE,
         THRASH_FORWARD_YAW     = 50,
@@ -2190,11 +2186,11 @@ static void _cafeteriaBossStrangerDeathThrashState(Task* task)
         work->walker.turnLimit        = 0;
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
-        work->animId                  = THRASH_CLIP;
+        work->animId                  = BOSS_STRANGER_ANIMATION_THRASH;
     }
     _cafeteriaBossStrangerTickAnimation(task);
     // Bias the root jerk forward, then finish on the transition clip.
-    if (work->animId == THRASH_CLIP) {
+    if (work->animId == BOSS_STRANGER_ANIMATION_THRASH) {
         randomValue     = RANDOM_LCG_NEXT(gRandomLcgState);
         gRandomLcgState = randomValue;
         if (((randomValue >> 16) & THRASH_RANDOM_MASK) < THRASH_FORWARD_CHOICES) {
@@ -2203,13 +2199,13 @@ static void _cafeteriaBossStrangerDeathThrashState(Task* task)
             gfxRotMatrixY(&task->extra.tmd->coords->coord, THRASH_REVERSE_YAW, 0);
         }
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        if ((work->animId == THRASH_CLIP) && (work->animFrames >= THRASH_TICKS)) {
+        if ((work->animId == BOSS_STRANGER_ANIMATION_THRASH) && (work->animFrames >= THRASH_TICKS)) {
             work->animRate    = ANIMATION_RATE_ONE;
             work->animRequest = ANIM_REQUEST_BLEND;
-            work->animId      = TRANSITION_CLIP;
+            work->animId      = BOSS_STRANGER_ANIMATION_THRASH_END;
         }
     }
-    if ((work->animId == TRANSITION_CLIP) && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
+    if ((work->animId == BOSS_STRANGER_ANIMATION_THRASH_END) && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
         work->state = STATE_DEATH_BURN;
     }
 }
@@ -2232,7 +2228,7 @@ static void _cafeteriaBossStrangerLurkState(Task* task)
     if (work->stateEntered != 0) {
         enemy                         = task->spawnArg2.pointer;
         model                         = task->extra.tmd;
-        work->animId                  = ANIM_SCRIPTED_SLOT0;
+        work->animId                  = BOSS_STRANGER_ANIMATION_SCRIPTED_0;
         work->animRequest             = ANIM_REQUEST_RESET;
         model->flags                  = 0;
         work->attackBody.flags        = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
@@ -2270,7 +2266,7 @@ static void _cafeteriaBossStrangerLurkAlertState(Task* task)
     if (work->stateEntered != 0) {
         enemy                         = task->spawnArg2.pointer;
         model                         = task->extra.tmd;
-        work->animId                  = ANIM_ALERT;
+        work->animId                  = BOSS_STRANGER_ANIMATION_ALERT;
         work->animRequest             = ANIM_REQUEST_BLEND;
         model->flags                  = 0;
         work->attackBody.flags        = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
@@ -2366,13 +2362,11 @@ static void _cafeteriaBossStrangerEnrageState(Task* task)
     enum {
         ENRAGE_STAGE_ENTER       = 0,
         ENRAGE_STAGE_OSCILLATE   = 1,
-        ENRAGE_CLIP              = 12,
         ENRAGE_ENTRY_RATE        = 6,
         ENRAGE_REVERSE_RATE      = -12,
         ENRAGE_FORWARD_RATE      = 8,
         ENRAGE_CUE               = 4,
         ENRAGE_OSCILLATION_TICKS = 53,
-        ENRAGED_RATE             = 56,
         ENRAGE_TINT_STEP         = 39,
     };
 
@@ -2390,7 +2384,7 @@ static void _cafeteriaBossStrangerEnrageState(Task* task)
         work->attackBody.flags        = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->gridBody.flags          = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
-        work->animId                  = ENRAGE_CLIP;
+        work->animId                  = BOSS_STRANGER_ANIMATION_FALL;
         work->animRequest             = ANIM_REQUEST_RESET;
         work->walker.turnLimit        = 0;
         work->lookYaw                 = 0;
@@ -2423,8 +2417,8 @@ static void _cafeteriaBossStrangerEnrageState(Task* task)
             }
             _cafeteriaBossStrangerTickAnimation(task);
             if (work->stateFrame >= ENRAGE_OSCILLATION_TICKS) {
-                work->animRate = ENRAGED_RATE;
-                work->baseRate = ENRAGED_RATE;
+                work->animRate = ENRAGED_BASE_RATE;
+                work->baseRate = ENRAGED_BASE_RATE;
                 work->state    = STATE_CHASE;
             }
             work->enrageTint += ENRAGE_TINT_STEP;
@@ -2473,8 +2467,7 @@ static inline void _cafeteriaBossStrangerClearTickContacts(_Work* work)
 static void _cafeteriaBossStrangerUpdate(Enemy* enemy, Task* task)
 {
     enum {
-        SHADOW_HALF_SIZE   = 640,
-        GRID_POSE_Y_OFFSET = 292,
+        SHADOW_HALF_SIZE = 640,
     };
 
     VECTOR      lightingPosition;
@@ -2523,7 +2516,7 @@ static void _cafeteriaBossStrangerUpdate(Enemy* enemy, Task* task)
     work->gridBody.pos.vz = (u16)task->extra.tmd->coords->coord.t[2];
     states.handlers[work->state](task);
     work->gridBody.pos.vx = (u16)task->extra.tmd->coords->coord.t[0];
-    work->gridBody.pos.vy = (u16)((u16)task->extra.tmd->coords->coord.t[1] - GRID_POSE_Y_OFFSET);
+    work->gridBody.pos.vy = (u16)((u16)task->extra.tmd->coords->coord.t[1] - GRID_BODY_HEIGHT);
     work->gridBody.pos.vz = (u16)task->extra.tmd->coords->coord.t[2];
 
     // Apply damage after the pose update, then discard this tick's contacts.
@@ -2558,8 +2551,8 @@ static void _cafeteriaBossStrangerUpdate(Enemy* enemy, Task* task)
     }
 }
 
-/// Receives message 2015 without changing the actor.
-static void _cafeteriaBossStrangerIgnoreMessage2015(Task* task, s32 messageId, s32 firstArg, s32 secondArg)
+/// Receives `MESSAGE_IGNORE` without changing the actor.
+static void _cafeteriaBossStrangerIgnoreMessage(Task* task, s32 messageId, s32 firstArg, s32 secondArg)
 {
 }
 
@@ -2584,23 +2577,23 @@ static s32 _cafeteriaBossStrangerPlayScriptedAnimation(Task* task, s32 messageId
     enemy             = task->spawnArg2.pointer;
     switch (animationSelector) {
         case 0:
-            work->animId      = ANIM_SCRIPTED_SLOT0;
+            work->animId      = BOSS_STRANGER_ANIMATION_SCRIPTED_0;
             enemy->spawnState = RESUME_SCRIPTED;
             areaSaveEnemyPose(enemy);
             break;
         case 1:
-            work->animId = ANIM_SCRIPTED_SLOT1;
+            work->animId = BOSS_STRANGER_ANIMATION_SCRIPTED_1;
             break;
         case 2:
-            work->animId = ANIM_SCRIPTED_SLOT2;
+            work->animId = BOSS_STRANGER_ANIMATION_SCRIPTED_2;
             break;
         case 3:
-            work->animId = ANIM_SCRIPTED_SLOT3;
+            work->animId = BOSS_STRANGER_ANIMATION_SCRIPTED_3;
             break;
         case 4:
             enemy->spawnState = RESUME_SCRIPTED;
             areaSaveEnemyPose(enemy);
-            work->animId = ANIM_SCRIPTED_REQUEST4;
+            work->animId = BOSS_STRANGER_ANIMATION_SCRIPTED_4;
             break;
     }
     work->state     = STATE_SCRIPTED;
@@ -2783,7 +2776,7 @@ static void _cafeteriaBossStrangerFallState(Task* task)
         work->gridBody.flags          = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         work->animRequest             = ANIM_REQUEST_RESET;
-        work->animId                  = ANIM_FALL;
+        work->animId                  = BOSS_STRANGER_ANIMATION_FALL;
         work->animRate                = ANIMATION_RATE_ONE;
         ENTER_IDLE_WALKER(work, walker, entrySpeed, FORWARD_SPEED, SPEED_STEP);
     }
@@ -2817,10 +2810,10 @@ static void _cafeteriaBossStrangerDownState(Task* task)
     work->downFrames = remainingTicks;
     if (remainingTicks < 0) {
         switch (work->animId) {
-            case ANIM_FALL_BACK_END:
+            case BOSS_STRANGER_ANIMATION_FALL_BACK_END:
                 work->state = STATE_RISE_BACK;
                 return;
-            case ANIM_FALL:
+            case BOSS_STRANGER_ANIMATION_FALL:
                 work->state = STATE_RISE;
                 break;
         }
@@ -2845,7 +2838,7 @@ static void _cafeteriaBossStrangerRiseBackState(Task* task)
         work->gridBody.flags          = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         work->animRequest             = ANIM_REQUEST_RESET;
-        work->animId                  = ANIM_RISE_BACK;
+        work->animId                  = BOSS_STRANGER_ANIMATION_RISE_BACK;
         work->animRate                = work->baseRate;
         ENTER_IDLE_WALKER(work, walker, entrySpeed, 0, RISE_DECELERATION);
     }
@@ -2874,7 +2867,7 @@ static void _cafeteriaBossStrangerRiseState(Task* task)
         work->gridBody.flags          = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         work->animRequest             = ANIM_REQUEST_RESET;
-        work->animId                  = ANIM_RISE;
+        work->animId                  = BOSS_STRANGER_ANIMATION_RISE;
         work->animRate                = work->baseRate;
         ENTER_IDLE_WALKER(work, walker, entrySpeed, 0, RISE_DECELERATION);
     }
@@ -2907,7 +2900,7 @@ static void _cafeteriaBossStrangerAlertRewindState(Task* task)
         work->attackBody.flags        = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->gridBody.flags          = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        work->animId                  = ANIM_ALERT;
+        work->animId                  = BOSS_STRANGER_ANIMATION_ALERT;
         work->animRequest             = ANIM_REQUEST_RESET;
         work->walker.turnLimit        = 0;
         work->lookYaw                 = 0;
@@ -2956,7 +2949,7 @@ static void _cafeteriaBossStrangerStatusHoldState(Task* task)
         model->flags                  = 0;
         tmdAllocPrimitiveBuffer(model);
         work->animRequest       = ANIM_REQUEST_RESET;
-        work->animId            = ANIM_ATTACK;
+        work->animId            = BOSS_STRANGER_ANIMATION_ATTACK;
         work->animRate          = STATUS_INITIAL_RATE;
         work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);

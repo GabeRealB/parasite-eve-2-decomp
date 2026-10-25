@@ -1517,7 +1517,7 @@ scripted_2 = "rooms/akropolis/cafeteria/boss_stranger_follow_up_3"
 scripted_3 = "rooms/akropolis/cafeteria/extra_anim_6"
 down_back = "enemies/stranger/down_back"
 refall_front = "enemies/stranger/odd/refall_front"
-slot_40 = "rooms/akropolis/cafeteria/extra_anim_7"
+scripted_4 = "rooms/akropolis/cafeteria/extra_anim_7"
 
 [boss_stranger_body]
 type = "model"
@@ -1621,7 +1621,7 @@ slots = [
     "",
     "",
     "walk",
-    "",
+    "run",
     "enraged_attack",
     "attack",
     "",
@@ -1651,14 +1651,14 @@ slots = [
     "fall_back_end",
     "slot_31",
     "slot_32",
-    "",
+    "thrash_end",
     "scripted_0",
     "scripted_1",
     "scripted_2",
     "scripted_3",
     "down_back",
     "refall_front",
-    "slot_40",
+    "scripted_4",
     "",
     "",
     "",
