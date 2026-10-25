@@ -194,10 +194,12 @@ TaskDesc gShootingGalleryPierceGalleryTaskDescs[SHOOTING_GALLERY_PIERCE_GALLERY_
     { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, _shootingGalleryPierceGalleryRedFlashLoopTask, { .value = 0 } },
 };
 
-/// Player animation extension for the gallery's introduction and course menus.
+/// Player animation extension for the gallery's introduction and course menus: player clips 47..57 (53..56 empty).
+/// Its bank-copy request reads past these eleven words into the requests that follow, so they keep their places.
 #include "assets/rooms/mist/shooting_gallery/player_gallery_bank.inc"
 
-/// Retained clip-zero request at the start of the gallery's Pierce requests.
+/// Retained clip-zero request at the start of the gallery's Pierce requests; no script plays it, but the player bank's
+/// copy reads it as raw words.
 static AnimationPlayRequest _gShootingGalleryPierceGalleryPierceClip0Request = {
     .source               = { .index = 1 },
     .animationId          = 0,
