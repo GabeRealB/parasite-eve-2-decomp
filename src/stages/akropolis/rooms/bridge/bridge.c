@@ -80,6 +80,8 @@
 
 #include "rooms/room_common.h"
 
+#include "assets/enemies/bass/sounds.h"
+
 #include "assets/rooms/akropolis/bridge/declarations.inc"
 
 /// Selects the private hotspot test used by the bridge keypad.
@@ -607,7 +609,6 @@ static EnemyParams _gAkropolisBridgeEnemyParams = {
 
 /// The Bass's clips by slot, borrowed by every bridge enemy's rig.
 #include "assets/enemies/bass/bank.inc"
-#include "assets/enemies/bass/sounds.h"
 
 /// Enemy animation transition durations, indexed by previous clip then new clip.
 static s16 _gAkropolisBridgeEnemyAnimationBlendFrames[6][6] = {

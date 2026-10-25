@@ -120,6 +120,7 @@ static const _SpritePalette _gHelicopterLandingPadNo9FireballFramePalettes[12] _
 };
 
 #include "assets/enemies/golem/no_9/helipad/body_schema.h"
+#include "assets/enemies/golem/no_9/sounds_akropolis.h"
 
 #include "assets/enemies/golem/no_9/body_akropolis.inc"
 
@@ -134,7 +135,6 @@ static const _SpritePalette _gHelicopterLandingPadNo9FireballFramePalettes[12] _
 #include "assets/enemies/golem/no_9/transformer_cable.inc"
 
 #include "assets/enemies/golem/no_9/package_akropolis_clips.inc"
-#include "assets/enemies/golem/no_9/sounds_akropolis.h"
 
 DamageAttack gHelicopterLandingPadNo9Attacks[6] = {
     { 14, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },

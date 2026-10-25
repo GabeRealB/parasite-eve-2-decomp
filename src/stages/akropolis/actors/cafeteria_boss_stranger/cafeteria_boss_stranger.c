@@ -332,6 +332,7 @@ static ActorStrangerVariant _gCafeteriaBossStrangerUnusedStrangerVariants[3] = {
 };
 
 #include "assets/rooms/akropolis/cafeteria/boss_stranger_schema.h"
+#include "assets/enemies/stranger/sounds.h"
 
 #include "assets/rooms/akropolis/cafeteria/boss_stranger_body.inc"
 
@@ -391,7 +392,6 @@ static s8 _gCafeteriaBossStrangerAnimBlendFrames[45][45] = {
 /// `idle_variation` and `thrash_end` slots are empty: the run steps' cues, `IDLE` and `DEATH_THRASH` are code this
 /// package carries without the clips.
 #include "assets/rooms/akropolis/cafeteria/boss_stranger_bank.inc"
-#include "assets/enemies/stranger/sounds.h"
 
 /// Hit-effect anchors grouped by yaw: front 0..4 on the chest, rear 5..7, sides 8..11 on an upper arm or the chest. The
 /// random masks never pick the front's row 4 or the rear's row 6.
