@@ -93,6 +93,27 @@ package_name = "shooting_gallery_pierce"
 required = true
 sha1 = "fc0d6b8a1a0678e4a2b988b10995b7bf502a9563"
 
+[pierce.entries]
+animations = [0x0436C, 0x043E4, 0x043F8, 0x0440C, 0x044A0, 0x044DC, 0x090DC, 0x09230, 0x0930C]
+scripts = [
+    17744,
+    19160,
+    19568,
+    19688,
+    19832,
+    19904,
+    20336,
+    20552,
+    20864,
+    21056,
+    21272,
+    37972,
+    40780,
+    41140,
+    41404,
+    42436,
+]
+
 [package]
 type = "room"
 embedded = [

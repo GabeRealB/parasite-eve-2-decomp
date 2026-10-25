@@ -23,7 +23,7 @@ import re
 import subprocess
 from pathlib import Path
 
-from . import _units, c_files, images, read
+from . import _units, actor_sources, c_files, images, is_actor, own_dir, read
 
 ROOT = Path(__file__).resolve().parents[3]
 DEF = re.compile(r"^((?:static\s+)?(?:const\s+)?[\w]+[\s*]+(\w+)\s*((?:\[[^\]]*\])*)\s*"
@@ -55,6 +55,8 @@ def _with_comment(s: str, start: int) -> int:
 
 def _sources(rec: dict) -> list[Path]:
     group, pkg = rec["group"], rec["package_name"]
+    if "entries" in rec and rec.get("type") == "pe2pkg":
+        return actor_sources(pkg)
     return sorted(Path(p) for p in {*map(str, (ROOT / "src" / "rooms" / pkg).glob("*.c")),
                                     *map(str, (ROOT / "src" / "mapui" / pkg).glob("*.c")),
                                     *map(str, (ROOT / "src" / "stages").glob(f"*/rooms/{group.rsplit('/', 1)[1]}/*.c"))})
@@ -89,7 +91,7 @@ def sync(name: str, assets: dict, embedded: dict, assets_root: Path, modules: se
         return next(((u, sec) for st, en, u, sec in units if st <= a - im.base < en), None)
 
     decl_selected = "#define ROOM_IS_declarations_" in files["declarations.inc"]
-    module_include = re.compile(r'^(?:#define ROOM_PART \w+\n)?#include "assets/' + re.escape(group) + r'/(' +
+    module_include = re.compile(r'^(?:#define ROOM_PART \w+\n)?#include "assets/' + re.escape(own_dir(name, assets)) + r'/(' +
                                 "|".join(sorted(modules | {"declarations", "effects"})) + r')\.inc"\n', re.M)
     included = re.compile(r'^#include "((?:assets/[\w/]+\.inc)|(?:[\w./]+\.inc\.c))"\n', re.M)
     problems = []
@@ -145,7 +147,7 @@ def sync(name: str, assets: dict, embedded: dict, assets_root: Path, modules: se
                 at = max(earlier)[1]
             else:
                 at = None
-            text = (f"#define ROOM_PART {first}\n" if selected else "") + f'#include "assets/{group}/{module}.inc"\n'
+            text = (f"#define ROOM_PART {first}\n" if selected else "") + f'#include "assets/{own_dir(name, assets)}/{module}.inc"\n'
             inserts.append((at, a, text))
         if any(at is None for at, _a, _t in inserts):        # no datum stays in the section: where the first part was
             olds = [st for st, _en, _r in cut]
@@ -180,7 +182,7 @@ def sync(name: str, assets: dict, embedded: dict, assets_root: Path, modules: se
                     if not first or m.start() < first.start()]
             at = incs[-1].end()
             sel = f"#define ROOM_PART declarations_{unit}\n" if decl_selected else ""
-            s = s[:at] + f'\n{sel}#include "assets/{group}/declarations.inc"\n' + s[at:]
+            s = s[:at] + f'\n{sel}#include "assets/{own_dir(name, assets)}/declarations.inc"\n' + s[at:]
         s = re.sub(r"\n{3,}", "\n\n", s)
         path.write_text(s, encoding="utf-8")
     return problems
@@ -193,7 +195,7 @@ def check_order(name: str, assets: dict, embedded: dict, assets_root: Path) -> l
     out = []
     for path in _sources(rec):
         obj = next((d / f"{path.stem}.c.o" for d in (ROOT / "build" / "USA" / "src" / f / rec["package_name"]
-                                                      for f in ("rooms", "mapui")) if (d / f"{path.stem}.c.o").exists()),
+                                                      for f in ("rooms", "mapui", "actors")) if (d / f"{path.stem}.c.o").exists()),
                    ROOT / "build" / "USA" / "src" / "rooms" / rec["package_name"] / f"{path.stem}.c.o")
         if not obj.exists():
             continue

@@ -17,6 +17,10 @@ headers and each module where its block is; where a module's objects are split a
 unit selects its part with `#define ROOM_PART <its first object>` (and its declarations with
 `#define ROOM_PART declarations_<unit>`) before the include.
 
+An actor package (`pe2pkg`) that states `entries` is decoded the same way: its events, reached from the scripts and
+payloads its record names, mapped at its slot's load address beside gameplay and its room (the room of its group),
+written to `<group>/<package>/events.evs` and built into `assets/<group>/<package>/events.inc` with its declarations.
+
     python3 tools/peassets/room decode|check [--only NAME]
 """
 from __future__ import annotations
@@ -29,7 +33,7 @@ from typing import Any
 
 from .layouts import GEOMETRY, LAYOUTS, c_value, decode_value, encode_value, named, pointer_targets, size
 from . import events as event_text
-from .walk import ROLE_KINDS, ROOM_LOAD, STAGE_ROLE_KINDS, STAGES, Images, walk, walk_stage
+from .walk import ROLE_KINDS, ROOM_LOAD, STAGE_ROLE_KINDS, STAGES, ActorImages, Images, walk, walk_actor, walk_stage
 
 
 def walk_module():
@@ -45,9 +49,9 @@ ROOT = Path(__file__).resolve().parents[3]
 
 
 def declared(assets: dict) -> list[str]:
-    """Rooms and stage overlays: decoded the same way, each from its own package; the stage overlays after the
-    rooms, whose instances their derived per-area tables read."""
-    return sorted((k for k, r in assets.items() if r.get("type") in ("room", "stage")),
+    """Rooms, actor packages with events and stage overlays: decoded the same way, each from its own package; the
+    stage overlays after the rooms, whose instances their derived per-area tables read."""
+    return sorted((k for k, r in assets.items() if r.get("type") in ("room", "stage") or is_actor(k, assets)),
                   key=lambda k: (assets[k]["type"] == "stage", k))
 
 
@@ -55,8 +59,37 @@ def is_stage(name: str, assets: dict) -> bool:
     return assets[name].get("type") == "stage"
 
 
+def is_actor(name: str, assets: dict) -> bool:
+    """An actor package whose record states its events' entry points."""
+    return assets[name].get("type") == "pe2pkg" and "entries" in assets[name]
+
+
+def own_dir(name: str, assets: dict) -> str:
+    """Where the package's instance, events and includes go, under the assets and under build/include/assets: its
+    group's, or for an actor its own directory in its group."""
+    group = assets[name]["group"]
+    return f"{group}/{name.rsplit('/', 1)[1]}" if is_actor(name, assets) else group
+
+
+def actor_room(name: str, assets: dict) -> str:
+    """The room an actor package belongs to: the room of its group."""
+    group = assets[name]["group"]
+    return next(k for k, r in assets.items() if r.get("type") == "room" and r.get("group") == group)
+
+
+def actor_load(package: str) -> int:
+    """An actor package's load address: its manifest slot's."""
+    manifest = tomllib.loads((ROOT / "configs" / "USA" / "overlays.toml").read_text())["actors"]
+    return int(manifest["slots"][str(manifest["overlays"][package]["slot"])])
+
+
+def actor_sources(package: str) -> list[Path]:
+    manifest = tomllib.loads((ROOT / "configs" / "USA" / "overlays.toml").read_text())["actors"]
+    return sorted((ROOT / manifest["overlays"][package]["src"]).glob("*.c"))
+
+
 def instance_path(name: str, assets: dict, assets_root: Path) -> Path:
-    return assets_root / assets[name]["group"] / ("stage.toml" if is_stage(name, assets) else "room.toml")
+    return assets_root / own_dir(name, assets) / ("stage.toml" if is_stage(name, assets) else "room.toml")
 
 
 def stage_rooms(stage: int, assets: dict) -> list[tuple[int, str]]:
@@ -95,6 +128,15 @@ def images(name: str, assets: dict, embedded: dict, assets_root: Path) -> tuple[
             for a, n in walk_module().symbol_map(ROOT / "configs" / "USA" / "sym" / "rooms" / f"{pkg}.txt").items():
                 im.addresses.setdefault(n, a)
         return im, 0
+    if is_actor(name, assets):
+        room = actor_room(name, assets)
+        stage, area = _place(room, asset_data.TREE)
+        overlay = next(k for k, r in assets.items() if r.get("type") in ("pe2pkg", "room", "stage")
+                       and r.get("package_name", k) == STAGES[stage][0])
+        package = assets[name]["package_name"]
+        return ActorImages(stage, shape.stored_bytes(overlay, ctx), assets[room]["package_name"],
+                           shape.stored_bytes(room, ctx), shape.stored_bytes("gameplay", ctx), package,
+                           shape.stored_bytes(name, ctx), actor_load(package)), area
     stage, area = _place(name, asset_data.TREE)
     overlay = STAGES[stage][0]
     overlay = next(k for k, r in assets.items() if r.get("type") in ("pe2pkg", "room", "stage")
@@ -173,6 +215,9 @@ def decode_room(name: str, assets: dict, embedded: dict, assets_root: Path) -> d
                                  assets[name].get("entries", {}))
         states = 0
         area_names = _area_names(im.stage, assets)
+    elif is_actor(name, assets):
+        objs, roles = walk_actor(im, assets[name]["entries"])
+        states, area_names = 0, {}
     else:
         states, objs, roles = walk(im, area, assets[name].get("entries", {}))
         area_names = {}
@@ -333,7 +378,7 @@ def event_names(name: str, assets: dict, local: set[str]) -> "event_text.Names":
     """How the room's events text writes names: its prefix, its objects, and its own sound bank's slots by entry
     (the slots of all its sound banks, where no entry has two names)."""
     import asset_data
-    stage, area = _place(name, asset_data.TREE)
+    stage, area = _place(actor_room(name, assets) if is_actor(name, assets) else name, asset_data.TREE)
     group = assets[name]["group"]
     slots: dict[int, set[str]] = {}
     for k, r in assets.items():
@@ -345,7 +390,7 @@ def event_names(name: str, assets: dict, local: set[str]) -> "event_text.Names":
 
 
 def events_path(name: str, assets: dict, assets_root: Path) -> Path:
-    return assets_root / assets[name]["group"] / "events.evs"
+    return assets_root / own_dir(name, assets) / "events.evs"
 
 
 def decode(name: str, assets: dict, embedded: dict, assets_root: Path) -> Path:
@@ -360,7 +405,8 @@ def decode(name: str, assets: dict, embedded: dict, assets_root: Path) -> Path:
         kinds = _kinds_of(name, assets, embedded, assets_root)
         objs = {s: {**r, "kind": kinds[s]} for s, r in events.items()}
         names = event_names(name, assets, set(objs))
-        header = f"# {name}: the room's events, decoded from its package (tools/peassets/room/events.py).\n"
+        whose = "the actor's" if is_actor(name, assets) else "the room's"
+        header = f"# {name}: {whose} events, decoded from its package (tools/peassets/room/events.py).\n"
         epath.write_text(header + event_text.write(objs, names, sorted(objs, key=im.addresses.get)), encoding="utf-8")
     elif epath.exists():
         epath.unlink()

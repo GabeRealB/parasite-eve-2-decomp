@@ -126,7 +126,7 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     # where the asset's own name differs from it (a package filed in a room's group is `<room>_package`).
     # `embedded` lists the EMBEDDED_ASSETS located inside the package, by address: a package is a container, as a
     # bundle or a bank is.
-    "pe2pkg": {"payload": (), "stored": ("parent", "package_name", "embedded")},
+    "pe2pkg": {"payload": (), "stored": ("parent", "package_name", "embedded", "entries")},
     # A room's package, stored as a package is: the room's entry points besides those the stage's per-area tables and
     # gameplay's area table give, by module (`entries`); its instance, `<group>/room.toml`, is decoded from the
     # package (tools/peassets/room/).

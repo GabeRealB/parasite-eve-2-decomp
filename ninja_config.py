@@ -293,14 +293,18 @@ def room_includes(version: str) -> list[tuple[str, Path, list[Path]]]:
     data, _schema = asset_tables()
     out = []
     for key, rec in data.ASSETS.items():
-        if rec.get("type") not in ("room", "stage"):
+        actor = rec.get("type") == "pe2pkg" and "entries" in rec     # an actor package with events
+        if rec.get("type") not in ("room", "stage") and not actor:
             continue
-        instance = ASSETS_DIR / version / rec["group"] / ("stage.toml" if rec["type"] == "stage" else "room.toml")
+        own = f"{rec['group']}/{key.rsplit('/', 1)[1]}" if actor else rec["group"]
+        instance = ASSETS_DIR / version / own / ("stage.toml" if rec["type"] == "stage" else "room.toml")
         if not instance.exists():
             continue
         modules = [k for k, v in tomllib.loads(instance.read_text()).items() if isinstance(v, dict) and k != "entry"]
-        outdir = BUILD_DIR / "include" / "assets" / rec["group"]
-        out.append((key, instance, [outdir / f"{m}.inc" for m in modules] + [outdir / "declarations.inc"]))
+        if (instance.parent / "events.evs").exists():
+            modules.append("events")
+        outdir = BUILD_DIR / "include" / "assets" / own
+        out.append((key, instance, [outdir / f"{m}.inc" for m in dict.fromkeys(modules)] + [outdir / "declarations.inc"]))
     return out
 
 
@@ -1310,7 +1314,9 @@ def ninja_build(
                  *sorted(str(p) for p in (peassets / "groups").rglob("*.toml"))]
     for name, instance, incs in room_includes(version):
         for writer in asset_writers:
-            writer.build(outputs=[str(i) for i in incs], rule="room-inc", inputs=str(instance), implicit=room_deps,
+            evs = instance.parent / "events.evs"
+            writer.build(outputs=[str(i) for i in incs], rule="room-inc", inputs=str(instance),
+                         implicit=room_deps + ([str(evs)] if evs.exists() else []),
                          variables={"name": name, "outdir": str(incs[0].parent)})
         ASSET_INC_OUTPUTS.extend(str(i) for i in incs)
     font_deps = [str(GEN_FONT_INC), str(peassets / "asset_data.py"), str(peassets / "asset_schema.py"),
