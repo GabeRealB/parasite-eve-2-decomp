@@ -221,6 +221,23 @@ enum {
     ENEMY_SINK_LIMIT    = 1800
 };
 
+/// The enemy's walking by state: turn limits and speeds, how fast it sinks and rises, and how small it shrinks.
+enum {
+    ENEMY_PATROL_TURN_LIMIT    = 0x60,
+    ENEMY_PATROL_SPEED         = 0x20,
+    ENEMY_PATROL_ARRIVED_SPEED = 0x60, // Restarting at a route point
+    ENEMY_CHASE_TURN_LIMIT     = 0x100,
+    ENEMY_CHASE_SPEED          = 0xA0,
+    ENEMY_RETREAT_TURN_LIMIT   = 0x200,
+    ENEMY_RETREAT_START_SPEED  = 0x80,
+    ENEMY_SINK_STEP            = 45,
+    ENEMY_RISE_STEP            = 60,
+    ENEMY_PATROL_MIN_SCALE     = ONE / 2,
+    ENEMY_PATROL_SHRINK_STEP   = 51,
+    ENEMY_RETREAT_MIN_SCALE    = 0x500,
+    ENEMY_RETREAT_SHRINK_STEP  = 70,
+};
+
 /// Presentation root Y gates in coordinate units and restart delay in updates.
 enum {
     ENEMY_PRESENTATION_PATH_Y_OFFSET = 200,
@@ -3233,9 +3250,9 @@ static void _akropolisBridgeEnemyPatrolSunk(Task* task)
         work->attack.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->body.flags             |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         _akropolisBridgeResetEnemyScaleOnEntry(work);
-        work->walker.turnLimit = 0x60;
+        work->walker.turnLimit = ENEMY_PATROL_TURN_LIMIT;
         walker                 = &work->walker;
-        walker->speedTarget    = 0x20;
+        walker->speedTarget    = ENEMY_PATROL_SPEED;
         walker->speed          = 0;
         walker->speedStep      = 1;
         work->animRequest      = ENEMY_ANIM_REQUEST_RESET;
@@ -3244,19 +3261,19 @@ static void _akropolisBridgeEnemyPatrolSunk(Task* task)
     }
     if (work->walker.routeData.arrived == 1) {
         arrivedWalker              = &work->walker;
-        arrivedWalker->speedTarget = 0x20;
-        arrivedWalker->speed       = 0x60;
+        arrivedWalker->speedTarget = ENEMY_PATROL_SPEED;
+        arrivedWalker->speed       = ENEMY_PATROL_ARRIVED_SPEED;
         arrivedWalker->speedStep   = 2;
     }
     // Sink and shrink without clamping the final steps.
     if (work->sinkDepth < ENEMY_SINK_LIMIT) {
-        work->sinkDepth += 0x2D;
+        work->sinkDepth += ENEMY_SINK_STEP;
         task->extra.tmd->coords->coord.t[1] =
             work->baseHeight + work->sinkDepth;
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
-    if (work->walker.scale >= 0x801) {
-        work->walker.scale -= 0x33;
+    if (work->walker.scale > ENEMY_PATROL_MIN_SCALE) {
+        work->walker.scale -= ENEMY_PATROL_SHRINK_STEP;
         _akropolisBridgeResetEnemyScaleDuringShrink(work);
     } else {
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
@@ -3333,8 +3350,8 @@ static void _akropolisBridgeEnemyChase(Task* task)
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         entrySpeed                    = work->walker.speed;
         walker                        = &work->walker;
-        work->walker.turnLimit        = 0x100;
-        walker->speedTarget           = 0xA0;
+        work->walker.turnLimit        = ENEMY_CHASE_TURN_LIMIT;
+        walker->speedTarget           = ENEMY_CHASE_SPEED;
         walker->speedStep             = 6;
         walker->speed                 = entrySpeed;
         work->walker.state            = BOSS_STRANGER_WALKER_CHASE;
@@ -3347,7 +3364,7 @@ static void _akropolisBridgeEnemyChase(Task* task)
         work->animRate                = 5 * ANIMATION_RATE_ONE;
     }
     if (work->sinkDepth > 0) {
-        work->sinkDepth -= 0x3C;
+        work->sinkDepth -= ENEMY_RISE_STEP;
         task->extra.tmd->coords->coord.t[1] =
             work->baseHeight + work->sinkDepth;
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3382,23 +3399,23 @@ static void _akropolisBridgeEnemyRetreat(Task* task)
         work->walker.routeData.cursor = 0;
         work->attack.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         _akropolisBridgeResetEnemyScaleOnEntry(work);
-        work->walker.turnLimit = 0x200;
+        work->walker.turnLimit = ENEMY_RETREAT_TURN_LIMIT;
         walker                 = &work->walker;
-        walker->speedTarget    = 0x20;
-        walker->speed          = 0x80;
+        walker->speedTarget    = ENEMY_PATROL_SPEED;
+        walker->speed          = ENEMY_RETREAT_START_SPEED;
         walker->speedStep      = 3;
         work->animRequest      = ENEMY_ANIM_REQUEST_RESET;
         work->animId           = ENEMY_ANIM_PATROL;
         work->animRate         = ANIMATION_RATE_ONE;
     }
     if (work->sinkDepth < ENEMY_SINK_LIMIT) {
-        work->sinkDepth += 0x2D;
+        work->sinkDepth += ENEMY_SINK_STEP;
         task->extra.tmd->coords->coord.t[1] =
             work->baseHeight + work->sinkDepth;
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
-    if (work->walker.scale >= 0x500) {
-        work->walker.scale -= 0x46;
+    if (work->walker.scale >= ENEMY_RETREAT_MIN_SCALE) {
+        work->walker.scale -= ENEMY_RETREAT_SHRINK_STEP;
         _akropolisBridgeResetEnemyScaleDuringShrink(work);
     } else if (enemy->node.state.parts.flags == 0) {
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
