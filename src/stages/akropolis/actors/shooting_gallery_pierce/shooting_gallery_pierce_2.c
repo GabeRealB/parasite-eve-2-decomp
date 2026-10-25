@@ -54,6 +54,8 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
+#include "../../rooms/mist_shooting_gallery/config.h"
+
 #include "overlay.h"
 
 #include "stages/akropolis/rooms/mist_shooting_gallery.h"
@@ -1767,7 +1769,7 @@ void shootingGalleryPierceGalleryExitDecisionTask(Task* task)
         RETURN_RESOURCE_VARIANT = 3,
         RETURN_SCENE_EVENT      = 1,
         RETURN_SPRITE_VARIANT   = 1,
-        RETURN_SOUND            = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 5),
+        RETURN_SOUND            = MIST_SHOOTING_GALLERY_SOUND(MIST_SHOOTING_GALLERY_SOUND_DOOR_3_OPEN),
     };
     switch (task->state) {
         case EXIT_WAIT_REPLY:

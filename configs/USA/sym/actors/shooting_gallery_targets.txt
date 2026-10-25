@@ -1,0 +1,140 @@
+// Overlay-local symbols for shooting_gallery_targets.
+gMistShootingGalleryModel093FC = 0x80186AE0; // absolute:True owner=mist_shooting_gallery
+gMistShootingGalleryModel095EC = 0x80186CD0; // absolute:True owner=mist_shooting_gallery
+gMistShootingGalleryModel097DC = 0x80186EC0; // absolute:True owner=mist_shooting_gallery
+gMistShootingGalleryModel099CC = 0x801870B0; // absolute:True owner=mist_shooting_gallery
+gMistShootingGalleryModel09BBC = 0x801872A0; // absolute:True owner=mist_shooting_gallery
+gMistShootingGalleryModel09DAC = 0x80187490; // absolute:True owner=mist_shooting_gallery
+gMistShootingGalleryModel09F9C = 0x80187680; // absolute:True owner=mist_shooting_gallery
+gMistShootingGalleryModel0A18C = 0x80187870; // absolute:True owner=mist_shooting_gallery shared=rooms
+gMistShootingGalleryModel0A37C = 0x80187A60; // absolute:True owner=mist_shooting_gallery
+gMistShootingGalleryModel0A56C = 0x80187C50; // absolute:True owner=mist_shooting_gallery
+gMistShootingGalleryModel0A81C = 0x80188034; // absolute:True owner=mist_shooting_gallery
+gMistShootingGalleryModel0AB30 = 0x80188198; // absolute:True owner=mist_shooting_gallery
+gMistShootingGalleryModel0AC94 = 0x801882FC; // absolute:True owner=mist_shooting_gallery
+gMistShootingGalleryModel0ADF8 = 0x80188460; // absolute:True owner=mist_shooting_gallery
+gMistShootingGalleryModel0AF5C = 0x801885C4; // absolute:True owner=mist_shooting_gallery
+gMistShootingGalleryModel0B0D0 = 0x801887B4; // absolute:True owner=mist_shooting_gallery shared=rooms
+gMistShootingGalleryModel0B2C0 = 0x801889A4; // absolute:True owner=mist_shooting_gallery
+gMistShootingGalleryModel0B4B0 = 0x80188B94; // absolute:True owner=mist_shooting_gallery
+gMistShootingGalleryModel0B6A0 = 0x80188D84; // absolute:True owner=mist_shooting_gallery
+_gShootingGalleryTargetsTargetHitMarkOffsets = 0x80135730; // size:0x20 defined:True
+_gShootingGalleryTargetsTargetHitPoints = 0x80135750; // size:0x1A defined:True
+_gShootingGalleryTargetsMountPath0 = 0x80135078; // size:0xC defined:True
+_gShootingGalleryTargetsMountPath1 = 0x80135084; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath2 = 0x80135098; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath3 = 0x801350AC; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath4 = 0x801350C0; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath5 = 0x801350D4; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath6 = 0x801350E8; // size:0xC defined:True
+_gShootingGalleryTargetsMountPath7 = 0x801350F4; // size:0xC defined:True
+_gShootingGalleryTargetsMountPath8 = 0x80135100; // size:0xC defined:True
+_gShootingGalleryTargetsMountPath9 = 0x8013510C; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath10 = 0x80135120; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath11 = 0x80135134; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath12 = 0x80135148; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath13 = 0x8013515C; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath14 = 0x80135170; // size:0xC defined:True
+_gShootingGalleryTargetsMountPath15 = 0x8013517C; // size:0xC defined:True
+_gShootingGalleryTargetsMountPath16 = 0x80135188; // size:0xC defined:True
+_gShootingGalleryTargetsMountPath17 = 0x80135194; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath18 = 0x801351A8; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath19 = 0x801351BC; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath20 = 0x801351D0; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath21 = 0x801351E4; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath22 = 0x801351F8; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath23 = 0x8013520C; // size:0xC defined:True
+_gShootingGalleryTargetsMountPath24 = 0x80135218; // size:0xC defined:True
+_gShootingGalleryTargetsMountPath25 = 0x80135224; // size:0xC defined:True
+_gShootingGalleryTargetsMountPath26 = 0x80135230; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath27 = 0x80135244; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath28 = 0x80135258; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath29 = 0x8013526C; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath30 = 0x80135280; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath31 = 0x80135294; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath32 = 0x801352A8; // size:0xC defined:True
+_gShootingGalleryTargetsMountPath33 = 0x801352B4; // size:0xC defined:True
+_gShootingGalleryTargetsMountPath34 = 0x801352C0; // size:0xC defined:True
+_gShootingGalleryTargetsMountPath35 = 0x801352CC; // size:0x1E defined:True
+_gShootingGalleryTargetsMountPath36 = 0x801352EC; // size:0x1E defined:True
+_gShootingGalleryTargetsMountPath37 = 0x8013530C; // size:0x30 defined:True
+_gShootingGalleryTargetsMountPath38 = 0x8013533C; // size:0x30 defined:True
+_gShootingGalleryTargetsMountPath39 = 0x8013536C; // size:0x3C defined:True
+_gShootingGalleryTargetsMountPath40 = 0x801353A8; // size:0x2A defined:True
+_gShootingGalleryTargetsMountPath41 = 0x801353D4; // size:0x2A defined:True
+_gShootingGalleryTargetsMountPath42 = 0x80135400; // size:0x24 defined:True
+_gShootingGalleryTargetsMountPath43 = 0x80135424; // size:0x1E defined:True
+_gShootingGalleryTargetsMountPath44 = 0x80135444; // size:0x1E defined:True
+_gShootingGalleryTargetsMountPath45 = 0x80135464; // size:0x42 defined:True
+_gShootingGalleryTargetsMountPath46 = 0x801354A8; // size:0x2A defined:True
+_gShootingGalleryTargetsMountPath47 = 0x801354D4; // size:0x1E defined:True
+_gShootingGalleryTargetsMountPath48 = 0x801354F4; // size:0x1E defined:True
+_gShootingGalleryTargetsMountPath49 = 0x80135514; // size:0x1E defined:True
+_gShootingGalleryTargetsMountPath50 = 0x80135534; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath51 = 0x80135548; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath52 = 0x8013555C; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath53 = 0x80135570; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath54 = 0x80135584; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath55 = 0x80135598; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath56 = 0x801355AC; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath57 = 0x801355C0; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath58 = 0x801355D4; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath59 = 0x801355E8; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath60 = 0x801355FC; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPath61 = 0x80135610; // size:0x12 defined:True
+_gShootingGalleryTargetsMountPaths = 0x80135624; // size:0xF8 defined:True
+_gShootingGalleryTargetsTargetAttacks = 0x8013571C; // size:0x4 defined:True
+_gShootingGalleryTargetsTargetParams = 0x80135720; // size:0x10 defined:True
+_gShootingGalleryTargetsMountAttacks = 0x80134F80; // size:0x4 defined:True
+_gShootingGalleryTargetsMountParams = 0x80134F84; // size:0x10 defined:True
+gShootingGalleryTargetsTaskDescriptors = 0x80134F94; // size:0xE4 defined:True
+
+gMistShootingGalleryControllerTask = 0x8018E0C4; // absolute:True owner=mist_shooting_gallery
+_shootingGalleryTargetsUpdateStandingMountPath = 0x80132160; // type:func
+_shootingGalleryTargetsUpdateHangingMountPath = 0x80132514; // type:func
+_shootingGalleryTargetsRetireMount = 0x80132a7c; // type:func
+_shootingGalleryTargetsDestroyMount = 0x80132ac0; // type:func
+_shootingGalleryTargetsCopyMountRotation = 0x80132c4c; // type:func
+_shootingGalleryTargetsUpdateFixedMount = 0x80132d54; // type:func
+_shootingGalleryTargetsInitTarget = 0x80132ed0; // type:func
+_shootingGalleryTargetsUpdateTargetFlinch = 0x80133668; // type:func
+_shootingGalleryTargetsFoldTarget = 0x801337fc; // type:func
+_shootingGalleryTargetsTumbleDestroyedTarget = 0x801339a4; // type:func
+_shootingGalleryTargetsDestroyTarget = 0x80134920; // type:func
+_shootingGalleryTargetsInitTargetCollision = 0x80134958; // type:func
+_shootingGalleryTargetsUpdateTargetRotation = 0x80134a50; // type:func
+_shootingGalleryTargetsCopyTargetRotation = 0x80134b2c; // type:func
+_shootingGalleryTargetsSetTargetState = 0x80134b98; // type:func
+_shootingGalleryTargetsPlaceTargetOffset = 0x80134e5c; // type:func
+_shootingGalleryTargetsUpdateMountRotation = 0x80132b7c; // type:func
+_shootingGalleryTargetsBeginMountBehaviour = 0x80132cb8; // type:func
+_shootingGalleryTargetsUpdateMountBehaviour = 0x80132cd4; // type:func
+_shootingGalleryTargetsMeasureTargetPlayerDistance = 0x80134d9c; // type:func
+_shootingGalleryTargetsApplyTargetHits = 0x80133dc4; // type:func
+_shootingGalleryTargetsDrawTargetDeathBurst = 0x80133fa8; // type:func
+_shootingGalleryTargetsDrawTargetHitMark = 0x80134248; // type:func
+_shootingGalleryTargetsRemapTargetColor = 0x801344e8; // type:func
+_shootingGalleryTargetsHideTarget = 0x80134904; // type:func
+_shootingGalleryTargetsBeginTargetBehaviour = 0x80134c54; // type:func
+_shootingGalleryTargetsResumeTargetState4 = 0x80134d10; // type:func
+_shootingGalleryTargetsResumeTargetState5 = 0x80134d30; // type:func
+_shootingGalleryTargetsResumeTargetState6 = 0x80134d50; // type:func
+_shootingGalleryTargetsBeginFixedTargetExit = 0x80134d70; // type:func
+_shootingGalleryTargetsSpawnTarget = 0x80132df0; // type:func
+_shootingGalleryTargetsUpdateMountColor = 0x80132b0c; // type:func
+_shootingGalleryTargetsConsumeTargetHitReaction = 0x80134bac; // type:func
+_shootingGalleryTargetsApplyTargetScale = 0x80134ef4; // type:func
+_shootingGalleryTargetsInitMount = 0x80131f10; // type:func
+_shootingGalleryTargetsUpdateMount = 0x80132930; // type:func
+_shootingGalleryTargetsMountTask = 0x801328cc; // type:func
+_shootingGalleryTargetsTargetTask = 0x801348a0; // type:func
+_shootingGalleryTargetsUpdateTargetColor = 0x80134608; // type:func
+_shootingGalleryTargetsUpdateTargetRootColor = 0x801349e0; // type:func
+_shootingGalleryTargetsUpdateActiveTarget = 0x801332d4; // type:func
+_shootingGalleryTargetsUpdateTarget = 0x80133024; // type:func
+_gShootingGalleryTargetsMountBehaviourHandlers = 0x80131e34;
+_gShootingGalleryTargetsTargetDeathBurstCorners = 0x80131ed8;
+_gShootingGalleryTargetsTargetHitMarkCorners = 0x80131ee8;
+_gShootingGalleryTargetsMountTaskStates = 0x80131e24;
+_gShootingGalleryTargetsTargetTaskStates = 0x80131e74;
+_gShootingGalleryTargetsTargetStateHandlers = 0x80131e84;

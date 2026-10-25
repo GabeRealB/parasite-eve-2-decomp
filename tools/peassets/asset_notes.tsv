@@ -1183,16 +1183,16 @@ mist_r18_collision_090A4	Collision grid of mist_r18 consisting of a single floor
 mist_shooting_gallery_collision_07B50	Three-face collision patch for the shooting gallery's story barrier, copied over the live grid's first faces at room start and lowered 3000 when GAME_FLAG_0ED is set.	
 mist_shooting_gallery_collision_07BFC	One-face collision patch for the shooting gallery's training barrier, copied to face 3 of the live grid and lowered when a course ends or restored during a free-movement course in view 18.	
 mist_shooting_gallery_collision_0B7E8	Live collision grid of the mist shooting gallery (57 faces, 7x4 cells); its first normals, faces and vertices are rewritten at run time by the barrier patches.	
-mist_shooting_gallery_model_093FC	One-part body of shooting gallery target kind 0, which the result panel names Bacterium (600 points), spawned by actor_107600 on the room's request in courses 2-4.	
-mist_shooting_gallery_model_095EC	One-part body of shooting gallery target kind 1, which the result panel names Bear (1600 points), spawned by actor_107600 on the room's request in courses 2-4.	
-mist_shooting_gallery_model_097DC	One-part body of shooting gallery target kind 2, which the result panel names Monkey (900 points), spawned by actor_107600 on the room's request in courses 2-4.	
-mist_shooting_gallery_model_099CC	One-part body of shooting gallery target kind 3, which the result panel names Rat (500 points), spawned by actor_107600 on the room's request in courses 2-4.	
-mist_shooting_gallery_model_09BBC	One-part body of shooting gallery target kind 4, which the result panel names Scorpion (2400 points), spawned by actor_107600 on the room's request in courses 2-4.	
-mist_shooting_gallery_model_09DAC	One-part body of shooting gallery target kind 5, which the result panel names Snake (500 points), spawned by actor_107600 on the room's request in courses 2-4.	
-mist_shooting_gallery_model_09F9C	One-part body of shooting gallery target kind 6, which the result panel names Spider (1300 points), spawned by actor_107600 on the room's request in courses 2 and 3.	
-mist_shooting_gallery_model_0A18C	One-part body of shooting gallery target kind 7, which the result panel names Bee (3000 points), spawned by actor_107600 on the room's request in courses 2-4.	
-mist_shooting_gallery_model_0A37C	One-part body of shooting gallery target kind 8, which the result panel names Crow (600 points), spawned by actor_107600 on the room's request in courses 2-4.	
-mist_shooting_gallery_model_0A56C	One-part body of shooting gallery target kind 9, which the result panel names Woman (a 3000-point penalty), spawned by actor_107600 on the room's request in courses 2-4.	
+mist_shooting_gallery_model_093FC	One-part body of shooting gallery target kind 0, which the result panel names Bacterium (600 points), spawned by shooting_gallery_targets on the room's request in courses 2-4.	
+mist_shooting_gallery_model_095EC	One-part body of shooting gallery target kind 1, which the result panel names Bear (1600 points), spawned by shooting_gallery_targets on the room's request in courses 2-4.	
+mist_shooting_gallery_model_097DC	One-part body of shooting gallery target kind 2, which the result panel names Monkey (900 points), spawned by shooting_gallery_targets on the room's request in courses 2-4.	
+mist_shooting_gallery_model_099CC	One-part body of shooting gallery target kind 3, which the result panel names Rat (500 points), spawned by shooting_gallery_targets on the room's request in courses 2-4.	
+mist_shooting_gallery_model_09BBC	One-part body of shooting gallery target kind 4, which the result panel names Scorpion (2400 points), spawned by shooting_gallery_targets on the room's request in courses 2-4.	
+mist_shooting_gallery_model_09DAC	One-part body of shooting gallery target kind 5, which the result panel names Snake (500 points), spawned by shooting_gallery_targets on the room's request in courses 2-4.	
+mist_shooting_gallery_model_09F9C	One-part body of shooting gallery target kind 6, which the result panel names Spider (1300 points), spawned by shooting_gallery_targets on the room's request in courses 2 and 3.	
+mist_shooting_gallery_model_0A18C	One-part body of shooting gallery target kind 7, which the result panel names Bee (3000 points), spawned by shooting_gallery_targets on the room's request in courses 2-4.	
+mist_shooting_gallery_model_0A37C	One-part body of shooting gallery target kind 8, which the result panel names Crow (600 points), spawned by shooting_gallery_targets on the room's request in courses 2-4.	
+mist_shooting_gallery_model_0A56C	One-part body of shooting gallery target kind 9, which the result panel names Woman (a 3000-point penalty), spawned by shooting_gallery_targets on the room's request in courses 2-4.	
 mist_shooting_gallery_model_0A81C	One-part mount that carries every shooting gallery target, spawned once per target in all five courses and for the demonstration target and placed at the wave script's position.	
 mist_shooting_gallery_model_0AB30	No reached use found: a small 8-vertex model installed as shooting gallery target kind 14, which no wave script or code requests.	
 mist_shooting_gallery_model_0AC94	No reached use found: a small 8-vertex model installed as shooting gallery target kind 15, which no wave script or code requests.	
@@ -3586,7 +3586,7 @@ enemies/crawler/caterpillar/image	8-bit texture page of the Caterpillar Maggot b
 encounters/sucklerceph_and_slouch/image	Two-page 8-bit texture: the first page for the Slouch body and its burst pieces, the second for the Sucklerceph body spawned in placement mode 1.	
 encounters/skull_stalker_and_creeping_stranger/image	Two-page 8-bit texture: the first page for the Creeping Stranger body and its three burst pieces, the second for the Skull Stalker body in placement mode 1.	
 enemies/chaser/desert/image	Two-page 8-bit texture of the Desert Chaser body, used by several chaser actor packages including the Dryfield main street cutscene chaser; several file copies have no loader found.	
-pe2img_237	Four-page 8-bit texture of the MIST shooting gallery's target models of kinds 0-9, spawned by actor_107600's mounts during the course scripts.	
+pe2img_237	Four-page 8-bit texture of the MIST shooting gallery's target models of kinds 0-9, spawned by shooting_gallery_targets's mounts during the course scripts.	
 pe2img_238	8-bit page of the shooting gallery's target models of kinds 10-12, whose top 19 rows are also read as 4-bit digit glyphs for the course's MM:SS countdown clock.	
 characters/pierce/image	Two-page 8-bit texture of Pierce Carradine: his body and the model he carries, in the MIST parking, shooting gallery, golem freezer and shelter_r47 scene actors.	
 weapons/gunblade/image	4-bit texture of the Gunblade weapon model, loaded with the equipped weapon's resources and drawn whenever the model is.	
@@ -4663,7 +4663,7 @@ rooms/mist/parking/sounds_0	Footstep bank of mist_parking: walk, scripted-jump a
 rooms/mist/parking/sounds_1	MIST parking room sound bank: door fade sounds, warp 0 door sounds, the room command 8 cutscene's four sounds, the variant-2 arrival conversation's sounds and Pierce's steps (parking_pierce).	
 weapons/mp5a5/p2_sounds	MP5A5 P2 weapon sound bank (weapon 32): primary shot, secondary flash fire, empty-chamber click, reload start and reload load cues.	
 rooms/mist/shooting_gallery/sounds_0	Footstep bank of mist_shooting_gallery: walk, scripted-jump and run step sounds on collision surface classes 1 and 2 (same four samples under two entry sets).	
-rooms/mist/shooting_gallery/sounds_1	MIST shooting gallery room sound bank: target appear/hit/fold/charge/attack/destroy sounds (actor_107600), door sounds, round-start sound and shooting_gallery_pierce's introduction scene sounds.	
+rooms/mist/shooting_gallery/sounds_1	MIST shooting gallery room sound bank: target appear/hit/fold/charge/attack/destroy sounds (shooting_gallery_targets), door sounds, round-start sound and shooting_gallery_pierce's introduction scene sounds.	
 spk_192	Footstep bank of dryfield_gas_station: walk, scripted-jump and run step sounds on surface classes 2, 3 and 4.	
 spk_193	Dryfield gas station room sound bank: door sounds of two warps incl. a refused general-store door, the telephone cutscene's sounds, the arrival cutscene's loop and cues, and caption cue sounds.	
 spk_194	Footstep bank of dryfield_main_street: walk, scripted-jump and run step sounds on collision surface classes 2, 3 and 4.	

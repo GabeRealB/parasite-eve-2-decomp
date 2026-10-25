@@ -37,6 +37,8 @@
 #include "main/tmd.h"
 #include "main/tmd_types.h"
 
+#include "../../rooms/mist_parking/config.h"
+
 #include "stages/akropolis/rooms/mist_parking.h"
 #include "../../../../shared/actor/model_placement.h"
 #include "../../../../shared/actor/actor_messages.h"
@@ -423,8 +425,8 @@ static void _parkingPierceUpdatePierceCarradine(Task* task)
         HEAD_MAX_YAW        = 512,
         HEAD_MAX_PITCH      = 256,
         ALTERNATE_STEP_VIEW = 16,
-        STEP_FIRST          = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_PARKING, 0x0F),
-        STEP_ALTERNATE      = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_PARKING, 0x13),
+        STEP_FIRST          = MIST_PARKING_SOUND(MIST_PARKING_SOUND_PIERCE_STEP_1),
+        STEP_ALTERNATE      = MIST_PARKING_SOUND(MIST_PARKING_SOUND_PIERCE_STEP_ALTERNATE),
         LIGHT_COUNT         = 3,
     };
     TmdObject*             bodyModel         = task->extra.tmd;

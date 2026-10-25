@@ -1,4 +1,4 @@
-#include "actors/actor_107600.h"
+#include "stages/akropolis/actors/shooting_gallery_targets.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/gtemac.h>
@@ -44,6 +44,8 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
+#include "../../rooms/mist_shooting_gallery/config.h"
+
 #include "stages/akropolis/rooms/mist_shooting_gallery.h"
 
 /* The package holds two tasks. The gallery's controller spawns a mount, which
@@ -57,101 +59,101 @@
 /// after settling; the target raises STANDING after unfolding. Either can
 /// request STOP, and FINISHED lets the mount shrink after the target leaves.
 enum {
-    ACTOR_107600_TARGET_SIGNAL_MOUNT_READY = 0x10,
-    ACTOR_107600_TARGET_SIGNAL_STANDING    = 0x20,
-    ACTOR_107600_TARGET_SIGNAL_STOP        = 0x40,
-    ACTOR_107600_TARGET_SIGNAL_FINISHED    = 0x80,
+    TARGET_SIGNAL_MOUNT_READY = 0x10,
+    TARGET_SIGNAL_STANDING    = 0x20,
+    TARGET_SIGNAL_STOP        = 0x40,
+    TARGET_SIGNAL_FINISHED    = 0x80,
 };
 
 /// Fields of the mount's spawn argument used by its path callbacks.
 enum {
-    ACTOR_107600_MOUNT_SPAWN_HOLD_SHIFT = 24,
-    ACTOR_107600_MOUNT_SPAWN_HOLD_MASK  = 0xF,
-    ACTOR_107600_MOUNT_SPAWN_ROTATING   = 0x10000000,
-    ACTOR_107600_FRAMES_PER_SECOND      = 30,
+    MOUNT_SPAWN_HOLD_SHIFT = 24,
+    MOUNT_SPAWN_HOLD_MASK  = 0xF,
+    MOUNT_SPAWN_ROTATING   = 0x10000000,
+    FRAMES_PER_SECOND      = 30,
 };
 
 /// Fields of the child's spawn argument: kind, dead marker and mount behaviour.
 enum {
-    ACTOR_107600_TARGET_SPAWN_KIND_MASK       = 0xF,
-    ACTOR_107600_TARGET_SPAWN_DEAD            = 0xFF,
-    ACTOR_107600_TARGET_SPAWN_BEHAVIOUR_SHIFT = 16,
-    ACTOR_107600_TARGET_SPAWN_BEHAVIOUR_MASK  = 0xF,
+    TARGET_SPAWN_KIND_MASK       = 0xF,
+    TARGET_SPAWN_DEAD            = 0xFF,
+    TARGET_SPAWN_BEHAVIOUR_SHIFT = 16,
+    TARGET_SPAWN_BEHAVIOUR_MASK  = 0xF,
 };
 
 /// Wrapped Euler-angle units of the mount and target.
 enum {
-    ACTOR_107600_ANGLE_TURN         = 0x1000,
-    ACTOR_107600_ANGLE_MASK         = ACTOR_107600_ANGLE_TURN - 1,
-    ACTOR_107600_ANGLE_QUARTER_TURN = ACTOR_107600_ANGLE_TURN / 4,
+    ANGLE_TURN         = 0x1000,
+    ANGLE_MASK         = ANGLE_TURN - 1,
+    ANGLE_QUARTER_TURN = ANGLE_TURN / 4,
 };
 
 /// Steps of the target's damage flinch and the active step it resumes.
 enum {
-    ACTOR_107600_TARGET_FLINCH_STEP_INIT   = 0,
-    ACTOR_107600_TARGET_FLINCH_STEP_SWING  = 1,
-    ACTOR_107600_TARGET_FLINCH_STEP_SETTLE = 2,
-    ACTOR_107600_TARGET_ACTIVE_STEP_STAND  = 3,
+    TARGET_FLINCH_STEP_INIT   = 0,
+    TARGET_FLINCH_STEP_SWING  = 1,
+    TARGET_FLINCH_STEP_SETTLE = 2,
+    TARGET_ACTIVE_STEP_STAND  = 3,
 };
 
 /// Steps of an undestroyed target's fold-away sequence.
 enum {
-    ACTOR_107600_TARGET_FOLD_STEP_BEGIN  = 0,
-    ACTOR_107600_TARGET_FOLD_STEP_WAIT   = 1,
-    ACTOR_107600_TARGET_FOLD_STEP_FOLD   = 2,
-    ACTOR_107600_TARGET_FOLD_STEP_SHRINK = 3,
-    ACTOR_107600_TARGET_FOLD_STEP_DONE   = 4,
+    TARGET_FOLD_STEP_BEGIN  = 0,
+    TARGET_FOLD_STEP_WAIT   = 1,
+    TARGET_FOLD_STEP_FOLD   = 2,
+    TARGET_FOLD_STEP_SHRINK = 3,
+    TARGET_FOLD_STEP_DONE   = 4,
 };
 
 /// Steps of a destroyed target's tumble; step 2 is an unused inert handler.
 enum {
-    ACTOR_107600_TARGET_TUMBLE_STEP_BEGIN   = 0,
-    ACTOR_107600_TARGET_TUMBLE_STEP_MOVE    = 1,
-    ACTOR_107600_TARGET_TUMBLE_STEP_INERT   = 2,
-    ACTOR_107600_TARGET_TUMBLE_FRAMES       = 16,
-    ACTOR_107600_TARGET_SHRINK_STEP_PERCENT = 32,
-    ACTOR_107600_TARGET_SHRINK_STOP_PERCENT = 20,
+    TARGET_TUMBLE_STEP_BEGIN   = 0,
+    TARGET_TUMBLE_STEP_MOVE    = 1,
+    TARGET_TUMBLE_STEP_INERT   = 2,
+    TARGET_TUMBLE_FRAMES       = 16,
+    TARGET_SHRINK_STEP_PERCENT = 32,
+    TARGET_SHRINK_STOP_PERCENT = 20,
 };
 
 /// Kill cues selected by the target kind, kept separate from its fold-away cue.
 enum {
-    ACTOR_107600_TARGET_KILL_SOUND_KIND_9       = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0x10),
-    ACTOR_107600_TARGET_KILL_SOUND_KINDS_0_TO_8 = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0x11),
-    ACTOR_107600_TARGET_KILL_SOUND_KINDS_10_UP  = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0x12),
+    TARGET_KILL_SOUND_KIND_9       = MIST_SHOOTING_GALLERY_SOUND(MIST_SHOOTING_GALLERY_SOUND_TARGET_KILL_KIND_9),
+    TARGET_KILL_SOUND_KINDS_0_TO_8 = MIST_SHOOTING_GALLERY_SOUND(MIST_SHOOTING_GALLERY_SOUND_TARGET_KILL),
+    TARGET_KILL_SOUND_KINDS_10_UP  = MIST_SHOOTING_GALLERY_SOUND(MIST_SHOOTING_GALLERY_SOUND_TARGET_KILL_KIND_10_UP),
 };
 
 /// Gallery face-effect atlas bindings, ordering-depth units and hit-mark limit.
 enum {
-    ACTOR_107600_TARGET_EFFECT_TPAGE     = getTPage(1, 0, 576, 256),
-    ACTOR_107600_TARGET_EFFECT_CLUT      = getClut(0, 250),
-    ACTOR_107600_TARGET_EFFECT_MIN_DEPTH = 0x40,
-    ACTOR_107600_TARGET_EFFECT_OT_SHIFT  = 4,
-    ACTOR_107600_TARGET_HIT_MARK_COUNT   = 8,
+    TARGET_EFFECT_TPAGE     = getTPage(1, 0, 576, 256),
+    TARGET_EFFECT_CLUT      = getClut(0, 250),
+    TARGET_EFFECT_MIN_DEPTH = 0x40,
+    TARGET_EFFECT_OT_SHIFT  = 4,
+    TARGET_HIT_MARK_COUNT   = 8,
 };
 
 /// How a mount behaves, from bits 12-15 of its spawn argument: the value of
-/// `_Actor107600MountWork::behaviour`, and of the copy its target keeps in
-/// `_Actor107600TargetWork::mountBehaviour`.
+/// `_MountWork::behaviour`, and of the copy its target keeps in
+/// `_TargetWork::mountBehaviour`.
 enum {
-    ACTOR_107600_MOUNT_STANDING = 0, // Rises at floor height and follows its path
-    ACTOR_107600_MOUNT_HANGING  = 1, // Turned half a revolution about Z and raised 0xF3C above the floor; follows its path
-    ACTOR_107600_MOUNT_FIXED    = 2, // Stays where it is placed; not one of the gallery's live targets
+    MOUNT_STANDING = 0, // Rises at floor height and follows its path
+    MOUNT_HANGING  = 1, // Turned half a revolution about Z and raised 0xF3C above the floor; follows its path
+    MOUNT_FIXED    = 2, // Stays where it is placed; not one of the gallery's live targets
 };
 
-/// Steps of a path-following mount, in `_Actor107600MountWork::step`.
+/// Steps of a path-following mount, in `_MountWork::step`.
 enum {
-    ACTOR_107600_MOUNT_STEP_RISE        = 0, // Grow to full height
-    ACTOR_107600_MOUNT_STEP_SETTLE      = 1, // Bob for four frames, then tell the target to unfold
-    ACTOR_107600_MOUNT_STEP_WAIT_TARGET = 2, // Wait for the target to stand, then pick travelling or holding from the path
-    ACTOR_107600_MOUNT_STEP_TRAVEL      = 3, // Close on the path's stops in turn
-    ACTOR_107600_MOUNT_STEP_HOLD        = 4, // Stay in place until the hold time runs out
-    ACTOR_107600_MOUNT_STEP_LEAVE       = 5, // Wait for the target to finish, then shrink away
+    MOUNT_STEP_RISE        = 0, // Grow to full height
+    MOUNT_STEP_SETTLE      = 1, // Bob for four frames, then tell the target to unfold
+    MOUNT_STEP_WAIT_TARGET = 2, // Wait for the target to stand, then pick travelling or holding from the path
+    MOUNT_STEP_TRAVEL      = 3, // Close on the path's stops in turn
+    MOUNT_STEP_HOLD        = 4, // Stay in place until the hold time runs out
+    MOUNT_STEP_LEAVE       = 5, // Wait for the target to finish, then shrink away
 };
 
-/// Steps of a fixed mount, in `_Actor107600MountWork::step`.
+/// Steps of a fixed mount, in `_MountWork::step`.
 enum {
-    ACTOR_107600_MOUNT_FIXED_STEP_PLACE = 0, // Stand at full height on the floor
-    ACTOR_107600_MOUNT_FIXED_STEP_LEAVE = 1, // Wait for the target to finish, then shrink away
+    MOUNT_FIXED_STEP_PLACE = 0, // Stand at full height on the floor
+    MOUNT_FIXED_STEP_LEAVE = 1, // Wait for the target to finish, then shrink away
 };
 
 /// Work block of a gallery target's mount: the stand that rises where the
@@ -174,35 +176,35 @@ typedef struct {
     s16    timer;            // Frames: counts the settling bob, then counts down the hold of a stationary path
     byte   unknown_13C[2];   // No field access established; role unproven
     s16    state;            // Update routine (0 lets the spawn frame pass, 1 runs `behaviour`)
-    s16    step;             // Progress through `behaviour`: `ACTOR_107600_MOUNT_STEP_*` on a path-following mount, `ACTOR_107600_MOUNT_FIXED_STEP_*` on a fixed one
+    s16    step;             // Progress through `behaviour`: `SHOOTING_GALLERY_TARGETS_MOUNT_STEP_*` on a path-following mount, `SHOOTING_GALLERY_TARGETS_MOUNT_FIXED_STEP_*` on a fixed one
     byte   unknown_142[2];   // No field access established; role unproven
-    s16    behaviour;        // `ACTOR_107600_MOUNT_*`
+    s16    behaviour;        // `SHOOTING_GALLERY_TARGETS_MOUNT_*`
     s16    path;             // Path the mount follows, from bits 16-23 of the spawn argument
     s16    waypoint;         // Stop of `path` the mount is closing on
     u8     rotating;         // Nonzero while the mount turns about Y: set once the target stands when bit 28 of the spawn argument asks for it, cleared when the path ends
     s8     heightPercent;    // Vertical scale of the model root, in percent: grows from 0 and shrinks from 100 in steps of 8, clamped the frame after it passes either end
-} _Actor107600MountWork;
-STATIC_ASSERT_SIZEOF(_Actor107600MountWork, 0x14C);
+} _MountWork;
+STATIC_ASSERT_SIZEOF(_MountWork, 0x14C);
 
-/// Behaviour states of a target, in `_Actor107600TargetWork::state`.
+/// Behaviour states of a target, in `_TargetWork::state`.
 ///
 /// States 4 to 6 answer hit reactions nothing in the package requests; each
-/// returns to `ACTOR_107600_TARGET_STATE_ACTIVE` at once.
+/// returns to `TARGET_STATE_ACTIVE` at once.
 enum {
-    ACTOR_107600_TARGET_STATE_INIT         = 0, // Choose the first state from the mount's behaviour
-    ACTOR_107600_TARGET_STATE_ACTIVE       = 1, // Unfold, then stand - attacking if the spawn argument says so - until the mount stops
-    ACTOR_107600_TARGET_STATE_LIGHT_FLINCH = 2, // Swing back from a hit and recover
-    ACTOR_107600_TARGET_STATE_HEAVY_FLINCH = 3, // The same routine, for a hit of 20 damage or more
-    ACTOR_107600_TARGET_STATE_LEAVE        = 7, // Fold down and shrink away undestroyed
-    ACTOR_107600_TARGET_STATE_FIXED        = 8, // Target of a fixed mount: show three hit marks and leave
-    ACTOR_107600_TARGET_STATE_DESTROYED    = 9, // Out of hit points: score the kill, tumble away and shrink
+    TARGET_STATE_INIT         = 0, // Choose the first state from the mount's behaviour
+    TARGET_STATE_ACTIVE       = 1, // Unfold, then stand - attacking if the spawn argument says so - until the mount stops
+    TARGET_STATE_LIGHT_FLINCH = 2, // Swing back from a hit and recover
+    TARGET_STATE_HEAVY_FLINCH = 3, // The same routine, for a hit of 20 damage or more
+    TARGET_STATE_LEAVE        = 7, // Fold down and shrink away undestroyed
+    TARGET_STATE_FIXED        = 8, // Target of a fixed mount: show three hit marks and leave
+    TARGET_STATE_DESTROYED    = 9, // Out of hit points: score the kill, tumble away and shrink
 };
 
-/// State change a damaging hit asks for, in `_Actor107600TargetWork::hitReaction`.
+/// State change a damaging hit asks for, in `_TargetWork::hitReaction`.
 enum {
-    ACTOR_107600_HIT_REACTION_NONE  = 0,
-    ACTOR_107600_HIT_REACTION_LIGHT = 1, // Below 20 damage
-    ACTOR_107600_HIT_REACTION_HEAVY = 2,
+    HIT_REACTION_NONE  = 0,
+    HIT_REACTION_LIGHT = 1, // Below 20 damage
+    HIT_REACTION_HEAVY = 2,
 };
 
 /// Work block of a gallery target: the object the player shoots at, carried by
@@ -234,28 +236,28 @@ typedef struct {
     byte                  unknown_152[2]; // No field access established; role unproven
     s16                   timer;          // Frame counter of the current state's step
     s16                   hitTaken;       // 1 when the last hit check found a damaging hit, 0 otherwise
-    s16                   state;          // `ACTOR_107600_TARGET_STATE_*`
+    s16                   state;          // `SHOOTING_GALLERY_TARGETS_TARGET_STATE_*`
     s16                   step;           // Progress through `state`; cleared on entering one
     s16                   field_15C;      // Cleared when the target leaves or is destroyed. Nothing reads it; role unproven
-    u16                   hitReaction;    // `ACTOR_107600_HIT_REACTION_*`, consumed by the active state
+    u16                   hitReaction;    // `SHOOTING_GALLERY_TARGETS_HIT_REACTION_*`, consumed by the active state
     s16                   hitDamage;      // Damage of the last hit; sizes the flinch
-    s16                   mountBehaviour; // `ACTOR_107600_MOUNT_*` of the mount carrying the target
+    s16                   mountBehaviour; // `SHOOTING_GALLERY_TARGETS_MOUNT_*` of the mount carrying the target
     byte                  unknown_164[2]; // No field access established; role unproven
     s16                   attackTimer;    // Frames since an attacking target last fired: it charges at 120 and fires at 210
     u8                    widthPercent;   // Scale of the model root across its width, in percent
     u8                    heightPercent;  // Scale of the model root along its height while it lies flat, in percent
     u8                    hitMarkFirst;   // First entry of the hit-mark offsets this target uses, rolled 0 to 7 at start
     u8                    hitMarkCount;   // Hit marks drawn on the target: one per damaging hit, at most 8
-} _Actor107600TargetWork;
-STATIC_ASSERT_SIZEOF(_Actor107600TargetWork, 0x16C);
+} _TargetWork;
+STATIC_ASSERT_SIZEOF(_TargetWork, 0x16C);
 
-/// `_Actor107600Waypoint::x` of the record that closes a path.
-enum { ACTOR_107600_PATH_END = -1 };
+/// `_Waypoint::x` of the record that closes a path.
+enum { PATH_END = -1 };
 
 /// One stop on a movement path of the gallery target's mount.
 ///
 /// A path is an array of these closed by a record whose `x` is
-/// `ACTOR_107600_PATH_END`; a target's spawn argument selects the path. The
+/// `PATH_END`; a target's spawn argument selects the path. The
 /// mount closes on the current stop along X and Z independently, `speed` units
 /// a frame on each, and moves on to the next record whenever either axis
 /// arrives. A leg that changes both coordinates therefore lists its stop
@@ -266,11 +268,11 @@ enum { ACTOR_107600_PATH_END = -1 };
 /// it was spawned for the hold time in its spawn argument, and that record's
 /// coordinates are not read.
 typedef struct {
-    s16 x;     // Stop position, or `ACTOR_107600_PATH_END`
+    s16 x;     // Stop position, or `PATH_END`
     s16 z;
     s16 speed; // Distance per frame on each axis towards this stop; 0 in a path's first record holds the mount in place
-} _Actor107600Waypoint;
-STATIC_ASSERT_SIZEOF(_Actor107600Waypoint, 6);
+} _Waypoint;
+STATIC_ASSERT_SIZEOF(_Waypoint, 6);
 
 /// Scratch-stack workspace for one textured quad drawn on a target's face: a
 /// hit mark, or the burst that replaces the last one on a destroyed target.
@@ -287,372 +289,372 @@ typedef struct {
     s32     screenCorners[4]; // Projected corners, one GTE screen word each: X in the low half, Y in the high
     s32     depth;            // Last projected corner's SZ3 / 4, less the drawer's ordering bias
     SVECTOR vertices[4];      // Corners handed to the projection
-} _Actor107600QuadScratch;
-STATIC_ASSERT_SIZEOF(_Actor107600QuadScratch, 0x34);
+} _QuadScratch;
+STATIC_ASSERT_SIZEOF(_QuadScratch, 0x34);
 
-static void _actor107600MountTask(Task* task);
-static void _actor107600RetireMount(Task* task);
-static void _actor107600DestroyMount(Task* task);
-static void _actor107600UpdateMountColor(Task* task);
-static void _actor107600UpdateMountRotation(Task* task);
-static void _actor107600CopyMountRotation(const MATRIX* source, MATRIX* destination);
-static void _actor107600BeginMountBehaviour(Task* task);
-static void _actor107600UpdateMountBehaviour(Task* task);
-static void _actor107600UpdateFixedMount(Task* task);
-static void _actor107600SpawnTarget(Enemy* mountEnemy, s32 targetKind, s32 targetFlags);
-static void _actor107600InitTarget(Task* task);
-static void _actor107600UpdateTarget(Task* task);
-static void _actor107600UpdateActiveTarget(Task* task);
-static void _actor107600UpdateTargetFlinch(Task* task);
-static void _actor107600FoldTarget(Task* task);
-static void _actor107600TumbleDestroyedTarget(Task* task);
-static void _actor107600DrawTargetDeathBurst(const GfxCoord* rootCoord, const SVECTOR* centerOffset);
-static void _actor107600DrawTargetHitMark(const GfxCoord* rootCoord, const SVECTOR* centerOffset);
-static void _actor107600UpdateTargetColor(struct Enemy* enemy, const void* worldPosition, s32 unusedArg2, s32 unusedArg3);
-static void _actor107600TargetTask(Task* task);
-static void _actor107600HideTarget(Task* task);
-static void _actor107600DestroyTarget(Task* task);
-static void _actor107600InitTargetCollision(Task* task);
-static void _actor107600UpdateTargetRootColor(Task* task);
-static void _actor107600UpdateTargetRotation(Task* task);
-static void _actor107600CopyTargetRotation(const MATRIX* source, MATRIX* destination);
-static void _actor107600SetTargetState(Task* task, s16 state);
-static s16  _actor107600ConsumeTargetHitReaction(Task* task);
-static void _actor107600BeginTargetBehaviour(Task* task);
-static void _actor107600ResumeTargetState4(Task* task);
-static void _actor107600ResumeTargetState5(Task* task);
-static void _actor107600ResumeTargetState6(Task* task);
-static void _actor107600BeginFixedTargetExit(Task* task);
-static void _actor107600MeasureTargetPlayerDistance(Task* task);
-static void _actor107600PlaceTargetOffset(GfxCoord* rootCoord);
-static void _actor107600ApplyTargetScale(Task* task);
+static void _shootingGalleryTargetsMountTask(Task* task);
+static void _shootingGalleryTargetsRetireMount(Task* task);
+static void _shootingGalleryTargetsDestroyMount(Task* task);
+static void _shootingGalleryTargetsUpdateMountColor(Task* task);
+static void _shootingGalleryTargetsUpdateMountRotation(Task* task);
+static void _shootingGalleryTargetsCopyMountRotation(const MATRIX* source, MATRIX* destination);
+static void _shootingGalleryTargetsBeginMountBehaviour(Task* task);
+static void _shootingGalleryTargetsUpdateMountBehaviour(Task* task);
+static void _shootingGalleryTargetsUpdateFixedMount(Task* task);
+static void _shootingGalleryTargetsSpawnTarget(Enemy* mountEnemy, s32 targetKind, s32 targetFlags);
+static void _shootingGalleryTargetsInitTarget(Task* task);
+static void _shootingGalleryTargetsUpdateTarget(Task* task);
+static void _shootingGalleryTargetsUpdateActiveTarget(Task* task);
+static void _shootingGalleryTargetsUpdateTargetFlinch(Task* task);
+static void _shootingGalleryTargetsFoldTarget(Task* task);
+static void _shootingGalleryTargetsTumbleDestroyedTarget(Task* task);
+static void _shootingGalleryTargetsDrawTargetDeathBurst(const GfxCoord* rootCoord, const SVECTOR* centerOffset);
+static void _shootingGalleryTargetsDrawTargetHitMark(const GfxCoord* rootCoord, const SVECTOR* centerOffset);
+static void _shootingGalleryTargetsUpdateTargetColor(struct Enemy* enemy, const void* worldPosition, s32 unusedArg2, s32 unusedArg3);
+static void _shootingGalleryTargetsTargetTask(Task* task);
+static void _shootingGalleryTargetsHideTarget(Task* task);
+static void _shootingGalleryTargetsDestroyTarget(Task* task);
+static void _shootingGalleryTargetsInitTargetCollision(Task* task);
+static void _shootingGalleryTargetsUpdateTargetRootColor(Task* task);
+static void _shootingGalleryTargetsUpdateTargetRotation(Task* task);
+static void _shootingGalleryTargetsCopyTargetRotation(const MATRIX* source, MATRIX* destination);
+static void _shootingGalleryTargetsSetTargetState(Task* task, s16 state);
+static s16  _shootingGalleryTargetsConsumeTargetHitReaction(Task* task);
+static void _shootingGalleryTargetsBeginTargetBehaviour(Task* task);
+static void _shootingGalleryTargetsResumeTargetState4(Task* task);
+static void _shootingGalleryTargetsResumeTargetState5(Task* task);
+static void _shootingGalleryTargetsResumeTargetState6(Task* task);
+static void _shootingGalleryTargetsBeginFixedTargetExit(Task* task);
+static void _shootingGalleryTargetsMeasureTargetPlayerDistance(Task* task);
+static void _shootingGalleryTargetsPlaceTargetOffset(GfxCoord* rootCoord);
+static void _shootingGalleryTargetsApplyTargetScale(Task* task);
 
 /* Remaining-enemy count, and the gallery controller task the room overlay
  * publishes (its `Task::work` is the `MistShootingGalleryWork`). */
 
-static void _actor107600InitMount(Task* task);
-static void _actor107600UpdateStandingMountPath(Task* task);
-static void _actor107600UpdateHangingMountPath(Task* task);
-static void _actor107600UpdateMount(Task* task);
-static void _actor107600ApplyTargetHits(Task* task);
+static void _shootingGalleryTargetsInitMount(Task* task);
+static void _shootingGalleryTargetsUpdateStandingMountPath(Task* task);
+static void _shootingGalleryTargetsUpdateHangingMountPath(Task* task);
+static void _shootingGalleryTargetsUpdateMount(Task* task);
+static void _shootingGalleryTargetsApplyTargetHits(Task* task);
 
 /// Gallery mount task callbacks: 0 initialize, 1 update, 2 retire, 3 destroy.
 ///
 /// The mount owns work and its carried target. Retirement updates the gallery's
 /// live-target count before destruction releases the mount and its child.
-static const TaskFuncTable4 _gActor107600MountTaskStates = {
+static const TaskFuncTable4 _gShootingGalleryTargetsMountTaskStates = {
     .funcs = {
-        _actor107600InitMount,
-        _actor107600UpdateMount,
-        _actor107600RetireMount,
-        _actor107600DestroyMount,
+        _shootingGalleryTargetsInitMount,
+        _shootingGalleryTargetsUpdateMount,
+        _shootingGalleryTargetsRetireMount,
+        _shootingGalleryTargetsDestroyMount,
     },
 };
 
 /// Gallery mount behavior callbacks, copied before dispatch by behavior 0..2.
 ///
 /// Standing and hanging mounts follow paths; fixed mounts serve demonstrations.
-static const TaskFuncTable3 _gActor107600MountBehaviourHandlers = { {
-    [ACTOR_107600_MOUNT_STANDING] = _actor107600UpdateStandingMountPath,
-    [ACTOR_107600_MOUNT_HANGING]  = _actor107600UpdateHangingMountPath,
-    [ACTOR_107600_MOUNT_FIXED]    = _actor107600UpdateFixedMount,
+static const TaskFuncTable3 _gShootingGalleryTargetsMountBehaviourHandlers = { {
+    [MOUNT_STANDING] = _shootingGalleryTargetsUpdateStandingMountPath,
+    [MOUNT_HANGING]  = _shootingGalleryTargetsUpdateHangingMountPath,
+    [MOUNT_FIXED]    = _shootingGalleryTargetsUpdateFixedMount,
 } };
 
 /// The gallery mount's single zero-power, ordinary-reaction attack row.
 ///
 /// This is an actual attack entry: packing it produces category 4, not the
 /// zero/no-contact key. It remains live with the mount's enemy parameters.
-static DamageAttack _gActor107600MountAttacks[1] = { { .power = 0, .reaction = 0 } };
+static DamageAttack _gShootingGalleryTargetsMountAttacks[1] = { { .power = 0, .reaction = 0 } };
 
 /// Gallery mount enemy parameters, borrowed by each initialized mount.
 ///
 /// Nominal maximum health is 50; the zero-power attack has an ordinary reaction.
 /// Rewards and buildup/damage-over-time counts are zero; base critical chance is
 /// 255 percent. Mount initialization does not copy this maximum into current HP.
-static EnemyParams _gActor107600MountParams = {
-    .attacks    = _gActor107600MountAttacks,
+static EnemyParams _gShootingGalleryTargetsMountParams = {
+    .attacks    = _gShootingGalleryTargetsMountAttacks,
     .hpMax      = 50,
     .critChance = 255,
 };
 
-TaskDesc gActor107600TaskDescriptors[ACTOR_107600_TASK_COUNT] = {
-    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600MountTask, { .model = &gMistShootingGalleryModel0A81C } },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel093FC } },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel095EC } },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel097DC } },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel099CC } },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel09BBC } },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel09DAC } },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel09F9C } },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0A18C } },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0A37C } },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0A56C } },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0B0D0 } },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0B2C0 } },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0B4B0 } },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0B6A0 } },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0AB30 } },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0AC94 } },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0ADF8 } },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _actor107600TargetTask, { .model = &gMistShootingGalleryModel0AF5C } },
+TaskDesc gShootingGalleryTargetsTaskDescriptors[SHOOTING_GALLERY_TARGETS_TASK_COUNT] = {
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _shootingGalleryTargetsMountTask, { .model = &gMistShootingGalleryModel0A81C } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _shootingGalleryTargetsTargetTask, { .model = &gMistShootingGalleryModel093FC } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _shootingGalleryTargetsTargetTask, { .model = &gMistShootingGalleryModel095EC } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _shootingGalleryTargetsTargetTask, { .model = &gMistShootingGalleryModel097DC } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _shootingGalleryTargetsTargetTask, { .model = &gMistShootingGalleryModel099CC } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _shootingGalleryTargetsTargetTask, { .model = &gMistShootingGalleryModel09BBC } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _shootingGalleryTargetsTargetTask, { .model = &gMistShootingGalleryModel09DAC } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _shootingGalleryTargetsTargetTask, { .model = &gMistShootingGalleryModel09F9C } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _shootingGalleryTargetsTargetTask, { .model = &gMistShootingGalleryModel0A18C } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _shootingGalleryTargetsTargetTask, { .model = &gMistShootingGalleryModel0A37C } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _shootingGalleryTargetsTargetTask, { .model = &gMistShootingGalleryModel0A56C } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _shootingGalleryTargetsTargetTask, { .model = &gMistShootingGalleryModel0B0D0 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _shootingGalleryTargetsTargetTask, { .model = &gMistShootingGalleryModel0B2C0 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _shootingGalleryTargetsTargetTask, { .model = &gMistShootingGalleryModel0B4B0 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _shootingGalleryTargetsTargetTask, { .model = &gMistShootingGalleryModel0B6A0 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _shootingGalleryTargetsTargetTask, { .model = &gMistShootingGalleryModel0AB30 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _shootingGalleryTargetsTargetTask, { .model = &gMistShootingGalleryModel0AC94 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _shootingGalleryTargetsTargetTask, { .model = &gMistShootingGalleryModel0ADF8 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _shootingGalleryTargetsTargetTask, { .model = &gMistShootingGalleryModel0AF5C } },
 };
 
 /// Mount path 0: hold at the spawn position for the spawn argument's hold time.
 ///
 /// The first record's coordinates are unused. Hold time is seconds at 30 ticks
 /// per second; zero holds until the child target finishes.
-static _Actor107600Waypoint _gActor107600MountPath0[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath0[] = {
     { 0, 3000, 0 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 1: decreasing X at Z 6000, at 40 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath1[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath1[] = {
     { 1500, 6000, 40 },
     { -1500, 6000, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 2: decreasing X at Z 4500, at 40 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath2[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath2[] = {
     { 1500, 4500, 40 },
     { -1500, 4500, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 3: decreasing X at Z 3000, at 40 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath3[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath3[] = {
     { 1500, 3000, 40 },
     { -1500, 3000, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 4: decreasing X at Z 1500, at 40 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath4[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath4[] = {
     { 1500, 1500, 40 },
     { -1500, 1500, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 5: decreasing X at Z 0, at 40 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath5[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath5[] = {
     { 1500, 0, 40 },
     { -1500, 0, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 6: reach XZ (-1400, 5800), at 40 world units per axis per frame.
-static _Actor107600Waypoint _gActor107600MountPath6[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath6[] = {
     { -1400, 5800, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 7: reach XZ (-1400, 3000), at 40 world units per axis per frame.
-static _Actor107600Waypoint _gActor107600MountPath7[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath7[] = {
     { -1400, 3000, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 8: reach XZ (-1400, 200), at 40 world units per axis per frame.
-static _Actor107600Waypoint _gActor107600MountPath8[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath8[] = {
     { -1400, 200, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 9: increasing X at Z 6000, at 40 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath9[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath9[] = {
     { 1500, 6000, 40 },
     { 4500, 6000, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 10: increasing X at Z 4500, at 40 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath10[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath10[] = {
     { 1500, 4500, 40 },
     { 6000, 4500, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 11: increasing X at Z 3000, at 40 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath11[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath11[] = {
     { 1500, 3000, 40 },
     { 6000, 3000, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 12: increasing X at Z 1500, at 40 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath12[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath12[] = {
     { 1500, 1500, 40 },
     { 6000, 1500, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 13: increasing X at Z 0, at 40 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath13[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath13[] = {
     { 1500, 0, 40 },
     { 4500, 0, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 14: reach XZ (4600, 5800), at 40 world units per axis per frame.
-static _Actor107600Waypoint _gActor107600MountPath14[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath14[] = {
     { 4600, 5800, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 15: reach XZ (4600, 3000), at 40 world units per axis per frame.
-static _Actor107600Waypoint _gActor107600MountPath15[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath15[] = {
     { 4600, 3000, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 16: reach XZ (4600, 200), at 40 world units per axis per frame.
-static _Actor107600Waypoint _gActor107600MountPath16[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath16[] = {
     { 4600, 200, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 17: Z stops 3000 then 0 at X 6000, at 40 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath17[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath17[] = {
     { 6000, 3000, 40 },
     { 6000, 0, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 18: decreasing Z at X 4500, at 40 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath18[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath18[] = {
     { 4500, 3000, 40 },
     { 4500, 0, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 19: decreasing Z at X 3000, at 40 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath19[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath19[] = {
     { 3000, 3000, 40 },
     { 3000, 0, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 20: decreasing Z at X 1500, at 40 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath20[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath20[] = {
     { 1500, 3000, 40 },
     { 1500, 0, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 21: decreasing Z at X 0, at 40 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath21[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath21[] = {
     { 0, 3000, 40 },
     { 0, 0, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 22: decreasing Z at X -1500, at 40 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath22[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath22[] = {
     { -1500, 3000, 40 },
     { -1500, 0, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 23: reach XZ (4600, 200), at 40 world units per axis per frame.
-static _Actor107600Waypoint _gActor107600MountPath23[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath23[] = {
     { 4600, 200, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 24: reach XZ (1600, 200), at 40 world units per axis per frame.
-static _Actor107600Waypoint _gActor107600MountPath24[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath24[] = {
     { 1600, 200, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 25: reach XZ (-1400, 200), at 40 world units per axis per frame.
-static _Actor107600Waypoint _gActor107600MountPath25[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath25[] = {
     { -1400, 200, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 26: Z stops 3000 then 6000 at X 6000, at 40 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath26[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath26[] = {
     { 6000, 3000, 40 },
     { 6000, 6000, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 27: increasing Z at X 4500, at 40 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath27[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath27[] = {
     { 4500, 3000, 40 },
     { 4500, 6000, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 28: increasing Z at X 3000, at 40 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath28[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath28[] = {
     { 3000, 3000, 40 },
     { 3000, 6000, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 29: increasing Z at X 1500, at 40 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath29[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath29[] = {
     { 1500, 3000, 40 },
     { 1500, 6000, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 30: increasing Z at X 0, at 40 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath30[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath30[] = {
     { 0, 3000, 40 },
     { 0, 6000, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 31: increasing Z at X -1500, at 40 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath31[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath31[] = {
     { -1500, 3000, 40 },
     { -1500, 6000, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 32: reach XZ (4600, 5800), at 40 world units per axis per frame.
-static _Actor107600Waypoint _gActor107600MountPath32[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath32[] = {
     { 4600, 5800, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 33: reach XZ (1600, 5800), at 40 world units per axis per frame.
-static _Actor107600Waypoint _gActor107600MountPath33[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath33[] = {
     { 1600, 5800, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 34: reach XZ (-1400, 5800), at 40 world units per axis per frame.
-static _Actor107600Waypoint _gActor107600MountPath34[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath34[] = {
     { -1400, 5800, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 35: Z 6000 to 0 via X 1500 then 4500, at 50 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath35[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath35[] = {
     { 1500, 6000, 50 },
     { 1500, 3000, 50 },
     { 4500, 3000, 50 },
     { 4500, 0, 50 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 36: Z 0 to 6000 via X 1500 then 4500, at 50 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath36[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath36[] = {
     { 1500, 0, 50 },
     { 1500, 3000, 50 },
     { 4500, 3000, 50 },
     { 4500, 6000, 50 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 37: increasing X through Z 4500/6000 steps, at 30, 40, 50 then
 /// 70 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath37[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath37[] = {
     { 0, 6000, 30 },
     { 0, 4500, 30 },
     { 1500, 4500, 40 },
@@ -660,12 +662,12 @@ static _Actor107600Waypoint _gActor107600MountPath37[] = {
     { 4500, 6000, 50 },
     { 4500, 4500, 50 },
     { 6000, 4500, 70 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 38: increasing X through Z 0/1500 steps, at 30, 40, 50 then
 /// 70 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath38[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath38[] = {
     { 0, 0, 30 },
     { 0, 1500, 30 },
     { 1500, 1500, 40 },
@@ -673,12 +675,12 @@ static _Actor107600Waypoint _gActor107600MountPath38[] = {
     { 4500, 0, 50 },
     { 4500, 1500, 50 },
     { 6000, 1500, 70 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 39: increasing X with alternating Z 0/6000 crossings, at 40, 50,
 /// 70 then 100 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath39[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath39[] = {
     { -1500, 0, 40 },
     { 0, 0, 40 },
     { 0, 6000, 50 },
@@ -688,67 +690,67 @@ static _Actor107600Waypoint _gActor107600MountPath39[] = {
     { 3000, 6000, 100 },
     { 4500, 6000, 100 },
     { 4500, 0, 100 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 40: decreasing X from 9000 to -3000 through Z 4500/6000 steps,
 /// at 40, 50 then 70 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath40[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath40[] = {
     { 9000, 6000, 40 },
     { 9000, 4500, 40 },
     { 6000, 4500, 50 },
     { 3000, 4500, 50 },
     { 3000, 6000, 50 },
     { -3000, 6000, 70 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 41: decreasing X from 9000 to -3000 through Z 0/1500 steps,
 /// at 40, 50 then 70 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath41[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath41[] = {
     { 9000, 0, 40 },
     { 9000, 1500, 40 },
     { 6000, 1500, 50 },
     { 3000, 1500, 50 },
     { 3000, 0, 50 },
     { -3000, 0, 70 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 42: decreasing Z at X 9000, then returning to Z 3000 at X 12000,
 /// at 40 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath42[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath42[] = {
     { 9000, 6000, 40 },
     { 9000, 3000, 40 },
     { 9000, 0, 40 },
     { 12000, 0, 40 },
     { 12000, 3000, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 43: reach XZ (7500, 4500) at 40 world units per frame, then
 /// detour through Z 6000 to (12000, 4500) at 70.
-static _Actor107600Waypoint _gActor107600MountPath43[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath43[] = {
     { 7500, 4500, 40 },
     { 7500, 6000, 70 },
     { 12000, 6000, 70 },
     { 12000, 4500, 70 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 44: reach XZ (7500, 1500) at 40 world units per frame, then
 /// detour through Z 0 to (12000, 1500) at 70.
-static _Actor107600Waypoint _gActor107600MountPath44[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath44[] = {
     { 7500, 1500, 40 },
     { 7500, 0, 70 },
     { 12000, 0, 70 },
     { 12000, 1500, 70 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 45: cross between X -3000/7500 and Z 0/6000, ending at
 /// XZ (7500, 3000), at 140 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath45[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath45[] = {
     { 4500, 6000, 140 },
     { 4500, 4500, 140 },
     { 7500, 4500, 140 },
@@ -759,224 +761,224 @@ static _Actor107600Waypoint _gActor107600MountPath45[] = {
     { -3000, 3000, 140 },
     { 4500, 3000, 140 },
     { 7500, 3000, 140 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 46: increasing X from -3000 to 7500 through Z 1500/4500 steps,
 /// at 50 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath46[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath46[] = {
     { -3000, 1500, 50 },
     { 0, 1500, 50 },
     { 0, 4500, 50 },
     { 3000, 4500, 50 },
     { 3000, 1500, 50 },
     { 7500, 1500, 50 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 47: increasing X from 1500 to 7500 with a Z 6000-to-4500 step
 /// at X 4500, at 40 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath47[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath47[] = {
     { 1500, 6000, 40 },
     { 4500, 6000, 40 },
     { 4500, 4500, 40 },
     { 7500, 4500, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 48: XZ (1500, 0) to (4500, 1500), then (7500, 1500), at 40
 /// world units per axis per frame.
 ///
 /// The diagonal stop repeats so that either axis arrival can advance a record.
-static _Actor107600Waypoint _gActor107600MountPath48[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath48[] = {
     { 1500, 0, 40 },
     { 4500, 1500, 40 },
     { 4500, 1500, 40 },
     { 7500, 1500, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 49: Z stops 0, 6000, 0 then 6000 at X 12000, at 40 world units
 /// per frame.
-static _Actor107600Waypoint _gActor107600MountPath49[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath49[] = {
     { 12000, 0, 40 },
     { 12000, 6000, 40 },
     { 12000, 0, 40 },
     { 12000, 6000, 40 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 50: Z stops 3000 then 0 at X 6000, at 70 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath50[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath50[] = {
     { 6000, 3000, 70 },
     { 6000, 0, 70 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 51: Z stops 3000 then 0 at X 4500, at 70 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath51[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath51[] = {
     { 4500, 3000, 70 },
     { 4500, 0, 70 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 52: decreasing Z at X 3000, at 70 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath52[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath52[] = {
     { 3000, 3000, 70 },
     { 3000, 0, 70 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 53: decreasing Z at X 1500, at 70 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath53[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath53[] = {
     { 1500, 3000, 70 },
     { 1500, 0, 70 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 54: decreasing Z at X 0, at 70 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath54[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath54[] = {
     { 0, 3000, 70 },
     { 0, 0, 70 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 55: decreasing Z at X -1500, at 70 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath55[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath55[] = {
     { -1500, 3000, 70 },
     { -1500, 0, 70 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 56: Z stops 3000 then 6000 at X 6000, at 70 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath56[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath56[] = {
     { 6000, 3000, 70 },
     { 6000, 6000, 70 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 57: Z stops 3000 then 6000 at X 4500, at 70 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath57[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath57[] = {
     { 4500, 3000, 70 },
     { 4500, 6000, 70 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 58: increasing Z at X 3000, at 70 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath58[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath58[] = {
     { 3000, 3000, 70 },
     { 3000, 6000, 70 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 59: increasing Z at X 1500, at 70 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath59[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath59[] = {
     { 1500, 3000, 70 },
     { 1500, 6000, 70 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 60: increasing Z at X 0, at 70 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath60[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath60[] = {
     { 0, 3000, 70 },
     { 0, 6000, 70 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Mount path 61: increasing Z at X -1500, at 70 world units per frame.
-static _Actor107600Waypoint _gActor107600MountPath61[] = {
+static _Waypoint _gShootingGalleryTargetsMountPath61[] = {
     { -1500, 3000, 70 },
     { -1500, 6000, 70 },
-    { ACTOR_107600_PATH_END, 0, 0 },
+    { PATH_END, 0, 0 },
 };
 
 /// Sentinel-terminated routes selected by the gallery mount's spawn path byte.
 ///
 /// Bits 16..23 of the mount's spawn argument must be below
-/// `ARRAY_SIZE(_gActor107600MountPaths)` (62); no range check is performed.
-/// Each route ends with `ACTOR_107600_PATH_END` in its final record's X.
+/// `ARRAY_SIZE(_gShootingGalleryTargetsMountPaths)` (62); no range check is performed.
+/// Each route ends with `PATH_END` in its final record's X.
 /// Coordinates use the mount root's parent frame; speed is world units per
 /// axis per active frame. A zero-speed first record holds at the spawn position.
 /// Standing and hanging mounts borrow these records without writing or freeing
 /// them; the actor image must remain loaded until the mounts exit.
-static const _Actor107600Waypoint* _gActor107600MountPaths[] = {
-    _gActor107600MountPath0,
-    _gActor107600MountPath1,
-    _gActor107600MountPath2,
-    _gActor107600MountPath3,
-    _gActor107600MountPath4,
-    _gActor107600MountPath5,
-    _gActor107600MountPath6,
-    _gActor107600MountPath7,
-    _gActor107600MountPath8,
-    _gActor107600MountPath9,
-    _gActor107600MountPath10,
-    _gActor107600MountPath11,
-    _gActor107600MountPath12,
-    _gActor107600MountPath13,
-    _gActor107600MountPath14,
-    _gActor107600MountPath15,
-    _gActor107600MountPath16,
-    _gActor107600MountPath17,
-    _gActor107600MountPath18,
-    _gActor107600MountPath19,
-    _gActor107600MountPath20,
-    _gActor107600MountPath21,
-    _gActor107600MountPath22,
-    _gActor107600MountPath23,
-    _gActor107600MountPath24,
-    _gActor107600MountPath25,
-    _gActor107600MountPath26,
-    _gActor107600MountPath27,
-    _gActor107600MountPath28,
-    _gActor107600MountPath29,
-    _gActor107600MountPath30,
-    _gActor107600MountPath31,
-    _gActor107600MountPath32,
-    _gActor107600MountPath33,
-    _gActor107600MountPath34,
-    _gActor107600MountPath35,
-    _gActor107600MountPath36,
-    _gActor107600MountPath37,
-    _gActor107600MountPath38,
-    _gActor107600MountPath39,
-    _gActor107600MountPath40,
-    _gActor107600MountPath41,
-    _gActor107600MountPath42,
-    _gActor107600MountPath43,
-    _gActor107600MountPath44,
-    _gActor107600MountPath45,
-    _gActor107600MountPath46,
-    _gActor107600MountPath47,
-    _gActor107600MountPath48,
-    _gActor107600MountPath49,
-    _gActor107600MountPath50,
-    _gActor107600MountPath51,
-    _gActor107600MountPath52,
-    _gActor107600MountPath53,
-    _gActor107600MountPath54,
-    _gActor107600MountPath55,
-    _gActor107600MountPath56,
-    _gActor107600MountPath57,
-    _gActor107600MountPath58,
-    _gActor107600MountPath59,
-    _gActor107600MountPath60,
-    _gActor107600MountPath61,
+static const _Waypoint* _gShootingGalleryTargetsMountPaths[] = {
+    _gShootingGalleryTargetsMountPath0,
+    _gShootingGalleryTargetsMountPath1,
+    _gShootingGalleryTargetsMountPath2,
+    _gShootingGalleryTargetsMountPath3,
+    _gShootingGalleryTargetsMountPath4,
+    _gShootingGalleryTargetsMountPath5,
+    _gShootingGalleryTargetsMountPath6,
+    _gShootingGalleryTargetsMountPath7,
+    _gShootingGalleryTargetsMountPath8,
+    _gShootingGalleryTargetsMountPath9,
+    _gShootingGalleryTargetsMountPath10,
+    _gShootingGalleryTargetsMountPath11,
+    _gShootingGalleryTargetsMountPath12,
+    _gShootingGalleryTargetsMountPath13,
+    _gShootingGalleryTargetsMountPath14,
+    _gShootingGalleryTargetsMountPath15,
+    _gShootingGalleryTargetsMountPath16,
+    _gShootingGalleryTargetsMountPath17,
+    _gShootingGalleryTargetsMountPath18,
+    _gShootingGalleryTargetsMountPath19,
+    _gShootingGalleryTargetsMountPath20,
+    _gShootingGalleryTargetsMountPath21,
+    _gShootingGalleryTargetsMountPath22,
+    _gShootingGalleryTargetsMountPath23,
+    _gShootingGalleryTargetsMountPath24,
+    _gShootingGalleryTargetsMountPath25,
+    _gShootingGalleryTargetsMountPath26,
+    _gShootingGalleryTargetsMountPath27,
+    _gShootingGalleryTargetsMountPath28,
+    _gShootingGalleryTargetsMountPath29,
+    _gShootingGalleryTargetsMountPath30,
+    _gShootingGalleryTargetsMountPath31,
+    _gShootingGalleryTargetsMountPath32,
+    _gShootingGalleryTargetsMountPath33,
+    _gShootingGalleryTargetsMountPath34,
+    _gShootingGalleryTargetsMountPath35,
+    _gShootingGalleryTargetsMountPath36,
+    _gShootingGalleryTargetsMountPath37,
+    _gShootingGalleryTargetsMountPath38,
+    _gShootingGalleryTargetsMountPath39,
+    _gShootingGalleryTargetsMountPath40,
+    _gShootingGalleryTargetsMountPath41,
+    _gShootingGalleryTargetsMountPath42,
+    _gShootingGalleryTargetsMountPath43,
+    _gShootingGalleryTargetsMountPath44,
+    _gShootingGalleryTargetsMountPath45,
+    _gShootingGalleryTargetsMountPath46,
+    _gShootingGalleryTargetsMountPath47,
+    _gShootingGalleryTargetsMountPath48,
+    _gShootingGalleryTargetsMountPath49,
+    _gShootingGalleryTargetsMountPath50,
+    _gShootingGalleryTargetsMountPath51,
+    _gShootingGalleryTargetsMountPath52,
+    _gShootingGalleryTargetsMountPath53,
+    _gShootingGalleryTargetsMountPath54,
+    _gShootingGalleryTargetsMountPath55,
+    _gShootingGalleryTargetsMountPath56,
+    _gShootingGalleryTargetsMountPath57,
+    _gShootingGalleryTargetsMountPath58,
+    _gShootingGalleryTargetsMountPath59,
+    _gShootingGalleryTargetsMountPath60,
+    _gShootingGalleryTargetsMountPath61,
 };
 
 /// Retained zero-power, ordinary-reaction attack row in the gallery target parameters.
 ///
 /// The target borrows this row through its enemy record. Its direct player
 /// strike supplies damage separately rather than packing this row into a key.
-static DamageAttack _gActor107600TargetAttacks[1] = { { 0, GAME_ACTOR_REACTION_ORDINARY } };
+static DamageAttack _gShootingGalleryTargetsTargetAttacks[1] = { { 0, GAME_ACTOR_REACTION_ORDINARY } };
 
 /// Gallery target parameters, borrowed by each live target enemy.
 ///
 /// Retains nominal maximum health 50 and a zero-power attack row. Spawn health
 /// comes separately from the target-kind table. Rewards and status pulse counts
 /// are zero; the base critical chance is 255 percent.
-static EnemyParams _gActor107600TargetParams = {
-    .attacks    = _gActor107600TargetAttacks,
+static EnemyParams _gShootingGalleryTargetsTargetParams = {
+    .attacks    = _gShootingGalleryTargetsTargetAttacks,
     .hpMax      = 50,
     .critChance = 255,
 };
@@ -986,7 +988,7 @@ static EnemyParams _gActor107600TargetParams = {
 /// Signed X/Y use target-local model coordinates; Z is zero at drawing.
 /// The first-mark cursor plus mark index wraps with a count-minus-one mask.
 /// A dead target substitutes a death burst for its last mark without reading this row.
-static DVECTOR _gActor107600TargetHitMarkOffsets[ACTOR_107600_TARGET_HIT_MARK_COUNT] = {
+static DVECTOR _gShootingGalleryTargetsTargetHitMarkOffsets[TARGET_HIT_MARK_COUNT] = {
     { 0, -0x120 },
     { 0x60, -0xA0 },
     { -0x70, -0x60 },
@@ -1002,9 +1004,9 @@ static DVECTOR _gActor107600TargetHitMarkOffsets[ACTOR_107600_TARGET_HIT_MARK_CO
 /// Serialized entries cover kinds 0..12. The fixed demonstration uses kind 13
 /// and retains a read beyond this table at the package end; its live backing
 /// and resulting health are unproven. No entries for kinds 13..15 are stored here.
-static u16 _gActor107600TargetHitPoints[13] = { 32, 24, 16, 12, 60, 36, 28, 20, 12, 1, 12, 20, 28 };
+static u16 _gShootingGalleryTargetsTargetHitPoints[13] = { 32, 24, 16, 12, 60, 36, 28, 20, 12, 1, 12, 20, 28 };
 
-static void _actor107600RemapTargetColor(Enemy* unusedEnemy, MATRIX* colorMatrix, s32 colorMode);
+static void _shootingGalleryTargetsRemapTargetColor(Enemy* unusedEnemy, MATRIX* colorMatrix, s32 colorMode);
 
 /// Initializes a gallery mount and spawns the target it carries.
 ///
@@ -1016,25 +1018,25 @@ static void _actor107600RemapTargetColor(Enemy* unusedEnemy, MATRIX* colorMatrix
 /// Counted mounts require a live controller parent; rejection returns its count.
 /// The task owns its zeroed work and child, and nonfixed mounts own a battle
 /// reference until exit. Requires initialized scratch storage for one VECTOR.
-static void _actor107600InitMount(Task* task)
+static void _shootingGalleryTargetsInitMount(Task* task)
 {
     enum {
-        ACTOR_107600_MOUNT_SPAWN_BEHAVIOUR_SHIFT = 12,
-        ACTOR_107600_MOUNT_SPAWN_BEHAVIOUR_MASK  = 0xF000,
-        ACTOR_107600_MOUNT_SPAWN_PATH_SHIFT      = 16,
-        ACTOR_107600_MOUNT_SPAWN_ATTACKING       = 0x20000000,
-        ACTOR_107600_MOUNT_SPAWN_FORCE           = 0x40000000,
-        ACTOR_107600_MOUNT_PLAYER_EXCLUSION      = 0x400,
+        SPAWN_BEHAVIOUR_SHIFT = 12,
+        SPAWN_BEHAVIOUR_MASK  = 0xF000,
+        SPAWN_PATH_SHIFT      = 16,
+        SPAWN_ATTACKING       = 0x20000000,
+        SPAWN_FORCE           = 0x40000000,
+        PLAYER_EXCLUSION      = 0x400,
     };
 
-    TmdObject*             model;
-    Enemy*                 enemy;
-    GfxCoord*              rootCoord;
-    GfxCoord*              playerCoord;
-    void**                 scratchSlot;
-    VECTOR*                savedCursor;
-    VECTOR*                playerOffset;
-    _Actor107600MountWork* work;
+    TmdObject*  model;
+    Enemy*      enemy;
+    GfxCoord*   rootCoord;
+    GfxCoord*   playerCoord;
+    void**      scratchSlot;
+    VECTOR*     savedCursor;
+    VECTOR*     playerOffset;
+    _MountWork* work;
 
     model                                      = task->extra.tmd;
     enemy                                      = task->spawnArg2.pointer;
@@ -1047,12 +1049,12 @@ static void _actor107600InitMount(Task* task)
     SCRATCH_STACK_CURSOR_AT(scratchSlot, void) = playerOffset;
     playerOffset->vz                           = playerCoord->coord.t[2] - rootCoord->coord.t[2];
     // Reject before acquiring work, child ownership or a battle reference.
-    if ((!(task->spawnArg1.value & ACTOR_107600_MOUNT_SPAWN_FORCE) &&
-         playerActorPlanarLength(playerOffset->vx, playerOffset->vz) < ACTOR_107600_MOUNT_PLAYER_EXCLUSION + 1) ||
-        (u8)task->spawnArg1.value == ACTOR_107600_TARGET_SPAWN_DEAD) {
+    if ((!(task->spawnArg1.value & SPAWN_FORCE) &&
+         playerActorPlanarLength(playerOffset->vx, playerOffset->vz) < PLAYER_EXCLUSION + 1) ||
+        (u8)task->spawnArg1.value == TARGET_SPAWN_DEAD) {
     fail:
-        if ((task->spawnArg1.value & ACTOR_107600_MOUNT_SPAWN_BEHAVIOUR_MASK) !=
-            ACTOR_107600_MOUNT_FIXED << ACTOR_107600_MOUNT_SPAWN_BEHAVIOUR_SHIFT) {
+        if ((task->spawnArg1.value & SPAWN_BEHAVIOUR_MASK) !=
+            MOUNT_FIXED << SPAWN_BEHAVIOUR_SHIFT) {
             MistShootingGalleryWork* gallery = task->parent->work;
 
             gallery->liveTargets--;
@@ -1061,37 +1063,37 @@ static void _actor107600InitMount(Task* task)
         enemyDestroy(enemy, task);
         return;
     }
-    work       = memCalloc(sizeof(_Actor107600MountWork), false);
+    work       = memCalloc(sizeof(_MountWork), false);
     task->work = work;
     if (work == NULL) {
         goto fail;
     }
-    task->exitCallback = _actor107600DestroyMount;
-    work->path         = (u8)((u32)task->spawnArg1.value >> ACTOR_107600_MOUNT_SPAWN_PATH_SHIFT);
-    work->behaviour    = (s32)(task->spawnArg1.value & ACTOR_107600_MOUNT_SPAWN_BEHAVIOUR_MASK) >> ACTOR_107600_MOUNT_SPAWN_BEHAVIOUR_SHIFT;
+    task->exitCallback = _shootingGalleryTargetsDestroyMount;
+    work->path         = (u8)((u32)task->spawnArg1.value >> SPAWN_PATH_SHIFT);
+    work->behaviour    = (s32)(task->spawnArg1.value & SPAWN_BEHAVIOUR_MASK) >> SPAWN_BEHAVIOUR_SHIFT;
     model->lightMtx    = &work->lightMatrix;
     model->colorMtx    = &work->colorMatrix;
-    enemy->param       = &_gActor107600MountParams;
+    enemy->param       = &_gShootingGalleryTargetsMountParams;
     rootCoord->parent  = &gGfxViewCoord;
     enemy->field_4     = &task->extra.tmd->coords->coord;
     enemy->field_48    = 0;
-    if (work->behaviour != ACTOR_107600_MOUNT_FIXED) {
+    if (work->behaviour != MOUNT_FIXED) {
         sceneAcquireBattleRef(0);
     }
     work->spawnX = rootCoord->coord.t[0];
     work->spawnY = rootCoord->coord.t[1];
     work->spawnZ = rootCoord->coord.t[2];
-    work->yaw    = -ACTOR_107600_ANGLE_QUARTER_TURN;
-    if (work->behaviour == ACTOR_107600_MOUNT_HANGING) {
-        work->roll += ACTOR_107600_ANGLE_TURN / 2;
+    work->yaw    = -ANGLE_QUARTER_TURN;
+    if (work->behaviour == MOUNT_HANGING) {
+        work->roll += ANGLE_TURN / 2;
     }
     task->state++;
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(rootCoord);
     // The child's behaviour moves from bits 12..15 to 16..19; attack stays at 29.
-    _actor107600SpawnTarget(enemy, task->spawnArg1.value & ACTOR_107600_TARGET_SPAWN_KIND_MASK,
-                            work->behaviour | (((u32)task->spawnArg1.value >> ACTOR_107600_TARGET_SPAWN_BEHAVIOUR_SHIFT) &
-                                               (ACTOR_107600_MOUNT_SPAWN_ATTACKING >> ACTOR_107600_TARGET_SPAWN_BEHAVIOUR_SHIFT)));
+    _shootingGalleryTargetsSpawnTarget(enemy, task->spawnArg1.value & TARGET_SPAWN_KIND_MASK,
+                                       work->behaviour | (((u32)task->spawnArg1.value >> TARGET_SPAWN_BEHAVIOUR_SHIFT) &
+                                                          (SPAWN_ATTACKING >> TARGET_SPAWN_BEHAVIOUR_SHIFT)));
     SCRATCH_STACK_RELEASE_BYTES_AT(scratchSlot, sizeof(*playerOffset));
 }
 
@@ -1100,11 +1102,11 @@ static void _actor107600InitMount(Task* task)
 /// Enemy must belong to the work-owning mount and keep its first child alive.
 /// Moves the mount to its leave step and clears rotation. The stop signal does
 /// not finish the child; the mount waits for its separate FINISHED signal.
-static inline void _actor107600StopMountPath(_Actor107600MountWork* work, Enemy* enemy)
+static inline void _shootingGalleryTargetsStopMountPath(_MountWork* work, Enemy* enemy)
 {
-    work->step                                = ACTOR_107600_MOUNT_STEP_LEAVE;
+    work->step                                = MOUNT_STEP_LEAVE;
     work->rotating                            = 0;
-    enemy->task->firstChild->spawnArg1.value |= ACTOR_107600_TARGET_SIGNAL_STOP;
+    enemy->task->firstChild->spawnArg1.value |= TARGET_SIGNAL_STOP;
 }
 
 /// Advances a path-following mount at the supplied bob and resting Y heights.
@@ -1116,69 +1118,69 @@ static inline void _actor107600StopMountPath(_Actor107600MountWork* work, Enemy*
 /// repeat their destination. A zero-speed first waypoint holds for the spawn
 /// nibble in seconds at 30 ticks per second; zero waits until the target ends.
 /// The target finishes before the mount shrinks and advances its task state.
-static inline void _actor107600UpdateMountPath(Task* task, s32 bobY, s32 restingY)
+static inline void _shootingGalleryTargetsUpdateMountPath(Task* task, s32 bobY, s32 restingY)
 {
     enum {
-        ACTOR_107600_MOUNT_FULL_HEIGHT_PERCENT = 100,
-        ACTOR_107600_MOUNT_HEIGHT_STEP_PERCENT = 8,
-        ACTOR_107600_MOUNT_SETTLE_FRAMES       = 4,
+        MOUNT_FULL_HEIGHT_PERCENT = 100,
+        HEIGHT_STEP_PERCENT       = 8,
+        SETTLE_FRAMES             = 4,
     };
 
-    _Actor107600MountWork*      work      = task->work;
-    Enemy*                      enemy     = task->spawnArg2.pointer;
-    GfxCoord*                   rootCoord = task->extra.tmd->coords;
-    const _Actor107600Waypoint* waypoint;
-    s32                         axisDelta;
+    _MountWork*      work      = task->work;
+    Enemy*           enemy     = task->spawnArg2.pointer;
+    GfxCoord*        rootCoord = task->extra.tmd->coords;
+    const _Waypoint* waypoint;
+    s32              axisDelta;
 
     switch (work->step) {
-        case ACTOR_107600_MOUNT_STEP_RISE:
-            if (work->heightPercent < ACTOR_107600_MOUNT_FULL_HEIGHT_PERCENT) {
-                work->heightPercent += ACTOR_107600_MOUNT_HEIGHT_STEP_PERCENT;
+        case MOUNT_STEP_RISE:
+            if (work->heightPercent < MOUNT_FULL_HEIGHT_PERCENT) {
+                work->heightPercent += HEIGHT_STEP_PERCENT;
                 return;
             }
-            work->heightPercent = ACTOR_107600_MOUNT_FULL_HEIGHT_PERCENT;
+            work->heightPercent = MOUNT_FULL_HEIGHT_PERCENT;
             work->timer         = 0;
             work->step++;
-        case ACTOR_107600_MOUNT_STEP_SETTLE:
+        case MOUNT_STEP_SETTLE:
             if (++work->timer & 1) {
                 rootCoord->coord.t[1] = bobY;
                 return;
             }
             rootCoord->coord.t[1] = restingY;
-            if (work->timer >= ACTOR_107600_MOUNT_SETTLE_FRAMES) {
+            if (work->timer >= SETTLE_FRAMES) {
                 work->step++;
-                enemy->task->firstChild->spawnArg1.value |= ACTOR_107600_TARGET_SIGNAL_MOUNT_READY;
+                enemy->task->firstChild->spawnArg1.value |= TARGET_SIGNAL_MOUNT_READY;
             }
             return;
-        case ACTOR_107600_MOUNT_STEP_WAIT_TARGET:
-            if (!(enemy->task->firstChild->spawnArg1.value & ACTOR_107600_TARGET_SIGNAL_STANDING)) {
+        case MOUNT_STEP_WAIT_TARGET:
+            if (!(enemy->task->firstChild->spawnArg1.value & TARGET_SIGNAL_STANDING)) {
                 return;
             }
-            waypoint  = _gActor107600MountPaths[work->path];
+            waypoint  = _gShootingGalleryTargetsMountPaths[work->path];
             waypoint += work->waypoint;
-            if (task->spawnArg1.value & ACTOR_107600_MOUNT_SPAWN_ROTATING) {
+            if (task->spawnArg1.value & MOUNT_SPAWN_ROTATING) {
                 work->rotating = 1;
             }
             if (waypoint->speed == 0) {
-                work->step  = ACTOR_107600_MOUNT_STEP_HOLD;
-                work->timer = (((u32)task->spawnArg1.value >> ACTOR_107600_MOUNT_SPAWN_HOLD_SHIFT) & ACTOR_107600_MOUNT_SPAWN_HOLD_MASK) * ACTOR_107600_FRAMES_PER_SECOND;
+                work->step  = MOUNT_STEP_HOLD;
+                work->timer = (((u32)task->spawnArg1.value >> MOUNT_SPAWN_HOLD_SHIFT) & MOUNT_SPAWN_HOLD_MASK) * FRAMES_PER_SECOND;
                 return;
             }
             work->step++;
-        case ACTOR_107600_MOUNT_STEP_TRAVEL:
-            waypoint  = _gActor107600MountPaths[work->path];
+        case MOUNT_STEP_TRAVEL:
+            waypoint  = _gShootingGalleryTargetsMountPaths[work->path];
             waypoint += work->waypoint;
-            if (waypoint->x == ACTOR_107600_PATH_END) {
+            if (waypoint->x == PATH_END) {
             stop:
-                _actor107600StopMountPath(work, enemy);
+                _shootingGalleryTargetsStopMountPath(work, enemy);
                 return;
             }
             // Each axis arrival advances the waypoint; diagonal legs repeat their stop.
             axisDelta = (s16)(rootCoord->coord.t[0] - waypoint->x);
             if (axisDelta != 0) {
                 if (waypoint->speed >= abs(axisDelta)) {
-                    if (enemy->task->firstChild->spawnArg1.value & ACTOR_107600_TARGET_SIGNAL_STOP) {
-                        _actor107600StopMountPath(work, enemy);
+                    if (enemy->task->firstChild->spawnArg1.value & TARGET_SIGNAL_STOP) {
+                        _shootingGalleryTargetsStopMountPath(work, enemy);
                         return;
                     }
                     rootCoord->coord.t[0] = waypoint->x;
@@ -1192,8 +1194,8 @@ static inline void _actor107600UpdateMountPath(Task* task, s32 bobY, s32 resting
             axisDelta = (s16)(rootCoord->coord.t[2] - waypoint->z);
             if (axisDelta != 0) {
                 if (waypoint->speed >= abs(axisDelta)) {
-                    if (enemy->task->firstChild->spawnArg1.value & ACTOR_107600_TARGET_SIGNAL_STOP) {
-                        _actor107600StopMountPath(work, enemy);
+                    if (enemy->task->firstChild->spawnArg1.value & TARGET_SIGNAL_STOP) {
+                        _shootingGalleryTargetsStopMountPath(work, enemy);
                         return;
                     }
                     rootCoord->coord.t[2] = waypoint->z;
@@ -1205,14 +1207,14 @@ static inline void _actor107600UpdateMountPath(Task* task, s32 bobY, s32 resting
                 }
             }
             return;
-        case ACTOR_107600_MOUNT_STEP_HOLD:
+        case MOUNT_STEP_HOLD:
             if (work->timer != 0 && --work->timer <= 0) {
                 goto stop;
             }
-        case ACTOR_107600_MOUNT_STEP_LEAVE:
-            if (enemy->task->firstChild->spawnArg1.value & ACTOR_107600_TARGET_SIGNAL_FINISHED) {
+        case MOUNT_STEP_LEAVE:
+            if (enemy->task->firstChild->spawnArg1.value & TARGET_SIGNAL_FINISHED) {
                 if (work->heightPercent > 0) {
-                    work->heightPercent -= ACTOR_107600_MOUNT_HEIGHT_STEP_PERCENT;
+                    work->heightPercent -= HEIGHT_STEP_PERCENT;
                     return;
                 }
                 work->heightPercent = 0;
@@ -1229,9 +1231,9 @@ static inline void _actor107600UpdateMountPath(Task* task, s32 bobY, s32 resting
 /// A zero-speed first stop holds for the spawn nibble in seconds (30 ticks
 /// per second); zero seconds holds until the target finishes. Coordinates
 /// and speeds use the mount root's parent frame; axis deltas narrow to s16.
-static void _actor107600UpdateStandingMountPath(Task* task)
+static void _shootingGalleryTargetsUpdateStandingMountPath(Task* task)
 {
-    _actor107600UpdateMountPath(task, -0x10, 0);
+    _shootingGalleryTargetsUpdateMountPath(task, -0x10, 0);
 }
 
 /// Runs a hanging gallery mount along its selected path, then shrinks it away.
@@ -1241,41 +1243,41 @@ static void _actor107600UpdateStandingMountPath(Task* task)
 /// A zero-speed first stop holds for the spawn nibble in seconds (30 ticks
 /// per second); zero seconds holds until the target finishes. Coordinates
 /// and speeds use the mount root's parent frame; axis deltas narrow to s16.
-static void _actor107600UpdateHangingMountPath(Task* task)
+static void _shootingGalleryTargetsUpdateHangingMountPath(Task* task)
 {
-    _actor107600UpdateMountPath(task, -0xF4C, -0xF3C);
+    _shootingGalleryTargetsUpdateMountPath(task, -0xF4C, -0xF3C);
 }
 
 /// Gallery target task callbacks: 0 initialize, 1 update, 2 hide, 3 destroy.
 ///
 /// The hidden target waits for its owning mount's teardown. Destruction unlinks
 /// its collision body before releasing target work, Enemy and Task.
-static const TaskFuncTable4 _gActor107600TargetTaskStates = {
+static const TaskFuncTable4 _gShootingGalleryTargetsTargetTaskStates = {
     .funcs = {
-        _actor107600InitTarget,
-        _actor107600UpdateTarget,
-        _actor107600HideTarget,
-        _actor107600DestroyTarget,
+        _shootingGalleryTargetsInitTarget,
+        _shootingGalleryTargetsUpdateTarget,
+        _shootingGalleryTargetsHideTarget,
+        _shootingGalleryTargetsDestroyTarget,
     },
 };
 
-/// Gallery target behavior callbacks indexed by `ACTOR_107600_TARGET_STATE_*`.
+/// Gallery target behavior callbacks indexed by `SHOOTING_GALLERY_TARGETS_TARGET_STATE_*`.
 ///
 /// Slots 0..9 select initialization, active behavior, two flinch strengths, three
 /// immediate active-state resumptions, folding, fixed demonstration or destroyed
 /// tumbling. The three resume slots' original reaction meanings remain unproven.
-static const TaskFuncTable10 _gActor107600TargetStateHandlers = {
+static const TaskFuncTable10 _gShootingGalleryTargetsTargetStateHandlers = {
     .funcs = {
-        _actor107600BeginTargetBehaviour,
-        _actor107600UpdateActiveTarget,
-        _actor107600UpdateTargetFlinch,
-        _actor107600UpdateTargetFlinch,
-        _actor107600ResumeTargetState4,
-        _actor107600ResumeTargetState5,
-        _actor107600ResumeTargetState6,
-        _actor107600FoldTarget,
-        _actor107600BeginFixedTargetExit,
-        _actor107600TumbleDestroyedTarget,
+        _shootingGalleryTargetsBeginTargetBehaviour,
+        _shootingGalleryTargetsUpdateActiveTarget,
+        _shootingGalleryTargetsUpdateTargetFlinch,
+        _shootingGalleryTargetsUpdateTargetFlinch,
+        _shootingGalleryTargetsResumeTargetState4,
+        _shootingGalleryTargetsResumeTargetState5,
+        _shootingGalleryTargetsResumeTargetState6,
+        _shootingGalleryTargetsFoldTarget,
+        _shootingGalleryTargetsBeginFixedTargetExit,
+        _shootingGalleryTargetsTumbleDestroyedTarget,
     },
 };
 
@@ -1284,11 +1286,11 @@ static const TaskFuncTable10 _gActor107600TargetStateHandlers = {
 /// Task state must be in 0..3: initialize, update, retire, destroy. The exported
 /// actor descriptor selects this private callback; initialization owns work
 /// allocation and installs teardown only after that allocation succeeds.
-static void _actor107600MountTask(Task* task)
+static void _shootingGalleryTargetsMountTask(Task* task)
 {
     TaskFuncTable4 handlers;
 
-    handlers = _gActor107600MountTaskStates;
+    handlers = _gShootingGalleryTargetsMountTaskStates;
     handlers.funcs[task->state](task);
 }
 
@@ -1299,15 +1301,15 @@ static void _actor107600MountTask(Task* task)
 /// heightPercent. Running and paused ticks refresh lighting and enable drawing;
 /// hidden ticks disable drawing. Angles use 4096 units per turn. Scaling divides
 /// the coefficient by 100 before multiplication, retaining integer truncation.
-static void _actor107600UpdateMount(Task* task)
+static void _shootingGalleryTargetsUpdateMount(Task* task)
 {
-    enum { ACTOR_107600_MOUNT_FULL_HEIGHT_PERCENT = 100 };
+    enum { MOUNT_FULL_HEIGHT_PERCENT = 100 };
 
-    TmdObject*             model       = task->extra.tmd;
-    GfxCoord*              rootCoord   = model->coords;
-    _Actor107600MountWork* work        = task->work;
-    TaskFunc               handlers[2] = { _actor107600BeginMountBehaviour, _actor107600UpdateMountBehaviour };
-    TmdObject*             visibleModel;
+    TmdObject*  model       = task->extra.tmd;
+    GfxCoord*   rootCoord   = model->coords;
+    _MountWork* work        = task->work;
+    TaskFunc    handlers[2] = { _shootingGalleryTargetsBeginMountBehaviour, _shootingGalleryTargetsUpdateMountBehaviour };
+    TmdObject*  visibleModel;
 
     visibleModel = model;
     switch (gSceneCombatState.actorControl) {
@@ -1316,11 +1318,11 @@ static void _actor107600UpdateMount(Task* task)
             rootCoord->param.rot.vy = work->yaw;
             rootCoord->param.rot.vz = work->roll;
             rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-            _actor107600UpdateMountRotation(task);
-            rootCoord->coord.m[1][1] = work->heightPercent * (rootCoord->coord.m[1][1] / ACTOR_107600_MOUNT_FULL_HEIGHT_PERCENT);
+            _shootingGalleryTargetsUpdateMountRotation(task);
+            rootCoord->coord.m[1][1] = work->heightPercent * (rootCoord->coord.m[1][1] / MOUNT_FULL_HEIGHT_PERCENT);
             // Paused mounts also refresh their lighting and remain drawable.
         case SCENE_COMBAT_ACTORS_PAUSED:
-            _actor107600UpdateMountColor(task);
+            _shootingGalleryTargetsUpdateMountColor(task);
             visibleModel->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case SCENE_COMBAT_ACTORS_HIDDEN:
@@ -1334,14 +1336,14 @@ static void _actor107600UpdateMount(Task* task)
 /// Fixed demonstration mounts were never counted and need no controller.
 /// Other mounts require the spawning controller to remain alive; the task
 /// advances to its destruction state after releasing the count.
-static void _actor107600RetireMount(Task* task)
+static void _shootingGalleryTargetsRetireMount(Task* task)
 {
-    Task*                  controllerTask;
-    _Actor107600MountWork* work;
+    Task*       controllerTask;
+    _MountWork* work;
 
     controllerTask = task->parent;
     work           = task->work;
-    if (work->behaviour != ACTOR_107600_MOUNT_FIXED) {
+    if (work->behaviour != MOUNT_FIXED) {
         MistShootingGalleryWork* gallery = controllerTask->work;
 
         gallery->liveTargets--;
@@ -1353,11 +1355,11 @@ static void _actor107600RetireMount(Task* task)
 ///
 /// Installed only after mount work allocation succeeds. Fixed mounts do not
 /// own a battle reference. Task teardown releases the work and child target.
-static void _actor107600DestroyMount(Task* task)
+static void _shootingGalleryTargetsDestroyMount(Task* task)
 {
-    _Actor107600MountWork* work = task->work;
+    _MountWork* work = task->work;
 
-    if (work->behaviour != ACTOR_107600_MOUNT_FIXED) {
+    if (work->behaviour != MOUNT_FIXED) {
         sceneReleaseBattleRefWithRewards(task, 0);
     }
     enemyDestroy(task->spawnArg2.pointer, task);
@@ -1369,7 +1371,7 @@ static void _actor107600DestroyMount(Task* task)
 /// translation follows the resident lighting query's coordinate-space contract.
 /// One scratch VECTOR survives the nested query and is released before return;
 /// only XYZ are initialized or read, and no pointer to it is retained.
-static void _actor107600UpdateMountColor(Task* task)
+static void _shootingGalleryTargetsUpdateMountColor(Task* task)
 {
     GfxCoord* rootCoord;
     void**    scratchSlot;
@@ -1396,15 +1398,15 @@ static void _actor107600UpdateMountColor(Task* task)
 /// identity and copies only the nine rotation elements, preserving translation.
 /// Requires initialized scratch storage for one MATRIX and nested axis-helper
 /// reservations. The caller dirties coordinate composition.
-static void _actor107600UpdateMountRotation(Task* task)
+static void _shootingGalleryTargetsUpdateMountRotation(Task* task)
 {
-    _Actor107600MountWork* work      = task->work;
-    GfxCoord*              rootCoord = task->extra.tmd->coords;
-    MATRIX*                rotation;
+    _MountWork* work      = task->work;
+    GfxCoord*   rootCoord = task->extra.tmd->coords;
+    MATRIX*     rotation;
 
-    work->pitch &= ACTOR_107600_ANGLE_MASK;
-    work->yaw   &= ACTOR_107600_ANGLE_MASK;
-    work->roll  &= ACTOR_107600_ANGLE_MASK;
+    work->pitch &= ANGLE_MASK;
+    work->yaw   &= ANGLE_MASK;
+    work->roll  &= ANGLE_MASK;
     rotation     = SCRATCH_STACK_CURSOR(MATRIX) - 1;
     // Initialize before publishing the reservation for the axis helpers.
     gfxSetRotIdentity(rotation);
@@ -1412,7 +1414,7 @@ static void _actor107600UpdateMountRotation(Task* task)
     RotMatrixZ(work->roll, rotation);
     RotMatrixX(work->pitch, rotation);
     RotMatrixY(work->yaw, rotation);
-    _actor107600CopyMountRotation(rotation, &rootCoord->coord);
+    _shootingGalleryTargetsCopyMountRotation(rotation, &rootCoord->coord);
     SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 
@@ -1420,7 +1422,7 @@ static void _actor107600UpdateMountRotation(Task* task)
 ///
 /// Source and destination must provide live `MATRIX` objects. Translation
 /// and alignment bytes are preserved; copying a matrix onto itself is valid.
-static void _actor107600CopyMountRotation(const MATRIX* source, MATRIX* destination)
+static void _shootingGalleryTargetsCopyMountRotation(const MATRIX* source, MATRIX* destination)
 {
     gfxCopyRotation(destination, source);
 }
@@ -1428,9 +1430,9 @@ static void _actor107600CopyMountRotation(const MATRIX* source, MATRIX* destinat
 /// Advances a newly spawned mount to its behaviour dispatcher after one tick.
 ///
 /// Requires live mount work in state 0; movement begins on the following tick.
-static void _actor107600BeginMountBehaviour(Task* task)
+static void _shootingGalleryTargetsBeginMountBehaviour(Task* task)
 {
-    _Actor107600MountWork* work = task->work;
+    _MountWork* work = task->work;
 
     work->state++;
 }
@@ -1440,12 +1442,12 @@ static void _actor107600BeginMountBehaviour(Task* task)
 /// The live work selects standing, hanging or fixed behaviour (0..2). Path
 /// behaviours require a live first-child target. While rotating, yaw advances
 /// 32 angle units per tick, with 4096 units per turn; the rotation builder wraps it.
-static void _actor107600UpdateMountBehaviour(Task* task)
+static void _shootingGalleryTargetsUpdateMountBehaviour(Task* task)
 {
-    TaskFuncTable3         handlers;
-    _Actor107600MountWork* work = task->work;
+    TaskFuncTable3 handlers;
+    _MountWork*    work = task->work;
 
-    handlers = _gActor107600MountBehaviourHandlers;
+    handlers = _gShootingGalleryTargetsMountBehaviourHandlers;
     handlers.funcs[work->behaviour](task);
     if (work->rotating != 0) {
         work->yaw += 0x20;
@@ -1456,19 +1458,19 @@ static void _actor107600UpdateMountBehaviour(Task* task)
 ///
 /// Requires its live first-child target. The first tick places the root at
 /// Y = 0 and full height; completion advances the mount's task state.
-static void _actor107600UpdateFixedMount(Task* task)
+static void _shootingGalleryTargetsUpdateFixedMount(Task* task)
 {
-    _Actor107600MountWork* work      = task->work;
-    GfxCoord*              rootCoord = task->extra.tmd->coords;
-    Enemy*                 enemy     = task->spawnArg2.pointer;
+    _MountWork* work      = task->work;
+    GfxCoord*   rootCoord = task->extra.tmd->coords;
+    Enemy*      enemy     = task->spawnArg2.pointer;
 
     switch (work->step) {
-        case ACTOR_107600_MOUNT_FIXED_STEP_PLACE:
+        case MOUNT_FIXED_STEP_PLACE:
             work->step++;
             work->heightPercent   = 100;
             rootCoord->coord.t[1] = 0;
-        case ACTOR_107600_MOUNT_FIXED_STEP_LEAVE:
-            if (enemy->task->firstChild->spawnArg1.value & ACTOR_107600_TARGET_SIGNAL_FINISHED) {
+        case MOUNT_FIXED_STEP_LEAVE:
+            if (enemy->task->firstChild->spawnArg1.value & TARGET_SIGNAL_FINISHED) {
                 if (work->heightPercent > 0) {
                     work->heightPercent -= 8;
                     return;
@@ -1488,27 +1490,27 @@ static void _actor107600UpdateFixedMount(Task* task)
 /// shifting it into the high half leaves the child's low byte for kind/signals.
 /// Kinds 0..9 use CLUT-row offset 2, later kinds use 0. Both primitive-buffer
 /// halves are rebuilt. Spawn failure leaves the mount unchanged, without retry.
-static void _actor107600SpawnTarget(Enemy* mountEnemy, s32 targetKind, s32 targetFlags)
+static void _shootingGalleryTargetsSpawnTarget(Enemy* mountEnemy, s32 targetKind, s32 targetFlags)
 {
     enum {
-        ACTOR_107600_TARGET_FIRST_ZERO_CLUT_KIND = 10,
-        ACTOR_107600_TARGET_EARLY_CLUT_ROW       = 2,
+        FIRST_ZERO_CLUT_KIND = 10,
+        EARLY_CLUT_ROW       = 2,
     };
 
     Enemy*     targetEnemy;
     GfxCoord*  targetCoord;
     TmdObject* targetModel;
 
-    targetEnemy = enemySpawnFromTable(gActor107600TaskDescriptors, targetKind + ACTOR_107600_TASK_TARGET_BASE, targetFlags, mountEnemy);
+    targetEnemy = enemySpawnFromTable(gShootingGalleryTargetsTaskDescriptors, targetKind + SHOOTING_GALLERY_TARGETS_TASK_TARGET_BASE, targetFlags, mountEnemy);
     if (targetEnemy != NULL) {
         taskReparent(mountEnemy->task, targetEnemy->task);
         targetCoord                        = targetEnemy->task->extra.tmd->coords;
         targetCoord->parent                = mountEnemy->task->extra.tmd->coords;
-        targetEnemy->task->spawnArg1.value = targetKind | (targetFlags << ACTOR_107600_TARGET_SPAWN_BEHAVIOUR_SHIFT);
+        targetEnemy->task->spawnArg1.value = targetKind | (targetFlags << TARGET_SPAWN_BEHAVIOUR_SHIFT);
         targetModel                        = targetEnemy->task->extra.tmd;
         targetModel->texturePageOffset     = 0;
-        if (targetKind < ACTOR_107600_TARGET_FIRST_ZERO_CLUT_KIND) {
-            targetModel->clutRowOffset = ACTOR_107600_TARGET_EARLY_CLUT_ROW;
+        if (targetKind < FIRST_ZERO_CLUT_KIND) {
+            targetModel->clutRowOffset = EARLY_CLUT_ROW;
         } else {
             targetModel->clutRowOffset = 0;
         }
@@ -1525,20 +1527,20 @@ static void _actor107600SpawnTarget(Enemy* mountEnemy, s32 targetKind, s32 targe
 /// allocation destroys the enemy before installing the exit callback. The
 /// kind nibble indexes 13 HP entries; the demonstration kind 13 also reads
 /// past that serialized table, whose runtime backing is unproven.
-static void _actor107600InitTarget(Task* task)
+static void _shootingGalleryTargetsInitTarget(Task* task)
 {
-    _Actor107600TargetWork* work;
-    Enemy*                  enemy;
-    TmdObject*              model;
-    GfxCoord*               rootCoord;
-    u16                     hitPoints;
-    u32                     spawnByte;
+    _TargetWork* work;
+    Enemy*       enemy;
+    TmdObject*   model;
+    GfxCoord*    rootCoord;
+    u16          hitPoints;
+    u32          spawnByte;
 
     model     = task->extra.tmd;
     spawnByte = (u8)task->spawnArg1.value;
     enemy     = task->spawnArg2.pointer;
     rootCoord = model->coords;
-    if (spawnByte == ACTOR_107600_TARGET_SPAWN_DEAD) {
+    if (spawnByte == TARGET_SPAWN_DEAD) {
         enemyDestroy(enemy, task);
         return;
     }
@@ -1549,19 +1551,19 @@ static void _actor107600InitTarget(Task* task)
         return;
     }
     // Install cleanup before linking collision and target tracking.
-    task->exitCallback   = _actor107600DestroyTarget;
-    work->mountBehaviour = ((u32)task->spawnArg1.value >> ACTOR_107600_TARGET_SPAWN_BEHAVIOUR_SHIFT) & ACTOR_107600_TARGET_SPAWN_BEHAVIOUR_MASK;
+    task->exitCallback   = _shootingGalleryTargetsDestroyTarget;
+    work->mountBehaviour = ((u32)task->spawnArg1.value >> TARGET_SPAWN_BEHAVIOUR_SHIFT) & TARGET_SPAWN_BEHAVIOUR_MASK;
     model->lightMtx      = &work->lightMatrix;
     model->colorMtx      = &work->colorMatrix;
-    enemy->param         = &_gActor107600TargetParams;
+    enemy->param         = &_gShootingGalleryTargetsTargetParams;
     enemy->recs          = work->contacts;
     work->field_140      = task->extra.tmd->coords;
     work->field_144      = 0x140;
     work->field_146      = 2;
-    hitPoints            = _gActor107600TargetHitPoints[task->spawnArg1.value & ACTOR_107600_TARGET_SPAWN_KIND_MASK];
+    hitPoints            = _gShootingGalleryTargetsTargetHitPoints[task->spawnArg1.value & TARGET_SPAWN_KIND_MASK];
     enemy->hpMax         = hitPoints;
     enemy->hp            = hitPoints;
-    _actor107600InitTargetCollision(task);
+    _shootingGalleryTargetsInitTargetCollision(task);
     worldTargetLinkNode(&enemy->node);
     enemy->field_4                = &rootCoord->workm;
     enemy->bodyPos.vy             = -0x244;
@@ -1570,7 +1572,7 @@ static void _actor107600InitTarget(Task* task)
     enemy->bodyPos.vz             = 0;
     enemy->coord                  = rootCoord;
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-    _actor107600PlaceTargetOffset(rootCoord);
+    _shootingGalleryTargetsPlaceTargetOffset(rootCoord);
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(rootCoord);
     task->state += 1;
@@ -1585,67 +1587,67 @@ static void _actor107600InitTarget(Task* task)
 /// their lock mask to the live gallery controller. Hit offsets cycle through
 /// eight entries; a dead target replaces its last mark with a death burst.
 /// Borrows one scratch SVECTOR across state dispatch and releases it on return.
-static void _actor107600UpdateTarget(Task* task)
+static void _shootingGalleryTargetsUpdateTarget(Task* task)
 {
     TaskFuncTable10 states;
     Enemy*          enemy;
     TmdObject*      model;
     TmdObject*      drawModel;
 
-    _Actor107600TargetWork* work;
-    GfxCoord*               rootCoord;
-    SVECTOR*                hitMarkOffset;
-    s32                     hitMarkIndex;
+    _TargetWork* work;
+    GfxCoord*    rootCoord;
+    SVECTOR*     hitMarkOffset;
+    s32          hitMarkIndex;
 
     enemy     = task->spawnArg2.pointer;
     model     = task->extra.tmd;
     work      = task->work;
     rootCoord = model->coords;
     drawModel = model;
-    states    = _gActor107600TargetStateHandlers;
+    states    = _gShootingGalleryTargetsTargetStateHandlers;
     SCRATCH_STACK_RESERVE_BYTES(sizeof(*hitMarkOffset));
     hitMarkOffset = SCRATCH_STACK_CURSOR(SVECTOR);
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             states.funcs[work->state](task);
-            if (work->state < ACTOR_107600_TARGET_STATE_LEAVE) {
+            if (work->state < TARGET_STATE_LEAVE) {
                 if (work->hitCooldown == 0) {
-                    _actor107600ApplyTargetHits(task);
+                    _shootingGalleryTargetsApplyTargetHits(task);
                 } else {
                     work->hitCooldown--;
                 }
                 worldCollisionClearContacts(work->contacts);
                 if (enemy->hp <= 0) {
-                    _actor107600SetTargetState(task, ACTOR_107600_TARGET_STATE_DESTROYED);
+                    _shootingGalleryTargetsSetTargetState(task, TARGET_STATE_DESTROYED);
                 }
             }
             // Running targets also use the paused mode's colour/draw refresh.
             /* fallthrough */
         case SCENE_COMBAT_ACTORS_PAUSED:
-            _actor107600UpdateTargetRootColor(task);
+            _shootingGalleryTargetsUpdateTargetRootColor(task);
             drawModel->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case SCENE_COMBAT_ACTORS_HIDDEN:
             drawModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
-    if (work->mountBehaviour != ACTOR_107600_MOUNT_FIXED) {
+    if (work->mountBehaviour != MOUNT_FIXED) {
         ((MistShootingGalleryWork*)gMistShootingGalleryControllerTask->work)->targetLockMask = worldTargetGetActorLockMask(&enemy->node);
     }
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-    _actor107600UpdateTargetRotation(task);
-    _actor107600ApplyTargetScale(task);
+    _shootingGalleryTargetsUpdateTargetRotation(task);
+    _shootingGalleryTargetsApplyTargetScale(task);
     for (hitMarkIndex = 0; hitMarkIndex < work->hitMarkCount; hitMarkIndex++) {
         if (hitMarkIndex == work->hitMarkCount - 1 && enemy->hp <= 0) {
             hitMarkOffset->vx = 0;
             hitMarkOffset->vy = -0xE0;
             hitMarkOffset->vz = 0;
-            _actor107600DrawTargetDeathBurst(rootCoord, hitMarkOffset);
+            _shootingGalleryTargetsDrawTargetDeathBurst(rootCoord, hitMarkOffset);
         } else {
-            hitMarkOffset->vx = _gActor107600TargetHitMarkOffsets[(work->hitMarkFirst + hitMarkIndex) & (ACTOR_107600_TARGET_HIT_MARK_COUNT - 1)].vx;
-            hitMarkOffset->vy = _gActor107600TargetHitMarkOffsets[(work->hitMarkFirst + hitMarkIndex) & (ACTOR_107600_TARGET_HIT_MARK_COUNT - 1)].vy;
+            hitMarkOffset->vx = _gShootingGalleryTargetsTargetHitMarkOffsets[(work->hitMarkFirst + hitMarkIndex) & (TARGET_HIT_MARK_COUNT - 1)].vx;
+            hitMarkOffset->vy = _gShootingGalleryTargetsTargetHitMarkOffsets[(work->hitMarkFirst + hitMarkIndex) & (TARGET_HIT_MARK_COUNT - 1)].vy;
             hitMarkOffset->vz = 0;
-            _actor107600DrawTargetHitMark(rootCoord, hitMarkOffset);
+            _shootingGalleryTargetsDrawTargetHitMark(rootCoord, hitMarkOffset);
         }
     }
     SCRATCH_STACK_RELEASE_BYTES(sizeof(*hitMarkOffset));
@@ -1662,53 +1664,53 @@ static void _actor107600UpdateTarget(Task* task)
 /// ten HP and descending-part hit flashes; at ten HP or less the gallery instead
 /// receives a lethal-hit latch and pending damage is zero. Hit reactions preempt
 /// these phases, and disabled attacks retain their elapsed timer.
-static void _actor107600UpdateActiveTarget(Task* task)
+static void _shootingGalleryTargetsUpdateActiveTarget(Task* task)
 {
     enum {
-        ACTOR_107600_TARGET_ACTIVE_STEP_WAIT_MOUNT        = 0,
-        ACTOR_107600_TARGET_ACTIVE_STEP_GROW_WIDTH        = 1,
-        ACTOR_107600_TARGET_ACTIVE_STEP_GROW_HEIGHT       = 2,
-        ACTOR_107600_TARGET_ACTIVE_STEP_BOB               = 4,
-        ACTOR_107600_TARGET_ACTIVE_STEP_ATTACK            = 5,
-        ACTOR_107600_TARGET_ATTACK_ENABLED                = 0x20000000,
-        ACTOR_107600_TARGET_FULL_PERCENT                  = 100,
-        ACTOR_107600_TARGET_GROWTH_STEP                   = 32,
-        ACTOR_107600_TARGET_STAND_EASE_BIAS               = 32,
-        ACTOR_107600_TARGET_CHARGE_TICK                   = 120,
-        ACTOR_107600_TARGET_FIRE_TICK                     = 210,
-        ACTOR_107600_TARGET_PLAYER_DAMAGE                 = 10,
-        ACTOR_107600_TARGET_PLAYER_HIT_PART               = 4,
-        ACTOR_107600_TARGET_PLAYER_BODY_HIT               = 1,
-        ACTOR_107600_TARGET_PLAYER_DESCENDING_HIT_FLASHES = 5
+        ACTIVE_STEP_WAIT_MOUNT        = 0,
+        ACTIVE_STEP_GROW_WIDTH        = 1,
+        ACTIVE_STEP_GROW_HEIGHT       = 2,
+        ACTIVE_STEP_BOB               = 4,
+        ACTIVE_STEP_ATTACK            = 5,
+        ATTACK_ENABLED                = 0x20000000,
+        FULL_PERCENT                  = 100,
+        GROWTH_STEP                   = 32,
+        STAND_EASE_BIAS               = 32,
+        CHARGE_TICK                   = 120,
+        FIRE_TICK                     = 210,
+        PLAYER_DAMAGE                 = 10,
+        PLAYER_HIT_PART               = 4,
+        PLAYER_BODY_HIT               = 1,
+        PLAYER_DESCENDING_HIT_FLASHES = 5
     };
 
-    _Actor107600TargetWork* work  = task->work;
-    Enemy*                  enemy = task->spawnArg2.pointer;
-    Task*                   player;
-    GameActor*              playerActor;
-    s32                     hitPan;
-    s32                     spawnFlags;
-    s16                     bobTick;
+    _TargetWork* work  = task->work;
+    Enemy*       enemy = task->spawnArg2.pointer;
+    Task*        player;
+    GameActor*   playerActor;
+    s32          hitPan;
+    s32          spawnFlags;
+    s16          bobTick;
 
-    if (_actor107600ConsumeTargetHitReaction(task) != 0) {
+    if (_shootingGalleryTargetsConsumeTargetHitReaction(task) != 0) {
         return;
     }
     // Entry phases fall through until a growth or settling tick must wait.
     switch (work->step) {
-        case ACTOR_107600_TARGET_ACTIVE_STEP_WAIT_MOUNT:
-            if (!(task->spawnArg1.value & ACTOR_107600_TARGET_SIGNAL_MOUNT_READY)) {
+        case ACTIVE_STEP_WAIT_MOUNT:
+            if (!(task->spawnArg1.value & TARGET_SIGNAL_MOUNT_READY)) {
                 return;
             }
             work->step++;
-        case ACTOR_107600_TARGET_ACTIVE_STEP_GROW_WIDTH:
-            if (work->widthPercent < ACTOR_107600_TARGET_FULL_PERCENT) {
-                work->widthPercent += ACTOR_107600_TARGET_GROWTH_STEP;
+        case ACTIVE_STEP_GROW_WIDTH:
+            if (work->widthPercent < FULL_PERCENT) {
+                work->widthPercent += GROWTH_STEP;
                 return;
             }
             work->step++;
-        case ACTOR_107600_TARGET_ACTIVE_STEP_GROW_HEIGHT:
-            if (work->heightPercent < ACTOR_107600_TARGET_FULL_PERCENT) {
-                work->heightPercent += ACTOR_107600_TARGET_GROWTH_STEP;
+        case ACTIVE_STEP_GROW_HEIGHT:
+            if (work->heightPercent < FULL_PERCENT) {
+                work->heightPercent += GROWTH_STEP;
                 return;
             }
             {
@@ -1718,17 +1720,17 @@ static void _actor107600UpdateActiveTarget(Task* task)
                 soundPan = (s8)worldCoordGetOriginAudioPan(soundCoord);
                 sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_TARGET_APPEAR, soundPan, (s8)worldCoordGetOriginAudioDepth(soundCoord));
             }
-        case ACTOR_107600_TARGET_ACTIVE_STEP_STAND: {
+        case TARGET_ACTIVE_STEP_STAND: {
             s16 pitch = work->pitch;
-            if ((u16)(pitch - 1) < ACTOR_107600_ANGLE_QUARTER_TURN) {
-                work->pitch = pitch - ((ACTOR_107600_ANGLE_QUARTER_TURN + ACTOR_107600_TARGET_STAND_EASE_BIAS - pitch) >> 2);
+            if ((u16)(pitch - 1) < ANGLE_QUARTER_TURN) {
+                work->pitch = pitch - ((ANGLE_QUARTER_TURN + STAND_EASE_BIAS - pitch) >> 2);
                 return;
             }
         }
             work->timer = 0;
             work->step++;
             return;
-        case ACTOR_107600_TARGET_ACTIVE_STEP_BOB:
+        case ACTIVE_STEP_BOB:
             bobTick     = work->timer + 1;
             work->timer = bobTick;
             if (bobTick & 1) {
@@ -1737,33 +1739,33 @@ static void _actor107600UpdateActiveTarget(Task* task)
                 work->pitch = 0;
                 if (work->timer >= 4) {
                     work->step++;
-                    task->spawnArg1.value |= ACTOR_107600_TARGET_SIGNAL_STANDING;
+                    task->spawnArg1.value |= TARGET_SIGNAL_STANDING;
                     worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
                     enemy->node.state.parts.flags = WORLD_TARGET_KEEP_SCANNED;
                     work->body.flags             |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 }
             }
-        case ACTOR_107600_TARGET_ACTIVE_STEP_ATTACK:
+        case ACTIVE_STEP_ATTACK:
             spawnFlags = task->spawnArg1.value;
-            if (spawnFlags & ACTOR_107600_TARGET_SIGNAL_STOP) {
-                _actor107600SetTargetState(task, ACTOR_107600_TARGET_STATE_LEAVE);
+            if (spawnFlags & TARGET_SIGNAL_STOP) {
+                _shootingGalleryTargetsSetTargetState(task, TARGET_STATE_LEAVE);
                 return;
             }
-            if (!(spawnFlags & ACTOR_107600_TARGET_ATTACK_ENABLED)) {
+            if (!(spawnFlags & ATTACK_ENABLED)) {
                 return;
             }
             work->attackTimer++;
-            if (work->attackTimer == ACTOR_107600_TARGET_CHARGE_TICK) {
+            if (work->attackTimer == CHARGE_TICK) {
                 GfxCoord* soundCoord = task->extra.tmd->coords;
                 s32       soundPan;
                 worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                 soundPan = (s8)worldCoordGetOriginAudioPan(soundCoord);
                 sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_TARGET_CHARGE, soundPan, (s8)worldCoordGetOriginAudioDepth(soundCoord));
-            } else if (work->attackTimer == ACTOR_107600_TARGET_FIRE_TICK) {
+            } else if (work->attackTimer == FIRE_TICK) {
                 GfxCoord* playerHitCoord;
                 s32       soundPan;
                 player            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                playerHitCoord    = &player->extra.tmd->coords[ACTOR_107600_TARGET_PLAYER_HIT_PART];
+                playerHitCoord    = &player->extra.tmd->coords[PLAYER_HIT_PART];
                 playerActor       = player->work;
                 work->attackTimer = 0;
                 worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
@@ -1771,14 +1773,14 @@ static void _actor107600UpdateActiveTarget(Task* task)
                 soundPan = (s8)worldCoordGetOriginAudioPan(playerHitCoord);
                 sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_TARGET_ATTACK, soundPan, (s8)worldCoordGetOriginAudioDepth(playerHitCoord));
                 if (playerActor->mode != GAME_ACTOR_MODE_DAMAGE) {
-                    if (gPlayerStatus.hp <= ACTOR_107600_TARGET_PLAYER_DAMAGE) {
+                    if (gPlayerStatus.hp <= PLAYER_DAMAGE) {
                         ((MistShootingGalleryWork*)gMistShootingGalleryControllerTask->work)->lethalHit = 1;
                         playerActor->pendingDamage                                                      = 0;
                     } else {
-                        playerActor->pendingDamage = ACTOR_107600_TARGET_PLAYER_DAMAGE;
+                        playerActor->pendingDamage = PLAYER_DAMAGE;
                     }
-                    playerActor->hitRegion      = ACTOR_107600_TARGET_PLAYER_BODY_HIT;
-                    playerActor->damageReaction = ACTOR_107600_TARGET_PLAYER_DESCENDING_HIT_FLASHES;
+                    playerActor->hitRegion      = PLAYER_BODY_HIT;
+                    playerActor->damageReaction = PLAYER_DESCENDING_HIT_FLASHES;
                     playerActorEnterPendingHit(player);
                     hitPan = (s8)worldCoordGetOriginAudioPan(playerHitCoord);
                     sndEvtRequestScriptStart(SOUND_PLAYER_STRUCK, hitPan, (s8)worldCoordGetOriginAudioDepth(playerHitCoord));
@@ -1793,27 +1795,27 @@ static void _actor107600UpdateActiveTarget(Task* task)
 /// Both light and heavy hit states use this body. Damage scales the six-tick
 /// pitch swing in 4096 units per turn; the settling phase counts timer values
 /// 0..4 before resuming the active stand-up step.
-static void _actor107600UpdateTargetFlinch(Task* task)
+static void _shootingGalleryTargetsUpdateTargetFlinch(Task* task)
 {
-    enum { ACTOR_107600_TARGET_FLINCH_ANGLE_LIMIT = ACTOR_107600_ANGLE_TURN / 8 };
+    enum { TARGET_FLINCH_ANGLE_LIMIT = ANGLE_TURN / 8 };
 
-    _Actor107600TargetWork* work = task->work;
-    s32                     swingAngleStep;
-    s16                     framesLeft;
+    _TargetWork* work = task->work;
+    s32          swingAngleStep;
+    s16          framesLeft;
 
     switch (work->step) {
-        case ACTOR_107600_TARGET_FLINCH_STEP_INIT:
+        case TARGET_FLINCH_STEP_INIT:
             work->step++;
             work->timer = 6;
-        case ACTOR_107600_TARGET_FLINCH_STEP_SWING:
+        case TARGET_FLINCH_STEP_SWING:
             swingAngleStep = work->hitDamage * 6;
-            if (swingAngleStep > ACTOR_107600_TARGET_FLINCH_ANGLE_LIMIT) {
-                swingAngleStep = ACTOR_107600_TARGET_FLINCH_ANGLE_LIMIT;
+            if (swingAngleStep > TARGET_FLINCH_ANGLE_LIMIT) {
+                swingAngleStep = TARGET_FLINCH_ANGLE_LIMIT;
             }
             framesLeft      = work->timer;
             swingAngleStep /= 3;
             if (framesLeft >= 4) {
-                if (work->pitch < ACTOR_107600_TARGET_FLINCH_ANGLE_LIMIT) {
+                if (work->pitch < TARGET_FLINCH_ANGLE_LIMIT) {
                     work->pitch += swingAngleStep - swingAngleStep / 3 * (6 - framesLeft);
                 }
             } else if (framesLeft <= 0) {
@@ -1826,7 +1828,7 @@ static void _actor107600UpdateTargetFlinch(Task* task)
             }
             work->timer--;
             break;
-        case ACTOR_107600_TARGET_FLINCH_STEP_SETTLE:
+        case TARGET_FLINCH_STEP_SETTLE:
             work->timer++;
             if (work->timer & 1) {
                 work->pitch = (work->timer - 7) * 8;
@@ -1835,8 +1837,8 @@ static void _actor107600UpdateTargetFlinch(Task* task)
             work->pitch     = 0;
             work->hitDamage = 0;
             if (work->timer >= 4) {
-                work->state = ACTOR_107600_TARGET_STATE_ACTIVE;
-                work->step  = ACTOR_107600_TARGET_ACTIVE_STEP_STAND;
+                work->state = TARGET_STATE_ACTIVE;
+                work->step  = TARGET_ACTIVE_STEP_STAND;
             }
             break;
     }
@@ -1848,23 +1850,23 @@ static void _actor107600UpdateTargetFlinch(Task* task)
 /// folds through a quarter turn and shrinks height before width. The collision
 /// body stays linked until the task exits. The finished signal is raised only
 /// after both scales reach at most 20 percent.
-static void _actor107600FoldTarget(Task* task)
+static void _shootingGalleryTargetsFoldTarget(Task* task)
 {
-    _Actor107600TargetWork* work  = task->work;
-    Enemy*                  enemy = task->spawnArg2.pointer;
-    GfxCoord*               rootCoord;
-    s32                     pan;
+    _TargetWork* work  = task->work;
+    Enemy*       enemy = task->spawnArg2.pointer;
+    GfxCoord*    rootCoord;
+    s32          pan;
 
     switch (work->step) {
-        case ACTOR_107600_TARGET_FOLD_STEP_BEGIN:
+        case TARGET_FOLD_STEP_BEGIN:
             work->step++;
-            task->spawnArg1.value |= ACTOR_107600_TARGET_SIGNAL_STOP;
+            task->spawnArg1.value |= TARGET_SIGNAL_STOP;
             work->timer            = 7;
             // Stop accepting shots before folding the target back onto its mount.
             worldTargetUnlinkNode(&enemy->node);
             enemy->recs       = NULL;
             work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        case ACTOR_107600_TARGET_FOLD_STEP_WAIT:
+        case TARGET_FOLD_STEP_WAIT:
             work->timer--;
             if (work->timer <= 0) {
                 rootCoord = task->extra.tmd->coords;
@@ -1876,26 +1878,26 @@ static void _actor107600FoldTarget(Task* task)
                 sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_TARGET_DEATH, pan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
             }
             break;
-        case ACTOR_107600_TARGET_FOLD_STEP_FOLD:
-            if (work->pitch < ACTOR_107600_ANGLE_QUARTER_TURN) {
+        case TARGET_FOLD_STEP_FOLD:
+            if (work->pitch < ANGLE_QUARTER_TURN) {
                 work->pitch += 0x80;
                 return;
             }
-            work->pitch = ACTOR_107600_ANGLE_QUARTER_TURN;
+            work->pitch = ANGLE_QUARTER_TURN;
             work->step++;
-        case ACTOR_107600_TARGET_FOLD_STEP_SHRINK:
-            if (work->heightPercent > ACTOR_107600_TARGET_SHRINK_STOP_PERCENT) {
-                work->heightPercent -= ACTOR_107600_TARGET_SHRINK_STEP_PERCENT;
+        case TARGET_FOLD_STEP_SHRINK:
+            if (work->heightPercent > TARGET_SHRINK_STOP_PERCENT) {
+                work->heightPercent -= TARGET_SHRINK_STEP_PERCENT;
                 return;
             }
-            if (work->widthPercent > ACTOR_107600_TARGET_SHRINK_STOP_PERCENT) {
-                work->widthPercent -= ACTOR_107600_TARGET_SHRINK_STEP_PERCENT;
+            if (work->widthPercent > TARGET_SHRINK_STOP_PERCENT) {
+                work->widthPercent -= TARGET_SHRINK_STEP_PERCENT;
                 return;
             }
             work->step++;
-            task->spawnArg1.value |= ACTOR_107600_TARGET_SIGNAL_FINISHED;
+            task->spawnArg1.value |= TARGET_SIGNAL_FINISHED;
             break;
-        case ACTOR_107600_TARGET_FOLD_STEP_DONE:
+        case TARGET_FOLD_STEP_DONE:
             break;
     }
 }
@@ -1905,14 +1907,14 @@ static void _actor107600FoldTarget(Task* task)
 /// Advances the shared LCG once. Even magnitudes are negated and odd ones stay
 /// positive, producing -126..127. The output is a live target work spin field,
 /// separate from the shared generator state.
-static inline void _actor107600RollTargetSpin(s16* spinAngle)
+static inline void _shootingGalleryTargetsRollTargetSpin(s16* spinAngle)
 {
-    enum { ACTOR_107600_TARGET_SPIN_MAGNITUDE_MASK = 0x7F };
+    enum { TARGET_SPIN_MAGNITUDE_MASK = 0x7F };
 
     s16 spin;
 
     RANDOM_LCG_ADVANCE();
-    spin = RANDOM_LCG_DRAW() & ACTOR_107600_TARGET_SPIN_MAGNITUDE_MASK;
+    spin = RANDOM_LCG_DRAW() & TARGET_SPIN_MAGNITUDE_MASK;
     // Publish the magnitude before choosing its sign.
     *spinAngle = spin;
     if (!(RANDOM_LCG_DRAW() & 1)) {
@@ -1928,9 +1930,9 @@ static inline void _actor107600RollTargetSpin(s16* spinAngle)
 /// shot direction becomes a clamped vertical velocity in parent units per
 /// tick. At tick 16 the target signals completion and enters the hidden task
 /// state; its mount's teardown later destroys it.
-static void _actor107600TumbleDestroyedTarget(Task* task)
+static void _shootingGalleryTargetsTumbleDestroyedTarget(Task* task)
 {
-    _Actor107600TargetWork*  work      = task->work;
+    _TargetWork*             work      = task->work;
     Enemy*                   enemy     = task->spawnArg2.pointer;
     TmdObject*               model     = task->extra.tmd;
     GfxCoord*                rootCoord = model->coords;
@@ -1942,33 +1944,33 @@ static void _actor107600TumbleDestroyedTarget(Task* task)
     s32                      verticalVelocity;
 
     switch (work->step) {
-        case ACTOR_107600_TARGET_TUMBLE_STEP_BEGIN:
+        case TARGET_TUMBLE_STEP_BEGIN:
             work->step++;
             model->flags          |= TMD_OBJECT_SEMI_TRANS;
-            task->spawnArg1.value |= ACTOR_107600_TARGET_SIGNAL_STOP;
+            task->spawnArg1.value |= TARGET_SIGNAL_STOP;
             work->hitMarkCount     = 0;
             work->field_15C        = 0;
             worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
             work->timer = 0;
-            targetKind  = task->spawnArg1.value & ACTOR_107600_TARGET_SPAWN_KIND_MASK;
+            targetKind  = task->spawnArg1.value & TARGET_SPAWN_KIND_MASK;
             soundId     = targetKind;
             gallery->kills[targetKind]++;
             if (soundId < 9) {
-                soundId = ACTOR_107600_TARGET_KILL_SOUND_KINDS_0_TO_8;
+                soundId = TARGET_KILL_SOUND_KINDS_0_TO_8;
             } else if (soundId == 9) {
-                soundId = ACTOR_107600_TARGET_KILL_SOUND_KIND_9;
+                soundId = TARGET_KILL_SOUND_KIND_9;
             } else {
-                soundId = ACTOR_107600_TARGET_KILL_SOUND_KINDS_10_UP;
+                soundId = TARGET_KILL_SOUND_KINDS_10_UP;
             }
             pan = (s8)worldCoordGetOriginAudioPan(rootCoord);
             sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
             work->yaw  = (rootCoord->parent)->param.rot.vy;
             work->roll = (rootCoord->parent)->param.rot.vz;
-            _actor107600RollTargetSpin(&work->pitchSpin);
-            _actor107600RollTargetSpin(&work->yawSpin);
-            _actor107600RollTargetSpin(&work->rollSpin);
+            _shootingGalleryTargetsRollTargetSpin(&work->pitchSpin);
+            _shootingGalleryTargetsRollTargetSpin(&work->yawSpin);
+            _shootingGalleryTargetsRollTargetSpin(&work->rollSpin);
             // Detach into the mount's parent frame before applying the shot direction.
-            _actor107600CopyTargetRotation(&rootCoord->parent->coord, &rootCoord->coord);
+            _shootingGalleryTargetsCopyTargetRotation(&rootCoord->parent->coord, &rootCoord->coord);
             rootCoord->coord.t[0] += rootCoord->parent->coord.t[0];
             rootCoord->coord.t[1] += rootCoord->parent->coord.t[1];
             rootCoord->coord.t[2] += rootCoord->parent->coord.t[2];
@@ -1990,10 +1992,10 @@ static void _actor107600TumbleDestroyedTarget(Task* task)
             worldTargetUnlinkNode(&enemy->node);
             enemy->recs       = NULL;
             work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        case ACTOR_107600_TARGET_TUMBLE_STEP_MOVE:
+        case TARGET_TUMBLE_STEP_MOVE:
             // Decay spin and velocity while the target shrinks; tick 16 ends its task state.
             work->timer++;
-            if (work->timer < ACTOR_107600_TARGET_TUMBLE_FRAMES) {
+            if (work->timer < TARGET_TUMBLE_FRAMES) {
                 work->knockback.vx    -= work->knockback.vx >> 4;
                 work->knockback.vy    -= work->knockback.vy >> 4;
                 work->knockback.vz    -= work->knockback.vz >> 4;
@@ -2009,20 +2011,20 @@ static void _actor107600TumbleDestroyedTarget(Task* task)
                 if (rootCoord->coord.t[1] < -0x40) {
                     rootCoord->coord.t[1] += 0x40;
                 }
-                if (work->heightPercent > ACTOR_107600_TARGET_SHRINK_STOP_PERCENT) {
-                    work->heightPercent -= ACTOR_107600_TARGET_SHRINK_STEP_PERCENT;
+                if (work->heightPercent > TARGET_SHRINK_STOP_PERCENT) {
+                    work->heightPercent -= TARGET_SHRINK_STEP_PERCENT;
                     return;
                 }
-                if (work->widthPercent > ACTOR_107600_TARGET_SHRINK_STOP_PERCENT) {
-                    work->widthPercent -= ACTOR_107600_TARGET_SHRINK_STEP_PERCENT;
+                if (work->widthPercent > TARGET_SHRINK_STOP_PERCENT) {
+                    work->widthPercent -= TARGET_SHRINK_STEP_PERCENT;
                     return;
                 }
             } else {
                 task->state++;
-                task->spawnArg1.value |= ACTOR_107600_TARGET_SIGNAL_FINISHED;
+                task->spawnArg1.value |= TARGET_SIGNAL_FINISHED;
             }
             break;
-        case ACTOR_107600_TARGET_TUMBLE_STEP_INERT:
+        case TARGET_TUMBLE_STEP_INERT:
             break;
     }
 }
@@ -2032,12 +2034,12 @@ static void _actor107600TumbleDestroyedTarget(Task* task)
 /// Task must own the supplied live target work and model. At the eight-mark
 /// limit neither the count nor the cue changes. Each accepted mark sounds at
 /// the root's composed origin; pan and attenuation narrow to signed bytes.
-static inline void _actor107600AddTargetHitMark(Task* task, _Actor107600TargetWork* work)
+static inline void _shootingGalleryTargetsAddTargetHitMark(Task* task, _TargetWork* work)
 {
     GfxCoord* rootCoord;
     s32       pan;
 
-    if (work->hitMarkCount < ACTOR_107600_TARGET_HIT_MARK_COUNT) {
+    if (work->hitMarkCount < TARGET_HIT_MARK_COUNT) {
         rootCoord = task->extra.tmd->coords;
         work->hitMarkCount++;
         pan = (s8)worldCoordGetOriginAudioPan(rootCoord);
@@ -2057,22 +2059,22 @@ static inline void _actor107600AddTargetHitMark(Task* task, _Actor107600TargetWo
 /// Each attack overwrites hitTaken and hitDamage; nonpositive damage clears hitTaken
 /// without clearing an earlier queued reaction. All contacts are cleared before
 /// returning.
-static void _actor107600ApplyTargetHits(Task* task)
+static void _shootingGalleryTargetsApplyTargetHits(Task* task)
 {
     enum {
-        ACTOR_107600_TARGET_HIT_SCRATCH_BYTES = 8,
-        ACTOR_107600_TARGET_HEAVY_HIT_HP      = 20,
+        HIT_SCRATCH_BYTES = 8,
+        HEAVY_HIT_HP      = 20,
     };
 
-    _Actor107600TargetWork* work;
-    Enemy*                  enemy;
-    s32                     contactIndex;
-    s16                     damage;
+    _TargetWork* work;
+    Enemy*       enemy;
+    s32          contactIndex;
+    s16          damage;
 
     work  = task->work;
     enemy = task->spawnArg2.pointer;
     // Retain the eight-byte scratch frame; this routine never accesses its payload.
-    SCRATCH_STACK_RESERVE_BYTES(ACTOR_107600_TARGET_HIT_SCRATCH_BYTES);
+    SCRATCH_STACK_RESERVE_BYTES(HIT_SCRATCH_BYTES);
     work->hitTaken = 0;
     if (worldCollisionFindContactIndex(work->body.context.contacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
         for (contactIndex = 0; contactIndex < ARRAY_SIZE(work->contacts); contactIndex++) {
@@ -2082,7 +2084,7 @@ static void _actor107600ApplyTargetHits(Task* task)
                 work->knockback.vx = work->contacts[contactIndex].response.direction.vx;
                 work->knockback.vy = work->contacts[contactIndex].response.direction.vy;
                 work->knockback.vz = work->contacts[contactIndex].response.direction.vz;
-                _actor107600MeasureTargetPlayerDistance(task);
+                _shootingGalleryTargetsMeasureTargetPlayerDistance(task);
                 damage            = damageComputePlayerAttack(work->contacts[contactIndex].key.value, work->playerDistance, 0, 0);
                 work->hitCooldown = damageGetPlayerAttackHitCooldown(work->contacts[contactIndex].key.value);
                 work->hitDamage   = damage;
@@ -2092,11 +2094,11 @@ static void _actor107600ApplyTargetHits(Task* task)
                     enemy->hp = 0;
                 }
                 if (damage > 0) {
-                    _actor107600AddTargetHitMark(task, work);
-                    if (damage >= ACTOR_107600_TARGET_HEAVY_HIT_HP) {
-                        work->hitReaction = ACTOR_107600_HIT_REACTION_HEAVY;
+                    _shootingGalleryTargetsAddTargetHitMark(task, work);
+                    if (damage >= HEAVY_HIT_HP) {
+                        work->hitReaction = HIT_REACTION_HEAVY;
                     } else {
-                        work->hitReaction = ACTOR_107600_HIT_REACTION_LIGHT;
+                        work->hitReaction = HIT_REACTION_LIGHT;
                     }
                 } else {
                     work->hitTaken = 0;
@@ -2105,20 +2107,20 @@ static void _actor107600ApplyTargetHits(Task* task)
         }
     }
     worldCollisionClearContacts(work->contacts);
-    SCRATCH_STACK_RELEASE_BYTES(ACTOR_107600_TARGET_HIT_SCRATCH_BYTES);
+    SCRATCH_STACK_RELEASE_BYTES(HIT_SCRATCH_BYTES);
 }
 
-enum { ACTOR_107600_TARGET_DEATH_BURST_HALF_EXTENT = 256 };
+enum { TARGET_DEATH_BURST_HALF_EXTENT = 256 };
 
 /// Four X/Y offsets of the target death-burst quad, in game-coordinate units.
 ///
 /// Corners span 512 units and follow GPU corner order. They are added to the
 /// mark centre and root translation before signed-halfword projection.
-static const DVECTOR _gActor107600TargetDeathBurstCorners[4] = {
-    { -ACTOR_107600_TARGET_DEATH_BURST_HALF_EXTENT, -ACTOR_107600_TARGET_DEATH_BURST_HALF_EXTENT },
-    { -ACTOR_107600_TARGET_DEATH_BURST_HALF_EXTENT, ACTOR_107600_TARGET_DEATH_BURST_HALF_EXTENT },
-    { ACTOR_107600_TARGET_DEATH_BURST_HALF_EXTENT, -ACTOR_107600_TARGET_DEATH_BURST_HALF_EXTENT },
-    { ACTOR_107600_TARGET_DEATH_BURST_HALF_EXTENT, ACTOR_107600_TARGET_DEATH_BURST_HALF_EXTENT },
+static const DVECTOR _gShootingGalleryTargetsTargetDeathBurstCorners[4] = {
+    { -TARGET_DEATH_BURST_HALF_EXTENT, -TARGET_DEATH_BURST_HALF_EXTENT },
+    { -TARGET_DEATH_BURST_HALF_EXTENT, TARGET_DEATH_BURST_HALF_EXTENT },
+    { TARGET_DEATH_BURST_HALF_EXTENT, -TARGET_DEATH_BURST_HALF_EXTENT },
+    { TARGET_DEATH_BURST_HALF_EXTENT, TARGET_DEATH_BURST_HALF_EXTENT },
 };
 
 /// Draws the 512-unit burst replacing the final hit mark on a dead target.
@@ -2130,18 +2132,18 @@ static const DVECTOR _gActor107600TargetDeathBurstCorners[4] = {
 /// in the normal 1024-tag ordering table. A packet is consumed even when its
 /// biased depth is too near to queue; no arena bounds check runs.
 /// Depth is the last corner's SZ3/4, biased by 160, and shifted four more bits for the ordering bucket.
-static void _actor107600DrawTargetDeathBurst(const GfxCoord* rootCoord, const SVECTOR* centerOffset)
+static void _shootingGalleryTargetsDrawTargetDeathBurst(const GfxCoord* rootCoord, const SVECTOR* centerOffset)
 {
-    enum { ACTOR_107600_TARGET_DEATH_BURST_DEPTH_BIAS = 0xA0 };
+    enum { TARGET_DEATH_BURST_DEPTH_BIAS = 0xA0 };
 
-    _Actor107600QuadScratch* projection;
-    POLY_FT4*                packet;
-    s32                      cornerIndex;
+    _QuadScratch* projection;
+    POLY_FT4*     packet;
+    s32           cornerIndex;
 
-    projection = SCRATCH_STACK_RESERVE_BLOCK(_Actor107600QuadScratch);
+    projection = SCRATCH_STACK_RESERVE_BLOCK(_QuadScratch);
     for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(projection->vertices); cornerIndex++) {
-        projection->vertices[cornerIndex].vx = centerOffset->vx + (_gActor107600TargetDeathBurstCorners[cornerIndex].vx + rootCoord->coord.t[0]);
-        projection->vertices[cornerIndex].vy = centerOffset->vy + (_gActor107600TargetDeathBurstCorners[cornerIndex].vy + rootCoord->coord.t[1]);
+        projection->vertices[cornerIndex].vx = centerOffset->vx + (_gShootingGalleryTargetsTargetDeathBurstCorners[cornerIndex].vx + rootCoord->coord.t[0]);
+        projection->vertices[cornerIndex].vy = centerOffset->vy + (_gShootingGalleryTargetsTargetDeathBurstCorners[cornerIndex].vy + rootCoord->coord.t[1]);
         projection->vertices[cornerIndex].vz = rootCoord->coord.t[2] + centerOffset->vz;
     }
     // Project four signed-halfword corners through the cached root transform.
@@ -2155,15 +2157,15 @@ static void _actor107600DrawTargetDeathBurst(const GfxCoord* rootCoord, const SV
     gte_stsxy(&projection->screenCorners[0]);
     gte_ldv3(&projection->vertices[1], &projection->vertices[2], &projection->vertices[3]);
     gte_rtpt();
-    packet->tpage = ACTOR_107600_TARGET_EFFECT_TPAGE;
-    packet->clut  = ACTOR_107600_TARGET_EFFECT_CLUT;
+    packet->tpage = TARGET_EFFECT_TPAGE;
+    packet->clut  = TARGET_EFFECT_CLUT;
     setUV4(packet, 0x40, 0, 0x67, 0, 0x40, 0x27, 0x67, 0x27);
     setShadeTex(packet, 1);
     gte_stsxy3(&projection->screenCorners[1], &projection->screenCorners[2], &projection->screenCorners[3]);
     gte_stszotz(&projection->depth);
-    projection->depth -= ACTOR_107600_TARGET_DEATH_BURST_DEPTH_BIAS;
-    if (projection->depth < ACTOR_107600_TARGET_EFFECT_MIN_DEPTH) {
-        SCRATCH_STACK_RELEASE_BLOCK(_Actor107600QuadScratch);
+    projection->depth -= TARGET_DEATH_BURST_DEPTH_BIAS;
+    if (projection->depth < TARGET_EFFECT_MIN_DEPTH) {
+        SCRATCH_STACK_RELEASE_BLOCK(_QuadScratch);
         return;
     }
     // Split the GTE screen words into the packet's signed X/Y halves.
@@ -2175,21 +2177,21 @@ static void _actor107600DrawTargetDeathBurst(const GfxCoord* rootCoord, const SV
     packet->y2 = projection->screenCorners[2] >> 16;
     packet->x3 = projection->screenCorners[3];
     packet->y3 = projection->screenCorners[3] >> 16;
-    addPrim(&gGpuCurrentOt[projection->depth >> ACTOR_107600_TARGET_EFFECT_OT_SHIFT], packet);
-    SCRATCH_STACK_RELEASE_BLOCK(_Actor107600QuadScratch);
+    addPrim(&gGpuCurrentOt[projection->depth >> TARGET_EFFECT_OT_SHIFT], packet);
+    SCRATCH_STACK_RELEASE_BLOCK(_QuadScratch);
 }
 
-enum { ACTOR_107600_TARGET_HIT_MARK_HALF_EXTENT = 96 };
+enum { TARGET_HIT_MARK_HALF_EXTENT = 96 };
 
 /// Four X/Y offsets of a target hit-mark quad, followed by an unused zero record.
 ///
 /// Corners span 192 game-coordinate units and follow GPU corner order. They
 /// are added to the mark centre and root translation before projection.
-static const DVECTOR _gActor107600TargetHitMarkCorners[5] = {
-    { -ACTOR_107600_TARGET_HIT_MARK_HALF_EXTENT, -ACTOR_107600_TARGET_HIT_MARK_HALF_EXTENT },
-    { -ACTOR_107600_TARGET_HIT_MARK_HALF_EXTENT, ACTOR_107600_TARGET_HIT_MARK_HALF_EXTENT },
-    { ACTOR_107600_TARGET_HIT_MARK_HALF_EXTENT, -ACTOR_107600_TARGET_HIT_MARK_HALF_EXTENT },
-    { ACTOR_107600_TARGET_HIT_MARK_HALF_EXTENT, ACTOR_107600_TARGET_HIT_MARK_HALF_EXTENT },
+static const DVECTOR _gShootingGalleryTargetsTargetHitMarkCorners[5] = {
+    { -TARGET_HIT_MARK_HALF_EXTENT, -TARGET_HIT_MARK_HALF_EXTENT },
+    { -TARGET_HIT_MARK_HALF_EXTENT, TARGET_HIT_MARK_HALF_EXTENT },
+    { TARGET_HIT_MARK_HALF_EXTENT, -TARGET_HIT_MARK_HALF_EXTENT },
+    { TARGET_HIT_MARK_HALF_EXTENT, TARGET_HIT_MARK_HALF_EXTENT },
     { 0, 0 },
 };
 
@@ -2202,18 +2204,18 @@ static const DVECTOR _gActor107600TargetHitMarkCorners[5] = {
 /// in the normal 1024-tag ordering table. A packet is consumed even when its
 /// biased depth is too near to queue; no arena bounds check runs.
 /// Depth is the last corner's SZ3/4, biased by 64, and shifted four more bits for the ordering bucket.
-static void _actor107600DrawTargetHitMark(const GfxCoord* rootCoord, const SVECTOR* centerOffset)
+static void _shootingGalleryTargetsDrawTargetHitMark(const GfxCoord* rootCoord, const SVECTOR* centerOffset)
 {
-    enum { ACTOR_107600_TARGET_HIT_MARK_DEPTH_BIAS = 0x40 };
+    enum { TARGET_HIT_MARK_DEPTH_BIAS = 0x40 };
 
-    _Actor107600QuadScratch* projection;
-    POLY_FT4*                packet;
-    s32                      cornerIndex;
+    _QuadScratch* projection;
+    POLY_FT4*     packet;
+    s32           cornerIndex;
 
-    projection = SCRATCH_STACK_RESERVE_BLOCK(_Actor107600QuadScratch);
+    projection = SCRATCH_STACK_RESERVE_BLOCK(_QuadScratch);
     for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(projection->vertices); cornerIndex++) {
-        projection->vertices[cornerIndex].vx = centerOffset->vx + (_gActor107600TargetHitMarkCorners[cornerIndex].vx + rootCoord->coord.t[0]);
-        projection->vertices[cornerIndex].vy = centerOffset->vy + (_gActor107600TargetHitMarkCorners[cornerIndex].vy + rootCoord->coord.t[1]);
+        projection->vertices[cornerIndex].vx = centerOffset->vx + (_gShootingGalleryTargetsTargetHitMarkCorners[cornerIndex].vx + rootCoord->coord.t[0]);
+        projection->vertices[cornerIndex].vy = centerOffset->vy + (_gShootingGalleryTargetsTargetHitMarkCorners[cornerIndex].vy + rootCoord->coord.t[1]);
         projection->vertices[cornerIndex].vz = rootCoord->coord.t[2] + centerOffset->vz;
     }
     // Project four signed-halfword corners through the cached root transform.
@@ -2227,15 +2229,15 @@ static void _actor107600DrawTargetHitMark(const GfxCoord* rootCoord, const SVECT
     gte_stsxy(&projection->screenCorners[0]);
     gte_ldv3(&projection->vertices[1], &projection->vertices[2], &projection->vertices[3]);
     gte_rtpt();
-    packet->tpage = ACTOR_107600_TARGET_EFFECT_TPAGE;
-    packet->clut  = ACTOR_107600_TARGET_EFFECT_CLUT;
+    packet->tpage = TARGET_EFFECT_TPAGE;
+    packet->clut  = TARGET_EFFECT_CLUT;
     setUV4(packet, 0x68, 0, 0x77, 0, 0x68, 0xF, 0x77, 0xF);
     setShadeTex(packet, 1);
     gte_stsxy3(&projection->screenCorners[1], &projection->screenCorners[2], &projection->screenCorners[3]);
     gte_stszotz(&projection->depth);
-    projection->depth -= ACTOR_107600_TARGET_HIT_MARK_DEPTH_BIAS;
-    if (projection->depth < ACTOR_107600_TARGET_EFFECT_MIN_DEPTH) {
-        SCRATCH_STACK_RELEASE_BLOCK(_Actor107600QuadScratch);
+    projection->depth -= TARGET_HIT_MARK_DEPTH_BIAS;
+    if (projection->depth < TARGET_EFFECT_MIN_DEPTH) {
+        SCRATCH_STACK_RELEASE_BLOCK(_QuadScratch);
         return;
     }
     // Split the GTE screen words into the packet's signed X/Y halves.
@@ -2247,8 +2249,8 @@ static void _actor107600DrawTargetHitMark(const GfxCoord* rootCoord, const SVECT
     packet->y2 = projection->screenCorners[2] >> 16;
     packet->x3 = projection->screenCorners[3];
     packet->y3 = projection->screenCorners[3] >> 16;
-    addPrim(&gGpuCurrentOt[projection->depth >> ACTOR_107600_TARGET_EFFECT_OT_SHIFT], packet);
-    SCRATCH_STACK_RELEASE_BLOCK(_Actor107600QuadScratch);
+    addPrim(&gGpuCurrentOt[projection->depth >> TARGET_EFFECT_OT_SHIFT], packet);
+    SCRATCH_STACK_RELEASE_BLOCK(_QuadScratch);
 }
 
 /// Remaps a gallery target's lighting color matrix, including its sine pulse.
@@ -2258,9 +2260,9 @@ static void _actor107600DrawTargetHitMark(const GfxCoord* rootCoord, const SVECT
 /// then adds rsin(loopCount * 198) + ONE. Both stages narrow to s16, so the
 /// intermediate truncation is retained. Translation and alignment bytes stay
 /// intact. unusedEnemy is ignored; callers pass the target's live Enemy.
-static void _actor107600RemapTargetColor(Enemy* unusedEnemy, MATRIX* colorMatrix, s32 colorMode)
+static void _shootingGalleryTargetsRemapTargetColor(Enemy* unusedEnemy, MATRIX* colorMatrix, s32 colorMode)
 {
-    enum { ACTOR_107600_TARGET_COLOR_PULSE_ANGLE_STEP = 198 };
+    enum { TARGET_COLOR_PULSE_ANGLE_STEP = 198 };
 
     s32 columnIndex;
     s16 columnValue;
@@ -2272,7 +2274,7 @@ static void _actor107600RemapTargetColor(Enemy* unusedEnemy, MATRIX* colorMatrix
             for (columnIndex = 0; columnIndex < ARRAY_SIZE(colorMatrix->m[0]); columnIndex++) {
                 // Narrow the weighted column before adding the halfword sine pulse.
                 columnValue                    = (colorMatrix->m[0][columnIndex] * 7 + colorMatrix->m[1][columnIndex] * 6 + colorMatrix->m[2][columnIndex] * 3) / 33;
-                columnValue                   += (s16)(rsin(gDisplayState.loopCount * ACTOR_107600_TARGET_COLOR_PULSE_ANGLE_STEP) + ONE);
+                columnValue                   += (s16)(rsin(gDisplayState.loopCount * TARGET_COLOR_PULSE_ANGLE_STEP) + ONE);
                 colorMatrix->m[0][columnIndex] = columnValue;
                 colorMatrix->m[1][columnIndex] = columnValue;
                 colorMatrix->m[2][columnIndex] = columnValue;
@@ -2296,7 +2298,7 @@ static void _actor107600RemapTargetColor(Enemy* unusedEnemy, MATRIX* colorMatrix
 ///
 /// Both arrays must be disjoint. Copies signed Q12 coefficients without the
 /// enclosing matrices' alignment bytes or ambient translation.
-static inline void _actor107600CopyTargetLightColor(s16 destination[3][3], const s16 source[3][3])
+static inline void _shootingGalleryTargetsCopyTargetLightColor(s16 destination[3][3], const s16 source[3][3])
 {
     destination[0][0] = source[0][0];
     destination[0][1] = source[0][1];
@@ -2322,11 +2324,11 @@ static inline void _actor107600CopyTargetLightColor(s16 destination[3][3], const
 /// The countdown decreases only while actors run. Borrows and releases one
 /// `WorldCoordActorColorScratch` plus the query's nested scratch; changes GTE
 /// state. Input and output storage must be disjoint from those reservations.
-static void _actor107600UpdateTargetColor(Enemy* enemy, const void* worldPosition, s32 unusedArg2, s32 unusedArg3)
+static void _shootingGalleryTargetsUpdateTargetColor(Enemy* enemy, const void* worldPosition, s32 unusedArg2, s32 unusedArg3)
 {
     enum {
-        ACTOR_107600_COLOR_UPDATE_PAUSED      = 1,
-        ACTOR_107600_COLOR_BLEND_WEIGHT_SHIFT = 8,
+        UPDATE_PAUSED      = 1,
+        BLEND_WEIGHT_SHIFT = 8,
     };
     TmdObject*                   model;
     MATRIX*                      colorMtx;
@@ -2339,18 +2341,18 @@ static void _actor107600UpdateTargetColor(Enemy* enemy, const void* worldPositio
     model       = enemy->task->extra.tmd;
     colorMtx    = model->colorMtx;
     currentMode = enemy->colorMode & ENEMY_COLOR_MODE_MASK;
-    if ((!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && (model->buffer != NULL)) || (gGameSession->sceneUpdatesPaused != ACTOR_107600_COLOR_UPDATE_PAUSED)) {
+    if ((!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && (model->buffer != NULL)) || (gGameSession->sceneUpdatesPaused != UPDATE_PAUSED)) {
         blendScratch = SCRATCH_STACK_RESERVE_BLOCK(WorldCoordActorColorScratch);
         // Sample the three lights before remapping their colour coefficients.
         worldCoordSetModelLighting(model, worldPosition, 0, ARRAY_SIZE(colorMtx->m[0]));
         if ((s8)enemy->colorBlend <= 0) {
-            _actor107600RemapTargetColor(enemy, colorMtx, currentMode);
+            _shootingGalleryTargetsRemapTargetColor(enemy, colorMtx, currentMode);
         } else {
             // Remap two copies of the same sample; ambient is never blended.
-            _actor107600CopyTargetLightColor(blendScratch->previousColor.m, colorMtx->m);
-            _actor107600RemapTargetColor(enemy, colorMtx, currentMode);
-            _actor107600RemapTargetColor(enemy, &blendScratch->previousColor, (enemy->colorMode >> ENEMY_COLOR_PREVIOUS_SHIFT) & ENEMY_COLOR_MODE_MASK);
-            previousWeight = (s8)enemy->colorBlend << ACTOR_107600_COLOR_BLEND_WEIGHT_SHIFT;
+            _shootingGalleryTargetsCopyTargetLightColor(blendScratch->previousColor.m, colorMtx->m);
+            _shootingGalleryTargetsRemapTargetColor(enemy, colorMtx, currentMode);
+            _shootingGalleryTargetsRemapTargetColor(enemy, &blendScratch->previousColor, (enemy->colorMode >> ENEMY_COLOR_PREVIOUS_SHIFT) & ENEMY_COLOR_MODE_MASK);
+            previousWeight = (s8)enemy->colorBlend << BLEND_WEIGHT_SHIFT;
             currentWeight  = ONE - previousWeight;
             for (lightIndex = 0; lightIndex < (s32)ARRAY_SIZE(colorMtx->m[0]); lightIndex++) {
                 blendScratch->currentColumn.vx  = colorMtx->m[0][lightIndex];
@@ -2378,18 +2380,18 @@ static void _actor107600UpdateTargetColor(Enemy* enemy, const void* worldPositio
 /// actor descriptors select this private callback. The hide state waits for
 /// mount teardown; the installed exit callback unlinks collision before the
 /// owned work is freed.
-static void _actor107600TargetTask(Task* task)
+static void _shootingGalleryTargetsTargetTask(Task* task)
 {
     TaskFuncTable4 handlers;
 
-    handlers = _gActor107600TargetTaskStates;
+    handlers = _gShootingGalleryTargetsTargetTaskStates;
     handlers.funcs[task->state](task);
 }
 
 /// Hides a finished target while its mount keeps ownership of the task.
 ///
 /// Requires a live model; this state waits for parent teardown without advancing.
-static void _actor107600HideTarget(Task* task)
+static void _shootingGalleryTargetsHideTarget(Task* task)
 {
     TmdObject* model = task->extra.tmd;
 
@@ -2400,9 +2402,9 @@ static void _actor107600HideTarget(Task* task)
 ///
 /// Installed after work allocation succeeds. Unlinking precedes task teardown,
 /// which releases the work containing the body and its contact table.
-static void _actor107600DestroyTarget(Task* task)
+static void _shootingGalleryTargetsDestroyTarget(Task* task)
 {
-    _Actor107600TargetWork* work = task->work;
+    _TargetWork* work = task->work;
 
     worldCollisionUnlinkBody(&work->body);
     enemyDestroy(task->spawnArg2.pointer, task);
@@ -2414,21 +2416,21 @@ static void _actor107600DestroyTarget(Task* task)
 /// which also supplies the enemy's contacts. Its local Y is -592 parent units;
 /// radius is 544 for hanging targets and 400 otherwise. Linking alone leaves
 /// pair testing disabled until the target stands.
-static void _actor107600InitTargetCollision(Task* task)
+static void _shootingGalleryTargetsInitTargetCollision(Task* task)
 {
-    enum { ACTOR_107600_TARGET_COLLISION_KEY = WORLD_COLLISION_CONTACT_ENEMY_BODY | 0x4C };
+    enum { TARGET_COLLISION_KEY = WORLD_COLLISION_CONTACT_ENEMY_BODY | 0x4C };
 
-    _Actor107600TargetWork* work      = task->work;
-    GfxCoord*               rootCoord = task->extra.tmd->coords;
-    WorldCollisionContact*  contacts  = work->contacts;
+    _TargetWork*           work      = task->work;
+    GfxCoord*              rootCoord = task->extra.tmd->coords;
+    WorldCollisionContact* contacts  = work->contacts;
 
     work->body.coord            = rootCoord;
     work->body.context.contacts = contacts;
     work->body.pos.vx           = 0;
     work->body.pos.vy           = -0x250;
     work->body.pos.vz           = 0;
-    work->body.key              = ACTOR_107600_TARGET_COLLISION_KEY;
-    work->body.radius           = (work->mountBehaviour == ACTOR_107600_MOUNT_HANGING) ? 0x220 : 0x190;
+    work->body.key              = TARGET_COLLISION_KEY;
+    work->body.radius           = (work->mountBehaviour == MOUNT_HANGING) ? 0x220 : 0x190;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
     worldCollisionInitContacts(contacts, ARRAY_SIZE(work->contacts), 0);
@@ -2439,7 +2441,7 @@ static void _actor107600InitTargetCollision(Task* task)
 /// Requires live target work, Enemy and model with a current root matrix.
 /// Borrows one scratch VECTOR across the colour query; only XYZ are initialized,
 /// in the query's world-coordinate units, and no pointer is retained.
-static void _actor107600UpdateTargetRootColor(Task* task)
+static void _shootingGalleryTargetsUpdateTargetRootColor(Task* task)
 {
     GfxCoord* rootCoord;
     void**    cursorSlot;
@@ -2456,7 +2458,7 @@ static void _actor107600UpdateTargetRootColor(Task* task)
     worldPosition->vy                         = rootCoord->workm.t[1];
     worldPosition->vz                         = rootCoord->workm.t[2];
     SCRATCH_STACK_CURSOR_AT(cursorSlot, void) = worldPosition;
-    _actor107600UpdateTargetColor(enemy, worldPosition, 0, 0);
+    _shootingGalleryTargetsUpdateTargetColor(enemy, worldPosition, 0, 0);
     SCRATCH_STACK_RELEASE_BYTES_AT(cursorSlot, sizeof(*worldPosition));
 }
 
@@ -2466,15 +2468,15 @@ static void _actor107600UpdateTargetRootColor(Task* task)
 /// fixed-point identity and copy only the nine matrix elements, preserving
 /// root translation. Requires initialized scratch storage for one MATRIX
 /// plus the axis helpers' nested reservations. The caller dirties composition.
-static void _actor107600UpdateTargetRotation(Task* task)
+static void _shootingGalleryTargetsUpdateTargetRotation(Task* task)
 {
-    _Actor107600TargetWork* work      = task->work;
-    GfxCoord*               rootCoord = task->extra.tmd->coords;
-    MATRIX*                 rotation;
+    _TargetWork* work      = task->work;
+    GfxCoord*    rootCoord = task->extra.tmd->coords;
+    MATRIX*      rotation;
 
-    work->pitch &= ACTOR_107600_ANGLE_MASK;
-    work->yaw   &= ACTOR_107600_ANGLE_MASK;
-    work->roll  &= ACTOR_107600_ANGLE_MASK;
+    work->pitch &= ANGLE_MASK;
+    work->yaw   &= ANGLE_MASK;
+    work->roll  &= ANGLE_MASK;
     rotation     = SCRATCH_STACK_CURSOR(MATRIX) - 1;
     // Initialize the unpublished rotation before making room for the axis helpers.
     gfxSetRotIdentity(rotation);
@@ -2482,7 +2484,7 @@ static void _actor107600UpdateTargetRotation(Task* task)
     gfxRotMatrixZ(rotation, work->roll, GRAPHICS_ROTATION_COMPOSE);
     gfxRotMatrixX(rotation, work->pitch, GRAPHICS_ROTATION_COMPOSE);
     gfxRotMatrixY(rotation, work->yaw, GRAPHICS_ROTATION_COMPOSE);
-    _actor107600CopyTargetRotation(rotation, &rootCoord->coord);
+    _shootingGalleryTargetsCopyTargetRotation(rotation, &rootCoord->coord);
     SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 
@@ -2490,18 +2492,18 @@ static void _actor107600UpdateTargetRotation(Task* task)
 ///
 /// Source and destination must provide live `MATRIX` objects. Translation
 /// and alignment bytes are preserved; copying a matrix onto itself is valid.
-static void _actor107600CopyTargetRotation(const MATRIX* source, MATRIX* destination)
+static void _shootingGalleryTargetsCopyTargetRotation(const MATRIX* source, MATRIX* destination)
 {
     gfxCopyRotation(destination, source);
 }
 
 /// Enters a gallery target behaviour state and restarts it at step zero.
 ///
-/// State is an `ACTOR_107600_TARGET_STATE_*` dispatch value stored as s16.
+/// State is an `SHOOTING_GALLERY_TARGETS_TARGET_STATE_*` dispatch value stored as s16.
 /// The live task must own a target work block; this does not change `Task::state`.
-static void _actor107600SetTargetState(Task* task, s16 state)
+static void _shootingGalleryTargetsSetTargetState(Task* task, s16 state)
 {
-    _Actor107600TargetWork* work = task->work;
+    _TargetWork* work = task->work;
 
     work->state = state;
     work->step  = 0;
@@ -2510,12 +2512,12 @@ static void _actor107600SetTargetState(Task* task, s16 state)
 /// Enters a hit-selected target state and restarts its step sequence.
 ///
 /// Requires live gallery-target work in task. state is a signed-halfword
-/// ACTOR_107600_TARGET_STATE_* behaviour index; callers select flinch or resume
+/// SHOOTING_GALLERY_TARGETS_TARGET_STATE_* behaviour index; callers select flinch or resume
 /// states. Resets only the behaviour step, leaving Task::state and the queued
 /// hit request unchanged. Retains no pointer.
-static inline void _actor107600EnterTargetHitState(Task* task, s16 state)
+static inline void _shootingGalleryTargetsEnterTargetHitState(Task* task, s16 state)
 {
-    _Actor107600TargetWork* reactionWork = task->work;
+    _TargetWork* reactionWork = task->work;
 
     reactionWork->state = state;
     reactionWork->step  = 0;
@@ -2529,39 +2531,39 @@ static inline void _actor107600EnterTargetHitState(Task* task, s16 state)
 /// retained requests 3..5 select immediate-resume slots 4, 6 and 5. The package
 /// never produces those three requests, whose intended effects are unproven.
 /// Requires live target work; it changes work state and step, not task state.
-static s16 _actor107600ConsumeTargetHitReaction(Task* task)
+static s16 _shootingGalleryTargetsConsumeTargetHitReaction(Task* task)
 {
     enum {
-        ACTOR_107600_HIT_REACTION_RESUME_STATE_4 = 3,
-        ACTOR_107600_HIT_REACTION_RESUME_STATE_6 = 4,
-        ACTOR_107600_HIT_REACTION_RESUME_STATE_5 = 5,
-        ACTOR_107600_TARGET_STATE_RESUME_4       = 4,
-        ACTOR_107600_TARGET_STATE_RESUME_5       = 5,
-        ACTOR_107600_TARGET_STATE_RESUME_6       = 6,
+        HIT_REACTION_RESUME_STATE_4 = 3,
+        HIT_REACTION_RESUME_STATE_6 = 4,
+        HIT_REACTION_RESUME_STATE_5 = 5,
+        TARGET_STATE_RESUME_4       = 4,
+        TARGET_STATE_RESUME_5       = 5,
+        TARGET_STATE_RESUME_6       = 6,
     };
 
-    _Actor107600TargetWork* work = task->work;
+    _TargetWork* work = task->work;
 
     if (work->hitTaken == 1) {
         // Preserve the signed halfword dispatch, including wraparound requests.
         switch ((s16)(work->hitReaction - 1)) {
-            case ACTOR_107600_HIT_REACTION_LIGHT - 1:
-                _actor107600EnterTargetHitState(task, ACTOR_107600_TARGET_STATE_LIGHT_FLINCH);
+            case HIT_REACTION_LIGHT - 1:
+                _shootingGalleryTargetsEnterTargetHitState(task, TARGET_STATE_LIGHT_FLINCH);
                 break;
-            case ACTOR_107600_HIT_REACTION_HEAVY - 1:
-                _actor107600EnterTargetHitState(task, ACTOR_107600_TARGET_STATE_HEAVY_FLINCH);
+            case HIT_REACTION_HEAVY - 1:
+                _shootingGalleryTargetsEnterTargetHitState(task, TARGET_STATE_HEAVY_FLINCH);
                 break;
-            case ACTOR_107600_HIT_REACTION_RESUME_STATE_4 - 1:
-                _actor107600EnterTargetHitState(task, ACTOR_107600_TARGET_STATE_RESUME_4);
+            case HIT_REACTION_RESUME_STATE_4 - 1:
+                _shootingGalleryTargetsEnterTargetHitState(task, TARGET_STATE_RESUME_4);
                 break;
-            case ACTOR_107600_HIT_REACTION_RESUME_STATE_6 - 1:
-                _actor107600EnterTargetHitState(task, ACTOR_107600_TARGET_STATE_RESUME_6);
+            case HIT_REACTION_RESUME_STATE_6 - 1:
+                _shootingGalleryTargetsEnterTargetHitState(task, TARGET_STATE_RESUME_6);
                 break;
-            case ACTOR_107600_HIT_REACTION_RESUME_STATE_5 - 1:
-                _actor107600EnterTargetHitState(task, ACTOR_107600_TARGET_STATE_RESUME_5);
+            case HIT_REACTION_RESUME_STATE_5 - 1:
+                _shootingGalleryTargetsEnterTargetHitState(task, TARGET_STATE_RESUME_5);
                 break;
         }
-        work->hitReaction = ACTOR_107600_HIT_REACTION_NONE;
+        work->hitReaction = HIT_REACTION_NONE;
         return 1;
     }
     return 0;
@@ -2573,33 +2575,33 @@ static s16 _actor107600ConsumeTargetHitReaction(Task* task)
 /// and black lighting; one random draw chooses the first of eight hit marks.
 /// Fixed demonstration targets start their exit behaviour at full scale.
 /// Requires live target work, enemy and model; no other work fields are reset.
-static void _actor107600BeginTargetBehaviour(Task* task)
+static void _shootingGalleryTargetsBeginTargetBehaviour(Task* task)
 {
     enum {
-        ACTOR_107600_TARGET_INITIAL_SCALE_PERCENT = 10,
-        ACTOR_107600_TARGET_FULL_SCALE_PERCENT    = 100,
+        INITIAL_SCALE_PERCENT     = 10,
+        TARGET_FULL_SCALE_PERCENT = 100,
     };
 
-    _Actor107600TargetWork* work  = task->work;
-    Enemy*                  enemy = task->spawnArg2.pointer;
+    _TargetWork* work  = task->work;
+    Enemy*       enemy = task->spawnArg2.pointer;
 
     switch (work->mountBehaviour) {
-        case ACTOR_107600_MOUNT_STANDING:
-        case ACTOR_107600_MOUNT_HANGING:
-            work->state = ACTOR_107600_TARGET_STATE_ACTIVE;
-            work->pitch = ACTOR_107600_ANGLE_QUARTER_TURN;
+        case MOUNT_STANDING:
+        case MOUNT_HANGING:
+            work->state = TARGET_STATE_ACTIVE;
+            work->pitch = ANGLE_QUARTER_TURN;
             RANDOM_LCG_ADVANCE();
-            work->hitMarkFirst  = RANDOM_LCG_DRAW() & (ACTOR_107600_TARGET_HIT_MARK_COUNT - 1);
-            work->widthPercent  = ACTOR_107600_TARGET_INITIAL_SCALE_PERCENT;
-            work->heightPercent = ACTOR_107600_TARGET_INITIAL_SCALE_PERCENT;
-            _actor107600UpdateTargetRotation(task);
+            work->hitMarkFirst  = RANDOM_LCG_DRAW() & (TARGET_HIT_MARK_COUNT - 1);
+            work->widthPercent  = INITIAL_SCALE_PERCENT;
+            work->heightPercent = INITIAL_SCALE_PERCENT;
+            _shootingGalleryTargetsUpdateTargetRotation(task);
             worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
             enemy->colorBlend = 0;
             break;
-        case ACTOR_107600_MOUNT_FIXED:
-            work->state         = ACTOR_107600_TARGET_STATE_FIXED;
-            work->widthPercent  = ACTOR_107600_TARGET_FULL_SCALE_PERCENT;
-            work->heightPercent = ACTOR_107600_TARGET_FULL_SCALE_PERCENT;
+        case MOUNT_FIXED:
+            work->state         = TARGET_STATE_FIXED;
+            work->widthPercent  = TARGET_FULL_SCALE_PERCENT;
+            work->heightPercent = TARGET_FULL_SCALE_PERCENT;
             break;
     }
 }
@@ -2608,41 +2610,41 @@ static void _actor107600BeginTargetBehaviour(Task* task)
 ///
 /// Restarts at step zero. The package's hit handler does not request this state;
 /// its original reaction meaning is unproven.
-static void _actor107600ResumeTargetState4(Task* task)
+static void _shootingGalleryTargetsResumeTargetState4(Task* task)
 {
-    _actor107600SetTargetState(task, ACTOR_107600_TARGET_STATE_ACTIVE);
+    _shootingGalleryTargetsSetTargetState(task, TARGET_STATE_ACTIVE);
 }
 
 /// Resumes active target behaviour from state-table slot 5.
 ///
 /// Restarts at step zero. The package's hit handler does not request this state;
 /// its original reaction meaning is unproven.
-static void _actor107600ResumeTargetState5(Task* task)
+static void _shootingGalleryTargetsResumeTargetState5(Task* task)
 {
-    _actor107600SetTargetState(task, ACTOR_107600_TARGET_STATE_ACTIVE);
+    _shootingGalleryTargetsSetTargetState(task, TARGET_STATE_ACTIVE);
 }
 
 /// Resumes active target behaviour from state-table slot 6.
 ///
 /// Restarts at step zero. The package's hit handler does not request this state;
 /// its original reaction meaning is unproven.
-static void _actor107600ResumeTargetState6(Task* task)
+static void _shootingGalleryTargetsResumeTargetState6(Task* task)
 {
-    _actor107600SetTargetState(task, ACTOR_107600_TARGET_STATE_ACTIVE);
+    _shootingGalleryTargetsSetTargetState(task, TARGET_STATE_ACTIVE);
 }
 
 /// Shows three hit marks on a fixed demonstration target and starts its exit.
 ///
 /// Requires live target work. The fold-away state starts at step zero; these
 /// marks are set without applying damage or registering a player hit.
-static void _actor107600BeginFixedTargetExit(Task* task)
+static void _shootingGalleryTargetsBeginFixedTargetExit(Task* task)
 {
-    enum { ACTOR_107600_FIXED_TARGET_HIT_MARKS = 3 };
+    enum { FIXED_TARGET_HIT_MARKS = 3 };
 
-    _Actor107600TargetWork* work = task->work;
+    _TargetWork* work = task->work;
 
-    work->hitMarkCount = ACTOR_107600_FIXED_TARGET_HIT_MARKS;
-    _actor107600SetTargetState(task, ACTOR_107600_TARGET_STATE_LEAVE);
+    work->hitMarkCount = FIXED_TARGET_HIT_MARKS;
+    _shootingGalleryTargetsSetTargetState(task, TARGET_STATE_LEAVE);
 }
 
 /// Stores the XZ distance between the target and player root translations.
@@ -2653,15 +2655,15 @@ static void _actor107600BeginFixedTargetExit(Task* task)
 /// Requires live target work/model and initialized scratch storage for one VECTOR;
 /// Y is staged but does not enter the length. XZ differences and their sum of
 /// squares must fit s32.
-static void _actor107600MeasureTargetPlayerDistance(Task* task)
+static void _shootingGalleryTargetsMeasureTargetPlayerDistance(Task* task)
 {
-    _Actor107600TargetWork* work;
-    GfxCoord*               rootCoord;
-    GfxCoord*               playerCoord;
-    void**                  scratchSlot;
-    VECTOR*                 savedCursor;
-    VECTOR*                 offset;
-    s32                     distance;
+    _TargetWork* work;
+    GfxCoord*    rootCoord;
+    GfxCoord*    playerCoord;
+    void**       scratchSlot;
+    VECTOR*      savedCursor;
+    VECTOR*      offset;
+    s32          distance;
 
     work                                       = task->work;
     rootCoord                                  = task->extra.tmd->coords;
@@ -2689,7 +2691,7 @@ static void _actor107600MeasureTargetPlayerDistance(Task* task)
 /// Uses the root's rotation, without adding its previous translation; the
 /// result replaces all three parent-frame translation components. Requires
 /// initialized scratch storage for one VECTOR. The caller dirties composition.
-static void _actor107600PlaceTargetOffset(GfxCoord* rootCoord)
+static void _shootingGalleryTargetsPlaceTargetOffset(GfxCoord* rootCoord)
 {
     void**  scratchSlot;
     VECTOR* savedCursor;
@@ -2716,15 +2718,15 @@ static void _actor107600PlaceTargetOffset(GfxCoord* rootCoord)
 /// application compounds the scale. Only m[0][0] and m[2][1] change. Coefficients
 /// are signed Q12; division by 100 precedes multiplication and truncates towards
 /// zero, then the result narrows back to s16. Translation is preserved.
-static void _actor107600ApplyTargetScale(Task* task)
+static void _shootingGalleryTargetsApplyTargetScale(Task* task)
 {
-    enum { ACTOR_107600_TARGET_FULL_SCALE_PERCENT = 100 };
+    enum { TARGET_FULL_SCALE_PERCENT = 100 };
 
-    _Actor107600TargetWork* work                    = task->work;
-    GfxCoord*               rootCoord               = task->extra.tmd->coords;
-    s16                     widthCoefficient        = rootCoord->coord.m[0][0];
-    s16                     foldedHeightCoefficient = rootCoord->coord.m[2][1];
+    _TargetWork* work                    = task->work;
+    GfxCoord*    rootCoord               = task->extra.tmd->coords;
+    s16          widthCoefficient        = rootCoord->coord.m[0][0];
+    s16          foldedHeightCoefficient = rootCoord->coord.m[2][1];
 
-    rootCoord->coord.m[0][0] = widthCoefficient / ACTOR_107600_TARGET_FULL_SCALE_PERCENT * work->widthPercent;
-    rootCoord->coord.m[2][1] = foldedHeightCoefficient / ACTOR_107600_TARGET_FULL_SCALE_PERCENT * work->heightPercent;
+    rootCoord->coord.m[0][0] = widthCoefficient / TARGET_FULL_SCALE_PERCENT * work->widthPercent;
+    rootCoord->coord.m[2][1] = foldedHeightCoefficient / TARGET_FULL_SCALE_PERCENT * work->heightPercent;
 }

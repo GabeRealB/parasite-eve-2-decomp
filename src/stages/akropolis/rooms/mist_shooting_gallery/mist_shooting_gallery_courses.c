@@ -16,7 +16,7 @@ s32 gMistShootingGalleryUnscaledBp;
 
 #include "mist_shooting_gallery_private.h"
 
-#include "actors/actor_107600.h"
+#include "stages/akropolis/actors/shooting_gallery_targets.h"
 #include "stages/akropolis/actors/shooting_gallery_pierce.h"
 
 #include "gameplay/actor.h"
@@ -2060,7 +2060,7 @@ void mistShootingGallerySpawnDemoTarget(void)
     TmdObject* model;
     GfxCoord*  rootCoord;
 
-    enemy = enemySpawnFromTable(gActor107600TaskDescriptors, ACTOR_107600_TASK_MOUNT, TARGET_KIND | (MOUNT_BEHAVIOUR << BEHAVIOUR_SHIFT), NULL);
+    enemy = enemySpawnFromTable(gShootingGalleryTargetsTaskDescriptors, SHOOTING_GALLERY_TARGETS_TASK_MOUNT, TARGET_KIND | (MOUNT_BEHAVIOUR << BEHAVIOUR_SHIFT), NULL);
     if (enemy != NULL) {
         model                    = enemy->task->extra.tmd;
         model->texturePageOffset = 0;
@@ -2233,7 +2233,7 @@ static Enemy* _mistShootingGallerySpawnTarget(Task* controller, const _MistShoot
     GfxCoord*                rootCoord;
 
     work  = controller->work;
-    enemy = enemySpawnFromTable(gActor107600TaskDescriptors, ACTOR_107600_TASK_MOUNT, spawn->spawnArgLo | (spawn->spawnArgHi << SPAWN_HIGH_HALF_SHIFT), NULL);
+    enemy = enemySpawnFromTable(gShootingGalleryTargetsTaskDescriptors, SHOOTING_GALLERY_TARGETS_TASK_MOUNT, spawn->spawnArgLo | (spawn->spawnArgHi << SPAWN_HIGH_HALF_SHIFT), NULL);
     if (enemy != NULL) {
         // Retain the parent overwrite before transfer; source-ring ownership is unproven.
         enemy->task->parent = controller;

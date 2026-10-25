@@ -10568,7 +10568,7 @@ v0,CASE01` / `beq v1,v0(=2),CASE2` / `j TAIL` — with the bodies in source orde
 after it and the case-2 body falling into the epilogue. m2c renders that source
 as a nested if/else and cannot be patched into the layout: the same C scored
 64.5% (`branch=2 regs=5 reorder=4 insert=6 delete=8`) with the case-2 body
-inlined between the tests, while the switch form (`_actor107600BeginTargetBehaviour`)
+inlined between the tests, while the switch form (`_shootingGalleryTargetsBeginTargetBehaviour`)
 took 100% on the first attempt. The leading `bltz` is not the tell — the m2c
 nest emits the same branch for its `if (v >= 0)` wrapper — the body placement
 is.
@@ -13184,12 +13184,12 @@ placement.
 
 **Size the table from the copy count, not from the splat symbol's extent.** A
 `dlabel` runs to the next label, so it swallows any alignment word between the
-table and what follows. `_gActor107600MountBehaviourHandlers` is `.size` 16 — three function
+table and what follows. `_gShootingGalleryTargetsMountBehaviourHandlers` is `.size` 16 — three function
 pointers plus the `0x00000000` word that pads the `jtbl_actor_107600_80131E44`
-after it — but `_actor107600UpdateMountBehaviour` copies three words, so the extern is
+after it — but `_shootingGalleryTargetsUpdateMountBehaviour` copies three words, so the extern is
 `TaskFuncTable3` and the trailing zero belongs to nobody. Declaring it
 `TaskFuncTable4` because the symbol measures 16 bytes emits the four-word
-multi-load the sibling `_actor107600MountTask` has and costs the match.
+multi-load the sibling `_shootingGalleryTargetsMountTask` has and costs the match.
 **Past ~0x20 bytes the copy stops being a straight-line multi-load and becomes
 a loop, and m2c then renders it as a `do`/`while` plus a tail — which reads
 like hand-written control flow and is not.** An eleven-entry table (0x2C bytes)
@@ -49618,7 +49618,7 @@ shape, check the m2c seed's `gameSetTaskSlot` arity first — the fix is one
 argument and it is free.
 ## The same rule at an indirect call, where there is no callee `.s` to check
 
-`_actor107600TargetTask` copies a four-entry `TaskFuncTable4` onto the stack
+`_shootingGalleryTargetsTargetTask` copies a four-entry `TaskFuncTable4` onto the stack
 and dispatches through it. The copy leaves the table base in `$a3` and two of
 its entries in `$a1`/`$a2`, so m2c emitted a seven-argument call through the
 stack slot — over a target whose `jalr $v0` sets up nothing at all. Those
@@ -49629,7 +49629,7 @@ TU already has:
 ```c
 TaskFuncTable4 handlers;
 
-handlers = _gActor107600TargetTaskStates;
+handlers = _gShootingGalleryTargetsTargetTaskStates;
 handlers.funcs[task->state](task);
 ```
 
@@ -62714,9 +62714,9 @@ have no counterpart*, not for operand renames.
 The twin need not sit in the same unit, and the nearby-TU list need not name it.
 BRIEF.md's "Similar matched bodies" block ranks *already-matched* bodies by
 `shape` (opcode order, operands dropped); a `shape` score of 1.00 is an
-invitation to diff immediately, before writing anything. `_actor107600UpdateMountColor`
+invitation to diff immediately, before writing anything. `_shootingGalleryTargetsUpdateMountColor`
 came back from `overlay_dup_index.py find` as its own only copy, while the block
-listed `_actor107600UpdateTargetRootColor` at `shape` 1.00 and `fields` 1.00 — the two
+listed `_shootingGalleryTargetsUpdateTargetRootColor` at `shape` 1.00 and `fields` 1.00 — the two
 disassemblies are identical instruction for instruction except the `jal`
 target. The matched body ported verbatim with the callee substituted scored 100%
 on the first attempt against an m2c baseline of 68.4% (`regs=19 insert=4
@@ -65474,7 +65474,7 @@ if/else form first whenever the target spends a `j` to reach a shared store.
 
 ## `lhu` in a field-to-field copy says nothing about signedness — a `short` copy uses it too
 
-`_actor107600CopyMountRotation` copies the 3x3 rotation of a matrix and reads every
+`_shootingGalleryTargetsCopyMountRotation` copies the 3x3 rotation of a matrix and reads every
 element with `lhu`:
 
 ```
@@ -65494,7 +65494,7 @@ plain HImode move. No value ever widens to SImode, so GCC 2.8.1 selects `movhi`,
 whose load half is `lhu` — the zero-extension is free and the high bits are dead
 before the `sh`. `lh` appears only where the loaded `short` is *used* at word
 width: as an operand of arithmetic, a comparison, or a call argument, as in the
-same overlay's caller `_actor107600UpdateMountRotation`, which does
+same overlay's caller `_shootingGalleryTargetsUpdateMountRotation`, which does
 `lh $a0, 0x40($s1)` to pass an angle to `RotMatrixX`.
 
 So when reading a run of loads: `lhu` next to an `sh` of the same value is a copy
@@ -67466,7 +67466,7 @@ GAS lays the section down in file order, so a table written at the top of the
 `.c` lands at the subsegment's own start address and nothing shifts. When other
 blocks sit below it in the same unit, they arrive through *those* functions'
 `INCLUDE_ASM` lines and stay in order behind it. If the table is not first,
-prefer `force_not_migration` - `actor_107600`'s comment records the same
+prefer `force_not_migration` - `shooting_gallery_targets`'s comment records the same
 reasoning from the other side ("a local initializer would emit the pool at this
 function's `.rodata` instead").
 
@@ -68782,7 +68782,7 @@ mistyped pointer, and the callee's *caller/initialiser* usually names the real
 field.
 
 **Exception - do not retype when the pointer is a scratchpad carve.**
-`_actor107600PlaceTargetOffset` had the same signature (`regs=2`, the two
+`_shootingGalleryTargetsPlaceTargetOffset` had the same signature (`regs=2`, the two
 immediates off by exactly 16) but the `VECTOR*` was correct and retyping it
 would have broken the carve. m2c had written the carve as
 `temp_s0 = temp_s1 - 0x10` against a `VECTOR*` head, so C scaled a byte offset
@@ -76644,7 +76644,7 @@ dead trailing parameter tells you nothing about how many arguments its callers
 pass, because the caller's source decides that.
 ## A load-delay filler decides a `QTY_CMP_PRI` race, swapping `$v0` and `$v1`
 
-**Symptom.** `_actor107600UpdateTargetRootColor` had the right instructions in the
+**Symptom.** `_shootingGalleryTargetsUpdateTargetRootColor` had the right instructions in the
 right order but two registers mirrored: the coordinate pointer in `$v1` and the
 three `workm.t[]` temps in `$v0`, where the target has the pointer in `$v0` and
 the temps in `$v1`. The `lui`/`ori` scratch-address pair also sat after
@@ -76676,7 +76676,7 @@ sequence*, not its header lines - those are flow.c's `REG_N_REFS` /
 `REG_LIVE_LENGTH` (§10.1), and `REG_LIVE_LENGTH` is not the local-alloc span.
 Neither is fixed by the source: both change with the schedule, which is why the
 edit that wins is one that moves an unrelated insn's LUID.
-`_actor107600UpdateTargetRootColor` (74.48% -> 100%).
+`_shootingGalleryTargetsUpdateTargetRootColor` (74.48% -> 100%).
 
 ## m2c scales pointer arithmetic by the type it guessed - check the immediate's units
 
@@ -76704,7 +76704,7 @@ is a field of a known struct, so
 
 ```c
 rotation = SCRATCH_STACK_CURSOR(MATRIX) - 1;
-_actor107600CopyMountRotation(rotation, &rootCoord->coord);
+_shootingGalleryTargetsCopyMountRotation(rotation, &rootCoord->coord);
 ```
 
 The tell that this is the bug and not a coincidence: the wrong immediate is
@@ -76713,7 +76713,7 @@ the function's own code. Look for an already-matched sibling carrying the same
 callee sequence first - here `ActorsShared80139948` (shared lib) and the inlined
 `Actor400600_RebuildRotation` are the same body, and lifting their source shape
 reproduced the target instruction for instruction, mask-load order and
-delay-slot store included. `_actor107600UpdateMountRotation` (95.96% -> 100%).
+delay-slot store included. `_shootingGalleryTargetsUpdateMountRotation` (95.96% -> 100%).
 
 ## The *load*'s `MEM_IN_STRUCT_P` decides whether a constant-address store sinks past it
 
@@ -76739,7 +76739,7 @@ clause fires and no dependence is recorded. Written m2c-style
 (`M2C_FIELD(work, u16 *, 0x54)`, `(mem:HI ...)`) it is not in-struct, the clause
 cannot fire, and a TRUE dependence pins the load after the store.
 
-`_actor107600UpdateTargetRotation` (96.73% -> 100.00%) is the worked example, and the
+`_shootingGalleryTargetsUpdateTargetRotation` (96.73% -> 100.00%) is the worked example, and the
 two dumps are the whole difference:
 
 ```c
@@ -76767,7 +76767,7 @@ shape needs.
 
 ## A load used only inside the `if` still belongs above it, and the hoist moves the arm block's allocation
 
-`_actor107600RetireMount` (67.32% -> 100.00%, one edit) is a two-statement
+`_shootingGalleryTargetsRetireMount` (67.32% -> 100.00%, one edit) is a two-statement
 state handler; the whole difference is where `index->parent` is read. The target
 reads it in block A, before the compare, although `parent` is dereferenced only
 inside the arm, and it holds the constant in `$v1` and the compared halfword in
@@ -76789,7 +76789,7 @@ other way round (`lh v1,0x144(v0)` / `li v0,2`) - the `regs 4` plus the two
 ```c
 parent = arg0->parent;
 work   = arg0->work;
-if (work->behaviour != ACTOR_107600_MOUNT_FIXED) {
+if (work->behaviour != SHOOTING_GALLERY_TARGETS_MOUNT_FIXED) {
     ((MistShootingGalleryWork*)parent->work)->liveTargets--;
 }
 arg0->state++;
@@ -76811,7 +76811,7 @@ target's entry block whose value is only *used* in an arm is a source-level
 hoist, not a load the scheduler sank out of the arm, and it re-ranks that
 block's quantities as well.
 
-Example: `_actor107600RetireMount`. Input: `base_1.i`
+Example: `_shootingGalleryTargetsRetireMount`. Input: `base_1.i`
 `319fc7f543e86c771a88987b018926d2b3b57541b2a301754ab7ab55c44c783f`.
 
 ## Typing `index->parent->work`: follow the spawner, not the offset
@@ -76827,7 +76827,7 @@ Find the spawner through the enemy table the actor is spawned from - `grep -F`
 the table symbol across `asm/USA/`:
 
 ```
-grep -rnF 'gActor107600TaskDescriptors' asm/USA/          # -> only mist_shooting_gallery
+grep -rnF 'gShootingGalleryTargetsTaskDescriptors' asm/USA/          # -> only mist_shooting_gallery
 ```
 
 `_mistShootingGallerySpawnTarget` spawns it, calls
@@ -76841,7 +76841,7 @@ Note the direction of the search: the actor's own overlay never mentions the
 spawner, so the answer comes from the *room* side. Room overlays import the
 table by absolute address, which is what makes the symbol greppable at all.
 
-Example: `_actor107600RetireMount`.
+Example: `_shootingGalleryTargetsRetireMount`.
 
 ## A `u16` field cast to `s16` must be cast *inside* the division, or the divide is `multu`
 
@@ -76898,16 +76898,16 @@ coord->coord.m[0][0] = (s16)x / 100 * work->widthPercent;
 Both forms score 100% and compile to byte-identical objects, so read the
 `lhu`/`sll`/`sra` triple as one unit rather than inferring an unsigned field
 from the load alone - and when the field does sit in an existing type at the
-right offset, prefer the type over a view struct (`Actor107600DisplayCoord`
+right offset, prefer the type over a view struct (`ShootingGalleryTargetsDisplayCoord`
 was written first and thrown away). A `lhu` on its own, with no extension
 after it, says even less: `dst->m[0][0] = src->m[0][0]` through `MATRIX*`
 emits `lhu`/`sh` because the sign extension is dead in a pure copy.
 
-Example: `_actor107600ApplyTargetScale`.
+Example: `_shootingGalleryTargetsApplyTargetScale`.
 
 ## A live call result pushes the scratch-head reload from `$v0` into `$v1` - and that is what costs the `nop`
 
-**Symptom.** `_actor107600MeasureTargetPlayerDistance` carves a `VECTOR` off `SCRATCH_STACK_CURSOR_SLOT`,
+**Symptom.** `_shootingGalleryTargetsMeasureTargetPlayerDistance` carves a `VECTOR` off `SCRATCH_STACK_CURSOR_SLOT`,
 calls `playerActorPlanarLength` for an XZ distance, then releases the block with
 `SCRATCH_STACK_RELEASE_BYTES_AT(scratchSlot, sizeof(*offset));`. It scored 93.57% with `regs=3 insert=2
 delete=1`: the reload came out in `$v0`, which forced it *after* the store of
@@ -76940,13 +76940,13 @@ function's object *is* the original, so `build/USA/src/<overlay>/<unit>.c.o`
 answers a codegen question directly. `companionGetPlayerPlanarDistance` (`src/gameplay/player_state.c`) is
 the same shape but `return distance;` after the release, so its result is unavoidably
 live across it; its tail there is `lw v1,0(s1)` / `nop` / `addiu v1,v1,0x10` /
-`sw v1,0(s1)`. `_actor107600PlaceTargetOffset`, with no live value at that point,
+`sw v1,0(s1)`. `_shootingGalleryTargetsPlaceTargetOffset`, with no live value at that point,
 reloads into `$v0` and fills the delay with an independent `lw`. Example:
-`_actor107600MeasureTargetPlayerDistance` (93.57% -> 100%).
+`_shootingGalleryTargetsMeasureTargetPlayerDistance` (93.57% -> 100%).
 
 ## Assembly is the launch order *reversed* - so a wrong group order is a source-order problem, not a comparator one
 
-**Symptom.** `_actor107600InitTarget` sat at 99.294% (`reorder=1`) with a
+**Symptom.** `_shootingGalleryTargetsInitTarget` sat at 99.294% (`reorder=1`) with a
 single swapped pair in the entry block: the target loads the spawn byte before
 the enemy pointer, the build emitted the enemy pointer first.
 
@@ -76986,7 +76986,7 @@ spawnByte = (u8)task->spawnArg1.value;   /* lower LUID -> emitted before enemy *
 enemy     = task->spawnArg2.pointer;
 ```
 
-**Example:** `_actor107600InitTarget` - the same rule had already taken the
+**Example:** `_shootingGalleryTargetsInitTarget` - the same rule had already taken the
 `field_140`/`field_144` hunk from 93.176% to 99.294% by moving the
 `work->field_140` assignment above the two `field_144`/`field_146` stores.
 
@@ -77025,7 +77025,7 @@ emits `model`, `lbu`, `enemy`, `rootCoord`. Related but opposite in direction to
 a byte-field value in an `s32` local": there an `s32` local stops combine from
 *narrowing* a `lw`; here it stops combine from *relocating* an `lbu`.
 
-**Example:** `_actor107600InitTarget` (99.294% -> 100%, `u8 spawnByte` -> `u32
+**Example:** `_shootingGalleryTargetsInitTarget` (99.294% -> 100%, `u8 spawnByte` -> `u32
 spawnByte`, everything else unchanged).
 
 ## One body, two declaration orders: the `birthing_insn_p` priority bump makes initialiser order the emitted order
@@ -86867,7 +86867,7 @@ them and the other must stay a local definition.
 `neo_ark_forest_zone` is the case: the four-entry stack-copied handler-table
 dispatch appears at `0x8017DBBC`, `0x80181430` and `0x8018151C` in that one
 overlay, over three different rodata tables (`D_..._8017D5D8`,
-`D_..._8017D5E8`, and a third). `actor_107600` and `actor_342400` are the same
+`D_..._8017D5E8`, and a third). `shooting_gallery_targets` and `actor_342400` are the same
 shape. Read the `same body: N copies` list for repeats of the *same* overlay
 before promoting anything; when one appears, keep each copy local and rename only
 the rodata operand.
@@ -101424,7 +101424,7 @@ pass in `a1`, i.e. one direct store then four through the pointer - and that is
 exactly what the source has to say. Both splits appear among matched siblings:
 `_actor206100ApplyPart5Recoil` writes two direct (`matrix.rotationWords.m00M01`,
 `matrix.rotationWords.m02M10`) and three through `mtx`, and its target asm shows the
-same two `($sp)` / three `($s1)` split; `actor_107600` and `actor_403600` write
+same two `($sp)` / three `($s1)` split; `shooting_gallery_targets` and `actor_403600` write
 all five through a pointer that is a runtime value already. Read a sibling's
 target asm before choosing - the store bases say which form each line used.
 
@@ -106096,20 +106096,20 @@ was what let the *preceding* range-test branch take `lui $v1` into its delay slo
 
 ### A per-case `lw` of the same pointer plus a shared store tail is a hand-inlined setter: give each case its own block local
 
-`_actor107600ConsumeTargetHitReaction` switches on a request and, in every case, reloads
+`_shootingGalleryTargetsConsumeTargetHitReaction` switches on a request and, in every case, reloads
 `task->work` and jumps to one shared `sh v0,0x158(v1); sh zero,0x15A(v1)`
-tail - the body of the sibling setter `_actor107600SetTargetState`, which GCC
+tail - the body of the sibling setter `_shootingGalleryTargetsSetTargetState`, which GCC
 2.8.1 does not inline on its own (the plain call builds a frame). Writing
-`((_Actor107600TargetWork*)task->work)->state = 2; ((_Actor107600TargetWork*)task->work)->step = 0;` per case keeps
-two loads (93%). A block-scoped `{ _Actor107600TargetWork* reactionWork = task->work;
+`((_ShootingGalleryTargetsTargetWork*)task->work)->state = 2; ((_ShootingGalleryTargetsTargetWork*)task->work)->step = 0;` per case keeps
+two loads (93%). A block-scoped `{ _ShootingGalleryTargetsTargetWork* reactionWork = task->work;
 reactionWork->state = N; reactionWork->step = 0; break; }` per case loads once, and
 cross-jumping merges the stores into the shared tail - 100%.
 
 The jump table sat last in the leading rodata at a non-8-aligned offset, so
 landing it needed a `rodata` cut plus `units` cuts around the function
-(`actor_107600` manifest entry), exactly as in "Compiler-generated jump tables".
+(`shooting_gallery_targets` manifest entry), exactly as in "Compiler-generated jump tables".
 
-## Local function-pointer table interleaved with the loads: put the initialized pointer locals *before* the aggregate initializer (_actor107600UpdateMount, 2026-09-16)
+## Local function-pointer table interleaved with the loads: put the initialized pointer locals *before* the aggregate initializer (_shootingGalleryTargetsUpdateMount, 2026-09-16)
 
 Target prologue: `lui/addiu %lo(tableFn0)`, saves, the three `lw` loads of the
 task's pointers, *then* `sw $v0,0x10($sp)` and the second element. Per-element
@@ -106122,7 +106122,7 @@ the order exactly:
 ```c
     TmdObject*             model       = task->extra.tmd;
     GfxCoord*              rootCoord   = model->coords;
-    _Actor107600MountWork* work        = task->work;
+    _ShootingGalleryTargetsMountWork* work        = task->work;
     TaskFunc               handlers[2] = { fnA, fnB };
 ```
 
@@ -106135,7 +106135,7 @@ through `model` after a call needed a second pointer (`visibleModel = model;`) t
 target's `move $s3,$a0` in the switch's first delay slot while case 2 kept
 using `$a0`.
 
-## One pan/obj local per sound call site, and `(v << 16) >> 13` keeps a sign-extend a truncating store drops (_actor107600UpdateActiveTarget, 2026-09-16)
+## One pan/obj local per sound call site, and `(v << 16) >> 13` keeps a sign-extend a truncating store drops (_shootingGalleryTargetsUpdateActiveTarget, 2026-09-16)
 
 Four `pan = (s8)worldCoordGetOriginAudioPan(o); sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(o));`
 sites sharing one `obj`/`pan` pair of function-scope locals cost an extra
@@ -106151,13 +106151,13 @@ the `move $a0` after them.
 narrowed to `sll 3`, the second reorders the increment). Declare the counter
 `s16 v = work->field + 1;` and write `((v << 16) >> 13) - 0x38`.
 The same `sll 16; sra 13; addiu -0x38` from a `u16` field read directly
-(_actor107600UpdateTargetFlinch) matched as `((s16)work->field - 7) * 8`: the
+(_shootingGalleryTargetsUpdateTargetFlinch) matched as `((s16)work->field - 7) * 8`: the
 factored subtraction keeps GCC from narrowing the store to `sll 3`, and
 combine then distributes it back into the shift pair plus `-0x38`.
 
-### Lowering `rodata_head` can hand a unit a table splat hides inside a *matched* function's `.s` (_actor107600UpdateStandingMountPath, 2026-09-16)
+### Lowering `rodata_head` can hand a unit a table splat hides inside a *matched* function's `.s` (_shootingGalleryTargetsUpdateStandingMountPath, 2026-09-16)
 
-`actor_107600` had `rodata_head = "0x8C"`, so `_actor107600UpdateStandingMountPath`'s
+`shooting_gallery_targets` had `rodata_head = "0x8C"`, so `_shootingGalleryTargetsUpdateStandingMountPath`'s
 jump table at 0x24 sat in the asm header and the C body failed to link
 (`undefined reference to .Lactor_107600_801321D0`). Lowering the head to `0x24`
 is the fix from the `rodata_head` entry above, but it also moved two dispatch
@@ -106166,7 +106166,7 @@ Adding `INCLUDE_RODATA` for them failed for one of the two: with
 `migrate_rodata_to_functions`, a symbol only one function references is folded
 into *that function's* `.s`, and when the function is already C that `.s` lives
 under `matchings/`, so there is no `nonmatchings/…/D_….s` to include
-(`can't open … _gActor107600TargetStateHandlers.s`).
+(`can't open … _gShootingGalleryTargetsTargetStateHandlers.s`).
 
 Define such tables in C instead, at the source position of their address (after
 the last function whose rodata precedes them). Function-pointer tables are
@@ -122438,7 +122438,7 @@ to a natural `switch` (dropping m2c's gotos and the phantom second argument to
 `playerActorSetScriptedControl`, which is `void playerActorSetScriptedControl(s32)` - see
 `include/gameplay/actor_presentation.h`) 97.760%; `gSceneCombatState.actorControl = 2;` 99.920%;
 `D_801153F4[0] = 2;` 100.000%. Contrast this with the store-side entries above
-(`_neoArkAltarSelectPostSequenceRoom`, `actor_107600`): those match a *store* against a
+(`_neoArkAltarSelectPostSequenceRoom`, `shooting_gallery_targets`): those match a *store* against a
 later *load*; here the missing edge is what lets a load hoist, and the observable
 consequence is a cross-jump boundary rather than a delay slot.
 
@@ -133055,7 +133055,7 @@ The tree's casts come in two shapes, and they belong to different steps:
   thing it changes is the parameter, not the cast.
 
 How much of `Task` a window names varies: `Mm1Task`'s is one field
-(`pad_0[0x30]` then `Task::state`), `Actor107600`'s two (`pad_0[0x1C]` then the
+(`pad_0[0x30]` then `Task::state`), `ShootingGalleryTargets`'s two (`pad_0[0x1C]` then the
 work slot), and `Actor503500`'s the whole layout with three slots retyped. The
 smaller the window, the fewer the uses, and the closer its step is to just
 deleting it and letting `Task` and its own work type say the same thing.
@@ -144253,7 +144253,7 @@ address an anti-dependence on the first store, which is the ordering
 `SOFT_BARRIER` for. Writing `work->rig.slots[i].rate` directly instead folds both
 into one walking pointer. Try the reused pointer before a hand-built offset.
 
-## A `MATRIX` column walk is `m[0][lightIndex]`, `m[1][lightIndex]`, `m[2][lightIndex]`, not a column-overlay pointer (_actor107600UpdateTargetColor, 2026-09-26)
+## A `MATRIX` column walk is `m[0][lightIndex]`, `m[1][lightIndex]`, `m[2][lightIndex]`, not a column-overlay pointer (_shootingGalleryTargetsUpdateTargetColor, 2026-09-26)
 
 A loop reading one column of a 3x3 per iteration compiles to a pointer that
 steps by 2 and loads at `0`, `6` and `0xC`. Modelling that as a 14-byte
@@ -149113,7 +149113,7 @@ none needed a hack. The forms, by what the `goto` was standing for:
   (`factoryPowerScene`, `_generalStoreToggleFlagTask`, `_shelterR47PlayCapCommandTask`, first
   try each). The known limit applies: cross-jumping runs after allocation, so
   a duplicated tail that mentions a pseudo in a close priority race swaps
-  registers. `_actor107600UpdateHangingMountPath` took two of its three `goto stop`
+  registers. `_shootingGalleryTargetsUpdateHangingMountPath` took two of its three `goto stop`
   as duplicates and swapped `$t0/$t1` on the third; `gameFlowStepLoadScreenPresentation`
   swapped `$s1/$s3` when the shared draw tail was duplicated or made an inline.
 - **A hand-written dispatch tree (`if (s == 1) goto case1; if (s >= 2) goto
@@ -150043,13 +150043,13 @@ attempts; left as it was.
   is real (duplicated arms cannot merge the `capCmd` store, 1 insn longer);
   `if (A) {...} else if (B) {...} else return 1;` with the stores after it
   puts the tail behind arm B (1 insn shorter).
-- Not converted: `_actor107600InitMount`'s `goto fail` from the failed
+- Not converted: `_shootingGalleryTargetsInitMount`'s `goto fail` from the failed
   allocation back into the too-close arm. The duplicate is not merged (cse
   reuses the scratch-head register in the second copy only, 20 insns longer),
   an inline for the block merges into the *later* copy, and the allocation in
   the `||` condition moves the block behind it.
 - Not converted: the `goto stop` of `HOLD` in the two mount walkers of
-  `actor_107600.c` (an inline at all four sites swaps `$t0/$t1` exactly as the
+  `shooting_gallery_targets.c` (an inline at all four sites swaps `$t0/$t1` exactly as the
   written-out copy does), and `itemMenuSetWeaponChoiceRows`'s `goto increment` from the
   `arg1 == 0` test into the second scan (`count++` there keeps the earlier
   copy; the other three went as `if (slot > NONE || weapon == item) count++;

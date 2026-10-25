@@ -4391,12 +4391,13 @@ objects = [
   { kind = "animation", at = "0x79FC", sets = ["0x7BF8", "0x7F34", "0x8248", "0x8540", "0x8B98", "0x9018", "0x93EC", "0x9704", "0x99F4", "0x9D08", "0x9FE4", "0xA080"], in_c = true },
 ]
 
-[actors.overlays.actor_107600]
+[actors.overlays.shooting_gallery_targets]
 slot = 1
 id = 143
+src = "src/stages/akropolis/actors/shooting_gallery_targets"
 objects = [
   { kind = "packageId" },
-  { unit = "actor_107600/actor_107600", rodata = "0x4", text = "0xF0", data = "0x3160", tail = true },
+  { unit = "shooting_gallery_targets", rodata = "0x4", text = "0xF0", data = "0x3160", tail = true },
 ]
 
 [actors.overlays.police_officers]

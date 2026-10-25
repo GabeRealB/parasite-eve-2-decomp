@@ -1,13 +1,13 @@
-#ifndef INCLUDE_ACTORS_ACTOR_107600_H
-#define INCLUDE_ACTORS_ACTOR_107600_H
+#ifndef INCLUDE_STAGES_AKROPOLIS_ACTORS_SHOOTING_GALLERY_TARGETS_H
+#define INCLUDE_STAGES_AKROPOLIS_ACTORS_SHOOTING_GALLERY_TARGETS_H
 
 #include "main/task_types.h"
 
 /// Descriptor slots for the gallery mount and its carried target models.
 enum {
-    ACTOR_107600_TASK_MOUNT       = 0,
-    ACTOR_107600_TASK_TARGET_BASE = 1,
-    ACTOR_107600_TASK_COUNT       = 19,
+    SHOOTING_GALLERY_TARGETS_TASK_MOUNT       = 0,
+    SHOOTING_GALLERY_TARGETS_TASK_TARGET_BASE = 1,
+    SHOOTING_GALLERY_TARGETS_TASK_COUNT       = 19,
 };
 
 /// Shooting-gallery mount and target spawn recipes, with no terminator.
@@ -25,7 +25,7 @@ enum {
 /// and owns its child target; enemy spawns supply a live `Enemy` in argument 2.
 /// Target argument 1 keeps kind in bits 0..3, mount/target handshake signals in
 /// 4..7, mount behaviour in 16..19 and attack enable in 29.
-/// Keep actor_107600 and the gallery's borrowed models loaded until tasks exit.
-extern TaskDesc gActor107600TaskDescriptors[ACTOR_107600_TASK_COUNT];
+/// Keep shooting_gallery_targets and the gallery's borrowed models loaded until tasks exit.
+extern TaskDesc gShootingGalleryTargetsTaskDescriptors[SHOOTING_GALLERY_TARGETS_TASK_COUNT];
 
-#endif // INCLUDE_ACTORS_ACTOR_107600_H
+#endif // INCLUDE_STAGES_AKROPOLIS_ACTORS_SHOOTING_GALLERY_TARGETS_H

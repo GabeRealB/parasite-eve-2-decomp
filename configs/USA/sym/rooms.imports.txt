@@ -516,7 +516,7 @@ gActor535700PawnGolemEncounterSkipScript = 0x801341E0; // absolute:True owner=ac
 gActor461800NeoArkSceneSkipScript = 0x80134470; // absolute:True owner=actor_461800
 gActor143000KeypadTaskDesc = 0x80134564; // absolute:True owner=actor_143000
 gActor141000FlightTasks = 0x801348D8; // absolute:True owner=actor_141000
-gActor107600TaskDescriptors = 0x80134F94; // absolute:True owner=actor_107600
+gShootingGalleryTargetsTaskDescriptors = 0x80134F94; // absolute:True owner=shooting_gallery_targets
 gActor143400CompanionEntryScript = 0x801350BC; // absolute:True owner=actor_143400
 gActor146000WaterHoleSceneTasks = 0x801351FC; // absolute:True owner=actor_146000
 gActor451100SubmarineTunnelSceneScript = 0x80135220; // absolute:True owner=actor_451100
