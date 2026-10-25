@@ -206,7 +206,7 @@ class World:
             for fkey, folder in (body.get("folders") or {}).items():
                 files = {int(n["id"]): (f"{stage}/{fkey}/{k}", n) for k, n in folder["files"].items()}
                 self.folders[stage, int(folder["id"])] = files
-                package = next((self.package_name(c) for _p, n in files.values() for c in (n.get("chunks") or {}).values() if self.type(c) in ("pe2pkg", "room", "stage")), None)
+                package = next((self.package_name(c) for _p, n in files.values() for c in (n.get("chunks") or {}).values() if self.type(c) in asset_schema.PACKAGE_TYPES), None)
                 self.room_of[stage, int(folder["id"])] = package or fkey
         # A package's load address is in its chunk header, which the extraction keeps (assets/USA/stages.json);
         # the overlay manifest's is the fallback.
@@ -583,7 +583,7 @@ class Replay:
                     load["assets"].append(key)
                     if kind == "pe2clut":
                         load["cluts"].append(key)
-            elif kind in ("pe2pkg", "room", "stage"):
+            elif kind in asset_schema.PACKAGE_TYPES:
                 key = self.w.package_name(key)
                 address, length = self.w.address.get(key), self.w.length(key)
                 if self.has_packages:

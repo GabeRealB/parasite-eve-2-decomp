@@ -99,7 +99,7 @@ def stage_rooms(stage: int, assets: dict) -> list[tuple[int, str]]:
     for folder in asset_data.TREE[stage].get("folders", {}).values():
         for node in folder["files"].values():
             for chunk in node.get("chunks", {}).values():
-                if assets.get(chunk, {}).get("type") in ("room", "pe2pkg") and folder["id"] % 100 == 1:
+                if assets.get(chunk, {}).get("type") in ("room", "pe2pkg", "package") and folder["id"] % 100 == 1:
                     out.append((folder["id"] // 100, chunk))
     return sorted(set(out))
 
@@ -131,7 +131,7 @@ def images(name: str, assets: dict, embedded: dict, assets_root: Path) -> tuple[
     if is_actor(name, assets):
         room = actor_room(name, assets)
         stage, area = _place(room, asset_data.TREE)
-        overlay = next(k for k, r in assets.items() if r.get("type") in ("pe2pkg", "room", "stage")
+        overlay = next(k for k, r in assets.items() if r.get("type") in ("pe2pkg", "room", "stage", "package")
                        and r.get("package_name", k) == STAGES[stage][0])
         package = assets[name]["package_name"]
         return ActorImages(stage, shape.stored_bytes(overlay, ctx), assets[room]["package_name"],
@@ -139,7 +139,7 @@ def images(name: str, assets: dict, embedded: dict, assets_root: Path) -> tuple[
                            shape.stored_bytes(name, ctx), actor_load(package)), area
     stage, area = _place(name, asset_data.TREE)
     overlay = STAGES[stage][0]
-    overlay = next(k for k, r in assets.items() if r.get("type") in ("pe2pkg", "room", "stage")
+    overlay = next(k for k, r in assets.items() if r.get("type") in ("pe2pkg", "room", "stage", "package")
                    and r.get("package_name", k) == overlay)   # the stage overlay's asset, by its package
     return Images(stage, shape.stored_bytes(overlay, ctx), assets[name]["package_name"],
                   shape.stored_bytes(name, ctx), shape.stored_bytes("gameplay", ctx)), area

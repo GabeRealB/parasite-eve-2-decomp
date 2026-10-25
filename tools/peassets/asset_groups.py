@@ -107,7 +107,7 @@ def merge(assets: dict[str, dict[str, Any]], embedded: dict[str, dict[str, Any]]
     # groups' order: the others hold the same asset, which the build's checksum confirms.
     placed: set[str] = set()
     for key, rec in list(assets.items()):
-        if rec.get("type") not in ("pe2pkg", "room", "stage") or not places(rec):
+        if rec.get("type") not in ("pe2pkg", "room", "stage", "package") or not places(rec):
             continue
         name = rec.get("package_name", key)
         for place in places(rec):

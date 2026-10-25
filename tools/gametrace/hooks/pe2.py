@@ -139,7 +139,7 @@ def packages_of(what: dict) -> list[str]:
         nodes = [f for folder in folders for f in (folder.get("files") or {}).values() if f["id"] == what["index"]]
     # A package's overlay name, which its decoded copy goes by: `package_name` where the asset is named otherwise.
     return [asset_data.ASSETS[name].get("package_name", name) for node in nodes for name in node["chunks"].values()
-            if asset_data.ASSETS.get(name, {}).get("type") in ("pe2pkg", "room", "stage")]
+            if asset_data.ASSETS.get(name, {}).get("type") in ("pe2pkg", "room", "stage", "package")]
 
 
 # ---- a package arriving in memory: seen in the loader itself, where the package chunk is inflated

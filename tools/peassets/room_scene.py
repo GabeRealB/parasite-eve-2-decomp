@@ -1267,7 +1267,7 @@ class Scene:
         out["fileId"], out["fileExists"] = file_id, node is not None
         if node:
             out["chunks"] = list((node.get("chunks") or {}).values())
-            package = next((self.p.assets[c].get("package_name", c) for c in out["chunks"] if self.p.assets.get(c, {}).get("type") in ("pe2pkg", "room", "stage")), None)
+            package = next((self.p.assets[c].get("package_name", c) for c in out["chunks"] if self.p.assets.get(c, {}).get("type") in asset_schema.PACKAGE_TYPES), None)
             out["package"] = package
             out["models"] = list(self.p.models_of.get(package, [])) if package else []
         return out

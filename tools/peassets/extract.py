@@ -699,7 +699,7 @@ class AssetStore:
         # room's scene is only part of it, and the build and the other decoders read the rest.
         shaped_outputs = {out for rec in ASSETS.values() if rec.get("type") == "shaped"
                           for out in rec["outputs"].values()
-                          if (ASSETS.get(out) or {}).get("group") and ASSETS[out].get("type") not in ("pe2pkg", "room", "stage")}
+                          if (ASSETS.get(out) or {}).get("group") and ASSETS[out].get("type") not in asset_schema.PACKAGE_TYPES}
         # A font's glyph table is decoded as its UFO, and a palette a texture takes as `palettes_from` as the
         # texture's variants; neither keeps a copy of its bytes beside them.
         shaped_outputs |= {rec["table"] for rec in ASSETS.values() if rec.get("type") == "font" and "table" in rec}
@@ -1223,7 +1223,7 @@ def store_embedded_assets(output_path: Path, store: "AssetStore", *, skip: bool)
             entry["load_addr"], chunk_type=FileChunkType.RoomPkg
         )
         for entry in store.map.values()
-        if entry["type"] in ("pe2pkg", "room", "stage")
+        if entry["type"] in asset_schema.PACKAGE_TYPES
         and embedded_for_source(asset_schema.package_name(asset_schema.raw_key(entry["raw_path"])) + ".pe2pkg")
     }
     targets = [(output_path / "main.exe", None)] + [

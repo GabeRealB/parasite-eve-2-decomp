@@ -245,7 +245,7 @@ class Context:
         return owners[0] if owners else None
 
 
-PACKAGE_TYPES = ("pe2pkg", "room", "stage")
+PACKAGE_TYPES = ("pe2pkg", "room", "stage", "package")
 _INFLATED: dict[tuple[str, int], bytes] = {}
 
 

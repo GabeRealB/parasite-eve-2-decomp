@@ -138,6 +138,10 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     # objects, map, image memory, music and rewards - from gameplay's per-stage tables, its rooms' variants and its
     # `entries`; its per-area tables follow from its rooms. Its instance is `<group>/stage.toml`.
     "stage": {"payload": (), "stored": ("parent", "package_name", "embedded", "entries")},
+    # An overlay image that states where it loads, what is resident with it, what fills the slots it points into and
+    # the tables it offers others (package.py).
+    "package": {"payload": (), "stored": ("parent", "package_name", "embedded", "entries", "load", "requires", "slots",
+                                          "exports")},
     "bs": {"payload": (), "stored": ()},
     # A bank is a container: `samples` names the sample in each slot, in slot order.
     "spk": {"payload": ("samples",), "stored": ("sounds",)},
@@ -205,6 +209,9 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
 # its size always, its position only when the record fixes one.
 EMBEDDED_FIELDS = ("source", "vram", "offset", "address", "size", "ext", "type", "include", "layout", "deps", "notes",
                    "group")
+# The package types: an overlay image, whichever kind it is declared as (package.py; pe2pkg, room and stage are the
+# older kinds the `package` type replaces).
+PACKAGE_TYPES = frozenset({"pe2pkg", "room", "stage", "package"})
 # Types with no bytes of their own: declared by hand, carried over unchanged by dump_asset_db.py.
 DECLARED_TYPES = frozenset({"binding", "texture", "file", "atlas", "font", "vram_region", "memory_slot", "rig", "clip", "camera_path", "animation_schema",
                             "animation_bank", "sound_bank", "sound", "shaped", "room", "stage"})
@@ -347,7 +354,7 @@ def package_name(key: str, rec: dict[str, Any] | None = None) -> str:
 
 def package_names(assets: dict) -> dict[str, str]:
     """Every package asset -> its overlay name."""
-    return {k: r.get("package_name", k) for k, r in assets.items() if r.get("type") in ("pe2pkg", "room", "stage")}
+    return {k: r.get("package_name", k) for k, r in assets.items() if r.get("type") in PACKAGE_TYPES}
 
 
 def package_asset(name: str, assets: dict | None = None) -> str:
@@ -355,7 +362,7 @@ def package_asset(name: str, assets: dict | None = None) -> str:
     if assets is None:
         assets = load()[0]
     for key, rec in assets.items():
-        if rec.get("type") in ("pe2pkg", "room", "stage") and rec.get("package_name") == name:
+        if rec.get("type") in PACKAGE_TYPES and rec.get("package_name") == name:
             return key
     return name
 
@@ -363,7 +370,7 @@ def package_asset(name: str, assets: dict | None = None) -> str:
 def implied_deps(key: str, assets: dict, embedded: dict) -> list[str]:
     """Dependencies the manifest states in another form."""
     rec = assets.get(key)
-    if not rec or rec.get("type") not in ("pe2pkg", "room", "stage"):
+    if not rec or rec.get("type") not in PACKAGE_TYPES:
         return []
     source = package_name(key, rec) + ".pe2pkg"
     return sorted(k for k, e in embedded.items() if e.get("source") == source)
@@ -408,7 +415,7 @@ def parents_of(key: str, assets: dict, tree: dict) -> list[str]:
             if any(key in (n.get("chunks") or {}).values() for n in fnode["files"].values()):
                 for node in tree[0]["files"].values():
                     if int(node["id"]) == 900000 + stage:
-                        return [c for c in node["chunks"].values() if assets.get(c, {}).get("type") in ("pe2pkg", "room", "stage")][:1] or ["gameplay"]
+                        return [c for c in node["chunks"].values() if assets.get(c, {}).get("type") in PACKAGE_TYPES][:1] or ["gameplay"]
     return ["gameplay"]
 
 
@@ -452,7 +459,7 @@ TYPE_DIR_BY_EXT: dict[str, str] = {
     ".wav": "sample",
 }
 # The extension of the stored bytes of each manifest type that does not state one (`ext`, on an embedded asset).
-EXT_BY_TYPE: dict[str, str] = {"pe2pkg": ".pe2pkg", "room": ".pe2pkg", "stage": ".pe2pkg", "pe2img": ".pe2img", "pe2clut": ".pe2clut", "pe2bundle": ".pe2bundle",
+EXT_BY_TYPE: dict[str, str] = {"pe2pkg": ".pe2pkg", "room": ".pe2pkg", "stage": ".pe2pkg", "package": ".pe2pkg", "pe2img": ".pe2img", "pe2clut": ".pe2clut", "pe2bundle": ".pe2bundle",
                                "cap": ".cap", "stf": ".stf", "demo": ".demo", "font_atlas": ".pe2img", "collision": ".collision", "bs": ".bs",
                                # embedded types: a placement's extension follows from its type
                                "animation": ".anim", "camera_path": ".path", "movie_path": ".path", "clut": ".clut",
@@ -975,7 +982,7 @@ def validate(assets: dict, embedded: dict) -> list[str]:
                 problems.append(f"{key}: only a placed bank is a table in C, with a symbol")
             if "borrows" in rec and key not in embedded:
                 problems.append(f"{key}: only a placed bank binds clips other packages place")
-            packages = {r.get("package_name", k) for k, r in assets.items() if r.get("type") in ("pe2pkg", "room", "stage")}
+            packages = {r.get("package_name", k) for k, r in assets.items() if r.get("type") in PACKAGE_TYPES}
             for package in rec.get("borrows", ()):
                 if package not in packages:
                     problems.append(f"{key}: borrows {package!r}, which is not a package")

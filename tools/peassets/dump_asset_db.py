@@ -412,7 +412,7 @@ def collect_tree(
                 aid = _asset_id_from_stages_path(ent.get("path") or "")
                 if aid and str(ent.get("path") or "").startswith("pe2pkg/"):
                     # pe2pkg/ holds a package under its overlay name (`package_name`).
-                    aid = next((k for k, r in assets.items() if r.get("type") in ("pe2pkg", "room", "stage") and r.get("package_name") == aid), aid)
+                    aid = next((k for k, r in assets.items() if r.get("type") in asset_schema.PACKAGE_TYPES and r.get("package_name") == aid), aid)
                 if idx is None or not aid:
                     continue
                 chunk_map[idx] = aid
@@ -546,7 +546,7 @@ def collect_models(
     # A model a group declares is placed by its package, whole - arrays, stream and record - and named there.
     declared: dict[tuple[str, int], str] = {}
     for rec in old.values():
-        if rec.get("type") not in ("pe2pkg", "room", "stage"):
+        if rec.get("type") not in asset_schema.PACKAGE_TYPES:
             continue
         for place in rec.get("embedded", ()):
             if isinstance(place, dict) and old.get(place["name"], {}).get("type") == "model":
@@ -684,7 +684,7 @@ def collect_embedded_lists(assets: dict[str, dict[str, Any]], embedded: dict[str
     """Each package's `embedded`: the embedded assets whose source is the package, by address. A package is a
     container, as a bundle or a bank is; its overlay name (`package_name`) is what a source names."""
     for key, rec in assets.items():
-        if rec.get("type") not in ("pe2pkg", "room", "stage"):
+        if rec.get("type") not in asset_schema.PACKAGE_TYPES:
             continue
         if any(isinstance(p, dict) for p in rec.get("embedded", ())):
             continue                    # a group's package places its embedded assets itself
@@ -721,7 +721,7 @@ def collect_animations(assets_root: Path, old: dict[str, dict[str, Any]],
     # A package whose group places its clips one by one (type clip) has no block of its own any more. A clip
     # several packages carry has its record from one of them, so each package's own placements say.
     declared = {f"{rec.get('package_name', key)}.pe2pkg" for key, rec in old_assets.items()
-                if rec.get("type") in ("pe2pkg", "room", "stage") and any(isinstance(p, dict) and old_assets.get(p["name"], {}).get("type") == "clip"
+                if rec.get("type") in asset_schema.PACKAGE_TYPES and any(isinstance(p, dict) and old_assets.get(p["name"], {}).get("type") == "clip"
                                                       for p in rec.get("embedded", ()))}
     for row in declared_animations(manifest):
         source = row["package"] + ".pe2pkg"

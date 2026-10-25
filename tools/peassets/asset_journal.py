@@ -490,7 +490,7 @@ class Manifest:
             groups[(stage, folder) if folder else (stage, None, fkey)].update((node.get("chunks") or {}).values())
         for members in groups.values():
             for key in members:
-                if self.assets.get(key, {}).get("type") in ("pe2pkg", "room", "stage"):
+                if self.assets.get(key, {}).get("type") in asset_schema.PACKAGE_TYPES:
                     self.near[asset_schema.package_name(key, self.assets[key])].update(members)
         self.packages = set(asset_schema.package_names(self.assets).values())
         # The shifted positions of what a placed package's file uploads.

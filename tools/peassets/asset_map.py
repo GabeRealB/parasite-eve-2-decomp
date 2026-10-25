@@ -1093,7 +1093,7 @@ def main() -> int:
             lines, seen = [], set()
             def add(key, where):
                 kind = data["assets"].get(key, ["?"])[0]
-                if kind not in ("pe2pkg", "room", "stage") and key not in seen:
+                if kind not in asset_schema.PACKAGE_TYPES and key not in seen:
                     seen.add(key)
                     lines.append(f"{key}\t{kind}\t{where}")
             for f in o["own"]:
