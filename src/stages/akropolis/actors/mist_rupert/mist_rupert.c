@@ -34,6 +34,9 @@ enum {
     EYES_HEIGHT_ROWS = 16,
 };
 
+/// The body part the shadow, the lighting and the placement follow.
+enum { PELVIS_PART = 1 };
+
 /// `_Work::blinkStep`: the eye image the blink posts next.
 enum {
     BLINK_NONE   = 0, // No blink in progress
@@ -43,6 +46,8 @@ enum {
 };
 
 /// Work block of the package's one actor, the hurt Rupert Broderick body a room script places and plays clips on.
+/// Both ids start at `ACTOR_MOTION_ANIMATION_INDEX_NONE`, so the first play request binds its bank; after the matrices
+/// come the blink that swaps the face texture's eye band and the delayed free of the hidden model's buffers.
 typedef struct {
     ActorAnimRig20 rig;             // Playback storage of the twenty-part body model; slots 1 to 19 are driven
     s32            ticking;         // Set once a clip has been applied, never cleared: the slots are ticked each frame from then on
@@ -63,7 +68,7 @@ static void _mistRupertUpdate(Task* task);
 static void _mistRupertInitLighting(Task* task);
 
 /// Task-state callbacks for the hurt Rupert Broderick actor.
-static const TaskFuncTable3 _gMistRupertRupertBroderickHurtStates = { {
+static const TaskFuncTable3 _gMistRupertStates = { {
     _mistRupertSpawn,
     _mistRupertUpdate,
     enemyTaskExit,
@@ -128,7 +133,7 @@ static AnimationSet** _gMistRupertAnimationBanks[1] = {
     _gMistRupertAnimationSets,
 };
 
-TaskDesc gMistRupertRupertBroderickHurtTaskDesc = {
+TaskDesc gMistRupertTaskDesc = {
     .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_CONTROL } },
     .callback = _mistRupertTask,
     .data     = { .model = &_gRupertHurtBody },
@@ -192,7 +197,7 @@ static void _mistRupertTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = _gMistRupertRupertBroderickHurtStates;
+    states = _gMistRupertStates;
     states.funcs[task->state](task);
 }
 
@@ -223,7 +228,7 @@ static void _mistRupertSpawn(Task* task)
     model->flags        = modelFlags;
     // Retain the shadow branch even though initialization has just hidden the model.
     if (!(modelFlags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
+        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[PELVIS_PART].workm), &groundPoint) != 0) {
             effectDrawGroundShadow(&groundPoint, INITIAL_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
     }
@@ -252,15 +257,15 @@ static void _mistRupertUpdate(Task* task)
         }
     }
     if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
+        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[PELVIS_PART].workm), &groundPoint) != 0) {
             effectDrawGroundShadow(&groundPoint, SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
     }
     if (gGameSession->viewReady != 0) {
-        partCoords                 = task->extra.tmd->coords;
-        partCoords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(&partCoords[1]);
-        worldCoordSetModelLighting(model, partCoords[1].workm.t, 0, ARRAY_SIZE(work->light.m));
+        partCoords                           = task->extra.tmd->coords;
+        partCoords[PELVIS_PART].composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(&partCoords[PELVIS_PART]);
+        worldCoordSetModelLighting(model, partCoords[PELVIS_PART].workm.t, 0, ARRAY_SIZE(work->light.m));
     }
     _mistRupertTickBlink(task);
     // Leave the primitive buffer alive through the intervening frame updates.
@@ -272,21 +277,21 @@ static void _mistRupertUpdate(Task* task)
     }
 }
 
-/// Binds the actor's lighting matrices and samples room lighting at model part 1.
+/// Binds the actor's lighting matrices and samples room lighting at the pelvis.
 static void _mistRupertInitLighting(Task* task)
 {
     _Work*     work;
     GfxCoord*  partCoords;
     TmdObject* model;
 
-    work                       = task->work;
-    model                      = task->extra.tmd;
-    partCoords                 = model->coords;
-    model->lightMtx            = &work->light;
-    model->colorMtx            = &work->color;
-    partCoords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(&partCoords[1]);
-    worldCoordSetModelLighting(model, partCoords[1].workm.t, 0, ARRAY_SIZE(work->light.m));
+    work                                 = task->work;
+    model                                = task->extra.tmd;
+    partCoords                           = model->coords;
+    model->lightMtx                      = &work->light;
+    model->colorMtx                      = &work->color;
+    partCoords[PELVIS_PART].composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(&partCoords[PELVIS_PART]);
+    worldCoordSetModelLighting(model, partCoords[PELVIS_PART].workm.t, 0, ARRAY_SIZE(work->light.m));
 }
 
 /// Starts a requested clip on the hurt Rupert actor's nineteen animated parts.

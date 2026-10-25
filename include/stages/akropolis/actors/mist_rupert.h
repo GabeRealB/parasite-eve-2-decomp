@@ -4,6 +4,6 @@
 #include "main/task_types.h"
 
 /// Hurt Rupert Broderick spawn recipe for the M.I.S.T. briefing room.
-extern TaskDesc gMistRupertRupertBroderickHurtTaskDesc;
+extern TaskDesc gMistRupertTaskDesc;
 
 #endif // INCLUDE_STAGES_AKROPOLIS_ACTORS_MIST_RUPERT_H
