@@ -18,7 +18,7 @@
 enum {
     AKROPOLIS_PATIO_SOUND_FOUNTAIN_DOOR_DEPARTURE  = 1, // Leaving through the fountain door
     AKROPOLIS_PATIO_SOUND_FOUNTAIN_DOOR_ARRIVAL    = 2, // Arriving through the fountain door
-    AKROPOLIS_PATIO_SOUND_CUE_3                    = 3, // Requested by a CAP script as room sound cue 3
+    AKROPOLIS_PATIO_SOUND_CAFETERIA_DOOR_UNLOCK    = 3, // The cafeteria key opens the door (CAP 3, room sound cue 3)
     AKROPOLIS_PATIO_SOUND_CAFETERIA_DOOR_DEPARTURE = 4, // Leaving through the cafeteria door, also once it is opened
     AKROPOLIS_PATIO_SOUND_CAFETERIA_DOOR_ARRIVAL   = 5, // Arriving through the cafeteria door
     AKROPOLIS_PATIO_SOUND_CAFETERIA_DOOR_BLOCKED   = 6, // The cafeteria door refuses the player
@@ -62,17 +62,20 @@ enum {
     AKROPOLIS_PATIO_ACTION_AMBUSH    = 2, // The ambush on the way back from the cafeteria
 };
 
-/// Room commands: the CAP events they start.
+/// Room commands, and the CAP events they start.
 enum {
-    AKROPOLIS_PATIO_ROOM_COMMAND_EVENT_1 = 1,
-    AKROPOLIS_PATIO_ROOM_COMMAND_EVENT_2 = 2, // Only before the cafeteria boss
+    AKROPOLIS_PATIO_ROOM_COMMAND_GYRO     = 1, // "A gyro, left half-eaten." (CAP 1)
+    AKROPOLIS_PATIO_ROOM_COMMAND_CIVILIAN = 2, // "There's a woman in there!" (CAP 2), only before the cafeteria boss
 };
+
+/// The scene event the opening sets.
+enum { AKROPOLIS_PATIO_OPENING_SCENE_EVENT = 3 };
 
 /// CAP commands.
 enum {
     AKROPOLIS_PATIO_CAFETERIA_DOOR_CAP_COMMAND       = 3, // The cafeteria door: locked, or the choice to open it
     AKROPOLIS_PATIO_FOUNTAIN_BLOCKED_CAP_COMMAND     = 4, // The fountain door, before it is unlocked
-    AKROPOLIS_PATIO_SCENE_CHOICE_CAP_COMMAND         = 6, // A choice whose key 1 makes the map available
+    AKROPOLIS_PATIO_SCENE_CHOICE_CAP_COMMAND         = 6, // A choice whose key 1 makes the map available; the patio's file has none
     AKROPOLIS_PATIO_CAFETERIA_DOOR_AFTER_CAP_COMMAND = 8, // The cafeteria door after Rupert's scene
 };
 
@@ -81,7 +84,7 @@ enum {
 
 /// Entries of the scene task table, and the tasks' scheduler priorities.
 enum {
-    AKROPOLIS_PATIO_SCENE_CHOICE_TASK_ENTRY   = 0,
+    AKROPOLIS_PATIO_SCENE_CHOICE_TASK_ENTRY   = 0, // Never spawned
     AKROPOLIS_PATIO_CAFETERIA_DOOR_TASK_ENTRY = 1,
     AKROPOLIS_PATIO_HEAD_AIM_TASK_ENTRY       = 2,
     AKROPOLIS_PATIO_HEAD_AIM_TASK_PRIORITY    = 97,
@@ -115,7 +118,7 @@ enum {
 /// The player's scripted half turn: its length in ticks.
 enum { AKROPOLIS_PATIO_PLAYER_TURN_TICKS = 16 };
 
-/// The light glows: the spawn argument's fields (anchor, sheet cell, size), and the sheet.
+/// The light glows: the spawn argument's fields (anchor, sheet cell, size), and the sheet (glow_draw.h's flare page).
 enum {
     AKROPOLIS_PATIO_LIGHT_GLOW_ANCHOR_MASK   = 0xF,
     AKROPOLIS_PATIO_LIGHT_GLOW_CELL_SHIFT    = 8,
@@ -123,9 +126,7 @@ enum {
     AKROPOLIS_PATIO_LIGHT_GLOW_SIZE_SHIFT    = 16,
     AKROPOLIS_PATIO_LIGHT_GLOW_SIZE_MASK     = 0xFFF,
     AKROPOLIS_PATIO_LIGHT_GLOW_DEFAULT_SIZE  = 640,
-    AKROPOLIS_PATIO_LIGHT_GLOW_MIN_DEPTH     = 0x11,
-    AKROPOLIS_PATIO_LIGHT_GLOW_TEXTURE_PAGE  = 0x2B,
-    AKROPOLIS_PATIO_LIGHT_GLOW_CLUT_Y        = 0x10E,
+    AKROPOLIS_PATIO_LIGHT_GLOW_CLUT_Y        = 270,
     AKROPOLIS_PATIO_LIGHT_GLOW_CELL_SIZE     = 40,
     AKROPOLIS_PATIO_LIGHT_GLOW_FLICKER_SHIFT = 4,
 };

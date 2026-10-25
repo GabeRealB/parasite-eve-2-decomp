@@ -45,6 +45,7 @@
 #include "main/task_types.h"
 
 #include "rooms/room_common.h"
+#include "../../../../shared/effects/glow_draw.h"
 
 #include "assets/rooms/akropolis/patio/declarations.inc"
 
@@ -68,7 +69,7 @@ static void _akropolisPatioSpawnPlayerTurnLeft(void);
 static void _akropolisPatioPlayerTurnLeftTask(Task* task);
 
 static void _akropolisPatioSetPlayerHeadAimState(s32 headAimState);
-static void _akropolisPatioActivateRoom2(void);
+static void _akropolisPatioEnterPostSwatState(void);
 static void _akropolisPatioSetActorControl(u8 actorControl);
 
 static s32  _akropolisPatioResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
@@ -259,11 +260,11 @@ static s32 _akropolisPatioResolveRoomTransition(Task* unusedTask, s32 unusedMess
 /// Leaves for the cafeteria through the opened door: the kept arrival, then a reload of the area.
 static inline void _akropolisPatioCommitCafeteriaDeparture(Task* task)
 {
-    enum { AKROPOLIS_PATIO_CAFETERIA_SPRITE_VARIANT = 1 };
+    enum { CAFETERIA_SPRITE_VARIANT = 1 };
 
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = AKROPOLIS_ROOM_ID_CAFETERIA;
-    gDisplayState.spriteVariant                                 = AKROPOLIS_PATIO_CAFETERIA_SPRITE_VARIANT;
+    gDisplayState.spriteVariant                                 = CAFETERIA_SPRITE_VARIANT;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = _gAkropolisPatioCafeteriaArrivalWarp;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = _gAkropolisPatioCafeteriaArrivalRoom;
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
@@ -275,25 +276,25 @@ static inline void _akropolisPatioCommitCafeteriaDeparture(Task* task)
 static void _akropolisPatioCafeteriaDoorSceneTask(Task* task)
 {
     enum {
-        AKROPOLIS_PATIO_DOOR_START          = 0,
-        AKROPOLIS_PATIO_DOOR_WAIT_CHOICE    = 1,
-        AKROPOLIS_PATIO_DOOR_RESOLVE_CHOICE = 2,
-        AKROPOLIS_PATIO_DOOR_WAIT_SOUND     = 3,
+        START          = 0,
+        WAIT_CHOICE    = 1,
+        RESOLVE_CHOICE = 2,
+        WAIT_SOUND     = 3,
     };
 
     s32 state;
 
     state = task->state;
     switch (state) {
-        case AKROPOLIS_PATIO_DOOR_START:
+        case START:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             capRunCommandWithTransition(AKROPOLIS_PATIO_CAFETERIA_DOOR_CAP_COMMAND);
             task->state = task->state + 1;
             return;
-        case AKROPOLIS_PATIO_DOOR_WAIT_CHOICE:
-            task->state = AKROPOLIS_PATIO_DOOR_RESOLVE_CHOICE;
+        case WAIT_CHOICE:
+            task->state = RESOLVE_CHOICE;
             return;
-        case AKROPOLIS_PATIO_DOOR_RESOLVE_CHOICE:
+        case RESOLVE_CHOICE:
             if (capGetVariantKey() == state) {
                 gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_PATIO_CAFETERIA_DOOR_STATE, AKROPOLIS_PATIO_CAFETERIA_DOOR_OPENED);
                 sndEvtRequestScriptStart(AKROPOLIS_PATIO_SOUND(AKROPOLIS_PATIO_SOUND_CAFETERIA_DOOR_DEPARTURE), 0, 0);
@@ -303,7 +304,7 @@ static void _akropolisPatioCafeteriaDoorSceneTask(Task* task)
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             taskKill(task);
             return;
-        case AKROPOLIS_PATIO_DOOR_WAIT_SOUND:
+        case WAIT_SOUND:
             if (sndScriptHasActiveId(AKROPOLIS_PATIO_SOUND(AKROPOLIS_PATIO_SOUND_CAFETERIA_DOOR_DEPARTURE)) != 0) {
                 return;
             }
@@ -321,7 +322,7 @@ static s32 _akropolisPatioHandleRoomAction(Task* unusedTask, s32 unusedMessageId
     if ((request->actionId == AKROPOLIS_PATIO_ACTION_OPENING) && (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_PATIO_CUTSCENE_PROGRESS) <= AKROPOLIS_PATIO_CUTSCENE_START)) {
         gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_PATIO_CUTSCENE_PROGRESS, AKROPOLIS_PATIO_CUTSCENE_PLAYING);
         evsStartScriptWithSkip(_gAkropolisPatioOpeningScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAkropolisPatioOpeningSkipScript);
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 3;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = AKROPOLIS_PATIO_OPENING_SCENE_EVENT;
         gGameSession->flowFlags                             = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON | GAME_SESSION_FLOW_REEQUIP_WEAPON);
     }
     if ((request->actionId == AKROPOLIS_PATIO_ACTION_FOLLOW_UP) && (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_PATIO_CUTSCENE_PROGRESS) == AKROPOLIS_PATIO_CUTSCENE_PLAYING) &&
@@ -329,6 +330,8 @@ static s32 _akropolisPatioHandleRoomAction(Task* unusedTask, s32 unusedMessageId
         gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_PATIO_CUTSCENE_PROGRESS, AKROPOLIS_PATIO_CUTSCENE_DONE);
         evsStartScriptWithSkip(_gAkropolisPatioFollowUpScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAkropolisPatioFollowUpSkipScript);
     }
+    // The ambush comes after the cafeteria boss; the original compares the progress with the action id, which is the
+    // same value (AKROPOLIS_CAFETERIA_ROUTE_BOSS_DEFEATED).
     actionId = request->actionId;
     if ((actionId == AKROPOLIS_PATIO_ACTION_AMBUSH) && (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_PATIO_AMBUSH_SCENE_SEEN) == 0) && (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) == actionId)) {
         gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_PATIO_AMBUSH_SCENE_SEEN, 1);
@@ -336,19 +339,21 @@ static s32 _akropolisPatioHandleRoomAction(Task* unusedTask, s32 unusedMessageId
     }
     // No result is set; the sender of a room action ignores it.
 }
-/// Room commands 1 and 2 start their CAP events; 2 only before the cafeteria boss.
+
+/// Room commands 1, the gyro, and 2, the civilian in the cafeteria, start their CAP events; 2 only before the cafeteria
+/// boss.
 static s32 _akropolisPatioHandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg)
 {
     s32 reply;
 
-    if (command == AKROPOLIS_PATIO_ROOM_COMMAND_EVENT_1) {
-        capSpawnEventIfIdle(AKROPOLIS_PATIO_ROOM_COMMAND_EVENT_1, CAP_EVENT_NO_FLAGS);
+    if (command == AKROPOLIS_PATIO_ROOM_COMMAND_GYRO) {
+        capSpawnEventIfIdle(AKROPOLIS_PATIO_ROOM_COMMAND_GYRO, CAP_EVENT_NO_FLAGS);
     }
     reply = 2;
-    if (command == AKROPOLIS_PATIO_ROOM_COMMAND_EVENT_2) {
+    if (command == AKROPOLIS_PATIO_ROOM_COMMAND_CIVILIAN) {
         reply = gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) < AKROPOLIS_CAFETERIA_ROUTE_BOSS_DEFEATED;
         if (reply != 0) {
-            capSpawnEventIfIdle(AKROPOLIS_PATIO_ROOM_COMMAND_EVENT_2, CAP_EVENT_NO_FLAGS);
+            capSpawnEventIfIdle(AKROPOLIS_PATIO_ROOM_COMMAND_CIVILIAN, CAP_EVENT_NO_FLAGS);
             reply = 0;
         }
     }
@@ -358,38 +363,39 @@ static s32 _akropolisPatioHandleRoomCommand(Task* unusedTask, s32 unusedMessageI
 /// No key item can be used here.
 static s32 _akropolisPatioRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// Plays room sound cue 3.
+/// Plays room sound cue 3, the cafeteria door's unlock.
 static s32 _akropolisPatioHandleSoundCue(Task* unusedTask, s32 unusedMessageId, s32 cueIndex, s32 unusedSecondArg)
 {
-    if (cueIndex == AKROPOLIS_PATIO_SOUND_CUE_3) {
-        sndEvtRequestScriptStart(AKROPOLIS_PATIO_SOUND(AKROPOLIS_PATIO_SOUND_CUE_3), 0, 0);
+    if (cueIndex == AKROPOLIS_PATIO_SOUND_CAFETERIA_DOOR_UNLOCK) {
+        sndEvtRequestScriptStart(AKROPOLIS_PATIO_SOUND(AKROPOLIS_PATIO_SOUND_CAFETERIA_DOOR_UNLOCK), 0, 0);
     }
     return 0;
 }
-/// Plays CAP 6; its choice 1 makes the Akropolis map available.
+
+/// Plays CAP 6; its choice 1 makes the Akropolis map available. Never spawned, and the patio's file has no CAP 6.
 static void _akropolisPatioRecordSceneChoiceTask(Task* task)
 {
     enum {
-        AKROPOLIS_PATIO_CAP6_START         = 0,
-        AKROPOLIS_PATIO_CAP6_WAIT_CHOICE   = 1,
-        AKROPOLIS_PATIO_CAP6_RECORD_CHOICE = 2,
+        START         = 0,
+        WAIT_CHOICE   = 1,
+        RECORD_CHOICE = 2,
     };
 
     s32 state;
 
     state = task->state;
     switch (state) {
-        case AKROPOLIS_PATIO_CAP6_START:
+        case START:
             capRunCommandWithTransition(AKROPOLIS_PATIO_SCENE_CHOICE_CAP_COMMAND);
             task->state = task->state + 1;
             return;
-        case AKROPOLIS_PATIO_CAP6_WAIT_CHOICE:
-            task->state = AKROPOLIS_PATIO_CAP6_RECORD_CHOICE;
+        case WAIT_CHOICE:
+            task->state = RECORD_CHOICE;
             return;
-        case AKROPOLIS_PATIO_CAP6_RECORD_CHOICE:
+        case RECORD_CHOICE:
             if (capGetVariantKey() == 1) {
                 gameFlagSetNibble(EVENT_FLAG_MAP_AKROPOLIS_AVAILABLE, 1);
             }
@@ -402,13 +408,13 @@ static void _akropolisPatioRecordSceneChoiceTask(Task* task)
 static void _akropolisPatioPlayerHeadAimTask(Task* task)
 {
     enum {
-        AKROPOLIS_PATIO_HEAD_AIM_INIT        = 0,
-        AKROPOLIS_PATIO_HEAD_AIM_IDLE        = 1,
-        AKROPOLIS_PATIO_HEAD_AIM_HOLD        = 2,
-        AKROPOLIS_PATIO_HEAD_AIM_START_SLIDE = 3,
-        AKROPOLIS_PATIO_HEAD_AIM_SLIDE       = 4,
-        AKROPOLIS_PATIO_HEAD_AIM_MAX_YAW     = ACTOR_TRANSFORM_ANGLE_TURN / 8,
-        AKROPOLIS_PATIO_HEAD_AIM_MAX_PITCH   = ACTOR_TRANSFORM_ANGLE_TURN / 16,
+        INIT        = 0,
+        IDLE        = 1,
+        HOLD        = 2,
+        START_SLIDE = 3,
+        SLIDE       = 4,
+        MAX_YAW     = ACTOR_TRANSFORM_ANGLE_TURN / 8,
+        MAX_PITCH   = ACTOR_TRANSFORM_ANGLE_TURN / 16,
     };
 
     GfxCoord focus;        // World point carried in the translation; the other fields are unused
@@ -425,28 +431,28 @@ static void _akropolisPatioPlayerHeadAimTask(Task* task)
     focus.coord.t[2] = AKROPOLIS_PATIO_HEAD_AIM_Z;
 
     switch (task->state) {
-        case AKROPOLIS_PATIO_HEAD_AIM_INIT:
+        case INIT:
             task->spawnArg1.value = 0;
             task->state           = task->state + 1;
             return;
-        case AKROPOLIS_PATIO_HEAD_AIM_IDLE:
+        case IDLE:
             return;
-        case AKROPOLIS_PATIO_HEAD_AIM_HOLD:
-            animationAimHeadAtPoint(playerTask, &focus, AKROPOLIS_PATIO_HEAD_AIM_MAX_YAW, AKROPOLIS_PATIO_HEAD_AIM_MAX_PITCH, ONE);
+        case HOLD:
+            animationAimHeadAtPoint(playerTask, &focus, MAX_YAW, MAX_PITCH, ONE);
             return;
-        case AKROPOLIS_PATIO_HEAD_AIM_START_SLIDE:
+        case START_SLIDE:
             task->spawnArg1.value = 0;
-            animationAimHeadAtPoint(playerTask, &focus, AKROPOLIS_PATIO_HEAD_AIM_MAX_YAW, AKROPOLIS_PATIO_HEAD_AIM_MAX_PITCH, ONE);
+            animationAimHeadAtPoint(playerTask, &focus, MAX_YAW, MAX_PITCH, ONE);
             task->state = task->state + 1;
             return;
-        case AKROPOLIS_PATIO_HEAD_AIM_SLIDE:
+        case SLIDE:
             slideDistance         = task->spawnArg1.value + AKROPOLIS_PATIO_HEAD_AIM_SLIDE_STEP;
             task->spawnArg1.value = slideDistance;
             if (slideDistance >= AKROPOLIS_PATIO_HEAD_AIM_SLIDE_DISTANCE + 1) {
                 task->spawnArg1.value = AKROPOLIS_PATIO_HEAD_AIM_SLIDE_DISTANCE;
             }
             focus.coord.t[2] -= task->spawnArg1.value;
-            animationAimHeadAtPoint(playerTask, &focus, AKROPOLIS_PATIO_HEAD_AIM_MAX_YAW, AKROPOLIS_PATIO_HEAD_AIM_MAX_PITCH, ONE);
+            animationAimHeadAtPoint(playerTask, &focus, MAX_YAW, MAX_PITCH, ONE);
             return;
     }
 }
@@ -458,7 +464,7 @@ static void _akropolisPatioSetPlayerHeadAimState(s32 headAimState)
 }
 
 /// Moves the patio to its state after the SWAT scene.
-static void _akropolisPatioActivateRoom2(void)
+static void _akropolisPatioEnterPostSwatState(void)
 {
     gGameSession->location.roomState = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = AKROPOLIS_ROOM_STATE_PATIO_POST_SWAT_CUTSCENE;
     gGameSession->roomObjsDirty                                                                    = true;
@@ -493,6 +499,7 @@ static void _akropolisPatioSetBattleActive(s32 battleActive)
     }
     gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
 }
+
 /// Starts the player's half turn left, for the event scripts.
 static void _akropolisPatioSpawnPlayerTurnLeft(void)
 {
@@ -503,9 +510,9 @@ static void _akropolisPatioSpawnPlayerTurnLeft(void)
 static void _akropolisPatioPlayerTurnLeftTask(Task* task)
 {
     enum {
-        AKROPOLIS_PATIO_PLAYER_TURN_INIT     = 0,
-        AKROPOLIS_PATIO_PLAYER_TURN_STEP     = 1,
-        AKROPOLIS_PATIO_PLAYER_TURN_YAW_STEP = ACTOR_TRANSFORM_ANGLE_HALF_TURN / AKROPOLIS_PATIO_PLAYER_TURN_TICKS
+        INIT     = 0,
+        STEP     = 1,
+        YAW_STEP = ACTOR_TRANSFORM_ANGLE_HALF_TURN / AKROPOLIS_PATIO_PLAYER_TURN_TICKS
     };
 
     GameActor* playerActor;
@@ -514,14 +521,14 @@ static void _akropolisPatioPlayerTurnLeftTask(Task* task)
     playerActor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
 
     switch (task->state) {
-        case AKROPOLIS_PATIO_PLAYER_TURN_INIT:
+        case INIT:
             task->killCountdown = AKROPOLIS_PATIO_PLAYER_TURN_TICKS;
             task->state++;
             /* fallthrough */
-        case AKROPOLIS_PATIO_PLAYER_TURN_STEP:
-            yaw = playerActor->rotation.vy - AKROPOLIS_PATIO_PLAYER_TURN_YAW_STEP;
+        case STEP:
+            yaw = playerActor->rotation.vy - YAW_STEP;
             if (yaw < -ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
-                yaw = playerActor->rotation.vy + (ACTOR_TRANSFORM_ANGLE_TURN - AKROPOLIS_PATIO_PLAYER_TURN_YAW_STEP);
+                yaw = playerActor->rotation.vy + (ACTOR_TRANSFORM_ANGLE_TURN - YAW_STEP);
             }
             playerActor->rotation.vy = yaw;
             task->killCountdown--;
@@ -549,22 +556,6 @@ void akropolisPatioSpawnLightEffectsTask(Task* task)
     s32         anchorIndex;
     s32         moteIndex;
 
-/// A random point within 1024 units of a large light (its arguments are evaluated more than once).
-#define AKROPOLIS_PATIO_CHOOSE_LIGHT_MOTE_POSITION(position, anchorIndex)              \
-    {                                                                                  \
-        enum { MOTE_JITTER_CENTER = 1024,                                              \
-               MOTE_JITTER_MASK   = 2047 };                                              \
-        RANDOM_LCG_ADVANCE();                                                          \
-        (position)->vx = MOTE_JITTER_CENTER - (RANDOM_LCG_DRAW() & MOTE_JITTER_MASK);  \
-        RANDOM_LCG_ADVANCE();                                                          \
-        (position)->vy = MOTE_JITTER_CENTER - (RANDOM_LCG_DRAW() & MOTE_JITTER_MASK);  \
-        RANDOM_LCG_ADVANCE();                                                          \
-        (position)->vz  = MOTE_JITTER_CENTER - (RANDOM_LCG_DRAW() & MOTE_JITTER_MASK); \
-        (position)->vx += _gAkropolisPatioLightAnchors[(anchorIndex)].vx;              \
-        (position)->vy += _gAkropolisPatioLightAnchors[(anchorIndex)].vy;              \
-        (position)->vz += _gAkropolisPatioLightAnchors[(anchorIndex)].vz;              \
-    }
-
     scratchWork = task->spawnArg2.pointer;
     parentCoord = task->extra.coordBody->coord;
 
@@ -583,12 +574,24 @@ void akropolisPatioSpawnLightEffectsTask(Task* task)
         // Each child snapshots XYZ; these point tasks never read the retained offset pointer.
         for (anchorIndex = 0; anchorIndex < LARGE_LIGHT_END; anchorIndex++) {
             for (moteIndex = 0; moteIndex < MOTES_PER_LARGE_LIGHT; moteIndex++) {
-                AKROPOLIS_PATIO_CHOOSE_LIGHT_MOTE_POSITION(&scratchWork->move, anchorIndex);
+                // A random point within 1024 units of the light.
+                {
+                    enum { MOTE_JITTER_CENTER = 1024,
+                           MOTE_JITTER_MASK   = 2047 };
+                    RANDOM_LCG_ADVANCE();
+                    scratchWork->move.vx = MOTE_JITTER_CENTER - (RANDOM_LCG_DRAW() & MOTE_JITTER_MASK);
+                    RANDOM_LCG_ADVANCE();
+                    scratchWork->move.vy = MOTE_JITTER_CENTER - (RANDOM_LCG_DRAW() & MOTE_JITTER_MASK);
+                    RANDOM_LCG_ADVANCE();
+                    scratchWork->move.vz  = MOTE_JITTER_CENTER - (RANDOM_LCG_DRAW() & MOTE_JITTER_MASK);
+                    scratchWork->move.vx += _gAkropolisPatioLightAnchors[anchorIndex].vx;
+                    scratchWork->move.vy += _gAkropolisPatioLightAnchors[anchorIndex].vy;
+                    scratchWork->move.vz += _gAkropolisPatioLightAnchors[anchorIndex].vz;
+                }
                 effectSpawn(EFFECT_AKROPOLIS_PATIO_LIGHT_MOTE, parentCoord, anchorIndex, &scratchWork->move);
             }
         }
     }
-#undef AKROPOLIS_PATIO_CHOOSE_LIGHT_MOTE_POSITION
 }
 
 /// Sets a glow's quad to the square around its projected center.
@@ -617,8 +620,8 @@ static inline void _akropolisPatioSetLightGlowBounds(POLY_FT4* glowQuad, const R
 static inline void _akropolisPatioDrawLightGlow(const GfxCoord* composedCoord, const EffectWork* glowWork, RoomGlowSpriteScratch* spriteScratch)
 {
     enum {
-        AKROPOLIS_PATIO_LIGHT_GLOW_CLUT_STRIDE       = 16,
-        AKROPOLIS_PATIO_LIGHT_GLOW_FRAME_PARITY_MASK = 1,
+        CLUT_STRIDE       = 16,
+        FRAME_PARITY_MASK = 1,
     };
 
     POLY_FT4* glowQuad;
@@ -638,12 +641,12 @@ static inline void _akropolisPatioDrawLightGlow(const GfxCoord* composedCoord, c
     setPolyFT4(glowQuad);
     gte_stsxy(&spriteScratch->screenPos);
     gte_stszotz(&spriteScratch->otz);
-    if (spriteScratch->otz >= AKROPOLIS_PATIO_LIGHT_GLOW_MIN_DEPTH) {
-        greyLevel       = glowWork->period + (((u8)gDisplayState.animFrame & AKROPOLIS_PATIO_LIGHT_GLOW_FRAME_PARITY_MASK) << AKROPOLIS_PATIO_LIGHT_GLOW_FLICKER_SHIFT);
-        glowQuad->tpage = AKROPOLIS_PATIO_LIGHT_GLOW_TEXTURE_PAGE;
+    if (spriteScratch->otz >= GLOW_MIN_DEPTH) {
+        greyLevel       = glowWork->period + (((u8)gDisplayState.animFrame & FRAME_PARITY_MASK) << AKROPOLIS_PATIO_LIGHT_GLOW_FLICKER_SHIFT);
+        glowQuad->tpage = GLOW_FLARE_TEXTURE_PAGE;
         setRGB0(glowQuad, greyLevel, greyLevel, greyLevel);
         setSemiTrans(glowQuad, true);
-        setClut(glowQuad, glowWork->angle * AKROPOLIS_PATIO_LIGHT_GLOW_CLUT_STRIDE, AKROPOLIS_PATIO_LIGHT_GLOW_CLUT_Y);
+        setClut(glowQuad, glowWork->angle * CLUT_STRIDE, AKROPOLIS_PATIO_LIGHT_GLOW_CLUT_Y);
         // Texture endpoints include the final texel of the fixed 40-by-40 cell.
         setUVWH(glowQuad, glowWork->angle * AKROPOLIS_PATIO_LIGHT_GLOW_CELL_SIZE, 0,
                 AKROPOLIS_PATIO_LIGHT_GLOW_CELL_SIZE - 1, AKROPOLIS_PATIO_LIGHT_GLOW_CELL_SIZE - 1);
@@ -657,7 +660,7 @@ static inline void _akropolisPatioDrawLightGlow(const GfxCoord* composedCoord, c
 
 void akropolisPatioLightGlowTask(Task* task)
 {
-    enum { AKROPOLIS_PATIO_LIGHT_GLOW_INIT = 0 };
+    enum { LIGHT_GLOW_INIT = 0 };
 
     RoomGlowSpriteScratch* block;
     EffectWork*            work;
@@ -669,7 +672,7 @@ void akropolisPatioLightGlowTask(Task* task)
         ((_gAkropolisPatioLightViewMasks[task->spawnArg1.value & AKROPOLIS_PATIO_LIGHT_GLOW_ANCHOR_MASK] >> (gGameSession->location.view - 1)) & 1)) {
         actorRenderComposeCoord(coord);
         block = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
-        if (task->state == AKROPOLIS_PATIO_LIGHT_GLOW_INIT) {
+        if (task->state == LIGHT_GLOW_INIT) {
             // Decode the fixed sheet cell and size only on the first visible tick.
             u8 levels[3] = { 0x50, 0x30, 0x40 };
 
@@ -695,7 +698,7 @@ static const u8 _gAkropolisPatioLightGreyAlignmentByte = 0xF2;
 static inline void _akropolisPatioDrawLightMote(const GfxCoord* cachedCoord, EffectPointTileScratch* tileScratch)
 {
     enum {
-        AKROPOLIS_PATIO_LIGHT_MOTE_GREY_LEVELS = 192,
+        LIGHT_MOTE_GREY_LEVELS = 192,
     };
 
     TILE_1* moteTile;
@@ -718,7 +721,7 @@ static inline void _akropolisPatioDrawLightMote(const GfxCoord* cachedCoord, Eff
     if (tileScratch->depth >= EFFECT_POINT_TILE_MIN_DEPTH) {
         RANDOM_LCG_ADVANCE();
         greyLevel  = RANDOM_LCG_DRAW();
-        greyLevel %= AKROPOLIS_PATIO_LIGHT_MOTE_GREY_LEVELS;
+        greyLevel %= LIGHT_MOTE_GREY_LEVELS;
         setRGB0(moteTile, greyLevel, greyLevel, greyLevel);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(tileScratch->depth),
                 moteTile);
@@ -730,17 +733,17 @@ static inline void _akropolisPatioDrawLightMote(const GfxCoord* cachedCoord, Eff
 void akropolisPatioLightMoteTask(Task* task)
 {
     enum {
-        AKROPOLIS_PATIO_LIGHT_MOTE_INIT            = 0,
-        AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT           = 0,
-        AKROPOLIS_PATIO_LIGHT_MOTE_GATHER          = 1,
-        AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_CENTER    = 16,
-        AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_MASK      = 31,
-        AKROPOLIS_PATIO_LIGHT_MOTE_AIM_SAMPLE_MASK = 3,
-        AKROPOLIS_PATIO_LIGHT_MOTE_GATHER_WEIGHT   = ONE / 128,
-        AKROPOLIS_PATIO_LIGHT_MOTE_JITTER_MASK     = 15,
-        AKROPOLIS_PATIO_LIGHT_MOTE_JITTER_CENTER   = 8,
-        AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_CHANCE    = 120,
-        AKROPOLIS_PATIO_LIGHT_MOTE_GATHER_CHANCE   = 60
+        INIT            = 0,
+        DRIFT           = 0,
+        GATHER          = 1,
+        DRIFT_CENTER    = 16,
+        DRIFT_MASK      = 31,
+        AIM_SAMPLE_MASK = 3,
+        GATHER_WEIGHT   = ONE / 128,
+        JITTER_MASK     = 15,
+        JITTER_CENTER   = 8,
+        DRIFT_CHANCE    = 120,
+        GATHER_CHANCE   = 60
     };
 
     EffectWork*             work;
@@ -755,19 +758,19 @@ void akropolisPatioLightMoteTask(Task* task)
         ((_gAkropolisPatioLightViewMasks[task->spawnArg1.value] >> (gGameSession->location.view - 1)) & 1)) {
         tileScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectPointTileScratch);
         actorRenderComposeCoord(coord);
-        if (task->state == AKROPOLIS_PATIO_LIGHT_MOTE_INIT) {
+        if (task->state == INIT) {
             RANDOM_LCG_ADVANCE();
-            work->move.vx = AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_CENTER - (RANDOM_LCG_DRAW() & AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_MASK);
+            work->move.vx = DRIFT_CENTER - (RANDOM_LCG_DRAW() & DRIFT_MASK);
             RANDOM_LCG_ADVANCE();
-            work->move.vy = AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_CENTER - (RANDOM_LCG_DRAW() & AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_MASK);
+            work->move.vy = DRIFT_CENTER - (RANDOM_LCG_DRAW() & DRIFT_MASK);
             RANDOM_LCG_ADVANCE();
-            work->move.vz = AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_CENTER - (RANDOM_LCG_DRAW() & AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_MASK);
+            work->move.vz = DRIFT_CENTER - (RANDOM_LCG_DRAW() & DRIFT_MASK);
             task->state++;
         }
         // Gather re-aims on a random quarter of ticks, rather than periodically.
-        if (work->index != AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT) {
+        if (work->index != DRIFT) {
             RANDOM_LCG_ADVANCE();
-            if ((RANDOM_LCG_DRAW() & AKROPOLIS_PATIO_LIGHT_MOTE_AIM_SAMPLE_MASK) == 0) {
+            if ((RANDOM_LCG_DRAW() & AIM_SAMPLE_MASK) == 0) {
                 anchors       = _gAkropolisPatioLightAnchors;
                 velocity      = &work->move;
                 work->move.vx = (u16)anchors[task->spawnArg1.value].vx -
@@ -777,31 +780,31 @@ void akropolisPatioLightMoteTask(Task* task)
                 work->move.vz = (u16)anchors[task->spawnArg1.value].vz -
                                 (u16)coord->coord.t[2];
                 VectorNormalSS(velocity, velocity);
-                gte_lddp(AKROPOLIS_PATIO_LIGHT_MOTE_GATHER_WEIGHT);
+                gte_lddp(GATHER_WEIGHT);
                 gte_ldsv(velocity);
                 gte_gpf12();
                 gte_stsv(velocity);
             }
             RANDOM_LCG_ADVANCE();
-            work->move.vx -= (RANDOM_LCG_DRAW() & AKROPOLIS_PATIO_LIGHT_MOTE_JITTER_MASK) - AKROPOLIS_PATIO_LIGHT_MOTE_JITTER_CENTER;
+            work->move.vx -= (RANDOM_LCG_DRAW() & JITTER_MASK) - JITTER_CENTER;
             RANDOM_LCG_ADVANCE();
-            work->move.vy -= (RANDOM_LCG_DRAW() & AKROPOLIS_PATIO_LIGHT_MOTE_JITTER_MASK) - AKROPOLIS_PATIO_LIGHT_MOTE_JITTER_CENTER;
+            work->move.vy -= (RANDOM_LCG_DRAW() & JITTER_MASK) - JITTER_CENTER;
             RANDOM_LCG_ADVANCE();
-            work->move.vz -= (RANDOM_LCG_DRAW() & AKROPOLIS_PATIO_LIGHT_MOTE_JITTER_MASK) - AKROPOLIS_PATIO_LIGHT_MOTE_JITTER_CENTER;
+            work->move.vz -= (RANDOM_LCG_DRAW() & JITTER_MASK) - JITTER_CENTER;
             RANDOM_LCG_ADVANCE();
-            if ((u16)(RANDOM_LCG_DRAW() % AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_CHANCE) == 0) {
-                work->index = AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT;
+            if ((u16)(RANDOM_LCG_DRAW() % DRIFT_CHANCE) == 0) {
+                work->index = DRIFT;
             }
         } else {
             RANDOM_LCG_ADVANCE();
-            work->move.vx = AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_CENTER - (RANDOM_LCG_DRAW() & AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_MASK);
+            work->move.vx = DRIFT_CENTER - (RANDOM_LCG_DRAW() & DRIFT_MASK);
             RANDOM_LCG_ADVANCE();
-            work->move.vy = AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_CENTER - (RANDOM_LCG_DRAW() & AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_MASK);
+            work->move.vy = DRIFT_CENTER - (RANDOM_LCG_DRAW() & DRIFT_MASK);
             RANDOM_LCG_ADVANCE();
-            work->move.vz = AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_CENTER - (RANDOM_LCG_DRAW() & AKROPOLIS_PATIO_LIGHT_MOTE_DRIFT_MASK);
+            work->move.vz = DRIFT_CENTER - (RANDOM_LCG_DRAW() & DRIFT_MASK);
             RANDOM_LCG_ADVANCE();
-            if ((u16)(RANDOM_LCG_DRAW() % AKROPOLIS_PATIO_LIGHT_MOTE_GATHER_CHANCE) == 0) {
-                work->index = AKROPOLIS_PATIO_LIGHT_MOTE_GATHER;
+            if ((u16)(RANDOM_LCG_DRAW() % GATHER_CHANCE) == 0) {
+                work->index = GATHER;
             }
         }
         coord->coord.t[0]  += work->move.vx;

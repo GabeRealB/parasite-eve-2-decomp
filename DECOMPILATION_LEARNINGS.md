@@ -49173,7 +49173,7 @@ local rather than reaching for a pin.
 
 The `r = g = b` trick is usually described as a store-order fix, but it also
 decides which address `high` is emitted — and therefore coloured — first. In
-`_akropolisPatioActivateRoom2` the target is
+`_akropolisPatioEnterPostSwatState` the target is
 
 ```
 lui a1, %hi(gGameSession)
@@ -87274,7 +87274,7 @@ body with the `%hi`s the other way round, and it confirms the mechanism decides
 both directions — so use the target's first `lui` as the selector:
 
 ```
-_mineCavernActivateRoom2        _akropolisPatioActivateRoom2
+_mineCavernActivateRoom2        _akropolisPatioEnterPostSwatState
 lui a1, %hi(D_8007216D)          lui a1, %hi(gGameSession)
 lui a0, %hi(gGameSession)        lui v1, %hi(D_8007216D)
 lw  v1, %lo(gGameSession)(a0)    lw  a0, %lo(gGameSession)(a1)
