@@ -127,7 +127,7 @@ static void _eastElevatorHallSwatMemberViewFigureTask(Task* task)
 /// until helper teardown, which precedes body teardown in `_viewFigureExit`.
 static void _eastElevatorHallSwatMemberAttachModelTask(Task* task)
 {
-    enum { EAST_ELEVATOR_HALL_SWAT_MEMBER_HELPER_PARENT_PART = 8 };
+    enum { HELPER_PARENT_PART = 8 };
 
     GfxCoord* bodyCoords;
     GfxCoord* helperRoot;
@@ -135,7 +135,7 @@ static void _eastElevatorHallSwatMemberAttachModelTask(Task* task)
     bodyCoords               = _gEastElevatorHallSwatMemberBodyTask->extra.tmd->coords;
     helperRoot               = task->extra.tmd->coords;
     helperRoot->composeStamp = GRAPHICS_COORD_DIRTY;
-    helperRoot->parent       = &bodyCoords[EAST_ELEVATOR_HALL_SWAT_MEMBER_HELPER_PARENT_PART];
+    helperRoot->parent       = &bodyCoords[HELPER_PARENT_PART];
 }
 
 /// Advances the figure animation and refreshes lighting at its cached root.
@@ -146,7 +146,7 @@ static void _eastElevatorHallSwatMemberAttachModelTask(Task* task)
 static void _eastElevatorHallSwatMemberUpdateViewFigure(Enemy* unusedEnemy, Task* task)
 {
     enum {
-        EAST_ELEVATOR_HALL_SWAT_MEMBER_LIGHT_COUNT = 3,
+        LIGHT_COUNT = 3,
     };
 
     TmdObject* model;
@@ -159,7 +159,7 @@ static void _eastElevatorHallSwatMemberUpdateViewFigure(Enemy* unusedEnemy, Task
     lightPosition.vx = rootCoord->workm.t[0];
     lightPosition.vy = rootCoord->workm.t[1];
     lightPosition.vz = rootCoord->workm.t[2];
-    worldCoordSetModelLighting(model, &lightPosition, 0, EAST_ELEVATOR_HALL_SWAT_MEMBER_LIGHT_COUNT);
+    worldCoordSetModelLighting(model, &lightPosition, 0, LIGHT_COUNT);
 }
 
 #include "../../../../shared/actor/view_figure_exit.inc.c"

@@ -53,20 +53,20 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
     return &ActorContact_ScratchPosition;
 }
 
-/// Values of `_PatioSwatMemberWork::state`: the index of the handler the per-frame
+/// Values of `_Work::state`: the index of the handler the per-frame
 /// tick runs.
 enum {
-    PATIO_SWAT_MEMBER_STATE_HIDDEN  = 0, // not drawn and not lockable, with `body` out of the pair tests; the spawn starts here
-    PATIO_SWAT_MEMBER_STATE_PLAYING = 1  // plays the animation the last room command selected
+    STATE_HIDDEN  = 0, // not drawn and not lockable, with `body` out of the pair tests; the spawn starts here
+    STATE_PLAYING = 1  // plays the animation the last room command selected
 };
 
-/// Values of `_PatioSwatMemberWork::animRequest` and `_PatioSwatMemberWork::blendRequest`.
+/// Values of `_Work::animRequest` and `_Work::blendRequest`.
 ///
 /// A zero-filled block holds 0, on which the driver only advances the slots.
 enum {
-    PATIO_SWAT_MEMBER_ANIM_REQUEST_BLEND   = 1, // seek the slots to the animation, blending over the frames the transition table gives
-    PATIO_SWAT_MEMBER_ANIM_REQUEST_RESET   = 2, // restart the slots on the animation
-    PATIO_SWAT_MEMBER_ANIM_REQUEST_PLAYING = 3  // the request has been applied
+    ANIM_REQUEST_BLEND   = 1, // seek the slots to the animation, blending over the frames the transition table gives
+    ANIM_REQUEST_RESET   = 2, // restart the slots on the animation
+    ANIM_REQUEST_PLAYING = 3  // the request has been applied
 };
 
 /// Animation-bank indices also used as commands in the Acropolis patio namespace.
@@ -74,14 +74,14 @@ enum {
 /// Clip 1 is the initial animation and restarts on command; clips 2 to 4
 /// blend from the current pose. Their pose identities are unproven.
 enum {
-    PATIO_SWAT_MEMBER_ANIM_1 = 1,
-    PATIO_SWAT_MEMBER_ANIM_2 = 2,
-    PATIO_SWAT_MEMBER_ANIM_3 = 3,
-    PATIO_SWAT_MEMBER_ANIM_4 = 4,
+    ANIM_1 = 1,
+    ANIM_2 = 2,
+    ANIM_3 = 3,
+    ANIM_4 = 4,
 };
 
 /// All three directional contributions of a model's room-light query.
-enum { PATIO_SWAT_MEMBER_LIGHT_CONTRIBUTIONS = 3 };
+enum { LIGHT_CONTRIBUTIONS = 3 };
 
 /// Work block of the actor 312200 task.
 ///
@@ -128,13 +128,13 @@ typedef struct {
     s16                   commandArea;     // area tag of the last actor command received; never read
     s16                   command;         // command word of the last actor command received; while it is 1, view 0x10 plays the dormant sound
     byte                  field_8BA[0x2];  // never accessed
-    WorldCollisionBody    body;            // sphere on model part 3 in collision list 2; the spawn enables its pair tests and entering `PATIO_SWAT_MEMBER_STATE_HIDDEN` disables them
+    WorldCollisionBody    body;            // sphere on model part 3 in collision list 2; the spawn enables its pair tests and entering `STATE_HIDDEN` disables them
     WorldCollisionContact contacts[3];     // contacts of `body`; a tick that finds the first occupied clears them
     byte                  field_924[0x20]; // never accessed
     MATRIX                light;           // storage for the model's `TmdObject::lightMtx`
     MATRIX                color;           // storage for the model's `TmdObject::colorMtx`
-} _PatioSwatMemberWork;
-STATIC_ASSERT_SIZEOF(_PatioSwatMemberWork, 0x984);
+} _Work;
+STATIC_ASSERT_SIZEOF(_Work, 0x984);
 
 static void _patioSwatMemberHide(Task* task);
 static void _patioSwatMemberPlayAnimation(Task* task);
@@ -195,14 +195,14 @@ SVECTOR ActorContact_ScratchPosition;
 /// with cleared boundary state and normal rate (`ANIMATION_RATE_ONE`).
 /// Subsequent ticks produce the poses; the caller settles the request and
 /// resets its frame counters.
-static inline void _patioSwatMemberRestartPrimaryAnimation(_PatioSwatMemberWork* work)
+static inline void _patioSwatMemberRestartPrimaryAnimation(_Work* work)
 {
-    enum { PATIO_SWAT_MEMBER_FIRST_ANIMATED_SLOT = 1 };
+    enum { FIRST_ANIMATED_SLOT = 1 };
 
     s32 slotIndex;
 
     // Slot reset replaces the requested rate; the driver reapplies it before ticking.
-    for (slotIndex = PATIO_SWAT_MEMBER_FIRST_ANIMATED_SLOT; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+    for (slotIndex = FIRST_ANIMATED_SLOT; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
         work->rig.slots[slotIndex].rate = work->animRate;
         animationResetSlot(&work->rig.anim, slotIndex, work->animId);
     }
@@ -219,20 +219,20 @@ static inline void _patioSwatMemberRestartPrimaryAnimation(_PatioSwatMemberWork*
 static void _patioSwatMemberDriveAnimation(Task* task)
 {
     /// Retained second-rig pose weight, in Q12 units; this actor never mixes it.
-    enum { PATIO_SWAT_MEMBER_UNUSED_BLEND_WEIGHT = 0x500 };
+    enum { UNUSED_BLEND_WEIGHT = 0x500 };
 
-    _PatioSwatMemberWork* work;
-    _PatioSwatMemberWork* seekWork;
-    _PatioSwatMemberWork* resetWork;
-    _PatioSwatMemberWork* blendWork;
-    _PatioSwatMemberWork* tickWork;
-    s32                   seekSlot;
-    s32                   blendSlot;
-    s32                   tickSlot;
+    _Work* work;
+    _Work* seekWork;
+    _Work* resetWork;
+    _Work* blendWork;
+    _Work* tickWork;
+    s32    seekSlot;
+    s32    blendSlot;
+    s32    tickSlot;
 
     // Apply the pending clip before advancing its first frame.
     work = task->work;
-    if (work->animRequest == PATIO_SWAT_MEMBER_ANIM_REQUEST_BLEND) {
+    if (work->animRequest == ANIM_REQUEST_BLEND) {
         seekWork = task->work;
         for (seekSlot = 1; seekSlot < ARRAY_SIZE(seekWork->rig.slots); seekSlot++) {
             seekWork->rig.slots[seekSlot].rate = seekWork->animRate;
@@ -240,26 +240,26 @@ static void _patioSwatMemberDriveAnimation(Task* task)
                                        _gPatioSwatMemberAnimationBlendFrames[seekWork->appliedAnim][seekWork->animId]);
         }
         seekWork->appliedAnim = seekWork->animId;
-        work->animRequest     = PATIO_SWAT_MEMBER_ANIM_REQUEST_PLAYING;
+        work->animRequest     = ANIM_REQUEST_PLAYING;
         work->animFrames      = 0;
         work->lastCueFrame    = 0;
-    } else if (work->animRequest == PATIO_SWAT_MEMBER_ANIM_REQUEST_RESET) {
+    } else if (work->animRequest == ANIM_REQUEST_RESET) {
         resetWork = task->work;
         _patioSwatMemberRestartPrimaryAnimation(resetWork);
-        work->animRequest  = PATIO_SWAT_MEMBER_ANIM_REQUEST_PLAYING;
+        work->animRequest  = ANIM_REQUEST_PLAYING;
         work->animFrames   = 0;
         work->lastCueFrame = 0;
     }
     // No caller here requests the unbound blend rig. Preserve its main-rig rate stores.
-    if (work->blendRequest == PATIO_SWAT_MEMBER_ANIM_REQUEST_RESET) {
+    if (work->blendRequest == ANIM_REQUEST_RESET) {
         blendWork              = task->work;
         blendWork->blendRate   = 3 * ANIMATION_RATE_ONE;
-        blendWork->blendWeight = PATIO_SWAT_MEMBER_UNUSED_BLEND_WEIGHT;
+        blendWork->blendWeight = UNUSED_BLEND_WEIGHT;
         for (blendSlot = 1; blendSlot < ARRAY_SIZE(blendWork->blend.slots); blendSlot++) {
             blendWork->rig.slots[blendSlot].rate = blendWork->blendRate;
             animationResetSlot(&blendWork->blend.anim, blendSlot, blendWork->blendAnimId);
         }
-        work->blendRequest = PATIO_SWAT_MEMBER_ANIM_REQUEST_PLAYING;
+        work->blendRequest = ANIM_REQUEST_PLAYING;
     }
     work->animFrames++;
     tickWork = task->work;
@@ -281,22 +281,22 @@ static void _patioSwatMemberSpawn(Enemy* enemy, Task* task)
 {
     /// Enemy-body identity, radius in whole coordinate units, and the first-entry sentinel.
     enum {
-        PATIO_SWAT_MEMBER_BODY_ID         = 10,
-        PATIO_SWAT_MEMBER_BODY_RADIUS     = 0x180,
-        PATIO_SWAT_MEMBER_PREV_STATE_NONE = -1,
+        BODY_ID         = 10,
+        BODY_RADIUS     = 0x180,
+        PREV_STATE_NONE = -1,
     };
 
-    VECTOR                worldPosition;
-    GfxCoord*             rootCoord;
-    TmdObject*            model;
-    TmdObject*            lightingModel;
-    _PatioSwatMemberWork* allocation;
-    _PatioSwatMemberWork* work;
-    WorldCollisionBody*   body;
+    VECTOR              worldPosition;
+    GfxCoord*           rootCoord;
+    TmdObject*          model;
+    TmdObject*          lightingModel;
+    _Work*              allocation;
+    _Work*              work;
+    WorldCollisionBody* body;
 
     model      = task->extra.tmd;
     rootCoord  = model->coords;
-    allocation = memCalloc(sizeof(_PatioSwatMemberWork), 0);
+    allocation = memCalloc(sizeof(_Work), 0);
     work       = allocation;
     task->work = allocation;
     if (allocation == NULL) {
@@ -319,8 +319,8 @@ static void _patioSwatMemberSpawn(Enemy* enemy, Task* task)
     // The original spawn clears this byte twice.
     enemy->field_4D = 0;
     animationInitContext(&work->rig.anim, _gPatioSwatMemberAnimationSets, model, work->rig.poses, work->rig.slots);
-    work->animRequest = PATIO_SWAT_MEMBER_ANIM_REQUEST_RESET;
-    work->animId      = PATIO_SWAT_MEMBER_ANIM_1;
+    work->animRequest = ANIM_REQUEST_RESET;
+    work->animId      = ANIM_1;
     work->animRate    = ANIMATION_RATE_ONE;
     _patioSwatMemberDriveAnimation(task);
     // The sphere and its three contact records live inside the task's work.
@@ -330,8 +330,8 @@ static void _patioSwatMemberSpawn(Enemy* enemy, Task* task)
     body->pos.vx           = 0;
     body->pos.vy           = 0;
     body->pos.vz           = 0;
-    body->key              = WORLD_COLLISION_CONTACT_ENEMY_BODY | PATIO_SWAT_MEMBER_BODY_ID;
-    body->radius           = PATIO_SWAT_MEMBER_BODY_RADIUS;
+    body->key              = WORLD_COLLISION_CONTACT_ENEMY_BODY | BODY_ID;
+    body->radius           = BODY_RADIUS;
     body->flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, body);
     body->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -346,9 +346,9 @@ static void _patioSwatMemberSpawn(Enemy* enemy, Task* task)
     worldPosition.vx = rootCoord->workm.t[0];
     worldPosition.vy = rootCoord->workm.t[1];
     worldPosition.vz = rootCoord->workm.t[2];
-    worldCoordSetModelLighting(task->extra.tmd, &worldPosition, 0, PATIO_SWAT_MEMBER_LIGHT_CONTRIBUTIONS);
-    work->state     = PATIO_SWAT_MEMBER_STATE_HIDDEN;
-    work->prevState = PATIO_SWAT_MEMBER_PREV_STATE_NONE;
+    worldCoordSetModelLighting(task->extra.tmd, &worldPosition, 0, LIGHT_CONTRIBUTIONS);
+    work->state     = STATE_HIDDEN;
+    work->prevState = PREV_STATE_NONE;
     task->state++;
 }
 
@@ -362,13 +362,13 @@ static void _patioSwatMemberSpawn(Enemy* enemy, Task* task)
 /// lifecycle callback signature.
 static void _patioSwatMemberTick(Enemy* unusedEnemy, Task* task)
 {
-    enum { PATIO_SWAT_MEMBER_DORMANT_SOUND_VIEW = 0x10 };
+    enum { DORMANT_SOUND_VIEW = 0x10 };
 
-    TmdObject*            model;
-    VECTOR                unusedVector;
-    s32                   pan;
-    _PatioSwatMemberWork* work             = task->work;
-    TaskFunc              stateHandlers[2] = {
+    TmdObject* model;
+    VECTOR     unusedVector;
+    s32        pan;
+    _Work*     work             = task->work;
+    TaskFunc   stateHandlers[2] = {
         _patioSwatMemberHide,
         _patioSwatMemberPlayAnimation,
     };
@@ -387,11 +387,11 @@ static void _patioSwatMemberTick(Enemy* unusedEnemy, Task* task)
         // Relight from the composed position before marking the next update dirty.
         if (work->relightPending != 0) {
             model = task->extra.tmd;
-            worldCoordSetModelLighting(model, model->coords->workm.t, 0, PATIO_SWAT_MEMBER_LIGHT_CONTRIBUTIONS);
+            worldCoordSetModelLighting(model, model->coords->workm.t, 0, LIGHT_CONTRIBUTIONS);
         }
         if (gGameSession->viewReady != 0) {
             task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-            if ((viewGetMappedIndex() == PATIO_SWAT_MEMBER_DORMANT_SOUND_VIEW) && (work->command == PATIO_SWAT_MEMBER_ANIM_1)) {
+            if ((viewGetMappedIndex() == DORMANT_SOUND_VIEW) && (work->command == ANIM_1)) {
                 pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
                 sndEvtRequestScriptStart(SOUND_AKROPOLIS_PATIO_STRANGER_DORMANT, pan,
                                          (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
@@ -419,8 +419,8 @@ static void _patioSwatMemberTick(Enemy* unusedEnemy, Task* task)
 /// `messageId` and `unusedArg` are ignored. Returns 0.
 static s32 _patioSwatMemberSetModelDraw(Task* task, s32 messageId, s32 mode, s32 unusedArg)
 {
-    TmdObject*            model;
-    _PatioSwatMemberWork* work;
+    TmdObject* model;
+    _Work*     work;
 
     model = task->extra.tmd;
     work  = task->work;
@@ -428,7 +428,7 @@ static s32 _patioSwatMemberSetModelDraw(Task* task, s32 messageId, s32 mode, s32
         case ACTOR_MESSAGE_VISIBILITY_HIDE:
             model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             tmdAllocPrimitiveBuffer(model);
-            work->state = PATIO_SWAT_MEMBER_STATE_HIDDEN;
+            work->state = STATE_HIDDEN;
             break;
         case ACTOR_MESSAGE_VISIBILITY_SHOW:
             model->flags = 0;
@@ -436,11 +436,11 @@ static s32 _patioSwatMemberSetModelDraw(Task* task, s32 messageId, s32 mode, s32
             break;
         case ACTOR_MESSAGE_VISIBILITY_KEEP_FLAGS_SKIP_AUTO_BUFFER:
             model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            work->state   = PATIO_SWAT_MEMBER_STATE_HIDDEN;
+            work->state   = STATE_HIDDEN;
             break;
         case ACTOR_MESSAGE_VISIBILITY_CLEAR_FLAGS_SKIP_AUTO_BUFFER:
             model->flags  = 0;
-            work->state   = PATIO_SWAT_MEMBER_STATE_HIDDEN;
+            work->state   = STATE_HIDDEN;
             model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
     }
@@ -456,10 +456,10 @@ static s32 _patioSwatMemberSetModelDraw(Task* task, s32 messageId, s32 mode, s32
 /// angles. `messageId` and `unusedArg` are ignored. Returns 1.
 static s32 _patioSwatMemberPlace(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArg)
 {
-    GfxCoord*             rootCoord;
-    s32                   rotationZX;
-    s32                   rotationZZ;
-    _PatioSwatMemberWork* work;
+    GfxCoord* rootCoord;
+    s32       rotationZX;
+    s32       rotationZZ;
+    _Work*    work;
 
     work                                = task->work;
     task->extra.tmd->coords->coord.t[0] = placement->pos.vx;
@@ -488,43 +488,43 @@ static s32 _patioSwatMemberApplyCommand(Task* task, s32 messageId, const ActorCo
 {
     /// Stage is the low byte and area the high byte of the command context.
     enum {
-        PATIO_SWAT_MEMBER_PATIO_COMMAND_CONTEXT = GAME_STAGE_AKROPOLIS | (GAME_AREA_AKROPOLIS_PATIO << 8),
+        PATIO_COMMAND_CONTEXT = GAME_STAGE_AKROPOLIS | (GAME_AREA_AKROPOLIS_PATIO << 8),
     };
 
-    _PatioSwatMemberWork* work;
-    s32                   animationId;
+    _Work* work;
+    s32    animationId;
 
     work               = task->work;
     work->commandStage = command->context.loc.stage;
     work->commandArea  = command->context.loc.area;
     work->command      = command->command;
 
-    if (command->context.key == PATIO_SWAT_MEMBER_PATIO_COMMAND_CONTEXT) {
+    if (command->context.key == PATIO_COMMAND_CONTEXT) {
         animationId = command->command;
         switch (animationId) {
-            case PATIO_SWAT_MEMBER_ANIM_1:
+            case ANIM_1:
                 work->animId      = animationId;
-                work->animRequest = PATIO_SWAT_MEMBER_ANIM_REQUEST_RESET;
+                work->animRequest = ANIM_REQUEST_RESET;
                 break;
 
-            case PATIO_SWAT_MEMBER_ANIM_2:
+            case ANIM_2:
                 work->animId      = animationId;
-                work->animRequest = PATIO_SWAT_MEMBER_ANIM_REQUEST_BLEND;
+                work->animRequest = ANIM_REQUEST_BLEND;
                 break;
 
-            case PATIO_SWAT_MEMBER_ANIM_3:
+            case ANIM_3:
                 work->animId      = animationId;
-                work->animRequest = PATIO_SWAT_MEMBER_ANIM_REQUEST_BLEND;
+                work->animRequest = ANIM_REQUEST_BLEND;
                 break;
 
-            case PATIO_SWAT_MEMBER_ANIM_4:
+            case ANIM_4:
                 work->animId      = animationId;
-                work->animRequest = PATIO_SWAT_MEMBER_ANIM_REQUEST_BLEND;
+                work->animRequest = ANIM_REQUEST_BLEND;
                 break;
         }
     }
 
-    work->state = PATIO_SWAT_MEMBER_STATE_PLAYING;
+    work->state = STATE_PLAYING;
     return 1;
 }
 
@@ -534,9 +534,9 @@ static s32 _patioSwatMemberApplyCommand(Task* task, s32 messageId, const ActorCo
 /// `spawnArg2.pointer`. Later hidden ticks leave those objects unchanged.
 static void _patioSwatMemberHide(Task* task)
 {
-    _PatioSwatMemberWork* work;
-    Enemy*                enemy;
-    TmdObject*            model;
+    _Work*     work;
+    Enemy*     enemy;
+    TmdObject* model;
 
     work = task->work;
     if (work->stateEntered != 0) {
@@ -556,26 +556,26 @@ static void _patioSwatMemberHide(Task* task)
 /// advances twice. Later ticks advance once, preserving the current rate.
 static void _patioSwatMemberPlayAnimation(Task* task)
 {
-    _PatioSwatMemberWork* work;
+    _Work* work;
 
     work = task->work;
     if (work->stateEntered != 0) {
-        work->animRequest = PATIO_SWAT_MEMBER_ANIM_REQUEST_RESET;
+        work->animRequest = ANIM_REQUEST_RESET;
         work->animRate    = ANIMATION_RATE_ONE;
         _patioSwatMemberDriveAnimation(task);
     }
     // Retained branch: no request here selects animation 0x10, outside this bank.
     if (work->animId == 0x10 && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
-        work->animId      = PATIO_SWAT_MEMBER_ANIM_4;
-        work->animRequest = PATIO_SWAT_MEMBER_ANIM_REQUEST_BLEND;
+        work->animId      = ANIM_4;
+        work->animRequest = ANIM_REQUEST_BLEND;
     }
     _patioSwatMemberDriveAnimation(task);
 }
 
 enum {
-    PATIO_SWAT_MEMBER_SWAT_TASK_SPAWN   = 0,
-    PATIO_SWAT_MEMBER_SWAT_TASK_UPDATE  = 1,
-    PATIO_SWAT_MEMBER_SWAT_TASK_DESTROY = 2,
+    SWAT_TASK_SPAWN   = 0,
+    SWAT_TASK_UPDATE  = 1,
+    SWAT_TASK_DESTROY = 2,
 };
 
 /// SWAT figure lifecycle handlers: 0 spawn, 1 hidden/playback update, 2 destroy.
@@ -588,9 +588,9 @@ enum {
 /// collision traversal must remain suspended until the room lists are reset.
 static const EnemyTaskFuncTable3 _gPatioSwatMemberSwatTaskStates = {
     .funcs = {
-        [PATIO_SWAT_MEMBER_SWAT_TASK_SPAWN]   = _patioSwatMemberSpawn,
-        [PATIO_SWAT_MEMBER_SWAT_TASK_UPDATE]  = _patioSwatMemberTick,
-        [PATIO_SWAT_MEMBER_SWAT_TASK_DESTROY] = enemyDestroy,
+        [SWAT_TASK_SPAWN]   = _patioSwatMemberSpawn,
+        [SWAT_TASK_UPDATE]  = _patioSwatMemberTick,
+        [SWAT_TASK_DESTROY] = enemyDestroy,
     },
 };
 

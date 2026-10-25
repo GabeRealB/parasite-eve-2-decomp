@@ -18,6 +18,8 @@
 #include "main/mem.h"
 #include "main/session_types.h"
 #include "main/sound.h"
+
+#include "../../rooms/roof_garden/config.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
@@ -144,7 +146,7 @@ static void _roofGardenSwatMemberUpdateViewFigure(Enemy* unusedEnemy, Task* task
 /// differs from the latch; loaded sound resources are required. Matching records
 /// update the latch even when already held. Other records leave it unchanged.
 /// Both tracks share one latch. Invoke within a braced statement body.
-#define ROOF_GARDEN_SWAT_MEMBER_CUE_ANIMATION_SOUND(trackIndex, cueRecordIndex, soundScript)                                                                     \
+#define CUE_ANIMATION_SOUND(trackIndex, cueRecordIndex, soundScript)                                                                                             \
     {                                                                                                                                                            \
         if ((_gViewFigureWork->rig.slots[(trackIndex)].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == (cueRecordIndex)) {                   \
             if (_gViewFigureWork->st.cueRecord != (_gViewFigureWork->rig.slots[(trackIndex)].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) { \
@@ -164,9 +166,9 @@ static void _roofGardenSwatMemberUpdateViewFigure(Enemy* unusedEnemy, Task* task
 static void _roofGardenSwatMemberUpdateViewFigure(Enemy* unusedEnemy, Task* task)
 {
     enum {
-        ROOF_GARDEN_SWAT_MEMBER_CUED_CLIP_4 = 4,
-        ROOF_GARDEN_SWAT_MEMBER_CUED_CLIP_5 = 5,
-        ROOF_GARDEN_SWAT_MEMBER_LIGHT_COUNT = 3,
+        CUED_CLIP_4 = 4,
+        CUED_CLIP_5 = 5,
+        LIGHT_COUNT = 3,
     };
 
     GfxCoord*  rootCoord;
@@ -177,24 +179,24 @@ static void _roofGardenSwatMemberUpdateViewFigure(Enemy* unusedEnemy, Task* task
     model     = task->extra.tmd;
     _viewFigureStepAnim(task);
     switch (_gViewFigureWork->st.animId) {
-        case ROOF_GARDEN_SWAT_MEMBER_CUED_CLIP_4:
-            ROOF_GARDEN_SWAT_MEMBER_CUE_ANIMATION_SOUND(19, 0xC8, SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_ROOF_GARDEN, 0x11));
-            ROOF_GARDEN_SWAT_MEMBER_CUE_ANIMATION_SOUND(19, 0xCA, SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_ROOF_GARDEN, 0x0D));
-            ROOF_GARDEN_SWAT_MEMBER_CUE_ANIMATION_SOUND(19, 0xCD, SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_ROOF_GARDEN, 0x0E));
+        case CUED_CLIP_4:
+            CUE_ANIMATION_SOUND(19, 0xC8, AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_RADIO_CLICK));
+            CUE_ANIMATION_SOUND(19, 0xCA, AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_SWAT_MEMBER_STEP_1));
+            CUE_ANIMATION_SOUND(19, 0xCD, AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_SWAT_MEMBER_STEP_2));
             break;
-        case ROOF_GARDEN_SWAT_MEMBER_CUED_CLIP_5:
-            ROOF_GARDEN_SWAT_MEMBER_CUE_ANIMATION_SOUND(19, 0x115, SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_ROOF_GARDEN, 0x0F));
-            ROOF_GARDEN_SWAT_MEMBER_CUE_ANIMATION_SOUND(19, 0x11F, SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_ROOF_GARDEN, 0x0F));
-            ROOF_GARDEN_SWAT_MEMBER_CUE_ANIMATION_SOUND(16, 0xCE, SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_ROOF_GARDEN, 0x10));
-            ROOF_GARDEN_SWAT_MEMBER_CUE_ANIMATION_SOUND(16, 0xD8, SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_ROOF_GARDEN, 0x10));
+        case CUED_CLIP_5:
+            CUE_ANIMATION_SOUND(19, 0x115, AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_STEP_1));
+            CUE_ANIMATION_SOUND(19, 0x11F, AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_STEP_1));
+            CUE_ANIMATION_SOUND(16, 0xCE, AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_STEP_2));
+            CUE_ANIMATION_SOUND(16, 0xD8, AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_STEP_2));
             break;
     }
     lightPosition.vx = rootCoord->workm.t[0];
     lightPosition.vy = rootCoord->workm.t[1];
     lightPosition.vz = rootCoord->workm.t[2];
-    worldCoordSetModelLighting(model, &lightPosition, 0, ROOF_GARDEN_SWAT_MEMBER_LIGHT_COUNT);
+    worldCoordSetModelLighting(model, &lightPosition, 0, LIGHT_COUNT);
 }
-#undef ROOF_GARDEN_SWAT_MEMBER_CUE_ANIMATION_SOUND
+#undef CUE_ANIMATION_SOUND
 
 /// Dispatches the SWAT figure's spawn or per-frame update and publishes its work.
 ///
@@ -223,8 +225,8 @@ static void _roofGardenSwatMemberViewFigureTask(Task* task)
 static void _roofGardenSwatMemberAttachModelTask(Task* task)
 {
     enum {
-        ROOF_GARDEN_SWAT_MEMBER_HELPER_PARENT_PART = 8,
-        ROOF_GARDEN_SWAT_MEMBER_HELPER_X_OFFSET    = -50
+        PARENT_PART = 8,
+        X_OFFSET    = -50
     };
 
     GfxCoord* bodyCoords;
@@ -233,8 +235,8 @@ static void _roofGardenSwatMemberAttachModelTask(Task* task)
     bodyCoords               = _gRoofGardenSwatMemberBodyTask->extra.tmd->coords;
     helperRoot               = task->extra.tmd->coords;
     helperRoot->composeStamp = GRAPHICS_COORD_DIRTY;
-    helperRoot->coord.t[0]   = ROOF_GARDEN_SWAT_MEMBER_HELPER_X_OFFSET;
-    helperRoot->parent       = &bodyCoords[ROOF_GARDEN_SWAT_MEMBER_HELPER_PARENT_PART];
+    helperRoot->coord.t[0]   = X_OFFSET;
+    helperRoot->parent       = &bodyCoords[PARENT_PART];
 }
 
 #include "../../../../shared/actor/view_figure_exit.inc.c"

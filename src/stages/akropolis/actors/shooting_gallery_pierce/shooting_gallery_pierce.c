@@ -26,7 +26,7 @@ TaskDesc gShootingGalleryPierceGalleryDecisionTaskDescs[2] = {
     { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, shootingGalleryPierceGalleryAbortDecisionTask, { .value = 0 } },
 };
 
-enum { SHOOTING_GALLERY_PIERCE_LEVEL_PROMPT_PLAYER_CLIP = 9 };
+enum { LEVEL_PROMPT_PLAYER_CLIP = 9 };
 
 /// Resets player clip 9 as the gallery course-level prompt begins.
 ///
@@ -35,7 +35,7 @@ enum { SHOOTING_GALLERY_PIERCE_LEVEL_PROMPT_PLAYER_CLIP = 9 };
 /// zero blend duration. Keep the live player and its weapon clips loaded.
 static AnimationPlayRequest _gShootingGalleryPierceGalleryLevelPromptPlayerAnimation9Request = {
     .source               = { .index = 1 },
-    .animationId          = SHOOTING_GALLERY_PIERCE_LEVEL_PROMPT_PLAYER_CLIP,
+    .animationId          = LEVEL_PROMPT_PLAYER_CLIP,
     .blend                = ANIMATION_BLEND_RESET,
     .blendFrames          = 0,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
@@ -54,8 +54,8 @@ static const AnimationPlayRequest _gShootingGalleryPierceRetainedBank1Clip0Reset
 };
 
 enum {
-    SHOOTING_GALLERY_PIERCE_LEVEL_REPLY_FIRST_CLIP  = 24,
-    SHOOTING_GALLERY_PIERCE_LEVEL_REPLY_SECOND_CLIP = 18,
+    LEVEL_REPLY_FIRST_CLIP  = 24,
+    LEVEL_REPLY_SECOND_CLIP = 18,
 };
 
 /// Resets Pierce to clip 18 twenty-two updates after the course-level reply's first clip.
@@ -64,7 +64,7 @@ enum {
 /// must remain loaded. Pierce ignores the stored bank and collision selectors.
 static AnimationPlayRequest _gShootingGalleryPierceGalleryLevelReplyAnimation18Request = {
     .source               = { .index = 1 },
-    .animationId          = SHOOTING_GALLERY_PIERCE_LEVEL_REPLY_SECOND_CLIP,
+    .animationId          = LEVEL_REPLY_SECOND_CLIP,
     .blend                = ANIMATION_BLEND_RESET,
     .blendFrames          = 0,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
@@ -81,7 +81,7 @@ static const AnimationPlayRequest _gShootingGalleryPierceRetainedBank1Clip19To22
     { .source = { .index = 1 }, .animationId = 22, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-enum { SHOOTING_GALLERY_PIERCE_LEVEL_PROMPT_PIERCE_CLIP = 23 };
+enum { LEVEL_PROMPT_PIERCE_CLIP = 23 };
 
 /// Resets Pierce to clip 23 as the gallery course-level prompt begins.
 ///
@@ -89,7 +89,7 @@ enum { SHOOTING_GALLERY_PIERCE_LEVEL_PROMPT_PIERCE_CLIP = 23 };
 /// the stored bank and collision selectors. Keep Pierce and his clips loaded.
 static const AnimationPlayRequest _gShootingGalleryPierceGalleryLevelPromptPierceAnimation23Request SECTION(".data") = {
     .source               = { .index = 1 },
-    .animationId          = SHOOTING_GALLERY_PIERCE_LEVEL_PROMPT_PIERCE_CLIP,
+    .animationId          = LEVEL_PROMPT_PIERCE_CLIP,
     .blend                = ANIMATION_BLEND_RESET,
     .blendFrames          = 0,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
@@ -101,7 +101,7 @@ static const AnimationPlayRequest _gShootingGalleryPierceGalleryLevelPromptPierc
 /// bank and collision selectors. The live actor and clip bank must stay loaded.
 static AnimationPlayRequest _gShootingGalleryPierceGalleryLevelReplyAnimation24Request = {
     .source               = { .index = 1 },
-    .animationId          = SHOOTING_GALLERY_PIERCE_LEVEL_REPLY_FIRST_CLIP,
+    .animationId          = LEVEL_REPLY_FIRST_CLIP,
     .blend                = ANIMATION_BLEND_RESET,
     .blendFrames          = 0,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
@@ -131,15 +131,15 @@ s32 gShootingGalleryPierceGalleryExitInputCooldownTicks = 0;
 /// already below -1000 stays unchanged. Caption completion remains with the caller.
 static inline void _shootingGalleryPierceUpdateLevelReplyAnimations(Task* task)
 {
-    enum { SHOOTING_GALLERY_PIERCE_LEVEL_REPLY_LAST_DECREMENT        = -999,
-           SHOOTING_GALLERY_PIERCE_LEVEL_REPLY_SECOND_ANIMATION_TICK = -22 };
-    if (task->killCountdown >= SHOOTING_GALLERY_PIERCE_LEVEL_REPLY_LAST_DECREMENT) {
+    enum { LAST_DECREMENT        = -999,
+           SECOND_ANIMATION_TICK = -22 };
+    if (task->killCountdown >= LAST_DECREMENT) {
         task->killCountdown--;
     }
     if (task->killCountdown == 0) {
         TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(1), ACTOR_MESSAGE_PLAY_ANIMATION, &_gShootingGalleryPierceGalleryLevelReplyAnimation24Request, 0);
     }
-    if (task->killCountdown == SHOOTING_GALLERY_PIERCE_LEVEL_REPLY_SECOND_ANIMATION_TICK) {
+    if (task->killCountdown == SECOND_ANIMATION_TICK) {
         TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(1), ACTOR_MESSAGE_PLAY_ANIMATION, &_gShootingGalleryPierceGalleryLevelReplyAnimation18Request, 0);
     }
 }
@@ -147,43 +147,43 @@ static inline void _shootingGalleryPierceUpdateLevelReplyAnimations(Task* task)
 void shootingGalleryPierceGalleryTrainingMenuTask(Task* task)
 {
     enum {
-        SHOOTING_GALLERY_PIERCE_MENU_START               = 0,
-        SHOOTING_GALLERY_PIERCE_MENU_WAIT_INTRO          = 1,
-        SHOOTING_GALLERY_PIERCE_MENU_RESOLVE_REPLY       = 2,
-        SHOOTING_GALLERY_PIERCE_MENU_DECLINE             = 4,
-        SHOOTING_GALLERY_PIERCE_MENU_ACCEPT              = 5,
-        SHOOTING_GALLERY_PIERCE_MENU_WAIT_ACCEPT         = 6,
-        SHOOTING_GALLERY_PIERCE_MENU_MUSIC_CAPTION       = 10,
-        SHOOTING_GALLERY_PIERCE_MENU_OPEN_MUSIC          = 11,
-        SHOOTING_GALLERY_PIERCE_MENU_AFTER_MUSIC         = 12,
-        SHOOTING_GALLERY_PIERCE_MENU_WEAPON_CAPTION      = 20,
-        SHOOTING_GALLERY_PIERCE_MENU_OPEN_WEAPON         = 21,
-        SHOOTING_GALLERY_PIERCE_MENU_AFTER_WEAPON        = 22,
-        SHOOTING_GALLERY_PIERCE_MENU_LEVEL_CAPTION       = 30,
-        SHOOTING_GALLERY_PIERCE_MENU_WAIT_LEVEL_REPLY    = 31,
-        SHOOTING_GALLERY_PIERCE_MENU_SAVE_LEVEL          = 32,
-        SHOOTING_GALLERY_PIERCE_MENU_CONFIRM_LEVEL       = 40,
-        SHOOTING_GALLERY_PIERCE_MENU_WAIT_CONFIRM        = 41,
-        SHOOTING_GALLERY_PIERCE_MENU_AFTER_CONFIRM       = 42,
-        SHOOTING_GALLERY_PIERCE_MENU_STAGE_TRAINING      = 50,
-        SHOOTING_GALLERY_PIERCE_MENU_WAIT_TRAINING       = 51,
-        SHOOTING_GALLERY_PIERCE_MENU_SPAWN_TRAINING      = 52,
-        SHOOTING_GALLERY_PIERCE_MENU_ANIMATION_DELAY     = 27,
-        SHOOTING_GALLERY_PIERCE_MENU_FIRST_LOADOUT_LEVEL = 3,
-        SHOOTING_GALLERY_PIERCE_MENU_LEVEL_CAPTION_BASE  = 11,
-        SHOOTING_GALLERY_PIERCE_MENU_MUSIC_SLOT          = 9,
-        SHOOTING_GALLERY_PIERCE_MENU_WEAPON_SLOT         = 10,
-        SHOOTING_GALLERY_PIERCE_MENU_REPEAT_PROMPT_SLOT  = 28,
-        SHOOTING_GALLERY_PIERCE_MENU_FIRST_PROMPT_SLOT   = 21,
-        SHOOTING_GALLERY_PIERCE_MENU_REPEAT_DECLINE_SLOT = 8,
-        SHOOTING_GALLERY_PIERCE_MENU_FIRST_DECLINE_SLOT  = 25,
-        SHOOTING_GALLERY_PIERCE_MENU_REPEAT_ACCEPT_SLOT  = 7,
-        SHOOTING_GALLERY_PIERCE_MENU_FIRST_ACCEPT_SLOT   = 24,
+        START               = 0,
+        WAIT_INTRO          = 1,
+        RESOLVE_REPLY       = 2,
+        DECLINE             = 4,
+        ACCEPT              = 5,
+        WAIT_ACCEPT         = 6,
+        MUSIC_CAPTION       = 10,
+        OPEN_MUSIC          = 11,
+        AFTER_MUSIC         = 12,
+        WEAPON_CAPTION      = 20,
+        OPEN_WEAPON         = 21,
+        AFTER_WEAPON        = 22,
+        LEVEL_CAPTION       = 30,
+        WAIT_LEVEL_REPLY    = 31,
+        SAVE_LEVEL          = 32,
+        CONFIRM_LEVEL       = 40,
+        WAIT_CONFIRM        = 41,
+        AFTER_CONFIRM       = 42,
+        STAGE_TRAINING      = 50,
+        WAIT_TRAINING       = 51,
+        SPAWN_TRAINING      = 52,
+        ANIMATION_DELAY     = 27,
+        FIRST_LOADOUT_LEVEL = 3,
+        LEVEL_CAPTION_BASE  = 11,
+        MUSIC_SLOT          = 9,
+        WEAPON_SLOT         = 10,
+        REPEAT_PROMPT_SLOT  = 28,
+        FIRST_PROMPT_SLOT   = 21,
+        REPEAT_DECLINE_SLOT = 8,
+        FIRST_DECLINE_SLOT  = 25,
+        REPEAT_ACCEPT_SLOT  = 7,
+        FIRST_ACCEPT_SLOT   = 24,
     };
     s16 captionSlot;
 
     switch (task->state) {
-        case SHOOTING_GALLERY_PIERCE_MENU_START:
+        case START:
             if (gShootingGalleryPierceGalleryTrainingActive != 0) {
                 taskKill(task);
                 return;
@@ -191,107 +191,107 @@ void shootingGalleryPierceGalleryTrainingMenuTask(Task* task)
             if (task->spawnArg1.value == 0) {
                 evsStartScript(gShootingGalleryPierceGalleryPrepareTrainingMenuScript, EVENT_SCRIPT_HUD_KEEP);
             } else {
-                captionSlot = SHOOTING_GALLERY_PIERCE_MENU_REPEAT_PROMPT_SLOT;
+                captionSlot = REPEAT_PROMPT_SLOT;
                 if (_gShootingGalleryPierceGalleryCoursesStagedCount == 0) {
-                    captionSlot = SHOOTING_GALLERY_PIERCE_MENU_FIRST_PROMPT_SLOT;
+                    captionSlot = FIRST_PROMPT_SLOT;
                 }
                 capStartSequenceSlot(captionSlot, 0, 0);
                 evsStartScript(gShootingGalleryPierceGalleryOfferTrainingMenuScript, EVENT_SCRIPT_HUD_KEEP);
             }
             task->state++;
             break;
-        case SHOOTING_GALLERY_PIERCE_MENU_RESOLVE_REPLY:
+        case RESOLVE_REPLY:
             gGameSession->eventState = 1;
             if (task->spawnArg1.value != 0) {
                 if (capGetVariantKey() != 0) {
-                    task->state = SHOOTING_GALLERY_PIERCE_MENU_ACCEPT;
+                    task->state = ACCEPT;
                 } else {
-                    task->state = SHOOTING_GALLERY_PIERCE_MENU_DECLINE;
+                    task->state = DECLINE;
                 }
             } else {
-                task->state = SHOOTING_GALLERY_PIERCE_MENU_MUSIC_CAPTION;
+                task->state = MUSIC_CAPTION;
             }
             break;
-        case SHOOTING_GALLERY_PIERCE_MENU_DECLINE:
-            captionSlot = SHOOTING_GALLERY_PIERCE_MENU_REPEAT_DECLINE_SLOT;
+        case DECLINE:
+            captionSlot = REPEAT_DECLINE_SLOT;
             if (_gShootingGalleryPierceGalleryCoursesStagedCount == 0) {
-                captionSlot = SHOOTING_GALLERY_PIERCE_MENU_FIRST_DECLINE_SLOT;
+                captionSlot = FIRST_DECLINE_SLOT;
             }
             capStartSequenceSlot(captionSlot, 0, 0);
             evsStartScript(gShootingGalleryPierceGalleryDeclineTrainingScript, EVENT_SCRIPT_HUD_KEEP);
             taskKill(task);
             break;
-        case SHOOTING_GALLERY_PIERCE_MENU_ACCEPT:
-            captionSlot = SHOOTING_GALLERY_PIERCE_MENU_REPEAT_ACCEPT_SLOT;
+        case ACCEPT:
+            captionSlot = REPEAT_ACCEPT_SLOT;
             if (_gShootingGalleryPierceGalleryCoursesStagedCount == 0) {
-                captionSlot = SHOOTING_GALLERY_PIERCE_MENU_FIRST_ACCEPT_SLOT;
+                captionSlot = FIRST_ACCEPT_SLOT;
             }
             capStartSequenceSlot(captionSlot, 0, 0);
             evsStartScript(gShootingGalleryPierceGalleryWaitTrainingAcceptanceScript, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
-        case SHOOTING_GALLERY_PIERCE_MENU_WAIT_ACCEPT:
+        case WAIT_ACCEPT:
             if (gGameSession->eventState == 0) {
-                task->state = SHOOTING_GALLERY_PIERCE_MENU_MUSIC_CAPTION;
+                task->state = MUSIC_CAPTION;
             }
             break;
-        case SHOOTING_GALLERY_PIERCE_MENU_MUSIC_CAPTION:
-            capStartSequenceSlot(SHOOTING_GALLERY_PIERCE_MENU_MUSIC_SLOT, 0, 0);
+        case MUSIC_CAPTION:
+            capStartSequenceSlot(MUSIC_SLOT, 0, 0);
             task->state++;
             break;
-        case SHOOTING_GALLERY_PIERCE_MENU_OPEN_MUSIC:
+        case OPEN_MUSIC:
             if (capIsBusy() == 0) {
                 mistShootingGalleryOpenJukebox(0);
                 task->state++;
             }
             break;
-        case SHOOTING_GALLERY_PIERCE_MENU_AFTER_MUSIC:
-            task->state = SHOOTING_GALLERY_PIERCE_MENU_WEAPON_CAPTION;
+        case AFTER_MUSIC:
+            task->state = WEAPON_CAPTION;
             break;
-        case SHOOTING_GALLERY_PIERCE_MENU_WEAPON_CAPTION:
-            capStartSequenceSlot(SHOOTING_GALLERY_PIERCE_MENU_WEAPON_SLOT, 0, 0);
+        case WEAPON_CAPTION:
+            capStartSequenceSlot(WEAPON_SLOT, 0, 0);
             task->state++;
             break;
-        case SHOOTING_GALLERY_PIERCE_MENU_OPEN_WEAPON:
+        case OPEN_WEAPON:
             if (capIsBusy() == 0) {
                 mistShootingGalleryOpenWeaponMenu(0);
                 task->state++;
             }
             break;
-        case SHOOTING_GALLERY_PIERCE_MENU_AFTER_WEAPON:
-            task->state = SHOOTING_GALLERY_PIERCE_MENU_LEVEL_CAPTION;
+        case AFTER_WEAPON:
+            task->state = LEVEL_CAPTION;
             break;
-        case SHOOTING_GALLERY_PIERCE_MENU_LEVEL_CAPTION:
+        case LEVEL_CAPTION:
             playerActorWriteWeaponAnimationBankIndex(&_gShootingGalleryPierceGalleryLevelPromptPlayerAnimation9Request.source.index);
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &_gShootingGalleryPierceGalleryLevelPromptPlayerAnimation9Request, 0);
             TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(1), ACTOR_MESSAGE_PLAY_ANIMATION, &_gShootingGalleryPierceGalleryLevelPromptPierceAnimation23Request, 0);
-            task->killCountdown = SHOOTING_GALLERY_PIERCE_MENU_ANIMATION_DELAY;
-            capStartSequenceSlot(SHOOTING_GALLERY_PIERCE_MENU_LEVEL_CAPTION_BASE, 0, 0);
+            task->killCountdown = ANIMATION_DELAY;
+            capStartSequenceSlot(LEVEL_CAPTION_BASE, 0, 0);
             task->state++;
             break;
-        case SHOOTING_GALLERY_PIERCE_MENU_WAIT_LEVEL_REPLY:
+        case WAIT_LEVEL_REPLY:
             _shootingGalleryPierceUpdateLevelReplyAnimations(task);
             if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
-        case SHOOTING_GALLERY_PIERCE_MENU_SAVE_LEVEL:
+        case SAVE_LEVEL:
             gShootingGalleryPierceGallerySelectedCourseLevel = capGetVariantKey();
             mistShootingGalleryPrepareTrainingLoadout(gShootingGalleryPierceGallerySelectedCourseLevel);
-            task->state = SHOOTING_GALLERY_PIERCE_MENU_CONFIRM_LEVEL;
+            task->state = CONFIRM_LEVEL;
             break;
-        case SHOOTING_GALLERY_PIERCE_MENU_CONFIRM_LEVEL:
-            capStartSequenceSlot(capGetVariantKey() + SHOOTING_GALLERY_PIERCE_MENU_LEVEL_CAPTION_BASE, 0, 0);
+        case CONFIRM_LEVEL:
+            capStartSequenceSlot(capGetVariantKey() + LEVEL_CAPTION_BASE, 0, 0);
             evsStartScript(gShootingGalleryPierceGalleryConfirmCourseScript, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
-        case SHOOTING_GALLERY_PIERCE_MENU_AFTER_CONFIRM:
-            task->state = SHOOTING_GALLERY_PIERCE_MENU_STAGE_TRAINING;
+        case AFTER_CONFIRM:
+            task->state = STAGE_TRAINING;
             break;
-        case SHOOTING_GALLERY_PIERCE_MENU_STAGE_TRAINING:
+        case STAGE_TRAINING:
             _gShootingGalleryPierceGalleryCoursesStagedCount++;
             gAttachmentState.flags |= ATTACHMENT_FLAG_SWAP_LOCK;
-            if (gShootingGalleryPierceGallerySelectedCourseLevel < SHOOTING_GALLERY_PIERCE_MENU_FIRST_LOADOUT_LEVEL) {
+            if (gShootingGalleryPierceGallerySelectedCourseLevel < FIRST_LOADOUT_LEVEL) {
                 evsStartScript(gShootingGalleryPierceGalleryStartFixedViewTrainingScript, EVENT_SCRIPT_HUD_KEEP);
             } else {
                 evsStartScript(gShootingGalleryPierceGalleryStartFreeMovementTrainingScript, EVENT_SCRIPT_HUD_KEEP);
@@ -299,14 +299,14 @@ void shootingGalleryPierceGalleryTrainingMenuTask(Task* task)
             gShootingGalleryPierceGalleryTrainingActive = 1;
             task->state++;
             break;
-        case SHOOTING_GALLERY_PIERCE_MENU_WAIT_INTRO:
-        case SHOOTING_GALLERY_PIERCE_MENU_WAIT_CONFIRM:
-        case SHOOTING_GALLERY_PIERCE_MENU_WAIT_TRAINING:
+        case WAIT_INTRO:
+        case WAIT_CONFIRM:
+        case WAIT_TRAINING:
             if (gGameSession->eventState == 0) {
                 task->state++;
             }
             break;
-        case SHOOTING_GALLERY_PIERCE_MENU_SPAWN_TRAINING:
+        case SPAWN_TRAINING:
             gGameSession->flowFlags &= (0xFF ^ GAME_SESSION_FLOW_REEQUIP_WEAPON);
             taskSpawnFromTable(gMistShootingGalleryTaskDescs, MIST_SHOOTING_GALLERY_TASK_COURSE_CONTROLLER, gShootingGalleryPierceGallerySelectedCourseLevel - 1, 0);
             gShootingGalleryPierceGalleryExitInputBlocked = 1;

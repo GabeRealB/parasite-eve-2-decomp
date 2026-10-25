@@ -52,40 +52,40 @@
 
 /// Task phases of this package's stationary enemy.
 enum {
-    LESSER_STRANGER_PHASE_INIT  = 0,
-    LESSER_STRANGER_PHASE_IDLE  = 1,
-    LESSER_STRANGER_PHASE_HIT   = 2,
-    LESSER_STRANGER_PHASE_DEATH = 3,
-    LESSER_STRANGER_PHASE_DONE  = 4
+    PHASE_INIT  = 0,
+    PHASE_IDLE  = 1,
+    PHASE_HIT   = 2,
+    PHASE_DEATH = 3,
+    PHASE_DONE  = 4
 };
 
 /// Results of one hit-reaction update, consumed through a signed low halfword.
 enum {
-    LESSER_STRANGER_HIT_REACTION_LETHAL   = -1,
-    LESSER_STRANGER_HIT_REACTION_PLAYING  = 0,
-    LESSER_STRANGER_HIT_REACTION_FINISHED = 1
+    HIT_REACTION_LETHAL   = -1,
+    HIT_REACTION_PLAYING  = 0,
+    HIT_REACTION_FINISHED = 1
 };
 
 /// Animation-set indices, the hit-body part and the area-placement identity.
 enum {
-    LESSER_STRANGER_ANIMATION_IDLE = 0,
-    LESSER_STRANGER_ANIMATION_HIT  = 1,
-    LESSER_STRANGER_BODY_PART      = 2,
-    LESSER_STRANGER_PLACEMENT_ID   = 10
+    ANIMATION_IDLE = 0,
+    ANIMATION_HIT  = 1,
+    BODY_PART      = 2,
+    PLACEMENT_ID   = 10
 };
 
-/// Values of `_LesserStrangerWork::step`, the stage of the phase `Task::state`
+/// Values of `_Work::step`, the stage of the phase `Task::state`
 /// selects.
 ///
 /// Every phase starts at step 0 and gives the steps its own meaning.
 enum {
-    LESSER_STRANGER_IDLE_STEP_CHOOSE = 0, // draws between a pause and a replay of animation 0; two replays in a row force the pause
-    LESSER_STRANGER_IDLE_STEP_PAUSE  = 1, // holds the pose for 32 ticks
-    LESSER_STRANGER_IDLE_STEP_REPLAY = 2, // plays animation 0 through from its start
-    LESSER_STRANGER_HIT_STEP_START   = 0, // blends into animation 1 and spawns the hit effect; ends the phase at once when the hit points are gone
-    LESSER_STRANGER_HIT_STEP_PLAY    = 1, // plays animation 1 through
-    LESSER_STRANGER_DEATH_STEP_CRY   = 0, // queues the death sound
-    LESSER_STRANGER_DEATH_STEP_BURN  = 1  // runs the burn-away sequence that `stepFrame` times
+    IDLE_STEP_CHOOSE = 0, // draws between a pause and a replay of animation 0; two replays in a row force the pause
+    IDLE_STEP_PAUSE  = 1, // holds the pose for 32 ticks
+    IDLE_STEP_REPLAY = 2, // plays animation 0 through from its start
+    HIT_STEP_START   = 0, // blends into animation 1 and spawns the hit effect; ends the phase at once when the hit points are gone
+    HIT_STEP_PLAY    = 1, // plays animation 1 through
+    DEATH_STEP_CRY   = 0, // queues the death sound
+    DEATH_STEP_BURN  = 1  // runs the burn-away sequence that `stepFrame` times
 };
 
 /// Work block of the package's enemy task.
@@ -118,8 +118,8 @@ typedef struct {
     s32                   lastHitKey;       // `hitKey` of the last hit taken; its id parameter 1 selects the hit effect
     u16                   present;          // answer to `ACTOR_MESSAGE_IS_PRESENT` (1 from spawn, 0 once the hit points are gone)
     u16                   prevActorControl; // `gSceneCombatState.actorControl` as the tick last recorded it (0 update, 1 pause, 2 hide); not recorded once the death phase runs
-} _LesserStrangerWork;
-STATIC_ASSERT_SIZEOF(_LesserStrangerWork, 0x4D8);
+} _Work;
+STATIC_ASSERT_SIZEOF(_Work, 0x4D8);
 
 static AnimationSet _gStrangerDownBackClip;
 extern AnimationSet gStrangerLesserIdleClip;
@@ -131,7 +131,7 @@ static s32          _lesserStrangerIsPresentMessage(Task* actorTask, s32 message
 
 #include "assets/enemies/stranger/lesser/clips.inc"
 
-enum { LESSER_STRANGER_PLAYER_REACTION_SPARK_AND_PUFFS = 7 };
+enum { PLAYER_REACTION_SPARK_AND_PUFFS = 7 };
 
 /// Retained attack rows of the fire-escape Stranger, borrowed by its parameters.
 ///
@@ -139,7 +139,7 @@ enum { LESSER_STRANGER_PLAYER_REACTION_SPARK_AND_PUFFS = 7 };
 /// and row 1 the ordinary reaction, without status effects. No recovered
 /// actor behavior packs either row into an outgoing collision key.
 static DamageAttack _gLesserStrangerStrangerAttacks[2] = {
-    { 18, LESSER_STRANGER_PLAYER_REACTION_SPARK_AND_PUFFS },
+    { 18, PLAYER_REACTION_SPARK_AND_PUFFS },
     { 18, GAME_ACTOR_REACTION_ORDINARY },
 };
 
@@ -253,7 +253,7 @@ static inline void _lesserStrangerResetAnim(ActorAnimRig19* rig, u8 requestedRat
 {
     do {
         rig->slots[slotIndex & 0xFFFF].rate = requestedRate;
-        animationResetSlot(&rig->anim, slotIndex & 0xFFFF, LESSER_STRANGER_ANIMATION_IDLE);
+        animationResetSlot(&rig->anim, slotIndex & 0xFFFF, ANIMATION_IDLE);
         slotIndex += 1;
     } while ((u32)(slotIndex & 0xFFFF) < ARRAY_SIZE(rig->slots));
 }
@@ -265,22 +265,22 @@ static inline void _lesserStrangerResetAnim(ActorAnimRig19* rig, u8 requestedRat
 /// stay loaded while it is live. Allocation failure kills the task.
 static void _lesserStrangerInit(Task* actorTask)
 {
-    enum { LESSER_STRANGER_INITIAL_HP = 50,
-           LESSER_STRANGER_HIT_RADIUS = 400 };
-    _LesserStrangerWork* allocatedWork;
-    _LesserStrangerWork* work;
-    _LesserStrangerWork* animationWork;
-    Enemy*               enemy;
-    GfxCoord*            rootCoord;
-    TmdObject*           model;
-    AreaPlacement*       placement;
-    s32                  slotIndex;
-    u8                   rate;
+    enum { INITIAL_HP = 50,
+           HIT_RADIUS = 400 };
+    _Work*         allocatedWork;
+    _Work*         work;
+    _Work*         animationWork;
+    Enemy*         enemy;
+    GfxCoord*      rootCoord;
+    TmdObject*     model;
+    AreaPlacement* placement;
+    s32            slotIndex;
+    u8             rate;
 
     rootCoord       = actorTask->extra.tmd->coords;
     enemy           = actorTask->spawnArg2.pointer;
     model           = actorTask->extra.tmd;
-    allocatedWork   = memCalloc(sizeof(_LesserStrangerWork), 0);
+    allocatedWork   = memCalloc(sizeof(_Work), 0);
     actorTask->work = allocatedWork;
     if (allocatedWork == NULL) {
         taskKill(actorTask);
@@ -308,19 +308,19 @@ static void _lesserStrangerInit(Task* actorTask)
     enemy->bodyPos.vx = 0;
     enemy->bodyPos.vy = 0;
     enemy->bodyPos.vz = 0;
-    enemy->coord      = &actorTask->extra.tmd->coords[LESSER_STRANGER_BODY_PART];
+    enemy->coord      = &actorTask->extra.tmd->coords[BODY_PART];
     worldTargetLinkNode(&enemy->node);
-    enemy->hp                      = LESSER_STRANGER_INITIAL_HP;
+    enemy->hp                      = INITIAL_HP;
     enemy->node.state.parts.flags  = 0;
     enemy->reactionFlags           = 0;
     enemy->param                   = &_gLesserStrangerStrangerParams;
-    work->hitBody.coord            = &actorTask->extra.tmd->coords[LESSER_STRANGER_BODY_PART];
+    work->hitBody.coord            = &actorTask->extra.tmd->coords[BODY_PART];
     work->hitBody.context.contacts = &work->hitContacts[0];
     work->hitBody.pos.vx           = 0;
     work->hitBody.pos.vy           = 0;
     work->hitBody.pos.vz           = 0;
-    work->hitBody.key              = WORLD_COLLISION_CONTACT_ENEMY_BODY | LESSER_STRANGER_PLACEMENT_ID;
-    work->hitBody.radius           = LESSER_STRANGER_HIT_RADIUS;
+    work->hitBody.key              = WORLD_COLLISION_CONTACT_ENEMY_BODY | PLACEMENT_ID;
+    work->hitBody.radius           = HIT_RADIUS;
     work->hitBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->hitBody);
     work->hitBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -329,7 +329,7 @@ static void _lesserStrangerInit(Task* actorTask)
     actorTask->msgTable = _gLesserStrangerStrangerMessages;
     work->present       = 1;
     placement           = areaGetVariant(&gGameSession->location)->placements;
-    while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != LESSER_STRANGER_PLACEMENT_ID) {
+    while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != PLACEMENT_ID) {
         placement++;
     }
     tmdSetTextureOffsets(model, placement->texturePageOffset, placement->clutRowOffset);
@@ -341,8 +341,8 @@ static void _lesserStrangerInit(Task* actorTask)
 /// 1 for `ANIMATION_SLOT_REACHED_BOUNDARY`, otherwise 0; this need not mean a stop.
 static inline u16 _lesserStrangerTickAnim(Task* task)
 {
-    _LesserStrangerWork* work = task->work;
-    s32                  slotIndex;
+    _Work* work = task->work;
+    s32    slotIndex;
 
     slotIndex = 1;
     do {
@@ -360,24 +360,24 @@ static inline u16 _lesserStrangerTickAnim(Task* task)
 /// The replay's requested double rate is overwritten by the slot reset.
 static void _lesserStrangerTickIdle(Task* actorTask)
 {
-    enum { LESSER_STRANGER_IDLE_PAUSE_FRAMES = 32,
-           LESSER_STRANGER_IDLE_MAX_REPLAYS  = 2 };
-    _LesserStrangerWork* work;
-    SVECTOR              unusedProbe; // The target reserves this unused stack slot.
-    u32                  randomChoice;
+    enum { PAUSE_FRAMES = 32,
+           MAX_REPLAYS  = 2 };
+    _Work*  work;
+    SVECTOR unusedProbe; // The target reserves this unused stack slot.
+    u32     randomChoice;
 
     work = actorTask->work;
 
     switch (work->step) {
-        case LESSER_STRANGER_IDLE_STEP_CHOOSE:
+        case IDLE_STEP_CHOOSE:
             RANDOM_LCG_ADVANCE();
             randomChoice = RANDOM_LCG_DRAW();
-            if (work->idlePlayCount >= LESSER_STRANGER_IDLE_MAX_REPLAYS) {
+            if (work->idlePlayCount >= MAX_REPLAYS) {
                 work->step++;
             } else if (randomChoice & 1) {
                 work->step++;
             } else {
-                _LesserStrangerWork* animationWork = actorTask->work;
+                _Work* animationWork = actorTask->work;
 
                 _lesserStrangerResetAnim(&animationWork->rig, 2 * ANIMATION_RATE_ONE, 1);
                 work->step += 2;
@@ -385,16 +385,16 @@ static void _lesserStrangerTickIdle(Task* actorTask)
             work->stepFrame = 0;
             break;
 
-        case LESSER_STRANGER_IDLE_STEP_PAUSE:
-            if (work->stepFrame++ >= LESSER_STRANGER_IDLE_PAUSE_FRAMES - 1) {
+        case IDLE_STEP_PAUSE:
+            if (work->stepFrame++ >= PAUSE_FRAMES - 1) {
                 work->idlePlayCount = 0;
-                work->step          = LESSER_STRANGER_IDLE_STEP_CHOOSE;
+                work->step          = IDLE_STEP_CHOOSE;
             }
             break;
 
-        case LESSER_STRANGER_IDLE_STEP_REPLAY:
+        case IDLE_STEP_REPLAY:
             if (_lesserStrangerTickAnim(actorTask)) {
-                work->step = LESSER_STRANGER_IDLE_STEP_CHOOSE;
+                work->step = IDLE_STEP_CHOOSE;
                 work->idlePlayCount++;
             }
             break;
@@ -434,11 +434,11 @@ static inline s32 _lesserStrangerFindHit(SVECTOR* contactPoint, const WorldColli
 /// effect. Returns the key's signed low halfword, or 0 when there is no attack.
 static s16 _lesserStrangerApplyHit(Task* actorTask)
 {
-    enum { LESSER_STRANGER_CRITICAL_DAMAGE_MULTIPLIER = 5 };
-    _LesserStrangerWork* work = actorTask->work;
-    Enemy*               enemy;
-    SVECTOR              contactPoint;
-    s32                  damage;
+    enum { CRITICAL_DAMAGE_MULTIPLIER = 5 };
+    _Work*  work = actorTask->work;
+    Enemy*  enemy;
+    SVECTOR contactPoint;
+    s32     damage;
 
     enemy        = actorTask->spawnArg2.pointer;
     work->hitKey = _lesserStrangerFindHit(&contactPoint, work->hitContacts, ARRAY_SIZE(work->hitContacts));
@@ -447,7 +447,7 @@ static s16 _lesserStrangerApplyHit(Task* actorTask)
         // Use zero distance and disable reaction scaling before applying the critical multiplier.
         damage = damageComputePlayerAttack(work->hitKey, 0, 0, 0x1000);
         if (damageRollCriticalHit(enemy, work->hitKey, 0) != 0) {
-            damage *= LESSER_STRANGER_CRITICAL_DAMAGE_MULTIPLIER;
+            damage *= CRITICAL_DAMAGE_MULTIPLIER;
             effectSpawn(EFFECT_CRITICAL_HIT, actorTask->extra.tmd->coords, 0, 0);
         }
         enemy->hp -= damage;
@@ -463,13 +463,13 @@ static s16 _lesserStrangerApplyHit(Task* actorTask)
 /// its transition buffers, clip data and model must remain live through the blend.
 static inline void _lesserStrangerBlendHitAnimation(Task* task)
 {
-    enum { LESSER_STRANGER_HIT_BLEND_FRAMES = 10 };
-    _LesserStrangerWork* work = task->work;
-    s32                  slotIndex;
+    enum { HIT_BLEND_FRAMES = 10 };
+    _Work* work = task->work;
+    s32    slotIndex;
 
     slotIndex = 1;
     do {
-        animationSeekSlotWithBlend(&work->rig.anim, slotIndex & 0xFFFF, LESSER_STRANGER_ANIMATION_HIT, 0, LESSER_STRANGER_HIT_BLEND_FRAMES);
+        animationSeekSlotWithBlend(&work->rig.anim, slotIndex & 0xFFFF, ANIMATION_HIT, 0, HIT_BLEND_FRAMES);
         slotIndex += 1;
     } while ((u32)(slotIndex & 0xFFFF) < ARRAY_SIZE(work->rig.slots));
 }
@@ -480,19 +480,19 @@ static inline void _lesserStrangerBlendHitAnimation(Task* task)
 /// comes from the full saved attack key; the borrowed spawn record is synchronous.
 static inline void _lesserStrangerSpawnHitEffect(Task* task)
 {
-    enum { LESSER_STRANGER_HIT_EFFECT_MAGNITUDE = 256,
-           LESSER_STRANGER_HIT_EFFECT_COUNT     = 2 };
-    _LesserStrangerWork* work = task->work;
-    SVECTOR              localOffset;
-    EffectSpawnArg       spawnArgs;
+    enum { MAGNITUDE = 256,
+           COUNT     = 2 };
+    _Work*         work = task->work;
+    SVECTOR        localOffset;
+    EffectSpawnArg spawnArgs;
 
-    spawnArgs.coord      = &task->extra.tmd->coords[LESSER_STRANGER_BODY_PART];
-    spawnArgs.spawnArgLo = LESSER_STRANGER_HIT_EFFECT_MAGNITUDE;
-    spawnArgs.spawnArgHi = LESSER_STRANGER_HIT_EFFECT_COUNT;
+    spawnArgs.coord      = &task->extra.tmd->coords[BODY_PART];
+    spawnArgs.spawnArgLo = MAGNITUDE;
+    spawnArgs.spawnArgHi = COUNT;
     localOffset.vx       = 0x3C;
     localOffset.vy       = -0xC;
     localOffset.vz       = 0x1E;
-    effectSpawnHit(damageGetPlayerAttackEffectId(work->lastHitKey), &task->extra.tmd->coords[LESSER_STRANGER_BODY_PART], &localOffset, &spawnArgs);
+    effectSpawnHit(damageGetPlayerAttackEffectId(work->lastHitKey), &task->extra.tmd->coords[BODY_PART], &localOffset, &spawnArgs);
 }
 
 /// Starts or advances the hit reaction, returning -1 for death, 1 for a boundary, or 0.
@@ -501,29 +501,29 @@ static inline void _lesserStrangerSpawnHitEffect(Task* task)
 /// another call repeats those effects. A boundary returns the actor to idle.
 static s32 _lesserStrangerTickHitReaction(Task* actorTask)
 {
-    _LesserStrangerWork* work;
-    Enemy*               enemy;
+    _Work* work;
+    Enemy* enemy;
 
     work  = actorTask->work;
     enemy = actorTask->spawnArg2.pointer;
 
     switch (work->step) {
-        case LESSER_STRANGER_HIT_STEP_START:
+        case HIT_STEP_START:
             _lesserStrangerBlendHitAnimation(actorTask);
             _lesserStrangerSpawnHitEffect(actorTask);
             if (enemy->hp <= 0) {
-                return LESSER_STRANGER_HIT_REACTION_LETHAL;
+                return HIT_REACTION_LETHAL;
             }
             work->step++;
             break;
 
-        case LESSER_STRANGER_HIT_STEP_PLAY:
+        case HIT_STEP_PLAY:
             if (_lesserStrangerTickAnim(actorTask)) {
-                return LESSER_STRANGER_HIT_REACTION_FINISHED;
+                return HIT_REACTION_FINISHED;
             }
             break;
     }
-    return LESSER_STRANGER_HIT_REACTION_PLAYING;
+    return HIT_REACTION_PLAYING;
 }
 
 /// Runs the death sound, reward release and timed burn-away of the model.
@@ -541,64 +541,64 @@ static s32 _lesserStrangerTickDeath(Task* actorTask)
 /// temporary before the signed matrix store, preserving its bits. Translation
 /// is retained; composition becomes dirty before the last coefficient is stored.
 /// Invoke within a braced statement body.
-#define LESSER_STRANGER_INSTALL_ROOT_ROTATION(rootCoord, rotation, matrixElement) \
-    {                                                                             \
-        (matrixElement)            = (u16)(rotation).m[0][0];                     \
-        (rootCoord)->coord.m[0][0] = (matrixElement);                             \
-        (matrixElement)            = (u16)(rotation).m[0][1];                     \
-        (rootCoord)->coord.m[0][1] = (matrixElement);                             \
-        (matrixElement)            = (u16)(rotation).m[0][2];                     \
-        (rootCoord)->coord.m[0][2] = (matrixElement);                             \
-        (matrixElement)            = (u16)(rotation).m[1][0];                     \
-        (rootCoord)->coord.m[1][0] = (matrixElement);                             \
-        (matrixElement)            = (u16)(rotation).m[1][1];                     \
-        (rootCoord)->coord.m[1][1] = (matrixElement);                             \
-        (matrixElement)            = (u16)(rotation).m[1][2];                     \
-        (rootCoord)->coord.m[1][2] = (matrixElement);                             \
-        (matrixElement)            = (u16)(rotation).m[2][0];                     \
-        (rootCoord)->coord.m[2][0] = (matrixElement);                             \
-        (matrixElement)            = (u16)(rotation).m[2][1];                     \
-        (rootCoord)->coord.m[2][1] = (matrixElement);                             \
-        (matrixElement)            = (u16)(rotation).m[2][2];                     \
-        (rootCoord)->composeStamp  = GRAPHICS_COORD_DIRTY;                        \
-        (rootCoord)->coord.m[2][2] = (matrixElement);                             \
+#define INSTALL_ROOT_ROTATION(rootCoord, rotation, matrixElement) \
+    {                                                             \
+        (matrixElement)            = (u16)(rotation).m[0][0];     \
+        (rootCoord)->coord.m[0][0] = (matrixElement);             \
+        (matrixElement)            = (u16)(rotation).m[0][1];     \
+        (rootCoord)->coord.m[0][1] = (matrixElement);             \
+        (matrixElement)            = (u16)(rotation).m[0][2];     \
+        (rootCoord)->coord.m[0][2] = (matrixElement);             \
+        (matrixElement)            = (u16)(rotation).m[1][0];     \
+        (rootCoord)->coord.m[1][0] = (matrixElement);             \
+        (matrixElement)            = (u16)(rotation).m[1][1];     \
+        (rootCoord)->coord.m[1][1] = (matrixElement);             \
+        (matrixElement)            = (u16)(rotation).m[1][2];     \
+        (rootCoord)->coord.m[1][2] = (matrixElement);             \
+        (matrixElement)            = (u16)(rotation).m[2][0];     \
+        (rootCoord)->coord.m[2][0] = (matrixElement);             \
+        (matrixElement)            = (u16)(rotation).m[2][1];     \
+        (rootCoord)->coord.m[2][1] = (matrixElement);             \
+        (matrixElement)            = (u16)(rotation).m[2][2];     \
+        (rootCoord)->composeStamp  = GRAPHICS_COORD_DIRTY;        \
+        (rootCoord)->coord.m[2][2] = (matrixElement);             \
     }
 
     enum {
-        LESSER_STRANGER_DEATH_BURN_FRAME        = 10,
-        LESSER_STRANGER_DEATH_BLACK_FRAME       = 22,
-        LESSER_STRANGER_DEATH_TRANSLUCENT_FRAME = 28,
-        LESSER_STRANGER_DEATH_HIDE_FRAME        = 80,
-        LESSER_STRANGER_DEATH_END_FRAME         = 260,
-        LESSER_STRANGER_DEATH_SCALE_START_FRAME = 6,
-        LESSER_STRANGER_DEATH_SCALE_UNITY_FRAME = 20,
-        LESSER_STRANGER_DEATH_FLAME_BURSTS      = 3
+        BURN_FRAME        = 10,
+        BLACK_FRAME       = 22,
+        TRANSLUCENT_FRAME = 28,
+        HIDE_FRAME        = 80,
+        END_FRAME         = 260,
+        SCALE_START_FRAME = 6,
+        SCALE_UNITY_FRAME = 20,
+        FLAME_BURSTS      = 3
     };
-    _LesserStrangerWork* work;
-    Enemy*               enemy;
-    GfxCoord*            rootCoord;
-    MATRIX               scaledYaw;
-    VECTOR               scale;
-    u16                  matrixElement;
-    s32                  deathStep;
-    s16                  frame;
-    s32                  verticalScale;
-    s16                  yaw;
-    s32                  pan;
+    _Work*    work;
+    Enemy*    enemy;
+    GfxCoord* rootCoord;
+    MATRIX    scaledYaw;
+    VECTOR    scale;
+    u16       matrixElement;
+    s32       deathStep;
+    s16       frame;
+    s32       verticalScale;
+    s16       yaw;
+    s32       pan;
 
     work      = actorTask->work;
     enemy     = actorTask->spawnArg2.pointer;
     deathStep = work->step;
 
     switch (deathStep) {
-        case LESSER_STRANGER_DEATH_STEP_CRY:
+        case DEATH_STEP_CRY:
             pan = (s8)worldCoordGetOriginAudioPan(actorTask->extra.tmd->coords);
             sndEvtRequestScriptStart(SOUND_LESSER_STRANGER_DEATH, pan, (s8)worldCoordGetOriginAudioDepth(actorTask->extra.tmd->coords));
             work->stepFrame = 0;
             work->step++;
             break;
 
-        case LESSER_STRANGER_DEATH_STEP_BURN:
+        case DEATH_STEP_BURN:
             switch (work->stepFrame) {
                 case 0:
                     sceneReleaseBattleRefWithRewards(actorTask, 0xA);
@@ -607,32 +607,32 @@ static s32 _lesserStrangerTickDeath(Task* actorTask)
                     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
                     break;
 
-                case LESSER_STRANGER_DEATH_BURN_FRAME:
-                    effectSpawn(EFFECT_CORPSE_BURN, &actorTask->extra.tmd->coords[LESSER_STRANGER_BODY_PART], LESSER_STRANGER_DEATH_FLAME_BURSTS, NULL);
+                case BURN_FRAME:
+                    effectSpawn(EFFECT_CORPSE_BURN, &actorTask->extra.tmd->coords[BODY_PART], FLAME_BURSTS, NULL);
                     worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                     break;
 
-                case LESSER_STRANGER_DEATH_BLACK_FRAME:
+                case BLACK_FRAME:
                     worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
                     break;
 
-                case LESSER_STRANGER_DEATH_TRANSLUCENT_FRAME:
+                case TRANSLUCENT_FRAME:
                     actorTask->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                     break;
 
-                case LESSER_STRANGER_DEATH_HIDE_FRAME:
+                case HIDE_FRAME:
                     actorTask->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     break;
 
-                case LESSER_STRANGER_DEATH_END_FRAME:
+                case END_FRAME:
                     return 1;
             }
 
             // Rebuild root yaw with a Q12 vertical scale, retaining its translation.
             frame = work->stepFrame;
-            if (frame >= LESSER_STRANGER_DEATH_SCALE_START_FRAME) {
+            if (frame >= SCALE_START_FRAME) {
                 rootCoord     = actorTask->extra.tmd->coords;
-                verticalScale = ONE - (frame - LESSER_STRANGER_DEATH_SCALE_UNITY_FRAME) * 10;
+                verticalScale = ONE - (frame - SCALE_UNITY_FRAME) * 10;
                 yaw           = ratan2(-rootCoord->coord.m[2][0], rootCoord->coord.m[2][2]);
                 gfxRotMatrixY(&scaledYaw, yaw, 1);
                 scale.vx = ONE;
@@ -640,7 +640,7 @@ static s32 _lesserStrangerTickDeath(Task* actorTask)
                 scale.vz = ONE;
                 ScaleMatrix(&scaledYaw, &scale);
 
-                LESSER_STRANGER_INSTALL_ROOT_ROTATION(rootCoord, scaledYaw, matrixElement);
+                INSTALL_ROOT_ROTATION(rootCoord, scaledYaw, matrixElement);
             }
 
             work->stepFrame++;
@@ -651,7 +651,7 @@ static s32 _lesserStrangerTickDeath(Task* actorTask)
     }
     return 0;
 }
-#undef LESSER_STRANGER_INSTALL_ROOT_ROTATION
+#undef INSTALL_ROOT_ROTATION
 
 /// Composes the body coordinate and refreshes lighting from the root's cached view position.
 ///
@@ -678,9 +678,9 @@ static inline void _lesserStrangerUpdatePresentation(Task* actor)
 /// that patch before marking the enemy absent. The done phase keeps the task live.
 static void _lesserStrangerTask(Task* actorTask)
 {
-    _LesserStrangerWork* work;
-    TmdObject*           model;
-    s32                  pan;
+    _Work*     work;
+    TmdObject* model;
+    s32        pan;
 
     work  = actorTask->work;
     model = actorTask->extra.tmd;
@@ -690,7 +690,7 @@ static void _lesserStrangerTask(Task* actorTask)
                 model->flags = work->savedModelFlags;
             }
             switch (actorTask->state) {
-                case LESSER_STRANGER_PHASE_INIT:
+                case PHASE_INIT:
                     // Install the opening barrier patch into the loaded fire-escape grid.
                     memCopyBytes(_gLesserStrangerBarrierPatchVerts, gAkropolisFireEscapeCollisionGridVerts, sizeof(_gLesserStrangerBarrierPatchVerts));
                     memCopyBytes(_gLesserStrangerBarrierPatchNormals, gAkropolisFireEscapeCollisionGridNormals, sizeof(_gLesserStrangerBarrierPatchNormals));
@@ -701,39 +701,39 @@ static void _lesserStrangerTask(Task* actorTask)
                     actorTask->state += 1;
                     break;
 
-                case LESSER_STRANGER_PHASE_IDLE:
+                case PHASE_IDLE:
                     _lesserStrangerTickIdle(actorTask);
                     if (_lesserStrangerApplyHit(actorTask) != 0) {
                         pan = (s8)worldCoordGetOriginAudioPan(actorTask->extra.tmd->coords);
                         sndEvtRequestScriptStart(SOUND_LESSER_STRANGER_HURT, pan,
                                                  (s8)worldCoordGetOriginAudioDepth(actorTask->extra.tmd->coords));
-                        work->step        = LESSER_STRANGER_HIT_STEP_START;
+                        work->step        = HIT_STEP_START;
                         actorTask->state += 1;
                     }
                     worldCollisionClearContacts(work->hitContacts);
                     break;
 
-                case LESSER_STRANGER_PHASE_HIT:
+                case PHASE_HIT:
                     if (_lesserStrangerApplyHit(actorTask) != 0) {
-                        work->step = LESSER_STRANGER_HIT_STEP_START;
+                        work->step = HIT_STEP_START;
                     }
                     // Both calls advance the reaction; a killing hit repeats its start effects.
-                    if ((s16)_lesserStrangerTickHitReaction(actorTask) > LESSER_STRANGER_HIT_REACTION_PLAYING) {
-                        work->step        = LESSER_STRANGER_IDLE_STEP_CHOOSE;
+                    if ((s16)_lesserStrangerTickHitReaction(actorTask) > HIT_REACTION_PLAYING) {
+                        work->step        = IDLE_STEP_CHOOSE;
                         actorTask->state -= 1;
                         break;
                     }
-                    if ((s16)_lesserStrangerTickHitReaction(actorTask) < LESSER_STRANGER_HIT_REACTION_PLAYING) {
+                    if ((s16)_lesserStrangerTickHitReaction(actorTask) < HIT_REACTION_PLAYING) {
                         memFillBytes(gAkropolisFireEscapeCollisionGridVerts, 0, sizeof(_gLesserStrangerBarrierPatchVerts));
                         memFillBytes(gAkropolisFireEscapeCollisionGridNormals, 0, sizeof(_gLesserStrangerBarrierPatchNormals));
                         memFillBytes(gAkropolisFireEscapeCollisionGridFaces, 0, sizeof(_gLesserStrangerBarrierPatchFaces));
                         work->present     = 0;
-                        work->step        = LESSER_STRANGER_DEATH_STEP_CRY;
+                        work->step        = DEATH_STEP_CRY;
                         actorTask->state += 1;
                     }
                     break;
 
-                case LESSER_STRANGER_PHASE_DEATH:
+                case PHASE_DEATH:
                     if ((s16)_lesserStrangerTickDeath(actorTask) != 0) {
                         actorTask->state += 1;
                         return;
@@ -741,7 +741,7 @@ static void _lesserStrangerTask(Task* actorTask)
                     _lesserStrangerUpdatePresentation(actorTask);
                     return;
 
-                case LESSER_STRANGER_PHASE_DONE:
+                case PHASE_DONE:
                     return;
             }
             break;
@@ -767,8 +767,8 @@ static void _lesserStrangerTask(Task* actorTask)
 /// is 1 until the killing hit starts the death phase, then 0.
 static s32 _lesserStrangerIsPresentMessage(Task* actorTask, s32 messageId, s32 unusedArg, u32* presenceResult)
 {
-    _LesserStrangerWork* work    = actorTask->work;
-    u32                  present = work->present;
+    _Work* work    = actorTask->work;
+    u32    present = work->present;
 
     *presenceResult = present;
     return present;

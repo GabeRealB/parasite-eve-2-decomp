@@ -31,21 +31,21 @@
 
 /// Eye-band destination within the actor texture: width in VRAM words, Y/height in rows.
 enum {
-    MIST_RUPERT_EYES_Y_ROWS      = 40,
-    MIST_RUPERT_EYES_WIDTH_WORDS = 32,
-    MIST_RUPERT_EYES_HEIGHT_ROWS = 16,
+    EYES_Y_ROWS      = 40,
+    EYES_WIDTH_WORDS = 32,
+    EYES_HEIGHT_ROWS = 16,
 };
 
-/// `_MistRupertWork::blinkStep`: the eye image the blink posts next.
+/// `_Work::blinkStep`: the eye image the blink posts next.
 ///
 /// A blink posts the closed, half-open and open eyes in turn, so the eyes are
 /// seen opening. The request that starts one posts the half-open eyes itself,
 /// which is the closing half of the blink.
 enum {
-    MIST_RUPERT_BLINK_NONE   = 0, // No blink in progress
-    MIST_RUPERT_BLINK_CLOSED = 1, // The closed eyes are posted next
-    MIST_RUPERT_BLINK_HALF   = 2, // The half-open eyes are posted next
-    MIST_RUPERT_BLINK_OPEN   = 3, // The open eyes are posted next, which ends the blink
+    BLINK_NONE   = 0, // No blink in progress
+    BLINK_CLOSED = 1, // The closed eyes are posted next
+    BLINK_HALF   = 2, // The half-open eyes are posted next
+    BLINK_OPEN   = 3, // The open eyes are posted next, which ends the blink
 };
 
 /// Work block of the package's one actor, the hurt Rupert Broderick body a
@@ -71,11 +71,11 @@ typedef struct {
     MATRIX         color;           // Light-colour matrix lent to the model object
     s16            blinkFrameDelay; // Value `blinkCountdown` restarts from after the closed and the half-open eyes: each is shown for this many ticks plus one
     s16            blinkCountdown;  // Ticks left before the blink posts its next eye image, which the tick taking it below 0 does; not reset as a blink starts or ends
-    s16            blinkStep;       // Eye image the blink posts next (0 `MIST_RUPERT_BLINK_NONE`, else `_CLOSED`, `_HALF` or `_OPEN`)
+    s16            blinkStep;       // Eye image the blink posts next (0 `BLINK_NONE`, else `_CLOSED`, `_HALF` or `_OPEN`)
     s16            field_4C6;       // Zeroed again by the spawn and never read; role unproven
     s16            freeCountdown;   // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
-} _MistRupertWork;
-STATIC_ASSERT_SIZEOF(_MistRupertWork, 0x4CC);
+} _Work;
+STATIC_ASSERT_SIZEOF(_Work, 0x4CC);
 
 static void _mistRupertSpawn(Task* task);
 static void _mistRupertUpdate(Task* task);
@@ -123,7 +123,7 @@ static u_long _gMistRupertOpenEyesPixels[256] = {
 /// its destination relative to the model texture; pixel storage is borrowed
 /// until the queued GPU transfer completes. The list lives with the package.
 static GpuImageUpload _gMistRupertOpenEyesUploads[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, MIST_RUPERT_EYES_WIDTH_WORDS, MIST_RUPERT_EYES_HEIGHT_ROWS }, _gMistRupertOpenEyesPixels },
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, EYES_WIDTH_WORDS, EYES_HEIGHT_ROWS }, _gMistRupertOpenEyesPixels },
     { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
@@ -141,7 +141,7 @@ static u_long _gMistRupertHalfOpenEyesPixels[256] = {
 /// its destination relative to the model texture; pixel storage is borrowed
 /// until the queued GPU transfer completes. The list lives with the package.
 static GpuImageUpload _gMistRupertHalfOpenEyesUploads[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, MIST_RUPERT_EYES_WIDTH_WORDS, MIST_RUPERT_EYES_HEIGHT_ROWS }, _gMistRupertHalfOpenEyesPixels },
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, EYES_WIDTH_WORDS, EYES_HEIGHT_ROWS }, _gMistRupertHalfOpenEyesPixels },
     { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
@@ -159,7 +159,7 @@ static u_long _gMistRupertClosedEyesPixels[256] = {
 /// its destination relative to the model texture; pixel storage is borrowed
 /// until the queued GPU transfer completes. The list lives with the package.
 static GpuImageUpload _gMistRupertClosedEyesUploads[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, MIST_RUPERT_EYES_WIDTH_WORDS, MIST_RUPERT_EYES_HEIGHT_ROWS }, _gMistRupertClosedEyesPixels },
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, EYES_WIDTH_WORDS, EYES_HEIGHT_ROWS }, _gMistRupertClosedEyesPixels },
     { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
@@ -184,7 +184,7 @@ TaskDesc gMistRupertRupertBroderickHurtTaskDesc = {
 };
 
 /// Eye-image selection or timed-blink message for the hurt Rupert body.
-enum { MIST_RUPERT_MESSAGE_SET_EYES = 2016 };
+enum { MESSAGE_SET_EYES = 2016 };
 
 /// Hurt Rupert message dispatch: animation, Euler placement, drawing and eye images.
 ///
@@ -194,14 +194,14 @@ static TaskMessageEntry _gMistRupertMessages[5] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _mistRupertPlayAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _mistRupertSetModelDraw },
-    { MIST_RUPERT_MESSAGE_SET_EYES, _mistRupertSetEyes },
+    { MESSAGE_SET_EYES, _mistRupertSetEyes },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 /// Queues a closed or half-open eye image, restarts its dwell and advances the blink.
 ///
 /// Requires a live TMD `actorTask` and its writable `work`, with `blinkStep`
-/// equal to `MIST_RUPERT_BLINK_CLOSED` or `MIST_RUPERT_BLINK_HALF`. Resets
+/// equal to `BLINK_CLOSED` or `BLINK_HALF`. Resets
 /// `blinkCountdown` to `blinkFrameDelay` and selects the following step. A
 /// nonnegative delay makes that step due after that many blink ticks plus one;
 /// the caller performs the countdown, and this helper does not test it.
@@ -212,7 +212,7 @@ static TaskMessageEntry _gMistRupertMessages[5] = {
 /// `actorRenderUploadTexture`. The rectangle and records
 /// are borrowed only for this call; pixel storage must remain valid and unchanged
 /// until GPU transfer completes. Upload results are ignored; this does not wait.
-static inline void _mistRupertAdvanceBlinkImage(Task* actorTask, _MistRupertWork* work,
+static inline void _mistRupertAdvanceBlinkImage(Task* actorTask, _Work* work,
                                                 GpuImageUpload* uploadList, const RECT* eyeRect)
 {
     actorRenderUploadTexture(actorTask, uploadList, eyeRect);
@@ -229,33 +229,33 @@ static inline void _mistRupertAdvanceBlinkImage(Task* actorTask, _MistRupertWork
 /// steps do nothing. Eye pixel storage remains borrowed through the GPU transfer.
 static void _mistRupertTickBlink(Task* task)
 {
-    _MistRupertWork* work;
-    RECT             eyeRect;
+    _Work* work;
+    RECT   eyeRect;
 
     work      = task->work;
     eyeRect.x = 0;
-    eyeRect.y = MIST_RUPERT_EYES_Y_ROWS;
-    eyeRect.w = MIST_RUPERT_EYES_WIDTH_WORDS;
-    eyeRect.h = MIST_RUPERT_EYES_HEIGHT_ROWS;
+    eyeRect.y = EYES_Y_ROWS;
+    eyeRect.w = EYES_WIDTH_WORDS;
+    eyeRect.h = EYES_HEIGHT_ROWS;
 
     switch (work->blinkStep) {
-        case MIST_RUPERT_BLINK_CLOSED:
+        case BLINK_CLOSED:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
                 _mistRupertAdvanceBlinkImage(task, work, &_gMistRupertClosedEyesUploads[0], &eyeRect);
             }
             break;
-        case MIST_RUPERT_BLINK_HALF:
+        case BLINK_HALF:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
                 _mistRupertAdvanceBlinkImage(task, work, &_gMistRupertHalfOpenEyesUploads[0], &eyeRect);
             }
             break;
-        case MIST_RUPERT_BLINK_OPEN:
+        case BLINK_OPEN:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
                 actorRenderUploadTexture(task, &_gMistRupertOpenEyesUploads[0], &eyeRect);
-                work->blinkStep = MIST_RUPERT_BLINK_NONE;
+                work->blinkStep = BLINK_NONE;
             }
             break;
     }
@@ -284,13 +284,13 @@ static void _mistRupertTask(Task* task)
 static void _mistRupertSpawn(Task* task)
 {
     enum {
-        MIST_RUPERT_BUFFER_FREE_NONE         = -1,
-        MIST_RUPERT_INITIAL_SHADOW_HALF_SIZE = 512,
+        BUFFER_FREE_NONE         = -1,
+        INITIAL_SHADOW_HALF_SIZE = 512,
     };
-    _MistRupertWork* work;
-    TmdObject*       model;
-    VECTOR3          groundPoint;
-    u16              modelFlags;
+    _Work*     work;
+    TmdObject* model;
+    VECTOR3    groundPoint;
+    u16        modelFlags;
 
     model = task->extra.tmd;
     work  = memCalloc(sizeof(*work), false);
@@ -302,13 +302,13 @@ static void _mistRupertSpawn(Task* task)
     work->animId        = ACTOR_MOTION_ANIMATION_INDEX_NONE;
     work->bank          = ACTOR_MOTION_ANIMATION_INDEX_NONE;
     work->field_4C6     = 0;
-    work->freeCountdown = MIST_RUPERT_BUFFER_FREE_NONE;
+    work->freeCountdown = BUFFER_FREE_NONE;
     modelFlags          = model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
     model->flags        = modelFlags;
     // Retain the shadow branch even though initialization has just hidden the model.
     if (!(modelFlags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
-            effectDrawGroundShadow(&groundPoint, MIST_RUPERT_INITIAL_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
+            effectDrawGroundShadow(&groundPoint, INITIAL_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
     }
     _mistRupertInitLighting(task);
@@ -325,12 +325,12 @@ static void _mistRupertSpawn(Task* task)
 /// primitive buffer on the third update, then becomes inactive at -1.
 static void _mistRupertUpdate(Task* task)
 {
-    enum { MIST_RUPERT_SHADOW_HALF_SIZE = 768 };
-    _MistRupertWork* work;
-    TmdObject*       model;
-    GfxCoord*        partCoords;
-    VECTOR3          groundPoint;
-    s32              slotIndex;
+    enum { SHADOW_HALF_SIZE = 768 };
+    _Work*     work;
+    TmdObject* model;
+    GfxCoord*  partCoords;
+    VECTOR3    groundPoint;
+    s32        slotIndex;
 
     work  = task->work;
     model = task->extra.tmd;
@@ -342,7 +342,7 @@ static void _mistRupertUpdate(Task* task)
     }
     if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
-            effectDrawGroundShadow(&groundPoint, MIST_RUPERT_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
+            effectDrawGroundShadow(&groundPoint, SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
     }
     if (gGameSession->viewReady != 0) {
@@ -368,9 +368,9 @@ static void _mistRupertUpdate(Task* task)
 /// its three translation words to the lighting query; no shadow is drawn here.
 static void _mistRupertInitLighting(Task* task)
 {
-    _MistRupertWork* work;
-    GfxCoord*        partCoords;
-    TmdObject*       model;
+    _Work*     work;
+    GfxCoord*  partCoords;
+    TmdObject* model;
 
     work                       = task->work;
     model                      = task->extra.tmd;
@@ -394,10 +394,10 @@ static void _mistRupertInitLighting(Task* task)
 /// second payload are ignored. Returns 0; indices are not bounds-checked.
 static s32 _mistRupertPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg)
 {
-    enum { MIST_RUPERT_ANIMATION_BLEND_FRAMES = 6 };
-    _MistRupertWork* work;
-    TmdObject*       model;
-    s32              slotIndex;
+    enum { ANIMATION_BLEND_FRAMES = 6 };
+    _Work*     work;
+    TmdObject* model;
+    s32        slotIndex;
 
     work  = task->work;
     model = task->extra.tmd;
@@ -411,7 +411,7 @@ static s32 _mistRupertPlayAnimation(Task* task, s32 messageId, const AnimationPl
     work->animId = request->animationId;
     if (request->blend != ANIMATION_BLEND_RESET) {
         for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
-            animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->animId, 0, MIST_RUPERT_ANIMATION_BLEND_FRAMES);
+            animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->animId, 0, ANIMATION_BLEND_FRAMES);
         }
     } else {
         for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
@@ -437,10 +437,10 @@ static s32 _mistRupertPlayAnimation(Task* task, s32 messageId, const AnimationPl
 /// are ignored. Returns 0 for modes 0..3, even if allocation fails; otherwise 1.
 static s32 _mistRupertSetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg)
 {
-    enum { MIST_RUPERT_DRAW_SHOW_SKIP_AUTO_BUFFER = 3 };
-    TmdObject*       model;
-    _MistRupertWork* work;
-    s32              result;
+    enum { DRAW_SHOW_SKIP_AUTO_BUFFER = 3 };
+    TmdObject* model;
+    _Work*     work;
+    s32        result;
 
     model  = task->extra.tmd;
     work   = task->work;
@@ -461,7 +461,7 @@ static s32 _mistRupertSetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 
             work->freeCountdown = drawMode;
             model->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case MIST_RUPERT_DRAW_SHOW_SKIP_AUTO_BUFFER:
+        case DRAW_SHOW_SKIP_AUTO_BUFFER:
             model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
@@ -484,11 +484,11 @@ static s32 _mistRupertSetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 
 static s32 _mistRupertSetEyes(Task* task, s32 messageId, s32 eyeMode, s32 unusedArg)
 {
     enum {
-        MIST_RUPERT_EYES_OPEN           = 0,
-        MIST_RUPERT_EYES_CLOSED         = 1,
-        MIST_RUPERT_EYES_OPEN_ALTERNATE = 2,
-        MIST_RUPERT_EYES_BLINK          = 3,
-        MIST_RUPERT_BLINK_FRAME_DELAY   = 1,
+        EYES_OPEN           = 0,
+        EYES_CLOSED         = 1,
+        EYES_OPEN_ALTERNATE = 2,
+        EYES_BLINK          = 3,
+        BLINK_FRAME_DELAY   = 1,
     };
     RECT            eyeRect;
     GpuImageUpload* uploadList;
@@ -496,26 +496,26 @@ static s32 _mistRupertSetEyes(Task* task, s32 messageId, s32 eyeMode, s32 unused
 
     result    = 0;
     eyeRect.x = 0;
-    eyeRect.y = MIST_RUPERT_EYES_Y_ROWS;
-    eyeRect.w = MIST_RUPERT_EYES_WIDTH_WORDS;
-    eyeRect.h = MIST_RUPERT_EYES_HEIGHT_ROWS;
+    eyeRect.y = EYES_Y_ROWS;
+    eyeRect.w = EYES_WIDTH_WORDS;
+    eyeRect.h = EYES_HEIGHT_ROWS;
 
     switch (eyeMode) {
-        case MIST_RUPERT_EYES_CLOSED:
+        case EYES_CLOSED:
             uploadList = &_gMistRupertClosedEyesUploads[0];
             break;
-        case MIST_RUPERT_EYES_OPEN:
-        case MIST_RUPERT_EYES_OPEN_ALTERNATE:
+        case EYES_OPEN:
+        case EYES_OPEN_ALTERNATE:
             uploadList = &_gMistRupertOpenEyesUploads[0];
             break;
-        case MIST_RUPERT_EYES_BLINK: {
-            _MistRupertWork* stepWork;
-            _MistRupertWork* delayWork;
+        case EYES_BLINK: {
+            _Work* stepWork;
+            _Work* delayWork;
 
             stepWork                   = task->work;
-            stepWork->blinkStep        = MIST_RUPERT_BLINK_CLOSED;
+            stepWork->blinkStep        = BLINK_CLOSED;
             delayWork                  = task->work;
-            delayWork->blinkFrameDelay = MIST_RUPERT_BLINK_FRAME_DELAY;
+            delayWork->blinkFrameDelay = BLINK_FRAME_DELAY;
             uploadList                 = &_gMistRupertHalfOpenEyesUploads[0];
             break;
         }

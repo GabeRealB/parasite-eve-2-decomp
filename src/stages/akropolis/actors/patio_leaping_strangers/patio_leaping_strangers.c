@@ -53,22 +53,22 @@ typedef struct {
     s8              turnWeightRising; // Direction `turnWeight` ramps, set by an actor command (0 falls by 0x80 a tick, 1 rises by 0x40)
     s16             turnWeight;       // Weight handed to the per-frame head turn toward the player, 0 to `ONE`; the package's turn takes it and does not read it
     s16             freeCountdown;    // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
-} _PatioLeapingStrangersWork;
-STATIC_ASSERT_SIZEOF(_PatioLeapingStrangersWork, 0x4CC);
+} _Work;
+STATIC_ASSERT_SIZEOF(_Work, 0x4CC);
 
 /// Leap tuning and animation choices of this actor package.
 enum {
-    PATIO_LEAPING_STRANGERS_YAW_STEP       = 0x40, // 4096 angle units per turn
-    PATIO_LEAPING_STRANGERS_LEAP_ANIMATION = 2,
-    PATIO_LEAPING_STRANGERS_BLEND_FRAMES   = 5,
+    YAW_STEP       = 0x40, // 4096 angle units per turn
+    LEAP_ANIMATION = 2,
+    BLEND_FRAMES   = 5,
 };
 
 /// Model draw modes accepted by this package's message handler.
 enum {
-    PATIO_LEAPING_STRANGERS_DRAW_HIDE_AUTO     = 0,
-    PATIO_LEAPING_STRANGERS_DRAW_SHOW_ALLOCATE = 1,
-    PATIO_LEAPING_STRANGERS_DRAW_HIDE_RELEASE  = 2,
-    PATIO_LEAPING_STRANGERS_DRAW_SHOW_MANUAL   = 3,
+    DRAW_HIDE_AUTO     = 0,
+    DRAW_SHOW_ALLOCATE = 1,
+    DRAW_HIDE_RELEASE  = 2,
+    DRAW_SHOW_MANUAL   = 3,
 };
 
 static void _patioLeapingStrangersUpdate(Task* task);
@@ -85,9 +85,9 @@ static void _patioLeapingStrangersLandLeap(Task* task);
 static s32  _patioLeapingStrangersSetDrawMode(Task* task, s32 messageId, s32 mode, s32 unusedArg);
 
 enum {
-    PATIO_LEAPING_STRANGERS_LEAP_TASK_INITIALIZE = 0,
-    PATIO_LEAPING_STRANGERS_LEAP_TASK_UPDATE     = 1,
-    PATIO_LEAPING_STRANGERS_LEAP_TASK_EXIT       = 2,
+    LEAP_TASK_INITIALIZE = 0,
+    LEAP_TASK_UPDATE     = 1,
+    LEAP_TASK_EXIT       = 2,
 };
 
 /// Scripted leap actor lifecycle handlers: 0 initialize, 1 update, 2 exit.
@@ -97,9 +97,9 @@ enum {
 /// work, and teardown may release both the task and its owned `Enemy`.
 static const TaskFuncTable3 _gPatioLeapingStrangersLeapTaskStates = {
     .funcs = {
-        [PATIO_LEAPING_STRANGERS_LEAP_TASK_INITIALIZE] = _patioLeapingStrangersInit,
-        [PATIO_LEAPING_STRANGERS_LEAP_TASK_UPDATE]     = _patioLeapingStrangersUpdate,
-        [PATIO_LEAPING_STRANGERS_LEAP_TASK_EXIT]       = _patioLeapingStrangersExit,
+        [LEAP_TASK_INITIALIZE] = _patioLeapingStrangersInit,
+        [LEAP_TASK_UPDATE]     = _patioLeapingStrangersUpdate,
+        [LEAP_TASK_EXIT]       = _patioLeapingStrangersExit,
     },
 };
 
@@ -113,13 +113,13 @@ static const TaskFuncTable4 _gPatioLeapingStrangersLeapStepHandlers = { {
     _patioLeapingStrangersFacePlayerAfterLeap,
 } };
 
-enum { PATIO_LEAPING_STRANGERS_VELOCITY_ONE = 0x10000 };
+enum { VELOCITY_ONE = 0x10000 };
 
 /// Leap launch velocity in local model axes, in signed 16.16 units per tick.
 ///
 /// Y is -128 (up) and Z is +64 (forward); the root rotation transforms it
 /// into parent-coordinate velocity before gravity starts. The fourth word is unused.
-static const VECTOR _gPatioLeapingStrangersLeapLaunchVelocity = { 0, -(128 * PATIO_LEAPING_STRANGERS_VELOCITY_ONE), 64 * PATIO_LEAPING_STRANGERS_VELOCITY_ONE, 0 };
+static const VECTOR _gPatioLeapingStrangersLeapLaunchVelocity = { 0, -(128 * VELOCITY_ONE), 64 * VELOCITY_ONE, 0 };
 
 static TmdSource _gStrangerGrinningBody;
 static s32       _patioLeapingStrangersBeginLeap(Task* task, s32 messageId, const ActorTransform* launchPlacement, const ActorMotionWalkAnim* animationRequest);
@@ -171,16 +171,16 @@ static const TaskMessageEntry _gPatioLeapingStrangersMessages[6] __attribute__((
 /// next frame's velocity. Signed integer halves move the root, and carry words
 /// finish in 0..0xFFFF. Composition is invalidated even when stationary.
 /// Performs no collision or floor correction and retains no pointers.
-static inline void _patioLeapingStrangersIntegrateLeapVelocity(_PatioLeapingStrangersWork* work, GfxCoord* rootCoord)
+static inline void _patioLeapingStrangersIntegrateLeapVelocity(_Work* work, GfxCoord* rootCoord)
 {
-    enum { PATIO_LEAPING_STRANGERS_LEAP_GRAVITY = 18 << 16 }; // Signed 16.16 units per tick squared
+    enum { LEAP_GRAVITY = 18 << 16 }; // Signed 16.16 units per tick squared
 
     // Accumulate this frame's displacement before gravity changes the velocity.
     work->walk.carry[0].word += work->walk.velocity.vx;
     work->walk.carry[1].word += work->walk.velocity.vy;
     work->walk.carry[2].word += work->walk.velocity.vz;
     if (work->airborne != 0) {
-        work->walk.velocity.vy += PATIO_LEAPING_STRANGERS_LEAP_GRAVITY;
+        work->walk.velocity.vy += LEAP_GRAVITY;
     }
     rootCoord->coord.t[0]  += work->walk.carry[0].halves.integer;
     rootCoord->coord.t[1]  += work->walk.carry[1].halves.integer;
@@ -194,7 +194,7 @@ static inline void _patioLeapingStrangersIntegrateLeapVelocity(_PatioLeapingStra
 
 /// Updates the leap, animation, head turn, lighting and delayed buffer release.
 ///
-/// Requires a live nineteen-part TMD model and initialized `_PatioLeapingStrangersWork`.
+/// Requires a live nineteen-part TMD model and initialized `_Work`.
 /// `walk.motion` must be 0 (idle) or 1 (leaping). Displacement uses signed
 /// 16.16 root-frame units; gravity changes the next tick's vertical velocity.
 /// Slots 1..18 tick while playback is active. Lighting refresh requires a ready
@@ -202,14 +202,14 @@ static inline void _patioLeapingStrangersIntegrateLeapVelocity(_PatioLeapingStra
 /// release counter frees the primitive buffer, then disables the counter.
 static void _patioLeapingStrangersUpdate(Task* task)
 {
-    enum { PATIO_LEAPING_STRANGERS_HEAD_WEIGHT_RISE = 0x40,
-           PATIO_LEAPING_STRANGERS_HEAD_WEIGHT_FALL = 0x80,
-           PATIO_LEAPING_STRANGERS_LIGHT_COUNT      = 3 };
-    TmdObject*                  bodyModel         = task->extra.tmd;
-    _PatioLeapingStrangersWork* work              = task->work;
-    TaskFunc                    motionHandlers[2] = { _patioLeapingStrangersIdle, _patioLeapingStrangersRunLeapStep };
-    GfxCoord*                   rootCoord;
-    s32                         slotIndex;
+    enum { HEAD_WEIGHT_RISE = 0x40,
+           HEAD_WEIGHT_FALL = 0x80,
+           LIGHT_COUNT      = 3 };
+    TmdObject* bodyModel         = task->extra.tmd;
+    _Work*     work              = task->work;
+    TaskFunc   motionHandlers[2] = { _patioLeapingStrangersIdle, _patioLeapingStrangersRunLeapStep };
+    GfxCoord*  rootCoord;
+    s32        slotIndex;
 
     motionHandlers[work->walk.motion](task);
 
@@ -224,15 +224,15 @@ static void _patioLeapingStrangersUpdate(Task* task)
     if (gGameSession->viewReady != 0) {
         task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&task->extra.tmd->coords[1]);
-        worldCoordSetModelLighting(bodyModel, task->extra.tmd->coords[1].workm.t, 0, PATIO_LEAPING_STRANGERS_LIGHT_COUNT);
+        worldCoordSetModelLighting(bodyModel, task->extra.tmd->coords[1].workm.t, 0, LIGHT_COUNT);
     }
     if (work->turnWeightRising != 0) {
-        work->turnWeight += PATIO_LEAPING_STRANGERS_HEAD_WEIGHT_RISE;
+        work->turnWeight += HEAD_WEIGHT_RISE;
         if (work->turnWeight > ONE) {
             work->turnWeight = ONE;
         }
     } else {
-        work->turnWeight -= PATIO_LEAPING_STRANGERS_HEAD_WEIGHT_FALL;
+        work->turnWeight -= HEAD_WEIGHT_FALL;
         if (work->turnWeight < 0) {
             work->turnWeight = 0;
         }
@@ -256,16 +256,16 @@ static void _patioLeapingStrangersUpdate(Task* task)
 /// The signed-halfword yaw difference is retained without half-turn wrapping.
 static void _patioLeapingStrangersFacePlayerAfterLeap(Task* task)
 {
-    _PatioLeapingStrangersWork* work;
-    GfxCoord*                   rootCoord;
-    GfxCoord*                   playerCoord;
-    VECTOR                      toPlayer;
-    SVECTOR                     direction;
-    SVECTOR                     targetAngles;
-    SVECTOR                     rootAngles;
-    s16                         yawDelta;
-    s32                         yawMagnitude;
-    s32                         currentYaw;
+    _Work*    work;
+    GfxCoord* rootCoord;
+    GfxCoord* playerCoord;
+    VECTOR    toPlayer;
+    SVECTOR   direction;
+    SVECTOR   targetAngles;
+    SVECTOR   rootAngles;
+    s16       yawDelta;
+    s32       yawMagnitude;
+    s32       currentYaw;
 
     rootCoord   = task->extra.tmd->coords;
     playerCoord = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
@@ -287,12 +287,12 @@ static void _patioLeapingStrangersFacePlayerAfterLeap(Task* task)
     gfxExtractSmallestEuler(&rootAngles, &rootCoord->coord);
     yawDelta     = ratan2(direction.vx, direction.vz) - rootAngles.vy;
     yawMagnitude = abs(yawDelta);
-    if (yawMagnitude >= PATIO_LEAPING_STRANGERS_YAW_STEP + 1) {
+    if (yawMagnitude >= YAW_STEP + 1) {
         currentYaw = rootAngles.vy;
         if (yawDelta < 0) {
-            rootAngles.vy = currentYaw - PATIO_LEAPING_STRANGERS_YAW_STEP;
+            rootAngles.vy = currentYaw - YAW_STEP;
         } else {
-            rootAngles.vy = currentYaw + PATIO_LEAPING_STRANGERS_YAW_STEP;
+            rootAngles.vy = currentYaw + YAW_STEP;
         }
     } else {
         work->walk.motion     = ACTOR_WALK_MOTION_IDLE;
@@ -314,10 +314,10 @@ static void _patioLeapingStrangersFacePlayerAfterLeap(Task* task)
 static void _patioLeapingStrangersTurnHeadToTarget(Task* task, Task* targetTask, s32 maxYaw, s32 maxPitch, s32 blendWeight)
 {
     enum {
-        PATIO_LEAPING_STRANGERS_HEAD_PART           = 5,
-        PATIO_LEAPING_STRANGERS_TARGET_HEAD_PART    = 4,
-        PATIO_LEAPING_STRANGERS_HEAD_REFERENCE_PART = 2,
-        PATIO_LEAPING_STRANGERS_HEAD_SUPPORT_PART   = 3,
+        HEAD_PART           = 5,
+        TARGET_HEAD_PART    = 4,
+        HEAD_REFERENCE_PART = 2,
+        HEAD_SUPPORT_PART   = 3,
     };
     GfxCoord* subjectCoords;
     GfxCoord* targetCoords;
@@ -332,48 +332,48 @@ static void _patioLeapingStrangersTurnHeadToTarget(Task* task, Task* targetTask,
 
     subjectCoords   = task->extra.tmd->coords;
     targetCoords    = targetTask->extra.tmd->coords;
-    headCoord       = &subjectCoords[PATIO_LEAPING_STRANGERS_HEAD_PART];
-    targetHeadCoord = &targetCoords[PATIO_LEAPING_STRANGERS_TARGET_HEAD_PART];
+    headCoord       = &subjectCoords[HEAD_PART];
+    targetHeadCoord = &targetCoords[TARGET_HEAD_PART];
 
     // Express the world separation in the subject's part-2 frame.
     toTarget.vx = targetHeadCoord->workm.t[0] - headCoord->workm.t[0];
     toTarget.vy = targetHeadCoord->workm.t[1] - headCoord->workm.t[1];
     toTarget.vz = targetHeadCoord->workm.t[2] - headCoord->workm.t[2];
     VectorNormal(&toTarget, &toTarget);
-    ApplyTransposeMatrixLV(&task->extra.tmd->coords[PATIO_LEAPING_STRANGERS_HEAD_REFERENCE_PART].workm, &toTarget, &toTarget);
+    ApplyTransposeMatrixLV(&task->extra.tmd->coords[HEAD_REFERENCE_PART].workm, &toTarget, &toTarget);
     VectorNormal(&toTarget, &direction);
 
     turnAngles.vx = ratan2(direction.vz, direction.vy);
     turnAngles.vy = ratan2(direction.vx, -ABS(direction.vz));
     turnAngles.vz = ratan2(direction.vx, direction.vy);
 
-    gfxExtractSmallestEuler(&headAngles, &subjectCoords[PATIO_LEAPING_STRANGERS_HEAD_PART].coord);
+    gfxExtractSmallestEuler(&headAngles, &subjectCoords[HEAD_PART].coord);
     headAngles.vx = (u16)headAngles.vx + (u16)turnAngles.vx;
     headAngles.vy = (u16)headAngles.vy + (u16)turnAngles.vy;
     headAngles.vz = (u16)headAngles.vz + (u16)turnAngles.vz;
-    RotMatrix(&headAngles, &subjectCoords[PATIO_LEAPING_STRANGERS_HEAD_PART].coord);
+    RotMatrix(&headAngles, &subjectCoords[HEAD_PART].coord);
 
     // Share the resulting head rotation with part 3 before reducing the head pose.
-    gfxExtractSmallestEuler(&turnAngles, &subjectCoords[PATIO_LEAPING_STRANGERS_HEAD_PART].coord);
-    part3Rotation = &task->extra.tmd->coords[PATIO_LEAPING_STRANGERS_HEAD_SUPPORT_PART].coord;
+    gfxExtractSmallestEuler(&turnAngles, &subjectCoords[HEAD_PART].coord);
+    part3Rotation = &task->extra.tmd->coords[HEAD_SUPPORT_PART].coord;
     gfxExtractSmallestEuler(&jointAngles, part3Rotation);
     jointAngles.vx = (u16)jointAngles.vx + turnAngles.vx / 8;
     jointAngles.vy = (u16)jointAngles.vy + turnAngles.vy / 8;
     jointAngles.vz = (u16)jointAngles.vz + turnAngles.vz / 8;
     RotMatrix(&jointAngles, part3Rotation);
 
-    gfxExtractSmallestEuler(&jointAngles, &subjectCoords[PATIO_LEAPING_STRANGERS_HEAD_PART].coord);
+    gfxExtractSmallestEuler(&jointAngles, &subjectCoords[HEAD_PART].coord);
     jointAngles.vx = jointAngles.vx * 5 / 8;
     jointAngles.vy = jointAngles.vy * 5 / 8;
     jointAngles.vz = jointAngles.vz * 5 / 8;
 
-    gfxSetRotIdentity(&subjectCoords[PATIO_LEAPING_STRANGERS_HEAD_PART].coord);
-    RotMatrix(&jointAngles, &subjectCoords[PATIO_LEAPING_STRANGERS_HEAD_PART].coord);
+    gfxSetRotIdentity(&subjectCoords[HEAD_PART].coord);
+    RotMatrix(&jointAngles, &subjectCoords[HEAD_PART].coord);
 }
 
 /// Applies the leap's requested start clip without restarting repeated clips.
 ///
-/// Requires a live nineteen-part TMD task and initialized `_PatioLeapingStrangersWork`,
+/// Requires a live nineteen-part TMD task and initialized `_Work`,
 /// with `model.bank` initially `ACTOR_MOTION_ANIMATION_INDEX_NONE`. The readable request
 /// must not overlap playback storage: `source.index` selects bank 0 and
 /// `animationId` selects a loaded clip 1..8; stored IDs narrow to signed bytes.
@@ -387,10 +387,10 @@ static void _patioLeapingStrangersTurnHeadToTarget(Task* task, Task* targetTask,
 /// Scratch-stack and GTE requirements follow `animationTickSlotPose`.
 static inline void _patioLeapingStrangersApplyLeapStartAnimation(Task* task, const AnimationPlayRequest* request)
 {
-    enum { PATIO_LEAPING_STRANGERS_FIRST_DRIVEN_SLOT = 1 };
-    _PatioLeapingStrangersWork* playbackWork;
-    TmdObject*                  bodyModel;
-    s32                         slotIndex;
+    enum { FIRST_DRIVEN_SLOT = 1 };
+    _Work*     playbackWork;
+    TmdObject* bodyModel;
+    s32        slotIndex;
 
     playbackWork = task->work;
     bodyModel    = task->extra.tmd;
@@ -404,16 +404,16 @@ static inline void _patioLeapingStrangersApplyLeapStartAnimation(Task* task, con
     if (request->animationId != playbackWork->model.animId) {
         playbackWork->model.animId = request->animationId;
         if (request->blend != ANIMATION_BLEND_RESET && playbackWork->model.ticking != 0) {
-            for (slotIndex = PATIO_LEAPING_STRANGERS_FIRST_DRIVEN_SLOT; slotIndex < (s32)ARRAY_SIZE(playbackWork->rig.slots); slotIndex++) {
+            for (slotIndex = FIRST_DRIVEN_SLOT; slotIndex < (s32)ARRAY_SIZE(playbackWork->rig.slots); slotIndex++) {
                 animationSeekSlotWithBlend(&playbackWork->rig.anim, slotIndex, playbackWork->model.animId, 0, request->blendFrames);
             }
         } else {
-            for (slotIndex = PATIO_LEAPING_STRANGERS_FIRST_DRIVEN_SLOT; slotIndex < (s32)ARRAY_SIZE(playbackWork->rig.slots); slotIndex++) {
+            for (slotIndex = FIRST_DRIVEN_SLOT; slotIndex < (s32)ARRAY_SIZE(playbackWork->rig.slots); slotIndex++) {
                 animationResetSlot(&playbackWork->rig.anim, slotIndex, playbackWork->model.animId);
             }
         }
         // Apply the selected pose before the normal frame update resumes ticking.
-        for (slotIndex = PATIO_LEAPING_STRANGERS_FIRST_DRIVEN_SLOT; slotIndex < (s32)ARRAY_SIZE(playbackWork->rig.slots); slotIndex++) {
+        for (slotIndex = FIRST_DRIVEN_SLOT; slotIndex < (s32)ARRAY_SIZE(playbackWork->rig.slots); slotIndex++) {
             animationTickSlot(&playbackWork->rig.anim, slotIndex);
         }
         playbackWork->model.ticking = true;
@@ -432,9 +432,9 @@ static inline void _patioLeapingStrangersApplyLeapStartAnimation(Task* task, con
 /// requires the idle step left by initialization or completion.
 static s32 _patioLeapingStrangersBeginLeap(Task* task, s32 messageId, const ActorTransform* launchPlacement, const ActorMotionWalkAnim* animationRequest)
 {
-    enum { PATIO_LEAPING_STRANGERS_DEFAULT_LANDING_ANIMATION = 1 };
-    _PatioLeapingStrangersWork* leapWork;
-    AnimationPlayRequest        startRequest;
+    enum { DEFAULT_LANDING_ANIMATION = 1 };
+    _Work*               leapWork;
+    AnimationPlayRequest startRequest;
 
     leapWork                    = task->work;
     leapWork->walk.motion       = ACTOR_WALK_MOTION_WALKING;
@@ -449,11 +449,11 @@ static s32 _patioLeapingStrangersBeginLeap(Task* task, s32 messageId, const Acto
         startRequest.animationId   = animationRequest->animationId;
         leapWork->model.nextAnimId = animationRequest->nextAnimId;
     } else {
-        startRequest.animationId   = PATIO_LEAPING_STRANGERS_LEAP_ANIMATION;
-        leapWork->model.nextAnimId = PATIO_LEAPING_STRANGERS_DEFAULT_LANDING_ANIMATION;
+        startRequest.animationId   = LEAP_ANIMATION;
+        leapWork->model.nextAnimId = DEFAULT_LANDING_ANIMATION;
     }
     startRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
-    startRequest.blendFrames          = PATIO_LEAPING_STRANGERS_BLEND_FRAMES;
+    startRequest.blendFrames          = BLEND_FRAMES;
     startRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
 
     // Apply a changed clip immediately; an unchanged clip keeps its current cursor.
@@ -482,10 +482,10 @@ static void _patioLeapingStrangersTask(Task* task)
 /// automatic buffer handling. Allocation failure tears down the task.
 static void _patioLeapingStrangersInit(Task* task)
 {
-    enum { PATIO_LEAPING_STRANGERS_BUFFER_FREE_NONE = -1 };
-    _PatioLeapingStrangersWork* work;
+    enum { BUFFER_FREE_NONE = -1 };
+    _Work* work;
 
-    work = memCalloc(sizeof(_PatioLeapingStrangersWork), false);
+    work = memCalloc(sizeof(_Work), false);
     if (work == NULL) {
         enemyTaskExit(task);
         return;
@@ -494,13 +494,13 @@ static void _patioLeapingStrangersInit(Task* task)
     task->work               = work;
     work->model.animId       = ACTOR_MOTION_ANIMATION_INDEX_NONE;
     work->model.bank         = ACTOR_MOTION_ANIMATION_INDEX_NONE;
-    work->freeCountdown      = PATIO_LEAPING_STRANGERS_BUFFER_FREE_NONE;
+    work->freeCountdown      = BUFFER_FREE_NONE;
     work->walk.carry[0].word = 0;
     work->walk.carry[1].word = 0;
     work->walk.carry[2].word = 0;
 
     _patioLeapingStrangersBindLighting(task);
-    _patioLeapingStrangersSetDrawMode(task, ACTOR_MESSAGE_SET_MODEL_DRAW, PATIO_LEAPING_STRANGERS_DRAW_HIDE_AUTO, 0);
+    _patioLeapingStrangersSetDrawMode(task, ACTOR_MESSAGE_SET_MODEL_DRAW, DRAW_HIDE_AUTO, 0);
 
     task->msgTable     = _gPatioLeapingStrangersMessages;
     task->exitCallback = _patioLeapingStrangersExit;
@@ -522,8 +522,8 @@ static void _patioLeapingStrangersExit(Task* task)
 /// live while the model borrows them; no matrix contents are changed here.
 static void _patioLeapingStrangersBindLighting(Task* task)
 {
-    TmdObject*                  bodyModel;
-    _PatioLeapingStrangersWork* work;
+    TmdObject* bodyModel;
+    _Work*     work;
 
     bodyModel           = task->extra.tmd;
     work                = task->work;
@@ -543,8 +543,8 @@ static void _patioLeapingStrangersIdle(Task* task)
 /// step 0; each intervening phase advances once. Dispatch has no bounds check.
 static void _patioLeapingStrangersRunLeapStep(Task* task)
 {
-    TaskFuncTable4              handlers;
-    _PatioLeapingStrangersWork* work;
+    TaskFuncTable4 handlers;
+    _Work*         work;
 
     work     = task->work;
     handlers = _gPatioLeapingStrangersLeapStepHandlers;
@@ -559,31 +559,31 @@ static void _patioLeapingStrangersRunLeapStep(Task* task)
 /// The signed-halfword yaw subtraction has no half-turn wrap correction.
 static void _patioLeapingStrangersTurnToLaunchYaw(Task* task)
 {
-    _PatioLeapingStrangersWork* work;
-    GfxCoord*                   rootCoord;
-    SVECTOR                     rootAngles;
-    AnimationPlayRequest        launchRequest;
-    s32                         currentYaw;
-    s16                         yawDelta;
+    _Work*               work;
+    GfxCoord*            rootCoord;
+    SVECTOR              rootAngles;
+    AnimationPlayRequest launchRequest;
+    s32                  currentYaw;
+    s16                  yawDelta;
 
     rootCoord = task->extra.tmd->coords;
     work      = task->work;
 
     gfxExtractSmallestEuler(&rootAngles, &rootCoord->coord);
     yawDelta = (u16)work->walk.targetRot.vy - (u16)rootAngles.vy;
-    if (ABS(yawDelta) >= PATIO_LEAPING_STRANGERS_YAW_STEP + 1) {
+    if (ABS(yawDelta) >= YAW_STEP + 1) {
         currentYaw = rootAngles.vy;
         if (yawDelta < 0) {
-            rootAngles.vy = currentYaw - PATIO_LEAPING_STRANGERS_YAW_STEP;
+            rootAngles.vy = currentYaw - YAW_STEP;
         } else {
-            rootAngles.vy = currentYaw + PATIO_LEAPING_STRANGERS_YAW_STEP;
+            rootAngles.vy = currentYaw + YAW_STEP;
         }
     } else {
         rootAngles.vy                      = work->walk.targetRot.vy;
         launchRequest.source.index         = 0;
-        launchRequest.animationId          = PATIO_LEAPING_STRANGERS_LEAP_ANIMATION;
+        launchRequest.animationId          = LEAP_ANIMATION;
         launchRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
-        launchRequest.blendFrames          = PATIO_LEAPING_STRANGERS_BLEND_FRAMES;
+        launchRequest.blendFrames          = BLEND_FRAMES;
         launchRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
         _actorMotionPlayAnim19(task, ACTOR_MESSAGE_PLAY_ANIMATION, &launchRequest, 0);
         work->airborne = 0;
@@ -602,9 +602,9 @@ static void _patioLeapingStrangersTurnToLaunchYaw(Task* task)
 /// Enables gravity and advances to the landing check; retains fractional carry.
 static void _patioLeapingStrangersLaunchLeap(Task* task)
 {
-    _PatioLeapingStrangersWork* work;
-    GfxCoord*                   rootCoord;
-    VECTOR                      launchVelocity;
+    _Work*    work;
+    GfxCoord* rootCoord;
+    VECTOR    launchVelocity;
 
     rootCoord = task->extra.tmd->coords;
     work      = task->work;
@@ -624,27 +624,27 @@ static void _patioLeapingStrangersLaunchLeap(Task* task)
 static void _patioLeapingStrangersLandLeap(Task* task)
 {
     enum {
-        PATIO_LEAPING_STRANGERS_LANDING_Y     = -0x30, // Root-coordinate units; positive Y points down
-        PATIO_LEAPING_STRANGERS_LANDING_SOUND = SOUND_CHARACTER(SOUND_BANK_LESSER_STRANGER, 0x0B),
+        LANDING_Y     = -0x30, // Root-coordinate units; positive Y points down
+        LANDING_SOUND = SOUND_CHARACTER(SOUND_BANK_LESSER_STRANGER, 0x0B),
     };
-    GfxCoord*                   rootCoord;
-    _PatioLeapingStrangersWork* work;
-    AnimationPlayRequest        landingRequest;
-    s32                         audioPan;
+    GfxCoord*            rootCoord;
+    _Work*               work;
+    AnimationPlayRequest landingRequest;
+    s32                  audioPan;
 
     rootCoord = task->extra.tmd->coords;
     work      = task->work;
-    if (rootCoord->coord.t[1] < PATIO_LEAPING_STRANGERS_LANDING_Y) {
+    if (rootCoord->coord.t[1] < LANDING_Y) {
         return;
     }
     landingRequest.source.index         = 0;
     landingRequest.animationId          = work->model.nextAnimId;
     landingRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
-    landingRequest.blendFrames          = PATIO_LEAPING_STRANGERS_BLEND_FRAMES;
+    landingRequest.blendFrames          = BLEND_FRAMES;
     landingRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
     _actorMotionPlayAnim19(task, ACTOR_MESSAGE_PLAY_ANIMATION, &landingRequest, 0);
     audioPan = (s8)worldCoordGetOriginAudioPan(rootCoord);
-    sndEvtRequestScriptStart(PATIO_LEAPING_STRANGERS_LANDING_SOUND, audioPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
+    sndEvtRequestScriptStart(LANDING_SOUND, audioPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
 
     work->walk.velocity.vx = 0;
     work->walk.velocity.vy = 0;
@@ -667,29 +667,29 @@ static void _patioLeapingStrangersLandLeap(Task* task)
 /// fourth argument are ignored. Changing modes does not cancel a pending release.
 static s32 _patioLeapingStrangersSetDrawMode(Task* task, s32 messageId, s32 mode, s32 unusedArg)
 {
-    TmdObject*                  bodyModel;
-    _PatioLeapingStrangersWork* work;
-    s32                         result;
+    TmdObject* bodyModel;
+    _Work*     work;
+    s32        result;
 
     bodyModel = task->extra.tmd;
     work      = task->work;
     result    = 0;
     switch (mode) {
-        case PATIO_LEAPING_STRANGERS_DRAW_HIDE_AUTO:
+        case DRAW_HIDE_AUTO:
             bodyModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             bodyModel->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case PATIO_LEAPING_STRANGERS_DRAW_SHOW_ALLOCATE:
+        case DRAW_SHOW_ALLOCATE:
             bodyModel->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             tmdAllocPrimitiveBuffer(bodyModel);
             bodyModel->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case PATIO_LEAPING_STRANGERS_DRAW_HIDE_RELEASE:
+        case DRAW_HIDE_RELEASE:
             bodyModel->flags   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->freeCountdown = mode;
             bodyModel->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case PATIO_LEAPING_STRANGERS_DRAW_SHOW_MANUAL:
+        case DRAW_SHOW_MANUAL:
             bodyModel->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             bodyModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
@@ -709,21 +709,21 @@ static s32 _patioLeapingStrangersSetDrawMode(Task* task, s32 messageId, s32 mode
 /// work and a live root; ignores message ID and fourth argument. Returns 0.
 static s32 _patioLeapingStrangersApplyCommand(Task* task, s32 messageId, const ActorCommand* commandRequest, s32 unusedArg)
 {
-    enum { PATIO_LEAPING_STRANGERS_COMMAND_LOWER_HEAD_WEIGHT = 0,
-           PATIO_LEAPING_STRANGERS_COMMAND_RAISE_HEAD_WEIGHT = 1 };
-    _PatioLeapingStrangersWork* work;
-    GfxCoord*                   rootCoord;
-    SVECTOR                     rootAngles;
-    s32                         command;
+    enum { LOWER_HEAD_WEIGHT = 0,
+           RAISE_HEAD_WEIGHT = 1 };
+    _Work*    work;
+    GfxCoord* rootCoord;
+    SVECTOR   rootAngles;
+    s32       command;
 
     work      = task->work;
     rootCoord = task->extra.tmd->coords;
     command   = commandRequest->command;
     switch (command) {
-        case PATIO_LEAPING_STRANGERS_COMMAND_LOWER_HEAD_WEIGHT:
+        case LOWER_HEAD_WEIGHT:
             work->turnWeightRising = 0;
             break;
-        case PATIO_LEAPING_STRANGERS_COMMAND_RAISE_HEAD_WEIGHT:
+        case RAISE_HEAD_WEIGHT:
             work->turnWeightRising = command;
             break;
         default:

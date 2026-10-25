@@ -58,29 +58,29 @@ typedef struct {
     s32            animId;         // Clip the last play request seeded the slots with (0 none yet: the slots are not ticked; 3 and up fade the model out)
     s16            animTicks;      // Ticks since the last play request; paces the fade and ends the enemy
     byte           unknown_482[6]; // Allocated but never accessed; role unproven
-} _HelicopterDepartureNo9GolemWork;
-STATIC_ASSERT_SIZEOF(_HelicopterDepartureNo9GolemWork, 0x488);
+} _No9GolemWork;
+STATIC_ASSERT_SIZEOF(_No9GolemWork, 0x488);
 
 /// RGB555/STP words in the helicopter's flashing palette row and VRAM upload.
-#define HELICOPTER_DEPARTURE_PALETTE_COLORS 16
+#define PALETTE_COLORS 16
 
 /// Byte extent of the helicopter's flashing palette row.
 ///
 /// Each VRAM colour occupies one 16-bit RGB555/STP word, serialized low byte
 /// first. Byte arrays retain that representation without requiring halfword alignment.
-#define HELICOPTER_DEPARTURE_PALETTE_BYTES (HELICOPTER_DEPARTURE_PALETTE_COLORS * sizeof(u16))
+#define PALETTE_BYTES (PALETTE_COLORS * sizeof(u16))
 
 /// Dark-palette weight at full fade, in the GTE's twelve-fractional-bit scale.
 ///
 /// Zero selects the lit palette; this value selects the dark palette and starts
 /// consuming the hold counter. The complementary lit weight uses the same scale.
-#define HELICOPTER_DEPARTURE_PALETTE_FADE_FULL ONE
+#define PALETTE_FADE_FULL ONE
 
 /// Update ticks spent at the dark palette before snapping back to the lit palette.
 ///
 /// The update reaching full fade counts as the first held tick. The following
 /// update after the counter reaches zero restores the lit palette and rearms it.
-#define HELICOPTER_DEPARTURE_PALETTE_HOLD_TICKS 30
+#define PALETTE_HOLD_TICKS 30
 
 /// Work block of the helicopter.
 ///
@@ -92,32 +92,32 @@ STATIC_ASSERT_SIZEOF(_HelicopterDepartureNo9GolemWork, 0x488);
 /// While the helicopter is drawn, one sixteen-colour row of video memory is
 /// rewritten every tick from `palette`, a blend of the package's two stored
 /// palettes. The blend snaps to the first palette, fades to the second over
-/// three ticks, holds there for `HELICOPTER_DEPARTURE_PALETTE_HOLD_TICKS` and snaps
+/// three ticks, holds there for `PALETTE_HOLD_TICKS` and snaps
 /// back, so whatever is textured with that row flashes once a cycle. The
 /// upload record borrows `palette`, which has to stay live while the task
 /// runs.
 typedef struct {
-    byte   unknown_0[8];                                // Allocated but never accessed; role unproven
-    s32    freeCountdown;                               // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
-    u8     palette[HELICOPTER_DEPARTURE_PALETTE_BYTES]; // Blended palette row as uploaded: `HELICOPTER_DEPARTURE_PALETTE_COLORS` colours, low byte first
-    s16    paletteFade;                                 // Share of the second stored palette in the blend, 4.12 fixed point (0 first palette only, `HELICOPTER_DEPARTURE_PALETTE_FADE_FULL` second only)
-    s8     paletteHold;                                 // Ticks the full fade still holds; counted down only once the fade is full, and at 0 the blend snaps back
-    s8     partsSpawned;                                // Set once the first show command has spawned the three attached models, so a later one does not repeat it
-    MATRIX light;                                       // Light-direction matrix lent to the model object
-    MATRIX color;                                       // Light-colour matrix lent to the model object
-} _HelicopterDepartureHelicopterWork;
-STATIC_ASSERT_SIZEOF(_HelicopterDepartureHelicopterWork, 0x70);
+    byte   unknown_0[8];           // Allocated but never accessed; role unproven
+    s32    freeCountdown;          // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
+    u8     palette[PALETTE_BYTES]; // Blended palette row as uploaded: `PALETTE_COLORS` colours, low byte first
+    s16    paletteFade;            // Share of the second stored palette in the blend, 4.12 fixed point (0 first palette only, `PALETTE_FADE_FULL` second only)
+    s8     paletteHold;            // Ticks the full fade still holds; counted down only once the fade is full, and at 0 the blend snaps back
+    s8     partsSpawned;           // Set once the first show command has spawned the three attached models, so a later one does not repeat it
+    MATRIX light;                  // Light-direction matrix lent to the model object
+    MATRIX color;                  // Light-colour matrix lent to the model object
+} _HelicopterWork;
+STATIC_ASSERT_SIZEOF(_HelicopterWork, 0x70);
 
-/// `_HelicopterDepartureRupertBroderickWork::blinkStep`: the eye image the blink
+/// `_RupertBroderickWork::blinkStep`: the eye image the blink
 /// posts next.
 ///
 /// The command that starts a blink posts the half-open eyes itself; the steps
 /// then post the closed, half-open and open eyes in turn.
 enum {
-    HELICOPTER_DEPARTURE_BLINK_NONE   = 0, // No blink in progress
-    HELICOPTER_DEPARTURE_BLINK_CLOSED = 1, // The closed eyes are posted next
-    HELICOPTER_DEPARTURE_BLINK_HALF   = 2, // The half-open eyes are posted next
-    HELICOPTER_DEPARTURE_BLINK_OPEN   = 3, // The open eyes are posted next, which ends the blink
+    BLINK_NONE   = 0, // No blink in progress
+    BLINK_CLOSED = 1, // The closed eyes are posted next
+    BLINK_HALF   = 2, // The half-open eyes are posted next
+    BLINK_OPEN   = 3, // The open eyes are posted next, which ends the blink
 };
 
 /// Work block of Rupert Broderick's body.
@@ -144,10 +144,10 @@ typedef struct {
     Task*          propTask;        // Task of the second model, chained under body part 12; an actor command shows it as it hides the revolver
     s16            blinkFrameDelay; // Value `blinkCountdown` restarts from after the closed and the half-open eyes: each is shown for this many ticks plus one
     s16            blinkCountdown;  // Ticks left before the blink posts its next eye image, which the tick taking it below 0 does; not reset as a blink starts or ends
-    s16            blinkStep;       // Eye image the blink posts next (0 `HELICOPTER_DEPARTURE_BLINK_NONE`, else `_CLOSED`, `_HALF` or `_OPEN`)
+    s16            blinkStep;       // Eye image the blink posts next (0 `BLINK_NONE`, else `_CLOSED`, `_HALF` or `_OPEN`)
     s16            shotTicks;       // Ticks spent playing clip 1; the sixteenth fires the revolver's sound and muzzle flash. Never reset
-} _HelicopterDepartureRupertBroderickWork;
-STATIC_ASSERT_SIZEOF(_HelicopterDepartureRupertBroderickWork, 0x4D4);
+} _RupertBroderickWork;
+STATIC_ASSERT_SIZEOF(_RupertBroderickWork, 0x4D4);
 
 static void _modelPlacementAttachPartTask(Task* childTask);
 static void _modelPlacementMirrorParentDrawFlags(Task* childTask);
@@ -331,15 +331,15 @@ static TmdSource _gHelicopterDepartureHelicopterBase = {
 
 /// Eye-patch dimensions: width counts 16-bit VRAM words, height counts rows.
 enum {
-    HELICOPTER_DEPARTURE_EYE_TEXTURE_WIDTH_WORDS = 24,
-    HELICOPTER_DEPARTURE_EYE_TEXTURE_HEIGHT_ROWS = 16,
+    EYE_TEXTURE_WIDTH_WORDS = 24,
+    EYE_TEXTURE_HEIGHT_ROWS = 16,
 };
 
 /// Packed open-eye pixels for Rupert's face texture.
 ///
 /// Two VRAM words per `u_long`; the GPU borrows this word-aligned storage until
 /// transfer completion. The patch covers 24 VRAM words by 16 rows.
-static u_long _gHelicopterDepartureRupertEyesOpenPixels[HELICOPTER_DEPARTURE_EYE_TEXTURE_WIDTH_WORDS * HELICOPTER_DEPARTURE_EYE_TEXTURE_HEIGHT_ROWS / 2] = {
+static u_long _gHelicopterDepartureRupertEyesOpenPixels[EYE_TEXTURE_WIDTH_WORDS * EYE_TEXTURE_HEIGHT_ROWS / 2] = {
 #include "assets/characters/rupert/eyes_open.inc"
 };
 
@@ -348,7 +348,7 @@ static u_long _gHelicopterDepartureRupertEyesOpenPixels[HELICOPTER_DEPARTURE_EYE
 /// Actor uploads relocate the first destination to the model's texture page
 /// at local Y 40; the pixel storage stays borrowed until GPU completion.
 static GpuImageUpload _gHelicopterDepartureRupertEyesOpenUploads[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, HELICOPTER_DEPARTURE_EYE_TEXTURE_WIDTH_WORDS, HELICOPTER_DEPARTURE_EYE_TEXTURE_HEIGHT_ROWS }, _gHelicopterDepartureRupertEyesOpenPixels },
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, EYE_TEXTURE_WIDTH_WORDS, EYE_TEXTURE_HEIGHT_ROWS }, _gHelicopterDepartureRupertEyesOpenPixels },
     { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
@@ -356,7 +356,7 @@ static GpuImageUpload _gHelicopterDepartureRupertEyesOpenUploads[2] = {
 ///
 /// Two VRAM words per `u_long`; the 24-word by 16-row patch remains borrowed
 /// until GPU transfer completion.
-static u_long _gHelicopterDepartureRupertEyesHalfOpenPixels[HELICOPTER_DEPARTURE_EYE_TEXTURE_WIDTH_WORDS * HELICOPTER_DEPARTURE_EYE_TEXTURE_HEIGHT_ROWS / 2] = {
+static u_long _gHelicopterDepartureRupertEyesHalfOpenPixels[EYE_TEXTURE_WIDTH_WORDS * EYE_TEXTURE_HEIGHT_ROWS / 2] = {
 #include "assets/characters/rupert/eyes_half_open.inc"
 };
 
@@ -365,7 +365,7 @@ static u_long _gHelicopterDepartureRupertEyesHalfOpenPixels[HELICOPTER_DEPARTURE
 /// Used at blink start and between closed and open eyes. Actor uploads relocate
 /// the first destination; the pixels remain borrowed until GPU completion.
 static GpuImageUpload _gHelicopterDepartureRupertEyesHalfOpenUploads[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, HELICOPTER_DEPARTURE_EYE_TEXTURE_WIDTH_WORDS, HELICOPTER_DEPARTURE_EYE_TEXTURE_HEIGHT_ROWS }, _gHelicopterDepartureRupertEyesHalfOpenPixels },
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, EYE_TEXTURE_WIDTH_WORDS, EYE_TEXTURE_HEIGHT_ROWS }, _gHelicopterDepartureRupertEyesHalfOpenPixels },
     { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
@@ -373,7 +373,7 @@ static GpuImageUpload _gHelicopterDepartureRupertEyesHalfOpenUploads[2] = {
 ///
 /// Two VRAM words per `u_long`; the 24-word by 16-row patch remains borrowed
 /// until GPU transfer completion.
-static u_long _gHelicopterDepartureRupertEyesClosedPixels[HELICOPTER_DEPARTURE_EYE_TEXTURE_WIDTH_WORDS * HELICOPTER_DEPARTURE_EYE_TEXTURE_HEIGHT_ROWS / 2] = {
+static u_long _gHelicopterDepartureRupertEyesClosedPixels[EYE_TEXTURE_WIDTH_WORDS * EYE_TEXTURE_HEIGHT_ROWS / 2] = {
 #include "assets/characters/rupert/eyes_closed.inc"
 };
 
@@ -382,7 +382,7 @@ static u_long _gHelicopterDepartureRupertEyesClosedPixels[HELICOPTER_DEPARTURE_E
 /// Used by the closed-eye command and the first timed blink step. Actor uploads
 /// relocate the first destination; pixels remain borrowed until GPU completion.
 static GpuImageUpload _gHelicopterDepartureRupertEyesClosedUploads[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, HELICOPTER_DEPARTURE_EYE_TEXTURE_WIDTH_WORDS, HELICOPTER_DEPARTURE_EYE_TEXTURE_HEIGHT_ROWS }, _gHelicopterDepartureRupertEyesClosedPixels },
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, EYE_TEXTURE_WIDTH_WORDS, EYE_TEXTURE_HEIGHT_ROWS }, _gHelicopterDepartureRupertEyesClosedPixels },
     { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
@@ -407,7 +407,7 @@ TaskDesc gHelicopterDepartureRupertTaskDescriptors[3] = {
 };
 
 /// Rupert's eye-image message; argument 1 selects 0/2 open, 1 closed, 3 blink.
-enum { HELICOPTER_DEPARTURE_RUPERT_MESSAGE_SET_EYES = 0x7E0 };
+enum { RUPERT_MESSAGE_SET_EYES = 0x7E0 };
 
 /// Terminated message table for Rupert's animation, placement, drawing and props.
 ///
@@ -418,7 +418,7 @@ static TaskMessageEntry _gHelicopterDepartureRupertMessages[6] = {
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _helicopterDepartureSetRupertModelDraw },
     { ACTOR_COMMAND_MESSAGE_APPLY, _helicopterDepartureApplyRupertCommand },
-    { HELICOPTER_DEPARTURE_RUPERT_MESSAGE_SET_EYES, _helicopterDepartureSetRupertEyes },
+    { RUPERT_MESSAGE_SET_EYES, _helicopterDepartureSetRupertEyes },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -429,13 +429,13 @@ static TaskMessageEntry _gHelicopterDepartureRupertMessages[6] = {
 static SVECTOR _gHelicopterDepartureRupertMuzzleFlashOffset = { -30, 440, 140, 0 };
 
 /// Synchronized hull, camera and searchlight frames of the view-24 sequence.
-enum { HELICOPTER_DEPARTURE_HELICOPTER_SEQUENCE_FRAME_COUNT = 120 };
+enum { HELICOPTER_SEQUENCE_FRAME_COUNT = 120 };
 
 /// Helicopter hull Euler rotations for sequence frames 0..119.
 ///
 /// Angles use 4096 units per turn in the root's parent coordinate frame.
 /// Shares the clamped playback cursor with the translations, camera and lamp.
-static SVECTOR _gHelicopterDepartureHelicopterSequenceRotations[HELICOPTER_DEPARTURE_HELICOPTER_SEQUENCE_FRAME_COUNT] = {
+static SVECTOR _gHelicopterDepartureHelicopterSequenceRotations[HELICOPTER_SEQUENCE_FRAME_COUNT] = {
 #include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_rotation_track.inc"
 };
 
@@ -443,7 +443,7 @@ static SVECTOR _gHelicopterDepartureHelicopterSequenceRotations[HELICOPTER_DEPAR
 ///
 /// Applied with the corresponding rotation; initialization uses frame 0 and
 /// view-24 updates advance the shared cursor through the repeated final frame.
-static SVECTOR _gHelicopterDepartureHelicopterSequenceTranslations[HELICOPTER_DEPARTURE_HELICOPTER_SEQUENCE_FRAME_COUNT] = {
+static SVECTOR _gHelicopterDepartureHelicopterSequenceTranslations[HELICOPTER_SEQUENCE_FRAME_COUNT] = {
 #include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_translation_track.inc"
 };
 
@@ -451,7 +451,7 @@ static SVECTOR _gHelicopterDepartureHelicopterSequenceTranslations[HELICOPTER_DE
 ///
 /// Angles use 4096 units per turn. Attachment applies frame 0; view-24 updates
 /// use the parent helicopter's clamped sequence cursor.
-static SVECTOR _gHelicopterDepartureHelicopterSearchlightRotations[HELICOPTER_DEPARTURE_HELICOPTER_SEQUENCE_FRAME_COUNT] = {
+static SVECTOR _gHelicopterDepartureHelicopterSearchlightRotations[HELICOPTER_SEQUENCE_FRAME_COUNT] = {
 #include "assets/rooms/akropolis/helicopter_landing_pad/searchlight_rotation_track.inc"
 };
 
@@ -459,12 +459,12 @@ static SVECTOR _gHelicopterDepartureHelicopterSearchlightRotations[HELICOPTER_DE
 ///
 /// RGB555/STP halfwords are stored low byte first for byte-pair blending. The
 /// fade discards STP; the initial upload source borrows this word-aligned row.
-static u8 _gHelicopterDepartureHelicopterFlashLitPalette[HELICOPTER_DEPARTURE_PALETTE_BYTES] = {
+static u8 _gHelicopterDepartureHelicopterFlashLitPalette[PALETTE_BYTES] = {
 #include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_palette_lit.inc"
 };
 
 /// Absolute VRAM row rewritten by the helicopter's flashing palette.
-enum { HELICOPTER_DEPARTURE_HELICOPTER_FLASH_CLUT_ROW = 264 };
+enum { HELICOPTER_FLASH_CLUT_ROW = 264 };
 
 /// Writable COPY/END list for the helicopter's flashing VRAM palette row.
 ///
@@ -472,7 +472,7 @@ enum { HELICOPTER_DEPARTURE_HELICOPTER_FLASH_CLUT_ROW = 264 };
 /// with its work-owned blended byte row; that hull and its pending GPU transfers
 /// must finish before the work is released. The list supports one live hull.
 static GpuImageUpload _gHelicopterDepartureHelicopterFlashPaletteUploads[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, HELICOPTER_DEPARTURE_HELICOPTER_FLASH_CLUT_ROW, HELICOPTER_DEPARTURE_PALETTE_COLORS, 1 }, (u_long*)_gHelicopterDepartureHelicopterFlashLitPalette },
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, HELICOPTER_FLASH_CLUT_ROW, PALETTE_COLORS, 1 }, (u_long*)_gHelicopterDepartureHelicopterFlashLitPalette },
     { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
@@ -480,7 +480,7 @@ static GpuImageUpload _gHelicopterDepartureHelicopterFlashPaletteUploads[2] = {
 ///
 /// RGB555/STP halfwords stored low byte first: white and black endpoints are
 /// retained around fourteen 0x8421 dark-grey entries. The fade discards STP.
-static u8 _gHelicopterDepartureHelicopterFlashDarkPalette[HELICOPTER_DEPARTURE_PALETTE_BYTES] = {
+static u8 _gHelicopterDepartureHelicopterFlashDarkPalette[PALETTE_BYTES] = {
 #include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_palette_dark.inc"
 };
 
@@ -490,7 +490,7 @@ static u8 _gHelicopterDepartureHelicopterFlashDarkPalette[HELICOPTER_DEPARTURE_P
 /// distance; the negated world-space camera origin changes each frame. Playback
 /// advances before queuing and repeats frame 119. Each queued camera task borrows
 /// its entry, so the package must remain loaded through that task's dispatch.
-static ViewCamera _gHelicopterDepartureHelicopterSequenceCameras[HELICOPTER_DEPARTURE_HELICOPTER_SEQUENCE_FRAME_COUNT] = {
+static ViewCamera _gHelicopterDepartureHelicopterSequenceCameras[HELICOPTER_SEQUENCE_FRAME_COUNT] = {
     { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5598, 5926, 124 } }, 447 },
     { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5599, 5926, 122 } }, 447 },
     { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5599, 5926, 118 } }, 447 },
@@ -647,26 +647,26 @@ static CVECTOR _gHelicopterDepartureHelicopterSearchlightGlowColors[4] = {
 };
 
 /// One unit of a searchlight rim direction in signed 4.12 fixed point.
-enum { HELICOPTER_DEPARTURE_SEARCHLIGHT_DIRECTION_ONE = 4096 };
+enum { SEARCHLIGHT_DIRECTION_ONE = 4096 };
 
 /// Sixteen equally spaced screen-XY unit directions for the searchlight glow rim.
 ///
 /// Signed 4.12 samples start at +X and turn toward +Y. Scaling by the 300-pixel
 /// radius produces the triangle fan's rim; the final triangle wraps to sample 0.
 static DVECTOR _gHelicopterDepartureHelicopterSearchlightRimDirections[16] = {
-    { HELICOPTER_DEPARTURE_SEARCHLIGHT_DIRECTION_ONE, 0 },
+    { SEARCHLIGHT_DIRECTION_ONE, 0 },
     { 3784, 1567 },
     { 2896, 2896 },
     { 1567, 3784 },
-    { 0, HELICOPTER_DEPARTURE_SEARCHLIGHT_DIRECTION_ONE },
+    { 0, SEARCHLIGHT_DIRECTION_ONE },
     { -1567, 3784 },
     { -2896, 2896 },
     { -3784, 1567 },
-    { -HELICOPTER_DEPARTURE_SEARCHLIGHT_DIRECTION_ONE, 0 },
+    { -SEARCHLIGHT_DIRECTION_ONE, 0 },
     { -3784, -1567 },
     { -2896, -2896 },
     { -1567, -3784 },
-    { 0, -HELICOPTER_DEPARTURE_SEARCHLIGHT_DIRECTION_ONE },
+    { 0, -SEARCHLIGHT_DIRECTION_ONE },
     { 1567, -3784 },
     { 2896, -2896 },
     { 3784, -1567 },
@@ -674,9 +674,9 @@ static DVECTOR _gHelicopterDepartureHelicopterSearchlightRimDirections[16] = {
 
 /// Child entries in `gHelicopterDepartureHelicopterTaskDescriptors`, excluding hull 0.
 enum {
-    HELICOPTER_DEPARTURE_HELICOPTER_MAIN_ROTOR_DESCRIPTOR  = 1,
-    HELICOPTER_DEPARTURE_HELICOPTER_TAIL_ROTOR_DESCRIPTOR  = 2,
-    HELICOPTER_DEPARTURE_HELICOPTER_SEARCHLIGHT_DESCRIPTOR = 3,
+    HELICOPTER_MAIN_ROTOR_DESCRIPTOR  = 1,
+    HELICOPTER_TAIL_ROTOR_DESCRIPTOR  = 2,
+    HELICOPTER_SEARCHLIGHT_DESCRIPTOR = 3,
 };
 
 /// Descriptor indices spawned on the helicopter hull's first show request.
@@ -685,9 +685,9 @@ enum {
 /// one-based position, selecting the corresponding hull-relative part offset;
 /// spawn argument 2 borrows the hull task.
 static s32 _gHelicopterDepartureHelicopterChildDescriptorIndices[3] = {
-    HELICOPTER_DEPARTURE_HELICOPTER_MAIN_ROTOR_DESCRIPTOR,
-    HELICOPTER_DEPARTURE_HELICOPTER_TAIL_ROTOR_DESCRIPTOR,
-    HELICOPTER_DEPARTURE_HELICOPTER_SEARCHLIGHT_DESCRIPTOR,
+    HELICOPTER_MAIN_ROTOR_DESCRIPTOR,
+    HELICOPTER_TAIL_ROTOR_DESCRIPTOR,
+    HELICOPTER_SEARCHLIGHT_DESCRIPTOR,
 };
 
 #include "assets/enemies/golem/no_9/body_akropolis.inc"
@@ -727,7 +727,7 @@ static TaskMessageEntry _gHelicopterDepartureNo9GolemMessages[4] = {
 /// this table and its descriptor/pose data for the initialized body's lifetime.
 #include "assets/rooms/akropolis/helicopter_landing_pad/no_9_bank.inc"
 
-static void _helicopterDepartureTickHelicopterPaletteFlash(_HelicopterDepartureHelicopterWork* work);
+static void _helicopterDepartureTickHelicopterPaletteFlash(_HelicopterWork* work);
 
 /// Advances Rupert's animation, shot cues, lighting, blink and buffer-release delay.
 ///
@@ -739,38 +739,38 @@ static void _helicopterDepartureTickHelicopterPaletteFlash(_HelicopterDepartureH
 static void _helicopterDepartureTickRupert(Task* task)
 {
     enum {
-        HELICOPTER_DEPARTURE_RUPERT_SHOT_CLIP  = 1,
-        HELICOPTER_DEPARTURE_RUPERT_SHOT_TICK  = 16,
-        HELICOPTER_DEPARTURE_SOUND_RUPERT_SHOT = 0x313A0003,
-        HELICOPTER_DEPARTURE_RUPERT_LIGHT_PART = 1,
+        RUPERT_SHOT_CLIP  = 1,
+        RUPERT_SHOT_TICK  = 16,
+        SOUND_RUPERT_SHOT = 0x313A0003,
+        RUPERT_LIGHT_PART = 1,
     };
 
-    _HelicopterDepartureRupertBroderickWork* work;
-    TmdObject*                               model;
-    GfxCoord*                                coord;
-    GfxCoord*                                gunCoord;
-    VECTOR3                                  groundPoint;
-    s32                                      slotIndex;
-    s32                                      audioPan;
+    _RupertBroderickWork* work;
+    TmdObject*            model;
+    GfxCoord*             coord;
+    GfxCoord*             gunCoord;
+    VECTOR3               groundPoint;
+    s32                   slotIndex;
+    s32                   audioPan;
 
     model = task->extra.tmd;
     work  = task->work;
-    coord = &model->coords[HELICOPTER_DEPARTURE_RUPERT_LIGHT_PART];
+    coord = &model->coords[RUPERT_LIGHT_PART];
     if (work->ticking != 0) {
         for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
             animationTickSlot(&work->rig.anim, slotIndex);
         }
-        if (work->animId == HELICOPTER_DEPARTURE_RUPERT_SHOT_CLIP) {
-            if (++work->shotTicks == HELICOPTER_DEPARTURE_RUPERT_SHOT_TICK) {
+        if (work->animId == RUPERT_SHOT_CLIP) {
+            if (++work->shotTicks == RUPERT_SHOT_TICK) {
                 gunCoord = work->gunTask->extra.tmd->coords;
                 audioPan = (s8)worldCoordGetOriginAudioPan(gunCoord);
-                sndEvtRequestScriptStart(HELICOPTER_DEPARTURE_SOUND_RUPERT_SHOT, audioPan, (s8)worldCoordGetOriginAudioDepth(gunCoord));
+                sndEvtRequestScriptStart(SOUND_RUPERT_SHOT, audioPan, (s8)worldCoordGetOriginAudioDepth(gunCoord));
                 effectSpawn(EFFECT_ACTOR_MUZZLE_FLASH, gunCoord, 0, &_gHelicopterDepartureRupertMuzzleFlashOffset);
             }
         }
     }
     if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[HELICOPTER_DEPARTURE_RUPERT_LIGHT_PART].workm), &groundPoint) != 0) {
+        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[RUPERT_LIGHT_PART].workm), &groundPoint) != 0) {
             effectDrawGroundShadow(&groundPoint, 0x300, gRoomEffectState->groundShadowShade);
         }
     }
@@ -798,7 +798,7 @@ static void _helicopterDepartureTickRupert(Task* task)
 /// `actorRenderUploadTexture`. The caller expires the countdown; this does not
 /// test it. The upload rewrites the first list entry's destination.
 /// Upload results are ignored; this does not wait for the GPU.
-static inline void _helicopterDepartureAdvanceRupertBlinkImage(Task* task, _HelicopterDepartureRupertBroderickWork* work,
+static inline void _helicopterDepartureAdvanceRupertBlinkImage(Task* task, _RupertBroderickWork* work,
                                                                GpuImageUpload* uploadList, const RECT* eyeRect)
 {
     actorRenderUploadTexture(task, uploadList, eyeRect);
@@ -816,36 +816,36 @@ static inline void _helicopterDepartureAdvanceRupertBlinkImage(Task* task, _Heli
 /// until GPU transfer completes; uploads do not wait and their results are ignored.
 static void _helicopterDepartureTickRupertBlink(Task* task)
 {
-    enum { HELICOPTER_DEPARTURE_BLINK_EYES_Y_ROWS      = 40,
-           HELICOPTER_DEPARTURE_BLINK_EYES_WIDTH_WORDS = 24,
-           HELICOPTER_DEPARTURE_BLINK_EYES_HEIGHT_ROWS = 16 };
-    _HelicopterDepartureRupertBroderickWork* work;
-    RECT                                     eyeRect;
+    enum { Y_ROWS      = 40,
+           WIDTH_WORDS = 24,
+           HEIGHT_ROWS = 16 };
+    _RupertBroderickWork* work;
+    RECT                  eyeRect;
 
     work      = task->work;
     eyeRect.x = 0;
-    eyeRect.y = HELICOPTER_DEPARTURE_BLINK_EYES_Y_ROWS;
-    eyeRect.w = HELICOPTER_DEPARTURE_BLINK_EYES_WIDTH_WORDS;
-    eyeRect.h = HELICOPTER_DEPARTURE_BLINK_EYES_HEIGHT_ROWS;
+    eyeRect.y = Y_ROWS;
+    eyeRect.w = WIDTH_WORDS;
+    eyeRect.h = HEIGHT_ROWS;
 
     switch (work->blinkStep) {
-        case HELICOPTER_DEPARTURE_BLINK_CLOSED:
+        case BLINK_CLOSED:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
                 _helicopterDepartureAdvanceRupertBlinkImage(task, work, &_gHelicopterDepartureRupertEyesClosedUploads[0], &eyeRect);
             }
             break;
-        case HELICOPTER_DEPARTURE_BLINK_HALF:
+        case BLINK_HALF:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
                 _helicopterDepartureAdvanceRupertBlinkImage(task, work, &_gHelicopterDepartureRupertEyesHalfOpenUploads[0], &eyeRect);
             }
             break;
-        case HELICOPTER_DEPARTURE_BLINK_OPEN:
+        case BLINK_OPEN:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
                 actorRenderUploadTexture(task, &_gHelicopterDepartureRupertEyesOpenUploads[0], &eyeRect);
-                work->blinkStep = HELICOPTER_DEPARTURE_BLINK_NONE;
+                work->blinkStep = BLINK_NONE;
             }
             break;
     }
@@ -919,17 +919,17 @@ static void _helicopterDepartureRupertBodyTask(Task* task)
 static void _helicopterDepartureInitRupert(Task* task)
 {
     enum {
-        HELICOPTER_DEPARTURE_RUPERT_NO_BUFFER_RELEASE = -1,
-        HELICOPTER_DEPARTURE_RUPERT_GUN_DESCRIPTOR    = 1,
-        HELICOPTER_DEPARTURE_RUPERT_GUN_PART          = 8,
-        HELICOPTER_DEPARTURE_RUPERT_PROP_DESCRIPTOR   = 2,
-        HELICOPTER_DEPARTURE_RUPERT_PROP_PART         = 12,
+        NO_BUFFER_RELEASE = -1,
+        GUN_DESCRIPTOR    = 1,
+        GUN_PART          = 8,
+        PROP_DESCRIPTOR   = 2,
+        PROP_PART         = 12,
     };
 
-    _HelicopterDepartureRupertBroderickWork* work;
-    TmdObject*                               model;
-    VECTOR3                                  groundPoint;
-    u16                                      flags;
+    _RupertBroderickWork* work;
+    TmdObject*            model;
+    VECTOR3               groundPoint;
+    u16                   flags;
 
     model = task->extra.tmd;
     work  = memCalloc(sizeof(*work), false);
@@ -941,7 +941,7 @@ static void _helicopterDepartureInitRupert(Task* task)
     work->animId        = ACTOR_MOTION_ANIMATION_INDEX_NONE;
     work->bank          = ACTOR_MOTION_ANIMATION_INDEX_NONE;
     work->shotTicks     = 0;
-    work->freeCountdown = HELICOPTER_DEPARTURE_RUPERT_NO_BUFFER_RELEASE;
+    work->freeCountdown = NO_BUFFER_RELEASE;
     flags               = model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
     model->flags        = flags;
     // The target retains this shadow branch after setting the hidden flag.
@@ -950,8 +950,8 @@ static void _helicopterDepartureInitRupert(Task* task)
             effectDrawGroundShadow(&groundPoint, 0x200, gRoomEffectState->groundShadowShade);
         }
     }
-    work->gunTask  = taskSpawnFromTable(gHelicopterDepartureRupertTaskDescriptors, HELICOPTER_DEPARTURE_RUPERT_GUN_DESCRIPTOR, HELICOPTER_DEPARTURE_RUPERT_GUN_PART, task);
-    work->propTask = taskSpawnFromTable(gHelicopterDepartureRupertTaskDescriptors, HELICOPTER_DEPARTURE_RUPERT_PROP_DESCRIPTOR, HELICOPTER_DEPARTURE_RUPERT_PROP_PART, task);
+    work->gunTask  = taskSpawnFromTable(gHelicopterDepartureRupertTaskDescriptors, GUN_DESCRIPTOR, GUN_PART, task);
+    work->propTask = taskSpawnFromTable(gHelicopterDepartureRupertTaskDescriptors, PROP_DESCRIPTOR, PROP_PART, task);
     _helicopterDepartureBindRupertLighting(task);
     task->msgTable     = _gHelicopterDepartureRupertMessages;
     task->exitCallback = enemyTaskExit;
@@ -966,12 +966,12 @@ static void _helicopterDepartureInitRupert(Task* task)
 static void _helicopterDepartureBindRupertLighting(Task* task)
 {
     enum {
-        HELICOPTER_DEPARTURE_RUPERT_LIGHT_SAMPLE_PART = 1,
-        HELICOPTER_DEPARTURE_RUPERT_LIGHT_COUNT       = 3,
+        SAMPLE_PART = 1,
+        COUNT       = 3,
     };
-    _HelicopterDepartureRupertBroderickWork* work;
-    GfxCoord*                                partCoords;
-    TmdObject*                               model;
+    _RupertBroderickWork* work;
+    GfxCoord*             partCoords;
+    TmdObject*            model;
 
     work            = task->work;
     model           = task->extra.tmd;
@@ -979,9 +979,9 @@ static void _helicopterDepartureBindRupertLighting(Task* task)
     model->lightMtx = &work->light;
     model->colorMtx = &work->color;
 
-    partCoords[HELICOPTER_DEPARTURE_RUPERT_LIGHT_SAMPLE_PART].composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(&partCoords[HELICOPTER_DEPARTURE_RUPERT_LIGHT_SAMPLE_PART]);
-    worldCoordSetModelLighting(model, partCoords[HELICOPTER_DEPARTURE_RUPERT_LIGHT_SAMPLE_PART].workm.t, 0, HELICOPTER_DEPARTURE_RUPERT_LIGHT_COUNT);
+    partCoords[SAMPLE_PART].composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(&partCoords[SAMPLE_PART]);
+    worldCoordSetModelLighting(model, partCoords[SAMPLE_PART].workm.t, 0, COUNT);
 }
 
 /// Reseeds Rupert's driven slots, updates their poses and enables ticking.
@@ -993,15 +993,15 @@ static void _helicopterDepartureBindRupertLighting(Task* task)
 /// frames; reset initializes the slots instead. Each slot is ticked before
 /// future frame updates are enabled. Only clip and blend choice are read from
 /// the request, through this call; bank data and playback storage remain borrowed.
-static inline void _helicopterDepartureReseedRupertAnimation(_HelicopterDepartureRupertBroderickWork* work, const AnimationPlayRequest* request)
+static inline void _helicopterDepartureReseedRupertAnimation(_RupertBroderickWork* work, const AnimationPlayRequest* request)
 {
-    enum { HELICOPTER_DEPARTURE_RUPERT_BLEND_FRAMES = 6 };
+    enum { RUPERT_BLEND_FRAMES = 6 };
     s32 slotIndex;
 
     work->animId = request->animationId;
     if (request->blend != ANIMATION_BLEND_RESET) {
         for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
-            animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->animId, 0, HELICOPTER_DEPARTURE_RUPERT_BLEND_FRAMES);
+            animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->animId, 0, RUPERT_BLEND_FRAMES);
         }
     } else {
         for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
@@ -1024,8 +1024,8 @@ static inline void _helicopterDepartureReseedRupertAnimation(_HelicopterDepartur
 /// ignored; returns 0. Bank resources must outlive playback.
 static s32 _helicopterDeparturePlayRupertAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg)
 {
-    _HelicopterDepartureRupertBroderickWork* work;
-    TmdObject*                               model;
+    _RupertBroderickWork* work;
+    TmdObject*            model;
 
     work  = task->work;
     model = task->extra.tmd;
@@ -1054,10 +1054,10 @@ static s32 _helicopterDeparturePlayRupertAnimation(Task* task, s32 messageId, co
 /// ignored. Returns 0 for modes 0..3 even if allocation fails, otherwise 1.
 static s32 _helicopterDepartureSetRupertModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg)
 {
-    enum { HELICOPTER_DEPARTURE_DRAW_SHOW_SKIP_AUTO_BUFFER = 3 };
-    TmdObject*                               model;
-    _HelicopterDepartureRupertBroderickWork* work;
-    s32                                      result;
+    enum { DRAW_SHOW_SKIP_AUTO_BUFFER = 3 };
+    TmdObject*            model;
+    _RupertBroderickWork* work;
+    s32                   result;
 
     model  = task->extra.tmd;
     work   = task->work;
@@ -1079,7 +1079,7 @@ static s32 _helicopterDepartureSetRupertModelDraw(Task* task, s32 messageId, s32
             work->freeCountdown = drawMode;
             model->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case HELICOPTER_DEPARTURE_DRAW_SHOW_SKIP_AUTO_BUFFER:
+        case DRAW_SHOW_SKIP_AUTO_BUFFER:
             model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
@@ -1099,23 +1099,23 @@ static s32 _helicopterDepartureSetRupertModelDraw(Task* task, s32 messageId, s32
 /// Returns 0 for both handled and ignored commands.
 static s32 _helicopterDepartureApplyRupertCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg)
 {
-    enum { HELICOPTER_DEPARTURE_RUPERT_SHOW_REVOLVER = 0,
-           HELICOPTER_DEPARTURE_RUPERT_SHOW_PROP     = 1 };
-    _HelicopterDepartureRupertBroderickWork* work;
-    Task*                                    childTask;
-    u16                                      commandId;
+    enum { REVOLVER = 0,
+           PROP     = 1 };
+    _RupertBroderickWork* work;
+    Task*                 childTask;
+    u16                   commandId;
 
     commandId = command->command;
     work      = task->work;
 
     switch (commandId) {
-        case HELICOPTER_DEPARTURE_RUPERT_SHOW_REVOLVER:
+        case REVOLVER:
             childTask = work->gunTask;
             if (childTask != NULL) {
                 childTask->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             break;
-        case HELICOPTER_DEPARTURE_RUPERT_SHOW_PROP:
+        case PROP:
             childTask = work->gunTask;
             if (childTask != NULL) {
                 childTask->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -1140,40 +1140,40 @@ static s32 _helicopterDepartureApplyRupertCommand(Task* task, s32 messageId, con
 /// unknown modes change nothing and return 0.
 static s32 _helicopterDepartureSetRupertEyes(Task* task, s32 messageId, s32 eyeMode, s32 unusedArg)
 {
-    enum { HELICOPTER_DEPARTURE_EYES_OPEN           = 0,
-           HELICOPTER_DEPARTURE_EYES_CLOSED         = 1,
-           HELICOPTER_DEPARTURE_EYES_OPEN_ALTERNATE = 2,
-           HELICOPTER_DEPARTURE_EYES_BLINK          = 3,
-           HELICOPTER_DEPARTURE_EYES_Y_ROWS         = 40,
-           HELICOPTER_DEPARTURE_EYES_WIDTH_WORDS    = 24,
-           HELICOPTER_DEPARTURE_EYES_HEIGHT_ROWS    = 16,
-           HELICOPTER_DEPARTURE_BLINK_FRAME_DELAY   = 1 };
+    enum { EYES_OPEN           = 0,
+           EYES_CLOSED         = 1,
+           EYES_OPEN_ALTERNATE = 2,
+           EYES_BLINK          = 3,
+           EYES_Y_ROWS         = 40,
+           EYES_WIDTH_WORDS    = 24,
+           EYES_HEIGHT_ROWS    = 16,
+           BLINK_FRAME_DELAY   = 1 };
     RECT            eyeRect;
     GpuImageUpload* uploadList;
     s32             result;
 
     result    = 0;
     eyeRect.x = 0;
-    eyeRect.y = HELICOPTER_DEPARTURE_EYES_Y_ROWS;
-    eyeRect.w = HELICOPTER_DEPARTURE_EYES_WIDTH_WORDS;
-    eyeRect.h = HELICOPTER_DEPARTURE_EYES_HEIGHT_ROWS;
+    eyeRect.y = EYES_Y_ROWS;
+    eyeRect.w = EYES_WIDTH_WORDS;
+    eyeRect.h = EYES_HEIGHT_ROWS;
 
     switch (eyeMode) {
-        case HELICOPTER_DEPARTURE_EYES_CLOSED:
+        case EYES_CLOSED:
             uploadList = &_gHelicopterDepartureRupertEyesClosedUploads[0];
             break;
-        case HELICOPTER_DEPARTURE_EYES_OPEN:
-        case HELICOPTER_DEPARTURE_EYES_OPEN_ALTERNATE:
+        case EYES_OPEN:
+        case EYES_OPEN_ALTERNATE:
             uploadList = &_gHelicopterDepartureRupertEyesOpenUploads[0];
             break;
-        case HELICOPTER_DEPARTURE_EYES_BLINK: {
-            _HelicopterDepartureRupertBroderickWork* stepWork;
-            _HelicopterDepartureRupertBroderickWork* delayWork;
+        case EYES_BLINK: {
+            _RupertBroderickWork* stepWork;
+            _RupertBroderickWork* delayWork;
 
             stepWork                   = task->work;
-            stepWork->blinkStep        = HELICOPTER_DEPARTURE_BLINK_CLOSED;
+            stepWork->blinkStep        = BLINK_CLOSED;
             delayWork                  = task->work;
-            delayWork->blinkFrameDelay = HELICOPTER_DEPARTURE_BLINK_FRAME_DELAY;
+            delayWork->blinkFrameDelay = BLINK_FRAME_DELAY;
             uploadList                 = &_gHelicopterDepartureRupertEyesHalfOpenUploads[0];
             break;
         }
@@ -1279,28 +1279,28 @@ static void _helicopterDepartureDrawHelicopterSearchlightGlow(Task* task, const 
 /// packet space and a live OT tag. Centre colour applies to vertex 0 and rim colour
 /// to vertices 1/2. The caller supplies additive draw mode for the complete fan.
 /// Statement-only GNU expression; its value is not part of the interface.
-#define HELICOPTER_DEPARTURE_EMIT_SEARCHLIGHT_TRIANGLE(endPoint) \
-    ({                                                           \
-        triangle       = gGpuPrimCursor;                         \
-        gGpuPrimCursor = triangle + 1;                           \
-        setPolyG3(triangle);                                     \
-        setSemiTrans(triangle, 1);                               \
-        triangle->x0 = centerX;                                  \
-        triangle->y0 = centerY;                                  \
-        triangle->x1 = rimPoint->vx;                             \
-        triangle->y1 = rimPoint->vy;                             \
-        triangle->x2 = (endPoint).vx;                            \
-        triangle->y2 = (endPoint).vy;                            \
-        triangle->r0 = centerColor->r;                           \
-        triangle->g0 = centerColor->g;                           \
-        triangle->b0 = centerColor->b;                           \
-        triangle->r1 = rimRgb[0];                                \
-        triangle->g1 = rimRgb[1];                                \
-        triangle->b1 = rimRgb[2];                                \
-        triangle->r2 = rimRgb[0];                                \
-        triangle->g2 = rimRgb[1];                                \
-        triangle->b2 = rimRgb[2];                                \
-        addPrim(orderingTag, triangle);                          \
+#define EMIT_SEARCHLIGHT_TRIANGLE(endPoint) \
+    ({                                      \
+        triangle       = gGpuPrimCursor;    \
+        gGpuPrimCursor = triangle + 1;      \
+        setPolyG3(triangle);                \
+        setSemiTrans(triangle, 1);          \
+        triangle->x0 = centerX;             \
+        triangle->y0 = centerY;             \
+        triangle->x1 = rimPoint->vx;        \
+        triangle->y1 = rimPoint->vy;        \
+        triangle->x2 = (endPoint).vx;       \
+        triangle->y2 = (endPoint).vy;       \
+        triangle->r0 = centerColor->r;      \
+        triangle->g0 = centerColor->g;      \
+        triangle->b0 = centerColor->b;      \
+        triangle->r1 = rimRgb[0];           \
+        triangle->g1 = rimRgb[1];           \
+        triangle->b1 = rimRgb[2];           \
+        triangle->r2 = rimRgb[0];           \
+        triangle->g2 = rimRgb[1];           \
+        triangle->b2 = rimRgb[2];           \
+        addPrim(orderingTag, triangle);     \
     })
 
     // Project the lamp origin; the halo radius stays fixed in screen pixels.
@@ -1323,10 +1323,10 @@ static void _helicopterDepartureDrawHelicopterSearchlightGlow(Task* task, const 
     orderingTag = GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(sortDepth) + OT_DISPLACEMENT;
     rimPoint    = screenRim;
     for (pointIndex = 0; pointIndex < ARRAY_SIZE(screenRim) - 1; pointIndex++, rimPoint++) {
-        HELICOPTER_DEPARTURE_EMIT_SEARCHLIGHT_TRIANGLE(rimPoint[1]);
+        EMIT_SEARCHLIGHT_TRIANGLE(rimPoint[1]);
     }
-    HELICOPTER_DEPARTURE_EMIT_SEARCHLIGHT_TRIANGLE(screenRim[0]);
-#undef HELICOPTER_DEPARTURE_EMIT_SEARCHLIGHT_TRIANGLE
+    EMIT_SEARCHLIGHT_TRIANGLE(screenRim[0]);
+#undef EMIT_SEARCHLIGHT_TRIANGLE
     drawMode       = gGpuPrimCursor;
     gGpuPrimCursor = drawMode + 1;
     setDrawTPage(drawMode, 1, 0, ADDITIVE_DRAW_PAGE);
@@ -1341,18 +1341,18 @@ static void _helicopterDepartureDrawHelicopterSearchlightGlow(Task* task, const 
 /// Bit 15 is discarded. Changes GTE interpolation state and retains no pointers.
 static inline void _helicopterDepartureBlendPaletteColor(u8* destination, const u8* firstColor, const u8* secondColor, s32 firstWeight, s32 secondWeight)
 {
-    enum { HELICOPTER_DEPARTURE_PALETTE_CHANNEL_MASK = 0x1F };
+    enum { PALETTE_CHANNEL_MASK = 0x1F };
     CVECTOR channels[3];
     s32     packedColor;
 
     packedColor   = firstColor[0] | (firstColor[1] << 8);
-    channels[0].r = ((u16)packedColor >> 10) & HELICOPTER_DEPARTURE_PALETTE_CHANNEL_MASK;
-    channels[0].g = ((u16)packedColor >> 5) & HELICOPTER_DEPARTURE_PALETTE_CHANNEL_MASK;
-    channels[0].b = packedColor & HELICOPTER_DEPARTURE_PALETTE_CHANNEL_MASK;
+    channels[0].r = ((u16)packedColor >> 10) & PALETTE_CHANNEL_MASK;
+    channels[0].g = ((u16)packedColor >> 5) & PALETTE_CHANNEL_MASK;
+    channels[0].b = packedColor & PALETTE_CHANNEL_MASK;
     packedColor   = secondColor[0] | (secondColor[1] << 8);
-    channels[1].r = ((u16)packedColor >> 10) & HELICOPTER_DEPARTURE_PALETTE_CHANNEL_MASK;
-    channels[1].g = ((u16)packedColor >> 5) & HELICOPTER_DEPARTURE_PALETTE_CHANNEL_MASK;
-    channels[1].b = packedColor & HELICOPTER_DEPARTURE_PALETTE_CHANNEL_MASK;
+    channels[1].r = ((u16)packedColor >> 10) & PALETTE_CHANNEL_MASK;
+    channels[1].g = ((u16)packedColor >> 5) & PALETTE_CHANNEL_MASK;
+    channels[1].b = packedColor & PALETTE_CHANNEL_MASK;
     LoadAverageCol((u8*)&channels[0], (u8*)&channels[1], firstWeight, secondWeight, (u8*)&channels[2]);
     packedColor    = channels[2].b + ((channels[2].r << 10) + (channels[2].g << 5));
     destination[1] = (u32)packedColor >> 8;
@@ -1368,30 +1368,30 @@ static inline void _helicopterDepartureBlendPaletteColor(u8* destination, const 
 /// Reads and writes RGB555 colours as little-endian byte pairs, discarding bit
 /// 15. The upload record must already borrow `work->palette`, whose storage must
 /// remain live and unchanged until GPU transfer completes. Clobbers GTE state.
-static void _helicopterDepartureTickHelicopterPaletteFlash(_HelicopterDepartureHelicopterWork* work)
+static void _helicopterDepartureTickHelicopterPaletteFlash(_HelicopterWork* work)
 {
-    enum { HELICOPTER_DEPARTURE_PALETTE_FADE_STEP = 0x555 };
+    enum { PALETTE_FADE_STEP = 0x555 };
     s32 byteIndex;
     s32 litWeight;
     s32 darkWeight;
 
     // Reach the dark palette, hold it, then snap back for the next flash.
     if (work->paletteHold != 0) {
-        work->paletteFade += HELICOPTER_DEPARTURE_PALETTE_FADE_STEP;
-        if (work->paletteFade >= HELICOPTER_DEPARTURE_PALETTE_FADE_FULL) {
-            work->paletteFade = HELICOPTER_DEPARTURE_PALETTE_FADE_FULL;
+        work->paletteFade += PALETTE_FADE_STEP;
+        if (work->paletteFade >= PALETTE_FADE_FULL) {
+            work->paletteFade = PALETTE_FADE_FULL;
             if (--work->paletteHold < 0) {
                 work->paletteHold = 0;
             }
         }
     } else {
-        work->paletteFade -= HELICOPTER_DEPARTURE_PALETTE_FADE_FULL;
+        work->paletteFade -= PALETTE_FADE_FULL;
         if (work->paletteFade <= 0) {
             work->paletteFade = 0;
-            work->paletteHold = HELICOPTER_DEPARTURE_PALETTE_HOLD_TICKS;
+            work->paletteHold = PALETTE_HOLD_TICKS;
         }
     }
-    litWeight  = HELICOPTER_DEPARTURE_PALETTE_FADE_FULL - work->paletteFade;
+    litWeight  = PALETTE_FADE_FULL - work->paletteFade;
     darkWeight = work->paletteFade;
     // Keep byte-pair accesses for the packed palette and publish the complete row.
     byteIndex = 0;
@@ -1411,9 +1411,9 @@ static void _helicopterDepartureTickHelicopterPaletteFlash(_HelicopterDepartureH
 /// release is pending initially. Installs messages and advances to state 1.
 static void _helicopterDepartureInitHelicopter(Task* task)
 {
-    enum { HELICOPTER_DEPARTURE_HELICOPTER_FREE_NONE = -1 };
-    _HelicopterDepartureHelicopterWork* work;
-    TmdObject*                          model;
+    enum { HELICOPTER_FREE_NONE = -1 };
+    _HelicopterWork* work;
+    TmdObject*       model;
 
     model = task->extra.tmd;
     work  = memCalloc(sizeof(*work), false);
@@ -1422,7 +1422,7 @@ static void _helicopterDepartureInitHelicopter(Task* task)
         return;
     }
     task->work          = work;
-    work->freeCountdown = HELICOPTER_DEPARTURE_HELICOPTER_FREE_NONE;
+    work->freeCountdown = HELICOPTER_FREE_NONE;
     model->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     _helicopterDeparturePoseHelicopterSequenceFrame(task, _gHelicopterDepartureHelicopterSequenceRotations, _gHelicopterDepartureHelicopterSequenceTranslations, 0);
     _helicopterDepartureBindHelicopterLighting(task);
@@ -1467,11 +1467,11 @@ static inline void _helicopterDepartureAdvanceHelicopterSequence(Task* task, Gfx
 /// zero, then becomes -1; any negative value means no release is pending.
 static void _helicopterDepartureTickHelicopter(Task* task)
 {
-    enum { HELICOPTER_DEPARTURE_HELICOPTER_SEQUENCE_VIEW = 24 };
-    _HelicopterDepartureHelicopterWork* work;
-    TmdObject*                          model;
-    GfxCoord*                           rootCoord;
-    s32                                 freeCountdown;
+    enum { HELICOPTER_SEQUENCE_VIEW = 24 };
+    _HelicopterWork* work;
+    TmdObject*       model;
+    GfxCoord*        rootCoord;
+    s32              freeCountdown;
 
     model     = task->extra.tmd;
     work      = task->work;
@@ -1483,7 +1483,7 @@ static void _helicopterDepartureTickHelicopter(Task* task)
         _helicopterDepartureTickHelicopterPaletteFlash(task->work);
     }
     // Scene motion and camera playback continue even when the hull is hidden.
-    if (gGameSession->location.view == HELICOPTER_DEPARTURE_HELICOPTER_SEQUENCE_VIEW) {
+    if (gGameSession->location.view == HELICOPTER_SEQUENCE_VIEW) {
         _helicopterDepartureAdvanceHelicopterSequence(task, rootCoord);
     }
     // Reload after freeing, preserving the callback-visible countdown value.
@@ -1675,12 +1675,12 @@ static s32 _helicopterDeparturePlaceHelicopter(Task* task, s32 messageId, const 
 /// Ignores messageId and unusedArgument. Returns 0 for modes 0..3, otherwise 1.
 static s32 _helicopterDepartureSetHelicopterModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArgument)
 {
-    enum { HELICOPTER_DEPARTURE_HELICOPTER_DRAW_SHOW_SKIP_AUTO_BUFFER = 3 };
-    TmdObject*                          model;
-    _HelicopterDepartureHelicopterWork* work;
-    Task*                               child;
-    s32                                 result;
-    s32                                 partIndex;
+    enum { HELICOPTER_DRAW_SHOW_SKIP_AUTO_BUFFER = 3 };
+    TmdObject*       model;
+    _HelicopterWork* work;
+    Task*            child;
+    s32              result;
+    s32              partIndex;
 
     model  = task->extra.tmd;
     work   = task->work;
@@ -1700,7 +1700,7 @@ static s32 _helicopterDepartureSetHelicopterModelDraw(Task* task, s32 messageId,
             work->freeCountdown = drawMode;
             model->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case HELICOPTER_DEPARTURE_HELICOPTER_DRAW_SHOW_SKIP_AUTO_BUFFER:
+        case HELICOPTER_DRAW_SHOW_SKIP_AUTO_BUFFER:
             model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
@@ -1773,11 +1773,11 @@ static void _helicopterDeparturePlaceHelicopterPart(Task* task)
 static void _helicopterDepartureBindHelicopterLighting(Task* task)
 {
     enum {
-        HELICOPTER_DEPARTURE_HELICOPTER_LIGHT_COUNT = 3,
+        HELICOPTER_LIGHT_COUNT = 3,
     };
-    GfxCoord*                           rootCoord;
-    _HelicopterDepartureHelicopterWork* work;
-    TmdObject*                          model;
+    GfxCoord*        rootCoord;
+    _HelicopterWork* work;
+    TmdObject*       model;
 
     work                    = task->work;
     model                   = task->extra.tmd;
@@ -1786,7 +1786,7 @@ static void _helicopterDepartureBindHelicopterLighting(Task* task)
     model->colorMtx         = &work->color;
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(rootCoord);
-    worldCoordSetModelLighting(model, rootCoord->workm.t, 0, HELICOPTER_DEPARTURE_HELICOPTER_LIGHT_COUNT);
+    worldCoordSetModelLighting(model, rootCoord->workm.t, 0, HELICOPTER_LIGHT_COUNT);
 }
 
 /// Runs the helicopter's initialization, frame update or teardown state.
@@ -1842,25 +1842,25 @@ static void _helicopterDepartureHelicopterSearchlightTask(Task* task)
 /// two child spawns are assumed to succeed, matching their unchecked use.
 static void _helicopterDepartureSpawnNo9Golem(Enemy* enemy, Task* task)
 {
-    enum { HELICOPTER_DEPARTURE_GOLEM_UPDATE_STATE = 1,
-           HELICOPTER_DEPARTURE_GOLEM_NO_CLIP      = 0,
-           HELICOPTER_DEPARTURE_GOLEM_PART8_CHILD  = 1,
-           HELICOPTER_DEPARTURE_GOLEM_PART3_CHILD  = 2,
-           HELICOPTER_DEPARTURE_GOLEM_PART12_CHILD = 3 };
-    GameLocationKey                   key;
-    GameLocationKey*                  sessionKey;
-    u8                                view;
-    u8                                stage;
-    AreaVariant*                      layout;
-    TmdObject*                        model;
-    GfxCoord*                         bodyRoot;
-    _HelicopterDepartureNo9GolemWork* work;
-    TaskDesc*                         childDescriptors;
-    u32                               placeIndex;
-    u32                               placeIndex2;
-    AreaPlacement*                    placements;
-    Enemy*                            spawned;
-    GameSession*                      session;
+    enum { GOLEM_UPDATE_STATE = 1,
+           NO_CLIP            = 0,
+           PART8_CHILD        = 1,
+           PART3_CHILD        = 2,
+           PART12_CHILD       = 3 };
+    GameLocationKey  key;
+    GameLocationKey* sessionKey;
+    u8               view;
+    u8               stage;
+    AreaVariant*     layout;
+    TmdObject*       model;
+    GfxCoord*        bodyRoot;
+    _No9GolemWork*   work;
+    TaskDesc*        childDescriptors;
+    u32              placeIndex;
+    u32              placeIndex2;
+    AreaPlacement*   placements;
+    Enemy*           spawned;
+    GameSession*     session;
 
     model    = task->extra.tmd;
     bodyRoot = model->coords;
@@ -1874,12 +1874,12 @@ static void _helicopterDepartureSpawnNo9Golem(Enemy* enemy, Task* task)
     model->lightMtx = &work->light;
     model->colorMtx = &work->color;
     animationInitContext(&work->rig.anim, _gHelicopterDepartureNo9GolemAnimationSets, model, work->rig.poses, work->rig.slots);
-    work->animId           = HELICOPTER_DEPARTURE_GOLEM_NO_CLIP;
+    work->animId           = NO_CLIP;
     task->msgTable         = _gHelicopterDepartureNo9GolemMessages;
     bodyRoot->composeStamp = GRAPHICS_COORD_DIRTY;
 
     childDescriptors = gHelicopterDepartureNo9GolemTaskDescriptors;
-    spawned          = enemySpawnFromTable(childDescriptors, HELICOPTER_DEPARTURE_GOLEM_PART8_CHILD, 0, enemy);
+    spawned          = enemySpawnFromTable(childDescriptors, PART8_CHILD, 0, enemy);
     session          = gGameSession;
     // Child models inherit the texture relocation of the parent's placement.
     // The task address retains the spawn-result holder to preserve load order.
@@ -1903,7 +1903,7 @@ static void _helicopterDepartureSpawnNo9Golem(Enemy* enemy, Task* task)
         tmdBuildBufferHalf(model);
         tmdBuildBufferHalf(model);
     }
-    spawned       = enemySpawnFromTable(childDescriptors, HELICOPTER_DEPARTURE_GOLEM_PART3_CHILD, 0, enemy);
+    spawned       = enemySpawnFromTable(childDescriptors, PART3_CHILD, 0, enemy);
     session       = gGameSession;
     spawned       = (Enemy*)spawned->task;
     sessionKey    = &session->location;
@@ -1925,8 +1925,8 @@ static void _helicopterDepartureSpawnNo9Golem(Enemy* enemy, Task* task)
         tmdBuildBufferHalf(model);
         tmdBuildBufferHalf(model);
     }
-    enemySpawnFromTable(childDescriptors, HELICOPTER_DEPARTURE_GOLEM_PART12_CHILD, 0, enemy);
-    task->state = HELICOPTER_DEPARTURE_GOLEM_UPDATE_STATE;
+    enemySpawnFromTable(childDescriptors, PART12_CHILD, 0, enemy);
+    task->state = GOLEM_UPDATE_STATE;
 }
 
 /// Advances the No. 9 golem's pose, lighting, ground shadow and exit fade.
@@ -1940,38 +1940,38 @@ static void _helicopterDepartureSpawnNo9Golem(Enemy* enemy, Task* task)
 /// bytes), including across nested lighting and ground queries.
 static void _helicopterDepartureTickNo9Golem(Enemy* enemy, Task* task)
 {
-    enum { HELICOPTER_DEPARTURE_GOLEM_FIRST_EXIT_CLIP    = 3,
-           HELICOPTER_DEPARTURE_GOLEM_FADE_PERIOD_TICKS  = 3,
-           HELICOPTER_DEPARTURE_GOLEM_LAST_EXIT_TICK     = 96,
-           HELICOPTER_DEPARTURE_GOLEM_DESTROY_STATE      = 2,
-           HELICOPTER_DEPARTURE_GOLEM_SHADOW_HALF_SIZE   = 1024,
-           HELICOPTER_DEPARTURE_GOLEM_FADE_NUMERATOR     = 15,
-           HELICOPTER_DEPARTURE_GOLEM_FADE_FRACTION_BITS = 4 };
-    TmdObject*                        model;
-    VECTOR*                           worldPosition;
-    VECTOR*                           groundPoint;
-    _HelicopterDepartureNo9GolemWork* work;
-    GfxCoord*                         modelCoords;
-    GfxCoord*                         sampleCoord;
-    s32                               loopIndex;
-    s32                               column;
-    s32                               animationId;
+    enum { FIRST_EXIT_CLIP    = 3,
+           FADE_PERIOD_TICKS  = 3,
+           LAST_EXIT_TICK     = 96,
+           DESTROY_STATE      = 2,
+           SHADOW_HALF_SIZE   = 1024,
+           FADE_NUMERATOR     = 15,
+           FADE_FRACTION_BITS = 4 };
+    TmdObject*     model;
+    VECTOR*        worldPosition;
+    VECTOR*        groundPoint;
+    _No9GolemWork* work;
+    GfxCoord*      modelCoords;
+    GfxCoord*      sampleCoord;
+    s32            loopIndex;
+    s32            column;
+    s32            animationId;
 
 /// Scales the golem's shared light and colour bases by 15/16 for one fade step.
 ///
-/// Captures the live `_HelicopterDepartureNo9GolemWork*` work and writable s32 counters
+/// Captures the live `_No9GolemWork*` work and writable s32 counters
 /// loopIndex and column, leaving both counters at three. Requires the two
 /// HELICOPTER_DEPARTURE_GOLEM_FADE_* constants in scope. Signed products are shifted
 /// arithmetically; all nine coefficients change while translation and alignment
 /// bytes remain intact. Attached models borrow these same matrices.
-#define HELICOPTER_DEPARTURE_FADE_GOLEM_LIGHTING()                                                                                                                                  \
-    do {                                                                                                                                                                            \
-        for (loopIndex = 0; loopIndex < ARRAY_SIZE(work->color.m); loopIndex++) {                                                                                                   \
-            for (column = 0; column < ARRAY_SIZE(work->color.m[loopIndex]); column++) {                                                                                             \
-                work->color.m[loopIndex][column] = (work->color.m[loopIndex][column] * HELICOPTER_DEPARTURE_GOLEM_FADE_NUMERATOR) >> HELICOPTER_DEPARTURE_GOLEM_FADE_FRACTION_BITS; \
-                work->light.m[loopIndex][column] = (work->light.m[loopIndex][column] * HELICOPTER_DEPARTURE_GOLEM_FADE_NUMERATOR) >> HELICOPTER_DEPARTURE_GOLEM_FADE_FRACTION_BITS; \
-            }                                                                                                                                                                       \
-        }                                                                                                                                                                           \
+#define FADE_GOLEM_LIGHTING()                                                                                                 \
+    do {                                                                                                                      \
+        for (loopIndex = 0; loopIndex < ARRAY_SIZE(work->color.m); loopIndex++) {                                             \
+            for (column = 0; column < ARRAY_SIZE(work->color.m[loopIndex]); column++) {                                       \
+                work->color.m[loopIndex][column] = (work->color.m[loopIndex][column] * FADE_NUMERATOR) >> FADE_FRACTION_BITS; \
+                work->light.m[loopIndex][column] = (work->light.m[loopIndex][column] * FADE_NUMERATOR) >> FADE_FRACTION_BITS; \
+            }                                                                                                                 \
+        }                                                                                                                     \
     } while (0)
 
     model = task->extra.tmd;
@@ -1987,7 +1987,7 @@ static void _helicopterDepartureTickNo9Golem(Enemy* enemy, Task* task)
         }
     }
     // Refresh lighting at body part 1, then project its ground-shadow centre.
-    if (work->animId < HELICOPTER_DEPARTURE_GOLEM_FIRST_EXIT_CLIP) {
+    if (work->animId < FIRST_EXIT_CLIP) {
         sampleCoord->composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(sampleCoord);
         worldPosition->vx = sampleCoord->workm.t[0];
@@ -1999,15 +1999,15 @@ static void _helicopterDepartureTickNo9Golem(Enemy* enemy, Task* task)
         worldPosition->vz = sampleCoord->workm.t[2];
         groundPoint       = worldPosition + 1;
         if (worldCollisionProjectGroundPoint((VECTOR3*)worldPosition, (VECTOR3*)groundPoint) != 0) {
-            effectDrawGroundShadow((VECTOR3*)groundPoint, HELICOPTER_DEPARTURE_GOLEM_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
+            effectDrawGroundShadow((VECTOR3*)groundPoint, SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
     } else {
-        if ((s16)(work->animTicks % HELICOPTER_DEPARTURE_GOLEM_FADE_PERIOD_TICKS) == 0) {
-            HELICOPTER_DEPARTURE_FADE_GOLEM_LIGHTING();
-#undef HELICOPTER_DEPARTURE_FADE_GOLEM_LIGHTING
+        if ((s16)(work->animTicks % FADE_PERIOD_TICKS) == 0) {
+            FADE_GOLEM_LIGHTING();
+#undef FADE_GOLEM_LIGHTING
         }
-        if (work->animTicks > HELICOPTER_DEPARTURE_GOLEM_LAST_EXIT_TICK) {
-            task->state = HELICOPTER_DEPARTURE_GOLEM_DESTROY_STATE;
+        if (work->animTicks > LAST_EXIT_TICK) {
+            task->state = DESTROY_STATE;
         }
     }
     work->animTicks++;
@@ -2039,8 +2039,8 @@ static void _helicopterDepartureNo9GolemTask(Task* task)
 /// ID and second payload are ignored; returns 0.
 static s32 _helicopterDeparturePlayNo9GolemAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg)
 {
-    _HelicopterDepartureNo9GolemWork* work;
-    s32                               slotIndex;
+    _No9GolemWork* work;
+    s32            slotIndex;
 
     work         = task->work;
     work->animId = request->animationId;
@@ -2064,17 +2064,17 @@ static s32 _helicopterDeparturePlayNo9GolemAnimation(Task* task, s32 messageId, 
 /// ignored; returns 0.
 static s32 _helicopterDepartureSetNo9GolemModelDraw(Task* task, s32 messageId, s32 drawFlags, s32 unusedArg)
 {
-    enum { HELICOPTER_DEPARTURE_GOLEM_DRAW_SHOW             = 1 << 0,
-           HELICOPTER_DEPARTURE_GOLEM_DRAW_SKIP_AUTO_BUFFER = 1 << 1 };
+    enum { SHOW             = 1 << 0,
+           SKIP_AUTO_BUFFER = 1 << 1 };
     TmdObject* model;
 
     model = task->extra.tmd;
-    if (!(drawFlags & HELICOPTER_DEPARTURE_GOLEM_DRAW_SHOW)) {
+    if (!(drawFlags & SHOW)) {
         model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         model->flags = 0;
     }
-    if (drawFlags & HELICOPTER_DEPARTURE_GOLEM_DRAW_SKIP_AUTO_BUFFER) {
+    if (drawFlags & SKIP_AUTO_BUFFER) {
         task->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     return 0;
@@ -2096,7 +2096,7 @@ static void _helicopterDepartureNo9GolemPart8Task(Task* task)
 /// Attaches the No. 9 golem's part-8 model and shows it with the body's lighting.
 ///
 /// The task's existing parent must own the live nineteen-part TMD body and
-/// its `_HelicopterDepartureNo9GolemWork`. Borrows coordinate 8 and both work matrices,
+/// its `_No9GolemWork`. Borrows coordinate 8 and both work matrices,
 /// retains the child's local transform and advances from state 0 to 1.
 /// Parent coordinate and work storage must outlive the child. The enemy callback
 /// argument is unused; task parenting was established by the spawner.
@@ -2104,11 +2104,11 @@ static void _helicopterDepartureAttachNo9GolemPart8Model(Enemy* enemy, Task* tas
 {
     enum { PARENT_PART  = 8,
            UPDATE_STATE = 1 };
-    Task*                             parentTask;
-    TmdObject*                        model;
-    _HelicopterDepartureNo9GolemWork* parentWork;
-    GfxCoord*                         root;
-    GfxCoord*                         parentCoords;
+    Task*          parentTask;
+    TmdObject*     model;
+    _No9GolemWork* parentWork;
+    GfxCoord*      root;
+    GfxCoord*      parentCoords;
 
     parentTask   = task->parent;
     model        = task->extra.tmd;
@@ -2149,7 +2149,7 @@ static void _helicopterDepartureNo9GolemPart3Task(Task* task)
 /// Attaches the No. 9 golem's part-3 model and shows it with the body's lighting.
 ///
 /// The task's existing parent must own the live nineteen-part TMD body and
-/// its `_HelicopterDepartureNo9GolemWork`. Borrows coordinate 3 and both work matrices,
+/// its `_No9GolemWork`. Borrows coordinate 3 and both work matrices,
 /// retains the child's local transform and advances from state 0 to 1.
 /// Parent coordinate and work storage must outlive the child. The enemy callback
 /// argument is unused; task parenting was established by the spawner.
@@ -2157,11 +2157,11 @@ static void _helicopterDepartureAttachNo9GolemPart3Model(Enemy* enemy, Task* tas
 {
     enum { PARENT_PART  = 3,
            UPDATE_STATE = 1 };
-    Task*                             parentTask;
-    TmdObject*                        model;
-    _HelicopterDepartureNo9GolemWork* parentWork;
-    GfxCoord*                         root;
-    GfxCoord*                         parentCoords;
+    Task*          parentTask;
+    TmdObject*     model;
+    _No9GolemWork* parentWork;
+    GfxCoord*      root;
+    GfxCoord*      parentCoords;
 
     parentTask   = task->parent;
     model        = task->extra.tmd;
@@ -2202,19 +2202,19 @@ static void _helicopterDepartureNo9GolemPart12Task(Task* task)
 /// Attaches the No. 9 golem's part-12 model with the body's lighting.
 ///
 /// The task's existing parent must own a live nineteen-part TMD body and its
-/// `_HelicopterDepartureNo9GolemWork`. Borrows coordinate 12 and both work matrices,
+/// `_No9GolemWork`. Borrows coordinate 12 and both work matrices,
 /// retains the child's local transform, clears its model flags and advances
 /// from state 0 to 1. Parent coordinate and work storage must outlive the child.
 /// The enemy callback argument is unused; the spawner established task parenting.
 static void _helicopterDepartureAttachNo9GolemPart12Model(Enemy* enemy, Task* task)
 {
-    enum { HELICOPTER_DEPARTURE_GOLEM_PARENT_PART  = 12,
-           HELICOPTER_DEPARTURE_GOLEM_UPDATE_STATE = 1 };
-    Task*                             parentTask;
-    TmdObject*                        model;
-    _HelicopterDepartureNo9GolemWork* parentWork;
-    GfxCoord*                         root;
-    GfxCoord*                         parentCoords;
+    enum { GOLEM_PARENT_PART  = 12,
+           GOLEM_UPDATE_STATE = 1 };
+    Task*          parentTask;
+    TmdObject*     model;
+    _No9GolemWork* parentWork;
+    GfxCoord*      root;
+    GfxCoord*      parentCoords;
 
     parentTask   = task->parent;
     model        = task->extra.tmd;
@@ -2222,11 +2222,11 @@ static void _helicopterDepartureAttachNo9GolemPart12Model(Enemy* enemy, Task* ta
     root         = model->coords;
     parentWork   = parentTask->work;
 
-    root->parent    = &parentCoords[HELICOPTER_DEPARTURE_GOLEM_PARENT_PART];
+    root->parent    = &parentCoords[GOLEM_PARENT_PART];
     model->lightMtx = &parentWork->light;
     model->flags    = 0;
     model->colorMtx = &parentWork->color;
-    task->state     = HELICOPTER_DEPARTURE_GOLEM_UPDATE_STATE;
+    task->state     = GOLEM_UPDATE_STATE;
 }
 
 /// Invalidates and composes the golem's part-12 attachment transform each tick.

@@ -52,23 +52,23 @@
 
 /// Packed flame spawn options and the frame counts of the actor's particle tasks.
 enum {
-    HELICOPTER_LANDING_PAD_NO_9_PARTICLE_INITIAL       = 0,
-    HELICOPTER_LANDING_PAD_NO_9_FLAME_SCALE_MASK       = 0xFFF,
-    HELICOPTER_LANDING_PAD_NO_9_FLAME_RANDOM_MOTION    = 0x10000,
-    HELICOPTER_LANDING_PAD_NO_9_FLAME_DEFAULT_SCALE    = 0x200,
-    HELICOPTER_LANDING_PAD_NO_9_FLAME_MOTION_RANGE     = 48,
-    HELICOPTER_LANDING_PAD_NO_9_FLAME_45_CELL_COUNT    = 6,
-    HELICOPTER_LANDING_PAD_NO_9_FLAME_45_LAST_AGE_MASK = 0xF,
-    HELICOPTER_LANDING_PAD_NO_9_FLAME_FADE_FRAMES      = 8,
-    HELICOPTER_LANDING_PAD_NO_9_FLAME_FADE_STEP        = 16,
-    HELICOPTER_LANDING_PAD_NO_9_FLAME_FULL_BRIGHTNESS  = 0x80,
-    HELICOPTER_LANDING_PAD_NO_9_FLAME_4C_FRAMES        = 8,
-    HELICOPTER_LANDING_PAD_NO_9_FLAME_52_FRAMES        = 12,
-    HELICOPTER_LANDING_PAD_NO_9_FLAME_59_FRAMES        = 8,
-    HELICOPTER_LANDING_PAD_NO_9_DEBRIS_SHORT_TIER      = 1,
-    HELICOPTER_LANDING_PAD_NO_9_DEBRIS_LONG_TIER       = 2,
-    HELICOPTER_LANDING_PAD_NO_9_DEBRIS_GRAVITY         = 6,
-    HELICOPTER_LANDING_PAD_NO_9_DEBRIS_FRAMES_PER_TIER = 16,
+    PARTICLE_INITIAL       = 0,
+    FLAME_SCALE_MASK       = 0xFFF,
+    FLAME_RANDOM_MOTION    = 0x10000,
+    FLAME_DEFAULT_SCALE    = 0x200,
+    FLAME_MOTION_RANGE     = 48,
+    FLAME_45_CELL_COUNT    = 6,
+    FLAME_45_LAST_AGE_MASK = 0xF,
+    FLAME_FADE_FRAMES      = 8,
+    FLAME_FADE_STEP        = 16,
+    FLAME_FULL_BRIGHTNESS  = 0x80,
+    FLAME_4C_FRAMES        = 8,
+    FLAME_52_FRAMES        = 12,
+    FLAME_59_FRAMES        = 8,
+    DEBRIS_SHORT_TIER      = 1,
+    DEBRIS_LONG_TIER       = 2,
+    DEBRIS_GRAVITY         = 6,
+    DEBRIS_FRAMES_PER_TIER = 16,
 };
 
 /// Scratch-stack block one frame's segment of a debris streak is drawn from.
@@ -91,8 +91,8 @@ typedef struct {
     s32     depths[2];          // SZ3 / 4 of each end, stored once that end's projection is accepted; their mean is the ordering and blend depth
     s32     projectionFlags;    // Latest GTE FLAG word; bit 31 makes it negative and drops the segment
     DVECTOR screenEndpoints[2]; // Signed screen X/Y pixels, written together as one GTE word per end
-} _HelicopterLandingPadNo9DebrisStreakScratch;
-STATIC_ASSERT_SIZEOF(_HelicopterLandingPadNo9DebrisStreakScratch, 0x24);
+} _DebrisStreakScratch;
+STATIC_ASSERT_SIZEOF(_DebrisStreakScratch, 0x24);
 
 /// VRAM coordinates of one palette for actor 510900's explosion fireball.
 ///
@@ -102,8 +102,8 @@ STATIC_ASSERT_SIZEOF(_HelicopterLandingPadNo9DebrisStreakScratch, 0x24);
 typedef struct {
     u16 clutX; // Palette X in VRAM words, aligned to 16 words.
     u16 clutY; // Palette Y in VRAM scanlines.
-} _HelicopterLandingPadNo9SpritePalette;
-STATIC_ASSERT_SIZEOF(_HelicopterLandingPadNo9SpritePalette, 4);
+} _SpritePalette;
+STATIC_ASSERT_SIZEOF(_SpritePalette, 4);
 
 /// Twelve fireball palettes, one per frame of `gEffectSpriteAtlasFrames`.
 ///
@@ -111,7 +111,7 @@ STATIC_ASSERT_SIZEOF(_HelicopterLandingPadNo9SpritePalette, 4);
 /// 16 words, one 16-colour palette per atlas frame. The fireball drawer in
 /// this file is the only reader. The table stays in initialized data so that
 /// drawer can address it at its image offset.
-static const _HelicopterLandingPadNo9SpritePalette _gHelicopterLandingPadNo9FireballFramePalettes[12] __attribute__((section(".data"))) = {
+static const _SpritePalette _gHelicopterLandingPadNo9FireballFramePalettes[12] __attribute__((section(".data"))) = {
     { 80, 270 },
     { 96, 270 },
     { 112, 270 },
@@ -1022,33 +1022,33 @@ DamageAttack gHelicopterLandingPadNo9Attacks[6] = {
 /// and Z is zero. Advances the shared LCG twice: the first draw selects X and the
 /// second is left in gRandomLcgState for the following spawn's size. The block
 /// retains no pointer and leaves the vector pad untouched.
-#define HELICOPTER_LANDING_PAD_NO_9_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, horizontalRange, verticalStep)            \
-    {                                                                                                                     \
-        enum { HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_MIN_X_SPEED = 128 };                                                 \
-        RANDOM_LCG_ADVANCE();                                                                                             \
-        (effect)->move.vx = -(RANDOM_LCG_DRAW() % (horizontalRange)) - HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_MIN_X_SPEED; \
-        (effect)->move.vy = (verticalStep);                                                                               \
-        (effect)->move.vz = 0;                                                                                            \
-        RANDOM_LCG_ADVANCE();                                                                                             \
+#define PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, horizontalRange, verticalStep)            \
+    {                                                                                         \
+        enum { FLAME_JET_MIN_X_SPEED = 128 };                                                 \
+        RANDOM_LCG_ADVANCE();                                                                 \
+        (effect)->move.vx = -(RANDOM_LCG_DRAW() % (horizontalRange)) - FLAME_JET_MIN_X_SPEED; \
+        (effect)->move.vy = (verticalStep);                                                   \
+        (effect)->move.vz = 0;                                                                \
+        RANDOM_LCG_ADVANCE();                                                                 \
     }
 
 void helicopterLandingPadNo9FlameJetTask(Task* task)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_LIGHT_SLOT            = 2,
-        HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_ACTIVE                = 1,
-        HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_RANDOM_SIZE_MASK      = 0xF0,
-        HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_LIGHT_RED             = ONE,
-        HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_LIGHT_GREEN           = ONE / 2,
-        HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_LIGHT_BLUE            = ONE / 4,
-        HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_LIGHT_CONTRACTION     = 400,
-        HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_LIGHT_FRAMES          = 16,
-        HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_INNER_RADIUS          = 8000,
-        HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_OUTER_RADIUS          = 10000,
-        HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_FULL_SCALE            = 256,
-        HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_SCALE_STEP            = 16,
-        HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_DYING_FLAME_FRAMES    = 30,
-        HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_DYING_PARTICLE_FRAMES = 60,
+        LIGHT_SLOT            = 2,
+        ACTIVE                = 1,
+        RANDOM_SIZE_MASK      = 0xF0,
+        LIGHT_RED             = ONE,
+        LIGHT_GREEN           = ONE / 2,
+        LIGHT_BLUE            = ONE / 4,
+        LIGHT_CONTRACTION     = 400,
+        LIGHT_FRAMES          = 16,
+        INNER_RADIUS          = 8000,
+        OUTER_RADIUS          = 10000,
+        FULL_SCALE            = 256,
+        SCALE_STEP            = 16,
+        DYING_FLAME_FRAMES    = 30,
+        DYING_PARTICLE_FRAMES = 60,
     };
 
     EffectWork*                    effect;
@@ -1062,7 +1062,7 @@ void helicopterLandingPadNo9FlameJetTask(Task* task)
 
     effect     = task->spawnArg2.pointer;
     coord      = task->extra.coordBody->coord;
-    lightSlot  = &gWorldCoordTransientPointLights[HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_LIGHT_SLOT];
+    lightSlot  = &gWorldCoordTransientPointLights[LIGHT_SLOT];
     pointLight = &lightSlot->light;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -1073,7 +1073,7 @@ void helicopterLandingPadNo9FlameJetTask(Task* task)
         }
         return;
     }
-    if (task->state == HELICOPTER_LANDING_PAD_NO_9_PARTICLE_INITIAL) {
+    if (task->state == PARTICLE_INITIAL) {
         coord->parent = effect->parent;
         gfxSetRotIdentity(&coord->coord);
         coord->coord.t[0]   = effect->pos.vx;
@@ -1081,16 +1081,16 @@ void helicopterLandingPadNo9FlameJetTask(Task* task)
         localZ              = effect->pos.vz;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         coord->coord.t[2]   = localZ;
-        task->state         = HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_ACTIVE;
+        task->state         = ACTIVE;
     }
     actorRenderComposeCoord(coord);
     // The emitter also counts down slot 2 and contracts its full-strength radius.
     if (lightSlot->framesLeft != WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE) {
-        pointLight->head.color.r = HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_LIGHT_RED;
-        pointLight->head.color.g = HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_LIGHT_GREEN;
-        pointLight->head.color.b = HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_LIGHT_BLUE;
-        if (pointLight->inner > HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_LIGHT_CONTRACTION) {
-            pointLight->inner -= HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_LIGHT_CONTRACTION;
+        pointLight->head.color.r = LIGHT_RED;
+        pointLight->head.color.g = LIGHT_GREEN;
+        pointLight->head.color.b = LIGHT_BLUE;
+        if (pointLight->inner > LIGHT_CONTRACTION) {
+            pointLight->inner -= LIGHT_CONTRACTION;
         }
         lightSlot->framesLeft--;
         gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &lightSlot->light.head.transform.coord.coord);
@@ -1106,23 +1106,23 @@ void helicopterLandingPadNo9FlameJetTask(Task* task)
         case HELICOPTER_LANDING_PAD_NO_9_FLAME_OFF:
             break;
         case HELICOPTER_LANDING_PAD_NO_9_FLAME_BURNING:
-            effect->scale = (effect->scale < HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_FULL_SCALE) ? effect->scale + HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_SCALE_STEP : HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_FULL_SCALE;
+            effect->scale = (effect->scale < FULL_SCALE) ? effect->scale + SCALE_STEP : FULL_SCALE;
             for (particleIndex = 0; particleIndex < 2; particleIndex++) {
-                HELICOPTER_LANDING_PAD_NO_9_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x2C0, 0x40);
-                particle = effectSpawn(EFFECT_NO9_GOLEM_FLAME, coord, (RANDOM_LCG_DRAW() & HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_RANDOM_SIZE_MASK) + effect->scale, &effect->move);
+                PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x2C0, 0x40);
+                particle = effectSpawn(EFFECT_NO9_GOLEM_FLAME, coord, (RANDOM_LCG_DRAW() & RANDOM_SIZE_MASK) + effect->scale, &effect->move);
                 if (particle != NULL) {
                     taskReparent(task, particle->task);
                 }
             }
-            lightSlot->framesLeft = HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_LIGHT_FRAMES;
-            pointLight->inner     = HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_INNER_RADIUS;
-            pointLight->outer     = HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_OUTER_RADIUS;
+            lightSlot->framesLeft = LIGHT_FRAMES;
+            pointLight->inner     = INNER_RADIUS;
+            pointLight->outer     = OUTER_RADIUS;
             RANDOM_LCG_ADVANCE();
             randomBits = RANDOM_LCG_DRAW();
             // Keep scale plus the motion flag grouped before adding random size.
             if (!(randomBits & 3)) {
-                HELICOPTER_LANDING_PAD_NO_9_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0x40);
-                particle = effectSpawn(EFFECT_NO9_GOLEM_FLAME, coord, (RANDOM_LCG_DRAW() & HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_RANDOM_SIZE_MASK) + ({ effect->scale + HELICOPTER_LANDING_PAD_NO_9_FLAME_RANDOM_MOTION; }),
+                PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0x40);
+                particle = effectSpawn(EFFECT_NO9_GOLEM_FLAME, coord, (RANDOM_LCG_DRAW() & RANDOM_SIZE_MASK) + ({ effect->scale + FLAME_RANDOM_MOTION; }),
                                        &effect->move);
                 if (particle != NULL) {
                     taskReparent(task, particle->task);
@@ -1130,8 +1130,8 @@ void helicopterLandingPadNo9FlameJetTask(Task* task)
             }
             randomBits >>= 1;
             if (!(randomBits & 3)) {
-                HELICOPTER_LANDING_PAD_NO_9_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0);
-                particle = effectSpawn(EFFECT_04C, coord, (RANDOM_LCG_DRAW() & HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_RANDOM_SIZE_MASK) + ({ effect->scale + HELICOPTER_LANDING_PAD_NO_9_FLAME_RANDOM_MOTION; }),
+                PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0);
+                particle = effectSpawn(EFFECT_04C, coord, (RANDOM_LCG_DRAW() & RANDOM_SIZE_MASK) + ({ effect->scale + FLAME_RANDOM_MOTION; }),
                                        &effect->move);
                 if (particle != NULL) {
                     taskReparent(task, particle->task);
@@ -1139,36 +1139,36 @@ void helicopterLandingPadNo9FlameJetTask(Task* task)
             }
             randomBits >>= 1;
             if (!(randomBits & 3)) {
-                HELICOPTER_LANDING_PAD_NO_9_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0);
-                particle = effectSpawn(EFFECT_NO9_FLAME_SPRITE, coord, (RANDOM_LCG_DRAW() & HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_RANDOM_SIZE_MASK) + effect->scale, &effect->move);
+                PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0);
+                particle = effectSpawn(EFFECT_NO9_FLAME_SPRITE, coord, (RANDOM_LCG_DRAW() & RANDOM_SIZE_MASK) + effect->scale, &effect->move);
                 if (particle != NULL) {
                     taskReparent(task, particle->task);
                 }
             }
             randomBits >>= 1;
             if (randomBits % 3 == 0) {
-                HELICOPTER_LANDING_PAD_NO_9_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0x80);
-                particle = effectSpawn(EFFECT_NO9_FLAME_SPRITE, coord, (RANDOM_LCG_DRAW() & HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_RANDOM_SIZE_MASK) + (HELICOPTER_LANDING_PAD_NO_9_FLAME_RANDOM_MOTION | 0x80), &effect->move);
+                PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0x80);
+                particle = effectSpawn(EFFECT_NO9_FLAME_SPRITE, coord, (RANDOM_LCG_DRAW() & RANDOM_SIZE_MASK) + (FLAME_RANDOM_MOTION | 0x80), &effect->move);
                 if (particle != NULL) {
                     taskReparent(task, particle->task);
                 }
             }
             randomBits >>= 1;
             if (!(randomBits & 3)) {
-                HELICOPTER_LANDING_PAD_NO_9_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, -0x80);
-                particle = effectSpawn(EFFECT_NO9_GUNFIRE_PARTICLE, coord, (RANDOM_LCG_DRAW() & HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_RANDOM_SIZE_MASK) + 0x180, &effect->move);
+                PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, -0x80);
+                particle = effectSpawn(EFFECT_NO9_GUNFIRE_PARTICLE, coord, (RANDOM_LCG_DRAW() & RANDOM_SIZE_MASK) + 0x180, &effect->move);
                 if (particle != NULL) {
                     taskReparent(task, particle->task);
                 }
             }
             break;
         case HELICOPTER_LANDING_PAD_NO_9_FLAME_BLAST:
-            lightSlot->framesLeft = HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_LIGHT_FRAMES;
-            pointLight->inner     = HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_INNER_RADIUS;
-            pointLight->outer     = HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_OUTER_RADIUS;
+            lightSlot->framesLeft = LIGHT_FRAMES;
+            pointLight->inner     = INNER_RADIUS;
+            pointLight->outer     = OUTER_RADIUS;
             for (particleIndex = 0; particleIndex < 3; particleIndex++) {
-                HELICOPTER_LANDING_PAD_NO_9_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0x40);
-                particle = effectSpawn(EFFECT_NO9_GOLEM_FLAME, coord, (RANDOM_LCG_DRAW() & HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_RANDOM_SIZE_MASK) | (HELICOPTER_LANDING_PAD_NO_9_FLAME_RANDOM_MOTION | 0x100), &effect->move);
+                PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0x40);
+                particle = effectSpawn(EFFECT_NO9_GOLEM_FLAME, coord, (RANDOM_LCG_DRAW() & RANDOM_SIZE_MASK) | (FLAME_RANDOM_MOTION | 0x100), &effect->move);
                 if (particle != NULL) {
                     taskReparent(task, particle->task);
                 }
@@ -1176,24 +1176,24 @@ void helicopterLandingPadNo9FlameJetTask(Task* task)
             RANDOM_LCG_ADVANCE();
             randomBits = RANDOM_LCG_DRAW();
             if (!(randomBits & 7)) {
-                HELICOPTER_LANDING_PAD_NO_9_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0);
-                particle = effectSpawn(EFFECT_NO9_FLAME_SPRITE, coord, (RANDOM_LCG_DRAW() & HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_RANDOM_SIZE_MASK) | 0x100, &effect->move);
+                PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0);
+                particle = effectSpawn(EFFECT_NO9_FLAME_SPRITE, coord, (RANDOM_LCG_DRAW() & RANDOM_SIZE_MASK) | 0x100, &effect->move);
                 if (particle != NULL) {
                     taskReparent(task, particle->task);
                 }
             }
             randomBits >>= 1;
             if (!(randomBits & 3)) {
-                HELICOPTER_LANDING_PAD_NO_9_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0x80);
-                particle = effectSpawn(EFFECT_NO9_FLAME_SPRITE, coord, (RANDOM_LCG_DRAW() & HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_RANDOM_SIZE_MASK) + (HELICOPTER_LANDING_PAD_NO_9_FLAME_RANDOM_MOTION | 0x80), &effect->move);
+                PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0x80);
+                particle = effectSpawn(EFFECT_NO9_FLAME_SPRITE, coord, (RANDOM_LCG_DRAW() & RANDOM_SIZE_MASK) + (FLAME_RANDOM_MOTION | 0x80), &effect->move);
                 if (particle != NULL) {
                     taskReparent(task, particle->task);
                 }
             }
             randomBits >>= 1;
             if (!(randomBits & 7)) {
-                HELICOPTER_LANDING_PAD_NO_9_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, -0x80);
-                particle = effectSpawn(EFFECT_NO9_GUNFIRE_PARTICLE, coord, (RANDOM_LCG_DRAW() & HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_RANDOM_SIZE_MASK) + 0x180, &effect->move);
+                PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, -0x80);
+                particle = effectSpawn(EFFECT_NO9_GUNFIRE_PARTICLE, coord, (RANDOM_LCG_DRAW() & RANDOM_SIZE_MASK) + 0x180, &effect->move);
                 if (particle != NULL) {
                     taskReparent(task, particle->task);
                 }
@@ -1203,61 +1203,61 @@ void helicopterLandingPadNo9FlameJetTask(Task* task)
             RANDOM_LCG_ADVANCE();
             randomBits = RANDOM_LCG_DRAW();
             effect->age++;
-            if (effect->age < HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_DYING_FLAME_FRAMES) {
+            if (effect->age < DYING_FLAME_FRAMES) {
                 if (!(randomBits & 7)) {
-                    HELICOPTER_LANDING_PAD_NO_9_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x2C0, 0x40);
-                    particle = effectSpawn(EFFECT_NO9_GOLEM_FLAME, coord, (RANDOM_LCG_DRAW() & HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_RANDOM_SIZE_MASK) + 0x80, &effect->move);
+                    PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x2C0, 0x40);
+                    particle = effectSpawn(EFFECT_NO9_GOLEM_FLAME, coord, (RANDOM_LCG_DRAW() & RANDOM_SIZE_MASK) + 0x80, &effect->move);
                     if (particle != NULL) {
                         taskReparent(task, particle->task);
                     }
                 }
                 randomBits >>= 1;
                 if (!(randomBits & 3)) {
-                    HELICOPTER_LANDING_PAD_NO_9_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0x40);
-                    particle = effectSpawn(EFFECT_NO9_GOLEM_FLAME, coord, (RANDOM_LCG_DRAW() & HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_RANDOM_SIZE_MASK) + (HELICOPTER_LANDING_PAD_NO_9_FLAME_RANDOM_MOTION | 0x80), &effect->move);
+                    PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0x40);
+                    particle = effectSpawn(EFFECT_NO9_GOLEM_FLAME, coord, (RANDOM_LCG_DRAW() & RANDOM_SIZE_MASK) + (FLAME_RANDOM_MOTION | 0x80), &effect->move);
                     if (particle != NULL) {
                         taskReparent(task, particle->task);
                     }
                 }
                 for (particleIndex = 0; particleIndex < 2; particleIndex++) {
-                    HELICOPTER_LANDING_PAD_NO_9_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0);
-                    particle = effectSpawn(EFFECT_04C, coord, (RANDOM_LCG_DRAW() & HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_RANDOM_SIZE_MASK) | (HELICOPTER_LANDING_PAD_NO_9_FLAME_RANDOM_MOTION | 0x100), &effect->move);
+                    PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0);
+                    particle = effectSpawn(EFFECT_04C, coord, (RANDOM_LCG_DRAW() & RANDOM_SIZE_MASK) | (FLAME_RANDOM_MOTION | 0x100), &effect->move);
                     if (particle != NULL) {
                         taskReparent(task, particle->task);
                     }
                 }
                 randomBits >>= 1;
                 if (!(randomBits & 7)) {
-                    HELICOPTER_LANDING_PAD_NO_9_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0);
-                    particle = effectSpawn(EFFECT_NO9_FLAME_SPRITE, coord, (RANDOM_LCG_DRAW() & HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_RANDOM_SIZE_MASK) | 0x100, &effect->move);
+                    PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0);
+                    particle = effectSpawn(EFFECT_NO9_FLAME_SPRITE, coord, (RANDOM_LCG_DRAW() & RANDOM_SIZE_MASK) | 0x100, &effect->move);
                     if (particle != NULL) {
                         taskReparent(task, particle->task);
                     }
                 }
                 randomBits >>= 1;
                 if (!(randomBits & 7)) {
-                    HELICOPTER_LANDING_PAD_NO_9_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0x80);
-                    particle = effectSpawn(EFFECT_NO9_FLAME_SPRITE, coord, (RANDOM_LCG_DRAW() & HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_RANDOM_SIZE_MASK) + (HELICOPTER_LANDING_PAD_NO_9_FLAME_RANDOM_MOTION | 0x80), &effect->move);
+                    PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0x80);
+                    particle = effectSpawn(EFFECT_NO9_FLAME_SPRITE, coord, (RANDOM_LCG_DRAW() & RANDOM_SIZE_MASK) + (FLAME_RANDOM_MOTION | 0x80), &effect->move);
                     if (particle != NULL) {
                         taskReparent(task, particle->task);
                     }
                 }
                 for (particleIndex = 0; particleIndex < 2; particleIndex++) {
-                    HELICOPTER_LANDING_PAD_NO_9_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, -0x80);
-                    particle = effectSpawn(EFFECT_NO9_GUNFIRE_PARTICLE, coord, (RANDOM_LCG_DRAW() & HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_RANDOM_SIZE_MASK) + 0x180, &effect->move);
+                    PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, -0x80);
+                    particle = effectSpawn(EFFECT_NO9_GUNFIRE_PARTICLE, coord, (RANDOM_LCG_DRAW() & RANDOM_SIZE_MASK) + 0x180, &effect->move);
                     if (particle != NULL) {
                         taskReparent(task, particle->task);
                     }
                 }
-                lightSlot->framesLeft = HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_LIGHT_FRAMES;
-                pointLight->inner     = HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_INNER_RADIUS;
-                pointLight->outer     = HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_OUTER_RADIUS;
-            } else if (effect->age < HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_DYING_PARTICLE_FRAMES) {
+                lightSlot->framesLeft = LIGHT_FRAMES;
+                pointLight->inner     = INNER_RADIUS;
+                pointLight->outer     = OUTER_RADIUS;
+            } else if (effect->age < DYING_PARTICLE_FRAMES) {
                 lightSlot->framesLeft = 2;
-                pointLight->inner     = HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_LIGHT_CONTRACTION;
-                pointLight->outer     = HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_LIGHT_CONTRACTION;
-                HELICOPTER_LANDING_PAD_NO_9_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0x80);
-                particle = effectSpawn(EFFECT_NO9_GUNFIRE_PARTICLE, coord, (RANDOM_LCG_DRAW() & HELICOPTER_LANDING_PAD_NO_9_FLAME_JET_RANDOM_SIZE_MASK) | 0x100, &effect->move);
+                pointLight->inner     = LIGHT_CONTRACTION;
+                pointLight->outer     = LIGHT_CONTRACTION;
+                PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0x80);
+                particle = effectSpawn(EFFECT_NO9_GUNFIRE_PARTICLE, coord, (RANDOM_LCG_DRAW() & RANDOM_SIZE_MASK) | 0x100, &effect->move);
                 if (particle != NULL) {
                     taskReparent(task, particle->task);
                 }
@@ -1269,7 +1269,7 @@ void helicopterLandingPadNo9FlameJetTask(Task* task)
     }
 }
 
-#undef HELICOPTER_LANDING_PAD_NO_9_PREPARE_FLAME_JET_PARTICLE_VELOCITY
+#undef PREPARE_FLAME_JET_PARTICLE_VELOCITY
 
 void helicopterLandingPadNo9FlameSpriteTask45(Task* task)
 {
@@ -1297,15 +1297,15 @@ void helicopterLandingPadNo9FlameSpriteTask45(Task* task)
 /// the composed translation is consumed; this helper does not initialize a basis
 /// or query a collision floor. It retains no caller-owned storage.
 /// Statement-only GNU expression; its value is not part of the interface.
-#define HELICOPTER_LANDING_PAD_NO_9_DRAW_FLAME_GROUND_GLOW(flameCoord, groundCoord, flameEffect, brightness) \
-    ({                                                                                                       \
-        (groundCoord).parent       = (flameCoord)->parent;                                                   \
-        (groundCoord).coord.t[0]   = (flameCoord)->coord.t[0];                                               \
-        (groundCoord).coord.t[1]   = 0;                                                                      \
-        (groundCoord).coord.t[2]   = (flameCoord)->coord.t[2];                                               \
-        (groundCoord).composeStamp = GRAPHICS_COORD_DIRTY;                                                   \
-        actorRenderComposeCoord(&(groundCoord));                                                             \
-        effectDrawGroundGlow(&(groundCoord), (flameEffect)->scale >> 1, (brightness));                       \
+#define DRAW_FLAME_GROUND_GLOW(flameCoord, groundCoord, flameEffect, brightness)       \
+    ({                                                                                 \
+        (groundCoord).parent       = (flameCoord)->parent;                             \
+        (groundCoord).coord.t[0]   = (flameCoord)->coord.t[0];                         \
+        (groundCoord).coord.t[1]   = 0;                                                \
+        (groundCoord).coord.t[2]   = (flameCoord)->coord.t[2];                         \
+        (groundCoord).composeStamp = GRAPHICS_COORD_DIRTY;                             \
+        actorRenderComposeCoord(&(groundCoord));                                       \
+        effectDrawGroundGlow(&(groundCoord), (flameEffect)->scale >> 1, (brightness)); \
     })
 
     effect        = task->spawnArg2.pointer;
@@ -1337,18 +1337,18 @@ void helicopterLandingPadNo9FlameSpriteTask45(Task* task)
             sprite         = gGpuPrimCursor;
             gGpuPrimCursor = sprite + 1;
             setPolyFT4(sprite);
-            if (task->state == HELICOPTER_LANDING_PAD_NO_9_PARTICLE_INITIAL) {
-                effect->scale = (u16)task->spawnArg1.value & HELICOPTER_LANDING_PAD_NO_9_FLAME_SCALE_MASK;
+            if (task->state == PARTICLE_INITIAL) {
+                effect->scale = (u16)task->spawnArg1.value & FLAME_SCALE_MASK;
                 RANDOM_LCG_ADVANCE();
-                effect->angle = RANDOM_LCG_DRAW() & HELICOPTER_LANDING_PAD_NO_9_FLAME_45_LAST_AGE_MASK;
-                if (task->spawnArg1.value & HELICOPTER_LANDING_PAD_NO_9_FLAME_RANDOM_MOTION) {
+                effect->angle = RANDOM_LCG_DRAW() & FLAME_45_LAST_AGE_MASK;
+                if (task->spawnArg1.value & FLAME_RANDOM_MOTION) {
                     RANDOM_LCG_ADVANCE();
-                    effect->period = RANDOM_LCG_DRAW() % HELICOPTER_LANDING_PAD_NO_9_FLAME_MOTION_RANGE;
+                    effect->period = RANDOM_LCG_DRAW() % FLAME_MOTION_RANGE;
                 }
                 task->state++;
             }
             // Raw texture colour gives way to modulation for the last eight frames.
-            if (effect->angle - HELICOPTER_LANDING_PAD_NO_9_FLAME_FADE_FRAMES < effect->age) {
+            if (effect->angle - FLAME_FADE_FRAMES < effect->age) {
                 framesLeft = effect->angle - effect->age + 1;
                 // Fitted: the image masks the glow argument with 0xFF, so the
                 // product reached glowBrightness through a join of two
@@ -1356,28 +1356,28 @@ void helicopterLandingPadNo9FlameSpriteTask45(Task* task)
                 // instruction. What was tested, and whether the two sides
                 // differed in the source, is unknown; this test is a stand-in.
                 if (framesLeft > 0) {
-                    fadeBrightness = framesLeft * HELICOPTER_LANDING_PAD_NO_9_FLAME_FADE_STEP;
+                    fadeBrightness = framesLeft * FLAME_FADE_STEP;
                 } else {
-                    fadeBrightness = framesLeft * HELICOPTER_LANDING_PAD_NO_9_FLAME_FADE_STEP;
+                    fadeBrightness = framesLeft * FLAME_FADE_STEP;
                 }
                 glowBrightness = fadeBrightness;
                 sprite->r0     = fadeBrightness;
                 sprite->g0     = fadeBrightness;
                 sprite->b0     = fadeBrightness;
             } else {
-                glowBrightness = HELICOPTER_LANDING_PAD_NO_9_FLAME_FULL_BRIGHTNESS;
+                glowBrightness = FLAME_FULL_BRIGHTNESS;
                 setShadeTex(sprite, 1);
             }
             sprite->tpage = getTPage(0, GPU_BLEND_ADD, 704, 0);
             sprite->clut  = getClut(0, 270);
             setSemiTrans(sprite, 1);
-            sprite->u0               = (effect->age % HELICOPTER_LANDING_PAD_NO_9_FLAME_45_CELL_COUNT) * 32;
+            sprite->u0               = (effect->age % FLAME_45_CELL_COUNT) * 32;
             sprite->v0               = 0;
-            sprite->u1               = (effect->age % HELICOPTER_LANDING_PAD_NO_9_FLAME_45_CELL_COUNT) * 32 + 0x1F;
+            sprite->u1               = (effect->age % FLAME_45_CELL_COUNT) * 32 + 0x1F;
             sprite->v1               = 0;
-            sprite->u2               = (effect->age % HELICOPTER_LANDING_PAD_NO_9_FLAME_45_CELL_COUNT) * 32;
+            sprite->u2               = (effect->age % FLAME_45_CELL_COUNT) * 32;
             sprite->v2               = 0x27;
-            sprite->u3               = (effect->age % HELICOPTER_LANDING_PAD_NO_9_FLAME_45_CELL_COUNT) * 32 + 0x1F;
+            sprite->u3               = (effect->age % FLAME_45_CELL_COUNT) * 32 + 0x1F;
             sprite->v3               = 0x27;
             scratch->extent.corner.x = (effect->scale * 31) / scratch->depth;
             scratch->extent.corner.y = (effect->scale * 39) / scratch->depth;
@@ -1397,8 +1397,8 @@ void helicopterLandingPadNo9FlameSpriteTask45(Task* task)
                     sprite);
             // Every other frame, put the glow on Y=0 in the same parent frame.
             if (coord->coord.t[1] < 0 && (effect->age & 1)) {
-                HELICOPTER_LANDING_PAD_NO_9_DRAW_FLAME_GROUND_GLOW(coord, groundCoord, effect, glowBrightness);
-#undef HELICOPTER_LANDING_PAD_NO_9_DRAW_FLAME_GROUND_GLOW
+                DRAW_FLAME_GROUND_GLOW(coord, groundCoord, effect, glowBrightness);
+#undef DRAW_FLAME_GROUND_GLOW
             }
         }
         SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
@@ -1452,16 +1452,16 @@ void helicopterLandingPadNo9FlameSpriteTask4C(Task* task)
             sprite         = gGpuPrimCursor;
             gGpuPrimCursor = sprite + 1;
             setPolyFT4(sprite);
-            if (task->state == HELICOPTER_LANDING_PAD_NO_9_PARTICLE_INITIAL) {
-                if (task->spawnArg1.value & HELICOPTER_LANDING_PAD_NO_9_FLAME_SCALE_MASK) {
-                    scale = (u16)task->spawnArg1.value & HELICOPTER_LANDING_PAD_NO_9_FLAME_SCALE_MASK;
+            if (task->state == PARTICLE_INITIAL) {
+                if (task->spawnArg1.value & FLAME_SCALE_MASK) {
+                    scale = (u16)task->spawnArg1.value & FLAME_SCALE_MASK;
                 } else {
-                    scale = HELICOPTER_LANDING_PAD_NO_9_FLAME_DEFAULT_SCALE;
+                    scale = FLAME_DEFAULT_SCALE;
                 }
                 effect->scale = scale;
-                if (task->spawnArg1.value & HELICOPTER_LANDING_PAD_NO_9_FLAME_RANDOM_MOTION) {
+                if (task->spawnArg1.value & FLAME_RANDOM_MOTION) {
                     RANDOM_LCG_ADVANCE();
-                    effect->period = RANDOM_LCG_DRAW() % HELICOPTER_LANDING_PAD_NO_9_FLAME_MOTION_RANGE;
+                    effect->period = RANDOM_LCG_DRAW() % FLAME_MOTION_RANGE;
                 }
                 task->state++;
             }
@@ -1510,7 +1510,7 @@ void helicopterLandingPadNo9FlameSpriteTask4C(Task* task)
             coord->coord.t[1]  -= riseSpeed;
         }
         effect->age++;
-        if (effect->age < HELICOPTER_LANDING_PAD_NO_9_FLAME_4C_FRAMES) {
+        if (effect->age < FLAME_4C_FRAMES) {
             return;
         }
     } else if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -1552,16 +1552,16 @@ void helicopterLandingPadNo9FlameSpriteTask52(Task* task)
             sprite         = gGpuPrimCursor;
             gGpuPrimCursor = sprite + 1;
             setPolyFT4(sprite);
-            if (task->state == HELICOPTER_LANDING_PAD_NO_9_PARTICLE_INITIAL) {
-                if (task->spawnArg1.value & HELICOPTER_LANDING_PAD_NO_9_FLAME_SCALE_MASK) {
-                    scale = (u16)task->spawnArg1.value & HELICOPTER_LANDING_PAD_NO_9_FLAME_SCALE_MASK;
+            if (task->state == PARTICLE_INITIAL) {
+                if (task->spawnArg1.value & FLAME_SCALE_MASK) {
+                    scale = (u16)task->spawnArg1.value & FLAME_SCALE_MASK;
                 } else {
-                    scale = HELICOPTER_LANDING_PAD_NO_9_FLAME_DEFAULT_SCALE;
+                    scale = FLAME_DEFAULT_SCALE;
                 }
                 effect->scale = scale;
-                if (effect->period = (u16)((u32)task->spawnArg1.value >> 16) & (HELICOPTER_LANDING_PAD_NO_9_FLAME_RANDOM_MOTION >> 16)) {
+                if (effect->period = (u16)((u32)task->spawnArg1.value >> 16) & (FLAME_RANDOM_MOTION >> 16)) {
                     RANDOM_LCG_ADVANCE();
-                    effect->period = RANDOM_LCG_DRAW() % HELICOPTER_LANDING_PAD_NO_9_FLAME_MOTION_RANGE;
+                    effect->period = RANDOM_LCG_DRAW() % FLAME_MOTION_RANGE;
                 }
                 task->state++;
             }
@@ -1615,7 +1615,7 @@ void helicopterLandingPadNo9FlameSpriteTask52(Task* task)
             coord->coord.t[1]  += 0x38;
         }
         effect->age++;
-        if (effect->age < HELICOPTER_LANDING_PAD_NO_9_FLAME_52_FRAMES) {
+        if (effect->age < FLAME_52_FRAMES) {
             return;
         }
     } else if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -1657,15 +1657,15 @@ void helicopterLandingPadNo9FlameSpriteTask59(Task* task)
             sprite         = gGpuPrimCursor;
             gGpuPrimCursor = sprite + 1;
             setPolyFT4(sprite);
-            if (task->state == HELICOPTER_LANDING_PAD_NO_9_PARTICLE_INITIAL) {
-                if (task->spawnArg1.value & HELICOPTER_LANDING_PAD_NO_9_FLAME_SCALE_MASK) {
-                    scale = (u16)task->spawnArg1.value & HELICOPTER_LANDING_PAD_NO_9_FLAME_SCALE_MASK;
+            if (task->state == PARTICLE_INITIAL) {
+                if (task->spawnArg1.value & FLAME_SCALE_MASK) {
+                    scale = (u16)task->spawnArg1.value & FLAME_SCALE_MASK;
                 } else {
-                    scale = HELICOPTER_LANDING_PAD_NO_9_FLAME_DEFAULT_SCALE;
+                    scale = FLAME_DEFAULT_SCALE;
                 }
                 effect->scale = scale;
                 RANDOM_LCG_ADVANCE();
-                effect->period = RANDOM_LCG_DRAW() % HELICOPTER_LANDING_PAD_NO_9_FLAME_MOTION_RANGE;
+                effect->period = RANDOM_LCG_DRAW() % FLAME_MOTION_RANGE;
                 task->state++;
             }
             sprite->tpage = getTPage(0, GPU_BLEND_SUBTRACT, 704, 0);
@@ -1712,7 +1712,7 @@ void helicopterLandingPadNo9FlameSpriteTask59(Task* task)
             coord->coord.t[1]  -= riseSpeed;
         }
         effect->age++;
-        if (effect->age < HELICOPTER_LANDING_PAD_NO_9_FLAME_59_FRAMES) {
+        if (effect->age < FLAME_59_FRAMES) {
             return;
         }
     } else if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -1724,14 +1724,14 @@ void helicopterLandingPadNo9FlameSpriteTask59(Task* task)
 void helicopterLandingPadNo9MuzzleFlashTask44(Task* task)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_MUZZLE_LIGHT_SLOT         = 3,
-        HELICOPTER_LANDING_PAD_NO_9_MUZZLE_LIGHT_RED          = 3 * ONE / 4,
-        HELICOPTER_LANDING_PAD_NO_9_MUZZLE_LIGHT_GREEN        = ONE / 2,
-        HELICOPTER_LANDING_PAD_NO_9_MUZZLE_LIGHT_BLUE         = ONE / 4,
-        HELICOPTER_LANDING_PAD_NO_9_MUZZLE_PARTICLE_PAIRS     = 6,
-        HELICOPTER_LANDING_PAD_NO_9_MUZZLE_LIGHT_FRAMES       = 4,
-        HELICOPTER_LANDING_PAD_NO_9_MUZZLE_LIGHT_INNER_RADIUS = 4000,
-        HELICOPTER_LANDING_PAD_NO_9_MUZZLE_LIGHT_OUTER_RADIUS = 4800,
+        LIGHT_SLOT         = 3,
+        LIGHT_RED          = 3 * ONE / 4,
+        LIGHT_GREEN        = ONE / 2,
+        LIGHT_BLUE         = ONE / 4,
+        PARTICLE_PAIRS     = 6,
+        LIGHT_FRAMES       = 4,
+        LIGHT_INNER_RADIUS = 4000,
+        LIGHT_OUTER_RADIUS = 4800,
     };
 
     WorldCoordTransientPointLight* lightSlot;
@@ -1741,7 +1741,7 @@ void helicopterLandingPadNo9MuzzleFlashTask44(Task* task)
     GfxCoord*                      coord;
     s32                            particleIndex;
 
-    lightSlot  = &gWorldCoordTransientPointLights[HELICOPTER_LANDING_PAD_NO_9_MUZZLE_LIGHT_SLOT];
+    lightSlot  = &gWorldCoordTransientPointLights[LIGHT_SLOT];
     lightCoord = &lightSlot->light.head.transform.coord;
     effect     = task->spawnArg2.pointer;
     coord      = task->extra.coordBody->coord;
@@ -1766,12 +1766,12 @@ void helicopterLandingPadNo9MuzzleFlashTask44(Task* task)
         effectSpawn(EFFECT_NO9_GOLEM_DEBRIS_STREAK, coord, 0, &effect->move);
         effectSpawn(EFFECT_PIXEL_SPARK, coord, 1, NULL);
     }
-    lightSlot->framesLeft    = HELICOPTER_LANDING_PAD_NO_9_MUZZLE_LIGHT_FRAMES;
-    pointLight->inner        = HELICOPTER_LANDING_PAD_NO_9_MUZZLE_LIGHT_INNER_RADIUS;
-    pointLight->outer        = HELICOPTER_LANDING_PAD_NO_9_MUZZLE_LIGHT_OUTER_RADIUS;
-    pointLight->head.color.r = HELICOPTER_LANDING_PAD_NO_9_MUZZLE_LIGHT_RED;
-    pointLight->head.color.g = HELICOPTER_LANDING_PAD_NO_9_MUZZLE_LIGHT_GREEN;
-    pointLight->head.color.b = HELICOPTER_LANDING_PAD_NO_9_MUZZLE_LIGHT_BLUE;
+    lightSlot->framesLeft    = LIGHT_FRAMES;
+    pointLight->inner        = LIGHT_INNER_RADIUS;
+    pointLight->outer        = LIGHT_OUTER_RADIUS;
+    pointLight->head.color.r = LIGHT_RED;
+    pointLight->head.color.g = LIGHT_GREEN;
+    pointLight->head.color.b = LIGHT_BLUE;
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &lightCoord->coord);
     lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     effectKillTask(effect, task);
@@ -1779,18 +1779,18 @@ void helicopterLandingPadNo9MuzzleFlashTask44(Task* task)
 
 void helicopterLandingPadNo9DebrisStreakTask(Task* task)
 {
-    _HelicopterLandingPadNo9DebrisStreakScratch* scratch;
-    EffectWork*                                  effect;
-    GfxCoord*                                    coord;
-    LINE_F2*                                     line;
-    s16                                          effectControl;
-    s16                                          lifetimeTier;
-    s32                                          randomState;
-    s16                                          brightness;
-    s16                                          nextAge;
+    _DebrisStreakScratch* scratch;
+    EffectWork*           effect;
+    GfxCoord*             coord;
+    LINE_F2*              line;
+    s16                   effectControl;
+    s16                   lifetimeTier;
+    s32                   randomState;
+    s16                   brightness;
+    s16                   nextAge;
 
     // The reservation precedes the control check, including early-return paths.
-    scratch       = SCRATCH_STACK_RESERVE_BLOCK(_HelicopterLandingPadNo9DebrisStreakScratch);
+    scratch       = SCRATCH_STACK_RESERVE_BLOCK(_DebrisStreakScratch);
     effect        = task->spawnArg2.pointer;
     effectControl = gRoomEffectState->effectControl;
     coord         = task->extra.coordBody->coord;
@@ -1801,7 +1801,7 @@ void helicopterLandingPadNo9DebrisStreakTask(Task* task)
         return;
     }
     actorRenderComposeCoord(coord);
-    if (task->state == HELICOPTER_LANDING_PAD_NO_9_PARTICLE_INITIAL) {
+    if (task->state == PARTICLE_INITIAL) {
         RANDOM_LCG_ADVANCE();
         effect->move.vx = 0x20 - (RANDOM_LCG_DRAW() & 0x3F);
         RANDOM_LCG_ADVANCE();
@@ -1809,9 +1809,9 @@ void helicopterLandingPadNo9DebrisStreakTask(Task* task)
         RANDOM_LCG_ADVANCE();
         effect->move.vz = 0x20 - (RANDOM_LCG_DRAW() & 0x3F);
         RANDOM_LCG_ADVANCE();
-        lifetimeTier = HELICOPTER_LANDING_PAD_NO_9_DEBRIS_LONG_TIER;
+        lifetimeTier = DEBRIS_LONG_TIER;
         if ((RANDOM_LCG_DRAW() & 3) != 0) {
-            lifetimeTier = HELICOPTER_LANDING_PAD_NO_9_DEBRIS_SHORT_TIER;
+            lifetimeTier = DEBRIS_SHORT_TIER;
         }
         randomState     = RANDOM_LCG_NEXT(gRandomLcgState);
         effect->scale   = lifetimeTier;
@@ -1861,11 +1861,11 @@ void helicopterLandingPadNo9DebrisStreakTask(Task* task)
             gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, (scratch->depths[0] + scratch->depths[1]) >> 1);
         }
     }
-    SCRATCH_STACK_RELEASE_BLOCK(_HelicopterLandingPadNo9DebrisStreakScratch);
-    effect->move.vy += HELICOPTER_LANDING_PAD_NO_9_DEBRIS_GRAVITY;
+    SCRATCH_STACK_RELEASE_BLOCK(_DebrisStreakScratch);
+    effect->move.vy += DEBRIS_GRAVITY;
     nextAge          = effect->age + 1;
     effect->age      = nextAge;
-    if (nextAge > effect->scale * HELICOPTER_LANDING_PAD_NO_9_DEBRIS_FRAMES_PER_TIER - 1) {
+    if (nextAge > effect->scale * DEBRIS_FRAMES_PER_TIER - 1) {
         effectKillTask(effect, task);
     }
 }
@@ -1873,16 +1873,16 @@ void helicopterLandingPadNo9DebrisStreakTask(Task* task)
 void helicopterLandingPadNo9ExplosionTask185(Task* task)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_EXPLOSION_FIREBALL           = 0,
-        HELICOPTER_LANDING_PAD_NO_9_EXPLOSION_WAIT_SMOKE         = 1,
-        HELICOPTER_LANDING_PAD_NO_9_EXPLOSION_SMOKE              = 2,
-        HELICOPTER_LANDING_PAD_NO_9_EXPLOSION_TAIL_SMOKE         = 3,
-        HELICOPTER_LANDING_PAD_NO_9_EXPLOSION_FINISHED           = 4,
-        HELICOPTER_LANDING_PAD_NO_9_EXPLOSION_SMOKE_START        = 9,
-        HELICOPTER_LANDING_PAD_NO_9_EXPLOSION_TAIL_START         = 51,
-        HELICOPTER_LANDING_PAD_NO_9_EXPLOSION_END                = 61,
-        HELICOPTER_LANDING_PAD_NO_9_EXPLOSION_MAIN_SMOKE_OPTIONS = 0x82004400,
-        HELICOPTER_LANDING_PAD_NO_9_EXPLOSION_TAIL_SMOKE_OPTIONS = 0xD2004400,
+        FIREBALL           = 0,
+        WAIT_SMOKE         = 1,
+        SMOKE              = 2,
+        TAIL_SMOKE         = 3,
+        FINISHED           = 4,
+        SMOKE_START        = 9,
+        TAIL_START         = 51,
+        END                = 61,
+        MAIN_SMOKE_OPTIONS = 0x82004400,
+        TAIL_SMOKE_OPTIONS = 0xD2004400,
     };
 
     EffectWork* effect;
@@ -1893,14 +1893,14 @@ void helicopterLandingPadNo9ExplosionTask185(Task* task)
     effectControl = gRoomEffectState->effectControl;
     coord         = task->extra.coordBody->coord;
     if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN || task->state == HELICOPTER_LANDING_PAD_NO_9_EXPLOSION_FINISHED) {
+        if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN || task->state == FINISHED) {
             effectKillTask(effect, task);
         }
         return;
     }
     effect->age++;
     switch (task->state) {
-        case HELICOPTER_LANDING_PAD_NO_9_EXPLOSION_FIREBALL:
+        case FIREBALL:
             // Adopt the fireball; later calls reload the controller work.
             effect = effectSpawn(EFFECT_NO9_EXPLOSION_FIREBALL, coord, 0x480, NULL);
             if (effect != NULL) {
@@ -1908,24 +1908,24 @@ void helicopterLandingPadNo9ExplosionTask185(Task* task)
             }
             task->state++;
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_EXPLOSION_WAIT_SMOKE:
-            if (effect->age >= HELICOPTER_LANDING_PAD_NO_9_EXPLOSION_SMOKE_START) {
+        case WAIT_SMOKE:
+            if (effect->age >= SMOKE_START) {
                 task->state++;
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_EXPLOSION_SMOKE:
-            effectSpawn(EFFECT_SMOKE_PUFF, coord, HELICOPTER_LANDING_PAD_NO_9_EXPLOSION_MAIN_SMOKE_OPTIONS, NULL);
-            if (effect->age >= HELICOPTER_LANDING_PAD_NO_9_EXPLOSION_TAIL_START) {
+        case SMOKE:
+            effectSpawn(EFFECT_SMOKE_PUFF, coord, MAIN_SMOKE_OPTIONS, NULL);
+            if (effect->age >= TAIL_START) {
                 task->state++;
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_EXPLOSION_TAIL_SMOKE:
-            effectSpawn(EFFECT_SMOKE_PUFF, coord, HELICOPTER_LANDING_PAD_NO_9_EXPLOSION_TAIL_SMOKE_OPTIONS, NULL);
-            if (effect->age >= HELICOPTER_LANDING_PAD_NO_9_EXPLOSION_END) {
+        case TAIL_SMOKE:
+            effectSpawn(EFFECT_SMOKE_PUFF, coord, TAIL_SMOKE_OPTIONS, NULL);
+            if (effect->age >= END) {
                 task->state++;
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_EXPLOSION_FINISHED:
+        case FINISHED:
             effectKillTask(effect, task);
             break;
     }
@@ -1942,46 +1942,46 @@ void helicopterLandingPadNo9ExplosionTask185(Task* task)
 /// and clobbers the GTE rotation matrix, vector/MAC registers, flags and colour
 /// FIFO. effect is evaluated repeatedly and must be side-effect-free; the block
 /// leaves move.pad untouched and retains no pointer.
-#define HELICOPTER_LANDING_PAD_NO_9_MAKE_FIREBALL_DRIFT(effect)                                                                                                      \
-    {                                                                                                                                                                \
-        enum { HELICOPTER_LANDING_PAD_NO_9_FIREBALL_DRIFT_RANDOM_CENTRE = 16,                                                                                        \
-               HELICOPTER_LANDING_PAD_NO_9_FIREBALL_DRIFT_RANDOM_MASK   = 31 };                                                                                        \
-        RANDOM_LCG_ADVANCE();                                                                                                                                        \
-        (effect)->move.vx = HELICOPTER_LANDING_PAD_NO_9_FIREBALL_DRIFT_RANDOM_CENTRE - (RANDOM_LCG_DRAW() & HELICOPTER_LANDING_PAD_NO_9_FIREBALL_DRIFT_RANDOM_MASK); \
-        RANDOM_LCG_ADVANCE();                                                                                                                                        \
-        (effect)->move.vy = HELICOPTER_LANDING_PAD_NO_9_FIREBALL_DRIFT_RANDOM_CENTRE - (RANDOM_LCG_DRAW() & HELICOPTER_LANDING_PAD_NO_9_FIREBALL_DRIFT_RANDOM_MASK); \
-        RANDOM_LCG_ADVANCE();                                                                                                                                        \
-        (effect)->move.vz = HELICOPTER_LANDING_PAD_NO_9_FIREBALL_DRIFT_RANDOM_CENTRE - (RANDOM_LCG_DRAW() & HELICOPTER_LANDING_PAD_NO_9_FIREBALL_DRIFT_RANDOM_MASK); \
-        gte_lddp((effect)->scale << HELICOPTER_LANDING_PAD_NO_9_FIREBALL_DRIFT_SCALE_SHIFT);                                                                         \
-        gte_ldsv(&(effect)->move);                                                                                                                                   \
-        gte_gpf12();                                                                                                                                                 \
-        gte_stsv(&(effect)->move);                                                                                                                                   \
-        gte_lddp((effect)->index << HELICOPTER_LANDING_PAD_NO_9_FIREBALL_ROTATION_FRACTION_BITS);                                                                    \
-        gte_ldsv(&(effect)->move);                                                                                                                                   \
-        gte_gpf12();                                                                                                                                                 \
-        gte_stsv(&(effect)->move);                                                                                                                                   \
-        gte_SetRotMatrix(&(effect)->parent->coord);                                                                                                                  \
-        gte_ldv0(&(effect)->move);                                                                                                                                   \
-        gte_rtv0();                                                                                                                                                  \
-        gte_stsv(&(effect)->move);                                                                                                                                   \
+#define MAKE_FIREBALL_DRIFT(effect)                              \
+    {                                                            \
+        enum { CENTRE = 16,                                      \
+               MASK   = 31 };                                      \
+        RANDOM_LCG_ADVANCE();                                    \
+        (effect)->move.vx = CENTRE - (RANDOM_LCG_DRAW() & MASK); \
+        RANDOM_LCG_ADVANCE();                                    \
+        (effect)->move.vy = CENTRE - (RANDOM_LCG_DRAW() & MASK); \
+        RANDOM_LCG_ADVANCE();                                    \
+        (effect)->move.vz = CENTRE - (RANDOM_LCG_DRAW() & MASK); \
+        gte_lddp((effect)->scale << DRIFT_SCALE_SHIFT);          \
+        gte_ldsv(&(effect)->move);                               \
+        gte_gpf12();                                             \
+        gte_stsv(&(effect)->move);                               \
+        gte_lddp((effect)->index << ROTATION_FRACTION_BITS);     \
+        gte_ldsv(&(effect)->move);                               \
+        gte_gpf12();                                             \
+        gte_stsv(&(effect)->move);                               \
+        gte_SetRotMatrix(&(effect)->parent->coord);              \
+        gte_ldv0(&(effect)->move);                               \
+        gte_rtv0();                                              \
+        gte_stsv(&(effect)->move);                               \
     }
 
 void helicopterLandingPadNo9ExplosionFireballTask184(Task* task)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_FIREBALL_DEFAULT_SCALE          = 768,
-        HELICOPTER_LANDING_PAD_NO_9_FIREBALL_SIZE_MASK              = 0xFFF,
-        HELICOPTER_LANDING_PAD_NO_9_FIREBALL_ACTIVE                 = 1,
-        HELICOPTER_LANDING_PAD_NO_9_FIREBALL_DEFAULT_PERIOD         = 2,
-        HELICOPTER_LANDING_PAD_NO_9_FIREBALL_PERIOD_MASK            = 0xF000,
-        HELICOPTER_LANDING_PAD_NO_9_FIREBALL_PERIOD_SHIFT           = 12,
-        HELICOPTER_LANDING_PAD_NO_9_FIREBALL_MAX_PERIOD             = 15,
-        HELICOPTER_LANDING_PAD_NO_9_FIREBALL_MOTION_MASK            = 15,
-        HELICOPTER_LANDING_PAD_NO_9_FIREBALL_SUPPRESS_CHILDREN      = 0xF0000000,
-        HELICOPTER_LANDING_PAD_NO_9_FIREBALL_FAST_CHILD_OPTIONS     = (2 << 24) | (1 << 12),
-        HELICOPTER_LANDING_PAD_NO_9_FIREBALL_SLOW_CHILD_OPTIONS     = (1 << 24) | (2 << 12),
-        HELICOPTER_LANDING_PAD_NO_9_FIREBALL_ROTATION_FRACTION_BITS = 12,
-        HELICOPTER_LANDING_PAD_NO_9_FIREBALL_DRIFT_SCALE_SHIFT      = 3,
+        DEFAULT_SCALE          = 768,
+        SIZE_MASK              = 0xFFF,
+        ACTIVE                 = 1,
+        DEFAULT_PERIOD         = 2,
+        PERIOD_MASK            = 0xF000,
+        PERIOD_SHIFT           = 12,
+        MAX_PERIOD             = 15,
+        MOTION_MASK            = 15,
+        SUPPRESS_CHILDREN      = 0xF0000000,
+        FAST_CHILD_OPTIONS     = (2 << 24) | (1 << 12),
+        SLOW_CHILD_OPTIONS     = (1 << 24) | (2 << 12),
+        ROTATION_FRACTION_BITS = 12,
+        DRIFT_SCALE_SHIFT      = 3,
     };
 
     EffectWork* effect;
@@ -2004,32 +2004,32 @@ void helicopterLandingPadNo9ExplosionFireballTask184(Task* task)
         return;
     }
     effect->age++;
-    if (task->state == HELICOPTER_LANDING_PAD_NO_9_PARTICLE_INITIAL) {
-        scale = HELICOPTER_LANDING_PAD_NO_9_FIREBALL_DEFAULT_SCALE;
-        if (task->spawnArg1.value & HELICOPTER_LANDING_PAD_NO_9_FIREBALL_SIZE_MASK) {
-            scale = task->spawnArg1.halves.low & HELICOPTER_LANDING_PAD_NO_9_FIREBALL_SIZE_MASK;
+    if (task->state == PARTICLE_INITIAL) {
+        scale = DEFAULT_SCALE;
+        if (task->spawnArg1.value & SIZE_MASK) {
+            scale = task->spawnArg1.halves.low & SIZE_MASK;
         }
         effect->scale = scale;
         RANDOM_LCG_ADVANCE();
         effect->angle = RANDOM_LCG_DRAW() & ACTOR_TRANSFORM_ANGLE_MASK;
-        if (task->spawnArg1.value & HELICOPTER_LANDING_PAD_NO_9_FIREBALL_PERIOD_MASK) {
-            framePeriod = (task->spawnArg1.value >> HELICOPTER_LANDING_PAD_NO_9_FIREBALL_PERIOD_SHIFT) & HELICOPTER_LANDING_PAD_NO_9_FIREBALL_MAX_PERIOD;
+        if (task->spawnArg1.value & PERIOD_MASK) {
+            framePeriod = (task->spawnArg1.value >> PERIOD_SHIFT) & MAX_PERIOD;
         } else {
-            framePeriod = HELICOPTER_LANDING_PAD_NO_9_FIREBALL_DEFAULT_PERIOD;
+            framePeriod = DEFAULT_PERIOD;
         }
         effect->period = framePeriod;
         effect->step   = (s32)((u16)effect->scale << 16) >> 23;
         optionsByte    = task->spawnArg1.signedBytes[3];
-        effect->index  = optionsByte & HELICOPTER_LANDING_PAD_NO_9_FIREBALL_MOTION_MASK;
+        effect->index  = optionsByte & MOTION_MASK;
         // Nonzero motion selects drift in the borrowed parent's local basis.
         if (effect->index != 0) {
-            HELICOPTER_LANDING_PAD_NO_9_MAKE_FIREBALL_DRIFT(effect);
-        } else if (!(task->spawnArg1.value & HELICOPTER_LANDING_PAD_NO_9_FIREBALL_SUPPRESS_CHILDREN)) {
+            MAKE_FIREBALL_DRIFT(effect);
+        } else if (!(task->spawnArg1.value & SUPPRESS_CHILDREN)) {
             childCount = gDisplayState.animFrame & 3;
             childIndex = 0;
             if (childCount != 0) {
                 do {
-                    childEffect = effectSpawn(EFFECT_NO9_EXPLOSION_FIREBALL, coord, ((s32)((u16)effect->scale << 16) >> 17) | HELICOPTER_LANDING_PAD_NO_9_FIREBALL_FAST_CHILD_OPTIONS, NULL);
+                    childEffect = effectSpawn(EFFECT_NO9_EXPLOSION_FIREBALL, coord, ((s32)((u16)effect->scale << 16) >> 17) | FAST_CHILD_OPTIONS, NULL);
                     if (childEffect != NULL) {
                         taskReparent(task, childEffect->task);
                     }
@@ -2040,7 +2040,7 @@ void helicopterLandingPadNo9ExplosionFireballTask184(Task* task)
             childIndex = 0;
             if (childIndex < childCount) {
                 do {
-                    childEffect = effectSpawn(EFFECT_NO9_EXPLOSION_FIREBALL, coord, ((s32)((u16)effect->scale << 16) >> 17) | HELICOPTER_LANDING_PAD_NO_9_FIREBALL_SLOW_CHILD_OPTIONS, NULL);
+                    childEffect = effectSpawn(EFFECT_NO9_EXPLOSION_FIREBALL, coord, ((s32)((u16)effect->scale << 16) >> 17) | SLOW_CHILD_OPTIONS, NULL);
                     if (childEffect != NULL) {
                         taskReparent(task, childEffect->task);
                     }
@@ -2049,7 +2049,7 @@ void helicopterLandingPadNo9ExplosionFireballTask184(Task* task)
             }
         }
         effect->age--;
-        task->state = HELICOPTER_LANDING_PAD_NO_9_FIREBALL_ACTIVE;
+        task->state = ACTIVE;
     }
     // Draw before advancing translation and the signed-halfword size.
     spriteQuadDraw(coord, effect->age / effect->period, effect->scale, effect->angle);
@@ -2063,7 +2063,7 @@ void helicopterLandingPadNo9ExplosionFireballTask184(Task* task)
     }
 }
 
-#undef HELICOPTER_LANDING_PAD_NO_9_MAKE_FIREBALL_DRIFT
+#undef MAKE_FIREBALL_DRIFT
 
 /// Packed additive texture page for the shared effect atlas, with this actor's palettes.
 #define SPRITE_QUAD_TEXTURE_PAGE EFFECT_SPRITE_ATLAS_TEXTURE_PAGE
@@ -2104,22 +2104,22 @@ STATIC_ASSERT(ARRAY_SIZE(SPRITE_QUAD_UV_TABLE) == ARRAY_SIZE(_gHelicopterLanding
 void helicopterLandingPadNo9InitBody(Enemy* enemy, Task* task)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_BODY_CHEST_PART          = 3,
-        HELICOPTER_LANDING_PAD_NO_9_BODY_FOREARM_PART        = 7,
-        HELICOPTER_LANDING_PAD_NO_9_PROP_DESCRIPTOR          = 1,
-        HELICOPTER_LANDING_PAD_NO_9_WEAPON_DESCRIPTOR        = 2,
-        HELICOPTER_LANDING_PAD_NO_9_CHEST_DESCRIPTOR         = 3,
-        HELICOPTER_LANDING_PAD_NO_9_LIGHT_DESCRIPTOR         = 5,
-        HELICOPTER_LANDING_PAD_NO_9_BLAST_SOURCE_DESCRIPTOR  = 6,
-        HELICOPTER_LANDING_PAD_NO_9_BODY_INITIAL_ANIMATION   = 1,
-        HELICOPTER_LANDING_PAD_NO_9_BODY_TASK_RUNNING        = 1,
-        HELICOPTER_LANDING_PAD_NO_9_HIT_EFFECT_ARGUMENT_LOW  = 1024,
-        HELICOPTER_LANDING_PAD_NO_9_HIT_EFFECT_ARGUMENT_HIGH = 2,
-        HELICOPTER_LANDING_PAD_NO_9_BODY_CONTACT_KEY         = WORLD_COLLISION_CONTACT_ENEMY_BODY | 27,
-        HELICOPTER_LANDING_PAD_NO_9_BODY_RADIUS              = 450,
-        HELICOPTER_LANDING_PAD_NO_9_WEAPON_ATTACK_OFFSET_X   = -320,
-        HELICOPTER_LANDING_PAD_NO_9_WEAPON_ATTACK_OFFSET_Y   = 128,
-        HELICOPTER_LANDING_PAD_NO_9_ATTACK_RADIUS            = 400,
+        BODY_CHEST_PART          = 3,
+        BODY_FOREARM_PART        = 7,
+        PROP_DESCRIPTOR          = 1,
+        WEAPON_DESCRIPTOR        = 2,
+        CHEST_DESCRIPTOR         = 3,
+        LIGHT_DESCRIPTOR         = 5,
+        BLAST_SOURCE_DESCRIPTOR  = 6,
+        BODY_INITIAL_ANIMATION   = 1,
+        BODY_TASK_RUNNING        = 1,
+        HIT_EFFECT_ARGUMENT_LOW  = 1024,
+        HIT_EFFECT_ARGUMENT_HIGH = 2,
+        BODY_CONTACT_KEY         = WORLD_COLLISION_CONTACT_ENEMY_BODY | 27,
+        BODY_RADIUS              = 450,
+        WEAPON_ATTACK_OFFSET_X   = -320,
+        WEAPON_ATTACK_OFFSET_Y   = 128,
+        ATTACK_RADIUS            = 400,
     };
     TmdObject*                   bodyModel;
     GfxCoord*                    rootCoord;
@@ -2145,24 +2145,24 @@ void helicopterLandingPadNo9InitBody(Enemy* enemy, Task* task)
     enemy->field_4          = &rootCoord->coord;
     enemy->field_48         = 0;
     worldTargetLinkNode(&enemy->node);
-    enemy->coord                  = &task->extra.tmd->coords[HELICOPTER_LANDING_PAD_NO_9_BODY_CHEST_PART];
+    enemy->coord                  = &task->extra.tmd->coords[BODY_CHEST_PART];
     enemy->bodyPos.vx             = 0;
     enemy->bodyPos.vy             = 0;
     enemy->bodyPos.vz             = 0;
     enemy->param                  = &gHelicopterLandingPadNo9EnemyParams;
     enemy->recs                   = work->bodyContacts;
     enemy->hp                     = gHelicopterLandingPadNo9EnemyParams.hpMax;
-    work->hitEffectArg.coord      = &task->extra.tmd->coords[HELICOPTER_LANDING_PAD_NO_9_BODY_CHEST_PART];
-    work->hitEffectArg.spawnArgLo = HELICOPTER_LANDING_PAD_NO_9_HIT_EFFECT_ARGUMENT_LOW;
-    work->hitEffectArg.spawnArgHi = HELICOPTER_LANDING_PAD_NO_9_HIT_EFFECT_ARGUMENT_HIGH;
+    work->hitEffectArg.coord      = &task->extra.tmd->coords[BODY_CHEST_PART];
+    work->hitEffectArg.spawnArgLo = HIT_EFFECT_ARGUMENT_LOW;
+    work->hitEffectArg.spawnArgHi = HIT_EFFECT_ARGUMENT_HIGH;
     animationInitContext(&work->rig.anim, gHelicopterLandingPadNo9BodyAnimationSets, bodyModel,
                          work->rig.poses, work->rig.slots);
     for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
-        animationResetSlot(&work->rig.anim, slotIndex, HELICOPTER_LANDING_PAD_NO_9_BODY_INITIAL_ANIMATION);
+        animationResetSlot(&work->rig.anim, slotIndex, BODY_INITIAL_ANIMATION);
     }
     work->present = 1;
-    enemySpawnFromTable(gHelicopterLandingPadNo9TaskDescriptors, HELICOPTER_LANDING_PAD_NO_9_PROP_DESCRIPTOR, 0, enemy);
-    childEnemy = enemySpawnFromTable(gHelicopterLandingPadNo9TaskDescriptors, HELICOPTER_LANDING_PAD_NO_9_WEAPON_DESCRIPTOR, 0, enemy);
+    enemySpawnFromTable(gHelicopterLandingPadNo9TaskDescriptors, PROP_DESCRIPTOR, 0, enemy);
+    childEnemy = enemySpawnFromTable(gHelicopterLandingPadNo9TaskDescriptors, WEAPON_DESCRIPTOR, 0, enemy);
     _actorRenderApplyPlacementTextureOffsets(childEnemy->task->extra.tmd, enemy);
     work->weaponTask = childEnemy->task;
     flameEffect      = effectSpawn((EFFECT_HELICOPTER_LANDING_PAD_NO_9_FLAME_JET | EFFECT_SPAWN_UNLIMITED), childEnemy->task->extra.tmd->coords, 0, NULL);
@@ -2173,21 +2173,21 @@ void helicopterLandingPadNo9InitBody(Enemy* enemy, Task* task)
     if (work->flameJetTask != NULL) {
         work->flameJetTask->spawnArg1.value = HELICOPTER_LANDING_PAD_NO_9_FLAME_OFF;
     }
-    childEnemy = enemySpawnFromTable(gHelicopterLandingPadNo9TaskDescriptors, HELICOPTER_LANDING_PAD_NO_9_CHEST_DESCRIPTOR, 0, enemy);
+    childEnemy = enemySpawnFromTable(gHelicopterLandingPadNo9TaskDescriptors, CHEST_DESCRIPTOR, 0, enemy);
     _actorRenderApplyPlacementTextureOffsets(childEnemy->task->extra.tmd, enemy);
     work->chestModelTask = childEnemy->task;
-    enemySpawnFromTable(gHelicopterLandingPadNo9TaskDescriptors, HELICOPTER_LANDING_PAD_NO_9_LIGHT_DESCRIPTOR, 0, enemy);
-    enemySpawnFromTable(gHelicopterLandingPadNo9TaskDescriptors, HELICOPTER_LANDING_PAD_NO_9_LIGHT_DESCRIPTOR, 1, enemy);
-    enemySpawnFromTable(gHelicopterLandingPadNo9TaskDescriptors, HELICOPTER_LANDING_PAD_NO_9_LIGHT_DESCRIPTOR, 2, enemy);
-    enemySpawnFromTable(gHelicopterLandingPadNo9TaskDescriptors, HELICOPTER_LANDING_PAD_NO_9_BLAST_SOURCE_DESCRIPTOR, 0, enemy);
-    work->body.coord            = &task->extra.tmd->coords[HELICOPTER_LANDING_PAD_NO_9_BODY_CHEST_PART];
+    enemySpawnFromTable(gHelicopterLandingPadNo9TaskDescriptors, LIGHT_DESCRIPTOR, 0, enemy);
+    enemySpawnFromTable(gHelicopterLandingPadNo9TaskDescriptors, LIGHT_DESCRIPTOR, 1, enemy);
+    enemySpawnFromTable(gHelicopterLandingPadNo9TaskDescriptors, LIGHT_DESCRIPTOR, 2, enemy);
+    enemySpawnFromTable(gHelicopterLandingPadNo9TaskDescriptors, BLAST_SOURCE_DESCRIPTOR, 0, enemy);
+    work->body.coord            = &task->extra.tmd->coords[BODY_CHEST_PART];
     bodyContacts                = work->bodyContacts;
     work->body.context.contacts = bodyContacts;
     work->body.pos.vx           = 0;
     work->body.pos.vy           = 0;
     work->body.pos.vz           = 0;
-    work->body.key              = HELICOPTER_LANDING_PAD_NO_9_BODY_CONTACT_KEY;
-    work->body.radius           = HELICOPTER_LANDING_PAD_NO_9_BODY_RADIUS;
+    work->body.key              = BODY_CONTACT_KEY;
+    work->body.radius           = BODY_RADIUS;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
     worldCollisionInitContacts(bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
@@ -2195,22 +2195,22 @@ void helicopterLandingPadNo9InitBody(Enemy* enemy, Task* task)
     work->body.flags                   |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     work->weaponAttack.coord            = work->weaponTask->extra.tmd->coords;
     work->weaponAttack.context.contacts = attackContacts;
-    work->weaponAttack.pos.vx           = HELICOPTER_LANDING_PAD_NO_9_WEAPON_ATTACK_OFFSET_X;
-    work->weaponAttack.pos.vy           = HELICOPTER_LANDING_PAD_NO_9_WEAPON_ATTACK_OFFSET_Y;
+    work->weaponAttack.pos.vx           = WEAPON_ATTACK_OFFSET_X;
+    work->weaponAttack.pos.vy           = WEAPON_ATTACK_OFFSET_Y;
     work->weaponAttack.pos.vz           = 0;
     work->weaponAttack.key              = 0;
-    work->weaponAttack.radius           = HELICOPTER_LANDING_PAD_NO_9_ATTACK_RADIUS;
+    work->weaponAttack.radius           = ATTACK_RADIUS;
     work->weaponAttack.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->weaponAttack);
     worldCollisionInitContacts(attackContacts, ARRAY_SIZE(work->attackContacts), 0);
     work->weaponAttack.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->forearmAttack.coord            = &task->extra.tmd->coords[HELICOPTER_LANDING_PAD_NO_9_BODY_FOREARM_PART];
+    work->forearmAttack.coord            = &task->extra.tmd->coords[BODY_FOREARM_PART];
     work->forearmAttack.context.contacts = attackContacts;
     work->forearmAttack.pos.vx           = 0;
     work->forearmAttack.pos.vy           = 0;
     work->forearmAttack.pos.vz           = 0;
     work->forearmAttack.key              = 0;
-    work->forearmAttack.radius           = HELICOPTER_LANDING_PAD_NO_9_ATTACK_RADIUS;
+    work->forearmAttack.radius           = ATTACK_RADIUS;
     work->forearmAttack.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->forearmAttack);
     work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -2218,17 +2218,17 @@ void helicopterLandingPadNo9InitBody(Enemy* enemy, Task* task)
     task->exitCallback         = helicopterLandingPadNo9ExitBody;
     helicopterLandingPadNo9RestoreGridFaces(task);
     helicopterLandingPadNo9SetExtraGridFace(true);
-    task->state = HELICOPTER_LANDING_PAD_NO_9_BODY_TASK_RUNNING;
+    task->state = BODY_TASK_RUNNING;
 }
 
 void helicopterLandingPadNo9TickEvent(Enemy* enemy, Task* task)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_EVENT_FLAME_ANIMATION   = 32,
-        HELICOPTER_LANDING_PAD_NO_9_EVENT_FLAME_FRAME       = 210,
-        HELICOPTER_LANDING_PAD_NO_9_EVENT_FLAME_FRAMES      = 255,
-        HELICOPTER_LANDING_PAD_NO_9_EVENT_FLAME_START_SOUND = SOUND_CHARACTER(0x78, 14),
-        HELICOPTER_LANDING_PAD_NO_9_EVENT_FLAME_LOOP_SOUND  = SOUND_CHARACTER(0x78, 17),
+        ANIMATION   = 32,
+        FRAME       = 210,
+        FRAMES      = 255,
+        START_SOUND = SOUND_CHARACTER(0x78, 14),
+        LOOP_SOUND  = SOUND_CHARACTER(0x78, 17),
     };
     GfxCoord*                    rootCoord;
     HelicopterLandingPadNo9Work* work;
@@ -2240,13 +2240,13 @@ void helicopterLandingPadNo9TickEvent(Enemy* enemy, Task* task)
     work                          = task->work;
     rootCoord                     = task->extra.tmd->coords;
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-    if (work->animationId == HELICOPTER_LANDING_PAD_NO_9_EVENT_FLAME_ANIMATION && work->animationFrame == HELICOPTER_LANDING_PAD_NO_9_EVENT_FLAME_FRAME) {
+    if (work->animationId == ANIMATION && work->animationFrame == FRAME) {
         work->flameMode   = HELICOPTER_LANDING_PAD_NO_9_FLAME_BURNING;
-        work->flameFrames = HELICOPTER_LANDING_PAD_NO_9_EVENT_FLAME_FRAMES;
-        startSound        = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_EVENT_FLAME_START_SOUND;
+        work->flameFrames = FRAMES;
+        startSound        = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | START_SOUND;
         startPan          = (s8)worldCoordGetOriginAudioPan(rootCoord);
         sndEvtRequestScriptStart(startSound, startPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
-        work->eventFlameSound = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_EVENT_FLAME_LOOP_SOUND;
+        work->eventFlameSound = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | LOOP_SOUND;
         loopPan               = (s8)worldCoordGetOriginAudioPan(rootCoord);
         sndEvtRequestScriptStart(work->eventFlameSound, loopPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
     }

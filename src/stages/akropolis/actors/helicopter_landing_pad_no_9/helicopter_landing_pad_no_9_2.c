@@ -65,188 +65,188 @@ static void _no9GolemDrawShadow(const Task* task);
 /// Event requests use their request index plus 0x1B. Slots 0x1C and 0x1D
 /// leave the prop's previous visibility intact; 0x1E reveals it and 0x1F tosses it.
 enum {
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_PATROL_IDLE            = 1,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_WALK_START             = 2,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_WALK                   = 3,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_WALK_FIRE              = 4,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_BACKSTEP               = 5,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_CATCH_UP               = 6,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_LETHAL_STRIKE          = 7,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_SLASH_FIRST            = 8,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_SLASH_SECOND           = 9,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_SLASH_WINDUP           = 10,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_DASH_START             = 11,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_DASH_RUN               = 12,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_DASH_STRIKE            = 13,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_FLAME_WINDUP           = 14,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_FLAME_LUNGE            = 15,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_RECOIL                 = 16,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_FLINCH                 = 17,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_SPARK_RECOIL           = 18,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_STUN                   = 19,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_STUN_RECOVER           = 20,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_SHOTGUN_RESPONSE_START = 21,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_SHOTGUN_RESPONSE_WALK  = 22,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_SHOTGUN_RESPONSE_END   = 23,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_DEATH                  = 24,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_SLASH_RECOVER          = 25,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_FIGHT_START            = 26,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_GRENADE_THROW          = 27,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_EVENT_1                = 28,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_EVENT_2                = 29,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_EVENT_PROP_REVEAL      = 30,
-    HELICOPTER_LANDING_PAD_NO_9_ANIM_EVENT_PROP_TOSS        = 31,
+    ANIM_PATROL_IDLE            = 1,
+    ANIM_WALK_START             = 2,
+    ANIM_WALK                   = 3,
+    ANIM_WALK_FIRE              = 4,
+    ANIM_BACKSTEP               = 5,
+    ANIM_CATCH_UP               = 6,
+    ANIM_LETHAL_STRIKE          = 7,
+    ANIM_SLASH_FIRST            = 8,
+    ANIM_SLASH_SECOND           = 9,
+    ANIM_SLASH_WINDUP           = 10,
+    ANIM_DASH_START             = 11,
+    ANIM_DASH_RUN               = 12,
+    ANIM_DASH_STRIKE            = 13,
+    ANIM_FLAME_WINDUP           = 14,
+    ANIM_FLAME_LUNGE            = 15,
+    ANIM_RECOIL                 = 16,
+    ANIM_FLINCH                 = 17,
+    ANIM_SPARK_RECOIL           = 18,
+    ANIM_STUN                   = 19,
+    ANIM_STUN_RECOVER           = 20,
+    ANIM_SHOTGUN_RESPONSE_START = 21,
+    ANIM_SHOTGUN_RESPONSE_WALK  = 22,
+    ANIM_SHOTGUN_RESPONSE_END   = 23,
+    ANIM_DEATH                  = 24,
+    ANIM_SLASH_RECOVER          = 25,
+    ANIM_FIGHT_START            = 26,
+    ANIM_GRENADE_THROW          = 27,
+    ANIM_EVENT_1                = 28,
+    ANIM_EVENT_2                = 29,
+    ANIM_EVENT_PROP_REVEAL      = 30,
+    ANIM_EVENT_PROP_TOSS        = 31,
 };
 
 /// Steps within the selected combat state; values are stored as signed halfwords.
 enum {
-    HELICOPTER_LANDING_PAD_NO_9_OPENING_INTRO                 = 0,
-    HELICOPTER_LANDING_PAD_NO_9_OPENING_WINDUP                = 1,
-    HELICOPTER_LANDING_PAD_NO_9_OPENING_FIRST_SLASH           = 2,
-    HELICOPTER_LANDING_PAD_NO_9_OPENING_SECOND_SLASH          = 3,
-    HELICOPTER_LANDING_PAD_NO_9_OPENING_LUNGE                 = 4,
-    HELICOPTER_LANDING_PAD_NO_9_PATROL_WAIT                   = 0,
-    HELICOPTER_LANDING_PAD_NO_9_PATROL_WALK_START             = 1,
-    HELICOPTER_LANDING_PAD_NO_9_PATROL_WALK                   = 2,
-    HELICOPTER_LANDING_PAD_NO_9_PATROL_WALK_FIRE              = 3,
-    HELICOPTER_LANDING_PAD_NO_9_PATROL_CATCH_UP               = 4,
-    HELICOPTER_LANDING_PAD_NO_9_PATROL_SHOTGUN_RESPONSE_START = 5,
-    HELICOPTER_LANDING_PAD_NO_9_PATROL_SHOTGUN_RESPONSE_WALK  = 6,
-    HELICOPTER_LANDING_PAD_NO_9_PATROL_SHOTGUN_RESPONSE_END   = 7,
-    HELICOPTER_LANDING_PAD_NO_9_PATROL_BACKSTEP               = 8,
-    HELICOPTER_LANDING_PAD_NO_9_SLASH_WINDUP                  = 0,
-    HELICOPTER_LANDING_PAD_NO_9_SLASH_FIRST                   = 1,
-    HELICOPTER_LANDING_PAD_NO_9_SLASH_SECOND                  = 2,
-    HELICOPTER_LANDING_PAD_NO_9_SLASH_RECOVER                 = 3,
-    HELICOPTER_LANDING_PAD_NO_9_FLAME_LUNGE_WINDUP            = 0,
-    HELICOPTER_LANDING_PAD_NO_9_FLAME_LUNGE_CHARGE            = 1,
-    HELICOPTER_LANDING_PAD_NO_9_DASH_START                    = 0,
-    HELICOPTER_LANDING_PAD_NO_9_DASH_RUN                      = 1,
-    HELICOPTER_LANDING_PAD_NO_9_DASH_STRIKE                   = 2,
-    HELICOPTER_LANDING_PAD_NO_9_RECOIL_ENTER                  = 0,
-    HELICOPTER_LANDING_PAD_NO_9_RECOIL_PLAY                   = 1,
-    HELICOPTER_LANDING_PAD_NO_9_DEATH_ENTER                   = 0,
-    HELICOPTER_LANDING_PAD_NO_9_SPARK_RECOIL_ENTER            = 0,
-    HELICOPTER_LANDING_PAD_NO_9_SPARK_RECOIL_PLAY             = 1,
-    HELICOPTER_LANDING_PAD_NO_9_SPARK_STUN_ENTER              = 0,
-    HELICOPTER_LANDING_PAD_NO_9_SPARK_STUN_PLAY               = 1,
-    HELICOPTER_LANDING_PAD_NO_9_SPARK_STUN_RECOVER            = 2,
-    HELICOPTER_LANDING_PAD_NO_9_BUILDUP_STUN_WAIT             = 0,
-    HELICOPTER_LANDING_PAD_NO_9_BUILDUP_STUN_RECOVER          = 1,
-    HELICOPTER_LANDING_PAD_NO_9_FLINCH_ENTER                  = 0,
-    HELICOPTER_LANDING_PAD_NO_9_FLINCH_PLAY                   = 1,
+    OPENING_INTRO                 = 0,
+    OPENING_WINDUP                = 1,
+    OPENING_FIRST_SLASH           = 2,
+    OPENING_SECOND_SLASH          = 3,
+    OPENING_LUNGE                 = 4,
+    PATROL_WAIT                   = 0,
+    PATROL_WALK_START             = 1,
+    PATROL_WALK                   = 2,
+    PATROL_WALK_FIRE              = 3,
+    PATROL_CATCH_UP               = 4,
+    PATROL_SHOTGUN_RESPONSE_START = 5,
+    PATROL_SHOTGUN_RESPONSE_WALK  = 6,
+    PATROL_SHOTGUN_RESPONSE_END   = 7,
+    PATROL_BACKSTEP               = 8,
+    SLASH_WINDUP                  = 0,
+    SLASH_FIRST                   = 1,
+    SLASH_SECOND                  = 2,
+    SLASH_RECOVER                 = 3,
+    FLAME_LUNGE_WINDUP            = 0,
+    FLAME_LUNGE_CHARGE            = 1,
+    DASH_START                    = 0,
+    DASH_RUN                      = 1,
+    DASH_STRIKE                   = 2,
+    RECOIL_ENTER                  = 0,
+    RECOIL_PLAY                   = 1,
+    DEATH_ENTER                   = 0,
+    SPARK_RECOIL_ENTER            = 0,
+    SPARK_RECOIL_PLAY             = 1,
+    SPARK_STUN_ENTER              = 0,
+    SPARK_STUN_PLAY               = 1,
+    SPARK_STUN_RECOVER            = 2,
+    BUILDUP_STUN_WAIT             = 0,
+    BUILDUP_STUN_RECOVER          = 1,
+    FLINCH_ENTER                  = 0,
+    FLINCH_PLAY                   = 1,
 };
 
 /// Attack-table indices packed into both weapon and forearm collision keys.
 enum {
-    HELICOPTER_LANDING_PAD_NO_9_ATTACK_DASH        = 0,
-    HELICOPTER_LANDING_PAD_NO_9_ATTACK_FLAME_LUNGE = 1,
-    HELICOPTER_LANDING_PAD_NO_9_ATTACK_SLASH       = 2,
-    HELICOPTER_LANDING_PAD_NO_9_ATTACK_LETHAL      = 3,
-    HELICOPTER_LANDING_PAD_NO_9_ATTACK_GRENADE     = 4,
-    HELICOPTER_LANDING_PAD_NO_9_ATTACK_IGNITION    = 5,
+    ATTACK_DASH        = 0,
+    ATTACK_FLAME_LUNGE = 1,
+    ATTACK_SLASH       = 2,
+    ATTACK_LETHAL      = 3,
+    ATTACK_GRENADE     = 4,
+    ATTACK_IGNITION    = 5,
 };
 
 /// Script keys before the placement index is packed into bits 8..11.
 enum {
-    HELICOPTER_LANDING_PAD_NO_9_SOUND_STEP_CUE_2       = 0x40780001,
-    HELICOPTER_LANDING_PAD_NO_9_SOUND_STEP_CUE_1       = 0x40780002,
-    HELICOPTER_LANDING_PAD_NO_9_SOUND_SHOTGUN_RESPONSE = 0x40780003,
-    HELICOPTER_LANDING_PAD_NO_9_SOUND_RECOIL           = 0x40780005,
-    HELICOPTER_LANDING_PAD_NO_9_SOUND_WINDUP           = 0x40780006,
-    HELICOPTER_LANDING_PAD_NO_9_SOUND_FLAME_STRIKE     = 0x40780007,
-    HELICOPTER_LANDING_PAD_NO_9_SOUND_BACKSTEP         = 0x40780008,
-    HELICOPTER_LANDING_PAD_NO_9_SOUND_SPARK_LOOP       = 0x40780009,
-    HELICOPTER_LANDING_PAD_NO_9_SOUND_SLASH_RECOVER    = 0x4078000A,
-    HELICOPTER_LANDING_PAD_NO_9_SOUND_SLASH            = 0x4078000B,
-    HELICOPTER_LANDING_PAD_NO_9_SOUND_DASH_STRIKE      = 0x4078000C,
-    HELICOPTER_LANDING_PAD_NO_9_SOUND_FLAME_LOOP       = 0x4078000D,
-    HELICOPTER_LANDING_PAD_NO_9_SOUND_FIRE             = 0x4078000E,
-    HELICOPTER_LANDING_PAD_NO_9_SOUND_DASH_START       = 0x4078000F,
+    SOUND_STEP_CUE_2       = 0x40780001,
+    SOUND_STEP_CUE_1       = 0x40780002,
+    SOUND_SHOTGUN_RESPONSE = 0x40780003,
+    SOUND_RECOIL           = 0x40780005,
+    SOUND_WINDUP           = 0x40780006,
+    SOUND_FLAME_STRIKE     = 0x40780007,
+    SOUND_BACKSTEP         = 0x40780008,
+    SOUND_SPARK_LOOP       = 0x40780009,
+    SOUND_SLASH_RECOVER    = 0x4078000A,
+    SOUND_SLASH            = 0x4078000B,
+    SOUND_DASH_STRIKE      = 0x4078000C,
+    SOUND_FLAME_LOOP       = 0x4078000D,
+    SOUND_FIRE             = 0x4078000E,
+    SOUND_DASH_START       = 0x4078000F,
 };
 
 /// Frame thresholds shared by the spark and buildup reactions.
 enum {
-    HELICOPTER_LANDING_PAD_NO_9_SPARK_MIX_INTERVAL     = 3,
-    HELICOPTER_LANDING_PAD_NO_9_STUN_RECOVER_END_FRAME = 59,
+    SPARK_MIX_INTERVAL     = 3,
+    STUN_RECOVER_END_FRAME = 59,
 };
 
 /// Lap and range thresholds in world units; speeds are world units per frame.
 enum {
-    HELICOPTER_LANDING_PAD_NO_9_LIGHT_0_SLASH_DISTANCE = 0x4B00,
-    HELICOPTER_LANDING_PAD_NO_9_LIGHT_1_SLASH_DISTANCE = 0x7F00,
-    HELICOPTER_LANDING_PAD_NO_9_LIGHT_SLASH_WINDOW     = 0x120,
-    HELICOPTER_LANDING_PAD_NO_9_LAST_ATTACK_DISTANCE   = 0xAE9C,
-    HELICOPTER_LANDING_PAD_NO_9_LETHAL_ATTACK_DISTANCE = 0xB477,
-    HELICOPTER_LANDING_PAD_NO_9_PATROL_END_DISTANCE    = 0xB478,
-    HELICOPTER_LANDING_PAD_NO_9_SLASH_RANGE            = 0xAF0,
-    HELICOPTER_LANDING_PAD_NO_9_FLAME_LUNGE_RANGE      = 0xED8,
-    HELICOPTER_LANDING_PAD_NO_9_MIXED_ATTACK_RANGE     = 0x12C0,
-    HELICOPTER_LANDING_PAD_NO_9_PATROL_WALK_SPEED      = 0x1D,
-    HELICOPTER_LANDING_PAD_NO_9_DASH_SPEED             = 0x84,
-    HELICOPTER_LANDING_PAD_NO_9_MAX_LUNGE_DISTANCE     = 0x1388,
-    HELICOPTER_LANDING_PAD_NO_9_LAP_MIN_DISTANCE       = 0xC8,
-    HELICOPTER_LANDING_PAD_NO_9_LAP_MAX_DISTANCE       = 0xB66C,
+    LIGHT_0_SLASH_DISTANCE = 0x4B00,
+    LIGHT_1_SLASH_DISTANCE = 0x7F00,
+    LIGHT_SLASH_WINDOW     = 0x120,
+    LAST_ATTACK_DISTANCE   = 0xAE9C,
+    LETHAL_ATTACK_DISTANCE = 0xB477,
+    PATROL_END_DISTANCE    = 0xB478,
+    SLASH_RANGE            = 0xAF0,
+    FLAME_LUNGE_RANGE      = 0xED8,
+    MIXED_ATTACK_RANGE     = 0x12C0,
+    PATROL_WALK_SPEED      = 0x1D,
+    DASH_SPEED             = 0x84,
+    MAX_LUNGE_DISTANCE     = 0x1388,
+    LAP_MIN_DISTANCE       = 0xC8,
+    LAP_MAX_DISTANCE       = 0xB66C,
 };
 
 /// The latch's two positive values select helipad light 0 or 1 for a slash.
 enum {
-    HELICOPTER_LANDING_PAD_NO_9_LIGHT_SLASH_NONE    = 0,
-    HELICOPTER_LANDING_PAD_NO_9_LIGHT_SLASH_LIGHT_0 = 1,
-    HELICOPTER_LANDING_PAD_NO_9_LIGHT_SLASH_LIGHT_1 = 2,
+    LIGHT_SLASH_NONE    = 0,
+    LIGHT_SLASH_LIGHT_0 = 1,
+    LIGHT_SLASH_LIGHT_1 = 2,
 };
 
 /// The ammunition row interval that triggers the patrol's shotgun response.
 enum {
-    HELICOPTER_LANDING_PAD_NO_9_SHOTGUN_FIRST_AMMO_ROW = 10,
-    HELICOPTER_LANDING_PAD_NO_9_SHOTGUN_AMMO_ROW_COUNT = 3,
+    SHOTGUN_FIRST_AMMO_ROW = 10,
+    SHOTGUN_AMMO_ROW_COUNT = 3,
 };
 
 /// The three attached models have initialization and update states only.
 enum {
-    HELICOPTER_LANDING_PAD_NO_9_ATTACHMENT_INIT        = 0,
-    HELICOPTER_LANDING_PAD_NO_9_ATTACHMENT_UPDATE      = 1,
-    HELICOPTER_LANDING_PAD_NO_9_ATTACHMENT_STATE_COUNT = 2,
-    HELICOPTER_LANDING_PAD_NO_9_WEAPON_PART            = 8,
-    HELICOPTER_LANDING_PAD_NO_9_CHEST_PART             = 3,
-    HELICOPTER_LANDING_PAD_NO_9_PROP_HAND_PART         = 12,
+    ATTACHMENT_INIT        = 0,
+    ATTACHMENT_UPDATE      = 1,
+    ATTACHMENT_STATE_COUNT = 2,
+    WEAPON_PART            = 8,
+    CHEST_PART             = 3,
+    PROP_HAND_PART         = 12,
 };
 
 /// Script message selecting this golem's show, fight-start or hide command.
-enum { HELICOPTER_LANDING_PAD_NO_9_MESSAGE_SET_ACTIVATION = 2007 };
+enum { MESSAGE_SET_ACTIVATION = 2007 };
 
 /// Task states of the grenade and the two stationary child hazards.
 enum {
-    HELICOPTER_LANDING_PAD_NO_9_CHILD_TASK_RUNNING = 1,
-    HELICOPTER_LANDING_PAD_NO_9_GRENADE_TASK_BURST = 2,
+    CHILD_TASK_RUNNING = 1,
+    GRENADE_TASK_BURST = 2,
 };
 
 /// Progress of the lethal attack; once struck, incoming damage cannot kill the golem.
 enum {
-    HELICOPTER_LANDING_PAD_NO_9_LETHAL_PHASE_NONE   = 0,
-    HELICOPTER_LANDING_PAD_NO_9_LETHAL_PHASE_WINDUP = 1,
-    HELICOPTER_LANDING_PAD_NO_9_LETHAL_PHASE_STRUCK = 2,
+    LETHAL_PHASE_NONE   = 0,
+    LETHAL_PHASE_WINDUP = 1,
+    LETHAL_PHASE_STRUCK = 2,
 };
 
 /// Hazard rows whose blast contacts this golem consumes.
 enum {
-    HELICOPTER_LANDING_PAD_NO_9_HAZARD_LIGHT_BLAST   = 2,
-    HELICOPTER_LANDING_PAD_NO_9_HAZARD_SOURCE_RECOIL = 3,
-    HELICOPTER_LANDING_PAD_NO_9_HAZARD_SOURCE_STUN   = 4,
+    HAZARD_LIGHT_BLAST   = 2,
+    HAZARD_SOURCE_RECOIL = 3,
+    HAZARD_SOURCE_STUN   = 4,
 };
 
 /// States sent to the helipad light's adopted spark controller.
 enum {
-    HELICOPTER_LANDING_PAD_NO_9_LIGHT_SPARKS_BURSTS_ONLY = 1,
-    HELICOPTER_LANDING_PAD_NO_9_LIGHT_SPARKS_RELEASE     = 2,
+    LIGHT_SPARKS_BURSTS_ONLY = 1,
+    LIGHT_SPARKS_RELEASE     = 2,
 };
 
 /// States sent to the blast source's adopted flare controller.
 enum {
-    HELICOPTER_LANDING_PAD_NO_9_SOURCE_FLARE_FLICKERING = 0,
-    HELICOPTER_LANDING_PAD_NO_9_SOURCE_FLARE_RAW_COLOR  = 1,
-    HELICOPTER_LANDING_PAD_NO_9_SOURCE_FLARE_EMBERS     = 2,
-    HELICOPTER_LANDING_PAD_NO_9_SOURCE_FLARE_RELEASE    = 3,
+    SOURCE_FLARE_FLICKERING = 0,
+    SOURCE_FLARE_RAW_COLOR  = 1,
+    SOURCE_FLARE_EMBERS     = 2,
+    SOURCE_FLARE_RELEASE    = 3,
 };
 
 static s32 _helicopterLandingPadNo9SetActivation(Task* task, s32 messageId, s32 command, s32 unusedArg);
@@ -260,8 +260,8 @@ static s32 _helicopterLandingPadNo9SetModelDraw(Task* task, s32 messageId, s32 d
 static s32 _helicopterLandingPadNo9IsPresent(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
 enum {
-    HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_COUNT     = 3,
-    HELICOPTER_LANDING_PAD_NO_9_HELIPAD_VIEWS_PER_LIGHT = 3,
+    HELIPAD_LIGHT_COUNT     = 3,
+    HELIPAD_VIEWS_PER_LIGHT = 3,
 };
 
 /// Mapped camera-view IDs that enable each helipad light's active update.
@@ -271,10 +271,10 @@ enum {
 /// The table remains live for the actor overlay lifetime. The final two stored
 /// bytes have no observed access and their role is unproven.
 typedef struct {
-    u16  lightViews[HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_COUNT][HELICOPTER_LANDING_PAD_NO_9_HELIPAD_VIEWS_PER_LIGHT]; // Mapped camera-view IDs per light; compared with the current view's low byte
-    byte field_12[2];                                                                                                      // Unaccessed zero bytes; original type and role unproven
-} _HelicopterLandingPadNo9HelipadViews;
-STATIC_ASSERT_SIZEOF(_HelicopterLandingPadNo9HelipadViews, 0x14);
+    u16  lightViews[HELIPAD_LIGHT_COUNT][HELIPAD_VIEWS_PER_LIGHT]; // Mapped camera-view IDs per light; compared with the current view's low byte
+    byte field_12[2];                                              // Unaccessed zero bytes; original type and role unproven
+} _HelipadViews;
+STATIC_ASSERT_SIZEOF(_HelipadViews, 0x14);
 
 /// Scratch block of the step that carries the golem's three wall faces in the
 /// room's collision grid to where the golem stands.
@@ -288,23 +288,23 @@ STATIC_ASSERT_SIZEOF(_HelicopterLandingPadNo9HelipadViews, 0x14);
 typedef struct {
     SVECTOR origin;  // The faces' origin: first its offset from the golem in the golem's axes, then its world position, held within 0x1770 of the world origin in X and Z
     SVECTOR rotated; // Latest vector turned by the golem's facing: the origin's offset, then each corner in turn
-} _HelicopterLandingPadNo9GridFacesScratch;
-STATIC_ASSERT_SIZEOF(_HelicopterLandingPadNo9GridFacesScratch, 0x10);
+} _GridFacesScratch;
+STATIC_ASSERT_SIZEOF(_GridFacesScratch, 0x10);
 
-/// Values of `_HelicopterLandingPadNo9HelipadLightWork::state`. Light 2 also copies its
+/// Values of `_HelipadLightWork::state`. Light 2 also copies its
 /// state to `HelicopterLandingPadNo9Work::light2State` every frame.
 enum {
-    HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_INTACT   = 0, // Whole: a shot or the golem's slash breaks it
-    HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_SPARKING = 1, // Broken and throwing sparks; its blast can strike once
-    HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_DONE     = 2, // The sparks have run out, or the golem is gone
+    HELIPAD_LIGHT_INTACT   = 0, // Whole: a shot or the golem's slash breaks it
+    HELIPAD_LIGHT_SPARKING = 1, // Broken and throwing sparks; its blast can strike once
+    HELIPAD_LIGHT_DONE     = 2, // The sparks have run out, or the golem is gone
 };
 
-/// Values of `_HelicopterLandingPadNo9HelipadLightWork::status`.
+/// Values of `_HelipadLightWork::status`.
 enum {
-    HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_STATUS_INTACT   = 0, // Not broken yet
-    HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_STATUS_SPARKING = 1, // Broken, sparks still running
-    HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_STATUS_SPENT    = 2, // Broken, sparks over
-    HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_STATUS_STOPPED  = 3, // Never broken: the golem was gone first
+    HELIPAD_LIGHT_STATUS_INTACT   = 0, // Not broken yet
+    HELIPAD_LIGHT_STATUS_SPARKING = 1, // Broken, sparks still running
+    HELIPAD_LIGHT_STATUS_SPENT    = 2, // Broken, sparks over
+    HELIPAD_LIGHT_STATUS_STOPPED  = 3, // Never broken: the golem was gone first
 };
 
 /// Work block of one of the three helipad lights, kept at `Task::work` of the
@@ -333,28 +333,28 @@ typedef struct {
     s16                   sparkFrames;                            // Frames of sparks left, 0x78 at the break; a frame the camera spends in another view also takes one off
     s16                   lightIndex;                             // Which of the three lights this is (0..2), from the spawn argument; picks its place, facing and views
     s16                   status;                                 // `HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_STATUS_*`, published every frame in view: by lights 0 and 1 to game-flag nibbles 0xB and 0xC, by light 2 to `HelicopterLandingPadNo9Work::light2Status`
-} _HelicopterLandingPadNo9HelipadLightWork;
-STATIC_ASSERT_SIZEOF(_HelicopterLandingPadNo9HelipadLightWork, 0x338);
+} _HelipadLightWork;
+STATIC_ASSERT_SIZEOF(_HelipadLightWork, 0x338);
 
-/// Values of `_HelicopterLandingPadNo9GrenadeWork::phase` while the grenade flies.
+/// Values of `_GrenadeWork::phase` while the grenade flies.
 enum {
-    HELICOPTER_LANDING_PAD_NO_9_GRENADE_FLIGHT_BELOW_PEAK = 0, // Has not been above height 0x514 yet
-    HELICOPTER_LANDING_PAD_NO_9_GRENADE_FLIGHT_PEAKED     = 1, // Has been above it: dropping back below bursts the grenade
+    GRENADE_FLIGHT_BELOW_PEAK = 0, // Has not been above height 0x514 yet
+    GRENADE_FLIGHT_PEAKED     = 1, // Has been above it: dropping back below bursts the grenade
 };
 
-/// Values of `_HelicopterLandingPadNo9GrenadeWork::phase` once the grenade has burst.
+/// Values of `_GrenadeWork::phase` once the grenade has burst.
 enum {
-    HELICOPTER_LANDING_PAD_NO_9_GRENADE_BURST_SPREADING = 0, // 0x10 frames with the attack sphere off, then it widens to radius 0x258
-    HELICOPTER_LANDING_PAD_NO_9_GRENADE_BURST_CATCHING  = 1, // Up to 0x1F frames in which the widened sphere can catch the player
-    HELICOPTER_LANDING_PAD_NO_9_GRENADE_BURST_HOLDING   = 2, // The player is caught: `holdStep` runs
-    HELICOPTER_LANDING_PAD_NO_9_GRENADE_BURST_ENDING    = 3, // 0x1F frames, then the grenade's task ends
+    GRENADE_BURST_SPREADING = 0, // 0x10 frames with the attack sphere off, then it widens to radius 0x258
+    GRENADE_BURST_CATCHING  = 1, // Up to 0x1F frames in which the widened sphere can catch the player
+    GRENADE_BURST_HOLDING   = 2, // The player is caught: `holdStep` runs
+    GRENADE_BURST_ENDING    = 3, // 0x1F frames, then the grenade's task ends
 };
 
-/// Values of `_HelicopterLandingPadNo9GrenadeWork::holdStep`.
+/// Values of `_GrenadeWork::holdStep`.
 enum {
-    HELICOPTER_LANDING_PAD_NO_9_GRENADE_HOLD_REQUEST = 0, // Asks the player for the hold; on acceptance deals the damage and starts the stunned animation
-    HELICOPTER_LANDING_PAD_NO_9_GRENADE_HOLD_STUNNED = 1, // Until the player has escaped, 0x3C frames have passed or the golem is gone; then starts the recovery animation
-    HELICOPTER_LANDING_PAD_NO_9_GRENADE_HOLD_RECOVER = 2, // 0x14 frames, then waits for the animation to end and releases the player
+    GRENADE_HOLD_REQUEST = 0, // Asks the player for the hold; on acceptance deals the damage and starts the stunned animation
+    GRENADE_HOLD_STUNNED = 1, // Until the player has escaped, 0x3C frames have passed or the golem is gone; then starts the recovery animation
+    GRENADE_HOLD_RECOVER = 2, // 0x14 frames, then waits for the animation to end and releases the player
 };
 
 /// Work block of the golem's stun grenade, kept at `Task::work` of the
@@ -381,17 +381,17 @@ typedef struct {
     s16                   phase;                // `HELICOPTER_LANDING_PAD_NO_9_GRENADE_FLIGHT_*` in flight, `HELICOPTER_LANDING_PAD_NO_9_GRENADE_BURST_*` after the burst
     s16                   holdStep;             // `HELICOPTER_LANDING_PAD_NO_9_GRENADE_HOLD_*`
     s16                   phaseCounter;         // In flight, the pitch added each frame (4096 a turn); during the hold, frames spent in `holdStep`
-} _HelicopterLandingPadNo9GrenadeWork;
-STATIC_ASSERT_SIZEOF(_HelicopterLandingPadNo9GrenadeWork, 0xD0);
+} _GrenadeWork;
+STATIC_ASSERT_SIZEOF(_GrenadeWork, 0xD0);
 
-/// Values of `_HelicopterLandingPadNo9BlastSourceWork::state`.
+/// Values of `_BlastSourceWork::state`.
 enum {
-    HELICOPTER_LANDING_PAD_NO_9_BLAST_SOURCE_DORMANT = 0, // Waiting for helipad light 2 to break
-    HELICOPTER_LANDING_PAD_NO_9_BLAST_SOURCE_ARMED   = 1, // Can be shot
-    HELICOPTER_LANDING_PAD_NO_9_BLAST_SOURCE_SHOT    = 2, // The frame after the shot: the flare is given its starting state
-    HELICOPTER_LANDING_PAD_NO_9_BLAST_SOURCE_FLARING = 3, // `flareFrames` runs down
-    HELICOPTER_LANDING_PAD_NO_9_BLAST_SOURCE_SPENT   = 4, // The flare has been told to end
-    HELICOPTER_LANDING_PAD_NO_9_BLAST_SOURCE_STOPPED = 5, // The golem is gone and the flare released
+    BLAST_SOURCE_DORMANT = 0, // Waiting for helipad light 2 to break
+    BLAST_SOURCE_ARMED   = 1, // Can be shot
+    BLAST_SOURCE_SHOT    = 2, // The frame after the shot: the flare is given its starting state
+    BLAST_SOURCE_FLARING = 3, // `flareFrames` runs down
+    BLAST_SOURCE_SPENT   = 4, // The flare has been told to end
+    BLAST_SOURCE_STOPPED = 5, // The golem is gone and the flare released
 };
 
 /// Work block of the blast source beside helipad light 2, kept at
@@ -416,16 +416,16 @@ typedef struct {
     s16                   flareFrames;      // Frames the flare still burns, 0x3C at the shot; a frame the camera spends in another view also takes one off
     s16                   flareTaskState;   // `Task::state` the flare starts in, chosen at the shot (1 if light 2 was already spent, 0 if it was still sparking)
     byte                  pad_7A[0x2];
-} _HelicopterLandingPadNo9BlastSourceWork;
-STATIC_ASSERT_SIZEOF(_HelicopterLandingPadNo9BlastSourceWork, 0x7C);
+} _BlastSourceWork;
+STATIC_ASSERT_SIZEOF(_BlastSourceWork, 0x7C);
 
 /// One corner of the square lap the golem walks, in world X and Z. A side of
 /// the lap starts at its corner.
 typedef struct {
     s16 x; // World X of the corner
     s16 z; // World Z of the corner
-} _HelicopterLandingPadNo9LapCorner;
-STATIC_ASSERT_SIZEOF(_HelicopterLandingPadNo9LapCorner, 0x4);
+} _LapCorner;
+STATIC_ASSERT_SIZEOF(_LapCorner, 0x4);
 
 /// The direction one side of the lap runs in, from its corner to the next:
 /// the world X and Z the golem covers per unit of distance along the side.
@@ -433,8 +433,8 @@ STATIC_ASSERT_SIZEOF(_HelicopterLandingPadNo9LapCorner, 0x4);
 typedef struct {
     s8 x; // World X covered per unit of distance along the side
     s8 z; // World Z covered per unit of distance along the side
-} _HelicopterLandingPadNo9LapDirection;
-STATIC_ASSERT_SIZEOF(_HelicopterLandingPadNo9LapDirection, 0x2);
+} _LapDirection;
+STATIC_ASSERT_SIZEOF(_LapDirection, 0x2);
 
 /// The strip of the landing pad that runs along one side of the lap, as a
 /// world-space rectangle; all four edges are exclusive.
@@ -447,8 +447,8 @@ typedef struct {
     s16 maxX; // Edge towards positive X
     s16 minZ; // Edge towards negative Z
     s16 maxZ; // Edge towards positive Z
-} _HelicopterLandingPadNo9LapStrip;
-STATIC_ASSERT_SIZEOF(_HelicopterLandingPadNo9LapStrip, 0x8);
+} _LapStrip;
+STATIC_ASSERT_SIZEOF(_LapStrip, 0x8);
 
 /// The three face normals `helicopterLandingPadNo9RestoreGridFaces` copies into
 /// `gWorldCollisionActiveGrid->normals`, restoring the collision grid this actor edited.
@@ -603,7 +603,7 @@ TaskMessageEntry gHelicopterLandingPadNo9BodyMessages[7] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _helicopterLandingPadNo9PlayEventAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceRotMatrix },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _helicopterLandingPadNo9SetModelDraw },
-    { HELICOPTER_LANDING_PAD_NO_9_MESSAGE_SET_ACTIVATION, _helicopterLandingPadNo9SetActivation },
+    { MESSAGE_SET_ACTIVATION, _helicopterLandingPadNo9SetActivation },
     { ACTOR_MESSAGE_IS_PRESENT, _helicopterLandingPadNo9IsPresent },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -704,7 +704,7 @@ static s16 _gHelicopterLandingPadNo9BodyAnimationBlendFrames[34] = {
 static EffectSpawnArg _gHelicopterLandingPadNo9LethalHitEffectArg = { NULL, 300, 1 };
 
 /// World X/Z origins of lap sides 0..3, in walking order.
-static _HelicopterLandingPadNo9LapCorner _gHelicopterLandingPadNo9LapCorners[4] = {
+static _LapCorner _gHelicopterLandingPadNo9LapCorners[4] = {
     { -6600, -6600 },
     { 6600, -6600 },
     { 6600, 6600 },
@@ -712,7 +712,7 @@ static _HelicopterLandingPadNo9LapCorner _gHelicopterLandingPadNo9LapCorners[4] 
 };
 
 /// Axis-aligned unit X/Z directions from each lap corner to the next.
-static _HelicopterLandingPadNo9LapDirection _gHelicopterLandingPadNo9LapDirections[4] = {
+static _LapDirection _gHelicopterLandingPadNo9LapDirections[4] = {
     { 1, 0 },
     { 0, 1 },
     { -1, 0 },
@@ -735,7 +735,7 @@ static u16 _gHelicopterLandingPadNo9LapYaws[4] = {
 ///
 /// The first containing strip wins where rectangles overlap. Outside them
 /// all, the player's preceding side is retained.
-static _HelicopterLandingPadNo9LapStrip _gHelicopterLandingPadNo9LapStrips[4] = {
+static _LapStrip _gHelicopterLandingPadNo9LapStrips[4] = {
     { -7200, 7200, -7200, -6000 },
     { 6000, 7200, -6000, 7200 },
     { -7200, 6000, 6000, 7200 },
@@ -819,19 +819,19 @@ static u16 _gHelicopterLandingPadNo9HelipadLightYaws[4] = {
 };
 
 /// Mapped-view rows shared by the three helipad lights and the light-2 blast source.
-static _HelicopterLandingPadNo9HelipadViews _gHelicopterLandingPadNo9HelipadViews = {
+static _HelipadViews _gHelicopterLandingPadNo9HelipadViews = {
     { { 5, 6, 7 }, { 7, 8, 9 }, { 10, 10, 10 } },
     { 0 },
 };
 
 /// Status encodings emitted by the source/light pair; the flag's reader is unproven.
 enum {
-    HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_LIGHT_INTACT   = 0,
-    HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_LIGHT_SPARKING = 1,
-    HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_LIGHT_SPENT    = 2,
-    HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_SOURCE_FLARING = 4,
-    HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_SOURCE_SPENT   = 5,
-    HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_LIGHT_STOPPED  = 6,
+    HELIPAD_FLAG_LIGHT_INTACT   = 0,
+    HELIPAD_FLAG_LIGHT_SPARKING = 1,
+    HELIPAD_FLAG_LIGHT_SPENT    = 2,
+    HELIPAD_FLAG_SOURCE_FLARING = 4,
+    HELIPAD_FLAG_SOURCE_SPENT   = 5,
+    HELIPAD_FLAG_LIGHT_STOPPED  = 6,
 };
 
 /// Game-flag nibble values combining blast-source phase with light-2 status.
@@ -840,12 +840,12 @@ enum {
 /// spent and stopped. Row 6 is stored but has no observed state selecting it.
 /// The consumer of the published flag and the unused row's role are unproven.
 static u16 _gHelicopterLandingPadNo9HelipadStatusFlagValues[7][4] = {
-    { HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_LIGHT_INTACT, HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_LIGHT_SPARKING, HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_LIGHT_SPENT, HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_LIGHT_STOPPED },
-    { HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_LIGHT_INTACT, HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_LIGHT_SPARKING, HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_LIGHT_SPENT, HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_LIGHT_STOPPED },
-    { HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_LIGHT_INTACT, HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_SOURCE_FLARING, HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_SOURCE_FLARING, HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_LIGHT_STOPPED },
-    { HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_LIGHT_INTACT, HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_SOURCE_FLARING, HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_SOURCE_FLARING, HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_LIGHT_STOPPED },
-    { HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_LIGHT_INTACT, HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_SOURCE_SPENT, HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_SOURCE_SPENT, HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_LIGHT_STOPPED },
-    { HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_LIGHT_INTACT, HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_SOURCE_SPENT, HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_SOURCE_SPENT, HELICOPTER_LANDING_PAD_NO_9_HELIPAD_FLAG_LIGHT_STOPPED },
+    { HELIPAD_FLAG_LIGHT_INTACT, HELIPAD_FLAG_LIGHT_SPARKING, HELIPAD_FLAG_LIGHT_SPENT, HELIPAD_FLAG_LIGHT_STOPPED },
+    { HELIPAD_FLAG_LIGHT_INTACT, HELIPAD_FLAG_LIGHT_SPARKING, HELIPAD_FLAG_LIGHT_SPENT, HELIPAD_FLAG_LIGHT_STOPPED },
+    { HELIPAD_FLAG_LIGHT_INTACT, HELIPAD_FLAG_SOURCE_FLARING, HELIPAD_FLAG_SOURCE_FLARING, HELIPAD_FLAG_LIGHT_STOPPED },
+    { HELIPAD_FLAG_LIGHT_INTACT, HELIPAD_FLAG_SOURCE_FLARING, HELIPAD_FLAG_SOURCE_FLARING, HELIPAD_FLAG_LIGHT_STOPPED },
+    { HELIPAD_FLAG_LIGHT_INTACT, HELIPAD_FLAG_SOURCE_SPENT, HELIPAD_FLAG_SOURCE_SPENT, HELIPAD_FLAG_LIGHT_STOPPED },
+    { HELIPAD_FLAG_LIGHT_INTACT, HELIPAD_FLAG_SOURCE_SPENT, HELIPAD_FLAG_SOURCE_SPENT, HELIPAD_FLAG_LIGHT_STOPPED },
     { 0, 0, 0, 0 },
 };
 
@@ -928,15 +928,15 @@ static inline void _helicopterLandingPadNo9AttachProp(GfxCoord* propCoord, GfxCo
 static inline void _helicopterLandingPadNo9SpawnReactionSpark(GfxCoord* bodyCoord, SVECTOR* offset)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_SPARK_HEIGHT_MASK   = 0x2FF,
-        HELICOPTER_LANDING_PAD_NO_9_SPARK_HEIGHT_OFFSET = 1664,
-        HELICOPTER_LANDING_PAD_NO_9_SPARK_BASE_SIZE     = 256,
+        HEIGHT_MASK   = 0x2FF,
+        HEIGHT_OFFSET = 1664,
+        BASE_SIZE     = 256,
     };
     offset->vx = 0;
     offset->vz = 0;
     RANDOM_LCG_ADVANCE();
-    offset->vy = (RANDOM_LCG_DRAW() & HELICOPTER_LANDING_PAD_NO_9_SPARK_HEIGHT_MASK) - HELICOPTER_LANDING_PAD_NO_9_SPARK_HEIGHT_OFFSET;
-    effectSpawn(EFFECT_FLASH_BURST, bodyCoord, HELICOPTER_LANDING_PAD_NO_9_SPARK_BASE_SIZE, offset);
+    offset->vy = (RANDOM_LCG_DRAW() & HEIGHT_MASK) - HEIGHT_OFFSET;
+    effectSpawn(EFFECT_FLASH_BURST, bodyCoord, BASE_SIZE, offset);
 }
 
 /// Ends grenade catching when the golem parent disappears.
@@ -945,14 +945,14 @@ static inline void _helicopterLandingPadNo9SpawnReactionSpark(GfxCoord* bodyCoor
 /// unlinks the grid probe and resets the ending-frame counter while keeping the
 /// grenade task alive for delayed teardown. Grid unlink is safe after flight
 /// already removed the probe.
-static inline void _helicopterLandingPadNo9CancelGrenadeCatch(Task* task, _HelicopterLandingPadNo9GrenadeWork* work)
+static inline void _helicopterLandingPadNo9CancelGrenadeCatch(Task* task, _GrenadeWork* work)
 {
     work->attack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     worldCollisionUnlinkBody(&work->gridProbe);
     work->frames           = 0;
     task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    task->state            = HELICOPTER_LANDING_PAD_NO_9_GRENADE_TASK_BURST;
-    work->phase            = HELICOPTER_LANDING_PAD_NO_9_GRENADE_BURST_ENDING;
+    task->state            = GRENADE_TASK_BURST;
+    work->phase            = GRENADE_BURST_ENDING;
 }
 
 /// Places a grenade at the chest's launch offset in the view coordinate's frame.
@@ -963,10 +963,10 @@ static inline void _helicopterLandingPadNo9CancelGrenadeCatch(Task* task, _Helic
 static inline void _helicopterLandingPadNo9PlaceGrenade(GfxCoord* grenadeCoord, GfxCoord* launchCoord, ActorChildPlaceScratch* placement)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_GRENADE_LAUNCH_X     = -165,
-        HELICOPTER_LANDING_PAD_NO_9_GRENADE_LAUNCH_Y     = -565,
-        HELICOPTER_LANDING_PAD_NO_9_GRENADE_LAUNCH_Z     = 160,
-        HELICOPTER_LANDING_PAD_NO_9_GRENADE_LAUNCH_PITCH = -352,
+        GRENADE_LAUNCH_X     = -165,
+        GRENADE_LAUNCH_Y     = -565,
+        GRENADE_LAUNCH_Z     = 160,
+        GRENADE_LAUNCH_PITCH = -352,
     };
 
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
@@ -975,9 +975,9 @@ static inline void _helicopterLandingPadNo9PlaceGrenade(GfxCoord* grenadeCoord, 
     actorRenderComposeCoord(launchCoord);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &launchCoord->workm, &grenadeCoord->coord);
 
-    placement->operand.vx = HELICOPTER_LANDING_PAD_NO_9_GRENADE_LAUNCH_X;
-    placement->operand.vy = HELICOPTER_LANDING_PAD_NO_9_GRENADE_LAUNCH_Y;
-    placement->operand.vz = HELICOPTER_LANDING_PAD_NO_9_GRENADE_LAUNCH_Z;
+    placement->operand.vx = GRENADE_LAUNCH_X;
+    placement->operand.vy = GRENADE_LAUNCH_Y;
+    placement->operand.vz = GRENADE_LAUNCH_Z;
     gte_SetRotMatrix(&grenadeCoord->coord);
     gte_ldv0(&placement->operand);
     gte_rtv0();
@@ -987,7 +987,7 @@ static inline void _helicopterLandingPadNo9PlaceGrenade(GfxCoord* grenadeCoord, 
     grenadeCoord->coord.t[1] += placement->offset.vy;
     grenadeCoord->coord.t[2] += placement->offset.vz;
 
-    placement->operand.vx = HELICOPTER_LANDING_PAD_NO_9_GRENADE_LAUNCH_PITCH;
+    placement->operand.vx = GRENADE_LAUNCH_PITCH;
     placement->operand.vy = 0;
     placement->operand.vz = 0;
     RotMatrix(&placement->operand, &placement->rotation);
@@ -1013,8 +1013,8 @@ static inline void _helicopterLandingPadNo9ComposeHitRotation(MATRIX* chestRotat
 static inline void _helicopterLandingPadNo9StartHitTwist(HelicopterLandingPadNo9Work* work)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_HIT_TWIST_MIN_ANGLE  = 64,
-        HELICOPTER_LANDING_PAD_NO_9_HIT_TWIST_ANGLE_MASK = 127,
+        MIN_ANGLE  = 64,
+        ANGLE_MASK = 127,
     };
     u32 randomState;
     u32 randomBits;
@@ -1024,14 +1024,14 @@ static inline void _helicopterLandingPadNo9StartHitTwist(HelicopterLandingPadNo9
 
     randomState     = RANDOM_LCG_NEXT(gRandomLcgState);
     randomBits      = randomState >> 16;
-    pitchTwist      = (randomBits & HELICOPTER_LANDING_PAD_NO_9_HIT_TWIST_ANGLE_MASK) + HELICOPTER_LANDING_PAD_NO_9_HIT_TWIST_MIN_ANGLE;
+    pitchTwist      = (randomBits & ANGLE_MASK) + MIN_ANGLE;
     gRandomLcgState = randomState;
     if (!(randomBits & 1)) {
         pitchTwist = -pitchTwist;
     }
     work->hitTwist.vx = pitchTwist;
     yawBits           = (s16)randomBits >> 8;
-    yawTwist          = (yawBits & HELICOPTER_LANDING_PAD_NO_9_HIT_TWIST_ANGLE_MASK) + HELICOPTER_LANDING_PAD_NO_9_HIT_TWIST_MIN_ANGLE;
+    yawTwist          = (yawBits & ANGLE_MASK) + MIN_ANGLE;
     if (!(yawBits & 1)) {
         yawTwist = -yawTwist;
     }
@@ -1049,15 +1049,15 @@ static inline void _helicopterLandingPadNo9StartHitTwist(HelicopterLandingPadNo9
 static inline void _helicopterLandingPadNo9SetLethalLapSpeed(HelicopterLandingPadNo9Work* work, s32 frame, s32 retreatSpeed)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_LETHAL_FORWARD_FIRST_FRAME = 75,
-        HELICOPTER_LANDING_PAD_NO_9_LETHAL_FORWARD_FRAME_COUNT = 16,
-        HELICOPTER_LANDING_PAD_NO_9_LETHAL_RETREAT_FIRST_FRAME = 143,
-        HELICOPTER_LANDING_PAD_NO_9_LETHAL_RETREAT_FRAME_COUNT = 15,
-        HELICOPTER_LANDING_PAD_NO_9_LETHAL_FORWARD_SPEED       = 60,
+        FORWARD_FIRST_FRAME = 75,
+        FORWARD_FRAME_COUNT = 16,
+        RETREAT_FIRST_FRAME = 143,
+        RETREAT_FRAME_COUNT = 15,
+        FORWARD_SPEED       = 60,
     };
-    if (frame - HELICOPTER_LANDING_PAD_NO_9_LETHAL_FORWARD_FIRST_FRAME < (u32)HELICOPTER_LANDING_PAD_NO_9_LETHAL_FORWARD_FRAME_COUNT) {
-        work->lapSpeed = HELICOPTER_LANDING_PAD_NO_9_LETHAL_FORWARD_SPEED;
-    } else if (((frame - HELICOPTER_LANDING_PAD_NO_9_LETHAL_RETREAT_FIRST_FRAME) & 0xFFFF) < (u32)HELICOPTER_LANDING_PAD_NO_9_LETHAL_RETREAT_FRAME_COUNT) {
+    if (frame - FORWARD_FIRST_FRAME < (u32)FORWARD_FRAME_COUNT) {
+        work->lapSpeed = FORWARD_SPEED;
+    } else if (((frame - RETREAT_FIRST_FRAME) & 0xFFFF) < (u32)RETREAT_FRAME_COUNT) {
         work->lapSpeed = retreatSpeed;
     } else {
         work->lapSpeed = 0;
@@ -1074,13 +1074,13 @@ static inline void _helicopterLandingPadNo9SetLethalLapSpeed(HelicopterLandingPa
 static void _helicopterLandingPadNo9ResolveBodyContacts(Task* task)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_HIT_TWIST                       = 0,
-        HELICOPTER_LANDING_PAD_NO_9_HIT_FLINCH                      = 1,
-        HELICOPTER_LANDING_PAD_NO_9_HIT_RECOIL                      = 2,
-        HELICOPTER_LANDING_PAD_NO_9_ATTACK_ATTRIBUTE_REDUCED_DAMAGE = 4,
-        HELICOPTER_LANDING_PAD_NO_9_ATTACK_ATTRIBUTE_DOUBLE_DAMAGE  = 5,
-        HELICOPTER_LANDING_PAD_NO_9_SOUND_HIT_FLINCH                = 0x40780004,
-        HELICOPTER_LANDING_PAD_NO_9_ATTACHMENT_KEY_BIT              = 0x8000,
+        HIT_TWIST                       = 0,
+        HIT_FLINCH                      = 1,
+        HIT_RECOIL                      = 2,
+        ATTACK_ATTRIBUTE_REDUCED_DAMAGE = 4,
+        ATTACK_ATTRIBUTE_DOUBLE_DAMAGE  = 5,
+        SOUND_HIT_FLINCH                = 0x40780004,
+        ATTACHMENT_KEY_BIT              = 0x8000,
     };
     s32                          lastEffectKey;
     VECTOR*                      playerOffset;
@@ -1103,7 +1103,7 @@ static void _helicopterLandingPadNo9ResolveBodyContacts(Task* task)
     bodyCoord     = task->extra.tmd->coords;
     work          = task->work;
     enemy         = task->spawnArg2.pointer;
-    hitReaction   = HELICOPTER_LANDING_PAD_NO_9_HIT_TWIST;
+    hitReaction   = HIT_TWIST;
     lastEffectKey = 0;
     if (work->hitCooldown != 0) {
         if (--work->hitCooldown <= 0) {
@@ -1123,9 +1123,9 @@ static void _helicopterLandingPadNo9ResolveBodyContacts(Task* task)
                     break;
                 }
                 attackAttribute = damageGetPlayerAttackReaction(work->bodyContacts[contactIndex].key.value);
-                if (work->bodyContacts[contactIndex].key.value & HELICOPTER_LANDING_PAD_NO_9_ATTACHMENT_KEY_BIT) {
+                if (work->bodyContacts[contactIndex].key.value & ATTACHMENT_KEY_BIT) {
                     if ((u8)work->bodyContacts[contactIndex].key.value - 1 < 6U) {
-                        hitReaction = HELICOPTER_LANDING_PAD_NO_9_HIT_RECOIL;
+                        hitReaction = HIT_RECOIL;
                     }
                     damage = (s16)damageComputePlayerAttack(work->bodyContacts[contactIndex].key.value, 0, 0, 0) >> 1;
                     damageAccumulateLifeDrainHp(task->spawnArg2.pointer, work->bodyContacts[contactIndex].key.value, damage, 0);
@@ -1135,23 +1135,23 @@ static void _helicopterLandingPadNo9ResolveBodyContacts(Task* task)
                     playerOffset->vz = gPlayerStatus.coordMtx->t[2] - bodyCoord->coord.t[2];
                     unscaledDamage   = damageComputePlayerAttack(work->bodyContacts[contactIndex].key.value, SquareRoot0(playerOffset->vx * playerOffset->vx + playerOffset->vy * playerOffset->vy + playerOffset->vz * playerOffset->vz), 0, 0);
                     damage           = unscaledDamage;
-                    if ((u16)attackAttribute == HELICOPTER_LANDING_PAD_NO_9_ATTACK_ATTRIBUTE_DOUBLE_DAMAGE) {
+                    if ((u16)attackAttribute == ATTACK_ATTRIBUTE_DOUBLE_DAMAGE) {
                         damage = unscaledDamage * 2;
                         effectSpawn(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[3], 2, NULL);
                     }
                     if (damageRollCriticalHit(enemy, work->bodyContacts[contactIndex].key.value, 0) != 0) {
                         damage *= 4;
-                        if ((u16)attackAttribute != HELICOPTER_LANDING_PAD_NO_9_ATTACK_ATTRIBUTE_DOUBLE_DAMAGE) {
+                        if ((u16)attackAttribute != ATTACK_ATTRIBUTE_DOUBLE_DAMAGE) {
                             effectSpawn(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[3], 0, NULL);
                         }
                         if (work->buildupStunned == 0) {
-                            hitReaction = HELICOPTER_LANDING_PAD_NO_9_HIT_FLINCH;
+                            hitReaction = HIT_FLINCH;
                         }
                     }
                 }
                 switch ((u16)attackAttribute) {
                     case DAMAGE_PLAYER_REACTION_NONE:
-                    case HELICOPTER_LANDING_PAD_NO_9_ATTACK_ATTRIBUTE_DOUBLE_DAMAGE:
+                    case ATTACK_ATTRIBUTE_DOUBLE_DAMAGE:
                     case DAMAGE_PLAYER_REACTION_EXPLOSION:
                     case DAMAGE_PLAYER_REACTION_INCENDIARY:
                     case 8:
@@ -1161,39 +1161,39 @@ static void _helicopterLandingPadNo9ResolveBodyContacts(Task* task)
                         if (work->buildupStunned == 0) {
                             RANDOM_LCG_ADVANCE();
                             if (RANDOM_LCG_DRAW() & 1) {
-                                hitReaction = HELICOPTER_LANDING_PAD_NO_9_HIT_FLINCH;
+                                hitReaction = HIT_FLINCH;
                             }
                         }
                         break;
                     case DAMAGE_PLAYER_REACTION_BUILDUP:
-                        if (work->lethalAttackPhase == HELICOPTER_LANDING_PAD_NO_9_LETHAL_PHASE_NONE) {
+                        if (work->lethalAttackPhase == LETHAL_PHASE_NONE) {
                             damageStartEnemyBuildup(enemy, work->bodyContacts[contactIndex].key.value, 0);
                         }
                         break;
                     case DAMAGE_PLAYER_REACTION_POISON:
                         if (work->buildupStunned == 0) {
-                            hitReaction = HELICOPTER_LANDING_PAD_NO_9_HIT_RECOIL;
+                            hitReaction = HIT_RECOIL;
                         }
                         break;
-                    case HELICOPTER_LANDING_PAD_NO_9_ATTACK_ATTRIBUTE_REDUCED_DAMAGE:
+                    case ATTACK_ATTRIBUTE_REDUCED_DAMAGE:
                         damage = damage * 75 / 100;
                         break;
                 }
                 enemy->hp -= damage;
                 worldTargetAddReadoutAmount(&enemy->node, damage, 0);
                 if (enemy->hp <= 0) {
-                    if (work->lethalAttackPhase < HELICOPTER_LANDING_PAD_NO_9_LETHAL_PHASE_STRUCK) {
-                        work->lethalAttackPhase = HELICOPTER_LANDING_PAD_NO_9_LETHAL_PHASE_NONE;
+                    if (work->lethalAttackPhase < LETHAL_PHASE_STRUCK) {
+                        work->lethalAttackPhase = LETHAL_PHASE_NONE;
                     } else {
                         enemy->hp = 1;
                     }
                 }
-                if (hitReaction != HELICOPTER_LANDING_PAD_NO_9_HIT_TWIST) {
+                if (hitReaction != HIT_TWIST) {
                     RANDOM_LCG_ADVANCE();
                     if (!(RANDOM_LCG_DRAW() & 1)) {
-                        soundKey = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_HIT_FLINCH;
+                        soundKey = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_HIT_FLINCH;
                     } else {
-                        soundKey = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_RECOIL;
+                        soundKey = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_RECOIL;
                     }
                     audioPan = (s8)worldCoordGetOriginAudioPan(bodyCoord);
                     sndEvtRequestScriptStart(soundKey, audioPan, (s8)worldCoordGetOriginAudioDepth(bodyCoord));
@@ -1202,32 +1202,32 @@ static void _helicopterLandingPadNo9ResolveBodyContacts(Task* task)
                     sndEvtRequestScriptStop(work->sparkSound, SOUND_SCRIPT_STOP_NO_FADE);
                     work->sparkSound = 0;
                 }
-                if (work->lethalAttackPhase == HELICOPTER_LANDING_PAD_NO_9_LETHAL_PHASE_WINDUP) {
-                    hitReaction = HELICOPTER_LANDING_PAD_NO_9_HIT_TWIST;
+                if (work->lethalAttackPhase == LETHAL_PHASE_WINDUP) {
+                    hitReaction = HIT_TWIST;
                 }
                 switch (hitReaction) {
-                    case HELICOPTER_LANDING_PAD_NO_9_HIT_TWIST: {
+                    case HIT_TWIST: {
                         _helicopterLandingPadNo9StartHitTwist(work);
                         if (enemy->hp <= 0) {
                             work->state       = HELICOPTER_LANDING_PAD_NO_9_STATE_DEATH;
-                            work->subState    = HELICOPTER_LANDING_PAD_NO_9_DEATH_ENTER;
-                            work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_DEATH;
+                            work->subState    = DEATH_ENTER;
+                            work->animationId = ANIM_DEATH;
                             work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         }
                         break;
                     }
-                    case HELICOPTER_LANDING_PAD_NO_9_HIT_FLINCH:
+                    case HIT_FLINCH:
                         work->state                = HELICOPTER_LANDING_PAD_NO_9_STATE_FLINCH;
-                        work->subState             = HELICOPTER_LANDING_PAD_NO_9_FLINCH_ENTER;
+                        work->subState             = FLINCH_ENTER;
                         work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         if (enemy->hp <= 0) {
                             work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         }
                         break;
-                    case HELICOPTER_LANDING_PAD_NO_9_HIT_RECOIL:
+                    case HIT_RECOIL:
                         work->state                = HELICOPTER_LANDING_PAD_NO_9_STATE_RECOIL;
-                        work->subState             = HELICOPTER_LANDING_PAD_NO_9_RECOIL_ENTER;
+                        work->subState             = RECOIL_ENTER;
                         work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         if (enemy->hp <= 0) {
@@ -1247,20 +1247,20 @@ static void _helicopterLandingPadNo9ResolveBodyContacts(Task* task)
             case DAMAGE_HAZARD_CATEGORY >> 16:
                 hazardApplies = 0;
                 switch ((u32)(u16)work->bodyContacts[contactIndex].key.value) {
-                    case HELICOPTER_LANDING_PAD_NO_9_HAZARD_LIGHT_BLAST:
+                    case HAZARD_LIGHT_BLAST:
                         hazardApplies  = 1;
                         work->state    = HELICOPTER_LANDING_PAD_NO_9_STATE_SPARK_RECOIL;
-                        work->subState = HELICOPTER_LANDING_PAD_NO_9_SPARK_RECOIL_ENTER;
+                        work->subState = SPARK_RECOIL_ENTER;
                         break;
-                    case HELICOPTER_LANDING_PAD_NO_9_HAZARD_SOURCE_RECOIL:
+                    case HAZARD_SOURCE_RECOIL:
                         hazardApplies  = 1;
                         work->state    = HELICOPTER_LANDING_PAD_NO_9_STATE_RECOIL;
-                        work->subState = HELICOPTER_LANDING_PAD_NO_9_RECOIL_ENTER;
+                        work->subState = RECOIL_ENTER;
                         break;
-                    case HELICOPTER_LANDING_PAD_NO_9_HAZARD_SOURCE_STUN:
+                    case HAZARD_SOURCE_STUN:
                         hazardApplies  = 1;
                         work->state    = HELICOPTER_LANDING_PAD_NO_9_STATE_SPARK_STUN;
-                        work->subState = HELICOPTER_LANDING_PAD_NO_9_SPARK_STUN_ENTER;
+                        work->subState = SPARK_STUN_ENTER;
                         break;
                 }
                 if (hazardApplies) {
@@ -1270,8 +1270,8 @@ static void _helicopterLandingPadNo9ResolveBodyContacts(Task* task)
                     enemy->hp                 -= hazardDamage;
                     worldTargetAddReadoutAmount(&enemy->node, hazardDamage, 0);
                     if (enemy->hp <= 0) {
-                        if (work->lethalAttackPhase < HELICOPTER_LANDING_PAD_NO_9_LETHAL_PHASE_STRUCK) {
-                            work->lethalAttackPhase = HELICOPTER_LANDING_PAD_NO_9_LETHAL_PHASE_NONE;
+                        if (work->lethalAttackPhase < LETHAL_PHASE_STRUCK) {
+                            work->lethalAttackPhase = LETHAL_PHASE_NONE;
                             work->body.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         } else {
                             enemy->hp = 1;
@@ -1306,77 +1306,77 @@ static void _helicopterLandingPadNo9TickOpening(Task* task)
     work      = task->work;
     bodyCoord = task->extra.tmd->coords;
     switch (work->subState) {
-        case HELICOPTER_LANDING_PAD_NO_9_OPENING_INTRO:
+        case OPENING_INTRO:
             if (work->animationFrame == 0xA) {
-                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_WINDUP;
+                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_WINDUP;
                 sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
                                          (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
             if (work->animationFrame >= 0x64) {
-                work->subState    = HELICOPTER_LANDING_PAD_NO_9_OPENING_WINDUP;
-                work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_SLASH_WINDUP;
+                work->subState    = OPENING_WINDUP;
+                work->animationId = ANIM_SLASH_WINDUP;
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_OPENING_WINDUP:
+        case OPENING_WINDUP:
             if (work->animationFrame >= 0x14) {
-                work->subState    = HELICOPTER_LANDING_PAD_NO_9_OPENING_FIRST_SLASH;
-                work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_SLASH_FIRST;
-                _helicopterLandingPadNo9ArmAttack(work, HELICOPTER_LANDING_PAD_NO_9_ATTACK_SLASH);
+                work->subState    = OPENING_FIRST_SLASH;
+                work->animationId = ANIM_SLASH_FIRST;
+                _helicopterLandingPadNo9ArmAttack(work, ATTACK_SLASH);
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_OPENING_FIRST_SLASH:
+        case OPENING_FIRST_SLASH:
             work->lapSpeed = ((u32)((u16)work->animationFrame - 9) < 0x13U) ? 0x38 : 0;
             if (work->attackLanded != 0) {
                 work->lapSpeed = 0;
             }
             if (work->animationFrame == 0xA) {
-                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_SLASH;
+                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_SLASH;
                 sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
                                          (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
             if (work->animationFrame >= 0x1D) {
                 if (work->attackLanded != 0) {
                     work->state                = HELICOPTER_LANDING_PAD_NO_9_STATE_SLASH;
-                    work->subState             = HELICOPTER_LANDING_PAD_NO_9_SLASH_RECOVER;
-                    work->animationId          = HELICOPTER_LANDING_PAD_NO_9_ANIM_SLASH_RECOVER;
+                    work->subState             = SLASH_RECOVER;
+                    work->animationId          = ANIM_SLASH_RECOVER;
                     work->attackLanded         = 0;
                     work->flameFrames          = 0;
                     work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 } else {
-                    work->subState    = HELICOPTER_LANDING_PAD_NO_9_OPENING_SECOND_SLASH;
-                    work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_SLASH_SECOND;
+                    work->subState    = OPENING_SECOND_SLASH;
+                    work->animationId = ANIM_SLASH_SECOND;
                 }
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_OPENING_SECOND_SLASH:
+        case OPENING_SECOND_SLASH:
             work->lapSpeed = ((u32)((u16)work->animationFrame - 5) < 0x13U) ? 0x38 : 0;
             if (work->attackLanded != 0) {
                 work->lapSpeed = 0;
             }
             if (work->animationFrame == 6) {
-                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_SLASH;
+                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_SLASH;
                 sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
                                          (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
             if (work->animationFrame >= 0x27) {
                 if (work->attackLanded != 0) {
                     work->state                = HELICOPTER_LANDING_PAD_NO_9_STATE_SLASH;
-                    work->subState             = HELICOPTER_LANDING_PAD_NO_9_SLASH_RECOVER;
-                    work->animationId          = HELICOPTER_LANDING_PAD_NO_9_ANIM_SLASH_RECOVER;
+                    work->subState             = SLASH_RECOVER;
+                    work->animationId          = ANIM_SLASH_RECOVER;
                     work->attackLanded         = 0;
                     work->flameFrames          = 0;
                     work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 } else {
-                    work->subState = HELICOPTER_LANDING_PAD_NO_9_OPENING_LUNGE;
+                    work->subState = OPENING_LUNGE;
                 }
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_OPENING_LUNGE:
-            work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_FLAME_LUNGE;
+        case OPENING_LUNGE:
+            work->animationId = ANIM_FLAME_LUNGE;
             work->state       = HELICOPTER_LANDING_PAD_NO_9_STATE_FLAME_LUNGE;
-            work->subState    = HELICOPTER_LANDING_PAD_NO_9_FLAME_LUNGE_CHARGE;
+            work->subState    = FLAME_LUNGE_CHARGE;
             break;
     }
 }
@@ -1389,10 +1389,10 @@ static void _helicopterLandingPadNo9TickOpening(Task* task)
 static void _helicopterLandingPadNo9TickPatrol(Task* task)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_PATROL_WALK_WITHOUT_FIRE    = 0,
-        HELICOPTER_LANDING_PAD_NO_9_PATROL_WALK_WITH_FIRE       = 1,
-        HELICOPTER_LANDING_PAD_NO_9_PATROL_FIRST_SHOT_FRAMES    = 29,
-        HELICOPTER_LANDING_PAD_NO_9_PATROL_SHOT_INTERVAL_FRAMES = 40,
+        WALK_WITHOUT_FIRE    = 0,
+        WALK_WITH_FIRE       = 1,
+        FIRST_SHOT_FRAMES    = 29,
+        SHOT_INTERVAL_FRAMES = 40,
     };
     HelicopterLandingPadNo9Work* work;
     GfxCoord*                    bodyCoord;
@@ -1402,12 +1402,12 @@ static void _helicopterLandingPadNo9TickPatrol(Task* task)
 
     work      = task->work;
     bodyCoord = task->extra.tmd->coords;
-    if (work->playerSide != work->lapSide && work->subState != HELICOPTER_LANDING_PAD_NO_9_PATROL_BACKSTEP && work->sideRemaining >= 0xBB8) {
-        work->subState = HELICOPTER_LANDING_PAD_NO_9_PATROL_CATCH_UP;
+    if (work->playerSide != work->lapSide && work->subState != PATROL_BACKSTEP && work->sideRemaining >= 0xBB8) {
+        work->subState = PATROL_CATCH_UP;
     }
     switch (work->subState) {
         // Pick an attack only at a wait boundary; otherwise prepare another walk.
-        case HELICOPTER_LANDING_PAD_NO_9_PATROL_WAIT:
+        case PATROL_WAIT:
             work->lapSpeed     = 0;
             work->attackLanded = 0;
             if (--work->stateCounter <= 0) {
@@ -1416,134 +1416,134 @@ static void _helicopterLandingPadNo9TickPatrol(Task* task)
                 }
                 if (_helicopterLandingPadNo9TrySelectAttack(task) == 0) {
                     if (work->sideRemaining < 0x7D0) {
-                        work->subState     = HELICOPTER_LANDING_PAD_NO_9_PATROL_WALK_START;
-                        work->animationId  = HELICOPTER_LANDING_PAD_NO_9_ANIM_WALK_START;
-                        work->stateCounter = HELICOPTER_LANDING_PAD_NO_9_PATROL_WALK_WITHOUT_FIRE;
-                    } else if (((Enemy*)task->spawnArg2.pointer)->node.state.parts.targeted == 1 && (u32)(gPlayerStatus.weaponSlotItem - HELICOPTER_LANDING_PAD_NO_9_SHOTGUN_FIRST_AMMO_ROW) < (u32)HELICOPTER_LANDING_PAD_NO_9_SHOTGUN_AMMO_ROW_COUNT) {
-                        work->subState    = HELICOPTER_LANDING_PAD_NO_9_PATROL_SHOTGUN_RESPONSE_START;
-                        work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_SHOTGUN_RESPONSE_START;
-                        soundKey          = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_SHOTGUN_RESPONSE;
+                        work->subState     = PATROL_WALK_START;
+                        work->animationId  = ANIM_WALK_START;
+                        work->stateCounter = WALK_WITHOUT_FIRE;
+                    } else if (((Enemy*)task->spawnArg2.pointer)->node.state.parts.targeted == 1 && (u32)(gPlayerStatus.weaponSlotItem - SHOTGUN_FIRST_AMMO_ROW) < (u32)SHOTGUN_AMMO_ROW_COUNT) {
+                        work->subState    = PATROL_SHOTGUN_RESPONSE_START;
+                        work->animationId = ANIM_SHOTGUN_RESPONSE_START;
+                        soundKey          = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_SHOTGUN_RESPONSE;
                         sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
                                                  (s8)worldCoordGetOriginAudioDepth(bodyCoord));
                     } else {
-                        work->subState     = HELICOPTER_LANDING_PAD_NO_9_PATROL_WALK_START;
-                        work->animationId  = HELICOPTER_LANDING_PAD_NO_9_ANIM_WALK_START;
-                        work->stateCounter = HELICOPTER_LANDING_PAD_NO_9_PATROL_WALK_WITH_FIRE;
+                        work->subState     = PATROL_WALK_START;
+                        work->animationId  = ANIM_WALK_START;
+                        work->stateCounter = WALK_WITH_FIRE;
                     }
                 }
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_PATROL_WALK_START:
+        case PATROL_WALK_START:
             work->lapSpeed = 0;
             if (work->animationFrame >= 0xD) {
-                if (work->stateCounter == HELICOPTER_LANDING_PAD_NO_9_PATROL_WALK_WITHOUT_FIRE) {
-                    work->subState    = HELICOPTER_LANDING_PAD_NO_9_PATROL_WALK;
-                    work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_WALK;
+                if (work->stateCounter == WALK_WITHOUT_FIRE) {
+                    work->subState    = PATROL_WALK;
+                    work->animationId = ANIM_WALK;
                 } else {
-                    work->subState      = HELICOPTER_LANDING_PAD_NO_9_PATROL_WALK_FIRE;
-                    work->animationId   = HELICOPTER_LANDING_PAD_NO_9_ANIM_WALK_FIRE;
-                    work->shotCountdown = HELICOPTER_LANDING_PAD_NO_9_PATROL_FIRST_SHOT_FRAMES;
+                    work->subState      = PATROL_WALK_FIRE;
+                    work->animationId   = ANIM_WALK_FIRE;
+                    work->shotCountdown = FIRST_SHOT_FRAMES;
                 }
                 work->stateCounter = _gHelicopterLandingPadNo9PatrolWalkDistances[((RANDOM_LCG_ADVANCE()) >> 16) & 0xF];
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_PATROL_WALK:
-            work->lapSpeed      = HELICOPTER_LANDING_PAD_NO_9_PATROL_WALK_SPEED;
-            work->stateCounter -= HELICOPTER_LANDING_PAD_NO_9_PATROL_WALK_SPEED;
-            if (work->stateCounter <= 0 || work->lapDistance > (u32)HELICOPTER_LANDING_PAD_NO_9_PATROL_END_DISTANCE) {
-                work->animationId  = HELICOPTER_LANDING_PAD_NO_9_ANIM_PATROL_IDLE;
-                work->subState     = HELICOPTER_LANDING_PAD_NO_9_PATROL_WAIT;
+        case PATROL_WALK:
+            work->lapSpeed      = PATROL_WALK_SPEED;
+            work->stateCounter -= PATROL_WALK_SPEED;
+            if (work->stateCounter <= 0 || work->lapDistance > (u32)PATROL_END_DISTANCE) {
+                work->animationId  = ANIM_PATROL_IDLE;
+                work->subState     = PATROL_WAIT;
                 work->stateCounter = _gHelicopterLandingPadNo9PatrolWaitFrames[((RANDOM_LCG_ADVANCE()) >> 16) & 0xF];
             }
             // The binary retains this empty lap-distance interval.
-            if (work->sideRemaining >= 0x7D0 && work->playerDistance < 0x3E8 && work->lapDistance <= (u32)HELICOPTER_LANDING_PAD_NO_9_LAST_ATTACK_DISTANCE &&
-                work->lapDistance > (u32)HELICOPTER_LANDING_PAD_NO_9_LETHAL_ATTACK_DISTANCE) {
-                work->subState     = HELICOPTER_LANDING_PAD_NO_9_PATROL_WAIT;
-                work->animationId  = HELICOPTER_LANDING_PAD_NO_9_ANIM_PATROL_IDLE;
+            if (work->sideRemaining >= 0x7D0 && work->playerDistance < 0x3E8 && work->lapDistance <= (u32)LAST_ATTACK_DISTANCE &&
+                work->lapDistance > (u32)LETHAL_ATTACK_DISTANCE) {
+                work->subState     = PATROL_WAIT;
+                work->animationId  = ANIM_PATROL_IDLE;
                 work->stateCounter = 0;
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_PATROL_WALK_FIRE:
-            work->lapSpeed      = HELICOPTER_LANDING_PAD_NO_9_PATROL_WALK_SPEED;
-            work->stateCounter -= HELICOPTER_LANDING_PAD_NO_9_PATROL_WALK_SPEED;
+        case PATROL_WALK_FIRE:
+            work->lapSpeed      = PATROL_WALK_SPEED;
+            work->stateCounter -= PATROL_WALK_SPEED;
             if (--work->shotCountdown == 0) {
-                muzzleFlash = effectSpawn((EFFECT_NO9_MUZZLE_FLASH | EFFECT_SPAWN_UNLIMITED), &task->extra.tmd->coords[HELICOPTER_LANDING_PAD_NO_9_WEAPON_PART], 0, NULL);
+                muzzleFlash = effectSpawn((EFFECT_NO9_MUZZLE_FLASH | EFFECT_SPAWN_UNLIMITED), &task->extra.tmd->coords[WEAPON_PART], 0, NULL);
                 if (muzzleFlash != NULL) {
                     taskReparent(task, muzzleFlash->task);
                 }
-                work->shotCountdown = HELICOPTER_LANDING_PAD_NO_9_PATROL_SHOT_INTERVAL_FRAMES;
-                soundKey            = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_FIRE;
+                work->shotCountdown = SHOT_INTERVAL_FRAMES;
+                soundKey            = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_FIRE;
                 sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
                                          (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
-            if (((Enemy*)task->spawnArg2.pointer)->node.state.parts.targeted == 1 && (u32)(gPlayerStatus.weaponSlotItem - HELICOPTER_LANDING_PAD_NO_9_SHOTGUN_FIRST_AMMO_ROW) < (u32)HELICOPTER_LANDING_PAD_NO_9_SHOTGUN_AMMO_ROW_COUNT) {
-                work->subState    = HELICOPTER_LANDING_PAD_NO_9_PATROL_SHOTGUN_RESPONSE_WALK;
-                work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_SHOTGUN_RESPONSE_START;
-                soundKey          = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_SHOTGUN_RESPONSE;
+            if (((Enemy*)task->spawnArg2.pointer)->node.state.parts.targeted == 1 && (u32)(gPlayerStatus.weaponSlotItem - SHOTGUN_FIRST_AMMO_ROW) < (u32)SHOTGUN_AMMO_ROW_COUNT) {
+                work->subState    = PATROL_SHOTGUN_RESPONSE_WALK;
+                work->animationId = ANIM_SHOTGUN_RESPONSE_START;
+                soundKey          = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_SHOTGUN_RESPONSE;
                 sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
                                          (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
-            if (work->stateCounter <= 0 || work->lapDistance > (u32)HELICOPTER_LANDING_PAD_NO_9_PATROL_END_DISTANCE) {
-                work->animationId  = HELICOPTER_LANDING_PAD_NO_9_ANIM_PATROL_IDLE;
-                work->subState     = HELICOPTER_LANDING_PAD_NO_9_PATROL_WAIT;
+            if (work->stateCounter <= 0 || work->lapDistance > (u32)PATROL_END_DISTANCE) {
+                work->animationId  = ANIM_PATROL_IDLE;
+                work->subState     = PATROL_WAIT;
                 work->stateCounter = _gHelicopterLandingPadNo9PatrolWaitFrames[((RANDOM_LCG_ADVANCE()) >> 16) & 0xF];
             }
-            if (work->sideRemaining >= 0x7D0 && work->playerDistance < 0x3E8 && work->lapDistance <= (u32)HELICOPTER_LANDING_PAD_NO_9_LAST_ATTACK_DISTANCE &&
-                work->lapDistance > (u32)HELICOPTER_LANDING_PAD_NO_9_LETHAL_ATTACK_DISTANCE) {
-                work->subState     = HELICOPTER_LANDING_PAD_NO_9_PATROL_WAIT;
-                work->animationId  = HELICOPTER_LANDING_PAD_NO_9_ANIM_PATROL_IDLE;
+            if (work->sideRemaining >= 0x7D0 && work->playerDistance < 0x3E8 && work->lapDistance <= (u32)LAST_ATTACK_DISTANCE &&
+                work->lapDistance > (u32)LETHAL_ATTACK_DISTANCE) {
+                work->subState     = PATROL_WAIT;
+                work->animationId  = ANIM_PATROL_IDLE;
                 work->stateCounter = 0;
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_PATROL_CATCH_UP:
+        case PATROL_CATCH_UP:
             catchUpSpeed      = 0;
-            work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_CATCH_UP;
+            work->animationId = ANIM_CATCH_UP;
             if (work->animationFrame >= 8) {
                 catchUpSpeed = 0xA0;
             }
             work->lapSpeed = catchUpSpeed;
             if (work->sideRemaining < 0x5DC) {
-                work->subState     = HELICOPTER_LANDING_PAD_NO_9_PATROL_WAIT;
-                work->animationId  = HELICOPTER_LANDING_PAD_NO_9_ANIM_PATROL_IDLE;
+                work->subState     = PATROL_WAIT;
+                work->animationId  = ANIM_PATROL_IDLE;
                 work->stateCounter = 0;
             }
-            if (work->sideRemaining >= 0x7D0 && work->playerDistance < 0x3E8 && work->lapDistance <= (u32)HELICOPTER_LANDING_PAD_NO_9_LAST_ATTACK_DISTANCE &&
-                work->lapDistance > (u32)HELICOPTER_LANDING_PAD_NO_9_LETHAL_ATTACK_DISTANCE) {
-                work->subState     = HELICOPTER_LANDING_PAD_NO_9_PATROL_WAIT;
-                work->animationId  = HELICOPTER_LANDING_PAD_NO_9_ANIM_PATROL_IDLE;
+            if (work->sideRemaining >= 0x7D0 && work->playerDistance < 0x3E8 && work->lapDistance <= (u32)LAST_ATTACK_DISTANCE &&
+                work->lapDistance > (u32)LETHAL_ATTACK_DISTANCE) {
+                work->subState     = PATROL_WAIT;
+                work->animationId  = ANIM_PATROL_IDLE;
                 work->stateCounter = 0;
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_PATROL_SHOTGUN_RESPONSE_START:
+        case PATROL_SHOTGUN_RESPONSE_START:
             if (work->animationFrame >= 0xF) {
-                work->subState     = HELICOPTER_LANDING_PAD_NO_9_PATROL_SHOTGUN_RESPONSE_WALK;
-                work->animationId  = HELICOPTER_LANDING_PAD_NO_9_ANIM_SHOTGUN_RESPONSE_WALK;
+                work->subState     = PATROL_SHOTGUN_RESPONSE_WALK;
+                work->animationId  = ANIM_SHOTGUN_RESPONSE_WALK;
                 work->stateCounter = _gHelicopterLandingPadNo9PatrolWalkDistances[((RANDOM_LCG_ADVANCE()) >> 16) & 0xF];
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_PATROL_SHOTGUN_RESPONSE_WALK:
-            work->lapSpeed      = HELICOPTER_LANDING_PAD_NO_9_PATROL_WALK_SPEED;
-            work->stateCounter -= HELICOPTER_LANDING_PAD_NO_9_PATROL_WALK_SPEED;
-            if (work->stateCounter <= 0 || work->lapDistance > (u32)HELICOPTER_LANDING_PAD_NO_9_PATROL_END_DISTANCE ||
-                (work->sideRemaining >= 0x7D0 && work->playerDistance < 0x3E8 && work->lapDistance <= (u32)HELICOPTER_LANDING_PAD_NO_9_LAST_ATTACK_DISTANCE)) {
-                work->subState    = HELICOPTER_LANDING_PAD_NO_9_PATROL_SHOTGUN_RESPONSE_END;
-                work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_SHOTGUN_RESPONSE_END;
+        case PATROL_SHOTGUN_RESPONSE_WALK:
+            work->lapSpeed      = PATROL_WALK_SPEED;
+            work->stateCounter -= PATROL_WALK_SPEED;
+            if (work->stateCounter <= 0 || work->lapDistance > (u32)PATROL_END_DISTANCE ||
+                (work->sideRemaining >= 0x7D0 && work->playerDistance < 0x3E8 && work->lapDistance <= (u32)LAST_ATTACK_DISTANCE)) {
+                work->subState    = PATROL_SHOTGUN_RESPONSE_END;
+                work->animationId = ANIM_SHOTGUN_RESPONSE_END;
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_PATROL_SHOTGUN_RESPONSE_END:
+        case PATROL_SHOTGUN_RESPONSE_END:
             work->lapSpeed = 0;
             if (work->animationFrame >= 0xD) {
-                work->subState    = HELICOPTER_LANDING_PAD_NO_9_PATROL_WAIT;
-                work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_PATROL_IDLE;
-                if (work->sideRemaining >= 0x7D0 && work->playerDistance < 0x3E8 && work->lapDistance <= (u32)HELICOPTER_LANDING_PAD_NO_9_LAST_ATTACK_DISTANCE &&
-                    work->lapDistance > (u32)HELICOPTER_LANDING_PAD_NO_9_LETHAL_ATTACK_DISTANCE) {
+                work->subState    = PATROL_WAIT;
+                work->animationId = ANIM_PATROL_IDLE;
+                if (work->sideRemaining >= 0x7D0 && work->playerDistance < 0x3E8 && work->lapDistance <= (u32)LAST_ATTACK_DISTANCE &&
+                    work->lapDistance > (u32)LETHAL_ATTACK_DISTANCE) {
                     work->stateCounter = 0;
                 } else {
                     work->stateCounter = _gHelicopterLandingPadNo9PatrolWaitFrames[((RANDOM_LCG_ADVANCE()) >> 16) & 0xF];
                 }
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_PATROL_BACKSTEP:
+        case PATROL_BACKSTEP:
             if (work->sideTravelled < 0xC8 || work->playerSide != work->lapSide || work->animationFrame < 0xB ||
                 work->animationFrame >= 0x18) {
                 work->lapSpeed = 0;
@@ -1551,14 +1551,14 @@ static void _helicopterLandingPadNo9TickPatrol(Task* task)
                 work->lapSpeed = -0xA7;
             }
             if (work->animationFrame == 0x19) {
-                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_BACKSTEP;
+                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_BACKSTEP;
                 sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
                                          (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
             if (work->animationFrame >= 0x32) {
                 work->state        = HELICOPTER_LANDING_PAD_NO_9_STATE_PATROL;
-                work->subState     = HELICOPTER_LANDING_PAD_NO_9_PATROL_WAIT;
-                work->animationId  = HELICOPTER_LANDING_PAD_NO_9_ANIM_PATROL_IDLE;
+                work->subState     = PATROL_WAIT;
+                work->animationId  = ANIM_PATROL_IDLE;
                 work->stateCounter = 0;
             }
             break;
@@ -1573,7 +1573,7 @@ static void _helicopterLandingPadNo9TickPatrol(Task* task)
 /// the end-of-lap lethal attack takes precedence over them.
 static s32 _helicopterLandingPadNo9TrySelectAttack(Task* task)
 {
-    enum { HELICOPTER_LANDING_PAD_NO_9_ATTACK_INITIAL_STEP = 0 };
+    enum { ATTACK_INITIAL_STEP = 0 };
     HelicopterLandingPadNo9Work* work;
     GfxCoord*                    bodyCoord;
     s32                          lightDistanceError;
@@ -1583,37 +1583,37 @@ static s32 _helicopterLandingPadNo9TrySelectAttack(Task* task)
     work      = task->work;
     bodyCoord = task->extra.tmd->coords;
     // Scripted light strikes and the lethal attack precede range-based choices.
-    if (work->slashedLight == HELICOPTER_LANDING_PAD_NO_9_LIGHT_SLASH_NONE) {
-        lightDistanceError = work->lapDistance - HELICOPTER_LANDING_PAD_NO_9_LIGHT_0_SLASH_DISTANCE;
+    if (work->slashedLight == LIGHT_SLASH_NONE) {
+        lightDistanceError = work->lapDistance - LIGHT_0_SLASH_DISTANCE;
         if (lightDistanceError < 0) {
             lightDistanceError = -lightDistanceError;
         }
-        if (lightDistanceError < HELICOPTER_LANDING_PAD_NO_9_LIGHT_SLASH_WINDOW) {
-            work->slashedLight = HELICOPTER_LANDING_PAD_NO_9_LIGHT_SLASH_LIGHT_0;
+        if (lightDistanceError < LIGHT_SLASH_WINDOW) {
+            work->slashedLight = LIGHT_SLASH_LIGHT_0;
             work->state        = HELICOPTER_LANDING_PAD_NO_9_STATE_SLASH;
-            work->subState     = HELICOPTER_LANDING_PAD_NO_9_SLASH_WINDUP;
-            work->animationId  = HELICOPTER_LANDING_PAD_NO_9_ANIM_SLASH_WINDUP;
+            work->subState     = SLASH_WINDUP;
+            work->animationId  = ANIM_SLASH_WINDUP;
             return 1;
         }
-        lightDistanceError = work->lapDistance - HELICOPTER_LANDING_PAD_NO_9_LIGHT_1_SLASH_DISTANCE;
+        lightDistanceError = work->lapDistance - LIGHT_1_SLASH_DISTANCE;
         if (lightDistanceError < 0) {
             lightDistanceError = -lightDistanceError;
         }
-        if (lightDistanceError < HELICOPTER_LANDING_PAD_NO_9_LIGHT_SLASH_WINDOW) {
-            work->slashedLight = HELICOPTER_LANDING_PAD_NO_9_LIGHT_SLASH_LIGHT_1;
+        if (lightDistanceError < LIGHT_SLASH_WINDOW) {
+            work->slashedLight = LIGHT_SLASH_LIGHT_1;
             work->state        = HELICOPTER_LANDING_PAD_NO_9_STATE_SLASH;
-            work->subState     = HELICOPTER_LANDING_PAD_NO_9_SLASH_WINDUP;
-            work->animationId  = HELICOPTER_LANDING_PAD_NO_9_ANIM_SLASH_WINDUP;
+            work->subState     = SLASH_WINDUP;
+            work->animationId  = ANIM_SLASH_WINDUP;
             return 1;
         }
     }
-    if (work->lapDistance > (u32)HELICOPTER_LANDING_PAD_NO_9_LETHAL_ATTACK_DISTANCE) {
+    if (work->lapDistance > (u32)LETHAL_ATTACK_DISTANCE) {
         work->state       = HELICOPTER_LANDING_PAD_NO_9_STATE_LETHAL_ATTACK;
-        work->subState    = HELICOPTER_LANDING_PAD_NO_9_ATTACK_INITIAL_STEP;
-        work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_FLAME_WINDUP;
+        work->subState    = ATTACK_INITIAL_STEP;
+        work->animationId = ANIM_FLAME_WINDUP;
         return 1;
     }
-    if (work->lapDistance > (u32)HELICOPTER_LANDING_PAD_NO_9_LAST_ATTACK_DISTANCE) {
+    if (work->lapDistance > (u32)LAST_ATTACK_DISTANCE) {
         return 0;
     }
     if (work->lapSide != work->playerSide) {
@@ -1624,26 +1624,26 @@ static s32 _helicopterLandingPadNo9TrySelectAttack(Task* task)
             gPlayerStatus.coordMtx->m[2][2] * bodyCoord->coord.m[2][2] <
         0) {
         playerDistance = work->playerDistance;
-        if (playerDistance < HELICOPTER_LANDING_PAD_NO_9_SLASH_RANGE) {
+        if (playerDistance < SLASH_RANGE) {
             selected          = 1;
             work->state       = HELICOPTER_LANDING_PAD_NO_9_STATE_SLASH;
-            work->subState    = HELICOPTER_LANDING_PAD_NO_9_SLASH_WINDUP;
-            work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_SLASH_WINDUP;
-        } else if (playerDistance < HELICOPTER_LANDING_PAD_NO_9_FLAME_LUNGE_RANGE) {
+            work->subState    = SLASH_WINDUP;
+            work->animationId = ANIM_SLASH_WINDUP;
+        } else if (playerDistance < FLAME_LUNGE_RANGE) {
             selected          = 1;
             work->state       = HELICOPTER_LANDING_PAD_NO_9_STATE_FLAME_LUNGE;
-            work->subState    = HELICOPTER_LANDING_PAD_NO_9_FLAME_LUNGE_WINDUP;
-            work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_FLAME_WINDUP;
-        } else if (playerDistance < HELICOPTER_LANDING_PAD_NO_9_MIXED_ATTACK_RANGE) {
+            work->subState    = FLAME_LUNGE_WINDUP;
+            work->animationId = ANIM_FLAME_WINDUP;
+        } else if (playerDistance < MIXED_ATTACK_RANGE) {
             RANDOM_LCG_ADVANCE();
             if ((gRandomLcgState >> 0x10) & 1) {
                 work->state       = HELICOPTER_LANDING_PAD_NO_9_STATE_FLAME_LUNGE;
-                work->subState    = HELICOPTER_LANDING_PAD_NO_9_FLAME_LUNGE_WINDUP;
-                work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_FLAME_WINDUP;
+                work->subState    = FLAME_LUNGE_WINDUP;
+                work->animationId = ANIM_FLAME_WINDUP;
             } else {
                 work->state       = HELICOPTER_LANDING_PAD_NO_9_STATE_GRENADE;
-                work->subState    = HELICOPTER_LANDING_PAD_NO_9_ATTACK_INITIAL_STEP;
-                work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_GRENADE_THROW;
+                work->subState    = ATTACK_INITIAL_STEP;
+                work->animationId = ANIM_GRENADE_THROW;
             }
             selected = 1;
         } else {
@@ -1651,25 +1651,25 @@ static s32 _helicopterLandingPadNo9TrySelectAttack(Task* task)
             if (work->grenadeLive == 0) {
                 selected          = 1;
                 work->state       = HELICOPTER_LANDING_PAD_NO_9_STATE_GRENADE;
-                work->subState    = HELICOPTER_LANDING_PAD_NO_9_ATTACK_INITIAL_STEP;
-                work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_GRENADE_THROW;
+                work->subState    = ATTACK_INITIAL_STEP;
+                work->animationId = ANIM_GRENADE_THROW;
             }
         }
     } else {
-        if (work->playerDistance < HELICOPTER_LANDING_PAD_NO_9_SLASH_RANGE) {
+        if (work->playerDistance < SLASH_RANGE) {
             work->state       = HELICOPTER_LANDING_PAD_NO_9_STATE_SLASH;
-            work->subState    = HELICOPTER_LANDING_PAD_NO_9_SLASH_WINDUP;
-            work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_SLASH_WINDUP;
+            work->subState    = SLASH_WINDUP;
+            work->animationId = ANIM_SLASH_WINDUP;
         } else {
             RANDOM_LCG_ADVANCE();
             if (((gRandomLcgState >> 0x10) & 0xF) < 0xAU) {
                 work->state       = HELICOPTER_LANDING_PAD_NO_9_STATE_GRENADE;
-                work->subState    = HELICOPTER_LANDING_PAD_NO_9_ATTACK_INITIAL_STEP;
-                work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_GRENADE_THROW;
+                work->subState    = ATTACK_INITIAL_STEP;
+                work->animationId = ANIM_GRENADE_THROW;
             } else {
                 work->state       = HELICOPTER_LANDING_PAD_NO_9_STATE_DASH;
-                work->subState    = HELICOPTER_LANDING_PAD_NO_9_DASH_START;
-                work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_DASH_START;
+                work->subState    = DASH_START;
+                work->animationId = ANIM_DASH_START;
             }
         }
         selected = 1;
@@ -1691,34 +1691,34 @@ static void _helicopterLandingPadNo9TickSlash(Task* task)
     work      = task->work;
     bodyCoord = task->extra.tmd->coords;
     switch (work->subState) {
-        case HELICOPTER_LANDING_PAD_NO_9_SLASH_WINDUP:
+        case SLASH_WINDUP:
             work->lapSpeed = 0;
             if (work->animationFrame >= 0x14) {
-                work->subState     = HELICOPTER_LANDING_PAD_NO_9_SLASH_FIRST;
-                work->animationId  = HELICOPTER_LANDING_PAD_NO_9_ANIM_SLASH_FIRST;
+                work->subState     = SLASH_FIRST;
+                work->animationId  = ANIM_SLASH_FIRST;
                 work->stateCounter = 0;
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_SLASH_FIRST:
+        case SLASH_FIRST:
             work->lapSpeed = ((u32)((u16)work->animationFrame - 9) < 0x13U) ? 0x38 : 0;
             if (work->attackLanded != 0) {
                 work->lapSpeed = 0;
             }
             if (work->animationFrame == 0xA) {
-                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_SLASH;
+                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_SLASH;
                 sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
                                          (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
-            if ((work->slashedLight > HELICOPTER_LANDING_PAD_NO_9_LIGHT_SLASH_NONE) && (work->animationFrame == 8)) {
+            if ((work->slashedLight > LIGHT_SLASH_NONE) && (work->animationFrame == 8)) {
                 work->lightSlashStruck = 1;
             }
             if (work->animationFrame == 9) {
-                _helicopterLandingPadNo9ArmAttack(work, HELICOPTER_LANDING_PAD_NO_9_ATTACK_SLASH);
+                _helicopterLandingPadNo9ArmAttack(work, ATTACK_SLASH);
             }
             if (work->animationFrame >= 0x1D) {
                 if (work->attackLanded != 0) {
-                    work->subState             = HELICOPTER_LANDING_PAD_NO_9_SLASH_RECOVER;
-                    work->animationId          = HELICOPTER_LANDING_PAD_NO_9_ANIM_SLASH_RECOVER;
+                    work->subState             = SLASH_RECOVER;
+                    work->animationId          = ANIM_SLASH_RECOVER;
                     work->attackLanded         = 0;
                     work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -1727,34 +1727,34 @@ static void _helicopterLandingPadNo9TickSlash(Task* task)
                     if (_gHelicopterLandingPadNo9SlashContinuationThresholds[work->stateCounter] < (s32)((gRandomLcgState >> 0x10) & 0xF)) {
                         u16* patrolWaitFrames = _gHelicopterLandingPadNo9PostAttackWaitFrames;
                         work->state           = HELICOPTER_LANDING_PAD_NO_9_STATE_PATROL;
-                        work->animationId     = HELICOPTER_LANDING_PAD_NO_9_ANIM_PATROL_IDLE;
-                        work->subState        = HELICOPTER_LANDING_PAD_NO_9_PATROL_WAIT;
+                        work->animationId     = ANIM_PATROL_IDLE;
+                        work->subState        = PATROL_WAIT;
                         RANDOM_LCG_ADVANCE();
                         work->stateCounter         = patrolWaitFrames[(gRandomLcgState >> 0x10) & 0xF];
                         work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     } else {
-                        work->subState    = HELICOPTER_LANDING_PAD_NO_9_SLASH_SECOND;
-                        work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_SLASH_SECOND;
+                        work->subState    = SLASH_SECOND;
+                        work->animationId = ANIM_SLASH_SECOND;
                         work->stateCounter++;
                     }
                 }
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_SLASH_SECOND:
+        case SLASH_SECOND:
             work->lapSpeed = ((u32)((u16)work->animationFrame - 5) < 0x13U) ? 0x38 : 0;
             if (work->attackLanded != 0) {
                 work->lapSpeed = 0;
             }
             if (work->animationFrame == 6) {
-                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_SLASH;
+                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_SLASH;
                 sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
                                          (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
             if (work->animationFrame >= 0x27) {
                 if (work->attackLanded != 0) {
-                    work->subState             = HELICOPTER_LANDING_PAD_NO_9_SLASH_RECOVER;
-                    work->animationId          = HELICOPTER_LANDING_PAD_NO_9_ANIM_SLASH_RECOVER;
+                    work->subState             = SLASH_RECOVER;
+                    work->animationId          = ANIM_SLASH_RECOVER;
                     work->attackLanded         = 0;
                     work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -1764,31 +1764,31 @@ static void _helicopterLandingPadNo9TickSlash(Task* task)
                         (work->stateCounter >= (s32)ARRAY_SIZE(_gHelicopterLandingPadNo9SlashContinuationThresholds) - 1)) {
                         u16* patrolWaitFrames = _gHelicopterLandingPadNo9PostAttackWaitFrames;
                         work->state           = HELICOPTER_LANDING_PAD_NO_9_STATE_PATROL;
-                        work->subState        = HELICOPTER_LANDING_PAD_NO_9_PATROL_WAIT;
-                        work->animationId     = HELICOPTER_LANDING_PAD_NO_9_ANIM_PATROL_IDLE;
+                        work->subState        = PATROL_WAIT;
+                        work->animationId     = ANIM_PATROL_IDLE;
                         RANDOM_LCG_ADVANCE();
                         work->stateCounter         = patrolWaitFrames[(gRandomLcgState >> 0x10) & 0xF];
                         work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     } else {
                         work->stateCounter++;
-                        work->subState    = HELICOPTER_LANDING_PAD_NO_9_SLASH_FIRST;
-                        work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_SLASH_FIRST;
+                        work->subState    = SLASH_FIRST;
+                        work->animationId = ANIM_SLASH_FIRST;
                     }
                 }
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_SLASH_RECOVER:
+        case SLASH_RECOVER:
             if (work->animationFrame == 0x2D) {
-                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_SLASH_RECOVER;
+                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_SLASH_RECOVER;
                 sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
                                          (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
             if (work->animationFrame >= 0x5A) {
                 u16* patrolWaitFrames = _gHelicopterLandingPadNo9PostAttackWaitFrames;
                 work->state           = HELICOPTER_LANDING_PAD_NO_9_STATE_PATROL;
-                work->subState        = HELICOPTER_LANDING_PAD_NO_9_PATROL_WAIT;
-                work->animationId     = HELICOPTER_LANDING_PAD_NO_9_ANIM_PATROL_IDLE;
+                work->subState        = PATROL_WAIT;
+                work->animationId     = ANIM_PATROL_IDLE;
                 RANDOM_LCG_ADVANCE();
                 work->stateCounter = patrolWaitFrames[(gRandomLcgState >> 0x10) & 0xF];
             }
@@ -1813,61 +1813,61 @@ static void _helicopterLandingPadNo9TickFlameLunge(Task* task)
     work      = task->work;
     bodyCoord = task->extra.tmd->coords;
     switch (work->subState) {
-        case HELICOPTER_LANDING_PAD_NO_9_FLAME_LUNGE_WINDUP:
+        case FLAME_LUNGE_WINDUP:
             work->lapSpeed = 0;
             if (work->animationFrame == 0x39) {
                 work->flameMode   = HELICOPTER_LANDING_PAD_NO_9_FLAME_BURNING;
                 work->flameFrames = 0x55;
-                soundKey          = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_FIRE;
+                soundKey          = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_FIRE;
                 sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
                                          (s8)worldCoordGetOriginAudioDepth(bodyCoord));
-                work->flameSound = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_FLAME_LOOP;
+                work->flameSound = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_FLAME_LOOP;
                 sndEvtRequestScriptStart(work->flameSound, (s8)worldCoordGetOriginAudioPan(bodyCoord),
                                          (s8)worldCoordGetOriginAudioDepth(bodyCoord));
-                _helicopterLandingPadNo9ArmAttack(work, HELICOPTER_LANDING_PAD_NO_9_ATTACK_IGNITION);
+                _helicopterLandingPadNo9ArmAttack(work, ATTACK_IGNITION);
             }
             if (work->animationFrame == 0x41) {
-                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_WINDUP;
+                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_WINDUP;
                 sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
                                          (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
             if (work->animationFrame >= 0x5A) {
-                work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_FLAME_LUNGE;
-                work->subState    = HELICOPTER_LANDING_PAD_NO_9_FLAME_LUNGE_CHARGE;
+                work->animationId = ANIM_FLAME_LUNGE;
+                work->subState    = FLAME_LUNGE_CHARGE;
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_FLAME_LUNGE_CHARGE:
+        case FLAME_LUNGE_CHARGE:
             if (work->animationFrame == 0xE) {
                 // Keep the raw distance separate from the default clamp result.
                 playerDistance = work->playerDistance;
-                lungeDistance  = HELICOPTER_LANDING_PAD_NO_9_MAX_LUNGE_DISTANCE;
-                if (playerDistance < HELICOPTER_LANDING_PAD_NO_9_MAX_LUNGE_DISTANCE + 1) {
+                lungeDistance  = MAX_LUNGE_DISTANCE;
+                if (playerDistance < MAX_LUNGE_DISTANCE + 1) {
                     lungeDistance = playerDistance;
                 }
                 work->stateCounter = (lungeDistance - 0x4B0) / 24;
             }
             work->lapSpeed = ((u32)((u16)work->animationFrame - 0x17) < 0x19U) ? work->stateCounter : 0;
             if (work->animationFrame == 0x19) {
-                _helicopterLandingPadNo9ArmAttack(work, HELICOPTER_LANDING_PAD_NO_9_ATTACK_FLAME_LUNGE);
-                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_FLAME_STRIKE;
+                _helicopterLandingPadNo9ArmAttack(work, ATTACK_FLAME_LUNGE);
+                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_FLAME_STRIKE;
                 sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
                                          (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
             if (work->animationFrame == 0x2F) {
-                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_BACKSTEP;
+                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_BACKSTEP;
                 sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
                                          (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
             if (work->animationFrame >= 0x46) {
                 if (work->attackLanded != 0) {
                     work->state        = HELICOPTER_LANDING_PAD_NO_9_STATE_PATROL;
-                    work->subState     = HELICOPTER_LANDING_PAD_NO_9_PATROL_BACKSTEP;
+                    work->subState     = PATROL_BACKSTEP;
                     work->attackLanded = 0;
-                    work->animationId  = HELICOPTER_LANDING_PAD_NO_9_ANIM_BACKSTEP;
+                    work->animationId  = ANIM_BACKSTEP;
                 } else {
                     work->state        = HELICOPTER_LANDING_PAD_NO_9_STATE_PATROL;
-                    work->animationId  = HELICOPTER_LANDING_PAD_NO_9_ANIM_PATROL_IDLE;
-                    work->subState     = HELICOPTER_LANDING_PAD_NO_9_PATROL_WAIT;
+                    work->animationId  = ANIM_PATROL_IDLE;
+                    work->subState     = PATROL_WAIT;
                     work->stateCounter = _gHelicopterLandingPadNo9PostAttackWaitFrames[((u32)(randomState = RANDOM_LCG_NEXT(gRandomLcgState)) >> 0x10) & 0xF];
                     gRandomLcgState    = randomState;
                 }
@@ -1887,12 +1887,12 @@ static void _helicopterLandingPadNo9TickFlameLunge(Task* task)
 static void _helicopterLandingPadNo9TickGrenadeThrow(Task* task)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_GRENADE_THROW_FRAME       = 20,
-        HELICOPTER_LANDING_PAD_NO_9_GRENADE_THROW_END_FRAME   = 70,
-        HELICOPTER_LANDING_PAD_NO_9_GRENADE_DESCRIPTOR        = 4,
-        HELICOPTER_LANDING_PAD_NO_9_GRENADE_DASH_MIN_DISTANCE = 3751,
-        HELICOPTER_LANDING_PAD_NO_9_GRENADE_DASH_ROLL_LIMIT   = 12,
-        HELICOPTER_LANDING_PAD_NO_9_SOUND_GRENADE_THROW       = 0x40780012,
+        GRENADE_THROW_FRAME       = 20,
+        GRENADE_THROW_END_FRAME   = 70,
+        GRENADE_DESCRIPTOR        = 4,
+        GRENADE_DASH_MIN_DISTANCE = 3751,
+        GRENADE_DASH_ROLL_LIMIT   = 12,
+        SOUND_GRENADE_THROW       = 0x40780012,
     };
     HelicopterLandingPadNo9Work* work;
     Enemy*                       enemy;
@@ -1914,9 +1914,9 @@ static void _helicopterLandingPadNo9TickGrenadeThrow(Task* task)
     enemy     = task->spawnArg2.pointer;
 
     work->lapSpeed = 0;
-    if (work->animationFrame == HELICOPTER_LANDING_PAD_NO_9_GRENADE_THROW_FRAME) {
+    if (work->animationFrame == GRENADE_THROW_FRAME) {
         work->grenadeLive  = 1;
-        grenadeModel       = enemySpawnFromTable(gHelicopterLandingPadNo9TaskDescriptors, HELICOPTER_LANDING_PAD_NO_9_GRENADE_DESCRIPTOR, dashNext, enemy)->task->extra.tmd;
+        grenadeModel       = enemySpawnFromTable(gHelicopterLandingPadNo9TaskDescriptors, GRENADE_DESCRIPTOR, dashNext, enemy)->task->extra.tmd;
         placeIndex         = (u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
         liveLocation       = &gGameSession->location;
         location.stage     = liveLocation->stage;
@@ -1932,28 +1932,28 @@ static void _helicopterLandingPadNo9TickGrenadeThrow(Task* task)
             tmdBuildBufferHalf(grenadeModel);
             tmdBuildBufferHalf(grenadeModel);
         }
-        soundKey = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_GRENADE_THROW;
+        soundKey = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_GRENADE_THROW;
         audioPan = (s8)worldCoordGetOriginAudioPan(bodyCoord);
         sndEvtRequestScriptStart(soundKey, audioPan, (s8)worldCoordGetOriginAudioDepth(bodyCoord));
     }
-    if (work->animationFrame >= HELICOPTER_LANDING_PAD_NO_9_GRENADE_THROW_END_FRAME) {
-        if (work->playerDistance >= HELICOPTER_LANDING_PAD_NO_9_GRENADE_DASH_MIN_DISTANCE) {
+    if (work->animationFrame >= GRENADE_THROW_END_FRAME) {
+        if (work->playerDistance >= GRENADE_DASH_MIN_DISTANCE) {
             RANDOM_LCG_ADVANCE();
-            if (((gRandomLcgState >> 0x10) & 0xF) < (u32)HELICOPTER_LANDING_PAD_NO_9_GRENADE_DASH_ROLL_LIMIT) {
+            if (((gRandomLcgState >> 0x10) & 0xF) < (u32)GRENADE_DASH_ROLL_LIMIT) {
                 dashNext = 1;
             }
         }
         if (dashNext == 0) {
             work->state        = HELICOPTER_LANDING_PAD_NO_9_STATE_PATROL;
-            work->animationId  = HELICOPTER_LANDING_PAD_NO_9_ANIM_PATROL_IDLE;
-            work->subState     = HELICOPTER_LANDING_PAD_NO_9_PATROL_WAIT;
+            work->animationId  = ANIM_PATROL_IDLE;
+            work->subState     = PATROL_WAIT;
             work->stateCounter = _gHelicopterLandingPadNo9PostAttackWaitFrames[((u32)(randomState = RANDOM_LCG_NEXT(gRandomLcgState)) >> 0x10) & 0xF];
             gRandomLcgState    = randomState;
             return;
         }
         work->state       = HELICOPTER_LANDING_PAD_NO_9_STATE_DASH;
-        work->subState    = HELICOPTER_LANDING_PAD_NO_9_DASH_START;
-        work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_DASH_START;
+        work->subState    = DASH_START;
+        work->animationId = ANIM_DASH_START;
     }
 }
 
@@ -1972,31 +1972,31 @@ static void _helicopterLandingPadNo9TickDash(Task* task)
     work      = task->work;
     bodyCoord = task->extra.tmd->coords;
     switch (work->subState) {
-        case HELICOPTER_LANDING_PAD_NO_9_DASH_START:
-            work->lapSpeed = (work->animationFrame < 0x47) ? 0 : HELICOPTER_LANDING_PAD_NO_9_DASH_SPEED;
+        case DASH_START:
+            work->lapSpeed = (work->animationFrame < 0x47) ? 0 : DASH_SPEED;
             if (work->animationFrame == 0x4A) {
-                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_DASH_START;
+                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_DASH_START;
                 sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
                                          (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
             if (work->animationFrame >= 0x52) {
-                work->animationId  = HELICOPTER_LANDING_PAD_NO_9_ANIM_DASH_RUN;
-                work->subState     = HELICOPTER_LANDING_PAD_NO_9_DASH_RUN;
+                work->animationId  = ANIM_DASH_RUN;
+                work->subState     = DASH_RUN;
                 work->stateCounter = 0xEA6;
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_DASH_RUN:
-            work->lapSpeed = HELICOPTER_LANDING_PAD_NO_9_DASH_SPEED;
+        case DASH_RUN:
+            work->lapSpeed = DASH_SPEED;
             if (work->playerDistance < 0x514) {
-                work->subState    = HELICOPTER_LANDING_PAD_NO_9_DASH_STRIKE;
-                work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_DASH_STRIKE;
-                _helicopterLandingPadNo9ArmAttack(work, HELICOPTER_LANDING_PAD_NO_9_ATTACK_DASH);
+                work->subState    = DASH_STRIKE;
+                work->animationId = ANIM_DASH_STRIKE;
+                _helicopterLandingPadNo9ArmAttack(work, ATTACK_DASH);
             } else {
-                work->stateCounter -= HELICOPTER_LANDING_PAD_NO_9_DASH_SPEED;
+                work->stateCounter -= DASH_SPEED;
                 if (work->stateCounter < 0 || work->sideRemaining < 0x384) {
                     work->state       = HELICOPTER_LANDING_PAD_NO_9_STATE_PATROL;
-                    work->subState    = HELICOPTER_LANDING_PAD_NO_9_PATROL_WAIT;
-                    work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_PATROL_IDLE;
+                    work->subState    = PATROL_WAIT;
+                    work->animationId = ANIM_PATROL_IDLE;
                     RANDOM_LCG_ADVANCE();
                     patrolWaitFrames           = _gHelicopterLandingPadNo9PostAttackWaitFrames[RANDOM_LCG_DRAW() & 0xF];
                     work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -2005,16 +2005,16 @@ static void _helicopterLandingPadNo9TickDash(Task* task)
                 }
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_DASH_STRIKE:
+        case DASH_STRIKE:
             work->lapSpeed = 0;
             if (work->animationFrame == 0xE) {
-                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_DASH_STRIKE;
+                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_DASH_STRIKE;
                 sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
                                          (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
             if (work->animationFrame >= 0x3B) {
-                work->subState             = HELICOPTER_LANDING_PAD_NO_9_PATROL_BACKSTEP;
-                work->animationId          = HELICOPTER_LANDING_PAD_NO_9_ANIM_BACKSTEP;
+                work->subState             = PATROL_BACKSTEP;
+                work->animationId          = ANIM_BACKSTEP;
                 work->state                = HELICOPTER_LANDING_PAD_NO_9_STATE_PATROL;
                 work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -2032,29 +2032,29 @@ static void _helicopterLandingPadNo9TickDash(Task* task)
 static void _helicopterLandingPadNo9TickLethalAttack(Task* task)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_LETHAL_IGNITE              = 0,
-        HELICOPTER_LANDING_PAD_NO_9_LETHAL_WINDUP              = 1,
-        HELICOPTER_LANDING_PAD_NO_9_LETHAL_STRIKE              = 2,
-        HELICOPTER_LANDING_PAD_NO_9_LETHAL_PLAYER_DEAD         = 3,
-        HELICOPTER_LANDING_PAD_NO_9_DEATH_SOUND_IDLE           = 0,
-        HELICOPTER_LANDING_PAD_NO_9_DEATH_SOUND_REQUEST        = 1,
-        HELICOPTER_LANDING_PAD_NO_9_DEATH_SOUND_WAIT           = 2,
-        HELICOPTER_LANDING_PAD_NO_9_LETHAL_IGNITION_FRAME      = 57,
-        HELICOPTER_LANDING_PAD_NO_9_LETHAL_IGNITION_END_FRAME  = 90,
-        HELICOPTER_LANDING_PAD_NO_9_LETHAL_WINDUP_SOUND_FRAME  = 10,
-        HELICOPTER_LANDING_PAD_NO_9_LETHAL_WINDUP_END_FRAME    = 100,
-        HELICOPTER_LANDING_PAD_NO_9_LETHAL_ATTACK_ON_FRAME     = 80,
-        HELICOPTER_LANDING_PAD_NO_9_LETHAL_ATTACK_SOUND_FRAME  = 83,
-        HELICOPTER_LANDING_PAD_NO_9_LETHAL_VIBRATION_FRAME     = 88,
-        HELICOPTER_LANDING_PAD_NO_9_LETHAL_ATTACK_OFF_FRAME    = 96,
-        HELICOPTER_LANDING_PAD_NO_9_LETHAL_CONTACT_FIRST_FRAME = 81,
-        HELICOPTER_LANDING_PAD_NO_9_LETHAL_MISS_END_FRAME      = 179,
-        HELICOPTER_LANDING_PAD_NO_9_LETHAL_RECOVER_FRAME       = 170,
-        HELICOPTER_LANDING_PAD_NO_9_LETHAL_FLAME_FRAMES        = 270,
-        HELICOPTER_LANDING_PAD_NO_9_LETHAL_RESTART_DELAY       = 128,
-        HELICOPTER_LANDING_PAD_NO_9_LETHAL_HIT_EFFECT_INTERVAL = 6,
-        HELICOPTER_LANDING_PAD_NO_9_PLAYER_DEATH_SOUND_FILE    = 30,
-        HELICOPTER_LANDING_PAD_NO_9_SOUND_LETHAL_FLAME_STRIKE  = 0x40780010,
+        LETHAL_IGNITE              = 0,
+        LETHAL_WINDUP              = 1,
+        LETHAL_STRIKE              = 2,
+        LETHAL_PLAYER_DEAD         = 3,
+        DEATH_SOUND_IDLE           = 0,
+        DEATH_SOUND_REQUEST        = 1,
+        DEATH_SOUND_WAIT           = 2,
+        LETHAL_IGNITION_FRAME      = 57,
+        LETHAL_IGNITION_END_FRAME  = 90,
+        LETHAL_WINDUP_SOUND_FRAME  = 10,
+        LETHAL_WINDUP_END_FRAME    = 100,
+        LETHAL_ATTACK_ON_FRAME     = 80,
+        LETHAL_ATTACK_SOUND_FRAME  = 83,
+        LETHAL_VIBRATION_FRAME     = 88,
+        LETHAL_ATTACK_OFF_FRAME    = 96,
+        LETHAL_CONTACT_FIRST_FRAME = 81,
+        LETHAL_MISS_END_FRAME      = 179,
+        LETHAL_RECOVER_FRAME       = 170,
+        LETHAL_FLAME_FRAMES        = 270,
+        LETHAL_RESTART_DELAY       = 128,
+        LETHAL_HIT_EFFECT_INTERVAL = 6,
+        PLAYER_DEATH_SOUND_FILE    = 30,
+        SOUND_LETHAL_FLAME_STRIKE  = 0x40780010,
     };
     HelicopterLandingPadNo9Work* work;
     GfxCoord*                    bodyCoord;
@@ -2069,113 +2069,113 @@ static void _helicopterLandingPadNo9TickLethalAttack(Task* task)
     SCRATCH_STACK_RESERVE_BYTES(0x10);
 
     switch (work->subState) {
-        case HELICOPTER_LANDING_PAD_NO_9_LETHAL_IGNITE:
-            work->lethalAttackPhase = HELICOPTER_LANDING_PAD_NO_9_LETHAL_PHASE_WINDUP;
+        case LETHAL_IGNITE:
+            work->lethalAttackPhase = LETHAL_PHASE_WINDUP;
             work->lapSpeed          = 0;
-            if (work->animationFrame == HELICOPTER_LANDING_PAD_NO_9_LETHAL_IGNITION_FRAME) {
+            if (work->animationFrame == LETHAL_IGNITION_FRAME) {
                 work->flameMode   = HELICOPTER_LANDING_PAD_NO_9_FLAME_BURNING;
-                work->flameFrames = HELICOPTER_LANDING_PAD_NO_9_LETHAL_FLAME_FRAMES;
-                soundKey          = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_FIRE;
+                work->flameFrames = LETHAL_FLAME_FRAMES;
+                soundKey          = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_FIRE;
                 sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
                                          (s8)worldCoordGetOriginAudioDepth(bodyCoord));
-                work->flameSound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_FLAME_LOOP;
+                work->flameSound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_FLAME_LOOP;
                 sndEvtRequestScriptStart(work->flameSound, (s8)worldCoordGetOriginAudioPan(bodyCoord),
                                          (s8)worldCoordGetOriginAudioDepth(bodyCoord));
-                _helicopterLandingPadNo9ArmAttack(work, HELICOPTER_LANDING_PAD_NO_9_ATTACK_IGNITION);
+                _helicopterLandingPadNo9ArmAttack(work, ATTACK_IGNITION);
             }
-            if (work->animationFrame >= HELICOPTER_LANDING_PAD_NO_9_LETHAL_IGNITION_END_FRAME) {
-                work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_FIGHT_START;
-                work->subState    = HELICOPTER_LANDING_PAD_NO_9_LETHAL_WINDUP;
+            if (work->animationFrame >= LETHAL_IGNITION_END_FRAME) {
+                work->animationId = ANIM_FIGHT_START;
+                work->subState    = LETHAL_WINDUP;
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_LETHAL_WINDUP:
-            if (work->animationFrame == HELICOPTER_LANDING_PAD_NO_9_LETHAL_WINDUP_SOUND_FRAME) {
-                soundKey = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_WINDUP;
+        case LETHAL_WINDUP:
+            if (work->animationFrame == LETHAL_WINDUP_SOUND_FRAME) {
+                soundKey = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_WINDUP;
                 sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
                                          (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
-            if (work->animationFrame >= HELICOPTER_LANDING_PAD_NO_9_LETHAL_WINDUP_END_FRAME) {
-                work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_LETHAL_STRIKE;
-                work->subState    = HELICOPTER_LANDING_PAD_NO_9_LETHAL_STRIKE;
+            if (work->animationFrame >= LETHAL_WINDUP_END_FRAME) {
+                work->animationId = ANIM_LETHAL_STRIKE;
+                work->subState    = LETHAL_STRIKE;
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_LETHAL_STRIKE:
-            if (work->animationFrame == HELICOPTER_LANDING_PAD_NO_9_LETHAL_ATTACK_ON_FRAME) {
+        case LETHAL_STRIKE:
+            if (work->animationFrame == LETHAL_ATTACK_ON_FRAME) {
                 // Arm the fatal hit before the death-delay and sound holds.
-                work->lethalAttackPhase = HELICOPTER_LANDING_PAD_NO_9_LETHAL_PHASE_STRUCK;
-                _helicopterLandingPadNo9ArmAttack(work, HELICOPTER_LANDING_PAD_NO_9_ATTACK_LETHAL);
+                work->lethalAttackPhase = LETHAL_PHASE_STRUCK;
+                _helicopterLandingPadNo9ArmAttack(work, ATTACK_LETHAL);
 
-                gGameSession->deathRestartDelay   = HELICOPTER_LANDING_PAD_NO_9_LETHAL_RESTART_DELAY;
+                gGameSession->deathRestartDelay   = LETHAL_RESTART_DELAY;
                 gGameSession->deathSoundCountdown = GAME_SESSION_DEATH_SOUND_HOLD;
             }
-            if (work->animationFrame == HELICOPTER_LANDING_PAD_NO_9_LETHAL_ATTACK_SOUND_FRAME) {
+            if (work->animationFrame == LETHAL_ATTACK_SOUND_FRAME) {
                 if (work->flameMode == HELICOPTER_LANDING_PAD_NO_9_FLAME_BURNING) {
-                    soundKey = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_LETHAL_FLAME_STRIKE;
+                    soundKey = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_LETHAL_FLAME_STRIKE;
                     sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
                                              (s8)worldCoordGetOriginAudioDepth(bodyCoord));
                 } else {
-                    soundKey = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_DASH_STRIKE;
+                    soundKey = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_DASH_STRIKE;
                     sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
                                              (s8)worldCoordGetOriginAudioDepth(bodyCoord));
                 }
             }
-            if (work->animationFrame == HELICOPTER_LANDING_PAD_NO_9_LETHAL_VIBRATION_FRAME) {
+            if (work->animationFrame == LETHAL_VIBRATION_FRAME) {
                 padScriptSpawn(gAkropolisHelicopterLandingPadLethalStrikeVibrationCommands, &gAkropolisHelicopterLandingPadLethalStrikeVibrationSegment);
             }
-            if (work->animationFrame == HELICOPTER_LANDING_PAD_NO_9_LETHAL_ATTACK_OFF_FRAME) {
+            if (work->animationFrame == LETHAL_ATTACK_OFF_FRAME) {
                 work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
             animationValue = (u16)work->animationFrame;
             _helicopterLandingPadNo9SetLethalLapSpeed(work, animationValue, -0x40);
-            if (work->animationFrame >= HELICOPTER_LANDING_PAD_NO_9_LETHAL_CONTACT_FIRST_FRAME) {
+            if (work->animationFrame >= LETHAL_CONTACT_FIRST_FRAME) {
                 if (work->attackLanded == 1) {
-                    work->subState           = HELICOPTER_LANDING_PAD_NO_9_LETHAL_PLAYER_DEAD;
+                    work->subState           = LETHAL_PLAYER_DEAD;
                     work->attackLanded       = 0;
-                    work->deathSoundLoadStep = HELICOPTER_LANDING_PAD_NO_9_DEATH_SOUND_REQUEST;
+                    work->deathSoundLoadStep = DEATH_SOUND_REQUEST;
                     gPlayerStatus.hp         = 0;
                     roomEffectRequestCancelPe();
                 }
             } else {
                 work->attackLanded = 0;
             }
-            if (work->animationFrame >= HELICOPTER_LANDING_PAD_NO_9_LETHAL_MISS_END_FRAME) {
+            if (work->animationFrame >= LETHAL_MISS_END_FRAME) {
                 work->state        = HELICOPTER_LANDING_PAD_NO_9_STATE_PATROL;
-                work->animationId  = HELICOPTER_LANDING_PAD_NO_9_ANIM_PATROL_IDLE;
-                work->subState     = HELICOPTER_LANDING_PAD_NO_9_PATROL_WAIT;
+                work->animationId  = ANIM_PATROL_IDLE;
+                work->subState     = PATROL_WAIT;
                 work->stateCounter = _gHelicopterLandingPadNo9PostAttackWaitFrames[((u32)(randomState = RANDOM_LCG_NEXT(gRandomLcgState)) >> 0x10) & 0xF];
                 gRandomLcgState    = randomState;
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_LETHAL_PLAYER_DEAD:
+        case LETHAL_PLAYER_DEAD:
             animationValue = work->animationId;
-            if (animationValue == HELICOPTER_LANDING_PAD_NO_9_ANIM_LETHAL_STRIKE) {
+            if (animationValue == ANIM_LETHAL_STRIKE) {
                 animationValue = (u16)work->animationFrame;
                 _helicopterLandingPadNo9SetLethalLapSpeed(work, animationValue, -0x10);
-                if (work->animationFrame >= HELICOPTER_LANDING_PAD_NO_9_LETHAL_RECOVER_FRAME) {
-                    work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_SLASH_RECOVER;
+                if (work->animationFrame >= LETHAL_RECOVER_FRAME) {
+                    work->animationId = ANIM_SLASH_RECOVER;
                 }
             }
             work->stateCounter++;
-            if (work->stateCounter >= HELICOPTER_LANDING_PAD_NO_9_LETHAL_HIT_EFFECT_INTERVAL) {
+            if (work->stateCounter >= LETHAL_HIT_EFFECT_INTERVAL) {
                 work->stateCounter                                = 0;
                 _gHelicopterLandingPadNo9LethalHitEffectArg.coord = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
                 effectSpawnHit(EFFECT_HIT_KIND_SPLATTER, &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[4], NULL,
                                &_gHelicopterLandingPadNo9LethalHitEffectArg);
             }
             switch (work->deathSoundLoadStep) {
-                case HELICOPTER_LANDING_PAD_NO_9_DEATH_SOUND_IDLE:
+                case DEATH_SOUND_IDLE:
                     break;
-                case HELICOPTER_LANDING_PAD_NO_9_DEATH_SOUND_REQUEST:
-                    cdCmdEnqueueDisplayResource(9, HELICOPTER_LANDING_PAD_NO_9_PLAYER_DEATH_SOUND_FILE, CD_COMMAND_DISPLAY_LOAD_DEFAULT);
-                    work->deathSoundLoadStep = HELICOPTER_LANDING_PAD_NO_9_DEATH_SOUND_WAIT;
+                case DEATH_SOUND_REQUEST:
+                    cdCmdEnqueueDisplayResource(9, PLAYER_DEATH_SOUND_FILE, CD_COMMAND_DISPLAY_LOAD_DEFAULT);
+                    work->deathSoundLoadStep = DEATH_SOUND_WAIT;
                     break;
-                case HELICOPTER_LANDING_PAD_NO_9_DEATH_SOUND_WAIT:
+                case DEATH_SOUND_WAIT:
                     if (cdCmdIsIdle() == 1) {
                         bodyCoord = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
                         sndEvtRequestScriptStart(SOUND_PLAYER_DEATH, (s8)worldCoordGetOriginAudioPan(bodyCoord),
                                                  (s8)worldCoordGetOriginAudioDepth(bodyCoord));
-                        work->deathSoundLoadStep = HELICOPTER_LANDING_PAD_NO_9_DEATH_SOUND_IDLE;
+                        work->deathSoundLoadStep = DEATH_SOUND_IDLE;
                     }
                     break;
             }
@@ -2203,15 +2203,15 @@ static void _helicopterLandingPadNo9TickRecoil(Task* task)
     enemy     = task->spawnArg2.pointer;
     bodyCoord = task->extra.tmd->coords;
     switch (work->subState) {
-        case HELICOPTER_LANDING_PAD_NO_9_RECOIL_ENTER:
-            work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_RECOIL;
+        case RECOIL_ENTER:
+            work->animationId = ANIM_RECOIL;
             work->lapSpeed    = 0;
-            work->subState    = HELICOPTER_LANDING_PAD_NO_9_RECOIL_PLAY;
-            soundKey          = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_RECOIL;
+            work->subState    = RECOIL_PLAY;
+            soundKey          = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_RECOIL;
             audioPan          = (s8)worldCoordGetOriginAudioPan(bodyCoord);
             sndEvtRequestScriptStart(soundKey, audioPan, (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_RECOIL_PLAY:
+        case RECOIL_PLAY:
             if (work->sideTravelled >= 0xC8 && work->playerSide == work->lapSide) {
                 if ((u16)work->animationFrame >= 3 && (u16)work->animationFrame < 13) {
                     work->lapSpeed = -0x2C;
@@ -2227,11 +2227,11 @@ static void _helicopterLandingPadNo9TickRecoil(Task* task)
                 if (enemy->hp <= 0) {
                     work->state       = HELICOPTER_LANDING_PAD_NO_9_STATE_DEATH;
                     work->subState    = 0;
-                    work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_DEATH;
+                    work->animationId = ANIM_DEATH;
                 } else {
                     work->state       = HELICOPTER_LANDING_PAD_NO_9_STATE_PATROL;
-                    work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_PATROL_IDLE;
-                    work->subState    = HELICOPTER_LANDING_PAD_NO_9_PATROL_WAIT;
+                    work->animationId = ANIM_PATROL_IDLE;
+                    work->subState    = PATROL_WAIT;
                     work->stateCounter =
                         _gHelicopterLandingPadNo9ReactionWaitFrames[((u32)(randomState = RANDOM_LCG_NEXT(gRandomLcgState)) >> 16) & 0xF];
                     gRandomLcgState = randomState;
@@ -2249,10 +2249,10 @@ static void _helicopterLandingPadNo9TickRecoil(Task* task)
 static void _helicopterLandingPadNo9TickSparkRecoil(Task* task)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_SPARK_RECOIL_RETREAT_FRAME  = 71,
-        HELICOPTER_LANDING_PAD_NO_9_SPARK_RECOIL_RETREAT_FRAMES = 7,
-        HELICOPTER_LANDING_PAD_NO_9_SPARK_RECOIL_RETREAT_SPEED  = -83,
-        HELICOPTER_LANDING_PAD_NO_9_SPARK_RECOIL_END_FRAME      = 81,
+        RETREAT_FRAME  = 71,
+        RETREAT_FRAMES = 7,
+        RETREAT_SPEED  = -83,
+        END_FRAME      = 81,
     };
     HelicopterLandingPadNo9Work* work;
     GfxCoord*                    bodyCoord;
@@ -2268,47 +2268,47 @@ static void _helicopterLandingPadNo9TickSparkRecoil(Task* task)
     enemy       = task->spawnArg2.pointer;
     bodyCoord   = task->extra.tmd->coords;
     switch (work->subState) {
-        case HELICOPTER_LANDING_PAD_NO_9_SPARK_RECOIL_ENTER:
-            work->animationId  = HELICOPTER_LANDING_PAD_NO_9_ANIM_SPARK_RECOIL;
+        case SPARK_RECOIL_ENTER:
+            work->animationId  = ANIM_SPARK_RECOIL;
             work->lapSpeed     = 0;
-            work->subState     = HELICOPTER_LANDING_PAD_NO_9_SPARK_RECOIL_PLAY;
+            work->subState     = SPARK_RECOIL_PLAY;
             work->stateCounter = 0;
-            work->sparkSound   = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_SPARK_LOOP;
+            work->sparkSound   = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_SPARK_LOOP;
             startAudioPan      = (s8)worldCoordGetOriginAudioPan(bodyCoord);
             sndEvtRequestScriptStart(work->sparkSound, startAudioPan, (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_SPARK_RECOIL_PLAY:
+        case SPARK_RECOIL_PLAY:
             if (work->animationFrame & 1) {
                 _helicopterLandingPadNo9SpawnReactionSpark(bodyCoord, sparkOffset);
             }
             work->stateCounter++;
-            if (work->stateCounter >= HELICOPTER_LANDING_PAD_NO_9_SPARK_MIX_INTERVAL) {
+            if (work->stateCounter >= SPARK_MIX_INTERVAL) {
                 loopAudioPan = (s8)worldCoordGetOriginAudioPan(bodyCoord);
                 sndEvtRequestScriptMix(work->sparkSound, loopAudioPan, (s8)worldCoordGetOriginAudioDepth(bodyCoord));
                 work->stateCounter = 0;
             }
-            if ((work->sideTravelled < HELICOPTER_LANDING_PAD_NO_9_LAP_MIN_DISTANCE) || (work->playerSide != work->lapSide)) {
+            if ((work->sideTravelled < LAP_MIN_DISTANCE) || (work->playerSide != work->lapSide)) {
                 work->lapSpeed = 0;
             } else {
                 retreatSpeed = 0;
-                if ((u32)((u16)work->animationFrame - HELICOPTER_LANDING_PAD_NO_9_SPARK_RECOIL_RETREAT_FRAME) < HELICOPTER_LANDING_PAD_NO_9_SPARK_RECOIL_RETREAT_FRAMES) {
-                    retreatSpeed = HELICOPTER_LANDING_PAD_NO_9_SPARK_RECOIL_RETREAT_SPEED;
+                if ((u32)((u16)work->animationFrame - RETREAT_FRAME) < RETREAT_FRAMES) {
+                    retreatSpeed = RETREAT_SPEED;
                 }
                 work->lapSpeed = retreatSpeed;
             }
-            if (work->animationFrame >= HELICOPTER_LANDING_PAD_NO_9_SPARK_RECOIL_END_FRAME) {
+            if (work->animationFrame >= END_FRAME) {
                 if (work->sparkSound != 0) {
                     sndEvtRequestScriptStop(work->sparkSound, SOUND_SCRIPT_STOP_NO_FADE);
                     work->sparkSound = 0;
                 }
                 if (enemy->hp <= 0) {
                     work->state       = HELICOPTER_LANDING_PAD_NO_9_STATE_DEATH;
-                    work->subState    = HELICOPTER_LANDING_PAD_NO_9_DEATH_ENTER;
-                    work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_DEATH;
+                    work->subState    = DEATH_ENTER;
+                    work->animationId = ANIM_DEATH;
                 } else {
                     work->state       = HELICOPTER_LANDING_PAD_NO_9_STATE_PATROL;
-                    work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_PATROL_IDLE;
-                    work->subState    = HELICOPTER_LANDING_PAD_NO_9_PATROL_WAIT;
+                    work->animationId = ANIM_PATROL_IDLE;
+                    work->subState    = PATROL_WAIT;
                     work->stateCounter =
                         _gHelicopterLandingPadNo9ReactionWaitFrames[((u32)(randomState = RANDOM_LCG_NEXT(gRandomLcgState)) >> 0x10) & 0xF];
                     gRandomLcgState = randomState;
@@ -2327,7 +2327,7 @@ static void _helicopterLandingPadNo9TickSparkRecoil(Task* task)
 static void _helicopterLandingPadNo9TickSparkStun(Task* task)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_SPARK_STUN_END_FRAME = 30,
+        SPARK_STUN_END_FRAME = 30,
     };
     HelicopterLandingPadNo9Work* work;
     GfxCoord*                    bodyCoord;
@@ -2342,44 +2342,44 @@ static void _helicopterLandingPadNo9TickSparkStun(Task* task)
     enemy       = task->spawnArg2.pointer;
     bodyCoord   = task->extra.tmd->coords;
     switch (work->subState) {
-        case HELICOPTER_LANDING_PAD_NO_9_SPARK_STUN_ENTER:
+        case SPARK_STUN_ENTER:
             work->lapSpeed     = 0;
-            work->animationId  = HELICOPTER_LANDING_PAD_NO_9_ANIM_STUN;
-            work->subState     = HELICOPTER_LANDING_PAD_NO_9_SPARK_STUN_PLAY;
+            work->animationId  = ANIM_STUN;
+            work->subState     = SPARK_STUN_PLAY;
             work->stateCounter = 0;
-            work->sparkSound   = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_SPARK_LOOP;
+            work->sparkSound   = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_SPARK_LOOP;
             startAudioPan      = (s8)worldCoordGetOriginAudioPan(bodyCoord);
             sndEvtRequestScriptStart(work->sparkSound, startAudioPan, (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_SPARK_STUN_PLAY:
+        case SPARK_STUN_PLAY:
             if (work->animationFrame & 1) {
                 _helicopterLandingPadNo9SpawnReactionSpark(bodyCoord, sparkOffset);
             }
             work->stateCounter++;
-            if (work->stateCounter >= HELICOPTER_LANDING_PAD_NO_9_SPARK_MIX_INTERVAL) {
+            if (work->stateCounter >= SPARK_MIX_INTERVAL) {
                 loopAudioPan = (s8)worldCoordGetOriginAudioPan(bodyCoord);
                 sndEvtRequestScriptMix(work->sparkSound, loopAudioPan, (s8)worldCoordGetOriginAudioDepth(bodyCoord));
                 work->stateCounter = 0;
             }
-            if (work->animationFrame >= HELICOPTER_LANDING_PAD_NO_9_SPARK_STUN_END_FRAME) {
+            if (work->animationFrame >= SPARK_STUN_END_FRAME) {
                 if (work->sparkSound != 0) {
                     sndEvtRequestScriptStop(work->sparkSound, SOUND_SCRIPT_STOP_NO_FADE);
                     work->sparkSound = 0;
                 }
-                work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_STUN_RECOVER;
-                work->subState    = HELICOPTER_LANDING_PAD_NO_9_SPARK_STUN_RECOVER;
+                work->animationId = ANIM_STUN_RECOVER;
+                work->subState    = SPARK_STUN_RECOVER;
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_SPARK_STUN_RECOVER:
-            if (work->animationFrame >= HELICOPTER_LANDING_PAD_NO_9_STUN_RECOVER_END_FRAME) {
+        case SPARK_STUN_RECOVER:
+            if (work->animationFrame >= STUN_RECOVER_END_FRAME) {
                 if (enemy->hp <= 0) {
                     work->state       = HELICOPTER_LANDING_PAD_NO_9_STATE_DEATH;
-                    work->subState    = HELICOPTER_LANDING_PAD_NO_9_DEATH_ENTER;
-                    work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_DEATH;
+                    work->subState    = DEATH_ENTER;
+                    work->animationId = ANIM_DEATH;
                 } else {
                     work->state       = HELICOPTER_LANDING_PAD_NO_9_STATE_PATROL;
-                    work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_PATROL_IDLE;
-                    work->subState    = HELICOPTER_LANDING_PAD_NO_9_PATROL_WAIT;
+                    work->animationId = ANIM_PATROL_IDLE;
+                    work->subState    = PATROL_WAIT;
                     work->stateCounter =
                         _gHelicopterLandingPadNo9ReactionWaitFrames[((u32)(randomState = RANDOM_LCG_NEXT(gRandomLcgState)) >> 0x10) & 0xF];
                     gRandomLcgState = randomState;
@@ -2398,7 +2398,7 @@ static void _helicopterLandingPadNo9TickSparkStun(Task* task)
 static void _helicopterLandingPadNo9TickDeath(Task* task)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_DEATH_SOUND_FRAME = 112,
+        DEATH_SOUND_FRAME = 112,
     };
     HelicopterLandingPadNo9Work* work;
     GfxCoord*                    bodyCoord;
@@ -2412,8 +2412,8 @@ static void _helicopterLandingPadNo9TickDeath(Task* task)
     if (gPlayerStatus.hp <= 0) {
         ((Enemy*)task->spawnArg2.pointer)->hp = 1;
         work->state                           = HELICOPTER_LANDING_PAD_NO_9_STATE_PATROL;
-        work->animationId                     = HELICOPTER_LANDING_PAD_NO_9_ANIM_PATROL_IDLE;
-        work->subState                        = HELICOPTER_LANDING_PAD_NO_9_PATROL_WAIT;
+        work->animationId                     = ANIM_PATROL_IDLE;
+        work->subState                        = PATROL_WAIT;
         work->stateCounter                    = _gHelicopterLandingPadNo9ReactionWaitFrames[((u32)(randomState = RANDOM_LCG_NEXT(gRandomLcgState)) >> 16) & 0xF];
         gRandomLcgState                       = randomState;
         return;
@@ -2435,8 +2435,8 @@ static void _helicopterLandingPadNo9TickDeath(Task* task)
         work->eventFlameSound = 0;
     }
     ((Enemy*)task->spawnArg2.pointer)->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-    if (work->animationFrame == HELICOPTER_LANDING_PAD_NO_9_DEATH_SOUND_FRAME) {
-        soundKey = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_FLAME_STRIKE;
+    if (work->animationFrame == DEATH_SOUND_FRAME) {
+        soundKey = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_FLAME_STRIKE;
         audioPan = (s8)worldCoordGetOriginAudioPan(bodyCoord);
         sndEvtRequestScriptStart(soundKey, audioPan, (s8)worldCoordGetOriginAudioDepth(bodyCoord));
     }
@@ -2495,8 +2495,8 @@ static void _helicopterLandingPadNo9UpdatePlayerRange(Task* task)
 static void _helicopterLandingPadNo9TurnAlongLap(Task* task)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_LAP_TURN_DISTANCE = 1000,
-        HELICOPTER_LANDING_PAD_NO_9_LAP_TURN_STEP     = 30,
+        DISTANCE = 1000,
+        STEP     = 30,
     };
     HelicopterLandingPadNo9Work* work;
     GfxCoord*                    bodyCoord;
@@ -2514,7 +2514,7 @@ static void _helicopterLandingPadNo9TurnAlongLap(Task* task)
     bodyCoord = task->extra.tmd->coords;
     if (work->lapSpeed != 0) {
         rotation = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
-        if (work->sideRemaining < HELICOPTER_LANDING_PAD_NO_9_LAP_TURN_DISTANCE) {
+        if (work->sideRemaining < DISTANCE) {
             targetYaw = _gHelicopterLandingPadNo9LapYaws[work->lapSide + 1];
         } else {
             targetYaw = _gHelicopterLandingPadNo9LapYaws[work->lapSide];
@@ -2526,24 +2526,24 @@ static void _helicopterLandingPadNo9TurnAlongLap(Task* task)
         differenceMagnitude = __builtin_abs(signedDifference);
         work->yaw           = currentYaw;
         if (differenceMagnitude < ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
-            if (differenceMagnitude < (HELICOPTER_LANDING_PAD_NO_9_LAP_TURN_STEP + 1)) {
+            if (differenceMagnitude < (STEP + 1)) {
                 work->yaw = targetYaw;
             } else {
                 previousYaw = work->yaw;
                 if (signedDifference > 0) {
-                    work->yaw = previousYaw + HELICOPTER_LANDING_PAD_NO_9_LAP_TURN_STEP;
+                    work->yaw = previousYaw + STEP;
                 } else {
-                    work->yaw = previousYaw - HELICOPTER_LANDING_PAD_NO_9_LAP_TURN_STEP;
+                    work->yaw = previousYaw - STEP;
                 }
             }
-        } else if (signedDifference > 0 ? (ACTOR_TRANSFORM_ANGLE_TURN - signedDifference) < (HELICOPTER_LANDING_PAD_NO_9_LAP_TURN_STEP + 1) : (signedDifference + ACTOR_TRANSFORM_ANGLE_TURN) < (HELICOPTER_LANDING_PAD_NO_9_LAP_TURN_STEP + 1)) {
+        } else if (signedDifference > 0 ? (ACTOR_TRANSFORM_ANGLE_TURN - signedDifference) < (STEP + 1) : (signedDifference + ACTOR_TRANSFORM_ANGLE_TURN) < (STEP + 1)) {
             work->yaw = targetYaw;
         } else {
             wrappedPreviousYaw = work->yaw;
             if (shortDifference > 0) {
-                work->yaw = wrappedPreviousYaw - HELICOPTER_LANDING_PAD_NO_9_LAP_TURN_STEP;
+                work->yaw = wrappedPreviousYaw - STEP;
             } else {
-                work->yaw = wrappedPreviousYaw + HELICOPTER_LANDING_PAD_NO_9_LAP_TURN_STEP;
+                work->yaw = wrappedPreviousYaw + STEP;
             }
         }
         rotation->vx = 0;
@@ -2573,10 +2573,10 @@ static void _helicopterLandingPadNo9AdvanceAlongLap(Task* task)
     // Narrow the sum before applying the lap's terminal bounds.
     nextDistance      = work->lapDistance + (u16)work->lapSpeed;
     work->lapDistance = nextDistance;
-    if (nextDistance < HELICOPTER_LANDING_PAD_NO_9_LAP_MIN_DISTANCE) {
-        work->lapDistance = HELICOPTER_LANDING_PAD_NO_9_LAP_MIN_DISTANCE;
-    } else if (nextDistance > HELICOPTER_LANDING_PAD_NO_9_LAP_MAX_DISTANCE) {
-        work->lapDistance = HELICOPTER_LANDING_PAD_NO_9_LAP_MAX_DISTANCE;
+    if (nextDistance < LAP_MIN_DISTANCE) {
+        work->lapDistance = LAP_MIN_DISTANCE;
+    } else if (nextDistance > LAP_MAX_DISTANCE) {
+        work->lapDistance = LAP_MAX_DISTANCE;
     }
 
     lapSide       = work->lapDistance / HELICOPTER_LANDING_PAD_NO_9_LAP_SIDE_LENGTH;
@@ -2608,12 +2608,12 @@ static void _helicopterLandingPadNo9PlayStepSounds(Task* task)
     record    = animationGetCurrentRecord(&work->rig.anim, &work->rig.slots[1]);
     if (record != NULL) {
         if (!(record->flags & ANIMATION_RECORD_CUE_2) && (work->lastCueFlags & ANIMATION_RECORD_CUE_2)) {
-            soundKey     = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_STEP_CUE_2;
+            soundKey     = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_STEP_CUE_2;
             cue2AudioPan = (s8)worldCoordGetOriginAudioPan(bodyCoord);
             sndEvtRequestScriptStart(soundKey, cue2AudioPan, (s8)worldCoordGetOriginAudioDepth(bodyCoord));
         }
         if (!(record->flags & ANIMATION_RECORD_CUE_1) && (work->lastCueFlags & ANIMATION_RECORD_CUE_1)) {
-            soundKey     = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_STEP_CUE_1;
+            soundKey     = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_STEP_CUE_1;
             cue1AudioPan = (s8)worldCoordGetOriginAudioPan(bodyCoord);
             sndEvtRequestScriptStart(soundKey, cue1AudioPan, (s8)worldCoordGetOriginAudioDepth(bodyCoord));
         }
@@ -2631,7 +2631,7 @@ static void _helicopterLandingPadNo9PlayStepSounds(Task* task)
 static void _helicopterLandingPadNo9ApplyHitTwist(Task* task)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_HIT_TWIST_STEP = 32,
+        HIT_TWIST_STEP = 32,
     };
     HelicopterLandingPadNo9Work* work;
     GfxCoord*                    bodyCoords;
@@ -2650,17 +2650,17 @@ static void _helicopterLandingPadNo9ApplyHitTwist(Task* task)
     bodyCoords   = task->extra.tmd->coords;
     // Apply this frame's residual before relaxing it for the next frame.
     RotMatrix(&work->hitTwist, twistMatrix);
-    _helicopterLandingPadNo9ComposeHitRotation(&bodyCoords[HELICOPTER_LANDING_PAD_NO_9_CHEST_PART].coord, twistMatrix);
+    _helicopterLandingPadNo9ComposeHitRotation(&bodyCoords[CHEST_PART].coord, twistMatrix);
 
     pitch = work->hitTwist.vx;
     if (pitch != 0) {
         pitchMagnitude = __builtin_abs(pitch);
-        if (pitchMagnitude < (HELICOPTER_LANDING_PAD_NO_9_HIT_TWIST_STEP + 1)) {
+        if (pitchMagnitude < (HIT_TWIST_STEP + 1)) {
             work->hitTwist.vx = 0;
         } else {
-            nextPitch = pitch - HELICOPTER_LANDING_PAD_NO_9_HIT_TWIST_STEP;
+            nextPitch = pitch - HIT_TWIST_STEP;
             if (pitch <= 0) {
-                nextPitch = pitch + HELICOPTER_LANDING_PAD_NO_9_HIT_TWIST_STEP;
+                nextPitch = pitch + HIT_TWIST_STEP;
             }
             work->hitTwist.vx = nextPitch;
             stillTwisted      = 1;
@@ -2670,12 +2670,12 @@ static void _helicopterLandingPadNo9ApplyHitTwist(Task* task)
     yaw = work->hitTwist.vy;
     if (yaw != 0) {
         yawMagnitude = __builtin_abs(yaw);
-        if (yawMagnitude < (HELICOPTER_LANDING_PAD_NO_9_HIT_TWIST_STEP + 1)) {
+        if (yawMagnitude < (HIT_TWIST_STEP + 1)) {
             work->hitTwist.vy = 0;
         } else {
-            nextYaw = yaw - HELICOPTER_LANDING_PAD_NO_9_HIT_TWIST_STEP;
+            nextYaw = yaw - HIT_TWIST_STEP;
             if (yaw <= 0) {
-                nextYaw = yaw + HELICOPTER_LANDING_PAD_NO_9_HIT_TWIST_STEP;
+                nextYaw = yaw + HIT_TWIST_STEP;
             }
             work->hitTwist.vy = nextYaw;
             stillTwisted      = 1;
@@ -2697,24 +2697,24 @@ static void _helicopterLandingPadNo9ApplyHitTwist(Task* task)
 static void _helicopterLandingPadNo9UpdateGridFaces(Task* task)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_GRID_ORIGIN_OFFSET_X = -600,
-        HELICOPTER_LANDING_PAD_NO_9_GRID_ORIGIN_OFFSET_Z = 640,
-        HELICOPTER_LANDING_PAD_NO_9_GRID_ORIGIN_LIMIT    = 6000,
+        OFFSET_X = -600,
+        OFFSET_Z = 640,
+        LIMIT    = 6000,
     };
-    _HelicopterLandingPadNo9GridFacesScratch* scratch;
-    GfxCoord*                                 bodyCoord;
-    SVECTOR*                                  normals;
-    SVECTOR*                                  vertices;
-    s32                                       vectorIndex;
+    _GridFacesScratch* scratch;
+    GfxCoord*          bodyCoord;
+    SVECTOR*           normals;
+    SVECTOR*           vertices;
+    s32                vectorIndex;
 
-    scratch   = SCRATCH_STACK_RESERVE_BLOCK(_HelicopterLandingPadNo9GridFacesScratch);
+    scratch   = SCRATCH_STACK_RESERVE_BLOCK(_GridFacesScratch);
     bodyCoord = task->extra.tmd->coords;
     normals   = gWorldCollisionActiveGrid->normals;
     vertices  = gWorldCollisionActiveGrid->vertices;
 
-    scratch->origin.vx = HELICOPTER_LANDING_PAD_NO_9_GRID_ORIGIN_OFFSET_X;
+    scratch->origin.vx = OFFSET_X;
     scratch->origin.vy = 0;
-    scratch->origin.vz = HELICOPTER_LANDING_PAD_NO_9_GRID_ORIGIN_OFFSET_Z;
+    scratch->origin.vz = OFFSET_Z;
 
     gte_SetRotMatrix(&bodyCoord->coord);
     gte_ldv0(&scratch->origin);
@@ -2725,15 +2725,15 @@ static void _helicopterLandingPadNo9UpdateGridFaces(Task* task)
     scratch->origin.vy = bodyCoord->coord.t[1] + scratch->rotated.vy;
     scratch->origin.vz = bodyCoord->coord.t[2] + scratch->rotated.vz;
 
-    if (scratch->origin.vx > HELICOPTER_LANDING_PAD_NO_9_GRID_ORIGIN_LIMIT) {
-        scratch->origin.vx = HELICOPTER_LANDING_PAD_NO_9_GRID_ORIGIN_LIMIT;
-    } else if (scratch->origin.vx < -HELICOPTER_LANDING_PAD_NO_9_GRID_ORIGIN_LIMIT) {
-        scratch->origin.vx = -HELICOPTER_LANDING_PAD_NO_9_GRID_ORIGIN_LIMIT;
+    if (scratch->origin.vx > LIMIT) {
+        scratch->origin.vx = LIMIT;
+    } else if (scratch->origin.vx < -LIMIT) {
+        scratch->origin.vx = -LIMIT;
     }
-    if (scratch->origin.vz > HELICOPTER_LANDING_PAD_NO_9_GRID_ORIGIN_LIMIT) {
-        scratch->origin.vz = HELICOPTER_LANDING_PAD_NO_9_GRID_ORIGIN_LIMIT;
-    } else if (scratch->origin.vz < -HELICOPTER_LANDING_PAD_NO_9_GRID_ORIGIN_LIMIT) {
-        scratch->origin.vz = -HELICOPTER_LANDING_PAD_NO_9_GRID_ORIGIN_LIMIT;
+    if (scratch->origin.vz > LIMIT) {
+        scratch->origin.vz = LIMIT;
+    } else if (scratch->origin.vz < -LIMIT) {
+        scratch->origin.vz = -LIMIT;
     }
 
     for (vectorIndex = 0; vectorIndex < ARRAY_SIZE(_gHelicopterLandingPadNo9Collision35DBC); vectorIndex++) {
@@ -2753,7 +2753,7 @@ static void _helicopterLandingPadNo9UpdateGridFaces(Task* task)
         gte_stsv(&normals[vectorIndex]);
     }
 
-    SCRATCH_STACK_RELEASE_BLOCK(_HelicopterLandingPadNo9GridFacesScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_GridFacesScratch);
 }
 
 /// Handles message 2007: show (0), start the fight (1), or hide (2).
@@ -2767,15 +2767,15 @@ static void _helicopterLandingPadNo9UpdateGridFaces(Task* task)
 static s32 _helicopterLandingPadNo9SetActivation(Task* task, s32 messageId, s32 command, s32 unusedArg)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_ACTIVATION_SHOW        = 0,
-        HELICOPTER_LANDING_PAD_NO_9_ACTIVATION_START_FIGHT = 1,
-        HELICOPTER_LANDING_PAD_NO_9_ACTIVATION_HIDE        = 2,
-        HELICOPTER_LANDING_PAD_NO_9_PUT_AWAY               = 0,
-        HELICOPTER_LANDING_PAD_NO_9_SHOWN                  = 1,
-        HELICOPTER_LANDING_PAD_NO_9_FIGHTING               = 2,
-        HELICOPTER_LANDING_PAD_NO_9_FIGHT_START_DISTANCE   = 4600,
-        HELICOPTER_LANDING_PAD_NO_9_FIGHT_START_YAW        = 1024,
-        HELICOPTER_LANDING_PAD_NO_9_INITIAL_FLAME_FRAMES   = 240,
+        ACTIVATION_SHOW        = 0,
+        ACTIVATION_START_FIGHT = 1,
+        ACTIVATION_HIDE        = 2,
+        PUT_AWAY               = 0,
+        SHOWN                  = 1,
+        FIGHTING               = 2,
+        FIGHT_START_DISTANCE   = 4600,
+        FIGHT_START_YAW        = 1024,
+        INITIAL_FLAME_FRAMES   = 240,
     };
     HelicopterLandingPadNo9Work* work;
     TmdObject*                   bodyModel;
@@ -2798,25 +2798,25 @@ static s32 _helicopterLandingPadNo9SetActivation(Task* task, s32 messageId, s32 
     bodyCoord = bodyModel->coords;
 
     switch (command) {
-        case HELICOPTER_LANDING_PAD_NO_9_ACTIVATION_SHOW:
+        case ACTIVATION_SHOW:
             sceneAcquireBattleRef(0x1B);
             bodyModel->flags                       = 0;
             work->weaponTask->extra.tmd->flags     = 0;
             work->chestModelTask->extra.tmd->flags = 0;
-            work->activation                       = HELICOPTER_LANDING_PAD_NO_9_SHOWN;
+            work->activation                       = SHOWN;
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_ACTIVATION_START_FIGHT:
+        case ACTIVATION_START_FIGHT:
             bodyModel->flags                       = 0;
             work->weaponTask->extra.tmd->flags     = 0;
             work->chestModelTask->extra.tmd->flags = 0;
-            work->activation                       = HELICOPTER_LANDING_PAD_NO_9_FIGHTING;
-            work->lapDistance                      = HELICOPTER_LANDING_PAD_NO_9_FIGHT_START_DISTANCE;
+            work->activation                       = FIGHTING;
+            work->lapDistance                      = FIGHT_START_DISTANCE;
             vector                                 = rotation;
-            work->animationId                      = HELICOPTER_LANDING_PAD_NO_9_ANIM_FIGHT_START;
-            work->seededAnimationId                = HELICOPTER_LANDING_PAD_NO_9_ANIM_FIGHT_START;
-            work->yaw                              = HELICOPTER_LANDING_PAD_NO_9_FIGHT_START_YAW;
+            work->animationId                      = ANIM_FIGHT_START;
+            work->seededAnimationId                = ANIM_FIGHT_START;
+            work->yaw                              = FIGHT_START_YAW;
             work->state                            = HELICOPTER_LANDING_PAD_NO_9_STATE_OPENING;
-            work->subState                         = HELICOPTER_LANDING_PAD_NO_9_OPENING_INTRO;
+            work->subState                         = OPENING_INTRO;
             work->lapSpeed                         = 0;
             work->animationFrame                   = 0;
             work->body.flags                      |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -2836,18 +2836,18 @@ static s32 _helicopterLandingPadNo9SetActivation(Task* task, s32 messageId, s32 
                 if (work->flameJetTask != NULL) {
                     work->flameJetTask->spawnArg1.value = HELICOPTER_LANDING_PAD_NO_9_FLAME_BURNING;
                 }
-                work->flameFrames = HELICOPTER_LANDING_PAD_NO_9_INITIAL_FLAME_FRAMES;
-                _helicopterLandingPadNo9ArmAttack(work, HELICOPTER_LANDING_PAD_NO_9_ATTACK_IGNITION);
-                work->flameSound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_FLAME_LOOP;
+                work->flameFrames = INITIAL_FLAME_FRAMES;
+                _helicopterLandingPadNo9ArmAttack(work, ATTACK_IGNITION);
+                work->flameSound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_FLAME_LOOP;
                 sndEvtRequestScriptStart(work->flameSound, (s8)worldCoordGetOriginAudioPan(bodyCoord),
                                          (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_ACTIVATION_HIDE:
+        case ACTIVATION_HIDE:
             bodyModel->flags                       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->weaponTask->extra.tmd->flags     = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->chestModelTask->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            work->activation                       = HELICOPTER_LANDING_PAD_NO_9_PUT_AWAY;
+            work->activation                       = PUT_AWAY;
             if (work->flameJetTask != NULL) {
                 work->flameJetTask->spawnArg1.value = HELICOPTER_LANDING_PAD_NO_9_FLAME_RELEASED;
             }
@@ -2897,7 +2897,7 @@ static s32 _helicopterLandingPadNo9SetActivation(Task* task, s32 messageId, s32 
 static void _helicopterLandingPadNo9UpdateProp(Enemy* enemy, Task* task)
 {
     // The reserved 32-byte scratch frame has no directly accessed object here.
-    enum { HELICOPTER_LANDING_PAD_NO_9_PROP_SCRATCH_BYTES = 0x20 };
+    enum { PROP_SCRATCH_BYTES = 0x20 };
     TmdObject*                   propModel;
     HelicopterLandingPadNo9Work* parentWork;
     GfxCoord*                    propCoord;
@@ -2909,24 +2909,24 @@ static void _helicopterLandingPadNo9UpdateProp(Enemy* enemy, Task* task)
     parentWork = task->parent->work;
     propModel  = task->extra.tmd;
     propCoord  = propModel->coords;
-    if (parentWork->animationId < HELICOPTER_LANDING_PAD_NO_9_ANIM_EVENT_1) {
+    if (parentWork->animationId < ANIM_EVENT_1) {
         propModel->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         return;
     }
-    SCRATCH_STACK_RESERVE_BYTES(HELICOPTER_LANDING_PAD_NO_9_PROP_SCRATCH_BYTES);
+    SCRATCH_STACK_RESERVE_BYTES(PROP_SCRATCH_BYTES);
     switch (parentWork->animationId) {
-        case HELICOPTER_LANDING_PAD_NO_9_ANIM_EVENT_1:
-        case HELICOPTER_LANDING_PAD_NO_9_ANIM_EVENT_2:
+        case ANIM_EVENT_1:
+        case ANIM_EVENT_2:
             break;
 
-        case HELICOPTER_LANDING_PAD_NO_9_ANIM_EVENT_PROP_REVEAL:
+        case ANIM_EVENT_PROP_REVEAL:
             if (parentWork->animationFrame == 0xC8) {
                 propModel->flags = 0;
             }
             break;
 
-        case HELICOPTER_LANDING_PAD_NO_9_ANIM_EVENT_PROP_TOSS:
-            handCoord      = &task->parent->extra.tmd->coords[HELICOPTER_LANDING_PAD_NO_9_PROP_HAND_PART];
+        case ANIM_EVENT_PROP_TOSS:
+            handCoord      = &task->parent->extra.tmd->coords[PROP_HAND_PART];
             animationFrame = parentWork->animationFrame;
             if (animationFrame < 0x50) {
                 tossFrame = animationFrame % 40;
@@ -2952,7 +2952,7 @@ static void _helicopterLandingPadNo9UpdateProp(Enemy* enemy, Task* task)
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(HELICOPTER_LANDING_PAD_NO_9_PROP_SCRATCH_BYTES);
+    SCRATCH_STACK_RELEASE_BYTES(PROP_SCRATCH_BYTES);
 }
 
 /// Initializes the golem's chest-launched stun grenade and its collision bodies.
@@ -2965,26 +2965,26 @@ static void _helicopterLandingPadNo9UpdateProp(Enemy* enemy, Task* task)
 static void _helicopterLandingPadNo9InitGrenade(Enemy* enemy, Task* task)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_GRENADE_PITCH_BUCKET_DISTANCE = 1000,
-        HELICOPTER_LANDING_PAD_NO_9_GRENADE_FLIGHT_RADIUS         = 200,
-        HELICOPTER_LANDING_PAD_NO_9_GRENADE_GRID_PROBE_LENGTH     = 500,
+        PITCH_BUCKET_DISTANCE = 1000,
+        FLIGHT_RADIUS         = 200,
+        GRID_PROBE_LENGTH     = 500,
     };
 
-    _HelicopterLandingPadNo9GrenadeWork* work;
-    ActorChildPlaceScratch*              placement;
-    TmdObject*                           grenadeModel;
-    GfxCoord*                            grenadeCoord;
-    GfxCoord*                            bodyCoords;
-    GfxCoord*                            chestCoord;
-    s32                                  playerDeltaX;
-    s32                                  playerDeltaZ;
-    s32                                  pitchBucket;
+    _GrenadeWork*           work;
+    ActorChildPlaceScratch* placement;
+    TmdObject*              grenadeModel;
+    GfxCoord*               grenadeCoord;
+    GfxCoord*               bodyCoords;
+    GfxCoord*               chestCoord;
+    s32                     playerDeltaX;
+    s32                     playerDeltaZ;
+    s32                     pitchBucket;
 
     grenadeModel = task->extra.tmd;
     grenadeCoord = grenadeModel->coords;
     bodyCoords   = task->parent->extra.tmd->coords;
-    chestCoord   = &bodyCoords[HELICOPTER_LANDING_PAD_NO_9_CHEST_PART];
-    work         = memCalloc(sizeof(_HelicopterLandingPadNo9GrenadeWork), false);
+    chestCoord   = &bodyCoords[CHEST_PART];
+    work         = memCalloc(sizeof(_GrenadeWork), false);
     if (work == NULL) {
         enemyDestroy(enemy, task);
         return;
@@ -3002,7 +3002,7 @@ static void _helicopterLandingPadNo9InitGrenade(Enemy* enemy, Task* task)
     placement->offset.vx = playerDeltaX;
     playerDeltaZ         = gPlayerStatus.coordMtx->t[2] - grenadeCoord->coord.t[2];
     placement->offset.vz = playerDeltaZ;
-    pitchBucket          = SquareRoot0((playerDeltaX * playerDeltaX) + (playerDeltaZ * playerDeltaZ)) / HELICOPTER_LANDING_PAD_NO_9_GRENADE_PITCH_BUCKET_DISTANCE;
+    pitchBucket          = SquareRoot0((playerDeltaX * playerDeltaX) + (playerDeltaZ * playerDeltaZ)) / PITCH_BUCKET_DISTANCE;
     if (pitchBucket >= ARRAY_SIZE(_gHelicopterLandingPadNo9GrenadePitchStepsByRange)) {
         pitchBucket = ARRAY_SIZE(_gHelicopterLandingPadNo9GrenadePitchStepsByRange) - 1;
     }
@@ -3015,7 +3015,7 @@ static void _helicopterLandingPadNo9InitGrenade(Enemy* enemy, Task* task)
     work->attack.pos.vy           = 0;
     work->attack.pos.vz           = 0;
     work->attack.key              = 0;
-    work->attack.radius           = HELICOPTER_LANDING_PAD_NO_9_GRENADE_FLIGHT_RADIUS;
+    work->attack.radius           = FLIGHT_RADIUS;
     work->attack.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attack);
     worldCollisionInitContacts(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
@@ -3024,7 +3024,7 @@ static void _helicopterLandingPadNo9InitGrenade(Enemy* enemy, Task* task)
     work->gridProbeCapsule.ends[0].vy = 0;
     work->gridProbeCapsule.ends[0].vz = 0;
     work->gridProbeCapsule.ends[1].vx = 0;
-    work->gridProbeCapsule.ends[1].vy = HELICOPTER_LANDING_PAD_NO_9_GRENADE_GRID_PROBE_LENGTH;
+    work->gridProbeCapsule.ends[1].vy = GRID_PROBE_LENGTH;
     work->gridProbeCapsule.ends[1].vz = 0;
     work->gridProbeCapsule.end0Radius = 1;
     work->gridProbeCapsule.end1Radius = 1;
@@ -3042,7 +3042,7 @@ static void _helicopterLandingPadNo9InitGrenade(Enemy* enemy, Task* task)
     worldCollisionInitContacts(work->gridProbeContacts, ARRAY_SIZE(work->gridProbeContacts), 0);
     work->gridProbe.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
 
-    task->state = HELICOPTER_LANDING_PAD_NO_9_CHILD_TASK_RUNNING;
+    task->state = CHILD_TASK_RUNNING;
     SCRATCH_STACK_RELEASE_BLOCK(ActorChildPlaceScratch);
 }
 
@@ -3057,27 +3057,27 @@ static void _helicopterLandingPadNo9InitGrenade(Enemy* enemy, Task* task)
 static void _helicopterLandingPadNo9TickGrenadeFlight(Enemy* enemy, Task* task)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_GRENADE_FLIGHT_STEP            = 150,
-        HELICOPTER_LANDING_PAD_NO_9_GRENADE_ROTATION_FRACTION_BITS = 12,
-        HELICOPTER_LANDING_PAD_NO_9_GRENADE_BURST_HEIGHT           = 1300,
-        HELICOPTER_LANDING_PAD_NO_9_GRENADE_TRAIL_INTERVAL         = 3,
-        HELICOPTER_LANDING_PAD_NO_9_GRENADE_TRAIL_OFFSET_Y         = 100,
-        HELICOPTER_LANDING_PAD_NO_9_GRENADE_TRAIL_OPTIONS          = 0x01001600,
-        HELICOPTER_LANDING_PAD_NO_9_GRENADE_EXPLOSION_OPTIONS      = 0x10002200,
-        HELICOPTER_LANDING_PAD_NO_9_GRENADE_BURST_SMOKE_OPTIONS    = 0xC1001200,
-        HELICOPTER_LANDING_PAD_NO_9_SOUND_GRENADE_BURST            = 0x51100009,
+        GRENADE_FLIGHT_STEP            = 150,
+        GRENADE_ROTATION_FRACTION_BITS = 12,
+        GRENADE_BURST_HEIGHT           = 1300,
+        GRENADE_TRAIL_INTERVAL         = 3,
+        GRENADE_TRAIL_OFFSET_Y         = 100,
+        GRENADE_TRAIL_OPTIONS          = 0x01001600,
+        GRENADE_EXPLOSION_OPTIONS      = 0x10002200,
+        GRENADE_BURST_SMOKE_OPTIONS    = 0xC1001200,
+        SOUND_GRENADE_BURST            = 0x51100009,
     };
-    VECTOR                               samplePosition;
-    EffectWork*                          burstEffect;
-    GfxCoord*                            grenadeCoord;
-    ActorEulerTurnScratch*               pitchScratch;
-    TmdObject*                           grenadeModel;
-    _HelicopterLandingPadNo9GrenadeWork* work;
-    HelicopterLandingPadNo9Work*         parentWork;
-    s32                                  pitchStep;
-    s32                                  soundKey;
-    s32                                  crossedBurstHeight;
-    u16                                  trailFrames;
+    VECTOR                       samplePosition;
+    EffectWork*                  burstEffect;
+    GfxCoord*                    grenadeCoord;
+    ActorEulerTurnScratch*       pitchScratch;
+    TmdObject*                   grenadeModel;
+    _GrenadeWork*                work;
+    HelicopterLandingPadNo9Work* parentWork;
+    s32                          pitchStep;
+    s32                          soundKey;
+    s32                          crossedBurstHeight;
+    u16                          trailFrames;
 
     grenadeModel       = task->extra.tmd;
     work               = task->work;
@@ -3108,49 +3108,49 @@ static void _helicopterLandingPadNo9TickGrenadeFlight(Enemy* enemy, Task* task)
     RotMatrix(&pitchScratch->angles, &pitchScratch->rotation);
     gte_MulMatrix0(&grenadeCoord->coord, &pitchScratch->rotation, &grenadeCoord->coord);
     grenadeCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-    grenadeCoord->coord.t[0]  += -(grenadeCoord->coord.m[0][1] * HELICOPTER_LANDING_PAD_NO_9_GRENADE_FLIGHT_STEP) >> HELICOPTER_LANDING_PAD_NO_9_GRENADE_ROTATION_FRACTION_BITS;
-    grenadeCoord->coord.t[1]  += -(grenadeCoord->coord.m[1][1] * HELICOPTER_LANDING_PAD_NO_9_GRENADE_FLIGHT_STEP) >> HELICOPTER_LANDING_PAD_NO_9_GRENADE_ROTATION_FRACTION_BITS;
-    grenadeCoord->coord.t[2]  += -(grenadeCoord->coord.m[2][1] * HELICOPTER_LANDING_PAD_NO_9_GRENADE_FLIGHT_STEP) >> HELICOPTER_LANDING_PAD_NO_9_GRENADE_ROTATION_FRACTION_BITS;
+    grenadeCoord->coord.t[0]  += -(grenadeCoord->coord.m[0][1] * GRENADE_FLIGHT_STEP) >> GRENADE_ROTATION_FRACTION_BITS;
+    grenadeCoord->coord.t[1]  += -(grenadeCoord->coord.m[1][1] * GRENADE_FLIGHT_STEP) >> GRENADE_ROTATION_FRACTION_BITS;
+    grenadeCoord->coord.t[2]  += -(grenadeCoord->coord.m[2][1] * GRENADE_FLIGHT_STEP) >> GRENADE_ROTATION_FRACTION_BITS;
     trailFrames                = work->frames + 1;
     work->frames               = trailFrames;
-    if (trailFrames >= HELICOPTER_LANDING_PAD_NO_9_GRENADE_TRAIL_INTERVAL) {
+    if (trailFrames >= GRENADE_TRAIL_INTERVAL) {
         pitchScratch->angles.vx = 0;
-        pitchScratch->angles.vy = HELICOPTER_LANDING_PAD_NO_9_GRENADE_TRAIL_OFFSET_Y;
+        pitchScratch->angles.vy = GRENADE_TRAIL_OFFSET_Y;
         pitchScratch->angles.vz = 0;
-        effectSpawn(EFFECT_SMOKE_PUFF, grenadeCoord, HELICOPTER_LANDING_PAD_NO_9_GRENADE_TRAIL_OPTIONS, &pitchScratch->angles);
+        effectSpawn(EFFECT_SMOKE_PUFF, grenadeCoord, GRENADE_TRAIL_OPTIONS, &pitchScratch->angles);
         work->frames = 0;
     }
     samplePosition.vx = grenadeCoord->workm.t[0];
     samplePosition.vy = grenadeCoord->workm.t[1];
     samplePosition.vz = grenadeCoord->workm.t[2];
     worldCoordUpdateActorColor(task->spawnArg2.pointer, &samplePosition, 0, 0);
-    if (grenadeCoord->coord.t[1] < -HELICOPTER_LANDING_PAD_NO_9_GRENADE_BURST_HEIGHT) {
-        work->phase = HELICOPTER_LANDING_PAD_NO_9_GRENADE_FLIGHT_PEAKED;
+    if (grenadeCoord->coord.t[1] < -GRENADE_BURST_HEIGHT) {
+        work->phase = GRENADE_FLIGHT_PEAKED;
     }
-    if (work->phase != HELICOPTER_LANDING_PAD_NO_9_GRENADE_FLIGHT_BELOW_PEAK && grenadeCoord->coord.t[1] >= -HELICOPTER_LANDING_PAD_NO_9_GRENADE_BURST_HEIGHT + 1) {
+    if (work->phase != GRENADE_FLIGHT_BELOW_PEAK && grenadeCoord->coord.t[1] >= -GRENADE_BURST_HEIGHT + 1) {
         crossedBurstHeight = 1;
     }
     // Hide the model, adopt the impact effect, and retain the spreading/hold task.
     if (crossedBurstHeight != 0 || (work->attackContacts[0].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY || work->gridProbeContacts[0].key.value != 0) {
-        effectSpawn(EFFECT_EXPLOSION, grenadeCoord, HELICOPTER_LANDING_PAD_NO_9_GRENADE_EXPLOSION_OPTIONS, NULL);
-        effectSpawn(EFFECT_SMOKE_PUFF, grenadeCoord, HELICOPTER_LANDING_PAD_NO_9_GRENADE_BURST_SMOKE_OPTIONS, NULL);
+        effectSpawn(EFFECT_EXPLOSION, grenadeCoord, GRENADE_EXPLOSION_OPTIONS, NULL);
+        effectSpawn(EFFECT_SMOKE_PUFF, grenadeCoord, GRENADE_BURST_SMOKE_OPTIONS, NULL);
         burstEffect = effectSpawn((EFFECT_HELICOPTER_LANDING_PAD_NO_9_IMPACT_BURST | EFFECT_SPAWN_UNLIMITED), grenadeCoord, 0, NULL);
         if (burstEffect != NULL) {
             taskReparent(task, burstEffect->task);
         }
         if (work->attackContacts[0].key.value != 0) {
-            work->phase = HELICOPTER_LANDING_PAD_NO_9_GRENADE_BURST_HOLDING;
+            work->phase = GRENADE_BURST_HOLDING;
         } else {
-            work->phase = HELICOPTER_LANDING_PAD_NO_9_GRENADE_BURST_SPREADING;
+            work->phase = GRENADE_BURST_SPREADING;
         }
         work->attack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         worldCollisionClearContacts(work->attackContacts);
         worldCollisionUnlinkBody(&work->gridProbe);
         work->frames           = 0;
         task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        soundKey               = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_GRENADE_BURST;
+        soundKey               = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_GRENADE_BURST;
         sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(grenadeCoord), (s8)worldCoordGetOriginAudioDepth(grenadeCoord));
-        task->state = HELICOPTER_LANDING_PAD_NO_9_GRENADE_TASK_BURST;
+        task->state = GRENADE_TASK_BURST;
     }
     worldCollisionClearContacts(work->attackContacts);
     if (parentWork->present == 0) {
@@ -3169,26 +3169,26 @@ static void _helicopterLandingPadNo9TickGrenadeFlight(Enemy* enemy, Task* task)
 static void _helicopterLandingPadNo9TickGrenadeBurst(Enemy* enemy, Task* task)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_GRENADE_SPREAD_FRAMES = 16,
-        HELICOPTER_LANDING_PAD_NO_9_GRENADE_CATCH_FRAMES  = 31,
-        HELICOPTER_LANDING_PAD_NO_9_GRENADE_END_FRAMES    = 31,
-        HELICOPTER_LANDING_PAD_NO_9_GRENADE_BURST_RADIUS  = 600,
+        SPREAD_FRAMES = 16,
+        CATCH_FRAMES  = 31,
+        END_FRAMES    = 31,
+        BURST_RADIUS  = 600,
     };
 
-    _HelicopterLandingPadNo9GrenadeWork* work;
-    HelicopterLandingPadNo9Work*         parent;
-    u16                                  phaseFrames;
+    _GrenadeWork*                work;
+    HelicopterLandingPadNo9Work* parent;
+    u16                          phaseFrames;
 
     work   = task->work;
     parent = task->parent->work;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         switch (work->phase) {
-            case HELICOPTER_LANDING_PAD_NO_9_GRENADE_BURST_SPREADING:
+            case GRENADE_BURST_SPREADING:
                 phaseFrames  = work->frames + 1;
                 work->frames = phaseFrames;
-                if (phaseFrames >= HELICOPTER_LANDING_PAD_NO_9_GRENADE_SPREAD_FRAMES) {
-                    work->attack.radius = HELICOPTER_LANDING_PAD_NO_9_GRENADE_BURST_RADIUS;
-                    work->phase         = HELICOPTER_LANDING_PAD_NO_9_GRENADE_BURST_CATCHING;
+                if (phaseFrames >= SPREAD_FRAMES) {
+                    work->attack.radius = BURST_RADIUS;
+                    work->phase         = GRENADE_BURST_CATCHING;
                     work->frames        = 0;
                     work->attack.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                     return;
@@ -3198,17 +3198,17 @@ static void _helicopterLandingPadNo9TickGrenadeBurst(Enemy* enemy, Task* task)
                     return;
                 }
                 break;
-            case HELICOPTER_LANDING_PAD_NO_9_GRENADE_BURST_CATCHING:
+            case GRENADE_BURST_CATCHING:
                 if ((work->attackContacts[0].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY) {
-                    work->phase         = HELICOPTER_LANDING_PAD_NO_9_GRENADE_BURST_HOLDING;
-                    work->holdStep      = HELICOPTER_LANDING_PAD_NO_9_GRENADE_HOLD_REQUEST;
+                    work->phase         = GRENADE_BURST_HOLDING;
+                    work->holdStep      = GRENADE_HOLD_REQUEST;
                     work->attack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 } else {
                     phaseFrames  = work->frames + 1;
                     work->frames = phaseFrames;
                     // A timed-out catch keeps pair tests enabled during the ending delay.
-                    if (phaseFrames >= HELICOPTER_LANDING_PAD_NO_9_GRENADE_CATCH_FRAMES) {
-                        work->phase  = HELICOPTER_LANDING_PAD_NO_9_GRENADE_BURST_ENDING;
+                    if (phaseFrames >= CATCH_FRAMES) {
+                        work->phase  = GRENADE_BURST_ENDING;
                         work->frames = 0;
                     } else if (parent->present == 0) {
                         _helicopterLandingPadNo9CancelGrenadeCatch(task, work);
@@ -3216,13 +3216,13 @@ static void _helicopterLandingPadNo9TickGrenadeBurst(Enemy* enemy, Task* task)
                 }
                 worldCollisionClearContacts(work->attackContacts);
                 return;
-            case HELICOPTER_LANDING_PAD_NO_9_GRENADE_BURST_HOLDING:
+            case GRENADE_BURST_HOLDING:
                 _helicopterLandingPadNo9TickGrenadeHold(task);
                 return;
-            case HELICOPTER_LANDING_PAD_NO_9_GRENADE_BURST_ENDING:
+            case GRENADE_BURST_ENDING:
                 phaseFrames  = work->frames + 1;
                 work->frames = phaseFrames;
-                if (phaseFrames >= HELICOPTER_LANDING_PAD_NO_9_GRENADE_END_FRAMES) {
+                if (phaseFrames >= END_FRAMES) {
                     parent->grenadeLive = 0;
                     worldCollisionUnlinkBody(&work->attack);
                     enemyDestroy(enemy, task);
@@ -3242,21 +3242,21 @@ static void _helicopterLandingPadNo9TickGrenadeBurst(Enemy* enemy, Task* task)
 static void _helicopterLandingPadNo9TickGrenadeHold(Task* task)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_GRENADE_HOLD_PRESS_COUNT    = 12,
-        HELICOPTER_LANDING_PAD_NO_9_GRENADE_HOLD_STUN_LIMIT     = 61,
-        HELICOPTER_LANDING_PAD_NO_9_GRENADE_HOLD_RECOVER_LIMIT  = 21,
-        HELICOPTER_LANDING_PAD_NO_9_PLAYER_ANIM_GRENADE_STUN    = 1,
-        HELICOPTER_LANDING_PAD_NO_9_PLAYER_ANIM_GRENADE_RECOVER = 2,
-        HELICOPTER_LANDING_PAD_NO_9_SOUND_GRENADE_HOLD          = 0x5110000A,
+        GRENADE_HOLD_PRESS_COUNT    = 12,
+        GRENADE_HOLD_STUN_LIMIT     = 61,
+        GRENADE_HOLD_RECOVER_LIMIT  = 21,
+        PLAYER_ANIM_GRENADE_STUN    = 1,
+        PLAYER_ANIM_GRENADE_RECOVER = 2,
+        SOUND_GRENADE_HOLD          = 0x5110000A,
     };
-    _HelicopterLandingPadNo9GrenadeWork* work;
-    HelicopterLandingPadNo9Work*         parent;
-    Task*                                player;
-    ActorPlayerHoldScratch*              scratch;
-    GfxCoord*                            playerCoord;
-    u16                                  nextFrame;
-    s32                                  soundKey;
-    s32                                  audioPan;
+    _GrenadeWork*                work;
+    HelicopterLandingPadNo9Work* parent;
+    Task*                        player;
+    ActorPlayerHoldScratch*      scratch;
+    GfxCoord*                    playerCoord;
+    u16                          nextFrame;
+    s32                          soundKey;
+    s32                          audioPan;
 
     work    = task->work;
     parent  = task->parent->work;
@@ -3264,52 +3264,52 @@ static void _helicopterLandingPadNo9TickGrenadeHold(Task* task)
     scratch = SCRATCH_STACK_RESERVE_BLOCK(ActorPlayerHoldScratch);
 
     switch (work->holdStep) {
-        case HELICOPTER_LANDING_PAD_NO_9_GRENADE_HOLD_REQUEST:
+        case GRENADE_HOLD_REQUEST:
             if (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED) {
                 // All hold and animation payloads are borrowed during dispatch only.
-                scratch->buttonPressHold.pressCount = HELICOPTER_LANDING_PAD_NO_9_GRENADE_HOLD_PRESS_COUNT;
+                scratch->buttonPressHold.pressCount = GRENADE_HOLD_PRESS_COUNT;
                 if (TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &scratch->buttonPressHold, 0) != 0) {
-                    work->phase = HELICOPTER_LANDING_PAD_NO_9_GRENADE_BURST_ENDING;
+                    work->phase = GRENADE_BURST_ENDING;
                     break;
                 }
-                taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(gHelicopterLandingPadNo9Attacks, HELICOPTER_LANDING_PAD_NO_9_ATTACK_GRENADE), 0);
+                taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(gHelicopterLandingPadNo9Attacks, ATTACK_GRENADE), 0);
                 scratch->playerAnim.source.sets          = _gHelicopterLandingPadNo9PlayerGrenadeAnimationSets;
-                scratch->playerAnim.animationId          = HELICOPTER_LANDING_PAD_NO_9_PLAYER_ANIM_GRENADE_STUN;
+                scratch->playerAnim.animationId          = PLAYER_ANIM_GRENADE_STUN;
                 scratch->playerAnim.blend                = ANIMATION_BLEND_RESET;
                 scratch->playerAnim.blendFrames          = 0;
                 scratch->playerAnim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
                 TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &scratch->playerAnim, 0);
-                work->holdStep     = HELICOPTER_LANDING_PAD_NO_9_GRENADE_HOLD_STUNNED;
+                work->holdStep     = GRENADE_HOLD_STUNNED;
                 work->phaseCounter = 0;
                 playerCoord        = player->extra.tmd->coords;
-                soundKey           = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_GRENADE_HOLD;
+                soundKey           = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_GRENADE_HOLD;
                 audioPan           = (s8)worldCoordGetOriginAudioPan(playerCoord);
                 sndEvtRequestScriptStart(soundKey, audioPan, (s8)worldCoordGetOriginAudioDepth(playerCoord));
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_GRENADE_HOLD_STUNNED:
+        case GRENADE_HOLD_STUNNED:
             nextFrame          = work->phaseCounter + 1;
             work->phaseCounter = nextFrame;
-            if ((s16)nextFrame < HELICOPTER_LANDING_PAD_NO_9_GRENADE_HOLD_STUN_LIMIT && parent->playerEscaped != 1 && parent->present != 0) {
+            if ((s16)nextFrame < GRENADE_HOLD_STUN_LIMIT && parent->playerEscaped != 1 && parent->present != 0) {
                 break;
             }
             parent->playerEscaped                    = 0;
             scratch->playerAnim.source.sets          = _gHelicopterLandingPadNo9PlayerGrenadeAnimationSets;
-            scratch->playerAnim.animationId          = HELICOPTER_LANDING_PAD_NO_9_PLAYER_ANIM_GRENADE_RECOVER;
+            scratch->playerAnim.animationId          = PLAYER_ANIM_GRENADE_RECOVER;
             scratch->playerAnim.blend                = ANIMATION_BLEND_RESET;
             scratch->playerAnim.blendFrames          = 0;
             scratch->playerAnim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
             TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &scratch->playerAnim, 0);
-            work->holdStep     = HELICOPTER_LANDING_PAD_NO_9_GRENADE_HOLD_RECOVER;
+            work->holdStep     = GRENADE_HOLD_RECOVER;
             work->phaseCounter = 0;
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_GRENADE_HOLD_RECOVER:
+        case GRENADE_HOLD_RECOVER:
             nextFrame          = work->phaseCounter + 1;
             work->phaseCounter = nextFrame;
-            if ((s16)nextFrame >= HELICOPTER_LANDING_PAD_NO_9_GRENADE_HOLD_RECOVER_LIMIT) {
+            if ((s16)nextFrame >= GRENADE_HOLD_RECOVER_LIMIT) {
                 if (taskMessageDispatch(player, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
                     taskMessageDispatch(player, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
-                    work->phase = HELICOPTER_LANDING_PAD_NO_9_GRENADE_BURST_ENDING;
+                    work->phase = GRENADE_BURST_ENDING;
                 }
             }
             break;
@@ -3327,24 +3327,24 @@ static void _helicopterLandingPadNo9TickGrenadeHold(Task* task)
 static void _helicopterLandingPadNo9InitHelipadLight(Enemy* enemy, Task* task)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_ANIM_INTACT  = 1,
-        HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_CONTACT_PART = 10,
-        HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_BODY_RADIUS  = 200,
-        HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_BLAST_RADIUS = 350,
-        HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_HAZARD_ID    = 2,
+        ANIM_INTACT  = 1,
+        CONTACT_PART = 10,
+        BODY_RADIUS  = 200,
+        BLAST_RADIUS = 350,
+        HAZARD_ID    = 2,
     };
 
-    TmdObject*                                model;
-    GfxCoord*                                 partCoords;
-    _HelicopterLandingPadNo9HelipadLightWork* work;
-    GfxCoord*                                 contactCoord;
-    SVECTOR*                                  spawnRotation;
-    s32                                       slotIndex;
+    TmdObject*         model;
+    GfxCoord*          partCoords;
+    _HelipadLightWork* work;
+    GfxCoord*          contactCoord;
+    SVECTOR*           spawnRotation;
+    s32                slotIndex;
 
     model        = task->extra.tmd;
     partCoords   = model->coords;
-    work         = memCalloc(sizeof(_HelicopterLandingPadNo9HelipadLightWork), false);
-    contactCoord = &partCoords[HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_CONTACT_PART];
+    work         = memCalloc(sizeof(_HelipadLightWork), false);
+    contactCoord = &partCoords[CONTACT_PART];
     if (work == NULL) {
         enemyDestroy(enemy, task);
         return;
@@ -3360,7 +3360,7 @@ static void _helicopterLandingPadNo9InitHelipadLight(Enemy* enemy, Task* task)
     worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->coord                  = contactCoord;
-    enemy->bodyPos.vx             = -HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_BODY_RADIUS;
+    enemy->bodyPos.vx             = -BODY_RADIUS;
     enemy->bodyPos.vy             = 0;
     enemy->bodyPos.vz             = 0;
     work->lightIndex              = task->spawnArg1.value;
@@ -3375,33 +3375,33 @@ static void _helicopterLandingPadNo9InitHelipadLight(Enemy* enemy, Task* task)
     partCoords->parent     = &gGfxViewCoord;
     animationInitContext(&work->anim, _gHelicopterLandingPadNo9HelipadLightAnimationSets, model, work->poses, work->slots);
     do {
-        animationResetSlot(&work->anim, slotIndex, HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_ANIM_INTACT);
+        animationResetSlot(&work->anim, slotIndex, ANIM_INTACT);
         slotIndex++;
     } while (slotIndex < ARRAY_SIZE(work->slots));
-    work->body.pos.vx           = -HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_BODY_RADIUS;
+    work->body.pos.vx           = -BODY_RADIUS;
     work->body.coord            = contactCoord;
     work->body.pos.vy           = 0;
     work->body.pos.vz           = 0;
     work->body.context.contacts = work->bodyContacts;
     work->body.key              = 0;
-    work->body.radius           = HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_BODY_RADIUS;
+    work->body.radius           = BODY_RADIUS;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
     worldCollisionInitContacts(work->bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
-    work->blast.key              = DAMAGE_HAZARD_CATEGORY | HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_HAZARD_ID;
+    work->blast.key              = DAMAGE_HAZARD_CATEGORY | HAZARD_ID;
     work->blast.coord            = contactCoord;
     work->blast.pos.vx           = 0;
     work->blast.pos.vy           = 0;
     work->blast.pos.vz           = 0;
     work->blast.context.contacts = work->blastContacts;
-    work->blast.radius           = HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_BLAST_RADIUS;
+    work->blast.radius           = BLAST_RADIUS;
     work->blast.flags            = WORLD_COLLISION_BODY_SPHERE;
     work->body.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     worldCollisionLinkBody(WORLD_COLLISION_LIST_BLASTS, &work->blast);
     worldCollisionInitContacts(work->blastContacts, ARRAY_SIZE(work->blastContacts), 0);
     work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     task->exitCallback = _helicopterLandingPadNo9ExitHelipadLight;
-    task->state        = HELICOPTER_LANDING_PAD_NO_9_CHILD_TASK_RUNNING;
+    task->state        = CHILD_TASK_RUNNING;
     SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
@@ -3415,14 +3415,14 @@ static void _helicopterLandingPadNo9InitHelipadLight(Enemy* enemy, Task* task)
 static void _helicopterLandingPadNo9TickHelipadLight(Enemy* enemy, Task* task)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_PERSISTENT_LIGHT_COUNT = 2,
-        HELICOPTER_LANDING_PAD_NO_9_LIGHT_FLAG_BASE        = 11,
+        PERSISTENT_LIGHT_COUNT = 2,
+        LIGHT_FLAG_BASE        = 11,
     };
-    TmdObject*                                model;
-    _HelicopterLandingPadNo9HelipadLightWork* work;
-    GfxCoord*                                 rootCoord;
-    HelicopterLandingPadNo9Work*              bodyWork;
-    s32                                       slotIndex;
+    TmdObject*                   model;
+    _HelipadLightWork*           work;
+    GfxCoord*                    rootCoord;
+    HelicopterLandingPadNo9Work* bodyWork;
+    s32                          slotIndex;
 
     model     = task->extra.tmd;
     work      = task->work;
@@ -3451,8 +3451,8 @@ static void _helicopterLandingPadNo9TickHelipadLight(Enemy* enemy, Task* task)
     }
     // Publish damage progress only on the full in-view update.
     _helicopterLandingPadNo9TickHelipadLightBreak(task);
-    if (work->lightIndex < HELICOPTER_LANDING_PAD_NO_9_PERSISTENT_LIGHT_COUNT) {
-        gameFlagSetNibble(work->lightIndex + HELICOPTER_LANDING_PAD_NO_9_LIGHT_FLAG_BASE, work->status);
+    if (work->lightIndex < PERSISTENT_LIGHT_COUNT) {
+        gameFlagSetNibble(work->lightIndex + LIGHT_FLAG_BASE, work->status);
     } else {
         bodyWork->light2Status = work->status;
     }
@@ -3476,28 +3476,28 @@ static void _helicopterLandingPadNo9TickHelipadLight(Enemy* enemy, Task* task)
 static void _helicopterLandingPadNo9TickHelipadLightBreak(Task* task)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_LIGHT_BREAK_ANIMATION = 2,
-        HELICOPTER_LANDING_PAD_NO_9_LIGHT_SPARK_FRAMES    = 120,
-        HELICOPTER_LANDING_PAD_NO_9_LIGHT_SPARK_OFFSET_Y  = 128,
-        HELICOPTER_LANDING_PAD_NO_9_LIGHT_EXPLOSION_SIZE  = 512,
-        HELICOPTER_LANDING_PAD_NO_9_LIGHT_SHOT_DISTANCE   = 1000,
-        HELICOPTER_LANDING_PAD_NO_9_SOUND_LIGHT_BREAK     = 0x51100004,
+        LIGHT_BREAK_ANIMATION = 2,
+        LIGHT_SPARK_FRAMES    = 120,
+        LIGHT_SPARK_OFFSET_Y  = 128,
+        LIGHT_EXPLOSION_SIZE  = 512,
+        LIGHT_SHOT_DISTANCE   = 1000,
+        SOUND_LIGHT_BREAK     = 0x51100004,
     };
-    _HelicopterLandingPadNo9HelipadLightWork* work;
-    HelicopterLandingPadNo9Work*              parent;
-    Enemy*                                    enemy;
-    ActorFaceScratch*                         sparkScratch;
-    ActorFaceScratch*                         scratchEnd;
-    GfxCoord*                                 contactCoord;
-    EffectWork*                               sparksEffect;
-    Task*                                     sparksTask;
-    s16                                       doneState;
-    s32                                       breakRequested;
-    s32                                       slotIndex;
-    s32                                       soundKey;
-    s32                                       audioPan;
-    s32                                       attackKey;
-    s16                                       lightState;
+    _HelipadLightWork*           work;
+    HelicopterLandingPadNo9Work* parent;
+    Enemy*                       enemy;
+    ActorFaceScratch*            sparkScratch;
+    ActorFaceScratch*            scratchEnd;
+    GfxCoord*                    contactCoord;
+    EffectWork*                  sparksEffect;
+    Task*                        sparksTask;
+    s16                          doneState;
+    s32                          breakRequested;
+    s32                          slotIndex;
+    s32                          soundKey;
+    s32                          audioPan;
+    s32                          attackKey;
+    s16                          lightState;
 
     breakRequested                         = 0;
     scratchEnd                             = SCRATCH_STACK_CURSOR(ActorFaceScratch);
@@ -3509,17 +3509,17 @@ static void _helicopterLandingPadNo9TickHelipadLightBreak(Task* task)
     lightState                             = work->state;
     parent                                 = task->parent->work;
     switch (lightState) {
-        case HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_INTACT:
+        case HELIPAD_LIGHT_INTACT:
             if (parent->present == 0) {
-                work->status = HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_STATUS_STOPPED;
-                work->state  = HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_DONE;
+                work->status = HELIPAD_LIGHT_STATUS_STOPPED;
+                work->state  = HELIPAD_LIGHT_DONE;
                 break;
             }
             enemy->node.state.parts.flags = gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED;
             attackKey                     = work->bodyContacts[0].key.value;
             work->body.flags             |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             if ((attackKey & (WORLD_COLLISION_CONTACT_KIND_MASK | 0x8000)) == WORLD_COLLISION_CONTACT_ATTACK && enemy->node.state.parts.targeted == 1 &&
-                damageComputePlayerAttack(attackKey, HELICOPTER_LANDING_PAD_NO_9_LIGHT_SHOT_DISTANCE, 0, 0) != 0) {
+                damageComputePlayerAttack(attackKey, LIGHT_SHOT_DISTANCE, 0, 0) != 0) {
                 breakRequested = 1;
             }
             if (parent->slashedLight == work->lightIndex + 1 && parent->lightSlashStruck == 1) {
@@ -3527,15 +3527,15 @@ static void _helicopterLandingPadNo9TickHelipadLightBreak(Task* task)
                 parent->slashedLight = -1;
             }
             if (breakRequested == 1) {
-                work->status = HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_STATUS_SPARKING;
-                work->state  = HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_SPARKING;
+                work->status = HELIPAD_LIGHT_STATUS_SPARKING;
+                work->state  = HELIPAD_LIGHT_SPARKING;
                 slotIndex    = 1;
                 do {
-                    animationSeekSlotWithBlend(&work->anim, slotIndex, HELICOPTER_LANDING_PAD_NO_9_LIGHT_BREAK_ANIMATION, 0, 0);
+                    animationSeekSlotWithBlend(&work->anim, slotIndex, LIGHT_BREAK_ANIMATION, 0, 0);
                     slotIndex++;
                 } while (slotIndex < ARRAY_SIZE(work->slots));
                 sparkScratch->rot.vx = 0;
-                sparkScratch->rot.vy = HELICOPTER_LANDING_PAD_NO_9_LIGHT_SPARK_OFFSET_Y;
+                sparkScratch->rot.vy = LIGHT_SPARK_OFFSET_Y;
                 sparkScratch->rot.vz = 0;
                 sparksEffect         = effectSpawn((EFFECT_HELIPAD_LIGHT_SPARKS | EFFECT_SPAWN_UNLIMITED), contactCoord, 0, &sparkScratch->rot);
                 if (sparksEffect != NULL) {
@@ -3543,17 +3543,17 @@ static void _helicopterLandingPadNo9TickHelipadLightBreak(Task* task)
                     work->sparksTask = sparksTask;
                     taskReparent(task, sparksTask);
                 }
-                effectSpawn(EFFECT_EXPLOSION, contactCoord, HELICOPTER_LANDING_PAD_NO_9_LIGHT_EXPLOSION_SIZE, &sparkScratch->rot);
-                work->sparkFrames  = HELICOPTER_LANDING_PAD_NO_9_LIGHT_SPARK_FRAMES;
+                effectSpawn(EFFECT_EXPLOSION, contactCoord, LIGHT_EXPLOSION_SIZE, &sparkScratch->rot);
+                work->sparkFrames  = LIGHT_SPARK_FRAMES;
                 work->body.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 work->blast.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                soundKey           = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_LIGHT_BREAK;
+                soundKey           = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_LIGHT_BREAK;
                 audioPan           = (s8)worldCoordGetOriginAudioPan(contactCoord);
                 sndEvtRequestScriptStart(soundKey, audioPan, (s8)worldCoordGetOriginAudioDepth(contactCoord));
             }
             worldCollisionClearContacts(work->bodyContacts);
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_SPARKING:
+        case HELIPAD_LIGHT_SPARKING:
             if (worldCollisionFindContactIndex(work->blastContacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
                 work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
@@ -3563,15 +3563,15 @@ static void _helicopterLandingPadNo9TickHelipadLightBreak(Task* task)
             akropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[7]);
             akropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[6]);
             work->sparkFrames--;
-            doneState = HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_DONE;
+            doneState = HELIPAD_LIGHT_DONE;
             if (work->sparkFrames <= 0) {
                 Task* sparksTask;
 
-                work->status       = HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_STATUS_SPENT;
+                work->status       = HELIPAD_LIGHT_STATUS_SPENT;
                 work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 sparksTask         = work->sparksTask;
                 if (sparksTask != NULL) {
-                    sparksTask->state = HELICOPTER_LANDING_PAD_NO_9_LIGHT_SPARKS_BURSTS_ONLY;
+                    sparksTask->state = LIGHT_SPARKS_BURSTS_ONLY;
                 }
             } else {
                 Task* sparksTask;
@@ -3579,23 +3579,23 @@ static void _helicopterLandingPadNo9TickHelipadLightBreak(Task* task)
                 if (parent->present != 0) {
                     break;
                 }
-                work->status       = HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_STATUS_SPENT;
+                work->status       = HELIPAD_LIGHT_STATUS_SPENT;
                 work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 sparksTask         = work->sparksTask;
                 if (sparksTask != NULL) {
-                    sparksTask->state = HELICOPTER_LANDING_PAD_NO_9_LIGHT_SPARKS_RELEASE;
+                    sparksTask->state = LIGHT_SPARKS_RELEASE;
                     work->sparksTask  = NULL;
                 }
             }
             work->state = doneState;
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_DONE:
+        case HELIPAD_LIGHT_DONE:
             if (parent->present == 0) {
                 Task* sparksTask;
 
                 sparksTask = work->sparksTask;
                 if (sparksTask != NULL) {
-                    sparksTask->state = HELICOPTER_LANDING_PAD_NO_9_LIGHT_SPARKS_RELEASE;
+                    sparksTask->state = LIGHT_SPARKS_RELEASE;
                     work->sparksTask  = NULL;
                 }
             }
@@ -3615,11 +3615,11 @@ static void _helicopterLandingPadNo9TickHelipadLightBreak(Task* task)
 /// Pair tests start disabled; allocation failure destroys the enemy and task.
 static void _helicopterLandingPadNo9InitBlastSource(Enemy* enemy, Task* task)
 {
-    GfxCoord*                                sourceCoord;
-    _HelicopterLandingPadNo9BlastSourceWork* work;
+    GfxCoord*         sourceCoord;
+    _BlastSourceWork* work;
 
     sourceCoord = task->extra.coordBody->coord;
-    work        = memCalloc(sizeof(_HelicopterLandingPadNo9BlastSourceWork), false);
+    work        = memCalloc(sizeof(_BlastSourceWork), false);
     if (work == NULL) {
         enemyDestroy(enemy, task);
         return;
@@ -3662,7 +3662,7 @@ static void _helicopterLandingPadNo9InitBlastSource(Enemy* enemy, Task* task)
     worldCollisionInitContacts(work->blastContacts, ARRAY_SIZE(work->blastContacts), 0);
     work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     task->exitCallback = _helicopterLandingPadNo9ExitBlastSource;
-    task->state        = HELICOPTER_LANDING_PAD_NO_9_CHILD_TASK_RUNNING;
+    task->state        = CHILD_TASK_RUNNING;
 }
 
 /// Updates the helipad blast source only while its view and combat are active.
@@ -3674,10 +3674,10 @@ static void _helicopterLandingPadNo9InitBlastSource(Enemy* enemy, Task* task)
 /// Paused or hidden combat does not advance the source.
 static void _helicopterLandingPadNo9TickBlastSource(Enemy* enemy, Task* task)
 {
-    _HelicopterLandingPadNo9BlastSourceWork* work;
-    HelicopterLandingPadNo9Work*             parentWork;
-    u32                                      randomState;
-    Task*                                    flareTask;
+    _BlastSourceWork*            work;
+    HelicopterLandingPadNo9Work* parentWork;
+    u32                          randomState;
+    Task*                        flareTask;
 
     work       = task->work;
     parentWork = task->parent->work;
@@ -3692,7 +3692,7 @@ static void _helicopterLandingPadNo9TickBlastSource(Enemy* enemy, Task* task)
                 }
                 flareTask = work->flareTask;
                 if (flareTask != NULL) {
-                    flareTask->state = HELICOPTER_LANDING_PAD_NO_9_SOURCE_FLARE_RELEASE;
+                    flareTask->state = SOURCE_FLARE_RELEASE;
                     work->flareTask  = NULL;
                 }
                 return;
@@ -3733,25 +3733,25 @@ static const EnemyTaskFuncTable3 _gHelicopterLandingPadNo9GrenadeTaskStates = {
 static void _helicopterLandingPadNo9TickBlastSourcePhases(Task* task)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_SOURCE_FLARE_FRAMES  = 60,
-        HELICOPTER_LANDING_PAD_NO_9_SOURCE_SHOT_DISTANCE = 1000,
-        HELICOPTER_LANDING_PAD_NO_9_SOUND_SOURCE_SHOT    = 0x51100002,
+        SOURCE_FLARE_FRAMES  = 60,
+        SOURCE_SHOT_DISTANCE = 1000,
+        SOUND_SOURCE_SHOT    = 0x51100002,
     };
-    _HelicopterLandingPadNo9BlastSourceWork* work;
-    GfxCoord*                                sourceCoord;
-    HelicopterLandingPadNo9Work*             parentWork;
-    Enemy*                                   enemy;
-    EffectWork*                              flareEffect;
-    Task*                                    flareAfterShot;
-    Task*                                    endingFlare;
-    Task*                                    stoppedFlare;
-    Task*                                    releasedFlare;
-    Task*                                    spawnedFlare;
-    s32                                      attackKey;
-    s32                                      targeted;
-    s32                                      soundKey;
-    s32                                      audioPan;
-    u16                                      flareFrames;
+    _BlastSourceWork*            work;
+    GfxCoord*                    sourceCoord;
+    HelicopterLandingPadNo9Work* parentWork;
+    Enemy*                       enemy;
+    EffectWork*                  flareEffect;
+    Task*                        flareAfterShot;
+    Task*                        endingFlare;
+    Task*                        stoppedFlare;
+    Task*                        releasedFlare;
+    Task*                        spawnedFlare;
+    s32                          attackKey;
+    s32                          targeted;
+    s32                          soundKey;
+    s32                          audioPan;
+    u16                          flareFrames;
 
     work        = task->work;
     sourceCoord = task->extra.coordBody->coord;
@@ -3759,20 +3759,20 @@ static void _helicopterLandingPadNo9TickBlastSourcePhases(Task* task)
     enemy       = task->spawnArg2.pointer;
 
     switch (work->state) {
-        case HELICOPTER_LANDING_PAD_NO_9_BLAST_SOURCE_DORMANT:
-            if (parentWork->light2State == HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_SPARKING) {
-                work->state = HELICOPTER_LANDING_PAD_NO_9_BLAST_SOURCE_ARMED;
+        case BLAST_SOURCE_DORMANT:
+            if (parentWork->light2State == HELIPAD_LIGHT_SPARKING) {
+                work->state = BLAST_SOURCE_ARMED;
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_BLAST_SOURCE_ARMED:
+        case BLAST_SOURCE_ARMED:
             enemy->node.state.parts.flags = gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED;
             attackKey                     = work->bodyContacts[0].key.value;
             work->body.flags             |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             if ((attackKey & ~0x7FFF) == WORLD_COLLISION_CONTACT_ATTACK) {
                 targeted = enemy->node.state.parts.targeted;
-                if (targeted == 1 && damageComputePlayerAttack(attackKey, HELICOPTER_LANDING_PAD_NO_9_SOURCE_SHOT_DISTANCE, 0, 0) != 0) {
-                    work->state       = HELICOPTER_LANDING_PAD_NO_9_BLAST_SOURCE_SHOT;
-                    work->flareFrames = HELICOPTER_LANDING_PAD_NO_9_SOURCE_FLARE_FRAMES;
+                if (targeted == 1 && damageComputePlayerAttack(attackKey, SOURCE_SHOT_DISTANCE, 0, 0) != 0) {
+                    work->state       = BLAST_SOURCE_SHOT;
+                    work->flareFrames = SOURCE_FLARE_FRAMES;
                     effectSpawn(EFFECT_IMPACT_SPARK, sourceCoord, 0, NULL);
                     flareEffect = effectSpawn((EFFECT_05F | EFFECT_SPAWN_UNLIMITED), sourceCoord, 0, NULL);
                     if (flareEffect != NULL) {
@@ -3782,23 +3782,23 @@ static void _helicopterLandingPadNo9TickBlastSourcePhases(Task* task)
                     }
                     work->body.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     work->blast.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                    if (parentWork->light2State == HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_DONE) {
-                        work->flareTaskState = HELICOPTER_LANDING_PAD_NO_9_SOURCE_FLARE_RAW_COLOR;
-                        work->blast.key      = DAMAGE_HAZARD_CATEGORY | HELICOPTER_LANDING_PAD_NO_9_HAZARD_SOURCE_RECOIL;
+                    if (parentWork->light2State == HELIPAD_LIGHT_DONE) {
+                        work->flareTaskState = SOURCE_FLARE_RAW_COLOR;
+                        work->blast.key      = DAMAGE_HAZARD_CATEGORY | HAZARD_SOURCE_RECOIL;
                     } else {
-                        work->flareTaskState = HELICOPTER_LANDING_PAD_NO_9_SOURCE_FLARE_FLICKERING;
-                        work->blast.key      = DAMAGE_HAZARD_CATEGORY | HELICOPTER_LANDING_PAD_NO_9_HAZARD_SOURCE_STUN;
+                        work->flareTaskState = SOURCE_FLARE_FLICKERING;
+                        work->blast.key      = DAMAGE_HAZARD_CATEGORY | HAZARD_SOURCE_STUN;
                     }
-                    soundKey = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | HELICOPTER_LANDING_PAD_NO_9_SOUND_SOURCE_SHOT;
+                    soundKey = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_SOURCE_SHOT;
                     audioPan = (s8)worldCoordGetOriginAudioPan(sourceCoord);
                     sndEvtRequestScriptStart(soundKey, audioPan, (s8)worldCoordGetOriginAudioDepth(sourceCoord));
                 }
             }
             worldCollisionClearContacts(work->bodyContacts);
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_BLAST_SOURCE_SHOT:
+        case BLAST_SOURCE_SHOT:
             flareAfterShot = work->flareTask;
-            work->state    = HELICOPTER_LANDING_PAD_NO_9_BLAST_SOURCE_FLARING;
+            work->state    = BLAST_SOURCE_FLARING;
             if (flareAfterShot != NULL) {
                 flareAfterShot->state = work->flareTaskState;
             }
@@ -3807,7 +3807,7 @@ static void _helicopterLandingPadNo9TickBlastSourcePhases(Task* task)
             }
             worldCollisionClearContacts(work->blastContacts);
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_BLAST_SOURCE_FLARING:
+        case BLAST_SOURCE_FLARING:
             if (worldCollisionFindContactIndex(work->blastContacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
                 work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
@@ -3815,35 +3815,35 @@ static void _helicopterLandingPadNo9TickBlastSourcePhases(Task* task)
             flareFrames       = work->flareFrames - 1;
             work->flareFrames = flareFrames;
             if ((s16)flareFrames <= 0) {
-                work->state        = HELICOPTER_LANDING_PAD_NO_9_BLAST_SOURCE_SPENT;
+                work->state        = BLAST_SOURCE_SPENT;
                 work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 endingFlare        = work->flareTask;
                 if (endingFlare != NULL) {
-                    endingFlare->state = HELICOPTER_LANDING_PAD_NO_9_SOURCE_FLARE_EMBERS;
+                    endingFlare->state = SOURCE_FLARE_EMBERS;
                 }
                 break;
             }
             if (parentWork->present == 0) {
-                work->state        = HELICOPTER_LANDING_PAD_NO_9_BLAST_SOURCE_STOPPED;
+                work->state        = BLAST_SOURCE_STOPPED;
                 work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 stoppedFlare       = work->flareTask;
                 if (stoppedFlare != NULL) {
-                    stoppedFlare->state = HELICOPTER_LANDING_PAD_NO_9_SOURCE_FLARE_RELEASE;
+                    stoppedFlare->state = SOURCE_FLARE_RELEASE;
                     work->flareTask     = NULL;
                 }
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_BLAST_SOURCE_SPENT:
+        case BLAST_SOURCE_SPENT:
             if (parentWork->present == 0) {
-                work->state   = HELICOPTER_LANDING_PAD_NO_9_BLAST_SOURCE_STOPPED;
+                work->state   = BLAST_SOURCE_STOPPED;
                 releasedFlare = work->flareTask;
                 if (releasedFlare != NULL) {
-                    releasedFlare->state = HELICOPTER_LANDING_PAD_NO_9_SOURCE_FLARE_RELEASE;
+                    releasedFlare->state = SOURCE_FLARE_RELEASE;
                     work->flareTask      = NULL;
                 }
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_BLAST_SOURCE_STOPPED:
+        case BLAST_SOURCE_STOPPED:
             break;
     }
 }
@@ -4001,7 +4001,7 @@ static void _helicopterLandingPadNo9ConsumeReactionFlags(Task* task)
     if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
         enemy->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
         work->state           = HELICOPTER_LANDING_PAD_NO_9_STATE_BUILDUP_STUN;
-        work->subState        = HELICOPTER_LANDING_PAD_NO_9_BUILDUP_STUN_WAIT;
+        work->subState        = BUILDUP_STUN_WAIT;
         work->buildupStunned  = 1;
     }
     reactionFlags = enemy->reactionFlags;
@@ -4077,20 +4077,20 @@ static void _helicopterLandingPadNo9TickBuildupStun(Task* task)
     work     = task->work;
     subState = work->subState;
     switch (subState) {
-        case HELICOPTER_LANDING_PAD_NO_9_BUILDUP_STUN_WAIT:
+        case BUILDUP_STUN_WAIT:
             work->lapSpeed    = 0;
-            work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_STUN;
+            work->animationId = ANIM_STUN;
             if (damageTickEnemyBuildup(task->spawnArg2.pointer) != 0) {
-                work->animationId    = HELICOPTER_LANDING_PAD_NO_9_ANIM_STUN_RECOVER;
-                work->subState       = HELICOPTER_LANDING_PAD_NO_9_BUILDUP_STUN_RECOVER;
+                work->animationId    = ANIM_STUN_RECOVER;
+                work->subState       = BUILDUP_STUN_RECOVER;
                 work->buildupStunned = 0;
             }
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_BUILDUP_STUN_RECOVER:
-            if (work->animationFrame >= HELICOPTER_LANDING_PAD_NO_9_STUN_RECOVER_END_FRAME) {
+        case BUILDUP_STUN_RECOVER:
+            if (work->animationFrame >= STUN_RECOVER_END_FRAME) {
                 work->state       = HELICOPTER_LANDING_PAD_NO_9_STATE_PATROL;
-                work->subState    = HELICOPTER_LANDING_PAD_NO_9_PATROL_WAIT;
-                work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_PATROL_IDLE;
+                work->subState    = PATROL_WAIT;
+                work->animationId = ANIM_PATROL_IDLE;
                 work->stateCounter =
                     _gHelicopterLandingPadNo9ReactionWaitFrames[((u32)(randomState = RANDOM_LCG_NEXT(gRandomLcgState)) >> 16) & 0xF];
                 gRandomLcgState = randomState;
@@ -4106,7 +4106,7 @@ static void _helicopterLandingPadNo9TickBuildupStun(Task* task)
 static void _helicopterLandingPadNo9TickFlinch(Task* task)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_FLINCH_END_FRAME = 80,
+        FLINCH_END_FRAME = 80,
     };
     HelicopterLandingPadNo9Work* work;
     s32                          subState;
@@ -4117,21 +4117,21 @@ static void _helicopterLandingPadNo9TickFlinch(Task* task)
     subState = work->subState;
     enemy    = task->spawnArg2.pointer;
     switch (subState) {
-        case HELICOPTER_LANDING_PAD_NO_9_FLINCH_ENTER:
-            work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_FLINCH;
+        case FLINCH_ENTER:
+            work->animationId = ANIM_FLINCH;
             work->lapSpeed    = 0;
-            work->subState    = HELICOPTER_LANDING_PAD_NO_9_FLINCH_PLAY;
+            work->subState    = FLINCH_PLAY;
             break;
-        case HELICOPTER_LANDING_PAD_NO_9_FLINCH_PLAY:
-            if (work->animationFrame >= HELICOPTER_LANDING_PAD_NO_9_FLINCH_END_FRAME) {
+        case FLINCH_PLAY:
+            if (work->animationFrame >= FLINCH_END_FRAME) {
                 if (enemy->hp <= 0) {
                     work->state       = HELICOPTER_LANDING_PAD_NO_9_STATE_DEATH;
-                    work->subState    = HELICOPTER_LANDING_PAD_NO_9_DEATH_ENTER;
-                    work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_DEATH;
+                    work->subState    = DEATH_ENTER;
+                    work->animationId = ANIM_DEATH;
                 } else {
                     work->state       = HELICOPTER_LANDING_PAD_NO_9_STATE_PATROL;
-                    work->subState    = HELICOPTER_LANDING_PAD_NO_9_PATROL_WAIT;
-                    work->animationId = HELICOPTER_LANDING_PAD_NO_9_ANIM_PATROL_IDLE;
+                    work->subState    = PATROL_WAIT;
+                    work->animationId = ANIM_PATROL_IDLE;
                     work->stateCounter =
                         _gHelicopterLandingPadNo9ReactionWaitFrames[((u32)(randomState = RANDOM_LCG_NEXT(gRandomLcgState)) >> 16) & 0xF];
                     gRandomLcgState = randomState;
@@ -4240,17 +4240,17 @@ static s32 _helicopterLandingPadNo9ReleaseGrenadeHold(Task* task, s32 messageId,
 static s32 _helicopterLandingPadNo9PlayEventAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedSecondArg)
 {
     enum {
-        HELICOPTER_LANDING_PAD_NO_9_EVENT_BLEND_FRAMES   = 8,
-        HELICOPTER_LANDING_PAD_NO_9_EVENT_ANIMATION_BASE = 27,
+        BLEND_FRAMES   = 8,
+        ANIMATION_BASE = 27,
     };
 
     HelicopterLandingPadNo9Work* work;
     s32                          blendFrames;
     s32                          slotIndex;
 
-    blendFrames       = (request->blend != ANIMATION_BLEND_RESET) * HELICOPTER_LANDING_PAD_NO_9_EVENT_BLEND_FRAMES;
+    blendFrames       = (request->blend != ANIMATION_BLEND_RESET) * BLEND_FRAMES;
     work              = task->work;
-    work->animationId = request->animationId + HELICOPTER_LANDING_PAD_NO_9_EVENT_ANIMATION_BASE;
+    work->animationId = request->animationId + ANIMATION_BASE;
     for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
         animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->animationId, 0, blendFrames);
     }
@@ -4295,7 +4295,7 @@ static s32 _helicopterLandingPadNo9IsPresent(Task* task, s32 messageId, s32 unus
 /// work block must remain live; the child borrows their coordinate and lighting.
 static void _helicopterLandingPadNo9PropTask(Task* task)
 {
-    EnemyTaskFunc states[HELICOPTER_LANDING_PAD_NO_9_ATTACHMENT_STATE_COUNT] = { _helicopterLandingPadNo9InitProp, _helicopterLandingPadNo9UpdateProp };
+    EnemyTaskFunc states[ATTACHMENT_STATE_COUNT] = { _helicopterLandingPadNo9InitProp, _helicopterLandingPadNo9UpdateProp };
 
     states[task->state](task->spawnArg2.pointer, task);
 }
@@ -4316,12 +4316,12 @@ static void _helicopterLandingPadNo9InitProp(Enemy* enemy, Task* task)
     propModel->clutRowOffset += 2;
     tmdBuildBufferHalf(propModel);
     tmdBuildBufferHalf(propModel);
-    propCoord->parent       = &task->parent->extra.tmd->coords[HELICOPTER_LANDING_PAD_NO_9_PROP_HAND_PART];
+    propCoord->parent       = &task->parent->extra.tmd->coords[PROP_HAND_PART];
     propCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     propModel->flags        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     propModel->lightMtx     = &parentWork->light;
     propModel->colorMtx     = &parentWork->color;
-    task->state             = HELICOPTER_LANDING_PAD_NO_9_ATTACHMENT_UPDATE;
+    task->state             = ATTACHMENT_UPDATE;
 }
 
 /// Dispatches initialization or update of the golem's attached weapon model.
@@ -4330,7 +4330,7 @@ static void _helicopterLandingPadNo9InitProp(Enemy* enemy, Task* task)
 /// block must remain live; the weapon borrows their coordinate and lighting.
 static void _helicopterLandingPadNo9WeaponTask(Task* task)
 {
-    EnemyTaskFunc states[HELICOPTER_LANDING_PAD_NO_9_ATTACHMENT_STATE_COUNT] = { _helicopterLandingPadNo9InitWeapon, _helicopterLandingPadNo9UpdateWeapon };
+    EnemyTaskFunc states[ATTACHMENT_STATE_COUNT] = { _helicopterLandingPadNo9InitWeapon, _helicopterLandingPadNo9UpdateWeapon };
 
     states[task->state](task->spawnArg2.pointer, task);
 }
@@ -4347,10 +4347,10 @@ static void _helicopterLandingPadNo9InitWeapon(Enemy* enemy, Task* task)
     weaponModel                 = task->extra.tmd;
     parentWork                  = task->parent->work;
     weaponModel->flags          = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    weaponModel->coords->parent = &task->parent->extra.tmd->coords[HELICOPTER_LANDING_PAD_NO_9_WEAPON_PART];
+    weaponModel->coords->parent = &task->parent->extra.tmd->coords[WEAPON_PART];
     weaponModel->lightMtx       = &parentWork->light;
     weaponModel->colorMtx       = &parentWork->color;
-    task->state                 = HELICOPTER_LANDING_PAD_NO_9_ATTACHMENT_UPDATE;
+    task->state                 = ATTACHMENT_UPDATE;
 }
 
 /// Copies body visibility to the weapon and composes its attached coordinate.
@@ -4370,7 +4370,7 @@ static void _helicopterLandingPadNo9UpdateWeapon(Enemy* enemy, Task* task)
 /// block must remain live; the child borrows their coordinate and lighting.
 static void _helicopterLandingPadNo9ChestModelTask(Task* task)
 {
-    EnemyTaskFunc states[HELICOPTER_LANDING_PAD_NO_9_ATTACHMENT_STATE_COUNT] = { _helicopterLandingPadNo9InitChestModel, _helicopterLandingPadNo9UpdateChestModel };
+    EnemyTaskFunc states[ATTACHMENT_STATE_COUNT] = { _helicopterLandingPadNo9InitChestModel, _helicopterLandingPadNo9UpdateChestModel };
 
     states[task->state](task->spawnArg2.pointer, task);
 }
@@ -4387,10 +4387,10 @@ static void _helicopterLandingPadNo9InitChestModel(Enemy* enemy, Task* task)
     chestModel                 = task->extra.tmd;
     parentWork                 = task->parent->work;
     chestModel->flags          = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    chestModel->coords->parent = &task->parent->extra.tmd->coords[HELICOPTER_LANDING_PAD_NO_9_CHEST_PART];
+    chestModel->coords->parent = &task->parent->extra.tmd->coords[CHEST_PART];
     chestModel->lightMtx       = &parentWork->light;
     chestModel->colorMtx       = &parentWork->color;
-    task->state                = HELICOPTER_LANDING_PAD_NO_9_ATTACHMENT_UPDATE;
+    task->state                = ATTACHMENT_UPDATE;
 }
 
 /// Copies body visibility to the chest model and composes its attached coordinate.
@@ -4441,12 +4441,12 @@ static void _helicopterLandingPadNo9HelipadLightTask(Task* task)
 /// The caller then advances animation without running the break state machine.
 static s32 _helicopterLandingPadNo9CheckHelipadLightView(Task* task)
 {
-    TmdObject*                                model;
-    _HelicopterLandingPadNo9HelipadLightWork* work;
-    Enemy*                                    enemy;
-    s32                                       viewIndex;
-    u8                                        viewMisses;
-    u8                                        mappedView;
+    TmdObject*         model;
+    _HelipadLightWork* work;
+    Enemy*             enemy;
+    s32                viewIndex;
+    u8                 viewMisses;
+    u8                 mappedView;
 
     model      = task->extra.tmd;
     work       = task->work;
@@ -4468,7 +4468,7 @@ static s32 _helicopterLandingPadNo9CheckHelipadLightView(Task* task)
     work->blast.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     if (work->sparksTask != NULL) {
-        work->sparksTask->state = HELICOPTER_LANDING_PAD_NO_9_LIGHT_SPARKS_RELEASE;
+        work->sparksTask->state = LIGHT_SPARKS_RELEASE;
         work->sparksTask        = NULL;
     }
     if (work->sparkFrames != 0) {
@@ -4498,8 +4498,8 @@ static void _helicopterLandingPadNo9UpdateHelipadLightLighting(Task* task, const
 /// adopted spark effects follow the task tree's teardown.
 static void _helicopterLandingPadNo9ExitHelipadLight(Task* task)
 {
-    Enemy*                                    enemy = task->spawnArg2.pointer;
-    _HelicopterLandingPadNo9HelipadLightWork* work  = task->work;
+    Enemy*             enemy = task->spawnArg2.pointer;
+    _HelipadLightWork* work  = task->work;
 
     worldTargetUnlinkNode(&enemy->node);
     worldCollisionUnlinkBody(&work->body);
@@ -4528,8 +4528,8 @@ static void _helicopterLandingPadNo9BlastSourceTask(Task* task)
 /// adopted flare effects follow the task tree's teardown.
 static void _helicopterLandingPadNo9ExitBlastSource(Task* task)
 {
-    Enemy*                                   enemy = task->spawnArg2.pointer;
-    _HelicopterLandingPadNo9BlastSourceWork* work  = task->work;
+    Enemy*            enemy = task->spawnArg2.pointer;
+    _BlastSourceWork* work  = task->work;
 
     worldTargetUnlinkNode(&enemy->node);
     worldCollisionUnlinkBody(&work->body);

@@ -62,20 +62,20 @@
 
 // Course selections are 1-based; the room controller receives selection minus one.
 enum {
-    SHOOTING_GALLERY_PIERCE_GALLERY_FIRST_FREE_MOVEMENT_COURSE = 3,
-    SHOOTING_GALLERY_PIERCE_GALLERY_FIRST_SWAP_COURSE          = 4,
-    SHOOTING_GALLERY_PIERCE_GALLERY_BONUS_COURSE               = 5,
-    SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_DECISION_TASK         = 0,
-    SHOOTING_GALLERY_PIERCE_GALLERY_ABORT_DECISION_TASK        = 1,
-    SHOOTING_GALLERY_PIERCE_GALLERY_END_TRAINING               = 0,
-    SHOOTING_GALLERY_PIERCE_GALLERY_CONFIRM_ROOM_EXIT          = 1,
-    SHOOTING_GALLERY_PIERCE_GALLERY_COMMIT_ROOM_EXIT           = 2,
-    SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_CONFIRM_COMMAND       = 0x14,
-    SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_TRANSITION_COMMAND    = 0x17,
-    SHOOTING_GALLERY_PIERCE_GALLERY_ABORT_CONFIRM_COMMAND      = 0x1D,
-    SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_KEEP_ACTORS_HELD      = 1,
-    SHOOTING_GALLERY_PIERCE_GALLERY_MUSIC_FADE_AUDIO_TICKS     = 30,
-    SHOOTING_GALLERY_PIERCE_GALLERY_RETURN_VIEW                = 8,
+    GALLERY_FIRST_FREE_MOVEMENT_COURSE = 3,
+    GALLERY_FIRST_SWAP_COURSE          = 4,
+    GALLERY_BONUS_COURSE               = 5,
+    GALLERY_EXIT_DECISION_TASK         = 0,
+    GALLERY_ABORT_DECISION_TASK        = 1,
+    GALLERY_END_TRAINING               = 0,
+    GALLERY_CONFIRM_ROOM_EXIT          = 1,
+    GALLERY_COMMIT_ROOM_EXIT           = 2,
+    GALLERY_EXIT_CONFIRM_COMMAND       = 0x14,
+    GALLERY_EXIT_TRANSITION_COMMAND    = 0x17,
+    GALLERY_ABORT_CONFIRM_COMMAND      = 0x1D,
+    GALLERY_EXIT_KEEP_ACTORS_HELD      = 1,
+    GALLERY_MUSIC_FADE_AUDIO_TICKS     = 30,
+    GALLERY_RETURN_VIEW                = 8,
 };
 
 static CapCaptionCaretDelayStorage _gCapCaptionCaretDelayStorage;
@@ -182,31 +182,31 @@ static void _shootingGalleryPierceSelectGalleryRoomLights(s16 useAlternate);
 static void _shootingGalleryPierceSetViewRespawnPending(s16 pending);
 
 enum {
-    SHOOTING_GALLERY_PIERCE_CONVERSATION_BLEND_FRAMES      = 10,
-    SHOOTING_GALLERY_PIERCE_CONVERSATION_IDLE_BLEND_FRAMES = 8,
+    CONVERSATION_BLEND_FRAMES      = 10,
+    CONVERSATION_IDLE_BLEND_FRAMES = 8,
 };
 
 // CAP command slots and mapped views used by these event scripts.
 enum {
-    SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX                  = 1,
-    SHOOTING_GALLERY_PIERCE_SCRIPT_PLAYER_WEAPONS               = 0,
-    SHOOTING_GALLERY_PIERCE_GALLERY_INTRO_CAP_COMMAND           = 5,
-    SHOOTING_GALLERY_PIERCE_GALLERY_TRAINING_OFFER_CAP_COMMAND  = 6,
-    SHOOTING_GALLERY_PIERCE_GALLERY_TRAINING_ACCEPT_CAP_COMMAND = 7,
-    SHOOTING_GALLERY_PIERCE_PIERCE_STORY_CAP_COMMAND            = 1,
-    SHOOTING_GALLERY_PIERCE_PIERCE_FIRST_TALK_CAP_COMMAND       = 2,
-    SHOOTING_GALLERY_PIERCE_PIERCE_SECOND_TALK_CAP_COMMAND      = 3,
-    SHOOTING_GALLERY_PIERCE_PIERCE_REPEAT_TALK_CAP_COMMAND      = 4,
-    SHOOTING_GALLERY_PIERCE_GALLERY_MENU_VIEW                   = 15,
-    SHOOTING_GALLERY_PIERCE_GALLERY_FIXED_TRAINING_VIEW         = 14,
-    SHOOTING_GALLERY_PIERCE_STORY_RETURN_VIEW                   = 2,
-    SHOOTING_GALLERY_PIERCE_GALLERY_AMBIENT_COMPONENT           = 80,
-    SHOOTING_GALLERY_PIERCE_SCRIPT_FADE_FRAMES                  = 30,
-    SHOOTING_GALLERY_PIERCE_STORY_FADE_RETURN_FRAMES            = 60,
-    SHOOTING_GALLERY_PIERCE_GALLERY_INTRO_SOUND_SCRIPT          = 0x5114000C,
-    SHOOTING_GALLERY_PIERCE_GALLERY_DEMO_SOUND_SCRIPT           = 0x5114000D,
-    SHOOTING_GALLERY_PIERCE_STORY_OPENING_SOUND_SCRIPT          = 0x5114000A,
-    SHOOTING_GALLERY_PIERCE_STORY_PIERCE_SOUND_SCRIPT           = 0x5114000B,
+    PIERCE_PLACE_INDEX                  = 1,
+    SCRIPT_PLAYER_WEAPONS               = 0,
+    GALLERY_INTRO_CAP_COMMAND           = 5,
+    GALLERY_TRAINING_OFFER_CAP_COMMAND  = 6,
+    GALLERY_TRAINING_ACCEPT_CAP_COMMAND = 7,
+    PIERCE_STORY_CAP_COMMAND            = 1,
+    PIERCE_FIRST_TALK_CAP_COMMAND       = 2,
+    PIERCE_SECOND_TALK_CAP_COMMAND      = 3,
+    PIERCE_REPEAT_TALK_CAP_COMMAND      = 4,
+    GALLERY_MENU_VIEW                   = 15,
+    GALLERY_FIXED_TRAINING_VIEW         = 14,
+    STORY_RETURN_VIEW                   = 2,
+    GALLERY_AMBIENT_COMPONENT           = 80,
+    SCRIPT_FADE_FRAMES                  = 30,
+    STORY_FADE_RETURN_FRAMES            = 60,
+    GALLERY_INTRO_SOUND_SCRIPT          = 0x5114000C,
+    GALLERY_DEMO_SOUND_SCRIPT           = 0x5114000D,
+    STORY_OPENING_SOUND_SCRIPT          = 0x5114000A,
+    STORY_PIERCE_SOUND_SCRIPT           = 0x5114000B,
 };
 
 TaskDesc gShootingGalleryPierceGalleryTaskDescs[SHOOTING_GALLERY_PIERCE_GALLERY_TASK_COUNT] = {
@@ -341,7 +341,7 @@ static const AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerClip47Rese
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-enum { SHOOTING_GALLERY_PIERCE_GALLERY_MENU_BLEND_FRAMES = 6 };
+enum { GALLERY_MENU_BLEND_FRAMES = 6 };
 
 /// Gallery player clip 47 request with a 6-frame blend.
 ///
@@ -353,7 +353,7 @@ static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerClip47Request = 
     .source               = { .index = 1 },
     .animationId          = 47,
     .blend                = ANIMATION_BLEND_INTERPOLATE,
-    .blendFrames          = SHOOTING_GALLERY_PIERCE_GALLERY_MENU_BLEND_FRAMES,
+    .blendFrames          = GALLERY_MENU_BLEND_FRAMES,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
@@ -539,28 +539,28 @@ static EvsCommand _gShootingGalleryPierceGalleryIntroScript[59] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shootingGalleryPierceStartGalleryMovie }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = SHOOTING_GALLERY_PIERCE_GALLERY_INTRO_CAP_COMMAND }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = GALLERY_INTRO_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceGalleryPlayerClip9Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceGalleryPlayerMenuPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceGalleryPiercePlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_HIDE }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = SHOOTING_GALLERY_PIERCE_SCRIPT_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceGalleryPiercePlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_HIDE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = SCRIPT_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SHOOTING_GALLERY_PIERCE_GALLERY_INTRO_SOUND_SCRIPT }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = GALLERY_INTRO_SOUND_SCRIPT }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shootingGalleryPierceSpawnGalleryDemoTargetIfEnabled }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shootingGalleryPierceSetGalleryRedFlashLoop }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = SHOOTING_GALLERY_PIERCE_GALLERY_AMBIENT_COMPONENT }, { .value = SHOOTING_GALLERY_PIERCE_GALLERY_AMBIENT_COMPONENT }, { .value = SHOOTING_GALLERY_PIERCE_GALLERY_AMBIENT_COMPONENT }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_PAIR_SHOW }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip18Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = GALLERY_AMBIENT_COMPONENT }, { .value = GALLERY_AMBIENT_COMPONENT }, { .value = GALLERY_AMBIENT_COMPONENT }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_PAIR_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip18Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceGalleryPlayerClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SHOOTING_GALLERY_PIERCE_GALLERY_DEMO_SOUND_SCRIPT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = GALLERY_DEMO_SOUND_SCRIPT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shootingGalleryPierceSetGalleryRedFlashLoop }, { .value = false }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceGalleryPlayerClip49Request }, { .value = 0 } },
@@ -568,27 +568,27 @@ static EvsCommand _gShootingGalleryPierceGalleryIntroScript[59] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceGalleryPlayerClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip20Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip20Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 44 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip18Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip18Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceGalleryPlayerClip50Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip21Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip21Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip22Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip22Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceGalleryPlayerClip51Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceGalleryPierceDemoPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip19Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceGalleryPierceDemoPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip19Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 35 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip18Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip18Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip20Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip20Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 44 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip18Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip18Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = SHOOTING_GALLERY_PIERCE_GALLERY_MENU_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceGalleryPiercePlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = GALLERY_MENU_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceGalleryPiercePlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceGalleryPlayerClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -603,16 +603,16 @@ static EvsCommand _gShootingGalleryPierceGalleryIntroSkipScript[17] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = SHOOTING_GALLERY_PIERCE_GALLERY_MENU_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = GALLERY_MENU_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shootingGalleryPierceSetViewRespawnPending }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = SHOOTING_GALLERY_PIERCE_GALLERY_AMBIENT_COMPONENT }, { .value = SHOOTING_GALLERY_PIERCE_GALLERY_AMBIENT_COMPONENT }, { .value = SHOOTING_GALLERY_PIERCE_GALLERY_AMBIENT_COMPONENT }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = GALLERY_AMBIENT_COMPONENT }, { .value = GALLERY_AMBIENT_COMPONENT }, { .value = GALLERY_AMBIENT_COMPONENT }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shootingGalleryPierceSetGalleryRedFlashLoop }, { .value = false }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_PAIR_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_PAIR_SHOW }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceGalleryPlayerClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceGalleryPiercePlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip18Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceGalleryPiercePlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip18Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceGalleryPlayerMenuPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -625,8 +625,8 @@ static EvsCommand _gShootingGalleryPierceGalleryIntroSkipScript[17] = {
 /// the introduction task. Retains ambient/HUD setup through the next handoff;
 /// CAP and both overlays must remain loaded until the cue and wait complete.
 static EvsCommand _gShootingGalleryPierceGalleryTrainingOfferScript[5] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = SHOOTING_GALLERY_PIERCE_GALLERY_TRAINING_OFFER_CAP_COMMAND }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = SHOOTING_GALLERY_PIERCE_GALLERY_AMBIENT_COMPONENT }, { .value = SHOOTING_GALLERY_PIERCE_GALLERY_AMBIENT_COMPONENT }, { .value = SHOOTING_GALLERY_PIERCE_GALLERY_AMBIENT_COMPONENT }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = GALLERY_TRAINING_OFFER_CAP_COMMAND }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = GALLERY_AMBIENT_COMPONENT }, { .value = GALLERY_AMBIENT_COMPONENT }, { .value = GALLERY_AMBIENT_COMPONENT }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -638,7 +638,7 @@ static EvsCommand _gShootingGalleryPierceGalleryTrainingOfferScript[5] = {
 /// clips and blends into clip 47 before waiting for the cue. Requires live
 /// gallery/player/CAP resources and keeps the HUD suppressed for the menu.
 static EvsCommand _gShootingGalleryPierceGalleryIntroAcceptTrainingScript[6] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = SHOOTING_GALLERY_PIERCE_GALLERY_TRAINING_ACCEPT_CAP_COMMAND }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = GALLERY_TRAINING_ACCEPT_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gShootingGalleryPierceGalleryPlayerBankCopyRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceGalleryPlayerClip47Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -664,7 +664,7 @@ EvsCommand gShootingGalleryPierceGalleryDeclineTrainingScript[18] = {
     // Return to the ordinary room view and placement under the fade.
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 31 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = SHOOTING_GALLERY_PIERCE_GALLERY_RETURN_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = GALLERY_RETURN_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceGalleryPlayerClip1Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceGalleryPlayerCoursePlacement } }, { .value = 0 } },
@@ -681,10 +681,10 @@ EvsCommand gShootingGalleryPierceGalleryPrepareTrainingMenuScript[9] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceGalleryPlayerClip9Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceGalleryPlayerMenuPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceGalleryPiercePlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip18Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = SHOOTING_GALLERY_PIERCE_GALLERY_MENU_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = SHOOTING_GALLERY_PIERCE_GALLERY_AMBIENT_COMPONENT }, { .value = SHOOTING_GALLERY_PIERCE_GALLERY_AMBIENT_COMPONENT }, { .value = SHOOTING_GALLERY_PIERCE_GALLERY_AMBIENT_COMPONENT }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceGalleryPiercePlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip18Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = GALLERY_MENU_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = GALLERY_AMBIENT_COMPONENT }, { .value = GALLERY_AMBIENT_COMPONENT }, { .value = GALLERY_AMBIENT_COMPONENT }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -694,11 +694,11 @@ EvsCommand gShootingGalleryPierceGalleryOfferTrainingMenuScript[13] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceGalleryPlayerClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceGalleryPlayerMenuPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_PAIR_SHOW }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceGalleryPiercePlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip18Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_PAIR_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceGalleryPiercePlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip18Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = SHOOTING_GALLERY_PIERCE_GALLERY_AMBIENT_COMPONENT }, { .value = SHOOTING_GALLERY_PIERCE_GALLERY_AMBIENT_COMPONENT }, { .value = SHOOTING_GALLERY_PIERCE_GALLERY_AMBIENT_COMPONENT }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = GALLERY_AMBIENT_COMPONENT }, { .value = GALLERY_AMBIENT_COMPONENT }, { .value = GALLERY_AMBIENT_COMPONENT }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -708,7 +708,7 @@ EvsCommand gShootingGalleryPierceGalleryStartFixedViewTrainingScript[8] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceGalleryPlayerClip1Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceGalleryPlayerCoursePlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = SHOOTING_GALLERY_PIERCE_GALLERY_FIXED_TRAINING_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = GALLERY_FIXED_TRAINING_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shootingGalleryPierceSelectGalleryRoomLights }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_SHOW_HUD }, { .value = 0 }, { .value = 0 } },
@@ -721,7 +721,7 @@ EvsCommand gShootingGalleryPierceGalleryStartFreeMovementTrainingScript[9] = {
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceGalleryPlayerCoursePlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = SHOOTING_GALLERY_PIERCE_GALLERY_RETURN_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = GALLERY_RETURN_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_SHOW_HUD }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -729,9 +729,9 @@ EvsCommand gShootingGalleryPierceGalleryStartFreeMovementTrainingScript[9] = {
 
 EvsCommand gShootingGalleryPierceGalleryConfirmCourseScript[6] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip20Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip20Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 35 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip18Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip18Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -867,7 +867,7 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceClip8Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-enum { SHOOTING_GALLERY_PIERCE_PIERCE_CONVERSATION_BLEND_FRAMES = 8 };
+enum { PIERCE_CONVERSATION_BLEND_FRAMES = 8 };
 
 /// Conversation request for Pierce's body clip 9 with an 8-frame blend.
 ///
@@ -878,7 +878,7 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceClip9BlendRequest = {
     .source               = { .index = 1 },
     .animationId          = 9,
     .blend                = ANIMATION_BLEND_INTERPOLATE,
-    .blendFrames          = SHOOTING_GALLERY_PIERCE_PIERCE_CONVERSATION_BLEND_FRAMES,
+    .blendFrames          = PIERCE_CONVERSATION_BLEND_FRAMES,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
@@ -891,7 +891,7 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceClip10BlendRequest = {
     .source               = { .index = 1 },
     .animationId          = 10,
     .blend                = ANIMATION_BLEND_INTERPOLATE,
-    .blendFrames          = SHOOTING_GALLERY_PIERCE_PIERCE_CONVERSATION_BLEND_FRAMES,
+    .blendFrames          = PIERCE_CONVERSATION_BLEND_FRAMES,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
@@ -904,7 +904,7 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceClip11BlendRequest = {
     .source               = { .index = 1 },
     .animationId          = 11,
     .blend                = ANIMATION_BLEND_INTERPOLATE,
-    .blendFrames          = SHOOTING_GALLERY_PIERCE_PIERCE_CONVERSATION_BLEND_FRAMES,
+    .blendFrames          = PIERCE_CONVERSATION_BLEND_FRAMES,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
@@ -930,7 +930,7 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceClip12BlendRequest = {
     .source               = { .index = 1 },
     .animationId          = 12,
     .blend                = ANIMATION_BLEND_INTERPOLATE,
-    .blendFrames          = SHOOTING_GALLERY_PIERCE_CONVERSATION_BLEND_FRAMES,
+    .blendFrames          = CONVERSATION_BLEND_FRAMES,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
@@ -1130,7 +1130,7 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip59Reque
     .source               = { .index = 1 },
     .animationId          = 59,
     .blend                = ANIMATION_BLEND_INTERPOLATE,
-    .blendFrames          = SHOOTING_GALLERY_PIERCE_CONVERSATION_BLEND_FRAMES,
+    .blendFrames          = CONVERSATION_BLEND_FRAMES,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
@@ -1144,7 +1144,7 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip60Reque
     .source               = { .index = 1 },
     .animationId          = 60,
     .blend                = ANIMATION_BLEND_INTERPOLATE,
-    .blendFrames          = SHOOTING_GALLERY_PIERCE_CONVERSATION_BLEND_FRAMES,
+    .blendFrames          = CONVERSATION_BLEND_FRAMES,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
@@ -1158,7 +1158,7 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip61Reque
     .source               = { .index = 1 },
     .animationId          = 61,
     .blend                = ANIMATION_BLEND_INTERPOLATE,
-    .blendFrames          = SHOOTING_GALLERY_PIERCE_CONVERSATION_BLEND_FRAMES,
+    .blendFrames          = CONVERSATION_BLEND_FRAMES,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
@@ -1172,7 +1172,7 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip62Reque
     .source               = { .index = 1 },
     .animationId          = 62,
     .blend                = ANIMATION_BLEND_INTERPOLATE,
-    .blendFrames          = SHOOTING_GALLERY_PIERCE_CONVERSATION_BLEND_FRAMES,
+    .blendFrames          = CONVERSATION_BLEND_FRAMES,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
@@ -1186,7 +1186,7 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip63Reque
     .source               = { .index = 1 },
     .animationId          = 63,
     .blend                = ANIMATION_BLEND_INTERPOLATE,
-    .blendFrames          = SHOOTING_GALLERY_PIERCE_CONVERSATION_BLEND_FRAMES,
+    .blendFrames          = CONVERSATION_BLEND_FRAMES,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
@@ -1200,7 +1200,7 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip64Reque
     .source               = { .index = 1 },
     .animationId          = 64,
     .blend                = ANIMATION_BLEND_INTERPOLATE,
-    .blendFrames          = SHOOTING_GALLERY_PIERCE_CONVERSATION_BLEND_FRAMES,
+    .blendFrames          = CONVERSATION_BLEND_FRAMES,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
@@ -1214,7 +1214,7 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip65Reque
     .source               = { .index = 1 },
     .animationId          = 65,
     .blend                = ANIMATION_BLEND_INTERPOLATE,
-    .blendFrames          = SHOOTING_GALLERY_PIERCE_CONVERSATION_BLEND_FRAMES,
+    .blendFrames          = CONVERSATION_BLEND_FRAMES,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
@@ -1228,7 +1228,7 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip66Reque
     .source               = { .index = 1 },
     .animationId          = 66,
     .blend                = ANIMATION_BLEND_INTERPOLATE,
-    .blendFrames          = SHOOTING_GALLERY_PIERCE_CONVERSATION_BLEND_FRAMES,
+    .blendFrames          = CONVERSATION_BLEND_FRAMES,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
@@ -1312,42 +1312,42 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerClip1BlendR
     .source               = { .index = 1 },
     .animationId          = 1,
     .blend                = ANIMATION_BLEND_INTERPOLATE,
-    .blendFrames          = SHOOTING_GALLERY_PIERCE_CONVERSATION_IDLE_BLEND_FRAMES,
+    .blendFrames          = CONVERSATION_IDLE_BLEND_FRAMES,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
 EvsCommand gShootingGalleryPiercePierceStoryScript[117] = {
     // Switch CAP resources and install the conversation's player clips under the fade.
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shootingGalleryPierceSetConversationCap }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_STORY_CAP_COMMAND }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = PIERCE_STORY_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceConversationPlayerClip1BlendRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = SHOOTING_GALLERY_PIERCE_SCRIPT_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = SCRIPT_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = SHOOTING_GALLERY_PIERCE_SCRIPT_PLAYER_WEAPONS }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = SHOOTING_GALLERY_PIERCE_STORY_FADE_RETURN_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = SCRIPT_PLAYER_WEAPONS }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = STORY_FADE_RETURN_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gShootingGalleryPierceConversationPlayerBankCopyRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_PAIR_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_PAIR_SHOW }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceStoryPierceOpeningPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip1Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceStoryPierceOpeningPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip1Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SHOOTING_GALLERY_PIERCE_STORY_OPENING_SOUND_SCRIPT }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = STORY_OPENING_SOUND_SCRIPT }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip2Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip2Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 112 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip1Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip1Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip6Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip6Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 22 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SHOOTING_GALLERY_PIERCE_STORY_PIERCE_SOUND_SCRIPT }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = STORY_PIERCE_SOUND_SCRIPT }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip7Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip7Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip12Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip12Request } }, { .value = 0 } },
     // Reposition both actors for the player's CAP-cued replies.
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceStoryPierceDialoguePlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceStoryPierceDialoguePlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceStoryPlayerDialoguePlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceConversationPlayerClip49Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 42 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1357,35 +1357,35 @@ EvsCommand gShootingGalleryPiercePierceStoryScript[117] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 42 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceConversationPlayerClip47Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip3Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip3Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 22 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip12Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip8Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip8Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip9BlendRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip9BlendRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip8Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip8Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip9BlendRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip9BlendRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceConversationPlayerClip55Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 38 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip12Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceConversationPlayerClip56Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip4Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip4Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceConversationPlayerClip47Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip10BlendRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip10BlendRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip11BlendRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip11BlendRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip9BlendRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip9BlendRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 22 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip12BlendRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip12BlendRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceConversationPlayerClip50Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 23 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1393,9 +1393,9 @@ EvsCommand gShootingGalleryPiercePierceStoryScript[117] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceConversationPlayerClip53Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceConversationPlayerClip47Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip15Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = SHOOTING_GALLERY_PIERCE_GALLERY_AMBIENT_COMPONENT }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip12BlendRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip15Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = GALLERY_AMBIENT_COMPONENT }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip12BlendRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceConversationPlayerClip49Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 38 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1404,16 +1404,16 @@ EvsCommand gShootingGalleryPiercePierceStoryScript[117] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceConversationPlayerClip55Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceConversationPlayerClip56Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip8Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip8Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip9BlendRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip9BlendRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceConversationPlayerClip47Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip8Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip8Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip9BlendRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip9BlendRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip12Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceConversationPlayerClip51Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 58 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1424,12 +1424,12 @@ EvsCommand gShootingGalleryPiercePierceStoryScript[117] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceConversationPlayerClip54Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 22 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceConversationPlayerClip47Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip5Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip5Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = SHOOTING_GALLERY_PIERCE_SCRIPT_PLAYER_WEAPONS }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = SHOOTING_GALLERY_PIERCE_STORY_RETURN_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceConversationPierceReturnPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip12Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = SCRIPT_PLAYER_WEAPONS }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = STORY_RETURN_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceConversationPierceReturnPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceConversationPlayerClip1Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceConversationPlayerReturnPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1442,12 +1442,12 @@ EvsCommand gShootingGalleryPiercePierceStorySkipScript[15] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = SHOOTING_GALLERY_PIERCE_STORY_RETURN_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_PAIR_SHOW }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = SHOOTING_GALLERY_PIERCE_SCRIPT_PLAYER_WEAPONS }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = STORY_RETURN_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_PAIR_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = SCRIPT_PLAYER_WEAPONS }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceConversationPlayerClip1Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceConversationPierceReturnPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip12Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceConversationPierceReturnPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShootingGalleryPierceConversationPlayerReturnPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1463,13 +1463,13 @@ EvsCommand gShootingGalleryPiercePierceStorySkipScript[15] = {
 /// Start with `EVENT_SCRIPT_HUD_HIDE_RESTORE` and keep both overlays loaded.
 static EvsCommand _gShootingGalleryPiercePierceFirstTalkScript[11] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shootingGalleryPierceSetConversationCap }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_FIRST_TALK_CAP_COMMAND }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = PIERCE_FIRST_TALK_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceConversationPlayerClip1BlendRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip13Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip13Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip14Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip14Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 23 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip12Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shootingGalleryPierceSetConversationCap }, { .value = false }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -1484,27 +1484,27 @@ static EvsCommand _gShootingGalleryPiercePierceFirstTalkScript[11] = {
 static EvsCommand _gShootingGalleryPiercePierceSecondTalkScript[43] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shootingGalleryPierceSetConversationCap }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gShootingGalleryPierceConversationPlayerBankCopyRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_SECOND_TALK_CAP_COMMAND }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = PIERCE_SECOND_TALK_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceConversationPlayerClip1BlendRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip13Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip13Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip14Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip14Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 23 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip12Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip3Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip3Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 22 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip12Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceConversationPlayerClip60Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 24 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceConversationPlayerClip61Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip13Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip13Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip14Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip14Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 23 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip12Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceConversationPlayerClip62Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1512,11 +1512,11 @@ static EvsCommand _gShootingGalleryPiercePierceSecondTalkScript[43] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceConversationPlayerClip64Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip13Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip13Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip14Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip14Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 23 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip12Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceConversationPlayerClip65Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1534,13 +1534,13 @@ static EvsCommand _gShootingGalleryPiercePierceSecondTalkScript[43] = {
 /// Start with `EVENT_SCRIPT_HUD_HIDE_RESTORE` and keep both overlays loaded.
 static EvsCommand _gShootingGalleryPiercePierceRepeatTalkScript[11] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shootingGalleryPierceSetConversationCap }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_REPEAT_TALK_CAP_COMMAND }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = PIERCE_REPEAT_TALK_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShootingGalleryPierceConversationPlayerClip1BlendRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip13Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip13Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip14Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip14Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 23 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHOOTING_GALLERY_PIERCE_PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip12Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = PIERCE_PLACE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShootingGalleryPiercePierceClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shootingGalleryPierceSetConversationCap }, { .value = false }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -1696,23 +1696,23 @@ static inline void _shootingGalleryPierceStartGalleryExitPrompt(void)
 {
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
     gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-    capRunCommand(SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_CONFIRM_COMMAND, CAP_PLAYBACK_IN_PLACE);
-    gCapPreserveActorControl = SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_KEEP_ACTORS_HELD;
-    taskSpawnFromTable(gShootingGalleryPierceGalleryDecisionTaskDescs, SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_DECISION_TASK, SHOOTING_GALLERY_PIERCE_GALLERY_END_TRAINING, 0);
+    capRunCommand(GALLERY_EXIT_CONFIRM_COMMAND, CAP_PLAYBACK_IN_PLACE);
+    gCapPreserveActorControl = GALLERY_EXIT_KEEP_ACTORS_HELD;
+    taskSpawnFromTable(gShootingGalleryPierceGalleryDecisionTaskDescs, GALLERY_EXIT_DECISION_TASK, GALLERY_END_TRAINING, 0);
 }
 
 void shootingGalleryPierceCheckGalleryExitInput(void)
 {
     enum {
-        SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_INPUT_COOLDOWN_TICKS = 60,
-        SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_INPUT_VIEW           = 18,
-        SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_ZONE_MAX_X           = -6150,
-        SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_ZONE_MIN_Z           = 4301,
-        SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_ZONE_END_Z           = 5700,
-        SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_UP_YAW_START         = 0xA01,
-        SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_DOWN_YAW_START       = 0x201,
-        SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_YAW_WINDOW           = 0x3FF,
-        SHOOTING_GALLERY_PIERCE_GALLERY_YAW_MASK                  = 0xFFF,
+        EXIT_INPUT_COOLDOWN_TICKS = 60,
+        EXIT_INPUT_VIEW           = 18,
+        EXIT_ZONE_MAX_X           = -6150,
+        EXIT_ZONE_MIN_Z           = 4301,
+        EXIT_ZONE_END_Z           = 5700,
+        EXIT_UP_YAW_START         = 0xA01,
+        EXIT_DOWN_YAW_START       = 0x201,
+        EXIT_YAW_WINDOW           = 0x3FF,
+        YAW_MASK                  = 0xFFF,
     };
     Task*      playerTask;
     GameActor* player;
@@ -1724,31 +1724,31 @@ void shootingGalleryPierceCheckGalleryExitInput(void)
     player     = playerTask->work;
     rootCoord  = playerTask->extra.tmd->coords;
     if (gShootingGalleryPierceGalleryTrainingActive != 0) {
-        if (gShootingGalleryPierceGallerySelectedCourseLevel >= SHOOTING_GALLERY_PIERCE_GALLERY_FIRST_FREE_MOVEMENT_COURSE) {
-            if (gGameSession->location.view == SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_INPUT_VIEW) {
+        if (gShootingGalleryPierceGallerySelectedCourseLevel >= GALLERY_FIRST_FREE_MOVEMENT_COURSE) {
+            if (gGameSession->location.view == EXIT_INPUT_VIEW) {
                 mistShootingGallerySetTrainingBarrierLowered(0);
                 gShootingGalleryPierceGalleryExitInputBlocked = 0;
             }
             // Rearm the interaction only after the attachment action has settled.
             if ((u32)((u8)gAttachmentState.mode - ATTACHMENT_MODE_ARMED) < 2U) {
-                gShootingGalleryPierceGalleryExitInputCooldownTicks = SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_INPUT_COOLDOWN_TICKS;
+                gShootingGalleryPierceGalleryExitInputCooldownTicks = EXIT_INPUT_COOLDOWN_TICKS;
             }
             if (gShootingGalleryPierceGalleryExitInputCooldownTicks != 0) {
                 gShootingGalleryPierceGalleryExitInputCooldownTicks -= 1;
                 return;
             }
             if ((player->mode != GAME_ACTOR_MODE_SCRIPTED) && (capIsBusy() == 0) && (gShootingGalleryPierceGalleryExitInputBlocked == 0) &&
-                (gPlayerActorStateTickHeld == 0) && (rootCoord->coord.t[0] < SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_ZONE_MAX_X)) {
+                (gPlayerActorStateTickHeld == 0) && (rootCoord->coord.t[0] < EXIT_ZONE_MAX_X)) {
                 rootZ = rootCoord->coord.t[2];
-                if (rootZ < SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_ZONE_END_Z) {
-                    if ((rootZ >= SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_ZONE_MIN_Z) && (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
-                        yaw = (u16)player->rotation.vy & SHOOTING_GALLERY_PIERCE_GALLERY_YAW_MASK;
+                if (rootZ < EXIT_ZONE_END_Z) {
+                    if ((rootZ >= EXIT_ZONE_MIN_Z) && (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
+                        yaw = (u16)player->rotation.vy & YAW_MASK;
                         if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_UP) != 0) {
-                            if ((u32)(yaw - SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_UP_YAW_START) < (u32)SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_YAW_WINDOW) {
+                            if ((u32)(yaw - EXIT_UP_YAW_START) < (u32)EXIT_YAW_WINDOW) {
                                 _shootingGalleryPierceStartGalleryExitPrompt();
                             }
                         }
-                        if ((padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_DOWN) != 0) && ((u32)(yaw - SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_DOWN_YAW_START) < (u32)SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_YAW_WINDOW)) {
+                        if ((padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_DOWN) != 0) && ((u32)(yaw - EXIT_DOWN_YAW_START) < (u32)EXIT_YAW_WINDOW)) {
                             _shootingGalleryPierceStartGalleryExitPrompt();
                         }
                     }
@@ -1761,24 +1761,24 @@ void shootingGalleryPierceCheckGalleryExitInput(void)
 void shootingGalleryPierceGalleryExitDecisionTask(Task* task)
 {
     enum {
-        SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_WAIT_REPLY         = 0,
-        SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_WAIT_TRANSITION    = 1,
-        SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_REPLY_CONTINUE     = 1,
-        SHOOTING_GALLERY_PIERCE_GALLERY_RETURN_RESOURCE_VARIANT = 3,
-        SHOOTING_GALLERY_PIERCE_GALLERY_RETURN_SCENE_EVENT      = 1,
-        SHOOTING_GALLERY_PIERCE_GALLERY_RETURN_SPRITE_VARIANT   = 1,
-        SHOOTING_GALLERY_PIERCE_GALLERY_RETURN_SOUND            = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 5),
+        EXIT_WAIT_REPLY         = 0,
+        EXIT_WAIT_TRANSITION    = 1,
+        EXIT_REPLY_CONTINUE     = 1,
+        RETURN_RESOURCE_VARIANT = 3,
+        RETURN_SCENE_EVENT      = 1,
+        RETURN_SPRITE_VARIANT   = 1,
+        RETURN_SOUND            = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 5),
     };
     switch (task->state) {
-        case SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_WAIT_REPLY:
-            if (task->spawnArg1.value == SHOOTING_GALLERY_PIERCE_GALLERY_COMMIT_ROOM_EXIT) {
-                task->state = SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_WAIT_TRANSITION;
+        case EXIT_WAIT_REPLY:
+            if (task->spawnArg1.value == GALLERY_COMMIT_ROOM_EXIT) {
+                task->state = EXIT_WAIT_TRANSITION;
                 break;
             }
             if (capIsBusy() != 0) {
                 break;
             }
-            if (capGetVariantKey() == SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_REPLY_CONTINUE) {
+            if (capGetVariantKey() == EXIT_REPLY_CONTINUE) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 taskKill(task);
@@ -1786,13 +1786,13 @@ void shootingGalleryPierceGalleryExitDecisionTask(Task* task)
             }
             if (task->spawnArg1.value != 0) {
                 if (gameFlagGetNibble(EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT) != 0) {
-                    capRunCommandWithTransition(SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_TRANSITION_COMMAND);
+                    capRunCommandWithTransition(GALLERY_EXIT_TRANSITION_COMMAND);
                 }
                 gGameSession->battleResetPending = 1;
                 task->state                     += 1;
                 break;
             }
-            if (gShootingGalleryPierceGallerySelectedCourseLevel == SHOOTING_GALLERY_PIERCE_GALLERY_FIRST_FREE_MOVEMENT_COURSE) {
+            if (gShootingGalleryPierceGallerySelectedCourseLevel == GALLERY_FIRST_FREE_MOVEMENT_COURSE) {
                 gAttachmentState.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
             }
             gShootingGalleryPierceGalleryTrainingActive = 0;
@@ -1801,20 +1801,20 @@ void shootingGalleryPierceGalleryExitDecisionTask(Task* task)
             taskCallExit(gMistShootingGalleryControllerTask);
             gGameSession->battleResetPending = 1;
             gGameSession->flowFlags         |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
-            sndEvtRequestMidiStop(0, SHOOTING_GALLERY_PIERCE_GALLERY_MUSIC_FADE_AUDIO_TICKS);
+            sndEvtRequestMidiStop(0, GALLERY_MUSIC_FADE_AUDIO_TICKS);
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             taskKill(task);
             break;
-        case SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_WAIT_TRANSITION:
+        case EXIT_WAIT_TRANSITION:
             // Restore the carried loadout before reloading the retained destination.
             if (capIsBusy() == 0) {
-                gPlayerStatus.resourceVariant                       = SHOOTING_GALLERY_PIERCE_GALLERY_RETURN_RESOURCE_VARIANT;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = SHOOTING_GALLERY_PIERCE_GALLERY_RETURN_SCENE_EVENT;
+                gPlayerStatus.resourceVariant                       = RETURN_RESOURCE_VARIANT;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = RETURN_SCENE_EVENT;
                 inventoryRestoreCarriedLoadout();
                 gGameSession->hideHud = 1;
-                sndEvtRequestScriptStart(SHOOTING_GALLERY_PIERCE_GALLERY_RETURN_SOUND, 0, 0);
-                gDisplayState.spriteVariant                                 = SHOOTING_GALLERY_PIERCE_GALLERY_RETURN_SPRITE_VARIANT;
+                sndEvtRequestScriptStart(RETURN_SOUND, 0, 0);
+                gDisplayState.spriteVariant                                 = RETURN_SPRITE_VARIANT;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = _gShootingGalleryPierceGalleryPendingExitRequest.areaId;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = _gShootingGalleryPierceGalleryPendingExitRequest.warp;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = _gShootingGalleryPierceGalleryPendingExitRequest.roomState;
@@ -1828,37 +1828,37 @@ void shootingGalleryPierceGalleryExitDecisionTask(Task* task)
 void shootingGalleryPierceGalleryAbortDecisionTask(Task* task)
 {
     enum {
-        SHOOTING_GALLERY_PIERCE_GALLERY_ABORT_WAIT_REPLY  = 0,
-        SHOOTING_GALLERY_PIERCE_GALLERY_ABORT_RETURN_VIEW = 1,
-        SHOOTING_GALLERY_PIERCE_GALLERY_ABORT_FINISH      = 2,
-        SHOOTING_GALLERY_PIERCE_GALLERY_ABORT_REPLY_STOP  = 2,
+        WAIT_REPLY  = 0,
+        RETURN_VIEW = 1,
+        FINISH      = 2,
+        REPLY_STOP  = 2,
     };
     GameActor* player;
 
     player = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work;
     switch (task->state) {
-        case SHOOTING_GALLERY_PIERCE_GALLERY_ABORT_WAIT_REPLY:
+        case WAIT_REPLY:
             if (capIsBusy() != 0) {
                 break;
             }
-            if (capGetVariantKey() == SHOOTING_GALLERY_PIERCE_GALLERY_ABORT_REPLY_STOP) {
+            if (capGetVariantKey() == REPLY_STOP) {
                 taskCallExit(gMistShootingGalleryControllerTask);
                 task->state++;
             } else {
                 taskKill(task);
             }
             break;
-        case SHOOTING_GALLERY_PIERCE_GALLERY_ABORT_RETURN_VIEW:
+        case RETURN_VIEW:
             // Let the normal room update observe the saved return view on the next tick.
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = SHOOTING_GALLERY_PIERCE_GALLERY_RETURN_VIEW;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = GALLERY_RETURN_VIEW;
             mistShootingGallerySelectRoomLights(0);
             task->state++;
             break;
-        case SHOOTING_GALLERY_PIERCE_GALLERY_ABORT_FINISH:
+        case FINISH:
             gGameSession->battleResetPending = 1;
             gGameSession->flowFlags         |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
-            sndEvtRequestMidiStop(0, SHOOTING_GALLERY_PIERCE_GALLERY_MUSIC_FADE_AUDIO_TICKS);
+            sndEvtRequestMidiStop(0, GALLERY_MUSIC_FADE_AUDIO_TICKS);
             player->movementInputDisabled               = 0;
             gShootingGalleryPierceGalleryTrainingActive = 0;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
@@ -1874,32 +1874,32 @@ void shootingGalleryPierceGalleryAbortDecisionTask(Task* task)
 void shootingGalleryPierceFinishGalleryCourse(void)
 {
     gShootingGalleryPierceGalleryTrainingActive = 0;
-    if (gShootingGalleryPierceGallerySelectedCourseLevel < SHOOTING_GALLERY_PIERCE_GALLERY_FIRST_FREE_MOVEMENT_COURSE) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = SHOOTING_GALLERY_PIERCE_GALLERY_RETURN_VIEW;
+    if (gShootingGalleryPierceGallerySelectedCourseLevel < GALLERY_FIRST_FREE_MOVEMENT_COURSE) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = GALLERY_RETURN_VIEW;
         mistShootingGallerySelectRoomLights(0);
     } else {
         mistShootingGallerySetTrainingBarrierLowered(1);
         gShootingGalleryPierceGalleryExitInputBlocked = 1;
     }
-    if (gShootingGalleryPierceGallerySelectedCourseLevel < SHOOTING_GALLERY_PIERCE_GALLERY_FIRST_SWAP_COURSE) {
+    if (gShootingGalleryPierceGallerySelectedCourseLevel < GALLERY_FIRST_SWAP_COURSE) {
         gAttachmentState.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
     }
-    sndEvtRequestMidiStop(0, SHOOTING_GALLERY_PIERCE_GALLERY_MUSIC_FADE_AUDIO_TICKS);
+    sndEvtRequestMidiStop(0, GALLERY_MUSIC_FADE_AUDIO_TICKS);
 }
 
 void shootingGalleryPierceRequestGalleryAbort(void)
 {
-    if (gShootingGalleryPierceGallerySelectedCourseLevel == SHOOTING_GALLERY_PIERCE_GALLERY_BONUS_COURSE) {
+    if (gShootingGalleryPierceGallerySelectedCourseLevel == GALLERY_BONUS_COURSE) {
         gShootingGalleryPierceGalleryTrainingActive = 0;
         mistShootingGallerySetTrainingBarrierLowered(1);
         gShootingGalleryPierceGalleryExitInputBlocked = 1;
         gGameSession->battleResetPending              = 1;
-        sndEvtRequestMidiStop(0, SHOOTING_GALLERY_PIERCE_GALLERY_MUSIC_FADE_AUDIO_TICKS);
+        sndEvtRequestMidiStop(0, GALLERY_MUSIC_FADE_AUDIO_TICKS);
         gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
     }
-    if (gShootingGalleryPierceGallerySelectedCourseLevel < SHOOTING_GALLERY_PIERCE_GALLERY_FIRST_FREE_MOVEMENT_COURSE) {
-        capRunCommand(SHOOTING_GALLERY_PIERCE_GALLERY_ABORT_CONFIRM_COMMAND, CAP_PLAYBACK_CLEAR_IF_UNSTARTED);
-        taskSpawnFromTable(gShootingGalleryPierceGalleryDecisionTaskDescs, SHOOTING_GALLERY_PIERCE_GALLERY_ABORT_DECISION_TASK, 0, 0);
+    if (gShootingGalleryPierceGallerySelectedCourseLevel < GALLERY_FIRST_FREE_MOVEMENT_COURSE) {
+        capRunCommand(GALLERY_ABORT_CONFIRM_COMMAND, CAP_PLAYBACK_CLEAR_IF_UNSTARTED);
+        taskSpawnFromTable(gShootingGalleryPierceGalleryDecisionTaskDescs, GALLERY_ABORT_DECISION_TASK, 0, 0);
     }
 }
 
@@ -1913,9 +1913,9 @@ s32 shootingGalleryPierceResolveGalleryExit(const RoomEventMsg* request)
         _gShootingGalleryPierceGalleryPendingExitRequest = *request;
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-        capRunCommand(SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_CONFIRM_COMMAND, CAP_PLAYBACK_IN_PLACE);
-        gCapPreserveActorControl = SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_KEEP_ACTORS_HELD;
-        taskSpawnFromTable(gShootingGalleryPierceGalleryDecisionTaskDescs, SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_DECISION_TASK, SHOOTING_GALLERY_PIERCE_GALLERY_CONFIRM_ROOM_EXIT, 0);
+        capRunCommand(GALLERY_EXIT_CONFIRM_COMMAND, CAP_PLAYBACK_IN_PLACE);
+        gCapPreserveActorControl = GALLERY_EXIT_KEEP_ACTORS_HELD;
+        taskSpawnFromTable(gShootingGalleryPierceGalleryDecisionTaskDescs, GALLERY_EXIT_DECISION_TASK, GALLERY_CONFIRM_ROOM_EXIT, 0);
     } else {
         // Keep the one-shot scope for the original query branch's delay-slot layout.
         do {
@@ -1927,8 +1927,8 @@ s32 shootingGalleryPierceResolveGalleryExit(const RoomEventMsg* request)
             }
             _gShootingGalleryPierceGalleryPendingExitRequest = *request;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            capRunCommandWithTransition(SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_TRANSITION_COMMAND);
-            taskSpawnFromTable(gShootingGalleryPierceGalleryDecisionTaskDescs, SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_DECISION_TASK, SHOOTING_GALLERY_PIERCE_GALLERY_COMMIT_ROOM_EXIT, 0);
+            capRunCommandWithTransition(GALLERY_EXIT_TRANSITION_COMMAND);
+            taskSpawnFromTable(gShootingGalleryPierceGalleryDecisionTaskDescs, GALLERY_EXIT_DECISION_TASK, GALLERY_COMMIT_ROOM_EXIT, 0);
         } while (0);
     }
     return SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_DEFER;
@@ -1936,13 +1936,13 @@ s32 shootingGalleryPierceResolveGalleryExit(const RoomEventMsg* request)
 
 void shootingGalleryPierceHandleGalleryAction(void)
 {
-    enum { SHOOTING_GALLERY_PIERCE_GALLERY_ACTION_COMMAND = 0x11 };
+    enum { GALLERY_ACTION_COMMAND = 0x11 };
 
     if (gShootingGalleryPierceGalleryTrainingActive != 0) {
         mistShootingGallerySignalAction();
         return;
     }
-    capSpawnEventIfIdle(SHOOTING_GALLERY_PIERCE_GALLERY_ACTION_COMMAND, CAP_EVENT_PAUSE_ACTORS);
+    capSpawnEventIfIdle(GALLERY_ACTION_COMMAND, CAP_EVENT_PAUSE_ACTORS);
 }
 
 /// Runs the first-visit gallery introduction and hands control to its menu or exit scene.
@@ -1954,19 +1954,19 @@ void shootingGalleryPierceHandleGalleryAction(void)
 static void _shootingGalleryPierceGalleryIntroTask(Task* task)
 {
     enum {
-        SHOOTING_GALLERY_PIERCE_GALLERY_INTRO_START         = 0,
-        SHOOTING_GALLERY_PIERCE_GALLERY_INTRO_WAIT          = 1,
-        SHOOTING_GALLERY_PIERCE_GALLERY_REPLY_START         = 2,
-        SHOOTING_GALLERY_PIERCE_GALLERY_REPLY_WAIT          = 3,
-        SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_START          = 4,
-        SHOOTING_GALLERY_PIERCE_GALLERY_MENU_REPLY_START    = 10,
-        SHOOTING_GALLERY_PIERCE_GALLERY_MENU_REPLY_WAIT     = 11,
-        SHOOTING_GALLERY_PIERCE_GALLERY_MENU_REPLY_SEQUENCE = 7,
-        SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_REPLY_SEQUENCE = 8,
+        INTRO_START         = 0,
+        INTRO_WAIT          = 1,
+        REPLY_START         = 2,
+        REPLY_WAIT          = 3,
+        EXIT_START          = 4,
+        MENU_REPLY_START    = 10,
+        MENU_REPLY_WAIT     = 11,
+        MENU_REPLY_SEQUENCE = 7,
+        EXIT_REPLY_SEQUENCE = 8,
     };
 
     switch (task->state) {
-        case SHOOTING_GALLERY_PIERCE_GALLERY_INTRO_START:
+        case INTRO_START:
             // Mark the introduction before playback, so skipping still consumes it.
             gGameSession->hideHud = 1;
             if (gameFlagGetNibble(GAME_FLAG_SHOOTING_GALLERY_INTRO_SEEN) == 0) {
@@ -1979,35 +1979,35 @@ static void _shootingGalleryPierceGalleryIntroTask(Task* task)
                 taskKill(task);
             }
             break;
-        case SHOOTING_GALLERY_PIERCE_GALLERY_INTRO_WAIT:
+        case INTRO_WAIT:
             if (gGameSession->eventState == 0) {
                 task->state++;
             }
             break;
-        case SHOOTING_GALLERY_PIERCE_GALLERY_REPLY_START:
+        case REPLY_START:
             evsStartScript(_gShootingGalleryPierceGalleryTrainingOfferScript, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
-        case SHOOTING_GALLERY_PIERCE_GALLERY_REPLY_WAIT:
+        case REPLY_WAIT:
             if (gGameSession->eventState == 0) {
                 if (capGetVariantKey() != 0) {
-                    task->state = SHOOTING_GALLERY_PIERCE_GALLERY_MENU_REPLY_START;
+                    task->state = MENU_REPLY_START;
                 } else {
                     task->state++;
                 }
             }
             break;
-        case SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_START:
-            capStartSequenceSlot(SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_REPLY_SEQUENCE, 0, 0);
+        case EXIT_START:
+            capStartSequenceSlot(EXIT_REPLY_SEQUENCE, 0, 0);
             evsStartScript(gShootingGalleryPierceGalleryDeclineTrainingScript, EVENT_SCRIPT_HUD_KEEP);
             taskKill(task);
             break;
-        case SHOOTING_GALLERY_PIERCE_GALLERY_MENU_REPLY_START:
-            capStartSequenceSlot(SHOOTING_GALLERY_PIERCE_GALLERY_MENU_REPLY_SEQUENCE, 0, 0);
+        case MENU_REPLY_START:
+            capStartSequenceSlot(MENU_REPLY_SEQUENCE, 0, 0);
             evsStartScript(_gShootingGalleryPierceGalleryIntroAcceptTrainingScript, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
-        case SHOOTING_GALLERY_PIERCE_GALLERY_MENU_REPLY_WAIT:
+        case MENU_REPLY_WAIT:
             if (gGameSession->eventState == 0) {
                 taskSpawnFromTable(gShootingGalleryPierceGalleryTaskDescs, SHOOTING_GALLERY_PIERCE_GALLERY_MENU_TASK, 0, 0);
                 taskKill(task);
@@ -2025,10 +2025,10 @@ static void _shootingGalleryPierceGalleryIntroTask(Task* task)
 static void _shootingGalleryPierceGalleryRedFlashLoopTask(Task* task)
 {
     enum {
-        SHOOTING_GALLERY_PIERCE_GALLERY_RED_FLASH_PERIOD_TICKS = 48,
+        GALLERY_RED_FLASH_PERIOD_TICKS = 48,
     };
 
-    if (task->killCountdown % SHOOTING_GALLERY_PIERCE_GALLERY_RED_FLASH_PERIOD_TICKS == 0) {
+    if (task->killCountdown % GALLERY_RED_FLASH_PERIOD_TICKS == 0) {
         taskSpawnFromTable(gMistShootingGalleryTaskDescs, MIST_SHOOTING_GALLERY_TASK_RED_FLASH, 0, 0);
     }
     task->killCountdown = task->killCountdown + 1;
@@ -2039,9 +2039,9 @@ static void _shootingGalleryPierceGalleryRedFlashLoopTask(Task* task)
 /// Event-script callback; the gallery overlay must stay loaded through the session.
 static void _shootingGalleryPierceStartGalleryMovie(void)
 {
-    enum { SHOOTING_GALLERY_PIERCE_GALLERY_MOVIE_SESSION_TASK = 0 };
+    enum { GALLERY_MOVIE_SESSION_TASK = 0 };
 
-    taskSpawnFromTable(gMistShootingGalleryMovieTaskDescs, SHOOTING_GALLERY_PIERCE_GALLERY_MOVIE_SESSION_TASK, 0, 0);
+    taskSpawnFromTable(gMistShootingGalleryMovieTaskDescs, GALLERY_MOVIE_SESSION_TASK, 0, 0);
 }
 
 /// Spawns the introduction's demonstration target for a nonzero enable word.
@@ -2096,15 +2096,15 @@ static void _shootingGalleryPierceSetViewRespawnPending(s16 pending)
 static void _shootingGalleryPierceSetConversationCap(s32 enabled)
 {
     enum {
-        SHOOTING_GALLERY_PIERCE_CONVERSATION_CAP_RESOURCE_ORDINAL = 1,
-        SHOOTING_GALLERY_PIERCE_CONVERSATION_CAP_VRAM_X           = 768,
-        SHOOTING_GALLERY_PIERCE_CONVERSATION_CAP_VRAM_Y           = 0,
+        RESOURCE_ORDINAL = 1,
+        VRAM_X           = 768,
+        VRAM_Y           = 0,
     };
 
     if (enabled != 0) {
         gCapFile = NULL;
-        capSelectLoadedFile(SHOOTING_GALLERY_PIERCE_CONVERSATION_CAP_RESOURCE_ORDINAL);
-        capSetTexturePage(SHOOTING_GALLERY_PIERCE_CONVERSATION_CAP_VRAM_X, SHOOTING_GALLERY_PIERCE_CONVERSATION_CAP_VRAM_Y);
+        capSelectLoadedFile(RESOURCE_ORDINAL);
+        capSetTexturePage(VRAM_X, VRAM_Y);
         return;
     }
     capReset();
@@ -2113,21 +2113,21 @@ static void _shootingGalleryPierceSetConversationCap(s32 enabled)
 void shootingGalleryPierceStartPierceConversation(void)
 {
     enum {
-        SHOOTING_GALLERY_PIERCE_PIERCE_TALK_FIRST  = 0,
-        SHOOTING_GALLERY_PIERCE_PIERCE_TALK_SECOND = 1,
-        SHOOTING_GALLERY_PIERCE_PIERCE_TALK_REPEAT = 2,
+        FIRST  = 0,
+        SECOND = 1,
+        REPEAT = 2,
     };
 
     switch (gameFlagGetNibble(GAME_FLAG_PIERCE_TALK_PROGRESS)) {
-        case SHOOTING_GALLERY_PIERCE_PIERCE_TALK_FIRST:
-            gameFlagSetNibble(GAME_FLAG_PIERCE_TALK_PROGRESS, SHOOTING_GALLERY_PIERCE_PIERCE_TALK_SECOND);
+        case FIRST:
+            gameFlagSetNibble(GAME_FLAG_PIERCE_TALK_PROGRESS, SECOND);
             evsStartScript(_gShootingGalleryPiercePierceFirstTalkScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             break;
-        case SHOOTING_GALLERY_PIERCE_PIERCE_TALK_SECOND:
+        case SECOND:
             evsStartScript(_gShootingGalleryPiercePierceSecondTalkScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            gameFlagSetNibble(GAME_FLAG_PIERCE_TALK_PROGRESS, SHOOTING_GALLERY_PIERCE_PIERCE_TALK_REPEAT);
+            gameFlagSetNibble(GAME_FLAG_PIERCE_TALK_PROGRESS, REPEAT);
             break;
-        case SHOOTING_GALLERY_PIERCE_PIERCE_TALK_REPEAT:
+        case REPEAT:
             evsStartScript(_gShootingGalleryPiercePierceRepeatTalkScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             break;
     }
@@ -2175,9 +2175,9 @@ static inline Task* _shootingGalleryPierceSpawnPiercePair(Enemy* enemy, Task* ta
 static void _shootingGalleryPierceSpawnPierce(Enemy* enemy, Task* task)
 {
     enum {
-        SHOOTING_GALLERY_PIERCE_PIERCE_INITIAL_CLIP = 12,
-        SHOOTING_GALLERY_PIERCE_PIERCE_LIGHT_HEIGHT = 800,
-        SHOOTING_GALLERY_PIERCE_PIERCE_LIGHT_COUNT  = 3,
+        INITIAL_CLIP = 12,
+        LIGHT_HEIGHT = 800,
+        LIGHT_COUNT  = 3,
     };
     VECTOR         lightingPosition;
     PacedWalkWork* work;
@@ -2201,14 +2201,14 @@ static void _shootingGalleryPierceSpawnPierce(Enemy* enemy, Task* task)
     work->enemy                      = enemy;
     // The paired model becomes a child released with the parent task tree.
     work->pairTask  = _shootingGalleryPierceSpawnPiercePair(enemy, task);
-    work->st.animId = SHOOTING_GALLERY_PIERCE_PIERCE_INITIAL_CLIP;
+    work->st.animId = INITIAL_CLIP;
     model->lightMtx = &work->light;
     model->colorMtx = &work->color;
     // Sample lighting 800 world units above the root, then seed the actor rig.
     lightingPosition.vx = rootCoord->workm.t[0];
-    lightingPosition.vy = rootCoord->workm.t[1] - SHOOTING_GALLERY_PIERCE_PIERCE_LIGHT_HEIGHT;
+    lightingPosition.vy = rootCoord->workm.t[1] - LIGHT_HEIGHT;
     lightingPosition.vz = rootCoord->workm.t[2];
-    worldCoordSetModelLighting(model, &lightingPosition, 0, SHOOTING_GALLERY_PIERCE_PIERCE_LIGHT_COUNT);
+    worldCoordSetModelLighting(model, &lightingPosition, 0, LIGHT_COUNT);
     animationInitContext(&work->rig.anim, _gShootingGalleryPiercePierceAnimationSets, model,
                          work->rig.poses, work->rig.slots);
     work->st.state = ACTOR_ENEMY_ANIM_RESET;

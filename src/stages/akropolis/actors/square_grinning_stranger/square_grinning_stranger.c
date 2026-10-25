@@ -35,19 +35,19 @@
 #include "stages/akropolis/rooms/square.h"
 #include "../../../../shared/actor/actor_contacts.h"
 
-/// Steps of `_SquareGrinningStrangerWork::sequenceStep`, in the order the sequence runs
+/// Steps of `_Work::sequenceStep`, in the order the sequence runs
 /// them.
 ///
 /// Each step advances to the next by incrementing the field; the last one
 /// repeats until the task is killed.
 enum {
-    SQUARE_GRINNING_STRANGER_STEP_START      = 0, // Cross-fades the body slots to animation set 0 over 15 frames
-    SQUARE_GRINNING_STRANGER_STEP_TURN       = 1, // Lowers `part5Yaw` and `part5Pitch` by 0x10 a tick each, until both are below -0x154
-    SQUARE_GRINNING_STRANGER_STEP_TURN_HOLD  = 2, // Holds for 31 ticks
-    SQUARE_GRINNING_STRANGER_STEP_SWING      = 3, // Raises `part5Yaw` by 0x80 a tick until it has reached 0x2AA
-    SQUARE_GRINNING_STRANGER_STEP_SWING_HOLD = 4, // Holds for 16 ticks, then cross-fades the body slots to animation set 2 over 10 frames
-    SQUARE_GRINNING_STRANGER_STEP_SET_WAIT   = 5, // Waits two ticks
-    SQUARE_GRINNING_STRANGER_STEP_DEPART     = 6  // Moves the model's root 0x96 along -Z every tick
+    STEP_START      = 0, // Cross-fades the body slots to animation set 0 over 15 frames
+    STEP_TURN       = 1, // Lowers `part5Yaw` and `part5Pitch` by 0x10 a tick each, until both are below -0x154
+    STEP_TURN_HOLD  = 2, // Holds for 31 ticks
+    STEP_SWING      = 3, // Raises `part5Yaw` by 0x80 a tick until it has reached 0x2AA
+    STEP_SWING_HOLD = 4, // Holds for 16 ticks, then cross-fades the body slots to animation set 2 over 10 frames
+    STEP_SET_WAIT   = 5, // Waits two ticks
+    STEP_DEPART     = 6  // Moves the model's root 0x96 along -Z every tick
 };
 
 /// Work block of the Grinning Stranger that Acropolis Square stages: a model
@@ -78,8 +78,8 @@ typedef struct {
     byte           field_48E[0x4];   // Never accessed; role unproven
     s16            slot1RecordIndex; // Keyframe record slot 1 was on after the last tick, cleared by each cross-fade; never read, purpose unproven
     s16            part5Pitch;       // Turn of model part 5 about its X axis: 0x155 from setup, lowered to -0x15B by the sequence
-} _SquareGrinningStrangerWork;
-STATIC_ASSERT_SIZEOF(_SquareGrinningStrangerWork, 0x498);
+} _Work;
+STATIC_ASSERT_SIZEOF(_Work, 0x498);
 
 static TmdSource _gStrangerGrinningBody;
 static void      _squareGrinningStrangerGrinningStrangerTask(Task* task);
@@ -233,8 +233,8 @@ static void        _squareGrinningStrangerInitBody(Task* task);
 /// Borrows task/model storage and uses animation playback's scratch/GTE state.
 static inline void _squareGrinningStrangerTickAnim(Task* task)
 {
-    _SquareGrinningStrangerWork* work = task->work;
-    u16                          slotIndex;
+    _Work* work = task->work;
+    u16    slotIndex;
 
     for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
         animationTickSlot(&work->rig.anim, slotIndex);
@@ -251,7 +251,7 @@ static inline void _squareGrinningStrangerTickAnim(Task* task)
 /// blendFrames counts normal-rate frames (0 immediate, 0..2047 without signed-time
 /// wrapping). Captures no caller identifiers and forms one statement with its
 /// own u16 slotIndex; arguments must not refer to that local.
-#define SQUARE_GRINNING_STRANGER_BLEND_BODY_SLOTS(work, animationId, blendFrames)                      \
+#define BLEND_BODY_SLOTS(work, animationId, blendFrames)                                               \
     do {                                                                                               \
         u16 slotIndex;                                                                                 \
         for (slotIndex = 1; slotIndex < ARRAY_SIZE((work)->rig.slots); slotIndex++) {                  \
@@ -269,12 +269,12 @@ static inline void _squareGrinningStrangerTickAnim(Task* task)
 /// animation playback's scratch stack and GTE state.
 static inline void _squareGrinningStrangerBlendBodyAnimation(Task* task, u16 animationId, u16 blendFrames)
 {
-    _SquareGrinningStrangerWork* work = task->work;
+    _Work* work = task->work;
 
     work->slot1RecordIndex = 0;
-    SQUARE_GRINNING_STRANGER_BLEND_BODY_SLOTS(work, animationId, blendFrames);
+    BLEND_BODY_SLOTS(work, animationId, blendFrames);
 }
-#undef SQUARE_GRINNING_STRANGER_BLEND_BODY_SLOTS
+#undef BLEND_BODY_SLOTS
 
 /// Ticks the body animation and advances the staged Stranger sequence.
 ///
@@ -284,41 +284,41 @@ static inline void _squareGrinningStrangerBlendBodyAnimation(Task* task, u16 ani
 static void _squareGrinningStrangerRunSequence(Task* task)
 {
     enum {
-        SQUARE_GRINNING_STRANGER_SEQUENCE_START_CLIP = 0,
-        SQUARE_GRINNING_STRANGER_DEPART_CLIP         = 2,
-        SQUARE_GRINNING_STRANGER_START_BLEND_FRAMES  = 15,
-        SQUARE_GRINNING_STRANGER_DEPART_BLEND_FRAMES = 10,
-        SQUARE_GRINNING_STRANGER_LOWER_ANGLE_LIMIT   = -340,
-        SQUARE_GRINNING_STRANGER_SWING_ANGLE_LIMIT   = 682,
-        SQUARE_GRINNING_STRANGER_TURN_HOLD_UPDATES   = 31,
-        SQUARE_GRINNING_STRANGER_SWING_HOLD_UPDATES  = 16,
-        SQUARE_GRINNING_STRANGER_SET_WAIT_UPDATES    = 2,
-        SQUARE_GRINNING_STRANGER_DEPART_STEP_UNITS   = 150,
+        SEQUENCE_START_CLIP = 0,
+        DEPART_CLIP         = 2,
+        START_BLEND_FRAMES  = 15,
+        DEPART_BLEND_FRAMES = 10,
+        LOWER_ANGLE_LIMIT   = -340,
+        SWING_ANGLE_LIMIT   = 682,
+        TURN_HOLD_UPDATES   = 31,
+        SWING_HOLD_UPDATES  = 16,
+        SET_WAIT_UPDATES    = 2,
+        DEPART_STEP_UNITS   = 150,
     };
 
-    _SquareGrinningStrangerWork* work;
-    GfxCoord*                    rootCoord;
-    s32                          yawLowered;
-    s32                          pitchLowered;
+    _Work*    work;
+    GfxCoord* rootCoord;
+    s32       yawLowered;
+    s32       pitchLowered;
 
     work      = task->work;
     rootCoord = task->extra.tmd->coords;
     _squareGrinningStrangerTickAnim(task);
     switch (work->sequenceStep) {
-        case SQUARE_GRINNING_STRANGER_STEP_START:
-            _squareGrinningStrangerBlendBodyAnimation(task, SQUARE_GRINNING_STRANGER_SEQUENCE_START_CLIP, SQUARE_GRINNING_STRANGER_START_BLEND_FRAMES);
+        case STEP_START:
+            _squareGrinningStrangerBlendBodyAnimation(task, SEQUENCE_START_CLIP, START_BLEND_FRAMES);
             work->stepFrames = 0;
             work->sequenceStep++;
             break;
-        case SQUARE_GRINNING_STRANGER_STEP_TURN:
+        case STEP_TURN:
             yawLowered   = 0;
             pitchLowered = 0;
-            if (work->part5Yaw >= SQUARE_GRINNING_STRANGER_LOWER_ANGLE_LIMIT) {
+            if (work->part5Yaw >= LOWER_ANGLE_LIMIT) {
                 work->part5Yaw -= 0x10;
             } else {
                 yawLowered = 1;
             }
-            if (work->part5Pitch >= SQUARE_GRINNING_STRANGER_LOWER_ANGLE_LIMIT) {
+            if (work->part5Pitch >= LOWER_ANGLE_LIMIT) {
                 work->part5Pitch -= 0x10;
             } else {
                 pitchLowered = 1;
@@ -328,38 +328,38 @@ static void _squareGrinningStrangerRunSequence(Task* task)
                 work->sequenceStep++;
             }
             break;
-        case SQUARE_GRINNING_STRANGER_STEP_TURN_HOLD:
+        case STEP_TURN_HOLD:
             work->stepFrames++;
-            if (work->stepFrames >= SQUARE_GRINNING_STRANGER_TURN_HOLD_UPDATES) {
+            if (work->stepFrames >= TURN_HOLD_UPDATES) {
                 work->sequenceStep++;
             }
             break;
-        case SQUARE_GRINNING_STRANGER_STEP_SWING:
-            if (work->part5Yaw < SQUARE_GRINNING_STRANGER_SWING_ANGLE_LIMIT) {
+        case STEP_SWING:
+            if (work->part5Yaw < SWING_ANGLE_LIMIT) {
                 work->part5Yaw += 0x80;
             } else {
                 work->stepFrames = 0;
                 work->sequenceStep++;
             }
             break;
-        case SQUARE_GRINNING_STRANGER_STEP_SWING_HOLD:
+        case STEP_SWING_HOLD:
             work->stepFrames++;
-            if (work->stepFrames >= SQUARE_GRINNING_STRANGER_SWING_HOLD_UPDATES) {
-                _squareGrinningStrangerBlendBodyAnimation(task, SQUARE_GRINNING_STRANGER_DEPART_CLIP, SQUARE_GRINNING_STRANGER_DEPART_BLEND_FRAMES);
+            if (work->stepFrames >= SWING_HOLD_UPDATES) {
+                _squareGrinningStrangerBlendBodyAnimation(task, DEPART_CLIP, DEPART_BLEND_FRAMES);
                 work->stepFrames = 0;
                 work->sequenceStep++;
             }
             break;
-        case SQUARE_GRINNING_STRANGER_STEP_SET_WAIT:
+        case STEP_SET_WAIT:
             work->stepFrames++;
-            if (work->stepFrames >= SQUARE_GRINNING_STRANGER_SET_WAIT_UPDATES) {
+            if (work->stepFrames >= SET_WAIT_UPDATES) {
                 work->stepFrames = 0;
                 work->sequenceStep++;
             }
             break;
-        case SQUARE_GRINNING_STRANGER_STEP_DEPART:
+        case STEP_DEPART:
             rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-            rootCoord->coord.t[2]  -= SQUARE_GRINNING_STRANGER_DEPART_STEP_UNITS;
+            rootCoord->coord.t[2]  -= DEPART_STEP_UNITS;
             break;
     }
 }
@@ -371,18 +371,18 @@ static void _squareGrinningStrangerRunSequence(Task* task)
 static inline void _squareGrinningStrangerStartIdleTracks(Task* task)
 {
     enum {
-        SQUARE_GRINNING_STRANGER_IDLE_CLIP = 5,
+        IDLE_CLIP = 5,
     };
 
-    _SquareGrinningStrangerWork* work;
-    s32                          slotIndex;
+    _Work* work;
+    s32    slotIndex;
 
     slotIndex              = 1;
     work                   = task->work;
     work->slot1RecordIndex = 0;
     do {
         work->rig.slots[(u16)slotIndex].rate = ANIMATION_RATE_ONE;
-        animationResetSlot(&work->rig.anim, (u16)slotIndex, SQUARE_GRINNING_STRANGER_IDLE_CLIP);
+        animationResetSlot(&work->rig.anim, (u16)slotIndex, IDLE_CLIP);
         slotIndex += 1;
     } while ((u32)((u16)slotIndex) < ARRAY_SIZE(work->rig.slots));
 }
@@ -396,18 +396,18 @@ static inline void _squareGrinningStrangerStartIdleTracks(Task* task)
 static void _squareGrinningStrangerInitBody(Task* task)
 {
     enum {
-        SQUARE_GRINNING_STRANGER_INITIAL_PART5_PITCH = 341,
-        SQUARE_GRINNING_STRANGER_TEXTURE_ENTRY_ID    = 19,
+        INITIAL_PART5_PITCH = 341,
+        TEXTURE_ENTRY_ID    = 19,
     };
 
-    _SquareGrinningStrangerWork* work;
-    TmdObject*                   model;
-    GfxCoord*                    rootCoord;
-    AreaPlacement*               place;
+    _Work*         work;
+    TmdObject*     model;
+    GfxCoord*      rootCoord;
+    AreaPlacement* place;
 
     rootCoord  = task->extra.tmd->coords;
     model      = task->extra.tmd;
-    task->work = memCalloc(sizeof(_SquareGrinningStrangerWork), false);
+    task->work = memCalloc(sizeof(_Work), false);
     if (task->work == NULL) {
         taskKill(task);
         return;
@@ -424,9 +424,9 @@ static void _squareGrinningStrangerInitBody(Task* task)
     work->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     work->playerMtx  = gPlayerStatus.coordMtx;
     _squareGrinningStrangerStartIdleTracks(task);
-    work->part5Pitch = SQUARE_GRINNING_STRANGER_INITIAL_PART5_PITCH;
+    work->part5Pitch = INITIAL_PART5_PITCH;
     place            = areaGetVariant(&gGameSession->location)->placements;
-    while (place->entryId != AREA_PLACEMENT_END && place->entryId != SQUARE_GRINNING_STRANGER_TEXTURE_ENTRY_ID) {
+    while (place->entryId != AREA_PLACEMENT_END && place->entryId != TEXTURE_ENTRY_ID) {
         place++;
     }
     tmdSetTextureOffsets(model, place->texturePageOffset, place->clutRowOffset);
@@ -444,17 +444,17 @@ static void _squareGrinningStrangerInitBody(Task* task)
 static void _squareGrinningStrangerGrinningStrangerTask(Task* task)
 {
     enum {
-        SQUARE_GRINNING_STRANGER_TASK_INITIALIZE       = 0,
-        SQUARE_GRINNING_STRANGER_TASK_IDLE             = 1,
-        SQUARE_GRINNING_STRANGER_TASK_SEQUENCE         = 2,
-        SQUARE_GRINNING_STRANGER_SEQUENCE_PART         = 5,
-        SQUARE_GRINNING_STRANGER_LIGHTING_PART         = 1,
-        SQUARE_GRINNING_STRANGER_LIGHT_COUNT           = 3,
-        SQUARE_GRINNING_STRANGER_COLOR_SCALE_ONE_THIRD = ONE / 3,
-        SQUARE_GRINNING_STRANGER_TRIGGER_NEAR_X        = 1501,
-        SQUARE_GRINNING_STRANGER_TRIGGER_FAR_X         = 3201,
-        SQUARE_GRINNING_STRANGER_TRIGGER_NEAR_Z        = -1299,
-        SQUARE_GRINNING_STRANGER_TRIGGER_FAR_Z         = -1300,
+        TASK_INITIALIZE       = 0,
+        TASK_IDLE             = 1,
+        TASK_SEQUENCE         = 2,
+        SEQUENCE_PART         = 5,
+        LIGHTING_PART         = 1,
+        LIGHT_COUNT           = 3,
+        COLOR_SCALE_ONE_THIRD = ONE / 3,
+        TRIGGER_NEAR_X        = 1501,
+        TRIGGER_FAR_X         = 3201,
+        TRIGGER_NEAR_Z        = -1299,
+        TRIGGER_FAR_Z         = -1300,
     };
 
     // Reuse one 32-byte frame slot for successive rotation, position and scale phases.
@@ -463,38 +463,38 @@ static void _squareGrinningStrangerGrinningStrangerTask(Task* task)
         VECTOR viewPosition; // Part 1 cached view-space position for lighting
         VECTOR colorScale;   // Three Q12 components applied to the colour matrix
     } frameScratch;
-    _SquareGrinningStrangerWork* work;
-    _SquareGrinningStrangerWork* lightingWork;
-    TmdObject*                   bodyModel;
-    TmdObject*                   lightingModel;
-    GfxCoord*                    bodyCoords;
-    GfxCoord*                    sequencePart;
-    MATRIX*                      playerMtx;
-    s32                          state;
-    s32                          playerX;
-    s16                          partPitch;
+    _Work*     work;
+    _Work*     lightingWork;
+    TmdObject* bodyModel;
+    TmdObject* lightingModel;
+    GfxCoord*  bodyCoords;
+    GfxCoord*  sequencePart;
+    MATRIX*    playerMtx;
+    s32        state;
+    s32        playerX;
+    s16        partPitch;
 
     state = task->state;
     work  = task->work;
     switch (state) {
-        case SQUARE_GRINNING_STRANGER_TASK_INITIALIZE:
+        case TASK_INITIALIZE:
             if ((gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 _squareGrinningStrangerInitBody(task);
                 task->state += 1;
                 break;
             }
             return;
-        case SQUARE_GRINNING_STRANGER_TASK_IDLE:
+        case TASK_IDLE:
             _squareGrinningStrangerTickAnim(task);
             playerMtx = work->playerMtx;
             playerX   = playerMtx->t[0];
-            if ((playerX >= SQUARE_GRINNING_STRANGER_TRIGGER_NEAR_X && playerMtx->t[2] >= SQUARE_GRINNING_STRANGER_TRIGGER_NEAR_Z) || (playerX >= SQUARE_GRINNING_STRANGER_TRIGGER_FAR_X && playerMtx->t[2] < SQUARE_GRINNING_STRANGER_TRIGGER_FAR_Z)) {
-                work->sequenceStep = SQUARE_GRINNING_STRANGER_STEP_START;
+            if ((playerX >= TRIGGER_NEAR_X && playerMtx->t[2] >= TRIGGER_NEAR_Z) || (playerX >= TRIGGER_FAR_X && playerMtx->t[2] < TRIGGER_FAR_Z)) {
+                work->sequenceStep = STEP_START;
                 akropolisSquareStartTelephoneScene(playerX);
                 task->state += 1;
             }
             break;
-        case SQUARE_GRINNING_STRANGER_TASK_SEQUENCE:
+        case TASK_SEQUENCE:
             _squareGrinningStrangerRunSequence(task);
             if (gGameSession->eventState == 0) {
                 taskKill(task);
@@ -505,23 +505,23 @@ static void _squareGrinningStrangerGrinningStrangerTask(Task* task)
     bodyModel    = task->extra.tmd;
     partPitch    = work->part5Pitch;
     bodyCoords   = bodyModel->coords;
-    sequencePart = bodyCoords + SQUARE_GRINNING_STRANGER_SEQUENCE_PART;
+    sequencePart = bodyCoords + SEQUENCE_PART;
     _actorRenderAccumulateRotation(sequencePart, &frameScratch.rotation, &gGfxViewCoord);
     RotMatrixX(partPitch, &frameScratch.rotation);
     _actorRenderLocalizeRotation(sequencePart, &frameScratch.rotation);
     memCopyBytes(frameScratch.rotation.m, sequencePart->coord.m, sizeof(frameScratch.rotation.m));
     sequencePart->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(sequencePart);
-    _actorRenderYawJointInWorld(task->extra.tmd->coords + SQUARE_GRINNING_STRANGER_SEQUENCE_PART, work->part5Yaw);
+    _actorRenderYawJointInWorld(task->extra.tmd->coords + SEQUENCE_PART, work->part5Yaw);
     // Relight the pose, then apply the truncated one-third colour scale.
     lightingModel                = task->extra.tmd;
     lightingWork                 = task->work;
-    frameScratch.viewPosition.vx = lightingModel->coords[SQUARE_GRINNING_STRANGER_LIGHTING_PART].workm.t[0];
-    frameScratch.viewPosition.vy = task->extra.tmd->coords[SQUARE_GRINNING_STRANGER_LIGHTING_PART].workm.t[1];
-    frameScratch.viewPosition.vz = task->extra.tmd->coords[SQUARE_GRINNING_STRANGER_LIGHTING_PART].workm.t[2];
-    worldCoordSetModelLighting(lightingModel, &frameScratch.viewPosition, 0, SQUARE_GRINNING_STRANGER_LIGHT_COUNT);
-    frameScratch.colorScale.vz = SQUARE_GRINNING_STRANGER_COLOR_SCALE_ONE_THIRD;
-    frameScratch.colorScale.vy = SQUARE_GRINNING_STRANGER_COLOR_SCALE_ONE_THIRD;
-    frameScratch.colorScale.vx = SQUARE_GRINNING_STRANGER_COLOR_SCALE_ONE_THIRD;
+    frameScratch.viewPosition.vx = lightingModel->coords[LIGHTING_PART].workm.t[0];
+    frameScratch.viewPosition.vy = task->extra.tmd->coords[LIGHTING_PART].workm.t[1];
+    frameScratch.viewPosition.vz = task->extra.tmd->coords[LIGHTING_PART].workm.t[2];
+    worldCoordSetModelLighting(lightingModel, &frameScratch.viewPosition, 0, LIGHT_COUNT);
+    frameScratch.colorScale.vz = COLOR_SCALE_ONE_THIRD;
+    frameScratch.colorScale.vy = COLOR_SCALE_ONE_THIRD;
+    frameScratch.colorScale.vx = COLOR_SCALE_ONE_THIRD;
     ScaleMatrix(&lightingWork->color, &frameScratch.colorScale);
 }

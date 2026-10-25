@@ -32,8 +32,8 @@ typedef struct {
     MATRIX         color;  // Light-colour matrix lent to the model object
     MATRIX         light;  // Light-direction matrix lent to the model object
     s32            animId; // Entry of the package's animation-set table the last play request seeded the slots with (0 none yet: the slots are not ticked)
-} _SanctuaryNo9No9GolemWork;
-STATIC_ASSERT_SIZEOF(_SanctuaryNo9No9GolemWork, 0x480);
+} _No9GolemWork;
+STATIC_ASSERT_SIZEOF(_No9GolemWork, 0x480);
 
 static void _sanctuaryNo9No9GolemSetup(Enemy* enemy, Task* task);
 static void _sanctuaryNo9No9GolemUpdate(Enemy* enemy, Task* task);
@@ -45,15 +45,15 @@ static void      _sanctuaryNo9No9GolemTask(Task* task);
 
 /// Task states of the script-posed No. 9 golem.
 enum {
-    SANCTUARY_NO_9_STATE_SETUP  = 0,
-    SANCTUARY_NO_9_STATE_UPDATE = 1,
+    STATE_SETUP  = 0,
+    STATE_UPDATE = 1,
 };
 
 /// No animation has been requested; the unseeded slots must not advance.
-enum { SANCTUARY_NO_9_ANIMATION_NONE = 0 };
+enum { ANIMATION_NONE = 0 };
 
 /// Model coordinate 0 is the placement root; body animation starts at 1.
-enum { SANCTUARY_NO_9_FIRST_ANIMATED_PART = 1 };
+enum { FIRST_ANIMATED_PART = 1 };
 
 #include "assets/enemies/golem/no_9/body_akropolis.inc"
 
@@ -86,13 +86,13 @@ static const TaskMessageEntry _gSanctuaryNo9No9GolemMessages[4] __attribute__((s
 /// Runs the script-posed No. 9 golem's setup or per-frame update.
 ///
 /// Requires a live TMD task with its owning `Enemy` in `spawnArg2.pointer`.
-/// `state` must be `SANCTUARY_NO_9_STATE_SETUP` or `SANCTUARY_NO_9_STATE_UPDATE`;
+/// `state` must be `STATE_SETUP` or `STATE_UPDATE`;
 /// there is no bounds check. Setup failure may destroy both arguments.
 static void _sanctuaryNo9No9GolemTask(Task* task)
 {
     EnemyTaskFunc stateHandlers[] = {
-        [SANCTUARY_NO_9_STATE_SETUP]  = _sanctuaryNo9No9GolemSetup,
-        [SANCTUARY_NO_9_STATE_UPDATE] = _sanctuaryNo9No9GolemUpdate,
+        [STATE_SETUP]  = _sanctuaryNo9No9GolemSetup,
+        [STATE_UPDATE] = _sanctuaryNo9No9GolemUpdate,
     };
 
     stateHandlers[task->state](task->spawnArg2.pointer, task);
@@ -104,16 +104,16 @@ static void _sanctuaryNo9No9GolemTask(Task* task)
 /// owns the primary-heap work block; its model borrows the lighting matrices
 /// until teardown. Playback remains inactive until a play request seeds the
 /// slots. Allocation failure destroys the enemy and task; success selects
-/// `SANCTUARY_NO_9_STATE_UPDATE`.
+/// `STATE_UPDATE`.
 static void _sanctuaryNo9No9GolemSetup(Enemy* enemy, Task* task)
 {
-    GfxCoord*                  rootCoord;
-    TmdObject*                 model;
-    _SanctuaryNo9No9GolemWork* work;
+    GfxCoord*      rootCoord;
+    TmdObject*     model;
+    _No9GolemWork* work;
 
     model     = task->extra.tmd;
     rootCoord = model->coords;
-    work      = memCalloc(sizeof(_SanctuaryNo9No9GolemWork), false);
+    work      = memCalloc(sizeof(_No9GolemWork), false);
     if (work == NULL) {
         enemyDestroy(enemy, task);
         return;
@@ -124,10 +124,10 @@ static void _sanctuaryNo9No9GolemSetup(Enemy* enemy, Task* task)
     model->colorMtx = &work->color;
     model->flags    = 0;
     animationInitContext(&work->rig.anim, _gSanctuaryNo9No9GolemAnimationSets, model, work->rig.poses, work->rig.slots);
-    work->animId            = SANCTUARY_NO_9_ANIMATION_NONE;
+    work->animId            = ANIMATION_NONE;
     task->msgTable          = _gSanctuaryNo9No9GolemMessages;
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-    task->state             = SANCTUARY_NO_9_STATE_UPDATE;
+    task->state             = STATE_UPDATE;
 }
 
 /// Advances the golem's animation and samples lighting at its first animated part.
@@ -139,17 +139,17 @@ static void _sanctuaryNo9No9GolemSetup(Enemy* enemy, Task* task)
 /// and lighting; both callees require additional nested scratch space.
 static void _sanctuaryNo9No9GolemUpdate(Enemy* enemy, Task* task)
 {
-    _SanctuaryNo9No9GolemWork* work;
-    GfxCoord*                  partCoord;
-    VECTOR*                    worldPosition;
-    s32                        slotIndex;
+    _No9GolemWork* work;
+    GfxCoord*      partCoord;
+    VECTOR*        worldPosition;
+    s32            slotIndex;
 
     work      = task->work;
-    partCoord = &task->extra.tmd->coords[SANCTUARY_NO_9_FIRST_ANIMATED_PART];
+    partCoord = &task->extra.tmd->coords[FIRST_ANIMATED_PART];
     SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
     worldPosition = SCRATCH_STACK_CURSOR(VECTOR);
-    if (work->animId != SANCTUARY_NO_9_ANIMATION_NONE) {
-        for (slotIndex = SANCTUARY_NO_9_FIRST_ANIMATED_PART; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+    if (work->animId != ANIMATION_NONE) {
+        for (slotIndex = FIRST_ANIMATED_PART; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
             animationTickSlot(&work->rig.anim, slotIndex);
         }
     }
@@ -172,11 +172,11 @@ static void _sanctuaryNo9No9GolemUpdate(Enemy* enemy, Task* task)
 /// `ANIMATION_RATE_ONE` and cleared boundary state and result flags. Slot 0
 /// is the placement root and stays untouched. No model coordinates or pose
 /// buffer entries are written; the next tick establishes the new segment.
-static inline void _sanctuaryNo9No9GolemRestartTracks(_SanctuaryNo9No9GolemWork* work)
+static inline void _sanctuaryNo9No9GolemRestartTracks(_No9GolemWork* work)
 {
     s32 slotIndex;
 
-    for (slotIndex = SANCTUARY_NO_9_FIRST_ANIMATED_PART; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+    for (slotIndex = FIRST_ANIMATED_PART; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
         animationResetSlot(&work->rig.anim, slotIndex, work->animId);
     }
 }
@@ -191,7 +191,7 @@ static inline void _sanctuaryNo9No9GolemRestartTracks(_SanctuaryNo9No9GolemWork*
 /// second argument. Returns 0.
 static s32 _sanctuaryNo9No9GolemPlayAnimation(Task* task, s32 msgId, const AnimationPlayRequest* request, s32 unusedArg)
 {
-    _SanctuaryNo9No9GolemWork* work;
+    _No9GolemWork* work;
 
     work         = task->work;
     work->animId = request->animationId;
@@ -211,18 +211,18 @@ static s32 _sanctuaryNo9No9GolemPlayAnimation(Task* task, s32 msgId, const Anima
 static s32 _sanctuaryNo9No9GolemSetModelDraw(Task* task, s32 msgId, s32 drawFlags, s32 unusedArg)
 {
     enum {
-        SANCTUARY_NO_9_MODEL_DRAW_SHOW             = 1 << 0,
-        SANCTUARY_NO_9_MODEL_DRAW_SKIP_AUTO_BUFFER = 1 << 1,
+        SHOW             = 1 << 0,
+        SKIP_AUTO_BUFFER = 1 << 1,
     };
     TmdObject* model;
 
     model = task->extra.tmd;
-    if (!(drawFlags & SANCTUARY_NO_9_MODEL_DRAW_SHOW)) {
+    if (!(drawFlags & SHOW)) {
         model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         model->flags = 0;
     }
-    if (drawFlags & SANCTUARY_NO_9_MODEL_DRAW_SKIP_AUTO_BUFFER) {
+    if (drawFlags & SKIP_AUTO_BUFFER) {
         task->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     return 0;
