@@ -58,3 +58,95 @@ def check_memory_slot(key: str, rec: dict[str, Any], assets: dict[str, dict[str,
         if other > key and o.get("type") == "memory_slot" and o.get("at") == at:
             problems.append(f"{key}: {other} is a slot at the same address")
     return problems
+
+
+# --- where packages load, and what their bindings name -------------------------------------------------------------
+
+LEGACY_SLOTS = {"room": "room", "stage": "stage"}       # the older kinds' slots, by type
+
+
+def slot_of(name: str, assets: dict[str, dict[str, Any]]) -> str | None:
+    """The memory slot a package loads into: its declared `load`, or for the older kinds the one their type implies
+    (gameplay's, a room's, a stage overlay's, an actor's from its overlays.toml slot)."""
+    rec = assets[name]
+    if rec.get("type") == "package":
+        return rec.get("load", {}).get("slot")
+    if name == "gameplay":
+        return "gameplay"
+    if rec.get("type") in LEGACY_SLOTS:
+        return LEGACY_SLOTS[rec["type"]]
+    actors = tomllib.loads((ROOT / "configs" / "USA" / "overlays.toml").read_text())["actors"]["overlays"]
+    entry = actors.get(rec.get("package_name", name))
+    return f"actor_{entry['slot']}" if entry else None
+
+
+def load_address(name: str, assets: dict[str, dict[str, Any]]) -> int:
+    slot = slot_of(name, assets)
+    if slot is None or f"engine/memory/{slot}" not in assets:
+        raise SystemExit(f"{name}: no memory slot gives its load address")
+    return assets[f"engine/memory/{slot}"]["at"]
+
+
+def file_id(name: str) -> int | None:
+    """The disc id of the file that loads a package: the stage-0 file holding it as a chunk."""
+    import asset_data
+    ids = [node["id"] for node in asset_data.TREE[0]["files"].values() if name in (node.get("chunks") or {}).values()]
+    return ids[0] if len(ids) == 1 else None
+
+
+def resource_file_id(file_number: int, group_index: int) -> int:
+    """The disc id an AreaResource names: group base (indices 0..5 groups 10..60, 6..8 groups 0..2) plus its number's
+    hundreds, and its number's units and tens as the id's hundreds (gameplay's area loader)."""
+    base = 10 * (group_index + 1) if group_index < 6 else group_index - 6
+    return (base + file_number // 100) * 10000 + (file_number % 100) * 100
+
+
+def bindings(name: str, assets: dict[str, dict[str, Any]]) -> dict[str, str]:
+    """{binding: package} of a package's `slots`."""
+    return dict(assets[name].get("slots") or {}) if assets[name].get("type") == "package" else {}
+
+
+def resolve_export(name: str, assets: dict[str, dict[str, Any]], address: int, file: int | None = None) -> str | None:
+    """`<binding>.<export>` for an address in a bound package: among the bindings whose package the disc file `file`
+    loads (all of them when no file is given), the export at that address. None where none is."""
+    hits = []
+    for binding, package in bindings(name, assets).items():
+        if file is not None and file_id(package) != file:
+            continue
+        base = load_address(package, assets)
+        for export, e in (assets[package].get("exports") or {}).items():
+            if base + e["at"] == address:
+                hits.append(f"{binding}.{export}")
+    return hits[0] if len(hits) == 1 else None
+
+
+def export_of(name: str, assets: dict[str, dict[str, Any]], ref: str) -> tuple[int, str] | None:
+    """(address, C symbol) of `<binding>.<export>`, or None where `ref` is no such reference."""
+    binding, _, export = ref.partition(".")
+    package = bindings(name, assets).get(binding)
+    if not export or package is None:
+        return None
+    e = (assets[package].get("exports") or {}).get(export)
+    if e is None:
+        raise SystemExit(f"{name}: {ref}: {package} exports no {export!r}")
+    return load_address(package, assets) + e["at"], e["symbol"]
+
+
+def check_package(key: str, rec: dict[str, Any], assets: dict[str, dict[str, Any]]) -> list[str]:
+    """A package names a memory slot to load into, packages it requires, packages its bindings name, and exports each
+    with an offset and a C symbol."""
+    problems = []
+    slot = (rec.get("load") or {}).get("slot")
+    if assets.get(f"engine/memory/{slot}", {}).get("type") != "memory_slot":
+        problems.append(f"{key}: load = {{ slot = <a memory slot> }}")
+    for required in rec.get("requires", ()):
+        if assets.get(required, {}).get("type") not in ("pe2pkg", "room", "stage", "package"):
+            problems.append(f"{key}: requires {required!r}, which is not a package")
+    for binding, package in (rec.get("slots") or {}).items():
+        if not NAME.fullmatch(binding) or assets.get(package, {}).get("type") not in ("pe2pkg", "room", "stage", "package"):
+            problems.append(f"{key}: slots.{binding} must name a package")
+    for export, e in (rec.get("exports") or {}).items():
+        if not (NAME.fullmatch(export) and isinstance(e, dict) and isinstance(e.get("at"), int)
+                and isinstance(e.get("symbol"), str) and set(e) == {"at", "symbol"}):
+            problems.append(f"{key}: exports.{export} is {{ at = <offset>, symbol = <C name> }}")
+    return problems

@@ -293,11 +293,13 @@ def room_includes(version: str) -> list[tuple[str, Path, list[Path]]]:
     data, _schema = asset_tables()
     out = []
     for key, rec in data.ASSETS.items():
-        actor = rec.get("type") == "pe2pkg" and "entries" in rec     # an actor package with events
-        if rec.get("type") not in ("room", "stage") and not actor:
+        slot = str((rec.get("load") or {}).get("slot", "")) if rec.get("type") == "package" else ""
+        kind = (rec.get("type") if rec.get("type") in ("room", "stage") else slot if slot in ("room", "stage")
+                else "actor" if "entries" in rec and (rec.get("type") == "pe2pkg" or slot.startswith("actor_")) else None)
+        if kind is None:
             continue
-        own = f"{rec['group']}/{key.rsplit('/', 1)[1]}" if actor else rec["group"]
-        instance = ASSETS_DIR / version / own / ("stage.toml" if rec["type"] == "stage" else "room.toml")
+        own = f"{rec['group']}/{key.rsplit('/', 1)[1]}" if kind == "actor" else rec["group"]
+        instance = ASSETS_DIR / version / own / ("stage.toml" if kind == "stage" else "room.toml")
         if not instance.exists():
             continue
         modules = [k for k, v in tomllib.loads(instance.read_text()).items() if isinstance(v, dict) and k != "entry"]

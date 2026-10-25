@@ -55,7 +55,7 @@ def _with_comment(s: str, start: int) -> int:
 
 def _sources(rec: dict) -> list[Path]:
     group, pkg = rec["group"], rec["package_name"]
-    if "entries" in rec and rec.get("type") == "pe2pkg":
+    if "entries" in rec and (rec.get("type") == "pe2pkg" or str((rec.get("load") or {}).get("slot", "")).startswith("actor_")):
         return actor_sources(pkg)
     return sorted(Path(p) for p in {*map(str, (ROOT / "src" / "rooms" / pkg).glob("*.c")),
                                     *map(str, (ROOT / "src" / "mapui" / pkg).glob("*.c")),

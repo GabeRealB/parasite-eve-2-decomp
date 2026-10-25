@@ -24,11 +24,14 @@ resources = [
 sha1 = "b12e305ec25b7cf40339d3db913c9725d5888c38"
 
 [package]
-type = "room"
+type = "package"
 embedded = [{ name = "collision", offset = 0x06784, size = 0x1458 }]
 entries = { samples = [0x065A8], scripts = [0x06274, 0x0631C, 0x063DC, 0x0649C], updates = [0x0B2C8] }
+load = { slot = "room" }
 package_name = "akropolis_square"
 required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
+slots = { grinning_stranger = "rooms/akropolis/square/grinning_stranger" }
 sha1 = "aea68621481901e24a676f92121f06fea4c688f3"
 
 [call_end]
@@ -697,7 +700,7 @@ type = "bs"
 sha1 = "334608feb4e2818b0ddc84405181a536d37247d0"
 
 [grinning_stranger]
-type = "pe2pkg"
+type = "package"
 embedded = [
     { asset = "enemies/stranger/react", offset = 0x06208, size = 0x41C, address = 0x80138028 },
     { asset = "enemies/stranger/odd/b_walk", offset = 0x06624, size = 0xB24, address = 0x80138444 },
@@ -706,8 +709,11 @@ embedded = [
     { asset = "enemies/stranger/leap_start", offset = 0x07FD4, size = 0x654, address = 0x80139DF4 },
     { name = "grinning_stranger_bank", offset = 0x08628, size = 0x20, address = 0x8013A448 },
 ]
+exports = { task_desc = { at = 0x08648, symbol = "gSquareGrinningStrangerTaskDesc" } }
+load = { slot = "actor_1" }
 package_name = "square_grinning_stranger"
 required = true
+requires = ["gameplay"]
 sha1 = "d97bb6dbf0ebb661e14214507cac320193b923c2"
 
 [telephone_scene_2]

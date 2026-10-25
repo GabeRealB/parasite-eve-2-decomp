@@ -1005,6 +1005,9 @@ def validate(assets: dict, embedded: dict) -> list[str]:
         if kind == "memory_slot":
             import package
             problems += package.check_memory_slot(key, rec, assets)
+        if kind == "package":
+            import package
+            problems += package.check_package(key, rec, assets)
         if kind == "shaped":
             import shape
             problems += shape.check_asset(key, rec, assets, shape.declarations())
