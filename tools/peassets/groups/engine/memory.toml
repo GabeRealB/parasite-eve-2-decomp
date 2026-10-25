@@ -1,0 +1,62 @@
+# The assets of the group engine/memory, each named engine/memory/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[pe]
+type = "memory_slot"
+at = 0x8012EF30
+families = ["pe", "mappic"]
+
+[aya]
+type = "memory_slot"
+at = 0x80115770
+families = ["aya"]
+
+[kyle]
+type = "memory_slot"
+at = 0x80167A70
+families = ["kyle"]
+
+[room]
+type = "memory_slot"
+at = 0x8017D5C0
+families = ["rooms"]
+
+[debug]
+type = "memory_slot"
+at = 0x801D6000
+families = ["debug"]
+
+[stage]
+type = "memory_slot"
+at = 0x80179950
+families = ["mapui"]
+
+[weapon]
+type = "memory_slot"
+at = 0x8011D1C0
+families = ["weapons"]
+
+[actor_1]
+type = "memory_slot"
+at = 0x80131E20
+families = ["actors.1"]
+
+[actor_2]
+type = "memory_slot"
+at = 0x80149E20
+families = ["actors.2"]
+
+[actor_3]
+type = "memory_slot"
+at = 0x80161E20
+families = ["actors.3"]
+
+[options]
+type = "memory_slot"
+at = 0x801D4000
+families = ["options"]
+
+[gameplay]
+type = "memory_slot"
+at = 0x80093800
+configs = ["gameplay", "title"]

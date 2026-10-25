@@ -113,6 +113,9 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     # A rectangle of VRAM in halfwords that pages and palettes are placed in by name, `within` another region where
     # it is part of it (texture/declaration.py).
     "vram_region": {"payload": (), "stored": ("within", "shares", "at", "size")},
+    # A place in RAM one package occupies at a time: its address, and the overlays.toml families or splat configs
+    # linked for it (package.py).
+    "memory_slot": {"payload": (), "stored": ("at", "families", "configs")},
     # Data of a declared shape (tools/peassets/shape/): its `shape`, and in `outputs` the stored asset each of the
     # shape's outputs is. Its instance, `<group>/<local name>.toml`, is decoded from them and encodes back exactly.
     "shaped": {"payload": (), "stored": ("shape", "outputs", "include")},
@@ -203,7 +206,7 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
 EMBEDDED_FIELDS = ("source", "vram", "offset", "address", "size", "ext", "type", "include", "layout", "deps", "notes",
                    "group")
 # Types with no bytes of their own: declared by hand, carried over unchanged by dump_asset_db.py.
-DECLARED_TYPES = frozenset({"binding", "texture", "file", "atlas", "font", "vram_region", "rig", "clip", "camera_path", "animation_schema",
+DECLARED_TYPES = frozenset({"binding", "texture", "file", "atlas", "font", "vram_region", "memory_slot", "rig", "clip", "camera_path", "animation_schema",
                             "animation_bank", "sound_bank", "sound", "shaped", "room", "stage"})
 
 # Embedded types the code reaches by their address in memory - a model through pointers in the code, an image or a
@@ -992,6 +995,9 @@ def validate(assets: dict, embedded: dict) -> list[str]:
             problems += texture_declaration.check_font(key, rec, assets, embedded, frozenset(text_encoding.ENCODINGS))
         if kind == "vram_region":
             problems += texture_declaration.check_region(key, rec, assets)
+        if kind == "memory_slot":
+            import package
+            problems += package.check_memory_slot(key, rec, assets)
         if kind == "shaped":
             import shape
             problems += shape.check_asset(key, rec, assets, shape.declarations())
