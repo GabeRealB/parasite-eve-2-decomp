@@ -53,7 +53,7 @@ grab_windup = "enemies/stranger/odd/ambush"
 rise_front = "enemies/stranger/odd/rise_front"
 hold_back = "enemies/stranger/down_back"
 hold_front = "enemies/stranger/odd/down_front"
-strike_a = "rooms/akropolis/patio/body_anim_04"
+strike_a = "enemies/stranger/strike"
 strike_b = "rooms/akropolis/patio/stranger_wait_1"
 charge_run = "enemies/stranger/horned/charge_run"
 charge_close = "enemies/stranger/horned/charge_close"
@@ -214,7 +214,7 @@ size = 0xB24
 address = 0x80148A38
 
 [[package_4.embedded]]
-asset = "rooms/akropolis/patio/body_anim_04"
+asset = "enemies/stranger/strike"
 offset = 0x1773C
 size = 0xFC4
 address = 0x8014955C

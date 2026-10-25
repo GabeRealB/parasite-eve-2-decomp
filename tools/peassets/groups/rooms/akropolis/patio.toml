@@ -1050,10 +1050,6 @@ entries = 256
 region = "engine/vram/room_sprite_palettes"
 offset = [0x00000, 0x00005]
 
-[body_anim_04]
-type = "clip"
-rig = "enemies/stranger/rig"
-
 [swat_dormant]
 type = "clip"
 rig = "characters/swat_member_1/rig"
@@ -1164,10 +1160,10 @@ schema = "rooms/akropolis/patio/stranger_schema"
 symbol = "_gPatioLeapingStrangersBodyAnimSets"
 
 [stranger_bank.clips]
-slot_1 = "enemies/stranger/react"
+react = "enemies/stranger/react"
 leap = "enemies/stranger/odd/b_walk"
-slot_3 = "enemies/stranger/odd/b_run"
-slot_4 = "rooms/akropolis/patio/body_anim_04"
+run = "enemies/stranger/odd/b_run"
+strike = "enemies/stranger/strike"
 wait_1 = "rooms/akropolis/patio/stranger_wait_1"
 wait_2 = "enemies/stranger/leap_crouch"
 leap_start = "enemies/stranger/leap_start"
@@ -1193,7 +1189,7 @@ width = 128
 
 [stranger_schema]
 type = "animation_schema"
-slots = ["", "slot_1", "leap", "slot_3", "slot_4", "wait_1", "wait_2", "leap_start", "land"]
+slots = ["", "react", "leap", "run", "strike", "wait_1", "wait_2", "leap_start", "land"]
 
 [stranger_wait_1]
 type = "clip"
@@ -1271,7 +1267,7 @@ embedded = [
     { asset = "enemies/stranger/react", offset = 0x065A8, size = 0x41C, address = 0x801683C8 },
     { asset = "enemies/stranger/odd/b_walk", offset = 0x069C4, size = 0xB24, address = 0x801687E4 },
     { asset = "enemies/stranger/odd/b_run", offset = 0x074E8, size = 0xA84, address = 0x80169308 },
-    { name = "body_anim_04", offset = 0x07F6C, size = 0xFC4, address = 0x80169D8C },
+    { asset = "enemies/stranger/strike", offset = 0x07F6C, size = 0xFC4, address = 0x80169D8C },
     { name = "stranger_wait_1", offset = 0x08F30, size = 0x1028, address = 0x8016AD50 },
     { asset = "enemies/stranger/leap_crouch", offset = 0x09F58, size = 0x408, address = 0x8016BD78 },
     { asset = "enemies/stranger/leap_start", offset = 0x0A360, size = 0x654, address = 0x8016C180 },

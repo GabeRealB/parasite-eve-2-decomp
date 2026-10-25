@@ -1220,7 +1220,7 @@ slots = ["", "opening", "", "", "idle"]
 type = "pe2pkg"
 embedded = [
     { name = "boss_stranger_body", offset = 0x07138, size = 0x5568, address = 0x80138F58 },
-    { asset = "rooms/akropolis/patio/body_anim_04", offset = 0x0C6A0, size = 0xFC4, address = 0x8013E4C0 },
+    { asset = "enemies/stranger/strike", offset = 0x0C6A0, size = 0xFC4, address = 0x8013E4C0 },
     { asset = "rooms/akropolis/patio/stranger_wait_1", offset = 0x0D664, size = 0x1028, address = 0x8013F484 },
     { asset = "enemies/stranger/odd/slide", offset = 0x0E68C, size = 0xA70, address = 0x801404AC },
     { asset = "enemies/stranger/odd/flinch", offset = 0x0F0FC, size = 0x5E0, address = 0x80140F1C },
@@ -1494,7 +1494,7 @@ symbol = "_gCafeteriaBossStrangerAnimationSets"
 
 [boss_stranger_bank.clips]
 walk = "rooms/akropolis/cafeteria/boss_stranger_walk"
-enraged_attack = "rooms/akropolis/patio/body_anim_04"
+enraged_attack = "enemies/stranger/strike"
 attack = "rooms/akropolis/patio/stranger_wait_1"
 slide = "enemies/stranger/odd/slide"
 hit_reaction = "enemies/stranger/odd/flinch"

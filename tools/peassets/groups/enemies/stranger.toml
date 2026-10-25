@@ -85,6 +85,10 @@ attack_hit = 13
 sidestep_a = 16
 sidestep_b = 17
 
+[strike]
+type = "clip"
+rig = "enemies/stranger/rig"
+
 [down_back]
 type = "clip"
 rig = "enemies/stranger/rig"
