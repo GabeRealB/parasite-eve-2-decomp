@@ -33,10 +33,10 @@
 #include "assets/rooms/akropolis/helicopter_landing_pad/declarations.inc"
 
 /// Frames one scripted run of the landing pad's lift lasts.
-#define AKROPOLIS_HELICOPTER_LANDING_PAD_LIFT_TRAVEL_FRAMES 120
+#define LIFT_TRAVEL_FRAMES 120
 
 /// Magnitude of the lift's Y step in parent-coordinate units per update tick.
-#define AKROPOLIS_HELICOPTER_LANDING_PAD_LIFT_TRAVEL_STEP 25
+#define LIFT_TRAVEL_STEP 25
 
 /// Work block of the landing pad's lift, the railed platform that carries the player up to the pad.
 typedef struct {
@@ -47,8 +47,8 @@ typedef struct {
     MATRIX lightMtx;   // Light-direction matrix the model borrows, filled from the room's three flat lights
     MATRIX colorMtx;   // Light-color matrix the model borrows, filled with `lightMtx`
     s16    stepFrames; // Frames of travel left; the lift is at rest at 0
-} _AkropolisHelicopterLandingPadLiftWork;
-STATIC_ASSERT_SIZEOF(_AkropolisHelicopterLandingPadLiftWork, 0x54);
+} _LiftWork;
+STATIC_ASSERT_SIZEOF(_LiftWork, 0x54);
 
 static void _akropolisHelicopterLandingPadLiftInitLighting(Task* task);
 static void _akropolisHelicopterLandingPadLiftInit(Task* task);
@@ -119,10 +119,10 @@ static s8 _gAkropolisHelicopterLandingPadLiftVisibleByView[36] = {
 /// Initializes the lift's model, lighting and message handling.
 static void _akropolisHelicopterLandingPadLiftInit(Task* task)
 {
-    enum { AKROPOLIS_HELICOPTER_LANDING_PAD_LIFT_OT_OFFSET = 8 };
+    enum { LIFT_OT_OFFSET = 8 };
 
-    TmdObject*                              liftModel = task->extra.tmd;
-    _AkropolisHelicopterLandingPadLiftWork* work;
+    TmdObject* liftModel = task->extra.tmd;
+    _LiftWork* work;
 
     work = memCalloc(sizeof(*work), false);
     if (work == NULL) {
@@ -130,7 +130,7 @@ static void _akropolisHelicopterLandingPadLiftInit(Task* task)
         return;
     }
     task->work          = work;
-    liftModel->otOffset = AKROPOLIS_HELICOPTER_LANDING_PAD_LIFT_OT_OFFSET;
+    liftModel->otOffset = LIFT_OT_OFFSET;
     liftModel->flags   &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     _akropolisHelicopterLandingPadLiftInitLighting(task);
     task->msgTable      = _gAkropolisHelicopterLandingPadLiftMessages;
@@ -141,10 +141,10 @@ static void _akropolisHelicopterLandingPadLiftInit(Task* task)
 /// Advances an active lift run and refreshes visibility for a ready camera view.
 static void _akropolisHelicopterLandingPadLiftUpdate(Task* task)
 {
-    _AkropolisHelicopterLandingPadLiftWork* work      = task->work;
-    GfxCoord*                               rootCoord = task->extra.tmd->coords;
-    TmdObject*                              liftModel = task->extra.tmd;
-    s16                                     remainingFrames;
+    _LiftWork* work      = task->work;
+    GfxCoord*  rootCoord = task->extra.tmd->coords;
+    TmdObject* liftModel = task->extra.tmd;
+    s16        remainingFrames;
 
     // Decrement before stepping so the tick reaching zero still moves the lift.
     remainingFrames = --work->stepFrames;
@@ -168,10 +168,10 @@ static void _akropolisHelicopterLandingPadLiftUpdate(Task* task)
 /// Binds the lift model to its task-owned flat-light matrices.
 static void _akropolisHelicopterLandingPadLiftInitLighting(Task* task)
 {
-    _AkropolisHelicopterLandingPadLiftWork* work      = task->work;
-    TmdObject*                              liftModel = task->extra.tmd;
-    const GsF_LIGHT*                        flatLight;
-    s32                                     lightIndex;
+    _LiftWork*       work      = task->work;
+    TmdObject*       liftModel = task->extra.tmd;
+    const GsF_LIGHT* flatLight;
+    s32              lightIndex;
 
     liftModel->lightMtx = &work->lightMtx;
     liftModel->colorMtx = &work->colorMtx;
@@ -184,10 +184,10 @@ static void _akropolisHelicopterLandingPadLiftInitLighting(Task* task)
 /// Resets the lift to a starting stop and arms fixed-duration vertical travel.
 static inline void _akropolisHelicopterLandingPadLiftStartRun(Task* task, const ActorTransform* startPlacement, s32 stepY)
 {
-    _AkropolisHelicopterLandingPadLiftWork* work = task->work;
+    _LiftWork* work = task->work;
 
     actorMsgPlaceEuler(task, 0, startPlacement, 0);
-    work->stepFrames = AKROPOLIS_HELICOPTER_LANDING_PAD_LIFT_TRAVEL_FRAMES;
+    work->stepFrames = LIFT_TRAVEL_FRAMES;
     work->stepX      = 0;
     work->stepY      = stepY;
     work->stepZ      = 0;
@@ -198,23 +198,23 @@ static s32 _akropolisHelicopterLandingPadLiftHandleRunRequest(Task* task, s32 me
                                                               const AnimationPlayRequest* request, s32 unusedArg)
 {
     enum {
-        AKROPOLIS_HELICOPTER_LANDING_PAD_LIFT_RUN_RAISE      = 0,
-        AKROPOLIS_HELICOPTER_LANDING_PAD_LIFT_RUN_LOWER      = 1,
-        AKROPOLIS_HELICOPTER_LANDING_PAD_LIFT_RUN_PARK_LOWER = 2,
+        RAISE      = 0,
+        LOWER      = 1,
+        PARK_LOWER = 2,
     };
 
-    _AkropolisHelicopterLandingPadLiftWork* work = task->work;
+    _LiftWork* work = task->work;
 
     switch (request->animationId) {
-        case AKROPOLIS_HELICOPTER_LANDING_PAD_LIFT_RUN_RAISE:
+        case RAISE:
             _akropolisHelicopterLandingPadLiftStartRun(task, &_gAkropolisHelicopterLandingPadLiftLowerStopPlacement,
-                                                       -AKROPOLIS_HELICOPTER_LANDING_PAD_LIFT_TRAVEL_STEP);
+                                                       -LIFT_TRAVEL_STEP);
             break;
-        case AKROPOLIS_HELICOPTER_LANDING_PAD_LIFT_RUN_LOWER:
+        case LOWER:
             _akropolisHelicopterLandingPadLiftStartRun(task, &_gAkropolisHelicopterLandingPadLiftPadStopPlacement,
-                                                       AKROPOLIS_HELICOPTER_LANDING_PAD_LIFT_TRAVEL_STEP);
+                                                       LIFT_TRAVEL_STEP);
             break;
-        case AKROPOLIS_HELICOPTER_LANDING_PAD_LIFT_RUN_PARK_LOWER:
+        case PARK_LOWER:
             actorMsgPlaceEuler(task, 0, &_gAkropolisHelicopterLandingPadLiftLowerStopPlacement, 0);
             work->stepFrames = 0;
             break;
@@ -240,25 +240,25 @@ void akropolisHelicopterLandingPadLiftTask(Task* task)
 void akropolisHelicopterLandingPadUpdateEncounterPhase(Task* unusedTask)
 {
     enum {
-        AKROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_STARTED  = 1,
-        AKROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_FINISHED = 2,
-        AKROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR    = 0,
-        AKROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ARM_VIEW = 5,
+        STARTED  = 1,
+        FINISHED = 2,
+        ACTOR    = 0,
+        ARM_VIEW = 5,
     };
     s32 phase = gAkropolisHelicopterLandingPadEncounterPhase;
 
     // Wait for the encounter actor and the presentation holds before starting the ending scripts.
-    if (phase == AKROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_STARTED) {
-        if (taskMessageDispatch(sceneFindPlacedActor(AKROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ACTOR), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) {
+    if (phase == STARTED) {
+        if (taskMessageDispatch(sceneFindPlacedActor(ACTOR), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) {
             if ((gAttachmentState.mode != phase) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
-                gAkropolisHelicopterLandingPadEncounterPhase = AKROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_FINISHED;
+                gAkropolisHelicopterLandingPadEncounterPhase = FINISHED;
                 evsStartScriptWithSkip(gAkropolisHelicopterLandingPadEncounterEndingScript, EVENT_SCRIPT_HUD_HIDE_RESTORE,
                                        gAkropolisHelicopterLandingPadEncounterEndingSkipScript);
                 gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, EVENT_FLAG_OBJECTIVE_AKROPOLIS_NO9_DEFEATED);
             }
         }
     }
-    if (gGameSession->location.view == AKROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ARM_VIEW) {
+    if (gGameSession->location.view == ARM_VIEW) {
         gAkropolisHelicopterLandingPadEncounterReady = 1;
     }
     if (gGameSession->eventState == 0) {
