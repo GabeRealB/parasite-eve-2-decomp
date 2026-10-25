@@ -157,7 +157,7 @@ extern TmdSource gGolemNo9AkropolisChestPiece;
 
 extern TmdSource gGolemGrenade;
 
-extern TmdSource gHelicopterLandingPadNo9Model10C8C;
+extern TmdSource gHelicopterLandingPadNo9HelipadLightModel;
 
 extern AnimationSet _gHelicopterLandingPadNo9Animation11CC0;
 extern AnimationSet _gHelicopterLandingPadNo9Animation11FB8;

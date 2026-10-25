@@ -266,7 +266,7 @@ static void _helicopterDepartureNo9GolemPart8Task(Task* task);
 static void _helicopterDepartureNo9GolemPart3Task(Task* task);
 static void _helicopterDepartureNo9GolemPart12Task(Task* task);
 
-static TmdSource _gHelicopterDepartureHelicopterBase;
+static TmdSource _gHelicopterDepartureHelicopterHullModel;
 static TmdSource _gAkropolisHelicopterLandingPadMainRotor;
 static TmdSource _gAkropolisHelicopterLandingPadTailRotor;
 static TmdSource _gAkropolisHelicopterLandingPadSearchlight;
@@ -277,43 +277,13 @@ static void      _helicopterDepartureHelicopterSearchlightTask(Task* task);
 #include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_departure_clips_1.inc"
 
 TaskDesc gHelicopterDepartureHelicopterTaskDescriptors[4] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _helicopterDepartureHelicopterTask, { .model = &_gHelicopterDepartureHelicopterBase } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _helicopterDepartureHelicopterTask, { .model = &_gHelicopterDepartureHelicopterHullModel } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _helicopterDepartureHelicopterRotorTask, { .model = &_gAkropolisHelicopterLandingPadMainRotor } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _helicopterDepartureHelicopterRotorTask, { .model = &_gAkropolisHelicopterLandingPadTailRotor } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _helicopterDepartureHelicopterSearchlightTask, { .model = &_gAkropolisHelicopterLandingPadSearchlight } },
 };
 
-static TmdBone _gHelicopterDepartureHelicopterBaseSkeleton[1] = {
-#include "assets/helicopter_departure_helicopter_base_skeleton.inc"
-};
-
-static u32 _gHelicopterDepartureHelicopterBasePartVerts[1] = {
-#include "assets/helicopter_departure_helicopter_base_partVerts.inc"
-};
-
-static SVECTOR _gHelicopterDepartureHelicopterBaseVerts[262] = {
-#include "assets/helicopter_departure_helicopter_base_verts.inc"
-};
-
-static SVECTOR _gHelicopterDepartureHelicopterBaseNormals[163] = {
-#include "assets/helicopter_departure_helicopter_base_normals.inc"
-};
-
-static u32 _gHelicopterDepartureHelicopterBaseStream[1299] = {
-#include "assets/helicopter_departure_helicopter_base_stream.inc"
-};
-
-static TmdSource _gHelicopterDepartureHelicopterBase = {
-    0,
-    9368,
-    0,
-    1,
-    _gHelicopterDepartureHelicopterBasePartVerts,
-    _gHelicopterDepartureHelicopterBaseVerts,
-    _gHelicopterDepartureHelicopterBaseNormals,
-    _gHelicopterDepartureHelicopterBaseSkeleton,
-    _gHelicopterDepartureHelicopterBaseStream,
-};
+#include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_hull.inc"
 
 #include "assets/rooms/akropolis/helicopter_landing_pad/main_rotor.inc"
 

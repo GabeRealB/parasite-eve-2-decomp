@@ -136,37 +136,7 @@ static const _SpritePalette _gHelicopterLandingPadNo9FireballFramePalettes[12] _
 
 #include "assets/enemies/golem/grenade.inc"
 
-static TmdBone _gHelicopterLandingPadNo9Model10C8CSkeleton[11] = {
-#include "assets/helicopter_landing_pad_no_9_model_10C8C_skeleton.inc"
-};
-
-static u32 _gHelicopterLandingPadNo9Model10C8CPartVerts[11] = {
-#include "assets/helicopter_landing_pad_no_9_model_10C8C_partVerts.inc"
-};
-
-static SVECTOR _gHelicopterLandingPadNo9Model10C8CVerts[33] = {
-#include "assets/helicopter_landing_pad_no_9_model_10C8C_verts.inc"
-};
-
-static SVECTOR _gHelicopterLandingPadNo9Model10C8CNormals[3] = {
-#include "assets/helicopter_landing_pad_no_9_model_10C8C_normals.inc"
-};
-
-static u32 _gHelicopterLandingPadNo9Model10C8CStream[421] = {
-#include "assets/helicopter_landing_pad_no_9_model_10C8C_stream.inc"
-};
-
-TmdSource gHelicopterLandingPadNo9Model10C8C = {
-    0,
-    1560,
-    1404,
-    11,
-    _gHelicopterLandingPadNo9Model10C8CPartVerts,
-    _gHelicopterLandingPadNo9Model10C8CVerts,
-    _gHelicopterLandingPadNo9Model10C8CNormals,
-    _gHelicopterLandingPadNo9Model10C8CSkeleton,
-    _gHelicopterLandingPadNo9Model10C8CStream,
-};
+#include "assets/enemies/golem/no_9/helipad_light.inc"
 
 static AnimationPackedPose _gHelicopterLandingPadNo9Animation11CC0Bank1[18] = {
 #include "assets/helicopter_landing_pad_no_9_animation_11CC0_bank1.inc"

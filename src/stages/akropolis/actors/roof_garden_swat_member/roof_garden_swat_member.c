@@ -53,43 +53,13 @@ static Task* _gRoofGardenSwatMemberBodyTask;
 static Task* _gActorMsgHelperTask;
 
 static TmdSource _gSwatMember2Body;
-static TmdSource _gRoofGardenSwatMemberModel060A0;
+static TmdSource _gRoofGardenSwatMemberRadioModel;
 static void      _roofGardenSwatMemberViewFigureTask(Task* task);
 static void      _roofGardenSwatMemberAttachModelTask(Task* task);
 
 #include "assets/characters/swat_member_2/body.inc"
 
-static TmdBone _gRoofGardenSwatMemberModel060A0Skeleton[1] = {
-#include "assets/roof_garden_swat_member_model_060A0_skeleton.inc"
-};
-
-static u32 _gRoofGardenSwatMemberModel060A0PartVerts[1] = {
-#include "assets/roof_garden_swat_member_model_060A0_partVerts.inc"
-};
-
-static SVECTOR _gRoofGardenSwatMemberModel060A0Verts[14] = {
-#include "assets/roof_garden_swat_member_model_060A0_verts.inc"
-};
-
-static SVECTOR _gRoofGardenSwatMemberModel060A0Normals[14] = {
-#include "assets/roof_garden_swat_member_model_060A0_normals.inc"
-};
-
-static u32 _gRoofGardenSwatMemberModel060A0Stream[98] = {
-#include "assets/roof_garden_swat_member_model_060A0_stream.inc"
-};
-
-static TmdSource _gRoofGardenSwatMemberModel060A0 = {
-    0,
-    652,
-    0,
-    1,
-    _gRoofGardenSwatMemberModel060A0PartVerts,
-    _gRoofGardenSwatMemberModel060A0Verts,
-    _gRoofGardenSwatMemberModel060A0Normals,
-    _gRoofGardenSwatMemberModel060A0Skeleton,
-    _gRoofGardenSwatMemberModel060A0Stream,
-};
+#include "assets/rooms/akropolis/roof_garden/swat_member_radio.inc"
 
 #include "assets/rooms/akropolis/roof_garden/swat_member_clips.inc"
 
@@ -106,7 +76,7 @@ static TaskMessageEntry _gViewFigureMessages[3] = {
 
 TaskDesc gRoofGardenSwatMemberViewFigureTasks[VIEW_FIGURE_TASK_COUNT] = {
     { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _roofGardenSwatMemberViewFigureTask, { .model = &_gSwatMember2Body } },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _roofGardenSwatMemberAttachModelTask, { .model = &_gRoofGardenSwatMemberModel060A0 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _roofGardenSwatMemberAttachModelTask, { .model = &_gRoofGardenSwatMemberRadioModel } },
 };
 
 /// Body animation-set bank for this carrier's camera-parented scripted figure.

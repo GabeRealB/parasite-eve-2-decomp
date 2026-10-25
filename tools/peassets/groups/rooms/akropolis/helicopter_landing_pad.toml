@@ -18,7 +18,7 @@ chunk = "palette"
 sha1 = "aaf7fc2cc45fb1084d639c61339ac08f9a06cee8"
 palettes = [
     { texture = "lift", variant = "default", region = "engine/vram/effect_palettes", offset = [0x00000, 0x00002] },
-    { name = "lights", entries = 256, region = "engine/vram/effect_palettes", offset = [0x00000, 0x00003] },
+    { texture = "light", variant = "default", region = "engine/vram/effect_palettes", offset = [0x00000, 0x00003] },
 ]
 
 [[file.contents]]
@@ -57,7 +57,7 @@ chunk = "image"
 sha1 = "79242a86687b7d076198360707fb1a93c1e9e072"
 pages = [
     { texture = "sparks", region = "engine/vram/effect_sheet", offset = [0x000C0, 0x00000] },
-    { texture = "lift", region = "engine/vram/room_sprite_sheet", offset = [0x00000, 0x00000] },
+    { atlas = "lift_page", region = "engine/vram/room_sprite_sheet", offset = [0x00000, 0x00000] },
 ]
 
 [[file.contents]]
@@ -69,9 +69,16 @@ chunk = "bundle"
 [lift]
 type = "texture"
 bpp = 8
-height = 256
+height = 192
 variants = ["default"]
 width = 128
+
+[light]
+type = "texture"
+bpp = 4
+height = 8
+variants = ["default"]
+width = 24
 
 [radio]
 type = "texture"
@@ -226,6 +233,10 @@ sha1 = "863b9bc243a152ba13c3254a969777f72c89350e"
 [lift_move]
 type = "sound"
 sha1 = "dd8bb6403f195387658248078d50760a10b29bca"
+
+[lift_page]
+type = "atlas"
+sprites = [{ texture = "lift", at = [0x00000, 0x00000] }, { texture = "light", at = [0x00000, 0x000F8] }]
 
 [no_9_bank]
 type = "animation_bank"
@@ -1046,8 +1057,8 @@ region = "engine/vram/effect_palettes"
 offset = [0x00000, 0x00002]
 
 [[view24_file.contents.palettes]]
-name = "flash_overwritten"
-entries = 256
+texture = "helicopter_lamp"
+variant = "default"
 region = "engine/vram/effect_palettes"
 offset = [0x00000, 0x00003]
 
@@ -1060,7 +1071,7 @@ slots = 3
 [[view24_file.contents]]
 chunk = "view24_image_2"
 sha1 = "0d13666bf619dea4a84cfa7d8f0ddff867e75bb5"
-pages = [{ texture = "helicopter_page_2", region = "engine/vram/room_sprite_sheet", offset = [0x00040, 0x00000] }]
+pages = [{ atlas = "helicopter_page_2_sheet", region = "engine/vram/room_sprite_sheet", offset = [0x00040, 0x00000] }]
 slots = 3
 
 [[view24_file.contents]]
@@ -1277,6 +1288,19 @@ width = 128
 type = "clip"
 rig = "enemies/golem/no_9/rig"
 
+[helicopter_hull]
+type = "model"
+slots = ["lamp", "helicopter_page_1", "helicopter_page_2"]
+symbol = "_gHelicopterDepartureHelicopterHullModel"
+sha1 = "287290885e659e103d74d7e5151a9035e63ce992"
+
+[helicopter_lamp]
+type = "texture"
+bpp = 4
+height = 16
+variants = ["default"]
+width = 16
+
 [dialogue_0_atlas]
 type = "font_atlas"
 bpp = 4
@@ -1362,7 +1386,7 @@ type = "texture"
 bpp = 8
 height = 256
 variants = ["default"]
-width = 128
+width = 120
 
 [view10_background]
 type = "bs"
@@ -1444,7 +1468,7 @@ type = "pe2pkg"
 embedded = [
     { name = "player_helipad_report_escape", offset = 0x02350, size = 0x29A0, address = 0x80134170 },
     { name = "player_helipad_detonator_talk", offset = 0x04CF0, size = 0x2E14, address = 0x80136B10 },
-    "helicopter_departure_helicopter_base",
+    { name = "helicopter_hull", offset = 0x07B34, size = 0x21E0, address = 0x80139954 },
     { name = "main_rotor", offset = 0x09D14, size = 0x3E8, address = 0x8013BB34 },
     { name = "tail_rotor", offset = 0x0A0FC, size = 0x160, address = 0x8013BF1C },
     { name = "searchlight", offset = 0x0A25C, size = 0x604, address = 0x8013C07C },
@@ -1476,6 +1500,22 @@ rig = "characters/rupert/rig"
 [encounter_intro_impact]
 type = "sound"
 sha1 = "18e686f8ffdbab741a9de541d5e9877cc83cabcf"
+
+[helicopter_hull_binding]
+type = "binding"
+model = "rooms/akropolis/helicopter_landing_pad/helicopter_hull"
+
+[helicopter_hull_binding.textures]
+lamp = "rooms/akropolis/helicopter_landing_pad/helicopter_lamp.default"
+helicopter_page_1 = "rooms/akropolis/helicopter_landing_pad/helicopter_page_1.default"
+helicopter_page_2 = "rooms/akropolis/helicopter_landing_pad/helicopter_page_2.default"
+
+[helicopter_page_2_sheet]
+type = "atlas"
+sprites = [
+    { texture = "helicopter_page_2", at = [0x00008, 0x00000] },
+    { texture = "helicopter_lamp", at = [0x00000, 0x00000] },
+]
 
 [ammunition_pickup_binding]
 type = "binding"

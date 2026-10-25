@@ -594,7 +594,7 @@ TaskDesc gHelicopterLandingPadNo9TaskDescriptors[7] = {
     { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _helicopterLandingPadNo9WeaponTask, { .model = &gGolemNo9AkropolisSword } },
     { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _helicopterLandingPadNo9ChestModelTask, { .model = &gGolemNo9AkropolisChestPiece } },
     { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _helicopterLandingPadNo9GrenadeTask, { .model = &gGolemGrenade } },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _helicopterLandingPadNo9HelipadLightTask, { .model = &gHelicopterLandingPadNo9Model10C8C } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _helicopterLandingPadNo9HelipadLightTask, { .model = &gHelicopterLandingPadNo9HelipadLightModel } },
     { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, _helicopterLandingPadNo9BlastSourceTask, { .value = 0 } },
 };
 

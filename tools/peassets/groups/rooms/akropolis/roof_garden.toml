@@ -497,7 +497,7 @@ offset = [0x00000, 0x00005]
 [swat_member]
 type = "pe2pkg"
 embedded = [
-    "roof_garden_swat_member_model_060A0",
+    { name = "swat_member_radio", offset = 0x05F98, size = 0x2B4, address = 0x80137DB8 },
     { name = "swat_radio_call_1", offset = 0x0624C, size = 0x4CC, address = 0x8013806C },
     { name = "swat_radio_call_2", offset = 0x06718, size = 0x3AC, address = 0x80138538 },
     { name = "swat_radio_call_3", offset = 0x06AC4, size = 0x5B4, address = 0x801388E4 },
@@ -621,6 +621,12 @@ sha1 = "fddfeb2efd5d17435f746ad66ec3f1012e9c8409"
 type = "sound"
 sha1 = "e4ad033bf9aa4815df7e37f21a7938a780939e68"
 
+[swat_member_radio]
+type = "model"
+slots = ["radio"]
+symbol = "_gRoofGardenSwatMemberRadioModel"
+sha1 = "10570ab2ca284557d763b5be04a7f17d0cda01ba"
+
 [swat_radio_call_1]
 type = "clip"
 rig = "characters/swat_member_2/rig"
@@ -701,6 +707,11 @@ rig = "characters/aya/rig"
 [entrance_player_schema]
 type = "animation_schema"
 slots = ["", "slot_1", "slot_2"]
+
+[swat_member_radio_binding]
+type = "binding"
+model = "rooms/akropolis/roof_garden/swat_member_radio"
+textures = { radio = "rooms/akropolis/roof_garden/glows.radio" }
 
 [armory_cardkey_pickup_binding]
 type = "binding"
