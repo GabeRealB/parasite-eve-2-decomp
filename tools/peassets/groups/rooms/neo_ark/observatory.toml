@@ -146,6 +146,7 @@ rig = "characters/kyle/rig"
 
 [player_kneel_settle]
 type = "clip"
+copy_of = "characters/aya/kneel_talk"
 rig = "characters/aya/rig"
 
 [player_walk_forward]

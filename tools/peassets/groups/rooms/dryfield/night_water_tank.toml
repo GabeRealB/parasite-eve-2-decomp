@@ -178,6 +178,7 @@ rig = "characters/aya/rig"
 
 [player_kneel_talk_2]
 type = "clip"
+copy_of = "characters/aya/kneel_talk"
 rig = "characters/aya/rig"
 
 [player_scene_schema]

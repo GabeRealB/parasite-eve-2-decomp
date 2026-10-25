@@ -49,6 +49,10 @@ sha1 = "9e4f23fe3a6e33f3ba22324e3d873aed590eae19"
 type = "sound"
 sha1 = "b22bed8cbed2ad0ed24e062944c8861abe9cf134"
 
+[react]
+type = "clip"
+rig = "enemies/stranger/rig"
+
 [sounds]
 type = "sound_bank"
 samples = [
@@ -91,6 +95,10 @@ slots = ["page_1", "page_2"]
 symbol = "_gStrangerBurstHand"
 sha1 = "bc12ce2a454e2eae375b792da3b4aeb9eba35a33"
 
+[leap_start]
+type = "clip"
+rig = "enemies/stranger/rig"
+
 [run_step_a]
 type = "sound"
 sha1 = "8ad89b9dd93e861a3df2029d2b1737fb90afa992"
@@ -98,6 +106,10 @@ sha1 = "8ad89b9dd93e861a3df2029d2b1737fb90afa992"
 [run_step_b]
 type = "sound"
 sha1 = "96fa5f3914367e222ab901700bf72dc175d44f42"
+
+[leap_crouch]
+type = "clip"
+rig = "enemies/stranger/rig"
 
 [burst_collapse]
 type = "clip"

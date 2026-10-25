@@ -227,9 +227,9 @@ static AnimationSet _gStingerPuppetPlayerKnockbackRecoverFrontClip;
 
 static AnimationSet _gStingerPuppetPlayerKnockbackRecoverBackClip;
 
-static AnimationSet _gChaserDesertPlayerKnockedBackFrontClip;
+static AnimationSet _gAyaHitHeadClip;
 
-static AnimationSet _gChaserDesertPlayerKnockedBackRearClip;
+static AnimationSet _gAyaHitBodyClip;
 
 static TmdSource _gChaserDesertBody;
 

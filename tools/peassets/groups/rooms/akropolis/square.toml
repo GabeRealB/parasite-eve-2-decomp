@@ -699,11 +699,11 @@ sha1 = "334608feb4e2818b0ddc84405181a536d37247d0"
 [grinning_stranger]
 type = "pe2pkg"
 embedded = [
-    { name = "grinning_stranger_react", offset = 0x06208, size = 0x41C, address = 0x80138028 },
-    { name = "grinning_stranger_unused_1", offset = 0x06624, size = 0xB24, address = 0x80138444 },
-    { name = "grinning_stranger_run_off", offset = 0x07148, size = 0xA84, address = 0x80138F68 },
-    { name = "grinning_stranger_idle", offset = 0x07BCC, size = 0x408, address = 0x801399EC },
-    { name = "grinning_stranger_unused_2", offset = 0x07FD4, size = 0x654, address = 0x80139DF4 },
+    { asset = "enemies/stranger/react", offset = 0x06208, size = 0x41C, address = 0x80138028 },
+    { asset = "enemies/stranger/odd/b_walk", offset = 0x06624, size = 0xB24, address = 0x80138444 },
+    { asset = "enemies/stranger/odd/b_run", offset = 0x07148, size = 0xA84, address = 0x80138F68 },
+    { asset = "enemies/stranger/leap_crouch", offset = 0x07BCC, size = 0x408, address = 0x801399EC },
+    { asset = "enemies/stranger/leap_start", offset = 0x07FD4, size = 0x654, address = 0x80139DF4 },
     { name = "grinning_stranger_bank", offset = 0x08628, size = 0x20, address = 0x8013A448 },
 ]
 package_name = "square_grinning_stranger"
@@ -749,32 +749,12 @@ schema = "rooms/akropolis/square/grinning_stranger_schema"
 symbol = "_gSquareGrinningStrangerAnimationSets"
 
 [grinning_stranger_bank.clips]
-react = "rooms/akropolis/square/grinning_stranger_react"
-unused_1 = "rooms/akropolis/square/grinning_stranger_unused_1"
-run_off = "rooms/akropolis/square/grinning_stranger_run_off"
-idle = "rooms/akropolis/square/grinning_stranger_idle"
-unused_2 = "rooms/akropolis/square/grinning_stranger_unused_2"
-
-[grinning_stranger_idle]
-type = "clip"
-rig = "enemies/stranger/rig"
-
-[grinning_stranger_react]
-type = "clip"
-rig = "enemies/stranger/rig"
+react = "enemies/stranger/react"
+unused_1 = "enemies/stranger/odd/b_walk"
+run_off = "enemies/stranger/odd/b_run"
+idle = "enemies/stranger/leap_crouch"
+unused_2 = "enemies/stranger/leap_start"
 
 [grinning_stranger_schema]
 type = "animation_schema"
 slots = ["react", "unused_1", "run_off", "", "", "idle", "unused_2", ""]
-
-[grinning_stranger_run_off]
-type = "clip"
-rig = "enemies/stranger/rig"
-
-[grinning_stranger_unused_1]
-type = "clip"
-rig = "enemies/stranger/rig"
-
-[grinning_stranger_unused_2]
-type = "clip"
-rig = "enemies/stranger/rig"

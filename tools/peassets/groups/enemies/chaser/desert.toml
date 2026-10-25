@@ -364,13 +364,13 @@ size = 0x814
 address = 0x8014C708
 
 [[package.embedded]]
-name = "player_knocked_back_front"
+asset = "characters/aya/hit_head"
 offset = 0x1B0FC
 size = 0x2B4
 address = 0x8014CF1C
 
 [[package.embedded]]
-name = "player_knocked_back_rear"
+asset = "characters/aya/hit_body"
 offset = 0x1B3B0
 size = 0x320
 address = 0x8014D1D0
@@ -767,7 +767,7 @@ symbol = "_gDesertChaserRearCatchPlayerAnimSets"
 [player_rear_catch_bank.clips]
 player_thrown = "enemies/stinger/puppet/player_knockback_back"
 player_caught = "enemies/stinger/puppet/player_knockback_recover_back"
-player_knocked_back = "enemies/chaser/desert/player_knocked_back_rear"
+player_knocked_back = "characters/aya/hit_body"
 
 [burst_leg_right_binding]
 type = "binding"
@@ -785,11 +785,7 @@ symbol = "_gDesertChaserFrontCatchPlayerAnimSets"
 [player_front_catch_bank.clips]
 player_thrown = "enemies/stinger/puppet/player_knockback_front"
 player_caught = "enemies/stinger/puppet/player_knockback_recover_front"
-player_knocked_back = "enemies/chaser/desert/player_knocked_back_front"
-
-[player_knocked_back_rear]
-type = "clip"
-rig = "characters/aya/rig"
+player_knocked_back = "characters/aya/hit_head"
 
 [player_rear_catch_schema]
 type = "animation_schema"
@@ -798,7 +794,3 @@ slots = ["", "player_thrown", "player_caught", "player_knocked_back"]
 [player_front_catch_schema]
 type = "animation_schema"
 slots = ["", "player_thrown", "player_caught", "player_knocked_back"]
-
-[player_knocked_back_front]
-type = "clip"
-rig = "characters/aya/rig"

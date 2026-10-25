@@ -175,7 +175,7 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     # SkelAnimation in its group's directory and encoded from it; the rig gives the joint paths and the rest pose the
     # decoded file shows. Placed (with its address: it holds pointers) by every package that carries it; a clip
     # several packages carry belongs to a shared group (characters/aya).
-    "clip": {"payload": (), "stored": ("rig", "symbol")},
+    "clip": {"payload": (), "stored": ("rig", "symbol", "copy_of")},
     # The slots a table of clips is indexed by, as the code indexes it: `slots` names each index ("" where none is
     # used). The player's schema serves every weapon and companion.
     "animation_schema": {"payload": (), "stored": ("slots",)},
@@ -934,6 +934,10 @@ def validate(assets: dict, embedded: dict) -> list[str]:
             if not isinstance(joints, list) or not all(isinstance(j, str) and NAME.match(j) for j in joints) or \
                     len(set(joints)) != len(joints):
                 problems.append(f"{key}: joints names each joint once (lower-case letters, digits and _)")
+        if kind == "clip" and "copy_of" in rec:
+            original = assets.get(rec["copy_of"], {})
+            if original.get("type") != "clip" or "copy_of" in original or original.get("rig") != rec.get("rig"):
+                problems.append(f"{key}: copy_of names a clip on its rig that is no copy itself")
         if kind in ("model", "clip") and "rig" in rec:
             rig = assets.get(rec["rig"], {})
             if rig.get("type") != "rig":

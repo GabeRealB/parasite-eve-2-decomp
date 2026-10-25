@@ -487,6 +487,7 @@ rig = "characters/jodie/rig"
 
 [stand_copy]
 type = "clip"
+copy_of = "characters/aya/stand"
 rig = "characters/aya/rig"
 symbol = "gMistParkingStandCopyClip"
 
@@ -1266,6 +1267,7 @@ rig = "characters/pierce/rig"
 
 [talk_start_copy]
 type = "clip"
+copy_of = "characters/aya/talk_start"
 rig = "characters/aya/rig"
 symbol = "gMistParkingTalkStartCopyClip"
 
@@ -1606,5 +1608,6 @@ symbol = "gMistParkingPlayerConversationAnim21Clip"
 
 [player_conversation_anim_21_copy]
 type = "clip"
+copy_of = "rooms/mist/parking/player_conversation_anim_21"
 rig = "characters/aya/rig"
 symbol = "gMistParkingPlayerConversationAnim21CopyClip"

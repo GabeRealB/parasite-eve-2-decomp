@@ -11,7 +11,7 @@ embedded = [
     { name = "woman_turn", offset = 0x102F0, size = 0x438, address = 0x80172110 },
     { name = "woman_bank", offset = 0x10728, size = 0x10, address = 0x80172548 },
     { name = "stranger_transform", offset = 0x107D0, size = 0x181C, address = 0x801725F0 },
-    { asset = "rooms/akropolis/patio/body_anim_01", offset = 0x11FEC, size = 0x41C, address = 0x80173E0C },
+    { asset = "enemies/stranger/react", offset = 0x11FEC, size = 0x41C, address = 0x80173E0C },
     { asset = "enemies/stranger/odd/alert", offset = 0x12408, size = 0x838, address = 0x80174228 },
     { name = "stranger_bank", offset = 0x12C40, size = 0x10, address = 0x80174A60 },
 ]
@@ -44,7 +44,7 @@ symbol = "_gActor323300StrangerAnimationSets"
 
 [stranger_bank.clips]
 transform = "rooms/dryfield/toilet/stranger_transform"
-slot_2 = "rooms/akropolis/patio/body_anim_01"
+slot_2 = "enemies/stranger/react"
 alert = "enemies/stranger/odd/alert"
 
 [stranger_schema]

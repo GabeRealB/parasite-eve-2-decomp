@@ -59,8 +59,8 @@ charge_run = "enemies/stranger/horned/charge_run"
 charge_close = "enemies/stranger/horned/charge_close"
 charge_finish = "enemies/stranger/horned/charge_finish"
 charge_recoil = "enemies/stranger/horned/charge_recoil"
-leap_crouch = "rooms/akropolis/patio/stranger_wait_2"
-leap = "rooms/akropolis/patio/stranger_leap_start"
+leap_crouch = "enemies/stranger/leap_crouch"
+leap = "enemies/stranger/leap_start"
 land = "enemies/stranger/horned/land"
 refall_front = "enemies/stranger/odd/refall_front"
 burst_walk_final = "enemies/stranger/burst_collapse"
@@ -346,13 +346,13 @@ size = 0x5E4
 address = 0x801548A0
 
 [[package_4.embedded]]
-asset = "rooms/akropolis/patio/stranger_wait_2"
+asset = "enemies/stranger/leap_crouch"
 offset = 0x23064
 size = 0x408
 address = 0x80154E84
 
 [[package_4.embedded]]
-asset = "rooms/akropolis/patio/stranger_leap_start"
+asset = "enemies/stranger/leap_start"
 offset = 0x2346C
 size = 0x654
 address = 0x8015528C

@@ -208,13 +208,13 @@ size = 0x814
 address = 0x8014CC44
 
 [[desert_chaser.embedded]]
-asset = "enemies/chaser/desert/player_knocked_back_front"
+asset = "characters/aya/hit_head"
 offset = 0x1B638
 size = 0x2B4
 address = 0x8014D458
 
 [[desert_chaser.embedded]]
-asset = "enemies/chaser/desert/player_knocked_back_rear"
+asset = "characters/aya/hit_body"
 offset = 0x1B8EC
 size = 0x320
 address = 0x8014D70C
@@ -291,7 +291,7 @@ symbol = "_gDesertChaserRearCatchPlayerAnimSets"
 [desert_chaser_player_rear_catch_bank.clips]
 player_thrown = "enemies/stinger/puppet/player_knockback_back"
 player_caught = "enemies/stinger/puppet/player_knockback_recover_back"
-player_knocked_back = "enemies/chaser/desert/player_knocked_back_rear"
+player_knocked_back = "characters/aya/hit_body"
 
 [desert_chaser_intro_first_closing_end]
 type = "clip"
@@ -305,7 +305,7 @@ symbol = "_gDesertChaserFrontCatchPlayerAnimSets"
 [desert_chaser_player_front_catch_bank.clips]
 player_thrown = "enemies/stinger/puppet/player_knockback_front"
 player_caught = "enemies/stinger/puppet/player_knockback_recover_front"
-player_knocked_back = "enemies/chaser/desert/player_knocked_back_front"
+player_knocked_back = "characters/aya/hit_head"
 
 [desert_chaser_player_rear_catch_schema]
 type = "animation_schema"

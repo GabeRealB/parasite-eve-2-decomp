@@ -4,6 +4,9 @@ A clip (type `clip`) is placed, with its address, by the package that carries it
 decoded (codec.py), checked to re-encode to the same bytes, and written to its group's directory as
 `<local name>.usda` (usd.py), with the joint paths and rest pose of its `rig`, which has a joint for each of its
 tracks. The way back reads that file and encodes it at its placement's address; the rig plays no part in the bytes.
+A clip a package stores a second time (`copy_of`, the clip it repeats: Aya's stand twice in the MIST parking lot) is
+an object of its own - its own placement and name, bound by its own slots - with the other's content: it has no file
+of its own, and decoding checks its bytes decode to the original's.
 
 A bank (type `animation_bank`) binds clips to the slots of its schema (`animation_schema`). It may extend another
 bank (`base`), which gives every slot it does not bind, and so on up to the bank stating the schema; a slot none of
@@ -65,6 +68,8 @@ def rig_joints(rig: str, assets: dict, assets_root: Path) -> list[dict]:
 
 
 def source_path(name: str, assets: dict, assets_root: Path) -> Path:
+    """A clip's USD file: its own, or the original's for a stored copy."""
+    name = assets[name].get("copy_of", name)
     return assets_root / asset_schema.asset_dir(name, assets[name]) / f"{asset_schema.file_name(name)}.usda"
 
 
@@ -74,6 +79,11 @@ def decode(name: str, assets: dict, embedded: dict, assets_root: Path) -> Path:
     clip = codec.decode(blob, address)
     if codec.encode(clip, address) != blob:
         raise SystemExit(f"{name}: does not re-encode to its bytes")
+    if "copy_of" in assets[name]:                       # a second stored copy: the original's file holds it
+        original = assets[name]["copy_of"]
+        if codec.decode(*placed_bytes(original, assets_root, embedded)) != clip:
+            raise SystemExit(f"{name}: is not a copy of {original}")
+        return source_path(name, assets, assets_root)
     from model import declared as models
     rig = assets[name]["rig"]
     joints = rig_joints(rig, assets, assets_root)

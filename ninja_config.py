@@ -445,8 +445,9 @@ def declared_animation_sources(version: str) -> tuple[list, list]:
                 stem = "clips" if local == "package" else f"{local.removesuffix('_package')}_clips"
                 # One include per run of back-to-back clips: `clips.inc`, or `clips_1.inc`, `clips_2.inc`, ...
                 for k, run in enumerate(runs, 1):
+                    files = [data.ASSETS[n].get("copy_of", n) for n in run]        # a stored copy is the original's
                     usd = [ASSETS_DIR / version / schema.asset_dir(n, data.ASSETS[n], tables=tables) / f"{schema.file_name(n)}.usda"
-                           for n in run]
+                           for n in files]
                     name = rec.get("package_name", key) + (f":{k}" if len(runs) > 1 else "")
                     inc = f"{stem}.inc" if len(runs) == 1 else f"{stem}_{k}.inc"
                     clips.append((name, usd, BUILD_DIR / "include" / "assets" / rec["group"] / inc))

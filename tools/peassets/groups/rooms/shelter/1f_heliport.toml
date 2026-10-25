@@ -431,4 +431,5 @@ slots = [
 
 [player_rupert_mongoose_copy]
 type = "clip"
+copy_of = "characters/aya/stand"
 rig = "characters/aya/rig"

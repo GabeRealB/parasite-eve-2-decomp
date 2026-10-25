@@ -166,7 +166,7 @@ static void      _actor323300WomanTask(Task* task);
 static void      _actor323300StrangerTask(Task* task);
 
 static AnimationSet _gDryfieldToiletStrangerTransformClip;
-static AnimationSet _gAkropolisPatioBodyAnim01Clip;
+static AnimationSet _gStrangerReactClip;
 static AnimationSet _gStrangerOddAlertClip;
 
 #include "assets/characters/anmc_woman_1/body.inc"
