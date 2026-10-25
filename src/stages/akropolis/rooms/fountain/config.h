@@ -49,16 +49,16 @@ enum {
 
 /// Room commands.
 enum {
-    AKROPOLIS_FOUNTAIN_ROOM_COMMAND_LOCK_CAPTION = 3, // CAP 3 until the red key is inserted, CAP 6 after
-    AKROPOLIS_FOUNTAIN_ROOM_COMMAND_HIDDEN_PATH  = 4, // CAP sequence 4; enables the climb trigger
+    AKROPOLIS_FOUNTAIN_ROOM_COMMAND_FOUNTAIN    = 3, // Examining the fountain: CAP 3, or CAP 6 once the red key is in
+    AKROPOLIS_FOUNTAIN_ROOM_COMMAND_HIDDEN_PATH = 4, // The red-leaved tree's path (CAP 4); enables the climb trigger
 };
 
 /// CAP commands.
 enum {
-    AKROPOLIS_FOUNTAIN_CAP_PATIO_DEPARTURE = 1,
-    AKROPOLIS_FOUNTAIN_CAP_LOCKED          = 3,
-    AKROPOLIS_FOUNTAIN_CAP_HIDDEN_PATH     = 4,
-    AKROPOLIS_FOUNTAIN_CAP_UNLOCKED        = 6,
+    AKROPOLIS_FOUNTAIN_CAP_UNBAR_PATIO_DOOR = 1, // "I can remove the bar from this side."
+    AKROPOLIS_FOUNTAIN_CAP_FOUNTAIN         = 3, // "Poseidon's Fountain."
+    AKROPOLIS_FOUNTAIN_CAP_HIDDEN_PATH      = 4, // "This is the only tree with red leaves."
+    AKROPOLIS_FOUNTAIN_CAP_FOUNTAIN_SWAT    = 6, // "A SWAT member in the fountain..."
 };
 
 #endif

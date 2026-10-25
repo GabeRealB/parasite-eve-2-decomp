@@ -41,37 +41,37 @@
 
 #include "assets/rooms/akropolis/fountain/declarations.inc"
 
-/// Phases of `_AkropolisFountainWaterLoop`.
+/// Phases of `_WaterLoop`.
 enum {
-    AKROPOLIS_FOUNTAIN_WATER_LOOP_WAIT  = 0,
-    AKROPOLIS_FOUNTAIN_WATER_LOOP_DEFER = 1,
-    AKROPOLIS_FOUNTAIN_WATER_LOOP_APPLY = 2
+    WATER_LOOP_WAIT  = 0,
+    WATER_LOOP_DEFER = 1,
+    WATER_LOOP_APPLY = 2
 };
 
 /// First encoded movie frame that admits a fountain-loop request (frame 15).
-#define AKROPOLIS_FOUNTAIN_WATER_LOOP_FRAME_FIRST 0xF
+#define WATER_LOOP_FRAME_FIRST 0xF
 
 /// First encoded movie frame that fades a requested fountain loop (frame 240).
-#define AKROPOLIS_FOUNTAIN_WATER_LOOP_FRAME_FADE 0xF0
+#define WATER_LOOP_FRAME_FADE 0xF0
 
 /// Exclusive unsigned-halfword bound on the movie frame minus its first frame.
-#define AKROPOLIS_FOUNTAIN_WATER_LOOP_WINDOW (AKROPOLIS_FOUNTAIN_WATER_LOOP_FRAME_FADE - AKROPOLIS_FOUNTAIN_WATER_LOOP_FRAME_FIRST + 1)
+#define WATER_LOOP_WINDOW (WATER_LOOP_FRAME_FADE - WATER_LOOP_FRAME_FIRST + 1)
 
 /// Audio updates in the fountain loop's requested fade (20, independent of movie frames).
-#define AKROPOLIS_FOUNTAIN_WATER_LOOP_FADE_TICKS 0x14
+#define WATER_LOOP_FADE_TICKS 0x14
 
 /// Task work for the fountain's waterfall loop.
 typedef struct {
     u16 state;      // Phase (0 wait, 1 defer one tick, 2 start or re-pan)
     u16 seenWindow; // Nonzero once this task has observed the playing window
-} _AkropolisFountainWaterLoop;
-STATIC_ASSERT_SIZEOF(_AkropolisFountainWaterLoop, 4);
+} _WaterLoop;
+STATIC_ASSERT_SIZEOF(_WaterLoop, 4);
 
 static void _akropolisFountainUpdateWaterLoop(Task* task, u16 logicalViewIndex);
 
 /// Ordered phases of the player's single-step climb and subsequent walk.
 enum {
-    AKROPOLIS_FOUNTAIN_CLIMB_TURN = 0,
+    CLIMB_TURN = 0,
     AKROPOLIS_FOUNTAIN_CLIMB_WAIT_FOR_TURN,
     AKROPOLIS_FOUNTAIN_CLIMB_STEP,
     AKROPOLIS_FOUNTAIN_CLIMB_WAIT_FOR_STEP,
@@ -127,29 +127,29 @@ static Task* _gAkropolisFountainWaterMovieTask = NULL;
 static inline void _akropolisFountainInitSprayQuad(POLY_FT4* quad, u8 modulation)
 {
     enum {
-        AKROPOLIS_FOUNTAIN_SPRAY_TPAGE   = getTPage(0, GPU_BLEND_ADD, 704, 0), // 4-bit page; VRAM X is in words, Y in scanlines
-        AKROPOLIS_FOUNTAIN_SPRAY_CLUT    = getClut(32, 270),
-        AKROPOLIS_FOUNTAIN_SPRAY_U_FIRST = 0x50,
-        AKROPOLIS_FOUNTAIN_SPRAY_U_LAST  = 0x77,
-        AKROPOLIS_FOUNTAIN_SPRAY_V_FIRST = 0,
-        AKROPOLIS_FOUNTAIN_SPRAY_V_LAST  = 0x27
+        SPRAY_TPAGE   = getTPage(0, GPU_BLEND_ADD, 704, 0), // 4-bit page; VRAM X is in words, Y in scanlines
+        SPRAY_CLUT    = getClut(32, 270),
+        SPRAY_U_FIRST = 0x50,
+        SPRAY_U_LAST  = 0x77,
+        SPRAY_V_FIRST = 0,
+        SPRAY_V_LAST  = 0x27
     };
 
-    quad->tpage = AKROPOLIS_FOUNTAIN_SPRAY_TPAGE;
-    quad->clut  = AKROPOLIS_FOUNTAIN_SPRAY_CLUT;
-    setUV4(quad, AKROPOLIS_FOUNTAIN_SPRAY_U_FIRST, AKROPOLIS_FOUNTAIN_SPRAY_V_FIRST,
-           AKROPOLIS_FOUNTAIN_SPRAY_U_LAST, AKROPOLIS_FOUNTAIN_SPRAY_V_FIRST,
-           AKROPOLIS_FOUNTAIN_SPRAY_U_FIRST, AKROPOLIS_FOUNTAIN_SPRAY_V_LAST,
-           AKROPOLIS_FOUNTAIN_SPRAY_U_LAST, AKROPOLIS_FOUNTAIN_SPRAY_V_LAST);
+    quad->tpage = SPRAY_TPAGE;
+    quad->clut  = SPRAY_CLUT;
+    setUV4(quad, SPRAY_U_FIRST, SPRAY_V_FIRST,
+           SPRAY_U_LAST, SPRAY_V_FIRST,
+           SPRAY_U_FIRST, SPRAY_V_LAST,
+           SPRAY_U_LAST, SPRAY_V_LAST);
     setRGB0(quad, modulation, modulation, modulation);
     setSemiTrans(quad, true);
 }
 
 void akropolisFountainEnableClimbTrigger(void)
 {
-    enum { AKROPOLIS_FOUNTAIN_INSPECTION_TRIGGER = 5 };
+    enum { INSPECTION_TRIGGER = 5 };
 
-    worldCollisionUnlinkTrigger(WORLD_COLLISION_TRIGGER_LIST_ACTION, &_gAkropolisFountainActionTriggers[AKROPOLIS_FOUNTAIN_INSPECTION_TRIGGER]);
+    worldCollisionUnlinkTrigger(WORLD_COLLISION_TRIGGER_LIST_ACTION, &_gAkropolisFountainActionTriggers[INSPECTION_TRIGGER]);
     _gAkropolisFountainClimbTrigger.coord = &gGfxViewCoord;
     worldCollisionLinkTrigger(WORLD_COLLISION_TRIGGER_LIST_ACTION, &_gAkropolisFountainClimbTrigger);
     _gAkropolisFountainClimbTrigger.flags |= WORLD_COLLISION_TRIGGER_ENABLED;
@@ -157,10 +157,10 @@ void akropolisFountainEnableClimbTrigger(void)
 
 void akropolisFountainStartClimb(s32 unusedActionId, s32 unusedControl)
 {
-    enum { AKROPOLIS_FOUNTAIN_CLIMB_TASK_BANK = 2,
-           AKROPOLIS_FOUNTAIN_CLIMB_TASK_SLOT = 14 };
+    enum { BANK = 2,
+           SLOT = 14 };
 
-    taskSpawn(AKROPOLIS_FOUNTAIN_CLIMB_TASK_BANK, AKROPOLIS_FOUNTAIN_CLIMB_TASK_SLOT, 0, 0);
+    taskSpawn(BANK, SLOT, 0, 0);
 }
 
 /// Takes scripted control and turns the player to face the ascent at yaw 2048.
@@ -188,13 +188,13 @@ static void _akropolisFountainClimbWaitForTurn(Task* task)
 /// Starts the player's one-step ascent along its current facing direction.
 static void _akropolisFountainClimbStep(Task* task)
 {
-    enum { AKROPOLIS_FOUNTAIN_CLIMB_ASCEND = 0 };
+    enum { CLIMB_ASCEND = 0 };
 
     GameActorStairClimb climb;
     Task*               player;
 
     player          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    climb.descend   = AKROPOLIS_FOUNTAIN_CLIMB_ASCEND;
+    climb.descend   = CLIMB_ASCEND;
     climb.stepCount = 1;
     TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_CLIMB_STAIRS, &climb, 0);
     task->state = task->state + 1;
@@ -238,7 +238,7 @@ static void _akropolisFountainClimbFinish(Task* task)
 void akropolisFountainClimbTask(Task* task)
 {
     TaskFunc stateHandlers[AKROPOLIS_FOUNTAIN_CLIMB_STATE_COUNT] = {
-        [AKROPOLIS_FOUNTAIN_CLIMB_TURN]          = _akropolisFountainClimbTurnPlayer,
+        [CLIMB_TURN]                             = _akropolisFountainClimbTurnPlayer,
         [AKROPOLIS_FOUNTAIN_CLIMB_WAIT_FOR_TURN] = _akropolisFountainClimbWaitForTurn,
         [AKROPOLIS_FOUNTAIN_CLIMB_STEP]          = _akropolisFountainClimbStep,
         [AKROPOLIS_FOUNTAIN_CLIMB_WAIT_FOR_STEP] = _akropolisFountainClimbWaitForStep,
@@ -252,11 +252,11 @@ void akropolisFountainClimbTask(Task* task)
 void akropolisFountainSprayTask(Task* task)
 {
     enum {
-        AKROPOLIS_FOUNTAIN_SPRAY_VISIBLE_VIEWS    = (1 << 6) | (1 << 7) | (1 << 14) | (1 << 20),
-        AKROPOLIS_FOUNTAIN_SPRAY_MIN_DEPTH        = 0x11,   // GTE SZ3 / 4
-        AKROPOLIS_FOUNTAIN_SPRAY_SIZE_DEPTH       = 0x4E00, // Pixel half-extent multiplied by depth
-        AKROPOLIS_FOUNTAIN_SPRAY_DIM              = 0x40,   // Texture modulation on even frames
-        AKROPOLIS_FOUNTAIN_SPRAY_BRIGHT_INCREMENT = 0x10
+        SPRAY_VISIBLE_VIEWS    = (1 << 6) | (1 << 7) | (1 << 14) | (1 << 20),
+        SPRAY_MIN_DEPTH        = 0x11,   // GTE SZ3 / 4
+        SPRAY_SIZE_DEPTH       = 0x4E00, // Pixel half-extent multiplied by depth
+        SPRAY_DIM              = 0x40,   // Texture modulation on even frames
+        SPRAY_BRIGHT_INCREMENT = 0x10
     };
 
     RoomGlowSpriteScratch* projection;
@@ -267,7 +267,7 @@ void akropolisFountainSprayTask(Task* task)
     s32                    brightness;
 
     coord = task->extra.coordBody->coord;
-    if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN && ((AKROPOLIS_FOUNTAIN_SPRAY_VISIBLE_VIEWS >> (gGameSession->location.view - 1)) & 1)) {
+    if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN && ((SPRAY_VISIBLE_VIEWS >> (gGameSession->location.view - 1)) & 1)) {
         // Project the effect's world center; the GTE input keeps its signed low halfwords.
         actorRenderComposeCoord(coord);
         projection              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
@@ -284,10 +284,10 @@ void akropolisFountainSprayTask(Task* task)
         setPolyFT4(sprite);
         gte_stsxy(&projection->screenPos);
         gte_stszotz(&projection->otz);
-        if (projection->otz >= AKROPOLIS_FOUNTAIN_SPRAY_MIN_DEPTH) {
-            brightness = (((u8)gDisplayState.animFrame & 1) * AKROPOLIS_FOUNTAIN_SPRAY_BRIGHT_INCREMENT) + AKROPOLIS_FOUNTAIN_SPRAY_DIM;
+        if (projection->otz >= SPRAY_MIN_DEPTH) {
+            brightness = (((u8)gDisplayState.animFrame & 1) * SPRAY_BRIGHT_INCREMENT) + SPRAY_DIM;
             _akropolisFountainInitSprayQuad(sprite, brightness);
-            projection->halfExtent = AKROPOLIS_FOUNTAIN_SPRAY_SIZE_DEPTH / projection->otz;
+            projection->halfExtent = SPRAY_SIZE_DEPTH / projection->otz;
             edgeX                  = projection->screenPos.vx - projection->halfExtent;
             sprite->x2             = edgeX;
             sprite->x0             = edgeX;
@@ -310,13 +310,13 @@ void akropolisFountainSprayTask(Task* task)
 void akropolisFountainViewEffectsTask(Task* task)
 {
     enum {
-        AKROPOLIS_FOUNTAIN_VIEW_EFFECTS_INIT        = 0,
-        AKROPOLIS_FOUNTAIN_VIEW_EFFECTS_START_MOVIE = 1,
-        AKROPOLIS_FOUNTAIN_VIEW_EFFECTS_WATCH_VIEW  = 2,
-        AKROPOLIS_FOUNTAIN_WATER_MOVIE_START_ENTRY  = 0,
-        AKROPOLIS_FOUNTAIN_WATER_MOVIE_STOP_ENTRY   = 1,
-        AKROPOLIS_FOUNTAIN_WATER_MOVIE_MAPPED_VIEWS = (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) |
-                                                      (1 << 5) | (1 << 6) | (1 << 7) | (1 << 16)
+        VIEW_EFFECTS_INIT        = 0,
+        VIEW_EFFECTS_START_MOVIE = 1,
+        VIEW_EFFECTS_WATCH_VIEW  = 2,
+        WATER_MOVIE_START_ENTRY  = 0,
+        WATER_MOVIE_STOP_ENTRY   = 1,
+        WATER_MOVIE_MAPPED_VIEWS = (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) |
+                                   (1 << 5) | (1 << 6) | (1 << 7) | (1 << 16)
     };
     EffectWork* effectWork;
     GfxCoord*   effectCoord;
@@ -328,29 +328,29 @@ void akropolisFountainViewEffectsTask(Task* task)
     effectWork      = task->spawnArg2.pointer;
     mappedViewIndex = viewGetMappedIndex();
     switch (task->state) {
-        case AKROPOLIS_FOUNTAIN_VIEW_EFFECTS_INIT:
+        case VIEW_EFFECTS_INIT:
             // The shared effect work's scale halfword retains the mapped view.
             effectSpawn(EFFECT_AKROPOLIS_FOUNTAIN_SPRAY, effectCoord, 0, &_gAkropolisFountainSprayOffset);
             effectWork->scale = mappedViewIndex & 0xFF;
-            task->state       = AKROPOLIS_FOUNTAIN_VIEW_EFFECTS_START_MOVIE;
+            task->state       = VIEW_EFFECTS_START_MOVIE;
             /* fallthrough */
-        case AKROPOLIS_FOUNTAIN_VIEW_EFFECTS_START_MOVIE:
+        case VIEW_EFFECTS_START_MOVIE:
             latchedViewBit = 1 << (effectWork->scale - 1);
-            if (latchedViewBit & AKROPOLIS_FOUNTAIN_WATER_MOVIE_MAPPED_VIEWS) {
-                taskSpawnFromTable(_gAkropolisFountainWaterMovieTaskDescriptors, AKROPOLIS_FOUNTAIN_WATER_MOVIE_START_ENTRY, 0, 0);
+            if (latchedViewBit & WATER_MOVIE_MAPPED_VIEWS) {
+                taskSpawnFromTable(_gAkropolisFountainWaterMovieTaskDescriptors, WATER_MOVIE_START_ENTRY, 0, 0);
             }
-            task->state = AKROPOLIS_FOUNTAIN_VIEW_EFFECTS_WATCH_VIEW;
+            task->state = VIEW_EFFECTS_WATCH_VIEW;
             break;
-        case AKROPOLIS_FOUNTAIN_VIEW_EFFECTS_WATCH_VIEW:
+        case VIEW_EFFECTS_WATCH_VIEW:
             latchedViewIndex = effectWork->scale;
             latchedViewBit   = 1 << (latchedViewIndex - 1);
             if (latchedViewIndex != (mappedViewIndex & 0xFF)) {
                 // Retire the old view's movie before starting the new one next update.
-                if (latchedViewBit & AKROPOLIS_FOUNTAIN_WATER_MOVIE_MAPPED_VIEWS) {
-                    taskSpawnFromTable(_gAkropolisFountainWaterMovieTaskDescriptors, AKROPOLIS_FOUNTAIN_WATER_MOVIE_STOP_ENTRY, 0, 0);
+                if (latchedViewBit & WATER_MOVIE_MAPPED_VIEWS) {
+                    taskSpawnFromTable(_gAkropolisFountainWaterMovieTaskDescriptors, WATER_MOVIE_STOP_ENTRY, 0, 0);
                 }
                 effectWork->scale = (u8)mappedViewIndex;
-                task->state       = AKROPOLIS_FOUNTAIN_VIEW_EFFECTS_START_MOVIE;
+                task->state       = VIEW_EFFECTS_START_MOVIE;
             }
             break;
     }
@@ -369,25 +369,25 @@ static inline void _akropolisFountainRequestWaterLoopMix(s32 panOffset, s32 atte
 /// Synchronizes the water sound's playback window and mix with the fountain movie.
 static void _akropolisFountainUpdateWaterLoop(Task* task, u16 logicalViewIndex)
 {
-    _AkropolisFountainWaterLoop* waterLoop;
-    CdCmdQueue*                  queue;
-    u16                          frame;
+    _WaterLoop* waterLoop;
+    CdCmdQueue* queue;
+    u16         frame;
 
     queue     = &gCdCmdQueue;
     waterLoop = task->work;
     switch (waterLoop->state) {
-        case AKROPOLIS_FOUNTAIN_WATER_LOOP_WAIT:
+        case WATER_LOOP_WAIT:
             // Outside the window, fade a running loop out. Inside it, command
             // the loop the first time, and again only after that fade. A new
             // task has not seen the window, so a camera cut re-pans a loop
             // the previous task left running.
             frame = queue->movieFrame;
-            if (frame >= AKROPOLIS_FOUNTAIN_WATER_LOOP_FRAME_FADE) {
+            if (frame >= WATER_LOOP_FRAME_FADE) {
                 if (_gAkropolisFountainWaterLoopRequested != 0) {
-                    sndEvtRequestScriptStop(SOUND_AKROPOLIS_FOUNTAIN_WATER_LOOP, AKROPOLIS_FOUNTAIN_WATER_LOOP_FADE_TICKS);
+                    sndEvtRequestScriptStop(SOUND_AKROPOLIS_FOUNTAIN_WATER_LOOP, WATER_LOOP_FADE_TICKS);
                     _gAkropolisFountainWaterLoopRequested = 0;
                 }
-            } else if ((u16)(frame - AKROPOLIS_FOUNTAIN_WATER_LOOP_FRAME_FIRST) < AKROPOLIS_FOUNTAIN_WATER_LOOP_WINDOW) {
+            } else if ((u16)(frame - WATER_LOOP_FRAME_FIRST) < WATER_LOOP_WINDOW) {
                 if (waterLoop->seenWindow == 0 || _gAkropolisFountainWaterLoopRequested == 0) {
                     waterLoop->seenWindow = 1;
                     waterLoop->state      = waterLoop->state + 1;
@@ -395,12 +395,12 @@ static void _akropolisFountainUpdateWaterLoop(Task* task, u16 logicalViewIndex)
             }
             break;
 
-        case AKROPOLIS_FOUNTAIN_WATER_LOOP_DEFER:
+        case WATER_LOOP_DEFER:
             // The command waits one tick after the window accepts it.
-            waterLoop->state = AKROPOLIS_FOUNTAIN_WATER_LOOP_APPLY;
+            waterLoop->state = WATER_LOOP_APPLY;
             break;
 
-        case AKROPOLIS_FOUNTAIN_WATER_LOOP_APPLY:
+        case WATER_LOOP_APPLY:
             // Mark every index requested, including indices without a mix.
             switch (logicalViewIndex) {
                 case 2:
@@ -424,7 +424,7 @@ static void _akropolisFountainUpdateWaterLoop(Task* task, u16 logicalViewIndex)
                     break;
             }
             _gAkropolisFountainWaterLoopRequested = 1;
-            waterLoop->state                      = AKROPOLIS_FOUNTAIN_WATER_LOOP_WAIT;
+            waterLoop->state                      = WATER_LOOP_WAIT;
             break;
     }
 }
@@ -433,13 +433,13 @@ static void _akropolisFountainUpdateWaterLoop(Task* task, u16 logicalViewIndex)
 static void _akropolisFountainWaterMovieTask(Task* task)
 {
     enum {
-        AKROPOLIS_FOUNTAIN_MOVIE_INIT             = 0,
-        AKROPOLIS_FOUNTAIN_MOVIE_UPDATE           = 1,
-        AKROPOLIS_FOUNTAIN_MOVIE_TEXTURE_DEPTH    = 2,
-        AKROPOLIS_FOUNTAIN_MOVIE_VIEW3_OT_SLOT    = 35,
-        AKROPOLIS_FOUNTAIN_MOVIE_VIEW5_OT_SLOT    = 29,
-        AKROPOLIS_FOUNTAIN_MOVIE_LOOP_TAIL_FRAMES = 10,
-        AKROPOLIS_FOUNTAIN_MOVIE_FIRST_FRAME      = 1,
+        INIT             = 0,
+        UPDATE           = 1,
+        TEXTURE_DEPTH    = 2,
+        VIEW3_OT_SLOT    = 35,
+        VIEW5_OT_SLOT    = 29,
+        LOOP_TAIL_FRAMES = 10,
+        FIRST_FRAME      = 1,
     };
     CdCmdQueue*     movieQueue;
     CdCmdQueue*     loopQueue;
@@ -459,17 +459,17 @@ static void _akropolisFountainWaterMovieTask(Task* task)
         return;
     }
     switch (task->state) {
-        case AKROPOLIS_FOUNTAIN_MOVIE_INIT:
-            task->work = memCalloc(sizeof(_AkropolisFountainWaterLoop), 0);
+        case INIT:
+            task->work = memCalloc(sizeof(_WaterLoop), 0);
             if (task->work == NULL) {
                 taskKill(task);
                 return;
             }
-            memFillBytes(task->work, 0, sizeof(_AkropolisFountainWaterLoop));
+            memFillBytes(task->work, 0, sizeof(_WaterLoop));
             task->state = task->state + 1;
             break;
 
-        case AKROPOLIS_FOUNTAIN_MOVIE_UPDATE:
+        case UPDATE:
             logicalViewIndex = viewFindLogicalIndex(gGameSession->location.view);
             _akropolisFountainUpdateWaterLoop(task, logicalViewIndex);
             switch ((u16)logicalViewIndex) {
@@ -491,11 +491,11 @@ static void _akropolisFountainWaterMovieTask(Task* task)
                     movieSprite->u0 = 0;
                     movieSprite->v0 = 0;
                     if ((u16)logicalViewIndex == 3) {
-                        orderingTableSlot = AKROPOLIS_FOUNTAIN_MOVIE_VIEW3_OT_SLOT;
+                        orderingTableSlot = VIEW3_OT_SLOT;
                         movieSprite->x0   = 0x70;
                         movieSprite->y0   = 8;
                     } else if ((u16)logicalViewIndex == 5) {
-                        orderingTableSlot = AKROPOLIS_FOUNTAIN_MOVIE_VIEW5_OT_SLOT;
+                        orderingTableSlot = VIEW5_OT_SLOT;
                         movieSprite->x0   = -0xA0;
                         movieSprite->y0   = 0x2A;
                     }
@@ -506,7 +506,7 @@ static void _akropolisFountainWaterMovieTask(Task* task)
 
                     gGpuPrimCursor = pageCommand + 1;
                     setDrawTPage(pageCommand, false, false,
-                                 getTPage(AKROPOLIS_FOUNTAIN_MOVIE_TEXTURE_DEPTH, 0,
+                                 getTPage(TEXTURE_DEPTH, 0,
                                           (u32)movieTexture->data.movie.vramX,
                                           (u32)movieTexture->data.movie.vramY));
                     addPrim(&gGpuCurrentOt[orderingTableSlot], pageCommand);
@@ -522,8 +522,8 @@ static void _akropolisFountainWaterMovieTask(Task* task)
                         loopMovie             = streamGetSlot(streamFindMovieSlot(&loopKey, 0, true));
                         nextFrame             = loopQueue->movieFrame + 1;
                         loopQueue->movieFrame = nextFrame;
-                        if (nextFrame >= loopMovie->data.movie.frameLimit - AKROPOLIS_FOUNTAIN_MOVIE_LOOP_TAIL_FRAMES) {
-                            loopQueue->movieFrame = AKROPOLIS_FOUNTAIN_MOVIE_FIRST_FRAME;
+                        if (nextFrame >= loopMovie->data.movie.frameLimit - LOOP_TAIL_FRAMES) {
+                            loopQueue->movieFrame = FIRST_FRAME;
                         }
                     }
                     break;

@@ -52,11 +52,11 @@ static TaskDesc _gAkropolisFountainPatioDepartureTaskDescriptors[2] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-/// The doors: the patio's plays CAP 1 and reloads the patio until the fountain is unlocked, then leads to the patio's
-/// state for the story so far; the forked road's leads to its state after the blue key.
+/// The doors: the patio's is barred from this side, and the first departure unbars it (CAP 1) and reloads the patio;
+/// after that it leads to the patio's state for the story so far; the forked road's leads to its state after the blue key.
 static s32 _akropolisFountainResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    enum { AKROPOLIS_FOUNTAIN_PATIO_DEPARTURE_TASK_ENTRY = 0 };
+    enum { PATIO_DEPARTURE_TASK_ENTRY = 0 };
     s32 destinationAreaId;
 
     *reply            = *request;
@@ -66,7 +66,7 @@ static s32 _akropolisFountainResolveRoomTransition(Task* unusedTask, s32 unusedM
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 gAkropolisFountainPatioArrivalWarp   = request->warp;
                 gAkropolisFountainPatioRequestedRoom = request->roomState;
-                taskSpawnFromTable(_gAkropolisFountainPatioDepartureTaskDescriptors, AKROPOLIS_FOUNTAIN_PATIO_DEPARTURE_TASK_ENTRY, 0, 0);
+                taskSpawnFromTable(_gAkropolisFountainPatioDepartureTaskDescriptors, PATIO_DEPARTURE_TASK_ENTRY, 0, 0);
             }
             return ROOM_EVENT_STAY;
         }
@@ -99,14 +99,14 @@ static s32 _akropolisFountainRejectKeyItemUse(Task* unusedTask, s32 unusedMessag
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// Room command 3 captions the lock, by whether the red key is in; 4 finds the hidden path.
+/// Room command 3 examines the fountain, by whether the red key is in; 4 finds the hidden path.
 static s32 _akropolisFountainHandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg)
 {
     // Removing this unused reservation changes the original call frame.
     s32 retainedStackSpace[2];
 
-    if (command == AKROPOLIS_FOUNTAIN_ROOM_COMMAND_LOCK_CAPTION) {
-        capRunCommandWithTransition(((gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_PANEL_KEYS) & AKROPOLIS_SECURITY_ROOM_PANEL_KEY_RED_INSERTED) == 0) ? AKROPOLIS_FOUNTAIN_CAP_LOCKED : AKROPOLIS_FOUNTAIN_CAP_UNLOCKED);
+    if (command == AKROPOLIS_FOUNTAIN_ROOM_COMMAND_FOUNTAIN) {
+        capRunCommandWithTransition(((gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_PANEL_KEYS) & AKROPOLIS_SECURITY_ROOM_PANEL_KEY_RED_INSERTED) == 0) ? AKROPOLIS_FOUNTAIN_CAP_FOUNTAIN : AKROPOLIS_FOUNTAIN_CAP_FOUNTAIN_SWAT);
     }
     if (command == AKROPOLIS_FOUNTAIN_ROOM_COMMAND_HIDDEN_PATH) {
         capStartSequenceSlot(AKROPOLIS_FOUNTAIN_CAP_HIDDEN_PATH, CAP_PLAYBACK_DISPLAY_TRANSITION, 0);
@@ -133,44 +133,45 @@ static s32 _akropolisFountainHandleSoundCue(Task* unusedTask, s32 unusedMessageI
     return 0;
 }
 
-/// Leaves for the patio, in its state after the boss, and records the fountain unlocked.
+/// Leaves for the patio, in its state after the boss, and records the door unbarred.
 static inline void _akropolisFountainReloadPatio(Task* task)
 {
-    enum { AKROPOLIS_FOUNTAIN_PATIO_SPRITE_VARIANT = 1 };
+    enum { PATIO_SPRITE_VARIANT = 1 };
 
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = AKROPOLIS_ROOM_ID_PATIO;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = AKROPOLIS_ROOM_STATE_PATIO_POST_CAFETERIA_BOSS;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = gAkropolisFountainPatioArrivalWarp;
-    gDisplayState.spriteVariant                                 = AKROPOLIS_FOUNTAIN_PATIO_SPRITE_VARIANT;
+    gDisplayState.spriteVariant                                 = PATIO_SPRITE_VARIANT;
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
     gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS, AKROPOLIS_CAFETERIA_ROUTE_FOUNTAIN_UNLOCKED);
     taskKill(task);
 }
 
-/// The patio departure: CAP 1, then the reload, on the next update even if the caption is still playing.
+/// The first patio departure: unbarring the door (CAP 1), then the reload, on the next update even if the caption is
+/// still playing.
 static void _akropolisFountainPatioDepartureTask(Task* task)
 {
     enum {
-        AKROPOLIS_FOUNTAIN_PATIO_START_CAP = 0,
-        AKROPOLIS_FOUNTAIN_PATIO_CHECK_CAP = 1,
-        AKROPOLIS_FOUNTAIN_PATIO_RELOAD    = 2,
+        START_CAP = 0,
+        CHECK_CAP = 1,
+        RELOAD    = 2,
     };
 
     switch (task->state) {
-        case AKROPOLIS_FOUNTAIN_PATIO_START_CAP:
-            capRunCommandWithTransition(AKROPOLIS_FOUNTAIN_CAP_PATIO_DEPARTURE);
+        case START_CAP:
+            capRunCommandWithTransition(AKROPOLIS_FOUNTAIN_CAP_UNBAR_PATIO_DOOR);
             task->state = task->state + 1;
             break;
 
-        case AKROPOLIS_FOUNTAIN_PATIO_CHECK_CAP:
+        case CHECK_CAP:
             if (capIsBusy() == 0) {
                 task->state = task->state + 1;
             }
             // Departure proceeds on this update regardless of CAP's busy result.
             /* fallthrough */
 
-        case AKROPOLIS_FOUNTAIN_PATIO_RELOAD:
+        case RELOAD:
             _akropolisFountainReloadPatio(task);
             break;
     }
@@ -187,6 +188,7 @@ static void _akropolisFountainInitializeRoomTask(Task* task)
     task->state = task->state + 1;
 }
 
+/// The room task's idle state.
 static void _akropolisFountainIdleRoomTask(Task* unusedTask)
 {
 }
