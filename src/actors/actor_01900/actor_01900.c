@@ -283,9 +283,8 @@ static s32       _actor01900AcknowledgeHoldRelease(Task* task, s32 messageId, s3
 static s32       _actor01900IgnoreMessage2015(Task* task, s32 messageId, s32 unusedPayload, s32 unused);
 static void      _actor01900Task(Task* task);
 
-/// Distinct, status-free player hit presentation selected by the Stranger strike.
+/// Row of the Stranger strike.
 enum {
-    ACTOR_01900_STRIKE_HIT_REACTION = 7,
     ACTOR_01900_STRIKE_ATTACK_INDEX = 0
 };
 
@@ -294,7 +293,7 @@ enum {
 /// The strike sphere uses row 0. Row 1 retains an ordinary 22-power attack;
 /// no recovered code selects it.
 static DamageAttack _gActor01900Attacks[2] = {
-    { 16, ACTOR_01900_STRIKE_HIT_REACTION },
+    { 16, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
     { 22, GAME_ACTOR_REACTION_ORDINARY },
 };
 

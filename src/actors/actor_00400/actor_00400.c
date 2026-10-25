@@ -688,7 +688,6 @@ enum {
     ACTOR_00400_DISCHARGE_ATTACK_INDEX = 0,
     ACTOR_00400_SHOT_ATTACK_INDEX      = 1,
     ACTOR_00400_ATTACK_COUNT           = 2,
-    ACTOR_00400_ATTACK_REACTION        = 5 // Three player hit flashes, with no status effect
 };
 
 /// Base attacks of the stranded trunk discharge and the independently flying shot.
@@ -697,8 +696,8 @@ enum {
 /// shared parameters; each shot packs row 1 directly. Storage stays loaded
 /// until every body carrying one of these keys has been unlinked.
 static DamageAttack _gActor00400Attacks[ACTOR_00400_ATTACK_COUNT] = {
-    [ACTOR_00400_DISCHARGE_ATTACK_INDEX] = { .power = 18, .reaction = ACTOR_00400_ATTACK_REACTION },
-    [ACTOR_00400_SHOT_ATTACK_INDEX]      = { .power = 24, .reaction = ACTOR_00400_ATTACK_REACTION },
+    [ACTOR_00400_DISCHARGE_ATTACK_INDEX] = { .power = 18, .reaction = GAME_ACTOR_REACTION_HIT_FLASHES },
+    [ACTOR_00400_SHOT_ATTACK_INDEX]      = { .power = 24, .reaction = GAME_ACTOR_REACTION_HIT_FLASHES },
 };
 
 /// Shared Bog Diver health, battle rewards and incoming-hit reaction parameters.

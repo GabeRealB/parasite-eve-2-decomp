@@ -367,11 +367,11 @@ static const EnemyTaskFuncTable3 _gActor02100TaskPhases = { {
 /// The same rows supply beam and gun strike keys. Powers are unscaled damage;
 /// reactions are the player reaction codes defined by `DamageAttack`.
 static DamageAttack _gActor02100WeaponAttacks[ACTOR_02100_WEAPON_COUNT] = {
-    { 15, 7 },
-    { 25, 7 },
+    { 15, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
+    { 25, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
     { 12, 2 },
     { 12, 10 },
-    { 15, 7 },
+    { 15, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
 };
 
 /// Combat parameters shared by the live Watchers in this loaded package.

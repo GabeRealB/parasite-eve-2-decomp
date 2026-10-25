@@ -120,11 +120,9 @@ static s32          _lesserStrangerIsPresentMessage(Task* actorTask, s32 message
 
 #include "assets/enemies/stranger/lesser/clips.inc"
 
-enum { PLAYER_REACTION_SPARK_AND_PUFFS = 7 };
-
 /// Retained attack rows of the fire-escape Stranger, borrowed by its parameters.
 static DamageAttack _gLesserStrangerAttacks[2] = {
-    { 18, PLAYER_REACTION_SPARK_AND_PUFFS },
+    { 18, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
     { 18, GAME_ACTOR_REACTION_ORDINARY },
 };
 

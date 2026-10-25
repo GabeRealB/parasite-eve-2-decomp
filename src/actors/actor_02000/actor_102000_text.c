@@ -172,8 +172,8 @@ static s16 _gGolemPawnRookAnimBlendFrames[32] = {
 /// 3 is the grenade and 4 is the launcher strike. Unused weapon rows remain
 /// present so every carrier uses the same attack indices.
 static DamageAttack _gGolemPawnRookAttacks[5] = {
-    { 28, 5 },
-    { 24, 5 },
+    { 28, GAME_ACTOR_REACTION_HIT_FLASHES },
+    { 24, GAME_ACTOR_REACTION_HIT_FLASHES },
     { 0, GAME_ACTOR_REACTION_SILENCE },
     { 15, GAME_ACTOR_REACTION_PARALYSIS },
     { 5, GAME_ACTOR_REACTION_ORDINARY },

@@ -292,17 +292,18 @@ static s32 _actor04000SetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 
 static s32 _actor04000ReleaseHold(Task* task, s32 messageId, s32 unusedPayload, s32 unusedArg);
 static s32 _actor04000RequestAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
 
-/// Distinct, status-free player hit presentation selected by latch and burst damage.
-enum { ACTOR_04000_HOLD_HIT_REACTION = 7,
-       ACTOR_04000_HOLD_ATTACK_INDEX = 0 };
+/// Row of the latch and burst damage.
+enum {
+    ACTOR_04000_HOLD_ATTACK_INDEX = 0
+};
 
 /// Blood Suckler attack rows borrowed by its enemy parameters.
 ///
 /// Row 0 deals periodic held-player damage; row 1 is the burst attack.
 /// Row 2 retains an ordinary 30-power attack with no recovered selector.
 static DamageAttack _gActor04000Attacks[3] = {
-    { 1, ACTOR_04000_HOLD_HIT_REACTION },
-    { 18, ACTOR_04000_HOLD_HIT_REACTION },
+    { 1, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
+    { 18, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
     { 30, GAME_ACTOR_REACTION_ORDINARY },
 };
 

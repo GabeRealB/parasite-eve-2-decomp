@@ -739,10 +739,10 @@ WorldCollisionSurfaceProperties* gNeoArkForestZoneSurfaceProperties[NEO_ARK_FORE
 /// select ordinary reaction 0. The parameter record borrows this overlay storage;
 /// its live consumers use the HP ceiling and do not index these attack rows.
 static DamageAttack _gNeoArkForestZoneRoamerAttacks[6] = {
-    { 30, 7 },
-    { 30, 7 },
-    { 50, 7 },
-    { 50, 7 },
+    { 30, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
+    { 30, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
+    { 50, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
+    { 50, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
     { 40, 0 },
     { 40, 0 },
 };

@@ -261,15 +261,12 @@ static s32 _actor03700ReleaseHoldMsg(Task* task, s32 messageId, s32 unusedArg1, 
 
 #include "assets/enemies/bat/package_1_clips.inc"
 
-/// Distinct, status-free player hit presentation selected by a bat strike.
-enum { ACTOR_03700_HELD_PLAYER_HIT_REACTION = 7 };
-
 /// Bat damage delivered to the held player at each strike.
 ///
 /// The enemy parameters borrow the same entry. Power is 3 HP before player
 /// scaling; reaction 7 selects a distinct hit presentation without a status.
 /// Storage must remain loaded through enemy and player-hold use.
-static DamageAttack _gActor03700HeldPlayerAttack = { 3, ACTOR_03700_HELD_PLAYER_HIT_REACTION };
+static DamageAttack _gActor03700HeldPlayerAttack = { 3, GAME_ACTOR_REACTION_SPARK_AND_PUFFS };
 
 /// Bat combat tuning and release rewards shared by live enemies.
 ///

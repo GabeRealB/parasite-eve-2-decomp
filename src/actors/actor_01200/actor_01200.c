@@ -222,15 +222,14 @@ static void      _actor01200Task(Task* task);
 static s32 _actor01200SetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg);
 static s32 _actor01200ApplyCommand(Task* task, s32 messageId, const ActorCommand* request, s32 unusedArg);
 
-/// Distinct, status-free player hit presentation selected by the burst attack.
+/// Row of the burst attack.
 enum {
-    ACTOR_01200_BURST_HIT_REACTION = 7,
     ACTOR_01200_BURST_ATTACK_INDEX = 0
 };
 
 /// The Bone Suckler's single burst attack, borrowed by its enemy parameters.
 static DamageAttack _gActor01200BurstAttacks[1] = {
-    { 24, ACTOR_01200_BURST_HIT_REACTION },
+    { 24, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
 };
 
 /// Shared Bone Suckler combat and battle-release reward parameters.

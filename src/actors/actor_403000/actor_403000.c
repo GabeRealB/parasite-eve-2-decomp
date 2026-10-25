@@ -727,27 +727,26 @@ static void _actor403000IgnoreMessage2015(Task* task, s32 messageId, s32 unusedF
 /// Row 2 has no recovered sender. Reaction 7 selects the player's spark/puff
 /// hit presentation without a status effect; ordinary and poison use shared IDs.
 enum {
-    ACTOR_403000_ATTACK_LUNGE                    = 0,
-    ACTOR_403000_ATTACK_GRAB                     = 1,
-    ACTOR_403000_ATTACK_UNPROVEN2                = 2,
-    ACTOR_403000_ATTACK_DROP                     = 3,
-    ACTOR_403000_ATTACK_COUNT                    = 4,
-    ACTOR_403000_ATTACK_REACTION_SPARK_AND_PUFFS = 7,
+    ACTOR_403000_ATTACK_LUNGE     = 0,
+    ACTOR_403000_ATTACK_GRAB      = 1,
+    ACTOR_403000_ATTACK_UNPROVEN2 = 2,
+    ACTOR_403000_ATTACK_DROP      = 3,
+    ACTOR_403000_ATTACK_COUNT     = 4,
 };
 
 /// Default variant's base HP damage and player reactions, indexed by attack.
 static DamageAttack _gActor403000Attacks[ACTOR_403000_ATTACK_COUNT] = {
-    [ACTOR_403000_ATTACK_LUNGE]     = { 30, ACTOR_403000_ATTACK_REACTION_SPARK_AND_PUFFS },
-    [ACTOR_403000_ATTACK_GRAB]      = { 20, ACTOR_403000_ATTACK_REACTION_SPARK_AND_PUFFS },
-    [ACTOR_403000_ATTACK_UNPROVEN2] = { 20, ACTOR_403000_ATTACK_REACTION_SPARK_AND_PUFFS },
+    [ACTOR_403000_ATTACK_LUNGE]     = { 30, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
+    [ACTOR_403000_ATTACK_GRAB]      = { 20, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
+    [ACTOR_403000_ATTACK_UNPROVEN2] = { 20, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
     [ACTOR_403000_ATTACK_DROP]      = { 25, GAME_ACTOR_REACTION_ORDINARY },
 };
 
 /// Alternate variant's base HP damage and player reactions, including a poison lunge.
 static DamageAttack _gActor403000AlternateAttacks[ACTOR_403000_ATTACK_COUNT] = {
     [ACTOR_403000_ATTACK_LUNGE]     = { 20, GAME_ACTOR_REACTION_POISON },
-    [ACTOR_403000_ATTACK_GRAB]      = { 12, ACTOR_403000_ATTACK_REACTION_SPARK_AND_PUFFS },
-    [ACTOR_403000_ATTACK_UNPROVEN2] = { 12, ACTOR_403000_ATTACK_REACTION_SPARK_AND_PUFFS },
+    [ACTOR_403000_ATTACK_GRAB]      = { 12, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
+    [ACTOR_403000_ATTACK_UNPROVEN2] = { 12, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
     [ACTOR_403000_ATTACK_DROP]      = { 18, GAME_ACTOR_REACTION_ORDINARY },
 };
 

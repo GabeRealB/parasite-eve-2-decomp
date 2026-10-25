@@ -163,9 +163,6 @@ typedef struct {
 } MaggotCaterpillarStrideStep;
 STATIC_ASSERT_SIZEOF(MaggotCaterpillarStrideStep, 4);
 
-/// Player body-blast hit presentation used by the burning bite; applies no status.
-enum { MAGGOT_CATERPILLAR_ATTACK_REACTION_BODY_BLAST = 6 };
-
 /// How a hit is taken, held in `MaggotCaterpillarWork::reactionMode`.
 enum {
     MAGGOT_CATERPILLAR_REACTION_NORMAL    = 0, // a hit interrupts the behaviour

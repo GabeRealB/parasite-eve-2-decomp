@@ -30,9 +30,6 @@
 #include "gameplay/animation.h"
 #include "gameplay/effects.h"
 
-/// Victim reaction packed into the burst attack: the player's spark-and-puff hit presentation.
-enum { SUCKLERCEPH_BURST_PLAYER_REACTION = 7 };
-
 /// Death task slot and timing shared by damage, swelling and puffing reactions.
 ///
 /// Scale increments use Q12 (4096 = 1.0); counters advance once per running tick.

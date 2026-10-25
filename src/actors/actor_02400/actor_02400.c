@@ -271,9 +271,9 @@ static void      _actor02400FireballTask(Task* task);
 /// Collision keys copy these rows; both parameter sets borrow the same table.
 static DamageAttack _gActor02400VariantAttacks[4] = {
     { 0, GAME_ACTOR_REACTION_SILENCE },
-    { 28, 6 },
+    { 28, GAME_ACTOR_REACTION_BODY_BLAST },
     { 0, GAME_ACTOR_REACTION_BERSERKER },
-    { 38, 6 },
+    { 38, GAME_ACTOR_REACTION_BODY_BLAST },
 };
 
 /// Enemy tuning for placement variant 0: 80 starting HP and its release rewards.

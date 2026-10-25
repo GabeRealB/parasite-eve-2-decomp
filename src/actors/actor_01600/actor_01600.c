@@ -632,16 +632,13 @@ static s32          _actor01600HandleReleaseHold(Task* actor, s32 messageId, s32
 
 #include "assets/enemies/scavenger/burst_ear.inc"
 
-/// Player hit presentation requested by both Scavenger bite attacks.
-enum { ACTOR_01600_BITE_REACTION_SPARK_AND_PUFFS = 7 };
-
 /// Scavenger grab and lunge bites, indexed by `ACTOR_01600_ATTACK_*`.
 ///
 /// Base powers are 12 for the held target and 14 for the lunge sphere;
 /// both request spark-and-puff presentation. The enemy parameters borrow this table.
 static DamageAttack _gActor01600Attacks[ACTOR_01600_ATTACK_COUNT] = {
-    { 12, ACTOR_01600_BITE_REACTION_SPARK_AND_PUFFS },
-    { 14, ACTOR_01600_BITE_REACTION_SPARK_AND_PUFFS },
+    { 12, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
+    { 14, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
 };
 
 /// Shared Scavenger combat tuning, attacks and release rewards.

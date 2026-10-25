@@ -560,15 +560,13 @@ static void      _actor403100Task(Task* task);
 
 /// Rows of the Burner's attack table; each packs one category-4 damage key.
 enum {
-    ACTOR_403100_ARM_CONTACT_ATTACK_ROW     = 0,
-    ACTOR_403100_FLAME_ATTACK_ROW           = 1,
-    ACTOR_403100_DRAG_ATTACK_ROW            = 2,
-    ACTOR_403100_SQUEEZE_ATTACK_INDEX       = 3,
-    ACTOR_403100_HELD_FLAME_ATTACK_ROW      = 4,
-    ACTOR_403100_HELD_THROW_ATTACK_ROW      = 5,
-    ACTOR_403100_ATTACK_COUNT               = 6,
-    ACTOR_403100_ATTACK_REACTION_ORDINARY   = 0,
-    ACTOR_403100_ATTACK_REACTION_BODY_BLAST = 6,
+    ACTOR_403100_ARM_CONTACT_ATTACK_ROW = 0,
+    ACTOR_403100_FLAME_ATTACK_ROW       = 1,
+    ACTOR_403100_DRAG_ATTACK_ROW        = 2,
+    ACTOR_403100_SQUEEZE_ATTACK_INDEX   = 3,
+    ACTOR_403100_HELD_FLAME_ATTACK_ROW  = 4,
+    ACTOR_403100_HELD_THROW_ATTACK_ROW  = 5,
+    ACTOR_403100_ATTACK_COUNT           = 6,
 };
 
 /// Attack powers and player reactions: arm, flame, drag, squeeze, held flame, throw.
@@ -576,12 +574,12 @@ enum {
 /// Power is the base before victim HP-band scaling. Ordinary reactions apply
 /// no status; both flame rows request the player's three-part body-blast reaction.
 static DamageAttack _gActor403100Attacks[ACTOR_403100_ATTACK_COUNT] = {
-    { 20, ACTOR_403100_ATTACK_REACTION_ORDINARY },
-    { 25, ACTOR_403100_ATTACK_REACTION_BODY_BLAST },
-    { 30, ACTOR_403100_ATTACK_REACTION_ORDINARY },
-    { 8, ACTOR_403100_ATTACK_REACTION_ORDINARY },
-    { 10, ACTOR_403100_ATTACK_REACTION_BODY_BLAST },
-    { 15, ACTOR_403100_ATTACK_REACTION_ORDINARY },
+    { 20, GAME_ACTOR_REACTION_ORDINARY },
+    { 25, GAME_ACTOR_REACTION_BODY_BLAST },
+    { 30, GAME_ACTOR_REACTION_ORDINARY },
+    { 8, GAME_ACTOR_REACTION_ORDINARY },
+    { 10, GAME_ACTOR_REACTION_BODY_BLAST },
+    { 15, GAME_ACTOR_REACTION_ORDINARY },
 };
 
 /// Burner starting health, receiving-hit parameters and mutable release rewards.

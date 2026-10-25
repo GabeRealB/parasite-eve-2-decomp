@@ -522,18 +522,15 @@ static void      _actor400500RightArmTask(Task* task);
 
 #include "assets/enemies/stalker/gray/package_4_clips.inc"
 
-/// Player reaction selected by the Stalker's arm contact keys.
-enum { ACTOR_400500_PLAYER_REACTION_SPARK_AND_PUFFS = 7 };
-
 /// Gray Stalker attack definitions: arm strikes, grab damage and an unused third row.
 ///
 /// Power is the base damage before health-band scaling; reaction selects the
 /// player's hit presentation/status. Both arms use row 0; the grab uses row 1.
 /// No package code selects row 2, whose stored definition is retained.
 static DamageAttack _gActor400500Attacks[3] = {
-    { 28, ACTOR_400500_PLAYER_REACTION_SPARK_AND_PUFFS },
+    { 28, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
     { 35, GAME_ACTOR_REACTION_CONFUSION },
-    { 8, ACTOR_400500_PLAYER_REACTION_SPARK_AND_PUFFS },
+    { 8, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
 };
 
 /// Shared Gray Stalker health, battle rewards and incoming-hit reaction parameters.

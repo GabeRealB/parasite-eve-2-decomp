@@ -123,12 +123,6 @@ enum {
 /// Progress value installed by both normal and skipped Shelter R48 entry scripts.
 enum { ACTOR_503500_STAFF_CARD_USE_READY = 1 };
 
-/// Hit presentations of this translation unit's spawn recipes.
-enum {
-    ACTOR_503500_ATTACK_REACTION_BODY_BLAST      = 6,
-    ACTOR_503500_ATTACK_REACTION_SPARK_AND_PUFFS = 7,
-};
-
 static TmdSource _gBrahmanTorso;
 static TmdSource _gBrahmanPinkFlashEmitter;
 static TmdSource _gBrahmanLargeChainLeft;
@@ -766,7 +760,7 @@ static DamageAttack _gActor503500LingeringShotAttacks[2] = {
 
 /// Single damage row for the pink-flash capsule: power 40 and body-blast presentation.
 static DamageAttack _gActor503500PinkFlashAttacks[1] = {
-    { .power = 40, .reaction = ACTOR_503500_ATTACK_REACTION_BODY_BLAST },
+    { .power = 40, .reaction = GAME_ACTOR_REACTION_BODY_BLAST },
 };
 
 /// Single damage row for the player-centred yellow flash: power 30 and darkness.
@@ -776,7 +770,7 @@ static DamageAttack _gActor503500YellowFlashAttacks[1] = {
 
 /// Single damage row for the orange-flash capsule: power 120 and body-blast presentation.
 static DamageAttack _gActor503500OrangeFlashAttacks[1] = {
-    { .power = 120, .reaction = ACTOR_503500_ATTACK_REACTION_BODY_BLAST },
+    { .power = 120, .reaction = GAME_ACTOR_REACTION_BODY_BLAST },
 };
 
 DamageAttack* gActor503500BallisticShotAttackTables[1] = {
@@ -803,14 +797,14 @@ static DamageAttack _gActor503500ZeroPowerAttacks[1] = { { .power = 0, .reaction
 
 /// Single lunging-chain contact row: power 25 and spark/puff hit presentation.
 static DamageAttack _gActor503500LungingChainAttacks[1] = {
-    { .power = 25, .reaction = ACTOR_503500_ATTACK_REACTION_SPARK_AND_PUFFS },
+    { .power = 25, .reaction = GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
 };
 
 /// Single arm-strike damage row shared by both sides: power 45 and spark/puff presentation.
 ///
 /// Forearm and hand contacts dispatch row 0 through the arm enemy parameters.
 static DamageAttack _gActor503500ArmAttacks[1] = {
-    { .power = 45, .reaction = ACTOR_503500_ATTACK_REACTION_SPARK_AND_PUFFS },
+    { .power = 45, .reaction = GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
 };
 
 EnemyParams gActor503500EnemyParams[ACTOR_503500_SLOT_COUNT] = {

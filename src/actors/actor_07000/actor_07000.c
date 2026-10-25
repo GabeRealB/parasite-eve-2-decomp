@@ -84,7 +84,7 @@ static void         _actor07000SlouchProjectileTask(Task* task);
 static void         _actor07000SlouchHiddenTask(Task* task);
 
 /// Burst damage to the player, enabled only while the burst attack sphere is armed.
-static DamageAttack _gSucklercephBurstAttack = { .power = 30, .reaction = SUCKLERCEPH_BURST_PLAYER_REACTION };
+static DamageAttack _gSucklercephBurstAttack = { .power = 30, .reaction = GAME_ACTOR_REACTION_SPARK_AND_PUFFS };
 
 /// Enemy-kind parameters borrowed by every standing or dropping Sucklerceph.
 ///
@@ -161,7 +161,6 @@ static SVECTOR _gSucklercephPuffOffset = { 0, -300, 0, 0 };
 
 enum {
     ACTOR_07000_SLOUCH_STRIKE_ATTACK_ROW = 0,
-    ACTOR_07000_SLOUCH_STRIKE_REACTION   = 7 // Player spark-and-puff hit presentation, without a status effect.
 };
 
 /// Slouch attack rows packed into category-4 collision keys: 0 strike, 1 spit projectile.
@@ -170,7 +169,7 @@ enum {
 /// puffs. The projectile capsule uses the poison reaction. Both powers are
 /// base HP damage before the victim's HP-band scaling. Enemies borrow this table.
 static DamageAttack _gActor07000SlouchAttacks[2] = {
-    { .power = 20, .reaction = ACTOR_07000_SLOUCH_STRIKE_REACTION },
+    { .power = 20, .reaction = GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
     { .power = 12, .reaction = GAME_ACTOR_REACTION_POISON },
 };
 

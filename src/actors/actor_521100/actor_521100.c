@@ -209,18 +209,15 @@ static void      _actor521100GunbladeTask(Task* task);
 
 #include "assets/enemies/golem/no_9/package_dryfield_clips_2.inc"
 
-/// Distinct, status-free player hit presentation of the golem's weapon attacks.
-enum { ACTOR_521100_WEAPON_HIT_REACTION = 7 };
-
 /// No. 9 GOLEM damage rows for slash, long slash, stance swing and held-player strikes.
 ///
 /// Rows 0..2 have powers 15, 25 and 40 with hit presentation 7; row 3 has
 /// power 10 and the ordinary reaction. The enemy parameters and both attack
 /// spheres borrow these entries; keep them loaded through the fight.
 static DamageAttack _gActor521100Attacks[4] = {
-    { 15, ACTOR_521100_WEAPON_HIT_REACTION },
-    { 25, ACTOR_521100_WEAPON_HIT_REACTION },
-    { 40, ACTOR_521100_WEAPON_HIT_REACTION },
+    { 15, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
+    { 25, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
+    { 40, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
     { 10, GAME_ACTOR_REACTION_ORDINARY },
 };
 

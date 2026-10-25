@@ -62,7 +62,7 @@ static AnimationSet _gAkropolisForkedRoadSucklercephAnim03Clip;
 static TmdSource    _gAkropolisForkedRoadSucklercephBody;
 
 /// Burst damage to the player, enabled only while the burst attack sphere is armed.
-static DamageAttack _gSucklercephBurstAttack = { .power = 30, .reaction = SUCKLERCEPH_BURST_PLAYER_REACTION };
+static DamageAttack _gSucklercephBurstAttack = { .power = 30, .reaction = GAME_ACTOR_REACTION_SPARK_AND_PUFFS };
 
 /// Enemy-kind parameters borrowed by every standing or dropping Sucklerceph.
 ///

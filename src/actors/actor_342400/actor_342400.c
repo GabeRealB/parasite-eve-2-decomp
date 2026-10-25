@@ -199,14 +199,12 @@ static s16 _gActor342400EncounterSpotChoices[6][4] = {
 
 #include "assets/enemies/chaser/mad/body.inc"
 
-enum { MAD_CHASER_ATTACK_REACTION_NORMAL = 0 };
-
 /// Mad Chaser contact attack: index 0, base power 22, ordinary player hit without status.
 ///
 /// Enemy parameters borrow this row while the carrier is loaded. Its key is
 /// shared by the attack sphere; HP-band scaling is applied by the victim.
 static DamageAttack _gMadChaserAttacks[1] = {
-    { 22, MAD_CHASER_ATTACK_REACTION_NORMAL },
+    { 22, GAME_ACTOR_REACTION_ORDINARY },
 };
 
 EnemyParams gActor342400MadChaserEnemyParams = { _gMadChaserAttacks, 110, 20, 40, 1, 100, 10, 100, 0 };

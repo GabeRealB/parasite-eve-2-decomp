@@ -10247,11 +10247,6 @@ static void _playerActorNormalState4(Task* task)
 /// in the enclosing damage-mode dispatcher.
 static void _playerActorTickDamageReaction(Task* task)
 {
-    enum {
-        GAME_ACTOR_REACTION_HIT_FLASHES     = 5,
-        GAME_ACTOR_REACTION_BODY_BLAST      = 6,
-        GAME_ACTOR_REACTION_SPARK_AND_PUFFS = 7,
-    };
     GameActor* actor;
     u8         reaction;
 

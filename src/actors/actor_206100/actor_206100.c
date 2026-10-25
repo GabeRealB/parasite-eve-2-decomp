@@ -439,14 +439,12 @@ static AreaPlacement _gActor206100BogDiverPlacements[6] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-enum { ACTOR_206100_SHOT_PLAYER_REACTION = 5 };
-
 /// Sea Diver shot's unscaled damage and player hit-presentation selector.
 ///
 /// Entry zero packs 26 damage and reaction 5 (no status effect) into each
 /// shot's contact key. The enemy parameter record borrows this single row
 /// for the actor package's lifetime; collision keys copy its values.
-static DamageAttack _gActor206100SeaDiverShotAttack = { 26, ACTOR_206100_SHOT_PLAYER_REACTION };
+static DamageAttack _gActor206100SeaDiverShotAttack = { 26, GAME_ACTOR_REACTION_HIT_FLASHES };
 
 /// Sea Diver health, rewards and hit-reaction tuning, with its single shot attack.
 ///

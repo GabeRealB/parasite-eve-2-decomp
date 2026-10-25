@@ -23,8 +23,9 @@
 /// poison uses its own presentation and applies poison. 9 uses the ordinary
 /// presentation and applies status flag 0x20, whose gameplay effect is
 /// unproven. 4 sets the parasite-energy fade mask to 8, applies no status,
-/// and has no hit presentation of its own. 5, 6 and 7 each use their own hit
-/// presentation and set no status flag.
+/// and has no hit presentation of its own. 5 (three part flashes), 6 (a body
+/// blast) and 7 (a spark with puffs) each use their own hit presentation and set
+/// no status flag; `GAME_ACTOR_REACTION_*` names them.
 typedef struct DamageAttack {
     u16 power;    // Base damage before the HP-band scale; low 12 bits of the identity
     u16 reaction; // Hit reaction in the low 4 bits; values listed above

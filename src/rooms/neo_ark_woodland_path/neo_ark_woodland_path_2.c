@@ -77,10 +77,10 @@ static void _neoArkWoodlandPathRoamerPoolBTask(Task* task);
 /// select category-4 reaction 7 (presentation unproven); the last two select
 /// ordinary reaction 0. The pool controllers do not index these attack rows.
 static DamageAttack _gNeoArkWoodlandPathRoamerAttacks[6] = {
-    { 30, 7 },
-    { 30, 7 },
-    { 50, 7 },
-    { 50, 7 },
+    { 30, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
+    { 30, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
+    { 50, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
+    { 50, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
     { 40, 0 },
     { 40, 0 },
 };

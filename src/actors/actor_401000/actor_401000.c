@@ -124,15 +124,12 @@ static AnimationSet _gStrangerOddGrabStrikeClip;
 static AnimationSet _gStrangerOddGrabReleaseClip;
 static AnimationSet _gStrangerOddGrabReachClip;
 
-/// Player hit presentation used by the grab: one spark and accompanying puffs.
-enum { ACTOR_401000_GRAB_HIT_REACTION = 7 };
-
 /// Two attack definitions belonging to this Odd Stranger enemy kind.
 ///
 /// Entry 0 supplies the grab strike's 20-power reaction-7 hit. Entry 1 is
 /// an 18-power ordinary hit with no recovered attacker selecting it.
 static DamageAttack _gActor401000Attacks[2] = {
-    { 20, ACTOR_401000_GRAB_HIT_REACTION },
+    { 20, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
     { 18, GAME_ACTOR_REACTION_ORDINARY },
 };
 

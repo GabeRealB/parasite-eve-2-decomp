@@ -285,22 +285,16 @@ static void _cafeteriaBossStrangerIgnoreMessage(Task* task, s32 messageId, s32 f
 static TmdSource _gAkropolisCafeteriaBossStrangerBody;
 static void      _cafeteriaBossStrangerTask(Task* task);
 
-/// Player hit-presentation selector packed into this actor's swing contacts.
-enum {
-    ATTACK_REACTION_NORMAL = 0,
-    ATTACK_REACTION        = 7,
-};
-
 /// Swing attacks, indexed 0 for the enraged swing and 1 for the ordinary swing.
 static DamageAttack _gCafeteriaBossStrangerAttacks[2] = {
-    { 18, ATTACK_REACTION },
-    { 15, ATTACK_REACTION },
+    { 18, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
+    { 15, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
 };
 
 /// Attacks of the unused 30-HP parameter preset; no live attack selects these rows.
 static DamageAttack _gCafeteriaBossStrangerUnusedAttacks[2] = {
-    { 18, ATTACK_REACTION },
-    { 18, ATTACK_REACTION_NORMAL },
+    { 18, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
+    { 18, GAME_ACTOR_REACTION_ORDINARY },
 };
 
 /// Combat and reward parameters shared by the actor's live Enemy instances.

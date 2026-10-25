@@ -102,12 +102,9 @@ static WorldCollisionTrigger  _gShelterB1SterilizationRoomViewBoundaryTriggers[8
 static void _shelterB1SterilizationRoomSpawnTrapDamageOnce(void);
 static void _shelterB1SterilizationRoomAttenuateTrapSounds(void);
 
-/// Category-4 reaction zero applies the ordinary hit without a status effect.
-enum { SHELTER_B1_STERILIZATION_ROOM_TRAP_REACTION_NORMAL = 0 };
-
 DamageAttack gShelterB1SterilizationRoomTrapAttack = {
     .power    = 25,
-    .reaction = SHELTER_B1_STERILIZATION_ROOM_TRAP_REACTION_NORMAL,
+    .reaction = GAME_ACTOR_REACTION_ORDINARY,
 };
 
 /// Trap-script view ids, CAP command and persistent sound-skip policy.

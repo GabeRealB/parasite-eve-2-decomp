@@ -252,17 +252,15 @@ static void      _actor356100Task(Task* task);
 
 #include "../../shared/actor/actor_contacts.h"
 
-enum { ACTOR_356100_GRAB_PLAYER_REACTION = 7 };
-
 /// Horned Stranger attack damage and player reactions.
 ///
 /// The grab strike uses slot 0. Slots 0..3 use reaction 7; slots 4/5 use the
 /// ordinary reaction. No consumer establishes the roles of slots 1..5.
 static DamageAttack _gActor356100Attacks[6] = {
-    { 30, ACTOR_356100_GRAB_PLAYER_REACTION },
-    { 30, ACTOR_356100_GRAB_PLAYER_REACTION },
-    { 50, ACTOR_356100_GRAB_PLAYER_REACTION },
-    { 50, ACTOR_356100_GRAB_PLAYER_REACTION },
+    { 30, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
+    { 30, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
+    { 50, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
+    { 50, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
     { 40, GAME_ACTOR_REACTION_ORDINARY },
     { 40, GAME_ACTOR_REACTION_ORDINARY },
 };

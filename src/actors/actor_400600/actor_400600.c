@@ -570,17 +570,14 @@ static TmdSource _gStalkerZebraBurstArmLeft;
 
 #include "assets/enemies/stalker/zebra/burst_arm_left.inc"
 
-/// Category-4 victim presentation used by the Stalker's strikes and bites.
-enum { ACTOR_400600_ATTACK_REACTION_SPARK_PUFF = 7 };
-
 /// Arm-strike and held-player bite attacks, indexed as rows 0 and 1.
 ///
 /// Both use the spark/puff hit presentation without a status effect. Powers
 /// are base HP damage before the victim's HP-band scaling. The collision
 /// spheres and enemy parameters borrow these rows while the overlay is loaded.
 static DamageAttack _gActor400600Attacks[2] = {
-    { 26, ACTOR_400600_ATTACK_REACTION_SPARK_PUFF }, // Both arm strikes
-    { 10, ACTOR_400600_ATTACK_REACTION_SPARK_PUFF }, // Each bite during the hold
+    { 26, GAME_ACTOR_REACTION_SPARK_AND_PUFFS }, // Both arm strikes
+    { 10, GAME_ACTOR_REACTION_SPARK_AND_PUFFS }, // Each bite during the hold
 };
 
 /// Enemy-kind health, battle rewards and hit/status tuning of the Zebra Stalker.

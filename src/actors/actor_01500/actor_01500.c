@@ -256,14 +256,11 @@ static const EnemyTaskFuncTable3 _gActor01500TaskStates = {
 
 #include "assets/enemies/suckler/mind/package_1_clips.inc"
 
-/// Player hit presentation requested by the Mind Suckler's contact attack.
-enum { ACTOR_01500_CONTACT_REACTION_SPARK_AND_PUFFS = 7 };
-
 /// Mind Suckler contact attack: base power 8 with spark-and-puff hit presentation.
 ///
 /// The enemy parameters borrow this single entry, also packed into the
 /// stinger attack sphere at spawn. The record lives for the overlay's lifetime.
-static DamageAttack _gActor01500ContactAttack = { 8, ACTOR_01500_CONTACT_REACTION_SPARK_AND_PUFFS };
+static DamageAttack _gActor01500ContactAttack = { 8, GAME_ACTOR_REACTION_SPARK_AND_PUFFS };
 
 /// Shared Mind Suckler combat tuning and rewards.
 ///

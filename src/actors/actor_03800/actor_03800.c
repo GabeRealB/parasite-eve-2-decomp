@@ -287,15 +287,12 @@ static void         _actor03800Task(Task* task);
 
 #include "assets/enemies/black_beetle/package_1_clips.inc"
 
-/// Player hit presentation requested by Black Beetle body contact.
-enum { ACTOR_03800_CONTACT_REACTION_SPARK_AND_PUFFS = 7 };
-
 /// Black Beetle's single body-contact attack: power 6 with spark-and-puff presentation.
 ///
 /// Enemy parameters borrow the entry; movement scales its power by positive
 /// forward speed before packing the attack sphere's key. Lifetime is the overlay's.
 static DamageAttack _gActor03800ContactAttacks[1] = {
-    { 6, ACTOR_03800_CONTACT_REACTION_SPARK_AND_PUFFS },
+    { 6, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
 };
 
 /// Black Beetle combat tuning and rewards shared by its live enemies.

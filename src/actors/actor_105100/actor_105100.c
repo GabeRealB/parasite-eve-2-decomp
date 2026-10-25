@@ -357,12 +357,12 @@ static AnimationSet _gStingerPuppetPlayerKnockbackRecoverBackClip;
 /// Beam patterns are 0..2; the pattern selects row 2 plus its value. Powers
 /// are unscaled damage and reactions follow `DamageAttack`.
 static DamageAttack _gActor105100Attacks[6] = {
-    { 32, 6 },
-    { 32, 6 },
+    { 32, GAME_ACTOR_REACTION_BODY_BLAST },
+    { 32, GAME_ACTOR_REACTION_BODY_BLAST },
     { 25, 10 },
     { 25, 1 },
     { 25, 2 },
-    { 40, 6 },
+    { 40, GAME_ACTOR_REACTION_BODY_BLAST },
 };
 
 /// Stinger combat parameters and reward amounts, shared by its live enemy records.

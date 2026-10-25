@@ -112,12 +112,12 @@ static const _SpritePalette _gHelicopterLandingPadNo9FireballFramePalettes[12] _
 #include "assets/enemies/golem/no_9/package_akropolis_clips.inc"
 
 DamageAttack gHelicopterLandingPadNo9Attacks[6] = {
-    { 14, 7 },
-    { 24, 6 },
-    { 20, 7 },
-    { 999, 6 },
+    { 14, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
+    { 24, GAME_ACTOR_REACTION_BODY_BLAST },
+    { 20, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
+    { 999, GAME_ACTOR_REACTION_BODY_BLAST },
     { 0, GAME_ACTOR_REACTION_PARALYSIS },
-    { 1, 6 },
+    { 1, GAME_ACTOR_REACTION_BODY_BLAST },
 };
 
 /// Chooses a flame-jet particle's local velocity and draws its subsequent size bits.

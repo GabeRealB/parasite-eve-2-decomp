@@ -365,18 +365,15 @@ static s32          _actor401300PlayMessageAnimation(Task* task, s32 msgId, cons
 static s32          _actor401300IgnoreMessage2015(Task* task, s32 msgId, s32 unusedFirstArg, s32 unusedArg);
 static void         _actor401300Task(Task* task);
 
-/// Player hit presentation selected by this actor's grab, strikes and leap.
-enum { ACTOR_401300_ATTACK_REACTION_SPARK_AND_PUFFS = 7 };
-
 /// Enemy attack rows used by grab/strike A (0), strike B (1), leap (2/3) and charge (4/5).
 ///
 /// Leap/charge choose back then front rows. Power is packed in the low twelve
 /// contact-key bits; reaction 7 produces spark/puff bursts, reaction 0 an ordinary hit.
 static DamageAttack _gActor401300Attacks[6] = {
-    { 30, ACTOR_401300_ATTACK_REACTION_SPARK_AND_PUFFS },
-    { 30, ACTOR_401300_ATTACK_REACTION_SPARK_AND_PUFFS },
-    { 50, ACTOR_401300_ATTACK_REACTION_SPARK_AND_PUFFS },
-    { 50, ACTOR_401300_ATTACK_REACTION_SPARK_AND_PUFFS },
+    { 30, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
+    { 30, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
+    { 50, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
+    { 50, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
     { 40, GAME_ACTOR_REACTION_ORDINARY },
     { 40, GAME_ACTOR_REACTION_ORDINARY },
 };

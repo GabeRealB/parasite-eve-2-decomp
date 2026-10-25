@@ -216,16 +216,20 @@ enum {
     GAME_ACTOR_COLLISION_DISABLE_REQUEST_SHIFT = 3
 };
 
-/// Proven pending-reaction IDs; 4..7 select separate presentation paths whose identities remain unproven.
+/// Pending-reaction IDs: the player's hit reaction an attack names (`DamageAttack::reaction`). 4 has no presentation of its
+/// own; 5, 6 and 7 are presentations without a status.
 enum {
-    GAME_ACTOR_REACTION_ORDINARY  = 0,
-    GAME_ACTOR_REACTION_DARKNESS  = 1,
-    GAME_ACTOR_REACTION_PARALYSIS = 2,
-    GAME_ACTOR_REACTION_POISON    = 3,
-    GAME_ACTOR_REACTION_SILENCE   = 8,
-    GAME_ACTOR_REACTION_STATUS20  = 9,
-    GAME_ACTOR_REACTION_CONFUSION = 10,
-    GAME_ACTOR_REACTION_BERSERKER = 11
+    GAME_ACTOR_REACTION_ORDINARY        = 0,
+    GAME_ACTOR_REACTION_DARKNESS        = 1,
+    GAME_ACTOR_REACTION_PARALYSIS       = 2,
+    GAME_ACTOR_REACTION_POISON          = 3,
+    GAME_ACTOR_REACTION_HIT_FLASHES     = 5, // Three descending-part flashes
+    GAME_ACTOR_REACTION_BODY_BLAST      = 6,
+    GAME_ACTOR_REACTION_SPARK_AND_PUFFS = 7,
+    GAME_ACTOR_REACTION_SILENCE         = 8,
+    GAME_ACTOR_REACTION_STATUS20        = 9,
+    GAME_ACTOR_REACTION_CONFUSION       = 10,
+    GAME_ACTOR_REACTION_BERSERKER       = 11
 };
 
 /// What `GameActor::movementMode` selects: the speed an actor moves along its facing, a divisor of its forward axis
