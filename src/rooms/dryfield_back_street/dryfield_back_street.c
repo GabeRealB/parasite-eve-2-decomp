@@ -56,8 +56,6 @@ static s32  _dryfieldBackStreetRejectKeyItemUse(Task* task, s32 messageId, s32 i
 static s32  _dryfieldBackStreetIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 executionMode);
 static s32  _dryfieldBackStreetIgnoreRoomActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 secondArg);
 
-enum { DRYFIELD_BACK_STREET_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 static WorldCollisionGrid    _gDryfieldBackStreetCollisionGrid;
 static WorldCollisionTrigger _gDryfieldBackStreetViewBoundaries[6];
 static WorldCollisionTrigger _gDryfieldBackStreetActionTriggers[11];
@@ -70,7 +68,7 @@ static WorldCoordRoomLights  _gDryfieldBackStreetRoomLights;
 /// actions borrow DirectionActionRequest, and the other messages carry integers.
 static TaskMessageEntry _gDryfieldBackStreetRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantResolveBackStreet },
-    { DRYFIELD_BACK_STREET_MESSAGE_USE_KEY_ITEM, _dryfieldBackStreetRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldBackStreetRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldBackStreetIgnoreRoomActionMessage },
     { ROOM_MESSAGE_COMMAND, _dryfieldBackStreetIgnoreCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -801,9 +799,7 @@ static void _dryfieldBackStreetAmbienceTask(Task* task)
 /// The item ID and zero second payload are ignored; no item is consumed.
 static s32 _dryfieldBackStreetRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 secondArg)
 {
-    enum { DRYFIELD_BACK_STREET_KEY_ITEM_UNUSABLE = 0 };
-
-    return DRYFIELD_BACK_STREET_KEY_ITEM_UNUSABLE;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Ignores room commands and their execution modes, returning zero.

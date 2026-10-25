@@ -140,8 +140,7 @@ static s32  _dryfieldNightSaloonGRRoomActionMessage(Task* task, s32 messageId, c
 static void _dryfieldNightSaloonGRJukeboxSceneTask(Task* task);
 
 enum {
-    DRYFIELD_NIGHT_SALOON_G_R_MESSAGE_USE_KEY_ITEM = 0x13F1,
-    DRYFIELD_NIGHT_SALOON_G_R_ROOM_AFTER_CUTSCENE  = 2,
+    DRYFIELD_NIGHT_SALOON_G_R_ROOM_AFTER_CUTSCENE = 2,
 };
 
 /// Bodyless transition task spawned by this room's event gate at priority 32.
@@ -159,7 +158,7 @@ static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE 
 /// The task borrows the table and callbacks while this room overlay is loaded.
 static TaskMessageEntry _gDryfieldNightSaloonGRRoomMessages[] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantSaloonMsg },
-    { DRYFIELD_NIGHT_SALOON_G_R_MESSAGE_USE_KEY_ITEM, _dryfieldNightSaloonGRRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightSaloonGRRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightSaloonGRRoomActionMessage },
     { ROOM_MESSAGE_COMMAND, _dryfieldNightSaloonGRCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -2839,9 +2838,7 @@ static const char _gDryfieldNightSaloonGRJukeboxSelectLabel[8] = "SELECT\0\x0D";
 /// All arguments are ignored; the zero result selects the menu's refusal notice.
 static s32 _dryfieldNightSaloonGRRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg)
 {
-    enum { DRYFIELD_NIGHT_SALOON_G_R_KEY_ITEM_REFUSED = 0 };
-
-    return DRYFIELD_NIGHT_SALOON_G_R_KEY_ITEM_REFUSED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Handles the saloon's jukebox and progress-dependent conversation commands.

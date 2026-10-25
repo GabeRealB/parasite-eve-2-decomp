@@ -84,8 +84,6 @@ static WorldCollisionTrigger _gNeoArkPowerPlant2ViewBoundaryTriggers[8];
 static WorldCollisionTrigger _gNeoArkPowerPlant2ActionTriggers[8];
 static WorldCoordRoomLights  _gNeoArkPowerPlant2RoomLights;
 
-enum { NEO_ARK_POWER_PLANT_2_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 static s32  _neoArkPowerPlant2RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
 static s32  _neoArkPowerPlant2ResolveRoomVariant(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32  _neoArkPowerPlant2HandleCapCommand(Task* unusedTask, s32 unusedMessageId, s32 commandIndex, s32 unusedSecondArg);
@@ -143,7 +141,7 @@ static AnimationSet _gNeoArkPowerPlant2Animation02C10 = {
 /// progress-dependent CAP dialogue. The live room task borrows this table.
 static TaskMessageEntry _gNeoArkPowerPlant2RoomMessages[] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkPowerPlant2ResolveRoomVariant },
-    { NEO_ARK_POWER_PLANT_2_MESSAGE_USE_KEY_ITEM, _neoArkPowerPlant2RejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _neoArkPowerPlant2RejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkPowerPlant2IgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _neoArkPowerPlant2HandleCapCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -1079,9 +1077,7 @@ static const AreaApplyRec _gNeoArkPowerPlant2GeneratorClearExtraAreaUpdates[] __
 /// Reads no payload, consumes no item and retains no arguments.
 static s32 _neoArkPowerPlant2RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg)
 {
-    enum { KEY_ITEM_UNUSABLE = 0 };
-
-    return KEY_ITEM_UNUSABLE;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Resolves a Neo Ark destination room for a Power Plant 2 transition request.

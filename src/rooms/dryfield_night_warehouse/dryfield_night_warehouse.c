@@ -54,11 +54,6 @@ static s32 _dryfieldNightWarehouseResolveRoomEvent(Task* task, s32 messageId, co
 static s32 _dryfieldNightWarehouseIgnoreCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
 static s32 _dryfieldNightWarehouseIgnoreDirectionAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
-/// Inventory key-item use routed to this room's message table.
-enum {
-    DRYFIELD_NIGHT_WAREHOUSE_MESSAGE_USE_KEY_ITEM = 0x13F1,
-};
-
 static WorldCollisionGrid         _gDryfieldNightWarehouseCollisionGrid;
 static WorldCollisionTrigger      _gDryfieldNightWarehouseViewBoundaryTriggers[4];
 static WorldCollisionTrigger      _gDryfieldNightWarehouseActionTriggers[10];
@@ -94,7 +89,7 @@ enum {
 /// messages. The final end marker makes unsupported IDs return zero.
 static const TaskMessageEntry _gDryfieldNightWarehouseRoomMessages[5] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldNightWarehouseResolveRoomEvent },
-    { DRYFIELD_NIGHT_WAREHOUSE_MESSAGE_USE_KEY_ITEM, _dryfieldNightWarehouseRejectKeyItem },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightWarehouseRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightWarehouseIgnoreDirectionAction },
     { ROOM_MESSAGE_COMMAND, _dryfieldNightWarehouseIgnoreCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -525,7 +520,7 @@ WorldCollisionSurfaceProperties* gDryfieldNightWarehouseSurfacePropertiesByClass
 
 /// Refuses every key-item use in the warehouse, returning 0 without consuming it.
 ///
-/// `DRYFIELD_NIGHT_WAREHOUSE_MESSAGE_USE_KEY_ITEM` supplies an inventory item ID
+/// `ROOM_MESSAGE_USE_KEY_ITEM` supplies an inventory item ID
 /// and an unused second word.
 static s32 _dryfieldNightWarehouseRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg)
 {

@@ -98,9 +98,8 @@ static WorldCollisionTrigger _gShelterR48ViewBoundaryTriggers[16];
 static WorldCollisionTrigger _gShelterR48ActionTriggers[5];
 static WorldCoordRoomLights  _gShelterR48RoomLights;
 enum {
-    SHELTER_R48_MESSAGE_USE_KEY_ITEM = 0x13F1,
-    SHELTER_R48_CARD_USE_READY       = 1,
-    SHELTER_R48_CARD_USE_STARTED     = 2
+    SHELTER_R48_CARD_USE_READY   = 1,
+    SHELTER_R48_CARD_USE_STARTED = 2
 };
 
 static s32 _shelterR48UseStaffCard(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
@@ -152,7 +151,7 @@ TaskDesc gShelterR48WaterRefractionTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_S
 /// requires. The final marker makes unsupported message IDs return zero.
 static TaskMessageEntry _gShelterR48RoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterR48ResolveTransitionMessage },
-    { SHELTER_R48_MESSAGE_USE_KEY_ITEM, _shelterR48UseStaffCard },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelterR48UseStaffCard },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterR48RoomActionMsg },
     { ROOM_MESSAGE_COMMAND, _shelterR48IgnoreRoomCommand },
     { ROOM_MESSAGE_ACTOR_EVENT, _shelterR48AdvanceBossSceneMsg },

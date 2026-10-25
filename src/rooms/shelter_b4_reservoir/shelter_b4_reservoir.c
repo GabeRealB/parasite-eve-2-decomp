@@ -106,7 +106,6 @@ enum {
 
 enum {
     SHELTER_B4_RESERVOIR_BURST_SPRITE_FRAME_COUNT = 6,
-    SHELTER_B4_RESERVOIR_MESSAGE_USE_KEY_ITEM     = 5105,
 };
 
 enum {
@@ -1592,7 +1591,7 @@ static void _shelterB4ReservoirExitTask(Task* task)
 
 /// Rejects key-item use in the reservoir by returning zero without consuming the item.
 ///
-/// Handles `SHELTER_B4_RESERVOIR_MESSAGE_USE_KEY_ITEM`; all four arguments are ignored.
+/// Handles `ROOM_MESSAGE_USE_KEY_ITEM`; all four arguments are ignored.
 static s32 _shelterB4ReservoirRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 secondArg)
 {
     return 0;

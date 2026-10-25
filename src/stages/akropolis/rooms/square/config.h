@@ -110,7 +110,6 @@ enum {
 
 /// Messages the square's tasks receive.
 enum {
-    AKROPOLIS_SQUARE_MESSAGE_USE_KEY_ITEM             = 5105,
     AKROPOLIS_SQUARE_MESSAGE_SET_TELEPHONE_LIGHT_MODE = 3103,
 };
 

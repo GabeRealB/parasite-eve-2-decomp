@@ -116,15 +116,13 @@ static void _shelterB4UpperSewerOpenWaterHoleTask(Task* task);
 static void _shelterB4UpperSewerExitTransitTask(Task* task);
 static void _shelterB4UpperSewerRestoreSavedView(void);
 
-enum { SHELTER_B4_UPPER_SEWER_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 /// Synchronous room messages for transitions, key items, actions, commands and sound.
 ///
 /// Installed on the room task; the final entry is `TASK_MESSAGE_TABLE_END`.
 /// Transition records and action requests are borrowed only for dispatch.
 static TaskMessageEntry _gShelterB4UpperSewerRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB4UpperSewerResolveRoomTransition },
-    { SHELTER_B4_UPPER_SEWER_MESSAGE_USE_KEY_ITEM, _shelterB4UpperSewerRejectKeyItemMessage },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB4UpperSewerRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB4UpperSewerIgnoreRoomActionMessage },
     { ROOM_MESSAGE_COMMAND, _shelterB4UpperSewerHandleWaterHoleCommand },
     { ROOM_MESSAGE_SOUND, _shelterB4UpperSewerHandleSoundCue },
@@ -1303,9 +1301,7 @@ static void _shelterB4UpperSewerExitTransitTask(Task* task)
 /// All arguments are ignored. The zero result selects the item menu's refusal notice.
 static s32 _shelterB4UpperSewerRejectKeyItemMessage(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg)
 {
-    enum { SHELTER_B4_UPPER_SEWER_KEY_ITEM_REFUSED = 0 };
-
-    return SHELTER_B4_UPPER_SEWER_KEY_ITEM_REFUSED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Saves a resolved exit selector and starts the room's confirmation/transit task.

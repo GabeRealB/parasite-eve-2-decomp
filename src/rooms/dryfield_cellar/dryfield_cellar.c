@@ -42,9 +42,6 @@
 #include "../../shared/effects/glow_draw.h"
 #include "../../shared/cellar.h"
 
-/// Room message sent by the inventory's key-item use prompt.
-enum { DRYFIELD_CELLAR_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 static s32 _dryfieldCellarRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused);
 static s32 _dryfieldCellarIgnoreActionMessage(Task* task, s32 messageId, const DirectionActionRequest* action, s32 unused);
 static s32 _dryfieldCellarHandleSoundMessage(Task* task, s32 messageId, s32 soundSelector, s32 unused);
@@ -65,7 +62,7 @@ static WorldCoordRoomLights   _gDryfieldCellarRoom2Lights;
 /// Keep the room overlay loaded while it can receive messages.
 static TaskMessageEntry _gDryfieldCellarMessageTable[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantResolveCellar },
-    { DRYFIELD_CELLAR_MESSAGE_USE_KEY_ITEM, _dryfieldCellarRejectKeyItem },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldCellarRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldCellarIgnoreActionMessage },
     { ROOM_MESSAGE_COMMAND, _cellarHandleCommand },
     { ROOM_MESSAGE_SOUND, _dryfieldCellarHandleSoundMessage },
@@ -1129,9 +1126,7 @@ static void _glowDrawFlareLocal(const GfxCoord* coord, const SVECTOR* localPoint
 /// cannot be used here. All arguments are ignored; no item is consumed.
 static s32 _dryfieldCellarRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused)
 {
-    enum { DRYFIELD_CELLAR_KEY_ITEM_UNUSABLE = 0 };
-
-    return DRYFIELD_CELLAR_KEY_ITEM_UNUSABLE;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 #include "../../shared/cellar_door_msg.inc.c"

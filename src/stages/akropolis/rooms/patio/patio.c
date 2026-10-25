@@ -86,7 +86,7 @@ static void _akropolisPatioPlayerHeadAimTask(Task* task);
 static TaskMessageEntry _gAkropolisPatioRoomMessages[] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _akropolisPatioResolveRoomTransition },
     { ROOM_MESSAGE_COMMAND, _akropolisPatioHandleRoomCommand },
-    { AKROPOLIS_PATIO_MESSAGE_USE_KEY_ITEM, _akropolisPatioRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _akropolisPatioRejectKeyItemUse },
     { ROOM_MESSAGE_SOUND, _akropolisPatioHandleSoundCue },
     { DIRECTION_MESSAGE_ROOM_ACTION, _akropolisPatioHandleRoomAction },
     { TASK_MESSAGE_TABLE_END, NULL },

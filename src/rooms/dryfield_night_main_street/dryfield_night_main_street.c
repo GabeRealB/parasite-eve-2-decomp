@@ -143,9 +143,6 @@ static void _dryfieldNightMainStreetRestoreSectionSpriteVisibility(void);
 static s32 _dryfieldNightMainStreetRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedSecondArg);
 static s32 _dryfieldNightMainStreetIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
-/// Requests use of a collected key item; the room replies with the item-menu result.
-enum { DRYFIELD_NIGHT_MAIN_STREET_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 static WorldCollisionGrid    _gDryfieldNightMainStreetRoom1CollisionGrid;
 static WorldCollisionGrid    _gDryfieldNightMainStreetRooms2And3CollisionGrid;
 static WorldCollisionTrigger _gDryfieldNightMainStreetViewBoundaryTriggers[26];
@@ -180,7 +177,7 @@ static TaskDesc _gMainStreetIceBagCompletionTaskDescriptor = { { { TASK_BODY_NON
 /// The final `TASK_MESSAGE_TABLE_END` record terminates dispatch; it is not a handler.
 static const TaskMessageEntry _gDryfieldNightMainStreetMessageTable[6] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _mainStreetResolveMessage },
-    { DRYFIELD_NIGHT_MAIN_STREET_MESSAGE_USE_KEY_ITEM, _dryfieldNightMainStreetRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightMainStreetRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightMainStreetIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _mainStreetTalkMessage },
     { ROOM_MESSAGE_SOUND, _mainStreetCapSoundCue },
@@ -1912,9 +1909,7 @@ static const TaskFuncTable3 _gDryfieldNightMainStreetRoomTaskStates = {
 /// without consuming an item or changing the room.
 static s32 _dryfieldNightMainStreetRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedSecondArg)
 {
-    enum { DRYFIELD_NIGHT_MAIN_STREET_KEY_ITEM_REFUSED = 0 };
-
-    return DRYFIELD_NIGHT_MAIN_STREET_KEY_ITEM_REFUSED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Ignores room-specific trigger actions in the nighttime main street.

@@ -88,7 +88,7 @@ static inline TaskDesc* _planarReflectionGetTaskTable(void)
 static TaskMessageEntry _gAkropolisEastElevatorHallRoomMessages[] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _akropolisEastElevatorHallResolveRoomTransition },
     { ROOM_MESSAGE_COMMAND, _akropolisEastElevatorHallHandleRoomCommand },
-    { AKROPOLIS_EAST_ELEVATOR_HALL_MESSAGE_USE_KEY_ITEM, _akropolisEastElevatorHallRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _akropolisEastElevatorHallRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _akropolisEastElevatorHallHandleRoomAction },
     { TASK_MESSAGE_TABLE_END, NULL },
 };

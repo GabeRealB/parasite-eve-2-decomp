@@ -129,8 +129,6 @@ static TaskDesc _gShelterB6CorridorScreenWaveTasks[2] = {
 /// the initial 256 to zero; the context must have a positive span while drawing.
 static s32 _gScreenWaveAmplitude = 256;
 
-enum { SHELTER_B6_CORRIDOR_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 /// Five room-message handlers and the end marker for unsupported requests.
 ///
 /// Resolves departures, rejects key items, ignores room actions, selects
@@ -138,7 +136,7 @@ enum { SHELTER_B6_CORRIDOR_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 /// until teardown; the records and callbacks must remain loaded.
 static TaskMessageEntry _gShelterB6CorridorRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB6CorridorResolveRoomTransition },
-    { SHELTER_B6_CORRIDOR_MESSAGE_USE_KEY_ITEM, _shelterB6CorridorRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB6CorridorRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB6CorridorIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelterB6CorridorHandlePartCommand },
     { ROOM_MESSAGE_ACTOR_EVENT, _shelterB6CorridorStartBattleEndScene },

@@ -112,9 +112,7 @@ s16 gRoamerReserveHp[5] = {
 
 s32 neoArkForestZoneRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 secondArg)
 {
-    enum { NEO_ARK_FOREST_ZONE_KEY_ITEM_REFUSED = 0 };
-
-    return NEO_ARK_FOREST_ZONE_KEY_ITEM_REFUSED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Tests and, in execute mode, latches a room-transition event.

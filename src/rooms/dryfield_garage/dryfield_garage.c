@@ -73,8 +73,6 @@ typedef struct {
 } _DryfieldGarageDoorSceneStorage;
 STATIC_ASSERT_SIZEOF(_DryfieldGarageDoorSceneStorage, 8);
 
-enum { DRYFIELD_GARAGE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 static s32  _dryfieldGarageRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
 static void _dryfieldGarageInitRoomTask(Task* task);
 static void _dryfieldGarageIdleRoomTask(Task* unusedTask);
@@ -103,7 +101,7 @@ static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE 
 /// their message-specific integer or pointer payloads through the 32-bit task ABI.
 static const TaskMessageEntry _gDryfieldGarageMessageTable[6] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldGarageResolveRoomEventMessage },
-    { DRYFIELD_GARAGE_MESSAGE_USE_KEY_ITEM, _dryfieldGarageRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldGarageRejectKeyItemUse },
     { ROOM_MESSAGE_SOUND, _garageSoundMsg },
     { ROOM_MESSAGE_COMMAND, _dryfieldGarageHandleRoomCommand },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldGarageHandleRoomAction },
@@ -874,9 +872,7 @@ static const TaskFuncTable3 _gDryfieldGarageRoomTaskStates = {
 /// notice without consuming an item or starting a room event.
 static s32 _dryfieldGarageRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg)
 {
-    enum { DRYFIELD_GARAGE_KEY_ITEM_REFUSED = 0 };
-
-    return DRYFIELD_GARAGE_KEY_ITEM_REFUSED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Resolves factory rooms and gates junk-yard departure on the water-tank scene.

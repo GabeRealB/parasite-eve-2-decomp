@@ -80,11 +80,6 @@ static s32  _shelter1fParkingGarageIgnoreCommandMessage(Task* task, s32 messageI
 static s32  _shelter1fParkingGarageHandleRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static void _shelter1fParkingGarageUndergroundDepartureTask(Task* task);
 
-/// The key-item reply that displays "cannot use now".
-enum {
-    SHELTER_1F_PARKING_GARAGE_KEY_ITEM_UNUSABLE = 0,
-};
-
 /// Bodyless resolved-departure recipe, priority `TASK_PRIORITY_SCENE` and zero metadata/payloads.
 ///
 /// One descriptor with no terminator. Starts after the underground destination
@@ -596,7 +591,7 @@ static void _shelter1fParkingGarageUndergroundDepartureTask(Task* task)
 /// are ignored; the zero reply selects the key-item menu's "cannot use now" notice.
 static s32 _shelter1fParkingGarageRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 secondArg)
 {
-    return SHELTER_1F_PARKING_GARAGE_KEY_ITEM_UNUSABLE;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Resolves a destination variant and gates the garage-to-airlock departure scene.

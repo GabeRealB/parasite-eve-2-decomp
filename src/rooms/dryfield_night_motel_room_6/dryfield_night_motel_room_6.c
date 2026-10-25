@@ -122,9 +122,6 @@ static s32                   _dryfieldNightMotelRoom6IgnoreActionMessage(Task* r
 static s32                   _dryfieldNightMotelRoom6SoundMessage(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
 static void                  _dryfieldNightMotelRoom6RestTask(Task* task);
 
-/// Key-item use request sent to the room task by the inventory menu.
-enum { DRYFIELD_NIGHT_MOTEL_ROOM_6_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 #include "../../shared/room/telephone_data.inc.c"
 
 #include "../../shared/room/planar_reflection_data.inc.c"
@@ -163,7 +160,7 @@ static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
 /// makes unsupported messages return zero; callback payload types follow each ID.
 static const TaskMessageEntry _gDryfieldNightMotelRoom6RoomMessages[6] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantMotelBalconyMsg },
-    { DRYFIELD_NIGHT_MOTEL_ROOM_6_MESSAGE_USE_KEY_ITEM, _dryfieldNightMotelRoom6RejectKeyItemMessage },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightMotelRoom6RejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightMotelRoom6IgnoreActionMessage },
     { ROOM_MESSAGE_COMMAND, _motelRoom6CutsceneMessage },
     { ROOM_MESSAGE_SOUND, _dryfieldNightMotelRoom6SoundMessage },
@@ -1351,9 +1348,7 @@ static s32 _dryfieldNightMotelRoom6HandleCommand(Task* unusedTask, s32 unusedMes
 /// returns 0 so the inventory menu reports that the item cannot be used here.
 static s32 _dryfieldNightMotelRoom6RejectKeyItemMessage(Task* receiver, s32 messageId, s32 itemId, s32 unusedSecondArg)
 {
-    enum { DRYFIELD_NIGHT_MOTEL_ROOM_6_KEY_ITEM_RESULT_REFUSED = 0 };
-
-    return DRYFIELD_NIGHT_MOTEL_ROOM_6_KEY_ITEM_RESULT_REFUSED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 #include "../../shared/room/room_variants_motel_balcony.inc.c"

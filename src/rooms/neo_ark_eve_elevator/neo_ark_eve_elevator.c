@@ -39,9 +39,6 @@ static const TaskFuncTable3 _gNeoArkEveElevatorRoomTaskHandlers = {
     },
 };
 
-/// Key-item requests delivered by the inventory menu to this room's task.
-enum { NEO_ARK_EVE_ELEVATOR_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 static s32 _neoArkEveElevatorRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
 static s32 _neoArkEveElevatorResolveTransition(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _neoArkEveElevatorIgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 commandArgument);
@@ -57,7 +54,7 @@ static WorldCoordRoomLights  _gNeoArkEveElevatorRoomLights;
 /// until teardown. The end marker makes unsupported messages return zero.
 static TaskMessageEntry _gNeoArkEveElevatorRoomMessageTable[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkEveElevatorResolveTransition },
-    { NEO_ARK_EVE_ELEVATOR_MESSAGE_USE_KEY_ITEM, _neoArkEveElevatorRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _neoArkEveElevatorRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkEveElevatorIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _neoArkEveElevatorIgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -265,14 +262,12 @@ WorldCollisionSurfaceProperties* gNeoArkEveElevatorSurfaceProperties[8] = {
 
 /// Refuses every key-item use in the EVE elevator.
 ///
-/// `NEO_ARK_EVE_ELEVATOR_MESSAGE_USE_KEY_ITEM` supplies the inventory item ID
+/// `ROOM_MESSAGE_USE_KEY_ITEM` supplies the inventory item ID
 /// and a zero second payload word. Returning 0 makes the item menu report that
 /// the selected item cannot be used here.
 static s32 _neoArkEveElevatorRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg)
 {
-    enum { NEO_ARK_EVE_ELEVATOR_KEY_ITEM_REFUSED = 0 };
-
-    return NEO_ARK_EVE_ELEVATOR_KEY_ITEM_REFUSED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Resolves a transition and gates the Shelter B6 corridor departure on CD dispatch readiness.

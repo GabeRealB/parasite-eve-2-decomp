@@ -111,8 +111,6 @@ static inline void _neoArkObservatoryProjectBeamSegment(EffectQuadScratch* quadS
     gte_stflg(&quadScratch->projectionFlags);
 }
 
-enum { NEO_ARK_OBSERVATORY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 static WorldCollisionOccluder _gNeoArkObservatorySightOccluders[4];
 static WorldCollisionTrigger  _gNeoArkObservatoryViewBoundaryTriggers[18];
 static WorldCollisionTrigger  _gNeoArkObservatoryActionTriggers[14];
@@ -189,7 +187,7 @@ static TaskDesc _gNeoArkObservatoryCapEventTaskDesc = { { { TASK_BODY_NONE, TASK
 /// The receiver borrows this table and its callbacks while the room is loaded.
 static TaskMessageEntry _gNeoArkObservatoryRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkObservatoryResolveRoomEventMessage },
-    { NEO_ARK_OBSERVATORY_MESSAGE_USE_KEY_ITEM, _neoArkObservatoryRejectKeyItemMessage },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _neoArkObservatoryRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkObservatoryRoomActionMessage },
     { ROOM_MESSAGE_COMMAND, _neoArkObservatoryCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },

@@ -60,9 +60,6 @@ static s32  _dryfieldNightWaterTankCommandMessage(Task* unusedTask, s32 messageI
 static s32  _dryfieldNightWaterTankRoomActionMessage(Task* unusedTask, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static void _dryfieldNightWaterTankBattleAftermathTask(Task* task);
 
-/// Inventory's request to use a collected key item in this room.
-enum { DRYFIELD_NIGHT_WATER_TANK_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 enum {
     DRYFIELD_NIGHT_WATER_TANK_PLAYER_IDLE_ANIMATION = 1,
     DRYFIELD_NIGHT_WATER_TANK_RELOCATION_SOUND      = 0x52150001,
@@ -146,7 +143,7 @@ static EvsCommand _gDryfieldNightWaterTankRelocateToView3Script[11] = {
 /// the table and its callbacks for its lifetime in the loaded room overlay.
 static TaskMessageEntry _gDryfieldNightWaterTankRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldNightWaterTankResolveRoomEvent },
-    { DRYFIELD_NIGHT_WATER_TANK_MESSAGE_USE_KEY_ITEM, _dryfieldNightWaterTankRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightWaterTankRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightWaterTankRoomActionMessage },
     { ROOM_MESSAGE_COMMAND, _dryfieldNightWaterTankCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -865,9 +862,7 @@ static void _dryfieldNightWaterTankBattleAftermathTask(Task* task)
 /// Returns 0 so the inventory displays its refusal message. No item is consumed.
 static s32 _dryfieldNightWaterTankRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg)
 {
-    enum { DRYFIELD_NIGHT_WATER_TANK_KEY_ITEM_USE_REJECTED = 0 };
-
-    return DRYFIELD_NIGHT_WATER_TANK_KEY_ITEM_USE_REJECTED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Allows a room transition with the requested destination unchanged.

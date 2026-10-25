@@ -94,8 +94,6 @@ static s32 _shelterB1AccessTunnelRejectKeyItemUse(Task* task, s32 messageId, s32
 static s32 _shelterB1AccessTunnelIgnoreRoomCommand(Task* task, s32 messageId, s32 command, s32 unusedArg);
 static s32 _shelterB1AccessTunnelIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
-enum { SHELTER_B1_ACCESS_TUNNEL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 /// Bodyless transition task spawned by this room's event gate at priority 32.
 ///
 /// Uses the latched request and destination to play CAP and optional sounds,
@@ -115,7 +113,7 @@ static TaskDesc _gShelterB1AccessTunnelStagedEventTaskDesc = { { { TASK_BODY_NON
 /// The live room receiver borrows the four handlers and terminal entry.
 static const TaskMessageEntry _gShelterB1AccessTunnelRoomMessages[5] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1AccessTunnelResolveRoomEvent },
-    { SHELTER_B1_ACCESS_TUNNEL_MESSAGE_USE_KEY_ITEM, _shelterB1AccessTunnelRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB1AccessTunnelRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1AccessTunnelIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelterB1AccessTunnelIgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },

@@ -246,8 +246,6 @@ static void       _mineMesaSpawnEnemyWaveState(Task* task);
 
 static s32 _mineMesaRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
 
-/// The room's key-item request; zero replies leave the item unused.
-enum { MINE_MESA_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 static s32 _mineMesaResolveRoomEventMsg(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _mineMesaRoomCommandMsg(Task* task, s32 messageId, s32 commandId, s32 unused);
 static s32 _mineMesaRoomActionMsg(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unused);
@@ -272,7 +270,7 @@ static TaskDesc _gMineMesaStagedEventTaskDesc = {
 /// IDs return zero. Keep this table and its handlers loaded with the room task.
 static TaskMessageEntry _gMineMesaRoomMessages[] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _mineMesaResolveRoomEventMsg },
-    { MINE_MESA_MESSAGE_USE_KEY_ITEM, _mineMesaRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _mineMesaRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _mineMesaRoomActionMsg },
     { ROOM_MESSAGE_COMMAND, _mineMesaRoomCommandMsg },
     { ROOM_MESSAGE_ACTOR_EVENT, _mineMesaActorEventMsg },

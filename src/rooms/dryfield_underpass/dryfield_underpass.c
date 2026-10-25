@@ -68,9 +68,6 @@ static s32  _dryfieldUnderpassRejectKeyItemUse(Task* unusedTask, s32 messageId, 
 static void _dryfieldUnderpassIdleTask(Task* unusedTask);
 static s32  _dryfieldUnderpassHandleRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
-/// Inventory's request to use a key item in this room.
-enum { DRYFIELD_UNDERPASS_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 static AnimationPackedPose _gDryfieldUnderpassAnimation00E64Bank1[10] = {
 #include "assets/dryfield_underpass_animation_00E64_bank1.inc"
 };
@@ -1196,9 +1193,7 @@ static void _glowDrawFlareLocal(const GfxCoord* coord, const SVECTOR* localPoint
 /// inventory item's integer ID; all callback arguments are ignored.
 static s32 _dryfieldUnderpassRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedSecondArg)
 {
-    enum { DRYFIELD_UNDERPASS_KEY_ITEM_USE_REJECTED = 0 };
-
-    return DRYFIELD_UNDERPASS_KEY_ITEM_USE_REJECTED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Starts the underpass's one-shot event for direction action 1 in placement variant 1.

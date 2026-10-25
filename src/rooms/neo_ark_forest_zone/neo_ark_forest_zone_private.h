@@ -63,9 +63,6 @@ extern TaskDesc gNeoArkForestZoneRoamerPoolBTaskDesc;
 
 // Callbacks referenced by the overlay's shared data tables.
 
-/// Key-item use request from the inventory menu; its first argument is an item ID.
-enum { NEO_ARK_FOREST_ZONE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 /// Refuses every key-item use in the forest zone.
 ///
 /// Returns zero, which the key-item menu reports as unusable. All arguments

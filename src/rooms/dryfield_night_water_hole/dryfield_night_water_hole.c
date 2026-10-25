@@ -130,10 +130,6 @@ static s32 _dryfieldNightWaterHoleRejectKeyItemUse(Task* task, s32 messageId, s3
 static s32 _dryfieldNightWaterHoleCommandMessage(Task* task, s32 messageId, s32 commandId, s32 unusedSecondArg);
 static s32 _dryfieldNightWaterHoleRoomActionMessage(Task* unusedTask, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
-enum {
-    DRYFIELD_NIGHT_WATER_HOLE_MESSAGE_USE_KEY_ITEM = 0x13F1,
-};
-
 // Room-local script choices, task priorities and logical-view extent.
 enum {
     DRYFIELD_NIGHT_WATER_HOLE_PLAYER_IDLE_CLIP             = 1,
@@ -197,7 +193,7 @@ static TaskDesc _gDryfieldNightWaterHoleShelterDepartureTaskDesc = { { { TASK_BO
 /// rejects unsupported messages; the four live handlers consume their payloads synchronously.
 static TaskMessageEntry _gDryfieldNightWaterHoleRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantResolveWaterHole },
-    { DRYFIELD_NIGHT_WATER_HOLE_MESSAGE_USE_KEY_ITEM, _dryfieldNightWaterHoleRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightWaterHoleRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightWaterHoleRoomActionMessage },
     { ROOM_MESSAGE_COMMAND, _dryfieldNightWaterHoleCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -1558,14 +1554,12 @@ static const TaskFuncTable3 _gDryfieldNightWaterHoleRoomStateHandlers = {
 
 /// Refuses every key-item use in this room without consuming the item.
 ///
-/// Message `DRYFIELD_NIGHT_WATER_HOLE_MESSAGE_USE_KEY_ITEM` carries the inventory
+/// Message `ROOM_MESSAGE_USE_KEY_ITEM` carries the inventory
 /// item ID in `itemId`; the receiver and second argument are unused. Returns
 /// zero so the item menu displays its refusal notice.
 static s32 _dryfieldNightWaterHoleRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg)
 {
-    enum { DRYFIELD_NIGHT_WATER_HOLE_KEY_ITEM_REFUSED = 0 };
-
-    return DRYFIELD_NIGHT_WATER_HOLE_KEY_ITEM_REFUSED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 #include "../../shared/water_hole_door_msg.inc.c"

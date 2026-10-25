@@ -74,7 +74,6 @@ static void _dryfieldNightDrivewayInitializeRoom(Task* task);
 static void _dryfieldNightDrivewayRoomIdle(Task* task);
 
 enum {
-    DRYFIELD_NIGHT_DRIVEWAY_MESSAGE_USE_KEY_ITEM = 0x13F1,
     DRYFIELD_NIGHT_DRIVEWAY_ENCOUNTER_WAVE_BEGIN = 1,
     DRYFIELD_NIGHT_DRIVEWAY_PLAYER_STATE_RUNNING = 0,
 };
@@ -357,7 +356,7 @@ static EvsCommand _gDryfieldNightDrivewayBlackoutSkipScript[9] = {
 /// message IDs return zero; payload meanings belong to the selected handler.
 static TaskMessageEntry _gDryfieldNightDrivewayRoomMessages[] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantResolveDriveway },
-    { DRYFIELD_NIGHT_DRIVEWAY_MESSAGE_USE_KEY_ITEM, _dryfieldNightDrivewayRejectKeyItem },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightDrivewayRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightDrivewayIgnoreDirectionAction },
     { ROOM_MESSAGE_COMMAND, _dryfieldNightDrivewayIgnoreRoomCommand },
     { ROOM_MESSAGE_SOUND, _drivewayScriptSound },
@@ -1492,9 +1491,7 @@ static void _dryfieldNightDrivewaySetPlayerStateHold(u8 hold)
 /// collected `itemId` cannot be used here; `unusedArg` is the sender's zero word.
 static s32 _dryfieldNightDrivewayRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
-    enum { DRYFIELD_NIGHT_DRIVEWAY_KEY_ITEM_REFUSED = 0 };
-
-    return DRYFIELD_NIGHT_DRIVEWAY_KEY_ITEM_REFUSED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Ignores room commands from CAP and direction control, returning zero.

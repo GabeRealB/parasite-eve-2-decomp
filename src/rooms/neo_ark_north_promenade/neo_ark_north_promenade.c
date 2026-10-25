@@ -581,9 +581,7 @@ WorldCollisionSurfaceProperties* gNeoArkNorthPromenadeSurfaceProperties[NEO_ARK_
 /// All arguments are ignored; returns the item menu's cannot-use result.
 static s32 _neoArkNorthPromenadeRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
-    enum { KEY_ITEM_NOT_USED = 0 };
-
-    return KEY_ITEM_NOT_USED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Resolves Neo Ark room variants and refuses the locked forest-zone departure.

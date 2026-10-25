@@ -140,8 +140,6 @@ static void _shelterB2MainCorridorStagedDepartureTask(Task* task);
 static void _shelterB2MainCorridorRecordCapCompletionTask(Task* task);
 static void _shelterB2MainCorridorWaterTask(Task* task);
 
-enum { SHELTER_B2_MAIN_CORRIDOR_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 /// Fixed beam/flare perspective scales and packed beam RGB factors for this room.
 enum {
     SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE    = 0x200,
@@ -198,7 +196,7 @@ static TaskDesc _gShelterB2MainCorridorStagedEventTaskDescriptor = { { { TASK_BO
 /// its callbacks while the corridor overlay is loaded.
 static TaskMessageEntry _gShelterB2MainCorridorRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB2MainCorridorResolveRoomEvent },
-    { SHELTER_B2_MAIN_CORRIDOR_MESSAGE_USE_KEY_ITEM, _shelterB2MainCorridorRejectKeyItemMessage },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB2MainCorridorRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB2MainCorridorHandleRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelterB2MainCorridorIgnoreCommandMessage },
     { ROOM_MESSAGE_SOUND, _shelterB2MainCorridorHandleSoundMessage },

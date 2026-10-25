@@ -96,8 +96,6 @@ static s32 _shelterB2SouthMaintenanceWalkwayIgnoreKeyItem(Task* task, s32 messag
 static s32 _shelterB2SouthMaintenanceWalkwayIgnoreCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
 static s32 _shelterB2SouthMaintenanceWalkwayIgnoreAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
-enum { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 /// Bodyless transition task spawned by this room's event gate at priority 32.
 ///
 /// Uses the latched request and destination to play CAP and optional sounds,
@@ -120,7 +118,7 @@ static TaskDesc _gShelterB2SouthMaintenanceWalkwayStagedEventTaskDesc = { { { TA
 /// this table and its callback code for the loaded room's lifetime.
 static TaskMessageEntry _gShelterB2SouthMaintenanceWalkwayRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB2SouthMaintenanceWalkwayResolveRoomEventMessage },
-    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_MESSAGE_USE_KEY_ITEM, _shelterB2SouthMaintenanceWalkwayIgnoreKeyItem },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB2SouthMaintenanceWalkwayIgnoreKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB2SouthMaintenanceWalkwayIgnoreAction },
     { ROOM_MESSAGE_COMMAND, _shelterB2SouthMaintenanceWalkwayIgnoreCommand },
     { TASK_MESSAGE_TABLE_END, NULL },

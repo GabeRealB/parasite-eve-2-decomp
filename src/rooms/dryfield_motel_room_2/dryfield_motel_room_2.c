@@ -1171,9 +1171,7 @@ static void _dryfieldMotelRoom2InitRoomTask(Task* task);
 /// the other arguments are ignored; no item is consumed or room event started.
 static s32 _dryfieldMotelRoom2RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg)
 {
-    enum { DRYFIELD_MOTEL_ROOM_2_KEY_ITEM_REFUSED = 0 };
-
-    return DRYFIELD_MOTEL_ROOM_2_KEY_ITEM_REFUSED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Allows a room transition with the requested destination unchanged.

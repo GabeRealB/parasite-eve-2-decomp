@@ -42,8 +42,6 @@ static s32 _shelterB1ControlRoomAccessTunnelResolveRoomEvent(Task* task, s32 mes
 static s32 _shelterB1ControlRoomAccessTunnelIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
 static s32 _shelterB1ControlRoomAccessTunnelIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
-enum { SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 /// Room-message dispatch for Mine/Shelter transitions, key-item refusals and ignored room actions/commands.
 ///
 /// Four id-selected handlers followed by TASK_MESSAGE_TABLE_END. The room
@@ -51,7 +49,7 @@ enum { SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 /// loaded while that controller can receive messages.
 static TaskMessageEntry _gShelterB1ControlRoomAccessTunnelRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1ControlRoomAccessTunnelResolveRoomEvent },
-    { SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_MESSAGE_USE_KEY_ITEM, _shelterB1ControlRoomAccessTunnelRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB1ControlRoomAccessTunnelRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1ControlRoomAccessTunnelIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelterB1ControlRoomAccessTunnelIgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },

@@ -79,9 +79,6 @@ enum {
 // ---------------------------------------------------------------------------
 // Tasks, messages and actors
 
-/// Messages the patio's room task receives.
-enum { AKROPOLIS_PATIO_MESSAGE_USE_KEY_ITEM = 5105 };
-
 /// Entries of the scene task table, and the tasks' scheduler priorities.
 enum {
     AKROPOLIS_PATIO_SCENE_CHOICE_TASK_ENTRY   = 0,

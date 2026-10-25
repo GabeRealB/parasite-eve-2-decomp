@@ -86,9 +86,6 @@ extern RoomFadeStorage gRoomEventFade;
 static RoomEventMsg     _gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
-/// Room-local key-item-use request; its first payload is an inventory item ID.
-enum { NEO_ARK_PAVILION_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 static s32 _neoArkPavilionRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedMessageArg);
 static s32 _neoArkPavilionResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _neoArkPavilionHandleCapCommand(Task* unusedTask, s32 unusedMessageId, s32 commandIndex, s32 unusedSecondArg);
@@ -121,7 +118,7 @@ static TaskDesc _gNeoArkPavilionStagedEventTaskDesc = { { { TASK_BODY_NONE, TASK
 /// is loaded. Key-item and room-action requests are refused with a zero reply.
 static TaskMessageEntry _gNeoArkPavilionRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkPavilionResolveRoomTransition },
-    { NEO_ARK_PAVILION_MESSAGE_USE_KEY_ITEM, _neoArkPavilionRejectKeyItem },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _neoArkPavilionRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkPavilionIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _neoArkPavilionHandleCapCommand },
     { TASK_MESSAGE_TABLE_END, NULL },

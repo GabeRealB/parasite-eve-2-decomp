@@ -38,12 +38,6 @@
 
 #include "mapui/map_neo_ark.h"
 
-/// Key-item request and refusal result used by this room's message handler.
-enum {
-    NEO_ARK_R26_MESSAGE_USE_KEY_ITEM = 0x13F1,
-    NEO_ARK_R26_KEY_ITEM_USE_REFUSED = 0,
-};
-
 static s32  _neoArkR26RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg);
 static s32  _neoArkR26ResolveRoomVariant(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32  _neoArkR26IgnoreCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 unusedCommandId, s32 unusedCommandArg);
@@ -388,7 +382,7 @@ static EvsCommand _gNeoArkR26SkipEntryScript[9] = {
 /// receive ID-specific payloads; the final sentinel returns zero for other IDs.
 static TaskMessageEntry _gNeoArkR26RoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkR26ResolveRoomVariant },
-    { NEO_ARK_R26_MESSAGE_USE_KEY_ITEM, _neoArkR26RejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _neoArkR26RejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkR26IgnoreRoomActionMessage },
     { ROOM_MESSAGE_COMMAND, _neoArkR26IgnoreCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -742,7 +736,7 @@ static void _neoArkR26ReturnToShelterTent(void)
 /// key-item menu report that the item cannot be used here.
 static s32 _neoArkR26RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg)
 {
-    return NEO_ARK_R26_KEY_ITEM_USE_REFUSED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Resolves a Neo Ark destination room for an R26 transition request.

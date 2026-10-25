@@ -74,9 +74,6 @@ static s32                              _neoArkSavannaZoneRejectKeyItemUse(Task*
 static s32                              _neoArkSavannaZoneIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
 static s32                              _neoArkSavannaZoneIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
-/// Requests use of the selected collected key item; zero refuses the request.
-enum { NEO_ARK_SAVANNA_ZONE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 /// Bodyless staged-departure task recipe for the savanna room.
 ///
 /// Spawns entry 0 at `TASK_PRIORITY_SCENE` with zero metadata and payloads.
@@ -93,7 +90,7 @@ static TaskDesc _gNeoArkSavannaZoneStagedEventTaskDesc = { .header = { .fields =
 /// Keep the table and its callback code loaded while the room task uses them.
 static TaskMessageEntry _gNeoArkSavannaZoneRoomMessages[5] = {
     { .messageId = ROOM_EVENT_MESSAGE_RESOLVE, .handler = _neoArkSavannaZoneResolveRoomEvent },
-    { .messageId = NEO_ARK_SAVANNA_ZONE_MESSAGE_USE_KEY_ITEM, .handler = _neoArkSavannaZoneRejectKeyItemUse },
+    { .messageId = ROOM_MESSAGE_USE_KEY_ITEM, .handler = _neoArkSavannaZoneRejectKeyItemUse },
     { .messageId = DIRECTION_MESSAGE_ROOM_ACTION, .handler = _neoArkSavannaZoneIgnoreRoomAction },
     { .messageId = ROOM_MESSAGE_COMMAND, .handler = _neoArkSavannaZoneIgnoreRoomCommand },
     { .messageId = TASK_MESSAGE_TABLE_END, .handler = NULL },

@@ -77,8 +77,6 @@ static s32  _shelterB3ElevatorHallIgnoreRoomCommand(Task* task, s32 messageId, s
 static s32  _shelterB3ElevatorHallIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 static s32  _shelterB3ElevatorHallHandleSoundCue(Task* task, s32 messageId, s32 cueId, s32 unusedArg);
 
-enum { SHELTER_B3_ELEVATOR_HALL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 /// Bodyless transition task spawned by this room's event gate at priority 32.
 ///
 /// Uses the latched request and destination to play CAP and optional sounds,
@@ -101,7 +99,7 @@ static TaskDesc _gShelterB3ElevatorHallFloorSelectionTaskDesc = { { { TASK_BODY_
 /// are integer words. The receiver borrows this table and loaded callback code.
 static TaskMessageEntry _gShelterB3ElevatorHallRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB3ElevatorHallResolveRoomTransition },
-    { SHELTER_B3_ELEVATOR_HALL_MESSAGE_USE_KEY_ITEM, _shelterB3ElevatorHallRejectKeyItem },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB3ElevatorHallRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB3ElevatorHallIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelterB3ElevatorHallIgnoreRoomCommand },
     { ROOM_MESSAGE_SOUND, _shelterB3ElevatorHallHandleSoundCue },

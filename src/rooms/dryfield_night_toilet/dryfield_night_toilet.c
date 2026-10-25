@@ -41,9 +41,6 @@ static s32 _toiletSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s3
 
 /// Gameplay's task descriptor table; the room task spawns its entry 0.
 
-/// Room-message ID carrying the inventory's key-item use request.
-enum { DRYFIELD_NIGHT_TOILET_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 static s32  _dryfieldNightToiletRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedSecondArg);
 static s32  _dryfieldNightToiletIgnoreCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 executionMode);
 static s32  _dryfieldNightToiletIgnoreActionRequest(Task* unusedTask, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
@@ -62,7 +59,7 @@ static WorldCoordRoomLights   _gDryfieldNightToiletLights;
 /// the table and callbacks remain owned by the loaded room overlay.
 static TaskMessageEntry _gDryfieldNightToiletRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantParkingLotMsg },
-    { DRYFIELD_NIGHT_TOILET_MESSAGE_USE_KEY_ITEM, _dryfieldNightToiletRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightToiletRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightToiletIgnoreActionRequest },
     { ROOM_MESSAGE_COMMAND, _dryfieldNightToiletIgnoreCommandMessage },
     { ROOM_MESSAGE_SOUND, _toiletSoundMsg },
@@ -626,9 +623,7 @@ static void _dryfieldNightToiletInitializeRoom(Task* task);
 /// consuming an item or changing room state. All arguments are ignored.
 static s32 _dryfieldNightToiletRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedSecondArg)
 {
-    enum { DRYFIELD_NIGHT_TOILET_KEY_ITEM_UNUSABLE = 0 };
-
-    return DRYFIELD_NIGHT_TOILET_KEY_ITEM_UNUSABLE;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Ignores room commands from CAP playback and direction triggers.

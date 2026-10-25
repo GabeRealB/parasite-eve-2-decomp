@@ -70,9 +70,6 @@ static s32  _neoArkPyramidResolveRoomVariant(Task* unusedTask, s32 unusedMessage
 static s32  _neoArkPyramidIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 unusedArg);
 static s32  _neoArkPyramidHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
-/// Room message carrying the integer item ID selected in the key-item menu.
-enum { NEO_ARK_PYRAMID_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 static WorldCollisionGrid     _gNeoArkPyramidCollisionGrid;
 static WorldCollisionOccluder _gNeoArkPyramidSightOccluders[3];
 static WorldCollisionTrigger  _gNeoArkPyramidViewBoundaryTriggers[6];
@@ -86,7 +83,7 @@ static WorldCoordRoomLights   _gNeoArkPyramidRoomLights;
 /// read-only table; its storage and callbacks must outlive the room receiver.
 static const TaskMessageEntry _gNeoArkPyramidRoomMessages[5] __attribute__((section(".data"))) = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkPyramidResolveRoomVariant },
-    { NEO_ARK_PYRAMID_MESSAGE_USE_KEY_ITEM, _neoArkPyramidRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _neoArkPyramidRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkPyramidHandleRoomAction },
     { ROOM_MESSAGE_COMMAND, _neoArkPyramidIgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },

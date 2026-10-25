@@ -138,7 +138,7 @@ TaskDesc gNeoArkForestZoneStagedEventTaskDesc = {
 
 TaskMessageEntry gNeoArkForestZoneRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, neoArkForestZoneResolveTransition },
-    { NEO_ARK_FOREST_ZONE_MESSAGE_USE_KEY_ITEM, neoArkForestZoneRejectKeyItemMessage },
+    { ROOM_MESSAGE_USE_KEY_ITEM, neoArkForestZoneRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, neoArkForestZoneHandleAction },
     { ROOM_MESSAGE_COMMAND, neoArkForestZoneIgnoreCommandMessage },
     { ROOM_MESSAGE_ACTOR_EVENT, neoArkForestZoneForwardActorEvent },

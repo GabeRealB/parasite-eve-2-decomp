@@ -38,9 +38,6 @@
 #include "../../shared/effects/glow_draw.h"
 #include "../../shared/room/room_variants.h"
 
-/// Room-message ID carrying the inventory's key-item use request.
-enum { DRYFIELD_NIGHT_MOTEL_ROOM_4_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 static s32  _dryfieldNightMotelRoom4RejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedSecondArg);
 static s32  _dryfieldNightMotelRoom4IgnoreCommand(Task* unusedTask, s32 messageId, s32 commandId, s32 commandMode);
 static s32  _dryfieldNightMotelRoom4IgnoreActionRequest(Task* unusedTask, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
@@ -60,7 +57,7 @@ static WorldCoordRoomLights   _gDryfieldNightMotelRoom4RoomLights;
 /// the table and callbacks require this overlay to remain loaded.
 static TaskMessageEntry _gDryfieldNightMotelRoom4RoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantMainStreetMsg },
-    { DRYFIELD_NIGHT_MOTEL_ROOM_4_MESSAGE_USE_KEY_ITEM, _dryfieldNightMotelRoom4RejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightMotelRoom4RejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightMotelRoom4IgnoreActionRequest },
     { ROOM_MESSAGE_COMMAND, _dryfieldNightMotelRoom4IgnoreCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -758,9 +755,7 @@ WorldCollisionSurfaceProperties* gDryfieldNightMotelRoom4SurfaceProperties[8] = 
 /// are ignored; no item is consumed and no room action starts.
 static s32 _dryfieldNightMotelRoom4RejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedSecondArg)
 {
-    enum { DRYFIELD_NIGHT_MOTEL_ROOM_4_KEY_ITEM_REFUSED = 0 };
-
-    return DRYFIELD_NIGHT_MOTEL_ROOM_4_KEY_ITEM_REFUSED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 #include "../../shared/room/room_variants_main_street.inc.c"

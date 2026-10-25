@@ -65,9 +65,6 @@ enum {
     SHELTER_B1_GOLEM_FREEZER_1_OBSTACLE_VERTEX_COUNT = 4,
 };
 
-/// Room message used by the key-item menu to request use of an item.
-enum { SHELTER_B1_GOLEM_FREEZER_1_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 /// Layout and projection constants of the ten-cell floor-mist texture sheet.
 enum {
     SHELTER_B1_GOLEM_FREEZER_1_MIST_FRAME_COUNT        = 10,
@@ -88,7 +85,7 @@ enum {
 /// Keep the room overlay and callback code loaded while the receiver is live.
 static TaskMessageEntry _gShelterB1GolemFreezer1RoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1GolemFreezer1ResolveRoomVariant },
-    { SHELTER_B1_GOLEM_FREEZER_1_MESSAGE_USE_KEY_ITEM, _shelterB1GolemFreezer1RejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB1GolemFreezer1RejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1GolemFreezer1HandleRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelterB1GolemFreezer1IgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },

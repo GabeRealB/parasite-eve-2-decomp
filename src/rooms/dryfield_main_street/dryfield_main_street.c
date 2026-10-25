@@ -129,8 +129,6 @@ static s32  _dryfieldMainStreetStartFirstVisitCutscene(Task* unusedTask, s32 unu
 static void _dryfieldMainStreetTurnPlayerTowardAreaActorTask(Task* task);
 static void _dryfieldMainStreetPlayerHeadAimTask(Task* task);
 
-enum { DRYFIELD_MAIN_STREET_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 /// Script controls for the player head-aim task; other values also stop it.
 enum {
     DRYFIELD_MAIN_STREET_HEAD_AIM_DISABLE = 0,
@@ -164,7 +162,7 @@ static TaskDesc _gMainStreetIceBagCompletionTaskDescriptor = { { { TASK_BODY_NON
 /// talk commands and routes CAP sound cues. The sixth record ends unsupported-ID lookup.
 static const TaskMessageEntry _gDryfieldMainStreetRoomMessages[6] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _mainStreetResolveMessage },
-    { DRYFIELD_MAIN_STREET_MESSAGE_USE_KEY_ITEM, _dryfieldMainStreetRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldMainStreetRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldMainStreetStartFirstVisitCutscene },
     { ROOM_MESSAGE_COMMAND, _mainStreetTalkMessage },
     { ROOM_MESSAGE_SOUND, _mainStreetCapSoundCue },

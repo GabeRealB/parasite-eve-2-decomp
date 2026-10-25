@@ -75,11 +75,6 @@ static s32 _dryfieldNightGRKitchenRejectKeyItemUse(Task* task, s32 messageId, s3
 static s32 _dryfieldNightGRKitchenIgnoreCommand(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
 static s32 _dryfieldNightGRKitchenIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
-/// Inventory key-item use routed to this room's message table.
-enum {
-    DRYFIELD_NIGHT_G_R_KITCHEN_MESSAGE_USE_KEY_ITEM = 0x13F1,
-};
-
 /// Door sound requests, floor cue bases and door map-marker indices.
 enum {
     DRYFIELD_NIGHT_G_R_KITCHEN_WARP_ARRIVAL_SOUND   = DRYFIELD_STAGE_SOUND((GAME_AREA_DRYFIELD_NIGHT_G_R_KITCHEN << 16) | 2),
@@ -133,7 +128,7 @@ static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE 
 /// for synchronous dispatch while the kitchen overlay and callback code are loaded.
 static TaskMessageEntry _gDryfieldNightGRKitchenRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantGRKitchenMsg },
-    { DRYFIELD_NIGHT_G_R_KITCHEN_MESSAGE_USE_KEY_ITEM, _dryfieldNightGRKitchenRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightGRKitchenRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightGRKitchenIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _dryfieldNightGRKitchenIgnoreCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -411,11 +406,7 @@ static void _glowDrawShaft(const SVECTOR worldPoints[2], s32 radiusScale);
 /// All arguments are ignored and no room state changes.
 static s32 _dryfieldNightGRKitchenRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedSecondArg)
 {
-    enum {
-        DRYFIELD_NIGHT_G_R_KITCHEN_KEY_ITEM_USE_REJECTED = 0,
-    };
-
-    return DRYFIELD_NIGHT_G_R_KITCHEN_KEY_ITEM_USE_REJECTED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 #include "../../shared/g_r_kitchen_door_msg.inc.c"

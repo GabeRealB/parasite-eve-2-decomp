@@ -67,8 +67,7 @@ static s32  _dryfieldJunkYardResolveRoomTransition(Task* unusedTask, s32 unusedM
 static s32  _dryfieldJunkYardHandleRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArgument);
 
 enum {
-    DRYFIELD_JUNK_YARD_MESSAGE_USE_KEY_ITEM = 0x13F1,
-    DRYFIELD_JUNK_YARD_RETURN_SCENE_EVENT   = 5,
+    DRYFIELD_JUNK_YARD_RETURN_SCENE_EVENT = 5,
 };
 
 /// Native companion bank and clip selections used by this room's scenes.
@@ -2159,9 +2158,7 @@ static void _dryfieldJunkYardCompanionSequenceTask(Task* task)
 /// parameters are ignored.
 static s32 _dryfieldJunkYardRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused)
 {
-    enum { DRYFIELD_JUNK_YARD_KEY_ITEM_USE_REFUSED = 0 };
-
-    return DRYFIELD_JUNK_YARD_KEY_ITEM_USE_REFUSED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Resolves garage arrivals and gates departure to the trailer coach on companion progress.

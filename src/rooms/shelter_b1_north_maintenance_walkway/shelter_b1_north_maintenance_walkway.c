@@ -46,9 +46,6 @@ static s32  _shelterB1NorthMaintenanceWalkwayRejectKeyItemUse(Task* task, s32 me
 static s32  _shelterB1NorthMaintenanceWalkwayIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
 static s32  _shelterB1NorthMaintenanceWalkwayIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
-/// Requests use of the key item in the first payload word.
-enum { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 /// Bodyless priority-32 recipe for this room's staged departure task.
 ///
 /// The gate reads index 0 synchronously with zero metadata and unused payloads.
@@ -63,7 +60,7 @@ static TaskDesc _gShelterB1NorthMaintenanceWalkwayStagedEventTaskDesc = { { { TA
 /// Keep the room overlay and callback code loaded while the receiver is live.
 static TaskMessageEntry _gShelterB1NorthMaintenanceWalkwayRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1NorthMaintenanceWalkwayResolveRoomTransition },
-    { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_MESSAGE_USE_KEY_ITEM, _shelterB1NorthMaintenanceWalkwayRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB1NorthMaintenanceWalkwayRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1NorthMaintenanceWalkwayIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelterB1NorthMaintenanceWalkwayIgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },

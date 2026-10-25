@@ -59,10 +59,6 @@ static s32 _dryfieldNightBreezewayAcceptTransition(Task* task, s32 messageId, co
 static s32 _dryfieldNightBreezewayHandleRoomCommand(Task* task, s32 messageId, s32 commandId, s32 unusedArgument);
 static s32 _dryfieldNightBreezewayIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
-enum {
-    DRYFIELD_NIGHT_BREEZEWAY_MESSAGE_USE_KEY_ITEM = 0x13F1,
-};
-
 static WorldCollisionGrid    _gDryfieldNightBreezewayCollisionGrid;
 static WorldCollisionTrigger _gDryfieldNightBreezewayViewBoundaries[4];
 static WorldCollisionTrigger _gDryfieldNightBreezewayActionTriggers[3];
@@ -79,7 +75,7 @@ static WorldCoordRoomLights  _gDryfieldNightBreezewayRoomLights;
 /// The task borrows this table and its callbacks until receiver teardown.
 static TaskMessageEntry _gDryfieldNightBreezewayRoomMessages[5] = {
     { .messageId = ROOM_EVENT_MESSAGE_RESOLVE, .handler = _dryfieldNightBreezewayAcceptTransition },
-    { .messageId = DRYFIELD_NIGHT_BREEZEWAY_MESSAGE_USE_KEY_ITEM, .handler = _dryfieldNightBreezewayRejectKeyItemUse },
+    { .messageId = ROOM_MESSAGE_USE_KEY_ITEM, .handler = _dryfieldNightBreezewayRejectKeyItemUse },
     { .messageId = DIRECTION_MESSAGE_ROOM_ACTION, .handler = _dryfieldNightBreezewayIgnoreRoomAction },
     { .messageId = ROOM_MESSAGE_COMMAND, .handler = _dryfieldNightBreezewayHandleRoomCommand },
     { .messageId = TASK_MESSAGE_TABLE_END, .handler = NULL },
@@ -818,9 +814,7 @@ static void _glowDrawShaft(const SVECTOR worldPoints[2], s32 radiusScale);
 /// notice, without consuming an item or changing the room.
 static s32 _dryfieldNightBreezewayRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg)
 {
-    enum { DRYFIELD_NIGHT_BREEZEWAY_KEY_ITEM_REFUSED = 0 };
-
-    return DRYFIELD_NIGHT_BREEZEWAY_KEY_ITEM_REFUSED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Accepts the requested room transition without changing its destination.

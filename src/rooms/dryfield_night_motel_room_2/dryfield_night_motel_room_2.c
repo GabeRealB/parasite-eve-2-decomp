@@ -54,8 +54,6 @@ static s32 _dryfieldNightMotelRoom2RejectKeyItem(Task* task, s32 messageId, s32 
 static s32 _dryfieldNightMotelRoom2IgnoreCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
 static s32 _dryfieldNightMotelRoom2IgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
-enum { DRYFIELD_NIGHT_MOTEL_ROOM_2_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 enum {
     DRYFIELD_NIGHT_MOTEL_ROOM_2_TASK_STATE_NEW  = 0,
     DRYFIELD_NIGHT_MOTEL_ROOM_2_TASK_STATE_IDLE = 1,
@@ -80,7 +78,7 @@ static WorldCoordRoomLights   _gDryfieldNightMotelRoom2RoomLights;
 /// storage remains in the overlay's data section.
 static const TaskMessageEntry _gDryfieldNightMotelRoom2RoomMessages[5] __attribute__((section(".data"))) = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantMainStreetMsg },
-    { DRYFIELD_NIGHT_MOTEL_ROOM_2_MESSAGE_USE_KEY_ITEM, _dryfieldNightMotelRoom2RejectKeyItem },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightMotelRoom2RejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightMotelRoom2IgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _dryfieldNightMotelRoom2IgnoreCommand },
     { TASK_MESSAGE_TABLE_END, NULL },

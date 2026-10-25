@@ -1419,9 +1419,7 @@ static void _shelterB2LaboratoryAmbienceTask(Task* task)
 /// item menu's refusal notice and leaves the room and inventory unchanged.
 static s32 _shelterB2LaboratoryRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg)
 {
-    enum { SHELTER_B2_LABORATORY_KEY_ITEM_REFUSED = 0 };
-
-    return SHELTER_B2_LABORATORY_KEY_ITEM_REFUSED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Resolves a laboratory departure and gates its corridor-door event.

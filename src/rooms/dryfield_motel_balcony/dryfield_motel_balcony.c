@@ -95,8 +95,6 @@ static WorldCollisionTrigger      _gDryfieldMotelBalconyWarpTriggers[4];
 static WorldCoordRoomAmbientEntry _gDryfieldMotelBalconyViewAmbientLevels[23];
 static WorldCoordRoomLights       _gDryfieldMotelBalconyRoomLights[1];
 
-enum { DRYFIELD_MOTEL_BALCONY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 static s32 _dryfieldMotelBalconyUseKeyItemMsg(Task* task, s32 messageId, s32 itemId, s32 secondArg);
 static s32 _dryfieldMotelBalconyCommandMsg(Task* task, s32 messageId, s32 commandId, s32 secondArg);
 static s32 _dryfieldMotelBalconyRoomActionMsg(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
@@ -116,7 +114,7 @@ static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE 
 /// through teardown; payload types follow each handler's synchronous message ABI.
 static TaskMessageEntry _gDryfieldMotelBalconyRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantMotelBalconyDoorsMsg },
-    { DRYFIELD_MOTEL_BALCONY_MESSAGE_USE_KEY_ITEM, _dryfieldMotelBalconyUseKeyItemMsg },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldMotelBalconyUseKeyItemMsg },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldMotelBalconyRoomActionMsg },
     { ROOM_MESSAGE_COMMAND, _dryfieldMotelBalconyCommandMsg },
     { ROOM_MESSAGE_SOUND, _motelBalconyCueSoundMsg },

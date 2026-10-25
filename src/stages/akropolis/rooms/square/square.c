@@ -122,7 +122,7 @@ static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
 static TaskMessageEntry _gAkropolisSquareRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _akropolisSquareResolveRoomTransition },
     { DIRECTION_MESSAGE_ROOM_ACTION, _akropolisSquareHandleRoomAction },
-    { AKROPOLIS_SQUARE_MESSAGE_USE_KEY_ITEM, _akropolisSquareRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _akropolisSquareRejectKeyItemUse },
     { ROOM_MESSAGE_COMMAND, _akropolisSquareHandleRoomCommand },
     { ROOM_MESSAGE_SOUND, _akropolisSquareHandleSoundCue },
     { TASK_MESSAGE_TABLE_END, NULL },

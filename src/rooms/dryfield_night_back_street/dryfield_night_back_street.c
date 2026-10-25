@@ -53,8 +53,6 @@
 #include "../../shared/effects/glow_draw.h"
 #include "../../shared/back_street.h"
 
-enum { DRYFIELD_NIGHT_BACK_STREET_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 // World-radius inputs to the flare and shaft projection formulas.
 enum { DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE = 0x300,
        DRYFIELD_NIGHT_BACK_STREET_SHAFT_RADIUS_SCALE = 0x100 };
@@ -75,7 +73,7 @@ static WorldCoordRoomLights       _gDryfieldNightBackStreetRoomLights;
 /// The final `TASK_MESSAGE_TABLE_END` record terminates dispatch; it is not a handler.
 static const TaskMessageEntry _gDryfieldNightBackStreetMessageTable[5] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantResolveBackStreet },
-    { DRYFIELD_NIGHT_BACK_STREET_MESSAGE_USE_KEY_ITEM, _dryfieldNightBackStreetRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightBackStreetRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightBackStreetIgnoreRoomActionMessage },
     { ROOM_MESSAGE_COMMAND, _dryfieldNightBackStreetIgnoreCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -597,9 +595,7 @@ static void _glowDrawShaft(const SVECTOR worldPoints[2], s32 radiusScale);
 /// Neither payload is read; the room consumes no item and retains no arguments.
 static s32 _dryfieldNightBackStreetRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 secondArg)
 {
-    enum { DRYFIELD_NIGHT_BACK_STREET_KEY_ITEM_UNUSABLE = 0 };
-
-    return DRYFIELD_NIGHT_BACK_STREET_KEY_ITEM_UNUSABLE;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Ignores room commands and their execution modes, returning zero.

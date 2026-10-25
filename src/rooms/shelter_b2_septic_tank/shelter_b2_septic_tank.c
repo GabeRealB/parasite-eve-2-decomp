@@ -115,7 +115,6 @@ static s32 _shelterB2SepticTankIgnoreCommand(Task* task, s32 messageId, s32 comm
 static s32 _shelterB2SepticTankHandleRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unused);
 
 enum {
-    SHELTER_B2_SEPTIC_TANK_MESSAGE_USE_KEY_ITEM     = 5105,
     SHELTER_B2_SEPTIC_TANK_ENCOUNTER_INTRO_COMPLETE = 1,
     SHELTER_B2_SEPTIC_TANK_ENCOUNTER_COMBAT_READY   = 2
 };
@@ -174,7 +173,7 @@ static TaskDesc _gShelterB2SepticTankStagedEventTaskDesc = { { { TASK_BODY_NONE,
 /// Keep the room overlay and callback code loaded while the receiver is live.
 static TaskMessageEntry _gShelterB2SepticTankRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB2SepticTankResolveRoomEvent },
-    { SHELTER_B2_SEPTIC_TANK_MESSAGE_USE_KEY_ITEM, _shelterB2SepticTankRejectKeyItem },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB2SepticTankRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB2SepticTankHandleRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelterB2SepticTankIgnoreCommand },
     { TASK_MESSAGE_TABLE_END, NULL },

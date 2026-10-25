@@ -105,8 +105,6 @@ static s32  _shelterB1MainCorridorIgnoreCommand(Task* task, s32 messageId, s32 c
 static s32  _shelterB1MainCorridorIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 static s32  _shelterB1MainCorridorHandleSoundMessage(Task* task, s32 messageId, s32 soundId, s32 unusedArg);
 
-enum { SHELTER_B1_MAIN_CORRIDOR_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 /// Bodyless transition task spawned by this room's event gate at priority 32.
 ///
 /// Uses the latched request and destination to play CAP and optional sounds,
@@ -128,7 +126,7 @@ static TaskDesc _gShelterB1MainCorridorStagedEventTaskDesc = { { { TASK_BODY_NON
 /// types follow each message's contract rather than one shared pointer type.
 static TaskMessageEntry _gShelterB1MainCorridorRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1MainCorridorResolveRoomTransition },
-    { SHELTER_B1_MAIN_CORRIDOR_MESSAGE_USE_KEY_ITEM, _shelterB1MainCorridorRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB1MainCorridorRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1MainCorridorIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelterB1MainCorridorIgnoreCommand },
     { ROOM_MESSAGE_SOUND, _shelterB1MainCorridorHandleSoundMessage },

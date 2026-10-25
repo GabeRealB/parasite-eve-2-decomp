@@ -88,9 +88,6 @@ static void _shelterB2ElevatorDoorLeafTask(Task* task);
 static void _shelterB2ElevatorRoomInitState(Task* task);
 static void _shelterB2ElevatorExitTask(Task* task);
 
-/// Key-item use request from the inventory menu; this room always refuses it.
-enum { SHELTER_B2_ELEVATOR_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 /// Signed travel requests stored in a door leaf's first spawn argument.
 enum {
     SHELTER_B2_ELEVATOR_DOOR_CLOSE = -1,
@@ -690,9 +687,7 @@ static void _shelterB2ElevatorExitTask(Task* task)
 /// Refuses every inventory key-item request, returning 0 without consuming it.
 static s32 _shelterB2ElevatorRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
-    enum { SHELTER_B2_ELEVATOR_KEY_ITEM_REFUSED = 0 };
-
-    return SHELTER_B2_ELEVATOR_KEY_ITEM_REFUSED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Accepts a room transition after resolving its destination from Shelter progress.

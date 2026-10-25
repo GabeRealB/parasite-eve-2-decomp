@@ -84,17 +84,13 @@ static s32 _dryfieldWaterHoleCommandMessage(Task* unusedTask, s32 unusedMessageI
 static s32 _dryfieldWaterHoleIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static s32 _dryfieldWaterHolePlaySoundCue(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
 
-enum {
-    DRYFIELD_WATER_HOLE_MESSAGE_USE_KEY_ITEM = 0x13F1,
-};
-
 /// Room receiver entries for transition, key-item, action, command and sound messages.
 ///
 /// The final `TASK_MESSAGE_TABLE_END` entry ends dispatch. The initialized room
 /// task borrows this table and its callbacks for its lifetime.
 static TaskMessageEntry _gDryfieldWaterHoleRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantResolveWaterHole },
-    { DRYFIELD_WATER_HOLE_MESSAGE_USE_KEY_ITEM, _dryfieldWaterHoleRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldWaterHoleRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldWaterHoleIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _dryfieldWaterHoleCommandMessage },
     { ROOM_MESSAGE_SOUND, _dryfieldWaterHolePlaySoundCue },
@@ -1651,13 +1647,11 @@ static s16 _gWaterHoleWaveScroll;
 /// Refuses every key-item use in this room without consuming the item.
 ///
 /// `itemId` is the inventory item ID carried by
-/// `DRYFIELD_WATER_HOLE_MESSAGE_USE_KEY_ITEM`; all inputs are unused.
+/// `ROOM_MESSAGE_USE_KEY_ITEM`; all inputs are unused.
 /// Returns zero so the item menu displays its refusal notice.
 static s32 _dryfieldWaterHoleRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg)
 {
-    enum { DRYFIELD_WATER_HOLE_KEY_ITEM_REFUSED = 0 };
-
-    return DRYFIELD_WATER_HOLE_KEY_ITEM_REFUSED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 #include "../../shared/water_hole_door_msg.inc.c"

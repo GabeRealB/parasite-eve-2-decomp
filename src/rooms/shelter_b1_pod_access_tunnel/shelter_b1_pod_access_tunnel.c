@@ -87,9 +87,6 @@ enum {
     SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_LINES        = 240, // Screen lines the seam travels, the height of either image
 };
 
-/// Key-item-use message handled by this room; inventory sends the selected item ID.
-enum { SHELTER_B1_POD_ACCESS_TUNNEL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 /// Replies to the room-transition dispatcher: refuse, use its warp, or handle it here.
 enum { SHELTER_B1_POD_ACCESS_TUNNEL_EVENT_BLOCKED           = 0,
        SHELTER_B1_POD_ACCESS_TUNNEL_EVENT_DEFAULT_DEPARTURE = 1,
@@ -205,7 +202,7 @@ static TaskDesc _gShelterB1PodAccessTunnelStagedDepartureTaskDesc = {
 /// payload types selected by its message ID; this overlay must remain loaded.
 static TaskMessageEntry _gShelterB1PodAccessTunnelRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1PodAccessTunnelResolveRoomEvent },
-    { SHELTER_B1_POD_ACCESS_TUNNEL_MESSAGE_USE_KEY_ITEM, _shelterB1PodAccessTunnelRejectKeyItemMessage },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB1PodAccessTunnelRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1PodAccessTunnelIgnoreActionMessage },
     { ROOM_MESSAGE_COMMAND, _shelterB1PodAccessTunnelHandleCommandMessage },
     { ROOM_MESSAGE_SOUND, _shelterB1PodAccessTunnelHandleSoundMessage },

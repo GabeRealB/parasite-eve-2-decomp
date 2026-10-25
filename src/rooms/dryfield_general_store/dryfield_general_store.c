@@ -86,12 +86,6 @@ static s32  _dryfieldGeneralStoreHandleRoomAction(Task* unusedTask, s32 unusedMe
 static void _dryfieldGeneralStorePlaySceneCueTask(Task* task);
 static void _dryfieldGeneralStoreDropInActorsTask(Task* task);
 
-/// Inventory's room request and the reply refusing key-item use.
-enum {
-    DRYFIELD_GENERAL_STORE_MESSAGE_USE_KEY_ITEM  = 0x13F1,
-    DRYFIELD_GENERAL_STORE_KEY_ITEM_USE_REJECTED = 0,
-};
-
 /// Room actor commands in the Dryfield/General Store namespace.
 enum {
     DRYFIELD_GENERAL_STORE_ACTOR_COMMAND_AWAIT_BATTLE      = 0,
@@ -144,7 +138,7 @@ static TaskDesc _gGeneralStoreTaskDescriptors[3] = {
 /// actions borrow DirectionActionRequest, and the other payloads are integers.
 static TaskMessageEntry _gDryfieldGeneralStoreRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantGeneralStoreMsg },
-    { DRYFIELD_GENERAL_STORE_MESSAGE_USE_KEY_ITEM, _dryfieldGeneralStoreRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldGeneralStoreRejectKeyItemUse },
     { ROOM_MESSAGE_COMMAND, _generalStoreCommandMsg },
     { ROOM_MESSAGE_SOUND, _generalStoreSoundMsg },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldGeneralStoreHandleRoomAction },
@@ -1928,11 +1922,11 @@ static const TaskFuncTable3 _gDryfieldGeneralStoreRoomTaskStates = {
 
 /// Rejects inventory requests to use a key item in the General Store.
 ///
-/// Always returns `DRYFIELD_GENERAL_STORE_KEY_ITEM_USE_REJECTED` (0).
+/// Always returns `ROOM_KEY_ITEM_USE_REFUSED` (0).
 /// All four callback arguments are ignored; no item is consumed.
 static s32 _dryfieldGeneralStoreRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg)
 {
-    return DRYFIELD_GENERAL_STORE_KEY_ITEM_USE_REJECTED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Advances the store's cutscene from borrowed direction actions.

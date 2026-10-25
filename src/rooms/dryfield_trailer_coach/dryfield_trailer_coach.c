@@ -107,9 +107,6 @@ static void _dryfieldTrailerCoachTopicChoiceTask(Task* task);
 enum { DRYFIELD_TRAILER_COACH_FIRST_CONVERSATION_COMPLETE  = 2,
        DRYFIELD_TRAILER_COACH_SECOND_CONVERSATION_COMPLETE = 3 };
 
-/// Inventory request to use a key item in this room.
-enum { DRYFIELD_TRAILER_COACH_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 static AnimationSet                     _gDryfieldTrailerCoachAnimation07668;
 static AnimationSet                     _gDryfieldTrailerCoachAnimation07994;
 static WorldCollisionGrid               _gDryfieldTrailerCoachRoomCollisionGrid;
@@ -223,7 +220,7 @@ static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
 /// The fourth entry terminates lookup; unsupported messages return zero.
 static const TaskMessageEntry _gDryfieldTrailerCoachRoomMessages[4] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldTrailerCoachResolveRoomEvent },
-    { DRYFIELD_TRAILER_COACH_MESSAGE_USE_KEY_ITEM, _dryfieldTrailerCoachRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldTrailerCoachRejectKeyItemUse },
     { ROOM_MESSAGE_COMMAND, _dryfieldTrailerCoachHandleCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -2216,9 +2213,7 @@ static void _dryfieldTrailerCoachConversationTask(Task* task)
 /// result selects the inventory's "No use now" notice.
 static s32 _dryfieldTrailerCoachRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg)
 {
-    enum { DRYFIELD_TRAILER_COACH_KEY_ITEM_USE_REJECTED = 0 };
-
-    return DRYFIELD_TRAILER_COACH_KEY_ITEM_USE_REJECTED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Permits a room transition with the requested destination unchanged.

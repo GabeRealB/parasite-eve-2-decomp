@@ -51,11 +51,6 @@ static s32  _dryfieldNightSouvenirShopIgnoreRoomCommand(Task* task, s32 messageI
 static s32  _dryfieldNightSouvenirShopIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static void _dryfieldNightSouvenirShopInitRoomTask(Task* task);
 
-/// Inventory key-item use routed to this room's message table.
-enum {
-    DRYFIELD_NIGHT_SOUVENIR_SHOP_MESSAGE_USE_KEY_ITEM = 0x13F1,
-};
-
 /// Resource-array extent and the packed departure/arrival slots of the doorway.
 enum {
     DRYFIELD_NIGHT_SOUVENIR_SHOP_ACTION_TRIGGER_COUNT     = 12,
@@ -91,7 +86,7 @@ enum {
 /// Keep the room overlay loaded until the registered task is released.
 static TaskMessageEntry _gDryfieldNightSouvenirShopRoomMessages[] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldNightSouvenirShopResolveRoomEvent },
-    { DRYFIELD_NIGHT_SOUVENIR_SHOP_MESSAGE_USE_KEY_ITEM, _dryfieldNightSouvenirShopRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightSouvenirShopRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightSouvenirShopIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _dryfieldNightSouvenirShopIgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -744,9 +739,7 @@ WorldCollisionSurfaceProperties* gDryfieldNightSouvenirShopSurfacePropertiesByCl
 /// `itemId` is the inventory item's integer ID; the second payload word is unused.
 static s32 _dryfieldNightSouvenirShopRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg)
 {
-    enum { DRYFIELD_NIGHT_SOUVENIR_SHOP_KEY_ITEM_REJECTED = 0 };
-
-    return DRYFIELD_NIGHT_SOUVENIR_SHOP_KEY_ITEM_REJECTED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Permits a room transition with the requested destination unchanged.

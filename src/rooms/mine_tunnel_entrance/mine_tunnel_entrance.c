@@ -65,9 +65,6 @@ static s32 _mineTunnelEntranceResolveRoomTransition(Task* task, s32 messageId, R
 static s32 _mineTunnelEntranceIgnoreCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
 static s32 _mineTunnelEntranceIgnoreAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
-/// The inventory's room-specific key-item use request.
-enum { MINE_TUNNEL_ENTRANCE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 static WorldCollisionGrid         _gMineTunnelEntranceCollisionGrid;
 static WorldCollisionTrigger      _gMineTunnelEntranceViewBoundaryTriggers[8];
 static WorldCollisionTrigger      _gMineTunnelEntranceActionTriggers[4];
@@ -82,7 +79,7 @@ static WorldCoordRoomLights       _gMineTunnelEntranceRoomLights;
 /// The registered room task borrows this table and its callbacks while loaded.
 static TaskMessageEntry _gMineTunnelEntranceRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _mineTunnelEntranceResolveRoomTransition },
-    { MINE_TUNNEL_ENTRANCE_MESSAGE_USE_KEY_ITEM, _mineTunnelEntranceRejectKeyItem },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _mineTunnelEntranceRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _mineTunnelEntranceIgnoreAction },
     { ROOM_MESSAGE_COMMAND, _mineTunnelEntranceIgnoreCommand },
     { TASK_MESSAGE_TABLE_END, NULL },

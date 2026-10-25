@@ -1178,9 +1178,7 @@ static void _shelterB6NurseryAmbienceTask(Task* task)
 /// Refuses every key-item-use request to this room, returning 0 without consuming the item.
 static s32 _shelterB6NurseryRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused)
 {
-    enum { KEY_ITEM_USE_REFUSED = 0 };
-
-    return KEY_ITEM_USE_REFUSED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Resolves nursery departures and requests their CAP transition on execution.

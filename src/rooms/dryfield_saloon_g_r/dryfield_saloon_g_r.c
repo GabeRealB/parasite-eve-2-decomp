@@ -69,10 +69,6 @@ extern RoomEventReq gRoomEventReq;
 static void _dryfieldSaloonGRInitializeRoom(Task* task);
 static void _dryfieldSaloonGRIdleTask(Task* task);
 
-enum {
-    DRYFIELD_SALOON_G_R_MESSAGE_USE_KEY_ITEM = 0x13F1,
-};
-
 static s32 _dryfieldSaloonGRRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 static s32 _dryfieldSaloonGRCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg);
 static s32 _dryfieldSaloonGRIgnoreRoomActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
@@ -98,7 +94,7 @@ static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE 
 /// registered lifetime. Payload types belong to each message's handler.
 static const TaskMessageEntry _gDryfieldSaloonGRRoomMessages[5] __attribute__((section(".data"))) = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantSaloonMsg },
-    { DRYFIELD_SALOON_G_R_MESSAGE_USE_KEY_ITEM, _dryfieldSaloonGRRejectKeyItemMessage },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldSaloonGRRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldSaloonGRIgnoreRoomActionMessage },
     { ROOM_MESSAGE_COMMAND, _dryfieldSaloonGRCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -930,11 +926,7 @@ static void _glowDrawFlareLocal(const GfxCoord* coord, const SVECTOR* localPoint
 /// that the item cannot be used here. Does not consume or retain any payload.
 static s32 _dryfieldSaloonGRRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
-    enum {
-        DRYFIELD_SALOON_G_R_KEY_ITEM_UNUSABLE = 0,
-    };
-
-    return DRYFIELD_SALOON_G_R_KEY_ITEM_UNUSABLE;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Plays CAP command 4 when the saloon receives room command 4.

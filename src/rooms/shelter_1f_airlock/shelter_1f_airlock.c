@@ -40,11 +40,6 @@
 #include "../../shared/effects/glow_draw.h"
 #include "../../shared/room/room_variants.h"
 
-enum {
-    SHELTER_1F_AIRLOCK_MESSAGE_USE_KEY_ITEM = 0x13F1,
-    SHELTER_1F_AIRLOCK_KEY_ITEM_REJECTED    = 0,
-};
-
 /// World-space centres and endpoint pairs for the airlock's additive glows.
 ///
 /// Positions use signed whole world-coordinate units and are borrowed only
@@ -76,7 +71,7 @@ static WorldCoordRoomLights   _gShelter1fAirlockRoomLights;
 /// loaded while that controller can receive messages.
 static TaskMessageEntry _gShelter1fAirlockRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelter1fAirlockResolveRoomTransition },
-    { SHELTER_1F_AIRLOCK_MESSAGE_USE_KEY_ITEM, _shelter1fAirlockRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelter1fAirlockRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelter1fAirlockIgnoreActionMessage },
     { ROOM_MESSAGE_COMMAND, _shelter1fAirlockIgnoreCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -569,7 +564,7 @@ static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 
 /// The room task and the selected item remain untouched.
 static s32 _shelter1fAirlockRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg)
 {
-    return SHELTER_1F_AIRLOCK_KEY_ITEM_REJECTED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Resolves a room-transition destination from Neo Ark progress and permits departure.

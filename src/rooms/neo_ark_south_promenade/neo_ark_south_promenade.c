@@ -74,9 +74,6 @@ static s32 _neoArkSouthPromenadeResolveRoomTransition(Task* task, s32 messageId,
 static s32 _neoArkSouthPromenadeIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 commandArg);
 static s32 _neoArkSouthPromenadeIgnoreActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
-/// Requests use of the selected key item; the room replies with zero to refuse it.
-enum { NEO_ARK_SOUTH_PROMENADE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 static WorldCollisionGrid     _gNeoArkSouthPromenadeCollisionGrid;
 static WorldCollisionOccluder _gNeoArkSouthPromenadeOccluders[1];
 static WorldCollisionTrigger  _gNeoArkSouthPromenadeViewBoundaryTriggers[6];
@@ -90,7 +87,7 @@ static WorldCoordRoomLights   _gNeoArkSouthPromenadeRoomLights;
 /// The registered room task borrows this table while this overlay is loaded.
 static TaskMessageEntry _gNeoArkSouthPromenadeRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkSouthPromenadeResolveRoomTransition },
-    { NEO_ARK_SOUTH_PROMENADE_MESSAGE_USE_KEY_ITEM, _neoArkSouthPromenadeRejectKeyItemMessage },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _neoArkSouthPromenadeRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkSouthPromenadeIgnoreActionMessage },
     { ROOM_MESSAGE_COMMAND, _neoArkSouthPromenadeIgnoreCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -539,9 +536,7 @@ WorldCollisionSurfaceProperties* gNeoArkSouthPromenadeSurfaceProperties[NEO_ARK_
 /// `itemId` is the selected inventory item; all arguments are ignored.
 static s32 _neoArkSouthPromenadeRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
-    enum { KEY_ITEM_REFUSED = 0 };
-
-    return KEY_ITEM_REFUSED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Resolves a room-transition destination from Neo Ark progress and permits departure.

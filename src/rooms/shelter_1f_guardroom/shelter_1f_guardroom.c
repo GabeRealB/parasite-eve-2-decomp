@@ -36,9 +36,6 @@ static void _shelter1fGuardroomSetUnlockOverlayVisible(u8 visible);
 static s32  _shelter1fGuardroomRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
 static s32  _shelter1fGuardroomIgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
-/// Key-item use request dispatched to this room's message table.
-enum { SHELTER_1F_GUARDROOM_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 /// Room-local selectors and rendering constants used by the resource tables.
 enum {
     SHELTER_1F_GUARDROOM_ARRIVAL_VIEW           = 2,
@@ -83,7 +80,7 @@ static void                       _shelter1fGuardroomUnlockMovieTask(Task* task)
 /// while that task receives synchronous messages.
 static TaskMessageEntry _gShelter1fGuardroomRoomMessageTable[] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelter1fGuardroomResolveRoomEvent },
-    { SHELTER_1F_GUARDROOM_MESSAGE_USE_KEY_ITEM, _shelter1fGuardroomRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelter1fGuardroomRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelter1fGuardroomIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelter1fGuardroomCommandMessage },
     { ROOM_MESSAGE_SOUND, _shelter1fGuardroomPlaySoundCueMessage },
@@ -397,9 +394,7 @@ static void _shelter1fGuardroomUnlockBulwarkTask(Task* task)
 /// result makes the item menu report that the item cannot be used here.
 static s32 _shelter1fGuardroomRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg)
 {
-    enum { SHELTER_1F_GUARDROOM_KEY_ITEM_USE_REFUSED = 0 };
-
-    return SHELTER_1F_GUARDROOM_KEY_ITEM_USE_REFUSED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Allows a room transition after resolving its Neo Ark destination variant.

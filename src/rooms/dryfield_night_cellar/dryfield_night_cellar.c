@@ -41,9 +41,6 @@
 #include "../../shared/effects/glow_draw.h"
 #include "../../shared/cellar.h"
 
-/// Room message sent by the inventory's key-item use prompt.
-enum { DRYFIELD_NIGHT_CELLAR_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 static s32  _dryfieldNightCellarRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused);
 static s32  _dryfieldNightCellarIgnoreActionMessage(Task* task, s32 messageId, const DirectionActionRequest* action, s32 unused);
 static void _dryfieldNightCellarIdle(Task* task);
@@ -62,7 +59,7 @@ static WorldCoordRoomLights   _gDryfieldNightCellarRoom2Lights;
 /// The final `TASK_MESSAGE_TABLE_END` record terminates dispatch; it is not a handler.
 static const TaskMessageEntry _gDryfieldNightCellarMessageTable[5] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantResolveCellar },
-    { DRYFIELD_NIGHT_CELLAR_MESSAGE_USE_KEY_ITEM, _dryfieldNightCellarRejectKeyItem },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightCellarRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightCellarIgnoreActionMessage },
     { ROOM_MESSAGE_COMMAND, _cellarHandleCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -1134,9 +1131,7 @@ static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radi
 /// All arguments are ignored; no item or room state is changed.
 static s32 _dryfieldNightCellarRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused)
 {
-    enum { DRYFIELD_NIGHT_CELLAR_KEY_ITEM_REJECTED = 0 };
-
-    return DRYFIELD_NIGHT_CELLAR_KEY_ITEM_REJECTED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 #include "../../shared/cellar_door_msg.inc.c"

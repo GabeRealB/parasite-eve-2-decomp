@@ -129,9 +129,6 @@ static s32                              _dryfieldMotelRoom6HandleRoomAction(Task
 static s32                              _dryfieldMotelRoom6IgnoreSoundMessage(Task* receiver, s32 messageId, s32 soundCommand, s32 unusedSecondArg);
 static void                             _dryfieldMotelRoom6RunActorEventTask(Task* task);
 
-/// Key-item use request sent to the room task by the inventory menu.
-enum { DRYFIELD_MOTEL_ROOM_6_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 #include "../../shared/room/telephone_data.inc.c"
 
 #include "../../shared/room/planar_reflection_data.inc.c"
@@ -170,7 +167,7 @@ static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
 /// contract. The terminal record is not dispatched.
 static TaskMessageEntry _gDryfieldMotelRoom6MessageTable[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldMotelRoom6GateWaterTowerExit },
-    { DRYFIELD_MOTEL_ROOM_6_MESSAGE_USE_KEY_ITEM, _dryfieldMotelRoom6RejectKeyItemMessage },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldMotelRoom6RejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldMotelRoom6HandleRoomAction },
     { ROOM_MESSAGE_SOUND, _dryfieldMotelRoom6IgnoreSoundMessage },
     { ROOM_MESSAGE_COMMAND, _motelRoom6CutsceneMessage },
@@ -2221,9 +2218,7 @@ static void _dryfieldMotelRoom6IgnoreCommand(Task* unusedTask, s32 unusedMessage
 /// returns 0 so the inventory menu reports that the item cannot be used here.
 static s32 _dryfieldMotelRoom6RejectKeyItemMessage(Task* receiver, s32 messageId, s32 itemId, s32 unusedSecondArg)
 {
-    enum { DRYFIELD_MOTEL_ROOM_6_KEY_ITEM_RESULT_REFUSED = 0 };
-
-    return DRYFIELD_MOTEL_ROOM_6_KEY_ITEM_RESULT_REFUSED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Intercepts the first departure toward the water tower with a CAP event.

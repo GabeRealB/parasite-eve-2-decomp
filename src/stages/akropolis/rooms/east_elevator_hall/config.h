@@ -52,9 +52,6 @@ enum { AKROPOLIS_EAST_ELEVATOR_HALL_SWAT_MEMBER_ACTOR = 0 };
 // ---------------------------------------------------------------------------
 // Tasks and messages
 
-/// Messages the hall's room task receives.
-enum { AKROPOLIS_EAST_ELEVATOR_HALL_MESSAGE_USE_KEY_ITEM = 5105 };
-
 /// Player reflections: their task and its two modes.
 enum {
     AKROPOLIS_EAST_ELEVATOR_HALL_REFLECTION_TASK_BANK = 1,

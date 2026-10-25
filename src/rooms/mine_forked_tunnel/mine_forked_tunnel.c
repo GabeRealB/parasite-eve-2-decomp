@@ -137,9 +137,6 @@ enum {
     MINE_FORKED_TUNNEL_MODEL_DRAW_SHOW_MANUAL  = 3,
 };
 
-/// Inventory request to use a collected key item in this room.
-enum { MINE_FORKED_TUNNEL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 /// Setup, motion/drawing and teardown handlers for the switch-controlled area object.
 ///
 /// `Task::state` selects 0..2 without a bounds check. The dispatcher copies
@@ -390,7 +387,7 @@ static WorldCollisionGrid _gMineForkedTunnelAreaObjectCollisionBox = {
 /// while loaded. TASK_MESSAGE_TABLE_END returns zero for unsupported IDs.
 static const TaskMessageEntry _gMineForkedTunnelRoomMessages[5] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _mineForkedTunnelResolveRoomVariant },
-    { MINE_FORKED_TUNNEL_MESSAGE_USE_KEY_ITEM, _mineForkedTunnelRejectKeyItemMessage },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _mineForkedTunnelRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _mineForkedTunnelHandleSwitchAction },
     { ROOM_MESSAGE_COMMAND, _mineForkedTunnelBoardCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -1753,9 +1750,7 @@ static void _mineForkedTunnelUpdateAreaObjectCollision(s32 switchUsed)
 /// `itemId` is the inventory's collected item ID; all four arguments are ignored.
 static s32 _mineForkedTunnelRejectKeyItemMessage(Task* unusedTask, s32 messageId, s32 itemId, s32 unused)
 {
-    enum { MINE_FORKED_TUNNEL_KEY_ITEM_REFUSED = 0 };
-
-    return MINE_FORKED_TUNNEL_KEY_ITEM_REFUSED;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Accepts a tunnel room transition and resolves its Mine/Shelter destination variant.
