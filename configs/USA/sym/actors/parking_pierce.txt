@@ -1,7 +1,7 @@
 // Overlay-local symbols for parking_pierce.
 _gParkingPierceHeadTurnByClip = 0x801442E4; // size:0x24 defined:True
-gParkingPiercePierceCarradineTaskDescriptors = 0x80144308; // size:0x30 defined:True
-_gParkingPiercePierceCarradineMessages = 0x80144338; // size:0x30 defined:True
+gParkingPierceTaskDescs = 0x80144308; // size:0x30 defined:True
+_gParkingPierceMessages = 0x80144338; // size:0x30 defined:True
 _gPierceBodySkeleton = 0x8013346C; // size:0x2D0 defined:True
 _gPierceBodyPartVerts = 0x8013373C; // size:0x50 defined:True
 _gPierceBodyVerts = 0x8013378C; // size:0xC30 defined:True
@@ -200,8 +200,8 @@ _gParkingPierceAnimation12408Bank4 = 0x80143C84; // size:0x210 defined:True
 _gParkingPierceAnimation12408Records = 0x80143E94; // size:0x36C defined:True
 _gParkingPierceAnimation12408Indices = 0x80144200; // size:0x28 defined:True
 _gPierceAnim35Clip = 0x80144228; // size:0x28 defined:True
-_gParkingPiercePierceAnimationBank = 0x80144250; // size:0x90 defined:True
-_gParkingPiercePierceAnimationBanks = 0x801442E0; // size:0x4 defined:True
+_gParkingPierceAnimationSets = 0x80144250; // size:0x90 defined:True
+_gParkingPierceAnimationBanks = 0x801442E0; // size:0x4 defined:True
 
 mistParkingSetPierceCollisionPatchLowered = 0x80183BAC; // type:func absolute:True owner=mist_parking
 _modelPlacementAttachChild = 0x80132CF4; // type:func
@@ -222,11 +222,11 @@ _parkingPierceTurnToArrivalYaw = 0x801330e8; // type:func
 _parkingPierceStepWalk = 0x80132fb4; // type:func
 _parkingPierceStartWalk = 0x801328ec; // type:func
 _parkingPierceApplyCommand = 0x801333b8; // type:func
-_parkingPiercePierceCarradineTask = 0x80132e98; // type:func
-_parkingPierceCheckPierceAppearance = 0x80132f40; // type:func
-_parkingPierceSpawnPierceCarradine = 0x80131e58; // type:func
-_parkingPierceUpdatePierceCarradine = 0x80132104; // type:func
+_parkingPierceTask = 0x80132e98; // type:func
+_parkingPierceCheckAppearance = 0x80132f40; // type:func
+_parkingPierceSpawn = 0x80131e58; // type:func
+_parkingPierceUpdate = 0x80132104; // type:func
 _gParkingPierceBillboardStates = 0x80131e24;
 _gParkingPierceAttachedModelStates = 0x80131e30;
-_gParkingPiercePierceCarradineWalkSteps = 0x80131e48;
-_gParkingPiercePierceCarradineTaskStates = 0x80131e3c;
+_gParkingPierceWalkSteps = 0x80131e48;
+_gParkingPierceStates = 0x80131e3c;

@@ -36,23 +36,27 @@
 
 #include "stages/akropolis/rooms/mist_parking.h"
 
+#include "assets/rooms/mist/parking/pierce_schema.h"
+
 #include "../../rooms/mist_parking/config.h"
 #include "../../../../shared/actor/model_placement.h"
 #include "../../../../shared/actor/actor_messages.h"
 #include "../../../../shared/actor/actor_motion_walk_helpers.h"
 
-/// Body drawing and primitive-buffer policies; every mode disables sphere pairs.
+/// Ticks a hide without the automatic buffer waits before the body's buffers are freed.
+enum { BUFFER_RELEASE_DELAY_TICKS = 2 };
+
+/// The parts Pierce's sphere and lighting follow (the pelvis) and his attachments ride.
 enum {
-    DRAW_HIDE                  = 0,
-    DRAW_SHOW                  = 1,
-    DRAW_HIDE_AND_RELEASE      = 2,
-    BUFFER_RELEASE_DELAY_TICKS = 2,
+    PELVIS_PART     = 1,
+    WAIST_PART      = 2, // The ID badge
+    HEAD_PART       = 4, // The glasses
+    RIGHT_HAND_PART = 8, // The hand billboard
 };
 
 /// Pierce's walk clips and transitions; velocity uses signed 16.16 units per tick.
 enum {
     BODY_ANIMATION_BANK     = 0,
-    ANIM_WALK               = 2,
     WALK_STEP_QUEUE_HEADING = 0,
     TURN_BLEND_FRAMES       = 4,
     WALK_BLEND_FRAMES       = 5,
@@ -65,21 +69,21 @@ static void _modelPlacementMirrorParentDrawFlags(Task* childTask);
 typedef struct {
     ActorAnimRig20        rig;            // Playback storage of the twenty-part body model; slots 1 to 19 are driven
     ActorModelState       model;          // Clip and bank the rig plays, and the matrices the model is lit with
-    WorldCollisionBody    body;           // Sphere on part 1, linked for the task's life; the spawn state enables its pair pass and every visibility command disables it
+    WorldCollisionBody    body;           // Sphere on the pelvis, linked for the task's life; the spawn state enables its pair pass and every visibility command disables it
     WorldCollisionContact contacts[1];    // One-entry table `body` borrows. The entry is marked LAST; an occupied contact is cleared each frame the model is drawn and never read
     ActorWalkState        walk;           // Destination, closing rotation, per-frame velocity and step of the walk in progress
-    Task*                 billboardTask;  // Task of the camera-facing model carried on part 8, which an actor command shows and hides; started only in placement variant 2, NULL otherwise
+    Task*                 billboardTask;  // Task of the camera-facing model carried on the right hand, which an actor command shows and hides; started only in placement variant 2, NULL otherwise
     s16                   turnWeight;     // Weight of the per-frame head turn toward the player, 0 to 0x1000; stepped by 0x100 a frame while the model is drawn
     s16                   walkYaw;        // Heading from the root to `walk.target` as a walk starts, 4096 to a turn; the opening turn steers the root yaw to it
     u8                    turnUp;         // Direction `turnWeight` is ramped in (0 down to 0, 1 up to 0x1000); every play request sets it from the clip, and an actor command overrides it
     s8                    freeCountdown;  // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
-    s8                    lastAppearFlag; // Game flag 0xED as the idle handler last read it; the actor appears on the tick the flag is positive and this is still 0
+    s8                    lastAppearFlag; // `EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT` as the idle handler last read it; the actor appears on the tick the flag is positive and this is still 0
     byte                  pad_53F[1];
-} _PierceCarradineWork;
-STATIC_ASSERT_SIZEOF(_PierceCarradineWork, 0x540);
+} _Work;
+STATIC_ASSERT_SIZEOF(_Work, 0x540);
 
-static void _parkingPierceSpawnPierceCarradine(Task* task);
-static void _parkingPierceUpdatePierceCarradine(Task* task);
+static void _parkingPierceSpawn(Task* task);
+static void _parkingPierceUpdate(Task* task);
 static void _parkingPierceTurnAndBeginWalk(Task* task);
 static void _parkingPierceCheckWalkArrival(Task* task);
 static s32  _parkingPierceSetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg);
@@ -87,7 +91,7 @@ static void _parkingPierceAttachBillboard(Task* task);
 static void _parkingPierceFaceBillboardToCamera(Task* task);
 static void _parkingPierceExit(Task* task);
 static void _parkingPierceBindLighting(Task* task);
-static void _parkingPierceCheckPierceAppearance(Task* task);
+static void _parkingPierceCheckAppearance(Task* task);
 static void _parkingPierceStepWalk(Task* task);
 static void _parkingPierceQueueWalkHeading(Task* task);
 static void _parkingPierceTurnToArrivalYaw(Task* task);
@@ -112,16 +116,16 @@ static const TaskFuncTable3 _gParkingPierceAttachedModelStates = { {
 } };
 
 /// Pierce Carradine body callbacks: 0 initialize, 1 update, 2 exit.
-static const TaskFuncTable3 _gParkingPiercePierceCarradineTaskStates = {
+static const TaskFuncTable3 _gParkingPierceStates = {
     .funcs = {
-        _parkingPierceSpawnPierceCarradine,
-        _parkingPierceUpdatePierceCarradine,
+        _parkingPierceSpawn,
+        _parkingPierceUpdate,
         _parkingPierceExit,
     },
 };
 
 /// Pierce Carradine's four scripted-walk steps, copied before dispatch.
-static const TaskFuncTable4 _gParkingPiercePierceCarradineWalkSteps = { {
+static const TaskFuncTable4 _gParkingPierceWalkSteps = { {
     _parkingPierceQueueWalkHeading, // 0: queue destination heading and opening-turn clip
     _parkingPierceTurnAndBeginWalk, // 1: face the destination and begin forward motion
     _parkingPierceCheckWalkArrival, // 2: stop when the destination is reached or passed
@@ -129,7 +133,7 @@ static const TaskFuncTable4 _gParkingPiercePierceCarradineWalkSteps = { {
 } };
 
 static TmdSource _gPierceBody;
-static void      _parkingPiercePierceCarradineTask(Task* task);
+static void      _parkingPierceTask(Task* task);
 
 #include "assets/characters/pierce/body.inc"
 
@@ -145,8 +149,8 @@ static void      _parkingPiercePierceCarradineTask(Task* task);
 #include "assets/rooms/mist/parking/pierce_bank.inc"
 
 /// Body animation banks for Pierce Carradine; bank 0 is the sole 36-entry clip table.
-static AnimationSet** _gParkingPiercePierceAnimationBanks[1] = {
-    _gParkingPiercePierceAnimationBank,
+static AnimationSet** _gParkingPierceAnimationBanks[1] = {
+    _gParkingPierceAnimationSets,
 };
 
 /// Directions of Pierce's Q12 head-aim weight ramp.
@@ -155,7 +159,7 @@ enum {
     HEAD_TURN_AIM     = 1,
 };
 
-/// Head-aim ramp direction for each of Pierce Carradine's 36 body-clip indices.
+/// Head-aim ramp direction for each of Pierce's 36 clips: every play request takes its clip's, an actor command may override it.
 static u8 _gParkingPierceHeadTurnByClip[36] = {
     HEAD_TURN_RELEASE,
     HEAD_TURN_AIM,
@@ -199,26 +203,26 @@ static TmdSource _gMistParkingHandBillboard;
 static TmdSource _gPierceGlasses;
 static TmdSource _gPierceIdBadge;
 
-TaskDesc gParkingPiercePierceCarradineTaskDescriptors[4] = {
+TaskDesc gParkingPierceTaskDescs[4] = {
     // 0: body.
     {
         .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = TASK_PRIORITY_CONTROL } },
-        .callback = _parkingPiercePierceCarradineTask,
+        .callback = _parkingPierceTask,
         .data     = { .model = &_gPierceBody },
     },
-    // 1: billboard.
+    // 1: hand billboard.
     {
         .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _parkingPierceBillboardTask,
         .data     = { .model = &_gMistParkingHandBillboard },
     },
-    // 2: part-4 attachment.
+    // 2: glasses, on the head.
     {
         .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _parkingPierceAttachedModelTask,
         .data     = { .model = &_gPierceGlasses },
     },
-    // 3: part-2 attachment.
+    // 3: ID badge, on the waist.
     {
         .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_CONTROL } },
         .callback = _parkingPierceAttachedModelTask,
@@ -227,7 +231,7 @@ TaskDesc gParkingPiercePierceCarradineTaskDescriptors[4] = {
 };
 
 /// Pierce Carradine's synchronous animation, placement, drawing, walk and command messages.
-static TaskMessageEntry _gParkingPiercePierceCarradineMessages[6] = {
+static TaskMessageEntry _gParkingPierceMessages[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _parkingPiercePlayAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _parkingPierceSetModelDraw },
@@ -237,25 +241,22 @@ static TaskMessageEntry _gParkingPiercePierceCarradineMessages[6] = {
 };
 
 /// Creates Pierce Carradine's scripted body, attached models and collision sphere.
-static void _parkingPierceSpawnPierceCarradine(Task* task)
+static void _parkingPierceSpawn(Task* task)
 {
     enum {
-        BILLBOARD_VARIANT     = 2,
-        BILLBOARD_CHILD       = 1,
-        ATTACHED_CHILD_2      = 2,
-        ATTACHED_CHILD_3      = 3,
-        BILLBOARD_PARENT_PART = 8,
-        CHILD_2_PARENT_PART   = 4,
-        CHILD_3_PARENT_PART   = 2,
-        BODY_RADIUS           = 256,
-        BUFFER_FREE_DISABLED  = -1,
+        BILLBOARD_VARIANT    = 2,
+        BILLBOARD_CHILD      = 1,
+        GLASSES_CHILD        = 2,
+        ID_BADGE_CHILD       = 3,
+        BODY_RADIUS          = 256,
+        BUFFER_FREE_DISABLED = -1,
     };
-    _PierceCarradineWork* work;
-    Task*                 attachedTask2;
-    Task*                 attachedTask3;
-    WorldCollisionBody*   body;
+    _Work*              work;
+    Task*               attachedTask2;
+    Task*               attachedTask3;
+    WorldCollisionBody* body;
 
-    work = memCalloc(sizeof(_PierceCarradineWork), false);
+    work = memCalloc(sizeof(_Work), false);
     if (work == NULL) {
         enemyTaskExit(task);
         return;
@@ -268,15 +269,15 @@ static void _parkingPierceSpawnPierceCarradine(Task* task)
     work->walk.carry[1].word = 0;
     work->walk.carry[2].word = 0;
     if (gGameSession->location.variant == BILLBOARD_VARIANT) {
-        work->billboardTask = taskSpawnFromTable(gParkingPiercePierceCarradineTaskDescriptors, BILLBOARD_CHILD, BILLBOARD_PARENT_PART, task);
+        work->billboardTask = taskSpawnFromTable(gParkingPierceTaskDescs, BILLBOARD_CHILD, RIGHT_HAND_PART, task);
     }
 
-    attachedTask2 = taskSpawnFromTable(gParkingPiercePierceCarradineTaskDescriptors, ATTACHED_CHILD_2, CHILD_2_PARENT_PART, task);
+    attachedTask2 = taskSpawnFromTable(gParkingPierceTaskDescs, GLASSES_CHILD, HEAD_PART, task);
     if (attachedTask2 != NULL) {
         _actorRenderApplyTaskPlacementTextureOffsets(attachedTask2, task->spawnArg2.pointer);
     }
 
-    attachedTask3 = taskSpawnFromTable(gParkingPiercePierceCarradineTaskDescriptors, ATTACHED_CHILD_3, CHILD_3_PARENT_PART, task);
+    attachedTask3 = taskSpawnFromTable(gParkingPierceTaskDescs, ID_BADGE_CHILD, WAIST_PART, task);
     if (attachedTask3 != NULL) {
         _actorRenderApplyTaskPlacementTextureOffsets(attachedTask3, task->spawnArg2.pointer);
     }
@@ -285,7 +286,7 @@ static void _parkingPierceSpawnPierceCarradine(Task* task)
 
     // Keep the body linked for the work lifetime; visibility controls its pair pass.
     body                   = &work->body;
-    body->coord            = &task->extra.tmd->coords[1];
+    body->coord            = &task->extra.tmd->coords[PELVIS_PART];
     body->context.contacts = work->contacts;
     body->key              = WORLD_COLLISION_CONTACT_ENEMY_BODY;
     body->radius           = BODY_RADIUS;
@@ -297,15 +298,15 @@ static void _parkingPierceSpawnPierceCarradine(Task* task)
     body->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldCollisionInitContacts(body->context.contacts, ARRAY_SIZE(work->contacts), 0);
 
-    task->msgTable = _gParkingPiercePierceCarradineMessages;
+    task->msgTable = _gParkingPierceMessages;
     mistParkingSetPierceCollisionPatchLowered(MIST_PARKING_PIERCE_PATCH_LOWERED);
-    _parkingPierceSetModelDraw(task, 0, DRAW_HIDE, 0);
+    _parkingPierceSetModelDraw(task, 0, ACTOR_MESSAGE_DRAW_HIDE, 0);
     task->exitCallback = _parkingPierceExit;
     task->state       += 1;
 }
 
 /// Applies one frame of Pierce's signed 16.16 walk velocity to the root.
-static inline void _parkingPierceIntegrateWalkVelocity(_PierceCarradineWork* work, GfxCoord* rootCoord)
+static inline void _parkingPierceIntegrateWalkVelocity(_Work* work, GfxCoord* rootCoord)
 {
     work->walk.carry[0].word += work->walk.velocity.vx;
     work->walk.carry[1].word += work->walk.velocity.vy;
@@ -320,7 +321,7 @@ static inline void _parkingPierceIntegrateWalkVelocity(_PierceCarradineWork* wor
 }
 
 /// Steps Pierce's head-aim weight toward zero or full aim.
-static inline void _parkingPierceStepHeadAimWeight(_PierceCarradineWork* work)
+static inline void _parkingPierceStepHeadAimWeight(_Work* work)
 {
     enum { WEIGHT_STEP  = ONE / 16,
            WEIGHT_FULL  = ONE,
@@ -349,7 +350,7 @@ static inline void _parkingPierceStepHeadAimWeight(_PierceCarradineWork* work)
 }
 
 /// Updates Pierce's scripted walk, animation cues, head aim and model presentation.
-static void _parkingPierceUpdatePierceCarradine(Task* task)
+static void _parkingPierceUpdate(Task* task)
 {
     enum {
         SHADOW_HALF_SIZE    = 512,
@@ -361,8 +362,8 @@ static void _parkingPierceUpdatePierceCarradine(Task* task)
         LIGHT_COUNT         = 3,
     };
     TmdObject*             bodyModel         = task->extra.tmd;
-    _PierceCarradineWork*  work              = task->work;
-    TaskFunc               motionHandlers[2] = { _parkingPierceCheckPierceAppearance, _parkingPierceStepWalk };
+    _Work*                 work              = task->work;
+    TaskFunc               motionHandlers[2] = { _parkingPierceCheckAppearance, _parkingPierceStepWalk };
     VECTOR3                groundPosition;
     GfxCoord*              rootCoord;
     const AnimationRecord* soundCue;
@@ -371,9 +372,9 @@ static void _parkingPierceUpdatePierceCarradine(Task* task)
 
     // Project a visible body's shadow even when scene motion is frozen.
     if (!(bodyModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(&task->extra.tmd->coords[1]);
-        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[1].workm), &groundPosition) != 0) {
+        task->extra.tmd->coords[PELVIS_PART].composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(&task->extra.tmd->coords[PELVIS_PART]);
+        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[PELVIS_PART].workm), &groundPosition) != 0) {
             effectDrawGroundShadow(&groundPosition, SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
     }
@@ -405,9 +406,9 @@ static void _parkingPierceUpdatePierceCarradine(Task* task)
             animationAimHeadAtTask(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), HEAD_MAX_YAW, HEAD_MAX_PITCH, work->turnWeight);
         }
         if (gGameSession->viewReady != 0) {
-            task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(&task->extra.tmd->coords[1]);
-            worldCoordSetModelLighting(bodyModel, task->extra.tmd->coords[1].workm.t, 0, LIGHT_COUNT);
+            task->extra.tmd->coords[PELVIS_PART].composeStamp = GRAPHICS_COORD_DIRTY;
+            actorRenderComposeCoord(&task->extra.tmd->coords[PELVIS_PART]);
+            worldCoordSetModelLighting(bodyModel, task->extra.tmd->coords[PELVIS_PART].workm.t, 0, LIGHT_COUNT);
         }
         if (work->freeCountdown >= 0) {
             if (work->freeCountdown == 0) {
@@ -419,7 +420,7 @@ static void _parkingPierceUpdatePierceCarradine(Task* task)
 }
 
 /// Applies Pierce's bank/clip transition and its clip-selected head-turn ramp.
-static inline void _parkingPierceApplyAnimationRequest(_PierceCarradineWork* work,
+static inline void _parkingPierceApplyAnimationRequest(_Work*     work,
                                                        TmdObject* model, const AnimationPlayRequest* request)
 {
     s32 slotIndex;
@@ -429,7 +430,7 @@ static inline void _parkingPierceApplyAnimationRequest(_PierceCarradineWork* wor
     if (request->source.index != work->model.bank) {
         work->model.bank   = request->source.index;
         work->model.animId = ACTOR_MOTION_ANIMATION_INDEX_NONE;
-        animationInitContext(&work->rig.anim, _gParkingPiercePierceAnimationBanks[work->model.bank], model, work->rig.poses,
+        animationInitContext(&work->rig.anim, _gParkingPierceAnimationBanks[work->model.bank], model, work->rig.poses,
                              work->rig.slots);
     }
     // Repeated clips keep their cursor; a bank change invalidates the previous clip.
@@ -456,14 +457,14 @@ static inline void _parkingPierceApplyAnimationRequest(_PierceCarradineWork* wor
 /// Turns to the queued heading, then starts the walk at 32 parent-space units per tick.
 static void _parkingPierceTurnAndBeginWalk(Task* task)
 {
-    _PierceCarradineWork* work;
-    GfxCoord*             rootCoord;
-    VECTOR                forwardVelocity;
-    AnimationPlayRequest  walkRequest;
-    s32                   currentYaw;
-    s32                   currentYaw16;
-    u16                   yaw;
-    s16                   yawGap;
+    _Work*               work;
+    GfxCoord*            rootCoord;
+    VECTOR               forwardVelocity;
+    AnimationPlayRequest walkRequest;
+    s32                  currentYaw;
+    s32                  currentYaw16;
+    u16                  yaw;
+    s16                  yawGap;
 
     enum { WALK_SPEED_16_16 = 32 * 0x10000 };
 
@@ -493,7 +494,7 @@ static void _parkingPierceTurnAndBeginWalk(Task* task)
         work->walk.lastDistance.vy       = ACTOR_MOTION_INITIAL_ARRIVAL_GAP;
         work->walk.lastDistance.vz       = ACTOR_MOTION_INITIAL_ARRIVAL_GAP;
         walkRequest.source.index         = BODY_ANIMATION_BANK;
-        walkRequest.animationId          = ANIM_WALK;
+        walkRequest.animationId          = PIERCE_ANIMATION_WALK;
         walkRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
         walkRequest.blendFrames          = TURN_BLEND_FRAMES;
         walkRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
@@ -506,12 +507,12 @@ static void _parkingPierceTurnAndBeginWalk(Task* task)
 /// Stops Pierce's walk when neither horizontal arrival gap gets smaller.
 static void _parkingPierceCheckWalkArrival(Task* task)
 {
-    _PierceCarradineWork* work;
-    GfxCoord*             rootCoord;
-    SVECTOR               distance;
-    s32                   deltaX;
-    s32                   deltaZ;
-    AnimationPlayRequest  arrivalRequest;
+    _Work*               work;
+    GfxCoord*            rootCoord;
+    SVECTOR              distance;
+    s32                  deltaX;
+    s32                  deltaZ;
+    AnimationPlayRequest arrivalRequest;
 
     work      = task->work;
     rootCoord = task->extra.tmd->coords;
@@ -540,13 +541,13 @@ static void _parkingPierceCheckWalkArrival(Task* task)
 /// Sets Pierce's body drawing, sphere-pair participation and buffer policy.
 static s32 _parkingPierceSetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg)
 {
-    _PierceCarradineWork* work;
-    _PierceCarradineWork* drawWork;
-    WorldCollisionBody*   body;
-    WorldCollisionBody*   bodyCursor;
-    TmdObject*            model;
-    s32                   bodyIndex;
-    s32                   result;
+    _Work*              work;
+    _Work*              drawWork;
+    WorldCollisionBody* body;
+    WorldCollisionBody* bodyCursor;
+    TmdObject*          model;
+    s32                 bodyIndex;
+    s32                 result;
 
     enum { COLLISION_BODY_COUNT = 1 };
 
@@ -557,7 +558,7 @@ static s32 _parkingPierceSetModelDraw(Task* task, s32 messageId, s32 drawMode, s
     result   = 0;
 
     switch (drawMode) {
-        case DRAW_HIDE:
+        case ACTOR_MESSAGE_DRAW_HIDE:
             model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             bodyCursor    = body;
             for (bodyIndex = 0; bodyIndex < COLLISION_BODY_COUNT; bodyIndex++) {
@@ -566,7 +567,7 @@ static s32 _parkingPierceSetModelDraw(Task* task, s32 messageId, s32 drawMode, s
             }
             model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case DRAW_SHOW:
+        case ACTOR_MESSAGE_DRAW_SHOW:
             model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             bodyCursor    = body;
             for (bodyIndex = 0; bodyIndex < COLLISION_BODY_COUNT; bodyIndex++) {
@@ -576,7 +577,7 @@ static s32 _parkingPierceSetModelDraw(Task* task, s32 messageId, s32 drawMode, s
             tmdAllocPrimitiveBuffer(model);
             model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case DRAW_HIDE_AND_RELEASE:
+        case ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER:
             model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             bodyCursor    = body;
             for (bodyIndex = 0; bodyIndex < COLLISION_BODY_COUNT; bodyIndex++) {
@@ -605,12 +606,10 @@ static s32 _parkingPierceSetModelDraw(Task* task, s32 messageId, s32 drawMode, s
 /// Copies a walk destination and starts Pierce's four-stage walking sequence.
 static s32 _parkingPierceStartWalk(Task* task, s32 messageId, const ActorTransform* placement, const ActorMotionWalkAnim* walkAnim)
 {
-    _PierceCarradineWork* playWork;
-    _PierceCarradineWork* walkWork;
-    AnimationPlayRequest  walkRequest;
-    TmdObject*            model;
-
-    enum { ANIM_DEFAULT_ARRIVAL = 1 };
+    _Work*               playWork;
+    _Work*               walkWork;
+    AnimationPlayRequest walkRequest;
+    TmdObject*           model;
 
     walkWork                    = task->work;
     walkWork->walk.motion       = ACTOR_WALK_MOTION_WALKING;
@@ -626,8 +625,8 @@ static s32 _parkingPierceStartWalk(Task* task, s32 messageId, const ActorTransfo
         walkRequest.animationId    = walkAnim->animationId;
         walkWork->model.nextAnimId = walkAnim->nextAnimId;
     } else {
-        walkRequest.animationId    = ANIM_WALK;
-        walkWork->model.nextAnimId = ANIM_DEFAULT_ARRIVAL;
+        walkRequest.animationId    = PIERCE_ANIMATION_WALK;
+        walkWork->model.nextAnimId = PIERCE_ANIMATION_REST;
     }
     walkRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
     walkRequest.blendFrames          = WALK_BLEND_FRAMES;
@@ -720,18 +719,18 @@ static void _parkingPierceAttachedModelTask(Task* task)
 #include "../../../../shared/actor/model_placement_mirror_parent.inc.c"
 
 /// Dispatches Pierce Carradine's body setup, frame update or teardown.
-static void _parkingPiercePierceCarradineTask(Task* task)
+static void _parkingPierceTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = _gParkingPiercePierceCarradineTaskStates;
+    states = _gParkingPierceStates;
     states.funcs[task->state](task);
 }
 
 /// Unlinks Pierce's collision sphere before releasing his body task and work.
 static void _parkingPierceExit(Task* task)
 {
-    _PierceCarradineWork* work = task->work;
+    _Work* work = task->work;
 
     worldCollisionUnlinkBody(&work->body);
     enemyTaskExit(task);
@@ -740,8 +739,8 @@ static void _parkingPierceExit(Task* task)
 /// Makes Pierce's model borrow the light and color matrices in its work block.
 static void _parkingPierceBindLighting(Task* task)
 {
-    TmdObject*            model;
-    _PierceCarradineWork* work;
+    TmdObject* model;
+    _Work*     work;
 
     model           = task->extra.tmd;
     work            = task->work;
@@ -750,15 +749,15 @@ static void _parkingPierceBindLighting(Task* task)
 }
 
 /// Reveals Pierce when his appearance flag first becomes positive while he is idle.
-static void _parkingPierceCheckPierceAppearance(Task* task)
+static void _parkingPierceCheckAppearance(Task* task)
 {
-    _PierceCarradineWork* work;
-    s32                   appearFlag;
+    _Work* work;
+    s32    appearFlag;
 
     work       = task->work;
     appearFlag = gameFlagGetNibble(EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT);
     if (appearFlag > 0 && work->lastAppearFlag == 0) {
-        _parkingPierceSetModelDraw(task, 0, DRAW_SHOW, 0);
+        _parkingPierceSetModelDraw(task, 0, ACTOR_MESSAGE_DRAW_SHOW, 0);
         mistParkingSetPierceCollisionPatchLowered(MIST_PARKING_PIERCE_PATCH_RESTORED);
     }
     work->lastAppearFlag = appearFlag;
@@ -767,24 +766,22 @@ static void _parkingPierceCheckPierceAppearance(Task* task)
 /// Dispatches Pierce's heading, opening turn, arrival or closing-turn step.
 static void _parkingPierceStepWalk(Task* task)
 {
-    _PierceCarradineWork* work;
-    TaskFuncTable4        walkSteps;
+    _Work*         work;
+    TaskFuncTable4 walkSteps;
 
     work      = task->work;
-    walkSteps = _gParkingPiercePierceCarradineWalkSteps;
+    walkSteps = _gParkingPierceWalkSteps;
     walkSteps.funcs[work->walk.motionStep](task);
 }
 
 /// Queues the destination heading and starts Pierce's opening-turn clip.
 static void _parkingPierceQueueWalkHeading(Task* task)
 {
-    _PierceCarradineWork* work;
-    GfxCoord*             rootCoord;
-    AnimationPlayRequest  turnRequest;
-    VECTOR                targetOffset;
-    SVECTOR               direction;
-
-    enum { ANIM_OPENING_TURN = 22 };
+    _Work*               work;
+    GfxCoord*            rootCoord;
+    AnimationPlayRequest turnRequest;
+    VECTOR               targetOffset;
+    SVECTOR              direction;
 
     work      = task->work;
     rootCoord = task->extra.tmd->coords;
@@ -796,7 +793,7 @@ static void _parkingPierceQueueWalkHeading(Task* task)
     work->walkYaw = ratan2(direction.vx, direction.vz);
 
     turnRequest.source.index         = BODY_ANIMATION_BANK;
-    turnRequest.animationId          = ANIM_OPENING_TURN;
+    turnRequest.animationId          = PIERCE_ANIMATION_TURN;
     turnRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
     turnRequest.blendFrames          = TURN_BLEND_FRAMES;
     turnRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
@@ -807,12 +804,12 @@ static void _parkingPierceQueueWalkHeading(Task* task)
 /// Turns Pierce's root to the destination yaw, then returns the walk to idle.
 static void _parkingPierceTurnToArrivalYaw(Task* task)
 {
-    _PierceCarradineWork* work;
-    GfxCoord*             rootCoord;
-    SVECTOR               rotation;
-    AnimationPlayRequest  closingRequest;
-    s32                   currentYaw;
-    s16                   yawGap;
+    _Work*               work;
+    GfxCoord*            rootCoord;
+    SVECTOR              rotation;
+    AnimationPlayRequest closingRequest;
+    s32                  currentYaw;
+    s16                  yawGap;
 
     rootCoord = task->extra.tmd->coords;
     work      = task->work;
@@ -847,8 +844,8 @@ static void _parkingPierceTurnToArrivalYaw(Task* task)
 /// Applies a changed clip to Pierce's twenty-part rig and selects its head-turn ramp.
 static s32 _parkingPiercePlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg)
 {
-    _PierceCarradineWork* work;
-    TmdObject*            model;
+    _Work*     work;
+    TmdObject* model;
 
     work  = task->work;
     model = task->extra.tmd;
@@ -861,8 +858,8 @@ static s32 _parkingPiercePlayAnimation(Task* task, s32 messageId, const Animatio
 /// Shows or hides Pierce's billboard, or selects his head-turn ramp.
 static s32 _parkingPierceApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg)
 {
-    _PierceCarradineWork* work;
-    TmdObject*            billboardModel;
+    _Work*     work;
+    TmdObject* billboardModel;
 
     enum {
         SHOW_BILLBOARD = 0,

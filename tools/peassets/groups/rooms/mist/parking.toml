@@ -781,7 +781,7 @@ offset = [0x00000, 0x00005]
 [pierce_bank]
 type = "animation_bank"
 schema = "rooms/mist/parking/pierce_schema"
-symbol = "_gParkingPiercePierceAnimationBank"
+symbol = "_gParkingPierceAnimationSets"
 
 [pierce_bank.clips]
 rest = "characters/pierce/rest"

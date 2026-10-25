@@ -2413,7 +2413,7 @@ if (appearFlag > 0 && work->lastAppearFlag == 0) { ... }
 work->lastAppearFlag = appearFlag;   /* sb: the store truncates, no cast needed */
 ```
 
-`_parkingPierceCheckPierceAppearance` (`base_1.c` 100%, one build after the 96.43%
+`_parkingPierceCheckAppearance` (`base_1.c` 100%, one build after the 96.43%
 baseline; `base.c` is the raw m2c seed). General rule: when an m2c seed picks an
 `s8`/`s16`/`u16` local because of a truncating store, check what the *other* use
 of that value wants — the declared width, not the store, decides the compare.
@@ -2421,7 +2421,7 @@ of that value wants — the declared width, not the store, decides the compare.
 Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Inputs: base.i `38c5b32303e08e99ce0c8264ee0871caaab40861f74b05be3e2c7cf9b92a2884`,
 base_1.i `b3998257ca8d945da974c1c3846649ac2488078deafb4ad264eda281efda0ffd`.
-Evidence: scratch `nonmatchings/_parkingPierceCheckPierceAppearance-vacuum/`, the
+Evidence: scratch `nonmatchings/_parkingPierceCheckAppearance-vacuum/`, the
 `.rtl` insns 20/21/23 above; no pins, no permuter, no tracer.
 `overlay_dup_index.py find` reports this body as its own only copy.
 ## A `u16` field tested for "0 or 1" is a two-case `switch`; `&&` folds to one `sltiu`
@@ -125827,9 +125827,9 @@ Inputs: scratch `nonmatchings/_securityMonitorsUpdateAnimation-vacuum`, `base.c`
 81.920% (`branch=6 regs=38 reorder=1 insert=3 delete=8`), `base_1.c` 99.867%
 (`regs=2`), `base_2.c` 99.867%, `base_3.c` 100.000%, compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-## A load chain sched2 will not interleave: move its store statement to the front (_parkingPierceSpawnPierceCarradine, 2026-09-17)
+## A load chain sched2 will not interleave: move its store statement to the front (_parkingPierceSpawn, 2026-09-17)
 
-`_parkingPierceSpawnPierceCarradine` sat at 97.690% with `regs=3 reorder=3 insert=1
+`_parkingPierceSpawn` sat at 97.690% with `regs=3 reorder=3 insert=1
 delete=1` while everything structural was already exact: same instruction count,
 same opcode histogram, same block edges, same predicates, same calls, same
 condition registers, `stack=0`. The whole diff was one tail block, where the ROM
@@ -125865,7 +125865,7 @@ displaces a *whole dependent chain* past independent stores rather than swapping
 a pair, with `regs` non-zero beside it: check whether the chain and the stores
 share a scratch register before permuting anything.
 
-Inputs: scratch `nonmatchings/_parkingPierceSpawnPierceCarradine-vacuum`, `base_1.c`
+Inputs: scratch `nonmatchings/_parkingPierceSpawn-vacuum`, `base_1.c`
 97.690% (`regs=3 reorder=3 insert=1 delete=1`, preprocessed SHA256
 `73d1de416306f08f1b99eaf7bb20f6864c410cf69bc1bfcab86ff0cde19525b2`), `base_2.c`
 100.000% (`86d80f5a56e94d4ee159e577b8d015cf84377b9fc4711f4c234d8703962d624e`).
@@ -125933,7 +125933,7 @@ animation head -- `AnimationContext anim; AnimationSlot slots[20]; byte field_33
 ActorModelState model;` (its `s8 ticking; s8 animId; s8 bank;`) replacing a `byte pad_0[0x475]`, which
 keeps every later offset -- and writing the body the way the matched sibling
 `func_actor_503500_8014652C` writes it (two field stores, then
-`_gParkingPiercePierceAnimationBanks[work->model.bank]`) reached 100.000% in one build. That
+`_gParkingPierceAnimationBanks[work->model.bank]`) reached 100.000% in one build. That
 sibling's *store order* is the part that decides the reload, which is why it is
 worth copying rather than re-deriving:
 
