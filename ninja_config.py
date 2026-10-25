@@ -224,6 +224,7 @@ GEN_ASSET_INC = TOOLS_DIR / "buildsteps" / "gen_asset_inc.py"
 GEN_MODEL_INC = TOOLS_DIR / "buildsteps" / "gen_model_inc.py"
 GEN_MODEL_SOURCE = TOOLS_DIR / "buildsteps" / "gen_model_source.py"
 GEN_ANIMATION_SOURCE = TOOLS_DIR / "buildsteps" / "gen_animation_source.py"
+GEN_SOUND_HEADER = TOOLS_DIR / "buildsteps" / "gen_sound_header.py"
 GEN_ANIMATION_INC = TOOLS_DIR / "buildsteps" / "gen_animation_inc.py"
 GEN_COLLISION_INC = TOOLS_DIR / "buildsteps" / "gen_collision_inc.py"
 GEN_SHAPE_INC = TOOLS_DIR / "buildsteps" / "gen_shape_inc.py"
@@ -1245,6 +1246,11 @@ def ninja_build(
         command=f"{PYTHON} {GEN_ANIMATION_SOURCE} $kind $name $out --assets {ASSETS_DIR / 'USA'}",
     )
     ninja_rules_file.rule(
+        "sound-header",
+        description="sound-header $name",
+        command=f"{PYTHON} {GEN_SOUND_HEADER} $name $out",
+    )
+    ninja_rules_file.rule(
         "animation-inc",
         description="animation-inc $in $source",
         command=f"{PYTHON} {GEN_ANIMATION_INC} $in $load $source {BUILD_DIR / 'include' / 'assets'}",
@@ -1374,6 +1380,14 @@ def ninja_build(
         for writer in asset_writers:
             writer.build(outputs=str(header), rule="animation-source", implicit=animation_deps,
                          variables={"kind": "schema", "name": name})
+        ASSET_INC_OUTPUTS.append(str(header))
+    # A sound bank's named sounds as constants (`assets/<bank>.h`): the entries code requests them by.
+    sound_deps = [str(GEN_SOUND_HEADER), str(peassets / "asset_data.py"), str(peassets / "asset_groups.py"),
+                  *sorted(str(p) for p in (peassets / "groups").rglob("*.toml"))]
+    for name in sorted(k for k, r in data.ASSETS.items() if r.get("type") == "sound_bank" and r.get("sounds")):
+        header = BUILD_DIR / "include" / "assets" / f"{name}.h"
+        for writer in asset_writers:
+            writer.build(outputs=str(header), rule="sound-header", implicit=sound_deps, variables={"name": name})
         ASSET_INC_OUTPUTS.append(str(header))
 
     # Thousands of resource fragments can be embedded across the overlays.

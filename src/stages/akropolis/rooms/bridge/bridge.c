@@ -607,6 +607,7 @@ static EnemyParams _gAkropolisBridgeEnemyParams = {
 
 /// The Bass's clips by slot, borrowed by every bridge enemy's rig.
 #include "assets/enemies/bass/bank.inc"
+#include "assets/enemies/bass/sounds.h"
 
 /// Enemy animation transition durations, indexed by previous clip then new clip.
 static s16 _gAkropolisBridgeEnemyAnimationBlendFrames[6][6] = {
@@ -833,8 +834,8 @@ static inline s16  _akropolisBridgeAttackLanded(const Task* task);
 static inline s32  _akropolisBridgeEnemyHasPlayerContact(const WorldCollisionContact* contacts);
 /// Base requests for the bridge enemy's fall animation and player-body contact.
 enum {
-    ENEMY_CONTACT_SOUND        = SOUND_CHARACTER(SOUND_BANK_BASS, 2),
-    ENEMY_FALL_ANIMATION_SOUND = SOUND_CHARACTER(SOUND_BANK_BASS, 3)
+    ENEMY_CONTACT_SOUND        = SOUND_CHARACTER(SOUND_BANK_BASS, BASS_SOUND_CONTACT),
+    ENEMY_FALL_ANIMATION_SOUND = SOUND_CHARACTER(SOUND_BANK_BASS, BASS_SOUND_FALL)
 };
 
 static inline void _akropolisBridgePlayEnemySound(Task* task, Enemy* enemy, s32 baseSoundId);

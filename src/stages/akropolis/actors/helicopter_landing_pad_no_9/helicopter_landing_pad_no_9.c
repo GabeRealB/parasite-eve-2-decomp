@@ -134,6 +134,7 @@ static const _SpritePalette _gHelicopterLandingPadNo9FireballFramePalettes[12] _
 #include "assets/enemies/golem/no_9/transformer_cable.inc"
 
 #include "assets/enemies/golem/no_9/package_akropolis_clips.inc"
+#include "assets/enemies/golem/no_9/sounds_akropolis.h"
 
 DamageAttack gHelicopterLandingPadNo9Attacks[6] = {
     { 14, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
@@ -1306,8 +1307,8 @@ void helicopterLandingPadNo9TickEvent(Enemy* enemy, Task* task)
     enum {
         FRAME       = 210,
         FRAMES      = 255,
-        START_SOUND = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, 14),
-        LOOP_SOUND  = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, 17),
+        START_SOUND = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, NO_9_AKROPOLIS_SOUND_FIRE),
+        LOOP_SOUND  = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, NO_9_AKROPOLIS_SOUND_EVENT_FLAME_LOOP),
     };
     GfxCoord*                    rootCoord;
     HelicopterLandingPadNo9Work* work;

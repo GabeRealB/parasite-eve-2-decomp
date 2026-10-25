@@ -391,6 +391,7 @@ static s8 _gCafeteriaBossStrangerAnimBlendFrames[45][45] = {
 /// `idle_variation` and `thrash_end` slots are empty: the run steps' cues, `IDLE` and `DEATH_THRASH` are code this
 /// package carries without the clips.
 #include "assets/rooms/akropolis/cafeteria/boss_stranger_bank.inc"
+#include "assets/enemies/stranger/sounds.h"
 
 /// Hit-effect anchors grouped by yaw: front 0..4 on the chest, rear 5..7, sides 8..11 on an upper arm or the chest. The
 /// random masks never pick the front's row 4 or the rear's row 6.
@@ -669,12 +670,12 @@ static s32 _cafeteriaBossStrangerPollAnimationSound(_Work* work)
         ALERT_CUE                    = 4,
         ENRAGED_ATTACK_CUE           = 9,
         ATTACK_CUE                   = 11,
-        SOUND_RUN_STEP_B             = SOUND_CHARACTER(SOUND_BANK_STRANGER, 4),
-        SOUND_RUN_STEP_A             = SOUND_CHARACTER(SOUND_BANK_STRANGER, 3),
-        SOUND_WALK_STEP_B            = SOUND_CHARACTER(SOUND_BANK_STRANGER, 2),
-        SOUND_WALK_STEP_A            = SOUND_CHARACTER(SOUND_BANK_STRANGER, 1),
-        SOUND_ALERT                  = SOUND_CHARACTER(SOUND_BANK_STRANGER, 6),
-        SOUND_STRIKE                 = SOUND_CHARACTER(SOUND_BANK_STRANGER, 12),
+        SOUND_RUN_STEP_B             = SOUND_CHARACTER(SOUND_BANK_STRANGER, STRANGER_SOUND_RUN_STEP_B),
+        SOUND_RUN_STEP_A             = SOUND_CHARACTER(SOUND_BANK_STRANGER, STRANGER_SOUND_RUN_STEP_A),
+        SOUND_WALK_STEP_B            = SOUND_CHARACTER(SOUND_BANK_STRANGER, STRANGER_SOUND_WALK_STEP_B),
+        SOUND_WALK_STEP_A            = SOUND_CHARACTER(SOUND_BANK_STRANGER, STRANGER_SOUND_WALK_STEP_A),
+        SOUND_ALERT                  = SOUND_CHARACTER(SOUND_BANK_STRANGER, STRANGER_SOUND_ALERT),
+        SOUND_STRIKE                 = SOUND_CHARACTER(SOUND_BANK_STRANGER, STRANGER_SOUND_STRIKE),
     };
 
     s32 rightFootCueIndex;
