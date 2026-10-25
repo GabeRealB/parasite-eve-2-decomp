@@ -1,5 +1,5 @@
 // Overlay-local symbols for square_grinning_stranger.
-gSquareGrinningStrangerGrinningStrangerTaskDesc = 0x8013A468; // size:0xC defined:True
+gSquareGrinningStrangerTaskDesc = 0x8013A468; // size:0xC defined:True
 _gStrangerGrinningBodySkeleton = 0x801329C4; // size:0x2AC defined:True
 _gStrangerGrinningBodyPartVerts = 0x80132C70; // size:0x4C defined:True
 _gStrangerGrinningBodyVerts = 0x80132CBC; // size:0x990 defined:True
@@ -37,4 +37,4 @@ akropolisSquareStartTelephoneScene = 0x80182360; // type:func absolute:True owne
 _actorRenderYawJointInWorld = 0x80131E40; // type:func
 _squareGrinningStrangerRunSequence = 0x8013214c; // type:func
 _squareGrinningStrangerInitBody = 0x80132390; // type:func
-_squareGrinningStrangerGrinningStrangerTask = 0x8013251c; // type:func
+_squareGrinningStrangerTask = 0x8013251c; // type:func

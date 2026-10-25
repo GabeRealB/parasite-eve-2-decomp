@@ -170,7 +170,7 @@ avoid-walk carriers. Pass `--unit actors_shared_80131f58` (a free VRAM from
 another copy) when `src/actors/lib/<default>.c` already exists and holds a
 different body.
 
-## Duplicate a switch-arm `state += 1`; a shared `goto` under-counts the task pointer (_squareGrinningStrangerGrinningStrangerTask, 2026-09-21)
+## Duplicate a switch-arm `state += 1`; a shared `goto` under-counts the task pointer (_squareGrinningStrangerTask, 2026-09-21)
 
 A three-state task handler whose cases 0 and 1 both increment `task->state` and
 then join a long common tail compiled with the task pointer in `$s3` and the
