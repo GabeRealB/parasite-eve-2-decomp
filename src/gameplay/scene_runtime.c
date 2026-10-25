@@ -395,8 +395,6 @@ static const char _gAnimationUnsupportedPoseDiagnostic[24];
 
 static const TaskFuncTable3 _gDisplayPreviousFrameBlendStates;
 
-/// Pixel extent of the fixed gameplay screen effects.
-
 /// Fixed pulse counter and the shift from counter steps to byte intensity.
 enum { FADE_PULSE_STEPS           = 32,
        FADE_PULSE_LAST_STEP       = FADE_PULSE_STEPS - 1,

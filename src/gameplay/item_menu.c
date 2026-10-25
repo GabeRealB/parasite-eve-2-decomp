@@ -110,7 +110,7 @@ enum {
     EQUIPMENT_SUPPLY_JAVELIN_BATTERY       = 0xBE
 };
 
-/// Fixed extent and counter-to-grey conversion of the display transition overlay.
+/// Steps, counter-to-grey conversion and ordering tags of the display transition overlay.
 enum {
     FADE_DISPLAY_STEPS           = 8,
     FADE_DISPLAY_INTENSITY_SHIFT = 5,
