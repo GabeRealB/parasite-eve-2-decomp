@@ -86,131 +86,14 @@ static void      _squareGrinningStrangerGrinningStrangerTask(Task* task);
 
 #include "assets/enemies/stranger/grinning/body.inc"
 
-static AnimationPackedPose _gSquareGrinningStrangerAnimation065FCBank1[4] = {
-#include "assets/square_grinning_stranger_animation_065FC_bank1.inc"
-};
-
-static AnimationPackedRotation _gSquareGrinningStrangerAnimation065FCBank4[69] = {
-#include "assets/square_grinning_stranger_animation_065FC_bank4.inc"
-};
-
-static AnimationRecord _gSquareGrinningStrangerAnimation065FCRecords[162] = {
-#include "assets/square_grinning_stranger_animation_065FC_records.inc"
-};
-
-static u16 _gSquareGrinningStrangerAnimation065FCIndices[20] = {
-#include "assets/square_grinning_stranger_animation_065FC_indices.inc"
-};
-
-static AnimationSet _gSquareGrinningStrangerAnimation065FC = {
-    _gSquareGrinningStrangerAnimation065FCRecords,
-    _gSquareGrinningStrangerAnimation065FCIndices,
-    { NULL, _gSquareGrinningStrangerAnimation065FCBank1, NULL, NULL, _gSquareGrinningStrangerAnimation065FCBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gSquareGrinningStrangerAnimation07120Bank1[28] = {
-#include "assets/square_grinning_stranger_animation_07120_bank1.inc"
-};
-
-static AnimationPackedRotation _gSquareGrinningStrangerAnimation07120Bank4[247] = {
-#include "assets/square_grinning_stranger_animation_07120_bank4.inc"
-};
-
-static AnimationRecord _gSquareGrinningStrangerAnimation07120Records[362] = {
-#include "assets/square_grinning_stranger_animation_07120_records.inc"
-};
-
-static u16 _gSquareGrinningStrangerAnimation07120Indices[20] = {
-#include "assets/square_grinning_stranger_animation_07120_indices.inc"
-};
-
-static AnimationSet _gSquareGrinningStrangerAnimation07120 = {
-    _gSquareGrinningStrangerAnimation07120Records,
-    _gSquareGrinningStrangerAnimation07120Indices,
-    { NULL, _gSquareGrinningStrangerAnimation07120Bank1, NULL, NULL, _gSquareGrinningStrangerAnimation07120Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gSquareGrinningStrangerAnimation07BA4Bank1[32] = {
-#include "assets/square_grinning_stranger_animation_07BA4_bank1.inc"
-};
-
-static AnimationPackedRotation _gSquareGrinningStrangerAnimation07BA4Bank4[223] = {
-#include "assets/square_grinning_stranger_animation_07BA4_bank4.inc"
-};
-
-static AnimationRecord _gSquareGrinningStrangerAnimation07BA4Records[334] = {
-#include "assets/square_grinning_stranger_animation_07BA4_records.inc"
-};
-
-static u16 _gSquareGrinningStrangerAnimation07BA4Indices[20] = {
-#include "assets/square_grinning_stranger_animation_07BA4_indices.inc"
-};
-
-static AnimationSet _gSquareGrinningStrangerAnimation07BA4 = {
-    _gSquareGrinningStrangerAnimation07BA4Records,
-    _gSquareGrinningStrangerAnimation07BA4Indices,
-    { NULL, _gSquareGrinningStrangerAnimation07BA4Bank1, NULL, NULL, _gSquareGrinningStrangerAnimation07BA4Bank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gSquareGrinningStrangerAnimation07FACBank1[6] = {
-#include "assets/square_grinning_stranger_animation_07FAC_bank1.inc"
-};
-
-static AnimationPackedRotation _gSquareGrinningStrangerAnimation07FACBank4[70] = {
-#include "assets/square_grinning_stranger_animation_07FAC_bank4.inc"
-};
-
-static AnimationRecord _gSquareGrinningStrangerAnimation07FACRecords[150] = {
-#include "assets/square_grinning_stranger_animation_07FAC_records.inc"
-};
-
-static u16 _gSquareGrinningStrangerAnimation07FACIndices[20] = {
-#include "assets/square_grinning_stranger_animation_07FAC_indices.inc"
-};
-
-static AnimationSet _gSquareGrinningStrangerAnimation07FAC = {
-    _gSquareGrinningStrangerAnimation07FACRecords,
-    _gSquareGrinningStrangerAnimation07FACIndices,
-    { NULL, _gSquareGrinningStrangerAnimation07FACBank1, NULL, NULL, _gSquareGrinningStrangerAnimation07FACBank4, NULL, NULL, NULL },
-};
-
-static AnimationPackedPose _gSquareGrinningStrangerAnimation08600Bank1[18] = {
-#include "assets/square_grinning_stranger_animation_08600_bank1.inc"
-};
-
-static AnimationPackedRotation _gSquareGrinningStrangerAnimation08600Bank4[146] = {
-#include "assets/square_grinning_stranger_animation_08600_bank4.inc"
-};
-
-static AnimationRecord _gSquareGrinningStrangerAnimation08600Records[185] = {
-#include "assets/square_grinning_stranger_animation_08600_records.inc"
-};
-
-static u16 _gSquareGrinningStrangerAnimation08600Indices[20] = {
-#include "assets/square_grinning_stranger_animation_08600_indices.inc"
-};
-
-static AnimationSet _gSquareGrinningStrangerAnimation08600 = {
-    _gSquareGrinningStrangerAnimation08600Records,
-    _gSquareGrinningStrangerAnimation08600Indices,
-    { NULL, _gSquareGrinningStrangerAnimation08600Bank1, NULL, NULL, _gSquareGrinningStrangerAnimation08600Bank4, NULL, NULL, NULL },
-};
+#include "assets/rooms/akropolis/square/grinning_stranger_clips.inc"
 
 /// Grinning Stranger body clips for its staged turn and departure sequence.
 ///
-/// Loaded entries are 0, 1, 2, 5 and 6; 3, 4 and 7 are unplayable NULL holes.
-/// Setup starts 5, the sequence blends to 0 and then 2. Sets and tracks remain
+/// Loaded entries are 0, 1, 2, 5 and 6; 3, 4 and 7 are unplayable NULL holes, and 1 and 6 are never played.
+/// Setup starts 5, the idle; the sequence blends to 0, the reaction, and then 2, running off. Sets and tracks remain
 /// borrowed by the body rig while the overlay is loaded.
-static AnimationSet* _gSquareGrinningStrangerGrinningStrangerAnimationSets[8] = {
-    &_gSquareGrinningStrangerAnimation065FC,
-    &_gSquareGrinningStrangerAnimation07120,
-    &_gSquareGrinningStrangerAnimation07BA4,
-    NULL,
-    NULL,
-    &_gSquareGrinningStrangerAnimation07FAC,
-    &_gSquareGrinningStrangerAnimation08600,
-    NULL,
-};
+#include "assets/rooms/akropolis/square/grinning_stranger_bank.inc"
 
 TaskDesc gSquareGrinningStrangerGrinningStrangerTaskDesc = {
     .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = TASK_PRIORITY_CONTROL } },
@@ -419,7 +302,7 @@ static void _squareGrinningStrangerInitBody(Task* task)
     model->lightMtx = &work->light;
     model->colorMtx = &work->color;
     model->flags    = 0;
-    animationInitContext(&work->rig.anim, _gSquareGrinningStrangerGrinningStrangerAnimationSets, model, work->rig.poses,
+    animationInitContext(&work->rig.anim, _gSquareGrinningStrangerAnimationSets, model, work->rig.poses,
                          &work->rig.slots[0]);
     work->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     work->playerMtx  = gPlayerStatus.coordMtx;
