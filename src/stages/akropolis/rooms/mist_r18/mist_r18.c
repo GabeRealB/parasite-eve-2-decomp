@@ -497,9 +497,6 @@ static void _mistR18DrawFadeSprites(s32 fadeActive, s32 shade)
 /// Captures the current 320x240 draw framebuffer as the crossfade's saved backdrop.
 static void _mistR18CaptureBackdropState(Task* task)
 {
-    enum {
-        MIST_R18_FRAMEBUFFER_LOWER_Y = 272,
-    };
     RECT     sourceRect;
     DR_STP*  maskCommand;
     DR_MOVE* copyCommand;
@@ -511,7 +508,7 @@ static void _mistR18CaptureBackdropState(Task* task)
         frameY = 0;
     } else {
         frameX = 0;
-        frameY = MIST_R18_FRAMEBUFFER_LOWER_Y;
+        frameY = DISPLAY_BUFFER_STRIDE_ROWS;
     }
 
     maskCommand    = gGpuPrimCursor;

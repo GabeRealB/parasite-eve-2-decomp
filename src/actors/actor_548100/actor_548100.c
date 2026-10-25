@@ -109,14 +109,13 @@ enum {
 
 /// Panel packet depths and pixel coordinates; wires use a two-pixel origin bias.
 enum {
-    ACTOR_548100_OT_WIRES             = 0x3FC,
-    ACTOR_548100_OT_PANEL_PIECES      = 0x3FE,
-    ACTOR_548100_WIRE_ORIGIN_X        = 158,
-    ACTOR_548100_WIRE_ORIGIN_Y        = 118,
-    ACTOR_548100_SCREEN_CENTER_X      = 160,
-    ACTOR_548100_SCREEN_CENTER_Y      = 120,
-    ACTOR_548100_DRAW_BUFFER_STRIDE_Y = 272,
-    ACTOR_548100_PANEL_TEXTURE_PAGE   = 0x116, // 15-bit texels at VRAM (384, 256)
+    ACTOR_548100_OT_WIRES           = 0x3FC,
+    ACTOR_548100_OT_PANEL_PIECES    = 0x3FE,
+    ACTOR_548100_WIRE_ORIGIN_X      = 158,
+    ACTOR_548100_WIRE_ORIGIN_Y      = 118,
+    ACTOR_548100_SCREEN_CENTER_X    = 160,
+    ACTOR_548100_SCREEN_CENTER_Y    = 120,
+    ACTOR_548100_PANEL_TEXTURE_PAGE = 0x116, // 15-bit texels at VRAM (384, 256)
 };
 
 /// Pulse level at which a wire colour equals its authored RGB bytes.
@@ -1771,7 +1770,7 @@ static void _actor548100DrawEdge(const _Actor548100Edge* edge)
             toX            = _gActor548100DiagramNodes[toNode].vx - ACTOR_548100_WIRE_ORIGIN_X;
             toY            = _gActor548100DiagramNodes[toNode].vy - ACTOR_548100_WIRE_ORIGIN_Y;
             setRECT(&rect, 0, 0, DISPLAY_SCREEN_WIDTH, DISPLAY_SCREEN_HEIGHT);
-            rect.y += gDisplayState.drawBuffer * ACTOR_548100_DRAW_BUFFER_STRIDE_Y;
+            rect.y += gDisplayState.drawBuffer * DISPLAY_BUFFER_STRIDE_ROWS;
             SetDrawArea(area, &rect);
             addPrim(&gGpuCurrentOt[ACTOR_548100_OT_WIRES], area);
             if (edge->vertical == 0) {
@@ -1788,7 +1787,7 @@ static void _actor548100DrawEdge(const _Actor548100Edge* edge)
                 } else {
                     setRECT(&rect, splitCoord + ACTOR_548100_SCREEN_CENTER_X, 0, ACTOR_548100_SCREEN_CENTER_X - splitCoord, DISPLAY_SCREEN_HEIGHT);
                 }
-                rect.y += gDisplayState.drawBuffer * ACTOR_548100_DRAW_BUFFER_STRIDE_Y;
+                rect.y += gDisplayState.drawBuffer * DISPLAY_BUFFER_STRIDE_ROWS;
                 SetDrawArea(area, &rect);
                 addPrim(&gGpuCurrentOt[ACTOR_548100_OT_WIRES], area);
                 _actor548100DrawWire(fromNode, toNode, _gActor548100StopRed, _gActor548100StopGreen, _gActor548100StopBlue);
@@ -1813,7 +1812,7 @@ static void _actor548100DrawEdge(const _Actor548100Edge* edge)
                 } else {
                     setRECT(&rect, 0, splitCoord + ACTOR_548100_SCREEN_CENTER_Y, DISPLAY_SCREEN_WIDTH, ACTOR_548100_SCREEN_CENTER_Y - splitCoord);
                 }
-                rect.y += gDisplayState.drawBuffer * ACTOR_548100_DRAW_BUFFER_STRIDE_Y;
+                rect.y += gDisplayState.drawBuffer * DISPLAY_BUFFER_STRIDE_ROWS;
                 SetDrawArea(area, &rect);
                 addPrim(&gGpuCurrentOt[ACTOR_548100_OT_WIRES], area);
                 _actor548100DrawWire(fromNode, toNode, _gActor548100StopRed, _gActor548100StopGreen, _gActor548100StopBlue);
@@ -1825,7 +1824,7 @@ static void _actor548100DrawEdge(const _Actor548100Edge* edge)
                     setRECT(&rect, 0, 0, DISPLAY_SCREEN_WIDTH, splitCoord + ACTOR_548100_SCREEN_CENTER_Y);
                 }
             }
-            rect.y += gDisplayState.drawBuffer * ACTOR_548100_DRAW_BUFFER_STRIDE_Y;
+            rect.y += gDisplayState.drawBuffer * DISPLAY_BUFFER_STRIDE_ROWS;
             SetDrawArea(area, &rect);
             addPrim(&gGpuCurrentOt[ACTOR_548100_OT_WIRES], area);
             break;

@@ -415,18 +415,17 @@ static inline void _shelterB1ControlRoomBuildMirrorPlaneFrame(_ShelterB1ControlR
 static void _shelterB1ControlRoomMirrorTask(Task* task)
 {
     enum {
-        SHELTER_B1_CONTROL_ROOM_MIRROR_INITIALIZE         = 0,
-        SHELTER_B1_CONTROL_ROOM_MIRROR_CACHE_UNSET        = -1,
-        SHELTER_B1_CONTROL_ROOM_MIRROR_MODEL_OT_OFFSET    = 22,
-        SHELTER_B1_CONTROL_ROOM_MIRROR_OVERLAY_OT_BIAS    = -15,
-        SHELTER_B1_CONTROL_ROOM_MIRROR_DRAW_BUFFER_STRIDE = 272,
-        SHELTER_B1_CONTROL_ROOM_MIRROR_STRIP_Y            = 256,
-        SHELTER_B1_CONTROL_ROOM_MIRROR_COPY_OT_SLOT       = 1023,
-        SHELTER_B1_CONTROL_ROOM_MIRROR_TEXTURE_16BIT      = 2,
-        SHELTER_B1_CONTROL_ROOM_MIRROR_COPY_SPRITE_CODE   = 0x65,
-        SHELTER_B1_CONTROL_ROOM_MIRROR_CLEAR_TILE_CODE    = 0x60,
-        SHELTER_B1_CONTROL_ROOM_MIRROR_CLEAR_SHADE        = 2,
-        SHELTER_B1_CONTROL_ROOM_MIRROR_TEXTURE_SHADE_ONE  = 128,
+        SHELTER_B1_CONTROL_ROOM_MIRROR_INITIALIZE        = 0,
+        SHELTER_B1_CONTROL_ROOM_MIRROR_CACHE_UNSET       = -1,
+        SHELTER_B1_CONTROL_ROOM_MIRROR_MODEL_OT_OFFSET   = 22,
+        SHELTER_B1_CONTROL_ROOM_MIRROR_OVERLAY_OT_BIAS   = -15,
+        SHELTER_B1_CONTROL_ROOM_MIRROR_STRIP_Y           = 256,
+        SHELTER_B1_CONTROL_ROOM_MIRROR_COPY_OT_SLOT      = 1023,
+        SHELTER_B1_CONTROL_ROOM_MIRROR_TEXTURE_16BIT     = 2,
+        SHELTER_B1_CONTROL_ROOM_MIRROR_COPY_SPRITE_CODE  = 0x65,
+        SHELTER_B1_CONTROL_ROOM_MIRROR_CLEAR_TILE_CODE   = 0x60,
+        SHELTER_B1_CONTROL_ROOM_MIRROR_CLEAR_SHADE       = 2,
+        SHELTER_B1_CONTROL_ROOM_MIRROR_TEXTURE_SHADE_ONE = 128,
     };
     _ShelterB1ControlRoomMirrorWork*    work;
     _ShelterB1ControlRoomMirrorConfig*  config;
@@ -524,7 +523,7 @@ static void _shelterB1ControlRoomMirrorTask(Task* task)
         drawArea       = gGpuPrimCursor;
         gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_AREA);
         rect.x         = 0;
-        rect.y         = gDisplayState.drawBuffer * SHELTER_B1_CONTROL_ROOM_MIRROR_DRAW_BUFFER_STRIDE;
+        rect.y         = gDisplayState.drawBuffer * DISPLAY_BUFFER_STRIDE_ROWS;
         rect.w         = DISPLAY_SCREEN_WIDTH;
         rect.h         = DISPLAY_SCREEN_HEIGHT;
         SetDrawArea(drawArea, &rect);
@@ -538,7 +537,7 @@ static void _shelterB1ControlRoomMirrorTask(Task* task)
         drawOffset     = gGpuPrimCursor;
         gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_OFFSET);
         drawOrigin[0]  = SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_HALF_WIDTH;
-        drawOrigin[1]  = gDisplayState.drawBuffer * SHELTER_B1_CONTROL_ROOM_MIRROR_DRAW_BUFFER_STRIDE + SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_HALF_HEIGHT;
+        drawOrigin[1]  = gDisplayState.drawBuffer * DISPLAY_BUFFER_STRIDE_ROWS + SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_HALF_HEIGHT;
         SetDrawOffset(drawOffset, drawOrigin);
         addPrim(&gGpuCurrentOt[SHELTER_B1_CONTROL_ROOM_MIRROR_COPY_OT_SLOT], drawOffset);
 

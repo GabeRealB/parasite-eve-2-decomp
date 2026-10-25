@@ -235,7 +235,6 @@ enum {
     USER_INTERFACE_FRAME_CORNER_PIXELS      = 8,
     USER_INTERFACE_PANEL_DRAW_VIEW_CENTER_X = 160,
     USER_INTERFACE_PANEL_DRAW_VIEW_CENTER_Y = 120,
-    USER_INTERFACE_PANEL_DRAW_BUFFER_STRIDE = 272,
     USER_INTERFACE_PANEL_DITHERED_DRAW_MODE = 0xE1000200,
     USER_INTERFACE_OPENING_CONTROL_SHIFT    = 16
 };
@@ -1085,7 +1084,7 @@ static void _uiDrawPanel(const UiPanel* panel, RECT* outerRect, const RECT* inne
             areaCommand    = gGpuPrimCursor;
             gGpuPrimCursor = areaCommand + 1;
             setRECT(&frameDrawArea, innerRect->x + USER_INTERFACE_PANEL_DRAW_VIEW_CENTER_X, innerRect->y + USER_INTERFACE_PANEL_DRAW_VIEW_CENTER_Y, innerRect->w, innerRect->h);
-            frameDrawArea.y += gDisplayState.drawBuffer * USER_INTERFACE_PANEL_DRAW_BUFFER_STRIDE;
+            frameDrawArea.y += gDisplayState.drawBuffer * DISPLAY_BUFFER_STRIDE_ROWS;
             SetDrawArea(areaCommand, &frameDrawArea);
             addPrim(gGpuCurrentOt + panel->otIndex.signedValue + USER_INTERFACE_FRAME_OT_OFFSET, areaCommand);
         }
@@ -1095,7 +1094,7 @@ static void _uiDrawPanel(const UiPanel* panel, RECT* outerRect, const RECT* inne
 
             areaCommand    = gGpuPrimCursor;
             gGpuPrimCursor = areaCommand + 1;
-            setRECT(&fullScreenDrawArea, 0, gDisplayState.drawBuffer * USER_INTERFACE_PANEL_DRAW_BUFFER_STRIDE, DISPLAY_SCREEN_WIDTH, DISPLAY_SCREEN_HEIGHT);
+            setRECT(&fullScreenDrawArea, 0, gDisplayState.drawBuffer * DISPLAY_BUFFER_STRIDE_ROWS, DISPLAY_SCREEN_WIDTH, DISPLAY_SCREEN_HEIGHT);
             SetDrawArea(areaCommand, &fullScreenDrawArea);
             addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 1, areaCommand);
         }
@@ -1142,8 +1141,7 @@ static void _uiDrawPanel(const UiPanel* panel, RECT* outerRect, const RECT* inne
 static void _uiLayoutHiddenPanel(UiPanel* panel)
 {
     enum {
-        USER_INTERFACE_HIDDEN_CLIP_OT_OFFSET     = 3,
-        USER_INTERFACE_HIDDEN_CLIP_BUFFER_STRIDE = 272
+        USER_INTERFACE_HIDDEN_CLIP_OT_OFFSET = 3,
     };
     RECT     drawArea;
     RECT     contentRect;
@@ -1157,7 +1155,7 @@ static void _uiLayoutHiddenPanel(UiPanel* panel)
     drawArea.x     = 0;
     drawArea.w     = 0;
     drawArea.h     = 0;
-    drawArea.y     = gDisplayState.drawBuffer * USER_INTERFACE_HIDDEN_CLIP_BUFFER_STRIDE;
+    drawArea.y     = gDisplayState.drawBuffer * DISPLAY_BUFFER_STRIDE_ROWS;
     SetDrawArea(areaCommand, &drawArea);
     addPrim(gGpuCurrentOt + panel->otIndex.signedValue + USER_INTERFACE_HIDDEN_CLIP_OT_OFFSET, areaCommand);
 
@@ -1166,7 +1164,7 @@ static void _uiLayoutHiddenPanel(UiPanel* panel)
     drawArea.x     = 0;
     drawArea.w     = DISPLAY_SCREEN_WIDTH;
     drawArea.h     = DISPLAY_SCREEN_HEIGHT;
-    drawArea.y     = gDisplayState.drawBuffer * USER_INTERFACE_HIDDEN_CLIP_BUFFER_STRIDE;
+    drawArea.y     = gDisplayState.drawBuffer * DISPLAY_BUFFER_STRIDE_ROWS;
     SetDrawArea(areaCommand, &drawArea);
     addPrim(gGpuCurrentOt + panel->otIndex.signedValue, areaCommand);
 }
@@ -1328,7 +1326,6 @@ static void _uiQueueListDrawArea(const UiList* list, const UiPanel* panel, s32 f
         USER_INTERFACE_LIST_DRAW_AREA_OT_OFFSET = 1,
         USER_INTERFACE_LIST_VIEW_CENTER_X       = 160,
         USER_INTERFACE_LIST_VIEW_CENTER_Y       = 120,
-        USER_INTERFACE_LIST_DRAW_BUFFER_STRIDE  = 272
     };
     RECT     drawArea;
     DR_AREA* areaCommand;
@@ -1341,7 +1338,7 @@ static void _uiQueueListDrawArea(const UiList* list, const UiPanel* panel, s32 f
             areaCommand    = gGpuPrimCursor;
             gGpuPrimCursor = areaCommand + 1;
             drawArea.x     = panel->contentOriginX.unsignedValue + (panel->contentLeft.unsignedValue + USER_INTERFACE_LIST_VIEW_CENTER_X);
-            screenTop      = panel->contentOriginY.unsignedValue + (panel->contentTop.unsignedValue + USER_INTERFACE_LIST_VIEW_CENTER_Y) + (gDisplayState.drawBuffer * USER_INTERFACE_LIST_DRAW_BUFFER_STRIDE);
+            screenTop      = panel->contentOriginY.unsignedValue + (panel->contentTop.unsignedValue + USER_INTERFACE_LIST_VIEW_CENTER_Y) + (gDisplayState.drawBuffer * DISPLAY_BUFFER_STRIDE_ROWS);
             drawArea.y     = screenTop;
             drawArea.y     = screenTop + list->topInset;
             drawArea.w     = panel->contentRight.unsignedValue - panel->contentLeft.unsignedValue;
@@ -1358,7 +1355,7 @@ static void _uiQueueListDrawArea(const UiList* list, const UiPanel* panel, s32 f
             drawArea.w     = DISPLAY_SCREEN_WIDTH;
             drawArea.x     = 0;
             drawArea.h     = DISPLAY_SCREEN_HEIGHT;
-            drawArea.y     = gDisplayState.drawBuffer * USER_INTERFACE_LIST_DRAW_BUFFER_STRIDE;
+            drawArea.y     = gDisplayState.drawBuffer * DISPLAY_BUFFER_STRIDE_ROWS;
             SetDrawArea(areaCommand, &drawArea);
             addPrim(gGpuCurrentOt + (layer + panel->otIndex.signedValue) + USER_INTERFACE_LIST_DRAW_AREA_OT_OFFSET, areaCommand);
         }

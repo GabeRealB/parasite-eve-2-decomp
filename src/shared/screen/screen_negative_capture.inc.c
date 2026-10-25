@@ -16,10 +16,9 @@
 static inline void _screenNegativeCaptureTask(Task* task)
 {
     enum {
-        SCREEN_NEGATIVE_CAPTURE_START   = 0,
-        SCREEN_NEGATIVE_CAPTURE_FILTER  = 1,
-        SCREEN_NEGATIVE_CAPTURE_HOLD    = 2,
-        SCREEN_NEGATIVE_SECOND_BUFFER_Y = 272
+        SCREEN_NEGATIVE_CAPTURE_START  = 0,
+        SCREEN_NEGATIVE_CAPTURE_FILTER = 1,
+        SCREEN_NEGATIVE_CAPTURE_HOLD   = 2,
     };
     ScreenNegativeCaptureArgs* args;
     s32                        stripIndex;
@@ -34,7 +33,7 @@ static inline void _screenNegativeCaptureTask(Task* task)
                 if (gDisplayState.drawBuffer != 0) {
                     _gScreenNegativeStripRect.y = 0;
                 } else {
-                    _gScreenNegativeStripRect.y = SCREEN_NEGATIVE_SECOND_BUFFER_Y;
+                    _gScreenNegativeStripRect.y = DISPLAY_BUFFER_STRIDE_ROWS;
                 }
                 if (gDisplayState.debugMode < 0) {
                     StoreImage(&_gScreenNegativeFrameRect, gFsImageWorkspacePtr->strips[0]);

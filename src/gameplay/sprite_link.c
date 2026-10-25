@@ -511,9 +511,6 @@ static s32 _spriteViewUsesImageStrips(void)
 /// Requires live view resources, sufficient packet storage and a 1024-tag OT.
 static void _spriteQueueViewDrawAreas(void)
 {
-    enum {
-        SPRITE_VIEW_BUFFER_Y_STRIDE = 272
-    };
     RECT            rect;
     SpriteDrawArea* drawArea;
     DR_AREA*        drawAreaPacket;
@@ -524,13 +521,13 @@ static void _spriteQueueViewDrawAreas(void)
             // Apply the view clip before depth-sorted drawing begins.
             rect = drawArea->clipRect;
             if (gDisplayState.drawBuffer != 0) {
-                rect.y += SPRITE_VIEW_BUFFER_Y_STRIDE;
+                rect.y += DISPLAY_BUFFER_STRIDE_ROWS;
             }
             drawAreaPacket = _spriteCreateDrawAreaPacket(&rect);
             addPrim(&gGpuCurrentOt[GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*gGpuCurrentOt)], drawAreaPacket);
             // Restore the full draw buffer at this record's sorting boundary.
             if (gDisplayState.drawBuffer != 0) {
-                rect.y = SPRITE_VIEW_BUFFER_Y_STRIDE;
+                rect.y = DISPLAY_BUFFER_STRIDE_ROWS;
             } else {
                 rect.y = 0;
             }

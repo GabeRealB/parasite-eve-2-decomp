@@ -1158,12 +1158,11 @@ static void _shelterB1SterilizationRoomRebuildActorObstacle(const GfxCoord* mode
 static void _shelterB1SterilizationRoomCaptureCrossfadeState(Task* task)
 {
     enum {
-        SHELTER_B1_STERILIZATION_ROOM_CAPTURE_LOWER_BUFFER_Y = 272,
-        SHELTER_B1_STERILIZATION_ROOM_CAPTURE_LEFT_VRAM_X    = 832,
-        SHELTER_B1_STERILIZATION_ROOM_CAPTURE_RIGHT_VRAM_X   = 384,
-        SHELTER_B1_STERILIZATION_ROOM_CAPTURE_RIGHT_VRAM_Y   = 256,
-        SHELTER_B1_STERILIZATION_ROOM_CAPTURE_MASK_OFF       = 0,
-        SHELTER_B1_STERILIZATION_ROOM_CAPTURE_MASK_ON        = 1,
+        SHELTER_B1_STERILIZATION_ROOM_CAPTURE_LEFT_VRAM_X  = 832,
+        SHELTER_B1_STERILIZATION_ROOM_CAPTURE_RIGHT_VRAM_X = 384,
+        SHELTER_B1_STERILIZATION_ROOM_CAPTURE_RIGHT_VRAM_Y = 256,
+        SHELTER_B1_STERILIZATION_ROOM_CAPTURE_MASK_OFF     = 0,
+        SHELTER_B1_STERILIZATION_ROOM_CAPTURE_MASK_ON      = 1,
     };
     RECT     rect;
     DR_STP*  maskPacket;
@@ -1176,7 +1175,7 @@ static void _shelterB1SterilizationRoomCaptureCrossfadeState(Task* task)
         sourceY = 0;
     } else {
         sourceX = 0;
-        sourceY = SHELTER_B1_STERILIZATION_ROOM_CAPTURE_LOWER_BUFFER_Y;
+        sourceY = DISPLAY_BUFFER_STRIDE_ROWS;
     }
 
     // Head insertion runs the last mask packet first and this one after both copies.

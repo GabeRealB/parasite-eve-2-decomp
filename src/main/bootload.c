@@ -1889,10 +1889,9 @@ static TextStream _gGameFlowLoadCaptionShelterHeliport = {
 
 /// Boot-image mask colour range and its screen/ordering-table placement.
 enum {
-    FADE_BOOT_IMAGE_MAX_COLOR         = 255,
-    FADE_BOOT_IMAGE_CLEAR_LEVEL       = 256,
-    FADE_BOOT_IMAGE_OT_INDEX          = -16,
-    FADE_BOOT_IMAGE_SECOND_BUFFER_ROW = 272,
+    FADE_BOOT_IMAGE_MAX_COLOR   = 255,
+    FADE_BOOT_IMAGE_CLEAR_LEVEL = 256,
+    FADE_BOOT_IMAGE_OT_INDEX    = -16,
 };
 
 /// Queues a grayscale subtractive mask over the 320x240 loading image.
@@ -1946,7 +1945,7 @@ static s32 _fadeBootImageToBlack(s16 levelStep)
         clearRect.w = FILE_SYSTEM_IMAGE_WIDTH;
         clearRect.h = FILE_SYSTEM_IMAGE_HEIGHT;
         ClearImage(&clearRect, 0, 0, 0);
-        clearRect.y = FADE_BOOT_IMAGE_SECOND_BUFFER_ROW;
+        clearRect.y = DISPLAY_BUFFER_STRIDE_ROWS;
         ClearImage(&clearRect, 0, 0, 0);
         gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
         return 1;
@@ -2278,7 +2277,7 @@ static inline void _gameFlowPrepareLoadScreenDisplay(RECT* clearRect)
     clearRect->w = FILE_SYSTEM_IMAGE_WIDTH;
     clearRect->h = FILE_SYSTEM_IMAGE_HEIGHT;
     ClearImage(clearRect, 0, 0, 0);
-    clearRect->y = FADE_BOOT_IMAGE_SECOND_BUFFER_ROW;
+    clearRect->y = DISPLAY_BUFFER_STRIDE_ROWS;
     ClearImage(clearRect, 0, 0, 0);
     gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
     SetDispMask(false);

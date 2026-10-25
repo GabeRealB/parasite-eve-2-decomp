@@ -25,6 +25,14 @@
 /// free it. The display code owns and clears the backing storage before drawing.
 extern u_long* gGpuCurrentOt;
 
+/// The game's display, in pixels: the size of a full-screen tile, fade, capture or view, and the rows from one of the
+/// two display buffers' tops to the other's (the second buffer starts at this row of video memory).
+enum {
+    DISPLAY_SCREEN_WIDTH       = 320,
+    DISPLAY_SCREEN_HEIGHT      = 240,
+    DISPLAY_BUFFER_STRIDE_ROWS = 272,
+};
+
 /// Four-byte-aligned byte-offset mask for the 1024 depth-sorted ordering-table tags.
 ///
 /// Callers scale a sorting depth by `otDepthShift`, shift that value right by
@@ -34,12 +42,6 @@ extern u_long* gGpuCurrentOt;
 /// Foreground packets use negative tag indices instead. The 64-tag display
 /// tables are a separate extent. Dividing the masked offset by the tag size
 /// selects that same tag.
-/// The game's display, in pixels: the size of a full-screen tile, fade, capture or view.
-enum {
-    DISPLAY_SCREEN_WIDTH  = 320,
-    DISPLAY_SCREEN_HEIGHT = 240,
-};
-
 enum { GPU_ORDERING_TABLE_DEPTH_BYTE_MASK = 0xFFC };
 
 /// Tag bits for the next packet's 24-bit DMA address and the packet's word count.

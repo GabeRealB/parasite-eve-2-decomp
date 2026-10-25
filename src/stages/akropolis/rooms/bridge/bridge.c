@@ -2060,8 +2060,7 @@ static inline void _akropolisBridgeInitializeStreakLifetime(Task* task, EffectWo
 void akropolisBridgeFallingStreakTask(Task* task)
 {
     enum {
-        AKROPOLIS_BRIDGE_DRAW_BUFFER_STRIDE_PIXELS = 272,
-        AKROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW    = 239
+        AKROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW = 239
     };
     EffectWork* work;
     RECT        rect;
@@ -2075,7 +2074,7 @@ void akropolisBridgeFallingStreakTask(Task* task)
     s32         depth;
 
     work    = task->spawnArg2.pointer;
-    bufferY = gDisplayState.drawBuffer * AKROPOLIS_BRIDGE_DRAW_BUFFER_STRIDE_PIXELS;
+    bufferY = gDisplayState.drawBuffer * DISPLAY_BUFFER_STRIDE_ROWS;
     if ((u8)viewGetMappedIndex() == task->spawnArg1.value) {
         // Seed a screen-space strip; its fields hold pixels and frame counts.
         if (work->age == 0) {
@@ -2116,8 +2115,7 @@ void akropolisBridgeFallingStreakTask(Task* task)
 void akropolisBridgeMidDustStreakTask(Task* task)
 {
     enum {
-        AKROPOLIS_BRIDGE_DRAW_BUFFER_STRIDE_PIXELS = 272,
-        AKROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW    = 239
+        AKROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW = 239
     };
     EffectWork* work;
     RECT        rect;
@@ -2132,7 +2130,7 @@ void akropolisBridgeMidDustStreakTask(Task* task)
     s32         depth;
 
     work    = task->spawnArg2.pointer;
-    bufferY = gDisplayState.drawBuffer * AKROPOLIS_BRIDGE_DRAW_BUFFER_STRIDE_PIXELS;
+    bufferY = gDisplayState.drawBuffer * DISPLAY_BUFFER_STRIDE_ROWS;
     if ((u8)viewGetMappedIndex() == task->spawnArg1.value) {
         // Seed a screen-space strip; its fields hold pixels and frame counts.
         if (work->age == 0) {
@@ -2175,8 +2173,7 @@ void akropolisBridgeMidDustStreakTask(Task* task)
 void akropolisBridgeLowDustStreakTask(Task* task)
 {
     enum {
-        AKROPOLIS_BRIDGE_DRAW_BUFFER_STRIDE_PIXELS = 272,
-        AKROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW    = 239
+        AKROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW = 239
     };
     EffectWork* work;
     RECT        rect;
@@ -2191,7 +2188,7 @@ void akropolisBridgeLowDustStreakTask(Task* task)
     s32         depth;
 
     work    = task->spawnArg2.pointer;
-    bufferY = gDisplayState.drawBuffer * AKROPOLIS_BRIDGE_DRAW_BUFFER_STRIDE_PIXELS;
+    bufferY = gDisplayState.drawBuffer * DISPLAY_BUFFER_STRIDE_ROWS;
     if ((u8)viewGetMappedIndex() == task->spawnArg1.value) {
         // Seed a screen-space strip; its fields hold pixels and frame counts.
         if (work->age == 0) {
@@ -2234,8 +2231,7 @@ void akropolisBridgeLowDustStreakTask(Task* task)
 void akropolisBridgeTallDustStreakTask(Task* task)
 {
     enum {
-        AKROPOLIS_BRIDGE_DRAW_BUFFER_STRIDE_PIXELS = 272,
-        AKROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW    = 239
+        AKROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW = 239
     };
     EffectWork* work;
     RECT        rect;
@@ -2250,7 +2246,7 @@ void akropolisBridgeTallDustStreakTask(Task* task)
     s32         depth;
 
     work    = task->spawnArg2.pointer;
-    bufferY = gDisplayState.drawBuffer * AKROPOLIS_BRIDGE_DRAW_BUFFER_STRIDE_PIXELS;
+    bufferY = gDisplayState.drawBuffer * DISPLAY_BUFFER_STRIDE_ROWS;
     if ((u8)viewGetMappedIndex() == task->spawnArg1.value) {
         // Seed a screen-space strip; its fields hold pixels and frame counts.
         if (work->age == 0) {
@@ -2293,8 +2289,7 @@ void akropolisBridgeTallDustStreakTask(Task* task)
 void akropolisBridgeParticleStreakTask(Task* task)
 {
     enum {
-        AKROPOLIS_BRIDGE_DRAW_BUFFER_STRIDE_PIXELS = 272,
-        AKROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW    = 239
+        AKROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW = 239
     };
     EffectWork* work;
     RECT        rect;
@@ -2306,7 +2301,7 @@ void akropolisBridgeParticleStreakTask(Task* task)
     s32         depth;
 
     work    = task->spawnArg2.pointer;
-    bufferY = gDisplayState.drawBuffer * AKROPOLIS_BRIDGE_DRAW_BUFFER_STRIDE_PIXELS;
+    bufferY = gDisplayState.drawBuffer * DISPLAY_BUFFER_STRIDE_ROWS;
     if ((u8)viewGetMappedIndex() == task->spawnArg1.value) {
         // Seed a screen-space strip; its fields hold pixels and frame counts.
         if (work->age == 0) {

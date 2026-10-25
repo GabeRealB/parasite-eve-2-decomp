@@ -23,12 +23,11 @@ STATIC_ASSERT_SIZEOF(_FrameCaptureScratch, 0x14);
 
 /// Pixel geometry and packet encoding for the fixed game-frame capture layout.
 enum {
-    FRAME_CAPTURE_BUFFER_Y_STRIDE        = 272,
     FRAME_CAPTURE_VRAM_X                 = 448,
     FRAME_CAPTURE_VRAM_Y                 = 256,
     FRAME_CAPTURE_SOURCE_PAGE_Y_SHIFT    = 8,
     FRAME_CAPTURE_RIGHT_SOURCE_PAGE_X    = 128,
-    FRAME_CAPTURE_LOWER_BUFFER_TEXTURE_V = FRAME_CAPTURE_BUFFER_Y_STRIDE - (1 << FRAME_CAPTURE_SOURCE_PAGE_Y_SHIFT),
+    FRAME_CAPTURE_LOWER_BUFFER_TEXTURE_V = DISPLAY_BUFFER_STRIDE_ROWS - (1 << FRAME_CAPTURE_SOURCE_PAGE_Y_SHIFT),
     FRAME_CAPTURE_DIRECT_COLOR           = 2,
     FRAME_CAPTURE_CLEAR_SHADE            = 2,
     FRAME_CAPTURE_DEPTH_TO_SLOT_SHIFT    = 4,
@@ -86,10 +85,10 @@ void FRAME_CAPTURE_QUEUE(s32 orderingTableSlot)
     // addPrim prepends: queue the state restored after the copy first.
     if (viewDrawAreas != NULL && ((viewDrawAreas->restoreDepth << gDisplayState.otDepthShift) & FRAME_CAPTURE_DEPTH_MASK) >> FRAME_CAPTURE_DEPTH_TO_SLOT_SHIFT < scratch->otz) {
         scratch->drawArea    = viewDrawAreas->clipRect;
-        scratch->drawArea.y += gDisplayState.drawBuffer * FRAME_CAPTURE_BUFFER_Y_STRIDE;
+        scratch->drawArea.y += gDisplayState.drawBuffer * DISPLAY_BUFFER_STRIDE_ROWS;
     } else {
         scratch->drawArea.x = 0;
-        scratch->drawArea.y = gDisplayState.drawBuffer * FRAME_CAPTURE_BUFFER_Y_STRIDE;
+        scratch->drawArea.y = gDisplayState.drawBuffer * DISPLAY_BUFFER_STRIDE_ROWS;
         scratch->drawArea.w = DISPLAY_SCREEN_WIDTH;
         scratch->drawArea.h = DISPLAY_SCREEN_HEIGHT;
     }
@@ -106,7 +105,7 @@ void FRAME_CAPTURE_QUEUE(s32 orderingTableSlot)
     offsetPacket           = gGpuPrimCursor;
     gGpuPrimCursor         = offsetPacket + 1;
     scratch->drawOffset[0] = DISPLAY_SCREEN_WIDTH / 2;
-    scratch->drawOffset[1] = gDisplayState.drawBuffer * FRAME_CAPTURE_BUFFER_Y_STRIDE + DISPLAY_SCREEN_HEIGHT / 2;
+    scratch->drawOffset[1] = gDisplayState.drawBuffer * DISPLAY_BUFFER_STRIDE_ROWS + DISPLAY_SCREEN_HEIGHT / 2;
     SetDrawOffset(offsetPacket, drawOffset);
     addPrim(&gGpuCurrentOt[scratch->otz], offsetPacket);
 

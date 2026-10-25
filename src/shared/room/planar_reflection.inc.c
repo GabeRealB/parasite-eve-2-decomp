@@ -315,7 +315,6 @@ static void _planarReflectionUpdatePlayer(Task* reflectionTask)
         PLANAR_REFLECTION_CAPTURE_Y                = 256,
         PLANAR_REFLECTION_SCREEN_HALF_WIDTH        = 160,
         PLANAR_REFLECTION_SCREEN_HALF_HEIGHT       = 120,
-        PLANAR_REFLECTION_FRAMEBUFFER_Y_STRIDE     = 272,
         PLANAR_REFLECTION_FRAMEBUFFER_PAGE_Y_SHIFT = 8, // Buffer 1's page begins at VRAM Y = 256
         PLANAR_REFLECTION_FRAMEBUFFER_V_SHIFT      = 4, // Its framebuffer begins 16 pixels into that page
         PLANAR_REFLECTION_TEXTURE_16_BIT           = 2,
@@ -584,7 +583,7 @@ static void _planarReflectionUpdatePlayer(Task* reflectionTask)
         drawArea                = gGpuPrimCursor;
         gGpuPrimCursor          = (u8*)gGpuPrimCursor + sizeof(DR_AREA);
         drawRect.x              = 0;
-        drawRect.y              = gDisplayState.drawBuffer * PLANAR_REFLECTION_FRAMEBUFFER_Y_STRIDE;
+        drawRect.y              = gDisplayState.drawBuffer * DISPLAY_BUFFER_STRIDE_ROWS;
         drawRect.w              = DISPLAY_SCREEN_WIDTH;
         drawRect.h              = DISPLAY_SCREEN_HEIGHT;
         SetDrawArea(drawArea, &drawRect);
@@ -598,7 +597,7 @@ static void _planarReflectionUpdatePlayer(Task* reflectionTask)
         drawOffset     = gGpuPrimCursor;
         gGpuPrimCursor = (u8*)gGpuPrimCursor + sizeof(DR_OFFSET);
         drawOrigin[0]  = PLANAR_REFLECTION_SCREEN_HALF_WIDTH;
-        drawOrigin[1]  = gDisplayState.drawBuffer * PLANAR_REFLECTION_FRAMEBUFFER_Y_STRIDE + PLANAR_REFLECTION_SCREEN_HALF_HEIGHT;
+        drawOrigin[1]  = gDisplayState.drawBuffer * DISPLAY_BUFFER_STRIDE_ROWS + PLANAR_REFLECTION_SCREEN_HALF_HEIGHT;
         SetDrawOffset(drawOffset, drawOrigin);
         addPrim(&gGpuCurrentOt[PLANAR_REFLECTION_COPY_OT_INDEX], drawOffset);
 

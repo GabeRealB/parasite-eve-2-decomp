@@ -471,15 +471,14 @@ static inline void _akropolisWestElevatorHallQueueScanlineCopy(RECT* sourceRect,
 void akropolisWestElevatorHallScanlineDistortionTask(Task* task)
 {
     enum {
-        BUFFER_STRIDE = 272,
-        ORIGIN        = 80,
-        ROWS          = 82,
-        WIDTH         = 120,
-        OT_INDEX      = 0x72,
-        RANDOM_PHASE  = 0x80,
-        DIVISOR_MASK  = 0x3F,
-        DIVISOR_MIN   = 192,
-        DIVISOR       = 256
+        ORIGIN       = 80,
+        ROWS         = 82,
+        WIDTH        = 120,
+        OT_INDEX     = 0x72,
+        RANDOM_PHASE = 0x80,
+        DIVISOR_MASK = 0x3F,
+        DIVISOR_MIN  = 192,
+        DIVISOR      = 256
     };
     RECT        sourceRect;
     EffectWork* effectWork;
@@ -491,7 +490,7 @@ void akropolisWestElevatorHallScanlineDistortionTask(Task* task)
     s32         displacementQ12;
 
     effectWork = task->spawnArg2.pointer;
-    stripTopY  = gDisplayState.drawBuffer * BUFFER_STRIDE + ORIGIN;
+    stripTopY  = gDisplayState.drawBuffer * DISPLAY_BUFFER_STRIDE_ROWS + ORIGIN;
 
     // Bit 7 selects 128-frame intervals with a separate random divisor per row.
     for (rowIndex = 0; rowIndex < ROWS; rowIndex++) {

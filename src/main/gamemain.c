@@ -648,7 +648,6 @@ void gfxResetView(void)
 void displayUploadBackgroundImage(s32 bufferIndex)
 {
     enum {
-        DISPLAY_BACKGROUND_BUFFER_STRIDE    = 272,
         DISPLAY_BACKGROUND_STRIP_ROW_BYTES  = FILE_SYSTEM_IMAGE_STRIP_WIDTH * 2,
         DISPLAY_BACKGROUND_STRIP_INDEX_MASK = 0xFFFF,
     };
@@ -664,7 +663,7 @@ void displayUploadBackgroundImage(s32 bufferIndex)
     if (gCdCmdQueue.imageLayout == FILE_SYSTEM_IMAGE_CONTIGUOUS) {
         if (gDisplayState.vramYOffset >= 0) {
             if (bufferIndex != 0) {
-                rect.y = gDisplayState.vramYOffset + DISPLAY_BACKGROUND_BUFFER_STRIDE;
+                rect.y = gDisplayState.vramYOffset + DISPLAY_BUFFER_STRIDE_ROWS;
             } else {
                 rect.y = gDisplayState.vramYOffset;
             }
@@ -677,7 +676,7 @@ void displayUploadBackgroundImage(s32 bufferIndex)
         if (bufferIndex == 0) {
             rect.y = 0;
         } else {
-            rect.y = DISPLAY_BACKGROUND_BUFFER_STRIDE;
+            rect.y = DISPLAY_BUFFER_STRIDE_ROWS;
         }
         rect.x      = 0;
         rect.w      = FILE_SYSTEM_IMAGE_WIDTH;
@@ -690,7 +689,7 @@ void displayUploadBackgroundImage(s32 bufferIndex)
     sourceRowOffsetBytes = 0;
     // Each strip is one 16-pixel column of the image workspace.
     if (gCdCmdQueue.imageLayout == FILE_SYSTEM_IMAGE_STRIPS) {
-        framebufferY *= DISPLAY_BACKGROUND_BUFFER_STRIDE;
+        framebufferY *= DISPLAY_BUFFER_STRIDE_ROWS;
         rect.w        = FILE_SYSTEM_IMAGE_STRIP_WIDTH;
         offsetY       = gDisplayState.vramYOffset;
         rect.y        = framebufferY;

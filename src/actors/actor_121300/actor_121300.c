@@ -1576,14 +1576,13 @@ static void _actor121300InitBody(Task* task)
 static void _actor121300EveSceneTask(Task* task)
 {
     enum {
-        ACTOR_121300_SCENE_INITIALIZE     = 0,
-        ACTOR_121300_SCENE_START_SCRIPT   = 1,
-        ACTOR_121300_SCENE_WAIT_SCRIPT    = 2,
-        ACTOR_121300_SCENE_RELOAD         = 3,
-        ACTOR_121300_SCENE_END_TASK       = 9,
-        ACTOR_121300_SCENE_SECOND_FRAME_Y = 272,
-        ACTOR_121300_SCENE_RETURN_WARP    = 3,
-        ACTOR_121300_SCENE_LIGHT_COUNT    = 3,
+        ACTOR_121300_SCENE_INITIALIZE   = 0,
+        ACTOR_121300_SCENE_START_SCRIPT = 1,
+        ACTOR_121300_SCENE_WAIT_SCRIPT  = 2,
+        ACTOR_121300_SCENE_RELOAD       = 3,
+        ACTOR_121300_SCENE_END_TASK     = 9,
+        ACTOR_121300_SCENE_RETURN_WARP  = 3,
+        ACTOR_121300_SCENE_LIGHT_COUNT  = 3,
     };
     TmdObject* model;
     s32        sceneState;
@@ -1628,7 +1627,7 @@ static void _actor121300EveSceneTask(Task* task)
             rect.w = DISPLAY_SCREEN_WIDTH;
             rect.h = DISPLAY_SCREEN_HEIGHT;
             ClearImage(&rect, 0, 0, 0);
-            rect.y = ACTOR_121300_SCENE_SECOND_FRAME_Y;
+            rect.y = DISPLAY_BUFFER_STRIDE_ROWS;
             ClearImage(&rect, 0, 0, 0);
             memFillBytes(gFsImageWorkspacePtr, 0, sizeof(*gFsImageWorkspacePtr));
             SetDispMask(1);

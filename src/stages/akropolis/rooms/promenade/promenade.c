@@ -613,12 +613,11 @@ static inline void _akropolisPromenadeInitializeScreenDrip(Task* task, EffectWor
 void akropolisPromenadeScreenDripTask(Task* task)
 {
     enum {
-        AKROPOLIS_PROMENADE_DRAW_BUFFER_STRIDE_PIXELS = 272,
-        AKROPOLIS_PROMENADE_DRIP_DEPTH_FIRST_ROW      = 176,
-        AKROPOLIS_PROMENADE_DRIP_LAST_SOURCE_ROW      = 239,
-        AKROPOLIS_PROMENADE_DRIP_START_DEPTH          = 0x500,
-        AKROPOLIS_PROMENADE_DRIP_DEPTH_PER_ROW        = 10,
-        AKROPOLIS_PROMENADE_DRIP_OT_DEPTH_SHIFT       = 4
+        AKROPOLIS_PROMENADE_DRIP_DEPTH_FIRST_ROW = 176,
+        AKROPOLIS_PROMENADE_DRIP_LAST_SOURCE_ROW = 239,
+        AKROPOLIS_PROMENADE_DRIP_START_DEPTH     = 0x500,
+        AKROPOLIS_PROMENADE_DRIP_DEPTH_PER_ROW   = 10,
+        AKROPOLIS_PROMENADE_DRIP_OT_DEPTH_SHIFT  = 4
     };
     EffectWork* work;
     RECT        sourceStrip;
@@ -630,7 +629,7 @@ void akropolisPromenadeScreenDripTask(Task* task)
     s32         depth;
 
     work    = task->spawnArg2.pointer;
-    bufferY = gDisplayState.drawBuffer * AKROPOLIS_PROMENADE_DRAW_BUFFER_STRIDE_PIXELS;
+    bufferY = gDisplayState.drawBuffer * DISPLAY_BUFFER_STRIDE_ROWS;
     if ((u8)viewGetMappedIndex() == task->spawnArg1.value) {
         // The work fields hold pixels and frame counts for this screen-space effect.
         if (work->age == 0) {

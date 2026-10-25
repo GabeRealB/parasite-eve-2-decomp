@@ -678,12 +678,9 @@ UiObjectDesc gItemMenuPanelDescriptors[ITEM_MENU_DESCRIPTOR_COUNT] = {
 /// Framebuffer and environment indices do not identify the same VRAM region.
 static inline void _menuClearAlternateFrameBuffer(const DisplayState* display)
 {
-    enum {
-        ITEM_MENU_ROOT_FRAME_BUFFER_STRIDE_PIXELS = 272
-    };
     RECT clearRect;
 
-    clearRect.y = (display->frameBuffer ^ 1) * ITEM_MENU_ROOT_FRAME_BUFFER_STRIDE_PIXELS;
+    clearRect.y = (display->frameBuffer ^ 1) * DISPLAY_BUFFER_STRIDE_ROWS;
     clearRect.w = DISPLAY_SCREEN_WIDTH;
     clearRect.x = 0;
     clearRect.h = DISPLAY_SCREEN_HEIGHT;

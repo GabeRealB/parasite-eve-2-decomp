@@ -151,7 +151,6 @@ static inline void _streamUploadFrameStrips(RECT* uploadRect, u32 vramX, u32 vra
 
 /// VRAM layout and byte capacities reserved for resident movie playback.
 enum {
-    STREAM_MOVIE_FRAMEBUFFER_STRIDE_ROWS    = 272,
     STREAM_MOVIE_SECTORS_PER_FRAME          = 10,
     STREAM_MOVIE_FIRST_FRAME                = 1,
     STREAM_MOVIE_TEXTURE_RING_SECTORS       = 32,
@@ -193,7 +192,7 @@ enum {
         }                                                         \
         (clearRect).h = FILE_SYSTEM_IMAGE_HEIGHT;                 \
         ClearImage(&(clearRect), 0, 0, 0);                        \
-        (clearRect).y = STREAM_MOVIE_FRAMEBUFFER_STRIDE_ROWS;     \
+        (clearRect).y = DISPLAY_BUFFER_STRIDE_ROWS;               \
         ClearImage(&(clearRect), 0, 0, 0);                        \
     } while (0)
 
@@ -494,7 +493,7 @@ static inline void _streamClearDisplayBuffers(RECT* clearRect)
     }
     clearRect->h = FILE_SYSTEM_IMAGE_HEIGHT;
     ClearImage(clearRect, 0, 0, 0);
-    clearRect->y = STREAM_MOVIE_FRAMEBUFFER_STRIDE_ROWS;
+    clearRect->y = DISPLAY_BUFFER_STRIDE_ROWS;
     ClearImage(clearRect, 0, 0, 0);
 }
 
@@ -651,7 +650,7 @@ static void _streamCompleteDecodedFrame(void)
         stripY       = _gStreamMovieVramY;
         uploadRect.x = stripX;
         if (gDisplayState.frameBuffer != 0) {
-            stripY += STREAM_MOVIE_FRAMEBUFFER_STRIDE_ROWS;
+            stripY += DISPLAY_BUFFER_STRIDE_ROWS;
         }
         uploadRect.y = stripY;
         stripWords   = FILE_SYSTEM_IMAGE_STRIP_WIDTH;
@@ -726,7 +725,7 @@ static void _mdecMovieOutputCallback(void)
             stripY       = _gStreamMovieVramY;
             uploadRect.x = stripX;
             if (gDisplayState.frameBuffer != 0) {
-                stripY += STREAM_MOVIE_FRAMEBUFFER_STRIDE_ROWS;
+                stripY += DISPLAY_BUFFER_STRIDE_ROWS;
             }
             stripWords   = FILE_SYSTEM_IMAGE_STRIP_WIDTH;
             uploadRect.y = stripY;
@@ -1071,7 +1070,7 @@ static inline void _streamUploadFrameStrips(RECT* uploadRect, u32 vramX, u32 vra
     if (offsetDrawBuffer) {
         drawBufferY = vramY & 0xFFFF;
         if (gDisplayState.drawBuffer != 0) {
-            drawBufferY += STREAM_MOVIE_FRAMEBUFFER_STRIDE_ROWS;
+            drawBufferY += DISPLAY_BUFFER_STRIDE_ROWS;
         }
         uploadRect->y = drawBufferY;
     } else {
@@ -1128,7 +1127,7 @@ void streamPresentMovieFrame(void)
             if (_gStreamMovieUploadMode == STREAM_MOVIE_UPLOAD_FIXED_VRAM) {
                 drawBufferY = 0;
             } else {
-                drawBufferY = gDisplayState.drawBuffer != 0 ? STREAM_MOVIE_FRAMEBUFFER_STRIDE_ROWS : 0;
+                drawBufferY = gDisplayState.drawBuffer != 0 ? DISPLAY_BUFFER_STRIDE_ROWS : 0;
             }
             MoveImage(&presentRect, _gStreamMovieVramX, drawBufferY + _gStreamMovieVramY);
         }
