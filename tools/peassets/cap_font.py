@@ -31,7 +31,8 @@ import cap_text
 from font import declared as ufo_lib
 from font import ufo
 
-FONT_ASSET, SPEAKERS_ASSET = "dialogue/font", "dialogue/speakers"     # the two UFO fonts (Font)
+FONT_ASSET, SPEAKERS_ASSET = "dialogue/font", "dialogue/speakers"     # the house UFO fonts (Font)
+BOLD_ASSET = "dialogue/font_bold"     # the bolder face of the dialogues the other layout tool wrote (CAP_FORMAT.md §9)
 FIRST_GLYPH_CELL = 25
 ATLAS_SIZE = 256
 ROW_HEIGHT = 14
@@ -88,18 +89,20 @@ def load_values(path: Path) -> Image.Image:
 
 
 class Font:
-    """The dialogue font: two UFO 3 fonts, `dialogue/font` (a glyph per character) and `dialogue/speakers` (a glyph
-    per speaker plate), whose images are the pictures, 4-bit indices read back by index. A decode adds the pictures
-    it finds; `save` writes both fonts.
+    """The dialogue font: UFO 3 fonts, `dialogue/font` (a glyph per character), `dialogue/speakers` (a glyph per
+    speaker plate) and `dialogue/font_bold` (the bolder face of the dialogues the other tool laid out, its
+    characters and marks), whose images are the pictures, 4-bit indices read back by index. A decode adds the
+    pictures it finds; `save` writes every font.
 
-    `index` is {kind: {token: {"image", "w", "h", "numbers"}}} for the tools that read it, kinds "glyphs" and
-    "speakers"; a token is a character, or a speaker plate's name."""
+    `index` is {kind: {token: {"image", "w", "h", "numbers"}}} for the tools that read it, kinds "glyphs",
+    "speakers" and "bold"; a token is a character, or a speaker plate's name."""
 
-    KINDS = {"glyphs": FONT_ASSET, "speakers": SPEAKERS_ASSET}
+    KINDS = {"glyphs": FONT_ASSET, "speakers": SPEAKERS_ASSET, "bold": BOLD_ASSET}
+    FACES = ("glyphs", "bold")      # the kinds a dialogue's characters come from
 
     def __init__(self, root: Path | None = None):
         self.root = root or cap_text.ASSETS
-        self.index: dict[str, dict] = {"glyphs": {}, "speakers": {}}
+        self.index: dict[str, dict] = {kind: {} for kind in self.KINDS}
         self.pictures: dict[tuple[str, str], Image.Image] = {}
         for kind in self.KINDS:
             path = self.ufo_path(kind)
@@ -174,7 +177,7 @@ class Font:
                 if self.index[kind][token].get("numbers"):
                     lib[f"{ufo_lib.LIB}.numbers"] = self.index[kind][token]["numbers"]
                 glyphs.append({"name": name, "advance": picture.width, "image": image, "lib": lib,
-                               "unicode": ord(token) if kind == "glyphs" and len(token) == 1 else None})
+                               "unicode": ord(token) if kind in self.FACES and len(token) == 1 else None})
             import asset_data
             rec = asset_data.ASSETS[self.KINDS[kind]]
             ufo.write(self.ufo_path(kind), {
@@ -187,12 +190,12 @@ class Font:
 
 def glyph_name(kind: str, token: str) -> str:
     """A glyph's name: a character's as font tools name it, a plate's from its speaker's name."""
-    if kind == "glyphs" and len(token) == 1:
+    if kind in Font.FACES and len(token) == 1:
         return ufo_lib.glyph_name(ord(token), token)
     return file_name(token) if kind == "speakers" else "pe2." + file_name(token)
 
 
-PALETTES = {"glyphs": (256, 245), "speakers": (304, 246)}     # captions.c: the first text palette, the plates'
+PALETTES = {"glyphs": (256, 245), "speakers": (304, 246), "bold": (256, 245)}     # captions.c: the first text palette, the plates'
 
 
 def text_palette(root: Path, kind: str = "glyphs") -> list[int]:

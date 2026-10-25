@@ -12,3 +12,9 @@ type = "font"
 family = "Parasite Eve II Dialogue"
 layout = "images"
 style = "Speakers"
+
+[font_bold]
+type = "font"
+family = "Parasite Eve II Dialogue"
+layout = "images"
+style = "Bold"

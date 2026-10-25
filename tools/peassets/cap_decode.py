@@ -183,6 +183,8 @@ def recipient_value(name: str) -> int:
 def speaker_name(number: int, font: cap_font.Font) -> str | int:
     """A speaker number by its plate: the plate the dialogue shows for it (`font.chosen`, two plates can stand for
     one number), `<plate>#<number>` where the plate stands for several numbers."""
+    if getattr(font, "titles_are_cells", False):       # the other layout: a title is the glyph cell it shows
+        return number
     token = getattr(font, "chosen", {}).get(number) or font.speaker(number)
     if token is None:
         return number
@@ -370,6 +372,7 @@ def to_named(parsed: dict, font: cap_font.Font) -> dict:
 
 def from_named(cap: dict, font: cap_font.Font) -> dict:
     """The parsed form `build` lays out, from the named one."""
+    font.titles_are_cells = "first_glyph" in cap.get("atlas", {})
     # The index has an entry per position of the command list, and at least entry 0.
     slots, texts, index = [], [], [None] * max(len(cap["commands"]), 1)
     for number, command in enumerate(cap["commands"]):
@@ -468,8 +471,16 @@ def build(cap: dict, font: cap_font.Font) -> tuple[bytes, Image.Image]:
     not imply is in `atlas`: `placed`, cells the atlas holds somewhere else; `cast`,
     the cells of speakers no record shows ([x, y, w, h] as stored: the tool laid out
     a plate for every speaker of a cast its own way, CAP_FORMAT.md §12); and
-    `drawn`, those of them whose plate is on the atlas, by plate."""
-    titles = first_titles(cap)
+    `drawn`, those of them whose plate is on the atlas, by plate.
+
+    The other layout tool (CAP_FORMAT.md §9) numbers glyph cells from `first_glyph`, draws them in its own `face`,
+    has no speaker plates - a title is the glyph cell it shows - and leaves `marks` on the atlas, glyphs of its face
+    no cell reaches, by position."""
+    extra = cap.get("atlas", {})
+    face = extra.get("face", "glyphs")
+    first_glyph = extra.get("first_glyph", cap_font.FIRST_GLYPH_CELL)
+    cell_titles = "first_glyph" in extra
+    titles = {} if cell_titles else first_titles(cap)
     cells: dict[int, tuple[str, str]] = {}
     glyph_cell: dict[str, int] = {}
     order: list[tuple[str, str]] = []
@@ -483,9 +494,9 @@ def build(cap: dict, font: cap_font.Font) -> tuple[bytes, Image.Image]:
             kind, token, palette, delay = item
             if kind == "glyph":
                 if token not in glyph_cell:
-                    glyph_cell[token] = cap_font.FIRST_GLYPH_CELL + len(glyph_cell)
-                    cells[glyph_cell[token]] = ("glyphs", token)
-                    order.append(("glyphs", token))
+                    glyph_cell[token] = first_glyph + len(glyph_cell)
+                    cells[glyph_cell[token]] = (face, token)
+                    order.append((face, token))
                 cell = glyph_cell[token]
             else:
                 cell = token
@@ -496,13 +507,14 @@ def build(cap: dict, font: cap_font.Font) -> tuple[bytes, Image.Image]:
         if speaker is not None and number not in cells:
             cells[number] = ("speakers", speaker)
             order.append(("speakers", speaker))
-    extra = cap.get("atlas", {})
     moved = {int(k): tuple(v) for k, v in extra.get("placed", {}).items()}
     ruled = {(kind, token): (x, y) for kind, token, x, y in cap_font.layout(order, font)}
     # By cell number: one plate can stand for two speakers of a dialogue, each with a cell of its own.
     at = {number: moved.get(number, ruled[item]) for number, item in cells.items()}
     cast = {int(k): v for k, v in extra.get("cast", {}).items()}
     table = [[0, 0, 0, 0] for _ in range(max(max([*cells, *cast]) + 1 if cells or cast else 0, extra.get("cells", 0)))]
+    if "stored_cells" in extra:             # slices of an image the dialogue does not generate, as stored
+        table = [list(c) for c in extra["stored_cells"]]
     for number, (kind, token) in cells.items():
         table[number] = [*at[number], *font.size(kind, token)]
     for number, rect in cast.items():
@@ -515,7 +527,8 @@ def build(cap: dict, font: cap_font.Font) -> tuple[bytes, Image.Image]:
     items = [(k, t, *at[first[(k, t)]]) for k, t in order]
     items += [(kind, token, *at[number]) for number, (kind, token) in cells.items() if first[(kind, token)] != number]
     drawn = [("speakers", token, *cast[int(number)][:2]) for number, token in extra.get("drawn", {}).items()]
-    return payload, cap_font.draw_atlas(items + drawn, font)
+    marks = [(face, token, x, y) for token, (x, y) in extra.get("marks", {}).items()]
+    return payload, cap_font.draw_atlas(items + drawn + marks, font)
 
 
 
@@ -546,10 +559,18 @@ def decode(name: str, payload: "cap_text.Payload", font: cap_font.Font, warnings
                          "4-bit image (CAP_FORMAT.md §12); not written")
     else:
         atlas = cap_text.open_atlas(payload.atlas, payload.column)
-    if payload.atlas is not None and not own_atlas(name, payload) and any(n["kind"] == "unseen" for n in payload.notes):
-        raise SystemExit(f"{name}: no glyph atlas: the asset table names none it generates, and no image of its folder "
-                         "holds its glyphs (CAP_FORMAT.md §12); not written")
+    # Cells that slice an image the dialogue does not generate, across its pictures (Dryfield r04: a page laid out for
+    # other text, CAP_FORMAT.md §12): the game draws exactly those slices, so they are kept as stored and the text
+    # refers to them by number - no character can be read from them.
+    stored_cells = payload.atlas is not None and not own_atlas(name, payload) and any(n["kind"] == "unseen" for n in payload.notes)
     parsed = to_references(parse(payload.cap))
+    # Which tool laid it out: the house tool numbers glyph cells from 25, after the speaker plates; the other one
+    # (CAP_FORMAT.md §9) from 0, in a bolder face, with no plates - its titles are the glyph cells they show.
+    used = sorted({c & cap_font.CELL_MASK for t in parsed["texts"] for c in t["codes"] if c < 0x8000})
+    layout = {"face": "bold", "first_glyph": used[0]} if used and used[0] < cap_font.FIRST_GLYPH_CELL else {}
+    face = layout.get("face", "glyphs")
+    first_glyph = layout.get("first_glyph", cap_font.FIRST_GLYPH_CELL)
+    font.titles_are_cells = bool(layout)
     # The font: every nonempty cell, by the character or speaker it shows. A picture no table
     # names yet is kept under a placeholder and reported, so the decode still rebuilds.
     for note in payload.notes:
@@ -559,9 +580,9 @@ def decode(name: str, payload: "cap_text.Payload", font: cap_font.Font, warnings
              and is_title(s["fields"])}
     font.chosen, cast, drawn = {}, {}, {}
     for number, cell in enumerate(cells):
-        if not cell[2] or not cell[3]:
+        if not cell[2] or not cell[3] or stored_cells:
             continue
-        if number < cap_font.FIRST_GLYPH_CELL:
+        if number < first_glyph:
             speaker = plates.get(cap_text.glyph_hash(atlas, cell))
             if number not in shown:     # a speaker of the cast no record shows: its cell, and its plate if drawn
                 cast[str(number)] = list(cell)
@@ -576,12 +597,26 @@ def decode(name: str, payload: "cap_text.Payload", font: cap_font.Font, warnings
             font.chosen[number] = speaker
         else:
             token_of[number] = payload.chars.get(number) or f"unseen {name} {number}"
-            font.add("glyphs", token_of[number], cap_font.crop(atlas, cell))
+            font.add(face, token_of[number], cap_font.crop(atlas, cell))
     parsed["texts"] = [cap_font.to_markup(t["codes"], token_of) for t in parsed["texts"]]
     parsed["speakers"] = dict(font.chosen)
-    parsed["atlas"] = {k: v for k, v in (("cast", cast), ("drawn", drawn)) if v}
+    parsed["atlas"] = {**layout, **{k: v for k, v in (("cast", cast), ("drawn", drawn)) if v}}
+    if stored_cells:
+        parsed["atlas"]["stored_cells"] = [list(c) for c in cells]
+    # What the atlas shows outside every cell: a mark of the face (the other tool's ▼), kept by its position.
+    if layout and payload.atlas is not None and own_atlas(name, payload):
+        bare = atlas.copy()
+        for cell in cells:
+            if cell[2] and cell[3]:
+                bare.paste(0, (cell[0], cell[1], cell[0] + cell[2], cell[1] + cell[3]))
+        box = bare.getbbox()
+        if box:
+            rect = (box[0], box[1], box[2] - box[0], box[3] - box[1])
+            token = (cap_text.glyph_table().get(cap_text.glyph_hash(atlas, rect)) or [None])[0] or f"unseen {name} mark"
+            font.add(face, token, cap_font.crop(atlas, rect))
+            parsed["atlas"]["marks"] = {token: list(box[:2])}
     # Where the atlas holds a cell somewhere else than the rule puts it, say where.
-    _payload, _atlas, ruled = build_cells({**parsed, "atlas": {}}, font)
+    _payload, _atlas, ruled = build_cells({**parsed, "atlas": dict(layout)}, font) if not stored_cells else (None, None, cells)
     moved = {str(n): cells[n][:2] for n in range(len(cells)) if n < len(ruled) and n >= 0 and ruled[n] != cells[n]
              and str(n) not in cast and any(cells[n])}
     if moved:

@@ -3701,6 +3701,7 @@ ASSETS = {
     'dryfield_factory_view18': {"sha1": "318c7605d61c3a813505c7523148b3b614ba3e5d", "type": "pe2clut", 'h': 6, 'w': 256, 'x': 0, 'y': 255},
     'dryfield_night_driveway': {"sha1": "a0c57f388d73bdb49e16e21e8883982103498c5c", "type": "pe2pkg", 'embedded': ['dryfield_night_driveway_animation_010C4'], 'required': True},
     'dryfield_r04_dialogue_0': {"sha1": "487cf88ecd5654a588fd069634271a6b72cd6406", "type": "cap"},
+    'dryfield_r04_glyph_page': {"sha1": "13873ef2308a1552312e965839e6fc8390526226", "type": "pe2img", 'bpp': 4, 'h': 256, 'w': 64, 'x': 384, 'y': 0},
     'dryfield_r08_dialogue_0': {"sha1": "538e1d568432ec6fc10a102881c4063a11c00b81", "type": "cap"},
     'mine_cavern_model_10F60': {"sha1": "7c6531b47accfdafca19fb99afcead48f9f0f134", "type": "tmd", 'textures': [[172, 16832]]},
     'mine_cavern_model_11244': {"sha1": "0dc8645aebf58d962817b63397778ac9ce4d8c52", "type": "tmd", 'textures': [[172, 16832]]},
@@ -4215,7 +4216,6 @@ ASSETS = {
     'dryfield_night_factory_view15': {"sha1": "3e2e0fcd5b0aca6600102af5e60f12787f018612", "type": "pe2clut", 'h': 6, 'w': 256, 'x': 0, 'y': 255},
     'dryfield_night_factory_view16': {"sha1": "f4d92f6484ba8d620f4e04b76e37be804833bf76", "type": "pe2clut", 'h': 6, 'w': 256, 'x': 0, 'y': 255},
     'dryfield_night_factory_view18': {"sha1": "7ef1b1aba1a4232413f38a8547ebe0a301a82e5b", "type": "pe2clut", 'h': 6, 'w': 256, 'x': 0, 'y': 255},
-    'dryfield_r04_dialogue_0_atlas': {"sha1": "13873ef2308a1552312e965839e6fc8390526226", "type": "font_atlas", 'bpp': 4, 'generated_by': 'dryfield_r04_dialogue_0', 'h': 256, 'w': 64, 'x': 384, 'y': 0},
     'dryfield_souvenir_shop_bundle': {"sha1": "281b154c930ec261ec31873103851738187f07a7", "type": "pe2bundle", 'resources': [None, 'dryfield_souvenir_shop_view2', 'dryfield_souvenir_shop_view3', 'dryfield_souvenir_shop_dialogue_0']},
     'dryfield_trailer_coach_bundle': {"sha1": "6f5c0b875c1690cd21f98a916932b90aa318ce19", "type": "pe2bundle", 'resources': [None, 'dryfield_trailer_coach_view2', 'dryfield_trailer_coach_view3', 'dryfield_trailer_coach_view4', None, None, None, 'dryfield_trailer_coach_view8', None, None, None, 'dryfield_trailer_coach_dialogue_0', 'dryfield_gas_station_dialogue_1']},
     'dryfield_underpass_dialogue_0': {"sha1": "0436f73d296c021d0a640c47bb7abbd6085298d3", "type": "cap"},
@@ -6787,7 +6787,7 @@ TREE = {
                 'file16': {"id": 16, "chunks": {'bs_344': 'bs_344'}},
             }},
             'dryfield_r04': {"id": 401, "files": {
-                'file0': {"id": 0, "chunks": {'dryfield_r04_dialogue_0_atlas': 'dryfield_r04_dialogue_0_atlas', 'package': 'dryfield_r04', 'bundle': 'dryfield_r04_bundle'}},
+                'file0': {"id": 0, "chunks": {'dryfield_r04_glyph_page': 'dryfield_r04_glyph_page', 'package': 'dryfield_r04', 'bundle': 'dryfield_r04_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_300': 'rooms/mist/r21/view1_background'}},
                 'file2': {"id": 2, "chunks": {'bs_300': 'rooms/mist/r21/view1_background'}},
             }},
@@ -6818,7 +6818,7 @@ TREE = {
                 'file9': {"id": 9, "chunks": {'bs_361': 'bs_361'}},
             }},
             'dryfield_r08': {"id": 801, "files": {
-                'file0': {"id": 0, "chunks": {'dryfield_r04_dialogue_0_atlas': 'dryfield_r04_dialogue_0_atlas', 'pe2clut_337': 'pe2clut_337', 'pe2img_526': 'pe2img_526', 'pe2clut_338': 'pe2clut_338', 'pe2img_527': 'pe2img_527', 'package': 'dryfield_r08', 'bundle': 'dryfield_r08_bundle'}},
+                'file0': {"id": 0, "chunks": {'dryfield_r04_glyph_page': 'dryfield_r04_glyph_page', 'pe2clut_337': 'pe2clut_337', 'pe2img_526': 'pe2img_526', 'pe2clut_338': 'pe2clut_338', 'pe2img_527': 'pe2img_527', 'package': 'dryfield_r08', 'bundle': 'dryfield_r08_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_362': 'bs_362'}},
                 'file2': {"id": 2, "chunks": {'pe2img_528': 'pe2img_528', 'bs_363': 'bs_363'}},
                 'file3': {"id": 3, "chunks": {'pe2img_529': 'pe2img_529', 'bs_364': 'bs_364'}},
@@ -8735,7 +8735,7 @@ TREE = {
                 'file10': {"id": 10, "chunks": {'bs_1723': 'bs_1723'}},
             }},
             'neo_ark_woodland_path': {"id": 2901, "files": {
-                'file0': {"id": 0, "chunks": {'spk_464': 'spk_464', 'spk_465': 'spk_465', 'dryfield_r04_dialogue_0_atlas': 'dryfield_r04_dialogue_0_atlas', 'pe2clut_419': 'pe2clut_419', 'pe2img_1425': 'pe2img_1425', 'package': 'neo_ark_woodland_path', 'bundle': 'neo_ark_woodland_path_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_464': 'spk_464', 'spk_465': 'spk_465', 'dryfield_r04_glyph_page': 'dryfield_r04_glyph_page', 'pe2clut_419': 'pe2clut_419', 'pe2img_1425': 'pe2img_1425', 'package': 'neo_ark_woodland_path', 'bundle': 'neo_ark_woodland_path_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_1724': 'bs_1724'}},
                 'file2': {"id": 2, "chunks": {'pe2img_1426': 'pe2img_1426', 'bs_1725': 'bs_1725'}},
                 'file3': {"id": 3, "chunks": {'pe2img_1427': 'pe2img_1427', 'bs_1726': 'bs_1726'}},
