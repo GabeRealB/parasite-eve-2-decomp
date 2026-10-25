@@ -88,6 +88,19 @@ event_6 = "enemies/golem/no_9/helipad/event_6"
 
 [light_rig]
 type = "rig"
+joints = [
+    "root",
+    "segment_1",
+    "segment_2",
+    "segment_3",
+    "segment_4",
+    "segment_5",
+    "segment_6",
+    "segment_7",
+    "segment_8",
+    "segment_9",
+    "tip",
+]
 
 [prop_toss]
 type = "clip"

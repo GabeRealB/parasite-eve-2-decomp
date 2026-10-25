@@ -264,21 +264,21 @@ gAkropolisHelicopterLandingPadLethalStrikeVibrationSegment = 0x80187D3C; // abso
 
 helicopterLandingPadNo9FlameJetTask = 0x80131F24; // type:func
 
-helicopterLandingPadNo9MuzzleFlashTask44 = 0x801340E8; // type:func
+helicopterLandingPadNo9MuzzleFlashTask = 0x801340E8; // type:func
 
-helicopterLandingPadNo9FlameSpriteTask45 = 0x80132D4C; // type:func
+helicopterLandingPadNo9GolemFlameTask = 0x80132D4C; // type:func
 
-helicopterLandingPadNo9FlameSpriteTask4C = 0x801332EC; // type:func
+helicopterLandingPadNo9FlameTongueTask = 0x801332EC; // type:func
 
-helicopterLandingPadNo9FlameSpriteTask52 = 0x8013371C; // type:func
+helicopterLandingPadNo9FlameSpriteTask = 0x8013371C; // type:func
 
-helicopterLandingPadNo9FlameSpriteTask59 = 0x80133C84; // type:func
+helicopterLandingPadNo9GunfireParticleTask = 0x80133C84; // type:func
 
 helicopterLandingPadNo9DebrisStreakTask = 0x80134284; // type:func
 
-helicopterLandingPadNo9ExplosionFireballTask184 = 0x8013482C; // type:func
+helicopterLandingPadNo9ExplosionFireballTask = 0x8013482C; // type:func
 
-helicopterLandingPadNo9ExplosionTask185 = 0x801346D4; // type:func
+helicopterLandingPadNo9ImpactBurstTask = 0x801346D4; // type:func
 actorMsgPlaceRotMatrix = 0x8013BE00; // type:func
 _no9GolemAimHead = 0x80138BF0; // type:func
 _no9GolemDrawShadow = 0x8013BBE4; // type:func

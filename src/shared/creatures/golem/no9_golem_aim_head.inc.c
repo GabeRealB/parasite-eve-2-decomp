@@ -15,7 +15,7 @@ STATIC_ASSERT_SIZEOF(_No9GolemHeadAimScratch, 0x40);
 
 /// Turns the GOLEM's head toward a bounded player direction in root-local space.
 ///
-/// Requires a live model with coordinate 4, a cached head transform in the view
+/// Requires a live model with its head (coordinate 4), a cached head transform in the view
 /// frame, and the player's world transform. Removes the view from that cache,
 /// aims 1536 world units above the player, and rotates the difference by the
 /// root's local rotation transpose. Clamps X/Y to +/-1024/768 and forward Z

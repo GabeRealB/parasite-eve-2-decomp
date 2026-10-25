@@ -205,11 +205,11 @@ enum {
     /// point light and, by an intensity mode the actor sets, keeps throwing
     /// 0x60045/0x6004C/0x60052/0x60059 sprite particles backward along -x.
     EFFECT_HELICOPTER_LANDING_PAD_NO_9_FLAME_JET = EFFECT_ID(EFFECT_TASK_BANK, 0x043),
-    /// One-shot flash at No.9 golem (Akropolis) model part 8: an orange transient point
+    /// One-shot flash at No.9 golem (Akropolis) right hand: an orange transient point
     /// light plus effect 0x6003B, six 0x60065 sprites and six pixel sparks; spawned
     /// periodically in its sub-state 3 attack.
     EFFECT_NO9_MUZZLE_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x044),
-    /// Animated six-frame additive sprite (tpage 0x2B) that rises while fading and
+    /// Six-frame additive sprite of the landing pad's `sparks` page (`flame_*`, `sparkle` palette) that rises while fading and
     /// casts a ground glow (effectDrawGroundGlow); spawned in pairs by helicopter_landing_pad_no_9's
     /// fire controller (0x60043), which also drives an orange point light.
     EFFECT_NO9_GOLEM_FLAME = EFFECT_ID(EFFECT_TASK_BANK, 0x045),
@@ -228,10 +228,9 @@ enum {
     /// the Akropolis promenade lamps; respawned each frame by the room spawner for
     /// views that see it.
     EFFECT_AKROPOLIS_PROMENADE_GLOW_STAR = EFFECT_ID(EFFECT_TASK_BANK, 0x04B),
-    /// Unidentified. Eight-frame additive sprite (tpage 0x2B, v 0x70) whose CLUT steps
-    /// with age and which rises by a random amount; spawned alongside 0x60045 by
-    /// helicopter_landing_pad_no_9's fire controller (0x60043).
-    EFFECT_04C = EFFECT_ID(EFFECT_TASK_BANK, 0x04C),
+    /// A flame tongue: eight frames of the landing pad's `sparks` page (`tongue_*`), additive, each on its own palette,
+    /// rising by a random amount; spawned alongside 0x60045 by helicopter_landing_pad_no_9's fire controller (0x60043).
+    EFFECT_NO9_FLAME_TONGUE = EFFECT_ID(EFFECT_TASK_BANK, 0x04C),
     /// Pulsing red or cyan flare (diamond with optional crossed streaks, or radial
     /// glow) at view-dependent offsets; spawned every frame by the Acropolis fire
     /// escape effect emitter for views 3/6/8/9.
@@ -243,7 +242,7 @@ enum {
     /// Falling leaf (`_leafFallTask`) of the Acropolis forked road; three are knocked
     /// loose by the Maggot Caterpillar entrance.
     EFFECT_AKROPOLIS_FORKED_ROAD_FALLING_LEAF = EFFECT_ID(EFFECT_TASK_BANK, 0x051),
-    /// A 12-frame animated 32x48 billboard with cycling CLUT that optionally falls,
+    /// A 12-frame 32x48 billboard of the landing pad's `sparks` page (`burning_*`, each frame on its own fire palette) that optionally falls,
     /// spawned in bursts by No.9 golem (Akropolis) fire controller 0x60043 under an
     /// orange point light.
     EFFECT_NO9_FLAME_SPRITE = EFFECT_ID(EFFECT_TASK_BANK, 0x052),
@@ -270,7 +269,7 @@ enum {
     /// gRoomEffectWaterRippleId, which several actors (actor_800100, 401300, 400600, 01100) spawn as
     /// water ripples.
     EFFECT_NEO_ARK_WOODLAND_PATH_WATER_RIPPLE = EFFECT_ID(EFFECT_TASK_BANK, 0x058),
-    /// Additive 8-frame sprite (tpage 0x4B, clut 0x4382) that rises a random amount per
+    /// Subtractive 8-frame smudge of the landing pad's `sparks` page (`smudge_*`, `smudge` palette) that rises a random amount per
     /// tick; thrown backwards in bursts by No.9's gunfire controller (0x60043, orange
     /// transient light).
     EFFECT_NO9_GUNFIRE_PARTICLE = EFFECT_ID(EFFECT_TASK_BANK, 0x059),

@@ -27,7 +27,7 @@ sha1 = "8f52d6ca09354deea1c944d19a32ae6732721dd3"
 palettes = [
     { texture = "sparks", variant = "sparkle", region = "engine/vram/effect_palettes", offset = [0x00000, 0x00009] },
     { name = "unread_270_16", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00010, 0x00009] },
-    { name = "unread_270_32", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00020, 0x00009] },
+    { texture = "sparks", variant = "smudge", region = "engine/vram/effect_palettes", offset = [0x00020, 0x00009] },
     { texture = "sparks", variant = "ember", region = "engine/vram/effect_palettes", offset = [0x00030, 0x00009] },
     { texture = "sparks", variant = "lens_flare", region = "engine/vram/effect_palettes", offset = [0x00040, 0x00009] },
     { name = "unread_270_80", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00050, 0x00009] },
@@ -45,11 +45,26 @@ palettes = [
     { name = "unread_270_272", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00110, 0x00009] },
     { name = "unread_270_288", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00120, 0x00009] },
     { name = "unread_270_304", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00130, 0x00009] },
-    { name = "unread_row_271", entries = 256, region = "engine/vram/effect_palettes", offset = [0x00000, 0x0000A] },
-    { name = "unread_271_256", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00100, 0x0000A] },
-    { name = "unread_271_272", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00110, 0x0000A] },
-    { name = "unread_271_288", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00120, 0x0000A] },
-    { name = "unread_271_304", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00130, 0x0000A] },
+    { texture = "sparks", variant = "tongue_0", region = "engine/vram/effect_palettes", offset = [0x00000, 0x0000A] },
+    { texture = "sparks", variant = "tongue_1", region = "engine/vram/effect_palettes", offset = [0x00010, 0x0000A] },
+    { texture = "sparks", variant = "tongue_2", region = "engine/vram/effect_palettes", offset = [0x00020, 0x0000A] },
+    { texture = "sparks", variant = "tongue_3", region = "engine/vram/effect_palettes", offset = [0x00030, 0x0000A] },
+    { texture = "sparks", variant = "tongue_4", region = "engine/vram/effect_palettes", offset = [0x00040, 0x0000A] },
+    { texture = "sparks", variant = "tongue_5", region = "engine/vram/effect_palettes", offset = [0x00050, 0x0000A] },
+    { texture = "sparks", variant = "tongue_6", region = "engine/vram/effect_palettes", offset = [0x00060, 0x0000A] },
+    { texture = "sparks", variant = "tongue_7", region = "engine/vram/effect_palettes", offset = [0x00070, 0x0000A] },
+    { texture = "sparks", variant = "burning_0", region = "engine/vram/effect_palettes", offset = [0x00080, 0x0000A] },
+    { texture = "sparks", variant = "burning_1", region = "engine/vram/effect_palettes", offset = [0x00090, 0x0000A] },
+    { texture = "sparks", variant = "burning_2", region = "engine/vram/effect_palettes", offset = [0x000A0, 0x0000A] },
+    { texture = "sparks", variant = "burning_3", region = "engine/vram/effect_palettes", offset = [0x000B0, 0x0000A] },
+    { texture = "sparks", variant = "burning_4", region = "engine/vram/effect_palettes", offset = [0x000C0, 0x0000A] },
+    { texture = "sparks", variant = "burning_5", region = "engine/vram/effect_palettes", offset = [0x000D0, 0x0000A] },
+    { texture = "sparks", variant = "burning_6", region = "engine/vram/effect_palettes", offset = [0x000E0, 0x0000A] },
+    { texture = "sparks", variant = "burning_7", region = "engine/vram/effect_palettes", offset = [0x000F0, 0x0000A] },
+    { texture = "sparks", variant = "burning_8", region = "engine/vram/effect_palettes", offset = [0x00100, 0x0000A] },
+    { texture = "sparks", variant = "burning_9", region = "engine/vram/effect_palettes", offset = [0x00110, 0x0000A] },
+    { texture = "sparks", variant = "burning_10", region = "engine/vram/effect_palettes", offset = [0x00120, 0x0000A] },
+    { texture = "sparks", variant = "burning_11", region = "engine/vram/effect_palettes", offset = [0x00130, 0x0000A] },
 ]
 
 [[file.contents]]
@@ -126,22 +141,77 @@ sha1 = "33c413287357346ce3ac0944e5f2f4c670e938df"
 type = "texture"
 bpp = 4
 height = 256
-variants = ["sparkle", "ember", "lens_flare"]
+variants = [
+    "sparkle",
+    "ember",
+    "lens_flare",
+    "smudge",
+    "tongue_0",
+    "tongue_1",
+    "tongue_2",
+    "tongue_3",
+    "tongue_4",
+    "tongue_5",
+    "tongue_6",
+    "tongue_7",
+    "burning_0",
+    "burning_1",
+    "burning_2",
+    "burning_3",
+    "burning_4",
+    "burning_5",
+    "burning_6",
+    "burning_7",
+    "burning_8",
+    "burning_9",
+    "burning_10",
+    "burning_11",
+]
 width = 256
 
 [sparks.cells]
+burning_0 = [0, 160, 32, 48]
+burning_1 = [32, 160, 32, 48]
+burning_2 = [64, 160, 32, 48]
+burning_3 = [96, 160, 32, 48]
+burning_4 = [128, 160, 32, 48]
+burning_5 = [160, 160, 32, 48]
+burning_6 = [192, 160, 32, 48]
+burning_7 = [224, 160, 32, 48]
+burning_8 = [0, 208, 32, 48]
+burning_9 = [32, 208, 32, 48]
+burning_10 = [64, 208, 32, 48]
+burning_11 = [96, 208, 32, 48]
 ember_0 = [32, 40, 32, 32]
 ember_1 = [64, 40, 32, 32]
 ember_2 = [96, 40, 32, 32]
 ember_3 = [128, 40, 32, 32]
 ember_4 = [160, 40, 32, 32]
 ember_5 = [192, 40, 32, 32]
+flame_0 = [0, 0, 32, 40]
+flame_1 = [32, 0, 32, 40]
+flame_2 = [64, 0, 32, 40]
+flame_3 = [96, 0, 32, 40]
+flame_4 = [128, 0, 32, 40]
+flame_5 = [160, 0, 32, 40]
 flash_0 = [0, 72, 40, 40]
 flash_1 = [40, 72, 40, 40]
 flash_2 = [80, 72, 40, 40]
 flash_3 = [120, 72, 40, 40]
 flash_4 = [160, 72, 40, 40]
 flash_5 = [200, 72, 40, 40]
+smudge_0 = [128, 208, 32, 32]
+smudge_1 = [160, 208, 32, 32]
+smudge_2 = [192, 208, 32, 32]
+smudge_3 = [224, 208, 32, 32]
+tongue_0 = [0, 112, 32, 48]
+tongue_1 = [32, 112, 32, 48]
+tongue_2 = [64, 112, 32, 48]
+tongue_3 = [96, 112, 32, 48]
+tongue_4 = [128, 112, 32, 48]
+tongue_5 = [160, 112, 32, 48]
+tongue_6 = [192, 112, 32, 48]
+tongue_7 = [224, 112, 32, 48]
 
 [package]
 type = "room"

@@ -44,25 +44,46 @@
 #include "main/tmd_types.h"
 #include "../../../../shared/effects/sprite_quad.h"
 
+/// The landing pad's `sparks` page the flames draw from, at VRAM (704, 0), and its cells: the golem flame's `flame_*` at
+/// the top, the tongues' `tongue_*`, the flame sprite's `burning_*` over two rows and the gunfire smudges' `smudge_*`.
+/// The golem flame plays on the `sparkle` palette and the smudges on `smudge`, both on row 270; the tongues and the
+/// burning flames step through the fire palettes on row 271, one a frame (`tongue_*`, then `burning_*` from the eighth).
+enum {
+    SPARKS_PAGE_X         = 704,
+    SPARKS_PALETTE_ROW    = 270,
+    FIRE_PALETTE_ROW      = 271,
+    SPARKS_CELL_WIDTH     = 32,
+    FLAME_CELL_HEIGHT     = 40,
+    TALL_CELL_HEIGHT      = 48,
+    TONGUE_V              = 112,
+    BURNING_V_BYTE        = 160 - 0x100, // The burning rows' 160, as the byte field wraps it
+    BURNING_CELLS_PER_ROW = 8,
+    BURNING_FIRST_PALETTE = 8,
+    SMUDGE_V              = 208,
+    SMUDGE_SIZE           = 32,
+    SMUDGE_FIRST_CELL     = 4,
+    SMUDGE_PALETTE_X      = 32,
+};
+
 /// Packed flame spawn options and the frame counts of the actor's particle tasks.
 enum {
-    PARTICLE_INITIAL       = 0,
-    FLAME_SCALE_MASK       = 0xFFF,
-    FLAME_RANDOM_MOTION    = 0x10000,
-    FLAME_DEFAULT_SCALE    = 0x200,
-    FLAME_MOTION_RANGE     = 48,
-    FLAME_45_CELL_COUNT    = 6,
-    FLAME_45_LAST_AGE_MASK = 0xF,
-    FLAME_FADE_FRAMES      = 8,
-    FLAME_FADE_STEP        = 16,
-    FLAME_FULL_BRIGHTNESS  = 0x80,
-    FLAME_4C_FRAMES        = 8,
-    FLAME_52_FRAMES        = 12,
-    FLAME_59_FRAMES        = 8,
-    DEBRIS_SHORT_TIER      = 1,
-    DEBRIS_LONG_TIER       = 2,
-    DEBRIS_GRAVITY         = 6,
-    DEBRIS_FRAMES_PER_TIER = 16,
+    PARTICLE_INITIAL          = 0,
+    FLAME_SCALE_MASK          = 0xFFF,
+    FLAME_RANDOM_MOTION       = 0x10000,
+    FLAME_DEFAULT_SCALE       = 0x200,
+    FLAME_MOTION_RANGE        = 48,
+    GOLEM_FLAME_CELL_COUNT    = 6,
+    GOLEM_FLAME_LAST_AGE_MASK = 0xF,
+    FLAME_FADE_FRAMES         = 8,
+    FLAME_FADE_STEP           = 16,
+    FLAME_FULL_BRIGHTNESS     = 0x80,
+    FLAME_TONGUE_FRAMES       = 8,
+    FLAME_SPRITE_FRAMES       = 12,
+    GUNFIRE_PARTICLE_FRAMES   = 8,
+    DEBRIS_SHORT_TIER         = 1,
+    DEBRIS_LONG_TIER          = 2,
+    DEBRIS_GRAVITY            = 6,
+    DEBRIS_FRAMES_PER_TIER    = 16,
 };
 
 /// Scratch-stack block one frame's segment of a debris streak is drawn from.
@@ -96,6 +117,8 @@ static const _SpritePalette _gHelicopterLandingPadNo9FireballFramePalettes[12] _
     { 240, 270 },
     { 256, 270 },
 };
+
+#include "assets/enemies/golem/no_9/helipad/body_schema.h"
 
 #include "assets/enemies/golem/no_9/body_akropolis.inc"
 
@@ -230,7 +253,7 @@ void helicopterLandingPadNo9FlameJetTask(Task* task)
             randomBits >>= 1;
             if (!(randomBits & 3)) {
                 PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0);
-                particle = effectSpawn(EFFECT_04C, coord, (RANDOM_LCG_DRAW() & RANDOM_SIZE_MASK) + ({ effect->scale + FLAME_RANDOM_MOTION; }),
+                particle = effectSpawn(EFFECT_NO9_FLAME_TONGUE, coord, (RANDOM_LCG_DRAW() & RANDOM_SIZE_MASK) + ({ effect->scale + FLAME_RANDOM_MOTION; }),
                                        &effect->move);
                 if (particle != NULL) {
                     taskReparent(task, particle->task);
@@ -320,7 +343,7 @@ void helicopterLandingPadNo9FlameJetTask(Task* task)
                 }
                 for (particleIndex = 0; particleIndex < 2; particleIndex++) {
                     PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, 0x280, 0);
-                    particle = effectSpawn(EFFECT_04C, coord, (RANDOM_LCG_DRAW() & RANDOM_SIZE_MASK) | (FLAME_RANDOM_MOTION | 0x100), &effect->move);
+                    particle = effectSpawn(EFFECT_NO9_FLAME_TONGUE, coord, (RANDOM_LCG_DRAW() & RANDOM_SIZE_MASK) | (FLAME_RANDOM_MOTION | 0x100), &effect->move);
                     if (particle != NULL) {
                         taskReparent(task, particle->task);
                     }
@@ -370,7 +393,7 @@ void helicopterLandingPadNo9FlameJetTask(Task* task)
 
 #undef PREPARE_FLAME_JET_PARTICLE_VELOCITY
 
-void helicopterLandingPadNo9FlameSpriteTask45(Task* task)
+void helicopterLandingPadNo9GolemFlameTask(Task* task)
 {
     GfxCoord            groundCoord;
     EffectWork*         effect;
@@ -431,7 +454,7 @@ void helicopterLandingPadNo9FlameSpriteTask45(Task* task)
             if (task->state == PARTICLE_INITIAL) {
                 effect->scale = (u16)task->spawnArg1.value & FLAME_SCALE_MASK;
                 RANDOM_LCG_ADVANCE();
-                effect->angle = RANDOM_LCG_DRAW() & FLAME_45_LAST_AGE_MASK;
+                effect->angle = RANDOM_LCG_DRAW() & GOLEM_FLAME_LAST_AGE_MASK;
                 if (task->spawnArg1.value & FLAME_RANDOM_MOTION) {
                     RANDOM_LCG_ADVANCE();
                     effect->period = RANDOM_LCG_DRAW() % FLAME_MOTION_RANGE;
@@ -459,19 +482,19 @@ void helicopterLandingPadNo9FlameSpriteTask45(Task* task)
                 glowBrightness = FLAME_FULL_BRIGHTNESS;
                 setShadeTex(sprite, 1);
             }
-            sprite->tpage = getTPage(0, GPU_BLEND_ADD, 704, 0);
-            sprite->clut  = getClut(0, 270);
+            sprite->tpage = getTPage(0, GPU_BLEND_ADD, SPARKS_PAGE_X, 0);
+            sprite->clut  = getClut(0, SPARKS_PALETTE_ROW);
             setSemiTrans(sprite, 1);
-            sprite->u0               = (effect->age % FLAME_45_CELL_COUNT) * 32;
+            sprite->u0               = (effect->age % GOLEM_FLAME_CELL_COUNT) * SPARKS_CELL_WIDTH;
             sprite->v0               = 0;
-            sprite->u1               = (effect->age % FLAME_45_CELL_COUNT) * 32 + 0x1F;
+            sprite->u1               = (effect->age % GOLEM_FLAME_CELL_COUNT) * SPARKS_CELL_WIDTH + SPARKS_CELL_WIDTH - 1;
             sprite->v1               = 0;
-            sprite->u2               = (effect->age % FLAME_45_CELL_COUNT) * 32;
-            sprite->v2               = 0x27;
-            sprite->u3               = (effect->age % FLAME_45_CELL_COUNT) * 32 + 0x1F;
-            sprite->v3               = 0x27;
-            scratch->extent.corner.x = (effect->scale * 31) / scratch->depth;
-            scratch->extent.corner.y = (effect->scale * 39) / scratch->depth;
+            sprite->u2               = (effect->age % GOLEM_FLAME_CELL_COUNT) * SPARKS_CELL_WIDTH;
+            sprite->v2               = FLAME_CELL_HEIGHT - 1;
+            sprite->u3               = (effect->age % GOLEM_FLAME_CELL_COUNT) * SPARKS_CELL_WIDTH + SPARKS_CELL_WIDTH - 1;
+            sprite->v3               = FLAME_CELL_HEIGHT - 1;
+            scratch->extent.corner.x = (effect->scale * (SPARKS_CELL_WIDTH - 1)) / scratch->depth;
+            scratch->extent.corner.y = (effect->scale * (FLAME_CELL_HEIGHT - 1)) / scratch->depth;
             screenEdge               = scratch->screenX - (u16)scratch->extent.corner.x;
             sprite->x2               = screenEdge;
             sprite->x0               = screenEdge;
@@ -510,7 +533,7 @@ void helicopterLandingPadNo9FlameSpriteTask45(Task* task)
     effectKillTask(effect, task);
 }
 
-void helicopterLandingPadNo9FlameSpriteTask4C(Task* task)
+void helicopterLandingPadNo9FlameTongueTask(Task* task)
 {
     EffectWork*         effect;
     GfxCoord*           coord;
@@ -556,25 +579,25 @@ void helicopterLandingPadNo9FlameSpriteTask4C(Task* task)
                 }
                 task->state++;
             }
-            sprite->tpage = getTPage(0, GPU_BLEND_ADD, 704, 0);
+            sprite->tpage = getTPage(0, GPU_BLEND_ADD, SPARKS_PAGE_X, 0);
             setShadeTex(sprite, 1);
             setSemiTrans(sprite, 1);
             frameAge                 = effect->age;
-            sprite->clut             = (frameAge & 0x3F) | getClut(0, 271);
+            sprite->clut             = (frameAge & 0x3F) | getClut(0, FIRE_PALETTE_ROW);
             frameAge                 = effect->age;
-            sprite->v0               = 0x70;
-            sprite->u0               = frameAge * 32;
+            sprite->v0               = TONGUE_V;
+            sprite->u0               = frameAge * SPARKS_CELL_WIDTH;
             frameAge                 = effect->age;
-            sprite->v1               = 0x70;
-            sprite->u1               = frameAge * 32 + 0x1F;
+            sprite->v1               = TONGUE_V;
+            sprite->u1               = frameAge * SPARKS_CELL_WIDTH + SPARKS_CELL_WIDTH - 1;
             frameAge                 = effect->age;
-            sprite->v2               = 0x9F;
-            sprite->u2               = frameAge * 32;
+            sprite->v2               = TONGUE_V + TALL_CELL_HEIGHT - 1;
+            sprite->u2               = frameAge * SPARKS_CELL_WIDTH;
             frameAge                 = effect->age;
-            sprite->v3               = 0x9F;
-            sprite->u3               = frameAge * 32 + 0x1F;
-            scratch->extent.corner.x = (effect->scale * 31) / scratch->depth;
-            scratch->extent.corner.y = (effect->scale * 47) / scratch->depth;
+            sprite->v3               = TONGUE_V + TALL_CELL_HEIGHT - 1;
+            sprite->u3               = frameAge * SPARKS_CELL_WIDTH + SPARKS_CELL_WIDTH - 1;
+            scratch->extent.corner.x = (effect->scale * (SPARKS_CELL_WIDTH - 1)) / scratch->depth;
+            scratch->extent.corner.y = (effect->scale * (TALL_CELL_HEIGHT - 1)) / scratch->depth;
             screenEdge               = scratch->screenX - (u16)scratch->extent.corner.x;
             sprite->x2               = screenEdge;
             sprite->x0               = screenEdge;
@@ -601,7 +624,7 @@ void helicopterLandingPadNo9FlameSpriteTask4C(Task* task)
             coord->coord.t[1]  -= riseSpeed;
         }
         effect->age++;
-        if (effect->age < FLAME_4C_FRAMES) {
+        if (effect->age < FLAME_TONGUE_FRAMES) {
             return;
         }
     } else if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -610,7 +633,7 @@ void helicopterLandingPadNo9FlameSpriteTask4C(Task* task)
     effectKillTask(effect, task);
 }
 
-void helicopterLandingPadNo9FlameSpriteTask52(Task* task)
+void helicopterLandingPadNo9FlameSpriteTask(Task* task)
 {
     EffectWork*         effect;
     GfxCoord*           coord;
@@ -656,29 +679,29 @@ void helicopterLandingPadNo9FlameSpriteTask52(Task* task)
                 }
                 task->state++;
             }
-            sprite->tpage = getTPage(0, GPU_BLEND_ADD, 704, 0);
+            sprite->tpage = getTPage(0, GPU_BLEND_ADD, SPARKS_PAGE_X, 0);
             setShadeTex(sprite, 1);
             setSemiTrans(sprite, 1);
             paletteAge               = effect->age;
-            sprite->clut             = ((paletteAge + 8) & 0x3F) | getClut(0, 271);
+            sprite->clut             = ((paletteAge + BURNING_FIRST_PALETTE) & 0x3F) | getClut(0, FIRE_PALETTE_ROW);
             frameAge                 = effect->age;
-            sprite->u0               = (s16)(frameAge % 8) * 32;
+            sprite->u0               = (s16)(frameAge % BURNING_CELLS_PER_ROW) * SPARKS_CELL_WIDTH;
             frameAge                 = effect->age;
-            sprite->v0               = (frameAge / 8) * 48 - 0x60;
+            sprite->v0               = (frameAge / BURNING_CELLS_PER_ROW) * TALL_CELL_HEIGHT + BURNING_V_BYTE;
             frameAge                 = effect->age;
-            sprite->u1               = (s16)(frameAge % 8) * 32 + 0x1F;
+            sprite->u1               = (s16)(frameAge % BURNING_CELLS_PER_ROW) * SPARKS_CELL_WIDTH + SPARKS_CELL_WIDTH - 1;
             frameAge                 = effect->age;
-            sprite->v1               = (frameAge / 8) * 48 - 0x60;
+            sprite->v1               = (frameAge / BURNING_CELLS_PER_ROW) * TALL_CELL_HEIGHT + BURNING_V_BYTE;
             frameAge                 = effect->age;
-            sprite->u2               = (s16)(frameAge % 8) * 32;
+            sprite->u2               = (s16)(frameAge % BURNING_CELLS_PER_ROW) * SPARKS_CELL_WIDTH;
             frameAge                 = effect->age;
-            sprite->v2               = (frameAge / 8) * 48 - 0x31;
+            sprite->v2               = (frameAge / BURNING_CELLS_PER_ROW) * TALL_CELL_HEIGHT + BURNING_V_BYTE + TALL_CELL_HEIGHT - 1;
             frameAge                 = effect->age;
-            sprite->u3               = (s16)(frameAge % 8) * 32 + 0x1F;
+            sprite->u3               = (s16)(frameAge % BURNING_CELLS_PER_ROW) * SPARKS_CELL_WIDTH + SPARKS_CELL_WIDTH - 1;
             frameAge                 = effect->age;
-            sprite->v3               = (frameAge / 8) * 48 - 0x31;
-            scratch->extent.corner.x = (effect->scale * 31) / scratch->depth;
-            scratch->extent.corner.y = (effect->scale * 47) / scratch->depth;
+            sprite->v3               = (frameAge / BURNING_CELLS_PER_ROW) * TALL_CELL_HEIGHT + BURNING_V_BYTE + TALL_CELL_HEIGHT - 1;
+            scratch->extent.corner.x = (effect->scale * (SPARKS_CELL_WIDTH - 1)) / scratch->depth;
+            scratch->extent.corner.y = (effect->scale * (TALL_CELL_HEIGHT - 1)) / scratch->depth;
             // The target shift uses period's low five bits; nonzero period also enables falling.
             scratch->extent.corner.x >>= effect->period;
             screenEdge                 = scratch->screenX - (u16)scratch->extent.corner.x;
@@ -706,7 +729,7 @@ void helicopterLandingPadNo9FlameSpriteTask52(Task* task)
             coord->coord.t[1]  += 0x38;
         }
         effect->age++;
-        if (effect->age < FLAME_52_FRAMES) {
+        if (effect->age < FLAME_SPRITE_FRAMES) {
             return;
         }
     } else if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -715,7 +738,7 @@ void helicopterLandingPadNo9FlameSpriteTask52(Task* task)
     effectKillTask(effect, task);
 }
 
-void helicopterLandingPadNo9FlameSpriteTask59(Task* task)
+void helicopterLandingPadNo9GunfireParticleTask(Task* task)
 {
     EffectWork*         effect;
     GfxCoord*           coord;
@@ -759,24 +782,24 @@ void helicopterLandingPadNo9FlameSpriteTask59(Task* task)
                 effect->period = RANDOM_LCG_DRAW() % FLAME_MOTION_RANGE;
                 task->state++;
             }
-            sprite->tpage = getTPage(0, GPU_BLEND_SUBTRACT, 704, 0);
+            sprite->tpage = getTPage(0, GPU_BLEND_SUBTRACT, SPARKS_PAGE_X, 0);
             setShadeTex(sprite, 1);
             setSemiTrans(sprite, 1);
-            sprite->clut             = getClut(32, 270);
+            sprite->clut             = getClut(SMUDGE_PALETTE_X, SPARKS_PALETTE_ROW);
             frameAge                 = effect->age;
-            sprite->v0               = 0xD0;
-            sprite->u0               = (frameAge / 2 + 4) * 32;
+            sprite->v0               = SMUDGE_V;
+            sprite->u0               = (frameAge / 2 + SMUDGE_FIRST_CELL) * SPARKS_CELL_WIDTH;
             frameAge                 = effect->age;
-            sprite->v1               = 0xD0;
-            sprite->u1               = (frameAge / 2 + 4) * 32 + 0x1F;
+            sprite->v1               = SMUDGE_V;
+            sprite->u1               = (frameAge / 2 + SMUDGE_FIRST_CELL) * SPARKS_CELL_WIDTH + SPARKS_CELL_WIDTH - 1;
             frameAge                 = effect->age;
-            sprite->v2               = 0xEF;
-            sprite->u2               = (frameAge / 2 + 4) * 32;
+            sprite->v2               = SMUDGE_V + SMUDGE_SIZE - 1;
+            sprite->u2               = (frameAge / 2 + SMUDGE_FIRST_CELL) * SPARKS_CELL_WIDTH;
             frameAge                 = effect->age;
-            sprite->v3               = 0xEF;
-            sprite->u3               = (frameAge / 2 + 4) * 32 + 0x1F;
-            scratch->extent.corner.x = (effect->scale * 31) / scratch->depth;
-            scratch->extent.corner.y = (effect->scale * 31) / scratch->depth;
+            sprite->v3               = SMUDGE_V + SMUDGE_SIZE - 1;
+            sprite->u3               = (frameAge / 2 + SMUDGE_FIRST_CELL) * SPARKS_CELL_WIDTH + SPARKS_CELL_WIDTH - 1;
+            scratch->extent.corner.x = (effect->scale * (SMUDGE_SIZE - 1)) / scratch->depth;
+            scratch->extent.corner.y = (effect->scale * (SMUDGE_SIZE - 1)) / scratch->depth;
             screenEdge               = scratch->screenX - (u16)scratch->extent.corner.x;
             sprite->x2               = screenEdge;
             sprite->x0               = screenEdge;
@@ -803,7 +826,7 @@ void helicopterLandingPadNo9FlameSpriteTask59(Task* task)
             coord->coord.t[1]  -= riseSpeed;
         }
         effect->age++;
-        if (effect->age < FLAME_59_FRAMES) {
+        if (effect->age < GUNFIRE_PARTICLE_FRAMES) {
             return;
         }
     } else if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -812,7 +835,7 @@ void helicopterLandingPadNo9FlameSpriteTask59(Task* task)
     effectKillTask(effect, task);
 }
 
-void helicopterLandingPadNo9MuzzleFlashTask44(Task* task)
+void helicopterLandingPadNo9MuzzleFlashTask(Task* task)
 {
     enum {
         LIGHT_SLOT         = 3,
@@ -960,7 +983,7 @@ void helicopterLandingPadNo9DebrisStreakTask(Task* task)
     }
 }
 
-void helicopterLandingPadNo9ExplosionTask185(Task* task)
+void helicopterLandingPadNo9ImpactBurstTask(Task* task)
 {
     enum {
         FIREBALL           = 0,
@@ -1046,7 +1069,7 @@ void helicopterLandingPadNo9ExplosionTask185(Task* task)
         gte_stsv(&(effect)->move);                               \
     }
 
-void helicopterLandingPadNo9ExplosionFireballTask184(Task* task)
+void helicopterLandingPadNo9ExplosionFireballTask(Task* task)
 {
     enum {
         DEFAULT_SCALE          = 768,
@@ -1162,8 +1185,6 @@ STATIC_ASSERT(ARRAY_SIZE(SPRITE_QUAD_UV_TABLE) == ARRAY_SIZE(_gHelicopterLanding
 void helicopterLandingPadNo9InitBody(Enemy* enemy, Task* task)
 {
     enum {
-        BODY_CHEST_PART          = 3,
-        BODY_FOREARM_PART        = 7,
         PROP_DESCRIPTOR          = 1,
         WEAPON_DESCRIPTOR        = 2,
         CHEST_DESCRIPTOR         = 3,
@@ -1203,14 +1224,14 @@ void helicopterLandingPadNo9InitBody(Enemy* enemy, Task* task)
     enemy->field_4          = &rootCoord->coord;
     enemy->field_48         = 0;
     worldTargetLinkNode(&enemy->node);
-    enemy->coord                  = &task->extra.tmd->coords[BODY_CHEST_PART];
+    enemy->coord                  = &task->extra.tmd->coords[CHEST_PART];
     enemy->bodyPos.vx             = 0;
     enemy->bodyPos.vy             = 0;
     enemy->bodyPos.vz             = 0;
     enemy->param                  = &gHelicopterLandingPadNo9EnemyParams;
     enemy->recs                   = work->bodyContacts;
     enemy->hp                     = gHelicopterLandingPadNo9EnemyParams.hpMax;
-    work->hitEffectArg.coord      = &task->extra.tmd->coords[BODY_CHEST_PART];
+    work->hitEffectArg.coord      = &task->extra.tmd->coords[CHEST_PART];
     work->hitEffectArg.spawnArgLo = HIT_EFFECT_ARGUMENT_LOW;
     work->hitEffectArg.spawnArgHi = HIT_EFFECT_ARGUMENT_HIGH;
     animationInitContext(&work->rig.anim, gHelicopterLandingPadNo9BodyAnimationSets, bodyModel,
@@ -1238,7 +1259,7 @@ void helicopterLandingPadNo9InitBody(Enemy* enemy, Task* task)
     enemySpawnFromTable(gHelicopterLandingPadNo9TaskDescriptors, LIGHT_DESCRIPTOR, 1, enemy);
     enemySpawnFromTable(gHelicopterLandingPadNo9TaskDescriptors, LIGHT_DESCRIPTOR, 2, enemy);
     enemySpawnFromTable(gHelicopterLandingPadNo9TaskDescriptors, BLAST_SOURCE_DESCRIPTOR, 0, enemy);
-    work->body.coord            = &task->extra.tmd->coords[BODY_CHEST_PART];
+    work->body.coord            = &task->extra.tmd->coords[CHEST_PART];
     bodyContacts                = work->bodyContacts;
     work->body.context.contacts = bodyContacts;
     work->body.pos.vx           = 0;
@@ -1262,7 +1283,7 @@ void helicopterLandingPadNo9InitBody(Enemy* enemy, Task* task)
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->weaponAttack);
     worldCollisionInitContacts(attackContacts, ARRAY_SIZE(work->attackContacts), 0);
     work->weaponAttack.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->forearmAttack.coord            = &task->extra.tmd->coords[BODY_FOREARM_PART];
+    work->forearmAttack.coord            = &task->extra.tmd->coords[RIGHT_FOREARM_PART];
     work->forearmAttack.context.contacts = attackContacts;
     work->forearmAttack.pos.vx           = 0;
     work->forearmAttack.pos.vy           = 0;
@@ -1282,11 +1303,10 @@ void helicopterLandingPadNo9InitBody(Enemy* enemy, Task* task)
 void helicopterLandingPadNo9TickEvent(Enemy* enemy, Task* task)
 {
     enum {
-        ANIMATION   = 32,
         FRAME       = 210,
         FRAMES      = 255,
-        START_SOUND = SOUND_CHARACTER(0x78, 14),
-        LOOP_SOUND  = SOUND_CHARACTER(0x78, 17),
+        START_SOUND = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, 14),
+        LOOP_SOUND  = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, 17),
     };
     GfxCoord*                    rootCoord;
     HelicopterLandingPadNo9Work* work;
@@ -1298,7 +1318,7 @@ void helicopterLandingPadNo9TickEvent(Enemy* enemy, Task* task)
     work                          = task->work;
     rootCoord                     = task->extra.tmd->coords;
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-    if (work->animationId == ANIMATION && work->animationFrame == FRAME) {
+    if (work->animationId == BODY_ANIMATION_EVENT_5 && work->animationFrame == FRAME) {
         work->flameMode   = HELICOPTER_LANDING_PAD_NO_9_FLAME_BURNING;
         work->flameFrames = FRAMES;
         startSound        = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | START_SOUND;

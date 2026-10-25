@@ -9,13 +9,14 @@
 static void _no9GolemDrawShadow(const Task* task)
 {
     enum { NO9_GOLEM_SHADOW_HALF_SIZE = 768,
-           NO9_GOLEM_SHADOW_SHADE     = 128 };
+           NO9_GOLEM_SHADOW_SHADE     = 128,
+           NO9_GOLEM_PELVIS_PART      = 1 }; // The shadow follows the pelvis across the floor
     const GfxCoord* rootCoord;
     const GfxCoord* bodyCoord;
     VECTOR3         shadowCentre;
 
     rootCoord       = task->extra.tmd->coords;
-    bodyCoord       = &task->extra.tmd->coords[1];
+    bodyCoord       = &task->extra.tmd->coords[NO9_GOLEM_PELVIS_PART];
     shadowCentre.vx = bodyCoord->workm.t[0];
     shadowCentre.vy = rootCoord->workm.t[1];
     shadowCentre.vz = bodyCoord->workm.t[2];

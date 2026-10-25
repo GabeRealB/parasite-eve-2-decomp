@@ -55,6 +55,8 @@ enum {
 /// (`lapDistance` from the first corner, sides `HELICOPTER_LANDING_PAD_NO_9_LAP_SIDE_LENGTH`), and the latches its
 /// children - the weapon, chest piece and prop on its parts, the stun grenade, the helipad lights and the blast
 /// source - reach through `Task::parent`. The part-riding models borrow `color` and `light`.
+/// Each frame the state handler picks the animation and the speed along the lap, and the common tail turns the body to
+/// the side's heading, places it, plays the step cues and keeps the flame jet and the pad's collision faces up to date.
 typedef struct {
     ActorAnimRig19        rig;                // Playback storage of the nineteen-part body model; slots 1..18 are driven
     MATRIX                color;              // Colour matrix lent to the body model and to the three part-riding models
@@ -193,5 +195,15 @@ void helicopterLandingPadNo9ExitBody(Task* task);
 
 /// Samples room lighting at the body's cached translation and applies its colour state.
 void helicopterLandingPadNo9UpdateLighting(Task* task, const GfxCoord* coord);
+
+/// Parts of No. 9's rig (`enemies/golem/no_9/rig`) the landing pad's code reaches: the chest carries his aim point,
+/// hit effects, body sphere and chest piece, the right forearm his forearm strike, the hands his sword and his prop.
+enum {
+    PELVIS_PART        = 1,
+    CHEST_PART         = 3,
+    RIGHT_FOREARM_PART = 7,
+    RIGHT_HAND_PART    = 8,
+    LEFT_HAND_PART     = 12,
+};
 
 #endif // STAGES_AKROPOLIS_ACTORS_HELICOPTER_LANDING_PAD_NO_9_HELICOPTER_LANDING_PAD_NO_9_PRIVATE_H

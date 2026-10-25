@@ -41437,7 +41437,7 @@ Unlike `register s32 shadeByteSource asm("v1")`, this does not reserve a hard re
 it leaves the rest of the allocation alone — the pinned version stole `$v1`
 from two later `mult`/`mflo` pairs in `effectSpriteTask7C`.
 
-The same fade in `helicopterLandingPadNo9FlameSpriteTask45` masks at the *call*
+The same fade in `helicopterLandingPadNo9GolemFlameTask` masks at the *call*
 (`andi a2,s3,0xFF` for a `u8 glowBrightness` set to the fade or to `0x80` in an if/else),
 and no plain-C spelling tried keeps `0xFF`: `glowBrightness` as `u8`/`s8`/`s16`/`s32`, the
 copy before or after the stores, chained assignment, `setRGB0`, a `u8`
@@ -41448,7 +41448,7 @@ it), or a set from a memory load or other opaque value. Adding an
 uninitialised use of `glowBrightness` confirmed the first but does not match the rest, so
 the copy there is still the asm.
 
-*Note 2026-10-07:* `helicopterLandingPadNo9FlameSpriteTask45` no longer uses the asm. The
+*Note 2026-10-07:* `helicopterLandingPadNo9GolemFlameTask` no longer uses the asm. The
 opaque set is a copy from a variable assigned on two paths that join before
 the copy. See the section at the end of this file with this function's name.
 
@@ -96728,7 +96728,7 @@ the store and merges them again.
 
 ## Two back-to-back counted loops: where the second `i = 0` sits decides `slt` vs `beqz`
 
-`helicopterLandingPadNo9ExplosionFireballTask184` spawns `D_80070F70 & 3` of one effect and then
+`helicopterLandingPadNo9ExplosionFireballTask` spawns `D_80070F70 & 3` of one effect and then
 `D_80070F70 & 1` of another. The target guards the two loops differently:
 
 ```
@@ -134410,7 +134410,7 @@ Inputs: base_29.i 6bd152160d825bffa3e64fce99bb39ea82db0d2a4f13619a6e4178d81641f5
 Evidence: tools/permuter_findings/actor403600SwingLooseParts/, session80eca9187dc049c6b722d7be32850d97, PERMUTER_EVIDENCE/e3b7c513460b4b2b/analysis/manual_match/. The router failed parsing and produced no discovery; these were manual experiments.
 
 
-## A real scratch-pointer copy plus a local reference threshold fixes a load-delay slot (helicopterLandingPadNo9FlameSpriteTask45, 2026-09-19)
+## A real scratch-pointer copy plus a local reference threshold fixes a load-delay slot (helicopterLandingPadNo9GolemFlameTask, 2026-09-19)
 
 The unpinned seed had all matching registers and one early `lhu vy` (distance
 60). Moving that read after the vx store produced distance176: sched2 put a
@@ -134453,7 +134453,7 @@ Both focused traces preserve byte-identical assembly with and without GDB.
 Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
 Input hashes: base_7.i 137d691975b5bbc1e5fdd86c2bff01909e4c77565a1d972a1047e0ef78260078;
 base_8.i 9d57342c0ee302fec6e22d58c4f78a4a7d1c3f1a5abfaad8acb3c077abb8b50d.
-Evidence: archived snapshots for `helicopterLandingPadNo9FlameSpriteTask45` retain
+Evidence: archived snapshots for `helicopterLandingPadNo9GolemFlameTask` retain
 `PERMUTER_EVIDENCE/manual_resolution/` with paired sources, dumps and traces.
 base_9 is the exact readable port. This supports the quantity threshold and
 its scheduling consequence for this function; it does not identify retail's
@@ -148837,7 +148837,7 @@ where it was. Reusing another local for the load (`placeIndex`, `hp`,
   not local-alloc's: it is written by the delay-slot pass, and only when the
   loop's `li 1` is below the copy. See the section at the end of this file
   with this function's name.
-- `helicopterLandingPadNo9FlameSpriteTask45` (`"=r"(glowBrightness) : "0"(fadeBrightness)`). `andi a2,s3,0xff`
+- `helicopterLandingPadNo9GolemFlameTask` (`"=r"(glowBrightness) : "0"(fadeBrightness)`). `andi a2,s3,0xff`
   survives only if `reg_nonzero_bits[glowBrightness]` covers the low nibble. A second set
   of `glowBrightness` from anything with low bits does that (`glowBrightness = rand & 0xF;
   effect->angle = glowBrightness;` gives `0xff`), because the bits are the union over all
@@ -152300,7 +152300,7 @@ set remains) applied to the first set instead of the second. Before working
 on the cursor's own length, check whether sched1 leaves the set where the
 source put it: within one block it does not.
 
-### A mask that combine does not narrow: the value reached the byte through a join that left no code (helicopterLandingPadNo9FlameSpriteTask45, 2026-10-07)
+### A mask that combine does not narrow: the value reached the byte through a join that left no code (helicopterLandingPadNo9GolemFlameTask, 2026-10-07)
 
 **Symptom.** `u8 glow` is `fade` (a multiple of 16) in one arm and `0x80` in
 the other, and is passed to a call much later. The target has
@@ -152400,7 +152400,7 @@ held in the age's local; see the next section.
 ### A copy combine did not merge into its only user, in the register the tested value had: the join is on the reused local (effectSpriteTask7C, 2026-10-07)
 
 **Symptom.** `sll v0,v0,4; move v1,v0; andi s5,v1,0xff; sb v0 x3`, where `$v1`
-held `work->age` up to the `subu`. Unlike `helicopterLandingPadNo9FlameSpriteTask45` the
+held `work->age` up to the `subu`. Unlike `helicopterLandingPadNo9GolemFlameTask` the
 mask is not the problem: every plain form (`glow = (u8)shade` before or after
 the stores, a `u8`/`s16`/`u16` copy local, `shade = TICKS - age; shade *= 16`,
 the age read into a local and reassigned, chained stores) gives
@@ -152449,7 +152449,7 @@ evidence). Not a default: `shade = 0x80` before the `if` with the conversion
 after the join moves the `andi` out of the arm, and a `u8 glow` assigned
 after the join changes the frame.
 
-**For `helicopterLandingPadNo9FlameSpriteTask45`.** Nothing here gives it a kind-1/2
+**For `helicopterLandingPadNo9GolemFlameTask`.** Nothing here gives it a kind-1/2
 form. Its copy goes straight to the call-saved register and its problem is
 the mask's width, which this function does not have; the common part is only
 that a label stood before the conversion.

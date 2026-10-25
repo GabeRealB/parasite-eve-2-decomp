@@ -79,6 +79,7 @@ enum {
     SOUND_BANK_DESERT_CHASER   = 0x01, // Desert Chaser; also played by actor_00100 and actor_323400
     SOUND_BANK_GLUTTON         = 0x20, // Glutton
     SOUND_BANK_MAD_CHASER      = 0x2C, // Mad Chaser
+    SOUND_BANK_NO_9_AKROPOLIS  = 0x78, // No. 9 on the Akropolis landing pad (enemies/golem/no_9/sounds_akropolis)
     SOUND_BANK_PLAYER          = 0x68, // the player and the companions
     SOUND_BANK_STRANGER        = 0x1D, // Stranger
     SOUND_BANK_SUCKLERCEPH     = 0x46, // Sucklerceph
