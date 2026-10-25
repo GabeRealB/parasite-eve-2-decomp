@@ -140,7 +140,7 @@ flash_5 = [200, 72, 40, 40]
 type = "room"
 embedded = [
     { name = "akropolis_helicopter_landing_pad_model_0547C", offset = 0x04E04, size = 0x134C, address = 0x801823C4 },
-    "akropolis_helicopter_landing_pad_model_0A8E8",
+    { name = "ammunition_pickup", offset = 0x0A828, size = 0x18C, address = 0x80187DE8 },
 ]
 package_name = "akropolis_helicopter_landing_pad"
 required = true
@@ -1344,6 +1344,12 @@ sha1 = "1ead7b32f316f2f0a2f96a8b141e38b39f8797d4"
 type = "bs"
 sha1 = "c96d9f7831e2ca12c52ff2a7952cc1a210251ce1"
 
+[ammunition_pickup]
+type = "model"
+slots = ["pickup"]
+symbol = "gAkropolisHelicopterLandingPadAmmunitionPickupModel"
+sha1 = "a6442f10321bac7d60e2785b835223fea54daf41"
+
 [helicopter_page_1]
 type = "texture"
 bpp = 8
@@ -1470,6 +1476,11 @@ rig = "characters/rupert/rig"
 [encounter_intro_impact]
 type = "sound"
 sha1 = "18e686f8ffdbab741a9de541d5e9877cc83cabcf"
+
+[ammunition_pickup_binding]
+type = "binding"
+model = "rooms/akropolis/helicopter_landing_pad/ammunition_pickup"
+textures = { pickup = "rooms/akropolis/cafeteria/container.ammunition" }
 
 [player_helipad_report_escape]
 type = "clip"

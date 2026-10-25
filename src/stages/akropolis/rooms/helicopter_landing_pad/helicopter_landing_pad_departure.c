@@ -73,37 +73,7 @@ static const TaskFuncTable3 _gAkropolisHelicopterLandingPadRoomTaskStates = {
 #define ROOM_PART gAkropolisHelicopterLandingPadLethalStrikeVibrationCommands
 #include "assets/rooms/akropolis/helicopter_landing_pad/vibrations.inc"
 #include "assets/rooms/akropolis/helicopter_landing_pad/surfaces.inc"
-static TmdBone _gAkropolisHelicopterLandingPadModel0A8E8Skeleton[1] = {
-#include "assets/akropolis_helicopter_landing_pad_model_0A8E8_skeleton.inc"
-};
-
-static u32 _gAkropolisHelicopterLandingPadModel0A8E8PartVerts[1] = {
-#include "assets/akropolis_helicopter_landing_pad_model_0A8E8_partVerts.inc"
-};
-
-static SVECTOR _gAkropolisHelicopterLandingPadModel0A8E8Verts[13] = {
-#include "assets/akropolis_helicopter_landing_pad_model_0A8E8_verts.inc"
-};
-
-static SVECTOR _gAkropolisHelicopterLandingPadModel0A8E8Normals[6] = {
-#include "assets/akropolis_helicopter_landing_pad_model_0A8E8_normals.inc"
-};
-
-static u32 _gAkropolisHelicopterLandingPadModel0A8E8Stream[42] = {
-#include "assets/akropolis_helicopter_landing_pad_model_0A8E8_stream.inc"
-};
-
-TmdSource gAkropolisHelicopterLandingPadModel0A8E8 = {
-    0,
-    312,
-    0,
-    1,
-    _gAkropolisHelicopterLandingPadModel0A8E8PartVerts,
-    _gAkropolisHelicopterLandingPadModel0A8E8Verts,
-    _gAkropolisHelicopterLandingPadModel0A8E8Normals,
-    _gAkropolisHelicopterLandingPadModel0A8E8Skeleton,
-    _gAkropolisHelicopterLandingPadModel0A8E8Stream,
-};
+#include "assets/rooms/akropolis/helicopter_landing_pad/ammunition_pickup.inc"
 
 /// Current unwrapped yaw of the singleton player-turn task.
 static s32 _gAkropolisHelicopterLandingPadTurnYaw = 0;

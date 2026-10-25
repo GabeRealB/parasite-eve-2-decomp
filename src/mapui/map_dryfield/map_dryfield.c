@@ -505,7 +505,7 @@ static AreaObjectSpawn _gMapDryfieldJunkYardObjectSpawns[2] = {
 /// Matches the corresponding placed-object kind, then `AREA_OBJECT_SPAWN_END`.
 /// Borrows the room-owned model geometry until the spawned task ends.
 static AreaObjectSpawn _gMapDryfieldTrailerCoachObjectSpawns[2] = {
-    { .kind = MAP_DRYFIELD_M950_OBJECT_KIND, .taskDesc = { .header = { .fields = { TASK_BODY_TMD, TASK_PRIORITY_REDRAW } }, .callback = itemPickupContainerLidTask, .data = { .model = &gDryfieldTrailerCoachAkropolisSanctuaryModel090F0 } } },
+    { .kind = MAP_DRYFIELD_M950_OBJECT_KIND, .taskDesc = { .header = { .fields = { TASK_BODY_TMD, TASK_PRIORITY_REDRAW } }, .callback = itemPickupContainerLidTask, .data = { .model = &gDryfieldTrailerCoachItemBoxModel } } },
     { .kind = AREA_OBJECT_SPAWN_END },
 };
 

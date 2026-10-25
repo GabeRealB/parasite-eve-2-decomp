@@ -1,6 +1,21 @@
 # The assets of the group rooms/shelter/b3_dumping_hole, each named rooms/shelter/b3_dumping_hole/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
+[package]
+type = "pe2pkg"
+embedded = [
+    { asset = "rooms/item_box/model", offset = 0x099CC, size = 0x5E8, address = 0x80186F8C },
+    "shelter_b3_dumping_hole_model_0A0CC",
+    "shelter_b3_dumping_hole_model_0A348",
+    "shelter_b3_dumping_hole_model_0A5EC",
+    "shelter_b3_dumping_hole_animation_0A7D8",
+    "shelter_b3_dumping_hole_model_0BAC8",
+    "shelter_b3_dumping_hole_animation_0C534",
+]
+package_name = "shelter_b3_dumping_hole"
+required = true
+sha1 = "2adcd282a463099915d3090c0320f5d63bd03300"
+
 [gluttons]
 type = "pe2pkg"
 embedded = [

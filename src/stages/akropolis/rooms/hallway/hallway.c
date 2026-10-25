@@ -54,12 +54,6 @@ static const TaskFuncTable3 _gAkropolisHallwayRoomTaskStates = {
     { _akropolisHallwayInitializeRoomTask, _akropolisHallwayIdleRoomTask, taskKill },
 };
 
-static u32     _gAkropolisHallwayModel023C0PartVerts[1];
-static SVECTOR _gAkropolisHallwayModel023C0Verts[21];
-static SVECTOR _gAkropolisHallwayModel023C0Normals[6];
-static TmdBone _gAkropolisHallwayModel023C0Skeleton[1];
-static u32     _gAkropolisHallwayModel023C0Stream[42];
-
 static s32 _akropolisHallwayResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _akropolisHallwayRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg);
 static s32 _akropolisHallwayHandleSoundCue(Task* unusedTask, s32 unusedMessageId, s32 cueIndex, s32 unusedSecondArg);
@@ -84,37 +78,7 @@ static TaskMessageEntry _gAkropolisHallwayRoomMessages[] = {
 
 #include "assets/rooms/akropolis/hallway/blue_key_pickup.inc"
 
-static TmdBone _gAkropolisHallwayModel023C0Skeleton[1] = {
-#include "assets/akropolis_hallway_model_023C0_skeleton.inc"
-};
-
-static u32 _gAkropolisHallwayModel023C0PartVerts[1] = {
-#include "assets/akropolis_hallway_model_023C0_partVerts.inc"
-};
-
-static SVECTOR _gAkropolisHallwayModel023C0Verts[21] = {
-#include "assets/akropolis_hallway_model_023C0_verts.inc"
-};
-
-static SVECTOR _gAkropolisHallwayModel023C0Normals[6] = {
-#include "assets/akropolis_hallway_model_023C0_normals.inc"
-};
-
-static u32 _gAkropolisHallwayModel023C0Stream[42] = {
-#include "assets/akropolis_hallway_model_023C0_stream.inc"
-};
-
-static TmdSource _gAkropolisHallwayModel023C0 = {
-    0,
-    312,
-    0,
-    1,
-    _gAkropolisHallwayModel023C0PartVerts,
-    _gAkropolisHallwayModel023C0Verts,
-    _gAkropolisHallwayModel023C0Normals,
-    _gAkropolisHallwayModel023C0Skeleton,
-    _gAkropolisHallwayModel023C0Stream,
-};
+#include "assets/rooms/akropolis/hallway/pain_reliever_pickup.inc"
 
 SVECTOR ActorContact_ScratchPosition = { 0 };
 

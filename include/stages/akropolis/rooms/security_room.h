@@ -18,7 +18,7 @@ enum { AKROPOLIS_SECURITY_ROOM_VIEW_COUNT = 16 };
 /// Placement variants 0..3 of the security room, indexed by saved layout variant.
 extern AreaVariant gAkropolisSecurityRoomAreaVariants[4];
 
-extern TmdSource gAkropolisSecurityRoomAkropolisSanctuaryModel090F0;
+extern TmdSource gAkropolisSecurityRoomItemBoxModel;
 
 /// Collision resources for the security room's sole room, indexed by room minus one.
 extern WorldCollisionRoomResources gAkropolisSecurityRoomRoomCollisionResources[1];

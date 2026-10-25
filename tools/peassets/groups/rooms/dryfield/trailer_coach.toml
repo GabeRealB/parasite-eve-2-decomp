@@ -43,6 +43,16 @@ package_name = "actor_420700"
 required = true
 sha1 = "8d5c22080c316e108ad933c886d64c7bd800077f"
 
+[package]
+type = "pe2pkg"
+embedded = [
+    { asset = "rooms/item_box/model", offset = 0x069D0, size = 0x5E8, address = 0x80183F90 },
+    "dryfield_trailer_coach_animation_072D8",
+]
+package_name = "dryfield_trailer_coach"
+required = true
+sha1 = "8c59d7298498b2bbc641673d7a3585d37189396b"
+
 [gary_bank]
 type = "animation_bank"
 schema = "rooms/dryfield/trailer_coach/gary_schema"

@@ -26,7 +26,7 @@ extern AreaVariant gAkropolisHelicopterLandingPadAreaVariants[13];
 
 extern TmdSource gAkropolisHelicopterLandingPadAkropolisHelicopterLandingPadModel0547C;
 
-extern TmdSource gAkropolisHelicopterLandingPadModel0A8E8;
+extern TmdSource gAkropolisHelicopterLandingPadAmmunitionPickupModel;
 
 // acropolis_helicopter_landing_pad
 /// Collision resources for the landing pad's single room of the landing pad.

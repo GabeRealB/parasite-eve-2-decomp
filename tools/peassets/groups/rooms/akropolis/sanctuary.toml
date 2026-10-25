@@ -142,7 +142,7 @@ embedded = [
     { name = "cutscene_player_anim_00", offset = 0x0435C, size = 0x3D4, address = 0x8018191C },
     { name = "extra_anim", offset = 0x04730, size = 0x3F4, address = 0x80181CF0 },
     { name = "cutscene_player_bank", offset = 0x04B24, size = 0x4, address = 0x801820E4 },
-    "akropolis_sanctuary_model_090F0",
+    { asset = "rooms/item_box/model", offset = 0x08E84, size = 0x5E8, address = 0x80186444 },
     { name = "red_key_pickup", offset = 0x0946C, size = 0x260, address = 0x80186A2C },
 ]
 package_name = "akropolis_sanctuary"

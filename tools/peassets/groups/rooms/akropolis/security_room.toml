@@ -121,6 +121,7 @@ embedded = [
     "rooms/akropolis/security_room/lamp_left_released",
     "rooms/akropolis/security_room/lamp_right_locked",
     "rooms/akropolis/security_room/lamp_right_released",
+    { asset = "rooms/item_box/model", offset = 0x07A00, size = 0x5E8, address = 0x80184FC0 },
 ]
 package_name = "akropolis_security_room"
 required = true

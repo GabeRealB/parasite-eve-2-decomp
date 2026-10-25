@@ -40,37 +40,8 @@ static void _shelterB3DumpingHoleIdleRoom(Task* task);
 
 static AnimationSet _gShelterB3DumpingHoleAnimation0AAB4;
 
-static TmdBone _gShelterB3DumpingHoleAkropolisSanctuaryModel090F0Skeleton[3] = {
-#include "assets/akropolis_sanctuary_model_090F0_skeleton.inc"
-};
-
-static u32 _gShelterB3DumpingHoleAkropolisSanctuaryModel090F0PartVerts[3] = {
-#include "assets/akropolis_sanctuary_model_090F0_partVerts.inc"
-};
-
-static SVECTOR _gShelterB3DumpingHoleAkropolisSanctuaryModel090F0Verts[56] = {
-#include "assets/akropolis_sanctuary_model_090F0_verts.inc"
-};
-
-static SVECTOR _gShelterB3DumpingHoleAkropolisSanctuaryModel090F0Normals[6] = {
-#include "assets/akropolis_sanctuary_model_090F0_normals.inc"
-};
-
-static u32 _gShelterB3DumpingHoleAkropolisSanctuaryModel090F0Stream[215] = {
-#include "assets/akropolis_sanctuary_model_090F0_stream.inc"
-};
-
-TmdSource gShelterB3DumpingHoleAkropolisSanctuaryModel090F0 = {
-    0,
-    1768,
-    0,
-    3,
-    _gShelterB3DumpingHoleAkropolisSanctuaryModel090F0PartVerts,
-    _gShelterB3DumpingHoleAkropolisSanctuaryModel090F0Verts,
-    _gShelterB3DumpingHoleAkropolisSanctuaryModel090F0Normals,
-    _gShelterB3DumpingHoleAkropolisSanctuaryModel090F0Skeleton,
-    _gShelterB3DumpingHoleAkropolisSanctuaryModel090F0Stream,
-};
+#include "assets/rooms/item_box/model.inc"
+DEFINE_ALIAS(_gItemBoxModel, gShelterB3DumpingHoleItemBoxModel);
 
 /// Room receiver routes for departures, key items, actions, commands and actor events.
 ///

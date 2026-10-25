@@ -1,0 +1,12 @@
+# The assets of the group rooms/dryfield/night_trailer_coach, each named rooms/dryfield/night_trailer_coach/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[package]
+type = "pe2pkg"
+embedded = [
+    { asset = "rooms/item_box/model", offset = 0x0711C, size = 0x5E8, address = 0x801846DC },
+    "dryfield_night_trailer_coach_animation_07A48",
+]
+package_name = "dryfield_night_trailer_coach"
+required = true
+sha1 = "1787a6fece6b211b0b52412d9cada6f75b9c9ea1"

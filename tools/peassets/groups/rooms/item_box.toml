@@ -1,0 +1,13 @@
+# The assets of the group rooms/item_box, each named rooms/item_box/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[model]
+type = "model"
+slots = ["box"]
+symbol = "_gItemBoxModel"
+sha1 = "ff340ca9dcf9192e4265bc41172a4fd9e4bfddde"
+
+[model_binding]
+type = "binding"
+model = "rooms/item_box/model"
+textures = { box = "rooms/akropolis/cafeteria/container.default" }

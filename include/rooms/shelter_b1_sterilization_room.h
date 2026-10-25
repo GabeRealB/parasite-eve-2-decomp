@@ -12,7 +12,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern TmdSource gShelterB1SterilizationRoomAkropolisSanctuaryModel090F0;
+extern TmdSource gShelterB1SterilizationRoomItemBoxModel;
 
 /// Placement layouts indexed by this area's saved variant (0..10).
 ///

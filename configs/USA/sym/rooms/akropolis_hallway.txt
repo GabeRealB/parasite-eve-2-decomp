@@ -1,6 +1,6 @@
 // Overlay-local symbols for akropolis_hallway.
 ActorContact_ScratchPosition = 0x8017FA4C; // size:0x8 defined:True
-_gAkropolisHallwayModel023C0 = 0x8017FA28; // size:0x24 defined:True
+_gAkropolisHallwayPainRelieverPickupModel = 0x8017FA28; // size:0x24 defined:True
 _gAkropolisHallwayRoomMessages = 0x8017E238; // size:0x20 defined:True
 gAkropolisHallwayRoomCollisionResources = 0x8017E258; // size:0x10 defined:True
 gAkropolisHallwayViewMaps = 0x8017E268; // size:0x4 defined:True
@@ -39,11 +39,11 @@ _gAkropolisHallwayBlueKeyPickupModelPartVerts = 0x8017ED84; // size:0x4 defined:
 _gAkropolisHallwayBlueKeyPickupModelVerts = 0x8017ED88; // size:0x318 defined:True
 _gAkropolisHallwayBlueKeyPickupModelStream = 0x8017F0A0; // size:0x7BC defined:True
 gAkropolisHallwayBlueKeyPickupModel = 0x8017F85C; // size:0x24 defined:True
-_gAkropolisHallwayModel023C0Skeleton = 0x8017F880; // size:0x24 defined:True
-_gAkropolisHallwayModel023C0PartVerts = 0x8017F8A4; // size:0x4 defined:True
-_gAkropolisHallwayModel023C0Verts = 0x8017F8A8; // size:0xA8 defined:True
-_gAkropolisHallwayModel023C0Normals = 0x8017F950; // size:0x30 defined:True
-_gAkropolisHallwayModel023C0Stream = 0x8017F980; // size:0xA8 defined:True
+_gAkropolisHallwayPainRelieverPickupModelSkeleton = 0x8017F880; // size:0x24 defined:True
+_gAkropolisHallwayPainRelieverPickupModelPartVerts = 0x8017F8A4; // size:0x4 defined:True
+_gAkropolisHallwayPainRelieverPickupModelVerts = 0x8017F8A8; // size:0xA8 defined:True
+_gAkropolisHallwayPainRelieverPickupModelNormals = 0x8017F950; // size:0x30 defined:True
+_gAkropolisHallwayPainRelieverPickupModelStream = 0x8017F980; // size:0xA8 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 gActor401800OddStrangerTaskDesc = 0x80155AC4; // absolute:True owner=actor_401800
 gActor300700RatTaskDesc = 0x801693AC; // absolute:True owner=actor_300700

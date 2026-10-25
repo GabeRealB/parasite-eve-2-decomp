@@ -20,7 +20,7 @@ enum {
     SHELTER_B2_LABORATORY_SURFACE_CLASS_COUNT = 8,
 };
 
-extern TmdSource gShelterB2LaboratoryAkropolisSanctuaryModel090F0;
+extern TmdSource gShelterB2LaboratoryItemBoxModel;
 
 /// Saved-area changes committed when the laboratory terminal quiz succeeds.
 ///

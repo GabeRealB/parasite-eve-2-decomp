@@ -411,37 +411,8 @@ static s32 _gAkropolisSanctuaryMosaicCleanupLatched = MOSAIC_CLEANUP_CLEAR;
 #include "assets/rooms/akropolis/sanctuary/surfaces.inc"
 #include "assets/rooms/akropolis/sanctuary/updates.inc"
 
-static TmdBone _gAkropolisSanctuaryModel090F0Skeleton[3] = {
-#include "assets/akropolis_sanctuary_model_090F0_skeleton.inc"
-};
-
-static u32 _gAkropolisSanctuaryModel090F0PartVerts[3] = {
-#include "assets/akropolis_sanctuary_model_090F0_partVerts.inc"
-};
-
-static SVECTOR _gAkropolisSanctuaryModel090F0Verts[56] = {
-#include "assets/akropolis_sanctuary_model_090F0_verts.inc"
-};
-
-static SVECTOR _gAkropolisSanctuaryModel090F0Normals[6] = {
-#include "assets/akropolis_sanctuary_model_090F0_normals.inc"
-};
-
-static u32 _gAkropolisSanctuaryModel090F0Stream[215] = {
-#include "assets/akropolis_sanctuary_model_090F0_stream.inc"
-};
-
-TmdSource gAkropolisSanctuaryModel090F0 = {
-    0,
-    1768,
-    0,
-    3,
-    _gAkropolisSanctuaryModel090F0PartVerts,
-    _gAkropolisSanctuaryModel090F0Verts,
-    _gAkropolisSanctuaryModel090F0Normals,
-    _gAkropolisSanctuaryModel090F0Skeleton,
-    _gAkropolisSanctuaryModel090F0Stream,
-};
+#include "assets/rooms/item_box/model.inc"
+DEFINE_ALIAS(_gItemBoxModel, gAkropolisSanctuaryItemBoxModel);
 
 #include "assets/rooms/akropolis/sanctuary/red_key_pickup.inc"
 

@@ -42,7 +42,7 @@ sha1 = "92423036ef88e01be88b40f8691a15d95e36714a"
 type = "room"
 embedded = [
     { name = "blue_key_pickup", offset = 0x017A0, size = 0xB20, address = 0x8017ED60 },
-    "akropolis_hallway_model_023C0",
+    { name = "pain_reliever_pickup", offset = 0x022C0, size = 0x1CC, address = 0x8017F880 },
 ]
 package_name = "akropolis_hallway"
 required = true
@@ -139,7 +139,18 @@ sha1 = "cfc371e33ffad2b33c3c60823cfaac580ece6ee2"
 type = "bs"
 sha1 = "4fe03700fe59be7f6e71f20f3e8f75baa7b6b864"
 
+[pain_reliever_pickup]
+type = "model"
+slots = ["pickup"]
+symbol = "_gAkropolisHallwayPainRelieverPickupModel"
+sha1 = "25528212de76d260373b20d5d8025fa3e1cdfa45"
+
 [blue_key_pickup_binding]
 type = "binding"
 model = "rooms/akropolis/hallway/blue_key_pickup"
 textures = { blue_key = "rooms/akropolis/hallway/blue_key.default" }
+
+[pain_reliever_pickup_binding]
+type = "binding"
+model = "rooms/akropolis/hallway/pain_reliever_pickup"
+textures = { pickup = "rooms/akropolis/cafeteria/container.pain_reliever" }

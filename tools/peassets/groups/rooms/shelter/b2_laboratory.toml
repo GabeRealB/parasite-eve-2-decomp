@@ -15,6 +15,13 @@ package_name = "actor_143000"
 required = true
 sha1 = "2bee4e729352a85bc081acf1473a268088e61563"
 
+[package]
+type = "pe2pkg"
+embedded = [{ asset = "rooms/item_box/model", offset = 0x04E60, size = 0x5E8, address = 0x80182420 }]
+package_name = "shelter_b2_laboratory"
+required = true
+sha1 = "66cb6689dd39a3a181a97cc6df41fcd57c65010b"
+
 [console_file]
 type = "file"
 

@@ -1,6 +1,16 @@
 # The assets of the group rooms/shelter/b1_sterilization_room, each named rooms/shelter/b1_sterilization_room/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
+[package]
+type = "pe2pkg"
+embedded = [
+    { asset = "rooms/item_box/model", offset = 0x07274, size = 0x5E8, address = 0x80184834 },
+    "shelter_b1_sterilization_room_animation_0798C",
+]
+package_name = "shelter_b1_sterilization_room"
+required = true
+sha1 = "b95c4284b2a1f3258a735120bc89a5ce473740df"
+
 [soldier]
 type = "pe2pkg"
 embedded = [

@@ -15,7 +15,7 @@
 /// Sanctuary layouts indexed by the saved placement variant (0..11).
 extern AreaVariant gAkropolisSanctuaryAreaVariants[12];
 
-extern TmdSource gAkropolisSanctuaryModel090F0;
+extern TmdSource gAkropolisSanctuaryItemBoxModel;
 
 extern TmdSource gAkropolisSanctuaryRedKeyPickupModel;
 

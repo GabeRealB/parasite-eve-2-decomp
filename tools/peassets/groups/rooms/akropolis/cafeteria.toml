@@ -16,26 +16,114 @@ chunk = "dialogue_0_atlas"
 [[file.contents]]
 chunk = "palette"
 sha1 = "8185f05dc401ff3c20eefa98bb339ba00a7e3b56"
-palettes = [
-    { texture = "model", variant = "loose_prop", region = "engine/vram/effect_palettes", offset = [0x00000, 0x00000] },
-    { name = "unread_261_0", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00000, 0x00000] },
-    { texture = "container", variant = "stim", region = "engine/vram/effect_palettes", offset = [0x00010, 0x00000] },
-    { name = "unread_261_32", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00020, 0x00000] },
-    { name = "unread_261_48", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00030, 0x00000] },
-    { name = "unread_261_64", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00040, 0x00000] },
-    { name = "unread_261_80", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00050, 0x00000] },
-    { name = "unread_261_96", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00060, 0x00000] },
-    { name = "unread_261_112", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00070, 0x00000] },
-    { name = "unread_261_128", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00080, 0x00000] },
-    { name = "unread_261_144", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00090, 0x00000] },
-    { name = "unread_261_160", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000A0, 0x00000] },
-    { texture = "container", variant = "default", region = "engine/vram/effect_palettes", offset = [0x000B0, 0x00000] },
-    { name = "unread_261_192", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000C0, 0x00000] },
-    { name = "unread_261_208", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000D0, 0x00000] },
-    { name = "unread_261_224", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000E0, 0x00000] },
-    { name = "unread_261_240", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000F0, 0x00000] },
-    { name = "unread_row_262", entries = 256, region = "engine/vram/effect_palettes", offset = [0x00000, 0x00001] },
-]
+
+[[file.contents.palettes]]
+texture = "model"
+variant = "loose_prop"
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00000]
+
+[[file.contents.palettes]]
+texture = "container"
+variant = "pain_reliever"
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00000]
+
+[[file.contents.palettes]]
+texture = "container"
+variant = "stim"
+region = "engine/vram/effect_palettes"
+offset = [0x00010, 0x00000]
+
+[[file.contents.palettes]]
+name = "unread_261_32"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00020, 0x00000]
+
+[[file.contents.palettes]]
+name = "unread_261_48"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00030, 0x00000]
+
+[[file.contents.palettes]]
+name = "unread_261_64"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00040, 0x00000]
+
+[[file.contents.palettes]]
+name = "unread_261_80"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00050, 0x00000]
+
+[[file.contents.palettes]]
+texture = "container"
+variant = "ammunition"
+region = "engine/vram/effect_palettes"
+offset = [0x00060, 0x00000]
+
+[[file.contents.palettes]]
+name = "unread_261_112"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00070, 0x00000]
+
+[[file.contents.palettes]]
+name = "unread_261_128"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00080, 0x00000]
+
+[[file.contents.palettes]]
+name = "unread_261_144"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00090, 0x00000]
+
+[[file.contents.palettes]]
+name = "unread_261_160"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x000A0, 0x00000]
+
+[[file.contents.palettes]]
+texture = "container"
+variant = "default"
+region = "engine/vram/effect_palettes"
+offset = [0x000B0, 0x00000]
+
+[[file.contents.palettes]]
+name = "unread_261_192"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x000C0, 0x00000]
+
+[[file.contents.palettes]]
+name = "unread_261_208"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x000D0, 0x00000]
+
+[[file.contents.palettes]]
+name = "unread_261_224"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x000E0, 0x00000]
+
+[[file.contents.palettes]]
+name = "unread_261_240"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x000F0, 0x00000]
+
+[[file.contents.palettes]]
+name = "unread_row_262"
+entries = 256
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00001]
 
 [[file.contents]]
 chunk = "image"
@@ -289,7 +377,7 @@ sha1 = "5197b3538c40c9ed3da0ec52ce10308450459cbb"
 type = "texture"
 bpp = 4
 height = 256
-variants = ["default", "stim"]
+variants = ["default", "stim", "pain_reliever", "ammunition"]
 width = 256
 
 [woman_cue]
