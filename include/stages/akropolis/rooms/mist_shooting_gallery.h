@@ -136,42 +136,61 @@ void mistShootingGalleryTracerTask(Task* task);
 /// Dispatches the gallery room task's initialization, running and exit states.
 void mistShootingGalleryRoomTask(Task* task);
 
-extern TmdSource gMistShootingGalleryModel093FC;
+/// A gallery target's model, kind 0.
+extern TmdSource gMistShootingGalleryCreatureTarget1Model;
 
-extern TmdSource gMistShootingGalleryModel095EC;
+/// A gallery target's model, kind 1.
+extern TmdSource gMistShootingGalleryCreatureTarget2Model;
 
-extern TmdSource gMistShootingGalleryModel097DC;
+/// A gallery target's model, kind 2.
+extern TmdSource gMistShootingGalleryCreatureTarget3Model;
 
-extern TmdSource gMistShootingGalleryModel099CC;
+/// A gallery target's model, kind 3.
+extern TmdSource gMistShootingGalleryCreatureTarget4Model;
 
-extern TmdSource gMistShootingGalleryModel09BBC;
+/// A gallery target's model, kind 4.
+extern TmdSource gMistShootingGalleryCreatureTarget5Model;
 
-extern TmdSource gMistShootingGalleryModel09DAC;
+/// A gallery target's model, kind 5.
+extern TmdSource gMistShootingGalleryCreatureTarget6Model;
 
-extern TmdSource gMistShootingGalleryModel09F9C;
+/// A gallery target's model, kind 6.
+extern TmdSource gMistShootingGalleryCreatureTarget7Model;
 
-extern TmdSource gMistShootingGalleryModel0A18C;
+/// A gallery target's model, kind 7.
+extern TmdSource gMistShootingGalleryCreatureTarget8Model;
 
-extern TmdSource gMistShootingGalleryModel0A37C;
+/// A gallery target's model, kind 8.
+extern TmdSource gMistShootingGalleryCreatureTarget9Model;
 
-extern TmdSource gMistShootingGalleryModel0A56C;
+/// A gallery target's model, kind 9.
+extern TmdSource gMistShootingGalleryCreatureTarget10Model;
 
-extern TmdSource gMistShootingGalleryModel0A81C;
+/// The target mount's model, the post every target hangs or stands on.
+extern TmdSource gMistShootingGalleryMountModel;
 
-extern TmdSource gMistShootingGalleryModel0AB30;
+/// A gallery target's model, kind 14: the left of the dark target.
+extern TmdSource gMistShootingGalleryHalfTarget1Model;
 
-extern TmdSource gMistShootingGalleryModel0AC94;
+/// A gallery target's model, kind 15: the left of the dark target.
+extern TmdSource gMistShootingGalleryHalfTarget2Model;
 
-extern TmdSource gMistShootingGalleryModel0ADF8;
+/// A gallery target's model, kind 16, which no spawn reaches: the right of the dark target.
+extern TmdSource gMistShootingGalleryHalfTarget3Model;
 
-extern TmdSource gMistShootingGalleryModel0AF5C;
+/// A gallery target's model, kind 17, which no spawn reaches: the right of the dark target.
+extern TmdSource gMistShootingGalleryHalfTarget4Model;
 
-extern TmdSource gMistShootingGalleryModel0B0D0;
+/// A gallery target's model, kind 10.
+extern TmdSource gMistShootingGalleryBullseye1Model;
 
-extern TmdSource gMistShootingGalleryModel0B2C0;
+/// A gallery target's model, kind 11.
+extern TmdSource gMistShootingGalleryBullseye2Model;
 
-extern TmdSource gMistShootingGalleryModel0B4B0;
+/// A gallery target's model, kind 12.
+extern TmdSource gMistShootingGalleryBullseye3Model;
 
-extern TmdSource gMistShootingGalleryModel0B6A0;
+/// The demonstration target's model, kind 13, Pierce's demonstration.
+extern TmdSource gMistShootingGalleryDemonstrationTargetModel;
 
 #endif // INCLUDE_STAGES_AKROPOLIS_ROOMS_MIST_SHOOTING_GALLERY_H

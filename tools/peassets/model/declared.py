@@ -5,7 +5,9 @@ and record); the other models are `tmd` records and stay raw. Each declared mode
 its placement, decoded (codec.py), checked to re-encode to the same bytes, and written to its asset directory as
 `<name>.usda`. Each binding of it is resolved - every slot's texture variant must be where the model's faces look,
 the page and palette its file places it in, at its color depth unless the binding's `override` states another - and
-written as `<binding>.usda`, a layer over the model that fills its slots.
+written as `<binding>.usda`, a layer over the model that fills its slots. A texture may be an atlas's sprite (the
+MIST gallery's bullseyes share a page with its 4-bit clock), placed at its texels in the page. A slot whose faces look
+where no file uploads a texture is `unbound`, its placement stated, and is drawn untextured.
 
 The way back reads `<name>.usda` and encodes it with the placement its binding gives (`encode`, `check`): the
 model's bytes are built from the USD, the binding and the files, not from the package.
@@ -22,7 +24,7 @@ from pathlib import Path
 
 import asset_schema
 from texture import files
-from texture.declaration import place_at
+from texture.declaration import page_sprites, place_at
 
 from . import codec, mesh, usd
 
@@ -102,13 +104,21 @@ def resolve(binding: dict, model_slots: list[str], assets: dict) -> dict:
     for rec in assets.values():
         for entry in rec.get("contents", ()) if rec.get("type") == "file" else ():
             for page in entry.get("pages", ()):
-                if "texture" in page:               # an atlas's sprites are no model's textures
+                if "texture" in page:
                     homes[page["texture"]] = place_at(page, assets)
+                else:                               # an atlas: each sprite at its texels, at its own depth
+                    x, y = place_at(page, assets)
+                    for sprite in page_sprites(page, assets):
+                        per = TEXELS_PER_HALFWORD[assets[sprite["texture"]]["bpp"]]
+                        homes[sprite["texture"]] = [x + sprite["at"][0] // per, y + sprite["at"][1]]
             for pal in entry.get("palettes", ()):
                 if "texture" in pal:
                     homes[f"{pal['texture']}.{pal['variant']}"] = place_at(pal, assets)
     out = {}
     for slot in model_slots:
+        if slot in binding.get("unbound", {}):         # no file uploads a texture where these faces look
+            out[slot] = {"texture": None, "variant": None, "placement": dict(binding["unbound"][slot])}
+            continue
         name = binding.get("textures", {}).get(slot)
         if name is None:
             raise SystemExit(f"slot {slot}: the binding leaves it empty")
@@ -179,7 +189,7 @@ def decode(name: str, assets: dict, embedded: dict, assets_root: Path, binary: b
         for bname, brec in sorted(assets.items()):
             if brec.get("type") != "binding" or brec.get("model") != name:
                 continue
-            textures = resolve(brec, names, assets)
+            textures = {slot: t for slot, t in resolve(brec, names, assets).items() if t["texture"] is not None}
             for t in textures.values():
                 png = files.variant_path(assets_root, assets, t["texture"], t["variant"])
                 t["file"] = Path(os.path.relpath(png, out_dir)).as_posix()

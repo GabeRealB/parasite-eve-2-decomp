@@ -1,6 +1,12 @@
 # The assets of the group rooms/mist/shooting_gallery, each named rooms/mist/shooting_gallery/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
+[mount]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryMountModel"
+sha1 = "3c8fecd1e4870b333c0f8a3d28726cae33bbd508"
+
 [bundle]
 type = "pe2bundle"
 resources = [
@@ -90,25 +96,25 @@ sha1 = "fc0d6b8a1a0678e4a2b988b10995b7bf502a9563"
 [package]
 type = "room"
 embedded = [
-    "mist_shooting_gallery_model_093FC",
-    "mist_shooting_gallery_model_095EC",
-    "mist_shooting_gallery_model_097DC",
-    "mist_shooting_gallery_model_099CC",
-    "mist_shooting_gallery_model_09BBC",
-    "mist_shooting_gallery_model_09DAC",
-    "mist_shooting_gallery_model_09F9C",
-    "mist_shooting_gallery_model_0A18C",
-    "mist_shooting_gallery_model_0A37C",
-    "mist_shooting_gallery_model_0A56C",
-    "mist_shooting_gallery_model_0A81C",
-    "mist_shooting_gallery_model_0AB30",
-    "mist_shooting_gallery_model_0AC94",
-    "mist_shooting_gallery_model_0ADF8",
-    "mist_shooting_gallery_model_0AF5C",
-    "mist_shooting_gallery_model_0B0D0",
-    "mist_shooting_gallery_model_0B2C0",
-    "mist_shooting_gallery_model_0B4B0",
-    "mist_shooting_gallery_model_0B6A0",
+    { name = "creature_target_1", offset = 0x09354, size = 0x1F0, address = 0x80186914 },
+    { name = "creature_target_2", offset = 0x09544, size = 0x1F0, address = 0x80186B04 },
+    { name = "creature_target_3", offset = 0x09734, size = 0x1F0, address = 0x80186CF4 },
+    { name = "creature_target_4", offset = 0x09924, size = 0x1F0, address = 0x80186EE4 },
+    { name = "creature_target_5", offset = 0x09B14, size = 0x1F0, address = 0x801870D4 },
+    { name = "creature_target_6", offset = 0x09D04, size = 0x1F0, address = 0x801872C4 },
+    { name = "creature_target_7", offset = 0x09EF4, size = 0x1F0, address = 0x801874B4 },
+    { name = "creature_target_8", offset = 0x0A0E4, size = 0x1F0, address = 0x801876A4 },
+    { name = "creature_target_9", offset = 0x0A2D4, size = 0x1F0, address = 0x80187894 },
+    { name = "creature_target_10", offset = 0x0A4C4, size = 0x1F0, address = 0x80187A84 },
+    { name = "mount", offset = 0x0A6B4, size = 0x3E4, address = 0x80187C74 },
+    { name = "half_target_1", offset = 0x0AA98, size = 0x164, address = 0x80188058 },
+    { name = "half_target_2", offset = 0x0ABFC, size = 0x164, address = 0x801881BC },
+    { name = "half_target_3", offset = 0x0AD60, size = 0x164, address = 0x80188320 },
+    { name = "half_target_4", offset = 0x0AEC4, size = 0x164, address = 0x80188484 },
+    { name = "bullseye_1", offset = 0x0B028, size = 0x1F0, address = 0x801885E8 },
+    { name = "bullseye_2", offset = 0x0B218, size = 0x1F0, address = 0x801887D8 },
+    { name = "bullseye_3", offset = 0x0B408, size = 0x1F0, address = 0x801889C8 },
+    { name = "demonstration_target", offset = 0x0B5F8, size = 0x1F0, address = 0x80188BB8 },
 ]
 package_name = "mist_shooting_gallery"
 required = true
@@ -122,6 +128,12 @@ markers = [0x07F90]
 target_scores = [0x079D8]
 view_counts = 2
 wave_scripts = [0x0811C, 0x083EC, 0x08704, 0x08A88, 0x08F80]
+
+[targets]
+type = "pe2pkg"
+package_name = "shooting_gallery_targets"
+required = true
+sha1 = "ee6e6aba8227822c577ad915a2116932fdcbd056"
 
 [sounds_0]
 type = "sound_bank"
@@ -190,6 +202,31 @@ target_charge = 19
 [unused_1]
 type = "sound"
 sha1 = "5925039e478b67302120e2f0bf24c96fad3ba61a"
+
+[bullseyes]
+type = "texture"
+bpp = 8
+height = 232
+variants = ["default"]
+width = 128
+
+[bullseye_1]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryBullseye1Model"
+sha1 = "c2590ce0953d131461524bd94211f92f921b915d"
+
+[bullseye_2]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryBullseye2Model"
+sha1 = "bded72e3607ae1a9fdba75cd4728ef2c4c46d983"
+
+[bullseye_3]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryBullseye3Model"
+sha1 = "c1ad3d473deec750781bebc0b24401ff3a5a332d"
 
 [dialogue_0]
 type = "cap"
@@ -924,6 +961,14 @@ entries = 256
 region = "engine/vram/room_sprite_palettes"
 offset = [0x00000, 0x00005]
 
+[clock_digits]
+type = "texture"
+bpp = 4
+cells = { grid = [16, 24], names = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "colon"] }
+height = 24
+variants = ["default"]
+width = 176
+
 [door_2_close]
 type = "sound"
 sha1 = "dccb1aedb65c375bf910cf52235418d9edcc5696"
@@ -939,6 +984,86 @@ rig = "characters/pierce/rig"
 [target_death]
 type = "sound"
 sha1 = "834ac84a035349ac790c9bdba5321bde70ef30c8"
+
+[targets_file]
+type = "file"
+
+[[targets_file.contents]]
+chunk = "targets_image"
+sha1 = "374e63c641d1506b1136ce6be8f2e52556914427"
+pages = [
+    { texture = "target_page_1", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] },
+    { texture = "target_page_2", region = "engine/vram/actor_sheet", offset = [0x00040, 0x00000] },
+    { texture = "target_page_3", region = "engine/vram/actor_sheet", offset = [0x00080, 0x00000] },
+    { texture = "target_page_4", region = "engine/vram/actor_sheet", offset = [0x000C0, 0x00000] },
+]
+slots = 6
+
+[[targets_file.contents]]
+chunk = "targets_palette"
+sha1 = "4ffa84859521d609032e5227932ce51a9a07d976"
+
+[[targets_file.contents.palettes]]
+texture = "target_page_1"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00000]
+
+[[targets_file.contents.palettes]]
+texture = "target_page_2"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00001]
+
+[[targets_file.contents]]
+chunk = "targets_palette_2"
+sha1 = "c7d9d816c2602ab8003edb2c3043973710a120ca"
+
+[[targets_file.contents.palettes]]
+texture = "target_page_3"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00002]
+
+[[targets_file.contents]]
+chunk = "targets_palette_3"
+sha1 = "8a35f7a3bdbb95c2395b86c34c7c8671f2fc4ab3"
+
+[[targets_file.contents.palettes]]
+texture = "target_page_4"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00003]
+
+[[targets_file.contents.palettes]]
+name = "unread_row_249"
+entries = 256
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00004]
+
+[[targets_file.contents]]
+chunk = "targets_palette_4"
+sha1 = "c73a6ba8fcffb82cfcead13aa7ce862e11a2b16d"
+
+[[targets_file.contents.palettes]]
+texture = "clock_digits"
+variant = "default"
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00000]
+
+[[targets_file.contents.palettes]]
+texture = "bullseyes"
+variant = "default"
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00001]
+
+[[targets_file.contents]]
+chunk = "targets_image_2"
+sha1 = "d7b31250d541a9806e84fd36da1c6644a9b0a365"
+pages = [{ atlas = "bullseye_page", region = "engine/vram/room_model_sheet", offset = [0x00000, 0x00000] }]
+
+[[targets_file.contents]]
+chunk = "targets"
 
 [view4_page_1]
 type = "texture"
@@ -982,9 +1107,42 @@ height = 256
 variants = ["default"]
 width = 128
 
+[bullseye_page]
+type = "atlas"
+sprites = [{ texture = "clock_digits", at = [0x00000, 0x00000] }, { texture = "bullseyes", at = [0x00000, 0x00018] }]
+
 [gallery_intro]
 type = "sound"
 sha1 = "8335885fe5e321308349b2427be5d04217cc729a"
+
+[half_target_1]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryHalfTarget1Model"
+sha1 = "cf6ef5f0558e350cdfefdd4b5f1ff72cf27481a6"
+
+[half_target_2]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryHalfTarget2Model"
+sha1 = "468467d7b94637e27fa2d521ea863331a5bf1d6a"
+
+[half_target_3]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryHalfTarget3Model"
+sha1 = "454abc92bdb24abbe544fd389a191ddfbb02b02e"
+
+[half_target_4]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryHalfTarget4Model"
+sha1 = "aa7465060b0a0498ee6a116e93f974e7c2be713a"
+
+[mount_binding]
+type = "binding"
+model = "rooms/mist/shooting_gallery/mount"
+textures = { page = "rooms/mist/shooting_gallery/target_page_4.default" }
 
 [pierce_schema]
 type = "animation_schema"
@@ -1027,6 +1185,34 @@ sha1 = "445609e109bcdf3440760206bc02eefacf601906"
 [target_charge]
 type = "sound"
 sha1 = "c3e42a6927706a56127aac1bedb15fe4108b3390"
+
+[target_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[target_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[target_page_3]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[target_page_4]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
 
 [view10_page_1]
 type = "texture"
@@ -1193,6 +1379,60 @@ sha1 = "297d2739749e52d3db7b6ac9543666f6c934a723"
 type = "bs"
 sha1 = "a883180f4b374d3fa46dcd23eca9d64a5b31eed5"
 
+[creature_target_1]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryCreatureTarget1Model"
+sha1 = "113c5dead3df882e3e69142407bb1de888f44f7f"
+
+[creature_target_2]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryCreatureTarget2Model"
+sha1 = "7f9abae9355b995917fdfd65908505fa371da114"
+
+[creature_target_3]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryCreatureTarget3Model"
+sha1 = "48fef6bc7f17acea0b9d36bf962865085ddf7a59"
+
+[creature_target_4]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryCreatureTarget4Model"
+sha1 = "1437e2e4610527bbe71ed7286edce79592a8ebe8"
+
+[creature_target_5]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryCreatureTarget5Model"
+sha1 = "d67b0a1e204bf5c2d94bea5d490686c74fc79ec7"
+
+[creature_target_6]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryCreatureTarget6Model"
+sha1 = "10114ba7b78ddc3c8a204828cf275bb442ddf267"
+
+[creature_target_7]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryCreatureTarget7Model"
+sha1 = "c77e091e80da1a69b606867296a56e3cafb32490"
+
+[creature_target_8]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryCreatureTarget8Model"
+sha1 = "547fa3cabe24f5f844cb572b3f978bfa3a3bc1e7"
+
+[creature_target_9]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryCreatureTarget9Model"
+sha1 = "f658a9ae34735f4b93e469842182f12519c92848"
+
 [pierce_phone_talk]
 type = "clip"
 rig = "characters/pierce/rig"
@@ -1240,6 +1480,27 @@ sha1 = "8fa4f6ae10801ba04890a665acd545abd84e3b43"
 [view18_background]
 type = "bs"
 sha1 = "9b506d73f4da56cf8979a74fb7b9bfeeef32ab52"
+
+[bullseye_1_binding]
+type = "binding"
+model = "rooms/mist/shooting_gallery/bullseye_1"
+textures = { page = "rooms/mist/shooting_gallery/bullseyes.default" }
+
+[bullseye_2_binding]
+type = "binding"
+model = "rooms/mist/shooting_gallery/bullseye_2"
+textures = { page = "rooms/mist/shooting_gallery/bullseyes.default" }
+
+[bullseye_3_binding]
+type = "binding"
+model = "rooms/mist/shooting_gallery/bullseye_3"
+textures = { page = "rooms/mist/shooting_gallery/bullseyes.default" }
+
+[creature_target_10]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryCreatureTarget10Model"
+sha1 = "a483edf4a31632d3116247479daaf5ac391e9fd9"
 
 [pierce_gallery_ask]
 type = "clip"
@@ -1300,6 +1561,12 @@ rig = "characters/aya/rig"
 type = "clip"
 rig = "characters/aya/rig"
 
+[demonstration_target]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryDemonstrationTargetModel"
+sha1 = "e940a94a0032fce2f98ae9e749087167905e93e5"
+
 [pierce_gallery_react]
 type = "clip"
 rig = "characters/pierce/rig"
@@ -1311,6 +1578,26 @@ rig = "characters/pierce/rig"
 [player_story_ask_hal]
 type = "clip"
 rig = "characters/aya/rig"
+
+[half_target_1_binding]
+type = "binding"
+model = "rooms/mist/shooting_gallery/half_target_1"
+textures = { page = "rooms/mist/shooting_gallery/target_page_4.default" }
+
+[half_target_2_binding]
+type = "binding"
+model = "rooms/mist/shooting_gallery/half_target_2"
+textures = { page = "rooms/mist/shooting_gallery/target_page_4.default" }
+
+[half_target_3_binding]
+type = "binding"
+model = "rooms/mist/shooting_gallery/half_target_3"
+textures = { page = "rooms/mist/shooting_gallery/target_page_4.default" }
+
+[half_target_4_binding]
+type = "binding"
+model = "rooms/mist/shooting_gallery/half_target_4"
+textures = { page = "rooms/mist/shooting_gallery/target_page_4.default" }
 
 [player_gallery_accept]
 type = "clip"
@@ -1437,6 +1724,56 @@ entries = 256
 region = "engine/vram/room_sprite_palettes"
 offset = [0x00000, 0x00005]
 
+[creature_target_1_binding]
+type = "binding"
+model = "rooms/mist/shooting_gallery/creature_target_1"
+textures = { page = "rooms/mist/shooting_gallery/target_page_1.default" }
+
+[creature_target_2_binding]
+type = "binding"
+model = "rooms/mist/shooting_gallery/creature_target_2"
+textures = { page = "rooms/mist/shooting_gallery/target_page_1.default" }
+
+[creature_target_3_binding]
+type = "binding"
+model = "rooms/mist/shooting_gallery/creature_target_3"
+textures = { page = "rooms/mist/shooting_gallery/target_page_1.default" }
+
+[creature_target_4_binding]
+type = "binding"
+model = "rooms/mist/shooting_gallery/creature_target_4"
+textures = { page = "rooms/mist/shooting_gallery/target_page_2.default" }
+
+[creature_target_5_binding]
+type = "binding"
+model = "rooms/mist/shooting_gallery/creature_target_5"
+textures = { page = "rooms/mist/shooting_gallery/target_page_2.default" }
+
+[creature_target_6_binding]
+type = "binding"
+model = "rooms/mist/shooting_gallery/creature_target_6"
+textures = { page = "rooms/mist/shooting_gallery/target_page_2.default" }
+
+[creature_target_7_binding]
+type = "binding"
+model = "rooms/mist/shooting_gallery/creature_target_7"
+textures = { page = "rooms/mist/shooting_gallery/target_page_3.default" }
+
+[creature_target_8_binding]
+type = "binding"
+model = "rooms/mist/shooting_gallery/creature_target_8"
+textures = { page = "rooms/mist/shooting_gallery/target_page_3.default" }
+
+[creature_target_9_binding]
+type = "binding"
+model = "rooms/mist/shooting_gallery/creature_target_9"
+textures = { page = "rooms/mist/shooting_gallery/target_page_3.default" }
+
+[creature_target_10_binding]
+type = "binding"
+model = "rooms/mist/shooting_gallery/creature_target_10"
+textures = { page = "rooms/mist/shooting_gallery/target_page_4.default" }
+
 [pierce_correct_himself_end]
 type = "clip"
 rig = "characters/pierce/rig"
@@ -1465,3 +1802,8 @@ slots = [
     "slot_18",
     "slot_19",
 ]
+
+[demonstration_target_binding]
+type = "binding"
+model = "rooms/mist/shooting_gallery/demonstration_target"
+unbound = { page = { bits = 8, page = [896, 0], palette = [0, 255] } }

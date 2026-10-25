@@ -95,7 +95,9 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     # color depth, `bits`; the page and palette stay the texture's. The model is built with it, and the binding states
     # the mismatch between the asset and its use (the M4A1 Grenade's projectile reads 8-bit texels below its
     # weapon's sheet).
-    "binding": {"payload": (), "stored": ("model", "textures", "override")},
+    # `unbound` places, per slot, what the faces name where no file uploads a texture there ({bits, page, palette}):
+    # the game draws whatever VRAM holds (the MIST gallery's demonstration target). The slot is drawn untextured.
+    "binding": {"payload": (), "stored": ("model", "textures", "override", "unbound")},
     # A texture is one page of pixels in one or more variants, each an indexed PNG (texture/); `bpp`,
     # `width` (texels) and `height` are what the game expects, against which a supplied PNG is checked.
     "texture": {"payload": (), "stored": ("bpp", "width", "height", "variants", "palettes_from", "no_palette", "cells")},
@@ -917,6 +919,11 @@ def validate(assets: dict, embedded: dict) -> list[str]:
                     problems.append(f"{key}: names slot {slot!r}, which {rec.get('model')} does not have")
                 if assets.get(texture, {}).get("type") != "texture" or variant not in assets[texture].get("variants", ()):
                     problems.append(f"{key}: textures.{slot} must name a texture variant, <texture>.<variant>")
+            for slot, at in rec.get("unbound", {}).items():
+                if slot not in model.get("slots", ()) or slot in rec.get("textures", {}):
+                    problems.append(f"{key}: unbound names slot {slot!r}, which is not a slot of the model the binding leaves empty")
+                elif not (isinstance(at, dict) and set(at) == {"bits", "page", "palette"} and at["bits"] in (4, 8, 16)):
+                    problems.append(f"{key}: unbound.{slot} is {{bits = 4|8|16, page = [x, y], palette = [x, y]}}")
             for slot, at in rec.get("override", {}).items():
                 if slot not in rec.get("textures", {}):
                     problems.append(f"{key}: override names slot {slot!r}, which the binding does not bind")
