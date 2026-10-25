@@ -176,6 +176,9 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     # decoded file shows. Placed (with its address: it holds pointers) by every package that carries it; a clip
     # several packages carry belongs to a shared group (characters/aya).
     "clip": {"payload": (), "stored": ("rig", "symbol", "copy_of")},
+    # A camera track a scene plays frame by frame (`include` and `layout`: how the build takes it back in, as an
+    # embedded record says): placed by its package, as a clip is.
+    "camera_path": {"payload": (), "stored": ("include", "layout")},
     # The slots a table of clips is indexed by, as the code indexes it: `slots` names each index ("" where none is
     # used). The player's schema serves every weapon and companion.
     "animation_schema": {"payload": (), "stored": ("slots",)},
@@ -200,7 +203,7 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
 EMBEDDED_FIELDS = ("source", "vram", "offset", "address", "size", "ext", "type", "include", "layout", "deps", "notes",
                    "group")
 # Types with no bytes of their own: declared by hand, carried over unchanged by dump_asset_db.py.
-DECLARED_TYPES = frozenset({"binding", "texture", "file", "atlas", "font", "vram_region", "rig", "clip", "animation_schema",
+DECLARED_TYPES = frozenset({"binding", "texture", "file", "atlas", "font", "vram_region", "rig", "clip", "camera_path", "animation_schema",
                             "animation_bank", "sound_bank", "sound", "shaped", "room", "stage"})
 
 # Embedded types the code reaches by their address in memory - a model through pointers in the code, an image or a

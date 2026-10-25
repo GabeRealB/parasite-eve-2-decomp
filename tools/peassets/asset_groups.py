@@ -120,4 +120,7 @@ def merge(assets: dict[str, dict[str, Any]], embedded: dict[str, dict[str, Any]]
                       "type": assets[place["name"]]["type"]}
             if "address" in place:
                 record["address"] = place["address"]
+            for field in ("include", "layout"):          # how the build takes it back in, as its record states
+                if field in assets[place["name"]]:
+                    record[field] = assets[place["name"]][field]
             embedded[place["name"]] = record

@@ -1751,7 +1751,7 @@ embedded = [
     "rooms/akropolis/helicopter_landing_pad/searchlight_rotation_track",
     "rooms/akropolis/helicopter_landing_pad/helicopter_palette_lit",
     "rooms/akropolis/helicopter_landing_pad/helicopter_palette_dark",
-    "rooms/akropolis/helicopter_landing_pad/helicopter_camera_track",
+    { name = "helicopter_camera_track", offset = 0x160C4, size = 0x10E0 },
     { name = "no_9_standoff", offset = 0x1D228, size = 0x36EC, address = 0x8014F048 },
     { name = "no_9_times_up", offset = 0x20914, size = 0x15D0, address = 0x80152734 },
     { name = "no_9_leap_away", offset = 0x21EE4, size = 0x136C, address = 0x80153D04 },
@@ -1769,6 +1769,11 @@ rig = "characters/rupert/rig"
 [encounter_intro_impact]
 type = "sound"
 sha1 = "18e686f8ffdbab741a9de541d5e9877cc83cabcf"
+
+[helicopter_camera_track]
+type = "camera_path"
+include = "layout"
+layout = "9h 2x 3i I"
 
 [helicopter_hull_binding]
 type = "binding"

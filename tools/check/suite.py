@@ -8,6 +8,7 @@ What it checks, after an extraction:
     stability    regenerating the asset table (dump_asset_db.py) changes nothing - first and alone, since it rewrites
                  the table every other step reads
     repack       pack.py rebuilds both discs' stage containers byte for byte
+    growth       asset_data.py holds no more records than its baseline: new assets go into the groups
     texture, model, animation, shape, font, room
                  every declared asset of the kind encodes back to what it was decoded from - one task an asset
     build        ./tools/build-and-verify.sh: the build matches (with half the workers, PE2_JOBS)
@@ -141,6 +142,8 @@ def tasks(jobs: int, skip: set[str]) -> list[tuple[str, str, tuple, tuple[str, .
                                                      "src/actors", "src/kyle", "src/rooms", "src/stages"],)), ("build",)))
     if "repack" not in skip:
         out.append(("repack", "repack", (repack, ()), ()))
+    if "growth" not in skip:
+        out.append(("growth", "growth", (run_command, ([PY, str(ROOT / "tools" / "check" / "check_asset_data_growth.py")],)), ()))
     if "map" not in skip:
         # The map reads the load graph the residency step rebuilds; after an asset rename the old one names assets
         # that are gone.

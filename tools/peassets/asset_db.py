@@ -586,14 +586,16 @@ def _check_container(items: dict[Any, Any], *, where: str) -> None:
 
 def validate_asset_db() -> None:
     """Raise if ASSETS / TREE are inconsistent."""
+    import asset_schema
+    # sound banks, sounds, rooms and stage overlays carry their package's or bank's hash: checked as stored assets
+    DECLARED = asset_schema.DECLARED_TYPES - {"sound_bank", "sound", "room", "stage"}
     seen_sha1: dict[str, str] = {}
     seen_sound: dict[str, str] = {}                  # a sound's body may also be a raw sample's: its own domain
     for aid, rec in ASSETS.items():
         _check_asset_name(aid, key=f"ASSETS[{aid!r}]")
         if not isinstance(rec, dict):
             raise ValueError(f"ASSETS[{aid!r}] must be a dict")
-        if rec.get("type") in ("binding", "texture", "file", "atlas", "font", "vram_region", "rig", "clip", "animation_schema",
-                               "animation_bank", "shaped"):     # declared, no hash of its own (asset_schema.DECLARED_TYPES)
+        if rec.get("type") in DECLARED:                  # declared, no hash of its own
             continue
         sha1 = rec.get("sha1")
         if not isinstance(sha1, str) or len(sha1) != 40:
