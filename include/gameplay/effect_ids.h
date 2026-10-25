@@ -276,10 +276,10 @@ enum {
     /// Akropolis helipad ember/spark sprite (bright or dim variant, flickering, may
     /// fire 0x600E0); spawned around the helipad and by helicopter_landing_pad_no_9.
     EFFECT_ACROPOLIS_HELIPAD_EMBER = EFFECT_ID(EFFECT_TASK_BANK, 0x05A),
-    /// Sparking helipad light: random spark lines and a flickering bluish light on slot
+    /// Sparking transformer cable: random spark lines and a flickering bluish light on slot
     /// 4, and every few frames a spark sound, a 0x6003B flash, six 0x600A4 tiles and a
     /// second light; spawned by helicopter_landing_pad_no_9 when it is grabbed/struck.
-    EFFECT_HELIPAD_LIGHT_SPARKS = EFFECT_ID(EFFECT_TASK_BANK, 0x05B),
+    EFFECT_HELIPAD_TRANSFORMER_SPARKS = EFFECT_ID(EFFECT_TASK_BANK, 0x05B),
     /// Growing, spinning animated billboard from the shared 12-frame effect atlas,
     /// which can spawn smaller copies of itself; spawned when generators, golem parts
     /// and other enemy parts blow up.

@@ -51,9 +51,10 @@
 
 #include "stages/akropolis/rooms/helicopter_landing_pad.h"
 #include "../../../../shared/actor/actor_messages.h"
+#include "../../event_flags.h"
 
 #include "assets/enemies/golem/no_9/helipad/body_schema.h"
-#include "assets/enemies/golem/no_9/helipad/light_schema.h"
+#include "assets/enemies/golem/no_9/helipad/cable_schema.h"
 #include "assets/enemies/golem/no_9/helipad/player_grenade_schema.h"
 
 static void _no9GolemAimHead(const Task* actor);
@@ -134,27 +135,27 @@ enum {
 
 /// Lap and range thresholds in world units; speeds are world units per frame.
 enum {
-    LIGHT_0_SLASH_DISTANCE = 0x4B00,
-    LIGHT_1_SLASH_DISTANCE = 0x7F00,
-    LIGHT_SLASH_WINDOW     = 0x120,
-    LAST_ATTACK_DISTANCE   = 0xAE9C,
-    LETHAL_ATTACK_DISTANCE = 0xB477,
-    PATROL_END_DISTANCE    = 0xB478,
-    SLASH_RANGE            = 0xAF0,
-    FLAME_LUNGE_RANGE      = 0xED8,
-    MIXED_ATTACK_RANGE     = 0x12C0,
-    PATROL_WALK_SPEED      = 0x1D,
-    DASH_SPEED             = 0x84,
-    MAX_LUNGE_DISTANCE     = 0x1388,
-    LAP_MIN_DISTANCE       = 0xC8,
-    LAP_MAX_DISTANCE       = 0xB66C,
+    FIRST_TRANSFORMER_SLASH_DISTANCE  = 0x4B00,
+    SECOND_TRANSFORMER_SLASH_DISTANCE = 0x7F00,
+    TRANSFORMER_SLASH_WINDOW          = 0x120,
+    LAST_ATTACK_DISTANCE              = 0xAE9C,
+    LETHAL_ATTACK_DISTANCE            = 0xB477,
+    PATROL_END_DISTANCE               = 0xB478,
+    SLASH_RANGE                       = 0xAF0,
+    FLAME_LUNGE_RANGE                 = 0xED8,
+    MIXED_ATTACK_RANGE                = 0x12C0,
+    PATROL_WALK_SPEED                 = 0x1D,
+    DASH_SPEED                        = 0x84,
+    MAX_LUNGE_DISTANCE                = 0x1388,
+    LAP_MIN_DISTANCE                  = 0xC8,
+    LAP_MAX_DISTANCE                  = 0xB66C,
 };
 
-/// The latch's two positive values select helipad light 0 or 1 for a slash.
+/// The latch's two positive values select transformer 0 or 1 for a slash.
 enum {
-    LIGHT_SLASH_NONE    = 0,
-    LIGHT_SLASH_LIGHT_0 = 1,
-    LIGHT_SLASH_LIGHT_1 = 2,
+    TRANSFORMER_SLASH_NONE   = 0,
+    TRANSFORMER_SLASH_FIRST  = 1,
+    TRANSFORMER_SLASH_SECOND = 2,
 };
 
 /// The ammunition row interval that triggers the patrol's shotgun response.
@@ -187,15 +188,15 @@ enum {
 
 /// Hazard rows whose blast contacts this golem consumes.
 enum {
-    HAZARD_LIGHT_BLAST   = 2,
-    HAZARD_SOURCE_RECOIL = 3,
-    HAZARD_SOURCE_STUN   = 4,
+    HAZARD_TRANSFORMER_BLAST = 2,
+    HAZARD_SOURCE_RECOIL     = 3,
+    HAZARD_SOURCE_STUN       = 4,
 };
 
-/// States sent to the helipad light's adopted spark controller.
+/// States sent to the transformer's adopted spark controller.
 enum {
-    LIGHT_SPARKS_BURSTS_ONLY = 1,
-    LIGHT_SPARKS_RELEASE     = 2,
+    CABLE_SPARKS_BURSTS_ONLY = 1,
+    CABLE_SPARKS_RELEASE     = 2,
 };
 
 /// States sent to the blast source's adopted flare controller.
@@ -217,14 +218,14 @@ static s32 _helicopterLandingPadNo9SetModelDraw(Task* task, s32 messageId, s32 d
 static s32 _helicopterLandingPadNo9IsPresent(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
 enum {
-    HELIPAD_LIGHT_COUNT     = 3,
-    HELIPAD_VIEWS_PER_LIGHT = 3,
+    TRANSFORMER_COUNT     = 3,
+    VIEWS_PER_TRANSFORMER = 3,
 };
 
-/// Mapped camera-view IDs that enable each helipad light's active update; the blast source shares light 2's first.
+/// Mapped camera-view IDs that enable each transformer's active update; the blast source shares the third transformer's first.
 typedef struct {
-    u16  lightViews[HELIPAD_LIGHT_COUNT][HELIPAD_VIEWS_PER_LIGHT]; // Mapped camera-view IDs per light; compared with the current view's low byte
-    byte field_12[2];                                              // Unaccessed zero bytes; original type and role unproven
+    u16  transformerViews[TRANSFORMER_COUNT][VIEWS_PER_TRANSFORMER]; // Mapped camera-view IDs per transformer; compared with the current view's low byte
+    byte field_12[2];                                                // Unaccessed zero bytes; original type and role unproven
 } _HelipadViews;
 STATIC_ASSERT_SIZEOF(_HelipadViews, 0x14);
 
@@ -236,38 +237,31 @@ typedef struct {
 } _GridFacesScratch;
 STATIC_ASSERT_SIZEOF(_GridFacesScratch, 0x10);
 
-/// Values of `_HelipadLightWork::state`.
+/// Values of `_TransformerWork::state`.
 enum {
-    HELIPAD_LIGHT_INTACT   = 0, // Whole: a shot or the golem's slash breaks it
-    HELIPAD_LIGHT_SPARKING = 1, // Broken and throwing sparks; its blast can strike once
-    HELIPAD_LIGHT_DONE     = 2, // The sparks have run out, or the golem is gone
+    TRANSFORMER_INTACT   = 0, // Whole: a shot or the golem's slash breaks it
+    TRANSFORMER_SPARKING = 1, // Broken and throwing sparks; its blast can strike once
+    TRANSFORMER_DONE     = 2, // The sparks have run out, or the golem is gone
 };
 
-/// Values of `_HelipadLightWork::status`.
-enum {
-    HELIPAD_LIGHT_STATUS_SPARKING = 1, // Broken, sparks still running
-    HELIPAD_LIGHT_STATUS_SPENT    = 2, // Broken, sparks over
-    HELIPAD_LIGHT_STATUS_STOPPED  = 3, // Never broken: the golem was gone first
-};
-
-/// Work block of one of the three helipad lights, kept at `Task::work` of the light model's task.
+/// Work block of one of the three transformers, kept at `Task::work` of the cable model's task.
 typedef struct {
     AnimationContext      anim;                                   // Context bound to `slots`, `poses` and the model's part coordinates
     AnimationSlot         slots[11];                              // Playback state of the model part at the same index; slots 1..10 are driven
     u8                    poses[11][ANIMATION_POSE_BUFFER_BYTES]; // Encoded transition pose of the slot at the same index
-    MATRIX                colorMtx;                               // Colour matrix lent to the light's model
+    MATRIX                colorMtx;                               // Colour matrix lent to the transformer's cable
     MATRIX                lightMtx;                               // Light matrix lent to the same model
-    WorldCollisionBody    body;                                   // Sphere of radius 0xC8 on the cable's tip, on list 2, receiving attacks; enabled only while the light is intact and in view
-    WorldCollisionContact bodyContacts[1];                        // Contact of `body`, read and cleared every frame the light is intact
+    WorldCollisionBody    body;                                   // Sphere of radius 0xC8 on the cable's tip, on list 2, receiving attacks; enabled only while the transformer is intact and in view
+    WorldCollisionContact bodyContacts[1];                        // Contact of `body`, read and cleared every frame the transformer is intact
     WorldCollisionBody    blast;                                  // Sphere of radius 0x15E on the same part, on list 8, keyed 0x50002; enabled from the break until its first contact or the end of the sparks
     WorldCollisionContact blastContacts[1];                       // Contact of `blast`
-    Task*                 sparksTask;                             // Spark effect started at the break and adopted as a child of the light's task; `NULL` before the break, if it did not spawn, or once it has been told to stop
-    s16                   state;                                  // `HELIPAD_LIGHT_*`
+    Task*                 sparksTask;                             // Spark effect started at the break and adopted as a child of the transformer's task; `NULL` before the break, if it did not spawn, or once it has been told to stop
+    s16                   state;                                  // `TRANSFORMER_*`
     s16                   sparkFrames;                            // Frames of sparks left, 0x78 at the break; a frame the camera spends in another view also takes one off
-    s16                   lightIndex;                             // Which of the three lights this is (0..2), from the spawn argument; picks its place, facing and views
-    s16                   status;                                 // `HELIPAD_LIGHT_STATUS_*`, published every frame in view: by lights 0 and 1 to game-flag nibbles 0xB and 0xC, by light 2 to `HelicopterLandingPadNo9Work::light2Status`
-} _HelipadLightWork;
-STATIC_ASSERT_SIZEOF(_HelipadLightWork, 0x338);
+    s16                   transformerIndex;                       // Which of the three transformers this is (0..2), from the spawn argument; picks its place, facing and views
+    s16                   status;                                 // `AKROPOLIS_HELIPAD_TRANSFORMER_*`, published every frame in view: by transformers 0 and 1 to `EVENT_FLAG_AKROPOLIS_HELIPAD_TRANSFORMER_1_STATE` and `_2_STATE`, by the third to `HelicopterLandingPadNo9Work::blastTransformerStatus`
+} _TransformerWork;
+STATIC_ASSERT_SIZEOF(_TransformerWork, 0x338);
 
 /// Values of `_GrenadeWork::phase` while the grenade flies.
 enum {
@@ -308,7 +302,7 @@ STATIC_ASSERT_SIZEOF(_GrenadeWork, 0xD0);
 
 /// Values of `_BlastSourceWork::state`.
 enum {
-    BLAST_SOURCE_DORMANT = 0, // Waiting for helipad light 2 to break
+    BLAST_SOURCE_DORMANT = 0, // Waiting for the third transformer to break
     BLAST_SOURCE_ARMED   = 1, // Can be shot
     BLAST_SOURCE_SHOT    = 2, // The frame after the shot: the flare is given its starting state
     BLAST_SOURCE_FLARING = 3, // `flareFrames` runs down
@@ -316,7 +310,7 @@ enum {
     BLAST_SOURCE_STOPPED = 5, // The golem is gone and the flare released
 };
 
-/// Work block of the blast source beside helipad light 2, kept at `Task::work` of a task that has a coordinate and no
+/// Work block of the blast source beside the third transformer, kept at `Task::work` of a task that has a coordinate and no
 /// model.
 typedef struct {
     WorldCollisionBody    body;             // Sphere of radius 0x12C at the source on list 2, receiving attacks; enabled only while armed and in view
@@ -326,7 +320,7 @@ typedef struct {
     Task*                 flareTask;        // Flare effect started by the shot and adopted as a child of the source's task; `NULL` before the shot, if it did not spawn, or once it has been released
     s16                   state;            // `BLAST_SOURCE_*`
     s16                   flareFrames;      // Frames the flare still burns, 0x3C at the shot; a frame the camera spends in another view also takes one off
-    s16                   flareTaskState;   // `Task::state` the flare starts in, chosen at the shot (1 if light 2 was already spent, 0 if it was still sparking)
+    s16                   flareTaskState;   // `Task::state` the flare starts in, chosen at the shot (1 if the third transformer was already spent, 0 if it was still sparking)
     byte                  pad_7A[0x2];
 } _BlastSourceWork;
 STATIC_ASSERT_SIZEOF(_BlastSourceWork, 0x7C);
@@ -382,7 +376,7 @@ static void _helicopterLandingPadNo9TickFlinch(Task* task);
 static void _helicopterLandingPadNo9UpdateBodyAnimation(Task* task);
 static void _helicopterLandingPadNo9UpdateFlameJet(Task* task);
 
-static void _helicopterLandingPadNo9ExitHelipadLight(Task* task);
+static void _helicopterLandingPadNo9ExitTransformer(Task* task);
 static void _helicopterLandingPadNo9ExitBlastSource(Task* task);
 
 static void _helicopterLandingPadNo9BodyTask(Task* task);
@@ -390,7 +384,7 @@ static void _helicopterLandingPadNo9PropTask(Task* task);
 static void _helicopterLandingPadNo9WeaponTask(Task* task);
 static void _helicopterLandingPadNo9ChestModelTask(Task* task);
 static void _helicopterLandingPadNo9GrenadeTask(Task* task);
-static void _helicopterLandingPadNo9HelipadLightTask(Task* task);
+static void _helicopterLandingPadNo9TransformerTask(Task* task);
 static void _helicopterLandingPadNo9BlastSourceTask(Task* task);
 
 EnemyParams gHelicopterLandingPadNo9EnemyParams = { gHelicopterLandingPadNo9Attacks, 1600, 500, 800, 30, 50, 3, 0, 0 };
@@ -489,7 +483,7 @@ TaskDesc gHelicopterLandingPadNo9TaskDescriptors[7] = {
     { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _helicopterLandingPadNo9WeaponTask, { .model = &gGolemNo9AkropolisSword } },
     { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _helicopterLandingPadNo9ChestModelTask, { .model = &gGolemNo9AkropolisChestPiece } },
     { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _helicopterLandingPadNo9GrenadeTask, { .model = &gGolemGrenade } },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _helicopterLandingPadNo9HelipadLightTask, { .model = &gHelicopterLandingPadNo9HelipadLightModel } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _helicopterLandingPadNo9TransformerTask, { .model = &gHelicopterLandingPadNo9TransformerCableModel } },
     { { { TASK_BODY_COORD, TASK_PRIORITY_ACTOR } }, _helicopterLandingPadNo9BlastSourceTask, { .value = 0 } },
 };
 
@@ -626,58 +620,48 @@ static u16 _gHelicopterLandingPadNo9GrenadePitchStepsByRange[12] = {
     5,
 };
 
-/// Helipad-light animation bank: 0 unused, 1 intact, 2 breaking.
-#include "assets/enemies/golem/no_9/helipad/light_bank.inc"
+/// Transformer-cable animation bank: 0 unused, 1 intact, 2 breaking.
+#include "assets/enemies/golem/no_9/helipad/cable_bank.inc"
 
-/// Root positions of helipad lights 0..2, in room-coordinate units beneath `gGfxViewCoord`.
-static SVECTOR _gHelicopterLandingPadNo9HelipadLightPositions[3] = {
+/// Root positions of transformers 0..2, in room-coordinate units beneath `gGfxViewCoord`.
+static SVECTOR _gHelicopterLandingPadNo9TransformerPositions[3] = {
     { 6458, -2658, 535, 0 },
     { -1336, -2658, 6552, 0 },
     { -6441, -2658, -100, 0 },
 };
 
-/// Root Y rotations of helipad lights 0..2, in angle units of 4096 per turn.
-static u16 _gHelicopterLandingPadNo9HelipadLightYaws[4] = {
+/// Root Y rotations of transformers 0..2, in angle units of 4096 per turn.
+static u16 _gHelicopterLandingPadNo9TransformerYaws[4] = {
     ACTOR_TRANSFORM_ANGLE_HALF_TURN,
     ACTOR_TRANSFORM_ANGLE_TURN / 4,
     0,
     0,
 };
 
-/// Mapped-view rows shared by the three helipad lights and the light-2 blast source.
+/// Mapped-view rows shared by the three transformers and the third transformer's blast source.
 static _HelipadViews _gHelicopterLandingPadNo9HelipadViews = {
     { { 5, 6, 7 }, { 7, 8, 9 }, { 10, 10, 10 } },
     { 0 },
 };
 
-/// Status encodings emitted by the source/light pair; the flag's reader is unproven.
-enum {
-    HELIPAD_FLAG_LIGHT_INTACT   = 0,
-    HELIPAD_FLAG_LIGHT_SPARKING = 1,
-    HELIPAD_FLAG_LIGHT_SPENT    = 2,
-    HELIPAD_FLAG_SOURCE_FLARING = 4,
-    HELIPAD_FLAG_SOURCE_SPENT   = 5,
-    HELIPAD_FLAG_LIGHT_STOPPED  = 6,
-};
-
-/// Game-flag nibble values combining blast-source phase with light-2 status; row 6 has no state that selects it.
-static u16 _gHelicopterLandingPadNo9HelipadStatusFlagValues[7][4] = {
-    { HELIPAD_FLAG_LIGHT_INTACT, HELIPAD_FLAG_LIGHT_SPARKING, HELIPAD_FLAG_LIGHT_SPENT, HELIPAD_FLAG_LIGHT_STOPPED },
-    { HELIPAD_FLAG_LIGHT_INTACT, HELIPAD_FLAG_LIGHT_SPARKING, HELIPAD_FLAG_LIGHT_SPENT, HELIPAD_FLAG_LIGHT_STOPPED },
-    { HELIPAD_FLAG_LIGHT_INTACT, HELIPAD_FLAG_SOURCE_FLARING, HELIPAD_FLAG_SOURCE_FLARING, HELIPAD_FLAG_LIGHT_STOPPED },
-    { HELIPAD_FLAG_LIGHT_INTACT, HELIPAD_FLAG_SOURCE_FLARING, HELIPAD_FLAG_SOURCE_FLARING, HELIPAD_FLAG_LIGHT_STOPPED },
-    { HELIPAD_FLAG_LIGHT_INTACT, HELIPAD_FLAG_SOURCE_SPENT, HELIPAD_FLAG_SOURCE_SPENT, HELIPAD_FLAG_LIGHT_STOPPED },
-    { HELIPAD_FLAG_LIGHT_INTACT, HELIPAD_FLAG_SOURCE_SPENT, HELIPAD_FLAG_SOURCE_SPENT, HELIPAD_FLAG_LIGHT_STOPPED },
+/// `EVENT_FLAG_AKROPOLIS_HELIPAD_TRANSFORMER_3_STATE` values by blast-source phase and third-transformer status; row 6 has no state that selects it.
+static u16 _gHelicopterLandingPadNo9Transformer3FlagValues[7][4] = {
+    { AKROPOLIS_HELIPAD_TRANSFORMER_3_INTACT, AKROPOLIS_HELIPAD_TRANSFORMER_3_SHOT, AKROPOLIS_HELIPAD_TRANSFORMER_3_SPENT, AKROPOLIS_HELIPAD_TRANSFORMER_3_STOPPED },
+    { AKROPOLIS_HELIPAD_TRANSFORMER_3_INTACT, AKROPOLIS_HELIPAD_TRANSFORMER_3_SHOT, AKROPOLIS_HELIPAD_TRANSFORMER_3_SPENT, AKROPOLIS_HELIPAD_TRANSFORMER_3_STOPPED },
+    { AKROPOLIS_HELIPAD_TRANSFORMER_3_INTACT, AKROPOLIS_HELIPAD_TRANSFORMER_3_SOURCE_FLARING, AKROPOLIS_HELIPAD_TRANSFORMER_3_SOURCE_FLARING, AKROPOLIS_HELIPAD_TRANSFORMER_3_STOPPED },
+    { AKROPOLIS_HELIPAD_TRANSFORMER_3_INTACT, AKROPOLIS_HELIPAD_TRANSFORMER_3_SOURCE_FLARING, AKROPOLIS_HELIPAD_TRANSFORMER_3_SOURCE_FLARING, AKROPOLIS_HELIPAD_TRANSFORMER_3_STOPPED },
+    { AKROPOLIS_HELIPAD_TRANSFORMER_3_INTACT, AKROPOLIS_HELIPAD_TRANSFORMER_3_SOURCE_SPENT, AKROPOLIS_HELIPAD_TRANSFORMER_3_SOURCE_SPENT, AKROPOLIS_HELIPAD_TRANSFORMER_3_STOPPED },
+    { AKROPOLIS_HELIPAD_TRANSFORMER_3_INTACT, AKROPOLIS_HELIPAD_TRANSFORMER_3_SOURCE_SPENT, AKROPOLIS_HELIPAD_TRANSFORMER_3_SOURCE_SPENT, AKROPOLIS_HELIPAD_TRANSFORMER_3_STOPPED },
     { 0, 0, 0, 0 },
 };
 
 static void _helicopterLandingPadNo9TickGrenadeHold(Task* task);
 
-static void _helicopterLandingPadNo9TickHelipadLightBreak(Task* task);
+static void _helicopterLandingPadNo9TickTransformerBreak(Task* task);
 
-static s32 _helicopterLandingPadNo9CheckHelipadLightView(Task* task);
+static s32 _helicopterLandingPadNo9CheckTransformerView(Task* task);
 
-static void _helicopterLandingPadNo9UpdateHelipadLightLighting(Task* task, const GfxCoord* rootCoord);
+static void _helicopterLandingPadNo9UpdateTransformerLighting(Task* task, const GfxCoord* rootCoord);
 
 static void _helicopterLandingPadNo9TickBlastSourcePhases(Task* task);
 
@@ -709,8 +693,8 @@ static void _helicopterLandingPadNo9UpdateProp(Enemy* enemy, Task* task);
 static void _helicopterLandingPadNo9InitGrenade(Enemy* enemy, Task* task);
 static void _helicopterLandingPadNo9TickGrenadeFlight(Enemy* enemy, Task* task);
 static void _helicopterLandingPadNo9TickGrenadeBurst(Enemy* enemy, Task* task);
-static void _helicopterLandingPadNo9InitHelipadLight(Enemy* enemy, Task* task);
-static void _helicopterLandingPadNo9TickHelipadLight(Enemy* enemy, Task* task);
+static void _helicopterLandingPadNo9InitTransformer(Enemy* enemy, Task* task);
+static void _helicopterLandingPadNo9TickTransformer(Enemy* enemy, Task* task);
 static void _helicopterLandingPadNo9InitBlastSource(Enemy* enemy, Task* task);
 static void _helicopterLandingPadNo9TickBlastSource(Enemy* enemy, Task* task);
 
@@ -1031,7 +1015,7 @@ static void _helicopterLandingPadNo9ResolveBodyContacts(Task* task)
             case DAMAGE_HAZARD_CATEGORY >> 16:
                 hazardApplies = 0;
                 switch ((u32)(u16)work->bodyContacts[contactIndex].key.value) {
-                    case HAZARD_LIGHT_BLAST:
+                    case HAZARD_TRANSFORMER_BLAST:
                         hazardApplies  = 1;
                         work->state    = HELICOPTER_LANDING_PAD_NO_9_STATE_SPARK_RECOIL;
                         work->subState = SPARK_RECOIL_ENTER;
@@ -1348,34 +1332,34 @@ static s32 _helicopterLandingPadNo9TrySelectAttack(Task* task)
     enum { ATTACK_INITIAL_STEP = 0 };
     HelicopterLandingPadNo9Work* work;
     GfxCoord*                    bodyCoord;
-    s32                          lightDistanceError;
+    s32                          slashDistanceError;
     s32                          selected;
     s16                          playerDistance;
 
     work      = task->work;
     bodyCoord = task->extra.tmd->coords;
-    // Scripted light strikes and the lethal attack precede range-based choices.
-    if (work->slashedLight == LIGHT_SLASH_NONE) {
-        lightDistanceError = work->lapDistance - LIGHT_0_SLASH_DISTANCE;
-        if (lightDistanceError < 0) {
-            lightDistanceError = -lightDistanceError;
+    // Scripted transformer slashes and the lethal attack precede range-based choices.
+    if (work->slashedTransformer == TRANSFORMER_SLASH_NONE) {
+        slashDistanceError = work->lapDistance - FIRST_TRANSFORMER_SLASH_DISTANCE;
+        if (slashDistanceError < 0) {
+            slashDistanceError = -slashDistanceError;
         }
-        if (lightDistanceError < LIGHT_SLASH_WINDOW) {
-            work->slashedLight = LIGHT_SLASH_LIGHT_0;
-            work->state        = HELICOPTER_LANDING_PAD_NO_9_STATE_SLASH;
-            work->subState     = SLASH_WINDUP;
-            work->animationId  = BODY_ANIMATION_SLASH_WINDUP;
+        if (slashDistanceError < TRANSFORMER_SLASH_WINDOW) {
+            work->slashedTransformer = TRANSFORMER_SLASH_FIRST;
+            work->state              = HELICOPTER_LANDING_PAD_NO_9_STATE_SLASH;
+            work->subState           = SLASH_WINDUP;
+            work->animationId        = BODY_ANIMATION_SLASH_WINDUP;
             return 1;
         }
-        lightDistanceError = work->lapDistance - LIGHT_1_SLASH_DISTANCE;
-        if (lightDistanceError < 0) {
-            lightDistanceError = -lightDistanceError;
+        slashDistanceError = work->lapDistance - SECOND_TRANSFORMER_SLASH_DISTANCE;
+        if (slashDistanceError < 0) {
+            slashDistanceError = -slashDistanceError;
         }
-        if (lightDistanceError < LIGHT_SLASH_WINDOW) {
-            work->slashedLight = LIGHT_SLASH_LIGHT_1;
-            work->state        = HELICOPTER_LANDING_PAD_NO_9_STATE_SLASH;
-            work->subState     = SLASH_WINDUP;
-            work->animationId  = BODY_ANIMATION_SLASH_WINDUP;
+        if (slashDistanceError < TRANSFORMER_SLASH_WINDOW) {
+            work->slashedTransformer = TRANSFORMER_SLASH_SECOND;
+            work->state              = HELICOPTER_LANDING_PAD_NO_9_STATE_SLASH;
+            work->subState           = SLASH_WINDUP;
+            work->animationId        = BODY_ANIMATION_SLASH_WINDUP;
             return 1;
         }
     }
@@ -1477,8 +1461,8 @@ static void _helicopterLandingPadNo9TickSlash(Task* task)
                 sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
                                          (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
-            if ((work->slashedLight > LIGHT_SLASH_NONE) && (work->animationFrame == 8)) {
-                work->lightSlashStruck = 1;
+            if ((work->slashedTransformer > TRANSFORMER_SLASH_NONE) && (work->animationFrame == 8)) {
+                work->transformerSlashStruck = 1;
             }
             if (work->animationFrame == 9) {
                 _helicopterLandingPadNo9ArmAttack(work, ATTACK_SLASH);
@@ -2987,8 +2971,8 @@ static void _helicopterLandingPadNo9TickGrenadeHold(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(ActorPlayerHoldScratch);
 }
 
-/// Initializes one of the three destructible helipad lights and its blast sphere.
-static void _helicopterLandingPadNo9InitHelipadLight(Enemy* enemy, Task* task)
+/// Initializes one of the three destructible transformers and its blast sphere.
+static void _helicopterLandingPadNo9InitTransformer(Enemy* enemy, Task* task)
 {
     enum {
         CONTACT_PART = 10,
@@ -2997,16 +2981,16 @@ static void _helicopterLandingPadNo9InitHelipadLight(Enemy* enemy, Task* task)
         HAZARD_ID    = 2,
     };
 
-    TmdObject*         model;
-    GfxCoord*          partCoords;
-    _HelipadLightWork* work;
-    GfxCoord*          contactCoord;
-    SVECTOR*           spawnRotation;
-    s32                slotIndex;
+    TmdObject*        model;
+    GfxCoord*         partCoords;
+    _TransformerWork* work;
+    GfxCoord*         contactCoord;
+    SVECTOR*          spawnRotation;
+    s32               slotIndex;
 
     model        = task->extra.tmd;
     partCoords   = model->coords;
-    work         = memCalloc(sizeof(_HelipadLightWork), false);
+    work         = memCalloc(sizeof(_TransformerWork), false);
     contactCoord = &partCoords[CONTACT_PART];
     if (work == NULL) {
         enemyDestroy(enemy, task);
@@ -3026,19 +3010,19 @@ static void _helicopterLandingPadNo9InitHelipadLight(Enemy* enemy, Task* task)
     enemy->bodyPos.vx             = -BODY_RADIUS;
     enemy->bodyPos.vy             = 0;
     enemy->bodyPos.vz             = 0;
-    work->lightIndex              = task->spawnArg1.value;
+    work->transformerIndex        = task->spawnArg1.value;
     spawnRotation->vx             = 0;
-    spawnRotation->vy             = _gHelicopterLandingPadNo9HelipadLightYaws[work->lightIndex];
+    spawnRotation->vy             = _gHelicopterLandingPadNo9TransformerYaws[work->transformerIndex];
     spawnRotation->vz             = 0;
     RotMatrix(spawnRotation, &partCoords->coord);
     slotIndex              = 1;
-    partCoords->coord.t[0] = _gHelicopterLandingPadNo9HelipadLightPositions[work->lightIndex].vx;
-    partCoords->coord.t[1] = _gHelicopterLandingPadNo9HelipadLightPositions[work->lightIndex].vy;
-    partCoords->coord.t[2] = _gHelicopterLandingPadNo9HelipadLightPositions[work->lightIndex].vz;
+    partCoords->coord.t[0] = _gHelicopterLandingPadNo9TransformerPositions[work->transformerIndex].vx;
+    partCoords->coord.t[1] = _gHelicopterLandingPadNo9TransformerPositions[work->transformerIndex].vy;
+    partCoords->coord.t[2] = _gHelicopterLandingPadNo9TransformerPositions[work->transformerIndex].vz;
     partCoords->parent     = &gGfxViewCoord;
-    animationInitContext(&work->anim, _gHelicopterLandingPadNo9HelipadLightAnimationSets, model, work->poses, work->slots);
+    animationInitContext(&work->anim, _gHelicopterLandingPadNo9TransformerCableAnimationSets, model, work->poses, work->slots);
     do {
-        animationResetSlot(&work->anim, slotIndex, LIGHT_ANIMATION_INTACT);
+        animationResetSlot(&work->anim, slotIndex, CABLE_ANIMATION_INTACT);
         slotIndex++;
     } while (slotIndex < ARRAY_SIZE(work->slots));
     work->body.pos.vx           = -BODY_RADIUS;
@@ -3063,21 +3047,20 @@ static void _helicopterLandingPadNo9InitHelipadLight(Enemy* enemy, Task* task)
     worldCollisionLinkBody(WORLD_COLLISION_LIST_BLASTS, &work->blast);
     worldCollisionInitContacts(work->blastContacts, ARRAY_SIZE(work->blastContacts), 0);
     work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    task->exitCallback = _helicopterLandingPadNo9ExitHelipadLight;
+    task->exitCallback = _helicopterLandingPadNo9ExitTransformer;
     task->state        = CHILD_TASK_RUNNING;
     SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
-/// Advances a helipad light's animation, break state and published status: lights 0 and 1 to saved flag nibbles 11
-/// and 12, light 2 to the golem for the blast source beside it.
-static void _helicopterLandingPadNo9TickHelipadLight(Enemy* enemy, Task* task)
+/// Advances a transformer's animation, break state and published status: transformers 0 and 1 to
+/// `EVENT_FLAG_AKROPOLIS_HELIPAD_TRANSFORMER_1_STATE` and `_2_STATE`, the third to the golem for the blast source beside it.
+static void _helicopterLandingPadNo9TickTransformer(Enemy* enemy, Task* task)
 {
     enum {
-        PERSISTENT_LIGHT_COUNT = 2,
-        LIGHT_FLAG_BASE        = 11,
+        FLAGGED_TRANSFORMER_COUNT = 2, // The third reports to the golem, whose blast source publishes both
     };
     TmdObject*                   model;
-    _HelipadLightWork*           work;
+    _TransformerWork*            work;
     GfxCoord*                    rootCoord;
     HelicopterLandingPadNo9Work* bodyWork;
     s32                          slotIndex;
@@ -3088,7 +3071,7 @@ static void _helicopterLandingPadNo9TickHelipadLight(Enemy* enemy, Task* task)
     bodyWork  = task->parent->work;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
-            if (_helicopterLandingPadNo9CheckHelipadLightView(task) == 0) {
+            if (_helicopterLandingPadNo9CheckTransformerView(task) == 0) {
                 slotIndex = 1;
                 do {
                     animationTickSlot(&work->anim, slotIndex);
@@ -3100,7 +3083,7 @@ static void _helicopterLandingPadNo9TickHelipadLight(Enemy* enemy, Task* task)
             enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            _helicopterLandingPadNo9UpdateHelipadLightLighting(task, rootCoord);
+            _helicopterLandingPadNo9UpdateTransformerLighting(task, rootCoord);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
             model->flags                  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -3108,11 +3091,11 @@ static void _helicopterLandingPadNo9TickHelipadLight(Enemy* enemy, Task* task)
             return;
     }
     // Publish damage progress only on the full in-view update.
-    _helicopterLandingPadNo9TickHelipadLightBreak(task);
-    if (work->lightIndex < PERSISTENT_LIGHT_COUNT) {
-        gameFlagSetNibble(work->lightIndex + LIGHT_FLAG_BASE, work->status);
+    _helicopterLandingPadNo9TickTransformerBreak(task);
+    if (work->transformerIndex < FLAGGED_TRANSFORMER_COUNT) {
+        gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_HELIPAD_TRANSFORMER_1_STATE + work->transformerIndex, work->status);
     } else {
-        bodyWork->light2Status = work->status;
+        bodyWork->blastTransformerStatus = work->status;
     }
     slotIndex = 1;
     do {
@@ -3121,21 +3104,21 @@ static void _helicopterLandingPadNo9TickHelipadLight(Enemy* enemy, Task* task)
     } while (slotIndex < ARRAY_SIZE(work->slots));
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(rootCoord);
-    _helicopterLandingPadNo9UpdateHelipadLightLighting(task, rootCoord);
+    _helicopterLandingPadNo9UpdateTransformerLighting(task, rootCoord);
 }
 
-/// Breaks a shot or slashed helipad light and runs its sparks and one-hit blast.
-static void _helicopterLandingPadNo9TickHelipadLightBreak(Task* task)
+/// Breaks a shot or slashed transformer and runs its sparks and one-hit blast.
+static void _helicopterLandingPadNo9TickTransformerBreak(Task* task)
 {
     enum {
-        LIGHT_SPARK_FRAMES   = 120,
-        LIGHT_TIP_PART       = 10, // Of the light's rig: the cable's end, where it sparks; the four segments before it draw spark lines
-        LIGHT_SPARK_OFFSET_Y = 128,
-        LIGHT_EXPLOSION_SIZE = 512,
-        LIGHT_SHOT_DISTANCE  = 1000,
-        SOUND_LIGHT_BREAK    = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_HELICOPTER_LANDING_PAD, 4),
+        CABLE_SPARK_FRAMES        = 120,
+        CABLE_TIP_PART            = 10, // Of the cable's rig: the cable's end, where it sparks; the four segments before it draw spark lines
+        CABLE_SPARK_OFFSET_Y      = 128,
+        CABLE_EXPLOSION_SIZE      = 512,
+        TRANSFORMER_SHOT_DISTANCE = 1000,
+        SOUND_TRANSFORMER_BREAK   = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_HELICOPTER_LANDING_PAD, 4),
     };
-    _HelipadLightWork*           work;
+    _TransformerWork*            work;
     HelicopterLandingPadNo9Work* parent;
     Enemy*                       enemy;
     ActorFaceScratch*            sparkScratch;
@@ -3149,81 +3132,81 @@ static void _helicopterLandingPadNo9TickHelipadLightBreak(Task* task)
     s32                          soundKey;
     s32                          audioPan;
     s32                          attackKey;
-    s16                          lightState;
+    s16                          transformerState;
 
     breakRequested                         = 0;
     scratchEnd                             = SCRATCH_STACK_CURSOR(ActorFaceScratch);
-    contactCoord                           = &task->extra.tmd->coords[LIGHT_TIP_PART];
+    contactCoord                           = &task->extra.tmd->coords[CABLE_TIP_PART];
     SCRATCH_STACK_CURSOR(ActorFaceScratch) = scratchEnd - 1;
     sparkScratch                           = scratchEnd - 1;
     work                                   = task->work;
     enemy                                  = task->spawnArg2.pointer;
-    lightState                             = work->state;
+    transformerState                       = work->state;
     parent                                 = task->parent->work;
-    switch (lightState) {
-        case HELIPAD_LIGHT_INTACT:
+    switch (transformerState) {
+        case TRANSFORMER_INTACT:
             if (parent->present == 0) {
-                work->status = HELIPAD_LIGHT_STATUS_STOPPED;
-                work->state  = HELIPAD_LIGHT_DONE;
+                work->status = AKROPOLIS_HELIPAD_TRANSFORMER_STOPPED;
+                work->state  = TRANSFORMER_DONE;
                 break;
             }
             enemy->node.state.parts.flags = gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED;
             attackKey                     = work->bodyContacts[0].key.value;
             work->body.flags             |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             if ((attackKey & (WORLD_COLLISION_CONTACT_KIND_MASK | 0x8000)) == WORLD_COLLISION_CONTACT_ATTACK && enemy->node.state.parts.targeted == 1 &&
-                damageComputePlayerAttack(attackKey, LIGHT_SHOT_DISTANCE, 0, 0) != 0) {
+                damageComputePlayerAttack(attackKey, TRANSFORMER_SHOT_DISTANCE, 0, 0) != 0) {
                 breakRequested = 1;
             }
-            if (parent->slashedLight == work->lightIndex + 1 && parent->lightSlashStruck == 1) {
-                breakRequested       = 1;
-                parent->slashedLight = -1;
+            if (parent->slashedTransformer == work->transformerIndex + 1 && parent->transformerSlashStruck == 1) {
+                breakRequested             = 1;
+                parent->slashedTransformer = -1;
             }
             if (breakRequested == 1) {
-                work->status = HELIPAD_LIGHT_STATUS_SPARKING;
-                work->state  = HELIPAD_LIGHT_SPARKING;
+                work->status = AKROPOLIS_HELIPAD_TRANSFORMER_SHOT;
+                work->state  = TRANSFORMER_SPARKING;
                 slotIndex    = 1;
                 do {
-                    animationSeekSlotWithBlend(&work->anim, slotIndex, LIGHT_ANIMATION_BREAK, 0, 0);
+                    animationSeekSlotWithBlend(&work->anim, slotIndex, CABLE_ANIMATION_BREAK, 0, 0);
                     slotIndex++;
                 } while (slotIndex < ARRAY_SIZE(work->slots));
                 sparkScratch->rot.vx = 0;
-                sparkScratch->rot.vy = LIGHT_SPARK_OFFSET_Y;
+                sparkScratch->rot.vy = CABLE_SPARK_OFFSET_Y;
                 sparkScratch->rot.vz = 0;
-                sparksEffect         = effectSpawn((EFFECT_HELIPAD_LIGHT_SPARKS | EFFECT_SPAWN_UNLIMITED), contactCoord, 0, &sparkScratch->rot);
+                sparksEffect         = effectSpawn((EFFECT_HELIPAD_TRANSFORMER_SPARKS | EFFECT_SPAWN_UNLIMITED), contactCoord, 0, &sparkScratch->rot);
                 if (sparksEffect != NULL) {
                     sparksTask       = sparksEffect->task;
                     work->sparksTask = sparksTask;
                     taskReparent(task, sparksTask);
                 }
-                effectSpawn(EFFECT_EXPLOSION, contactCoord, LIGHT_EXPLOSION_SIZE, &sparkScratch->rot);
-                work->sparkFrames  = LIGHT_SPARK_FRAMES;
+                effectSpawn(EFFECT_EXPLOSION, contactCoord, CABLE_EXPLOSION_SIZE, &sparkScratch->rot);
+                work->sparkFrames  = CABLE_SPARK_FRAMES;
                 work->body.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 work->blast.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                soundKey           = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_LIGHT_BREAK;
+                soundKey           = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_TRANSFORMER_BREAK;
                 audioPan           = (s8)worldCoordGetOriginAudioPan(contactCoord);
                 sndEvtRequestScriptStart(soundKey, audioPan, (s8)worldCoordGetOriginAudioDepth(contactCoord));
             }
             worldCollisionClearContacts(work->bodyContacts);
             break;
-        case HELIPAD_LIGHT_SPARKING:
+        case TRANSFORMER_SPARKING:
             if (worldCollisionFindContactIndex(work->blastContacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
                 work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
             worldCollisionClearContacts(work->blastContacts);
-            akropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[LIGHT_TIP_PART - 1]);
-            akropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[LIGHT_TIP_PART - 2]);
-            akropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[LIGHT_TIP_PART - 3]);
-            akropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[LIGHT_TIP_PART - 4]);
+            akropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[CABLE_TIP_PART - 1]);
+            akropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[CABLE_TIP_PART - 2]);
+            akropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[CABLE_TIP_PART - 3]);
+            akropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[CABLE_TIP_PART - 4]);
             work->sparkFrames--;
-            doneState = HELIPAD_LIGHT_DONE;
+            doneState = TRANSFORMER_DONE;
             if (work->sparkFrames <= 0) {
                 Task* sparksTask;
 
-                work->status       = HELIPAD_LIGHT_STATUS_SPENT;
+                work->status       = AKROPOLIS_HELIPAD_TRANSFORMER_SPENT;
                 work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 sparksTask         = work->sparksTask;
                 if (sparksTask != NULL) {
-                    sparksTask->state = LIGHT_SPARKS_BURSTS_ONLY;
+                    sparksTask->state = CABLE_SPARKS_BURSTS_ONLY;
                 }
             } else {
                 Task* sparksTask;
@@ -3231,35 +3214,35 @@ static void _helicopterLandingPadNo9TickHelipadLightBreak(Task* task)
                 if (parent->present != 0) {
                     break;
                 }
-                work->status       = HELIPAD_LIGHT_STATUS_SPENT;
+                work->status       = AKROPOLIS_HELIPAD_TRANSFORMER_SPENT;
                 work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 sparksTask         = work->sparksTask;
                 if (sparksTask != NULL) {
-                    sparksTask->state = LIGHT_SPARKS_RELEASE;
+                    sparksTask->state = CABLE_SPARKS_RELEASE;
                     work->sparksTask  = NULL;
                 }
             }
             work->state = doneState;
             break;
-        case HELIPAD_LIGHT_DONE:
+        case TRANSFORMER_DONE:
             if (parent->present == 0) {
                 Task* sparksTask;
 
                 sparksTask = work->sparksTask;
                 if (sparksTask != NULL) {
-                    sparksTask->state = LIGHT_SPARKS_RELEASE;
+                    sparksTask->state = CABLE_SPARKS_RELEASE;
                     work->sparksTask  = NULL;
                 }
             }
             break;
     }
-    if (work->lightIndex == 2) {
-        parent->light2State = work->state;
+    if (work->transformerIndex == 2) {
+        parent->blastTransformerState = work->state;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }
 
-/// Initializes the coordinate-only blast source beside helipad light 2.
+/// Initializes the coordinate-only blast source beside the third transformer.
 static void _helicopterLandingPadNo9InitBlastSource(Enemy* enemy, Task* task)
 {
     GfxCoord*         sourceCoord;
@@ -3324,7 +3307,7 @@ static void _helicopterLandingPadNo9TickBlastSource(Enemy* enemy, Task* task)
     parentWork = task->parent->work;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
-            if ((viewGetMappedIndex() & 0xFF) != _gHelicopterLandingPadNo9HelipadViews.lightViews[2][0]) {
+            if ((viewGetMappedIndex() & 0xFF) != _gHelicopterLandingPadNo9HelipadViews.transformerViews[2][0]) {
                 enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
                 work->body.flags             &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 work->blast.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -3348,7 +3331,7 @@ static void _helicopterLandingPadNo9TickBlastSource(Enemy* enemy, Task* task)
     }
     // Publish the new phase before drawing this frame's ambient ember.
     _helicopterLandingPadNo9TickBlastSourcePhases(task);
-    gameFlagSetNibble(GAME_FLAG_00D, _gHelicopterLandingPadNo9HelipadStatusFlagValues[work->state][parentWork->light2Status]);
+    gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_HELIPAD_TRANSFORMER_3_STATE, _gHelicopterLandingPadNo9Transformer3FlagValues[work->state][parentWork->blastTransformerStatus]);
     randomState     = RANDOM_LCG_NEXT(gRandomLcgState);
     gRandomLcgState = randomState;
     if ((u16)((randomState >> 16) % 3) == 0) {
@@ -3362,7 +3345,7 @@ static const EnemyTaskFuncTable3 _gHelicopterLandingPadNo9GrenadeTaskStates = {
     { _helicopterLandingPadNo9InitGrenade, _helicopterLandingPadNo9TickGrenadeFlight, _helicopterLandingPadNo9TickGrenadeBurst },
 };
 
-/// Arms the helipad blast source after light 2 breaks, then runs its shot flare.
+/// Arms the helipad blast source after the third transformer breaks, then runs its shot flare.
 static void _helicopterLandingPadNo9TickBlastSourcePhases(Task* task)
 {
     enum {
@@ -3393,7 +3376,7 @@ static void _helicopterLandingPadNo9TickBlastSourcePhases(Task* task)
 
     switch (work->state) {
         case BLAST_SOURCE_DORMANT:
-            if (parentWork->light2State == HELIPAD_LIGHT_SPARKING) {
+            if (parentWork->blastTransformerState == TRANSFORMER_SPARKING) {
                 work->state = BLAST_SOURCE_ARMED;
             }
             break;
@@ -3415,7 +3398,7 @@ static void _helicopterLandingPadNo9TickBlastSourcePhases(Task* task)
                     }
                     work->body.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     work->blast.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                    if (parentWork->light2State == HELIPAD_LIGHT_DONE) {
+                    if (parentWork->blastTransformerState == TRANSFORMER_DONE) {
                         work->flareTaskState = SOURCE_FLARE_RAW_COLOR;
                         work->blast.key      = DAMAGE_HAZARD_CATEGORY | HAZARD_SOURCE_RECOIL;
                     } else {
@@ -3968,39 +3951,39 @@ static void _helicopterLandingPadNo9GrenadeTask(Task* task)
     states.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
-/// Dispatches a destructible helipad light's initialization and frame update.
-static void _helicopterLandingPadNo9HelipadLightTask(Task* task)
+/// Dispatches a destructible transformer's initialization and frame update.
+static void _helicopterLandingPadNo9TransformerTask(Task* task)
 {
     EnemyTaskFunc handlers[2] = {
-        _helicopterLandingPadNo9InitHelipadLight,
-        _helicopterLandingPadNo9TickHelipadLight,
+        _helicopterLandingPadNo9InitTransformer,
+        _helicopterLandingPadNo9TickTransformer,
     };
 
     handlers[task->state](task->spawnArg2.pointer, task);
 }
 
-/// Returns one when a helipad light runs in the current mapped camera view.
-static s32 _helicopterLandingPadNo9CheckHelipadLightView(Task* task)
+/// Returns one when a transformer runs in the current mapped camera view.
+static s32 _helicopterLandingPadNo9CheckTransformerView(Task* task)
 {
-    TmdObject*         model;
-    _HelipadLightWork* work;
-    Enemy*             enemy;
-    s32                viewIndex;
-    u8                 viewMisses;
-    u8                 mappedView;
+    TmdObject*        model;
+    _TransformerWork* work;
+    Enemy*            enemy;
+    s32               viewIndex;
+    u8                viewMisses;
+    u8                mappedView;
 
     model      = task->extra.tmd;
     work       = task->work;
     enemy      = task->spawnArg2.pointer;
     viewMisses = 0;
     mappedView = viewGetMappedIndex();
-    for (viewIndex = 0; viewIndex < ARRAY_SIZE(_gHelicopterLandingPadNo9HelipadViews.lightViews[0]); viewIndex++) {
-        if (mappedView != _gHelicopterLandingPadNo9HelipadViews.lightViews[work->lightIndex][viewIndex]) {
+    for (viewIndex = 0; viewIndex < ARRAY_SIZE(_gHelicopterLandingPadNo9HelipadViews.transformerViews[0]); viewIndex++) {
+        if (mappedView != _gHelicopterLandingPadNo9HelipadViews.transformerViews[work->transformerIndex][viewIndex]) {
             viewMisses++;
         }
     }
 
-    if (viewMisses != ARRAY_SIZE(_gHelicopterLandingPadNo9HelipadViews.lightViews[0])) {
+    if (viewMisses != ARRAY_SIZE(_gHelicopterLandingPadNo9HelipadViews.transformerViews[0])) {
         return 1;
     }
 
@@ -4009,7 +3992,7 @@ static s32 _helicopterLandingPadNo9CheckHelipadLightView(Task* task)
     work->blast.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     if (work->sparksTask != NULL) {
-        work->sparksTask->state = LIGHT_SPARKS_RELEASE;
+        work->sparksTask->state = CABLE_SPARKS_RELEASE;
         work->sparksTask        = NULL;
     }
     if (work->sparkFrames != 0) {
@@ -4019,7 +4002,7 @@ static s32 _helicopterLandingPadNo9CheckHelipadLightView(Task* task)
 }
 
 /// Refreshes helipad-light model lighting at its composed root position.
-static void _helicopterLandingPadNo9UpdateHelipadLightLighting(Task* task, const GfxCoord* rootCoord)
+static void _helicopterLandingPadNo9UpdateTransformerLighting(Task* task, const GfxCoord* rootCoord)
 {
     VECTOR composedPosition;
 
@@ -4029,11 +4012,11 @@ static void _helicopterLandingPadNo9UpdateHelipadLightLighting(Task* task, const
     worldCoordSetModelLighting(task->extra.tmd, &composedPosition, 0, 3);
 }
 
-/// Unregisters the helipad light's target and collision bodies, then destroys it.
-static void _helicopterLandingPadNo9ExitHelipadLight(Task* task)
+/// Unregisters the transformer's target and collision bodies, then destroys it.
+static void _helicopterLandingPadNo9ExitTransformer(Task* task)
 {
-    Enemy*             enemy = task->spawnArg2.pointer;
-    _HelipadLightWork* work  = task->work;
+    Enemy*            enemy = task->spawnArg2.pointer;
+    _TransformerWork* work  = task->work;
 
     worldTargetUnlinkNode(&enemy->node);
     worldCollisionUnlinkBody(&work->body);

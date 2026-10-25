@@ -75621,7 +75621,7 @@ discriminate them and the callee's `VECTOR *` parameter does not force the
 local's type. Declare whichever the source reads better as. What matters is only
 that the three writes share one addressable object. `helicopterLandingPadNo9UpdateLighting`.
 
-The next function in that TU, `_helicopterLandingPadNo9UpdateHelipadLightLighting`, is the same body with
+The next function in that TU, `_helicopterLandingPadNo9UpdateTransformerLighting`, is the same body with
 a different callee (`worldCoordSetModelLighting(obj, &pos, 0, 3)`) and shows the same numbers:
 63.3% with `delete=5` from m2c's three scalars, 100% from the single `VECTOR`.
 
@@ -91336,9 +91336,9 @@ the one-at-a-time 2x2 before porting a multi-site permutation.
 Worked example: `_actor00400SwimDecide`, evidence in the scratch archive
 (`base_6.c` `56ef70cdde8a…`, `base_7.c` `96a300410b7f…`, parent
 `8c86cfac9f83…`, permuter candidate `4bcd89c96728…`).
-## An address expression used after several calls comes out re-materialized unless the source names it *before* the early-return branch (_helicopterLandingPadNo9InitHelipadLight, 2026-09-16)
+## An address expression used after several calls comes out re-materialized unless the source names it *before* the early-return branch (_helicopterLandingPadNo9InitTransformer, 2026-09-16)
 
-`_helicopterLandingPadNo9InitHelipadLight` hands the same `&partCoords[HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_CONTACT_PART]` to three sinks that are
+`_helicopterLandingPadNo9InitTransformer` hands the same `&partCoords[HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_CONTACT_PART]` to three sinks that are
 separated by calls: `enemy->coord`, and the `coord` of each of the two
 `WorldCollisionBody`s it links. Written inline at all three sites, GCC 2.8.1 emits the
 `addiu` three times, in three different call-clobbered registers:
@@ -95844,7 +95844,7 @@ Input: `base_1.i`
 `c8221e0783cefa316b541c72c2e2da159d233b4618966f9a014c38fedc9e50cf`.
 ## m2c hoists a loop counter's init above the call, and that costs a callee-saved register
 
-`_helicopterLandingPadNo9CheckHelipadLightView` loads three `Task` fields, calls `viewGetMappedIndex`,
+`_helicopterLandingPadNo9CheckTransformerView` loads three `Task` fields, calls `viewGetMappedIndex`,
 then runs a fixed three-iteration loop. m2c rendered the loop as a `do/while`
 with both inits above the call:
 
@@ -96260,7 +96260,7 @@ instead.
 
 ## A local shared with a call argument drags that argument register into every other branch
 
-`_helicopterLandingPadNo9TickHelipadLightBreak` reads `work->sparksTask` (a `Task*`) in four
+`_helicopterLandingPadNo9TickTransformerBreak` reads `work->sparksTask` (a `Task*`) in four
 different places: once to store the task `effectSpawn` just created and hand it
 to `taskReparent`, and once in each arm of the later state machine, where it is
 only tested and written through. Using one `Task* child` local for all of them
@@ -149980,7 +149980,7 @@ attempts; left as it was.
   `switch { case 0: ...; break; case 1: ...; return; case 2: ...; return; }`
   with the cases in image order; a mode 1 that jumped to the function's last
   call is that call and a `return`. The `one = 1` local goes each time.
-  `_helicopterLandingPadNo9TickHelipadLightBreak` keeps `doneState = HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_DONE`
+  `_helicopterLandingPadNo9TickTransformerBreak` keeps `doneState = HELICOPTER_LANDING_PAD_NO_9_HELIPAD_LIGHT_DONE`
   through the final state store: writing that state constant in place merges
   more tails (1 insn shorter). `_actor00100FrameState` keeps `excludedState = 21` (`$a1`
   becomes `$v0`).

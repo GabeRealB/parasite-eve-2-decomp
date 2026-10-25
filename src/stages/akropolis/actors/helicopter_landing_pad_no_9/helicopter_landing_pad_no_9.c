@@ -130,7 +130,7 @@ static const _SpritePalette _gHelicopterLandingPadNo9FireballFramePalettes[12] _
 
 #include "assets/enemies/golem/grenade.inc"
 
-#include "assets/enemies/golem/no_9/helipad_light.inc"
+#include "assets/enemies/golem/no_9/transformer_cable.inc"
 
 #include "assets/enemies/golem/no_9/package_akropolis_clips.inc"
 
@@ -1188,7 +1188,7 @@ void helicopterLandingPadNo9InitBody(Enemy* enemy, Task* task)
         PROP_DESCRIPTOR          = 1,
         WEAPON_DESCRIPTOR        = 2,
         CHEST_DESCRIPTOR         = 3,
-        LIGHT_DESCRIPTOR         = 5,
+        TRANSFORMER_DESCRIPTOR   = 5,
         BLAST_SOURCE_DESCRIPTOR  = 6,
         BODY_INITIAL_ANIMATION   = 1,
         BODY_TASK_RUNNING        = 1,
@@ -1255,9 +1255,9 @@ void helicopterLandingPadNo9InitBody(Enemy* enemy, Task* task)
     childEnemy = enemySpawnFromTable(gHelicopterLandingPadNo9TaskDescriptors, CHEST_DESCRIPTOR, 0, enemy);
     _actorRenderApplyPlacementTextureOffsets(childEnemy->task->extra.tmd, enemy);
     work->chestModelTask = childEnemy->task;
-    enemySpawnFromTable(gHelicopterLandingPadNo9TaskDescriptors, LIGHT_DESCRIPTOR, 0, enemy);
-    enemySpawnFromTable(gHelicopterLandingPadNo9TaskDescriptors, LIGHT_DESCRIPTOR, 1, enemy);
-    enemySpawnFromTable(gHelicopterLandingPadNo9TaskDescriptors, LIGHT_DESCRIPTOR, 2, enemy);
+    enemySpawnFromTable(gHelicopterLandingPadNo9TaskDescriptors, TRANSFORMER_DESCRIPTOR, 0, enemy);
+    enemySpawnFromTable(gHelicopterLandingPadNo9TaskDescriptors, TRANSFORMER_DESCRIPTOR, 1, enemy);
+    enemySpawnFromTable(gHelicopterLandingPadNo9TaskDescriptors, TRANSFORMER_DESCRIPTOR, 2, enemy);
     enemySpawnFromTable(gHelicopterLandingPadNo9TaskDescriptors, BLAST_SOURCE_DESCRIPTOR, 0, enemy);
     work->body.coord            = &task->extra.tmd->coords[CHEST_PART];
     bodyContacts                = work->bodyContacts;

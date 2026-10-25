@@ -18,7 +18,7 @@ chunk = "palette"
 sha1 = "aaf7fc2cc45fb1084d639c61339ac08f9a06cee8"
 palettes = [
     { texture = "lift", variant = "default", region = "engine/vram/effect_palettes", offset = [0x00000, 0x00002] },
-    { texture = "light", variant = "default", region = "engine/vram/effect_palettes", offset = [0x00000, 0x00003] },
+    { texture = "cable", variant = "default", region = "engine/vram/effect_palettes", offset = [0x00000, 0x00003] },
 ]
 
 [[file.contents]]
@@ -88,7 +88,7 @@ height = 192
 variants = ["default"]
 width = 128
 
-[light]
+[cable]
 type = "texture"
 bpp = 4
 height = 8
@@ -306,7 +306,7 @@ sha1 = "dd8bb6403f195387658248078d50760a10b29bca"
 
 [lift_page]
 type = "atlas"
-sprites = [{ texture = "lift", at = [0x00000, 0x00000] }, { texture = "light", at = [0x00000, 0x000F8] }]
+sprites = [{ texture = "lift", at = [0x00000, 0x00000] }, { texture = "cable", at = [0x00000, 0x000F8] }]
 
 [no_9_bank]
 type = "animation_bank"

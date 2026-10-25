@@ -1226,7 +1226,7 @@ static void _playerActorRecordAttackContact(Task* task, const WorldCollisionCont
 static void _playerActorRecordHazardContact(Task* task, const WorldCollisionContact* contact, s32 bodyIndex)
 {
     enum {
-        PLAYER_ACTOR_HAZARD_HELIPAD_LIGHT_BLAST    = 2,
+        PLAYER_ACTOR_HAZARD_TRANSFORMER_BLAST      = 2,
         PLAYER_ACTOR_HAZARD_HELIPAD_FINISHED_FLARE = 3,
         PLAYER_ACTOR_HAZARD_HELIPAD_ACTIVE_FLARE   = 4,
         PLAYER_ACTOR_HAZARD_REACTION_FLASH_BURSTS  = 5 // Player flashes model parts 3, 2, then 1
@@ -1242,7 +1242,7 @@ static void _playerActorRecordHazardContact(Task* task, const WorldCollisionCont
         switch (hazardId) {
             case 1: // Placeholder no-op arm; the original selector is unproven
                 break;
-            case PLAYER_ACTOR_HAZARD_HELIPAD_LIGHT_BLAST:
+            case PLAYER_ACTOR_HAZARD_TRANSFORMER_BLAST:
             case PLAYER_ACTOR_HAZARD_HELIPAD_ACTIVE_FLARE:
                 bodyIndex = (u16)bodyIndex;
                 if (bodyIndex == GAME_ACTOR_BODY_PART4) {

@@ -127,6 +127,16 @@ enum {
     /// Akropolis security-room monitor. Bits: 0 the SWAT member's scene has played
     /// (camera 0xB, CAP 0xD), 1 Rupert's (camera 0xA; security_monitors sets it).
     EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_MONITOR_SCENES_SEEN = 0x00A,
+    /// Akropolis helicopter landing pad, the first of the three power transformers No. 9's
+    /// fight can break: helicopter_landing_pad_no_9 writes its status each frame it is in
+    /// view. State: `AKROPOLIS_HELIPAD_TRANSFORMER_*`.
+    EVENT_FLAG_AKROPOLIS_HELIPAD_TRANSFORMER_1_STATE = 0x00B,
+    /// Akropolis helicopter landing pad, the second transformer; as the first.
+    EVENT_FLAG_AKROPOLIS_HELIPAD_TRANSFORMER_2_STATE = 0x00C,
+    /// Akropolis helicopter landing pad, the third transformer and the blast source beside
+    /// it, as one value written every frame of the fight. State:
+    /// `AKROPOLIS_HELIPAD_TRANSFORMER_3_*`.
+    EVENT_FLAG_AKROPOLIS_HELIPAD_TRANSFORMER_3_STATE = 0x00D,
     /// Akropolis, the report to MIST after the cafeteria boss. State: 1 the boss
     /// scene has played and queued the report (story dialogue 4, "A new species..."),
     /// 4 the report has been made from the square's telephone (`_roomCutsceneTask`).
@@ -222,6 +232,9 @@ enum {
     /// the room's private header (`MIST_PARKING_CONVERSATION_*`). While nonzero, part of
     /// Pierce's model (parking_pierce) is hidden.
     EVENT_FLAG_MIST_PARKING_DRYFIELD_DEPARTURE_STATE = 0x0F1,
+    /// MIST shooting gallery, Pierce's conversations (shooting_gallery_pierce). Counter:
+    /// which talk plays next, `MIST_PIERCE_TALK_*`.
+    EVENT_FLAG_MIST_PIERCE_TALK_PROGRESS = 0x0F5,
 
     // ---- From 0x100: not divided yet -----------------------------------------
 
@@ -231,6 +244,10 @@ enum {
     /// MIST shooting gallery. Marker: the control room's scene has played (room
     /// action 4).
     EVENT_FLAG_MIST_SHOOTING_GALLERY_CONTROL_ROOM_SCENE_SEEN = 0x106,
+    /// MIST shooting gallery. Marker: Pierce's introduction to the gallery has played
+    /// (shooting_gallery_pierce sets it as the script starts, so skipping it counts too);
+    /// afterwards talking to the gallery goes straight to its menu.
+    EVENT_FLAG_MIST_SHOOTING_GALLERY_INTRO_SEEN = 0x121,
     /// Akropolis square. Marker: the hint by the ammo box has been shown.
     EVENT_FLAG_AKROPOLIS_SQUARE_AMMO_BOX_HINT_SEEN = 0x124,
     /// MIST shooting gallery, a prize per course: levels 1..5 are FIRST..LAST, read as

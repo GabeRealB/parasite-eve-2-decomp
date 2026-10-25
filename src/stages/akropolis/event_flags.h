@@ -54,6 +54,32 @@ enum {
     AKROPOLIS_PATIO_CUTSCENE_DONE        = 4,
 };
 
+// Values of `EVENT_FLAG_AKROPOLIS_HELIPAD_TRANSFORMER_1_STATE` and `_2_STATE`: a transformer's status in No. 9's fight.
+enum {
+    AKROPOLIS_HELIPAD_TRANSFORMER_INTACT  = 0,
+    AKROPOLIS_HELIPAD_TRANSFORMER_SHOT    = 1, // Broken by a shot or No. 9's slash; its cable is sparking
+    AKROPOLIS_HELIPAD_TRANSFORMER_SPENT   = 2, // The cable's sparks are over
+    AKROPOLIS_HELIPAD_TRANSFORMER_STOPPED = 3, // No. 9 was gone before it broke
+};
+
+// Values of `EVENT_FLAG_AKROPOLIS_HELIPAD_TRANSFORMER_3_STATE`: the third transformer, then the blast source beside it
+// (the gas the playthrough saw burn), which can be shot once the transformer has broken.
+enum {
+    AKROPOLIS_HELIPAD_TRANSFORMER_3_INTACT         = 0,
+    AKROPOLIS_HELIPAD_TRANSFORMER_3_SHOT           = 1,
+    AKROPOLIS_HELIPAD_TRANSFORMER_3_SPENT          = 2,
+    AKROPOLIS_HELIPAD_TRANSFORMER_3_SOURCE_FLARING = 4, // The source has been shot and is flaring
+    AKROPOLIS_HELIPAD_TRANSFORMER_3_SOURCE_SPENT   = 5, // Its flare is over
+    AKROPOLIS_HELIPAD_TRANSFORMER_3_STOPPED        = 6, // No. 9 was gone before the transformer broke
+};
+
+// Values of `EVENT_FLAG_MIST_PIERCE_TALK_PROGRESS`: the talk that plays next.
+enum {
+    MIST_PIERCE_TALK_FIRST  = 0,
+    MIST_PIERCE_TALK_SECOND = 1,
+    MIST_PIERCE_TALK_REPEAT = 2, // Every talk after the second
+};
+
 // Values of `EVENT_FLAG_AKROPOLIS_CAFETERIA_BOSS_REPORT`.
 enum {
     AKROPOLIS_CAFETERIA_BOSS_REPORT_QUEUED = 1, // The boss scene has played; the report to MIST is pending

@@ -56,6 +56,7 @@
 
 #include "stages/akropolis/rooms/mist_shooting_gallery.h"
 
+#include "../../event_flags.h"
 #include "../../rooms/mist_shooting_gallery/config.h"
 
 #include "assets/engine/animation/player_schema.h"
@@ -1552,8 +1553,8 @@ static void _shootingGalleryPierceGalleryIntroTask(Task* task)
         case INTRO_START:
             // Mark the introduction before playback, so skipping still consumes it.
             gGameSession->hideHud = 1;
-            if (gameFlagGetNibble(GAME_FLAG_SHOOTING_GALLERY_INTRO_SEEN) == 0) {
-                gameFlagSetNibble(GAME_FLAG_SHOOTING_GALLERY_INTRO_SEEN, 1);
+            if (gameFlagGetNibble(EVENT_FLAG_MIST_SHOOTING_GALLERY_INTRO_SEEN) == 0) {
+                gameFlagSetNibble(EVENT_FLAG_MIST_SHOOTING_GALLERY_INTRO_SEEN, 1);
                 gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, EVENT_FLAG_OBJECTIVE_MIST_SHOOTING_GALLERY_START);
                 evsStartScriptWithSkip(_gShootingGalleryPierceGalleryIntroScript, EVENT_SCRIPT_HUD_KEEP, _gShootingGalleryPierceGalleryIntroSkipScript);
                 task->state++;
@@ -1673,22 +1674,16 @@ static void _shootingGalleryPierceSetConversationCap(s32 enabled)
 
 void shootingGalleryPierceStartPierceConversation(void)
 {
-    enum {
-        FIRST  = 0,
-        SECOND = 1,
-        REPEAT = 2,
-    };
-
-    switch (gameFlagGetNibble(GAME_FLAG_PIERCE_TALK_PROGRESS)) {
-        case FIRST:
-            gameFlagSetNibble(GAME_FLAG_PIERCE_TALK_PROGRESS, SECOND);
+    switch (gameFlagGetNibble(EVENT_FLAG_MIST_PIERCE_TALK_PROGRESS)) {
+        case MIST_PIERCE_TALK_FIRST:
+            gameFlagSetNibble(EVENT_FLAG_MIST_PIERCE_TALK_PROGRESS, MIST_PIERCE_TALK_SECOND);
             evsStartScript(_gShootingGalleryPiercePierceFirstTalkScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             break;
-        case SECOND:
+        case MIST_PIERCE_TALK_SECOND:
             evsStartScript(_gShootingGalleryPiercePierceSecondTalkScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            gameFlagSetNibble(GAME_FLAG_PIERCE_TALK_PROGRESS, REPEAT);
+            gameFlagSetNibble(EVENT_FLAG_MIST_PIERCE_TALK_PROGRESS, MIST_PIERCE_TALK_REPEAT);
             break;
-        case REPEAT:
+        case MIST_PIERCE_TALK_REPEAT:
             evsStartScript(_gShootingGalleryPiercePierceRepeatTalkScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             break;
     }

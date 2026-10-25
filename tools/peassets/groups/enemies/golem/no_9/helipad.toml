@@ -86,7 +86,7 @@ prop_toss = "enemies/golem/no_9/helipad/prop_toss"
 event_5 = "enemies/golem/no_9/helipad/event_5"
 event_6 = "enemies/golem/no_9/helipad/event_6"
 
-[light_rig]
+[cable_rig]
 type = "rig"
 joints = [
     "root",
@@ -112,11 +112,11 @@ type = "clip"
 rig = "enemies/golem/no_9/rig"
 symbol = "gGolemNo9HelipadWalkFireClip"
 
-[light_bank]
+[cable_bank]
 type = "animation_bank"
-clips = { intact = "enemies/golem/no_9/helipad/light_intact", break = "enemies/golem/no_9/helipad/light_break" }
-schema = "enemies/golem/no_9/helipad/light_schema"
-symbol = "_gHelicopterLandingPadNo9HelipadLightAnimationSets"
+clips = { intact = "enemies/golem/no_9/helipad/cable_intact", break = "enemies/golem/no_9/helipad/cable_break" }
+schema = "enemies/golem/no_9/helipad/cable_schema"
+symbol = "_gHelicopterLandingPadNo9TransformerCableAnimationSets"
 
 [walk_start]
 type = "clip"
@@ -162,6 +162,11 @@ slots = [
     "event_6",
 ]
 
+[cable_break]
+type = "clip"
+rig = "enemies/golem/no_9/helipad/cable_rig"
+symbol = "gGolemNo9HelipadCableBreakClip"
+
 [fight_start]
 type = "clip"
 rig = "enemies/golem/no_9/rig"
@@ -171,11 +176,6 @@ symbol = "gGolemNo9HelipadFightStartClip"
 type = "clip"
 rig = "enemies/golem/no_9/rig"
 symbol = "gGolemNo9HelipadFlameLungeClip"
-
-[light_break]
-type = "clip"
-rig = "enemies/golem/no_9/helipad/light_rig"
-symbol = "gGolemNo9HelipadLightBreakClip"
 
 [patrol_idle]
 type = "clip"
@@ -192,19 +192,19 @@ type = "clip"
 rig = "enemies/golem/no_9/rig"
 symbol = "gGolemNo9HelipadSlashFirstClip"
 
+[cable_intact]
+type = "clip"
+rig = "enemies/golem/no_9/helipad/cable_rig"
+symbol = "gGolemNo9HelipadCableIntactClip"
+
+[cable_schema]
+type = "animation_schema"
+slots = ["", "intact", "break"]
+
 [flame_windup]
 type = "clip"
 rig = "enemies/golem/no_9/rig"
 symbol = "gGolemNo9HelipadFlameWindupClip"
-
-[light_intact]
-type = "clip"
-rig = "enemies/golem/no_9/helipad/light_rig"
-symbol = "gGolemNo9HelipadLightIntactClip"
-
-[light_schema]
-type = "animation_schema"
-slots = ["", "intact", "break"]
 
 [slash_second]
 type = "clip"

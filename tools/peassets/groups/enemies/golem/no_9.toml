@@ -330,13 +330,6 @@ type = "sound"
 mode = "high"
 sha1 = "36ea986442e0955160505cd9ad221fb915c75413"
 
-[helipad_light]
-type = "model"
-rig = "enemies/golem/no_9/helipad/light_rig"
-slots = ["light"]
-symbol = "gHelicopterLandingPadNo9HelipadLightModel"
-sha1 = "b34d4177cba6ecaff1b8cfb4c50e2e50f927c362"
-
 [lethal_strike]
 type = "sound"
 sha1 = "009e737d64301f70e689fa15690d666b68fbf595"
@@ -653,7 +646,7 @@ size = 0x35C
 address = 0x80142148
 
 [[package_akropolis.embedded]]
-name = "helipad_light"
+name = "transformer_cable"
 offset = 0x109B0
 size = 0x990
 address = 0x801427D0
@@ -875,13 +868,13 @@ size = 0x2EEC
 address = 0x80164308
 
 [[package_akropolis.embedded]]
-asset = "enemies/golem/no_9/helipad/light_intact"
+asset = "enemies/golem/no_9/helipad/cable_intact"
 offset = 0x353D4
 size = 0xC8
 address = 0x801671F4
 
 [[package_akropolis.embedded]]
-asset = "enemies/golem/no_9/helipad/light_break"
+asset = "enemies/golem/no_9/helipad/cable_break"
 offset = 0x3549C
 size = 0x6AC
 address = 0x801672BC
@@ -899,7 +892,7 @@ size = 0xC
 address = 0x80167B2C
 
 [[package_akropolis.embedded]]
-asset = "enemies/golem/no_9/helipad/light_bank"
+asset = "enemies/golem/no_9/helipad/cable_bank"
 offset = 0x35E8C
 size = 0xC
 address = 0x80167CAC
@@ -927,6 +920,13 @@ symbol = "gGolemNo9PlayerThrowBackClip"
 [stance_hold_sound]
 type = "sound"
 sha1 = "9b936ab41365011d169e6353d9a35b4c3599ae7e"
+
+[transformer_cable]
+type = "model"
+rig = "enemies/golem/no_9/helipad/cable_rig"
+slots = ["cable"]
+symbol = "gHelicopterLandingPadNo9TransformerCableModel"
+sha1 = "b34d4177cba6ecaff1b8cfb4c50e2e50f927c362"
 
 [anmc_woman_anim_02]
 type = "clip"
@@ -1007,11 +1007,6 @@ model = "enemies/golem/no_9/body_dryfield"
 dryfield_page_3 = "enemies/golem/no_9/texture_dryfield_page_3.default"
 dryfield_page_2 = "enemies/golem/no_9/texture_dryfield_page_2.default"
 dryfield_page_1 = "enemies/golem/no_9/texture_dryfield_page_1.default"
-
-[helipad_light_binding]
-type = "binding"
-model = "enemies/golem/no_9/helipad_light"
-textures = { light = "rooms/akropolis/helicopter_landing_pad/light.default" }
 
 [package_dryfield_file]
 type = "file"
@@ -1161,6 +1156,11 @@ bpp = 8
 height = 256
 variants = ["default"]
 width = 128
+
+[transformer_cable_binding]
+type = "binding"
+model = "enemies/golem/no_9/transformer_cable"
+textures = { cable = "rooms/akropolis/helicopter_landing_pad/cable.default" }
 
 [akropolis_chest_piece_binding]
 type = "binding"
