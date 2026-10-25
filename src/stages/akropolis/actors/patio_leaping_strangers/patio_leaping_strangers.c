@@ -26,6 +26,8 @@
 #include "../../../../shared/actor/actor_motion.h"
 #include "../../../../shared/actor/actor_messages.h"
 
+#include "assets/rooms/akropolis/patio/stranger_schema.h"
+
 /// Work block of the overlay's actor, allocated zeroed by its spawn state and kept at `Task::work` for the task's
 /// life.
 typedef struct {
@@ -39,20 +41,14 @@ typedef struct {
 } _Work;
 STATIC_ASSERT_SIZEOF(_Work, 0x4CC);
 
-/// Leap tuning and animation choices of this actor package.
+/// Leap tuning of this actor package.
 enum {
-    YAW_STEP       = 0x40, // 4096 angle units per turn
-    LEAP_ANIMATION = 2,
-    BLEND_FRAMES   = 5,
+    YAW_STEP     = 0x40, // 4096 angle units per turn
+    BLEND_FRAMES = 5,
 };
 
-/// Model draw modes accepted by this package's message handler.
-enum {
-    DRAW_HIDE_AUTO     = 0,
-    DRAW_SHOW_ALLOCATE = 1,
-    DRAW_HIDE_RELEASE  = 2,
-    DRAW_SHOW_MANUAL   = 3,
-};
+/// The body part the lighting follows.
+enum { PELVIS_PART = 1 };
 
 static void _patioLeapingStrangersUpdate(Task* task);
 static void _patioLeapingStrangersFacePlayerAfterLeap(Task* task);
@@ -68,17 +64,17 @@ static void _patioLeapingStrangersLandLeap(Task* task);
 static s32  _patioLeapingStrangersSetDrawMode(Task* task, s32 messageId, s32 mode, s32 unusedArg);
 
 enum {
-    LEAP_TASK_INITIALIZE = 0,
-    LEAP_TASK_UPDATE     = 1,
-    LEAP_TASK_EXIT       = 2,
+    TASK_INITIALIZE = 0,
+    TASK_UPDATE     = 1,
+    TASK_EXIT       = 2,
 };
 
-/// Scripted leap actor lifecycle handlers: 0 initialize, 1 update, 2 exit.
-static const TaskFuncTable3 _gPatioLeapingStrangersLeapTaskStates = {
+/// The leaping Stranger's task states: initialize, update, exit.
+static const TaskFuncTable3 _gPatioLeapingStrangersStates = {
     .funcs = {
-        [LEAP_TASK_INITIALIZE] = _patioLeapingStrangersInit,
-        [LEAP_TASK_UPDATE]     = _patioLeapingStrangersUpdate,
-        [LEAP_TASK_EXIT]       = _patioLeapingStrangersExit,
+        [TASK_INITIALIZE] = _patioLeapingStrangersInit,
+        [TASK_UPDATE]     = _patioLeapingStrangersUpdate,
+        [TASK_EXIT]       = _patioLeapingStrangersExit,
     },
 };
 
@@ -112,7 +108,7 @@ static AnimationSet** const _gActorMotionAnimBanks19[1] SECTION(".data") = {
     _gPatioLeapingStrangersBodyAnimSets,
 };
 
-TaskDesc gPatioLeapingStrangersGrinningStrangerTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _patioLeapingStrangersTask, { .model = &_gStrangerGrinningBody } };
+TaskDesc gPatioLeapingStrangersTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _patioLeapingStrangersTask, { .model = &_gStrangerGrinningBody } };
 
 /// Message map for the script-controlled Grinning Stranger and its leap sequence.
 static const TaskMessageEntry _gPatioLeapingStrangersMessages[6] __attribute__((section(".data"))) = {
@@ -169,9 +165,9 @@ static void _patioLeapingStrangersUpdate(Task* task)
         }
     }
     if (gGameSession->viewReady != 0) {
-        task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(&task->extra.tmd->coords[1]);
-        worldCoordSetModelLighting(bodyModel, task->extra.tmd->coords[1].workm.t, 0, LIGHT_COUNT);
+        task->extra.tmd->coords[PELVIS_PART].composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(&task->extra.tmd->coords[PELVIS_PART]);
+        worldCoordSetModelLighting(bodyModel, task->extra.tmd->coords[PELVIS_PART].workm.t, 0, LIGHT_COUNT);
     }
     if (work->turnWeightRising != 0) {
         work->turnWeight += HEAD_WEIGHT_RISE;
@@ -243,20 +239,20 @@ static void _patioLeapingStrangersFacePlayerAfterLeap(Task* task)
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Turns the head toward a target model and shares some rotation with part 3.
+/// Turns the head toward a target's head and gives the lower neck an eighth of the turn.
 static void _patioLeapingStrangersTurnHeadToTarget(Task* task, Task* targetTask, s32 maxYaw, s32 maxPitch, s32 blendWeight)
 {
     enum {
-        HEAD_PART           = 5,
-        TARGET_HEAD_PART    = 4,
-        HEAD_REFERENCE_PART = 2,
-        HEAD_SUPPORT_PART   = 3,
+        HEAD_PART        = 5, // Of the Stranger rig
+        LOWER_NECK_PART  = 3,
+        CHEST_PART       = 2, // The frame the turn is measured in
+        TARGET_HEAD_PART = 4, // Of Aya's rig
     };
     GfxCoord* subjectCoords;
     GfxCoord* targetCoords;
     GfxCoord* headCoord;
     GfxCoord* targetHeadCoord;
-    MATRIX*   part3Rotation;
+    MATRIX*   lowerNeckRotation;
     VECTOR    toTarget;
     VECTOR    direction;
     SVECTOR   headAngles;
@@ -268,12 +264,12 @@ static void _patioLeapingStrangersTurnHeadToTarget(Task* task, Task* targetTask,
     headCoord       = &subjectCoords[HEAD_PART];
     targetHeadCoord = &targetCoords[TARGET_HEAD_PART];
 
-    // Express the world separation in the subject's part-2 frame.
+    // Express the world separation in the chest's frame.
     toTarget.vx = targetHeadCoord->workm.t[0] - headCoord->workm.t[0];
     toTarget.vy = targetHeadCoord->workm.t[1] - headCoord->workm.t[1];
     toTarget.vz = targetHeadCoord->workm.t[2] - headCoord->workm.t[2];
     VectorNormal(&toTarget, &toTarget);
-    ApplyTransposeMatrixLV(&task->extra.tmd->coords[HEAD_REFERENCE_PART].workm, &toTarget, &toTarget);
+    ApplyTransposeMatrixLV(&task->extra.tmd->coords[CHEST_PART].workm, &toTarget, &toTarget);
     VectorNormal(&toTarget, &direction);
 
     turnAngles.vx = ratan2(direction.vz, direction.vy);
@@ -286,14 +282,14 @@ static void _patioLeapingStrangersTurnHeadToTarget(Task* task, Task* targetTask,
     headAngles.vz = (u16)headAngles.vz + (u16)turnAngles.vz;
     RotMatrix(&headAngles, &subjectCoords[HEAD_PART].coord);
 
-    // Share the resulting head rotation with part 3 before reducing the head pose.
+    // Share the resulting head rotation with the lower neck before reducing the head pose.
     gfxExtractSmallestEuler(&turnAngles, &subjectCoords[HEAD_PART].coord);
-    part3Rotation = &task->extra.tmd->coords[HEAD_SUPPORT_PART].coord;
-    gfxExtractSmallestEuler(&jointAngles, part3Rotation);
+    lowerNeckRotation = &task->extra.tmd->coords[LOWER_NECK_PART].coord;
+    gfxExtractSmallestEuler(&jointAngles, lowerNeckRotation);
     jointAngles.vx = (u16)jointAngles.vx + turnAngles.vx / 8;
     jointAngles.vy = (u16)jointAngles.vy + turnAngles.vy / 8;
     jointAngles.vz = (u16)jointAngles.vz + turnAngles.vz / 8;
-    RotMatrix(&jointAngles, part3Rotation);
+    RotMatrix(&jointAngles, lowerNeckRotation);
 
     gfxExtractSmallestEuler(&jointAngles, &subjectCoords[HEAD_PART].coord);
     jointAngles.vx = jointAngles.vx * 5 / 8;
@@ -343,7 +339,6 @@ static inline void _patioLeapingStrangersApplyLeapStartAnimation(Task* task, con
 /// Handles a walk-to message by starting this actor's scripted leap.
 static s32 _patioLeapingStrangersBeginLeap(Task* task, s32 messageId, const ActorTransform* launchPlacement, const ActorMotionWalkAnim* animationRequest)
 {
-    enum { DEFAULT_LANDING_ANIMATION = 1 };
     _Work*               leapWork;
     AnimationPlayRequest startRequest;
 
@@ -360,8 +355,8 @@ static s32 _patioLeapingStrangersBeginLeap(Task* task, s32 messageId, const Acto
         startRequest.animationId   = animationRequest->animationId;
         leapWork->model.nextAnimId = animationRequest->nextAnimId;
     } else {
-        startRequest.animationId   = LEAP_ANIMATION;
-        leapWork->model.nextAnimId = DEFAULT_LANDING_ANIMATION;
+        startRequest.animationId   = STRANGER_ANIMATION_LEAP;
+        leapWork->model.nextAnimId = STRANGER_ANIMATION_REACT;
     }
     startRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
     startRequest.blendFrames          = BLEND_FRAMES;
@@ -377,7 +372,7 @@ static void _patioLeapingStrangersTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = _gPatioLeapingStrangersLeapTaskStates;
+    stateHandlers = _gPatioLeapingStrangersStates;
     stateHandlers.funcs[task->state](task);
 }
 
@@ -402,7 +397,7 @@ static void _patioLeapingStrangersInit(Task* task)
     work->walk.carry[2].word = 0;
 
     _patioLeapingStrangersBindLighting(task);
-    _patioLeapingStrangersSetDrawMode(task, ACTOR_MESSAGE_SET_MODEL_DRAW, DRAW_HIDE_AUTO, 0);
+    _patioLeapingStrangersSetDrawMode(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE, 0);
 
     task->msgTable     = _gPatioLeapingStrangersMessages;
     task->exitCallback = _patioLeapingStrangersExit;
@@ -468,7 +463,7 @@ static void _patioLeapingStrangersTurnToLaunchYaw(Task* task)
     } else {
         rootAngles.vy                      = work->walk.targetRot.vy;
         launchRequest.source.index         = 0;
-        launchRequest.animationId          = LEAP_ANIMATION;
+        launchRequest.animationId          = STRANGER_ANIMATION_LEAP;
         launchRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
         launchRequest.blendFrames          = BLEND_FRAMES;
         launchRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
@@ -546,21 +541,21 @@ static s32 _patioLeapingStrangersSetDrawMode(Task* task, s32 messageId, s32 mode
     work      = task->work;
     result    = 0;
     switch (mode) {
-        case DRAW_HIDE_AUTO:
+        case ACTOR_MESSAGE_DRAW_HIDE:
             bodyModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             bodyModel->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case DRAW_SHOW_ALLOCATE:
+        case ACTOR_MESSAGE_DRAW_SHOW:
             bodyModel->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             tmdAllocPrimitiveBuffer(bodyModel);
             bodyModel->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case DRAW_HIDE_RELEASE:
+        case ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER:
             bodyModel->flags   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->freeCountdown = mode;
             bodyModel->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case DRAW_SHOW_MANUAL:
+        case ACTOR_MESSAGE_DRAW_SHOW_SKIP_AUTO_BUFFER:
             bodyModel->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             bodyModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;

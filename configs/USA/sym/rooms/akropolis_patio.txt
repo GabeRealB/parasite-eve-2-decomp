@@ -50,7 +50,7 @@ gActor101900GrinningStrangerTaskDesc = 0x80149120; // absolute:True owner=actor_
 gActor401000StrangerTaskDesc = 0x80155004; // absolute:True owner=actor_401000
 gActor300700MothTaskDesc = 0x80165B88; // absolute:True owner=actor_300700
 gPatioSwatMemberTaskDesc = 0x80169F7C; // absolute:True owner=patio_swat_member
-gPatioLeapingStrangersGrinningStrangerTaskDesc = 0x8016CF44; // absolute:True owner=patio_leaping_strangers
+gPatioLeapingStrangersTaskDesc = 0x8016CF44; // absolute:True owner=patio_leaping_strangers
 gMapAkropolisPatioVariant1Placements = 0x8017ACFC; // absolute:True owner=map_akropolis
 gMapAkropolisPatioVariant2Placements = 0x8017AD2C; // absolute:True owner=map_akropolis
 gMapAkropolisPatioVariant3Placements = 0x8017AD7C; // absolute:True owner=map_akropolis

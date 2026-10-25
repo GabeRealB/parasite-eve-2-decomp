@@ -1,5 +1,5 @@
 // Overlay-local symbols for patio_leaping_strangers.
-gPatioLeapingStrangersGrinningStrangerTaskDesc = 0x8016CF44; // size:0xC defined:True
+gPatioLeapingStrangersTaskDesc = 0x8016CF44; // size:0xC defined:True
 _gPatioLeapingStrangersMessages = 0x8016CF50; // size:0x30 defined:True
 _gStrangerGrinningBodySkeleton = 0x80162D64; // size:0x2AC defined:True
 _gStrangerGrinningBodyPartVerts = 0x80163010; // size:0x4C defined:True
@@ -68,4 +68,4 @@ _patioLeapingStrangersUpdate = 0x80161e68; // type:func
 _patioLeapingStrangersTask = 0x80162624; // type:func
 _gPatioLeapingStrangersLeapLaunchVelocity = 0x80161e40;
 _gPatioLeapingStrangersLeapStepHandlers = 0x80161e30;
-_gPatioLeapingStrangersLeapTaskStates = 0x80161e24;
+_gPatioLeapingStrangersStates = 0x80161e24;
