@@ -665,7 +665,7 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, effectProjectileGlowTask, { NULL } },                                               // 0x081
     { { { TASK_BODY_NONE, TASK_PRIORITY_EFFECT } }, taskKill, { NULL } },                                                                // 0x082
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, akropolisPatioSpawnLightEffectsTask, { NULL } },                                    // 0x083
-    { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, akropolisHallwayEffectControlTask84, { NULL } },                                    // 0x084
+    { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, akropolisHallwayRoomEffectTask, { NULL } },                                         // 0x084
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, akropolisForkedRoadInitializeRoomEffectsTask, { NULL } },                           // 0x085
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, akropolisRoofGardenAmbientEffectsTask, { NULL } },                                  // 0x086
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, akropolisPatioLightGlowTask, { NULL } },                                            // 0x087

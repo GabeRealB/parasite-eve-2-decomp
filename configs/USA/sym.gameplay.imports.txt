@@ -1761,7 +1761,7 @@ akropolisFireEscapeLightEmitterTask = 0x8017FF7C; // type:func absolute:True own
 
 akropolisCafeteriaPuffTask = 0x8017EA90; // type:func absolute:True owner=akropolis_cafeteria shared=rooms
 
-akropolisHallwayEffectControlTask84 = 0x8017D828; // type:func absolute:True owner=akropolis_hallway
+akropolisHallwayRoomEffectTask = 0x8017D828; // type:func absolute:True owner=akropolis_hallway
 
 dryfieldToiletSprayEmitterTask = 0x8017DCF0; // type:func absolute:True owner=dryfield_toilet
 

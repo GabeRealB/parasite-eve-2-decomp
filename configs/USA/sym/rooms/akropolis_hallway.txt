@@ -52,7 +52,7 @@ gMapAkropolisHallwayVariant2Placements = 0x8017B0DC; // absolute:True owner=map_
 gMapAkropolisHallwayVariant3Placements = 0x8017B0FC; // absolute:True owner=map_akropolis
 gMapAkropolisHallwayVariant4Placements = 0x8017B11C; // absolute:True owner=map_akropolis
 
-akropolisHallwayEffectControlTask84 = 0x8017D828; // type:func
+akropolisHallwayRoomEffectTask = 0x8017D828; // type:func
 _actorContactApplyGridPushback = 0x8017D830; // type:func
 _actorContactApplyBearingPushback = 0x8017D9D4; // type:func
 _akropolisHallwayRejectKeyItemUse = 0x8017d72c; // type:func

@@ -26,7 +26,7 @@ enum {
 /// The cafeteria door held until MIST is contacted, and the CAP command it plays.
 enum {
     AKROPOLIS_HALLWAY_CAFETERIA_HELD_WARP    = 3,
-    AKROPOLIS_HALLWAY_CAFETERIA_HELD_COMMAND = 1,
+    AKROPOLIS_HALLWAY_CAFETERIA_HELD_COMMAND = 1, // "This one's locked, too."
 };
 
 #endif

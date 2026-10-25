@@ -160,7 +160,7 @@ static s32 _akropolisHallwayRejectKeyItemUse(Task* unusedTask, s32 unusedMessage
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// Plays room sound cues 6 and 7, the key box opening and closing.
+/// Plays room sound cues 6 and 7, the key box opening ("A key is hanging here.", CAP 2) and closing.
 static s32 _akropolisHallwayHandleSoundCue(Task* unusedTask, s32 unusedMessageId, s32 cueIndex, s32 unusedSecondArg)
 {
     switch (cueIndex) {
@@ -174,7 +174,7 @@ static s32 _akropolisHallwayHandleSoundCue(Task* unusedTask, s32 unusedMessageId
     return 0;
 }
 
-/// Registers the hallway's room-message receiver and enters its idle state.
+/// Installs the room's messages.
 static void _akropolisHallwayInitializeRoomTask(Task* task)
 {
     task->msgTable = _gAkropolisHallwayRoomMessages;
@@ -182,7 +182,7 @@ static void _akropolisHallwayInitializeRoomTask(Task* task)
     task->state = task->state + 1;
 }
 
-/// Leaves the hallway room task untouched in its idle state (state 1).
+/// The room task's idle state.
 static void _akropolisHallwayIdleRoomTask(Task* unusedTask)
 {
 }
@@ -193,7 +193,7 @@ void akropolisHallwayRoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-void akropolisHallwayEffectControlTask84(Task* unusedTask)
+void akropolisHallwayRoomEffectTask(Task* unusedTask)
 {
 }
 
@@ -204,8 +204,8 @@ void akropolisHallwayEffectControlTask84(Task* unusedTask)
 void akropolisHallwayBlueKeyPickupTask(Task* task)
 {
     enum {
-        AKROPOLIS_HALLWAY_BLUE_KEY_VIEW      = 5,
-        AKROPOLIS_HALLWAY_BLUE_KEY_COLLECTED = 2,
+        VIEW      = 5,
+        COLLECTED = 2,
     };
 
     Enemy*     enemy;
@@ -220,21 +220,21 @@ void akropolisHallwayBlueKeyPickupTask(Task* task)
         model->otOffset = 0;
         task->state++;
     }
-    if (viewGetMappedIndex() == AKROPOLIS_HALLWAY_BLUE_KEY_VIEW) {
+    if (viewGetMappedIndex() == VIEW) {
         model->flags = TMD_OBJECT_FLAGGED_PASS;
     } else {
         model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
-    if (placementState == AKROPOLIS_HALLWAY_BLUE_KEY_COLLECTED) {
+    if (placementState == COLLECTED) {
         model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 }
 
-/// Retains an unreferenced placed-model visibility callback in the room image.
+/// A placed model's draw task, like the blue key's but without the view test. Nothing installs it.
 static void _akropolisHallwayUnusedObjectVisibilityTask(Task* task)
 {
     enum {
-        AKROPOLIS_HALLWAY_OBJECT_COLLECTED = 2,
+        OBJECT_COLLECTED = 2,
     };
 
     Enemy*     enemy;
@@ -245,7 +245,7 @@ static void _akropolisHallwayUnusedObjectVisibilityTask(Task* task)
     model          = task->extra.tmd;
     placementState = areaGetCurrentObjectState((u8)enemy->placeKey);
     viewGetMappedIndex();
-    if (placementState == AKROPOLIS_HALLWAY_OBJECT_COLLECTED) {
+    if (placementState == OBJECT_COLLECTED) {
         model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     } else {
         model->flags    = TMD_OBJECT_FLAGGED_PASS;

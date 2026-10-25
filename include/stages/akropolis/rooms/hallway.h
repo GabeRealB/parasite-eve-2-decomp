@@ -12,42 +12,43 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-/// Actor layout variants for the Acropolis hallway.
+/// Placement variants of the hallway.
 extern AreaVariant gAkropolisHallwayAreaVariants[13];
 
+/// The blue key's model, which the Akropolis stage's pickup table places.
 extern TmdSource gAkropolisHallwayBlueKeyPickupModel;
 
-/// Collision resources for hallway room 1: mesh, view boundaries and action quads.
+/// Collision of the hallway's one room state.
 extern WorldCollisionRoomResources gAkropolisHallwayRoomCollisionResources[1];
 
-/// Hallway room 1's logical-view map, borrowing gameplay's identity map.
+/// View map of the hallway's one room state: gameplay's, where every view is its own camera.
 extern u8* gAkropolisHallwayViewMaps[1];
 
-/// Hallway room 1's five logical views, limiting reverse map searches.
+/// Number of views: 5.
 extern ViewCount gAkropolisHallwayViewCounts[1];
 
-/// Hallway room 1's three point lights and default ambient minima.
+/// Lighting of the hallway's one room state: three point lights.
 extern WorldCoordRoomLighting gAkropolisHallwayRoomLightingTable[1];
 
-/// Four hallway warp endpoints, indexed by the 1-based warp ID minus one.
+/// Arrival points by warp.
 extern DirectionWarpEntry gAkropolisHallwayWarpEntries[4];
 
-/// Hallway mapped views 1..5, selecting decoded backgrounds without source sprites.
+/// Occlusion sprites of each view: none.
 extern SpriteView gAkropolisHallwaySpriteViews[5];
 
-/// Hallway cameras for mapped views 1..5, indexed by mapped view minus one.
+/// Cameras of each view.
 extern ViewCamera gAkropolisHallwayViewCameras[5];
 
-/// Hallway surface responses for collision classes 0..7, with no terminator.
+/// Surface properties by collision class.
 extern WorldCollisionSurfaceProperties* gAkropolisHallwaySurfacePropertiesByClass[8];
 
-/// Inert task callback for the hallway's effect-bank-6 slot 0x84.
-void akropolisHallwayEffectControlTask84(Task* unusedTask);
+/// The hallway's room effect task: it has no effects.
+void akropolisHallwayRoomEffectTask(Task* unusedTask);
 
-/// Runs the hallway's room-message receiver.
+/// The hallway's room task: installs its messages.
 void akropolisHallwayRoomTask(Task* task);
 
-/// Shows the hallway Blue Key pickup only in mapped view 5 until collected.
+/// The blue key in its box: drawn in view 5, the box's close view, until it is taken ("A key is hanging here.").
 void akropolisHallwayBlueKeyPickupTask(Task* task);
 
 #endif // INCLUDE_STAGES_AKROPOLIS_ROOMS_HALLWAY_H
