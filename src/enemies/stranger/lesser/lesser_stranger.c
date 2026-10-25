@@ -137,26 +137,12 @@ static EnemyParams _gLesserStrangerParams = {
     .damageOverTimeChance = 100,
 };
 
-/// Eighteen halfwords, three rows of six, that nothing reads; their role is unproven.
-static u16 _gLesserStrangerUnusedTable[18] = {
-    20,
-    900,
-    12,
-    2000,
-    0,
-    0,
-    10,
-    800,
-    12,
-    2500,
-    0,
-    0,
-    0,
-    500,
-    12,
-    3000,
-    0,
-    0,
+/// The Odd Stranger's three combat tunings (down ticks, sidestep angle and delay, notice radius), as actor_401000
+/// reads them; this package carries the table but nothing here reads it.
+static ActorStrangerVariant _gLesserStrangerUnusedStrangerVariants[3] = {
+    { 20, 900, 12, 2000, { 0, 0, 0, 0 } },
+    { 10, 800, 12, 2500, { 0, 0, 0, 0 } },
+    { 0, 500, 12, 3000, { 0, 0, 0, 0 } },
 };
 
 /// The fire-escape Stranger's two body clips, indexed by `LESSER_ANIMATION_*`.

@@ -323,26 +323,12 @@ static EnemyParams _gCafeteriaBossStrangerUnusedEnemyParams = {
     .damageOverTimeTicks  = 0,
 };
 
-/// Unreferenced halfwords; their role and record boundaries are unproven.
-static u16 D_actor_110600_80138F34[18] = {
-    20,
-    900,
-    12,
-    2000,
-    0,
-    0,
-    10,
-    800,
-    12,
-    2500,
-    0,
-    0,
-    0,
-    500,
-    12,
-    3000,
-    0,
-    0,
+/// The Odd Stranger's three combat tunings (down ticks, sidestep angle and delay, notice radius), as actor_401000
+/// reads them; this package carries the table but nothing here reads it.
+static ActorStrangerVariant _gCafeteriaBossStrangerUnusedStrangerVariants[3] = {
+    { 20, 900, 12, 2000, { 0, 0, 0, 0 } },
+    { 10, 800, 12, 2500, { 0, 0, 0, 0 } },
+    { 0, 500, 12, 3000, { 0, 0, 0, 0 } },
 };
 
 #include "assets/rooms/akropolis/cafeteria/boss_stranger_schema.h"
@@ -437,16 +423,12 @@ static TaskMessageEntry _gCafeteriaBossStrangerMessages[7] = {
 /// Overlay-wide footstep-shake phase, cycling 1..4 then 0 once per shake tick.
 static s16 _gCafeteriaBossStrangerFootstepShakePhase = 0;
 
-/// Unreferenced halfwords matching two cafeteria VRAM rectangles; their use is unproven.
-static u16 D_actor_110600_80148660[8] = {
-    704,
-    0,
-    64,
-    256,
-    0,
-    271,
-    256,
-    1,
+/// Two VRAM rectangles nothing here reads: the sources of the cafeteria's post-battle copy
+/// (`_akropolisCafeteriaCopyPostBattleVram` moves the skin view 16 uploads at (704, 0) onto the boss's first texture page,
+/// and palette row 271 onto its palette), which the room keeps its own copy of.
+static RECT _gCafeteriaBossStrangerUnusedVramRects[2] = {
+    { 704, 0, 64, 256 },
+    { 0, 271, 256, 1 },
 };
 
 TaskDesc gCafeteriaBossStrangerTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_ACTOR } }, _cafeteriaBossStrangerTask, { .model = &_gAkropolisCafeteriaBossStrangerBody } };
