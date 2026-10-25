@@ -270,6 +270,20 @@ def decode_file(name: str, assets: dict, assets_root: Path) -> list[Path]:
             stored[e["chunk"]] = pages
     palettes: dict[tuple[str, str], list[int]] = {}
     written = []
+
+    def recoloring(texture: str, variant: str) -> list[int] | None:
+        """A variant another file uploads the palette of, for a page this one uploads (a resident page that rooms
+        recolor: the effect atlas's fireball palettes are the landing pad's)."""
+        for other in assets.values():
+            if other.get("type") != "file" or other is assets[name]:
+                continue
+            for o in other.get("contents", ()):
+                for p in (o.get("palettes", ()) if "pages" not in o else ()):
+                    if p.get("texture") == texture and p.get("variant") == variant:
+                        block = palette_block(chunk_path(assets_root, assets, o["chunk"]).read_bytes())
+                        return palette_at([block], place_at(p, assets), PALETTE_ENTRIES[assets[texture]["bpp"]])
+        return None
+
     for e in [*contents, *borrowed]:
         for p in e.get("palettes", ()):
             if e in borrowed and "texture" not in p:
@@ -310,6 +324,7 @@ def decode_file(name: str, assets: dict, assets_root: Path) -> list[Path]:
                     path = variant_path(assets_root, assets, texture, variant)
                     path.parent.mkdir(parents=True, exist_ok=True)
                     write_variant(path, texels, tex, from_exe.get(variant) or palettes.get((texture, variant))
+                                  or recoloring(texture, variant)
                                   or (gray_ramp(tex["bpp"]) if tex.get("no_palette") else None))
                     written.append(path)
     for e in contents:

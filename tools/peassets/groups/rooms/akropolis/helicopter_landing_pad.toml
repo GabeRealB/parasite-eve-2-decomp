@@ -24,48 +24,246 @@ palettes = [
 [[file.contents]]
 chunk = "palette_2"
 sha1 = "8f52d6ca09354deea1c944d19a32ae6732721dd3"
-palettes = [
-    { texture = "sparks", variant = "sparkle", region = "engine/vram/effect_palettes", offset = [0x00000, 0x00009] },
-    { name = "unread_270_16", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00010, 0x00009] },
-    { texture = "sparks", variant = "smudge", region = "engine/vram/effect_palettes", offset = [0x00020, 0x00009] },
-    { texture = "sparks", variant = "ember", region = "engine/vram/effect_palettes", offset = [0x00030, 0x00009] },
-    { texture = "sparks", variant = "lens_flare", region = "engine/vram/effect_palettes", offset = [0x00040, 0x00009] },
-    { name = "unread_270_80", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00050, 0x00009] },
-    { name = "unread_270_96", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00060, 0x00009] },
-    { name = "unread_270_112", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00070, 0x00009] },
-    { name = "unread_270_128", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00080, 0x00009] },
-    { name = "unread_270_144", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00090, 0x00009] },
-    { name = "unread_270_160", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000A0, 0x00009] },
-    { name = "unread_270_176", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000B0, 0x00009] },
-    { name = "unread_270_192", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000C0, 0x00009] },
-    { name = "unread_270_208", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000D0, 0x00009] },
-    { name = "unread_270_224", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000E0, 0x00009] },
-    { name = "unread_270_240", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000F0, 0x00009] },
-    { name = "unread_270_256", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00100, 0x00009] },
-    { name = "unread_270_272", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00110, 0x00009] },
-    { name = "unread_270_288", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00120, 0x00009] },
-    { name = "unread_270_304", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00130, 0x00009] },
-    { texture = "sparks", variant = "tongue_0", region = "engine/vram/effect_palettes", offset = [0x00000, 0x0000A] },
-    { texture = "sparks", variant = "tongue_1", region = "engine/vram/effect_palettes", offset = [0x00010, 0x0000A] },
-    { texture = "sparks", variant = "tongue_2", region = "engine/vram/effect_palettes", offset = [0x00020, 0x0000A] },
-    { texture = "sparks", variant = "tongue_3", region = "engine/vram/effect_palettes", offset = [0x00030, 0x0000A] },
-    { texture = "sparks", variant = "tongue_4", region = "engine/vram/effect_palettes", offset = [0x00040, 0x0000A] },
-    { texture = "sparks", variant = "tongue_5", region = "engine/vram/effect_palettes", offset = [0x00050, 0x0000A] },
-    { texture = "sparks", variant = "tongue_6", region = "engine/vram/effect_palettes", offset = [0x00060, 0x0000A] },
-    { texture = "sparks", variant = "tongue_7", region = "engine/vram/effect_palettes", offset = [0x00070, 0x0000A] },
-    { texture = "sparks", variant = "burning_0", region = "engine/vram/effect_palettes", offset = [0x00080, 0x0000A] },
-    { texture = "sparks", variant = "burning_1", region = "engine/vram/effect_palettes", offset = [0x00090, 0x0000A] },
-    { texture = "sparks", variant = "burning_2", region = "engine/vram/effect_palettes", offset = [0x000A0, 0x0000A] },
-    { texture = "sparks", variant = "burning_3", region = "engine/vram/effect_palettes", offset = [0x000B0, 0x0000A] },
-    { texture = "sparks", variant = "burning_4", region = "engine/vram/effect_palettes", offset = [0x000C0, 0x0000A] },
-    { texture = "sparks", variant = "burning_5", region = "engine/vram/effect_palettes", offset = [0x000D0, 0x0000A] },
-    { texture = "sparks", variant = "burning_6", region = "engine/vram/effect_palettes", offset = [0x000E0, 0x0000A] },
-    { texture = "sparks", variant = "burning_7", region = "engine/vram/effect_palettes", offset = [0x000F0, 0x0000A] },
-    { texture = "sparks", variant = "burning_8", region = "engine/vram/effect_palettes", offset = [0x00100, 0x0000A] },
-    { texture = "sparks", variant = "burning_9", region = "engine/vram/effect_palettes", offset = [0x00110, 0x0000A] },
-    { texture = "sparks", variant = "burning_10", region = "engine/vram/effect_palettes", offset = [0x00120, 0x0000A] },
-    { texture = "sparks", variant = "burning_11", region = "engine/vram/effect_palettes", offset = [0x00130, 0x0000A] },
-]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "sparkle"
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_16"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00010, 0x00009]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "smudge"
+region = "engine/vram/effect_palettes"
+offset = [0x00020, 0x00009]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "ember"
+region = "engine/vram/effect_palettes"
+offset = [0x00030, 0x00009]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "lens_flare"
+region = "engine/vram/effect_palettes"
+offset = [0x00040, 0x00009]
+
+[[file.contents.palettes]]
+texture = "rooms/akropolis/west_elevator_hall/effect_atlas"
+variant = "fireball_0"
+region = "engine/vram/effect_palettes"
+offset = [0x00050, 0x00009]
+
+[[file.contents.palettes]]
+texture = "rooms/akropolis/west_elevator_hall/effect_atlas"
+variant = "fireball_1"
+region = "engine/vram/effect_palettes"
+offset = [0x00060, 0x00009]
+
+[[file.contents.palettes]]
+texture = "rooms/akropolis/west_elevator_hall/effect_atlas"
+variant = "fireball_2"
+region = "engine/vram/effect_palettes"
+offset = [0x00070, 0x00009]
+
+[[file.contents.palettes]]
+texture = "rooms/akropolis/west_elevator_hall/effect_atlas"
+variant = "fireball_3"
+region = "engine/vram/effect_palettes"
+offset = [0x00080, 0x00009]
+
+[[file.contents.palettes]]
+texture = "rooms/akropolis/west_elevator_hall/effect_atlas"
+variant = "fireball_4"
+region = "engine/vram/effect_palettes"
+offset = [0x00090, 0x00009]
+
+[[file.contents.palettes]]
+texture = "rooms/akropolis/west_elevator_hall/effect_atlas"
+variant = "fireball_5"
+region = "engine/vram/effect_palettes"
+offset = [0x000A0, 0x00009]
+
+[[file.contents.palettes]]
+texture = "rooms/akropolis/west_elevator_hall/effect_atlas"
+variant = "fireball_6"
+region = "engine/vram/effect_palettes"
+offset = [0x000B0, 0x00009]
+
+[[file.contents.palettes]]
+texture = "rooms/akropolis/west_elevator_hall/effect_atlas"
+variant = "fireball_7"
+region = "engine/vram/effect_palettes"
+offset = [0x000C0, 0x00009]
+
+[[file.contents.palettes]]
+texture = "rooms/akropolis/west_elevator_hall/effect_atlas"
+variant = "fireball_8"
+region = "engine/vram/effect_palettes"
+offset = [0x000D0, 0x00009]
+
+[[file.contents.palettes]]
+texture = "rooms/akropolis/west_elevator_hall/effect_atlas"
+variant = "fireball_9"
+region = "engine/vram/effect_palettes"
+offset = [0x000E0, 0x00009]
+
+[[file.contents.palettes]]
+texture = "rooms/akropolis/west_elevator_hall/effect_atlas"
+variant = "fireball_10"
+region = "engine/vram/effect_palettes"
+offset = [0x000F0, 0x00009]
+
+[[file.contents.palettes]]
+texture = "rooms/akropolis/west_elevator_hall/effect_atlas"
+variant = "fireball_11"
+region = "engine/vram/effect_palettes"
+offset = [0x00100, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_272"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00110, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_288"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00120, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_304"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00130, 0x00009]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "tongue_0"
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "tongue_1"
+region = "engine/vram/effect_palettes"
+offset = [0x00010, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "tongue_2"
+region = "engine/vram/effect_palettes"
+offset = [0x00020, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "tongue_3"
+region = "engine/vram/effect_palettes"
+offset = [0x00030, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "tongue_4"
+region = "engine/vram/effect_palettes"
+offset = [0x00040, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "tongue_5"
+region = "engine/vram/effect_palettes"
+offset = [0x00050, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "tongue_6"
+region = "engine/vram/effect_palettes"
+offset = [0x00060, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "tongue_7"
+region = "engine/vram/effect_palettes"
+offset = [0x00070, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "burning_0"
+region = "engine/vram/effect_palettes"
+offset = [0x00080, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "burning_1"
+region = "engine/vram/effect_palettes"
+offset = [0x00090, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "burning_2"
+region = "engine/vram/effect_palettes"
+offset = [0x000A0, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "burning_3"
+region = "engine/vram/effect_palettes"
+offset = [0x000B0, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "burning_4"
+region = "engine/vram/effect_palettes"
+offset = [0x000C0, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "burning_5"
+region = "engine/vram/effect_palettes"
+offset = [0x000D0, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "burning_6"
+region = "engine/vram/effect_palettes"
+offset = [0x000E0, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "burning_7"
+region = "engine/vram/effect_palettes"
+offset = [0x000F0, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "burning_8"
+region = "engine/vram/effect_palettes"
+offset = [0x00100, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "burning_9"
+region = "engine/vram/effect_palettes"
+offset = [0x00110, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "burning_10"
+region = "engine/vram/effect_palettes"
+offset = [0x00120, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "burning_11"
+region = "engine/vram/effect_palettes"
+offset = [0x00130, 0x0000A]
 
 [[file.contents]]
 chunk = "image"

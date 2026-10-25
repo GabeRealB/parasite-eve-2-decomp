@@ -102,7 +102,8 @@ typedef struct {
 } _SpritePalette;
 STATIC_ASSERT_SIZEOF(_SpritePalette, 4);
 
-/// Twelve fireball palettes, one per frame of `gEffectSpriteAtlasFrames`.
+/// Twelve fireball palettes, one per frame of `gEffectSpriteAtlasFrames`: the landing pad's row 270, the effect atlas's
+/// `fireball_*` variants.
 static const _SpritePalette _gHelicopterLandingPadNo9FireballFramePalettes[12] __attribute__((section(".data"))) = {
     { 80, 270 },
     { 96, 270 },

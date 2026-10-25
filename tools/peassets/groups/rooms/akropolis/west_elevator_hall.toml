@@ -18,7 +18,7 @@ chunk = "image"
 sha1 = "3b124dc62c9c258391c09c756039fc0c08e0b47b"
 pages = [
     { texture = "sparks_page_1", region = "engine/vram/effect_sheet", offset = [0x00000, 0x00000] },
-    { texture = "flash", region = "engine/vram/effect_sheet", offset = [0x00040, 0x00000] },
+    { texture = "effect_atlas", region = "engine/vram/effect_sheet", offset = [0x00040, 0x00000] },
     { texture = "sparks_page_3", region = "engine/vram/effect_sheet", offset = [0x00080, 0x00000] },
 ]
 
@@ -27,26 +27,116 @@ chunk = "palette"
 sha1 = "0805cb08c64455f575c67eb7e4e63598094c46ef"
 
 [[file.contents.palettes]]
-name = "unread_row_265"
-entries = 256
+name = "unread_265_0"
+entries = 16
 region = "engine/vram/effect_palettes"
 offset = [0x00000, 0x00004]
 
 [[file.contents.palettes]]
-name = "unread_265_256"
+name = "unread_265_16"
 entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00010, 0x00004]
+
+[[file.contents.palettes]]
+name = "unread_265_32"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00020, 0x00004]
+
+[[file.contents.palettes]]
+name = "unread_265_48"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00030, 0x00004]
+
+[[file.contents.palettes]]
+name = "unread_265_64"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00040, 0x00004]
+
+[[file.contents.palettes]]
+name = "unread_265_80"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00050, 0x00004]
+
+[[file.contents.palettes]]
+name = "unread_265_96"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00060, 0x00004]
+
+[[file.contents.palettes]]
+texture = "effect_atlas"
+variant = "explosion_0"
+region = "engine/vram/effect_palettes"
+offset = [0x00070, 0x00004]
+
+[[file.contents.palettes]]
+texture = "effect_atlas"
+variant = "explosion_1"
+region = "engine/vram/effect_palettes"
+offset = [0x00080, 0x00004]
+
+[[file.contents.palettes]]
+texture = "effect_atlas"
+variant = "explosion_2"
+region = "engine/vram/effect_palettes"
+offset = [0x00090, 0x00004]
+
+[[file.contents.palettes]]
+texture = "effect_atlas"
+variant = "explosion_3"
+region = "engine/vram/effect_palettes"
+offset = [0x000A0, 0x00004]
+
+[[file.contents.palettes]]
+texture = "effect_atlas"
+variant = "explosion_4"
+region = "engine/vram/effect_palettes"
+offset = [0x000B0, 0x00004]
+
+[[file.contents.palettes]]
+texture = "effect_atlas"
+variant = "explosion_5"
+region = "engine/vram/effect_palettes"
+offset = [0x000C0, 0x00004]
+
+[[file.contents.palettes]]
+texture = "effect_atlas"
+variant = "explosion_6"
+region = "engine/vram/effect_palettes"
+offset = [0x000D0, 0x00004]
+
+[[file.contents.palettes]]
+texture = "effect_atlas"
+variant = "explosion_7"
+region = "engine/vram/effect_palettes"
+offset = [0x000E0, 0x00004]
+
+[[file.contents.palettes]]
+texture = "effect_atlas"
+variant = "explosion_8"
+region = "engine/vram/effect_palettes"
+offset = [0x000F0, 0x00004]
+
+[[file.contents.palettes]]
+texture = "effect_atlas"
+variant = "explosion_9"
 region = "engine/vram/effect_palettes"
 offset = [0x00100, 0x00004]
 
 [[file.contents.palettes]]
-name = "unread_265_272"
-entries = 16
+texture = "effect_atlas"
+variant = "explosion_10"
 region = "engine/vram/effect_palettes"
 offset = [0x00110, 0x00004]
 
 [[file.contents.palettes]]
-name = "unread_265_288"
-entries = 16
+texture = "effect_atlas"
+variant = "explosion_11"
 region = "engine/vram/effect_palettes"
 offset = [0x00120, 0x00004]
 
@@ -123,7 +213,7 @@ region = "engine/vram/effect_palettes"
 offset = [0x000A0, 0x00005]
 
 [[file.contents.palettes]]
-texture = "flash"
+texture = "effect_atlas"
 variant = "default"
 region = "engine/vram/effect_palettes"
 offset = [0x000B0, 0x00005]
@@ -392,14 +482,6 @@ bpp = 8
 height = 256
 variants = ["default"]
 width = 128
-
-[flash]
-type = "texture"
-bpp = 4
-cells = { flash_1 = [112, 200, 56, 56], flash_2 = [168, 200, 56, 56] }
-height = 256
-variants = ["default"]
-width = 256
 
 [bundle]
 type = "pe2bundle"
@@ -688,6 +770,55 @@ type = "animation_bank"
 clips = { step_out = "rooms/akropolis/west_elevator_hall/player_step_out" }
 schema = "rooms/akropolis/west_elevator_hall/arrival_schema"
 symbol = "_gAkropolisWestElevatorHallArrivalAnimationSets"
+
+[effect_atlas]
+type = "texture"
+bpp = 4
+height = 256
+variants = [
+    "default",
+    "explosion_0",
+    "explosion_1",
+    "explosion_2",
+    "explosion_3",
+    "explosion_4",
+    "explosion_5",
+    "explosion_6",
+    "explosion_7",
+    "explosion_8",
+    "explosion_9",
+    "explosion_10",
+    "explosion_11",
+    "fireball_0",
+    "fireball_1",
+    "fireball_2",
+    "fireball_3",
+    "fireball_4",
+    "fireball_5",
+    "fireball_6",
+    "fireball_7",
+    "fireball_8",
+    "fireball_9",
+    "fireball_10",
+    "fireball_11",
+]
+width = 256
+
+[effect_atlas.cells]
+explosion_0 = [0, 0, 40, 40]
+explosion_1 = [40, 0, 40, 40]
+explosion_2 = [80, 0, 40, 40]
+explosion_3 = [120, 0, 40, 40]
+explosion_4 = [160, 0, 40, 40]
+explosion_5 = [200, 0, 40, 40]
+explosion_6 = [0, 40, 40, 40]
+explosion_7 = [40, 40, 40, 40]
+explosion_8 = [80, 40, 40, 40]
+explosion_9 = [120, 40, 40, 40]
+explosion_10 = [160, 40, 40, 40]
+explosion_11 = [200, 40, 40, 40]
+flash_1 = [112, 200, 56, 56]
+flash_2 = [168, 200, 56, 56]
 
 [view2_page_1]
 type = "texture"

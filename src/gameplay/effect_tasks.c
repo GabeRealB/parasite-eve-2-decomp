@@ -485,6 +485,8 @@ const EffectUnitQuadCorner gEffectUnitQuadCorners[4] __attribute__((section(".da
     { -1, -1 },
     { 1, -1 },
 };
+/// The twelve explosion frames of the resident effect atlas (rooms/akropolis/west_elevator_hall/effect_atlas, cells
+/// `explosion_*`), each with its own palette on row 265 (its `explosion_*` variants).
 // Preserve the initialized-data placement of this shared read-only table.
 const EffectSpriteTextureFrame gEffectSpriteAtlasFrames[12] __attribute__((section(".data"))) = {
     { 0, 0, 0, 0, 112, 265 },

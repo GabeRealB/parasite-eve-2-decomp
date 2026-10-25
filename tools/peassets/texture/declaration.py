@@ -443,11 +443,16 @@ def check_file(key: str, rec: dict[str, Any], assets: dict[str, dict[str, Any]])
     listed = {(p["texture"], p["variant"]) for e in entries
               for p in (e.get("palettes") or (declared(e.get("chunk"), "palettes") if not is_chunk_entry(e) else ()))
               if "texture" in p}
+    # A variant another file uploads the palette of recolors a page this one uploads.
+    elsewhere = {(p["texture"], p["variant"]) for other_key, other in assets.items()
+                 if other.get("type") == "file" and other_key != key
+                 for e in other.get("contents", ()) if "pages" not in e
+                 for p in (e.get("palettes") or ()) if "texture" in p}
     for name in sorted(paged):
         tex = assets.get(name, {})
         if tex.get("bpp") not in PALETTE_ENTRIES or isinstance(tex.get("palettes_from"), str) or tex.get("no_palette"):
             continue
         for variant in tex.get("variants", ()):
-            if (name, variant) not in listed and variant not in tex.get("palettes_from", {}):
+            if (name, variant) not in listed | elsewhere and variant not in tex.get("palettes_from", {}):
                 problems.append(f"{key}: uploads no palette for {name}.{variant}")
     return problems

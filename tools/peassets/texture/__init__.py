@@ -22,7 +22,8 @@ A page or palette is placed by naming a VRAM region (a `vram_region`: a rectangl
 plus an `offset` in it where the region is larger than what is placed; a region may be `within` another, as part of it. A page holds one texture or one `atlas`, a record listing its `sprites`,
 textures each at a texel `at` of its own depth (the UI sheet); a texture whose palettes an executable uploads names
 that embedded palette as `palettes_from` (the UI font's), or a table of variants and their own (the security room's lamps). A file may name another group's chunks (`asset`) and
-textures by path. An image chunk's entry may also state `slots`, where its page table has room for more pages than it holds, a page
+textures by path; a palette a file uploads for another file's resident page is a variant of that page's texture (the
+landing pad's fireball palettes recolor the effect atlas the boot files upload), decoded with the page. An image chunk's entry may also state `slots`, where its page table has room for more pages than it holds, a page
 `truncated = true`, where its last strip stores one byte less, and any chunk its `sector_len`, where the file gives
 it less than the whole 0x800-byte sector (chunks.py says what each means).
 
