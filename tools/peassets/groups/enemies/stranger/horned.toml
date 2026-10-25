@@ -27,12 +27,105 @@ joints = [
     "left_foot",
 ]
 
+[run]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[bank]
+type = "animation_bank"
+schema = "enemies/stranger/horned/schema"
+symbol = "_gActor401300AnimationSets"
+
+[bank.clips]
+walk = "enemies/stranger/odd/b_walk"
+run = "enemies/stranger/horned/run"
+rise_back = "enemies/stranger/odd/b_rise_back"
+down = "enemies/stranger/odd/alert"
+stagger_back = "enemies/stranger/odd/fall_back"
+fall_back = "enemies/stranger/down_back"
+fall_front = "enemies/stranger/odd/down_front"
+flinch = "enemies/stranger/odd/flinch"
+dormant = "enemies/stranger/odd/dormant"
+dormant_alternate = "enemies/stranger/odd/dormant_fidget"
+back_off = "enemies/stranger/odd/back_off"
+slide = "enemies/stranger/odd/slide"
+grab_windup = "enemies/stranger/odd/ambush"
+rise_front = "enemies/stranger/odd/rise_front"
+hold_back = "enemies/stranger/down_back"
+hold_front = "enemies/stranger/odd/down_front"
+strike_a = "rooms/akropolis/patio/body_anim_04"
+strike_b = "rooms/akropolis/patio/stranger_wait_1"
+charge_run = "enemies/stranger/horned/charge_run"
+charge_close = "enemies/stranger/horned/charge_close"
+charge_finish = "enemies/stranger/horned/charge_finish"
+charge_recoil = "enemies/stranger/horned/charge_recoil"
+leap_crouch = "rooms/akropolis/patio/stranger_wait_2"
+leap = "rooms/akropolis/patio/stranger_leap_start"
+land = "enemies/stranger/horned/land"
+refall_front = "enemies/stranger/odd/refall_front"
+burst_walk_final = "enemies/stranger/burst_collapse"
+
 [body]
 type = "model"
 rig = "enemies/stranger/horned/rig"
 slots = ["page_2", "page_1"]
 symbol = "_gStrangerHornedBody"
 sha1 = "f228e819f66f2cf177e1a34c408bd54449db3775"
+
+[land]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[schema]
+type = "animation_schema"
+slots = [
+    "",
+    "",
+    "walk",
+    "run",
+    "grab",
+    "grab_pull",
+    "grab_strike",
+    "",
+    "rise_back",
+    "down",
+    "stagger_back",
+    "fall_back",
+    "fall_front",
+    "flinch",
+    "dormant",
+    "dormant_alternate",
+    "dormant_scripted",
+    "back_off",
+    "slide",
+    "grab_windup",
+    "sidestep_negative",
+    "sidestep_positive",
+    "rise_front",
+    "hold_back",
+    "hold_front",
+    "strike_a",
+    "strike_b",
+    "charge_run",
+    "charge_close",
+    "charge_finish",
+    "charge_recoil",
+    "leap_crouch",
+    "leap",
+    "land",
+    "refall_front",
+    "burst_walk_final",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+]
 
 [sounds]
 type = "sound_bank"
@@ -92,21 +185,240 @@ sha1 = "65ba3540ac8cf3d479c58e48a8e49d1310bbbbed"
 
 [package_4]
 type = "pe2pkg"
-embedded = [
-    { name = "burst_arm", offset = 0x15494, size = 0x604, address = 0x801472B4 },
-    { name = "burst_head", offset = 0x15A98, size = 0xF74, address = 0x801478B8 },
-    { name = "burst_fragment", offset = 0x16A0C, size = 0x20C, address = 0x8014882C },
-    "actor_401300_animation_16C18",
-]
 package_name = "actor_401300"
 required = true
 sha1 = "a4ce43e3dfd15c991531dc6ac76860fd2ffa7734"
+
+[[package_4.embedded]]
+name = "burst_arm"
+offset = 0x15494
+size = 0x604
+address = 0x801472B4
+
+[[package_4.embedded]]
+name = "burst_head"
+offset = 0x15A98
+size = 0xF74
+address = 0x801478B8
+
+[[package_4.embedded]]
+name = "burst_fragment"
+offset = 0x16A0C
+size = 0x20C
+address = 0x8014882C
+
+[[package_4.embedded]]
+asset = "enemies/stranger/odd/b_walk"
+offset = 0x16C18
+size = 0xB24
+address = 0x80148A38
+
+[[package_4.embedded]]
+asset = "rooms/akropolis/patio/body_anim_04"
+offset = 0x1773C
+size = 0xFC4
+address = 0x8014955C
+
+[[package_4.embedded]]
+asset = "rooms/akropolis/patio/stranger_wait_1"
+offset = 0x18700
+size = 0x1028
+address = 0x8014A520
+
+[[package_4.embedded]]
+asset = "enemies/stranger/odd/slide"
+offset = 0x19728
+size = 0xA70
+address = 0x8014B548
+
+[[package_4.embedded]]
+asset = "enemies/stranger/odd/flinch"
+offset = 0x1A198
+size = 0x5E0
+address = 0x8014BFB8
+
+[[package_4.embedded]]
+asset = "enemies/stranger/odd/down_front"
+offset = 0x1A778
+size = 0x5E4
+address = 0x8014C598
+
+[[package_4.embedded]]
+asset = "enemies/stranger/odd/dormant_fidget"
+offset = 0x1AD5C
+size = 0xA54
+address = 0x8014CB7C
+
+[[package_4.embedded]]
+asset = "enemies/stranger/odd/b_rise_back"
+offset = 0x1B7B0
+size = 0xD44
+address = 0x8014D5D0
+
+[[package_4.embedded]]
+asset = "enemies/stranger/odd/rise_front"
+offset = 0x1C4F4
+size = 0x870
+address = 0x8014E314
+
+[[package_4.embedded]]
+asset = "enemies/stranger/odd/refall_front"
+offset = 0x1CD64
+size = 0x390
+address = 0x8014EB84
+
+[[package_4.embedded]]
+asset = "enemies/stranger/odd/alert"
+offset = 0x1D0F4
+size = 0x838
+address = 0x8014EF14
+
+[[package_4.embedded]]
+asset = "enemies/stranger/odd/back_off"
+offset = 0x1D92C
+size = 0x550
+address = 0x8014F74C
+
+[[package_4.embedded]]
+asset = "enemies/stranger/odd/dormant"
+offset = 0x1DE7C
+size = 0xF18
+address = 0x8014FC9C
+
+[[package_4.embedded]]
+asset = "enemies/stranger/odd/fall_back"
+offset = 0x1ED94
+size = 0x3A4
+address = 0x80150BB4
+
+[[package_4.embedded]]
+asset = "enemies/stranger/down_back"
+offset = 0x1F138
+size = 0x3B4
+address = 0x80150F58
+
+[[package_4.embedded]]
+asset = "enemies/stranger/burst_collapse"
+offset = 0x1F4EC
+size = 0x384
+address = 0x8015130C
+
+[[package_4.embedded]]
+asset = "enemies/stranger/odd/ambush"
+offset = 0x1F870
+size = 0x6F4
+address = 0x80151690
+
+[[package_4.embedded]]
+asset = "enemies/stranger/odd/scripted_dormant"
+offset = 0x1FF64
+size = 0xE5C
+address = 0x80151D84
+
+[[package_4.embedded]]
+name = "run"
+offset = 0x20DC0
+size = 0x880
+address = 0x80152BE0
+
+[[package_4.embedded]]
+name = "charge_run"
+offset = 0x21640
+size = 0x7C8
+address = 0x80153460
+
+[[package_4.embedded]]
+name = "charge_close"
+offset = 0x21E08
+size = 0x53C
+address = 0x80153C28
+
+[[package_4.embedded]]
+name = "charge_finish"
+offset = 0x22344
+size = 0x73C
+address = 0x80154164
+
+[[package_4.embedded]]
+name = "charge_recoil"
+offset = 0x22A80
+size = 0x5E4
+address = 0x801548A0
+
+[[package_4.embedded]]
+asset = "rooms/akropolis/patio/stranger_wait_2"
+offset = 0x23064
+size = 0x408
+address = 0x80154E84
+
+[[package_4.embedded]]
+asset = "rooms/akropolis/patio/stranger_leap_start"
+offset = 0x2346C
+size = 0x654
+address = 0x8015528C
+
+[[package_4.embedded]]
+name = "land"
+offset = 0x23AC0
+size = 0x768
+address = 0x801558E0
+
+[[package_4.embedded]]
+asset = "enemies/stinger/puppet/player_knockback_front"
+offset = 0x24228
+size = 0x848
+address = 0x80156048
+
+[[package_4.embedded]]
+asset = "enemies/stinger/puppet/player_knockback_back"
+offset = 0x24A70
+size = 0x79C
+address = 0x80156890
+
+[[package_4.embedded]]
+asset = "enemies/stinger/puppet/player_knockback_recover_front"
+offset = 0x2520C
+size = 0x80C
+address = 0x8015702C
+
+[[package_4.embedded]]
+asset = "enemies/stinger/puppet/player_knockback_recover_back"
+offset = 0x25A18
+size = 0x814
+address = 0x80157838
+
+[[package_4.embedded]]
+name = "bank"
+offset = 0x26A18
+size = 0xB8
+address = 0x80158838
+
+[[package_4.embedded]]
+name = "player_bank"
+offset = 0x26AD0
+size = 0x24
+address = 0x801588F0
 
 [burst_head]
 type = "model"
 slots = ["page_2", "page_1"]
 symbol = "_gStrangerHornedBurstHead"
 sha1 = "f6ebc63a2ebef2c9404c531896a011abfc270dc5"
+
+[charge_run]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[player_bank]
+type = "animation_bank"
+schema = "enemies/stranger/horned/player_schema"
+symbol = "_gActor401300PlayerAnimationSets"
+
+[player_bank.clips]
+fall_back = "enemies/stinger/puppet/player_knockback_front"
+fall_front = "enemies/stinger/puppet/player_knockback_back"
+rise_back = "enemies/stinger/puppet/player_knockback_recover_front"
+rise_front = "enemies/stinger/puppet/player_knockback_recover_back"
 
 [walk_step_a]
 type = "sound"
@@ -123,6 +435,10 @@ model = "enemies/stranger/horned/body"
 [body_binding.textures]
 page_2 = "enemies/stranger/horned/texture_page_2.default"
 page_1 = "enemies/stranger/horned/texture_page_1.default"
+
+[charge_close]
+type = "clip"
+rig = "enemies/stranger/rig"
 
 [package_file]
 type = "file"
@@ -158,9 +474,21 @@ offset = [0x00000, 0x00001]
 [[package_file.contents]]
 chunk = "package_1"
 
+[charge_finish]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[charge_recoil]
+type = "clip"
+rig = "enemies/stranger/rig"
+
 [player_impact]
 type = "sound"
 sha1 = "c2e17346db8c114747df239c2c98f70763d63aad"
+
+[player_schema]
+type = "animation_schema"
+slots = ["", "grabbed", "grab_struck", "grab_release", "fall_back", "fall_front", "rise_back", "rise_front", ""]
 
 [burst_fragment]
 type = "model"
