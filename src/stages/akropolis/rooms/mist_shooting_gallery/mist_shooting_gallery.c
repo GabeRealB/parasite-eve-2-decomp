@@ -13,7 +13,7 @@
 
 #include "mist_shooting_gallery_private.h"
 
-#include "actors/actor_215100.h"
+#include "stages/akropolis/actors/shooting_gallery_pierce.h"
 
 #include "gameplay/actor_presentation.h"
 #include "gameplay/attachments.h"
@@ -1290,7 +1290,7 @@ static void _mistShootingGalleryInitializeRoomTask(Task* task)
 
     task->msgTable = _gMistShootingGalleryRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    actor215100SelectCaptionResource(CAPTION_TEXTURE_X, 0, CAPTION_RESOURCE_INDEX);
+    shootingGalleryPierceSelectCaptionResource(CAPTION_TEXTURE_X, 0, CAPTION_RESOURCE_INDEX);
     if (gameFlagGetNibble(EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT) != 0) {
         sceneSetPlacedActorDrawMode(1, ACTOR_MESSAGE_DRAW_HIDE);
         storyBarrierLowered = 1;
@@ -1301,7 +1301,7 @@ static void _mistShootingGalleryInitializeRoomTask(Task* task)
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == DEMO_SCENE) {
         taskSpawnFromTable(gMistShootingGalleryTaskDescs, MIST_SHOOTING_GALLERY_TASK_COURSE_CONTROLLER, 0, 0);
     } else if (gGameSession->location.warp == CARRYOVER_WARP) {
-        taskSpawnFromTable(gActor215100GalleryTaskDescs, ACTOR_215100_GALLERY_INTRO_TASK, 0, 0);
+        taskSpawnFromTable(gShootingGalleryPierceGalleryTaskDescs, SHOOTING_GALLERY_PIERCE_GALLERY_INTRO_TASK, 0, 0);
     }
     if ((gGameSession->location.warp == TRAINING_WARP) && (gameFlagGetNibble(EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT) != 0)) {
         capRunCommandWithTransition(STORY_ENTRY_COMMAND);
@@ -1329,7 +1329,7 @@ static void _mistShootingGalleryUpdateRoomTask(Task* unusedTask)
             sceneSetPlacedActorDrawMode(1, ACTOR_MESSAGE_DRAW_SHOW);
         }
     }
-    actor215100CheckGalleryExitInput();
+    shootingGalleryPierceCheckGalleryExitInput();
 }
 /// Plays one room CAP command, then restores player control and releases itself.
 static void _mistShootingGalleryCapPlaybackTask(Task* task)
@@ -1399,8 +1399,8 @@ static s32 _mistShootingGalleryResolveRoomTransition(Task* unusedTask, s32 unuse
         }
     }
     if (request->areaId == AKROPOLIS_ROOM_ID_MIST_SHOOTING_GALLERY) {
-        if (reply->warp == CARRIED_LOADOUT_WARP && actor215100ResolveGalleryExit(request) == ACTOR_215100_GALLERY_EXIT_DEFER) {
-            return ACTOR_215100_GALLERY_EXIT_DEFER;
+        if (reply->warp == CARRIED_LOADOUT_WARP && shootingGalleryPierceResolveGalleryExit(request) == SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_DEFER) {
+            return SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_DEFER;
         }
         if (request->queryOnly == ROOM_EVENT_EXECUTE) {
             if (reply->warp == TRAINING_LOADOUT_WARP) {
@@ -1417,7 +1417,7 @@ static s32 _mistShootingGalleryResolveRoomTransition(Task* unusedTask, s32 unuse
             }
         }
     }
-    return ACTOR_215100_GALLERY_EXIT_ALLOW;
+    return SHOOTING_GALLERY_PIERCE_GALLERY_EXIT_ALLOW;
 }
 
 /// Room commands 5..8 and 33..34 play that CAP command, from file slot 1 or 3, with the player held.
@@ -1453,21 +1453,21 @@ static s32 _mistShootingGalleryHandleRoomAction(Task* unusedTask, s32 unusedMess
     enum {
         ACTION_REARM_TICKS = 10,
     };
-    if ((request->actionId == MIST_SHOOTING_GALLERY_ACTION_OPEN_COURSE_MENU) && (gActor215100GalleryTrainingActive == 0)) {
+    if ((request->actionId == MIST_SHOOTING_GALLERY_ACTION_OPEN_COURSE_MENU) && (gShootingGalleryPierceGalleryTrainingActive == 0)) {
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-        taskSpawnFromTable(gActor215100GalleryTaskDescs, ACTOR_215100_GALLERY_MENU_TASK, 1, 0);
+        taskSpawnFromTable(gShootingGalleryPierceGalleryTaskDescs, SHOOTING_GALLERY_PIERCE_GALLERY_MENU_TASK, 1, 0);
         gDirectionInteractionRearmUpdates = ACTION_REARM_TICKS;
     }
     if ((request->actionId == MIST_SHOOTING_GALLERY_ACTION_TALK_TO_PIERCE) && (gameFlagGetNibble(EVENT_FLAG_MIST_PIERCE_IN_PARKING_LOT) == 0)) {
-        actor215100StartPierceConversation();
+        shootingGalleryPierceStartPierceConversation();
     }
     if (request->actionId == MIST_SHOOTING_GALLERY_ACTION_TRAINING_POINT) {
-        actor215100HandleGalleryAction();
+        shootingGalleryPierceHandleGalleryAction();
     }
     if ((request->actionId == MIST_SHOOTING_GALLERY_ACTION_STORY_EVENT) && (gameFlagGetNibble(EVENT_FLAG_MIST_SHOOTING_GALLERY_CONTROL_ROOM_SCENE_SEEN) == 0)) {
         gameFlagSetPackedByte(EVENT_FLAG_CURRENT_OBJECTIVE, EVENT_FLAG_OBJECTIVE_MIST_SHOOTING_GALLERY_BRIEFED);
         gameFlagSetNibble(EVENT_FLAG_MIST_SHOOTING_GALLERY_CONTROL_ROOM_SCENE_SEEN, 1);
-        evsStartScriptWithSkip(gActor215100PierceStoryScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor215100PierceStorySkipScript);
+        evsStartScriptWithSkip(gShootingGalleryPiercePierceStoryScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gShootingGalleryPiercePierceStorySkipScript);
     }
     return 0;
 }

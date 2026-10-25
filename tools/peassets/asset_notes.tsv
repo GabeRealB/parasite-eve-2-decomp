@@ -112,16 +112,16 @@ actor_107000_animation_0B754	Clips of the Slouch enemy in encounters/sucklerceph
 encounters/sucklerceph_and_slouch/slouch_body	Seven-part body of the Slouch enemy (encounters/sucklerceph_and_slouch/package_1/207000), spawned by room placements in the Shelter sewer and operating rooms and as hidden wave spawns; flattened and faded on death.	
 east_elevator_hall_swat_member_animation_060FC	Five clips of the SWAT view figure east_elevator_hall_swat_member in the Akropolis east elevator hall: idle, two opening-event clips, the resting clip set at every room entry, and a caption-command clip.	
 characters/swat_member_2/submachine_gun	One-part object carried on part 8 of the SWAT figure east_elevator_hall_swat_member, spawned as a helper task and shown or hidden with the body.	
-actor_110600_animation_0C6A0	Clip bank of the cafeteria's enemy rooms/akropolis/cafeteria/boss_stranger: walk/chase, two attacks, hit overlay, enrage, alert and two follow-up-scene clips; several fall/rise/death clips are not reached and eight sets unused.	
-actor_110700_animation_059CC	Clips of the No. 9 golem figure actor_110700 in the Akropolis sanctuary's arrival scene: clips 1-4 are requested by the room's script, the fifth set is never requested.	
-actor_110800_animation_0624C	Five clips of the view figure actor_110800 in the Akropolis roof garden cutscene: an idle and four clips requested at successive caption cues.	
-actor_110800_model_060A0	One-part model held on part 8 of the roof garden figure actor_110800, shown and hidden with the body; what it depicts is not stated.	
-actor_111800_animation_06208	Clips of the figure actor_111800 in the Akropolis square: an idle, a clip cross-faded in when the player crosses the trigger, and a walk for its departure; sets 1 and 6 unused.	
-actor_113000_animation_05AE4	Eight clips of Rupert (actor_113000) in mist_r18: the rest pose and the clips the briefing, departure and reminder scripts request by message.	
+cafeteria_boss_stranger_animation_0C6A0	Clip bank of the cafeteria's enemy rooms/akropolis/cafeteria/boss_stranger: walk/chase, two attacks, hit overlay, enrage, alert and two follow-up-scene clips; several fall/rise/death clips are not reached and eight sets unused.	
+sanctuary_no_9_animation_059CC	Clips of the No. 9 golem figure sanctuary_no_9 in the Akropolis sanctuary's arrival scene: clips 1-4 are requested by the room's script, the fifth set is never requested.	
+roof_garden_swat_member_animation_0624C	Five clips of the view figure roof_garden_swat_member in the Akropolis roof garden cutscene: an idle and four clips requested at successive caption cues.	
+roof_garden_swat_member_model_060A0	One-part model held on part 8 of the roof garden figure roof_garden_swat_member, shown and hidden with the body; what it depicts is not stated.	
+square_grinning_stranger_animation_06208	Clips of the figure square_grinning_stranger in the Akropolis square: an idle, a clip cross-faded in when the player crosses the trigger, and a walk for its departure; sets 1 and 6 unused.	
+mist_rupert_animation_05AE4	Eight clips of Rupert (mist_rupert) in mist_r18: the rest pose and the clips the briefing, departure and reminder scripts request by message.	
 characters/rupert/hurt_eyes_open	No reached use found: Rupert's open-eyes texture patch (64x16) for characters/rupert/hurt_image; the handler uploads it on message 2016, which nothing in mist_r18, his only room, sends.	
 characters/rupert/hurt_eyes_half_open	No reached use found: Rupert's half-open-eyes texture patch (64x16) for the blink; no caption step in mist_r18 sends the eye message.	
 characters/rupert/hurt_eyes_closed	No reached use found: Rupert's closed-eyes texture patch (64x16) for the blink; no caption step in mist_r18 sends the eye message.	
-actor_113100_animation_07D9C	Clips of Pierce (actor_113100): conversation clips of the variant 2 arrival, follow-up and departure scripts plus his walk, opening-turn and arrival clips; a dozen sets have no use found.	
+parking_pierce_animation_07D9C	Clips of Pierce (parking_pierce): conversation clips of the variant 2 arrival, follow-up and departure scripts plus his walk, opening-turn and arrival clips; a dozen sets have no use found.	
 characters/pierce/glasses	One-part 14-vertex model carried under body part 4 by Pierce and by the figures of actor_146300, 160700, 215100 and 443500; what it depicts is not stated.	
 characters/pierce/id_badge	One-part four-vertex quad attached under Pierce's body part 2 in every variant; what it depicts is not stated.	
 rooms/mist/parking/hand_billboard	Camera-facing billboard above Pierce's body part 8, spawned in area variant 2 only and shown then hidden by actor commands during the arrival conversation.	
@@ -213,17 +213,17 @@ actor_210600_animation_0F6DC	The only clip of actor_210600's own body: frozen on
 actor_210600_animation_106D8	Clips of the cafeteria Stranger boss stored in actor_210600 but played by rooms/akropolis/cafeteria/boss_stranger, which patches their addresses into its table on cafeteria commands 2-7; one set has no use found.	
 actor_210700_animation_00750	Eight player (Aya) clips stored in actor_210700, copied into the weapon bank from clip 47 and played by the Akropolis sanctuary's arrival scene script.	
 actor_210700_animation_0C708	Six clips of Rupert (actor_210700) for the Akropolis sanctuary arrival scene, requested by the room's script by message.	
-characters/rupert/eyes_open	No reached use found: Rupert's open-eyes texture patch (48x16) for characters/rupert/bloodied_image in actor_210700 and actor_511000; nothing sends the eye message.	
-characters/rupert/eyes_half_open	No reached use found: Rupert's half-open-eyes blink patch (48x16) in actor_210700 and actor_511000; no caption step sends the eye message.	
-characters/rupert/eyes_closed	No reached use found: Rupert's closed-eyes patch (48x16) in actor_210700 and actor_511000; no caption step sends the eye message.	
+characters/rupert/eyes_open	No reached use found: Rupert's open-eyes texture patch (48x16) for characters/rupert/bloodied_image in actor_210700 and helicopter_departure; nothing sends the eye message.	
+characters/rupert/eyes_half_open	No reached use found: Rupert's half-open-eyes blink patch (48x16) in actor_210700 and helicopter_departure; no caption step sends the eye message.	
+characters/rupert/eyes_closed	No reached use found: Rupert's closed-eyes patch (48x16) in actor_210700 and helicopter_departure; no caption step sends the eye message.	
 actor_213000_animation_07650	Ten clips of Eric Baldwin (actor_213000) in mist_r18: his rest pose and the clips the intro, second briefing, departure and reminder scripts request.	
 characters/eric/arm_right	Three-part model whose pieces ride body parts 9, 10 and 11 of Eric Baldwin in actor_213000 for the body's whole life; what it depicts is not stated.	
 rooms/mist/r18/briefing_file	First model held at Eric Baldwin's body part 8, shown and hidden by actor commands in the mist_r18 intro; the room's own copy is hung on the player's part 8 in the second briefing.	
 rooms/mist/r18/laptop	One-part prop passed around in mist_r18: lying placed in the room, Eric's second held model in the second briefing, held by the player in the departure script, and the model actor_213100 holds.	
 actor_213100_animation_065E0	Clips of Jodie (actor_213100): the pose she returns to and the clips of her prize/shop talk scripts in the Mist parking area; four sets have no use found.	
-actor_215100_animation_03228	Seven player (Aya) clips of actor_215100 for the Mist shooting gallery's introduction, menu-reply and decline scripts, copied into the weapon bank from clip 47; the last is never played.	
-actor_215100_animation_053A8	Eighteen player (Aya) clips of actor_215100 for the shooting gallery's first-meeting scene and second Pierce talk, copied into the weapon bank; the first set has no use found.	
-actor_215100_animation_10BE4	Twenty-two clips of Pierce in actor_215100 (Mist shooting gallery): first-meeting scene, talk scripts, gallery introduction, training-menu and reply clips and his standing pose.	
+shooting_gallery_pierce_animation_03228	Seven player (Aya) clips of shooting_gallery_pierce for the Mist shooting gallery's introduction, menu-reply and decline scripts, copied into the weapon bank from clip 47; the last is never played.	
+shooting_gallery_pierce_animation_053A8	Eighteen player (Aya) clips of shooting_gallery_pierce for the shooting gallery's first-meeting scene and second Pierce talk, copied into the weapon bank; the first set has no use found.	
+shooting_gallery_pierce_animation_10BE4	Twenty-two clips of Pierce in shooting_gallery_pierce (Mist shooting gallery): first-meeting scene, talk scripts, gallery introduction, training-menu and reply clips and his standing pose.	
 actor_223600_animation_04864	No reached use found (rows open): the drop-in walker of rooms/dryfield/general_store/blood_suckler, with a spawn pose, a double-rate walk lead-in and two drop-in clips on actor command 1; the other sets are unused.	
 actor_260400_animation_00E68	Seven player (Aya) clips of actor_260400, copied into the weapon bank (ids 47-56) at the start of each conversation script with Rupert and played in the opening and later talks.	
 actor_260400_animation_038C8	Twelve clips of Rupert as the scripted walker in actor_260400: requested by the opening, reminder, repeat and later talk scripts, including two walk clips that step the root.	
@@ -248,10 +248,10 @@ actor_304000_animation_0873C	Blood suckler clip bank as carried by enemies/suckl
 actor_310100_animation_15BB0	Nine clips of officer 1 in the Akropolis plaza's final scene, stored in police_officers: the pose its culled-body replacement spawns on and the first-script and tail-script clips.	
 actor_310600_animation_00ED8	One player (Aya) clip stored in actor_310600, copied into the weapon bank as clip 47 and played at the start of the Akropolis cafeteria's follow-up scene.	
 actor_310600_animation_0AF54	Four clips of Rupert (actor_310600) in the cafeteria's follow-up scene, requested by the room: a shooting clip that spawns effects on listed frames, a reload that drops casings, and two others.	
-actor_311500_animation_06DFC	Two clips of the barrier Stranger enemies/stranger/lesser/package on the Akropolis fire escape: an idle held or replayed at each idle choice, and a hit reaction on every player attack contact.	
-actor_311900_animation_0C150	Two looping clips in actor_311900 for the Akropolis security room variant 1: one for Rupert and one for the SWAT figure, each reset at spawn and never replaced.	
-actor_312200_animation_0634C	Four clips of the patio figure actor_312200, selected by Akropolis patio commands 1-4 in the opening and follow-up scenes; clip 1 is its dormant pose with a sound.	
-actor_317000_animation_065A8	Clips of the leaping figure actor_317000 for the Akropolis patio second-visit scene: the leap, its landing and three scripted clips; the default landing clip and two sets are unused or open.	
+lesser_stranger_animation_06DFC	Two clips of the barrier Stranger enemies/stranger/lesser/package on the Akropolis fire escape: an idle held or replayed at each idle choice, and a hit reaction on every player attack contact.	
+security_monitors_animation_0C150	Two looping clips in security_monitors for the Akropolis security room variant 1: one for Rupert and one for the SWAT figure, each reset at spawn and never replaced.	
+patio_swat_member_animation_0634C	Four clips of the patio figure patio_swat_member, selected by Akropolis patio commands 1-4 in the opening and follow-up scenes; clip 1 is its dormant pose with a sound.	
+patio_leaping_strangers_animation_065A8	Clips of the leaping figure patio_leaping_strangers for the Akropolis patio second-visit scene: the leap, its landing and three scripted clips; the default landing clip and two sets are unused or open.	
 actor_323000_animation_07A74	Desert chaser clips in rooms/dryfield/main_street/desert_chaser_3 for the Dryfield Main Street first-visit scene: the hidden spawn pose and the two scripted clips (13, 14); all other sets have no use found.	
 actor_323300_animation_0F490	Clips of the woman in actor_323300 for the dryfield_toilet event: a looping clip with a room sound from spawn; the two turn clips need actor command 12, which nothing sends.	
 actor_323300_animation_107D0	Clips of the Lesser Stranger in actor_323300: one played through the whole transformation after spawn (actor command 10); the other two have no use found.	
@@ -368,16 +368,16 @@ enemies/brahman/arm_right	Side-0 arm of the shelter_r48 boss (slot 10), hung fro
 enemies/brahman/arm_left	Side-1 arm of the shelter_r48 boss (slot 11), hung from boss part 5 and spawned at boss init; it strikes with boss preset 2.	
 actor_503500_motion_15F70	Baked path of 360 X/Z samples that moves the first shelter_r48 slider slab one sample per update in the staff card scene, with screen shake and pad vibration.	
 actor_503500_motion_16510	Baked path of 360 X/Z samples that moves the second shelter_r48 slider slab in the staff card scene.	
-actor_510900_animation_11340	No. 9 golem animation bank for the Akropolis helipad fight: idle, walk, slashes, dash, flame, stun, shotgun response, death, six room scene clips, two Aya grenade-stun clips, and the helipad lights' two clips.	
-enemies/golem/no_9/akropolis_sword	The No. 9 golem's weapon model, chained under body part 8 in the helipad fight (flame jet and attack sphere ride it) and under the golem again in actor_511000's departure scene.	
-enemies/golem/no_9/akropolis_chest_piece	Model riding the No. 9 golem's chest (under body part 3) in the helipad fight and in actor_511000's departure scene; what it depicts is not stated.	
-actor_510900_model_10C8C	Breakable helipad light, a rigged room fixture carried in the No. 9 golem package and spawned three times on the Akropolis helicopter landing pad; broken by a player shot or the golem's slash.	
-actor_511000_animation_02350	Two Aya clips copied into the player's bank extension and played as clips 48 and 49 in the Akropolis helicopter landing pad's departure scene.	
-actor_511000_animation_10E94	Three clips for Rupert's rig in the helipad departure scene: clips 2 and 3 are played by the script; clip 1 (the shot, with muzzle flash) is never sent and its reach is open.	
-actor_511000_animation_1D228	Three clips for the No. 9 golem's rig in the helipad departure scene, the third being its exit, during which it darkens and is destroyed.	
+helicopter_landing_pad_no_9_animation_11340	No. 9 golem animation bank for the Akropolis helipad fight: idle, walk, slashes, dash, flame, stun, shotgun response, death, six room scene clips, two Aya grenade-stun clips, and the helipad lights' two clips.	
+enemies/golem/no_9/akropolis_sword	The No. 9 golem's weapon model, chained under body part 8 in the helipad fight (flame jet and attack sphere ride it) and under the golem again in helicopter_departure's departure scene.	
+enemies/golem/no_9/akropolis_chest_piece	Model riding the No. 9 golem's chest (under body part 3) in the helipad fight and in helicopter_departure's departure scene; what it depicts is not stated.	
+helicopter_landing_pad_no_9_model_10C8C	Breakable helipad light, a rigged room fixture carried in the No. 9 golem package and spawned three times on the Akropolis helicopter landing pad; broken by a player shot or the golem's slash.	
+helicopter_departure_animation_02350	Two Aya clips copied into the player's bank extension and played as clips 48 and 49 in the Akropolis helicopter landing pad's departure scene.	
+helicopter_departure_animation_10E94	Three clips for Rupert's rig in the helipad departure scene: clips 2 and 3 are played by the script; clip 1 (the shot, with muzzle flash) is never sent and its reach is open.	
+helicopter_departure_animation_1D228	Three clips for the No. 9 golem's rig in the helipad departure scene, the third being its exit, during which it darkens and is destroyed.	
 rooms/akropolis/helicopter_landing_pad/helicopter_palette_lit	'Lit' 16-colour palette, one end of the per-tick blend uploaded to VRAM row 264 for the helicopter hull's 4-bit faces while the hull is drawn in the departure scene.	
 rooms/akropolis/helicopter_landing_pad/helicopter_palette_dark	'Dark' 16-colour palette, the other end of the per-tick blend flashed on the helicopter hull's palette row while the hull is drawn.	
-actor_511000_helicopter_base	Helicopter hull, placed actor 2 of the helipad departure scene (variant 2 only), posed per frame from two motion tracks in view 24.	
+helicopter_departure_helicopter_base	Helicopter hull, placed actor 2 of the helipad departure scene (variant 2 only), posed per frame from two motion tracks in view 24.	
 rooms/akropolis/helicopter_landing_pad/searchlight	The helicopter's searchlight in the helipad departure scene, aimed per frame from a motion track in view 24, with an additive screen glow on frames 86..92.	
 rooms/akropolis/helicopter_landing_pad/helicopter_rotation_track	Baked track of 120 per-frame hull rotations for the helicopter in the departure scene, advanced one frame per tick in view 24.	
 rooms/akropolis/helicopter_landing_pad/helicopter_translation_track	Baked track of 120 per-frame hull translations for the helicopter in the departure scene, stepped with the rotation track.	
@@ -690,7 +690,7 @@ load_screens/shelter_nursery/background	Load-screen picture for the Shelter/Neo 
 rooms/mist/parking/view1_background..rooms/mist/parking/view20_background	View backgrounds 1-20 of mist_parking across four room indices (two swap views 5/18, 6/19, 8/20): walked views 2-8, a cutscene view and CAP scene views 10-17.	
 load_screens/shelter_parking_chapter_5/background	Load-screen picture for the Mine/Shelter stage with destination B1 Underground Parking in story chapter 5, under the Shelter dwelling boot caption; what lands on it is open.	
 load_screens/dryfield_night_other_chapter_5/background	Load-screen picture for other Dryfield night destinations in story chapter 5, shown under the Dryfield-return boot caption; what lands on it is open.	
-rooms/mist/shooting_gallery/view1_background..rooms/mist/shooting_gallery/view18_background	View backgrounds 1-18 of mist_shooting_gallery: views 2-13 and 18 are walked via 28 boundary triggers and seven warps, view 14 by a warp entry and actor_215100.	
+rooms/mist/shooting_gallery/view1_background..rooms/mist/shooting_gallery/view18_background	View backgrounds 1-18 of mist_shooting_gallery: views 2-13 and 18 are walked via 28 boundary triggers and seven warps, view 14 by a warp entry and shooting_gallery_pierce.	
 load_screens/shelter_heliport/background	Load-screen picture for the Shelter/Neo Ark stage with destination Neo Ark Shrine or any area without its own case, under the Shelter heliport boot caption; what lands on it is open.	
 load_screens/acropolis_other/background	Load-screen picture for Acropolis destinations without their own case, shown under the Akropolis boot caption; which save or event lands on it is open.	
 load_screens/shelter_sterilization_chapter_6/background	Load-screen picture for the Mine/Shelter stage with destination B1 Sterilization Room in story chapter 6, under the Shelter dwelling boot caption; what lands on it is open.	
@@ -1175,7 +1175,7 @@ mine_tunnel_entrance_collision_00660	Collision grid of the mine tunnel entrance 
 mist_parking_animation_0941C	Single player (Aya) clip installed as bank-extension set 47 and played by a mist_parking event script on room command 1, which exists only for room indices 3 and 4.	
 mist_parking_animation_09CF8	Bank of 24 player (Aya) clips copied into her bank extension for mist_parking's variant 2 arrival conversation, Jodie's talk and the departure; 19 are played, 5 are never requested.	
 mist_parking_animation_1271C	Three player (Aya) clips used only in mist_parking variant 1, for Jodie's shop-talk scripts and the departure prompt and branch; apparently second copies of clips in the variant 2 bank.	
-mist_parking_collision_12694	Two-face collision patch standing where Pierce stands in mist_parking, copied over the first entries of the live grid and lowered out of the way or restored by actor_113100 and the scripts.	
+mist_parking_collision_12694	Two-face collision patch standing where Pierce stands in mist_parking, copied over the first entries of the live grid and lowered out of the way or restored by parking_pierce and the scripts.	
 mist_parking_collision_14108	Live collision grid of mist_parking (66 faces, 7x4 cells), the same in all four room indices; its first two faces are the prefix the Pierce patch rewrites.	
 rooms/mist/parking/hinged_panel	Untextured one-part curved panel hinged at one edge, spawned and pitched open up to an eighth turn during mist_parking's variant 2 arrival conversation; the code does not say what it depicts.	
 mist_r18_animation_01CC0	Bank of ten player (Aya) clips mist_r18 copies into her bank extension as sets 48-57 for the intro, second briefing, departure and key-item menu scripts.	
@@ -1201,7 +1201,7 @@ mist_shooting_gallery_model_0AF5C	No reached use found: a small model installed 
 mist_shooting_gallery_model_0B0D0	One-part body of shooting gallery target kind 10, which the result panel names Yellow Target (200 points), used throughout course 0 and in course 1.	
 mist_shooting_gallery_model_0B2C0	One-part body of shooting gallery target kind 11, which the result panel names Brown Target (400 points), used in course 1 only.	
 mist_shooting_gallery_model_0B4B0	One-part body of shooting gallery target kind 12, which the result panel names Red Target (600 points), used in course 1 only.	
-mist_shooting_gallery_model_0B6A0	One-part body of the uncounted demonstration target (kind 13) spawned once from actor_215100's introduction script in the shooting gallery; it has no score entry.	
+mist_shooting_gallery_model_0B6A0	One-part body of the uncounted demonstration target (kind 13) spawned once from shooting_gallery_pierce's introduction script in the shooting gallery; it has no score entry.	
 weapons/mm1/bank	Aya's animation bank while the MM1 is equipped: ready and shot clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips; an extra set and some filler slots are unused.	
 weapons/mm1/model	One-part MM1 grenade launcher model spawned by gameplay as the player's held weapon; its root coord parents the muzzle flash and the fired shell.	
 weapons/mm1/grenade_model	Small box model of the MM1's fired shell, spawned per shot as the projectile body, flown under gravity with a smoke trail until it becomes the blast.	
@@ -1879,9 +1879,9 @@ rooms/mist/shooting_gallery/view14_palette	256-colour palette (row 255) of every
 rooms/mist/shooting_gallery/view15_palette	Palette rows for MIST shooting gallery view 15: row 255 read by 10 of its sprites and row 256 by the other 154.	
 rooms/mist/shooting_gallery/view16_palette	256-colour palette (row 255) of every sprite of MIST shooting gallery view 16 (rooms/mist/shooting_gallery/view16_image), uploaded on each change to that view.	
 rooms/mist/shooting_gallery/view17_palette	Palette rows for MIST shooting gallery view 17: row 256 for its 6 sprites and row 255 (same colours as rooms/mist/shooting_gallery/view17_file_palette) for the demonstration target model.	
-rooms/mist/shooting_gallery/dialogue_0	MIST shooting gallery's default caption file: actor_215100's gallery introduction, training menu and exit/abort prompts, plus the room's entry line and four examine texts.	
-rooms/mist/shooting_gallery/dialogue_1	MIST shooting gallery caption file 1: Pierce's first-meeting scene and three talks (actor_215100) and four counter-stepped examine texts run by the room.	
-rooms/mist/shooting_gallery/dialogue_2	MIST shooting gallery caption file 2: the instruction captions of courses 0-4 (commands 17-21), drawn by actor_215100's own caption drawer as each course runs.	
+rooms/mist/shooting_gallery/dialogue_0	MIST shooting gallery's default caption file: shooting_gallery_pierce's gallery introduction, training menu and exit/abort prompts, plus the room's entry line and four examine texts.	
+rooms/mist/shooting_gallery/dialogue_1	MIST shooting gallery caption file 1: Pierce's first-meeting scene and three talks (shooting_gallery_pierce) and four counter-stepped examine texts run by the room.	
+rooms/mist/shooting_gallery/dialogue_2	MIST shooting gallery caption file 2: the instruction captions of courses 0-4 (commands 17-21), drawn by shooting_gallery_pierce's own caption drawer as each course runs.	
 rooms/mist/shooting_gallery/dialogue_3	MIST shooting gallery caption file 3: two counter-stepped examine texts (commands 33 and 34) run in place by the room's playback task.	
 rooms/mist/r21/bundle	No reached use found: resource bundle of MIST R21 (one dialogue slot, no palettes), a room with no entry route.	
 rooms/mist/r21/dialogue_0	No reached use found: MIST R21's dialogue file, whose 38-step scene names view files 10-17 the room lacks; it reads as written for another, larger room.	
@@ -2722,8 +2722,8 @@ characters/swat_member_2/submachine_gun_palette	16-colour palette at row 244 for
 rooms/akropolis/cafeteria/boss_stranger_palette	Two 256-colour palette rows of the stranger body in the Acropolis cafeteria battle (rooms/akropolis/cafeteria/boss_stranger); the room's post-battle copy overwrites the first row in video memory.	
 enemies/golem/no_9/palette_akropolis	Two 256-colour palette rows of the No. 9 GOLEM body's two pages, in the Acropolis sanctuary and the helicopter landing pad encounter.	
 enemies/golem/no_9/palette_akropolis_2	256-colour palette row of the No. 9 GOLEM's weapon, chest and prop models and its grenade on the helicopter landing pad; no reader of it in the sanctuary.	
-enemies/stranger/odd/palette_2	Two 256-colour palette rows of the grinning stranger body placed in Acropolis square (actor_111800); the copies in files 201800 and 301800 are unused.	
-characters/rupert/hurt_palette	Two 256-colour palette rows of the hurt Rupert Broderick body's two pages, in MIST R18 (actor_113000) and the shelter 1F heliport (actor_260400).	
+enemies/stranger/odd/palette_2	Two 256-colour palette rows of the grinning stranger body placed in Acropolis square (square_grinning_stranger); the copies in files 201800 and 301800 are unused.	
+characters/rupert/hurt_palette	Two 256-colour palette rows of the hurt Rupert Broderick body's two pages, in MIST R18 (mist_rupert) and the shelter 1F heliport (actor_260400).	
 characters/gary/shotgun_palette	16-colour palette at row 244 of Gary Douglas's rifle or shotgun model, uploaded unshifted with his file in the garage, night main street and trailer coach.	
 characters/gary/palette	Two 256-colour palette rows of Gary Douglas: both for his body's two pages, the first also for his head-and-hat model, wherever his file is placed.	
 characters/kyle/palette	Two 256-colour palette rows of Kyle Madigan: both for his body's two pages, the first for his hand models, as a placed scene actor and as the companion.	
@@ -2752,7 +2752,7 @@ characters/rupert/palette	Two 256-colour palette rows of Rupert Broderick's body
 characters/rupert/mongoose_palette	16-colour palette at row 244 of Rupert Broderick's Mongoose revolver model; heliport view file 7 also uploads it, where no reader was found.	
 weapons/m4a1_javelin/palette	16-colour palette row (0,243) of the M4A1 javelin weapon model: all 71 face groups of weapons/m4a1_javelin/model name it, loaded with the weapon's image.	
 enemies/stranger/lesser/palette	Two 256-colour palette rows, one per page, of the stranger body of enemies/stranger/lesser/package, uploaded two rows down from spawn.	
-characters/swat_member_1/palette	Two 256-colour palette rows of the SWAT member 1 body in actor_312200; the same chunk in the Rook GOLEM's texture-only file 605700 has no loader.	
+characters/swat_member_1/palette	Two 256-colour palette rows of the SWAT member 1 body in patio_swat_member; the same chunk in the Rook GOLEM's texture-only file 605700 has no loader.	
 characters/anmc_woman_1/palette	Two 256-colour palette rows of the ANMC woman's body in the Dryfield toilet scene (actor_323300); their use for the lesser stranger's layer texture is open.	
 characters/eve/masked_palette	Two 256-colour palette rows of the masked Eve Brea body, in the shelter B6 corridor battle, the B6 training room and the B1 pod service gantry scene.	
 characters/kyle/p229_palette	16-colour palette at row 244 of Kyle Madigan's handgun model, loaded unshifted with the companion files and with his scene files.	
@@ -2809,19 +2809,19 @@ weapons/m950/preview_palette	256-colour palette of the M950 preview picture (wea
 rooms/akropolis/promenade/palette_2	Acropolis promenade glow palettes: five 16-colour palettes on row 270 for the star core, star flare, ground glow and glow variants of rooms/akropolis/promenade/image; row 271 is black.	
 rooms/akropolis/sanctuary/palette	Acropolis sanctuary palettes: one 8-bit row for the mosaic tiles and shards of the arrival scene, the other for the Red Key pickup model.	
 rooms/akropolis/roof_garden/palette	16-colour palette of the placed pickup model in the Acropolis roof garden; the second row is black padding.	
-rooms/akropolis/roof_garden/palette_2	Acropolis roof garden effect palettes: palettes 0-2 for the light glow cells, palette 16 for the falling leaf, and one palette on row 271 for the model held by actor_110800's figure.	
+rooms/akropolis/roof_garden/palette_2	Acropolis roof garden effect palettes: palettes 0-2 for the light glow cells, palette 16 for the falling leaf, and one palette on row 271 for the model held by roof_garden_swat_member's figure.	
 rooms/akropolis/bridge/palette_2	Acropolis bridge effect palettes: row 270 for the star core, flare, ground glow and glow variants; row 271 for the water ripple, debris billboard and spray of rooms/akropolis/bridge/image.	
 rooms/akropolis/helicopter_landing_pad/palette	Acropolis helicopter landing pad palettes: an 8-bit row for the lift model and a 16-colour palette for the helipad lights of enemies/golem/no_9/package_akropolis during the fight.	
 rooms/akropolis/helicopter_landing_pad/palette_2	Helicopter landing pad fight effect palettes: the room's ember and lens flare, plus the flame sprites and explosion fireball frames of enemies/golem/no_9/package_akropolis, one palette per frame.	
-rooms/akropolis/helicopter_landing_pad/view18_file_palette	Palette loaded with view 18 of the helicopter landing pad's departure scene: one 16-colour palette for actor_511000's prop model, everything else black.	
-rooms/akropolis/helicopter_landing_pad/view24_file_palette	8-bit palette of actor_511000's helicopter models, uploaded with view 24 of the landing pad's departure scene; the following row is overwritten each tick by the actor's blended colours.	
+rooms/akropolis/helicopter_landing_pad/view18_file_palette	Palette loaded with view 18 of the helicopter landing pad's departure scene: one 16-colour palette for helicopter_departure's prop model, everything else black.	
+rooms/akropolis/helicopter_landing_pad/view24_file_palette	8-bit palette of helicopter_departure's helicopter models, uploaded with view 24 of the landing pad's departure scene; the following row is overwritten each tick by the actor's blended colours.	
 rooms/akropolis/helicopter_landing_pad/view27_file_palette	Replacement 256-colour palette for the first page of the golem body (enemies/golem/no_9/package_akropolis), uploaded from view 27 on in the landing pad's ending and departure scenes.	
 weapons/p08/preview_palette	256-colour palette of the P08 preview picture (weapons/p08/preview_image) shown by gameplay's item menu when that weapon is the selected row.	
 rooms/akropolis/helicopter_landing_pad/view27_file_palette_2	Two replacement 256-colour palette rows for the golem body's second page and its weapon, uploaded with view 27 of the helicopter landing pad's ending scene.	
 rooms/akropolis/west_elevator_hall/palette_2	8-bit palette of the two door-leaf models in the Acropolis west elevator hall, drawn in view 5 only; the second row is black.	
 rooms/mist/r18/palette	Carrier palette of mist_r18: one 16-colour palette on row 260 for the intro's date-and-place caption glyphs; its black first rows only clear the view sprite palette area on room entry.	
 rooms/mist/r18/palette_2	Two 8-bit palette rows in mist_r18 for the models held in the briefing scene: actor_213000's held model and its prop, also hung on the player.	
-rooms/mist/parking/palette	Two 8-bit palette rows in the mist parking room for actor_113100's camera-facing model and actor_213100's held prop; the first pairing is by address only and still open.	
+rooms/mist/parking/palette	Two 8-bit palette rows in the mist parking room for parking_pierce's camera-facing model and actor_213100's held prop; the first pairing is by address only and still open.	
 rooms/mist/shooting_gallery/view17_file_palette	256-colour palette stored in view file 17 of the mist shooting gallery, redundant with the bundle slot that overwrites it with the same colours.	
 pe2clut_336	Dryfield main street effect palette: 16-colour palette 3 colours the puff sprite; the other palettes have no reader found.	
 pe2clut_337	16-colour palette of the five lamp-debris models of actor_121300 in dryfield_r08; the rest of the file is black.	
@@ -3595,7 +3595,7 @@ characters/swat_member_2/image	Two-page 8-bit texture of the SWAT member 2 body,
 characters/swat_member_2/submachine_gun_image	4-bit texture of the helper model of east_elevator_hall_swat_member (the SWAT member's figure in the Acropolis east elevator hall), read from the weapon cell at page (448,0).	
 rooms/akropolis/cafeteria/boss_stranger_image	Two-page 8-bit texture of the Stranger body in the Acropolis cafeteria (rooms/akropolis/cafeteria/boss_stranger); its first page is overwritten in video memory by the room's post-battle copy.	
 enemies/golem/no_9/image_akropolis	Three-page 8-bit texture of the No. 9 golem (Akropolis): two pages for the body in the sanctuary and landing pad, the third for the attached and thrown models of the landing pad fight.	
-enemies/stranger/odd/image_2	Two-page 8-bit texture of the Grinning Stranger body in the Acropolis square (actor_111800); the copies in files 201800 and 301800 have no use found.	
+enemies/stranger/odd/image_2	Two-page 8-bit texture of the Grinning Stranger body in the Acropolis square (square_grinning_stranger); the copies in files 201800 and 301800 have no use found.	
 characters/rupert/hurt_image	Two-page 8-bit texture of the hurt Rupert Broderick body in actors 113000 and 260400; an eye band on it has an overwrite handler no caption step triggers.	
 characters/gary/shotgun_image	4-bit texture of the rifle model carried in Gary Douglas's actor packages (garage, night main street), stored in the weapon cell below the player's weapon image.	
 characters/gary/image	Two-page 8-bit texture of Gary Douglas: his body and head-and-hat model in the garage, night main street, night motel balcony and trailer coach actor packages.	
@@ -3626,7 +3626,7 @@ weapons/m4a1_grenade/image	4-bit texture of the M4A1 Grenade weapon model; the g
 characters/rupert/image	Two-page 8-bit texture of Rupert Broderick's body in the Acropolis cafeteria and security room actor packages; the copy in file 605200 is never loaded.	
 characters/rupert/mongoose_image	4-bit texture of Rupert Broderick's Mongoose revolver model, stored in the weapon cell at (448,64); view file 7 of the shelter 1F heliport re-uploads it for the hurt Rupert's gun.	
 enemies/stranger/lesser/image	Two-page 8-bit texture of the Stranger body in enemies/stranger/lesser/package, loaded for the Acropolis fire escape.	
-characters/swat_member_1/image	Two-page 8-bit texture of the SWAT member 1 body in the Acropolis patio (actor_312200); the copies in the 605700 texture-only file have no use found.	
+characters/swat_member_1/image	Two-page 8-bit texture of the SWAT member 1 body in the Acropolis patio (patio_swat_member); the copies in the 605700 texture-only file have no use found.	
 characters/anmc_woman_1/image	Two-page 8-bit texture of the woman's body (characters/anmc_woman_1/body) in the Dryfield toilet event; its use as the Lesser Stranger's layer texture during the transformation is still open.	
 characters/eve/masked_image	Two-page 8-bit texture of the masked Eve body (characters/eve/masked_body) in the shelter B6 corridor and training room and the pod service gantry scene.	
 characters/kyle/p229_image	4-bit texture of Kyle Madigan's handgun model, stored in the companion-weapon cell at (448,64) and carried by the companion variant 1 file and several scene actor files.	
@@ -3773,7 +3773,7 @@ rooms/akropolis/sanctuary/view13_image	8-bit sheet of the 5 depth-sorted room sp
 rooms/akropolis/sanctuary/view14_image	8-bit sheet of the 8 depth-sorted room sprites of akropolis_sanctuary's view 14.	
 rooms/akropolis/sanctuary/view16_image	8-bit sheet (two pages) of the 38 room sprites of akropolis_sanctuary's view 16, with two alternative batches switched by the arrival scene script.	
 rooms/akropolis/roof_garden/dialogue_0_atlas	4-bit caption glyph atlas of akropolis_roof_garden's dialogue, drawn by gameplay's caption code whenever the room shows text.	
-rooms/akropolis/roof_garden/image	4-bit akropolis_roof_garden sheet: three light-glow cells for the room's light glow task, a falling-leaf cell, and the texture of the handset held by actor_110800's figure.	
+rooms/akropolis/roof_garden/image	4-bit akropolis_roof_garden sheet: three light-glow cells for the room's light glow task, a falling-leaf cell, and the texture of the handset held by roof_garden_swat_member's figure.	
 rooms/akropolis/roof_garden/view2_image	8-bit sheet of the 26 occluder sprites of akropolis_roof_garden's mapped view 2.	
 rooms/akropolis/roof_garden/view3_image	8-bit sheet (two pages) of the 57 occluder sprites of akropolis_roof_garden's mapped view 3.	
 rooms/akropolis/roof_garden/view4_image	8-bit sheet (two pages) of the 21 occluder sprites of akropolis_roof_garden's mapped view 4.	
@@ -3813,11 +3813,11 @@ rooms/akropolis/helicopter_landing_pad/view10_image	8-bit sheet (two pages) of t
 weapons/m249/preview_image	Item preview picture of weapon 0x90, the M249, drawn in gameplay's item menu panels when that weapon is selected.	
 rooms/akropolis/helicopter_landing_pad/view15_image	8-bit image holding the occluder sprite of akropolis_helicopter_landing_pad's mapped view 15.	
 rooms/akropolis/helicopter_landing_pad/view17_image	8-bit sheet of the 3 occluder sprites of akropolis_helicopter_landing_pad's mapped view 17.	
-rooms/akropolis/helicopter_landing_pad/view18_image	4-bit texture of the handset Rupert holds (actor_511000's second held model) in the helicopter landing pad's departure scene, brought in by view 18's file.	
+rooms/akropolis/helicopter_landing_pad/view18_image	4-bit texture of the handset Rupert holds (helicopter_departure's second held model) in the helicopter landing pad's departure scene, brought in by view 18's file.	
 rooms/akropolis/helicopter_landing_pad/view18_image_2	8-bit sheet (two pages) of the 4 occluder sprites of akropolis_helicopter_landing_pad's mapped view 18, the lift ride of the departure.	
 rooms/akropolis/helicopter_landing_pad/view21_image	8-bit sheet of the 6 occluder sprites of akropolis_helicopter_landing_pad's mapped view 21.	
-rooms/akropolis/helicopter_landing_pad/view24_image	8-bit texture of actor_511000's helicopter hull, rotors and searchlight in the landing pad's departure scene, brought in by view 24's file.	
-rooms/akropolis/helicopter_landing_pad/view24_image_2	Second texture page of actor_511000's helicopter hull (view 24), mixing 8-bit faces with a 4-bit patch that the actor's palette flash recolours.	
+rooms/akropolis/helicopter_landing_pad/view24_image	8-bit texture of helicopter_departure's helicopter hull, rotors and searchlight in the landing pad's departure scene, brought in by view 24's file.	
+rooms/akropolis/helicopter_landing_pad/view24_image_2	Second texture page of helicopter_departure's helicopter hull (view 24), mixing 8-bit faces with a 4-bit patch that the actor's palette flash recolours.	
 rooms/akropolis/helicopter_landing_pad/view27_image	8-bit golem skin uploaded by view 27's file over No. 9's texture for the helicopter landing pad's ending scene; whether the departure scene's golem reads it is open.	
 rooms/akropolis/west_elevator_hall/dialogue_0_atlas	4-bit caption glyph atlas of akropolis_west_elevator_hall's dialogue, drawn by gameplay's caption code for the room's four commands.	
 rooms/akropolis/west_elevator_hall/image_2	Two-column 8-bit akropolis_west_elevator_hall sheet: the lift bay's light glow drawn additively in view 5, and the texture of both door leaves.	
@@ -3834,7 +3834,7 @@ rooms/mist/parking/dialogue_1_atlas	4-bit caption glyph atlas of mist_parking's 
 rooms/mist/parking/dialogue_0_atlas	4-bit caption glyph atlas of mist_parking's default dialogue (slot 20), drawn by gameplay's caption code for trigger commands and the arrival conversation.	
 weapons/m4a1/p1_preview_image	Item preview picture of weapon 0x93, the M4A1 with one attachment, drawn in gameplay's item menu panels when that weapon is selected.	
 rooms/mist/parking/dialogue_2_atlas	4-bit caption glyph atlas of mist_parking's prize dialogue (slot 22), used during Jodie's prize exchange.	
-rooms/mist/parking/image	8-bit mist_parking page that textures the model actor_213100 holds in view 4; its pairing with actor_113100's camera-facing model is by address only and open.	
+rooms/mist/parking/image	8-bit mist_parking page that textures the model actor_213100 holds in view 4; its pairing with parking_pierce's camera-facing model is by address only and open.	
 rooms/mist/parking/view2_image	8-bit sheet of the 21 occluder sprites of mist_parking's mapped view 2.	
 rooms/mist/parking/view4_image	8-bit sheet (two pages) of the occluder sprites of mist_parking's mapped view 4.	
 rooms/mist/parking/view5_image	8-bit sheet (two pages) of the occluder sprites of mist_parking's mapped view 5 (logical view 5 in room indices 3 and 4).	
@@ -3846,8 +3846,8 @@ rooms/mist/parking/view18_image	8-bit sheet (two pages) of the occluder sprites 
 weapons/m4a1/p2_preview_image	Item preview picture of weapon 0x94, the M4A1 with two attachments, drawn in gameplay's item menu panels when that weapon is selected.	
 rooms/mist/parking/view19_image	8-bit sheet (two pages) of the occluder sprites of mist_parking's mapped view 19, which is logical view 6 in room indices 1 and 2.	
 rooms/mist/shooting_gallery/dialogue_0_atlas	4-bit caption glyph atlas of mist_shooting_gallery's default dialogue file (slot 18), drawn by gameplay's caption code.	
-rooms/mist/shooting_gallery/dialogue_3_atlas	Two 4-bit caption glyph pages of mist_shooting_gallery: one for the examine-trigger captions (slot 21), one for actor_215100's conversation captions with Pierce.	
-rooms/mist/shooting_gallery/dialogue_2_atlas	4-bit glyph sheet of the shooting gallery's course captions (slot 20), bound by the room and drawn by actor_215100's caption drawer as additive glyphs over an outline.	
+rooms/mist/shooting_gallery/dialogue_3_atlas	Two 4-bit caption glyph pages of mist_shooting_gallery: one for the examine-trigger captions (slot 21), one for shooting_gallery_pierce's conversation captions with Pierce.	
+rooms/mist/shooting_gallery/dialogue_2_atlas	4-bit glyph sheet of the shooting gallery's course captions (slot 20), bound by the room and drawn by shooting_gallery_pierce's caption drawer as additive glyphs over an outline.	
 rooms/mist/shooting_gallery/view4_image	8-bit sheet of the 13 occluder sprites of mist_shooting_gallery's mapped view 4.	
 rooms/mist/shooting_gallery/view5_image	8-bit sheet of the 32 occluder sprites of mist_shooting_gallery's mapped view 5.	
 rooms/mist/shooting_gallery/view7_image	8-bit sheet (two pages) of the 24 occluder sprites of mist_shooting_gallery's mapped view 7.	
@@ -3860,7 +3860,7 @@ rooms/mist/shooting_gallery/view13_image	8-bit sheet of the 12 occluder sprites 
 rooms/mist/shooting_gallery/view14_image	8-bit sheet of the 29 occluder sprites of mist_shooting_gallery's mapped view 14.	
 rooms/mist/shooting_gallery/view15_image	8-bit sheet (two pages) of the 164 occluder sprites of mist_shooting_gallery's mapped view 15, the room's largest sprite set.	
 rooms/mist/shooting_gallery/view16_image	8-bit sheet of the 58 occluder sprites of mist_shooting_gallery's mapped view 16.	
-rooms/mist/shooting_gallery/view17_image	8-bit image for mist_shooting_gallery's mapped view 17: six occluder sprites plus the texture of the demonstration target spawned during actor_215100's introduction.	
+rooms/mist/shooting_gallery/view17_image	8-bit image for mist_shooting_gallery's mapped view 17: six occluder sprites plus the texture of the demonstration target spawned during shooting_gallery_pierce's introduction.	
 rooms/mist/r21/image	No reached use found: 4-bit caption glyph atlas of mist_r21's dialogue, uploaded with the room but never drawn because nothing starts a caption command there.	
 dryfield_gas_station_dialogue_0_atlas	4-bit caption glyph atlas of the gas station's dialogue, shared by dryfield_gas_station and dryfield_night_gas_station and drawn by gameplay's caption code.	
 pe2img_488	8-bit sheet of the six occluder sprites of dryfield_gas_station's mapped view 2.	
@@ -4440,11 +4440,11 @@ rooms/neo_ark/power_plant_1/proto_generator_body	10-part body model of the Proto
 encounters/rat_and_moth/rat_body	7-part body model of the rat enemy, spawned from encounters/rat_and_moth/package_1, encounters/rat_and_moth/package_2 and encounters/rat_and_moth/package_3 in the Acropolis hallway and Dryfield cellar and kitchen rooms.	
 enemies/golem/rook/body	19-part body model of the Rook GOLEM (beam sword and shield build), spawned in several Dryfield night, Neo Ark and Shelter rooms and kept as a corpse after death.	
 enemies/golem/rook/shield	One-part shield model of the Rook GOLEM, spawned as a child enemy attached to the body and removed once it has absorbed its damage.	
-characters/rupert/body	20-part body model of Rupert Broderick as a placed story actor in the Acropolis: sanctuary (actor_210700), cafeteria (actor_310600) and the security room monitor view (actor_311900).	the numbered name says nothing about the role; the rows show it as Rupert's body in the sanctuary, cafeteria and security-room scenes.
-characters/rupert/body_2	20-part body model of Rupert Broderick in actor_511000, spawned hidden and shown for the helicopter landing pad's departure scene (variant 2 only).	the numbered name says nothing about the role; the rows show it only as Rupert's body in the helicopter landing pad departure scene.
-characters/rupert/hurt_body	20-part body model of the wounded Rupert Broderick, a non-combat placed actor in mist_r18 (actor_113000) and shelter_1f_heliport (actor_260400).	
+characters/rupert/body	20-part body model of Rupert Broderick as a placed story actor in the Acropolis: sanctuary (actor_210700), cafeteria (actor_310600) and the security room monitor view (security_monitors).	the numbered name says nothing about the role; the rows show it as Rupert's body in the sanctuary, cafeteria and security-room scenes.
+characters/rupert/body_2	20-part body model of Rupert Broderick in helicopter_departure, spawned hidden and shown for the helicopter landing pad's departure scene (variant 2 only).	the numbered name says nothing about the role; the rows show it only as Rupert's body in the helicopter landing pad departure scene.
+characters/rupert/hurt_body	20-part body model of the wounded Rupert Broderick, a non-combat placed actor in mist_r18 (mist_rupert) and shelter_1f_heliport (actor_260400).	
 characters/rupert/hurt_mongoose	One-part revolver (Mongoose) model of the wounded Rupert in actor_260400, parented to his hand and drawn only between two actor commands of the opening conversation.	
-characters/rupert/mongoose	One-part revolver model of Rupert Broderick, a child model parented to body part 8 in actor_310600 and actor_511000, shown and hidden by actor commands.	
+characters/rupert/mongoose	One-part revolver model of Rupert Broderick, a child model parented to body part 8 in actor_310600 and helicopter_departure, shown and hidden by actor commands.	
 enemies/scavenger/body	9-part body model of the scavenger enemy, spawned from enemies/scavenger/package_1, enemies/scavenger/package_2 and enemies/scavenger/package_3 in many Dryfield night and other rooms, and flattened as a corpse on death.	
 enemies/scavenger/burst_ear	One-part detached ear of the scavenger, spawned as a flying burst part when the killing hit blows it apart.	
 enemies/scavenger/burst_head	One-part detached head of the scavenger, spawned as a flying burst part when the killing hit blows it apart.	
@@ -4647,7 +4647,7 @@ rooms/akropolis/sanctuary/sounds_0	Footstep bank of akropolis_sanctuary: walk, s
 rooms/akropolis/sanctuary/sounds_1	Acropolis sanctuary room sound bank: door sounds of the promenade and roof-garden warps and the two sounds of the room's automatic cutscene; the item-lid entries are not reached.	
 rooms/akropolis/roof_garden/sounds_0	Type-3 scene sound bank of akropolis_roof_garden: five sounds started by the arrival scene's event script after caption cues, all stopped when the scene is skipped.	
 rooms/akropolis/roof_garden/sounds_1	Footstep bank of akropolis_roof_garden: walk, scripted-jump and run step sounds on surface classes 1 and 2.	
-rooms/akropolis/roof_garden/sounds_2	Acropolis roof garden room sound bank: warp 0 door sounds, a caption sound, the view-mixed ambience, timed arrival-scene sounds, the view figure's cues (actor_110800) and Caterpillar drop-ins.	
+rooms/akropolis/roof_garden/sounds_2	Acropolis roof garden room sound bank: warp 0 door sounds, a caption sound, the view-mixed ambience, timed arrival-scene sounds, the view figure's cues (roof_garden_swat_member) and Caterpillar drop-ins.	
 rooms/akropolis/bridge/sounds_0	Footstep bank of akropolis_bridge: walk, scripted-jump and run step sounds on surface classes 2 and 4.	
 rooms/akropolis/bridge/sounds_1	Acropolis bridge room sound bank: door sounds of warps 0 and 1 and the keypad's key beep, code-rejected and code-accepted sounds.	
 weapons/mp5a5/p1_sounds	MP5A5 P1 weapon sound bank (weapon 31): primary shot, secondary flash fire, empty-chamber click, reload start and reload load cues.	
@@ -4660,10 +4660,10 @@ rooms/akropolis/west_elevator_hall/sounds_1	Acropolis west elevator hall room so
 rooms/mist/r18/sounds_0	Footstep bank of mist_r18: walk, jump and run step entries requested on the player's animation cues; the use is recorded as open (mechanism only).	
 rooms/mist/r18/sounds_1	mist_r18 room sound bank: two sounds started by the intro script during Eric Baldwin's clip 3, the second as his first held model is shown.	
 rooms/mist/parking/sounds_0	Footstep bank of mist_parking: walk, scripted-jump and run step sounds on surface classes 1 and 3.	
-rooms/mist/parking/sounds_1	MIST parking room sound bank: door fade sounds, warp 0 door sounds, the room command 8 cutscene's four sounds, the variant-2 arrival conversation's sounds and Pierce's steps (actor_113100).	
+rooms/mist/parking/sounds_1	MIST parking room sound bank: door fade sounds, warp 0 door sounds, the room command 8 cutscene's four sounds, the variant-2 arrival conversation's sounds and Pierce's steps (parking_pierce).	
 weapons/mp5a5/p2_sounds	MP5A5 P2 weapon sound bank (weapon 32): primary shot, secondary flash fire, empty-chamber click, reload start and reload load cues.	
 rooms/mist/shooting_gallery/sounds_0	Footstep bank of mist_shooting_gallery: walk, scripted-jump and run step sounds on collision surface classes 1 and 2 (same four samples under two entry sets).	
-rooms/mist/shooting_gallery/sounds_1	MIST shooting gallery room sound bank: target appear/hit/fold/charge/attack/destroy sounds (actor_107600), door sounds, round-start sound and actor_215100's introduction scene sounds.	
+rooms/mist/shooting_gallery/sounds_1	MIST shooting gallery room sound bank: target appear/hit/fold/charge/attack/destroy sounds (actor_107600), door sounds, round-start sound and shooting_gallery_pierce's introduction scene sounds.	
 spk_192	Footstep bank of dryfield_gas_station: walk, scripted-jump and run step sounds on surface classes 2, 3 and 4.	
 spk_193	Dryfield gas station room sound bank: door sounds of two warps incl. a refused general-store door, the telephone cutscene's sounds, the arrival cutscene's loop and cues, and caption cue sounds.	
 spk_194	Footstep bank of dryfield_main_street: walk, scripted-jump and run step sounds on collision surface classes 2, 3 and 4.	
@@ -5011,7 +5011,7 @@ enemies/diver/sounds	Diver creature bank (id 0x4004) of the Bog Diver actors 100
 enemies/stalker/gray/sounds	Bank (id 0x4005) of the ceiling-crawling ambush enemy enemies/stalker/gray/package_4: arm-plant steps, drop and fall landings, posture change, arm strike and two grab sounds; the copy in file 100500 has no use found.	
 encounters/rat_and_moth/sounds	Rat and moth sound bank (id 0x4007) of actors 100700/200700/300700: rat idle squeak, flinch, alert, post-bite retreat and death, moth flutter cue and death.	
 weapons/tonfa_baton/sounds	Tonfa baton weapon sound bank (weapon bank 19), loaded with the equipped weapon: first swing, combo swing and the two contact sounds when a strike connects.	
-enemies/stranger/sounds	Stranger family bank (id 0x400A): gait, alert, strike, landing and evasion cues plus hurt and death voices of actors 101900/301900/401000/401800; enemies/stranger/lesser/package and actor_317000 borrow entries.	
+enemies/stranger/sounds	Stranger family bank (id 0x400A): gait, alert, strike, landing and evasion cues plus hurt and death voices of actors 101900/301900/401000/401800; enemies/stranger/lesser/package and patio_leaping_strangers borrow entries.	
 encounters/brute_and_mossback/sounds	Brute Mossback dry-room bank (id 0x400B, file 101101), queued by the first Mossback's init outside stage 3 area 32: footfalls, landing thud, rest, hit and death cries, punch, spit launch and impact.	
 encounters/brute_and_mossback/water_sounds	Brute Mossback water-room bank (id 0x404B, file 101102), queued instead of the dry bank only in stage 3 area 32 (Dryfield night water hole): wet versions of its cues plus a splash entry.	
 enemies/suckler/bone/sounds	Bone suckler bank (id 0x400C) of actors 101200/201200/301200/223600: footstep, burst and settle sounds, plus one-shots for motel room 1's opening scene; the Blood Suckler's request is rejected in most rooms.	
@@ -5032,7 +5032,7 @@ enemies/stinger/body	19-part Brain Stinger body model spawned per placement by a
 rooms/akropolis/cafeteria/boss_stranger_body	19-part Stranger body model: the cafeteria Stranger boss (rooms/akropolis/cafeteria/boss_stranger), the stationary Stranger on the Acropolis fire escape (enemies/stranger/lesser/package) and the Odd Stranger enemy (enemies/stranger/odd/package_b_4).	
 enemies/stranger/burst_hand	3-part body piece flung by the bank-10 burst effect when a Stranger (actors 101900/301900/401000) dies bursting, released from body parts 9 and 12, or part 1 in the walking death.	
 rooms/akropolis/forked_road/sucklerceph_body	3-part Sucklerceph enemy body spawned by actors 104600/107000/204600/207000, swelling, then hidden on a burst death or squashed on a slump death; a hidden-spawn variant waits for an APPEAR command.	
-characters/swat_member_1/body	19-part scripted figure placed once in akropolis_patio variant 1 by actor_312200: starts hidden, shown and hidden by the room's scenes, not lockable, with a sphere in the enemy-body list.	the code never identifies the figure as a SWAT member: it is a scripted body on the patio whose only sound is named STRANGER_DORMANT, and the rows leave what it depicts unsettled.
+characters/swat_member_1/body	19-part scripted figure placed once in akropolis_patio variant 1 by patio_swat_member: starts hidden, shown and hidden by the room's scenes, not lockable, with a sphere in the enemy-body list.	the code never identifies the figure as a SWAT member: it is a scripted body on the patio whose only sound is named STRANGER_DORMANT, and the rows leave what it depicts unsettled.
 characters/swat_member_2/body	20-part view-parented scripted figure used by actors 110300, 110800 and 311900 in the east elevator hall, roof garden and security room, where it is the figure seen on the monitor's camera view.	
 weapons/tonfa_baton/bank	Player animation bank for the Tonfa Baton (weapon 19): locomotion, aim, hit, PE and stair clips gameplay plays while it is equipped, plus first strike, combo strike and recovery clips.	
 weapons/tonfa_baton/model	One-part Tonfa Baton model spawned as the player's held weapon and posed every frame by the overlay's own model task, which flips it half a turn in the hand for a strike.	
@@ -5155,7 +5155,7 @@ txt_200	Map Help text of objective 53 (file 20853, "Follow that man..."), shown 
 txt_201	Map Help text of objective 54 (file 20854, "Eve..."), shown on the map's Help panel; objective set in the Shelter 1F tent.	
 txt_202	Map Help text of objective 55 (file 20855, "Eve... Be strong..."), shown on the map's Help panel; objective set in the Shelter B1 pod access tunnel.	
 txt_203	Map Help text of objective 56 (file 20856, "Wait... Maybe Mr. Douglas knows"), set in the Dryfield breezeway; file 20857 carries the same chunk but objective 57 is never set.	
-txt_204	Map Help text of objective 58 (file 20858, "This just isn't my day. Maybe"), shown on the map's Help panel; objective set by actor_215100.	
+txt_204	Map Help text of objective 58 (file 20858, "This just isn't my day. Maybe"), shown on the map's Help panel; objective set by shooting_gallery_pierce.	
 txt_205	Map Help text of objective 59 (file 20859, "Akropolis Tower... That's right"), shown on the map's Help panel; objective set in the MIST shooting gallery.	
 txt_206	Map Help text of objective 60 (file 20860, "Go to the desert, huh? Yes, boss."), shown on the map's Help panel; objective set in the MIST parking.	
 txt_207	Map Help text of objective 61 (file 20861, "Kyle... I can't believe he's gone."), shown on the map's Help panel; objective set in the mine cavern.	

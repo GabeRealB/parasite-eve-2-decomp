@@ -1,0 +1,42 @@
+// Overlay-local symbols for lesser_stranger.
+_gLesserStrangerStrangerAttacks = 0x801692B8; // size:0x8 defined:True
+_gLesserStrangerStrangerParams = 0x801692C0; // size:0x10 defined:True
+_gAkropolisCafeteriaBossStrangerBodySkeleton = 0x801636B4; // size:0x2AC defined:True
+_gAkropolisCafeteriaBossStrangerBodyPartVerts = 0x80163960; // size:0x4C defined:True
+_gAkropolisCafeteriaBossStrangerBodyVerts = 0x801639AC; // size:0x9B8 defined:True
+_gAkropolisCafeteriaBossStrangerBodyNormals = 0x80164364; // size:0x9A8 defined:True
+_gAkropolisCafeteriaBossStrangerBodyStream = 0x80164D0C; // size:0x3EEC defined:True
+_gAkropolisCafeteriaBossStrangerBody = 0x80168BF8; // size:0x24 defined:True
+_gLesserStrangerAnimation07188Bank1 = 0x80168C1C; // size:0x48 defined:True
+_gLesserStrangerAnimation07188Bank4 = 0x80168C64; // size:0x144 defined:True
+_gLesserStrangerAnimation07188Records = 0x80168DA8; // size:0x1D8 defined:True
+_gLesserStrangerAnimation07188Indices = 0x80168F80; // size:0x28 defined:True
+_gStrangerDownBackClip = 0x80168FA8; // size:0x28 defined:True
+_gLesserStrangerAnimation07470Bank1 = 0x80168FD0; // size:0x3C defined:True
+_gLesserStrangerAnimation07470Bank4 = 0x8016900C; // size:0xD0 defined:True
+_gLesserStrangerAnimation07470Records = 0x801690DC; // size:0x18C defined:True
+_gLesserStrangerAnimation07470Indices = 0x80169268; // size:0x28 defined:True
+gStrangerLesserIdleClip = 0x80169290; // size:0x28 defined:True
+D_actor_311500_801692D0 = 0x801692D0; // size:0x24 defined:True
+_gLesserStrangerStrangerAnimationSets = 0x801692F4; // size:0x8 defined:True
+_gLesserStrangerBarrierPatchNormals = 0x801692FC; // size:0x8 defined:True
+_gLesserStrangerBarrierPatchVerts = 0x80169304; // size:0x20 defined:True
+_gLesserStrangerBarrierPatchFaces = 0x80169324; // size:0xC defined:True
+_gLesserStrangerStrangerMessages = 0x80169330; // size:0x8 defined:True
+gLesserStrangerStrangerTaskDesc = 0x80169338; // size:0xC defined:True
+
+gAkropolisFireEscapeCollisionGridNormals = 0x80181E74; // absolute:True owner=akropolis_fire_escape
+
+gAkropolisFireEscapeCollisionGridVerts = 0x80181EC4; // absolute:True owner=akropolis_fire_escape
+
+gAkropolisFireEscapeCollisionGridFaces = 0x8018207C; // absolute:True owner=akropolis_fire_escape
+_actorRenderYawJointInWorld = 0x801626CC; // type:func
+_actorContactFindLastObstaclePush = 0x80161E38; // type:func
+_actorContactApplyAvoidancePushback = 0x80162180; // type:func
+_lesserStrangerInit = 0x801629d8; // type:func
+_lesserStrangerTickIdle = 0x80162c34; // type:func
+_lesserStrangerApplyHit = 0x80162ddc; // type:func
+_lesserStrangerTickHitReaction = 0x80162f28; // type:func
+_lesserStrangerTickDeath = 0x801630a4; // type:func
+_lesserStrangerTask = 0x80163334; // type:func
+_lesserStrangerIsPresentMessage = 0x801636a0; // type:func

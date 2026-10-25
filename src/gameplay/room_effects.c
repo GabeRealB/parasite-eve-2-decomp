@@ -24,7 +24,7 @@
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
 
-#include "actors/actor_510900.h"
+#include "stages/akropolis/actors/helicopter_landing_pad_no_9.h"
 
 #include "actors/actor_800100.h"
 
@@ -600,29 +600,29 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, p229MuzzleFlashTask, { NULL } },                                                    // 0x040
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, mp5a5MuzzleFlashTask, { NULL } },                                                   // 0x041
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, effectSpriteTask42, { NULL } },                                                     // 0x042
-    { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, actor510900FlameJetTask, { NULL } },                                                // 0x043
-    { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, actor510900MuzzleFlashTask44, { NULL } },                                           // 0x044
-    { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, actor510900FlameSpriteTask45, { NULL } },                                           // 0x045
+    { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, helicopterLandingPadNo9FlameJetTask, { NULL } },                                    // 0x043
+    { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, helicopterLandingPadNo9MuzzleFlashTask44, { NULL } },                               // 0x044
+    { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, helicopterLandingPadNo9FlameSpriteTask45, { NULL } },                               // 0x045
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, effectSpriteTask46, { NULL } },                                                     // 0x046
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, akropolisSquareTelephoneLightTask, { NULL } },                                      // 0x047
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, akropolisSecurityRoomLockLampsTask, { NULL } },                                     // 0x048
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, akropolisSecurityRoomLockLampTask, { NULL } },                                      // 0x049
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, akropolisPromenadeRoomEffectTask, { NULL } },                                       // 0x04A
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, akropolisPromenadeGlowStarTask, { NULL } },                                         // 0x04B
-    { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, actor510900FlameSpriteTask4C, { NULL } },                                           // 0x04C
+    { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, helicopterLandingPadNo9FlameSpriteTask4C, { NULL } },                               // 0x04C
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, akropolisPlazaSpawnAmbientLightsTask, { NULL } },                                   // 0x04D
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, akropolisFireEscapeLightEmitterTask, { NULL } },                                    // 0x04E
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, akropolisFireEscapeFlareTask, { NULL } },                                           // 0x04F
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, dryfieldNightMotelBalconyBreakBurstTask, { NULL } },                                // 0x050
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, akropolisForkedRoadLeafFallTask, { NULL } },                                        // 0x051
-    { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, actor510900FlameSpriteTask52, { NULL } },                                           // 0x052
+    { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, helicopterLandingPadNo9FlameSpriteTask52, { NULL } },                               // 0x052
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, effectSpriteTask53, { NULL } },                                                     // 0x053
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, effectSpriteTask54, { NULL } },                                                     // 0x054
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, effectSpriteTask55, { NULL } },                                                     // 0x055
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, akropolisPromenadeScreenDripTask, { NULL } },                                       // 0x056
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, akropolisPromenadeGroundGlowTask, { NULL } },                                       // 0x057
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, neoArkWoodlandPathWaterRippleTask, { NULL } },                                      // 0x058
-    { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, actor510900FlameSpriteTask59, { NULL } },                                           // 0x059
+    { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, helicopterLandingPadNo9FlameSpriteTask59, { NULL } },                               // 0x059
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, akropolisHelicopterLandingPadEmberTask, { NULL } },                                 // 0x05A
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, akropolisHelicopterLandingPadDamagedLightSparksTask, { NULL } },                    // 0x05B
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, effectSpriteTask5C, { NULL } },                                                     // 0x05C
@@ -634,7 +634,7 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, akropolisPromenadeGlowLampTask, { NULL } },                                         // 0x062
     { { { TASK_BODY_NONE, TASK_PRIORITY_EFFECT } }, taskKill, { NULL } },                                                                // 0x063
     { { { TASK_BODY_TMD, TASK_PRIORITY_EFFECT } }, akropolisCafeteriaModelWanderTask, { &gAkropolisCafeteriaWanderingCreatureModel } },  // 0x064
-    { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, actor510900DebrisStreakTask, { NULL } },                                            // 0x065
+    { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, helicopterLandingPadNo9DebrisStreakTask, { NULL } },                                // 0x065
     { { { TASK_BODY_TMD, TASK_PRIORITY_EFFECT } }, effectThrownModelTask, { &gEffectP229CasingModel } },                                 // 0x066
     { { { TASK_BODY_TMD, TASK_PRIORITY_EFFECT } }, effectThrownModelTask, { &gEffectRifleCasingModel } },                                // 0x067
     { { { TASK_BODY_TMD, TASK_PRIORITY_EFFECT } }, effectThrownModelTask, { &gEffectShotgunShellCasingModel } },                         // 0x068
@@ -921,8 +921,8 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, actor800100PykeFlameTask, { NULL } },                                               // 0x181
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, m4a1HammerImpactFlashTask, { NULL } },                                              // 0x182
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, m4a1JavelinContactFlashTask, { NULL } },                                            // 0x183
-    { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, actor510900ExplosionFireballTask184, { NULL } },                                    // 0x184
-    { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, actor510900ExplosionTask185, { NULL } },                                            // 0x185
+    { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, helicopterLandingPadNo9ExplosionFireballTask184, { NULL } },                        // 0x184
+    { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, helicopterLandingPadNo9ExplosionTask185, { NULL } },                                // 0x185
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, gunbladeTrailTask, { NULL } },                                                      // 0x186
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, neoArkWoodlandPathWaterDriftTaskU16, { NULL } },                                    // 0x187
     { { { TASK_BODY_COORD, TASK_PRIORITY_EFFECT } }, dryfieldDilapidatedHouseTwinTrailTask, { NULL } },                                  // 0x188

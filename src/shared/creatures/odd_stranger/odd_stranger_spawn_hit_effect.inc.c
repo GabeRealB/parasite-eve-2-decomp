@@ -147,8 +147,8 @@ static void _oddStrangerTakeHit(Task* task)
         ODD_STRANGER_CRITICAL_EFFECT_ROLLED       = 0,
         ODD_STRANGER_CRITICAL_EFFECT_BEHIND       = 4,
         ODD_STRANGER_HIT_ANIM_FALL_BACK           = 10,
-        ODD_STRANGER_SOUND_HURT                   = SOUND_ACTOR_311500_HURT,
-        ODD_STRANGER_SOUND_DEATH                  = SOUND_ACTOR_311500_DEATH
+        ODD_STRANGER_SOUND_HURT                   = SOUND_LESSER_STRANGER_HURT,
+        ODD_STRANGER_SOUND_DEATH                  = SOUND_LESSER_STRANGER_DEATH
     };
     PlayerStatus*    playerStatus = &gPlayerStatus;
     OddStrangerWork* work;

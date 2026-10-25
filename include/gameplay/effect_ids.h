@@ -201,16 +201,16 @@ enum {
     /// Small rising puff sprite (tpage 9 row 0xB8, selectable blend) shed behind moving
     /// projectiles: the specimen projectile 0x60081 and attach task 0x37.
     EFFECT_TRAIL_PUFF = EFFECT_ID(EFFECT_TASK_BANK, 0x042),
-    /// Flame-jet emitter attached to a part of actor_510900: holds an orange transient
+    /// Flame-jet emitter attached to a part of helicopter_landing_pad_no_9: holds an orange transient
     /// point light and, by an intensity mode the actor sets, keeps throwing
     /// 0x60045/0x6004C/0x60052/0x60059 sprite particles backward along -x.
-    EFFECT_ACTOR_510900_FLAME_JET = EFFECT_ID(EFFECT_TASK_BANK, 0x043),
+    EFFECT_HELICOPTER_LANDING_PAD_NO_9_FLAME_JET = EFFECT_ID(EFFECT_TASK_BANK, 0x043),
     /// One-shot flash at No.9 golem (Akropolis) model part 8: an orange transient point
     /// light plus effect 0x6003B, six 0x60065 sprites and six pixel sparks; spawned
     /// periodically in its sub-state 3 attack.
     EFFECT_NO9_MUZZLE_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x044),
     /// Animated six-frame additive sprite (tpage 0x2B) that rises while fading and
-    /// casts a ground glow (effectDrawGroundGlow); spawned in pairs by actor_510900's
+    /// casts a ground glow (effectDrawGroundGlow); spawned in pairs by helicopter_landing_pad_no_9's
     /// fire controller (0x60043), which also drives an orange point light.
     EFFECT_NO9_GOLEM_FLAME = EFFECT_ID(EFFECT_TASK_BANK, 0x045),
     /// Flat textured quad lying in the coordinate's horizontal plane (tpage 0x29) that
@@ -230,7 +230,7 @@ enum {
     EFFECT_AKROPOLIS_PROMENADE_GLOW_STAR = EFFECT_ID(EFFECT_TASK_BANK, 0x04B),
     /// Unidentified. Eight-frame additive sprite (tpage 0x2B, v 0x70) whose CLUT steps
     /// with age and which rises by a random amount; spawned alongside 0x60045 by
-    /// actor_510900's fire controller (0x60043).
+    /// helicopter_landing_pad_no_9's fire controller (0x60043).
     EFFECT_04C = EFFECT_ID(EFFECT_TASK_BANK, 0x04C),
     /// Pulsing red or cyan flare (diamond with optional crossed streaks, or radial
     /// glow) at view-dependent offsets; spawned every frame by the Acropolis fire
@@ -275,11 +275,11 @@ enum {
     /// transient light).
     EFFECT_NO9_GUNFIRE_PARTICLE = EFFECT_ID(EFFECT_TASK_BANK, 0x059),
     /// Akropolis helipad ember/spark sprite (bright or dim variant, flickering, may
-    /// fire 0x600E0); spawned around the helipad and by actor_510900.
+    /// fire 0x600E0); spawned around the helipad and by helicopter_landing_pad_no_9.
     EFFECT_ACROPOLIS_HELIPAD_EMBER = EFFECT_ID(EFFECT_TASK_BANK, 0x05A),
     /// Sparking helipad light: random spark lines and a flickering bluish light on slot
     /// 4, and every few frames a spark sound, a 0x6003B flash, six 0x600A4 tiles and a
-    /// second light; spawned by actor_510900 when it is grabbed/struck.
+    /// second light; spawned by helicopter_landing_pad_no_9 when it is grabbed/struck.
     EFFECT_HELIPAD_LIGHT_SPARKS = EFFECT_ID(EFFECT_TASK_BANK, 0x05B),
     /// Growing, spinning animated billboard from the shared 12-frame effect atlas,
     /// which can spawn smaller copies of itself; spawned when generators, golem parts
@@ -307,7 +307,7 @@ enum {
     EFFECT_064 = EFFECT_ID(EFFECT_TASK_BANK, 0x064),
     /// Debris trail: the coordinate drifts by a random step and the segment between
     /// last and current position is drawn as a fading LINE_F2; six are spawned with an
-    /// 0x6003B spark and 0x600A4 tiles by actor_510900's burst effect (0x60044).
+    /// 0x6003B spark and 0x600A4 tiles by helicopter_landing_pad_no_9's burst effect (0x60044).
     EFFECT_NO9_GOLEM_DEBRIS_STREAK = EFFECT_ID(EFFECT_TASK_BANK, 0x065),
     /// Ejected cartridge casing using `gEffectP229CasingModel`, thrown from the
     /// ejection offset by the P229 and NPC-pistol firing controller.
@@ -324,7 +324,7 @@ enum {
     /// Gun muzzle flash without a flash model: lights the transient point light white
     /// for ~5 frames at its weapon-profile muzzle offset, spawns a 0x60034 flash and three
     /// 0x60035 puffs and raises burstRequest; sibling of the weapons' 0x6006B, spawned
-    /// by NPC actors (actor_310600, actor_511000) when they fire.
+    /// by NPC actors (actor_310600, helicopter_departure) when they fire.
     EFFECT_ACTOR_MUZZLE_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x06A),
     /// Muzzle flash controller for the M4A1 family, M249 and companion rifle fire:
     /// point light at the muzzle, flare 0x60034, sparks 0x60072 and casing model
@@ -853,10 +853,10 @@ enum {
     /// Expanding animated atlas sprite with child copies (fireball); spawned by No.9's
     /// explosion controller 0x60185 before it emits smoke, when No.9's projectile hits.
     EFFECT_NO9_EXPLOSION_FIREBALL = EFFECT_ID(EFFECT_TASK_BANK, 0x184),
-    /// Impact controller of actor_510900's thrown spinning object: spawns 0x60184 then
+    /// Impact controller of helicopter_landing_pad_no_9's thrown spinning object: spawns 0x60184 then
     /// smoke (0x60070) every tick for about 60 ticks; spawned with 0x6005C and smoke
     /// when the object lands or hits.
-    EFFECT_ACTOR_510900_IMPACT_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x185),
+    EFFECT_HELICOPTER_LANDING_PAD_NO_9_IMPACT_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x185),
     /// Gunblade blade trail: tip and hilt frames recorded in an 8-slot ring and drawn
     /// as a ribbon; spawned on the gunblade slash.
     EFFECT_GUNBLADE_TRAIL = EFFECT_ID(EFFECT_TASK_BANK, 0x186),

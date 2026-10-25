@@ -1,0 +1,2240 @@
+#include "stages/akropolis/actors/helicopter_departure.h"
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+
+#include "common.h"
+
+#include "actors/actor.h"
+
+#include "gameplay/actor_render.h"
+#include "gameplay/animation.h"
+#include "gameplay/area.h"
+#include "gameplay/areaplace.h"
+#include "gameplay/effect_tasks.h"
+#include "gameplay/enemy.h"
+#include "gameplay/hud_sprites.h"
+#include "gameplay/gpu_image_upload.h"
+#include "gameplay/message.h"
+#include "gameplay/room_effects.h"
+#include "gameplay/scene.h"
+#include "gameplay/scene_runtime.h"
+#include "gameplay/view.h"
+#include "gameplay/world_coords.h"
+#include "gameplay/world_targets.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/scratch.h"
+#include "main/session.h"
+#include "main/session_types.h"
+#include "main/sound.h"
+#include "main/task.h"
+#include "main/task_types.h"
+#include "main/tmd.h"
+#include "main/tmd_types.h"
+#include "../../../../shared/actor/model_placement.h"
+#include "../../../../shared/actor/actor_messages.h"
+
+/// Work block of the No. 9 golem, the package's enemy.
+///
+/// The enemy's spawn state allocates it zeroed and keeps it at `Task::work`
+/// for the task's life. The golem's model and the three models chained under
+/// its parts borrow `light` and `color` for as long as the block lives, which
+/// is what lets one fade darken all four.
+///
+/// While the clip is below 3 the golem is lit from the area at its position
+/// and casts a ground shadow. A clip from 3 up is its exit: the lighting is no
+/// longer refreshed, both matrices are scaled by 15/16 every third tick, and
+/// the enemy is destroyed once `animTicks` passes 96.
+typedef struct {
+    ActorAnimRig19 rig;            // Playback storage of the nineteen-part body model; slots 1 to 18 are driven
+    MATRIX         color;          // Light-colour matrix lent to the golem's model and its attached models
+    MATRIX         light;          // Light-direction matrix lent to the same models
+    s32            animId;         // Clip the last play request seeded the slots with (0 none yet: the slots are not ticked; 3 and up fade the model out)
+    s16            animTicks;      // Ticks since the last play request; paces the fade and ends the enemy
+    byte           unknown_482[6]; // Allocated but never accessed; role unproven
+} _HelicopterDepartureNo9GolemWork;
+STATIC_ASSERT_SIZEOF(_HelicopterDepartureNo9GolemWork, 0x488);
+
+/// RGB555/STP words in the helicopter's flashing palette row and VRAM upload.
+#define HELICOPTER_DEPARTURE_PALETTE_COLORS 16
+
+/// Byte extent of the helicopter's flashing palette row.
+///
+/// Each VRAM colour occupies one 16-bit RGB555/STP word, serialized low byte
+/// first. Byte arrays retain that representation without requiring halfword alignment.
+#define HELICOPTER_DEPARTURE_PALETTE_BYTES (HELICOPTER_DEPARTURE_PALETTE_COLORS * sizeof(u16))
+
+/// Dark-palette weight at full fade, in the GTE's twelve-fractional-bit scale.
+///
+/// Zero selects the lit palette; this value selects the dark palette and starts
+/// consuming the hold counter. The complementary lit weight uses the same scale.
+#define HELICOPTER_DEPARTURE_PALETTE_FADE_FULL ONE
+
+/// Update ticks spent at the dark palette before snapping back to the lit palette.
+///
+/// The update reaching full fade counts as the first held tick. The following
+/// update after the counter reaches zero restores the lit palette and rearms it.
+#define HELICOPTER_DEPARTURE_PALETTE_HOLD_TICKS 30
+
+/// Work block of the helicopter.
+///
+/// The task's spawn state allocates it zeroed and keeps it at `Task::work`
+/// for the task's life. The helicopter's model, and through it the three
+/// models chained under it, borrow `light` and `color` for as long as the
+/// block lives.
+///
+/// While the helicopter is drawn, one sixteen-colour row of video memory is
+/// rewritten every tick from `palette`, a blend of the package's two stored
+/// palettes. The blend snaps to the first palette, fades to the second over
+/// three ticks, holds there for `HELICOPTER_DEPARTURE_PALETTE_HOLD_TICKS` and snaps
+/// back, so whatever is textured with that row flashes once a cycle. The
+/// upload record borrows `palette`, which has to stay live while the task
+/// runs.
+typedef struct {
+    byte   unknown_0[8];                                // Allocated but never accessed; role unproven
+    s32    freeCountdown;                               // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
+    u8     palette[HELICOPTER_DEPARTURE_PALETTE_BYTES]; // Blended palette row as uploaded: `HELICOPTER_DEPARTURE_PALETTE_COLORS` colours, low byte first
+    s16    paletteFade;                                 // Share of the second stored palette in the blend, 4.12 fixed point (0 first palette only, `HELICOPTER_DEPARTURE_PALETTE_FADE_FULL` second only)
+    s8     paletteHold;                                 // Ticks the full fade still holds; counted down only once the fade is full, and at 0 the blend snaps back
+    s8     partsSpawned;                                // Set once the first show command has spawned the three attached models, so a later one does not repeat it
+    MATRIX light;                                       // Light-direction matrix lent to the model object
+    MATRIX color;                                       // Light-colour matrix lent to the model object
+} _HelicopterDepartureHelicopterWork;
+STATIC_ASSERT_SIZEOF(_HelicopterDepartureHelicopterWork, 0x70);
+
+/// `_HelicopterDepartureRupertBroderickWork::blinkStep`: the eye image the blink
+/// posts next.
+///
+/// The command that starts a blink posts the half-open eyes itself; the steps
+/// then post the closed, half-open and open eyes in turn.
+enum {
+    HELICOPTER_DEPARTURE_BLINK_NONE   = 0, // No blink in progress
+    HELICOPTER_DEPARTURE_BLINK_CLOSED = 1, // The closed eyes are posted next
+    HELICOPTER_DEPARTURE_BLINK_HALF   = 2, // The half-open eyes are posted next
+    HELICOPTER_DEPARTURE_BLINK_OPEN   = 3, // The open eyes are posted next, which ends the blink
+};
+
+/// Work block of Rupert Broderick's body.
+///
+/// The task's spawn state allocates it zeroed and keeps it at `Task::work`
+/// for the task's life. The model object borrows `light` and `color` for as
+/// long as the block lives; the lighting is taken at model part 1, not at the
+/// root coordinate.
+///
+/// A play request rebinds the rig when its bank differs from `bank` and
+/// reseeds the slots when its clip differs from `animId`; both start as
+/// `ACTOR_MOTION_ANIMATION_INDEX_NONE`, so the first request does both. The rest is the
+/// two models the body carries, the blink that swaps the eye texture of the
+/// face, and the delayed free of the model's buffers once it has been hidden.
+typedef struct {
+    ActorAnimRig20 rig;             // Playback storage of the twenty-part body model; slots 1 to 19 are driven
+    s32            ticking;         // Set once a clip has been applied, never cleared: the slots are ticked each frame
+    s32            animId;          // Clip the slots were last seeded with, within `bank`
+    s32            bank;            // Index, in the package's animation bank table, of the bank the rig is bound to
+    s32            freeCountdown;   // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
+    MATRIX         light;           // Light-direction matrix lent to the model object
+    MATRIX         color;           // Light-colour matrix lent to the model object
+    Task*          gunTask;         // Task of the revolver model chained under body part 8; the shot's sound and muzzle flash are placed at its root
+    Task*          propTask;        // Task of the second model, chained under body part 12; an actor command shows it as it hides the revolver
+    s16            blinkFrameDelay; // Value `blinkCountdown` restarts from after the closed and the half-open eyes: each is shown for this many ticks plus one
+    s16            blinkCountdown;  // Ticks left before the blink posts its next eye image, which the tick taking it below 0 does; not reset as a blink starts or ends
+    s16            blinkStep;       // Eye image the blink posts next (0 `HELICOPTER_DEPARTURE_BLINK_NONE`, else `_CLOSED`, `_HALF` or `_OPEN`)
+    s16            shotTicks;       // Ticks spent playing clip 1; the sixteenth fires the revolver's sound and muzzle flash. Never reset
+} _HelicopterDepartureRupertBroderickWork;
+STATIC_ASSERT_SIZEOF(_HelicopterDepartureRupertBroderickWork, 0x4D4);
+
+static void _modelPlacementAttachPartTask(Task* childTask);
+static void _modelPlacementMirrorParentDrawFlags(Task* childTask);
+static void _helicopterDepartureTickRupert(Task* task);
+static void _helicopterDepartureTickRupertBlink(Task* task);
+static void _helicopterDepartureIdleRupertRevolver(Task* task);
+static void _helicopterDepartureInitRupert(Task* task);
+static void _helicopterDepartureBindRupertLighting(Task* task);
+static void _helicopterDepartureTickHelicopterSearchlight(Task* task);
+static void _helicopterDepartureDrawHelicopterSearchlightGlow(Task* task, const CVECTOR* centerColor, const u8* rimRgb);
+static void _helicopterDepartureInitHelicopter(Task* task);
+static void _helicopterDepartureTickHelicopter(Task* task);
+static void _helicopterDepartureKillHelicopter(Task* task);
+static void _helicopterDepartureAttachHelicopterRotor(Task* task);
+static void _helicopterDepartureTickHelicopterRotor(Task* task);
+static void _helicopterDepartureKillHelicopterRotor(Task* task);
+static void _helicopterDepartureAttachHelicopterSearchlight(Task* task);
+static void _helicopterDepartureKillHelicopterSearchlight(Task* task);
+static void _helicopterDeparturePoseHelicopterSequenceFrame(Task* task, const SVECTOR* rotations, const SVECTOR* translations, s32 frameIndex);
+static void _helicopterDeparturePlaceHelicopterPart(Task* task);
+static void _helicopterDepartureBindHelicopterLighting(Task* task);
+static void _helicopterDepartureSpawnNo9Golem(Enemy* enemy, Task* task);
+static void _helicopterDepartureTickNo9Golem(Enemy* enemy, Task* task);
+static void _helicopterDepartureAttachNo9GolemPart8Model(Enemy* enemy, Task* task);
+static void _helicopterDepartureTickNo9GolemPart8Model(Enemy* enemy, Task* task);
+static void _helicopterDepartureAttachNo9GolemPart3Model(Enemy* enemy, Task* task);
+static void _helicopterDepartureTickNo9GolemPart3Model(Enemy* enemy, Task* task);
+static void _helicopterDepartureAttachNo9GolemPart12Model(Enemy* enemy, Task* task);
+static void _helicopterDepartureTickNo9GolemPart12Model(Enemy* enemy, Task* task);
+
+/// Rupert's revolver states: 0 attach at body part 8, 1 idle, 2 kill.
+///
+/// Indexed by `Task::state` without a terminator or bounds check.
+static const TaskFuncTable3 _gHelicopterDepartureRupertRevolverStates = {
+    _modelPlacementAttachPartTask,
+    _helicopterDepartureIdleRupertRevolver,
+    taskKill,
+};
+
+/// Rupert's second prop states: 0 attach at part 12, 1 mirror draw policy, 2 kill.
+///
+/// Indexed by `Task::state` without a terminator or bounds check.
+static const TaskFuncTable3 _gHelicopterDepartureRupertPropStates = {
+    _modelPlacementAttachChild,
+    _modelPlacementMirrorParentDrawFlags,
+    taskKill,
+};
+
+/// Rupert's body states: 0 initialize work and children, 1 update, 2 enemy exit.
+///
+/// Indexed by `Task::state`; exit requires the owning enemy in spawn argument 2.
+static const TaskFuncTable3 _gHelicopterDepartureRupertBodyStates = {
+    _helicopterDepartureInitRupert,
+    _helicopterDepartureTickRupert,
+    enemyTaskExit,
+};
+
+/// Helicopter hull states: 0 initialize work and pose, 1 update, 2 kill.
+///
+/// Indexed by `Task::state` without a terminator or bounds check.
+static const TaskFuncTable3 _gHelicopterDepartureHelicopterStates = {
+    _helicopterDepartureInitHelicopter,
+    _helicopterDepartureTickHelicopter,
+    _helicopterDepartureKillHelicopter,
+};
+
+/// Main and tail rotor states: 0 attach to the hull, 1 spin, 2 kill.
+///
+/// Indexed by `Task::state`; spawn argument 1 selects rotor 1 or 2.
+static const TaskFuncTable3 _gHelicopterDepartureHelicopterRotorStates = {
+    _helicopterDepartureAttachHelicopterRotor,
+    _helicopterDepartureTickHelicopterRotor,
+    _helicopterDepartureKillHelicopterRotor,
+};
+
+/// Helicopter searchlight states: 0 attach, 1 aim and draw the glow, 2 kill.
+///
+/// Indexed by `Task::state`; aiming follows the parent's sequence frame 0..119.
+static const TaskFuncTable3 _gHelicopterDepartureHelicopterSearchlightStates = {
+    _helicopterDepartureAttachHelicopterSearchlight,
+    _helicopterDepartureTickHelicopterSearchlight,
+    _helicopterDepartureKillHelicopterSearchlight,
+};
+
+/// No. 9 GOLEM body states: 0 initialize work and children, 1 update, 2 destroy.
+///
+/// Indexed by `Task::state`; each handler receives the owning enemy and task.
+static const EnemyTaskFuncTable3 _gHelicopterDepartureNo9GolemStates = {
+    _helicopterDepartureSpawnNo9Golem,
+    _helicopterDepartureTickNo9Golem,
+    enemyDestroy,
+};
+
+static TmdSource _gRupertBody2;
+static TmdSource _gRupertMongoose;
+static TmdSource _gRupertRadio;
+static s32       _helicopterDeparturePlayRupertAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
+static s32       _helicopterDepartureSetRupertModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg);
+static s32       _helicopterDepartureApplyRupertCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
+static s32       _helicopterDepartureSetRupertEyes(Task* task, s32 messageId, s32 eyeMode, s32 unusedArg);
+static void      _helicopterDepartureRupertRevolverTask(Task* task);
+static void      _helicopterDepartureRupertPropTask(Task* task);
+static void      _helicopterDepartureRupertBodyTask(Task* task);
+
+static AnimationSet _gAkropolisHelicopterLandingPadRupertShootClip;
+static AnimationSet _gAkropolisHelicopterLandingPadRupertArriveClip;
+static AnimationSet _gAkropolisHelicopterLandingPadRupertDetonatorTalkClip;
+
+static s32  _helicopterDepartureRestartHelicopterSequence(Task* task, s32 messageId, s32 unusedRequest, s32 unusedArg);
+static s32  _helicopterDeparturePlaceHelicopter(Task* task, s32 messageId, const ActorTransform* transform, s32 unusedArg);
+static s32  _helicopterDepartureSetHelicopterModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArgument);
+static s32  _helicopterDeparturePlayNo9GolemAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
+static s32  _helicopterDepartureSetNo9GolemModelDraw(Task* task, s32 messageId, s32 drawFlags, s32 unusedArg);
+static void _helicopterDepartureNo9GolemTask(Task* task);
+static void _helicopterDepartureNo9GolemPart8Task(Task* task);
+static void _helicopterDepartureNo9GolemPart3Task(Task* task);
+static void _helicopterDepartureNo9GolemPart12Task(Task* task);
+
+static TmdSource _gHelicopterDepartureHelicopterBase;
+static TmdSource _gAkropolisHelicopterLandingPadMainRotor;
+static TmdSource _gAkropolisHelicopterLandingPadTailRotor;
+static TmdSource _gAkropolisHelicopterLandingPadSearchlight;
+static void      _helicopterDepartureHelicopterTask(Task* task);
+static void      _helicopterDepartureHelicopterRotorTask(Task* task);
+static void      _helicopterDepartureHelicopterSearchlightTask(Task* task);
+
+#include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_departure_clips_1.inc"
+
+TaskDesc gHelicopterDepartureHelicopterTaskDescriptors[4] = {
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _helicopterDepartureHelicopterTask, { .model = &_gHelicopterDepartureHelicopterBase } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _helicopterDepartureHelicopterRotorTask, { .model = &_gAkropolisHelicopterLandingPadMainRotor } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _helicopterDepartureHelicopterRotorTask, { .model = &_gAkropolisHelicopterLandingPadTailRotor } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _helicopterDepartureHelicopterSearchlightTask, { .model = &_gAkropolisHelicopterLandingPadSearchlight } },
+};
+
+static TmdBone _gHelicopterDepartureHelicopterBaseSkeleton[1] = {
+#include "assets/helicopter_departure_helicopter_base_skeleton.inc"
+};
+
+static u32 _gHelicopterDepartureHelicopterBasePartVerts[1] = {
+#include "assets/helicopter_departure_helicopter_base_partVerts.inc"
+};
+
+static SVECTOR _gHelicopterDepartureHelicopterBaseVerts[262] = {
+#include "assets/helicopter_departure_helicopter_base_verts.inc"
+};
+
+static SVECTOR _gHelicopterDepartureHelicopterBaseNormals[163] = {
+#include "assets/helicopter_departure_helicopter_base_normals.inc"
+};
+
+static u32 _gHelicopterDepartureHelicopterBaseStream[1299] = {
+#include "assets/helicopter_departure_helicopter_base_stream.inc"
+};
+
+static TmdSource _gHelicopterDepartureHelicopterBase = {
+    0,
+    9368,
+    0,
+    1,
+    _gHelicopterDepartureHelicopterBasePartVerts,
+    _gHelicopterDepartureHelicopterBaseVerts,
+    _gHelicopterDepartureHelicopterBaseNormals,
+    _gHelicopterDepartureHelicopterBaseSkeleton,
+    _gHelicopterDepartureHelicopterBaseStream,
+};
+
+#include "assets/rooms/akropolis/helicopter_landing_pad/main_rotor.inc"
+
+#include "assets/rooms/akropolis/helicopter_landing_pad/tail_rotor.inc"
+
+#include "assets/rooms/akropolis/helicopter_landing_pad/searchlight.inc"
+
+#include "assets/characters/rupert/body_2.inc"
+
+#include "assets/characters/rupert/mongoose.inc"
+
+#include "assets/characters/rupert/radio.inc"
+
+#include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_departure_clips_2.inc"
+
+/// Eye-patch dimensions: width counts 16-bit VRAM words, height counts rows.
+enum {
+    HELICOPTER_DEPARTURE_EYE_TEXTURE_WIDTH_WORDS = 24,
+    HELICOPTER_DEPARTURE_EYE_TEXTURE_HEIGHT_ROWS = 16,
+};
+
+/// Packed open-eye pixels for Rupert's face texture.
+///
+/// Two VRAM words per `u_long`; the GPU borrows this word-aligned storage until
+/// transfer completion. The patch covers 24 VRAM words by 16 rows.
+static u_long _gHelicopterDepartureRupertEyesOpenPixels[HELICOPTER_DEPARTURE_EYE_TEXTURE_WIDTH_WORDS * HELICOPTER_DEPARTURE_EYE_TEXTURE_HEIGHT_ROWS / 2] = {
+#include "assets/characters/rupert/eyes_open.inc"
+};
+
+/// Writable COPY/END list restoring Rupert's open-eye texture patch.
+///
+/// Actor uploads relocate the first destination to the model's texture page
+/// at local Y 40; the pixel storage stays borrowed until GPU completion.
+static GpuImageUpload _gHelicopterDepartureRupertEyesOpenUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, HELICOPTER_DEPARTURE_EYE_TEXTURE_WIDTH_WORDS, HELICOPTER_DEPARTURE_EYE_TEXTURE_HEIGHT_ROWS }, _gHelicopterDepartureRupertEyesOpenPixels },
+    { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
+};
+
+/// Packed half-open-eye pixels for Rupert's face texture.
+///
+/// Two VRAM words per `u_long`; the 24-word by 16-row patch remains borrowed
+/// until GPU transfer completion.
+static u_long _gHelicopterDepartureRupertEyesHalfOpenPixels[HELICOPTER_DEPARTURE_EYE_TEXTURE_WIDTH_WORDS * HELICOPTER_DEPARTURE_EYE_TEXTURE_HEIGHT_ROWS / 2] = {
+#include "assets/characters/rupert/eyes_half_open.inc"
+};
+
+/// Writable COPY/END list for Rupert's half-open blink image.
+///
+/// Used at blink start and between closed and open eyes. Actor uploads relocate
+/// the first destination; the pixels remain borrowed until GPU completion.
+static GpuImageUpload _gHelicopterDepartureRupertEyesHalfOpenUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, HELICOPTER_DEPARTURE_EYE_TEXTURE_WIDTH_WORDS, HELICOPTER_DEPARTURE_EYE_TEXTURE_HEIGHT_ROWS }, _gHelicopterDepartureRupertEyesHalfOpenPixels },
+    { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
+};
+
+/// Packed closed-eye pixels for Rupert's face texture.
+///
+/// Two VRAM words per `u_long`; the 24-word by 16-row patch remains borrowed
+/// until GPU transfer completion.
+static u_long _gHelicopterDepartureRupertEyesClosedPixels[HELICOPTER_DEPARTURE_EYE_TEXTURE_WIDTH_WORDS * HELICOPTER_DEPARTURE_EYE_TEXTURE_HEIGHT_ROWS / 2] = {
+#include "assets/characters/rupert/eyes_closed.inc"
+};
+
+/// Writable COPY/END list for Rupert's closed-eye image.
+///
+/// Used by the closed-eye command and the first timed blink step. Actor uploads
+/// relocate the first destination; pixels remain borrowed until GPU completion.
+static GpuImageUpload _gHelicopterDepartureRupertEyesClosedUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, HELICOPTER_DEPARTURE_EYE_TEXTURE_WIDTH_WORDS, HELICOPTER_DEPARTURE_EYE_TEXTURE_HEIGHT_ROWS }, _gHelicopterDepartureRupertEyesClosedPixels },
+    { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
+};
+
+/// Rupert's bank-0 clip sources, with NULL at 0 and loaded sets at IDs 1..3.
+///
+/// Playback borrows this table and its clip data while the package is loaded.
+/// Clip indices are unchecked and must select one of the loaded sets.
+#include "assets/rooms/akropolis/helicopter_landing_pad/rupert_bank.inc"
+
+/// Animation-bank selector for Rupert's body; only bank index 0 is valid.
+///
+/// A bank change binds its clip table into the live playback context. Requests
+/// must keep this package and the selected clip data loaded until playback ends.
+static AnimationSet** _gHelicopterDepartureRupertAnimationBanks[1] = {
+    _gHelicopterDepartureRupertAnimationSets,
+};
+
+TaskDesc gHelicopterDepartureRupertTaskDescriptors[3] = {
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _helicopterDepartureRupertBodyTask, { .model = &_gRupertBody2 } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _helicopterDepartureRupertRevolverTask, { .model = &_gRupertMongoose } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _helicopterDepartureRupertPropTask, { .model = &_gRupertRadio } },
+};
+
+/// Rupert's eye-image message; argument 1 selects 0/2 open, 1 closed, 3 blink.
+enum { HELICOPTER_DEPARTURE_RUPERT_MESSAGE_SET_EYES = 0x7E0 };
+
+/// Terminated message table for Rupert's animation, placement, drawing and props.
+///
+/// The eye entry selects an image or starts a blink. Payload types belong to
+/// each handler; the final END entry makes unsupported messages return zero.
+static TaskMessageEntry _gHelicopterDepartureRupertMessages[6] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _helicopterDeparturePlayRupertAnimation },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _helicopterDepartureSetRupertModelDraw },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _helicopterDepartureApplyRupertCommand },
+    { HELICOPTER_DEPARTURE_RUPERT_MESSAGE_SET_EYES, _helicopterDepartureSetRupertEyes },
+    { TASK_MESSAGE_TABLE_END, NULL },
+};
+
+/// Muzzle-flash position relative to Rupert's revolver root, in game units.
+///
+/// The shot effect snapshots the placement and retains this borrowed offset;
+/// keep the package loaded while the effect lives.
+static SVECTOR _gHelicopterDepartureRupertMuzzleFlashOffset = { -30, 440, 140, 0 };
+
+/// Synchronized hull, camera and searchlight frames of the view-24 sequence.
+enum { HELICOPTER_DEPARTURE_HELICOPTER_SEQUENCE_FRAME_COUNT = 120 };
+
+/// Helicopter hull Euler rotations for sequence frames 0..119.
+///
+/// Angles use 4096 units per turn in the root's parent coordinate frame.
+/// Shares the clamped playback cursor with the translations, camera and lamp.
+static SVECTOR _gHelicopterDepartureHelicopterSequenceRotations[HELICOPTER_DEPARTURE_HELICOPTER_SEQUENCE_FRAME_COUNT] = {
+#include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_rotation_track.inc"
+};
+
+/// Helicopter hull positions for sequence frames 0..119, in parent game units.
+///
+/// Applied with the corresponding rotation; initialization uses frame 0 and
+/// view-24 updates advance the shared cursor through the repeated final frame.
+static SVECTOR _gHelicopterDepartureHelicopterSequenceTranslations[HELICOPTER_DEPARTURE_HELICOPTER_SEQUENCE_FRAME_COUNT] = {
+#include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_translation_track.inc"
+};
+
+/// Searchlight Euler aim relative to the hull for sequence frames 0..119.
+///
+/// Angles use 4096 units per turn. Attachment applies frame 0; view-24 updates
+/// use the parent helicopter's clamped sequence cursor.
+static SVECTOR _gHelicopterDepartureHelicopterSearchlightRotations[HELICOPTER_DEPARTURE_HELICOPTER_SEQUENCE_FRAME_COUNT] = {
+#include "assets/rooms/akropolis/helicopter_landing_pad/searchlight_rotation_track.inc"
+};
+
+/// Lit red-ramp endpoint of the helicopter's sixteen-colour flashing palette.
+///
+/// RGB555/STP halfwords are stored low byte first for byte-pair blending. The
+/// fade discards STP; the initial upload source borrows this word-aligned row.
+static u8 _gHelicopterDepartureHelicopterFlashLitPalette[HELICOPTER_DEPARTURE_PALETTE_BYTES] = {
+#include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_palette_lit.inc"
+};
+
+/// Absolute VRAM row rewritten by the helicopter's flashing palette.
+enum { HELICOPTER_DEPARTURE_HELICOPTER_FLASH_CLUT_ROW = 264 };
+
+/// Writable COPY/END list for the helicopter's flashing VRAM palette row.
+///
+/// Copies sixteen VRAM words to row 264. Hull initialization replaces `pixels`
+/// with its work-owned blended byte row; that hull and its pending GPU transfers
+/// must finish before the work is released. The list supports one live hull.
+static GpuImageUpload _gHelicopterDepartureHelicopterFlashPaletteUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, HELICOPTER_DEPARTURE_HELICOPTER_FLASH_CLUT_ROW, HELICOPTER_DEPARTURE_PALETTE_COLORS, 1 }, (u_long*)_gHelicopterDepartureHelicopterFlashLitPalette },
+    { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
+};
+
+/// Dark endpoint of the helicopter's sixteen-colour flashing palette.
+///
+/// RGB555/STP halfwords stored low byte first: white and black endpoints are
+/// retained around fourteen 0x8421 dark-grey entries. The fade discards STP.
+static u8 _gHelicopterDepartureHelicopterFlashDarkPalette[HELICOPTER_DEPARTURE_PALETTE_BYTES] = {
+#include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_palette_dark.inc"
+};
+
+/// Camera frames synchronized with the helicopter's view-24 hull and lamp poses.
+///
+/// Frames 0..119 share a fixed world-to-camera rotation and 447-pixel projection
+/// distance; the negated world-space camera origin changes each frame. Playback
+/// advances before queuing and repeats frame 119. Each queued camera task borrows
+/// its entry, so the package must remain loaded through that task's dispatch.
+static ViewCamera _gHelicopterDepartureHelicopterSequenceCameras[HELICOPTER_DEPARTURE_HELICOPTER_SEQUENCE_FRAME_COUNT] = {
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5598, 5926, 124 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5599, 5926, 122 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5599, 5926, 118 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5601, 5927, 110 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5602, 5927, 100 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5605, 5928, 86 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5607, 5930, 70 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5610, 5931, 52 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5614, 5933, 30 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5617, 5934, 6 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5622, 5936, -19 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5626, 5938, -47 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5630, 5940, -78 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5635, 5943, -111 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5640, 5945, -146 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5645, 5947, -184 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5651, 5950, -223 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5656, 5953, -264 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5661, 5955, -306 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5667, 5958, -351 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5672, 5961, -397 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5677, 5963, -444 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5682, 5966, -493 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5688, 5969, -543 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5693, 5972, -595 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5697, 5975, -648 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5702, 5977, -702 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5707, 5980, -756 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5711, 5983, -812 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5715, 5985, -869 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5719, 5988, -926 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5722, 5990, -985 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5725, 5993, -1043 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5728, 5995, -1103 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5730, 5997, -1162 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5732, 5999, -1222 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5734, 6001, -1282 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5735, 6003, -1343 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5736, 6005, -1403 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5736, 6006, -1464 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5736, 6008, -1524 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5735, 6009, -1585 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5734, 6010, -1644 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5732, 6011, -1704 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5730, 6012, -1763 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5727, 6012, -1822 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5724, 6013, -1880 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5719, 6013, -1937 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5714, 6012, -1993 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5708, 6012, -2048 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5701, 6011, -2103 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5694, 6010, -2156 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5685, 6009, -2207 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5675, 6007, -2258 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5663, 6005, -2306 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5650, 6002, -2353 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5634, 5998, -2397 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5616, 5993, -2439 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5593, 5987, -2476 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5564, 5979, -2505 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5527, 5968, -2521 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5486, 5956, -2521 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5446, 5944, -2510 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5407, 5931, -2492 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5370, 5919, -2469 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5334, 5908, -2443 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5299, 5897, -2414 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5265, 5885, -2383 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5232, 5875, -2350 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5199, 5864, -2316 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5167, 5853, -2281 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5136, 5843, -2245 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5105, 5833, -2207 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5074, 5822, -2169 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5045, 5812, -2131 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5015, 5802, -2091 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4986, 5793, -2051 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4958, 5783, -2011 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4930, 5774, -1971 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4902, 5764, -1930 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4875, 5755, -1889 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4849, 5746, -1847 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4823, 5737, -1806 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4797, 5728, -1765 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4772, 5720, -1724 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4748, 5711, -1683 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4724, 5703, -1642 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4701, 5695, -1601 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4678, 5687, -1561 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4656, 5679, -1521 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4634, 5672, -1481 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4614, 5665, -1442 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4593, 5657, -1404 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4573, 5651, -1366 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4554, 5644, -1329 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4536, 5637, -1292 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4518, 5631, -1257 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4501, 5625, -1222 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4485, 5619, -1188 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4469, 5614, -1155 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4454, 5608, -1123 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4440, 5603, -1092 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4426, 5598, -1063 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4413, 5594, -1034 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4401, 5589, -1007 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4389, 5585, -981 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4379, 5581, -957 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4368, 5578, -934 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4359, 5574, -913 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4351, 5571, -893 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4343, 5568, -874 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4336, 5566, -858 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4330, 5564, -843 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4324, 5562, -830 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4320, 5560, -819 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4316, 5559, -810 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4313, 5558, -802 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4311, 5557, -797 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4309, 5556, -794 } }, 447 },
+    { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4309, 5556, -793 } }, 447 },
+};
+
+/// Terminated helicopter messages for sequence restart, placement and drawing.
+///
+/// PLAY_ANIMATION resets the shared sequence cursor without reading its payload.
+/// PLACE borrows an `ActorTransform`; SET_MODEL_DRAW takes an integer mode.
+/// The final END entry makes unsupported messages return zero.
+static TaskMessageEntry _gHelicopterDepartureHelicopterMessages[4] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _helicopterDepartureRestartHelicopterSequence },
+    { ACTOR_MESSAGE_PLACE, _helicopterDeparturePlaceHelicopter },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _helicopterDepartureSetHelicopterModelDraw },
+    { TASK_MESSAGE_TABLE_END, NULL },
+};
+
+/// Hull-relative translations of helicopter parts, in game units.
+///
+/// Spawn argument 1 indexes 1 main rotor, 2 tail rotor or 3 searchlight.
+/// Entry 0's downward offset is retained but none of these spawns selects it.
+static SVECTOR _gHelicopterDepartureHelicopterPartOffsets[4] = {
+    { 0, -0x3A98, 0, 0 },
+    { 0, -1350, 1360, 0 },
+    { 340, -230, -5790, 0 },
+    { 0, 1520, 50, 0 },
+};
+
+/// Searchlight glow centre colours at frame distances 0..3 from peak frame 89.
+///
+/// The ramp is symmetric over frames 86..92; rim RGB channels are each 30 lower.
+static CVECTOR _gHelicopterDepartureHelicopterSearchlightGlowColors[4] = {
+    { 255, 255, 255, 0 },
+    { 200, 200, 200, 0 },
+    { 150, 150, 150, 0 },
+    { 60, 60, 60, 0 },
+};
+
+/// One unit of a searchlight rim direction in signed 4.12 fixed point.
+enum { HELICOPTER_DEPARTURE_SEARCHLIGHT_DIRECTION_ONE = 4096 };
+
+/// Sixteen equally spaced screen-XY unit directions for the searchlight glow rim.
+///
+/// Signed 4.12 samples start at +X and turn toward +Y. Scaling by the 300-pixel
+/// radius produces the triangle fan's rim; the final triangle wraps to sample 0.
+static DVECTOR _gHelicopterDepartureHelicopterSearchlightRimDirections[16] = {
+    { HELICOPTER_DEPARTURE_SEARCHLIGHT_DIRECTION_ONE, 0 },
+    { 3784, 1567 },
+    { 2896, 2896 },
+    { 1567, 3784 },
+    { 0, HELICOPTER_DEPARTURE_SEARCHLIGHT_DIRECTION_ONE },
+    { -1567, 3784 },
+    { -2896, 2896 },
+    { -3784, 1567 },
+    { -HELICOPTER_DEPARTURE_SEARCHLIGHT_DIRECTION_ONE, 0 },
+    { -3784, -1567 },
+    { -2896, -2896 },
+    { -1567, -3784 },
+    { 0, -HELICOPTER_DEPARTURE_SEARCHLIGHT_DIRECTION_ONE },
+    { 1567, -3784 },
+    { 2896, -2896 },
+    { 3784, -1567 },
+};
+
+/// Child entries in `gHelicopterDepartureHelicopterTaskDescriptors`, excluding hull 0.
+enum {
+    HELICOPTER_DEPARTURE_HELICOPTER_MAIN_ROTOR_DESCRIPTOR  = 1,
+    HELICOPTER_DEPARTURE_HELICOPTER_TAIL_ROTOR_DESCRIPTOR  = 2,
+    HELICOPTER_DEPARTURE_HELICOPTER_SEARCHLIGHT_DESCRIPTOR = 3,
+};
+
+/// Descriptor indices spawned on the helicopter hull's first show request.
+///
+/// Ordered main rotor, tail rotor, searchlight. Spawn argument 1 is the entry's
+/// one-based position, selecting the corresponding hull-relative part offset;
+/// spawn argument 2 borrows the hull task.
+static s32 _gHelicopterDepartureHelicopterChildDescriptorIndices[3] = {
+    HELICOPTER_DEPARTURE_HELICOPTER_MAIN_ROTOR_DESCRIPTOR,
+    HELICOPTER_DEPARTURE_HELICOPTER_TAIL_ROTOR_DESCRIPTOR,
+    HELICOPTER_DEPARTURE_HELICOPTER_SEARCHLIGHT_DESCRIPTOR,
+};
+
+#include "assets/enemies/golem/no_9/body_akropolis.inc"
+
+#include "assets/enemies/golem/no_9/akropolis_sword.inc"
+
+#include "assets/enemies/golem/no_9/akropolis_prop.inc"
+
+#include "assets/enemies/golem/no_9/akropolis_chest_piece.inc"
+
+#include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_departure_clips_3.inc"
+
+TaskDesc gHelicopterDepartureNo9GolemTaskDescriptors[4] = {
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _helicopterDepartureNo9GolemTask, { .model = &gGolemNo9BodyAkropolis } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _helicopterDepartureNo9GolemPart8Task, { .model = &gGolemNo9AkropolisSword } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _helicopterDepartureNo9GolemPart3Task, { .model = &gGolemNo9AkropolisChestPiece } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _helicopterDepartureNo9GolemPart12Task, { .model = &gGolemNo9AkropolisProp } },
+};
+
+/// No. 9 GOLEM playback, matrix-placement and draw messages, with an end marker.
+///
+/// Installed on the initialized body. Playback borrows an `AnimationPlayRequest`
+/// selecting clip 1..3; placement borrows an `ActorTransform`, and draw takes
+/// show/skip-buffer flag bits. Unknown ids return zero. The task borrows this
+/// table and its callback code until teardown; keep this overlay loaded.
+static TaskMessageEntry _gHelicopterDepartureNo9GolemMessages[4] = {
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _helicopterDeparturePlayNo9GolemAnimation },
+    { ACTOR_MESSAGE_PLACE, actorMsgPlaceRotMatrix },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _helicopterDepartureSetNo9GolemModelDraw },
+    { TASK_MESSAGE_TABLE_END, NULL },
+};
+
+/// No. 9 GOLEM's fixed clip bank: zero is absent, clips 1..3 drive slots 1..18.
+///
+/// Spawn binds the context without playing clip zero. Messages reset clips
+/// 1..3; clip 3 also starts the body's fade and teardown. The context borrows
+/// this table and its descriptor/pose data for the initialized body's lifetime.
+#include "assets/rooms/akropolis/helicopter_landing_pad/no_9_bank.inc"
+
+static void _helicopterDepartureTickHelicopterPaletteFlash(_HelicopterDepartureHelicopterWork* work);
+
+/// Advances Rupert's animation, shot cues, lighting, blink and buffer-release delay.
+///
+/// Requires initialized twenty-part model/work and live held-model tasks. Slots
+/// 1..19 advance once playback starts; clip 1 fires its sound and revolver-root
+/// muzzle flash on tick 16. Visible models receive a ground shadow; ready views
+/// refresh part-1 lighting. Buffer countdown -1 is inactive; a call finding zero
+/// frees the primitive buffer before decrementing the countdown.
+static void _helicopterDepartureTickRupert(Task* task)
+{
+    enum {
+        HELICOPTER_DEPARTURE_RUPERT_SHOT_CLIP  = 1,
+        HELICOPTER_DEPARTURE_RUPERT_SHOT_TICK  = 16,
+        HELICOPTER_DEPARTURE_SOUND_RUPERT_SHOT = 0x313A0003,
+        HELICOPTER_DEPARTURE_RUPERT_LIGHT_PART = 1,
+    };
+
+    _HelicopterDepartureRupertBroderickWork* work;
+    TmdObject*                               model;
+    GfxCoord*                                coord;
+    GfxCoord*                                gunCoord;
+    VECTOR3                                  groundPoint;
+    s32                                      slotIndex;
+    s32                                      audioPan;
+
+    model = task->extra.tmd;
+    work  = task->work;
+    coord = &model->coords[HELICOPTER_DEPARTURE_RUPERT_LIGHT_PART];
+    if (work->ticking != 0) {
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationTickSlot(&work->rig.anim, slotIndex);
+        }
+        if (work->animId == HELICOPTER_DEPARTURE_RUPERT_SHOT_CLIP) {
+            if (++work->shotTicks == HELICOPTER_DEPARTURE_RUPERT_SHOT_TICK) {
+                gunCoord = work->gunTask->extra.tmd->coords;
+                audioPan = (s8)worldCoordGetOriginAudioPan(gunCoord);
+                sndEvtRequestScriptStart(HELICOPTER_DEPARTURE_SOUND_RUPERT_SHOT, audioPan, (s8)worldCoordGetOriginAudioDepth(gunCoord));
+                effectSpawn(EFFECT_ACTOR_MUZZLE_FLASH, gunCoord, 0, &_gHelicopterDepartureRupertMuzzleFlashOffset);
+            }
+        }
+    }
+    if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[HELICOPTER_DEPARTURE_RUPERT_LIGHT_PART].workm), &groundPoint) != 0) {
+            effectDrawGroundShadow(&groundPoint, 0x300, gRoomEffectState->groundShadowShade);
+        }
+    }
+    if (gGameSession->viewReady != 0) {
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(coord);
+        worldCoordSetModelLighting(model, coord->workm.t, 0, 3);
+    }
+    _helicopterDepartureTickRupertBlink(task);
+    if (work->freeCountdown >= 0) {
+        if (work->freeCountdown == 0) {
+            tmdFreePrimitiveBuffer(model);
+        }
+        work->freeCountdown--;
+    }
+}
+
+/// Posts the next timed blink image and restarts its display interval.
+///
+/// Requires a live Rupert TMD task and its initialized work in CLOSED or HALF.
+/// Resets the signed countdown from blinkFrameDelay and advances to the next
+/// step; a nonnegative delay lasts that many later blink ticks plus one.
+/// The writable, terminated upload list and rectangle are borrowed through the call; image
+/// pixels remain live until GPU transfer completes. Rectangle units follow
+/// `actorRenderUploadTexture`. The caller expires the countdown; this does not
+/// test it. The upload rewrites the first list entry's destination.
+/// Upload results are ignored; this does not wait for the GPU.
+static inline void _helicopterDepartureAdvanceRupertBlinkImage(Task* task, _HelicopterDepartureRupertBroderickWork* work,
+                                                               GpuImageUpload* uploadList, const RECT* eyeRect)
+{
+    actorRenderUploadTexture(task, uploadList, eyeRect);
+    work->blinkCountdown = work->blinkFrameDelay;
+    work->blinkStep      = work->blinkStep + 1;
+}
+
+/// Advances Rupert's closed, half-open and open eye sequence by one tick.
+///
+/// Requires a live TMD body and initialized work. Active steps decrement the
+/// signed-halfword countdown and post their image when it becomes negative.
+/// Closed and half-open restart the countdown from `blinkFrameDelay`; open
+/// ends the blink without resetting it. Other steps do nothing. The eye patch
+/// spans 24 VRAM words by 16 rows at local Y 40. Pixel storage remains borrowed
+/// until GPU transfer completes; uploads do not wait and their results are ignored.
+static void _helicopterDepartureTickRupertBlink(Task* task)
+{
+    enum { HELICOPTER_DEPARTURE_BLINK_EYES_Y_ROWS      = 40,
+           HELICOPTER_DEPARTURE_BLINK_EYES_WIDTH_WORDS = 24,
+           HELICOPTER_DEPARTURE_BLINK_EYES_HEIGHT_ROWS = 16 };
+    _HelicopterDepartureRupertBroderickWork* work;
+    RECT                                     eyeRect;
+
+    work      = task->work;
+    eyeRect.x = 0;
+    eyeRect.y = HELICOPTER_DEPARTURE_BLINK_EYES_Y_ROWS;
+    eyeRect.w = HELICOPTER_DEPARTURE_BLINK_EYES_WIDTH_WORDS;
+    eyeRect.h = HELICOPTER_DEPARTURE_BLINK_EYES_HEIGHT_ROWS;
+
+    switch (work->blinkStep) {
+        case HELICOPTER_DEPARTURE_BLINK_CLOSED:
+            work->blinkCountdown = work->blinkCountdown - 1;
+            if (work->blinkCountdown < 0) {
+                _helicopterDepartureAdvanceRupertBlinkImage(task, work, &_gHelicopterDepartureRupertEyesClosedUploads[0], &eyeRect);
+            }
+            break;
+        case HELICOPTER_DEPARTURE_BLINK_HALF:
+            work->blinkCountdown = work->blinkCountdown - 1;
+            if (work->blinkCountdown < 0) {
+                _helicopterDepartureAdvanceRupertBlinkImage(task, work, &_gHelicopterDepartureRupertEyesHalfOpenUploads[0], &eyeRect);
+            }
+            break;
+        case HELICOPTER_DEPARTURE_BLINK_OPEN:
+            work->blinkCountdown = work->blinkCountdown - 1;
+            if (work->blinkCountdown < 0) {
+                actorRenderUploadTexture(task, &_gHelicopterDepartureRupertEyesOpenUploads[0], &eyeRect);
+                work->blinkStep = HELICOPTER_DEPARTURE_BLINK_NONE;
+            }
+            break;
+    }
+}
+
+/// Runs Rupert Broderick's revolver attachment states.
+///
+/// `task->state` is 0 attach, 1 idle or 2 kill. At attachment,
+/// `spawnArg2.pointer` borrows the live parent TMD task and `spawnArg1.value`
+/// selects its model coordinate (part 8 in the body descriptor's spawn).
+/// The child's local transform and draw policy are retained. Attachment joins
+/// the parent's teardown tree; its coordinate and lighting must outlive the child.
+static void _helicopterDepartureRupertRevolverTask(Task* task)
+{
+    TaskFuncTable3 states;
+
+    states = _gHelicopterDepartureRupertRevolverStates;
+    states.funcs[task->state](task);
+}
+
+#include "../../../../shared/actor/model_placement_attach_part.inc.c"
+
+/// Leaves the revolver attachment unchanged between attachment and teardown.
+///
+/// Its chained coordinate follows the parent model part without a task update.
+static void _helicopterDepartureIdleRupertRevolver(Task* task)
+{
+}
+
+/// Runs the states of Rupert Broderick's second held model.
+///
+/// `task->state` is 0 attach, 1 mirror parent draw policy or 2 kill.
+/// `spawnArg2.pointer` borrows the live parent TMD task; `spawnArg1.value`
+/// selects its model coordinate (part 12 in the body descriptor's spawn).
+/// The child borrows the parent's coordinate and lighting, joins its teardown
+/// tree and sorts two OT entries earlier. Missing buffers are requested when
+/// the parent permits automatic allocation, including while drawing is hidden.
+static void _helicopterDepartureRupertPropTask(Task* task)
+{
+    TaskFuncTable3 states;
+
+    states = _gHelicopterDepartureRupertPropStates;
+    states.funcs[task->state](task);
+}
+
+#include "../../../../shared/actor/model_placement_attach.inc.c"
+
+#include "../../../../shared/actor/model_placement_mirror_parent.inc.c"
+
+/// Runs Rupert Broderick's body initialization, frame update or teardown.
+///
+/// Requires the live descriptor-created twenty-part TMD body and state 0
+/// initialize, 1 update or 2 exit. State is not bounds-checked. Initialization
+/// creates the work and two held-model children; later states require them live.
+/// `spawnArg2.pointer` borrows the owning enemy used by the exit handler.
+static void _helicopterDepartureRupertBodyTask(Task* task)
+{
+    TaskFuncTable3 states;
+
+    states = _gHelicopterDepartureRupertBodyStates;
+    states.funcs[task->state](task);
+}
+
+/// Initializes Rupert's hidden body and its revolver and prop attachments.
+///
+/// Requires the descriptor-created twenty-part body. Allocates zeroed primary
+/// work owned by the task and exits the enemy on failure. Child descriptors 1/2
+/// attach to parts 8/12; their model roots and borrowed lighting must stay live
+/// until teardown. Initializes animation sentinels, disables drawing, installs
+/// messages/exit handling and advances to frame state 1.
+static void _helicopterDepartureInitRupert(Task* task)
+{
+    enum {
+        HELICOPTER_DEPARTURE_RUPERT_NO_BUFFER_RELEASE = -1,
+        HELICOPTER_DEPARTURE_RUPERT_GUN_DESCRIPTOR    = 1,
+        HELICOPTER_DEPARTURE_RUPERT_GUN_PART          = 8,
+        HELICOPTER_DEPARTURE_RUPERT_PROP_DESCRIPTOR   = 2,
+        HELICOPTER_DEPARTURE_RUPERT_PROP_PART         = 12,
+    };
+
+    _HelicopterDepartureRupertBroderickWork* work;
+    TmdObject*                               model;
+    VECTOR3                                  groundPoint;
+    u16                                      flags;
+
+    model = task->extra.tmd;
+    work  = memCalloc(sizeof(*work), false);
+    if (work == NULL) {
+        enemyTaskExit(task);
+        return;
+    }
+    task->work          = work;
+    work->animId        = ACTOR_MOTION_ANIMATION_INDEX_NONE;
+    work->bank          = ACTOR_MOTION_ANIMATION_INDEX_NONE;
+    work->shotTicks     = 0;
+    work->freeCountdown = HELICOPTER_DEPARTURE_RUPERT_NO_BUFFER_RELEASE;
+    flags               = model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    model->flags        = flags;
+    // The target retains this shadow branch after setting the hidden flag.
+    if (!(flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        if (worldCollisionProjectGroundPoint(GRAPHICS_MATRIX_TRANSLATION(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
+            effectDrawGroundShadow(&groundPoint, 0x200, gRoomEffectState->groundShadowShade);
+        }
+    }
+    work->gunTask  = taskSpawnFromTable(gHelicopterDepartureRupertTaskDescriptors, HELICOPTER_DEPARTURE_RUPERT_GUN_DESCRIPTOR, HELICOPTER_DEPARTURE_RUPERT_GUN_PART, task);
+    work->propTask = taskSpawnFromTable(gHelicopterDepartureRupertTaskDescriptors, HELICOPTER_DEPARTURE_RUPERT_PROP_DESCRIPTOR, HELICOPTER_DEPARTURE_RUPERT_PROP_PART, task);
+    _helicopterDepartureBindRupertLighting(task);
+    task->msgTable     = _gHelicopterDepartureRupertMessages;
+    task->exitCallback = enemyTaskExit;
+    task->state++;
+}
+
+/// Binds Rupert's body lighting matrices and relights it at model part 1.
+///
+/// Requires live body work and a model with part 1 under a composable hierarchy.
+/// The model borrows the work's light and colour matrices until teardown.
+/// Invalidates and composes part 1 before sampling all three light directions.
+static void _helicopterDepartureBindRupertLighting(Task* task)
+{
+    enum {
+        HELICOPTER_DEPARTURE_RUPERT_LIGHT_SAMPLE_PART = 1,
+        HELICOPTER_DEPARTURE_RUPERT_LIGHT_COUNT       = 3,
+    };
+    _HelicopterDepartureRupertBroderickWork* work;
+    GfxCoord*                                partCoords;
+    TmdObject*                               model;
+
+    work            = task->work;
+    model           = task->extra.tmd;
+    partCoords      = model->coords;
+    model->lightMtx = &work->light;
+    model->colorMtx = &work->color;
+
+    partCoords[HELICOPTER_DEPARTURE_RUPERT_LIGHT_SAMPLE_PART].composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(&partCoords[HELICOPTER_DEPARTURE_RUPERT_LIGHT_SAMPLE_PART]);
+    worldCoordSetModelLighting(model, partCoords[HELICOPTER_DEPARTURE_RUPERT_LIGHT_SAMPLE_PART].workm.t, 0, HELICOPTER_DEPARTURE_RUPERT_LIGHT_COUNT);
+}
+
+/// Reseeds Rupert's driven slots, updates their poses and enables ticking.
+///
+/// Requires the work's rig bound to a live twenty-part TMD body and a set table
+/// containing the requested clip. Slots 1..19 are driven; slot 0 is retained.
+/// A nonzero blend requires previously initialized slots, captures each slot's
+/// existing pose and blends to the selected track's start over six normal-rate
+/// frames; reset initializes the slots instead. Each slot is ticked before
+/// future frame updates are enabled. Only clip and blend choice are read from
+/// the request, through this call; bank data and playback storage remain borrowed.
+static inline void _helicopterDepartureReseedRupertAnimation(_HelicopterDepartureRupertBroderickWork* work, const AnimationPlayRequest* request)
+{
+    enum { HELICOPTER_DEPARTURE_RUPERT_BLEND_FRAMES = 6 };
+    s32 slotIndex;
+
+    work->animId = request->animationId;
+    if (request->blend != ANIMATION_BLEND_RESET) {
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->animId, 0, HELICOPTER_DEPARTURE_RUPERT_BLEND_FRAMES);
+        }
+    } else {
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationResetSlot(&work->rig.anim, slotIndex, work->animId);
+        }
+    }
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        animationTickSlot(&work->rig.anim, slotIndex);
+    }
+    work->ticking = true;
+}
+
+/// Applies an animation request to Rupert Broderick's twenty-part body.
+///
+/// Requires a live TMD body and initialized work. The borrowed request selects
+/// bank 0 and a valid clip in that bank's four-entry set table. A bank change
+/// rebinds the rig; a clip change reseeds and immediately ticks slots 1..19.
+/// Nonzero blend uses six frames, ignoring the requested duration. Repeating the
+/// current bank and clip leaves playback alone. The ID and second payload are
+/// ignored; returns 0. Bank resources must outlive playback.
+static s32 _helicopterDeparturePlayRupertAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg)
+{
+    _HelicopterDepartureRupertBroderickWork* work;
+    TmdObject*                               model;
+
+    work  = task->work;
+    model = task->extra.tmd;
+    // A new bank invalidates the selected clip before its pose is seeded.
+    if (request->source.index != work->bank) {
+        work->bank   = request->source.index;
+        work->animId = ACTOR_MOTION_ANIMATION_INDEX_NONE;
+        animationInitContext(&work->rig.anim, _gHelicopterDepartureRupertAnimationBanks[work->bank], model, work->rig.poses,
+                             work->rig.slots);
+    }
+    if (request->animationId != work->animId) {
+        _helicopterDepartureReseedRupertAnimation(work, request);
+    }
+    return 0;
+}
+
+#include "../../../../shared/actor/actor_messages_place_euler.inc.c"
+
+/// Changes Rupert's drawing and primitive-buffer policy.
+///
+/// Requires a live TMD body and initialized work. Mode 0 hides and enables
+/// automatic buffer recovery; 1 shows, attempts missing-buffer allocation and
+/// enables recovery; 2 hides, disables recovery and schedules release on the
+/// third update; 3 shows with recovery disabled. Other flags are preserved.
+/// Showing does not cancel a pending release. The ID and second payload are
+/// ignored. Returns 0 for modes 0..3 even if allocation fails, otherwise 1.
+static s32 _helicopterDepartureSetRupertModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg)
+{
+    enum { HELICOPTER_DEPARTURE_DRAW_SHOW_SKIP_AUTO_BUFFER = 3 };
+    TmdObject*                               model;
+    _HelicopterDepartureRupertBroderickWork* work;
+    s32                                      result;
+
+    model  = task->extra.tmd;
+    work   = task->work;
+    result = 0;
+
+    switch (drawMode) {
+        case ACTOR_MESSAGE_DRAW_HIDE:
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+            break;
+        case ACTOR_MESSAGE_DRAW_SHOW:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            tmdAllocPrimitiveBuffer(model);
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+            break;
+        case ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER:
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            // This mode also supplies the two-tick release countdown.
+            work->freeCountdown = drawMode;
+            model->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            break;
+        case HELICOPTER_DEPARTURE_DRAW_SHOW_SKIP_AUTO_BUFFER:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            break;
+        default:
+            result = 1;
+            break;
+    }
+    return result;
+}
+
+/// Selects Rupert's held model for an actor command.
+///
+/// Command 0 shows the revolver; 1 hides it and shows the second prop. Context
+/// tags, the message ID and second payload are ignored. Missing child tasks are
+/// skipped, other model flags are retained, and other commands change nothing.
+/// Requires initialized body work and a borrowed command live through dispatch.
+/// Returns 0 for both handled and ignored commands.
+static s32 _helicopterDepartureApplyRupertCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg)
+{
+    enum { HELICOPTER_DEPARTURE_RUPERT_SHOW_REVOLVER = 0,
+           HELICOPTER_DEPARTURE_RUPERT_SHOW_PROP     = 1 };
+    _HelicopterDepartureRupertBroderickWork* work;
+    Task*                                    childTask;
+    u16                                      commandId;
+
+    commandId = command->command;
+    work      = task->work;
+
+    switch (commandId) {
+        case HELICOPTER_DEPARTURE_RUPERT_SHOW_REVOLVER:
+            childTask = work->gunTask;
+            if (childTask != NULL) {
+                childTask->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            }
+            break;
+        case HELICOPTER_DEPARTURE_RUPERT_SHOW_PROP:
+            childTask = work->gunTask;
+            if (childTask != NULL) {
+                childTask->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            }
+            childTask = work->propTask;
+            if (childTask != NULL) {
+                childTask->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            }
+            break;
+    }
+    return 0;
+}
+
+/// Sets Rupert's eye image or starts a timed blink for message 0x7E0.
+///
+/// Requires a live TMD body and initialized work. Modes 0 and 2 post open eyes,
+/// 1 closed eyes, and 3 half-open eyes followed by closed, half-open and open on
+/// subsequent updates. Closed and the following half-open each last two ticks.
+/// Starting a blink retains the current countdown; a static image does not cancel
+/// a blink. Pixel data stays borrowed through the GPU transfer. The message ID
+/// and second payload are ignored. Returns the upload result (0 for these lists);
+/// unknown modes change nothing and return 0.
+static s32 _helicopterDepartureSetRupertEyes(Task* task, s32 messageId, s32 eyeMode, s32 unusedArg)
+{
+    enum { HELICOPTER_DEPARTURE_EYES_OPEN           = 0,
+           HELICOPTER_DEPARTURE_EYES_CLOSED         = 1,
+           HELICOPTER_DEPARTURE_EYES_OPEN_ALTERNATE = 2,
+           HELICOPTER_DEPARTURE_EYES_BLINK          = 3,
+           HELICOPTER_DEPARTURE_EYES_Y_ROWS         = 40,
+           HELICOPTER_DEPARTURE_EYES_WIDTH_WORDS    = 24,
+           HELICOPTER_DEPARTURE_EYES_HEIGHT_ROWS    = 16,
+           HELICOPTER_DEPARTURE_BLINK_FRAME_DELAY   = 1 };
+    RECT            eyeRect;
+    GpuImageUpload* uploadList;
+    s32             result;
+
+    result    = 0;
+    eyeRect.x = 0;
+    eyeRect.y = HELICOPTER_DEPARTURE_EYES_Y_ROWS;
+    eyeRect.w = HELICOPTER_DEPARTURE_EYES_WIDTH_WORDS;
+    eyeRect.h = HELICOPTER_DEPARTURE_EYES_HEIGHT_ROWS;
+
+    switch (eyeMode) {
+        case HELICOPTER_DEPARTURE_EYES_CLOSED:
+            uploadList = &_gHelicopterDepartureRupertEyesClosedUploads[0];
+            break;
+        case HELICOPTER_DEPARTURE_EYES_OPEN:
+        case HELICOPTER_DEPARTURE_EYES_OPEN_ALTERNATE:
+            uploadList = &_gHelicopterDepartureRupertEyesOpenUploads[0];
+            break;
+        case HELICOPTER_DEPARTURE_EYES_BLINK: {
+            _HelicopterDepartureRupertBroderickWork* stepWork;
+            _HelicopterDepartureRupertBroderickWork* delayWork;
+
+            stepWork                   = task->work;
+            stepWork->blinkStep        = HELICOPTER_DEPARTURE_BLINK_CLOSED;
+            delayWork                  = task->work;
+            delayWork->blinkFrameDelay = HELICOPTER_DEPARTURE_BLINK_FRAME_DELAY;
+            uploadList                 = &_gHelicopterDepartureRupertEyesHalfOpenUploads[0];
+            break;
+        }
+        default:
+            uploadList = NULL;
+            break;
+    }
+
+    if (uploadList != NULL) {
+        result = actorRenderUploadTexture(task, uploadList, &eyeRect);
+    }
+    return result;
+}
+
+/// Mirrors helicopter visibility and aims its searchlight during view 24.
+///
+/// `spawnArg2.pointer` borrows the parent TMD task. Its `killCountdown` is
+/// the sequence frame, constrained to 0..119 by the parent's update. Other
+/// views retain the searchlight's last pose. The glow spans frames 86..92,
+/// peaking at 89; its rim channels are 30 darker than the centre (30..225).
+static void _helicopterDepartureTickHelicopterSearchlight(Task* task)
+{
+    enum { SEQUENCE_VIEW   = 0x18,
+           GLOW_PEAK_FRAME = 89,
+           RIM_SHADE_DROP  = 30 };
+    Task*          parentTask;
+    TmdObject*     model;
+    GfxCoord*      root;
+    const CVECTOR* centerColor;
+    const CVECTOR* colorTable;
+    s32            frameDistance;
+    u8             rimRgb[3];
+
+    parentTask = task->spawnArg2.pointer;
+    model      = task->extra.tmd;
+    root       = model->coords;
+
+    if (!(parentTask->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    } else {
+        model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    }
+
+    // The parent advances and clamps this frame before its attached searchlight runs.
+    if (gGameSession->location.view == SEQUENCE_VIEW) {
+        root->param.rot.vx = _gHelicopterDepartureHelicopterSearchlightRotations[parentTask->killCountdown].vx;
+        root->param.rot.vy = _gHelicopterDepartureHelicopterSearchlightRotations[parentTask->killCountdown].vy;
+        root->param.rot.vz = _gHelicopterDepartureHelicopterSearchlightRotations[parentTask->killCountdown].vz;
+        RotMatrix(&root->param.rot, &root->coord);
+        root->composeStamp = GRAPHICS_COORD_DIRTY;
+
+        frameDistance = parentTask->killCountdown - GLOW_PEAK_FRAME;
+        if (frameDistance < 0) {
+            frameDistance = GLOW_PEAK_FRAME - parentTask->killCountdown;
+        }
+        if (frameDistance < ARRAY_SIZE(_gHelicopterDepartureHelicopterSearchlightGlowColors)) {
+            colorTable  = _gHelicopterDepartureHelicopterSearchlightGlowColors;
+            centerColor = &colorTable[frameDistance];
+            rimRgb[0]   = centerColor->r - RIM_SHADE_DROP;
+            rimRgb[1]   = centerColor->g - RIM_SHADE_DROP;
+            rimRgb[2]   = centerColor->b - RIM_SHADE_DROP;
+            _helicopterDepartureDrawHelicopterSearchlightGlow(task, centerColor, rimRgb);
+        }
+    }
+}
+
+/// Draws the helicopter searchlight's additive, 300-pixel-radius screen glow.
+///
+/// Borrows a live TMD task, one centre colour and three unsigned rim channels
+/// for the call. Projects the model origin and emits 16 Gouraud triangles plus
+/// a draw-mode packet. The caller must provide primitive space for all packets;
+/// the current OT must contain the masked depth entry displaced by -30 tags.
+/// Projection flags are deliberately not used to clip or suppress the glow.
+static void _helicopterDepartureDrawHelicopterSearchlightGlow(Task* task, const CVECTOR* centerColor, const u8* rimRgb)
+{
+    enum { RIM_POINT_COUNT    = 16,
+           RADIUS_PIXELS      = 300,
+           UNIT_OFFSET_SCALE  = 4096,
+           OT_DISPLACEMENT    = -30,
+           ADDITIVE_DRAW_PAGE = getTPage(0, GPU_BLEND_ADD, 640, 0) };
+    SVECTOR   worldOrigin;
+    DVECTOR   screenRim[RIM_POINT_COUNT];
+    MATRIX    worldTransform;
+    long      screenCenter;
+    long      projectionScale;
+    long      projectionFlags;
+    s32       sortDepth;
+    POLY_G3*  triangle;
+    DR_TPAGE* drawMode;
+    u16       centerX;
+    u16       centerY;
+    s32       radiusPixels;
+    u_long*   orderingTag;
+    s32       pointIndex;
+    DVECTOR*  rimPoint;
+    DVECTOR*  unitOffset;
+
+/// Allocates and links one semitransparent Gouraud triangle in the searchlight fan.
+///
+/// endPoint is a stable DVECTOR lvalue evaluated twice. Captures triangle
+/// (overwritten), rimPoint, centerX/centerY in pixels, centerColor, the three-byte
+/// rimRgb and orderingTag. Advances gGpuPrimCursor by one POLY_G3; requires aligned
+/// packet space and a live OT tag. Centre colour applies to vertex 0 and rim colour
+/// to vertices 1/2. The caller supplies additive draw mode for the complete fan.
+/// Statement-only GNU expression; its value is not part of the interface.
+#define HELICOPTER_DEPARTURE_EMIT_SEARCHLIGHT_TRIANGLE(endPoint) \
+    ({                                                           \
+        triangle       = gGpuPrimCursor;                         \
+        gGpuPrimCursor = triangle + 1;                           \
+        setPolyG3(triangle);                                     \
+        setSemiTrans(triangle, 1);                               \
+        triangle->x0 = centerX;                                  \
+        triangle->y0 = centerY;                                  \
+        triangle->x1 = rimPoint->vx;                             \
+        triangle->y1 = rimPoint->vy;                             \
+        triangle->x2 = (endPoint).vx;                            \
+        triangle->y2 = (endPoint).vy;                            \
+        triangle->r0 = centerColor->r;                           \
+        triangle->g0 = centerColor->g;                           \
+        triangle->b0 = centerColor->b;                           \
+        triangle->r1 = rimRgb[0];                                \
+        triangle->g1 = rimRgb[1];                                \
+        triangle->b1 = rimRgb[2];                                \
+        triangle->r2 = rimRgb[0];                                \
+        triangle->g2 = rimRgb[1];                                \
+        triangle->b2 = rimRgb[2];                                \
+        addPrim(orderingTag, triangle);                          \
+    })
+
+    // Project the lamp origin; the halo radius stays fixed in screen pixels.
+    gfxComposeNodeWorldTransform(task->extra.tmd->coords, &worldTransform, &worldOrigin);
+    SetRotMatrix(&gGfxViewCoord.workm);
+    SetTransMatrix(&gGfxViewCoord.workm);
+    sortDepth    = RotTransPers(&worldOrigin, &screenCenter, &projectionScale, &projectionFlags);
+    centerX      = screenCenter;
+    centerY      = screenCenter >> 16;
+    unitOffset   = _gHelicopterDepartureHelicopterSearchlightRimDirections;
+    rimPoint     = screenRim;
+    radiusPixels = RADIUS_PIXELS;
+    for (pointIndex = 0; pointIndex < ARRAY_SIZE(screenRim); pointIndex++) {
+        rimPoint->vx = centerX + radiusPixels * unitOffset->vx / UNIT_OFFSET_SCALE;
+        rimPoint->vy = centerY + radiusPixels * unitOffset->vy / UNIT_OFFSET_SCALE;
+        rimPoint++;
+        unitOffset++;
+    }
+    // Pack the fan first, then prepend its additive draw mode to the same OT chain.
+    orderingTag = GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(sortDepth) + OT_DISPLACEMENT;
+    rimPoint    = screenRim;
+    for (pointIndex = 0; pointIndex < ARRAY_SIZE(screenRim) - 1; pointIndex++, rimPoint++) {
+        HELICOPTER_DEPARTURE_EMIT_SEARCHLIGHT_TRIANGLE(rimPoint[1]);
+    }
+    HELICOPTER_DEPARTURE_EMIT_SEARCHLIGHT_TRIANGLE(screenRim[0]);
+#undef HELICOPTER_DEPARTURE_EMIT_SEARCHLIGHT_TRIANGLE
+    drawMode       = gGpuPrimCursor;
+    gGpuPrimCursor = drawMode + 1;
+    setDrawTPage(drawMode, 1, 0, ADDITIVE_DRAW_PAGE);
+    addPrim(orderingTag, drawMode);
+}
+
+/// Blends one little-endian RGB555 palette colour through the GTE.
+///
+/// Both sources provide two readable bytes and the destination two writable bytes;
+/// no halfword alignment is needed, and the destination may alias either source.
+/// Weights use twelve fractional bits, each in 0..4096 and summing to 4096.
+/// Bit 15 is discarded. Changes GTE interpolation state and retains no pointers.
+static inline void _helicopterDepartureBlendPaletteColor(u8* destination, const u8* firstColor, const u8* secondColor, s32 firstWeight, s32 secondWeight)
+{
+    enum { HELICOPTER_DEPARTURE_PALETTE_CHANNEL_MASK = 0x1F };
+    CVECTOR channels[3];
+    s32     packedColor;
+
+    packedColor   = firstColor[0] | (firstColor[1] << 8);
+    channels[0].r = ((u16)packedColor >> 10) & HELICOPTER_DEPARTURE_PALETTE_CHANNEL_MASK;
+    channels[0].g = ((u16)packedColor >> 5) & HELICOPTER_DEPARTURE_PALETTE_CHANNEL_MASK;
+    channels[0].b = packedColor & HELICOPTER_DEPARTURE_PALETTE_CHANNEL_MASK;
+    packedColor   = secondColor[0] | (secondColor[1] << 8);
+    channels[1].r = ((u16)packedColor >> 10) & HELICOPTER_DEPARTURE_PALETTE_CHANNEL_MASK;
+    channels[1].g = ((u16)packedColor >> 5) & HELICOPTER_DEPARTURE_PALETTE_CHANNEL_MASK;
+    channels[1].b = packedColor & HELICOPTER_DEPARTURE_PALETTE_CHANNEL_MASK;
+    LoadAverageCol((u8*)&channels[0], (u8*)&channels[1], firstWeight, secondWeight, (u8*)&channels[2]);
+    packedColor    = channels[2].b + ((channels[2].r << 10) + (channels[2].g << 5));
+    destination[1] = (u32)packedColor >> 8;
+    destination[0] = packedColor;
+}
+
+/// Advances and uploads the helicopter's sixteen-colour palette flash.
+///
+/// Requires initialized helicopter work with a 4.12 fade weight in 0..4096
+/// and a nonnegative hold counter. The weight rises by 1365 per tick, reaching
+/// the dark palette on its fourth increment; full-weight ticks consume the
+/// hold, then the next tick snaps back to the lit palette and rearms it.
+/// Reads and writes RGB555 colours as little-endian byte pairs, discarding bit
+/// 15. The upload record must already borrow `work->palette`, whose storage must
+/// remain live and unchanged until GPU transfer completes. Clobbers GTE state.
+static void _helicopterDepartureTickHelicopterPaletteFlash(_HelicopterDepartureHelicopterWork* work)
+{
+    enum { HELICOPTER_DEPARTURE_PALETTE_FADE_STEP = 0x555 };
+    s32 byteIndex;
+    s32 litWeight;
+    s32 darkWeight;
+
+    // Reach the dark palette, hold it, then snap back for the next flash.
+    if (work->paletteHold != 0) {
+        work->paletteFade += HELICOPTER_DEPARTURE_PALETTE_FADE_STEP;
+        if (work->paletteFade >= HELICOPTER_DEPARTURE_PALETTE_FADE_FULL) {
+            work->paletteFade = HELICOPTER_DEPARTURE_PALETTE_FADE_FULL;
+            if (--work->paletteHold < 0) {
+                work->paletteHold = 0;
+            }
+        }
+    } else {
+        work->paletteFade -= HELICOPTER_DEPARTURE_PALETTE_FADE_FULL;
+        if (work->paletteFade <= 0) {
+            work->paletteFade = 0;
+            work->paletteHold = HELICOPTER_DEPARTURE_PALETTE_HOLD_TICKS;
+        }
+    }
+    litWeight  = HELICOPTER_DEPARTURE_PALETTE_FADE_FULL - work->paletteFade;
+    darkWeight = work->paletteFade;
+    // Keep byte-pair accesses for the packed palette and publish the complete row.
+    byteIndex = 0;
+    do {
+        _helicopterDepartureBlendPaletteColor(&work->palette[byteIndex], &_gHelicopterDepartureHelicopterFlashLitPalette[byteIndex], &_gHelicopterDepartureHelicopterFlashDarkPalette[byteIndex], litWeight, darkWeight);
+        byteIndex += 2;
+    } while (byteIndex < ARRAY_SIZE(work->palette));
+    gpuUploadImages(&_gHelicopterDepartureHelicopterFlashPaletteUploads[0]);
+}
+
+/// Initializes the helicopter's owned work, hidden hull and first sequence pose.
+///
+/// State 0 requires a live TMD hull, pose tables and primary heap. Allocation
+/// failure kills the task. The hull and attached models borrow work-owned
+/// lighting matrices; the upload list borrows its 32-byte, sixteen-colour
+/// palette until teardown and pending GPU transfers finish. No primitive-buffer
+/// release is pending initially. Installs messages and advances to state 1.
+static void _helicopterDepartureInitHelicopter(Task* task)
+{
+    enum { HELICOPTER_DEPARTURE_HELICOPTER_FREE_NONE = -1 };
+    _HelicopterDepartureHelicopterWork* work;
+    TmdObject*                          model;
+
+    model = task->extra.tmd;
+    work  = memCalloc(sizeof(*work), false);
+    if (work == NULL) {
+        taskKill(task);
+        return;
+    }
+    task->work          = work;
+    work->freeCountdown = HELICOPTER_DEPARTURE_HELICOPTER_FREE_NONE;
+    model->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    _helicopterDeparturePoseHelicopterSequenceFrame(task, _gHelicopterDepartureHelicopterSequenceRotations, _gHelicopterDepartureHelicopterSequenceTranslations, 0);
+    _helicopterDepartureBindHelicopterLighting(task);
+    // The GPU API consumes words; the fade writes little-endian byte pairs.
+    task->msgTable                                               = _gHelicopterDepartureHelicopterMessages;
+    _gHelicopterDepartureHelicopterFlashPaletteUploads[0].pixels = (u_long*)work->palette;
+    task->state                                                 += 1;
+}
+
+/// Advances the helicopter's synchronized camera and hull-pose playback by one frame.
+///
+/// Requires a live helicopter task, `rootCoord` equal to its model root and
+/// `killCountdown` holding a frame index in 0..119. The camera, rotation and
+/// translation tables each contain 120 frames. Increments through a signed
+/// halfword, then clamps at 119; later calls repeat that final frame.
+/// Queues the camera before applying the hull pose and invalidating the root.
+/// The queued task borrows its camera entry until it runs, so the table must
+/// remain loaded. Camera allocation failure does not stop pose playback.
+/// Euler angles use 4096 units per turn; translation uses parent coordinates.
+static inline void _helicopterDepartureAdvanceHelicopterSequence(Task* task, GfxCoord* rootCoord)
+{
+    s16 nextFrame;
+
+    nextFrame           = task->killCountdown + 1;
+    task->killCountdown = nextFrame;
+    if (nextFrame >= (s32)ARRAY_SIZE(_gHelicopterDepartureHelicopterSequenceCameras)) {
+        task->killCountdown = ARRAY_SIZE(_gHelicopterDepartureHelicopterSequenceCameras) - 1;
+    }
+    viewQueueCamera(&_gHelicopterDepartureHelicopterSequenceCameras[task->killCountdown]);
+    _helicopterDeparturePoseHelicopterSequenceFrame(task, _gHelicopterDepartureHelicopterSequenceRotations, _gHelicopterDepartureHelicopterSequenceTranslations, task->killCountdown);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+}
+
+/// Updates the drawable helicopter's lighting and flash, and advances its scene pose.
+///
+/// Requires initialized hull/work and loaded camera and pose tables. In view 24,
+/// killCountdown is a sequence cursor: normally 0..119, incremented as a signed
+/// halfword and clamped at 119 even while hidden. Each tick queues that camera
+/// and applies its hull pose. Other views retain the cursor and pose. Drawing
+/// enabled refreshes lighting and the palette before any scene-pose change.
+/// Independently, freeCountdown releases primitive buffers when a tick sees
+/// zero, then becomes -1; any negative value means no release is pending.
+static void _helicopterDepartureTickHelicopter(Task* task)
+{
+    enum { HELICOPTER_DEPARTURE_HELICOPTER_SEQUENCE_VIEW = 24 };
+    _HelicopterDepartureHelicopterWork* work;
+    TmdObject*                          model;
+    GfxCoord*                           rootCoord;
+    s32                                 freeCountdown;
+
+    model     = task->extra.tmd;
+    work      = task->work;
+    rootCoord = model->coords;
+
+    if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        actorRenderComposeCoord(rootCoord);
+        worldCoordSetModelLighting(model, rootCoord->workm.t, 0, ARRAY_SIZE(model->colorMtx->m[0]));
+        _helicopterDepartureTickHelicopterPaletteFlash(task->work);
+    }
+    // Scene motion and camera playback continue even when the hull is hidden.
+    if (gGameSession->location.view == HELICOPTER_DEPARTURE_HELICOPTER_SEQUENCE_VIEW) {
+        _helicopterDepartureAdvanceHelicopterSequence(task, rootCoord);
+    }
+    // Reload after freeing, preserving the callback-visible countdown value.
+    freeCountdown = work->freeCountdown;
+    if (freeCountdown >= 0) {
+        if (freeCountdown == 0) {
+            tmdFreePrimitiveBuffer(model);
+            freeCountdown = work->freeCountdown;
+        }
+        work->freeCountdown = freeCountdown - 1;
+    }
+}
+
+/// Begins default teardown of the helicopter task and its attached children.
+static void _helicopterDepartureKillHelicopter(Task* task)
+{
+    taskKill(task);
+}
+
+/// Attaches a helicopter rotor to the hull and inherits its lighting and visibility.
+///
+/// Both TMD tasks must be live. `spawnArg2.pointer` borrows the helicopter;
+/// `spawnArg1.value` is 1 for the main rotor or 2 for the tail rotor. The
+/// placement is local to the hull root. Joins the parent's teardown tree and
+/// advances from state 0 to 1; borrowed coordinates and matrices must remain live.
+static void _helicopterDepartureAttachHelicopterRotor(Task* task)
+{
+    Task*      parentTask;
+    TmdObject* model;
+    TmdObject* parentModel;
+    GfxCoord*  root;
+    GfxCoord*  parentRoot;
+
+    parentTask  = task->spawnArg2.pointer;
+    parentModel = parentTask->extra.tmd;
+    model       = task->extra.tmd;
+    parentRoot  = parentModel->coords;
+    // Borrow the helicopter transform and lighting for this child task.
+    model->lightMtx = parentModel->lightMtx;
+    model->colorMtx = parentModel->colorMtx;
+    model->flags    = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    root            = model->coords;
+    if (!(parentModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        model->flags = 0;
+    }
+    _helicopterDeparturePlaceHelicopterPart(task);
+    root->parent = parentRoot;
+    taskReparent(parentTask, task);
+    task->state += 1;
+}
+
+/// Spins a drawable helicopter's main or tail rotor and mirrors its visibility.
+///
+/// `spawnArg2.pointer` borrows the live helicopter TMD task. Part index 1
+/// advances yaw by 660 units per tick; index 2 advances pitch by 1000, with
+/// 4096 units per turn. Other indices only rebuild the matrix. A hidden parent
+/// hides the child and freezes its angles. Automatic-buffer policy is retained.
+static void _helicopterDepartureTickHelicopterRotor(Task* task)
+{
+    enum { MAIN_ROTOR      = 1,
+           TAIL_ROTOR      = 2,
+           MAIN_YAW_STEP   = 660,
+           TAIL_PITCH_STEP = 1000 };
+    Task*      parentTask;
+    TmdObject* model;
+    TmdObject* parentModel;
+    GfxCoord*  root;
+
+    model       = task->extra.tmd;
+    root        = model->coords;
+    parentTask  = task->spawnArg2.pointer;
+    parentModel = parentTask->extra.tmd;
+
+    if (!(parentModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+
+        // Read the stored angle unsigned, then wrap in 4096 units per turn.
+        switch (task->spawnArg1.value) {
+            case MAIN_ROTOR:
+                root->param.rot.vy = ((u16)root->param.rot.vy + MAIN_YAW_STEP) & ACTOR_TRANSFORM_ANGLE_MASK;
+                break;
+            case TAIL_ROTOR:
+                root->param.rot.vx = ((u16)root->param.rot.vx + TAIL_PITCH_STEP) & ACTOR_TRANSFORM_ANGLE_MASK;
+                break;
+        }
+
+        RotMatrix(&root->param.rot, &root->coord);
+        root->composeStamp = GRAPHICS_COORD_DIRTY;
+        return;
+    }
+    model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+}
+
+/// Begins default teardown of an attached helicopter rotor.
+static void _helicopterDepartureKillHelicopterRotor(Task* task)
+{
+    taskKill(task);
+}
+
+/// Attaches the searchlight beneath the helicopter with the sequence's initial aim.
+///
+/// Both TMD tasks must be live. `spawnArg2.pointer` borrows the helicopter;
+/// `spawnArg1.value` is 3 for the searchlight's hull-relative translation.
+/// Borrows its root coordinate and lighting, inherits visibility and joins its
+/// teardown tree. Applies sequence frame 0 in 4096-unit Euler angles and
+/// advances to state 1. The parent resources must outlive the attached model.
+static void _helicopterDepartureAttachHelicopterSearchlight(Task* task)
+{
+    Task*      parentTask;
+    TmdObject* model;
+    TmdObject* parentModel;
+    GfxCoord*  root;
+    GfxCoord*  parentRoot;
+
+    parentTask  = task->spawnArg2.pointer;
+    parentModel = parentTask->extra.tmd;
+    model       = task->extra.tmd;
+    parentRoot  = parentModel->coords;
+    // Borrow the helicopter transform and lighting for this child task.
+    model->lightMtx = parentModel->lightMtx;
+    model->colorMtx = parentModel->colorMtx;
+    model->flags    = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    root            = model->coords;
+    if (!(parentModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        model->flags = 0;
+    }
+    _helicopterDeparturePlaceHelicopterPart(task);
+    root->parent = parentRoot;
+    taskReparent(parentTask, task);
+    root->param.rot.vx = _gHelicopterDepartureHelicopterSearchlightRotations[0].vx;
+    root->param.rot.vy = _gHelicopterDepartureHelicopterSearchlightRotations[0].vy;
+    root->param.rot.vz = _gHelicopterDepartureHelicopterSearchlightRotations[0].vz;
+    RotMatrix(&root->param.rot, &root->coord);
+    root->composeStamp = GRAPHICS_COORD_DIRTY;
+    task->state       += 1;
+}
+
+/// Begins default teardown of the helicopter's attached searchlight.
+static void _helicopterDepartureKillHelicopterSearchlight(Task* task)
+{
+    taskKill(task);
+}
+
+/// Resets the helicopter's sequence cursor to frame zero.
+///
+/// Installed for `ACTOR_MESSAGE_PLAY_ANIMATION`, but reads neither payload nor
+/// the message ID. The next view-24 update advances the cursor before applying
+/// its hull pose, camera and searchlight frame. Returns 0.
+static s32 _helicopterDepartureRestartHelicopterSequence(Task* task, s32 messageId, s32 unusedRequest, s32 unusedArg)
+{
+    task->killCountdown = 0;
+    return 0;
+}
+
+/// Places the helicopter's root model and enables its active drawing.
+///
+/// Requires a live TMD body and a borrowed transform through dispatch. Position
+/// uses parent-coordinate units and Euler angles use 4096 units per turn.
+/// Copies all XYZ components, rebuilds rotation and invalidates composition.
+/// Other draw and buffer flags are retained. The ID and second payload are
+/// ignored; returns 0.
+static s32 _helicopterDeparturePlaceHelicopter(Task* task, s32 messageId, const ActorTransform* transform, s32 unusedArg)
+{
+    GfxCoord*  root;
+    TmdObject* model;
+
+    model              = task->extra.tmd;
+    root               = model->coords;
+    root->coord.t[0]   = transform->pos.vx;
+    root->coord.t[1]   = transform->pos.vy;
+    root->coord.t[2]   = transform->pos.vz;
+    root->param.rot.vx = transform->rot.vx;
+    root->param.rot.vy = transform->rot.vy;
+    root->param.rot.vz = transform->rot.vz;
+    RotMatrix(&root->param.rot, &root->coord);
+    root->composeStamp = GRAPHICS_COORD_DIRTY;
+    model->flags      &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    return 0;
+}
+
+/// Selects hull drawing and buffer policy, spawning its three parts on the first show.
+///
+/// Requires a live hull and initialized helicopter work. Modes 0/1 hide/show
+/// with automatic buffers; mode 1 also allocates a primitive buffer. Mode 2
+/// hides, disables automatic buffers and arms release after two full ticks,
+/// on the third tick. Mode 3 shows with automatic buffers disabled. Later modes
+/// do not cancel an armed release. The first mode-1 request attempts each rotor
+/// and searchlight spawn once, latching completion even if a spawn fails.
+/// Ignores messageId and unusedArgument. Returns 0 for modes 0..3, otherwise 1.
+static s32 _helicopterDepartureSetHelicopterModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArgument)
+{
+    enum { HELICOPTER_DEPARTURE_HELICOPTER_DRAW_SHOW_SKIP_AUTO_BUFFER = 3 };
+    TmdObject*                          model;
+    _HelicopterDepartureHelicopterWork* work;
+    Task*                               child;
+    s32                                 result;
+    s32                                 partIndex;
+
+    model  = task->extra.tmd;
+    work   = task->work;
+    result = 0;
+    switch (drawMode) {
+        case ACTOR_MESSAGE_DRAW_HIDE:
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+            break;
+        case ACTOR_MESSAGE_DRAW_SHOW:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            tmdAllocPrimitiveBuffer(model);
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+            break;
+        case ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER:
+            model->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work->freeCountdown = drawMode;
+            model->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            break;
+        case HELICOPTER_DEPARTURE_HELICOPTER_DRAW_SHOW_SKIP_AUTO_BUFFER:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            break;
+        default:
+            result = 1;
+            break;
+    }
+    if (drawMode == ACTOR_MESSAGE_DRAW_SHOW && work->partsSpawned == 0) {
+        for (partIndex = 1; partIndex < (s32)ARRAY_SIZE(_gHelicopterDepartureHelicopterChildDescriptorIndices) + 1; partIndex++) {
+            child = taskSpawnFromTable(gHelicopterDepartureHelicopterTaskDescriptors, _gHelicopterDepartureHelicopterChildDescriptorIndices[partIndex - 1], partIndex, task);
+            if (child != NULL) {
+                child->extra.tmd->flags &= ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+            }
+        }
+        work->partsSpawned = 1;
+    }
+    return result;
+}
+
+/// Applies a table frame's rotation and translation to the helicopter root.
+///
+/// Requires a live TMD body and readable rotation and translation entries at the
+/// signed low sixteen bits of `frameIndex`. Callers use frames 0..119 of both
+/// 120-entry tables. Euler angles use 4096 units per turn; translations are in
+/// parent-coordinate units. Rebuilds local rotation and invalidates composition;
+/// does not retain either table or change ancestry, lighting or drawing.
+static void _helicopterDeparturePoseHelicopterSequenceFrame(Task* task, const SVECTOR* rotations, const SVECTOR* translations, s32 frameIndex)
+{
+    GfxCoord* root;
+    s16       sequenceFrame;
+
+    sequenceFrame      = frameIndex;
+    root               = task->extra.tmd->coords;
+    root->param.rot.vx = rotations[sequenceFrame].vx;
+    root->param.rot.vy = rotations[sequenceFrame].vy;
+    root->param.rot.vz = rotations[sequenceFrame].vz;
+    root->coord.t[0]   = translations[sequenceFrame].vx;
+    root->coord.t[1]   = translations[sequenceFrame].vy;
+    root->coord.t[2]   = translations[sequenceFrame].vz;
+    RotMatrix(&root->param.rot, &root->coord);
+    root->composeStamp = GRAPHICS_COORD_DIRTY;
+}
+
+/// Sets a helicopter part's hull-relative translation and resets its Euler angles.
+///
+/// Requires a live TMD body and an unchecked `spawnArg1.value` in 0..3;
+/// the attachment callers use 1 main rotor, 2 tail rotor or 3 searchlight.
+/// Rebuilds the local rotation and invalidates the composed transform without
+/// changing coordinate ancestry, task links, visibility or lighting.
+static void _helicopterDeparturePlaceHelicopterPart(Task* task)
+{
+    GfxCoord* root;
+
+    root               = task->extra.tmd->coords;
+    root->coord.t[0]   = _gHelicopterDepartureHelicopterPartOffsets[task->spawnArg1.value].vx;
+    root->coord.t[1]   = _gHelicopterDepartureHelicopterPartOffsets[task->spawnArg1.value].vy;
+    root->coord.t[2]   = _gHelicopterDepartureHelicopterPartOffsets[task->spawnArg1.value].vz;
+    root->param.rot.vx = 0;
+    root->param.rot.vy = 0;
+    root->param.rot.vz = 0;
+    RotMatrix(&root->param.rot, &root->coord);
+    root->composeStamp = GRAPHICS_COORD_DIRTY;
+}
+
+/// Binds the helicopter hull's lighting matrices and relights it at the root.
+///
+/// Requires live helicopter work and a model under a composable hierarchy.
+/// The hull borrows the work's light and colour matrices until teardown.
+/// Invalidates and composes the root before sampling all three light directions.
+static void _helicopterDepartureBindHelicopterLighting(Task* task)
+{
+    enum {
+        HELICOPTER_DEPARTURE_HELICOPTER_LIGHT_COUNT = 3,
+    };
+    GfxCoord*                           rootCoord;
+    _HelicopterDepartureHelicopterWork* work;
+    TmdObject*                          model;
+
+    work                    = task->work;
+    model                   = task->extra.tmd;
+    rootCoord               = model->coords;
+    model->lightMtx         = &work->light;
+    model->colorMtx         = &work->color;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(rootCoord);
+    worldCoordSetModelLighting(model, rootCoord->workm.t, 0, HELICOPTER_DEPARTURE_HELICOPTER_LIGHT_COUNT);
+}
+
+/// Runs the helicopter's initialization, frame update or teardown state.
+///
+/// Requires its live descriptor-created TMD hull and state 0 initialize,
+/// 1 update or 2 kill; state is not bounds-checked. Initialization creates the
+/// work and binds its lighting and palette storage. Attached children borrow
+/// the hull and work until teardown. Frame updates require that storage live.
+static void _helicopterDepartureHelicopterTask(Task* task)
+{
+    TaskFuncTable3 states;
+
+    states = _gHelicopterDepartureHelicopterStates;
+    states.funcs[task->state](task);
+}
+
+/// Runs the helicopter rotor states: 0 attach, 1 spin and 2 kill.
+///
+/// The descriptor selects the main or tail rotor model. Attachment borrows
+/// the helicopter task through `spawnArg2.pointer`; `spawnArg1.value` is
+/// 1 main rotor or 2 tail rotor. The parent must outlive its attached child.
+static void _helicopterDepartureHelicopterRotorTask(Task* task)
+{
+    TaskFuncTable3 states;
+
+    states = _gHelicopterDepartureHelicopterRotorStates;
+    states.funcs[task->state](task);
+}
+
+/// Runs the helicopter searchlight states: 0 attach, 1 aim and glow, 2 kill.
+///
+/// Attachment requires a live helicopter TMD task in `spawnArg2.pointer`
+/// and part index 3 in `spawnArg1.value`. Its pose follows sequence frames
+/// 0..119 in view 24; the parent must outlive the attached model.
+static void _helicopterDepartureHelicopterSearchlightTask(Task* task)
+{
+    TaskFuncTable3 states;
+
+    states = _gHelicopterDepartureHelicopterSearchlightStates;
+    states.funcs[task->state](task);
+}
+
+/// Initializes the No. 9 golem's hidden body, playback storage and three children.
+///
+/// Requires its owning enemy and live nineteen-part TMD task in state 0.
+/// The zeroed work is owned by the task; body and child models borrow its
+/// lighting matrices. No clip is played until an animation message arrives.
+/// Children attached at parts 8 and 3 receive the parent's area-placement
+/// texture-page and CLUT-row offsets, rebuilding existing buffers; part 12
+/// retains its own offsets. The parent's upper placement-key nibble must select
+/// an existing placement in the synchronized location variant. Advances to
+/// update state 1, or destroys the enemy if work allocation fails. The first
+/// two child spawns are assumed to succeed, matching their unchecked use.
+static void _helicopterDepartureSpawnNo9Golem(Enemy* enemy, Task* task)
+{
+    enum { HELICOPTER_DEPARTURE_GOLEM_UPDATE_STATE = 1,
+           HELICOPTER_DEPARTURE_GOLEM_NO_CLIP      = 0,
+           HELICOPTER_DEPARTURE_GOLEM_PART8_CHILD  = 1,
+           HELICOPTER_DEPARTURE_GOLEM_PART3_CHILD  = 2,
+           HELICOPTER_DEPARTURE_GOLEM_PART12_CHILD = 3 };
+    GameLocationKey                   key;
+    GameLocationKey*                  sessionKey;
+    u8                                view;
+    u8                                stage;
+    AreaVariant*                      layout;
+    TmdObject*                        model;
+    GfxCoord*                         bodyRoot;
+    _HelicopterDepartureNo9GolemWork* work;
+    TaskDesc*                         childDescriptors;
+    u32                               placeIndex;
+    u32                               placeIndex2;
+    AreaPlacement*                    placements;
+    Enemy*                            spawned;
+    GameSession*                      session;
+
+    model    = task->extra.tmd;
+    bodyRoot = model->coords;
+    work     = memCalloc(sizeof(*work), 0);
+    if (work == NULL) {
+        enemyDestroy(enemy, task);
+        return;
+    }
+    task->work      = work;
+    model->flags    = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    model->lightMtx = &work->light;
+    model->colorMtx = &work->color;
+    animationInitContext(&work->rig.anim, _gHelicopterDepartureNo9GolemAnimationSets, model, work->rig.poses, work->rig.slots);
+    work->animId           = HELICOPTER_DEPARTURE_GOLEM_NO_CLIP;
+    task->msgTable         = _gHelicopterDepartureNo9GolemMessages;
+    bodyRoot->composeStamp = GRAPHICS_COORD_DIRTY;
+
+    childDescriptors = gHelicopterDepartureNo9GolemTaskDescriptors;
+    spawned          = enemySpawnFromTable(childDescriptors, HELICOPTER_DEPARTURE_GOLEM_PART8_CHILD, 0, enemy);
+    session          = gGameSession;
+    // Child models inherit the texture relocation of the parent's placement.
+    // The task address retains the spawn-result holder to preserve load order.
+    spawned       = (Enemy*)spawned->task;
+    sessionKey    = &session->location;
+    placeIndex    = enemy->placeKey;
+    stage         = sessionKey->stage;
+    model         = ((Task*)spawned)->extra.tmd;
+    key.stage     = stage;
+    key.area      = sessionKey->area;
+    key.roomState = sessionKey->roomState;
+    view          = session->location.view;
+    placeIndex    = placeIndex >> ENEMY_PLACE_INDEX_SHIFT;
+    key.view      = view;
+    areaSyncLocationVariant(&key);
+    layout                   = areaGetVariant(&key);
+    placements               = layout->placements;
+    model->texturePageOffset = placements[placeIndex].texturePageOffset;
+    model->clutRowOffset     = placements[placeIndex].clutRowOffset;
+    if (model->buffer != NULL) {
+        tmdBuildBufferHalf(model);
+        tmdBuildBufferHalf(model);
+    }
+    spawned       = enemySpawnFromTable(childDescriptors, HELICOPTER_DEPARTURE_GOLEM_PART3_CHILD, 0, enemy);
+    session       = gGameSession;
+    spawned       = (Enemy*)spawned->task;
+    sessionKey    = &session->location;
+    placeIndex2   = enemy->placeKey;
+    stage         = sessionKey->stage;
+    model         = ((Task*)spawned)->extra.tmd;
+    key.stage     = stage;
+    key.area      = sessionKey->area;
+    key.roomState = sessionKey->roomState;
+    view          = session->location.view;
+    placeIndex2   = placeIndex2 >> ENEMY_PLACE_INDEX_SHIFT;
+    key.view      = view;
+    areaSyncLocationVariant(&key);
+    layout                   = areaGetVariant(&key);
+    placements               = layout->placements;
+    model->texturePageOffset = placements[placeIndex2].texturePageOffset;
+    model->clutRowOffset     = placements[placeIndex2].clutRowOffset;
+    if (model->buffer != NULL) {
+        tmdBuildBufferHalf(model);
+        tmdBuildBufferHalf(model);
+    }
+    enemySpawnFromTable(childDescriptors, HELICOPTER_DEPARTURE_GOLEM_PART12_CHILD, 0, enemy);
+    task->state = HELICOPTER_DEPARTURE_GOLEM_UPDATE_STATE;
+}
+
+/// Advances the No. 9 golem's pose, lighting, ground shadow and exit fade.
+///
+/// Requires its owning enemy, live nineteen-part TMD body and initialized work.
+/// Nonzero clip IDs tick slots 1..18. Clips below 3 refresh actor lighting and
+/// draw a shadow at part 1; clips 3 and up instead fade the nine coefficients of
+/// both borrowed matrices by 15/16 every third tick, retaining ambient terms.
+/// An exit tick beginning above 96 enters destroy state 2. The signed halfword
+/// tick counter advances on every call. Uses two SDK VECTOR slots (32 scratch
+/// bytes), including across nested lighting and ground queries.
+static void _helicopterDepartureTickNo9Golem(Enemy* enemy, Task* task)
+{
+    enum { HELICOPTER_DEPARTURE_GOLEM_FIRST_EXIT_CLIP    = 3,
+           HELICOPTER_DEPARTURE_GOLEM_FADE_PERIOD_TICKS  = 3,
+           HELICOPTER_DEPARTURE_GOLEM_LAST_EXIT_TICK     = 96,
+           HELICOPTER_DEPARTURE_GOLEM_DESTROY_STATE      = 2,
+           HELICOPTER_DEPARTURE_GOLEM_SHADOW_HALF_SIZE   = 1024,
+           HELICOPTER_DEPARTURE_GOLEM_FADE_NUMERATOR     = 15,
+           HELICOPTER_DEPARTURE_GOLEM_FADE_FRACTION_BITS = 4 };
+    TmdObject*                        model;
+    VECTOR*                           worldPosition;
+    VECTOR*                           groundPoint;
+    _HelicopterDepartureNo9GolemWork* work;
+    GfxCoord*                         modelCoords;
+    GfxCoord*                         sampleCoord;
+    s32                               loopIndex;
+    s32                               column;
+    s32                               animationId;
+
+/// Scales the golem's shared light and colour bases by 15/16 for one fade step.
+///
+/// Captures the live `_HelicopterDepartureNo9GolemWork*` work and writable s32 counters
+/// loopIndex and column, leaving both counters at three. Requires the two
+/// HELICOPTER_DEPARTURE_GOLEM_FADE_* constants in scope. Signed products are shifted
+/// arithmetically; all nine coefficients change while translation and alignment
+/// bytes remain intact. Attached models borrow these same matrices.
+#define HELICOPTER_DEPARTURE_FADE_GOLEM_LIGHTING()                                                                                                                                  \
+    do {                                                                                                                                                                            \
+        for (loopIndex = 0; loopIndex < ARRAY_SIZE(work->color.m); loopIndex++) {                                                                                                   \
+            for (column = 0; column < ARRAY_SIZE(work->color.m[loopIndex]); column++) {                                                                                             \
+                work->color.m[loopIndex][column] = (work->color.m[loopIndex][column] * HELICOPTER_DEPARTURE_GOLEM_FADE_NUMERATOR) >> HELICOPTER_DEPARTURE_GOLEM_FADE_FRACTION_BITS; \
+                work->light.m[loopIndex][column] = (work->light.m[loopIndex][column] * HELICOPTER_DEPARTURE_GOLEM_FADE_NUMERATOR) >> HELICOPTER_DEPARTURE_GOLEM_FADE_FRACTION_BITS; \
+            }                                                                                                                                                                       \
+        }                                                                                                                                                                           \
+    } while (0)
+
+    model = task->extra.tmd;
+    SCRATCH_STACK_RESERVE_BYTES(2 * sizeof(*worldPosition));
+    work          = task->work;
+    modelCoords   = model->coords;
+    sampleCoord   = &modelCoords[1];
+    animationId   = work->animId;
+    worldPosition = SCRATCH_STACK_CURSOR(VECTOR);
+    if (animationId != 0) {
+        for (loopIndex = 1; loopIndex < ARRAY_SIZE(work->rig.slots); loopIndex++) {
+            animationTickSlot(&work->rig.anim, loopIndex);
+        }
+    }
+    // Refresh lighting at body part 1, then project its ground-shadow centre.
+    if (work->animId < HELICOPTER_DEPARTURE_GOLEM_FIRST_EXIT_CLIP) {
+        sampleCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(sampleCoord);
+        worldPosition->vx = sampleCoord->workm.t[0];
+        worldPosition->vy = sampleCoord->workm.t[1];
+        worldPosition->vz = sampleCoord->workm.t[2];
+        worldCoordUpdateActorColor(enemy, worldPosition, 0, 0);
+        worldPosition->vx = sampleCoord->workm.t[0];
+        worldPosition->vy = sampleCoord->workm.t[1];
+        worldPosition->vz = sampleCoord->workm.t[2];
+        groundPoint       = worldPosition + 1;
+        if (worldCollisionProjectGroundPoint((VECTOR3*)worldPosition, (VECTOR3*)groundPoint) != 0) {
+            effectDrawGroundShadow((VECTOR3*)groundPoint, HELICOPTER_DEPARTURE_GOLEM_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
+        }
+    } else {
+        if ((s16)(work->animTicks % HELICOPTER_DEPARTURE_GOLEM_FADE_PERIOD_TICKS) == 0) {
+            HELICOPTER_DEPARTURE_FADE_GOLEM_LIGHTING();
+#undef HELICOPTER_DEPARTURE_FADE_GOLEM_LIGHTING
+        }
+        if (work->animTicks > HELICOPTER_DEPARTURE_GOLEM_LAST_EXIT_TICK) {
+            task->state = HELICOPTER_DEPARTURE_GOLEM_DESTROY_STATE;
+        }
+    }
+    work->animTicks++;
+    modelCoords->composeStamp = GRAPHICS_COORD_DIRTY;
+    SCRATCH_STACK_RELEASE_BYTES(2 * sizeof(*worldPosition));
+}
+
+/// Runs the No. 9 golem's initialization, frame update or destroy state.
+///
+/// Requires its live nineteen-part TMD task and owning enemy in
+/// `spawnArg2.pointer`. State is 0 initialize, 1 update or 2 destroy and is not
+/// bounds-checked. Update requires initialized work; destroy releases the task
+/// and its enemy. The enemy and borrowed body resources must remain live.
+static void _helicopterDepartureNo9GolemTask(Task* task)
+{
+    EnemyTaskFuncTable3 states;
+
+    states = _gHelicopterDepartureNo9GolemStates;
+    states.funcs[task->state](task->spawnArg2.pointer, task);
+}
+
+/// Restarts the No. 9 golem's body animation and exit timer.
+///
+/// Requires a live nineteen-part TMD body and initialized work. The borrowed,
+/// read-only request selects a loaded clip 1..3 from the fixed set table;
+/// source bank, blend choice and duration are ignored. Always resets slots
+/// 1..18 and `animTicks`, including repeated clips, without immediately posing
+/// the model. Slot 0 is retained. Bank data must outlive playback. The message
+/// ID and second payload are ignored; returns 0.
+static s32 _helicopterDeparturePlayNo9GolemAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg)
+{
+    _HelicopterDepartureNo9GolemWork* work;
+    s32                               slotIndex;
+
+    work         = task->work;
+    work->animId = request->animationId;
+    slotIndex    = 1;
+    do {
+        animationResetSlot(&work->rig.anim, slotIndex, work->animId);
+        slotIndex++;
+    } while (slotIndex < ARRAY_SIZE(work->rig.slots));
+    work->animTicks = 0;
+    return 0;
+}
+
+#include "../../../../shared/actor/actor_messages_place_rot_matrix.inc.c"
+
+/// Replaces the No. 9 golem body's drawing and automatic-buffer flags.
+///
+/// Requires a live TMD body. Bit 0 shows the model; clear hides it. Bit 1
+/// disables automatic missing-buffer allocation. Other request bits are ignored
+/// and all other model flags are cleared. No buffers are allocated or released,
+/// and the actor state is retained. The message ID and second payload are
+/// ignored; returns 0.
+static s32 _helicopterDepartureSetNo9GolemModelDraw(Task* task, s32 messageId, s32 drawFlags, s32 unusedArg)
+{
+    enum { HELICOPTER_DEPARTURE_GOLEM_DRAW_SHOW             = 1 << 0,
+           HELICOPTER_DEPARTURE_GOLEM_DRAW_SKIP_AUTO_BUFFER = 1 << 1 };
+    TmdObject* model;
+
+    model = task->extra.tmd;
+    if (!(drawFlags & HELICOPTER_DEPARTURE_GOLEM_DRAW_SHOW)) {
+        model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    } else {
+        model->flags = 0;
+    }
+    if (drawFlags & HELICOPTER_DEPARTURE_GOLEM_DRAW_SKIP_AUTO_BUFFER) {
+        task->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+    }
+    return 0;
+}
+
+/// Runs the No. 9 golem's part-8 attachment states.
+///
+/// State 0 attaches and state 1 composes its root each tick; no other state is
+/// valid. The descriptor supplies the child model and the spawner establishes
+/// `task->parent` and the borrowed enemy in `spawnArg2.pointer`. The parent must
+/// own a live nineteen-part body and work block that outlive the child.
+static void _helicopterDepartureNo9GolemPart8Task(Task* task)
+{
+    EnemyTaskFunc states[2] = { _helicopterDepartureAttachNo9GolemPart8Model, _helicopterDepartureTickNo9GolemPart8Model };
+
+    states[task->state](task->spawnArg2.pointer, task);
+}
+
+/// Attaches the No. 9 golem's part-8 model and shows it with the body's lighting.
+///
+/// The task's existing parent must own the live nineteen-part TMD body and
+/// its `_HelicopterDepartureNo9GolemWork`. Borrows coordinate 8 and both work matrices,
+/// retains the child's local transform and advances from state 0 to 1.
+/// Parent coordinate and work storage must outlive the child. The enemy callback
+/// argument is unused; task parenting was established by the spawner.
+static void _helicopterDepartureAttachNo9GolemPart8Model(Enemy* enemy, Task* task)
+{
+    enum { PARENT_PART  = 8,
+           UPDATE_STATE = 1 };
+    Task*                             parentTask;
+    TmdObject*                        model;
+    _HelicopterDepartureNo9GolemWork* parentWork;
+    GfxCoord*                         root;
+    GfxCoord*                         parentCoords;
+
+    parentTask   = task->parent;
+    model        = task->extra.tmd;
+    parentCoords = parentTask->extra.tmd->coords;
+    root         = model->coords;
+    parentWork   = parentTask->work;
+
+    root->parent    = &parentCoords[PARENT_PART];
+    model->lightMtx = &parentWork->light;
+    model->flags    = 0;
+    model->colorMtx = &parentWork->color;
+    task->state     = UPDATE_STATE;
+}
+
+/// Invalidates and composes the golem's part-8 attachment transform each tick.
+///
+/// Requires a live child TMD root and its borrowed parent-coordinate chain.
+/// The enemy callback argument is unused; lighting and task state are retained.
+static void _helicopterDepartureTickNo9GolemPart8Model(Enemy* enemy, Task* task)
+{
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(task->extra.tmd->coords);
+}
+
+/// Runs the No. 9 golem's part-3 attachment states.
+///
+/// State 0 attaches and state 1 composes its root each tick; no other state is
+/// valid. The descriptor supplies the child model and the spawner establishes
+/// `task->parent` and the borrowed enemy in `spawnArg2.pointer`. The parent must
+/// own a live nineteen-part body and work block that outlive the child.
+static void _helicopterDepartureNo9GolemPart3Task(Task* task)
+{
+    EnemyTaskFunc states[2] = { _helicopterDepartureAttachNo9GolemPart3Model, _helicopterDepartureTickNo9GolemPart3Model };
+
+    states[task->state](task->spawnArg2.pointer, task);
+}
+
+/// Attaches the No. 9 golem's part-3 model and shows it with the body's lighting.
+///
+/// The task's existing parent must own the live nineteen-part TMD body and
+/// its `_HelicopterDepartureNo9GolemWork`. Borrows coordinate 3 and both work matrices,
+/// retains the child's local transform and advances from state 0 to 1.
+/// Parent coordinate and work storage must outlive the child. The enemy callback
+/// argument is unused; task parenting was established by the spawner.
+static void _helicopterDepartureAttachNo9GolemPart3Model(Enemy* enemy, Task* task)
+{
+    enum { PARENT_PART  = 3,
+           UPDATE_STATE = 1 };
+    Task*                             parentTask;
+    TmdObject*                        model;
+    _HelicopterDepartureNo9GolemWork* parentWork;
+    GfxCoord*                         root;
+    GfxCoord*                         parentCoords;
+
+    parentTask   = task->parent;
+    model        = task->extra.tmd;
+    parentCoords = parentTask->extra.tmd->coords;
+    root         = model->coords;
+    parentWork   = parentTask->work;
+
+    root->parent    = &parentCoords[PARENT_PART];
+    model->lightMtx = &parentWork->light;
+    model->flags    = 0;
+    model->colorMtx = &parentWork->color;
+    task->state     = UPDATE_STATE;
+}
+
+/// Invalidates and composes the golem's part-3 attachment transform each tick.
+///
+/// Requires a live child TMD root and its borrowed parent-coordinate chain.
+/// The enemy callback argument is unused; lighting and task state are retained.
+static void _helicopterDepartureTickNo9GolemPart3Model(Enemy* enemy, Task* task)
+{
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(task->extra.tmd->coords);
+}
+
+/// Runs the No. 9 golem's part-12 attachment states.
+///
+/// State 0 attaches and state 1 composes its root each tick; no other state is
+/// valid. The descriptor supplies the child model and the spawner establishes
+/// `task->parent` and the borrowed enemy in `spawnArg2.pointer`. The parent must
+/// own a live nineteen-part body and work block that outlive the child.
+static void _helicopterDepartureNo9GolemPart12Task(Task* task)
+{
+    EnemyTaskFunc states[2] = { _helicopterDepartureAttachNo9GolemPart12Model, _helicopterDepartureTickNo9GolemPart12Model };
+
+    states[task->state](task->spawnArg2.pointer, task);
+}
+
+/// Attaches the No. 9 golem's part-12 model with the body's lighting.
+///
+/// The task's existing parent must own a live nineteen-part TMD body and its
+/// `_HelicopterDepartureNo9GolemWork`. Borrows coordinate 12 and both work matrices,
+/// retains the child's local transform, clears its model flags and advances
+/// from state 0 to 1. Parent coordinate and work storage must outlive the child.
+/// The enemy callback argument is unused; the spawner established task parenting.
+static void _helicopterDepartureAttachNo9GolemPart12Model(Enemy* enemy, Task* task)
+{
+    enum { HELICOPTER_DEPARTURE_GOLEM_PARENT_PART  = 12,
+           HELICOPTER_DEPARTURE_GOLEM_UPDATE_STATE = 1 };
+    Task*                             parentTask;
+    TmdObject*                        model;
+    _HelicopterDepartureNo9GolemWork* parentWork;
+    GfxCoord*                         root;
+    GfxCoord*                         parentCoords;
+
+    parentTask   = task->parent;
+    model        = task->extra.tmd;
+    parentCoords = parentTask->extra.tmd->coords;
+    root         = model->coords;
+    parentWork   = parentTask->work;
+
+    root->parent    = &parentCoords[HELICOPTER_DEPARTURE_GOLEM_PARENT_PART];
+    model->lightMtx = &parentWork->light;
+    model->flags    = 0;
+    model->colorMtx = &parentWork->color;
+    task->state     = HELICOPTER_DEPARTURE_GOLEM_UPDATE_STATE;
+}
+
+/// Invalidates and composes the golem's part-12 attachment transform each tick.
+///
+/// Requires a live child TMD root and its borrowed parent-coordinate chain.
+/// The enemy callback argument is unused; lighting and task state are retained.
+static void _helicopterDepartureTickNo9GolemPart12Model(Enemy* enemy, Task* task)
+{
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(task->extra.tmd->coords);
+}

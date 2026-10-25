@@ -14,7 +14,7 @@
 
 #include "helicopter_landing_pad_private.h"
 
-#include "actors/actor_511000.h"
+#include "stages/akropolis/actors/helicopter_departure.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"

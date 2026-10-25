@@ -68,7 +68,7 @@
  *
  * SPRITE_QUAD_CELL_WIDTH must be a signed integer constant from 1 to 256,
  * bound before each sprite_quad_draw.inc.c inclusion. A C enum constant is
- * valid, as in actor_510900's shared atlas binding. Arithmetic UV modes use
+ * valid, as in helicopter_landing_pad_no_9's shared atlas binding. Arithmetic UV modes use
  * this width as the horizontal origin stride and place the inclusive right
  * edge width - 1 texels past the origin. With SPRITE_QUAD_UV_TABLE it sets
  * both dimensions of each square cell; the table supplies the origins.
@@ -250,7 +250,7 @@
 ///
 /// Define as `s16` or `u16` before including this header to select the first
 /// instance's signature. The unsigned default serves the flare,
-/// shelter_b6_nursery and actor_510900 instances. Signed carriers override it
+/// shelter_b6_nursery and helicopter_landing_pad_no_9 instances. Signed carriers override it
 /// for their effect counters.
 /// The type narrows the argument to 16 bits and determines its signed or unsigned
 /// interpretation in texture-coordinate arithmetic.

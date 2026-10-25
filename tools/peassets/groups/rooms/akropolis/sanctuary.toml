@@ -73,7 +73,7 @@ embedded = [
     { name = "no9_golem_anim_05", offset = 0x0873C, size = 0x1A38, address = 0x8013A55C },
     { name = "no_9_bank", offset = 0x0A1A0, size = 0x18, address = 0x8013BFC0 },
 ]
-package_name = "actor_110700"
+package_name = "sanctuary_no_9"
 required = true
 sha1 = "0e9e9b3f5609545a85e397e98152df642939551e"
 
@@ -209,7 +209,7 @@ radio_click = 8
 [no_9_bank]
 type = "animation_bank"
 schema = "rooms/akropolis/sanctuary/no_9_schema"
-symbol = "_gActor110700No9GolemAnimationSets"
+symbol = "_gSanctuaryNo9No9GolemAnimationSets"
 
 [no_9_bank.clips]
 attack_rupert = "rooms/akropolis/sanctuary/no_9_attack_rupert"

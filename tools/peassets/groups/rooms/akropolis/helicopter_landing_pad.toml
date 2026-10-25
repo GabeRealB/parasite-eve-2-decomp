@@ -230,7 +230,7 @@ sha1 = "dd8bb6403f195387658248078d50760a10b29bca"
 [no_9_bank]
 type = "animation_bank"
 schema = "rooms/akropolis/helicopter_landing_pad/no_9_schema"
-symbol = "_gActor511000No9GolemAnimationSets"
+symbol = "_gHelicopterDepartureNo9GolemAnimationSets"
 
 [no_9_bank.clips]
 standoff = "rooms/akropolis/helicopter_landing_pad/no_9_standoff"
@@ -696,7 +696,7 @@ slots = ["", "standoff", "times_up", "leap_away"]
 [rupert_bank]
 type = "animation_bank"
 schema = "rooms/akropolis/helicopter_landing_pad/rupert_schema"
-symbol = "_gActor511000RupertAnimationSets"
+symbol = "_gHelicopterDepartureRupertAnimationSets"
 
 [rupert_bank.clips]
 shoot = "rooms/akropolis/helicopter_landing_pad/rupert_shoot"
@@ -1438,7 +1438,7 @@ type = "pe2pkg"
 embedded = [
     { name = "player_helipad_report_escape", offset = 0x02350, size = 0x29A0, address = 0x80134170 },
     { name = "player_helipad_detonator_talk", offset = 0x04CF0, size = 0x2E14, address = 0x80136B10 },
-    "actor_511000_helicopter_base",
+    "helicopter_departure_helicopter_base",
     { name = "main_rotor", offset = 0x09D14, size = 0x3E8, address = 0x8013BB34 },
     { name = "tail_rotor", offset = 0x0A0FC, size = 0x160, address = 0x8013BF1C },
     { name = "searchlight", offset = 0x0A25C, size = 0x604, address = 0x8013C07C },
@@ -1458,7 +1458,7 @@ embedded = [
     { name = "no_9_leap_away", offset = 0x21EE4, size = 0x136C, address = 0x80153D04 },
     { name = "no_9_bank", offset = 0x232A0, size = 0x10, address = 0x801550C0 },
 ]
-package_name = "actor_511000"
+package_name = "helicopter_departure"
 parent = "rooms/akropolis/helicopter_landing_pad/package"
 required = true
 sha1 = "e742256cbd375eff51b21ed26f4631946ba06139"

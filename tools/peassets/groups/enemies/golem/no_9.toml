@@ -626,10 +626,10 @@ embedded = [
     { name = "akropolis_sword", offset = 0x0FD68, size = 0x2A4, address = 0x80141B88 },
     { name = "akropolis_prop", offset = 0x1000C, size = 0x31C, address = 0x80141E2C },
     { name = "akropolis_chest_piece", offset = 0x10328, size = 0x35C, address = 0x80142148 },
-    "actor_510900_model_10C8C",
-    "actor_510900_animation_11340",
+    "helicopter_landing_pad_no_9_model_10C8C",
+    "helicopter_landing_pad_no_9_animation_11340",
 ]
-package_name = "actor_510900"
+package_name = "helicopter_landing_pad_no_9"
 parent = "rooms/akropolis/helicopter_landing_pad/package"
 required = true
 sha1 = "91bc20bb98fc6653a2729859fef0014c3366bfa1"

@@ -69,18 +69,18 @@ enum {
 
 /// Character banks, by the code that plays them (weapon banks are weapon indices, weapons/weapon_index.h).
 enum {
-    SOUND_BANK_ACTOR_311500  = 0x0A, // actor_311500 and actor_317000
-    SOUND_BANK_ACTOR_356100  = 0x0D, // actor_356100 and actor_401300
-    SOUND_BANK_ACTOR_800100  = 0x65, // companion actor_800100
-    SOUND_BANK_ACTOR_800200  = 0x72, // companion actor_800200 and actor_136100
-    SOUND_BANK_BRAHMAN       = 0x23, // Brahman
-    SOUND_BANK_BURNER        = 0x1F, // Burner
-    SOUND_BANK_DESERT_CHASER = 0x01, // Desert Chaser; also played by actor_00100 and actor_323400
-    SOUND_BANK_GLUTTON       = 0x20, // Glutton
-    SOUND_BANK_MAD_CHASER    = 0x2C, // Mad Chaser
-    SOUND_BANK_PLAYER        = 0x68, // the player and the companions
-    SOUND_BANK_STRANGER      = 0x1D, // Stranger
-    SOUND_BANK_SUCKLERCEPH   = 0x46, // Sucklerceph
+    SOUND_BANK_LESSER_STRANGER = 0x0A, // lesser_stranger and patio_leaping_strangers
+    SOUND_BANK_ACTOR_356100    = 0x0D, // actor_356100 and actor_401300
+    SOUND_BANK_ACTOR_800100    = 0x65, // companion actor_800100
+    SOUND_BANK_ACTOR_800200    = 0x72, // companion actor_800200 and actor_136100
+    SOUND_BANK_BRAHMAN         = 0x23, // Brahman
+    SOUND_BANK_BURNER          = 0x1F, // Burner
+    SOUND_BANK_DESERT_CHASER   = 0x01, // Desert Chaser; also played by actor_00100 and actor_323400
+    SOUND_BANK_GLUTTON         = 0x20, // Glutton
+    SOUND_BANK_MAD_CHASER      = 0x2C, // Mad Chaser
+    SOUND_BANK_PLAYER          = 0x68, // the player and the companions
+    SOUND_BANK_STRANGER        = 0x1D, // Stranger
+    SOUND_BANK_SUCKLERCEPH     = 0x46, // Sucklerceph
 };
 
 /// Common bank.
@@ -133,11 +133,11 @@ enum {
     SOUND_BANK_TYPE_CHARACTER_ALL = SOUND_ID(SOUND_BANK_TYPE_CHARACTER, 0, 0),
     /// Desert Chaser enters its lunge at the player in the chase.
     SOUND_DESERT_CHASER_LUNGE = SOUND_CHARACTER(SOUND_BANK_DESERT_CHASER, 6),
-    /// actor_311500 takes a damaging hit from the player.
-    SOUND_ACTOR_311500_HURT = SOUND_CHARACTER(SOUND_BANK_ACTOR_311500, 7),
-    /// actor_311500 death sequence start (node unlinked, effect, fade to black,
+    /// lesser_stranger takes a damaging hit from the player.
+    SOUND_LESSER_STRANGER_HURT = SOUND_CHARACTER(SOUND_BANK_LESSER_STRANGER, 7),
+    /// lesser_stranger death sequence start (node unlinked, effect, fade to black,
     /// shrink).
-    SOUND_ACTOR_311500_DEATH = SOUND_CHARACTER(SOUND_BANK_ACTOR_311500, 8),
+    SOUND_LESSER_STRANGER_DEATH = SOUND_CHARACTER(SOUND_BANK_LESSER_STRANGER, 8),
     /// Stranger hit by the player without dying.
     SOUND_STRANGER_HURT = SOUND_CHARACTER(SOUND_BANK_STRANGER, 7),
     /// Stranger's attack body touching a 0x10000-kind target (attack connects).

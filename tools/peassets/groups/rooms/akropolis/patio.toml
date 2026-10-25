@@ -368,7 +368,7 @@ follow_up_scene_2 = 12
 [swat_bank]
 type = "animation_bank"
 schema = "rooms/akropolis/patio/swat_schema"
-symbol = "_gActor312200AnimationSets"
+symbol = "_gPatioSwatMemberAnimationSets"
 
 [swat_bank.clips]
 dormant = "rooms/akropolis/patio/swat_dormant"
@@ -922,7 +922,7 @@ embedded = [
     { name = "swat_rest", offset = 0x07DA0, size = 0x368, address = 0x80169BC0 },
     { name = "swat_bank", offset = 0x08124, size = 0x18, address = 0x80169F44 },
 ]
-package_name = "actor_312200"
+package_name = "patio_swat_member"
 required = true
 sha1 = "274783de5c0be610bc1e70593693de58b74ea6fb"
 
@@ -1165,7 +1165,7 @@ sha1 = "b673b18c20356046ad90e22d16b5f6b3ab1b457e"
 [stranger_bank]
 type = "animation_bank"
 schema = "rooms/akropolis/patio/stranger_schema"
-symbol = "_gActor317000BodyAnimSets"
+symbol = "_gPatioLeapingStrangersBodyAnimSets"
 
 [stranger_bank.clips]
 slot_1 = "rooms/akropolis/patio/body_anim_01"
@@ -1286,7 +1286,7 @@ embedded = [
     { name = "stranger_land", offset = 0x0A9B4, size = 0x748, address = 0x8016C7D4 },
     { name = "stranger_bank", offset = 0x0B0FC, size = 0x24, address = 0x8016CF1C },
 ]
-package_name = "actor_317000"
+package_name = "patio_leaping_strangers"
 required = true
 sha1 = "1622e6d8e0ef76461aa05280b2f39570008a5802"
 

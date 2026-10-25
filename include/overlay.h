@@ -572,7 +572,7 @@ enum {
 
 /// Movement record of the Boss Stranger walker.
 ///
-/// Embedded in `actor_110600` and the Acropolis bridge copy. Each tick steers
+/// Embedded in `cafeteria_boss_stranger` and the Acropolis bridge copy. Each tick steers
 /// `coord` toward the selected player, along `nav`'s node order, or along the
 /// patrol route, then ramps `speed` and turns within `turnLimit`. The ground
 /// step and contact avoidance run unless the carrier skips them. `scaleMtx`

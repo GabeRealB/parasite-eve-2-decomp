@@ -5,7 +5,7 @@
 type = "animation_bank"
 clips = { idle = "enemies/stranger/lesser/idle", hit = "enemies/stranger/down_back" }
 schema = "enemies/stranger/lesser/schema"
-symbol = "_gActor311500StrangerAnimationSets"
+symbol = "_gLesserStrangerStrangerAnimationSets"
 
 [body]
 type = "model"
@@ -30,7 +30,7 @@ embedded = [
     { name = "idle", offset = 0x071B0, size = 0x2E8, address = 0x80168FD0 },
     { name = "bank", offset = 0x074D4, size = 0x8, address = 0x801692F4 },
 ]
-package_name = "actor_311500"
+package_name = "lesser_stranger"
 required = true
 sha1 = "b6b94075f3abcdbfd2f57b4977e4230c27622dd0"
 

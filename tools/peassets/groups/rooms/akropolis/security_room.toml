@@ -181,7 +181,7 @@ sha1 = "0905dc17256d29eb02b9b75c342a8a94b0ff218b"
 type = "animation_bank"
 clips = { monitor_idle = "rooms/akropolis/security_room/swat_monitor_idle" }
 schema = "rooms/akropolis/security_room/swat_schema"
-symbol = "_gActor311900SwatAnimationSets"
+symbol = "_gSecurityMonitorsSwatAnimationSets"
 
 [dialogue_0]
 type = "cap"
@@ -664,7 +664,7 @@ sha1 = "ab6723512f370cb225524c36a5e4e84f35b0cb93"
 type = "animation_bank"
 clips = { walk = "characters/rupert/walk" }
 schema = "rooms/akropolis/security_room/rupert_schema"
-symbol = "_gActor311900RupertAnimationSets"
+symbol = "_gSecurityMonitorsRupertAnimationSets"
 
 [swat_schema]
 type = "animation_schema"
@@ -968,7 +968,7 @@ embedded = [
     { name = "rupert_bank", offset = 0x0CDC8, size = 0xC, address = 0x8016EBE8 },
     { name = "swat_bank", offset = 0x0CDD4, size = 0xC, address = 0x8016EBF4 },
 ]
-package_name = "actor_311900"
+package_name = "security_monitors"
 required = true
 sha1 = "bf71732d3698d13e9081cbae18002b7a03b4e28b"
 

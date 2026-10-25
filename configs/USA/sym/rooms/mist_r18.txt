@@ -38,7 +38,7 @@ _gMistR18View10SpriteBatches = 0x80186B50; // size:0x10 defined:True
 gMistR18SpriteViews = 0x80186B60; // size:0x78 defined:True
 _gMistR18BriefingActorResources = 0x80186BD8; // size:0x24 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
-gActor113000RupertBroderickHurtTaskDesc = 0x8013ABB4; // absolute:True owner=actor_113000
+gMistRupertRupertBroderickHurtTaskDesc = 0x8013ABB4; // absolute:True owner=mist_rupert
 gActor213000EricBaldwinTaskDescriptors = 0x80157DE0; // absolute:True owner=actor_213000
 _gMistR18PlayerBriefingBankCopyRequest = 0x80184F90; // size:0x8 defined:True
 _gMistR18PlayerBaseClip1Request = 0x80184F98; // size:0x14 defined:True

@@ -51,19 +51,19 @@ static s32 _oddStrangerTakeAnimationSound(OddStrangerWork* work)
     switch (work->animId) {
         case ODD_STRANGER_ANIM_SIDESTEP_NEGATIVE:
         case ODD_STRANGER_ANIM_SIDESTEP_POSITIVE:
-            ODD_STRANGER_TAKE_PAIRED_SOUND_CUES(work, cueIndex, latchedCueIndex, ODD_STRANGER_SIDESTEP_FIRST_SOUND_CUE, SOUND_CHARACTER(SOUND_BANK_ACTOR_311500, 0x10), ODD_STRANGER_SIDESTEP_SECOND_SOUND_CUE, SOUND_CHARACTER(SOUND_BANK_ACTOR_311500, 0x11));
+            ODD_STRANGER_TAKE_PAIRED_SOUND_CUES(work, cueIndex, latchedCueIndex, ODD_STRANGER_SIDESTEP_FIRST_SOUND_CUE, SOUND_CHARACTER(SOUND_BANK_LESSER_STRANGER, 0x10), ODD_STRANGER_SIDESTEP_SECOND_SOUND_CUE, SOUND_CHARACTER(SOUND_BANK_LESSER_STRANGER, 0x11));
             break;
         case ODD_STRANGER_ANIM_RUN:
-            ODD_STRANGER_TAKE_PAIRED_SOUND_CUES(work, cueIndex, latchedCueIndex, ODD_STRANGER_RUN_FIRST_SOUND_CUE, SOUND_CHARACTER(SOUND_BANK_ACTOR_311500, 0x04), ODD_STRANGER_RUN_SECOND_SOUND_CUE, SOUND_CHARACTER(SOUND_BANK_ACTOR_311500, 0x03));
+            ODD_STRANGER_TAKE_PAIRED_SOUND_CUES(work, cueIndex, latchedCueIndex, ODD_STRANGER_RUN_FIRST_SOUND_CUE, SOUND_CHARACTER(SOUND_BANK_LESSER_STRANGER, 0x04), ODD_STRANGER_RUN_SECOND_SOUND_CUE, SOUND_CHARACTER(SOUND_BANK_LESSER_STRANGER, 0x03));
             break;
         case ODD_STRANGER_ANIM_WALK:
-            ODD_STRANGER_TAKE_PAIRED_SOUND_CUES(work, cueIndex, latchedCueIndex, ODD_STRANGER_WALK_FIRST_SOUND_CUE, SOUND_CHARACTER(SOUND_BANK_ACTOR_311500, 0x02), ODD_STRANGER_WALK_SECOND_SOUND_CUE, SOUND_CHARACTER(SOUND_BANK_ACTOR_311500, 0x01));
+            ODD_STRANGER_TAKE_PAIRED_SOUND_CUES(work, cueIndex, latchedCueIndex, ODD_STRANGER_WALK_FIRST_SOUND_CUE, SOUND_CHARACTER(SOUND_BANK_LESSER_STRANGER, 0x02), ODD_STRANGER_WALK_SECOND_SOUND_CUE, SOUND_CHARACTER(SOUND_BANK_LESSER_STRANGER, 0x01));
             break;
         case ODD_STRANGER_ANIM_ALERT:
             cueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             if (cueIndex == 4 && work->lastCueFrame != cueIndex) {
                 work->lastCueFrame = cueIndex;
-                return SOUND_CHARACTER(SOUND_BANK_ACTOR_311500, 0x06);
+                return SOUND_CHARACTER(SOUND_BANK_LESSER_STRANGER, 0x06);
             }
             latchedCueIndex    = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             work->lastCueFrame = latchedCueIndex;
@@ -72,7 +72,7 @@ static s32 _oddStrangerTakeAnimationSound(OddStrangerWork* work)
             cueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             if (cueIndex == 4 && work->lastCueFrame != cueIndex) {
                 work->lastCueFrame = cueIndex;
-                return SOUND_CHARACTER(SOUND_BANK_ACTOR_311500, 0x05);
+                return SOUND_CHARACTER(SOUND_BANK_LESSER_STRANGER, 0x05);
             }
             latchedCueIndex    = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             work->lastCueFrame = latchedCueIndex;
@@ -81,7 +81,7 @@ static s32 _oddStrangerTakeAnimationSound(OddStrangerWork* work)
             cueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             if (cueIndex == 7 && work->lastCueFrame != cueIndex) {
                 work->lastCueFrame = cueIndex;
-                return SOUND_CHARACTER(SOUND_BANK_ACTOR_311500, 0x05);
+                return SOUND_CHARACTER(SOUND_BANK_LESSER_STRANGER, 0x05);
             }
             latchedCueIndex    = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             work->lastCueFrame = latchedCueIndex;
@@ -91,14 +91,14 @@ static s32 _oddStrangerTakeAnimationSound(OddStrangerWork* work)
             if (cueIndex == 0xA) {
                 if (work->lastCueFrame != cueIndex) {
                     work->lastCueFrame = cueIndex;
-                    return SOUND_CHARACTER(SOUND_BANK_ACTOR_311500, 0x04);
+                    return SOUND_CHARACTER(SOUND_BANK_LESSER_STRANGER, 0x04);
                 }
             }
             cueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             if (cueIndex == 0x12) {
                 if (work->lastCueFrame != cueIndex) {
                     work->lastCueFrame = cueIndex;
-                    return SOUND_CHARACTER(SOUND_BANK_ACTOR_311500, 0x02);
+                    return SOUND_CHARACTER(SOUND_BANK_LESSER_STRANGER, 0x02);
                 }
             }
             latchedCueIndex    = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
@@ -108,7 +108,7 @@ static s32 _oddStrangerTakeAnimationSound(OddStrangerWork* work)
             cueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             if (cueIndex == 9 && work->lastCueFrame != cueIndex) {
                 work->lastCueFrame = cueIndex;
-                return SOUND_CHARACTER(SOUND_BANK_ACTOR_311500, 0x0D);
+                return SOUND_CHARACTER(SOUND_BANK_LESSER_STRANGER, 0x0D);
             }
             latchedCueIndex    = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             work->lastCueFrame = latchedCueIndex;
@@ -117,7 +117,7 @@ static s32 _oddStrangerTakeAnimationSound(OddStrangerWork* work)
             cueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             if (cueIndex == 0x16 && work->lastCueFrame != cueIndex) {
                 work->lastCueFrame = cueIndex;
-                return SOUND_CHARACTER(SOUND_BANK_ACTOR_311500, 0x03);
+                return SOUND_CHARACTER(SOUND_BANK_LESSER_STRANGER, 0x03);
             }
             latchedCueIndex    = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             work->lastCueFrame = latchedCueIndex;
@@ -127,14 +127,14 @@ static s32 _oddStrangerTakeAnimationSound(OddStrangerWork* work)
             if (cueIndex == 9) {
                 if (work->lastCueFrame != cueIndex) {
                     work->lastCueFrame = cueIndex;
-                    return SOUND_CHARACTER(SOUND_BANK_ACTOR_311500, 0x0D);
+                    return SOUND_CHARACTER(SOUND_BANK_LESSER_STRANGER, 0x0D);
                 }
             }
             cueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             if (cueIndex == 0x13) {
                 if (work->lastCueFrame != cueIndex) {
                     work->lastCueFrame = cueIndex;
-                    return SOUND_CHARACTER(SOUND_BANK_ACTOR_311500, 0x0C);
+                    return SOUND_CHARACTER(SOUND_BANK_LESSER_STRANGER, 0x0C);
                 }
             }
             latchedCueIndex    = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;

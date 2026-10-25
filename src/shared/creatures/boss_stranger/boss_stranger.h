@@ -1,4 +1,4 @@
-/* The movement core of the Boss Stranger (actor_110600, and the Acropolis
+/* The movement core of the Boss Stranger (cafeteria_boss_stranger, and the Acropolis
  * bridge room's copy of it), which walks a patrol network of nav nodes. Each
  * tick it either heads for a player position, re-plans along `nodeOrder`
  * towards the player (nearest node to the player vs nearest node to itself,

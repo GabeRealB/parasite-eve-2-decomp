@@ -139,7 +139,7 @@ embedded = [
     { asset = "characters/pierce/anim_35", offset = 0x11DF8, size = 0x638, address = 0x80143C18 },
     { name = "pierce_bank", offset = 0x12430, size = 0x90, address = 0x80144250 },
 ]
-package_name = "actor_113100"
+package_name = "parking_pierce"
 parent = "rooms/mist/parking/package"
 required = true
 sha1 = "5e87c8524e5c2a3924655335b7b17dcac281a669"
@@ -780,7 +780,7 @@ offset = [0x00000, 0x00005]
 [pierce_bank]
 type = "animation_bank"
 schema = "rooms/mist/parking/pierce_schema"
-symbol = "_gActor113100PierceAnimationBank"
+symbol = "_gParkingPiercePierceAnimationBank"
 
 [pierce_bank.clips]
 rest = "characters/pierce/rest"

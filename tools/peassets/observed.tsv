@@ -356,7 +356,7 @@ encounters/rat_and_moth/package_1	main memory	trace-20261012-152043	session 1	1	
 encounters/rat_and_moth/package_1	main memory	trace-20261012-152043	session 1	1	akropolis_patio	3	2		0x80131e20-0x801393fb	0/file100700	2	4	0		overwritten by encounters/rat_and_moth/package_1 of 0/file100700 at event 5803
 encounters/rat_and_moth/package_1	main memory	trace-20261012-152043	session 1	1	akropolis_patio	3	3		0x80131e20-0x801393fb	0/file100700	0	2	0		
 encounters/rat_and_moth/package_1	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	1		0x80131e20-0x801393fb	0/file100700	0	2	0		
-encounters/rat_and_moth/package_1	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1		0x80131e20-0x801393fb	0/file100700	0	2	0		overwritten by actor_110700 of 0/file110700 at event 12501
+encounters/rat_and_moth/package_1	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1		0x80131e20-0x801393fb	0/file100700	0	2	0		overwritten by sanctuary_no_9 of 0/file110700 at event 12501
 encounters/brute_and_mossback/package_1	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	2		0x80131e20-0x80147493	0/file101100	0	2	0		overwritten by enemies/stranger/odd/package_b_4 of 0/file401000 at event 16570
 encounters/brute_and_mossback/package_1	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	2		0x80131e20-0x80147493	0/file101100	0	2	0		
 enemies/stranger/grinning/package_1	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	1		0x80131e20-0x80149133	0/file101900	2	4	0		overwritten by rooms/akropolis/cafeteria/boss_stranger of 0/file110600 at event 2337
@@ -390,7 +390,7 @@ enemies/crawler/caterpillar/package_1	main memory	trace-20261012-152043	session 
 enemies/crawler/caterpillar/package_1	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3		0x80131e20-0x8013a92f	0/file105500	0	2	0		
 enemies/crawler/caterpillar/package_1	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0x80131e20-0x8013a92f	0/file105500	0	2	0		
 enemies/crawler/caterpillar/package_1	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	4		0x80131e20-0x8013a92f	0/file105500	0	2	0		
-actor_107600	main memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x80131e20-0x80135769	0/file107600	0	2	0		overwritten by actor_113100 of 0/file113100 at event 11750
+actor_107600	main memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x80131e20-0x80135769	0/file107600	0	2	0		overwritten by parking_pierce of 0/file113100 at event 11750
 actor_107600	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x80131e20-0x80135769	0/file107600	0	2	0		
 actor_107600	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x80131e20-0x80135769	0/file107600	0	2	0		overwritten by actor_107600 of 0/file107600 at event 8518
 actor_107600	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x80131e20-0x80135769	0/file107600	0	2	0		overwritten by actor_107600 of 0/file107600 at event 9825
@@ -407,38 +407,38 @@ rooms/akropolis/cafeteria/boss_stranger	main memory	trace-20261012-152043	sessio
 rooms/akropolis/cafeteria/boss_stranger	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	2		0x80131e20-0x8014869f	0/file110600	0	2	0		
 rooms/akropolis/cafeteria/boss_stranger	main memory	trace-20261012-152043	session 1	1	akropolis_patio	1	2		0x80131e20-0x8014869f	0/file110600	0	2	0		
 rooms/akropolis/cafeteria/boss_stranger	main memory	trace-20261012-152043	session 1	1	akropolis_patio	3	2		0x80131e20-0x8014869f	0/file110600	0	2	0		overwritten by enemies/stranger/grinning/package_1 of 0/file101900 at event 3586
-actor_110700	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	4		0x80131e20-0x8013bfd7	0/file110700	0	2	0		
-actor_110700	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	3		0x80131e20-0x8013bfd7	0/file110700	0	2	0		
-actor_110700	main memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		0x80131e20-0x8013bfd7	0/file110700	0	2	0		
-actor_110700	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	2		0x80131e20-0x8013bfd7	0/file110700	0	2	0		
-actor_110700	main memory	trace-20261012-152043	session 1	1	akropolis_patio	1	4		0x80131e20-0x8013bfd7	0/file110700	0	2	0		
-actor_110700	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	2		0x80131e20-0x8013bfd7	0/file110700	0	2	0		
-actor_110700	main memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	1		0x80131e20-0x8013bfd7	0/file110700	0	2	0		overwritten by actor_110800 of 0/file110800 at event 13115
-actor_110700	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1		0x80131e20-0x8013bfd7	0/file110700	0	2	0		
-actor_110800	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1		0x80131e20-0x80139f1b	0/file110800	0	2	0		
-actor_110800	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	2		0x80131e20-0x80139f1b	0/file110800	0	2	0		
-actor_110800	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1		0x80131e20-0x80139f1b	0/file110800	0	2	0		
-actor_110800	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	2		0x80131e20-0x80139f1b	0/file110800	0	2	0		overwritten by encounters/brute_and_mossback/package_1 of 0/file101100 at event 15692
-actor_110800	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	1		0x80131e20-0x80139f1b	0/file110800	0	2	0		
-actor_110800	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	2		0x80131e20-0x80139f1b	0/file110800	0	2	0		
-actor_110800	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	3		0x80131e20-0x80139f1b	0/file110800	0	2	0		
-actor_110800	main memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	1		0x80131e20-0x80139f1b	0/file110800	0	2	0		
-actor_110800	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1		0x80131e20-0x80139f1b	0/file110800	0	2	0		
-actor_110800	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3		0x80131e20-0x80139f1b	0/file110800	0	2	0		
-actor_110800	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	120	3		0x80131e20-0x80139f1b	0/file110800	0	2	0		
-actor_110800	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	96	3		0x80131e20-0x80139f1b	0/file110800	0	2	0		
-actor_111800	main memory	trace-20261012-145054	session 1	1	akropolis_square	1	1		0x80131e20-0x8013a473	0/file111800	-1	2	0		
-actor_111800	main memory	trace-20261012-145054	session 1	1	akropolis_square	7	2		0x80131e20-0x8013a473	0/file111800	-1	2	0		
-actor_113000	main memory	trace-20261012-152043	session 1	1	mist_parking	3	1		0x80131e20-0x8013abe7	0/file113000	0	2	0		overwritten by actor_113100 of 0/file113100 at event 41633
-actor_113000	main memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0x80131e20-0x8013abe7	0/file113000	0	2	0		
-actor_113000	main memory	trace-20261012-152043	session 1	1	mist_r18	1	2		0x80131e20-0x8013abe7	0/file113000	0	2	0		
-actor_113100	main memory	trace-20261012-145054	session 1	1	akropolis_plaza	1	1		0x80131e20-0x80144367	0/file113100	0	2	0		
-actor_113100	main memory	trace-20261012-145054	session 1	1	akropolis_square	1	1		0x80131e20-0x80144367	0/file113100	0	2	0		overwritten by actor_111800 of 0/file111800 at event 18203
-actor_113100	main memory	trace-20261012-145054	session 1	1	akropolis_west_elevator_hall	1	1		0x80131e20-0x80144367	0/file113100	0	2	0		
-actor_113100	main memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x80131e20-0x80144367	0/file113100	0	2	0		
-actor_113100	main memory	trace-20261012-145054	session 1	1	mist_parking	2	1		0x80131e20-0x80144367	0/file113100	0	2	0		
-actor_113100	main memory	trace-20261012-152043	session 1	1	mist_parking	3	1		0x80131e20-0x80144367	0/file113100	0	2	0		
-actor_113100	main memory	trace-20261012-152043	session 1	1	mist_parking	3	2		0x80131e20-0x80144367	0/file113100	0	2	0		
+sanctuary_no_9	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	4		0x80131e20-0x8013bfd7	0/file110700	0	2	0		
+sanctuary_no_9	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	3		0x80131e20-0x8013bfd7	0/file110700	0	2	0		
+sanctuary_no_9	main memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		0x80131e20-0x8013bfd7	0/file110700	0	2	0		
+sanctuary_no_9	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	2		0x80131e20-0x8013bfd7	0/file110700	0	2	0		
+sanctuary_no_9	main memory	trace-20261012-152043	session 1	1	akropolis_patio	1	4		0x80131e20-0x8013bfd7	0/file110700	0	2	0		
+sanctuary_no_9	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	2		0x80131e20-0x8013bfd7	0/file110700	0	2	0		
+sanctuary_no_9	main memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	1		0x80131e20-0x8013bfd7	0/file110700	0	2	0		overwritten by roof_garden_swat_member of 0/file110800 at event 13115
+sanctuary_no_9	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1		0x80131e20-0x8013bfd7	0/file110700	0	2	0		
+roof_garden_swat_member	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1		0x80131e20-0x80139f1b	0/file110800	0	2	0		
+roof_garden_swat_member	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	2		0x80131e20-0x80139f1b	0/file110800	0	2	0		
+roof_garden_swat_member	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1		0x80131e20-0x80139f1b	0/file110800	0	2	0		
+roof_garden_swat_member	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	2		0x80131e20-0x80139f1b	0/file110800	0	2	0		overwritten by encounters/brute_and_mossback/package_1 of 0/file101100 at event 15692
+roof_garden_swat_member	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	1		0x80131e20-0x80139f1b	0/file110800	0	2	0		
+roof_garden_swat_member	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	2		0x80131e20-0x80139f1b	0/file110800	0	2	0		
+roof_garden_swat_member	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	3		0x80131e20-0x80139f1b	0/file110800	0	2	0		
+roof_garden_swat_member	main memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	1		0x80131e20-0x80139f1b	0/file110800	0	2	0		
+roof_garden_swat_member	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1		0x80131e20-0x80139f1b	0/file110800	0	2	0		
+roof_garden_swat_member	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3		0x80131e20-0x80139f1b	0/file110800	0	2	0		
+roof_garden_swat_member	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	120	3		0x80131e20-0x80139f1b	0/file110800	0	2	0		
+roof_garden_swat_member	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	96	3		0x80131e20-0x80139f1b	0/file110800	0	2	0		
+square_grinning_stranger	main memory	trace-20261012-145054	session 1	1	akropolis_square	1	1		0x80131e20-0x8013a473	0/file111800	-1	2	0		
+square_grinning_stranger	main memory	trace-20261012-145054	session 1	1	akropolis_square	7	2		0x80131e20-0x8013a473	0/file111800	-1	2	0		
+mist_rupert	main memory	trace-20261012-152043	session 1	1	mist_parking	3	1		0x80131e20-0x8013abe7	0/file113000	0	2	0		overwritten by parking_pierce of 0/file113100 at event 41633
+mist_rupert	main memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0x80131e20-0x8013abe7	0/file113000	0	2	0		
+mist_rupert	main memory	trace-20261012-152043	session 1	1	mist_r18	1	2		0x80131e20-0x8013abe7	0/file113000	0	2	0		
+parking_pierce	main memory	trace-20261012-145054	session 1	1	akropolis_plaza	1	1		0x80131e20-0x80144367	0/file113100	0	2	0		
+parking_pierce	main memory	trace-20261012-145054	session 1	1	akropolis_square	1	1		0x80131e20-0x80144367	0/file113100	0	2	0		overwritten by square_grinning_stranger of 0/file111800 at event 18203
+parking_pierce	main memory	trace-20261012-145054	session 1	1	akropolis_west_elevator_hall	1	1		0x80131e20-0x80144367	0/file113100	0	2	0		
+parking_pierce	main memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x80131e20-0x80144367	0/file113100	0	2	0		
+parking_pierce	main memory	trace-20261012-145054	session 1	1	mist_parking	2	1		0x80131e20-0x80144367	0/file113100	0	2	0		
+parking_pierce	main memory	trace-20261012-152043	session 1	1	mist_parking	3	1		0x80131e20-0x80144367	0/file113100	0	2	0		
+parking_pierce	main memory	trace-20261012-152043	session 1	1	mist_parking	3	2		0x80131e20-0x80144367	0/file113100	0	2	0		
 encounters/rat_and_moth/package_2	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1		0x80149e20-0x801513fb	0/file200700	2	4	0		
 encounters/rat_and_moth/package_2	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	2		0x80149e20-0x801513fb	0/file200700	2	4	0		
 encounters/rat_and_moth/package_2	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1		0x80149e20-0x801513fb	0/file200700	2	4	0		
@@ -497,10 +497,10 @@ actor_213100	main memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x8
 actor_213100	main memory	trace-20261012-145054	session 1	1	mist_parking	2	1		0x80149e20-0x801521f7	0/file213100	2	4	0		
 actor_213100	main memory	trace-20261012-152043	session 1	1	mist_parking	3	1		0x80149e20-0x801521f7	0/file213100	2	4	0		
 actor_213100	main memory	trace-20261012-152043	session 1	1	mist_parking	3	2		0x80149e20-0x801521f7	0/file213100	2	4	0		
-actor_215100	main memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x80149e20-0x8015e67f	0/file215100	4	18	0		overwritten by actor_213100 of 0/file213100 at event 11755
-actor_215100	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x80149e20-0x8015e67f	0/file215100	4	18	0		
-actor_215100	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x80149e20-0x8015e67f	0/file215100	4	18	0		overwritten by actor_215100 of 0/file215100 at event 8529
-actor_215100	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x80149e20-0x8015e67f	0/file215100	4	18	0		overwritten by actor_215100 of 0/file215100 at event 9836
+shooting_gallery_pierce	main memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x80149e20-0x8015e67f	0/file215100	4	18	0		overwritten by actor_213100 of 0/file213100 at event 11755
+shooting_gallery_pierce	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x80149e20-0x8015e67f	0/file215100	4	18	0		
+shooting_gallery_pierce	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x80149e20-0x8015e67f	0/file215100	4	18	0		overwritten by shooting_gallery_pierce of 0/file215100 at event 8529
+shooting_gallery_pierce	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x80149e20-0x8015e67f	0/file215100	4	18	0		overwritten by shooting_gallery_pierce of 0/file215100 at event 9836
 encounters/rat_and_moth/package_3	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	1		0x80161e20-0x801693f9	0/file300700	0	2	0		
 encounters/rat_and_moth/package_3	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	3		0x80161e20-0x801693f9	0/file300700	0	2	0		
 encounters/rat_and_moth/package_3	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	4		0x80161e20-0x801693f9	0/file300700	2	4	0		
@@ -521,9 +521,9 @@ encounters/rat_and_moth/package_3	main memory	trace-20261012-152043	session 1	1	
 encounters/rat_and_moth/package_3	main memory	trace-20261012-152043	session 1	1	akropolis_patio	3	2		0x80161e20-0x801693f9	0/file300700	2	4	0		overwritten by encounters/rat_and_moth/package_3 of 0/file300700 at event 17840
 encounters/rat_and_moth/package_3	main memory	trace-20261012-152043	session 1	1	akropolis_patio	3	3		0x80161e20-0x801693f9	0/file300700	0	2	0		
 encounters/rat_and_moth/package_3	main memory	trace-20261012-152043	session 1	1	akropolis_patio	3	4		0x80161e20-0x801693f9	0/file300700	2	4	0		
-encounters/rat_and_moth/package_3	main memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	1		0x80161e20-0x801693f9	0/file300700	0	2	0		overwritten by actor_311900 of 0/file311900 at event 7459
-encounters/rat_and_moth/package_3	main memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	1		0x80161e20-0x801693f9	0/file300700	0	2	0		overwritten by actor_311900 of 0/file311900 at event 7954
-encounters/rat_and_moth/package_3	main memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	4		0x80161e20-0x801693f9	0/file300700	2	4	0		overwritten by actor_311900 of 0/file311900 at event 19923
+encounters/rat_and_moth/package_3	main memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	1		0x80161e20-0x801693f9	0/file300700	0	2	0		overwritten by security_monitors of 0/file311900 at event 7459
+encounters/rat_and_moth/package_3	main memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	1		0x80161e20-0x801693f9	0/file300700	0	2	0		overwritten by security_monitors of 0/file311900 at event 7954
+encounters/rat_and_moth/package_3	main memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	4		0x80161e20-0x801693f9	0/file300700	2	4	0		overwritten by security_monitors of 0/file311900 at event 19923
 encounters/rat_and_moth/package_3	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0x80161e20-0x801693f9	0/file300700	2	4	0		
 encounters/rat_and_moth/package_3	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	3		0x80161e20-0x801693f9	0/file300700	2	4	0		
 encounters/brute_and_mossback/package_3	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1		0x80161e20-0x80177493	0/file301100	0	2	0		
@@ -581,29 +581,29 @@ actor_310600	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	2
 actor_310600	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	2	2		0x80161e20-0x801796e3	0/file310600	2	4	0		
 actor_310600	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	2		0x80161e20-0x801796e3	0/file310600	2	4	0		
 actor_310600	main memory	trace-20261012-152043	session 1	1	akropolis_patio	1	2		0x80161e20-0x801796e3	0/file310600	2	4	0		
-actor_310600	main memory	trace-20261012-152043	session 1	1	akropolis_patio	3	2		0x80161e20-0x801796e3	0/file310600	2	4	0		overwritten by actor_317000 of 0/file317000 at event 3577
+actor_310600	main memory	trace-20261012-152043	session 1	1	akropolis_patio	3	2		0x80161e20-0x801796e3	0/file310600	2	4	0		overwritten by patio_leaping_strangers of 0/file317000 at event 3577
 enemies/stranger/lesser/package	main memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		0x80161e20-0x80169343	0/file311500	0	2	0		
 enemies/stranger/lesser/package	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x80161e20-0x80169343	0/file311500	0	2	0		overwritten by enemies/golem/no_9/package_akropolis of 0/file510900 at event 27392
-actor_311900	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	4		0x80161e20-0x8016f417	0/file311900	0	2	0		
-actor_311900	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	2		0x80161e20-0x8016f417	0/file311900	0	2	0		
-actor_311900	main memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	1		0x80161e20-0x8016f417	0/file311900	0	2	0		overwritten by encounters/rat_and_moth/package_3 of 0/file300700 at event 20230
-actor_311900	main memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	1		0x80161e20-0x8016f417	0/file311900	0	2	0		overwritten by encounters/rat_and_moth/package_3 of 0/file300700 at event 7857
-actor_311900	main memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	1		0x80161e20-0x8016f417	0/file311900	0	2	0		overwritten by encounters/rat_and_moth/package_3 of 0/file300700 at event 8191
-actor_311900	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	3		0x80161e20-0x8016f417	0/file311900	0	2	0		
-actor_311900	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	3		0x80161e20-0x8016f417	0/file311900	0	2	0		
-actor_311900	main memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	2		0x80161e20-0x8016f417	0/file311900	0	2	0		
-actor_311900	main memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	1		0x80161e20-0x8016f417	0/file311900	0	2	0		
-actor_311900	main memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	4		0x80161e20-0x8016f417	0/file311900	0	2	0		
-actor_312200	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	1		0x80161e20-0x80169f8f	0/file312200	4	6	0		overwritten by actor_310600 of 0/file310600 at event 2351
-actor_312200	main memory	trace-20261012-152043	session 1	1	akropolis_patio	1	1		0x80161e20-0x80169f8f	0/file312200	4	6	0		
-actor_312200	main memory	trace-20261012-152043	session 1	1	akropolis_patio	1	2		0x80161e20-0x80169f8f	0/file312200	4	6	0		
-actor_312200	main memory	trace-20261012-152043	session 1	1	akropolis_patio	2	1		0x80161e20-0x80169f8f	0/file312200	4	6	0		
-actor_317000	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	3		0x80161e20-0x8016cf7f	0/file317000	0	2	0		
-actor_317000	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	2		0x80161e20-0x8016cf7f	0/file317000	0	2	0		overwritten by enemies/stranger/grinning/package_3 of 0/file301900 at event 5001
-actor_317000	main memory	trace-20261012-152043	session 1	1	akropolis_patio	1	3		0x80161e20-0x8016cf7f	0/file317000	0	2	0		
-actor_317000	main memory	trace-20261012-152043	session 1	1	akropolis_patio	3	2		0x80161e20-0x8016cf7f	0/file317000	0	2	0		
-actor_317000	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0x80161e20-0x8016cf7f	0/file317000	0	2	0		
-actor_317000	main memory	trace-20261012-152043	session 1	1	mist_parking	1	2		0x80161e20-0x8016cf7f	0/file317000	0	2	0		
+security_monitors	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	4		0x80161e20-0x8016f417	0/file311900	0	2	0		
+security_monitors	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	2		0x80161e20-0x8016f417	0/file311900	0	2	0		
+security_monitors	main memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	1		0x80161e20-0x8016f417	0/file311900	0	2	0		overwritten by encounters/rat_and_moth/package_3 of 0/file300700 at event 20230
+security_monitors	main memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	1		0x80161e20-0x8016f417	0/file311900	0	2	0		overwritten by encounters/rat_and_moth/package_3 of 0/file300700 at event 7857
+security_monitors	main memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	1		0x80161e20-0x8016f417	0/file311900	0	2	0		overwritten by encounters/rat_and_moth/package_3 of 0/file300700 at event 8191
+security_monitors	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	3		0x80161e20-0x8016f417	0/file311900	0	2	0		
+security_monitors	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	3		0x80161e20-0x8016f417	0/file311900	0	2	0		
+security_monitors	main memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	2		0x80161e20-0x8016f417	0/file311900	0	2	0		
+security_monitors	main memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	1		0x80161e20-0x8016f417	0/file311900	0	2	0		
+security_monitors	main memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	4		0x80161e20-0x8016f417	0/file311900	0	2	0		
+patio_swat_member	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	1		0x80161e20-0x80169f8f	0/file312200	4	6	0		overwritten by actor_310600 of 0/file310600 at event 2351
+patio_swat_member	main memory	trace-20261012-152043	session 1	1	akropolis_patio	1	1		0x80161e20-0x80169f8f	0/file312200	4	6	0		
+patio_swat_member	main memory	trace-20261012-152043	session 1	1	akropolis_patio	1	2		0x80161e20-0x80169f8f	0/file312200	4	6	0		
+patio_swat_member	main memory	trace-20261012-152043	session 1	1	akropolis_patio	2	1		0x80161e20-0x80169f8f	0/file312200	4	6	0		
+patio_leaping_strangers	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	3		0x80161e20-0x8016cf7f	0/file317000	0	2	0		
+patio_leaping_strangers	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	2		0x80161e20-0x8016cf7f	0/file317000	0	2	0		overwritten by enemies/stranger/grinning/package_3 of 0/file301900 at event 5001
+patio_leaping_strangers	main memory	trace-20261012-152043	session 1	1	akropolis_patio	1	3		0x80161e20-0x8016cf7f	0/file317000	0	2	0		
+patio_leaping_strangers	main memory	trace-20261012-152043	session 1	1	akropolis_patio	3	2		0x80161e20-0x8016cf7f	0/file317000	0	2	0		
+patio_leaping_strangers	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0x80161e20-0x8016cf7f	0/file317000	0	2	0		
+patio_leaping_strangers	main memory	trace-20261012-152043	session 1	1	mist_parking	1	2		0x80161e20-0x8016cf7f	0/file317000	0	2	0		
 enemies/stranger/odd/package_b_4	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	4		0x80131e20-0x8015504f	0/file401000	0	2	0		overwritten by enemies/stranger/odd/package_4 of 0/file401800 at event 18473
 enemies/stranger/odd/package_b_4	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	2		0x80131e20-0x8015504f	0/file401000	0	2	0		
 enemies/stranger/odd/package_b_4	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	3		0x80131e20-0x8015504f	0/file401000	0	2	0		
@@ -633,10 +633,10 @@ enemies/stranger/odd/package_4	main memory	trace-20261012-152043	session 1	1	akr
 enemies/stranger/odd/package_4	main memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	2		0x80131e20-0x80155b0f	0/file401800	0	2	0		
 enemies/stranger/odd/package_4	main memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	1		0x80131e20-0x80155b0f	0/file401800	0	2	0		
 enemies/stranger/odd/package_4	main memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	4		0x80131e20-0x80155b0f	0/file401800	0	2	0		
-enemies/golem/no_9/package_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x80131e20-0x80167d23	0/file510900	0	2	0		overwritten by actor_511000 of 0/file511000 at event 41200
-actor_511000	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x80131e20-0x801550cf	0/file511000	3	5	0		
-actor_511000	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	2		0x80131e20-0x801550cf	0/file511000	3	5	0		
-actor_511000	main memory	trace-20261012-152043	session 1	1	mist_r18	1	2		0x80131e20-0x801550cf	0/file511000	3	5	0		overwritten by actor_113000 of 0/file113000 at event 41298
+enemies/golem/no_9/package_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x80131e20-0x80167d23	0/file510900	0	2	0		overwritten by helicopter_departure of 0/file511000 at event 41200
+helicopter_departure	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x80131e20-0x801550cf	0/file511000	3	5	0		
+helicopter_departure	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	2		0x80131e20-0x801550cf	0/file511000	3	5	0		
+helicopter_departure	main memory	trace-20261012-152043	session 1	1	mist_r18	1	2		0x80131e20-0x801550cf	0/file511000	3	5	0		overwritten by mist_rupert of 0/file113000 at event 41298
 aya_10200	main memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x80115770-0x8011d0e3	0/aya_10200	6	0	0		overwritten by aya_10400 of 0/aya_10400 at event 12727
 aya_10200	main memory	trace-20261012-145054	session 1	1	mist_parking	2	1		0x80115770-0x8011d0e3	0/aya_10200	6	0	0		
 aya_10200	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x80115770-0x8011d0e3	0/aya_10200	6	0	0		

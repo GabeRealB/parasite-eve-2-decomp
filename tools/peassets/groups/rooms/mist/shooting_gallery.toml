@@ -83,7 +83,7 @@ embedded = [
     { name = "pierce_level_reply", offset = 0x145B8, size = 0x1C8, address = 0x8015E3D8 },
     { name = "pierce_bank", offset = 0x147C8, size = 0x64, address = 0x8015E5E8 },
 ]
-package_name = "actor_215100"
+package_name = "shooting_gallery_pierce"
 required = true
 sha1 = "fc0d6b8a1a0678e4a2b988b10995b7bf502a9563"
 
@@ -448,7 +448,7 @@ sha1 = "cebb5cf5378f1e434eb30d4623e730f77d9c671a"
 [pierce_bank]
 type = "animation_bank"
 schema = "rooms/mist/shooting_gallery/pierce_schema"
-symbol = "_gActor215100PierceAnimationSets"
+symbol = "_gShootingGalleryPiercePierceAnimationSets"
 
 [pierce_bank.clips]
 phone_listen = "rooms/mist/shooting_gallery/pierce_phone_listen"
@@ -1276,7 +1276,7 @@ rig = "characters/pierce/rig"
 [player_gallery_bank]
 type = "animation_bank"
 schema = "rooms/mist/shooting_gallery/player_gallery_schema"
-symbol = "_gActor215100GalleryPlayerAnimationSets"
+symbol = "_gShootingGalleryPierceGalleryPlayerAnimationSets"
 
 [player_gallery_bank.clips]
 gallery_accept = "rooms/mist/shooting_gallery/player_gallery_accept"
@@ -1372,7 +1372,7 @@ sha1 = "bc6aa76ecc21c5a342c5bb832f61c126709cb715"
 [player_conversation_bank]
 type = "animation_bank"
 schema = "rooms/mist/shooting_gallery/player_conversation_schema"
-symbol = "_gActor215100ConversationPlayerAnimationSets"
+symbol = "_gShootingGalleryPierceConversationPlayerAnimationSets"
 
 [player_conversation_bank.clips]
 story_idle = "rooms/mist/shooting_gallery/player_story_idle"

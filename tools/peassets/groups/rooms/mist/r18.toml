@@ -237,7 +237,7 @@ embedded = [
     "characters/rupert/hurt_eyes_closed",
     { name = "rupert_bank", offset = 0x08D6C, size = 0x24, address = 0x8013AB8C },
 ]
-package_name = "actor_113000"
+package_name = "mist_rupert"
 required = true
 sha1 = "7da2ff08b25be9f5b909f550f8e9c9287e0e87cc"
 
@@ -458,7 +458,7 @@ slots = [
 [rupert_bank]
 type = "animation_bank"
 schema = "rooms/mist/r18/rupert_schema"
-symbol = "_gActor113000AnimationSets"
+symbol = "_gMistRupertAnimationSets"
 
 [rupert_bank.clips]
 rest = "rooms/mist/r18/rupert_rest"

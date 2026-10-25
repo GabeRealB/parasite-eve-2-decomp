@@ -17,7 +17,7 @@ s32 gMistShootingGalleryUnscaledBp;
 #include "mist_shooting_gallery_private.h"
 
 #include "actors/actor_107600.h"
-#include "actors/actor_215100.h"
+#include "stages/akropolis/actors/shooting_gallery_pierce.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/attachment_state.h"
@@ -966,7 +966,7 @@ static void _mistShootingGalleryRunCourse0(Task* controller)
     work         = controller->work;
     buttonLayout = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout;
     if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_SELECT) != 0) {
-        actor215100RequestGalleryAbort();
+        shootingGalleryPierceRequestGalleryAbort();
         return;
     }
 
@@ -1204,7 +1204,7 @@ static void _mistShootingGalleryRunCourse1(Task* controller)
 
     work = controller->work;
     if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_SELECT) != 0) {
-        actor215100RequestGalleryAbort();
+        shootingGalleryPierceRequestGalleryAbort();
         return;
     }
 
@@ -1796,7 +1796,7 @@ static void _mistShootingGalleryRunCourse4(Task* controller)
                     work->timer               = COURSE_4_LETHAL_RELEASE_DELAY_TICKS;
                     gPlayerActorStateTickHeld = PLAYER_ACTOR_STATE_TICK_RUNNING;
                     work->phase++;
-                    actor215100RequestGalleryAbort();
+                    shootingGalleryPierceRequestGalleryAbort();
                 } else {
                     work->captionStep = captionKey + 1;
                 }
@@ -1874,7 +1874,7 @@ static void _mistShootingGalleryFinishCourse(Task* controller)
             // Restore control before releasing combat ownership and actor course state.
             _mistShootingGalleryRestorePlayerControl(player);
             sceneReleaseBattleRefAndClearRewards(controller, 0);
-            actor215100FinishGalleryCourse();
+            shootingGalleryPierceFinishGalleryCourse();
             return;
         case WAIT_FOR_RESET_CLEAR:
             if (gGameSession->battleResetPending == 0) {
@@ -2183,7 +2183,7 @@ static void _mistShootingGalleryShowCaption(s16 commandIndex, s16 captionKey, s1
 {
     enum { CAPTION_BOTTOM_BASELINE_Y = 208 };
 
-    actor215100CapCaptionSelectRecord(commandIndex, captionKey, CAPTION_BOTTOM_BASELINE_Y);
+    shootingGalleryPierceCapCaptionSelectRecord(commandIndex, captionKey, CAPTION_BOTTOM_BASELINE_Y);
     displayQueueModeTask(&_gMistShootingGalleryCaptionModeTaskDesc, dismissButtons, 0, STAGE_ENTRY_RELOAD);
 }
 
@@ -2207,11 +2207,11 @@ static void _mistShootingGalleryCaptionModeTask(Task* task)
                 if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, task->spawnArg1.value) != 0) {
                     task->state = task->state + 1;
                 } else {
-                    actor215100CapCaptionDrawCurrent();
+                    shootingGalleryPierceCapCaptionDrawCurrent();
                 }
                 break;
             }
-            actor215100CapCaptionDrawCurrent();
+            shootingGalleryPierceCapCaptionDrawCurrent();
             break;
         case CLOSE:
             taskKill(task);

@@ -49,8 +49,8 @@ _gAkropolisSecurityRoomMonitorFrameSpriteBatches = 0x80184458; // size:0x18 defi
 _gAkropolisSecurityRoomReleasedLockSpriteSources = 0x80184470; // size:0x28 defined:True
 _gAkropolisSecurityRoomReleasedLockSpriteBatches = 0x80184498; // size:0x20 defined:True
 _gAkropolisSecurityRoomView7SpriteBatches = 0x801844B8; // size:0x10 defined:True
-gActor311900SwatTaskDesc = 0x8016EC00; // absolute:True owner=actor_311900
-gActor311900RupertTaskDesc = 0x8016EC0C; // absolute:True owner=actor_311900
+gSecurityMonitorsSwatTaskDesc = 0x8016EC00; // absolute:True owner=security_monitors
+gSecurityMonitorsRupertTaskDesc = 0x8016EC0C; // absolute:True owner=security_monitors
 gMapAkropolisSecurityRoomVariant1Placements = 0x8017B01C; // absolute:True owner=map_akropolis
 _gAkropolisSecurityRoomUnusedEmptySpriteBatchLists = 0x801844C8; // size:0x80 defined:True
 _gAkropolisSecurityRoomRightUnlockSpriteSources = 0x80184548; // size:0x690 defined:True

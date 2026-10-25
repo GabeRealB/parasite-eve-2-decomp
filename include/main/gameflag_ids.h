@@ -15,8 +15,8 @@
 /// `GAME_FLAG_<HHH>` are placeholders for flags whose meaning is not yet known,
 /// named by the room that uses them where it is a single one.
 enum {
-    /// Unidentified. Written every tick by enemy actor_510900 with a value from its
-    /// table `_gActor510900HelipadStatusFlagValues` indexed by source phase and light-2 status; no reader found.
+    /// Unidentified. Written every tick by enemy helicopter_landing_pad_no_9 with a value from its
+    /// table `_gHelicopterLandingPadNo9HelipadStatusFlagValues` indexed by source phase and light-2 status; no reader found.
     GAME_FLAG_00D = 0x00D,
     /// Unidentified. Set to 1 together with 0x18 and other story flags in a shelter B2
     /// laboratory story sequence; no reader found.
@@ -722,7 +722,7 @@ enum {
     /// 1/6/7/8. 1 after the cap choice (item seen 0x123), 2 after the follow-up scene,
     /// 3 set by the sterilization room event.
     GAME_FLAG_UNDERGROUND_PARKING_STATE = 0x0F4,
-    /// Conversation counter for actor_215100 (Pierce) at the MIST shooting gallery:
+    /// Conversation counter for shooting_gallery_pierce (Pierce) at the MIST shooting gallery:
     /// 0->1->2 each talk plays the next script.
     GAME_FLAG_PIERCE_TALK_PROGRESS = 0x0F5,
     /// Set to 1 together with 0xDE when Power Plant 1 is cleared; while clear the north
@@ -877,7 +877,7 @@ enum {
     /// Set to 1 the first time trigger 0x16 in the Shelter B2 breeding room runs its
     /// scripted scene; afterwards the trigger replays CAP 0x16.
     GAME_FLAG_BREEDING_ROOM_FIRST_SCENE_SEEN = 0x120,
-    /// Set to 1 when actor_215100 (shooting-gallery helper) first runs its introductory
+    /// Set to 1 when shooting_gallery_pierce (shooting-gallery helper) first runs its introductory
     /// scene (caption state 0x3A); later runs skip straight to spawning the gallery
     /// task.
     GAME_FLAG_SHOOTING_GALLERY_INTRO_SEEN = 0x121,

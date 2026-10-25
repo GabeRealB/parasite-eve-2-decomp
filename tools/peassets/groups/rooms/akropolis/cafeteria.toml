@@ -1132,9 +1132,9 @@ slots = ["", "opening", "", "", "idle"]
 type = "pe2pkg"
 embedded = [
     { name = "boss_stranger_body", offset = 0x07138, size = 0x5568, address = 0x80138F58 },
-    "actor_110600_animation_0C6A0",
+    "cafeteria_boss_stranger_animation_0C6A0",
 ]
-package_name = "actor_110600"
+package_name = "cafeteria_boss_stranger"
 required = true
 sha1 = "74f1ae3aafbb1b7d92790dc2afab1a15becb8a25"
 

@@ -4431,12 +4431,13 @@ objects = [
   { kind = "animation", at = "0x60FC", sets = ["0x639C", "0x78F8", "0x7D58", "0x7FE4", "0x820C"], in_c = true },
 ]
 
-[actors.overlays.actor_110600]
+[actors.overlays.cafeteria_boss_stranger]
 slot = 1
 id = 103
+src = "src/stages/akropolis/actors/cafeteria_boss_stranger"
 objects = [
   { kind = "packageId" },
-  { unit = "actor_110600/actor_110600", rodata = "0x4", text = "0x1A0", data = "0x70E4", bss = "0x16868" },
+  { unit = "cafeteria_boss_stranger", rodata = "0x4", text = "0x1A0", data = "0x70E4", bss = "0x16868" },
   { kind = "model", at = "0x7138", in_c = true },
   { kind = "modelSource", at = "0xC67C", in_c = true },
   { kind = "animation", at = "0xC6A0", sets = ["0xD63C", "0xE664", "0xF0D4", "0xF6B4", "0xFC98", "0x10290", "0x10CE4", "0x11A28", "0x12298", "0x12474", "0x12604", "0x12994", "0x131CC", "0x1371C", "0x138FC", "0x13CA0", "0x14054", "0x142A4", "0x14500", "0x15ED8"], in_c = true },
@@ -4470,12 +4471,13 @@ objects = [
   { kind = "animation", at = "0xAF54", sets = ["0xE6B0", "0xEB84", "0x15668", "0x177E4"], in_c = true },
 ]
 
-[actors.overlays.actor_110700]
+[actors.overlays.sanctuary_no_9]
 slot = 1
 id = 93
+src = "src/stages/akropolis/actors/sanctuary_no_9"
 objects = [
   { kind = "packageId" },
-  { unit = "actor_110700/actor_110700", text = "0x4", data = "0x300" },
+  { unit = "sanctuary_no_9", text = "0x4", data = "0x300" },
   { kind = "model", at = "0x300", in_c = true },
   { kind = "modelSource", at = "0x59A8", in_c = true },
   { kind = "animation", at = "0x59CC", sets = ["0x5D64", "0x667C", "0x820C", "0x8714", "0xA14C"], in_c = true },
@@ -4493,12 +4495,13 @@ objects = [
   { kind = "animation", at = "0xC708", sets = ["0xCC20", "0xCFE0", "0xD240", "0xD72C", "0xDB7C", "0xDE04"], in_c = true },
 ]
 
-[actors.overlays.actor_110800]
+[actors.overlays.roof_garden_swat_member]
 slot = 1
 id = 89
+src = "src/stages/akropolis/actors/roof_garden_swat_member"
 objects = [
   { kind = "packageId" },
-  { unit = "actor_110800/actor_110800", rodata = "0x4", text = "0x4", data = "0x7D0", bss = "0x80F0" },
+  { unit = "roof_garden_swat_member", rodata = "0x4", text = "0x4", data = "0x7D0", bss = "0x80F0" },
   { kind = "model", at = "0x7D0", in_c = true },
   { kind = "modelSource", at = "0x5F74", in_c = true },
   { kind = "model", at = "0x5F98", in_c = true },
@@ -4506,13 +4509,14 @@ objects = [
   { kind = "animation", at = "0x624C", sets = ["0x66F0", "0x6A9C", "0x7050", "0x770C", "0x807C"], in_c = true },
 ]
 
-[actors.overlays.actor_510900]
+[actors.overlays.helicopter_landing_pad_no_9]
 slot = 1
 id = 274
+src = "src/stages/akropolis/actors/helicopter_landing_pad_no_9"
 objects = [
   { kind = "packageId" },
-  { unit = "actor_510900/actor_510900", rodata = "0x4", text = "0x104", data = "0xA66C" },
-  { unit = "actor_510900/actor_510900_2", rodata = "0x30", text = "0x3924", data = "0x35B4C" },
+  { unit = "helicopter_landing_pad_no_9", rodata = "0x4", text = "0x104", data = "0xA66C" },
+  { unit = "helicopter_landing_pad_no_9_2", rodata = "0x30", text = "0x3924", data = "0x35B4C" },
   { kind = "model", at = "0xA69C", in_c = true },
   { kind = "modelSource", at = "0xFD44", in_c = true },
   { kind = "model", at = "0xFD68", in_c = true },
@@ -4529,12 +4533,13 @@ objects = [
   { kind = "collisionPatch", at = "0x35DA4", pieces = ["vectors 3", "vectors 12", "faces 3", "vectors 1", "vectors 4", "faces 1"], in_c = true },
 ]
 
-[actors.overlays.actor_511000]
+[actors.overlays.helicopter_departure]
 slot = 1
 id = 272
+src = "src/stages/akropolis/actors/helicopter_departure"
 objects = [
   { kind = "packageId" },
-  { unit = "actor_511000/actor_511000", rodata = "0x4", text = "0x58", data = "0x2350" },
+  { unit = "helicopter_departure", rodata = "0x4", text = "0x58", data = "0x2350" },
   { kind = "model", at = "0x7B34", in_c = true },
   { kind = "modelSource", at = "0x9CF0", in_c = true },
   { kind = "model", at = "0x9D14", in_c = true },
@@ -4562,35 +4567,38 @@ objects = [
   { kind = "animation", at = "0x1D228", sets = ["0x208EC", "0x21EBC", "0x23228"], in_c = true },
 ]
 
-[actors.overlays.actor_311500]
+[actors.overlays.lesser_stranger]
 slot = 3
 id = 195
+src = "src/enemies/stranger/lesser"
 objects = [
   { kind = "packageId" },
-  { unit = "actor_311500/actor_311500", rodata = "0x4", text = "0x18", data = "0x1894" },
+  { unit = "lesser_stranger", rodata = "0x4", text = "0x18", data = "0x1894" },
   { kind = "model", at = "0x1894", in_c = true },
   { kind = "modelSource", at = "0x6DD8", in_c = true },
   { kind = "animation", at = "0x6DFC", sets = ["0x7188", "0x7470"], in_c = true },
   { kind = "collisionPatch", at = "0x74DC", pieces = ["vectors 1", "vectors 4", "faces 1"], in_c = true },
 ]
 
-[actors.overlays.actor_111800]
+[actors.overlays.square_grinning_stranger]
 slot = 1
 id = 149
+src = "src/stages/akropolis/actors/square_grinning_stranger"
 objects = [
   { kind = "packageId" },
-  { unit = "actor_111800/actor_111800", rodata = "0x4", text = "0x20", data = "0xBA4" },
+  { unit = "square_grinning_stranger", rodata = "0x4", text = "0x20", data = "0xBA4" },
   { kind = "model", at = "0xBA4", in_c = true },
   { kind = "modelSource", at = "0x61E4", in_c = true },
   { kind = "animation", at = "0x6208", sets = ["0x65FC", "0x7120", "0x7BA4", "0x7FAC", "0x8600"], in_c = true },
 ]
 
-[actors.overlays.actor_311900]
+[actors.overlays.security_monitors]
 slot = 3
 id = 222
+src = "src/stages/akropolis/actors/security_monitors"
 objects = [
   { kind = "packageId" },
-  { unit = "actor_311900/actor_311900", rodata = "0x4", text = "0x1C", data = "0xA90", bss = "0xCDF8" },
+  { unit = "security_monitors", rodata = "0x4", text = "0x1C", data = "0xA90", bss = "0xCDF8" },
   { kind = "model", at = "0xA90", in_c = true },
   { kind = "modelSource", at = "0x6964", in_c = true },
   { kind = "model", at = "0x6988", in_c = true },
@@ -4598,23 +4606,25 @@ objects = [
   { kind = "animation", at = "0xC150", sets = ["0xC9A8", "0xCDA0"], in_c = true },
 ]
 
-[actors.overlays.actor_312200]
+[actors.overlays.patio_swat_member]
 slot = 3
 id = 197
+src = "src/stages/akropolis/actors/patio_swat_member"
 objects = [
   { kind = "packageId" },
-  { unit = "actor_312200/actor_312200", rodata = "0x4", text = "0x10", data = "0x1A90", bss = "0x8168" },
+  { unit = "patio_swat_member", rodata = "0x4", text = "0x10", data = "0x1A90", bss = "0x8168" },
   { kind = "model", at = "0x1A90", in_c = true },
   { kind = "modelSource", at = "0x6328", in_c = true },
   { kind = "animation", at = "0x634C", sets = ["0x7368", "0x773C", "0x7D78", "0x80E0"], in_c = true },
 ]
 
-[actors.overlays.actor_113000]
+[actors.overlays.mist_rupert]
 slot = 1
 id = 100
+src = "src/stages/akropolis/actors/mist_rupert"
 objects = [
   { kind = "packageId" },
-  { unit = "actor_113000/actor_113000", rodata = "0x4", text = "0x10", data = "0x714" },
+  { unit = "mist_rupert", rodata = "0x4", text = "0x10", data = "0x714" },
   { kind = "model", at = "0x714", in_c = true },
   { kind = "modelSource", at = "0x5AC0", in_c = true },
   { kind = "animation", at = "0x5AE4", sets = ["0x5D94", "0x61F4", "0x657C", "0x6D10", "0x73A8", "0x78B8", "0x7E6C", "0x80E4"], in_c = true },
@@ -4639,12 +4649,13 @@ objects = [
   { kind = "animation", at = "0x7650", sets = ["0x8080", "0x894C", "0x9DDC", "0xB0DC", "0xBA6C", "0xC7C8", "0xCBE8", "0xD3A4", "0xD724", "0xDF68"], in_c = true },
 ]
 
-[actors.overlays.actor_113100]
+[actors.overlays.parking_pierce]
 slot = 1
 id = 102
+src = "src/stages/akropolis/actors/parking_pierce"
 objects = [
   { kind = "packageId" },
-  { unit = "actor_113100/actor_113100", rodata = "0x4", text = "0x38", data = "0x164C" },
+  { unit = "parking_pierce", rodata = "0x4", text = "0x38", data = "0x164C" },
   { kind = "model", at = "0x164C", in_c = true },
   { kind = "modelSource", at = "0x7844", in_c = true },
   { kind = "model", at = "0x7868", in_c = true },
@@ -4669,13 +4680,14 @@ objects = [
   { kind = "animation", at = "0x65E0", sets = ["0x68BC", "0x6C90", "0x7080", "0x73EC", "0x793C", "0x7CEC", "0x7EB0", "0x8170", "0x8334"], in_c = true },
 ]
 
-[actors.overlays.actor_215100]
+[actors.overlays.shooting_gallery_pierce]
 slot = 2
 id = 188
+src = "src/stages/akropolis/actors/shooting_gallery_pierce"
 objects = [
   { kind = "packageId" },
-  { unit = "actor_215100/actor_215100", rodata = "0x4", text = "0x10C", data = "0x314C" },
-  { unit = "actor_215100/actor_215100_2", rodata = "0xD8", text = "0x578", data = "0x431C", bss = "0x14850" },
+  { unit = "shooting_gallery_pierce", rodata = "0x4", text = "0x10C", data = "0x314C" },
+  { unit = "shooting_gallery_pierce_2", rodata = "0xD8", text = "0x578", data = "0x431C", bss = "0x14850" },
   { kind = "model", at = "0xA7CC", in_c = true },
   { kind = "modelSource", at = "0x109C4", in_c = true },
   { kind = "model", at = "0x109E8", in_c = true },
@@ -4685,12 +4697,13 @@ objects = [
   { kind = "animation", at = "0x10BE4", sets = ["0x10DE8", "0x111A0", "0x11364", "0x115F4", "0x11A34", "0x11C10", "0x11E24", "0x12330", "0x12720", "0x12ABC", "0x12D64", "0x1301C", "0x13310", "0x13500", "0x13818", "0x13A50", "0x13C84", "0x13EE4", "0x141A0", "0x14368", "0x14590", "0x14758"], in_c = true },
 ]
 
-[actors.overlays.actor_317000]
+[actors.overlays.patio_leaping_strangers]
 slot = 3
 id = 220
+src = "src/stages/akropolis/actors/patio_leaping_strangers"
 objects = [
   { kind = "packageId" },
-  { unit = "actor_317000/actor_317000", rodata = "0x4", text = "0x48", data = "0xF44" },
+  { unit = "patio_leaping_strangers", rodata = "0x4", text = "0x48", data = "0xF44" },
   { kind = "model", at = "0xF44", in_c = true },
   { kind = "modelSource", at = "0x6584", in_c = true },
   { kind = "animation", at = "0x65A8", sets = ["0x699C", "0x74C0", "0x7F44", "0x8F08", "0x9F30", "0xA338", "0xA98C", "0xB0D4"], in_c = true },

@@ -387,7 +387,7 @@ record = 0x80151EA0
 
 [[enemy]]
 name = "Boss Stranger"
-package = "actor_110600"
+package = "cafeteria_boss_stranger"
 record = 0x80138F14
 
 [[enemy]]
@@ -434,7 +434,7 @@ record = 0x8016932C
 [[enemy]]
 name = "Lesser Stranger"
 variant = "Hurt"
-package = "actor_311500"
+package = "lesser_stranger"
 record = 0x801692C0
 
 [[enemy]]
@@ -578,7 +578,7 @@ record = 0x8016E7EC
 [[enemy]]
 name = "No. 9 GOLEM"
 variant = "Akropolis"
-package = "actor_510900"
+package = "helicopter_landing_pad_no_9"
 record = 0x80167980
 
 [[enemy]]

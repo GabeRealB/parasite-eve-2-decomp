@@ -497,7 +497,7 @@ offset = [0x00000, 0x00005]
 [swat_member]
 type = "pe2pkg"
 embedded = [
-    "actor_110800_model_060A0",
+    "roof_garden_swat_member_model_060A0",
     { name = "swat_radio_call_1", offset = 0x0624C, size = 0x4CC, address = 0x8013806C },
     { name = "swat_radio_call_2", offset = 0x06718, size = 0x3AC, address = 0x80138538 },
     { name = "swat_radio_call_3", offset = 0x06AC4, size = 0x5B4, address = 0x801388E4 },
@@ -505,7 +505,7 @@ embedded = [
     { name = "swat_radio_call_5", offset = 0x07734, size = 0x970, address = 0x80139554 },
     { name = "swat_bank", offset = 0x080D4, size = 0x1C, address = 0x80139EF4 },
 ]
-package_name = "actor_110800"
+package_name = "roof_garden_swat_member"
 parent = "rooms/akropolis/roof_garden/package"
 required = true
 sha1 = "9af3abc89cf5e9fef33ffd375426c6fa19634630"

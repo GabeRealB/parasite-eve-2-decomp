@@ -28,7 +28,7 @@
 /// Bind a function identifier before this header and retain through both caption
 /// source fragments. It takes (s16 commandIndex, s16 key, s32 bottomBaselineY)
 /// and returns s32: 0 selected, 1 null command entry. Room carriers keep the
-/// default static instance; actor_215100 binds its public export and an empty
+/// default static instance; shooting_gallery_pierce binds its public export and an empty
 /// `CAP_CAPTION_SELECT_RECORD_LINKAGE`. Each carrier owns independent CAP state.
 /// The object-like alias has no arguments, captures, side effects or token
 /// construction; linkage is selected separately. commandIndex must be a valid
@@ -99,7 +99,7 @@ STATIC_ASSERT_SIZEOF(CapCaptionScheduleWindow, 0x10);
 ///
 /// Bind a stable `const CapCommandRef*` or `CapCommandRef*` lvalue before the
 /// first inclusion of this header and retain it through `cap_captions.inc.c`.
-/// The default names independent TU-local slots in actor_215100 and the dumping
+/// The default names independent TU-local slots in shooting_gallery_pierce and the dumping
 /// hole; the incinerator supplies storage shared between its translation units.
 /// Non-identifier replacements must be parenthesized and have no side effects.
 /// This object-like alias has no arguments or token construction.
@@ -117,7 +117,7 @@ STATIC_ASSERT_SIZEOF(CapCaptionScheduleWindow, 0x10);
 ///
 /// Bind a stable `s16` lvalue before the first inclusion of this header and
 /// retain it through `cap_captions.inc.c`. The default names independent
-/// TU-local slots in actor_215100 and the dumping hole; the incinerator supplies
+/// TU-local slots in shooting_gallery_pierce and the dumping hole; the incinerator supplies
 /// overlay-private storage. The slot must remain live through caption use.
 /// Non-identifier replacements must be parenthesized and have no side effects.
 /// This object-like alias has no arguments or token construction.
@@ -174,7 +174,7 @@ STATIC_ASSERT_SIZEOF(CapCaptionScheduleWindow, 0x10);
 /// Selects the void(void) function that queues the selected caption and its caret.
 ///
 /// Bind a function identifier before this header and retain it through
-/// `cap_captions.inc.c`. Room carriers use the default static instance; actor_215100
+/// `cap_captions.inc.c`. Room carriers use the default static instance; shooting_gallery_pierce
 /// binds its public export and `extern` through `CAP_CAPTION_DRAW_CURRENT_LINKAGE`.
 /// All selected definitions take no arguments and return no value; the name
 /// binding does not determine linkage. Each carrier owns independent state.

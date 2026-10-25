@@ -89,7 +89,7 @@ enum {
     /// observatory's lock has been found, 2 the security room's blue key has unlocked
     /// the escalator, 3 the forked road's scene to the observatory has played, 4 the
     /// promenade has been entered from the observatory, 5 the sanctuary has been
-    /// reached. The security room's SWAT member (actor_311900) is gone from 3.
+    /// reached. The security room's SWAT member (security_monitors) is gone from 3.
     EVENT_FLAG_AKROPOLIS_SANCTUARY_ROUTE_PROGRESS = 0x001,
     /// Akropolis bridge. State: 2 the sanctuary has been entered, 3 the bridge has
     /// been raised (the keypad movie). The promenade's bridge door is refused at 0;
@@ -125,7 +125,7 @@ enum {
     /// hallway, patio and forked road.
     EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_PANEL_KEYS = 0x009,
     /// Akropolis security-room monitor. Bits: 0 the SWAT member's scene has played
-    /// (camera 0xB, CAP 0xD), 1 Rupert's (camera 0xA; actor_311900 sets it).
+    /// (camera 0xB, CAP 0xD), 1 Rupert's (camera 0xA; security_monitors sets it).
     EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_MONITOR_SCENES_SEEN = 0x00A,
     /// Akropolis, the report to MIST after the cafeteria boss. State: 1 the boss
     /// scene has played and queued the report (story dialogue 4, "A new species..."),
@@ -220,13 +220,13 @@ enum {
     /// MIST parking lot, the departure for Dryfield after Akropolis (placement variant
     /// 2). State: the arrival conversation and its follow-ups, step by step; values in
     /// the room's private header (`MIST_PARKING_CONVERSATION_*`). While nonzero, part of
-    /// Pierce's model (actor_113100) is hidden.
+    /// Pierce's model (parking_pierce) is hidden.
     EVENT_FLAG_MIST_PARKING_DRYFIELD_DEPARTURE_STATE = 0x0F1,
 
     // ---- From 0x100: not divided yet -----------------------------------------
 
     /// Akropolis security-room monitor. Marker: Rupert's scene on camera 0xA has
-    /// played (actor_311900, after 0x5A frames); while clear, the camera starts CAP 0xC.
+    /// played (security_monitors, after 0x5A frames); while clear, the camera starts CAP 0xC.
     EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_MONITOR_RUPERT_SCENE_SEEN = 0x102,
     /// MIST shooting gallery. Marker: the control room's scene has played (room
     /// action 4).

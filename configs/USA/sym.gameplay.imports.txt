@@ -2003,19 +2003,19 @@ p229MuzzleFlashTask = 0x8011D1DC; // type:func absolute:True owner=p229 shared=w
 
 mp5a5MuzzleFlashTask = 0x8011D1E0; // type:func absolute:True owner=mp5a5 shared=weapons
 
-actor510900FlameJetTask = 0x80131F24; // type:func absolute:True owner=actor_510900
+helicopterLandingPadNo9FlameJetTask = 0x80131F24; // type:func absolute:True owner=helicopter_landing_pad_no_9
 
-actor510900MuzzleFlashTask44 = 0x801340E8; // type:func absolute:True owner=actor_510900
+helicopterLandingPadNo9MuzzleFlashTask44 = 0x801340E8; // type:func absolute:True owner=helicopter_landing_pad_no_9
 
-actor510900FlameSpriteTask45 = 0x80132D4C; // type:func absolute:True owner=actor_510900
+helicopterLandingPadNo9FlameSpriteTask45 = 0x80132D4C; // type:func absolute:True owner=helicopter_landing_pad_no_9
 
-actor510900FlameSpriteTask4C = 0x801332EC; // type:func absolute:True owner=actor_510900
+helicopterLandingPadNo9FlameSpriteTask4C = 0x801332EC; // type:func absolute:True owner=helicopter_landing_pad_no_9
 
-actor510900FlameSpriteTask52 = 0x8013371C; // type:func absolute:True owner=actor_510900
+helicopterLandingPadNo9FlameSpriteTask52 = 0x8013371C; // type:func absolute:True owner=helicopter_landing_pad_no_9
 
-actor510900FlameSpriteTask59 = 0x80133C84; // type:func absolute:True owner=actor_510900
+helicopterLandingPadNo9FlameSpriteTask59 = 0x80133C84; // type:func absolute:True owner=helicopter_landing_pad_no_9
 
-actor510900DebrisStreakTask = 0x80134284; // type:func absolute:True owner=actor_510900 shared=actors
+helicopterLandingPadNo9DebrisStreakTask = 0x80134284; // type:func absolute:True owner=helicopter_landing_pad_no_9 shared=actors
 
 pyrokinesisFlamePuffTask = 0x80130C54; // type:func absolute:True owner=pyrokinesis
 
@@ -2055,9 +2055,9 @@ m4a1HammerImpactFlashTask = 0x8011DD08; // type:func absolute:True owner=m4a1_ha
 
 m4a1JavelinContactFlashTask = 0x8011F4E8; // type:func absolute:True owner=m4a1_javelin
 
-actor510900ExplosionFireballTask184 = 0x8013482C; // type:func absolute:True owner=actor_510900
+helicopterLandingPadNo9ExplosionFireballTask184 = 0x8013482C; // type:func absolute:True owner=helicopter_landing_pad_no_9
 
-actor510900ExplosionTask185 = 0x801346D4; // type:func absolute:True owner=actor_510900
+helicopterLandingPadNo9ExplosionTask185 = 0x801346D4; // type:func absolute:True owner=helicopter_landing_pad_no_9
 
 gunbladeTrailTask = 0x8011D1E4; // type:func absolute:True owner=gunblade shared=weapons
 
