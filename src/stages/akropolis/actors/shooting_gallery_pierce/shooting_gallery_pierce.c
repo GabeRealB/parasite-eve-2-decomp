@@ -54,12 +54,13 @@ static AnimationPlayRequest _gShootingGalleryPierceGalleryLevelReplyIdleRequest 
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Four retained bank-index-1 reset requests for clips 19..22 in that order.
-static const AnimationPlayRequest _gShootingGalleryPierceRetainedBank1Clip19To22ResetRequests[4] SECTION(".data") = {
-    { .source = { .index = 1 }, .animationId = 19, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
-    { .source = { .index = 1 }, .animationId = 20, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
-    { .source = { .index = 1 }, .animationId = 21, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
-    { .source = { .index = 1 }, .animationId = 22, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
+/// Retained reset requests for Pierce's `gallery_ask`, `gallery_talk`, `gallery_tease` and `gallery_react`, between his
+/// `gallery_idle` and `level_prompt` requests; nothing plays them.
+static const AnimationPlayRequest _gShootingGalleryPierceRetainedPierceGalleryResetRequests[4] SECTION(".data") = {
+    { .source = { .index = 1 }, .animationId = PIERCE_ANIMATION_GALLERY_ASK, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
+    { .source = { .index = 1 }, .animationId = PIERCE_ANIMATION_GALLERY_TALK, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
+    { .source = { .index = 1 }, .animationId = PIERCE_ANIMATION_GALLERY_TEASE, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
+    { .source = { .index = 1 }, .animationId = PIERCE_ANIMATION_GALLERY_REACT, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
 /// Starts Pierce's level prompt as the gallery course-level prompt begins.

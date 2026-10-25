@@ -213,7 +213,7 @@ static AnimationPlayRequest _gShootingGalleryPierceGalleryPierceClip0Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Gallery reset request for Pierce's body clip 18.
+/// Gallery reset request for Pierce's `gallery_idle`.
 static AnimationPlayRequest _gShootingGalleryPiercePierceGalleryIdleRequest = {
     .source               = { .index = 1 },
     .animationId          = PIERCE_ANIMATION_GALLERY_IDLE,
@@ -222,7 +222,7 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceGalleryIdleRequest = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Gallery reset request for Pierce's body clip 19.
+/// Gallery reset request for Pierce's `gallery_ask`.
 static AnimationPlayRequest _gShootingGalleryPiercePierceGalleryAskRequest = {
     .source               = { .index = 1 },
     .animationId          = PIERCE_ANIMATION_GALLERY_ASK,
@@ -231,7 +231,7 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceGalleryAskRequest = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Gallery reset request for Pierce's body clip 20.
+/// Gallery reset request for Pierce's `gallery_talk`.
 static AnimationPlayRequest _gShootingGalleryPiercePierceGalleryTalkRequest = {
     .source               = { .index = 1 },
     .animationId          = PIERCE_ANIMATION_GALLERY_TALK,
@@ -240,7 +240,7 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceGalleryTalkRequest = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Gallery request for Pierce's body clip 21 with a reset.
+/// Gallery request for Pierce's `gallery_tease` with a reset.
 static AnimationPlayRequest _gShootingGalleryPiercePierceGalleryTeaseRequest = {
     .source               = { .index = 1 },
     .animationId          = PIERCE_ANIMATION_GALLERY_TEASE,
@@ -249,7 +249,7 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceGalleryTeaseRequest = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Gallery request for Pierce's body clip 22 with a reset.
+/// Gallery request for Pierce's `gallery_react` with a reset.
 static AnimationPlayRequest _gShootingGalleryPiercePierceGalleryReactRequest = {
     .source               = { .index = 1 },
     .animationId          = PIERCE_ANIMATION_GALLERY_REACT,
@@ -258,7 +258,7 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceGalleryReactRequest = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Retained reset request for Pierce body clip 23, with no playback consumer.
+/// Retained reset request for Pierce's `level_prompt`, with no playback consumer.
 static AnimationPlayRequest _gShootingGalleryPiercePierceLevelPromptRequest = {
     .source               = { .index = 1 },
     .animationId          = PIERCE_ANIMATION_LEVEL_PROMPT,
@@ -267,7 +267,7 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceLevelPromptRequest = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Retained reset preset for Pierce's loaded body clip 24.
+/// Retained reset preset for Pierce's `level_reply`.
 static const AnimationPlayRequest _gShootingGalleryPiercePierceLevelReplyRequest SECTION(".data") = {
     .source               = { .index = 1 },
     .animationId          = PIERCE_ANIMATION_LEVEL_REPLY,
@@ -287,7 +287,7 @@ static const AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerGalleryAcc
 
 enum { GALLERY_MENU_BLEND_FRAMES = 6 };
 
-/// Gallery player clip 47 request with a 6-frame blend.
+/// Gallery request for the player's gallery-extension `gallery_accept` with a 6-frame blend.
 static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerGalleryAcceptRequest = {
     .source               = { .index = 1 },
     .animationId          = ANIMATION_BANK_BASE_SET_COUNT + PLAYER_GALLERY_ANIMATION_GALLERY_ACCEPT,
@@ -296,7 +296,7 @@ static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerGalleryAcceptReq
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Gallery player clip 48 request with a reset.
+/// Gallery request for the player's gallery-extension `gallery_idle` with a reset.
 static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerGalleryIdleRequest = {
     .source               = { .index = 1 },
     .animationId          = ANIMATION_BANK_BASE_SET_COUNT + PLAYER_GALLERY_ANIMATION_GALLERY_IDLE,
@@ -305,7 +305,7 @@ static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerGalleryIdleReque
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Gallery player clip 49 request with a reset.
+/// Gallery request for the player's gallery-extension `gallery_intro_6` with a reset.
 static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerGalleryIntro6Request = {
     .source               = { .index = 1 },
     .animationId          = ANIMATION_BANK_BASE_SET_COUNT + PLAYER_GALLERY_ANIMATION_GALLERY_INTRO_6,
@@ -314,7 +314,7 @@ static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerGalleryIntro6Req
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Gallery player clip 50 request with a reset.
+/// Gallery request for the player's gallery-extension `gallery_intro_9` with a reset.
 static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerGalleryIntro9Request = {
     .source               = { .index = 1 },
     .animationId          = ANIMATION_BANK_BASE_SET_COUNT + PLAYER_GALLERY_ANIMATION_GALLERY_INTRO_9,
@@ -323,7 +323,7 @@ static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerGalleryIntro9Req
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Gallery player clip 51 request with a reset.
+/// Gallery request for the player's gallery-extension `gallery_excuse` with a reset.
 static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerGalleryExcuseRequest = {
     .source               = { .index = 1 },
     .animationId          = ANIMATION_BANK_BASE_SET_COUNT + PLAYER_GALLERY_ANIMATION_GALLERY_EXCUSE,
@@ -332,7 +332,7 @@ static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerGalleryExcuseReq
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Gallery player clip 52 request with a reset.
+/// Gallery request for the player's gallery-extension `gallery_decline` with a reset.
 static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerGalleryDeclineRequest = {
     .source               = { .index = 1 },
     .animationId          = ANIMATION_BANK_BASE_SET_COUNT + PLAYER_GALLERY_ANIMATION_GALLERY_DECLINE,
@@ -347,7 +347,7 @@ static AnimationBankCopyRequest _gShootingGalleryPierceGalleryPlayerBankCopyRequ
     .count = ANIMATION_BANK_EXTENSION_CAPACITY,
 };
 
-/// Retained reset request for gallery player extension clip 57.
+/// Retained reset request for the player's gallery-extension `slot_10`.
 static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerSlot10Request = {
     .source               = { .index = 1 },
     .animationId          = ANIMATION_BANK_BASE_SET_COUNT + PLAYER_GALLERY_ANIMATION_SLOT_10,
@@ -356,7 +356,7 @@ static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerSlot10Request = 
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Gallery player clip 1 request with a reset.
+/// Gallery request for the player's `idle` with a reset.
 static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerIdleRequest = {
     .source               = { .index = 1 },
     .animationId          = PLAYER_ANIMATION_IDLE,
@@ -365,7 +365,7 @@ static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerIdleRequest = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Gallery player clip 9 request with a reset.
+/// Gallery request for the player's `aim_idle` with a reset.
 static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerAimIdleRequest = {
     .source               = { .index = 1 },
     .animationId          = PLAYER_ANIMATION_AIM_IDLE,
@@ -374,10 +374,10 @@ static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerAimIdleRequest =
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Retained gallery animation request for clip 7 with a reset.
-static AnimationPlayRequest _gShootingGalleryPierceGalleryClip7Request = {
+/// Retained gallery request for the player's `aim_enter` with a reset, after the player's other requests; nothing plays it.
+static AnimationPlayRequest _gShootingGalleryPierceGalleryPlayerAimEnterRequest = {
     .source               = { .index = 1 },
-    .animationId          = 7,
+    .animationId          = PLAYER_ANIMATION_AIM_ENTER,
     .blend                = ANIMATION_BLEND_RESET,
     .blendFrames          = 0,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
@@ -615,7 +615,7 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPierceClip0Reques
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation request for Pierce's body clip 1 with a reset.
+/// Conversation request for Pierce's `phone_listen` with a reset.
 static AnimationPlayRequest _gShootingGalleryPiercePiercePhoneListenRequest = {
     .source               = { .index = 1 },
     .animationId          = PIERCE_ANIMATION_PHONE_LISTEN,
@@ -624,7 +624,7 @@ static AnimationPlayRequest _gShootingGalleryPiercePiercePhoneListenRequest = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation request for Pierce's body clip 2 with a reset.
+/// Conversation request for Pierce's `phone_talk` with a reset.
 static AnimationPlayRequest _gShootingGalleryPiercePiercePhoneTalkRequest = {
     .source               = { .index = 1 },
     .animationId          = PIERCE_ANIMATION_PHONE_TALK,
@@ -633,7 +633,7 @@ static AnimationPlayRequest _gShootingGalleryPiercePiercePhoneTalkRequest = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation reset request for Pierce's body clip 3.
+/// Conversation reset request for Pierce's `quip`.
 static AnimationPlayRequest _gShootingGalleryPiercePierceQuipRequest = {
     .source               = { .index = 1 },
     .animationId          = PIERCE_ANIMATION_QUIP,
@@ -642,7 +642,7 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceQuipRequest = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation request for Pierce's body clip 4 with a reset.
+/// Conversation request for Pierce's `tease` with a reset.
 static AnimationPlayRequest _gShootingGalleryPiercePierceTeaseRequest = {
     .source               = { .index = 1 },
     .animationId          = PIERCE_ANIMATION_TEASE,
@@ -651,7 +651,7 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceTeaseRequest = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation request for Pierce's body clip 5 with a reset.
+/// Conversation request for Pierce's `warn` with a reset.
 static AnimationPlayRequest _gShootingGalleryPiercePierceWarnRequest = {
     .source               = { .index = 1 },
     .animationId          = PIERCE_ANIMATION_WARN,
@@ -660,7 +660,7 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceWarnRequest = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation request for Pierce's body clip 6 with a reset.
+/// Conversation request for Pierce's `story_3` with a reset.
 static AnimationPlayRequest _gShootingGalleryPiercePierceStory3Request = {
     .source               = { .index = 1 },
     .animationId          = PIERCE_ANIMATION_STORY_3,
@@ -669,7 +669,7 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceStory3Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation request for Pierce's body clip 7 with a reset.
+/// Conversation request for Pierce's `story_4` with a reset.
 static AnimationPlayRequest _gShootingGalleryPiercePierceStory4Request = {
     .source               = { .index = 1 },
     .animationId          = PIERCE_ANIMATION_STORY_4,
@@ -678,7 +678,7 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceStory4Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation request for Pierce's body clip 8 with a reset.
+/// Conversation request for Pierce's `talk` with a reset.
 static AnimationPlayRequest _gShootingGalleryPiercePierceTalkRequest = {
     .source               = { .index = 1 },
     .animationId          = PIERCE_ANIMATION_TALK,
@@ -689,7 +689,7 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceTalkRequest = {
 
 enum { PIERCE_CONVERSATION_BLEND_FRAMES = 8 };
 
-/// Conversation request for Pierce's body clip 9 with an 8-frame blend.
+/// Conversation request for Pierce's `talk_end` with an 8-frame blend.
 static AnimationPlayRequest _gShootingGalleryPiercePierceTalkEndBlendRequest = {
     .source               = { .index = 1 },
     .animationId          = PIERCE_ANIMATION_TALK_END,
@@ -698,7 +698,7 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceTalkEndBlendRequest = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation request for Pierce's body clip 10 with an 8-frame blend.
+/// Conversation request for Pierce's `correct_himself` with an 8-frame blend.
 static AnimationPlayRequest _gShootingGalleryPiercePierceCorrectHimselfBlendRequest = {
     .source               = { .index = 1 },
     .animationId          = PIERCE_ANIMATION_CORRECT_HIMSELF,
@@ -707,7 +707,7 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceCorrectHimselfBlendRequ
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation request for Pierce's body clip 11 with an 8-frame blend.
+/// Conversation request for Pierce's `correct_himself_end` with an 8-frame blend.
 static AnimationPlayRequest _gShootingGalleryPiercePierceCorrectHimselfEndBlendRequest = {
     .source               = { .index = 1 },
     .animationId          = PIERCE_ANIMATION_CORRECT_HIMSELF_END,
@@ -716,7 +716,7 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceCorrectHimselfEndBlendR
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation reset request for Pierce's body clip 12.
+/// Conversation reset request for Pierce's `rest`.
 static AnimationPlayRequest _gShootingGalleryPiercePierceRestRequest = {
     .source               = { .index = 1 },
     .animationId          = PIERCE_ANIMATION_REST,
@@ -725,7 +725,7 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceRestRequest = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation request for Pierce's body clip 12 with a 10-frame blend.
+/// Conversation request for Pierce's `rest` with a 10-frame blend.
 static AnimationPlayRequest _gShootingGalleryPiercePierceRestBlendRequest = {
     .source               = { .index = 1 },
     .animationId          = PIERCE_ANIMATION_REST,
@@ -734,7 +734,7 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceRestBlendRequest = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation reset request for Pierce's body clip 13.
+/// Conversation reset request for Pierce's `short_talk`.
 static AnimationPlayRequest _gShootingGalleryPiercePierceShortTalkRequest = {
     .source               = { .index = 1 },
     .animationId          = PIERCE_ANIMATION_SHORT_TALK,
@@ -743,7 +743,7 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceShortTalkRequest = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation reset request for Pierce's body clip 14.
+/// Conversation reset request for Pierce's `short_talk_end`.
 static AnimationPlayRequest _gShootingGalleryPiercePierceShortTalkEndRequest = {
     .source               = { .index = 1 },
     .animationId          = PIERCE_ANIMATION_SHORT_TALK_END,
@@ -752,7 +752,7 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceShortTalkEndRequest = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation request for Pierce's body clip 15 with a reset.
+/// Conversation request for Pierce's `story_17` with a reset.
 static AnimationPlayRequest _gShootingGalleryPiercePierceStory17Request = {
     .source               = { .index = 1 },
     .animationId          = PIERCE_ANIMATION_STORY_17,
@@ -761,7 +761,7 @@ static AnimationPlayRequest _gShootingGalleryPiercePierceStory17Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Retained duplicate reset request for conversation player extension clip 47.
+/// Retained duplicate reset request for the player's conversation-extension `story_idle`.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerStoryIdleRetainedRequest = {
     .source               = { .index = 1 },
     .animationId          = ANIMATION_BANK_BASE_SET_COUNT + PLAYER_CONVERSATION_ANIMATION_STORY_IDLE,
@@ -770,7 +770,7 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerStoryIdleRe
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation player clip 47 request with a reset.
+/// Conversation request for the player's conversation-extension `story_idle` with a reset.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerStoryIdleRequest = {
     .source               = { .index = 1 },
     .animationId          = ANIMATION_BANK_BASE_SET_COUNT + PLAYER_CONVERSATION_ANIMATION_STORY_IDLE,
@@ -779,7 +779,7 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerStoryIdleRe
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation player clip 48 request with a reset.
+/// Conversation request for the player's conversation-extension `story_ask_hal` with a reset.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerStoryAskHalRequest = {
     .source               = { .index = 1 },
     .animationId          = ANIMATION_BANK_BASE_SET_COUNT + PLAYER_CONVERSATION_ANIMATION_STORY_ASK_HAL,
@@ -788,7 +788,7 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerStoryAskHal
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation player clip 49 request with a reset.
+/// Conversation request for the player's conversation-extension `story_talk` with a reset.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerStoryTalkRequest = {
     .source               = { .index = 1 },
     .animationId          = ANIMATION_BANK_BASE_SET_COUNT + PLAYER_CONVERSATION_ANIMATION_STORY_TALK,
@@ -797,7 +797,7 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerStoryTalkRe
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation player clip 50 request with a reset.
+/// Conversation request for the player's conversation-extension `story_ask_nmcs` with a reset.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerStoryAskNmcsRequest = {
     .source               = { .index = 1 },
     .animationId          = ANIMATION_BANK_BASE_SET_COUNT + PLAYER_CONVERSATION_ANIMATION_STORY_ASK_NMCS,
@@ -806,7 +806,7 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerStoryAskNmc
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation player clip 51 request with a reset.
+/// Conversation request for the player's conversation-extension `story_im_going` with a reset.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerStoryImGoingRequest = {
     .source               = { .index = 1 },
     .animationId          = ANIMATION_BANK_BASE_SET_COUNT + PLAYER_CONVERSATION_ANIMATION_STORY_IM_GOING,
@@ -815,7 +815,7 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerStoryImGoin
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation player clip 52 request with a reset.
+/// Conversation request for the player's conversation-extension `story_boast` with a reset.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerStoryBoastRequest = {
     .source               = { .index = 1 },
     .animationId          = ANIMATION_BANK_BASE_SET_COUNT + PLAYER_CONVERSATION_ANIMATION_STORY_BOAST,
@@ -824,7 +824,7 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerStoryBoastR
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation player clip 53 request with a reset.
+/// Conversation request for the player's conversation-extension `story_17` with a reset.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerStory17Request = {
     .source               = { .index = 1 },
     .animationId          = ANIMATION_BANK_BASE_SET_COUNT + PLAYER_CONVERSATION_ANIMATION_STORY_17,
@@ -833,7 +833,7 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerStory17Requ
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation player clip 54 request with a reset.
+/// Conversation request for the player's conversation-extension `story_24` with a reset.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerStory24Request = {
     .source               = { .index = 1 },
     .animationId          = ANIMATION_BANK_BASE_SET_COUNT + PLAYER_CONVERSATION_ANIMATION_STORY_24,
@@ -842,7 +842,7 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerStory24Requ
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Story-scene reset request for conversation player extension clip 55.
+/// Story-scene reset request for the player's conversation-extension `story_talk_2`.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerStoryTalk2Request = {
     .source               = { .index = 1 },
     .animationId          = ANIMATION_BANK_BASE_SET_COUNT + PLAYER_CONVERSATION_ANIMATION_STORY_TALK_2,
@@ -851,7 +851,7 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerStoryTalk2R
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Story-scene reset request for conversation player extension clip 56.
+/// Story-scene reset request for the player's conversation-extension `story_listen`.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerStoryListenRequest = {
     .source               = { .index = 1 },
     .animationId          = ANIMATION_BANK_BASE_SET_COUNT + PLAYER_CONVERSATION_ANIMATION_STORY_LISTEN,
@@ -860,7 +860,7 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerStoryListen
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Retained conversation player clip 59 request with a ten-frame blend.
+/// Retained conversation request for the player's conversation-extension `slot_12` with a ten-frame blend.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerSlot12Request = {
     .source               = { .index = 1 },
     .animationId          = ANIMATION_BANK_BASE_SET_COUNT + PLAYER_CONVERSATION_ANIMATION_SLOT_12,
@@ -869,7 +869,7 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerSlot12Reque
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation player clip 60 request with a 10-frame blend.
+/// Conversation request for the player's conversation-extension `slot_13` with a 10-frame blend.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerSlot13Request = {
     .source               = { .index = 1 },
     .animationId          = ANIMATION_BANK_BASE_SET_COUNT + PLAYER_CONVERSATION_ANIMATION_SLOT_13,
@@ -878,7 +878,7 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerSlot13Reque
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation player clip 61 request with a 10-frame blend.
+/// Conversation request for the player's conversation-extension `slot_14` with a 10-frame blend.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerSlot14Request = {
     .source               = { .index = 1 },
     .animationId          = ANIMATION_BANK_BASE_SET_COUNT + PLAYER_CONVERSATION_ANIMATION_SLOT_14,
@@ -887,7 +887,7 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerSlot14Reque
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation player clip 62 request with a 10-frame blend.
+/// Conversation request for the player's conversation-extension `slot_15` with a 10-frame blend.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerSlot15Request = {
     .source               = { .index = 1 },
     .animationId          = ANIMATION_BANK_BASE_SET_COUNT + PLAYER_CONVERSATION_ANIMATION_SLOT_15,
@@ -896,7 +896,7 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerSlot15Reque
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation player clip 63 request with a 10-frame blend.
+/// Conversation request for the player's conversation-extension `slot_16` with a 10-frame blend.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerSlot16Request = {
     .source               = { .index = 1 },
     .animationId          = ANIMATION_BANK_BASE_SET_COUNT + PLAYER_CONVERSATION_ANIMATION_SLOT_16,
@@ -905,7 +905,7 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerSlot16Reque
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation player clip 64 request with a 10-frame blend.
+/// Conversation request for the player's conversation-extension `slot_17` with a 10-frame blend.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerSlot17Request = {
     .source               = { .index = 1 },
     .animationId          = ANIMATION_BANK_BASE_SET_COUNT + PLAYER_CONVERSATION_ANIMATION_SLOT_17,
@@ -914,7 +914,7 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerSlot17Reque
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation player clip 65 request with a 10-frame blend.
+/// Conversation request for the player's conversation-extension `slot_18` with a 10-frame blend.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerSlot18Request = {
     .source               = { .index = 1 },
     .animationId          = ANIMATION_BANK_BASE_SET_COUNT + PLAYER_CONVERSATION_ANIMATION_SLOT_18,
@@ -923,7 +923,7 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerSlot18Reque
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation player clip 66 request with a 10-frame blend.
+/// Conversation request for the player's conversation-extension `slot_19` with a 10-frame blend.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerSlot19Request = {
     .source               = { .index = 1 },
     .animationId          = ANIMATION_BANK_BASE_SET_COUNT + PLAYER_CONVERSATION_ANIMATION_SLOT_19,
@@ -968,7 +968,7 @@ static ActorTransform _gShootingGalleryPierceConversationPlayerReturnPlacement =
     .rot = { 0, 0, 0, 0 },
 };
 
-/// Conversation player clip 1 request with a reset.
+/// Conversation request for the player's `idle` with a reset.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerIdleRequest = {
     .source               = { .index = 1 },
     .animationId          = PLAYER_ANIMATION_IDLE,
@@ -977,7 +977,7 @@ static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerIdleRequest
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Conversation player clip 1 request with a 8-frame blend.
+/// Conversation request for the player's `idle` with an 8-frame blend.
 static AnimationPlayRequest _gShootingGalleryPierceConversationPlayerIdleBlendRequest = {
     .source               = { .index = 1 },
     .animationId          = PLAYER_ANIMATION_IDLE,
