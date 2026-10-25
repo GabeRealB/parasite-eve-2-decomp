@@ -1910,6 +1910,7 @@ void akropolisSecurityRoomLockLampTask(Task* task)
         INDEX_MASK = 3,
         SIZE       = 128,
         SORT_DEPTH = 48,
+        VRAM_X     = 704, // The lamp's page, in the effect sheet
     };
     EffectWork* work;
     GfxCoord*   coord;
@@ -1929,7 +1930,7 @@ void akropolisSecurityRoomLockLampTask(Task* task)
     gGpuPrimCursor = quad + 1;
     setPolyFT4(quad);
     work->scale = task->spawnArg1.value & INDEX_MASK;
-    quad->tpage = getTPage(1, GPU_BLEND_ADD, 704, 0);
+    quad->tpage = getTPage(1, GPU_BLEND_ADD, VRAM_X, 0);
     setSemiTrans(quad, true);
     setShadeTex(quad, true);
     quad->clut = getClut(0, _gAkropolisSecurityRoomLockIndicatorQuads[work->scale].clutY);
@@ -1971,6 +1972,9 @@ void akropolisSecurityRoomFallingQuadTask(Task* task)
         FALLING_QUAD_STOP_Y          = -419,
         FALLING_QUAD_VIEW            = 15,
         FALLING_QUAD_LAST_TEXEL      = 7,
+        FALLING_QUAD_VRAM_X          = 832, // Its page, in the effect sheet
+        FALLING_QUAD_CLUT_X          = 256,
+        FALLING_QUAD_CLUT_Y          = 270,
     };
     EffectQuadCornersScratch* quadScratch;
     GfxCoord*                 coord;
@@ -2020,8 +2024,8 @@ void akropolisSecurityRoomFallingQuadTask(Task* task)
     gte_stsxy3(&quad->x1, &quad->x2, &quad->x3);
     gte_stszotz(&quadScratch->depth);
     if (quadScratch->depth >= FALLING_QUAD_MIN_DEPTH) {
-        quad->tpage = getTPage(0, GPU_BLEND_ADD, 832, 0);
-        quad->clut  = getClut(256, 270);
+        quad->tpage = getTPage(0, GPU_BLEND_ADD, FALLING_QUAD_VRAM_X, 0);
+        quad->clut  = getClut(FALLING_QUAD_CLUT_X, FALLING_QUAD_CLUT_Y);
         setShadeTex(quad, true);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(quadScratch->depth), quad);
     }
