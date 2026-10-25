@@ -395,7 +395,6 @@ static void _gameFlowSpawnLoadDialog(Task* task)
 static void _gameFlowWaitForLoadDialog(Task* task)
 {
     enum {
-        MEMORY_CARD_OPTION_SOUND_MONO    = 1,
         GAME_FLOW_DIALOG_CLOSE_CALLBACKS = 12,
     };
     UiObject* loadDialog;
@@ -563,8 +562,7 @@ static inline void _padAdvanceVibrationRequest(PadVibrationRequest* request)
 static void _padTickVibrationRequests(PadState* pad)
 {
     enum {
-        PAD_VIBRATION_MIX_STACK_BYTES   = sizeof(u32),
-        MEMORY_CARD_OPTION_VIBRATION_ON = 0,
+        PAD_VIBRATION_MIX_STACK_BYTES = sizeof(u32),
     };
     u8*                  motorDrive;
     PadVibrationRequest* request;

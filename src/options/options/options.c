@@ -135,11 +135,9 @@ static const u8 _gOptionsKeyLayoutBPrompt[] __attribute__((section(".data"), ali
 /// NUL-terminated UI text borrowed by the prompt panel while this overlay is loaded.
 static const u8 _gOptionsKeyLayoutCPrompt[] __attribute__((section(".data"), aligned(4))) = "This mode uses the ~ button and\n | button for combat.";
 
-/// Suspended-control encoding and saved default-movement selectors.
+/// Suspended-control encoding.
 enum {
     OPTIONS_SUSPENDED_CONTROL_SHIFT = 16,
-    OPTIONS_MOVEMENT_WALK           = 0,
-    OPTIONS_MOVEMENT_RUN            = 1
 };
 
 static void _optionsUpdateSoundRow(UiList* list, UiObject* object);
@@ -264,8 +262,6 @@ STATIC_ASSERT_SIZEOF(_OptionsKeyConfigStackSlot, 0x10);
 /// publishes help while panel control is active or suspended active.
 static void _optionsUpdateSoundRow(UiList* list, UiObject* object)
 {
-    enum { OPTIONS_SOUND_STEREO = 0,
-           OPTIONS_SOUND_MONO   = 1 };
     const u8*  labels[] = { _gOptionsSoundStereoLabel, _gOptionsSoundMonoLabel };
     const u8** labelCursor;
     s32        choiceIndex;
@@ -307,7 +303,7 @@ static void _optionsUpdateSoundRow(UiList* list, UiObject* object)
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
             selectedMode += choiceStep;
             if (selectedMode >= ARRAY_SIZE(labels)) {
-                selectedMode = OPTIONS_SOUND_STEREO;
+                selectedMode = MEMORY_CARD_OPTION_SOUND_STEREO;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
@@ -320,10 +316,10 @@ static void _optionsUpdateSoundRow(UiList* list, UiObject* object)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode = selectedMode;
     if (previousMode != gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode) {
         switch (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode) {
-            case OPTIONS_SOUND_STEREO:
+            case MEMORY_CARD_OPTION_SOUND_STEREO:
                 sndOutputSetStereo(SOUND_OUTPUT_STEREO);
                 break;
-            case OPTIONS_SOUND_MONO:
+            case MEMORY_CARD_OPTION_SOUND_MONO:
                 sndOutputSetStereo(SOUND_OUTPUT_MONO);
                 break;
             default:
@@ -584,7 +580,7 @@ static void _optionsUpdateMovementRow(UiList* list, UiObject* object)
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
             selectedMode += choiceStep;
             if (selectedMode >= choiceCount) {
-                selectedMode = OPTIONS_MOVEMENT_WALK;
+                selectedMode = MEMORY_CARD_OPTION_MOVEMENT_WALK;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
@@ -709,9 +705,6 @@ static void _optionsUpdateKeyConfigurationTask(Task* owningTask)
     enum {
         OPTIONS_KEY_TASK_INITIAL           = 0,
         OPTIONS_KEY_TASK_READY             = 1,
-        OPTIONS_KEY_LAYOUT_A               = 0,
-        OPTIONS_KEY_LAYOUT_B               = 1,
-        OPTIONS_KEY_LAYOUT_C               = 2,
         OPTIONS_KEY_ASSIGNMENT_ROWS        = 7,
         OPTIONS_KEY_FACE_BUTTON_ROWS       = 4,
         OPTIONS_KEY_PANEL_TEXT_ROWS        = 9,
@@ -768,7 +761,7 @@ static void _optionsUpdateKeyConfigurationTask(Task* owningTask)
     defaultMovement = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode;
     layout          = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout;
     penY            = contentTopY + 0xF;
-    if (defaultMovement == OPTIONS_MOVEMENT_RUN) {
+    if (defaultMovement == MEMORY_CARD_OPTION_MOVEMENT_RUN) {
         alternateMovementLabel = _gOptionsKeyWalkLabel;
     }
     // Fit once, retaining the initial layout in the task payload.
@@ -845,7 +838,7 @@ static void _optionsUpdateKeyConfigurationTask(Task* owningTask)
     // Show normal-play actions; the movement button uses the non-default gait.
     textDrawUiLine(object, penX, penY, _gOptionsKeyNormalHeading, labelColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     penY += 0xB;
-    if (layout != OPTIONS_KEY_LAYOUT_B) {
+    if (layout != MEMORY_CARD_OPTION_BUTTON_LAYOUT_B) {
         normalActionRequest.x = object->panel.contentOriginX.unsignedValue + penX;
         normalActionRequest.y = object->panel.contentOriginY.unsignedValue + penY;
         OPTIONS_KEY_DRAW_ASSIGNMENT(normalActionRequest, object, labelColorRgb, TEXT_ALIGNMENT_LEFT, _gOptionsKeyDrawWeaponLabel);
@@ -856,7 +849,7 @@ static void _optionsUpdateKeyConfigurationTask(Task* owningTask)
     }
 
     penY += 0xF;
-    if (layout != OPTIONS_KEY_LAYOUT_B) {
+    if (layout != MEMORY_CARD_OPTION_BUTTON_LAYOUT_B) {
         normalActionRequest.x = object->panel.contentOriginX.unsignedValue + penX;
         normalActionRequest.y = object->panel.contentOriginY.unsignedValue + penY;
         OPTIONS_KEY_DRAW_ASSIGNMENT(normalActionRequest, object, OPTIONS_KEY_LABEL_COLOR_RGB, TEXT_ALIGNMENT_LEFT, alternateMovementLabel);
@@ -873,7 +866,7 @@ static void _optionsUpdateKeyConfigurationTask(Task* owningTask)
     penY                 += 0xF;
     OPTIONS_KEY_DRAW_ASSIGNMENT(normalActionRequest, object, OPTIONS_KEY_LABEL_COLOR_RGB, TEXT_ALIGNMENT_CENTER, _gOptionsKeyExamineLabel);
 
-    if (layout == OPTIONS_KEY_LAYOUT_C) {
+    if (layout == MEMORY_CARD_OPTION_BUTTON_LAYOUT_C) {
         normalActionRequest.x = object->panel.contentOriginX.unsignedValue + penX;
         normalActionRequest.y = object->panel.contentOriginY.unsignedValue + penY;
         OPTIONS_KEY_DRAW_ASSIGNMENT(normalActionRequest, object, OPTIONS_KEY_LABEL_COLOR_RGB, TEXT_ALIGNMENT_LEFT, _gOptionsKeyDrawWeaponLabel);
@@ -890,9 +883,9 @@ static void _optionsUpdateKeyConfigurationTask(Task* owningTask)
     textDrawUiLine(object, penX, penY, _gOptionsKeyBattleHeading, OPTIONS_KEY_LABEL_COLOR_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_RIGHT);
     penY           += 0xB;
     battleAlignment = TEXT_ALIGNMENT_RIGHT;
-    if (layout == OPTIONS_KEY_LAYOUT_A) {
+    if (layout == MEMORY_CARD_OPTION_BUTTON_LAYOUT_A) {
         battleActionLabel = _gOptionsKeySwitchTargetsLabel;
-    } else if (layout == OPTIONS_KEY_LAYOUT_B) {
+    } else if (layout == MEMORY_CARD_OPTION_BUTTON_LAYOUT_B) {
         battleActionLabel = _gOptionsKeyCancelLabel;
     } else {
         battleActionLabel = _gOptionsKeyMainWeaponLabel;
@@ -902,9 +895,9 @@ static void _optionsUpdateKeyConfigurationTask(Task* owningTask)
     penY                  += 0xF;
     OPTIONS_KEY_DRAW_ASSIGNMENT(battleTopFaceRequest, object, OPTIONS_KEY_LABEL_COLOR_RGB, battleAlignment, battleActionLabel);
 
-    if (layout == OPTIONS_KEY_LAYOUT_A) {
+    if (layout == MEMORY_CARD_OPTION_BUTTON_LAYOUT_A) {
         battleActionLabel = _gOptionsKeyCancelLabel;
-    } else if (layout == OPTIONS_KEY_LAYOUT_B) {
+    } else if (layout == MEMORY_CARD_OPTION_BUTTON_LAYOUT_B) {
         battleActionLabel = _gOptionsKeySwitchTargetsLabel;
     } else {
         battleActionLabel = _gOptionsKeyCancelLabel;
@@ -914,7 +907,7 @@ static void _optionsUpdateKeyConfigurationTask(Task* owningTask)
     penY                     += 0x1E;
     OPTIONS_KEY_DRAW_ASSIGNMENT(battleSecondFaceRequest, object, OPTIONS_KEY_LABEL_COLOR_RGB, battleAlignment, battleActionLabel);
 
-    if (layout == OPTIONS_KEY_LAYOUT_C) {
+    if (layout == MEMORY_CARD_OPTION_BUTTON_LAYOUT_C) {
         battleActionRequest.x = object->panel.contentOriginX.unsignedValue + penX;
         battleActionRequest.y = object->panel.contentOriginY.unsignedValue + penY;
         OPTIONS_KEY_DRAW_ASSIGNMENT(battleActionRequest, object, OPTIONS_KEY_LABEL_COLOR_RGB, battleAlignment, _gOptionsKeySubWeaponLabel);
@@ -925,9 +918,9 @@ static void _optionsUpdateKeyConfigurationTask(Task* owningTask)
     }
 
     penY += 0xF;
-    if (layout == OPTIONS_KEY_LAYOUT_A) {
+    if (layout == MEMORY_CARD_OPTION_BUTTON_LAYOUT_A) {
         battleActionLabel = _gOptionsKeyMainWeaponLabel;
-    } else if (layout == OPTIONS_KEY_LAYOUT_B) {
+    } else if (layout == MEMORY_CARD_OPTION_BUTTON_LAYOUT_B) {
         battleActionLabel = _gOptionsKeyMainWeaponLabel;
     } else {
         battleActionLabel = _gOptionsKeySwitchTargetsLabel;
@@ -937,7 +930,7 @@ static void _optionsUpdateKeyConfigurationTask(Task* owningTask)
     penY                 += 0xF;
     OPTIONS_KEY_DRAW_ASSIGNMENT(battleActionRequest, object, OPTIONS_KEY_LABEL_COLOR_RGB, battleAlignment, battleActionLabel);
 
-    if (layout != OPTIONS_KEY_LAYOUT_C) {
+    if (layout != MEMORY_CARD_OPTION_BUTTON_LAYOUT_C) {
         finalBattleLabelAndIconSlot.labelRequest.x = object->panel.contentOriginX.unsignedValue + penX;
         finalBattleLabelAndIconSlot.labelRequest.y = object->panel.contentOriginY.unsignedValue + penY;
         OPTIONS_KEY_DRAW_ASSIGNMENT(finalBattleLabelAndIconSlot.labelRequest, object, OPTIONS_KEY_LABEL_COLOR_RGB, battleAlignment, _gOptionsKeySubWeaponLabel);
@@ -978,13 +971,13 @@ static void _optionsUpdateKeyConfigurationTask(Task* owningTask)
     promptControlMode = object->panel.control.word;
     if (((promptControlMode >> OPTIONS_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (promptControlMode == USER_INTERFACE_PANEL_ACTIVE)) {
         switch (layout) {
-            case OPTIONS_KEY_LAYOUT_A:
+            case MEMORY_CARD_OPTION_BUTTON_LAYOUT_A:
                 uiSetPromptText(_gOptionsKeyLayoutAPrompt, 0, 0);
                 break;
-            case OPTIONS_KEY_LAYOUT_B:
+            case MEMORY_CARD_OPTION_BUTTON_LAYOUT_B:
                 uiSetPromptText(_gOptionsKeyLayoutBPrompt, 0, 0);
                 break;
-            case OPTIONS_KEY_LAYOUT_C:
+            case MEMORY_CARD_OPTION_BUTTON_LAYOUT_C:
                 uiSetPromptText(_gOptionsKeyLayoutCPrompt, 0, 0);
                 break;
             default:

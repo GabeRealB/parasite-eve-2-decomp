@@ -8349,7 +8349,7 @@ void playerActorEnterLocomotion(Task* task, s16 resetAnimation)
     } else if ((actor->padHeld & PAD_BUTTON_CROSS) && (movement != -1)) {
         movement             = GAME_ACTOR_MOVEMENT_WALK; // Also the moving turn rate
         actor->turnRateIndex = movement;
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode == 0 && actor->restrictRunAndAim == 0) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode == MEMORY_CARD_OPTION_MOVEMENT_WALK && actor->restrictRunAndAim == 0) {
             actor->movementMode = GAME_ACTOR_MOVEMENT_RUN;
             setIndex            = PLAYER_ANIMATION_RUN;
         } else {
@@ -8358,7 +8358,7 @@ void playerActorEnterLocomotion(Task* task, s16 resetAnimation)
     } else {
         actor->turnRateIndex = PLAYER_ACTOR_LOCOMOTION_TURN_MOVING;
         if (actor->movementSign == 1) {
-            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode != 0 && actor->restrictRunAndAim == 0) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode != MEMORY_CARD_OPTION_MOVEMENT_WALK && actor->restrictRunAndAim == 0) {
                 actor->movementMode = GAME_ACTOR_MOVEMENT_RUN;
                 setIndex            = PLAYER_ANIMATION_RUN;
             } else {

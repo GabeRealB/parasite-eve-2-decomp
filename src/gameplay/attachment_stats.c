@@ -567,7 +567,6 @@ static void _hudDrawWeaponSupplyPrompt(s32 unusedPanelX, s32 unusedPanelY)
     enum {
         HUD_WEAPON_PROMPT_TONFA_ITEM_ID          = 0x92,
         HUD_WEAPON_PROMPT_GUNBLADE_ITEM_ID       = 0x96,
-        HUD_WEAPON_PROMPT_SYMBOL_LAYOUT          = 2,
         HUD_WEAPON_PROMPT_TEXT_COLOR             = 0x606060,
         HUD_WEAPON_PROMPT_PRIMARY_SYMBOL_COLOR   = 0x503060,
         HUD_WEAPON_PROMPT_SECONDARY_SYMBOL_COLOR = 0x506030,
@@ -626,7 +625,7 @@ static void _hudDrawWeaponSupplyPrompt(s32 unusedPanelX, s32 unusedPanelY)
     }
     lineY = 0x64 - promptHeight;
     lineY = lineY - gDisplayState.vramYOffset;
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != HUD_WEAPON_PROMPT_SYMBOL_LAYOUT) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != MEMORY_CARD_OPTION_BUTTON_LAYOUT_C) {
         if (weaponItemId != HUD_WEAPON_PROMPT_GUNBLADE_ITEM_ID) {
             HUD_WEAPON_PROMPT_DRAW_LABEL(primaryLabel, promptPanel, promptLeft, 4, lineY, HUD_WEAPON_PROMPT_TEXT_COLOR, _gHudWeaponR1LabelText);
         } else {
@@ -649,7 +648,7 @@ static void _hudDrawWeaponSupplyPrompt(s32 unusedPanelX, s32 unusedPanelY)
     if (weaponLoad->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
         missingSupply = 0;
         lineY        += 0xA;
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != HUD_WEAPON_PROMPT_SYMBOL_LAYOUT) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != MEMORY_CARD_OPTION_BUTTON_LAYOUT_C) {
             HUD_WEAPON_PROMPT_DRAW_LABEL(secondaryLabel, promptPanel, promptLeft, 4, lineY, HUD_WEAPON_PROMPT_TEXT_COLOR, _gHudWeaponR2LabelText);
         } else {
             HUD_WEAPON_PROMPT_DRAW_LABEL(secondaryLabel, promptPanel, promptLeft, 6, lineY, HUD_WEAPON_PROMPT_SECONDARY_SYMBOL_COLOR, _gHudWeaponSecondaryButtonGlyphText);

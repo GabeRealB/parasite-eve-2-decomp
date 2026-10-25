@@ -60,11 +60,6 @@ s16 _gPadInputWheelBlockUpdates;
 #include "gameplay/pad_input.h"
 
 enum {
-    PAD_INPUT_LAYOUT_A                    = 0,
-    PAD_INPUT_LAYOUT_B                    = 1,
-    PAD_INPUT_LAYOUT_C                    = 2,
-    PAD_INPUT_MOVEMENT_WALK               = 0,
-    PAD_INPUT_MOVEMENT_RUN                = 1,
     PAD_INPUT_PLAYER_STATE_AIM            = 2,
     PAD_INPUT_PLAYER_STATE_ATTACHMENT_USE = 6,
     PAD_INPUT_LOGICAL_BUTTON_MASK         = 0xFFFF,
@@ -252,24 +247,24 @@ void padInputUpdate(void)
             heldButtons |= PAD_BUTTON_UP;
             if (player->mode != GAME_ACTOR_MODE_NORMAL || player->state < PAD_INPUT_PLAYER_STATE_AIM) {
                 if (pad->stickAxes[PAD_STICK_LEFT_Y] < -PAD_INPUT_STICK_RUN_THRESHOLD) {
-                    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode == PAD_INPUT_MOVEMENT_WALK) {
-                        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != PAD_INPUT_LAYOUT_B) {
+                    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode == MEMORY_CARD_OPTION_MOVEMENT_WALK) {
+                        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != MEMORY_CARD_OPTION_BUTTON_LAYOUT_B) {
                             heldButtons |= PAD_BUTTON_CIRCLE;
                         } else {
                             heldButtons |= PAD_BUTTON_SQUARE;
                         }
                     } else {
                         // Layouts A and C share Circle; separate arms preserve allocation.
-                        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout == PAD_INPUT_LAYOUT_B) {
+                        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout == MEMORY_CARD_OPTION_BUTTON_LAYOUT_B) {
                             heldButtons &= (0xFFFF ^ PAD_BUTTON_SQUARE);
-                        } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout == PAD_INPUT_LAYOUT_A) {
+                        } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout == MEMORY_CARD_OPTION_BUTTON_LAYOUT_A) {
                             heldButtons &= (0xFFFF ^ PAD_BUTTON_CIRCLE);
                         } else {
                             heldButtons &= (0xFFFF ^ PAD_BUTTON_CIRCLE);
                         }
                     }
-                } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode == PAD_INPUT_MOVEMENT_RUN) {
-                    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != PAD_INPUT_LAYOUT_B) {
+                } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode == MEMORY_CARD_OPTION_MOVEMENT_RUN) {
+                    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != MEMORY_CARD_OPTION_BUTTON_LAYOUT_B) {
                         heldButtons |= PAD_BUTTON_CIRCLE;
                     } else {
                         heldButtons |= PAD_BUTTON_SQUARE;
@@ -336,13 +331,13 @@ static u16 _padInputRemapButtons(const GameActor* player, u16 buttons)
 
     mappedButtons = 0;
     switch (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout) {
-        case PAD_INPUT_LAYOUT_A:
+        case MEMORY_CARD_OPTION_BUTTON_LAYOUT_A:
             PAD_INPUT_REMAP_BUTTON_BITS(buttons, _gPadInputLayoutAMap, mappedButtons, buttonBit);
             break;
-        case PAD_INPUT_LAYOUT_B:
+        case MEMORY_CARD_OPTION_BUTTON_LAYOUT_B:
             PAD_INPUT_REMAP_BUTTON_BITS(buttons, _gPadInputLayoutBMap, mappedButtons, buttonBit);
             break;
-        case PAD_INPUT_LAYOUT_C:
+        case MEMORY_CARD_OPTION_BUTTON_LAYOUT_C:
             if (player->mode == GAME_ACTOR_MODE_NORMAL && player->state >= PAD_INPUT_PLAYER_STATE_AIM) {
                 PAD_INPUT_REMAP_BUTTON_BITS(buttons, _gPadInputLayoutCAlternateMap, mappedButtons, buttonBit);
             } else {

@@ -243,6 +243,24 @@ STATIC_ASSERT(OFFSET_OF(McSaveData, state.headerChecksumComplement) == OFFSET_OF
 STATIC_ASSERT(OFFSET_OF(McSaveData, preview.remainingBytes) == 0x20, McSaveData_previewRemainder);
 STATIC_ASSERT(OFFSET_OF(McSaveData, state.playTime) == 0xC, McSaveData_playTime);
 
+/// The saved options (`McState`'s `vibration`, `moveMode`, `buttonLayout`, `soundMode`, `musicVolume` and
+/// `cursorMode`), as the Options menu sets them; 0 is each one's default.
+enum {
+    MEMORY_CARD_OPTION_VIBRATION_ON      = 0,
+    MEMORY_CARD_OPTION_VIBRATION_OFF     = 1,
+    MEMORY_CARD_OPTION_MOVEMENT_WALK     = 0, // The default movement
+    MEMORY_CARD_OPTION_MOVEMENT_RUN      = 1,
+    MEMORY_CARD_OPTION_BUTTON_LAYOUT_A   = 0, // Key Configuration's "Type A"
+    MEMORY_CARD_OPTION_BUTTON_LAYOUT_B   = 1,
+    MEMORY_CARD_OPTION_BUTTON_LAYOUT_C   = 2,
+    MEMORY_CARD_OPTION_SOUND_STEREO      = 0,
+    MEMORY_CARD_OPTION_SOUND_MONO        = 1,
+    MEMORY_CARD_OPTION_MUSIC_FULL_VOLUME = 0, // Music volume steps down from 0 to 3
+    MEMORY_CARD_OPTION_MUSIC_OFF         = 3,
+    MEMORY_CARD_OPTION_CURSOR_MEMORY     = 0, // Menus remember the row
+    MEMORY_CARD_OPTION_CURSOR_RESET      = 1,
+};
+
 /// Indices of the two resident save images in `gMcSaveData`.
 enum {
     /// Index of the resident save image the game reads and writes.

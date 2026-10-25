@@ -362,7 +362,7 @@ static s32 _akropolisSquareHandleRoomCommand(Task* unusedTask, s32 unusedMessage
     if ((command == AKROPOLIS_SQUARE_ROOM_COMMAND_STAIRS_HINT) && (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SQUARE_STAIRS_HINT_SEEN) == 0)) {
         gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_SQUARE_STAIRS_HINT_SEEN, 1);
         hintCommand = AKROPOLIS_SQUARE_STAIRS_HINT_ALTERNATE_COMMAND;
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != 1) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != MEMORY_CARD_OPTION_BUTTON_LAYOUT_B) {
             hintCommand = AKROPOLIS_SQUARE_ROOM_COMMAND_STAIRS_HINT;
         }
         capSpawnEventIfIdle(hintCommand, CAP_EVENT_PAUSE_ACTORS);

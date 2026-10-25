@@ -431,7 +431,7 @@ void itemMenuInfoTask(Task* task)
                         buttonGlyph->x0 = rowX;
                         buttonGlyph->y0 = rowY - 8;
                         buttonLayout    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout;
-                        if (buttonLayout != 2) {
+                        if (buttonLayout != MEMORY_CARD_OPTION_BUTTON_LAYOUT_C) {
                             buttonGlyphHeight = 8;
                             buttonGlyph->y0   = rowY - 4;
                             if (weaponSlot == 0) {

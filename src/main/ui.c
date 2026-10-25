@@ -1593,7 +1593,7 @@ void uiFitPanelToList(UiList* list, UiPanel* panel)
     list->scrollPixelsRemaining = 0;
     list->scrollDirection       = USER_INTERFACE_LIST_STEP_NONE;
     list->rowInputEnabled       = USER_INTERFACE_LIST_ROW_INACTIVE;
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cursorMode != 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cursorMode != MEMORY_CARD_OPTION_CURSOR_MEMORY) {
         list->selectedItemIndex                   = 0;
         list->firstVisibleItemIndex.unsignedValue = 0;
     }
@@ -2606,7 +2606,7 @@ void uiInitList(UiList* list, const UiPanel* panel)
     list->scrollPixelsRemaining = 0;
     list->scrollDirection       = USER_INTERFACE_LIST_STEP_NONE;
     list->rowInputEnabled       = USER_INTERFACE_LIST_ROW_INACTIVE;
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cursorMode != 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cursorMode != MEMORY_CARD_OPTION_CURSOR_MEMORY) {
         list->selectedItemIndex                   = 0;
         list->firstVisibleItemIndex.unsignedValue = 0;
     }

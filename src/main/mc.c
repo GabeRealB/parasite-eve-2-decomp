@@ -895,14 +895,6 @@ static inline void _mcResetStageFlagCopies(void)
 /// after the saved option bytes have been written.
 static inline void _mcRestoreOptionDefaults(void)
 {
-    enum {
-        MEMORY_CARD_OPTION_VIBRATION_ON      = 0,
-        MEMORY_CARD_OPTION_BUTTON_LAYOUT_A   = 0,
-        MEMORY_CARD_OPTION_MUSIC_FULL_VOLUME = 0,
-        MEMORY_CARD_OPTION_CURSOR_MEMORY     = 0,
-        MEMORY_CARD_OPTION_MOVEMENT_WALK     = 0,
-        MEMORY_CARD_OPTION_SOUND_STEREO      = 0,
-    };
 
     McSaveData* save;
 
