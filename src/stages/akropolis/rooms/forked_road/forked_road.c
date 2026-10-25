@@ -32,8 +32,8 @@
 typedef struct {
     s32 spawned;    // Return-ride scene started this visit (0 not yet, 1 started)
     u8  field_4[4]; // Zero bytes with no accesses; role unproven
-} _AkropolisForkedRoadReturnRideLatch;
-STATIC_ASSERT_SIZEOF(_AkropolisForkedRoadReturnRideLatch, 8);
+} _ReturnRideLatch;
+STATIC_ASSERT_SIZEOF(_ReturnRideLatch, 8);
 
 static void _akropolisForkedRoadInitializeRoomTask(Task* task);
 static void _akropolisForkedRoadStartReturnArrivalScene(Task* unusedTask);
@@ -58,7 +58,7 @@ static TaskMessageEntry _gAkropolisForkedRoadRoomMessages[5] = {
 };
 
 /// Set when the return ride starts; zero whenever the room is loaded.
-static _AkropolisForkedRoadReturnRideLatch _gAkropolisForkedRoadReturnRideLatch = { 0, { 0 } };
+static _ReturnRideLatch _gAkropolisForkedRoadReturnRideLatch = { 0, { 0 } };
 
 /// The doors: the fountain's is held until MIST is contacted, then leads to its state after the red key; the
 /// observatory's is held until the escalator works, then the first time starts the ride there, and after the red key
@@ -135,42 +135,44 @@ static s32 _akropolisForkedRoadRejectKeyItemUse(Task* unusedTask, s32 unusedMess
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// Room command 3 plays CAP 3 while object 24 is in state 0 or 1, CAP 4 after.
+/// Room command 3, the dead SWAT member: CAP 3 ("He looks so young.") while his object is in state 0 or 1, else CAP 4
+/// ("Something ripped through his polymer vest...").
 static s32 _akropolisForkedRoadHandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg)
 {
     enum {
-        AKROPOLIS_FORKED_ROAD_COMMAND_PLACEMENT_CAP = 3,
-        AKROPOLIS_FORKED_ROAD_CAP_PLACEMENT_ID      = 24,
-        AKROPOLIS_FORKED_ROAD_CAP_INITIAL_PLACEMENT = 3,
-        AKROPOLIS_FORKED_ROAD_CAP_CHANGED_PLACEMENT = 4
+        ROOM_COMMAND_DEAD_SWAT = 3,
+        DEAD_SWAT_OBJECT       = 24,
+        DEAD_SWAT_CAP          = 3,
+        DEAD_SWAT_WOUND_CAP    = 4
     };
     s32 capCommand;
 
-    if (command == AKROPOLIS_FORKED_ROAD_COMMAND_PLACEMENT_CAP) {
-        if ((areaGetCurrentObjectState(AKROPOLIS_FORKED_ROAD_CAP_PLACEMENT_ID) == 0) || (areaGetCurrentObjectState(AKROPOLIS_FORKED_ROAD_CAP_PLACEMENT_ID) == 1)) {
-            capCommand = AKROPOLIS_FORKED_ROAD_CAP_INITIAL_PLACEMENT;
+    if (command == ROOM_COMMAND_DEAD_SWAT) {
+        if ((areaGetCurrentObjectState(DEAD_SWAT_OBJECT) == 0) || (areaGetCurrentObjectState(DEAD_SWAT_OBJECT) == 1)) {
+            capCommand = DEAD_SWAT_CAP;
         } else {
-            capCommand = AKROPOLIS_FORKED_ROAD_CAP_CHANGED_PLACEMENT;
+            capCommand = DEAD_SWAT_WOUND_CAP;
         }
         capRunCommandWithTransition(capCommand);
     }
     return 0;
 }
 
-/// Room action 1 starts the ambush once, after the red key, in placement variants 4 and 8.
+/// Room action 1 starts the ambush once, after the red key, in placement variants 4 and 8: Aya stands, the caterpillars
+/// come in, and the battle starts.
 static s32 _akropolisForkedRoadHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
     enum {
-        AKROPOLIS_FORKED_ROAD_ACTION_LOCK_RELEASE_EVENT = 1,
-        AKROPOLIS_FORKED_ROAD_EVENT_VARIANT_4           = 4,
-        AKROPOLIS_FORKED_ROAD_EVENT_VARIANT_8           = 8
+        ACTION_AMBUSH        = 1,
+        AMBUSH_VARIANT       = 4,
+        AMBUSH_LATER_VARIANT = 8
     };
     u8 placementVariant;
 
-    if (request->actionId == AKROPOLIS_FORKED_ROAD_ACTION_LOCK_RELEASE_EVENT && (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_PANEL_KEYS) & AKROPOLIS_SECURITY_ROOM_PANEL_KEY_RED_INSERTED)) {
+    if (request->actionId == ACTION_AMBUSH && (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_PANEL_KEYS) & AKROPOLIS_SECURITY_ROOM_PANEL_KEY_RED_INSERTED)) {
         placementVariant = gGameSession->location.variant;
-        if (((placementVariant == AKROPOLIS_FORKED_ROAD_EVENT_VARIANT_4) || (placementVariant == AKROPOLIS_FORKED_ROAD_EVENT_VARIANT_8)) && (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_FORKED_ROAD_AMBUSH_SEEN) == 0)) {
-            evsStartScript(gAkropolisForkedRoadLockReleaseScript, EVENT_SCRIPT_HUD_KEEP);
+        if (((placementVariant == AMBUSH_VARIANT) || (placementVariant == AMBUSH_LATER_VARIANT)) && (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_FORKED_ROAD_AMBUSH_SEEN) == 0)) {
+            evsStartScript(gAkropolisForkedRoadAmbushScript, EVENT_SCRIPT_HUD_KEEP);
             gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_FORKED_ROAD_AMBUSH_SEEN, 1);
         }
     }

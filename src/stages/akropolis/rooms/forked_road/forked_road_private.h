@@ -19,6 +19,6 @@ enum {
 extern TaskDesc gAkropolisForkedRoadMovieTaskDescriptors[AKROPOLIS_FORKED_ROAD_MOVIE_TASK_COUNT];
 
 /// Once-only encounter sequence after the second security lock is released.
-extern EvsCommand gAkropolisForkedRoadLockReleaseScript[8];
+extern EvsCommand gAkropolisForkedRoadAmbushScript[8];
 
 #endif // STAGES_AKROPOLIS_ROOMS_FORKED_ROAD_FORKED_ROAD_PRIVATE_H
