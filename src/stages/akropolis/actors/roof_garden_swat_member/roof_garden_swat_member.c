@@ -23,6 +23,8 @@
 
 #include "../../rooms/roof_garden/config.h"
 
+#include "assets/rooms/akropolis/roof_garden/swat_schema.h"
+
 #include "../../../../shared/actor/actor_messages.h"
 #include "../../../../shared/actor/view_figure.h"
 
@@ -36,13 +38,13 @@ static ViewFigureWork* _gViewFigureWork;
 /// Borrowed body task of this package's active scripted actor.
 static Task* _gRoofGardenSwatMemberBodyTask;
 
-/// Borrowed helper-model task paired with this carrier's published body task.
+/// The radio's task, attached to the body.
 static Task* _gActorMsgHelperTask;
 
 static TmdSource _gSwatMember2Body;
 static TmdSource _gRoofGardenSwatMemberRadioModel;
 static void      _roofGardenSwatMemberViewFigureTask(Task* task);
-static void      _roofGardenSwatMemberAttachModelTask(Task* task);
+static void      _roofGardenSwatMemberAttachRadioTask(Task* task);
 
 #include "assets/characters/swat_member_2/body.inc"
 
@@ -59,10 +61,10 @@ static TaskMessageEntry _gViewFigureMessages[3] = {
 
 TaskDesc gRoofGardenSwatMemberViewFigureTasks[VIEW_FIGURE_TASK_COUNT] = {
     { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _roofGardenSwatMemberViewFigureTask, { .model = &_gSwatMember2Body } },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _roofGardenSwatMemberAttachModelTask, { .model = &_gRoofGardenSwatMemberRadioModel } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _roofGardenSwatMemberAttachRadioTask, { .model = &_gRoofGardenSwatMemberRadioModel } },
 };
 
-/// Body animation-set bank for this carrier's camera-parented scripted figure.
+/// The SWAT member's radio calls by slot.
 #include "assets/rooms/akropolis/roof_garden/swat_bank.inc"
 
 static void _roofGardenSwatMemberUpdateViewFigure(Enemy* unusedEnemy, Task* task);
@@ -75,7 +77,7 @@ static void _roofGardenSwatMemberUpdateViewFigure(Enemy* unusedEnemy, Task* task
 #include "../../../../shared/actor/view_figure_spawn.inc.c"
 #undef VIEW_FIGURE_TASK_DESCS
 
-/// Emits an area sound once when a figure track reaches the selected cue record.
+/// Emits an area sound once when a figure track reaches the selected cue record; every track shares one latch.
 #define CUE_ANIMATION_SOUND(trackIndex, cueRecordIndex, soundScript)                                                                                             \
     {                                                                                                                                                            \
         if ((_gViewFigureWork->rig.slots[(trackIndex)].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == (cueRecordIndex)) {                   \
@@ -90,9 +92,9 @@ static void _roofGardenSwatMemberUpdateViewFigure(Enemy* unusedEnemy, Task* task
 static void _roofGardenSwatMemberUpdateViewFigure(Enemy* unusedEnemy, Task* task)
 {
     enum {
-        CUED_CLIP_4 = 4,
-        CUED_CLIP_5 = 5,
-        LIGHT_COUNT = 3,
+        RIGHT_FOOT_TRACK = 16,
+        LEFT_FOOT_TRACK  = 19,
+        LIGHT_COUNT      = 3,
     };
 
     GfxCoord*  rootCoord;
@@ -103,16 +105,16 @@ static void _roofGardenSwatMemberUpdateViewFigure(Enemy* unusedEnemy, Task* task
     model     = task->extra.tmd;
     _viewFigureStepAnim(task);
     switch (_gViewFigureWork->st.animId) {
-        case CUED_CLIP_4:
-            CUE_ANIMATION_SOUND(19, 0xC8, AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_RADIO_CLICK));
-            CUE_ANIMATION_SOUND(19, 0xCA, AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_SWAT_MEMBER_STEP_1));
-            CUE_ANIMATION_SOUND(19, 0xCD, AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_SWAT_MEMBER_STEP_2));
+        case SWAT_ANIMATION_RADIO_CALL_4:
+            CUE_ANIMATION_SOUND(LEFT_FOOT_TRACK, 0xC8, AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_RADIO_CLICK));
+            CUE_ANIMATION_SOUND(LEFT_FOOT_TRACK, 0xCA, AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_SWAT_MEMBER_STEP_1));
+            CUE_ANIMATION_SOUND(LEFT_FOOT_TRACK, 0xCD, AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_SWAT_MEMBER_STEP_2));
             break;
-        case CUED_CLIP_5:
-            CUE_ANIMATION_SOUND(19, 0x115, AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_STEP_1));
-            CUE_ANIMATION_SOUND(19, 0x11F, AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_STEP_1));
-            CUE_ANIMATION_SOUND(16, 0xCE, AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_STEP_2));
-            CUE_ANIMATION_SOUND(16, 0xD8, AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_STEP_2));
+        case SWAT_ANIMATION_RADIO_CALL_5:
+            CUE_ANIMATION_SOUND(LEFT_FOOT_TRACK, 0x115, AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_STEP_1));
+            CUE_ANIMATION_SOUND(LEFT_FOOT_TRACK, 0x11F, AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_STEP_1));
+            CUE_ANIMATION_SOUND(RIGHT_FOOT_TRACK, 0xCE, AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_STEP_2));
+            CUE_ANIMATION_SOUND(RIGHT_FOOT_TRACK, 0xD8, AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_STEP_2));
             break;
     }
     lightPosition.vx = rootCoord->workm.t[0];
@@ -134,22 +136,22 @@ static void _roofGardenSwatMemberViewFigureTask(Task* task)
     stateHandlers[task->state](task->spawnArg2.pointer, task);
 }
 
-/// Attaches the helper model's root to body part 8 with a -50-unit local x translation.
-static void _roofGardenSwatMemberAttachModelTask(Task* task)
+/// Attaches the radio to the right hand, 50 units along its -x.
+static void _roofGardenSwatMemberAttachRadioTask(Task* task)
 {
     enum {
-        PARENT_PART = 8,
-        X_OFFSET    = -50
+        RIGHT_HAND_PART = 8,
+        X_OFFSET        = -50
     };
 
     GfxCoord* bodyCoords;
-    GfxCoord* helperRoot;
+    GfxCoord* radioRoot;
 
-    bodyCoords               = _gRoofGardenSwatMemberBodyTask->extra.tmd->coords;
-    helperRoot               = task->extra.tmd->coords;
-    helperRoot->composeStamp = GRAPHICS_COORD_DIRTY;
-    helperRoot->coord.t[0]   = X_OFFSET;
-    helperRoot->parent       = &bodyCoords[PARENT_PART];
+    bodyCoords              = _gRoofGardenSwatMemberBodyTask->extra.tmd->coords;
+    radioRoot               = task->extra.tmd->coords;
+    radioRoot->composeStamp = GRAPHICS_COORD_DIRTY;
+    radioRoot->coord.t[0]   = X_OFFSET;
+    radioRoot->parent       = &bodyCoords[RIGHT_HAND_PART];
 }
 
 #include "../../../../shared/actor/view_figure_exit.inc.c"

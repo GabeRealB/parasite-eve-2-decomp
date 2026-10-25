@@ -40,7 +40,7 @@ static void _eastElevatorHallSwatMemberUpdateViewFigure(Enemy* unusedEnemy, Task
 static TmdSource _gSwatMember2Body;
 static TmdSource _gSwatMember2SubmachineGun;
 static void      _eastElevatorHallSwatMemberViewFigureTask(Task* task);
-static void      _eastElevatorHallSwatMemberAttachModelTask(Task* task);
+static void      _eastElevatorHallSwatMemberAttachGunTask(Task* task);
 
 #include "assets/characters/swat_member_2/body.inc"
 
@@ -57,7 +57,7 @@ static TaskMessageEntry _gViewFigureMessages[3] = {
 
 TaskDesc gEastElevatorHallSwatMemberViewFigureTasks[VIEW_FIGURE_TASK_COUNT] = {
     { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _eastElevatorHallSwatMemberViewFigureTask, { .model = &_gSwatMember2Body } },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _eastElevatorHallSwatMemberAttachModelTask, { .model = &_gSwatMember2SubmachineGun } },
+    { { { TASK_BODY_TMD, TASK_PRIORITY_CONTROL } }, _eastElevatorHallSwatMemberAttachGunTask, { .model = &_gSwatMember2SubmachineGun } },
 };
 
 /// The SWAT member's clips by slot.
@@ -83,18 +83,18 @@ static void _eastElevatorHallSwatMemberViewFigureTask(Task* task)
     stateHandlers[task->state](task->spawnArg2.pointer, task);
 }
 
-/// Attaches the helper model's root to part 8 of this figure's body model.
-static void _eastElevatorHallSwatMemberAttachModelTask(Task* task)
+/// Attaches the submachine gun to the right hand.
+static void _eastElevatorHallSwatMemberAttachGunTask(Task* task)
 {
-    enum { HELPER_PARENT_PART = 8 };
+    enum { RIGHT_HAND_PART = 8 };
 
     GfxCoord* bodyCoords;
-    GfxCoord* helperRoot;
+    GfxCoord* gunRoot;
 
-    bodyCoords               = _gEastElevatorHallSwatMemberBodyTask->extra.tmd->coords;
-    helperRoot               = task->extra.tmd->coords;
-    helperRoot->composeStamp = GRAPHICS_COORD_DIRTY;
-    helperRoot->parent       = &bodyCoords[HELPER_PARENT_PART];
+    bodyCoords            = _gEastElevatorHallSwatMemberBodyTask->extra.tmd->coords;
+    gunRoot               = task->extra.tmd->coords;
+    gunRoot->composeStamp = GRAPHICS_COORD_DIRTY;
+    gunRoot->parent       = &bodyCoords[RIGHT_HAND_PART];
 }
 
 /// Advances the figure animation and refreshes lighting at its cached root.
