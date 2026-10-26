@@ -286,6 +286,18 @@ def shape_includes(version: str) -> list[tuple[str, Path, Path]]:
     return out
 
 
+def room_tool():
+    """tools/peassets/room, the room tools (imported once, by path)."""
+    if str(TOOLS_DIR / "peassets") not in sys.path:
+        sys.path.insert(0, str(TOOLS_DIR / "peassets"))
+    import room
+    return room
+
+
+# {a stage's instance: the room instances holding its rooms' parts}, which its includes are written from too.
+STAGE_PART_INSTANCES: dict[str, list[str]] = {}
+
+
 def _include_module(file_name: str) -> str:
     """The module a room include is a run of (`objects_2.inc`: objects), or `declarations` (room.include_module)."""
     if file_name.startswith("declarations"):
@@ -323,13 +335,19 @@ def room_includes(version: str) -> list[tuple[str, Path, list[Path]]]:
         instance = ASSETS_DIR / version / own / ("stage.toml" if kind == "stage" else "room.toml")
         if not instance.exists():
             continue
-        modules = {k for k, v in tomllib.loads(instance.read_text()).items() if isinstance(v, dict) and k != "entry"}
+        modules = {k for k, v in tomllib.loads(instance.read_text()).items() if isinstance(v, dict)
+                   and k not in ("entry", "stage")}       # a room's part of its stage overlay is the stage's C
+        if kind == "stage":                              # the stage's C: with its rooms' parts
+            parts = list(room_tool().stage_room_instances(key, data.ASSETS, ASSETS_DIR / version).values())
+            modules |= {m for p in parts for m in tomllib.loads(p.read_text()).get("stage", {})}
         if (instance.parent / "events.evs").exists():
             modules |= {"events", "updates"}
         modules.add("declarations")
         outdir = BUILD_DIR / "include" / "assets" / own
         files = sorted(f for f in named.get(own, ()) if _include_module(f) in modules)
         out.append((key, instance, [outdir / f for f in files]))
+        if kind == "stage":
+            STAGE_PART_INSTANCES[str(instance)] = sorted(str(p) for p in parts)
     return out
 
 
@@ -1354,7 +1372,7 @@ def ninja_build(
         for writer in asset_writers:
             evs = instance.parent / "events.evs"
             writer.build(outputs=[str(i) for i in incs], rule="room-inc", inputs=str(instance),
-                         implicit=room_deps + ([str(evs)] if evs.exists() else []),
+                         implicit=room_deps + ([str(evs)] if evs.exists() else []) + STAGE_PART_INSTANCES.get(str(instance), []),
                          variables={"name": name, "outdir": str(incs[0].parent)})
         ASSET_INC_OUTPUTS.extend(str(i) for i in incs)
     font_deps = [str(GEN_FONT_INC), str(peassets / "asset_data.py"), str(peassets / "asset_schema.py"),

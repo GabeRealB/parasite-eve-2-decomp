@@ -182,9 +182,9 @@ def _name_of(im: Images, objs: dict, foreign: dict[int, str]):
     return name_of
 
 
-def _stage_placements(stage: int, assets: dict, embedded: dict, assets_root: Path) -> list[int]:
-    """The placement lists the stage's rooms' variants point to."""
-    out = []
+def _stage_placements(stage: int, assets: dict, embedded: dict, assets_root: Path) -> dict[int, set[str]]:
+    """{placement list: the rooms whose variants point to it} for the stage's rooms."""
+    out: dict[int, set[str]] = {}
     for _area, room in stage_rooms(stage, assets):
         if kind_of(room, assets) != "room":
             continue
@@ -196,7 +196,7 @@ def _stage_placements(stage: int, assets: dict, embedded: dict, assets_root: Pat
                 for i in range(o.count):
                     placements = decode_value(im.room, o.address - ROOM_LOAD + 8 * i, "AreaVariant")["placements"]
                     if placements:
-                        out.append(placements)
+                        out.setdefault(placements, set()).add(room)
     return out
 
 
@@ -231,9 +231,10 @@ def _area_names(stage: int, assets: dict) -> dict[int, dict[int, str]]:
 
 def decode_room(name: str, assets: dict, embedded: dict, assets_root: Path) -> dict[str, Any]:
     im, area = images(name, assets, embedded, assets_root)
+    owners: dict[int, set[str]] = {}                       # a stage's objects one room uses: its part
     if is_stage(name, assets):
-        objs, roles = walk_stage(im, _stage_placements(im.stage, assets, embedded, assets_root),
-                                 assets[name].get("entries", {}))
+        owners = _stage_placements(im.stage, assets, embedded, assets_root)
+        objs, roles = walk_stage(im, list(owners), assets[name].get("entries", {}))
         states = 0
         area_names = _area_names(im.stage, assets)
     elif is_actor(name, assets):
@@ -291,7 +292,22 @@ def decode_room(name: str, assets: dict, embedded: dict, assets_root: Path) -> d
             else:
                 rec = {"values": vals}
         modules.setdefault(o.module, {})[sym] = rec
-    return {"area": area, "states": states, "entry": entry, "modules": modules}
+    parts: dict[str, dict[str, dict]] = {}
+    if is_stage(name, assets):
+        by_name = {im.names[a]: rooms for a, rooms in owners.items() if a in im.names}
+        rooms_of_area = dict(stage_rooms(im.stage, assets))
+        for table in modules.get("objects", {}).values():     # an area's object places: its room's
+            for area, row in enumerate(table.get("values", [])):
+                if isinstance(row, dict) and isinstance(row.get("places"), str) and area in rooms_of_area:
+                    by_name.setdefault(row["places"], set()).add(rooms_of_area[area])
+        for module in list(modules):
+            for sym in list(modules[module]):
+                rooms = by_name.get(sym, set())
+                if len(rooms) == 1:
+                    parts.setdefault(next(iter(rooms)), {}).setdefault(module, {})[sym] = modules[module].pop(sym)
+            if not modules[module]:
+                del modules[module]
+    return {"area": area, "states": states, "entry": entry, "modules": modules, "parts": parts}
 
 
 _KINDS: dict[str, dict[str, str]] = {}
@@ -319,17 +335,19 @@ def _toml(v: Any) -> str:
 def to_toml(name: str, room: dict[str, Any]) -> str:
     lines = [f"# {name}: the room, decoded from its package (tools/peassets/room).", f"area = {room['area']}",
              f"states = {room['states']}", "", "[entry]"] + [f"{r} = {_toml(v)}" for r, v in room["entry"].items()]
-    for module, objects in room["modules"].items():
-        for sym, rec in objects.items():
-            lines += ["", f"[{module}.{sym}]"]
-            if "count" in rec:
-                lines.append(f"count = {rec['count']}")
-            elif "areas" in rec:
-                lines.append(f"areas = {rec['areas']}  # each area's room's object of this role (its [entry])")
-            elif "value" in rec:
-                lines.append(f"value = {_toml(rec['value'])}")
-            else:
-                lines += ["values = ["] + [f"    {_toml(e)}," for e in rec["values"]] + ["]"]
+    sections = [("", room["modules"])] + ([("stage.", room["stage"])] if room.get("stage") else [])
+    for prefix, modules in sections:                     # its own objects, then its part of the stage overlay
+        for module, objects in modules.items():
+            for sym, rec in objects.items():
+                lines += ["", f"[{prefix}{module}.{sym}]"]
+                if "count" in rec:
+                    lines.append(f"count = {rec['count']}")
+                elif "areas" in rec:
+                    lines.append(f"areas = {rec['areas']}  # each area's room's object of this role (its [entry])")
+                elif "value" in rec:
+                    lines.append(f"value = {_toml(rec['value'])}")
+                else:
+                    lines += ["values = ["] + [f"    {_toml(e)}," for e in rec["values"]] + ["]"]
     return "\n".join(lines) + "\n"
 
 
@@ -338,7 +356,11 @@ def read(name: str, assets: dict, assets_root: Path) -> dict[str, Any]:
     `type`, every other object's from the pointer field that reaches it, and a grid's cell lists the geometry no
     field names."""
     room = tomllib.loads(instance_path(name, assets, assets_root).read_text())
-    modules = {k: v for k, v in room.items() if k not in ("area", "states", "entry")}
+    modules = {k: v for k, v in room.items() if k not in ("area", "states", "entry", "stage")}
+    if is_stage(name, assets):                           # with its rooms' parts
+        for part in stage_parts(name, assets, assets_root).values():
+            for module, objs in part.items():
+                modules.setdefault(module, {}).update(objs)
     epath = events_path(name, assets, assets_root)
     if epath.exists():
         names = event_names(name, assets, set())
@@ -384,7 +406,34 @@ def read(name: str, assets: dict, assets_root: Path) -> dict[str, Any]:
             stage = next(k for k, v in STAGES.items() if v[0] == assets[name].get("package_name", name))
             rec["values"] = [_room_entry(stage, i + 1, _table_role(rec["kind"]), assets, assets_root)
                              for i in range(rec.pop("areas"))]
-    return {"area": room["area"], "states": room["states"], "entry": room.get("entry", {}), "modules": modules}
+    return {"area": room["area"], "states": room["states"], "entry": room.get("entry", {}), "modules": modules,
+            "stage": room.get("stage", {})}
+
+
+def stage_room_instances(name: str, assets: dict, assets_root: Path) -> dict[str, Path]:
+    """{room: its instance} for the rooms of the stage overlay `name` that are decoded."""
+    stage = next(k for k, v in STAGES.items() if v[0] == assets[name].get("package_name", name))
+    return {room: instance_path(room, assets, assets_root) for _area, room in stage_rooms(stage, assets)
+            if kind_of(room, assets) == "room" and instance_path(room, assets, assets_root).exists()}
+
+
+def stage_parts(name: str, assets: dict, assets_root: Path) -> dict[str, dict]:
+    """{room: its part of the stage overlay `name`, {module: {symbol: record}}}, from the rooms' instances."""
+    out = {}
+    for room, path in stage_room_instances(name, assets, assets_root).items():
+        part = tomllib.loads(path.read_text()).get("stage")
+        if part:
+            out[room] = part
+    return out
+
+
+def _write_part(room: str, part: dict, assets: dict, assets_root: Path) -> None:
+    """Rewrite a room's instance with `part` as its part of the stage overlay."""
+    path = instance_path(room, assets, assets_root)
+    data = tomllib.loads(path.read_text())
+    inst = {"area": data["area"], "states": data["states"], "entry": data.get("entry", {}),
+            "modules": {k: v for k, v in data.items() if k not in ("area", "states", "entry", "stage")}, "stage": part}
+    path.write_text(to_toml(room, inst), encoding="utf-8")
 
 
 def encode_room(name: str, room: dict[str, Any], assets: dict, embedded: dict, assets_root: Path) -> bytes:
@@ -437,6 +486,14 @@ def decode(name: str, assets: dict, embedded: dict, assets_root: Path) -> Path:
     room = decode_room(name, assets, embedded, assets_root)
     path = instance_path(name, assets, assets_root)
     path.parent.mkdir(parents=True, exist_ok=True)
+    parts = room.pop("parts")
+    if is_stage(name, assets):                           # each room's part goes to its instance
+        stage = next(k for k, v in STAGES.items() if v[0] == assets[name].get("package_name", name))
+        for _area, other in stage_rooms(stage, assets):
+            if kind_of(other, assets) == "room" and instance_path(other, assets, assets_root).exists():
+                _write_part(other, parts.get(other, {}), assets, assets_root)
+    elif path.exists() and kind_of(name, assets) == "room":   # a room keeps the part its stage gave it
+        room["stage"] = tomllib.loads(path.read_text()).get("stage", {})
     events = {**room["modules"].pop("events", {}), **room["modules"].pop("updates", {})}   # area updates: story data
     epath = events_path(name, assets, assets_root)
     if events:
