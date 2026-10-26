@@ -10,7 +10,6 @@ _gMistR18RoomLights = 0x80186E44; // size:0x18 defined:True
 _gMistR18FootstepSounds = 0x80186E5C; // size:0xC defined:True
 _gMistR18SurfaceProperties = 0x80186E68; // size:0x8 defined:True
 gMistR18SurfacePropertiesByClass = 0x80186E70; // size:0x20 defined:True
-gMapAkropolisMistR18Placements = 0x8017BD8C; // absolute:True owner=map_akropolis shared=mapui
 gMistR18CollisionRoomResources = 0x8018660C; // size:0x10 defined:True
 gMistR18ViewMaps = 0x8018661C; // size:0x4 defined:True
 gMistR18ViewCounts = 0x80186620; // size:0x4 defined:True

@@ -58,11 +58,6 @@ _gAkropolisPromenadeView9SpriteBatches = 0x80185F24; // size:0x50 defined:True
 _gAkropolisPromenadeView10SpriteBatches = 0x80185F74; // size:0x10 defined:True
 _gAkropolisPromenadeView11SpriteBatches = 0x80185F84; // size:0x10 defined:True
 _gAkropolisPromenadeView12SpriteBatches = 0x80185F94; // size:0x10 defined:True
-gMapAkropolisPromenadeVariant1Placements = 0x8017B82C; // absolute:True owner=map_akropolis
-gMapAkropolisPromenadeVariant2Placements = 0x8017B85C; // absolute:True owner=map_akropolis
-gMapAkropolisPromenadeVariant3Placements = 0x8017B8DC; // absolute:True owner=map_akropolis
-gMapAkropolisPromenadeVariant7Placements = 0x8017B98C; // absolute:True owner=map_akropolis
-gMapAkropolisPromenadeVariant8Placements = 0x8017B9AC; // absolute:True owner=map_akropolis
 _gAkropolisPromenadeBattleFollowupScript = 0x80180F00; // size:0x168 defined:True
 _gAkropolisPromenadeBattleFollowupSkipScript = 0x80181068; // size:0xD8 defined:True
 _gAkropolisBridgeWaterSurfaceModelSkeleton = 0x8017FE04; // size:0x24 defined:True

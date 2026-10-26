@@ -44,12 +44,6 @@ _gAkropolisPatioView9SpriteBatches = 0x80185E50; // size:0x78 defined:True
 _gAkropolisPatioView10SpriteBatches = 0x80185EC8; // size:0x10 defined:True
 _gAkropolisPatioView11SpriteBatches = 0x80185ED8; // size:0x10 defined:True
 _gAkropolisPatioView12SpriteBatches = 0x80185EE8; // size:0x10 defined:True
-gMapAkropolisPatioVariant1Placements = 0x8017ACFC; // absolute:True owner=map_akropolis
-gMapAkropolisPatioVariant2Placements = 0x8017AD2C; // absolute:True owner=map_akropolis
-gMapAkropolisPatioVariant3Placements = 0x8017AD7C; // absolute:True owner=map_akropolis
-gMapAkropolisPatioVariant4Placements = 0x8017ADEC; // absolute:True owner=map_akropolis
-gMapAkropolisPatioVariant5Placements = 0x8017AE3C; // absolute:True owner=map_akropolis shared=mapui
-gMapAkropolisPatioVariant10Placements = 0x8017AE6C; // absolute:True owner=map_akropolis
 _gAkropolisPatioAmbushSkipScript = 0x80182BE4; // size:0x1F8 defined:True
 _gAkropolisPatioLeapingStranger1StartPlacement = 0x8018275C; // size:0x18 defined:True
 _gAkropolisPatioLeapingStranger1Launch = 0x80182774; // size:0x18 defined:True

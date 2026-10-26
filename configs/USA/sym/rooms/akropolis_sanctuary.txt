@@ -74,8 +74,6 @@ _gAkropolisSanctuarySurfaceClass1Properties = 0x801863E8; // size:0x8 defined:Tr
 _gAkropolisSanctuarySurfaceClass2Properties = 0x801863F0; // size:0x8 defined:True
 gAkropolisSanctuarySurfacePropertiesByClass = 0x801863F8; // size:0x20 defined:True
 _gAkropolisSanctuaryArrivalAreaUpdates = 0x80186418; // size:0x2C defined:True
-gMapAkropolisSanctuaryNo9AndRupertPlacements = 0x8017BA5C; // absolute:True owner=map_akropolis
-gMapAkropolisSanctuaryRupertPlacements = 0x8017BA8C; // absolute:True owner=map_akropolis
 _gItemBoxModelSkeleton = 0x80186444; // size:0x6C defined:True
 _gItemBoxModelPartVerts = 0x801864B0; // size:0xC defined:True
 _gItemBoxModelVerts = 0x801864BC; // size:0x1C0 defined:True

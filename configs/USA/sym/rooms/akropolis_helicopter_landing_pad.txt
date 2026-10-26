@@ -59,8 +59,6 @@ _gAkropolisHelicopterLandingPadView23SpriteBatches = 0x801877D0; // size:0x10 de
 _gAkropolisHelicopterLandingPadView24SpriteBatches = 0x801877E0; // size:0x10 defined:True
 _gAkropolisHelicopterLandingPadView25SpriteBatches = 0x801877F0; // size:0x10 defined:True
 _gAkropolisHelicopterLandingPadView26SpriteBatches = 0x80187800; // size:0x10 defined:True
-gMapAkropolisHelicopterLandingPadVariant1Placements = 0x8017BD2C; // absolute:True owner=map_akropolis
-gMapAkropolisHelicopterLandingPadVariant2Placements = 0x8017BD4C; // absolute:True owner=map_akropolis
 gAkropolisHelicopterLandingPadMovieTasks = 0x80184E68; // size:0x18 defined:True
 gAkropolisHelicopterLandingPadCollisionRoomResources = 0x80184F10; // size:0x10 defined:True
 _gAkropolisHelicopterLandingPadViewMap = 0x80184F20; // size:0x1C defined:True

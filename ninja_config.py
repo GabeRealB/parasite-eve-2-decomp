@@ -335,10 +335,11 @@ EXPORTS_DIR = BUILD_DIR / "exports"
 
 
 def write_export_symbols() -> None:
-    """build/exports/<overlay>.txt: for each package that binds others (asset type `package`, `slots`), the absolute
-    address of every export its bindings name - `symbol = address;`, the address the export's offset at its package's
-    memory slot - which the overlay's link resolves its C's references to them by (package.py). Rewritten only when
-    its content changes, since the split reads it (split_inputs)."""
+    """build/exports/<overlay>.txt: for each package that binds or requires others (asset type `package`, `slots`,
+    `requires`), the absolute address of every export its decoded data names, `<binding>.<export>` or
+    `<required package>.<export>` - `symbol = address;`, the export's offset at its package's memory slot - which the
+    overlay's link resolves its C's references to them by (package.py). Rewritten only when its content changes,
+    since the split reads it (split_inputs)."""
     import importlib.util
     data, _schema = asset_tables()
     spec = importlib.util.spec_from_file_location("package", TOOLS_DIR / "peassets" / "package.py")
@@ -347,17 +348,19 @@ def write_export_symbols() -> None:
     spec.loader.exec_module(package)
     EXPORTS_DIR.mkdir(parents=True, exist_ok=True)
     for key, rec in data.ASSETS.items():
-        if rec.get("type") != "package" or not rec.get("slots"):
+        if rec.get("type") != "package" or not (rec.get("slots") or rec.get("requires")):
             continue
-        # the exports its decoded data references, `<binding>.<export>` (room/), each once
+        # the exports its decoded data references (room/), each once
         own = rec["group"] if rec.get("load", {}).get("slot") in ("room", "stage") else f"{rec['group']}/{key.rsplit('/', 1)[1]}"
         texts = [p.read_text() for p in (ASSETS_DIR / "USA" / own).glob("*.toml")] + \
                 [p.read_text() for p in (ASSETS_DIR / "USA" / own).glob("*.evs")]
-        used = {m for t in texts for m in re.findall(r'"?\b([a-z][a-z0-9_]*\.[a-z][a-z0-9_]*)\b"?', t)}
+        used = {m for t in texts for m in re.findall(r'"?\b([a-z][a-z0-9_/]*\.[a-z][a-z0-9_]*)\b"?', t)}
         lines, seen = [], {}
-        for binding, bound in sorted(rec["slots"].items()):
-            base = package.load_address(bound, data.ASSETS)
-            for export, e in sorted((data.ASSETS[bound].get("exports") or {}).items()):
+        named = {**{r: r for r in package.resident(key, data.ASSETS)}, **(rec.get("slots") or {})}
+        for binding, bound in sorted(named.items()):
+            exports = data.ASSETS[bound].get("exports") or {}
+            base = package.load_address(bound, data.ASSETS) if exports else 0
+            for export, e in sorted(exports.items()):
                 if f"{binding}.{export}" not in used:
                     continue
                 address = base + e["at"]

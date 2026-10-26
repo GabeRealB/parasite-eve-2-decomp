@@ -88,16 +88,7 @@ def own_dir(name: str, assets: dict) -> str:
 
 def resident(name: str, assets: dict, kind: str) -> str | None:
     """The package of a kind (room, stage) resident whenever `name` is: one its `requires` name, or theirs."""
-    seen, todo = set(), list(assets[name].get("requires", ()))
-    while todo:
-        r = todo.pop(0)
-        if r in seen:
-            continue
-        seen.add(r)
-        if kind_of(r, assets) == kind:
-            return r
-        todo += assets[r].get("requires", ())
-    return None
+    return next((r for r in package_decl.resident(name, assets) if kind_of(r, assets) == kind), None)
 
 
 def home(name: str, assets: dict) -> str:
@@ -169,12 +160,15 @@ def images(name: str, assets: dict, embedded: dict, assets_root: Path) -> tuple[
     actor = ((assets[name]["package_name"], shape.stored_bytes(name, ctx), package_decl.load_address(name, assets))
              if room != name else None)
     return Images(stage, shape.stored_bytes(overlay, ctx), assets[room]["package_name"],
-                  shape.stored_bytes(room, ctx), shape.stored_bytes("gameplay", ctx), actor), area
+                  shape.stored_bytes(room, ctx), shape.stored_bytes("gameplay", ctx), actor,
+                  stage_symbols=assets[overlay].get("type") != "package"), area
 
 
 # --- decode ----------------------------------------------------------------------------------------------------
 
-def _name_of(im: Images, objs: dict):
+def _name_of(im: Images, objs: dict, foreign: dict[int, str]):
+    """Names pointers: the package's own objects, then the exports of the packages it requires (`foreign`), then
+    what the symbol maps give."""
     def name_of(a: int):
         if a == 0:
             return 0
@@ -184,7 +178,7 @@ def _name_of(im: Images, objs: dict):
                 if rest:
                     raise SystemExit(f"0x{a:08X} points inside an element of {im.names[o.address]}")
                 return im.names[o.address] + (f"[{k}]" if k else "")
-        return im.names.get(a, a)                         # an address nothing names (stale bytes): kept as stored
+        return foreign.get(a) or im.names.get(a, a)       # an address nothing names (stale bytes): kept as stored
     return name_of
 
 
@@ -249,7 +243,7 @@ def decode_room(name: str, assets: dict, embedded: dict, assets_root: Path) -> d
         states, objs, roles = walk(im, area, assets[name].get("entries", {}))
         area_names = {}
     _KINDS[name] = {im.names[a]: o.kind for a, o in objs.items() if a in im.names}
-    name_of = _name_of(im, objs)
+    name_of = _name_of(im, objs, package_decl.required_exports(name, assets))
     entry = {}
     for role, points in roles.items():
         if role == "vibrations":
@@ -512,8 +506,14 @@ def c_files(name: str, assets: dict, embedded: dict, assets_root: Path) -> dict[
 
     def pointer(ref: str) -> str:
         export = package_decl.export_of(name, assets, ref)
-        if export:                                        # an export of a bound package, by its C symbol
+        if export:                                        # an export of a bound or required package, by its C symbol
             uses["symbols"].add(export[1])
+            owner = ref.partition(".")[0]
+            owner = package_decl.bindings(name, assets).get(owner, owner)
+            if kind_of(owner, assets) in ("room", "stage"):     # a decoded object: an array is named bare
+                theirs = {s: r for m in read(owner, assets, assets_root)["modules"].values() for s, r in m.items()}
+                if "values" in theirs.get(export[1], {}):
+                    return export[1]
             return f"&{export[1]}"
         m = re.fullmatch(r"(\w+)(?:\[(\d+)\])?", ref)
         if m.group(1) not in objects:

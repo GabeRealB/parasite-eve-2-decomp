@@ -228,7 +228,6 @@ gMistShootingGallerySurfacePropertiesByClass = 0x8018E09C; // size:0x20 defined:
 gMistShootingGalleryUnscaledExp = 0x8018E0BC; // size:0x4 defined:True
 gMistShootingGalleryUnscaledBp = 0x8018E0C0; // size:0x4 defined:True
 gMistShootingGalleryControllerTask = 0x8018E0C4; // size:0x4 defined:True
-gMapAkropolisMistShootingGalleryPlacements = 0x8017BDEC; // absolute:True owner=map_akropolis
 _gMistShootingGalleryBonusPanelDesc = 0x8018501C; // size:0x1C defined:True
 _gMistShootingGalleryModeRowCallbacks = 0x80185038; // size:0x4 defined:True
 _gMistShootingGalleryModeList = 0x8018503C; // size:0x24 defined:True

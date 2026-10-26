@@ -41,10 +41,6 @@ _gAkropolisRoofGardenSilentSurfaceProperties = 0x80186D98; // size:0x8 defined:T
 _gAkropolisRoofGardenSurfaceClass1Properties = 0x80186DA0; // size:0x8 defined:True
 _gAkropolisRoofGardenSurfaceClass2Properties = 0x80186DA8; // size:0x8 defined:True
 gAkropolisRoofGardenSurfacePropertiesByClass = 0x80186DB0; // size:0x20 defined:True
-gMapAkropolisRoofGardenVariant1Placements = 0x8017BABC; // absolute:True owner=map_akropolis
-gMapAkropolisRoofGardenVariant2Placements = 0x8017BB1C; // absolute:True owner=map_akropolis
-gMapAkropolisRoofGardenVariant7Placements = 0x8017BB9C; // absolute:True owner=map_akropolis
-gMapAkropolisRoofGardenVariant8Placements = 0x8017BBFC; // absolute:True owner=map_akropolis
 _gAkropolisRoofGardenMaggotCaterpillarEntranceScript = 0x80184B08; // size:0xF0 defined:True
 _gAkropolisRoofGardenEntranceStartPlayerAnimation = 0x80184ACC; // size:0x14 defined:True
 _gAkropolisRoofGardenEntranceEndPlayerAnimation = 0x80184AE0; // size:0x14 defined:True

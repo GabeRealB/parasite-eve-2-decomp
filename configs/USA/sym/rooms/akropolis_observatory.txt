@@ -45,11 +45,6 @@ _gAkropolisObservatoryView2SpriteSources = 0x801817A4; // size:0x3D4 defined:Tru
 _gAkropolisObservatoryView2SpriteBatches = 0x80181B78; // size:0x38 defined:True
 _gAkropolisObservatoryView3SpriteSources = 0x80181BB0; // size:0x4C4 defined:True
 _gAkropolisObservatoryView3SpriteBatches = 0x80182074; // size:0xB0 defined:True
-gMapAkropolisObservatoryVariant1Placements = 0x8017B6DC; // absolute:True owner=map_akropolis
-gMapAkropolisObservatoryVariant2Placements = 0x8017B70C; // absolute:True owner=map_akropolis
-gMapAkropolisObservatoryVariant3Placements = 0x8017B73C; // absolute:True owner=map_akropolis
-gMapAkropolisObservatoryVariant7Placements = 0x8017B7DC; // absolute:True owner=map_akropolis
-gMapAkropolisObservatoryVariant10Placements = 0x8017B80C; // absolute:True owner=map_akropolis
 _gAkropolisObservatorySceneFollowUpClips = 0x8017FE68; // size:0x4 defined:True
 gAkropolisObservatoryScriptedBattleTaskDesc = 0x8017FE6C; // size:0xC defined:True
 gAkropolisObservatoryArrivalTaskDescs = 0x8017E7DC; // size:0x30 defined:True

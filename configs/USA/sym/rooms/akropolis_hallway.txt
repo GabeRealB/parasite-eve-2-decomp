@@ -45,10 +45,6 @@ _gAkropolisHallwayPainRelieverPickupModelVerts = 0x8017F8A8; // size:0xA8 define
 _gAkropolisHallwayPainRelieverPickupModelNormals = 0x8017F950; // size:0x30 defined:True
 _gAkropolisHallwayPainRelieverPickupModelStream = 0x8017F980; // size:0xA8 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
-gMapAkropolisHallwayVariant1Placements = 0x8017B04C; // absolute:True owner=map_akropolis
-gMapAkropolisHallwayVariant2Placements = 0x8017B0DC; // absolute:True owner=map_akropolis
-gMapAkropolisHallwayVariant3Placements = 0x8017B0FC; // absolute:True owner=map_akropolis
-gMapAkropolisHallwayVariant4Placements = 0x8017B11C; // absolute:True owner=map_akropolis
 
 akropolisHallwayRoomEffectTask = 0x8017D828; // type:func
 _actorContactApplyGridPushback = 0x8017D830; // type:func

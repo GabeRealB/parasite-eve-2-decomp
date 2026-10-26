@@ -125,10 +125,36 @@ def resolve_export(name: str, assets: dict[str, dict[str, Any]], address: int, f
     return hits[0] if len(hits) == 1 else None
 
 
+def resident(name: str, assets: dict[str, dict[str, Any]]) -> list[str]:
+    """The packages resident whenever `name` is: its `requires`, and theirs."""
+    out, todo = [], list(assets[name].get("requires", ()))
+    while todo:
+        r = todo.pop(0)
+        if r not in out:
+            out.append(r)
+            todo += assets[r].get("requires", ())
+    return out
+
+
+def required_exports(name: str, assets: dict[str, dict[str, Any]]) -> dict[int, str]:
+    """{address: `<package>.<export>`} for the exports of every package resident whenever `name` is."""
+    out = {}
+    for package in resident(name, assets):
+        exports = assets[package].get("exports") or {}
+        if exports:
+            base = load_address(package, assets)
+            for export, e in exports.items():
+                out[base + e["at"]] = f"{package}.{export}"
+    return out
+
+
 def export_of(name: str, assets: dict[str, dict[str, Any]], ref: str) -> tuple[int, str] | None:
-    """(address, C symbol) of `<binding>.<export>`, or None where `ref` is no such reference."""
+    """(address, C symbol) of `<binding>.<export>` or `<required package>.<export>`, or None where `ref` is no such
+    reference."""
     binding, _, export = ref.partition(".")
     package = bindings(name, assets).get(binding)
+    if package is None and binding in resident(name, assets):
+        package = binding
     if not export or package is None:
         return None
     e = (assets[package].get("exports") or {}).get(export)

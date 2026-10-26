@@ -47,14 +47,15 @@ END_MARKS = {
 }
 
 
-def symbol_map(path: Path, owner: str | None = None) -> dict[int, str]:
-    """Address -> name from a symbol map; a stage map's room symbols only for `owner`."""
+def symbol_map(path: Path, owner: str | None = None, owned_only: bool = False) -> dict[int, str]:
+    """Address -> name from a symbol map; a stage map's room symbols only for `owner`, and with `owned_only` nothing
+    else."""
     out = {}
     for line in path.read_text().splitlines():
         m = re.match(r"(\w+)\s*=\s*(0x[0-9A-Fa-f]+);(.*)", line)
         if m:
             o = re.search(r"owner=(\w+)", m.group(3))
-            if o is None or o.group(1) == owner:
+            if (o is None and not owned_only) or (o is not None and o.group(1) == owner):
                 out[int(m.group(2), 16)] = m.group(1)
     return out
 
@@ -65,13 +66,14 @@ class Images:
     package, image and load address), else the room's, or the stage overlay's where `room_name` is None."""
 
     def __init__(self, stage: int, stage_image: bytes, room_name: str | None, room: bytes, gameplay: bytes,
-                 actor: tuple[str, bytes, int] | None = None):
+                 actor: tuple[str, bytes, int] | None = None, stage_symbols: bool = True):
         self.stage, (self.stage_name,) = stage, STAGES[stage]
         self.stage_image, self.room_name, self.room, self.gameplay = stage_image, room_name, room, gameplay
         self.own, self.base = (room, ROOM_LOAD) if room_name else (stage_image, STAGE_LOAD)
         sym = ROOT / "configs" / "USA"
         self.names = {**symbol_map(sym / "sym.main.txt"), **symbol_map(sym / "sym.gameplay.txt"),
-                      **symbol_map(sym / "sym" / "mapui" / f"{self.stage_name}.txt", room_name or "-"),
+                      **symbol_map(sym / "sym" / "mapui" / f"{self.stage_name}.txt", room_name or "-",
+                                   owned_only=not stage_symbols),   # a required stage's own names: its exports
                       **(symbol_map(sym / "sym" / "rooms" / f"{room_name}.txt") if room_name else {})}
         self.package = None
         if actor:

@@ -23,12 +23,6 @@ _gAkropolisCafeteriaRookGolemResources = 0x80189DB4; // size:0x18 defined:True
 gAkropolisCafeteriaAreaVariants = 0x80189DCC; // size:0x58 defined:True
 gAkropolisCafeteriaPointLights = 0x80189E24; // size:0x5A0 defined:True
 gAkropolisCafeteriaSpotLightStorage = 0x8018A3C4; // size:0x654 defined:True
-gMapAkropolisCafeteriaVariant1Placements = 0x8017AE9C; // absolute:True owner=map_akropolis
-gMapAkropolisCafeteriaVariant2Placements = 0x8017AEDC; // absolute:True owner=map_akropolis
-gMapAkropolisCafeteriaVariant3Placements = 0x8017AF1C; // absolute:True owner=map_akropolis
-gMapAkropolisCafeteriaVariant4Placements = 0x8017AF3C; // absolute:True owner=map_akropolis
-gMapAkropolisCafeteriaVariant5Placements = 0x8017AF6C; // absolute:True owner=map_akropolis
-gMapAkropolisCafeteriaVariant7Placements = 0x8017AFCC; // absolute:True owner=map_akropolis
 _gAkropolisCafeteriaRoom1ActionTriggers = 0x801891E4; // size:0x4C0 defined:True
 gAkropolisCafeteriaCollisionRooms = 0x8018753C; // size:0x40 defined:True
 _gAkropolisCafeteriaRooms2And3ViewMap = 0x8018757C; // size:0x18 defined:True

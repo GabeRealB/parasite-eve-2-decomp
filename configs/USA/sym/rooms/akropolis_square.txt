@@ -101,7 +101,6 @@ _gAkropolisSquareBackdropScrollX = 0x801888A0; // size:0x4 defined:True
 _gAkropolisSquareBackdropPhaseFrames = 0x801888A4; // size:0x4 defined:True
 gRoomCutsceneSoundTask = 0x801888A8; // size:0x4 defined:True
 _gAkropolisSquareCutsceneRec = 0x801888AC; // size:0x20 defined:True
-gMapAkropolisSquareVariant1Placements = 0x8017ACBC; // absolute:True owner=map_akropolis
 _gAkropolisSquareTelephoneCoord = 0x801888CC; // size:0x50 defined:True
 
 akropolisSquareStartTelephoneScene = 0x80182360; // type:func
