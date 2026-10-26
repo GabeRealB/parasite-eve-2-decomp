@@ -19,10 +19,10 @@
 #include "main/task_types.h"
 
 /// Live fixed-marker count; the marker records add a page-zero terminator.
-enum { MAP_AKROPOLIS_MARKER_COUNT = 14 };
+enum { AKROPOLIS_STAGE_MARKER_COUNT = 14 };
 
 /// Scene columns per area in the flat area-music table.
-enum { MAP_AKROPOLIS_MUSIC_COLUMN_COUNT = 8 };
+enum { AKROPOLIS_STAGE_MUSIC_COLUMN_COUNT = 8 };
 
 /// Places movie decode buffers for the current Acropolis area.
 ///
@@ -34,7 +34,7 @@ enum { MAP_AKROPOLIS_MUSIC_COLUMN_COUNT = 8 };
 /// decoded columns in VRAM at (704,0) or (384,256), in words/rows. Other areas
 /// retain the preceding buffer pointers. No allocation or bounds check occurs.
 /// Storage remains borrowed by the decoder through playback.
-void mapAkropolisSetupMovieBuffers(const GameLocationKey* location);
+void akropolisStageSetupMovieBuffers(const GameLocationKey* location);
 
 /// Queues the MIST briefing's four-item menu as a display-mode task.
 ///
@@ -42,13 +42,13 @@ void mapAkropolisSetupMovieBuffers(const GameLocationKey* location);
 /// items collected and clears the Dryfield-map choice; nonzero preserves it.
 /// Always returns 1, including when queueing fails. The singleton list and
 /// choice storage require this overlay to remain loaded throughout the menu.
-s32 mapAkropolisOpenKeyItemMenu(s32 unused, s32 retainSelection);
+s32 akropolisStageOpenKeyItemMenu(s32 unused, s32 retainSelection);
 
 /// Returns 1 once the briefing menu has opened the Dryfield map, otherwise 0.
 ///
 /// The latch survives menu closure and reopening with nonzero retainSelection.
 /// A fresh menu request clears it; opening another item's detail does not.
-s32 mapAkropolisWasDryfieldMapSelected(void);
+s32 akropolisStageWasDryfieldMapSelected(void);
 
 /// Captured-frame and auxiliary-memory regions for Acropolis and MIST areas.
 ///
@@ -56,7 +56,7 @@ s32 mapAkropolisWasDryfieldMapSelected(void);
 /// frame transfer. Each nonempty extent ends at the resident image workspace,
 /// rather than measuring the captured frame. The map overlay must be loaded
 /// while selecting a slot; the selected arena is separate borrowed RAM.
-extern GfxImageSlot gMapAkropolisImageSlots[GAME_AREA_MIST_R21 + 1];
+extern GfxImageSlot gAkropolisStageImageSlots[GAME_AREA_MIST_R21 + 1];
 
 /// Movie-workspace reservations in bytes for Acropolis and MIST areas.
 ///
@@ -65,15 +65,15 @@ extern GfxImageSlot gMapAkropolisImageSlots[GAME_AREA_MIST_R21 + 1];
 /// Promenade and Bridge reserve storage. Area 21 has no entry. These are total
 /// workspace requests, not decoded-frame sizes; the map overlay must be loaded
 /// when the CD subsystem reads them.
-extern s32 gMapAkropolisMovieWorkspaceBytesByArea[GAME_AREA_MIST_SHOOTING_GALLERY + 1];
+extern s32 gAkropolisStageMovieWorkspaceBytesByArea[GAME_AREA_MIST_SHOOTING_GALLERY + 1];
 
 /// Area music for Acropolis and MIST, in flat rows of eight scene columns.
 ///
-/// Index is area ID * `MAP_AKROPOLIS_MUSIC_COLUMN_COUNT` + column: areas
+/// Index is area ID * `AKROPOLIS_STAGE_MUSIC_COLUMN_COUNT` + column: areas
 /// 0..20, columns 0..7. There is no area-21 row or terminator. Each row's first
 /// entry also controls ambient eligibility. Keep this overlay loaded throughout
 /// music selection and any music task borrowing an entry.
-extern StageMusicEntry gMapAkropolisAreaMusicEntries[(GAME_AREA_MIST_SHOOTING_GALLERY + 1) * MAP_AKROPOLIS_MUSIC_COLUMN_COUNT];
+extern StageMusicEntry gAkropolisStageAreaMusicEntries[(GAME_AREA_MIST_SHOOTING_GALLERY + 1) * AKROPOLIS_STAGE_MUSIC_COLUMN_COUNT];
 
 /// Scene-indexed countdown music for Acropolis and MIST.
 ///
@@ -81,7 +81,7 @@ extern StageMusicEntry gMapAkropolisAreaMusicEntries[(GAME_AREA_MIST_SHOOTING_GA
 /// bounds check or terminator. Entries 0..12 hold explicit scene selections;
 /// entries 13..19 retain sequence zero and start mode zero. Keep this overlay
 /// loaded until the music task finishes using its selection.
-extern StageMusicEntry gMapAkropolisCountdownMusicEntries[20];
+extern StageMusicEntry gAkropolisStageCountdownMusicEntries[20];
 
 /// Navigation gates for the Acropolis and MIST map pages.
 ///
@@ -89,7 +89,7 @@ extern StageMusicEntry gMapAkropolisCountdownMusicEntries[20];
 /// with visited-area fallback when it is zero. Page 3 (MIST) uses 0xFF to
 /// suppress page navigation. Slot 0 is the left boundary; slots 4..7 are
 /// retained zero bytes outside the used page range. Keep this overlay loaded.
-extern u8 gMapAkropolisPageFlagIds[8];
+extern u8 gAkropolisStagePageFlagIds[8];
 
 /// Area-to-map coordinate mappings for Acropolis and MIST.
 ///
@@ -97,7 +97,7 @@ extern u8 gMapAkropolisPageFlagIds[8];
 /// `MENU_MAP_AREA_PAGE_NONE`. Record 21 is `MENU_MAP_AREA_PAGE_END` for page
 /// availability walks. Origins use world X/Z units, map points use pixels and
 /// scales use world units per pixel. Keep this overlay loaded for lookup.
-extern MenuMapArea gMapAkropolisAreas[GAME_AREA_MIST_SHOOTING_GALLERY + 2];
+extern MenuMapArea gAkropolisStageAreas[GAME_AREA_MIST_SHOOTING_GALLERY + 2];
 
 /// Area shapes and icon-only page selections for Acropolis and MIST.
 ///
@@ -106,14 +106,14 @@ extern MenuMapArea gMapAkropolisAreas[GAME_AREA_MIST_SHOOTING_GALLERY + 2];
 /// Keep this map loaded during drawing, and load the selected page's picture
 /// package before dereferencing a shape model from that page.
 /// MIST areas 19 and 20 have no shape model; only their icons are drawn.
-extern MenuMapAreaShape gMapAkropolisAreaShapes[GAME_AREA_MIST_SHOOTING_GALLERY + 1];
+extern MenuMapAreaShape gAkropolisStageAreaShapes[GAME_AREA_MIST_SHOOTING_GALLERY + 1];
 
 /// Fixed map markers on Acropolis page 1, followed by a page-zero terminator.
 ///
-/// Indices 0..13 correspond to `gMapAkropolisMarkerFlags`; a flag nibble of
+/// Indices 0..13 correspond to `gAkropolisStageMarkerFlags`; a flag nibble of
 /// two shows its marker independently of area visits. Coordinates are signed
 /// map pixels. Keep this overlay loaded while drawing.
-extern MenuMapMarker gMapAkropolisMarkers[MAP_AKROPOLIS_MARKER_COUNT + 1];
+extern MenuMapMarker gAkropolisStageMarkers[AKROPOLIS_STAGE_MARKER_COUNT + 1];
 
 /// Telephone, fixed-picture and objective icons for Acropolis and MIST.
 ///
@@ -122,14 +122,14 @@ extern MenuMapMarker gMapAkropolisMarkers[MAP_AKROPOLIS_MARKER_COUNT + 1];
 /// objective icon compares its condition with the current objective byte.
 /// The kind-zero picture's appearance is unproven. Coordinates are signed
 /// map pixels. Keep this overlay loaded while drawing.
-extern MenuMapIcon gMapAkropolisIcons[6];
+extern MenuMapIcon gAkropolisStageIcons[6];
 
 /// Area names displayed by the Acropolis and MIST map.
 ///
 /// Indexed by area ID minus one for areas 1..21, without a terminator. Each
 /// record is a NUL-terminated ASCII line in 32 bytes; MIST areas 18 and 21
 /// have empty names. Keep this overlay loaded while measuring or drawing.
-extern MenuMapAreaName gMapAkropolisAreaNames[GAME_AREA_MIST_R21];
+extern MenuMapAreaName gAkropolisStageAreaNames[GAME_AREA_MIST_R21];
 
 /// Placed-object state and spawn directory for Acropolis and MIST areas 0..20.
 ///
@@ -141,7 +141,7 @@ extern MenuMapAreaName gMapAkropolisAreaNames[GAME_AREA_MIST_R21];
 /// Flag-index publication requires an index listed in a place list: its search
 /// uses a different terminator and cannot safely handle a miss in this
 /// directory.
-extern AreaObjectRoom gMapAkropolisObjectRooms[GAME_AREA_MIST_SHOOTING_GALLERY + 2];
+extern AreaObjectRoom gAkropolisStageObjectRooms[GAME_AREA_MIST_SHOOTING_GALLERY + 2];
 
 /// Room-controller recipes for twenty Acropolis and MIST areas.
 ///
@@ -150,15 +150,15 @@ extern AreaObjectRoom gMapAkropolisObjectRooms[GAME_AREA_MIST_SHOOTING_GALLERY +
 /// Plaza has no recipe. Bodyless tasks run at priority `TASK_PRIORITY_SCENE`; the final
 /// `TASK_DESC_END` entry closes lookup. Keep this map and the selected room
 /// callback's overlay loaded through spawning and task execution.
-extern TaskDesc gMapAkropolisRoomTaskDescriptors[21];
+extern TaskDesc gAkropolisStageRoomTaskDescriptors[21];
 
 /// Packed flag and picture selectors for the Acropolis fixed map markers.
 ///
-/// Indices 0..13 correspond to `gMapAkropolisMarkers`, excluding its ending
+/// Indices 0..13 correspond to `gAkropolisStageMarkers`, excluding its ending
 /// record. Low 11 bits select a game-flag nibble; bit 11 selects the alternate
 /// picture. Every entry here selects the ordinary picture. There is no
 /// terminator. Keep this overlay loaded while reading marker state.
-extern u16 gMapAkropolisMarkerFlags[MAP_AKROPOLIS_MARKER_COUNT];
+extern u16 gAkropolisStageMarkerFlags[AKROPOLIS_STAGE_MARKER_COUNT];
 
 /// Per-area room-lighting arrays for Acropolis and MIST.
 ///
@@ -166,7 +166,7 @@ extern u16 gMapAkropolisMarkerFlags[MAP_AKROPOLIS_MARKER_COUNT];
 /// array. There is no terminator or area-21 entry. Each room overlay owns its
 /// descriptors and must remain loaded while they are read or updated; the
 /// map overlay owns only this area directory.
-extern WorldCoordRoomLighting* gMapAkropolisAreaRoomLightingTables[GAME_AREA_MIST_SHOOTING_GALLERY];
+extern WorldCoordRoomLighting* gAkropolisStageAreaRoomLightingTables[GAME_AREA_MIST_SHOOTING_GALLERY];
 
 /// Collision room-resource directory for Acropolis and MIST areas 1..20.
 ///
@@ -174,7 +174,7 @@ extern WorldCoordRoomLighting* gMapAkropolisAreaRoomLightingTables[GAME_AREA_MIS
 /// is no terminator or area-21 entry. The map owns the area directory and
 /// borrows room-overlay grid, trigger and occluder descriptors. Keep this map
 /// loaded during lookup and each selected room's resources loaded until unbound.
-extern WorldCollisionStageResources gMapAkropolisWorldCollisionResources;
+extern WorldCollisionStageResources gAkropolisStageWorldCollisionResources;
 
 /// Sprite-view directory for Acropolis and MIST areas 1..20.
 ///
@@ -183,7 +183,7 @@ extern WorldCollisionStageResources gMapAkropolisWorldCollisionResources;
 /// area's sprite descriptor at index minus one; its source/batch/clipping lists
 /// stay borrowed from the room overlay. Both map and selected room overlays
 /// must remain loaded during lookup.
-extern SpriteAreaTable gMapAkropolisSpriteAreaTable;
+extern SpriteAreaTable gAkropolisStageSpriteAreaTable;
 
 /// Warp-endpoint arrays for Acropolis and MIST areas 1..20.
 ///
@@ -191,7 +191,7 @@ extern SpriteAreaTable gMapAkropolisSpriteAreaTable;
 /// variants share the area's endpoints. There is no terminator or area-21
 /// entry. Endpoints supply departure facing/sounds and arrival placements/view.
 /// Keep this map and the selected room overlay loaded while copying an entry.
-extern DirectionWarpEntry* gMapAkropolisAreaWarpEntries[GAME_AREA_MIST_SHOOTING_GALLERY];
+extern DirectionWarpEntry* gAkropolisStageAreaWarpEntries[GAME_AREA_MIST_SHOOTING_GALLERY];
 
 /// Logical-view search counts for Acropolis and MIST areas 1..20.
 ///
@@ -199,7 +199,7 @@ extern DirectionWarpEntry* gMapAkropolisAreaWarpEntries[GAME_AREA_MIST_SHOOTING_
 /// Counts are signed halfword element counts, independent of camera, image
 /// and sprite capacities. There is no terminator or area-21 entry. Keep this
 /// map and the selected room overlay loaded during lookup.
-extern ViewCountTable gMapAkropolisViewCountTable;
+extern ViewCountTable gAkropolisStageViewCountTable;
 
 /// Camera directory for Acropolis and MIST areas 1..20.
 ///
@@ -208,7 +208,7 @@ extern ViewCountTable gMapAkropolisViewCountTable;
 /// camera at index minus one. Camera transforms and projection distances stay
 /// borrowed from the room overlay. Both map and selected room overlays must
 /// remain loaded during lookup.
-extern ViewCameraTable gMapAkropolisViewCameraTable;
+extern ViewCameraTable gAkropolisStageViewCameraTable;
 
 /// Logical-view mapping directory for Acropolis and MIST areas 1..20.
 ///
@@ -216,7 +216,7 @@ extern ViewCameraTable gMapAkropolisViewCameraTable;
 /// Has no terminator or area-21 entry. The map overlay owns the area directory;
 /// selected room directories and writable maps require their room overlay to
 /// remain loaded. Shared identity maps instead belong to gameplay.
-extern ViewIndexTable gMapAkropolisViewIndexTable;
+extern ViewIndexTable gAkropolisStageViewIndexTable;
 
 /// Per-area collision-surface policy directories for Acropolis and MIST.
 ///
@@ -224,21 +224,21 @@ extern ViewIndexTable gMapAkropolisViewIndexTable;
 /// of the room variant. There is no terminator or area-21 entry. Each selected
 /// class must provide a record in its loaded room overlay; records and footstep
 /// tables remain borrowed for that overlay's lifetime.
-extern WorldCollisionSurfaceProperties** gMapAkropolisSurfacePropertiesByArea[GAME_AREA_MIST_SHOOTING_GALLERY];
+extern WorldCollisionSurfaceProperties** gAkropolisStageSurfacePropertiesByArea[GAME_AREA_MIST_SHOOTING_GALLERY];
 
 /// One Grinning Stranger for the Square opening layout.
 ///
 /// XYZ use world units; yaw uses 4096 units per turn. `fileIdLow` is zero (base
 /// resources). The extent includes `AREA_PLACEMENT_END`; keep the map overlay
 /// loaded while actors borrow records.
-extern AreaPlacement gMapAkropolisSquareVariant1Placements[2];
+extern AreaPlacement gAkropolisStageSquareVariant1Placements[2];
 
 /// One camera-parented view figure for East elevator hall variant 1.
 ///
 /// XYZ use world units; yaw uses 4096 units per turn. `fileIdLow` is zero (base
 /// resources). The extent includes `AREA_PLACEMENT_END`; keep the map overlay
 /// loaded while actors borrow records.
-extern AreaPlacement gMapAkropolisEastElevatorHallVariant1Placements[2];
+extern AreaPlacement gAkropolisStageEastElevatorHallVariant1Placements[2];
 
 /// One SWAT member and one dormant Grinning Stranger for Patio variant 1.
 ///
@@ -246,7 +246,7 @@ extern AreaPlacement gMapAkropolisEastElevatorHallVariant1Placements[2];
 /// XYZ use world units; yaw uses 4096 units per turn. `fileIdLow` is zero (base
 /// resources). The extent includes `AREA_PLACEMENT_END`; keep the map overlay
 /// loaded while actors borrow records.
-extern AreaPlacement gMapAkropolisPatioVariant1Placements[3];
+extern AreaPlacement gAkropolisStagePatioVariant1Placements[3];
 
 /// Two scripted Grinning Strangers and two dormant Grinning Strangers for Patio
 /// variant 2.
@@ -256,7 +256,7 @@ extern AreaPlacement gMapAkropolisPatioVariant1Placements[3];
 /// turn. `fileIdLow` is zero (base resources). The extent includes
 /// `AREA_PLACEMENT_END`; keep the map overlay loaded while actors borrow
 /// records.
-extern AreaPlacement gMapAkropolisPatioVariant2Placements[5];
+extern AreaPlacement gAkropolisStagePatioVariant2Placements[5];
 
 /// Three Moths and three Rats for Patio variant 3.
 ///
@@ -265,7 +265,7 @@ extern AreaPlacement gMapAkropolisPatioVariant2Placements[5];
 /// units; yaw uses 4096 units per turn. `fileIdLow` is zero (base resources).
 /// The extent includes `AREA_PLACEMENT_END`; keep the map overlay loaded while
 /// actors borrow records.
-extern AreaPlacement gMapAkropolisPatioVariant3Placements[7];
+extern AreaPlacement gAkropolisStagePatioVariant3Placements[7];
 
 /// Two dormant Strangers and two Moths for Patio variant 4.
 ///
@@ -273,14 +273,14 @@ extern AreaPlacement gMapAkropolisPatioVariant3Placements[7];
 /// XYZ use world units; yaw uses 4096 units per turn. `fileIdLow` is zero (base
 /// resources). The extent includes `AREA_PLACEMENT_END`; keep the map overlay
 /// loaded while actors borrow records.
-extern AreaPlacement gMapAkropolisPatioVariant4Placements[5];
+extern AreaPlacement gAkropolisStagePatioVariant4Placements[5];
 
 /// Two Strangers for Patio variant 5.
 ///
 /// XYZ use world units; yaw uses 4096 units per turn. `fileIdLow` is zero (base
 /// resources). The extent includes `AREA_PLACEMENT_END`; keep the map overlay
 /// loaded while actors borrow records.
-extern AreaPlacement gMapAkropolisPatioVariant5Placements[3];
+extern AreaPlacement gAkropolisStagePatioVariant5Placements[3];
 
 /// Two unmatched stored placements for Patio variant 10.
 ///
@@ -290,7 +290,7 @@ extern AreaPlacement gMapAkropolisPatioVariant5Placements[3];
 /// units; yaw uses 4096 units per turn. `fileIdLow` is zero (base resources).
 /// The extent includes `AREA_PLACEMENT_END`; keep the map overlay loaded while
 /// actors borrow records.
-extern AreaPlacement gMapAkropolisPatioVariant10Placements[3];
+extern AreaPlacement gAkropolisStagePatioVariant10Placements[3];
 
 /// Stranger, woman and Rupert placements for the Cafeteria opening scene.
 ///
@@ -299,7 +299,7 @@ extern AreaPlacement gMapAkropolisPatioVariant10Placements[3];
 /// world units; yaw uses 4096 units per turn. `fileIdLow` is zero (base
 /// resources). The extent includes `AREA_PLACEMENT_END`; keep the map overlay
 /// loaded while actors borrow records.
-extern AreaPlacement gMapAkropolisCafeteriaVariant1Placements[4];
+extern AreaPlacement gAkropolisStageCafeteriaVariant1Placements[4];
 
 /// Stranger, scripted Grinning Stranger and Rupert placements for the Cafeteria
 /// battle scene.
@@ -309,7 +309,7 @@ extern AreaPlacement gMapAkropolisCafeteriaVariant1Placements[4];
 /// use world units; yaw uses 4096 units per turn. `fileIdLow` is zero (base
 /// resources). The extent includes `AREA_PLACEMENT_END`; keep the map overlay
 /// loaded while actors borrow records.
-extern AreaPlacement gMapAkropolisCafeteriaVariant2Placements[4];
+extern AreaPlacement gAkropolisStageCafeteriaVariant2Placements[4];
 
 /// One dormant stalking Odd Stranger for Cafeteria variant 3.
 ///
@@ -317,7 +317,7 @@ extern AreaPlacement gMapAkropolisCafeteriaVariant2Placements[4];
 /// actor's first combat-tuning row. XYZ use world units; yaw uses 4096 units per
 /// turn. `fileIdLow` is zero (base resources). The extent includes
 /// `AREA_PLACEMENT_END`; keep the map overlay loaded while actors borrow records.
-extern AreaPlacement gMapAkropolisCafeteriaVariant3Placements[2];
+extern AreaPlacement gAkropolisStageCafeteriaVariant3Placements[2];
 
 /// Two stalking Odd Strangers for Cafeteria variant 4.
 ///
@@ -326,7 +326,7 @@ extern AreaPlacement gMapAkropolisCafeteriaVariant3Placements[2];
 /// units; yaw uses 4096 units per turn. `fileIdLow` is zero (base resources).
 /// The extent includes `AREA_PLACEMENT_END`; keep the
 /// map overlay loaded while actors borrow records.
-extern AreaPlacement gMapAkropolisCafeteriaVariant4Placements[3];
+extern AreaPlacement gAkropolisStageCafeteriaVariant4Placements[3];
 
 /// Three patrolling and two idle Bone Sucklers for Cafeteria variant 5.
 ///
@@ -334,7 +334,7 @@ extern AreaPlacement gMapAkropolisCafeteriaVariant4Placements[3];
 /// zero. XYZ use world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The extent includes `AREA_PLACEMENT_END`; keep the map
 /// overlay loaded while actors borrow records.
-extern AreaPlacement gMapAkropolisCafeteriaVariant5Placements[6];
+extern AreaPlacement gAkropolisStageCafeteriaVariant5Placements[6];
 
 /// One patrolling Rook GOLEM for Cafeteria variant 7.
 ///
@@ -342,7 +342,7 @@ extern AreaPlacement gMapAkropolisCafeteriaVariant5Placements[6];
 /// use world units; yaw uses 4096 units per turn. `fileIdLow` is zero (base
 /// resources). The extent includes `AREA_PLACEMENT_END`; keep the map overlay
 /// loaded while actors borrow records.
-extern AreaPlacement gMapAkropolisCafeteriaVariant7Placements[2];
+extern AreaPlacement gAkropolisStageCafeteriaVariant7Placements[2];
 
 /// Two police-officer placements for Plaza variant 1.
 ///
@@ -351,7 +351,7 @@ extern AreaPlacement gMapAkropolisCafeteriaVariant7Placements[2];
 /// swaps. XYZ use world units; yaw uses 4096 units per turn. The extent
 /// includes `AREA_PLACEMENT_END`; keep the map overlay loaded while actors
 /// borrow records.
-extern AreaPlacement gMapAkropolisPlazaVariant1Placements[3];
+extern AreaPlacement gAkropolisStagePlazaVariant1Placements[3];
 
 /// Rupert and SWAT placements for Security room variant 1.
 ///
@@ -360,7 +360,7 @@ extern AreaPlacement gMapAkropolisPlazaVariant1Placements[3];
 /// `fileIdLow` is zero (base resources). The extent includes
 /// `AREA_PLACEMENT_END`; keep the map overlay loaded while actors borrow
 /// records.
-extern AreaPlacement gMapAkropolisSecurityRoomVariant1Placements[3];
+extern AreaPlacement gAkropolisStageSecurityRoomVariant1Placements[3];
 
 /// Eight Rats for Hallway variant 1.
 ///
@@ -368,7 +368,7 @@ extern AreaPlacement gMapAkropolisSecurityRoomVariant1Placements[3];
 /// units per turn. `fileIdLow` is zero (base resources). The extent includes
 /// `AREA_PLACEMENT_END`; keep the map overlay loaded while actors borrow
 /// records.
-extern AreaPlacement gMapAkropolisHallwayVariant1Placements[9];
+extern AreaPlacement gAkropolisStageHallwayVariant1Placements[9];
 
 /// One stalking Odd Stranger for Hallway variant 2.
 ///
@@ -376,7 +376,7 @@ extern AreaPlacement gMapAkropolisHallwayVariant1Placements[9];
 /// world units; yaw uses 4096 units per turn. `fileIdLow` is zero (base
 /// resources). The extent includes `AREA_PLACEMENT_END`; keep the map overlay
 /// loaded while actors borrow records.
-extern AreaPlacement gMapAkropolisHallwayVariant2Placements[2];
+extern AreaPlacement gAkropolisStageHallwayVariant2Placements[2];
 
 /// One stalking Odd Stranger for Hallway variant 3.
 ///
@@ -385,7 +385,7 @@ extern AreaPlacement gMapAkropolisHallwayVariant2Placements[2];
 /// world units; yaw uses 4096 units per turn. `fileIdLow` is zero (base
 /// resources). The extent includes `AREA_PLACEMENT_END`; keep the map overlay
 /// loaded while actors borrow records.
-extern AreaPlacement gMapAkropolisHallwayVariant3Placements[2];
+extern AreaPlacement gAkropolisStageHallwayVariant3Placements[2];
 
 /// One stalking Odd Stranger and four Rats for Hallway variant 4.
 ///
@@ -394,7 +394,7 @@ extern AreaPlacement gMapAkropolisHallwayVariant3Placements[2];
 /// units; yaw uses 4096 units per turn. `fileIdLow` is zero (base resources).
 /// The extent includes `AREA_PLACEMENT_END`; keep the map overlay loaded while
 /// actors borrow records.
-extern AreaPlacement gMapAkropolisHallwayVariant4Placements[6];
+extern AreaPlacement gAkropolisStageHallwayVariant4Placements[6];
 
 /// Two Mossbacks for Fountain variant 2.
 ///
@@ -402,7 +402,7 @@ extern AreaPlacement gMapAkropolisHallwayVariant4Placements[6];
 /// yaw uses 4096 units per turn. `fileIdLow` is zero (base resources). The
 /// extent includes `AREA_PLACEMENT_END`; keep the map overlay loaded while
 /// actors borrow records.
-extern AreaPlacement gMapAkropolisFountainVariant2Placements[3];
+extern AreaPlacement gAkropolisStageFountainVariant2Placements[3];
 
 /// Two large Mossbacks for Fountain variant 7.
 ///
@@ -410,7 +410,7 @@ extern AreaPlacement gMapAkropolisFountainVariant2Placements[3];
 /// use world units; yaw uses 4096 units per turn. `fileIdLow` is zero (base
 /// resources). The extent includes `AREA_PLACEMENT_END`; keep the map overlay
 /// loaded while actors borrow records.
-extern AreaPlacement gMapAkropolisFountainVariant7Placements[3];
+extern AreaPlacement gAkropolisStageFountainVariant7Placements[3];
 
 /// One dormant Grinning Stranger for Forked road variant 2.
 ///
@@ -418,7 +418,7 @@ extern AreaPlacement gMapAkropolisFountainVariant7Placements[3];
 /// units; yaw uses 4096 units per turn. `fileIdLow` is zero (base resources).
 /// The extent includes `AREA_PLACEMENT_END`; keep the map overlay loaded while
 /// actors borrow records.
-extern AreaPlacement gMapAkropolisForkedRoadVariant2Placements[2];
+extern AreaPlacement gAkropolisStageForkedRoadVariant2Placements[2];
 
 /// One Stranger and three Rats for forked-road variant 3.
 ///
@@ -426,7 +426,7 @@ extern AreaPlacement gMapAkropolisForkedRoadVariant2Placements[2];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisForkedRoadVariant3Placements[5];
+extern AreaPlacement gAkropolisStageForkedRoadVariant3Placements[5];
 
 /// Four Maggot leap entrances for forked-road variant 4.
 ///
@@ -434,7 +434,7 @@ extern AreaPlacement gMapAkropolisForkedRoadVariant3Placements[5];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisForkedRoadVariant4Placements[5];
+extern AreaPlacement gAkropolisStageForkedRoadVariant4Placements[5];
 
 /// One patrolling Pawn GOLEM and three Rats for forked-road variant 7.
 ///
@@ -442,7 +442,7 @@ extern AreaPlacement gMapAkropolisForkedRoadVariant4Placements[5];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisForkedRoadVariant7Placements[5];
+extern AreaPlacement gAkropolisStageForkedRoadVariant7Placements[5];
 
 /// Four Caterpillar leap entrances for forked-road variant 8.
 ///
@@ -450,7 +450,7 @@ extern AreaPlacement gMapAkropolisForkedRoadVariant7Placements[5];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisForkedRoadVariant8Placements[5];
+extern AreaPlacement gAkropolisStageForkedRoadVariant8Placements[5];
 
 /// One scripted dormant Odd Stranger for forked-road variant 9.
 ///
@@ -458,7 +458,7 @@ extern AreaPlacement gMapAkropolisForkedRoadVariant8Placements[5];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisForkedRoadVariant9Placements[2];
+extern AreaPlacement gAkropolisStageForkedRoadVariant9Placements[2];
 
 /// Six Rats and five Moths for forked-road variant 10.
 ///
@@ -467,7 +467,7 @@ extern AreaPlacement gMapAkropolisForkedRoadVariant9Placements[2];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisForkedRoadVariant10Placements[12];
+extern AreaPlacement gAkropolisStageForkedRoadVariant10Placements[12];
 
 /// Six Amoebas for forked-road variant 11.
 ///
@@ -475,7 +475,7 @@ extern AreaPlacement gMapAkropolisForkedRoadVariant10Placements[12];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisForkedRoadVariant11Placements[7];
+extern AreaPlacement gAkropolisStageForkedRoadVariant11Placements[7];
 
 /// Six Scorpions for forked-road variant 12.
 ///
@@ -484,7 +484,7 @@ extern AreaPlacement gMapAkropolisForkedRoadVariant11Placements[7];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisForkedRoadVariant12Placements[7];
+extern AreaPlacement gAkropolisStageForkedRoadVariant12Placements[7];
 
 /// Four Caterpillars for forked-road variant 13.
 ///
@@ -492,7 +492,7 @@ extern AreaPlacement gMapAkropolisForkedRoadVariant12Placements[7];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisForkedRoadVariant13Placements[5];
+extern AreaPlacement gAkropolisStageForkedRoadVariant13Placements[5];
 
 /// Six Bats for forked-road variant 14.
 ///
@@ -501,7 +501,7 @@ extern AreaPlacement gMapAkropolisForkedRoadVariant13Placements[5];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisForkedRoadVariant14Placements[7];
+extern AreaPlacement gAkropolisStageForkedRoadVariant14Placements[7];
 
 /// Two Mind Sucklers for forked-road variant 15.
 ///
@@ -509,7 +509,7 @@ extern AreaPlacement gMapAkropolisForkedRoadVariant14Placements[7];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisForkedRoadVariant15Placements[3];
+extern AreaPlacement gAkropolisStageForkedRoadVariant15Placements[3];
 
 /// Six Black Beetles for forked-road variant 16.
 ///
@@ -517,7 +517,7 @@ extern AreaPlacement gMapAkropolisForkedRoadVariant15Placements[3];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisForkedRoadVariant16Placements[7];
+extern AreaPlacement gAkropolisStageForkedRoadVariant16Placements[7];
 
 /// One Scavenger for forked-road variant 20.
 ///
@@ -525,7 +525,7 @@ extern AreaPlacement gMapAkropolisForkedRoadVariant16Placements[7];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisForkedRoadVariant20Placements[2];
+extern AreaPlacement gAkropolisStageForkedRoadVariant20Placements[2];
 
 /// One Sucklerceph and one Skull Stalker for forked-road variant 21.
 ///
@@ -533,7 +533,7 @@ extern AreaPlacement gMapAkropolisForkedRoadVariant20Placements[2];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisForkedRoadVariant21Placements[3];
+extern AreaPlacement gAkropolisStageForkedRoadVariant21Placements[3];
 
 /// One Slouch and one Creeping Stranger for forked-road variant 22.
 ///
@@ -542,7 +542,7 @@ extern AreaPlacement gMapAkropolisForkedRoadVariant21Placements[3];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisForkedRoadVariant22Placements[3];
+extern AreaPlacement gAkropolisStageForkedRoadVariant22Placements[3];
 
 /// Two Grinning Strangers for observatory variant 1.
 ///
@@ -550,7 +550,7 @@ extern AreaPlacement gMapAkropolisForkedRoadVariant22Placements[3];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisObservatoryVariant1Placements[3];
+extern AreaPlacement gAkropolisStageObservatoryVariant1Placements[3];
 
 /// Two standard Mossbacks for observatory variant 2.
 ///
@@ -559,7 +559,7 @@ extern AreaPlacement gMapAkropolisObservatoryVariant1Placements[3];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisObservatoryVariant2Placements[3];
+extern AreaPlacement gAkropolisStageObservatoryVariant2Placements[3];
 
 /// Nine scripted Bat entrances for observatory variant 3.
 ///
@@ -567,7 +567,7 @@ extern AreaPlacement gMapAkropolisObservatoryVariant2Placements[3];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisObservatoryVariant3Placements[10];
+extern AreaPlacement gAkropolisStageObservatoryVariant3Placements[10];
 
 /// Two large Mossbacks for observatory variant 7.
 ///
@@ -576,7 +576,7 @@ extern AreaPlacement gMapAkropolisObservatoryVariant3Placements[10];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisObservatoryVariant7Placements[3];
+extern AreaPlacement gAkropolisStageObservatoryVariant7Placements[3];
 
 /// One unmatched placement record for observatory variant 10.
 ///
@@ -585,7 +585,7 @@ extern AreaPlacement gMapAkropolisObservatoryVariant7Placements[3];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisObservatoryVariant10Placements[2];
+extern AreaPlacement gAkropolisStageObservatoryVariant10Placements[2];
 
 /// Two Mossbacks for promenade variant 1.
 ///
@@ -593,7 +593,7 @@ extern AreaPlacement gMapAkropolisObservatoryVariant10Placements[2];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisPromenadeVariant1Placements[3];
+extern AreaPlacement gAkropolisStagePromenadeVariant1Placements[3];
 
 /// Four Rats and three Moths for promenade variant 2.
 ///
@@ -601,7 +601,7 @@ extern AreaPlacement gMapAkropolisPromenadeVariant1Placements[3];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisPromenadeVariant2Placements[8];
+extern AreaPlacement gAkropolisStagePromenadeVariant2Placements[8];
 
 /// Four dormant Maggots and six Moths for promenade variant 3.
 ///
@@ -609,7 +609,7 @@ extern AreaPlacement gMapAkropolisPromenadeVariant2Placements[8];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisPromenadeVariant3Placements[11];
+extern AreaPlacement gAkropolisStagePromenadeVariant3Placements[11];
 
 /// One Knight GOLEM for promenade variant 7.
 ///
@@ -617,7 +617,7 @@ extern AreaPlacement gMapAkropolisPromenadeVariant3Placements[11];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisPromenadeVariant7Placements[2];
+extern AreaPlacement gAkropolisStagePromenadeVariant7Placements[2];
 
 /// Four dormant Caterpillars and six Moths for promenade variant 8.
 ///
@@ -625,7 +625,7 @@ extern AreaPlacement gMapAkropolisPromenadeVariant7Placements[2];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisPromenadeVariant8Placements[11];
+extern AreaPlacement gAkropolisStagePromenadeVariant8Placements[11];
 
 /// No. 9 GOLEM and Rupert placements for sanctuary variant 1.
 ///
@@ -634,7 +634,7 @@ extern AreaPlacement gMapAkropolisPromenadeVariant8Placements[11];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisSanctuaryNo9AndRupertPlacements[3];
+extern AreaPlacement gAkropolisStageSanctuaryNo9AndRupertPlacements[3];
 
 /// Rupert placement and an unused record for sanctuary variant 2.
 ///
@@ -643,7 +643,7 @@ extern AreaPlacement gMapAkropolisSanctuaryNo9AndRupertPlacements[3];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisSanctuaryRupertPlacements[3];
+extern AreaPlacement gAkropolisStageSanctuaryRupertPlacements[3];
 
 /// One view-parented figure and four Maggot drop entrances for roof-garden variant 1.
 ///
@@ -652,7 +652,7 @@ extern AreaPlacement gMapAkropolisSanctuaryRupertPlacements[3];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisRoofGardenVariant1Placements[6];
+extern AreaPlacement gAkropolisStageRoofGardenVariant1Placements[6];
 
 /// Four hanging Maggots and three Moths for roof-garden variant 2.
 ///
@@ -660,7 +660,7 @@ extern AreaPlacement gMapAkropolisRoofGardenVariant1Placements[6];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisRoofGardenVariant2Placements[8];
+extern AreaPlacement gAkropolisStageRoofGardenVariant2Placements[8];
 
 /// One view-parented figure and four Caterpillar drop entrances for roof-garden variant 7.
 ///
@@ -669,7 +669,7 @@ extern AreaPlacement gMapAkropolisRoofGardenVariant2Placements[8];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisRoofGardenVariant7Placements[6];
+extern AreaPlacement gAkropolisStageRoofGardenVariant7Placements[6];
 
 /// Four hanging Caterpillars and three Moths for roof-garden variant 8.
 ///
@@ -677,7 +677,7 @@ extern AreaPlacement gMapAkropolisRoofGardenVariant7Placements[6];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisRoofGardenVariant8Placements[8];
+extern AreaPlacement gAkropolisStageRoofGardenVariant8Placements[8];
 
 /// Six independently indexed enemies for the bridge's default variant.
 ///
@@ -686,50 +686,50 @@ extern AreaPlacement gMapAkropolisRoofGardenVariant8Placements[8];
 /// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
 /// (base resources). The final `AREA_PLACEMENT_END` record is included in the
 /// extent; keep the map overlay loaded while actors borrow these records.
-extern AreaPlacement gMapAkropolisBridgeDefaultPlacements[7];
+extern AreaPlacement gAkropolisStageBridgeDefaultPlacements[7];
 
 /// Empty bridge variant-2 placement list, containing only `AREA_PLACEMENT_END`.
 ///
 /// Retains its own map-owned address alongside the variant's empty resources.
-extern AreaPlacement gMapAkropolisBridgeVariant2Placements[1];
+extern AreaPlacement gAkropolisStageBridgeVariant2Placements[1];
 
 /// Empty bridge variant-3 placement list, containing only `AREA_PLACEMENT_END`.
 ///
 /// Retains a separate map-owned address alongside the variant's empty resources.
-extern AreaPlacement gMapAkropolisBridgeVariant3Placements[1];
+extern AreaPlacement gAkropolisStageBridgeVariant3Placements[1];
 
 /// Stranger placement shared by Fire escape variants 1..3.
 ///
 /// Entry 10 selects the room's actor recipe. XYZ uses world units; yaw uses
 /// 4096 units per turn. The extent includes `AREA_PLACEMENT_END`; keep this
 /// map loaded while the spawned actor borrows its placement.
-extern AreaPlacement gMapAkropolisFireEscapePlacements[2];
+extern AreaPlacement gAkropolisStageFireEscapePlacements[2];
 
 /// No. 9 GOLEM placement for Helicopter landing pad variant 1.
 ///
 /// Entry 27 selects the room's recipe. The extent includes `AREA_PLACEMENT_END`;
 /// keep this map loaded while the spawned actor borrows its placement.
-extern AreaPlacement gMapAkropolisHelicopterLandingPadVariant1Placements[2];
+extern AreaPlacement gAkropolisStageHelicopterLandingPadVariant1Placements[2];
 
 /// No. 9, Rupert and helicopter placements for landing-pad variant 2.
 ///
 /// Entry IDs 27, 144 and 254 match the room's recipes. All use base resources;
 /// texture-page and CLUT-row offsets belong to each placement. The extent
 /// includes `AREA_PLACEMENT_END`; keep this map loaded while actors borrow it.
-extern AreaPlacement gMapAkropolisHelicopterLandingPadVariant2Placements[4];
+extern AreaPlacement gAkropolisStageHelicopterLandingPadVariant2Placements[4];
 
 /// Rupert and Baldwin placements shared by MIST briefing variants 1 and 3.
 ///
 /// Entry IDs 144 and 105 select the room's recipes. The extent includes
 /// `AREA_PLACEMENT_END`; keep this map loaded while actors borrow the records.
-extern AreaPlacement gMapAkropolisMistR18Placements[3];
+extern AreaPlacement gAkropolisStageMistR18Placements[3];
 
 /// Pierce and Jodie placements shared by MIST parking variants 1 and 2.
 ///
 /// Entry IDs 143 and 115 select the room's recipes. XYZ uses world units; yaw
 /// uses 4096 units per turn. The extent includes `AREA_PLACEMENT_END`; keep
 /// this map loaded while actors borrow the records.
-extern AreaPlacement gMapAkropolisMistParkingPlacements[3];
+extern AreaPlacement gAkropolisStageMistParkingPlacements[3];
 
 /// Gallery mount and Pierce placements for shooting-gallery variant 1.
 ///
@@ -737,20 +737,20 @@ extern AreaPlacement gMapAkropolisMistParkingPlacements[3];
 /// rejects its spawn; the record retains its placement identity. XYZ uses
 /// world units and yaw uses 4096 units per turn. The extent includes
 /// `AREA_PLACEMENT_END`; keep this map loaded while actors borrow the records.
-extern AreaPlacement gMapAkropolisMistShootingGalleryPlacements[3];
+extern AreaPlacement gAkropolisStageMistShootingGalleryPlacements[3];
 
 /// Acropolis battle rewards for normal, replay and Scavenger runs.
 ///
 /// Eleven layout-keyed rows followed by `INVENTORY_BATTLE_REWARD_LIST_END`.
 /// Nonzero item slots grant one pack; slot 3 requires a Medicine Wheel.
 /// Keys exclude the room and view. Keep this overlay loaded during lookup.
-extern InventoryBattleReward gMapAkropolisBattleRewards[12];
+extern InventoryBattleReward gAkropolisStageBattleRewards[12];
 
 /// Acropolis battle rewards for Bounty and Nightmare runs.
 ///
 /// Five layout-keyed rows followed by `INVENTORY_BATTLE_REWARD_LIST_END`.
 /// Nonzero item slots grant one pack; slot 3 requires a Medicine Wheel.
 /// Keys exclude the room and view. Keep this overlay loaded during lookup.
-extern InventoryBattleReward gMapAkropolisHardBattleRewards[6];
+extern InventoryBattleReward gAkropolisStageHardBattleRewards[6];
 
 #endif // INCLUDE_STAGES_AKROPOLIS_STAGE_H

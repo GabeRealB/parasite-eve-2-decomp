@@ -109,7 +109,7 @@ s32 gWorldTargetCursorYFixed8 = WORLD_TARGET_CURSOR_INITIAL_Y_FIXED8;
 
 const InventoryBattleReward* const gInventoryBattleRewardLists[6] __attribute__((section(".data"))) = {
     NULL,
-    gMapAkropolisBattleRewards,
+    gAkropolisStageBattleRewards,
     gMapDryfieldBattleRewards,
     gMapDryfieldFullBattleRewards,
     gMapShelterBattleRewards,
@@ -118,7 +118,7 @@ const InventoryBattleReward* const gInventoryBattleRewardLists[6] __attribute__(
 
 const InventoryBattleReward* const gInventoryHardBattleRewardLists[6] __attribute__((section(".data"))) = {
     NULL,
-    gMapAkropolisHardBattleRewards,
+    gAkropolisStageHardBattleRewards,
     gMapDryfieldHardBattleRewards,
     gMapDryfieldFullHardBattleRewards,
     gMapShelterHardBattleRewards,

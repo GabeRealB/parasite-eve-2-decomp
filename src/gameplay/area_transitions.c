@@ -482,7 +482,7 @@ static inline s16 _menuMapReadMarkerState(const u16* flagEntries, s16 markerInde
 s16 menuMapGetMarkerState(s16 markerIndex)
 {
     enum {
-        MENU_MAP_ACROPOLIS_MARKER_COUNT            = ARRAY_SIZE(gMapAkropolisMarkerFlags),
+        MENU_MAP_ACROPOLIS_MARKER_COUNT            = ARRAY_SIZE(gAkropolisStageMarkerFlags),
         MENU_MAP_DRYFIELD_MARKER_COUNT             = ARRAY_SIZE(gMapDryfieldMarkerFlags),
         MENU_MAP_DRYFIELD_NIGHT_MARKER_COUNT       = ARRAY_SIZE(gMapDryfieldFullMarkerFlags),
         MENU_MAP_SHELTER_MARKER_COUNT              = ARRAY_SIZE(gMapShelterMarkerFlags),
@@ -496,7 +496,7 @@ s16 menuMapGetMarkerState(s16 markerIndex)
             if (markerIndex >= MENU_MAP_ACROPOLIS_MARKER_COUNT) {
                 break;
             }
-            return _menuMapReadMarkerState(gMapAkropolisMarkerFlags, markerIndex);
+            return _menuMapReadMarkerState(gAkropolisStageMarkerFlags, markerIndex);
         case GAME_STAGE_DRYFIELD:
             if (markerIndex >= MENU_MAP_DRYFIELD_MARKER_COUNT) {
                 break;

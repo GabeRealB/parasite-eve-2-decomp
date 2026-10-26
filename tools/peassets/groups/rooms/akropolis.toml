@@ -32,75 +32,75 @@ page_flags = [0x007FC]
 rewards = [0x0278C, 0x0281C]
 
 [stage.exports]
-square_variant_1_placements = { at = 0x0136C, symbol = "gMapAkropolisSquareVariant1Placements" }
-east_elevator_hall_variant_1_placements = { at = 0x0138C, symbol = "gMapAkropolisEastElevatorHallVariant1Placements" }
-patio_variant_1_placements = { at = 0x013AC, symbol = "gMapAkropolisPatioVariant1Placements" }
-patio_variant_2_placements = { at = 0x013DC, symbol = "gMapAkropolisPatioVariant2Placements" }
-patio_variant_3_placements = { at = 0x0142C, symbol = "gMapAkropolisPatioVariant3Placements" }
-patio_variant_4_placements = { at = 0x0149C, symbol = "gMapAkropolisPatioVariant4Placements" }
-patio_variant_5_placements = { at = 0x014EC, symbol = "gMapAkropolisPatioVariant5Placements" }
-patio_variant_10_placements = { at = 0x0151C, symbol = "gMapAkropolisPatioVariant10Placements" }
-cafeteria_variant_1_placements = { at = 0x0154C, symbol = "gMapAkropolisCafeteriaVariant1Placements" }
-cafeteria_variant_2_placements = { at = 0x0158C, symbol = "gMapAkropolisCafeteriaVariant2Placements" }
-cafeteria_variant_3_placements = { at = 0x015CC, symbol = "gMapAkropolisCafeteriaVariant3Placements" }
-cafeteria_variant_4_placements = { at = 0x015EC, symbol = "gMapAkropolisCafeteriaVariant4Placements" }
-cafeteria_variant_5_placements = { at = 0x0161C, symbol = "gMapAkropolisCafeteriaVariant5Placements" }
-cafeteria_variant_7_placements = { at = 0x0167C, symbol = "gMapAkropolisCafeteriaVariant7Placements" }
-plaza_variant_1_placements = { at = 0x0169C, symbol = "gMapAkropolisPlazaVariant1Placements" }
-security_room_variant_1_placements = { at = 0x016CC, symbol = "gMapAkropolisSecurityRoomVariant1Placements" }
-hallway_variant_1_placements = { at = 0x016FC, symbol = "gMapAkropolisHallwayVariant1Placements" }
-hallway_variant_2_placements = { at = 0x0178C, symbol = "gMapAkropolisHallwayVariant2Placements" }
-hallway_variant_3_placements = { at = 0x017AC, symbol = "gMapAkropolisHallwayVariant3Placements" }
-hallway_variant_4_placements = { at = 0x017CC, symbol = "gMapAkropolisHallwayVariant4Placements" }
-fountain_variant_2_placements = { at = 0x0182C, symbol = "gMapAkropolisFountainVariant2Placements" }
-fountain_variant_7_placements = { at = 0x0185C, symbol = "gMapAkropolisFountainVariant7Placements" }
-forked_road_variant_2_placements = { at = 0x0188C, symbol = "gMapAkropolisForkedRoadVariant2Placements" }
-forked_road_variant_3_placements = { at = 0x018AC, symbol = "gMapAkropolisForkedRoadVariant3Placements" }
-forked_road_variant_4_placements = { at = 0x018FC, symbol = "gMapAkropolisForkedRoadVariant4Placements" }
-forked_road_variant_7_placements = { at = 0x0194C, symbol = "gMapAkropolisForkedRoadVariant7Placements" }
-forked_road_variant_8_placements = { at = 0x0199C, symbol = "gMapAkropolisForkedRoadVariant8Placements" }
-forked_road_variant_9_placements = { at = 0x019EC, symbol = "gMapAkropolisForkedRoadVariant9Placements" }
-forked_road_variant_10_placements = { at = 0x01A0C, symbol = "gMapAkropolisForkedRoadVariant10Placements" }
-forked_road_variant_11_placements = { at = 0x01ACC, symbol = "gMapAkropolisForkedRoadVariant11Placements" }
-forked_road_variant_12_placements = { at = 0x01B3C, symbol = "gMapAkropolisForkedRoadVariant12Placements" }
-forked_road_variant_13_placements = { at = 0x01BAC, symbol = "gMapAkropolisForkedRoadVariant13Placements" }
-forked_road_variant_14_placements = { at = 0x01BFC, symbol = "gMapAkropolisForkedRoadVariant14Placements" }
-forked_road_variant_15_placements = { at = 0x01C6C, symbol = "gMapAkropolisForkedRoadVariant15Placements" }
-forked_road_variant_16_placements = { at = 0x01C9C, symbol = "gMapAkropolisForkedRoadVariant16Placements" }
-forked_road_variant_20_placements = { at = 0x01D0C, symbol = "gMapAkropolisForkedRoadVariant20Placements" }
-forked_road_variant_21_placements = { at = 0x01D2C, symbol = "gMapAkropolisForkedRoadVariant21Placements" }
-forked_road_variant_22_placements = { at = 0x01D5C, symbol = "gMapAkropolisForkedRoadVariant22Placements" }
-observatory_variant_1_placements = { at = 0x01D8C, symbol = "gMapAkropolisObservatoryVariant1Placements" }
-observatory_variant_2_placements = { at = 0x01DBC, symbol = "gMapAkropolisObservatoryVariant2Placements" }
-observatory_variant_3_placements = { at = 0x01DEC, symbol = "gMapAkropolisObservatoryVariant3Placements" }
-observatory_variant_7_placements = { at = 0x01E8C, symbol = "gMapAkropolisObservatoryVariant7Placements" }
-observatory_variant_10_placements = { at = 0x01EBC, symbol = "gMapAkropolisObservatoryVariant10Placements" }
-promenade_variant_1_placements = { at = 0x01EDC, symbol = "gMapAkropolisPromenadeVariant1Placements" }
-promenade_variant_2_placements = { at = 0x01F0C, symbol = "gMapAkropolisPromenadeVariant2Placements" }
-promenade_variant_3_placements = { at = 0x01F8C, symbol = "gMapAkropolisPromenadeVariant3Placements" }
-promenade_variant_7_placements = { at = 0x0203C, symbol = "gMapAkropolisPromenadeVariant7Placements" }
-promenade_variant_8_placements = { at = 0x0205C, symbol = "gMapAkropolisPromenadeVariant8Placements" }
-sanctuary_no_9_and_rupert_placements = { at = 0x0210C, symbol = "gMapAkropolisSanctuaryNo9AndRupertPlacements" }
-sanctuary_rupert_placements = { at = 0x0213C, symbol = "gMapAkropolisSanctuaryRupertPlacements" }
-roof_garden_variant_1_placements = { at = 0x0216C, symbol = "gMapAkropolisRoofGardenVariant1Placements" }
-roof_garden_variant_2_placements = { at = 0x021CC, symbol = "gMapAkropolisRoofGardenVariant2Placements" }
-roof_garden_variant_7_placements = { at = 0x0224C, symbol = "gMapAkropolisRoofGardenVariant7Placements" }
-roof_garden_variant_8_placements = { at = 0x022AC, symbol = "gMapAkropolisRoofGardenVariant8Placements" }
-bridge_default_placements = { at = 0x0232C, symbol = "gMapAkropolisBridgeDefaultPlacements" }
-bridge_variant_2_placements = { at = 0x0239C, symbol = "gMapAkropolisBridgeVariant2Placements" }
-bridge_variant_3_placements = { at = 0x023AC, symbol = "gMapAkropolisBridgeVariant3Placements" }
-fire_escape_placements = { at = 0x023BC, symbol = "gMapAkropolisFireEscapePlacements" }
-mist_r18_placements = { at = 0x0243C, symbol = "gMapAkropolisMistR18Placements" }
-mist_parking_placements = { at = 0x0246C, symbol = "gMapAkropolisMistParkingPlacements" }
-mist_shooting_gallery_placements = { at = 0x0249C, symbol = "gMapAkropolisMistShootingGalleryPlacements" }
+square_variant_1_placements = { at = 0x0136C, symbol = "gAkropolisStageSquareVariant1Placements" }
+east_elevator_hall_variant_1_placements = { at = 0x0138C, symbol = "gAkropolisStageEastElevatorHallVariant1Placements" }
+patio_variant_1_placements = { at = 0x013AC, symbol = "gAkropolisStagePatioVariant1Placements" }
+patio_variant_2_placements = { at = 0x013DC, symbol = "gAkropolisStagePatioVariant2Placements" }
+patio_variant_3_placements = { at = 0x0142C, symbol = "gAkropolisStagePatioVariant3Placements" }
+patio_variant_4_placements = { at = 0x0149C, symbol = "gAkropolisStagePatioVariant4Placements" }
+patio_variant_5_placements = { at = 0x014EC, symbol = "gAkropolisStagePatioVariant5Placements" }
+patio_variant_10_placements = { at = 0x0151C, symbol = "gAkropolisStagePatioVariant10Placements" }
+cafeteria_variant_1_placements = { at = 0x0154C, symbol = "gAkropolisStageCafeteriaVariant1Placements" }
+cafeteria_variant_2_placements = { at = 0x0158C, symbol = "gAkropolisStageCafeteriaVariant2Placements" }
+cafeteria_variant_3_placements = { at = 0x015CC, symbol = "gAkropolisStageCafeteriaVariant3Placements" }
+cafeteria_variant_4_placements = { at = 0x015EC, symbol = "gAkropolisStageCafeteriaVariant4Placements" }
+cafeteria_variant_5_placements = { at = 0x0161C, symbol = "gAkropolisStageCafeteriaVariant5Placements" }
+cafeteria_variant_7_placements = { at = 0x0167C, symbol = "gAkropolisStageCafeteriaVariant7Placements" }
+plaza_variant_1_placements = { at = 0x0169C, symbol = "gAkropolisStagePlazaVariant1Placements" }
+security_room_variant_1_placements = { at = 0x016CC, symbol = "gAkropolisStageSecurityRoomVariant1Placements" }
+hallway_variant_1_placements = { at = 0x016FC, symbol = "gAkropolisStageHallwayVariant1Placements" }
+hallway_variant_2_placements = { at = 0x0178C, symbol = "gAkropolisStageHallwayVariant2Placements" }
+hallway_variant_3_placements = { at = 0x017AC, symbol = "gAkropolisStageHallwayVariant3Placements" }
+hallway_variant_4_placements = { at = 0x017CC, symbol = "gAkropolisStageHallwayVariant4Placements" }
+fountain_variant_2_placements = { at = 0x0182C, symbol = "gAkropolisStageFountainVariant2Placements" }
+fountain_variant_7_placements = { at = 0x0185C, symbol = "gAkropolisStageFountainVariant7Placements" }
+forked_road_variant_2_placements = { at = 0x0188C, symbol = "gAkropolisStageForkedRoadVariant2Placements" }
+forked_road_variant_3_placements = { at = 0x018AC, symbol = "gAkropolisStageForkedRoadVariant3Placements" }
+forked_road_variant_4_placements = { at = 0x018FC, symbol = "gAkropolisStageForkedRoadVariant4Placements" }
+forked_road_variant_7_placements = { at = 0x0194C, symbol = "gAkropolisStageForkedRoadVariant7Placements" }
+forked_road_variant_8_placements = { at = 0x0199C, symbol = "gAkropolisStageForkedRoadVariant8Placements" }
+forked_road_variant_9_placements = { at = 0x019EC, symbol = "gAkropolisStageForkedRoadVariant9Placements" }
+forked_road_variant_10_placements = { at = 0x01A0C, symbol = "gAkropolisStageForkedRoadVariant10Placements" }
+forked_road_variant_11_placements = { at = 0x01ACC, symbol = "gAkropolisStageForkedRoadVariant11Placements" }
+forked_road_variant_12_placements = { at = 0x01B3C, symbol = "gAkropolisStageForkedRoadVariant12Placements" }
+forked_road_variant_13_placements = { at = 0x01BAC, symbol = "gAkropolisStageForkedRoadVariant13Placements" }
+forked_road_variant_14_placements = { at = 0x01BFC, symbol = "gAkropolisStageForkedRoadVariant14Placements" }
+forked_road_variant_15_placements = { at = 0x01C6C, symbol = "gAkropolisStageForkedRoadVariant15Placements" }
+forked_road_variant_16_placements = { at = 0x01C9C, symbol = "gAkropolisStageForkedRoadVariant16Placements" }
+forked_road_variant_20_placements = { at = 0x01D0C, symbol = "gAkropolisStageForkedRoadVariant20Placements" }
+forked_road_variant_21_placements = { at = 0x01D2C, symbol = "gAkropolisStageForkedRoadVariant21Placements" }
+forked_road_variant_22_placements = { at = 0x01D5C, symbol = "gAkropolisStageForkedRoadVariant22Placements" }
+observatory_variant_1_placements = { at = 0x01D8C, symbol = "gAkropolisStageObservatoryVariant1Placements" }
+observatory_variant_2_placements = { at = 0x01DBC, symbol = "gAkropolisStageObservatoryVariant2Placements" }
+observatory_variant_3_placements = { at = 0x01DEC, symbol = "gAkropolisStageObservatoryVariant3Placements" }
+observatory_variant_7_placements = { at = 0x01E8C, symbol = "gAkropolisStageObservatoryVariant7Placements" }
+observatory_variant_10_placements = { at = 0x01EBC, symbol = "gAkropolisStageObservatoryVariant10Placements" }
+promenade_variant_1_placements = { at = 0x01EDC, symbol = "gAkropolisStagePromenadeVariant1Placements" }
+promenade_variant_2_placements = { at = 0x01F0C, symbol = "gAkropolisStagePromenadeVariant2Placements" }
+promenade_variant_3_placements = { at = 0x01F8C, symbol = "gAkropolisStagePromenadeVariant3Placements" }
+promenade_variant_7_placements = { at = 0x0203C, symbol = "gAkropolisStagePromenadeVariant7Placements" }
+promenade_variant_8_placements = { at = 0x0205C, symbol = "gAkropolisStagePromenadeVariant8Placements" }
+sanctuary_no_9_and_rupert_placements = { at = 0x0210C, symbol = "gAkropolisStageSanctuaryNo9AndRupertPlacements" }
+sanctuary_rupert_placements = { at = 0x0213C, symbol = "gAkropolisStageSanctuaryRupertPlacements" }
+roof_garden_variant_1_placements = { at = 0x0216C, symbol = "gAkropolisStageRoofGardenVariant1Placements" }
+roof_garden_variant_2_placements = { at = 0x021CC, symbol = "gAkropolisStageRoofGardenVariant2Placements" }
+roof_garden_variant_7_placements = { at = 0x0224C, symbol = "gAkropolisStageRoofGardenVariant7Placements" }
+roof_garden_variant_8_placements = { at = 0x022AC, symbol = "gAkropolisStageRoofGardenVariant8Placements" }
+bridge_default_placements = { at = 0x0232C, symbol = "gAkropolisStageBridgeDefaultPlacements" }
+bridge_variant_2_placements = { at = 0x0239C, symbol = "gAkropolisStageBridgeVariant2Placements" }
+bridge_variant_3_placements = { at = 0x023AC, symbol = "gAkropolisStageBridgeVariant3Placements" }
+fire_escape_placements = { at = 0x023BC, symbol = "gAkropolisStageFireEscapePlacements" }
+mist_r18_placements = { at = 0x0243C, symbol = "gAkropolisStageMistR18Placements" }
+mist_parking_placements = { at = 0x0246C, symbol = "gAkropolisStageMistParkingPlacements" }
+mist_shooting_gallery_placements = { at = 0x0249C, symbol = "gAkropolisStageMistShootingGalleryPlacements" }
 
 [stage.exports.helicopter_landing_pad_variant_1_placements]
 at = 0x023DC
-symbol = "gMapAkropolisHelicopterLandingPadVariant1Placements"
+symbol = "gAkropolisStageHelicopterLandingPadVariant1Placements"
 
 [stage.exports.helicopter_landing_pad_variant_2_placements]
 at = 0x023FC
-symbol = "gMapAkropolisHelicopterLandingPadVariant2Placements"
+symbol = "gAkropolisStageHelicopterLandingPadVariant2Placements"
 
 [story_calls]
 type = "cap"

@@ -608,7 +608,7 @@ global_vram_start = 0x80010000
 global_vram_end = 0x80179950
 
 [mapui.overlays.akropolis_stage]
-label = "code starts at 0x38, after the header word and the jump table at 0x4; the span detector begins at 0x300, so mapAkropolisSetupMovieBuffers - the movie-buffer layout hook, a switch whose jump table is at 0x4 and whose cases converge on a returning tail - was emitted as anonymous rodata blobs. Genuine rodata is the header word and the \"Key Item\" string"
+label = "code starts at 0x38, after the header word and the jump table at 0x4; the span detector begins at 0x300, so akropolisStageSetupMovieBuffers - the movie-buffer layout hook, a switch whose jump table is at 0x4 and whose cases converge on a returning tail - was emitted as anonymous rodata blobs. Genuine rodata is the header word and the \"Key Item\" string"
 id = 280
 src = "src/stages/akropolis"
 text = ["0x38", "0x6F8"]

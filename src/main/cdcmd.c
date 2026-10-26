@@ -83,7 +83,7 @@ static void _cdCmdResetRing(void);
 /// The map overlay must remain loaded while its row is read.
 static const s32* _gCdCmdMovieWorkspaceBytesByStage[10] = {
     NULL,
-    gMapAkropolisMovieWorkspaceBytesByArea,
+    gAkropolisStageMovieWorkspaceBytesByArea,
     gMapDryfieldMovieWorkspaceBytesByArea,
     NULL,
     NULL,

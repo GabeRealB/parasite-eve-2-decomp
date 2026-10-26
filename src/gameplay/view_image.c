@@ -26,7 +26,7 @@
 DR_STP gLoadingViewMaskResetCommand;
 
 ViewCameraTable* gViewCameraTables[5] = {
-    [GAME_STAGE_AKROPOLIS - 1]       = &gMapAkropolisViewCameraTable,
+    [GAME_STAGE_AKROPOLIS - 1]       = &gAkropolisStageViewCameraTable,
     [GAME_STAGE_DRYFIELD - 1]        = &gMapDryfieldViewCameraTable,
     [GAME_STAGE_DRYFIELD_NIGHT - 1]  = &gMapDryfieldFullViewCameraTable,
     [GAME_STAGE_MINE_SHELTER - 1]    = &gMapShelterViewCameraTable,

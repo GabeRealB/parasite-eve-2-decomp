@@ -4,13 +4,13 @@
 [patio]
 type = "model"
 slots = []
-symbol = "gMappicS100PatioShape"
+symbol = "gAkropolisMapPatioShape"
 sha1 = "ef0d40957eda3414a2e1fb6afc31fe3884b82ce2"
 
 [bridge]
 type = "model"
 slots = []
-symbol = "gMappicS100BridgeShape"
+symbol = "gAkropolisMapBridgeShape"
 sha1 = "ab8b50eb351ce3ece33a4b18c3a2a9fe83ff4dc0"
 
 [page_1]
@@ -39,26 +39,26 @@ requires = ["gameplay"]
 sha1 = "cb0ba1bfc0ee339511791bdbd4720c5e3eb8af7a"
 
 [page_1.exports]
-square = { at = 0x000A8, symbol = "gMappicS100SquareShape" }
-east_elevator_hall = { at = 0x001F8, symbol = "gMappicS100EastElevatorHallShape" }
-patio = { at = 0x002F4, symbol = "gMappicS100PatioShape" }
-cafeteria = { at = 0x003A0, symbol = "gMappicS100CafeteriaShape" }
-security_room = { at = 0x00430, symbol = "gMappicS100SecurityRoomShape" }
-hallway = { at = 0x004C0, symbol = "gMappicS100HallwayShape" }
-fountain = { at = 0x005C4, symbol = "gMappicS100FountainShape" }
-forked_road = { at = 0x006A4, symbol = "gMappicS100ForkedRoadShape" }
-observatory = { at = 0x00754, symbol = "gMappicS100ObservatoryShape" }
-promenade = { at = 0x0083C, symbol = "gMappicS100PromenadeShape" }
-sanctuary = { at = 0x008CC, symbol = "gMappicS100SanctuaryShape" }
-roof_garden = { at = 0x0095C, symbol = "gMappicS100RoofGardenShape" }
-bridge = { at = 0x009EC, symbol = "gMappicS100BridgeShape" }
-fire_escape = { at = 0x00A7C, symbol = "gMappicS100FireEscapeShape" }
-west_elevator_hall = { at = 0x00BCC, symbol = "gMappicS100WestElevatorHallShape" }
+square = { at = 0x000A8, symbol = "gAkropolisMapSquareShape" }
+east_elevator_hall = { at = 0x001F8, symbol = "gAkropolisMapEastElevatorHallShape" }
+patio = { at = 0x002F4, symbol = "gAkropolisMapPatioShape" }
+cafeteria = { at = 0x003A0, symbol = "gAkropolisMapCafeteriaShape" }
+security_room = { at = 0x00430, symbol = "gAkropolisMapSecurityRoomShape" }
+hallway = { at = 0x004C0, symbol = "gAkropolisMapHallwayShape" }
+fountain = { at = 0x005C4, symbol = "gAkropolisMapFountainShape" }
+forked_road = { at = 0x006A4, symbol = "gAkropolisMapForkedRoadShape" }
+observatory = { at = 0x00754, symbol = "gAkropolisMapObservatoryShape" }
+promenade = { at = 0x0083C, symbol = "gAkropolisMapPromenadeShape" }
+sanctuary = { at = 0x008CC, symbol = "gAkropolisMapSanctuaryShape" }
+roof_garden = { at = 0x0095C, symbol = "gAkropolisMapRoofGardenShape" }
+bridge = { at = 0x009EC, symbol = "gAkropolisMapBridgeShape" }
+fire_escape = { at = 0x00A7C, symbol = "gAkropolisMapFireEscapeShape" }
+west_elevator_hall = { at = 0x00BCC, symbol = "gAkropolisMapWestElevatorHallShape" }
 
 [page_2]
 type = "package"
 embedded = [{ name = "helicopter_landing_pad", offset = 0x00004, size = 0x90, address = 0x8012EF34 }]
-exports = { helicopter_landing_pad = { at = 0x00070, symbol = "gMappicS102HelicopterLandingPadShape" } }
+exports = { helicopter_landing_pad = { at = 0x00070, symbol = "gAkropolisHelicopterLandingPadMapShape" } }
 load = { slot = "pe" }
 package_name = "akropolis_helicopter_landing_pad_map"
 required = true
@@ -68,61 +68,61 @@ sha1 = "ab15de45cb7044e9e21112abaac6e71bcf32b8f7"
 [square]
 type = "model"
 slots = []
-symbol = "gMappicS100SquareShape"
+symbol = "gAkropolisMapSquareShape"
 sha1 = "3e04c4d3e1f7e1eacae99406336f168956420fdb"
 
 [hallway]
 type = "model"
 slots = []
-symbol = "gMappicS100HallwayShape"
+symbol = "gAkropolisMapHallwayShape"
 sha1 = "d6ccd28a19cdcffeba038c7305c3f5f4d6539bae"
 
 [fountain]
 type = "model"
 slots = []
-symbol = "gMappicS100FountainShape"
+symbol = "gAkropolisMapFountainShape"
 sha1 = "ac788134a0af52536a0b2a64fd42c3a655844a45"
 
 [cafeteria]
 type = "model"
 slots = []
-symbol = "gMappicS100CafeteriaShape"
+symbol = "gAkropolisMapCafeteriaShape"
 sha1 = "ee3be9637ac13907453694dcc6939fc06f44cf36"
 
 [promenade]
 type = "model"
 slots = []
-symbol = "gMappicS100PromenadeShape"
+symbol = "gAkropolisMapPromenadeShape"
 sha1 = "d4743837a2e0e654e7cd50199820b6329fb1798b"
 
 [sanctuary]
 type = "model"
 slots = []
-symbol = "gMappicS100SanctuaryShape"
+symbol = "gAkropolisMapSanctuaryShape"
 sha1 = "52f5f85526263b4fe9cfe03d4fb02cc11180b5c5"
 
 [fire_escape]
 type = "model"
 slots = []
-symbol = "gMappicS100FireEscapeShape"
+symbol = "gAkropolisMapFireEscapeShape"
 sha1 = "379d9bd51efe8097145a4129b5b2d57d41b3cc62"
 
 [forked_road]
 type = "model"
 slots = []
-symbol = "gMappicS100ForkedRoadShape"
+symbol = "gAkropolisMapForkedRoadShape"
 sha1 = "0bd60a355ace95a293c74902277b6ed0ff239652"
 
 [observatory]
 type = "model"
 slots = []
-symbol = "gMappicS100ObservatoryShape"
+symbol = "gAkropolisMapObservatoryShape"
 sha1 = "f8ca4475759ab7fcd5a07879a65262b53187f804"
 
 [roof_garden]
 type = "model"
 slots = []
-symbol = "gMappicS100RoofGardenShape"
+symbol = "gAkropolisMapRoofGardenShape"
 sha1 = "6af17e1f03610f49823bee065c89154c358f0eaf"
 
 [patio_binding]
@@ -132,7 +132,7 @@ model = "rooms/akropolis/map/patio"
 [security_room]
 type = "model"
 slots = []
-symbol = "gMappicS100SecurityRoomShape"
+symbol = "gAkropolisMapSecurityRoomShape"
 sha1 = "7f45daea2d916d8122ede90c27dc3846eb626323"
 
 [bridge_binding]
@@ -166,13 +166,13 @@ model = "rooms/akropolis/map/sanctuary"
 [east_elevator_hall]
 type = "model"
 slots = []
-symbol = "gMappicS100EastElevatorHallShape"
+symbol = "gAkropolisMapEastElevatorHallShape"
 sha1 = "612600ff97c3753516a181a81f179bc772d831f5"
 
 [west_elevator_hall]
 type = "model"
 slots = []
-symbol = "gMappicS100WestElevatorHallShape"
+symbol = "gAkropolisMapWestElevatorHallShape"
 sha1 = "a640806c7d97ed9495f3897ea10a82e892107cae"
 
 [fire_escape_binding]
@@ -198,7 +198,7 @@ model = "rooms/akropolis/map/security_room"
 [helicopter_landing_pad]
 type = "model"
 slots = []
-symbol = "gMappicS102HelicopterLandingPadShape"
+symbol = "gAkropolisHelicopterLandingPadMapShape"
 sha1 = "4de3a1184358b67d43a42c5c7f3629e77e517471"
 
 [east_elevator_hall_binding]

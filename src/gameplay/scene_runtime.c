@@ -4692,7 +4692,7 @@ static TaskMessageEntry _gSceneManagerMessages[5] = {
 };
 AreaObjectStage gAreaObjectStages[6] = {
     { NULL, NULL },                                                                                         // No stage.
-    { gMapAkropolisObjectRooms, gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].header.objectStates },   // Acropolis.
+    { gAkropolisStageObjectRooms, gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].header.objectStates }, // Acropolis.
     { gMapDryfieldObjectRooms, gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].header.objectStates },     // Day Dryfield.
     { gMapDryfieldFullObjectRooms, gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].header.objectStates }, // Night Dryfield, shared states.
     { gMapShelterObjectRooms, gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].header.objectStates },   // Mine/Shelter.

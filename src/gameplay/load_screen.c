@@ -130,20 +130,20 @@ static inline u16 _loadingPollAreaResourcePasses(void)
     }
 }
 
-ViewCountTable*                     gViewCountTables[5]                                                   = { &gMapAkropolisViewCountTable, &gMapDryfieldViewCountTable, &gMapDryfieldFullViewCountTable, &gMapShelterViewCountTable, &gMapNeoArkViewCountTable };
-ViewIndexTable*                     gViewIndexTables[5]                                                   = { &gMapAkropolisViewIndexTable, &gMapDryfieldViewIndexTable, &gMapDryfieldFullViewIndexTable, &gMapShelterViewIndexTable, &gMapNeoArkViewIndexTable };
-SpriteAreaTable*                    gSpriteAreaTables[5]                                                  = { &gMapAkropolisSpriteAreaTable, &gMapDryfieldSpriteAreaTable, &gMapDryfieldFullSpriteAreaTable, &gMapShelterSpriteAreaTable, &gMapNeoArkSpriteAreaTable };
-WorldCollisionStageResources* const gWorldCollisionStageResources[5] __attribute__((section(".data")))    = { &gMapAkropolisWorldCollisionResources, &gMapDryfieldWorldCollisionResources, &gMapDryfieldFullWorldCollisionResources, &gMapShelterWorldCollisionResources, &gMapNeoArkWorldCollisionResources };
-DirectionWarpEntry** const          gDirectionAreaWarpEntriesByStage[5] __attribute__((section(".data"))) = { gMapAkropolisAreaWarpEntries, gMapDryfieldAreaWarpEntries, gMapDryfieldFullAreaWarpEntries, gMapShelterAreaWarpEntries, gMapNeoArkAreaWarpEntries };
+ViewCountTable*                     gViewCountTables[5]                                                   = { &gAkropolisStageViewCountTable, &gMapDryfieldViewCountTable, &gMapDryfieldFullViewCountTable, &gMapShelterViewCountTable, &gMapNeoArkViewCountTable };
+ViewIndexTable*                     gViewIndexTables[5]                                                   = { &gAkropolisStageViewIndexTable, &gMapDryfieldViewIndexTable, &gMapDryfieldFullViewIndexTable, &gMapShelterViewIndexTable, &gMapNeoArkViewIndexTable };
+SpriteAreaTable*                    gSpriteAreaTables[5]                                                  = { &gAkropolisStageSpriteAreaTable, &gMapDryfieldSpriteAreaTable, &gMapDryfieldFullSpriteAreaTable, &gMapShelterSpriteAreaTable, &gMapNeoArkSpriteAreaTable };
+WorldCollisionStageResources* const gWorldCollisionStageResources[5] __attribute__((section(".data")))    = { &gAkropolisStageWorldCollisionResources, &gMapDryfieldWorldCollisionResources, &gMapDryfieldFullWorldCollisionResources, &gMapShelterWorldCollisionResources, &gMapNeoArkWorldCollisionResources };
+DirectionWarpEntry** const          gDirectionAreaWarpEntriesByStage[5] __attribute__((section(".data"))) = { gAkropolisStageAreaWarpEntries, gMapDryfieldAreaWarpEntries, gMapDryfieldFullAreaWarpEntries, gMapShelterAreaWarpEntries, gMapNeoArkAreaWarpEntries };
 WorldCoordRoomLighting**            gWorldCoordRoomLightingTables[5]                                      = {
-    [GAME_STAGE_AKROPOLIS - 1]       = gMapAkropolisAreaRoomLightingTables,
+    [GAME_STAGE_AKROPOLIS - 1]       = gAkropolisStageAreaRoomLightingTables,
     [GAME_STAGE_DRYFIELD - 1]        = gMapDryfieldRoomLightingTables,
     [GAME_STAGE_DRYFIELD_NIGHT - 1]  = gMapDryfieldFullRoomLightingTables,
     [GAME_STAGE_MINE_SHELTER - 1]    = gMapShelterRoomLightingTables,
     [GAME_STAGE_SHELTER_NEO_ARK - 1] = gMapNeoArkRoomLightingTables,
 };
 WorldCollisionSurfaceProperties*** gWorldCollisionSurfacePropertiesTables[5] = {
-    [GAME_STAGE_AKROPOLIS - 1]       = gMapAkropolisSurfacePropertiesByArea,
+    [GAME_STAGE_AKROPOLIS - 1]       = gAkropolisStageSurfacePropertiesByArea,
     [GAME_STAGE_DRYFIELD - 1]        = gMapDryfieldSurfacePropertiesByArea,
     [GAME_STAGE_DRYFIELD_NIGHT - 1]  = gMapDryfieldFullSurfacePropertiesByArea,
     [GAME_STAGE_MINE_SHELTER - 1]    = gMapShelterSurfacePropertiesByArea,

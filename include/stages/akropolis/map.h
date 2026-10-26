@@ -9,7 +9,7 @@
 /// Eight vertices in the model X/Z plane are scaled by 2107/4096, with Z
 /// mapped to inverted screen Y. Has no normal data. The map borrows the
 /// vertices and first stream group; keep akropolis_map loaded during use.
-extern TmdSource gMappicS100SquareShape;
+extern TmdSource gAkropolisMapSquareShape;
 
 /// East elevator hall's area-fill mesh on page 1 of the Acropolis map.
 ///
@@ -17,7 +17,7 @@ extern TmdSource gMappicS100SquareShape;
 /// the map scales them by 2107/4096 and maps Z to inverted screen Y.
 /// Has no normal data. The map borrows the vertices and first stream group;
 /// keep akropolis_map loaded during use.
-extern TmdSource gMappicS100EastElevatorHallShape;
+extern TmdSource gAkropolisMapEastElevatorHallShape;
 
 /// Patio's area-fill mesh on page 1 of the Acropolis map.
 ///
@@ -25,28 +25,28 @@ extern TmdSource gMappicS100EastElevatorHallShape;
 /// the map scales them by 2107/4096 and maps Z to inverted screen Y.
 /// Has no normal data. The map borrows the vertices and first stream group;
 /// keep akropolis_map loaded during use.
-extern TmdSource gMappicS100PatioShape;
+extern TmdSource gAkropolisMapPatioShape;
 
 /// Cafeteria's two-quad area fill on page 1 of the Acropolis map.
 ///
 /// Six vertices in the model X/Z plane are scaled by 2107/4096, with Z
 /// mapped to inverted screen Y. Has no normal data. The map borrows the
 /// vertices and first stream group; keep akropolis_map loaded during use.
-extern TmdSource gMappicS100CafeteriaShape;
+extern TmdSource gAkropolisMapCafeteriaShape;
 
 /// Security room's area-fill quad on page 1 of the Acropolis map.
 ///
 /// Four vertices in the model X/Z plane are scaled by 2107/4096, with Z
 /// mapped to inverted screen Y. Has no normal data. The map borrows the
 /// vertices and first stream group; keep akropolis_map loaded during use.
-extern TmdSource gMappicS100SecurityRoomShape;
+extern TmdSource gAkropolisMapSecurityRoomShape;
 
 /// Hallway's area-fill quad on page 1 of the Acropolis map.
 ///
 /// Four vertices in the model X/Z plane are scaled by 2107/4096, with Z
 /// mapped to inverted screen Y. Has no normal data. The map borrows the
 /// vertices and first stream group; keep akropolis_map loaded during use.
-extern TmdSource gMappicS100HallwayShape;
+extern TmdSource gAkropolisMapHallwayShape;
 
 /// Fountain's area-fill mesh on page 1 of the Acropolis map.
 ///
@@ -54,7 +54,7 @@ extern TmdSource gMappicS100HallwayShape;
 /// the map scales them by 2107/4096 and maps Z to inverted screen Y.
 /// Has no normal data. The map borrows the vertices and first stream group;
 /// keep akropolis_map loaded during use.
-extern TmdSource gMappicS100FountainShape;
+extern TmdSource gAkropolisMapFountainShape;
 
 /// Forked road's area-fill mesh on page 1 of the Acropolis map.
 ///
@@ -62,7 +62,7 @@ extern TmdSource gMappicS100FountainShape;
 /// the map scales them by 2107/4096 and maps Z to inverted screen Y.
 /// Has no normal data. The map borrows the vertices and first stream group;
 /// keep akropolis_map loaded during use.
-extern TmdSource gMappicS100ForkedRoadShape;
+extern TmdSource gAkropolisMapForkedRoadShape;
 
 /// Observatory's area-fill mesh on page 1 of the Acropolis map.
 ///
@@ -70,7 +70,7 @@ extern TmdSource gMappicS100ForkedRoadShape;
 /// the map scales them by 2107/4096 and maps Z to inverted screen Y.
 /// Has no normal data. The map borrows the vertices and first stream group;
 /// keep akropolis_map loaded during use.
-extern TmdSource gMappicS100ObservatoryShape;
+extern TmdSource gAkropolisMapObservatoryShape;
 
 /// Promenade's area-fill mesh on page 1 of the Acropolis map.
 ///
@@ -78,35 +78,35 @@ extern TmdSource gMappicS100ObservatoryShape;
 /// the map scales them by 2107/4096 and maps Z to inverted screen Y.
 /// Has no normal data. The map borrows the vertices and first stream group;
 /// keep akropolis_map loaded during use.
-extern TmdSource gMappicS100PromenadeShape;
+extern TmdSource gAkropolisMapPromenadeShape;
 
 /// Sanctuary's area-fill quad on page 1 of the Acropolis map.
 ///
 /// Four vertices in the model X/Z plane are scaled by 2107/4096, with Z
 /// mapped to inverted screen Y. Has no normal data. The map borrows the
 /// vertices and first stream group; keep akropolis_map loaded during use.
-extern TmdSource gMappicS100SanctuaryShape;
+extern TmdSource gAkropolisMapSanctuaryShape;
 
 /// Roof garden's area-fill quad on page 1 of the Acropolis map.
 ///
 /// Four vertices in the model X/Z plane are scaled by 2107/4096, with Z
 /// mapped to inverted screen Y. Has no normal data. The map borrows the
 /// vertices and first stream group; keep akropolis_map loaded during use.
-extern TmdSource gMappicS100RoofGardenShape;
+extern TmdSource gAkropolisMapRoofGardenShape;
 
 /// Bridge's area-fill quad on page 1 of the Acropolis map.
 ///
 /// Four vertices in the model X/Z plane are scaled by 2107/4096, with Z
 /// mapped to inverted screen Y. Has no normal data. The map borrows the
 /// vertices and first stream group; keep akropolis_map loaded during use.
-extern TmdSource gMappicS100BridgeShape;
+extern TmdSource gAkropolisMapBridgeShape;
 
 /// Fire escape's area-fill quad on page 1 of the Acropolis map.
 ///
 /// Four vertices in the model X/Z plane are scaled by 2107/4096, with Z
 /// mapped to inverted screen Y. Has no normal data. The map borrows the
 /// vertices and first stream group; keep akropolis_map loaded during use.
-extern TmdSource gMappicS100FireEscapeShape;
+extern TmdSource gAkropolisMapFireEscapeShape;
 
 /// West elevator hall's area-fill mesh on page 1 of the Acropolis map.
 ///
@@ -114,7 +114,7 @@ extern TmdSource gMappicS100FireEscapeShape;
 /// the map scales them by 2107/4096 and maps Z to inverted screen Y.
 /// Has no normal data. The map borrows the vertices and first stream group;
 /// keep akropolis_map loaded during use.
-extern TmdSource gMappicS100WestElevatorHallShape;
+extern TmdSource gAkropolisMapWestElevatorHallShape;
 
 // akropolis_helicopter_landing_pad_map
 /// Helicopter landing pad's area-fill quad on page 2 of the Acropolis map.
@@ -122,6 +122,6 @@ extern TmdSource gMappicS100WestElevatorHallShape;
 /// Four vertices in the model X/Z plane are scaled by 2107/4096, with Z
 /// mapped to inverted screen Y. Has no normal data. The map borrows the
 /// vertices and first stream group; keep akropolis_helicopter_landing_pad_map loaded during use.
-extern TmdSource gMappicS102HelicopterLandingPadShape;
+extern TmdSource gAkropolisHelicopterLandingPadMapShape;
 
 #endif // INCLUDE_STAGES_AKROPOLIS_MAP_H

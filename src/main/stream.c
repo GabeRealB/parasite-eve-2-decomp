@@ -276,7 +276,7 @@ static void _streamAssignMovieBuffers(const GameLocationKey* location)
             return;
         }
         case GAME_STAGE_AKROPOLIS + 1:
-            mapAkropolisSetupMovieBuffers(location);
+            akropolisStageSetupMovieBuffers(location);
             return;
         case GAME_STAGE_DRYFIELD + 1:
             mapDryfieldSetupMovieBuffers(location);

@@ -48460,13 +48460,13 @@ migratable. Add the address to the overlay's `configs/USA/sym/<family>/<name>.tx
 with the `force_not_migration` attribute and re-split:
 
 ```
-_gMapAkropolisKeyItemPanelTitle = 0x8017997C; // force_not_migration:True
+_gAkropolisStageKeyItemPanelTitle = 0x8017997C; // force_not_migration:True
 ```
 
 The symbol then gets `asm/USA/<overlay>/nonmatchings/<unit>/D_..._<addr>.s` of
 its own and the decompiled C keeps it with an `INCLUDE_RODATA` line plus an
 `extern char D_..._<addr>[];`. This is the move when the block is *not*
-expressible as C - `_mapAkropolisKeyItemPanelTask` references a 0x44-byte blob
+expressible as C - `_akropolisStageKeyItemPanelTask` references a 0x44-byte blob
 that starts with the string `"Key Item"` and continues into what disassembles
 as a jump-table dispatcher, so there is nothing sensible to write out by hand.
 Keep the `INCLUDE_RODATA` line where the block belongs in address order, the
@@ -59989,7 +59989,7 @@ the first statement of the block. Compare the `.combine` and `.lreg` dumps for
 the same file: in `.combine` the `const_int 1` insn precedes the other two
 constants, in `.lreg` it follows them.
 
-In `mapAkropolisSetupMovieBuffers` (case 8 of an MDEC-setup switch) the target
+In `akropolisStageSetupMovieBuffers` (case 8 of an MDEC-setup switch) the target
 opens the block with `li $t0, 1` and only uses `$t0` eleven instructions later,
 for three separate `sh` stores. Every source order that keeps the two `sh $t0`
 stores in the target's order sank the `li` three slots, and no statement
