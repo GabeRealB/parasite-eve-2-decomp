@@ -341,15 +341,22 @@ def catalog_name(data: bytes, load: int, source: int) -> str | None:
     src = read_source(data, load, source)
     whole = _MODEL_NAMES.get(hashlib.sha1(data[src["head"]:source + TMD_SOURCE_SIZE]).hexdigest())
     stream = hashlib.sha1(data[src["stream_offset"]:src["end"]]).hexdigest()
-    return whole or _MODEL_NAMES.get(stream) or _declared_streams().get(stream)
+    return whole or _declared_streams().get(copy_key(data, src["head"], source)) or _MODEL_NAMES.get(stream)
 
 
 _DECLARED_STREAMS: dict[str, str] | None = None
 
 
+def copy_key(data: bytes, head: int, source: int) -> str:
+    """What a copy of a model shares with it wherever it is loaded: the SHA-1 of its arrays and stream, everything
+    before its `TmdSource` record, whose pointer words are the only bytes relocation changes. The stream alone is not
+    enough: models with one topology and different vertices (the map pages' room footprints) share it."""
+    return hashlib.sha1(data[head:source]).hexdigest()
+
+
 def _declared_streams() -> dict[str, str]:
-    """A declared model's stream SHA-1 -> its name: the stream of a relocated copy of its package (whose pointer
-    words, and so whole bytes, differ) is that model, placed once by its declaring package."""
+    """A declared model's copy key (copy_key) -> its name: a relocated copy of its package (whose pointer words, and
+    so whole bytes, differ) is that model, placed once by its declaring package."""
     global _DECLARED_STREAMS
     if _DECLARED_STREAMS is None:
         try:
@@ -367,8 +374,7 @@ def _declared_streams() -> dict[str, str]:
                 continue
             data = path.read_bytes()
             off, size = place["offset"], place["size"]
-            src = read_source(data, place["address"] - off, off + size - TMD_SOURCE_SIZE)
-            _DECLARED_STREAMS.setdefault(hashlib.sha1(data[src["stream_offset"]:src["end"]]).hexdigest(), aid)
+            _DECLARED_STREAMS.setdefault(copy_key(data, off, off + size - TMD_SOURCE_SIZE), aid)
     return _DECLARED_STREAMS
 
 
